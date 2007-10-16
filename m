@@ -1,126 +1,206 @@
 From: akpm@linux-foundation.org
-Subject: - add-in-sunos-41x-compatible-mode-for-ufs-fix-2.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 15:04:31 -0700
-Message-ID: <200710162204.l9GM4Waq019949@imap1.linux-foundation.org>
+Subject: - add-in-sunos-41x-compatible-mode-for-ufs-fix.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 15:04:28 -0700
+Message-ID: <200710162204.l9GM4S6X019946@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51485 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44192 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935852AbXJPWEo (ORCPT
+	by vger.kernel.org with ESMTP id S935529AbXJPWEk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 18:04:44 -0400
+	Tue, 16 Oct 2007 18:04:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, dushistov@mail.ru, mark@mtfhpc.demon.co.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dushistov@mail.ru, mark@mtfhpc.demon.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unscrew UFS
+     add-in-sunos-41x-compatible-mode-for-ufs-fix
 has been removed from the -mm tree.  Its filename was
-     add-in-sunos-41x-compatible-mode-for-ufs-fix-2.patch
+     add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
 
 This patch was dropped because it was folded into add-in-sunos-41x-compatible-mode-for-ufs.patch
 
 ------------------------------------------------------
-Subject: unscrew UFS
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: add-in-sunos-41x-compatible-mode-for-ufs-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Dereferencing unintialized "usb3" pointer in ufs_fill_super() is not
-going to work. gcc even warns about this.
+coding style fixes
 
-BUG: unable to handle kernel NULL pointer dereference at virtual address 0000014e
-printing eip: f9a3b1a2 *pde = 00000000
-Oops: 0000 [#1] PREEMPT
-last sysfs file: /block/loop7/removable
-Modules linked in: ufs loop usbhid ehci_hcd snd_intel8x0 snd_ac97_codec uhci_hcd rtc ac97_bus usbcore thermal button processor sr_mod evdev cdrom
-
-Pid: 1066, comm: mount Not tainted (2.6.23-rc8-mm1 #1)
-EIP: 0060:[<f9a3b1a2>] EFLAGS: 00010286 CPU: 0
-EIP is at ufs_fill_super+0x52f/0x12e5 [ufs]
-EAX: 00000002 EBX: c39c4960 ECX: c0176465 EDX: 00000000
-ESI: c38c5000 EDI: c387f800 EBP: 00000600 ESP: c3816d3c
- DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
-Process mount (pid: 1066, ti=c3816000 task=c38f34d0 task.ti=c3816000)
-last branch before last exception/interrupt
- from c0130fc0 (lockdep_on+0xb/0xc)
- to c0118d82 (vprintk+0x29f/0x2fb)
-Stack: 00000010 00000000 00000600 00000000 c3816db4 0038c0d8 00000000 c3816dd4
-       ffffffff 00000002 00000200 00000600 00002130 00002000 c39c4960 c01b1355
-       c3816d94 c3816d94 c0187966 c3816db4 00000020 c0347b9b c280680c 00000400
-Call Trace:
- [<c01b1355>] snprintf+0x1f/0x22
- [<c0187966>] disk_name+0x79/0x83
- [<c015c49b>] get_sb_bdev+0xdc/0x11a
- [<c016ca6d>] alloc_vfsmnt+0x8d/0xb3
- [<f9a39e3c>] ufs_get_sb+0x20/0x25 [ufs]
- [<f9a3ac73>] ufs_fill_super+0x0/0x12e5 [ufs]
- [<c015c09c>] vfs_kern_mount+0x40/0x79
- [<c016d601>] do_mount+0x6c0/0x7e3
- [<c02c82a3>] _spin_unlock+0x25/0x3b
- [<c01318dc>] mark_held_locks+0x39/0x53
- [<c013fd1d>] find_lock_page+0xf/0x84
- [<c014456f>] get_page_from_freelist+0x21e/0x3f0
- [<c0131ab0>] trace_hardirqs_on+0x118/0x13b
- [<c0144599>] get_page_from_freelist+0x248/0x3f0
- [<c01582f1>] kmem_cache_alloc+0x68/0x9b
- [<c016be18>] copy_mount_options+0x26/0x109
- [<c016d79b>] sys_mount+0x77/0xb3
- [<c0103db2>] sysenter_past_esp+0x5f/0x99
- =======================
-INFO: lockdep is turned off.
-Code: d2 f7 74 24 28 03 87 50 01 00 00 89 04 24 c7 44 24 04 00 00 00 00 89 f2 89 f8 e8 e6 2b 00 00 85 c0 0f 84 1e 0d 00 00 8b 44 24 24 <8b> 90 4c 01 00 00 8b 86 58 02 00 00 83 78 08 00 74 02 0f ca 89
-EIP: [<f9a3b1a2>] ufs_fill_super+0x52f/0x12e5 [ufs] SS:ESP 0068:c3816d3c
-
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Evgeniy Dushistov <dushistov@mail.ru>
 Cc: Mark Fortescue <mark@mtfhpc.demon.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/super.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ fs/ufs/super.c |   11 ++++++-----
+ fs/ufs/util.h  |    6 ++++--
+ 2 files changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN fs/ufs/super.c~add-in-sunos-41x-compatible-mode-for-ufs-fix-2 fs/ufs/super.c
---- a/fs/ufs/super.c~add-in-sunos-41x-compatible-mode-for-ufs-fix-2
+diff -puN fs/ufs/super.c~add-in-sunos-41x-compatible-mode-for-ufs-fix fs/ufs/super.c
+--- a/fs/ufs/super.c~add-in-sunos-41x-compatible-mode-for-ufs-fix
 +++ a/fs/ufs/super.c
-@@ -822,6 +822,10 @@ again:	
- 	if (!ubh) 
-             goto failed;
- 
-+	usb1 = ubh_get_usb_first(uspi);
-+	usb2 = ubh_get_usb_second(uspi);
-+	usb3 = ubh_get_usb_third(uspi);
-+
- 	/* Sort out mod used on SunOS 4.1.3 for fs_state */
- 	uspi->s_postblformat = fs32_to_cpu(sb, usb3->fs_postblformat);
- 	if (((flags & UFS_ST_MASK) == UFS_ST_SUNOS) &&
-@@ -830,11 +834,6 @@ again:	
- 		flags |=  UFS_ST_SUN;
+@@ -341,8 +341,8 @@ static int ufs_parse_options (char * opt
+ 			ufs_set_opt (*mount_options, UFSTYPE_SUN);
+ 			break;
+ 		case Opt_type_sunos:
+-			ufs_clear_opt (*mount_options, UFSTYPE);
+-			ufs_set_opt (*mount_options, UFSTYPE_SUNOS);
++			ufs_clear_opt(*mount_options, UFSTYPE);
++			ufs_set_opt(*mount_options, UFSTYPE_SUNOS);
+ 			break;
+ 		case Opt_type_44bsd:
+ 			ufs_clear_opt (*mount_options, UFSTYPE);
+@@ -659,8 +659,8 @@ static int ufs_fill_super(struct super_b
+ 		ufs_set_opt (sbi->s_mount_opt, UFSTYPE_OLD);
  	}
  
--	
--	usb1 = ubh_get_usb_first(uspi);
--	usb2 = ubh_get_usb_second(uspi);
--	usb3 = ubh_get_usb_third(uspi);
--
- 	/*
- 	 * Check ufs magic number
- 	 */
+-	sbi->s_uspi = uspi =
+-		kzalloc (sizeof(struct ufs_sb_private_info), GFP_KERNEL);
++	uspi = kzalloc(sizeof(struct ufs_sb_private_info), GFP_KERNEL);
++	sbi->s_uspi = uspi;
+ 	if (!uspi)
+ 		goto failed;
+ 	uspi->s_dirblksize = UFS_SECTOR_SIZE;
+@@ -706,7 +706,8 @@ static int ufs_fill_super(struct super_b
+ 		uspi->s_fsize = block_size = 1024;
+ 		uspi->s_fmask = ~(1024 - 1);
+ 		uspi->s_fshift = 10;
+-		uspi->s_sbsize = super_block_size = 2048;
++		uspi->s_sbsize = 2048;
++		super_block_size = 2048;
+ 		uspi->s_sbbase = 0;
+ 		uspi->s_maxsymlinklen = 0; /* Not supported on disk */
+ 		flags |= UFS_DE_OLD | UFS_UID_OLD | UFS_ST_SUNOS | UFS_CG_SUN;
+diff -puN fs/ufs/util.h~add-in-sunos-41x-compatible-mode-for-ufs-fix fs/ufs/util.h
+--- a/fs/ufs/util.h~add-in-sunos-41x-compatible-mode-for-ufs-fix
++++ a/fs/ufs/util.h
+@@ -212,7 +212,8 @@ ufs_set_inode_uid(struct super_block *sb
+ 		break;
+ 	case UFS_UID_EFT:
+ 		inode->ui_u3.ui_sun.ui_uid = cpu_to_fs32(sb, value);
+-		if (value > 0xFFFF) value = 0xFFFF;
++		if (value > 0xFFFF)
++			value = 0xFFFF;
+ 		/* Fall through */
+ 	default:
+ 		inode->ui_u1.oldids.ui_suid = cpu_to_fs16(sb, value);
+@@ -245,7 +246,8 @@ ufs_set_inode_gid(struct super_block *sb
+ 		break;
+ 	case UFS_UID_EFT:
+ 		inode->ui_u3.ui_sun.ui_gid = cpu_to_fs32(sb, value);
+-		if (value > 0xFFFF) value = 0xFFFF;
++		if (value > 0xFFFF)
++			value = 0xFFFF;
+ 		/* Fall through */
+ 	default:
+ 		inode->ui_u1.oldids.ui_sgid =  cpu_to_fs16(sb, value);
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-oom-prevent-including-schedh-in-header-file.patch
-oom-add-header-file-to-kbuild-as-unifdef.patch
-faster-ext2_clear_inode.patch
-fs-proc-mmuc-headers-butchery.patch
-remove-sysctlh-from-fsh.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold.patch
+mm-dirty-balancing-for-tasks.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
+oom-change-all_unreclaimable-zone-member-to-flags.patch
+oom-do-not-take-callback_mutex.patch
+writeback-dont-propagate-aop_writepage_activate.patch
+softlockup-add-a-proc-tuning-parameter.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
+do_sys_poll-simplify-playing-with-on-stack-data.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
 add-in-sunos-41x-compatible-mode-for-ufs.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix-2.patch
-epcac-reformat-comments-and-coding-style-improvements.patch
-shrink-struct-task_structoomkilladj.patch
-remove-struct-task_structio_wait.patch
-drop-some-headers-from-mmh.patch
-dont-truncate-proc-pid-environ-at-4096-characters.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
+f_dupfd_cloexec-implementation-fix-2.patch
+ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
+drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
 revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+pnp-use-dev_info-dev_err-etc-in-core-fix.patch
+pnp-add-debug-message-for-adding-new-device-fix-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
