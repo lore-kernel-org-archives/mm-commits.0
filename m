@@ -1,174 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - vfb-make-virtual-framebuffer-mmapable.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:44:07 -0700
-Message-ID: <200710162044.l9GKi7j4016115@imap1.linux-foundation.org>
+Subject: - uml-correctly-handle-skb-allocation-failures.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:39:07 -0700
+Message-ID: <200710162039.l9GKd7T8015516@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38587 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56009 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936057AbXJPVIB (ORCPT
+	by vger.kernel.org with ESMTP id S936131AbXJPVHv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:08:01 -0400
+	Tue, 16 Oct 2007 17:07:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ilya.yanok@gmail.com, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfb: make virtual framebuffer mmapable
+     uml: correctly handle skb allocation failures
 has been removed from the -mm tree.  Its filename was
-     vfb-make-virtual-framebuffer-mmapable.patch
+     uml-correctly-handle-skb-allocation-failures.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: vfb: make virtual framebuffer mmapable
-From: Ilya Yanok <ilya.yanok@gmail.com>
+Subject: uml: correctly handle skb allocation failures
+From: Jeff Dike <jdike@addtoit.com>
 
-Changed things:
+Handle memory allocation failures when reading packets.
 
-1. vmalloc()/vfree() replaced with rvmalloc()/rvfree() (taken from
-   drivers/media/video/se401.c)
+We have to read something from the host, even if we can't allocate any
+memory.  If we don't, the host side of the device may fill up and stop
+delivering interrupts because no new packets can be queued.
 
-2. mmap method implemented (mostly taken from drivers/media/video/se401.c)
+A single sk_buff is allocated whenever an MTU is seen which is larger
+than any seen earlier.  This is used to read packets if there is a
+memory allocation failure.
 
-3. smem_start and smem_len fields of struct fb_fix_screeninfo initialized.
-    (smem_start initialized with virtual address, don't know if it is really
-   bad...)
+The large MTU check is done from eth_configure, which is called when a
+interface is added to the system.
 
-[adaplas: sparse warning fix]
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/vfb.c |   78 +++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 74 insertions(+), 4 deletions(-)
+ arch/um/drivers/net_kern.c |   47 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
-diff -puN drivers/video/vfb.c~vfb-make-virtual-framebuffer-mmapable drivers/video/vfb.c
---- a/drivers/video/vfb.c~vfb-make-virtual-framebuffer-mmapable
-+++ a/drivers/video/vfb.c
-@@ -37,6 +37,48 @@ static void *videomemory;
- static u_long videomemorysize = VIDEOMEMSIZE;
- module_param(videomemorysize, ulong, 0);
+diff -puN arch/um/drivers/net_kern.c~uml-correctly-handle-skb-allocation-failures arch/um/drivers/net_kern.c
+--- a/arch/um/drivers/net_kern.c~uml-correctly-handle-skb-allocation-failures
++++ a/arch/um/drivers/net_kern.c
+@@ -34,6 +34,46 @@ static inline void set_ether_mac(struct 
+ static DEFINE_SPINLOCK(opened_lock);
+ static LIST_HEAD(opened);
  
-+/**********************************************************************
-+ *
-+ * Memory management
-+ *
-+ **********************************************************************/
-+static void *rvmalloc(unsigned long size)
++/*
++ * The drop_skb is used when we can't allocate an skb.  The
++ * packet is read into drop_skb in order to get the data off the
++ * connection to the host.
++ * It is reallocated whenever a maximum packet size is seen which is
++ * larger than any seen before.  update_drop_skb is called from
++ * eth_configure when a new interface is added.
++ */
++static DEFINE_SPINLOCK(drop_lock);
++static struct sk_buff *drop_skb;
++static int drop_max;
++
++static int update_drop_skb(int max)
 +{
-+	void *mem;
-+	unsigned long adr;
++	struct sk_buff *new;
++	unsigned long flags;
++	int err = 0;
 +
-+	size = PAGE_ALIGN(size);
-+	mem = vmalloc_32(size);
-+	if (!mem)
-+		return NULL;
++	spin_lock_irqsave(&drop_lock, flags);
 +
-+	memset(mem, 0, size); /* Clear the ram out, no junk to the user */
-+	adr = (unsigned long) mem;
-+	while (size > 0) {
-+		SetPageReserved(vmalloc_to_page((void *)adr));
-+		adr += PAGE_SIZE;
-+		size -= PAGE_SIZE;
-+	}
++	if (max <= drop_max)
++		goto out;
 +
-+	return mem;
++	err = -ENOMEM;
++	new = dev_alloc_skb(max);
++	if (new == NULL)
++		goto out;
++
++	skb_put(new, max);
++
++	kfree_skb(drop_skb);
++	drop_skb = new;
++	drop_max = max;
++	err = 0;
++out:
++	spin_unlock_irqrestore(&drop_lock, flags);
++
++	return err;
 +}
 +
-+static void rvfree(void *mem, unsigned long size)
-+{
-+	unsigned long adr;
-+
-+	if (!mem)
-+		return;
-+
-+	adr = (unsigned long) mem;
-+	while ((long) size > 0) {
-+		ClearPageReserved(vmalloc_to_page((void *)adr));
-+		adr += PAGE_SIZE;
-+		size -= PAGE_SIZE;
-+	}
-+	vfree(mem);
-+}
-+
- static struct fb_var_screeninfo vfb_default __initdata = {
- 	.xres =		640,
- 	.yres =		480,
-@@ -371,7 +413,33 @@ static int vfb_pan_display(struct fb_var
- static int vfb_mmap(struct fb_info *info,
- 		    struct vm_area_struct *vma)
+ static int uml_net_rx(struct net_device *dev)
  {
--	return -EINVAL;
-+	unsigned long start = vma->vm_start;
-+	unsigned long size = vma->vm_end - vma->vm_start;
-+	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
-+	unsigned long page, pos;
-+
-+	if (offset + size > info->fix.smem_len) {
-+		return -EINVAL;
-+	}
-+
-+	pos = (unsigned long)info->fix.smem_start + offset;
-+
-+	while (size > 0) {
-+		page = vmalloc_to_pfn((void *)pos);
-+		if (remap_pfn_range(vma, start, page, PAGE_SIZE, PAGE_SHARED)) {
-+			return -EAGAIN;
-+		}
-+		start += PAGE_SIZE;
-+		pos += PAGE_SIZE;
-+		if (size > PAGE_SIZE)
-+			size -= PAGE_SIZE;
-+		else
-+			size = 0;
-+	}
-+
-+	vma->vm_flags |= VM_RESERVED;	/* avoid to swap out this VMA */
-+	return 0;
-+
- }
- 
- #ifndef MODULE
-@@ -406,7 +474,7 @@ static int __init vfb_probe(struct platf
- 	/*
- 	 * For real video cards we use ioremap.
- 	 */
--	if (!(videomemory = vmalloc(videomemorysize)))
-+	if (!(videomemory = rvmalloc(videomemorysize)))
- 		return retval;
- 
- 	/*
-@@ -429,6 +497,8 @@ static int __init vfb_probe(struct platf
- 
- 	if (!retval || (retval == 4))
- 		info->var = vfb_default;
-+	vfb_fix.smem_start = (unsigned long) videomemory;
-+	vfb_fix.smem_len = videomemorysize;
- 	info->fix = vfb_fix;
- 	info->pseudo_palette = info->par;
- 	info->par = NULL;
-@@ -452,7 +522,7 @@ err2:
- err1:
- 	framebuffer_release(info);
- err:
--	vfree(videomemory);
-+	rvfree(videomemory, videomemorysize);
- 	return retval;
- }
- 
-@@ -462,7 +532,7 @@ static int vfb_remove(struct platform_de
- 
- 	if (info) {
- 		unregister_framebuffer(info);
--		vfree(videomemory);
-+		rvfree(videomemory, videomemorysize);
- 		framebuffer_release(info);
+ 	struct uml_net_private *lp = dev->priv;
+@@ -43,6 +83,9 @@ static int uml_net_rx(struct net_device 
+ 	/* If we can't allocate memory, try again next round. */
+ 	skb = dev_alloc_skb(lp->max_packet);
+ 	if (skb == NULL) {
++		drop_skb->dev = dev;
++		/* Read a packet into drop_skb and don't do anything with it. */
++		(*lp->read)(lp->fd, drop_skb, lp);
+ 		lp->stats.rx_dropped++;
+ 		return 0;
  	}
- 	return 0;
+@@ -447,6 +490,10 @@ static void eth_configure(int n, void *i
+ 	dev->watchdog_timeo = (HZ >> 1);
+ 	dev->irq = UM_ETH_IRQ;
+ 
++	err = update_drop_skb(lp->max_packet);
++	if (err)
++		goto out_undo_user_init;
++
+ 	rtnl_lock();
+ 	err = register_netdevice(dev);
+ 	rtnl_unlock();
 _
 
-Patches currently in -mm which might be from ilya.yanok@gmail.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
+git-kvm.patch
+uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
+bitops-introduce-lock-ops.patch
