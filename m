@@ -1,202 +1,218 @@
 From: akpm@linux-foundation.org
-Subject: - memoryless-nodes-fix-gfp_thisnode-behavior.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:34:06 -0700
-Message-ID: <200710162034.l9GKY6GY014894@imap1.linux-foundation.org>
+Subject: - memoryless-nodes-use-n_high_memory-for-cpusets.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:34:08 -0700
+Message-ID: <200710162034.l9GKY85d014900@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36610 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48876 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760999AbXJPVwo (ORCPT
+	by vger.kernel.org with ESMTP id S933875AbXJPVxT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:52:44 -0400
+	Tue, 16 Oct 2007 17:53:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: clameter@sgi.com, bob.picco@hp.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@skynet.ie, nacc@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Memoryless nodes: Fix GFP_THISNODE behavior
+     Memoryless nodes: Use N_HIGH_MEMORY for cpusets
 has been removed from the -mm tree.  Its filename was
-     memoryless-nodes-fix-gfp_thisnode-behavior.patch
+     memoryless-nodes-use-n_high_memory-for-cpusets.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Memoryless nodes: Fix GFP_THISNODE behavior
+Subject: Memoryless nodes: Use N_HIGH_MEMORY for cpusets
 From: Christoph Lameter <clameter@sgi.com>
 
-GFP_THISNODE checks that the zone selected is within the pgdat (node) of the
-first zone of a nodelist.  That only works if the node has memory.  A
-memoryless node will have its first node on another pgdat (node).
+cpusets try to ensure that any node added to a cpuset's mems_allowed is
+on-line and contains memory.  The assumption was that online nodes contained
+memory.  Thus, it is possible to add memoryless nodes to a cpuset and then add
+tasks to this cpuset.  This results in continuous series of oom-kill and
+apparent system hang.
 
-GFP_THISNODE currently will return simply memory on the first pgdat.  Thus it
-is returning memory on other nodes.  GFP_THISNODE should fail if there is no
-local memory on a node.
+Change cpusets to use node_states[N_HIGH_MEMORY] [a.k.a.  node_memory_map] in
+place of node_online_map when vetting memories.  Return error if admin
+attempts to write a non-empty mems_allowed node mask containing only
+memoryless-nodes.
 
-Add a new set of zonelists for each node that only contain the nodes that
-belong to the zones itself so that no fallback is possible.
-
-Then modify gfp_type to pickup the right zone based on the presence of
-__GFP_THISNODE.
-
-Drop the existing GFP_THISNODE checks from the page_allocators hot path.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
-Tested-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Acked-by: Bob Picco <bob.picco@hp.com>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Signed-off-by: Bob Picco <bob.picco@hp.com>
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Mel Gorman <mel@skynet.ie>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h    |   17 ++++++++++++-----
- include/linux/mmzone.h |   14 +++++++++++++-
- mm/page_alloc.c        |   28 +++++++++++++++++++++++-----
- 3 files changed, 48 insertions(+), 11 deletions(-)
+ Documentation/cpusets.txt |    7 ++--
+ include/linux/cpuset.h    |    2 -
+ kernel/cpuset.c           |   56 ++++++++++++++++++++++++------------
+ 3 files changed, 43 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/gfp.h~memoryless-nodes-fix-gfp_thisnode-behavior include/linux/gfp.h
---- a/include/linux/gfp.h~memoryless-nodes-fix-gfp_thisnode-behavior
-+++ a/include/linux/gfp.h
-@@ -98,22 +98,29 @@ struct vm_area_struct;
+diff -puN Documentation/cpusets.txt~memoryless-nodes-use-n_high_memory-for-cpusets Documentation/cpusets.txt
+--- a/Documentation/cpusets.txt~memoryless-nodes-use-n_high_memory-for-cpusets
++++ a/Documentation/cpusets.txt
+@@ -35,7 +35,8 @@ CONTENTS:
+ ----------------------
  
- static inline enum zone_type gfp_zone(gfp_t flags)
+ Cpusets provide a mechanism for assigning a set of CPUs and Memory
+-Nodes to a set of tasks.
++Nodes to a set of tasks.   In this document "Memory Node" refers to
++an on-line node that contains memory.
+ 
+ Cpusets constrain the CPU and Memory placement of tasks to only
+ the resources within a tasks current cpuset.  They form a nested
+@@ -220,8 +221,8 @@ and name space for cpusets, with a minim
+ The cpus and mems files in the root (top_cpuset) cpuset are
+ read-only.  The cpus file automatically tracks the value of
+ cpu_online_map using a CPU hotplug notifier, and the mems file
+-automatically tracks the value of node_online_map using the
+-cpuset_track_online_nodes() hook.
++automatically tracks the value of node_states[N_MEMORY]--i.e.,
++nodes with memory--using the cpuset_track_online_nodes() hook.
+ 
+ 
+ 1.4 What are exclusive cpusets ?
+diff -puN include/linux/cpuset.h~memoryless-nodes-use-n_high_memory-for-cpusets include/linux/cpuset.h
+--- a/include/linux/cpuset.h~memoryless-nodes-use-n_high_memory-for-cpusets
++++ a/include/linux/cpuset.h
+@@ -93,7 +93,7 @@ static inline nodemask_t cpuset_mems_all
+ 	return node_possible_map;
+ }
+ 
+-#define cpuset_current_mems_allowed (node_online_map)
++#define cpuset_current_mems_allowed (node_states[N_HIGH_MEMORY])
+ static inline void cpuset_init_current_mems_allowed(void) {}
+ static inline void cpuset_update_task_memory_state(void) {}
+ #define cpuset_nodes_subset_current_mems_allowed(nodes) (1)
+diff -puN kernel/cpuset.c~memoryless-nodes-use-n_high_memory-for-cpusets kernel/cpuset.c
+--- a/kernel/cpuset.c~memoryless-nodes-use-n_high_memory-for-cpusets
++++ a/kernel/cpuset.c
+@@ -581,26 +581,28 @@ static void guarantee_online_cpus(const 
+ 
+ /*
+  * Return in *pmask the portion of a cpusets's mems_allowed that
+- * are online.  If none are online, walk up the cpuset hierarchy
+- * until we find one that does have some online mems.  If we get
+- * all the way to the top and still haven't found any online mems,
+- * return node_online_map.
++ * are online, with memory.  If none are online with memory, walk
++ * up the cpuset hierarchy until we find one that does have some
++ * online mems.  If we get all the way to the top and still haven't
++ * found any online mems, return node_states[N_HIGH_MEMORY].
+  *
+  * One way or another, we guarantee to return some non-empty subset
+- * of node_online_map.
++ * of node_states[N_HIGH_MEMORY].
+  *
+  * Call with callback_mutex held.
+  */
+ 
+ static void guarantee_online_mems(const struct cpuset *cs, nodemask_t *pmask)
  {
-+	int base = 0;
-+
-+#ifdef CONFIG_NUMA
-+	if (flags & __GFP_THISNODE)
-+		base = MAX_NR_ZONES;
-+#endif
-+
- #ifdef CONFIG_ZONE_DMA
- 	if (flags & __GFP_DMA)
--		return ZONE_DMA;
-+		return base + ZONE_DMA;
- #endif
- #ifdef CONFIG_ZONE_DMA32
- 	if (flags & __GFP_DMA32)
--		return ZONE_DMA32;
-+		return base + ZONE_DMA32;
- #endif
- 	if ((flags & (__GFP_HIGHMEM | __GFP_MOVABLE)) ==
- 			(__GFP_HIGHMEM | __GFP_MOVABLE))
--		return ZONE_MOVABLE;
-+		return base + ZONE_MOVABLE;
- #ifdef CONFIG_HIGHMEM
- 	if (flags & __GFP_HIGHMEM)
--		return ZONE_HIGHMEM;
-+		return base + ZONE_HIGHMEM;
- #endif
--	return ZONE_NORMAL;
-+	return base + ZONE_NORMAL;
+-	while (cs && !nodes_intersects(cs->mems_allowed, node_online_map))
++	while (cs && !nodes_intersects(cs->mems_allowed,
++					node_states[N_HIGH_MEMORY]))
+ 		cs = cs->parent;
+ 	if (cs)
+-		nodes_and(*pmask, cs->mems_allowed, node_online_map);
++		nodes_and(*pmask, cs->mems_allowed,
++					node_states[N_HIGH_MEMORY]);
+ 	else
+-		*pmask = node_online_map;
+-	BUG_ON(!nodes_intersects(*pmask, node_online_map));
++		*pmask = node_states[N_HIGH_MEMORY];
++	BUG_ON(!nodes_intersects(*pmask, node_states[N_HIGH_MEMORY]));
  }
  
- /*
-diff -puN include/linux/mmzone.h~memoryless-nodes-fix-gfp_thisnode-behavior include/linux/mmzone.h
---- a/include/linux/mmzone.h~memoryless-nodes-fix-gfp_thisnode-behavior
-+++ a/include/linux/mmzone.h
-@@ -324,6 +324,17 @@ struct zone {
- #define MAX_ZONES_PER_ZONELIST (MAX_NUMNODES * MAX_NR_ZONES)
+ /**
+@@ -924,7 +926,10 @@ static int update_nodemask(struct cpuset
+ 	int fudge;
+ 	int retval;
  
- #ifdef CONFIG_NUMA
-+
-+/*
-+ * The NUMA zonelists are doubled becausse we need zonelists that restrict the
-+ * allocations to a single node for GFP_THISNODE.
-+ *
-+ * [0 .. MAX_NR_ZONES -1] 		: Zonelists with fallback
-+ * [MAZ_NR_ZONES ... MAZ_ZONELISTS -1]  : No fallback (GFP_THISNODE)
-+ */
-+#define MAX_ZONELISTS (2 * MAX_NR_ZONES)
-+
-+
- /*
-  * We cache key information from each zonelist for smaller cache
-  * footprint when scanning for free pages in get_page_from_freelist().
-@@ -389,6 +400,7 @@ struct zonelist_cache {
- 	unsigned long last_full_zap;		/* when last zap'd (jiffies) */
- };
- #else
-+#define MAX_ZONELISTS MAX_NR_ZONES
- struct zonelist_cache;
- #endif
+-	/* top_cpuset.mems_allowed tracks node_online_map; it's read-only */
++	/*
++	 * top_cpuset.mems_allowed tracks node_stats[N_HIGH_MEMORY];
++	 * it's read-only
++	 */
+ 	if (cs == &top_cpuset)
+ 		return -EACCES;
  
-@@ -455,7 +467,7 @@ extern struct page *mem_map;
- struct bootmem_data;
- typedef struct pglist_data {
- 	struct zone node_zones[MAX_NR_ZONES];
--	struct zonelist node_zonelists[MAX_NR_ZONES];
-+	struct zonelist node_zonelists[MAX_ZONELISTS];
- 	int nr_zones;
- #ifdef CONFIG_FLAT_NODE_MEM_MAP
- 	struct page *node_mem_map;
-diff -puN mm/page_alloc.c~memoryless-nodes-fix-gfp_thisnode-behavior mm/page_alloc.c
---- a/mm/page_alloc.c~memoryless-nodes-fix-gfp_thisnode-behavior
-+++ a/mm/page_alloc.c
-@@ -1191,9 +1191,6 @@ zonelist_scan:
- 			!zlc_zone_worth_trying(zonelist, z, allowednodes))
- 				continue;
- 		zone = *z;
--		if (unlikely(NUMA_BUILD && (gfp_mask & __GFP_THISNODE) &&
--			zone->zone_pgdat != zonelist->zones[0]->zone_pgdat))
--				break;
- 		if ((alloc_flags & ALLOC_CPUSET) &&
- 			!cpuset_zone_allowed_softwall(zone, gfp_mask))
- 				goto try_next_zone;
-@@ -1262,7 +1259,10 @@ restart:
- 	z = zonelist->zones;  /* the list of zones suitable for gfp_mask */
- 
- 	if (unlikely(*z == NULL)) {
--		/* Should this ever happen?? */
-+		/*
-+		 * Happens if we have an empty zonelist as a result of
-+		 * GFP_THISNODE being used on a memoryless node
-+		 */
- 		return NULL;
+@@ -941,8 +946,21 @@ static int update_nodemask(struct cpuset
+ 		retval = nodelist_parse(buf, trialcs.mems_allowed);
+ 		if (retval < 0)
+ 			goto done;
++		if (!nodes_intersects(trialcs.mems_allowed,
++						node_states[N_HIGH_MEMORY])) {
++			/*
++			 * error if only memoryless nodes specified.
++			 */
++			retval = -ENOSPC;
++			goto done;
++		}
  	}
+-	nodes_and(trialcs.mems_allowed, trialcs.mems_allowed, node_online_map);
++	/*
++	 * Exclude memoryless nodes.  We know that trialcs.mems_allowed
++	 * contains at least one node with memory.
++	 */
++	nodes_and(trialcs.mems_allowed, trialcs.mems_allowed,
++						node_states[N_HIGH_MEMORY]);
+ 	oldmem = cs->mems_allowed;
+ 	if (nodes_equal(oldmem, trialcs.mems_allowed)) {
+ 		retval = 0;		/* Too easy - nothing to do */
+@@ -2098,8 +2116,9 @@ static void guarantee_online_cpus_mems_i
  
-@@ -1858,6 +1858,22 @@ static void build_zonelists_in_node_orde
+ /*
+  * The cpus_allowed and mems_allowed nodemasks in the top_cpuset track
+- * cpu_online_map and node_online_map.  Force the top cpuset to track
+- * whats online after any CPU or memory node hotplug or unplug event.
++ * cpu_online_map and node_states[N_HIGH_MEMORY].  Force the top cpuset to
++ * track what's online after any CPU or memory node hotplug or unplug
++ * event.
+  *
+  * To ensure that we don't remove a CPU or node from the top cpuset
+  * that is currently in use by a child cpuset (which would violate
+@@ -2119,7 +2138,7 @@ static void common_cpu_mem_hotplug_unplu
+ 
+ 	guarantee_online_cpus_mems_in_subtree(&top_cpuset);
+ 	top_cpuset.cpus_allowed = cpu_online_map;
+-	top_cpuset.mems_allowed = node_online_map;
++	top_cpuset.mems_allowed = node_states[N_HIGH_MEMORY];
+ 
+ 	mutex_unlock(&callback_mutex);
+ 	mutex_unlock(&manage_mutex);
+@@ -2147,8 +2166,9 @@ static int cpuset_handle_cpuhp(struct no
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ /*
+- * Keep top_cpuset.mems_allowed tracking node_online_map.
+- * Call this routine anytime after you change node_online_map.
++ * Keep top_cpuset.mems_allowed tracking node_states[N_HIGH_MEMORY].
++ * Call this routine anytime after you change
++ * node_states[N_HIGH_MEMORY].
+  * See also the previous routine cpuset_handle_cpuhp().
+  */
+ 
+@@ -2167,7 +2187,7 @@ void cpuset_track_online_nodes(void)
+ void __init cpuset_init_smp(void)
+ {
+ 	top_cpuset.cpus_allowed = cpu_online_map;
+-	top_cpuset.mems_allowed = node_online_map;
++	top_cpuset.mems_allowed = node_states[N_HIGH_MEMORY];
+ 
+ 	hotcpu_notifier(cpuset_handle_cpuhp, 0);
  }
+@@ -2309,7 +2329,7 @@ void cpuset_init_current_mems_allowed(vo
+  *
+  * Description: Returns the nodemask_t mems_allowed of the cpuset
+  * attached to the specified @tsk.  Guaranteed to return some non-empty
+- * subset of node_online_map, even if this means going outside the
++ * subset of node_states[N_HIGH_MEMORY], even if this means going outside the
+  * tasks cpuset.
+  **/
  
- /*
-+ * Build gfp_thisnode zonelists
-+ */
-+static void build_thisnode_zonelists(pg_data_t *pgdat)
-+{
-+	enum zone_type i;
-+	int j;
-+	struct zonelist *zonelist;
-+
-+	for (i = 0; i < MAX_NR_ZONES; i++) {
-+		zonelist = pgdat->node_zonelists + MAX_NR_ZONES + i;
-+		j = build_zonelists_node(pgdat, zonelist, 0, i);
-+		zonelist->zones[j] = NULL;
-+	}
-+}
-+
-+/*
-  * Build zonelists ordered by zone and nodes within zones.
-  * This results in conserving DMA zone[s] until all Normal memory is
-  * exhausted, but results in overflowing to remote node while memory
-@@ -1961,7 +1977,7 @@ static void build_zonelists(pg_data_t *p
- 	int order = current_zonelist_order;
- 
- 	/* initialize zonelists */
--	for (i = 0; i < MAX_NR_ZONES; i++) {
-+	for (i = 0; i < MAX_ZONELISTS; i++) {
- 		zonelist = pgdat->node_zonelists + i;
- 		zonelist->zones[0] = NULL;
- 	}
-@@ -2006,6 +2022,8 @@ static void build_zonelists(pg_data_t *p
- 		/* calculate node order -- i.e., DMA last! */
- 		build_zonelists_in_zone_order(pgdat, j);
- 	}
-+
-+	build_thisnode_zonelists(pgdat);
- }
- 
- /* Construct the zonelist performance cache - see further mmzone.h */
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
