@@ -1,178 +1,223 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-make-needlessly-global-symbols-static.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:40:40 -0700
-Message-ID: <200710162040.l9GKee5P015711@imap1.linux-foundation.org>
+Subject: - vt-vgacon-check-if-screen-resize-request-comes-from-userspace.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:44:52 -0700
+Message-ID: <200710162044.l9GKiqcf016203@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49732 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58912 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753887AbXJPVFo (ORCPT
+	by vger.kernel.org with ESMTP id S1758790AbXJPVGs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:05:44 -0400
+	Tue, 16 Oct 2007 17:06:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eCryptfs: make needlessly global symbols static
+     vt/vgacon: Check if screen resize request comes from userspace
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-make-needlessly-global-symbols-static.patch
+     vt-vgacon-check-if-screen-resize-request-comes-from-userspace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: eCryptfs: make needlessly global symbols static
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: vt/vgacon: Check if screen resize request comes from userspace
+From: "Antonino A. Daplas" <adaplas@gmail.com>
 
-Andrew Morton wrote:
-> Please check that all the newly-added global symbols do indeed need
-> to be global.
+Various console drivers are able to resize the screen via the con_resize()
+hook.  This hook is also visible in userspace via the TIOCWINSZ, VT_RESIZE and
+VT_RESIZEX ioctl's.  One particular utility, SVGATextMode, expects that
+con_resize() of the VGA console will always return success even if the
+resulting screen is not compatible with the hardware.  However, this
+particular behavior of the VGA console, as reported in Kernel Bugzilla Bug
+7513, can cause undefined behavior if the user starts with a console size
+larger than 80x25.
 
-Change symbols in keystore.c and crypto.o to static if they do not
-need to be global.
+To work around this problem, add an extra parameter to con_resize().  This
+parameter is ignored by drivers except for vgacon.  If this parameter is
+non-zero, then the resize request came from a VT_RESIZE or VT_RESIZEX ioctl
+and vgacon will always return success.  If this parameter is zero, vgacon will
+return -EINVAL if the requested size is not compatible with the hardware.  The
+latter is the more correct behavior.
 
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+With this change, SVGATextMode should still work correctly while in-kernel and
+stty resize calls can expect correct behavior from vgacon.
+
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/crypto.c          |    8 ++---
- fs/ecryptfs/ecryptfs_kernel.h |    7 -----
- fs/ecryptfs/keystore.c        |   43 ++++++++++++++++----------------
- 3 files changed, 26 insertions(+), 32 deletions(-)
+ drivers/char/vt.c                       |   13 +++++++++----
+ drivers/char/vt_ioctl.c                 |   15 +++++++++++++--
+ drivers/usb/misc/sisusbvga/sisusb_con.c |    3 ++-
+ drivers/video/console/fbcon.c           |    2 +-
+ drivers/video/console/vgacon.c          |    7 ++++---
+ include/linux/console.h                 |    3 ++-
+ include/linux/console_struct.h          |    1 +
+ 7 files changed, 32 insertions(+), 12 deletions(-)
 
-diff -puN fs/ecryptfs/crypto.c~ecryptfs-make-needlessly-global-symbols-static fs/ecryptfs/crypto.c
---- a/fs/ecryptfs/crypto.c~ecryptfs-make-needlessly-global-symbols-static
-+++ a/fs/ecryptfs/crypto.c
-@@ -123,9 +123,9 @@ out:
- 	return rc;
+diff -puN drivers/char/vt.c~vt-vgacon-check-if-screen-resize-request-comes-from-userspace drivers/char/vt.c
+--- a/drivers/char/vt.c~vt-vgacon-check-if-screen-resize-request-comes-from-userspace
++++ a/drivers/char/vt.c
+@@ -750,13 +750,15 @@ int vc_allocate(unsigned int currcons)	/
+ 	return 0;
  }
  
--int ecryptfs_crypto_api_algify_cipher_name(char **algified_name,
--					   char *cipher_name,
--					   char *chaining_modifier)
-+static int ecryptfs_crypto_api_algify_cipher_name(char **algified_name,
-+						  char *cipher_name,
-+						  char *chaining_modifier)
+-static inline int resize_screen(struct vc_data *vc, int width, int height)
++static inline int resize_screen(struct vc_data *vc, int width, int height,
++				int user)
  {
- 	int cipher_name_len = strlen(cipher_name);
- 	int chaining_modifier_len = strlen(chaining_modifier);
-@@ -1859,7 +1859,7 @@ out:
-  * should be released by other functions, such as on a superblock put
-  * event, regardless of whether this function succeeds for fails.
-  */
--int
-+static int
- ecryptfs_process_key_cipher(struct crypto_blkcipher **key_tfm,
- 			    char *cipher_name, size_t *key_size)
- {
-diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-make-needlessly-global-symbols-static fs/ecryptfs/ecryptfs_kernel.h
---- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-make-needlessly-global-symbols-static
-+++ a/fs/ecryptfs/ecryptfs_kernel.h
-@@ -156,7 +156,6 @@ struct ecryptfs_auth_tok {
- 	} token;
- } __attribute__ ((packed));
+ 	/* Resizes the resolution of the display adapater */
+ 	int err = 0;
  
--int ecryptfs_get_auth_tok_sig(char **sig, struct ecryptfs_auth_tok *auth_tok);
- void ecryptfs_dump_auth_tok(struct ecryptfs_auth_tok *auth_tok);
- extern void ecryptfs_to_hex(char *dst, char *src, size_t src_size);
- extern void ecryptfs_from_hex(char *dst, char *src, int dst_size);
-@@ -536,9 +535,6 @@ void ecryptfs_destroy_crypt_stat(struct 
- void ecryptfs_destroy_mount_crypt_stat(
- 	struct ecryptfs_mount_crypt_stat *mount_crypt_stat);
- int ecryptfs_init_crypt_ctx(struct ecryptfs_crypt_stat *crypt_stat);
--int ecryptfs_crypto_api_algify_cipher_name(char **algified_name,
--					   char *cipher_name,
--					   char *chaining_modifier);
- #define ECRYPTFS_LOWER_I_MUTEX_NOT_HELD 0
- #define ECRYPTFS_LOWER_I_MUTEX_HELD 1
- int ecryptfs_write_inode_size_to_metadata(struct file *lower_file,
-@@ -579,13 +575,10 @@ int ecryptfs_generate_key_packet_set(cha
- 				     struct ecryptfs_crypt_stat *crypt_stat,
- 				     struct dentry *ecryptfs_dentry,
- 				     size_t *len, size_t max);
--int process_request_key_err(long err_code);
- int
- ecryptfs_parse_packet_set(struct ecryptfs_crypt_stat *crypt_stat,
- 			  unsigned char *src, struct dentry *ecryptfs_dentry);
- int ecryptfs_truncate(struct dentry *dentry, loff_t new_length);
--int ecryptfs_process_key_cipher(struct crypto_blkcipher **key_tfm,
--				char *cipher_name, size_t *key_size);
- int ecryptfs_inode_test(struct inode *inode, void *candidate_lower_inode);
- int ecryptfs_inode_set(struct inode *inode, void *lower_inode);
- void ecryptfs_init_inode(struct inode *inode, struct inode *lower_inode);
-diff -puN fs/ecryptfs/keystore.c~ecryptfs-make-needlessly-global-symbols-static fs/ecryptfs/keystore.c
---- a/fs/ecryptfs/keystore.c~ecryptfs-make-needlessly-global-symbols-static
-+++ a/fs/ecryptfs/keystore.c
-@@ -39,7 +39,7 @@
-  * determine the type of error, make appropriate log entries, and
-  * return an error code.
-  */
--int process_request_key_err(long err_code)
-+static int process_request_key_err(long err_code)
- {
- 	int rc = 0;
- 
-@@ -396,6 +396,27 @@ out:
- 	return rc;
- }
- 
-+static int
-+ecryptfs_get_auth_tok_sig(char **sig, struct ecryptfs_auth_tok *auth_tok)
-+{
-+	int rc = 0;
+ 	if (vc->vc_mode != KD_GRAPHICS && vc->vc_sw->con_resize)
+-		err = vc->vc_sw->con_resize(vc, width, height);
++		err = vc->vc_sw->con_resize(vc, width, height, user);
 +
-+	(*sig) = NULL;
-+	switch (auth_tok->token_type) {
-+	case ECRYPTFS_PASSWORD:
-+		(*sig) = auth_tok->token.password.signature;
-+		break;
-+	case ECRYPTFS_PRIVATE_KEY:
-+		(*sig) = auth_tok->token.private_key.signature;
-+		break;
-+	default:
-+		printk(KERN_ERR "Cannot get sig for auth_tok of type [%d]\n",
-+		       auth_tok->token_type);
-+		rc = -EINVAL;
-+	}
-+	return rc;
-+}
-+
- /**
-  * decrypt_pki_encrypted_session_key - Decrypt the session key with the given auth_tok.
-  * @auth_tok: The key authentication token used to decrypt the session key
-@@ -1082,26 +1103,6 @@ out:
- 	return rc;
+ 	return err;
  }
  
--int ecryptfs_get_auth_tok_sig(char **sig, struct ecryptfs_auth_tok *auth_tok)
--{
--	int rc = 0;
--
--	(*sig) = NULL;
--	switch (auth_tok->token_type) {
--	case ECRYPTFS_PASSWORD:
--		(*sig) = auth_tok->token.password.signature;
--		break;
--	case ECRYPTFS_PRIVATE_KEY:
--		(*sig) = auth_tok->token.private_key.signature;
--		break;
--	default:
--		printk(KERN_ERR "Cannot get sig for auth_tok of type [%d]\n",
--		       auth_tok->token_type);
--		rc = -EINVAL;
--	}
--	return rc;
--}
--
- /**
-  * ecryptfs_parse_packet_set
-  * @crypt_stat: The cryptographic context
+@@ -772,7 +774,7 @@ int vc_resize(struct vc_data *vc, unsign
+ 	unsigned long old_origin, new_origin, new_scr_end, rlth, rrem, err = 0;
+ 	unsigned int old_cols, old_rows, old_row_size, old_screen_size;
+ 	unsigned int new_cols, new_rows, new_row_size, new_screen_size;
+-	unsigned int end;
++	unsigned int end, user;
+ 	unsigned short *newscreen;
+ 
+ 	WARN_CONSOLE_UNLOCKED();
+@@ -780,6 +782,9 @@ int vc_resize(struct vc_data *vc, unsign
+ 	if (!vc)
+ 		return -ENXIO;
+ 
++	user = vc->vc_resize_user;
++	vc->vc_resize_user = 0;
++
+ 	if (cols > VC_RESIZE_MAXCOL || lines > VC_RESIZE_MAXROW)
+ 		return -EINVAL;
+ 
+@@ -800,7 +805,7 @@ int vc_resize(struct vc_data *vc, unsign
+ 	old_row_size = vc->vc_size_row;
+ 	old_screen_size = vc->vc_screenbuf_size;
+ 
+-	err = resize_screen(vc, new_cols, new_rows);
++	err = resize_screen(vc, new_cols, new_rows, user);
+ 	if (err) {
+ 		kfree(newscreen);
+ 		return err;
+diff -puN drivers/char/vt_ioctl.c~vt-vgacon-check-if-screen-resize-request-comes-from-userspace drivers/char/vt_ioctl.c
+--- a/drivers/char/vt_ioctl.c~vt-vgacon-check-if-screen-resize-request-comes-from-userspace
++++ a/drivers/char/vt_ioctl.c
+@@ -847,14 +847,24 @@ int vt_ioctl(struct tty_struct *tty, str
+ 	case VT_RESIZE:
+ 	{
+ 		struct vt_sizes __user *vtsizes = up;
++		struct vc_data *vc;
++
+ 		ushort ll,cc;
+ 		if (!perm)
+ 			return -EPERM;
+ 		if (get_user(ll, &vtsizes->v_rows) ||
+ 		    get_user(cc, &vtsizes->v_cols))
+ 			return -EFAULT;
+-		for (i = 0; i < MAX_NR_CONSOLES; i++)
+-			vc_lock_resize(vc_cons[i].d, cc, ll);
++
++		for (i = 0; i < MAX_NR_CONSOLES; i++) {
++			vc = vc_cons[i].d;
++
++			if (vc) {
++				vc->vc_resize_user = 1;
++				vc_lock_resize(vc_cons[i].d, cc, ll);
++			}
++		}
++
+ 		return 0;
+ 	}
+ 
+@@ -900,6 +910,7 @@ int vt_ioctl(struct tty_struct *tty, str
+ 				vc_cons[i].d->vc_scan_lines = vlin;
+ 			if (clin)
+ 				vc_cons[i].d->vc_font.height = clin;
++			vc_cons[i].d->vc_resize_user = 1;
+ 			vc_resize(vc_cons[i].d, cc, ll);
+ 			release_console_sem();
+ 		}
+diff -puN drivers/usb/misc/sisusbvga/sisusb_con.c~vt-vgacon-check-if-screen-resize-request-comes-from-userspace drivers/usb/misc/sisusbvga/sisusb_con.c
+--- a/drivers/usb/misc/sisusbvga/sisusb_con.c~vt-vgacon-check-if-screen-resize-request-comes-from-userspace
++++ a/drivers/usb/misc/sisusbvga/sisusb_con.c
+@@ -1042,7 +1042,8 @@ sisusbcon_set_origin(struct vc_data *c)
+ 
+ /* Interface routine */
+ static int
+-sisusbcon_resize(struct vc_data *c, unsigned int newcols, unsigned int newrows)
++sisusbcon_resize(struct vc_data *c, unsigned int newcols, unsigned int newrows,
++		 unsigned int user)
+ {
+ 	struct sisusb_usb_data *sisusb;
+ 	int fh;
+diff -puN drivers/video/console/fbcon.c~vt-vgacon-check-if-screen-resize-request-comes-from-userspace drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~vt-vgacon-check-if-screen-resize-request-comes-from-userspace
++++ a/drivers/video/console/fbcon.c
+@@ -2168,7 +2168,7 @@ static __inline__ void updatescrollmode(
+ }
+ 
+ static int fbcon_resize(struct vc_data *vc, unsigned int width, 
+-			unsigned int height)
++			unsigned int height, unsigned int user)
+ {
+ 	struct fb_info *info = registered_fb[con2fb_map[vc->vc_num]];
+ 	struct fbcon_ops *ops = info->fbcon_par;
+diff -puN drivers/video/console/vgacon.c~vt-vgacon-check-if-screen-resize-request-comes-from-userspace drivers/video/console/vgacon.c
+--- a/drivers/video/console/vgacon.c~vt-vgacon-check-if-screen-resize-request-comes-from-userspace
++++ a/drivers/video/console/vgacon.c
+@@ -1278,13 +1278,14 @@ static int vgacon_font_get(struct vc_dat
+ #endif
+ 
+ static int vgacon_resize(struct vc_data *c, unsigned int width,
+-				unsigned int height)
++			 unsigned int height, unsigned int user)
+ {
+ 	if (width % 2 || width > ORIG_VIDEO_COLS ||
+ 	    height > (ORIG_VIDEO_LINES * vga_default_font_height)/
+ 	    c->vc_font.height)
+-		/* let svgatextmode tinker with video timings */
+-		return 0;
++		/* let svgatextmode tinker with video timings and
++		   return success */
++		return (user) ? 0 : -EINVAL;
+ 
+ 	if (CON_IS_VISIBLE(c) && !vga_is_gfx) /* who knows */
+ 		vgacon_doresize(c, width, height);
+diff -puN include/linux/console.h~vt-vgacon-check-if-screen-resize-request-comes-from-userspace include/linux/console.h
+--- a/include/linux/console.h~vt-vgacon-check-if-screen-resize-request-comes-from-userspace
++++ a/include/linux/console.h
+@@ -45,7 +45,8 @@ struct consw {
+ 	int	(*con_font_get)(struct vc_data *, struct console_font *);
+ 	int	(*con_font_default)(struct vc_data *, struct console_font *, char *);
+ 	int	(*con_font_copy)(struct vc_data *, int);
+-	int	(*con_resize)(struct vc_data *, unsigned int, unsigned int);
++	int     (*con_resize)(struct vc_data *, unsigned int, unsigned int,
++			       unsigned int);
+ 	int	(*con_set_palette)(struct vc_data *, unsigned char *);
+ 	int	(*con_scrolldelta)(struct vc_data *, int);
+ 	int	(*con_set_origin)(struct vc_data *);
+diff -puN include/linux/console_struct.h~vt-vgacon-check-if-screen-resize-request-comes-from-userspace include/linux/console_struct.h
+--- a/include/linux/console_struct.h~vt-vgacon-check-if-screen-resize-request-comes-from-userspace
++++ a/include/linux/console_struct.h
+@@ -100,6 +100,7 @@ struct vc_data {
+ 	unsigned char 	vc_G1_charset;
+ 	unsigned char 	vc_saved_G0;
+ 	unsigned char 	vc_saved_G1;
++	unsigned int    vc_resize_user;         /* resize request from user */
+ 	unsigned int	vc_bell_pitch;		/* Console bell pitch */
+ 	unsigned int	vc_bell_duration;	/* Console bell duration */
+ 	struct vc_data **vc_display_fg;		/* [!] Ptr to var holding fg console for this display */
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from adaplas@gmail.com are
 
 origin.patch
-git-unionfs.patch
-ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
-vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
+fbcon-delay-the-start-of-the-cursor-timer-until-a-con_switch.patch
+cyber2000fb-checkpatch-fixes.patch
