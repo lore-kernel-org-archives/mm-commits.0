@@ -1,95 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - cris-cleanup-struct-irqaction-initializers.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:36:41 -0700
-Message-ID: <200710162036.l9GKafW9015205@imap1.linux-foundation.org>
+Subject: - sm501fb-ensure-panel-interface-is-not-tristated-when-setup.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:42:22 -0700
+Message-ID: <200710162042.l9GKgMXS015879@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42894 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50863 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935944AbXJPVIC (ORCPT
+	by vger.kernel.org with ESMTP id S935748AbXJPVIQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:08:02 -0400
+	Tue, 16 Oct 2007 17:08:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, starvik@axis.com, mm-commits@vger.kernel.org
+To: ben-linux@fluff.org, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CRIS: cleanup struct irqaction initializers
+     sm501fb: Ensure panel interface is not tristated when  setup
 has been removed from the -mm tree.  Its filename was
-     cris-cleanup-struct-irqaction-initializers.patch
+     sm501fb-ensure-panel-interface-is-not-tristated-when-setup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: CRIS: cleanup struct irqaction initializers
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: sm501fb: Ensure panel interface is not tristated when  setup
+From: Ben Dooks <ben-linux@fluff.org>
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Mikael Starvik <starvik@axis.com>
+When we setup the panel interface whilst configuring the
+framebuffer, we should ensure the panel interface is not
+in tristate, in case the bootloader or previous setup has
+not enabled it.
+
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/kernel/time.c |    8 ++++++--
- arch/cris/arch-v32/kernel/smp.c  |    8 ++++++--
- 2 files changed, 12 insertions(+), 4 deletions(-)
+ drivers/video/sm501fb.c    |    5 +++++
+ include/linux/sm501-regs.h |   18 ++++++++++++++++++
+ 2 files changed, 23 insertions(+)
 
-diff -puN arch/cris/arch-v10/kernel/time.c~cris-cleanup-struct-irqaction-initializers arch/cris/arch-v10/kernel/time.c
---- a/arch/cris/arch-v10/kernel/time.c~cris-cleanup-struct-irqaction-initializers
-+++ a/arch/cris/arch-v10/kernel/time.c
-@@ -254,8 +254,12 @@ timer_interrupt(int irq, void *dev_id, s
-  * it needs to be IRQF_DISABLED to make the jiffies update work properly
-  */
+diff -puN drivers/video/sm501fb.c~sm501fb-ensure-panel-interface-is-not-tristated-when-setup drivers/video/sm501fb.c
+--- a/drivers/video/sm501fb.c~sm501fb-ensure-panel-interface-is-not-tristated-when-setup
++++ a/drivers/video/sm501fb.c
+@@ -777,6 +777,11 @@ static int sm501fb_set_par_pnl(struct fb
+ 	writel(control, fbi->regs + SM501_DC_PANEL_CONTROL);
+ 	sm501fb_sync_regs(fbi);
  
--static struct irqaction irq2  = { timer_interrupt, IRQF_SHARED | IRQF_DISABLED,
--				  CPU_MASK_NONE, "timer", NULL, NULL};
-+static struct irqaction irq2  = {
-+	.handler = timer_interrupt,
-+	.flags = IRQF_SHARED | IRQF_DISABLED,
-+	.mask = CPU_MASK_NONE,
-+	.name = "timer",
-+};
++	/* ensure the panel interface is not tristated at this point */
++
++	sm501_modify_reg(fbi->dev->parent, SM501_SYSTEM_CONTROL,
++			 0, SM501_SYSCTRL_PANEL_TRISTATE);
++
+ 	/* power the panel up */
+ 	sm501fb_panel_power(fbi, 1);
+ 	return 0;
+diff -puN include/linux/sm501-regs.h~sm501fb-ensure-panel-interface-is-not-tristated-when-setup include/linux/sm501-regs.h
+--- a/include/linux/sm501-regs.h~sm501fb-ensure-panel-interface-is-not-tristated-when-setup
++++ a/include/linux/sm501-regs.h
+@@ -15,6 +15,24 @@
  
- void __init
- time_init(void)
-diff -puN arch/cris/arch-v32/kernel/smp.c~cris-cleanup-struct-irqaction-initializers arch/cris/arch-v32/kernel/smp.c
---- a/arch/cris/arch-v32/kernel/smp.c~cris-cleanup-struct-irqaction-initializers
-+++ a/arch/cris/arch-v32/kernel/smp.c
-@@ -63,8 +63,12 @@ static unsigned long irq_regs[NR_CPUS] =
+ /* config 1 */
+ #define SM501_SYSTEM_CONTROL 		(0x000000)
++
++#define SM501_SYSCTRL_PANEL_TRISTATE	(1<<0)
++#define SM501_SYSCTRL_MEM_TRISTATE	(1<<1)
++#define SM501_SYSCTRL_CRT_TRISTATE	(1<<2)
++
++#define SM501_SYSCTRL_PCI_SLAVE_BURST_MASK (3<<4)
++#define SM501_SYSCTRL_PCI_SLAVE_BURST_1	(0<<4)
++#define SM501_SYSCTRL_PCI_SLAVE_BURST_2	(1<<4)
++#define SM501_SYSCTRL_PCI_SLAVE_BURST_4	(2<<4)
++#define SM501_SYSCTRL_PCI_SLAVE_BURST_8	(3<<4)
++
++#define SM501_SYSCTRL_PCI_CLOCK_RUN_EN	(1<<6)
++#define SM501_SYSCTRL_PCI_RETRY_DISABLE	(1<<7)
++#define SM501_SYSCTRL_PCI_SUBSYS_LOCK	(1<<11)
++#define SM501_SYSCTRL_PCI_BURST_READ_EN	(1<<15)
++
++/* miscellaneous control */
++
+ #define SM501_MISC_CONTROL		(0x000004)
  
- static irqreturn_t crisv32_ipi_interrupt(int irq, void *dev_id, struct pt_regs *regs);
- static int send_ipi(int vector, int wait, cpumask_t cpu_mask);
--static struct irqaction irq_ipi  = { crisv32_ipi_interrupt, IRQF_DISABLED,
--                                     CPU_MASK_NONE, "ipi", NULL, NULL};
-+static struct irqaction irq_ipi  = {
-+	.handler = crisv32_ipi_interrupt,
-+	.flags = IRQF_DISABLED,
-+	.mask = CPU_MASK_NONE,
-+	.name = "ipi",
-+};
- 
- extern void cris_mmu_init(void);
- extern void cris_timer_init(void);
+ #define SM501_MISC_BUS_SH		(0x0)
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from ben-linux@fluff.org are
 
 origin.patch
-git-acpi.patch
-i386-cleanup-struct-irqaction-initializers.patch
-x86_64-cleanup-struct-irqaction-initializers.patch
-hpet-force-enable-on-vt8235-37-chipsets.patch
-x86_64-vsyscall-fix-the-oops-crash-with-__pa_vsymbol.patch
-replace-nt_prxfpreg-with-elf_core_xfpreg_type-define.patch
-powerpc-add-altivec-vmx-state-to-coredumps.patch
-time-simplify-smp_call_function_single-call-sequence.patch
-kernel-rtmutex-debugc-cleanups.patch
-kernel-time-timekeepingc-cleanups.patch
-use-num_possible_cpus-instead-of-nr_cpus-for-timer.patch
-fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
-compile-handle_percpu_irq-even-for-uniprocessor-kernels.patch
-spin_lock_unlocked-cleanups.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-whitespace-fixes-time-syscalls.patch
-whitespace-fixes-interval-timers.patch
-whitespace-fixes-system-timers.patch
