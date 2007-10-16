@@ -1,108 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - video-gfx-fix-menu-ordering.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:44:50 -0700
-Message-ID: <200710162044.l9GKio0P016200@imap1.linux-foundation.org>
+Subject: - isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:40:02 -0700
+Message-ID: <200710162040.l9GKe2VD015646@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48980 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48042 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933949AbXJPVHs (ORCPT
+	by vger.kernel.org with ESMTP id S936001AbXJPVHs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 16 Oct 2007 17:07:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, adaplas@pol.net, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     video gfx: fix menu ordering
+     isdn: guard against a potential NULL pointer dereference in old_capi_manufacturer()
 has been removed from the -mm tree.  Its filename was
-     video-gfx-fix-menu-ordering.patch
+     isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: video gfx: fix menu ordering
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: isdn: guard against a potential NULL pointer dereference in old_capi_manufacturer()
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-Move video graphics driver configs to fix menus:
+In drivers/isdn/capi/kcapi.c::old_capi_manufacturer(), if the call to
+get_capi_ctr_by_nr(ldef.contr); in line 823 returns NULL, then we'll be
+dereferencing a NULL pointer in the very next line.
 
-Fix FB_PMAGB_B to depend on FB so that the FB menus remain
-  listed in order and indented correctly.
-Fix FB_IBM_GXT4500 to depend on FB so that the FB menus remain
-  listed in order and indented correctly.
-The OMAP FB drivers still muck up the FB menu a bit, so I put
-  OMAP drivers at the end of the FB menu.
+(Found by Coverity checker as bug #402)
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Acked-by: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/isdn/capi/kcapi.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/video/Kconfig~video-gfx-fix-menu-ordering drivers/video/Kconfig
---- a/drivers/video/Kconfig~video-gfx-fix-menu-ordering
-+++ a/drivers/video/Kconfig
-@@ -1820,7 +1820,7 @@ config FB_PNX4008_DUM_RGB
- 
- config FB_IBM_GXT4500
- 	tristate "Framebuffer support for IBM GXT4500P adaptor"
--	depends on PPC
-+	depends on FB && PPC
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
-@@ -1860,10 +1860,6 @@ config FB_XILINX
- 	  framebuffer. ML300 carries a 640*480 LCD display on the board,
- 	  ML403 uses a standard DB15 VGA connector.
- 
--if ARCH_OMAP
--	source "drivers/video/omap/Kconfig"
--endif
--
- config FB_VIRTUAL
- 	tristate "Virtual Frame Buffer support (ONLY FOR TESTING!)"
- 	depends on FB
-@@ -1887,6 +1883,10 @@ config FB_VIRTUAL
- 
- 	  If unsure, say N.
- 
-+if ARCH_OMAP
-+	source "drivers/video/omap/Kconfig"
-+endif
-+
- if VT
- 	source "drivers/video/console/Kconfig"
- endif
+diff -puN drivers/isdn/capi/kcapi.c~isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer drivers/isdn/capi/kcapi.c
+--- a/drivers/isdn/capi/kcapi.c~isdn-guard-against-a-potential-null-pointer-dereference-in-old_capi_manufacturer
++++ a/drivers/isdn/capi/kcapi.c
+@@ -821,6 +821,8 @@ static int old_capi_manufacturer(unsigne
+ 				return -EFAULT;
+ 		}
+ 		card = get_capi_ctr_by_nr(ldef.contr);
++		if (!card)
++			return -EINVAL;
+ 		card = capi_ctr_get(card);
+ 		if (!card)
+ 			return -ESRCH;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
 origin.patch
-git-acpi.patch
 git-alsa.patch
-fix-auditscc-kernel-doc.patch
-comment-typo-in-scripts-kconfig-makefile.patch
-git-unionfs.patch
-git-watchdog.patch
-git-ipwireless_cs.patch
-security-convert-lsm-into-a-static-interface-fix-2-fix.patch
+git-cifs.patch
+mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
+git-xfs.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+clean-up-duplicate-includes-in-drivers-w1.patch
+clean-up-duplicate-includes-in-fs.patch
+clean-up-duplicate-includes-in-fs-ecryptfs.patch
+clean-up-duplicate-includes-in-kernel.patch
+avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
 docs-ramdisk-initrd-initramfs-corrections.patch
-send-quota-messages-via-netlink-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-maintainers-linux-omap-list-is-subscribers-only.patch
-make-the-pr_-family-of-macros-in-kernelh-complete.patch
-doc-about-email-clients-for-linux-patches.patch
-change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch
-dont-truncate-proc-pid-environ-at-4096-characters.patch
-dontdiff-update-based-on-gitignore-updates.patch
-kernel-doc-fix-doc-blocks-and-html.patch
-express-relocatability-of-kernel-on-x86_64-in.patch
-remap_file_pages-kernel-doc-corrections.patch
-hook-up-group-scheduler-with-control-groups.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
-add-samples-subdir.patch
-profile-likely-unlikely-macros.patch
+floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
+floppy-remove-dead-commented-out-code-from-floppy-driver.patch
+floppy-remove-register-keyword-use-from-floppy-driver.patch
+clean-up-duplicate-includes-in-documentation.patch
+add-a-missing-00-index-file-for-documentation-vm.patch
+add-a-missing-00-index-file-for-documentation-vm-fix.patch
+add-a-00-index-file-to-documentation-mips.patch
+add-a-00-index-file-to-documentation-sysctl.patch
+add-a-00-index-file-to-documentation-telephony.patch
+mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
+mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
+cyclades-avoid-label-defined-but-not-used-warning.patch
