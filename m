@@ -1,85 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: - remove-frv-usage-of-flush_tlb_pgtables.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:36:16 -0700
-Message-ID: <200710162036.l9GKaGiE015151@imap1.linux-foundation.org>
+Subject: - mm-clean-up-buffered-write-code.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:32:00 -0700
+Message-ID: <200710162032.l9GKW0FS014548@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39265 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44209 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965806AbXJPVep (ORCPT
+	by vger.kernel.org with ESMTP id S966077AbXJPVev (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:34:45 -0400
+	Tue, 16 Oct 2007 17:34:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove frv usage of flush_tlb_pgtables()
+     mm: clean up buffered write code
 has been removed from the -mm tree.  Its filename was
-     remove-frv-usage-of-flush_tlb_pgtables.patch
+     mm-clean-up-buffered-write-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: remove frv usage of flush_tlb_pgtables()
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: mm: clean up buffered write code
+From: Andrew Morton <akpm@osdl.org>
 
-frv is the last user in the tree of that dubious hook, and it's my
-understanding that it's not even needed.  It's only called by memory.c
-free_pgd_range() which is always called within an mmu_gather, and
-tlb_flush() on frv will do a flush_tlb_mm(), which from my reading of the
-code, seems to do what flush_tlb_ptables() does, which is to clear the
-cached PGE.
+Rename some variables and fix some types.
 
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Acked-By: David Howells <dhowells@redhat.com>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-frv/tlbflush.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/filemap.c |   35 ++++++++++++++++++-----------------
+ 1 file changed, 18 insertions(+), 17 deletions(-)
 
-diff -puN include/asm-frv/tlbflush.h~remove-frv-usage-of-flush_tlb_pgtables include/asm-frv/tlbflush.h
---- a/include/asm-frv/tlbflush.h~remove-frv-usage-of-flush_tlb_pgtables
-+++ a/include/asm-frv/tlbflush.h
-@@ -57,8 +57,7 @@ do {								\
- #define __flush_tlb_global()			flush_tlb_all()
- #define flush_tlb()				flush_tlb_all()
- #define flush_tlb_kernel_range(start, end)	flush_tlb_all()
--#define flush_tlb_pgtables(mm,start,end) \
--	asm volatile("movgs %0,scr0 ! movgs %0,scr1" :: "r"(ULONG_MAX) : "memory");
-+#define flush_tlb_pgtables(mm,start,end)	do { } while(0)
+diff -puN mm/filemap.c~mm-clean-up-buffered-write-code mm/filemap.c
+--- a/mm/filemap.c~mm-clean-up-buffered-write-code
++++ a/mm/filemap.c
+@@ -1838,16 +1838,15 @@ generic_file_buffered_write(struct kiocb
+ 		size_t count, ssize_t written)
+ {
+ 	struct file *file = iocb->ki_filp;
+-	struct address_space * mapping = file->f_mapping;
++	struct address_space *mapping = file->f_mapping;
+ 	const struct address_space_operations *a_ops = mapping->a_ops;
+ 	struct inode 	*inode = mapping->host;
+ 	long		status = 0;
+ 	struct page	*page;
+ 	struct page	*cached_page = NULL;
+-	size_t		bytes;
+ 	struct pagevec	lru_pvec;
+ 	const struct iovec *cur_iov = iov; /* current iovec */
+-	size_t		iov_base = 0;	   /* offset in the current iovec */
++	size_t		iov_offset = 0;	   /* offset in the current iovec */
+ 	char __user	*buf;
  
- #else
+ 	pagevec_init(&lru_pvec, 0);
+@@ -1858,31 +1857,33 @@ generic_file_buffered_write(struct kiocb
+ 	if (likely(nr_segs == 1))
+ 		buf = iov->iov_base + written;
+ 	else {
+-		filemap_set_next_iovec(&cur_iov, &iov_base, written);
+-		buf = cur_iov->iov_base + iov_base;
++		filemap_set_next_iovec(&cur_iov, &iov_offset, written);
++		buf = cur_iov->iov_base + iov_offset;
+ 	}
  
+ 	do {
+-		unsigned long index;
+-		unsigned long offset;
+-		unsigned long maxlen;
+-		size_t copied;
++		pgoff_t index;		/* Pagecache index for current page */
++		unsigned long offset;	/* Offset into pagecache page */
++		unsigned long maxlen;	/* Bytes remaining in current iovec */
++		size_t bytes;		/* Bytes to write to page */
++		size_t copied;		/* Bytes copied from user */
+ 
+-		offset = (pos & (PAGE_CACHE_SIZE -1)); /* Within page */
++		offset = (pos & (PAGE_CACHE_SIZE - 1));
+ 		index = pos >> PAGE_CACHE_SHIFT;
+ 		bytes = PAGE_CACHE_SIZE - offset;
+ 		if (bytes > count)
+ 			bytes = count;
+ 
++		maxlen = cur_iov->iov_len - iov_offset;
++		if (maxlen > bytes)
++			maxlen = bytes;
++
+ 		/*
+ 		 * Bring in the user page that we will copy from _first_.
+ 		 * Otherwise there's a nasty deadlock on copying from the
+ 		 * same page as we're writing to, without it being marked
+ 		 * up-to-date.
+ 		 */
+-		maxlen = cur_iov->iov_len - iov_base;
+-		if (maxlen > bytes)
+-			maxlen = bytes;
+ 		fault_in_pages_readable(buf, maxlen);
+ 
+ 		page = __grab_cache_page(mapping,index,&cached_page,&lru_pvec);
+@@ -1913,7 +1914,7 @@ generic_file_buffered_write(struct kiocb
+ 							buf, bytes);
+ 		else
+ 			copied = filemap_copy_from_user_iovec(page, offset,
+-						cur_iov, iov_base, bytes);
++						cur_iov, iov_offset, bytes);
+ 		flush_dcache_page(page);
+ 		status = a_ops->commit_write(file, page, offset, offset+bytes);
+ 		if (status == AOP_TRUNCATED_PAGE) {
+@@ -1931,12 +1932,12 @@ generic_file_buffered_write(struct kiocb
+ 				buf += status;
+ 				if (unlikely(nr_segs > 1)) {
+ 					filemap_set_next_iovec(&cur_iov,
+-							&iov_base, status);
++							&iov_offset, status);
+ 					if (count)
+ 						buf = cur_iov->iov_base +
+-							iov_base;
++							iov_offset;
+ 				} else {
+-					iov_base += status;
++					iov_offset += status;
+ 				}
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from benh@kernel.crashing.org are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-softlockup-make-asm-irq_regsh-available-on-every-platform.patch
-unexport-asm-shmparamh.patch
-kconfig-make-instrumentation-support-non-experimental.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix.patch
-report-the-per-irq-statistics-on-allarches.patch
-add-linux-elfcore-compath.patch
-x86_64-use-linux-elfcore-compath.patch
-powerpc-use-linux-elfcore-compath.patch
-fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
-increase-at_vector_size-to-terminate-saved_auxv-properly.patch
-delay-creation-of-khcvd-thread.patch
-intel-iommu-fix-for-iommu-early-crash-2.patch
-add-scaled-time-to-taskstats-based-process-accounting.patch
-add-missing-newlines-to-some-uses-of-dev_level-messages-fix.patch
-powerpc-add-scaled-time-accounting.patch
-powerpc-add-scaled-time-accounting-speedup.patch
-define-global-bit-macro.patch
-bitops-introduce-lock-ops.patch
-powerpc-lock-bitops.patch
-powerpc-lock-bitops-fix.patch
-extended-crashkernel-command-line.patch
-use-extended-crashkernel-command-line-on-ppc64.patch
-add-documentation-for-extended-crashkernel-syntax.patch
-replace-__attribute_pure__-with-__pure.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-ipwireless_cs.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+sync_sb_inodes-propagate-errors.patch
+ext2-reservations.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
