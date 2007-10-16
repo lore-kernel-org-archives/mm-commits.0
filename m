@@ -1,149 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: - fbcon-logo-disable-logo-at-boot.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:44:58 -0700
-Message-ID: <200710162044.l9GKiwjU016212@imap1.linux-foundation.org>
+Subject: - gigaset-remove-pointless-locking.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:39:57 -0700
+Message-ID: <200710162039.l9GKdveK015605@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58909 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44040 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935912AbXJPVK1 (ORCPT
+	by vger.kernel.org with ESMTP id S935995AbXJPVKW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:10:27 -0400
+	Tue, 16 Oct 2007 17:10:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@xenotime.net, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: tilman@imap.cc, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbcon: logo: disable logo at boot
+     gigaset: remove pointless locking
 has been removed from the -mm tree.  Its filename was
-     fbcon-logo-disable-logo-at-boot.patch
+     gigaset-remove-pointless-locking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fbcon: logo: disable logo at boot
-From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: gigaset: remove pointless locking
+From: Tilman Schmidt <tilman@imap.cc>
 
-Add logo.nologo kernel boot option to disable the logo in order to provide
-more screen space for kernel messages; especially useful when debugging and
-screen space is more critical.
+Remove pointless taking of spinlock around reading a single pointer-sized
+or smaller variable.
 
-newport_con driver changes are untested.
-
-[akpm@linux-foundation.org: cleanups, coding-style fixes]
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Signed-off-by: Tilman Schmidt <tilman@imap.cc>
+Acked-by: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    5 +++++
- drivers/video/console/newport_con.c |   20 ++++++++++++++------
- drivers/video/logo/logo.c           |    7 +++++++
- 3 files changed, 26 insertions(+), 6 deletions(-)
+ drivers/isdn/gigaset/bas-gigaset.c |    9 +--------
+ drivers/isdn/gigaset/i4l.c         |   12 ++----------
+ drivers/isdn/gigaset/proc.c        |    8 +-------
+ drivers/isdn/gigaset/usb-gigaset.c |    7 -------
+ 4 files changed, 4 insertions(+), 32 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~fbcon-logo-disable-logo-at-boot Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~fbcon-logo-disable-logo-at-boot
-+++ a/Documentation/kernel-parameters.txt
-@@ -911,6 +911,11 @@ and is between 256 and 4096 characters. 
- 			n must be a power of two.  The default size
- 			is set in the kernel config file.
- 
-+	logo.nologo	[FB] Disables display of the built-in Linux logo.
-+			This may be used to provide more screen space for
-+			kernel log messages and is useful when debugging
-+			kernel boot problems.
-+
- 	lp=0		[LP]	Specify parallel ports to use, e.g,
- 	lp=port[,port...]	lp=none,parport0 (lp0 not configured, lp1 uses
- 	lp=reset		first parallel port). 'lp=0' disables the
-diff -puN drivers/video/console/newport_con.c~fbcon-logo-disable-logo-at-boot drivers/video/console/newport_con.c
---- a/drivers/video/console/newport_con.c~fbcon-logo-disable-logo-at-boot
-+++ a/drivers/video/console/newport_con.c
-@@ -98,14 +98,19 @@ static inline void newport_init_cmap(voi
- 	}
+diff -puN drivers/isdn/gigaset/bas-gigaset.c~gigaset-remove-pointless-locking drivers/isdn/gigaset/bas-gigaset.c
+--- a/drivers/isdn/gigaset/bas-gigaset.c~gigaset-remove-pointless-locking
++++ a/drivers/isdn/gigaset/bas-gigaset.c
+@@ -1936,14 +1936,7 @@ static int gigaset_write_room(struct car
+  */
+ static int gigaset_chars_in_buffer(struct cardstate *cs)
+ {
+-	unsigned long flags;
+-	unsigned bytes;
+-
+-	spin_lock_irqsave(&cs->cmdlock, flags);
+-	bytes = cs->cmdbytes;
+-	spin_unlock_irqrestore(&cs->cmdlock, flags);
+-
+-	return bytes;
++	return cs->cmdbytes;
  }
  
--static void newport_show_logo(void)
-+static struct linux_logo *newport_show_logo(void)
+ /* gigaset_brkchars
+diff -puN drivers/isdn/gigaset/i4l.c~gigaset-remove-pointless-locking drivers/isdn/gigaset/i4l.c
+--- a/drivers/isdn/gigaset/i4l.c~gigaset-remove-pointless-locking
++++ a/drivers/isdn/gigaset/i4l.c
+@@ -109,13 +109,9 @@ EXPORT_SYMBOL_GPL(gigaset_skb_sent);
+ static int command_from_LL(isdn_ctrl *cntrl)
  {
- #ifdef CONFIG_LOGO_SGI_CLUT224
- 	const struct linux_logo *logo = fb_find_logo(8);
--	const unsigned char *clut = logo->clut;
--	const unsigned char *data = logo->data;
-+	const unsigned char *clut;
-+	const unsigned char *data;
- 	unsigned long i;
+ 	struct cardstate *cs = gigaset_get_cs_by_id(cntrl->driver);
+-	//isdn_ctrl response;
+-	//unsigned long flags;
+ 	struct bc_state *bcs;
+ 	int retval = 0;
+ 	struct setup_parm *sp;
+-	unsigned param;
+-	unsigned long flags;
  
-+	if (!logo)
-+		return NULL;
-+	*clut = logo->clut;
-+	*data = logo->data;
-+
- 	for (i = 0; i < logo->clutsize; i++) {
- 		newport_bfwait(npregs);
- 		newport_cmap_setaddr(npregs, i + 0x20);
-@@ -123,6 +128,8 @@ static void newport_show_logo(void)
+ 	gigaset_debugdrivers();
  
- 	for (i = 0; i < logo->width*logo->height; i++)
- 		npregs->go.hostrw0 = *data++ << 24;
-+
-+	return logo;
- #endif /* CONFIG_LOGO_SGI_CLUT224 */
+@@ -162,12 +158,8 @@ static int command_from_LL(isdn_ctrl *cn
+ 		}
+ 		*sp = cntrl->parm.setup;
+ 
+-		spin_lock_irqsave(&cs->lock, flags);
+-		param = bcs->at_state.seq_index;
+-		spin_unlock_irqrestore(&cs->lock, flags);
+-
+-		if (!gigaset_add_event(cs, &bcs->at_state, EV_DIAL, sp, param,
+-				       NULL)) {
++		if (!gigaset_add_event(cs, &bcs->at_state, EV_DIAL, sp,
++				       bcs->at_state.seq_index, NULL)) {
+ 			//FIXME what should we do?
+ 			kfree(sp);
+ 			gigaset_free_channel(bcs);
+diff -puN drivers/isdn/gigaset/proc.c~gigaset-remove-pointless-locking drivers/isdn/gigaset/proc.c
+--- a/drivers/isdn/gigaset/proc.c~gigaset-remove-pointless-locking
++++ a/drivers/isdn/gigaset/proc.c
+@@ -19,15 +19,9 @@
+ static ssize_t show_cidmode(struct device *dev,
+ 			    struct device_attribute *attr, char *buf)
+ {
+-	int ret;
+-	unsigned long flags;
+ 	struct cardstate *cs = dev_get_drvdata(dev);
+ 
+-	spin_lock_irqsave(&cs->lock, flags);
+-	ret = sprintf(buf, "%u\n", cs->cidmode);
+-	spin_unlock_irqrestore(&cs->lock, flags);
+-
+-	return ret;
++	return sprintf(buf, "%u\n", cs->cidmode);
  }
  
-@@ -465,9 +472,10 @@ static int newport_switch(struct vc_data
- 	npregs->cset.topscan = 0x3ff;
+ static ssize_t set_cidmode(struct device *dev, struct device_attribute *attr,
+diff -puN drivers/isdn/gigaset/usb-gigaset.c~gigaset-remove-pointless-locking drivers/isdn/gigaset/usb-gigaset.c
+--- a/drivers/isdn/gigaset/usb-gigaset.c~gigaset-remove-pointless-locking
++++ a/drivers/isdn/gigaset/usb-gigaset.c
+@@ -310,7 +310,6 @@ static void gigaset_modem_fill(unsigned 
+ 	struct cardstate *cs = (struct cardstate *) data;
+ 	struct bc_state *bcs = &cs->bcs[0]; /* only one channel */
+ 	struct cmdbuf_t *cb;
+-	unsigned long flags;
+ 	int again;
  
- 	if (!logo_drawn) {
--		newport_show_logo();
--		logo_drawn = 1;
--		logo_active = 1;
-+		if (newport_show_logo()) {
-+			logo_drawn = 1;
-+			logo_active = 1;
-+		}
- 	}
+ 	gig_dbg(DEBUG_OUTPUT, "modem_fill");
+@@ -323,9 +322,7 @@ static void gigaset_modem_fill(unsigned 
+ 	do {
+ 		again = 0;
+ 		if (!bcs->tx_skb) { /* no skb is being sent */
+-			spin_lock_irqsave(&cs->cmdlock, flags);
+ 			cb = cs->cmdbuf;
+-			spin_unlock_irqrestore(&cs->cmdlock, flags);
+ 			if (cb) { /* commands to send? */
+ 				gig_dbg(DEBUG_OUTPUT, "modem_fill: cb");
+ 				if (send_cb(cs, cb) < 0) {
+@@ -546,13 +543,9 @@ static int gigaset_write_cmd(struct card
  
- 	return 1;
-diff -puN drivers/video/logo/logo.c~fbcon-logo-disable-logo-at-boot drivers/video/logo/logo.c
---- a/drivers/video/logo/logo.c~fbcon-logo-disable-logo-at-boot
-+++ a/drivers/video/logo/logo.c
-@@ -34,6 +34,10 @@ extern const struct linux_logo logo_supe
- extern const struct linux_logo logo_superh_clut224;
- extern const struct linux_logo logo_m32r_clut224;
- 
-+static int nologo;
-+module_param(nologo, bool, 0);
-+MODULE_PARM_DESC(nologo, "Disables startup logo");
-+
- /* logo's are marked __initdata. Use __init_refok to tell
-  * modpost that it is intended that this function uses data
-  * marked __initdata.
-@@ -42,6 +46,9 @@ const struct linux_logo * __init_refok f
+ static int gigaset_write_room(struct cardstate *cs)
  {
- 	const struct linux_logo *logo = NULL;
+-	unsigned long flags;
+ 	unsigned bytes;
  
-+	if (nologo)
-+		return NULL;
-+
- 	if (depth >= 1) {
- #ifdef CONFIG_LOGO_LINUX_MONO
- 		/* Generic Linux logo */
+-	spin_lock_irqsave(&cs->cmdlock, flags);
+ 	bytes = cs->cmdbytes;
+-	spin_unlock_irqrestore(&cs->cmdlock, flags);
+-
+ 	return bytes < IF_WRITEBUF ? IF_WRITEBUF - bytes : 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from rdunlap@xenotime.net are
+Patches currently in -mm which might be from tilman@imap.cc are
 
 origin.patch
-ufs-implement-show_options.patch
-documentation-add-entries-to-filesystems-00-index-for-several-untracked-files.patch
-add-a-missing-00-index-file-for-documentation-vm.patch
-add-a-00-index-file-to-documentation-mips.patch
-add-a-00-index-file-to-documentation-sysctl.patch
-add-a-00-index-file-to-documentation-telephony.patch
-express-relocatability-of-kernel-on-x86_64-in-documentation.patch
-express-new-elf32-mechanisms-in-documentation.patch
-add-reset_devices-to-the-recommended-parameters.patch
-add-recommended-section-ids-to-deviceiobooktmpl.patch
-fix-make-htmldocs-build-break.patch
-add-section-ids-to-documentation-docbook-filesystemstmpl.patch
+add-missing-newlines-to-some-uses-of-dev_level-messages.patch
