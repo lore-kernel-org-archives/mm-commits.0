@@ -1,56 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 20:58:42 -0700
-Message-ID: <200710160358.l9G3wgkr007611@imap1.linux-foundation.org>
+Subject: - x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:00:31 -0700
+Message-ID: <200710160400.l9G40VxR007721@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41171 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41831 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758753AbXJPD7c (ORCPT
+	by vger.kernel.org with ESMTP id S1750743AbXJPEBW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 23:59:32 -0400
+	Tue, 16 Oct 2007 00:01:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@shadowen.org, clameter@sgi.com, haveblue@us.ibm.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: apw@shadowen.org, ak@suse.de, clameter@sgi.com, just.for.lkml@googlemail.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmemmap: remove excess debugging
+     vmemmap x86_64: ensure end of section memmap is initialised
 has been removed from the -mm tree.  Its filename was
-     generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging.patch
+     x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
 
-This patch was dropped because it was folded into generic-virtual-memmap-support-for-sparsemem.patch
+This patch was dropped because it was folded into x86_64-sparsemem_vmemmap-2m-page-size-support.patch
 
 ------------------------------------------------------
-Subject: vmemmap: remove excess debugging
+Subject: vmemmap x86_64: ensure end of section memmap is initialised
 From: Andy Whitcroft <apw@shadowen.org>
 
-Outputting each and every PTE as it is loaded is somewhat overkill zap this
-debug.
+Similar to the generic initialisers, the x86_64 vmemmap initialisation may
+incorrectly skip the last page of a section if the section start is not
+aligned to the page.
+
+Where we have a section spanning the end of a PMD we will check the start
+of the section at A populating it.  We will then move on 1 PMD page to C
+and find ourselves beyond the end of the section which ends at B we will
+complete without checking the second PMD page.
+
+        |     PMD     |     PMD     |
+                 | SECTION |
+                 A         B   C
+
+We should round ourselves to the end of the PMD as we iterate.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Christoph Lameter <clameter@sgi.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Andi Kleen <ak@suse.de>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: "Torsten Kaiser" <just.for.lkml@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    3 ---
- 1 file changed, 3 deletions(-)
+ arch/x86_64/mm/init.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN mm/sparse.c~generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging mm/sparse.c
---- a/mm/sparse.c~generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging
-+++ a/mm/sparse.c
-@@ -306,9 +306,6 @@ static int __meminit vmemmap_populate_pt
- 			entry = pfn_pte(__pa(p) >> PAGE_SHIFT, PAGE_KERNEL);
- 			set_pte(pte, entry);
+diff -puN arch/x86_64/mm/init.c~x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised arch/x86_64/mm/init.c
+--- a/arch/x86/mm/init_64.c~x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised
++++ a/arch/x86/mm/init_64.c
+@@ -757,9 +757,10 @@ int __meminit vmemmap_populate_pmd(pud_t
+ 						unsigned long end, int node)
+ {
+ 	pmd_t *pmd;
++	unsigned long next;
  
--			printk(KERN_DEBUG "[%lx-%lx] PTE ->%p on node %d\n",
--				addr, addr + PAGE_SIZE - 1, p, node);
--
+-	for (pmd = pmd_offset(pud, addr); addr < end;
+-						pmd++, addr += PMD_SIZE)
++	for (pmd = pmd_offset(pud, addr); addr < end; pmd++, addr = next) {
++		next = pmd_addr_end(addr, end);
+ 		if (pmd_none(*pmd)) {
+ 			pte_t entry;
+ 			void *p = vmemmap_alloc_block(PMD_SIZE, node);
+@@ -773,8 +774,8 @@ int __meminit vmemmap_populate_pmd(pud_t
+ 			printk(KERN_DEBUG " [%lx-%lx] PMD ->%p on node %d\n",
+ 				addr, addr + PMD_SIZE - 1, p, node);
  		} else
- 			vmemmap_verify(pte, node, addr + PAGE_SIZE, end);
- 
+-			vmemmap_verify((pte_t *)pmd, node,
+-						pmd_addr_end(addr, end), end);
++			vmemmap_verify((pte_t *)pmd, node, next, end);
++	}
+ 	return 0;
+ }
+ #endif
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
@@ -58,9 +86,6 @@ Patches currently in -mm which might be from apw@shadowen.org are
 sparsemem-clean-up-spelling-error-in-comments.patch
 sparsemem-record-when-a-section-has-a-valid-mem_map.patch
 generic-virtual-memmap-support-for-sparsemem.patch
-generic-virtual-memmap-support-for-sparsemem-remove-excess-debugging.patch
-generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication.patch
-generic-virtual-memmap-support-for-sparsemem-pull-out-the-vmemmap-code-into-its-own-file.patch
 generic-virtual-memmap-support-vmemmap-generify-initialisation-via-helpers.patch
 x86_64-sparsemem_vmemmap-2m-page-size-support.patch
 x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
