@@ -1,173 +1,221 @@
 From: akpm@linux-foundation.org
-Subject: - use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:39:59 -0700
-Message-ID: <200710162039.l9GKdxpm015611@imap1.linux-foundation.org>
+Subject: - pm2fb-permedia-2v-initialization-fixes.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:42:13 -0700
+Message-ID: <200710162042.l9GKgDRK015867@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57616 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59345 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964823AbXJPVMB (ORCPT
+	by vger.kernel.org with ESMTP id S965093AbXJPVN0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:12:01 -0400
+	Tue, 16 Oct 2007 17:13:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.kaehlcke@gmail.com, kkeil@suse.de, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     use mutexinstead of semaphore in isdn subsystem common functions
+     pm2fb: Permedia 2V initialization fixes
 has been removed from the -mm tree.  Its filename was
-     use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions.patch
+     pm2fb-permedia-2v-initialization-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: use mutexinstead of semaphore in isdn subsystem common functions
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: pm2fb: Permedia 2V initialization fixes
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-The ISDN subsystem common functions use a semaphore as mutex. Use the
-mutex API instead of the (binary) semaphore.
+This patch:
+- initializes correctly the Permedia2V chip if it is not initialized by BIOS
+- puts back clock frequency for the ELSA WINNER board to 100kHz
+- fixes returned error values from setcolreg() function
+- uses more general classes for PCI ids
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Acked-by: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/i4l/isdn_common.c |   26 +++++++++++++-------------
- include/linux/isdn.h           |    3 ++-
- 2 files changed, 15 insertions(+), 14 deletions(-)
+ drivers/video/pm2fb.c     |   42 +++++++++++++++---------------------
+ include/video/permedia2.h |    1 
+ 2 files changed, 19 insertions(+), 24 deletions(-)
 
-diff -puN drivers/isdn/i4l/isdn_common.c~use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions drivers/isdn/i4l/isdn_common.c
---- a/drivers/isdn/i4l/isdn_common.c~use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions
-+++ a/drivers/isdn/i4l/isdn_common.c
-@@ -1365,7 +1365,7 @@ isdn_ioctl(struct inode *inode, struct f
- 				} else {
- 					s = NULL;
- 				}
--				ret = down_interruptible(&dev->sem);
-+				ret = mutex_lock_interruptible(&dev->mtx);
- 				if( ret ) return ret;
- 				if ((s = isdn_net_new(s, NULL))) {
- 					if (copy_to_user(argp, s, strlen(s) + 1)){
-@@ -1375,7 +1375,7 @@ isdn_ioctl(struct inode *inode, struct f
- 					}
- 				} else
- 					ret = -ENODEV;
--				up(&dev->sem);
-+				mutex_unlock(&dev->mtx);
- 				return ret;
- 			case IIOCNETASL:
- 				/* Add a slave to a network-interface */
-@@ -1384,7 +1384,7 @@ isdn_ioctl(struct inode *inode, struct f
- 						return -EFAULT;
- 				} else
- 					return -EINVAL;
--				ret = down_interruptible(&dev->sem);
-+				ret = mutex_lock_interruptible(&dev->mtx);
- 				if( ret ) return ret;
- 				if ((s = isdn_net_newslave(bname))) {
- 					if (copy_to_user(argp, s, strlen(s) + 1)){
-@@ -1394,17 +1394,17 @@ isdn_ioctl(struct inode *inode, struct f
- 					}
- 				} else
- 					ret = -ENODEV;
--				up(&dev->sem);
-+				mutex_unlock(&dev->mtx);
- 				return ret;
- 			case IIOCNETDIF:
- 				/* Delete a network-interface */
- 				if (arg) {
- 					if (copy_from_user(name, argp, sizeof(name)))
- 						return -EFAULT;
--					ret = down_interruptible(&dev->sem);
-+					ret = mutex_lock_interruptible(&dev->mtx);
- 					if( ret ) return ret;
- 					ret = isdn_net_rm(name);
--					up(&dev->sem);
-+					mutex_unlock(&dev->mtx);
- 					return ret;
- 				} else
- 					return -EINVAL;
-@@ -1433,10 +1433,10 @@ isdn_ioctl(struct inode *inode, struct f
- 				if (arg) {
- 					if (copy_from_user(&phone, argp, sizeof(phone)))
- 						return -EFAULT;
--					ret = down_interruptible(&dev->sem);
-+					ret = mutex_lock_interruptible(&dev->mtx);
- 					if( ret ) return ret;
- 					ret = isdn_net_addphone(&phone);
--					up(&dev->sem);
-+					mutex_unlock(&dev->mtx);
- 					return ret;
- 				} else
- 					return -EINVAL;
-@@ -1445,10 +1445,10 @@ isdn_ioctl(struct inode *inode, struct f
- 				if (arg) {
- 					if (copy_from_user(&phone, argp, sizeof(phone)))
- 						return -EFAULT;
--					ret = down_interruptible(&dev->sem);
-+					ret = mutex_lock_interruptible(&dev->mtx);
- 					if( ret ) return ret;
- 					ret = isdn_net_getphones(&phone, argp);
--					up(&dev->sem);
-+					mutex_unlock(&dev->mtx);
- 					return ret;
- 				} else
- 					return -EINVAL;
-@@ -1457,10 +1457,10 @@ isdn_ioctl(struct inode *inode, struct f
- 				if (arg) {
- 					if (copy_from_user(&phone, argp, sizeof(phone)))
- 						return -EFAULT;
--					ret = down_interruptible(&dev->sem);
-+					ret = mutex_lock_interruptible(&dev->mtx);
- 					if( ret ) return ret;
- 					ret = isdn_net_delphone(&phone);
--					up(&dev->sem);
-+					mutex_unlock(&dev->mtx);
- 					return ret;
- 				} else
- 					return -EINVAL;
-@@ -2304,7 +2304,7 @@ static int __init isdn_init(void)
- #ifdef MODULE
- 	dev->owner = THIS_MODULE;
- #endif
--	init_MUTEX(&dev->sem);
-+	mutex_init(&dev->mtx);
- 	init_waitqueue_head(&dev->info_waitq);
- 	for (i = 0; i < ISDN_MAX_CHANNELS; i++) {
- 		dev->drvmap[i] = -1;
-diff -puN include/linux/isdn.h~use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions include/linux/isdn.h
---- a/include/linux/isdn.h~use-mutex-instead-of-semaphore-in-isdn-subsystem-common-functions
-+++ a/include/linux/isdn.h
-@@ -167,6 +167,7 @@ typedef struct {
- #include <linux/etherdevice.h>
- #include <linux/skbuff.h>
- #include <linux/tcp.h>
-+#include <linux/mutex.h>
+diff -puN drivers/video/pm2fb.c~pm2fb-permedia-2v-initialization-fixes drivers/video/pm2fb.c
+--- a/drivers/video/pm2fb.c~pm2fb-permedia-2v-initialization-fixes
++++ a/drivers/video/pm2fb.c
+@@ -343,7 +343,7 @@ static void reset_card(struct pm2fb_par*
  
- #define ISDN_TTY_MAJOR    43
- #define ISDN_TTYAUX_MAJOR 44
-@@ -616,7 +617,7 @@ typedef struct isdn_devt {
- 	int               v110emu[ISDN_MAX_CHANNELS]; /* V.110 emulator-mode 0=none */
- 	atomic_t          v110use[ISDN_MAX_CHANNELS]; /* Usage-Semaphore for stream */
- 	isdn_v110_stream  *v110[ISDN_MAX_CHANNELS];   /* V.110 private data         */
--	struct semaphore  sem;                        /* serialize list access*/
-+	struct mutex      mtx;                        /* serialize list access*/
- 	unsigned long     global_features;
- } isdn_dev;
+ static void reset_config(struct pm2fb_par* p)
+ {
+-	WAIT_FIFO(p, 52);
++	WAIT_FIFO(p, 53);
+ 	pm2_WR(p, PM2R_CHIP_CONFIG, pm2_RD(p, PM2R_CHIP_CONFIG) &
+ 			~(PM2F_VGA_ENABLE | PM2F_VGA_FIXED));
+ 	pm2_WR(p, PM2R_BYPASS_WRITE_MASK, ~(0L));
+@@ -380,6 +380,7 @@ static void reset_config(struct pm2fb_pa
+ 	pm2_WR(p, PM2R_STATISTICS_MODE, 0);
+ 	pm2_WR(p, PM2R_SCISSOR_MODE, 0);
+ 	pm2_WR(p, PM2R_FILTER_MODE, PM2F_SYNCHRONIZATION);
++	pm2_WR(p, PM2R_RD_PIXEL_MASK, 0xff);
+ 	switch (p->type) {
+ 	case PM2_TYPE_PERMEDIA2:
+ 		pm2_RDAC_WR(p, PM2I_RD_MODE_CONTROL, 0); /* no overlay */
+@@ -393,11 +394,6 @@ static void reset_config(struct pm2fb_pa
+ 		break;
+ 	case PM2_TYPE_PERMEDIA2V:
+ 		pm2v_RDAC_WR(p, PM2VI_RD_MISC_CONTROL, 1); /* 8bit */
+-		pm2v_RDAC_WR(p, PM2I_RD_COLOR_KEY_CONTROL, 0);
+-		pm2v_RDAC_WR(p, PM2I_RD_OVERLAY_KEY, 0);
+-		pm2v_RDAC_WR(p, PM2I_RD_RED_KEY, 0);
+-		pm2v_RDAC_WR(p, PM2I_RD_GREEN_KEY, 0);
+-		pm2v_RDAC_WR(p, PM2I_RD_BLUE_KEY, 0);
+ 		break;
+ 	}
+ }
+@@ -532,7 +528,7 @@ static void set_video(struct pm2fb_par* 
+ 	vsync &= ~(PM2F_HSYNC_MASK | PM2F_VSYNC_MASK);
+ 	vsync |= PM2F_HSYNC_ACT_HIGH | PM2F_VSYNC_ACT_HIGH;
  
+-	WAIT_FIFO(p, 5);
++	WAIT_FIFO(p, 3);
+ 	pm2_WR(p, PM2R_VIDEO_CONTROL, vsync);
+ 
+ 	switch (p->type) {
+@@ -551,7 +547,6 @@ static void set_video(struct pm2fb_par* 
+ 		if ((video & PM2F_VSYNC_MASK) == PM2F_VSYNC_ACT_LOW)
+ 			tmp |= 4; /* invert vsync */
+ 		pm2v_RDAC_WR(p, PM2VI_RD_SYNC_CONTROL, tmp);
+-		pm2v_RDAC_WR(p, PM2VI_RD_MISC_CONTROL, 1);
+ 		break;
+ 	}
+ }
+@@ -686,6 +681,7 @@ static int pm2fb_set_par(struct fb_info 
+ 	u32 txtmap = 0;
+ 	u32 pixsize = 0;
+ 	u32 clrformat = 0;
++	u32 misc = 1; /* 8-bit DAC */
+ 	u32 xres = (info->var.xres + 31) & ~31;
+ 	int data64;
+ 
+@@ -767,7 +763,7 @@ static int pm2fb_set_par(struct fb_info 
+ 	switch (depth) {
+ 	case 8:
+ 		pm2_WR(par, PM2R_FB_READ_PIXEL, 0);
+-		clrformat = 0x0e;
++		clrformat = 0x2e;
+ 		break;
+ 	case 16:
+ 		pm2_WR(par, PM2R_FB_READ_PIXEL, 1);
+@@ -775,6 +771,7 @@ static int pm2fb_set_par(struct fb_info 
+ 		txtmap = PM2F_TEXTEL_SIZE_16;
+ 		pixsize = 1;
+ 		clrformat = 0x70;
++		misc |= 8;
+ 		break;
+ 	case 32:
+ 		pm2_WR(par, PM2R_FB_READ_PIXEL, 2);
+@@ -782,6 +779,7 @@ static int pm2fb_set_par(struct fb_info 
+ 		txtmap = PM2F_TEXTEL_SIZE_32;
+ 		pixsize = 2;
+ 		clrformat = 0x20;
++		misc |= 8;
+ 		break;
+ 	case 24:
+ 		pm2_WR(par, PM2R_FB_READ_PIXEL, 4);
+@@ -789,6 +787,7 @@ static int pm2fb_set_par(struct fb_info 
+ 		txtmap = PM2F_TEXTEL_SIZE_24;
+ 		pixsize = 4;
+ 		clrformat = 0x20;
++		misc |= 8;
+ 		break;
+ 	}
+ 	pm2_WR(par, PM2R_FB_WRITE_MODE, PM2F_FB_WRITE_ENABLE);
+@@ -813,7 +812,7 @@ static int pm2fb_set_par(struct fb_info 
+ 	pm2_WR(par, PM2R_SCREEN_BASE, base);
+ 	wmb();
+ 	set_video(par, video);
+-	WAIT_FIFO(par, 6);
++	WAIT_FIFO(par, 10);
+ 	switch (par->type) {
+ 	case PM2_TYPE_PERMEDIA2:
+ 		pm2_RDAC_WR(par, PM2I_RD_COLOR_MODE, clrmode);
+@@ -821,10 +820,11 @@ static int pm2fb_set_par(struct fb_info 
+ 			        (depth == 8) ? 0 : PM2F_COLOR_KEY_TEST_OFF);
+ 		break;
+ 	case PM2_TYPE_PERMEDIA2V:
++		pm2v_RDAC_WR(par, PM2VI_RD_DAC_CONTROL, 0);
+ 		pm2v_RDAC_WR(par, PM2VI_RD_PIXEL_SIZE, pixsize);
+ 		pm2v_RDAC_WR(par, PM2VI_RD_COLOR_FORMAT, clrformat);
+-		pm2v_RDAC_WR(par, PM2I_RD_COLOR_KEY_CONTROL,
+-			         (depth == 8) ? 0 : PM2F_COLOR_KEY_TEST_OFF);
++		pm2v_RDAC_WR(par, PM2VI_RD_MISC_CONTROL, misc);
++		pm2v_RDAC_WR(par, PM2VI_RD_OVERLAY_KEY, 0);
+ 		break;
+ 	}
+ 	set_pixclock(par, pixclock);
+@@ -855,7 +855,7 @@ static int pm2fb_setcolreg(unsigned regn
+ 	struct pm2fb_par *par = info->par;
+ 
+ 	if (regno >= info->cmap.len)  /* no. of hw registers */
+-		return 1;
++		return -EINVAL;
+ 	/*
+ 	 * Program hardware... do anything you want with transp
+ 	 */
+@@ -914,7 +914,7 @@ static int pm2fb_setcolreg(unsigned regn
+ 		u32 v;
+ 
+ 		if (regno >= 16)
+-			return 1;
++			return -EINVAL;
+ 
+ 		v = (red << info->var.red.offset) |
+ 			(green << info->var.green.offset) |
+@@ -1341,7 +1341,7 @@ static int __devinit pm2fb_probe(struct 
+ 			DPRINTK("We have not been initialized by VGA BIOS "
+ 				"and are running on an Elsa Winner 2000 Office\n");
+ 			DPRINTK("Initializing card timings manually...\n");
+-			default_par->memclock = 70000;
++			default_par->memclock = 100000;
+ 		}
+ 		if (pdev->subsystem_vendor == 0x3d3d &&
+ 			pdev->subsystem_device == 0x0100) {
+@@ -1491,17 +1491,11 @@ static void __devexit pm2fb_remove(struc
+ 
+ static struct pci_device_id pm2fb_id_table[] = {
+ 	{ PCI_VENDOR_ID_TI, PCI_DEVICE_ID_TI_TVP4020,
+-	  PCI_ANY_ID, PCI_ANY_ID, PCI_BASE_CLASS_DISPLAY << 16,
+-	  0xff0000, 0 },
++	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
+ 	{ PCI_VENDOR_ID_3DLABS, PCI_DEVICE_ID_3DLABS_PERMEDIA2,
+-	  PCI_ANY_ID, PCI_ANY_ID, PCI_BASE_CLASS_DISPLAY << 16,
+-	  0xff0000, 0 },
+-	{ PCI_VENDOR_ID_3DLABS, PCI_DEVICE_ID_3DLABS_PERMEDIA2V,
+-	  PCI_ANY_ID, PCI_ANY_ID, PCI_BASE_CLASS_DISPLAY << 16,
+-	  0xff0000, 0 },
++	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
+ 	{ PCI_VENDOR_ID_3DLABS, PCI_DEVICE_ID_3DLABS_PERMEDIA2V,
+-	  PCI_ANY_ID, PCI_ANY_ID, PCI_CLASS_NOT_DEFINED_VGA << 8,
+-	  0xff00, 0 },
++	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
+ 	{ 0, }
+ };
+ 
+diff -puN include/video/permedia2.h~pm2fb-permedia-2v-initialization-fixes include/video/permedia2.h
+--- a/include/video/permedia2.h~pm2fb-permedia-2v-initialization-fixes
++++ a/include/video/permedia2.h
+@@ -153,6 +153,7 @@
+ #define PM2VI_RD_CURSOR_Y_HIGH				0x00A
+ #define PM2VI_RD_CURSOR_X_HOT				0x00B
+ #define PM2VI_RD_CURSOR_Y_HOT				0x00C
++#define PM2VI_RD_OVERLAY_KEY				0x00D
+ #define PM2VI_RD_CLK0_PRESCALE				0x201
+ #define PM2VI_RD_CLK0_FEEDBACK				0x202
+ #define PM2VI_RD_CLK0_POSTSCALE				0x203
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
 git-alsa.patch
-generic-ac97-mixer-modem-oss-use-list_for_each_entry.patch
-git-ieee1394.patch
-fs-file_tablec-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-eventpollc-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-kernel-exitc-use-list_for_each_entry_safe-instead-of-list_for_each_safe.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-mm-oom_killc-use-list_for_each_entry-instead-of-list_for_each.patch
+cyber2000fb-checkpatch-fixes.patch
