@@ -1,67 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - memory-unplug-v7-page-offline-fix.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:36:18 -0700
-Message-ID: <200710160436.l9G4aIxO009073@imap1.linux-foundation.org>
+Subject: - fix-memory-hot-remove-not-configured-case-fix.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:36:37 -0700
+Message-ID: <200710160436.l9G4ab8I009098@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34634 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54666 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752137AbXJPEgW (ORCPT
+	by vger.kernel.org with ESMTP id S1753900AbXJPEgl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:36:22 -0400
+	Tue, 16 Oct 2007 00:36:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memory-unplug-v7-page-offline fix
+     fix memory hot remove not configured case (fix)
 has been removed from the -mm tree.  Its filename was
-     memory-unplug-v7-page-offline-fix.patch
+     fix-memory-hot-remove-not-configured-case-fix.patch
 
-This patch was dropped because it was folded into memory-unplug-v7-page-offline.patch
+This patch was dropped because it was folded into fix-memory-hot-remove-not-configured-case.patch
 
 ------------------------------------------------------
-Subject: memory-unplug-v7-page-offline fix
+Subject: fix memory hot remove not configured case (fix)
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-MEMORY_HOTREMOVE config option is selectable even it arch doesn't support it.
-This fix it.
+Sorry... I sent old version...it returns -ENOSYS.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/Kconfig |    3 +++
- mm/Kconfig        |    2 +-
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ mm/memory_hotplug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ia64/Kconfig~memory-unplug-v7-page-offline-fix arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~memory-unplug-v7-page-offline-fix
-+++ a/arch/ia64/Kconfig
-@@ -305,6 +305,9 @@ config HOTPLUG_CPU
- config ARCH_ENABLE_MEMORY_HOTPLUG
- 	def_bool y
- 
-+config ARCH_ENABLE_MEMORY_HOTREMOVE
-+	def_bool y
-+
- config SCHED_SMT
- 	bool "SMT scheduler support"
- 	depends on SMP
-diff -puN mm/Kconfig~memory-unplug-v7-page-offline-fix mm/Kconfig
---- a/mm/Kconfig~memory-unplug-v7-page-offline-fix
-+++ a/mm/Kconfig
-@@ -141,7 +141,7 @@ config MEMORY_HOTPLUG_SPARSE
- 
- config MEMORY_HOTREMOVE
- 	bool "Allow for memory hot remove"
--	depends on MEMORY_HOTPLUG
-+	depends on MEMORY_HOTPLUG && ARCH_ENABLE_MEMORY_HOTREMOVE
- 	depends on MIGRATION
- 
- # Heavily threaded applications may benefit from splitting the mm-wide
+diff -puN mm/memory_hotplug.c~fix-memory-hot-remove-not-configured-case-fix mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~fix-memory-hot-remove-not-configured-case-fix
++++ a/mm/memory_hotplug.c
+@@ -558,7 +558,7 @@ failed_removal:
+ #else
+ int remove_memory(u64 start, u64 size)
+ {
+-	return -ENOSYS;
++	return -EINVAL;
+ }
+ EXPORT_SYMBOL_GPL(remove_memory);
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
@@ -92,7 +76,6 @@ flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
 memory-unplug-v7-memory-hotplug-cleanup.patch
 memory-unplug-v7-page-isolation.patch
 memory-unplug-v7-page-offline.patch
-memory-unplug-v7-page-offline-fix.patch
 memory-unplug-v7-ia64-interface.patch
 fix-memory-hot-remove-not-configured-case.patch
 fix-memory-hot-remove-not-configured-case-fix.patch
