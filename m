@@ -1,175 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - uml-arch-um-drivers-formatting-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:50:00 -0700
-Message-ID: <200710160450.l9G4o0xF009531@imap1.linux-foundation.org>
+Subject: - i-oat-add-support-for-msi-and-msi-x-fix.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:50:41 -0700
+Message-ID: <200710160450.l9G4ofRd009614@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60690 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48118 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753343AbXJPEuE (ORCPT
+	by vger.kernel.org with ESMTP id S1754755AbXJPEvA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:50:04 -0400
+	Tue, 16 Oct 2007 00:51:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, shannon.nelson@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml-arch-um-drivers-formatting-checkpatch-fixes
+     drivers/dma/ioat_dma.c: make 3 functions static
 has been removed from the -mm tree.  Its filename was
-     uml-arch-um-drivers-formatting-checkpatch-fixes.patch
+     i-oat-add-support-for-msi-and-msi-x-fix.patch
 
-This patch was dropped because it was folded into uml-arch-um-drivers-formatting.patch
+This patch was dropped because it was folded into i-oat-add-support-for-msi-and-msi-x.patch
 
 ------------------------------------------------------
-Subject: uml-arch-um-drivers-formatting-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/dma/ioat_dma.c: make 3 functions static
+From: Adrian Bunk <bunk@kernel.org>
 
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Jeff Dike <jdike@linux.intel.com>
+This patch makes three needlessly global functions static.
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Shannon Nelson <shannon.nelson@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ drivers/dma/ioat_dma.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/um/drivers/mmapper_kern.c~uml-arch-um-drivers-formatting-checkpatch-fixes arch/um/drivers/mmapper_kern.c
---- a/arch/um/drivers/mmapper_kern.c~uml-arch-um-drivers-formatting-checkpatch-fixes
-+++ a/arch/um/drivers/mmapper_kern.c
-@@ -51,7 +51,7 @@ static int mmapper_ioctl(struct inode *i
- 	return -ENOIOCTLCMD;
- }
+diff -puN drivers/dma/ioat_dma.c~i-oat-add-support-for-msi-and-msi-x-fix drivers/dma/ioat_dma.c
+--- a/drivers/dma/ioat_dma.c~i-oat-add-support-for-msi-and-msi-x-fix
++++ a/drivers/dma/ioat_dma.c
+@@ -47,8 +47,8 @@
+ static void ioat_dma_start_null_desc(struct ioat_dma_chan *ioat_chan);
+ static void ioat_dma_memcpy_cleanup(struct ioat_dma_chan *ioat_chan);
  
--static int mmapper_mmap(struct file *file, struct vm_area_struct * vma)
-+static int mmapper_mmap(struct file *file, struct vm_area_struct *vma)
+-struct ioat_dma_chan *ioat_lookup_chan_by_index(struct ioatdma_device *device,
+-						int index)
++static struct ioat_dma_chan *ioat_lookup_chan_by_index(struct ioatdma_device *device,
++						       int index)
  {
- 	int ret = -EINVAL;
- 	int size;
+ 	return device->idx[index];
+ }
+@@ -716,7 +716,7 @@ MODULE_PARM_DESC(ioat_interrupt_style,
+  * ioat_dma_setup_interrupts - setup interrupt handler
+  * @device: ioat device
+  */
+-int ioat_dma_setup_interrupts(struct ioatdma_device *device)
++static int ioat_dma_setup_interrupts(struct ioatdma_device *device)
+ {
+ 	struct ioat_dma_chan *ioat_chan;
+ 	int err, i, j, msixcnt;
+@@ -826,7 +826,7 @@ err_no_irq:
+  * ioat_dma_remove_interrupts - remove whatever interrupts were set
+  * @device: ioat device
+  */
+-void ioat_dma_remove_interrupts(struct ioatdma_device *device)
++static void ioat_dma_remove_interrupts(struct ioatdma_device *device)
+ {
+ 	struct ioat_dma_chan *ioat_chan;
+ 	int i;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-slow-down-printk-during-boot.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
-mm-use-pagevec-to-rotate-reclaimable-page.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-nfs-convert-to-new-aops.patch
-fs-restore-nobh.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code.patch
-categorize-gfp-flags.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support.patch
-mm-mempolicyc-cleanups.patch
-uml-fix-stub-address-calculations.patch
-uml-arch-um-drivers-formatting.patch
-uml-arch-um-drivers-formatting-checkpatch-fixes.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2-fix-3.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
-stop-using-dma_xxbit_mask.patch
-stop-using-dma_xxbit_mask-fix.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-userc-ifdef-mq_bytes-fix.patch
-f_dupfd_cloexec-implementation-fix-2.patch
-ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
-drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
-writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-ecryptfs-printk-warning-fixes.patch
-rtc-cmos-probe-cleanup-checkpatch-fixes.patch
-tdfxfb-mtrr-support-fix.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
-intel-fb-support-for-interlaced-video-modes.patch
-export-font_vga_8x16.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
-fbcon-logo-disable-logo-at-boot-fix.patch
-fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte-checkpatch-fixes.patch
-md-software-raid-autodetect-dev-list-not-array.patch
-do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-pnp-use-dev_info-dev_err-etc-in-core-fix.patch
-pnp-add-debug-message-for-adding-new-device-fix-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-cpuset-sched_load_balance-flag-fix.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
-sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-w1-build-fix.patch
+uml-fix-inlines.patch
+i-oat-add-support-for-msi-and-msi-x.patch
+i-oat-add-support-for-msi-and-msi-x-fix.patch
+kernel-time-timekeepingc-cleanups.patch
+make-fs-libfscsimple_commit_write-static.patch
+allow-disabling-dnotify-without-embedded.patch
+use-erestart_restartblock-if-poll-is-interrupted-by-a-signal-fix.patch
+remove-include-asm-ipch.patch
+n_hdlcc-fix-check-after-use.patch
+kernel-sys_nic-add-dummy-sys_ni_syscall-prototype.patch
+make-kernel-profilectime_hook-static.patch
+drivers-block-ccissc-fix-check-after-use.patch
+remove-fs-ext2-balloccreserve_blocks.patch
+pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
+bitmaph-remove-dead-artifacts.patch
+sysctl-parport-remove-binary-paths-fix.patch
+sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-cleanup.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-cleanup.patch
+remove-asm-bitopsh-includes.patch
+forbid-asm-bitopsh-direct-inclusion.patch
+alpha-lock-bitops-fix.patch
+reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
+remove-asm-bitopsh-includes-reiser4.patch
