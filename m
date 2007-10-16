@@ -1,220 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 15:05:28 -0700
-Message-ID: <200710162205.l9GM5Tjr019994@imap1.linux-foundation.org>
+Subject: - printk-add-interfaces-for-external-access-to-the-log-buffer-fix-2.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 15:06:40 -0700
+Message-ID: <200710162206.l9GM6e1c020024@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41056 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40837 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936141AbXJPWGc (ORCPT
+	by vger.kernel.org with ESMTP id S934548AbXJPWH0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 18:06:32 -0400
+	Tue, 16 Oct 2007 18:07:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nhorman@tuxdriver.com, jeremy@goop.org, martin.pitt@ubuntu.com, wwoods@redhat.com, mm-commits@vger.kernel.org
+To: vapier@gentoo.org, gerg@snapgear.com, lethal@linux-sh.org, rgetz@blackfin.uclinux.org, rmk@arm.linux.org.uk, tim.bird@am.sony.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix
+     printk-add-interfaces-for-external-access-to-the-log-buffer fix 2
 has been removed from the -mm tree.  Its filename was
-     core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix.patch
+     printk-add-interfaces-for-external-access-to-the-log-buffer-fix-2.patch
 
-This patch was dropped because it was folded into core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe.patch
+This patch was dropped because it was folded into printk-add-interfaces-for-external-access-to-the-log-buffer.patch
 
 ------------------------------------------------------
-Subject: core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix
-From: Neil Horman <nhorman@tuxdriver.com>
+Subject: printk-add-interfaces-for-external-access-to-the-log-buffer fix 2
+From: Mike Frysinger <vapier@gentoo.org>
 
-coding-style repairs.
+Key off of the log buffer rather than the kernel ring buffer as the
+latter is constantly cleared by userspace daemons.  Also, make sure
+we index into the buffer properly as pointed out by Tim Bird.
 
-Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
-Cc: <martin.pitt@ubuntu.com>
-Cc: <wwoods@redhat.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Greg Ungerer <gerg@snapgear.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Robin Getz <rgetz@blackfin.uclinux.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Tim Bird <tim.bird@am.sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/irixelf.c          |    2 +-
- arch/sparc64/kernel/binfmt_aout32.c |    6 +++---
- arch/x86_64/ia32/ia32_aout.c        |    8 ++++----
- fs/binfmt_aout.c                    |   12 ++++++------
- fs/binfmt_flat.c                    |    4 ++--
- fs/binfmt_som.c                     |    2 +-
- include/linux/binfmts.h             |    2 +-
- 7 files changed, 18 insertions(+), 18 deletions(-)
+ kernel/printk.c |    9 ++++-----
+ 1 files changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN arch/mips/kernel/irixelf.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix arch/mips/kernel/irixelf.c
---- a/arch/mips/kernel/irixelf.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix
-+++ a/arch/mips/kernel/irixelf.c
-@@ -1091,7 +1091,7 @@ end_coredump:
-  * and then they are actually written out.  If we run out of core limit
-  * we just truncate.
+diff -puN kernel/printk.c~printk-add-interfaces-for-external-access-to-the-log-buffer-fix-2 kernel/printk.c
+--- a/kernel/printk.c~printk-add-interfaces-for-external-access-to-the-log-buffer-fix-2
++++ a/kernel/printk.c
+@@ -224,7 +224,7 @@ static inline void boot_delay_msec(void)
   */
--static int irix_core_dump(long signr, struct pt_regs * regs, struct file *file, unsigned long limit)
-+static int irix_core_dump(long signr, struct pt_regs *regs, struct file *file, unsigned long limit)
+ int log_buf_get_len(void)
  {
- 	int has_dumped = 0;
- 	mm_segment_t fs;
-diff -puN arch/sparc64/kernel/binfmt_aout32.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix arch/sparc64/kernel/binfmt_aout32.c
---- a/arch/sparc64/kernel/binfmt_aout32.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix
-+++ a/arch/sparc64/kernel/binfmt_aout32.c
-@@ -35,7 +35,7 @@
- 
- static int load_aout32_binary(struct linux_binprm *, struct pt_regs * regs);
- static int load_aout32_library(struct file*);
--static int aout32_core_dump(long signr, struct pt_regs * regs, struct file *file, unsigned long limit);
-+static int aout32_core_dump(long signr, struct pt_regs *regs, struct file *file, unsigned long limit);
- 
- static struct linux_binfmt aout32_format = {
- 	.module		= THIS_MODULE,
-@@ -105,11 +105,11 @@ static int aout32_core_dump(long signr, 
- 
- /* If the size of the dump file exceeds the rlimit, then see what would happen
-    if we wrote the stack, but not the data area.  */
--	if ((dump.u_dsize+dump.u_ssize) > limit)
-+	if (dump.u_dsize + dump.u_ssize > limit)
- 		dump.u_dsize = 0;
- 
- /* Make sure we have enough room to write the stack and data areas. */
--	if ((dump.u_ssize) > limit)
-+	if (dump.u_ssize > limit)
- 		dump.u_ssize = 0;
- 
- /* make sure we actually have a data and stack area to dump */
-diff -puN arch/x86_64/ia32/ia32_aout.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix arch/x86_64/ia32/ia32_aout.c
---- a/arch/x86/ia32/ia32_aout.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix
-+++ a/arch/x86/ia32/ia32_aout.c
-@@ -40,7 +40,7 @@ static int load_aout_binary(struct linux
- static int load_aout_library(struct file*);
- 
- #ifdef CORE_DUMP
--static int aout_core_dump(long signr, struct pt_regs * regs, struct file *file, unsigned long limit);
-+static int aout_core_dump(long signr, struct pt_regs *regs, struct file *file, unsigned long limit);
+-	return log_end - log_start;
++	return logged_chars;
+ }
  
  /*
-  * fill in the user structure for a core dump..
-@@ -148,7 +148,7 @@ if (file->f_op->llseek) { \
-  * dumping of the process results in another error..
-  */
+@@ -247,10 +247,9 @@ int log_buf_copy(char *dest, int idx, in
+ 		if (len > max)
+ 			len = max;
+ 		ret = len;
+-		while (len-- > 0) {
+-			*dest = LOG_BUF(idx++);
+-			++dest;
+-		}
++		idx += (log_end - max);
++		while (len-- > 0)
++			dest[len] = LOG_BUF(idx + len);
+ 	}
  
--static int aout_core_dump(long signr, struct pt_regs * regs, struct file *file, unsigned long limit)
-+static int aout_core_dump(long signr, struct pt_regs *regs, struct file *file, unsigned long limit)
- {
- 	mm_segment_t fs;
- 	int has_dumped = 0;
-@@ -168,11 +168,11 @@ static int aout_core_dump(long signr, st
- 
- /* If the size of the dump file exceeds the rlimit, then see what would happen
-    if we wrote the stack, but not the data area.  */
--	if ((dump.u_dsize+dump.u_ssize+1) * PAGE_SIZE > limit)
-+	if ((dump.u_dsize + dump.u_ssize + 1) * PAGE_SIZE > limit)
- 		dump.u_dsize = 0;
- 
- /* Make sure we have enough room to write the stack and data areas. */
--	if ((dump.u_ssize+1) * PAGE_SIZE > limit)
-+	if ((dump.u_ssize + 1) * PAGE_SIZE > limit)
- 		dump.u_ssize = 0;
- 
- /* make sure we actually have a data and stack area to dump */
-diff -puN fs/binfmt_aout.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix fs/binfmt_aout.c
---- a/fs/binfmt_aout.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix
-+++ a/fs/binfmt_aout.c
-@@ -31,7 +31,7 @@
- 
- static int load_aout_binary(struct linux_binprm *, struct pt_regs * regs);
- static int load_aout_library(struct file*);
--static int aout_core_dump(long signr, struct pt_regs * regs, struct file *file, unsigned long limit);
-+static int aout_core_dump(long signr, struct pt_regs *regs, struct file *file, unsigned long limit);
- 
- static struct linux_binfmt aout_format = {
- 	.module		= THIS_MODULE,
-@@ -88,7 +88,7 @@ if (file->f_op->llseek) { \
-  * dumping of the process results in another error..
-  */
- 
--static int aout_core_dump(long signr, struct pt_regs * regs, struct file *file, unsigned long limit)
-+static int aout_core_dump(long signr, struct pt_regs *regs, struct file *file, unsigned long limit)
- {
- 	mm_segment_t fs;
- 	int has_dumped = 0;
-@@ -123,19 +123,19 @@ static int aout_core_dump(long signr, st
- /* If the size of the dump file exceeds the rlimit, then see what would happen
-    if we wrote the stack, but not the data area.  */
- #ifdef __sparc__
--	if ((dump.u_dsize+dump.u_ssize) > limit)
-+	if ((dump.u_dsize + dump.u_ssize) > limit)
- 		dump.u_dsize = 0;
- #else
--	if ((dump.u_dsize+dump.u_ssize+1) * PAGE_SIZE > limit)
-+	if ((dump.u_dsize + dump.u_ssize+1) * PAGE_SIZE > limit)
- 		dump.u_dsize = 0;
- #endif
- 
- /* Make sure we have enough room to write the stack and data areas. */
- #ifdef __sparc__
--	if ((dump.u_ssize) > limit)
-+	if (dump.u_ssize > limit)
- 		dump.u_ssize = 0;
- #else
--	if ((dump.u_ssize+1) * PAGE_SIZE > limit)
-+	if ((dump.u_ssize + 1) * PAGE_SIZE > limit)
- 		dump.u_ssize = 0;
- #endif
- 
-diff -puN fs/binfmt_flat.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix fs/binfmt_flat.c
---- a/fs/binfmt_flat.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix
-+++ a/fs/binfmt_flat.c
-@@ -75,7 +75,7 @@ static int load_flat_shared_library(int 
- #endif
- 
- static int load_flat_binary(struct linux_binprm *, struct pt_regs * regs);
--static int flat_core_dump(long signr, struct pt_regs * regs, struct file *file, unsigned long limit);
-+static int flat_core_dump(long signr, struct pt_regs *regs, struct file *file, unsigned long limit);
- 
- static struct linux_binfmt flat_format = {
- 	.module		= THIS_MODULE,
-@@ -90,7 +90,7 @@ static struct linux_binfmt flat_format =
-  * Currently only a stub-function.
-  */
- 
--static int flat_core_dump(long signr, struct pt_regs * regs, struct file *file, unsigned long limit)
-+static int flat_core_dump(long signr, struct pt_regs *regs, struct file *file, unsigned long limit)
- {
- 	printk("Process %s:%d received signr %d and should have core dumped\n",
- 			current->comm, current->pid, (int) signr);
-diff -puN fs/binfmt_som.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix fs/binfmt_som.c
---- a/fs/binfmt_som.c~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix
-+++ a/fs/binfmt_som.c
-@@ -44,7 +44,7 @@ static int load_som_library(struct file 
-  * don't even try.
-  */
- #if 0
--static int som_core_dump(long signr, struct pt_regs * regs, unsigned long limit);
-+static int som_core_dump(long signr, struct pt_regs *regs, unsigned long limit);
- #else
- #define som_core_dump	NULL
- #endif
-diff -puN include/linux/binfmts.h~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix include/linux/binfmts.h
---- a/include/linux/binfmts.h~core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix
-+++ a/include/linux/binfmts.h
-@@ -68,7 +68,7 @@ struct linux_binfmt {
- 	struct module *module;
- 	int (*load_binary)(struct linux_binprm *, struct  pt_regs * regs);
- 	int (*load_shlib)(struct file *);
--	int (*core_dump)(long signr, struct pt_regs * regs, struct file * file, unsigned long limit);
-+	int (*core_dump)(long signr, struct pt_regs *regs, struct file *file, unsigned long limit);
- 	unsigned long min_coredump;	/* minimal dump size */
- 	int hasvdso;
- };
+ 	if (took_lock)
 _
 
-Patches currently in -mm which might be from nhorman@tuxdriver.com are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
 origin.patch
-argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
-core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe.patch
-core_pattern-ignore-rlimit_core-if-core_pattern-is-a-pipe-fix.patch
-core_pattern-allow-passing-of-arguments-to-user-mode-helper-when-core_pattern-is-a-pipe.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-proc-export-a-processes-resource-limits-via-proc-pid.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix-2.patch
+add-stack-checking-for-blackfin.patch
