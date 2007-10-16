@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: - uml-fix-stub-address-calculations-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:49:39 -0700
-Message-ID: <200710160449.l9G4ndsf009524@imap1.linux-foundation.org>
+Subject: - uml-arch-um-drivers-formatting-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:50:00 -0700
+Message-ID: <200710160450.l9G4o0xF009531@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37024 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60690 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765394AbXJPEtm (ORCPT
+	by vger.kernel.org with ESMTP id S1753343AbXJPEuE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:49:42 -0400
+	Tue, 16 Oct 2007 00:50:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml-fix-stub-address-calculations-checkpatch-fixes
+     uml-arch-um-drivers-formatting-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     uml-fix-stub-address-calculations-checkpatch-fixes.patch
+     uml-arch-um-drivers-formatting-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into uml-fix-stub-address-calculations.patch
+This patch was dropped because it was folded into uml-arch-um-drivers-formatting.patch
 
 ------------------------------------------------------
-Subject: uml-fix-stub-address-calculations-checkpatch-fixes
+Subject: uml-arch-um-drivers-formatting-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Jeff Dike <jdike@addtoit.com>
@@ -31,19 +31,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN arch/um/kernel/um_arch.c~uml-fix-stub-address-calculations-checkpatch-fixes arch/um/kernel/um_arch.c
---- a/arch/um/kernel/um_arch.c~uml-fix-stub-address-calculations-checkpatch-fixes
-+++ a/arch/um/kernel/um_arch.c
-@@ -242,7 +242,8 @@ static unsigned long set_task_sizes_skas
- 
- 	if (!skas_needs_stub)
- 		*task_size_out = host_task_size;
--	else *task_size_out = STUB_START & PGDIR_MASK;
-+	else
-+		*task_size_out = STUB_START & PGDIR_MASK;
- 
- 	return host_task_size;
+diff -puN arch/um/drivers/mmapper_kern.c~uml-arch-um-drivers-formatting-checkpatch-fixes arch/um/drivers/mmapper_kern.c
+--- a/arch/um/drivers/mmapper_kern.c~uml-arch-um-drivers-formatting-checkpatch-fixes
++++ a/arch/um/drivers/mmapper_kern.c
+@@ -51,7 +51,7 @@ static int mmapper_ioctl(struct inode *i
+ 	return -ENOIOCTLCMD;
  }
+ 
+-static int mmapper_mmap(struct file *file, struct vm_area_struct * vma)
++static int mmapper_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	int ret = -EINVAL;
+ 	int size;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -65,7 +64,7 @@ slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
 hugetlbfs-read-support.patch
 mm-mempolicyc-cleanups.patch
 uml-fix-stub-address-calculations.patch
-uml-fix-stub-address-calculations-checkpatch-fixes.patch
+uml-arch-um-drivers-formatting.patch
 uml-arch-um-drivers-formatting-checkpatch-fixes.patch
 softlockup-add-a-proc-tuning-parameter-fix.patch
 force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
