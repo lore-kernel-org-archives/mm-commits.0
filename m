@@ -1,209 +1,321 @@
 From: akpm@linux-foundation.org
-Subject: - slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:35:24 -0700
-Message-ID: <200710162035.l9GKZOjk015056@imap1.linux-foundation.org>
+Subject: - uml-tickless-support.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:38:50 -0700
+Message-ID: <200710162038.l9GKcoNF015486@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39349 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60510 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966037AbXJPV3b (ORCPT
+	by vger.kernel.org with ESMTP id S1754578AbXJPVaL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:29:31 -0400
+	Tue, 16 Oct 2007 17:30:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clameter@sgi.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slub: list_locations() can use GFP_TEMPORARY
+     uml: tickless support
 has been removed from the -mm tree.  Its filename was
-     slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+     uml-tickless-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: slub: list_locations() can use GFP_TEMPORARY
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: uml: tickless support
+From: Jeff Dike <jdike@addtoit.com>
 
-It's a short-lived allocation.
+Enable tickless support.
 
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+CONFIG_TICK_ONESHOT and CONFIG_NO_HZ are enabled.
+
+itimer_clockevent gets CLOCK_EVT_FEAT_ONESHOT and an implementation of
+.set_next_event.
+
+CONFIG_UML_REAL_TIME_CLOCK goes away because it only makes sense when there is
+a clock ticking away all the time.  timer_handler now just calls do_IRQ once
+without trying to figure out how many ticks to emulate.
+
+The idle loop now needs to turn ticking on and off.
+
+Userspace ticks keep happening as usual.  However, the userspace loop keep
+track of when the next wakeup should happen and suppresses process ticks until
+that happens.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/um/Kconfig                 |   12 --------
+ arch/um/defconfig               |    5 +--
+ arch/um/include/os.h            |    1 
+ arch/um/kernel/process.c        |    3 ++
+ arch/um/kernel/time.c           |   45 ++++++------------------------
+ arch/um/os-Linux/skas/process.c |   27 +++++++++++++++---
+ arch/um/os-Linux/time.c         |   17 ++++++++++-
+ 7 files changed, 55 insertions(+), 55 deletions(-)
 
-diff -puN mm/slub.c~slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff mm/slub.c
---- a/mm/slub.c~slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff
-+++ a/mm/slub.c
-@@ -3285,7 +3285,7 @@ static int list_locations(struct kmem_ca
- 	int node;
+diff -puN arch/um/Kconfig~uml-tickless-support arch/um/Kconfig
+--- a/arch/um/Kconfig~uml-tickless-support
++++ a/arch/um/Kconfig
+@@ -250,18 +250,6 @@ config KERNEL_STACK_ORDER
+ 	  be 1 << order pages.  The default is OK unless you're running Valgrind
+ 	  on UML, in which case, set this to 3.
  
- 	if (!alloc_loc_track(&t, PAGE_SIZE / sizeof(struct location),
--			GFP_KERNEL))
-+			GFP_TEMPORARY))
- 		return sprintf(buf, "Out of memory\n");
+-config UML_REAL_TIME_CLOCK
+-	bool "Real-time Clock"
+-	default y
+-	help
+-	  This option makes UML time deltas match wall clock deltas.  This
+-	  should normally be enabled.  The exception would be if you are
+-	  debugging with UML and spend long times with UML stopped at a
+-	  breakpoint.  In this case, when UML is restarted, it will call the
+-	  timer enough times to make up for the time spent at the breakpoint.
+-	  This could result in a noticeable lag.  If this is a problem, then
+-	  disable this option.
+-
+ endmenu
  
- 	/* Push back cpu slabs */
+ source "init/Kconfig"
+diff -puN arch/um/defconfig~uml-tickless-support arch/um/defconfig
+--- a/arch/um/defconfig~uml-tickless-support
++++ a/arch/um/defconfig
+@@ -73,8 +73,8 @@ CONFIG_FLATMEM=y
+ CONFIG_FLAT_NODE_MEM_MAP=y
+ # CONFIG_SPARSEMEM_STATIC is not set
+ CONFIG_SPLIT_PTLOCK_CPUS=4
+-# CONFIG_TICK_ONESHOT is not set
+-# CONFIG_NO_HZ is not set
++CONFIG_TICK_ONESHOT=y
++CONFIG_NO_HZ=y
+ CONFIG_HIGH_RES_TIMERS=y
+ CONFIG_LD_SCRIPT_DYN=y
+ CONFIG_NET=y
+@@ -87,7 +87,6 @@ CONFIG_MAGIC_SYSRQ=y
+ CONFIG_NEST_LEVEL=0
+ # CONFIG_HIGHMEM is not set
+ CONFIG_KERNEL_STACK_ORDER=0
+-CONFIG_UML_REAL_TIME_CLOCK=y
+ 
+ #
+ # Code maturity level options
+diff -puN arch/um/include/os.h~uml-tickless-support arch/um/include/os.h
+--- a/arch/um/include/os.h~uml-tickless-support
++++ a/arch/um/include/os.h
+@@ -254,6 +254,7 @@ extern void os_dump_core(void);
+ extern int switch_timers(int to_real);
+ extern void idle_sleep(int secs);
+ extern int set_interval(void);
++extern int timer_one_shot(int ticks);
+ extern void disable_timer(void);
+ extern void uml_idle_timer(void);
+ extern unsigned long long os_nsecs(void);
+diff -puN arch/um/kernel/process.c~uml-tickless-support arch/um/kernel/process.c
+--- a/arch/um/kernel/process.c~uml-tickless-support
++++ a/arch/um/kernel/process.c
+@@ -13,6 +13,7 @@
+ #include "linux/ptrace.h"
+ #include "linux/random.h"
+ #include "linux/sched.h"
++#include "linux/tick.h"
+ #include "linux/threads.h"
+ #include "asm/pgtable.h"
+ #include "asm/uaccess.h"
+@@ -244,9 +245,11 @@ void default_idle(void)
+ 		if (need_resched())
+ 			schedule();
+ 
++		tick_nohz_stop_sched_tick();
+ 		switch_timers(1);
+ 		idle_sleep(10);
+ 		switch_timers(0);
++		tick_nohz_restart_sched_tick();
+ 	}
+ }
+ 
+diff -puN arch/um/kernel/time.c~uml-tickless-support arch/um/kernel/time.c
+--- a/arch/um/kernel/time.c~uml-tickless-support
++++ a/arch/um/kernel/time.c
+@@ -20,41 +20,12 @@ unsigned long long sched_clock(void)
+ 	return (unsigned long long)jiffies_64 * (1000000000 / HZ);
+ }
+ 
+-#ifdef CONFIG_UML_REAL_TIME_CLOCK
+-static unsigned long long prev_nsecs[NR_CPUS];
+-static long long delta[NR_CPUS];		/* Deviation per interval */
+-#endif
+-
+ void timer_handler(int sig, struct uml_pt_regs *regs)
+ {
+-	unsigned long long ticks = 0;
+ 	unsigned long flags;
+-#ifdef CONFIG_UML_REAL_TIME_CLOCK
+-	int c = cpu();
+-	if (prev_nsecs[c]) {
+-		/* We've had 1 tick */
+-		unsigned long long nsecs = os_nsecs();
+-
+-		delta[c] += nsecs - prev_nsecs[c];
+-		prev_nsecs[c] = nsecs;
+-
+-		/* Protect against the host clock being set backwards */
+-		if (delta[c] < 0)
+-			delta[c] = 0;
+-
+-		ticks += (delta[c] * HZ) / BILLION;
+-		delta[c] -= (ticks * BILLION) / HZ;
+-	}
+-	else prev_nsecs[c] = os_nsecs();
+-#else
+-	ticks = 1;
+-#endif
+ 
+ 	local_irq_save(flags);
+-	while (ticks > 0) {
+-		do_IRQ(TIMER_IRQ, regs);
+-		ticks--;
+-	}
++	do_IRQ(TIMER_IRQ, regs);
+ 	local_irq_restore(flags);
+ }
+ 
+@@ -68,10 +39,8 @@ static void itimer_set_mode(enum clock_e
+ 
+ 	case CLOCK_EVT_MODE_SHUTDOWN:
+ 	case CLOCK_EVT_MODE_UNUSED:
+-		disable_timer();
+-		break;
+ 	case CLOCK_EVT_MODE_ONESHOT:
+-		BUG();
++		disable_timer();
+ 		break;
+ 
+ 	case CLOCK_EVT_MODE_RESUME:
+@@ -79,13 +48,19 @@ static void itimer_set_mode(enum clock_e
+ 	}
+ }
+ 
++static int itimer_next_event(unsigned long delta,
++			     struct clock_event_device *evt)
++{
++	return timer_one_shot(delta + 1);
++}
++
+ static struct clock_event_device itimer_clockevent = {
+ 	.name		= "itimer",
+ 	.rating		= 250,
+ 	.cpumask	= CPU_MASK_ALL,
+-	.features	= CLOCK_EVT_FEAT_PERIODIC,
++	.features	= CLOCK_EVT_FEAT_PERIODIC | CLOCK_EVT_FEAT_ONESHOT,
+ 	.set_mode	= itimer_set_mode,
+-	.set_next_event = NULL,
++	.set_next_event = itimer_next_event,
+ 	.shift		= 32,
+ 	.irq		= 0,
+ };
+diff -puN arch/um/os-Linux/skas/process.c~uml-tickless-support arch/um/os-Linux/skas/process.c
+--- a/arch/um/os-Linux/skas/process.c~uml-tickless-support
++++ a/arch/um/os-Linux/skas/process.c
+@@ -287,10 +287,18 @@ int start_userspace(unsigned long stub_s
+ 
+ void userspace(struct uml_pt_regs *regs)
+ {
++	struct itimerval timer;
++	unsigned long long nsecs, now;
+ 	int err, status, op, pid = userspace_pid[0];
+ 	/* To prevent races if using_sysemu changes under us.*/
+ 	int local_using_sysemu;
+ 
++	if (getitimer(ITIMER_VIRTUAL, &timer))
++		printk("Failed to get itimer, errno = %d\n", errno);
++	nsecs = timer.it_value.tv_sec * BILLION +
++		timer.it_value.tv_usec * 1000;
++	nsecs += os_nsecs();
++
+ 	while (1) {
+ 		restore_registers(pid, regs);
+ 
+@@ -333,8 +341,18 @@ void userspace(struct uml_pt_regs *regs)
+ 			case SIGTRAP:
+ 				relay_signal(SIGTRAP, regs);
+ 				break;
+-			case SIGIO:
+ 			case SIGVTALRM:
++				now = os_nsecs();
++				if(now < nsecs)
++					break;
++				block_signals();
++				(*sig_info[sig])(sig, regs);
++				unblock_signals();
++				nsecs = timer.it_value.tv_sec * BILLION +
++					timer.it_value.tv_usec * 1000;
++				nsecs += os_nsecs();
++				break;
++			case SIGIO:
+ 			case SIGILL:
+ 			case SIGBUS:
+ 			case SIGFPE:
+@@ -378,6 +396,7 @@ __initcall(init_thread_regs);
+ 
+ int copy_context_skas0(unsigned long new_stack, int pid)
+ {
++	struct timeval tv = { .tv_sec = 0, .tv_usec = 1000000 / UM_HZ };
+ 	int err;
+ 	unsigned long current_stack = current_stub_stack();
+ 	struct stub_data *data = (struct stub_data *) current_stack;
+@@ -392,9 +411,9 @@ int copy_context_skas0(unsigned long new
+ 	*data = ((struct stub_data) { .offset	= MMAP_OFFSET(new_offset),
+ 				      .fd	= new_fd,
+ 				      .timer    = ((struct itimerval)
+-					            { { 0, 1000000 / UM_HZ },
+-						      { 0, 1000000 / UM_HZ }})
+-				 });
++					           { .it_value = tv,
++						     .it_interval = tv }) });
++
+ 	err = ptrace_setregs(pid, thread_regs);
+ 	if (err < 0)
+ 		panic("copy_context_skas0 : PTRACE_SETREGS failed, "
+diff -puN arch/um/os-Linux/time.c~uml-tickless-support arch/um/os-Linux/time.c
+--- a/arch/um/os-Linux/time.c~uml-tickless-support
++++ a/arch/um/os-Linux/time.c
+@@ -26,6 +26,21 @@ int set_interval(void)
+ 	return 0;
+ }
+ 
++int timer_one_shot(int ticks)
++{
++	unsigned long usec = ticks * 1000000 / UM_HZ;
++	unsigned long sec = usec / 1000000;
++	struct itimerval interval;
++
++	usec %= 1000000;
++	interval = ((struct itimerval) { { 0, 0 }, { sec, usec } });
++
++	if (setitimer(ITIMER_VIRTUAL, &interval, NULL) == -1)
++		return -errno;
++
++	return 0;
++}
++
+ void disable_timer(void)
+ {
+ 	struct itimerval disable = ((struct itimerval) { { 0, 0 }, { 0, 0 }});
+@@ -74,7 +89,7 @@ unsigned long long os_nsecs(void)
+ 	struct timeval tv;
+ 
+ 	gettimeofday(&tv, NULL);
+-	return (unsigned long long) tv.tv_sec * BILLION + tv.tv_usec * 1000;
++	return timeval_to_ns(&tv);
+ }
+ 
+ void idle_sleep(int secs)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-cifs.patch
-applesmc-for-mac-pro-2-x-quad-core-fix.patch
-console-keyboard-events-and-accessibility.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-git-jg-warning-fixes.patch
-git-jg-misc-powernow-fix.patch
 git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-ide-arm-hack.patch
-forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd-fixup.patch
-qla2xxx-printk-fixes.patch
-sparc-support-for-new-termios-checkpatch-fixes.patch
-git-unionfs.patch
-git-watchdog-fixup.patch
-git-wireless.patch
-revert-x86_64-mm-cpa-einval.patch
-fix-x86_64-mm-sched-clock-share.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-asm-i386-ioh-fix-constness.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
-git-xfs.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold-warning-fix.patch
-mm-dirty-balancing-for-tasks-warning-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
-oom-do-not-take-callback_mutex-fix.patch
-writeback-dont-propagate-aop_writepage_activate.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-pm-qos-infrastructure-and-interface-fix.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2-fix-3.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
-stop-using-dma_xxbit_mask.patch
-stop-using-dma_xxbit_mask-fix.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-userc-ifdef-mq_bytes-fix.patch
-f_dupfd_cloexec-implementation-fix-2.patch
-ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
-drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
-writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-md-software-raid-autodetect-dev-list-not-array.patch
-do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-pnp-use-dev_info-dev_err-etc-in-core-fix.patch
-pnp-add-debug-message-for-adding-new-device-fix-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-cpuset-sched_load_balance-flag-fix.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
-sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
+bitops-introduce-lock-ops.patch
