@@ -1,137 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - mm-shmemc-make-3-functions-static.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:36:08 -0700
-Message-ID: <200710162036.l9GKa8lZ015122@imap1.linux-foundation.org>
+Subject: - remove-frv-usage-of-flush_tlb_pgtables.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:36:16 -0700
+Message-ID: <200710162036.l9GKaGiE015151@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40255 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39265 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965942AbXJPVet (ORCPT
+	by vger.kernel.org with ESMTP id S965806AbXJPVep (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:34:49 -0400
+	Tue, 16 Oct 2007 17:34:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, hugh@veritas.com, mm-commits@vger.kernel.org
+To: benh@kernel.crashing.org, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm/shmem.c: make 3 functions static
+     remove frv usage of flush_tlb_pgtables()
 has been removed from the -mm tree.  Its filename was
-     mm-shmemc-make-3-functions-static.patch
+     remove-frv-usage-of-flush_tlb_pgtables.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mm/shmem.c: make 3 functions static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: remove frv usage of flush_tlb_pgtables()
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-This patch makes three needlessly global functions static.
+frv is the last user in the tree of that dubious hook, and it's my
+understanding that it's not even needed.  It's only called by memory.c
+free_pgd_range() which is always called within an mmu_gather, and
+tlb_flush() on frv will do a flush_tlb_mm(), which from my reading of the
+code, seems to do what flush_tlb_ptables() does, which is to clear the
+cached PGE.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Cc: Hugh Dickins <hugh@veritas.com>
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Acked-By: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   15 ---------------
- mm/shmem.c         |   10 +++++-----
- 2 files changed, 5 insertions(+), 20 deletions(-)
+ include/asm-frv/tlbflush.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/mm.h~mm-shmemc-make-3-functions-static include/linux/mm.h
---- a/include/linux/mm.h~mm-shmemc-make-3-functions-static
-+++ a/include/linux/mm.h
-@@ -648,9 +648,6 @@ static inline int page_mapped(struct pag
- extern void show_free_areas(void);
+diff -puN include/asm-frv/tlbflush.h~remove-frv-usage-of-flush_tlb_pgtables include/asm-frv/tlbflush.h
+--- a/include/asm-frv/tlbflush.h~remove-frv-usage-of-flush_tlb_pgtables
++++ a/include/asm-frv/tlbflush.h
+@@ -57,8 +57,7 @@ do {								\
+ #define __flush_tlb_global()			flush_tlb_all()
+ #define flush_tlb()				flush_tlb_all()
+ #define flush_tlb_kernel_range(start, end)	flush_tlb_all()
+-#define flush_tlb_pgtables(mm,start,end) \
+-	asm volatile("movgs %0,scr0 ! movgs %0,scr1" :: "r"(ULONG_MAX) : "memory");
++#define flush_tlb_pgtables(mm,start,end)	do { } while(0)
  
- #ifdef CONFIG_SHMEM
--int shmem_set_policy(struct vm_area_struct *vma, struct mempolicy *new);
--struct mempolicy *shmem_get_policy(struct vm_area_struct *vma,
--					unsigned long addr);
- int shmem_lock(struct file *file, int lock, struct user_struct *user);
  #else
- static inline int shmem_lock(struct file *file, int lock,
-@@ -658,18 +655,6 @@ static inline int shmem_lock(struct file
- {
- 	return 0;
- }
--
--static inline int shmem_set_policy(struct vm_area_struct *vma,
--				   struct mempolicy *new)
--{
--	return 0;
--}
--
--static inline struct mempolicy *shmem_get_policy(struct vm_area_struct *vma,
--						 unsigned long addr)
--{
--	return NULL;
--}
- #endif
- struct file *shmem_file_setup(char *name, loff_t size, unsigned long flags);
  
-diff -puN mm/shmem.c~mm-shmemc-make-3-functions-static mm/shmem.c
---- a/mm/shmem.c~mm-shmemc-make-3-functions-static
-+++ a/mm/shmem.c
-@@ -1026,8 +1026,8 @@ static struct page *shmem_swapin_async(s
- 	return page;
- }
- 
--struct page *shmem_swapin(struct shmem_inode_info *info, swp_entry_t entry,
--			  unsigned long idx)
-+static struct page *shmem_swapin(struct shmem_inode_info *info,
-+				 swp_entry_t entry, unsigned long idx)
- {
- 	struct shared_policy *p = &info->policy;
- 	int i, num;
-@@ -1329,14 +1329,14 @@ static int shmem_fault(struct vm_area_st
- }
- 
- #ifdef CONFIG_NUMA
--int shmem_set_policy(struct vm_area_struct *vma, struct mempolicy *new)
-+static int shmem_set_policy(struct vm_area_struct *vma, struct mempolicy *new)
- {
- 	struct inode *i = vma->vm_file->f_path.dentry->d_inode;
- 	return mpol_set_shared_policy(&SHMEM_I(i)->policy, vma, new);
- }
- 
--struct mempolicy *
--shmem_get_policy(struct vm_area_struct *vma, unsigned long addr)
-+static struct mempolicy *shmem_get_policy(struct vm_area_struct *vma,
-+					  unsigned long addr)
- {
- 	struct inode *i = vma->vm_file->f_path.dentry->d_inode;
- 	unsigned long idx;
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from benh@kernel.crashing.org are
 
 origin.patch
-git-acpi.patch
-git-alsa.patch
-git-kvm.patch
-remove-fs-jffs2-ioctlc.patch
-parisc-extern-inline-static-inline.patch
-nsp32_restart_autoscsi-remove-error-check.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-maps2-add-proc-kpagemap-interface.patch
-unexport-pm_power_off_prepare.patch
-fs-reiserfs-cleanups.patch
-remove-unsafe-from-module-struct.patch
-kernel-rtmutex-debugc-cleanups.patch
-fs-afs-possible-cleanups.patch
-lib-ioremapc-should-include-linux-ioh.patch
-ipc-shmc-make-2-functions-static.patch
-unicode-diacritics-support-s390-fix.patch
-script-to-check-for-undefined-kconfig-symbols.patch
-drivers-block-ccissc-fix-check-after-use.patch
-dontdiff-update-based-on-gitignore-updates.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-intel-iommu-intel-iommu-driver.patch
-revoke-core-code.patch
-pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
-the-next-round-of-scheduled-oss-code-removal.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+softlockup-make-asm-irq_regsh-available-on-every-platform.patch
+unexport-asm-shmparamh.patch
+kconfig-make-instrumentation-support-non-experimental.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix.patch
+report-the-per-irq-statistics-on-allarches.patch
+add-linux-elfcore-compath.patch
+x86_64-use-linux-elfcore-compath.patch
+powerpc-use-linux-elfcore-compath.patch
+fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
+increase-at_vector_size-to-terminate-saved_auxv-properly.patch
+delay-creation-of-khcvd-thread.patch
+intel-iommu-fix-for-iommu-early-crash-2.patch
+add-scaled-time-to-taskstats-based-process-accounting.patch
+add-missing-newlines-to-some-uses-of-dev_level-messages-fix.patch
+powerpc-add-scaled-time-accounting.patch
+powerpc-add-scaled-time-accounting-speedup.patch
+define-global-bit-macro.patch
+bitops-introduce-lock-ops.patch
+powerpc-lock-bitops.patch
+powerpc-lock-bitops-fix.patch
+extended-crashkernel-command-line.patch
+use-extended-crashkernel-command-line-on-ppc64.patch
+add-documentation-for-extended-crashkernel-syntax.patch
+replace-__attribute_pure__-with-__pure.patch
