@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + comment-typo-in-scripts-kconfig-makefile.patch added to -mm tree
-Date: Mon, 15 Oct 2007 17:43:31 -0700
-Message-ID: <200710160043.l9G0hVv5001110@imap1.linux-foundation.org>
+Subject: + docbook-fix-usb-content.patch added to -mm tree
+Date: Mon, 15 Oct 2007 17:43:35 -0700
+Message-ID: <200710160043.l9G0hZWf001119@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36994 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59410 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757794AbXJPAoe (ORCPT
+	by vger.kernel.org with ESMTP id S1760038AbXJPAom (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 20:44:34 -0400
+	Mon, 15 Oct 2007 20:44:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rob@landley.net, randy.dunlap@oracle.com
+Cc: randy.dunlap@oracle.com, rob@landley.net
 
 
 The patch titled
-     Comment typo in scripts/kconfig/Makefile
+     docbook: fix usb content
 has been added to the -mm tree.  Its filename is
-     comment-typo-in-scripts-kconfig-makefile.patch
+     docbook-fix-usb-content.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,56 +26,99 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Comment typo in scripts/kconfig/Makefile
-From: Rob Landley <rob@landley.net>
+Subject: docbook: fix usb content
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Typo in comment in scripts/kconfig/Makefile.
+Fix USB docbook warnings.
 
-Signed-off-by: Rob Landley <rob@landley.net>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Warning(linux-2.6.23-git8//include/linux/usb/gadget.h:487): No description found for parameter 'g'
+Warning(linux-2.6.23-git8//include/linux/usb/gadget.h:506): No description found for parameter 'g'
+
+Warning(linux-2.6.23-git8//drivers/usb/core/hub.c:1416): No description found for parameter 'usb_dev'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Rob Landley <rob@landley.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/core/hub.c     |    6 +++++-
+ include/linux/usb/gadget.h |    4 ++--
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN scripts/kconfig/Makefile~comment-typo-in-scripts-kconfig-makefile scripts/kconfig/Makefile
---- a/scripts/kconfig/Makefile~comment-typo-in-scripts-kconfig-makefile
-+++ a/scripts/kconfig/Makefile
-@@ -84,7 +84,7 @@ help:
- # lxdialog stuff
- check-lxdialog  := $(srctree)/$(src)/lxdialog/check-lxdialog.sh
+diff -puN drivers/usb/core/hub.c~docbook-fix-usb-content drivers/usb/core/hub.c
+--- a/drivers/usb/core/hub.c~docbook-fix-usb-content
++++ a/drivers/usb/core/hub.c
+@@ -1405,7 +1405,11 @@ fail:
  
--# Use reursively expanded variables so we do not call gcc unless
-+# Use recursively expanded variables so we do not call gcc unless
- # we really need to do so. (Do not call gcc as part of make mrproper)
- HOST_EXTRACFLAGS = $(shell $(CONFIG_SHELL) $(check-lxdialog) -ccflags)
- HOST_LOADLIBES   = $(shell $(CONFIG_SHELL) $(check-lxdialog) -ldflags $(HOSTCC))
+ 
+ /**
+- * Similar to usb_disconnect()
++ * usb_deauthorize_device - deauthorize a device (usbcore-internal)
++ * @usb_dev: USB device
++ *
++ * Move the USB device to a very basic state where interfaces are disabled
++ * and the device is in fact unconfigured and unusable.
+  *
+  * We share a lock (that we have) with device_del(), so we need to
+  * defer its call.
+diff -puN include/linux/usb/gadget.h~docbook-fix-usb-content include/linux/usb/gadget.h
+--- a/include/linux/usb/gadget.h~docbook-fix-usb-content
++++ a/include/linux/usb/gadget.h
+@@ -481,7 +481,7 @@ static inline void *get_gadget_data (str
+ 
+ /**
+  * gadget_is_dualspeed - return true iff the hardware handles high speed
+- * @gadget: controller that might support both high and full speeds
++ * @g: controller that might support both high and full speeds
+  */
+ static inline int gadget_is_dualspeed(struct usb_gadget *g)
+ {
+@@ -497,7 +497,7 @@ static inline int gadget_is_dualspeed(st
+ 
+ /**
+  * gadget_is_otg - return true iff the hardware is OTG-ready
+- * @gadget: controller that might have a Mini-AB connector
++ * @g: controller that might have a Mini-AB connector
+  *
+  * This is a runtime test, since kernels with a USB-OTG stack sometimes
+  * run on boards which only have a Mini-B (or Mini-A) connector.
 _
 
-Patches currently in -mm which might be from rob@landley.net are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-git-arm.patch
+origin.patch
+git-alsa.patch
+fix-auditscc-kernel-doc.patch
+git-kbuild.patch
+git-nfsd.patch
 git-scsi-misc.patch
+git-unionfs.patch
+git-watchdog.patch
+git-ipwireless_cs.patch
+mm-use-pagevec-to-rotate-reclaimable-page-fix-function-declaration.patch
+security-convert-lsm-into-a-static-interface-fix-2-fix.patch
 docs-ramdisk-initrd-initramfs-corrections.patch
-documentation-make-headers_installtxt.patch
-documentation-add-entries-to-filesystems-00-index-for-several-untracked-files.patch
-add-a-missing-00-index-file-for-documentation-vm.patch
-add-a-00-index-file-to-documentation-mips.patch
-add-a-00-index-file-to-documentation-sysctl.patch
-add-a-00-index-file-to-documentation-telephony.patch
-tweak-documentation-sm501txt.patch
-add-missing-entries-to-top-level-documentation-00-index.patch
-add-documentation-w1w1-masters-00-index.patch
-add-entries-to-documentation-powerpc.patch
-add-documentation-power-00-index.patch
-add-recommended-section-ids-to-deviceiobooktmpl.patch
-add-documentation-rcu-00-index.patch
-fix-make-htmldocs-build-break.patch
-add-section-ids-to-documentation-docbook-filesystemstmpl.patch
-add-documentation-block-00-index.patch
+send-quota-messages-via-netlink-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+maintainers-linux-omap-list-is-subscribers-only.patch
+make-the-pr_-family-of-macros-in-kernelh-complete.patch
+doc-about-email-clients-for-linux-patches.patch
+change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch
+dont-truncate-proc-pid-environ-at-4096-characters.patch
+dontdiff-update-based-on-gitignore-updates.patch
+ecryptfs-remove-header_extent_size-fix.patch
+video-gfx-fix-menu-ordering.patch
+video-gfx-merge-kconfig-menus.patch
+kernel-doc-fix-doc-blocks-and-html.patch
+express-relocatability-of-kernel-on-x86_64-in.patch
+remap_file_pages-kernel-doc-corrections.patch
 comment-typo-in-scripts-kconfig-makefile.patch
 docbook-fix-kernel-api-content.patch
 docbook-fix-libata-content.patch
 docbook-fix-usb-content.patch
 docbook-fix-filesystems-content.patch
+hook-up-group-scheduler-with-control-groups.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
+add-samples-subdir.patch
+profile-likely-unlikely-macros.patch
