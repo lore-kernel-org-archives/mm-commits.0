@@ -1,165 +1,201 @@
 From: akpm@linux-foundation.org
-Subject: - pie-executable-randomization-fix-2.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 15:11:05 -0700
-Message-ID: <200710162211.l9GMB54K020253@imap1.linux-foundation.org>
+Subject: - pie-executable-randomization-fix-3.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 15:11:09 -0700
+Message-ID: <200710162211.l9GMB9Nt020256@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58155 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45949 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966053AbXJPWMB (ORCPT
+	by vger.kernel.org with ESMTP id S966055AbXJPWME (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 18:12:01 -0400
+	Tue, 16 Oct 2007 18:12:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hpa@zytor.com, jakub@redhat.com, jkosina@suse.cz, kune@deine-taler.de, magnade@gmail.com, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
+To: jkosina@suse.cz, ak@suse.de, hpa@zytor.com, jakub@redhat.com, kune@deine-taler.de, magnade@gmail.com, mingo@elte.hu, roland@redhat.com, zlynx@acm.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pie-executable-randomization-fix-2
+     Handle MAP_32BIT flags properly in x86_64 flexmmap
 has been removed from the -mm tree.  Its filename was
-     pie-executable-randomization-fix-2.patch
+     pie-executable-randomization-fix-3.patch
 
 This patch was dropped because it was folded into pie-executable-randomization.patch
 
 ------------------------------------------------------
-Subject: pie-executable-randomization-fix-2
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Handle MAP_32BIT flags properly in x86_64 flexmmap
+From: Jiri Kosina <jkosina@suse.cz>
 
-fs/binfmt_elf.c: In function 'load_elf_binary':
-fs/binfmt_elf.c:1016: warning: 'interp_map_addr' may be used uninitialized in this function
+We need to handle MAP_32BIT flags of mmap() properly for 64bit applications
+with filexible mmap layout.
 
+This patch introduces x86_64-specific version of
+arch_get_unmapped_area_topdown() which differs from the generic one in
+handling of the MAP_32BIT flag -- when this flag is passed to mmap(), we
+stick back to the legacy layout for this particular mmap, which gives
+proper 32bit range.
+
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Cc: Zan Lynx <zlynx@acm.org>
 Cc: Bret Towe <magnade@gmail.com>
 Cc: H. Peter Anvin <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Jakub Jelinek <jakub@redhat.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
 Cc: Roland McGrath <roland@redhat.com>
 Cc: Ulrich Kunitz <kune@deine-taler.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/sys_x86_64.c |   98 +++++++++++++++++++++++++++++++++
+ include/asm-x86/pgtable_64.h |    1 
+ 2 files changed, 99 insertions(+)
 
-diff -puN fs/binfmt_elf.c~pie-executable-randomization-fix-2 fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~pie-executable-randomization-fix-2
-+++ a/fs/binfmt_elf.c
-@@ -1013,7 +1013,7 @@ static int load_elf_binary(struct linux_
- 			elf_entry = load_aout_interp(&loc->interp_ex,
- 						     interpreter);
- 		} else {
--			unsigned long interp_map_addr;	/* unused */
-+			unsigned long uninitialized_var(interp_map_addr);
+diff -puN arch/x86/kernel/sys_x86_64.c~pie-executable-randomization-fix-3 arch/x86/kernel/sys_x86_64.c
+--- a/arch/x86/kernel/sys_x86_64.c~pie-executable-randomization-fix-3
++++ a/arch/x86/kernel/sys_x86_64.c
+@@ -12,6 +12,7 @@
+ #include <linux/file.h>
+ #include <linux/utsname.h>
+ #include <linux/personality.h>
++#include <linux/random.h>
  
- 			elf_entry = load_elf_interp(&loc->interp_elf_ex,
- 						    interpreter,
+ #include <asm/uaccess.h>
+ #include <asm/ia32.h>
+@@ -65,6 +66,7 @@ static void find_start_end(unsigned long
+ 			   unsigned long *end)
+ {
+ 	if (!test_thread_flag(TIF_IA32) && (flags & MAP_32BIT)) {
++		unsigned long new_begin;
+ 		/* This is usually used needed to map code in small
+ 		   model, so it needs to be in the first 31bit. Limit
+ 		   it to that.  This means we need to move the
+@@ -74,6 +76,11 @@ static void find_start_end(unsigned long
+ 		   of playground for now. -AK */ 
+ 		*begin = 0x40000000; 
+ 		*end = 0x80000000;		
++		if (current->flags & PF_RANDOMIZE) {
++			new_begin = randomize_range(*begin, *begin + 0x02000000, 0);
++			if (new_begin)
++				*begin = new_begin;
++		}
+ 	} else {
+ 		*begin = TASK_UNMAPPED_BASE;
+ 		*end = TASK_SIZE; 
+@@ -143,6 +150,97 @@ full_search:
+ 	}
+ }
+ 
++
++unsigned long
++arch_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
++			  const unsigned long len, const unsigned long pgoff,
++			  const unsigned long flags)
++{
++	struct vm_area_struct *vma;
++	struct mm_struct *mm = current->mm;
++	unsigned long addr = addr0;
++
++	/* requested length too big for entire address space */
++	if (len > TASK_SIZE)
++		return -ENOMEM;
++
++	if (flags & MAP_FIXED)
++		return addr;
++
++	/* for MAP_32BIT mappings we force the legact mmap base */
++	if (!test_thread_flag(TIF_IA32) && (flags & MAP_32BIT))
++		goto bottomup;
++
++	/* requesting a specific address */
++	if (addr) {
++		addr = PAGE_ALIGN(addr);
++		vma = find_vma(mm, addr);
++		if (TASK_SIZE - len >= addr &&
++				(!vma || addr + len <= vma->vm_start))
++			return addr;
++	}
++
++	/* check if free_area_cache is useful for us */
++	if (len <= mm->cached_hole_size) {
++ 	        mm->cached_hole_size = 0;
++ 		mm->free_area_cache = mm->mmap_base;
++ 	}
++
++	/* either no address requested or can't fit in requested address hole */
++	addr = mm->free_area_cache;
++
++	/* make sure it can fit in the remaining address space */
++	if (addr > len) {
++		vma = find_vma(mm, addr-len);
++		if (!vma || addr <= vma->vm_start)
++			/* remember the address as a hint for next time */
++			return (mm->free_area_cache = addr-len);
++	}
++
++	if (mm->mmap_base < len)
++		goto bottomup;
++
++	addr = mm->mmap_base-len;
++
++	do {
++		/*
++		 * Lookup failure means no vma is above this address,
++		 * else if new region fits below vma->vm_start,
++		 * return with success:
++		 */
++		vma = find_vma(mm, addr);
++		if (!vma || addr+len <= vma->vm_start)
++			/* remember the address as a hint for next time */
++			return (mm->free_area_cache = addr);
++
++ 		/* remember the largest hole we saw so far */
++ 		if (addr + mm->cached_hole_size < vma->vm_start)
++ 		        mm->cached_hole_size = vma->vm_start - addr;
++
++		/* try just below the current vma->vm_start */
++		addr = vma->vm_start-len;
++	} while (len < vma->vm_start);
++
++bottomup:
++	/*
++	 * A failed mmap() very likely causes application failure,
++	 * so fall back to the bottom-up function here. This scenario
++	 * can happen with large stack limits and large mmap()
++	 * allocations.
++	 */
++	mm->cached_hole_size = ~0UL;
++  	mm->free_area_cache = TASK_UNMAPPED_BASE;
++	addr = arch_get_unmapped_area(filp, addr0, len, pgoff, flags);
++	/*
++	 * Restore the topdown base:
++	 */
++	mm->free_area_cache = mm->mmap_base;
++	mm->cached_hole_size = ~0UL;
++
++	return addr;
++}
++
++
+ asmlinkage long sys_uname(struct new_utsname __user * name)
+ {
+ 	int err;
+diff -puN include/asm-x86/pgtable_64.h~pie-executable-randomization-fix-3 include/asm-x86/pgtable_64.h
+--- a/include/asm-x86/pgtable_64.h~pie-executable-randomization-fix-3
++++ a/include/asm-x86/pgtable_64.h
+@@ -411,6 +411,7 @@ pte_t *lookup_address(unsigned long addr
+ 		remap_pfn_range(vma, vaddr, pfn, size, prot)
+ 
+ #define HAVE_ARCH_UNMAPPED_AREA
++#define HAVE_ARCH_UNMAPPED_AREA_TOPDOWN
+ 
+ #define pgtable_cache_init()   do { } while (0)
+ #define check_pgt_cache()      do { } while (0)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
 origin.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold.patch
-mm-dirty-balancing-for-tasks.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
-oom-change-all_unreclaimable-zone-member-to-flags.patch
-oom-do-not-take-callback_mutex.patch
-writeback-dont-propagate-aop_writepage_activate.patch
-softlockup-add-a-proc-tuning-parameter.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
-do_sys_poll-simplify-playing-with-on-stack-data.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer.patch
-deprecate-aout-elf-interpreters.patch
-ext2-ext3-ext4-add-block-bitmap-validation.patch
 pie-executable-randomization.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
-stop-using-dma_xxbit_mask.patch
-stop-using-dma_xxbit_mask-fix.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-userc-ifdef-mq_bytes-fix.patch
-f_dupfd_cloexec-implementation-fix-2.patch
-ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
-drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
-writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-md-software-raid-autodetect-dev-list-not-array.patch
-do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-pnp-use-dev_info-dev_err-etc-in-core-fix.patch
-pnp-add-debug-message-for-adding-new-device-fix-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-cpuset-sched_load_balance-flag-fix.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
-sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+pie-executable-randomization-fix-3.patch
+add-config_vt_unicode.patch
+get-rid-of-input-bit-duplicate-defines.patch
