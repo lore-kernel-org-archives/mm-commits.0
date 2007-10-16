@@ -1,92 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - mm-page_allocc-make-code-static.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:35:08 -0700
-Message-ID: <200710162035.l9GKZ8oJ015031@imap1.linux-foundation.org>
+Subject: - pxa2xx-pcmcia-timing-issue-on-ipaq-h5550.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:38:07 -0700
+Message-ID: <200710162038.l9GKc7R4015416@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36758 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49125 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934012AbXJPVbr (ORCPT
+	by vger.kernel.org with ESMTP id S934012AbXJPVby (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:31:47 -0400
+	Tue, 16 Oct 2007 17:31:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: milan.plzik@gmail.com, linux@dominikbrodowski.net, rmk@arm.linux.org.uk, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm/page_alloc.c: make code static
+     pxa2xx PCMCIA timing issue on iPAQ H5550
 has been removed from the -mm tree.  Its filename was
-     mm-page_allocc-make-code-static.patch
+     pxa2xx-pcmcia-timing-issue-on-ipaq-h5550.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mm/page_alloc.c: make code static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: pxa2xx PCMCIA timing issue on iPAQ H5550
+From: Milan Plzik <milan.plzik@gmail.com>
 
-This patch makes needlessly global code static.
+Recently I've been trying to get working PCMCIA interface on H5000 ipaq
+series, using dual PCMCIA sleeve.  So far things work correctly, but I had
+to do one modification to drivers/pcmcia/pxa2xx_base.c to get the interface
+working with orinoco gold PCMCIA card (wired pcnet_cs ethernet card worked
+even without this modification).
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+The issue has something to do with assert time on PCMCIA bus, but I'm not
+really sure what -- I found the working value just by trial&error approach.
+ I'm not sure how is the assert value in pxa2xx_mcxx_asst calculated (I
+know, simple formula, but the reason why is it calculated that way is not
+obvious for me), neither that my modification is correct.  It just works
+with iPAQ.
+
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/pcmcia/pxa2xx_base.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-make-code-static mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-make-code-static
-+++ a/mm/page_alloc.c
-@@ -149,7 +149,7 @@ static unsigned long __meminitdata dma_r
-   static unsigned long __meminitdata node_boundary_end_pfn[MAX_NUMNODES];
- #endif /* CONFIG_MEMORY_HOTPLUG_RESERVE */
-   unsigned long __initdata required_kernelcore;
--  unsigned long __initdata required_movablecore;
-+  static unsigned long __initdata required_movablecore;
-   unsigned long __meminitdata zone_movable_pfn[MAX_NUMNODES];
- 
-   /* movable_zone is the "real" zone pages in ZONE_MOVABLE are taken from */
-@@ -3644,7 +3644,7 @@ unsigned long __init find_max_pfn_with_a
-  * Sum pages in active regions for movable zone.
-  * Populate N_HIGH_MEMORY for calculating usable_nodes.
-  */
--unsigned long __init early_calculate_totalpages(void)
-+static unsigned long __init early_calculate_totalpages(void)
+diff -puN drivers/pcmcia/pxa2xx_base.c~pxa2xx-pcmcia-timing-issue-on-ipaq-h5550 drivers/pcmcia/pxa2xx_base.c
+--- a/drivers/pcmcia/pxa2xx_base.c~pxa2xx-pcmcia-timing-issue-on-ipaq-h5550
++++ a/drivers/pcmcia/pxa2xx_base.c
+@@ -58,7 +58,7 @@ static inline u_int pxa2xx_mcxx_asst(u_i
+ 				     u_int mem_clk_10khz)
  {
- 	int i;
- 	unsigned long totalpages = 0;
+ 	u_int code = pcmcia_cycle_ns * mem_clk_10khz;
+-	return (code / 300000) + ((code % 300000) ? 1 : 0) - 1;
++	return (code / 300000) + ((code % 300000) ? 1 : 0) + 1;
+ }
+ 
+ static inline u_int pxa2xx_mcxx_setup(u_int pcmcia_cycle_ns,
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from milan.plzik@gmail.com are
 
 origin.patch
-git-acpi.patch
-git-alsa.patch
-git-kvm.patch
-remove-fs-jffs2-ioctlc.patch
-parisc-extern-inline-static-inline.patch
-nsp32_restart_autoscsi-remove-error-check.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-maps2-add-proc-kpagemap-interface.patch
-unexport-pm_power_off_prepare.patch
-fs-reiserfs-cleanups.patch
-remove-unsafe-from-module-struct.patch
-kernel-rtmutex-debugc-cleanups.patch
-fs-afs-possible-cleanups.patch
-lib-ioremapc-should-include-linux-ioh.patch
-ipc-shmc-make-2-functions-static.patch
-unicode-diacritics-support-s390-fix.patch
-script-to-check-for-undefined-kconfig-symbols.patch
-drivers-block-ccissc-fix-check-after-use.patch
-dontdiff-update-based-on-gitignore-updates.patch
-introduce-i_sync-fix.patch
-ext2-reservations.patch
-intel-iommu-intel-iommu-driver.patch
-revoke-core-code.patch
-pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
-the-next-round-of-scheduled-oss-code-removal.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
