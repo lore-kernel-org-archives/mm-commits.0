@@ -1,112 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - ps3fb-fix-spurious-mode-change-failures.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:44:21 -0700
-Message-ID: <200710162044.l9GKiLtA016138@imap1.linux-foundation.org>
+Subject: - breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:35:26 -0700
+Message-ID: <200710162035.l9GKZQwf015059@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38093 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34828 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760630AbXJPVgI (ORCPT
+	by vger.kernel.org with ESMTP id S935872AbXJPVgh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:36:08 -0400
+	Tue, 16 Oct 2007 17:36:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Geert.Uytterhoeven@sonycom.com, adaplas@gmail.com, geoffrey.levand@am.sony.com, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, apw@shadowen.org, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ps3fb: Fix spurious mode change failures
+     Breakout page_order() to internal.h to avoid special knowledge of the buddy allocator
 has been removed from the -mm tree.  Its filename was
-     ps3fb-fix-spurious-mode-change-failures.patch
+     breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ps3fb: Fix spurious mode change failures
-From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Subject: Breakout page_order() to internal.h to avoid special knowledge of the buddy allocator
+From: Mel Gorman <mel@csn.ul.ie>
 
-ps3fb: Add a `mode' parameter to ps3fb_get_res_table(), as in some cases it
-should check the full-screen flag of the _new_ video mode instead of the
-current video mode.
+The statistics patch later needs to know what order a free page is on the free
+lists.  Rather than having special knowledge of page_private() when
+PageBuddy() is set, this patch places out page_order() in internal.h and adds
+a VM_BUG_ON to catch using it on non-PageBuddy pages.
 
-This bug caused spurious mode change failures when switching between
-fullscreen and non-fullscreen modes using fbset, while ps3-video-mode worked
-fine.
-
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-CC: Geoff Levand <geoffrey.levand@am.sony.com>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Acked-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/ps3fb.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ mm/internal.h   |   10 ++++++++++
+ mm/page_alloc.c |   10 ----------
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/video/ps3fb.c~ps3fb-fix-spurious-mode-change-failures drivers/video/ps3fb.c
---- a/drivers/video/ps3fb.c~ps3fb-fix-spurious-mode-change-failures
-+++ a/drivers/video/ps3fb.c
-@@ -303,13 +303,13 @@ module_param(ps3fb_mode, int, 0);
+diff -puN mm/internal.h~breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator mm/internal.h
+--- a/mm/internal.h~breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator
++++ a/mm/internal.h
+@@ -37,4 +37,14 @@ static inline void __put_page(struct pag
+ extern void fastcall __init __free_pages_bootmem(struct page *page,
+ 						unsigned int order);
  
- static char *mode_option __devinitdata;
++/*
++ * function for dealing with page's order in buddy system.
++ * zone->lock is already acquired when we use these.
++ * So, we don't need atomic page->flags operations here.
++ */
++static inline unsigned long page_order(struct page *page)
++{
++	VM_BUG_ON(!PageBuddy(page));
++	return page_private(page);
++}
+ #endif
+diff -puN mm/page_alloc.c~breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator mm/page_alloc.c
+--- a/mm/page_alloc.c~breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator
++++ a/mm/page_alloc.c
+@@ -313,16 +313,6 @@ static inline void prep_zero_page(struct
+ 		clear_highpage(page + i);
+ }
  
--static int ps3fb_get_res_table(u32 xres, u32 yres)
-+static int ps3fb_get_res_table(u32 xres, u32 yres, int mode)
+-/*
+- * function for dealing with page's order in buddy system.
+- * zone->lock is already acquired when we use these.
+- * So, we don't need atomic page->flags operations here.
+- */
+-static inline unsigned long page_order(struct page *page)
+-{
+-	return page_private(page);
+-}
+-
+ static inline void set_page_order(struct page *page, int order)
  {
- 	int full_mode;
- 	unsigned int i;
- 	u32 x, y, f;
- 
--	full_mode = (ps3fb_mode & PS3FB_FULL_MODE_BIT) ? PS3FB_RES_FULL : 0;
-+	full_mode = (mode & PS3FB_FULL_MODE_BIT) ? PS3FB_RES_FULL : 0;
- 	for (i = 0;; i++) {
- 		x = ps3fb_res[i].xres;
- 		y = ps3fb_res[i].yres;
-@@ -527,7 +527,7 @@ static int ps3fb_check_var(struct fb_var
- 	}
- 
- 	/* Memory limit */
--	i = ps3fb_get_res_table(var->xres, var->yres);
-+	i = ps3fb_get_res_table(var->xres, var->yres, mode);
- 	if (ps3fb_res[i].xres*ps3fb_res[i].yres*BPP > ps3fb_videomemory.size) {
- 		DPRINTK("Not enough memory\n");
- 		return -ENOMEM;
-@@ -553,13 +553,14 @@ static int ps3fb_set_par(struct fb_info 
- 	DPRINTK("xres:%d xv:%d yres:%d yv:%d clock:%d\n",
- 		info->var.xres, info->var.xres_virtual,
- 		info->var.yres, info->var.yres_virtual, info->var.pixclock);
--	i = ps3fb_get_res_table(info->var.xres, info->var.yres);
--	ps3fb.res_index = i;
- 
- 	mode = ps3fb_find_mode(&info->var, &info->fix.line_length);
- 	if (!mode)
- 		return -EINVAL;
- 
-+	i = ps3fb_get_res_table(info->var.xres, info->var.yres, mode);
-+	ps3fb.res_index = i;
-+
- 	offset = FB_OFF(i) + VP_OFF(i);
- 	info->fix.smem_len = ps3fb_videomemory.size - offset;
- 	info->screen_base = (char __iomem *)ps3fb.xdr_ea + offset;
-@@ -610,7 +611,7 @@ static int ps3fb_mmap(struct fb_info *in
- 	unsigned long size, offset;
- 	int i;
- 
--	i = ps3fb_get_res_table(info->var.xres, info->var.yres);
-+	i = ps3fb_get_res_table(info->var.xres, info->var.yres, ps3fb_mode);
- 	if (i == -1)
- 		return -EINVAL;
- 
-@@ -999,7 +1000,7 @@ static int __devinit ps3fb_probe(struct 
- 
- 	if (ps3fb_mode > 0 &&
- 	    !ps3av_video_mode2res(ps3fb_mode, &xres, &yres)) {
--		ps3fb.res_index = ps3fb_get_res_table(xres, yres);
-+		ps3fb.res_index = ps3fb_get_res_table(xres, yres, ps3fb_mode);
- 		DPRINTK("res_index:%d\n", ps3fb.res_index);
- 	} else
- 		ps3fb.res_index = GPU_RES_INDEX;
+ 	set_page_private(page, order);
 _
 
-Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 origin.patch
+ext2-reservations.patch
+page-owner-tracking-leak-detector.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
