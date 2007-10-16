@@ -1,227 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - uml-eliminate-sigalrm.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:38:56 -0700
-Message-ID: <200710162038.l9GKcuSm015498@imap1.linux-foundation.org>
+Subject: - uml-generic_time-support.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:38:44 -0700
+Message-ID: <200710162038.l9GKcirS015477@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57008 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54640 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965987AbXJPV3Y (ORCPT
+	by vger.kernel.org with ESMTP id S1760423AbXJPV3K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:29:24 -0400
+	Tue, 16 Oct 2007 17:29:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, jdike@linux.intel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: eliminate SIGALRM
+     uml: GENERIC_TIME support
 has been removed from the -mm tree.  Its filename was
-     uml-eliminate-sigalrm.patch
+     uml-generic_time-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: eliminate SIGALRM
+Subject: uml: GENERIC_TIME support
 From: Jeff Dike <jdike@addtoit.com>
 
-Now that ITIMER_REAL is no longer used, there is no need for any use of
-SIGALRM whatsoever.  This patch removes all mention of it.
+Enable CONFIG_GENERIC_TIME.
 
-In addition, real_alarm_handler took a signal argument which is now always
-SIGVTALRM.  So, that is gone.
+As a side-effect of this, the UML implementations of do_gettimeofday and
+do_settimeofday go away, as these are provided by generic code.  set_time also
+goes away since it was only used by do_settimeofday.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/irq.c          |    2 +-
- arch/um/os-Linux/main.c         |    2 +-
- arch/um/os-Linux/process.c      |   10 +++++-----
- arch/um/os-Linux/signal.c       |   28 +++++++---------------------
- arch/um/os-Linux/skas/process.c |    4 +---
- arch/um/os-Linux/skas/trap.c    |    5 ++---
- arch/um/os-Linux/trap.c         |    1 -
- 7 files changed, 17 insertions(+), 35 deletions(-)
+ arch/um/Kconfig        |    5 ++++
+ arch/um/kernel/ksyms.c |    3 --
+ arch/um/kernel/time.c  |   40 ---------------------------------------
+ 3 files changed, 5 insertions(+), 43 deletions(-)
 
-diff -puN arch/um/os-Linux/irq.c~uml-eliminate-sigalrm arch/um/os-Linux/irq.c
---- a/arch/um/os-Linux/irq.c~uml-eliminate-sigalrm
-+++ a/arch/um/os-Linux/irq.c
-@@ -146,6 +146,6 @@ void init_irq_signals(int on_sigstack)
- 	flags = on_sigstack ? SA_ONSTACK : 0;
+diff -puN arch/um/Kconfig~uml-generic_time-support arch/um/Kconfig
+--- a/arch/um/Kconfig~uml-generic_time-support
++++ a/arch/um/Kconfig
+@@ -55,6 +55,10 @@ config GENERIC_BUG
+ 	default y
+ 	depends on BUG
  
- 	set_handler(SIGIO, (__sighandler_t) sig_handler, flags | SA_RESTART,
--		    SIGUSR1, SIGIO, SIGWINCH, SIGALRM, SIGVTALRM, -1);
-+		    SIGUSR1, SIGIO, SIGWINCH, SIGVTALRM, -1);
- 	signal(SIGWINCH, SIG_IGN);
- }
-diff -puN arch/um/os-Linux/main.c~uml-eliminate-sigalrm arch/um/os-Linux/main.c
---- a/arch/um/os-Linux/main.c~uml-eliminate-sigalrm
-+++ a/arch/um/os-Linux/main.c
-@@ -161,7 +161,7 @@ int __init main(int argc, char **argv, c
- 	 * some time) and cause a segfault.
- 	 */
++config GENERIC_TIME
++	bool
++	default y
++
+ # Used in kernel/irq/manage.c and include/linux/irq.h
+ config IRQ_RELEASE_METHOD
+ 	bool
+@@ -75,6 +79,7 @@ config STATIC_LINK
  
--	/* stop timers and set SIG*ALRM to be ignored */
-+	/* stop timers and set SIGVTALRM to be ignored */
- 	disable_timer();
+ source "arch/um/Kconfig.arch"
+ source "mm/Kconfig"
++source "kernel/time/Kconfig"
  
- 	/* disable SIGIO for the fds and set SIGIO to be ignored */
-diff -puN arch/um/os-Linux/process.c~uml-eliminate-sigalrm arch/um/os-Linux/process.c
---- a/arch/um/os-Linux/process.c~uml-eliminate-sigalrm
-+++ a/arch/um/os-Linux/process.c
-@@ -238,15 +238,15 @@ out:
- void init_new_thread_signals(void)
- {
- 	set_handler(SIGSEGV, (__sighandler_t) sig_handler, SA_ONSTACK,
--		    SIGUSR1, SIGIO, SIGWINCH, SIGALRM, SIGVTALRM, -1);
-+		    SIGUSR1, SIGIO, SIGWINCH, SIGVTALRM, -1);
- 	set_handler(SIGTRAP, (__sighandler_t) sig_handler, SA_ONSTACK,
--		    SIGUSR1, SIGIO, SIGWINCH, SIGALRM, SIGVTALRM, -1);
-+		    SIGUSR1, SIGIO, SIGWINCH, SIGVTALRM, -1);
- 	set_handler(SIGFPE, (__sighandler_t) sig_handler, SA_ONSTACK,
--		    SIGUSR1, SIGIO, SIGWINCH, SIGALRM, SIGVTALRM, -1);
-+		    SIGUSR1, SIGIO, SIGWINCH, SIGVTALRM, -1);
- 	set_handler(SIGILL, (__sighandler_t) sig_handler, SA_ONSTACK,
--		    SIGUSR1, SIGIO, SIGWINCH, SIGALRM, SIGVTALRM, -1);
-+		    SIGUSR1, SIGIO, SIGWINCH, SIGVTALRM, -1);
- 	set_handler(SIGBUS, (__sighandler_t) sig_handler, SA_ONSTACK,
--		    SIGUSR1, SIGIO, SIGWINCH, SIGALRM, SIGVTALRM, -1);
-+		    SIGUSR1, SIGIO, SIGWINCH, SIGVTALRM, -1);
- 	signal(SIGHUP, SIG_IGN);
+ config LD_SCRIPT_STATIC
+ 	bool
+diff -puN arch/um/kernel/ksyms.c~uml-generic_time-support arch/um/kernel/ksyms.c
+--- a/arch/um/kernel/ksyms.c~uml-generic_time-support
++++ a/arch/um/kernel/ksyms.c
+@@ -67,9 +67,6 @@ EXPORT_SYMBOL(run_helper);
+ EXPORT_SYMBOL(start_thread);
+ EXPORT_SYMBOL(dump_thread);
  
- 	init_irq_signals(1);
-diff -puN arch/um/os-Linux/signal.c~uml-eliminate-sigalrm arch/um/os-Linux/signal.c
---- a/arch/um/os-Linux/signal.c~uml-eliminate-sigalrm
-+++ a/arch/um/os-Linux/signal.c
-@@ -15,8 +15,7 @@
- #include "user.h"
- 
- /*
-- * These are the asynchronous signals.  SIGVTALRM and SIGARLM are handled
-- * together under SIGVTALRM_BIT.  SIGPROF is excluded because we want to
-+ * These are the asynchronous signals.  SIGPROF is excluded because we want to
-  * be able to profile all of UML, not just the non-critical sections.  If
-  * profiling is not thread-safe, then that is not my problem.  We can disable
-  * profiling when SMP is enabled in that case.
-@@ -27,9 +26,6 @@
- #define SIGVTALRM_BIT 1
- #define SIGVTALRM_MASK (1 << SIGVTALRM_BIT)
- 
--#define SIGALRM_BIT 2
--#define SIGALRM_MASK (1 << SIGALRM_BIT)
+-EXPORT_SYMBOL(do_gettimeofday);
+-EXPORT_SYMBOL(do_settimeofday);
 -
- /*
-  * These are used by both the signal handlers and
-  * block/unblock_signals.  I don't want modifications cached in a
-@@ -55,7 +51,7 @@ void sig_handler(int sig, struct sigcont
- 	set_signals(enabled);
+ #ifdef CONFIG_SMP
+ 
+ /* required for SMP */
+diff -puN arch/um/kernel/time.c~uml-generic_time-support arch/um/kernel/time.c
+--- a/arch/um/kernel/time.c~uml-generic_time-support
++++ a/arch/um/kernel/time.c
+@@ -123,46 +123,6 @@ void time_init(void)
+ 	late_time_init = register_timer;
  }
  
--static void real_alarm_handler(int sig, struct sigcontext *sc)
-+static void real_alarm_handler(struct sigcontext *sc)
- {
- 	struct uml_pt_regs regs;
- 
-@@ -63,7 +59,7 @@ static void real_alarm_handler(int sig, 
- 		copy_sc(&regs, sc);
- 	regs.is_user = 0;
- 	unblock_signals();
--	timer_handler(sig, &regs);
-+	timer_handler(SIGVTALRM, &regs);
- }
- 
- void alarm_handler(int sig, struct sigcontext *sc)
-@@ -72,27 +68,20 @@ void alarm_handler(int sig, struct sigco
- 
- 	enabled = signals_enabled;
- 	if (!signals_enabled) {
--		if (sig == SIGVTALRM)
--			pending |= SIGVTALRM_MASK;
--		else pending |= SIGALRM_MASK;
+-void do_gettimeofday(struct timeval *tv)
+-{
+-#ifdef CONFIG_UML_REAL_TIME_CLOCK
+-	unsigned long long nsecs = get_time();
+-#else
+-	unsigned long long nsecs = (unsigned long long) xtime.tv_sec * BILLION +
+-		xtime.tv_nsec;
+-#endif
+-	tv->tv_sec = nsecs / NSEC_PER_SEC;
+-	/*
+-	 * Careful about calculations here - this was originally done as
+-	 * (nsecs - tv->tv_sec * NSEC_PER_SEC) / NSEC_PER_USEC
+-	 * which gave bogus (> 1000000) values.  Dunno why, suspect gcc
+-	 * (4.0.0) miscompiled it, or there's a subtle 64/32-bit conversion
+-	 * problem that I missed.
+-	 */
+-	nsecs -= tv->tv_sec * NSEC_PER_SEC;
+-	tv->tv_usec = (unsigned long) nsecs / NSEC_PER_USEC;
+-}
 -
-+		pending |= SIGVTALRM_MASK;
- 		return;
- 	}
- 
- 	block_signals();
- 
--	real_alarm_handler(sig, sc);
-+	real_alarm_handler(sc);
- 	set_signals(enabled);
- }
- 
- void timer_init(void)
- {
- 	set_handler(SIGVTALRM, (__sighandler_t) alarm_handler,
--		    SA_ONSTACK | SA_RESTART, SIGUSR1, SIGIO, SIGWINCH,
--		    SIGALRM, -1);
--	set_handler(SIGALRM, (__sighandler_t) alarm_handler,
--		    SA_ONSTACK | SA_RESTART, SIGUSR1, SIGIO, SIGWINCH,
--		    SIGALRM, -1);
-+		    SA_ONSTACK | SA_RESTART, SIGUSR1, SIGIO, SIGWINCH, -1);
- }
- 
- void set_sigstack(void *sig_stack, int size)
-@@ -267,11 +256,8 @@ void unblock_signals(void)
- 		if (save_pending & SIGIO_MASK)
- 			sig_handler_common_skas(SIGIO, NULL);
- 
--		if (save_pending & SIGALRM_MASK)
--			real_alarm_handler(SIGALRM, NULL);
+-static inline void set_time(unsigned long long nsecs)
+-{
+-	unsigned long long now;
+-	unsigned long flags;
 -
- 		if (save_pending & SIGVTALRM_MASK)
--			real_alarm_handler(SIGVTALRM, NULL);
-+			real_alarm_handler(NULL);
- 	}
- }
- 
-diff -puN arch/um/os-Linux/skas/process.c~uml-eliminate-sigalrm arch/um/os-Linux/skas/process.c
---- a/arch/um/os-Linux/skas/process.c~uml-eliminate-sigalrm
-+++ a/arch/um/os-Linux/skas/process.c
-@@ -222,7 +222,6 @@ static int userspace_tramp(void *stack)
- 		sigemptyset(&sa.sa_mask);
- 		sigaddset(&sa.sa_mask, SIGIO);
- 		sigaddset(&sa.sa_mask, SIGWINCH);
--		sigaddset(&sa.sa_mask, SIGALRM);
- 		sigaddset(&sa.sa_mask, SIGVTALRM);
- 		sigaddset(&sa.sa_mask, SIGUSR1);
- 		sa.sa_flags = SA_ONSTACK;
-@@ -539,8 +538,7 @@ int start_idle_thread(void *stack, jmp_b
- 	int n;
- 
- 	set_handler(SIGWINCH, (__sighandler_t) sig_handler,
--		    SA_ONSTACK | SA_RESTART, SIGUSR1, SIGIO, SIGALRM,
--		    SIGVTALRM, -1);
-+		    SA_ONSTACK | SA_RESTART, SIGUSR1, SIGIO, SIGVTALRM, -1);
- 
- 	/*
- 	 * Can't use UML_SETJMP or UML_LONGJMP here because they save
-diff -puN arch/um/os-Linux/skas/trap.c~uml-eliminate-sigalrm arch/um/os-Linux/skas/trap.c
---- a/arch/um/os-Linux/skas/trap.c~uml-eliminate-sigalrm
-+++ a/arch/um/os-Linux/skas/trap.c
-@@ -58,9 +58,8 @@ void sig_handler_common_skas(int sig, vo
- 
- 	handler = sig_info[sig];
- 
--	/* unblock SIGALRM, SIGVTALRM, SIGIO if sig isn't IRQ signal */
--	if (sig != SIGIO && sig != SIGWINCH &&
--	    sig != SIGVTALRM && sig != SIGALRM)
-+	/* unblock SIGVTALRM, SIGIO if sig isn't IRQ signal */
-+	if ((sig != SIGIO) && (sig != SIGWINCH) && (sig != SIGVTALRM))
- 		unblock_signals();
- 
- 	handler(sig, r);
-diff -puN arch/um/os-Linux/trap.c~uml-eliminate-sigalrm arch/um/os-Linux/trap.c
---- a/arch/um/os-Linux/trap.c~uml-eliminate-sigalrm
-+++ a/arch/um/os-Linux/trap.c
-@@ -20,5 +20,4 @@ void os_fill_handlinfo(struct kern_handl
- 	sig_info[SIGSEGV] = h.page_fault;
- 	sig_info[SIGIO] = h.sigio_handler;
- 	sig_info[SIGVTALRM] = h.timer_handler;
--	sig_info[SIGALRM] = h.timer_handler;
- }
+-	spin_lock_irqsave(&timer_spinlock, flags);
+-	now = os_nsecs();
+-	local_offset = nsecs - now;
+-	spin_unlock_irqrestore(&timer_spinlock, flags);
+-
+-	clock_was_set();
+-}
+-
+-int do_settimeofday(struct timespec *tv)
+-{
+-	set_time((unsigned long long) tv->tv_sec * NSEC_PER_SEC + tv->tv_nsec);
+-
+-	return 0;
+-}
+-
+ void timer_handler(int sig, struct uml_pt_regs *regs)
+ {
+ 	if (current_thread->cpu == 0)
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
