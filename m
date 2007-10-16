@@ -1,214 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - net-sunrpc-xprtrdma-verbsc-printk-warning-fix.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:45:57 -0700
-Message-ID: <200710162045.l9GKjvxn016315@imap1.linux-foundation.org>
+Subject: - imxfb-fast-read-flag-and-nonstandard-field-configurable.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:45:22 -0700
+Message-ID: <200710162045.l9GKjMOs016258@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44000 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44413 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965821AbXJPU5O (ORCPT
+	by vger.kernel.org with ESMTP id S965802AbXJPU5H (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 16:57:14 -0400
+	Tue, 16 Oct 2007 16:57:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bfields@fieldses.org, davem@davemloft.net, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: pisa@cmp.felk.cvut.cz, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net/sunrpc/xprtrdma/verbs.c printk warning fix
+     imxfb: fast read flag and nonstandard field configurable
 has been removed from the -mm tree.  Its filename was
-     net-sunrpc-xprtrdma-verbsc-printk-warning-fix.patch
+     imxfb-fast-read-flag-and-nonstandard-field-configurable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: net/sunrpc/xprtrdma/verbs.c printk warning fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: imxfb: fast read flag and nonstandard field configurable
+From: Pavel Pisa <pisa@cmp.felk.cvut.cz>
 
-sparc64:
+The i.MX frame-buffer read operation should be faster for all configurations
+then drawing each individual character again in response to scroll events.
 
-net/sunrpc/xprtrdma/verbs.c:1264: warning: long long unsigned int format, u64 arg (arg 3)
-net/sunrpc/xprtrdma/verbs.c:1264: warning: long long unsigned int format, u64 arg (arg 4)
+The nonstandard fields allows to configure frame-buffer special options flags
+for different display configurations by board specific initialization code.
 
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+One of such specific options is reversed order of pixels in each individual
+byte.  i.MX frame-buffer seems to be designed for big-endian use first.  The
+byte order is correctly configured for little-endian ordering, but if 1, 2 or
+4 bits per pixel are used, pixels ordering is incompatible to Linux generic
+frame-buffer drawing functions.
+
+The patch "Allow generic BitBLT functions to work with swapped pixel order in
+bytes" introduces required functionality into FBDEV core.  The pixels ordering
+selection has to be enabled at compile time CONFIG_FB_CFB_REV_PIXELS_IN_BYTE
+and for each display configuration which requires it by flag
+FB_NONSTD_REV_PIX_IN_B in "nonstd" field of info structure.
+
+This patch provides way for board specific code to select this option.
+
+Signed-off-by: Pavel Pisa <pisa@cmp.felk.cvut.cz>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/xprtrdma/verbs.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/video/imxfb.c            |    3 ++-
+ include/asm-arm/arch-imx/imxfb.h |    1 +
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN net/sunrpc/xprtrdma/verbs.c~net-sunrpc-xprtrdma-verbsc-printk-warning-fix net/sunrpc/xprtrdma/verbs.c
---- a/net/sunrpc/xprtrdma/verbs.c~net-sunrpc-xprtrdma-verbsc-printk-warning-fix
-+++ a/net/sunrpc/xprtrdma/verbs.c
-@@ -1263,7 +1263,8 @@ rpcrdma_register_internal(struct rpcrdma
+diff -puN drivers/video/imxfb.c~imxfb-fast-read-flag-and-nonstandard-field-configurable drivers/video/imxfb.c
+--- a/drivers/video/imxfb.c~imxfb-fast-read-flag-and-nonstandard-field-configurable
++++ a/drivers/video/imxfb.c
+@@ -466,7 +466,7 @@ static int __init imxfb_init_fbinfo(stru
+ 	info->var.vmode	= FB_VMODE_NONINTERLACED;
  
- 	dprintk("RPC:       %s: phys convert: 0x%llx "
- 			"registered 0x%llx length %d\n",
--			__func__, ipb.addr, iov->addr, len);
-+			__func__, (unsigned long long)ipb.addr,
-+			(unsigned long long)iov->addr, len);
+ 	info->fbops			= &imxfb_ops;
+-	info->flags			= FBINFO_FLAG_DEFAULT;
++	info->flags			= FBINFO_FLAG_DEFAULT | FBINFO_READS_FAST;
  
- 	if (IS_ERR(mr)) {
- 		*mrp = NULL;
+ 	fbi->rgb[RGB_16]		= &def_rgb_16;
+ 	fbi->rgb[RGB_8]			= &def_rgb_8;
+@@ -479,6 +479,7 @@ static int __init imxfb_init_fbinfo(stru
+ 	info->var.yres_virtual		= inf->yres;
+ 	fbi->max_bpp			= inf->bpp;
+ 	info->var.bits_per_pixel	= inf->bpp;
++	info->var.nonstd		= inf->nonstd;
+ 	info->var.pixclock		= inf->pixclock;
+ 	info->var.hsync_len		= inf->hsync_len;
+ 	info->var.left_margin		= inf->left_margin;
+diff -puN include/asm-arm/arch-imx/imxfb.h~imxfb-fast-read-flag-and-nonstandard-field-configurable include/asm-arm/arch-imx/imxfb.h
+--- a/include/asm-arm/arch-imx/imxfb.h~imxfb-fast-read-flag-and-nonstandard-field-configurable
++++ a/include/asm-arm/arch-imx/imxfb.h
+@@ -7,6 +7,7 @@ struct imxfb_mach_info {
+ 	u_short		xres;
+ 	u_short		yres;
+ 
++	u_int		nonstd;
+ 	u_char		bpp;
+ 	u_char		hsync_len;
+ 	u_char		left_margin;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from pisa@cmp.felk.cvut.cz are
 
 origin.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-cifs.patch
-applesmc-for-mac-pro-2-x-quad-core-fix.patch
-console-keyboard-events-and-accessibility.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-git-jg-warning-fixes.patch
-git-jg-misc-powernow-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-ide-arm-hack.patch
-forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd-fixup.patch
-qla2xxx-printk-fixes.patch
-sparc-support-for-new-termios-checkpatch-fixes.patch
-git-unionfs.patch
-git-watchdog-fixup.patch
-git-wireless.patch
-revert-x86_64-mm-cpa-einval.patch
-fix-x86_64-mm-sched-clock-share.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-asm-i386-ioh-fix-constness.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
-git-xfs.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold-warning-fix.patch
-mm-dirty-balancing-for-tasks-warning-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
-oom-do-not-take-callback_mutex-fix.patch
-writeback-dont-propagate-aop_writepage_activate.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-pm-qos-infrastructure-and-interface-fix.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2-fix-3.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
-stop-using-dma_xxbit_mask.patch
-stop-using-dma_xxbit_mask-fix.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-userc-ifdef-mq_bytes-fix.patch
-f_dupfd_cloexec-implementation-fix-2.patch
-ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
-drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
-writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-md-software-raid-autodetect-dev-list-not-array.patch
-do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-pnp-use-dev_info-dev_err-etc-in-core-fix.patch
-pnp-add-debug-message-for-adding-new-device-fix-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-cpuset-sched_load_balance-flag-fix.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
-sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
