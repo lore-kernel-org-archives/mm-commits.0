@@ -1,367 +1,473 @@
 From: akpm@linux-foundation.org
-Subject: - consolidate-ptrace_detach.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:29:28 -0700
-Message-ID: <200710162029.l9GKTSqV014318@imap1.linux-foundation.org>
+Subject: - x86-convert-cpu_core_map-to-be-a-per-cpu-variable.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:30:08 -0700
+Message-ID: <200710162030.l9GKU8PP014379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37806 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42248 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936025AbXJPUaQ (ORCPT
+	by vger.kernel.org with ESMTP id S936052AbXJPUaX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 16:30:16 -0400
+	Tue, 16 Oct 2007 16:30:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@sw.ru, hch@infradead.org, mm-commits@vger.kernel.org
+To: travis@sgi.com, ak@suse.de, clameter@sgi.com, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Consolidate PTRACE_DETACH
+     x86: Convert cpu_core_map to be a per cpu variable 
 has been removed from the -mm tree.  Its filename was
-     consolidate-ptrace_detach.patch
+     x86-convert-cpu_core_map-to-be-a-per-cpu-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Consolidate PTRACE_DETACH
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: x86: Convert cpu_core_map to be a per cpu variable 
+From: Mike Travis <travis@sgi.com>
 
-Identical handlers of PTRACE_DETACH go into ptrace_request().
-Not touching compat code.
-Not touching archs that don't call ptrace_request.
+This is from an earlier message from 'Christoph Lameter':
 
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Acked-by: Christoph Hellwig <hch@infradead.org>
+    cpu_core_map is currently an array defined using NR_CPUS. This means that
+    we overallocate since we will rarely really use maximum configured cpu.
+
+    If we put the cpu_core_map into the per cpu area then it will be allocated
+    for each processor as it comes online.
+
+    This means that the core map cannot be accessed until the per cpu area
+    has been allocated. Xen does a weird thing here looping over all processors
+    and zeroing the masks that are not yet allocated and that will be zeroed
+    when they are allocated. I commented the code out.
+
+    Signed-off-by: Christoph Lameter <clameter@sgi.com>
+
+Signed-off-by: Mike Travis <travis@sgi.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/ptrace.c         |    4 ----
- arch/arm/kernel/ptrace.c           |    4 ----
- arch/avr32/kernel/ptrace.c         |    5 -----
- arch/blackfin/kernel/ptrace.c      |    6 ------
- arch/cris/arch-v10/kernel/ptrace.c |    4 ----
- arch/cris/arch-v32/kernel/ptrace.c |    4 ----
- arch/m32r/kernel/ptrace.c          |    8 --------
- arch/m68k/kernel/ptrace.c          |    4 ----
- arch/mips/kernel/ptrace.c          |    4 ----
- arch/parisc/kernel/ptrace.c        |    4 ----
- arch/powerpc/kernel/ptrace.c       |    4 ----
- arch/s390/kernel/ptrace.c          |    5 -----
- arch/sh/kernel/ptrace.c            |    4 ----
- arch/sh64/kernel/ptrace.c          |    4 ----
- arch/um/kernel/ptrace.c            |    5 -----
- arch/x86/kernel/ptrace_32.c        |    5 -----
- arch/x86/kernel/ptrace_64.c        |    5 -----
- arch/xtensa/kernel/ptrace.c        |    4 ----
- kernel/ptrace.c                    |    3 +++
- 19 files changed, 3 insertions(+), 83 deletions(-)
+ arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |    2 -
+ arch/x86/kernel/cpu/cpufreq/powernow-k8.c  |   10 ++---
+ arch/x86/kernel/cpu/proc.c                 |    3 +
+ arch/x86/kernel/mce_amd_64.c               |    6 +--
+ arch/x86/kernel/setup_64.c                 |    3 +
+ arch/x86/kernel/smpboot_32.c               |   34 +++++++++----------
+ arch/x86/kernel/smpboot_64.c               |   24 ++++++-------
+ arch/x86/xen/smp.c                         |   14 ++++++-
+ include/asm-x86/smp_32.h                   |    2 -
+ include/asm-x86/smp_64.h                   |    7 +++
+ include/asm-x86/topology_32.h              |    2 -
+ include/asm-x86/topology_64.h              |    2 -
+ 12 files changed, 63 insertions(+), 46 deletions(-)
 
-diff -puN arch/alpha/kernel/ptrace.c~consolidate-ptrace_detach arch/alpha/kernel/ptrace.c
---- a/arch/alpha/kernel/ptrace.c~consolidate-ptrace_detach
-+++ a/arch/alpha/kernel/ptrace.c
-@@ -368,10 +368,6 @@ do_sys_ptrace(long request, long pid, lo
- 		ret = 0;
- 		goto out;
- 
--	case PTRACE_DETACH:	 /* detach a process that was attached. */
--		ret = ptrace_detach(child, data);
--		goto out;
--
- 	default:
- 		ret = ptrace_request(child, request, addr, data);
- 		goto out;
-diff -puN arch/arm/kernel/ptrace.c~consolidate-ptrace_detach arch/arm/kernel/ptrace.c
---- a/arch/arm/kernel/ptrace.c~consolidate-ptrace_detach
-+++ a/arch/arm/kernel/ptrace.c
-@@ -731,10 +731,6 @@ long arch_ptrace(struct task_struct *chi
- 			ret = 0;
- 			break;
- 
--		case PTRACE_DETACH:
--			ret = ptrace_detach(child, data);
--			break;
--
- 		case PTRACE_GETREGS:
- 			ret = ptrace_getregs(child, (void __user *)data);
- 			break;
-diff -puN arch/avr32/kernel/ptrace.c~consolidate-ptrace_detach arch/avr32/kernel/ptrace.c
---- a/arch/avr32/kernel/ptrace.c~consolidate-ptrace_detach
-+++ a/arch/avr32/kernel/ptrace.c
-@@ -227,11 +227,6 @@ long arch_ptrace(struct task_struct *chi
- 		ret = 0;
- 		break;
- 
--	/* Detach a process that was attached */
--	case PTRACE_DETACH:
--		ret = ptrace_detach(child, data);
--		break;
--
- 	case PTRACE_GETREGS:
- 		ret = ptrace_getregs(child, (void __user *)data);
- 		break;
-diff -puN arch/blackfin/kernel/ptrace.c~consolidate-ptrace_detach arch/blackfin/kernel/ptrace.c
---- a/arch/blackfin/kernel/ptrace.c~consolidate-ptrace_detach
-+++ a/arch/blackfin/kernel/ptrace.c
-@@ -385,12 +385,6 @@ long arch_ptrace(struct task_struct *chi
- 			break;
- 		}
- 
--	case PTRACE_DETACH:
--		{		/* detach a process that was attached. */
--			ret = ptrace_detach(child, data);
--			break;
--		}
--
- 	case PTRACE_GETREGS:
- 		{
- 
-diff -puN arch/cris/arch-v10/kernel/ptrace.c~consolidate-ptrace_detach arch/cris/arch-v10/kernel/ptrace.c
---- a/arch/cris/arch-v10/kernel/ptrace.c~consolidate-ptrace_detach
-+++ a/arch/cris/arch-v10/kernel/ptrace.c
-@@ -177,10 +177,6 @@ long arch_ptrace(struct task_struct *chi
- 			ret = 0;
- 			break;
- 
--		case PTRACE_DETACH:
--			ret = ptrace_detach(child, data);
--			break;
--
- 		/* Get all GP registers from the child. */
- 		case PTRACE_GETREGS: {
- 		  	int i;
-diff -puN arch/cris/arch-v32/kernel/ptrace.c~consolidate-ptrace_detach arch/cris/arch-v32/kernel/ptrace.c
---- a/arch/cris/arch-v32/kernel/ptrace.c~consolidate-ptrace_detach
-+++ a/arch/cris/arch-v32/kernel/ptrace.c
-@@ -245,10 +245,6 @@ long arch_ptrace(struct task_struct *chi
- 			break;
- 
- 		}
--		case PTRACE_DETACH:
--			ret = ptrace_detach(child, data);
--			break;
--
- 		/* Get all GP registers from the child. */
- 		case PTRACE_GETREGS: {
- 		  	int i;
-diff -puN arch/m32r/kernel/ptrace.c~consolidate-ptrace_detach arch/m32r/kernel/ptrace.c
---- a/arch/m32r/kernel/ptrace.c~consolidate-ptrace_detach
-+++ a/arch/m32r/kernel/ptrace.c
-@@ -704,14 +704,6 @@ do_ptrace(long request, struct task_stru
- 		break;
+diff -puN arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+--- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+@@ -595,7 +595,7 @@ static int acpi_cpufreq_cpu_init(struct 
+ 	dmi_check_system(sw_any_bug_dmi_table);
+ 	if (bios_with_sw_any_bug && cpus_weight(policy->cpus) == 1) {
+ 		policy->shared_type = CPUFREQ_SHARED_TYPE_ALL;
+-		policy->cpus = cpu_core_map[cpu];
++		policy->cpus = per_cpu(cpu_core_map, cpu);
  	}
- 
--	/*
--	 * detach a process that was attached.
--	 */
--	case PTRACE_DETACH:
--		ret = 0;
--		ret = ptrace_detach(child, data);
--		break;
--
- 	case PTRACE_GETREGS:
- 		ret = ptrace_getregs(child, (void __user *)data);
- 		break;
-diff -puN arch/m68k/kernel/ptrace.c~consolidate-ptrace_detach arch/m68k/kernel/ptrace.c
---- a/arch/m68k/kernel/ptrace.c~consolidate-ptrace_detach
-+++ a/arch/m68k/kernel/ptrace.c
-@@ -226,10 +226,6 @@ long arch_ptrace(struct task_struct *chi
- 		wake_up_process(child);
- 		break;
- 
--	case PTRACE_DETACH:	/* detach a process that was attached. */
--		ret = ptrace_detach(child, data);
--		break;
--
- 	case PTRACE_GETREGS:	/* Get all gp regs from the child. */
- 		for (i = 0; i < 19; i++) {
- 			tmp = get_reg(child, i);
-diff -puN arch/mips/kernel/ptrace.c~consolidate-ptrace_detach arch/mips/kernel/ptrace.c
---- a/arch/mips/kernel/ptrace.c~consolidate-ptrace_detach
-+++ a/arch/mips/kernel/ptrace.c
-@@ -435,10 +435,6 @@ long arch_ptrace(struct task_struct *chi
- 		wake_up_process(child);
- 		break;
- 
--	case PTRACE_DETACH: /* detach a process that was attached. */
--		ret = ptrace_detach(child, data);
--		break;
--
- 	case PTRACE_GET_THREAD_AREA:
- 		ret = put_user(task_thread_info(child)->tp_value,
- 				(unsigned long __user *) data);
-diff -puN arch/parisc/kernel/ptrace.c~consolidate-ptrace_detach arch/parisc/kernel/ptrace.c
---- a/arch/parisc/kernel/ptrace.c~consolidate-ptrace_detach
-+++ a/arch/parisc/kernel/ptrace.c
-@@ -329,10 +329,6 @@ long arch_ptrace(struct task_struct *chi
- 		/* give it a chance to run. */
- 		goto out_wake;
- 
--	case PTRACE_DETACH:
--		ret = ptrace_detach(child, data);
--		goto out_tsk;
--
- 	case PTRACE_GETEVENTMSG:
-                 ret = put_user(child->ptrace_message, (unsigned int __user *) data);
- 		goto out_tsk;
-diff -puN arch/powerpc/kernel/ptrace.c~consolidate-ptrace_detach arch/powerpc/kernel/ptrace.c
---- a/arch/powerpc/kernel/ptrace.c~consolidate-ptrace_detach
-+++ a/arch/powerpc/kernel/ptrace.c
-@@ -505,10 +505,6 @@ long arch_ptrace(struct task_struct *chi
- 		ret = ptrace_set_debugreg(child, addr, data);
- 		break;
- 
--	case PTRACE_DETACH:
--		ret = ptrace_detach(child, data);
--		break;
--
- #ifdef CONFIG_PPC64
- 	case PTRACE_GETREGS64:
  #endif
-diff -puN arch/s390/kernel/ptrace.c~consolidate-ptrace_detach arch/s390/kernel/ptrace.c
---- a/arch/s390/kernel/ptrace.c~consolidate-ptrace_detach
-+++ a/arch/s390/kernel/ptrace.c
-@@ -683,11 +683,6 @@ do_ptrace(struct task_struct *child, lon
- 		wake_up_process(child);
- 		return 0;
  
--	case PTRACE_DETACH:
--		/* detach a process that was attached. */
--		return ptrace_detach(child, data);
--
--
- 	/* Do requests that differ for 31/64 bit */
- 	default:
- #ifdef CONFIG_COMPAT
-diff -puN arch/sh/kernel/ptrace.c~consolidate-ptrace_detach arch/sh/kernel/ptrace.c
---- a/arch/sh/kernel/ptrace.c~consolidate-ptrace_detach
-+++ a/arch/sh/kernel/ptrace.c
-@@ -211,10 +211,6 @@ long arch_ptrace(struct task_struct *chi
- 		break;
+diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/x86/kernel/cpu/cpufreq/powernow-k8.c
+--- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
+@@ -57,7 +57,7 @@ static struct powernow_k8_data *powernow
+ static int cpu_family = CPU_OPTERON;
+ 
+ #ifndef CONFIG_SMP
+-static cpumask_t cpu_core_map[1];
++DEFINE_PER_CPU(cpumask_t, cpu_core_map);
+ #endif
+ 
+ /* Return a frequency in MHz, given an input fid */
+@@ -667,7 +667,7 @@ static int fill_powernow_table(struct po
+ 
+ 	dprintk("cfid 0x%x, cvid 0x%x\n", data->currfid, data->currvid);
+ 	data->powernow_table = powernow_table;
+-	if (first_cpu(cpu_core_map[data->cpu]) == data->cpu)
++	if (first_cpu(per_cpu(cpu_core_map, data->cpu)) == data->cpu)
+ 		print_basics(data);
+ 
+ 	for (j = 0; j < data->numps; j++)
+@@ -821,7 +821,7 @@ static int powernow_k8_cpu_init_acpi(str
+ 
+ 	/* fill in data */
+ 	data->numps = data->acpi_data.state_count;
+-	if (first_cpu(cpu_core_map[data->cpu]) == data->cpu)
++	if (first_cpu(per_cpu(cpu_core_map, data->cpu)) == data->cpu)
+ 		print_basics(data);
+ 	powernow_k8_acpi_pst_values(data, 0);
+ 
+@@ -1214,7 +1214,7 @@ static int __cpuinit powernowk8_cpu_init
+ 	if (cpu_family == CPU_HW_PSTATE)
+ 		pol->cpus = cpumask_of_cpu(pol->cpu);
+ 	else
+-		pol->cpus = cpu_core_map[pol->cpu];
++		pol->cpus = per_cpu(cpu_core_map, pol->cpu);
+ 	data->available_cores = &(pol->cpus);
+ 
+ 	/* Take a crude guess here.
+@@ -1281,7 +1281,7 @@ static unsigned int powernowk8_get (unsi
+ 	cpumask_t oldmask = current->cpus_allowed;
+ 	unsigned int khz = 0;
+ 
+-	data = powernow_data[first_cpu(cpu_core_map[cpu])];
++	data = powernow_data[first_cpu(per_cpu(cpu_core_map, cpu))];
+ 
+ 	if (!data)
+ 		return -EINVAL;
+diff -puN arch/x86/kernel/cpu/proc.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/x86/kernel/cpu/proc.c
+--- a/arch/x86/kernel/cpu/proc.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/arch/x86/kernel/cpu/proc.c
+@@ -122,7 +122,8 @@ static int show_cpuinfo(struct seq_file 
+ #ifdef CONFIG_X86_HT
+ 	if (c->x86_max_cores * smp_num_siblings > 1) {
+ 		seq_printf(m, "physical id\t: %d\n", c->phys_proc_id);
+-		seq_printf(m, "siblings\t: %d\n", cpus_weight(cpu_core_map[n]));
++		seq_printf(m, "siblings\t: %d\n",
++				cpus_weight(per_cpu(cpu_core_map, n)));
+ 		seq_printf(m, "core id\t\t: %d\n", c->cpu_core_id);
+ 		seq_printf(m, "cpu cores\t: %d\n", c->booted_cores);
  	}
+diff -puN arch/x86/kernel/mce_amd_64.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/x86/kernel/mce_amd_64.c
+--- a/arch/x86/kernel/mce_amd_64.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/arch/x86/kernel/mce_amd_64.c
+@@ -472,7 +472,7 @@ static __cpuinit int threshold_create_ba
  
--	case PTRACE_DETACH: /* detach a process that was attached. */
--		ret = ptrace_detach(child, data);
--		break;
--
- #ifdef CONFIG_SH_DSP
- 	case PTRACE_GETDSPREGS: {
- 		unsigned long dp;
-diff -puN arch/sh64/kernel/ptrace.c~consolidate-ptrace_detach arch/sh64/kernel/ptrace.c
---- a/arch/sh64/kernel/ptrace.c~consolidate-ptrace_detach
-+++ a/arch/sh64/kernel/ptrace.c
-@@ -244,10 +244,6 @@ long arch_ptrace(struct task_struct *chi
- 		break;
- 	}
+ #ifdef CONFIG_SMP
+ 	if (cpu_data[cpu].cpu_core_id && shared_bank[bank]) {	/* symlink */
+-		i = first_cpu(cpu_core_map[cpu]);
++		i = first_cpu(per_cpu(cpu_core_map, cpu));
  
--	case PTRACE_DETACH: /* detach a process that was attached. */
--		ret = ptrace_detach(child, data);
--		break;
--
- 	default:
- 		ret = ptrace_request(child, request, addr, data);
- 		break;
-diff -puN arch/um/kernel/ptrace.c~consolidate-ptrace_detach arch/um/kernel/ptrace.c
---- a/arch/um/kernel/ptrace.c~consolidate-ptrace_detach
-+++ a/arch/um/kernel/ptrace.c
-@@ -119,11 +119,6 @@ long arch_ptrace(struct task_struct *chi
- 		break;
- 	}
+ 		/* first core not up yet */
+ 		if (cpu_data[i].cpu_core_id)
+@@ -492,7 +492,7 @@ static __cpuinit int threshold_create_ba
+ 		if (err)
+ 			goto out;
  
--	case PTRACE_DETACH:
--		/* detach a process that was attached. */
--		ret = ptrace_detach(child, data);
-- 		break;
--
- #ifdef PTRACE_GETREGS
- 	case PTRACE_GETREGS: { /* Get all gp regs from the child. */
- 		if (!access_ok(VERIFY_WRITE, p, MAX_REG_OFFSET)) {
-diff -puN arch/x86/kernel/ptrace_32.c~consolidate-ptrace_detach arch/x86/kernel/ptrace_32.c
---- a/arch/x86/kernel/ptrace_32.c~consolidate-ptrace_detach
-+++ a/arch/x86/kernel/ptrace_32.c
-@@ -524,11 +524,6 @@ long arch_ptrace(struct task_struct *chi
- 		ret = 0;
- 		break;
- 
--	case PTRACE_DETACH:
--		/* detach a process that was attached. */
--		ret = ptrace_detach(child, data);
--		break;
--
- 	case PTRACE_GETREGS: { /* Get all gp regs from the child. */
- 	  	if (!access_ok(VERIFY_WRITE, datap, FRAME_SIZE*sizeof(long))) {
- 			ret = -EIO;
-diff -puN arch/x86/kernel/ptrace_64.c~consolidate-ptrace_detach arch/x86/kernel/ptrace_64.c
---- a/arch/x86/kernel/ptrace_64.c~consolidate-ptrace_detach
-+++ a/arch/x86/kernel/ptrace_64.c
-@@ -500,11 +500,6 @@ long arch_ptrace(struct task_struct *chi
- 		ret = 0;
- 		break;
- 
--	case PTRACE_DETACH:
--		/* detach a process that was attached. */
--		ret = ptrace_detach(child, data);
--		break;
--
- 	case PTRACE_GETREGS: { /* Get all gp regs from the child. */
- 	  	if (!access_ok(VERIFY_WRITE, (unsigned __user *)data,
- 			       sizeof(struct user_regs_struct))) {
-diff -puN arch/xtensa/kernel/ptrace.c~consolidate-ptrace_detach arch/xtensa/kernel/ptrace.c
---- a/arch/xtensa/kernel/ptrace.c~consolidate-ptrace_detach
-+++ a/arch/xtensa/kernel/ptrace.c
-@@ -304,10 +304,6 @@ long arch_ptrace(struct task_struct *chi
- 		ret = put_user(sizeof(elf_fpregset_t), (unsigned long *) data);
- 		break;
- 
--	case PTRACE_DETACH: /* detach a process that was attached. */
--		ret = ptrace_detach(child, data);
--		break;
--
- 	default:
- 		ret = ptrace_request(child, request, addr, data);
+-		b->cpus = cpu_core_map[cpu];
++		b->cpus = per_cpu(cpu_core_map, cpu);
+ 		per_cpu(threshold_banks, cpu)[bank] = b;
  		goto out;
-diff -puN kernel/ptrace.c~consolidate-ptrace_detach kernel/ptrace.c
---- a/kernel/ptrace.c~consolidate-ptrace_detach
-+++ a/kernel/ptrace.c
-@@ -386,6 +386,9 @@ int ptrace_request(struct task_struct *c
- 	case PTRACE_SETSIGINFO:
- 		ret = ptrace_setsiginfo(child, (siginfo_t __user *) data);
- 		break;
-+	case PTRACE_DETACH:	 /* detach a process that was attached. */
-+		ret = ptrace_detach(child, data);
-+		break;
- 	default:
- 		break;
  	}
+@@ -509,7 +509,7 @@ static __cpuinit int threshold_create_ba
+ #ifndef CONFIG_SMP
+ 	b->cpus = CPU_MASK_ALL;
+ #else
+-	b->cpus = cpu_core_map[cpu];
++	b->cpus = per_cpu(cpu_core_map, cpu);
+ #endif
+ 	err = kobject_register(&b->kobj);
+ 	if (err)
+diff -puN arch/x86/kernel/setup_64.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/x86/kernel/setup_64.c
+--- a/arch/x86/kernel/setup_64.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/arch/x86/kernel/setup_64.c
+@@ -1070,7 +1070,8 @@ static int show_cpuinfo(struct seq_file 
+ 	if (smp_num_siblings * c->x86_max_cores > 1) {
+ 		int cpu = c - cpu_data;
+ 		seq_printf(m, "physical id\t: %d\n", c->phys_proc_id);
+-		seq_printf(m, "siblings\t: %d\n", cpus_weight(cpu_core_map[cpu]));
++		seq_printf(m, "siblings\t: %d\n",
++			       cpus_weight(per_cpu(cpu_core_map, cpu)));
+ 		seq_printf(m, "core id\t\t: %d\n", c->cpu_core_id);
+ 		seq_printf(m, "cpu cores\t: %d\n", c->booted_cores);
+ 	}
+diff -puN arch/x86/kernel/smpboot_32.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/x86/kernel/smpboot_32.c
+--- a/arch/x86/kernel/smpboot_32.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/arch/x86/kernel/smpboot_32.c
+@@ -74,8 +74,8 @@ cpumask_t cpu_sibling_map[NR_CPUS] __rea
+ EXPORT_SYMBOL(cpu_sibling_map);
+ 
+ /* representing HT and core siblings of each logical CPU */
+-cpumask_t cpu_core_map[NR_CPUS] __read_mostly;
+-EXPORT_SYMBOL(cpu_core_map);
++DEFINE_PER_CPU(cpumask_t, cpu_core_map);
++EXPORT_PER_CPU_SYMBOL(cpu_core_map);
+ 
+ /* bitmap of online cpus */
+ cpumask_t cpu_online_map __read_mostly;
+@@ -300,7 +300,7 @@ cpumask_t cpu_coregroup_map(int cpu)
+ 	 * And for power savings, we return cpu_core_map
+ 	 */
+ 	if (sched_mc_power_savings || sched_smt_power_savings)
+-		return cpu_core_map[cpu];
++		return per_cpu(cpu_core_map, cpu);
+ 	else
+ 		return c->llc_shared_map;
+ }
+@@ -321,8 +321,8 @@ void __cpuinit set_cpu_sibling_map(int c
+ 			    c[cpu].cpu_core_id == c[i].cpu_core_id) {
+ 				cpu_set(i, cpu_sibling_map[cpu]);
+ 				cpu_set(cpu, cpu_sibling_map[i]);
+-				cpu_set(i, cpu_core_map[cpu]);
+-				cpu_set(cpu, cpu_core_map[i]);
++				cpu_set(i, per_cpu(cpu_core_map, cpu));
++				cpu_set(cpu, per_cpu(cpu_core_map, i));
+ 				cpu_set(i, c[cpu].llc_shared_map);
+ 				cpu_set(cpu, c[i].llc_shared_map);
+ 			}
+@@ -334,7 +334,7 @@ void __cpuinit set_cpu_sibling_map(int c
+ 	cpu_set(cpu, c[cpu].llc_shared_map);
+ 
+ 	if (current_cpu_data.x86_max_cores == 1) {
+-		cpu_core_map[cpu] = cpu_sibling_map[cpu];
++		per_cpu(cpu_core_map, cpu) = cpu_sibling_map[cpu];
+ 		c[cpu].booted_cores = 1;
+ 		return;
+ 	}
+@@ -346,8 +346,8 @@ void __cpuinit set_cpu_sibling_map(int c
+ 			cpu_set(cpu, c[i].llc_shared_map);
+ 		}
+ 		if (c[cpu].phys_proc_id == c[i].phys_proc_id) {
+-			cpu_set(i, cpu_core_map[cpu]);
+-			cpu_set(cpu, cpu_core_map[i]);
++			cpu_set(i, per_cpu(cpu_core_map, cpu));
++			cpu_set(cpu, per_cpu(cpu_core_map, i));
+ 			/*
+ 			 *  Does this new cpu bringup a new core?
+ 			 */
+@@ -984,7 +984,7 @@ static void __init smp_boot_cpus(unsigne
+ 					   " Using dummy APIC emulation.\n");
+ 		map_cpu_to_logical_apicid();
+ 		cpu_set(0, cpu_sibling_map[0]);
+-		cpu_set(0, cpu_core_map[0]);
++		cpu_set(0, per_cpu(cpu_core_map, 0));
+ 		return;
+ 	}
+ 
+@@ -1009,7 +1009,7 @@ static void __init smp_boot_cpus(unsigne
+ 		smpboot_clear_io_apic_irqs();
+ 		phys_cpu_present_map = physid_mask_of_physid(0);
+ 		cpu_set(0, cpu_sibling_map[0]);
+-		cpu_set(0, cpu_core_map[0]);
++		cpu_set(0, per_cpu(cpu_core_map, 0));
+ 		return;
+ 	}
+ 
+@@ -1024,7 +1024,7 @@ static void __init smp_boot_cpus(unsigne
+ 		smpboot_clear_io_apic_irqs();
+ 		phys_cpu_present_map = physid_mask_of_physid(0);
+ 		cpu_set(0, cpu_sibling_map[0]);
+-		cpu_set(0, cpu_core_map[0]);
++		cpu_set(0, per_cpu(cpu_core_map, 0));
+ 		return;
+ 	}
+ 
+@@ -1107,11 +1107,11 @@ static void __init smp_boot_cpus(unsigne
+ 	 */
+ 	for (cpu = 0; cpu < NR_CPUS; cpu++) {
+ 		cpus_clear(cpu_sibling_map[cpu]);
+-		cpus_clear(cpu_core_map[cpu]);
++		cpus_clear(per_cpu(cpu_core_map, cpu));
+ 	}
+ 
+ 	cpu_set(0, cpu_sibling_map[0]);
+-	cpu_set(0, cpu_core_map[0]);
++	cpu_set(0, per_cpu(cpu_core_map, 0));
+ 
+ 	smpboot_setup_io_apic();
+ 
+@@ -1148,9 +1148,9 @@ void remove_siblinginfo(int cpu)
+ 	int sibling;
+ 	struct cpuinfo_x86 *c = cpu_data;
+ 
+-	for_each_cpu_mask(sibling, cpu_core_map[cpu]) {
+-		cpu_clear(cpu, cpu_core_map[sibling]);
+-		/*
++	for_each_cpu_mask(sibling, per_cpu(cpu_core_map, cpu)) {
++		cpu_clear(cpu, per_cpu(cpu_core_map, sibling));
++		/*/
+ 		 * last thread sibling in this cpu core going down
+ 		 */
+ 		if (cpus_weight(cpu_sibling_map[cpu]) == 1)
+@@ -1160,7 +1160,7 @@ void remove_siblinginfo(int cpu)
+ 	for_each_cpu_mask(sibling, cpu_sibling_map[cpu])
+ 		cpu_clear(cpu, cpu_sibling_map[sibling]);
+ 	cpus_clear(cpu_sibling_map[cpu]);
+-	cpus_clear(cpu_core_map[cpu]);
++	cpus_clear(per_cpu(cpu_core_map, cpu));
+ 	c[cpu].phys_proc_id = 0;
+ 	c[cpu].cpu_core_id = 0;
+ 	cpu_clear(cpu, cpu_sibling_setup_map);
+diff -puN arch/x86/kernel/smpboot_64.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/x86/kernel/smpboot_64.c
+--- a/arch/x86/kernel/smpboot_64.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/arch/x86/kernel/smpboot_64.c
+@@ -95,8 +95,8 @@ cpumask_t cpu_sibling_map[NR_CPUS] __rea
+ EXPORT_SYMBOL(cpu_sibling_map);
+ 
+ /* representing HT and core siblings of each logical CPU */
+-cpumask_t cpu_core_map[NR_CPUS] __read_mostly;
+-EXPORT_SYMBOL(cpu_core_map);
++DEFINE_PER_CPU(cpumask_t, cpu_core_map);
++EXPORT_PER_CPU_SYMBOL(cpu_core_map);
+ 
+ /*
+  * Trampoline 80x86 program as an array.
+@@ -243,7 +243,7 @@ cpumask_t cpu_coregroup_map(int cpu)
+ 	 * And for power savings, we return cpu_core_map
+ 	 */
+ 	if (sched_mc_power_savings || sched_smt_power_savings)
+-		return cpu_core_map[cpu];
++		return per_cpu(cpu_core_map, cpu);
+ 	else
+ 		return c->llc_shared_map;
+ }
+@@ -264,8 +264,8 @@ static inline void set_cpu_sibling_map(i
+ 			    c[cpu].cpu_core_id == c[i].cpu_core_id) {
+ 				cpu_set(i, cpu_sibling_map[cpu]);
+ 				cpu_set(cpu, cpu_sibling_map[i]);
+-				cpu_set(i, cpu_core_map[cpu]);
+-				cpu_set(cpu, cpu_core_map[i]);
++				cpu_set(i, per_cpu(cpu_core_map, cpu));
++				cpu_set(cpu, per_cpu(cpu_core_map, i));
+ 				cpu_set(i, c[cpu].llc_shared_map);
+ 				cpu_set(cpu, c[i].llc_shared_map);
+ 			}
+@@ -277,7 +277,7 @@ static inline void set_cpu_sibling_map(i
+ 	cpu_set(cpu, c[cpu].llc_shared_map);
+ 
+ 	if (current_cpu_data.x86_max_cores == 1) {
+-		cpu_core_map[cpu] = cpu_sibling_map[cpu];
++		per_cpu(cpu_core_map, cpu) = cpu_sibling_map[cpu];
+ 		c[cpu].booted_cores = 1;
+ 		return;
+ 	}
+@@ -289,8 +289,8 @@ static inline void set_cpu_sibling_map(i
+ 			cpu_set(cpu, c[i].llc_shared_map);
+ 		}
+ 		if (c[cpu].phys_proc_id == c[i].phys_proc_id) {
+-			cpu_set(i, cpu_core_map[cpu]);
+-			cpu_set(cpu, cpu_core_map[i]);
++			cpu_set(i, per_cpu(cpu_core_map, cpu));
++			cpu_set(cpu, per_cpu(cpu_core_map, i));
+ 			/*
+ 			 *  Does this new cpu bringup a new core?
+ 			 */
+@@ -736,7 +736,7 @@ static __init void disable_smp(void)
+ 	else
+ 		phys_cpu_present_map = physid_mask_of_physid(0);
+ 	cpu_set(0, cpu_sibling_map[0]);
+-	cpu_set(0, cpu_core_map[0]);
++	cpu_set(0, per_cpu(cpu_core_map, 0));
+ }
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
+@@ -971,8 +971,8 @@ static void remove_siblinginfo(int cpu)
+ 	int sibling;
+ 	struct cpuinfo_x86 *c = cpu_data;
+ 
+-	for_each_cpu_mask(sibling, cpu_core_map[cpu]) {
+-		cpu_clear(cpu, cpu_core_map[sibling]);
++	for_each_cpu_mask(sibling, per_cpu(cpu_core_map, cpu)) {
++		cpu_clear(cpu, per_cpu(cpu_core_map, sibling));
+ 		/*
+ 		 * last thread sibling in this cpu core going down
+ 		 */
+@@ -983,7 +983,7 @@ static void remove_siblinginfo(int cpu)
+ 	for_each_cpu_mask(sibling, cpu_sibling_map[cpu])
+ 		cpu_clear(cpu, cpu_sibling_map[sibling]);
+ 	cpus_clear(cpu_sibling_map[cpu]);
+-	cpus_clear(cpu_core_map[cpu]);
++	cpus_clear(per_cpu(cpu_core_map, cpu));
+ 	c[cpu].phys_proc_id = 0;
+ 	c[cpu].cpu_core_id = 0;
+ 	cpu_clear(cpu, cpu_sibling_setup_map);
+diff -puN arch/x86/xen/smp.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/x86/xen/smp.c
+--- a/arch/x86/xen/smp.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/arch/x86/xen/smp.c
+@@ -148,7 +148,12 @@ void __init xen_smp_prepare_boot_cpu(voi
+ 
+ 	for (cpu = 0; cpu < NR_CPUS; cpu++) {
+ 		cpus_clear(cpu_sibling_map[cpu]);
+-		cpus_clear(cpu_core_map[cpu]);
++		/*
++		 * cpu_core_map lives in a per cpu area that is cleared
++		 * when the per cpu array is allocated.
++		 *
++		 * cpus_clear(per_cpu(cpu_core_map, cpu));
++		 */
+ 	}
+ 
+ 	xen_setup_vcpu_info_placement();
+@@ -160,7 +165,12 @@ void __init xen_smp_prepare_cpus(unsigne
+ 
+ 	for (cpu = 0; cpu < NR_CPUS; cpu++) {
+ 		cpus_clear(cpu_sibling_map[cpu]);
+-		cpus_clear(cpu_core_map[cpu]);
++		/*
++		 * cpu_core_ map will be zeroed when the per
++		 * cpu area is allocated.
++		 *
++		 * cpus_clear(per_cpu(cpu_core_map, cpu));
++		 */
+ 	}
+ 
+ 	smp_store_cpu_info(0);
+diff -puN include/asm-x86/smp_32.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable include/asm-x86/smp_32.h
+--- a/include/asm-x86/smp_32.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/include/asm-x86/smp_32.h
+@@ -31,7 +31,7 @@ extern void smp_alloc_memory(void);
+ extern int pic_mode;
+ extern int smp_num_siblings;
+ extern cpumask_t cpu_sibling_map[];
+-extern cpumask_t cpu_core_map[];
++DECLARE_PER_CPU(cpumask_t, cpu_core_map);
+ 
+ extern void (*mtrr_hook) (void);
+ extern void zap_low_mappings (void);
+diff -puN include/asm-x86/smp_64.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable include/asm-x86/smp_64.h
+--- a/include/asm-x86/smp_64.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/include/asm-x86/smp_64.h
+@@ -39,7 +39,12 @@ extern int smp_num_siblings;
+ extern void smp_send_reschedule(int cpu);
+ 
+ extern cpumask_t cpu_sibling_map[NR_CPUS];
+-extern cpumask_t cpu_core_map[NR_CPUS];
++/*
++ * cpu_core_map lives in a per cpu area
++ *
++ * extern cpumask_t cpu_core_map[NR_CPUS];
++ */
++DECLARE_PER_CPU(cpumask_t, cpu_core_map);
+ extern u8 cpu_llc_id[NR_CPUS];
+ 
+ #define SMP_TRAMPOLINE_BASE 0x6000
+diff -puN include/asm-x86/topology_32.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable include/asm-x86/topology_32.h
+--- a/include/asm-x86/topology_32.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/include/asm-x86/topology_32.h
+@@ -30,7 +30,7 @@
+ #ifdef CONFIG_X86_HT
+ #define topology_physical_package_id(cpu)	(cpu_data[cpu].phys_proc_id)
+ #define topology_core_id(cpu)			(cpu_data[cpu].cpu_core_id)
+-#define topology_core_siblings(cpu)		(cpu_core_map[cpu])
++#define topology_core_siblings(cpu)		(per_cpu(cpu_core_map, cpu))
+ #define topology_thread_siblings(cpu)		(cpu_sibling_map[cpu])
+ #endif
+ 
+diff -puN include/asm-x86/topology_64.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable include/asm-x86/topology_64.h
+--- a/include/asm-x86/topology_64.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
++++ a/include/asm-x86/topology_64.h
+@@ -58,7 +58,7 @@ extern int __node_distance(int, int);
+ #ifdef CONFIG_SMP
+ #define topology_physical_package_id(cpu)	(cpu_data[cpu].phys_proc_id)
+ #define topology_core_id(cpu)			(cpu_data[cpu].cpu_core_id)
+-#define topology_core_siblings(cpu)		(cpu_core_map[cpu])
++#define topology_core_siblings(cpu)		(per_cpu(cpu_core_map, cpu))
+ #define topology_thread_siblings(cpu)		(cpu_sibling_map[cpu])
+ #define mc_capable()			(boot_cpu_data.x86_max_cores > 1)
+ #define smt_capable() 			(smp_num_siblings > 1)
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from travis@sgi.com are
 
 origin.patch
-use-list_head-in-binfmt-handling-update.patch
-make-unregister_binfmt-return-void.patch
-slab_panic-more-proc-posix-timers-shmem.patch
-add-kernel-notifierc.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2.patch
-add-kernel-notifierc-fix-2-fix-3.patch
-tweak-proc-ipmi-removal.patch
-shrink-task_struct-if-config_futex=n.patch
-userc-deinline.patch
-userc-ifdef-mq_bytes.patch
-userc-ifdef-mq_bytes-fix.patch
-task_struct-move-fpu_counter-and-oomkilladj.patch
-sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
-sysctl-factor-out-sysctl_data.patch
-sysct-mqueue-remove-the-binary-sysctl-numbers.patch
-sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
-sysctl-fix-neighbour-table-sysctls.patch
-sysctl-ipv6-route-flushing-kill-binary-path.patch
-sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
-sysctl-x86_64-remove-unnecessary-binary-paths.patch
-sysctl-remove-broken-cdrom-binary-sysctls.patch
-sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
-sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
-sysctl-error-on-bad-sysctl-tables.patch
-sysctl-update-sysctl_check_table.patch
-uninline-forkc-exitc.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-single_open-seq_release-leak-diagnostics.patch
+x86-fix-cpu_to_node-references.patch
+x86-convert-x86_cpu_to_apicid-to-be-a-per-cpu-variable.patch
+x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
+x86-acpi-use-cpu_physical_id.patch
+x86-convert-cpuinfo_x86-array-to-a-per_cpu-array.patch
