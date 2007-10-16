@@ -1,234 +1,440 @@
 From: akpm@linux-foundation.org
-Subject: - sparc-support-for-new-termios-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 14:28:38 -0700
-Message-ID: <200710162128.l9GLSccV018196@imap1.linux-foundation.org>
+Subject: - memory-unplug-v7-page-offline.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:35:32 -0700
+Message-ID: <200710162035.l9GKZW57015068@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40548 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39318 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965804AbXJPVfe (ORCPT
+	by vger.kernel.org with ESMTP id S965804AbXJPVfo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:35:34 -0400
+	Tue, 16 Oct 2007 17:35:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@redhat.com, davem@davemloft.net, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sparc-support-for-new-termios-checkpatch-fixes
+     memory unplug: page offline
 has been removed from the -mm tree.  Its filename was
-     sparc-support-for-new-termios-checkpatch-fixes.patch
+     memory-unplug-v7-page-offline.patch
 
-This patch was dropped because it was folded into sparc-support-for-new-termios.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sparc-support-for-new-termios-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memory unplug: page offline
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-ERROR: need a space before the open parenthesis '('
-#83: FILE: include/asm-sparc/termios.h:118:
-+	if((k)->c_lflag & ICANON) { \
+Logic.
+ - set all pages in  [start,end)  as isolated migration-type.
+   by this, all free pages in the range will be not-for-use.
+ - Migrate all LRU pages in the range.
+ - Test all pages in the range's refcnt is zero or not.
 
-ERROR: need a space before the open parenthesis '('
-#104: FILE: include/asm-sparc/termios.h:139:
-+	if(!((k)->c_lflag & ICANON)) { \
+Todo:
+ - allocate migration destination page from better area.
+ - confirm page_count(page)== 0 && PageReserved(page) page is safe to be freed..
+ (I don't like this kind of page but..
+ - Find out pages which cannot be migrated.
+ - more running tests.
+ - Use reclaim for unplugging other memory type area.
 
-ERROR: need a space before the open parenthesis '('
-#222: FILE: include/asm-sparc64/termios.h:161:
-+	if((k)->c_lflag & ICANON) { \
-
-ERROR: need a space before the open parenthesis '('
-#241: FILE: include/asm-sparc64/termios.h:180:
-+	if(!((k)->c_lflag & ICANON)) { \
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Cc: Alan Cox <alan@redhat.com>
-Cc: Dave Miller <davem@davemloft.net>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-sparc/termios.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/ia64/Kconfig              |    3 
+ include/linux/kernel.h         |    1 
+ include/linux/memory_hotplug.h |    5 
+ mm/Kconfig                     |    5 
+ mm/memory_hotplug.c            |  254 +++++++++++++++++++++++++++++++
+ mm/page_alloc.c                |   47 +++++
+ 6 files changed, 314 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-sparc/termios.h~sparc-support-for-new-termios-checkpatch-fixes include/asm-sparc/termios.h
---- a/include/asm-sparc/termios.h~sparc-support-for-new-termios-checkpatch-fixes
-+++ a/include/asm-sparc/termios.h
-@@ -115,7 +115,7 @@ struct winsize {
- 	err |= get_user((k)->c_lflag, &(u)->c_lflag); \
- 	err |= get_user((k)->c_line,  &(u)->c_line); \
- 	err |= copy_from_user((k)->c_cc, (u)->c_cc, NCCS); \
--	if((k)->c_lflag & ICANON) { \
-+	if ((k)->c_lflag & ICANON) { \
- 		err |= get_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
- 		err |= get_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
- 	} else { \
-@@ -136,7 +136,7 @@ struct winsize {
- 	err |= put_user((k)->c_lflag, &(u)->c_lflag); \
- 	err |= put_user((k)->c_line, &(u)->c_line); \
- 	err |= copy_to_user((u)->c_cc, (k)->c_cc, NCCS); \
--	if(!((k)->c_lflag & ICANON)) { \
-+	if (!((k)->c_lflag & ICANON)) { \
- 		err |= put_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
- 		err |= put_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
- 	} else { \
-@@ -156,7 +156,7 @@ struct winsize {
- 	get_user((k)->c_lflag, &(u)->c_lflag); \
- 	get_user((k)->c_line,  &(u)->c_line); \
- 	copy_from_user((k)->c_cc, (u)->c_cc, NCCS); \
--	if((k)->c_lflag & ICANON) { \
-+	if ((k)->c_lflag & ICANON) { \
- 		get_user((k)->c_cc[VEOF], &(u)->c_cc[VEOF]); \
- 		get_user((k)->c_cc[VEOL], &(u)->c_cc[VEOL]); \
- 	} else { \
-@@ -174,7 +174,7 @@ struct winsize {
- 	put_user((k)->c_lflag, &(u)->c_lflag); \
- 	put_user((k)->c_line, &(u)->c_line); \
- 	copy_to_user((u)->c_cc, (k)->c_cc, NCCS); \
--	if(!((k)->c_lflag & ICANON)) { \
-+	if (!((k)->c_lflag & ICANON)) { \
- 		put_user((k)->c_cc[VMIN],  &(u)->c_cc[_VMIN]); \
- 		put_user((k)->c_cc[VTIME], &(u)->c_cc[_VTIME]); \
- 	} else { \
+diff -puN arch/ia64/Kconfig~memory-unplug-v7-page-offline arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~memory-unplug-v7-page-offline
++++ a/arch/ia64/Kconfig
+@@ -305,6 +305,9 @@ config HOTPLUG_CPU
+ config ARCH_ENABLE_MEMORY_HOTPLUG
+ 	def_bool y
+ 
++config ARCH_ENABLE_MEMORY_HOTREMOVE
++	def_bool y
++
+ config SCHED_SMT
+ 	bool "SMT scheduler support"
+ 	depends on SMP
+diff -puN include/linux/kernel.h~memory-unplug-v7-page-offline include/linux/kernel.h
+--- a/include/linux/kernel.h~memory-unplug-v7-page-offline
++++ a/include/linux/kernel.h
+@@ -35,6 +35,7 @@ extern const char linux_proc_banner[];
+ #define ALIGN(x,a)		__ALIGN_MASK(x,(typeof(x))(a)-1)
+ #define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
+ #define PTR_ALIGN(p, a)		((typeof(p))ALIGN((unsigned long)(p), (a)))
++#define IS_ALIGNED(x,a)		(((x) % ((typeof(x))(a))) == 0)
+ 
+ #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]) + __must_be_array(arr))
+ 
+diff -puN include/linux/memory_hotplug.h~memory-unplug-v7-page-offline include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~memory-unplug-v7-page-offline
++++ a/include/linux/memory_hotplug.h
+@@ -58,7 +58,10 @@ extern int add_one_highpage(struct page 
+ extern void online_page(struct page *page);
+ /* VM interface that may be used by firmware interface */
+ extern int online_pages(unsigned long, unsigned long);
+-
++#ifdef CONFIG_MEMORY_HOTREMOVE
++extern int offline_pages(unsigned long, unsigned long, unsigned long);
++extern void __offline_isolated_pages(unsigned long, unsigned long);
++#endif
+ /* reasonably generic interface to expand the physical pages in a zone  */
+ extern int __add_pages(struct zone *zone, unsigned long start_pfn,
+ 	unsigned long nr_pages);
+diff -puN mm/Kconfig~memory-unplug-v7-page-offline mm/Kconfig
+--- a/mm/Kconfig~memory-unplug-v7-page-offline
++++ a/mm/Kconfig
+@@ -139,6 +139,11 @@ config MEMORY_HOTPLUG_SPARSE
+ 	def_bool y
+ 	depends on SPARSEMEM && MEMORY_HOTPLUG
+ 
++config MEMORY_HOTREMOVE
++	bool "Allow for memory hot remove"
++	depends on MEMORY_HOTPLUG && ARCH_ENABLE_MEMORY_HOTREMOVE
++	depends on MIGRATION
++
+ # Heavily threaded applications may benefit from splitting the mm-wide
+ # page_table_lock, so that faults on different parts of the user address
+ # space can be handled with less contention: split it at this NR_CPUS.
+diff -puN mm/memory_hotplug.c~memory-unplug-v7-page-offline mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-unplug-v7-page-offline
++++ a/mm/memory_hotplug.c
+@@ -23,6 +23,9 @@
+ #include <linux/vmalloc.h>
+ #include <linux/ioport.h>
+ #include <linux/cpuset.h>
++#include <linux/delay.h>
++#include <linux/migrate.h>
++#include <linux/page-isolation.h>
+ 
+ #include <asm/tlbflush.h>
+ 
+@@ -302,3 +305,254 @@ error:
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(add_memory);
++
++#ifdef CONFIG_MEMORY_HOTREMOVE
++/*
++ * Confirm all pages in a range [start, end) is belongs to the same zone.
++ */
++static int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn)
++{
++	unsigned long pfn;
++	struct zone *zone = NULL;
++	struct page *page;
++	int i;
++	for (pfn = start_pfn;
++	     pfn < end_pfn;
++	     pfn += MAX_ORDER_NR_PAGES) {
++		i = 0;
++		/* This is just a CONFIG_HOLES_IN_ZONE check.*/
++		while ((i < MAX_ORDER_NR_PAGES) && !pfn_valid_within(pfn + i))
++			i++;
++		if (i == MAX_ORDER_NR_PAGES)
++			continue;
++		page = pfn_to_page(pfn + i);
++		if (zone && page_zone(page) != zone)
++			return 0;
++		zone = page_zone(page);
++	}
++	return 1;
++}
++
++/*
++ * Scanning pfn is much easier than scanning lru list.
++ * Scan pfn from start to end and Find LRU page.
++ */
++int scan_lru_pages(unsigned long start, unsigned long end)
++{
++	unsigned long pfn;
++	struct page *page;
++	for (pfn = start; pfn < end; pfn++) {
++		if (pfn_valid(pfn)) {
++			page = pfn_to_page(pfn);
++			if (PageLRU(page))
++				return pfn;
++		}
++	}
++	return 0;
++}
++
++static struct page *
++hotremove_migrate_alloc(struct page *page,
++			unsigned long private,
++			int **x)
++{
++	/* This should be improoooooved!! */
++	return alloc_page(GFP_HIGHUSER_PAGECACHE);
++}
++
++
++#define NR_OFFLINE_AT_ONCE_PAGES	(256)
++static int
++do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
++{
++	unsigned long pfn;
++	struct page *page;
++	int move_pages = NR_OFFLINE_AT_ONCE_PAGES;
++	int not_managed = 0;
++	int ret = 0;
++	LIST_HEAD(source);
++
++	for (pfn = start_pfn; pfn < end_pfn && move_pages > 0; pfn++) {
++		if (!pfn_valid(pfn))
++			continue;
++		page = pfn_to_page(pfn);
++		if (!page_count(page))
++			continue;
++		/*
++		 * We can skip free pages. And we can only deal with pages on
++		 * LRU.
++		 */
++		ret = isolate_lru_page(page, &source);
++		if (!ret) { /* Success */
++			move_pages--;
++		} else {
++			/* Becasue we don't have big zone->lock. we should
++			   check this again here. */
++			if (page_count(page))
++				not_managed++;
++#ifdef CONFIG_DEBUG_VM
++			printk(KERN_INFO "removing from LRU failed"
++					 " %lx/%d/%lx\n",
++				pfn, page_count(page), page->flags);
++#endif
++		}
++	}
++	ret = -EBUSY;
++	if (not_managed) {
++		if (!list_empty(&source))
++			putback_lru_pages(&source);
++		goto out;
++	}
++	ret = 0;
++	if (list_empty(&source))
++		goto out;
++	/* this function returns # of failed pages */
++	ret = migrate_pages(&source, hotremove_migrate_alloc, 0);
++
++out:
++	return ret;
++}
++
++/*
++ * remove from free_area[] and mark all as Reserved.
++ */
++static int
++offline_isolated_pages_cb(unsigned long start, unsigned long nr_pages,
++			void *data)
++{
++	__offline_isolated_pages(start, start + nr_pages);
++	return 0;
++}
++
++static void
++offline_isolated_pages(unsigned long start_pfn, unsigned long end_pfn)
++{
++	walk_memory_resource(start_pfn, end_pfn - start_pfn, NULL,
++				offline_isolated_pages_cb);
++}
++
++/*
++ * Check all pages in range, recoreded as memory resource, are isolated.
++ */
++static int
++check_pages_isolated_cb(unsigned long start_pfn, unsigned long nr_pages,
++			void *data)
++{
++	int ret;
++	long offlined = *(long *)data;
++	ret = test_pages_isolated(start_pfn, start_pfn + nr_pages);
++	offlined = nr_pages;
++	if (!ret)
++		*(long *)data += offlined;
++	return ret;
++}
++
++static long
++check_pages_isolated(unsigned long start_pfn, unsigned long end_pfn)
++{
++	long offlined = 0;
++	int ret;
++
++	ret = walk_memory_resource(start_pfn, end_pfn - start_pfn, &offlined,
++			check_pages_isolated_cb);
++	if (ret < 0)
++		offlined = (long)ret;
++	return offlined;
++}
++
++extern void drain_all_local_pages(void);
++
++int offline_pages(unsigned long start_pfn,
++		  unsigned long end_pfn, unsigned long timeout)
++{
++	unsigned long pfn, nr_pages, expire;
++	long offlined_pages;
++	int ret, drain, retry_max;
++	struct zone *zone;
++
++	BUG_ON(start_pfn >= end_pfn);
++	/* at least, alignment against pageblock is necessary */
++	if (!IS_ALIGNED(start_pfn, pageblock_nr_pages))
++		return -EINVAL;
++	if (!IS_ALIGNED(end_pfn, pageblock_nr_pages))
++		return -EINVAL;
++	/* This makes hotplug much easier...and readable.
++	   we assume this for now. .*/
++	if (!test_pages_in_a_zone(start_pfn, end_pfn))
++		return -EINVAL;
++	/* set above range as isolated */
++	ret = start_isolate_page_range(start_pfn, end_pfn);
++	if (ret)
++		return ret;
++	nr_pages = end_pfn - start_pfn;
++	pfn = start_pfn;
++	expire = jiffies + timeout;
++	drain = 0;
++	retry_max = 5;
++repeat:
++	/* start memory hot removal */
++	ret = -EAGAIN;
++	if (time_after(jiffies, expire))
++		goto failed_removal;
++	ret = -EINTR;
++	if (signal_pending(current))
++		goto failed_removal;
++	ret = 0;
++	if (drain) {
++		lru_add_drain_all();
++		flush_scheduled_work();
++		cond_resched();
++		drain_all_local_pages();
++	}
++
++	pfn = scan_lru_pages(start_pfn, end_pfn);
++	if (pfn) { /* We have page on LRU */
++		ret = do_migrate_range(pfn, end_pfn);
++		if (!ret) {
++			drain = 1;
++			goto repeat;
++		} else {
++			if (ret < 0)
++				if (--retry_max == 0)
++					goto failed_removal;
++			yield();
++			drain = 1;
++			goto repeat;
++		}
++	}
++	/* drain all zone's lru pagevec, this is asyncronous... */
++	lru_add_drain_all();
++	flush_scheduled_work();
++	yield();
++	/* drain pcp pages , this is synchrouns. */
++	drain_all_local_pages();
++	/* check again */
++	offlined_pages = check_pages_isolated(start_pfn, end_pfn);
++	if (offlined_pages < 0) {
++		ret = -EBUSY;
++		goto failed_removal;
++	}
++	printk(KERN_INFO "Offlined Pages %ld\n", offlined_pages);
++	/* Ok, all of our target is islaoted.
++	   We cannot do rollback at this point. */
++	offline_isolated_pages(start_pfn, end_pfn);
++	/* reset pagetype flags */
++	start_isolate_page_range(start_pfn, end_pfn);
++	/* removal success */
++	zone = page_zone(pfn_to_page(start_pfn));
++	zone->present_pages -= offlined_pages;
++	zone->zone_pgdat->node_present_pages -= offlined_pages;
++	totalram_pages -= offlined_pages;
++	num_physpages -= offlined_pages;
++	vm_total_pages = nr_free_pagecache_pages();
++	writeback_set_ratelimit();
++	return 0;
++
++failed_removal:
++	printk(KERN_INFO "memory offlining %lx to %lx failed\n",
++		start_pfn, end_pfn);
++	/* pushback to free area */
++	undo_isolate_page_range(start_pfn, end_pfn);
++	return ret;
++}
++#endif /* CONFIG_MEMORY_HOTREMOVE */
+diff -puN mm/page_alloc.c~memory-unplug-v7-page-offline mm/page_alloc.c
+--- a/mm/page_alloc.c~memory-unplug-v7-page-offline
++++ a/mm/page_alloc.c
+@@ -4477,3 +4477,50 @@ void unset_migratetype_isolate(struct pa
+ out:
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ }
++
++#ifdef CONFIG_MEMORY_HOTREMOVE
++/*
++ * All pages in the range must be isolated before calling this.
++ */
++void
++__offline_isolated_pages(unsigned long start_pfn, unsigned long end_pfn)
++{
++	struct page *page;
++	struct zone *zone;
++	int order, i;
++	unsigned long pfn;
++	unsigned long flags;
++	/* find the first valid pfn */
++	for (pfn = start_pfn; pfn < end_pfn; pfn++)
++		if (pfn_valid(pfn))
++			break;
++	if (pfn == end_pfn)
++		return;
++	zone = page_zone(pfn_to_page(pfn));
++	spin_lock_irqsave(&zone->lock, flags);
++	pfn = start_pfn;
++	while (pfn < end_pfn) {
++		if (!pfn_valid(pfn)) {
++			pfn++;
++			continue;
++		}
++		page = pfn_to_page(pfn);
++		BUG_ON(page_count(page));
++		BUG_ON(!PageBuddy(page));
++		order = page_order(page);
++#ifdef CONFIG_DEBUG_VM
++		printk(KERN_INFO "remove from free list %lx %d %lx\n",
++		       pfn, 1 << order, end_pfn);
++#endif
++		list_del(&page->lru);
++		rmv_page_order(page);
++		zone->free_area[order].nr_free--;
++		__mod_zone_page_state(zone, NR_FREE_PAGES,
++				      - (1UL << order));
++		for (i = 0; i < (1 << order); i++)
++			SetPageReserved((page+i));
++		pfn += (1 << order);
++	}
++	spin_unlock_irqrestore(&zone->lock, flags);
++}
++#endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-sparc-support-for-new-termios.patch
-sparc-support-for-new-termios-checkpatch-fixes.patch
-git-unionfs.patch
-git-watchdog-fixup.patch
-git-wireless.patch
-revert-x86_64-mm-cpa-einval.patch
-fix-x86_64-mm-sched-clock-share.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-asm-i386-ioh-fix-constness.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
-git-xfs.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold-warning-fix.patch
-mm-dirty-balancing-for-tasks-warning-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
-oom-do-not-take-callback_mutex-fix.patch
-writeback-dont-propagate-aop_writepage_activate.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-pm-qos-infrastructure-and-interface-fix.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2-fix-3.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
-stop-using-dma_xxbit_mask.patch
-stop-using-dma_xxbit_mask-fix.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-userc-ifdef-mq_bytes-fix.patch
-f_dupfd_cloexec-implementation-fix-2.patch
-ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
-drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
-writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-md-software-raid-autodetect-dev-list-not-array.patch
-do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-pnp-use-dev_info-dev_err-etc-in-core-fix.patch
-pnp-add-debug-message-for-adding-new-device-fix-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-cpuset-sched_load_balance-flag-fix.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+git-sh.patch
+memory-controller-make-charging-gfp-mask-aware-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified.patch
 cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
-sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+add-irq-protection-in-the-percpu-counters-cpu-hotplug-callback-path.patch
