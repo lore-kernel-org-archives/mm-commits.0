@@ -1,57 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - git-watchdog-fixup.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:11:20 -0700
-Message-ID: <200710162011.l9GKBKWd013523@imap1.linux-foundation.org>
+Subject: - git-wireless-fixup.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:11:28 -0700
+Message-ID: <200710162011.l9GKBSuh013526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34842 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33471 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935666AbXJPULX (ORCPT
+	by vger.kernel.org with ESMTP id S935748AbXJPULb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 16:11:23 -0400
+	Tue, 16 Oct 2007 16:11:31 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9GKBLhJ024062
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9GKBSSh024067
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 16 Oct 2007 13:11:22 -0700
+	for <mm-commits@vger.kernel.org>; Tue, 16 Oct 2007 13:11:29 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-watchdog-fixup
+     git-wireless-fixup
 has been removed from the -mm tree.  Its filename was
-     git-watchdog-fixup.patch
+     git-wireless-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-watchdog-fixup
+Subject: git-wireless-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/Kconfig |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/net/wireless/Kconfig  |   10 ----------
+ drivers/net/wireless/Makefile |    3 ---
+ 2 files changed, 13 deletions(-)
 
-diff -puN drivers/Kconfig~git-watchdog-fixup drivers/Kconfig
---- a/drivers/Kconfig~git-watchdog-fixup
-+++ a/drivers/Kconfig
-@@ -58,13 +58,10 @@ source "drivers/power/Kconfig"
+diff -puN drivers/net/wireless/Kconfig~git-wireless-fixup drivers/net/wireless/Kconfig
+--- a/drivers/net/wireless/Kconfig~git-wireless-fixup
++++ a/drivers/net/wireless/Kconfig
+@@ -381,8 +381,6 @@ config PCI_HERMES
+ 	  common.  Some of the built-in wireless adaptors in laptops are of
+ 	  this variety.
  
- source "drivers/hwmon/Kconfig"
- 
--<<<<<<< HEAD/drivers/Kconfig
- source "drivers/ssb/Kconfig"
- 
+-<<<<<<< HEAD/drivers/net/wireless/Kconfig
 -=======
- source "drivers/watchdog/Kconfig"
+ config ATMEL
+       tristate "Atmel at76c50x chipset  802.11b support"
+       depends on (PCI || PCMCIA) && WLAN_80211
+@@ -415,7 +413,6 @@ config USB_ATMEL
+ 	  Enable support for USB Wireless devices using Atmel at76c503,
+ 	  at76c505 or at76c505a chips.
  
-->>>>>>> /drivers/Kconfig
- source "drivers/mfd/Kconfig"
+->>>>>>> /drivers/net/wireless/Kconfig
+ config PCMCIA_HERMES
+ 	tristate "Hermes PCMCIA card support"
+ 	depends on PCMCIA && HERMES
+@@ -585,7 +582,6 @@ config RTL8187
  
- source "drivers/media/Kconfig"
+ 	  Thanks to Realtek for their support!
+ 
+-<<<<<<< HEAD/drivers/net/wireless/Kconfig
+ config ADM8211
+ 	tristate "ADMtek ADM8211 support"
+ 	depends on MAC80211 && PCI && WLAN_80211 && EXPERIMENTAL
+@@ -626,8 +622,6 @@ config P54_PCI
+ 	tristate "Prism54 PCI support"
+ 	depends on P54_COMMON && PCI
+ 
+-source "drivers/net/wireless/iwlwifi/Kconfig"
+-=======
+ config ATH5K
+ 	tristate "Atheros 5xxx wireless cards support"
+ 	depends on PCI && MAC80211 && WLAN_80211 && EXPERIMENTAL
+@@ -641,16 +635,12 @@ config ATH5K
+ 	  If you choose to build a module, it'll be called ath5k. Say M if
+ 	  unsure.
+ 
+->>>>>>> /drivers/net/wireless/Kconfig
+ source "drivers/net/wireless/hostap/Kconfig"
+ source "drivers/net/wireless/bcm43xx/Kconfig"
+ source "drivers/net/wireless/b43/Kconfig"
+ source "drivers/net/wireless/b43legacy/Kconfig"
+ source "drivers/net/wireless/zd1211rw/Kconfig"
+-<<<<<<< HEAD/drivers/net/wireless/Kconfig
+ source "drivers/net/wireless/rt2x00/Kconfig"
+-=======
+ source "drivers/net/wireless/zd1211rw-mac80211/Kconfig"
+->>>>>>> /drivers/net/wireless/Kconfig
+ 
+ endmenu
+diff -puN drivers/net/wireless/Makefile~git-wireless-fixup drivers/net/wireless/Makefile
+--- a/drivers/net/wireless/Makefile~git-wireless-fixup
++++ a/drivers/net/wireless/Makefile
+@@ -52,7 +52,6 @@ obj-$(CONFIG_LIBERTAS)		+= libertas/
+ 
+ rtl8187-objs		:= rtl8187_dev.o rtl8187_rtl8225.o
+ obj-$(CONFIG_RTL8187)	+= rtl8187.o
+-<<<<<<< HEAD/drivers/net/wireless/Makefile
+ 
+ obj-$(CONFIG_ADM8211)	+= adm8211.o
+ 
+@@ -62,7 +61,5 @@ obj-$(CONFIG_RT2X00)	+= rt2x00/
+ obj-$(CONFIG_P54_COMMON)	+= p54common.o
+ obj-$(CONFIG_P54_USB)		+= p54usb.o
+ obj-$(CONFIG_P54_PCI)		+= p54pci.o
+-=======
+ 
+ obj-$(CONFIG_ATH5K)	+= ath5k/
+->>>>>>> /drivers/net/wireless/Makefile
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,7 +135,6 @@ git-nfsd-fixup.patch
 qla2xxx-printk-fixes.patch
 sparc-support-for-new-termios-checkpatch-fixes.patch
 git-unionfs.patch
-git-watchdog-fixup.patch
 git-wireless.patch
 git-wireless-fixup.patch
 git-wireless-ath5k-broke.patch
