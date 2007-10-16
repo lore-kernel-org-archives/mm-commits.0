@@ -1,204 +1,1185 @@
 From: akpm@linux-foundation.org
-Subject: - implement-simple-fs-aops.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:32:25 -0700
-Message-ID: <200710162032.l9GKWPGb014599@imap1.linux-foundation.org>
+Subject: - fs-introduce-write_begin-write_end-and-perform_write-aops.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:32:17 -0700
+Message-ID: <200710162032.l9GKWHKg014585@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55151 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55126 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965810AbXJPVj6 (ORCPT
+	by vger.kernel.org with ESMTP id S965414AbXJPVkJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:39:58 -0400
+	Tue, 16 Oct 2007 17:40:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, mm-commits@vger.kernel.org
+To: npiggin@suse.de, dmonakhov@openvz.org, mark.fasheh@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     implement simple fs aops
+     fs: introduce write_begin, write_end, and perform_write aops
 has been removed from the -mm tree.  Its filename was
-     implement-simple-fs-aops.patch
+     fs-introduce-write_begin-write_end-and-perform_write-aops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: implement simple fs aops
+Subject: fs: introduce write_begin, write_end, and perform_write aops
 From: Nick Piggin <npiggin@suse.de>
 
-Implement new aops for some of the simpler filesystems.
+These are intended to replace prepare_write and commit_write with more
+flexible alternatives that are also able to avoid the buffered write
+deadlock problems efficiently (which prepare_write is unable to do).
 
+[mark.fasheh@oracle.com: API design contributions, code review and fixes]
+[akpm@linux-foundation.org: various fixes]
+[dmonakhov@sw.ru: new aop block_write_begin fix]
 Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Mark Fasheh <mark.fasheh@oracle.com>
+Signed-off-by: Dmitriy Monakhov <dmonakhov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/configfs/inode.c   |    4 ++--
- fs/hugetlbfs/inode.c  |   16 ++++++++++------
- fs/ramfs/file-mmu.c   |    4 ++--
- fs/ramfs/file-nommu.c |    4 ++--
- fs/sysfs/inode.c      |    4 ++--
- mm/shmem.c            |   34 +++++++++++++++++++++++++++-------
- 6 files changed, 45 insertions(+), 21 deletions(-)
+ Documentation/filesystems/Locking |    9 -
+ Documentation/filesystems/vfs.txt |   45 +++++
+ drivers/block/loop.c              |   75 +++-----
+ fs/buffer.c                       |  201 ++++++++++++++++++----
+ fs/libfs.c                        |   44 ++++
+ fs/namei.c                        |   46 +----
+ fs/splice.c                       |   69 -------
+ include/linux/buffer_head.h       |   10 +
+ include/linux/fs.h                |   30 +++
+ include/linux/pagemap.h           |    2 
+ mm/filemap.c                      |  250 ++++++++++++++++++++++++----
+ 11 files changed, 575 insertions(+), 206 deletions(-)
 
-diff -puN fs/configfs/inode.c~implement-simple-fs-aops fs/configfs/inode.c
---- a/fs/configfs/inode.c~implement-simple-fs-aops
-+++ a/fs/configfs/inode.c
-@@ -41,8 +41,8 @@ extern struct super_block * configfs_sb;
+diff -puN Documentation/filesystems/Locking~fs-introduce-write_begin-write_end-and-perform_write-aops Documentation/filesystems/Locking
+--- a/Documentation/filesystems/Locking~fs-introduce-write_begin-write_end-and-perform_write-aops
++++ a/Documentation/filesystems/Locking
+@@ -178,15 +178,18 @@ prototypes:
+ locking rules:
+ 	All except set_page_dirty may block
  
- static const struct address_space_operations configfs_aops = {
- 	.readpage	= simple_readpage,
--	.prepare_write	= simple_prepare_write,
--	.commit_write	= simple_commit_write
-+	.write_begin	= simple_write_begin,
-+	.write_end	= simple_write_end,
- };
+-			BKL	PageLocked(page)
++			BKL	PageLocked(page)	i_sem
+ writepage:		no	yes, unlocks (see below)
+ readpage:		no	yes, unlocks
+ sync_page:		no	maybe
+ writepages:		no
+ set_page_dirty		no	no
+ readpages:		no
+-prepare_write:		no	yes
+-commit_write:		no	yes
++prepare_write:		no	yes			yes
++commit_write:		no	yes			yes
++write_begin:		no	locks the page		yes
++write_end:		no	yes, unlocks		yes
++perform_write:		no	n/a			yes
+ bmap:			yes
+ invalidatepage:		no	yes
+ releasepage:		no	yes
+diff -puN Documentation/filesystems/vfs.txt~fs-introduce-write_begin-write_end-and-perform_write-aops Documentation/filesystems/vfs.txt
+--- a/Documentation/filesystems/vfs.txt~fs-introduce-write_begin-write_end-and-perform_write-aops
++++ a/Documentation/filesystems/vfs.txt
+@@ -537,6 +537,12 @@ struct address_space_operations {
+ 			struct list_head *pages, unsigned nr_pages);
+ 	int (*prepare_write)(struct file *, struct page *, unsigned, unsigned);
+ 	int (*commit_write)(struct file *, struct page *, unsigned, unsigned);
++	int (*write_begin)(struct file *, struct address_space *mapping,
++				loff_t pos, unsigned len, unsigned flags,
++				struct page **pagep, void **fsdata);
++	int (*write_end)(struct file *, struct address_space *mapping,
++				loff_t pos, unsigned len, unsigned copied,
++				struct page *page, void *fsdata);
+ 	sector_t (*bmap)(struct address_space *, sector_t);
+ 	int (*invalidatepage) (struct page *, unsigned long);
+ 	int (*releasepage) (struct page *, int);
+@@ -633,6 +639,45 @@ struct address_space_operations {
+         operations.  It should avoid returning an error if possible -
+         errors should have been handled by prepare_write.
  
- static struct backing_dev_info configfs_backing_dev_info = {
-diff -puN fs/hugetlbfs/inode.c~implement-simple-fs-aops fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~implement-simple-fs-aops
-+++ a/fs/hugetlbfs/inode.c
-@@ -189,15 +189,19 @@ static int hugetlbfs_readpage(struct fil
- 	return -EINVAL;
- }
- 
--static int hugetlbfs_prepare_write(struct file *file,
--			struct page *page, unsigned offset, unsigned to)
-+static int hugetlbfs_write_begin(struct file *file,
-+			struct address_space *mapping,
-+			loff_t pos, unsigned len, unsigned flags,
-+			struct page **pagep, void **fsdata)
++  write_begin: This is intended as a replacement for prepare_write. The
++	key differences being that:
++		- it returns a locked page (in *pagep) rather than being
++		  given a pre locked page;
++		- it must be able to cope with short writes (where the
++		  length passed to write_begin is greater than the number
++		  of bytes copied into the page).
++
++	Called by the generic buffered write code to ask the filesystem to
++	prepare to write len bytes at the given offset in the file. The
++	address_space should check that the write will be able to complete,
++	by allocating space if necessary and doing any other internal
++	housekeeping.  If the write will update parts of any basic-blocks on
++	storage, then those blocks should be pre-read (if they haven't been
++	read already) so that the updated blocks can be written out properly.
++
++        The filesystem must return the locked pagecache page for the specified
++	offset, in *pagep, for the caller to write into.
++
++	flags is a field for AOP_FLAG_xxx flags, described in
++	include/linux/fs.h.
++
++        A void * may be returned in fsdata, which then gets passed into
++        write_end.
++
++        Returns 0 on success; < 0 on failure (which is the error code), in
++	which case write_end is not called.
++
++  write_end: After a successful write_begin, and data copy, write_end must
++        be called. len is the original len passed to write_begin, and copied
++        is the amount that was able to be copied (copied == len is always true
++	if write_begin was called with the AOP_FLAG_UNINTERRUPTIBLE flag).
++
++        The filesystem must take care of unlocking the page and releasing it
++        refcount, and updating i_size.
++
++        Returns < 0 on failure, otherwise the number of bytes (<= 'copied')
++        that were able to be copied into pagecache.
++
+   bmap: called by the VFS to map a logical block offset within object to
+   	physical block number. This method is used by the FIBMAP
+   	ioctl and for working with swap-files.  To be able to swap to
+diff -puN drivers/block/loop.c~fs-introduce-write_begin-write_end-and-perform_write-aops drivers/block/loop.c
+--- a/drivers/block/loop.c~fs-introduce-write_begin-write_end-and-perform_write-aops
++++ a/drivers/block/loop.c
+@@ -204,14 +204,13 @@ lo_do_transfer(struct loop_device *lo, i
+  * do_lo_send_aops - helper for writing data to a loop device
+  *
+  * This is the fast version for backing filesystems which implement the address
+- * space operations prepare_write and commit_write.
++ * space operations write_begin and write_end.
+  */
+ static int do_lo_send_aops(struct loop_device *lo, struct bio_vec *bvec,
+-		int bsize, loff_t pos, struct page *page)
++		int bsize, loff_t pos, struct page *unused)
  {
- 	return -EINVAL;
+ 	struct file *file = lo->lo_backing_file; /* kudos to NFsckingS */
+ 	struct address_space *mapping = file->f_mapping;
+-	const struct address_space_operations *aops = mapping->a_ops;
+ 	pgoff_t index;
+ 	unsigned offset, bv_offs;
+ 	int len, ret;
+@@ -223,63 +222,47 @@ static int do_lo_send_aops(struct loop_d
+ 	len = bvec->bv_len;
+ 	while (len > 0) {
+ 		sector_t IV;
+-		unsigned size;
++		unsigned size, copied;
+ 		int transfer_result;
++		struct page *page;
++		void *fsdata;
+ 
+ 		IV = ((sector_t)index << (PAGE_CACHE_SHIFT - 9))+(offset >> 9);
+ 		size = PAGE_CACHE_SIZE - offset;
+ 		if (size > len)
+ 			size = len;
+-		page = grab_cache_page(mapping, index);
+-		if (unlikely(!page))
++
++		ret = pagecache_write_begin(file, mapping, pos, size, 0,
++							&page, &fsdata);
++		if (ret)
+ 			goto fail;
+-		ret = aops->prepare_write(file, page, offset,
+-					  offset + size);
+-		if (unlikely(ret)) {
+-			if (ret == AOP_TRUNCATED_PAGE) {
+-				page_cache_release(page);
+-				continue;
+-			}
+-			goto unlock;
+-		}
++
+ 		transfer_result = lo_do_transfer(lo, WRITE, page, offset,
+ 				bvec->bv_page, bv_offs, size, IV);
+-		if (unlikely(transfer_result)) {
+-			/*
+-			 * The transfer failed, but we still write the data to
+-			 * keep prepare/commit calls balanced.
+-			 */
+-			printk(KERN_ERR "loop: transfer error block %llu\n",
+-			       (unsigned long long)index);
+-			zero_user_page(page, offset, size, KM_USER0);
+-		}
+-		flush_dcache_page(page);
+-		ret = aops->commit_write(file, page, offset,
+-					 offset + size);
+-		if (unlikely(ret)) {
+-			if (ret == AOP_TRUNCATED_PAGE) {
+-				page_cache_release(page);
+-				continue;
+-			}
+-			goto unlock;
+-		}
++		copied = size;
+ 		if (unlikely(transfer_result))
+-			goto unlock;
+-		bv_offs += size;
+-		len -= size;
++			copied = 0;
++
++		ret = pagecache_write_end(file, mapping, pos, size, copied,
++							page, fsdata);
++		if (ret < 0)
++			goto fail;
++		if (ret < copied)
++			copied = ret;
++
++		if (unlikely(transfer_result))
++			goto fail;
++
++		bv_offs += copied;
++		len -= copied;
+ 		offset = 0;
+ 		index++;
+-		pos += size;
+-		unlock_page(page);
+-		page_cache_release(page);
++		pos += copied;
+ 	}
+ 	ret = 0;
+ out:
+ 	mutex_unlock(&mapping->host->i_mutex);
+ 	return ret;
+-unlock:
+-	unlock_page(page);
+-	page_cache_release(page);
+ fail:
+ 	ret = -1;
+ 	goto out;
+@@ -313,7 +296,7 @@ static int __do_lo_send_write(struct fil
+  * do_lo_send_direct_write - helper for writing data to a loop device
+  *
+  * This is the fast, non-transforming version for backing filesystems which do
+- * not implement the address space operations prepare_write and commit_write.
++ * not implement the address space operations write_begin and write_end.
+  * It uses the write file operation which should be present on all writeable
+  * filesystems.
+  */
+@@ -332,7 +315,7 @@ static int do_lo_send_direct_write(struc
+  * do_lo_send_write - helper for writing data to a loop device
+  *
+  * This is the slow, transforming version for filesystems which do not
+- * implement the address space operations prepare_write and commit_write.  It
++ * implement the address space operations write_begin and write_end.  It
+  * uses the write file operation which should be present on all writeable
+  * filesystems.
+  *
+@@ -780,7 +763,7 @@ static int loop_set_fd(struct loop_devic
+ 		 */
+ 		if (!file->f_op->splice_read)
+ 			goto out_putf;
+-		if (aops->prepare_write && aops->commit_write)
++		if (aops->prepare_write || aops->write_begin)
+ 			lo_flags |= LO_FLAGS_USE_AOPS;
+ 		if (!(lo_flags & LO_FLAGS_USE_AOPS) && !file->f_op->write)
+ 			lo_flags |= LO_FLAGS_READ_ONLY;
+diff -puN fs/buffer.c~fs-introduce-write_begin-write_end-and-perform_write-aops fs/buffer.c
+--- a/fs/buffer.c~fs-introduce-write_begin-write_end-and-perform_write-aops
++++ a/fs/buffer.c
+@@ -1770,6 +1770,48 @@ recover:
+ 	goto done;
  }
  
--static int hugetlbfs_commit_write(struct file *file,
--			struct page *page, unsigned offset, unsigned to)
-+static int hugetlbfs_write_end(struct file *file, struct address_space *mapping,
-+			loff_t pos, unsigned len, unsigned copied,
-+			struct page *page, void *fsdata)
++/*
++ * If a page has any new buffers, zero them out here, and mark them uptodate
++ * and dirty so they'll be written out (in order to prevent uninitialised
++ * block data from leaking). And clear the new bit.
++ */
++void page_zero_new_buffers(struct page *page, unsigned from, unsigned to)
++{
++	unsigned int block_start, block_end;
++	struct buffer_head *head, *bh;
++
++	BUG_ON(!PageLocked(page));
++	if (!page_has_buffers(page))
++		return;
++
++	bh = head = page_buffers(page);
++	block_start = 0;
++	do {
++		block_end = block_start + bh->b_size;
++
++		if (buffer_new(bh)) {
++			if (block_end > from && block_start < to) {
++				if (!PageUptodate(page)) {
++					unsigned start, size;
++
++					start = max(from, block_start);
++					size = min(to, block_end) - start;
++
++					zero_user_page(page, start, size, KM_USER0);
++					set_buffer_uptodate(bh);
++				}
++
++				clear_buffer_new(bh);
++				mark_buffer_dirty(bh);
++			}
++		}
++
++		block_start = block_end;
++		bh = bh->b_this_page;
++	} while (bh != head);
++}
++EXPORT_SYMBOL(page_zero_new_buffers);
++
+ static int __block_prepare_write(struct inode *inode, struct page *page,
+ 		unsigned from, unsigned to, get_block_t *get_block)
  {
-+	BUG();
- 	return -EINVAL;
+@@ -1854,38 +1896,8 @@ static int __block_prepare_write(struct 
+ 		if (!buffer_uptodate(*wait_bh))
+ 			err = -EIO;
+ 	}
+-	if (!err) {
+-		bh = head;
+-		do {
+-			if (buffer_new(bh))
+-				clear_buffer_new(bh);
+-		} while ((bh = bh->b_this_page) != head);
+-		return 0;
+-	}
+-	/* Error case: */
+-	/*
+-	 * Zero out any newly allocated blocks to avoid exposing stale
+-	 * data.  If BH_New is set, we know that the block was newly
+-	 * allocated in the above loop.
+-	 */
+-	bh = head;
+-	block_start = 0;
+-	do {
+-		block_end = block_start+blocksize;
+-		if (block_end <= from)
+-			goto next_bh;
+-		if (block_start >= to)
+-			break;
+-		if (buffer_new(bh)) {
+-			clear_buffer_new(bh);
+-			zero_user_page(page, block_start, bh->b_size, KM_USER0);
+-			set_buffer_uptodate(bh);
+-			mark_buffer_dirty(bh);
+-		}
+-next_bh:
+-		block_start = block_end;
+-		bh = bh->b_this_page;
+-	} while (bh != head);
++	if (unlikely(err))
++		page_zero_new_buffers(page, from, to);
+ 	return err;
  }
  
-@@ -569,8 +573,8 @@ static void hugetlbfs_destroy_inode(stru
+@@ -1910,6 +1922,7 @@ static int __block_commit_write(struct i
+ 			set_buffer_uptodate(bh);
+ 			mark_buffer_dirty(bh);
+ 		}
++		clear_buffer_new(bh);
+ 	}
  
- static const struct address_space_operations hugetlbfs_aops = {
- 	.readpage	= hugetlbfs_readpage,
--	.prepare_write	= hugetlbfs_prepare_write,
--	.commit_write	= hugetlbfs_commit_write,
-+	.write_begin	= hugetlbfs_write_begin,
-+	.write_end	= hugetlbfs_write_end,
- 	.set_page_dirty	= hugetlbfs_set_page_dirty,
- };
- 
-diff -puN fs/ramfs/file-mmu.c~implement-simple-fs-aops fs/ramfs/file-mmu.c
---- a/fs/ramfs/file-mmu.c~implement-simple-fs-aops
-+++ a/fs/ramfs/file-mmu.c
-@@ -29,8 +29,8 @@
- 
- const struct address_space_operations ramfs_aops = {
- 	.readpage	= simple_readpage,
--	.prepare_write	= simple_prepare_write,
--	.commit_write	= simple_commit_write,
-+	.write_begin	= simple_write_begin,
-+	.write_end	= simple_write_end,
- 	.set_page_dirty = __set_page_dirty_no_writeback,
- };
- 
-diff -puN fs/ramfs/file-nommu.c~implement-simple-fs-aops fs/ramfs/file-nommu.c
---- a/fs/ramfs/file-nommu.c~implement-simple-fs-aops
-+++ a/fs/ramfs/file-nommu.c
-@@ -29,8 +29,8 @@ static int ramfs_nommu_setattr(struct de
- 
- const struct address_space_operations ramfs_aops = {
- 	.readpage		= simple_readpage,
--	.prepare_write		= simple_prepare_write,
--	.commit_write		= simple_commit_write,
-+	.write_begin		= simple_write_begin,
-+	.write_end		= simple_write_end,
- 	.set_page_dirty		= __set_page_dirty_no_writeback,
- };
- 
-diff -puN fs/sysfs/inode.c~implement-simple-fs-aops fs/sysfs/inode.c
---- a/fs/sysfs/inode.c~implement-simple-fs-aops
-+++ a/fs/sysfs/inode.c
-@@ -24,8 +24,8 @@ extern struct super_block * sysfs_sb;
- 
- static const struct address_space_operations sysfs_aops = {
- 	.readpage	= simple_readpage,
--	.prepare_write	= simple_prepare_write,
--	.commit_write	= simple_commit_write
-+	.write_begin	= simple_write_begin,
-+	.write_end	= simple_write_end,
- };
- 
- static struct backing_dev_info sysfs_backing_dev_info = {
-diff -puN mm/shmem.c~implement-simple-fs-aops mm/shmem.c
---- a/mm/shmem.c~implement-simple-fs-aops
-+++ a/mm/shmem.c
-@@ -1108,7 +1108,7 @@ static int shmem_getpage(struct inode *i
- 	 * Normally, filepage is NULL on entry, and either found
- 	 * uptodate immediately, or allocated and zeroed, or read
- 	 * in under swappage, which is then assigned to filepage.
--	 * But shmem_readpage and shmem_prepare_write pass in a locked
-+	 * But shmem_readpage and shmem_write_begin pass in a locked
- 	 * filepage, which may be found not uptodate by other callers
- 	 * too, and may need to be copied from the swappage read in.
- 	 */
-@@ -1445,7 +1445,7 @@ static const struct inode_operations shm
- static const struct inode_operations shmem_symlink_inline_operations;
+ 	/*
+@@ -1924,6 +1937,130 @@ static int __block_commit_write(struct i
+ }
  
  /*
-- * Normally tmpfs avoids the use of shmem_readpage and shmem_prepare_write;
-+ * Normally tmpfs avoids the use of shmem_readpage and shmem_write_begin;
-  * but providing them allows a tmpfs file to be used for splice, sendfile, and
-  * below the loop driver, in the generic fashion that many filesystems support.
-  */
-@@ -1458,10 +1458,30 @@ static int shmem_readpage(struct file *f
++ * block_write_begin takes care of the basic task of block allocation and
++ * bringing partial write blocks uptodate first.
++ *
++ * If *pagep is not NULL, then block_write_begin uses the locked page
++ * at *pagep rather than allocating its own. In this case, the page will
++ * not be unlocked or deallocated on failure.
++ */
++int block_write_begin(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned flags,
++			struct page **pagep, void **fsdata,
++			get_block_t *get_block)
++{
++	struct inode *inode = mapping->host;
++	int status = 0;
++	struct page *page;
++	pgoff_t index;
++	unsigned start, end;
++	int ownpage = 0;
++
++	index = pos >> PAGE_CACHE_SHIFT;
++	start = pos & (PAGE_CACHE_SIZE - 1);
++	end = start + len;
++
++	page = *pagep;
++	if (page == NULL) {
++		ownpage = 1;
++		page = __grab_cache_page(mapping, index);
++		if (!page) {
++			status = -ENOMEM;
++			goto out;
++		}
++		*pagep = page;
++	} else
++		BUG_ON(!PageLocked(page));
++
++	status = __block_prepare_write(inode, page, start, end, get_block);
++	if (unlikely(status)) {
++		ClearPageUptodate(page);
++
++		if (ownpage) {
++			unlock_page(page);
++			page_cache_release(page);
++			*pagep = NULL;
++
++			/*
++			 * prepare_write() may have instantiated a few blocks
++			 * outside i_size.  Trim these off again. Don't need
++			 * i_size_read because we hold i_mutex.
++			 */
++			if (pos + len > inode->i_size)
++				vmtruncate(inode, inode->i_size);
++		}
++		goto out;
++	}
++
++out:
++	return status;
++}
++EXPORT_SYMBOL(block_write_begin);
++
++int block_write_end(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned copied,
++			struct page *page, void *fsdata)
++{
++	struct inode *inode = mapping->host;
++	unsigned start;
++
++	start = pos & (PAGE_CACHE_SIZE - 1);
++
++	if (unlikely(copied < len)) {
++		/*
++		 * The buffers that were written will now be uptodate, so we
++		 * don't have to worry about a readpage reading them and
++		 * overwriting a partial write. However if we have encountered
++		 * a short write and only partially written into a buffer, it
++		 * will not be marked uptodate, so a readpage might come in and
++		 * destroy our partial write.
++		 *
++		 * Do the simplest thing, and just treat any short write to a
++		 * non uptodate page as a zero-length write, and force the
++		 * caller to redo the whole thing.
++		 */
++		if (!PageUptodate(page))
++			copied = 0;
++
++		page_zero_new_buffers(page, start+copied, start+len);
++	}
++	flush_dcache_page(page);
++
++	/* This could be a short (even 0-length) commit */
++	__block_commit_write(inode, page, start, start+copied);
++
++	return copied;
++}
++EXPORT_SYMBOL(block_write_end);
++
++int generic_write_end(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned copied,
++			struct page *page, void *fsdata)
++{
++	struct inode *inode = mapping->host;
++
++	copied = block_write_end(file, mapping, pos, len, copied, page, fsdata);
++
++	/*
++	 * No need to use i_size_read() here, the i_size
++	 * cannot change under us because we hold i_mutex.
++	 *
++	 * But it's important to update i_size while still holding page lock:
++	 * page writeout could otherwise come in and zero beyond i_size.
++	 */
++	if (pos+copied > inode->i_size) {
++		i_size_write(inode, pos+copied);
++		mark_inode_dirty(inode);
++	}
++
++	unlock_page(page);
++	page_cache_release(page);
++
++	return copied;
++}
++EXPORT_SYMBOL(generic_write_end);
++
++/*
+  * Generic "read page" function for block devices that have the normal
+  * get_block functionality. This is most of the block device filesystems.
+  * Reads the page asynchronously --- the unlock_buffer() and
+diff -puN fs/libfs.c~fs-introduce-write_begin-write_end-and-perform_write-aops fs/libfs.c
+--- a/fs/libfs.c~fs-introduce-write_begin-write_end-and-perform_write-aops
++++ a/fs/libfs.c
+@@ -351,6 +351,26 @@ int simple_prepare_write(struct file *fi
+ 	return 0;
  }
  
- static int
--shmem_prepare_write(struct file *file, struct page *page, unsigned offset, unsigned to)
-+shmem_write_begin(struct file *file, struct address_space *mapping,
++int simple_write_begin(struct file *file, struct address_space *mapping,
 +			loff_t pos, unsigned len, unsigned flags,
 +			struct page **pagep, void **fsdata)
 +{
-+	struct inode *inode = mapping->host;
-+	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
-+	*pagep = NULL;
-+	return shmem_getpage(inode, index, pagep, SGP_WRITE, NULL);
++	struct page *page;
++	pgoff_t index;
++	unsigned from;
++
++	index = pos >> PAGE_CACHE_SHIFT;
++	from = pos & (PAGE_CACHE_SIZE - 1);
++
++	page = __grab_cache_page(mapping, index);
++	if (!page)
++		return -ENOMEM;
++
++	*pagep = page;
++
++	return simple_prepare_write(file, page, from, from+len);
 +}
 +
-+static int
-+shmem_write_end(struct file *file, struct address_space *mapping,
-+			loff_t pos, unsigned len, unsigned copied,
-+			struct page *page, void *fsdata)
+ int simple_commit_write(struct file *file, struct page *page,
+ 			unsigned from, unsigned to)
  {
--	struct inode *inode = page->mapping->host;
--	return shmem_getpage(inode, page->index, &page, SGP_WRITE, NULL);
-+	struct inode *inode = mapping->host;
-+
-+	set_page_dirty(page);
-+	page_cache_release(page);
-+
-+	if (pos+copied > inode->i_size)
-+		i_size_write(inode, pos+copied);
-+
-+	return copied;
+@@ -369,6 +389,28 @@ int simple_commit_write(struct file *fil
+ 	return 0;
  }
  
- static ssize_t
-@@ -2337,8 +2357,8 @@ static const struct address_space_operat
- 	.set_page_dirty	= __set_page_dirty_no_writeback,
- #ifdef CONFIG_TMPFS
- 	.readpage	= shmem_readpage,
--	.prepare_write	= shmem_prepare_write,
--	.commit_write	= simple_commit_write,
-+	.write_begin	= shmem_write_begin,
-+	.write_end	= shmem_write_end,
- #endif
- 	.migratepage	= migrate_page,
++int simple_write_end(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned copied,
++			struct page *page, void *fsdata)
++{
++	unsigned from = pos & (PAGE_CACHE_SIZE - 1);
++
++	/* zero the stale part of the page if we did a short copy */
++	if (copied < len) {
++		void *kaddr = kmap_atomic(page, KM_USER0);
++		memset(kaddr + from + copied, 0, len - copied);
++		flush_dcache_page(page);
++		kunmap_atomic(kaddr, KM_USER0);
++	}
++
++	simple_commit_write(file, page, from, from+copied);
++
++	unlock_page(page);
++	page_cache_release(page);
++
++	return copied;
++}
++
+ /*
+  * the inodes created here are not hashed. If you use iunique to generate
+  * unique inode values later for this filesystem, then you must take care
+@@ -642,6 +684,8 @@ EXPORT_SYMBOL(dcache_dir_open);
+ EXPORT_SYMBOL(dcache_readdir);
+ EXPORT_SYMBOL(generic_read_dir);
+ EXPORT_SYMBOL(get_sb_pseudo);
++EXPORT_SYMBOL(simple_write_begin);
++EXPORT_SYMBOL(simple_write_end);
+ EXPORT_SYMBOL(simple_commit_write);
+ EXPORT_SYMBOL(simple_dir_inode_operations);
+ EXPORT_SYMBOL(simple_dir_operations);
+diff -puN fs/namei.c~fs-introduce-write_begin-write_end-and-perform_write-aops fs/namei.c
+--- a/fs/namei.c~fs-introduce-write_begin-write_end-and-perform_write-aops
++++ a/fs/namei.c
+@@ -2729,53 +2729,29 @@ int __page_symlink(struct inode *inode, 
+ {
+ 	struct address_space *mapping = inode->i_mapping;
+ 	struct page *page;
++	void *fsdata;
+ 	int err;
+ 	char *kaddr;
+ 
+ retry:
+-	err = -ENOMEM;
+-	page = find_or_create_page(mapping, 0, gfp_mask);
+-	if (!page)
+-		goto fail;
+-	err = mapping->a_ops->prepare_write(NULL, page, 0, len-1);
+-	if (err == AOP_TRUNCATED_PAGE) {
+-		page_cache_release(page);
+-		goto retry;
+-	}
++	err = pagecache_write_begin(NULL, mapping, 0, len-1,
++				AOP_FLAG_UNINTERRUPTIBLE, &page, &fsdata);
+ 	if (err)
+-		goto fail_map;
++		goto fail;
++
+ 	kaddr = kmap_atomic(page, KM_USER0);
+ 	memcpy(kaddr, symname, len-1);
+ 	kunmap_atomic(kaddr, KM_USER0);
+-	err = mapping->a_ops->commit_write(NULL, page, 0, len-1);
+-	if (err == AOP_TRUNCATED_PAGE) {
+-		page_cache_release(page);
+-		goto retry;
+-	}
+-	if (err)
+-		goto fail_map;
+-	/*
+-	 * Notice that we are _not_ going to block here - end of page is
+-	 * unmapped, so this will only try to map the rest of page, see
+-	 * that it is unmapped (typically even will not look into inode -
+-	 * ->i_size will be enough for everything) and zero it out.
+-	 * OTOH it's obviously correct and should make the page up-to-date.
+-	 */
+-	if (!PageUptodate(page)) {
+-		err = mapping->a_ops->readpage(NULL, page);
+-		if (err != AOP_TRUNCATED_PAGE)
+-			wait_on_page_locked(page);
+-	} else {
+-		unlock_page(page);
+-	}
+-	page_cache_release(page);
++
++	err = pagecache_write_end(NULL, mapping, 0, len-1, len-1,
++							page, fsdata);
+ 	if (err < 0)
+ 		goto fail;
++	if (err < len-1)
++		goto retry;
++
+ 	mark_inode_dirty(inode);
+ 	return 0;
+-fail_map:
+-	unlock_page(page);
+-	page_cache_release(page);
+ fail:
+ 	return err;
+ }
+diff -puN fs/splice.c~fs-introduce-write_begin-write_end-and-perform_write-aops fs/splice.c
+--- a/fs/splice.c~fs-introduce-write_begin-write_end-and-perform_write-aops
++++ a/fs/splice.c
+@@ -563,7 +563,7 @@ static int pipe_to_file(struct pipe_inod
+ 	struct address_space *mapping = file->f_mapping;
+ 	unsigned int offset, this_len;
+ 	struct page *page;
+-	pgoff_t index;
++	void *fsdata;
+ 	int ret;
+ 
+ 	/*
+@@ -573,49 +573,16 @@ static int pipe_to_file(struct pipe_inod
+ 	if (unlikely(ret))
+ 		return ret;
+ 
+-	index = sd->pos >> PAGE_CACHE_SHIFT;
+ 	offset = sd->pos & ~PAGE_CACHE_MASK;
+ 
+ 	this_len = sd->len;
+ 	if (this_len + offset > PAGE_CACHE_SIZE)
+ 		this_len = PAGE_CACHE_SIZE - offset;
+ 
+-find_page:
+-	page = find_lock_page(mapping, index);
+-	if (!page) {
+-		ret = -ENOMEM;
+-		page = page_cache_alloc_cold(mapping);
+-		if (unlikely(!page))
+-			goto out_ret;
+-
+-		/*
+-		 * This will also lock the page
+-		 */
+-		ret = add_to_page_cache_lru(page, mapping, index,
+-					    GFP_KERNEL);
+-		if (unlikely(ret))
+-			goto out_release;
+-	}
+-
+-	ret = mapping->a_ops->prepare_write(file, page, offset, offset+this_len);
+-	if (unlikely(ret)) {
+-		loff_t isize = i_size_read(mapping->host);
+-
+-		if (ret != AOP_TRUNCATED_PAGE)
+-			unlock_page(page);
+-		page_cache_release(page);
+-		if (ret == AOP_TRUNCATED_PAGE)
+-			goto find_page;
+-
+-		/*
+-		 * prepare_write() may have instantiated a few blocks
+-		 * outside i_size.  Trim these off again.
+-		 */
+-		if (sd->pos + this_len > isize)
+-			vmtruncate(mapping->host, isize);
+-
+-		goto out_ret;
+-	}
++	ret = pagecache_write_begin(file, mapping, sd->pos, this_len,
++				AOP_FLAG_UNINTERRUPTIBLE, &page, &fsdata);
++	if (unlikely(ret))
++		goto out;
+ 
+ 	if (buf->page != page) {
+ 		/*
+@@ -629,31 +596,9 @@ find_page:
+ 		kunmap_atomic(dst, KM_USER1);
+ 		buf->ops->unmap(pipe, buf, src);
+ 	}
+-
+-	ret = mapping->a_ops->commit_write(file, page, offset, offset+this_len);
+-	if (ret) {
+-		if (ret == AOP_TRUNCATED_PAGE) {
+-			page_cache_release(page);
+-			goto find_page;
+-		}
+-		if (ret < 0)
+-			goto out;
+-		/*
+-		 * Partial write has happened, so 'ret' already initialized by
+-		 * number of bytes written, Where is nothing we have to do here.
+-		 */
+-	} else
+-		ret = this_len;
+-	/*
+-	 * Return the number of bytes written and mark page as
+-	 * accessed, we are now done!
+-	 */
+-	mark_page_accessed(page);
++	ret = pagecache_write_end(file, mapping, sd->pos, this_len, this_len,
++				page, fsdata);
+ out:
+-	unlock_page(page);
+-out_release:
+-	page_cache_release(page);
+-out_ret:
+ 	return ret;
+ }
+ 
+diff -puN include/linux/buffer_head.h~fs-introduce-write_begin-write_end-and-perform_write-aops include/linux/buffer_head.h
+--- a/include/linux/buffer_head.h~fs-introduce-write_begin-write_end-and-perform_write-aops
++++ a/include/linux/buffer_head.h
+@@ -203,6 +203,16 @@ void block_invalidatepage(struct page *p
+ int block_write_full_page(struct page *page, get_block_t *get_block,
+ 				struct writeback_control *wbc);
+ int block_read_full_page(struct page*, get_block_t*);
++int block_write_begin(struct file *, struct address_space *,
++				loff_t, unsigned, unsigned,
++				struct page **, void **, get_block_t*);
++int block_write_end(struct file *, struct address_space *,
++				loff_t, unsigned, unsigned,
++				struct page *, void *);
++int generic_write_end(struct file *, struct address_space *,
++				loff_t, unsigned, unsigned,
++				struct page *, void *);
++void page_zero_new_buffers(struct page *page, unsigned from, unsigned to);
+ int block_prepare_write(struct page*, unsigned, unsigned, get_block_t*);
+ int cont_prepare_write(struct page*, unsigned, unsigned, get_block_t*,
+ 				loff_t *);
+diff -puN include/linux/fs.h~fs-introduce-write_begin-write_end-and-perform_write-aops include/linux/fs.h
+--- a/include/linux/fs.h~fs-introduce-write_begin-write_end-and-perform_write-aops
++++ a/include/linux/fs.h
+@@ -394,6 +394,8 @@ enum positive_aop_returns {
+ 	AOP_TRUNCATED_PAGE	= 0x80001,
  };
+ 
++#define AOP_FLAG_UNINTERRUPTIBLE	0x0001 /* will not do a short write */
++
+ /*
+  * oh the beauties of C type declarations.
+  */
+@@ -413,7 +415,7 @@ size_t iov_iter_copy_from_user_atomic(st
+ size_t iov_iter_copy_from_user(struct page *page,
+ 		struct iov_iter *i, unsigned long offset, size_t bytes);
+ void iov_iter_advance(struct iov_iter *i, size_t bytes);
+-int iov_iter_fault_in_readable(struct iov_iter *i);
++int iov_iter_fault_in_readable(struct iov_iter *i, size_t bytes);
+ size_t iov_iter_single_seg_count(struct iov_iter *i);
+ 
+ static inline void iov_iter_init(struct iov_iter *i,
+@@ -454,6 +456,14 @@ struct address_space_operations {
+ 	 */
+ 	int (*prepare_write)(struct file *, struct page *, unsigned, unsigned);
+ 	int (*commit_write)(struct file *, struct page *, unsigned, unsigned);
++
++	int (*write_begin)(struct file *, struct address_space *mapping,
++				loff_t pos, unsigned len, unsigned flags,
++				struct page **pagep, void **fsdata);
++	int (*write_end)(struct file *, struct address_space *mapping,
++				loff_t pos, unsigned len, unsigned copied,
++				struct page *page, void *fsdata);
++
+ 	/* Unfortunately this kludge is needed for FIBMAP. Don't use it */
+ 	sector_t (*bmap)(struct address_space *, sector_t);
+ 	void (*invalidatepage) (struct page *, unsigned long);
+@@ -468,6 +478,18 @@ struct address_space_operations {
+ 	int (*launder_page) (struct page *);
+ };
+ 
++/*
++ * pagecache_write_begin/pagecache_write_end must be used by general code
++ * to write into the pagecache.
++ */
++int pagecache_write_begin(struct file *, struct address_space *mapping,
++				loff_t pos, unsigned len, unsigned flags,
++				struct page **pagep, void **fsdata);
++
++int pagecache_write_end(struct file *, struct address_space *mapping,
++				loff_t pos, unsigned len, unsigned copied,
++				struct page *page, void *fsdata);
++
+ struct backing_dev_info;
+ struct address_space {
+ 	struct inode		*host;		/* owner: inode, block_device */
+@@ -1866,6 +1888,12 @@ extern int simple_prepare_write(struct f
+ 			unsigned offset, unsigned to);
+ extern int simple_commit_write(struct file *file, struct page *page,
+ 				unsigned offset, unsigned to);
++extern int simple_write_begin(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned flags,
++			struct page **pagep, void **fsdata);
++extern int simple_write_end(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned copied,
++			struct page *page, void *fsdata);
+ 
+ extern struct dentry *simple_lookup(struct inode *, struct dentry *, struct nameidata *);
+ extern ssize_t generic_read_dir(struct file *, char __user *, size_t, loff_t *);
+diff -puN include/linux/pagemap.h~fs-introduce-write_begin-write_end-and-perform_write-aops include/linux/pagemap.h
+--- a/include/linux/pagemap.h~fs-introduce-write_begin-write_end-and-perform_write-aops
++++ a/include/linux/pagemap.h
+@@ -96,6 +96,8 @@ unsigned find_get_pages_contig(struct ad
+ unsigned find_get_pages_tag(struct address_space *mapping, pgoff_t *index,
+ 			int tag, unsigned int nr_pages, struct page **pages);
+ 
++struct page *__grab_cache_page(struct address_space *mapping, pgoff_t index);
++
+ /*
+  * Returns locked page at given index in given cache, creating it if needed.
+  */
+diff -puN mm/filemap.c~fs-introduce-write_begin-write_end-and-perform_write-aops mm/filemap.c
+--- a/mm/filemap.c~fs-introduce-write_begin-write_end-and-perform_write-aops
++++ a/mm/filemap.c
+@@ -1742,11 +1742,20 @@ void iov_iter_advance(struct iov_iter *i
+ 	i->count -= bytes;
+ }
+ 
+-int iov_iter_fault_in_readable(struct iov_iter *i)
++/*
++ * Fault in the first iovec of the given iov_iter, to a maximum length
++ * of bytes. Returns 0 on success, or non-zero if the memory could not be
++ * accessed (ie. because it is an invalid address).
++ *
++ * writev-intensive code may want this to prefault several iovecs -- that
++ * would be possible (callers must not rely on the fact that _only_ the
++ * first iovec will be faulted with the current implementation).
++ */
++int iov_iter_fault_in_readable(struct iov_iter *i, size_t bytes)
+ {
+-	size_t seglen = min(i->iov->iov_len - i->iov_offset, i->count);
+ 	char __user *buf = i->iov->iov_base + i->iov_offset;
+-	return fault_in_pages_readable(buf, seglen);
++	bytes = min(bytes, i->iov->iov_len - i->iov_offset);
++	return fault_in_pages_readable(buf, bytes);
+ }
+ 
+ /*
+@@ -1843,6 +1852,95 @@ inline int generic_write_checks(struct f
+ }
+ EXPORT_SYMBOL(generic_write_checks);
+ 
++int pagecache_write_begin(struct file *file, struct address_space *mapping,
++				loff_t pos, unsigned len, unsigned flags,
++				struct page **pagep, void **fsdata)
++{
++	const struct address_space_operations *aops = mapping->a_ops;
++
++	if (aops->write_begin) {
++		return aops->write_begin(file, mapping, pos, len, flags,
++							pagep, fsdata);
++	} else {
++		int ret;
++		pgoff_t index = pos >> PAGE_CACHE_SHIFT;
++		unsigned offset = pos & (PAGE_CACHE_SIZE - 1);
++		struct inode *inode = mapping->host;
++		struct page *page;
++again:
++		page = __grab_cache_page(mapping, index);
++		*pagep = page;
++		if (!page)
++			return -ENOMEM;
++
++		if (flags & AOP_FLAG_UNINTERRUPTIBLE && !PageUptodate(page)) {
++			/*
++			 * There is no way to resolve a short write situation
++			 * for a !Uptodate page (except by double copying in
++			 * the caller done by generic_perform_write_2copy).
++			 *
++			 * Instead, we have to bring it uptodate here.
++			 */
++			ret = aops->readpage(file, page);
++			page_cache_release(page);
++			if (ret) {
++				if (ret == AOP_TRUNCATED_PAGE)
++					goto again;
++				return ret;
++			}
++			goto again;
++		}
++
++		ret = aops->prepare_write(file, page, offset, offset+len);
++		if (ret) {
++			if (ret != AOP_TRUNCATED_PAGE)
++				unlock_page(page);
++			page_cache_release(page);
++			if (pos + len > inode->i_size)
++				vmtruncate(inode, inode->i_size);
++			if (ret == AOP_TRUNCATED_PAGE)
++				goto again;
++		}
++		return ret;
++	}
++}
++EXPORT_SYMBOL(pagecache_write_begin);
++
++int pagecache_write_end(struct file *file, struct address_space *mapping,
++				loff_t pos, unsigned len, unsigned copied,
++				struct page *page, void *fsdata)
++{
++	const struct address_space_operations *aops = mapping->a_ops;
++	int ret;
++
++	if (aops->write_end) {
++		mark_page_accessed(page);
++		ret = aops->write_end(file, mapping, pos, len, copied,
++							page, fsdata);
++	} else {
++		unsigned offset = pos & (PAGE_CACHE_SIZE - 1);
++		struct inode *inode = mapping->host;
++
++		flush_dcache_page(page);
++		ret = aops->commit_write(file, page, offset, offset+len);
++		unlock_page(page);
++		mark_page_accessed(page);
++		page_cache_release(page);
++		BUG_ON(ret == AOP_TRUNCATED_PAGE); /* can't deal with */
++
++		if (ret < 0) {
++			if (pos + len > inode->i_size)
++				vmtruncate(inode, inode->i_size);
++		} else if (ret > 0)
++			ret = min_t(size_t, copied, ret);
++		else
++			ret = copied;
++	}
++
++	return ret;
++}
++EXPORT_SYMBOL(pagecache_write_end);
++
+ ssize_t
+ generic_file_direct_write(struct kiocb *iocb, const struct iovec *iov,
+ 		unsigned long *nr_segs, loff_t pos, loff_t *ppos,
+@@ -1886,8 +1984,7 @@ EXPORT_SYMBOL(generic_file_direct_write)
+  * Find or create a page at the given pagecache position. Return the locked
+  * page. This function is specifically for buffered writes.
+  */
+-static struct page *__grab_cache_page(struct address_space *mapping,
+-							pgoff_t index)
++struct page *__grab_cache_page(struct address_space *mapping, pgoff_t index)
+ {
+ 	int status;
+ 	struct page *page;
+@@ -1908,20 +2005,16 @@ repeat:
+ 	}
+ 	return page;
+ }
++EXPORT_SYMBOL(__grab_cache_page);
+ 
+-ssize_t
+-generic_file_buffered_write(struct kiocb *iocb, const struct iovec *iov,
+-		unsigned long nr_segs, loff_t pos, loff_t *ppos,
+-		size_t count, ssize_t written)
++static ssize_t generic_perform_write_2copy(struct file *file,
++				struct iov_iter *i, loff_t pos)
+ {
+-	struct file *file = iocb->ki_filp;
+ 	struct address_space *mapping = file->f_mapping;
+ 	const struct address_space_operations *a_ops = mapping->a_ops;
+-	struct inode 	*inode = mapping->host;
+-	long		status = 0;
+-	struct iov_iter i;
+-
+-	iov_iter_init(&i, iov, nr_segs, count, written);
++	struct inode *inode = mapping->host;
++	long status = 0;
++	ssize_t written = 0;
+ 
+ 	do {
+ 		struct page *src_page;
+@@ -1934,7 +2027,7 @@ generic_file_buffered_write(struct kiocb
+ 		offset = (pos & (PAGE_CACHE_SIZE - 1));
+ 		index = pos >> PAGE_CACHE_SHIFT;
+ 		bytes = min_t(unsigned long, PAGE_CACHE_SIZE - offset,
+-						iov_iter_count(&i));
++						iov_iter_count(i));
+ 
+ 		/*
+ 		 * a non-NULL src_page indicates that we're doing the
+@@ -1952,7 +2045,7 @@ generic_file_buffered_write(struct kiocb
+ 		 * to check that the address is actually valid, when atomic
+ 		 * usercopies are used, below.
+ 		 */
+-		if (unlikely(iov_iter_fault_in_readable(&i))) {
++		if (unlikely(iov_iter_fault_in_readable(i, bytes))) {
+ 			status = -EFAULT;
+ 			break;
+ 		}
+@@ -1983,7 +2076,7 @@ generic_file_buffered_write(struct kiocb
+ 			 * same reason as we can't take a page fault with a
+ 			 * page locked (as explained below).
+ 			 */
+-			copied = iov_iter_copy_from_user(src_page, &i,
++			copied = iov_iter_copy_from_user(src_page, i,
+ 								offset, bytes);
+ 			if (unlikely(copied == 0)) {
+ 				status = -EFAULT;
+@@ -2008,7 +2101,6 @@ generic_file_buffered_write(struct kiocb
+ 				page_cache_release(src_page);
+ 				continue;
+ 			}
+-
+ 		}
+ 
+ 		status = a_ops->prepare_write(file, page, offset, offset+bytes);
+@@ -2030,7 +2122,7 @@ generic_file_buffered_write(struct kiocb
+ 			 * really matter.
+ 			 */
+ 			pagefault_disable();
+-			copied = iov_iter_copy_from_user_atomic(page, &i,
++			copied = iov_iter_copy_from_user_atomic(page, i,
+ 								offset, bytes);
+ 			pagefault_enable();
+ 		} else {
+@@ -2056,9 +2148,9 @@ generic_file_buffered_write(struct kiocb
+ 		if (src_page)
+ 			page_cache_release(src_page);
+ 
+-		iov_iter_advance(&i, copied);
+-		written += copied;
++		iov_iter_advance(i, copied);
+ 		pos += copied;
++		written += copied;
+ 
+ 		balance_dirty_pages_ratelimited(mapping);
+ 		cond_resched();
+@@ -2082,13 +2174,117 @@ fs_write_aop_error:
+ 			continue;
+ 		else
+ 			break;
+-	} while (iov_iter_count(&i));
+-	*ppos = pos;
++	} while (iov_iter_count(i));
++
++	return written ? written : status;
++}
++
++static ssize_t generic_perform_write(struct file *file,
++				struct iov_iter *i, loff_t pos)
++{
++	struct address_space *mapping = file->f_mapping;
++	const struct address_space_operations *a_ops = mapping->a_ops;
++	long status = 0;
++	ssize_t written = 0;
++
++	do {
++		struct page *page;
++		pgoff_t index;		/* Pagecache index for current page */
++		unsigned long offset;	/* Offset into pagecache page */
++		unsigned long bytes;	/* Bytes to write to page */
++		size_t copied;		/* Bytes copied from user */
++		void *fsdata;
++
++		offset = (pos & (PAGE_CACHE_SIZE - 1));
++		index = pos >> PAGE_CACHE_SHIFT;
++		bytes = min_t(unsigned long, PAGE_CACHE_SIZE - offset,
++						iov_iter_count(i));
++
++again:
++
++		/*
++		 * Bring in the user page that we will copy from _first_.
++		 * Otherwise there's a nasty deadlock on copying from the
++		 * same page as we're writing to, without it being marked
++		 * up-to-date.
++		 *
++		 * Not only is this an optimisation, but it is also required
++		 * to check that the address is actually valid, when atomic
++		 * usercopies are used, below.
++		 */
++		if (unlikely(iov_iter_fault_in_readable(i, bytes))) {
++			status = -EFAULT;
++			break;
++		}
++
++		status = a_ops->write_begin(file, mapping, pos, bytes, 0,
++						&page, &fsdata);
++		if (unlikely(status))
++			break;
++
++		pagefault_disable();
++		copied = iov_iter_copy_from_user_atomic(page, i, offset, bytes);
++		pagefault_enable();
++		flush_dcache_page(page);
++
++		status = a_ops->write_end(file, mapping, pos, bytes, copied,
++						page, fsdata);
++		if (unlikely(status < 0))
++			break;
++		copied = status;
++
++		cond_resched();
++
++		if (unlikely(copied == 0)) {
++			/*
++			 * If we were unable to copy any data at all, we must
++			 * fall back to a single segment length write.
++			 *
++			 * If we didn't fallback here, we could livelock
++			 * because not all segments in the iov can be copied at
++			 * once without a pagefault.
++			 */
++			bytes = min_t(unsigned long, PAGE_CACHE_SIZE - offset,
++						iov_iter_single_seg_count(i));
++			goto again;
++		}
++		iov_iter_advance(i, copied);
++		pos += copied;
++		written += copied;
++
++		balance_dirty_pages_ratelimited(mapping);
++
++	} while (iov_iter_count(i));
++
++	return written ? written : status;
++}
++
++ssize_t
++generic_file_buffered_write(struct kiocb *iocb, const struct iovec *iov,
++		unsigned long nr_segs, loff_t pos, loff_t *ppos,
++		size_t count, ssize_t written)
++{
++	struct file *file = iocb->ki_filp;
++	struct address_space *mapping = file->f_mapping;
++	const struct address_space_operations *a_ops = mapping->a_ops;
++	struct inode *inode = mapping->host;
++	ssize_t status;
++	struct iov_iter i;
++
++	iov_iter_init(&i, iov, nr_segs, count, written);
++	if (a_ops->write_begin)
++		status = generic_perform_write(file, &i, pos);
++	else
++		status = generic_perform_write_2copy(file, &i, pos);
+ 
+-	/*
+-	 * For now, when the user asks for O_SYNC, we'll actually give O_DSYNC
+-	 */
+ 	if (likely(status >= 0)) {
++		written += status;
++		*ppos = pos + status;
++
++		/*
++		 * For now, when the user asks for O_SYNC, we'll actually give
++		 * O_DSYNC
++		 */
+ 		if (unlikely((file->f_flags & O_SYNC) || IS_SYNC(inode))) {
+ 			if (!a_ops->writepage || !is_sync_kiocb(iocb))
+ 				status = generic_osync_inode(inode, mapping,
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
