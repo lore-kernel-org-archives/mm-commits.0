@@ -1,63 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - sysv-convert-to-new-aops.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:33:22 -0700
-Message-ID: <200710162033.l9GKXMpp014781@imap1.linux-foundation.org>
+Subject: - ufs-convert-to-new-aops.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:33:16 -0700
+Message-ID: <200710162033.l9GKXG9l014771@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60248 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47678 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966099AbXJPVsn (ORCPT
+	by vger.kernel.org with ESMTP id S966099AbXJPVsq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:48:43 -0400
+	Tue, 16 Oct 2007 17:48:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, hch@lst.de, mm-commits@vger.kernel.org
+To: npiggin@suse.de, dushistov@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysv: convert to new aops
+     ufs: convert to new aops
 has been removed from the -mm tree.  Its filename was
-     sysv-convert-to-new-aops.patch
+     ufs-convert-to-new-aops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysv: convert to new aops
+Subject: ufs: convert to new aops
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Christoph Hellwig <hch@lst.de>
+Cc: Evgeniy Dushistov <dushistov@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysv/dir.c   |   50 +++++++++++++++++++++++++++-------------------
- fs/sysv/itree.c |   23 +++++++++++++++++----
- fs/sysv/sysv.h  |    3 ++
- 3 files changed, 52 insertions(+), 24 deletions(-)
+ fs/ufs/dir.c   |   55 ++++++++++++++++++++++++++++++-----------------
+ fs/ufs/inode.c |   23 ++++++++++++++++---
+ fs/ufs/util.h  |    3 ++
+ 3 files changed, 58 insertions(+), 23 deletions(-)
 
-diff -puN fs/sysv/dir.c~sysv-convert-to-new-aops fs/sysv/dir.c
---- a/fs/sysv/dir.c~sysv-convert-to-new-aops
-+++ a/fs/sysv/dir.c
-@@ -16,6 +16,7 @@
- #include <linux/pagemap.h>
- #include <linux/highmem.h>
- #include <linux/smp_lock.h>
+diff -puN fs/ufs/dir.c~ufs-convert-to-new-aops fs/ufs/dir.c
+--- a/fs/ufs/dir.c~ufs-convert-to-new-aops
++++ a/fs/ufs/dir.c
+@@ -19,6 +19,7 @@
+ #include <linux/time.h>
+ #include <linux/fs.h>
+ #include <linux/ufs_fs.h>
 +#include <linux/swap.h>
- #include "sysv.h"
  
- static int sysv_readdir(struct file *, void *, filldir_t);
-@@ -37,12 +38,17 @@ static inline unsigned long dir_pages(st
- 	return (inode->i_size+PAGE_CACHE_SIZE-1)>>PAGE_CACHE_SHIFT;
+ #include "swab.h"
+ #include "util.h"
+@@ -38,12 +39,18 @@ static inline int ufs_match(struct super
+ 	return !memcmp(name, de->d_name, len);
  }
  
--static int dir_commit_chunk(struct page *page, unsigned from, unsigned to)
-+static int dir_commit_chunk(struct page *page, loff_t pos, unsigned len)
+-static int ufs_commit_chunk(struct page *page, unsigned from, unsigned to)
++static int ufs_commit_chunk(struct page *page, loff_t pos, unsigned len)
  {
--	struct inode *dir = (struct inode *)page->mapping->host;
+-	struct inode *dir = page->mapping->host;
 +	struct address_space *mapping = page->mapping;
 +	struct inode *dir = mapping->host;
  	int err = 0;
- 
++
+ 	dir->i_version++;
 -	page->mapping->a_ops->commit_write(NULL, page, from, to);
 +	block_write_end(NULL, mapping, pos, len, len, page, NULL);
 +	if (pos+len > dir->i_size) {
@@ -67,167 +68,182 @@ diff -puN fs/sysv/dir.c~sysv-convert-to-new-aops fs/sysv/dir.c
  	if (IS_DIRSYNC(dir))
  		err = write_one_page(page, 1);
  	else
-@@ -186,7 +192,7 @@ int sysv_add_link(struct dentry *dentry,
- 	unsigned long npages = dir_pages(dir);
+@@ -81,16 +88,20 @@ ino_t ufs_inode_by_name(struct inode *di
+ void ufs_set_link(struct inode *dir, struct ufs_dir_entry *de,
+ 		  struct page *page, struct inode *inode)
+ {
+-	unsigned from = (char *) de - (char *) page_address(page);
+-	unsigned to = from + fs16_to_cpu(dir->i_sb, de->d_reclen);
++	loff_t pos = page_offset(page) +
++			(char *) de - (char *) page_address(page);
++	unsigned len = fs16_to_cpu(dir->i_sb, de->d_reclen);
+ 	int err;
+ 
+ 	lock_page(page);
+-	err = page->mapping->a_ops->prepare_write(NULL, page, from, to);
++	err = __ufs_write_begin(NULL, page->mapping, pos, len,
++				AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
+ 	BUG_ON(err);
++
+ 	de->d_ino = cpu_to_fs32(dir->i_sb, inode->i_ino);
+ 	ufs_set_de_type(dir->i_sb, de, inode->i_mode);
+-	err = ufs_commit_chunk(page, from, to);
++
++	err = ufs_commit_chunk(page, pos, len);
+ 	ufs_put_page(page);
+ 	dir->i_mtime = dir->i_ctime = CURRENT_TIME_SEC;
+ 	mark_inode_dirty(dir);
+@@ -312,7 +323,7 @@ int ufs_add_link(struct dentry *dentry, 
+ 	unsigned long npages = ufs_dir_pages(dir);
  	unsigned long n;
  	char *kaddr;
 -	unsigned from, to;
 +	loff_t pos;
  	int err;
  
- 	/* We take care of directory expansion in the same loop */
-@@ -212,16 +218,17 @@ int sysv_add_link(struct dentry *dentry,
+ 	UFSD("ENTER, name %s, namelen %u\n", name, namelen);
+@@ -367,9 +378,10 @@ int ufs_add_link(struct dentry *dentry, 
  	return -EINVAL;
  
  got_it:
 -	from = (char*)de - (char*)page_address(page);
--	to = from + SYSV_DIRSIZE;
+-	to = from + rec_len;
+-	err = page->mapping->a_ops->prepare_write(NULL, page, from, to);
 +	pos = page_offset(page) +
 +			(char*)de - (char*)page_address(page);
- 	lock_page(page);
--	err = page->mapping->a_ops->prepare_write(NULL, page, from, to);
-+	err = __sysv_write_begin(NULL, page->mapping, pos, SYSV_DIRSIZE,
++	err = __ufs_write_begin(NULL, page->mapping, pos, rec_len,
 +				AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
  	if (err)
  		goto out_unlock;
- 	memcpy (de->name, name, namelen);
- 	memset (de->name + namelen, 0, SYSV_DIRSIZE - namelen - 2);
- 	de->inode = cpu_to_fs16(SYSV_SB(inode->i_sb), inode->i_ino);
--	err = dir_commit_chunk(page, from, to);
-+	err = dir_commit_chunk(page, pos, SYSV_DIRSIZE);
- 	dir->i_mtime = dir->i_ctime = CURRENT_TIME_SEC;
- 	mark_inode_dirty(dir);
- out_page:
-@@ -238,15 +245,15 @@ int sysv_delete_entry(struct sysv_dir_en
- 	struct address_space *mapping = page->mapping;
- 	struct inode *inode = (struct inode*)mapping->host;
- 	char *kaddr = (char*)page_address(page);
--	unsigned from = (char*)de - kaddr;
--	unsigned to = from + SYSV_DIRSIZE;
-+	loff_t pos = page_offset(page) + (char *)de - kaddr;
- 	int err;
+ 	if (de->d_ino) {
+@@ -386,7 +398,7 @@ got_it:
+ 	de->d_ino = cpu_to_fs32(sb, inode->i_ino);
+ 	ufs_set_de_type(sb, de, inode->i_mode);
  
+-	err = ufs_commit_chunk(page, from, to);
++	err = ufs_commit_chunk(page, pos, rec_len);
+ 	dir->i_mtime = dir->i_ctime = CURRENT_TIME_SEC;
+ 
+ 	mark_inode_dirty(dir);
+@@ -509,6 +521,7 @@ int ufs_delete_entry(struct inode *inode
+ 	char *kaddr = page_address(page);
+ 	unsigned from = ((char*)dir - kaddr) & ~(UFS_SB(sb)->s_uspi->s_dirblksize - 1);
+ 	unsigned to = ((char*)dir - kaddr) + fs16_to_cpu(sb, dir->d_reclen);
++	loff_t pos;
+ 	struct ufs_dir_entry *pde = NULL;
+ 	struct ufs_dir_entry *de = (struct ufs_dir_entry *) (kaddr + from);
+ 	int err;
+@@ -532,13 +545,16 @@ int ufs_delete_entry(struct inode *inode
+ 	}
+ 	if (pde)
+ 		from = (char*)pde - (char*)page_address(page);
++
++	pos = page_offset(page) + from;
  	lock_page(page);
 -	err = mapping->a_ops->prepare_write(NULL, page, from, to);
-+	err = __sysv_write_begin(NULL, mapping, pos, SYSV_DIRSIZE,
++	err = __ufs_write_begin(NULL, mapping, pos, to - from,
 +				AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
  	BUG_ON(err);
- 	de->inode = 0;
--	err = dir_commit_chunk(page, from, to);
-+	err = dir_commit_chunk(page, pos, SYSV_DIRSIZE);
- 	dir_put_page(page);
+ 	if (pde)
+-		pde->d_reclen = cpu_to_fs16(sb, to-from);
++		pde->d_reclen = cpu_to_fs16(sb, to - from);
+ 	dir->d_ino = 0;
+-	err = ufs_commit_chunk(page, from, to);
++	err = ufs_commit_chunk(page, pos, to - from);
  	inode->i_ctime = inode->i_mtime = CURRENT_TIME_SEC;
  	mark_inode_dirty(inode);
-@@ -263,12 +270,13 @@ int sysv_make_empty(struct inode *inode,
+ out:
+@@ -559,14 +575,15 @@ int ufs_make_empty(struct inode * inode,
  
  	if (!page)
  		return -ENOMEM;
 -	kmap(page);
--	err = mapping->a_ops->prepare_write(NULL, page, 0, 2 * SYSV_DIRSIZE);
-+	err = __sysv_write_begin(NULL, mapping, 0, 2 * SYSV_DIRSIZE,
+-	err = mapping->a_ops->prepare_write(NULL, page, 0, chunk_size);
++
++	err = __ufs_write_begin(NULL, mapping, 0, chunk_size,
 +				AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
  	if (err) {
  		unlock_page(page);
  		goto fail;
  	}
-+	kmap(page);
  
+-
++	kmap(page);
  	base = (char*)page_address(page);
  	memset(base, 0, PAGE_CACHE_SIZE);
-@@ -280,9 +288,9 @@ int sysv_make_empty(struct inode *inode,
- 	de->inode = cpu_to_fs16(SYSV_SB(inode->i_sb), dir->i_ino);
- 	strcpy(de->name,"..");
  
+@@ -584,10 +601,10 @@ int ufs_make_empty(struct inode * inode,
+ 	de->d_reclen = cpu_to_fs16(sb, chunk_size - UFS_DIR_REC_LEN(1));
+ 	ufs_set_de_namlen(sb, de, 2);
+ 	strcpy (de->d_name, "..");
 +	kunmap(page);
- 	err = dir_commit_chunk(page, 0, 2 * SYSV_DIRSIZE);
+ 
+ 	err = ufs_commit_chunk(page, 0, chunk_size);
  fail:
 -	kunmap(page);
  	page_cache_release(page);
  	return err;
  }
-@@ -336,16 +344,18 @@ not_empty:
- void sysv_set_link(struct sysv_dir_entry *de, struct page *page,
- 	struct inode *inode)
+diff -puN fs/ufs/inode.c~ufs-convert-to-new-aops fs/ufs/inode.c
+--- a/fs/ufs/inode.c~ufs-convert-to-new-aops
++++ a/fs/ufs/inode.c
+@@ -558,24 +558,39 @@ static int ufs_writepage(struct page *pa
  {
--	struct inode *dir = (struct inode*)page->mapping->host;
--	unsigned from = (char *)de-(char*)page_address(page);
--	unsigned to = from + SYSV_DIRSIZE;
-+	struct address_space *mapping = page->mapping;
-+	struct inode *dir = mapping->host;
-+	loff_t pos = page_offset(page) +
-+			(char *)de-(char*)page_address(page);
- 	int err;
- 
- 	lock_page(page);
--	err = page->mapping->a_ops->prepare_write(NULL, page, from, to);
-+	err = __sysv_write_begin(NULL, mapping, pos, SYSV_DIRSIZE,
-+				AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
- 	BUG_ON(err);
- 	de->inode = cpu_to_fs16(SYSV_SB(inode->i_sb), inode->i_ino);
--	err = dir_commit_chunk(page, from, to);
-+	err = dir_commit_chunk(page, pos, SYSV_DIRSIZE);
- 	dir_put_page(page);
- 	dir->i_mtime = dir->i_ctime = CURRENT_TIME_SEC;
- 	mark_inode_dirty(dir);
-diff -puN fs/sysv/itree.c~sysv-convert-to-new-aops fs/sysv/itree.c
---- a/fs/sysv/itree.c~sysv-convert-to-new-aops
-+++ a/fs/sysv/itree.c
-@@ -453,23 +453,38 @@ static int sysv_writepage(struct page *p
- {
- 	return block_write_full_page(page,get_block,wbc);
+ 	return block_write_full_page(page,ufs_getfrag_block,wbc);
  }
 +
- static int sysv_readpage(struct file *file, struct page *page)
+ static int ufs_readpage(struct file *file, struct page *page)
  {
- 	return block_read_full_page(page,get_block);
+ 	return block_read_full_page(page,ufs_getfrag_block);
  }
--static int sysv_prepare_write(struct file *file, struct page *page, unsigned from, unsigned to)
+-static int ufs_prepare_write(struct file *file, struct page *page, unsigned from, unsigned to)
 +
-+int __sysv_write_begin(struct file *file, struct address_space *mapping,
++int __ufs_write_begin(struct file *file, struct address_space *mapping,
 +			loff_t pos, unsigned len, unsigned flags,
 +			struct page **pagep, void **fsdata)
  {
--	return block_prepare_write(page,from,to,get_block);
+-	return block_prepare_write(page,from,to,ufs_getfrag_block);
 +	return block_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
-+				get_block);
++				ufs_getfrag_block);
  }
 +
-+static int sysv_write_begin(struct file *file, struct address_space *mapping,
++static int ufs_write_begin(struct file *file, struct address_space *mapping,
 +			loff_t pos, unsigned len, unsigned flags,
 +			struct page **pagep, void **fsdata)
 +{
 +	*pagep = NULL;
-+	return __sysv_write_begin(file, mapping, pos, len, flags, pagep, fsdata);
++	return __ufs_write_begin(file, mapping, pos, len, flags, pagep, fsdata);
 +}
 +
- static sector_t sysv_bmap(struct address_space *mapping, sector_t block)
+ static sector_t ufs_bmap(struct address_space *mapping, sector_t block)
  {
- 	return generic_block_bmap(mapping,block,get_block);
+ 	return generic_block_bmap(mapping,block,ufs_getfrag_block);
  }
 +
- const struct address_space_operations sysv_aops = {
- 	.readpage = sysv_readpage,
- 	.writepage = sysv_writepage,
+ const struct address_space_operations ufs_aops = {
+ 	.readpage = ufs_readpage,
+ 	.writepage = ufs_writepage,
  	.sync_page = block_sync_page,
--	.prepare_write = sysv_prepare_write,
+-	.prepare_write = ufs_prepare_write,
 -	.commit_write = generic_commit_write,
-+	.write_begin = sysv_write_begin,
++	.write_begin = ufs_write_begin,
 +	.write_end = generic_write_end,
- 	.bmap = sysv_bmap
+ 	.bmap = ufs_bmap
  };
-diff -puN fs/sysv/sysv.h~sysv-convert-to-new-aops fs/sysv/sysv.h
---- a/fs/sysv/sysv.h~sysv-convert-to-new-aops
-+++ a/fs/sysv/sysv.h
-@@ -136,6 +136,9 @@ extern unsigned long sysv_count_free_blo
  
- /* itree.c */
- extern void sysv_truncate(struct inode *);
-+extern int __sysv_write_begin(struct file *file, struct address_space *mapping,
-+			loff_t pos, unsigned len, unsigned flags,
-+			struct page **pagep, void **fsdata);
+diff -puN fs/ufs/util.h~ufs-convert-to-new-aops fs/ufs/util.h
+--- a/fs/ufs/util.h~ufs-convert-to-new-aops
++++ a/fs/ufs/util.h
+@@ -231,6 +231,9 @@ ufs_set_inode_gid(struct super_block *sb
  
- /* inode.c */
- extern int sysv_write_inode(struct inode *, int);
+ extern dev_t ufs_get_inode_dev(struct super_block *, struct ufs_inode_info *);
+ extern void ufs_set_inode_dev(struct super_block *, struct ufs_inode_info *, dev_t);
++extern int __ufs_write_begin(struct file *file, struct address_space *mapping,
++		loff_t pos, unsigned len, unsigned flags,
++		struct page **pagep, void **fsdata);
+ 
+ /*
+  * These functions manipulate ufs buffers
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
