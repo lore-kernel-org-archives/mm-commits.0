@@ -1,215 +1,278 @@
 From: akpm@linux-foundation.org
-Subject: - export-font_vga_8x16.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:44:35 -0700
-Message-ID: <200710162044.l9GKiZ8K016159@imap1.linux-foundation.org>
+Subject: - ps3fb-enhance-horizontal-panning-on-firmware-190-and-up.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:45:40 -0700
+Message-ID: <200710162045.l9GKjejC016289@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55266 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55029 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965846AbXJPU5X (ORCPT
+	by vger.kernel.org with ESMTP id S965812AbXJPU5H (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 16:57:23 -0400
+	Tue, 16 Oct 2007 16:57:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adaplas@pol.net, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: Geert.Uytterhoeven@sonycom.com, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     export font_vga_8x16
+     ps3fb: enhance horizontal panning on firmware 1.90 and up
 has been removed from the -mm tree.  Its filename was
-     export-font_vga_8x16.patch
+     ps3fb-enhance-horizontal-panning-on-firmware-190-and-up.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: export font_vga_8x16
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ps3fb: enhance horizontal panning on firmware 1.90 and up
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-mips allmodconfig:
+ps3fb: Enhance horizontal panning on firmware 1.90 and up:
+  - On firmware 1.90 and up, L1GPU_CONTEXT_ATTRIBUTE_FB_BLIT supports copying
+    rectangles from XDR to DDR memory with different source and destination
+    line lengths. Hence larger horizontal virtual resolutions can be supported
+    (up to 16368 pixels).
+  - As the actual frame buffer memory layout no longer matches the entries in
+    ps3fb_res[], create fake struct ps3fb_ioctl_res data for the
+    PS3FB_IOCTL_SCREENINFO ioctl, so user space applications that depend on it
+    keep on working.
 
-ERROR: "font_vga_8x16" [drivers/video/console/newport_con.ko] undefined!
-
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/font_8x16.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/video/ps3fb.c |  103 +++++++++++++++++++++++-----------------
+ 1 file changed, 61 insertions(+), 42 deletions(-)
 
-diff -puN drivers/video/console/font_8x16.c~export-font_vga_8x16 drivers/video/console/font_8x16.c
---- a/drivers/video/console/font_8x16.c~export-font_vga_8x16
-+++ a/drivers/video/console/font_8x16.c
-@@ -5,6 +5,7 @@
- /**********************************************/
+diff -puN drivers/video/ps3fb.c~ps3fb-enhance-horizontal-panning-on-firmware-190-and-up drivers/video/ps3fb.c
+--- a/drivers/video/ps3fb.c~ps3fb-enhance-horizontal-panning-on-firmware-190-and-up
++++ a/drivers/video/ps3fb.c
+@@ -55,6 +55,7 @@
+ #define GPU_CMD_BUF_SIZE			(64 * 1024)
+ #define GPU_IOIF				(0x0d000000UL)
+ #define GPU_ALIGN_UP(x)				_ALIGN_UP((x), 64)
++#define GPU_MAX_LINE_LENGTH			(65536 - 64)
  
- #include <linux/font.h>
-+#include <linux/module.h>
+ #define PS3FB_FULL_MODE_BIT			0x80
  
- #define FONTDATAMAX 4096
+@@ -335,7 +336,7 @@ static int ps3fb_get_res_table(u32 xres,
+ }
  
-@@ -4629,3 +4630,4 @@ const struct font_desc font_vga_8x16 = {
- 	.data	= fontdata_8x16,
- 	.pref	= 0,
- };
-+EXPORT_SYMBOL(font_vga_8x16);
+ static unsigned int ps3fb_find_mode(const struct fb_var_screeninfo *var,
+-				    u32 *line_length)
++				    u32 *ddr_line_length, u32 *xdr_line_length)
+ {
+ 	unsigned int i, mode;
+ 
+@@ -350,19 +351,30 @@ static unsigned int ps3fb_find_mode(cons
+ 		    var->upper_margin == ps3fb_modedb[i].upper_margin &&
+ 		    var->lower_margin == ps3fb_modedb[i].lower_margin &&
+ 		    var->sync == ps3fb_modedb[i].sync &&
+-		    (var->vmode & FB_VMODE_MASK) == ps3fb_modedb[i].vmode) {
+-			/* Cropped broadcast modes use the full line_length */
+-			*line_length =
+-			    ps3fb_modedb[i < 10 ? i + 13 : i].xres * 4;
+-			/* Full broadcast modes have the full mode bit set */
+-			mode = i > 12 ? (i - 12) | PS3FB_FULL_MODE_BIT : i + 1;
+-
+-			pr_debug("ps3fb_find_mode: mode %u\n", mode);
+-			return mode;
+-		}
++		    (var->vmode & FB_VMODE_MASK) == ps3fb_modedb[i].vmode)
++			goto found;
+ 
+ 	pr_debug("ps3fb_find_mode: mode not found\n");
+ 	return 0;
++
++found:
++	/* Cropped broadcast modes use the full line length */
++	*ddr_line_length = ps3fb_modedb[i < 10 ? i + 13 : i].xres * BPP;
++
++	if (ps3_compare_firmware_version(1, 9, 0) >= 0) {
++		*xdr_line_length = GPU_ALIGN_UP(max(var->xres,
++						    var->xres_virtual) * BPP);
++		if (*xdr_line_length > GPU_MAX_LINE_LENGTH)
++			*xdr_line_length = GPU_MAX_LINE_LENGTH;
++	} else
++		*xdr_line_length = *ddr_line_length;
++
++	/* Full broadcast modes have the full mode bit set */
++	mode = i > 12 ? (i - 12) | PS3FB_FULL_MODE_BIT : i + 1;
++
++	pr_debug("ps3fb_find_mode: mode %u\n", mode);
++
++	return mode;
+ }
+ 
+ static const struct fb_videomode *ps3fb_default_mode(int id)
+@@ -385,9 +397,15 @@ static const struct fb_videomode *ps3fb_
+ 
+ static void ps3fb_sync_image(struct device *dev, u64 frame_offset,
+ 			     u64 dst_offset, u64 src_offset, u32 width,
+-			     u32 height, u64 line_length)
++			     u32 height, u32 dst_line_length,
++			     u32 src_line_length)
+ {
+ 	int status;
++	u64 line_length;
++
++	line_length = dst_line_length;
++	if (src_line_length != dst_line_length)
++		line_length |= (u64)src_line_length << 32;
+ 
+ 	status = lv1_gpu_context_attribute(ps3fb.context_handle,
+ 					   L1GPU_CONTEXT_ATTRIBUTE_FB_BLIT,
+@@ -421,8 +439,8 @@ static int ps3fb_sync(struct fb_info *in
+ {
+ 	struct ps3fb_par *par = info->par;
+ 	int i, error = 0;
+-	u32 xres, yres;
+-	u64 line_length, base;
++	u32 ddr_line_length, xdr_line_length;
++	u64 ddr_base, xdr_base;
+ 
+ 	acquire_console_sem();
+ 
+@@ -434,15 +452,15 @@ static int ps3fb_sync(struct fb_info *in
+ 	}
+ 
+ 	i = par->res_index;
+-	xres = ps3fb_res[i].xres;
+-	yres = ps3fb_res[i].yres;
+-
+-	line_length = xres * BPP;
+-	base = frame * yres * line_length;
+-
+-	ps3fb_sync_image(info->device, base + par->full_offset,
+-			 base + par->fb_offset, base + par->pan_offset,
+-			 par->width, par->height, line_length);
++	xdr_line_length = info->fix.line_length;
++	ddr_line_length = ps3fb_res[i].xres * BPP;
++	xdr_base = frame * info->var.yres_virtual * xdr_line_length;
++	ddr_base = frame * ps3fb_res[i].yres * ddr_line_length;
++
++	ps3fb_sync_image(info->device, ddr_base + par->full_offset,
++			 ddr_base + par->fb_offset, xdr_base + par->pan_offset,
++			 par->width, par->height, ddr_line_length,
++			 xdr_line_length);
+ 
+ out:
+ 	release_console_sem();
+@@ -476,7 +494,7 @@ static int ps3fb_release(struct fb_info 
+ 
+ static int ps3fb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
+ {
+-	u32 line_length;
++	u32 xdr_line_length, ddr_line_length;
+ 	int mode;
+ 
+ 	dev_dbg(info->device, "var->xres:%u info->var.xres:%u\n", var->xres,
+@@ -485,7 +503,7 @@ static int ps3fb_check_var(struct fb_var
+ 		info->var.yres);
+ 
+ 	/* FIXME For now we do exact matches only */
+-	mode = ps3fb_find_mode(var, &line_length);
++	mode = ps3fb_find_mode(var, &ddr_line_length, &xdr_line_length);
+ 	if (!mode)
+ 		return -EINVAL;
+ 
+@@ -495,7 +513,7 @@ static int ps3fb_check_var(struct fb_var
+ 	if (var->yres_virtual < var->yres)
+ 		var->yres_virtual = var->yres;
+ 
+-	if (var->xres_virtual > line_length / BPP) {
++	if (var->xres_virtual > xdr_line_length / BPP) {
+ 		dev_dbg(info->device,
+ 			"Horizontal virtual screen size too large\n");
+ 		return -EINVAL;
+@@ -540,7 +558,7 @@ static int ps3fb_check_var(struct fb_var
+ 	}
+ 
+ 	/* Memory limit */
+-	if (var->yres_virtual * line_length > ps3fb.xdr_size) {
++	if (var->yres_virtual * xdr_line_length > ps3fb.xdr_size) {
+ 		dev_dbg(info->device, "Not enough memory\n");
+ 		return -ENOMEM;
+ 	}
+@@ -558,15 +576,16 @@ static int ps3fb_check_var(struct fb_var
+ static int ps3fb_set_par(struct fb_info *info)
+ {
+ 	struct ps3fb_par *par = info->par;
+-	unsigned int mode, line_length, lines, maxlines;
++	unsigned int mode, ddr_line_length, xdr_line_length, lines, maxlines;
+ 	int i;
+-	unsigned long offset, dst;
++	unsigned long offset;
++	u64 dst;
+ 
+ 	dev_dbg(info->device, "xres:%d xv:%d yres:%d yv:%d clock:%d\n",
+ 		info->var.xres, info->var.xres_virtual,
+ 		info->var.yres, info->var.yres_virtual, info->var.pixclock);
+ 
+-	mode = ps3fb_find_mode(&info->var, &line_length);
++	mode = ps3fb_find_mode(&info->var, &ddr_line_length, &xdr_line_length);
+ 	if (!mode)
+ 		return -EINVAL;
+ 
+@@ -577,12 +596,13 @@ static int ps3fb_set_par(struct fb_info 
+ 	info->fix.smem_len = ps3fb.xdr_size;
+ 	info->fix.xpanstep = info->var.xres_virtual > info->var.xres ? 1 : 0;
+ 	info->fix.ypanstep = info->var.yres_virtual > info->var.yres ? 1 : 0;
+-	info->fix.line_length = line_length;
++	info->fix.line_length = xdr_line_length;
+ 
+ 	info->screen_base = (char __iomem *)ps3fb.xdr_ea;
+ 
+-	par->num_frames = info->fix.smem_len/
+-			  (ps3fb_res[i].xres*ps3fb_res[i].yres*BPP);
++	par->num_frames = ps3fb.xdr_size /
++			  max(ps3fb_res[i].yres * ddr_line_length,
++			      info->var.yres_virtual * xdr_line_length);
+ 
+ 	/* Keep the special bits we cannot set using fb_var_screeninfo */
+ 	par->new_mode_id = (par->new_mode_id & ~PS3AV_MODE_MASK) | mode;
+@@ -592,7 +612,7 @@ static int ps3fb_set_par(struct fb_info 
+ 	offset = VP_OFF(i);
+ 	par->fb_offset = GPU_ALIGN_UP(offset);
+ 	par->full_offset = par->fb_offset - offset;
+-	par->pan_offset = info->var.yoffset * line_length +
++	par->pan_offset = info->var.yoffset * xdr_line_length +
+ 			  info->var.xoffset * BPP;
+ 
+ 	if (par->new_mode_id != par->mode_id) {
+@@ -610,11 +630,11 @@ static int ps3fb_set_par(struct fb_info 
+ 	lines = ps3fb_res[i].yres * par->num_frames;
+ 	if (par->full_offset)
+ 		lines++;
+-	maxlines = ps3fb.xdr_size / line_length;
+-	for (dst = 0; lines; dst += maxlines * line_length) {
++	maxlines = ps3fb.xdr_size / ddr_line_length;
++	for (dst = 0; lines; dst += maxlines * ddr_line_length) {
+ 		unsigned int l = min(lines, maxlines);
+ 		ps3fb_sync_image(info->device, 0, dst, 0, ps3fb_res[i].xres, l,
+-				 line_length);
++				 ddr_line_length, ddr_line_length);
+ 		lines -= l;
+ 	}
+ 
+@@ -816,12 +836,11 @@ static int ps3fb_ioctl(struct fb_info *i
+ 		{
+ 			struct ps3fb_par *par = info->par;
+ 			struct ps3fb_ioctl_res res;
+-			int i = par->res_index;
+ 			dev_dbg(info->device, "PS3FB_IOCTL_SCREENINFO:\n");
+-			res.xres = ps3fb_res[i].xres;
+-			res.yres = ps3fb_res[i].yres;
+-			res.xoff = ps3fb_res[i].xoff;
+-			res.yoff = ps3fb_res[i].yoff;
++			res.xres = info->fix.line_length / BPP;
++			res.yres = info->var.yres_virtual;
++			res.xoff = (res.xres - info->var.xres) / 2;
++			res.yoff = (res.yres - info->var.yres) / 2;
+ 			res.num_frames = par->num_frames;
+ 			if (!copy_to_user(argp, &res, sizeof(res)))
+ 				retval = 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
 
 origin.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-cifs.patch
-applesmc-for-mac-pro-2-x-quad-core-fix.patch
-console-keyboard-events-and-accessibility.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-git-jg-warning-fixes.patch
-git-jg-misc-powernow-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-ide-arm-hack.patch
-forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd-fixup.patch
-qla2xxx-printk-fixes.patch
-sparc-support-for-new-termios-checkpatch-fixes.patch
-git-unionfs.patch
-git-watchdog-fixup.patch
-git-wireless.patch
-revert-x86_64-mm-cpa-einval.patch
-fix-x86_64-mm-sched-clock-share.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-asm-i386-ioh-fix-constness.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
-git-xfs.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold-warning-fix.patch
-mm-dirty-balancing-for-tasks-warning-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
-oom-do-not-take-callback_mutex-fix.patch
-writeback-dont-propagate-aop_writepage_activate.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-pm-qos-infrastructure-and-interface-fix.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2-fix-3.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
-stop-using-dma_xxbit_mask.patch
-stop-using-dma_xxbit_mask-fix.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-userc-ifdef-mq_bytes-fix.patch
-f_dupfd_cloexec-implementation-fix-2.patch
-ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
-drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
-writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-md-software-raid-autodetect-dev-list-not-array.patch
-do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-pnp-use-dev_info-dev_err-etc-in-core-fix.patch
-pnp-add-debug-message-for-adding-new-device-fix-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-cpuset-sched_load_balance-flag-fix.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
-sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
