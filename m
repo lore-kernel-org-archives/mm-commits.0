@@ -1,206 +1,198 @@
 From: akpm@linux-foundation.org
-Subject: - pm2fb-hardware-cursor-support-for-the-permedia2.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:44:03 -0700
-Message-ID: <200710162044.l9GKi3A7016109@imap1.linux-foundation.org>
+Subject: - s3c2410fb-remove-fb_info-pointer-from-s3c2410fb_info.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:43:06 -0700
+Message-ID: <200710162043.l9GKh6rF016015@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55143 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38735 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935526AbXJPVLZ (ORCPT
+	by vger.kernel.org with ESMTP id S964823AbXJPVMQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:11:25 -0400
+	Tue, 16 Oct 2007 17:12:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm2fb: hardware cursor support for the Permedia2
+     s3c2410fb: remove fb_info pointer from s3c2410fb_info
 has been removed from the -mm tree.  Its filename was
-     pm2fb-hardware-cursor-support-for-the-permedia2.patch
+     s3c2410fb-remove-fb_info-pointer-from-s3c2410fb_info.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pm2fb: hardware cursor support for the Permedia2
+Subject: s3c2410fb: remove fb_info pointer from s3c2410fb_info
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-This patch adds hardware cursor support for the Permedia 2 chip.
+This patch removes redundant fb field from
+the s3c2410fb_info structure. This breaks circular
+reference fb_info -> s3c2410fb_info -> fb_info again.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pm2fb.c     |  125 ++++++++++++++++++++++++++++++++----
- include/video/permedia2.h |    7 ++
- 2 files changed, 120 insertions(+), 12 deletions(-)
+ drivers/video/s3c2410fb.c |   43 ++++++++++++++++++------------------
+ drivers/video/s3c2410fb.h |    1 
+ 2 files changed, 22 insertions(+), 22 deletions(-)
 
-diff -puN drivers/video/pm2fb.c~pm2fb-hardware-cursor-support-for-the-permedia2 drivers/video/pm2fb.c
---- a/drivers/video/pm2fb.c~pm2fb-hardware-cursor-support-for-the-permedia2
-+++ a/drivers/video/pm2fb.c
-@@ -1257,18 +1257,8 @@ static const u8 cursor_bits_lookup[16] =
- static int pm2vfb_cursor(struct fb_info *info, struct fb_cursor *cursor)
+diff -puN drivers/video/s3c2410fb.c~s3c2410fb-remove-fb_info-pointer-from-s3c2410fb_info drivers/video/s3c2410fb.c
+--- a/drivers/video/s3c2410fb.c~s3c2410fb-remove-fb_info-pointer-from-s3c2410fb_info
++++ a/drivers/video/s3c2410fb.c
+@@ -119,15 +119,14 @@ static int debug	= 0;
+  *
+  * initialise lcd controller address pointers
+  */
+-static void s3c2410fb_set_lcdaddr(struct s3c2410fb_info *fbi)
++static void s3c2410fb_set_lcdaddr(struct fb_info *info)
  {
- 	struct pm2fb_par *par = info->par;
--	u8 mode;
--
--	if (!hwcursor)
--		return -EINVAL;	/* just to force soft_cursor() call */
--
--	/* Too large of a cursor or wrong bpp :-( */
--	if (cursor->image.width > 64 ||
--	    cursor->image.height > 64 ||
--	    cursor->image.depth > 1)
--		return -EINVAL;
-+	u8 mode = PM2F_CURSORMODE_TYPE_X;
+-	struct fb_var_screeninfo *var = &fbi->fb->var;
+ 	unsigned long saddr1, saddr2, saddr3;
+-	int line_length = var->xres * var->bits_per_pixel;
++	int line_length = info->var.xres * info->var.bits_per_pixel;
  
--	mode = PM2F_CURSORMODE_TYPE_X;
- 	if (cursor->enable)
- 		mode |= PM2F_CURSORMODE_CURSOR_ENABLE;
+-	saddr1  = fbi->fb->fix.smem_start >> 1;
+-	saddr2  = fbi->fb->fix.smem_start;
+-	saddr2 += (line_length * var->yres) / 8;
++	saddr1  = info->fix.smem_start >> 1;
++	saddr2  = info->fix.smem_start;
++	saddr2 += (line_length * info->var.yres) / 8;
+ 	saddr2 >>= 1;
  
-@@ -1369,11 +1359,122 @@ static int pm2vfb_cursor(struct fb_info 
- static int pm2fb_cursor(struct fb_info *info, struct fb_cursor *cursor)
+ 	saddr3 = S3C2410_OFFSIZE(0) |
+@@ -275,9 +274,10 @@ static int s3c2410fb_check_var(struct fb
+  * activate (set) the controller from the given framebuffer
+  * information
+  */
+-static void s3c2410fb_activate_var(struct s3c2410fb_info *fbi,
++static void s3c2410fb_activate_var(struct fb_info *info,
+ 				   struct fb_var_screeninfo *var)
  {
- 	struct pm2fb_par *par = info->par;
-+	u8 mode;
-+
-+	if (!hwcursor)
-+		return -EINVAL;	/* just to force soft_cursor() call */
-+
-+	/* Too large of a cursor or wrong bpp :-( */
-+	if (cursor->image.width > 64 ||
-+	    cursor->image.height > 64 ||
-+	    cursor->image.depth > 1)
-+		return -EINVAL;
++	struct s3c2410fb_info *fbi = info->par;
+ 	int hs;
  
- 	if (par->type == PM2_TYPE_PERMEDIA2V)
- 		return pm2vfb_cursor(info, cursor);
+ 	fbi->regs.lcdcon1 &= ~S3C2410_LCDCON1_MODEMASK;
+@@ -418,7 +418,7 @@ static void s3c2410fb_activate_var(struc
+ 	writel(fbi->regs.lcdcon5, S3C2410_LCDCON5);
  
--	return -ENXIO;
-+	mode = 0;
-+	if (cursor->enable)
-+		 mode = 0x43;
-+
-+	pm2_RDAC_WR(par, PM2I_RD_CURSOR_CONTROL, mode);
-+
-+	/*
-+	 * If the cursor is not be changed this means either we want the
-+	 * current cursor state (if enable is set) or we want to query what
-+	 * we can do with the cursor (if enable is not set)
-+	 */
-+	if (!cursor->set)
-+		return 0;
-+
-+	if (cursor->set & FB_CUR_SETPOS) {
-+		int x, y;
-+
-+		x = cursor->image.dx + 63;
-+		y = cursor->image.dy + 63;
-+		WAIT_FIFO(par, 4);
-+		pm2_WR(par, PM2R_RD_CURSOR_X_LSB, x & 0xff);
-+		pm2_WR(par, PM2R_RD_CURSOR_X_MSB, (x >> 8) & 0x7);
-+		pm2_WR(par, PM2R_RD_CURSOR_Y_LSB, y & 0xff);
-+		pm2_WR(par, PM2R_RD_CURSOR_Y_MSB, (y >> 8) & 0x7);
-+	}
-+
-+	if (cursor->set & FB_CUR_SETCMAP) {
-+		u32 fg_idx = cursor->image.fg_color;
-+		u32 bg_idx = cursor->image.bg_color;
-+
-+		WAIT_FIFO(par, 7);
-+		pm2_WR(par, PM2R_RD_CURSOR_COLOR_ADDRESS, 1);
-+		pm2_WR(par, PM2R_RD_CURSOR_COLOR_DATA,
-+			info->cmap.red[bg_idx] >> 8);
-+		pm2_WR(par, PM2R_RD_CURSOR_COLOR_DATA,
-+			info->cmap.green[bg_idx] >> 8);
-+		pm2_WR(par, PM2R_RD_CURSOR_COLOR_DATA,
-+			info->cmap.blue[bg_idx] >> 8);
-+
-+		pm2_WR(par, PM2R_RD_CURSOR_COLOR_DATA,
-+			info->cmap.red[fg_idx] >> 8);
-+		pm2_WR(par, PM2R_RD_CURSOR_COLOR_DATA,
-+			info->cmap.green[fg_idx] >> 8);
-+		pm2_WR(par, PM2R_RD_CURSOR_COLOR_DATA,
-+			info->cmap.blue[fg_idx] >> 8);
-+	}
-+
-+	if (cursor->set & (FB_CUR_SETSHAPE | FB_CUR_SETIMAGE)) {
-+		u8 *bitmap = (u8 *)cursor->image.data;
-+		u8 *mask = (u8 *)cursor->mask;
-+		int i;
-+
-+		WAIT_FIFO(par, 1);
-+		pm2_WR(par, PM2R_RD_PALETTE_WRITE_ADDRESS, 0);
-+
-+		for (i = 0; i < cursor->image.height; i++) {
-+			int j = (cursor->image.width + 7) >> 3;
-+			int k = 8 - j;
-+
-+			WAIT_FIFO(par, 8);
-+			for (; j > 0; j--) {
-+				u8 data = *bitmap ^ *mask;
-+
-+				if (cursor->rop == ROP_COPY)
-+					data = *mask & *bitmap;
-+				/* bitmap data */
-+				pm2_WR(par, PM2R_RD_CURSOR_DATA, data);
-+				bitmap++;
-+				mask++;
-+			}
-+			for (; k > 0; k--)
-+				pm2_WR(par, PM2R_RD_CURSOR_DATA, 0);
-+		}
-+		for (; i < 64; i++) {
-+			int j = 8;
-+			WAIT_FIFO(par, 8);
-+			while (j-- > 0)
-+				pm2_WR(par, PM2R_RD_CURSOR_DATA, 0);
-+		}
-+
-+		mask = (u8 *)cursor->mask;
-+		for (i = 0; i < cursor->image.height; i++) {
-+			int j = (cursor->image.width + 7) >> 3;
-+			int k = 8 - j;
-+
-+			WAIT_FIFO(par, 8);
-+			for (; j > 0; j--) {
-+				/* mask */
-+				pm2_WR(par, PM2R_RD_CURSOR_DATA, *mask);
-+				mask++;
-+			}
-+			for (; k > 0; k--)
-+				pm2_WR(par, PM2R_RD_CURSOR_DATA, 0);
-+		}
-+		for (; i < 64; i++) {
-+			int j = 8;
-+			WAIT_FIFO(par, 8);
-+			while (j-- > 0)
-+				pm2_WR(par, PM2R_RD_CURSOR_DATA, 0);
-+		}
-+	}
-+	return 0;
+ 	/* set lcd address pointers */
+-	s3c2410fb_set_lcdaddr(fbi);
++	s3c2410fb_set_lcdaddr(info);
+ 
+ 	writel(fbi->regs.lcdcon1, S3C2410_LCDCON1);
+ }
+@@ -430,7 +430,6 @@ static void s3c2410fb_activate_var(struc
+  */
+ static int s3c2410fb_set_par(struct fb_info *info)
+ {
+-	struct s3c2410fb_info *fbi = info->par;
+ 	struct fb_var_screeninfo *var = &info->var;
+ 
+ 	switch (var->bits_per_pixel) {
+@@ -449,7 +448,7 @@ static int s3c2410fb_set_par(struct fb_i
+ 
+ 	/* activate this new configuration */
+ 
+-	s3c2410fb_activate_var(fbi, var);
++	s3c2410fb_activate_var(info, var);
+ 	return 0;
  }
  
- /* ------------ Hardware Independent Functions ------------ */
-diff -puN include/video/permedia2.h~pm2fb-hardware-cursor-support-for-the-permedia2 include/video/permedia2.h
---- a/include/video/permedia2.h~pm2fb-hardware-cursor-support-for-the-permedia2
-+++ a/include/video/permedia2.h
-@@ -58,7 +58,14 @@
- #define PM2R_RD_PALETTE_DATA				0x4008
- #define PM2R_RD_PIXEL_MASK				0x4010
- #define PM2R_RD_PALETTE_READ_ADDRESS			0x4018
-+#define PM2R_RD_CURSOR_COLOR_ADDRESS		        0x4020
-+#define PM2R_RD_CURSOR_COLOR_DATA		        0x4028
- #define PM2R_RD_INDEXED_DATA				0x4050
-+#define PM2R_RD_CURSOR_DATA				0x4058
-+#define PM2R_RD_CURSOR_X_LSB				0x4060
-+#define PM2R_RD_CURSOR_X_MSB				0x4068
-+#define PM2R_RD_CURSOR_Y_LSB				0x4070
-+#define PM2R_RD_CURSOR_Y_MSB				0x4078
+@@ -615,15 +614,17 @@ static struct fb_ops s3c2410fb_ops = {
+  *	cache.  Once this area is remapped, all virtual memory
+  *	access to the video memory should occur at the new region.
+  */
+-static int __init s3c2410fb_map_video_memory(struct s3c2410fb_info *fbi)
++static int __init s3c2410fb_map_video_memory(struct fb_info *info)
+ {
++	struct s3c2410fb_info *fbi = info->par;
++
+ 	dprintk("map_video_memory(fbi=%p)\n", fbi);
  
- #define PM2R_START_X_DOM				0x8000
- #define PM2R_D_X_DOM					0x8008
+-	fbi->map_size = PAGE_ALIGN(fbi->fb->fix.smem_len + PAGE_SIZE);
++	fbi->map_size = PAGE_ALIGN(info->fix.smem_len + PAGE_SIZE);
+ 	fbi->map_cpu  = dma_alloc_writecombine(fbi->dev, fbi->map_size,
+ 					       &fbi->map_dma, GFP_KERNEL);
+ 
+-	fbi->map_size = fbi->fb->fix.smem_len;
++	fbi->map_size = info->fix.smem_len;
+ 
+ 	if (fbi->map_cpu) {
+ 		/* prevent initial garbage on screen */
+@@ -632,11 +633,11 @@ static int __init s3c2410fb_map_video_me
+ 		memset(fbi->map_cpu, 0xf0, fbi->map_size);
+ 
+ 		fbi->screen_dma		= fbi->map_dma;
+-		fbi->fb->screen_base	= fbi->map_cpu;
+-		fbi->fb->fix.smem_start  = fbi->screen_dma;
++		info->screen_base	= fbi->map_cpu;
++		info->fix.smem_start	= fbi->screen_dma;
+ 
+ 		dprintk("map_video_memory: dma=%08x cpu=%p size=%08x\n",
+-			fbi->map_dma, fbi->map_cpu, fbi->fb->fix.smem_len);
++			fbi->map_dma, fbi->map_cpu, info->fix.smem_len);
+ 	}
+ 
+ 	return fbi->map_cpu ? 0 : -ENOMEM;
+@@ -660,8 +661,9 @@ static inline void modify_gpio(void __io
+ /*
+  * s3c2410fb_init_registers - Initialise all LCD-related registers
+  */
+-static int s3c2410fb_init_registers(struct s3c2410fb_info *fbi)
++static int s3c2410fb_init_registers(struct fb_info *info)
+ {
++	struct s3c2410fb_info *fbi = info->par;
+ 	unsigned long flags;
+ 	void __iomem *regs = fbi->io;
+ 
+@@ -684,7 +686,7 @@ static int s3c2410fb_init_registers(stru
+ 	writel(fbi->regs.lcdcon4, regs + S3C2410_LCDCON4);
+ 	writel(fbi->regs.lcdcon5, regs + S3C2410_LCDCON5);
+ 
+-	s3c2410fb_set_lcdaddr(fbi);
++	s3c2410fb_set_lcdaddr(info);
+ 
+ 	dprintk("LPCSEL    = 0x%08lx\n", mach_info->lpcsel);
+ 	writel(mach_info->lpcsel, regs + S3C2410_LPCSEL);
+@@ -777,7 +779,6 @@ static int __init s3c2410fb_probe(struct
+ 		return -ENOMEM;
+ 
+ 	info = fbinfo->par;
+-	info->fb = fbinfo;
+ 	info->dev = &pdev->dev;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+@@ -890,7 +891,7 @@ static int __init s3c2410fb_probe(struct
+ 	msleep(1);
+ 
+ 	/* Initialize video memory */
+-	ret = s3c2410fb_map_video_memory(info);
++	ret = s3c2410fb_map_video_memory(fbinfo);
+ 	if (ret) {
+ 		printk(KERN_ERR "Failed to allocate video RAM: %d\n", ret);
+ 		ret = -ENOMEM;
+@@ -899,7 +900,7 @@ static int __init s3c2410fb_probe(struct
+ 
+ 	dprintk("got video memory\n");
+ 
+-	s3c2410fb_init_registers(info);
++	s3c2410fb_init_registers(fbinfo);
+ 
+ 	s3c2410fb_check_var(&fbinfo->var, fbinfo);
+ 
+diff -puN drivers/video/s3c2410fb.h~s3c2410fb-remove-fb_info-pointer-from-s3c2410fb_info drivers/video/s3c2410fb.h
+--- a/drivers/video/s3c2410fb.h~s3c2410fb-remove-fb_info-pointer-from-s3c2410fb_info
++++ a/drivers/video/s3c2410fb.h
+@@ -26,7 +26,6 @@
+ #define __S3C2410FB_H
+ 
+ struct s3c2410fb_info {
+-	struct fb_info		*fb;
+ 	struct device		*dev;
+ 	struct clk		*clk;
+ 
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
