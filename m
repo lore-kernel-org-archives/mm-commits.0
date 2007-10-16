@@ -1,99 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - mm-use-lockless-radix-tree-probe.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:31:18 -0700
-Message-ID: <200710162031.l9GKVIt3014489@imap1.linux-foundation.org>
+Subject: - block_dev-convert-to-new-aops.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:32:27 -0700
+Message-ID: <200710162032.l9GKWR5x014603@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33124 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58836 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765841AbXJPViP (ORCPT
+	by vger.kernel.org with ESMTP id S935092AbXJPVip (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:38:15 -0400
+	Tue, 16 Oct 2007 17:38:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: use lockless radix-tree probe
+     block_dev: convert to new aops
 has been removed from the -mm tree.  Its filename was
-     mm-use-lockless-radix-tree-probe.patch
+     block_dev-convert-to-new-aops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mm: use lockless radix-tree probe
+Subject: block_dev: convert to new aops
 From: Nick Piggin <npiggin@suse.de>
-
-Probing pages and radix_tree_tagged are lockless operations with the lockless
-radix-tree.  Convert these users to RCU locking rather than using tree_lock.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    8 +++-----
- mm/readahead.c      |    6 ++----
- 2 files changed, 5 insertions(+), 9 deletions(-)
+ fs/block_dev.c |   24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
-diff -puN mm/page-writeback.c~mm-use-lockless-radix-tree-probe mm/page-writeback.c
---- a/mm/page-writeback.c~mm-use-lockless-radix-tree-probe
-+++ a/mm/page-writeback.c
-@@ -1022,17 +1022,15 @@ int test_set_page_writeback(struct page 
- EXPORT_SYMBOL(test_set_page_writeback);
+diff -puN fs/block_dev.c~block_dev-convert-to-new-aops fs/block_dev.c
+--- a/fs/block_dev.c~block_dev-convert-to-new-aops
++++ a/fs/block_dev.c
+@@ -378,14 +378,26 @@ static int blkdev_readpage(struct file *
+ 	return block_read_full_page(page, blkdev_get_block);
+ }
+ 
+-static int blkdev_prepare_write(struct file *file, struct page *page, unsigned from, unsigned to)
++static int blkdev_write_begin(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned flags,
++			struct page **pagep, void **fsdata)
+ {
+-	return block_prepare_write(page, from, to, blkdev_get_block);
++	*pagep = NULL;
++	return block_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
++				blkdev_get_block);
+ }
+ 
+-static int blkdev_commit_write(struct file *file, struct page *page, unsigned from, unsigned to)
++static int blkdev_write_end(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned copied,
++			struct page *page, void *fsdata)
+ {
+-	return block_commit_write(page, from, to);
++	int ret;
++	ret = block_write_end(file, mapping, pos, len, copied, page, fsdata);
++
++	unlock_page(page);
++	page_cache_release(page);
++
++	return ret;
+ }
  
  /*
-- * Return true if any of the pages in the mapping are marged with the
-+ * Return true if any of the pages in the mapping are marked with the
-  * passed tag.
-  */
- int mapping_tagged(struct address_space *mapping, int tag)
- {
--	unsigned long flags;
- 	int ret;
--
--	read_lock_irqsave(&mapping->tree_lock, flags);
-+	rcu_read_lock();
- 	ret = radix_tree_tagged(&mapping->page_tree, tag);
--	read_unlock_irqrestore(&mapping->tree_lock, flags);
-+	rcu_read_unlock();
- 	return ret;
- }
- EXPORT_SYMBOL(mapping_tagged);
-diff -puN mm/readahead.c~mm-use-lockless-radix-tree-probe mm/readahead.c
---- a/mm/readahead.c~mm-use-lockless-radix-tree-probe
-+++ a/mm/readahead.c
-@@ -149,20 +149,19 @@ __do_page_cache_readahead(struct address
- 	/*
- 	 * Preallocate as many pages as we will need.
- 	 */
--	read_lock_irq(&mapping->tree_lock);
- 	for (page_idx = 0; page_idx < nr_to_read; page_idx++) {
- 		pgoff_t page_offset = offset + page_idx;
- 
- 		if (page_offset > end_index)
- 			break;
- 
-+		rcu_read_lock();
- 		page = radix_tree_lookup(&mapping->page_tree, page_offset);
-+		rcu_read_unlock();
- 		if (page)
- 			continue;
- 
--		read_unlock_irq(&mapping->tree_lock);
- 		page = page_cache_alloc_cold(mapping);
--		read_lock_irq(&mapping->tree_lock);
- 		if (!page)
- 			break;
- 		page->index = page_offset;
-@@ -171,7 +170,6 @@ __do_page_cache_readahead(struct address
- 			SetPageReadahead(page);
- 		ret++;
- 	}
--	read_unlock_irq(&mapping->tree_lock);
- 
- 	/*
- 	 * Now start the IO.  We ignore I/O errors - if the page is not
+@@ -1327,8 +1339,8 @@ const struct address_space_operations de
+ 	.readpage	= blkdev_readpage,
+ 	.writepage	= blkdev_writepage,
+ 	.sync_page	= block_sync_page,
+-	.prepare_write	= blkdev_prepare_write,
+-	.commit_write	= blkdev_commit_write,
++	.write_begin	= blkdev_write_begin,
++	.write_end	= blkdev_write_end,
+ 	.writepages	= generic_writepages,
+ 	.direct_IO	= blkdev_direct_IO,
+ };
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
