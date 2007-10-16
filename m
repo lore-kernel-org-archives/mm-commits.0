@@ -1,56 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - affs-convert-to-new-aops-fix-fix.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:21:32 -0700
-Message-ID: <200710160421.l9G4LWCo008538@imap1.linux-foundation.org>
+Subject: - affs-convert-to-new-aops-fix.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:21:30 -0700
+Message-ID: <200710160421.l9G4LUmq008535@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43685 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49012 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752502AbXJPEVg (ORCPT
+	by vger.kernel.org with ESMTP id S1764871AbXJPEVj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:21:36 -0400
+	Tue, 16 Oct 2007 00:21:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, mm-commits@vger.kernel.org
+To: npiggin@suse.de, hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     affs convert to new aops fix fix
+     affs convert to new aops fix
 has been removed from the -mm tree.  Its filename was
-     affs-convert-to-new-aops-fix-fix.patch
+     affs-convert-to-new-aops-fix.patch
 
 This patch was dropped because it was folded into fs-affs-convert-to-new-aops.patch
 
 ------------------------------------------------------
-Subject: affs convert to new aops fix fix
+Subject: affs convert to new aops fix
 From: Nick Piggin <npiggin@suse.de>
 
+Hugh noticed the page wasn't being unlocked at all in the affs
+conversion.
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/file.c |    2 --
- 1 files changed, 2 deletions(-)
+ fs/affs/file.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN fs/affs/file.c~affs-convert-to-new-aops-fix-fix fs/affs/file.c
---- a/fs/affs/file.c~affs-convert-to-new-aops-fix-fix
+diff -puN fs/affs/file.c~affs-convert-to-new-aops-fix fs/affs/file.c
+--- a/fs/affs/file.c~affs-convert-to-new-aops-fix
 +++ a/fs/affs/file.c
-@@ -13,7 +13,6 @@
+@@ -13,6 +13,7 @@
   */
  
  #include "affs.h"
--#include <linux/swap.h> /* mark_page_accessed */
++#include <linux/swap.h> /* mark_page_accessed */
  
  #if PAGE_SIZE < 4096
  #error PAGE_SIZE must be at least 4096
-@@ -769,7 +768,6 @@ done:
+@@ -767,6 +768,10 @@ done:
+ 	if (tmp > inode->i_size)
  		inode->i_size = AFFS_I(inode)->mmu_private = tmp;
  
- 	unlock_page(page);
--	mark_page_accessed(page);
- 	page_cache_release(page);
- 
++	unlock_page(page);
++	mark_page_accessed(page);
++	page_cache_release(page);
++
  	return written;
+ 
+ out:
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
@@ -105,6 +112,7 @@ minix-convert-to-new-aops.patch
 jfs-convert-to-new-aops.patch
 fs-adfs-convert-to-new-aops.patch
 fs-affs-convert-to-new-aops.patch
+affs-convert-to-new-aops-fix.patch
 affs-convert-to-new-aops-fix-fix.patch
 ocfs2-convert-to-new-aops.patch
 fs-restore-nobh.patch
