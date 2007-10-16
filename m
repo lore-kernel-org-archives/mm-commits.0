@@ -1,123 +1,196 @@
 From: akpm@linux-foundation.org
-Subject: - nvidiafb-add-boot-option-to-reverse-i2c-port-assignment.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:44:13 -0700
-Message-ID: <200710162044.l9GKiDXc016124@imap1.linux-foundation.org>
+Subject: - uml-physmem-code-tidying.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:37:09 -0700
+Message-ID: <200710162037.l9GKb9xW015266@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52945 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60720 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935067AbXJPVJ7 (ORCPT
+	by vger.kernel.org with ESMTP id S934911AbXJPVKv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:09:59 -0400
+	Tue, 16 Oct 2007 17:10:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adaplas@gmail.com, adaplas@gail.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nvidiafb: Add boot option to reverse i2c port assignment
+     uml: physmem code tidying
 has been removed from the -mm tree.  Its filename was
-     nvidiafb-add-boot-option-to-reverse-i2c-port-assignment.patch
+     uml-physmem-code-tidying.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: nvidiafb: Add boot option to reverse i2c port assignment
-From: "Antonino A. Daplas" <adaplas@gmail.com>
+Subject: uml: physmem code tidying
+From: Jeff Dike <jdike@addtoit.com>
 
-There are a few nvidia hardware where the i2c port assignments are reversed,
-i.e., the 1st i2c port is assigned to the secondary display and the 2nd i2c
-port to the primary display.  In most cases, if only 1 display is attached, or
-if only 1 flatpanel and 1 analog display is attached, the port reversal is of
-no consequence.  However if 2 flatpanels are attached, it can cause display
-problems.
+Tidying of the UML physical memory system.  These are mostly style fixes,
+however the includes were cleaned as well.  This uncovered a need for
+mem_user.h to be included in mode_kern_skas.h.
 
-There is no sane way of determining if the hardware reversed the i2c port
-assignment, so the simplest fix is to add a boot/module option, "reverse_i2c
-to explicitly reverse the i2c port.
-
-This also restores i2c ordering back to the pre-2.6.22 state.
-
-Signed-off-by: Antonino Daplas <adaplas@gail.com>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/nvidia/nv_i2c.c  |    8 ++++----
- drivers/video/nvidia/nv_type.h |    1 +
- drivers/video/nvidia/nvidia.c  |    6 ++++++
- 3 files changed, 11 insertions(+), 4 deletions(-)
+ arch/um/include/skas/mode_kern_skas.h |    3 -
+ arch/um/kernel/physmem.c              |   50 ++++++++++--------------
+ 2 files changed, 23 insertions(+), 30 deletions(-)
 
-diff -puN drivers/video/nvidia/nv_i2c.c~nvidiafb-add-boot-option-to-reverse-i2c-port-assignment drivers/video/nvidia/nv_i2c.c
---- a/drivers/video/nvidia/nv_i2c.c~nvidiafb-add-boot-option-to-reverse-i2c-port-assignment
-+++ a/drivers/video/nvidia/nv_i2c.c
-@@ -125,11 +125,11 @@ void nvidia_create_i2c_busses(struct nvi
- 	par->chan[1].par = par;
- 	par->chan[2].par = par;
+diff -puN arch/um/include/skas/mode_kern_skas.h~uml-physmem-code-tidying arch/um/include/skas/mode_kern_skas.h
+--- a/arch/um/include/skas/mode_kern_skas.h~uml-physmem-code-tidying
++++ a/arch/um/include/skas/mode_kern_skas.h
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
++ * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{linux.intel,addtoit}.com)
+  * Licensed under the GPL
+  */
  
--	par->chan[0].ddc_base = 0x36;
-- 	nvidia_setup_i2c_bus(&par->chan[0], "nvidia #0", I2C_CLASS_HWMON);
-+	par->chan[0].ddc_base = (par->reverse_i2c) ? 0x36 : 0x3e;
-+ 	nvidia_setup_i2c_bus(&par->chan[0], "nvidia #0", 0);
+@@ -9,6 +9,7 @@
+ #include "linux/sched.h"
+ #include "asm/page.h"
+ #include "asm/ptrace.h"
++#include "mem_user.h"
  
--	par->chan[1].ddc_base = 0x3e;
-- 	nvidia_setup_i2c_bus(&par->chan[1], "nvidia #1", 0);
-+	par->chan[1].ddc_base = (par->reverse_i2c) ? 0x3e : 0x36;
-+ 	nvidia_setup_i2c_bus(&par->chan[1], "nvidia #1", I2C_CLASS_HWMON);
+ extern void flush_thread_skas(void);
+ extern void switch_to_skas(void *prev, void *next);
+diff -puN arch/um/kernel/physmem.c~uml-physmem-code-tidying arch/um/kernel/physmem.c
+--- a/arch/um/kernel/physmem.c~uml-physmem-code-tidying
++++ a/arch/um/kernel/physmem.c
+@@ -1,25 +1,17 @@
+ /*
+- * Copyright (C) 2000 - 2003 Jeff Dike (jdike@addtoit.com)
++ * Copyright (C) 2000 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
+  */
  
- 	par->chan[2].ddc_base = 0x50;
-  	nvidia_setup_i2c_bus(&par->chan[2], "nvidia #2", 0);
-diff -puN drivers/video/nvidia/nv_type.h~nvidiafb-add-boot-option-to-reverse-i2c-port-assignment drivers/video/nvidia/nv_type.h
---- a/drivers/video/nvidia/nv_type.h~nvidiafb-add-boot-option-to-reverse-i2c-port-assignment
-+++ a/drivers/video/nvidia/nv_type.h
-@@ -135,6 +135,7 @@ struct nvidia_par {
- 	int paneltweak;
- 	int LVDS;
- 	int pm_state;
-+	int reverse_i2c;
- 	u32 crtcSync_read;
- 	u32 fpSyncs;
- 	u32 dmaPut;
-diff -puN drivers/video/nvidia/nvidia.c~nvidiafb-add-boot-option-to-reverse-i2c-port-assignment drivers/video/nvidia/nvidia.c
---- a/drivers/video/nvidia/nvidia.c~nvidiafb-add-boot-option-to-reverse-i2c-port-assignment
-+++ a/drivers/video/nvidia/nvidia.c
-@@ -79,6 +79,7 @@ static int noscale __devinitdata = 0;
- static int paneltweak __devinitdata = 0;
- static int vram __devinitdata = 0;
- static int bpp __devinitdata = 8;
-+static int reverse_i2c __devinitdata;
- #ifdef CONFIG_MTRR
- static int nomtrr __devinitdata = 0;
- #endif
-@@ -1305,6 +1306,7 @@ static int __devinit nvidiafb_probe(stru
- 	par->CRTCnumber = forceCRTC;
- 	par->FpScale = (!noscale);
- 	par->paneltweak = paneltweak;
-+	par->reverse_i2c = reverse_i2c;
+-#include "linux/mm.h"
+-#include "linux/rbtree.h"
+-#include "linux/slab.h"
+-#include "linux/vmalloc.h"
+ #include "linux/bootmem.h"
+-#include "linux/module.h"
++#include "linux/mm.h"
+ #include "linux/pfn.h"
+-#include "asm/types.h"
+-#include "asm/pgtable.h"
+-#include "kern_util.h"
++#include "asm/page.h"
+ #include "as-layout.h"
++#include "init.h"
++#include "kern.h"
+ #include "mode_kern.h"
+-#include "mem.h"
+-#include "mem_user.h"
+ #include "os.h"
+-#include "kern.h"
+-#include "init.h"
  
- 	/* enable IO and mem if not already done */
- 	pci_read_config_word(pd, PCI_COMMAND, &cmd);
-@@ -1486,6 +1488,8 @@ static int __devinit nvidiafb_setup(char
- 			noaccel = 1;
- 		} else if (!strncmp(this_opt, "noscale", 7)) {
- 			noscale = 1;
-+		} else if (!strncmp(this_opt, "reverse_i2c", 11)) {
-+			reverse_i2c = 1;
- 		} else if (!strncmp(this_opt, "paneltweak:", 11)) {
- 			paneltweak = simple_strtoul(this_opt+11, NULL, 0);
- 		} else if (!strncmp(this_opt, "vram:", 5)) {
-@@ -1582,6 +1586,8 @@ MODULE_PARM_DESC(mode_option, "Specify i
- module_param(bpp, int, 0);
- MODULE_PARM_DESC(bpp, "pixel width in bits"
- 		 "(default=8)");
-+module_param(reverse_i2c, int, 0);
-+MODULE_PARM_DESC(reverse_i2c, "reverse port assignment of the i2c bus");
- #ifdef CONFIG_MTRR
- module_param(nomtrr, bool, 0);
- MODULE_PARM_DESC(nomtrr, "Disables MTRR support (0 or 1=disabled) "
+ static int physmem_fd = -1;
+ 
+@@ -49,10 +41,10 @@ int __init init_maps(unsigned long physm
+ 	total_len = phys_len + iomem_len + highmem_len;
+ 
+ 	map = alloc_bootmem_low_pages(total_len);
+-	if(map == NULL)
++	if (map == NULL)
+ 		return -ENOMEM;
+ 
+-	for(i = 0; i < total_pages; i++){
++	for (i = 0; i < total_pages; i++) {
+ 		p = &map[i];
+ 		memset(p, 0, sizeof(struct page));
+ 		SetPageReserved(p);
+@@ -68,7 +60,7 @@ static unsigned long kmem_top = 0;
+ 
+ unsigned long get_kmem_end(void)
+ {
+-	if(kmem_top == 0)
++	if (kmem_top == 0)
+ 		kmem_top = CHOOSE_MODE(kmem_end_tt, kmem_end_skas);
+ 	return kmem_top;
+ }
+@@ -81,8 +73,8 @@ void map_memory(unsigned long virt, unsi
+ 
+ 	fd = phys_mapping(phys, &offset);
+ 	err = os_map_memory((void *) virt, fd, offset, len, r, w, x);
+-	if(err) {
+-		if(err == -ENOMEM)
++	if (err) {
++		if (err == -ENOMEM)
+ 			printk("try increasing the host's "
+ 			       "/proc/sys/vm/max_map_count to <physical "
+ 			       "memory size>/4096\n");
+@@ -106,7 +98,7 @@ void __init setup_physmem(unsigned long 
+ 	offset = uml_reserved - uml_physmem;
+ 	err = os_map_memory((void *) uml_reserved, physmem_fd, offset,
+ 			    len - offset, 1, 1, 1);
+-	if(err < 0){
++	if (err < 0) {
+ 		os_print_error(err, "Mapping memory");
+ 		exit(1);
+ 	}
+@@ -126,16 +118,16 @@ int phys_mapping(unsigned long phys, __u
+ {
+ 	int fd = -1;
+ 
+-	if(phys < physmem_size){
++	if (phys < physmem_size) {
+ 		fd = physmem_fd;
+ 		*offset_out = phys;
+ 	}
+-	else if(phys < __pa(end_iomem)){
++	else if (phys < __pa(end_iomem)) {
+ 		struct iomem_region *region = iomem_regions;
+ 
+-		while(region != NULL){
+-			if((phys >= region->phys) &&
+-			   (phys < region->phys + region->size)){
++		while (region != NULL) {
++			if ((phys >= region->phys) &&
++			    (phys < region->phys + region->size)) {
+ 				fd = region->fd;
+ 				*offset_out = phys - region->phys;
+ 				break;
+@@ -143,7 +135,7 @@ int phys_mapping(unsigned long phys, __u
+ 			region = region->next;
+ 		}
+ 	}
+-	else if(phys < __pa(end_iomem) + highmem){
++	else if (phys < __pa(end_iomem) + highmem) {
+ 		fd = physmem_fd;
+ 		*offset_out = phys - iomem_size;
+ 	}
+@@ -188,8 +180,8 @@ unsigned long find_iomem(char *driver, u
+ {
+ 	struct iomem_region *region = iomem_regions;
+ 
+-	while(region != NULL){
+-		if(!strcmp(region->driver, driver)){
++	while (region != NULL) {
++		if (!strcmp(region->driver, driver)) {
+ 			*len_out = region->size;
+ 			return region->virt;
+ 		}
+@@ -206,10 +198,10 @@ int setup_iomem(void)
+ 	unsigned long iomem_start = high_physmem + PAGE_SIZE;
+ 	int err;
+ 
+-	while(region != NULL){
++	while (region != NULL) {
+ 		err = os_map_memory((void *) iomem_start, region->fd, 0,
+ 				    region->size, 1, 1, 0);
+-		if(err)
++		if (err)
+ 			printk("Mapping iomem region for driver '%s' failed, "
+ 			       "errno = %d\n", region->driver, -err);
+ 		else {
 _
 
-Patches currently in -mm which might be from adaplas@gmail.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-fbcon-delay-the-start-of-the-cursor-timer-until-a-con_switch.patch
-cyber2000fb-checkpatch-fixes.patch
+git-kvm.patch
+uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
+bitops-introduce-lock-ops.patch
