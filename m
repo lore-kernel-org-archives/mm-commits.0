@@ -1,90 +1,474 @@
 From: akpm@linux-foundation.org
-Subject: - fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:40:00 -0700
-Message-ID: <200710162040.l9GKe0KG015614@imap1.linux-foundation.org>
+Subject: - ecryptfs-read_writec-routines.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:40:50 -0700
+Message-ID: <200710162040.l9GKeoET015726@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44522 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51715 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761542AbXJPVHv (ORCPT
+	by vger.kernel.org with ESMTP id S935873AbXJPVIB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:07:51 -0400
+	Tue, 16 Oct 2007 17:08:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, kkeil@suse.de, mm-commits@vger.kernel.org
+To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix possible NULL deref on low memory condition in capidrv.c::send_message()
+     eCryptfs: read_write.c routines
 has been removed from the -mm tree.  Its filename was
-     fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message.patch
+     ecryptfs-read_writec-routines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix possible NULL deref on low memory condition in capidrv.c::send_message()
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: eCryptfs: read_write.c routines
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-If we fail to allocate an skb in
-drivers/isdn/capi/capidrv.c::send_message(), then we'll end up
-dereferencing a NULL pointer.
-Since out of memory conditions are not unheard of, I believe it
-is better to print a error message and just return rather than
-bring down the whole kernel.
-Sure, doing this may upset some application, but that's still
-better than crashing the whole system.
+Add a set of functions through which all I/O to lower files is consolidated. 
+This patch adds a new inode_info reference to a persistent lower file for each
+eCryptfs inode; another patch later in this series will set that up.  This
+persistent lower file is what the read_write.c functions use to call
+vfs_read() and vfs_write() on the lower filesystem, so even when reads and
+writes come in through aops->readpage and aops->writepage, we can satisfy them
+without resorting to direct access to the lower inode's address space. 
+Several function declarations are going to be changing with this patchset. 
+For now, in order to keep from breaking the build, I am putting dummy
+parameters in for those functions.
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Acked-by: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/capi/capidrv.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/ecryptfs/Makefile          |    2 
+ fs/ecryptfs/ecryptfs_kernel.h |   18 +
+ fs/ecryptfs/mmap.c            |    2 
+ fs/ecryptfs/read_write.c      |  359 ++++++++++++++++++++++++++++++++
+ 4 files changed, 379 insertions(+), 2 deletions(-)
 
-diff -puN drivers/isdn/capi/capidrv.c~fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message drivers/isdn/capi/capidrv.c
---- a/drivers/isdn/capi/capidrv.c~fix-possible-null-deref-on-low-memory-condition-in-capidrvcsend_message
-+++ a/drivers/isdn/capi/capidrv.c
-@@ -506,9 +506,14 @@ static void send_message(capidrv_contr *
+diff -puN fs/ecryptfs/Makefile~ecryptfs-read_writec-routines fs/ecryptfs/Makefile
+--- a/fs/ecryptfs/Makefile~ecryptfs-read_writec-routines
++++ a/fs/ecryptfs/Makefile
+@@ -4,4 +4,4 @@
+ 
+ obj-$(CONFIG_ECRYPT_FS) += ecryptfs.o
+ 
+-ecryptfs-objs := dentry.o file.o inode.o main.o super.o mmap.o crypto.o keystore.o messaging.o netlink.o debug.o
++ecryptfs-objs := dentry.o file.o inode.o main.o super.o mmap.o read_write.o crypto.o keystore.o messaging.o netlink.o debug.o
+diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-read_writec-routines fs/ecryptfs/ecryptfs_kernel.h
+--- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-read_writec-routines
++++ a/fs/ecryptfs/ecryptfs_kernel.h
+@@ -260,6 +260,8 @@ struct ecryptfs_crypt_stat {
+ struct ecryptfs_inode_info {
+ 	struct inode vfs_inode;
+ 	struct inode *wii_inode;
++	struct file *lower_file;
++	struct mutex lower_file_mutex;
+ 	struct ecryptfs_crypt_stat crypt_stat;
+ };
+ 
+@@ -653,5 +655,21 @@ int ecryptfs_keyring_auth_tok_for_sig(st
+ 				      char *sig);
+ int ecryptfs_write_zeros(struct file *file, pgoff_t index, int start,
+ 			 int num_zeros);
++int ecryptfs_write_lower(struct inode *ecryptfs_inode, char *data,
++			 loff_t offset, size_t size);
++int ecryptfs_write_lower_page_segment(struct inode *ecryptfs_inode,
++				      struct page *page_for_lower,
++				      size_t offset_in_page, size_t size);
++int ecryptfs_write(struct file *ecryptfs_file, char *data, loff_t offset,
++		   size_t size);
++int ecryptfs_read_lower(char *data, loff_t offset, size_t size,
++			struct inode *ecryptfs_inode);
++int ecryptfs_read_lower_page_segment(struct page *page_for_ecryptfs,
++				     pgoff_t page_index,
++				     size_t offset_in_page, size_t size,
++				     struct inode *ecryptfs_inode);
++int ecryptfs_read(char *data, loff_t offset, size_t size,
++		  struct file *ecryptfs_file);
++struct page *ecryptfs_get1page(struct file *file, loff_t index);
+ 
+ #endif /* #ifndef ECRYPTFS_KERNEL_H */
+diff -puN fs/ecryptfs/mmap.c~ecryptfs-read_writec-routines fs/ecryptfs/mmap.c
+--- a/fs/ecryptfs/mmap.c~ecryptfs-read_writec-routines
++++ a/fs/ecryptfs/mmap.c
+@@ -44,7 +44,7 @@ struct kmem_cache *ecryptfs_lower_page_c
+  * Returns unlocked and up-to-date page (if ok), with increased
+  * refcnt.
+  */
+-static struct page *ecryptfs_get1page(struct file *file, int index)
++struct page *ecryptfs_get1page(struct file *file, loff_t index)
  {
- 	struct sk_buff *skb;
- 	size_t len;
+ 	struct dentry *dentry;
+ 	struct inode *inode;
+diff -puN /dev/null fs/ecryptfs/read_write.c
+--- /dev/null
++++ a/fs/ecryptfs/read_write.c
+@@ -0,0 +1,359 @@
++/**
++ * eCryptfs: Linux filesystem encryption layer
++ *
++ * Copyright (C) 2007 International Business Machines Corp.
++ *   Author(s): Michael A. Halcrow <mahalcro@us.ibm.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of the
++ * License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
++ * 02111-1307, USA.
++ */
 +
- 	capi_cmsg2message(cmsg, cmsg->buf);
- 	len = CAPIMSG_LEN(cmsg->buf);
- 	skb = alloc_skb(len, GFP_ATOMIC);
-+	if (!skb) {
-+		printk(KERN_ERR "capidrv::send_message: can't allocate mem\n");
-+		return;
++#include <linux/fs.h>
++#include <linux/pagemap.h>
++#include "ecryptfs_kernel.h"
++
++/**
++ * ecryptfs_write_lower
++ * @ecryptfs_inode: The eCryptfs inode
++ * @data: Data to write
++ * @offset: Byte offset in the lower file to which to write the data
++ * @size: Number of bytes from @data to write at @offset in the lower
++ *        file
++ *
++ * Write data to the lower file.
++ *
++ * Returns zero on success; non-zero on error
++ */
++int ecryptfs_write_lower(struct inode *ecryptfs_inode, char *data,
++			 loff_t offset, size_t size)
++{
++	struct ecryptfs_inode_info *inode_info;
++	ssize_t octets_written;
++	mm_segment_t fs_save;
++	int rc = 0;
++
++	inode_info = ecryptfs_inode_to_private(ecryptfs_inode);
++	mutex_lock(&inode_info->lower_file_mutex);
++	BUG_ON(!inode_info->lower_file);
++	inode_info->lower_file->f_pos = offset;
++	fs_save = get_fs();
++	set_fs(get_ds());
++	octets_written = vfs_write(inode_info->lower_file, data, size,
++				   &inode_info->lower_file->f_pos);
++	set_fs(fs_save);
++	if (octets_written < 0) {
++		printk(KERN_ERR "%s: octets_written = [%td]; "
++		       "expected [%td]\n", __FUNCTION__, octets_written, size);
++		rc = -EINVAL;
 +	}
- 	memcpy(skb_put(skb, len), cmsg->buf, len);
- 	if (capi20_put_message(&global.ap, skb) != CAPI_NOERROR)
- 		kfree_skb(skb);
++	mutex_unlock(&inode_info->lower_file_mutex);
++	mark_inode_dirty_sync(ecryptfs_inode);
++	return rc;
++}
++
++/**
++ * ecryptfs_write_lower_page_segment
++ * @ecryptfs_inode: The eCryptfs inode
++ * @page_for_lower: The page containing the data to be written to the
++ *                  lower file
++ * @offset_in_page: The offset in the @page_for_lower from which to
++ *                  start writing the data
++ * @size: The amount of data from @page_for_lower to write to the
++ *        lower file
++ *
++ * Determines the byte offset in the file for the given page and
++ * offset within the page, maps the page, and makes the call to write
++ * the contents of @page_for_lower to the lower inode.
++ *
++ * Returns zero on success; non-zero otherwise
++ */
++int ecryptfs_write_lower_page_segment(struct inode *ecryptfs_inode,
++				      struct page *page_for_lower,
++				      size_t offset_in_page, size_t size)
++{
++	char *virt;
++	loff_t offset;
++	int rc;
++
++	offset = (page_for_lower->index << PAGE_CACHE_SHIFT) + offset_in_page;
++	virt = kmap(page_for_lower);
++	rc = ecryptfs_write_lower(ecryptfs_inode, virt, offset, size);
++	kunmap(page_for_lower);
++	return rc;
++}
++
++/**
++ * ecryptfs_write
++ * @ecryptfs_file: The eCryptfs file into which to write
++ * @data: Virtual address where data to write is located
++ * @offset: Offset in the eCryptfs file at which to begin writing the
++ *          data from @data
++ * @size: The number of bytes to write from @data
++ *
++ * Write an arbitrary amount of data to an arbitrary location in the
++ * eCryptfs inode page cache. This is done on a page-by-page, and then
++ * by an extent-by-extent, basis; individual extents are encrypted and
++ * written to the lower page cache (via VFS writes). This function
++ * takes care of all the address translation to locations in the lower
++ * filesystem; it also handles truncate events, writing out zeros
++ * where necessary.
++ *
++ * Returns zero on success; non-zero otherwise
++ */
++int ecryptfs_write(struct file *ecryptfs_file, char *data, loff_t offset,
++		   size_t size)
++{
++	struct page *ecryptfs_page;
++	char *ecryptfs_page_virt;
++	u64 ecryptfs_file_size = i_size_read(ecryptfs_file->f_dentry->d_inode);
++	loff_t data_offset = 0;
++	loff_t pos;
++	int rc = 0;
++
++	if (offset > ecryptfs_file_size)
++		pos = ecryptfs_file_size;
++	else
++		pos = offset;
++	while (pos < (offset + size)) {
++		pgoff_t ecryptfs_page_idx = (pos >> PAGE_CACHE_SHIFT);
++		size_t start_offset_in_page = (pos & ~PAGE_CACHE_MASK);
++		size_t num_bytes = (PAGE_CACHE_SIZE - start_offset_in_page);
++		size_t total_remaining_bytes = ((offset + size) - pos);
++
++		if (num_bytes > total_remaining_bytes)
++			num_bytes = total_remaining_bytes;
++		if (pos < offset) {
++			size_t total_remaining_zeros = (offset - pos);
++
++			if (num_bytes > total_remaining_zeros)
++				num_bytes = total_remaining_zeros;
++		}
++		ecryptfs_page = ecryptfs_get1page(ecryptfs_file,
++						  ecryptfs_page_idx);
++		if (IS_ERR(ecryptfs_page)) {
++			rc = PTR_ERR(ecryptfs_page);
++			printk(KERN_ERR "%s: Error getting page at "
++			       "index [%ld] from eCryptfs inode "
++			       "mapping; rc = [%d]\n", __FUNCTION__,
++			       ecryptfs_page_idx, rc);
++			goto out;
++		}
++		if (start_offset_in_page) {
++			/* Read in the page from the lower
++			 * into the eCryptfs inode page cache,
++			 * decrypting */
++			if ((rc = ecryptfs_decrypt_page(NULL, /* placeholder for git-bisect */
++							ecryptfs_page))) {
++				printk(KERN_ERR "%s: Error decrypting "
++				       "page; rc = [%d]\n",
++				       __FUNCTION__, rc);
++				page_cache_release(ecryptfs_page);
++				goto out;
++			}
++		}
++		ecryptfs_page_virt = kmap_atomic(ecryptfs_page, KM_USER0);
++		if (pos >= offset) {
++			memcpy(((char *)ecryptfs_page_virt
++				+ start_offset_in_page),
++			       (data + data_offset), num_bytes);
++			data_offset += num_bytes;
++		} else {
++			/* We are extending past the previous end of the file.
++			 * Fill in zero values up to the start of where we
++			 * will be writing data. */
++			memset(((char *)ecryptfs_page_virt
++				+ start_offset_in_page), 0, num_bytes);
++		}
++		kunmap_atomic(ecryptfs_page_virt, KM_USER0);
++		flush_dcache_page(ecryptfs_page);
++		rc = ecryptfs_encrypt_page(NULL /* placeholder for git-bisect */);
++		if (rc) {
++			printk(KERN_ERR "%s: Error encrypting "
++			       "page; rc = [%d]\n", __FUNCTION__, rc);
++			page_cache_release(ecryptfs_page);
++			goto out;
++		}
++		page_cache_release(ecryptfs_page);
++		pos += num_bytes;
++	}
++	if ((offset + size) > ecryptfs_file_size) {
++		i_size_write(ecryptfs_file->f_dentry->d_inode, (offset + size));
++		rc = ecryptfs_write_inode_size_to_metadata(NULL, NULL, NULL,
++							   NULL, 0); /* placeholders for git-bisect */
++		if (rc) {
++			printk(KERN_ERR	"Problem with "
++			       "ecryptfs_write_inode_size_to_metadata; "
++			       "rc = [%d]\n", rc);
++			goto out;
++		}
++	}
++out:
++	return rc;
++}
++
++/**
++ * ecryptfs_read_lower
++ * @data: The read data is stored here by this function
++ * @offset: Byte offset in the lower file from which to read the data
++ * @size: Number of bytes to read from @offset of the lower file and
++ *        store into @data
++ * @ecryptfs_inode: The eCryptfs inode
++ *
++ * Read @size bytes of data at byte offset @offset from the lower
++ * inode into memory location @data.
++ *
++ * Returns zero on success; non-zero on error
++ */
++int ecryptfs_read_lower(char *data, loff_t offset, size_t size,
++			struct inode *ecryptfs_inode)
++{
++	struct ecryptfs_inode_info *inode_info =
++		ecryptfs_inode_to_private(ecryptfs_inode);
++	ssize_t octets_read;
++	mm_segment_t fs_save;
++	size_t i;
++	int rc = 0;
++
++	mutex_lock(&inode_info->lower_file_mutex);
++	BUG_ON(!inode_info->lower_file);
++	inode_info->lower_file->f_pos = offset;
++	fs_save = get_fs();
++	set_fs(get_ds());
++	octets_read = vfs_read(inode_info->lower_file, data, size,
++			       &inode_info->lower_file->f_pos);
++	set_fs(fs_save);
++	if (octets_read < 0) {
++		printk(KERN_ERR "%s: octets_read = [%td]; "
++		       "expected [%td]\n", __FUNCTION__, octets_read, size);
++		rc = -EINVAL;
++	}
++	mutex_unlock(&inode_info->lower_file_mutex);
++	for (i = 0; i < size; i += PAGE_CACHE_SIZE) {
++		struct page *data_page;
++
++		data_page = virt_to_page(data + i);
++		flush_dcache_page(data_page);
++		if (rc)
++			ClearPageUptodate(data_page);
++		else
++			SetPageUptodate(data_page);
++	}
++	return rc;
++}
++
++/**
++ * ecryptfs_read_lower_page_segment
++ * @page_for_ecryptfs: The page into which data for eCryptfs will be
++ *                     written
++ * @offset_in_page: Offset in @page_for_ecryptfs from which to start
++ *                  writing
++ * @size: The number of bytes to write into @page_for_ecryptfs
++ * @ecryptfs_inode: The eCryptfs inode
++ *
++ * Determines the byte offset in the file for the given page and
++ * offset within the page, maps the page, and makes the call to read
++ * the contents of @page_for_ecryptfs from the lower inode.
++ *
++ * Returns zero on success; non-zero otherwise
++ */
++int ecryptfs_read_lower_page_segment(struct page *page_for_ecryptfs,
++				     pgoff_t page_index,
++				     size_t offset_in_page, size_t size,
++				     struct inode *ecryptfs_inode)
++{
++	char *virt;
++	loff_t offset;
++	int rc;
++
++	offset = ((page_index << PAGE_CACHE_SHIFT) + offset_in_page);
++	virt = kmap(page_for_ecryptfs);
++	rc = ecryptfs_read_lower(virt, offset, size, ecryptfs_inode);
++	kunmap(page_for_ecryptfs);
++	return rc;
++}
++
++/**
++ * ecryptfs_read
++ * @data: The virtual address into which to write the data read (and
++ *        possibly decrypted) from the lower file
++ * @offset: The offset in the decrypted view of the file from which to
++ *          read into @data
++ * @size: The number of bytes to read into @data
++ * @ecryptfs_file: The eCryptfs file from which to read
++ *
++ * Read an arbitrary amount of data from an arbitrary location in the
++ * eCryptfs page cache. This is done on an extent-by-extent basis;
++ * individual extents are decrypted and read from the lower page
++ * cache (via VFS reads). This function takes care of all the
++ * address translation to locations in the lower filesystem.
++ *
++ * Returns zero on success; non-zero otherwise
++ */
++int ecryptfs_read(char *data, loff_t offset, size_t size,
++		  struct file *ecryptfs_file)
++{
++	struct page *ecryptfs_page;
++	char *ecryptfs_page_virt;
++	u64 ecryptfs_file_size = i_size_read(ecryptfs_file->f_dentry->d_inode);
++	loff_t data_offset = 0;
++	loff_t pos;
++	int rc = 0;
++
++	if ((offset + size) > ecryptfs_file_size) {
++		rc = -EINVAL;
++		printk(KERN_ERR "%s: Attempt to read data past the end of the "
++			"file; offset = [%lld]; size = [%td]; "
++		       "ecryptfs_file_size = [%lld]\n",
++		       __FUNCTION__, offset, size, ecryptfs_file_size);
++		goto out;
++	}
++	pos = offset;
++	while (pos < (offset + size)) {
++		pgoff_t ecryptfs_page_idx = (pos >> PAGE_CACHE_SHIFT);
++		size_t start_offset_in_page = (pos & ~PAGE_CACHE_MASK);
++		size_t num_bytes = (PAGE_CACHE_SIZE - start_offset_in_page);
++		size_t total_remaining_bytes = ((offset + size) - pos);
++
++		if (num_bytes > total_remaining_bytes)
++			num_bytes = total_remaining_bytes;
++		ecryptfs_page = ecryptfs_get1page(ecryptfs_file,
++						  ecryptfs_page_idx);
++		if (IS_ERR(ecryptfs_page)) {
++			rc = PTR_ERR(ecryptfs_page);
++			printk(KERN_ERR "%s: Error getting page at "
++			       "index [%ld] from eCryptfs inode "
++			       "mapping; rc = [%d]\n", __FUNCTION__,
++			       ecryptfs_page_idx, rc);
++			goto out;
++		}
++		rc = ecryptfs_decrypt_page(NULL /* placeholder for git-bisect */, ecryptfs_page);
++		if (rc) {
++			printk(KERN_ERR "%s: Error decrypting "
++			       "page; rc = [%d]\n", __FUNCTION__, rc);
++			page_cache_release(ecryptfs_page);
++			goto out;
++		}
++		ecryptfs_page_virt = kmap_atomic(ecryptfs_page, KM_USER0);
++		memcpy((data + data_offset),
++		       ((char *)ecryptfs_page_virt + start_offset_in_page),
++		       num_bytes);
++		kunmap_atomic(ecryptfs_page_virt, KM_USER0);
++		page_cache_release(ecryptfs_page);
++		pos += num_bytes;
++		data_offset += num_bytes;
++	}
++out:
++	return rc;
++}
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
 origin.patch
-git-alsa.patch
-git-cifs.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
-git-xfs.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-clean-up-duplicate-includes-in-drivers-w1.patch
-clean-up-duplicate-includes-in-fs.patch
-clean-up-duplicate-includes-in-fs-ecryptfs.patch
-clean-up-duplicate-includes-in-kernel.patch
-avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
-floppy-remove-dead-commented-out-code-from-floppy-driver.patch
-floppy-remove-register-keyword-use-from-floppy-driver.patch
-clean-up-duplicate-includes-in-documentation.patch
-add-a-missing-00-index-file-for-documentation-vm.patch
-add-a-missing-00-index-file-for-documentation-vm-fix.patch
-add-a-00-index-file-to-documentation-mips.patch
-add-a-00-index-file-to-documentation-sysctl.patch
-add-a-00-index-file-to-documentation-telephony.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
-cyclades-avoid-label-defined-but-not-used-warning.patch
+git-unionfs.patch
+ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
+vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
