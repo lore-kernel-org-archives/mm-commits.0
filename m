@@ -1,1080 +1,1091 @@
 From: akpm@linux-foundation.org
-Subject: - uml-fix-hostfs-style.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:38:10 -0700
-Message-ID: <200710162038.l9GKcAwA015419@imap1.linux-foundation.org>
+Subject: - s3c2410fb-multi-display-support.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:43:08 -0700
+Message-ID: <200710162043.l9GKh8mX016018@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48698 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55361 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965818AbXJPVUE (ORCPT
+	by vger.kernel.org with ESMTP id S934697AbXJPVUJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:20:04 -0400
+	Tue, 16 Oct 2007 17:20:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: fix hostfs style
+     s3c2410fb: multi-display support
 has been removed from the -mm tree.  Its filename was
-     uml-fix-hostfs-style.patch
+     s3c2410fb-multi-display-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: fix hostfs style
-From: Jeff Dike <jdike@addtoit.com>
+Subject: s3c2410fb: multi-display support
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Style fixes in hostfs.
+This patch adds a new structure to describe and handle
+more than one panel (display mode) for the s3c2410 framebuffer.
+This structure is added after the pxafb driver.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hostfs/hostfs.h      |    9 +
- fs/hostfs/hostfs_kern.c |  226 +++++++++++++++++++-------------------
- fs/hostfs/hostfs_user.c |  139 +++++++++++++----------
- 3 files changed, 202 insertions(+), 172 deletions(-)
+ arch/arm/mach-s3c2410/mach-amlm5900.c |   49 +---
+ arch/arm/mach-s3c2410/mach-bast.c     |  185 ++++++++++++++--
+ arch/arm/mach-s3c2410/mach-h1940.c    |   26 +-
+ arch/arm/mach-s3c2410/mach-qt2410.c   |  264 ++++++++++--------------
+ arch/arm/mach-s3c2440/mach-rx3715.c   |   38 +--
+ arch/arm/mach-s3c2440/mach-smdk2440.c |   41 +--
+ drivers/video/s3c2410fb.c             |   85 ++++---
+ drivers/video/s3c2410fb.h             |    2 
+ include/asm-arm/arch-s3c2410/fb.h     |   33 +--
+ 9 files changed, 407 insertions(+), 316 deletions(-)
 
-diff -puN fs/hostfs/hostfs.h~uml-fix-hostfs-style fs/hostfs/hostfs.h
---- a/fs/hostfs/hostfs.h~uml-fix-hostfs-style
-+++ a/fs/hostfs/hostfs.h
-@@ -3,7 +3,8 @@
+diff -puN arch/arm/mach-s3c2410/mach-amlm5900.c~s3c2410fb-multi-display-support arch/arm/mach-s3c2410/mach-amlm5900.c
+--- a/arch/arm/mach-s3c2410/mach-amlm5900.c~s3c2410fb-multi-display-support
++++ a/arch/arm/mach-s3c2410/mach-amlm5900.c
+@@ -168,13 +168,32 @@ static void __init amlm5900_map_io(void)
+ }
  
- #include "os.h"
+ #ifdef CONFIG_FB_S3C2410
+-static struct s3c2410fb_mach_info __initdata amlm5900_lcd_info = {
++static struct s3c2410fb_display __initdata amlm5900_lcd_info = {
+ 	.width		= 160,
+ 	.height		= 160,
  
--/* These are exactly the same definitions as in fs.h, but the names are
-+/*
-+ * These are exactly the same definitions as in fs.h, but the names are
-  * changed so that this file can be included in both kernel and user files.
-  */
+ /* commented out until stn patch is submitted
+ *	.type		= S3C2410_LCDCON1_STN4,
+ */
++	.xres		= 160,
++	.yres		= 160,
++	.bpp		= 4,
++
++	.regs		= {
++		.lcdcon1	= 0x00008225,
++		.lcdcon2	= 0x0027c000,
++		.lcdcon3	= 0x00182708,
++		.lcdcon4	= 0x00000002,
++		.lcdcon5	= 0x00000001,
++	}
++};
++
++static struct s3c2410fb_mach_info __initdata amlm5900_fb_info = {
++
++	.displays = &amlm5900_lcd_info,
++	.num_displays = 1,
++	.default_display = 0,
++
+ 	.gpccon =	0xaaaaaaaa,
+ 	.gpccon_mask =	0xffffffff,
+ 	.gpcup =	0x0000ffff,
+@@ -184,32 +203,6 @@ static struct s3c2410fb_mach_info __init
+ 	.gpdcon_mask =	0xffffffff,
+ 	.gpdup =	0x0000ffff,
+ 	.gpdup_mask =	0xffffffff,
+-
+-	.xres		= {
+-		.min		= 160,
+-		.max		= 160,
+-		.defval		= 160,
+-	},
+-
+-	.yres		= {
+-		.min		= 160,
+-		.max	        = 160,
+-		.defval		= 160,
+-	},
+-
+-	.bpp		= {
+-		.min		= 4,
+-		.max		= 4,
+-		.defval		= 4,
+-	},
+-
+-	.regs		= {
+-		.lcdcon1	= 0x00008225,
+-		.lcdcon2	= 0x0027c000,
+-		.lcdcon3	= 0x00182708,
+-		.lcdcon4	= 0x00000002,
+-		.lcdcon5	= 0x00000001,
+-	}
+ };
+ #endif
  
-@@ -21,7 +22,8 @@
- #define HOSTFS_ATTR_FORCE	512	/* Not a change, but a change it */
- #define HOSTFS_ATTR_ATTR_FLAG	1024
- 
--/* If you are very careful, you'll notice that these two are missing:
-+/*
-+ * If you are very careful, you'll notice that these two are missing:
-  *
-  * #define ATTR_KILL_SUID	2048
-  * #define ATTR_KILL_SGID	4096
-@@ -76,7 +78,8 @@ extern int make_symlink(const char *from
- extern int unlink_file(const char *file);
- extern int do_mkdir(const char *file, int mode);
- extern int do_rmdir(const char *file);
--extern int do_mknod(const char *file, int mode, unsigned int major, unsigned int minor);
-+extern int do_mknod(const char *file, int mode, unsigned int major,
-+		    unsigned int minor);
- extern int link_file(const char *from, const char *to);
- extern int do_readlink(char *file, char *buf, int size);
- extern int rename_file(char *from, char *to);
-diff -puN fs/hostfs/hostfs_kern.c~uml-fix-hostfs-style fs/hostfs/hostfs_kern.c
---- a/fs/hostfs/hostfs_kern.c~uml-fix-hostfs-style
-+++ a/fs/hostfs/hostfs_kern.c
-@@ -6,21 +6,14 @@
-  * 2003-02-10 Petr Baudis <pasky@ucw.cz>
-  */
- 
--#include <linux/stddef.h>
- #include <linux/fs.h>
- #include <linux/module.h>
--#include <linux/init.h>
--#include <linux/slab.h>
-+#include <linux/mm.h>
- #include <linux/pagemap.h>
--#include <linux/blkdev.h>
--#include <linux/list.h>
- #include <linux/statfs.h>
--#include <linux/kdev_t.h>
--#include <asm/uaccess.h>
- #include "hostfs.h"
--#include "kern_util.h"
--#include "kern.h"
- #include "init.h"
-+#include "kern.h"
- 
- struct hostfs_inode_info {
- 	char *host_filename;
-@@ -61,18 +54,18 @@ static int __init hostfs_args(char *opti
- 	char *ptr;
- 
- 	ptr = strchr(options, ',');
--	if(ptr != NULL)
-+	if (ptr != NULL)
- 		*ptr++ = '\0';
--	if(*options != '\0')
-+	if (*options != '\0')
- 		root_ino = options;
- 
- 	options = ptr;
--	while(options){
-+	while (options) {
- 		ptr = strchr(options, ',');
--		if(ptr != NULL)
-+		if (ptr != NULL)
- 			*ptr++ = '\0';
--		if(*options != '\0'){
--			if(!strcmp(options, "append"))
-+		if (*options != '\0') {
-+			if (!strcmp(options, "append"))
- 				append = 1;
- 			else printf("hostfs_args - unsupported option - %s\n",
- 				    options);
-@@ -102,7 +95,7 @@ static char *dentry_name(struct dentry *
- 
- 	len = 0;
- 	parent = dentry;
--	while(parent->d_parent != parent){
-+	while (parent->d_parent != parent) {
- 		len += parent->d_name.len + 1;
- 		parent = parent->d_parent;
- 	}
-@@ -110,12 +103,12 @@ static char *dentry_name(struct dentry *
- 	root = HOSTFS_I(parent->d_inode)->host_filename;
- 	len += strlen(root);
- 	name = kmalloc(len + extra + 1, GFP_KERNEL);
--	if(name == NULL)
-+	if (name == NULL)
- 		return NULL;
- 
- 	name[len] = '\0';
- 	parent = dentry;
--	while(parent->d_parent != parent){
-+	while (parent->d_parent != parent) {
- 		len -= parent->d_name.len + 1;
- 		name[len] = '/';
- 		strncpy(&name[len + 1], parent->d_name.name,
-@@ -136,7 +129,8 @@ static char *inode_name(struct inode *in
- 
- static int read_name(struct inode *ino, char *name)
+@@ -239,7 +232,7 @@ static void __init amlm5900_init(void)
  {
--	/* The non-int inode fields are copied into ints by stat_file and
-+	/*
-+	 * The non-int inode fields are copied into ints by stat_file and
- 	 * then copied into the inode because passing the actual pointers
- 	 * in and having them treated as int * breaks on big-endian machines
- 	 */
-@@ -149,7 +143,7 @@ static int read_name(struct inode *ino, 
- 	err = stat_file(name, &i_ino, &i_mode, &i_nlink, &ino->i_uid,
- 			&ino->i_gid, &i_size, &ino->i_atime, &ino->i_mtime,
- 			&ino->i_ctime, &i_blksize, &i_blocks, -1);
--	if(err)
-+	if (err)
- 		return err;
+ 	amlm5900_init_pm();
+ #ifdef CONFIG_FB_S3C2410
+-	s3c24xx_fb_set_platdata(&amlm5900_lcd_info);
++	s3c24xx_fb_set_platdata(&amlm5900_fb_info);
+ #endif
+ 	platform_add_devices(amlm5900_devices, ARRAY_SIZE(amlm5900_devices));
+ }
+diff -puN arch/arm/mach-s3c2410/mach-bast.c~s3c2410fb-multi-display-support arch/arm/mach-s3c2410/mach-bast.c
+--- a/arch/arm/mach-s3c2410/mach-bast.c~s3c2410fb-multi-display-support
++++ a/arch/arm/mach-s3c2410/mach-bast.c
+@@ -467,35 +467,160 @@ static struct platform_device bast_devic
  
- 	ino->i_ino = i_ino;
-@@ -166,33 +160,33 @@ static char *follow_link(char *link)
- 	char *name, *resolved, *end;
+ /* LCD/VGA controller */
  
- 	len = 64;
--	while(1){
-+	while (1) {
- 		n = -ENOMEM;
- 		name = kmalloc(len, GFP_KERNEL);
--		if(name == NULL)
-+		if (name == NULL)
- 			goto out;
+-static struct s3c2410fb_mach_info __initdata bast_lcd_info = {
+-	.width		= 640,
+-	.height		= 480,
+-
+-	.xres		= {
+-		.min		= 320,
+-		.max		= 1024,
+-		.defval		= 640,
+-	},
+-
+-	.yres		= {
+-		.min		= 240,
+-		.max	        = 600,
+-		.defval		= 480,
+-	},
+-
+-	.bpp		= {
+-		.min		= 4,
+-		.max		= 16,
+-		.defval		= 8,
+-	},
+-
+-	.regs		= {
+-		.lcdcon1	= 0x00000176,
+-		.lcdcon2	= 0x1d77c7c2,
+-		.lcdcon3	= 0x013a7f13,
+-		.lcdcon4	= 0x00000057,
+-		.lcdcon5	= 0x00014b02,
+-	}
++static struct s3c2410fb_display __initdata bast_lcd_info[] = {
++	{
++		.width		= 640,
++		.height		= 480,
++		.xres		= 320,
++		.yres		= 240,
++
++		.bpp		= 4,
++
++		.regs		= {
++			.lcdcon1	= 0x00000176,
++			.lcdcon2	= 0x1d77c7c2,
++			.lcdcon3	= 0x013a7f13,
++			.lcdcon4	= 0x00000057,
++			.lcdcon5	= 0x00014b02,
++		}
++	},
++	{
++		.width		= 640,
++		.height		= 480,
++
++		.xres		= 640,
++		.yres		= 480,
++		.bpp		= 4,
++
++		.regs		= {
++			.lcdcon1	= 0x00000176,
++			.lcdcon2	= 0x1d77c7c2,
++			.lcdcon3	= 0x013a7f13,
++			.lcdcon4	= 0x00000057,
++			.lcdcon5	= 0x00014b02,
++		}
++	},
++	{
++		.width		= 640,
++		.height		= 480,
++
++		.xres		= 800,
++		.yres		= 600,
++		.bpp		= 4,
++
++		.regs		= {
++			.lcdcon1	= 0x00000176,
++			.lcdcon2	= 0x1d77c7c2,
++			.lcdcon3	= 0x013a7f13,
++			.lcdcon4	= 0x00000057,
++			.lcdcon5	= 0x00014b02,
++		}
++	},
++	{
++		.width		= 640,
++		.height		= 480,
++
++		.xres		= 320,
++		.yres		= 240,
++		.bpp		= 8,
++
++		.regs		= {
++			.lcdcon1	= 0x00000176,
++			.lcdcon2	= 0x1d77c7c2,
++			.lcdcon3	= 0x013a7f13,
++			.lcdcon4	= 0x00000057,
++			.lcdcon5	= 0x00014b02,
++		}
++	},
++	{
++		.width		= 640,
++		.height		= 480,
++
++		.xres		= 640,
++		.yres		= 480,
++		.bpp		= 8,
++
++		.regs		= {
++			.lcdcon1	= 0x00000176,
++			.lcdcon2	= 0x1d77c7c2,
++			.lcdcon3	= 0x013a7f13,
++			.lcdcon4	= 0x00000057,
++			.lcdcon5	= 0x00014b02,
++		}
++	},
++	{
++		.width		= 640,
++		.height		= 480,
++
++		.xres		= 800,
++		.yres		= 600,
++		.bpp		= 8,
++
++		.regs		= {
++			.lcdcon1	= 0x00000176,
++			.lcdcon2	= 0x1d77c7c2,
++			.lcdcon3	= 0x013a7f13,
++			.lcdcon4	= 0x00000057,
++			.lcdcon5	= 0x00014b02,
++		}
++	},
++	{
++		.width		= 640,
++		.height		= 480,
++
++		.xres		= 320,
++		.yres		= 240,
++		.bpp		= 16,
++
++		.regs		= {
++			.lcdcon1	= 0x00000176,
++			.lcdcon2	= 0x1d77c7c2,
++			.lcdcon3	= 0x013a7f13,
++			.lcdcon4	= 0x00000057,
++			.lcdcon5	= 0x00014b02,
++		}
++	},
++	{
++		.width		= 640,
++		.height		= 480,
++
++		.xres		= 640,
++		.yres		= 480,
++		.bpp		= 16,
++
++		.regs		= {
++			.lcdcon1	= 0x00000176,
++			.lcdcon2	= 0x1d77c7c2,
++			.lcdcon3	= 0x013a7f13,
++			.lcdcon4	= 0x00000057,
++			.lcdcon5	= 0x00014b02,
++		}
++	},
++	{
++		.width		= 640,
++		.height		= 480,
++
++		.xres		= 800,
++		.yres		= 600,
++		.bpp		= 16,
++
++		.regs		= {
++			.lcdcon1	= 0x00000176,
++			.lcdcon2	= 0x1d77c7c2,
++			.lcdcon3	= 0x013a7f13,
++			.lcdcon4	= 0x00000057,
++			.lcdcon5	= 0x00014b02,
++		}
++	},
++};
++
++/* LCD/VGA controller */
++
++static struct s3c2410fb_mach_info __initdata bast_fb_info = {
++
++	.displays = bast_lcd_info,
++	.num_displays = ARRAY_SIZE(bast_lcd_info),
++	.default_display = 4,
+ };
  
- 		n = do_readlink(link, name, len);
--		if(n < len)
-+		if (n < len)
- 			break;
- 		len *= 2;
- 		kfree(name);
- 	}
--	if(n < 0)
-+	if (n < 0)
- 		goto out_free;
+ /* Standard BAST devices */
+@@ -552,7 +677,7 @@ static void __init bast_map_io(void)
  
--	if(*name == '/')
-+	if (*name == '/')
- 		return name;
- 
- 	end = strrchr(link, '/');
--	if(end == NULL)
-+	if (end == NULL)
- 		return name;
- 
- 	*(end + 1) = '\0';
- 	len = strlen(link) + strlen(name) + 1;
- 
- 	resolved = kmalloc(len, GFP_KERNEL);
--	if(resolved == NULL){
-+	if (resolved == NULL) {
- 		n = -ENOMEM;
- 		goto out_free;
- 	}
-@@ -213,20 +207,21 @@ static int read_inode(struct inode *ino)
- 	char *name;
- 	int err = 0;
- 
--	/* Unfortunately, we are called from iget() when we don't have a dentry
-+	/*
-+	 * Unfortunately, we are called from iget() when we don't have a dentry
- 	 * allocated yet.
- 	 */
--	if(list_empty(&ino->i_dentry))
-+	if (list_empty(&ino->i_dentry))
- 		goto out;
- 
- 	err = -ENOMEM;
- 	name = inode_name(ino, 0);
--	if(name == NULL)
-+	if (name == NULL)
- 		goto out;
- 
--	if(file_type(name, NULL, NULL) == OS_TYPE_SYMLINK){
-+	if (file_type(name, NULL, NULL) == OS_TYPE_SYMLINK) {
- 		name = follow_link(name);
--		if(IS_ERR(name)){
-+		if (IS_ERR(name)) {
- 			err = PTR_ERR(name);
- 			goto out;
- 		}
-@@ -240,7 +235,8 @@ static int read_inode(struct inode *ino)
- 
- int hostfs_statfs(struct dentry *dentry, struct kstatfs *sf)
+ static void __init bast_init(void)
  {
--	/* do_statfs uses struct statfs64 internally, but the linux kernel
-+	/*
-+	 * do_statfs uses struct statfs64 internally, but the linux kernel
- 	 * struct statfs still has 32-bit versions for most of these fields,
- 	 * so we convert them here
- 	 */
-@@ -255,7 +251,7 @@ int hostfs_statfs(struct dentry *dentry,
- 			&sf->f_bsize, &f_blocks, &f_bfree, &f_bavail, &f_files,
- 			&f_ffree, &sf->f_fsid, sizeof(sf->f_fsid),
- 			&sf->f_namelen, sf->f_spare);
--	if(err)
-+	if (err)
- 		return err;
- 	sf->f_blocks = f_blocks;
- 	sf->f_bfree = f_bfree;
-@@ -271,7 +267,7 @@ static struct inode *hostfs_alloc_inode(
- 	struct hostfs_inode_info *hi;
+-	s3c24xx_fb_set_platdata(&bast_lcd_info);
++	s3c24xx_fb_set_platdata(&bast_fb_info);
+ 	platform_add_devices(bast_devices, ARRAY_SIZE(bast_devices));
+ }
  
- 	hi = kmalloc(sizeof(*hi), GFP_KERNEL);
--	if(hi == NULL)
-+	if (hi == NULL)
- 		return NULL;
+diff -puN arch/arm/mach-s3c2410/mach-h1940.c~s3c2410fb-multi-display-support arch/arm/mach-s3c2410/mach-h1940.c
+--- a/arch/arm/mach-s3c2410/mach-h1940.c~s3c2410fb-multi-display-support
++++ a/arch/arm/mach-s3c2410/mach-h1940.c
+@@ -133,8 +133,7 @@ static struct s3c2410_udc_mach_info h194
+ /**
+  * Set lcd on or off
+  **/
+-static struct s3c2410fb_mach_info h1940_lcdcfg __initdata = {
+-	.fixed_syncs=		1,
++static struct s3c2410fb_display h1940_lcd __initdata = {
+ 	.regs={
+ 		.lcdcon1=	S3C2410_LCDCON1_TFT16BPP | \
+ 				S3C2410_LCDCON1_TFT | \
+@@ -156,6 +155,21 @@ static struct s3c2410fb_mach_info h1940_
+ 				S3C2410_LCDCON5_INVVLINE | \
+ 				S3C2410_LCDCON5_HWSWP,
+ 	},
++
++	.width =	240,
++	.height =	320,
++	.xres =		240,
++	.yres =		320,
++	.bpp =		16,
++};
++
++static struct s3c2410fb_mach_info h1940_fb_info __initdata = {
++	.fixed_syncs =		1,
++
++	.displays = &h1940_lcd,
++	.num_displays = 1,
++	.default_display = 0,
++
+ 	.lpcsel=	0x02,
+ 	.gpccon=	0xaa940659,
+ 	.gpccon_mask=	0xffffffff,
+@@ -165,12 +179,6 @@ static struct s3c2410fb_mach_info h1940_
+ 	.gpdcon_mask=	0xffffffff,
+ 	.gpdup=		0x0000faff,
+ 	.gpdup_mask=	0xffffffff,
+-
+-	.width=		240,
+-	.height=	320,
+-	.xres=		{240,240,240},
+-	.yres=		{320,320,320},
+-	.bpp=		{16,16,16},
+ };
  
- 	*hi = ((struct hostfs_inode_info) { .host_filename	= NULL,
-@@ -284,7 +280,7 @@ static struct inode *hostfs_alloc_inode(
- static void hostfs_delete_inode(struct inode *inode)
+ static struct platform_device s3c_device_leds = {
+@@ -217,7 +225,7 @@ static void __init h1940_init(void)
  {
- 	truncate_inode_pages(&inode->i_data, 0);
--	if(HOSTFS_I(inode)->fd != -1) {
-+	if (HOSTFS_I(inode)->fd != -1) {
- 		close_file(&HOSTFS_I(inode)->fd);
- 		HOSTFS_I(inode)->fd = -1;
+ 	u32 tmp;
+ 
+-	s3c24xx_fb_set_platdata(&h1940_lcdcfg);
++	s3c24xx_fb_set_platdata(&h1940_fb_info);
+  	s3c24xx_udc_set_platdata(&h1940_udc_cfg);
+ 
+ 	/* Turn off suspend on both USB ports, and switch the
+diff -puN arch/arm/mach-s3c2410/mach-qt2410.c~s3c2410fb-multi-display-support arch/arm/mach-s3c2410/mach-qt2410.c
+--- a/arch/arm/mach-s3c2410/mach-qt2410.c~s3c2410fb-multi-display-support
++++ a/arch/arm/mach-s3c2410/mach-qt2410.c
+@@ -95,157 +95,116 @@ static struct s3c2410_uartcfg smdk2410_u
+ 
+ /* LCD driver info */
+ 
+-/* Configuration for 640x480 SHARP LQ080V3DG01 */
+-static struct s3c2410fb_mach_info qt2410_biglcd_cfg __initdata = {
+-	.regs	= {
+-
+-		.lcdcon1	= S3C2410_LCDCON1_TFT16BPP |
+-				  S3C2410_LCDCON1_TFT |
+-				  S3C2410_LCDCON1_CLKVAL(0x01),	/* HCLK/4 */
+-
+-		.lcdcon2	= S3C2410_LCDCON2_VBPD(18) |	/* 19 */
+-				  S3C2410_LCDCON2_LINEVAL(479) |
+-				  S3C2410_LCDCON2_VFPD(10) |	/* 11 */
+-				  S3C2410_LCDCON2_VSPW(14),	/* 15 */
+-
+-		.lcdcon3	= S3C2410_LCDCON3_HBPD(43) |	/* 44 */
+-				  S3C2410_LCDCON3_HOZVAL(639) |	/* 640 */
+-				  S3C2410_LCDCON3_HFPD(115),	/* 116 */
+-
+-		.lcdcon4	= S3C2410_LCDCON4_MVAL(0) |
+-				  S3C2410_LCDCON4_HSPW(95),	/* 96 */
+-
+-		.lcdcon5	= S3C2410_LCDCON5_FRM565 |
+-				  S3C2410_LCDCON5_INVVLINE |
+-				  S3C2410_LCDCON5_INVVFRAME |
+-				  S3C2410_LCDCON5_PWREN |
+-				  S3C2410_LCDCON5_HWSWP,
+-	},
+-
+-	.lpcsel		= ((0xCE6) & ~7) | 1<<4,
+-
+-	.width		= 640,
+-	.height		= 480,
+-
+-	.xres		= {
+-		.min	= 640,
+-		.max	= 640,
+-		.defval	= 640,
+-	},
+-
+-	.yres		= {
+-		.min	= 480,
+-		.max	= 480,
+-		.defval = 480,
+-	},
+-
+-	.bpp		= {
+-		.min	= 16,
+-		.max	= 16,
+-		.defval = 16,
+-	},
+-};
+-
+-/* Configuration for 480x640 toppoly TD028TTEC1 */
+-static struct s3c2410fb_mach_info qt2410_prodlcd_cfg __initdata = {
+-	.regs	= {
+-
+-		.lcdcon1	= S3C2410_LCDCON1_TFT16BPP |
+-				  S3C2410_LCDCON1_TFT |
+-				  S3C2410_LCDCON1_CLKVAL(0x01),	/* HCLK/4 */
+-
+-		.lcdcon2	= S3C2410_LCDCON2_VBPD(1) |	/* 2 */
+-				  S3C2410_LCDCON2_LINEVAL(639) |/* 640 */
+-				  S3C2410_LCDCON2_VFPD(3) |	/* 4 */
+-				  S3C2410_LCDCON2_VSPW(1),	/* 2 */
+-
+-		.lcdcon3	= S3C2410_LCDCON3_HBPD(7) |	/* 8 */
+-				  S3C2410_LCDCON3_HOZVAL(479) |	/* 479 */
+-				  S3C2410_LCDCON3_HFPD(23),	/* 24 */
+-
+-		.lcdcon4	= S3C2410_LCDCON4_MVAL(0) |
+-				  S3C2410_LCDCON4_HSPW(7),	/* 8 */
+-
+-		.lcdcon5	= S3C2410_LCDCON5_FRM565 |
+-				  S3C2410_LCDCON5_INVVLINE |
+-				  S3C2410_LCDCON5_INVVFRAME |
+-				  S3C2410_LCDCON5_PWREN |
+-				  S3C2410_LCDCON5_HWSWP,
+-	},
+-
+-	.lpcsel		= ((0xCE6) & ~7) | 1<<4,
+-
+-	.width		= 480,
+-	.height		= 640,
+-
+-	.xres		= {
+-		.min	= 480,
+-		.max	= 480,
+-		.defval	= 480,
+-	},
+-
+-	.yres		= {
+-		.min	= 640,
+-		.max	= 640,
+-		.defval = 640,
+-	},
+-
+-	.bpp		= {
+-		.min	= 16,
+-		.max	= 16,
+-		.defval = 16,
+-	},
+-};
+-
+-/* Config for 240x320 LCD */
+-static struct s3c2410fb_mach_info qt2410_lcd_cfg __initdata = {
+-	.regs	= {
+-
+-		.lcdcon1	= S3C2410_LCDCON1_TFT16BPP |
+-				  S3C2410_LCDCON1_TFT |
+-				  S3C2410_LCDCON1_CLKVAL(0x04),
+-
+-		.lcdcon2	= S3C2410_LCDCON2_VBPD(1) |
+-				  S3C2410_LCDCON2_LINEVAL(319) |
+-				  S3C2410_LCDCON2_VFPD(6) |
+-				  S3C2410_LCDCON2_VSPW(3),
+-
+-		.lcdcon3	= S3C2410_LCDCON3_HBPD(12) |
+-				  S3C2410_LCDCON3_HOZVAL(239) |
+-				  S3C2410_LCDCON3_HFPD(7),
+-
+-		.lcdcon4	= S3C2410_LCDCON4_MVAL(0) |
+-				  S3C2410_LCDCON4_HSPW(3),
+-
+-		.lcdcon5	= S3C2410_LCDCON5_FRM565 |
+-				  S3C2410_LCDCON5_INVVLINE |
+-				  S3C2410_LCDCON5_INVVFRAME |
+-				  S3C2410_LCDCON5_PWREN |
+-				  S3C2410_LCDCON5_HWSWP,
+-	},
++static struct s3c2410fb_display qt2410_lcd_cfg[] __initdata = {
++	{
++		/* Configuration for 640x480 SHARP LQ080V3DG01 */
++		.regs	= {
++
++			.lcdcon1 = S3C2410_LCDCON1_TFT16BPP |
++				   S3C2410_LCDCON1_TFT |
++				   S3C2410_LCDCON1_CLKVAL(0x01), /* HCLK/4 */
++
++			.lcdcon2 = S3C2410_LCDCON2_VBPD(18) |	/* 19 */
++				   S3C2410_LCDCON2_LINEVAL(479) |
++				   S3C2410_LCDCON2_VFPD(10) |	/* 11 */
++				   S3C2410_LCDCON2_VSPW(14),	/* 15 */
++
++			.lcdcon3 = S3C2410_LCDCON3_HBPD(43) |	/* 44 */
++				   S3C2410_LCDCON3_HOZVAL(639) | /* 640 */
++				   S3C2410_LCDCON3_HFPD(115),	/* 116 */
++
++			.lcdcon4 = S3C2410_LCDCON4_MVAL(0) |
++				   S3C2410_LCDCON4_HSPW(95),	/* 96 */
++
++			.lcdcon5 = S3C2410_LCDCON5_FRM565 |
++				   S3C2410_LCDCON5_INVVLINE |
++				   S3C2410_LCDCON5_INVVFRAME |
++				   S3C2410_LCDCON5_PWREN |
++				   S3C2410_LCDCON5_HWSWP,
++		},
++
++		.width		= 640,
++		.height		= 480,
++
++		.xres		= 640,
++		.yres		= 480,
++		.bpp		= 16,
++	},
++	{
++		/* Configuration for 480x640 toppoly TD028TTEC1 */
++		.regs	= {
++
++			.lcdcon1 = S3C2410_LCDCON1_TFT16BPP |
++				   S3C2410_LCDCON1_TFT |
++				   S3C2410_LCDCON1_CLKVAL(0x01), /* HCLK/4 */
++
++			.lcdcon2 = S3C2410_LCDCON2_VBPD(1) |	/* 2 */
++				   S3C2410_LCDCON2_LINEVAL(639) |/* 640 */
++				   S3C2410_LCDCON2_VFPD(3) |	/* 4 */
++				   S3C2410_LCDCON2_VSPW(1),	/* 2 */
++
++			.lcdcon3 = S3C2410_LCDCON3_HBPD(7) |	/* 8 */
++				   S3C2410_LCDCON3_HOZVAL(479) | /* 479 */
++				   S3C2410_LCDCON3_HFPD(23),	/* 24 */
++
++			.lcdcon4 = S3C2410_LCDCON4_MVAL(0) |
++				   S3C2410_LCDCON4_HSPW(7),	/* 8 */
++
++			.lcdcon5 = S3C2410_LCDCON5_FRM565 |
++				   S3C2410_LCDCON5_INVVLINE |
++				   S3C2410_LCDCON5_INVVFRAME |
++				   S3C2410_LCDCON5_PWREN |
++				   S3C2410_LCDCON5_HWSWP,
++		},
++
++		.width		= 480,
++		.height		= 640,
++		.xres		= 480,
++		.yres		= 640,
++		.bpp		= 16,
++	},
++	{
++		/* Config for 240x320 LCD */
++		.regs	= {
++
++			.lcdcon1 = S3C2410_LCDCON1_TFT16BPP |
++				   S3C2410_LCDCON1_TFT |
++				   S3C2410_LCDCON1_CLKVAL(0x04),
++
++			.lcdcon2 = S3C2410_LCDCON2_VBPD(1) |
++				   S3C2410_LCDCON2_LINEVAL(319) |
++				   S3C2410_LCDCON2_VFPD(6) |
++				   S3C2410_LCDCON2_VSPW(3),
++
++			.lcdcon3 = S3C2410_LCDCON3_HBPD(12) |
++				   S3C2410_LCDCON3_HOZVAL(239) |
++				   S3C2410_LCDCON3_HFPD(7),
++
++			.lcdcon4 = S3C2410_LCDCON4_MVAL(0) |
++				   S3C2410_LCDCON4_HSPW(3),
++
++			.lcdcon5 = S3C2410_LCDCON5_FRM565 |
++				   S3C2410_LCDCON5_INVVLINE |
++				   S3C2410_LCDCON5_INVVFRAME |
++				   S3C2410_LCDCON5_PWREN |
++				   S3C2410_LCDCON5_HWSWP,
++		},
++
++		.width		= 240,
++		.height		= 320,
++		.xres		= 240,
++		.yres		= 320,
++		.bpp		= 16,
++	},
++};
++
++
++static struct s3c2410fb_mach_info qt2410_fb_info __initdata = {
++	.displays 	= qt2410_lcd_cfg,
++	.num_displays 	= ARRAY_SIZE(qt2410_lcd_cfg),
++	.default_display = 0,
+ 
+ 	.lpcsel		= ((0xCE6) & ~7) | 1<<4,
+-
+-	.width		= 240,
+-	.height		= 320,
+-
+-	.xres		= {
+-		.min	= 240,
+-		.max	= 240,
+-		.defval	= 240,
+-	},
+-
+-	.yres		= {
+-		.min	= 320,
+-		.max	= 320,
+-		.defval = 320,
+-	},
+-
+-	.bpp		= {
+-		.min	= 16,
+-		.max	= 16,
+-		.defval = 16,
+-	},
+ };
+ 
+ /* CS8900 */
+@@ -408,16 +367,17 @@ static void __init qt2410_machine_init(v
+ 
+ 	switch (tft_type) {
+ 	case 'p': /* production */
+-		s3c24xx_fb_set_platdata(&qt2410_prodlcd_cfg);
++		qt2410_fb_info.default_display = 1;
+ 		break;
+ 	case 'b': /* big */
+-		s3c24xx_fb_set_platdata(&qt2410_biglcd_cfg);
++		qt2410_fb_info.default_display = 0;
+ 		break;
+ 	case 's': /* small */
+ 	default:
+-		s3c24xx_fb_set_platdata(&qt2410_lcd_cfg);
++		qt2410_fb_info.default_display = 2;
+ 		break;
  	}
-@@ -295,9 +291,11 @@ static void hostfs_destroy_inode(struct 
++	s3c24xx_fb_set_platdata(&qt2410_fb_info);
+ 
+ 	s3c2410_gpio_cfgpin(S3C2410_GPB0, S3C2410_GPIO_OUTPUT);
+ 	s3c2410_gpio_setpin(S3C2410_GPB0, 1);
+diff -puN arch/arm/mach-s3c2440/mach-rx3715.c~s3c2410fb-multi-display-support arch/arm/mach-s3c2440/mach-rx3715.c
+--- a/arch/arm/mach-s3c2440/mach-rx3715.c~s3c2410fb-multi-display-support
++++ a/arch/arm/mach-s3c2440/mach-rx3715.c
+@@ -110,7 +110,7 @@ static struct s3c2410_uartcfg rx3715_uar
+ 
+ /* framebuffer lcd controller information */
+ 
+-static struct s3c2410fb_mach_info rx3715_lcdcfg __initdata = {
++static struct s3c2410fb_display rx3715_lcdcfg __initdata = {
+ 	.regs	= {
+ 		.lcdcon1 =	S3C2410_LCDCON1_TFT16BPP | \
+ 				S3C2410_LCDCON1_TFT | \
+@@ -133,6 +133,20 @@ static struct s3c2410fb_mach_info rx3715
+ 				S3C2410_LCDCON5_HWSWP,
+ 	},
+ 
++	.width  =	240,
++	.height =	320,
++
++	.xres	= 240,
++	.yres	= 320,
++	.bpp	= 16,
++};
++
++static struct s3c2410fb_mach_info rx3715_fb_info __initdata = {
++
++	.displays =	&rx3715_lcdcfg,
++	.num_displays =	1,
++	.default_display = 0,
++
+ 	.lpcsel =	0xf82,
+ 
+ 	.gpccon =	0xaa955699,
+@@ -146,26 +160,6 @@ static struct s3c2410fb_mach_info rx3715
+ 	.gpdup_mask =	0xffffffff,
+ 
+ 	.fixed_syncs =	1,
+-	.width  =	240,
+-	.height =	320,
+-
+-	.xres	= {
+-		.min =		240,
+-		.max =		240,
+-		.defval =	240,
+-	},
+-
+-	.yres	= {
+-		.max =		320,
+-		.min =		320,
+-		.defval	=	320,
+-	},
+-
+-	.bpp	= {
+-		.min =		16,
+-		.max =		16,
+-		.defval =	16,
+-	},
+ };
+ 
+ static struct mtd_partition rx3715_nand_part[] = {
+@@ -224,7 +218,7 @@ static void __init rx3715_init_machine(v
+ #endif
+ 	s3c2410_pm_init();
+ 
+-	s3c24xx_fb_set_platdata(&rx3715_lcdcfg);
++	s3c24xx_fb_set_platdata(&rx3715_fb_info);
+ 	platform_add_devices(rx3715_devices, ARRAY_SIZE(rx3715_devices));
+ }
+ 
+diff -puN arch/arm/mach-s3c2440/mach-smdk2440.c~s3c2410fb-multi-display-support arch/arm/mach-s3c2440/mach-smdk2440.c
+--- a/arch/arm/mach-s3c2440/mach-smdk2440.c~s3c2410fb-multi-display-support
++++ a/arch/arm/mach-s3c2440/mach-smdk2440.c
+@@ -103,7 +103,7 @@ static struct s3c2410_uartcfg smdk2440_u
+ 
+ /* LCD driver info */
+ 
+-static struct s3c2410fb_mach_info smdk2440_lcd_cfg __initdata = {
++static struct s3c2410fb_display smdk2440_lcd_cfg __initdata = {
+ 	.regs	= {
+ 
+ 		.lcdcon1	= S3C2410_LCDCON1_TFT16BPP |
+@@ -129,6 +129,21 @@ static struct s3c2410fb_mach_info smdk24
+ 				  S3C2410_LCDCON5_HWSWP,
+ 	},
+ 
++	.type		= S3C2410_LCDCON1_TFT16BPP,
++
++	.width		= 240,
++	.height		= 320,
++
++	.xres		= 240,
++	.yres		= 320,
++	.bpp		= 16,
++};
++
++static struct s3c2410fb_mach_info smdk2440_fb_info __initdata = {
++	.displays	= &smdk2440_lcd_cfg,
++	.num_displays	= 1,
++	.default_display = 0,
++
+ #if 0
+ 	/* currently setup by downloader */
+ 	.gpccon		= 0xaa940659,
+@@ -142,28 +157,6 @@ static struct s3c2410fb_mach_info smdk24
+ #endif
+ 
+ 	.lpcsel		= ((0xCE6) & ~7) | 1<<4,
+-	.type		= S3C2410_LCDCON1_TFT16BPP,
+-
+-	.width		= 240,
+-	.height		= 320,
+-
+-	.xres		= {
+-		.min	= 240,
+-		.max	= 240,
+-		.defval	= 240,
+-	},
+-
+-	.yres		= {
+-		.min	= 320,
+-		.max	= 320,
+-		.defval = 320,
+-	},
+-
+-	.bpp		= {
+-		.min	= 16,
+-		.max	= 16,
+-		.defval = 16,
+-	},
+ };
+ 
+ static struct platform_device *smdk2440_devices[] __initdata = {
+@@ -183,7 +176,7 @@ static void __init smdk2440_map_io(void)
+ 
+ static void __init smdk2440_machine_init(void)
  {
- 	kfree(HOSTFS_I(inode)->host_filename);
+-	s3c24xx_fb_set_platdata(&smdk2440_lcd_cfg);
++	s3c24xx_fb_set_platdata(&smdk2440_fb_info);
  
--	/*XXX: This should not happen, probably. The check is here for
--	 * additional safety.*/
--	if(HOSTFS_I(inode)->fd != -1) {
-+	/*
-+	 * XXX: This should not happen, probably. The check is here for
-+	 * additional safety.
-+	 */
-+	if (HOSTFS_I(inode)->fd != -1) {
- 		close_file(&HOSTFS_I(inode)->fd);
- 		printk(KERN_DEBUG "Closing host fd in .destroy_inode\n");
- 	}
-@@ -327,17 +325,17 @@ int hostfs_readdir(struct file *file, vo
- 	int error, len;
- 
- 	name = dentry_name(file->f_path.dentry, 0);
--	if(name == NULL)
-+	if (name == NULL)
- 		return -ENOMEM;
- 	dir = open_dir(name, &error);
- 	kfree(name);
--	if(dir == NULL)
-+	if (dir == NULL)
- 		return -error;
- 	next = file->f_pos;
--	while((name = read_dir(dir, &next, &ino, &len)) != NULL){
-+	while ((name = read_dir(dir, &next, &ino, &len)) != NULL) {
- 		error = (*filldir)(ent, name, len, file->f_pos,
- 				   ino, DT_UNKNOWN);
--		if(error) break;
-+		if (error) break;
- 		file->f_pos = next;
- 	}
- 	close_dir(dir);
-@@ -350,32 +348,33 @@ int hostfs_file_open(struct inode *ino, 
- 	int mode = 0, r = 0, w = 0, fd;
- 
- 	mode = file->f_mode & (FMODE_READ | FMODE_WRITE);
--	if((mode & HOSTFS_I(ino)->mode) == mode)
-+	if ((mode & HOSTFS_I(ino)->mode) == mode)
- 		return 0;
- 
--	/* The file may already have been opened, but with the wrong access,
-+	/*
-+	 * The file may already have been opened, but with the wrong access,
- 	 * so this resets things and reopens the file with the new access.
- 	 */
--	if(HOSTFS_I(ino)->fd != -1){
-+	if (HOSTFS_I(ino)->fd != -1) {
- 		close_file(&HOSTFS_I(ino)->fd);
- 		HOSTFS_I(ino)->fd = -1;
- 	}
- 
- 	HOSTFS_I(ino)->mode |= mode;
--	if(HOSTFS_I(ino)->mode & FMODE_READ)
-+	if (HOSTFS_I(ino)->mode & FMODE_READ)
- 		r = 1;
--	if(HOSTFS_I(ino)->mode & FMODE_WRITE)
-+	if (HOSTFS_I(ino)->mode & FMODE_WRITE)
- 		w = 1;
--	if(w)
-+	if (w)
- 		r = 1;
- 
- 	name = dentry_name(file->f_path.dentry, 0);
--	if(name == NULL)
-+	if (name == NULL)
- 		return -ENOMEM;
- 
- 	fd = open_file(name, r, w, append);
- 	kfree(name);
--	if(fd < 0)
-+	if (fd < 0)
- 		return fd;
- 	FILE_HOSTFS_I(file)->fd = fd;
- 
-@@ -423,7 +422,7 @@ int hostfs_writepage(struct page *page, 
- 	base = ((unsigned long long) page->index) << PAGE_CACHE_SHIFT;
- 
- 	err = write_file(HOSTFS_I(inode)->fd, &base, buffer, count);
--	if(err != count){
-+	if (err != count) {
- 		ClearPageUptodate(page);
- 		goto out;
- 	}
-@@ -452,7 +451,8 @@ int hostfs_readpage(struct file *file, s
- 	buffer = kmap(page);
- 	err = read_file(FILE_HOSTFS_I(file)->fd, &start, buffer,
- 			PAGE_CACHE_SIZE);
--	if(err < 0) goto out;
-+	if (err < 0)
-+		goto out;
- 
- 	memset(&buffer[err], 0, PAGE_CACHE_SIZE - err);
- 
-@@ -494,7 +494,8 @@ int hostfs_write_end(struct file *file, 
- 	if (!PageUptodate(page) && err == PAGE_CACHE_SIZE)
- 		SetPageUptodate(page);
- 
--	/* If err > 0, write_file has added err to pos, so we are comparing
-+	/*
-+	 * If err > 0, write_file has added err to pos, so we are comparing
- 	 * i_size against the last byte written.
- 	 */
- 	if (err > 0 && (pos > inode->i_size))
-@@ -520,28 +521,28 @@ static int init_inode(struct inode *inod
- 	int maj, min;
- 	dev_t rdev = 0;
- 
--	if(dentry){
-+	if (dentry) {
- 		name = dentry_name(dentry, 0);
--		if(name == NULL)
-+		if (name == NULL)
- 			goto out;
- 		type = file_type(name, &maj, &min);
--		/*Reencode maj and min with the kernel encoding.*/
-+		/* Reencode maj and min with the kernel encoding.*/
- 		rdev = MKDEV(maj, min);
- 		kfree(name);
- 	}
- 	else type = OS_TYPE_DIR;
- 
- 	err = 0;
--	if(type == OS_TYPE_SYMLINK)
-+	if (type == OS_TYPE_SYMLINK)
- 		inode->i_op = &page_symlink_inode_operations;
--	else if(type == OS_TYPE_DIR)
-+	else if (type == OS_TYPE_DIR)
- 		inode->i_op = &hostfs_dir_iops;
- 	else inode->i_op = &hostfs_iops;
- 
--	if(type == OS_TYPE_DIR) inode->i_fop = &hostfs_dir_fops;
-+	if (type == OS_TYPE_DIR) inode->i_fop = &hostfs_dir_fops;
- 	else inode->i_fop = &hostfs_file_fops;
- 
--	if(type == OS_TYPE_SYMLINK)
-+	if (type == OS_TYPE_SYMLINK)
- 		inode->i_mapping->a_ops = &hostfs_link_aops;
- 	else inode->i_mapping->a_ops = &hostfs_aops;
- 
-@@ -564,7 +565,7 @@ static int init_inode(struct inode *inod
- }
- 
- int hostfs_create(struct inode *dir, struct dentry *dentry, int mode,
--                 struct nameidata *nd)
-+		  struct nameidata *nd)
+ 	platform_add_devices(smdk2440_devices, ARRAY_SIZE(smdk2440_devices));
+ 	smdk_machine_init();
+diff -puN drivers/video/s3c2410fb.c~s3c2410fb-multi-display-support drivers/video/s3c2410fb.c
+--- a/drivers/video/s3c2410fb.c~s3c2410fb-multi-display-support
++++ a/drivers/video/s3c2410fb.c
+@@ -174,27 +174,28 @@ static int s3c2410fb_check_var(struct fb
+ 			       struct fb_info *info)
  {
- 	struct inode *inode;
- 	char *name;
-@@ -572,27 +573,28 @@ int hostfs_create(struct inode *dir, str
+ 	struct s3c2410fb_info *fbi = info->par;
++	struct s3c2410fb_mach_info *mach_info = fbi->mach_info;
++	struct s3c2410fb_display *display = NULL;
++	unsigned i;
  
- 	error = -ENOMEM;
- 	inode = iget(dir->i_sb, 0);
--	if(inode == NULL) goto out;
-+	if (inode == NULL)
-+		goto out;
+ 	dprintk("check_var(var=%p, info=%p)\n", var, info);
  
- 	error = init_inode(inode, dentry);
--	if(error)
-+	if (error)
- 		goto out_put;
+ 	/* validate x/y resolution */
  
- 	error = -ENOMEM;
- 	name = dentry_name(dentry, 0);
--	if(name == NULL)
-+	if (name == NULL)
- 		goto out_put;
+-	if (var->yres > fbi->mach_info->yres.max)
+-		var->yres = fbi->mach_info->yres.max;
+-	else if (var->yres < fbi->mach_info->yres.min)
+-		var->yres = fbi->mach_info->yres.min;
+-
+-	if (var->xres > fbi->mach_info->xres.max)
+-		var->yres = fbi->mach_info->xres.max;
+-	else if (var->xres < fbi->mach_info->xres.min)
+-		var->xres = fbi->mach_info->xres.min;
+-
+-	/* validate bpp */
+-
+-	if (var->bits_per_pixel > fbi->mach_info->bpp.max)
+-		var->bits_per_pixel = fbi->mach_info->bpp.max;
+-	else if (var->bits_per_pixel < fbi->mach_info->bpp.min)
+-		var->bits_per_pixel = fbi->mach_info->bpp.min;
++	for (i = 0; i < mach_info->num_displays; i++)
++		if (var->yres == mach_info->displays[i].yres &&
++		    var->xres == mach_info->displays[i].xres &&
++		    var->bits_per_pixel == mach_info->displays[i].bpp) {
++			display = mach_info->displays + i;
++			fbi->current_display = i;
++			break;
++		}
++
++	if (!display) {
++		dprintk("wrong resolution or depth %dx%d at %d bpp\n",
++			var->xres, var->yres, var->bits_per_pixel);
++		return -EINVAL;
++	}
  
- 	fd = file_create(name,
- 			 mode & S_IRUSR, mode & S_IWUSR, mode & S_IXUSR,
- 			 mode & S_IRGRP, mode & S_IWGRP, mode & S_IXGRP,
- 			 mode & S_IROTH, mode & S_IWOTH, mode & S_IXOTH);
--	if(fd < 0)
-+	if (fd < 0)
- 		error = fd;
- 	else error = read_name(inode, name);
+ 	var->transp.offset = 0;
+ 	var->transp.length = 0;
+@@ -209,7 +210,7 @@ static int s3c2410fb_check_var(struct fb
+ 		var->blue	= var->red;
+ 		break;
+ 	case 8:
+-		if (fbi->mach_info->type != S3C2410_LCDCON1_TFT) {
++		if (display->type != S3C2410_LCDCON1_TFT) {
+ 			/* 8 bpp 332 */
+ 			var->red.length		= 3;
+ 			var->red.offset		= 5;
+@@ -236,7 +237,7 @@ static int s3c2410fb_check_var(struct fb
  
- 	kfree(name);
--	if(error)
-+	if (error)
- 		goto out_put;
- 
- 	HOSTFS_I(inode)->fd = fd;
-@@ -615,25 +617,25 @@ struct dentry *hostfs_lookup(struct inod
- 
- 	err = -ENOMEM;
- 	inode = iget(ino->i_sb, 0);
--	if(inode == NULL)
-+	if (inode == NULL)
- 		goto out;
- 
- 	err = init_inode(inode, dentry);
--	if(err)
-+	if (err)
- 		goto out_put;
- 
- 	err = -ENOMEM;
- 	name = dentry_name(dentry, 0);
--	if(name == NULL)
-+	if (name == NULL)
- 		goto out_put;
- 
- 	err = read_name(inode, name);
- 	kfree(name);
--	if(err == -ENOENT){
-+	if (err == -ENOENT) {
- 		iput(inode);
- 		inode = NULL;
- 	}
--	else if(err)
-+	else if (err)
- 		goto out_put;
- 
- 	d_add(dentry, inode);
-@@ -652,7 +654,7 @@ static char *inode_dentry_name(struct in
- 	int len;
- 
- 	file = inode_name(ino, dentry->d_name.len + 1);
--	if(file == NULL)
-+	if (file == NULL)
- 		return NULL;
- 	strcat(file, "/");
- 	len = strlen(file);
-@@ -666,10 +668,10 @@ int hostfs_link(struct dentry *to, struc
- 	char *from_name, *to_name;
- 	int err;
- 
--	if((from_name = inode_dentry_name(ino, from)) == NULL)
-+	if ((from_name = inode_dentry_name(ino, from)) == NULL)
- 		return -ENOMEM;
- 	to_name = dentry_name(to, 0);
--	if(to_name == NULL){
-+	if (to_name == NULL) {
- 		kfree(from_name);
- 		return -ENOMEM;
- 	}
-@@ -684,9 +686,9 @@ int hostfs_unlink(struct inode *ino, str
- 	char *file;
- 	int err;
- 
--	if((file = inode_dentry_name(ino, dentry)) == NULL)
-+	if ((file = inode_dentry_name(ino, dentry)) == NULL)
- 		return -ENOMEM;
--	if(append)
-+	if (append)
- 		return -EPERM;
- 
- 	err = unlink_file(file);
-@@ -699,7 +701,7 @@ int hostfs_symlink(struct inode *ino, st
- 	char *file;
- 	int err;
- 
--	if((file = inode_dentry_name(ino, dentry)) == NULL)
-+	if ((file = inode_dentry_name(ino, dentry)) == NULL)
- 		return -ENOMEM;
- 	err = make_symlink(file, to);
- 	kfree(file);
-@@ -711,7 +713,7 @@ int hostfs_mkdir(struct inode *ino, stru
- 	char *file;
- 	int err;
- 
--	if((file = inode_dentry_name(ino, dentry)) == NULL)
-+	if ((file = inode_dentry_name(ino, dentry)) == NULL)
- 		return -ENOMEM;
- 	err = do_mkdir(file, mode);
- 	kfree(file);
-@@ -723,7 +725,7 @@ int hostfs_rmdir(struct inode *ino, stru
- 	char *file;
- 	int err;
- 
--	if((file = inode_dentry_name(ino, dentry)) == NULL)
-+	if ((file = inode_dentry_name(ino, dentry)) == NULL)
- 		return -ENOMEM;
- 	err = do_rmdir(file);
- 	kfree(file);
-@@ -737,26 +739,26 @@ int hostfs_mknod(struct inode *dir, stru
- 	int err = -ENOMEM;
- 
- 	inode = iget(dir->i_sb, 0);
--	if(inode == NULL)
-+	if (inode == NULL)
- 		goto out;
- 
- 	err = init_inode(inode, dentry);
--	if(err)
-+	if (err)
- 		goto out_put;
- 
- 	err = -ENOMEM;
- 	name = dentry_name(dentry, 0);
--	if(name == NULL)
-+	if (name == NULL)
- 		goto out_put;
- 
- 	init_special_inode(inode, mode, dev);
- 	err = do_mknod(name, mode, MAJOR(dev), MINOR(dev));
--	if(err)
-+	if (err)
- 		goto out_free;
- 
- 	err = read_name(inode, name);
- 	kfree(name);
--	if(err)
-+	if (err)
- 		goto out_put;
- 
- 	d_instantiate(dentry, inode);
-@@ -776,9 +778,9 @@ int hostfs_rename(struct inode *from_ino
- 	char *from_name, *to_name;
- 	int err;
- 
--	if((from_name = inode_dentry_name(from_ino, from)) == NULL)
-+	if ((from_name = inode_dentry_name(from_ino, from)) == NULL)
- 		return -ENOMEM;
--	if((to_name = inode_dentry_name(to_ino, to)) == NULL){
-+	if ((to_name = inode_dentry_name(to_ino, to)) == NULL) {
- 		kfree(from_name);
- 		return -ENOMEM;
- 	}
-@@ -801,12 +803,12 @@ int hostfs_permission(struct inode *ino,
- 		return -ENOMEM;
- 
- 	if (S_ISCHR(ino->i_mode) || S_ISBLK(ino->i_mode) ||
--			S_ISFIFO(ino->i_mode) || S_ISSOCK(ino->i_mode))
-+	    S_ISFIFO(ino->i_mode) || S_ISSOCK(ino->i_mode))
- 		err = 0;
- 	else
- 		err = access_file(name, r, w, x);
- 	kfree(name);
--	if(!err)
-+	if (!err)
- 		err = generic_permission(ino, desired, NULL);
- 	return err;
- }
-@@ -823,50 +825,50 @@ int hostfs_setattr(struct dentry *dentry
- 	if (err)
- 		return err;
- 
--	if(append)
-+	if (append)
- 		attr->ia_valid &= ~ATTR_SIZE;
- 
- 	attrs.ia_valid = 0;
--	if(attr->ia_valid & ATTR_MODE){
-+	if (attr->ia_valid & ATTR_MODE) {
- 		attrs.ia_valid |= HOSTFS_ATTR_MODE;
- 		attrs.ia_mode = attr->ia_mode;
- 	}
--	if(attr->ia_valid & ATTR_UID){
-+	if (attr->ia_valid & ATTR_UID) {
- 		attrs.ia_valid |= HOSTFS_ATTR_UID;
- 		attrs.ia_uid = attr->ia_uid;
- 	}
--	if(attr->ia_valid & ATTR_GID){
-+	if (attr->ia_valid & ATTR_GID) {
- 		attrs.ia_valid |= HOSTFS_ATTR_GID;
- 		attrs.ia_gid = attr->ia_gid;
- 	}
--	if(attr->ia_valid & ATTR_SIZE){
-+	if (attr->ia_valid & ATTR_SIZE) {
- 		attrs.ia_valid |= HOSTFS_ATTR_SIZE;
- 		attrs.ia_size = attr->ia_size;
- 	}
--	if(attr->ia_valid & ATTR_ATIME){
-+	if (attr->ia_valid & ATTR_ATIME) {
- 		attrs.ia_valid |= HOSTFS_ATTR_ATIME;
- 		attrs.ia_atime = attr->ia_atime;
- 	}
--	if(attr->ia_valid & ATTR_MTIME){
-+	if (attr->ia_valid & ATTR_MTIME) {
- 		attrs.ia_valid |= HOSTFS_ATTR_MTIME;
- 		attrs.ia_mtime = attr->ia_mtime;
- 	}
--	if(attr->ia_valid & ATTR_CTIME){
-+	if (attr->ia_valid & ATTR_CTIME) {
- 		attrs.ia_valid |= HOSTFS_ATTR_CTIME;
- 		attrs.ia_ctime = attr->ia_ctime;
- 	}
--	if(attr->ia_valid & ATTR_ATIME_SET){
-+	if (attr->ia_valid & ATTR_ATIME_SET) {
- 		attrs.ia_valid |= HOSTFS_ATTR_ATIME_SET;
- 	}
--	if(attr->ia_valid & ATTR_MTIME_SET){
-+	if (attr->ia_valid & ATTR_MTIME_SET) {
- 		attrs.ia_valid |= HOSTFS_ATTR_MTIME_SET;
- 	}
- 	name = dentry_name(dentry, 0);
--	if(name == NULL)
-+	if (name == NULL)
- 		return -ENOMEM;
- 	err = set_attr(name, &attrs, fd);
- 	kfree(name);
--	if(err)
-+	if (err)
- 		return err;
- 
- 	return inode_setattr(dentry->d_inode, attr);
-@@ -906,13 +908,13 @@ int hostfs_link_readpage(struct file *fi
- 
- 	buffer = kmap(page);
- 	name = inode_name(page->mapping->host, 0);
--	if(name == NULL)
-+	if (name == NULL)
- 		return -ENOMEM;
- 	err = do_readlink(name, buffer, PAGE_CACHE_SIZE);
- 	kfree(name);
--	if(err == PAGE_CACHE_SIZE)
-+	if (err == PAGE_CACHE_SIZE)
- 		err = -E2BIG;
--	else if(err > 0){
-+	else if (err > 0) {
- 		flush_dcache_page(page);
- 		SetPageUptodate(page);
- 		if (PageError(page)) ClearPageError(page);
-@@ -945,31 +947,33 @@ static int hostfs_fill_sb_common(struct 
- 	err = -ENOMEM;
- 	host_root_path = kmalloc(strlen(root_ino) + 1
- 				 + strlen(req_root) + 1, GFP_KERNEL);
--	if(host_root_path == NULL)
-+	if (host_root_path == NULL)
- 		goto out;
- 
- 	sprintf(host_root_path, "%s/%s", root_ino, req_root);
- 
- 	root_inode = iget(sb, 0);
--	if(root_inode == NULL)
-+	if (root_inode == NULL)
- 		goto out_free;
- 
- 	err = init_inode(root_inode, NULL);
--	if(err)
-+	if (err)
- 		goto out_put;
- 
- 	HOSTFS_I(root_inode)->host_filename = host_root_path;
--	/* Avoid that in the error path, iput(root_inode) frees again
--	 * host_root_path through hostfs_destroy_inode! */
-+	/*
-+	 * Avoid that in the error path, iput(root_inode) frees again
-+	 * host_root_path through hostfs_destroy_inode!
-+	 */
- 	host_root_path = NULL;
- 
- 	err = -ENOMEM;
- 	sb->s_root = d_alloc_root(root_inode);
--	if(sb->s_root == NULL)
-+	if (sb->s_root == NULL)
- 		goto out_put;
- 
- 	err = read_inode(root_inode);
--	if(err){
-+	if (err) {
- 		/* No iput in this case because the dput does that for us */
- 		dput(sb->s_root);
- 		sb->s_root = NULL;
-diff -puN fs/hostfs/hostfs_user.c~uml-fix-hostfs-style fs/hostfs/hostfs_user.c
---- a/fs/hostfs/hostfs_user.c~uml-fix-hostfs-style
-+++ a/fs/hostfs/hostfs_user.c
-@@ -3,19 +3,21 @@
-  * Licensed under the GPL
-  */
- 
--#include <unistd.h>
- #include <stdio.h>
--#include <fcntl.h>
-+#include <stddef.h>
-+#include <unistd.h>
- #include <dirent.h>
- #include <errno.h>
--#include <utime.h>
-+#include <fcntl.h>
- #include <string.h>
- #include <sys/stat.h>
- #include <sys/time.h>
-+#include <sys/types.h>
- #include <sys/vfs.h>
- #include "hostfs.h"
--#include "kern_util.h"
-+#include "os.h"
- #include "user.h"
-+#include <utime.h>
- 
- int stat_file(const char *path, unsigned long long *inode_out, int *mode_out,
- 	      int *nlink_out, int *uid_out, int *gid_out,
-@@ -25,33 +27,41 @@ int stat_file(const char *path, unsigned
+ 	default:
+ 	case 16:
+-		if (fbi->regs.lcdcon5 & S3C2410_LCDCON5_FRM565) {
++		if (display->regs.lcdcon5 & S3C2410_LCDCON5_FRM565) {
+ 			/* 16 bpp, 565 format */
+ 			var->red.offset		= 11;
+ 			var->green.offset	= 5;
+@@ -278,6 +279,9 @@ static void s3c2410fb_activate_var(struc
+ 				   struct fb_var_screeninfo *var)
  {
- 	struct stat64 buf;
+ 	struct s3c2410fb_info *fbi = info->par;
++	struct s3c2410fb_mach_info *mach_info = fbi->mach_info;
++	struct s3c2410fb_display *display = mach_info->displays +
++					    fbi->current_display;
+ 	int hs;
  
--	if(fd >= 0) {
-+	if (fd >= 0) {
- 		if (fstat64(fd, &buf) < 0)
- 			return -errno;
--	} else if(lstat64(path, &buf) < 0) {
-+	} else if (lstat64(path, &buf) < 0) {
- 		return -errno;
- 	}
+ 	fbi->regs.lcdcon1 &= ~S3C2410_LCDCON1_MODEMASK;
+@@ -287,9 +291,9 @@ static void s3c2410fb_activate_var(struc
+ 	dprintk("%s: var->yres  = %d\n", __FUNCTION__, var->yres);
+ 	dprintk("%s: var->bpp   = %d\n", __FUNCTION__, var->bits_per_pixel);
  
--	if(inode_out != NULL) *inode_out = buf.st_ino;
--	if(mode_out != NULL) *mode_out = buf.st_mode;
--	if(nlink_out != NULL) *nlink_out = buf.st_nlink;
--	if(uid_out != NULL) *uid_out = buf.st_uid;
--	if(gid_out != NULL) *gid_out = buf.st_gid;
--	if(size_out != NULL) *size_out = buf.st_size;
--	if(atime_out != NULL) {
-+	if (inode_out != NULL)
-+		*inode_out = buf.st_ino;
-+	if (mode_out != NULL)
-+		*mode_out = buf.st_mode;
-+	if (nlink_out != NULL)
-+		*nlink_out = buf.st_nlink;
-+	if (uid_out != NULL)
-+		*uid_out = buf.st_uid;
-+	if (gid_out != NULL)
-+		*gid_out = buf.st_gid;
-+	if (size_out != NULL)
-+		*size_out = buf.st_size;
-+	if (atime_out != NULL) {
- 		atime_out->tv_sec = buf.st_atime;
- 		atime_out->tv_nsec = 0;
- 	}
--	if(mtime_out != NULL) {
-+	if (mtime_out != NULL) {
- 		mtime_out->tv_sec = buf.st_mtime;
- 		mtime_out->tv_nsec = 0;
- 	}
--	if(ctime_out != NULL) {
-+	if (ctime_out != NULL) {
- 		ctime_out->tv_sec = buf.st_ctime;
- 		ctime_out->tv_nsec = 0;
- 	}
--	if(blksize_out != NULL) *blksize_out = buf.st_blksize;
--	if(blocks_out != NULL) *blocks_out = buf.st_blocks;
-+	if (blksize_out != NULL)
-+		*blksize_out = buf.st_blksize;
-+	if (blocks_out != NULL)
-+		*blocks_out = buf.st_blocks;
- 	return 0;
- }
+-	fbi->regs.lcdcon1 |= fbi->mach_info->type;
++	fbi->regs.lcdcon1 |= display->type;
  
-@@ -59,21 +69,29 @@ int file_type(const char *path, int *maj
+-	if (fbi->mach_info->type == S3C2410_LCDCON1_TFT)
++	if (display->type == S3C2410_LCDCON1_TFT)
+ 		switch (var->bits_per_pixel) {
+ 		case 1:
+ 			fbi->regs.lcdcon1 |= S3C2410_LCDCON1_TFT1BPP;
+@@ -338,7 +342,7 @@ static void s3c2410fb_activate_var(struc
+ 
+ 	/* check to see if we need to update sync/borders */
+ 
+-	if (!fbi->mach_info->fixed_syncs) {
++	if (!mach_info->fixed_syncs) {
+ 		dprintk("setting vert: up=%d, low=%d, sync=%d\n",
+ 			var->upper_margin, var->lower_margin, var->vsync_len);
+ 
+@@ -363,7 +367,7 @@ static void s3c2410fb_activate_var(struc
+ 	fbi->regs.lcdcon2 &= ~S3C2410_LCDCON2_LINEVAL(0x3ff);
+ 	fbi->regs.lcdcon2 |=  S3C2410_LCDCON2_LINEVAL(var->yres - 1);
+ 
+-	switch (fbi->mach_info->type) {
++	switch (display->type) {
+ 	case S3C2410_LCDCON1_DSCAN4:
+ 	case S3C2410_LCDCON1_STN8:
+ 		hs = var->xres / 8;
+@@ -388,7 +392,7 @@ static void s3c2410fb_activate_var(struc
+ 	if (var->pixclock > 0) {
+ 		int clkdiv = s3c2410fb_calc_pixclk(fbi, var->pixclock);
+ 
+-		if (fbi->mach_info->type == S3C2410_LCDCON1_TFT) {
++		if (display->type == S3C2410_LCDCON1_TFT) {
+ 			clkdiv = (clkdiv / 2) - 1;
+ 			if (clkdiv < 0)
+ 				clkdiv = 0;
+@@ -750,6 +754,7 @@ static char driver_name[] = "s3c2410fb";
+ static int __init s3c2410fb_probe(struct platform_device *pdev)
  {
-  	struct stat64 buf;
- 
--	if(lstat64(path, &buf) < 0)
-+	if (lstat64(path, &buf) < 0)
- 		return -errno;
--	/*We cannot pass rdev as is because glibc and the kernel disagree
--	 *about its definition.*/
--	if(maj != NULL)
-+	/*
-+	 * We cannot pass rdev as is because glibc and the kernel disagree
-+	 * about its definition.
-+	 */
-+	if (maj != NULL)
- 		*maj = major(buf.st_rdev);
--	if(min != NULL)
-+	if (min != NULL)
- 		*min = minor(buf.st_rdev);
- 
--	if(S_ISDIR(buf.st_mode)) return OS_TYPE_DIR;
--	else if(S_ISLNK(buf.st_mode)) return OS_TYPE_SYMLINK;
--	else if(S_ISCHR(buf.st_mode)) return OS_TYPE_CHARDEV;
--	else if(S_ISBLK(buf.st_mode)) return OS_TYPE_BLOCKDEV;
--	else if(S_ISFIFO(buf.st_mode))return OS_TYPE_FIFO;
--	else if(S_ISSOCK(buf.st_mode))return OS_TYPE_SOCK;
-+	if (S_ISDIR(buf.st_mode))
-+		return OS_TYPE_DIR;
-+	else if (S_ISLNK(buf.st_mode))
-+		return OS_TYPE_SYMLINK;
-+	else if (S_ISCHR(buf.st_mode))
-+		return OS_TYPE_CHARDEV;
-+	else if (S_ISBLK(buf.st_mode))
-+		return OS_TYPE_BLOCKDEV;
-+	else if (S_ISFIFO(buf.st_mode))
-+		return OS_TYPE_FIFO;
-+	else if (S_ISSOCK(buf.st_mode))
-+		return OS_TYPE_SOCK;
- 	else return OS_TYPE_FILE;
- }
- 
-@@ -81,10 +99,13 @@ int access_file(char *path, int r, int w
- {
- 	int mode = 0;
- 
--	if(r) mode = R_OK;
--	if(w) mode |= W_OK;
--	if(x) mode |= X_OK;
--	if(access(path, mode) != 0)
-+	if (r)
-+		mode = R_OK;
-+	if (w)
-+		mode |= W_OK;
-+	if (x)
-+		mode |= X_OK;
-+	if (access(path, mode) != 0)
- 		return -errno;
- 	else return 0;
- }
-@@ -93,18 +114,18 @@ int open_file(char *path, int r, int w, 
- {
- 	int mode = 0, fd;
- 
--	if(r && !w)
-+	if (r && !w)
- 		mode = O_RDONLY;
--	else if(!r && w)
-+	else if (!r && w)
- 		mode = O_WRONLY;
--	else if(r && w)
-+	else if (r && w)
- 		mode = O_RDWR;
- 	else panic("Impossible mode in open_file");
- 
--	if(append)
-+	if (append)
- 		mode |= O_APPEND;
- 	fd = open64(path, mode);
--	if(fd < 0)
-+	if (fd < 0)
- 		return -errno;
- 	else return fd;
- }
-@@ -115,7 +136,7 @@ void *open_dir(char *path, int *err_out)
- 
- 	dir = opendir(path);
- 	*err_out = errno;
--	if(dir == NULL)
-+	if (dir == NULL)
- 		return NULL;
- 	return dir;
- }
-@@ -128,7 +149,7 @@ char *read_dir(void *stream, unsigned lo
- 
- 	seekdir(dir, *pos);
- 	ent = readdir(dir);
--	if(ent == NULL)
-+	if (ent == NULL)
- 		return NULL;
- 	*len_out = strlen(ent->d_name);
- 	*ino_out = ent->d_ino;
-@@ -141,7 +162,7 @@ int read_file(int fd, unsigned long long
- 	int n;
- 
- 	n = pread64(fd, buf, len, *offset);
--	if(n < 0)
-+	if (n < 0)
- 		return -errno;
- 	*offset += n;
- 	return n;
-@@ -152,7 +173,7 @@ int write_file(int fd, unsigned long lon
- 	int n;
- 
- 	n = pwrite64(fd, buf, len, *offset);
--	if(n < 0)
-+	if (n < 0)
- 		return -errno;
- 	*offset += n;
- 	return n;
-@@ -163,7 +184,7 @@ int lseek_file(int fd, long long offset,
- 	int ret;
- 
- 	ret = lseek64(fd, offset, whence);
--	if(ret < 0)
-+	if (ret < 0)
- 		return -errno;
- 	return 0;
- }
-@@ -207,7 +228,7 @@ int file_create(char *name, int ur, int 
- 	mode |= ow ? S_IWOTH : 0;
- 	mode |= ox ? S_IXOTH : 0;
- 	fd = open64(name, O_CREAT | O_RDWR, mode);
--	if(fd < 0)
-+	if (fd < 0)
- 		return -errno;
- 	return fd;
- }
-@@ -230,7 +251,7 @@ int set_attr(const char *file, struct ho
- 		if (fd >= 0) {
- 			if (fchown(fd, attrs->ia_uid, -1))
- 				return -errno;
--		} else if(chown(file, attrs->ia_uid, -1)) {
-+		} else if (chown(file, attrs->ia_uid, -1)) {
- 			return -errno;
- 		}
- 	}
-@@ -251,9 +272,11 @@ int set_attr(const char *file, struct ho
- 		}
+ 	struct s3c2410fb_info *info;
++	struct s3c2410fb_display *display;
+ 	struct fb_info *fbinfo;
+ 	struct s3c2410fb_hw *mregs;
+ 	struct resource *res;
+@@ -766,7 +771,8 @@ static int __init s3c2410fb_probe(struct
+ 		return -EINVAL;
  	}
  
--	/* Update accessed and/or modified time, in two parts: first set
-+	/*
-+	 * Update accessed and/or modified time, in two parts: first set
- 	 * times according to the changes to perform, and then call futimes()
--	 * or utimes() to apply them. */
-+	 * or utimes() to apply them.
-+	 */
- 	ma = (HOSTFS_ATTR_ATIME_SET | HOSTFS_ATTR_MTIME_SET);
- 	if (attrs->ia_valid & ma) {
- 		err = stat_file(file, NULL, NULL, NULL, NULL, NULL, NULL,
-@@ -284,11 +307,11 @@ int set_attr(const char *file, struct ho
- 	}
+-	mregs = &mach_info->regs;
++	display = mach_info->displays + mach_info->default_display;
++	mregs = &display->regs;
  
- 	/* Note: ctime is not handled */
--	if(attrs->ia_valid & (HOSTFS_ATTR_ATIME | HOSTFS_ATTR_MTIME)){
-+	if (attrs->ia_valid & (HOSTFS_ATTR_ATIME | HOSTFS_ATTR_MTIME)) {
- 		err = stat_file(file, NULL, NULL, NULL, NULL, NULL, NULL,
- 				&attrs->ia_atime, &attrs->ia_mtime, NULL,
- 				NULL, NULL, fd);
--		if(err != 0)
-+		if (err != 0)
- 			return err;
- 	}
- 	return 0;
-@@ -299,7 +322,7 @@ int make_symlink(const char *from, const
- 	int err;
+ 	irq = platform_get_irq(pdev, 0);
+ 	if (irq < 0) {
+@@ -809,7 +815,7 @@ static int __init s3c2410fb_probe(struct
  
- 	err = symlink(to, from);
--	if(err)
-+	if (err)
- 		return -errno;
- 	return 0;
- }
-@@ -309,7 +332,7 @@ int unlink_file(const char *file)
- 	int err;
+ 	strcpy(fbinfo->fix.id, driver_name);
  
- 	err = unlink(file);
--	if(err)
-+	if (err)
- 		return -errno;
- 	return 0;
- }
-@@ -319,7 +342,7 @@ int do_mkdir(const char *file, int mode)
- 	int err;
+-	memcpy(&info->regs, &mach_info->regs, sizeof(info->regs));
++	memcpy(&info->regs, &display->regs, sizeof(info->regs));
  
- 	err = mkdir(file, mode);
--	if(err)
-+	if (err)
- 		return -errno;
- 	return 0;
- }
-@@ -329,7 +352,7 @@ int do_rmdir(const char *file)
- 	int err;
+ 	/* Stop the video and unset ENVID if set */
+ 	info->regs.lcdcon1 &= ~S3C2410_LCDCON1_ENVID;
+@@ -817,6 +823,7 @@ static int __init s3c2410fb_probe(struct
+ 	writel(lcdcon1 & ~S3C2410_LCDCON1_ENVID, info->io + S3C2410_LCDCON1);
  
- 	err = rmdir(file);
--	if(err)
-+	if (err)
- 		return -errno;
- 	return 0;
- }
-@@ -339,7 +362,7 @@ int do_mknod(const char *file, int mode,
- 	int err;
+ 	info->mach_info		    = pdev->dev.platform_data;
++	info->current_display	    = mach_info->default_display;
  
- 	err = mknod(file, mode, makedev(major, minor));
--	if(err)
-+	if (err)
- 		return -errno;
- 	return 0;
- }
-@@ -349,7 +372,7 @@ int link_file(const char *to, const char
- 	int err;
+ 	fbinfo->fix.type	    = FB_TYPE_PACKED_PIXELS;
+ 	fbinfo->fix.type_aux	    = 0;
+@@ -827,8 +834,8 @@ static int __init s3c2410fb_probe(struct
  
- 	err = link(to, from);
--	if(err)
-+	if (err)
- 		return -errno;
- 	return 0;
- }
-@@ -359,9 +382,9 @@ int do_readlink(char *file, char *buf, i
- 	int n;
+ 	fbinfo->var.nonstd	    = 0;
+ 	fbinfo->var.activate	    = FB_ACTIVATE_NOW;
+-	fbinfo->var.height	    = mach_info->height;
+-	fbinfo->var.width	    = mach_info->width;
++	fbinfo->var.height	    = display->height;
++	fbinfo->var.width	    = display->width;
+ 	fbinfo->var.accel_flags     = 0;
+ 	fbinfo->var.vmode	    = FB_VMODE_NONINTERLACED;
  
- 	n = readlink(file, buf, size);
--	if(n < 0)
-+	if (n < 0)
- 		return -errno;
--	if(n < size)
-+	if (n < size)
- 		buf[n] = '\0';
- 	return n;
- }
-@@ -371,7 +394,7 @@ int rename_file(char *from, char *to)
- 	int err;
+@@ -836,11 +843,11 @@ static int __init s3c2410fb_probe(struct
+ 	fbinfo->flags		    = FBINFO_FLAG_DEFAULT;
+ 	fbinfo->pseudo_palette      = &info->pseudo_pal;
  
- 	err = rename(from, to);
--	if(err < 0)
-+	if (err < 0)
- 		return -errno;
- 	return 0;
- }
-@@ -386,7 +409,7 @@ int do_statfs(char *root, long *bsize_ou
- 	int err;
+-	fbinfo->var.xres	    = mach_info->xres.defval;
+-	fbinfo->var.xres_virtual    = mach_info->xres.defval;
+-	fbinfo->var.yres	    = mach_info->yres.defval;
+-	fbinfo->var.yres_virtual    = mach_info->yres.defval;
+-	fbinfo->var.bits_per_pixel  = mach_info->bpp.defval;
++	fbinfo->var.xres	    = display->xres;
++	fbinfo->var.xres_virtual    = display->xres;
++	fbinfo->var.yres	    = display->yres;
++	fbinfo->var.yres_virtual    = display->yres;
++	fbinfo->var.bits_per_pixel  = display->bpp;
  
- 	err = statfs64(root, &buf);
--	if(err < 0)
-+	if (err < 0)
- 		return -errno;
+ 	fbinfo->var.upper_margin    =
+ 				S3C2410_LCDCON2_GET_VBPD(mregs->lcdcon2) + 1;
+@@ -864,9 +871,17 @@ static int __init s3c2410fb_probe(struct
+ 	fbinfo->var.green.length    = 6;
+ 	fbinfo->var.blue.length     = 5;
+ 	fbinfo->var.transp.length   = 0;
+-	fbinfo->fix.smem_len	    =	mach_info->xres.max *
+-					mach_info->yres.max *
+-					mach_info->bpp.max / 8;
++
++	/* find maximum required memory size for display */
++	for (i = 0; i < mach_info->num_displays; i++) {
++		unsigned long smem_len = mach_info->displays[i].xres;
++
++		smem_len *= mach_info->displays[i].yres;
++		smem_len *= mach_info->displays[i].bpp;
++		smem_len >>= 3;
++		if (fbinfo->fix.smem_len < smem_len)
++			fbinfo->fix.smem_len = smem_len;
++	}
  
- 	*bsize_out = buf.f_bsize;
+ 	for (i = 0; i < 256; i++)
+ 		info->palette_buffer[i] = PALETTE_BUFF_CLEAR;
+diff -puN drivers/video/s3c2410fb.h~s3c2410fb-multi-display-support drivers/video/s3c2410fb.h
+--- a/drivers/video/s3c2410fb.h~s3c2410fb-multi-display-support
++++ a/drivers/video/s3c2410fb.h
+@@ -34,6 +34,8 @@ struct s3c2410fb_info {
+ 
+ 	struct s3c2410fb_mach_info *mach_info;
+ 
++	unsigned current_display;
++
+ 	/* raw memory addresses */
+ 	dma_addr_t		map_dma;	/* physical */
+ 	u_char *		map_cpu;	/* virtual */
+diff -puN include/asm-arm/arch-s3c2410/fb.h~s3c2410fb-multi-display-support include/asm-arm/arch-s3c2410/fb.h
+--- a/include/asm-arm/arch-s3c2410/fb.h~s3c2410fb-multi-display-support
++++ a/include/asm-arm/arch-s3c2410/fb.h
+@@ -14,12 +14,6 @@
+ 
+ #include <asm/arch/regs-lcd.h>
+ 
+-struct s3c2410fb_val {
+-	unsigned int	defval;
+-	unsigned int	min;
+-	unsigned int	max;
+-};
+-
+ struct s3c2410fb_hw {
+ 	unsigned long	lcdcon1;
+ 	unsigned long	lcdcon2;
+@@ -28,23 +22,30 @@ struct s3c2410fb_hw {
+ 	unsigned long	lcdcon5;
+ };
+ 
+-struct s3c2410fb_mach_info {
+-	unsigned char	fixed_syncs;	/* do not update sync/border */
+-
+-	/* LCD types */
+-	int		type;
++/* LCD description */
++struct s3c2410fb_display {
++	/* LCD type */
++	unsigned type;
+ 
+ 	/* Screen size */
+-	int		width;
+-	int		height;
++	unsigned short width;
++	unsigned short height;
+ 
+ 	/* Screen info */
+-	struct s3c2410fb_val xres;
+-	struct s3c2410fb_val yres;
+-	struct s3c2410fb_val bpp;
++	unsigned short xres;
++	unsigned short yres;
++	unsigned short bpp;
+ 
+ 	/* lcd configuration registers */
+ 	struct s3c2410fb_hw  regs;
++};
++
++struct s3c2410fb_mach_info {
++	unsigned char	fixed_syncs;	/* do not update sync/border */
++
++	struct s3c2410fb_display *displays;	/* attached diplays info */
++	unsigned num_displays;			/* number of defined displays */
++	unsigned default_display;
+ 
+ 	/* GPIOs */
+ 
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-git-kvm.patch
-uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
-bitops-introduce-lock-ops.patch
+git-alsa.patch
+cyber2000fb-checkpatch-fixes.patch
