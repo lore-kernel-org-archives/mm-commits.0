@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + docbook-fix-libata-content.patch added to -mm tree
-Date: Mon, 15 Oct 2007 17:43:34 -0700
-Message-ID: <200710160043.l9G0hYV8001116@imap1.linux-foundation.org>
+Subject: + comment-typo-in-scripts-kconfig-makefile.patch added to -mm tree
+Date: Mon, 15 Oct 2007 17:43:31 -0700
+Message-ID: <200710160043.l9G0hVv5001110@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34692 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36994 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757276AbXJPAn4 (ORCPT
+	by vger.kernel.org with ESMTP id S1757794AbXJPAoe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 20:43:56 -0400
+	Mon, 15 Oct 2007 20:44:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, rob@landley.net
+Cc: rob@landley.net, randy.dunlap@oracle.com
 
 
 The patch titled
-     docbook: fix libata content
+     Comment typo in scripts/kconfig/Makefile
 has been added to the -mm tree.  Its filename is
-     docbook-fix-libata-content.patch
+     comment-typo-in-scripts-kconfig-makefile.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,70 +26,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: docbook: fix libata content
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Comment typo in scripts/kconfig/Makefile
+From: Rob Landley <rob@landley.net>
 
-Fix libata docbook warnings.
+Typo in comment in scripts/kconfig/Makefile.
 
-Warning(linux-2.6.23-git8//drivers/ata/libata-scsi.c:3251): No description found for parameter 'dev'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Rob Landley <rob@landley.net>
+Signed-off-by: Rob Landley <rob@landley.net>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-scsi.c |    2 +-
+ scripts/kconfig/Makefile |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/libata-scsi.c~docbook-fix-libata-content drivers/ata/libata-scsi.c
---- a/drivers/ata/libata-scsi.c~docbook-fix-libata-content
-+++ a/drivers/ata/libata-scsi.c
-@@ -3240,7 +3240,7 @@ static void ata_scsi_handle_link_detach(
+diff -puN scripts/kconfig/Makefile~comment-typo-in-scripts-kconfig-makefile scripts/kconfig/Makefile
+--- a/scripts/kconfig/Makefile~comment-typo-in-scripts-kconfig-makefile
++++ a/scripts/kconfig/Makefile
+@@ -84,7 +84,7 @@ help:
+ # lxdialog stuff
+ check-lxdialog  := $(srctree)/$(src)/lxdialog/check-lxdialog.sh
  
- /**
-  *	ata_scsi_media_change_notify - send media change event
-- *	@atadev: Pointer to the disk device with media change event
-+ *	@dev: Pointer to the disk device with media change event
-  *
-  *	Tell the block layer to send a media change notification
-  *	event.
+-# Use reursively expanded variables so we do not call gcc unless
++# Use recursively expanded variables so we do not call gcc unless
+ # we really need to do so. (Do not call gcc as part of make mrproper)
+ HOST_EXTRACFLAGS = $(shell $(CONFIG_SHELL) $(check-lxdialog) -ccflags)
+ HOST_LOADLIBES   = $(shell $(CONFIG_SHELL) $(check-lxdialog) -ldflags $(HOSTCC))
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from rob@landley.net are
 
-origin.patch
-git-alsa.patch
-fix-auditscc-kernel-doc.patch
-git-kbuild.patch
-git-nfsd.patch
+git-arm.patch
 git-scsi-misc.patch
-git-unionfs.patch
-git-watchdog.patch
-git-ipwireless_cs.patch
-mm-use-pagevec-to-rotate-reclaimable-page-fix-function-declaration.patch
-security-convert-lsm-into-a-static-interface-fix-2-fix.patch
 docs-ramdisk-initrd-initramfs-corrections.patch
-send-quota-messages-via-netlink-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-maintainers-linux-omap-list-is-subscribers-only.patch
-make-the-pr_-family-of-macros-in-kernelh-complete.patch
-doc-about-email-clients-for-linux-patches.patch
-change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch
-dont-truncate-proc-pid-environ-at-4096-characters.patch
-dontdiff-update-based-on-gitignore-updates.patch
-ecryptfs-remove-header_extent_size-fix.patch
-video-gfx-fix-menu-ordering.patch
-video-gfx-merge-kconfig-menus.patch
-kernel-doc-fix-doc-blocks-and-html.patch
-express-relocatability-of-kernel-on-x86_64-in.patch
-remap_file_pages-kernel-doc-corrections.patch
+documentation-make-headers_installtxt.patch
+documentation-add-entries-to-filesystems-00-index-for-several-untracked-files.patch
+add-a-missing-00-index-file-for-documentation-vm.patch
+add-a-00-index-file-to-documentation-mips.patch
+add-a-00-index-file-to-documentation-sysctl.patch
+add-a-00-index-file-to-documentation-telephony.patch
+tweak-documentation-sm501txt.patch
+add-missing-entries-to-top-level-documentation-00-index.patch
+add-documentation-w1w1-masters-00-index.patch
+add-entries-to-documentation-powerpc.patch
+add-documentation-power-00-index.patch
+add-recommended-section-ids-to-deviceiobooktmpl.patch
+add-documentation-rcu-00-index.patch
+fix-make-htmldocs-build-break.patch
+add-section-ids-to-documentation-docbook-filesystemstmpl.patch
+add-documentation-block-00-index.patch
 comment-typo-in-scripts-kconfig-makefile.patch
 docbook-fix-kernel-api-content.patch
 docbook-fix-libata-content.patch
 docbook-fix-usb-content.patch
 docbook-fix-filesystems-content.patch
-hook-up-group-scheduler-with-control-groups.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
-add-samples-subdir.patch
-profile-likely-unlikely-macros.patch
