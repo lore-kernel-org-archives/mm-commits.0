@@ -1,92 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: + net-sunrpc-xprtrdma-verbsc-printk-warning-fix.patch added to -mm tree
-Date: Mon, 15 Oct 2007 22:43:16 -0700
-Message-ID: <200710160549.l9G5ndZN011646@imap1.linux-foundation.org>
+Subject: - convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 23:29:56 -0700
+Message-ID: <200710160629.l9G6TuQs013042@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40335 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55515 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932593AbXJPFuK (ORCPT
+	by vger.kernel.org with ESMTP id S1760226AbXJPGaB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 01:50:10 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9G5ndPc025110
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2007 22:49:41 -0700
+	Tue, 16 Oct 2007 02:30:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: travis@sgi.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net/sunrpc/xprtrdma/verbs.c printk warning fix
-has been added to the -mm tree.  Its filename is
-     net-sunrpc-xprtrdma-verbsc-printk-warning-fix.patch
+     Convert cpu_sibling_map to a per_cpu data array: ia64
+has been removed from the -mm tree.  Its filename was
+     convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into convert-cpu_sibling_map-to-be-a-per-cpu-variable.patch
 
 ------------------------------------------------------
-Subject: net/sunrpc/xprtrdma/verbs.c printk warning fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Convert cpu_sibling_map to a per_cpu data array: ia64
+From: Mike Travis <travis@sgi.com>
 
-sparc64:
+Convert cpu_sibling_map to a per_cpu cpumask_t array for the ia64
+architecture.  This fixes build errors in block/blktrace.c and
+kernel/sched.c when CONFIG_SCHED_SMT is defined.
 
-net/sunrpc/xprtrdma/verbs.c:1264: warning: long long unsigned int format, u64 arg (arg 3)
-net/sunrpc/xprtrdma/verbs.c:1264: warning: long long unsigned int format, u64 arg (arg 4)
+There was one access to cpu_sibling_map before the per_cpu data
+area was created, so that step was moved to after the per_cpu
+area is setup.
 
+Tested and verified on an A4700.
 
+Signed-off-by: Mike Travis <travis@sgi.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/xprtrdma/verbs.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/ia64/kernel/setup.c    |   12 ++++++++----
+ arch/ia64/kernel/smpboot.c  |   18 ++++++++++--------
+ include/asm-ia64/smp.h      |    2 +-
+ include/asm-ia64/topology.h |    2 +-
+ 4 files changed, 20 insertions(+), 14 deletions(-)
 
-diff -puN net/sunrpc/xprtrdma/verbs.c~net-sunrpc-xprtrdma-verbsc-printk-warning-fix net/sunrpc/xprtrdma/verbs.c
---- a/net/sunrpc/xprtrdma/verbs.c~net-sunrpc-xprtrdma-verbsc-printk-warning-fix
-+++ a/net/sunrpc/xprtrdma/verbs.c
-@@ -1263,7 +1263,8 @@ rpcrdma_register_internal(struct rpcrdma
+diff -puN arch/ia64/kernel/setup.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64 arch/ia64/kernel/setup.c
+--- a/arch/ia64/kernel/setup.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64
++++ a/arch/ia64/kernel/setup.c
+@@ -528,10 +528,6 @@ setup_arch (char **cmdline_p)
  
- 	dprintk("RPC:       %s: phys convert: 0x%llx "
- 			"registered 0x%llx length %d\n",
--			__func__, ipb.addr, iov->addr, len);
-+			__func__, (unsigned long long)ipb.addr,
-+			(unsigned long long)iov->addr, len);
+ #ifdef CONFIG_SMP
+ 	cpu_physical_id(0) = hard_smp_processor_id();
+-
+-	cpu_set(0, cpu_sibling_map[0]);
+-	cpu_set(0, cpu_core_map[0]);
+-
+ 	check_for_logical_procs();
+ 	if (smp_num_cpucores > 1)
+ 		printk(KERN_INFO
+@@ -873,6 +869,14 @@ cpu_init (void)
+ 	void *cpu_data;
  
- 	if (IS_ERR(mr)) {
- 		*mrp = NULL;
+ 	cpu_data = per_cpu_init();
++	/*
++	 * insert boot cpu into sibling and core mapes
++	 * (must be done after per_cpu area is setup)
++	 */
++	if (smp_processor_id() == 0) {
++		cpu_set(0, per_cpu(cpu_sibling_map, 0));
++		cpu_set(0, cpu_core_map[0]);
++	}
+ 
+ 	/*
+ 	 * We set ar.k3 so that assembly code in MCA handler can compute
+diff -puN arch/ia64/kernel/smpboot.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64 arch/ia64/kernel/smpboot.c
+--- a/arch/ia64/kernel/smpboot.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64
++++ a/arch/ia64/kernel/smpboot.c
+@@ -138,7 +138,9 @@ cpumask_t cpu_possible_map = CPU_MASK_NO
+ EXPORT_SYMBOL(cpu_possible_map);
+ 
+ cpumask_t cpu_core_map[NR_CPUS] __cacheline_aligned;
+-cpumask_t cpu_sibling_map[NR_CPUS] __cacheline_aligned;
++DEFINE_PER_CPU_SHARED_ALIGNED(cpumask_t, cpu_sibling_map);
++EXPORT_PER_CPU_SYMBOL(cpu_sibling_map);
++
+ int smp_num_siblings = 1;
+ int smp_num_cpucores = 1;
+ 
+@@ -650,12 +652,12 @@ clear_cpu_sibling_map(int cpu)
+ {
+ 	int i;
+ 
+-	for_each_cpu_mask(i, cpu_sibling_map[cpu])
+-		cpu_clear(cpu, cpu_sibling_map[i]);
++	for_each_cpu_mask(i, per_cpu(cpu_sibling_map, cpu))
++		cpu_clear(cpu, per_cpu(cpu_sibling_map, i));
+ 	for_each_cpu_mask(i, cpu_core_map[cpu])
+ 		cpu_clear(cpu, cpu_core_map[i]);
+ 
+-	cpu_sibling_map[cpu] = cpu_core_map[cpu] = CPU_MASK_NONE;
++	per_cpu(cpu_sibling_map, cpu) = cpu_core_map[cpu] = CPU_MASK_NONE;
+ }
+ 
+ static void
+@@ -666,7 +668,7 @@ remove_siblinginfo(int cpu)
+ 	if (cpu_data(cpu)->threads_per_core == 1 &&
+ 	    cpu_data(cpu)->cores_per_socket == 1) {
+ 		cpu_clear(cpu, cpu_core_map[cpu]);
+-		cpu_clear(cpu, cpu_sibling_map[cpu]);
++		cpu_clear(cpu, per_cpu(cpu_sibling_map, cpu));
+ 		return;
+ 	}
+ 
+@@ -807,8 +809,8 @@ set_cpu_sibling_map(int cpu)
+ 			cpu_set(i, cpu_core_map[cpu]);
+ 			cpu_set(cpu, cpu_core_map[i]);
+ 			if (cpu_data(cpu)->core_id == cpu_data(i)->core_id) {
+-				cpu_set(i, cpu_sibling_map[cpu]);
+-				cpu_set(cpu, cpu_sibling_map[i]);
++				cpu_set(i, per_cpu(cpu_sibling_map, cpu));
++				cpu_set(cpu, per_cpu(cpu_sibling_map, i));
+ 			}
+ 		}
+ 	}
+@@ -839,7 +841,7 @@ __cpu_up (unsigned int cpu)
+ 
+ 	if (cpu_data(cpu)->threads_per_core == 1 &&
+ 	    cpu_data(cpu)->cores_per_socket == 1) {
+-		cpu_set(cpu, cpu_sibling_map[cpu]);
++		cpu_set(cpu, per_cpu(cpu_sibling_map, cpu));
+ 		cpu_set(cpu, cpu_core_map[cpu]);
+ 		return 0;
+ 	}
+diff -puN arch/ia64/mm/contig.c~convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64 arch/ia64/mm/contig.c
+diff -puN include/asm-ia64/smp.h~convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64 include/asm-ia64/smp.h
+--- a/include/asm-ia64/smp.h~convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64
++++ a/include/asm-ia64/smp.h
+@@ -58,7 +58,7 @@ extern char no_int_routing __devinitdata
+ 
+ extern cpumask_t cpu_online_map;
+ extern cpumask_t cpu_core_map[NR_CPUS];
+-extern cpumask_t cpu_sibling_map[NR_CPUS];
++DECLARE_PER_CPU(cpumask_t, cpu_sibling_map);
+ extern int smp_num_siblings;
+ extern int smp_num_cpucores;
+ extern void __iomem *ipi_base_addr;
+diff -puN include/asm-ia64/topology.h~convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64 include/asm-ia64/topology.h
+--- a/include/asm-ia64/topology.h~convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64
++++ a/include/asm-ia64/topology.h
+@@ -112,7 +112,7 @@ void build_cpu_to_node_map(void);
+ #define topology_physical_package_id(cpu)	(cpu_data(cpu)->socket_id)
+ #define topology_core_id(cpu)			(cpu_data(cpu)->core_id)
+ #define topology_core_siblings(cpu)		(cpu_core_map[cpu])
+-#define topology_thread_siblings(cpu)		(cpu_sibling_map[cpu])
++#define topology_thread_siblings(cpu)		(per_cpu(cpu_sibling_map, cpu))
+ #define smt_capable() 				(smp_num_siblings > 1)
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from travis@sgi.com are
 
-origin.patch
-slow-down-printk-during-boot.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
-sparsemem-record-when-a-section-has-a-valid-mem_map.patch
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
-mm-use-pagevec-to-rotate-reclaimable-page.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops.patch
-nfs-convert-to-new-aops.patch
-fs-restore-nobh.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code.patch
-categorize-gfp-flags.patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
-slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
-hugetlbfs-read-support.patch
-mm-mempolicyc-cleanups.patch
-uml-fix-stub-address-calculations.patch
-uml-arch-um-drivers-formatting.patch
-ecryptfs-printk-warning-fixes.patch
-rtc-cmos-probe-cleanup.patch
-tdfxfb-mtrr-support.patch
-fbdev-fb_create_modedb-non-static-int-first-=-1.patch
-intel-fb-support-for-interlaced-video-modes.patch
-export-font_vga_8x16.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics.patch
-fbcon-logo-disable-logo-at-boot.patch
-fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte.patch
-net-sunrpc-xprtrdma-verbsc-printk-warning-fix.patch
+x86-convert-cpu_core_map-to-be-a-per-cpu-variable.patch
+convert-cpu_sibling_map-to-be-a-per-cpu-variable.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ia64.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-ppc64.patch
+convert-cpu_sibling_map-to-a-per_cpu-data-array-sparc64.patch
+x86-convert-cpuinfo_x86-array-to-a-per_cpu-array.patch
