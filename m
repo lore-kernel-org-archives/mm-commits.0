@@ -1,127 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: - mmaps2-vma-out-of-mem_size_stats.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 14:36:48 -0700
-Message-ID: <200710162136.l9GLamK5018620@imap1.linux-foundation.org>
+Subject: - readahead-basic-support-of-interleaved-reads.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:31:00 -0700
+Message-ID: <200710162031.l9GKV09b014453@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38453 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44645 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965688AbXJPVs0 (ORCPT
+	by vger.kernel.org with ESMTP id S966058AbXJPVsL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:48:26 -0400
+	Tue, 16 Oct 2007 17:48:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, mpm@selenic.com, mm-commits@vger.kernel.org
+To: wfg@mail.ustc.edu.cn, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     maps2: vma out of mem_size_stats
+     readahead: basic support of interleaved reads
 has been removed from the -mm tree.  Its filename was
-     mmaps2-vma-out-of-mem_size_stats.patch
+     readahead-basic-support-of-interleaved-reads.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: maps2: vma out of mem_size_stats
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: readahead: basic support of interleaved reads
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-Putting the vma inside "struct mem_size_stats" to hand it through the
-pagewalker is a little gross.  Making a separate struct is more verbose, but
-clearer.
+This is a simplified version of the pagecache context based readahead.  It
+handles the case of multiple threads reading on the same fd and invalidating
+each others' readahead state.  It does the trick by scanning the pagecache and
+recovering the current read stream's readahead status.
 
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Matt Mackall <mpm@selenic.com>
+The algorithm works in a opportunistic way, in that it does not try to detect
+interleaved reads _actively_, which requires a probe into the page cache
+(which means a little more overhead for random reads).  It only tries to
+handle a previously started sequential readahead whose state was overwritten
+by another concurrent stream, and it can do this job pretty well.
+
+Negative and positive examples(or what you can expect from it):
+
+1) it cannot detect and serve perfect request-by-request interleaved reads
+   right:
+	time	stream 1  stream 2
+	0 	1
+	1 	          1001
+	2 	2
+	3 	          1002
+	4 	3
+	5 	          1003
+	6 	4
+	7 	          1004
+	8 	5
+	9	          1005
+
+Here no single readahead will be carried out.
+
+2) However, if it's two concurrent reads by two threads, the chance of the
+   initial sequential readahead be started is huge. Once the first sequential
+   readahead is started for a stream, this patch will ensure that the readahead
+   window continues to rampup and won't be disturbed by other streams.
+
+	time	stream 1  stream 2
+	0 	1
+	1 	2
+	2 	          1001
+	3 	3
+	4 	          1002
+	5 	          1003
+	6 	4
+	7 	5
+	8 	          1004
+	9 	6
+	10	          1005
+	11	7
+	12	          1006
+	13	          1007
+
+Here stream 1 will start a readahead at page 2, and stream 2 will start its
+first readahead at page 1003.  From then on the two streams will be served
+right.
+
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   32 +++++++++++++++++++-------------
- 1 files changed, 19 insertions(+), 13 deletions(-)
+ mm/readahead.c |   33 +++++++++++++++++++++++----------
+ 1 file changed, 23 insertions(+), 10 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~mmaps2-vma-out-of-mem_size_stats fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mmaps2-vma-out-of-mem_size_stats
-+++ a/fs/proc/task_mmu.c
-@@ -318,7 +318,6 @@ const struct file_operations proc_maps_o
- #ifdef CONFIG_PROC_SMAPS
- struct mem_size_stats
- {
--	struct vm_area_struct *vma;
- 	unsigned long resident;
- 	unsigned long shared_clean;
- 	unsigned long shared_dirty;
-@@ -327,11 +326,18 @@ struct mem_size_stats
- 	unsigned long referenced;
- };
+diff -puN mm/readahead.c~readahead-basic-support-of-interleaved-reads mm/readahead.c
+--- a/mm/readahead.c~readahead-basic-support-of-interleaved-reads
++++ a/mm/readahead.c
+@@ -380,6 +380,29 @@ ondemand_readahead(struct address_space 
+ 	}
  
-+struct smaps_arg
-+{
-+	struct mem_size_stats mss;
-+	struct vm_area_struct *vma;
-+};
+ 	/*
++	 * Hit a marked page without valid readahead state.
++	 * E.g. interleaved reads.
++	 * Query the pagecache for async_size, which normally equals to
++	 * readahead size. Ramp it up and use it as the new readahead size.
++	 */
++	if (hit_readahead_marker) {
++		pgoff_t start;
 +
- static int smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
- 			   void *private)
- {
--	struct mem_size_stats *mss = private;
--	struct vm_area_struct *vma = mss->vma;
-+	struct smaps_arg *sarg = private;
-+	struct vm_area_struct *vma = sarg->vma;
-+	struct mem_size_stats *mss = &sarg->mss;
- 	pte_t *pte, ptent;
- 	spinlock_t *ptl;
- 	struct page *page;
-@@ -373,14 +379,14 @@ static struct mm_walk smaps_walk = { .pm
- static int show_smap(struct seq_file *m, void *v)
- {
- 	struct vm_area_struct *vma = v;
--	struct mem_size_stats mss;
-+	struct smaps_arg sarg;
- 	int ret;
++		read_lock_irq(&mapping->tree_lock);
++		start = radix_tree_next_hole(&mapping->page_tree, offset, max+1);
++		read_unlock_irq(&mapping->tree_lock);
++
++		if (!start || start - offset > max)
++			return 0;
++
++		ra->start = start;
++		ra->size = start - offset;	/* old async_size */
++		ra->size = get_next_ra_size(ra, max);
++		ra->async_size = ra->size;
++		goto readit;
++	}
++
++	/*
+ 	 * It may be one of
+ 	 * 	- first read on start of file
+ 	 * 	- sequential cache miss
+@@ -390,16 +413,6 @@ ondemand_readahead(struct address_space 
+ 	ra->size = get_init_ra_size(req_size, max);
+ 	ra->async_size = ra->size > req_size ? ra->size - req_size : ra->size;
  
--	memset(&mss, 0, sizeof mss);
--	mss.vma = vma;
-+	memset(&sarg.mss, 0, sizeof sarg.mss);
-+	sarg.vma = vma;
- 	if (vma->vm_mm && !is_vm_hugetlb_page(vma))
- 		walk_page_range(vma->vm_mm, vma->vm_start, vma->vm_end,
--				&smaps_walk, &mss);
-+				&smaps_walk, &sarg);
- 
- 	ret = show_map(m, v);
- 	if (ret)
-@@ -395,12 +401,12 @@ static int show_smap(struct seq_file *m,
- 		   "Private_Dirty:  %8lu kB\n"
- 		   "Referenced:     %8lu kB\n",
- 		   (vma->vm_end - vma->vm_start) >> 10,
--		   mss.resident >> 10,
--		   mss.shared_clean  >> 10,
--		   mss.shared_dirty  >> 10,
--		   mss.private_clean >> 10,
--		   mss.private_dirty >> 10,
--		   mss.referenced >> 10);
-+		   sarg.mss.resident >> 10,
-+		   sarg.mss.shared_clean  >> 10,
-+		   sarg.mss.shared_dirty  >> 10,
-+		   sarg.mss.private_clean >> 10,
-+		   sarg.mss.private_dirty >> 10,
-+		   sarg.mss.referenced >> 10);
- 
- 	return ret;
+-	/*
+-	 * Hit on a marked page without valid readahead state.
+-	 * E.g. interleaved reads.
+-	 * Not knowing its readahead pos/size, bet on the minimal possible one.
+-	 */
+-	if (hit_readahead_marker) {
+-		ra->start++;
+-		ra->size = get_next_ra_size(ra, max);
+-	}
+-
+ readit:
+ 	return ra_submit(ra, mapping, filp);
  }
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
 origin.patch
-mmaps2-vma-out-of-mem_size_stats.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-remove-unsafe-from-module-struct.patch
-delay-creation-of-khcvd-thread.patch
-hvc-console-is-also-used-by-iseries-so-add-that-to-hvc_driver-help.patch
-module-return-error-when-mod_sysfs_init-failed.patch
-cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
-linux-kernel-markers.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-coding-style-fixes.patch
-linux-kernel-markers-samples-coding-style-fix.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+maps-pssproportional-set-size-accounting-in-smaps.patch
+convert-ill-defined-log2-to-ilog2.patch
+avoid-negative-and-full-width-shifts-in-radix-treec.patch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+writeback-fix-ntfs-with-sb_has_dirty_inodes.patch
+writeback-remove-pages_skipped-accounting-in-__block_write_full_page.patch
+writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
+writeback-introduce-writeback_controlmore_io-to-indicate-more-io.patch
+writeback-remove-unnecessary-wait-in-throttle_vm_writeout.patch
