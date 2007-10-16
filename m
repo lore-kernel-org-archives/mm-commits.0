@@ -1,163 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: - do_sys_poll-simplify-playing-with-on-stack-data-fix.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 15:01:54 -0700
-Message-ID: <200710162201.l9GM1sbn019791@imap1.linux-foundation.org>
+Subject: - pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 15:02:58 -0700
+Message-ID: <200710162202.l9GM2xRI019832@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41601 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40334 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936211AbXJPWCO (ORCPT
+	by vger.kernel.org with ESMTP id S1765838AbXJPWDD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 18:02:14 -0400
+	Tue, 16 Oct 2007 18:03:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davidel@xmailserver.org, oleg@tv-sign.ru, vlobanov@speakeasy.net, mm-commits@vger.kernel.org
+To: olof@lixom.net, benh@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     do_sys_poll-simplify-playing-with-on-stack-data-fix
+     pcmcia: updates to electra_cf driver
 has been removed from the -mm tree.  Its filename was
-     do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+     pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix.patch
 
-This patch was dropped because it was folded into do_sys_poll-simplify-playing-with-on-stack-data.patch
+This patch was dropped because it was folded into pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
 
 ------------------------------------------------------
-Subject: do_sys_poll-simplify-playing-with-on-stack-data-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pcmcia: updates to electra_cf driver
+From: Olof Johansson <olof@lixom.net>
 
-fs/select.c: In function 'do_sys_poll':
-fs/select.c:670: warning: comparison of distinct pointer types lacks a cast
+Fix build of electra_cf, since the IO space setup interfaces were
+changed when BenH rewrote it.
 
-size_t != uint.
+Also clean it up a bit, add 5V support, make it unloadable, remove some
+dead variables, etc.
 
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Vadim Lobanov <vlobanov@speakeasy.net>
+Signed-off-by: Olof Johansson <olof@lixom.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/select.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pcmcia/Kconfig      |    4 +--
+ drivers/pcmcia/electra_cf.c |   38 ++++++++++++++++++++--------------
+ 2 files changed, 25 insertions(+), 17 deletions(-)
 
-diff -puN fs/select.c~do_sys_poll-simplify-playing-with-on-stack-data-fix fs/select.c
---- a/fs/select.c~do_sys_poll-simplify-playing-with-on-stack-data-fix
-+++ a/fs/select.c
-@@ -663,7 +663,7 @@ int do_sys_poll(struct pollfd __user *uf
- 	if (nfds > current->signal->rlim[RLIMIT_NOFILE].rlim_cur)
- 		return -EINVAL;
+diff -puN drivers/pcmcia/Kconfig~pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix drivers/pcmcia/Kconfig
+--- a/drivers/pcmcia/Kconfig~pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix
++++ a/drivers/pcmcia/Kconfig
+@@ -256,8 +256,8 @@ config AT91_CF
+ 	  Or choose M to compile the driver as a module named "at91_cf".
  
--	len = min(nfds, N_STACK_PPS);
-+	len = min_t(unsigned int, nfds, N_STACK_PPS);
- 	for (;;) {
- 		walk->next = NULL;
- 		walk->len = len;
+ config ELECTRA_CF
+-	bool "Electra CompactFlash Controller"
+-	depends on PCMCIA=y && PPC_PASEMI
++	tristate "Electra CompactFlash Controller"
++	depends on PCMCIA && PPC_PASEMI
+ 	help
+ 	  Say Y here to support the CompactFlash controller on the
+ 	  PA Semi Electra eval board.
+diff -puN drivers/pcmcia/electra_cf.c~pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix drivers/pcmcia/electra_cf.c
+--- a/drivers/pcmcia/electra_cf.c~pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix
++++ a/drivers/pcmcia/electra_cf.c
+@@ -28,6 +28,7 @@
+ #include <linux/init.h>
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
++#include <linux/vmalloc.h>
+ 
+ #include <pcmcia/ss.h>
+ #include <asm/of_platform.h>
+@@ -105,10 +106,8 @@ static int electra_cf_get_status(struct 
+ 
+ 	/* NOTE CF is always 3VCARD */
+ 	if (electra_cf_present(cf)) {
+-		struct electra_cf_socket *cf;
+-
+ 		*sp = SS_READY | SS_DETECT | SS_POWERON | SS_3VCARD;
+-		cf = container_of(s, struct electra_cf_socket, socket);
++
+ 		s->pci_irq = cf->irq;
+ 	} else
+ 		*sp = 0;
+@@ -134,8 +133,10 @@ static int electra_cf_set_socket(struct 
+ 	case 33:
+ 		gpio = (1 << cf->gpio_3v);
+ 		break;
++	case 5:
++		gpio = (1 << cf->gpio_5v);
++		break;
+ 	default:
+-		/* CF is 3.3V only */
+ 		return -EINVAL;
+ 	}
+ 
+@@ -188,6 +189,7 @@ static int __devinit electra_cf_probe(st
+ 	int status;
+ 	const unsigned int *prop;
+ 	int err;
++	struct vm_struct *area;
+ 
+ 	err = of_address_to_resource(np, 0, &mem);
+ 	if (err)
+@@ -206,22 +208,27 @@ static int __devinit electra_cf_probe(st
+ 
+ 	cf->ofdev = ofdev;
+ 	cf->mem_phys = mem.start;
+-	cf->mem_base = ioremap(mem.start, mem.end - mem.start);
++	cf->mem_size = PAGE_ALIGN(mem.end - mem.start);
++	cf->mem_base = ioremap(cf->mem_phys, cf->mem_size);
+ 	cf->io_size = PAGE_ALIGN(io.end - io.start);
+ 
+-	cf->io_virt = reserve_phb_iospace(cf->io_size);
++	area = __get_vm_area(cf->io_size, 0, PHB_IO_BASE, PHB_IO_END);
++	if (area == NULL)
++		return -ENOMEM;
++
++	cf->io_virt = (void __iomem *)(area->addr);
+ 
+ 	cf->gpio_base = ioremap(0xfc103000, 0x1000);
+ 	dev_set_drvdata(device, cf);
+ 
+-	if (!cf->mem_base || !cf->io_virt || !cf->gpio_base) {
++	if (!cf->mem_base || !cf->io_virt || !cf->gpio_base ||
++	    (__ioremap_at(io.start, cf->io_virt, cf->io_size,
++		_PAGE_NO_CACHE | _PAGE_GUARDED) == NULL)) {
+ 		dev_err(device, "can't ioremap ranges\n");
+ 		status = -ENOMEM;
+ 		goto fail1;
+ 	}
+ 
+-	__ioremap_explicit(io.start, (unsigned long)cf->io_virt, cf->io_size,
+-			   _PAGE_NO_CACHE | _PAGE_GUARDED);
+ 
+ 	cf->io_base = (unsigned long)cf->io_virt - VMALLOC_END;
+ 
+@@ -263,8 +270,7 @@ static int __devinit electra_cf_probe(st
+ 	cf->socket.io_offset = cf->io_base;
+ 
+ 	/* reserve chip-select regions */
+-	if (!request_mem_region(mem.start, mem.end + 1 - mem.start,
+-				driver_name)) {
++	if (!request_mem_region(cf->mem_phys, cf->mem_size, driver_name)) {
+ 		status = -ENXIO;
+ 		dev_err(device, "Can't claim memory region\n");
+ 		goto fail1;
+@@ -291,21 +297,22 @@ static int __devinit electra_cf_probe(st
+ 	}
+ 
+ 	dev_info(device, "at mem 0x%lx io 0x%lx irq %d\n",
+-		 mem.start, io.start, cf->irq);
++		 cf->mem_phys, io.start, cf->irq);
+ 
+ 	cf->active = 1;
+ 	electra_cf_timer((unsigned long)cf);
+ 	return 0;
+ 
+ fail3:
+-	release_mem_region(io.start, io.end + 1 - io.start);
++	release_region(cf->io_base, cf->io_size);
+ fail2:
+-	release_mem_region(mem.start, mem.end + 1 - mem.start);
++	release_mem_region(cf->mem_phys, cf->mem_size);
+ fail1:
+ 	if (cf->irq != NO_IRQ)
+ 		free_irq(cf->irq, cf);
+ 
+-	/* XXX No way to undo the ioremap_explicit at this time */
++	if (cf->io_virt)
++		__iounmap_at(cf->io_virt, cf->io_size);
+ 	if (cf->mem_base)
+ 		iounmap(cf->mem_base);
+ 	if (cf->gpio_base)
+@@ -328,6 +335,7 @@ static int __devexit electra_cf_remove(s
+ 	free_irq(cf->irq, cf);
+ 	del_timer_sync(&cf->timer);
+ 
++	__iounmap_at(cf->io_virt, cf->io_size);
+ 	iounmap(cf->mem_base);
+ 	iounmap(cf->gpio_base);
+ 	release_mem_region(cf->mem_phys, cf->mem_size);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from olof@lixom.net are
 
 origin.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold.patch
-mm-dirty-balancing-for-tasks.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
-oom-change-all_unreclaimable-zone-member-to-flags.patch
-oom-do-not-take-callback_mutex.patch
-writeback-dont-propagate-aop_writepage_activate.patch
-softlockup-add-a-proc-tuning-parameter.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
-do_sys_poll-simplify-playing-with-on-stack-data.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
 pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
-stop-using-dma_xxbit_mask.patch
-stop-using-dma_xxbit_mask-fix.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-userc-ifdef-mq_bytes-fix.patch
-f_dupfd_cloexec-implementation-fix-2.patch
-ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
-drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
-writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-md-software-raid-autodetect-dev-list-not-array.patch
-do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-pnp-use-dev_info-dev_err-etc-in-core-fix.patch
-pnp-add-debug-message-for-adding-new-device-fix-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-cpuset-sched_load_balance-flag-fix.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
-sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix.patch
