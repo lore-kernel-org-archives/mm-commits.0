@@ -1,386 +1,281 @@
 From: akpm@linux-foundation.org
-Subject: - fbdev-support-for-byte-reversed-framebuffer-formats.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:44:15 -0700
-Message-ID: <200710162044.l9GKiF7S016127@imap1.linux-foundation.org>
+Subject: - ecryptfs-remove-header_extent_size.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:40:44 -0700
+Message-ID: <200710162040.l9GKei6c015717@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53757 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40585 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965363AbXJPVRG (ORCPT
+	by vger.kernel.org with ESMTP id S965407AbXJPVRE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:17:06 -0400
+	Tue, 16 Oct 2007 17:17:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pisa@cmp.felk.cvut.cz, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: mhalcrow@us.ibm.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: Support for byte-reversed framebuffer formats
+     eCryptfs: remove header_extent_size
 has been removed from the -mm tree.  Its filename was
-     fbdev-support-for-byte-reversed-framebuffer-formats.patch
+     ecryptfs-remove-header_extent_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fbdev: Support for byte-reversed framebuffer formats
-From: Pavel Pisa <pisa@cmp.felk.cvut.cz>
+Subject: eCryptfs: remove header_extent_size
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Allow generic frame-buffer code to correctly write texts and blit images for
-1, 2 and 4 bit per pixel frame-buffer organizations when pixels in bytes are
-organized to in opposite order than bytes in long type.
+There is no point to keeping a separate header_extent_size and an extent_size.
+ The total size of the header can always be represented as some multiple of
+the regular data extent size.
 
-Overhead should be reasonable.  If option is not selected, than compiler
-should eliminate completely all overhead.
-
-The feature is disabled at compile time if CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is
-not set.
-
-[adaplas]
-Convert helper functions to macros if feature is not enabled.
-
-Signed-off-by: Pavel Pisa <pisa@cmp.felk.cvut.cz>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+[randy.dunlap@oracle.com: ecryptfs: fix printk format warning]
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig       |    9 ++++
- drivers/video/cfbcopyarea.c |   17 ++++----
- drivers/video/cfbfillrect.c |   20 ++++++----
- drivers/video/cfbimgblt.c   |   17 +++++---
- drivers/video/fb_draw.h     |   68 ++++++++++++++++++++++++++++++++++
- include/linux/fb.h          |    1 
- 6 files changed, 109 insertions(+), 23 deletions(-)
+ fs/ecryptfs/crypto.c          |   40 ++++++++++++++++----------------
+ fs/ecryptfs/ecryptfs_kernel.h |   39 +++++++++++++++++++++----------
+ fs/ecryptfs/inode.c           |    7 +++--
+ fs/ecryptfs/mmap.c            |    2 -
+ 4 files changed, 52 insertions(+), 36 deletions(-)
 
-diff -puN drivers/video/Kconfig~fbdev-support-for-byte-reversed-framebuffer-formats drivers/video/Kconfig
---- a/drivers/video/Kconfig~fbdev-support-for-byte-reversed-framebuffer-formats
-+++ a/drivers/video/Kconfig
-@@ -103,6 +103,15 @@ config FB_CFB_IMAGEBLIT
- 	  blitting. This is used by drivers that don't provide their own
- 	  (accelerated) version.
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-remove-header_extent_size fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-remove-header_extent_size
++++ a/fs/ecryptfs/crypto.c
+@@ -366,8 +366,8 @@ ecryptfs_extent_to_lwr_pg_idx_and_offset
+ 	int extents_per_page;
  
-+config FB_CFB_REV_PIXELS_IN_BYTE
-+	bool
-+	depends on FB
-+	default n
-+	---help---
-+	  Allow generic frame-buffer functions to work on displays with 1, 2
-+	  and 4 bits per pixel depths which has opposite order of pixels in
-+	  byte order to bytes in long order.
-+
- config FB_SYS_FILLRECT
- 	tristate
- 	depends on FB
-diff -puN drivers/video/cfbcopyarea.c~fbdev-support-for-byte-reversed-framebuffer-formats drivers/video/cfbcopyarea.c
---- a/drivers/video/cfbcopyarea.c~fbdev-support-for-byte-reversed-framebuffer-formats
-+++ a/drivers/video/cfbcopyarea.c
-@@ -45,14 +45,14 @@
- 
- static void
- bitcpy(unsigned long __iomem *dst, int dst_idx, const unsigned long __iomem *src,
--	int src_idx, int bits, unsigned n)
-+	int src_idx, int bits, unsigned n, u32 bswapmask)
- {
- 	unsigned long first, last;
- 	int const shift = dst_idx-src_idx;
- 	int left, right;
- 
--	first = FB_SHIFT_HIGH(~0UL, dst_idx);
--	last = ~(FB_SHIFT_HIGH(~0UL, (dst_idx+n) % bits));
-+	first = fb_shifted_pixels_mask_long(dst_idx, bswapmask);
-+	last = ~fb_shifted_pixels_mask_long((dst_idx+n) % bits, bswapmask);
- 
- 	if (!shift) {
- 		// Same alignment for source and dest
-@@ -185,7 +185,7 @@ bitcpy(unsigned long __iomem *dst, int d
- 
- static void
- bitcpy_rev(unsigned long __iomem *dst, int dst_idx, const unsigned long __iomem *src,
--		int src_idx, int bits, unsigned n)
-+		int src_idx, int bits, unsigned n, u32 bswapmask)
- {
- 	unsigned long first, last;
- 	int shift;
-@@ -203,8 +203,8 @@ bitcpy_rev(unsigned long __iomem *dst, i
- 
- 	shift = dst_idx-src_idx;
- 
--	first = FB_SHIFT_LOW(~0UL, bits - 1 - dst_idx);
--	last = ~(FB_SHIFT_LOW(~0UL, bits - 1 - ((dst_idx-n) % bits)));
-+	first = fb_shifted_pixels_mask_long(bits - 1 - dst_idx, bswapmask);
-+	last = ~fb_shifted_pixels_mask_long(bits - 1 - ((dst_idx-n) % bits), bswapmask);
- 
- 	if (!shift) {
- 		// Same alignment for source and dest
-@@ -336,6 +336,7 @@ void cfb_copyarea(struct fb_info *p, con
- 	unsigned long __iomem *dst = NULL, *src = NULL;
- 	int bits = BITS_PER_LONG, bytes = bits >> 3;
- 	int dst_idx = 0, src_idx = 0, rev_copy = 0;
-+	u32 bswapmask = fb_compute_bswapmask(p);
- 
- 	if (p->state != FBINFO_STATE_RUNNING)
- 		return;
-@@ -368,7 +369,7 @@ void cfb_copyarea(struct fb_info *p, con
- 			src += src_idx >> (ffs(bits) - 1);
- 			src_idx &= (bytes - 1);
- 			bitcpy_rev(dst, dst_idx, src, src_idx, bits,
--				width*p->var.bits_per_pixel);
-+				width*p->var.bits_per_pixel, bswapmask);
- 		}
- 	} else {
- 		while (height--) {
-@@ -377,7 +378,7 @@ void cfb_copyarea(struct fb_info *p, con
- 			src += src_idx >> (ffs(bits) - 1);
- 			src_idx &= (bytes - 1);
- 			bitcpy(dst, dst_idx, src, src_idx, bits,
--				width*p->var.bits_per_pixel);
-+				width*p->var.bits_per_pixel, bswapmask);
- 			dst_idx += bits_per_line;
- 			src_idx += bits_per_line;
- 		}
-diff -puN drivers/video/cfbfillrect.c~fbdev-support-for-byte-reversed-framebuffer-formats drivers/video/cfbfillrect.c
---- a/drivers/video/cfbfillrect.c~fbdev-support-for-byte-reversed-framebuffer-formats
-+++ a/drivers/video/cfbfillrect.c
-@@ -36,15 +36,16 @@
-      */
- 
- static void
--bitfill_aligned(unsigned long __iomem *dst, int dst_idx, unsigned long pat, unsigned n, int bits)
-+bitfill_aligned(unsigned long __iomem *dst, int dst_idx, unsigned long pat,
-+		unsigned n, int bits, u32 bswapmask)
- {
- 	unsigned long first, last;
- 
- 	if (!n)
- 		return;
- 
--	first = FB_SHIFT_HIGH(~0UL, dst_idx);
--	last = ~(FB_SHIFT_HIGH(~0UL, (dst_idx+n) % bits));
-+	first = fb_shifted_pixels_mask_long(dst_idx, bswapmask);
-+	last = ~fb_shifted_pixels_mask_long((dst_idx+n) % bits, bswapmask);
- 
- 	if (dst_idx+n <= bits) {
- 		// Single word
-@@ -146,7 +147,8 @@ bitfill_unaligned(unsigned long __iomem 
-      *  Aligned pattern invert using 32/64-bit memory accesses
-      */
- static void
--bitfill_aligned_rev(unsigned long __iomem *dst, int dst_idx, unsigned long pat, unsigned n, int bits)
-+bitfill_aligned_rev(unsigned long __iomem *dst, int dst_idx, unsigned long pat,
-+		unsigned n, int bits, u32 bswapmask)
- {
- 	unsigned long val = pat, dat;
- 	unsigned long first, last;
-@@ -154,8 +156,8 @@ bitfill_aligned_rev(unsigned long __iome
- 	if (!n)
- 		return;
- 
--	first = FB_SHIFT_HIGH(~0UL, dst_idx);
--	last = ~(FB_SHIFT_HIGH(~0UL, (dst_idx+n) % bits));
-+	first = fb_shifted_pixels_mask_long(dst_idx, bswapmask);
-+	last = ~fb_shifted_pixels_mask_long((dst_idx+n) % bits, bswapmask);
- 
- 	if (dst_idx+n <= bits) {
- 		// Single word
-@@ -303,8 +305,10 @@ void cfb_fillrect(struct fb_info *p, con
- 	if (p->fbops->fb_sync)
- 		p->fbops->fb_sync(p);
- 	if (!left) {
-+		u32 bswapmask = fb_compute_bswapmask(p);
- 		void (*fill_op32)(unsigned long __iomem *dst, int dst_idx,
--		                  unsigned long pat, unsigned n, int bits) = NULL;
-+		                  unsigned long pat, unsigned n, int bits,
-+				  u32 bswapmask) = NULL;
- 
- 		switch (rect->rop) {
- 		case ROP_XOR:
-@@ -321,7 +325,7 @@ void cfb_fillrect(struct fb_info *p, con
- 		while (height--) {
- 			dst += dst_idx >> (ffs(bits) - 1);
- 			dst_idx &= (bits - 1);
--			fill_op32(dst, dst_idx, pat, width*bpp, bits);
-+			fill_op32(dst, dst_idx, pat, width*bpp, bits, bswapmask);
- 			dst_idx += p->fix.line_length*8;
- 		}
- 	} else {
-diff -puN drivers/video/cfbimgblt.c~fbdev-support-for-byte-reversed-framebuffer-formats drivers/video/cfbimgblt.c
---- a/drivers/video/cfbimgblt.c~fbdev-support-for-byte-reversed-framebuffer-formats
-+++ a/drivers/video/cfbimgblt.c
-@@ -33,6 +33,7 @@
- #include <linux/string.h>
- #include <linux/fb.h>
- #include <asm/types.h>
-+#include "fb_draw.h"
- 
- #define DEBUG
- 
-@@ -87,6 +88,7 @@ static inline void color_imageblit(const
- 	u32 null_bits = 32 - bpp;
- 	u32 *palette = (u32 *) p->pseudo_palette;
- 	const u8 *src = image->data;
-+	u32 bswapmask = fb_compute_bswapmask(p);
- 
- 	dst2 = (u32 __iomem *) dst1;
- 	for (i = image->height; i--; ) {
-@@ -96,7 +98,7 @@ static inline void color_imageblit(const
- 		val = 0;
- 		
- 		if (start_index) {
--			u32 start_mask = ~(FB_SHIFT_HIGH(~(u32)0, start_index));
-+			u32 start_mask = ~fb_shifted_pixels_mask_u32(start_index, bswapmask);
- 			val = FB_READL(dst) & start_mask;
- 			shift = start_index;
- 		}
-@@ -107,7 +109,7 @@ static inline void color_imageblit(const
- 			else
- 				color = *src;
- 			color <<= FB_LEFT_POS(bpp);
--			val |= FB_SHIFT_HIGH(color, shift);
-+			val |= FB_SHIFT_HIGH(color, shift ^ bswapmask);
- 			if (shift >= null_bits) {
- 				FB_WRITEL(val, dst++);
- 	
-@@ -119,7 +121,7 @@ static inline void color_imageblit(const
- 			src++;
- 		}
- 		if (shift) {
--			u32 end_mask = FB_SHIFT_HIGH(~(u32)0, shift);
-+			u32 end_mask = fb_shifted_pixels_mask_u32(shift, bswapmask);
- 
- 			FB_WRITEL((FB_READL(dst) & end_mask) | val, dst);
- 		}
-@@ -147,7 +149,8 @@ static inline void slow_imageblit(const 
- 	u32 spitch = (image->width+7)/8;
- 	const u8 *src = image->data, *s;
- 	u32 i, j, l;
--	
-+	u32 bswapmask = fb_compute_bswapmask(p);
-+
- 	dst2 = (u32 __iomem *) dst1;
- 	fgcolor <<= FB_LEFT_POS(bpp);
- 	bgcolor <<= FB_LEFT_POS(bpp);
-@@ -161,7 +164,7 @@ static inline void slow_imageblit(const 
- 
- 		/* write leading bits */
- 		if (start_index) {
--			u32 start_mask = ~(FB_SHIFT_HIGH(~(u32)0,start_index));
-+			u32 start_mask = ~fb_shifted_pixels_mask_u32(start_index, bswapmask);
- 			val = FB_READL(dst) & start_mask;
- 			shift = start_index;
- 		}
-@@ -169,7 +172,7 @@ static inline void slow_imageblit(const 
- 		while (j--) {
- 			l--;
- 			color = (*s & (1 << l)) ? fgcolor : bgcolor;
--			val |= FB_SHIFT_HIGH(color, shift);
-+			val |= FB_SHIFT_HIGH(color, shift ^ bswapmask);
- 			
- 			/* Did the bitshift spill bits to the next long? */
- 			if (shift >= null_bits) {
-@@ -184,7 +187,7 @@ static inline void slow_imageblit(const 
- 
- 		/* write trailing bits */
-  		if (shift) {
--			u32 end_mask = FB_SHIFT_HIGH(~(u32)0, shift);
-+			u32 end_mask = fb_shifted_pixels_mask_u32(shift, bswapmask);
- 
- 			FB_WRITEL((FB_READL(dst) & end_mask) | val, dst);
- 		}
-diff -puN drivers/video/fb_draw.h~fbdev-support-for-byte-reversed-framebuffer-formats drivers/video/fb_draw.h
---- a/drivers/video/fb_draw.h~fbdev-support-for-byte-reversed-framebuffer-formats
-+++ a/drivers/video/fb_draw.h
-@@ -2,6 +2,7 @@
- #define _FB_DRAW_H
- 
- #include <asm/types.h>
-+#include <linux/fb.h>
- 
-     /*
-      *  Compose two values, using a bitmask as decision value
-@@ -69,4 +70,71 @@ pixel_to_pat( u32 bpp, u32 pixel)
-     }
+ 	bytes_occupied_by_headers_at_front =
+-		( crypt_stat->header_extent_size
+-		  * crypt_stat->num_header_extents_at_front );
++		(crypt_stat->extent_size
++		 * crypt_stat->num_header_extents_at_front);
+ 	extents_occupied_by_headers_at_front =
+ 		( bytes_occupied_by_headers_at_front
+ 		  / crypt_stat->extent_size );
+@@ -376,8 +376,8 @@ ecryptfs_extent_to_lwr_pg_idx_and_offset
+ 	(*lower_page_idx) = lower_extent_num / extents_per_page;
+ 	extent_offset = lower_extent_num % extents_per_page;
+ 	(*byte_offset) = extent_offset * crypt_stat->extent_size;
+-	ecryptfs_printk(KERN_DEBUG, " * crypt_stat->header_extent_size = "
+-			"[%d]\n", crypt_stat->header_extent_size);
++	ecryptfs_printk(KERN_DEBUG, " * crypt_stat->extent_size = "
++			"[%d]\n", crypt_stat->extent_size);
+ 	ecryptfs_printk(KERN_DEBUG, " * crypt_stat->"
+ 			"num_header_extents_at_front = [%d]\n",
+ 			crypt_stat->num_header_extents_at_front);
+@@ -899,15 +899,17 @@ void ecryptfs_set_default_sizes(struct e
+ 	crypt_stat->extent_size = ECRYPTFS_DEFAULT_EXTENT_SIZE;
+ 	set_extent_mask_and_shift(crypt_stat);
+ 	crypt_stat->iv_bytes = ECRYPTFS_DEFAULT_IV_BYTES;
+-	if (PAGE_CACHE_SIZE <= ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE) {
+-		crypt_stat->header_extent_size =
+-			ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE;
+-	} else
+-		crypt_stat->header_extent_size = PAGE_CACHE_SIZE;
+ 	if (crypt_stat->flags & ECRYPTFS_METADATA_IN_XATTR)
+ 		crypt_stat->num_header_extents_at_front = 0;
+-	else
+-		crypt_stat->num_header_extents_at_front = 1;
++	else {
++		if (PAGE_CACHE_SIZE <= ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE)
++			crypt_stat->num_header_extents_at_front =
++				(ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE
++				 / crypt_stat->extent_size);
++		else
++			crypt_stat->num_header_extents_at_front =
++				(PAGE_CACHE_SIZE / crypt_stat->extent_size);
++	}
  }
- #endif
-+
-+#ifdef CONFIG_FB_CFB_REV_PIXELS_IN_BYTE
-+
-+static inline u32 fb_shifted_pixels_mask_u32(u32 index, u32 bswapmask)
-+{
-+	u32 mask;
-+
-+	if (!bswapmask) {
-+		mask = FB_SHIFT_HIGH(~(u32)0, index);
-+	} else {
-+		mask = 0xff << FB_LEFT_POS(8);
-+		mask = FB_SHIFT_LOW(mask, index & (bswapmask)) & mask;
-+		mask = FB_SHIFT_HIGH(mask, index & ~(bswapmask));
-+#if defined(__i386__) || defined(__x86_64__)
-+		/* Shift argument is limited to 0 - 31 on x86 based CPU's */
-+		if(index + bswapmask < 32)
-+#endif
-+			mask |= FB_SHIFT_HIGH(~(u32)0,
-+					(index + bswapmask) & ~(bswapmask));
-+	}
-+	return mask;
-+}
-+
-+static inline unsigned long fb_shifted_pixels_mask_long(u32 index, u32 bswapmask)
-+{
-+	unsigned long mask;
-+
-+	if (!bswapmask) {
-+		mask = FB_SHIFT_HIGH(~0UL, index);
-+	} else {
-+		mask = 0xff << FB_LEFT_POS(8);
-+		mask = FB_SHIFT_LOW(mask, index & (bswapmask)) & mask;
-+		mask = FB_SHIFT_HIGH(mask, index & ~(bswapmask));
-+#if defined(__i386__) || defined(__x86_64__)
-+		/* Shift argument is limited to 0 - 31 on x86 based CPU's */
-+		if(index + bswapmask < BITS_PER_LONG)
-+#endif
-+			mask |= FB_SHIFT_HIGH(~0UL,
-+					(index + bswapmask) & ~(bswapmask));
-+	}
-+	return mask;
-+}
-+
-+
-+static inline u32 fb_compute_bswapmask(struct fb_info *info)
-+{
-+	u32 bswapmask = 0;
-+	unsigned bpp = info->var.bits_per_pixel;
-+
-+	if ((bpp < 8) && (info->var.nonstd & FB_NONSTD_REV_PIX_IN_B)) {
-+		/*
-+		 * Reversed order of pixel layout in bytes
-+		 * works only for 1, 2 and 4 bpp
-+		 */
-+		bswapmask = 7 - bpp + 1;
-+	}
-+	return bswapmask;
-+}
-+
-+#else /* CONFIG_FB_CFB_REV_PIXELS_IN_BYTE */
-+
-+#define fb_shifted_pixels_mask_u32(i, b) FB_SHIFT_HIGH(~(u32)0, (i))
-+#define fb_shifted_pixels_mask_long(i, b) FB_SHIFT_HIGH(~0UL, (i))
-+#define fb_compute_bswapmask(...) 0
-+
-+#endif  /* CONFIG_FB_CFB_REV_PIXELS_IN_BYTE */
-+
- #endif /* FB_DRAW_H */
-diff -puN include/linux/fb.h~fbdev-support-for-byte-reversed-framebuffer-formats include/linux/fb.h
---- a/include/linux/fb.h~fbdev-support-for-byte-reversed-framebuffer-formats
-+++ a/include/linux/fb.h
-@@ -180,6 +180,7 @@ struct fb_bitfield {
+ 
+ /**
+@@ -1319,7 +1321,7 @@ ecryptfs_write_header_metadata(char *vir
+ 	u32 header_extent_size;
+ 	u16 num_header_extents_at_front;
+ 
+-	header_extent_size = (u32)crypt_stat->header_extent_size;
++	header_extent_size = (u32)crypt_stat->extent_size;
+ 	num_header_extents_at_front =
+ 		(u16)crypt_stat->num_header_extents_at_front;
+ 	header_extent_size = cpu_to_be32(header_extent_size);
+@@ -1415,7 +1417,7 @@ ecryptfs_write_metadata_to_contents(stru
+ 		set_fs(oldfs);
+ 		goto out;
+ 	}
+-	header_pages = ((crypt_stat->header_extent_size
++	header_pages = ((crypt_stat->extent_size
+ 			 * crypt_stat->num_header_extents_at_front)
+ 			/ PAGE_CACHE_SIZE);
+ 	memset(page_virt, 0, PAGE_CACHE_SIZE);
+@@ -1532,17 +1534,16 @@ static int parse_header_metadata(struct 
+ 	virt += 4;
+ 	memcpy(&num_header_extents_at_front, virt, 2);
+ 	num_header_extents_at_front = be16_to_cpu(num_header_extents_at_front);
+-	crypt_stat->header_extent_size = (int)header_extent_size;
+ 	crypt_stat->num_header_extents_at_front =
+ 		(int)num_header_extents_at_front;
+-	(*bytes_read) = 6;
++	(*bytes_read) = (sizeof(u32) + sizeof(u16));
+ 	if ((validate_header_size == ECRYPTFS_VALIDATE_HEADER_SIZE)
+-	    && ((crypt_stat->header_extent_size
++	    && ((crypt_stat->extent_size
+ 		 * crypt_stat->num_header_extents_at_front)
+ 		< ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE)) {
+ 		rc = -EINVAL;
+-		ecryptfs_printk(KERN_WARNING, "Invalid header extent size: "
+-				"[%d]\n", crypt_stat->header_extent_size);
++		printk(KERN_WARNING "Invalid number of header extents: [%zd]\n",
++		       crypt_stat->num_header_extents_at_front);
+ 	}
+ 	return rc;
+ }
+@@ -1557,8 +1558,7 @@ static int parse_header_metadata(struct 
+  */
+ static void set_default_header_data(struct ecryptfs_crypt_stat *crypt_stat)
+ {
+-	crypt_stat->header_extent_size = 4096;
+-	crypt_stat->num_header_extents_at_front = 1;
++	crypt_stat->num_header_extents_at_front = 2;
+ }
+ 
+ /**
+diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-remove-header_extent_size fs/ecryptfs/ecryptfs_kernel.h
+--- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-remove-header_extent_size
++++ a/fs/ecryptfs/ecryptfs_kernel.h
+@@ -38,7 +38,7 @@
+ /* Version verification for shared data structures w/ userspace */
+ #define ECRYPTFS_VERSION_MAJOR 0x00
+ #define ECRYPTFS_VERSION_MINOR 0x04
+-#define ECRYPTFS_SUPPORTED_FILE_VERSION 0x02
++#define ECRYPTFS_SUPPORTED_FILE_VERSION 0x03
+ /* These flags indicate which features are supported by the kernel
+  * module; userspace tools such as the mount helper read
+  * ECRYPTFS_VERSIONING_MASK from a sysfs handle in order to determine
+@@ -67,8 +67,7 @@
+ #define ECRYPTFS_MAX_KEY_BYTES 64
+ #define ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES 512
+ #define ECRYPTFS_DEFAULT_IV_BYTES 16
+-#define ECRYPTFS_FILE_VERSION 0x02
+-#define ECRYPTFS_DEFAULT_HEADER_EXTENT_SIZE 8192
++#define ECRYPTFS_FILE_VERSION 0x03
+ #define ECRYPTFS_DEFAULT_EXTENT_SIZE 4096
+ #define ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE 8192
+ #define ECRYPTFS_DEFAULT_MSG_CTX_ELEMS 32
+@@ -201,7 +200,7 @@ ecryptfs_get_key_payload_data(struct key
+ #define ECRYPTFS_SALT_BYTES 2
+ #define MAGIC_ECRYPTFS_MARKER 0x3c81b7f5
+ #define MAGIC_ECRYPTFS_MARKER_SIZE_BYTES 8	/* 4*2 */
+-#define ECRYPTFS_FILE_SIZE_BYTES 8
++#define ECRYPTFS_FILE_SIZE_BYTES (sizeof(u64))
+ #define ECRYPTFS_DEFAULT_CIPHER "aes"
+ #define ECRYPTFS_DEFAULT_KEY_BYTES 16
+ #define ECRYPTFS_DEFAULT_HASH "md5"
+@@ -238,7 +237,6 @@ struct ecryptfs_crypt_stat {
+ 	u32 flags;
+ 	unsigned int file_version;
+ 	size_t iv_bytes;
+-	size_t header_extent_size;
+ 	size_t num_header_extents_at_front;
+ 	size_t extent_size; /* Data extent size; default is 4096 */
+ 	size_t key_size;
+@@ -273,6 +271,17 @@ struct ecryptfs_dentry_info {
  };
  
- #define FB_NONSTD_HAM		1	/* Hold-And-Modify (HAM)        */
-+#define FB_NONSTD_REV_PIX_IN_B	2	/* order of pixels in each byte is reversed */
+ /**
++ * ecryptfs_global_auth_tok - A key used to encrypt all new files under the mountpoint
++ * @flags: Status flags
++ * @mount_crypt_stat_list: These auth_toks hang off the mount-wide
++ *                         cryptographic context. Every time a new
++ *                         inode comes into existence, eCryptfs copies
++ *                         the auth_toks on that list to the set of
++ *                         auth_toks on the inode's crypt_stat
++ * @global_auth_tok_key: The key from the user's keyring for the sig
++ * @global_auth_tok: The key contents
++ * @sig: The key identifier
++ *
+  * ecryptfs_global_auth_tok structs refer to authentication token keys
+  * in the user keyring that apply to newly created files. A list of
+  * these objects hangs off of the mount_crypt_stat struct for any
+@@ -283,15 +292,21 @@ struct ecryptfs_dentry_info {
+ struct ecryptfs_global_auth_tok {
+ #define ECRYPTFS_AUTH_TOK_INVALID 0x00000001
+ 	u32 flags;
+-	struct list_head mount_crypt_stat_list; /* Default auth_tok list for
+-						 * the mount_crypt_stat */
+-	struct key *global_auth_tok_key; /* The key from the user's keyring for
+-					  * the sig */
+-	struct ecryptfs_auth_tok *global_auth_tok; /* The key contents */
+-	unsigned char sig[ECRYPTFS_SIG_SIZE_HEX + 1]; /* The key identifier */
++	struct list_head mount_crypt_stat_list;
++	struct key *global_auth_tok_key;
++	struct ecryptfs_auth_tok *global_auth_tok;
++	unsigned char sig[ECRYPTFS_SIG_SIZE_HEX + 1];
+ };
  
- #define FB_ACTIVATE_NOW		0	/* set values immediately (or vbl)*/
- #define FB_ACTIVATE_NXTOPEN	1	/* activate on next open	*/
+ /**
++ * ecryptfs_key_tfm - Persistent key tfm
++ * @key_tfm: crypto API handle to the key
++ * @key_size: Key size in bytes
++ * @key_tfm_mutex: Mutex to ensure only one operation in eCryptfs is
++ *                 using the persistent TFM at any point in time
++ * @key_tfm_list: Handle to hang this off the module-wide TFM list
++ * @cipher_name: String name for the cipher for this TFM
++ *
+  * Typically, eCryptfs will use the same ciphers repeatedly throughout
+  * the course of its operations. In order to avoid unnecessarily
+  * destroying and initializing the same cipher repeatedly, eCryptfs
+@@ -301,7 +316,7 @@ struct ecryptfs_key_tfm {
+ 	struct crypto_blkcipher *key_tfm;
+ 	size_t key_size;
+ 	struct mutex key_tfm_mutex;
+-	struct list_head key_tfm_list; /* The module's tfm list */
++	struct list_head key_tfm_list;
+ 	unsigned char cipher_name[ECRYPTFS_MAX_CIPHER_NAME_SIZE + 1];
+ };
+ 
+diff -puN fs/ecryptfs/inode.c~ecryptfs-remove-header_extent_size fs/ecryptfs/inode.c
+--- a/fs/ecryptfs/inode.c~ecryptfs-remove-header_extent_size
++++ a/fs/ecryptfs/inode.c
+@@ -392,7 +392,8 @@ static struct dentry *ecryptfs_lookup(st
+ 		dentry->d_sb)->mount_crypt_stat;
+ 	if (mount_crypt_stat->flags & ECRYPTFS_ENCRYPTED_VIEW_ENABLED) {
+ 		if (crypt_stat->flags & ECRYPTFS_METADATA_IN_XATTR)
+-			file_size = (crypt_stat->header_extent_size
++			file_size = ((crypt_stat->extent_size
++				      * crypt_stat->num_header_extents_at_front)
+ 				     + i_size_read(lower_dentry->d_inode));
+ 		else
+ 			file_size = i_size_read(lower_dentry->d_inode);
+@@ -722,8 +723,8 @@ upper_size_to_lower_size(struct ecryptfs
+ {
+ 	loff_t lower_size;
+ 
+-	lower_size = ( crypt_stat->header_extent_size
+-		       * crypt_stat->num_header_extents_at_front );
++	lower_size = (crypt_stat->extent_size
++		      * crypt_stat->num_header_extents_at_front);
+ 	if (upper_size != 0) {
+ 		loff_t num_extents;
+ 
+diff -puN fs/ecryptfs/mmap.c~ecryptfs-remove-header_extent_size fs/ecryptfs/mmap.c
+--- a/fs/ecryptfs/mmap.c~ecryptfs-remove-header_extent_size
++++ a/fs/ecryptfs/mmap.c
+@@ -301,7 +301,7 @@ static int ecryptfs_readpage(struct file
+ 	} else if (crypt_stat->flags & ECRYPTFS_VIEW_AS_ENCRYPTED) {
+ 		if (crypt_stat->flags & ECRYPTFS_METADATA_IN_XATTR) {
+ 			int num_pages_in_header_region =
+-				(crypt_stat->header_extent_size
++				(crypt_stat->extent_size
+ 				 / PAGE_CACHE_SIZE);
+ 
+ 			if (page->index < num_pages_in_header_region) {
 _
 
-Patches currently in -mm which might be from pisa@cmp.felk.cvut.cz are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
 origin.patch
+git-unionfs.patch
+ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
+vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
