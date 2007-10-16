@@ -1,53 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 22:01:59 -0700
-Message-ID: <200710160501.l9G51xdW010071@imap1.linux-foundation.org>
+Subject: - fbcon-logo-disable-logo-at-boot-fix.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 22:02:45 -0700
+Message-ID: <200710160502.l9G52jvk010085@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44391 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53213 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755326AbXJPFCR (ORCPT
+	by vger.kernel.org with ESMTP id S1757286AbXJPFCv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 01:02:17 -0400
+	Tue, 16 Oct 2007 01:02:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adaplas@pol.net, m.kozlowski@tuxland.pl, macro@linux-mips.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adaplas@gmail.com, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers-video-pmag-ba-fbc-improve-diagnostics-fix
+     fbcon-logo-disable-logo-at-boot-fix
 has been removed from the -mm tree.  Its filename was
-     drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+     fbcon-logo-disable-logo-at-boot-fix.patch
 
-This patch was dropped because it was folded into drivers-video-pmag-ba-fbc-improve-diagnostics.patch
+This patch was dropped because it was folded into fbcon-logo-disable-logo-at-boot.patch
 
 ------------------------------------------------------
-Subject: drivers-video-pmag-ba-fbc-improve-diagnostics-fix
+Subject: fbcon-logo-disable-logo-at-boot-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
-Cc: Maciej W. Rozycki <macro@linux-mips.org>
-Cc: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+- Make nologo static
+
+- Fix checkpatch warning
+
+Cc: Antonino Daplas <adaplas@gmail.com>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pmag-ba-fb.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/pmag-ba-fb.c~drivers-video-pmag-ba-fbc-improve-diagnostics-fix drivers/video/pmag-ba-fb.c
---- a/drivers/video/pmag-ba-fb.c~drivers-video-pmag-ba-fbc-improve-diagnostics-fix
-+++ a/drivers/video/pmag-ba-fb.c
-@@ -147,7 +147,7 @@ static int __init pmagbafb_probe(struct 
- 	resource_size_t start, len;
- 	struct fb_info *info;
- 	struct pmagbafb_par *par;
--	int err = 0;
-+	int err;
+diff -puN drivers/video/console/newport_con.c~fbcon-logo-disable-logo-at-boot-fix drivers/video/console/newport_con.c
+--- a/drivers/video/console/newport_con.c~fbcon-logo-disable-logo-at-boot-fix
++++ a/drivers/video/console/newport_con.c
+@@ -98,7 +98,7 @@ static inline void newport_init_cmap(voi
+ 	}
+ }
  
- 	info = framebuffer_alloc(sizeof(struct pmagbafb_par), dev);
- 	if (!info) {
+-static struct linux_logo * newport_show_logo(void)
++static struct linux_logo *newport_show_logo(void)
+ {
+ #ifdef CONFIG_LOGO_SGI_CLUT224
+ 	const struct linux_logo *logo = fb_find_logo(8);
+diff -puN drivers/video/logo/logo.c~fbcon-logo-disable-logo-at-boot-fix drivers/video/logo/logo.c
+--- a/drivers/video/logo/logo.c~fbcon-logo-disable-logo-at-boot-fix
++++ a/drivers/video/logo/logo.c
+@@ -34,7 +34,7 @@ extern const struct linux_logo logo_supe
+ extern const struct linux_logo logo_superh_clut224;
+ extern const struct linux_logo logo_m32r_clut224;
+ 
+-int nologo;
++static int nologo;
+ module_param(nologo, bool, 0);
+ MODULE_PARM_DESC(nologo, "Disables startup logo");
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,7 +88,7 @@ fbdev-fb_create_modedb-non-static-int-first-=-1.patch
 intel-fb-support-for-interlaced-video-modes.patch
 export-font_vga_8x16.patch
 drivers-video-pmag-ba-fbc-improve-diagnostics.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+fbcon-logo-disable-logo-at-boot.patch
 fbcon-logo-disable-logo-at-boot-fix.patch
 fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte-checkpatch-fixes.patch
 md-software-raid-autodetect-dev-list-not-array.patch
