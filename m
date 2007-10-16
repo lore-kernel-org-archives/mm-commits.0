@@ -1,234 +1,217 @@
 From: akpm@linux-foundation.org
-Subject: - uml-replace-clone-with-fork.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:37:55 -0700
-Message-ID: <200710162037.l9GKbtcn015326@imap1.linux-foundation.org>
+Subject: - s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:43:17 -0700
+Message-ID: <200710162043.l9GKhHMl016030@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33085 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33890 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964941AbXJPVMa (ORCPT
+	by vger.kernel.org with ESMTP id S1753886AbXJPVNA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:12:30 -0400
+	Tue, 16 Oct 2007 17:13:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: replace clone with fork
+     s3c2410fb: add vertical margins fields to s3c2410fb_display
 has been removed from the -mm tree.  Its filename was
-     uml-replace-clone-with-fork.patch
+     s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: replace clone with fork
-From: Jeff Dike <jdike@addtoit.com>
+Subject: s3c2410fb: add vertical margins fields to s3c2410fb_display
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Convert the boot-time host ptrace testing from clone to fork.  They were
-essentially doing fork anyway.  This cleans up the code a bit, and makes
-valgrind a bit happier about grinding it.
+This patch adds vertical margins values to all
+s3c24xx platform.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/start_up.c |   55 ++++++++++++----------------------
- 1 file changed, 20 insertions(+), 35 deletions(-)
+ arch/arm/mach-s3c2410/mach-amlm5900.c |    2 ++
+ arch/arm/mach-s3c2410/mach-bast.c     |   19 +++++++++++++++++++
+ arch/arm/mach-s3c2410/mach-h1940.c    |    2 ++
+ arch/arm/mach-s3c2410/mach-qt2410.c   |    6 ++++++
+ arch/arm/mach-s3c2440/mach-rx3715.c   |    2 ++
+ arch/arm/mach-s3c2440/mach-smdk2440.c |    2 ++
+ 6 files changed, 33 insertions(+)
 
-diff -puN arch/um/os-Linux/start_up.c~uml-replace-clone-with-fork arch/um/os-Linux/start_up.c
---- a/arch/um/os-Linux/start_up.c~uml-replace-clone-with-fork
-+++ a/arch/um/os-Linux/start_up.c
-@@ -25,7 +25,7 @@
- #include "registers.h"
- #include "skas_ptrace.h"
+diff -puN arch/arm/mach-s3c2410/mach-amlm5900.c~s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display arch/arm/mach-s3c2410/mach-amlm5900.c
+--- a/arch/arm/mach-s3c2410/mach-amlm5900.c~s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display
++++ a/arch/arm/mach-s3c2410/mach-amlm5900.c
+@@ -179,6 +179,8 @@ static struct s3c2410fb_display __initda
+ 	.bpp		= 4,
+ 	.left_margin	= 1 << (4 + 3),
+ 	.right_margin	= 8 << 3,
++	.upper_margin	= 0,
++	.lower_margin	= 0,
  
--static int ptrace_child(void *arg)
-+static int ptrace_child(void)
- {
- 	int ret;
- 	int pid = os_getpid(), ppid = getppid();
-@@ -90,31 +90,23 @@ static void non_fatal(char *fmt, ...)
- 	fflush(stdout);
- }
+ 	.lcdcon1	= 0x00008225,
+ 	.lcdcon2	= 0x0027c000,
+diff -puN arch/arm/mach-s3c2410/mach-bast.c~s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display arch/arm/mach-s3c2410/mach-bast.c
+--- a/arch/arm/mach-s3c2410/mach-bast.c~s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display
++++ a/arch/arm/mach-s3c2410/mach-bast.c
+@@ -472,10 +472,13 @@ static struct s3c2410fb_display __initda
+ 		.type		= S3C2410_LCDCON1_TFT,
+ 		.width		= 640,
+ 		.height		= 480,
++
+ 		.xres		= 320,
+ 		.yres		= 240,
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
++		.upper_margin	= 30,
++		.lower_margin	= 32,
  
--static int start_ptraced_child(void **stack_out)
-+static int start_ptraced_child(void)
- {
--	void *stack;
--	unsigned long sp;
- 	int pid, n, status;
+ 		.bpp		= 4,
  
--	stack = mmap(NULL, UM_KERN_PAGE_SIZE,
--		     PROT_READ | PROT_WRITE | PROT_EXEC,
--		     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
--	if (stack == MAP_FAILED)
--		fatal_perror("check_ptrace : mmap failed");
--
--	sp = (unsigned long) stack + UM_KERN_PAGE_SIZE - sizeof(void *);
--	pid = clone(ptrace_child, (void *) sp, SIGCHLD, NULL);
--	if (pid < 0)
--		fatal_perror("start_ptraced_child : clone failed");
-+	pid = fork();
-+	if (pid == 0)
-+		ptrace_child();
-+	else if (pid < 0)
-+		fatal_perror("start_ptraced_child : fork failed");
+@@ -494,6 +497,8 @@ static struct s3c2410fb_display __initda
+ 		.bpp		= 4,
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
++		.upper_margin	= 30,
++		.lower_margin	= 32,
  
- 	CATCH_EINTR(n = waitpid(pid, &status, WUNTRACED));
- 	if (n < 0)
--		fatal_perror("check_ptrace : clone failed");
-+		fatal_perror("check_ptrace : waitpid failed");
- 	if (!WIFSTOPPED(status) || (WSTOPSIG(status) != SIGSTOP))
- 		fatal("check_ptrace : expected SIGSTOP, got status = %d",
- 		      status);
+ 		.lcdcon1	= 0x00000176,
+ 		.lcdcon2	= 0x1d77c7c2,
+@@ -510,6 +515,8 @@ static struct s3c2410fb_display __initda
+ 		.bpp		= 4,
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
++		.upper_margin	= 30,
++		.lower_margin	= 32,
  
--	*stack_out = stack;
- 	return pid;
- }
+ 		.lcdcon1	= 0x00000176,
+ 		.lcdcon2	= 0x1d77c7c2,
+@@ -526,6 +533,8 @@ static struct s3c2410fb_display __initda
+ 		.bpp		= 8,
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
++		.upper_margin	= 30,
++		.lower_margin	= 32,
  
-@@ -124,8 +116,7 @@ static int start_ptraced_child(void **st
-  * So only for SYSEMU features we test mustpanic, while normal host features
-  * must work anyway!
-  */
--static int stop_ptraced_child(int pid, void *stack, int exitcode,
--			      int mustexit)
-+static int stop_ptraced_child(int pid, int exitcode, int mustexit)
- {
- 	int status, n, ret = 0;
+ 		.lcdcon1	= 0x00000176,
+ 		.lcdcon2	= 0x1d77c7c2,
+@@ -542,6 +551,8 @@ static struct s3c2410fb_display __initda
+ 		.bpp		= 8,
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
++		.upper_margin	= 30,
++		.lower_margin	= 32,
  
-@@ -145,8 +136,6 @@ static int stop_ptraced_child(int pid, v
- 		ret = -1;
- 	}
+ 		.lcdcon1	= 0x00000176,
+ 		.lcdcon2	= 0x1d77c7c2,
+@@ -558,6 +569,8 @@ static struct s3c2410fb_display __initda
+ 		.bpp		= 8,
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
++		.upper_margin	= 30,
++		.lower_margin	= 32,
  
--	if (munmap(stack, UM_KERN_PAGE_SIZE) < 0)
--		fatal_perror("check_ptrace : munmap failed");
- 	return ret;
- }
+ 		.lcdcon1	= 0x00000176,
+ 		.lcdcon2	= 0x1d77c7c2,
+@@ -574,6 +587,8 @@ static struct s3c2410fb_display __initda
+ 		.bpp		= 16,
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
++		.upper_margin	= 30,
++		.lower_margin	= 32,
  
-@@ -198,13 +187,12 @@ __uml_setup("nosysemu", nosysemu_cmd_par
+ 		.lcdcon1	= 0x00000176,
+ 		.lcdcon2	= 0x1d77c7c2,
+@@ -590,6 +605,8 @@ static struct s3c2410fb_display __initda
+ 		.bpp		= 16,
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
++		.upper_margin	= 30,
++		.lower_margin	= 32,
  
- static void __init check_sysemu(void)
- {
--	void *stack;
- 	unsigned long regs[MAX_REG_NR];
- 	int pid, n, status, count=0;
+ 		.lcdcon1	= 0x00000176,
+ 		.lcdcon2	= 0x1d77c7c2,
+@@ -606,6 +623,8 @@ static struct s3c2410fb_display __initda
+ 		.bpp		= 16,
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
++		.upper_margin	= 30,
++		.lower_margin	= 32,
  
- 	non_fatal("Checking syscall emulation patch for ptrace...");
- 	sysemu_supported = 0;
--	pid = start_ptraced_child(&stack);
-+	pid = start_ptraced_child();
+ 		.lcdcon1	= 0x00000176,
+ 		.lcdcon2	= 0x1d77c7c2,
+diff -puN arch/arm/mach-s3c2410/mach-h1940.c~s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display arch/arm/mach-s3c2410/mach-h1940.c
+--- a/arch/arm/mach-s3c2410/mach-h1940.c~s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display
++++ a/arch/arm/mach-s3c2410/mach-h1940.c
+@@ -158,6 +158,8 @@ static struct s3c2410fb_display h1940_lc
+ 	.bpp =		16,
+ 	.left_margin =	20,
+ 	.right_margin =	8,
++	.upper_margin =	8,
++	.lower_margin = 7,
+ };
  
- 	if (ptrace(PTRACE_SYSEMU, pid, 0, 0) < 0)
- 		goto fail;
-@@ -231,7 +219,7 @@ static void __init check_sysemu(void)
- 		goto fail;
- 	}
+ static struct s3c2410fb_mach_info h1940_fb_info __initdata = {
+diff -puN arch/arm/mach-s3c2410/mach-qt2410.c~s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display arch/arm/mach-s3c2410/mach-qt2410.c
+--- a/arch/arm/mach-s3c2410/mach-qt2410.c~s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display
++++ a/arch/arm/mach-s3c2410/mach-qt2410.c
+@@ -125,6 +125,8 @@ static struct s3c2410fb_display qt2410_l
+ 		.bpp		= 16,
+ 		.left_margin	= 44,
+ 		.right_margin	= 116,
++		.upper_margin	= 19,
++		.lower_margin	= 11,
+ 	},
+ 	{
+ 		/* Configuration for 480x640 toppoly TD028TTEC1 */
+@@ -154,6 +156,8 @@ static struct s3c2410fb_display qt2410_l
+ 		.bpp		= 16,
+ 		.left_margin	= 8,
+ 		.right_margin	= 24,
++		.upper_margin	= 2,
++		.lower_margin	= 4,
+ 	},
+ 	{
+ 		/* Config for 240x320 LCD */
+@@ -183,6 +187,8 @@ static struct s3c2410fb_display qt2410_l
+ 		.bpp		= 16,
+ 		.left_margin	= 13,
+ 		.right_margin	= 8,
++		.upper_margin	= 2,
++		.lower_margin	= 7,
+ 	},
+ };
  
--	if (stop_ptraced_child(pid, stack, 0, 0) < 0)
-+	if (stop_ptraced_child(pid, 0, 0) < 0)
- 		goto fail_stopped;
+diff -puN arch/arm/mach-s3c2440/mach-rx3715.c~s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display arch/arm/mach-s3c2440/mach-rx3715.c
+--- a/arch/arm/mach-s3c2440/mach-rx3715.c~s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display
++++ a/arch/arm/mach-s3c2440/mach-rx3715.c
+@@ -136,6 +136,8 @@ static struct s3c2410fb_display rx3715_l
+ 	.bpp		= 16,
+ 	.left_margin	= 36,
+ 	.right_margin	= 36,
++	.upper_margin	= 6,
++	.lower_margin	= 7,
+ };
  
- 	sysemu_supported = 1;
-@@ -239,7 +227,7 @@ static void __init check_sysemu(void)
- 	set_using_sysemu(!force_sysemu_disabled);
+ static struct s3c2410fb_mach_info rx3715_fb_info __initdata = {
+diff -puN arch/arm/mach-s3c2440/mach-smdk2440.c~s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display arch/arm/mach-s3c2440/mach-smdk2440.c
+--- a/arch/arm/mach-s3c2440/mach-smdk2440.c~s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display
++++ a/arch/arm/mach-s3c2440/mach-smdk2440.c
+@@ -133,6 +133,8 @@ static struct s3c2410fb_display smdk2440
+ 	.bpp		= 16,
+ 	.left_margin	= 20,
+ 	.right_margin	= 8,
++	.upper_margin	= 8,
++	.lower_margin	= 7,
+ };
  
- 	non_fatal("Checking advanced syscall emulation patch for ptrace...");
--	pid = start_ptraced_child(&stack);
-+	pid = start_ptraced_child();
- 
- 	if ((ptrace(PTRACE_OLDSETOPTIONS, pid, 0,
- 		   (void *) PTRACE_O_TRACESYSGOOD) < 0))
-@@ -271,7 +259,7 @@ static void __init check_sysemu(void)
- 			fatal("check_ptrace : expected SIGTRAP or "
- 			      "(SIGTRAP | 0x80), got status = %d", status);
- 	}
--	if (stop_ptraced_child(pid, stack, 0, 0) < 0)
-+	if (stop_ptraced_child(pid, 0, 0) < 0)
- 		goto fail_stopped;
- 
- 	sysemu_supported = 2;
-@@ -282,18 +270,17 @@ static void __init check_sysemu(void)
- 	return;
- 
- fail:
--	stop_ptraced_child(pid, stack, 1, 0);
-+	stop_ptraced_child(pid, 1, 0);
- fail_stopped:
- 	non_fatal("missing\n");
- }
- 
- static void __init check_ptrace(void)
- {
--	void *stack;
- 	int pid, syscall, n, status;
- 
- 	non_fatal("Checking that ptrace can change system call numbers...");
--	pid = start_ptraced_child(&stack);
-+	pid = start_ptraced_child();
- 
- 	if ((ptrace(PTRACE_OLDSETOPTIONS, pid, 0,
- 		   (void *) PTRACE_O_TRACESYSGOOD) < 0))
-@@ -323,7 +310,7 @@ static void __init check_ptrace(void)
- 			break;
- 		}
- 	}
--	stop_ptraced_child(pid, stack, 0, 1);
-+	stop_ptraced_child(pid, 0, 1);
- 	non_fatal("OK\n");
- 	check_sysemu();
- }
-@@ -403,11 +390,10 @@ __uml_setup("noptraceldt", noptraceldt_c
- static inline void check_skas3_ptrace_faultinfo(void)
- {
- 	struct ptrace_faultinfo fi;
--	void *stack;
- 	int pid, n;
- 
- 	non_fatal("  - PTRACE_FAULTINFO...");
--	pid = start_ptraced_child(&stack);
-+	pid = start_ptraced_child();
- 
- 	n = ptrace(PTRACE_FAULTINFO, pid, 0, &fi);
- 	if (n < 0) {
-@@ -425,13 +411,12 @@ static inline void check_skas3_ptrace_fa
- 	}
- 
- 	init_registers(pid);
--	stop_ptraced_child(pid, stack, 1, 1);
-+	stop_ptraced_child(pid, 1, 1);
- }
- 
- static inline void check_skas3_ptrace_ldt(void)
- {
- #ifdef PTRACE_LDT
--	void *stack;
- 	int pid, n;
- 	unsigned char ldtbuf[40];
- 	struct ptrace_ldt ldt_op = (struct ptrace_ldt) {
-@@ -440,7 +425,7 @@ static inline void check_skas3_ptrace_ld
- 		.bytecount = sizeof(ldtbuf)};
- 
- 	non_fatal("  - PTRACE_LDT...");
--	pid = start_ptraced_child(&stack);
-+	pid = start_ptraced_child();
- 
- 	n = ptrace(PTRACE_LDT, pid, 0, (unsigned long) &ldt_op);
- 	if (n < 0) {
-@@ -458,7 +443,7 @@ static inline void check_skas3_ptrace_ld
- 			non_fatal("found, but use is disabled\n");
- 	}
- 
--	stop_ptraced_child(pid, stack, 1, 1);
-+	stop_ptraced_child(pid, 1, 1);
- #else
- 	/* PTRACE_LDT might be disabled via cmdline option.
- 	 * We want to override this, else we might use the stub
+ static struct s3c2410fb_mach_info smdk2440_fb_info __initdata = {
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-git-kvm.patch
-uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
-bitops-introduce-lock-ops.patch
+git-alsa.patch
+cyber2000fb-checkpatch-fixes.patch
