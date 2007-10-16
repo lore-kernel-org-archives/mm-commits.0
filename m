@@ -1,47 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - minix-convert-to-new-aops-fix2.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:20:31 -0700
-Message-ID: <200710160420.l9G4KVFZ008519@imap1.linux-foundation.org>
+Subject: - minix-convert-to-new-aops-fix.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:20:29 -0700
+Message-ID: <200710160420.l9G4KT0c008516@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54298 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46620 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752502AbXJPEUf (ORCPT
+	by vger.kernel.org with ESMTP id S1750758AbXJPEUe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:20:35 -0400
+	Tue, 16 Oct 2007 00:20:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     minix convert to new aops fix2
+     minix convert to new aops fix
 has been removed from the -mm tree.  Its filename was
-     minix-convert-to-new-aops-fix2.patch
+     minix-convert-to-new-aops-fix.patch
 
 This patch was dropped because it was folded into minix-convert-to-new-aops.patch
 
 ------------------------------------------------------
-Subject: minix convert to new aops fix2
+Subject: minix convert to new aops fix
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/minix/dir.c |    1 -
- 1 files changed, 1 deletion(-)
+ fs/minix/dir.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/minix/dir.c~minix-convert-to-new-aops-fix2 fs/minix/dir.c
---- a/fs/minix/dir.c~minix-convert-to-new-aops-fix2
+diff -puN fs/minix/dir.c~minix-convert-to-new-aops-fix fs/minix/dir.c
+--- a/fs/minix/dir.c~minix-convert-to-new-aops-fix
 +++ a/fs/minix/dir.c
-@@ -65,7 +65,6 @@ static int dir_commit_chunk(struct page 
- 		err = write_one_page(page, 1);
- 	else
- 		unlock_page(page);
--	mark_page_accessed(page);
- 	return err;
- }
+@@ -311,7 +311,7 @@ int minix_delete_entry(struct minix_dir_
+ 	struct address_space *mapping = page->mapping;
+ 	struct inode *inode = (struct inode*)mapping->host;
+ 	char *kaddr = page_address(page);
+-	loff_t pos = (page->index << PAGE_CACHE_SHIFT) + (char*)de - kaddr;
++	loff_t pos = page_offset(page) + (char*)de - kaddr;
+ 	unsigned len = minix_sb(inode->i_sb)->s_dirsize;
+ 	int err;
+ 
+@@ -435,7 +435,7 @@ void minix_set_link(struct minix_dir_ent
+ 	struct address_space *mapping = page->mapping;
+ 	struct inode *dir = mapping->host;
+ 	struct minix_sb_info *sbi = minix_sb(dir->i_sb);
+-	loff_t pos = (page->index << PAGE_CACHE_SHIFT) +
++	loff_t pos = page_offset(page) +
+ 			(char *)de-(char*)page_address(page);
+ 	int err;
  
 _
 
@@ -94,6 +104,7 @@ ufs-convert-to-new-aops.patch
 udf-convert-to-new-aops.patch
 sysv-convert-to-new-aops.patch
 minix-convert-to-new-aops.patch
+minix-convert-to-new-aops-fix.patch
 minix-convert-to-new-aops-fix2.patch
 jfs-convert-to-new-aops.patch
 fs-adfs-convert-to-new-aops.patch
