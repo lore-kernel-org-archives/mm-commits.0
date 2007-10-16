@@ -1,466 +1,770 @@
 From: akpm@linux-foundation.org
-Subject: - x86-convert-cpu_core_map-to-be-a-per-cpu-variable.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:30:08 -0700
-Message-ID: <200710162030.l9GKU8PP014379@imap1.linux-foundation.org>
+Subject: - convert-cpu_sibling_map-to-be-a-per-cpu-variable.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:30:11 -0700
+Message-ID: <200710162030.l9GKUBUj014384@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42248 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37216 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936052AbXJPUaX (ORCPT
+	by vger.kernel.org with ESMTP id S935199AbXJPUa3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 16:30:23 -0400
+	Tue, 16 Oct 2007 16:30:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: travis@sgi.com, ak@suse.de, clameter@sgi.com, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
+To: travis@sgi.com, ak@suse.de, benh@kernel.crashing.org, clameter@sgi.com, davem@davemloft.net, paulus@samba.org, suresh.b.siddha@intel.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: Convert cpu_core_map to be a per cpu variable 
+     Convert cpu_sibling_map to be a per cpu variable 
 has been removed from the -mm tree.  Its filename was
-     x86-convert-cpu_core_map-to-be-a-per-cpu-variable.patch
+     convert-cpu_sibling_map-to-be-a-per-cpu-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86: Convert cpu_core_map to be a per cpu variable 
+Subject: Convert cpu_sibling_map to be a per cpu variable 
 From: Mike Travis <travis@sgi.com>
 
-This is from an earlier message from 'Christoph Lameter':
-
-    cpu_core_map is currently an array defined using NR_CPUS. This means that
-    we overallocate since we will rarely really use maximum configured cpu.
-
-    If we put the cpu_core_map into the per cpu area then it will be allocated
-    for each processor as it comes online.
-
-    This means that the core map cannot be accessed until the per cpu area
-    has been allocated. Xen does a weird thing here looping over all processors
-    and zeroing the masks that are not yet allocated and that will be zeroed
-    when they are allocated. I commented the code out.
-
-    Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Convert cpu_sibling_map from a static array sized by NR_CPUS to a per_cpu
+variable.  This saves sizeof(cpumask_t) * NR unused cpus.  Access is mostly
+from startup and CPU HOTPLUG functions.
 
 Signed-off-by: Mike Travis <travis@sgi.com>
 Cc: Andi Kleen <ak@suse.de>
 Cc: Christoph Lameter <clameter@sgi.com>
 Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |    2 -
- arch/x86/kernel/cpu/cpufreq/powernow-k8.c  |   10 ++---
- arch/x86/kernel/cpu/proc.c                 |    3 +
- arch/x86/kernel/mce_amd_64.c               |    6 +--
- arch/x86/kernel/setup_64.c                 |    3 +
- arch/x86/kernel/smpboot_32.c               |   34 +++++++++----------
- arch/x86/kernel/smpboot_64.c               |   24 ++++++-------
- arch/x86/xen/smp.c                         |   14 ++++++-
- include/asm-x86/smp_32.h                   |    2 -
- include/asm-x86/smp_64.h                   |    7 +++
- include/asm-x86/topology_32.h              |    2 -
- include/asm-x86/topology_64.h              |    2 -
- 12 files changed, 63 insertions(+), 46 deletions(-)
+ arch/ia64/kernel/setup.c                    |   12 ++++--
+ arch/ia64/kernel/smpboot.c                  |   18 +++++----
+ arch/powerpc/kernel/setup-common.c          |   20 ++++++++--
+ arch/powerpc/kernel/setup_64.c              |    3 +
+ arch/powerpc/kernel/smp.c                   |    4 +-
+ arch/powerpc/platforms/cell/cbe_cpufreq.c   |    2 -
+ arch/sparc64/kernel/smp.c                   |   17 ++++----
+ arch/x86/kernel/cpu/cpufreq/p4-clockmod.c   |    2 -
+ arch/x86/kernel/cpu/cpufreq/speedstep-ich.c |    2 -
+ arch/x86/kernel/io_apic_32.c                |    4 +-
+ arch/x86/kernel/smpboot_32.c                |   36 +++++++++---------
+ arch/x86/kernel/smpboot_64.c                |   26 ++++++-------
+ arch/x86/oprofile/op_model_p4.c             |    2 -
+ arch/x86/xen/smp.c                          |    4 +-
+ block/blktrace.c                            |    2 -
+ include/asm-ia64/smp.h                      |    2 -
+ include/asm-ia64/topology.h                 |    2 -
+ include/asm-powerpc/smp.h                   |    4 +-
+ include/asm-powerpc/topology.h              |    2 -
+ include/asm-sparc64/smp.h                   |    3 +
+ include/asm-sparc64/topology.h              |    2 -
+ include/asm-x86/smp_32.h                    |    2 -
+ include/asm-x86/smp_64.h                    |    6 ++-
+ include/asm-x86/topology_32.h               |    2 -
+ include/asm-x86/topology_64.h               |    2 -
+ kernel/sched.c                              |    8 ++--
+ 26 files changed, 107 insertions(+), 82 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
---- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
-+++ a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-@@ -595,7 +595,7 @@ static int acpi_cpufreq_cpu_init(struct 
- 	dmi_check_system(sw_any_bug_dmi_table);
- 	if (bios_with_sw_any_bug && cpus_weight(policy->cpus) == 1) {
- 		policy->shared_type = CPUFREQ_SHARED_TYPE_ALL;
--		policy->cpus = cpu_core_map[cpu];
-+		policy->cpus = per_cpu(cpu_core_map, cpu);
- 	}
- #endif
- 
-diff -puN arch/x86/kernel/cpu/cpufreq/powernow-k8.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/x86/kernel/cpu/cpufreq/powernow-k8.c
---- a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
-+++ a/arch/x86/kernel/cpu/cpufreq/powernow-k8.c
-@@ -57,7 +57,7 @@ static struct powernow_k8_data *powernow
- static int cpu_family = CPU_OPTERON;
- 
- #ifndef CONFIG_SMP
--static cpumask_t cpu_core_map[1];
-+DEFINE_PER_CPU(cpumask_t, cpu_core_map);
- #endif
- 
- /* Return a frequency in MHz, given an input fid */
-@@ -667,7 +667,7 @@ static int fill_powernow_table(struct po
- 
- 	dprintk("cfid 0x%x, cvid 0x%x\n", data->currfid, data->currvid);
- 	data->powernow_table = powernow_table;
--	if (first_cpu(cpu_core_map[data->cpu]) == data->cpu)
-+	if (first_cpu(per_cpu(cpu_core_map, data->cpu)) == data->cpu)
- 		print_basics(data);
- 
- 	for (j = 0; j < data->numps; j++)
-@@ -821,7 +821,7 @@ static int powernow_k8_cpu_init_acpi(str
- 
- 	/* fill in data */
- 	data->numps = data->acpi_data.state_count;
--	if (first_cpu(cpu_core_map[data->cpu]) == data->cpu)
-+	if (first_cpu(per_cpu(cpu_core_map, data->cpu)) == data->cpu)
- 		print_basics(data);
- 	powernow_k8_acpi_pst_values(data, 0);
- 
-@@ -1214,7 +1214,7 @@ static int __cpuinit powernowk8_cpu_init
- 	if (cpu_family == CPU_HW_PSTATE)
- 		pol->cpus = cpumask_of_cpu(pol->cpu);
- 	else
--		pol->cpus = cpu_core_map[pol->cpu];
-+		pol->cpus = per_cpu(cpu_core_map, pol->cpu);
- 	data->available_cores = &(pol->cpus);
- 
- 	/* Take a crude guess here.
-@@ -1281,7 +1281,7 @@ static unsigned int powernowk8_get (unsi
- 	cpumask_t oldmask = current->cpus_allowed;
- 	unsigned int khz = 0;
- 
--	data = powernow_data[first_cpu(cpu_core_map[cpu])];
-+	data = powernow_data[first_cpu(per_cpu(cpu_core_map, cpu))];
- 
- 	if (!data)
- 		return -EINVAL;
-diff -puN arch/x86/kernel/cpu/proc.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/x86/kernel/cpu/proc.c
---- a/arch/x86/kernel/cpu/proc.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
-+++ a/arch/x86/kernel/cpu/proc.c
-@@ -122,7 +122,8 @@ static int show_cpuinfo(struct seq_file 
- #ifdef CONFIG_X86_HT
- 	if (c->x86_max_cores * smp_num_siblings > 1) {
- 		seq_printf(m, "physical id\t: %d\n", c->phys_proc_id);
--		seq_printf(m, "siblings\t: %d\n", cpus_weight(cpu_core_map[n]));
-+		seq_printf(m, "siblings\t: %d\n",
-+				cpus_weight(per_cpu(cpu_core_map, n)));
- 		seq_printf(m, "core id\t\t: %d\n", c->cpu_core_id);
- 		seq_printf(m, "cpu cores\t: %d\n", c->booted_cores);
- 	}
-diff -puN arch/x86/kernel/mce_amd_64.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/x86/kernel/mce_amd_64.c
---- a/arch/x86/kernel/mce_amd_64.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
-+++ a/arch/x86/kernel/mce_amd_64.c
-@@ -472,7 +472,7 @@ static __cpuinit int threshold_create_ba
+diff -puN arch/ia64/kernel/setup.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable arch/ia64/kernel/setup.c
+--- a/arch/ia64/kernel/setup.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/arch/ia64/kernel/setup.c
+@@ -528,10 +528,6 @@ setup_arch (char **cmdline_p)
  
  #ifdef CONFIG_SMP
- 	if (cpu_data[cpu].cpu_core_id && shared_bank[bank]) {	/* symlink */
--		i = first_cpu(cpu_core_map[cpu]);
-+		i = first_cpu(per_cpu(cpu_core_map, cpu));
+ 	cpu_physical_id(0) = hard_smp_processor_id();
+-
+-	cpu_set(0, cpu_sibling_map[0]);
+-	cpu_set(0, cpu_core_map[0]);
+-
+ 	check_for_logical_procs();
+ 	if (smp_num_cpucores > 1)
+ 		printk(KERN_INFO
+@@ -873,6 +869,14 @@ cpu_init (void)
+ 	void *cpu_data;
  
- 		/* first core not up yet */
- 		if (cpu_data[i].cpu_core_id)
-@@ -492,7 +492,7 @@ static __cpuinit int threshold_create_ba
- 		if (err)
- 			goto out;
+ 	cpu_data = per_cpu_init();
++	/*
++	 * insert boot cpu into sibling and core mapes
++	 * (must be done after per_cpu area is setup)
++	 */
++	if (smp_processor_id() == 0) {
++		cpu_set(0, per_cpu(cpu_sibling_map, 0));
++		cpu_set(0, cpu_core_map[0]);
++	}
  
--		b->cpus = cpu_core_map[cpu];
-+		b->cpus = per_cpu(cpu_core_map, cpu);
- 		per_cpu(threshold_banks, cpu)[bank] = b;
- 		goto out;
+ 	/*
+ 	 * We set ar.k3 so that assembly code in MCA handler can compute
+diff -puN arch/ia64/kernel/smpboot.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable arch/ia64/kernel/smpboot.c
+--- a/arch/ia64/kernel/smpboot.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/arch/ia64/kernel/smpboot.c
+@@ -138,7 +138,9 @@ cpumask_t cpu_possible_map = CPU_MASK_NO
+ EXPORT_SYMBOL(cpu_possible_map);
+ 
+ cpumask_t cpu_core_map[NR_CPUS] __cacheline_aligned;
+-cpumask_t cpu_sibling_map[NR_CPUS] __cacheline_aligned;
++DEFINE_PER_CPU_SHARED_ALIGNED(cpumask_t, cpu_sibling_map);
++EXPORT_PER_CPU_SYMBOL(cpu_sibling_map);
++
+ int smp_num_siblings = 1;
+ int smp_num_cpucores = 1;
+ 
+@@ -650,12 +652,12 @@ clear_cpu_sibling_map(int cpu)
+ {
+ 	int i;
+ 
+-	for_each_cpu_mask(i, cpu_sibling_map[cpu])
+-		cpu_clear(cpu, cpu_sibling_map[i]);
++	for_each_cpu_mask(i, per_cpu(cpu_sibling_map, cpu))
++		cpu_clear(cpu, per_cpu(cpu_sibling_map, i));
+ 	for_each_cpu_mask(i, cpu_core_map[cpu])
+ 		cpu_clear(cpu, cpu_core_map[i]);
+ 
+-	cpu_sibling_map[cpu] = cpu_core_map[cpu] = CPU_MASK_NONE;
++	per_cpu(cpu_sibling_map, cpu) = cpu_core_map[cpu] = CPU_MASK_NONE;
+ }
+ 
+ static void
+@@ -666,7 +668,7 @@ remove_siblinginfo(int cpu)
+ 	if (cpu_data(cpu)->threads_per_core == 1 &&
+ 	    cpu_data(cpu)->cores_per_socket == 1) {
+ 		cpu_clear(cpu, cpu_core_map[cpu]);
+-		cpu_clear(cpu, cpu_sibling_map[cpu]);
++		cpu_clear(cpu, per_cpu(cpu_sibling_map, cpu));
+ 		return;
  	}
-@@ -509,7 +509,7 @@ static __cpuinit int threshold_create_ba
- #ifndef CONFIG_SMP
- 	b->cpus = CPU_MASK_ALL;
- #else
--	b->cpus = cpu_core_map[cpu];
-+	b->cpus = per_cpu(cpu_core_map, cpu);
+ 
+@@ -807,8 +809,8 @@ set_cpu_sibling_map(int cpu)
+ 			cpu_set(i, cpu_core_map[cpu]);
+ 			cpu_set(cpu, cpu_core_map[i]);
+ 			if (cpu_data(cpu)->core_id == cpu_data(i)->core_id) {
+-				cpu_set(i, cpu_sibling_map[cpu]);
+-				cpu_set(cpu, cpu_sibling_map[i]);
++				cpu_set(i, per_cpu(cpu_sibling_map, cpu));
++				cpu_set(cpu, per_cpu(cpu_sibling_map, i));
+ 			}
+ 		}
+ 	}
+@@ -839,7 +841,7 @@ __cpu_up (unsigned int cpu)
+ 
+ 	if (cpu_data(cpu)->threads_per_core == 1 &&
+ 	    cpu_data(cpu)->cores_per_socket == 1) {
+-		cpu_set(cpu, cpu_sibling_map[cpu]);
++		cpu_set(cpu, per_cpu(cpu_sibling_map, cpu));
+ 		cpu_set(cpu, cpu_core_map[cpu]);
+ 		return 0;
+ 	}
+diff -puN arch/powerpc/kernel/setup-common.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable arch/powerpc/kernel/setup-common.c
+--- a/arch/powerpc/kernel/setup-common.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/arch/powerpc/kernel/setup-common.c
+@@ -413,16 +413,28 @@ void __init smp_setup_cpu_maps(void)
+ 		of_node_put(dn);
+ 	}
+ 
++	vdso_data->processorCount = num_present_cpus();
++#endif /* CONFIG_PPC64 */
++}
++
++/*
++ * Being that cpu_sibling_map is now a per_cpu array, then it cannot
++ * be initialized until the per_cpu areas have been created.  This
++ * function is now called from setup_per_cpu_areas().
++ */
++void __init smp_setup_cpu_sibling_map(void)
++{
++#if defined(CONFIG_PPC64)
++	int cpu;
++
+ 	/*
+ 	 * Do the sibling map; assume only two threads per processor.
+ 	 */
+ 	for_each_possible_cpu(cpu) {
+-		cpu_set(cpu, cpu_sibling_map[cpu]);
++		cpu_set(cpu, per_cpu(cpu_sibling_map, cpu));
+ 		if (cpu_has_feature(CPU_FTR_SMT))
+-			cpu_set(cpu ^ 0x1, cpu_sibling_map[cpu]);
++			cpu_set(cpu ^ 0x1, per_cpu(cpu_sibling_map, cpu));
+ 	}
+-
+-	vdso_data->processorCount = num_present_cpus();
+ #endif /* CONFIG_PPC64 */
+ }
+ #endif /* CONFIG_SMP */
+diff -puN arch/powerpc/kernel/setup_64.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable arch/powerpc/kernel/setup_64.c
+--- a/arch/powerpc/kernel/setup_64.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/arch/powerpc/kernel/setup_64.c
+@@ -597,6 +597,9 @@ void __init setup_per_cpu_areas(void)
+ 		paca[i].data_offset = ptr - __per_cpu_start;
+ 		memcpy(ptr, __per_cpu_start, __per_cpu_end - __per_cpu_start);
+ 	}
++
++	/* Now that per_cpu is setup, initialize cpu_sibling_map */
++	smp_setup_cpu_sibling_map();
+ }
  #endif
- 	err = kobject_register(&b->kobj);
- 	if (err)
-diff -puN arch/x86/kernel/setup_64.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/x86/kernel/setup_64.c
---- a/arch/x86/kernel/setup_64.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
-+++ a/arch/x86/kernel/setup_64.c
-@@ -1070,7 +1070,8 @@ static int show_cpuinfo(struct seq_file 
- 	if (smp_num_siblings * c->x86_max_cores > 1) {
- 		int cpu = c - cpu_data;
- 		seq_printf(m, "physical id\t: %d\n", c->phys_proc_id);
--		seq_printf(m, "siblings\t: %d\n", cpus_weight(cpu_core_map[cpu]));
-+		seq_printf(m, "siblings\t: %d\n",
-+			       cpus_weight(per_cpu(cpu_core_map, cpu)));
- 		seq_printf(m, "core id\t\t: %d\n", c->cpu_core_id);
- 		seq_printf(m, "cpu cores\t: %d\n", c->booted_cores);
+ 
+diff -puN arch/powerpc/kernel/smp.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable arch/powerpc/kernel/smp.c
+--- a/arch/powerpc/kernel/smp.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/arch/powerpc/kernel/smp.c
+@@ -61,11 +61,11 @@ struct thread_info *secondary_ti;
+ 
+ cpumask_t cpu_possible_map = CPU_MASK_NONE;
+ cpumask_t cpu_online_map = CPU_MASK_NONE;
+-cpumask_t cpu_sibling_map[NR_CPUS] = { [0 ... NR_CPUS-1] = CPU_MASK_NONE };
++DEFINE_PER_CPU(cpumask_t, cpu_sibling_map) = CPU_MASK_NONE;
+ 
+ EXPORT_SYMBOL(cpu_online_map);
+ EXPORT_SYMBOL(cpu_possible_map);
+-EXPORT_SYMBOL(cpu_sibling_map);
++EXPORT_PER_CPU_SYMBOL(cpu_sibling_map);
+ 
+ /* SMP operations for this machine */
+ struct smp_ops_t *smp_ops;
+diff -puN arch/powerpc/platforms/cell/cbe_cpufreq.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable arch/powerpc/platforms/cell/cbe_cpufreq.c
+--- a/arch/powerpc/platforms/cell/cbe_cpufreq.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/arch/powerpc/platforms/cell/cbe_cpufreq.c
+@@ -117,7 +117,7 @@ static int cbe_cpufreq_cpu_init(struct c
+ 	policy->cur = cbe_freqs[cur_pmode].frequency;
+ 
+ #ifdef CONFIG_SMP
+-	policy->cpus = cpu_sibling_map[policy->cpu];
++	policy->cpus = per_cpu(cpu_sibling_map, policy->cpu);
+ #endif
+ 
+ 	cpufreq_frequency_table_get_attr(cbe_freqs, policy->cpu);
+diff -puN arch/sparc64/kernel/smp.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable arch/sparc64/kernel/smp.c
+--- a/arch/sparc64/kernel/smp.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/arch/sparc64/kernel/smp.c
+@@ -52,14 +52,13 @@ int sparc64_multi_core __read_mostly;
+ 
+ cpumask_t cpu_possible_map __read_mostly = CPU_MASK_NONE;
+ cpumask_t cpu_online_map __read_mostly = CPU_MASK_NONE;
+-cpumask_t cpu_sibling_map[NR_CPUS] __read_mostly =
+-	{ [0 ... NR_CPUS-1] = CPU_MASK_NONE };
++DEFINE_PER_CPU(cpumask_t, cpu_sibling_map) = CPU_MASK_NONE;
+ cpumask_t cpu_core_map[NR_CPUS] __read_mostly =
+ 	{ [0 ... NR_CPUS-1] = CPU_MASK_NONE };
+ 
+ EXPORT_SYMBOL(cpu_possible_map);
+ EXPORT_SYMBOL(cpu_online_map);
+-EXPORT_SYMBOL(cpu_sibling_map);
++EXPORT_PER_CPU_SYMBOL(cpu_sibling_map);
+ EXPORT_SYMBOL(cpu_core_map);
+ 
+ static cpumask_t smp_commenced_mask;
+@@ -1261,16 +1260,16 @@ void __devinit smp_fill_in_sib_core_maps
+ 	for_each_present_cpu(i) {
+ 		unsigned int j;
+ 
+-		cpus_clear(cpu_sibling_map[i]);
++		cpus_clear(per_cpu(cpu_sibling_map, i));
+ 		if (cpu_data(i).proc_id == -1) {
+-			cpu_set(i, cpu_sibling_map[i]);
++			cpu_set(i, per_cpu(cpu_sibling_map, i));
+ 			continue;
+ 		}
+ 
+ 		for_each_present_cpu(j) {
+ 			if (cpu_data(i).proc_id ==
+ 			    cpu_data(j).proc_id)
+-				cpu_set(j, cpu_sibling_map[i]);
++				cpu_set(j, per_cpu(cpu_sibling_map, i));
+ 		}
  	}
-diff -puN arch/x86/kernel/smpboot_32.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/x86/kernel/smpboot_32.c
---- a/arch/x86/kernel/smpboot_32.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
+ }
+@@ -1342,9 +1341,9 @@ int __cpu_disable(void)
+ 		cpu_clear(cpu, cpu_core_map[i]);
+ 	cpus_clear(cpu_core_map[cpu]);
+ 
+-	for_each_cpu_mask(i, cpu_sibling_map[cpu])
+-		cpu_clear(cpu, cpu_sibling_map[i]);
+-	cpus_clear(cpu_sibling_map[cpu]);
++	for_each_cpu_mask(i, per_cpu(cpu_sibling_map, cpu))
++		cpu_clear(cpu, per_cpu(cpu_sibling_map, i));
++	cpus_clear(per_cpu(cpu_sibling_map, cpu));
+ 
+ 	c = &cpu_data(cpu);
+ 
+diff -puN arch/x86/kernel/cpu/cpufreq/p4-clockmod.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable arch/x86/kernel/cpu/cpufreq/p4-clockmod.c
+--- a/arch/x86/kernel/cpu/cpufreq/p4-clockmod.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/arch/x86/kernel/cpu/cpufreq/p4-clockmod.c
+@@ -200,7 +200,7 @@ static int cpufreq_p4_cpu_init(struct cp
+ 	unsigned int i;
+ 
+ #ifdef CONFIG_SMP
+-	policy->cpus = cpu_sibling_map[policy->cpu];
++	policy->cpus = per_cpu(cpu_sibling_map, policy->cpu);
+ #endif
+ 
+ 	/* Errata workaround */
+diff -puN arch/x86/kernel/cpu/cpufreq/speedstep-ich.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable arch/x86/kernel/cpu/cpufreq/speedstep-ich.c
+--- a/arch/x86/kernel/cpu/cpufreq/speedstep-ich.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/arch/x86/kernel/cpu/cpufreq/speedstep-ich.c
+@@ -322,7 +322,7 @@ static int speedstep_cpu_init(struct cpu
+ 
+ 	/* only run on CPU to be set, or on its sibling */
+ #ifdef CONFIG_SMP
+-	policy->cpus = cpu_sibling_map[policy->cpu];
++	policy->cpus = per_cpu(cpu_sibling_map, policy->cpu);
+ #endif
+ 
+ 	cpus_allowed = current->cpus_allowed;
+diff -puN arch/x86/kernel/io_apic_32.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable arch/x86/kernel/io_apic_32.c
+--- a/arch/x86/kernel/io_apic_32.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/arch/x86/kernel/io_apic_32.c
+@@ -378,7 +378,7 @@ static struct irq_cpu_info {
+ 
+ #define IRQ_ALLOWED(cpu, allowed_mask)	cpu_isset(cpu, allowed_mask)
+ 
+-#define CPU_TO_PACKAGEINDEX(i) (first_cpu(cpu_sibling_map[i]))
++#define CPU_TO_PACKAGEINDEX(i) (first_cpu(per_cpu(cpu_sibling_map, i)))
+ 
+ static cpumask_t balance_irq_affinity[NR_IRQS] = {
+ 	[0 ... NR_IRQS-1] = CPU_MASK_ALL
+@@ -598,7 +598,7 @@ tryanotherirq:
+ 	 * (A+B)/2 vs B
+ 	 */
+ 	load = CPU_IRQ(min_loaded) >> 1;
+-	for_each_cpu_mask(j, cpu_sibling_map[min_loaded]) {
++	for_each_cpu_mask(j, per_cpu(cpu_sibling_map, min_loaded)) {
+ 		if (load > CPU_IRQ(j)) {
+ 			/* This won't change cpu_sibling_map[min_loaded] */
+ 			load = CPU_IRQ(j);
+diff -puN arch/x86/kernel/smpboot_32.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable arch/x86/kernel/smpboot_32.c
+--- a/arch/x86/kernel/smpboot_32.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
 +++ a/arch/x86/kernel/smpboot_32.c
-@@ -74,8 +74,8 @@ cpumask_t cpu_sibling_map[NR_CPUS] __rea
- EXPORT_SYMBOL(cpu_sibling_map);
+@@ -70,8 +70,8 @@ EXPORT_SYMBOL(smp_num_siblings);
+ int cpu_llc_id[NR_CPUS] __cpuinitdata = {[0 ... NR_CPUS-1] = BAD_APICID};
+ 
+ /* representing HT siblings of each logical CPU */
+-cpumask_t cpu_sibling_map[NR_CPUS] __read_mostly;
+-EXPORT_SYMBOL(cpu_sibling_map);
++DEFINE_PER_CPU(cpumask_t, cpu_sibling_map);
++EXPORT_PER_CPU_SYMBOL(cpu_sibling_map);
  
  /* representing HT and core siblings of each logical CPU */
--cpumask_t cpu_core_map[NR_CPUS] __read_mostly;
--EXPORT_SYMBOL(cpu_core_map);
-+DEFINE_PER_CPU(cpumask_t, cpu_core_map);
-+EXPORT_PER_CPU_SYMBOL(cpu_core_map);
- 
- /* bitmap of online cpus */
- cpumask_t cpu_online_map __read_mostly;
-@@ -300,7 +300,7 @@ cpumask_t cpu_coregroup_map(int cpu)
- 	 * And for power savings, we return cpu_core_map
- 	 */
- 	if (sched_mc_power_savings || sched_smt_power_savings)
--		return cpu_core_map[cpu];
-+		return per_cpu(cpu_core_map, cpu);
- 	else
- 		return c->llc_shared_map;
- }
-@@ -321,8 +321,8 @@ void __cpuinit set_cpu_sibling_map(int c
+ DEFINE_PER_CPU(cpumask_t, cpu_core_map);
+@@ -319,8 +319,8 @@ void __cpuinit set_cpu_sibling_map(int c
+ 		for_each_cpu_mask(i, cpu_sibling_setup_map) {
+ 			if (c[cpu].phys_proc_id == c[i].phys_proc_id &&
  			    c[cpu].cpu_core_id == c[i].cpu_core_id) {
- 				cpu_set(i, cpu_sibling_map[cpu]);
- 				cpu_set(cpu, cpu_sibling_map[i]);
--				cpu_set(i, cpu_core_map[cpu]);
--				cpu_set(cpu, cpu_core_map[i]);
-+				cpu_set(i, per_cpu(cpu_core_map, cpu));
-+				cpu_set(cpu, per_cpu(cpu_core_map, i));
+-				cpu_set(i, cpu_sibling_map[cpu]);
+-				cpu_set(cpu, cpu_sibling_map[i]);
++				cpu_set(i, per_cpu(cpu_sibling_map, cpu));
++				cpu_set(cpu, per_cpu(cpu_sibling_map, i));
+ 				cpu_set(i, per_cpu(cpu_core_map, cpu));
+ 				cpu_set(cpu, per_cpu(cpu_core_map, i));
  				cpu_set(i, c[cpu].llc_shared_map);
- 				cpu_set(cpu, c[i].llc_shared_map);
+@@ -328,13 +328,13 @@ void __cpuinit set_cpu_sibling_map(int c
  			}
-@@ -334,7 +334,7 @@ void __cpuinit set_cpu_sibling_map(int c
+ 		}
+ 	} else {
+-		cpu_set(cpu, cpu_sibling_map[cpu]);
++		cpu_set(cpu, per_cpu(cpu_sibling_map, cpu));
+ 	}
+ 
  	cpu_set(cpu, c[cpu].llc_shared_map);
  
  	if (current_cpu_data.x86_max_cores == 1) {
--		cpu_core_map[cpu] = cpu_sibling_map[cpu];
-+		per_cpu(cpu_core_map, cpu) = cpu_sibling_map[cpu];
+-		per_cpu(cpu_core_map, cpu) = cpu_sibling_map[cpu];
++		per_cpu(cpu_core_map, cpu) = per_cpu(cpu_sibling_map, cpu);
  		c[cpu].booted_cores = 1;
  		return;
  	}
-@@ -346,8 +346,8 @@ void __cpuinit set_cpu_sibling_map(int c
- 			cpu_set(cpu, c[i].llc_shared_map);
- 		}
- 		if (c[cpu].phys_proc_id == c[i].phys_proc_id) {
--			cpu_set(i, cpu_core_map[cpu]);
--			cpu_set(cpu, cpu_core_map[i]);
-+			cpu_set(i, per_cpu(cpu_core_map, cpu));
-+			cpu_set(cpu, per_cpu(cpu_core_map, i));
+@@ -351,12 +351,12 @@ void __cpuinit set_cpu_sibling_map(int c
  			/*
  			 *  Does this new cpu bringup a new core?
  			 */
-@@ -984,7 +984,7 @@ static void __init smp_boot_cpus(unsigne
+-			if (cpus_weight(cpu_sibling_map[cpu]) == 1) {
++			if (cpus_weight(per_cpu(cpu_sibling_map, cpu)) == 1) {
+ 				/*
+ 				 * for each core in package, increment
+ 				 * the booted_cores for this new cpu
+ 				 */
+-				if (first_cpu(cpu_sibling_map[i]) == i)
++				if (first_cpu(per_cpu(cpu_sibling_map, i)) == i)
+ 					c[cpu].booted_cores++;
+ 				/*
+ 				 * increment the core count for all
+@@ -983,7 +983,7 @@ static void __init smp_boot_cpus(unsigne
+ 			printk(KERN_NOTICE "Local APIC not detected."
  					   " Using dummy APIC emulation.\n");
  		map_cpu_to_logical_apicid();
- 		cpu_set(0, cpu_sibling_map[0]);
--		cpu_set(0, cpu_core_map[0]);
-+		cpu_set(0, per_cpu(cpu_core_map, 0));
+-		cpu_set(0, cpu_sibling_map[0]);
++		cpu_set(0, per_cpu(cpu_sibling_map, 0));
+ 		cpu_set(0, per_cpu(cpu_core_map, 0));
  		return;
  	}
- 
-@@ -1009,7 +1009,7 @@ static void __init smp_boot_cpus(unsigne
+@@ -1008,7 +1008,7 @@ static void __init smp_boot_cpus(unsigne
+ 		printk(KERN_ERR "... forcing use of dummy APIC emulation. (tell your hw vendor)\n");
  		smpboot_clear_io_apic_irqs();
  		phys_cpu_present_map = physid_mask_of_physid(0);
- 		cpu_set(0, cpu_sibling_map[0]);
--		cpu_set(0, cpu_core_map[0]);
-+		cpu_set(0, per_cpu(cpu_core_map, 0));
+-		cpu_set(0, cpu_sibling_map[0]);
++		cpu_set(0, per_cpu(cpu_sibling_map, 0));
+ 		cpu_set(0, per_cpu(cpu_core_map, 0));
  		return;
  	}
- 
-@@ -1024,7 +1024,7 @@ static void __init smp_boot_cpus(unsigne
+@@ -1023,7 +1023,7 @@ static void __init smp_boot_cpus(unsigne
+ 		printk(KERN_INFO "SMP mode deactivated, forcing use of dummy APIC emulation.\n");
  		smpboot_clear_io_apic_irqs();
  		phys_cpu_present_map = physid_mask_of_physid(0);
- 		cpu_set(0, cpu_sibling_map[0]);
--		cpu_set(0, cpu_core_map[0]);
-+		cpu_set(0, per_cpu(cpu_core_map, 0));
+-		cpu_set(0, cpu_sibling_map[0]);
++		cpu_set(0, per_cpu(cpu_sibling_map, 0));
+ 		cpu_set(0, per_cpu(cpu_core_map, 0));
  		return;
  	}
+@@ -1102,15 +1102,15 @@ static void __init smp_boot_cpus(unsigne
+ 	Dprintk("Boot done.\n");
  
-@@ -1107,11 +1107,11 @@ static void __init smp_boot_cpus(unsigne
+ 	/*
+-	 * construct cpu_sibling_map[], so that we can tell sibling CPUs
++	 * construct cpu_sibling_map, so that we can tell sibling CPUs
+ 	 * efficiently.
  	 */
  	for (cpu = 0; cpu < NR_CPUS; cpu++) {
- 		cpus_clear(cpu_sibling_map[cpu]);
--		cpus_clear(cpu_core_map[cpu]);
-+		cpus_clear(per_cpu(cpu_core_map, cpu));
+-		cpus_clear(cpu_sibling_map[cpu]);
++		cpus_clear(per_cpu(cpu_sibling_map, cpu));
+ 		cpus_clear(per_cpu(cpu_core_map, cpu));
  	}
  
- 	cpu_set(0, cpu_sibling_map[0]);
--	cpu_set(0, cpu_core_map[0]);
-+	cpu_set(0, per_cpu(cpu_core_map, 0));
+-	cpu_set(0, cpu_sibling_map[0]);
++	cpu_set(0, per_cpu(cpu_sibling_map, 0));
+ 	cpu_set(0, per_cpu(cpu_core_map, 0));
  
  	smpboot_setup_io_apic();
- 
-@@ -1148,9 +1148,9 @@ void remove_siblinginfo(int cpu)
- 	int sibling;
- 	struct cpuinfo_x86 *c = cpu_data;
- 
--	for_each_cpu_mask(sibling, cpu_core_map[cpu]) {
--		cpu_clear(cpu, cpu_core_map[sibling]);
--		/*
-+	for_each_cpu_mask(sibling, per_cpu(cpu_core_map, cpu)) {
-+		cpu_clear(cpu, per_cpu(cpu_core_map, sibling));
-+		/*/
+@@ -1153,13 +1153,13 @@ void remove_siblinginfo(int cpu)
+ 		/*/
  		 * last thread sibling in this cpu core going down
  		 */
- 		if (cpus_weight(cpu_sibling_map[cpu]) == 1)
-@@ -1160,7 +1160,7 @@ void remove_siblinginfo(int cpu)
- 	for_each_cpu_mask(sibling, cpu_sibling_map[cpu])
- 		cpu_clear(cpu, cpu_sibling_map[sibling]);
- 	cpus_clear(cpu_sibling_map[cpu]);
--	cpus_clear(cpu_core_map[cpu]);
-+	cpus_clear(per_cpu(cpu_core_map, cpu));
+-		if (cpus_weight(cpu_sibling_map[cpu]) == 1)
++		if (cpus_weight(per_cpu(cpu_sibling_map, cpu)) == 1)
+ 			c[sibling].booted_cores--;
+ 	}
+ 			
+-	for_each_cpu_mask(sibling, cpu_sibling_map[cpu])
+-		cpu_clear(cpu, cpu_sibling_map[sibling]);
+-	cpus_clear(cpu_sibling_map[cpu]);
++	for_each_cpu_mask(sibling, per_cpu(cpu_sibling_map, cpu))
++		cpu_clear(cpu, per_cpu(cpu_sibling_map, sibling));
++	cpus_clear(per_cpu(cpu_sibling_map, cpu));
+ 	cpus_clear(per_cpu(cpu_core_map, cpu));
  	c[cpu].phys_proc_id = 0;
  	c[cpu].cpu_core_id = 0;
- 	cpu_clear(cpu, cpu_sibling_setup_map);
-diff -puN arch/x86/kernel/smpboot_64.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/x86/kernel/smpboot_64.c
---- a/arch/x86/kernel/smpboot_64.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
+diff -puN arch/x86/kernel/smpboot_64.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable arch/x86/kernel/smpboot_64.c
+--- a/arch/x86/kernel/smpboot_64.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
 +++ a/arch/x86/kernel/smpboot_64.c
-@@ -95,8 +95,8 @@ cpumask_t cpu_sibling_map[NR_CPUS] __rea
- EXPORT_SYMBOL(cpu_sibling_map);
+@@ -91,8 +91,8 @@ EXPORT_SYMBOL(cpu_data);
+ int smp_threads_ready;
+ 
+ /* representing HT siblings of each logical CPU */
+-cpumask_t cpu_sibling_map[NR_CPUS] __read_mostly;
+-EXPORT_SYMBOL(cpu_sibling_map);
++DEFINE_PER_CPU(cpumask_t, cpu_sibling_map);
++EXPORT_PER_CPU_SYMBOL(cpu_sibling_map);
  
  /* representing HT and core siblings of each logical CPU */
--cpumask_t cpu_core_map[NR_CPUS] __read_mostly;
--EXPORT_SYMBOL(cpu_core_map);
-+DEFINE_PER_CPU(cpumask_t, cpu_core_map);
-+EXPORT_PER_CPU_SYMBOL(cpu_core_map);
- 
- /*
-  * Trampoline 80x86 program as an array.
-@@ -243,7 +243,7 @@ cpumask_t cpu_coregroup_map(int cpu)
- 	 * And for power savings, we return cpu_core_map
- 	 */
- 	if (sched_mc_power_savings || sched_smt_power_savings)
--		return cpu_core_map[cpu];
-+		return per_cpu(cpu_core_map, cpu);
- 	else
- 		return c->llc_shared_map;
- }
-@@ -264,8 +264,8 @@ static inline void set_cpu_sibling_map(i
+ DEFINE_PER_CPU(cpumask_t, cpu_core_map);
+@@ -262,8 +262,8 @@ static inline void set_cpu_sibling_map(i
+ 		for_each_cpu_mask(i, cpu_sibling_setup_map) {
+ 			if (c[cpu].phys_proc_id == c[i].phys_proc_id &&
  			    c[cpu].cpu_core_id == c[i].cpu_core_id) {
- 				cpu_set(i, cpu_sibling_map[cpu]);
- 				cpu_set(cpu, cpu_sibling_map[i]);
--				cpu_set(i, cpu_core_map[cpu]);
--				cpu_set(cpu, cpu_core_map[i]);
-+				cpu_set(i, per_cpu(cpu_core_map, cpu));
-+				cpu_set(cpu, per_cpu(cpu_core_map, i));
+-				cpu_set(i, cpu_sibling_map[cpu]);
+-				cpu_set(cpu, cpu_sibling_map[i]);
++				cpu_set(i, per_cpu(cpu_sibling_map, cpu));
++				cpu_set(cpu, per_cpu(cpu_sibling_map, i));
+ 				cpu_set(i, per_cpu(cpu_core_map, cpu));
+ 				cpu_set(cpu, per_cpu(cpu_core_map, i));
  				cpu_set(i, c[cpu].llc_shared_map);
- 				cpu_set(cpu, c[i].llc_shared_map);
+@@ -271,13 +271,13 @@ static inline void set_cpu_sibling_map(i
  			}
-@@ -277,7 +277,7 @@ static inline void set_cpu_sibling_map(i
+ 		}
+ 	} else {
+-		cpu_set(cpu, cpu_sibling_map[cpu]);
++		cpu_set(cpu, per_cpu(cpu_sibling_map, cpu));
+ 	}
+ 
  	cpu_set(cpu, c[cpu].llc_shared_map);
  
  	if (current_cpu_data.x86_max_cores == 1) {
--		cpu_core_map[cpu] = cpu_sibling_map[cpu];
-+		per_cpu(cpu_core_map, cpu) = cpu_sibling_map[cpu];
+-		per_cpu(cpu_core_map, cpu) = cpu_sibling_map[cpu];
++		per_cpu(cpu_core_map, cpu) = per_cpu(cpu_sibling_map, cpu);
  		c[cpu].booted_cores = 1;
  		return;
  	}
-@@ -289,8 +289,8 @@ static inline void set_cpu_sibling_map(i
- 			cpu_set(cpu, c[i].llc_shared_map);
- 		}
- 		if (c[cpu].phys_proc_id == c[i].phys_proc_id) {
--			cpu_set(i, cpu_core_map[cpu]);
--			cpu_set(cpu, cpu_core_map[i]);
-+			cpu_set(i, per_cpu(cpu_core_map, cpu));
-+			cpu_set(cpu, per_cpu(cpu_core_map, i));
+@@ -294,12 +294,12 @@ static inline void set_cpu_sibling_map(i
  			/*
  			 *  Does this new cpu bringup a new core?
  			 */
-@@ -736,7 +736,7 @@ static __init void disable_smp(void)
+-			if (cpus_weight(cpu_sibling_map[cpu]) == 1) {
++			if (cpus_weight(per_cpu(cpu_sibling_map, cpu)) == 1) {
+ 				/*
+ 				 * for each core in package, increment
+ 				 * the booted_cores for this new cpu
+ 				 */
+-				if (first_cpu(cpu_sibling_map[i]) == i)
++				if (first_cpu(per_cpu(cpu_sibling_map, i)) == i)
+ 					c[cpu].booted_cores++;
+ 				/*
+ 				 * increment the core count for all
+@@ -735,7 +735,7 @@ static __init void disable_smp(void)
+ 		phys_cpu_present_map = physid_mask_of_physid(boot_cpu_id);
  	else
  		phys_cpu_present_map = physid_mask_of_physid(0);
- 	cpu_set(0, cpu_sibling_map[0]);
--	cpu_set(0, cpu_core_map[0]);
-+	cpu_set(0, per_cpu(cpu_core_map, 0));
+-	cpu_set(0, cpu_sibling_map[0]);
++	cpu_set(0, per_cpu(cpu_sibling_map, 0));
+ 	cpu_set(0, per_cpu(cpu_core_map, 0));
  }
  
- #ifdef CONFIG_HOTPLUG_CPU
-@@ -971,8 +971,8 @@ static void remove_siblinginfo(int cpu)
- 	int sibling;
- 	struct cpuinfo_x86 *c = cpu_data;
- 
--	for_each_cpu_mask(sibling, cpu_core_map[cpu]) {
--		cpu_clear(cpu, cpu_core_map[sibling]);
-+	for_each_cpu_mask(sibling, per_cpu(cpu_core_map, cpu)) {
-+		cpu_clear(cpu, per_cpu(cpu_core_map, sibling));
+@@ -976,13 +976,13 @@ static void remove_siblinginfo(int cpu)
  		/*
  		 * last thread sibling in this cpu core going down
  		 */
-@@ -983,7 +983,7 @@ static void remove_siblinginfo(int cpu)
- 	for_each_cpu_mask(sibling, cpu_sibling_map[cpu])
- 		cpu_clear(cpu, cpu_sibling_map[sibling]);
- 	cpus_clear(cpu_sibling_map[cpu]);
--	cpus_clear(cpu_core_map[cpu]);
-+	cpus_clear(per_cpu(cpu_core_map, cpu));
+-		if (cpus_weight(cpu_sibling_map[cpu]) == 1)
++		if (cpus_weight(per_cpu(cpu_sibling_map, cpu)) == 1)
+ 			c[sibling].booted_cores--;
+ 	}
+ 			
+-	for_each_cpu_mask(sibling, cpu_sibling_map[cpu])
+-		cpu_clear(cpu, cpu_sibling_map[sibling]);
+-	cpus_clear(cpu_sibling_map[cpu]);
++	for_each_cpu_mask(sibling, per_cpu(cpu_sibling_map, cpu))
++		cpu_clear(cpu, per_cpu(cpu_sibling_map, sibling));
++	cpus_clear(per_cpu(cpu_sibling_map, cpu));
+ 	cpus_clear(per_cpu(cpu_core_map, cpu));
  	c[cpu].phys_proc_id = 0;
  	c[cpu].cpu_core_id = 0;
- 	cpu_clear(cpu, cpu_sibling_setup_map);
-diff -puN arch/x86/xen/smp.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable arch/x86/xen/smp.c
---- a/arch/x86/xen/smp.c~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
+diff -puN arch/x86/oprofile/op_model_p4.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable arch/x86/oprofile/op_model_p4.c
+--- a/arch/x86/oprofile/op_model_p4.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/arch/x86/oprofile/op_model_p4.c
+@@ -379,7 +379,7 @@ static unsigned int get_stagger(void)
+ {
+ #ifdef CONFIG_SMP
+ 	int cpu = smp_processor_id();
+-	return (cpu != first_cpu(cpu_sibling_map[cpu]));
++	return (cpu != first_cpu(per_cpu(cpu_sibling_map, cpu)));
+ #endif	
+ 	return 0;
+ }
+diff -puN arch/x86/xen/smp.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable arch/x86/xen/smp.c
+--- a/arch/x86/xen/smp.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
 +++ a/arch/x86/xen/smp.c
-@@ -148,7 +148,12 @@ void __init xen_smp_prepare_boot_cpu(voi
+@@ -147,7 +147,7 @@ void __init xen_smp_prepare_boot_cpu(voi
+ 	make_lowmem_page_readwrite(&per_cpu__gdt_page);
  
  	for (cpu = 0; cpu < NR_CPUS; cpu++) {
- 		cpus_clear(cpu_sibling_map[cpu]);
--		cpus_clear(cpu_core_map[cpu]);
-+		/*
-+		 * cpu_core_map lives in a per cpu area that is cleared
-+		 * when the per cpu array is allocated.
-+		 *
-+		 * cpus_clear(per_cpu(cpu_core_map, cpu));
-+		 */
- 	}
- 
- 	xen_setup_vcpu_info_placement();
-@@ -160,7 +165,12 @@ void __init xen_smp_prepare_cpus(unsigne
+-		cpus_clear(cpu_sibling_map[cpu]);
++		cpus_clear(per_cpu(cpu_sibling_map, cpu));
+ 		/*
+ 		 * cpu_core_map lives in a per cpu area that is cleared
+ 		 * when the per cpu array is allocated.
+@@ -164,7 +164,7 @@ void __init xen_smp_prepare_cpus(unsigne
+ 	unsigned cpu;
  
  	for (cpu = 0; cpu < NR_CPUS; cpu++) {
- 		cpus_clear(cpu_sibling_map[cpu]);
--		cpus_clear(cpu_core_map[cpu]);
-+		/*
-+		 * cpu_core_ map will be zeroed when the per
-+		 * cpu area is allocated.
-+		 *
-+		 * cpus_clear(per_cpu(cpu_core_map, cpu));
-+		 */
- 	}
+-		cpus_clear(cpu_sibling_map[cpu]);
++		cpus_clear(per_cpu(cpu_sibling_map, cpu));
+ 		/*
+ 		 * cpu_core_ map will be zeroed when the per
+ 		 * cpu area is allocated.
+diff -puN block/blktrace.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable block/blktrace.c
+--- a/block/blktrace.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/block/blktrace.c
+@@ -550,7 +550,7 @@ static void blk_trace_set_ht_offsets(voi
+ 	for_each_online_cpu(cpu) {
+ 		unsigned long long *cpu_off, *sibling_off;
  
- 	smp_store_cpu_info(0);
-diff -puN include/asm-x86/smp_32.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable include/asm-x86/smp_32.h
---- a/include/asm-x86/smp_32.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
-+++ a/include/asm-x86/smp_32.h
-@@ -31,7 +31,7 @@ extern void smp_alloc_memory(void);
- extern int pic_mode;
+-		for_each_cpu_mask(i, cpu_sibling_map[cpu]) {
++		for_each_cpu_mask(i, per_cpu(cpu_sibling_map, cpu)) {
+ 			if (i == cpu)
+ 				continue;
+ 
+diff -puN include/asm-ia64/smp.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable include/asm-ia64/smp.h
+--- a/include/asm-ia64/smp.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/include/asm-ia64/smp.h
+@@ -58,7 +58,7 @@ extern char no_int_routing __devinitdata
+ 
+ extern cpumask_t cpu_online_map;
+ extern cpumask_t cpu_core_map[NR_CPUS];
+-extern cpumask_t cpu_sibling_map[NR_CPUS];
++DECLARE_PER_CPU(cpumask_t, cpu_sibling_map);
  extern int smp_num_siblings;
- extern cpumask_t cpu_sibling_map[];
--extern cpumask_t cpu_core_map[];
-+DECLARE_PER_CPU(cpumask_t, cpu_core_map);
- 
- extern void (*mtrr_hook) (void);
- extern void zap_low_mappings (void);
-diff -puN include/asm-x86/smp_64.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable include/asm-x86/smp_64.h
---- a/include/asm-x86/smp_64.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
-+++ a/include/asm-x86/smp_64.h
-@@ -39,7 +39,12 @@ extern int smp_num_siblings;
- extern void smp_send_reschedule(int cpu);
- 
- extern cpumask_t cpu_sibling_map[NR_CPUS];
--extern cpumask_t cpu_core_map[NR_CPUS];
-+/*
-+ * cpu_core_map lives in a per cpu area
-+ *
-+ * extern cpumask_t cpu_core_map[NR_CPUS];
-+ */
-+DECLARE_PER_CPU(cpumask_t, cpu_core_map);
- extern u8 cpu_llc_id[NR_CPUS];
- 
- #define SMP_TRAMPOLINE_BASE 0x6000
-diff -puN include/asm-x86/topology_32.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable include/asm-x86/topology_32.h
---- a/include/asm-x86/topology_32.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
-+++ a/include/asm-x86/topology_32.h
-@@ -30,7 +30,7 @@
- #ifdef CONFIG_X86_HT
- #define topology_physical_package_id(cpu)	(cpu_data[cpu].phys_proc_id)
- #define topology_core_id(cpu)			(cpu_data[cpu].cpu_core_id)
--#define topology_core_siblings(cpu)		(cpu_core_map[cpu])
-+#define topology_core_siblings(cpu)		(per_cpu(cpu_core_map, cpu))
- #define topology_thread_siblings(cpu)		(cpu_sibling_map[cpu])
+ extern int smp_num_cpucores;
+ extern void __iomem *ipi_base_addr;
+diff -puN include/asm-ia64/topology.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable include/asm-ia64/topology.h
+--- a/include/asm-ia64/topology.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/include/asm-ia64/topology.h
+@@ -112,7 +112,7 @@ void build_cpu_to_node_map(void);
+ #define topology_physical_package_id(cpu)	(cpu_data(cpu)->socket_id)
+ #define topology_core_id(cpu)			(cpu_data(cpu)->core_id)
+ #define topology_core_siblings(cpu)		(cpu_core_map[cpu])
+-#define topology_thread_siblings(cpu)		(cpu_sibling_map[cpu])
++#define topology_thread_siblings(cpu)		(per_cpu(cpu_sibling_map, cpu))
+ #define smt_capable() 				(smp_num_siblings > 1)
  #endif
  
-diff -puN include/asm-x86/topology_64.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable include/asm-x86/topology_64.h
---- a/include/asm-x86/topology_64.h~x86-convert-cpu_core_map-to-be-a-per-cpu-variable
-+++ a/include/asm-x86/topology_64.h
-@@ -58,7 +58,7 @@ extern int __node_distance(int, int);
- #ifdef CONFIG_SMP
+diff -puN include/asm-powerpc/smp.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable include/asm-powerpc/smp.h
+--- a/include/asm-powerpc/smp.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/include/asm-powerpc/smp.h
+@@ -26,6 +26,7 @@
+ #ifdef CONFIG_PPC64
+ #include <asm/paca.h>
+ #endif
++#include <asm/percpu.h>
+ 
+ extern int boot_cpuid;
+ 
+@@ -58,7 +59,7 @@ extern int smp_hw_index[];
+ 					(smp_hw_index[(cpu)] = (phys))
+ #endif
+ 
+-extern cpumask_t cpu_sibling_map[NR_CPUS];
++DECLARE_PER_CPU(cpumask_t, cpu_sibling_map);
+ 
+ /* Since OpenPIC has only 4 IPIs, we use slightly different message numbers.
+  *
+@@ -77,6 +78,7 @@ void smp_init_pSeries(void);
+ void smp_init_cell(void);
+ void smp_init_celleb(void);
+ void smp_setup_cpu_maps(void);
++void smp_setup_cpu_sibling_map(void);
+ 
+ extern int __cpu_disable(void);
+ extern void __cpu_die(unsigned int cpu);
+diff -puN include/asm-powerpc/topology.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable include/asm-powerpc/topology.h
+--- a/include/asm-powerpc/topology.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/include/asm-powerpc/topology.h
+@@ -108,7 +108,7 @@ static inline void sysfs_remove_device_f
+ #ifdef CONFIG_PPC64
+ #include <asm/smp.h>
+ 
+-#define topology_thread_siblings(cpu)	(cpu_sibling_map[cpu])
++#define topology_thread_siblings(cpu)	(per_cpu(cpu_sibling_map, cpu))
+ #endif
+ #endif
+ 
+diff -puN include/asm-sparc64/smp.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable include/asm-sparc64/smp.h
+--- a/include/asm-sparc64/smp.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/include/asm-sparc64/smp.h
+@@ -28,8 +28,9 @@
+  
+ #include <asm/bitops.h>
+ #include <asm/atomic.h>
++#include <asm/percpu.h>
+ 
+-extern cpumask_t cpu_sibling_map[NR_CPUS];
++DECLARE_PER_CPU(cpumask_t, cpu_sibling_map);
+ extern cpumask_t cpu_core_map[NR_CPUS];
+ extern int sparc64_multi_core;
+ 
+diff -puN include/asm-sparc64/topology.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable include/asm-sparc64/topology.h
+--- a/include/asm-sparc64/topology.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/include/asm-sparc64/topology.h
+@@ -5,7 +5,7 @@
+ #define topology_physical_package_id(cpu)	(cpu_data(cpu).proc_id)
+ #define topology_core_id(cpu)			(cpu_data(cpu).core_id)
+ #define topology_core_siblings(cpu)		(cpu_core_map[cpu])
+-#define topology_thread_siblings(cpu)		(cpu_sibling_map[cpu])
++#define topology_thread_siblings(cpu)		(per_cpu(cpu_sibling_map, cpu))
+ #define mc_capable()				(sparc64_multi_core)
+ #define smt_capable()				(sparc64_multi_core)
+ #endif /* CONFIG_SMP */
+diff -puN include/asm-x86/smp_32.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable include/asm-x86/smp_32.h
+--- a/include/asm-x86/smp_32.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/include/asm-x86/smp_32.h
+@@ -30,7 +30,7 @@
+ extern void smp_alloc_memory(void);
+ extern int pic_mode;
+ extern int smp_num_siblings;
+-extern cpumask_t cpu_sibling_map[];
++DECLARE_PER_CPU(cpumask_t, cpu_sibling_map);
+ DECLARE_PER_CPU(cpumask_t, cpu_core_map);
+ 
+ extern void (*mtrr_hook) (void);
+diff -puN include/asm-x86/smp_64.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable include/asm-x86/smp_64.h
+--- a/include/asm-x86/smp_64.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/include/asm-x86/smp_64.h
+@@ -38,12 +38,14 @@ extern void unlock_ipi_call_lock(void);
+ extern int smp_num_siblings;
+ extern void smp_send_reschedule(int cpu);
+ 
+-extern cpumask_t cpu_sibling_map[NR_CPUS];
+ /*
+- * cpu_core_map lives in a per cpu area
++ * cpu_sibling_map and cpu_core_map now live
++ * in the per cpu area
+  *
++ * extern cpumask_t cpu_sibling_map[NR_CPUS];
+  * extern cpumask_t cpu_core_map[NR_CPUS];
+  */
++DECLARE_PER_CPU(cpumask_t, cpu_sibling_map);
+ DECLARE_PER_CPU(cpumask_t, cpu_core_map);
+ extern u8 cpu_llc_id[NR_CPUS];
+ 
+diff -puN include/asm-x86/topology_32.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable include/asm-x86/topology_32.h
+--- a/include/asm-x86/topology_32.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/include/asm-x86/topology_32.h
+@@ -31,7 +31,7 @@
  #define topology_physical_package_id(cpu)	(cpu_data[cpu].phys_proc_id)
  #define topology_core_id(cpu)			(cpu_data[cpu].cpu_core_id)
--#define topology_core_siblings(cpu)		(cpu_core_map[cpu])
-+#define topology_core_siblings(cpu)		(per_cpu(cpu_core_map, cpu))
- #define topology_thread_siblings(cpu)		(cpu_sibling_map[cpu])
+ #define topology_core_siblings(cpu)		(per_cpu(cpu_core_map, cpu))
+-#define topology_thread_siblings(cpu)		(cpu_sibling_map[cpu])
++#define topology_thread_siblings(cpu)		(per_cpu(cpu_sibling_map, cpu))
+ #endif
+ 
+ #ifdef CONFIG_NUMA
+diff -puN include/asm-x86/topology_64.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable include/asm-x86/topology_64.h
+--- a/include/asm-x86/topology_64.h~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/include/asm-x86/topology_64.h
+@@ -59,7 +59,7 @@ extern int __node_distance(int, int);
+ #define topology_physical_package_id(cpu)	(cpu_data[cpu].phys_proc_id)
+ #define topology_core_id(cpu)			(cpu_data[cpu].cpu_core_id)
+ #define topology_core_siblings(cpu)		(per_cpu(cpu_core_map, cpu))
+-#define topology_thread_siblings(cpu)		(cpu_sibling_map[cpu])
++#define topology_thread_siblings(cpu)		(per_cpu(cpu_sibling_map, cpu))
  #define mc_capable()			(boot_cpu_data.x86_max_cores > 1)
  #define smt_capable() 			(smp_num_siblings > 1)
+ #endif
+diff -puN kernel/sched.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable kernel/sched.c
+--- a/kernel/sched.c~convert-cpu_sibling_map-to-be-a-per-cpu-variable
++++ a/kernel/sched.c
+@@ -5869,7 +5869,7 @@ static int cpu_to_core_group(int cpu, co
+ 			     struct sched_group **sg)
+ {
+ 	int group;
+-	cpumask_t mask = cpu_sibling_map[cpu];
++	cpumask_t mask = per_cpu(cpu_sibling_map, cpu);
+ 	cpus_and(mask, mask, *cpu_map);
+ 	group = first_cpu(mask);
+ 	if (sg)
+@@ -5898,7 +5898,7 @@ static int cpu_to_phys_group(int cpu, co
+ 	cpus_and(mask, mask, *cpu_map);
+ 	group = first_cpu(mask);
+ #elif defined(CONFIG_SCHED_SMT)
+-	cpumask_t mask = cpu_sibling_map[cpu];
++	cpumask_t mask = per_cpu(cpu_sibling_map, cpu);
+ 	cpus_and(mask, mask, *cpu_map);
+ 	group = first_cpu(mask);
+ #else
+@@ -6132,7 +6132,7 @@ static int build_sched_domains(const cpu
+ 		p = sd;
+ 		sd = &per_cpu(cpu_domains, i);
+ 		*sd = SD_SIBLING_INIT;
+-		sd->span = cpu_sibling_map[i];
++		sd->span = per_cpu(cpu_sibling_map, i);
+ 		cpus_and(sd->span, sd->span, *cpu_map);
+ 		sd->parent = p;
+ 		p->child = sd;
+@@ -6143,7 +6143,7 @@ static int build_sched_domains(const cpu
+ #ifdef CONFIG_SCHED_SMT
+ 	/* Set up CPU (sibling) groups */
+ 	for_each_cpu_mask(i, *cpu_map) {
+-		cpumask_t this_sibling_map = cpu_sibling_map[i];
++		cpumask_t this_sibling_map = per_cpu(cpu_sibling_map, i);
+ 		cpus_and(this_sibling_map, this_sibling_map, *cpu_map);
+ 		if (i != first_cpu(this_sibling_map))
+ 			continue;
 _
 
 Patches currently in -mm which might be from travis@sgi.com are
