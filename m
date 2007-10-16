@@ -1,64 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-update-comment-and-debug-statement.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:40:22 -0700
-Message-ID: <200710162040.l9GKeMu7015685@imap1.linux-foundation.org>
+Subject: - ecryptfs-use-list_for_each_entry_safe-when-wiping-auth-toks.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:40:10 -0700
+Message-ID: <200710162040.l9GKeARF015658@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37073 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57196 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752305AbXJPVBB (ORCPT
+	by vger.kernel.org with ESMTP id S1765124AbXJPVBV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:01:01 -0400
+	Tue, 16 Oct 2007 17:01:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eCryptfs: update comment and debug statement
+     eCryptfs: use list_for_each_entry_safe() when wiping auth toks
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-update-comment-and-debug-statement.patch
+     ecryptfs-use-list_for_each_entry_safe-when-wiping-auth-toks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: eCryptfs: update comment and debug statement
+Subject: eCryptfs: use list_for_each_entry_safe() when wiping auth toks
 From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Trivial updates to comment and debug statement.
+Use list_for_each_entry_safe() when wiping the authentication token list.
 
 Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/crypto.c |    2 --
- fs/ecryptfs/debug.c  |    2 --
- 2 files changed, 4 deletions(-)
+ fs/ecryptfs/keystore.c |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff -puN fs/ecryptfs/crypto.c~ecryptfs-update-comment-and-debug-statement fs/ecryptfs/crypto.c
---- a/fs/ecryptfs/crypto.c~ecryptfs-update-comment-and-debug-statement
-+++ a/fs/ecryptfs/crypto.c
-@@ -1267,8 +1267,6 @@ static int ecryptfs_read_header_region(c
- 	lower_file->f_pos = 0;
- 	oldfs = get_fs();
- 	set_fs(get_ds());
--	/* For releases 0.1 and 0.2, all of the header information
--	 * fits in the first data extent-sized region. */
- 	rc = lower_file->f_op->read(lower_file, (char __user *)data,
- 			      ECRYPTFS_DEFAULT_EXTENT_SIZE, &lower_file->f_pos);
- 	set_fs(oldfs);
-diff -puN fs/ecryptfs/debug.c~ecryptfs-update-comment-and-debug-statement fs/ecryptfs/debug.c
---- a/fs/ecryptfs/debug.c~ecryptfs-update-comment-and-debug-statement
-+++ a/fs/ecryptfs/debug.c
-@@ -38,8 +38,6 @@ void ecryptfs_dump_auth_tok(struct ecryp
- 			auth_tok);
- 	if (auth_tok->flags & ECRYPTFS_PRIVATE_KEY) {
- 		ecryptfs_printk(KERN_DEBUG, " * private key type\n");
--		ecryptfs_printk(KERN_DEBUG, " * (NO PRIVATE KEY SUPPORT "
--				"IN ECRYPTFS VERSION 0.1)\n");
- 	} else {
- 		ecryptfs_printk(KERN_DEBUG, " * passphrase type\n");
- 		ecryptfs_to_hex(salt, auth_tok->token.password.salt,
+diff -puN fs/ecryptfs/keystore.c~ecryptfs-use-list_for_each_entry_safe-when-wiping-auth-toks fs/ecryptfs/keystore.c
+--- a/fs/ecryptfs/keystore.c~ecryptfs-use-list_for_each_entry_safe-when-wiping-auth-toks
++++ a/fs/ecryptfs/keystore.c
+@@ -469,26 +469,19 @@ out:
+ 
+ static void wipe_auth_tok_list(struct list_head *auth_tok_list_head)
+ {
+-	struct list_head *walker;
+ 	struct ecryptfs_auth_tok_list_item *auth_tok_list_item;
++	struct ecryptfs_auth_tok_list_item *auth_tok_list_item_tmp;
+ 
+-	walker = auth_tok_list_head->next;
+-	while (walker != auth_tok_list_head) {
+-		auth_tok_list_item =
+-		    list_entry(walker, struct ecryptfs_auth_tok_list_item,
+-			       list);
+-		walker = auth_tok_list_item->list.next;
+-		memset(auth_tok_list_item, 0,
+-		       sizeof(struct ecryptfs_auth_tok_list_item));
++	list_for_each_entry_safe(auth_tok_list_item, auth_tok_list_item_tmp,
++				 auth_tok_list_head, list) {
++		list_del(&auth_tok_list_item->list);
+ 		kmem_cache_free(ecryptfs_auth_tok_list_item_cache,
+ 				auth_tok_list_item);
+ 	}
+-	auth_tok_list_head->next = NULL;
+ }
+ 
+ struct kmem_cache *ecryptfs_auth_tok_list_item_cache;
+ 
+-
+ /**
+  * parse_tag_1_packet
+  * @crypt_stat: The cryptographic context to modify based on packet
 _
 
 Patches currently in -mm which might be from mhalcrow@us.ibm.com are
