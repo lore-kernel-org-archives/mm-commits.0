@@ -1,177 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - add-node-states-sysfs-class-attributes-v5.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:36:14 -0700
-Message-ID: <200710162036.l9GKaEs5015132@imap1.linux-foundation.org>
+Subject: - maps2-uninline-some-functions-in-the-page-walker.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 14:36:10 -0700
+Message-ID: <200710162136.l9GLaAu6018539@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51678 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37458 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934697AbXJPVhE (ORCPT
+	by vger.kernel.org with ESMTP id S933879AbXJPVg4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:37:04 -0400
+	Tue, 16 Oct 2007 17:36:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Lee.Schermerhorn@hp.com, clameter@sgi.com, lee.schermerhorn@hp.com, mm-commits@vger.kernel.org
+To: mpm@selenic.com, jeremy@goop.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: add node states sysfs class attributeS
+     maps: uninline some functions in the page walker
 has been removed from the -mm tree.  Its filename was
-     add-node-states-sysfs-class-attributes-v5.patch
+     maps2-uninline-some-functions-in-the-page-walker.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: mm: add node states sysfs class attributeS
-From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Subject: maps: uninline some functions in the page walker
+From: Matt Mackall <mpm@selenic.com>
 
-Add a per node state sysfs class attribute file to /sys/devices/system/node
-to display node state masks.
+This patch series introduces /proc/pid/pagemap and /proc/kpagemap, which allow
+detailed run-time examination of process memory usage at a page granularity.
 
-E.g., on a 4-cell HP ia64 NUMA platform, we have 5 nodes: 4 representing
-the actual hardware cells and one memory-only pseudo-node representing a
-small amount [512MB] of "hardware interleaved" memory.  With this patch, in
-/sys/devices/system/node we see:
+The first several patches whip the page-walking code introduced for
+/proc/pid/smaps and clear_refs into a more generic form, the next couple make
+those interfaces optional, and the last two introduce the new interfaces, also
+optional.
 
-#ls -1F /sys/devices/system/node
-has_cpu
-has_normal_memory
-node0/
-node1/
-node2/
-node3/
-node4/
-online
-possible
-#cat /sys/devices/system/node/possible
-0-255
-#cat /sys/devices/system/node/online
-0-4
-#cat /sys/devices/system/node/has_normal_memory
-0-4
-#cat /sys/devices/system/node/has_cpu
-0-3
+This respin adds simple, expandable headers to both pagemap and kpagemap as
+suggested by Nikita.  I haven't moved pagewalk.c from lib/ to mm/ as suggested
+by Nick as I still think lib is a better fit for its automatic conditional
+linking.
 
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Acked-by: Christoph Lameter <clameter@sgi.com>
+
+This patch:
+
+Uninline some functions in the page walker
+
+Signed-off-by: Matt Mackall <mpm@selenic.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |   91 +++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 90 insertions(+), 1 deletion(-)
+ fs/proc/task_mmu.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/base/node.c~add-node-states-sysfs-class-attributes-v5 drivers/base/node.c
---- a/drivers/base/node.c~add-node-states-sysfs-class-attributes-v5
-+++ a/drivers/base/node.c
-@@ -12,6 +12,7 @@
- #include <linux/topology.h>
- #include <linux/nodemask.h>
- #include <linux/cpu.h>
-+#include <linux/device.h>
- 
- static struct sysdev_class node_class = {
- 	set_kset_name("node"),
-@@ -232,8 +233,96 @@ void unregister_one_node(int nid)
- 	unregister_node(&node_devices[nid]);
+diff -puN fs/proc/task_mmu.c~maps2-uninline-some-functions-in-the-page-walker fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~maps2-uninline-some-functions-in-the-page-walker
++++ a/fs/proc/task_mmu.c
+@@ -284,7 +284,7 @@ static void clear_refs_pte_range(struct 
+ 	cond_resched();
  }
  
-+/*
-+ * node states attributes
-+ */
-+
-+static ssize_t print_nodes_state(enum node_states state, char *buf)
-+{
-+	int n;
-+
-+	n = nodelist_scnprintf(buf, PAGE_SIZE, node_states[state]);
-+	if (n > 0 && PAGE_SIZE > n + 1) {
-+		*(buf + n++) = '\n';
-+		*(buf + n++) = '\0';
-+	}
-+	return n;
-+}
-+
-+static ssize_t print_nodes_possible(struct sysdev_class *class, char *buf)
-+{
-+	return print_nodes_state(N_POSSIBLE, buf);
-+}
-+
-+static ssize_t print_nodes_online(struct sysdev_class *class, char *buf)
-+{
-+	return print_nodes_state(N_ONLINE, buf);
-+}
-+
-+static ssize_t print_nodes_has_normal_memory(struct sysdev_class *class,
-+						char *buf)
-+{
-+	return print_nodes_state(N_NORMAL_MEMORY, buf);
-+}
-+
-+static ssize_t print_nodes_has_cpu(struct sysdev_class *class, char *buf)
-+{
-+	return print_nodes_state(N_CPU, buf);
-+}
-+
-+static SYSDEV_CLASS_ATTR(possible, 0444, print_nodes_possible, NULL);
-+static SYSDEV_CLASS_ATTR(online, 0444, print_nodes_online, NULL);
-+static SYSDEV_CLASS_ATTR(has_normal_memory, 0444, print_nodes_has_normal_memory,
-+									NULL);
-+static SYSDEV_CLASS_ATTR(has_cpu, 0444, print_nodes_has_cpu, NULL);
-+
-+#ifdef CONFIG_HIGHMEM
-+static ssize_t print_nodes_has_high_memory(struct sysdev_class *class,
-+						 char *buf)
-+{
-+	return print_nodes_state(N_HIGH_MEMORY, buf);
-+}
-+
-+static SYSDEV_CLASS_ATTR(has_high_memory, 0444, print_nodes_has_high_memory,
-+									 NULL);
-+#endif
-+
-+struct sysdev_class_attribute *node_state_attr[] = {
-+	&attr_possible,
-+	&attr_online,
-+	&attr_has_normal_memory,
-+#ifdef CONFIG_HIGHMEM
-+	&attr_has_high_memory,
-+#endif
-+	&attr_has_cpu,
-+};
-+
-+static int node_states_init(void)
-+{
-+	int i;
-+	int err = 0;
-+
-+	for (i = 0;  i < NR_NODE_STATES; i++) {
-+		int ret;
-+		ret = sysdev_class_create_file(&node_class, node_state_attr[i]);
-+		if (!err)
-+			err = ret;
-+	}
-+	return err;
-+}
-+
- static int __init register_node_type(void)
+-static inline void walk_pmd_range(struct pmd_walker *walker, pud_t *pud,
++static void walk_pmd_range(struct pmd_walker *walker, pud_t *pud,
+ 				  unsigned long addr, unsigned long end)
  {
--	return sysdev_class_register(&node_class);
-+	int ret;
-+
-+	ret = sysdev_class_register(&node_class);
-+	if (!ret)
-+		ret = node_states_init();
-+
-+	/*
-+	 * Note:  we're not going to unregister the node class if we fail
-+	 * to register the node state class attribute files.
-+	 */
-+	return ret;
+ 	pmd_t *pmd;
+@@ -299,7 +299,7 @@ static inline void walk_pmd_range(struct
+ 	}
  }
- postcore_initcall(register_node_type);
+ 
+-static inline void walk_pud_range(struct pmd_walker *walker, pgd_t *pgd,
++static void walk_pud_range(struct pmd_walker *walker, pgd_t *pgd,
+ 				  unsigned long addr, unsigned long end)
+ {
+ 	pud_t *pud;
+@@ -323,11 +323,11 @@ static inline void walk_pud_range(struct
+  * Recursively walk the page table for the memory area in a VMA, calling
+  * a callback for every bottom-level (PTE) page table.
+  */
+-static inline void walk_page_range(struct vm_area_struct *vma,
+-				   void (*action)(struct vm_area_struct *,
+-						  pmd_t *, unsigned long,
+-						  unsigned long, void *),
+-				   void *private)
++static void walk_page_range(struct vm_area_struct *vma,
++			    void (*action)(struct vm_area_struct *,
++					   pmd_t *, unsigned long,
++					   unsigned long, void *),
++			    void *private)
+ {
+ 	unsigned long addr = vma->vm_start;
+ 	unsigned long end = vma->vm_end;
 _
 
-Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
+Patches currently in -mm which might be from mpm@selenic.com are
 
 origin.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix-2.patch
+maps2-uninline-some-functions-in-the-page-walker.patch
+maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+maps2-remove-vma-from-args-in-the-page-walker.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-return-length-calculation.patch
+maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-end-address-calculation.patch
+maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-header-copy-to-userspace.patch
+maps2-add-proc-kpagemap-interface.patch
+mmaps2-vma-out-of-mem_size_stats.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+maps-pssproportional-set-size-accounting-in-smaps.patch
+lib-sortc-optimization.patch
+sparse-pointer-use-of-zero-as-null.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
