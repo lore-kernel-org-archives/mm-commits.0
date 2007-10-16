@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - pcmcia-use-dma_mask_none-for-the-default-for-all.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:29:52 -0700
-Message-ID: <200710162029.l9GKTq7w014346@imap1.linux-foundation.org>
+Subject: - introduce-dma_mask_none-as-a-signal-for-unable-to-do.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:29:49 -0700
+Message-ID: <200710162029.l9GKTn1D014342@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35914 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55471 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762871AbXJPUb1 (ORCPT
+	by vger.kernel.org with ESMTP id S965633AbXJPUc3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 16:31:27 -0400
+	Tue, 16 Oct 2007 16:32:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: James.Bottomley@SteelEye.com, alan@lxorguk.ukuu.org.uk, andi@firstfloor.org, htejun@gmail.com, jgarzik@pobox.com, linux@dominikbrodowski.net, protasnb@gmail.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     pcmcia: use DMA_MASK_NONE for the default for all pcmcia devices
+     introduce DMA_MASK_NONE as a signal for unable to do DMA
 has been removed from the -mm tree.  Its filename was
-     pcmcia-use-dma_mask_none-for-the-default-for-all.patch
+     introduce-dma_mask_none-as-a-signal-for-unable-to-do.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pcmcia: use DMA_MASK_NONE for the default for all pcmcia devices
+Subject: introduce DMA_MASK_NONE as a signal for unable to do DMA
 From: James Bottomley <James.Bottomley@SteelEye.com>
 
-Most non cardbus devices can't do dma, so flag them as such in the device
-creation routine.
+Some devices are incapable of DMA and need to be recognised as such. 
+Introduce a NONE dma mask to facilitate this plus an inline function:
+is_device_dma_capable() to check this.
 
 Signed-off-by: James Bottomley <James.Bottomley@SteelEye.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -39,42 +40,33 @@ Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/ds.c |    4 ++++
- include/pcmcia/ds.h |    1 +
- 2 files changed, 5 insertions(+)
+ include/linux/dma-mapping.h |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/pcmcia/ds.c~pcmcia-use-dma_mask_none-for-the-default-for-all drivers/pcmcia/ds.c
---- a/drivers/pcmcia/ds.c~pcmcia-use-dma_mask_none-for-the-default-for-all
-+++ a/drivers/pcmcia/ds.c
-@@ -23,6 +23,7 @@
- #include <linux/crc32.h>
- #include <linux/firmware.h>
- #include <linux/kref.h>
-+#include <linux/dma-mapping.h>
+diff -puN include/linux/dma-mapping.h~introduce-dma_mask_none-as-a-signal-for-unable-to-do include/linux/dma-mapping.h
+--- a/include/linux/dma-mapping.h~introduce-dma_mask_none-as-a-signal-for-unable-to-do
++++ a/include/linux/dma-mapping.h
+@@ -24,6 +24,8 @@ enum dma_data_direction {
+ #define DMA_28BIT_MASK	0x000000000fffffffULL
+ #define DMA_24BIT_MASK	0x0000000000ffffffULL
  
- #define IN_CARD_SERVICES
- #include <pcmcia/cs_types.h>
-@@ -670,6 +671,9 @@ struct pcmcia_device * pcmcia_device_add
- 	p_dev->dev.bus = &pcmcia_bus_type;
- 	p_dev->dev.parent = s->dev.parent;
- 	p_dev->dev.release = pcmcia_release_dev;
-+	/* by default don't allow DMA */
-+	p_dev->dma_mask = DMA_MASK_NONE;
-+	p_dev->dev.dma_mask = &p_dev->dma_mask;
- 	bus_id_len = sprintf (p_dev->dev.bus_id, "%d.%d", p_dev->socket->sock, p_dev->device_no);
++#define DMA_MASK_NONE	0x0ULL
++
+ static inline int valid_dma_direction(int dma_direction)
+ {
+ 	return ((dma_direction == DMA_BIDIRECTIONAL) ||
+@@ -31,6 +33,11 @@ static inline int valid_dma_direction(in
+ 		(dma_direction == DMA_FROM_DEVICE));
+ }
  
- 	p_dev->devname = kmalloc(6 + bus_id_len + 1, GFP_KERNEL);
-diff -puN include/pcmcia/ds.h~pcmcia-use-dma_mask_none-for-the-default-for-all include/pcmcia/ds.h
---- a/include/pcmcia/ds.h~pcmcia-use-dma_mask_none-for-the-default-for-all
-+++ a/include/pcmcia/ds.h
-@@ -184,6 +184,7 @@ struct pcmcia_device {
- 
- 	char *			prod_id[4];
- 
-+	u64			dma_mask;
- 	struct device		dev;
- 
- #ifdef CONFIG_PCMCIA_IOCTL
++static inline int is_device_dma_capable(struct device *dev)
++{
++	return dev->dma_mask != NULL && *dev->dma_mask != DMA_MASK_NONE;
++}
++
+ #ifdef CONFIG_HAS_DMA
+ #include <asm/dma-mapping.h>
+ #else
 _
 
 Patches currently in -mm which might be from James.Bottomley@SteelEye.com are
