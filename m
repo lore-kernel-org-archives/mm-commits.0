@@ -1,191 +1,238 @@
 From: akpm@linux-foundation.org
-Subject: - uml-physmem-code-tidying.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:37:09 -0700
-Message-ID: <200710162037.l9GKb9xW015266@imap1.linux-foundation.org>
+Subject: - uml-remove-unused-file.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:38:32 -0700
+Message-ID: <200710162038.l9GKcWKs015457@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60720 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38922 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934911AbXJPVKv (ORCPT
+	by vger.kernel.org with ESMTP id S935182AbXJPVK4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:10:51 -0400
+	Tue, 16 Oct 2007 17:10:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: physmem code tidying
+     uml: remove unused file
 has been removed from the -mm tree.  Its filename was
-     uml-physmem-code-tidying.patch
+     uml-remove-unused-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: physmem code tidying
+Subject: uml: remove unused file
 From: Jeff Dike <jdike@addtoit.com>
 
-Tidying of the UML physical memory system.  These are mostly style fixes,
-however the includes were cleaned as well.  This uncovered a need for
-mem_user.h to be included in mode_kern_skas.h.
+arch/um/os-Linux/tt.c is no longer used.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/skas/mode_kern_skas.h |    3 -
- arch/um/kernel/physmem.c              |   50 ++++++++++--------------
- 2 files changed, 23 insertions(+), 30 deletions(-)
+ arch/um/os-Linux/tt.c |  195 ----------------------------------------
+ 1 file changed, 195 deletions(-)
 
-diff -puN arch/um/include/skas/mode_kern_skas.h~uml-physmem-code-tidying arch/um/include/skas/mode_kern_skas.h
---- a/arch/um/include/skas/mode_kern_skas.h~uml-physmem-code-tidying
-+++ a/arch/um/include/skas/mode_kern_skas.h
-@@ -1,5 +1,5 @@
- /*
-- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
-+ * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{linux.intel,addtoit}.com)
-  * Licensed under the GPL
-  */
- 
-@@ -9,6 +9,7 @@
- #include "linux/sched.h"
- #include "asm/page.h"
- #include "asm/ptrace.h"
-+#include "mem_user.h"
- 
- extern void flush_thread_skas(void);
- extern void switch_to_skas(void *prev, void *next);
-diff -puN arch/um/kernel/physmem.c~uml-physmem-code-tidying arch/um/kernel/physmem.c
---- a/arch/um/kernel/physmem.c~uml-physmem-code-tidying
-+++ a/arch/um/kernel/physmem.c
-@@ -1,25 +1,17 @@
- /*
-- * Copyright (C) 2000 - 2003 Jeff Dike (jdike@addtoit.com)
-+ * Copyright (C) 2000 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
- 
--#include "linux/mm.h"
--#include "linux/rbtree.h"
--#include "linux/slab.h"
--#include "linux/vmalloc.h"
- #include "linux/bootmem.h"
--#include "linux/module.h"
-+#include "linux/mm.h"
- #include "linux/pfn.h"
--#include "asm/types.h"
--#include "asm/pgtable.h"
+diff -puN arch/um/os-Linux/tt.c~uml-remove-unused-file /dev/null
+--- a/arch/um/os-Linux/tt.c
++++ /dev/null
+@@ -1,195 +0,0 @@
+-/*
+- * Copyright (C) 2000, 2001, 2002 Jeff Dike (jdike@karaya.com)
+- * Licensed under the GPL
+- */
+-
+-#include <stdio.h>
+-#include <unistd.h>
+-#include <signal.h>
+-#include <sched.h>
+-#include <errno.h>
+-#include <stdarg.h>
+-#include <stdlib.h>
+-#include <sys/time.h>
+-#include <sys/ptrace.h>
+-#include <linux/ptrace.h>
+-#include <sys/wait.h>
+-#include <sys/mman.h>
+-#include <asm/ptrace.h>
+-#include <asm/unistd.h>
 -#include "kern_util.h"
-+#include "asm/page.h"
- #include "as-layout.h"
-+#include "init.h"
-+#include "kern.h"
- #include "mode_kern.h"
--#include "mem.h"
--#include "mem_user.h"
- #include "os.h"
--#include "kern.h"
+-#include "user.h"
+-#include "signal_kern.h"
+-#include "sysdep/ptrace.h"
+-#include "sysdep/sigcontext.h"
+-#include "irq_user.h"
+-#include "ptrace_user.h"
 -#include "init.h"
- 
- static int physmem_fd = -1;
- 
-@@ -49,10 +41,10 @@ int __init init_maps(unsigned long physm
- 	total_len = phys_len + iomem_len + highmem_len;
- 
- 	map = alloc_bootmem_low_pages(total_len);
--	if(map == NULL)
-+	if (map == NULL)
- 		return -ENOMEM;
- 
--	for(i = 0; i < total_pages; i++){
-+	for (i = 0; i < total_pages; i++) {
- 		p = &map[i];
- 		memset(p, 0, sizeof(struct page));
- 		SetPageReserved(p);
-@@ -68,7 +60,7 @@ static unsigned long kmem_top = 0;
- 
- unsigned long get_kmem_end(void)
- {
--	if(kmem_top == 0)
-+	if (kmem_top == 0)
- 		kmem_top = CHOOSE_MODE(kmem_end_tt, kmem_end_skas);
- 	return kmem_top;
- }
-@@ -81,8 +73,8 @@ void map_memory(unsigned long virt, unsi
- 
- 	fd = phys_mapping(phys, &offset);
- 	err = os_map_memory((void *) virt, fd, offset, len, r, w, x);
--	if(err) {
--		if(err == -ENOMEM)
-+	if (err) {
-+		if (err == -ENOMEM)
- 			printk("try increasing the host's "
- 			       "/proc/sys/vm/max_map_count to <physical "
- 			       "memory size>/4096\n");
-@@ -106,7 +98,7 @@ void __init setup_physmem(unsigned long 
- 	offset = uml_reserved - uml_physmem;
- 	err = os_map_memory((void *) uml_reserved, physmem_fd, offset,
- 			    len - offset, 1, 1, 1);
+-#include "os.h"
+-#include "uml-config.h"
+-#include "choose-mode.h"
+-#include "mode.h"
+-#include "tempfile.h"
+-#include "kern_constants.h"
+-
+-int protect_memory(unsigned long addr, unsigned long len, int r, int w, int x,
+-		   int must_succeed)
+-{
+-	int err;
+-
+-	err = os_protect_memory((void *) addr, len, r, w, x);
 -	if(err < 0){
-+	if (err < 0) {
- 		os_print_error(err, "Mapping memory");
- 		exit(1);
- 	}
-@@ -126,16 +118,16 @@ int phys_mapping(unsigned long phys, __u
- {
- 	int fd = -1;
- 
--	if(phys < physmem_size){
-+	if (phys < physmem_size) {
- 		fd = physmem_fd;
- 		*offset_out = phys;
- 	}
--	else if(phys < __pa(end_iomem)){
-+	else if (phys < __pa(end_iomem)) {
- 		struct iomem_region *region = iomem_regions;
- 
--		while(region != NULL){
--			if((phys >= region->phys) &&
--			   (phys < region->phys + region->size)){
-+		while (region != NULL) {
-+			if ((phys >= region->phys) &&
-+			    (phys < region->phys + region->size)) {
- 				fd = region->fd;
- 				*offset_out = phys - region->phys;
- 				break;
-@@ -143,7 +135,7 @@ int phys_mapping(unsigned long phys, __u
- 			region = region->next;
- 		}
- 	}
--	else if(phys < __pa(end_iomem) + highmem){
-+	else if (phys < __pa(end_iomem) + highmem) {
- 		fd = physmem_fd;
- 		*offset_out = phys - iomem_size;
- 	}
-@@ -188,8 +180,8 @@ unsigned long find_iomem(char *driver, u
- {
- 	struct iomem_region *region = iomem_regions;
- 
--	while(region != NULL){
--		if(!strcmp(region->driver, driver)){
-+	while (region != NULL) {
-+		if (!strcmp(region->driver, driver)) {
- 			*len_out = region->size;
- 			return region->virt;
- 		}
-@@ -206,10 +198,10 @@ int setup_iomem(void)
- 	unsigned long iomem_start = high_physmem + PAGE_SIZE;
- 	int err;
- 
--	while(region != NULL){
-+	while (region != NULL) {
- 		err = os_map_memory((void *) iomem_start, region->fd, 0,
- 				    region->size, 1, 1, 0);
--		if(err)
-+		if (err)
- 			printk("Mapping iomem region for driver '%s' failed, "
- 			       "errno = %d\n", region->driver, -err);
- 		else {
+-                if(must_succeed)
+-			panic("protect failed, err = %d", -err);
+-		else return(err);
+-	}
+-	return(0);
+-}
+-
+-void kill_child_dead(int pid)
+-{
+-	kill(pid, SIGKILL);
+-	kill(pid, SIGCONT);
+-	do {
+-		int n;
+-		CATCH_EINTR(n = waitpid(pid, NULL, 0));
+-		if (n > 0)
+-			kill(pid, SIGCONT);
+-		else
+-			break;
+-	} while(1);
+-}
+-
+-void stop(void)
+-{
+-	while(1) sleep(1000000);
+-}
+-
+-int wait_for_stop(int pid, int sig, int cont_type, void *relay)
+-{
+-	sigset_t *relay_signals = relay;
+-	int status, ret;
+-
+-	while(1){
+-		CATCH_EINTR(ret = waitpid(pid, &status, WUNTRACED));
+-		if((ret < 0) ||
+-		   !WIFSTOPPED(status) || (WSTOPSIG(status) != sig)){
+-			if(ret < 0){
+-				printk("wait failed, errno = %d\n",
+-				       errno);
+-			}
+-			else if(WIFEXITED(status))
+-				printk("process %d exited with status %d\n",
+-				       pid, WEXITSTATUS(status));
+-			else if(WIFSIGNALED(status))
+-				printk("process %d exited with signal %d\n",
+-				       pid, WTERMSIG(status));
+-			else if((WSTOPSIG(status) == SIGVTALRM) ||
+-				(WSTOPSIG(status) == SIGALRM) ||
+-				(WSTOPSIG(status) == SIGIO) ||
+-				(WSTOPSIG(status) == SIGPROF) ||
+-				(WSTOPSIG(status) == SIGCHLD) ||
+-				(WSTOPSIG(status) == SIGWINCH) ||
+-				(WSTOPSIG(status) == SIGINT)){
+-				ptrace(cont_type, pid, 0, WSTOPSIG(status));
+-				continue;
+-			}
+-			else if((relay_signals != NULL) &&
+-				sigismember(relay_signals, WSTOPSIG(status))){
+-				ptrace(cont_type, pid, 0, WSTOPSIG(status));
+-				continue;
+-			}
+-			else printk("process %d stopped with signal %d\n",
+-				    pid, WSTOPSIG(status));
+-			panic("wait_for_stop failed to wait for %d to stop "
+-			      "with %d\n", pid, sig);
+-		}
+-		return(status);
+-	}
+-}
+-
+-void forward_ipi(int fd, int pid)
+-{
+-	int err;
+-
+-	err = os_set_owner(fd, pid);
+-	if(err < 0)
+-		printk("forward_ipi: set_owner failed, fd = %d, me = %d, "
+-		       "target = %d, err = %d\n", fd, os_getpid(), pid, -err);
+-}
+-
+-/*
+- *-------------------------
+- * only for tt mode (will be deleted in future...)
+- *-------------------------
+- */
+-
+-struct tramp {
+-	int (*tramp)(void *);
+-	void *tramp_data;
+-	unsigned long temp_stack;
+-	int flags;
+-	int pid;
+-};
+-
+-/* See above for why sigkill is here */
+-
+-int sigkill = SIGKILL;
+-
+-int outer_tramp(void *arg)
+-{
+-	struct tramp *t;
+-	int sig = sigkill;
+-
+-	t = arg;
+-	t->pid = clone(t->tramp, (void *) t->temp_stack + UM_KERN_PAGE_SIZE/2,
+-		       t->flags, t->tramp_data);
+-	if(t->pid > 0) wait_for_stop(t->pid, SIGSTOP, PTRACE_CONT, NULL);
+-	kill(os_getpid(), sig);
+-	_exit(0);
+-}
+-
+-int start_fork_tramp(void *thread_arg, unsigned long temp_stack,
+-		     int clone_flags, int (*tramp)(void *))
+-{
+-	struct tramp arg;
+-	unsigned long sp;
+-	int new_pid, status, err;
+-
+-	/* The trampoline will run on the temporary stack */
+-	sp = stack_sp(temp_stack);
+-
+-	clone_flags |= CLONE_FILES | SIGCHLD;
+-
+-	arg.tramp = tramp;
+-	arg.tramp_data = thread_arg;
+-	arg.temp_stack = temp_stack;
+-	arg.flags = clone_flags;
+-
+-	/* Start the process and wait for it to kill itself */
+-	new_pid = clone(outer_tramp, (void *) sp, clone_flags, &arg);
+-	if(new_pid < 0)
+-		return(new_pid);
+-
+-	CATCH_EINTR(err = waitpid(new_pid, &status, 0));
+-	if(err < 0)
+-		panic("Waiting for outer trampoline failed - errno = %d",
+-		      errno);
+-
+-	if(!WIFSIGNALED(status) || (WTERMSIG(status) != SIGKILL))
+-		panic("outer trampoline didn't exit with SIGKILL, "
+-		      "status = %d", status);
+-
+-	return(arg.pid);
+-}
+-
+-void forward_pending_sigio(int target)
+-{
+-	sigset_t sigs;
+-
+-	if(sigpending(&sigs))
+-		panic("forward_pending_sigio : sigpending failed");
+-	if(sigismember(&sigs, SIGIO))
+-		kill(target, SIGIO);
+-}
+-
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
