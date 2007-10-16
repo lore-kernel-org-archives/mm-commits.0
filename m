@@ -1,184 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 15:02:58 -0700
-Message-ID: <200710162202.l9GM2xRI019832@imap1.linux-foundation.org>
+Subject: - add-in-sunos-41x-compatible-mode-for-ufs-fix-2.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 15:04:31 -0700
+Message-ID: <200710162204.l9GM4Waq019949@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40334 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51485 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765838AbXJPWDD (ORCPT
+	by vger.kernel.org with ESMTP id S935852AbXJPWEo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 18:03:03 -0400
+	Tue, 16 Oct 2007 18:04:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: olof@lixom.net, benh@kernel.crashing.org, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, dushistov@mail.ru, mark@mtfhpc.demon.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pcmcia: updates to electra_cf driver
+     unscrew UFS
 has been removed from the -mm tree.  Its filename was
-     pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix.patch
+     add-in-sunos-41x-compatible-mode-for-ufs-fix-2.patch
 
-This patch was dropped because it was folded into pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+This patch was dropped because it was folded into add-in-sunos-41x-compatible-mode-for-ufs.patch
 
 ------------------------------------------------------
-Subject: pcmcia: updates to electra_cf driver
-From: Olof Johansson <olof@lixom.net>
+Subject: unscrew UFS
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Fix build of electra_cf, since the IO space setup interfaces were
-changed when BenH rewrote it.
+Dereferencing unintialized "usb3" pointer in ufs_fill_super() is not
+going to work. gcc even warns about this.
 
-Also clean it up a bit, add 5V support, make it unloadable, remove some
-dead variables, etc.
+BUG: unable to handle kernel NULL pointer dereference at virtual address 0000014e
+printing eip: f9a3b1a2 *pde = 00000000
+Oops: 0000 [#1] PREEMPT
+last sysfs file: /block/loop7/removable
+Modules linked in: ufs loop usbhid ehci_hcd snd_intel8x0 snd_ac97_codec uhci_hcd rtc ac97_bus usbcore thermal button processor sr_mod evdev cdrom
 
-Signed-off-by: Olof Johansson <olof@lixom.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Pid: 1066, comm: mount Not tainted (2.6.23-rc8-mm1 #1)
+EIP: 0060:[<f9a3b1a2>] EFLAGS: 00010286 CPU: 0
+EIP is at ufs_fill_super+0x52f/0x12e5 [ufs]
+EAX: 00000002 EBX: c39c4960 ECX: c0176465 EDX: 00000000
+ESI: c38c5000 EDI: c387f800 EBP: 00000600 ESP: c3816d3c
+ DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
+Process mount (pid: 1066, ti=c3816000 task=c38f34d0 task.ti=c3816000)
+last branch before last exception/interrupt
+ from c0130fc0 (lockdep_on+0xb/0xc)
+ to c0118d82 (vprintk+0x29f/0x2fb)
+Stack: 00000010 00000000 00000600 00000000 c3816db4 0038c0d8 00000000 c3816dd4
+       ffffffff 00000002 00000200 00000600 00002130 00002000 c39c4960 c01b1355
+       c3816d94 c3816d94 c0187966 c3816db4 00000020 c0347b9b c280680c 00000400
+Call Trace:
+ [<c01b1355>] snprintf+0x1f/0x22
+ [<c0187966>] disk_name+0x79/0x83
+ [<c015c49b>] get_sb_bdev+0xdc/0x11a
+ [<c016ca6d>] alloc_vfsmnt+0x8d/0xb3
+ [<f9a39e3c>] ufs_get_sb+0x20/0x25 [ufs]
+ [<f9a3ac73>] ufs_fill_super+0x0/0x12e5 [ufs]
+ [<c015c09c>] vfs_kern_mount+0x40/0x79
+ [<c016d601>] do_mount+0x6c0/0x7e3
+ [<c02c82a3>] _spin_unlock+0x25/0x3b
+ [<c01318dc>] mark_held_locks+0x39/0x53
+ [<c013fd1d>] find_lock_page+0xf/0x84
+ [<c014456f>] get_page_from_freelist+0x21e/0x3f0
+ [<c0131ab0>] trace_hardirqs_on+0x118/0x13b
+ [<c0144599>] get_page_from_freelist+0x248/0x3f0
+ [<c01582f1>] kmem_cache_alloc+0x68/0x9b
+ [<c016be18>] copy_mount_options+0x26/0x109
+ [<c016d79b>] sys_mount+0x77/0xb3
+ [<c0103db2>] sysenter_past_esp+0x5f/0x99
+ =======================
+INFO: lockdep is turned off.
+Code: d2 f7 74 24 28 03 87 50 01 00 00 89 04 24 c7 44 24 04 00 00 00 00 89 f2 89 f8 e8 e6 2b 00 00 85 c0 0f 84 1e 0d 00 00 8b 44 24 24 <8b> 90 4c 01 00 00 8b 86 58 02 00 00 83 78 08 00 74 02 0f ca 89
+EIP: [<f9a3b1a2>] ufs_fill_super+0x52f/0x12e5 [ufs] SS:ESP 0068:c3816d3c
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Evgeniy Dushistov <dushistov@mail.ru>
+Cc: Mark Fortescue <mark@mtfhpc.demon.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/Kconfig      |    4 +--
- drivers/pcmcia/electra_cf.c |   38 ++++++++++++++++++++--------------
- 2 files changed, 25 insertions(+), 17 deletions(-)
+ fs/ufs/super.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/pcmcia/Kconfig~pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix drivers/pcmcia/Kconfig
---- a/drivers/pcmcia/Kconfig~pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix
-+++ a/drivers/pcmcia/Kconfig
-@@ -256,8 +256,8 @@ config AT91_CF
- 	  Or choose M to compile the driver as a module named "at91_cf".
+diff -puN fs/ufs/super.c~add-in-sunos-41x-compatible-mode-for-ufs-fix-2 fs/ufs/super.c
+--- a/fs/ufs/super.c~add-in-sunos-41x-compatible-mode-for-ufs-fix-2
++++ a/fs/ufs/super.c
+@@ -822,6 +822,10 @@ again:	
+ 	if (!ubh) 
+             goto failed;
  
- config ELECTRA_CF
--	bool "Electra CompactFlash Controller"
--	depends on PCMCIA=y && PPC_PASEMI
-+	tristate "Electra CompactFlash Controller"
-+	depends on PCMCIA && PPC_PASEMI
- 	help
- 	  Say Y here to support the CompactFlash controller on the
- 	  PA Semi Electra eval board.
-diff -puN drivers/pcmcia/electra_cf.c~pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix drivers/pcmcia/electra_cf.c
---- a/drivers/pcmcia/electra_cf.c~pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix
-+++ a/drivers/pcmcia/electra_cf.c
-@@ -28,6 +28,7 @@
- #include <linux/init.h>
- #include <linux/delay.h>
- #include <linux/interrupt.h>
-+#include <linux/vmalloc.h>
++	usb1 = ubh_get_usb_first(uspi);
++	usb2 = ubh_get_usb_second(uspi);
++	usb3 = ubh_get_usb_third(uspi);
++
+ 	/* Sort out mod used on SunOS 4.1.3 for fs_state */
+ 	uspi->s_postblformat = fs32_to_cpu(sb, usb3->fs_postblformat);
+ 	if (((flags & UFS_ST_MASK) == UFS_ST_SUNOS) &&
+@@ -830,11 +834,6 @@ again:	
+ 		flags |=  UFS_ST_SUN;
+ 	}
  
- #include <pcmcia/ss.h>
- #include <asm/of_platform.h>
-@@ -105,10 +106,8 @@ static int electra_cf_get_status(struct 
- 
- 	/* NOTE CF is always 3VCARD */
- 	if (electra_cf_present(cf)) {
--		struct electra_cf_socket *cf;
+-	
+-	usb1 = ubh_get_usb_first(uspi);
+-	usb2 = ubh_get_usb_second(uspi);
+-	usb3 = ubh_get_usb_third(uspi);
 -
- 		*sp = SS_READY | SS_DETECT | SS_POWERON | SS_3VCARD;
--		cf = container_of(s, struct electra_cf_socket, socket);
-+
- 		s->pci_irq = cf->irq;
- 	} else
- 		*sp = 0;
-@@ -134,8 +133,10 @@ static int electra_cf_set_socket(struct 
- 	case 33:
- 		gpio = (1 << cf->gpio_3v);
- 		break;
-+	case 5:
-+		gpio = (1 << cf->gpio_5v);
-+		break;
- 	default:
--		/* CF is 3.3V only */
- 		return -EINVAL;
- 	}
- 
-@@ -188,6 +189,7 @@ static int __devinit electra_cf_probe(st
- 	int status;
- 	const unsigned int *prop;
- 	int err;
-+	struct vm_struct *area;
- 
- 	err = of_address_to_resource(np, 0, &mem);
- 	if (err)
-@@ -206,22 +208,27 @@ static int __devinit electra_cf_probe(st
- 
- 	cf->ofdev = ofdev;
- 	cf->mem_phys = mem.start;
--	cf->mem_base = ioremap(mem.start, mem.end - mem.start);
-+	cf->mem_size = PAGE_ALIGN(mem.end - mem.start);
-+	cf->mem_base = ioremap(cf->mem_phys, cf->mem_size);
- 	cf->io_size = PAGE_ALIGN(io.end - io.start);
- 
--	cf->io_virt = reserve_phb_iospace(cf->io_size);
-+	area = __get_vm_area(cf->io_size, 0, PHB_IO_BASE, PHB_IO_END);
-+	if (area == NULL)
-+		return -ENOMEM;
-+
-+	cf->io_virt = (void __iomem *)(area->addr);
- 
- 	cf->gpio_base = ioremap(0xfc103000, 0x1000);
- 	dev_set_drvdata(device, cf);
- 
--	if (!cf->mem_base || !cf->io_virt || !cf->gpio_base) {
-+	if (!cf->mem_base || !cf->io_virt || !cf->gpio_base ||
-+	    (__ioremap_at(io.start, cf->io_virt, cf->io_size,
-+		_PAGE_NO_CACHE | _PAGE_GUARDED) == NULL)) {
- 		dev_err(device, "can't ioremap ranges\n");
- 		status = -ENOMEM;
- 		goto fail1;
- 	}
- 
--	__ioremap_explicit(io.start, (unsigned long)cf->io_virt, cf->io_size,
--			   _PAGE_NO_CACHE | _PAGE_GUARDED);
- 
- 	cf->io_base = (unsigned long)cf->io_virt - VMALLOC_END;
- 
-@@ -263,8 +270,7 @@ static int __devinit electra_cf_probe(st
- 	cf->socket.io_offset = cf->io_base;
- 
- 	/* reserve chip-select regions */
--	if (!request_mem_region(mem.start, mem.end + 1 - mem.start,
--				driver_name)) {
-+	if (!request_mem_region(cf->mem_phys, cf->mem_size, driver_name)) {
- 		status = -ENXIO;
- 		dev_err(device, "Can't claim memory region\n");
- 		goto fail1;
-@@ -291,21 +297,22 @@ static int __devinit electra_cf_probe(st
- 	}
- 
- 	dev_info(device, "at mem 0x%lx io 0x%lx irq %d\n",
--		 mem.start, io.start, cf->irq);
-+		 cf->mem_phys, io.start, cf->irq);
- 
- 	cf->active = 1;
- 	electra_cf_timer((unsigned long)cf);
- 	return 0;
- 
- fail3:
--	release_mem_region(io.start, io.end + 1 - io.start);
-+	release_region(cf->io_base, cf->io_size);
- fail2:
--	release_mem_region(mem.start, mem.end + 1 - mem.start);
-+	release_mem_region(cf->mem_phys, cf->mem_size);
- fail1:
- 	if (cf->irq != NO_IRQ)
- 		free_irq(cf->irq, cf);
- 
--	/* XXX No way to undo the ioremap_explicit at this time */
-+	if (cf->io_virt)
-+		__iounmap_at(cf->io_virt, cf->io_size);
- 	if (cf->mem_base)
- 		iounmap(cf->mem_base);
- 	if (cf->gpio_base)
-@@ -328,6 +335,7 @@ static int __devexit electra_cf_remove(s
- 	free_irq(cf->irq, cf);
- 	del_timer_sync(&cf->timer);
- 
-+	__iounmap_at(cf->io_virt, cf->io_size);
- 	iounmap(cf->mem_base);
- 	iounmap(cf->gpio_base);
- 	release_mem_region(cf->mem_phys, cf->mem_size);
+ 	/*
+ 	 * Check ufs magic number
+ 	 */
 _
 
-Patches currently in -mm which might be from olof@lixom.net are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards-fix.patch
+oom-prevent-including-schedh-in-header-file.patch
+oom-add-header-file-to-kbuild-as-unifdef.patch
+faster-ext2_clear_inode.patch
+fs-proc-mmuc-headers-butchery.patch
+remove-sysctlh-from-fsh.patch
+add-in-sunos-41x-compatible-mode-for-ufs.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix-2.patch
+epcac-reformat-comments-and-coding-style-improvements.patch
+shrink-struct-task_structoomkilladj.patch
+remove-struct-task_structio_wait.patch
+drop-some-headers-from-mmh.patch
+dont-truncate-proc-pid-environ-at-4096-characters.patch
+revert-faster-ext2_clear_inode.patch
