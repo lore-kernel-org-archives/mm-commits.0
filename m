@@ -1,84 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: - keys-missing-word-in-documentation.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 15:24:49 -0700
-Message-ID: <200710162224.l9GMOn1e020891@imap1.linux-foundation.org>
+Subject: - reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 15:25:30 -0700
+Message-ID: <200710162225.l9GMPUgZ020904@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38958 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40640 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934239AbXJPWZE (ORCPT
+	by vger.kernel.org with ESMTP id S935517AbXJPW0N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 18:25:04 -0400
+	Tue, 16 Oct 2007 18:26:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, chris.mason@oracle.com, jeffm@suse.com, vs@namesys.com, ytht.net@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     keys: missing word in documentation
+     reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix
 has been removed from the -mm tree.  Its filename was
-     keys-missing-word-in-documentation.patch
+     reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
 
-This patch was dropped because it was folded into keys-make-request_key-and-co-fundamentally-asynchronous.patch
+This patch was dropped because it was folded into reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch
 
 ------------------------------------------------------
-Subject: keys: missing word in documentation
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
+Cc: "Vladimir V. Saveliev" <vs@namesys.com>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
+Cc: Lepton Wu <ytht.net@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/keys.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/reiserfs/super.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/keys.txt~keys-missing-word-in-documentation Documentation/keys.txt
---- a/Documentation/keys.txt~keys-missing-word-in-documentation
-+++ a/Documentation/keys.txt
-@@ -4,7 +4,7 @@
+diff -puN fs/reiserfs/super.c~reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix fs/reiserfs/super.c
+--- a/fs/reiserfs/super.c~reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix
++++ a/fs/reiserfs/super.c
+@@ -280,15 +280,17 @@ static int finish_unfinished(struct supe
+ 			REISERFS_I(inode)->i_flags |= i_link_saved_unlink_mask;
+ 			/* not completed unlink (rmdir) found */
+ 			reiserfs_info(s, "Removing %k..", INODE_PKEY(inode));
+-			if(memcmp(&last_inode_key, INODE_PKEY(inode),
+-				  sizeof(last_inode_key))){
++			if (memcmp(&last_inode_key, INODE_PKEY(inode),
++					sizeof(last_inode_key))){
+ 				last_inode_key = *INODE_PKEY(inode);
+ 				/* removal gets completed in iput */
+ 				retval = 0;
+ 			} else {
+-				reiserfs_warning(s, "Dead loop in finish_unfinished detected, just remove save link\n");
++				reiserfs_warning(s, "Dead loop in "
++						"finish_unfinished detected, "
++						"just remove save link\n");
+ 				retval = remove_save_link_only(s,
+-							       &save_link_key, 0);
++							&save_link_key, 0);
+ 			}
+ 		}
  
- This service allows cryptographic keys, authentication tokens, cross-domain
- user mappings, and similar to be cached in the kernel for the use of
--filesystems other kernel services.
-+filesystems and other kernel services.
- 
- Keyrings are permitted; these are a special type of key that can hold links to
- other keys. Processes each have three standard keyring subscriptions that a
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
-jsm-remove-further-unneeded-crud.patch
-ttyh-remove-dead-define.patch
-codingstyle-relax-the-80-cole-rule.patch
-add-config_vt_unicode.patch
-keys-make-request_key-and-co-fundamentally-asynchronous.patch
-keys-missing-word-in-documentation.patch
-ide-cd-is-unmaintained.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold.patch
+mm-dirty-balancing-for-tasks.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
+oom-change-all_unreclaimable-zone-member-to-flags.patch
+oom-do-not-take-callback_mutex.patch
+writeback-dont-propagate-aop_writepage_activate.patch
+softlockup-add-a-proc-tuning-parameter.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
+do_sys_poll-simplify-playing-with-on-stack-data.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer.patch
+deprecate-aout-elf-interpreters.patch
+ext2-ext3-ext4-add-block-bitmap-validation.patch
+pie-executable-randomization.patch
+binfmt_flat-warning-fixes.patch
+i2o-fix-defined-but-not-used-build-warnings.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
 tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-fs-correct-sus-compliance-for-open-of-large-file-without.patch
-sysctl-remove-broken-cdrom-binary-sysctls.patch
-mxser-remove-commented-crap.patch
-char-cyclades-remove-bottom-half-processing.patch
-usb_serial-stop-passing-null-to-functions-that-expect-data.patch
-ark3116-update-termios-handling.patch
-usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch
-ch341-fix-termios-handling.patch
-digi_acceleport-fix-termios-and-also-readability-a-bit.patch
-empeg-clean-up-and-handle-speeds.patch
-ir_usb-termios-handling.patch
-keyspan-termios-tidy.patch
-kobil_sct-termios-encoding-fixups.patch
-option-termios-handling.patch
-sierra-termios.patch
-usb-serial-handle-null-termios-methods-as-no-hardware-changing-support.patch
-whiteheat-clean-up-cant-happen-checks-and-encode-baud.patch
-cp2101-convert-to-new-termios.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
+f_dupfd_cloexec-implementation-fix-2.patch
+ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
+drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+pnp-use-dev_info-dev_err-etc-in-core-fix.patch
+pnp-add-debug-message-for-adding-new-device-fix-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
 ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-io_edgeport-cleanups-and-tty-speed-reporting.patch
-tty-kill-tty_flipbuf_size.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
