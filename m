@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-watchdog-fixup.patch added to -mm tree
-Date: Tue, 16 Oct 2007 13:13:34 -0700
-Message-ID: <200710162013.l9GKDYMY013689@imap1.linux-foundation.org>
+Subject: + git-alsa-fixup.patch added to -mm tree
+Date: Tue, 16 Oct 2007 13:15:27 -0700
+Message-ID: <200710162015.l9GKFR5L013745@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49389 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50533 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932967AbXJPUNh (ORCPT
+	by vger.kernel.org with ESMTP id S964887AbXJPUPj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 16:13:37 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9GKDYsb024280
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 16 Oct 2007 13:13:35 -0700
+	Tue, 16 Oct 2007 16:15:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     git-watchdog-fixup
+     git-alsa-fixup
 has been added to the -mm tree.  Its filename is
-     git-watchdog-fixup.patch
+     git-alsa-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,31 +26,122 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-watchdog-fixup
+Subject: git-alsa-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Fix git rejects aginst mainline.
+
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/Kconfig |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ sound/sparc/cs4231.c |   62 -----------------------------------------
+ 1 file changed, 62 deletions(-)
 
-diff -puN drivers/Kconfig~git-watchdog-fixup drivers/Kconfig
---- a/drivers/Kconfig~git-watchdog-fixup
-+++ a/drivers/Kconfig
-@@ -58,11 +58,9 @@ source "drivers/power/Kconfig"
+diff -puN sound/sparc/cs4231.c~git-alsa-fixup sound/sparc/cs4231.c
+--- a/sound/sparc/cs4231.c~git-alsa-fixup
++++ a/sound/sparc/cs4231.c
+@@ -400,14 +400,8 @@ static void snd_cs4231_mce_up(struct snd
  
- source "drivers/hwmon/Kconfig"
- 
--<<<<<<< HEAD:drivers/Kconfig
- source "drivers/ssb/Kconfig"
+ static void snd_cs4231_mce_down(struct snd_cs4231 *chip)
+ {
+-<<<<<<< HEAD:sound/sparc/cs4231.c
+-	unsigned long flags;
+-	unsigned long end_time;
+-	int timeout;
 -=======
-+
- source "drivers/watchdog/Kconfig"
-->>>>>>> FETCH_HEAD:drivers/Kconfig
+ 	unsigned long flags, timeout;
+ 	int reg;
+->>>>>>> FETCH_HEAD:sound/sparc/cs4231.c
  
- source "drivers/mfd/Kconfig"
+ 	snd_cs4231_busy_wait(chip);
+ 	spin_lock_irqsave(&chip->lock, flags);
+@@ -417,84 +411,28 @@ static void snd_cs4231_mce_down(struct s
+ 			    CS4231U(chip, REGSEL));
+ #endif
+ 	chip->mce_bit &= ~CS4231_MCE;
+-<<<<<<< HEAD:sound/sparc/cs4231.c
+-	timeout = __cs4231_readb(chip, CS4231U(chip, REGSEL));
+-	__cs4231_writeb(chip, chip->mce_bit | (timeout & 0x1f),
+-=======
+ 	reg = __cs4231_readb(chip, CS4231U(chip, REGSEL));
+ 	__cs4231_writeb(chip, chip->mce_bit | (reg & 0x1f),
+->>>>>>> FETCH_HEAD:sound/sparc/cs4231.c
+ 			CS4231U(chip, REGSEL));
+-<<<<<<< HEAD:sound/sparc/cs4231.c
+-	if (timeout == 0x80)
+-		snd_printdd("mce_down [%p]: serious init problem - "
+-			    "codec still busy\n",
+-			    chip->port);
+-	if ((timeout & CS4231_MCE) == 0) {
+-=======
+ 	if (reg == 0x80)
+ 		snd_printdd("mce_down [%p]: serious init problem "
+ 			    "- codec still busy\n", chip->port);
+ 	if ((reg & CS4231_MCE) == 0) {
+->>>>>>> FETCH_HEAD:sound/sparc/cs4231.c
+ 		spin_unlock_irqrestore(&chip->lock, flags);
+ 		return;
+ 	}
+-<<<<<<< HEAD:sound/sparc/cs4231.c
+-
+-	/*
+-	 * Wait for (possible -- during init auto-calibration may not be set)
+-	 * calibration process to start. Needs upto 5 sample periods on AD1848
+-	 * which at the slowest possible rate of 5.5125 kHz means 907 us.
+-	 */
+-	msleep(1);
  
+-	/* check condition up to 250ms */
+-	end_time = jiffies + msecs_to_jiffies(250);
+-	while (snd_cs4231_in(chip, CS4231_TEST_INIT) &
+-		CS4231_CALIB_IN_PROGRESS) {
+-=======
+->>>>>>> FETCH_HEAD:sound/sparc/cs4231.c
+-
+-<<<<<<< HEAD:sound/sparc/cs4231.c
+-=======
+ 	/*
+ 	 * Wait for auto-calibration (AC) process to finish, i.e. ACI to go low.
+ 	 */
+ 	timeout = jiffies + msecs_to_jiffies(250);
+ 	do {
+->>>>>>> FETCH_HEAD:sound/sparc/cs4231.c
+ 		spin_unlock_irqrestore(&chip->lock, flags);
+-<<<<<<< HEAD:sound/sparc/cs4231.c
+-		if (time_after(jiffies, end_time)) {
+-			snd_printk("mce_down - "
+-				   "auto calibration time out (2)\n");
+-			return;
+-		}
+-=======
+->>>>>>> FETCH_HEAD:sound/sparc/cs4231.c
+ 		msleep(1);
+ 		spin_lock_irqsave(&chip->lock, flags);
+-<<<<<<< HEAD:sound/sparc/cs4231.c
+-	}
+-
+-	/* check condition up to 100ms */
+-	end_time = jiffies + msecs_to_jiffies(100);
+-	while (__cs4231_readb(chip, CS4231U(chip, REGSEL)) & CS4231_INIT) {
+-		spin_unlock_irqrestore(&chip->lock, flags);
+-		if (time_after(jiffies, end_time)) {
+-			snd_printk("mce_down - "
+-				   "auto calibration time out (3)\n");
+-			return;
+-		}
+-		msleep(1);
+-		spin_lock_irqsave(&chip->lock, flags);
+-	}
+-=======
+ 		reg = snd_cs4231_in(chip, CS4231_TEST_INIT);
+ 		reg &= CS4231_CALIB_IN_PROGRESS;
+ 	} while (reg && time_before(jiffies, timeout));
+->>>>>>> FETCH_HEAD:sound/sparc/cs4231.c
+ 	spin_unlock_irqrestore(&chip->lock, flags);
+ 
+ 	if (reg)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,6 +150,7 @@ origin.patch
 git-acpi.patch
 acpi-add-reboot-mechanism.patch
 git-alsa.patch
+git-alsa-fixup.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-cifs.patch
 applesmc-for-mac-pro-2-x-quad-core-fix.patch
