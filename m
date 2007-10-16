@@ -1,630 +1,595 @@
 From: akpm@linux-foundation.org
-Subject: - uml-console-tidying.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:36:56 -0700
-Message-ID: <200710162036.l9GKau2X015232@imap1.linux-foundation.org>
+Subject: - i-oat-add-support-for-msi-and-msi-x.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:39:28 -0700
+Message-ID: <200710162039.l9GKdSUj015548@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60905 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33917 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965436AbXJPVSZ (ORCPT
+	by vger.kernel.org with ESMTP id S965078AbXJPVSn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:18:25 -0400
+	Tue, 16 Oct 2007 17:18:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: shannon.nelson@intel.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: console tidying
+     I/OAT: Add support for MSI and MSI-X
 has been removed from the -mm tree.  Its filename was
-     uml-console-tidying.patch
+     i-oat-add-support-for-msi-and-msi-x.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: console tidying
-From: Jeff Dike <jdike@addtoit.com>
+Subject: I/OAT: Add support for MSI and MSI-X
+From: Shannon Nelson <shannon.nelson@intel.com>
 
-Tidy line.c:
-	The includes are more minimal
-	Lots of style fixes
-	All the printks have severities
-	Removed some commented-out code
-	Deleted a useless printk when ioctl is called
-	Fixed some whitespace damage
+Add support for MSI and MSI-X interrupt handling, including the ability
+to choose the desired interrupt method.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Shannon Nelson <shannon.nelson@intel.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+[bunk@kernel.org: drivers/dma/ioat_dma.c: make 3 functions static]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/line.c |  228 +++++++++++++++++++--------------------
- 1 file changed, 114 insertions(+), 114 deletions(-)
+ drivers/dma/ioat_dma.c          |  348 ++++++++++++++++++++++++------
+ drivers/dma/ioatdma.h           |   12 +
+ drivers/dma/ioatdma_registers.h |    6 
+ include/linux/bitops.h          |    6 
+ 4 files changed, 305 insertions(+), 67 deletions(-)
 
-diff -puN arch/um/drivers/line.c~uml-console-tidying arch/um/drivers/line.c
---- a/arch/um/drivers/line.c~uml-console-tidying
-+++ a/arch/um/drivers/line.c
-@@ -1,22 +1,14 @@
- /*
-- * Copyright (C) 2001, 2002 Jeff Dike (jdike@karaya.com)
-+ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
+diff -puN drivers/dma/ioat_dma.c~i-oat-add-support-for-msi-and-msi-x drivers/dma/ioat_dma.c
+--- a/drivers/dma/ioat_dma.c~i-oat-add-support-for-msi-and-msi-x
++++ a/drivers/dma/ioat_dma.c
+@@ -47,6 +47,65 @@
+ static void ioat_dma_start_null_desc(struct ioat_dma_chan *ioat_chan);
+ static void ioat_dma_memcpy_cleanup(struct ioat_dma_chan *ioat_chan);
  
--#include "linux/kernel.h"
--#include "linux/sched.h"
--#include "linux/slab.h"
--#include "linux/list.h"
-+#include "linux/irqreturn.h"
- #include "linux/kd.h"
--#include "linux/interrupt.h"
--#include "asm/uaccess.h"
- #include "chan_kern.h"
-+#include "irq_kern.h"
- #include "irq_user.h"
--#include "line.h"
--#include "kern.h"
--#include "kern_util.h"
- #include "os.h"
--#include "irq_kern.h"
- 
- #define LINE_BUFSIZE 4096
- 
-@@ -35,12 +27,13 @@ static void line_timer_cb(struct work_st
- {
- 	struct line *line = container_of(work, struct line, task.work);
- 
--	if(!line->throttled)
-+	if (!line->throttled)
- 		chan_interrupt(&line->chan_list, &line->task, line->tty,
- 			       line->driver->read_irq);
- }
- 
--/* Returns the free space inside the ring buffer of this line.
-+/*
-+ * Returns the free space inside the ring buffer of this line.
-  *
-  * Should be called while holding line->lock (this does not modify datas).
-  */
-@@ -107,11 +100,12 @@ static int buffer_data(struct line *line
- {
- 	int end, room;
- 
--	if(line->buffer == NULL){
-+	if (line->buffer == NULL) {
- 		line->buffer = kmalloc(LINE_BUFSIZE, GFP_ATOMIC);
- 		if (line->buffer == NULL) {
--			printk("buffer_data - atomic allocation failed\n");
--			return(0);
-+			printk(KERN_ERR "buffer_data - atomic allocation "
-+			       "failed\n");
-+			return 0;
- 		}
- 		line->head = line->buffer;
- 		line->tail = line->buffer;
-@@ -122,7 +116,7 @@ static int buffer_data(struct line *line
- 
- 	end = line->buffer + LINE_BUFSIZE - line->tail;
- 
--	if (len < end){
-+	if (len < end) {
- 		memcpy(line->tail, buf, len);
- 		line->tail += len;
- 	}
-@@ -162,8 +156,10 @@ static int flush_buffer(struct line *lin
- 		if (n < 0)
- 			return n;
- 		if (n == count) {
--			/* We have flushed from ->head to buffer end, now we
--			 * must flush only from the beginning to ->tail.*/
-+			/*
-+			 * We have flushed from ->head to buffer end, now we
-+			 * must flush only from the beginning to ->tail.
-+			 */
- 			line->head = line->buffer;
- 		} else {
- 			line->head += n;
-@@ -175,7 +171,7 @@ static int flush_buffer(struct line *lin
- 	n = write_chan(&line->chan_list, line->head, count,
- 		       line->driver->write_irq);
- 
--	if(n < 0)
-+	if (n < 0)
- 		return n;
- 
- 	line->head += n;
-@@ -189,19 +185,18 @@ void line_flush_buffer(struct tty_struct
- 	int err;
- 
- 	/*XXX: copied from line_write, verify if it is correct!*/
--	if(tty->stopped)
-+	if (tty->stopped)
- 		return;
- 
- 	spin_lock_irqsave(&line->lock, flags);
- 	err = flush_buffer(line);
--	/*if (err == 1)
--		err = 0;*/
- 	spin_unlock_irqrestore(&line->lock, flags);
--	//return err;
- }
- 
--/* We map both ->flush_chars and ->put_char (which go in pair) onto ->flush_buffer
-- * and ->write. Hope it's not that bad.*/
-+/*
-+ * We map both ->flush_chars and ->put_char (which go in pair) onto
-+ * ->flush_buffer and ->write. Hope it's not that bad.
++static struct ioat_dma_chan *ioat_lookup_chan_by_index(struct ioatdma_device *device,
++						       int index)
++{
++	return device->idx[index];
++}
++
++/**
++ * ioat_dma_do_interrupt - handler used for single vector interrupt mode
++ * @irq: interrupt id
++ * @data: interrupt data
 + */
- void line_flush_chars(struct tty_struct *tty)
- {
- 	line_flush_buffer(tty);
-@@ -218,7 +213,7 @@ int line_write(struct tty_struct *tty, c
- 	unsigned long flags;
- 	int n, ret = 0;
- 
--	if(tty->stopped)
-+	if (tty->stopped)
- 		return 0;
- 
- 	spin_lock_irqsave(&line->lock, flags);
-@@ -254,17 +249,17 @@ static const struct {
- } tty_ioctls[] = {
- 	/* don't print these, they flood the log ... */
- 	{ TCGETS,      NULL,       "TCGETS"      },
--        { TCSETS,      NULL,       "TCSETS"      },
--        { TCSETSW,     NULL,       "TCSETSW"     },
--        { TCFLSH,      NULL,       "TCFLSH"      },
--        { TCSBRK,      NULL,       "TCSBRK"      },
-+	{ TCSETS,      NULL,       "TCSETS"      },
-+	{ TCSETSW,     NULL,       "TCSETSW"     },
-+	{ TCFLSH,      NULL,       "TCFLSH"      },
-+	{ TCSBRK,      NULL,       "TCSBRK"      },
- 
- 	/* general tty stuff */
--        { TCSETSF,     KERN_DEBUG, "TCSETSF"     },
--        { TCGETA,      KERN_DEBUG, "TCGETA"      },
--        { TIOCMGET,    KERN_DEBUG, "TIOCMGET"    },
--        { TCSBRKP,     KERN_DEBUG, "TCSBRKP"     },
--        { TIOCMSET,    KERN_DEBUG, "TIOCMSET"    },
-+	{ TCSETSF,     KERN_DEBUG, "TCSETSF"     },
-+	{ TCGETA,      KERN_DEBUG, "TCGETA"      },
-+	{ TIOCMGET,    KERN_DEBUG, "TIOCMGET"    },
-+	{ TCSBRKP,     KERN_DEBUG, "TCSBRKP"     },
-+	{ TIOCMSET,    KERN_DEBUG, "TIOCMSET"    },
- 
- 	/* linux-specific ones */
- 	{ TIOCLINUX,   KERN_INFO,  "TIOCLINUX"   },
-@@ -321,12 +316,7 @@ int line_ioctl(struct tty_struct *tty, s
- 		for (i = 0; i < ARRAY_SIZE(tty_ioctls); i++)
- 			if (cmd == tty_ioctls[i].cmd)
- 				break;
--		if (i < ARRAY_SIZE(tty_ioctls)) {
--			if (NULL != tty_ioctls[i].level)
--				printk("%s%s: %s: ioctl %s called\n",
--				       tty_ioctls[i].level, __FUNCTION__,
--				       tty->name, tty_ioctls[i].name);
--		} else {
-+		if (i == ARRAY_SIZE(tty_ioctls)) {
- 			printk(KERN_ERR "%s: %s: unknown ioctl: 0x%x\n",
- 			       __FUNCTION__, tty->name, cmd);
- 		}
-@@ -352,11 +342,12 @@ void line_unthrottle(struct tty_struct *
- 	chan_interrupt(&line->chan_list, &line->task, tty,
- 		       line->driver->read_irq);
- 
--	/* Maybe there is enough stuff pending that calling the interrupt
-+	/*
-+	 * Maybe there is enough stuff pending that calling the interrupt
- 	 * throttles us again.  In this case, line->throttled will be 1
- 	 * again and we shouldn't turn the interrupt back on.
- 	 */
--	if(!line->throttled)
-+	if (!line->throttled)
- 		reactivate_chan(&line->chan_list, line->driver->read_irq);
- }
- 
-@@ -367,27 +358,30 @@ static irqreturn_t line_write_interrupt(
- 	struct tty_struct *tty = line->tty;
- 	int err;
- 
--	/* Interrupts are disabled here because we registered the interrupt with
--	 * IRQF_DISABLED (see line_setup_irq).*/
-+	/*
-+	 * Interrupts are disabled here because we registered the interrupt with
-+	 * IRQF_DISABLED (see line_setup_irq).
-+	 */
- 
- 	spin_lock(&line->lock);
- 	err = flush_buffer(line);
- 	if (err == 0) {
- 		return IRQ_NONE;
--	} else if(err < 0) {
-+	} else if (err < 0) {
- 		line->head = line->buffer;
- 		line->tail = line->buffer;
- 	}
- 	spin_unlock(&line->lock);
- 
--	if(tty == NULL)
-+	if (tty == NULL)
- 		return IRQ_NONE;
- 
- 	if (test_bit(TTY_DO_WRITE_WAKEUP, &tty->flags) &&
- 	   (tty->ldisc.write_wakeup != NULL))
- 		(tty->ldisc.write_wakeup)(tty);
- 
--	/* BLOCKING mode
-+	/*
-+	 * BLOCKING mode
- 	 * In blocking mode, everything sleeps on tty->write_wait.
- 	 * Sleeping in the console driver would break non-blocking
- 	 * writes.
-@@ -417,7 +411,8 @@ int line_setup_irq(int fd, int input, in
- 	return err;
- }
- 
--/* Normally, a driver like this can rely mostly on the tty layer
-+/*
-+ * Normally, a driver like this can rely mostly on the tty layer
-  * locking, particularly when it comes to the driver structure.
-  * However, in this case, mconsole requests can come in "from the
-  * side", and race with opens and closes.
-@@ -439,11 +434,11 @@ int line_open(struct line *lines, struct
- 	int err = -ENODEV;
- 
- 	spin_lock(&line->count_lock);
--	if(!line->valid)
-+	if (!line->valid)
- 		goto out_unlock;
- 
- 	err = 0;
--	if(tty->count > 1)
-+	if (tty->count > 1)
- 		goto out_unlock;
- 
- 	spin_unlock(&line->count_lock);
-@@ -457,7 +452,7 @@ int line_open(struct line *lines, struct
- 
- 	INIT_DELAYED_WORK(&line->task, line_timer_cb);
- 
--	if(!line->sigio){
-+	if (!line->sigio) {
- 		chan_enable_winch(&line->chan_list, tty);
- 		line->sigio = 1;
- 	}
-@@ -478,20 +473,21 @@ void line_close(struct tty_struct *tty, 
- {
- 	struct line *line = tty->driver_data;
- 
--	/* If line_open fails (and tty->driver_data is never set),
-+	/*
-+	 * If line_open fails (and tty->driver_data is never set),
- 	 * tty_open will call line_close.  So just return in this case.
- 	 */
--	if(line == NULL)
-+	if (line == NULL)
- 		return;
- 
- 	/* We ignore the error anyway! */
- 	flush_buffer(line);
- 
- 	spin_lock(&line->count_lock);
--	if(!line->valid)
-+	if (!line->valid)
- 		goto out_unlock;
- 
--	if(tty->count > 1)
-+	if (tty->count > 1)
- 		goto out_unlock;
- 
- 	spin_unlock(&line->count_lock);
-@@ -499,10 +495,10 @@ void line_close(struct tty_struct *tty, 
- 	line->tty = NULL;
- 	tty->driver_data = NULL;
- 
--	if(line->sigio){
-+	if (line->sigio) {
- 		unregister_winch(tty);
- 		line->sigio = 0;
--        }
++static irqreturn_t ioat_dma_do_interrupt(int irq, void *data)
++{
++	struct ioatdma_device *instance = data;
++	struct ioat_dma_chan *ioat_chan;
++	unsigned long attnstatus;
++	int bit;
++	u8 intrctrl;
++
++	intrctrl = readb(instance->reg_base + IOAT_INTRCTRL_OFFSET);
++
++	if (!(intrctrl & IOAT_INTRCTRL_MASTER_INT_EN))
++		return IRQ_NONE;
++
++	if (!(intrctrl & IOAT_INTRCTRL_INT_STATUS)) {
++		writeb(intrctrl, instance->reg_base + IOAT_INTRCTRL_OFFSET);
++		return IRQ_NONE;
 +	}
- 
- 	return;
- 
-@@ -526,12 +522,12 @@ static int setup_one_line(struct line *l
- 
- 	spin_lock(&line->count_lock);
- 
--	if(line->tty != NULL){
-+	if (line->tty != NULL) {
- 		*error_out = "Device is already open";
- 		goto out;
- 	}
- 
--	if (line->init_pri <= init_prio){
-+	if (line->init_pri <= init_prio) {
- 		line->init_pri = init_prio;
- 		if (!strcmp(init, "none"))
- 			line->valid = 0;
-@@ -546,7 +542,8 @@ out:
- 	return err;
- }
- 
--/* Common setup code for both startup command line and mconsole initialization.
-+/*
-+ * Common setup code for both startup command line and mconsole initialization.
-  * @lines contains the array (of size @num) to modify;
-  * @init is the setup string;
-  * @error_out is an error string in the case of failure;
-@@ -558,14 +555,16 @@ int line_setup(struct line *lines, unsig
- 	int i, n, err;
- 	char *end;
- 
--	if(*init == '=') {
--		/* We said con=/ssl= instead of con#=, so we are configuring all
--		 * consoles at once.*/
-+	if (*init == '=') {
-+		/*
-+		 * We said con=/ssl= instead of con#=, so we are configuring all
-+		 * consoles at once.
-+		 */
- 		n = -1;
- 	}
- 	else {
- 		n = simple_strtoul(init, &end, 0);
--		if(*end != '='){
-+		if (*end != '=') {
- 			*error_out = "Couldn't parse device number";
- 			return -EINVAL;
- 		}
-@@ -577,16 +576,16 @@ int line_setup(struct line *lines, unsig
- 		*error_out = "Device number out of range";
- 		return -EINVAL;
- 	}
--	else if (n >= 0){
-+	else if (n >= 0) {
- 		err = setup_one_line(lines, n, init, INIT_ONE, error_out);
--		if(err)
-+		if (err)
- 			return err;
- 	}
- 	else {
--		for(i = 0; i < num; i++){
-+		for(i = 0; i < num; i++) {
- 			err = setup_one_line(lines, i, init, INIT_ALL,
- 					     error_out);
--			if(err)
-+			if (err)
- 				return err;
- 		}
- 	}
-@@ -600,18 +599,18 @@ int line_config(struct line *lines, unsi
- 	char *new;
- 	int n;
- 
--	if(*str == '='){
-+	if (*str == '=') {
- 		*error_out = "Can't configure all devices from mconsole";
- 		return -EINVAL;
- 	}
- 
- 	new = kstrdup(str, GFP_KERNEL);
--	if(new == NULL){
-+	if (new == NULL) {
- 		*error_out = "Failed to allocate memory";
- 		return -ENOMEM;
- 	}
- 	n = line_setup(lines, num, new, error_out);
--	if(n < 0)
-+	if (n < 0)
- 		return n;
- 
- 	line = &lines[n];
-@@ -626,12 +625,12 @@ int line_get_config(char *name, struct l
- 	int dev, n = 0;
- 
- 	dev = simple_strtoul(name, &end, 0);
--	if((*end != '\0') || (end == name)){
-+	if ((*end != '\0') || (end == name)) {
- 		*error_out = "line_get_config failed to parse device number";
- 		return 0;
- 	}
- 
--	if((dev < 0) || (dev >= num)){
-+	if ((dev < 0) || (dev >= num)) {
- 		*error_out = "device number out of range";
- 		return 0;
- 	}
-@@ -639,9 +638,9 @@ int line_get_config(char *name, struct l
- 	line = &lines[dev];
- 
- 	spin_lock(&line->count_lock);
--	if(!line->valid)
-+	if (!line->valid)
- 		CONFIG_CHUNK(str, size, n, "none", 1);
--	else if(line->tty == NULL)
-+	else if (line->tty == NULL)
- 		CONFIG_CHUNK(str, size, n, line->init_str, 1);
- 	else n = chan_config_string(&line->chan_list, str, size, error_out);
- 	spin_unlock(&line->count_lock);
-@@ -652,16 +651,16 @@ int line_get_config(char *name, struct l
- int line_id(char **str, int *start_out, int *end_out)
++
++	attnstatus = readl(instance->reg_base + IOAT_ATTNSTATUS_OFFSET);
++	for_each_bit(bit, &attnstatus, BITS_PER_LONG) {
++		ioat_chan = ioat_lookup_chan_by_index(instance, bit);
++		tasklet_schedule(&ioat_chan->cleanup_task);
++	}
++
++	writeb(intrctrl, instance->reg_base + IOAT_INTRCTRL_OFFSET);
++	return IRQ_HANDLED;
++}
++
++/**
++ * ioat_dma_do_interrupt_msix - handler used for vector-per-channel interrupt mode
++ * @irq: interrupt id
++ * @data: interrupt data
++ */
++static irqreturn_t ioat_dma_do_interrupt_msix(int irq, void *data)
++{
++	struct ioat_dma_chan *ioat_chan = data;
++
++	tasklet_schedule(&ioat_chan->cleanup_task);
++
++	return IRQ_HANDLED;
++}
++
++static void ioat_dma_cleanup_tasklet(unsigned long data);
++
++/**
++ * ioat_dma_enumerate_channels - find and initialize the device's channels
++ * @device: the device to be enumerated
++ */
+ static int ioat_dma_enumerate_channels(struct ioatdma_device *device)
  {
- 	char *end;
--        int n;
-+	int n;
+ 	u8 xfercap_scale;
+@@ -76,6 +135,11 @@ static int ioat_dma_enumerate_channels(s
+ 		ioat_chan->common.device = &device->common;
+ 		list_add_tail(&ioat_chan->common.device_node,
+ 			      &device->common.channels);
++		device->idx[i] = ioat_chan;
++		tasklet_init(&ioat_chan->cleanup_task,
++			     ioat_dma_cleanup_tasklet,
++			     (unsigned long) ioat_chan);
++		tasklet_disable(&ioat_chan->cleanup_task);
+ 	}
+ 	return device->common.chancnt;
+ }
+@@ -234,6 +298,7 @@ static int ioat_dma_alloc_chan_resources
+ 	writel(((u64) ioat_chan->completion_addr) >> 32,
+ 	       ioat_chan->reg_base + IOAT_CHANCMP_OFFSET_HIGH);
  
- 	n = simple_strtoul(*str, &end, 0);
--	if((*end != '\0') || (end == *str))
--                return -1;
-+	if ((*end != '\0') || (end == *str))
-+		return -1;
++	tasklet_enable(&ioat_chan->cleanup_task);
+ 	ioat_dma_start_null_desc(ioat_chan);
+ 	return i;
+ }
+@@ -245,9 +310,14 @@ static void ioat_dma_free_chan_resources
+ 	struct ioat_desc_sw *desc, *_desc;
+ 	int in_use_descs = 0;
  
--        *str = end;
--        *start_out = n;
--        *end_out = n;
--        return n;
-+	*str = end;
-+	*start_out = n;
-+	*end_out = n;
-+	return n;
++	tasklet_disable(&ioat_chan->cleanup_task);
+ 	ioat_dma_memcpy_cleanup(ioat_chan);
+ 
++	/* Delay 100ms after reset to allow internal DMA logic to quiesce
++	 * before removing DMA descriptor resources.
++	 */
+ 	writeb(IOAT_CHANCMD_RESET, ioat_chan->reg_base + IOAT_CHANCMD_OFFSET);
++	mdelay(100);
+ 
+ 	spin_lock_bh(&ioat_chan->desc_lock);
+ 	list_for_each_entry_safe(desc, _desc, &ioat_chan->used_desc, node) {
+@@ -276,6 +346,34 @@ static void ioat_dma_free_chan_resources
+ 			in_use_descs - 1);
+ 
+ 	ioat_chan->last_completion = ioat_chan->completion_addr = 0;
++	ioat_chan->pending = 0;
++}
++/**
++ * ioat_dma_get_next_descriptor - return the next available descriptor
++ * @ioat_chan: IOAT DMA channel handle
++ *
++ * Gets the next descriptor from the chain, and must be called with the
++ * channel's desc_lock held.  Allocates more descriptors if the channel
++ * has run out.
++ */
++static struct ioat_desc_sw *ioat_dma_get_next_descriptor(
++						struct ioat_dma_chan *ioat_chan)
++{
++	struct ioat_desc_sw *new = NULL;
++
++	if (!list_empty(&ioat_chan->free_desc)) {
++		new = to_ioat_desc(ioat_chan->free_desc.next);
++		list_del(&new->node);
++	} else {
++		/* try to get another desc */
++		new = ioat_dma_alloc_descriptor(ioat_chan, GFP_ATOMIC);
++		/* will this ever happen? */
++		/* TODO add upper limit on these */
++		BUG_ON(!new);
++	}
++
++	prefetch(new->hw);
++	return new;
  }
  
- int line_remove(struct line *lines, unsigned int num, int n, char **error_out)
-@@ -671,7 +670,7 @@ int line_remove(struct line *lines, unsi
+ static struct dma_async_tx_descriptor *ioat_dma_prep_memcpy(
+@@ -300,17 +398,7 @@ static struct dma_async_tx_descriptor *i
  
- 	sprintf(config, "%d=none", n);
- 	err = line_setup(lines, num, config, error_out);
--	if(err >= 0)
-+	if (err >= 0)
- 		err = 0;
+ 	spin_lock_bh(&ioat_chan->desc_lock);
+ 	while (len) {
+-		if (!list_empty(&ioat_chan->free_desc)) {
+-			new = to_ioat_desc(ioat_chan->free_desc.next);
+-			list_del(&new->node);
+-		} else {
+-			/* try to get another desc */
+-			new = ioat_dma_alloc_descriptor(ioat_chan, GFP_ATOMIC);
+-			/* will this ever happen? */
+-			/* TODO add upper limit on these */
+-			BUG_ON(!new);
+-		}
+-
++		new = ioat_dma_get_next_descriptor(ioat_chan);
+ 		copy = min((u32) len, ioat_chan->xfercap);
+ 
+ 		new->hw->size = copy;
+@@ -360,6 +448,14 @@ static void ioat_dma_memcpy_issue_pendin
+ 	}
+ }
+ 
++static void ioat_dma_cleanup_tasklet(unsigned long data)
++{
++	struct ioat_dma_chan *chan = (void *)data;
++	ioat_dma_memcpy_cleanup(chan);
++	writew(IOAT_CHANCTRL_INT_DISABLE,
++	       chan->reg_base + IOAT_CHANCTRL_OFFSET);
++}
++
+ static void ioat_dma_memcpy_cleanup(struct ioat_dma_chan *ioat_chan)
+ {
+ 	unsigned long phys_complete;
+@@ -397,6 +493,7 @@ static void ioat_dma_memcpy_cleanup(stru
+ 		return;
+ 	}
+ 
++	cookie = 0;
+ 	spin_lock_bh(&ioat_chan->desc_lock);
+ 	list_for_each_entry_safe(desc, _desc, &ioat_chan->used_desc, node) {
+ 
+@@ -509,48 +606,13 @@ static enum dma_status ioat_dma_is_compl
+ 
+ /* PCI API */
+ 
+-static irqreturn_t ioat_do_interrupt(int irq, void *data)
+-{
+-	struct ioatdma_device *instance = data;
+-	unsigned long attnstatus;
+-	u8 intrctrl;
+-
+-	intrctrl = readb(instance->reg_base + IOAT_INTRCTRL_OFFSET);
+-
+-	if (!(intrctrl & IOAT_INTRCTRL_MASTER_INT_EN))
+-		return IRQ_NONE;
+-
+-	if (!(intrctrl & IOAT_INTRCTRL_INT_STATUS)) {
+-		writeb(intrctrl, instance->reg_base + IOAT_INTRCTRL_OFFSET);
+-		return IRQ_NONE;
+-	}
+-
+-	attnstatus = readl(instance->reg_base + IOAT_ATTNSTATUS_OFFSET);
+-
+-	printk(KERN_ERR "ioatdma: interrupt! status %lx\n", attnstatus);
+-
+-	writeb(intrctrl, instance->reg_base + IOAT_INTRCTRL_OFFSET);
+-	return IRQ_HANDLED;
+-}
+-
+ static void ioat_dma_start_null_desc(struct ioat_dma_chan *ioat_chan)
+ {
+ 	struct ioat_desc_sw *desc;
+ 
+ 	spin_lock_bh(&ioat_chan->desc_lock);
+ 
+-	if (!list_empty(&ioat_chan->free_desc)) {
+-		desc = to_ioat_desc(ioat_chan->free_desc.next);
+-		list_del(&desc->node);
+-	} else {
+-		/* try to get another desc */
+-		spin_unlock_bh(&ioat_chan->desc_lock);
+-		desc = ioat_dma_alloc_descriptor(ioat_chan, GFP_KERNEL);
+-		spin_lock_bh(&ioat_chan->desc_lock);
+-		/* will this ever happen? */
+-		BUG_ON(!desc);
+-	}
+-
++	desc = ioat_dma_get_next_descriptor(ioat_chan);
+ 	desc->hw->ctl = IOAT_DMA_DESCRIPTOR_NUL;
+ 	desc->hw->next = 0;
+ 	desc->async_tx.ack = 1;
+@@ -571,7 +633,11 @@ static void ioat_dma_start_null_desc(str
+  */
+ #define IOAT_TEST_SIZE 2000
+ 
+-static int ioat_self_test(struct ioatdma_device *device)
++/**
++ * ioat_dma_self_test - Perform a IOAT transaction to verify the HW works.
++ * @device: device to be tested
++ */
++static int ioat_dma_self_test(struct ioatdma_device *device)
+ {
+ 	int i;
+ 	u8 *src;
+@@ -639,6 +705,161 @@ out:
  	return err;
  }
-@@ -697,14 +696,14 @@ struct tty_driver *register_lines(struct
- 	tty_set_operations(driver, ops);
  
- 	if (tty_register_driver(driver)) {
--		printk("%s: can't register %s driver\n",
--		       __FUNCTION__,line_driver->name);
-+		printk(KERN_ERR "register_lines : can't register %s driver\n",
-+		       line_driver->name);
- 		put_tty_driver(driver);
- 		return NULL;
- 	}
- 
--	for(i = 0; i < nlines; i++){
--		if(!lines[i].valid)
-+	for(i = 0; i < nlines; i++) {
-+		if (!lines[i].valid)
- 			tty_unregister_device(driver, i);
- 	}
- 
-@@ -721,20 +720,20 @@ void lines_init(struct line *lines, int 
- 	char *error;
- 	int i;
- 
--	for(i = 0; i < nlines; i++){
-+	for(i = 0; i < nlines; i++) {
- 		line = &lines[i];
- 		INIT_LIST_HEAD(&line->chan_list);
- 
--		if(line->init_str == NULL)
-+		if (line->init_str == NULL)
- 			continue;
- 
- 		line->init_str = kstrdup(line->init_str, GFP_KERNEL);
--		if(line->init_str == NULL)
--			printk("lines_init - kstrdup returned NULL\n");
-+		if (line->init_str == NULL)
-+			printk(KERN_ERR "lines_init - kstrdup returned NULL\n");
- 
--		if(parse_chan_pair(line->init_str, line, i, opts, &error)){
--			printk("parse_chan_pair failed for device %d : %s\n",
--			       i, error);
-+		if (parse_chan_pair(line->init_str, line, i, opts, &error)) {
-+			printk(KERN_ERR "parse_chan_pair failed for "
-+			       "device %d : %s\n", i, error);
- 			line->valid = 0;
- 		}
- 	}
-@@ -772,14 +771,14 @@ static irqreturn_t winch_interrupt(int i
- 	int err;
- 	char c;
- 
--	if(winch->fd != -1){
-+	if (winch->fd != -1) {
- 		err = generic_read(winch->fd, &c, NULL);
--		if(err < 0){
--			if(err != -EAGAIN){
--				printk("winch_interrupt : read failed, "
--				       "errno = %d\n", -err);
--				printk("fd %d is losing SIGWINCH support\n",
--				       winch->tty_fd);
-+		if (err < 0) {
-+			if (err != -EAGAIN) {
-+				printk(KERN_ERR "winch_interrupt : "
-+				       "read failed, errno = %d\n", -err);
-+				printk(KERN_ERR "fd %d is losing SIGWINCH "
-+				       "support\n", winch->tty_fd);
- 				free_winch(winch, 0);
- 				return IRQ_HANDLED;
- 			}
-@@ -794,7 +793,7 @@ static irqreturn_t winch_interrupt(int i
- 		kill_pgrp(tty->pgrp, SIGWINCH, 1);
- 	}
-  out:
--	if(winch->fd != -1)
-+	if (winch->fd != -1)
- 		reactivate_fd(winch->fd, WINCH_IRQ);
- 	return IRQ_HANDLED;
- }
-@@ -806,7 +805,7 @@ void register_winch_irq(int fd, int tty_
- 
- 	winch = kmalloc(sizeof(*winch), GFP_KERNEL);
- 	if (winch == NULL) {
--		printk("register_winch_irq - kmalloc failed\n");
-+		printk(KERN_ERR "register_winch_irq - kmalloc failed\n");
- 		goto cleanup;
- 	}
- 
-@@ -820,7 +819,8 @@ void register_winch_irq(int fd, int tty_
- 	if (um_request_irq(WINCH_IRQ, fd, IRQ_READ, winch_interrupt,
- 			   IRQF_DISABLED | IRQF_SHARED | IRQF_SAMPLE_RANDOM,
- 			   "winch", winch) < 0) {
--		printk("register_winch_irq - failed to register IRQ\n");
-+		printk(KERN_ERR "register_winch_irq - failed to register "
-+		       "IRQ\n");
- 		goto out_free;
- 	}
- 
-@@ -846,13 +846,13 @@ static void unregister_winch(struct tty_
- 
- 	spin_lock(&winch_handler_lock);
- 
--	list_for_each(ele, &winch_handlers){
-+	list_for_each(ele, &winch_handlers) {
- 		winch = list_entry(ele, struct winch, list);
--                if(winch->tty == tty){
-+		if (winch->tty == tty) {
- 			free_winch(winch, 1);
- 			break;
--                }
--        }
++static char ioat_interrupt_style[32] = "msix";
++module_param_string(ioat_interrupt_style, ioat_interrupt_style,
++		    sizeof(ioat_interrupt_style), 0644);
++MODULE_PARM_DESC(ioat_interrupt_style,
++		 "set ioat interrupt style: msix (default), "
++		 "msix-single-vector, msi, intx)");
++
++/**
++ * ioat_dma_setup_interrupts - setup interrupt handler
++ * @device: ioat device
++ */
++static int ioat_dma_setup_interrupts(struct ioatdma_device *device)
++{
++	struct ioat_dma_chan *ioat_chan;
++	int err, i, j, msixcnt;
++	u8 intrctrl = 0;
++
++	if (!strcmp(ioat_interrupt_style, "msix"))
++		goto msix;
++	if (!strcmp(ioat_interrupt_style, "msix-single-vector"))
++		goto msix_single_vector;
++	if (!strcmp(ioat_interrupt_style, "msi"))
++		goto msi;
++	if (!strcmp(ioat_interrupt_style, "intx"))
++		goto intx;
++
++msix:
++	/* The number of MSI-X vectors should equal the number of channels */
++	msixcnt = device->common.chancnt;
++	for (i = 0; i < msixcnt; i++)
++		device->msix_entries[i].entry = i;
++
++	err = pci_enable_msix(device->pdev, device->msix_entries, msixcnt);
++	if (err < 0)
++		goto msi;
++	if (err > 0)
++		goto msix_single_vector;
++
++	for (i = 0; i < msixcnt; i++) {
++		ioat_chan = ioat_lookup_chan_by_index(device, i);
++		err = request_irq(device->msix_entries[i].vector,
++				  ioat_dma_do_interrupt_msix,
++				  0, "ioat-msix", ioat_chan);
++		if (err) {
++			for (j = 0; j < i; j++) {
++				ioat_chan =
++					ioat_lookup_chan_by_index(device, j);
++				free_irq(device->msix_entries[j].vector,
++					 ioat_chan);
++			}
++			goto msix_single_vector;
 +		}
 +	}
- 	spin_unlock(&winch_handler_lock);
++	intrctrl |= IOAT_INTRCTRL_MSIX_VECTOR_CONTROL;
++	device->irq_mode = msix_multi_vector;
++	goto done;
++
++msix_single_vector:
++	device->msix_entries[0].entry = 0;
++	err = pci_enable_msix(device->pdev, device->msix_entries, 1);
++	if (err)
++		goto msi;
++
++	err = request_irq(device->msix_entries[0].vector, ioat_dma_do_interrupt,
++			  0, "ioat-msix", device);
++	if (err) {
++		pci_disable_msix(device->pdev);
++		goto msi;
++	}
++	device->irq_mode = msix_single_vector;
++	goto done;
++
++msi:
++	err = pci_enable_msi(device->pdev);
++	if (err)
++		goto intx;
++
++	err = request_irq(device->pdev->irq, ioat_dma_do_interrupt,
++			  0, "ioat-msi", device);
++	if (err) {
++		pci_disable_msi(device->pdev);
++		goto intx;
++	}
++	/*
++	 * CB 1.2 devices need a bit set in configuration space to enable MSI
++	 */
++	if (device->version == IOAT_VER_1_2) {
++		u32 dmactrl;
++		pci_read_config_dword(device->pdev,
++				      IOAT_PCI_DMACTRL_OFFSET, &dmactrl);
++		dmactrl |= IOAT_PCI_DMACTRL_MSI_EN;
++		pci_write_config_dword(device->pdev,
++				       IOAT_PCI_DMACTRL_OFFSET, dmactrl);
++	}
++	device->irq_mode = msi;
++	goto done;
++
++intx:
++	err = request_irq(device->pdev->irq, ioat_dma_do_interrupt,
++			  IRQF_SHARED, "ioat-intx", device);
++	if (err)
++		goto err_no_irq;
++	device->irq_mode = intx;
++
++done:
++	intrctrl |= IOAT_INTRCTRL_MASTER_INT_EN;
++	writeb(intrctrl, device->reg_base + IOAT_INTRCTRL_OFFSET);
++	return 0;
++
++err_no_irq:
++	/* Disable all interrupt generation */
++	writeb(0, device->reg_base + IOAT_INTRCTRL_OFFSET);
++	dev_err(&device->pdev->dev, "no usable interrupts\n");
++	device->irq_mode = none;
++	return -1;
++}
++
++/**
++ * ioat_dma_remove_interrupts - remove whatever interrupts were set
++ * @device: ioat device
++ */
++static void ioat_dma_remove_interrupts(struct ioatdma_device *device)
++{
++	struct ioat_dma_chan *ioat_chan;
++	int i;
++
++	/* Disable all interrupt generation */
++	writeb(0, device->reg_base + IOAT_INTRCTRL_OFFSET);
++
++	switch (device->irq_mode) {
++	case msix_multi_vector:
++		for (i = 0; i < device->common.chancnt; i++) {
++			ioat_chan = ioat_lookup_chan_by_index(device, i);
++			free_irq(device->msix_entries[i].vector, ioat_chan);
++		}
++		pci_disable_msix(device->pdev);
++		break;
++	case msix_single_vector:
++		free_irq(device->msix_entries[0].vector, device);
++		pci_disable_msix(device->pdev);
++		break;
++	case msi:
++		free_irq(device->pdev->irq, device);
++		pci_disable_msi(device->pdev);
++		break;
++	case intx:
++		free_irq(device->pdev->irq, device);
++		break;
++	case none:
++		dev_warn(&device->pdev->dev,
++			 "call to %s without interrupts setup\n", __func__);
++	}
++	device->irq_mode = none;
++}
++
+ struct ioatdma_device *ioat_dma_probe(struct pci_dev *pdev,
+ 				      void __iomem *iobase)
+ {
+@@ -684,21 +905,16 @@ struct ioatdma_device *ioat_dma_probe(st
+ 	device->common.device_issue_pending = ioat_dma_memcpy_issue_pending;
+ 	device->common.device_dependency_added = ioat_dma_dependency_added;
+ 	device->common.dev = &pdev->dev;
+-	printk(KERN_INFO "ioatdma: Intel(R) I/OAT DMA Engine found,"
+-	       " %d channels, device version 0x%02x\n",
+-	       device->common.chancnt, device->version);
+-
+-	pci_set_drvdata(pdev, device);
+-	err = request_irq(pdev->irq, &ioat_do_interrupt, IRQF_SHARED, "ioat",
+-		device);
+-	if (err)
+-		goto err_irq;
++	dev_err(&device->pdev->dev,
++		"ioatdma: Intel(R) I/OAT DMA Engine found,"
++		" %d channels, device version 0x%02x\n",
++		device->common.chancnt, device->version);
+ 
+-	writeb(IOAT_INTRCTRL_MASTER_INT_EN,
+-	       device->reg_base + IOAT_INTRCTRL_OFFSET);
+-	pci_set_master(pdev);
++	err = ioat_dma_setup_interrupts(device);
++	if (err)
++		goto err_setup_interrupts;
+ 
+-	err = ioat_self_test(device);
++	err = ioat_dma_self_test(device);
+ 	if (err)
+ 		goto err_self_test;
+ 
+@@ -707,8 +923,8 @@ struct ioatdma_device *ioat_dma_probe(st
+ 	return device;
+ 
+ err_self_test:
+-	free_irq(device->pdev->irq, device);
+-err_irq:
++	ioat_dma_remove_interrupts(device);
++err_setup_interrupts:
+ 	pci_pool_destroy(device->completion_pool);
+ err_completion_pool:
+ 	pci_pool_destroy(device->dma_pool);
+@@ -716,8 +932,8 @@ err_dma_pool:
+ 	kfree(device);
+ err_kzalloc:
+ 	iounmap(iobase);
+-	printk(KERN_ERR
+-	       "ioatdma: Intel(R) I/OAT DMA Engine initialization failed\n");
++	dev_err(&device->pdev->dev,
++		"ioatdma: Intel(R) I/OAT DMA Engine initialization failed\n");
+ 	return NULL;
  }
  
-@@ -863,7 +863,7 @@ static void winch_cleanup(void)
+@@ -728,7 +944,7 @@ void ioat_dma_remove(struct ioatdma_devi
  
- 	spin_lock(&winch_handler_lock);
+ 	dma_async_device_unregister(&device->common);
  
--	list_for_each_safe(ele, next, &winch_handlers){
-+	list_for_each_safe(ele, next, &winch_handlers) {
- 		winch = list_entry(ele, struct winch, list);
- 		free_winch(winch, 1);
- 	}
-@@ -878,13 +878,13 @@ char *add_xterm_umid(char *base)
- 	int len;
+-	free_irq(device->pdev->irq, device);
++	ioat_dma_remove_interrupts(device);
  
- 	umid = get_umid();
--	if(*umid == '\0')
-+	if (*umid == '\0')
- 		return base;
+ 	pci_pool_destroy(device->dma_pool);
+ 	pci_pool_destroy(device->completion_pool);
+diff -puN drivers/dma/ioatdma.h~i-oat-add-support-for-msi-and-msi-x drivers/dma/ioatdma.h
+--- a/drivers/dma/ioatdma.h~i-oat-add-support-for-msi-and-msi-x
++++ a/drivers/dma/ioatdma.h
+@@ -28,6 +28,14 @@
+ #include <linux/cache.h>
+ #include <linux/pci_ids.h>
  
- 	len = strlen(base) + strlen(" ()") + strlen(umid) + 1;
- 	title = kmalloc(len, GFP_KERNEL);
--	if(title == NULL){
--		printk("Failed to allocate buffer for xterm title\n");
-+	if (title == NULL) {
-+		printk(KERN_ERR "Failed to allocate buffer for xterm title\n");
- 		return base;
- 	}
++enum ioat_interrupt {
++	none = 0,
++	msix_multi_vector = 1,
++	msix_single_vector = 2,
++	msi = 3,
++	intx = 4,
++};
++
+ #define IOAT_LOW_COMPLETION_MASK	0xffffffc0
  
+ /**
+@@ -46,6 +54,9 @@ struct ioatdma_device {
+ 	struct pci_pool *completion_pool;
+ 	struct dma_device common;
+ 	u8 version;
++	enum ioat_interrupt irq_mode;
++	struct msix_entry msix_entries[4];
++	struct ioat_dma_chan *idx[4];
+ };
+ 
+ /**
+@@ -94,6 +105,7 @@ struct ioat_dma_chan {
+ 			u32 high;
+ 		};
+ 	} *completion_virt;
++	struct tasklet_struct cleanup_task;
+ };
+ 
+ /* wrapper around hardware descriptor format + additional software fields */
+diff -puN drivers/dma/ioatdma_registers.h~i-oat-add-support-for-msi-and-msi-x drivers/dma/ioatdma_registers.h
+--- a/drivers/dma/ioatdma_registers.h~i-oat-add-support-for-msi-and-msi-x
++++ a/drivers/dma/ioatdma_registers.h
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright(c) 2004 - 2006 Intel Corporation. All rights reserved.
++ * Copyright(c) 2004 - 2007 Intel Corporation. All rights reserved.
+  *
+  * This program is free software; you can redistribute it and/or modify it
+  * under the terms of the GNU General Public License as published by the Free
+@@ -21,6 +21,9 @@
+ #ifndef _IOAT_REGISTERS_H_
+ #define _IOAT_REGISTERS_H_
+ 
++#define IOAT_PCI_DMACTRL_OFFSET			0x48
++#define IOAT_PCI_DMACTRL_DMA_EN			0x00000001
++#define IOAT_PCI_DMACTRL_MSI_EN			0x00000002
+ 
+ /* MMIO Device Registers */
+ #define IOAT_CHANCNT_OFFSET			0x00	/*  8-bit */
+@@ -39,6 +42,7 @@
+ #define IOAT_INTRCTRL_MASTER_INT_EN		0x01	/* Master Interrupt Enable */
+ #define IOAT_INTRCTRL_INT_STATUS		0x02	/* ATTNSTATUS -or- Channel Int */
+ #define IOAT_INTRCTRL_INT			0x04	/* INT_STATUS -and- MASTER_INT_EN */
++#define IOAT_INTRCTRL_MSIX_VECTOR_CONTROL	0x08    /* Enable all MSI-X vectors */
+ 
+ #define IOAT_ATTNSTATUS_OFFSET			0x04	/* Each bit is a channel */
+ 
+diff -puN include/linux/bitops.h~i-oat-add-support-for-msi-and-msi-x include/linux/bitops.h
+--- a/include/linux/bitops.h~i-oat-add-support-for-msi-and-msi-x
++++ a/include/linux/bitops.h
+@@ -8,6 +8,12 @@
+  */
+ #include <asm/bitops.h>
+ 
++#define for_each_bit(bit, addr, size) \
++	for ((bit) = find_first_bit((addr), (size)); \
++	     (bit) < (size); \
++	     (bit) = find_next_bit((addr), (size), (bit) + 1))
++
++
+ static __inline__ int get_bitmask_order(unsigned int count)
+ {
+ 	int order;
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from shannon.nelson@intel.com are
 
 origin.patch
-git-kvm.patch
-uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
-bitops-introduce-lock-ops.patch
+remove-unsafe-from-module-struct.patch
