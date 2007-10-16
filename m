@@ -1,48 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-convert-to-new-aops-fix2.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:17:03 -0700
-Message-ID: <200710160417.l9G4H34K008345@imap1.linux-foundation.org>
+Subject: - reiserfs-convert-to-new-aops-fix.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:17:00 -0700
+Message-ID: <200710160417.l9G4H1OH008331@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41184 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39519 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751135AbXJPERH (ORCPT
+	by vger.kernel.org with ESMTP id S1751287AbXJPERK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:17:07 -0400
+	Tue, 16 Oct 2007 00:17:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, mm-commits@vger.kernel.org
+To: npiggin@suse.de, hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs convert to new aops fix2
+     reiserfs convert to new aops fix
 has been removed from the -mm tree.  Its filename was
-     reiserfs-convert-to-new-aops-fix2.patch
+     reiserfs-convert-to-new-aops-fix.patch
 
 This patch was dropped because it was folded into reiserfs-convert-to-new-aops.patch
 
 ------------------------------------------------------
-Subject: reiserfs convert to new aops fix2
+Subject: reiserfs convert to new aops fix
 From: Nick Piggin <npiggin@suse.de>
 
+Lock ordering fix for the same problem for reiserfs.
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/inode.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/reiserfs/inode.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/reiserfs/inode.c~reiserfs-convert-to-new-aops-fix2 fs/reiserfs/inode.c
---- a/fs/reiserfs/inode.c~reiserfs-convert-to-new-aops-fix2
+diff -puN fs/reiserfs/inode.c~reiserfs-convert-to-new-aops-fix fs/reiserfs/inode.c
+--- a/fs/reiserfs/inode.c~reiserfs-convert-to-new-aops-fix
 +++ a/fs/reiserfs/inode.c
-@@ -2745,7 +2745,6 @@ static int reiserfs_write_end(struct fil
+@@ -2695,9 +2695,6 @@ static int reiserfs_write_end(struct fil
+ 	flush_dcache_page(page);
+ 
+ 	reiserfs_commit_page(inode, page, start, start + copied);
+-	unlock_page(page);
+-	mark_page_accessed(page);
+-	page_cache_release(page);
+ 
+ 	/* generic_commit_write does this for us, but does not update the
+ 	 ** transaction tracking stuff when the size changes.  So, we have
+@@ -2747,6 +2744,9 @@ static int reiserfs_write_end(struct fil
+ 	}
  
        out:
- 	unlock_page(page);
--	mark_page_accessed(page);
- 	page_cache_release(page);
++	unlock_page(page);
++	mark_page_accessed(page);
++	page_cache_release(page);
  	return ret == 0 ? copied : ret;
  
+       journal_error:
+@@ -2758,7 +2758,7 @@ static int reiserfs_write_end(struct fil
+ 		reiserfs_write_unlock(inode->i_sb);
+ 	}
+ 
+-	return ret;
++	goto out;
+ }
+ 
+ int reiserfs_commit_write(struct file *f, struct page *page,
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
@@ -83,6 +107,7 @@ bfs-convert-to-new-aops.patch
 qnx4-convert-to-new-aops.patch
 reiserfs-use-generic-write.patch
 reiserfs-convert-to-new-aops.patch
+reiserfs-convert-to-new-aops-fix.patch
 reiserfs-convert-to-new-aops-fix2.patch
 reiserfs-use-generic_cont_expand_simple.patch
 with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
