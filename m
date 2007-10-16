@@ -1,98 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: - git-scsi-misc-fixup.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 19:07:00 -0700
-Message-ID: <200710160207.l9G2704P003860@imap1.linux-foundation.org>
+Subject: - git-block-fixup.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 19:07:10 -0700
+Message-ID: <200710160207.l9G27Aka003874@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55038 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33946 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756190AbXJPCHD (ORCPT
+	by vger.kernel.org with ESMTP id S1756410AbXJPCIK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 22:07:03 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9G271D5014921
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2007 19:07:02 -0700
+	Mon, 15 Oct 2007 22:08:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-scsi-misc-fixup
+     git-block-fixup
 has been removed from the -mm tree.  Its filename was
-     git-scsi-misc-fixup.patch
+     git-block-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-scsi-misc-fixup
+Subject: git-block-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Fix rejects between git-block and rest-of-the-world
+
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_sysfs.c   |   46 +++++++++++++++++++---------------
- scsi/aic94xx/aic94xx_task.c |    0 
- 2 files changed, 26 insertions(+), 20 deletions(-)
+ drivers/scsi/hosts.c    |    1 +
+ drivers/scsi/ide-scsi.c |   13 +------------
+ drivers/scsi/scsi_lib.c |    9 +++++----
+ drivers/scsi/sd.c       |    1 -
+ md/dm-crypt.c           |    0 
+ 5 files changed, 7 insertions(+), 17 deletions(-)
 
-diff -puN drivers/scsi/scsi_sysfs.c~git-scsi-misc-fixup drivers/scsi/scsi_sysfs.c
---- a/drivers/scsi/scsi_sysfs.c~git-scsi-misc-fixup
-+++ a/drivers/scsi/scsi_sysfs.c
-@@ -624,26 +624,32 @@ sdev_show_media_change_notify(struct dev
- }
- static DEVICE_ATTR(media_change_notify, S_IRUGO, sdev_show_media_change_notify, NULL);
+diff -puN drivers/scsi/scsi_lib.c~git-block-fixup drivers/scsi/scsi_lib.c
+--- a/drivers/scsi/scsi_lib.c~git-block-fixup
++++ a/drivers/scsi/scsi_lib.c
+@@ -290,13 +290,14 @@ static int scsi_req_map_sg(struct reques
+ 	int nr_pages = (bufflen + sgl[0].offset + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	unsigned int data_len = bufflen, len, bytes, off;
+ 	struct page *page;
++	struct scatterlist *sg;
+ 	struct bio *bio = NULL;
+ 	int i, err, nr_vecs = 0;
  
--/* Default template for device attributes.  May NOT be modified */
--static struct device_attribute *scsi_sysfs_sdev_attrs[] = {
--	&dev_attr_device_blocked,
--	&dev_attr_queue_depth,
--	&dev_attr_queue_type,
--	&dev_attr_type,
--	&dev_attr_scsi_level,
--	&dev_attr_vendor,
--	&dev_attr_model,
--	&dev_attr_rev,
--	&dev_attr_rescan,
--	&dev_attr_delete,
--	&dev_attr_state,
--	&dev_attr_timeout,
--	&dev_attr_iocounterbits,
--	&dev_attr_iorequest_cnt,
--	&dev_attr_iodone_cnt,
--	&dev_attr_ioerr_cnt,
--	&dev_attr_modalias,
--	&dev_attr_media_change_notify,
-+static struct attribute *scsi_sdev_attrs[] = {
-+	&dev_attr_device_blocked.attr,
-+	&dev_attr_type.attr,
-+	&dev_attr_scsi_level.attr,
-+	&dev_attr_vendor.attr,
-+	&dev_attr_model.attr,
-+	&dev_attr_rev.attr,
-+	&dev_attr_rescan.attr,
-+	&dev_attr_delete.attr,
-+	&dev_attr_state.attr,
-+	&dev_attr_timeout.attr,
-+	&dev_attr_iocounterbits.attr,
-+	&dev_attr_iorequest_cnt.attr,
-+	&dev_attr_iodone_cnt.attr,
-+	&dev_attr_ioerr_cnt.attr,
-+	&dev_attr_modalias.attr,
-+	&dev_attr_media_change_notify.attr,
-+	NULL
-+};
-+
-+static struct attribute_group scsi_sdev_attr_group = {
-+	.attrs =	scsi_sdev_attrs,
-+};
-+
-+static struct attribute_group *scsi_sdev_attr_groups[] = {
-+	&scsi_sdev_attr_group,
- 	NULL
- };
+-	for (i = 0; i < nsegs; i++) {
+-		page = sgl[i].page;
+-		off = sgl[i].offset;
+-		len = sgl[i].length;
++	for_each_sg(sgl, sg, nsegs, i) {
++		page = sg->page;
++		off = sg->offset;
++		len = sg->length;
  
-diff -puN drivers/scsi/aic94xx/aic94xx_task.c~git-scsi-misc-fixup drivers/scsi/aic94xx/aic94xx_task.c
+ 		while (len > 0 && data_len > 0) {
+ 			/*
+diff -puN drivers/scsi/hosts.c~git-block-fixup drivers/scsi/hosts.c
+--- a/drivers/scsi/hosts.c~git-block-fixup
++++ a/drivers/scsi/hosts.c
+@@ -343,6 +343,7 @@ struct Scsi_Host *scsi_host_alloc(struct
+ 	shost->use_clustering = sht->use_clustering;
+ 	shost->ordered_tag = sht->ordered_tag;
+ 	shost->active_mode = sht->supported_mode;
++	shost->use_sg_chaining = sht->use_sg_chaining;
+ 
+ 	if (sht->max_host_blocked)
+ 		shost->max_host_blocked = sht->max_host_blocked;
+diff -puN drivers/infiniband/ulp/iser/iser_memory.c~git-block-fixup drivers/infiniband/ulp/iser/iser_memory.c
+diff -puN drivers/scsi/sd.c~git-block-fixup drivers/scsi/sd.c
+--- a/drivers/scsi/sd.c~git-block-fixup
++++ a/drivers/scsi/sd.c
+@@ -1682,7 +1682,6 @@ static int sd_probe(struct device *dev)
+ 	sd_revalidate_disk(gd);
+ 
+ 	blk_queue_prep_rq(sdp->request_queue, sd_prep_fn);
+-	blk_queue_issue_flush_fn(sdp->request_queue, sd_issue_flush);
+ 
+ 	gd->driverfs_dev = &sdp->sdev_gendev;
+ 	gd->flags = GENHD_FL_DRIVERFS;
+diff -puN drivers/scsi/ide-scsi.c~git-block-fixup drivers/scsi/ide-scsi.c
+--- a/drivers/scsi/ide-scsi.c~git-block-fixup
++++ a/drivers/scsi/ide-scsi.c
+@@ -174,12 +174,6 @@ static void idescsi_input_buffers (ide_d
+ 	char *buf;
+ 
+ 	while (bcount) {
+-		if (pc->sg - scsi_sglist(pc->scsi_cmd) >
+-		                                 scsi_sg_count(pc->scsi_cmd)) {
+-			printk (KERN_ERR "ide-scsi: scatter gather table too small, discarding data\n");
+-			idescsi_discard_data (drive, bcount);
+-			return;
+-		}
+ 		count = min(pc->sg->length - pc->b_count, bcount);
+ 		if (PageHighMem(pc->sg->page)) {
+ 			unsigned long flags;
+@@ -217,12 +211,6 @@ static void idescsi_output_buffers (ide_
+ 	char *buf;
+ 
+ 	while (bcount) {
+-		if (pc->sg - scsi_sglist(pc->scsi_cmd) >
+-		                                 scsi_sg_count(pc->scsi_cmd)) {
+-			printk (KERN_ERR "ide-scsi: scatter gather table too small, padding with zeros\n");
+-			idescsi_output_zeros (drive, bcount);
+-			return;
+-		}
+ 		count = min(pc->sg->length - pc->b_count, bcount);
+ 		if (PageHighMem(pc->sg->page)) {
+ 			unsigned long flags;
+@@ -819,6 +807,7 @@ static int idescsi_queue (struct scsi_cm
+ 	memcpy (pc->c, cmd->cmnd, cmd->cmd_len);
+ 	pc->buffer = NULL;
+ 	pc->sg = scsi_sglist(cmd);
++	pc->last_sg = sg_last(pc->sg, cmd->use_sg);
+ 	pc->b_count = 0;
+ 	pc->request_transfer = pc->buffer_size = scsi_bufflen(cmd);
+ 	pc->scsi_cmd = cmd;
+diff -puN include/linux/blkdev.h~git-block-fixup include/linux/blkdev.h
+diff -puN drivers/scsi/advansys.c~git-block-fixup drivers/scsi/advansys.c
+diff -puN drivers/md/raid5.c~git-block-fixup drivers/md/raid5.c
+diff -puN drivers/md/dm.c~git-block-fixup drivers/md/dm.c
+diff -puN drivers/md/dm-crypt.c~git-block-fixup drivers/md/dm-crypt.c
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,7 +154,6 @@ ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a
 git-nfs-vs-git-unionfs.patch
 git-nfsd-fixup.patch
 git-sched.patch
-git-scsi-misc-fixup.patch
 qla2xxx-printk-fixes.patch
 git-block.patch
 git-block-fixup.patch
