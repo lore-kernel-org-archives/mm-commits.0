@@ -1,110 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - mm-vmstatc-cleanups.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:36:12 -0700
-Message-ID: <200710162036.l9GKaClC015128@imap1.linux-foundation.org>
+Subject: - revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:31:56 -0700
+Message-ID: <200710162031.l9GKVu8g014542@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47312 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41537 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933653AbXJPVe1 (ORCPT
+	by vger.kernel.org with ESMTP id S933431AbXJPVe1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 16 Oct 2007 17:34:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, clameter@sgi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm/vmstat.c: cleanups
+     Revert 81b0c8713385ce1b1b9058e916edcf9561ad76d6
 has been removed from the -mm tree.  Its filename was
-     mm-vmstatc-cleanups.patch
+     revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mm/vmstat.c: cleanups
-From: Adrian Bunk <bunk@stusta.de>
+Subject: Revert 81b0c8713385ce1b1b9058e916edcf9561ad76d6
+From: Andrew Morton <akpm@osdl.org>
 
-This patch contains the following cleanups:
-- make the needlessly global setup_vmstat() static
-- remove the unused refresh_vm_stats()
+This was a bugfix against 6527c2bdf1f833cc18e8f42bd97973d583e4aa83, which we
+also revert.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Andrew Morton <akpm@osdl.org>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   19 +------------------
- 1 file changed, 1 insertion(+), 18 deletions(-)
+ mm/filemap.c |    9 +--------
+ mm/filemap.h |    4 ++--
+ 2 files changed, 3 insertions(+), 10 deletions(-)
 
-diff -puN mm/vmstat.c~mm-vmstatc-cleanups mm/vmstat.c
---- a/mm/vmstat.c~mm-vmstatc-cleanups
-+++ a/mm/vmstat.c
-@@ -353,23 +353,6 @@ void refresh_cpu_vm_stats(int cpu)
- 	}
+diff -puN mm/filemap.c~revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6 mm/filemap.c
+--- a/mm/filemap.c~revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6
++++ a/mm/filemap.c
+@@ -1895,12 +1895,6 @@ generic_file_buffered_write(struct kiocb
+ 			break;
+ 		}
+ 
+-		if (unlikely(bytes == 0)) {
+-			status = 0;
+-			copied = 0;
+-			goto zero_length_segment;
+-		}
+-
+ 		status = a_ops->prepare_write(file, page, offset, offset+bytes);
+ 		if (unlikely(status)) {
+ 			loff_t isize = i_size_read(inode);
+@@ -1930,8 +1924,7 @@ generic_file_buffered_write(struct kiocb
+ 			page_cache_release(page);
+ 			continue;
+ 		}
+-zero_length_segment:
+-		if (likely(copied >= 0)) {
++		if (likely(copied > 0)) {
+ 			if (!status)
+ 				status = copied;
+ 
+diff -puN mm/filemap.h~revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6 mm/filemap.h
+--- a/mm/filemap.h~revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6
++++ a/mm/filemap.h
+@@ -87,7 +87,7 @@ filemap_set_next_iovec(const struct iove
+ 	const struct iovec *iov = *iovp;
+ 	size_t base = *basep;
+ 
+-	do {
++	while (bytes) {
+ 		int copy = min(bytes, iov->iov_len - base);
+ 
+ 		bytes -= copy;
+@@ -96,7 +96,7 @@ filemap_set_next_iovec(const struct iove
+ 			iov++;
+ 			base = 0;
+ 		}
+-	} while (bytes);
++	}
+ 	*iovp = iov;
+ 	*basep = base;
  }
- 
--static void __refresh_cpu_vm_stats(void *dummy)
--{
--	refresh_cpu_vm_stats(smp_processor_id());
--}
--
--/*
-- * Consolidate all counters.
-- *
-- * Note that the result is less inaccurate but still inaccurate
-- * if concurrent processes are allowed to run.
-- */
--void refresh_vm_stats(void)
--{
--	on_each_cpu(__refresh_cpu_vm_stats, NULL, 0, 1);
--}
--EXPORT_SYMBOL(refresh_vm_stats);
--
- #endif
- 
- #ifdef CONFIG_NUMA
-@@ -865,7 +848,7 @@ static int __cpuinit vmstat_cpuup_callba
- static struct notifier_block __cpuinitdata vmstat_notifier =
- 	{ &vmstat_cpuup_callback, NULL, 0 };
- 
--int __init setup_vmstat(void)
-+static int __init setup_vmstat(void)
- {
- 	int cpu;
- 
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from akpm@osdl.org are
 
 origin.patch
-git-acpi.patch
-git-alsa.patch
-git-kvm.patch
-remove-fs-jffs2-ioctlc.patch
-parisc-extern-inline-static-inline.patch
-nsp32_restart_autoscsi-remove-error-check.patch
-git-unionfs.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
 git-ipwireless_cs.patch
-maps2-add-proc-kpagemap-interface.patch
-unexport-pm_power_off_prepare.patch
-fs-reiserfs-cleanups.patch
-remove-unsafe-from-module-struct.patch
-kernel-rtmutex-debugc-cleanups.patch
-fs-afs-possible-cleanups.patch
-lib-ioremapc-should-include-linux-ioh.patch
-ipc-shmc-make-2-functions-static.patch
-unicode-diacritics-support-s390-fix.patch
-script-to-check-for-undefined-kconfig-symbols.patch
-drivers-block-ccissc-fix-check-after-use.patch
-dontdiff-update-based-on-gitignore-updates.patch
-introduce-i_sync-fix.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+sync_sb_inodes-propagate-errors.patch
 ext2-reservations.patch
-intel-iommu-intel-iommu-driver.patch
-revoke-core-code.patch
-pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
-the-next-round-of-scheduled-oss-code-removal.patch
-reiser4-export-remove_from_page_cache.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
