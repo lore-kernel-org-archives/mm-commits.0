@@ -1,110 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: - cirrusfb-checkpatchpl-cleanup-ppc-fix.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 22:01:22 -0700
-Message-ID: <200710160501.l9G51Md5010045@imap1.linux-foundation.org>
+Subject: - drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 22:01:59 -0700
+Message-ID: <200710160501.l9G51xdW010071@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53229 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44391 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756526AbXJPFBe (ORCPT
+	by vger.kernel.org with ESMTP id S1755326AbXJPFCR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 01:01:34 -0400
+	Tue, 16 Oct 2007 01:02:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, adaplas@pol.net, geert@linux-m68k.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adaplas@pol.net, m.kozlowski@tuxland.pl, macro@linux-mips.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     checkpatch.pl cleanup PPC fix
+     drivers-video-pmag-ba-fbc-improve-diagnostics-fix
 has been removed from the -mm tree.  Its filename was
-     cirrusfb-checkpatchpl-cleanup-ppc-fix.patch
+     drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
 
-This patch was dropped because it was folded into cirrusfb-checkpatchpl-cleanup.patch
+This patch was dropped because it was folded into drivers-video-pmag-ba-fbc-improve-diagnostics.patch
 
 ------------------------------------------------------
-Subject: checkpatch.pl cleanup PPC fix
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: drivers-video-pmag-ba-fbc-improve-diagnostics-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch fixes the error spotted by Geert Uytterhoeven in the "cirrusfb:
-checkpatch.pl cleanup" patch.
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
+Cc: Maciej W. Rozycki <macro@linux-mips.org>
+Cc: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |    2 +-
+ drivers/video/pmag-ba-fb.c |    2 +-
  1 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-checkpatchpl-cleanup-ppc-fix drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-checkpatchpl-cleanup-ppc-fix
-+++ a/drivers/video/cirrusfb.c
-@@ -59,7 +59,7 @@
- #endif
- #ifdef CONFIG_PPC_PREP
- #include <asm/machdep.h>
--#define isPReP(machine_is(prep))
-+#define isPReP machine_is(prep)
- #else
- #define isPReP 0
- #endif
+diff -puN drivers/video/pmag-ba-fb.c~drivers-video-pmag-ba-fbc-improve-diagnostics-fix drivers/video/pmag-ba-fb.c
+--- a/drivers/video/pmag-ba-fb.c~drivers-video-pmag-ba-fbc-improve-diagnostics-fix
++++ a/drivers/video/pmag-ba-fb.c
+@@ -147,7 +147,7 @@ static int __init pmagbafb_probe(struct 
+ 	resource_size_t start, len;
+ 	struct fb_info *info;
+ 	struct pmagbafb_par *par;
+-	int err = 0;
++	int err;
+ 
+ 	info = framebuffer_alloc(sizeof(struct pmagbafb_par), dev);
+ 	if (!info) {
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-pm3fb-copyarea-and-partial-imageblit-suppor.patch
-skeletonfb-wrong-field-name-fix.patch
-pm3fb-header-file-reduction.patch
-pm3fb-imageblit-improved.patch
-pm3fb-3-small-fixes.patch
-pm3fb-improvements-and-cleanups.patch
-pm3fb-mtrr-support-and-noaccel-option.patch
-pm2fb-accelerated-imageblit.patch
-pm2fb-source-code-improvements.patch
-pm2fb-permedia-2v-initialization-fixes.patch
-pm2fb-accelerated-24-bit-fillrect.patch
-tridentfb-coding-style-improvement.patch
-tdfxfb-coding-style-improvement.patch
-tdfxfb-3-fixes.patch
-tdfxfb-palette-fixes.patch
-tdfxfb-code-improvements.patch
-tdfxfb-hardware-cursor.patch
+slow-down-printk-during-boot.patch
+optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
+readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
+mm-use-pagevec-to-rotate-reclaimable-page.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+nfs-convert-to-new-aops.patch
+fs-restore-nobh.patch
+memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code.patch
+categorize-gfp-flags.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
+hugetlbfs-read-support.patch
+mm-mempolicyc-cleanups.patch
+uml-fix-stub-address-calculations.patch
+uml-arch-um-drivers-formatting.patch
+ecryptfs-printk-warning-fixes.patch
+rtc-cmos-probe-cleanup.patch
 tdfxfb-mtrr-support.patch
-pm2fb-checkpatch-fixes.patch
-pm3fb-checkpatch-fixes.patch
-pm2fb-permedia-2v-hardware-cursor-support.patch
-pm3fb-hardware-cursor-support.patch
-s3c2410fb-code-cleanup.patch
-s3c2410fb-remove-fb_info-pointer-from-s3c2410fb_info.patch
-s3c2410fb-multi-display-support.patch
-s3c2410fb-add-margin-fields-to-s3c2410fb_display.patch
-s3c2410fb-use-new-margin-fields.patch
-s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display.patch
-s3c2410fb-add-vertical-margins-fields-to-s3c2410fb_display.patch
-s3c2410fb-use-vertical-margins-values.patch
-s3c2410fb-add-pulse-length-fields-to-s3c2410fb_display.patch
-s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields.patch
-s3c2410fb-fix-missing-registers-offset.patch
-s3c2410fb-byte-ordering-fixes.patch
-fbdev-change-asm-uaccessh-to-linux-uaccessh.patch
-s3c2410fb-source-code-improvements.patch
-s3c2410fb-adds-pixclock-to-s3c2410fb_display.patch
-s3c2410fb-removes-lcdcon1-register-value-from-s3c2410fb_display.patch
-s3c2410fb-make-use-of-default_display-settings.patch
-cirrusfb-checkpatchpl-cleanup.patch
-cirrusfb-checkpatchpl-cleanup-ppc-fix.patch
-cirrusfb-remove-typedefs.patch
-cirrusfb-remove-fields-from-cirrusfb_info.patch
-cirrusfb-code-improvements.patch
-cirrusfb-code-improvement-2nd-part.patch
-pm3fb-header-file-cleanup.patch
-pm2fb-hardware-cursor-support-for-the-permedia2.patch
-pm2fb-panning-and-hardware-cursor-fixes.patch
-tdfxfb-replace-busy-waiting-with-cpu_relax.patch
-pm2fb-replace-busy-waiting-with-cpu_relax.patch
-pm3fb-replace-busy-waiting-with-cpu_relax.patch
-tdfxfb-checkpatch-fixes.patch
-s3fb-do-not-allow-incorrect-pixclock-settings.patch
-cyber2000fb-checkpatch-fixes.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1.patch
+intel-fb-support-for-interlaced-video-modes.patch
+export-font_vga_8x16.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics.patch
+drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
+fbcon-logo-disable-logo-at-boot-fix.patch
+fbdev-copyarea-function-taught-to-fully-support-swapped-pixel-order-in-byte-checkpatch-fixes.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+pnp-use-dev_info-dev_err-etc-in-core-fix.patch
+pnp-add-debug-message-for-adding-new-device-fix-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+w1-build-fix.patch
