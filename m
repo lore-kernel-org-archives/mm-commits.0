@@ -1,110 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - f_dupfd_cloexec-implementation-fix-2.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 15:30:18 -0700
-Message-ID: <200710162230.l9GMUIBL021084@imap1.linux-foundation.org>
+Subject: - drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 15:32:00 -0700
+Message-ID: <200710162232.l9GMW092021114@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38792 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38934 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965872AbXJPWbY (ORCPT
+	by vger.kernel.org with ESMTP id S965820AbXJPWcj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 18:31:24 -0400
+	Tue, 16 Oct 2007 18:32:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, drepper@redhat.com, hch@lst.de, kyle@mcmartin.ca, linux-arch@vger.kernel.org, sfr@canb.auug.org.au, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     f_dupfd_cloexec-implementation-fix-2
+     drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     f_dupfd_cloexec-implementation-fix-2.patch
+     drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into f_dupfd_cloexec-implementation.patch
+This patch was dropped because it was folded into drivers-char-ip2-fix-used-uninitd-bug.patch
 
 ------------------------------------------------------
-Subject: f_dupfd_cloexec-implementation-fix-2
+Subject: drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-On Thu, 4 Oct 2007 13:53:31 +1000 Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-
-> On Wed, 03 Oct 2007 13:39:39 -0700 akpm@linux-foundation.org wrote:
-> >
-> > 
-> > diff -puN include/asm-generic/fcntl.h~f_dupfd_cloexec-implementation include/asm-generic/fcntl.h
-> > --- a/include/asm-generic/fcntl.h~f_dupfd_cloexec-implementation
-> > +++ a/include/asm-generic/fcntl.h
-> > @@ -73,6 +73,9 @@
-> >  #define F_SETSIG	10	/* for sockets. */
-> >  #define F_GETSIG	11	/* for sockets. */
-> >  #endif
-> > +#ifndef F_DUPFD_CLOEXEC
-> > +#define F_DUPFD_CLOEXEC	12
-> > +#endif
-> 
-> Why not put
-> 
-> #define F_DUPFD_CLOEXEC		(F_LINUX_SPECIFIC_BASE + 6)
-> 
-> in include/linux/fcntl.h?  That way it will be the same for all
-> architectures and won't clash with any of them.
-> 
-> F_LINUX_SPECIFIC_BASE is probably badly named.  It was meant to be a
-> value that was greater than any of the F_ constants for all architestures
-> so that we could define new F_ constants Linux wide.
-> 
-
-Cc: <linux-arch@vger.kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Jeff Garzik <jgarzik@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/fcntl.h |    3 ---
- include/linux/fcntl.h       |   15 ++++++++++-----
- 2 files changed, 10 insertions(+), 8 deletions(-)
+ drivers/char/ip2/ip2main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-generic/fcntl.h~f_dupfd_cloexec-implementation-fix-2 include/asm-generic/fcntl.h
---- a/include/asm-generic/fcntl.h~f_dupfd_cloexec-implementation-fix-2
-+++ a/include/asm-generic/fcntl.h
-@@ -73,9 +73,6 @@
- #define F_SETSIG	10	/* for sockets. */
- #define F_GETSIG	11	/* for sockets. */
- #endif
--#ifndef F_DUPFD_CLOEXEC
--#define F_DUPFD_CLOEXEC	12
--#endif
- 
- /* for F_[GET|SET]FL */
- #define FD_CLOEXEC	1	/* actually anything with low bit set goes */
-diff -puN include/linux/fcntl.h~f_dupfd_cloexec-implementation-fix-2 include/linux/fcntl.h
---- a/include/linux/fcntl.h~f_dupfd_cloexec-implementation-fix-2
-+++ a/include/linux/fcntl.h
-@@ -3,12 +3,17 @@
- 
- #include <asm/fcntl.h>
- 
--/* Cancel a blocking posix lock; internal use only until we expose an
-- * asynchronous lock api to userspace: */
--#define F_CANCELLK	(F_LINUX_SPECIFIC_BASE+5)
-+#define F_SETLEASE	(F_LINUX_SPECIFIC_BASE + 0)
-+#define F_GETLEASE	(F_LINUX_SPECIFIC_BASE + 1)
- 
--#define F_SETLEASE	(F_LINUX_SPECIFIC_BASE+0)
--#define F_GETLEASE	(F_LINUX_SPECIFIC_BASE+1)
-+/*
-+ * Cancel a blocking posix lock; internal use only until we expose an
-+ * asynchronous lock api to userspace:
-+ */
-+#define F_CANCELLK	(F_LINUX_SPECIFIC_BASE + 5)
-+
-+/* Create a file descriptor with FD_CLOEXEC set. */
-+#define F_DUPFD_CLOEXEC	(F_LINUX_SPECIFIC_BASE + 6)
- 
- /*
-  * Request nofications on a directory.
+diff -puN drivers/char/ip2/ip2main.c~drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes drivers/char/ip2/ip2main.c
+--- a/drivers/char/ip2/ip2main.c~drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes
++++ a/drivers/char/ip2/ip2main.c
+@@ -619,7 +619,7 @@ ip2_loadmain(int *iop, int *irqp, unsign
+ 					ip2config.irq[i] = pci_dev_i->irq;
+ 				} else {	// ann error
+ 					ip2config.addr[i] = 0;
+-					printk( KERN_ERR "IP2: PCI board %d not found\n", i );
++					printk(KERN_ERR "IP2: PCI board %d not found\n", i);
+ 				} 
+ 			}
+ #else
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -133,9 +73,8 @@ i2o-fix-defined-but-not-used-build-warnings.patch
 reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch
 tty-expose-new-methods-needed-for-drivers-to-get-termios-right.patch
 userc-ifdef-mq_bytes.patch
-f_dupfd_cloexec-implementation.patch
-f_dupfd_cloexec-implementation-fix-2.patch
-ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
+ext3-lighten-up-resize-transaction-requirements.patch
+drivers-char-ip2-fix-used-uninitd-bug.patch
 drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
