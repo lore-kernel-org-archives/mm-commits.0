@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: - uml-clocksource-support-fix.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:48:17 -0700
-Message-ID: <200710160448.l9G4mIaF009489@imap1.linux-foundation.org>
+Subject: - uml-tickless-support-fix.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:48:46 -0700
+Message-ID: <200710160448.l9G4mkSh009498@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53817 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36863 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764957AbXJPEse (ORCPT
+	by vger.kernel.org with ESMTP id S1754888AbXJPEs5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:48:34 -0400
+	Tue, 16 Oct 2007 00:48:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, jdike@addtoit.com, jdike@linux.intel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml-clocksource-support-fix
+     uml-tickless-support-fix
 has been removed from the -mm tree.  Its filename was
-     uml-clocksource-support-fix.patch
+     uml-tickless-support-fix.patch
 
-This patch was dropped because it was folded into uml-clocksource-support.patch
+This patch was dropped because it was folded into uml-tickless-support.patch
 
 ------------------------------------------------------
-Subject: uml-clocksource-support-fix
+Subject: uml-tickless-support-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Jeff Dike <jdike@addtoit.com>
@@ -31,35 +31,40 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/time.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ arch/um/os-Linux/time.c |   14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-diff -puN arch/um/kernel/time.c~uml-clocksource-support-fix arch/um/kernel/time.c
---- a/arch/um/kernel/time.c~uml-clocksource-support-fix
-+++ a/arch/um/kernel/time.c
-@@ -121,17 +121,16 @@ static void __init setup_itimer(void)
- 		printk(KERN_ERR "register_timer : request_irq failed - "
- 		       "errno = %d\n", -err);
- 
--	err = clocksource_register(&itimer_clocksource);
--	if (err) {
--		printk(KERN_ERR "clocksource_register returned %d\n", err);
--		return;
--	}
--
- 	itimer_clockevent.mult = div_sc(HZ, NSEC_PER_SEC, 32);
- 	itimer_clockevent.max_delta_ns =
- 		clockevent_delta2ns(60 * HZ, &itimer_clockevent);
- 	itimer_clockevent.min_delta_ns =
- 		clockevent_delta2ns(1, &itimer_clockevent);
-+	err = clocksource_register(&itimer_clocksource);
-+	if (err) {
-+		printk(KERN_ERR "clocksource_register returned %d\n", err);
-+		return;
-+	}
- 	clockevents_register_device(&itimer_clockevent);
+diff -puN arch/um/os-Linux/time.c~uml-tickless-support-fix arch/um/os-Linux/time.c
+--- a/arch/um/os-Linux/time.c~uml-tickless-support-fix
++++ a/arch/um/os-Linux/time.c
+@@ -41,18 +41,6 @@ int timer_one_shot(int ticks)
+ 	return 0;
  }
  
+-static inline unsigned long long tv_to_nsec(struct timeval *tv)
+-{
+-	/* Cast tv->tv_sec to a long long in order to force this whole
+-	 * calculation to 64 bits.  Otherwise, we'll get a negative
+-	 * 32-bit number getting cast to a very large 64-bit number on
+-	 * return.
+-	 */
+-
+-	return ((unsigned long long) tv->tv_sec) * BILLION +
+-		tv->tv_usec * 1000;
+-}
+-
+ void disable_timer(void)
+ {
+ 	struct itimerval disable = ((struct itimerval) { { 0, 0 }, { 0, 0 }});
+@@ -101,7 +89,7 @@ unsigned long long os_nsecs(void)
+ 	struct timeval tv;
+ 
+ 	gettimeofday(&tv, NULL);
+-	return tv_to_nsec(&tv);
++	return timeval_to_ns(&tv);
+ }
+ 
+ void idle_sleep(int secs)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,8 +85,7 @@ bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pa
 slub-slab-validation-move-tracking-information-alloc-outside-of-melstuff.patch
 hugetlbfs-read-support.patch
 mm-mempolicyc-cleanups.patch
-uml-clocksource-support.patch
-uml-clocksource-support-fix.patch
+uml-tickless-support.patch
 uml-tickless-support-fix.patch
 uml-fix-stub-address-calculations-checkpatch-fixes.patch
 uml-arch-um-drivers-formatting-checkpatch-fixes.patch
