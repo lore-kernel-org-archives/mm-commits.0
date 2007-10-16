@@ -1,238 +1,367 @@
 From: akpm@linux-foundation.org
-Subject: - 8250_pci-autodetect-mainpine-cards.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:29:56 -0700
-Message-ID: <200710162029.l9GKTu0t014354@imap1.linux-foundation.org>
+Subject: - consolidate-ptrace_detach.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:29:28 -0700
+Message-ID: <200710162029.l9GKTSqV014318@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41546 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37806 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936019AbXJPUaN (ORCPT
+	by vger.kernel.org with ESMTP id S936025AbXJPUaQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 16:30:13 -0400
+	Tue, 16 Oct 2007 16:30:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: adobriyan@sw.ru, hch@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     8250_pci: Autodetect mainpine cards
+     Consolidate PTRACE_DETACH
 has been removed from the -mm tree.  Its filename was
-     8250_pci-autodetect-mainpine-cards.patch
+     consolidate-ptrace_detach.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: 8250_pci: Autodetect mainpine cards
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Consolidate PTRACE_DETACH
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-Add support for a whole range of boards. Some are partly autodetected but
-not fully correctly others (PCI Express notably) not at all. Stick all
-the right entries in.
+Identical handlers of PTRACE_DETACH go into ptrace_request().
+Not touching compat code.
+Not touching archs that don't call ptrace_request.
 
-Thanks to Mainpine for information and testing.
-
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pci.c |  120 ++++++++++++++++++++++++++++++++++++
- include/linux/pci_ids.h   |    2 
- 2 files changed, 122 insertions(+)
+ arch/alpha/kernel/ptrace.c         |    4 ----
+ arch/arm/kernel/ptrace.c           |    4 ----
+ arch/avr32/kernel/ptrace.c         |    5 -----
+ arch/blackfin/kernel/ptrace.c      |    6 ------
+ arch/cris/arch-v10/kernel/ptrace.c |    4 ----
+ arch/cris/arch-v32/kernel/ptrace.c |    4 ----
+ arch/m32r/kernel/ptrace.c          |    8 --------
+ arch/m68k/kernel/ptrace.c          |    4 ----
+ arch/mips/kernel/ptrace.c          |    4 ----
+ arch/parisc/kernel/ptrace.c        |    4 ----
+ arch/powerpc/kernel/ptrace.c       |    4 ----
+ arch/s390/kernel/ptrace.c          |    5 -----
+ arch/sh/kernel/ptrace.c            |    4 ----
+ arch/sh64/kernel/ptrace.c          |    4 ----
+ arch/um/kernel/ptrace.c            |    5 -----
+ arch/x86/kernel/ptrace_32.c        |    5 -----
+ arch/x86/kernel/ptrace_64.c        |    5 -----
+ arch/xtensa/kernel/ptrace.c        |    4 ----
+ kernel/ptrace.c                    |    3 +++
+ 19 files changed, 3 insertions(+), 83 deletions(-)
 
-diff -puN drivers/serial/8250_pci.c~8250_pci-autodetect-mainpine-cards drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~8250_pci-autodetect-mainpine-cards
-+++ a/drivers/serial/8250_pci.c
-@@ -1036,6 +1036,7 @@ enum pci_board_num_t {
- 	pbn_b0_2_115200,
- 	pbn_b0_4_115200,
- 	pbn_b0_5_115200,
-+	pbn_b0_8_115200,
+diff -puN arch/alpha/kernel/ptrace.c~consolidate-ptrace_detach arch/alpha/kernel/ptrace.c
+--- a/arch/alpha/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/alpha/kernel/ptrace.c
+@@ -368,10 +368,6 @@ do_sys_ptrace(long request, long pid, lo
+ 		ret = 0;
+ 		goto out;
  
- 	pbn_b0_1_921600,
- 	pbn_b0_2_921600,
-@@ -1172,6 +1173,12 @@ static struct pciserial_board pci_boards
- 		.base_baud	= 115200,
- 		.uart_offset	= 8,
- 	},
-+	[pbn_b0_8_115200] = {
-+		.flags		= FL_BASE0,
-+		.num_ports	= 8,
-+		.base_baud	= 115200,
-+		.uart_offset	= 8,
-+	},
+-	case PTRACE_DETACH:	 /* detach a process that was attached. */
+-		ret = ptrace_detach(child, data);
+-		goto out;
+-
+ 	default:
+ 		ret = ptrace_request(child, request, addr, data);
+ 		goto out;
+diff -puN arch/arm/kernel/ptrace.c~consolidate-ptrace_detach arch/arm/kernel/ptrace.c
+--- a/arch/arm/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/arm/kernel/ptrace.c
+@@ -731,10 +731,6 @@ long arch_ptrace(struct task_struct *chi
+ 			ret = 0;
+ 			break;
  
- 	[pbn_b0_1_921600] = {
- 		.flags		= FL_BASE0,
-@@ -2566,6 +2573,119 @@ static struct pci_device_id serial_pci_t
- 	{       PCI_VENDOR_ID_PLX, PCI_DEVICE_ID_PLX_9030,
- 		PCI_SUBVENDOR_ID_PERLE, PCI_SUBDEVICE_ID_PCI_RAS8,
- 		0, 0, pbn_b2_8_921600 },
-+
-+	/*
-+	 * Mainpine series cards: Fairly standard layout but fools
-+	 * parts of the autodetect in some cases and uses otherwise
-+	 * unmatched communications subclasses in the PCI Express case
-+	 */
-+
-+	{	/* RockForceDUO */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x0200,
-+		0, 0, pbn_b0_2_115200 },
-+	{	/* RockForceQUATRO */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x0300,
-+		0, 0, pbn_b0_4_115200 },
-+	{	/* RockForceDUO+ */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x0400,
-+		0, 0, pbn_b0_2_115200 },
-+	{	/* RockForceQUATRO+ */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x0500,
-+		0, 0, pbn_b0_4_115200 },
-+	{	/* RockForce+ */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x0600,
-+		0, 0, pbn_b0_2_115200 },
-+	{	/* RockForce+ */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x0700,
-+		0, 0, pbn_b0_4_115200 },
-+	{	/* RockForceOCTO+ */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x0800,
-+		0, 0, pbn_b0_8_115200 },
-+	{	/* RockForceDUO+ */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x0C00,
-+		0, 0, pbn_b0_2_115200 },
-+	{	/* RockForceQUARTRO+ */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x0D00,
-+		0, 0, pbn_b0_4_115200 },
-+	{	/* RockForceOCTO+ */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x1D00,
-+		0, 0, pbn_b0_8_115200 },
-+	{	/* RockForceD1 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x2000,
-+		0, 0, pbn_b0_1_115200 },
-+	{	/* RockForceF1 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x2100,
-+		0, 0, pbn_b0_1_115200 },
-+	{	/* RockForceD2 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x2200,
-+		0, 0, pbn_b0_2_115200 },
-+	{	/* RockForceF2 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x2300,
-+		0, 0, pbn_b0_2_115200 },
-+	{	/* RockForceD4 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x2400,
-+		0, 0, pbn_b0_4_115200 },
-+	{	/* RockForceF4 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x2500,
-+		0, 0, pbn_b0_4_115200 },
-+	{	/* RockForceD8 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x2600,
-+		0, 0, pbn_b0_8_115200 },
-+	{	/* RockForceF8 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x2700,
-+		0, 0, pbn_b0_8_115200 },
-+	{	/* IQ Express D1 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x3000,
-+		0, 0, pbn_b0_1_115200 },
-+	{	/* IQ Express F1 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x3100,
-+		0, 0, pbn_b0_1_115200 },
-+	{	/* IQ Express D2 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x3200,
-+		0, 0, pbn_b0_2_115200 },
-+	{	/* IQ Express F2 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x3300,
-+		0, 0, pbn_b0_2_115200 },
-+	{	/* IQ Express D4 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x3400,
-+		0, 0, pbn_b0_4_115200 },
-+	{	/* IQ Express F4 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x3500,
-+		0, 0, pbn_b0_4_115200 },
-+	{	/* IQ Express D8 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x3C00,
-+		0, 0, pbn_b0_8_115200 },
-+	{	/* IQ Express F8 */
-+		PCI_VENDOR_ID_MAINPINE, PCI_DEVICE_ID_MAINPINE_PBRIDGE,
-+		PCI_VENDOR_ID_MAINPINE, 0x3D00,
-+		0, 0, pbn_b0_8_115200 },
-+
-+
- 	/*
- 	 * PA Semi PA6T-1682M on-chip UART
- 	 */
-diff -puN include/linux/pci_ids.h~8250_pci-autodetect-mainpine-cards include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~8250_pci-autodetect-mainpine-cards
-+++ a/include/linux/pci_ids.h
-@@ -1995,6 +1995,8 @@
- #define PCI_VENDOR_ID_TOPIC		0x151f
- #define PCI_DEVICE_ID_TOPIC_TP560	0x0000
+-		case PTRACE_DETACH:
+-			ret = ptrace_detach(child, data);
+-			break;
+-
+ 		case PTRACE_GETREGS:
+ 			ret = ptrace_getregs(child, (void __user *)data);
+ 			break;
+diff -puN arch/avr32/kernel/ptrace.c~consolidate-ptrace_detach arch/avr32/kernel/ptrace.c
+--- a/arch/avr32/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/avr32/kernel/ptrace.c
+@@ -227,11 +227,6 @@ long arch_ptrace(struct task_struct *chi
+ 		ret = 0;
+ 		break;
  
-+#define PCI_VENDOR_ID_MAINPINE		0x1522
-+#define PCI_DEVICE_ID_MAINPINE_PBRIDGE	0x0100
- #define PCI_VENDOR_ID_ENE		0x1524
- #define PCI_DEVICE_ID_ENE_CB712_SD	0x0550
- #define PCI_DEVICE_ID_ENE_CB712_SD_2	0x0551
+-	/* Detach a process that was attached */
+-	case PTRACE_DETACH:
+-		ret = ptrace_detach(child, data);
+-		break;
+-
+ 	case PTRACE_GETREGS:
+ 		ret = ptrace_getregs(child, (void __user *)data);
+ 		break;
+diff -puN arch/blackfin/kernel/ptrace.c~consolidate-ptrace_detach arch/blackfin/kernel/ptrace.c
+--- a/arch/blackfin/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/blackfin/kernel/ptrace.c
+@@ -385,12 +385,6 @@ long arch_ptrace(struct task_struct *chi
+ 			break;
+ 		}
+ 
+-	case PTRACE_DETACH:
+-		{		/* detach a process that was attached. */
+-			ret = ptrace_detach(child, data);
+-			break;
+-		}
+-
+ 	case PTRACE_GETREGS:
+ 		{
+ 
+diff -puN arch/cris/arch-v10/kernel/ptrace.c~consolidate-ptrace_detach arch/cris/arch-v10/kernel/ptrace.c
+--- a/arch/cris/arch-v10/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/cris/arch-v10/kernel/ptrace.c
+@@ -177,10 +177,6 @@ long arch_ptrace(struct task_struct *chi
+ 			ret = 0;
+ 			break;
+ 
+-		case PTRACE_DETACH:
+-			ret = ptrace_detach(child, data);
+-			break;
+-
+ 		/* Get all GP registers from the child. */
+ 		case PTRACE_GETREGS: {
+ 		  	int i;
+diff -puN arch/cris/arch-v32/kernel/ptrace.c~consolidate-ptrace_detach arch/cris/arch-v32/kernel/ptrace.c
+--- a/arch/cris/arch-v32/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/cris/arch-v32/kernel/ptrace.c
+@@ -245,10 +245,6 @@ long arch_ptrace(struct task_struct *chi
+ 			break;
+ 
+ 		}
+-		case PTRACE_DETACH:
+-			ret = ptrace_detach(child, data);
+-			break;
+-
+ 		/* Get all GP registers from the child. */
+ 		case PTRACE_GETREGS: {
+ 		  	int i;
+diff -puN arch/m32r/kernel/ptrace.c~consolidate-ptrace_detach arch/m32r/kernel/ptrace.c
+--- a/arch/m32r/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/m32r/kernel/ptrace.c
+@@ -704,14 +704,6 @@ do_ptrace(long request, struct task_stru
+ 		break;
+ 	}
+ 
+-	/*
+-	 * detach a process that was attached.
+-	 */
+-	case PTRACE_DETACH:
+-		ret = 0;
+-		ret = ptrace_detach(child, data);
+-		break;
+-
+ 	case PTRACE_GETREGS:
+ 		ret = ptrace_getregs(child, (void __user *)data);
+ 		break;
+diff -puN arch/m68k/kernel/ptrace.c~consolidate-ptrace_detach arch/m68k/kernel/ptrace.c
+--- a/arch/m68k/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/m68k/kernel/ptrace.c
+@@ -226,10 +226,6 @@ long arch_ptrace(struct task_struct *chi
+ 		wake_up_process(child);
+ 		break;
+ 
+-	case PTRACE_DETACH:	/* detach a process that was attached. */
+-		ret = ptrace_detach(child, data);
+-		break;
+-
+ 	case PTRACE_GETREGS:	/* Get all gp regs from the child. */
+ 		for (i = 0; i < 19; i++) {
+ 			tmp = get_reg(child, i);
+diff -puN arch/mips/kernel/ptrace.c~consolidate-ptrace_detach arch/mips/kernel/ptrace.c
+--- a/arch/mips/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/mips/kernel/ptrace.c
+@@ -435,10 +435,6 @@ long arch_ptrace(struct task_struct *chi
+ 		wake_up_process(child);
+ 		break;
+ 
+-	case PTRACE_DETACH: /* detach a process that was attached. */
+-		ret = ptrace_detach(child, data);
+-		break;
+-
+ 	case PTRACE_GET_THREAD_AREA:
+ 		ret = put_user(task_thread_info(child)->tp_value,
+ 				(unsigned long __user *) data);
+diff -puN arch/parisc/kernel/ptrace.c~consolidate-ptrace_detach arch/parisc/kernel/ptrace.c
+--- a/arch/parisc/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/parisc/kernel/ptrace.c
+@@ -329,10 +329,6 @@ long arch_ptrace(struct task_struct *chi
+ 		/* give it a chance to run. */
+ 		goto out_wake;
+ 
+-	case PTRACE_DETACH:
+-		ret = ptrace_detach(child, data);
+-		goto out_tsk;
+-
+ 	case PTRACE_GETEVENTMSG:
+                 ret = put_user(child->ptrace_message, (unsigned int __user *) data);
+ 		goto out_tsk;
+diff -puN arch/powerpc/kernel/ptrace.c~consolidate-ptrace_detach arch/powerpc/kernel/ptrace.c
+--- a/arch/powerpc/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/powerpc/kernel/ptrace.c
+@@ -505,10 +505,6 @@ long arch_ptrace(struct task_struct *chi
+ 		ret = ptrace_set_debugreg(child, addr, data);
+ 		break;
+ 
+-	case PTRACE_DETACH:
+-		ret = ptrace_detach(child, data);
+-		break;
+-
+ #ifdef CONFIG_PPC64
+ 	case PTRACE_GETREGS64:
+ #endif
+diff -puN arch/s390/kernel/ptrace.c~consolidate-ptrace_detach arch/s390/kernel/ptrace.c
+--- a/arch/s390/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/s390/kernel/ptrace.c
+@@ -683,11 +683,6 @@ do_ptrace(struct task_struct *child, lon
+ 		wake_up_process(child);
+ 		return 0;
+ 
+-	case PTRACE_DETACH:
+-		/* detach a process that was attached. */
+-		return ptrace_detach(child, data);
+-
+-
+ 	/* Do requests that differ for 31/64 bit */
+ 	default:
+ #ifdef CONFIG_COMPAT
+diff -puN arch/sh/kernel/ptrace.c~consolidate-ptrace_detach arch/sh/kernel/ptrace.c
+--- a/arch/sh/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/sh/kernel/ptrace.c
+@@ -211,10 +211,6 @@ long arch_ptrace(struct task_struct *chi
+ 		break;
+ 	}
+ 
+-	case PTRACE_DETACH: /* detach a process that was attached. */
+-		ret = ptrace_detach(child, data);
+-		break;
+-
+ #ifdef CONFIG_SH_DSP
+ 	case PTRACE_GETDSPREGS: {
+ 		unsigned long dp;
+diff -puN arch/sh64/kernel/ptrace.c~consolidate-ptrace_detach arch/sh64/kernel/ptrace.c
+--- a/arch/sh64/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/sh64/kernel/ptrace.c
+@@ -244,10 +244,6 @@ long arch_ptrace(struct task_struct *chi
+ 		break;
+ 	}
+ 
+-	case PTRACE_DETACH: /* detach a process that was attached. */
+-		ret = ptrace_detach(child, data);
+-		break;
+-
+ 	default:
+ 		ret = ptrace_request(child, request, addr, data);
+ 		break;
+diff -puN arch/um/kernel/ptrace.c~consolidate-ptrace_detach arch/um/kernel/ptrace.c
+--- a/arch/um/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/um/kernel/ptrace.c
+@@ -119,11 +119,6 @@ long arch_ptrace(struct task_struct *chi
+ 		break;
+ 	}
+ 
+-	case PTRACE_DETACH:
+-		/* detach a process that was attached. */
+-		ret = ptrace_detach(child, data);
+- 		break;
+-
+ #ifdef PTRACE_GETREGS
+ 	case PTRACE_GETREGS: { /* Get all gp regs from the child. */
+ 		if (!access_ok(VERIFY_WRITE, p, MAX_REG_OFFSET)) {
+diff -puN arch/x86/kernel/ptrace_32.c~consolidate-ptrace_detach arch/x86/kernel/ptrace_32.c
+--- a/arch/x86/kernel/ptrace_32.c~consolidate-ptrace_detach
++++ a/arch/x86/kernel/ptrace_32.c
+@@ -524,11 +524,6 @@ long arch_ptrace(struct task_struct *chi
+ 		ret = 0;
+ 		break;
+ 
+-	case PTRACE_DETACH:
+-		/* detach a process that was attached. */
+-		ret = ptrace_detach(child, data);
+-		break;
+-
+ 	case PTRACE_GETREGS: { /* Get all gp regs from the child. */
+ 	  	if (!access_ok(VERIFY_WRITE, datap, FRAME_SIZE*sizeof(long))) {
+ 			ret = -EIO;
+diff -puN arch/x86/kernel/ptrace_64.c~consolidate-ptrace_detach arch/x86/kernel/ptrace_64.c
+--- a/arch/x86/kernel/ptrace_64.c~consolidate-ptrace_detach
++++ a/arch/x86/kernel/ptrace_64.c
+@@ -500,11 +500,6 @@ long arch_ptrace(struct task_struct *chi
+ 		ret = 0;
+ 		break;
+ 
+-	case PTRACE_DETACH:
+-		/* detach a process that was attached. */
+-		ret = ptrace_detach(child, data);
+-		break;
+-
+ 	case PTRACE_GETREGS: { /* Get all gp regs from the child. */
+ 	  	if (!access_ok(VERIFY_WRITE, (unsigned __user *)data,
+ 			       sizeof(struct user_regs_struct))) {
+diff -puN arch/xtensa/kernel/ptrace.c~consolidate-ptrace_detach arch/xtensa/kernel/ptrace.c
+--- a/arch/xtensa/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/arch/xtensa/kernel/ptrace.c
+@@ -304,10 +304,6 @@ long arch_ptrace(struct task_struct *chi
+ 		ret = put_user(sizeof(elf_fpregset_t), (unsigned long *) data);
+ 		break;
+ 
+-	case PTRACE_DETACH: /* detach a process that was attached. */
+-		ret = ptrace_detach(child, data);
+-		break;
+-
+ 	default:
+ 		ret = ptrace_request(child, request, addr, data);
+ 		goto out;
+diff -puN kernel/ptrace.c~consolidate-ptrace_detach kernel/ptrace.c
+--- a/kernel/ptrace.c~consolidate-ptrace_detach
++++ a/kernel/ptrace.c
+@@ -386,6 +386,9 @@ int ptrace_request(struct task_struct *c
+ 	case PTRACE_SETSIGINFO:
+ 		ret = ptrace_setsiginfo(child, (siginfo_t __user *) data);
+ 		break;
++	case PTRACE_DETACH:	 /* detach a process that was attached. */
++		ret = ptrace_detach(child, data);
++		break;
+ 	default:
+ 		break;
+ 	}
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
 origin.patch
-git-libata-all.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-initio-fix-conflict-when-loading-driver.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
-jsm-remove-further-unneeded-crud.patch
-ttyh-remove-dead-define.patch
-codingstyle-relax-the-80-cole-rule.patch
-add-config_vt_unicode.patch
-keys-missing-word-in-documentation.patch
-ide-cd-is-unmaintained.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-fs-correct-sus-compliance-for-open-of-large-file-without.patch
+use-list_head-in-binfmt-handling-update.patch
+make-unregister_binfmt-return-void.patch
+slab_panic-more-proc-posix-timers-shmem.patch
+add-kernel-notifierc.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+tweak-proc-ipmi-removal.patch
+shrink-task_struct-if-config_futex=n.patch
+userc-deinline.patch
+userc-ifdef-mq_bytes.patch
+userc-ifdef-mq_bytes-fix.patch
+task_struct-move-fpu_counter-and-oomkilladj.patch
+sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
+sysctl-factor-out-sysctl_data.patch
+sysct-mqueue-remove-the-binary-sysctl-numbers.patch
+sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
+sysctl-fix-neighbour-table-sysctls.patch
+sysctl-ipv6-route-flushing-kill-binary-path.patch
+sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
+sysctl-x86_64-remove-unnecessary-binary-paths.patch
 sysctl-remove-broken-cdrom-binary-sysctls.patch
-mxser-remove-commented-crap.patch
-char-cyclades-remove-bottom-half-processing.patch
-usb_serial-stop-passing-null-to-functions-that-expect-data.patch
-ark3116-update-termios-handling.patch
-usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch
-ch341-fix-termios-handling.patch
-digi_acceleport-fix-termios-and-also-readability-a-bit.patch
-empeg-clean-up-and-handle-speeds.patch
-ir_usb-termios-handling.patch
-keyspan-termios-tidy.patch
-kobil_sct-termios-encoding-fixups.patch
-option-termios-handling.patch
-sierra-termios.patch
-usb-serial-handle-null-termios-methods-as-no-hardware-changing-support.patch
-whiteheat-clean-up-cant-happen-checks-and-encode-baud.patch
-cp2101-convert-to-new-termios.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-io_edgeport-cleanups-and-tty-speed-reporting.patch
-tty-kill-tty_flipbuf_size.patch
+sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
+sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
+sysctl-error-on-bad-sysctl-tables.patch
+sysctl-update-sysctl_check_table.patch
+uninline-forkc-exitc.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+single_open-seq_release-leak-diagnostics.patch
