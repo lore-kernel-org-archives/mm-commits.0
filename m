@@ -1,546 +1,457 @@
 From: akpm@linux-foundation.org
-Subject: - s3c2410fb-source-code-improvements.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:43:39 -0700
-Message-ID: <200710162043.l9GKhdq6016068@imap1.linux-foundation.org>
+Subject: - uml-rename-pt_regs-general-purpose-register-file.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:37:48 -0700
+Message-ID: <200710162037.l9GKbmNO015317@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60204 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41109 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965912AbXJPVSH (ORCPT
+	by vger.kernel.org with ESMTP id S965518AbXJPVSO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:18:07 -0400
+	Tue, 16 Oct 2007 17:18:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s3c2410fb: source code improvements
+     uml: rename pt_regs general-purpose register file
 has been removed from the -mm tree.  Its filename was
-     s3c2410fb-source-code-improvements.patch
+     uml-rename-pt_regs-general-purpose-register-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: s3c2410fb: source code improvements
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: uml: rename pt_regs general-purpose register file
+From: Jeff Dike <jdike@addtoit.com>
 
-This patch:
-- moves more display mode preparations to s3c2410fb_check_var()
-- reduces number of fields in s3c2410fb_info
-- removes redundant values setting in s3c2410fb_probe()
-- removes static mach_info pointer
-- releases fb_info structure in s3c2410fb_remove()
-- changes s3c2410fb_init to __init from __devinit
-- fixes few typos in comments and removes unused includes
+Before the removal of tt mode, access to a register on the skas-mode side of a
+pt_regs struct looked like pt_regs.regs.skas.regs.regs[FOO].  This was bad
+enough, but it became pt_regs.regs.regs.regs[FOO] with the removal of the
+union from the middle.  To get rid of the run of three "regs", the last field
+is renamed to "gp".
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s3c2410fb.c |  186 ++++++++++++++----------------------
- drivers/video/s3c2410fb.h |   14 --
- 2 files changed, 76 insertions(+), 124 deletions(-)
+ arch/um/include/sysdep-i386/ptrace.h   |   36 ++++++------
+ arch/um/include/sysdep-x86_64/ptrace.h |   60 ++++++++++-----------
+ arch/um/kernel/process.c               |    4 -
+ arch/um/kernel/skas/syscall.c          |    2 
+ arch/um/os-Linux/registers.c           |    6 +-
+ arch/um/os-Linux/skas/process.c        |    4 -
+ arch/um/sys-i386/signal.c              |   64 +++++++++++------------
+ arch/um/sys-x86_64/signal.c            |    6 +-
+ arch/um/sys-x86_64/tls.c               |    2 
+ include/asm-um/elf-x86_64.h            |   42 +++++++--------
+ 10 files changed, 113 insertions(+), 113 deletions(-)
 
-diff -puN drivers/video/s3c2410fb.c~s3c2410fb-source-code-improvements drivers/video/s3c2410fb.c
---- a/drivers/video/s3c2410fb.c~s3c2410fb-source-code-improvements
-+++ a/drivers/video/s3c2410fb.c
-@@ -20,7 +20,7 @@
-  *
-  * 2004-12-04: Arnaud Patard <arnaud.patard@rtp-net.org>
-  *      - Added the possibility to set on or off the
-- *      debugging mesaages
-+ *      debugging messages
-  *      - Replaced 0 and 1 by on or off when reading the
-  *      /sys files
-  *
-@@ -31,7 +31,7 @@
-  *	- add pixel clock divisor control
-  *
-  * 2004-11-11: Arnaud Patard <arnaud.patard@rtp-net.org>
-- *	- Removed the use of currcon as it no more exist
-+ *	- Removed the use of currcon as it no more exists
-  *	- Added LCD power sysfs interface
-  *
-  * 2004-11-03: Ben Dooks <ben-linux@fluff.org>
-@@ -82,13 +82,10 @@
- #include <linux/init.h>
- #include <linux/dma-mapping.h>
- #include <linux/interrupt.h>
--#include <linux/workqueue.h>
--#include <linux/wait.h>
- #include <linux/platform_device.h>
- #include <linux/clk.h>
+diff -puN arch/um/include/sysdep-i386/ptrace.h~uml-rename-pt_regs-general-purpose-register-file arch/um/include/sysdep-i386/ptrace.h
+--- a/arch/um/include/sysdep-i386/ptrace.h~uml-rename-pt_regs-general-purpose-register-file
++++ a/arch/um/include/sysdep-i386/ptrace.h
+@@ -53,7 +53,7 @@ extern int sysemu_supported;
+ #endif
  
- #include <asm/io.h>
--#include <asm/uaccess.h>
- #include <asm/div64.h>
+ struct uml_pt_regs {
+-	unsigned long regs[MAX_REG_NR];
++	unsigned long gp[MAX_REG_NR];
+ 	unsigned long fp[HOST_FP_SIZE];
+ 	unsigned long xfp[HOST_XFP_SIZE];
+ 	struct faultinfo faultinfo;
+@@ -63,23 +63,23 @@ struct uml_pt_regs {
  
- #include <asm/mach/map.h>
-@@ -102,8 +99,6 @@
+ #define EMPTY_UML_PT_REGS { }
  
- #include "s3c2410fb.h"
+-#define UPT_IP(r) REGS_IP((r)->regs)
+-#define UPT_SP(r) REGS_SP((r)->regs)
+-#define UPT_EFLAGS(r) REGS_EFLAGS((r)->regs)
+-#define UPT_EAX(r) REGS_EAX((r)->regs)
+-#define UPT_EBX(r) REGS_EBX((r)->regs)
+-#define UPT_ECX(r) REGS_ECX((r)->regs)
+-#define UPT_EDX(r) REGS_EDX((r)->regs)
+-#define UPT_ESI(r) REGS_ESI((r)->regs)
+-#define UPT_EDI(r) REGS_EDI((r)->regs)
+-#define UPT_EBP(r) REGS_EBP((r)->regs)
++#define UPT_IP(r) REGS_IP((r)->gp)
++#define UPT_SP(r) REGS_SP((r)->gp)
++#define UPT_EFLAGS(r) REGS_EFLAGS((r)->gp)
++#define UPT_EAX(r) REGS_EAX((r)->gp)
++#define UPT_EBX(r) REGS_EBX((r)->gp)
++#define UPT_ECX(r) REGS_ECX((r)->gp)
++#define UPT_EDX(r) REGS_EDX((r)->gp)
++#define UPT_ESI(r) REGS_ESI((r)->gp)
++#define UPT_EDI(r) REGS_EDI((r)->gp)
++#define UPT_EBP(r) REGS_EBP((r)->gp)
+ #define UPT_ORIG_EAX(r) ((r)->syscall)
+-#define UPT_CS(r) REGS_CS((r)->regs)
+-#define UPT_SS(r) REGS_SS((r)->regs)
+-#define UPT_DS(r) REGS_DS((r)->regs)
+-#define UPT_ES(r) REGS_ES((r)->regs)
+-#define UPT_FS(r) REGS_FS((r)->regs)
+-#define UPT_GS(r) REGS_GS((r)->regs)
++#define UPT_CS(r) REGS_CS((r)->gp)
++#define UPT_SS(r) REGS_SS((r)->gp)
++#define UPT_DS(r) REGS_DS((r)->gp)
++#define UPT_ES(r) REGS_ES((r)->gp)
++#define UPT_FS(r) REGS_FS((r)->gp)
++#define UPT_GS(r) REGS_GS((r)->gp)
  
--static struct s3c2410fb_mach_info *mach_info;
--
- /* Debugging stuff */
- #ifdef CONFIG_FB_S3C2410_DEBUG
- static int debug	= 1;
-@@ -122,17 +117,16 @@ static int debug	= 0;
- static void s3c2410fb_set_lcdaddr(struct fb_info *info)
+ #define UPT_SYSCALL_ARG1(r) UPT_EBX(r)
+ #define UPT_SYSCALL_ARG2(r) UPT_ECX(r)
+@@ -161,7 +161,7 @@ struct syscall_args {
+ #define UPT_SET_SYSCALL_RETURN(r, res) \
+ 	REGS_SET_SYSCALL_RETURN((r)->regs, (res))
+ 
+-#define UPT_RESTART_SYSCALL(r) REGS_RESTART_SYSCALL((r)->regs)
++#define UPT_RESTART_SYSCALL(r) REGS_RESTART_SYSCALL((r)->gp)
+ 
+ #define UPT_ORIG_SYSCALL(r) UPT_EAX(r)
+ #define UPT_SYSCALL_NR(r) UPT_ORIG_EAX(r)
+diff -puN arch/um/include/sysdep-x86_64/ptrace.h~uml-rename-pt_regs-general-purpose-register-file arch/um/include/sysdep-x86_64/ptrace.h
+--- a/arch/um/include/sysdep-x86_64/ptrace.h~uml-rename-pt_regs-general-purpose-register-file
++++ a/arch/um/include/sysdep-x86_64/ptrace.h
+@@ -85,7 +85,7 @@
+ #define REGS_ERR(r) ((r)->fault_type)
+ 
+ struct uml_pt_regs {
+-	unsigned long regs[MAX_REG_NR];
++	unsigned long gp[MAX_REG_NR];
+ 	unsigned long fp[HOST_FP_SIZE];
+ 	struct faultinfo faultinfo;
+ 	long syscall;
+@@ -94,36 +94,36 @@ struct uml_pt_regs {
+ 
+ #define EMPTY_UML_PT_REGS { }
+ 
+-#define UPT_RBX(r) REGS_RBX((r)->regs)
+-#define UPT_RCX(r) REGS_RCX((r)->regs)
+-#define UPT_RDX(r) REGS_RDX((r)->regs)
+-#define UPT_RSI(r) REGS_RSI((r)->regs)
+-#define UPT_RDI(r) REGS_RDI((r)->regs)
+-#define UPT_RBP(r) REGS_RBP((r)->regs)
+-#define UPT_RAX(r) REGS_RAX((r)->regs)
+-#define UPT_R8(r) REGS_R8((r)->regs)
+-#define UPT_R9(r) REGS_R9((r)->regs)
+-#define UPT_R10(r) REGS_R10((r)->regs)
+-#define UPT_R11(r) REGS_R11((r)->regs)
+-#define UPT_R12(r) REGS_R12((r)->regs)
+-#define UPT_R13(r) REGS_R13((r)->regs)
+-#define UPT_R14(r) REGS_R14((r)->regs)
+-#define UPT_R15(r) REGS_R15((r)->regs)
+-#define UPT_CS(r) REGS_CS((r)->regs)
+-#define UPT_FS_BASE(r) REGS_FS_BASE((r)->regs)
+-#define UPT_FS(r) REGS_FS((r)->regs)
+-#define UPT_GS_BASE(r) REGS_GS_BASE((r)->regs)
+-#define UPT_GS(r) REGS_GS((r)->regs)
+-#define UPT_DS(r) REGS_DS((r)->regs)
+-#define UPT_ES(r) REGS_ES((r)->regs)
+-#define UPT_CS(r) REGS_CS((r)->regs)
+-#define UPT_SS(r) REGS_SS((r)->regs)
+-#define UPT_ORIG_RAX(r) REGS_ORIG_RAX((r)->regs)
++#define UPT_RBX(r) REGS_RBX((r)->gp)
++#define UPT_RCX(r) REGS_RCX((r)->gp)
++#define UPT_RDX(r) REGS_RDX((r)->gp)
++#define UPT_RSI(r) REGS_RSI((r)->gp)
++#define UPT_RDI(r) REGS_RDI((r)->gp)
++#define UPT_RBP(r) REGS_RBP((r)->gp)
++#define UPT_RAX(r) REGS_RAX((r)->gp)
++#define UPT_R8(r) REGS_R8((r)->gp)
++#define UPT_R9(r) REGS_R9((r)->gp)
++#define UPT_R10(r) REGS_R10((r)->gp)
++#define UPT_R11(r) REGS_R11((r)->gp)
++#define UPT_R12(r) REGS_R12((r)->gp)
++#define UPT_R13(r) REGS_R13((r)->gp)
++#define UPT_R14(r) REGS_R14((r)->gp)
++#define UPT_R15(r) REGS_R15((r)->gp)
++#define UPT_CS(r) REGS_CS((r)->gp)
++#define UPT_FS_BASE(r) REGS_FS_BASE((r)->gp)
++#define UPT_FS(r) REGS_FS((r)->gp)
++#define UPT_GS_BASE(r) REGS_GS_BASE((r)->gp)
++#define UPT_GS(r) REGS_GS((r)->gp)
++#define UPT_DS(r) REGS_DS((r)->gp)
++#define UPT_ES(r) REGS_ES((r)->gp)
++#define UPT_CS(r) REGS_CS((r)->gp)
++#define UPT_SS(r) REGS_SS((r)->gp)
++#define UPT_ORIG_RAX(r) REGS_ORIG_RAX((r)->gp)
+ 
+-#define UPT_IP(r) REGS_IP((r)->regs)
+-#define UPT_SP(r) REGS_SP((r)->regs)
++#define UPT_IP(r) REGS_IP((r)->gp)
++#define UPT_SP(r) REGS_SP((r)->gp)
+ 
+-#define UPT_EFLAGS(r) REGS_EFLAGS((r)->regs)
++#define UPT_EFLAGS(r) REGS_EFLAGS((r)->gp)
+ #define UPT_SYSCALL_NR(r) ((r)->syscall)
+ #define UPT_SYSCALL_RET(r) UPT_RAX(r)
+ 
+@@ -228,7 +228,7 @@ struct syscall_args {
+ #define UPT_SET_SYSCALL_RETURN(r, res) \
+ 	REGS_SET_SYSCALL_RETURN((r)->regs, (res))
+ 
+-#define UPT_RESTART_SYSCALL(r) REGS_RESTART_SYSCALL((r)->regs)
++#define UPT_RESTART_SYSCALL(r) REGS_RESTART_SYSCALL((r)->gp)
+ 
+ #define UPT_SEGV_IS_FIXABLE(r) REGS_SEGV_IS_FIXABLE(&r->skas)
+ 
+diff -puN arch/um/kernel/process.c~uml-rename-pt_regs-general-purpose-register-file arch/um/kernel/process.c
+--- a/arch/um/kernel/process.c~uml-rename-pt_regs-general-purpose-register-file
++++ a/arch/um/kernel/process.c
+@@ -201,9 +201,9 @@ int copy_thread(int nr, unsigned long cl
+ 	if (current->thread.forking) {
+ 	  	memcpy(&p->thread.regs.regs, &regs->regs,
+ 		       sizeof(p->thread.regs.regs));
+-		REGS_SET_SYSCALL_RETURN(p->thread.regs.regs.regs, 0);
++		REGS_SET_SYSCALL_RETURN(p->thread.regs.regs.gp, 0);
+ 		if (sp != 0)
+-			REGS_SP(p->thread.regs.regs.regs) = sp;
++			REGS_SP(p->thread.regs.regs.gp) = sp;
+ 
+ 		handler = fork_handler;
+ 
+diff -puN arch/um/kernel/skas/syscall.c~uml-rename-pt_regs-general-purpose-register-file arch/um/kernel/skas/syscall.c
+--- a/arch/um/kernel/skas/syscall.c~uml-rename-pt_regs-general-purpose-register-file
++++ a/arch/um/kernel/skas/syscall.c
+@@ -34,7 +34,7 @@ void handle_syscall(struct uml_pt_regs *
+ 		result = -ENOSYS;
+ 	else result = EXECUTE_SYSCALL(syscall, regs);
+ 
+-	REGS_SET_SYSCALL_RETURN(r->regs, result);
++	REGS_SET_SYSCALL_RETURN(r->gp, result);
+ 
+ 	syscall_trace(r, 1);
+ }
+diff -puN arch/um/os-Linux/registers.c~uml-rename-pt_regs-general-purpose-register-file arch/um/os-Linux/registers.c
+--- a/arch/um/os-Linux/registers.c~uml-rename-pt_regs-general-purpose-register-file
++++ a/arch/um/os-Linux/registers.c
+@@ -16,14 +16,14 @@ static unsigned long exec_regs[MAX_REG_N
+ 
+ void init_thread_registers(struct uml_pt_regs *to)
  {
- 	unsigned long saddr1, saddr2, saddr3;
--	int line_length = info->var.xres * info->var.bits_per_pixel;
- 	struct s3c2410fb_info *fbi = info->par;
- 	void __iomem *regs = fbi->io;
+-	memcpy(to->regs, exec_regs, sizeof(to->regs));
++	memcpy(to->gp, exec_regs, sizeof(to->gp));
+ }
  
- 	saddr1  = info->fix.smem_start >> 1;
- 	saddr2  = info->fix.smem_start;
--	saddr2 += (line_length * info->var.yres) / 8;
-+	saddr2 += info->fix.line_length * info->var.yres;
- 	saddr2 >>= 1;
- 
- 	saddr3 = S3C2410_OFFSIZE(0) |
--		 S3C2410_PAGEWIDTH((line_length / 16) & 0x3ff);
-+		 S3C2410_PAGEWIDTH((info->fix.line_length / 2) & 0x3ff);
- 
- 	dprintk("LCDSADDR1 = 0x%08lx\n", saddr1);
- 	dprintk("LCDSADDR2 = 0x%08lx\n", saddr2);
-@@ -153,14 +147,14 @@ static unsigned int s3c2410fb_calc_pixcl
- 	unsigned long clk = clk_get_rate(fbi->clk);
- 	unsigned long long div;
- 
--	/* pixclk is in picoseoncds, our clock is in Hz
-+	/* pixclk is in picoseconds, our clock is in Hz
- 	 *
- 	 * Hz -> picoseconds is / 10^-12
- 	 */
- 
- 	div = (unsigned long long)clk * pixclk;
--	do_div(div, 1000000UL);
--	do_div(div, 1000000UL);
-+	div >>= 12;			/* div / 2^12 */
-+	do_div(div, 625 * 625UL * 625); /* div / 5^12 */
- 
- 	dprintk("pixclk %ld, divisor is %ld\n", pixclk, (long)div);
- 	return div;
-@@ -176,7 +170,7 @@ static int s3c2410fb_check_var(struct fb
- 			       struct fb_info *info)
+ void save_registers(int pid, struct uml_pt_regs *regs)
  {
- 	struct s3c2410fb_info *fbi = info->par;
--	struct s3c2410fb_mach_info *mach_info = fbi->mach_info;
-+	struct s3c2410fb_mach_info *mach_info = fbi->dev->platform_data;
- 	struct s3c2410fb_display *display = NULL;
- 	unsigned i;
+ 	int err;
  
-@@ -189,7 +183,6 @@ static int s3c2410fb_check_var(struct fb
- 		    var->xres == mach_info->displays[i].xres &&
- 		    var->bits_per_pixel == mach_info->displays[i].bpp) {
- 			display = mach_info->displays + i;
--			fbi->current_display = i;
- 			break;
+-	err = ptrace(PTRACE_GETREGS, pid, 0, regs->regs);
++	err = ptrace(PTRACE_GETREGS, pid, 0, regs->gp);
+ 	if (err < 0)
+ 		panic("save_registers - saving registers failed, errno = %d\n",
+ 		      errno);
+@@ -33,7 +33,7 @@ void restore_registers(int pid, struct u
+ {
+ 	int err;
+ 
+-	err = ptrace(PTRACE_SETREGS, pid, 0, regs->regs);
++	err = ptrace(PTRACE_SETREGS, pid, 0, regs->gp);
+ 	if (err < 0)
+ 		panic("restore_registers - saving registers failed, "
+ 		      "errno = %d\n", errno);
+diff -puN arch/um/os-Linux/skas/process.c~uml-rename-pt_regs-general-purpose-register-file arch/um/os-Linux/skas/process.c
+--- a/arch/um/os-Linux/skas/process.c~uml-rename-pt_regs-general-purpose-register-file
++++ a/arch/um/os-Linux/skas/process.c
+@@ -138,7 +138,7 @@ static void handle_trap(int pid, struct 
+ 	int err, status;
+ 
+ 	/* Mark this as a syscall */
+-	UPT_SYSCALL_NR(regs) = PT_SYSCALL_NR(regs->regs);
++	UPT_SYSCALL_NR(regs) = PT_SYSCALL_NR(regs->gp);
+ 
+ 	if (!local_using_sysemu)
+ 	{
+@@ -352,7 +352,7 @@ void userspace(struct uml_pt_regs *regs)
+ 
+ 			/* Avoid -ERESTARTSYS handling in host */
+ 			if (PT_SYSCALL_NR_OFFSET != PT_SYSCALL_RET_OFFSET)
+-				PT_SYSCALL_NR(regs->regs) = -1;
++				PT_SYSCALL_NR(regs->gp) = -1;
  		}
- 
-@@ -202,10 +195,22 @@ static int s3c2410fb_check_var(struct fb
- 	/* it is always the size as the display */
- 	var->xres_virtual = display->xres;
- 	var->yres_virtual = display->yres;
-+	var->height = display->height;
-+	var->width = display->width;
- 
- 	/* copy lcd settings */
- 	var->left_margin = display->left_margin;
- 	var->right_margin = display->right_margin;
-+	var->upper_margin = display->upper_margin;
-+	var->lower_margin = display->lower_margin;
-+	var->vsync_len = display->vsync_len;
-+	var->hsync_len = display->hsync_len;
-+
-+	fbi->regs.lcdcon1 = display->lcdcon1;
-+	fbi->regs.lcdcon5 = display->lcdcon5;
-+	/* set display type */
-+	fbi->regs.lcdcon1 &= ~S3C2410_LCDCON1_TFT;
-+	fbi->regs.lcdcon1 |= display->type;
- 
- 	var->transp.offset = 0;
- 	var->transp.length = 0;
-@@ -420,19 +425,13 @@ static void s3c2410fb_activate_var(struc
- {
- 	struct s3c2410fb_info *fbi = info->par;
- 	void __iomem *regs = fbi->io;
-+	int type = fbi->regs.lcdcon1 & S3C2410_LCDCON1_TFT;
- 	struct fb_var_screeninfo *var = &info->var;
--	struct s3c2410fb_mach_info *mach_info = fbi->mach_info;
--	struct s3c2410fb_display *display = mach_info->displays +
--					    fbi->current_display;
--
--	/* set display type */
--	fbi->regs.lcdcon1 &= ~S3C2410_LCDCON1_TFT;
--	fbi->regs.lcdcon1 |= display->type;
- 
- 	if (var->pixclock > 0) {
- 		int clkdiv = s3c2410fb_calc_pixclk(fbi, var->pixclock);
- 
--		if (display->type == S3C2410_LCDCON1_TFT) {
-+		if (type == S3C2410_LCDCON1_TFT) {
- 			clkdiv = (clkdiv / 2) - 1;
- 			if (clkdiv < 0)
- 				clkdiv = 0;
-@@ -446,7 +445,7 @@ static void s3c2410fb_activate_var(struc
- 		fbi->regs.lcdcon1 |=  S3C2410_LCDCON1_CLKVAL(clkdiv);
  	}
- 
--	if (display->type == S3C2410_LCDCON1_TFT)
-+	if (type == S3C2410_LCDCON1_TFT)
- 		s3c2410fb_calculate_tft_lcd_regs(info, &fbi->regs);
- 	else
- 		s3c2410fb_calculate_stn_lcd_regs(info, &fbi->regs);
-@@ -470,6 +469,7 @@ static void s3c2410fb_activate_var(struc
- 	/* set lcd address pointers */
- 	s3c2410fb_set_lcdaddr(info);
- 
-+	fbi->regs.lcdcon1 |= S3C2410_LCDCON1_ENVID,
- 	writel(fbi->regs.lcdcon1, regs + S3C2410_LCDCON1);
  }
- 
-@@ -566,9 +566,9 @@ static int s3c2410fb_setcolreg(unsigned 
- 		if (regno < 256) {
- 			/* currently assume RGB 5-6-5 mode */
- 
--			val  = ((red   >>  0) & 0xf800);
--			val |= ((green >>  5) & 0x07e0);
--			val |= ((blue  >> 11) & 0x001f);
-+			val  = (red   >>  0) & 0xf800;
-+			val |= (green >>  5) & 0x07e0;
-+			val |= (blue  >> 11) & 0x001f;
- 
- 			writel(val, regs + S3C2410_TFTPAL(regno));
- 			schedule_palette_update(fbi, regno, val);
-@@ -606,9 +606,6 @@ static int s3c2410fb_blank(int blank_mod
- 
- 	dprintk("blank(mode=%d, info=%p)\n", blank_mode, info);
- 
--	if (mach_info == NULL)
--		return -EINVAL;
--
- 	if (blank_mode == FB_BLANK_UNBLANK)
- 		writel(0x0, regs + S3C2410_TPAL);
- 	else {
-@@ -624,13 +621,11 @@ static int s3c2410fb_debug_show(struct d
+diff -puN arch/um/sys-i386/signal.c~uml-rename-pt_regs-general-purpose-register-file arch/um/sys-i386/signal.c
+--- a/arch/um/sys-i386/signal.c~uml-rename-pt_regs-general-purpose-register-file
++++ a/arch/um/sys-i386/signal.c
+@@ -14,22 +14,22 @@ void copy_sc(struct uml_pt_regs *regs, v
  {
- 	return snprintf(buf, PAGE_SIZE, "%s\n", debug ? "on" : "off");
- }
-+
- static int s3c2410fb_debug_store(struct device *dev,
- 				 struct device_attribute *attr,
- 				 const char *buf, size_t len)
- {
--	if (mach_info == NULL)
--		return -EINVAL;
--
- 	if (len < 1)
- 		return -EINVAL;
+ 	struct sigcontext *sc = from;
  
-@@ -673,36 +668,35 @@ static struct fb_ops s3c2410fb_ops = {
- static int __init s3c2410fb_map_video_memory(struct fb_info *info)
- {
- 	struct s3c2410fb_info *fbi = info->par;
-+	dma_addr_t map_dma;
-+	unsigned map_size = PAGE_ALIGN(info->fix.smem_len);
- 
- 	dprintk("map_video_memory(fbi=%p)\n", fbi);
- 
--	fbi->map_size = PAGE_ALIGN(info->fix.smem_len + PAGE_SIZE);
--	fbi->map_cpu  = dma_alloc_writecombine(fbi->dev, fbi->map_size,
--					       &fbi->map_dma, GFP_KERNEL);
-+	info->screen_base = dma_alloc_writecombine(fbi->dev, map_size,
-+						   &map_dma, GFP_KERNEL);
- 
--	fbi->map_size = info->fix.smem_len;
--
--	if (fbi->map_cpu) {
-+	if (info->screen_base) {
- 		/* prevent initial garbage on screen */
- 		dprintk("map_video_memory: clear %p:%08x\n",
--			fbi->map_cpu, fbi->map_size);
--		memset(fbi->map_cpu, 0xf0, fbi->map_size);
-+			info->screen_base, map_size);
-+		memset(info->screen_base, 0xf0, map_size);
- 
--		fbi->screen_dma		= fbi->map_dma;
--		info->screen_base	= fbi->map_cpu;
--		info->fix.smem_start	= fbi->screen_dma;
-+		info->fix.smem_start = map_dma;
- 
--		dprintk("map_video_memory: dma=%08x cpu=%p size=%08x\n",
--			fbi->map_dma, fbi->map_cpu, info->fix.smem_len);
-+		dprintk("map_video_memory: dma=%08lx cpu=%p size=%08x\n",
-+			info->fix.smem_start, info->screen_base, map_size);
- 	}
- 
--	return fbi->map_cpu ? 0 : -ENOMEM;
-+	return info->screen_base ? 0 : -ENOMEM;
+-	REGS_GS(regs->regs) = sc->gs;
+-	REGS_FS(regs->regs) = sc->fs;
+-	REGS_ES(regs->regs) = sc->es;
+-	REGS_DS(regs->regs) = sc->ds;
+-	REGS_EDI(regs->regs) = sc->edi;
+-	REGS_ESI(regs->regs) = sc->esi;
+-	REGS_EBP(regs->regs) = sc->ebp;
+-	REGS_SP(regs->regs) = sc->esp;
+-	REGS_EBX(regs->regs) = sc->ebx;
+-	REGS_EDX(regs->regs) = sc->edx;
+-	REGS_ECX(regs->regs) = sc->ecx;
+-	REGS_EAX(regs->regs) = sc->eax;
+-	REGS_IP(regs->regs) = sc->eip;
+-	REGS_CS(regs->regs) = sc->cs;
+-	REGS_EFLAGS(regs->regs) = sc->eflags;
+-	REGS_SS(regs->regs) = sc->ss;
++	REGS_GS(regs->gp) = sc->gs;
++	REGS_FS(regs->gp) = sc->fs;
++	REGS_ES(regs->gp) = sc->es;
++	REGS_DS(regs->gp) = sc->ds;
++	REGS_EDI(regs->gp) = sc->edi;
++	REGS_ESI(regs->gp) = sc->esi;
++	REGS_EBP(regs->gp) = sc->ebp;
++	REGS_SP(regs->gp) = sc->esp;
++	REGS_EBX(regs->gp) = sc->ebx;
++	REGS_EDX(regs->gp) = sc->edx;
++	REGS_ECX(regs->gp) = sc->ecx;
++	REGS_EAX(regs->gp) = sc->eax;
++	REGS_IP(regs->gp) = sc->eip;
++	REGS_CS(regs->gp) = sc->cs;
++	REGS_EFLAGS(regs->gp) = sc->eflags;
++	REGS_SS(regs->gp) = sc->ss;
  }
  
--static inline void s3c2410fb_unmap_video_memory(struct s3c2410fb_info *fbi)
-+static inline void s3c2410fb_unmap_video_memory(struct fb_info *info)
- {
--	dma_free_writecombine(fbi->dev, fbi->map_size, fbi->map_cpu,
--			      fbi->map_dma);
-+	struct s3c2410fb_info *fbi = info->par;
-+
-+	dma_free_writecombine(fbi->dev, PAGE_ALIGN(info->fix.smem_len),
-+			      info->screen_base, info->fix.smem_start);
- }
+ static int copy_sc_from_user(struct pt_regs *regs,
+@@ -65,23 +65,23 @@ static int copy_sc_to_user(struct sigcon
+ 	struct faultinfo * fi = &current->thread.arch.faultinfo;
+ 	int err;
  
- static inline void modify_gpio(void __iomem *reg,
-@@ -720,6 +714,7 @@ static inline void modify_gpio(void __io
- static int s3c2410fb_init_registers(struct fb_info *info)
- {
- 	struct s3c2410fb_info *fbi = info->par;
-+	struct s3c2410fb_mach_info *mach_info = fbi->dev->platform_data;
- 	unsigned long flags;
- 	void __iomem *regs = fbi->io;
+-	sc.gs = REGS_GS(regs->regs.regs);
+-	sc.fs = REGS_FS(regs->regs.regs);
+-	sc.es = REGS_ES(regs->regs.regs);
+-	sc.ds = REGS_DS(regs->regs.regs);
+-	sc.edi = REGS_EDI(regs->regs.regs);
+-	sc.esi = REGS_ESI(regs->regs.regs);
+-	sc.ebp = REGS_EBP(regs->regs.regs);
++	sc.gs = REGS_GS(regs->regs.gp);
++	sc.fs = REGS_FS(regs->regs.gp);
++	sc.es = REGS_ES(regs->regs.gp);
++	sc.ds = REGS_DS(regs->regs.gp);
++	sc.edi = REGS_EDI(regs->regs.gp);
++	sc.esi = REGS_ESI(regs->regs.gp);
++	sc.ebp = REGS_EBP(regs->regs.gp);
+ 	sc.esp = sp;
+-	sc.ebx = REGS_EBX(regs->regs.regs);
+-	sc.edx = REGS_EDX(regs->regs.regs);
+-	sc.ecx = REGS_ECX(regs->regs.regs);
+-	sc.eax = REGS_EAX(regs->regs.regs);
+-	sc.eip = REGS_IP(regs->regs.regs);
+-	sc.cs = REGS_CS(regs->regs.regs);
+-	sc.eflags = REGS_EFLAGS(regs->regs.regs);
+-	sc.esp_at_signal = regs->regs.regs[UESP];
+-	sc.ss = regs->regs.regs[SS];
++	sc.ebx = REGS_EBX(regs->regs.gp);
++	sc.edx = REGS_EDX(regs->regs.gp);
++	sc.ecx = REGS_ECX(regs->regs.gp);
++	sc.eax = REGS_EAX(regs->regs.gp);
++	sc.eip = REGS_IP(regs->regs.gp);
++	sc.cs = REGS_CS(regs->regs.gp);
++	sc.eflags = REGS_EFLAGS(regs->regs.gp);
++	sc.esp_at_signal = regs->regs.gp[UESP];
++	sc.ss = regs->regs.gp[SS];
+ 	sc.cr2 = fi->cr2;
+ 	sc.err = fi->error_code;
+ 	sc.trapno = fi->trap_no;
+diff -puN arch/um/sys-x86_64/signal.c~uml-rename-pt_regs-general-purpose-register-file arch/um/sys-x86_64/signal.c
+--- a/arch/um/sys-x86_64/signal.c~uml-rename-pt_regs-general-purpose-register-file
++++ a/arch/um/sys-x86_64/signal.c
+@@ -16,7 +16,7 @@ void copy_sc(struct uml_pt_regs *regs, v
+ 	struct sigcontext *sc = from;
  
-@@ -736,14 +731,6 @@ static int s3c2410fb_init_registers(stru
+ #define GETREG(regs, regno, sc, regname)				\
+-	(regs)->regs[(regno) / sizeof(unsigned long)] = (sc)->regname
++	(regs)->gp[(regno) / sizeof(unsigned long)] = (sc)->regname
  
- 	local_irq_restore(flags);
+ 	GETREG(regs, R8, sc, r8);
+ 	GETREG(regs, R9, sc, r9);
+@@ -47,7 +47,7 @@ static int copy_sc_from_user(struct pt_r
+ 	int err = 0;
  
--	writel(fbi->regs.lcdcon1, regs + S3C2410_LCDCON1);
--	writel(fbi->regs.lcdcon2, regs + S3C2410_LCDCON2);
--	writel(fbi->regs.lcdcon3, regs + S3C2410_LCDCON3);
--	writel(fbi->regs.lcdcon4, regs + S3C2410_LCDCON4);
--	writel(fbi->regs.lcdcon5, regs + S3C2410_LCDCON5);
--
--	s3c2410fb_set_lcdaddr(info);
--
- 	dprintk("LPCSEL    = 0x%08lx\n", mach_info->lpcsel);
- 	writel(mach_info->lpcsel, regs + S3C2410_LPCSEL);
+ #define GETREG(regs, regno, sc, regname)				\
+-	__get_user((regs)->regs.regs[(regno) / sizeof(unsigned long)],	\
++	__get_user((regs)->regs.gp[(regno) / sizeof(unsigned long)],	\
+ 		   &(sc)->regname)
  
-@@ -752,9 +739,6 @@ static int s3c2410fb_init_registers(stru
- 	/* ensure temporary palette disabled */
- 	writel(0x00, regs + S3C2410_TPAL);
+ 	err |= GETREG(regs, R8, from, r8);
+@@ -86,7 +86,7 @@ static int copy_sc_to_user(struct sigcon
+ 	err |= __put_user(0, &to->fs);
  
--	/* Enable video by setting the ENVID bit to 1 */
--	fbi->regs.lcdcon1 |= S3C2410_LCDCON1_ENVID;
--	writel(fbi->regs.lcdcon1, regs + S3C2410_LCDCON1);
- 	return 0;
- }
+ #define PUTREG(regs, regno, sc, regname)				\
+-	__put_user((regs)->regs.regs[(regno) / sizeof(unsigned long)],	\
++	__put_user((regs)->regs.gp[(regno) / sizeof(unsigned long)],	\
+ 		   &(sc)->regname)
  
-@@ -808,6 +792,7 @@ static int __init s3c2410fb_probe(struct
- 	struct s3c2410fb_info *info;
- 	struct s3c2410fb_display *display;
- 	struct fb_info *fbinfo;
-+	struct s3c2410fb_mach_info *mach_info;
- 	struct resource *res;
- 	int ret;
- 	int irq;
-@@ -834,6 +819,8 @@ static int __init s3c2410fb_probe(struct
- 	if (!fbinfo)
- 		return -ENOMEM;
- 
-+	platform_set_drvdata(pdev, fbinfo);
-+
- 	info = fbinfo->par;
- 	info->dev = &pdev->dev;
- 
-@@ -859,23 +846,14 @@ static int __init s3c2410fb_probe(struct
- 		goto release_mem;
- 	}
- 
--	platform_set_drvdata(pdev, fbinfo);
--
- 	dprintk("devinit\n");
- 
- 	strcpy(fbinfo->fix.id, driver_name);
- 
--	info->regs.lcdcon1 = display->lcdcon1;
--	info->regs.lcdcon5 = display->lcdcon5;
--
--	/* Stop the video and unset ENVID if set */
--	info->regs.lcdcon1 &= ~S3C2410_LCDCON1_ENVID;
-+	/* Stop the video */
- 	lcdcon1 = readl(info->io + S3C2410_LCDCON1);
- 	writel(lcdcon1 & ~S3C2410_LCDCON1_ENVID, info->io + S3C2410_LCDCON1);
- 
--	info->mach_info		    = pdev->dev.platform_data;
--	info->current_display	    = mach_info->default_display;
--
- 	fbinfo->fix.type	    = FB_TYPE_PACKED_PIXELS;
- 	fbinfo->fix.type_aux	    = 0;
- 	fbinfo->fix.xpanstep	    = 0;
-@@ -885,8 +863,6 @@ static int __init s3c2410fb_probe(struct
- 
- 	fbinfo->var.nonstd	    = 0;
- 	fbinfo->var.activate	    = FB_ACTIVATE_NOW;
--	fbinfo->var.height	    = display->height;
--	fbinfo->var.width	    = display->width;
- 	fbinfo->var.accel_flags     = 0;
- 	fbinfo->var.vmode	    = FB_VMODE_NONINTERLACED;
- 
-@@ -894,39 +870,6 @@ static int __init s3c2410fb_probe(struct
- 	fbinfo->flags		    = FBINFO_FLAG_DEFAULT;
- 	fbinfo->pseudo_palette      = &info->pseudo_pal;
- 
--	fbinfo->var.xres	    = display->xres;
--	fbinfo->var.xres_virtual    = display->xres;
--	fbinfo->var.yres	    = display->yres;
--	fbinfo->var.yres_virtual    = display->yres;
--	fbinfo->var.bits_per_pixel  = display->bpp;
--	fbinfo->var.left_margin	    = display->left_margin;
--	fbinfo->var.right_margin    = display->right_margin;
--
--	fbinfo->var.upper_margin    = display->upper_margin;
--	fbinfo->var.lower_margin    = display->lower_margin;
--	fbinfo->var.vsync_len	    = display->vsync_len;
--	fbinfo->var.hsync_len	    = display->hsync_len;
--
--	fbinfo->var.red.offset      = 11;
--	fbinfo->var.green.offset    = 5;
--	fbinfo->var.blue.offset     = 0;
--	fbinfo->var.transp.offset   = 0;
--	fbinfo->var.red.length      = 5;
--	fbinfo->var.green.length    = 6;
--	fbinfo->var.blue.length     = 5;
--	fbinfo->var.transp.length   = 0;
--
--	/* find maximum required memory size for display */
--	for (i = 0; i < mach_info->num_displays; i++) {
--		unsigned long smem_len = mach_info->displays[i].xres;
--
--		smem_len *= mach_info->displays[i].yres;
--		smem_len *= mach_info->displays[i].bpp;
--		smem_len >>= 3;
--		if (fbinfo->fix.smem_len < smem_len)
--			fbinfo->fix.smem_len = smem_len;
--	}
--
- 	for (i = 0; i < 256; i++)
- 		info->palette_buffer[i] = PALETTE_BUFF_CLEAR;
- 
-@@ -949,6 +892,17 @@ static int __init s3c2410fb_probe(struct
- 
- 	msleep(1);
- 
-+	/* find maximum required memory size for display */
-+	for (i = 0; i < mach_info->num_displays; i++) {
-+		unsigned long smem_len = mach_info->displays[i].xres;
-+
-+		smem_len *= mach_info->displays[i].yres;
-+		smem_len *= mach_info->displays[i].bpp;
-+		smem_len >>= 3;
-+		if (fbinfo->fix.smem_len < smem_len)
-+			fbinfo->fix.smem_len = smem_len;
-+	}
-+
- 	/* Initialize video memory */
- 	ret = s3c2410fb_map_video_memory(fbinfo);
- 	if (ret) {
-@@ -959,6 +913,10 @@ static int __init s3c2410fb_probe(struct
- 
- 	dprintk("got video memory\n");
- 
-+	fbinfo->var.xres = display->xres;
-+	fbinfo->var.yres = display->yres;
-+	fbinfo->var.bits_per_pixel = display->bpp;
-+
- 	s3c2410fb_init_registers(fbinfo);
- 
- 	s3c2410fb_check_var(&fbinfo->var, fbinfo);
-@@ -979,7 +937,7 @@ static int __init s3c2410fb_probe(struct
- 	return 0;
- 
- free_video_memory:
--	s3c2410fb_unmap_video_memory(info);
-+	s3c2410fb_unmap_video_memory(fbinfo);
- release_clock:
- 	clk_disable(info->clk);
- 	clk_put(info->clk);
-@@ -991,6 +949,7 @@ release_mem:
- 	release_resource(info->mem);
- 	kfree(info->mem);
- dealloc_fb:
-+	platform_set_drvdata(pdev, NULL);
- 	framebuffer_release(fbinfo);
- 	return ret;
- }
-@@ -1020,10 +979,12 @@ static int s3c2410fb_remove(struct platf
- 	struct s3c2410fb_info *info = fbinfo->par;
- 	int irq;
- 
-+	unregister_framebuffer(fbinfo);
-+
- 	s3c2410fb_stop_lcd(info);
- 	msleep(1);
- 
--	s3c2410fb_unmap_video_memory(info);
-+	s3c2410fb_unmap_video_memory(fbinfo);
- 
- 	if (info->clk) {
- 		clk_disable(info->clk);
-@@ -1034,10 +995,13 @@ static int s3c2410fb_remove(struct platf
- 	irq = platform_get_irq(pdev, 0);
- 	free_irq(irq, info);
- 
-+	iounmap(info->io);
-+
- 	release_resource(info->mem);
- 	kfree(info->mem);
--	iounmap(info->io);
--	unregister_framebuffer(fbinfo);
-+
-+	platform_set_drvdata(pdev, NULL);
-+	framebuffer_release(fbinfo);
+ 	err |= PUTREG(regs, RDI, to, rdi);
+diff -puN arch/um/sys-x86_64/tls.c~uml-rename-pt_regs-general-purpose-register-file arch/um/sys-x86_64/tls.c
+--- a/arch/um/sys-x86_64/tls.c~uml-rename-pt_regs-general-purpose-register-file
++++ a/arch/um/sys-x86_64/tls.c
+@@ -11,7 +11,7 @@ int arch_copy_tls(struct task_struct *t)
+ 	 * (which is argument 5, child_tid, of clone) so it can be set
+ 	 * during context switches.
+ 	 */
+-	t->thread.arch.fs = t->thread.regs.regs.regs[R8 / sizeof(long)];
++	t->thread.arch.fs = t->thread.regs.regs.gp[R8 / sizeof(long)];
  
  	return 0;
  }
-@@ -1091,7 +1055,7 @@ static struct platform_driver s3c2410fb_
- 	},
- };
+diff -puN include/asm-um/elf-x86_64.h~uml-rename-pt_regs-general-purpose-register-file include/asm-um/elf-x86_64.h
+--- a/include/asm-um/elf-x86_64.h~uml-rename-pt_regs-general-purpose-register-file
++++ a/include/asm-um/elf-x86_64.h
+@@ -67,27 +67,27 @@ typedef struct { } elf_fpregset_t;
+ } while (0)
  
--int __devinit s3c2410fb_init(void)
-+int __init s3c2410fb_init(void)
- {
- 	return platform_driver_register(&s3c2410fb_driver);
- }
-diff -puN drivers/video/s3c2410fb.h~s3c2410fb-source-code-improvements drivers/video/s3c2410fb.h
---- a/drivers/video/s3c2410fb.h~s3c2410fb-source-code-improvements
-+++ a/drivers/video/s3c2410fb.h
-@@ -16,7 +16,7 @@
-  *
-  * 2004-09-07: Arnaud Patard <arnaud.patard@rtp-net.org>
-  * 	- Renamed from h1940fb.h to s3c2410fb.h
-- * 	- Chenged h1940 to s3c2410
-+ * 	- Changed h1940 to s3c2410
-  *
-  * 2004-07-15: Arnaud Patard <arnaud.patard@rtp-net.org>
-  *	- First version
-@@ -32,20 +32,8 @@ struct s3c2410fb_info {
- 	struct resource		*mem;
- 	void __iomem		*io;
- 
--	struct s3c2410fb_mach_info *mach_info;
--
--	unsigned current_display;
--
--	/* raw memory addresses */
--	dma_addr_t		map_dma;	/* physical */
--	u_char *		map_cpu;	/* virtual */
--	u_int			map_size;
--
- 	struct s3c2410fb_hw	regs;
- 
--	/* addresses of pieces placed in raw buffer */
--	u_char *		screen_cpu;	/* virtual address of buffer */
--	dma_addr_t		screen_dma;	/* physical address of buffer */
- 	unsigned int		palette_ready;
- 
- 	/* keep these registers in case we need to re-write palette */
+ #define ELF_CORE_COPY_REGS(pr_reg, regs)		\
+-	(pr_reg)[0] = (regs)->regs.skas.regs[0];			\
+-	(pr_reg)[1] = (regs)->regs.skas.regs[1];			\
+-	(pr_reg)[2] = (regs)->regs.skas.regs[2];			\
+-	(pr_reg)[3] = (regs)->regs.skas.regs[3];			\
+-	(pr_reg)[4] = (regs)->regs.skas.regs[4];			\
+-	(pr_reg)[5] = (regs)->regs.skas.regs[5];			\
+-	(pr_reg)[6] = (regs)->regs.skas.regs[6];			\
+-	(pr_reg)[7] = (regs)->regs.skas.regs[7];			\
+-	(pr_reg)[8] = (regs)->regs.skas.regs[8];			\
+-	(pr_reg)[9] = (regs)->regs.skas.regs[9];			\
+-	(pr_reg)[10] = (regs)->regs.skas.regs[10];			\
+-	(pr_reg)[11] = (regs)->regs.skas.regs[11];			\
+-	(pr_reg)[12] = (regs)->regs.skas.regs[12];			\
+-	(pr_reg)[13] = (regs)->regs.skas.regs[13];			\
+-	(pr_reg)[14] = (regs)->regs.skas.regs[14];			\
+-	(pr_reg)[15] = (regs)->regs.skas.regs[15];			\
+-	(pr_reg)[16] = (regs)->regs.skas.regs[16];			\
+-	(pr_reg)[17] = (regs)->regs.skas.regs[17];			\
+-	(pr_reg)[18] = (regs)->regs.skas.regs[18];			\
+-	(pr_reg)[19] = (regs)->regs.skas.regs[19];			\
+-	(pr_reg)[20] = (regs)->regs.skas.regs[20];			\
++	(pr_reg)[0] = (regs)->regs.gp[0];			\
++	(pr_reg)[1] = (regs)->regs.gp[1];			\
++	(pr_reg)[2] = (regs)->regs.gp[2];			\
++	(pr_reg)[3] = (regs)->regs.gp[3];			\
++	(pr_reg)[4] = (regs)->regs.gp[4];			\
++	(pr_reg)[5] = (regs)->regs.gp[5];			\
++	(pr_reg)[6] = (regs)->regs.gp[6];			\
++	(pr_reg)[7] = (regs)->regs.gp[7];			\
++	(pr_reg)[8] = (regs)->regs.gp[8];			\
++	(pr_reg)[9] = (regs)->regs.gp[9];			\
++	(pr_reg)[10] = (regs)->regs.gp[10];			\
++	(pr_reg)[11] = (regs)->regs.gp[11];			\
++	(pr_reg)[12] = (regs)->regs.gp[12];			\
++	(pr_reg)[13] = (regs)->regs.gp[13];			\
++	(pr_reg)[14] = (regs)->regs.gp[14];			\
++	(pr_reg)[15] = (regs)->regs.gp[15];			\
++	(pr_reg)[16] = (regs)->regs.gp[16];			\
++	(pr_reg)[17] = (regs)->regs.gp[17];			\
++	(pr_reg)[18] = (regs)->regs.gp[18];			\
++	(pr_reg)[19] = (regs)->regs.gp[19];			\
++	(pr_reg)[20] = (regs)->regs.gp[20];			\
+ 	(pr_reg)[21] = current->thread.arch.fs;			\
+ 	(pr_reg)[22] = 0;					\
+ 	(pr_reg)[23] = 0;					\
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-git-alsa.patch
-cyber2000fb-checkpatch-fixes.patch
+git-kvm.patch
+uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
+bitops-introduce-lock-ops.patch
