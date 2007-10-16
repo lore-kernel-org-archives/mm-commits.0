@@ -1,73 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-add-debug-message-for-adding-new-device-fix-fix.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 16:06:32 -0700
-Message-ID: <200710162306.l9GN6WIJ022448@imap1.linux-foundation.org>
+Subject: - pnp-use-dev_info-dev_err-etc-in-core-fix.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 16:05:57 -0700
+Message-ID: <200710162305.l9GN5vGd022432@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51377 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42016 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933553AbXJPXGf (ORCPT
+	by vger.kernel.org with ESMTP id S934307AbXJPXGg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 19:06:35 -0400
+	Tue, 16 Oct 2007 19:06:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bjorn.helgaas@hp.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ambx1@neo.rr.com, bjorn.helgaas@hp.com, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pnp-add-debug-message-for-adding-new-device-fix-fix
+     pnp-use-dev_info-dev_err-etc-in-core-fix
 has been removed from the -mm tree.  Its filename was
-     pnp-add-debug-message-for-adding-new-device-fix-fix.patch
+     pnp-use-dev_info-dev_err-etc-in-core-fix.patch
 
-This patch was dropped because it was folded into pnp-add-debug-message-for-adding-new-device.patch
+This patch was dropped because it was folded into pnp-use-dev_info-dev_err-etc-in-core.patch
 
 ------------------------------------------------------
-Subject: pnp-add-debug-message-for-adding-new-device-fix-fix
+Subject: pnp-use-dev_info-dev_err-etc-in-core-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-nicer?
+In file included from include/linux/isapnp.h:26,
+                 from drivers/pcmcia/i82365.c:58:
+include/linux/pnp.h:12:1: warning: "DEBUG" redefined
+<command line>:1:1: warning: this is the location of the previous definition
 
+Cc: Adam Belay <ambx1@neo.rr.com>
 Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/core.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ include/linux/pnp.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/pnp/core.c~pnp-add-debug-message-for-adding-new-device-fix-fix drivers/pnp/core.c
---- a/drivers/pnp/core.c~pnp-add-debug-message-for-adding-new-device-fix-fix
-+++ a/drivers/pnp/core.c
-@@ -141,9 +141,6 @@ int __pnp_add_device(struct pnp_dev *dev
- int pnp_add_device(struct pnp_dev *dev)
- {
- 	int ret;
+diff -puN include/linux/pnp.h~pnp-use-dev_info-dev_err-etc-in-core-fix include/linux/pnp.h
+--- a/include/linux/pnp.h~pnp-use-dev_info-dev_err-etc-in-core-fix
++++ a/include/linux/pnp.h
+@@ -8,10 +8,6 @@
+ 
+ #ifdef __KERNEL__
+ 
 -#ifdef CONFIG_PNP_DEBUG
--	struct pnp_id *id;
+-#define DEBUG
 -#endif
- 
- 	if (dev->card)
- 		return -EINVAL;
-@@ -156,11 +153,15 @@ int pnp_add_device(struct pnp_dev *dev)
- 		return ret;
- 
- #ifdef CONFIG_PNP_DEBUG
--	dev_printk(KERN_DEBUG, &dev->dev, "%s device, IDs",
--		dev->protocol->name);
--	for (id = dev->id; id; id = id->next)
--		printk(" %s", id->id);
--	printk(" (%s)\n", dev->active ? "active" : "disabled");
-+	{
-+		struct pnp_id *id;
-+
-+		dev_printk(KERN_DEBUG, &dev->dev, "%s device, IDs",
-+			dev->protocol->name);
-+		for (id = dev->id; id; id = id->next)
-+			printk(" %s", id->id);
-+		printk(" (%s)\n", dev->active ? "active" : "disabled");
-+	}
- #endif
- 	return 0;
- }
+-
+ #include <linux/device.h>
+ #include <linux/list.h>
+ #include <linux/errno.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -109,7 +94,7 @@ writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
 writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
 md-software-raid-autodetect-dev-list-not-array.patch
 pnp-use-dev_info-dev_err-etc-in-core.patch
-pnp-add-debug-message-for-adding-new-device.patch
+pnp-use-dev_info-dev_err-etc-in-core-fix.patch
 pnp-add-debug-message-for-adding-new-device-fix-fix.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
