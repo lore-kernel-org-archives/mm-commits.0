@@ -1,185 +1,360 @@
 From: akpm@linux-foundation.org
-Subject: - maps2-propagate-errors-from-callback-in-page-walker.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 14:36:18 -0700
-Message-ID: <200710162136.l9GLaIco018564@imap1.linux-foundation.org>
+Subject: - radix-tree-use-indirect-bit.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:31:24 -0700
+Message-ID: <200710162031.l9GKVOUv014498@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33453 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55095 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934310AbXJPVhC (ORCPT
+	by vger.kernel.org with ESMTP id S933745AbXJPVhC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 16 Oct 2007 17:37:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpm@selenic.com, jeremy@goop.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, a.p.zijlstra@chello.nl, hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     maps: propagate errors from callback in page walker
+     radix-tree: use indirect bit
 has been removed from the -mm tree.  Its filename was
-     maps2-propagate-errors-from-callback-in-page-walker.patch
+     radix-tree-use-indirect-bit.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: maps: propagate errors from callback in page walker
-From: Matt Mackall <mpm@selenic.com>
+Subject: radix-tree: use indirect bit
+From: Nick Piggin <npiggin@suse.de>
 
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: David Rientjes <rientjes@google.com>
+Rather than sign direct radix-tree pointers with a special bit, sign the
+indirect one that hangs off the root.  This means that, given a lookup_slot
+operation, the invalid result will be differentiated from the valid
+(previously, valid results could have the bit either set or clear).
+
+This does not affect slot lookups which occur under lock -- they can never
+return an invalid result.  Is needed in future for lockless pagecache.
+
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   57 +++++++++++++++++++++++++++----------------
- 1 file changed, 37 insertions(+), 20 deletions(-)
+ include/linux/radix-tree.h |   40 +++++++++++---------
+ lib/radix-tree.c           |   69 +++++++++++++++++++++--------------
+ 2 files changed, 65 insertions(+), 44 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~maps2-propagate-errors-from-callback-in-page-walker fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~maps2-propagate-errors-from-callback-in-page-walker
-+++ a/fs/proc/task_mmu.c
-@@ -212,8 +212,8 @@ static int show_map(struct seq_file *m, 
- 	return show_map_internal(m, v, NULL);
- }
- 
--static void smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
--			    void *private)
-+static int smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
-+			   void *private)
- {
- 	struct mem_size_stats *mss = private;
- 	struct vm_area_struct *vma = mss->vma;
-@@ -250,10 +250,11 @@ static void smaps_pte_range(pmd_t *pmd, 
- 	}
- 	pte_unmap_unlock(pte - 1, ptl);
- 	cond_resched();
-+	return 0;
- }
- 
--static void clear_refs_pte_range(pmd_t *pmd, unsigned long addr,
--				 unsigned long end, void *private)
-+static int clear_refs_pte_range(pmd_t *pmd, unsigned long addr,
-+				unsigned long end, void *private)
- {
- 	struct vm_area_struct *vma = private;
- 	pte_t *pte, ptent;
-@@ -276,40 +277,51 @@ static void clear_refs_pte_range(pmd_t *
- 	}
- 	pte_unmap_unlock(pte - 1, ptl);
- 	cond_resched();
-+	return 0;
- }
- 
--static void walk_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
--			   void (*action)(pmd_t *, unsigned long,
--					  unsigned long, void *),
--			   void *private)
-+static int walk_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
-+			  int (*action)(pmd_t *, unsigned long,
-+					unsigned long, void *),
-+			  void *private)
- {
- 	pmd_t *pmd;
- 	unsigned long next;
-+	int err;
- 
- 	for (pmd = pmd_offset(pud, addr); addr != end;
- 	     pmd++, addr = next) {
- 		next = pmd_addr_end(addr, end);
- 		if (pmd_none_or_clear_bad(pmd))
- 			continue;
--		action(pmd, addr, next, private);
-+		err = action(pmd, addr, next, private);
-+		if (err)
-+			return err;
- 	}
-+
-+	return 0;
- }
- 
--static void walk_pud_range(pgd_t *pgd, unsigned long addr, unsigned long end,
--			   void (*action)(pmd_t *, unsigned long,
--					  unsigned long, void *),
--			   void *private)
-+static int walk_pud_range(pgd_t *pgd, unsigned long addr, unsigned long end,
-+			  int (*action)(pmd_t *, unsigned long,
-+					unsigned long, void *),
-+			  void *private)
- {
- 	pud_t *pud;
- 	unsigned long next;
-+	int err;
- 
- 	for (pud = pud_offset(pgd, addr); addr != end;
- 	     pud++, addr = next) {
- 		next = pud_addr_end(addr, end);
- 		if (pud_none_or_clear_bad(pud))
- 			continue;
--		walk_pmd_range(pud, addr, next, action, private);
-+		err = walk_pmd_range(pud, addr, next, action, private);
-+		if (err)
-+			return err;
- 	}
-+
-+	return 0;
- }
+diff -puN include/linux/radix-tree.h~radix-tree-use-indirect-bit include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix-tree-use-indirect-bit
++++ a/include/linux/radix-tree.h
+@@ -26,28 +26,31 @@
+ #include <linux/rcupdate.h>
  
  /*
-@@ -323,22 +335,27 @@ static void walk_pud_range(pgd_t *pgd, u
-  * Recursively walk the page table for the memory area in a VMA, calling
-  * a callback for every bottom-level (PTE) page table.
+- * A direct pointer (root->rnode pointing directly to a data item,
+- * rather than another radix_tree_node) is signalled by the low bit
+- * set in the root->rnode pointer.
+- *
+- * In this case root->height is also NULL, but the direct pointer tests are
+- * needed for RCU lookups when root->height is unreliable.
++ * An indirect pointer (root->rnode pointing to a radix_tree_node, rather
++ * than a data item) is signalled by the low bit set in the root->rnode
++ * pointer.
++ *
++ * In this case root->height is > 0, but the indirect pointer tests are
++ * needed for RCU lookups (because root->height is unreliable). The only
++ * time callers need worry about this is when doing a lookup_slot under
++ * RCU.
   */
--static void walk_page_range(struct mm_struct *mm,
--			    unsigned long addr, unsigned long end,
--			    void (*action)(pmd_t *, unsigned long,
--					   unsigned long, void *),
--			    void *private)
-+static int walk_page_range(struct mm_struct *mm,
-+			   unsigned long addr, unsigned long end,
-+			   int (*action)(pmd_t *, unsigned long,
-+					 unsigned long, void *),
-+			   void *private)
- {
- 	pgd_t *pgd;
- 	unsigned long next;
-+	int err;
+-#define RADIX_TREE_DIRECT_PTR	1
++#define RADIX_TREE_INDIRECT_PTR	1
++#define RADIX_TREE_RETRY ((void *)-1UL)
  
- 	for (pgd = pgd_offset(mm, addr); addr != end;
- 	     pgd++, addr = next) {
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none_or_clear_bad(pgd))
- 			continue;
--		walk_pud_range(pgd, addr, next, action, private);
-+		err = walk_pud_range(pgd, addr, next, action, private);
-+		if (err)
-+			return err;
- 	}
-+
-+	return 0;
+-static inline void *radix_tree_ptr_to_direct(void *ptr)
++static inline void *radix_tree_ptr_to_indirect(void *ptr)
+ {
+-	return (void *)((unsigned long)ptr | RADIX_TREE_DIRECT_PTR);
++	return (void *)((unsigned long)ptr | RADIX_TREE_INDIRECT_PTR);
  }
  
- static int show_smap(struct seq_file *m, void *v)
+-static inline void *radix_tree_direct_to_ptr(void *ptr)
++static inline void *radix_tree_indirect_to_ptr(void *ptr)
+ {
+-	return (void *)((unsigned long)ptr & ~RADIX_TREE_DIRECT_PTR);
++	return (void *)((unsigned long)ptr & ~RADIX_TREE_INDIRECT_PTR);
+ }
+ 
+-static inline int radix_tree_is_direct_ptr(void *ptr)
++static inline int radix_tree_is_indirect_ptr(void *ptr)
+ {
+-	return (int)((unsigned long)ptr & RADIX_TREE_DIRECT_PTR);
++	return (int)((unsigned long)ptr & RADIX_TREE_INDIRECT_PTR);
+ }
+ 
+ /*** radix-tree API starts here ***/
+@@ -130,7 +133,10 @@ do {									\
+  */
+ static inline void *radix_tree_deref_slot(void **pslot)
+ {
+-	return radix_tree_direct_to_ptr(*pslot);
++	void *ret = *pslot;
++	if (unlikely(radix_tree_is_indirect_ptr(ret)))
++		ret = RADIX_TREE_RETRY;
++	return ret;
+ }
+ /**
+  * radix_tree_replace_slot	- replace item in a slot
+@@ -142,10 +148,8 @@ static inline void *radix_tree_deref_slo
+  */
+ static inline void radix_tree_replace_slot(void **pslot, void *item)
+ {
+-	BUG_ON(radix_tree_is_direct_ptr(item));
+-	rcu_assign_pointer(*pslot,
+-		(void *)((unsigned long)item |
+-			((unsigned long)*pslot & RADIX_TREE_DIRECT_PTR)));
++	BUG_ON(radix_tree_is_indirect_ptr(item));
++	rcu_assign_pointer(*pslot, item);
+ }
+ 
+ int radix_tree_insert(struct radix_tree_root *, unsigned long, void *);
+diff -puN lib/radix-tree.c~radix-tree-use-indirect-bit lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-use-indirect-bit
++++ a/lib/radix-tree.c
+@@ -104,7 +104,7 @@ radix_tree_node_alloc(struct radix_tree_
+ 			rtp->nr--;
+ 		}
+ 	}
+-	BUG_ON(radix_tree_is_direct_ptr(ret));
++	BUG_ON(radix_tree_is_indirect_ptr(ret));
+ 	return ret;
+ }
+ 
+@@ -240,7 +240,7 @@ static int radix_tree_extend(struct radi
+ 			return -ENOMEM;
+ 
+ 		/* Increase the height.  */
+-		node->slots[0] = radix_tree_direct_to_ptr(root->rnode);
++		node->slots[0] = radix_tree_indirect_to_ptr(root->rnode);
+ 
+ 		/* Propagate the aggregated tag info into the new root */
+ 		for (tag = 0; tag < RADIX_TREE_MAX_TAGS; tag++) {
+@@ -251,6 +251,7 @@ static int radix_tree_extend(struct radi
+ 		newheight = root->height+1;
+ 		node->height = newheight;
+ 		node->count = 1;
++		node = radix_tree_ptr_to_indirect(node);
+ 		rcu_assign_pointer(root->rnode, node);
+ 		root->height = newheight;
+ 	} while (height > root->height);
+@@ -274,7 +275,7 @@ int radix_tree_insert(struct radix_tree_
+ 	int offset;
+ 	int error;
+ 
+-	BUG_ON(radix_tree_is_direct_ptr(item));
++	BUG_ON(radix_tree_is_indirect_ptr(item));
+ 
+ 	/* Make sure the tree is high enough.  */
+ 	if (index > radix_tree_maxindex(root->height)) {
+@@ -283,7 +284,8 @@ int radix_tree_insert(struct radix_tree_
+ 			return error;
+ 	}
+ 
+-	slot = root->rnode;
++	slot = radix_tree_indirect_to_ptr(root->rnode);
++
+ 	height = root->height;
+ 	shift = (height-1) * RADIX_TREE_MAP_SHIFT;
+ 
+@@ -298,7 +300,8 @@ int radix_tree_insert(struct radix_tree_
+ 				rcu_assign_pointer(node->slots[offset], slot);
+ 				node->count++;
+ 			} else
+-				rcu_assign_pointer(root->rnode, slot);
++				rcu_assign_pointer(root->rnode,
++					radix_tree_ptr_to_indirect(slot));
+ 		}
+ 
+ 		/* Go a level down */
+@@ -318,7 +321,7 @@ int radix_tree_insert(struct radix_tree_
+ 		BUG_ON(tag_get(node, 0, offset));
+ 		BUG_ON(tag_get(node, 1, offset));
+ 	} else {
+-		rcu_assign_pointer(root->rnode, radix_tree_ptr_to_direct(item));
++		rcu_assign_pointer(root->rnode, item);
+ 		BUG_ON(root_tag_get(root, 0));
+ 		BUG_ON(root_tag_get(root, 1));
+ 	}
+@@ -350,11 +353,12 @@ void **radix_tree_lookup_slot(struct rad
+ 	if (node == NULL)
+ 		return NULL;
+ 
+-	if (radix_tree_is_direct_ptr(node)) {
++	if (!radix_tree_is_indirect_ptr(node)) {
+ 		if (index > 0)
+ 			return NULL;
+ 		return (void **)&root->rnode;
+ 	}
++	node = radix_tree_indirect_to_ptr(node);
+ 
+ 	height = node->height;
+ 	if (index > radix_tree_maxindex(height))
+@@ -398,11 +402,12 @@ void *radix_tree_lookup(struct radix_tre
+ 	if (node == NULL)
+ 		return NULL;
+ 
+-	if (radix_tree_is_direct_ptr(node)) {
++	if (!radix_tree_is_indirect_ptr(node)) {
+ 		if (index > 0)
+ 			return NULL;
+-		return radix_tree_direct_to_ptr(node);
++		return node;
+ 	}
++	node = radix_tree_indirect_to_ptr(node);
+ 
+ 	height = node->height;
+ 	if (index > radix_tree_maxindex(height))
+@@ -447,7 +452,7 @@ void *radix_tree_tag_set(struct radix_tr
+ 	height = root->height;
+ 	BUG_ON(index > radix_tree_maxindex(height));
+ 
+-	slot = root->rnode;
++	slot = radix_tree_indirect_to_ptr(root->rnode);
+ 	shift = (height - 1) * RADIX_TREE_MAP_SHIFT;
+ 
+ 	while (height > 0) {
+@@ -497,7 +502,7 @@ void *radix_tree_tag_clear(struct radix_
+ 
+ 	shift = (height - 1) * RADIX_TREE_MAP_SHIFT;
+ 	pathp->node = NULL;
+-	slot = root->rnode;
++	slot = radix_tree_indirect_to_ptr(root->rnode);
+ 
+ 	while (height > 0) {
+ 		int offset;
+@@ -562,8 +567,9 @@ int radix_tree_tag_get(struct radix_tree
+ 	if (node == NULL)
+ 		return 0;
+ 
+-	if (radix_tree_is_direct_ptr(node))
++	if (!radix_tree_is_indirect_ptr(node))
+ 		return (index == 0);
++	node = radix_tree_indirect_to_ptr(node);
+ 
+ 	height = node->height;
+ 	if (index > radix_tree_maxindex(height))
+@@ -716,13 +722,13 @@ radix_tree_gang_lookup(struct radix_tree
+ 	if (!node)
+ 		return 0;
+ 
+-	if (radix_tree_is_direct_ptr(node)) {
++	if (!radix_tree_is_indirect_ptr(node)) {
+ 		if (first_index > 0)
+ 			return 0;
+-		node = radix_tree_direct_to_ptr(node);
+-		results[0] = rcu_dereference(node);
++		results[0] = node;
+ 		return 1;
+ 	}
++	node = radix_tree_indirect_to_ptr(node);
+ 
+ 	max_index = radix_tree_maxindex(node->height);
+ 
+@@ -844,13 +850,13 @@ radix_tree_gang_lookup_tag(struct radix_
+ 	if (!node)
+ 		return 0;
+ 
+-	if (radix_tree_is_direct_ptr(node)) {
++	if (!radix_tree_is_indirect_ptr(node)) {
+ 		if (first_index > 0)
+ 			return 0;
+-		node = radix_tree_direct_to_ptr(node);
+-		results[0] = rcu_dereference(node);
++		results[0] = node;
+ 		return 1;
+ 	}
++	node = radix_tree_indirect_to_ptr(node);
+ 
+ 	max_index = radix_tree_maxindex(node->height);
+ 
+@@ -880,12 +886,22 @@ EXPORT_SYMBOL(radix_tree_gang_lookup_tag
+ static inline void radix_tree_shrink(struct radix_tree_root *root)
+ {
+ 	/* try to shrink tree height */
+-	while (root->height > 0 &&
+-			root->rnode->count == 1 &&
+-			root->rnode->slots[0]) {
++	while (root->height > 0) {
+ 		struct radix_tree_node *to_free = root->rnode;
+ 		void *newptr;
+ 
++		BUG_ON(!radix_tree_is_indirect_ptr(to_free));
++		to_free = radix_tree_indirect_to_ptr(to_free);
++
++		/*
++		 * The candidate node has more than one child, or its child
++		 * is not at the leftmost slot, we cannot shrink.
++		 */
++		if (to_free->count != 1)
++			break;
++		if (!to_free->slots[0])
++			break;
++
+ 		/*
+ 		 * We don't need rcu_assign_pointer(), since we are simply
+ 		 * moving the node from one part of the tree to another. If
+@@ -894,8 +910,8 @@ static inline void radix_tree_shrink(str
+ 		 * one (root->rnode).
+ 		 */
+ 		newptr = to_free->slots[0];
+-		if (root->height == 1)
+-			newptr = radix_tree_ptr_to_direct(newptr);
++		if (root->height > 1)
++			newptr = radix_tree_ptr_to_indirect(newptr);
+ 		root->rnode = newptr;
+ 		root->height--;
+ 		/* must only free zeroed nodes into the slab */
+@@ -930,12 +946,12 @@ void *radix_tree_delete(struct radix_tre
+ 		goto out;
+ 
+ 	slot = root->rnode;
+-	if (height == 0 && root->rnode) {
+-		slot = radix_tree_direct_to_ptr(slot);
++	if (height == 0) {
+ 		root_tag_clear_all(root);
+ 		root->rnode = NULL;
+ 		goto out;
+ 	}
++	slot = radix_tree_indirect_to_ptr(slot);
+ 
+ 	shift = (height - 1) * RADIX_TREE_MAP_SHIFT;
+ 	pathp->node = NULL;
+@@ -977,7 +993,8 @@ void *radix_tree_delete(struct radix_tre
+ 			radix_tree_node_free(to_free);
+ 
+ 		if (pathp->node->count) {
+-			if (pathp->node == root->rnode)
++			if (pathp->node ==
++					radix_tree_indirect_to_ptr(root->rnode))
+ 				radix_tree_shrink(root);
+ 			goto out;
+ 		}
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-return-length-calculation.patch
-maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-end-address-calculation.patch
-maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-header-copy-to-userspace.patch
-maps2-add-proc-kpagemap-interface.patch
-mmaps2-vma-out-of-mem_size_stats.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-maps-pssproportional-set-size-accounting-in-smaps.patch
-lib-sortc-optimization.patch
-sparse-pointer-use-of-zero-as-null.patch
-sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+mm-document-tree_lock-zonelock-lockorder.patch
+fs-reiserfs-cleanups.patch
+atomic_opstxt-has-incorrect-misleading-and-insufficient-information.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+bitops-introduce-lock-ops.patch
+alpha-fix-bitops.patch
+alpha-lock-bitops.patch
+alpha-lock-bitops-fix.patch
+ia64-lock-bitops.patch
+mips-fix-bitops.patch
+mips-lock-bitops.patch
+powerpc-lock-bitops.patch
+powerpc-lock-bitops-fix.patch
+bit_spin_lock-use-lock-bitops.patch
+reiser4-fix-for-new-aops-patches.patch
