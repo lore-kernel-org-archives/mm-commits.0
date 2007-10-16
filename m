@@ -1,69 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - pm3fb-replace-busy-waiting-with-cpu_relax.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:44:29 -0700
-Message-ID: <200710162044.l9GKiTN8016150@imap1.linux-foundation.org>
+Subject: - uml-fix-an-ipv6-libc-vs-kernel-symbol-clash.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:37:00 -0700
+Message-ID: <200710162037.l9GKb0eb015243@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52510 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39027 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935858AbXJPVHd (ORCPT
+	by vger.kernel.org with ESMTP id S935105AbXJPVHd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 16 Oct 2007 17:07:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm3fb: replace busy waiting with cpu_relax
+     uml: fix an IPV6 libc vs kernel symbol clash
 has been removed from the -mm tree.  Its filename was
-     pm3fb-replace-busy-waiting-with-cpu_relax.patch
+     uml-fix-an-ipv6-libc-vs-kernel-symbol-clash.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pm3fb: replace busy waiting with cpu_relax
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: uml: fix an IPV6 libc vs kernel symbol clash
+From: Jeff Dike <jdike@addtoit.com>
 
-This patch replaces busy waiting with the cpu_relax() call.  This makes
-scrolling faster.
+On some systems, with IPV6 configured, there is a clash between the kernel's
+in6addr_any and the one in libc.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+This is handled in the usual (gross) way of defining the kernel symbol out of
+the way on the gcc command line.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pm3fb.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ arch/um/Makefile |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/pm3fb.c~pm3fb-replace-busy-waiting-with-cpu_relax drivers/video/pm3fb.c
---- a/drivers/video/pm3fb.c~pm3fb-replace-busy-waiting-with-cpu_relax
-+++ a/drivers/video/pm3fb.c
-@@ -110,7 +110,8 @@ static inline void PM3_WRITE_REG(struct 
+diff -puN arch/um/Makefile~uml-fix-an-ipv6-libc-vs-kernel-symbol-clash arch/um/Makefile
+--- a/arch/um/Makefile~uml-fix-an-ipv6-libc-vs-kernel-symbol-clash
++++ a/arch/um/Makefile
+@@ -60,7 +60,8 @@ SYS_DIR		:= $(ARCH_DIR)/include/sysdep-$
  
- static inline void PM3_WAIT(struct pm3_par *par, u32 n)
- {
--	while (PM3_READ_REG(par, PM3InFIFOSpace) < n);
-+	while (PM3_READ_REG(par, PM3InFIFOSpace) < n)
-+		cpu_relax();
- }
+ CFLAGS += $(CFLAGS-y) -D__arch_um__ -DSUBARCH=\"$(SUBARCH)\"	\
+ 	$(ARCH_INCLUDE) $(MODE_INCLUDE) -Dvmap=kernel_vmap	\
+-	-Din6addr_loopback=kernel_in6addr_loopback
++	-Din6addr_loopback=kernel_in6addr_loopback \
++	-Din6addr_any=kernel_in6addr_any
  
- static inline void PM3_WRITE_DAC_REG(struct pm3_par *par, unsigned r, u8 v)
-@@ -209,8 +210,8 @@ static int pm3fb_sync(struct fb_info *in
- 	PM3_WRITE_REG(par, PM3Sync, 0);
- 	mb();
- 	do {
--		while ((PM3_READ_REG(par, PM3OutFIFOWords)) == 0);
--		rmb();
-+		while ((PM3_READ_REG(par, PM3OutFIFOWords)) == 0)
-+			cpu_relax();
- 	} while ((PM3_READ_REG(par, PM3OutputFifo)) != PM3Sync_Tag);
+ AFLAGS += $(ARCH_INCLUDE)
  
- 	return 0;
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-git-alsa.patch
-cyber2000fb-checkpatch-fixes.patch
+git-kvm.patch
+uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
+bitops-introduce-lock-ops.patch
