@@ -1,1091 +1,823 @@
 From: akpm@linux-foundation.org
-Subject: - s3c2410fb-multi-display-support.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:43:08 -0700
-Message-ID: <200710162043.l9GKh8mX016018@imap1.linux-foundation.org>
+Subject: - uml-remove-os_-usage-from-userspace-files.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:37:52 -0700
+Message-ID: <200710162037.l9GKbqJf015323@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55361 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43048 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934697AbXJPVUJ (ORCPT
+	by vger.kernel.org with ESMTP id S965758AbXJPVUE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:20:09 -0400
+	Tue, 16 Oct 2007 17:20:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s3c2410fb: multi-display support
+     uml: remove os_* usage from userspace files
 has been removed from the -mm tree.  Its filename was
-     s3c2410fb-multi-display-support.patch
+     uml-remove-os_-usage-from-userspace-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: s3c2410fb: multi-display support
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: uml: remove os_* usage from userspace files
+From: Jeff Dike <jdike@addtoit.com>
 
-This patch adds a new structure to describe and handle
-more than one panel (display mode) for the s3c2410 framebuffer.
-This structure is added after the pxafb driver.
+This patch fixes some userspace files which were calling libc through the os_*
+wrappers.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+It turns out that there was only one user of os_new_tty_pgrp, so it can be
+deleted.
+
+There are also some style and whitespace fixes in here.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-s3c2410/mach-amlm5900.c |   49 +---
- arch/arm/mach-s3c2410/mach-bast.c     |  185 ++++++++++++++--
- arch/arm/mach-s3c2410/mach-h1940.c    |   26 +-
- arch/arm/mach-s3c2410/mach-qt2410.c   |  264 ++++++++++--------------
- arch/arm/mach-s3c2440/mach-rx3715.c   |   38 +--
- arch/arm/mach-s3c2440/mach-smdk2440.c |   41 +--
- drivers/video/s3c2410fb.c             |   85 ++++---
- drivers/video/s3c2410fb.h             |    2 
- include/asm-arm/arch-s3c2410/fb.h     |   33 +--
- 9 files changed, 407 insertions(+), 316 deletions(-)
+ arch/um/drivers/chan_user.c            |   37 +++--
+ arch/um/drivers/harddog_user.c         |   54 ++++----
+ arch/um/include/mconsole.h             |   13 -
+ arch/um/include/os.h                   |    1 
+ arch/um/include/sysdep-i386/ptrace.h   |    3 
+ arch/um/include/sysdep-x86_64/ptrace.h |  152 +++++++++++------------
+ arch/um/kernel/skas/uaccess.c          |  134 +++++++++-----------
+ arch/um/os-Linux/file.c                |   11 -
+ 8 files changed, 186 insertions(+), 219 deletions(-)
 
-diff -puN arch/arm/mach-s3c2410/mach-amlm5900.c~s3c2410fb-multi-display-support arch/arm/mach-s3c2410/mach-amlm5900.c
---- a/arch/arm/mach-s3c2410/mach-amlm5900.c~s3c2410fb-multi-display-support
-+++ a/arch/arm/mach-s3c2410/mach-amlm5900.c
-@@ -168,13 +168,32 @@ static void __init amlm5900_map_io(void)
- }
+diff -puN arch/um/drivers/chan_user.c~uml-remove-os_-usage-from-userspace-files arch/um/drivers/chan_user.c
+--- a/arch/um/drivers/chan_user.c~uml-remove-os_-usage-from-userspace-files
++++ a/arch/um/drivers/chan_user.c
+@@ -134,12 +134,12 @@ static int winch_thread(void *arg)
+ 	struct winch_data *data = arg;
+ 	sigset_t sigs;
+ 	int pty_fd, pipe_fd;
+-	int count, err;
++	int count;
+ 	char c = 1;
  
- #ifdef CONFIG_FB_S3C2410
--static struct s3c2410fb_mach_info __initdata amlm5900_lcd_info = {
-+static struct s3c2410fb_display __initdata amlm5900_lcd_info = {
- 	.width		= 160,
- 	.height		= 160,
- 
- /* commented out until stn patch is submitted
- *	.type		= S3C2410_LCDCON1_STN4,
- */
-+	.xres		= 160,
-+	.yres		= 160,
-+	.bpp		= 4,
-+
-+	.regs		= {
-+		.lcdcon1	= 0x00008225,
-+		.lcdcon2	= 0x0027c000,
-+		.lcdcon3	= 0x00182708,
-+		.lcdcon4	= 0x00000002,
-+		.lcdcon5	= 0x00000001,
-+	}
-+};
-+
-+static struct s3c2410fb_mach_info __initdata amlm5900_fb_info = {
-+
-+	.displays = &amlm5900_lcd_info,
-+	.num_displays = 1,
-+	.default_display = 0,
-+
- 	.gpccon =	0xaaaaaaaa,
- 	.gpccon_mask =	0xffffffff,
- 	.gpcup =	0x0000ffff,
-@@ -184,32 +203,6 @@ static struct s3c2410fb_mach_info __init
- 	.gpdcon_mask =	0xffffffff,
- 	.gpdup =	0x0000ffff,
- 	.gpdup_mask =	0xffffffff,
--
--	.xres		= {
--		.min		= 160,
--		.max		= 160,
--		.defval		= 160,
--	},
--
--	.yres		= {
--		.min		= 160,
--		.max	        = 160,
--		.defval		= 160,
--	},
--
--	.bpp		= {
--		.min		= 4,
--		.max		= 4,
--		.defval		= 4,
--	},
--
--	.regs		= {
--		.lcdcon1	= 0x00008225,
--		.lcdcon2	= 0x0027c000,
--		.lcdcon3	= 0x00182708,
--		.lcdcon4	= 0x00000002,
--		.lcdcon5	= 0x00000001,
--	}
- };
- #endif
- 
-@@ -239,7 +232,7 @@ static void __init amlm5900_init(void)
- {
- 	amlm5900_init_pm();
- #ifdef CONFIG_FB_S3C2410
--	s3c24xx_fb_set_platdata(&amlm5900_lcd_info);
-+	s3c24xx_fb_set_platdata(&amlm5900_fb_info);
- #endif
- 	platform_add_devices(amlm5900_devices, ARRAY_SIZE(amlm5900_devices));
- }
-diff -puN arch/arm/mach-s3c2410/mach-bast.c~s3c2410fb-multi-display-support arch/arm/mach-s3c2410/mach-bast.c
---- a/arch/arm/mach-s3c2410/mach-bast.c~s3c2410fb-multi-display-support
-+++ a/arch/arm/mach-s3c2410/mach-bast.c
-@@ -467,35 +467,160 @@ static struct platform_device bast_devic
- 
- /* LCD/VGA controller */
- 
--static struct s3c2410fb_mach_info __initdata bast_lcd_info = {
--	.width		= 640,
--	.height		= 480,
--
--	.xres		= {
--		.min		= 320,
--		.max		= 1024,
--		.defval		= 640,
--	},
--
--	.yres		= {
--		.min		= 240,
--		.max	        = 600,
--		.defval		= 480,
--	},
--
--	.bpp		= {
--		.min		= 4,
--		.max		= 16,
--		.defval		= 8,
--	},
--
--	.regs		= {
--		.lcdcon1	= 0x00000176,
--		.lcdcon2	= 0x1d77c7c2,
--		.lcdcon3	= 0x013a7f13,
--		.lcdcon4	= 0x00000057,
--		.lcdcon5	= 0x00014b02,
--	}
-+static struct s3c2410fb_display __initdata bast_lcd_info[] = {
-+	{
-+		.width		= 640,
-+		.height		= 480,
-+		.xres		= 320,
-+		.yres		= 240,
-+
-+		.bpp		= 4,
-+
-+		.regs		= {
-+			.lcdcon1	= 0x00000176,
-+			.lcdcon2	= 0x1d77c7c2,
-+			.lcdcon3	= 0x013a7f13,
-+			.lcdcon4	= 0x00000057,
-+			.lcdcon5	= 0x00014b02,
-+		}
-+	},
-+	{
-+		.width		= 640,
-+		.height		= 480,
-+
-+		.xres		= 640,
-+		.yres		= 480,
-+		.bpp		= 4,
-+
-+		.regs		= {
-+			.lcdcon1	= 0x00000176,
-+			.lcdcon2	= 0x1d77c7c2,
-+			.lcdcon3	= 0x013a7f13,
-+			.lcdcon4	= 0x00000057,
-+			.lcdcon5	= 0x00014b02,
-+		}
-+	},
-+	{
-+		.width		= 640,
-+		.height		= 480,
-+
-+		.xres		= 800,
-+		.yres		= 600,
-+		.bpp		= 4,
-+
-+		.regs		= {
-+			.lcdcon1	= 0x00000176,
-+			.lcdcon2	= 0x1d77c7c2,
-+			.lcdcon3	= 0x013a7f13,
-+			.lcdcon4	= 0x00000057,
-+			.lcdcon5	= 0x00014b02,
-+		}
-+	},
-+	{
-+		.width		= 640,
-+		.height		= 480,
-+
-+		.xres		= 320,
-+		.yres		= 240,
-+		.bpp		= 8,
-+
-+		.regs		= {
-+			.lcdcon1	= 0x00000176,
-+			.lcdcon2	= 0x1d77c7c2,
-+			.lcdcon3	= 0x013a7f13,
-+			.lcdcon4	= 0x00000057,
-+			.lcdcon5	= 0x00014b02,
-+		}
-+	},
-+	{
-+		.width		= 640,
-+		.height		= 480,
-+
-+		.xres		= 640,
-+		.yres		= 480,
-+		.bpp		= 8,
-+
-+		.regs		= {
-+			.lcdcon1	= 0x00000176,
-+			.lcdcon2	= 0x1d77c7c2,
-+			.lcdcon3	= 0x013a7f13,
-+			.lcdcon4	= 0x00000057,
-+			.lcdcon5	= 0x00014b02,
-+		}
-+	},
-+	{
-+		.width		= 640,
-+		.height		= 480,
-+
-+		.xres		= 800,
-+		.yres		= 600,
-+		.bpp		= 8,
-+
-+		.regs		= {
-+			.lcdcon1	= 0x00000176,
-+			.lcdcon2	= 0x1d77c7c2,
-+			.lcdcon3	= 0x013a7f13,
-+			.lcdcon4	= 0x00000057,
-+			.lcdcon5	= 0x00014b02,
-+		}
-+	},
-+	{
-+		.width		= 640,
-+		.height		= 480,
-+
-+		.xres		= 320,
-+		.yres		= 240,
-+		.bpp		= 16,
-+
-+		.regs		= {
-+			.lcdcon1	= 0x00000176,
-+			.lcdcon2	= 0x1d77c7c2,
-+			.lcdcon3	= 0x013a7f13,
-+			.lcdcon4	= 0x00000057,
-+			.lcdcon5	= 0x00014b02,
-+		}
-+	},
-+	{
-+		.width		= 640,
-+		.height		= 480,
-+
-+		.xres		= 640,
-+		.yres		= 480,
-+		.bpp		= 16,
-+
-+		.regs		= {
-+			.lcdcon1	= 0x00000176,
-+			.lcdcon2	= 0x1d77c7c2,
-+			.lcdcon3	= 0x013a7f13,
-+			.lcdcon4	= 0x00000057,
-+			.lcdcon5	= 0x00014b02,
-+		}
-+	},
-+	{
-+		.width		= 640,
-+		.height		= 480,
-+
-+		.xres		= 800,
-+		.yres		= 600,
-+		.bpp		= 16,
-+
-+		.regs		= {
-+			.lcdcon1	= 0x00000176,
-+			.lcdcon2	= 0x1d77c7c2,
-+			.lcdcon3	= 0x013a7f13,
-+			.lcdcon4	= 0x00000057,
-+			.lcdcon5	= 0x00014b02,
-+		}
-+	},
-+};
-+
-+/* LCD/VGA controller */
-+
-+static struct s3c2410fb_mach_info __initdata bast_fb_info = {
-+
-+	.displays = bast_lcd_info,
-+	.num_displays = ARRAY_SIZE(bast_lcd_info),
-+	.default_display = 4,
- };
- 
- /* Standard BAST devices */
-@@ -552,7 +677,7 @@ static void __init bast_map_io(void)
- 
- static void __init bast_init(void)
- {
--	s3c24xx_fb_set_platdata(&bast_lcd_info);
-+	s3c24xx_fb_set_platdata(&bast_fb_info);
- 	platform_add_devices(bast_devices, ARRAY_SIZE(bast_devices));
- }
- 
-diff -puN arch/arm/mach-s3c2410/mach-h1940.c~s3c2410fb-multi-display-support arch/arm/mach-s3c2410/mach-h1940.c
---- a/arch/arm/mach-s3c2410/mach-h1940.c~s3c2410fb-multi-display-support
-+++ a/arch/arm/mach-s3c2410/mach-h1940.c
-@@ -133,8 +133,7 @@ static struct s3c2410_udc_mach_info h194
- /**
-  * Set lcd on or off
-  **/
--static struct s3c2410fb_mach_info h1940_lcdcfg __initdata = {
--	.fixed_syncs=		1,
-+static struct s3c2410fb_display h1940_lcd __initdata = {
- 	.regs={
- 		.lcdcon1=	S3C2410_LCDCON1_TFT16BPP | \
- 				S3C2410_LCDCON1_TFT | \
-@@ -156,6 +155,21 @@ static struct s3c2410fb_mach_info h1940_
- 				S3C2410_LCDCON5_INVVLINE | \
- 				S3C2410_LCDCON5_HWSWP,
- 	},
-+
-+	.width =	240,
-+	.height =	320,
-+	.xres =		240,
-+	.yres =		320,
-+	.bpp =		16,
-+};
-+
-+static struct s3c2410fb_mach_info h1940_fb_info __initdata = {
-+	.fixed_syncs =		1,
-+
-+	.displays = &h1940_lcd,
-+	.num_displays = 1,
-+	.default_display = 0,
-+
- 	.lpcsel=	0x02,
- 	.gpccon=	0xaa940659,
- 	.gpccon_mask=	0xffffffff,
-@@ -165,12 +179,6 @@ static struct s3c2410fb_mach_info h1940_
- 	.gpdcon_mask=	0xffffffff,
- 	.gpdup=		0x0000faff,
- 	.gpdup_mask=	0xffffffff,
--
--	.width=		240,
--	.height=	320,
--	.xres=		{240,240,240},
--	.yres=		{320,320,320},
--	.bpp=		{16,16,16},
- };
- 
- static struct platform_device s3c_device_leds = {
-@@ -217,7 +225,7 @@ static void __init h1940_init(void)
- {
- 	u32 tmp;
- 
--	s3c24xx_fb_set_platdata(&h1940_lcdcfg);
-+	s3c24xx_fb_set_platdata(&h1940_fb_info);
-  	s3c24xx_udc_set_platdata(&h1940_udc_cfg);
- 
- 	/* Turn off suspend on both USB ports, and switch the
-diff -puN arch/arm/mach-s3c2410/mach-qt2410.c~s3c2410fb-multi-display-support arch/arm/mach-s3c2410/mach-qt2410.c
---- a/arch/arm/mach-s3c2410/mach-qt2410.c~s3c2410fb-multi-display-support
-+++ a/arch/arm/mach-s3c2410/mach-qt2410.c
-@@ -95,157 +95,116 @@ static struct s3c2410_uartcfg smdk2410_u
- 
- /* LCD driver info */
- 
--/* Configuration for 640x480 SHARP LQ080V3DG01 */
--static struct s3c2410fb_mach_info qt2410_biglcd_cfg __initdata = {
--	.regs	= {
--
--		.lcdcon1	= S3C2410_LCDCON1_TFT16BPP |
--				  S3C2410_LCDCON1_TFT |
--				  S3C2410_LCDCON1_CLKVAL(0x01),	/* HCLK/4 */
--
--		.lcdcon2	= S3C2410_LCDCON2_VBPD(18) |	/* 19 */
--				  S3C2410_LCDCON2_LINEVAL(479) |
--				  S3C2410_LCDCON2_VFPD(10) |	/* 11 */
--				  S3C2410_LCDCON2_VSPW(14),	/* 15 */
--
--		.lcdcon3	= S3C2410_LCDCON3_HBPD(43) |	/* 44 */
--				  S3C2410_LCDCON3_HOZVAL(639) |	/* 640 */
--				  S3C2410_LCDCON3_HFPD(115),	/* 116 */
--
--		.lcdcon4	= S3C2410_LCDCON4_MVAL(0) |
--				  S3C2410_LCDCON4_HSPW(95),	/* 96 */
--
--		.lcdcon5	= S3C2410_LCDCON5_FRM565 |
--				  S3C2410_LCDCON5_INVVLINE |
--				  S3C2410_LCDCON5_INVVFRAME |
--				  S3C2410_LCDCON5_PWREN |
--				  S3C2410_LCDCON5_HWSWP,
--	},
--
--	.lpcsel		= ((0xCE6) & ~7) | 1<<4,
--
--	.width		= 640,
--	.height		= 480,
--
--	.xres		= {
--		.min	= 640,
--		.max	= 640,
--		.defval	= 640,
--	},
--
--	.yres		= {
--		.min	= 480,
--		.max	= 480,
--		.defval = 480,
--	},
--
--	.bpp		= {
--		.min	= 16,
--		.max	= 16,
--		.defval = 16,
--	},
--};
--
--/* Configuration for 480x640 toppoly TD028TTEC1 */
--static struct s3c2410fb_mach_info qt2410_prodlcd_cfg __initdata = {
--	.regs	= {
--
--		.lcdcon1	= S3C2410_LCDCON1_TFT16BPP |
--				  S3C2410_LCDCON1_TFT |
--				  S3C2410_LCDCON1_CLKVAL(0x01),	/* HCLK/4 */
--
--		.lcdcon2	= S3C2410_LCDCON2_VBPD(1) |	/* 2 */
--				  S3C2410_LCDCON2_LINEVAL(639) |/* 640 */
--				  S3C2410_LCDCON2_VFPD(3) |	/* 4 */
--				  S3C2410_LCDCON2_VSPW(1),	/* 2 */
--
--		.lcdcon3	= S3C2410_LCDCON3_HBPD(7) |	/* 8 */
--				  S3C2410_LCDCON3_HOZVAL(479) |	/* 479 */
--				  S3C2410_LCDCON3_HFPD(23),	/* 24 */
--
--		.lcdcon4	= S3C2410_LCDCON4_MVAL(0) |
--				  S3C2410_LCDCON4_HSPW(7),	/* 8 */
--
--		.lcdcon5	= S3C2410_LCDCON5_FRM565 |
--				  S3C2410_LCDCON5_INVVLINE |
--				  S3C2410_LCDCON5_INVVFRAME |
--				  S3C2410_LCDCON5_PWREN |
--				  S3C2410_LCDCON5_HWSWP,
--	},
--
--	.lpcsel		= ((0xCE6) & ~7) | 1<<4,
--
--	.width		= 480,
--	.height		= 640,
--
--	.xres		= {
--		.min	= 480,
--		.max	= 480,
--		.defval	= 480,
--	},
--
--	.yres		= {
--		.min	= 640,
--		.max	= 640,
--		.defval = 640,
--	},
--
--	.bpp		= {
--		.min	= 16,
--		.max	= 16,
--		.defval = 16,
--	},
--};
--
--/* Config for 240x320 LCD */
--static struct s3c2410fb_mach_info qt2410_lcd_cfg __initdata = {
--	.regs	= {
--
--		.lcdcon1	= S3C2410_LCDCON1_TFT16BPP |
--				  S3C2410_LCDCON1_TFT |
--				  S3C2410_LCDCON1_CLKVAL(0x04),
--
--		.lcdcon2	= S3C2410_LCDCON2_VBPD(1) |
--				  S3C2410_LCDCON2_LINEVAL(319) |
--				  S3C2410_LCDCON2_VFPD(6) |
--				  S3C2410_LCDCON2_VSPW(3),
--
--		.lcdcon3	= S3C2410_LCDCON3_HBPD(12) |
--				  S3C2410_LCDCON3_HOZVAL(239) |
--				  S3C2410_LCDCON3_HFPD(7),
--
--		.lcdcon4	= S3C2410_LCDCON4_MVAL(0) |
--				  S3C2410_LCDCON4_HSPW(3),
--
--		.lcdcon5	= S3C2410_LCDCON5_FRM565 |
--				  S3C2410_LCDCON5_INVVLINE |
--				  S3C2410_LCDCON5_INVVFRAME |
--				  S3C2410_LCDCON5_PWREN |
--				  S3C2410_LCDCON5_HWSWP,
--	},
-+static struct s3c2410fb_display qt2410_lcd_cfg[] __initdata = {
-+	{
-+		/* Configuration for 640x480 SHARP LQ080V3DG01 */
-+		.regs	= {
-+
-+			.lcdcon1 = S3C2410_LCDCON1_TFT16BPP |
-+				   S3C2410_LCDCON1_TFT |
-+				   S3C2410_LCDCON1_CLKVAL(0x01), /* HCLK/4 */
-+
-+			.lcdcon2 = S3C2410_LCDCON2_VBPD(18) |	/* 19 */
-+				   S3C2410_LCDCON2_LINEVAL(479) |
-+				   S3C2410_LCDCON2_VFPD(10) |	/* 11 */
-+				   S3C2410_LCDCON2_VSPW(14),	/* 15 */
-+
-+			.lcdcon3 = S3C2410_LCDCON3_HBPD(43) |	/* 44 */
-+				   S3C2410_LCDCON3_HOZVAL(639) | /* 640 */
-+				   S3C2410_LCDCON3_HFPD(115),	/* 116 */
-+
-+			.lcdcon4 = S3C2410_LCDCON4_MVAL(0) |
-+				   S3C2410_LCDCON4_HSPW(95),	/* 96 */
-+
-+			.lcdcon5 = S3C2410_LCDCON5_FRM565 |
-+				   S3C2410_LCDCON5_INVVLINE |
-+				   S3C2410_LCDCON5_INVVFRAME |
-+				   S3C2410_LCDCON5_PWREN |
-+				   S3C2410_LCDCON5_HWSWP,
-+		},
-+
-+		.width		= 640,
-+		.height		= 480,
-+
-+		.xres		= 640,
-+		.yres		= 480,
-+		.bpp		= 16,
-+	},
-+	{
-+		/* Configuration for 480x640 toppoly TD028TTEC1 */
-+		.regs	= {
-+
-+			.lcdcon1 = S3C2410_LCDCON1_TFT16BPP |
-+				   S3C2410_LCDCON1_TFT |
-+				   S3C2410_LCDCON1_CLKVAL(0x01), /* HCLK/4 */
-+
-+			.lcdcon2 = S3C2410_LCDCON2_VBPD(1) |	/* 2 */
-+				   S3C2410_LCDCON2_LINEVAL(639) |/* 640 */
-+				   S3C2410_LCDCON2_VFPD(3) |	/* 4 */
-+				   S3C2410_LCDCON2_VSPW(1),	/* 2 */
-+
-+			.lcdcon3 = S3C2410_LCDCON3_HBPD(7) |	/* 8 */
-+				   S3C2410_LCDCON3_HOZVAL(479) | /* 479 */
-+				   S3C2410_LCDCON3_HFPD(23),	/* 24 */
-+
-+			.lcdcon4 = S3C2410_LCDCON4_MVAL(0) |
-+				   S3C2410_LCDCON4_HSPW(7),	/* 8 */
-+
-+			.lcdcon5 = S3C2410_LCDCON5_FRM565 |
-+				   S3C2410_LCDCON5_INVVLINE |
-+				   S3C2410_LCDCON5_INVVFRAME |
-+				   S3C2410_LCDCON5_PWREN |
-+				   S3C2410_LCDCON5_HWSWP,
-+		},
-+
-+		.width		= 480,
-+		.height		= 640,
-+		.xres		= 480,
-+		.yres		= 640,
-+		.bpp		= 16,
-+	},
-+	{
-+		/* Config for 240x320 LCD */
-+		.regs	= {
-+
-+			.lcdcon1 = S3C2410_LCDCON1_TFT16BPP |
-+				   S3C2410_LCDCON1_TFT |
-+				   S3C2410_LCDCON1_CLKVAL(0x04),
-+
-+			.lcdcon2 = S3C2410_LCDCON2_VBPD(1) |
-+				   S3C2410_LCDCON2_LINEVAL(319) |
-+				   S3C2410_LCDCON2_VFPD(6) |
-+				   S3C2410_LCDCON2_VSPW(3),
-+
-+			.lcdcon3 = S3C2410_LCDCON3_HBPD(12) |
-+				   S3C2410_LCDCON3_HOZVAL(239) |
-+				   S3C2410_LCDCON3_HFPD(7),
-+
-+			.lcdcon4 = S3C2410_LCDCON4_MVAL(0) |
-+				   S3C2410_LCDCON4_HSPW(3),
-+
-+			.lcdcon5 = S3C2410_LCDCON5_FRM565 |
-+				   S3C2410_LCDCON5_INVVLINE |
-+				   S3C2410_LCDCON5_INVVFRAME |
-+				   S3C2410_LCDCON5_PWREN |
-+				   S3C2410_LCDCON5_HWSWP,
-+		},
-+
-+		.width		= 240,
-+		.height		= 320,
-+		.xres		= 240,
-+		.yres		= 320,
-+		.bpp		= 16,
-+	},
-+};
-+
-+
-+static struct s3c2410fb_mach_info qt2410_fb_info __initdata = {
-+	.displays 	= qt2410_lcd_cfg,
-+	.num_displays 	= ARRAY_SIZE(qt2410_lcd_cfg),
-+	.default_display = 0,
- 
- 	.lpcsel		= ((0xCE6) & ~7) | 1<<4,
--
--	.width		= 240,
--	.height		= 320,
--
--	.xres		= {
--		.min	= 240,
--		.max	= 240,
--		.defval	= 240,
--	},
--
--	.yres		= {
--		.min	= 320,
--		.max	= 320,
--		.defval = 320,
--	},
--
--	.bpp		= {
--		.min	= 16,
--		.max	= 16,
--		.defval = 16,
--	},
- };
- 
- /* CS8900 */
-@@ -408,16 +367,17 @@ static void __init qt2410_machine_init(v
- 
- 	switch (tft_type) {
- 	case 'p': /* production */
--		s3c24xx_fb_set_platdata(&qt2410_prodlcd_cfg);
-+		qt2410_fb_info.default_display = 1;
- 		break;
- 	case 'b': /* big */
--		s3c24xx_fb_set_platdata(&qt2410_biglcd_cfg);
-+		qt2410_fb_info.default_display = 0;
- 		break;
- 	case 's': /* small */
- 	default:
--		s3c24xx_fb_set_platdata(&qt2410_lcd_cfg);
-+		qt2410_fb_info.default_display = 2;
- 		break;
- 	}
-+	s3c24xx_fb_set_platdata(&qt2410_fb_info);
- 
- 	s3c2410_gpio_cfgpin(S3C2410_GPB0, S3C2410_GPIO_OUTPUT);
- 	s3c2410_gpio_setpin(S3C2410_GPB0, 1);
-diff -puN arch/arm/mach-s3c2440/mach-rx3715.c~s3c2410fb-multi-display-support arch/arm/mach-s3c2440/mach-rx3715.c
---- a/arch/arm/mach-s3c2440/mach-rx3715.c~s3c2410fb-multi-display-support
-+++ a/arch/arm/mach-s3c2440/mach-rx3715.c
-@@ -110,7 +110,7 @@ static struct s3c2410_uartcfg rx3715_uar
- 
- /* framebuffer lcd controller information */
- 
--static struct s3c2410fb_mach_info rx3715_lcdcfg __initdata = {
-+static struct s3c2410fb_display rx3715_lcdcfg __initdata = {
- 	.regs	= {
- 		.lcdcon1 =	S3C2410_LCDCON1_TFT16BPP | \
- 				S3C2410_LCDCON1_TFT | \
-@@ -133,6 +133,20 @@ static struct s3c2410fb_mach_info rx3715
- 				S3C2410_LCDCON5_HWSWP,
- 	},
- 
-+	.width  =	240,
-+	.height =	320,
-+
-+	.xres	= 240,
-+	.yres	= 320,
-+	.bpp	= 16,
-+};
-+
-+static struct s3c2410fb_mach_info rx3715_fb_info __initdata = {
-+
-+	.displays =	&rx3715_lcdcfg,
-+	.num_displays =	1,
-+	.default_display = 0,
-+
- 	.lpcsel =	0xf82,
- 
- 	.gpccon =	0xaa955699,
-@@ -146,26 +160,6 @@ static struct s3c2410fb_mach_info rx3715
- 	.gpdup_mask =	0xffffffff,
- 
- 	.fixed_syncs =	1,
--	.width  =	240,
--	.height =	320,
--
--	.xres	= {
--		.min =		240,
--		.max =		240,
--		.defval =	240,
--	},
--
--	.yres	= {
--		.max =		320,
--		.min =		320,
--		.defval	=	320,
--	},
--
--	.bpp	= {
--		.min =		16,
--		.max =		16,
--		.defval =	16,
--	},
- };
- 
- static struct mtd_partition rx3715_nand_part[] = {
-@@ -224,7 +218,7 @@ static void __init rx3715_init_machine(v
- #endif
- 	s3c2410_pm_init();
- 
--	s3c24xx_fb_set_platdata(&rx3715_lcdcfg);
-+	s3c24xx_fb_set_platdata(&rx3715_fb_info);
- 	platform_add_devices(rx3715_devices, ARRAY_SIZE(rx3715_devices));
- }
- 
-diff -puN arch/arm/mach-s3c2440/mach-smdk2440.c~s3c2410fb-multi-display-support arch/arm/mach-s3c2440/mach-smdk2440.c
---- a/arch/arm/mach-s3c2440/mach-smdk2440.c~s3c2410fb-multi-display-support
-+++ a/arch/arm/mach-s3c2440/mach-smdk2440.c
-@@ -103,7 +103,7 @@ static struct s3c2410_uartcfg smdk2440_u
- 
- /* LCD driver info */
- 
--static struct s3c2410fb_mach_info smdk2440_lcd_cfg __initdata = {
-+static struct s3c2410fb_display smdk2440_lcd_cfg __initdata = {
- 	.regs	= {
- 
- 		.lcdcon1	= S3C2410_LCDCON1_TFT16BPP |
-@@ -129,6 +129,21 @@ static struct s3c2410fb_mach_info smdk24
- 				  S3C2410_LCDCON5_HWSWP,
- 	},
- 
-+	.type		= S3C2410_LCDCON1_TFT16BPP,
-+
-+	.width		= 240,
-+	.height		= 320,
-+
-+	.xres		= 240,
-+	.yres		= 320,
-+	.bpp		= 16,
-+};
-+
-+static struct s3c2410fb_mach_info smdk2440_fb_info __initdata = {
-+	.displays	= &smdk2440_lcd_cfg,
-+	.num_displays	= 1,
-+	.default_display = 0,
-+
- #if 0
- 	/* currently setup by downloader */
- 	.gpccon		= 0xaa940659,
-@@ -142,28 +157,6 @@ static struct s3c2410fb_mach_info smdk24
- #endif
- 
- 	.lpcsel		= ((0xCE6) & ~7) | 1<<4,
--	.type		= S3C2410_LCDCON1_TFT16BPP,
--
--	.width		= 240,
--	.height		= 320,
--
--	.xres		= {
--		.min	= 240,
--		.max	= 240,
--		.defval	= 240,
--	},
--
--	.yres		= {
--		.min	= 320,
--		.max	= 320,
--		.defval = 320,
--	},
--
--	.bpp		= {
--		.min	= 16,
--		.max	= 16,
--		.defval = 16,
--	},
- };
- 
- static struct platform_device *smdk2440_devices[] __initdata = {
-@@ -183,7 +176,7 @@ static void __init smdk2440_map_io(void)
- 
- static void __init smdk2440_machine_init(void)
- {
--	s3c24xx_fb_set_platdata(&smdk2440_lcd_cfg);
-+	s3c24xx_fb_set_platdata(&smdk2440_fb_info);
- 
- 	platform_add_devices(smdk2440_devices, ARRAY_SIZE(smdk2440_devices));
- 	smdk_machine_init();
-diff -puN drivers/video/s3c2410fb.c~s3c2410fb-multi-display-support drivers/video/s3c2410fb.c
---- a/drivers/video/s3c2410fb.c~s3c2410fb-multi-display-support
-+++ a/drivers/video/s3c2410fb.c
-@@ -174,27 +174,28 @@ static int s3c2410fb_check_var(struct fb
- 			       struct fb_info *info)
- {
- 	struct s3c2410fb_info *fbi = info->par;
-+	struct s3c2410fb_mach_info *mach_info = fbi->mach_info;
-+	struct s3c2410fb_display *display = NULL;
-+	unsigned i;
- 
- 	dprintk("check_var(var=%p, info=%p)\n", var, info);
- 
- 	/* validate x/y resolution */
- 
--	if (var->yres > fbi->mach_info->yres.max)
--		var->yres = fbi->mach_info->yres.max;
--	else if (var->yres < fbi->mach_info->yres.min)
--		var->yres = fbi->mach_info->yres.min;
--
--	if (var->xres > fbi->mach_info->xres.max)
--		var->yres = fbi->mach_info->xres.max;
--	else if (var->xres < fbi->mach_info->xres.min)
--		var->xres = fbi->mach_info->xres.min;
--
--	/* validate bpp */
--
--	if (var->bits_per_pixel > fbi->mach_info->bpp.max)
--		var->bits_per_pixel = fbi->mach_info->bpp.max;
--	else if (var->bits_per_pixel < fbi->mach_info->bpp.min)
--		var->bits_per_pixel = fbi->mach_info->bpp.min;
-+	for (i = 0; i < mach_info->num_displays; i++)
-+		if (var->yres == mach_info->displays[i].yres &&
-+		    var->xres == mach_info->displays[i].xres &&
-+		    var->bits_per_pixel == mach_info->displays[i].bpp) {
-+			display = mach_info->displays + i;
-+			fbi->current_display = i;
-+			break;
-+		}
-+
-+	if (!display) {
-+		dprintk("wrong resolution or depth %dx%d at %d bpp\n",
-+			var->xres, var->yres, var->bits_per_pixel);
-+		return -EINVAL;
-+	}
- 
- 	var->transp.offset = 0;
- 	var->transp.length = 0;
-@@ -209,7 +210,7 @@ static int s3c2410fb_check_var(struct fb
- 		var->blue	= var->red;
- 		break;
- 	case 8:
--		if (fbi->mach_info->type != S3C2410_LCDCON1_TFT) {
-+		if (display->type != S3C2410_LCDCON1_TFT) {
- 			/* 8 bpp 332 */
- 			var->red.length		= 3;
- 			var->red.offset		= 5;
-@@ -236,7 +237,7 @@ static int s3c2410fb_check_var(struct fb
- 
- 	default:
- 	case 16:
--		if (fbi->regs.lcdcon5 & S3C2410_LCDCON5_FRM565) {
-+		if (display->regs.lcdcon5 & S3C2410_LCDCON5_FRM565) {
- 			/* 16 bpp, 565 format */
- 			var->red.offset		= 11;
- 			var->green.offset	= 5;
-@@ -278,6 +279,9 @@ static void s3c2410fb_activate_var(struc
- 				   struct fb_var_screeninfo *var)
- {
- 	struct s3c2410fb_info *fbi = info->par;
-+	struct s3c2410fb_mach_info *mach_info = fbi->mach_info;
-+	struct s3c2410fb_display *display = mach_info->displays +
-+					    fbi->current_display;
- 	int hs;
- 
- 	fbi->regs.lcdcon1 &= ~S3C2410_LCDCON1_MODEMASK;
-@@ -287,9 +291,9 @@ static void s3c2410fb_activate_var(struc
- 	dprintk("%s: var->yres  = %d\n", __FUNCTION__, var->yres);
- 	dprintk("%s: var->bpp   = %d\n", __FUNCTION__, var->bits_per_pixel);
- 
--	fbi->regs.lcdcon1 |= fbi->mach_info->type;
-+	fbi->regs.lcdcon1 |= display->type;
- 
--	if (fbi->mach_info->type == S3C2410_LCDCON1_TFT)
-+	if (display->type == S3C2410_LCDCON1_TFT)
- 		switch (var->bits_per_pixel) {
- 		case 1:
- 			fbi->regs.lcdcon1 |= S3C2410_LCDCON1_TFT1BPP;
-@@ -338,7 +342,7 @@ static void s3c2410fb_activate_var(struc
- 
- 	/* check to see if we need to update sync/borders */
- 
--	if (!fbi->mach_info->fixed_syncs) {
-+	if (!mach_info->fixed_syncs) {
- 		dprintk("setting vert: up=%d, low=%d, sync=%d\n",
- 			var->upper_margin, var->lower_margin, var->vsync_len);
- 
-@@ -363,7 +367,7 @@ static void s3c2410fb_activate_var(struc
- 	fbi->regs.lcdcon2 &= ~S3C2410_LCDCON2_LINEVAL(0x3ff);
- 	fbi->regs.lcdcon2 |=  S3C2410_LCDCON2_LINEVAL(var->yres - 1);
- 
--	switch (fbi->mach_info->type) {
-+	switch (display->type) {
- 	case S3C2410_LCDCON1_DSCAN4:
- 	case S3C2410_LCDCON1_STN8:
- 		hs = var->xres / 8;
-@@ -388,7 +392,7 @@ static void s3c2410fb_activate_var(struc
- 	if (var->pixclock > 0) {
- 		int clkdiv = s3c2410fb_calc_pixclk(fbi, var->pixclock);
- 
--		if (fbi->mach_info->type == S3C2410_LCDCON1_TFT) {
-+		if (display->type == S3C2410_LCDCON1_TFT) {
- 			clkdiv = (clkdiv / 2) - 1;
- 			if (clkdiv < 0)
- 				clkdiv = 0;
-@@ -750,6 +754,7 @@ static char driver_name[] = "s3c2410fb";
- static int __init s3c2410fb_probe(struct platform_device *pdev)
- {
- 	struct s3c2410fb_info *info;
-+	struct s3c2410fb_display *display;
- 	struct fb_info *fbinfo;
- 	struct s3c2410fb_hw *mregs;
- 	struct resource *res;
-@@ -766,7 +771,8 @@ static int __init s3c2410fb_probe(struct
- 		return -EINVAL;
+ 	pty_fd = data->pty_fd;
+ 	pipe_fd = data->pipe_fd;
+-	count = os_write_file(pipe_fd, &c, sizeof(c));
++	count = write(pipe_fd, &c, sizeof(c));
+ 	if (count != sizeof(c))
+ 		printk(UM_KERN_ERR "winch_thread : failed to write "
+ 		       "synchronization byte, err = %d\n", -count);
+@@ -167,10 +167,15 @@ static int winch_thread(void *arg)
+ 		exit(1);
  	}
  
--	mregs = &mach_info->regs;
-+	display = mach_info->displays + mach_info->default_display;
-+	mregs = &display->regs;
- 
- 	irq = platform_get_irq(pdev, 0);
- 	if (irq < 0) {
-@@ -809,7 +815,7 @@ static int __init s3c2410fb_probe(struct
- 
- 	strcpy(fbinfo->fix.id, driver_name);
- 
--	memcpy(&info->regs, &mach_info->regs, sizeof(info->regs));
-+	memcpy(&info->regs, &display->regs, sizeof(info->regs));
- 
- 	/* Stop the video and unset ENVID if set */
- 	info->regs.lcdcon1 &= ~S3C2410_LCDCON1_ENVID;
-@@ -817,6 +823,7 @@ static int __init s3c2410fb_probe(struct
- 	writel(lcdcon1 & ~S3C2410_LCDCON1_ENVID, info->io + S3C2410_LCDCON1);
- 
- 	info->mach_info		    = pdev->dev.platform_data;
-+	info->current_display	    = mach_info->default_display;
- 
- 	fbinfo->fix.type	    = FB_TYPE_PACKED_PIXELS;
- 	fbinfo->fix.type_aux	    = 0;
-@@ -827,8 +834,8 @@ static int __init s3c2410fb_probe(struct
- 
- 	fbinfo->var.nonstd	    = 0;
- 	fbinfo->var.activate	    = FB_ACTIVATE_NOW;
--	fbinfo->var.height	    = mach_info->height;
--	fbinfo->var.width	    = mach_info->width;
-+	fbinfo->var.height	    = display->height;
-+	fbinfo->var.width	    = display->width;
- 	fbinfo->var.accel_flags     = 0;
- 	fbinfo->var.vmode	    = FB_VMODE_NONINTERLACED;
- 
-@@ -836,11 +843,11 @@ static int __init s3c2410fb_probe(struct
- 	fbinfo->flags		    = FBINFO_FLAG_DEFAULT;
- 	fbinfo->pseudo_palette      = &info->pseudo_pal;
- 
--	fbinfo->var.xres	    = mach_info->xres.defval;
--	fbinfo->var.xres_virtual    = mach_info->xres.defval;
--	fbinfo->var.yres	    = mach_info->yres.defval;
--	fbinfo->var.yres_virtual    = mach_info->yres.defval;
--	fbinfo->var.bits_per_pixel  = mach_info->bpp.defval;
-+	fbinfo->var.xres	    = display->xres;
-+	fbinfo->var.xres_virtual    = display->xres;
-+	fbinfo->var.yres	    = display->yres;
-+	fbinfo->var.yres_virtual    = display->yres;
-+	fbinfo->var.bits_per_pixel  = display->bpp;
- 
- 	fbinfo->var.upper_margin    =
- 				S3C2410_LCDCON2_GET_VBPD(mregs->lcdcon2) + 1;
-@@ -864,9 +871,17 @@ static int __init s3c2410fb_probe(struct
- 	fbinfo->var.green.length    = 6;
- 	fbinfo->var.blue.length     = 5;
- 	fbinfo->var.transp.length   = 0;
--	fbinfo->fix.smem_len	    =	mach_info->xres.max *
--					mach_info->yres.max *
--					mach_info->bpp.max / 8;
-+
-+	/* find maximum required memory size for display */
-+	for (i = 0; i < mach_info->num_displays; i++) {
-+		unsigned long smem_len = mach_info->displays[i].xres;
-+
-+		smem_len *= mach_info->displays[i].yres;
-+		smem_len *= mach_info->displays[i].bpp;
-+		smem_len >>= 3;
-+		if (fbinfo->fix.smem_len < smem_len)
-+			fbinfo->fix.smem_len = smem_len;
+-	err = os_new_tty_pgrp(pty_fd, os_getpid());
+-	if (err < 0) {
+-		printk(UM_KERN_ERR "winch_thread : new_tty_pgrp failed on "
+-		       "fd %d err = %d\n", pty_fd, -err);
++	if(ioctl(pty_fd, TIOCSCTTY, 0) < 0){
++		printk(UM_KERN_ERR "winch_thread : TIOCSCTTY failed on "
++		       "fd %d err = %d\n", pty_fd, errno);
++		exit(1);
 +	}
- 
- 	for (i = 0; i < 256; i++)
- 		info->palette_buffer[i] = PALETTE_BUFF_CLEAR;
-diff -puN drivers/video/s3c2410fb.h~s3c2410fb-multi-display-support drivers/video/s3c2410fb.h
---- a/drivers/video/s3c2410fb.h~s3c2410fb-multi-display-support
-+++ a/drivers/video/s3c2410fb.h
-@@ -34,6 +34,8 @@ struct s3c2410fb_info {
- 
- 	struct s3c2410fb_mach_info *mach_info;
- 
-+	unsigned current_display;
 +
- 	/* raw memory addresses */
- 	dma_addr_t		map_dma;	/* physical */
- 	u_char *		map_cpu;	/* virtual */
-diff -puN include/asm-arm/arch-s3c2410/fb.h~s3c2410fb-multi-display-support include/asm-arm/arch-s3c2410/fb.h
---- a/include/asm-arm/arch-s3c2410/fb.h~s3c2410fb-multi-display-support
-+++ a/include/asm-arm/arch-s3c2410/fb.h
-@@ -14,12 +14,6 @@
++	if(tcsetpgrp(pty_fd, os_getpid()) < 0){
++		printk(UM_KERN_ERR "winch_thread : tcsetpgrp failed on "
++		       "fd %d err = %d\n", pty_fd, errno);
+ 		exit(1);
+ 	}
  
- #include <asm/arch/regs-lcd.h>
+@@ -180,10 +185,10 @@ static int winch_thread(void *arg)
+ 	 * kernel semaphores. We don't use SysV semaphores because they are
+ 	 * persistent.
+ 	 */
+-	count = os_read_file(pipe_fd, &c, sizeof(c));
++	count = read(pipe_fd, &c, sizeof(c));
+ 	if (count != sizeof(c))
+ 		printk(UM_KERN_ERR "winch_thread : failed to read "
+-		       "synchronization byte, err = %d\n", -count);
++		       "synchronization byte, err = %d\n", errno);
  
--struct s3c2410fb_val {
--	unsigned int	defval;
--	unsigned int	min;
--	unsigned int	max;
--};
+ 	while(1) {
+ 		/*
+@@ -192,10 +197,10 @@ static int winch_thread(void *arg)
+ 		 */
+ 		sigsuspend(&sigs);
+ 
+-		count = os_write_file(pipe_fd, &c, sizeof(c));
++		count = write(pipe_fd, &c, sizeof(c));
+ 		if (count != sizeof(c))
+ 			printk(UM_KERN_ERR "winch_thread : write failed, "
+-			       "err = %d\n", -count);
++			       "err = %d\n", errno);
+ 	}
+ }
+ 
+@@ -229,11 +234,11 @@ static int winch_tramp(int fd, struct tt
+ 	}
+ 
+ 	*fd_out = fds[0];
+-	n = os_read_file(fds[0], &c, sizeof(c));
++	n = read(fds[0], &c, sizeof(c));
+ 	if (n != sizeof(c)) {
+ 		printk(UM_KERN_ERR "winch_tramp : failed to read "
+ 		       "synchronization byte\n");
+-		printk(UM_KERN_ERR "read failed, err = %d\n", -n);
++		printk(UM_KERN_ERR "read failed, err = %d\n", errno);
+ 		printk(UM_KERN_ERR "fd %d will not support SIGWINCH\n", fd);
+ 		err = -EINVAL;
+ 		goto out_close;
+@@ -248,8 +253,8 @@ static int winch_tramp(int fd, struct tt
+ 	return err;
+ 
+  out_close:
+-	os_close_file(fds[1]);
+-	os_close_file(fds[0]);
++	close(fds[1]);
++	close(fds[0]);
+  out:
+ 	return err;
+ }
+@@ -271,9 +276,9 @@ void register_winch(int fd, struct tty_s
+ 
+ 		register_winch_irq(thread_fd, fd, thread, tty, stack);
+ 
+-		count = os_write_file(thread_fd, &c, sizeof(c));
++		count = write(thread_fd, &c, sizeof(c));
+ 		if (count != sizeof(c))
+ 			printk(UM_KERN_ERR "register_winch : failed to write "
+-			       "synchronization byte, err = %d\n", -count);
++			       "synchronization byte, err = %d\n", errno);
+ 	}
+ }
+diff -puN arch/um/drivers/harddog_user.c~uml-remove-os_-usage-from-userspace-files arch/um/drivers/harddog_user.c
+--- a/arch/um/drivers/harddog_user.c~uml-remove-os_-usage-from-userspace-files
++++ a/arch/um/drivers/harddog_user.c
+@@ -1,14 +1,13 @@
+ /*
+- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
++ * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
+  */
+ 
+ #include <stdio.h>
+ #include <unistd.h>
+ #include <errno.h>
+-#include "user.h"
+-#include "mconsole.h"
+ #include "os.h"
++#include "user.h"
+ 
+ struct dog_data {
+ 	int stdin;
+@@ -23,10 +22,10 @@ static void pre_exec(void *d)
+ 	dup2(data->stdin, 0);
+ 	dup2(data->stdout, 1);
+ 	dup2(data->stdout, 2);
+-	os_close_file(data->stdin);
+-	os_close_file(data->stdout);
+-	os_close_file(data->close_me[0]);
+-	os_close_file(data->close_me[1]);
++	close(data->stdin);
++	close(data->stdout);
++	close(data->close_me[0]);
++	close(data->close_me[1]);
+ }
+ 
+ int start_watchdog(int *in_fd_ret, int *out_fd_ret, char *sock)
+@@ -40,13 +39,13 @@ int start_watchdog(int *in_fd_ret, int *
+ 	char **args = NULL;
+ 
+ 	err = os_pipe(in_fds, 1, 0);
+-	if(err < 0){
++	if (err < 0) {
+ 		printk("harddog_open - os_pipe failed, err = %d\n", -err);
+ 		goto out;
+ 	}
+ 
+ 	err = os_pipe(out_fds, 1, 0);
+-	if(err < 0){
++	if (err < 0) {
+ 		printk("harddog_open - os_pipe failed, err = %d\n", -err);
+ 		goto out_close_in;
+ 	}
+@@ -56,7 +55,7 @@ int start_watchdog(int *in_fd_ret, int *
+ 	data.close_me[0] = out_fds[1];
+ 	data.close_me[1] = in_fds[0];
+ 
+-	if(sock != NULL){
++	if (sock != NULL) {
+ 		mconsole_args[2] = sock;
+ 		args = mconsole_args;
+ 	}
+@@ -68,25 +67,25 @@ int start_watchdog(int *in_fd_ret, int *
+ 
+ 	pid = run_helper(pre_exec, &data, args);
+ 
+-	os_close_file(out_fds[0]);
+-	os_close_file(in_fds[1]);
++	close(out_fds[0]);
++	close(in_fds[1]);
+ 
+-	if(pid < 0){
++	if (pid < 0) {
+ 		err = -pid;
+ 		printk("harddog_open - run_helper failed, errno = %d\n", -err);
+ 		goto out_close_out;
+ 	}
+ 
+-	n = os_read_file(in_fds[0], &c, sizeof(c));
+-	if(n == 0){
++	n = read(in_fds[0], &c, sizeof(c));
++	if (n == 0) {
+ 		printk("harddog_open - EOF on watchdog pipe\n");
+ 		helper_wait(pid);
+ 		err = -EIO;
+ 		goto out_close_out;
+ 	}
+-	else if(n < 0){
++	else if (n < 0) {
+ 		printk("harddog_open - read of watchdog pipe failed, "
+-		       "err = %d\n", -n);
++		       "err = %d\n", errno);
+ 		helper_wait(pid);
+ 		err = n;
+ 		goto out_close_out;
+@@ -96,19 +95,19 @@ int start_watchdog(int *in_fd_ret, int *
+ 	return 0;
+ 
+  out_close_in:
+-	os_close_file(in_fds[0]);
+-	os_close_file(in_fds[1]);
++	close(in_fds[0]);
++	close(in_fds[1]);
+  out_close_out:
+-	os_close_file(out_fds[0]);
+-	os_close_file(out_fds[1]);
++	close(out_fds[0]);
++	close(out_fds[1]);
+  out:
+ 	return err;
+ }
+ 
+ void stop_watchdog(int in_fd, int out_fd)
+ {
+-	os_close_file(in_fd);
+-	os_close_file(out_fd);
++	close(in_fd);
++	close(out_fd);
+ }
+ 
+ int ping_watchdog(int fd)
+@@ -116,10 +115,11 @@ int ping_watchdog(int fd)
+ 	int n;
+ 	char c = '\n';
+ 
+-	n = os_write_file(fd, &c, sizeof(c));
+-	if(n != sizeof(c)){
+-		printk("ping_watchdog - write failed, err = %d\n", -n);
+-		if(n < 0)
++	n = write(fd, &c, sizeof(c));
++	if (n != sizeof(c)) {
++		printk("ping_watchdog - write failed, ret = %d, err = %d\n",
++		       n, errno);
++		if (n < 0)
+ 			return n;
+ 		return -EIO;
+ 	}
+diff -puN arch/um/include/mconsole.h~uml-remove-os_-usage-from-userspace-files arch/um/include/mconsole.h
+--- a/arch/um/include/mconsole.h~uml-remove-os_-usage-from-userspace-files
++++ a/arch/um/include/mconsole.h
+@@ -1,6 +1,6 @@
+ /*
+  * Copyright (C) 2001 Lennert Buytenhek (buytenh@gnu.org)
+- * Copyright (C) 2001, 2002 Jeff Dike (jdike@karaya.com)
++ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
+  */
+ 
+@@ -96,14 +96,3 @@ extern void lock_notify(void);
+ extern void unlock_notify(void);
+ 
+ #endif
 -
- struct s3c2410fb_hw {
- 	unsigned long	lcdcon1;
- 	unsigned long	lcdcon2;
-@@ -28,23 +22,30 @@ struct s3c2410fb_hw {
- 	unsigned long	lcdcon5;
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+diff -puN arch/um/include/os.h~uml-remove-os_-usage-from-userspace-files arch/um/include/os.h
+--- a/arch/um/include/os.h~uml-remove-os_-usage-from-userspace-files
++++ a/arch/um/include/os.h
+@@ -132,7 +132,6 @@ extern void os_print_error(int error, co
+ extern int os_get_exec_close(int fd, int *close_on_exec);
+ extern int os_set_exec_close(int fd, int close_on_exec);
+ extern int os_ioctl_generic(int fd, unsigned int cmd, unsigned long arg);
+-extern int os_new_tty_pgrp(int fd, int pid);
+ extern int os_get_ifname(int fd, char *namebuf);
+ extern int os_set_slip(int fd);
+ extern int os_set_owner(int fd, int pid);
+diff -puN arch/um/include/sysdep-i386/ptrace.h~uml-remove-os_-usage-from-userspace-files arch/um/include/sysdep-i386/ptrace.h
+--- a/arch/um/include/sysdep-i386/ptrace.h~uml-remove-os_-usage-from-userspace-files
++++ a/arch/um/include/sysdep-i386/ptrace.h
+@@ -1,4 +1,4 @@
+-/* 
++/*
+  * Copyright (C) 2000 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
+  */
+@@ -130,7 +130,6 @@ struct syscall_args {
+ 		} \
+ 	        val; \
+ 	})
+-	
+ 
+ #define UPT_SET(regs, reg, val) \
+ 	do { \
+diff -puN arch/um/include/sysdep-x86_64/ptrace.h~uml-remove-os_-usage-from-userspace-files arch/um/include/sysdep-x86_64/ptrace.h
+--- a/arch/um/include/sysdep-x86_64/ptrace.h~uml-remove-os_-usage-from-userspace-files
++++ a/arch/um/include/sysdep-x86_64/ptrace.h
+@@ -143,87 +143,87 @@ struct syscall_args {
  };
  
--struct s3c2410fb_mach_info {
--	unsigned char	fixed_syncs;	/* do not update sync/border */
+ #define SYSCALL_ARGS(r) ((struct syscall_args) \
+-                        { .args = { UPT_SYSCALL_ARG1(r), \
+-                                    UPT_SYSCALL_ARG2(r), \
+- 			            UPT_SYSCALL_ARG3(r), \
+-                                    UPT_SYSCALL_ARG4(r), \
+-		                    UPT_SYSCALL_ARG5(r), \
+-                                    UPT_SYSCALL_ARG6(r) } } )
++			 { .args = { UPT_SYSCALL_ARG1(r),	 \
++				     UPT_SYSCALL_ARG2(r),	 \
++				     UPT_SYSCALL_ARG3(r),	 \
++				     UPT_SYSCALL_ARG4(r),	 \
++				     UPT_SYSCALL_ARG5(r),	 \
++				     UPT_SYSCALL_ARG6(r) } } )
+ 
+ #define UPT_REG(regs, reg) \
+-        ({      unsigned long val; \
+-                switch(reg){ \
+-		case R8: val = UPT_R8(regs); break; \
+-		case R9: val = UPT_R9(regs); break; \
+-		case R10: val = UPT_R10(regs); break; \
+-		case R11: val = UPT_R11(regs); break; \
+-		case R12: val = UPT_R12(regs); break; \
+-		case R13: val = UPT_R13(regs); break; \
+-		case R14: val = UPT_R14(regs); break; \
+-		case R15: val = UPT_R15(regs); break; \
+-                case RIP: val = UPT_IP(regs); break; \
+-                case RSP: val = UPT_SP(regs); break; \
+-                case RAX: val = UPT_RAX(regs); break; \
+-                case RBX: val = UPT_RBX(regs); break; \
+-                case RCX: val = UPT_RCX(regs); break; \
+-                case RDX: val = UPT_RDX(regs); break; \
+-                case RSI: val = UPT_RSI(regs); break; \
+-                case RDI: val = UPT_RDI(regs); break; \
+-                case RBP: val = UPT_RBP(regs); break; \
+-                case ORIG_RAX: val = UPT_ORIG_RAX(regs); break; \
+-                case CS: val = UPT_CS(regs); break; \
+-                case SS: val = UPT_SS(regs); break; \
+-		case FS_BASE: val = UPT_FS_BASE(regs); break; \
+-                case GS_BASE: val = UPT_GS_BASE(regs); break; \
+-                case DS: val = UPT_DS(regs); break; \
+-                case ES: val = UPT_ES(regs); break; \
+-                case FS : val = UPT_FS (regs); break; \
+-		case GS: val = UPT_GS(regs); break;	    \
+-                case EFLAGS: val = UPT_EFLAGS(regs); break; \
+-                default :  \
+-                        panic("Bad register in UPT_REG : %d\n", reg);  \
+-                        val = -1; \
+-                } \
+-                val; \
+-        })
++	({      unsigned long val;		\
++		switch(reg){						\
++		case R8: val = UPT_R8(regs); break;			\
++		case R9: val = UPT_R9(regs); break;			\
++		case R10: val = UPT_R10(regs); break;			\
++		case R11: val = UPT_R11(regs); break;			\
++		case R12: val = UPT_R12(regs); break;			\
++		case R13: val = UPT_R13(regs); break;			\
++		case R14: val = UPT_R14(regs); break;			\
++		case R15: val = UPT_R15(regs); break;			\
++		case RIP: val = UPT_IP(regs); break;			\
++		case RSP: val = UPT_SP(regs); break;			\
++		case RAX: val = UPT_RAX(regs); break;			\
++		case RBX: val = UPT_RBX(regs); break;			\
++		case RCX: val = UPT_RCX(regs); break;			\
++		case RDX: val = UPT_RDX(regs); break;			\
++		case RSI: val = UPT_RSI(regs); break;			\
++		case RDI: val = UPT_RDI(regs); break;			\
++		case RBP: val = UPT_RBP(regs); break;			\
++		case ORIG_RAX: val = UPT_ORIG_RAX(regs); break;		\
++		case CS: val = UPT_CS(regs); break;			\
++		case SS: val = UPT_SS(regs); break;			\
++		case FS_BASE: val = UPT_FS_BASE(regs); break;		\
++		case GS_BASE: val = UPT_GS_BASE(regs); break;		\
++		case DS: val = UPT_DS(regs); break;			\
++		case ES: val = UPT_ES(regs); break;			\
++		case FS : val = UPT_FS (regs); break;			\
++		case GS: val = UPT_GS(regs); break;			\
++		case EFLAGS: val = UPT_EFLAGS(regs); break;		\
++		default :						\
++			panic("Bad register in UPT_REG : %d\n", reg);	\
++			val = -1;					\
++		}							\
++		val;							\
++	})
+ 
+ 
+ #define UPT_SET(regs, reg, val) \
+-        ({      unsigned long __upt_val = val; \
+-                switch(reg){ \
+-                case R8: UPT_R8(regs) = __upt_val; break; \
+-                case R9: UPT_R9(regs) = __upt_val; break; \
+-                case R10: UPT_R10(regs) = __upt_val; break; \
+-                case R11: UPT_R11(regs) = __upt_val; break; \
+-                case R12: UPT_R12(regs) = __upt_val; break; \
+-                case R13: UPT_R13(regs) = __upt_val; break; \
+-                case R14: UPT_R14(regs) = __upt_val; break; \
+-                case R15: UPT_R15(regs) = __upt_val; break; \
+-                case RIP: UPT_IP(regs) = __upt_val; break; \
+-                case RSP: UPT_SP(regs) = __upt_val; break; \
+-                case RAX: UPT_RAX(regs) = __upt_val; break; \
+-                case RBX: UPT_RBX(regs) = __upt_val; break; \
+-                case RCX: UPT_RCX(regs) = __upt_val; break; \
+-                case RDX: UPT_RDX(regs) = __upt_val; break; \
+-                case RSI: UPT_RSI(regs) = __upt_val; break; \
+-                case RDI: UPT_RDI(regs) = __upt_val; break; \
+-                case RBP: UPT_RBP(regs) = __upt_val; break; \
+-                case ORIG_RAX: UPT_ORIG_RAX(regs) = __upt_val; break; \
+-                case CS: UPT_CS(regs) = __upt_val; break; \
+-                case SS: UPT_SS(regs) = __upt_val; break; \
+-                case FS_BASE: UPT_FS_BASE(regs) = __upt_val; break; \
+-                case GS_BASE: UPT_GS_BASE(regs) = __upt_val; break; \
+-                case DS: UPT_DS(regs) = __upt_val; break; \
+-                case ES: UPT_ES(regs) = __upt_val; break; \
+-                case FS: UPT_FS(regs) = __upt_val; break; \
+-                case GS: UPT_GS(regs) = __upt_val; break; \
+-                case EFLAGS: UPT_EFLAGS(regs) = __upt_val; break; \
+-                default :  \
+-                        panic("Bad register in UPT_SET : %d\n", reg);  \
+-			break; \
+-                } \
+-                __upt_val; \
+-        })
++	({      unsigned long __upt_val = val;	\
++		switch(reg){						\
++		case R8: UPT_R8(regs) = __upt_val; break;		\
++		case R9: UPT_R9(regs) = __upt_val; break;		\
++		case R10: UPT_R10(regs) = __upt_val; break;		\
++		case R11: UPT_R11(regs) = __upt_val; break;		\
++		case R12: UPT_R12(regs) = __upt_val; break;		\
++		case R13: UPT_R13(regs) = __upt_val; break;		\
++		case R14: UPT_R14(regs) = __upt_val; break;		\
++		case R15: UPT_R15(regs) = __upt_val; break;		\
++		case RIP: UPT_IP(regs) = __upt_val; break;		\
++		case RSP: UPT_SP(regs) = __upt_val; break;		\
++		case RAX: UPT_RAX(regs) = __upt_val; break;		\
++		case RBX: UPT_RBX(regs) = __upt_val; break;		\
++		case RCX: UPT_RCX(regs) = __upt_val; break;		\
++		case RDX: UPT_RDX(regs) = __upt_val; break;		\
++		case RSI: UPT_RSI(regs) = __upt_val; break;		\
++		case RDI: UPT_RDI(regs) = __upt_val; break;		\
++		case RBP: UPT_RBP(regs) = __upt_val; break;		\
++		case ORIG_RAX: UPT_ORIG_RAX(regs) = __upt_val; break;	\
++		case CS: UPT_CS(regs) = __upt_val; break;		\
++		case SS: UPT_SS(regs) = __upt_val; break;		\
++		case FS_BASE: UPT_FS_BASE(regs) = __upt_val; break;	\
++		case GS_BASE: UPT_GS_BASE(regs) = __upt_val; break;	\
++		case DS: UPT_DS(regs) = __upt_val; break;		\
++		case ES: UPT_ES(regs) = __upt_val; break;		\
++		case FS: UPT_FS(regs) = __upt_val; break;		\
++		case GS: UPT_GS(regs) = __upt_val; break;		\
++		case EFLAGS: UPT_EFLAGS(regs) = __upt_val; break;	\
++		default :						\
++			panic("Bad register in UPT_SET : %d\n", reg);	\
++			break;						\
++		}							\
++		__upt_val;						\
++	})
+ 
+ #define UPT_SET_SYSCALL_RETURN(r, res) \
+ 	REGS_SET_SYSCALL_RETURN((r)->regs, (res))
+diff -puN arch/um/kernel/skas/uaccess.c~uml-remove-os_-usage-from-userspace-files arch/um/kernel/skas/uaccess.c
+--- a/arch/um/kernel/skas/uaccess.c~uml-remove-os_-usage-from-userspace-files
++++ a/arch/um/kernel/skas/uaccess.c
+@@ -1,18 +1,14 @@
+ /*
+- * Copyright (C) 2002 - 2003 Jeff Dike (jdike@addtoit.com)
++ * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
+  */
+ 
+-#include "linux/compiler.h"
+-#include "linux/stddef.h"
+-#include "linux/kernel.h"
+-#include "linux/string.h"
+-#include "linux/fs.h"
+-#include "linux/hardirq.h"
++#include "linux/err.h"
+ #include "linux/highmem.h"
++#include "linux/mm.h"
++#include "asm/current.h"
+ #include "asm/page.h"
+ #include "asm/pgtable.h"
+-#include "asm/uaccess.h"
+ #include "kern_util.h"
+ #include "os.h"
+ 
+@@ -27,16 +23,16 @@ static unsigned long maybe_map(unsigned 
+ 	void *phys = um_virt_to_phys(current, virt, &pte);
+ 	int dummy_code;
+ 
+-	if(IS_ERR(phys) || (is_write && !pte_write(pte))){
++	if (IS_ERR(phys) || (is_write && !pte_write(pte))) {
+ 		err = handle_page_fault(virt, 0, is_write, 1, &dummy_code);
+-		if(err)
+-			return(-1UL);
++		if (err)
++			return -1UL;
+ 		phys = um_virt_to_phys(current, virt, NULL);
+ 	}
+-        if(IS_ERR(phys))
+-                phys = (void *) -1;
++	if (IS_ERR(phys))
++		phys = (void *) -1;
+ 
+-	return((unsigned long) phys);
++	return (unsigned long) phys;
+ }
+ 
+ static int do_op_one_page(unsigned long addr, int len, int is_write,
+@@ -46,17 +42,18 @@ static int do_op_one_page(unsigned long 
+ 	int n;
+ 
+ 	addr = maybe_map(addr, is_write);
+-	if(addr == -1UL)
+-		return(-1);
++	if (addr == -1UL)
++		return -1;
+ 
+ 	page = phys_to_page(addr);
+-	addr = (unsigned long) kmap_atomic(page, KM_UML_USERCOPY) + (addr & ~PAGE_MASK);
++	addr = (unsigned long) kmap_atomic(page, KM_UML_USERCOPY) +
++		(addr & ~PAGE_MASK);
+ 
+ 	n = (*op)(addr, len, arg);
+ 
+ 	kunmap_atomic(page, KM_UML_USERCOPY);
+ 
+-	return(n);
++	return n;
+ }
+ 
+ static void do_buffer_op(void *jmpbuf, void *arg_ptr)
+@@ -81,21 +78,21 @@ static void do_buffer_op(void *jmpbuf, v
+ 
+ 	current->thread.fault_catcher = jmpbuf;
+ 	n = do_op_one_page(addr, size, is_write, op, arg);
+-	if(n != 0){
++	if (n != 0) {
+ 		*res = (n < 0 ? remain : 0);
+ 		goto out;
+ 	}
+ 
+ 	addr += size;
+ 	remain -= size;
+-	if(remain == 0){
++	if (remain == 0) {
+ 		*res = 0;
+ 		goto out;
+ 	}
+ 
+-	while(addr < ((addr + remain) & PAGE_MASK)){
++	while(addr < ((addr + remain) & PAGE_MASK)) {
+ 		n = do_op_one_page(addr, PAGE_SIZE, is_write, op, arg);
+-		if(n != 0){
++		if (n != 0) {
+ 			*res = (n < 0 ? remain : 0);
+ 			goto out;
+ 		}
+@@ -103,13 +100,13 @@ static void do_buffer_op(void *jmpbuf, v
+ 		addr += PAGE_SIZE;
+ 		remain -= PAGE_SIZE;
+ 	}
+-	if(remain == 0){
++	if (remain == 0) {
+ 		*res = 0;
+ 		goto out;
+ 	}
+ 
+ 	n = do_op_one_page(addr, remain, is_write, op, arg);
+-	if(n != 0)
++	if (n != 0)
+ 		*res = (n < 0 ? remain : 0);
+ 	else *res = 0;
+  out:
+@@ -124,10 +121,10 @@ static int buffer_op(unsigned long addr,
+ 
+ 	faulted = setjmp_wrapper(do_buffer_op, addr, len, is_write, op, arg,
+ 				 &res);
+-	if(!faulted)
+-		return(res);
++	if (!faulted)
++		return res;
+ 
+-	return(addr + len - (unsigned long) current->thread.fault_addr);
++	return addr + len - (unsigned long) current->thread.fault_addr;
+ }
+ 
+ static int copy_chunk_from_user(unsigned long from, int len, void *arg)
+@@ -136,19 +133,19 @@ static int copy_chunk_from_user(unsigned
+ 
+ 	memcpy((void *) to, (void *) from, len);
+ 	*to_ptr += len;
+-	return(0);
++	return 0;
+ }
+ 
+ int copy_from_user(void *to, const void __user *from, int n)
+ {
+-	if(segment_eq(get_fs(), KERNEL_DS)){
++	if (segment_eq(get_fs(), KERNEL_DS)) {
+ 		memcpy(to, (__force void*)from, n);
+-		return(0);
++		return 0;
+ 	}
+ 
+-	return(access_ok(VERIFY_READ, from, n) ?
++	return access_ok(VERIFY_READ, from, n) ?
+ 	       buffer_op((unsigned long) from, n, 0, copy_chunk_from_user, &to):
+-	       n);
++	       n;
+ }
+ 
+ static int copy_chunk_to_user(unsigned long to, int len, void *arg)
+@@ -157,19 +154,19 @@ static int copy_chunk_to_user(unsigned l
+ 
+ 	memcpy((void *) to, (void *) from, len);
+ 	*from_ptr += len;
+-	return(0);
++	return 0;
+ }
+ 
+ int copy_to_user(void __user *to, const void *from, int n)
+ {
+-	if(segment_eq(get_fs(), KERNEL_DS)){
+-		memcpy((__force void*)to, from, n);
+-		return(0);
++	if (segment_eq(get_fs(), KERNEL_DS)) {
++		memcpy((__force void *) to, from, n);
++		return 0;
+ 	}
+ 
+-	return(access_ok(VERIFY_WRITE, to, n) ?
++	return access_ok(VERIFY_WRITE, to, n) ?
+ 	       buffer_op((unsigned long) to, n, 1, copy_chunk_to_user, &from) :
+-	       n);
++	       n;
+ }
+ 
+ static int strncpy_chunk_from_user(unsigned long from, int len, void *arg)
+@@ -181,9 +178,9 @@ static int strncpy_chunk_from_user(unsig
+ 	n = strnlen(to, len);
+ 	*to_ptr += n;
+ 
+-	if(n < len)
+-	        return(1);
+-	return(0);
++	if (n < len)
++	        return 1;
++	return 0;
+ }
+ 
+ int strncpy_from_user(char *dst, const char __user *src, int count)
+@@ -191,41 +188,41 @@ int strncpy_from_user(char *dst, const c
+ 	int n;
+ 	char *ptr = dst;
+ 
+-	if(segment_eq(get_fs(), KERNEL_DS)){
+-		strncpy(dst, (__force void*)src, count);
+-		return(strnlen(dst, count));
++	if (segment_eq(get_fs(), KERNEL_DS)) {
++		strncpy(dst, (__force void *) src, count);
++		return strnlen(dst, count);
+ 	}
+ 
+-	if(!access_ok(VERIFY_READ, src, 1))
+-		return(-EFAULT);
++	if (!access_ok(VERIFY_READ, src, 1))
++		return -EFAULT;
+ 
+ 	n = buffer_op((unsigned long) src, count, 0, strncpy_chunk_from_user,
+ 		      &ptr);
+-	if(n != 0)
+-		return(-EFAULT);
+-	return(strnlen(dst, count));
++	if (n != 0)
++		return -EFAULT;
++	return strnlen(dst, count);
+ }
+ 
+ static int clear_chunk(unsigned long addr, int len, void *unused)
+ {
+ 	memset((void *) addr, 0, len);
+-	return(0);
++	return 0;
+ }
+ 
+ int __clear_user(void __user *mem, int len)
+ {
+-	return(buffer_op((unsigned long) mem, len, 1, clear_chunk, NULL));
++	return buffer_op((unsigned long) mem, len, 1, clear_chunk, NULL);
+ }
+ 
+ int clear_user(void __user *mem, int len)
+ {
+-	if(segment_eq(get_fs(), KERNEL_DS)){
++	if (segment_eq(get_fs(), KERNEL_DS)) {
+ 		memset((__force void*)mem, 0, len);
+-		return(0);
++		return 0;
+ 	}
+ 
+-	return(access_ok(VERIFY_WRITE, mem, len) ?
+-	       buffer_op((unsigned long) mem, len, 1, clear_chunk, NULL) : len);
++	return access_ok(VERIFY_WRITE, mem, len) ?
++	       buffer_op((unsigned long) mem, len, 1, clear_chunk, NULL) : len;
+ }
+ 
+ static int strnlen_chunk(unsigned long str, int len, void *arg)
+@@ -235,31 +232,20 @@ static int strnlen_chunk(unsigned long s
+ 	n = strnlen((void *) str, len);
+ 	*len_ptr += n;
+ 
+-	if(n < len)
+-		return(1);
+-	return(0);
++	if (n < len)
++		return 1;
++	return 0;
+ }
+ 
+ int strnlen_user(const void __user *str, int len)
+ {
+ 	int count = 0, n;
+ 
+-	if(segment_eq(get_fs(), KERNEL_DS))
+-		return(strnlen((__force char*)str, len) + 1);
++	if (segment_eq(get_fs(), KERNEL_DS))
++		return strnlen((__force char*)str, len) + 1;
+ 
+ 	n = buffer_op((unsigned long) str, len, 0, strnlen_chunk, &count);
+-	if(n == 0)
+-		return(count + 1);
+-	return(-EFAULT);
++	if (n == 0)
++		return count + 1;
++	return -EFAULT;
+ }
 -
--	/* LCD types */
--	int		type;
-+/* LCD description */
-+struct s3c2410fb_display {
-+	/* LCD type */
-+	unsigned type;
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+diff -puN arch/um/os-Linux/file.c~uml-remove-os_-usage-from-userspace-files arch/um/os-Linux/file.c
+--- a/arch/um/os-Linux/file.c~uml-remove-os_-usage-from-userspace-files
++++ a/arch/um/os-Linux/file.c
+@@ -101,17 +101,6 @@ int os_ioctl_generic(int fd, unsigned in
+ 	return err;
+ }
  
- 	/* Screen size */
--	int		width;
--	int		height;
-+	unsigned short width;
-+	unsigned short height;
- 
- 	/* Screen info */
--	struct s3c2410fb_val xres;
--	struct s3c2410fb_val yres;
--	struct s3c2410fb_val bpp;
-+	unsigned short xres;
-+	unsigned short yres;
-+	unsigned short bpp;
- 
- 	/* lcd configuration registers */
- 	struct s3c2410fb_hw  regs;
-+};
-+
-+struct s3c2410fb_mach_info {
-+	unsigned char	fixed_syncs;	/* do not update sync/border */
-+
-+	struct s3c2410fb_display *displays;	/* attached diplays info */
-+	unsigned num_displays;			/* number of defined displays */
-+	unsigned default_display;
- 
- 	/* GPIOs */
- 
+-int os_new_tty_pgrp(int fd, int pid)
+-{
+-	if(ioctl(fd, TIOCSCTTY, 0) < 0)
+-		return -errno;
+-
+-	if(tcsetpgrp(fd, pid) < 0)
+-		return -errno;
+-
+-	return 0;
+-}
+-
+ /* FIXME: ensure namebuf in os_get_if_name is big enough */
+ int os_get_ifname(int fd, char* namebuf)
+ {
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-git-alsa.patch
-cyber2000fb-checkpatch-fixes.patch
+git-kvm.patch
+uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
+bitops-introduce-lock-ops.patch
