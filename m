@@ -1,117 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-fix-tag-11-writing-code.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:40:20 -0700
-Message-ID: <200710162040.l9GKeKa5015679@imap1.linux-foundation.org>
+Subject: - ecryptfs-comments-for-some-structs.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:40:33 -0700
+Message-ID: <200710162040.l9GKeXTK015700@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53226 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57780 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932468AbXJPVEQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753486AbXJPVEa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:04:16 -0400
+	Tue, 16 Oct 2007 17:04:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eCryptfs: fix Tag 11 writing code
+     eCryptfs: comments for some structs
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-fix-tag-11-writing-code.patch
+     ecryptfs-comments-for-some-structs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: eCryptfs: fix Tag 11 writing code
+Subject: eCryptfs: comments for some structs
 From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Fix up the Tag 11 writing code to handle size limits and boundaries more
-explicitly.  It looks like the packet length was 1 shorter than it should have
-been, chopping off the last byte of the key identifier.  This is largely
-inconsequential, since it is not much more likely that a key identifier
-collision will occur with 7 bytes rather than 8.  This patch fixes the packet
-to use the full number of bytes that were originally intended to be used for
-the key identifier.
+Andrew Morton wrote:
+> > +struct ecryptfs_global_auth_tok {
+> > +#define ECRYPTFS_AUTH_TOK_INVALID 0x00000001
+> > +     u32 flags;
+> > +     struct list_head mount_crypt_stat_list;
+> > +     struct key *global_auth_tok_key;
+> > +     struct ecryptfs_auth_tok *global_auth_tok;
+> > +     unsigned char sig[ECRYPTFS_SIG_SIZE_HEX + 1];
+> > +};
+> > +
+> > +struct ecryptfs_key_tfm {
+> > +     struct crypto_blkcipher *key_tfm;
+> > +     size_t key_size;
+> > +     struct mutex key_tfm_mutex;
+> > +     struct list_head key_tfm_list;
+> > +     unsigned char cipher_name[ECRYPTFS_MAX_CIPHER_NAME_SIZE + 1];
+> > +};
+>
+> Please consider commenting your struct fields carefully: it's a
+> great way to help other to understand your code.
+
+Add some comments to the ecryptfs_global_auth_tok and ecryptfs_key_tfm
+structs to make their functions more easily ascertained.
 
 Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/keystore.c |   39 ++++++++++++++++++++++-----------------
- 1 file changed, 22 insertions(+), 17 deletions(-)
+ fs/ecryptfs/ecryptfs_kernel.h |   26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
-diff -puN fs/ecryptfs/keystore.c~ecryptfs-fix-tag-11-writing-code fs/ecryptfs/keystore.c
---- a/fs/ecryptfs/keystore.c~ecryptfs-fix-tag-11-writing-code
-+++ a/fs/ecryptfs/keystore.c
-@@ -1449,47 +1449,52 @@ out:
-  * Returns zero on success; non-zero on error.
-  */
- static int
--write_tag_11_packet(char *dest, int max, char *contents, size_t contents_length,
--		    size_t *packet_length)
-+write_tag_11_packet(char *dest, int *remaining_bytes, char *contents,
-+		    size_t contents_length, size_t *packet_length)
- {
- 	size_t packet_size_length;
-+	size_t max_packet_size;
- 	int rc = 0;
+diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-comments-for-some-structs fs/ecryptfs/ecryptfs_kernel.h
+--- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-comments-for-some-structs
++++ a/fs/ecryptfs/ecryptfs_kernel.h
+@@ -273,20 +273,36 @@ struct ecryptfs_dentry_info {
+ 	struct ecryptfs_crypt_stat *crypt_stat;
+ };
  
- 	(*packet_length) = 0;
--	if ((13 + contents_length) > max) {
-+	/* This format is inspired by OpenPGP; see RFC 2440
-+	 * packet tag 11 */
-+	max_packet_size = (1                   /* Tag 11 identifier */
-+			   + 3                 /* Max Tag 11 packet size */
-+			   + 1                 /* Binary format specifier */
-+			   + 1                 /* Filename length */
-+			   + 8                 /* Filename ("_CONSOLE") */
-+			   + 4                 /* Modification date */
-+			   + contents_length); /* Literal data */
-+	if (max_packet_size > (*remaining_bytes)) {
-+		printk(KERN_ERR "Packet length larger than maximum allowable; "
-+		       "need up to [%d] bytes, but there are only [%d] "
-+		       "available\n", max_packet_size, (*remaining_bytes));
- 		rc = -EINVAL;
--		ecryptfs_printk(KERN_ERR, "Packet length larger than "
--				"maximum allowable\n");
- 		goto out;
- 	}
--	/* General packet header */
--	/* Packet tag */
- 	dest[(*packet_length)++] = ECRYPTFS_TAG_11_PACKET_TYPE;
--	/* Packet length */
- 	rc = write_packet_length(&dest[(*packet_length)],
--				 (13 + contents_length), &packet_size_length);
-+				 (max_packet_size - 4), &packet_size_length);
- 	if (rc) {
--		ecryptfs_printk(KERN_ERR, "Error generating tag 11 packet "
--				"header; cannot generate packet length\n");
-+		printk(KERN_ERR "Error generating tag 11 packet header; cannot "
-+		       "generate packet length. rc = [%d]\n", rc);
- 		goto out;
- 	}
- 	(*packet_length) += packet_size_length;
--	/* Tag 11 specific */
--	/* One-octet field that describes how the data is formatted */
--	dest[(*packet_length)++] = 0x62; /* binary data */
--	/* One-octet filename length followed by filename */
-+	dest[(*packet_length)++] = 0x62; /* binary data format specifier */
- 	dest[(*packet_length)++] = 8;
- 	memcpy(&dest[(*packet_length)], "_CONSOLE", 8);
- 	(*packet_length) += 8;
--	/* Four-octet number indicating modification date */
- 	memset(&dest[(*packet_length)], 0x00, 4);
- 	(*packet_length) += 4;
--	/* Remainder is literal data */
- 	memcpy(&dest[(*packet_length)], contents, contents_length);
- 	(*packet_length) += contents_length;
-  out:
- 	if (rc)
- 		(*packet_length) = 0;
-+	else
-+		(*remaining_bytes) -= (*packet_length);
- 	return rc;
- }
++/**
++ * ecryptfs_global_auth_tok structs refer to authentication token keys
++ * in the user keyring that apply to newly created files. A list of
++ * these objects hangs off of the mount_crypt_stat struct for any
++ * given eCryptfs mount. This struct maintains a reference to both the
++ * key contents and the key itself so that the key can be put on
++ * unmount.
++ */
+ struct ecryptfs_global_auth_tok {
+ #define ECRYPTFS_AUTH_TOK_INVALID 0x00000001
+ 	u32 flags;
+-	struct list_head mount_crypt_stat_list;
+-	struct key *global_auth_tok_key;
+-	struct ecryptfs_auth_tok *global_auth_tok;
+-	unsigned char sig[ECRYPTFS_SIG_SIZE_HEX + 1];
++	struct list_head mount_crypt_stat_list; /* Default auth_tok list for
++						 * the mount_crypt_stat */
++	struct key *global_auth_tok_key; /* The key from the user's keyring for
++					  * the sig */
++	struct ecryptfs_auth_tok *global_auth_tok; /* The key contents */
++	unsigned char sig[ECRYPTFS_SIG_SIZE_HEX + 1]; /* The key identifier */
+ };
+ 
++/**
++ * Typically, eCryptfs will use the same ciphers repeatedly throughout
++ * the course of its operations. In order to avoid unnecessarily
++ * destroying and initializing the same cipher repeatedly, eCryptfs
++ * keeps a list of crypto API contexts around to use when needed.
++ */
+ struct ecryptfs_key_tfm {
+ 	struct crypto_blkcipher *key_tfm;
+ 	size_t key_size;
+ 	struct mutex key_tfm_mutex;
+-	struct list_head key_tfm_list;
++	struct list_head key_tfm_list; /* The module's tfm list */
+ 	unsigned char cipher_name[ECRYPTFS_MAX_CIPHER_NAME_SIZE + 1];
+ };
  
 _
 
