@@ -1,250 +1,299 @@
 From: akpm@linux-foundation.org
-Subject: - uml-get-rid-of-do_longjmp.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:37:44 -0700
-Message-ID: <200710162037.l9GKbiVI015311@imap1.linux-foundation.org>
+Subject: - pm3fb-copyarea-and-partial-imageblit-suppor.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:41:53 -0700
+Message-ID: <200710162041.l9GKfrYh015829@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46539 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39379 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965802AbXJPVOz (ORCPT
+	by vger.kernel.org with ESMTP id S965115AbXJPVPG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:14:55 -0400
+	Tue, 16 Oct 2007 17:15:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: get rid of do_longjmp
+     pm3fb: copyarea and partial imageblit suppor
 has been removed from the -mm tree.  Its filename was
-     uml-get-rid-of-do_longjmp.patch
+     pm3fb-copyarea-and-partial-imageblit-suppor.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: get rid of do_longjmp
-From: Jeff Dike <jdike@addtoit.com>
+Subject: pm3fb: copyarea and partial imageblit suppor
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-do_longjmp used to be needed when UML didn't have its own implementation of
-setjmp and longjmp.  They came from libc, and couldn't be called directly from
-kernel code, as the libc jmp_buf couldn't be imported there.  do_longjmp was a
-userspace function which served to provide longjmp access to kernel code.
+This patch adds accelerated copyarea and partially accelerated imageblit
+functions. There is also fixed one register address in the pm3fb.h file.
 
-This is gone, and a number of void * pointers can now be jmp_buf *.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/os.h               |    5 ++---
- arch/um/include/um_uaccess.h       |    4 ++++
- arch/um/include/uml_uaccess.h      |   24 ------------------------
- arch/um/kernel/exec.c              |    2 +-
- arch/um/kernel/mem.c               |    2 +-
- arch/um/kernel/trap.c              |    6 +++---
- arch/um/kernel/uaccess.c           |    2 +-
- arch/um/os-Linux/process.c         |    2 +-
- arch/um/os-Linux/trap.c            |    7 -------
- arch/um/os-Linux/uaccess.c         |    2 +-
- include/asm-um/processor-generic.h |    4 ++--
- 11 files changed, 16 insertions(+), 44 deletions(-)
+ drivers/video/pm3fb.c |  180 +++++++++++++++++++++++++++++++++++++---
+ include/video/pm3fb.h |    5 -
+ 2 files changed, 173 insertions(+), 12 deletions(-)
 
-diff -puN arch/um/include/os.h~uml-get-rid-of-do_longjmp arch/um/include/os.h
---- a/arch/um/include/os.h~uml-get-rid-of-do_longjmp
-+++ a/arch/um/include/os.h
-@@ -193,7 +193,7 @@ extern int os_getpid(void);
- extern int os_getpgrp(void);
+diff -puN drivers/video/pm3fb.c~pm3fb-copyarea-and-partial-imageblit-suppor drivers/video/pm3fb.c
+--- a/drivers/video/pm3fb.c~pm3fb-copyarea-and-partial-imageblit-suppor
++++ a/drivers/video/pm3fb.c
+@@ -276,15 +276,22 @@ static void pm3fb_init_engine(struct fb_
  
- extern void init_new_thread_signals(void);
--extern int run_kernel_thread(int (*fn)(void *), void *arg, void **jmp_ptr);
-+extern int run_kernel_thread(int (*fn)(void *), void *arg, jmp_buf **jmp_ptr);
+ 	PM3_WAIT(par, 2);
+ 	{
+-		unsigned long rm = 1;
++		/* invert bits in bitmask */
++		unsigned long rm = 1 | (3 << 7);
+ 		switch (info->var.bits_per_pixel) {
+ 		case 8:
+ 			PM3_WRITE_REG(par, PM3PixelSize,
+ 					   PM3PixelSize_GLOBAL_8BIT);
++#ifdef __BIG_ENDIAN
++			rm |= 3 << 15;
++#endif
+ 			break;
+ 		case 16:
+ 			PM3_WRITE_REG(par, PM3PixelSize,
+ 					   PM3PixelSize_GLOBAL_16BIT);
++#ifdef __BIG_ENDIAN
++			rm |= 2 << 15;
++#endif
+ 			break;
+ 		case 32:
+ 			PM3_WRITE_REG(par, PM3PixelSize,
+@@ -394,18 +401,18 @@ static void pm3fb_fillrect (struct fb_in
+ 		color |= color << 16;
  
- extern int os_map_memory(void *virt, int fd, unsigned long long off,
- 			 unsigned long len, int r, int w, int x);
-@@ -206,7 +206,7 @@ extern void os_flush_stdout(void);
+ 	PM3_WAIT(par, 4);
+-
++	/* ROP Ox3 is GXcopy */
+ 	PM3_WRITE_REG(par, PM3Config2D,
+-				  PM3Config2D_UseConstantSource |
+-				  PM3Config2D_ForegroundROPEnable |
+-				  (PM3Config2D_ForegroundROP(0x3)) |	/* Ox3 is GXcopy */
+-				  PM3Config2D_FBWriteEnable);
++			PM3Config2D_UseConstantSource |
++			PM3Config2D_ForegroundROPEnable |
++			(PM3Config2D_ForegroundROP(0x3)) |
++			PM3Config2D_FBWriteEnable);
  
- /* uaccess.c */
- extern unsigned long __do_user_copy(void *to, const void *from, int n,
--				    void **fault_addr, void **fault_catcher,
-+				    void **fault_addr, jmp_buf **fault_catcher,
- 				    void (*op)(void *to, const void *from,
- 					       int n), int *faulted_out);
+ 	PM3_WRITE_REG(par, PM3ForegroundColor, color);
  
-@@ -240,7 +240,6 @@ extern int set_signals(int enable);
+ 	PM3_WRITE_REG(par, PM3RectanglePosition,
+-		      (PM3RectanglePosition_XOffset(modded.dx)) |
+-		      (PM3RectanglePosition_YOffset(modded.dy)));
++			(PM3RectanglePosition_XOffset(modded.dx)) |
++			(PM3RectanglePosition_YOffset(modded.dy)));
  
- /* trap.c */
- extern void os_fill_handlinfo(struct kern_handlers h);
--extern void do_longjmp(void *p, int val);
- 
- /* util.c */
- extern void stack_protections(unsigned long address);
-diff -puN arch/um/include/um_uaccess.h~uml-get-rid-of-do_longjmp arch/um/include/um_uaccess.h
---- a/arch/um/include/um_uaccess.h~uml-get-rid-of-do_longjmp
-+++ a/arch/um/include/um_uaccess.h
-@@ -30,6 +30,10 @@
- extern int copy_from_user(void *to, const void __user *from, int n);
- extern int copy_to_user(void __user *to, const void *from, int n);
- 
-+extern int __do_copy_to_user(void *to, const void *from, int n,
-+			     void **fault_addr, jmp_buf **fault_catcher);
-+extern void __do_copy(void *to, const void *from, int n);
+ 	PM3_WRITE_REG(par, PM3Render2D,
+ 		      PM3Render2D_XPositive |
+@@ -415,6 +422,154 @@ static void pm3fb_fillrect (struct fb_in
+ 		      (PM3Render2D_Width(modded.width)) |
+ 		      (PM3Render2D_Height(modded.height)));
+ }
 +
- /*
-  * strncpy_from_user: - Copy a NUL terminated string from userspace.
-  * @dst:   Destination address, in kernel space.  This buffer must be at
-diff -puN arch/um/include/uml_uaccess.h~uml-get-rid-of-do_longjmp /dev/null
---- a/arch/um/include/uml_uaccess.h
-+++ /dev/null
-@@ -1,24 +0,0 @@
--/*
-- * Copyright (C) 2001 Jeff Dike (jdike@karaya.com)
-- * Licensed under the GPL
-- */
--
--#ifndef __UML_UACCESS_H__
--#define __UML_UACCESS_H__
--
--extern int __do_copy_to_user(void *to, const void *from, int n,
--			     void **fault_addr, void **fault_catcher);
--void __do_copy(void *to, const void *from, int n);
--
--#endif
--
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/kernel/exec.c~uml-get-rid-of-do_longjmp arch/um/kernel/exec.c
---- a/arch/um/kernel/exec.c~uml-get-rid-of-do_longjmp
-+++ a/arch/um/kernel/exec.c
-@@ -75,7 +75,7 @@ long um_execve(char *file, char __user *
++static void pm3fb_copyarea(struct fb_info *info,
++				const struct fb_copyarea *area)
++{
++	struct pm3_par *par = info->par;
++	struct fb_copyarea modded;
++	u32 vxres, vyres;
++	int x_align, o_x, o_y;
++
++	if (info->state != FBINFO_STATE_RUNNING)
++		return;
++	if (info->flags & FBINFO_HWACCEL_DISABLED) {
++		cfb_copyarea(info, area);
++		return;
++	}
++
++	memcpy(&modded, area, sizeof(struct fb_copyarea));
++
++	vxres = info->var.xres_virtual;
++	vyres = info->var.yres_virtual;
++
++	if(!modded.width || !modded.height ||
++	   modded.sx >= vxres || modded.sy >= vyres ||
++	   modded.dx >= vxres || modded.dy >= vyres)
++		return;
++
++	if(modded.sx + modded.width > vxres)
++		modded.width = vxres - modded.sx;
++	if(modded.dx + modded.width > vxres)
++		modded.width = vxres - modded.dx;
++	if(modded.sy + modded.height > vyres)
++		modded.height = vyres - modded.sy;
++	if(modded.dy + modded.height > vyres)
++		modded.height = vyres - modded.dy;
++
++	o_x = modded.sx - modded.dx;	/*(sx > dx ) ? (sx - dx) : (dx - sx); */
++	o_y = modded.sy - modded.dy;	/*(sy > dy ) ? (sy - dy) : (dy - sy); */
++
++	x_align = (modded.sx & 0x1f);
++
++	PM3_WAIT(par, 6);
++
++	PM3_WRITE_REG(par, PM3Config2D,
++			PM3Config2D_UserScissorEnable |
++			PM3Config2D_ForegroundROPEnable |
++			PM3Config2D_Blocking |
++			(PM3Config2D_ForegroundROP(0x3)) | /* Ox3 is GXcopy */
++			PM3Config2D_FBWriteEnable);
++
++	PM3_WRITE_REG(par, PM3ScissorMinXY,
++			((modded.dy & 0x0fff) << 16) | (modded.dx & 0x0fff));
++	PM3_WRITE_REG(par, PM3ScissorMaxXY,
++			(((modded.dy + modded.height) & 0x0fff) << 16) |
++			((modded.dx + modded.width) & 0x0fff));
++
++	PM3_WRITE_REG(par, PM3FBSourceReadBufferOffset,
++			PM3FBSourceReadBufferOffset_XOffset(o_x) |
++			PM3FBSourceReadBufferOffset_YOffset(o_y));
++
++	PM3_WRITE_REG(par, PM3RectanglePosition,
++			(PM3RectanglePosition_XOffset(modded.dx - x_align)) |
++			(PM3RectanglePosition_YOffset(modded.dy)));
++
++	PM3_WRITE_REG(par, PM3Render2D,
++			((modded.sx > modded.dx) ? PM3Render2D_XPositive : 0) |
++			((modded.sy > modded.dy) ? PM3Render2D_YPositive : 0) |
++			PM3Render2D_Operation_Normal |
++			PM3Render2D_SpanOperation |
++			PM3Render2D_FBSourceReadEnable |
++			(PM3Render2D_Width(modded.width + x_align)) |
++			(PM3Render2D_Height(modded.height)));
++}
++
++static void pm3fb_imageblit(struct fb_info *info, const struct fb_image *image)
++{
++	struct pm3_par *par = info->par;
++	u32 height = image->height;
++	u32 fgx, bgx;
++	const u32 *src = (const u32*)image->data;
++
++	switch (info->fix.visual) {
++		case FB_VISUAL_PSEUDOCOLOR:
++			fgx = image->fg_color;
++			bgx = image->bg_color;
++			break;
++		case FB_VISUAL_TRUECOLOR:
++		default:
++			fgx = par->palette[image->fg_color];
++			bgx = par->palette[image->bg_color];
++			break;
++	}
++	if (image->depth != 1 || (image->width & 0x1f)) {
++		return cfb_imageblit(info, image);
++	}
++	if (info->var.bits_per_pixel == 8) {
++		fgx |= fgx << 8;
++		bgx |= bgx << 8;
++	}
++	if (info->var.bits_per_pixel <= 16) {
++		fgx |= fgx << 16;
++		bgx |= bgx << 16;
++	}
++
++	PM3_WAIT(par, 5);
++
++	PM3_WRITE_REG(par, PM3ForegroundColor, fgx);
++	PM3_WRITE_REG(par, PM3BackgroundColor, bgx);
++
++	/* ROP Ox3 is GXcopy */
++	PM3_WRITE_REG(par, PM3Config2D,
++			PM3Config2D_UseConstantSource |
++			PM3Config2D_ForegroundROPEnable |
++			(PM3Config2D_ForegroundROP(0x3)) |
++			PM3Config2D_OpaqueSpan |
++			PM3Config2D_FBWriteEnable);
++	PM3_WRITE_REG(par, PM3RectanglePosition,
++			(PM3RectanglePosition_XOffset(image->dx)) |
++			(PM3RectanglePosition_YOffset(image->dy)));
++	PM3_WRITE_REG(par, PM3Render2D,
++			PM3Render2D_XPositive |
++			PM3Render2D_YPositive |
++			PM3Render2D_Operation_SyncOnBitMask |
++			PM3Render2D_SpanOperation |
++			(PM3Render2D_Width(image->width)) |
++			(PM3Render2D_Height(image->height)));
++
++
++	while (height--) {
++		u32 width = (image->width + 31) >> 5;
++
++		while (width >= PM3_FIFO_SIZE) {
++			int i = PM3_FIFO_SIZE - 1;
++
++			PM3_WAIT(par, PM3_FIFO_SIZE);
++			while (i--) {
++				PM3_WRITE_REG(par, PM3BitMaskPattern, *src);
++				src++;
++			}
++			width -= PM3_FIFO_SIZE - 1;
++		}
++
++		PM3_WAIT(par, width + 1);
++		while (width--) {
++			PM3_WRITE_REG(par, PM3BitMaskPattern, *src);
++			src++;
++		}
++	}
++}
+ /* end of acceleration functions */
  
- 	err = execve1(file, argv, env);
- 	if (!err)
--		do_longjmp(current->thread.exec_buf, 1);
-+		UML_LONGJMP(current->thread.exec_buf, 1);
- 	return err;
- }
+ /* write the mode to registers */
+@@ -907,8 +1062,8 @@ static struct fb_ops pm3fb_ops = {
+ 	.fb_setcolreg	= pm3fb_setcolreg,
+ 	.fb_pan_display	= pm3fb_pan_display,
+ 	.fb_fillrect	= pm3fb_fillrect,
+-	.fb_copyarea	= cfb_copyarea,
+-	.fb_imageblit	= cfb_imageblit,
++	.fb_copyarea	= pm3fb_copyarea,
++	.fb_imageblit	= pm3fb_imageblit,
+ 	.fb_blank	= pm3fb_blank,
+ 	.fb_sync	= pm3fb_sync,
+ };
+@@ -1080,7 +1235,10 @@ static int __devinit pm3fb_probe(struct 
+ 	info->fix = pm3fb_fix;
+ 	info->pseudo_palette = par->palette;
+ 	info->flags = FBINFO_DEFAULT |
+-			FBINFO_HWACCEL_FILLRECT;/* | FBINFO_HWACCEL_YPAN;*/
++/*			FBINFO_HWACCEL_YPAN |*/
++			FBINFO_HWACCEL_COPYAREA |
++			FBINFO_HWACCEL_IMAGEBLIT |
++			FBINFO_HWACCEL_FILLRECT;
  
-diff -puN arch/um/kernel/mem.c~uml-get-rid-of-do_longjmp arch/um/kernel/mem.c
---- a/arch/um/kernel/mem.c~uml-get-rid-of-do_longjmp
-+++ a/arch/um/kernel/mem.c
-@@ -17,7 +17,7 @@
- #include "as-layout.h"
- #include "kern.h"
- #include "mem_user.h"
--#include "uml_uaccess.h"
-+#include "um_uaccess.h"
- #include "os.h"
- #include "linux/types.h"
- #include "linux/string.h"
-diff -puN arch/um/kernel/trap.c~uml-get-rid-of-do_longjmp arch/um/kernel/trap.c
---- a/arch/um/kernel/trap.c~uml-get-rid-of-do_longjmp
-+++ a/arch/um/kernel/trap.c
-@@ -149,7 +149,7 @@ unsigned long segv(struct faultinfo fi, 
- 		   struct uml_pt_regs *regs)
- {
- 	struct siginfo si;
--	void *catcher;
-+	jmp_buf *catcher;
- 	int err;
- 	int is_write = FAULT_WRITE(fi);
- 	unsigned long address = FAULT_ADDRESS(fi);
-@@ -181,7 +181,7 @@ unsigned long segv(struct faultinfo fi, 
- 		return 0;
- 	else if (catcher != NULL) {
- 		current->thread.fault_addr = (void *) address;
--		do_longjmp(catcher, 1);
-+		UML_LONGJMP(catcher, 1);
- 	}
- 	else if (current->thread.fault_addr != NULL)
- 		panic("fault_addr set but no fault catcher");
-@@ -233,7 +233,7 @@ void relay_signal(int sig, struct uml_pt
- static void bus_handler(int sig, struct uml_pt_regs *regs)
- {
- 	if (current->thread.fault_catcher != NULL)
--		do_longjmp(current->thread.fault_catcher, 1);
-+		UML_LONGJMP(current->thread.fault_catcher, 1);
- 	else relay_signal(sig, regs);
- }
+ 	/*
+ 	 * This should give a reasonable default video mode. The following is
+diff -puN include/video/pm3fb.h~pm3fb-copyarea-and-partial-imageblit-suppor include/video/pm3fb.h
+--- a/include/video/pm3fb.h~pm3fb-copyarea-and-partial-imageblit-suppor
++++ a/include/video/pm3fb.h
+@@ -849,7 +849,7 @@
+ 	#define PM3Render_FBSourceRead_Enable			(1<<27)
+ #define PM3RasterizerMode					0x80a0
+ #define PM3RasterizerModeAnd					0xaba0
+-#define PM3RasterizerModeOr					0xabb8
++#define PM3RasterizerModeOr					0xaba8
+ #define PM3RectangleHeight					0x94e0
+ #define PM3Render						0x8038
+ #define PM3RepeatLine						0x9328
+@@ -1116,6 +1116,9 @@
+ /* ***** pm3fb useful define and macro ***** */
+ /* ***************************************** */
  
-diff -puN arch/um/kernel/uaccess.c~uml-get-rid-of-do_longjmp arch/um/kernel/uaccess.c
---- a/arch/um/kernel/uaccess.c~uml-get-rid-of-do_longjmp
-+++ a/arch/um/kernel/uaccess.c
-@@ -18,7 +18,7 @@ void __do_copy(void *to, const void *fro
++/* fifo size in chip */
++#define PM3_FIFO_SIZE 120
++
+ /* max size of options */
+ #define PM3_OPTIONS_SIZE 256
  
- 
- int __do_copy_to_user(void *to, const void *from, int n,
--		      void **fault_addr, void **fault_catcher)
-+		      void **fault_addr, jmp_buf **fault_catcher)
- {
- 	unsigned long fault;
- 	int faulted;
-diff -puN arch/um/os-Linux/process.c~uml-get-rid-of-do_longjmp arch/um/os-Linux/process.c
---- a/arch/um/os-Linux/process.c~uml-get-rid-of-do_longjmp
-+++ a/arch/um/os-Linux/process.c
-@@ -249,7 +249,7 @@ void init_new_thread_signals(void)
- 	init_irq_signals(1);
- }
- 
--int run_kernel_thread(int (*fn)(void *), void *arg, void **jmp_ptr)
-+int run_kernel_thread(int (*fn)(void *), void *arg, jmp_buf **jmp_ptr)
- {
- 	jmp_buf buf;
- 	int n;
-diff -puN arch/um/os-Linux/trap.c~uml-get-rid-of-do_longjmp arch/um/os-Linux/trap.c
---- a/arch/um/os-Linux/trap.c~uml-get-rid-of-do_longjmp
-+++ a/arch/um/os-Linux/trap.c
-@@ -22,10 +22,3 @@ void os_fill_handlinfo(struct kern_handl
- 	sig_info[SIGVTALRM] = h.timer_handler;
- 	sig_info[SIGALRM] = h.timer_handler;
- }
--
--void do_longjmp(void *b, int val)
--{
--	jmp_buf *buf = b;
--
--	UML_LONGJMP(buf, val);
--}
-diff -puN arch/um/os-Linux/uaccess.c~uml-get-rid-of-do_longjmp arch/um/os-Linux/uaccess.c
---- a/arch/um/os-Linux/uaccess.c~uml-get-rid-of-do_longjmp
-+++ a/arch/um/os-Linux/uaccess.c
-@@ -8,7 +8,7 @@
- #include "longjmp.h"
- 
- unsigned long __do_user_copy(void *to, const void *from, int n,
--			     void **fault_addr, void **fault_catcher,
-+			     void **fault_addr, jmp_buf **fault_catcher,
- 			     void (*op)(void *to, const void *from,
- 					int n), int *faulted_out)
- {
-diff -puN include/asm-um/processor-generic.h~uml-get-rid-of-do_longjmp include/asm-um/processor-generic.h
---- a/include/asm-um/processor-generic.h~uml-get-rid-of-do_longjmp
-+++ a/include/asm-um/processor-generic.h
-@@ -30,10 +30,10 @@ struct thread_struct {
- 	struct pt_regs regs;
- 	int singlestep_syscall;
- 	void *fault_addr;
--	void *fault_catcher;
-+	jmp_buf *fault_catcher;
- 	struct task_struct *prev_sched;
- 	unsigned long temp_stack;
--	void *exec_buf;
-+	jmp_buf *exec_buf;
- 	struct arch_thread arch;
- 	jmp_buf switch_buf;
- 	int mm_count;
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-git-kvm.patch
-uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
-bitops-introduce-lock-ops.patch
+git-alsa.patch
+cyber2000fb-checkpatch-fixes.patch
