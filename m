@@ -1,50 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:29:22 -0700
-Message-ID: <200710160429.l9G4TMK2008798@imap1.linux-foundation.org>
+Subject: - categorize-gfp-flags-fix.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:30:26 -0700
+Message-ID: <200710160430.l9G4UQNH008879@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38798 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50224 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751837AbXJPE30 (ORCPT
+	by vger.kernel.org with ESMTP id S1753903AbXJPEaa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:29:26 -0400
+	Tue, 16 Oct 2007 00:30:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clameter@sgi.com, shaohua.li@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2
+     categorize-gfp-flags-fix
 has been removed from the -mm tree.  Its filename was
-     memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
+     categorize-gfp-flags-fix.patch
 
-This patch was dropped because it was folded into memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code.patch
+This patch was dropped because it was folded into categorize-gfp-flags.patch
 
 ------------------------------------------------------
-Subject: memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2
+Subject: categorize-gfp-flags-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Shaohua Li <shaohua.li@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slab.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/mempolicy.c~memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2 mm/mempolicy.c
---- a/mm/mempolicy.c~memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2
-+++ a/mm/mempolicy.c
-@@ -965,7 +965,7 @@ asmlinkage long sys_migrate_pages(pid_t 
- 		goto out;
- 	}
+diff -puN mm/slab.c~categorize-gfp-flags-fix mm/slab.c
+--- a/mm/slab.c~categorize-gfp-flags-fix
++++ a/mm/slab.c
+@@ -2747,7 +2747,7 @@ static int cache_grow(struct kmem_cache 
+ 	 * critical path in kmem_cache_alloc().
+ 	 */
+ 	BUG_ON(flags & GFP_SLAB_BUG_MASK);
+-	local_flags = (flags & (GFP_CONSTRAINT_MASK|GFP_RECLAIM_MASK));
++	local_flags = flags & (GFP_CONSTRAINT_MASK|GFP_RECLAIM_MASK);
  
--	if (!nodes_subset(new, node_online_map)) {
-+	if (!nodes_subset(new, node_states[N_HIGH_MEMORY])) {
- 		err = -EINVAL;
- 		goto out;
- 	}
+ 	/* Take the l3 list lock to change the colour_next on this node */
+ 	check_irq_off();
+@@ -3225,7 +3225,7 @@ static void *fallback_alloc(struct kmem_
+ 
+ 	zonelist = &NODE_DATA(slab_node(current->mempolicy))
+ 			->node_zonelists[gfp_zone(flags)];
+-	local_flags = (flags & GFP_LEVEL_MASK);
++	local_flags = flags & (GFP_CONSTRAINT_MASK|GFP_RECLAIM_MASK);
+ 
+ retry:
+ 	/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,8 +68,7 @@ nfs-convert-to-new-aops.patch
 fs-restore-nobh.patch
 memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
 memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
-memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
+categorize-gfp-flags.patch
 categorize-gfp-flags-fix.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
 maps2-move-the-page-walker-code-to-lib.patch
