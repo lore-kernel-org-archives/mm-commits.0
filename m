@@ -1,234 +1,265 @@
 From: akpm@linux-foundation.org
-Subject: - uvesafb-documentation.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:41:51 -0700
-Message-ID: <200710162041.l9GKfpUN015826@imap1.linux-foundation.org>
+Subject: - pm3fb-improvements-and-cleanups.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:42:04 -0700
+Message-ID: <200710162042.l9GKg4wY015855@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43426 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38750 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965502AbXJPVO2 (ORCPT
+	by vger.kernel.org with ESMTP id S1760787AbXJPVPR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:14:28 -0400
+	Tue, 16 Oct 2007 17:15:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: spock@gentoo.org, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uvesafb: documentation
+     pm3fb: improvements and cleanups
 has been removed from the -mm tree.  Its filename was
-     uvesafb-documentation.patch
+     pm3fb-improvements-and-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uvesafb: documentation
-From: Michal Januszewski <spock@gentoo.org>
+Subject: pm3fb: improvements and cleanups
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Documentation for the uvesafb driver.
+This patch contains improvements:
+- it adds ROP_XOR in pm3fb_fillrect()
+- it conforms closer to coding style
+- it removes redundant parentheses and setting bits with 0 value
+- it checks if hardware acceleration is disabled in pm3fb_imageblit
+- it adds module description
 
-Signed-off-by: Michal Januszewski <spock@gentoo.org>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fb/uvesafb.txt |  188 +++++++++++++++++++++++++++++++++
- 1 file changed, 188 insertions(+)
+ drivers/video/pm3fb.c |   68 ++++++++++++++++++++++------------------
+ 1 file changed, 38 insertions(+), 30 deletions(-)
 
-diff -puN /dev/null Documentation/fb/uvesafb.txt
---- /dev/null
-+++ a/Documentation/fb/uvesafb.txt
-@@ -0,0 +1,188 @@
+diff -puN drivers/video/pm3fb.c~pm3fb-improvements-and-cleanups drivers/video/pm3fb.c
+--- a/drivers/video/pm3fb.c~pm3fb-improvements-and-cleanups
++++ a/drivers/video/pm3fb.c
+@@ -135,7 +135,7 @@ static void pm3fb_clear_colormap(struct 
+ 
+ }
+ 
+-/* Calculating various clock parameter */
++/* Calculating various clock parameters */
+ static void pm3fb_calculate_clock(unsigned long reqclock,
+ 				unsigned char *prescale,
+ 				unsigned char *feedback,
+@@ -166,7 +166,7 @@ static void pm3fb_calculate_clock(unsign
+ 
+ static inline int pm3fb_depth(const struct fb_var_screeninfo *var)
+ {
+-	if ( var->bits_per_pixel == 16 )
++	if (var->bits_per_pixel == 16)
+ 		return var->red.length + var->green.length
+ 			+ var->blue.length;
+ 
+@@ -351,7 +351,7 @@ static void pm3fb_init_engine(struct fb_
+ 
+ 	PM3_WRITE_REG(par, PM3dXDom, 0x0);
+ 	PM3_WRITE_REG(par, PM3dXSub, 0x0);
+-	PM3_WRITE_REG(par, PM3dY, (1 << 16));
++	PM3_WRITE_REG(par, PM3dY, 1 << 16);
+ 	PM3_WRITE_REG(par, PM3StartXDom, 0x0);
+ 	PM3_WRITE_REG(par, PM3StartXSub, 0x0);
+ 	PM3_WRITE_REG(par, PM3StartY, 0x0);
+@@ -372,16 +372,21 @@ static void pm3fb_fillrect (struct fb_in
+ 	struct pm3_par *par = info->par;
+ 	struct fb_fillrect modded;
+ 	int vxres, vyres;
++	int rop;
+ 	u32 color = (info->fix.visual == FB_VISUAL_TRUECOLOR) ?
+ 		((u32*)info->pseudo_palette)[region->color] : region->color;
+ 
+ 	if (info->state != FBINFO_STATE_RUNNING)
+ 		return;
+-	if ((info->flags & FBINFO_HWACCEL_DISABLED) ||
+-		region->rop != ROP_COPY ) {
++	if (info->flags & FBINFO_HWACCEL_DISABLED) {
+ 		cfb_fillrect(info, region);
+ 		return;
+ 	}
++	if (region->rop == ROP_COPY )
++		rop = PM3Config2D_ForegroundROP(0x3); /* GXcopy */
++	else
++		rop = PM3Config2D_ForegroundROP(0x6) | /* GXxor */
++			PM3Config2D_FBDestReadEnable;
+ 
+ 	vxres = info->var.xres_virtual;
+ 	vyres = info->var.yres_virtual;
+@@ -407,22 +412,22 @@ static void pm3fb_fillrect (struct fb_in
+ 	PM3_WRITE_REG(par, PM3Config2D,
+ 			PM3Config2D_UseConstantSource |
+ 			PM3Config2D_ForegroundROPEnable |
+-			(PM3Config2D_ForegroundROP(0x3)) |
++			rop |
+ 			PM3Config2D_FBWriteEnable);
+ 
+ 	PM3_WRITE_REG(par, PM3ForegroundColor, color);
+ 
+ 	PM3_WRITE_REG(par, PM3RectanglePosition,
+-			(PM3RectanglePosition_XOffset(modded.dx)) |
+-			(PM3RectanglePosition_YOffset(modded.dy)));
++			PM3RectanglePosition_XOffset(modded.dx) |
++			PM3RectanglePosition_YOffset(modded.dy));
+ 
+ 	PM3_WRITE_REG(par, PM3Render2D,
+ 		      PM3Render2D_XPositive |
+ 		      PM3Render2D_YPositive |
+ 		      PM3Render2D_Operation_Normal |
+ 		      PM3Render2D_SpanOperation |
+-		      (PM3Render2D_Width(modded.width)) |
+-		      (PM3Render2D_Height(modded.height)));
++		      PM3Render2D_Width(modded.width) |
++		      PM3Render2D_Height(modded.height));
+ }
+ 
+ static void pm3fb_copyarea(struct fb_info *info,
+@@ -470,7 +475,7 @@ static void pm3fb_copyarea(struct fb_inf
+ 			PM3Config2D_UserScissorEnable |
+ 			PM3Config2D_ForegroundROPEnable |
+ 			PM3Config2D_Blocking |
+-			(PM3Config2D_ForegroundROP(0x3)) | /* Ox3 is GXcopy */
++			PM3Config2D_ForegroundROP(0x3) | /* Ox3 is GXcopy */
+ 			PM3Config2D_FBWriteEnable);
+ 
+ 	PM3_WRITE_REG(par, PM3ScissorMinXY,
+@@ -484,8 +489,8 @@ static void pm3fb_copyarea(struct fb_inf
+ 			PM3FBSourceReadBufferOffset_YOffset(o_y));
+ 
+ 	PM3_WRITE_REG(par, PM3RectanglePosition,
+-			(PM3RectanglePosition_XOffset(modded.dx - x_align)) |
+-			(PM3RectanglePosition_YOffset(modded.dy)));
++			PM3RectanglePosition_XOffset(modded.dx - x_align) |
++			PM3RectanglePosition_YOffset(modded.dy));
+ 
+ 	PM3_WRITE_REG(par, PM3Render2D,
+ 			((modded.sx > modded.dx) ? PM3Render2D_XPositive : 0) |
+@@ -493,8 +498,8 @@ static void pm3fb_copyarea(struct fb_inf
+ 			PM3Render2D_Operation_Normal |
+ 			PM3Render2D_SpanOperation |
+ 			PM3Render2D_FBSourceReadEnable |
+-			(PM3Render2D_Width(modded.width + x_align)) |
+-			(PM3Render2D_Height(modded.height)));
++			PM3Render2D_Width(modded.width + x_align) |
++			PM3Render2D_Height(modded.height));
+ }
+ 
+ static void pm3fb_imageblit(struct fb_info *info, const struct fb_image *image)
+@@ -504,6 +509,12 @@ static void pm3fb_imageblit(struct fb_in
+ 	u32 fgx, bgx;
+ 	const u32 *src = (const u32*)image->data;
+ 
++	if (info->state != FBINFO_STATE_RUNNING)
++		return;
++	if (info->flags & FBINFO_HWACCEL_DISABLED) {
++		cfb_imageblit(info, image);
++		return;
++	}
+ 	switch (info->fix.visual) {
+ 		case FB_VISUAL_PSEUDOCOLOR:
+ 			fgx = image->fg_color;
+@@ -537,7 +548,7 @@ static void pm3fb_imageblit(struct fb_in
+ 			PM3Config2D_UserScissorEnable |
+ 			PM3Config2D_UseConstantSource |
+ 			PM3Config2D_ForegroundROPEnable |
+-			(PM3Config2D_ForegroundROP(0x3)) |
++			PM3Config2D_ForegroundROP(0x3) |
+ 			PM3Config2D_OpaqueSpan |
+ 			PM3Config2D_FBWriteEnable);
+ 	PM3_WRITE_REG(par, PM3ScissorMinXY,
+@@ -546,15 +557,15 @@ static void pm3fb_imageblit(struct fb_in
+ 			(((image->dy + image->height) & 0x0fff) << 16) |
+ 			((image->dx + image->width) & 0x0fff));
+ 	PM3_WRITE_REG(par, PM3RectanglePosition,
+-			(PM3RectanglePosition_XOffset(image->dx)) |
+-			(PM3RectanglePosition_YOffset(image->dy)));
++			PM3RectanglePosition_XOffset(image->dx) |
++			PM3RectanglePosition_YOffset(image->dy));
+ 	PM3_WRITE_REG(par, PM3Render2D,
+ 			PM3Render2D_XPositive |
+ 			PM3Render2D_YPositive |
+ 			PM3Render2D_Operation_SyncOnBitMask |
+ 			PM3Render2D_SpanOperation |
+-			(PM3Render2D_Width(image->width)) |
+-			(PM3Render2D_Height(image->height)));
++			PM3Render2D_Width(image->width) |
++			PM3Render2D_Height(image->height));
+ 
+ 
+ 	while (height--) {
+@@ -783,7 +794,7 @@ static int pm3fb_check_var(struct fb_var
+ 	unsigned bpp = var->red.length + var->green.length
+ 			+ var->blue.length + var->transp.length;
+ 
+-	if ( bpp != var->bits_per_pixel ) {
++	if (bpp != var->bits_per_pixel) {
+ 		/* set predefined mode for bits_per_pixel settings */
+ 
+ 		switch(var->bits_per_pixel) {
+@@ -838,7 +849,7 @@ static int pm3fb_check_var(struct fb_var
+ 	}
+ 
+ 	var->xres = (var->xres + 31) & ~31; /* could sometimes be 8 */
+-	lpitch = var->xres * ((var->bits_per_pixel + 7)>>3);
++	lpitch = var->xres * ((var->bits_per_pixel + 7) >> 3);
+ 
+ 	if (var->xres < 200 || var->xres > 2048) {
+ 		DPRINTK("width not supported: %u\n", var->xres);
+@@ -890,15 +901,12 @@ static int pm3fb_set_par(struct fb_info 
+ 
+ 	if ((info->var.vmode & FB_VMODE_MASK) == FB_VMODE_DOUBLE)
+ 		par->video |= PM3VideoControl_LINE_DOUBLE_ON;
+-	else
+-		par->video |= PM3VideoControl_LINE_DOUBLE_OFF;
+ 
+ 	if ((info->var.activate & FB_ACTIVATE_MASK) == FB_ACTIVATE_NOW)
+ 		par->video |= PM3VideoControl_ENABLE;
+-	else {
+-		par->video &= ~PM3VideoControl_ENABLE;
++	else
+ 		DPRINTK("PM3Video disabled\n");
+-	}
 +
-+uvesafb - A Generic Driver for VBE2+ compliant video cards
-+==========================================================
-+
-+1. Requirements
-+---------------
-+
-+uvesafb should work with any video card that has a Video BIOS compliant
-+with the VBE 2.0 standard.
-+
-+Unlike other drivers, uvesafb makes use of a userspace helper called
-+v86d.  v86d is used to run the x86 Video BIOS code in a simulated and
-+controlled environment.  This allows uvesafb to function on arches other
-+than x86.  Check the v86d documentation for a list of currently supported
-+arches.
-+
-+v86d source code can be downloaded from the following website:
-+  http://dev.gentoo.org/~spock/projects/uvesafb
-+
-+Please refer to the v86d documentation for detailed configuration and
-+installation instructions.
-+
-+Note that the v86d userspace helper has to be available at all times in
-+order for uvesafb to work properly.  If you want to use uvesafb during
-+early boot, you will have to include v86d into an initramfs image, and
-+either compile it into the kernel or use it as an initrd.
-+
-+2. Caveats and limitations
-+--------------------------
-+
-+uvesafb is a _generic_ driver which supports a wide variety of video
-+cards, but which is ultimately limited by the Video BIOS interface.
-+The most important limitations are:
-+
-+- Lack of any type of acceleration.
-+- A strict and limited set of supported video modes.  Often the native
-+  or most optimal resolution/refresh rate for your setup will not work
-+  with uvesafb, simply because the Video BIOS doesn't support the
-+  video mode you want to use.  This can be especially painful with
-+  widescreen panels, where native video modes don't have the 4:3 aspect
-+  ratio, which is what most BIOS-es are limited to.
-+- Adjusting the refresh rate is only possible with a VBE 3.0 compliant
-+  Video BIOS.  Note that many nVidia Video BIOS-es claim to be VBE 3.0
-+  compliant, while they simply ignore any refresh rate settings.
-+
-+3. Configuration
-+----------------
-+
-+uvesafb can be compiled either as a module, or directly into the kernel.
-+In both cases it supports the same set of configuration options, which
-+are either given on the kernel command line or as module parameters, e.g.:
-+
-+ video=uvesafb:1024x768-32,mtrr:3,ywrap (compiled into the kernel)
-+
-+ # modprobe uvesafb mode=1024x768-32 mtrr=3 scroll=ywrap  (module)
-+
-+Accepted options:
-+
-+ypan    Enable display panning using the VESA protected mode
-+        interface.  The visible screen is just a window of the
-+        video memory, console scrolling is done by changing the
-+        start of the window.  Available on x86 only.
-+
-+ywrap   Same as ypan, but assumes your gfx board can wrap-around
-+        the video memory (i.e. starts reading from top if it
-+        reaches the end of video memory).  Faster than ypan.
-+        Available on x86 only.
-+
-+redraw  Scroll by redrawing the affected part of the screen, this
-+        is the safe (and slow) default.
-+
-+(If you're using uvesafb as a module, the above three options are
-+ used a parameter of the scroll option, e.g. scroll=ypan.)
-+
-+vgapal  Use the standard VGA registers for palette changes.
-+
-+pmipal  Use the protected mode interface for palette changes.
-+        This is the default if the protected mode interface is
-+        available.  Available on x86 only.
-+
-+mtrr:n  Setup memory type range registers for the framebuffer
-+        where n:
-+              0 - disabled (equivalent to nomtrr) (default)
-+              1 - uncachable
-+              2 - write-back
-+              3 - write-combining
-+              4 - write-through
-+
-+        If you see the following in dmesg, choose the type that matches
-+        the old one.  In this example, use "mtrr:2".
-+...
-+mtrr: type mismatch for e0000000,8000000 old: write-back new: write-combining
-+...
-+
-+nomtrr  Do not use memory type range registers.
-+
-+vremap:n
-+        Remap 'n' MiB of video RAM.  If 0 or not specified, remap memory
-+        according to video mode.
-+
-+vtotal:n
-+        If the video BIOS of your card incorrectly determines the total
-+        amount of video RAM, use this option to override the BIOS (in MiB).
-+
-+<mode>  The mode you want to set, in the standard modedb format.  Refer to
-+        modedb.txt for a detailed description.  When uvesafb is compiled as
-+        a module, the mode string should be provided as a value of the
-+        'mode' option.
-+
-+vbemode:x
-+        Force the use of VBE mode x.  The mode will only be set if it's
-+        found in the VBE-provided list of supported modes.
-+        NOTE: The mode number 'x' should be specified in VESA mode number
-+        notation, not the Linux kernel one (eg. 257 instead of 769).
-+        HINT: If you use this option because normal <mode> parameter does
-+        not work for you and you use a X server, you'll probably want to
-+        set the 'nocrtc' option to ensure that the video mode is properly
-+        restored after console <-> X switches.
-+
-+nocrtc  Do not use CRTC timings while setting the video mode.  This option
-+        has any effect only if the Video BIOS is VBE 3.0 compliant.  Use it
-+        if you have problems with modes set the standard way.  Note that
-+        using this option implies that any refresh rate adjustments will
-+        be ignored and the refresh rate will stay at your BIOS default (60 Hz).
-+
-+noedid  Do not try to fetch and use EDID-provided modes.
-+
-+noblank Disable hardware blanking.
-+
-+v86d:path
-+        Set path to the v86d executable. This option is only available as
-+        a module parameter, and not as a part of the video= string.  If you
-+        need to use it and have uvesafb built into the kernel, use
-+        uvesafb.v86d="path".
-+
-+Additionally, the following parameters may be provided.  They all override the
-+EDID-provided values and BIOS defaults.  Refer to your monitor's specs to get
-+the correct values for maxhf, maxvf and maxclk for your hardware.
-+
-+maxhf:n     Maximum horizontal frequency (in kHz).
-+maxvf:n     Maximum vertical frequency (in Hz).
-+maxclk:n    Maximum pixel clock (in MHz).
-+
-+4. The sysfs interface
-+----------------------
-+
-+uvesafb provides several sysfs nodes for configurable parameters and
-+additional information.
-+
-+Driver attributes:
-+
-+/sys/bus/platform/drivers/uvesafb
-+  - v86d (default: /sbin/v86d)
-+    Path to the v86d executable. v86d is started by uvesafb
-+    if an instance of the daemon isn't already running.
-+
-+Device attributes:
-+
-+/sys/bus/platform/drivers/uvesafb/uvesafb.0
-+  - nocrtc
-+    Use the default refresh rate (60 Hz) if set to 1.
-+
-+  - oem_product_name
-+  - oem_product_rev
-+  - oem_string
-+  - oem_vendor
-+    Information about the card and its maker.
-+
-+  - vbe_modes
-+    A list of video modes supported by the Video BIOS along with their
-+    VBE mode numbers in hex.
-+
-+  - vbe_version
-+    A BCD value indicating the implemented VBE standard.
-+
-+5. Miscellaneous
-+----------------
-+
-+Uvesafb will set a video mode with the default refresh rate and timings
-+from the Video BIOS if you set pixclock to 0 in fb_var_screeninfo.
-+
-+
-+--
-+ Michal Januszewski <spock@gentoo.org>
-+ Last updated: 2007-06-16
-+
-+ Documentation of the uvesafb options is loosely based on vesafb.txt.
-+
+ 	switch (bpp) {
+ 	case 8:
+ 		par->video |= PM3VideoControl_PIXELSIZE_8BIT;
+@@ -916,8 +924,7 @@ static int pm3fb_set_par(struct fb_info 
+ 
+ 	info->fix.visual =
+ 		(bpp == 8) ? FB_VISUAL_PSEUDOCOLOR : FB_VISUAL_TRUECOLOR;
+-	info->fix.line_length = ((info->var.xres_virtual + 7)  & ~7)
+-					* bpp / 8;
++	info->fix.line_length = ((info->var.xres_virtual + 7)  >> 3) * bpp;
+ 
+ /*	pm3fb_clear_memory(info, 0);*/
+ 	pm3fb_clear_colormap(par, 0, 0, 0);
+@@ -1035,7 +1042,7 @@ static int pm3fb_blank(int blank_mode, s
+ 		video |= PM3VideoControl_ENABLE;
+ 		break;
+ 	case FB_BLANK_NORMAL:
+-		video &= ~(PM3VideoControl_ENABLE);
++		video &= ~PM3VideoControl_ENABLE;
+ 		break;
+ 	case FB_BLANK_HSYNC_SUSPEND:
+ 		video &= ~(PM3VideoControl_HSYNC_MASK |
+@@ -1367,4 +1374,5 @@ static void __exit pm3fb_exit(void)
+ module_init(pm3fb_init);
+ module_exit(pm3fb_exit);
+ 
++MODULE_DESCRIPTION("Permedia3 framebuffer device driver");
+ MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from spock@gentoo.org are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
+git-alsa.patch
+cyber2000fb-checkpatch-fixes.patch
