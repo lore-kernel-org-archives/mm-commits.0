@@ -1,307 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - during-vm-oom-condition-kill-all-threads-in-process-group.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:30:39 -0700
-Message-ID: <200710162030.l9GKUdoS014427@imap1.linux-foundation.org>
+Subject: - memoryless-nodes-uncached-allocator-updates.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:33:55 -0700
+Message-ID: <200710162033.l9GKXtjQ014872@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53236 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54612 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935092AbXJPV6M (ORCPT
+	by vger.kernel.org with ESMTP id S1755140AbXJPV7l (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:58:12 -0400
+	Tue, 16 Oct 2007 17:59:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: will_schmidt@vnet.ibm.com, ak@suse.de, benh@kernel.crashing.org, chris@zankel.net, davem@davemloft.net, dhowells@redhat.com, geert@linux-m68k.org, heiko.carstens@de.ibm.com, hskinnemo
+To: clameter@sgi.com, bob.picco@hp.com, jes@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@skynet.ie, nacc@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     During VM oom condition, kill all threads in process group
+     Memoryless nodes: Uncached allocator updates
 has been removed from the -mm tree.  Its filename was
-     during-vm-oom-condition-kill-all-threads-in-process-group.patch
+     memoryless-nodes-uncached-allocator-updates.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: During VM oom condition, kill all threads in process group
-From: Will Schmidt <will_schmidt@vnet.ibm.com>
+Subject: Memoryless nodes: Uncached allocator updates
+From: Christoph Lameter <clameter@sgi.com>
 
-We have had complaints where a threaded application is left in a bad state
-after one of it's threads is killed when we hit a VM: out_of_memory
-condition.
+The checks for node_online in the uncached allocator are made to make sure
+that memory is available on these nodes.  Thus switch all the checks to use
+N_HIGH_MEMORY and to N_ONLINE.
 
-Killing just one of the process threads can leave the application in a bad
-state, whereas killing the entire process group would allow for the
-application to restart, or be otherwise handled, and makes it very obvious
-that something has gone wrong.
-
-This change allows the entire process group to be taken down, rather
-than just the one thread.
-
-Signed-off-by: Will Schmidt <will_schmidt@vnet.ibm.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Ian Molton <spyro@f2s.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Matthew Wilcox <willy@debian.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Kazumoto Kojima <kkojima@rr.iij4u.or.jp>
-Cc: Richard Curnow <rc@rc0.org.uk>
-Cc: William Lee Irwin III <wli@holomorphy.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Chris Zankel <chris@zankel.net>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Jes Sorensen <jes@sgi.com>
+Acked-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Acked-by: Bob Picco <bob.picco@hp.com>
+Cc: Nishanth Aravamudan <nacc@us.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mel@skynet.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/mm/fault.c   |    2 +-
- arch/arm/mm/fault.c     |    2 +-
- arch/avr32/mm/fault.c   |    2 +-
- arch/cris/mm/fault.c    |    2 +-
- arch/frv/mm/fault.c     |    2 +-
- arch/ia64/mm/fault.c    |    2 +-
- arch/m32r/mm/fault.c    |    2 +-
- arch/m68k/mm/fault.c    |    2 +-
- arch/mips/mm/fault.c    |    2 +-
- arch/parisc/mm/fault.c  |    2 +-
- arch/ppc/mm/fault.c     |    2 +-
- arch/s390/mm/fault.c    |    2 +-
- arch/sh/mm/fault.c      |    2 +-
- arch/sh64/mm/fault.c    |    2 +-
- arch/sparc/mm/fault.c   |    2 +-
- arch/sparc64/mm/fault.c |    2 +-
- arch/x86/mm/fault_32.c  |    2 +-
- arch/xtensa/mm/fault.c  |    2 +-
- 18 files changed, 18 insertions(+), 18 deletions(-)
+ arch/ia64/kernel/uncached.c |    4 ++--
+ drivers/char/mspec.c        |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/alpha/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/alpha/mm/fault.c
---- a/arch/alpha/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
-+++ a/arch/alpha/mm/fault.c
-@@ -197,7 +197,7 @@ do_page_fault(unsigned long address, uns
- 	       current->comm, current->pid);
- 	if (!user_mode(regs))
- 		goto no_context;
--	do_exit(SIGKILL);
-+	do_group_exit(SIGKILL);
+diff -puN arch/ia64/kernel/uncached.c~memoryless-nodes-uncached-allocator-updates arch/ia64/kernel/uncached.c
+--- a/arch/ia64/kernel/uncached.c~memoryless-nodes-uncached-allocator-updates
++++ a/arch/ia64/kernel/uncached.c
+@@ -196,7 +196,7 @@ unsigned long uncached_alloc_page(int st
+ 	nid = starting_nid;
  
-  do_sigbus:
- 	/* Send a sigbus, regardless of whether we were in kernel
-diff -puN arch/arm/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/arm/mm/fault.c
---- a/arch/arm/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
-+++ a/arch/arm/mm/fault.c
-@@ -266,7 +266,7 @@ do_page_fault(unsigned long addr, unsign
- 		 * the page fault gracefully.
- 		 */
- 		printk("VM: killing process %s\n", tsk->comm);
--		do_exit(SIGKILL);
-+		do_group_exit(SIGKILL);
- 		return 0;
+ 	do {
+-		if (!node_online(nid))
++		if (!node_state(nid, N_HIGH_MEMORY))
+ 			continue;
+ 		uc_pool = &uncached_pools[nid];
+ 		if (uc_pool->pool == NULL)
+@@ -268,7 +268,7 @@ static int __init uncached_init(void)
+ {
+ 	int nid;
+ 
+-	for_each_online_node(nid) {
++	for_each_node_state(nid, N_ONLINE) {
+ 		uncached_pools[nid].pool = gen_pool_create(PAGE_SHIFT, nid);
+ 		mutex_init(&uncached_pools[nid].add_chunk_mutex);
  	}
- 	if (fault & VM_FAULT_SIGBUS) {
-diff -puN arch/avr32/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/avr32/mm/fault.c
---- a/arch/avr32/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
-+++ a/arch/avr32/mm/fault.c
-@@ -216,7 +216,7 @@ out_of_memory:
- 	}
- 	printk("VM: Killing process %s\n", tsk->comm);
- 	if (user_mode(regs))
--		do_exit(SIGKILL);
-+		do_group_exit(SIGKILL);
- 	goto no_context;
- 
- do_sigbus:
-diff -puN arch/cris/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/cris/mm/fault.c
---- a/arch/cris/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
-+++ a/arch/cris/mm/fault.c
-@@ -360,7 +360,7 @@ do_page_fault(unsigned long address, str
- 	up_read(&mm->mmap_sem);
- 	printk("VM: killing process %s\n", tsk->comm);
- 	if (user_mode(regs))
--		do_exit(SIGKILL);
-+		do_group_exit(SIGKILL);
- 	goto no_context;
- 
-  do_sigbus:
-diff -puN arch/frv/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/frv/mm/fault.c
---- a/arch/frv/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
-+++ a/arch/frv/mm/fault.c
-@@ -259,7 +259,7 @@ asmlinkage void do_page_fault(int datamm
- 	up_read(&mm->mmap_sem);
- 	printk("VM: killing process %s\n", current->comm);
- 	if (user_mode(__frame))
--		do_exit(SIGKILL);
-+		do_group_exit(SIGKILL);
- 	goto no_context;
- 
-  do_sigbus:
-diff -puN arch/ia64/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/ia64/mm/fault.c
---- a/arch/ia64/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
-+++ a/arch/ia64/mm/fault.c
-@@ -281,6 +281,6 @@ ia64_do_page_fault (unsigned long addres
- 	}
- 	printk(KERN_CRIT "VM: killing process %s\n", current->comm);
- 	if (user_mode(regs))
--		do_exit(SIGKILL);
-+		do_group_exit(SIGKILL);
- 	goto no_context;
- }
-diff -puN arch/m32r/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/m32r/mm/fault.c
---- a/arch/m32r/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
-+++ a/arch/m32r/mm/fault.c
-@@ -278,7 +278,7 @@ out_of_memory:
- 	}
- 	printk("VM: killing process %s\n", tsk->comm);
- 	if (error_code & ACE_USERMODE)
--		do_exit(SIGKILL);
-+		do_group_exit(SIGKILL);
- 	goto no_context;
- 
- do_sigbus:
-diff -puN arch/m68k/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/m68k/mm/fault.c
---- a/arch/m68k/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
-+++ a/arch/m68k/mm/fault.c
-@@ -188,7 +188,7 @@ out_of_memory:
- 
- 	printk("VM: killing process %s\n", current->comm);
- 	if (user_mode(regs))
--		do_exit(SIGKILL);
-+		do_group_exit(SIGKILL);
- 
- no_context:
- 	current->thread.signo = SIGBUS;
-diff -puN arch/mips/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/mips/mm/fault.c
---- a/arch/mips/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
-+++ a/arch/mips/mm/fault.c
-@@ -180,7 +180,7 @@ out_of_memory:
- 	}
- 	printk("VM: killing process %s\n", tsk->comm);
- 	if (user_mode(regs))
--		do_exit(SIGKILL);
-+		do_group_exit(SIGKILL);
- 	goto no_context;
- 
- do_sigbus:
-diff -puN arch/parisc/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/parisc/mm/fault.c
---- a/arch/parisc/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
-+++ a/arch/parisc/mm/fault.c
-@@ -263,6 +263,6 @@ no_context:
- 	up_read(&mm->mmap_sem);
- 	printk(KERN_CRIT "VM: killing process %s\n", current->comm);
- 	if (user_mode(regs))
--		do_exit(SIGKILL);
-+		do_group_exit(SIGKILL);
- 	goto no_context;
- }
-diff -puN arch/ppc/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/ppc/mm/fault.c
---- a/arch/ppc/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
-+++ a/arch/ppc/mm/fault.c
-@@ -297,7 +297,7 @@ out_of_memory:
- 	}
- 	printk("VM: killing process %s\n", current->comm);
- 	if (user_mode(regs))
--		do_exit(SIGKILL);
-+		do_group_exit(SIGKILL);
- 	return SIGKILL;
- 
- do_sigbus:
-diff -puN arch/s390/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/s390/mm/fault.c
---- a/arch/s390/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
-+++ a/arch/s390/mm/fault.c
-@@ -218,7 +218,7 @@ static int do_out_of_memory(struct pt_re
- 	}
- 	printk("VM: killing process %s\n", tsk->comm);
- 	if (regs->psw.mask & PSW_MASK_PSTATE)
--		do_exit(SIGKILL);
-+		do_group_exit(SIGKILL);
- 	do_no_context(regs, error_code, address);
- 	return 0;
- }
-diff -puN arch/sh/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/sh/mm/fault.c
---- a/arch/sh/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
-+++ a/arch/sh/mm/fault.c
-@@ -214,7 +214,7 @@ out_of_memory:
- 	}
- 	printk("VM: killing process %s\n", tsk->comm);
- 	if (user_mode(regs))
--		do_exit(SIGKILL);
-+		do_group_exit(SIGKILL);
- 	goto no_context;
- 
- do_sigbus:
-diff -puN arch/sh64/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/sh64/mm/fault.c
---- a/arch/sh64/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
-+++ a/arch/sh64/mm/fault.c
-@@ -334,7 +334,7 @@ out_of_memory:
- 	}
- 	printk("VM: killing process %s\n", tsk->comm);
- 	if (user_mode(regs))
--		do_exit(SIGKILL);
-+		do_group_exit(SIGKILL);
- 	goto no_context;
- 
- do_sigbus:
-diff -puN arch/sparc/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/sparc/mm/fault.c
---- a/arch/sparc/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
-+++ a/arch/sparc/mm/fault.c
-@@ -369,7 +369,7 @@ out_of_memory:
- 	up_read(&mm->mmap_sem);
- 	printk("VM: killing process %s\n", tsk->comm);
- 	if (from_user)
--		do_exit(SIGKILL);
-+		do_group_exit(SIGKILL);
- 	goto no_context;
- 
- do_sigbus:
-diff -puN arch/sparc64/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/sparc64/mm/fault.c
---- a/arch/sparc64/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
-+++ a/arch/sparc64/mm/fault.c
-@@ -463,7 +463,7 @@ out_of_memory:
- 	up_read(&mm->mmap_sem);
- 	printk("VM: killing process %s\n", current->comm);
- 	if (!(regs->tstate & TSTATE_PRIV))
--		do_exit(SIGKILL);
-+		do_group_exit(SIGKILL);
- 	goto handle_kernel_fault;
- 
- intr_or_no_mm:
-diff -puN arch/x86/mm/fault_32.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/x86/mm/fault_32.c
---- a/arch/x86/mm/fault_32.c~during-vm-oom-condition-kill-all-threads-in-process-group
-+++ a/arch/x86/mm/fault_32.c
-@@ -593,7 +593,7 @@ out_of_memory:
- 	}
- 	printk("VM: killing process %s\n", tsk->comm);
- 	if (error_code & 4)
--		do_exit(SIGKILL);
-+		do_group_exit(SIGKILL);
- 	goto no_context;
- 
- do_sigbus:
-diff -puN arch/xtensa/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group arch/xtensa/mm/fault.c
---- a/arch/xtensa/mm/fault.c~during-vm-oom-condition-kill-all-threads-in-process-group
-+++ a/arch/xtensa/mm/fault.c
-@@ -152,7 +152,7 @@ out_of_memory:
- 	}
- 	printk("VM: killing process %s\n", current->comm);
- 	if (user_mode(regs))
--		do_exit(SIGKILL);
-+		do_group_exit(SIGKILL);
- 	bad_page_fault(regs, address, SIGKILL);
- 	return;
- 
+diff -puN drivers/char/mspec.c~memoryless-nodes-uncached-allocator-updates drivers/char/mspec.c
+--- a/drivers/char/mspec.c~memoryless-nodes-uncached-allocator-updates
++++ a/drivers/char/mspec.c
+@@ -362,7 +362,7 @@ mspec_init(void)
+ 		is_sn2 = 1;
+ 		if (is_shub2()) {
+ 			ret = -ENOMEM;
+-			for_each_online_node(nid) {
++			for_each_node_state(nid, N_ONLINE) {
+ 				int actual_nid;
+ 				int nasid;
+ 				unsigned long phys;
 _
 
-Patches currently in -mm which might be from will_schmidt@vnet.ibm.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator.patch
+dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
+x86-fix-cpu_to_node-references.patch
+x86-convert-x86_cpu_to_apicid-to-be-a-per-cpu-variable.patch
+x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
+x86-acpi-use-cpu_physical_id.patch
+x86-convert-cpuinfo_x86-array-to-a-per_cpu-array.patch
+slub-simplify-irq-off-handling.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+oom-move-prototypes-to-appropriate-header-file.patch
+oom-move-constraints-to-enum.patch
+oom-change-all_unreclaimable-zone-member-to-flags.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-add-per-zone-locking.patch
+oom-serialize-out-of-memory-calls.patch
+oom-add-oom_kill_allocating_task-sysctl.patch
+oom-suppress-extraneous-stack-and-memory-dump.patch
+oom-compare-cpuset-mems_allowed-instead-of-exclusive.patch
+oom-do-not-take-callback_mutex.patch
+oom-do-not-take-callback_mutex-fix.patch
+oom-prevent-including-schedh-in-header-file.patch
+oom-add-header-file-to-kbuild-as-unifdef.patch
+oom-convert-zone_scan_lock-from-mutex-to-spinlock.patch
+mm-test-and-set-zone-reclaim-lock-before-starting.patch
+mm-test-and-set-zone-reclaim-lock-before-starting-cleanup.patch
+avoid-negative-and-full-width-shifts-in-radix-treec.patch
+cpu-hotplug-slab-cleanup-cpuup_callback.patch
+cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-core-code.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+documentation-vm-slabinfoc-clean-up-this-code.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
+bit_spin_lock-use-lock-bitops.patch
+ext3-support-large-blocksize-up-to-pagesize.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
