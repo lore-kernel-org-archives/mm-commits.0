@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - docbook-fix-kernel-api-content.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:46:04 -0700
-Message-ID: <200710162046.l9GKk4Ad016330@imap1.linux-foundation.org>
+Subject: - docbook-fix-libata-content.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:46:02 -0700
+Message-ID: <200710162046.l9GKk2BR016327@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50034 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36834 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965256AbXJPU64 (ORCPT
+	by vger.kernel.org with ESMTP id S965498AbXJPU64 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 16 Oct 2007 16:58:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,50 +15,40 @@ To: randy.dunlap@oracle.com, rob@landley.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     docbook: fix kernel-api content
+     docbook: fix libata content
 has been removed from the -mm tree.  Its filename was
-     docbook-fix-kernel-api-content.patch
+     docbook-fix-libata-content.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: docbook: fix kernel-api content
+Subject: docbook: fix libata content
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
+Fix libata docbook warnings.
 
-Fix kernel-api docbook warnings.
-
-Warning(linux-2.6.23-git8//drivers/message/fusion/mptscsih.c:2618): No description found for parameter 'sc'
+Warning(linux-2.6.23-git8//drivers/ata/libata-scsi.c:3251): No description found for parameter 'dev'
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Rob Landley <rob@landley.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/fusion/mptscsih.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ drivers/ata/libata-scsi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/message/fusion/mptscsih.c~docbook-fix-kernel-api-content drivers/message/fusion/mptscsih.c
---- a/drivers/message/fusion/mptscsih.c~docbook-fix-kernel-api-content
-+++ a/drivers/message/fusion/mptscsih.c
-@@ -2605,14 +2605,10 @@ mptscsih_set_scsi_lookup(MPT_ADAPTER *io
- }
+diff -puN drivers/ata/libata-scsi.c~docbook-fix-libata-content drivers/ata/libata-scsi.c
+--- a/drivers/ata/libata-scsi.c~docbook-fix-libata-content
++++ a/drivers/ata/libata-scsi.c
+@@ -3240,7 +3240,7 @@ static void ata_scsi_handle_link_detach(
  
  /**
-- * SCPNT_TO_LOOKUP_IDX
-- *
-- * search's for a given scmd in the ScsiLookup[] array list
-- *
-+ * SCPNT_TO_LOOKUP_IDX - searches for a given scmd in the ScsiLookup[] array list
-  * @ioc: Pointer to MPT_ADAPTER structure
-- * @scmd: scsi_cmnd pointer
-- *
-- **/
-+ * @sc: scsi_cmnd pointer
-+ */
- static int
- SCPNT_TO_LOOKUP_IDX(MPT_ADAPTER *ioc, struct scsi_cmnd *sc)
- {
+  *	ata_scsi_media_change_notify - send media change event
+- *	@atadev: Pointer to the disk device with media change event
++ *	@dev: Pointer to the disk device with media change event
+  *
+  *	Tell the block layer to send a media change notification
+  *	event.
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
