@@ -1,71 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: - hostfs-convert-to-new-aops-fix.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:19:15 -0700
-Message-ID: <200710160419.l9G4JFQM008399@imap1.linux-foundation.org>
+Subject: - ufs-convert-to-new-aops-fix2.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:19:37 -0700
+Message-ID: <200710160419.l9G4JbbI008408@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58283 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42175 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752837AbXJPETY (ORCPT
+	by vger.kernel.org with ESMTP id S1752875AbXJPETl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:19:24 -0400
+	Tue, 16 Oct 2007 00:19:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, hugh@veritas.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hostfs convert to new aops fix
+     ufs convert to new aops fix2
 has been removed from the -mm tree.  Its filename was
-     hostfs-convert-to-new-aops-fix.patch
+     ufs-convert-to-new-aops-fix2.patch
 
-This patch was dropped because it was folded into hostfs-convert-to-new-aops.patch
+This patch was dropped because it was folded into ufs-convert-to-new-aops.patch
 
 ------------------------------------------------------
-Subject: hostfs convert to new aops fix
+Subject: ufs convert to new aops fix2
 From: Nick Piggin <npiggin@suse.de>
 
-Fix lock ordering for hostfs. It seems that this filesystem may not be
-vulnerable to the bug, given that it implements its own writepage, but
-it is better to retain the safe ordering.
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hostfs/hostfs_kern.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/ufs/dir.c |    1 -
+ 1 files changed, 1 deletion(-)
 
-diff -puN fs/hostfs/hostfs_kern.c~hostfs-convert-to-new-aops-fix fs/hostfs/hostfs_kern.c
---- a/fs/hostfs/hostfs_kern.c~hostfs-convert-to-new-aops-fix
-+++ a/fs/hostfs/hostfs_kern.c
-@@ -16,6 +16,7 @@
- #include <linux/list.h>
- #include <linux/statfs.h>
- #include <linux/kdev_t.h>
-+#include <linux/swap.h> /* mark_page_accessed */
- #include <asm/uaccess.h>
- #include "hostfs.h"
- #include "kern_util.h"
-@@ -493,14 +494,15 @@ int hostfs_write_end(struct file *file, 
- 
- 	if (!PageUptodate(page) && err == PAGE_CACHE_SIZE)
- 		SetPageUptodate(page);
--	unlock_page(page);
--	page_cache_release(page);
- 
- 	/* If err > 0, write_file has added err to pos, so we are comparing
- 	 * i_size against the last byte written.
- 	 */
- 	if (err > 0 && (pos > inode->i_size))
- 		inode->i_size = pos;
-+	unlock_page(page);
-+	mark_page_accessed(page);
-+	page_cache_release(page);
- 
+diff -puN fs/ufs/dir.c~ufs-convert-to-new-aops-fix2 fs/ufs/dir.c
+--- a/fs/ufs/dir.c~ufs-convert-to-new-aops-fix2
++++ a/fs/ufs/dir.c
+@@ -55,7 +55,6 @@ static int ufs_commit_chunk(struct page 
+ 		err = write_one_page(page, 1);
+ 	else
+ 		unlock_page(page);
+-	mark_page_accessed(page);
  	return err;
  }
+ 
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
@@ -112,11 +89,8 @@ nfs-convert-to-new-aops.patch
 smb-convert-to-new-aops.patch
 fuse-convert-to-new-aops.patch
 hostfs-convert-to-new-aops.patch
-hostfs-convert-to-new-aops-fix.patch
-hostfs-convert-to-new-aops-fix-fix.patch
 jffs2-convert-to-new-aops.patch
 ufs-convert-to-new-aops.patch
-ufs-convert-to-new-aops-fix.patch
 ufs-convert-to-new-aops-fix2.patch
 udf-convert-to-new-aops.patch
 udf-convert-to-new-aops-fix.patch
