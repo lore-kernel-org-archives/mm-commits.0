@@ -1,385 +1,442 @@
 From: akpm@linux-foundation.org
-Subject: - slub-direct-pass-through-of-page-size-or-higher-kmalloc.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:31:12 -0700
-Message-ID: <200710162031.l9GKVCBN014483@imap1.linux-foundation.org>
+Subject: - mm-buffered-write-iterator.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:32:13 -0700
+Message-ID: <200710162032.l9GKWDgI014578@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33802 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53595 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761926AbXJPVlw (ORCPT
+	by vger.kernel.org with ESMTP id S1754016AbXJPVlu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:41:52 -0400
+	Tue, 16 Oct 2007 17:41:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: direct pass through of page size or higher kmalloc requests
+     mm: buffered write iterator
 has been removed from the -mm tree.  Its filename was
-     slub-direct-pass-through-of-page-size-or-higher-kmalloc.patch
+     mm-buffered-write-iterator.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SLUB: direct pass through of page size or higher kmalloc requests
-From: Christoph Lameter <clameter@sgi.com>
+Subject: mm: buffered write iterator
+From: Nick Piggin <npiggin@suse.de>
 
-This gets rid of all kmalloc caches larger than page size.  A kmalloc
-request larger than PAGE_SIZE > 2 is going to be passed through to the page
-allocator.  This works both inline where we will call __get_free_pages
-instead of kmem_cache_alloc and in __kmalloc.
+Add an iterator data structure to operate over an iovec.  Add usercopy
+operators needed by generic_file_buffered_write, and convert that function
+over.
 
-kfree is modified to check if the object is in a slab page. If not then
-the page is freed via the page allocator instead. Roughly similar to what
-SLOB does.
-
-Advantages:
-- Reduces memory overhead for kmalloc array
-- Large kmalloc operations are faster since they do not
-  need to pass through the slab allocator to get to the
-  page allocator.
-- Performance increase of 10%-20% on alloc and 50% on free for
-  PAGE_SIZEd allocations.
-  SLUB must call page allocator for each alloc anyways since
-  the higher order pages which that allowed avoiding the page alloc calls
-  are not available in a reliable way anymore. So we are basically removing
-  useless slab allocator overhead.
-- Large kmallocs yields page aligned object which is what
-  SLAB did. Bad things like using page sized kmalloc allocations to
-  stand in for page allocate allocs can be transparently handled and are not
-  distinguishable from page allocator uses.
-- Checking for too large objects can be removed since
-  it is done by the page allocator.
-
-Drawbacks:
-- No accounting for large kmalloc slab allocations anymore
-- No debugging of large kmalloc slab allocations.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |   57 ++++++++++++++-------------------
- mm/slub.c                |   63 ++++++++++++++++++++++---------------
- 2 files changed, 62 insertions(+), 58 deletions(-)
+ include/linux/fs.h |   33 +++++++++
+ mm/filemap.c       |  144 ++++++++++++++++++++++++++++++++++---------
+ mm/filemap.h       |  103 ------------------------------
+ 3 files changed, 150 insertions(+), 130 deletions(-)
 
-diff -puN include/linux/slub_def.h~slub-direct-pass-through-of-page-size-or-higher-kmalloc include/linux/slub_def.h
---- a/include/linux/slub_def.h~slub-direct-pass-through-of-page-size-or-higher-kmalloc
-+++ a/include/linux/slub_def.h
-@@ -72,7 +72,7 @@ struct kmem_cache {
-  * We keep the general caches in an array of slab caches that are used for
-  * 2^x bytes of allocations.
-  */
--extern struct kmem_cache kmalloc_caches[KMALLOC_SHIFT_HIGH + 1];
-+extern struct kmem_cache kmalloc_caches[PAGE_SHIFT];
+diff -puN include/linux/fs.h~mm-buffered-write-iterator include/linux/fs.h
+--- a/include/linux/fs.h~mm-buffered-write-iterator
++++ a/include/linux/fs.h
+@@ -401,6 +401,39 @@ struct page;
+ struct address_space;
+ struct writeback_control;
+ 
++struct iov_iter {
++	const struct iovec *iov;
++	unsigned long nr_segs;
++	size_t iov_offset;
++	size_t count;
++};
++
++size_t iov_iter_copy_from_user_atomic(struct page *page,
++		struct iov_iter *i, unsigned long offset, size_t bytes);
++size_t iov_iter_copy_from_user(struct page *page,
++		struct iov_iter *i, unsigned long offset, size_t bytes);
++void iov_iter_advance(struct iov_iter *i, size_t bytes);
++int iov_iter_fault_in_readable(struct iov_iter *i);
++size_t iov_iter_single_seg_count(struct iov_iter *i);
++
++static inline void iov_iter_init(struct iov_iter *i,
++			const struct iovec *iov, unsigned long nr_segs,
++			size_t count, size_t written)
++{
++	i->iov = iov;
++	i->nr_segs = nr_segs;
++	i->iov_offset = 0;
++	i->count = count + written;
++
++	iov_iter_advance(i, written);
++}
++
++static inline size_t iov_iter_count(struct iov_iter *i)
++{
++	return i->count;
++}
++
++
+ struct address_space_operations {
+ 	int (*writepage)(struct page *page, struct writeback_control *wbc);
+ 	int (*readpage)(struct file *, struct page *);
+diff -puN mm/filemap.c~mm-buffered-write-iterator mm/filemap.c
+--- a/mm/filemap.c~mm-buffered-write-iterator
++++ a/mm/filemap.c
+@@ -30,7 +30,7 @@
+ #include <linux/security.h>
+ #include <linux/syscalls.h>
+ #include <linux/cpuset.h>
+-#include "filemap.h"
++#include <linux/hardirq.h> /* for BUG_ON(!in_atomic()) only */
+ #include "internal.h"
  
  /*
-  * Sorry that the following has to be that ugly but some versions of GCC
-@@ -83,9 +83,6 @@ static __always_inline int kmalloc_index
- 	if (!size)
- 		return 0;
+@@ -1635,8 +1635,7 @@ int remove_suid(struct dentry *dentry)
+ }
+ EXPORT_SYMBOL(remove_suid);
  
--	if (size > KMALLOC_MAX_SIZE)
--		return -1;
--
- 	if (size <= KMALLOC_MIN_SIZE)
- 		return KMALLOC_SHIFT_LOW;
+-size_t
+-__filemap_copy_from_user_iovec_inatomic(char *vaddr,
++static size_t __iovec_copy_from_user_inatomic(char *vaddr,
+ 			const struct iovec *iov, size_t base, size_t bytes)
+ {
+ 	size_t copied = 0, left = 0;
+@@ -1659,6 +1658,110 @@ __filemap_copy_from_user_iovec_inatomic(
+ }
  
-@@ -102,6 +99,10 @@ static __always_inline int kmalloc_index
- 	if (size <=        512) return 9;
- 	if (size <=       1024) return 10;
- 	if (size <=   2 * 1024) return 11;
-+/*
-+ * The following is only needed to support architectures with a larger page
-+ * size than 4k.
+ /*
++ * Copy as much as we can into the page and return the number of bytes which
++ * were sucessfully copied.  If a fault is encountered then return the number of
++ * bytes which were copied.
 + */
- 	if (size <=   4 * 1024) return 12;
- 	if (size <=   8 * 1024) return 13;
- 	if (size <=  16 * 1024) return 14;
-@@ -109,13 +110,9 @@ static __always_inline int kmalloc_index
- 	if (size <=  64 * 1024) return 16;
- 	if (size <= 128 * 1024) return 17;
- 	if (size <= 256 * 1024) return 18;
--	if (size <=  512 * 1024) return 19;
-+	if (size <= 512 * 1024) return 19;
- 	if (size <= 1024 * 1024) return 20;
- 	if (size <=  2 * 1024 * 1024) return 21;
--	if (size <=  4 * 1024 * 1024) return 22;
--	if (size <=  8 * 1024 * 1024) return 23;
--	if (size <= 16 * 1024 * 1024) return 24;
--	if (size <= 32 * 1024 * 1024) return 25;
- 	return -1;
- 
- /*
-@@ -140,19 +137,6 @@ static __always_inline struct kmem_cache
- 	if (index == 0)
- 		return NULL;
- 
--	/*
--	 * This function only gets expanded if __builtin_constant_p(size), so
--	 * testing it here shouldn't be needed.  But some versions of gcc need
--	 * help.
--	 */
--	if (__builtin_constant_p(size) && index < 0) {
--		/*
--		 * Generate a link failure. Would be great if we could
--		 * do something to stop the compile here.
--		 */
--		extern void __kmalloc_size_too_large(void);
--		__kmalloc_size_too_large();
--	}
- 	return &kmalloc_caches[index];
- }
- 
-@@ -168,15 +152,21 @@ void *__kmalloc(size_t size, gfp_t flags
- 
- static __always_inline void *kmalloc(size_t size, gfp_t flags)
- {
--	if (__builtin_constant_p(size) && !(flags & SLUB_DMA)) {
--		struct kmem_cache *s = kmalloc_slab(size);
-+	if (__builtin_constant_p(size)) {
-+		if (size > PAGE_SIZE / 2)
-+			return (void *)__get_free_pages(flags | __GFP_COMP,
-+							get_order(size));
- 
--		if (!s)
--			return ZERO_SIZE_PTR;
-+		if (!(flags & SLUB_DMA)) {
-+			struct kmem_cache *s = kmalloc_slab(size);
++size_t iov_iter_copy_from_user_atomic(struct page *page,
++		struct iov_iter *i, unsigned long offset, size_t bytes)
++{
++	char *kaddr;
++	size_t copied;
 +
-+			if (!s)
-+				return ZERO_SIZE_PTR;
- 
--		return kmem_cache_alloc(s, flags);
--	} else
--		return __kmalloc(size, flags);
-+			return kmem_cache_alloc(s, flags);
++	BUG_ON(!in_atomic());
++	kaddr = kmap_atomic(page, KM_USER0);
++	if (likely(i->nr_segs == 1)) {
++		int left;
++		char __user *buf = i->iov->iov_base + i->iov_offset;
++		left = __copy_from_user_inatomic_nocache(kaddr + offset,
++							buf, bytes);
++		copied = bytes - left;
++	} else {
++		copied = __iovec_copy_from_user_inatomic(kaddr + offset,
++						i->iov, i->iov_offset, bytes);
++	}
++	kunmap_atomic(kaddr, KM_USER0);
++
++	return copied;
++}
++
++/*
++ * This has the same sideeffects and return value as
++ * iov_iter_copy_from_user_atomic().
++ * The difference is that it attempts to resolve faults.
++ * Page must not be locked.
++ */
++size_t iov_iter_copy_from_user(struct page *page,
++		struct iov_iter *i, unsigned long offset, size_t bytes)
++{
++	char *kaddr;
++	size_t copied;
++
++	kaddr = kmap(page);
++	if (likely(i->nr_segs == 1)) {
++		int left;
++		char __user *buf = i->iov->iov_base + i->iov_offset;
++		left = __copy_from_user_nocache(kaddr + offset, buf, bytes);
++		copied = bytes - left;
++	} else {
++		copied = __iovec_copy_from_user_inatomic(kaddr + offset,
++						i->iov, i->iov_offset, bytes);
++	}
++	kunmap(page);
++	return copied;
++}
++
++static void __iov_iter_advance_iov(struct iov_iter *i, size_t bytes)
++{
++	if (likely(i->nr_segs == 1)) {
++		i->iov_offset += bytes;
++	} else {
++		const struct iovec *iov = i->iov;
++		size_t base = i->iov_offset;
++
++		while (bytes) {
++			int copy = min(bytes, iov->iov_len - base);
++
++			bytes -= copy;
++			base += copy;
++			if (iov->iov_len == base) {
++				iov++;
++				base = 0;
++			}
 +		}
++		i->iov = iov;
++		i->iov_offset = base;
 +	}
-+	return __kmalloc(size, flags);
- }
- 
- #ifdef CONFIG_NUMA
-@@ -185,15 +175,16 @@ void *kmem_cache_alloc_node(struct kmem_
- 
- static __always_inline void *kmalloc_node(size_t size, gfp_t flags, int node)
- {
--	if (__builtin_constant_p(size) && !(flags & SLUB_DMA)) {
--		struct kmem_cache *s = kmalloc_slab(size);
-+	if (__builtin_constant_p(size) &&
-+		size <= PAGE_SIZE / 2 && !(flags & SLUB_DMA)) {
-+			struct kmem_cache *s = kmalloc_slab(size);
- 
- 		if (!s)
- 			return ZERO_SIZE_PTR;
- 
- 		return kmem_cache_alloc_node(s, flags, node);
--	} else
--		return __kmalloc_node(size, flags, node);
-+	}
-+	return __kmalloc_node(size, flags, node);
- }
- #endif
- 
-diff -puN mm/slub.c~slub-direct-pass-through-of-page-size-or-higher-kmalloc mm/slub.c
---- a/mm/slub.c~slub-direct-pass-through-of-page-size-or-higher-kmalloc
-+++ a/mm/slub.c
-@@ -2227,11 +2227,11 @@ EXPORT_SYMBOL(kmem_cache_destroy);
-  *		Kmalloc subsystem
-  *******************************************************************/
- 
--struct kmem_cache kmalloc_caches[KMALLOC_SHIFT_HIGH + 1] __cacheline_aligned;
-+struct kmem_cache kmalloc_caches[PAGE_SHIFT] __cacheline_aligned;
- EXPORT_SYMBOL(kmalloc_caches);
- 
- #ifdef CONFIG_ZONE_DMA
--static struct kmem_cache *kmalloc_caches_dma[KMALLOC_SHIFT_HIGH + 1];
-+static struct kmem_cache *kmalloc_caches_dma[PAGE_SHIFT];
- #endif
- 
- static int __init setup_slub_min_order(char *str)
-@@ -2397,12 +2397,8 @@ static struct kmem_cache *get_slab(size_
- 			return ZERO_SIZE_PTR;
- 
- 		index = size_index[(size - 1) / 8];
--	} else {
--		if (size > KMALLOC_MAX_SIZE)
--			return NULL;
--
-+	} else
- 		index = fls(size - 1);
--	}
- 
- #ifdef CONFIG_ZONE_DMA
- 	if (unlikely((flags & SLUB_DMA)))
-@@ -2414,9 +2410,15 @@ static struct kmem_cache *get_slab(size_
- 
- void *__kmalloc(size_t size, gfp_t flags)
- {
--	struct kmem_cache *s = get_slab(size, flags);
-+	struct kmem_cache *s;
- 
--	if (ZERO_OR_NULL_PTR(s))
-+	if (unlikely(size > PAGE_SIZE / 2))
-+		return (void *)__get_free_pages(flags | __GFP_COMP,
-+							get_order(size));
++}
 +
-+	s = get_slab(size, flags);
++void iov_iter_advance(struct iov_iter *i, size_t bytes)
++{
++	BUG_ON(i->count < bytes);
 +
-+	if (unlikely(ZERO_OR_NULL_PTR(s)))
- 		return s;
- 
- 	return slab_alloc(s, flags, -1, __builtin_return_address(0));
-@@ -2426,9 +2428,15 @@ EXPORT_SYMBOL(__kmalloc);
- #ifdef CONFIG_NUMA
- void *__kmalloc_node(size_t size, gfp_t flags, int node)
- {
--	struct kmem_cache *s = get_slab(size, flags);
-+	struct kmem_cache *s;
- 
--	if (ZERO_OR_NULL_PTR(s))
-+	if (unlikely(size > PAGE_SIZE / 2))
-+		return (void *)__get_free_pages(flags | __GFP_COMP,
-+							get_order(size));
++	__iov_iter_advance_iov(i, bytes);
++	i->count -= bytes;
++}
 +
-+	s = get_slab(size, flags);
++int iov_iter_fault_in_readable(struct iov_iter *i)
++{
++	size_t seglen = min(i->iov->iov_len - i->iov_offset, i->count);
++	char __user *buf = i->iov->iov_base + i->iov_offset;
++	return fault_in_pages_readable(buf, seglen);
++}
 +
-+	if (unlikely(ZERO_OR_NULL_PTR(s)))
- 		return s;
- 
- 	return slab_alloc(s, flags, node, __builtin_return_address(0));
-@@ -2473,22 +2481,17 @@ EXPORT_SYMBOL(ksize);
- 
- void kfree(const void *x)
- {
--	struct kmem_cache *s;
- 	struct page *page;
++/*
++ * Return the count of just the current iov_iter segment.
++ */
++size_t iov_iter_single_seg_count(struct iov_iter *i)
++{
++	const struct iovec *iov = i->iov;
++	if (i->nr_segs == 1)
++		return i->count;
++	else
++		return min(i->count, iov->iov_len - i->iov_offset);
++}
++
++/*
+  * Performs necessary checks before doing a write
+  *
+  * Can adjust writing position or amount of bytes to write.
+@@ -1816,30 +1919,22 @@ generic_file_buffered_write(struct kiocb
+ 	const struct address_space_operations *a_ops = mapping->a_ops;
+ 	struct inode 	*inode = mapping->host;
+ 	long		status = 0;
+-	const struct iovec *cur_iov = iov; /* current iovec */
+-	size_t		iov_offset = 0;	   /* offset in the current iovec */
+-	char __user	*buf;
++	struct iov_iter i;
  
 -	/*
--	 * This has to be an unsigned comparison. According to Linus
--	 * some gcc version treat a pointer as a signed entity. Then
--	 * this comparison would be true for all "negative" pointers
--	 * (which would cover the whole upper half of the address space).
+-	 * handle partial DIO write.  Adjust cur_iov if needed.
 -	 */
- 	if (ZERO_OR_NULL_PTR(x))
- 		return;
+-	filemap_set_next_iovec(&cur_iov, nr_segs, &iov_offset, written);
++	iov_iter_init(&i, iov, nr_segs, count, written);
  
- 	page = virt_to_head_page(x);
--	s = page->slab;
+ 	do {
+ 		struct page *src_page;
+ 		struct page *page;
+ 		pgoff_t index;		/* Pagecache index for current page */
+ 		unsigned long offset;	/* Offset into pagecache page */
+-		unsigned long seglen;	/* Bytes remaining in current iovec */
+ 		unsigned long bytes;	/* Bytes to write to page */
+ 		size_t copied;		/* Bytes copied from user */
+ 
+-		buf = cur_iov->iov_base + iov_offset;
+ 		offset = (pos & (PAGE_CACHE_SIZE - 1));
+ 		index = pos >> PAGE_CACHE_SHIFT;
+-		bytes = PAGE_CACHE_SIZE - offset;
+-		if (bytes > count)
+-			bytes = count;
++		bytes = min_t(unsigned long, PAGE_CACHE_SIZE - offset,
++						iov_iter_count(&i));
+ 
+ 		/*
+ 		 * a non-NULL src_page indicates that we're doing the
+@@ -1847,10 +1942,6 @@ generic_file_buffered_write(struct kiocb
+ 		 */
+ 		src_page = NULL;
+ 
+-		seglen = cur_iov->iov_len - iov_offset;
+-		if (seglen > bytes)
+-			seglen = bytes;
 -
--	slab_free(s, page, (void *)x, __builtin_return_address(0));
-+	if (unlikely(!PageSlab(page))) {
-+		put_page(page);
-+		return;
-+	}
-+	slab_free(page->slab, page, (void *)x, __builtin_return_address(0));
- }
- EXPORT_SYMBOL(kfree);
+ 		/*
+ 		 * Bring in the user page that we will copy from _first_.
+ 		 * Otherwise there's a nasty deadlock on copying from the
+@@ -1861,7 +1952,7 @@ generic_file_buffered_write(struct kiocb
+ 		 * to check that the address is actually valid, when atomic
+ 		 * usercopies are used, below.
+ 		 */
+-		if (unlikely(fault_in_pages_readable(buf, seglen))) {
++		if (unlikely(iov_iter_fault_in_readable(&i))) {
+ 			status = -EFAULT;
+ 			break;
+ 		}
+@@ -1892,8 +1983,8 @@ generic_file_buffered_write(struct kiocb
+ 			 * same reason as we can't take a page fault with a
+ 			 * page locked (as explained below).
+ 			 */
+-			copied = filemap_copy_from_user(src_page, offset,
+-					cur_iov, nr_segs, iov_offset, bytes);
++			copied = iov_iter_copy_from_user(src_page, &i,
++								offset, bytes);
+ 			if (unlikely(copied == 0)) {
+ 				status = -EFAULT;
+ 				page_cache_release(page);
+@@ -1939,8 +2030,8 @@ generic_file_buffered_write(struct kiocb
+ 			 * really matter.
+ 			 */
+ 			pagefault_disable();
+-			copied = filemap_copy_from_user_atomic(page, offset,
+-					cur_iov, nr_segs, iov_offset, bytes);
++			copied = iov_iter_copy_from_user_atomic(page, &i,
++								offset, bytes);
+ 			pagefault_enable();
+ 		} else {
+ 			void *src, *dst;
+@@ -1965,10 +2056,9 @@ generic_file_buffered_write(struct kiocb
+ 		if (src_page)
+ 			page_cache_release(src_page);
  
-@@ -2602,7 +2605,7 @@ void __init kmem_cache_init(void)
- 		caches++;
- 	}
++		iov_iter_advance(&i, copied);
+ 		written += copied;
+-		count -= copied;
+ 		pos += copied;
+-		filemap_set_next_iovec(&cur_iov, nr_segs, &iov_offset, copied);
  
--	for (i = KMALLOC_SHIFT_LOW; i <= KMALLOC_SHIFT_HIGH; i++) {
-+	for (i = KMALLOC_SHIFT_LOW; i < PAGE_SHIFT; i++) {
- 		create_kmalloc_cache(&kmalloc_caches[i],
- 			"kmalloc", 1 << i, GFP_KERNEL);
- 		caches++;
-@@ -2629,7 +2632,7 @@ void __init kmem_cache_init(void)
- 	slab_state = UP;
+ 		balance_dirty_pages_ratelimited(mapping);
+ 		cond_resched();
+@@ -1992,7 +2082,7 @@ fs_write_aop_error:
+ 			continue;
+ 		else
+ 			break;
+-	} while (count);
++	} while (iov_iter_count(&i));
+ 	*ppos = pos;
  
- 	/* Provide the correct kmalloc names now that the caches are up */
--	for (i = KMALLOC_SHIFT_LOW; i <= KMALLOC_SHIFT_HIGH; i++)
-+	for (i = KMALLOC_SHIFT_LOW; i < PAGE_SHIFT; i++)
- 		kmalloc_caches[i]. name =
- 			kasprintf(GFP_KERNEL, "kmalloc-%d", 1 << i);
- 
-@@ -2790,7 +2793,12 @@ static struct notifier_block __cpuinitda
- 
- void *__kmalloc_track_caller(size_t size, gfp_t gfpflags, void *caller)
- {
--	struct kmem_cache *s = get_slab(size, gfpflags);
-+	struct kmem_cache *s;
-+
-+	if (unlikely(size > PAGE_SIZE / 2))
-+		return (void *)__get_free_pages(gfpflags | __GFP_COMP,
-+							get_order(size));
-+	s = get_slab(size, gfpflags);
- 
- 	if (ZERO_OR_NULL_PTR(s))
- 		return s;
-@@ -2801,7 +2809,12 @@ void *__kmalloc_track_caller(size_t size
- void *__kmalloc_node_track_caller(size_t size, gfp_t gfpflags,
- 					int node, void *caller)
- {
--	struct kmem_cache *s = get_slab(size, gfpflags);
-+	struct kmem_cache *s;
-+
-+	if (unlikely(size > PAGE_SIZE / 2))
-+		return (void *)__get_free_pages(gfpflags | __GFP_COMP,
-+							get_order(size));
-+	s = get_slab(size, gfpflags);
- 
- 	if (ZERO_OR_NULL_PTR(s))
- 		return s;
+ 	/*
+diff -puN mm/filemap.h~mm-buffered-write-iterator /dev/null
+--- a/mm/filemap.h
++++ /dev/null
+@@ -1,103 +0,0 @@
+-/*
+- *	linux/mm/filemap.h
+- *
+- * Copyright (C) 1994-1999  Linus Torvalds
+- */
+-
+-#ifndef __FILEMAP_H
+-#define __FILEMAP_H
+-
+-#include <linux/types.h>
+-#include <linux/fs.h>
+-#include <linux/mm.h>
+-#include <linux/highmem.h>
+-#include <linux/uio.h>
+-#include <linux/uaccess.h>
+-
+-size_t
+-__filemap_copy_from_user_iovec_inatomic(char *vaddr,
+-					const struct iovec *iov,
+-					size_t base,
+-					size_t bytes);
+-
+-/*
+- * Copy as much as we can into the page and return the number of bytes which
+- * were sucessfully copied.  If a fault is encountered then return the number of
+- * bytes which were copied.
+- */
+-static inline size_t
+-filemap_copy_from_user_atomic(struct page *page, unsigned long offset,
+-			const struct iovec *iov, unsigned long nr_segs,
+-			size_t base, size_t bytes)
+-{
+-	char *kaddr;
+-	size_t copied;
+-
+-	kaddr = kmap_atomic(page, KM_USER0);
+-	if (likely(nr_segs == 1)) {
+-		int left;
+-		char __user *buf = iov->iov_base + base;
+-		left = __copy_from_user_inatomic_nocache(kaddr + offset,
+-							buf, bytes);
+-		copied = bytes - left;
+-	} else {
+-		copied = __filemap_copy_from_user_iovec_inatomic(kaddr + offset,
+-							iov, base, bytes);
+-	}
+-	kunmap_atomic(kaddr, KM_USER0);
+-
+-	return copied;
+-}
+-
+-/*
+- * This has the same sideeffects and return value as
+- * filemap_copy_from_user_atomic().
+- * The difference is that it attempts to resolve faults.
+- */
+-static inline size_t
+-filemap_copy_from_user(struct page *page, unsigned long offset,
+-			const struct iovec *iov, unsigned long nr_segs,
+-			 size_t base, size_t bytes)
+-{
+-	char *kaddr;
+-	size_t copied;
+-
+-	kaddr = kmap(page);
+-	if (likely(nr_segs == 1)) {
+-		int left;
+-		char __user *buf = iov->iov_base + base;
+-		left = __copy_from_user_nocache(kaddr + offset, buf, bytes);
+-		copied = bytes - left;
+-	} else {
+-		copied = __filemap_copy_from_user_iovec_inatomic(kaddr + offset,
+-							iov, base, bytes);
+-	}
+-	kunmap(page);
+-	return copied;
+-}
+-
+-static inline void
+-filemap_set_next_iovec(const struct iovec **iovp, unsigned long nr_segs,
+-						 size_t *basep, size_t bytes)
+-{
+-	if (likely(nr_segs == 1)) {
+-		*basep += bytes;
+-	} else {
+-		const struct iovec *iov = *iovp;
+-		size_t base = *basep;
+-
+-		while (bytes) {
+-			int copy = min(bytes, iov->iov_len - base);
+-
+-			bytes -= copy;
+-			base += copy;
+-			if (iov->iov_len == base) {
+-				iov++;
+-				base = 0;
+-			}
+-		}
+-		*iovp = iov;
+-		*basep = base;
+-	}
+-}
+-#endif
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
-x86-fix-cpu_to_node-references.patch
-x86-convert-x86_cpu_to_apicid-to-be-a-per-cpu-variable.patch
-x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
-x86-acpi-use-cpu_physical_id.patch
-x86-convert-cpuinfo_x86-array-to-a-per_cpu-array.patch
-slub-simplify-irq-off-handling.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-oom-move-prototypes-to-appropriate-header-file.patch
-oom-move-constraints-to-enum.patch
-oom-change-all_unreclaimable-zone-member-to-flags.patch
-oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
-oom-add-per-zone-locking.patch
-oom-serialize-out-of-memory-calls.patch
-oom-add-oom_kill_allocating_task-sysctl.patch
-oom-suppress-extraneous-stack-and-memory-dump.patch
-oom-compare-cpuset-mems_allowed-instead-of-exclusive.patch
-oom-do-not-take-callback_mutex.patch
-oom-do-not-take-callback_mutex-fix.patch
-oom-prevent-including-schedh-in-header-file.patch
-oom-add-header-file-to-kbuild-as-unifdef.patch
-oom-convert-zone_scan_lock-from-mutex-to-spinlock.patch
-mm-test-and-set-zone-reclaim-lock-before-starting.patch
-mm-test-and-set-zone-reclaim-lock-before-starting-cleanup.patch
-avoid-negative-and-full-width-shifts-in-radix-treec.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-core-code.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-documentation-vm-slabinfoc-clean-up-this-code.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
+mm-document-tree_lock-zonelock-lockorder.patch
+fs-reiserfs-cleanups.patch
+atomic_opstxt-has-incorrect-misleading-and-insufficient-information.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+bitops-introduce-lock-ops.patch
+alpha-fix-bitops.patch
+alpha-lock-bitops.patch
+alpha-lock-bitops-fix.patch
+ia64-lock-bitops.patch
+mips-fix-bitops.patch
+mips-lock-bitops.patch
+powerpc-lock-bitops.patch
+powerpc-lock-bitops-fix.patch
 bit_spin_lock-use-lock-bitops.patch
-ext3-support-large-blocksize-up-to-pagesize.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
+reiser4-fix-for-new-aops-patches.patch
