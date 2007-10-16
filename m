@@ -1,766 +1,626 @@
 From: akpm@linux-foundation.org
-Subject: - uml-style-fixes-pass-2.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:37:29 -0700
-Message-ID: <200710162037.l9GKbTkW015299@imap1.linux-foundation.org>
+Subject: - uml-style-fixes-in-fp-code.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:38:25 -0700
+Message-ID: <200710162038.l9GKcPJR015446@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45174 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33261 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965986AbXJPVTl (ORCPT
+	by vger.kernel.org with ESMTP id S965597AbXJPVTX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:19:41 -0400
+	Tue, 16 Oct 2007 17:19:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: style fixes pass 2
+     uml: style fixes in FP code
 has been removed from the -mm tree.  Its filename was
-     uml-style-fixes-pass-2.patch
+     uml-style-fixes-in-fp-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: style fixes pass 2
+Subject: uml: style fixes in FP code
 From: Jeff Dike <jdike@addtoit.com>
 
-Formatting changes in the files which have been changed in the course
-of removing CHOOSE_MODE.  These include:
-	copyright updates
-	header file trimming
-	style fixes
-	adding severity to printks
+Tidy the code affected by the floating point fixes.
 
-These changes should be entirely non-functional.
+A bunch of unused stuff is gone, including two sigcontext.c files,
+which turned out to be entirely unneeded.
+
+There are the usual fixes -
+	whitespace and style cleanups
+	copyright updates
+	emacs formatting comments gone
+	include cleanups
+	adding severities to printks
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/mconsole_kern.c |  250 +++++++++++++++---------------
- arch/um/include/um_mmu.h        |    2 
- arch/um/include/um_uaccess.h    |   15 -
- arch/um/kernel/ksyms.c          |   17 --
- include/asm-um/a.out.h          |    5 
- include/asm-um/tlbflush.h       |    8 
- 6 files changed, 145 insertions(+), 152 deletions(-)
+ arch/um/include/sysdep-i386/sigcontext.h   |   13 --
+ arch/um/include/sysdep-x86_64/sigcontext.h |   28 -----
+ arch/um/kernel/ptrace.c                    |    2 
+ arch/um/os-Linux/sys-i386/registers.c      |   26 +++--
+ arch/um/sys-i386/Makefile                  |    6 -
+ arch/um/sys-i386/sigcontext.c              |   71 -------------
+ arch/um/sys-x86_64/Makefile                |    6 -
+ arch/um/sys-x86_64/ptrace.c                |   97 +++++++------------
+ arch/um/sys-x86_64/sigcontext.c            |   39 -------
+ arch/um/sys-x86_64/signal.c                |   23 ++--
+ include/asm-um/elf-x86_64.h                |   12 --
+ 11 files changed, 76 insertions(+), 247 deletions(-)
 
-diff -puN arch/um/drivers/mconsole_kern.c~uml-style-fixes-pass-2 arch/um/drivers/mconsole_kern.c
---- a/arch/um/drivers/mconsole_kern.c~uml-style-fixes-pass-2
-+++ a/arch/um/drivers/mconsole_kern.c
-@@ -1,43 +1,35 @@
+diff -puN arch/um/include/sysdep-i386/sigcontext.h~uml-style-fixes-in-fp-code arch/um/include/sysdep-i386/sigcontext.h
+--- a/arch/um/include/sysdep-i386/sigcontext.h~uml-style-fixes-in-fp-code
++++ a/arch/um/include/sysdep-i386/sigcontext.h
+@@ -6,15 +6,10 @@
+ #ifndef __SYS_SIGCONTEXT_I386_H
+ #define __SYS_SIGCONTEXT_I386_H
+ 
+-#include "uml-config.h"
+-#include "skas.h"
+ #include "sysdep/sc.h"
+ 
+ #define IP_RESTART_SYSCALL(ip) ((ip) -= 2)
+ 
+-#define SC_RESTART_SYSCALL(sc) IP_RESTART_SYSCALL(SC_IP(sc))
+-#define SC_SET_SYSCALL_RETURN(sc, result) SC_EAX(sc) = (result)
+-
+ #define GET_FAULTINFO_FROM_SC(fi,sc) \
+ 	{ \
+ 		(fi).cr2 = SC_CR2(sc); \
+@@ -22,18 +17,10 @@
+ 		(fi).trap_no = SC_TRAPNO(sc); \
+ 	}
+ 
+-/* ptrace expects that, at the start of a system call, %eax contains
+- * -ENOSYS, so this makes it so.
+- */
+-#define SC_START_SYSCALL(sc) do SC_EAX(sc) = -ENOSYS; while(0)
+-
+ /* This is Page Fault */
+ #define SEGV_IS_FIXABLE(fi)	((fi)->trap_no == 14)
+ 
+ /* SKAS3 has no trap_no on i386, but get_skas_faultinfo() sets it to 0. */
+ #define SEGV_MAYBE_FIXABLE(fi)	((fi)->trap_no == 0 && ptrace_faultinfo)
+ 
+-extern unsigned long *sc_sigmask(void *sc_ptr);
+-extern int sc_get_fpregs(unsigned long buf, void *sc_ptr);
+-
+ #endif
+diff -puN arch/um/include/sysdep-x86_64/sigcontext.h~uml-style-fixes-in-fp-code arch/um/include/sysdep-x86_64/sigcontext.h
+--- a/arch/um/include/sysdep-x86_64/sigcontext.h~uml-style-fixes-in-fp-code
++++ a/arch/um/include/sysdep-x86_64/sigcontext.h
+@@ -11,43 +11,17 @@
+ 
+ #define IP_RESTART_SYSCALL(ip) ((ip) -= 2)
+ 
+-#define SC_RESTART_SYSCALL(sc) IP_RESTART_SYSCALL(SC_IP(sc))
+-#define SC_SET_SYSCALL_RETURN(sc, result) SC_RAX(sc) = (result)
+-
+-#define SC_FAULT_ADDR(sc) SC_CR2(sc)
+-#define SC_FAULT_TYPE(sc) SC_ERR(sc)
+-
+-#define GET_FAULTINFO_FROM_SC(fi,sc) \
++#define GET_FAULTINFO_FROM_SC(fi, sc) \
+ 	{ \
+ 		(fi).cr2 = SC_CR2(sc); \
+ 		(fi).error_code = SC_ERR(sc); \
+ 		(fi).trap_no = SC_TRAPNO(sc); \
+ 	}
+ 
+-/* ptrace expects that, at the start of a system call, %eax contains
+- * -ENOSYS, so this makes it so.
+- */
+-
+-#define SC_START_SYSCALL(sc) do SC_RAX(sc) = -ENOSYS; while(0)
+-
+ /* This is Page Fault */
+ #define SEGV_IS_FIXABLE(fi)	((fi)->trap_no == 14)
+ 
+ /* No broken SKAS API, which doesn't pass trap_no, here. */
+ #define SEGV_MAYBE_FIXABLE(fi)	0
+ 
+-extern unsigned long *sc_sigmask(void *sc_ptr);
+-
+ #endif
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+-
+diff -puN arch/um/kernel/ptrace.c~uml-style-fixes-in-fp-code arch/um/kernel/ptrace.c
+--- a/arch/um/kernel/ptrace.c~uml-style-fixes-in-fp-code
++++ a/arch/um/kernel/ptrace.c
+@@ -171,8 +171,6 @@ long arch_ptrace(struct task_struct *chi
+ 		 */
+ 		ret = copy_to_user(p, &child->thread.arch.faultinfo,
+ 				   sizeof(struct ptrace_faultinfo));
+-		if (ret)
+-			break;
+ 		break;
+ 	}
+ 
+diff -puN arch/um/os-Linux/sys-i386/registers.c~uml-style-fixes-in-fp-code arch/um/os-Linux/sys-i386/registers.c
+--- a/arch/um/os-Linux/sys-i386/registers.c~uml-style-fixes-in-fp-code
++++ a/arch/um/os-Linux/sys-i386/registers.c
+@@ -1,49 +1,55 @@
  /*
-  * Copyright (C) 2001 Lennert Buytenhek (buytenh@gnu.org)
-- * Copyright (C) 2001 - 2003 Jeff Dike (jdike@addtoit.com)
-+ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Copyright (C) 2004 PathScale, Inc
++ * Copyright (C) 2004 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
   * Licensed under the GPL
   */
  
--#include "linux/kernel.h"
--#include "linux/slab.h"
--#include "linux/init.h"
--#include "linux/notifier.h"
--#include "linux/reboot.h"
--#include "linux/utsname.h"
-+#include "linux/console.h"
- #include "linux/ctype.h"
- #include "linux/interrupt.h"
--#include "linux/sysrq.h"
--#include "linux/workqueue.h"
-+#include "linux/list.h"
-+#include "linux/mm.h"
- #include "linux/module.h"
--#include "linux/file.h"
--#include "linux/fs.h"
--#include "linux/namei.h"
-+#include "linux/notifier.h"
-+#include "linux/reboot.h"
- #include "linux/proc_fs.h"
-+#include "linux/slab.h"
- #include "linux/syscalls.h"
--#include "linux/list.h"
--#include "linux/mm.h"
--#include "linux/console.h"
--#include "asm/irq.h"
-+#include "linux/utsname.h"
-+#include "linux/workqueue.h"
- #include "asm/uaccess.h"
-+#include "init.h"
-+#include "irq_kern.h"
-+#include "irq_user.h"
- #include "kern_util.h"
--#include "kern.h"
- #include "mconsole.h"
- #include "mconsole_kern.h"
--#include "irq_user.h"
--#include "init.h"
- #include "os.h"
--#include "irq_kern.h"
+ #include <errno.h>
+-#include <sysdep/ptrace_user.h>
++#include "kern_constants.h"
+ #include "longjmp.h"
+ #include "user.h"
++#include "sysdep/ptrace_user.h"
  
- static int do_unlink_socket(struct notifier_block *notifier,
- 			    unsigned long what, void *data)
+ int save_fp_registers(int pid, unsigned long *fp_regs)
  {
--	return(mconsole_unlink_socket());
-+	return mconsole_unlink_socket();
- }
- 
- 
-@@ -58,10 +50,9 @@ static void mc_work_proc(struct work_str
- 	struct mconsole_entry *req;
- 	unsigned long flags;
- 
--	while(!list_empty(&mc_requests)){
-+	while (!list_empty(&mc_requests)) {
- 		local_irq_save(flags);
--		req = list_entry(mc_requests.next, struct mconsole_entry,
--				 list);
-+		req = list_entry(mc_requests.next, struct mconsole_entry, list);
- 		list_del(&req->list);
- 		local_irq_restore(flags);
- 		req->request.cmd->handler(&req->request);
-@@ -79,12 +70,12 @@ static irqreturn_t mconsole_interrupt(in
- 	static struct mc_request req;	/* that's OK */
- 
- 	fd = (long) dev_id;
--	while (mconsole_get_request(fd, &req)){
--		if(req.cmd->context == MCONSOLE_INTR)
-+	while (mconsole_get_request(fd, &req)) {
-+		if (req.cmd->context == MCONSOLE_INTR)
- 			(*req.cmd->handler)(&req);
- 		else {
- 			new = kmalloc(sizeof(*new), GFP_NOWAIT);
--			if(new == NULL)
-+			if (new == NULL)
- 				mconsole_reply(&req, "Out of memory", 1, 0);
- 			else {
- 				new->request = req;
-@@ -93,10 +84,10 @@ static irqreturn_t mconsole_interrupt(in
- 			}
- 		}
- 	}
--	if(!list_empty(&mc_requests))
-+	if (!list_empty(&mc_requests))
- 		schedule_work(&mconsole_work);
- 	reactivate_fd(fd, MCONSOLE_IRQ);
--	return(IRQ_HANDLED);
-+	return IRQ_HANDLED;
- }
- 
- void mconsole_version(struct mc_request *req)
-@@ -104,8 +95,8 @@ void mconsole_version(struct mc_request 
- 	char version[256];
- 
- 	sprintf(version, "%s %s %s %s %s", utsname()->sysname,
--		utsname()->nodename, utsname()->release,
--		utsname()->version, utsname()->machine);
-+		utsname()->nodename, utsname()->release, utsname()->version,
-+		utsname()->machine);
- 	mconsole_reply(req, version, 0, 0);
- }
- 
-@@ -117,7 +108,7 @@ void mconsole_log(struct mc_request *req
- 	ptr += strlen("log ");
- 
- 	len = req->len - (ptr - req->request.data);
--	printk("%.*s", len, ptr);
-+	printk(KERN_WARNING "%.*s", len, ptr);
- 	mconsole_reply(req, "", 0, 0);
- }
- 
-@@ -136,17 +127,17 @@ void mconsole_proc(struct mc_request *re
- 	char *ptr = req->request.data, *buf;
- 
- 	ptr += strlen("proc");
--	while(isspace(*ptr)) ptr++;
-+	while (isspace(*ptr)) ptr++;
- 
- 	proc = get_fs_type("proc");
--	if(proc == NULL){
-+	if (proc == NULL) {
- 		mconsole_reply(req, "procfs not registered", 1, 0);
- 		goto out;
- 	}
- 
- 	super = (*proc->get_sb)(proc, 0, NULL, NULL);
- 	put_filesystem(proc);
--	if(super == NULL){
-+	if (super == NULL) {
- 		mconsole_reply(req, "Failed to get procfs superblock", 1, 0);
- 		goto out;
- 	}
-@@ -161,29 +152,29 @@ void mconsole_proc(struct mc_request *re
- 	 * if commenting out these two calls + the below read cycle. To
- 	 * make UML crash again, it was enough to readd either one.*/
- 	err = link_path_walk(ptr, &nd);
--	if(err){
-+	if (err) {
- 		mconsole_reply(req, "Failed to look up file", 1, 0);
- 		goto out_kill;
- 	}
- 
- 	file = dentry_open(nd.dentry, nd.mnt, O_RDONLY);
--	if(IS_ERR(file)){
-+	if (IS_ERR(file)) {
- 		mconsole_reply(req, "Failed to open file", 1, 0);
- 		goto out_kill;
- 	}
- 	/*END*/
- 
- 	buf = kmalloc(PAGE_SIZE, GFP_KERNEL);
--	if(buf == NULL){
-+	if (buf == NULL) {
- 		mconsole_reply(req, "Failed to allocate buffer", 1, 0);
- 		goto out_fput;
- 	}
- 
--	if((file->f_op != NULL) && (file->f_op->read != NULL)){
-+	if ((file->f_op != NULL) && (file->f_op->read != NULL)) {
- 		do {
- 			n = (*file->f_op->read)(file, buf, PAGE_SIZE - 1,
- 						&file->f_pos);
--			if(n >= 0){
-+			if (n >= 0) {
- 				buf[n] = '\0';
- 				mconsole_reply(req, buf, 0, (n > 0));
- 			}
-@@ -192,7 +183,7 @@ void mconsole_proc(struct mc_request *re
- 					       1, 0);
- 				goto out_free;
- 			}
--		} while(n > 0);
-+		} while (n > 0);
- 	}
- 	else mconsole_reply(req, "", 0, 0);
- 
-@@ -216,18 +207,19 @@ void mconsole_proc(struct mc_request *re
- 	char *ptr = req->request.data;
- 
- 	ptr += strlen("proc");
--	while(isspace(*ptr)) ptr++;
-+	while (isspace(*ptr))
-+		ptr++;
- 	snprintf(path, sizeof(path), "/proc/%s", ptr);
- 
- 	fd = sys_open(path, 0, 0);
- 	if (fd < 0) {
- 		mconsole_reply(req, "Failed to open file", 1, 0);
--		printk("open %s: %d\n",path,fd);
-+		printk(KERN_ERR "open %s: %d\n",path,fd);
- 		goto out;
- 	}
- 
- 	buf = kmalloc(PAGE_SIZE, GFP_KERNEL);
--	if(buf == NULL){
-+	if (buf == NULL) {
- 		mconsole_reply(req, "Failed to allocate buffer", 1, 0);
- 		goto out_close;
- 	}
-@@ -238,7 +230,7 @@ void mconsole_proc(struct mc_request *re
- 			mconsole_reply(req, "Read of file failed", 1, 0);
- 			goto out_free;
- 		}
--		/*Begin the file content on his own line.*/
-+		/* Begin the file content on his own line. */
- 		if (first_chunk) {
- 			mconsole_reply(req, "\n", 0, 1);
- 			first_chunk = 0;
-@@ -350,12 +342,12 @@ static struct mc_device *mconsole_find_d
- 	struct list_head *ele;
- 	struct mc_device *dev;
- 
--	list_for_each(ele, &mconsole_devices){
-+	list_for_each(ele, &mconsole_devices) {
- 		dev = list_entry(ele, struct mc_device, list);
--		if(!strncmp(name, dev->name, strlen(dev->name)))
--			return(dev);
-+		if (!strncmp(name, dev->name, strlen(dev->name)))
-+			return dev;
- 	}
--	return(NULL);
-+	return NULL;
- }
- 
- #define UNPLUGGED_PER_PAGE \
-@@ -377,15 +369,15 @@ static int mem_config(char *str, char **
- 	int err = -EINVAL, i, add;
- 	char *ret;
- 
--	if(str[0] != '='){
-+	if (str[0] != '=') {
- 		*error_out = "Expected '=' after 'mem'";
- 		goto out;
- 	}
- 
- 	str++;
--	if(str[0] == '-')
-+	if (str[0] == '-')
- 		add = 0;
--	else if(str[0] == '+'){
-+	else if (str[0] == '+') {
- 		add = 1;
- 	}
- 	else {
-@@ -395,7 +387,7 @@ static int mem_config(char *str, char **
- 
- 	str++;
- 	diff = memparse(str, &ret);
--	if(*ret != '\0'){
-+	if (*ret != '\0') {
- 		*error_out = "Failed to parse memory increment";
- 		goto out;
- 	}
-@@ -403,17 +395,17 @@ static int mem_config(char *str, char **
- 	diff /= PAGE_SIZE;
- 
- 	down(&plug_mem_mutex);
--	for(i = 0; i < diff; i++){
-+	for (i = 0; i < diff; i++) {
- 		struct unplugged_pages *unplugged;
- 		void *addr;
- 
--		if(add){
--			if(list_empty(&unplugged_pages))
-+		if (add) {
-+			if (list_empty(&unplugged_pages))
- 				break;
- 
- 			unplugged = list_entry(unplugged_pages.next,
- 					       struct unplugged_pages, list);
--			if(unplug_index > 0)
-+			if (unplug_index > 0)
- 				addr = unplugged->pages[--unplug_index];
- 			else {
- 				list_del(&unplugged->list);
-@@ -428,11 +420,11 @@ static int mem_config(char *str, char **
- 			struct page *page;
- 
- 			page = alloc_page(GFP_ATOMIC);
--			if(page == NULL)
-+			if (page == NULL)
- 				break;
- 
- 			unplugged = page_address(page);
--			if(unplug_index == UNPLUGGED_PER_PAGE){
-+			if (unplug_index == UNPLUGGED_PER_PAGE) {
- 				list_add(&unplugged->list, &unplugged_pages);
- 				unplug_index = 0;
- 			}
-@@ -444,9 +436,9 @@ static int mem_config(char *str, char **
- 						       struct unplugged_pages,
- 						       list);
- 				err = os_drop_memory(addr, PAGE_SIZE);
--				if(err){
--					printk("Failed to release memory - "
--					       "errno = %d\n", err);
-+				if (err) {
-+					printk(KERN_ERR "Failed to release "
-+					       "memory - errno = %d\n", err);
- 					*error_out = "Failed to release memory";
- 					goto out_unlock;
- 				}
-@@ -500,10 +492,10 @@ static struct mc_device mem_mc = {
- 
- static int __init mem_mc_init(void)
- {
--	if(can_drop_memory())
-+	if (can_drop_memory())
- 		mconsole_register_dev(&mem_mc);
--	else printk("Can't release memory to the host - memory hotplug won't "
--		    "be supported\n");
-+	else printk(KERN_ERR "Can't release memory to the host - memory "
-+		    "hotplug won't be supported\n");
+-	if(ptrace(PTRACE_GETFPREGS, pid, 0, fp_regs) < 0)
++	if (ptrace(PTRACE_GETFPREGS, pid, 0, fp_regs) < 0)
+ 		return -errno;
  	return 0;
  }
  
-@@ -518,7 +510,7 @@ static void mconsole_get_config(int (*ge
- 	char default_buf[CONFIG_BUF_SIZE], *error, *buf;
- 	int n, size;
- 
--	if(get_config == NULL){
-+	if (get_config == NULL) {
- 		mconsole_reply(req, "No get_config routine defined", 1, 0);
- 		return;
- 	}
-@@ -527,30 +519,30 @@ static void mconsole_get_config(int (*ge
- 	size = ARRAY_SIZE(default_buf);
- 	buf = default_buf;
- 
--	while(1){
-+	while (1) {
- 		n = (*get_config)(name, buf, size, &error);
--		if(error != NULL){
-+		if (error != NULL) {
- 			mconsole_reply(req, error, 1, 0);
- 			goto out;
- 		}
- 
--		if(n <= size){
-+		if (n <= size) {
- 			mconsole_reply(req, buf, 0, 0);
- 			goto out;
- 		}
- 
--		if(buf != default_buf)
-+		if (buf != default_buf)
- 			kfree(buf);
- 
- 		size = n;
- 		buf = kmalloc(size, GFP_KERNEL);
--		if(buf == NULL){
-+		if (buf == NULL) {
- 			mconsole_reply(req, "Failed to allocate buffer", 1, 0);
- 			return;
- 		}
- 	}
-  out:
--	if(buf != default_buf)
-+	if (buf != default_buf)
- 		kfree(buf);
+ int restore_fp_registers(int pid, unsigned long *fp_regs)
+ {
+-	if(ptrace(PTRACE_SETFPREGS, pid, 0, fp_regs) < 0)
++	if (ptrace(PTRACE_SETFPREGS, pid, 0, fp_regs) < 0)
+ 		return -errno;
+ 	return 0;
  }
  
-@@ -561,19 +553,20 @@ void mconsole_config(struct mc_request *
- 	int err;
+ int save_fpx_registers(int pid, unsigned long *fp_regs)
+ {
+-	if(ptrace(PTRACE_GETFPXREGS, pid, 0, fp_regs) < 0)
++	if (ptrace(PTRACE_GETFPXREGS, pid, 0, fp_regs) < 0)
+ 		return -errno;
+ 	return 0;
+ }
  
- 	ptr += strlen("config");
--	while(isspace(*ptr)) ptr++;
-+	while (isspace(*ptr))
-+		ptr++;
- 	dev = mconsole_find_dev(ptr);
--	if(dev == NULL){
-+	if (dev == NULL) {
- 		mconsole_reply(req, "Bad configuration option", 1, 0);
- 		return;
- 	}
+ int restore_fpx_registers(int pid, unsigned long *fp_regs)
+ {
+-	if(ptrace(PTRACE_SETFPXREGS, pid, 0, fp_regs) < 0)
++	if (ptrace(PTRACE_SETFPXREGS, pid, 0, fp_regs) < 0)
+ 		return -errno;
+ 	return 0;
+ }
  
- 	name = &ptr[strlen(dev->name)];
- 	ptr = name;
--	while((*ptr != '=') && (*ptr != '\0'))
-+	while ((*ptr != '=') && (*ptr != '\0'))
- 		ptr++;
- 
--	if(*ptr == '='){
-+	if (*ptr == '=') {
- 		err = (*dev->config)(name, &error_string);
- 		mconsole_reply(req, error_string, err, 0);
- 	}
-@@ -588,9 +581,9 @@ void mconsole_remove(struct mc_request *
- 	int err, start, end, n;
- 
- 	ptr += strlen("remove");
--	while(isspace(*ptr)) ptr++;
-+	while (isspace(*ptr)) ptr++;
- 	dev = mconsole_find_dev(ptr);
--	if(dev == NULL){
-+	if (dev == NULL) {
- 		mconsole_reply(req, "Bad remove option", 1, 0);
- 		return;
- 	}
-@@ -599,11 +592,11 @@ void mconsole_remove(struct mc_request *
- 
- 	err = 1;
- 	n = (*dev->id)(&ptr, &start, &end);
--	if(n < 0){
-+	if (n < 0) {
- 		err_msg = "Couldn't parse device number";
- 		goto out;
- 	}
--	else if((n < start) || (n > end)){
-+	else if ((n < start) || (n > end)) {
- 		sprintf(error, "Invalid device number - must be between "
- 			"%d and %d", start, end);
- 		err_msg = error;
-@@ -612,16 +605,16 @@ void mconsole_remove(struct mc_request *
- 
- 	err_msg = NULL;
- 	err = (*dev->remove)(n, &err_msg);
--	switch(err){
-+	switch(err) {
- 	case 0:
- 		err_msg = "";
- 		break;
- 	case -ENODEV:
--		if(err_msg == NULL)
-+		if (err_msg == NULL)
- 			err_msg = "Device doesn't exist";
- 		break;
- 	case -EBUSY:
--		if(err_msg == NULL)
-+		if (err_msg == NULL)
- 			err_msg = "Device is currently open";
- 		break;
+ unsigned long get_thread_reg(int reg, jmp_buf *buf)
+ {
+-	switch(reg){
+-	case EIP: return buf[0]->__eip;
+-	case UESP: return buf[0]->__esp;
+-	case EBP: return buf[0]->__ebp;
++	switch (reg) {
++	case EIP:
++		return buf[0]->__eip;
++	case UESP:
++		return buf[0]->__esp;
++	case EBP:
++		return buf[0]->__ebp;
  	default:
-@@ -647,19 +640,19 @@ static void console_write(struct console
- 	struct list_head *ele;
+-		printk("get_thread_regs - unknown register %d\n", reg);
++		printk(UM_KERN_ERR "get_thread_regs - unknown register %d\n",
++		       reg);
+ 		return 0;
+ 	}
+ }
+diff -puN arch/um/sys-i386/Makefile~uml-style-fixes-in-fp-code arch/um/sys-i386/Makefile
+--- a/arch/um/sys-i386/Makefile~uml-style-fixes-in-fp-code
++++ a/arch/um/sys-i386/Makefile
+@@ -3,14 +3,14 @@
+ #
+ 
+ obj-y = bug.o bugs.o checksum.o delay.o fault.o ksyms.o ldt.o ptrace.o \
+-	ptrace_user.o setjmp.o signal.o sigcontext.o stub.o stub_segv.o \
+-	syscalls.o sysrq.o sys_call_table.o tls.o
++	ptrace_user.o setjmp.o signal.o stub.o stub_segv.o syscalls.o sysrq.o \
++	sys_call_table.o tls.o
+ 
+ subarch-obj-y = lib/bitops_32.o lib/semaphore_32.o lib/string_32.o
+ subarch-obj-$(CONFIG_HIGHMEM) += mm/highmem_32.o
+ subarch-obj-$(CONFIG_MODULES) += kernel/module_32.o
+ 
+-USER_OBJS := bugs.o ptrace_user.o sigcontext.o fault.o
++USER_OBJS := bugs.o ptrace_user.o fault.o
+ 
+ USER_OBJS += user-offsets.s
+ extra-y += user-offsets.s
+diff -puN arch/um/sys-i386/sigcontext.c~uml-style-fixes-in-fp-code /dev/null
+--- a/arch/um/sys-i386/sigcontext.c
++++ /dev/null
+@@ -1,71 +0,0 @@
+-/* 
+- * Copyright (C) 2000, 2001, 2002 Jeff Dike (jdike@karaya.com)
+- * Licensed under the GPL
+- */
+-
+-#include <stddef.h>
+-#include <string.h>
+-#include <asm/ptrace.h>
+-#include <asm/sigcontext.h>
+-#include "sysdep/ptrace.h"
+-#include "kern_util.h"
+-
+-void sc_to_sc(void *to_ptr, void *from_ptr)
+-{
+-	struct sigcontext *to = to_ptr, *from = from_ptr;
+-
+-	memcpy(to, from, sizeof(*to) + sizeof(struct _fpstate));
+-	if(from->fpstate != NULL)
+-		to->fpstate = (struct _fpstate *) (to + 1);
+-}
+-
+-unsigned long *sc_sigmask(void *sc_ptr)
+-{
+-	struct sigcontext *sc = sc_ptr;
+-	return &sc->oldmask;
+-}
+-
+-int sc_get_fpregs(unsigned long buf, void *sc_ptr)
+-{
+-	struct sigcontext *sc = sc_ptr;
+-	struct _fpstate *from = sc->fpstate, *to = (struct _fpstate *) buf;
+-	int err = 0;
+-
+-	if(from == NULL){
+-		err |= clear_user_proc(&to->cw, sizeof(to->cw));
+-		err |= clear_user_proc(&to->sw, sizeof(to->sw));
+-		err |= clear_user_proc(&to->tag, sizeof(to->tag));
+-		err |= clear_user_proc(&to->ipoff, sizeof(to->ipoff));
+-		err |= clear_user_proc(&to->cssel, sizeof(to->cssel));
+-		err |= clear_user_proc(&to->dataoff, sizeof(to->dataoff));
+-		err |= clear_user_proc(&to->datasel, sizeof(to->datasel));
+-		err |= clear_user_proc(&to->_st, sizeof(to->_st));
+-	}
+-	else {
+-		err |= copy_to_user_proc(&to->cw, &from->cw, sizeof(to->cw));
+-		err |= copy_to_user_proc(&to->sw, &from->sw, sizeof(to->sw));
+-		err |= copy_to_user_proc(&to->tag, &from->tag, 
+-					 sizeof(to->tag));
+-		err |= copy_to_user_proc(&to->ipoff, &from->ipoff, 
+-					 sizeof(to->ipoff));
+-		err |= copy_to_user_proc(&to->cssel,& from->cssel, 
+-					 sizeof(to->cssel));
+-		err |= copy_to_user_proc(&to->dataoff, &from->dataoff, 
+-				    sizeof(to->dataoff));
+-		err |= copy_to_user_proc(&to->datasel, &from->datasel, 
+-				    sizeof(to->datasel));
+-		err |= copy_to_user_proc(to->_st, from->_st, sizeof(to->_st));
+-	}
+-	return(err);
+-}
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+diff -puN arch/um/sys-x86_64/Makefile~uml-style-fixes-in-fp-code arch/um/sys-x86_64/Makefile
+--- a/arch/um/sys-x86_64/Makefile~uml-style-fixes-in-fp-code
++++ a/arch/um/sys-x86_64/Makefile
+@@ -5,8 +5,8 @@
+ #
+ 
+ obj-y = bug.o bugs.o delay.o fault.o ldt.o mem.o ptrace.o ptrace_user.o \
+-	setjmp.o sigcontext.o signal.o stub.o stub_segv.o syscalls.o \
+-	syscall_table.o sysrq.o ksyms.o tls.o
++	setjmp.o signal.o stub.o stub_segv.o syscalls.o syscall_table.o \
++	sysrq.o ksyms.o tls.o
+ 
+ obj-$(CONFIG_MODULES) += um_module.o
+ 
+@@ -15,7 +15,7 @@ subarch-obj-$(CONFIG_MODULES) += kernel/
+ 
+ ldt-y = ../sys-i386/ldt.o
+ 
+-USER_OBJS := ptrace_user.o sigcontext.o
++USER_OBJS := ptrace_user.o
+ 
+ USER_OBJS += user-offsets.s
+ extra-y += user-offsets.s
+diff -puN arch/um/sys-x86_64/ptrace.c~uml-style-fixes-in-fp-code arch/um/sys-x86_64/ptrace.c
+--- a/arch/um/sys-x86_64/ptrace.c~uml-style-fixes-in-fp-code
++++ a/arch/um/sys-x86_64/ptrace.c
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright 2003 PathScale, Inc.
++ * Copyright (C) 2003 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  *
+  * Licensed under the GPL
+  */
+@@ -12,17 +13,10 @@
+ #include <asm/uaccess.h>
+ #include <asm/elf.h>
+ 
+-/* XXX x86_64 */
+-unsigned long not_ss;
+-unsigned long not_ds;
+-unsigned long not_es;
+-
+-#define SC_SS(r) (not_ss)
+-#define SC_DS(r) (not_ds)
+-#define SC_ES(r) (not_es)
+-
+-/* determines which flags the user has access to. */
+-/* 1 = access 0 = no access */
++/*
++ * determines which flags the user has access to.
++ * 1 = access 0 = no access
++ */
+ #define FLAG_MASK 0x44dd5UL
+ 
+ int putreg(struct task_struct *child, int regno, unsigned long value)
+@@ -66,20 +60,21 @@ int putreg(struct task_struct *child, in
+ 
+ int poke_user(struct task_struct *child, long addr, long data)
+ {
+-        if ((addr & 3) || addr < 0)
+-                return -EIO;
++	if ((addr & 3) || addr < 0)
++		return -EIO;
+ 
+-        if (addr < MAX_REG_OFFSET)
+-                return putreg(child, addr, data);
+-        else if((addr >= offsetof(struct user, u_debugreg[0])) &&
+-                (addr <= offsetof(struct user, u_debugreg[7]))){
+-                addr -= offsetof(struct user, u_debugreg[0]);
+-                addr = addr >> 2;
+-                if((addr == 4) || (addr == 5)) return -EIO;
+-                child->thread.arch.debugregs[addr] = data;
+-                return 0;
+-        }
+-        return -EIO;
++	if (addr < MAX_REG_OFFSET)
++		return putreg(child, addr, data);
++	else if ((addr >= offsetof(struct user, u_debugreg[0])) &&
++		(addr <= offsetof(struct user, u_debugreg[7]))){
++		addr -= offsetof(struct user, u_debugreg[0]);
++		addr = addr >> 2;
++		if ((addr == 4) || (addr == 5))
++			return -EIO;
++		child->thread.arch.debugregs[addr] = data;
++		return 0;
++	}
++	return -EIO;
+ }
+ 
+ unsigned long getreg(struct task_struct *child, int regno)
+@@ -107,29 +102,22 @@ unsigned long getreg(struct task_struct 
+ int peek_user(struct task_struct *child, long addr, long data)
+ {
+ 	/* read the word at location addr in the USER area. */
+-        unsigned long tmp;
++	unsigned long tmp;
+ 
+-        if ((addr & 3) || addr < 0)
+-                return -EIO;
++	if ((addr & 3) || addr < 0)
++		return -EIO;
+ 
+-        tmp = 0;  /* Default return condition */
+-        if(addr < MAX_REG_OFFSET){
+-                tmp = getreg(child, addr);
+-        }
+-        else if((addr >= offsetof(struct user, u_debugreg[0])) &&
+-                (addr <= offsetof(struct user, u_debugreg[7]))){
+-                addr -= offsetof(struct user, u_debugreg[0]);
+-                addr = addr >> 2;
+-                tmp = child->thread.arch.debugregs[addr];
+-        }
+-        return put_user(tmp, (unsigned long *) data);
+-}
+-
+-void arch_switch(void)
+-{
+-/* XXX
+-	printk("arch_switch\n");
+-*/
++	tmp = 0;  /* Default return condition */
++	if (addr < MAX_REG_OFFSET){
++		tmp = getreg(child, addr);
++	}
++	else if ((addr >= offsetof(struct user, u_debugreg[0])) &&
++		(addr <= offsetof(struct user, u_debugreg[7]))){
++		addr -= offsetof(struct user, u_debugreg[0]);
++		addr = addr >> 2;
++		tmp = child->thread.arch.debugregs[addr];
++	}
++	return put_user(tmp, (unsigned long *) data);
+ }
+ 
+ /* XXX Mostly copied from sys-i386 */
+@@ -139,21 +127,21 @@ int is_syscall(unsigned long addr)
  	int n;
  
--	if(list_empty(&clients))
-+	if (list_empty(&clients))
- 		return;
- 
--	while(1){
-+	while (1) {
- 		n = min((size_t) len, ARRAY_SIZE(console_buf) - console_index);
- 		strncpy(&console_buf[console_index], string, n);
- 		console_index += n;
- 		string += n;
- 		len -= n;
--		if(len == 0)
-+		if (len == 0)
- 			return;
- 
--		list_for_each(ele, &clients){
-+		list_for_each(ele, &clients) {
- 			struct mconsole_output *entry;
- 
- 			entry = list_entry(ele, struct mconsole_output, list);
-@@ -717,12 +710,13 @@ void mconsole_sysrq(struct mc_request *r
- 	char *ptr = req->request.data;
- 
- 	ptr += strlen("sysrq");
--	while(isspace(*ptr)) ptr++;
-+	while (isspace(*ptr)) ptr++;
- 
--	/* With 'b', the system will shut down without a chance to reply,
-+	/*
-+	 * With 'b', the system will shut down without a chance to reply,
- 	 * so in this case, we reply first.
- 	 */
--	if(*ptr == 'b')
-+	if (*ptr == 'b')
- 		mconsole_reply(req, "", 0, 0);
- 
- 	with_console(req, sysrq_proc, ptr);
-@@ -742,7 +736,8 @@ static void stack_proc(void *arg)
- 	switch_to(from, to, from);
+ 	n = copy_from_user(&instr, (void __user *) addr, sizeof(instr));
+-	if(n){
++	if (n){
+ 		/* access_process_vm() grants access to vsyscall and stub,
+ 		 * while copy_from_user doesn't. Maybe access_process_vm is
+ 		 * slow, but that doesn't matter, since it will be called only
+ 		 * in case of singlestepping, if copy_from_user failed.
+ 		 */
+ 		n = access_process_vm(current, addr, &instr, sizeof(instr), 0);
+-		if(n != sizeof(instr)) {
++		if (n != sizeof(instr)) {
+ 			printk("is_syscall : failed to read instruction from "
+ 			       "0x%lx\n", addr);
+-			return(1);
++			return 1;
+ 		}
+ 	}
+ 	/* sysenter */
+-	return(instr == 0x050f);
++	return instr == 0x050f;
  }
  
--/* Mconsole stack trace
-+/*
-+ * Mconsole stack trace
-  *  Added by Allan Graves, Jeff Dike
-  *  Dumps a stacks registers to the linux console.
-  *  Usage stack <pid>.
-@@ -754,17 +749,21 @@ void mconsole_stack(struct mc_request *r
- 	struct task_struct *from = NULL;
- 	struct task_struct *to = NULL;
+ int get_fpregs(struct user_i387_struct __user *buf, struct task_struct *child)
+@@ -204,14 +192,3 @@ long subarch_ptrace(struct task_struct *
  
--	/* Would be nice:
+ 	return ret;
+ }
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+diff -puN arch/um/sys-x86_64/sigcontext.c~uml-style-fixes-in-fp-code /dev/null
+--- a/arch/um/sys-x86_64/sigcontext.c
++++ /dev/null
+@@ -1,39 +0,0 @@
+-/*
+- * Copyright 2003 PathScale, Inc.
+- *
+- * Licensed under the GPL
+- */
+-
+-#include <stdio.h>
+-#include <string.h>
+-#include <signal.h>
+-#include "user.h"
+-
+-void sc_to_sc(void *to_ptr, void *from_ptr)
+-{
+-        struct sigcontext *to = to_ptr, *from = from_ptr;
+-        int size = sizeof(*to); /* + sizeof(struct _fpstate); */
+-
+-        memcpy(to, from, size);
+-        if(from->fpstate != NULL)
+-		to->fpstate = (struct _fpstate *) (to + 1);
+-
+-	to->fpstate = NULL;
+-}
+-
+-unsigned long *sc_sigmask(void *sc_ptr)
+-{
+-	struct sigcontext *sc = sc_ptr;
+-
+-	return(&sc->oldmask);
+-}
+-
+-/* Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+diff -puN arch/um/sys-x86_64/signal.c~uml-style-fixes-in-fp-code arch/um/sys-x86_64/signal.c
+--- a/arch/um/sys-x86_64/signal.c~uml-style-fixes-in-fp-code
++++ a/arch/um/sys-x86_64/signal.c
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright (C) 2003 PathScale, Inc.
++ * Copyright (C) 2003 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
+  */
+ 
+@@ -110,7 +111,8 @@ static int copy_sc_to_user(struct sigcon
+ 	err |= PUTREG(regs, RDI, to, rdi);
+ 	err |= PUTREG(regs, RSI, to, rsi);
+ 	err |= PUTREG(regs, RBP, to, rbp);
+-	/* Must use orignal RSP, which is passed in, rather than what's in
 +	/*
-+	 * Would be nice:
- 	 * 1) Send showregs output to mconsole.
- 	 * 2) Add a way to stack dump all pids.
++	 * Must use orignal RSP, which is passed in, rather than what's in
+ 	 * the pt_regs, because that's already been updated to point at the
+ 	 * signal frame.
  	 */
+@@ -152,7 +154,7 @@ static int copy_sc_to_user(struct sigcon
+ 	if (copy_to_user(to_fp, &fp, sizeof(struct user_i387_struct)))
+ 		return 1;
  
- 	ptr += strlen("stack");
--	while(isspace(*ptr)) ptr++;
-+	while (isspace(*ptr))
-+		ptr++;
+-	return(err);
++	return err;
+ }
  
--	/* Should really check for multiple pids or reject bad args here */
+ struct rt_sigframe
+@@ -188,7 +190,8 @@ int setup_signal_stack_si(unsigned long 
+ 			goto out;
+ 	}
+ 
+-	/* Update SP now because the page fault handler refuses to extend
 +	/*
-+	 * Should really check for multiple pids or reject bad args here
++	 * Update SP now because the page fault handler refuses to extend
+ 	 * the stack if the faulting address is too far below the current
+ 	 * SP, which frame now certainly is.  If there's an error, the original
+ 	 * value is restored on the way out.
+@@ -216,8 +219,10 @@ int setup_signal_stack_si(unsigned long 
+ 		err |= __copy_to_user(&frame->uc.uc_sigmask, set,
+ 				      sizeof(*set));
+ 
+-	/* Set up to return from userspace.  If provided, use a stub
+-	   already in userspace.  */
++	/*
++	 * Set up to return from userspace.  If provided, use a stub
++	 * already in userspace.
 +	 */
- 	/* What do the arguments in mconsole_reply mean? */
--	if(sscanf(ptr, "%d", &pid_requested) == 0){
-+	if (sscanf(ptr, "%d", &pid_requested) == 0) {
- 		mconsole_reply(req, "Please specify a pid", 1, 0);
- 		return;
- 	}
-@@ -772,14 +771,15 @@ void mconsole_stack(struct mc_request *r
- 	from = current;
+ 	/* x86-64 should always use SA_RESTORER. */
+ 	if (ka->sa.sa_flags & SA_RESTORER)
+ 		err |= __put_user(ka->sa.sa_restorer, &frame->pretcode);
+@@ -239,8 +244,10 @@ int setup_signal_stack_si(unsigned long 
+ 	/* In case the signal handler was declared without prototypes */
+ 	PT_REGS_RAX(regs) = 0;
  
- 	to = find_task_by_pid(pid_requested);
--	if((to == NULL) || (pid_requested == 0)) {
-+	if ((to == NULL) || (pid_requested == 0)) {
- 		mconsole_reply(req, "Couldn't find that pid", 1, 0);
- 		return;
- 	}
- 	with_console(req, stack_proc, to);
- }
+-	/* This also works for non SA_SIGINFO handlers because they expect the
+-	   next argument after the signal number on the stack. */
++	/*
++	 * This also works for non SA_SIGINFO handlers because they expect the
++	 * next argument after the signal number on the stack.
++	 */
+ 	PT_REGS_RSI(regs) = (unsigned long) &frame->info;
+ 	PT_REGS_RDX(regs) = (unsigned long) &frame->uc;
+ 	PT_REGS_RIP(regs) = (unsigned long) ka->sa.sa_handler;
+@@ -276,7 +283,7 @@ long sys_rt_sigreturn(struct pt_regs *re
  
--/* Changed by mconsole_setup, which is __setup, and called before SMP is
-+/*
-+ * Changed by mconsole_setup, which is __setup, and called before SMP is
-  * active.
-  */
- static char *notify_socket = NULL;
-@@ -791,13 +791,14 @@ static int __init mconsole_init(void)
- 	int err;
- 	char file[256];
+ 	/* Avoid ERESTART handling */
+ 	PT_REGS_SYSCALL_NR(&current->thread.regs) = -1;
+-	return(PT_REGS_SYSCALL_RET(&current->thread.regs));
++	return PT_REGS_SYSCALL_RET(&current->thread.regs);
  
--	if(umid_file_name("mconsole", file, sizeof(file))) return(-1);
-+	if (umid_file_name("mconsole", file, sizeof(file)))
-+		return -1;
- 	snprintf(mconsole_socket_name, sizeof(file), "%s", file);
- 
- 	sock = os_create_unix_socket(file, sizeof(file), 1);
--	if (sock < 0){
--		printk("Failed to initialize management console\n");
--		return(1);
-+	if (sock < 0) {
-+		printk(KERN_ERR "Failed to initialize management console\n");
-+		return 1;
- 	}
- 
- 	register_reboot_notifier(&reboot_notifier);
-@@ -805,14 +806,14 @@ static int __init mconsole_init(void)
- 	err = um_request_irq(MCONSOLE_IRQ, sock, IRQ_READ, mconsole_interrupt,
- 			     IRQF_DISABLED | IRQF_SHARED | IRQF_SAMPLE_RANDOM,
- 			     "mconsole", (void *)sock);
--	if (err){
--		printk("Failed to get IRQ for management console\n");
--		return(1);
-+	if (err) {
-+		printk(KERN_ERR "Failed to get IRQ for management console\n");
-+		return 1;
- 	}
- 
--	if(notify_socket != NULL){
-+	if (notify_socket != NULL) {
- 		notify_socket = kstrdup(notify_socket, GFP_KERNEL);
--		if(notify_socket != NULL)
-+		if (notify_socket != NULL)
- 			mconsole_notify(notify_socket, MCONSOLE_SOCKET,
- 					mconsole_socket_name,
- 					strlen(mconsole_socket_name) + 1);
-@@ -820,9 +821,9 @@ static int __init mconsole_init(void)
- 			    "string\n");
- 	}
- 
--	printk("mconsole (version %d) initialized on %s\n",
-+	printk(KERN_INFO "mconsole (version %d) initialized on %s\n",
- 	       MCONSOLE_VERSION, mconsole_socket_name);
--	return(0);
-+	return 0;
- }
- 
- __initcall(mconsole_init);
-@@ -833,10 +834,10 @@ static int write_proc_mconsole(struct fi
- 	char *buf;
- 
- 	buf = kmalloc(count + 1, GFP_KERNEL);
--	if(buf == NULL)
--		return(-ENOMEM);
-+	if (buf == NULL)
-+		return -ENOMEM;
- 
--	if(copy_from_user(buf, buffer, count)){
-+	if (copy_from_user(buf, buffer, count)) {
- 		count = -EFAULT;
- 		goto out;
- 	}
-@@ -846,24 +847,26 @@ static int write_proc_mconsole(struct fi
- 	mconsole_notify(notify_socket, MCONSOLE_USER_NOTIFY, buf, count);
-  out:
- 	kfree(buf);
--	return(count);
-+	return count;
- }
- 
- static int create_proc_mconsole(void)
- {
- 	struct proc_dir_entry *ent;
- 
--	if(notify_socket == NULL) return(0);
-+	if (notify_socket == NULL)
-+		return 0;
- 
- 	ent = create_proc_entry("mconsole", S_IFREG | 0200, NULL);
--	if(ent == NULL){
--		printk(KERN_INFO "create_proc_mconsole : create_proc_entry failed\n");
--		return(0);
-+	if (ent == NULL) {
-+		printk(KERN_INFO "create_proc_mconsole : create_proc_entry "
-+		       "failed\n");
-+		return 0;
- 	}
- 
- 	ent->read_proc = NULL;
- 	ent->write_proc = write_proc_mconsole;
--	return(0);
-+	return 0;
- }
- 
- static DEFINE_SPINLOCK(notify_spinlock);
-@@ -884,12 +887,12 @@ __initcall(create_proc_mconsole);
- 
- static int mconsole_setup(char *str)
- {
--	if(!strncmp(str, NOTIFY, strlen(NOTIFY))){
-+	if (!strncmp(str, NOTIFY, strlen(NOTIFY))) {
- 		str += strlen(NOTIFY);
- 		notify_socket = str;
- 	}
- 	else printk(KERN_ERR "mconsole_setup : Unknown option - '%s'\n", str);
--	return(1);
-+	return 1;
- }
- 
- __setup("mconsole", mconsole_setup);
-@@ -907,11 +910,12 @@ static int notify_panic(struct notifier_
- {
- 	char *message = ptr;
- 
--	if(notify_socket == NULL) return(0);
-+	if (notify_socket == NULL)
-+		return 0;
- 
- 	mconsole_notify(notify_socket, MCONSOLE_PANIC, message,
- 			strlen(message) + 1);
--	return(0);
-+	return 0;
- }
- 
- static struct notifier_block panic_exit_notifier = {
-@@ -924,14 +928,14 @@ static int add_notifier(void)
- {
- 	atomic_notifier_chain_register(&panic_notifier_list,
- 			&panic_exit_notifier);
--	return(0);
-+	return 0;
- }
- 
- __initcall(add_notifier);
- 
- char *mconsole_notify_socket(void)
- {
--	return(notify_socket);
-+	return notify_socket;
- }
- 
- EXPORT_SYMBOL(mconsole_notify_socket);
-diff -puN arch/um/include/um_mmu.h~uml-style-fixes-pass-2 arch/um/include/um_mmu.h
---- a/arch/um/include/um_mmu.h~uml-style-fixes-pass-2
-+++ a/arch/um/include/um_mmu.h
-@@ -1,5 +1,5 @@
- /* 
-- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
-+ * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  segfault:
+ 	force_sig(SIGSEGV, current);
+diff -puN include/asm-um/elf-x86_64.h~uml-style-fixes-in-fp-code include/asm-um/elf-x86_64.h
+--- a/include/asm-um/elf-x86_64.h~uml-style-fixes-in-fp-code
++++ a/include/asm-um/elf-x86_64.h
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright 2003 PathScale, Inc.
++ * Copyright (C) 2003 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  *
   * Licensed under the GPL
   */
- 
-diff -puN arch/um/include/um_uaccess.h~uml-style-fixes-pass-2 arch/um/include/um_uaccess.h
---- a/arch/um/include/um_uaccess.h~uml-style-fixes-pass-2
-+++ a/arch/um/include/um_uaccess.h
-@@ -1,5 +1,5 @@
- /* 
-- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
-+ * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
- 
-@@ -10,7 +10,7 @@
- 
- #define __under_task_size(addr, size) \
- 	(((unsigned long) (addr) < TASK_SIZE) && \
--         (((unsigned long) (addr) + (size)) < TASK_SIZE))
-+	 (((unsigned long) (addr) + (size)) < TASK_SIZE))
- 
- #define __access_ok_vsyscall(type, addr, size) \
- 	 ((type == VERIFY_READ) && \
-@@ -90,14 +90,3 @@ extern int clear_user(void __user *mem, 
- extern int strnlen_user(const void __user *str, int len);
+@@ -122,14 +123,3 @@ extern long elf_aux_hwcap;
+ #define SET_PERSONALITY(ex, ibcs2) do ; while(0)
  
  #endif
 -
@@ -774,71 +634,6 @@ diff -puN arch/um/include/um_uaccess.h~uml-style-fixes-pass-2 arch/um/include/um
 - * c-file-style: "linux"
 - * End:
 - */
-diff -puN arch/um/kernel/ksyms.c~uml-style-fixes-pass-2 arch/um/kernel/ksyms.c
---- a/arch/um/kernel/ksyms.c~uml-style-fixes-pass-2
-+++ a/arch/um/kernel/ksyms.c
-@@ -1,22 +1,15 @@
- /* 
-- * Copyright (C) 2001 - 2004 Jeff Dike (jdike@addtoit.com)
-+ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
- 
- #include "linux/module.h"
--#include "linux/string.h"
--#include "linux/smp_lock.h"
--#include "linux/spinlock.h"
--#include "linux/highmem.h"
--#include "asm/current.h"
--#include "asm/processor.h"
--#include "asm/unistd.h"
--#include "asm/pgalloc.h"
--#include "asm/pgtable.h"
--#include "asm/page.h"
-+#include "linux/syscalls.h"
-+#include "asm/a.out.h"
- #include "asm/tlbflush.h"
--#include "kern_util.h"
-+#include "asm/uaccess.h"
- #include "as-layout.h"
-+#include "kern_util.h"
- #include "mem_user.h"
- #include "os.h"
- 
-diff -puN include/asm-um/a.out.h~uml-style-fixes-pass-2 include/asm-um/a.out.h
---- a/include/asm-um/a.out.h~uml-style-fixes-pass-2
-+++ a/include/asm-um/a.out.h
-@@ -1,3 +1,8 @@
-+/*
-+ * Copyright (C) 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-+ * Licensed under the GPL
-+ */
-+
- #ifndef __UM_A_OUT_H
- #define __UM_A_OUT_H
- 
-diff -puN include/asm-um/tlbflush.h~uml-style-fixes-pass-2 include/asm-um/tlbflush.h
---- a/include/asm-um/tlbflush.h~uml-style-fixes-pass-2
-+++ a/include/asm-um/tlbflush.h
-@@ -1,5 +1,5 @@
--/* 
-- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
-+/*
-+ * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
- 
-@@ -30,7 +30,9 @@ extern void flush_tlb_page_skas(struct v
- static inline void flush_tlb_page(struct vm_area_struct *vma,
- 				  unsigned long address)
- {
--	flush_tlb_page_skas(vma, address & PAGE_MASK);
-+	address &= PAGE_MASK;
-+
-+	flush_tlb_page_skas(vma, address);
- }
- 
- extern void flush_tlb_page(struct vm_area_struct *vma, unsigned long vmaddr);
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
