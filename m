@@ -1,178 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - ext2-ext3-ext4-add-block-bitmap-validation-fix.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 15:08:43 -0700
-Message-ID: <200710162208.l9GM8irE020152@imap1.linux-foundation.org>
+Subject: - unicode-diacritics-support-s390-fix.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 15:09:22 -0700
+Message-ID: <200710162209.l9GM9MUD020176@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59202 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51916 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935451AbXJPWJI (ORCPT
+	by vger.kernel.org with ESMTP id S965735AbXJPWKL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 18:09:08 -0400
+	Tue, 16 Oct 2007 18:10:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adilger@clusterfs.com, aneesh.kumar@linux.vnet.ibm.com, cmm@us.ibm.com, mm-commits@vger.kernel.org
+To: samuel.thibault@ens-lyon.org, adaplas@pol.net, bunk@stusta.de, dwmw2@infradead.org, heiko.carstens@de.ibm.com, jengelh@gmx.de, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext2-ext3-ext4-add-block-bitmap-validation-fix
+     unicode-diacritics-support s390 fix
 has been removed from the -mm tree.  Its filename was
-     ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+     unicode-diacritics-support-s390-fix.patch
 
-This patch was dropped because it was folded into ext2-ext3-ext4-add-block-bitmap-validation.patch
+This patch was dropped because it was folded into unicode-diacritics-support.patch
 
 ------------------------------------------------------
-Subject: ext2-ext3-ext4-add-block-bitmap-validation-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: unicode-diacritics-support s390 fix
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
 
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Andreas Dilger <adilger@clusterfs.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Mingming Cao <cmm@us.ibm.com>
+Turn the kernel accent_table into unicode, and extend ioctls KDGKBDIACR and
+KDSKBDIACR into their equivalents KDGKBDIACRUC and KDSKBDIACR.
+
+New function int conv_uni_to_8bit(u32 uni) for converting unicode into 8bit
+_input_.  No, we don't want to store the translation, as it is potentially
+sparse and large.
+
+Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Cc: Jan Engelhardt <jengelh@gmx.de>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Adrian Bunk <bunk@stusta.de>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/balloc.c |    1 +
- fs/ext4/balloc.c |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/s390/char/keyboard.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN fs/ext3/balloc.c~ext2-ext3-ext4-add-block-bitmap-validation-fix fs/ext3/balloc.c
---- a/fs/ext3/balloc.c~ext2-ext3-ext4-add-block-bitmap-validation-fix
-+++ a/fs/ext3/balloc.c
-@@ -79,6 +79,7 @@ struct ext3_group_desc * ext3_get_group_
- 		*bh = sbi->s_group_desc[group_desc];
- 	return desc + offset;
- }
-+
- static inline int
- block_in_use(ext3_fsblk_t block, struct super_block *sb, unsigned char *map)
- {
-diff -puN fs/ext4/balloc.c~ext2-ext3-ext4-add-block-bitmap-validation-fix fs/ext4/balloc.c
---- a/fs/ext4/balloc.c~ext2-ext3-ext4-add-block-bitmap-validation-fix
-+++ a/fs/ext4/balloc.c
-@@ -99,6 +99,7 @@ struct ext4_group_desc * ext4_get_group_
- 		*bh = sbi->s_group_desc[group_desc];
- 	return desc;
- }
-+
- static inline int
- block_in_use(ext4_fsblk_t block, struct super_block *sb, unsigned char *map)
- {
-@@ -108,7 +109,6 @@ block_in_use(ext4_fsblk_t block, struct 
- 	return ext4_test_bit (offset, map);
- }
- 
--
- /**
-  * read_block_bitmap()
-  * @sb:			super block
+diff -puN drivers/s390/char/keyboard.c~unicode-diacritics-support-s390-fix drivers/s390/char/keyboard.c
+--- a/drivers/s390/char/keyboard.c~unicode-diacritics-support-s390-fix
++++ a/drivers/s390/char/keyboard.c
+@@ -489,9 +489,9 @@ kbd_ioctl(struct kbd_data *kbd, struct f
+ 		if (put_user(kbd->accent_table_size, &a->kb_cnt))
+ 			return -EFAULT;
+ 		for (i = 0; i < kbd->accent_table_size; i++) {
+-			diacr.diacr = conv_uni_to_8bit(kbd->accent_table[i].diacr);
+-			diacr.base = conv_uni_to_8bit(kbd->accent_table[i].base);
+-			diacr.result = conv_uni_to_8bit(kbd->accent_table[i].result);
++			diacr.diacr = kbd->accent_table[i].diacr;
++			diacr.base = kbd->accent_table[i].base;
++			diacr.result = kbd->accent_table[i].result;
+ 			if (copy_to_user(a->kbdiacr + i, &diacr, sizeof(struct kbdiacr)))
+ 			return -EFAULT;
+ 		}
+@@ -525,9 +525,9 @@ kbd_ioctl(struct kbd_data *kbd, struct f
+ 		for (i = 0; i < ct; i++) {
+ 			if (copy_from_user(&diacr, a->kbdiacr + i, sizeof(struct kbdiacr)))
+ 				return -EFAULT;
+-			kbd->accent_table[i].diacr = conv_8bit_to_uni(diacr.diacr);
+-			kbd->accent_table[i].base = conv_8bit_to_uni(diacr.base);
+-			kbd->accent_table[i].result = conv_8bit_to_uni(diacr.result);
++			kbd->accent_table[i].diacr = diacr.diacr;
++			kbd->accent_table[i].base = diacr.base;
++			kbd->accent_table[i].result = diacr.result;
+ 		}
+ 		return 0;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from samuel.thibault@ens-lyon.org are
 
 origin.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold.patch
-mm-dirty-balancing-for-tasks.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
-oom-change-all_unreclaimable-zone-member-to-flags.patch
-oom-do-not-take-callback_mutex.patch
-writeback-dont-propagate-aop_writepage_activate.patch
-softlockup-add-a-proc-tuning-parameter.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
-do_sys_poll-simplify-playing-with-on-stack-data.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer.patch
-deprecate-aout-elf-interpreters.patch
-ext2-ext3-ext4-add-block-bitmap-validation.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
+unicode-diacritics-support.patch
+unicode-diacritics-support-s390-fix.patch
+console-events-and-accessibility.patch
 console-events-and-accessibility-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
-stop-using-dma_xxbit_mask.patch
-stop-using-dma_xxbit_mask-fix.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-userc-ifdef-mq_bytes-fix.patch
-f_dupfd_cloexec-implementation-fix-2.patch
-ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
-drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
-writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-md-software-raid-autodetect-dev-list-not-array.patch
-do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-pnp-use-dev_info-dev_err-etc-in-core-fix.patch
-pnp-add-debug-message-for-adding-new-device-fix-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-cpuset-sched_load_balance-flag-fix.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
-sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+add-config_vt_unicode.patch
