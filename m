@@ -1,294 +1,580 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-printk-warning-fixes.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:40:24 -0700
-Message-ID: <200710162040.l9GKeOlm015688@imap1.linux-foundation.org>
+Subject: - ps3fb-convert-from-printk-dprintk-to-dev_-pr_.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:45:24 -0700
+Message-ID: <200710162045.l9GKjOW2016261@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56305 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60425 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965597AbXJPU5L (ORCPT
+	by vger.kernel.org with ESMTP id S965640AbXJPU5L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 16 Oct 2007 16:57:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: Geert.Uytterhoeven@sonycom.com, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ecryptfs: printk warning fixes
+     ps3fb: convert from printk()/DPRINTK() to dev_*()/pr_*()
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-printk-warning-fixes.patch
+     ps3fb-convert-from-printk-dprintk-to-dev_-pr_.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ecryptfs: printk warning fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ps3fb: convert from printk()/DPRINTK() to dev_*()/pr_*()
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-fs/ecryptfs/keystore.c: In function 'parse_tag_1_packet':
-fs/ecryptfs/keystore.c:557: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
-fs/ecryptfs/keystore.c: In function 'parse_tag_3_packet':
-fs/ecryptfs/keystore.c:690: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
-fs/ecryptfs/keystore.c: In function 'parse_tag_11_packet':
-fs/ecryptfs/keystore.c:836: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
-fs/ecryptfs/keystore.c: In function 'write_tag_1_packet':
-fs/ecryptfs/keystore.c:1413: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
-fs/ecryptfs/keystore.c:1413: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
-fs/ecryptfs/keystore.c: In function 'write_tag_11_packet':
-fs/ecryptfs/keystore.c:1472: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
-fs/ecryptfs/keystore.c: In function 'write_tag_3_packet':
-fs/ecryptfs/keystore.c:1663: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
-fs/ecryptfs/keystore.c:1663: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
-fs/ecryptfs/keystore.c: In function 'ecryptfs_generate_key_packet_set':
-fs/ecryptfs/keystore.c:1778: warning: passing argument 2 of 'write_tag_11_packet' from incompatible pointer type
-fs/ecryptfs/main.c: In function 'ecryptfs_parse_options':
-fs/ecryptfs/main.c:363: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
+Convert ps3fb from printk()/DPRINTK() to dev_*()/pr_*()
 
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/keystore.c |   16 ++++++++--------
- fs/ecryptfs/main.c     |    2 +-
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/video/ps3fb.c |  183 ++++++++++++++++++++--------------------
+ 1 file changed, 96 insertions(+), 87 deletions(-)
 
-diff -puN fs/ecryptfs/keystore.c~ecryptfs-printk-warning-fixes fs/ecryptfs/keystore.c
---- a/fs/ecryptfs/keystore.c~ecryptfs-printk-warning-fixes
-+++ a/fs/ecryptfs/keystore.c
-@@ -554,7 +554,7 @@ parse_tag_1_packet(struct ecryptfs_crypt
- 		goto out_free;
- 	}
- 	if (unlikely(body_size < (ECRYPTFS_SIG_SIZE + 2))) {
--		printk(KERN_WARNING "Invalid body size ([%d])\n", body_size);
-+		printk(KERN_WARNING "Invalid body size ([%td])\n", body_size);
- 		rc = -EINVAL;
- 		goto out_free;
- 	}
-@@ -687,7 +687,7 @@ parse_tag_3_packet(struct ecryptfs_crypt
- 		goto out_free;
- 	}
- 	if (unlikely(body_size < (ECRYPTFS_SALT_SIZE + 5))) {
--		printk(KERN_WARNING "Invalid body size ([%d])\n", body_size);
-+		printk(KERN_WARNING "Invalid body size ([%td])\n", body_size);
- 		rc = -EINVAL;
- 		goto out_free;
- 	}
-@@ -833,7 +833,7 @@ parse_tag_11_packet(unsigned char *data,
- 		goto out;
- 	}
- 	if (body_size < 14) {
--		printk(KERN_WARNING "Invalid body size ([%d])\n", body_size);
-+		printk(KERN_WARNING "Invalid body size ([%td])\n", body_size);
- 		rc = -EINVAL;
- 		goto out;
- 	}
-@@ -1409,7 +1409,7 @@ encrypted_session_key_set:
- 			   + key_rec->enc_key_size); /* Encrypted key size */
- 	if (max_packet_size > (*remaining_bytes)) {
- 		printk(KERN_ERR "Packet length larger than maximum allowable; "
--		       "need up to [%d] bytes, but there are only [%d] "
-+		       "need up to [%td] bytes, but there are only [%td] "
- 		       "available\n", max_packet_size, (*remaining_bytes));
- 		rc = -EINVAL;
- 		goto out;
-@@ -1449,7 +1449,7 @@ out:
-  * Returns zero on success; non-zero on error.
-  */
- static int
--write_tag_11_packet(char *dest, int *remaining_bytes, char *contents,
-+write_tag_11_packet(char *dest, size_t *remaining_bytes, char *contents,
- 		    size_t contents_length, size_t *packet_length)
+diff -puN drivers/video/ps3fb.c~ps3fb-convert-from-printk-dprintk-to-dev_-pr_ drivers/video/ps3fb.c
+--- a/drivers/video/ps3fb.c~ps3fb-convert-from-printk-dprintk-to-dev_-pr_
++++ a/drivers/video/ps3fb.c
+@@ -48,12 +48,6 @@
+ 
+ #define DEVICE_NAME		"ps3fb"
+ 
+-#ifdef PS3FB_DEBUG
+-#define DPRINTK(fmt, args...) printk("%s: " fmt, __func__ , ##args)
+-#else
+-#define DPRINTK(fmt, args...)
+-#endif
+-
+ #define L1GPU_CONTEXT_ATTRIBUTE_DISPLAY_SYNC	0x101
+ #define L1GPU_CONTEXT_ATTRIBUTE_DISPLAY_FLIP	0x102
+ #define L1GPU_CONTEXT_ATTRIBUTE_FB_SETUP	0x600
+@@ -316,7 +310,7 @@ static int ps3fb_get_res_table(u32 xres,
+ 		f = ps3fb_res[i].type;
+ 
+ 		if (!x) {
+-			DPRINTK("ERROR: ps3fb_get_res_table()\n");
++			pr_debug("ERROR: ps3fb_get_res_table()\n");
+ 			return -1;
+ 		}
+ 
+@@ -357,11 +351,11 @@ static unsigned int ps3fb_find_mode(cons
+ 			/* Full broadcast modes have the full mode bit set */
+ 			mode = i > 12 ? (i - 12) | PS3FB_FULL_MODE_BIT : i + 1;
+ 
+-			DPRINTK("ps3fb_find_mode: mode %u\n", mode);
++			pr_debug("ps3fb_find_mode: mode %u\n", mode);
+ 			return mode;
+ 		}
+ 
+-	DPRINTK("ps3fb_find_mode: mode not found\n");
++	pr_debug("ps3fb_find_mode: mode not found\n");
+ 	return 0;
+ 
+ }
+@@ -384,7 +378,7 @@ static const struct fb_videomode *ps3fb_
+ 	return &ps3fb_modedb[mode - 1];
+ }
+ 
+-static int ps3fb_sync(u32 frame)
++static int ps3fb_sync(struct fb_info *info, u32 frame)
  {
- 	size_t packet_size_length;
-@@ -1468,7 +1468,7 @@ write_tag_11_packet(char *dest, int *rem
- 			   + contents_length); /* Literal data */
- 	if (max_packet_size > (*remaining_bytes)) {
- 		printk(KERN_ERR "Packet length larger than maximum allowable; "
--		       "need up to [%d] bytes, but there are only [%d] "
-+		       "need up to [%td] bytes, but there are only [%td] "
- 		       "available\n", max_packet_size, (*remaining_bytes));
- 		rc = -EINVAL;
- 		goto out;
-@@ -1658,8 +1658,8 @@ encrypted_session_key_set:
- 			   + 1                       /* Hash iterations */
- 			   + key_rec->enc_key_size); /* Encrypted key size */
- 	if (max_packet_size > (*remaining_bytes)) {
--		printk(KERN_ERR "Packet too large; need up to [%d] bytes, but "
--		       "there are only [%d] available\n", max_packet_size,
-+		printk(KERN_ERR "Packet too large; need up to [%td] bytes, but "
-+		       "there are only [%td] available\n", max_packet_size,
- 		       (*remaining_bytes));
- 		rc = -EINVAL;
- 		goto out;
-diff -puN fs/ecryptfs/main.c~ecryptfs-printk-warning-fixes fs/ecryptfs/main.c
---- a/fs/ecryptfs/main.c~ecryptfs-printk-warning-fixes
-+++ a/fs/ecryptfs/main.c
-@@ -359,7 +359,7 @@ static int ecryptfs_parse_options(struct
- 		     NULL, mount_crypt_stat->global_default_cipher_name,
- 		     mount_crypt_stat->global_default_cipher_key_size))) {
- 		printk(KERN_ERR "Error attempting to initialize cipher with "
--		       "name = [%s] and key size = [%d]; rc = [%d]\n",
-+		       "name = [%s] and key size = [%td]; rc = [%d]\n",
- 		       mount_crypt_stat->global_default_cipher_name,
- 		       mount_crypt_stat->global_default_cipher_key_size, rc);
- 		rc = -EINVAL;
+ 	int i, status;
+ 	u32 xres, yres;
+@@ -395,8 +389,8 @@ static int ps3fb_sync(u32 frame)
+ 	yres = ps3fb_res[i].yres;
+ 
+ 	if (frame > ps3fb.num_frames - 1) {
+-		printk(KERN_WARNING "%s: invalid frame number (%u)\n",
+-		       __func__, frame);
++		dev_warn(info->device, "%s: invalid frame number (%u)\n",
++			 __func__, frame);
+ 		return -EINVAL;
+ 	}
+ 	offset = xres * yres * BPP * frame;
+@@ -409,26 +403,26 @@ static int ps3fb_sync(u32 frame)
+ 					   (xres << 16) | yres,
+ 					   xres * BPP);	/* line_length */
+ 	if (status)
+-		printk(KERN_ERR
+-		       "%s: lv1_gpu_context_attribute FB_BLIT failed: %d\n",
+-		       __func__, status);
++		dev_err(info->device,
++			"%s: lv1_gpu_context_attribute FB_BLIT failed: %d\n",
++			__func__, status);
+ #ifdef HEAD_A
+ 	status = lv1_gpu_context_attribute(ps3fb.context_handle,
+ 					   L1GPU_CONTEXT_ATTRIBUTE_DISPLAY_FLIP,
+ 					   0, offset, 0, 0);
+ 	if (status)
+-		printk(KERN_ERR
+-		       "%s: lv1_gpu_context_attribute FLIP failed: %d\n",
+-		       __func__, status);
++		dev_err(info->device,
++			"%s: lv1_gpu_context_attribute FLIP failed: %d\n",
++			__func__, status);
+ #endif
+ #ifdef HEAD_B
+ 	status = lv1_gpu_context_attribute(ps3fb.context_handle,
+ 					   L1GPU_CONTEXT_ATTRIBUTE_DISPLAY_FLIP,
+ 					   1, offset, 0, 0);
+ 	if (status)
+-		printk(KERN_ERR
+-		       "%s: lv1_gpu_context_attribute FLIP failed: %d\n",
+-		       __func__, status);
++		dev_err(info->device,
++			"%s: lv1_gpu_context_attribute FLIP failed: %d\n",
++			__func__, status);
+ #endif
+ 	return 0;
+ }
+@@ -445,7 +439,7 @@ static int ps3fb_release(struct fb_info 
+ 	if (atomic_dec_and_test(&ps3fb.f_count)) {
+ 		if (atomic_read(&ps3fb.ext_flip)) {
+ 			atomic_set(&ps3fb.ext_flip, 0);
+-			ps3fb_sync(0);	/* single buffer */
++			ps3fb_sync(info, 0);	/* single buffer */
+ 		}
+ 	}
+ 	return 0;
+@@ -465,8 +459,10 @@ static int ps3fb_check_var(struct fb_var
+ 	int mode;
+ 	int i;
+ 
+-	DPRINTK("var->xres:%u info->var.xres:%u\n", var->xres, info->var.xres);
+-	DPRINTK("var->yres:%u info->var.yres:%u\n", var->yres, info->var.yres);
++	dev_dbg(info->device, "var->xres:%u info->var.xres:%u\n", var->xres,
++		info->var.xres);
++	dev_dbg(info->device, "var->yres:%u info->var.yres:%u\n", var->yres,
++		info->var.yres);
+ 
+ 	/* FIXME For now we do exact matches only */
+ 	mode = ps3fb_find_mode(var, &line_length);
+@@ -487,7 +483,8 @@ static int ps3fb_check_var(struct fb_var
+ 	/* Virtual screen and panning are not supported */
+ 	if (var->xres_virtual > var->xres || var->yres_virtual > var->yres ||
+ 	    var->xoffset || var->yoffset) {
+-		DPRINTK("Virtual screen and panning are not supported\n");
++		dev_dbg(info->device,
++			"Virtual screen and panning are not supported\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -502,7 +499,7 @@ static int ps3fb_check_var(struct fb_var
+ 	    var->blue.length > 8 || var->transp.length > 8 ||
+ 	    var->red.msb_right || var->green.msb_right ||
+ 	    var->blue.msb_right || var->transp.msb_right || var->nonstd) {
+-		DPRINTK("We support ARGB8888 only\n");
++		dev_dbg(info->device, "We support ARGB8888 only\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -522,14 +519,14 @@ static int ps3fb_check_var(struct fb_var
+ 
+ 	/* Rotation is not supported */
+ 	if (var->rotate) {
+-		DPRINTK("Rotation is not supported\n");
++		dev_dbg(info->device, "Rotation is not supported\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	/* Memory limit */
+ 	i = ps3fb_get_res_table(var->xres, var->yres, mode);
+ 	if (ps3fb_res[i].xres*ps3fb_res[i].yres*BPP > ps3fb_videomemory.size) {
+-		DPRINTK("Not enough memory\n");
++		dev_dbg(info->device, "Not enough memory\n");
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -549,7 +546,7 @@ static int ps3fb_set_par(struct fb_info 
+ 	int i;
+ 	unsigned long offset;
+ 
+-	DPRINTK("xres:%d xv:%d yres:%d yv:%d clock:%d\n",
++	dev_dbg(info->device, "xres:%d xv:%d yres:%d yv:%d clock:%d\n",
+ 		info->var.xres, info->var.xres_virtual,
+ 		info->var.yres, info->var.yres_virtual, info->var.pixclock);
+ 
+@@ -623,8 +620,8 @@ static int ps3fb_mmap(struct fb_info *in
+ 			    size, vma->vm_page_prot))
+ 		return -EAGAIN;
+ 
+-	printk(KERN_DEBUG "ps3fb: mmap framebuffer P(%lx)->V(%lx)\n", offset,
+-	       vma->vm_start);
++	dev_dbg(info->device, "ps3fb: mmap framebuffer P(%lx)->V(%lx)\n",
++		offset, vma->vm_start);
+ 	return 0;
+ }
+ 
+@@ -636,7 +633,7 @@ static int ps3fb_blank(int blank, struct
+ {
+ 	int retval;
+ 
+-	DPRINTK("%s: blank:%d\n", __func__, blank);
++	dev_dbg(info->device, "%s: blank:%d\n", __func__, blank);
+ 	switch (blank) {
+ 	case FB_BLANK_POWERDOWN:
+ 	case FB_BLANK_HSYNC_SUSPEND:
+@@ -705,7 +702,7 @@ static int ps3fb_ioctl(struct fb_info *i
+ 	case FBIOGET_VBLANK:
+ 		{
+ 			struct fb_vblank vblank;
+-			DPRINTK("FBIOGET_VBLANK:\n");
++			dev_dbg(info->device, "FBIOGET_VBLANK:\n");
+ 			retval = ps3fb_get_vblank(&vblank);
+ 			if (retval)
+ 				break;
+@@ -718,7 +715,7 @@ static int ps3fb_ioctl(struct fb_info *i
+ 	case FBIO_WAITFORVSYNC:
+ 		{
+ 			u32 crt;
+-			DPRINTK("FBIO_WAITFORVSYNC:\n");
++			dev_dbg(info->device, "FBIO_WAITFORVSYNC:\n");
+ 			if (get_user(crt, (u32 __user *) arg))
+ 				break;
+ 
+@@ -739,7 +736,7 @@ static int ps3fb_ioctl(struct fb_info *i
+ 				if (id > 0)
+ 					val = (val & ~PS3AV_MODE_MASK) | id;
+ 			}
+-			DPRINTK("PS3FB_IOCTL_SETMODE:%x\n", val);
++			dev_dbg(info->device, "PS3FB_IOCTL_SETMODE:%x\n", val);
+ 			retval = -EINVAL;
+ 			old_mode = ps3fb_mode;
+ 			ps3fb_mode = val;
+@@ -762,7 +759,7 @@ static int ps3fb_ioctl(struct fb_info *i
+ 
+ 	case PS3FB_IOCTL_GETMODE:
+ 		val = ps3av_get_mode();
+-		DPRINTK("PS3FB_IOCTL_GETMODE:%x\n", val);
++		dev_dbg(info->device, "PS3FB_IOCTL_GETMODE:%x\n", val);
+ 		if (!copy_to_user(argp, &val, sizeof(val)))
+ 			retval = 0;
+ 		break;
+@@ -771,7 +768,7 @@ static int ps3fb_ioctl(struct fb_info *i
+ 		{
+ 			struct ps3fb_ioctl_res res;
+ 			int i = ps3fb.res_index;
+-			DPRINTK("PS3FB_IOCTL_SCREENINFO:\n");
++			dev_dbg(info->device, "PS3FB_IOCTL_SCREENINFO:\n");
+ 			res.xres = ps3fb_res[i].xres;
+ 			res.yres = ps3fb_res[i].yres;
+ 			res.xoff = ps3fb_res[i].xoff;
+@@ -783,13 +780,13 @@ static int ps3fb_ioctl(struct fb_info *i
+ 		}
+ 
+ 	case PS3FB_IOCTL_ON:
+-		DPRINTK("PS3FB_IOCTL_ON:\n");
++		dev_dbg(info->device, "PS3FB_IOCTL_ON:\n");
+ 		atomic_inc(&ps3fb.ext_flip);
+ 		retval = 0;
+ 		break;
+ 
+ 	case PS3FB_IOCTL_OFF:
+-		DPRINTK("PS3FB_IOCTL_OFF:\n");
++		dev_dbg(info->device, "PS3FB_IOCTL_OFF:\n");
+ 		atomic_dec_if_positive(&ps3fb.ext_flip);
+ 		retval = 0;
+ 		break;
+@@ -798,8 +795,8 @@ static int ps3fb_ioctl(struct fb_info *i
+ 		if (copy_from_user(&val, argp, sizeof(val)))
+ 			break;
+ 
+-		DPRINTK("PS3FB_IOCTL_FSEL:%d\n", val);
+-		retval = ps3fb_sync(val);
++		dev_dbg(info->device, "PS3FB_IOCTL_FSEL:%d\n", val);
++		retval = ps3fb_sync(info, val);
+ 		break;
+ 
+ 	default:
+@@ -811,13 +808,15 @@ static int ps3fb_ioctl(struct fb_info *i
+ 
+ static int ps3fbd(void *arg)
+ {
++	struct fb_info *info = arg;
++
+ 	set_freezable();
+ 	while (!kthread_should_stop()) {
+ 		try_to_freeze();
+ 		set_current_state(TASK_INTERRUPTIBLE);
+ 		if (ps3fb.is_kicked) {
+ 			ps3fb.is_kicked = 0;
+-			ps3fb_sync(0);	/* single buffer */
++			ps3fb_sync(info, 0);	/* single buffer */
+ 		}
+ 		schedule();
+ 	}
+@@ -826,14 +825,15 @@ static int ps3fbd(void *arg)
+ 
+ static irqreturn_t ps3fb_vsync_interrupt(int irq, void *ptr)
+ {
++	struct device *dev = ptr;
+ 	u64 v1;
+ 	int status;
+ 	struct display_head *head = &ps3fb.dinfo->display_head[1];
+ 
+ 	status = lv1_gpu_context_intr(ps3fb.context_handle, &v1);
+ 	if (status) {
+-		printk(KERN_ERR "%s: lv1_gpu_context_intr failed: %d\n",
+-		       __func__, status);
++		dev_err(dev, "%s: lv1_gpu_context_intr failed: %d\n", __func__,
++			status);
+ 		return IRQ_NONE;
+ 	}
+ 
+@@ -853,35 +853,35 @@ static irqreturn_t ps3fb_vsync_interrupt
+ 
+ 
+ static int ps3fb_vsync_settings(struct gpu_driver_info *dinfo,
+-				struct ps3_system_bus_device *dev)
++				struct device *dev)
+ {
+ 	int error;
+ 
+-	DPRINTK("version_driver:%x\n", dinfo->version_driver);
+-	DPRINTK("irq outlet:%x\n", dinfo->irq.irq_outlet);
+-	DPRINTK("version_gpu:%x memory_size:%x ch:%x core_freq:%d mem_freq:%d\n",
++	dev_dbg(dev, "version_driver:%x\n", dinfo->version_driver);
++	dev_dbg(dev, "irq outlet:%x\n", dinfo->irq.irq_outlet);
++	dev_dbg(dev,
++		"version_gpu: %x memory_size: %x ch: %x core_freq: %d "
++		"mem_freq:%d\n",
+ 		dinfo->version_gpu, dinfo->memory_size, dinfo->hardware_channel,
+ 		dinfo->nvcore_frequency/1000000, dinfo->memory_frequency/1000000);
+ 
+ 	if (dinfo->version_driver != GPU_DRIVER_INFO_VERSION) {
+-		printk(KERN_ERR "%s: version_driver err:%x\n", __func__,
+-		       dinfo->version_driver);
++		dev_err(dev, "%s: version_driver err:%x\n", __func__,
++			dinfo->version_driver);
+ 		return -EINVAL;
+ 	}
+ 
+ 	error = ps3_irq_plug_setup(PS3_BINDING_CPU_ANY, dinfo->irq.irq_outlet,
+ 				   &ps3fb.irq_no);
+ 	if (error) {
+-		printk(KERN_ERR "%s: ps3_alloc_irq failed %d\n", __func__,
+-		       error);
++		dev_err(dev, "%s: ps3_alloc_irq failed %d\n", __func__, error);
+ 		return error;
+ 	}
+ 
+ 	error = request_irq(ps3fb.irq_no, ps3fb_vsync_interrupt, IRQF_DISABLED,
+ 			    DEVICE_NAME, dev);
+ 	if (error) {
+-		printk(KERN_ERR "%s: request_irq failed %d\n", __func__,
+-		       error);
++		dev_err(dev, "%s: request_irq failed %d\n", __func__, error);
+ 		ps3_irq_plug_destroy(ps3fb.irq_no);
+ 		return error;
+ 	}
+@@ -891,18 +891,19 @@ static int ps3fb_vsync_settings(struct g
+ 	return 0;
+ }
+ 
+-static int ps3fb_xdr_settings(u64 xdr_lpar)
++static int ps3fb_xdr_settings(u64 xdr_lpar, struct device *dev)
+ {
+ 	int status;
+ 
+ 	status = lv1_gpu_context_iomap(ps3fb.context_handle, GPU_IOIF,
+ 				       xdr_lpar, ps3fb_videomemory.size, 0);
+ 	if (status) {
+-		printk(KERN_ERR "%s: lv1_gpu_context_iomap failed: %d\n",
+-		       __func__, status);
++		dev_err(dev, "%s: lv1_gpu_context_iomap failed: %d\n",
++			__func__, status);
+ 		return -ENXIO;
+ 	}
+-	DPRINTK("video:%p xdr_ea:%p ioif:%lx lpar:%lx phys:%lx size:%lx\n",
++	dev_dbg(dev,
++		"video:%p xdr_ea:%p ioif:%lx lpar:%lx phys:%lx size:%lx\n",
+ 		ps3fb_videomemory.address, ps3fb.xdr_ea, GPU_IOIF, xdr_lpar,
+ 		virt_to_abs(ps3fb.xdr_ea), ps3fb_videomemory.size);
+ 
+@@ -911,9 +912,9 @@ static int ps3fb_xdr_settings(u64 xdr_lp
+ 					   xdr_lpar, ps3fb_videomemory.size,
+ 					   GPU_IOIF, 0);
+ 	if (status) {
+-		printk(KERN_ERR
+-		       "%s: lv1_gpu_context_attribute FB_SETUP failed: %d\n",
+-		       __func__, status);
++		dev_err(dev,
++			"%s: lv1_gpu_context_attribute FB_SETUP failed: %d\n",
++			__func__, status);
+ 		return -ENXIO;
+ 	}
+ 	return 0;
+@@ -943,7 +944,7 @@ static struct fb_fix_screeninfo ps3fb_fi
+ 	.accel =	FB_ACCEL_NONE,
+ };
+ 
+-static int ps3fb_set_sync(void)
++static int ps3fb_set_sync(struct device *dev)
+ {
+ 	int status;
+ 
+@@ -952,8 +953,10 @@ static int ps3fb_set_sync(void)
+ 					   L1GPU_CONTEXT_ATTRIBUTE_DISPLAY_SYNC,
+ 					   0, L1GPU_DISPLAY_SYNC_VSYNC, 0, 0);
+ 	if (status) {
+-		printk(KERN_ERR "%s: lv1_gpu_context_attribute DISPLAY_SYNC "
+-		       "failed: %d\n", __func__, status);
++		dev_err(dev,
++			"%s: lv1_gpu_context_attribute DISPLAY_SYNC failed: "
++			"%d\n",
++			__func__, status);
+ 		return -1;
+ 	}
+ #endif
+@@ -963,8 +966,10 @@ static int ps3fb_set_sync(void)
+ 					   1, L1GPU_DISPLAY_SYNC_VSYNC, 0, 0);
+ 
+ 	if (status) {
+-		printk(KERN_ERR "%s: lv1_gpu_context_attribute DISPLAY_MODE "
+-		       "failed: %d\n", __func__, status);
++		dev_err(dev,
++			"%s: lv1_gpu_context_attribute DISPLAY_SYNC failed: "
++			"%d\n",
++			__func__, status);
+ 		return -1;
+ 	}
+ #endif
+@@ -988,18 +993,19 @@ static int __devinit ps3fb_probe(struct 
+ 
+ 	status = ps3_open_hv_device(dev);
+ 	if (status) {
+-		printk(KERN_ERR "%s: ps3_open_hv_device failed\n", __func__);
++		dev_err(&dev->core, "%s: ps3_open_hv_device failed\n",
++			__func__);
+ 		goto err;
+ 	}
+ 
+ 	if (!ps3fb_mode)
+ 		ps3fb_mode = ps3av_get_mode();
+-	DPRINTK("ps3av_mode:%d\n", ps3fb_mode);
++	dev_dbg(&dev->core, "ps3av_mode:%d\n", ps3fb_mode);
+ 
+ 	if (ps3fb_mode > 0 &&
+ 	    !ps3av_video_mode2res(ps3fb_mode, &xres, &yres)) {
+ 		ps3fb.res_index = ps3fb_get_res_table(xres, yres, ps3fb_mode);
+-		DPRINTK("res_index:%d\n", ps3fb.res_index);
++		dev_dbg(&dev->core, "res_index:%d\n", ps3fb.res_index);
+ 	} else
+ 		ps3fb.res_index = GPU_RES_INDEX;
+ 
+@@ -1008,43 +1014,44 @@ static int __devinit ps3fb_probe(struct 
+ 	init_waitqueue_head(&ps3fb.wait_vsync);
+ 	ps3fb.num_frames = 1;
+ 
+-	ps3fb_set_sync();
++	ps3fb_set_sync(&dev->core);
+ 
+ 	/* get gpu context handle */
+ 	status = lv1_gpu_memory_allocate(DDR_SIZE, 0, 0, 0, 0,
+ 					 &ps3fb.memory_handle, &ddr_lpar);
+ 	if (status) {
+-		printk(KERN_ERR "%s: lv1_gpu_memory_allocate failed: %d\n",
+-		       __func__, status);
++		dev_err(&dev->core, "%s: lv1_gpu_memory_allocate failed: %d\n",
++			__func__, status);
+ 		goto err;
+ 	}
+-	DPRINTK("ddr:lpar:0x%lx\n", ddr_lpar);
++	dev_dbg(&dev->core, "ddr:lpar:0x%lx\n", ddr_lpar);
+ 
+ 	status = lv1_gpu_context_allocate(ps3fb.memory_handle, 0,
+ 					  &ps3fb.context_handle,
+ 					  &lpar_dma_control, &lpar_driver_info,
+ 					  &lpar_reports, &lpar_reports_size);
+ 	if (status) {
+-		printk(KERN_ERR "%s: lv1_gpu_context_attribute failed: %d\n",
+-		       __func__, status);
++		dev_err(&dev->core,
++			"%s: lv1_gpu_context_attribute failed: %d\n", __func__,
++			status);
+ 		goto err_gpu_memory_free;
+ 	}
+ 
+ 	/* vsync interrupt */
+ 	ps3fb.dinfo = ioremap(lpar_driver_info, 128 * 1024);
+ 	if (!ps3fb.dinfo) {
+-		printk(KERN_ERR "%s: ioremap failed\n", __func__);
++		dev_err(&dev->core, "%s: ioremap failed\n", __func__);
+ 		goto err_gpu_context_free;
+ 	}
+ 
+-	retval = ps3fb_vsync_settings(ps3fb.dinfo, dev);
++	retval = ps3fb_vsync_settings(ps3fb.dinfo, &dev->core);
+ 	if (retval)
+ 		goto err_iounmap_dinfo;
+ 
+ 	/* xdr frame buffer */
+ 	ps3fb.xdr_ea = ps3fb_videomemory.address;
+ 	xdr_lpar = ps3_mm_phys_to_lpar(__pa(ps3fb.xdr_ea));
+-	retval = ps3fb_xdr_settings(xdr_lpar);
++	retval = ps3fb_xdr_settings(xdr_lpar, &dev->core);
+ 	if (retval)
+ 		goto err_free_irq;
+ 
+@@ -1087,9 +1094,9 @@ static int __devinit ps3fb_probe(struct 
+ 
+ 	dev->core.driver_data = info;
+ 
+-	printk(KERN_INFO
+-	       "fb%d: PS3 frame buffer device, using %ld KiB of video memory\n",
+-	       info->node, ps3fb_videomemory.size >> 10);
++	dev_info(info->device, "%s %s, using %lu KiB of video memory\n",
++		 dev_driver_string(info->dev), info->dev->bus_id,
++		 ps3fb_videomemory.size >> 10);
+ 
+ 	task = kthread_run(ps3fbd, info, DEVICE_NAME);
+ 	if (IS_ERR(task)) {
+@@ -1126,7 +1133,7 @@ static int ps3fb_shutdown(struct ps3_sys
+ 	int status;
+ 	struct fb_info *info = dev->core.driver_data;
+ 
+-	DPRINTK(" -> %s:%d\n", __func__, __LINE__);
++	dev_dbg(&dev->core, " -> %s:%d\n", __func__, __LINE__);
+ 
+ 	ps3fb_flip_ctl(0, &ps3fb);	/* flip off */
+ 	ps3fb.dinfo->irq.mask = 0;
+@@ -1151,14 +1158,16 @@ static int ps3fb_shutdown(struct ps3_sys
+ 
+ 	status = lv1_gpu_context_free(ps3fb.context_handle);
+ 	if (status)
+-		DPRINTK("lv1_gpu_context_free failed: %d\n", status);
++		dev_dbg(&dev->core, "lv1_gpu_context_free failed: %d\n",
++			status);
+ 
+ 	status = lv1_gpu_memory_free(ps3fb.memory_handle);
+ 	if (status)
+-		DPRINTK("lv1_gpu_memory_free failed: %d\n", status);
++		dev_dbg(&dev->core, "lv1_gpu_memory_free failed: %d\n",
++			status);
+ 
+ 	ps3_close_hv_device(dev);
+-	DPRINTK(" <- %s:%d\n", __func__, __LINE__);
++	dev_dbg(&dev->core, " <- %s:%d\n", __func__, __LINE__);
+ 
+ 	return 0;
+ }
+@@ -1211,9 +1220,9 @@ static int __init ps3fb_init(void)
+ 
+ static void __exit ps3fb_exit(void)
+ {
+-	DPRINTK(" -> %s:%d\n", __func__, __LINE__);
++	pr_debug(" -> %s:%d\n", __func__, __LINE__);
+ 	ps3_system_bus_driver_unregister(&ps3fb_driver);
+-	DPRINTK(" <- %s:%d\n", __func__, __LINE__);
++	pr_debug(" <- %s:%d\n", __func__, __LINE__);
+ }
+ 
+ module_init(ps3fb_init);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
 
 origin.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-cifs.patch
-applesmc-for-mac-pro-2-x-quad-core-fix.patch
-console-keyboard-events-and-accessibility.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-git-jg-warning-fixes.patch
-git-jg-misc-powernow-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-ide-arm-hack.patch
-forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-git-nfs-vs-git-unionfs.patch
-git-nfsd-fixup.patch
-qla2xxx-printk-fixes.patch
-sparc-support-for-new-termios-checkpatch-fixes.patch
-git-unionfs.patch
-git-watchdog-fixup.patch
-git-wireless.patch
-revert-x86_64-mm-cpa-einval.patch
-fix-x86_64-mm-sched-clock-share.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-asm-i386-ioh-fix-constness.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
-git-xfs.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold-warning-fix.patch
-mm-dirty-balancing-for-tasks-warning-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
-oom-do-not-take-callback_mutex-fix.patch
-writeback-dont-propagate-aop_writepage_activate.patch
-security-convert-lsm-into-a-static-interface-fix.patch
-security-convert-lsm-into-a-static-interface-fix-2.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
-file-capabilities-clear-caps-cleanup-fix.patch
-capabilityh-remove-include-of-currenth.patch
-pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-pm-qos-infrastructure-and-interface-fix.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
-softlockup-add-a-proc-tuning-parameter-fix.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2-fix-3.patch
-do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
-deprecate-aout-elf-interpreters-fix.patch
-ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
-pie-executable-randomization-fix-2.patch
-binfmt_flat-warning-fixes.patch
-console-events-and-accessibility-fix.patch
-send-quota-messages-via-netlink-fix-fix.patch
-i2o-fix-defined-but-not-used-build-warnings-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
-stop-using-dma_xxbit_mask.patch
-stop-using-dma_xxbit_mask-fix.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-userc-ifdef-mq_bytes-fix.patch
-f_dupfd_cloexec-implementation-fix-2.patch
-ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
-drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
-writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
-revert-faster-ext2_clear_inode.patch
-ext2-reservations-fix-for-percpu_counter-changes.patch
-md-software-raid-autodetect-dev-list-not-array.patch
-do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-pnp-use-dev_info-dev_err-etc-in-core-fix.patch
-pnp-add-debug-message-for-adding-new-device-fix-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-cpuset-sched_load_balance-flag-fix.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
-sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
