@@ -1,215 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: - fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:34:52 -0700
-Message-ID: <200710162034.l9GKYqkZ015001@imap1.linux-foundation.org>
+Subject: - softlockup-add-a-proc-tuning-parameter-fix.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 14:54:39 -0700
+Message-ID: <200710162154.l9GLsdm5019477@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33176 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49414 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934701AbXJPVze (ORCPT
+	by vger.kernel.org with ESMTP id S1760251AbXJPVzm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:55:34 -0400
+	Tue, 16 Oct 2007 17:55:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, apw@shadowen.org, bill.irwin@oracle.com, bob.picco@hp.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kiran@scalex86.org, mingo@elte.hu, shai@scalex86.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix corruption of memmap on IA64 SPARSEMEM when mem_section is not a power of 2
+     softlockup-add-a-proc-tuning-parameter-fix
 has been removed from the -mm tree.  Its filename was
-     fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+     softlockup-add-a-proc-tuning-parameter-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into softlockup-add-a-proc-tuning-parameter.patch
 
 ------------------------------------------------------
-Subject: Fix corruption of memmap on IA64 SPARSEMEM when mem_section is not a power of 2
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: softlockup-add-a-proc-tuning-parameter-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-There are problems in the use of SPARSEMEM and pageblock flags that causes
-problems on ia64.
+Fix various warnings and add definition of "two".
 
-The first part of the problem is that units are incorrect in
-SECTION_BLOCKFLAGS_BITS computation.  This results in a map_section's
-section_mem_map being treated as part of a bitmap which isn't good.  This
-was evident with an invalid virtual address when mem_init attempted to free
-bootmem pages while relinquishing control from the bootmem allocator.
+ug.
 
-The second part of the problem occurs because the pageblock flags bitmap is
-be located with the mem_section.  The SECTIONS_PER_ROOT computation using
-sizeof (mem_section) may not be a power of 2 depending on the size of the
-bitmap.  This renders masks and other such things not power of 2 base. 
-This issue was seen with SPARSEMEM_EXTREME on ia64.  This patch moves the
-bitmap outside of mem_section and uses a pointer instead in the
-mem_section.  The bitmaps are allocated when the section is being
-initialised.
-
-Note that sparse_early_usemap_alloc() does not use alloc_remap() like
-sparse_early_mem_map_alloc().  The allocation required for the bitmap on
-x86, the only architecture that uses alloc_remap is typically smaller than
-a cache line.  alloc_remap() pads out allocations to the cache size which
-would be a needless waste.
-
-Credit to Bob Picco for identifying the original problem and effecting a
-fix for the SECTION_BLOCKFLAGS_BITS calculation.  Credit to Andy Whitcroft
-for devising the best way of allocating the bitmaps only when required for
-the section.
-
-[wli@holomorphy.com: warning fix]
-Signed-off-by: Bob Picco <bob.picco@hp.com>
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Signed-off-by: William Irwin <bill.irwin@oracle.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ravikiran Thirumalai <kiran@scalex86.org>
+Cc: Shai Fultheim <shai@scalex86.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    6 ++--
- mm/sparse.c            |   54 ++++++++++++++++++++++++++++++++++++---
- 2 files changed, 55 insertions(+), 5 deletions(-)
+ kernel/sysctl.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mmzone.h~fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2 include/linux/mmzone.h
---- a/include/linux/mmzone.h~fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2
-+++ a/include/linux/mmzone.h
-@@ -748,7 +748,7 @@ extern struct zone *next_zone(struct zon
- #define PAGE_SECTION_MASK	(~(PAGES_PER_SECTION-1))
+diff -puN kernel/sysctl.c~softlockup-add-a-proc-tuning-parameter-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~softlockup-add-a-proc-tuning-parameter-fix
++++ a/kernel/sysctl.c
+@@ -81,9 +81,16 @@ extern int sysctl_stat_interval;
+ extern int audit_argv_kb;
  
- #define SECTION_BLOCKFLAGS_BITS \
--		((SECTION_SIZE_BITS - (MAX_ORDER-1)) * NR_PAGEBLOCK_BITS)
-+		((1 << (PFN_SECTION_SHIFT - (MAX_ORDER-1))) * NR_PAGEBLOCK_BITS)
- 
- #if (MAX_ORDER - 1 + PAGE_SHIFT) > SECTION_SIZE_BITS
- #error Allocator MAX_ORDER exceeds SECTION_SIZE
-@@ -769,7 +769,9 @@ struct mem_section {
- 	 * before using it wrong.
- 	 */
- 	unsigned long section_mem_map;
--	DECLARE_BITMAP(pageblock_flags, SECTION_BLOCKFLAGS_BITS);
+ /* Constants used for minimum and  maximum */
++#ifdef CONFIG_DETECT_SOFTLOCKUP
+ static int one = 1;
+-static int zero;
+ static int sixty = 60;
++#endif
 +
-+	/* See declaration of similar field in struct zone */
-+	unsigned long *pageblock_flags;
- };
- 
- #ifdef CONFIG_SPARSEMEM_EXTREME
-diff -puN mm/sparse.c~fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2 mm/sparse.c
---- a/mm/sparse.c~fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2
-+++ a/mm/sparse.c
-@@ -206,7 +206,8 @@ struct page *sparse_decode_mem_map(unsig
- }
- 
- static int __meminit sparse_init_one_section(struct mem_section *ms,
--		unsigned long pnum, struct page *mem_map)
-+		unsigned long pnum, struct page *mem_map,
-+		unsigned long *pageblock_bitmap)
- {
- 	if (!present_section(ms))
- 		return -EINVAL;
-@@ -214,6 +215,7 @@ static int __meminit sparse_init_one_sec
- 	ms->section_mem_map &= ~SECTION_MAP_MASK;
- 	ms->section_mem_map |= sparse_encode_mem_map(mem_map, pnum) |
- 							SECTION_HAS_MEM_MAP;
-+ 	ms->pageblock_flags = pageblock_bitmap;
- 
- 	return 1;
- }
-@@ -224,6 +226,38 @@ void *alloc_bootmem_high_node(pg_data_t 
- 	return NULL;
- }
- 
-+static unsigned long usemap_size(void)
-+{
-+	unsigned long size_bytes;
-+	size_bytes = roundup(SECTION_BLOCKFLAGS_BITS, 8) / 8;
-+	size_bytes = roundup(size_bytes, sizeof(unsigned long));
-+	return size_bytes;
-+}
++#ifdef CONFIG_MMU
++static int two = 2;
++#endif
 +
-+#ifdef CONFIG_MEMORY_HOTPLUG
-+static unsigned long *__kmalloc_section_usemap(void)
-+{
-+	return kmalloc(usemap_size(), GFP_KERNEL);
-+}
-+#endif /* CONFIG_MEMORY_HOTPLUG */
-+
-+static unsigned long *sparse_early_usemap_alloc(unsigned long pnum)
-+{
-+	unsigned long *usemap;
-+	struct mem_section *ms = __nr_to_section(pnum);
-+	int nid = sparse_early_nid(ms);
-+
-+	usemap = alloc_bootmem_node(NODE_DATA(nid), usemap_size());
-+	if (usemap)
-+		return usemap;
-+
-+	/* Stupid: suppress gcc warning for SPARSEMEM && !NUMA */
-+	nid = 0;
-+
-+	printk(KERN_WARNING "%s: allocation failed\n", __FUNCTION__);
-+	return NULL;
-+}
-+
- #ifndef CONFIG_SPARSEMEM_VMEMMAP
- struct page __init *sparse_early_mem_map_populate(unsigned long pnum, int nid)
- {
-@@ -268,6 +302,7 @@ void __init sparse_init(void)
- {
- 	unsigned long pnum;
- 	struct page *map;
-+	unsigned long *usemap;
++static int zero;
+ static int one_hundred = 100;
  
- 	for (pnum = 0; pnum < NR_MEM_SECTIONS; pnum++) {
- 		if (!present_section_nr(pnum))
-@@ -276,7 +311,13 @@ void __init sparse_init(void)
- 		map = sparse_early_mem_map_alloc(pnum);
- 		if (!map)
- 			continue;
--		sparse_init_one_section(__nr_to_section(pnum), pnum, map);
-+
-+		usemap = sparse_early_usemap_alloc(pnum);
-+		if (!usemap)
-+			continue;
-+
-+		sparse_init_one_section(__nr_to_section(pnum), pnum, map,
-+								usemap);
- 	}
- }
- 
-@@ -332,6 +373,7 @@ int sparse_add_one_section(struct zone *
- 	struct pglist_data *pgdat = zone->zone_pgdat;
- 	struct mem_section *ms;
- 	struct page *memmap;
-+	unsigned long *usemap;
- 	unsigned long flags;
- 	int ret;
- 
-@@ -341,6 +383,7 @@ int sparse_add_one_section(struct zone *
- 	 */
- 	sparse_index_init(section_nr, pgdat->node_id);
- 	memmap = __kmalloc_section_memmap(nr_pages);
-+	usemap = __kmalloc_section_usemap();
- 
- 	pgdat_resize_lock(pgdat, &flags);
- 
-@@ -349,9 +392,14 @@ int sparse_add_one_section(struct zone *
- 		ret = -EEXIST;
- 		goto out;
- 	}
-+
-+	if (!usemap) {
-+		ret = -ENOMEM;
-+		goto out;
-+	}
- 	ms->section_mem_map |= SECTION_MARKED_PRESENT;
- 
--	ret = sparse_init_one_section(ms, section_nr, memmap);
-+	ret = sparse_init_one_section(ms, section_nr, memmap, usemap);
- 
- out:
- 	pgdat_resize_unlock(pgdat, &flags);
+ /* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and GID */
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-ext2-reservations.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold.patch
+mm-dirty-balancing-for-tasks.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
+oom-change-all_unreclaimable-zone-member-to-flags.patch
+oom-do-not-take-callback_mutex.patch
+writeback-dont-propagate-aop_writepage_activate.patch
+softlockup-add-a-proc-tuning-parameter.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
+f_dupfd_cloexec-implementation-fix-2.patch
+ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
+drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+pnp-use-dev_info-dev_err-etc-in-core-fix.patch
+pnp-add-debug-message-for-adding-new-device-fix-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+profile-likely-unlikely-macros-fix.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
