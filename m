@@ -1,33 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: - maps2-make-proc-pid-smaps-optional-under-config_embedded.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 14:36:30 -0700
-Message-ID: <200710162136.l9GLaUW8018586@imap1.linux-foundation.org>
+Subject: - maps2-propagate-errors-from-callback-in-page-walker.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 14:36:18 -0700
+Message-ID: <200710162136.l9GLaIco018564@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42040 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33453 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934737AbXJPVhG (ORCPT
+	by vger.kernel.org with ESMTP id S934310AbXJPVhC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:37:06 -0400
+	Tue, 16 Oct 2007 17:37:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mpm@selenic.com, jeremy@goop.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     maps: make /proc/pid/smaps optional under CONFIG_EMBEDDED
+     maps: propagate errors from callback in page walker
 has been removed from the -mm tree.  Its filename was
-     maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
+     maps2-propagate-errors-from-callback-in-page-walker.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: maps: make /proc/pid/smaps optional under CONFIG_EMBEDDED
+Subject: maps: propagate errors from callback in page walker
 From: Matt Mackall <mpm@selenic.com>
-
-This interface is primarily useful for doing memory profiling and not much use
-on deployed embedded boxes.  Make it optional.  Together with
-/proc/pid/clear_refs, this save a few K.
 
 Signed-off-by: Matt Mackall <mpm@selenic.com>
 Cc: Jeremy Fitzhardinge <jeremy@goop.org>
@@ -35,78 +31,144 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c     |    4 ++++
- fs/proc/task_mmu.c |    2 ++
- init/Kconfig       |    8 ++++++++
- 3 files changed, 14 insertions(+)
+ fs/proc/task_mmu.c |   57 +++++++++++++++++++++++++++----------------
+ 1 file changed, 37 insertions(+), 20 deletions(-)
 
-diff -puN fs/proc/base.c~maps2-make-proc-pid-smaps-optional-under-config_embedded fs/proc/base.c
---- a/fs/proc/base.c~maps2-make-proc-pid-smaps-optional-under-config_embedded
-+++ a/fs/proc/base.c
-@@ -2034,8 +2034,10 @@ static const struct pid_entry tgid_base_
- 	REG("mountstats", S_IRUSR, mountstats),
- #ifdef CONFIG_MMU
- 	REG("clear_refs", S_IWUSR, clear_refs),
-+#ifdef CONFIG_PROC_SMAPS
- 	REG("smaps",      S_IRUGO, smaps),
- #endif
-+#endif
- #ifdef CONFIG_SECURITY
- 	DIR("attr",       S_IRUGO|S_IXUGO, attr_dir),
- #endif
-@@ -2320,8 +2322,10 @@ static const struct pid_entry tid_base_s
- 	REG("mounts",    S_IRUGO, mounts),
- #ifdef CONFIG_MMU
- 	REG("clear_refs", S_IWUSR, clear_refs),
-+#ifdef CONFIG_PROC_SMAPS
- 	REG("smaps",     S_IRUGO, smaps),
- #endif
-+#endif
- #ifdef CONFIG_SECURITY
- 	DIR("attr",      S_IRUGO|S_IXUGO, attr_dir),
- #endif
-diff -puN fs/proc/task_mmu.c~maps2-make-proc-pid-smaps-optional-under-config_embedded fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~maps2-make-proc-pid-smaps-optional-under-config_embedded
+diff -puN fs/proc/task_mmu.c~maps2-propagate-errors-from-callback-in-page-walker fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~maps2-propagate-errors-from-callback-in-page-walker
 +++ a/fs/proc/task_mmu.c
-@@ -314,6 +314,7 @@ const struct file_operations proc_maps_o
- 	.release	= seq_release_private,
- };
+@@ -212,8 +212,8 @@ static int show_map(struct seq_file *m, 
+ 	return show_map_internal(m, v, NULL);
+ }
  
-+#ifdef CONFIG_PROC_SMAPS
- struct mem_size_stats
+-static void smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+-			    void *private)
++static int smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
++			   void *private)
  {
- 	struct vm_area_struct *vma;
-@@ -421,6 +422,7 @@ const struct file_operations proc_smaps_
- 	.llseek		= seq_lseek,
- 	.release	= seq_release_private,
- };
-+#endif
+ 	struct mem_size_stats *mss = private;
+ 	struct vm_area_struct *vma = mss->vma;
+@@ -250,10 +250,11 @@ static void smaps_pte_range(pmd_t *pmd, 
+ 	}
+ 	pte_unmap_unlock(pte - 1, ptl);
+ 	cond_resched();
++	return 0;
+ }
  
- static int clear_refs_pte_range(pmd_t *pmd, unsigned long addr,
- 				unsigned long end, void *private)
-diff -puN init/Kconfig~maps2-make-proc-pid-smaps-optional-under-config_embedded init/Kconfig
---- a/init/Kconfig~maps2-make-proc-pid-smaps-optional-under-config_embedded
-+++ a/init/Kconfig
-@@ -596,6 +596,14 @@ config SLOB
+-static void clear_refs_pte_range(pmd_t *pmd, unsigned long addr,
+-				 unsigned long end, void *private)
++static int clear_refs_pte_range(pmd_t *pmd, unsigned long addr,
++				unsigned long end, void *private)
+ {
+ 	struct vm_area_struct *vma = private;
+ 	pte_t *pte, ptent;
+@@ -276,40 +277,51 @@ static void clear_refs_pte_range(pmd_t *
+ 	}
+ 	pte_unmap_unlock(pte - 1, ptl);
+ 	cond_resched();
++	return 0;
+ }
  
- endchoice
+-static void walk_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
+-			   void (*action)(pmd_t *, unsigned long,
+-					  unsigned long, void *),
+-			   void *private)
++static int walk_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
++			  int (*action)(pmd_t *, unsigned long,
++					unsigned long, void *),
++			  void *private)
+ {
+ 	pmd_t *pmd;
+ 	unsigned long next;
++	int err;
  
-+config PROC_SMAPS
-+	default y
-+	bool "Enable /proc/pid/smaps support" if EMBEDDED && PROC_FS && MMU
-+	help
-+	  The /proc/pid/smaps interface reports a process's private and
-+          shared memory per mapping. Disabling this interface will reduce
-+          the size of the kernel for small machines.
+ 	for (pmd = pmd_offset(pud, addr); addr != end;
+ 	     pmd++, addr = next) {
+ 		next = pmd_addr_end(addr, end);
+ 		if (pmd_none_or_clear_bad(pmd))
+ 			continue;
+-		action(pmd, addr, next, private);
++		err = action(pmd, addr, next, private);
++		if (err)
++			return err;
+ 	}
 +
- endmenu		# General setup
++	return 0;
+ }
  
- config RT_MUTEXES
+-static void walk_pud_range(pgd_t *pgd, unsigned long addr, unsigned long end,
+-			   void (*action)(pmd_t *, unsigned long,
+-					  unsigned long, void *),
+-			   void *private)
++static int walk_pud_range(pgd_t *pgd, unsigned long addr, unsigned long end,
++			  int (*action)(pmd_t *, unsigned long,
++					unsigned long, void *),
++			  void *private)
+ {
+ 	pud_t *pud;
+ 	unsigned long next;
++	int err;
+ 
+ 	for (pud = pud_offset(pgd, addr); addr != end;
+ 	     pud++, addr = next) {
+ 		next = pud_addr_end(addr, end);
+ 		if (pud_none_or_clear_bad(pud))
+ 			continue;
+-		walk_pmd_range(pud, addr, next, action, private);
++		err = walk_pmd_range(pud, addr, next, action, private);
++		if (err)
++			return err;
+ 	}
++
++	return 0;
+ }
+ 
+ /*
+@@ -323,22 +335,27 @@ static void walk_pud_range(pgd_t *pgd, u
+  * Recursively walk the page table for the memory area in a VMA, calling
+  * a callback for every bottom-level (PTE) page table.
+  */
+-static void walk_page_range(struct mm_struct *mm,
+-			    unsigned long addr, unsigned long end,
+-			    void (*action)(pmd_t *, unsigned long,
+-					   unsigned long, void *),
+-			    void *private)
++static int walk_page_range(struct mm_struct *mm,
++			   unsigned long addr, unsigned long end,
++			   int (*action)(pmd_t *, unsigned long,
++					 unsigned long, void *),
++			   void *private)
+ {
+ 	pgd_t *pgd;
+ 	unsigned long next;
++	int err;
+ 
+ 	for (pgd = pgd_offset(mm, addr); addr != end;
+ 	     pgd++, addr = next) {
+ 		next = pgd_addr_end(addr, end);
+ 		if (pgd_none_or_clear_bad(pgd))
+ 			continue;
+-		walk_pud_range(pgd, addr, next, action, private);
++		err = walk_pud_range(pgd, addr, next, action, private);
++		if (err)
++			return err;
+ 	}
++
++	return 0;
+ }
+ 
+ static int show_smap(struct seq_file *m, void *v)
 _
 
 Patches currently in -mm which might be from mpm@selenic.com are
 
 origin.patch
+maps2-propagate-errors-from-callback-in-page-walker.patch
+maps2-add-callbacks-for-each-level-to-page-walker.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
+maps2-move-clear_refs-code-to-task_mmuc.patch
+maps2-regroup-task_mmu-by-interface.patch
 maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
 maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
 maps2-add-proc-pid-pagemap-interface.patch
