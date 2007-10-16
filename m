@@ -1,58 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - git-v9fs-fixup.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:11:08 -0700
-Message-ID: <200710162011.l9GKB8aJ013517@imap1.linux-foundation.org>
+Subject: - git-md-accel-fixup.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:10:48 -0700
+Message-ID: <200710162010.l9GKAmuq013507@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46044 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35616 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935151AbXJPULK (ORCPT
+	by vger.kernel.org with ESMTP id S935602AbXJPULR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 16:11:10 -0400
+	Tue, 16 Oct 2007 16:11:17 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9GKB8xj024052
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9GKAnin024034
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 16 Oct 2007 13:11:09 -0700
+	for <mm-commits@vger.kernel.org>; Tue, 16 Oct 2007 13:10:50 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-v9fs-fixup
+     git-md-accel-fixup
 has been removed from the -mm tree.  Its filename was
-     git-v9fs-fixup.patch
+     git-md-accel-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-v9fs-fixup
+Subject: git-md-accel-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/net/9p/9p.h |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/md/raid5.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN include/net/9p/9p.h~git-v9fs-fixup include/net/9p/9p.h
---- a/include/net/9p/9p.h~git-v9fs-fixup
-+++ a/include/net/9p/9p.h
-@@ -415,7 +415,6 @@ int p9_idpool_check(int id, struct p9_id
- 
- int p9_error_init(void);
- int p9_errstr2errno(char *, int);
--<<<<<<< HEAD/include/net/9p/9p.h
- 
- #ifdef CONFIG_SYSCTL
- int __init p9_sysctl_register(void);
-@@ -430,6 +429,4 @@ static inline void p9_sysctl_unregister(
- }
- #endif
- 
+diff -puN drivers/md/raid5.c~git-md-accel-fixup drivers/md/raid5.c
+--- a/drivers/md/raid5.c~git-md-accel-fixup
++++ a/drivers/md/raid5.c
+@@ -3888,13 +3888,8 @@ static void raid5_align_endio(struct bio
+ 	if (!error && uptodate) {
+ 		bio_endio(raid_bi, 0);
+ 		if (atomic_dec_and_test(&conf->active_aligned_reads))
+-<<<<<<< HEAD/drivers/md/raid5.c
+-			wake_up(&conf->wait_for_stripe);
+-		return;
 -=======
-->>>>>>> /include/net/9p/9p.h
- #endif /* NET_9P_H */
+ 			wake_up(&conf->wait_for_queue);
+-		return 0;
+->>>>>>> /drivers/md/raid5.c
++		return;
+ 	}
+ 
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,6 +72,7 @@ git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
 ide-arm-hack.patch
+git-md-accel-fixup.patch
 forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
 ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
 git-nfs-vs-git-unionfs.patch
