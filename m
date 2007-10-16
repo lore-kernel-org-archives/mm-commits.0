@@ -1,79 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - memory-hotplug-hot-add-with-sparsemem-vmemmap-update.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:36:50 -0700
-Message-ID: <200710160436.l9G4aoLi009101@imap1.linux-foundation.org>
+Subject: - hugetlbfs-read-support-fix-2.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:37:40 -0700
+Message-ID: <200710160437.l9G4be1F009121@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48638 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49434 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754166AbXJPEhb (ORCPT
+	by vger.kernel.org with ESMTP id S1754206AbXJPEhv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:37:31 -0400
+	Tue, 16 Oct 2007 00:37:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: y-goto@jp.fujitsu.com, apw@shadowen.org, clameter@sgi.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: bunk@stusta.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Tiny update for hot-add with sparsemem-vmemmap
+     make hugetlbfs_read() static
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-hot-add-with-sparsemem-vmemmap-update.patch
+     hugetlbfs-read-support-fix-2.patch
 
-This patch was dropped because it was folded into memory-hotplug-hot-add-with-sparsemem-vmemmap.patch
+This patch was dropped because it was folded into hugetlbfs-read-support.patch
 
 ------------------------------------------------------
-Subject: Tiny update for hot-add with sparsemem-vmemmap
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: make hugetlbfs_read() static
+From: Adrian Bunk <bunk@stusta.de>
 
-This is tiny update for Mel-san's comment about
-memory hotplug with sparse-vmemmap.
+On Wed, Jul 25, 2007 at 04:03:04AM -0700, Andrew Morton wrote:
+>...
+> Changes since 2.6.22-rc6-mm1:
+>...
+> +hugetlbfs-read-support.patch
+>...
+>  More MM things
+>...
 
-  - Add __meminit to sparse_mem_map_populate()
-  - Add a comment.
+hugetlbfs_read() can become static.
 
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse-vmemmap.c |    2 +-
- mm/sparse.c         |    1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ fs/hugetlbfs/inode.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/sparse-vmemmap.c~memory-hotplug-hot-add-with-sparsemem-vmemmap-update mm/sparse-vmemmap.c
---- a/mm/sparse-vmemmap.c~memory-hotplug-hot-add-with-sparsemem-vmemmap-update
-+++ a/mm/sparse-vmemmap.c
-@@ -137,7 +137,7 @@ int __meminit vmemmap_populate_basepages
- 	return 0;
- }
- 
--struct page *sparse_mem_map_populate(unsigned long pnum, int nid)
-+struct page * __meminit sparse_mem_map_populate(unsigned long pnum, int nid)
+diff -puN fs/hugetlbfs/inode.c~hugetlbfs-read-support-fix-2 fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-read-support-fix-2
++++ a/fs/hugetlbfs/inode.c
+@@ -222,8 +222,8 @@ hugetlbfs_read_actor(struct page *page, 
+  * data. Its *very* similar to do_generic_mapping_read(), we can't use that
+  * since it has PAGE_CACHE_SIZE assumptions.
+  */
+-ssize_t
+-hugetlbfs_read(struct file *filp, char __user *buf, size_t len, loff_t *ppos)
++static ssize_t hugetlbfs_read(struct file *filp, char __user *buf,
++			      size_t len, loff_t *ppos)
  {
- 	struct page *map = pfn_to_page(pnum * PAGES_PER_SECTION);
- 	int error = vmemmap_populate(map, PAGES_PER_SECTION, nid);
-diff -puN mm/sparse.c~memory-hotplug-hot-add-with-sparsemem-vmemmap-update mm/sparse.c
---- a/mm/sparse.c~memory-hotplug-hot-add-with-sparsemem-vmemmap-update
-+++ a/mm/sparse.c
-@@ -326,6 +326,7 @@ void __init sparse_init(void)
- static inline struct page *kmalloc_section_memmap(unsigned long pnum, int nid,
- 						 unsigned long nr_pages)
- {
-+	/* This will make the necessary allocations eventually. */
- 	return sparse_mem_map_populate(pnum, nid);
- }
- static void __kfree_section_memmap(struct page *memmap, unsigned long nr_pages)
+ 	struct address_space *mapping = filp->f_mapping;
+ 	struct inode *inode = mapping->host;
 _
 
-Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
-fix-panic-of-cpu-online-with-memory-less-node.patch
-move-free-pages-between-lists-on-steal.patch
-memory-unplug-v7-page-isolation.patch
-memory-unplug-v7-page-offline.patch
-memory-hotplug-hot-add-with-sparsemem-vmemmap.patch
-memory-hotplug-hot-add-with-sparsemem-vmemmap-update.patch
+origin.patch
+slow-down-printk-during-boot.patch
+slubcearly_kmem_cache_node_alloc-shouldnt-be.patch
+mm-page_allocc-make-code-static.patch
+hugetlbfs-read-support.patch
+hugetlbfs-read-support-fix-2.patch
+mm-shmemc-make-3-functions-static.patch
+mm-mempolicyc-cleanups.patch
+mm-mempolicyc-cleanups-fix.patch
+mm-vmstatc-cleanups.patch
+cleanup-arch-alpha-makefile.patch
+unexport-pm_power_off_prepare.patch
+fs-reiserfs-cleanups.patch
+remove-unsafe-from-module-struct.patch
+kernel-rtmutex-debugc-cleanups.patch
+fs-afs-possible-cleanups.patch
+lib-ioremapc-should-include-linux-ioh.patch
+ipc-shmc-make-2-functions-static.patch
+unicode-diacritics-support-s390-fix.patch
+script-to-check-for-undefined-kconfig-symbols.patch
+drivers-block-ccissc-fix-check-after-use.patch
+dontdiff-update-based-on-gitignore-updates.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+fs-nfsd-exportc-make-3-functions-static.patch
+radeon_driver_vblank_do_wait-static.patch
+unexport-fb_prepare_logo.patch
+intel-iommu-intel-iommu-driver.patch
+revoke-core-code.patch
+pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
+the-next-round-of-scheduled-oss-code-removal.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
