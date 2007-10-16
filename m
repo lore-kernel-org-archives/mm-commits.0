@@ -1,514 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: - remove-zero_page.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:31:15 -0700
-Message-ID: <200710162031.l9GKVFV9014486@imap1.linux-foundation.org>
+Subject: - mm-dirty-balancing-for-tasks-warning-fix.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 14:41:26 -0700
+Message-ID: <200710162141.l9GLfRvd018857@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40188 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57085 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934271AbXJPVmb (ORCPT
+	by vger.kernel.org with ESMTP id S935872AbXJPVmU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:42:31 -0400
+	Tue, 16 Oct 2007 17:42:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove ZERO_PAGE
+     mm-dirty-balancing-for-tasks-warning-fix
 has been removed from the -mm tree.  Its filename was
-     remove-zero_page.patch
+     mm-dirty-balancing-for-tasks-warning-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into mm-dirty-balancing-for-tasks.patch
 
 ------------------------------------------------------
-Subject: remove ZERO_PAGE
-From: Nick Piggin <npiggin@suse.de>
+Subject: mm-dirty-balancing-for-tasks-warning-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The commit b5810039a54e5babf428e9a1e89fc1940fabff11 contains the note
-
-  A last caveat: the ZERO_PAGE is now refcounted and managed with rmap
-  (and thus mapcounted and count towards shared rss).  These writes to
-  the struct page could cause excessive cacheline bouncing on big
-  systems.  There are a number of ways this could be addressed if it is
-  an issue.
-
-And indeed this cacheline bouncing has shown up on large SGI systems.
-There was a situation where an Altix system was essentially livelocked
-tearing down ZERO_PAGE pagetables when an HPC app aborted during startup.
-This situation can be avoided in userspace, but it does highlight the
-potential scalability problem with refcounting ZERO_PAGE, and corner
-cases where it can really hurt (we don't want the system to livelock!).
-
-There are several broad ways to fix this problem:
-1. add back some special casing to avoid refcounting ZERO_PAGE
-2. per-node or per-cpu ZERO_PAGES
-3. remove the ZERO_PAGE completely
-
-I will argue for 3. The others should also fix the problem, but they
-result in more complex code than does 3, with little or no real benefit
-that I can see.
-
-Why? Inserting a ZERO_PAGE for anonymous read faults appears to be a
-false optimisation: if an application is performance critical, it would
-not be doing many read faults of new memory, or at least it could be
-expected to write to that memory soon afterwards. If cache or memory use
-is critical, it should not be working with a significant number of
-ZERO_PAGEs anyway (a more compact representation of zeroes should be
-used).
-
-As a sanity check -- mesuring on my desktop system, there are never many
-mappings to the ZERO_PAGE (eg. 2 or 3), thus memory usage here should not
-increase much without it.
-
-When running a make -j4 kernel compile on my dual core system, there are
-about 1,000 mappings to the ZERO_PAGE created per second, but about 1,000
-ZERO_PAGE COW faults per second (less than 1 ZERO_PAGE mapping per second
-is torn down without being COWed). So removing ZERO_PAGE will save 1,000
-page faults per second when running kbuild, while keeping it only saves
-less than 1 page clearing operation per second. 1 page clear is cheaper
-than a thousand faults, presumably, so there isn't an obvious loss.
-
-Neither the logical argument nor these basic tests give a guarantee of no
-regressions. However, this is a reasonable opportunity to try to remove
-the ZERO_PAGE from the pagefault path. If it is found to cause regressions,
-we can reintroduce it and just avoid refcounting it.
-
-The /dev/zero ZERO_PAGE usage and TLB tricks also get nuked.  I don't see
-much use to them except on benchmarks.  All other users of ZERO_PAGE are
-converted just to use ZERO_PAGE(0) for simplicity. We can look at
-replacing them all and maybe ripping out ZERO_PAGE completely when we are
-more satisfied with this solution.
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c    |  127 ++++-----------------------------
- fs/binfmt_elf.c       |    2 
- fs/binfmt_elf_fdpic.c |    2 
- fs/direct-io.c        |    4 -
- include/linux/mm.h    |    2 
- mm/memory.c           |  151 +++++-----------------------------------
- 6 files changed, 43 insertions(+), 245 deletions(-)
+ mm/page-writeback.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/mem.c~remove-zero_page drivers/char/mem.c
---- a/drivers/char/mem.c~remove-zero_page
-+++ a/drivers/char/mem.c
-@@ -625,65 +625,10 @@ static ssize_t splice_write_null(struct 
- 	return splice_from_pipe(pipe, out, ppos, len, flags, pipe_to_null);
- }
- 
--#ifdef CONFIG_MMU
--/*
-- * For fun, we are using the MMU for this.
-- */
--static inline size_t read_zero_pagealigned(char __user * buf, size_t size)
--{
--	struct mm_struct *mm;
--	struct vm_area_struct * vma;
--	unsigned long addr=(unsigned long)buf;
--
--	mm = current->mm;
--	/* Oops, this was forgotten before. -ben */
--	down_read(&mm->mmap_sem);
--
--	/* For private mappings, just map in zero pages. */
--	for (vma = find_vma(mm, addr); vma; vma = vma->vm_next) {
--		unsigned long count;
--
--		if (vma->vm_start > addr || (vma->vm_flags & VM_WRITE) == 0)
--			goto out_up;
--		if (vma->vm_flags & (VM_SHARED | VM_HUGETLB))
--			break;
--		count = vma->vm_end - addr;
--		if (count > size)
--			count = size;
--
--		zap_page_range(vma, addr, count, NULL);
--        	if (zeromap_page_range(vma, addr, count, PAGE_COPY))
--			break;
--
--		size -= count;
--		buf += count;
--		addr += count;
--		if (size == 0)
--			goto out_up;
--	}
--
--	up_read(&mm->mmap_sem);
--	
--	/* The shared case is hard. Let's do the conventional zeroing. */ 
--	do {
--		unsigned long unwritten = clear_user(buf, PAGE_SIZE);
--		if (unwritten)
--			return size + unwritten - PAGE_SIZE;
--		cond_resched();
--		buf += PAGE_SIZE;
--		size -= PAGE_SIZE;
--	} while (size);
--
--	return size;
--out_up:
--	up_read(&mm->mmap_sem);
--	return size;
--}
--
- static ssize_t read_zero(struct file * file, char __user * buf, 
- 			 size_t count, loff_t *ppos)
+diff -puN mm/page-writeback.c~mm-dirty-balancing-for-tasks-warning-fix mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-dirty-balancing-for-tasks-warning-fix
++++ a/mm/page-writeback.c
+@@ -223,7 +223,7 @@ void task_dirty_limit(struct task_struct
  {
--	unsigned long left, unwritten, written = 0;
-+	size_t written;
+ 	long numerator, denominator;
+ 	long dirty = *pdirty;
+-	long long inv = dirty >> 3;
++	u64 inv = dirty >> 3;
  
- 	if (!count)
- 		return 0;
-@@ -691,69 +636,33 @@ static ssize_t read_zero(struct file * f
- 	if (!access_ok(VERIFY_WRITE, buf, count))
- 		return -EFAULT;
- 
--	left = count;
--
--	/* do we want to be clever? Arbitrary cut-off */
--	if (count >= PAGE_SIZE*4) {
--		unsigned long partial;
--
--		/* How much left of the page? */
--		partial = (PAGE_SIZE-1) & -(unsigned long) buf;
--		unwritten = clear_user(buf, partial);
--		written = partial - unwritten;
-+	written = 0;
-+	while (count) {
-+		unsigned long unwritten;
-+		size_t chunk = count;
-+
-+		if (chunk > PAGE_SIZE)
-+			chunk = PAGE_SIZE;	/* Just for latency reasons */
-+		unwritten = clear_user(buf, chunk);
-+		written += chunk - unwritten;
- 		if (unwritten)
--			goto out;
--		left -= partial;
--		buf += partial;
--		unwritten = read_zero_pagealigned(buf, left & PAGE_MASK);
--		written += (left & PAGE_MASK) - unwritten;
--		if (unwritten)
--			goto out;
--		buf += left & PAGE_MASK;
--		left &= ~PAGE_MASK;
--	}
--	unwritten = clear_user(buf, left);
--	written += left - unwritten;
--out:
--	return written ? written : -EFAULT;
--}
--
--static int mmap_zero(struct file * file, struct vm_area_struct * vma)
--{
--	int err;
--
--	if (vma->vm_flags & VM_SHARED)
--		return shmem_zero_setup(vma);
--	err = zeromap_page_range(vma, vma->vm_start,
--			vma->vm_end - vma->vm_start, vma->vm_page_prot);
--	BUG_ON(err == -EEXIST);
--	return err;
--}
--#else /* CONFIG_MMU */
--static ssize_t read_zero(struct file * file, char * buf, 
--			 size_t count, loff_t *ppos)
--{
--	size_t todo = count;
--
--	while (todo) {
--		size_t chunk = todo;
--
--		if (chunk > 4096)
--			chunk = 4096;	/* Just for latency reasons */
--		if (clear_user(buf, chunk))
--			return -EFAULT;
-+			break;
- 		buf += chunk;
--		todo -= chunk;
-+		count -= chunk;
- 		cond_resched();
- 	}
--	return count;
-+	return written ? written : -EFAULT;
- }
- 
- static int mmap_zero(struct file * file, struct vm_area_struct * vma)
- {
-+#ifndef CONFIG_MMU
- 	return -ENOSYS;
-+#endif
-+	if (vma->vm_flags & VM_SHARED)
-+		return shmem_zero_setup(vma);
-+	return 0;
- }
--#endif /* CONFIG_MMU */
- 
- static ssize_t write_full(struct file * file, const char __user * buf,
- 			  size_t count, loff_t *ppos)
-diff -puN fs/binfmt_elf.c~remove-zero_page fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~remove-zero_page
-+++ a/fs/binfmt_elf.c
-@@ -1725,7 +1725,7 @@ static int elf_core_dump(long signr, str
- 						&page, &vma) <= 0) {
- 				DUMP_SEEK(PAGE_SIZE);
- 			} else {
--				if (page == ZERO_PAGE(addr)) {
-+				if (page == ZERO_PAGE(0)) {
- 					if (!dump_seek(file, PAGE_SIZE)) {
- 						page_cache_release(page);
- 						goto end_coredump;
-diff -puN fs/binfmt_elf_fdpic.c~remove-zero_page fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~remove-zero_page
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -1488,7 +1488,7 @@ static int elf_fdpic_dump_segments(struc
- 					   &page, &vma) <= 0) {
- 				DUMP_SEEK(file->f_pos + PAGE_SIZE);
- 			}
--			else if (page == ZERO_PAGE(addr)) {
-+			else if (page == ZERO_PAGE(0)) {
- 				page_cache_release(page);
- 				DUMP_SEEK(file->f_pos + PAGE_SIZE);
- 			}
-diff -puN fs/direct-io.c~remove-zero_page fs/direct-io.c
---- a/fs/direct-io.c~remove-zero_page
-+++ a/fs/direct-io.c
-@@ -163,7 +163,7 @@ static int dio_refill_pages(struct dio *
- 	up_read(&current->mm->mmap_sem);
- 
- 	if (ret < 0 && dio->blocks_available && (dio->rw & WRITE)) {
--		struct page *page = ZERO_PAGE(dio->curr_user_address);
-+		struct page *page = ZERO_PAGE(0);
- 		/*
- 		 * A memory fault, but the filesystem has some outstanding
- 		 * mapped blocks.  We need to use those blocks up to avoid
-@@ -763,7 +763,7 @@ static void dio_zero_block(struct dio *d
- 
- 	this_chunk_bytes = this_chunk_blocks << dio->blkbits;
- 
--	page = ZERO_PAGE(dio->curr_user_address);
-+	page = ZERO_PAGE(0);
- 	if (submit_page_section(dio, page, 0, this_chunk_bytes, 
- 				dio->next_block_for_io))
- 		return;
-diff -puN include/linux/mm.h~remove-zero_page include/linux/mm.h
---- a/include/linux/mm.h~remove-zero_page
-+++ a/include/linux/mm.h
-@@ -779,8 +779,6 @@ void free_pgtables(struct mmu_gather **t
- 		unsigned long floor, unsigned long ceiling);
- int copy_page_range(struct mm_struct *dst, struct mm_struct *src,
- 			struct vm_area_struct *vma);
--int zeromap_page_range(struct vm_area_struct *vma, unsigned long from,
--			unsigned long size, pgprot_t prot);
- void unmap_mapping_range(struct address_space *mapping,
- 		loff_t const holebegin, loff_t const holelen, int even_cows);
- 
-diff -puN mm/memory.c~remove-zero_page mm/memory.c
---- a/mm/memory.c~remove-zero_page
-+++ a/mm/memory.c
-@@ -966,7 +966,7 @@ no_page_table:
- 	 * has touched so far, we don't want to allocate page tables.
- 	 */
- 	if (flags & FOLL_ANON) {
--		page = ZERO_PAGE(address);
-+		page = ZERO_PAGE(0);
- 		if (flags & FOLL_GET)
- 			get_page(page);
- 		BUG_ON(flags & FOLL_WRITE);
-@@ -1111,95 +1111,6 @@ int get_user_pages(struct task_struct *t
- }
- EXPORT_SYMBOL(get_user_pages);
- 
--static int zeromap_pte_range(struct mm_struct *mm, pmd_t *pmd,
--			unsigned long addr, unsigned long end, pgprot_t prot)
--{
--	pte_t *pte;
--	spinlock_t *ptl;
--	int err = 0;
--
--	pte = pte_alloc_map_lock(mm, pmd, addr, &ptl);
--	if (!pte)
--		return -EAGAIN;
--	arch_enter_lazy_mmu_mode();
--	do {
--		struct page *page = ZERO_PAGE(addr);
--		pte_t zero_pte = pte_wrprotect(mk_pte(page, prot));
--
--		if (unlikely(!pte_none(*pte))) {
--			err = -EEXIST;
--			pte++;
--			break;
--		}
--		page_cache_get(page);
--		page_add_file_rmap(page);
--		inc_mm_counter(mm, file_rss);
--		set_pte_at(mm, addr, pte, zero_pte);
--	} while (pte++, addr += PAGE_SIZE, addr != end);
--	arch_leave_lazy_mmu_mode();
--	pte_unmap_unlock(pte - 1, ptl);
--	return err;
--}
--
--static inline int zeromap_pmd_range(struct mm_struct *mm, pud_t *pud,
--			unsigned long addr, unsigned long end, pgprot_t prot)
--{
--	pmd_t *pmd;
--	unsigned long next;
--	int err;
--
--	pmd = pmd_alloc(mm, pud, addr);
--	if (!pmd)
--		return -EAGAIN;
--	do {
--		next = pmd_addr_end(addr, end);
--		err = zeromap_pte_range(mm, pmd, addr, next, prot);
--		if (err)
--			break;
--	} while (pmd++, addr = next, addr != end);
--	return err;
--}
--
--static inline int zeromap_pud_range(struct mm_struct *mm, pgd_t *pgd,
--			unsigned long addr, unsigned long end, pgprot_t prot)
--{
--	pud_t *pud;
--	unsigned long next;
--	int err;
--
--	pud = pud_alloc(mm, pgd, addr);
--	if (!pud)
--		return -EAGAIN;
--	do {
--		next = pud_addr_end(addr, end);
--		err = zeromap_pmd_range(mm, pud, addr, next, prot);
--		if (err)
--			break;
--	} while (pud++, addr = next, addr != end);
--	return err;
--}
--
--int zeromap_page_range(struct vm_area_struct *vma,
--			unsigned long addr, unsigned long size, pgprot_t prot)
--{
--	pgd_t *pgd;
--	unsigned long next;
--	unsigned long end = addr + size;
--	struct mm_struct *mm = vma->vm_mm;
--	int err;
--
--	BUG_ON(addr >= end);
--	pgd = pgd_offset(mm, addr);
--	flush_cache_range(vma, addr, end);
--	do {
--		next = pgd_addr_end(addr, end);
--		err = zeromap_pud_range(mm, pgd, addr, next, prot);
--		if (err)
--			break;
--	} while (pgd++, addr = next, addr != end);
--	return err;
--}
--
- pte_t * fastcall get_locked_pte(struct mm_struct *mm, unsigned long addr, spinlock_t **ptl)
- {
- 	pgd_t * pgd = pgd_offset(mm, addr);
-@@ -1717,16 +1628,11 @@ gotten:
- 
- 	if (unlikely(anon_vma_prepare(vma)))
- 		goto oom;
--	if (old_page == ZERO_PAGE(address)) {
--		new_page = alloc_zeroed_user_highpage_movable(vma, address);
--		if (!new_page)
--			goto oom;
--	} else {
--		new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
--		if (!new_page)
--			goto oom;
--		cow_user_page(new_page, old_page, address, vma);
--	}
-+	VM_BUG_ON(old_page == ZERO_PAGE(0));
-+	new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
-+	if (!new_page)
-+		goto oom;
-+	cow_user_page(new_page, old_page, address, vma);
- 
- 	/*
- 	 * Re-check the pte - we dropped the lock
-@@ -2252,39 +2158,24 @@ static int do_anonymous_page(struct mm_s
- 	spinlock_t *ptl;
- 	pte_t entry;
- 
--	if (write_access) {
--		/* Allocate our own private page. */
--		pte_unmap(page_table);
--
--		if (unlikely(anon_vma_prepare(vma)))
--			goto oom;
--		page = alloc_zeroed_user_highpage_movable(vma, address);
--		if (!page)
--			goto oom;
--
--		entry = mk_pte(page, vma->vm_page_prot);
--		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
-+	/* Allocate our own private page. */
-+	pte_unmap(page_table);
- 
--		page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
--		if (!pte_none(*page_table))
--			goto release;
--		inc_mm_counter(mm, anon_rss);
--		lru_cache_add_active(page);
--		page_add_new_anon_rmap(page, vma, address);
--	} else {
--		/* Map the ZERO_PAGE - vm_page_prot is readonly */
--		page = ZERO_PAGE(address);
--		page_cache_get(page);
--		entry = mk_pte(page, vma->vm_page_prot);
-+	if (unlikely(anon_vma_prepare(vma)))
-+		goto oom;
-+	page = alloc_zeroed_user_highpage_movable(vma, address);
-+	if (!page)
-+		goto oom;
- 
--		ptl = pte_lockptr(mm, pmd);
--		spin_lock(ptl);
--		if (!pte_none(*page_table))
--			goto release;
--		inc_mm_counter(mm, file_rss);
--		page_add_file_rmap(page);
--	}
-+	entry = mk_pte(page, vma->vm_page_prot);
-+	entry = maybe_mkwrite(pte_mkdirty(entry), vma);
- 
-+	page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
-+	if (!pte_none(*page_table))
-+		goto release;
-+	inc_mm_counter(mm, anon_rss);
-+	lru_cache_add_active(page);
-+	page_add_new_anon_rmap(page, vma, address);
- 	set_pte_at(mm, address, page_table, entry);
- 
- 	/* No need to invalidate - it was non-present before */
+ 	task_dirties_fraction(tsk, &numerator, &denominator);
+ 	inv *= numerator;
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-document-tree_lock-zonelock-lockorder.patch
-fs-reiserfs-cleanups.patch
-atomic_opstxt-has-incorrect-misleading-and-insufficient-information.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
-bitops-introduce-lock-ops.patch
-alpha-fix-bitops.patch
-alpha-lock-bitops.patch
-alpha-lock-bitops-fix.patch
-ia64-lock-bitops.patch
-mips-fix-bitops.patch
-mips-lock-bitops.patch
-powerpc-lock-bitops.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+asm-i386-ioh-fix-constness.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold.patch
+mm-dirty-balancing-for-tasks.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-do-not-take-callback_mutex-fix.patch
+writeback-dont-propagate-aop_writepage_activate.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+pm-qos-infrastructure-and-interface-fix.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
+f_dupfd_cloexec-implementation-fix-2.patch
+ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
+drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+pnp-use-dev_info-dev_err-etc-in-core-fix.patch
+pnp-add-debug-message-for-adding-new-device-fix-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
 powerpc-lock-bitops-fix.patch
-bit_spin_lock-use-lock-bitops.patch
-reiser4-fix-for-new-aops-patches.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
