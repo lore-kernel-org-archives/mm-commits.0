@@ -1,448 +1,190 @@
 From: akpm@linux-foundation.org
-Subject: - ocfs2-convert-to-new-aops.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:33:33 -0700
-Message-ID: <200710162033.l9GKXXuF014803@imap1.linux-foundation.org>
+Subject: - dont-group-high-order-atomic-allocations.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:35:00 -0700
+Message-ID: <200710162035.l9GKZ0ME015010@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43474 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52127 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966203AbXJPVsz (ORCPT
+	by vger.kernel.org with ESMTP id S966215AbXJPVtF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:48:55 -0400
+	Tue, 16 Oct 2007 17:49:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, mark.fasheh@oracle.com, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ocfs2: convert to new aops
+     don't group high order atomic allocations
 has been removed from the -mm tree.  Its filename was
-     ocfs2-convert-to-new-aops.patch
+     dont-group-high-order-atomic-allocations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ocfs2: convert to new aops
-From: Nick Piggin <npiggin@suse.de>
+Subject: don't group high order atomic allocations
+From: Mel Gorman <mel@csn.ul.ie>
 
-Plug ocfs2 into the ->write_begin and ->write_end aops.
+Grouping high-order atomic allocations together was intended to allow
+bursty users of atomic allocations to work such as e1000 in situations
+where their preallocated buffers were depleted.  This did not work in at
+least one case with a wireless network adapter needing order-1 allocations
+frequently.  To resolve that, the free pages used for min_free_kbytes were
+moved to separate contiguous blocks with the patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.
 
-A bunch of custom code is now gone - the iovec iteration stuff during write
-and the ocfs2 splice write actor.
+It is felt that keeping the free pages in the same contiguous blocks should
+be sufficient for bursty short-lived high-order atomic allocations to
+succeed, maybe even with the e1000.  Even if there is a failure, increasing
+the value of min_free_kbytes will free pages as contiguous bloks in
+contrast to the standard buddy allocator which makes no attempt to keep the
+minimum number of free pages contiguous.
 
-Signed-off-by: Mark Fasheh <mark.fasheh@oracle.com>
+This patch backs out grouping high order atomic allocations together to
+determine if it is really needed or not.  If a new report comes in about
+high-order atomic allocations failing, the feature can be reintroduced to
+determine if it fixes the problem or not.  As a side-effect, this patch
+reduces by 1 the number of bits required to track the mobility type of
+pages within a MAX_ORDER_NR_PAGES block.
+
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |   14 +-
- fs/ocfs2/aops.h |    8 -
- fs/ocfs2/file.c |  266 ++--------------------------------------------
- 3 files changed, 22 insertions(+), 266 deletions(-)
+ include/linux/mmzone.h          |    5 +---
+ include/linux/pageblock-flags.h |    2 -
+ mm/page_alloc.c                 |   37 +++++-------------------------
+ 3 files changed, 10 insertions(+), 34 deletions(-)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-convert-to-new-aops fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-convert-to-new-aops
-+++ a/fs/ocfs2/aops.c
-@@ -1724,9 +1724,9 @@ out:
- 	return ret;
+diff -puN include/linux/mmzone.h~dont-group-high-order-atomic-allocations include/linux/mmzone.h
+--- a/include/linux/mmzone.h~dont-group-high-order-atomic-allocations
++++ a/include/linux/mmzone.h
+@@ -36,9 +36,8 @@
+ #define MIGRATE_UNMOVABLE     0
+ #define MIGRATE_RECLAIMABLE   1
+ #define MIGRATE_MOVABLE       2
+-#define MIGRATE_HIGHATOMIC    3
+-#define MIGRATE_RESERVE       4
+-#define MIGRATE_TYPES         5
++#define MIGRATE_RESERVE       3
++#define MIGRATE_TYPES         4
+ 
+ #define for_each_migratetype_order(order, type) \
+ 	for (order = 0; order < MAX_ORDER; order++) \
+diff -puN include/linux/pageblock-flags.h~dont-group-high-order-atomic-allocations include/linux/pageblock-flags.h
+--- a/include/linux/pageblock-flags.h~dont-group-high-order-atomic-allocations
++++ a/include/linux/pageblock-flags.h
+@@ -31,7 +31,7 @@
+ 
+ /* Bit indices that affect a whole block of pages */
+ enum pageblock_bits {
+-	PB_range(PB_migrate, 3), /* 3 bits required for migrate types */
++	PB_range(PB_migrate, 2), /* 2 bits required for migrate types */
+ 	NR_PAGEBLOCK_BITS
+ };
+ 
+diff -puN mm/page_alloc.c~dont-group-high-order-atomic-allocations mm/page_alloc.c
+--- a/mm/page_alloc.c~dont-group-high-order-atomic-allocations
++++ a/mm/page_alloc.c
+@@ -174,18 +174,13 @@ static void set_pageblock_migratetype(st
+ 					PB_migrate, PB_migrate_end);
  }
  
--int ocfs2_write_begin(struct file *file, struct address_space *mapping,
--		      loff_t pos, unsigned len, unsigned flags,
--		      struct page **pagep, void **fsdata)
-+static int ocfs2_write_begin(struct file *file, struct address_space *mapping,
-+			     loff_t pos, unsigned len, unsigned flags,
-+			     struct page **pagep, void **fsdata)
+-static inline int allocflags_to_migratetype(gfp_t gfp_flags, int order)
++static inline int allocflags_to_migratetype(gfp_t gfp_flags)
  {
- 	int ret;
- 	struct buffer_head *di_bh = NULL;
-@@ -1877,9 +1877,9 @@ out_write_size:
- 	return copied;
- }
+ 	WARN_ON((gfp_flags & GFP_MOVABLE_MASK) == GFP_MOVABLE_MASK);
  
--int ocfs2_write_end(struct file *file, struct address_space *mapping,
--		    loff_t pos, unsigned len, unsigned copied,
--		    struct page *page, void *fsdata)
-+static int ocfs2_write_end(struct file *file, struct address_space *mapping,
-+			   loff_t pos, unsigned len, unsigned copied,
-+			   struct page *page, void *fsdata)
- {
- 	int ret;
- 	struct inode *inode = mapping->host;
-@@ -1896,6 +1896,8 @@ int ocfs2_write_end(struct file *file, s
- const struct address_space_operations ocfs2_aops = {
- 	.readpage	= ocfs2_readpage,
- 	.writepage	= ocfs2_writepage,
-+	.write_begin	= ocfs2_write_begin,
-+	.write_end	= ocfs2_write_end,
- 	.bmap		= ocfs2_bmap,
- 	.sync_page	= block_sync_page,
- 	.direct_IO	= ocfs2_direct_IO,
-diff -puN fs/ocfs2/aops.h~ocfs2-convert-to-new-aops fs/ocfs2/aops.h
---- a/fs/ocfs2/aops.h~ocfs2-convert-to-new-aops
-+++ a/fs/ocfs2/aops.h
-@@ -44,14 +44,6 @@ int walk_page_buffers(	handle_t *handle,
- 			int (*fn)(	handle_t *handle,
- 					struct buffer_head *bh));
+ 	if (unlikely(page_group_by_mobility_disabled))
+ 		return MIGRATE_UNMOVABLE;
  
--int ocfs2_write_begin(struct file *file, struct address_space *mapping,
--		      loff_t pos, unsigned len, unsigned flags,
--		      struct page **pagep, void **fsdata);
+-	/* Cluster high-order atomic allocations together */
+-	if (unlikely(order > 0) &&
+-			(!(gfp_flags & __GFP_WAIT) || in_interrupt()))
+-		return MIGRATE_HIGHATOMIC;
 -
--int ocfs2_write_end(struct file *file, struct address_space *mapping,
--		    loff_t pos, unsigned len, unsigned copied,
--		    struct page *page, void *fsdata);
--
- int ocfs2_write_end_nolock(struct address_space *mapping,
- 			   loff_t pos, unsigned len, unsigned copied,
- 			   struct page *page, void *fsdata);
-diff -puN fs/ocfs2/file.c~ocfs2-convert-to-new-aops fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-convert-to-new-aops
-+++ a/fs/ocfs2/file.c
-@@ -1881,143 +1881,13 @@ out:
- 	return ret;
- }
+ 	/* Cluster based on mobility */
+ 	return (((gfp_flags & __GFP_MOVABLE) != 0) << 1) |
+ 		((gfp_flags & __GFP_RECLAIMABLE) != 0);
+@@ -706,11 +701,10 @@ static struct page *__rmqueue_smallest(s
+  * the free lists for the desirable migrate type are depleted
+  */
+ static int fallbacks[MIGRATE_TYPES][MIGRATE_TYPES-1] = {
+-	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,   MIGRATE_HIGHATOMIC, MIGRATE_RESERVE },
+-	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,   MIGRATE_HIGHATOMIC, MIGRATE_RESERVE },
+-	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_HIGHATOMIC, MIGRATE_RESERVE },
+-	[MIGRATE_HIGHATOMIC]  = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_MOVABLE,    MIGRATE_RESERVE },
+-	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE,     MIGRATE_RESERVE,   MIGRATE_RESERVE,    MIGRATE_RESERVE }, /* Never used */
++	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,   MIGRATE_RESERVE },
++	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,   MIGRATE_RESERVE },
++	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_RESERVE },
++	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE,     MIGRATE_RESERVE,   MIGRATE_RESERVE }, /* Never used */
+ };
  
--static inline void
--ocfs2_set_next_iovec(const struct iovec **iovp, size_t *basep, size_t bytes)
--{
--	const struct iovec *iov = *iovp;
--	size_t base = *basep;
--
--	do {
--		int copy = min(bytes, iov->iov_len - base);
--
--		bytes -= copy;
--		base += copy;
--		if (iov->iov_len == base) {
--			iov++;
--			base = 0;
--		}
--	} while (bytes);
--	*iovp = iov;
--	*basep = base;
--}
--
--static struct page * ocfs2_get_write_source(char **ret_src_buf,
--					    const struct iovec *cur_iov,
--					    size_t iov_offset)
--{
--	int ret;
--	char *buf = cur_iov->iov_base + iov_offset;
--	struct page *src_page = NULL;
--	unsigned long off;
--
--	off = (unsigned long)(buf) & ~PAGE_CACHE_MASK;
--
--	if (!segment_eq(get_fs(), KERNEL_DS)) {
--		/*
--		 * Pull in the user page. We want to do this outside
--		 * of the meta data locks in order to preserve locking
--		 * order in case of page fault.
--		 */
--		ret = get_user_pages(current, current->mm,
--				     (unsigned long)buf & PAGE_CACHE_MASK, 1,
--				     0, 0, &src_page, NULL);
--		if (ret == 1)
--			*ret_src_buf = kmap(src_page) + off;
--		else
--			src_page = ERR_PTR(-EFAULT);
--	} else {
--		*ret_src_buf = buf;
--	}
--
--	return src_page;
--}
--
--static void ocfs2_put_write_source(struct page *page)
--{
--	if (page) {
--		kunmap(page);
--		page_cache_release(page);
--	}
--}
--
--static ssize_t ocfs2_file_buffered_write(struct file *file, loff_t *ppos,
--					 const struct iovec *iov,
--					 unsigned long nr_segs,
--					 size_t count,
--					 ssize_t o_direct_written)
--{
--	int ret = 0;
--	ssize_t copied, total = 0;
--	size_t iov_offset = 0, bytes;
--	loff_t pos;
--	const struct iovec *cur_iov = iov;
--	struct page *user_page, *page;
--	char * uninitialized_var(buf);
--	char *dst;
--	void *fsdata;
--
--	/*
--	 * handle partial DIO write.  Adjust cur_iov if needed.
--	 */
--	ocfs2_set_next_iovec(&cur_iov, &iov_offset, o_direct_written);
--
--	do {
--		pos = *ppos;
--
--		user_page = ocfs2_get_write_source(&buf, cur_iov, iov_offset);
--		if (IS_ERR(user_page)) {
--			ret = PTR_ERR(user_page);
--			goto out;
--		}
--
--		/* Stay within our page boundaries */
--		bytes = min((PAGE_CACHE_SIZE - ((unsigned long)pos & ~PAGE_CACHE_MASK)),
--			    (PAGE_CACHE_SIZE - ((unsigned long)buf & ~PAGE_CACHE_MASK)));
--		/* Stay within the vector boundary */
--		bytes = min_t(size_t, bytes, cur_iov->iov_len - iov_offset);
--		/* Stay within count */
--		bytes = min(bytes, count);
--
--		page = NULL;
--		ret = ocfs2_write_begin(file, file->f_mapping, pos, bytes, 0,
--					&page, &fsdata);
--		if (ret) {
--			mlog_errno(ret);
--			goto out;
--		}
--
--		dst = kmap_atomic(page, KM_USER0);
--		memcpy(dst + (pos & (loff_t)(PAGE_CACHE_SIZE - 1)), buf, bytes);
--		kunmap_atomic(dst, KM_USER0);
--		flush_dcache_page(page);
--		ocfs2_put_write_source(user_page);
--
--		copied = ocfs2_write_end(file, file->f_mapping, pos, bytes,
--					 bytes, page, fsdata);
--		if (copied < 0) {
--			mlog_errno(copied);
--			ret = copied;
--			goto out;
--		}
--
--		total += copied;
--		*ppos = pos + copied;
--		count -= copied;
--
--		ocfs2_set_next_iovec(&cur_iov, &iov_offset, copied);
--	} while(count);
--
--out:
--	return total ? total : ret;
--}
--
- static ssize_t ocfs2_file_aio_write(struct kiocb *iocb,
- 				    const struct iovec *iov,
- 				    unsigned long nr_segs,
- 				    loff_t pos)
- {
- 	int ret, direct_io, appending, rw_level, have_alloc_sem  = 0;
--	int can_do_direct, sync = 0;
-+	int can_do_direct;
- 	ssize_t written = 0;
- 	size_t ocount;		/* original count */
- 	size_t count;		/* after file limit checks */
-@@ -2033,12 +1903,6 @@ static ssize_t ocfs2_file_aio_write(stru
- 	if (iocb->ki_left == 0)
- 		return 0;
+ /*
+@@ -804,9 +798,7 @@ static struct page *__rmqueue_fallback(s
+ 	int current_order;
+ 	struct page *page;
+ 	int migratetype, i;
+-	int nonatomic_fallback_atomic = 0;
  
--	ret = generic_segment_checks(iov, &nr_segs, &ocount, VERIFY_READ);
--	if (ret)
--		return ret;
--
--	count = ocount;
--
- 	vfs_check_frozen(inode->i_sb, SB_FREEZE_WRITE);
+-retry:
+ 	/* Find the largest possible block of pages in the other list */
+ 	for (current_order = MAX_ORDER-1; current_order >= order;
+ 						--current_order) {
+@@ -816,14 +808,6 @@ retry:
+ 			/* MIGRATE_RESERVE handled later if necessary */
+ 			if (migratetype == MIGRATE_RESERVE)
+ 				continue;
+-			/*
+-			 * Make it hard to fallback to blocks used for
+-			 * high-order atomic allocations
+-			 */
+-			if (migratetype == MIGRATE_HIGHATOMIC &&
+-				start_migratetype != MIGRATE_UNMOVABLE &&
+-				!nonatomic_fallback_atomic)
+-				continue;
  
- 	appending = file->f_flags & O_APPEND ? 1 : 0;
-@@ -2082,33 +1946,23 @@ relock:
- 		rw_level = -1;
+ 			area = &(zone->free_area[current_order]);
+ 			if (list_empty(&area->free_list[migratetype]))
+@@ -849,8 +833,7 @@ retry:
+ 								start_migratetype);
  
- 		direct_io = 0;
--		sync = 1;
- 		goto relock;
- 	}
+ 				/* Claim the whole block if over half of it is free */
+-				if ((pages << current_order) >= (1 << (MAX_ORDER-2)) &&
+-						migratetype != MIGRATE_HIGHATOMIC)
++				if ((pages << current_order) >= (1 << (MAX_ORDER-2)))
+ 					set_pageblock_migratetype(page,
+ 								start_migratetype);
  
--	if (!sync && ((file->f_flags & O_SYNC) || IS_SYNC(inode)))
--		sync = 1;
--
--	/*
--	 * XXX: Is it ok to execute these checks a second time?
--	 */
--	ret = generic_write_checks(file, ppos, &count, S_ISBLK(inode->i_mode));
--	if (ret)
--		goto out;
--
--	/*
--	 * Set pos so that sync_page_range_nolock() below understands
--	 * where to start from. We might've moved it around via the
--	 * calls above. The range we want to actually sync starts from
--	 * *ppos here.
--	 *
--	 */
--	pos = *ppos;
--
- 	/* communicate with ocfs2_dio_end_io */
- 	ocfs2_iocb_set_rw_locked(iocb, rw_level);
- 
- 	if (direct_io) {
-+		ret = generic_segment_checks(iov, &nr_segs, &ocount,
-+					     VERIFY_READ);
-+		if (ret)
-+			goto out_dio;
-+
-+		ret = generic_write_checks(file, ppos, &count,
-+					   S_ISBLK(inode->i_mode));
-+		if (ret)
-+			goto out_dio;
-+
- 		written = generic_file_direct_write(iocb, iov, &nr_segs, *ppos,
- 						    ppos, count, ocount);
- 		if (written < 0) {
-@@ -2116,14 +1970,8 @@ relock:
- 			goto out_dio;
+@@ -872,12 +855,6 @@ retry:
  		}
- 	} else {
--		written = ocfs2_file_buffered_write(file, ppos, iov, nr_segs,
--						    count, written);
--		if (written < 0) {
--			ret = written;
--			if (ret != -EFAULT || ret != -ENOSPC)
--				mlog_errno(ret);
--			goto out;
--		}
-+		written = generic_file_aio_write_nolock(iocb, iov, nr_segs,
-+							*ppos);
  	}
  
- out_dio:
-@@ -2153,97 +2001,12 @@ out_sems:
- 	if (have_alloc_sem)
- 		up_read(&inode->i_alloc_sem);
- 
--	if (written > 0 && sync) {
--		ssize_t err;
--
--		err = sync_page_range_nolock(inode, file->f_mapping, pos, count);
--		if (err < 0)
--			written = err;
+-	/* Allow fallback to high-order atomic blocks if memory is that low */
+-	if (!nonatomic_fallback_atomic) {
+-		nonatomic_fallback_atomic = 1;
+-		goto retry;
 -	}
 -
- 	mutex_unlock(&inode->i_mutex);
- 
- 	mlog_exit(ret);
- 	return written ? written : ret;
+ 	/* Use MIGRATE_RESERVE rather than fail an allocation */
+ 	return __rmqueue_smallest(zone, order, MIGRATE_RESERVE);
  }
+@@ -1112,7 +1089,7 @@ static struct page *buffered_rmqueue(str
+ 	struct page *page;
+ 	int cold = !!(gfp_flags & __GFP_COLD);
+ 	int cpu;
+-	int migratetype = allocflags_to_migratetype(gfp_flags, order);
++	int migratetype = allocflags_to_migratetype(gfp_flags);
  
--static int ocfs2_splice_write_actor(struct pipe_inode_info *pipe,
--				    struct pipe_buffer *buf,
--				    struct splice_desc *sd)
--{
--	int ret, count;
--	ssize_t copied = 0;
--	struct file *file = sd->u.file;
--	unsigned int offset;
--	struct page *page = NULL;
--	void *fsdata;
--	char *src, *dst;
--
--	ret = buf->ops->confirm(pipe, buf);
--	if (ret)
--		goto out;
--
--	offset = sd->pos & ~PAGE_CACHE_MASK;
--	count = sd->len;
--	if (count + offset > PAGE_CACHE_SIZE)
--		count = PAGE_CACHE_SIZE - offset;
--
--	ret = ocfs2_write_begin(file, file->f_mapping, sd->pos, count, 0,
--				&page, &fsdata);
--	if (ret) {
--		mlog_errno(ret);
--		goto out;
--	}
--
--	src = buf->ops->map(pipe, buf, 1);
--	dst = kmap_atomic(page, KM_USER1);
--	memcpy(dst + offset, src + buf->offset, count);
--	kunmap_atomic(dst, KM_USER1);
--	buf->ops->unmap(pipe, buf, src);
--
--	copied = ocfs2_write_end(file, file->f_mapping, sd->pos, count, count,
--				 page, fsdata);
--	if (copied < 0) {
--		mlog_errno(copied);
--		ret = copied;
--		goto out;
--	}
--out:
--
--	return copied ? copied : ret;
--}
--
--static ssize_t __ocfs2_file_splice_write(struct pipe_inode_info *pipe,
--					 struct file *out,
--					 loff_t *ppos,
--					 size_t len,
--					 unsigned int flags)
--{
--	int ret, err;
--	struct address_space *mapping = out->f_mapping;
--	struct inode *inode = mapping->host;
--	struct splice_desc sd = {
--		.total_len = len,
--		.flags = flags,
--		.pos = *ppos,
--		.u.file = out,
--	};
--
--	ret = __splice_from_pipe(pipe, &sd, ocfs2_splice_write_actor);
--	if (ret > 0) {
--		*ppos += ret;
--
--		if (unlikely((out->f_flags & O_SYNC) || IS_SYNC(inode))) {
--			err = generic_osync_inode(inode, mapping,
--						  OSYNC_METADATA|OSYNC_DATA);
--			if (err)
--				ret = err;
--		}
--	}
--
--	return ret;
--}
--
- static ssize_t ocfs2_file_splice_write(struct pipe_inode_info *pipe,
- 				       struct file *out,
- 				       loff_t *ppos,
-@@ -2273,8 +2036,7 @@ static ssize_t ocfs2_file_splice_write(s
- 		goto out_unlock;
- 	}
- 
--	/* ok, we're done with i_size and alloc work */
--	ret = __ocfs2_file_splice_write(pipe, out, ppos, len, flags);
-+	ret = generic_file_splice_write_nolock(pipe, out, ppos, len, flags);
- 
- out_unlock:
- 	ocfs2_rw_unlock(inode, 1);
+ again:
+ 	cpu  = get_cpu();
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 origin.patch
-mm-document-tree_lock-zonelock-lockorder.patch
-fs-reiserfs-cleanups.patch
-atomic_opstxt-has-incorrect-misleading-and-insufficient-information.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
-bitops-introduce-lock-ops.patch
-alpha-fix-bitops.patch
-alpha-lock-bitops.patch
-alpha-lock-bitops-fix.patch
-ia64-lock-bitops.patch
-mips-fix-bitops.patch
-mips-lock-bitops.patch
-powerpc-lock-bitops.patch
-powerpc-lock-bitops-fix.patch
-bit_spin_lock-use-lock-bitops.patch
-reiser4-fix-for-new-aops-patches.patch
+ext2-reservations.patch
+page-owner-tracking-leak-detector.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
