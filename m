@@ -1,121 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: - memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:33:48 -0700
-Message-ID: <200710162033.l9GKXmCd014845@imap1.linux-foundation.org>
+Subject: - udf-convert-to-new-aops.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:33:19 -0700
+Message-ID: <200710162033.l9GKXJIN014776@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53191 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41094 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966347AbXJPVuN (ORCPT
+	by vger.kernel.org with ESMTP id S966422AbXJPVuc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:50:13 -0400
+	Tue, 16 Oct 2007 17:50:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, bob.picco@hp.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@skynet.ie, nacc@us.ibm.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, bfennema@falcon.csc.calpoly.edu, jack@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Memoryless nodes: OOM: use N_HIGH_MEMORY map instead of constructing one on the fly
+     udf: convert to new aops
 has been removed from the -mm tree.  Its filename was
-     memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly.patch
+     udf-convert-to-new-aops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Memoryless nodes: OOM: use N_HIGH_MEMORY map instead of constructing one on the fly
-From: Christoph Lameter <clameter@sgi.com>
+Subject: udf: convert to new aops
+From: Nick Piggin <npiggin@suse.de>
 
-constrained_alloc() builds its own memory map for nodes with memory.  We have
-that available in N_HIGH_MEMORY now.  So simplify the code.
+Convert udf to new aops.  Also seem to have fixed pagecache corruption in
+udf_adinicb_commit_write -- page was marked uptodate when it is not.  Also,
+fixed the silly setup where prepare_write was doing a kmap to be used in
+commit_write: just do kmap_atomic in write_end.  Use libfs helpers to make
+this easier.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
-Acked-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Acked-by: Bob Picco <bob.picco@hp.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mel@skynet.ie>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: <bfennema@falcon.csc.calpoly.edu>
+Cc: Jan Kara <jack@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+ fs/udf/file.c  |   35 ++++++++++++++---------------------
+ fs/udf/inode.c |   15 +++++++++------
+ 2 files changed, 23 insertions(+), 27 deletions(-)
 
-diff -puN mm/oom_kill.c~memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly mm/oom_kill.c
---- a/mm/oom_kill.c~memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly
-+++ a/mm/oom_kill.c
-@@ -177,14 +177,7 @@ static inline int constrained_alloc(stru
- {
- #ifdef CONFIG_NUMA
- 	struct zone **z;
--	nodemask_t nodes;
--	int node;
--
--	nodes_clear(nodes);
--	/* node has memory ? */
--	for_each_online_node(node)
--		if (NODE_DATA(node)->node_present_pages)
--			node_set(node, nodes);
-+	nodemask_t nodes = node_states[N_HIGH_MEMORY];
+diff -puN fs/udf/file.c~udf-convert-to-new-aops fs/udf/file.c
+--- a/fs/udf/file.c~udf-convert-to-new-aops
++++ a/fs/udf/file.c
+@@ -76,36 +76,29 @@ static int udf_adinicb_writepage(struct 
+ 	return 0;
+ }
  
- 	for (z = zonelist->zones; *z; z++)
- 		if (cpuset_zone_allowed_softwall(*z, gfp_mask))
+-static int udf_adinicb_prepare_write(struct file *file, struct page *page,
+-				     unsigned offset, unsigned to)
++static int udf_adinicb_write_end(struct file *file,
++			struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned copied,
++			struct page *page, void *fsdata)
+ {
+-	kmap(page);
+-	return 0;
+-}
+-
+-static int udf_adinicb_commit_write(struct file *file, struct page *page,
+-				    unsigned offset, unsigned to)
+-{
+-	struct inode *inode = page->mapping->host;
+-	char *kaddr = page_address(page);
++	struct inode *inode = mapping->host;
++	unsigned offset = pos & (PAGE_CACHE_SIZE - 1);
++	char *kaddr;
+ 
++	kaddr = kmap_atomic(page, KM_USER0);
+ 	memcpy(UDF_I_DATA(inode) + UDF_I_LENEATTR(inode) + offset,
+-	       kaddr + offset, to - offset);
+-	mark_inode_dirty(inode);
+-	SetPageUptodate(page);
+-	kunmap(page);
+-	/* only one page here */
+-	if (to > inode->i_size)
+-		inode->i_size = to;
+-	return 0;
++		kaddr + offset, copied);
++	kunmap_atomic(kaddr, KM_USER0);
++
++	return simple_write_end(file, mapping, pos, len, copied, page, fsdata);
+ }
+ 
+ const struct address_space_operations udf_adinicb_aops = {
+ 	.readpage	= udf_adinicb_readpage,
+ 	.writepage	= udf_adinicb_writepage,
+ 	.sync_page	= block_sync_page,
+-	.prepare_write	= udf_adinicb_prepare_write,
+-	.commit_write	= udf_adinicb_commit_write,
++	.write_begin = simple_write_begin,
++	.write_end = udf_adinicb_write_end,
+ };
+ 
+ static ssize_t udf_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
+diff -puN fs/udf/inode.c~udf-convert-to-new-aops fs/udf/inode.c
+--- a/fs/udf/inode.c~udf-convert-to-new-aops
++++ a/fs/udf/inode.c
+@@ -133,10 +133,13 @@ static int udf_readpage(struct file *fil
+ 	return block_read_full_page(page, udf_get_block);
+ }
+ 
+-static int udf_prepare_write(struct file *file, struct page *page,
+-			     unsigned from, unsigned to)
+-{
+-	return block_prepare_write(page, from, to, udf_get_block);
++static int udf_write_begin(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned flags,
++			struct page **pagep, void **fsdata)
++{
++	*pagep = NULL;
++	return block_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
++				udf_get_block);
+ }
+ 
+ static sector_t udf_bmap(struct address_space *mapping, sector_t block)
+@@ -148,8 +151,8 @@ const struct address_space_operations ud
+ 	.readpage	= udf_readpage,
+ 	.writepage	= udf_writepage,
+ 	.sync_page	= block_sync_page,
+-	.prepare_write	= udf_prepare_write,
+-	.commit_write	= generic_commit_write,
++	.write_begin		= udf_write_begin,
++	.write_end		= generic_write_end,
+ 	.bmap		= udf_bmap,
+ };
+ 
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
-x86-fix-cpu_to_node-references.patch
-x86-convert-x86_cpu_to_apicid-to-be-a-per-cpu-variable.patch
-x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
-x86-acpi-use-cpu_physical_id.patch
-x86-convert-cpuinfo_x86-array-to-a-per_cpu-array.patch
-slub-simplify-irq-off-handling.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-oom-move-prototypes-to-appropriate-header-file.patch
-oom-move-constraints-to-enum.patch
-oom-change-all_unreclaimable-zone-member-to-flags.patch
-oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
-oom-add-per-zone-locking.patch
-oom-serialize-out-of-memory-calls.patch
-oom-add-oom_kill_allocating_task-sysctl.patch
-oom-suppress-extraneous-stack-and-memory-dump.patch
-oom-compare-cpuset-mems_allowed-instead-of-exclusive.patch
-oom-do-not-take-callback_mutex.patch
-oom-do-not-take-callback_mutex-fix.patch
-oom-prevent-including-schedh-in-header-file.patch
-oom-add-header-file-to-kbuild-as-unifdef.patch
-oom-convert-zone_scan_lock-from-mutex-to-spinlock.patch
-mm-test-and-set-zone-reclaim-lock-before-starting.patch
-mm-test-and-set-zone-reclaim-lock-before-starting-cleanup.patch
-avoid-negative-and-full-width-shifts-in-radix-treec.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-core-code.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-documentation-vm-slabinfoc-clean-up-this-code.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
+mm-document-tree_lock-zonelock-lockorder.patch
+fs-reiserfs-cleanups.patch
+atomic_opstxt-has-incorrect-misleading-and-insufficient-information.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+bitops-introduce-lock-ops.patch
+alpha-fix-bitops.patch
+alpha-lock-bitops.patch
+alpha-lock-bitops-fix.patch
+ia64-lock-bitops.patch
+mips-fix-bitops.patch
+mips-lock-bitops.patch
+powerpc-lock-bitops.patch
+powerpc-lock-bitops-fix.patch
 bit_spin_lock-use-lock-bitops.patch
-ext3-support-large-blocksize-up-to-pagesize.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
+reiser4-fix-for-new-aops-patches.patch
