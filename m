@@ -1,36 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: - printk-add-interfaces-for-external-access-to-the-log-buffer-fix-2.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 15:06:40 -0700
-Message-ID: <200710162206.l9GM6e1c020024@imap1.linux-foundation.org>
+Subject: - printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 15:06:37 -0700
+Message-ID: <200710162206.l9GM6be1020021@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40837 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49812 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934548AbXJPWH0 (ORCPT
+	by vger.kernel.org with ESMTP id S935627AbXJPWHe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 18:07:26 -0400
+	Tue, 16 Oct 2007 18:07:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier@gentoo.org, gerg@snapgear.com, lethal@linux-sh.org, rgetz@blackfin.uclinux.org, rmk@arm.linux.org.uk, tim.bird@am.sony.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, gerg@snapgear.com, lethal@linux-sh.org, rgetz@blackfin.uclinux.org, rmk@arm.linux.org.uk, tim.bird@am.sony.com, vapier.adi@gmail.com, vapier@gentoo.org, mm-
 
 
 The patch titled
-     printk-add-interfaces-for-external-access-to-the-log-buffer fix 2
+     printk-add-interfaces-for-external-access-to-the-log-buffer fix
 has been removed from the -mm tree.  Its filename was
-     printk-add-interfaces-for-external-access-to-the-log-buffer-fix-2.patch
+     printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
 
 This patch was dropped because it was folded into printk-add-interfaces-for-external-access-to-the-log-buffer.patch
 
 ------------------------------------------------------
-Subject: printk-add-interfaces-for-external-access-to-the-log-buffer fix 2
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: printk-add-interfaces-for-external-access-to-the-log-buffer fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Key off of the log buffer rather than the kernel ring buffer as the
-latter is constantly cleared by userspace daemons.  Also, make sure
-we index into the buffer properly as pointed out by Tim Bird.
+- compile fix
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+- Race fix: oops_in_progress can change at any time
+
+- coding-style fixlets.
+
 Cc: Greg Ungerer <gerg@snapgear.com>
+Cc: Mike Frysinger <vapier.adi@gmail.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
 Cc: Paul Mundt <lethal@linux-sh.org>
 Cc: Robin Getz <rgetz@blackfin.uclinux.org>
 Cc: Russell King <rmk@arm.linux.org.uk>
@@ -38,40 +41,170 @@ Cc: Tim Bird <tim.bird@am.sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    9 ++++-----
- 1 files changed, 4 insertions(+), 5 deletions(-)
+ include/linux/kernel.h |    2 +-
+ kernel/printk.c        |   12 ++++++++----
+ 2 files changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN kernel/printk.c~printk-add-interfaces-for-external-access-to-the-log-buffer-fix-2 kernel/printk.c
---- a/kernel/printk.c~printk-add-interfaces-for-external-access-to-the-log-buffer-fix-2
-+++ a/kernel/printk.c
-@@ -224,7 +224,7 @@ static inline void boot_delay_msec(void)
-  */
- int log_buf_get_len(void)
- {
--	return log_end - log_start;
-+	return logged_chars;
- }
+diff -puN include/linux/kernel.h~printk-add-interfaces-for-external-access-to-the-log-buffer-fix include/linux/kernel.h
+--- a/include/linux/kernel.h~printk-add-interfaces-for-external-access-to-the-log-buffer-fix
++++ a/include/linux/kernel.h
+@@ -183,7 +183,7 @@ static inline int printk(const char *s, 
+ 	__attribute__ ((format (printf, 1, 2)));
+ static inline int __cold printk(const char *s, ...) { return 0; }
+ static inline int log_buf_get_len(void) { return 0; }
+-static inline int log_buf_read(int idx); { return 0; }
++static inline int log_buf_read(int idx) { return 0; }
+ static inline int log_buf_copy(char *dest, int idx, int len) { return 0; }
+ #endif
  
- /*
-@@ -247,10 +247,9 @@ int log_buf_copy(char *dest, int idx, in
+diff -puN kernel/printk.c~printk-add-interfaces-for-external-access-to-the-log-buffer-fix kernel/printk.c
+--- a/kernel/printk.c~printk-add-interfaces-for-external-access-to-the-log-buffer-fix
++++ a/kernel/printk.c
+@@ -233,14 +233,17 @@ int log_buf_get_len(void)
+ int log_buf_copy(char *dest, int idx, int len)
+ {
+ 	int ret, max;
++	bool took_lock = false;
+ 
+-	if (!oops_in_progress)
++	if (!oops_in_progress) {
+ 		spin_lock_irq(&logbuf_lock);
++		took_lock = true;
++	}
+ 
+ 	max = log_buf_get_len();
+-	if (idx < 0 || idx >= max)
++	if (idx < 0 || idx >= max) {
+ 		ret = -1;
+-	else {
++	} else {
  		if (len > max)
  			len = max;
  		ret = len;
--		while (len-- > 0) {
--			*dest = LOG_BUF(idx++);
--			++dest;
--		}
-+		idx += (log_end - max);
-+		while (len-- > 0)
-+			dest[len] = LOG_BUF(idx + len);
+@@ -250,7 +253,7 @@ int log_buf_copy(char *dest, int idx, in
+ 		}
  	}
  
- 	if (took_lock)
+-	if (!oops_in_progress)
++	if (took_lock)
+ 		spin_unlock_irq(&logbuf_lock);
+ 
+ 	return ret;
+@@ -262,6 +265,7 @@ int log_buf_copy(char *dest, int idx, in
+ int log_buf_read(int idx)
+ {
+ 	char ret;
++
+ 	if (log_buf_copy(&ret, idx, 1) == 1)
+ 		return ret;
+ 	else
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold.patch
+mm-dirty-balancing-for-tasks.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
+oom-change-all_unreclaimable-zone-member-to-flags.patch
+oom-do-not-take-callback_mutex.patch
+writeback-dont-propagate-aop_writepage_activate.patch
+softlockup-add-a-proc-tuning-parameter.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
+do_sys_poll-simplify-playing-with-on-stack-data.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs.patch
 printk-add-interfaces-for-external-access-to-the-log-buffer.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix-2.patch
-add-stack-checking-for-blackfin.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
+f_dupfd_cloexec-implementation-fix-2.patch
+ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
+drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+pnp-use-dev_info-dev_err-etc-in-core-fix.patch
+pnp-add-debug-message-for-adding-new-device-fix-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
