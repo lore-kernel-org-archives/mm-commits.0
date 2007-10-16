@@ -1,48 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - ext2-convert-to-new-aops-fix2.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:14:19 -0700
-Message-ID: <200710160414.l9G4EJW1008201@imap1.linux-foundation.org>
+Subject: - ext3-convert-to-new-aops-fix-fix.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:14:35 -0700
+Message-ID: <200710160414.l9G4EZAt008210@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52660 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37796 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763413AbXJPEOX (ORCPT
+	by vger.kernel.org with ESMTP id S1750984AbXJPEOk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:14:23 -0400
+	Tue, 16 Oct 2007 00:14:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext2 convert to new aops fix2
+     ext3 convert to new aops fix fix
 has been removed from the -mm tree.  Its filename was
-     ext2-convert-to-new-aops-fix2.patch
+     ext3-convert-to-new-aops-fix-fix.patch
 
-This patch was dropped because it was folded into ext2-convert-to-new-aops.patch
+This patch was dropped because it was folded into ext3-convert-to-new-aops.patch
 
 ------------------------------------------------------
-Subject: ext2 convert to new aops fix2
+Subject: ext3 convert to new aops fix fix
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/dir.c |    1 -
- 1 files changed, 1 deletion(-)
+ fs/ext3/inode.c |    3 ---
+ 1 files changed, 3 deletions(-)
 
-diff -puN fs/ext2/dir.c~ext2-convert-to-new-aops-fix2 fs/ext2/dir.c
---- a/fs/ext2/dir.c~ext2-convert-to-new-aops-fix2
-+++ a/fs/ext2/dir.c
-@@ -81,7 +81,6 @@ static int ext2_commit_chunk(struct page
- 		err = write_one_page(page, 1);
- 	else
- 		unlock_page(page);
--	mark_page_accessed(page);
+diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops-fix-fix fs/ext3/inode.c
+--- a/fs/ext3/inode.c~ext3-convert-to-new-aops-fix-fix
++++ a/fs/ext3/inode.c
+@@ -36,7 +36,6 @@
+ #include <linux/mpage.h>
+ #include <linux/uio.h>
+ #include <linux/bio.h>
+-#include <linux/swap.h> /* mark_page_accessed */
+ #include "xattr.h"
+ #include "acl.h"
  
- 	return err;
- }
+@@ -1232,8 +1231,6 @@ static int ext3_generic_write_end(struct
+ 
+ 	copied = block_write_end(file, mapping, pos, len, copied, page, fsdata);
+ 
+-	mark_page_accessed(page);
+-
+ 	if (pos+copied > inode->i_size) {
+ 		i_size_write(inode, pos+copied);
+ 		mark_inode_dirty(inode);
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
@@ -71,9 +80,7 @@ mm-restore-kernel_ds-optimisations.patch
 implement-simple-fs-aops.patch
 block_dev-convert-to-new-aops.patch
 ext2-convert-to-new-aops.patch
-ext2-convert-to-new-aops-fix2.patch
 ext3-convert-to-new-aops.patch
-ext3-convert-to-new-aops-fix.patch
 ext3-convert-to-new-aops-fix-fix.patch
 ext4-convert-to-new-aops.patch
 ext4-convert-to-new-aops-fix.patch
