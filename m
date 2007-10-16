@@ -1,62 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - nvidiafb-correctly-assign-the-i2c-class-with-the-port-reversal.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:44:54 -0700
-Message-ID: <200710162044.l9GKisYI016206@imap1.linux-foundation.org>
+Subject: - ecryptfs-remove-unnecessary-bug_on.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:40:27 -0700
+Message-ID: <200710162040.l9GKeRCh015691@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58974 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46405 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765401AbXJPU7J (ORCPT
+	by vger.kernel.org with ESMTP id S965868AbXJPVAS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 16:59:09 -0400
+	Tue, 16 Oct 2007 17:00:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adaplas@gmail.com, mm-commits@vger.kernel.org
+To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nvidiafb: Correctly assign the i2c class with the port reversal
+     eCryptfs: remove unnecessary BUG_ON
 has been removed from the -mm tree.  Its filename was
-     nvidiafb-correctly-assign-the-i2c-class-with-the-port-reversal.patch
+     ecryptfs-remove-unnecessary-bug_on.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: nvidiafb: Correctly assign the i2c class with the port reversal
-From: "Antonino A. Daplas" <adaplas@gmail.com>
+Subject: eCryptfs: remove unnecessary BUG_ON
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-If the i2c ports are to be reversed, I2C_CLASS_HWMON assignment must also be
-reversed.
+Andrew Morton wrote:
+> > +     mutex_lock(&mount_crypt_stat->global_auth_tok_list_mutex);
+> > +     BUG_ON(mount_crypt_stat->num_global_auth_toks == 0);
+> > +     mutex_unlock(&mount_crypt_stat->global_auth_tok_list_mutex);
+>
+> That's odd-looking.  If it was a bug for num_global_auth_toks to be
+> zero, and if that mutex protects num_global_auth_toks then as soon
+> as the lock gets dropped, another thread can make
+> num_global_auth_toks zero, hence the bug is present.  Perhaps?
 
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+That was serving as an internal sanity check that should not have made
+it into the final patch set in the first place. This patch removes it.
+
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/nvidia/nv_i2c.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/ecryptfs/crypto.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/video/nvidia/nv_i2c.c~nvidiafb-correctly-assign-the-i2c-class-with-the-port-reversal drivers/video/nvidia/nv_i2c.c
---- a/drivers/video/nvidia/nv_i2c.c~nvidiafb-correctly-assign-the-i2c-class-with-the-port-reversal
-+++ a/drivers/video/nvidia/nv_i2c.c
-@@ -126,10 +126,12 @@ void nvidia_create_i2c_busses(struct nvi
- 	par->chan[2].par = par;
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-remove-unnecessary-bug_on fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-remove-unnecessary-bug_on
++++ a/fs/ecryptfs/crypto.c
+@@ -1029,9 +1029,6 @@ int ecryptfs_new_file_context(struct den
+ 	int rc = 0;
  
- 	par->chan[0].ddc_base = (par->reverse_i2c) ? 0x36 : 0x3e;
-- 	nvidia_setup_i2c_bus(&par->chan[0], "nvidia #0", 0);
-+ 	nvidia_setup_i2c_bus(&par->chan[0], "nvidia #0",
-+			     (par->reverse_i2c) ? I2C_CLASS_HWMON : 0);
- 
- 	par->chan[1].ddc_base = (par->reverse_i2c) ? 0x3e : 0x36;
-- 	nvidia_setup_i2c_bus(&par->chan[1], "nvidia #1", I2C_CLASS_HWMON);
-+ 	nvidia_setup_i2c_bus(&par->chan[1], "nvidia #1",
-+			     (par->reverse_i2c) ? 0 : I2C_CLASS_HWMON);
- 
- 	par->chan[2].ddc_base = 0x50;
-  	nvidia_setup_i2c_bus(&par->chan[2], "nvidia #2", 0);
+ 	ecryptfs_set_default_crypt_stat_vals(crypt_stat, mount_crypt_stat);
+-	mutex_lock(&mount_crypt_stat->global_auth_tok_list_mutex);
+-	BUG_ON(mount_crypt_stat->num_global_auth_toks == 0);
+-	mutex_unlock(&mount_crypt_stat->global_auth_tok_list_mutex);
+ 	crypt_stat->flags |= ECRYPTFS_ENCRYPTED;
+ 	crypt_stat->flags |= ECRYPTFS_KEY_VALID;
+ 	ecryptfs_copy_mount_wide_flags_to_inode_flags(crypt_stat,
 _
 
-Patches currently in -mm which might be from adaplas@gmail.com are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
 origin.patch
-fbcon-delay-the-start-of-the-cursor-timer-until-a-con_switch.patch
-cyber2000fb-checkpatch-fixes.patch
+git-unionfs.patch
+ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
+vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
