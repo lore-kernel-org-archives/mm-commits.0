@@ -1,103 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 15:06:37 -0700
-Message-ID: <200710162206.l9GM6be1020021@imap1.linux-foundation.org>
+Subject: - deprecate-aout-elf-interpreters-fix.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 15:07:25 -0700
+Message-ID: <200710162207.l9GM7Pph020055@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49812 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59116 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935627AbXJPWHe (ORCPT
+	by vger.kernel.org with ESMTP id S935082AbXJPWIZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 18:07:34 -0400
+	Tue, 16 Oct 2007 18:08:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gerg@snapgear.com, lethal@linux-sh.org, rgetz@blackfin.uclinux.org, rmk@arm.linux.org.uk, tim.bird@am.sony.com, vapier.adi@gmail.com, vapier@gentoo.org, mm-
+To: akpm@linux-foundation.org, ak@novell.com, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     printk-add-interfaces-for-external-access-to-the-log-buffer fix
+     deprecate-aout-elf-interpreters-fix
 has been removed from the -mm tree.  Its filename was
-     printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+     deprecate-aout-elf-interpreters-fix.patch
 
-This patch was dropped because it was folded into printk-add-interfaces-for-external-access-to-the-log-buffer.patch
+This patch was dropped because it was folded into deprecate-aout-elf-interpreters.patch
 
 ------------------------------------------------------
-Subject: printk-add-interfaces-for-external-access-to-the-log-buffer fix
+Subject: deprecate-aout-elf-interpreters-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- compile fix
-
-- Race fix: oops_in_progress can change at any time
-
-- coding-style fixlets.
-
-Cc: Greg Ungerer <gerg@snapgear.com>
-Cc: Mike Frysinger <vapier.adi@gmail.com>
-Cc: Mike Frysinger <vapier@gentoo.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Robin Getz <rgetz@blackfin.uclinux.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Tim Bird <tim.bird@am.sony.com>
+Cc: Andi Kleen <ak@novell.com>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    2 +-
- kernel/printk.c        |   12 ++++++++----
- 2 files changed, 9 insertions(+), 5 deletions(-)
+ fs/binfmt_elf.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/kernel.h~printk-add-interfaces-for-external-access-to-the-log-buffer-fix include/linux/kernel.h
---- a/include/linux/kernel.h~printk-add-interfaces-for-external-access-to-the-log-buffer-fix
-+++ a/include/linux/kernel.h
-@@ -183,7 +183,7 @@ static inline int printk(const char *s, 
- 	__attribute__ ((format (printf, 1, 2)));
- static inline int __cold printk(const char *s, ...) { return 0; }
- static inline int log_buf_get_len(void) { return 0; }
--static inline int log_buf_read(int idx); { return 0; }
-+static inline int log_buf_read(int idx) { return 0; }
- static inline int log_buf_copy(char *dest, int idx, int len) { return 0; }
- #endif
+diff -puN Documentation/feature-removal-schedule.txt~deprecate-aout-elf-interpreters-fix Documentation/feature-removal-schedule.txt
+diff -puN fs/binfmt_elf.c~deprecate-aout-elf-interpreters-fix fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~deprecate-aout-elf-interpreters-fix
++++ a/fs/binfmt_elf.c
+@@ -744,7 +744,8 @@ static int load_elf_binary(struct linux_
  
-diff -puN kernel/printk.c~printk-add-interfaces-for-external-access-to-the-log-buffer-fix kernel/printk.c
---- a/kernel/printk.c~printk-add-interfaces-for-external-access-to-the-log-buffer-fix
-+++ a/kernel/printk.c
-@@ -233,14 +233,17 @@ int log_buf_get_len(void)
- int log_buf_copy(char *dest, int idx, int len)
- {
- 	int ret, max;
-+	bool took_lock = false;
- 
--	if (!oops_in_progress)
-+	if (!oops_in_progress) {
- 		spin_lock_irq(&logbuf_lock);
-+		took_lock = true;
-+	}
- 
- 	max = log_buf_get_len();
--	if (idx < 0 || idx >= max)
-+	if (idx < 0 || idx >= max) {
- 		ret = -1;
--	else {
-+	} else {
- 		if (len > max)
- 			len = max;
- 		ret = len;
-@@ -250,7 +253,7 @@ int log_buf_copy(char *dest, int idx, in
+ 		if (interpreter_type == INTERPRETER_AOUT && warn < 10) {
+ 			printk(KERN_WARNING "a.out ELF interpreter %s is "
+-	"deprecated and will not be supported anymore\n", elf_interpreter);
++				"deprecated and will not be supported "
++				"after Linux 2.6.25\n", elf_interpreter);
+ 			warn++;
  		}
- 	}
  
--	if (!oops_in_progress)
-+	if (took_lock)
- 		spin_unlock_irq(&logbuf_lock);
- 
- 	return ret;
-@@ -262,6 +265,7 @@ int log_buf_copy(char *dest, int idx, in
- int log_buf_read(int idx)
- {
- 	char ret;
-+
- 	if (log_buf_copy(&ret, idx, 1) == 1)
- 		return ret;
- 	else
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -118,7 +67,7 @@ pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
 add-in-sunos-41x-compatible-mode-for-ufs.patch
 core_pattern-fix-up-a-few-miscellaneous-bugs.patch
 printk-add-interfaces-for-external-access-to-the-log-buffer.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters.patch
 deprecate-aout-elf-interpreters-fix.patch
 ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
 pie-executable-randomization-fix-2.patch
