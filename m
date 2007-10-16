@@ -1,432 +1,502 @@
 From: akpm@linux-foundation.org
-Subject: - tdfxfb-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:44:31 -0700
-Message-ID: <200710162044.l9GKiVre016153@imap1.linux-foundation.org>
+Subject: - uml-clean-up-tlb-flush-path.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:38:02 -0700
+Message-ID: <200710162038.l9GKc2QM015410@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47488 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54731 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965407AbXJPVRf (ORCPT
+	by vger.kernel.org with ESMTP id S965807AbXJPVRv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:17:35 -0400
+	Tue, 16 Oct 2007 17:17:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tdfxfb: checkpatch fixes
+     uml: clean up tlb flush path
 has been removed from the -mm tree.  Its filename was
-     tdfxfb-checkpatch-fixes.patch
+     uml-clean-up-tlb-flush-path.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: tdfxfb: checkpatch fixes
-=46rom: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: uml: clean up tlb flush path
+From: Jeff Dike <jdike@addtoit.com>
 
-This patch fixes all errors pointed by the checkpatch.pl script.
+Tidy the tlb flushing code.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+With tt mode gone, there is no reason to have the capability to have
+called directly from do_mmap, do_mprotect, and do_munmap, rather than
+calling a function pointer that it is given.
+
+There was a large amount of data that was passed from function to
+function, being used at the lowest level, without being changed.  This
+stuff is now encapsulated in a structure which is initialized at the
+top layer and passed down.  This simplifies the code, reduces the
+amount of code needed to pass the parameters around, and saves on
+stack space.
+
+A somewhat more subtle change is the meaning of the current operation
+index.  It used to start at -1, being pre-incremented when adding an
+operation.  It now starts at 0, being post-incremented, with
+associated adjustments of +/- 1 on comparisons.
+
+In addition, tlb.h contained a couple of declarations which had no
+users outside of tlb.c, so they could be moved or deleted.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tdfxfb.c |  136 ++++++++++++++++++++++-----------------
- 1 file changed, 77 insertions(+), 59 deletions(-)
+ arch/um/include/tlb.h |   27 ----
+ arch/um/kernel/tlb.c  |  258 +++++++++++++++++++---------------------
+ 2 files changed, 127 insertions(+), 158 deletions(-)
 
-diff -puN drivers/video/tdfxfb.c~tdfxfb-checkpatch-fixes drivers/video/=
-tdfxfb.c
---- a/drivers/video/tdfxfb.c~tdfxfb-checkpatch-fixes
-+++ a/drivers/video/tdfxfb.c
-@@ -4,7 +4,7 @@
-  *
-  * Author: Hannu Mallat <hmallat@cc.hut.fi>
-  *
-- * Copyright =A9 1999 Hannu Mallat
-+ * Copyright =C2=A9 1999 Hannu Mallat
-  * All rights reserved
-  *
-  * Created      : Thu Sep 23 18:17:43 1999, hmallat
-@@ -42,18 +42,18 @@
-  *
-  * Version history:
-  *
-- * 0.1.4 (released 2002-05-28) ported over to new fbdev api by James S=
-immons
-+ * 0.1.4 (released 2002-05-28)	ported over to new fbdev api by James S=
-immons
-  *
-- * 0.1.3 (released 1999-11-02) added Attila's panning support, code
-- *			       reorg, hwcursor address page size alignment
-- *                             (for mmaping both frame buffer and regs=
-),
-- *                             and my changes to get rid of hardcoded
-- *                             VGA i/o register locations (uses PCI
-- *                             configuration info now)
-- * 0.1.2 (released 1999-10-19) added Attila Kesmarki's bug fixes and
-- *                             improvements
-- * 0.1.1 (released 1999-10-07) added Voodoo3 support by Harold Oga.
-- * 0.1.0 (released 1999-10-06) initial version
-+ * 0.1.3 (released 1999-11-02)	added Attila's panning support, code
-+ *				reorg, hwcursor address page size alignment
-+ *				(for mmaping both frame buffer and regs),
-+ *				and my changes to get rid of hardcoded
-+ *				VGA i/o register locations (uses PCI
-+ *				configuration info now)
-+ * 0.1.2 (released 1999-10-19)	added Attila Kesmarki's bug fixes and
-+ *				improvements
-+ * 0.1.1 (released 1999-10-07)	added Voodoo3 support by Harold Oga.
-+ * 0.1.0 (released 1999-10-06)	initial version
-  *
-  */
-=20
-@@ -70,12 +70,7 @@
-=20
- #include <video/tdfx.h>
-=20
--#undef TDFXFB_DEBUG
--#ifdef TDFXFB_DEBUG
--#define DPRINTK(a,b...) printk(KERN_DEBUG "fb: %s: " a, __FUNCTION__ ,=
- ## b)
--#else
--#define DPRINTK(a,b...)
--#endif
-+#define DPRINTK(a, b...) pr_debug("fb: %s: " a, __FUNCTION__ , ## b)
-=20
- #ifdef CONFIG_MTRR
- #include <asm/mtrr.h>
-@@ -172,7 +167,7 @@ static char *mode_option __devinitdata;
- static int nomtrr __devinitdata;
-=20
- /* -------------------------------------------------------------------=
-------
-- *                      Hardware-specific funcions
-+ *			Hardware-specific funcions
-  * -------------------------------------------------------------------=
------- */
-=20
- static inline u8 vga_inb(struct tdfx_par *par, u32 reg)
-@@ -276,7 +271,7 @@ static inline void banshee_make_room(str
- 	while ((tdfx_inl(par, STATUS) & 0x1f) < size - 1)
- 		cpu_relax();
- }
--=20
+diff -puN arch/um/include/tlb.h~uml-clean-up-tlb-flush-path arch/um/include/tlb.h
+--- a/arch/um/include/tlb.h~uml-clean-up-tlb-flush-path
++++ a/arch/um/include/tlb.h
+@@ -8,34 +8,7 @@
+ 
+ #include "um_mmu.h"
+ 
+-struct host_vm_op {
+-	enum { NONE, MMAP, MUNMAP, MPROTECT } type;
+-	union {
+-		struct {
+-			unsigned long addr;
+-			unsigned long len;
+-			unsigned int prot;
+-			int fd;
+-			__u64 offset;
+-		} mmap;
+-		struct {
+-			unsigned long addr;
+-			unsigned long len;
+-		} munmap;
+-		struct {
+-			unsigned long addr;
+-			unsigned long len;
+-			unsigned int prot;
+-		} mprotect;
+-	} u;
+-};
+-
+ extern void force_flush_all(void);
+-extern void fix_range_common(struct mm_struct *mm, unsigned long start_addr,
+-                             unsigned long end_addr, int force,
+-			     int (*do_ops)(struct mm_context *,
+-					   struct host_vm_op *, int, int,
+-					   void **));
+ extern int flush_tlb_kernel_range_common(unsigned long start,
+ 					 unsigned long end);
+ 
+diff -puN arch/um/kernel/tlb.c~uml-clean-up-tlb-flush-path arch/um/kernel/tlb.c
+--- a/arch/um/kernel/tlb.c~uml-clean-up-tlb-flush-path
++++ a/arch/um/kernel/tlb.c
+@@ -12,19 +12,85 @@
+ #include "skas.h"
+ #include "tlb.h"
+ 
++struct host_vm_change {
++	struct host_vm_op {
++		enum { NONE, MMAP, MUNMAP, MPROTECT } type;
++		union {
++			struct {
++				unsigned long addr;
++				unsigned long len;
++				unsigned int prot;
++				int fd;
++				__u64 offset;
++			} mmap;
++			struct {
++				unsigned long addr;
++				unsigned long len;
++			} munmap;
++			struct {
++				unsigned long addr;
++				unsigned long len;
++				unsigned int prot;
++			} mprotect;
++		} u;
++	} ops[1];
++	int index;
++	struct mm_id *id;
++	void *data;
++	int force;
++};
 +
- static int banshee_wait_idle(struct fb_info *info)
- {
- 	struct tdfx_par *par =3D info->par;
-@@ -286,8 +281,8 @@ static int banshee_wait_idle(struct fb_i
- 	tdfx_outl(par, COMMAND_3D, COMMAND_3D_NOP);
-=20
- 	do {
-- 		if ((tdfx_inl(par, STATUS) & STATUS_BUSY) =3D=3D 0)
--		       i++;
-+		if ((tdfx_inl(par, STATUS) & STATUS_BUSY) =3D=3D 0)
-+			i++;
- 	} while (i < 3);
-=20
- 	return 0;
-@@ -297,7 +292,7 @@ static int banshee_wait_idle(struct fb_i
-  * Set the color of a palette entry in 8bpp mode
-  */
- static inline void do_setpalentry(struct tdfx_par *par, unsigned regno=
-, u32 c)
--{ =20
++#define INIT_HVC(mm, force) \
++	((struct host_vm_change) \
++	 { .ops		= { { .type = NONE } },	\
++	   .id		= &mm->context.id, \
++       	   .data	= NULL, \
++	   .index	= 0, \
++	   .force	= force })
++
++static int do_ops(struct host_vm_change *hvc, int end,
++		  int finished)
 +{
- 	banshee_make_room(par, 2);
- 	tdfx_outl(par, DACADDR, regno);
- 	/* read after write makes it working */
-@@ -475,8 +470,12 @@ static int tdfxfb_check_var(struct fb_va
- 	}
- 	var->yoffset =3D 0;
-=20
--	/* Banshee doesn't support interlace, but Voodoo4/5 and probably Vood=
-oo3 do. */
--	/* no direct information about device id now? use max_pixclock for th=
-is... */
-+	/*
-+	 * Banshee doesn't support interlace, but Voodoo4/5 and probably
-+	 * Voodoo3 do.
-+	 * no direct information about device id now?
-+	 *  use max_pixclock for this...
-+	 */
- 	if (((var->vmode & FB_VMODE_MASK) =3D=3D FB_VMODE_INTERLACED) &&
- 	    (par->max_pixclock < VOODOO3_MAX_PIXCLOCK)) {
- 		DPRINTK("interlace not supported\n");
-@@ -516,7 +515,10 @@ static int tdfxfb_check_var(struct fb_va
- 	var->transp.length =3D 0;
- 	switch (var->bits_per_pixel) {
- 	case 8:
--		var->red.length =3D var->green.length =3D var->blue.length =3D 8;
-+		var->red.length =3D 8;
-+		var->red.offset =3D 0;
-+		var->green =3D var->red;
-+		var->blue =3D var->red;
- 		break;
- 	case 16:
- 		var->red.offset   =3D 11;
-@@ -536,7 +538,8 @@ static int tdfxfb_check_var(struct fb_va
- 		var->red.length =3D var->green.length =3D var->blue.length =3D 8;
- 		break;
- 	}
--	var->height =3D var->width =3D -1;
-+	var->width =3D -1;
-+	var->height =3D -1;
-=20
- 	var->accel_flags =3D FB_ACCELF_TEXT;
-=20
-@@ -581,7 +584,8 @@ static int tdfxfb_set_par(struct fb_info
- 		htotal   >>=3D 1;
- 	}
-=20
--	hd  =3D wd =3D (hdispend >> 3) - 1;
-+	wd =3D (hdispend >> 3) - 1;
-+	hd  =3D wd;
- 	hs  =3D (hsyncsta >> 3) - 1;
- 	he  =3D (hsyncend >> 3) - 1;
- 	ht  =3D (htotal >> 3) - 1;
-@@ -589,21 +593,23 @@ static int tdfxfb_set_par(struct fb_info
- 	hbe =3D ht;
-=20
- 	if ((info->var.vmode & FB_VMODE_MASK) =3D=3D FB_VMODE_DOUBLE) {
--		vbs =3D vd =3D (info->var.yres << 1) - 1;
-+		vd =3D (info->var.yres << 1) - 1;
- 		vs  =3D vd + (info->var.lower_margin << 1);
- 		ve  =3D vs + (info->var.vsync_len << 1);
--		vbe =3D vt =3D ve + (info->var.upper_margin << 1) - 1;
-+		vt =3D ve + (info->var.upper_margin << 1) - 1;
- 		reg.screensize =3D info->var.xres | (info->var.yres << 13);
- 		reg.vidcfg |=3D VIDCFG_HALF_MODE;
- 		reg.crt[0x09] =3D 0x80;
- 	} else {
--		vbs =3D vd =3D info->var.yres - 1;
-+		vd =3D info->var.yres - 1;
- 		vs  =3D vd + info->var.lower_margin;
- 		ve  =3D vs + info->var.vsync_len;
--		vbe =3D vt =3D ve + info->var.upper_margin - 1;
-+		vt =3D ve + info->var.upper_margin - 1;
- 		reg.screensize =3D info->var.xres | (info->var.yres << 12);
- 		reg.vidcfg &=3D ~VIDCFG_HALF_MODE;
- 	}
-+	vbs =3D vd;
-+	vbe =3D vt;
-=20
- 	/* this is all pretty standard VGA register stuffing */
- 	reg.misc[0x00] =3D 0x0f |
-@@ -736,7 +742,7 @@ static int tdfxfb_set_par(struct fb_info
- }
-=20
- /* A handy macro shamelessly pinched from matroxfb */
--#define CNVT_TOHW(val, width) ((((val)<<(width))+0x7FFF-(val))>>16)
-+#define CNVT_TOHW(val, width) ((((val) << (width)) + 0x7FFF - (val)) >=
-> 16)
-=20
- static int tdfxfb_setcolreg(unsigned regno, unsigned red, unsigned gre=
-en,
- 			    unsigned blue, unsigned transp,
-@@ -751,14 +757,16 @@ static int tdfxfb_setcolreg(unsigned reg
- 	/* grayscale works only partially under directcolor */
- 	if (info->var.grayscale) {
- 		/* grayscale =3D 0.30*R + 0.59*G + 0.11*B */
--		red =3D green =3D blue =3D (red * 77 + green * 151 + blue * 28) >> 8=
-;
-+		blue =3D (red * 77 + green * 151 + blue * 28) >> 8;
-+		green =3D blue;
-+		red =3D blue;
- 	}
-=20
- 	switch (info->fix.visual) {
- 	case FB_VISUAL_PSEUDOCOLOR:
--		rgbcol =3D(((u32)red   & 0xff00) << 8) |
--			(((u32)green & 0xff00) << 0) |
--			(((u32)blue  & 0xff00) >> 8);
-+		rgbcol =3D (((u32)red   & 0xff00) << 8) |
-+			 (((u32)green & 0xff00) << 0) |
-+			 (((u32)blue  & 0xff00) >> 8);
- 		do_setpalentry(par, regno, rgbcol);
- 		break;
- 	/* Truecolor has no hardware color palettes. */
-@@ -851,7 +859,7 @@ static void tdfxfb_fillrect(struct fb_in
- 	struct tdfx_par *par =3D info->par;
- 	u32 bpp =3D info->var.bits_per_pixel;
- 	u32 stride =3D info->fix.line_length;
--	u32 fmt=3D stride | ((bpp + ((bpp =3D=3D 8) ? 0 : 8)) << 13);
-+	u32 fmt =3D stride | ((bpp + ((bpp =3D=3D 8) ? 0 : 8)) << 13);
- 	int tdfx_rop;
- 	u32 dx =3D rect->dx;
- 	u32 dy =3D rect->dy;
-@@ -922,13 +930,13 @@ static void tdfxfb_copyarea(struct fb_in
- 	}
-=20
- 	if (area->sx <=3D area->dx) {
--		//-X
-+		/* -X */
- 		blitcmd |=3D BIT(14);
- 		sx +=3D area->width - 1;
- 		dx +=3D area->width - 1;
- 	}
- 	if (area->sy <=3D area->dy) {
--		//-Y
-+		/* -Y */
- 		blitcmd |=3D BIT(15);
- 		sy +=3D area->height - 1;
- 		dy +=3D area->height - 1;
-@@ -961,9 +969,13 @@ static void tdfxfb_imageblit(struct fb_i
- 	u32 dstbase =3D 0;
-=20
- 	if (image->depth !=3D 1) {
--		//banshee_make_room(par, 6 + ((size + 3) >> 2));
--		//srcfmt =3D stride | ((bpp+((bpp=3D=3D8) ? 0 : 8)) << 13) | 0x40000=
-0;
-+#ifdef BROKEN_CODE
-+		banshee_make_room(par, 6 + ((size + 3) >> 2));
-+		srcfmt =3D stride | ((bpp + ((bpp =3D=3D 8) ? 0 : 8)) << 13) |
-+			0x400000;
-+#else
- 		cfb_imageblit(info, image);
-+#endif
- 		return;
- 	}
- 	banshee_make_room(par, 9);
-@@ -998,7 +1010,8 @@ static void tdfxfb_imageblit(struct fb_i
- 	tdfx_outl(par, DSTBASE, dstbase);
- 	tdfx_outl(par, SRCXY, 0);
- 	tdfx_outl(par, DSTXY, dx | (dy << 16));
--	tdfx_outl(par, COMMAND_2D, COMMAND_2D_H2S_BITBLT | (TDFX_ROP_COPY << =
-24));
-+	tdfx_outl(par, COMMAND_2D,
-+		  COMMAND_2D_H2S_BITBLT | (TDFX_ROP_COPY << 24));
- 	tdfx_outl(par, SRCFORMAT, srcfmt);
- 	tdfx_outl(par, DSTFORMAT, dstfmt);
- 	tdfx_outl(par, DSTSIZE, image->width | (image->height << 16));
-@@ -1013,7 +1026,7 @@ static void tdfxfb_imageblit(struct fb_i
- 			fifo_free =3D 31;
- 			banshee_make_room(par, fifo_free);
++	struct host_vm_op *op;
++	int i, ret = 0;
++
++	for (i = 0; i < end && !ret; i++) {
++		op = &hvc->ops[i];
++		switch(op->type) {
++		case MMAP:
++			ret = map(hvc->id, op->u.mmap.addr, op->u.mmap.len,
++				  op->u.mmap.prot, op->u.mmap.fd,
++				  op->u.mmap.offset, finished, &hvc->data);
++			break;
++		case MUNMAP:
++			ret = unmap(hvc->id, op->u.munmap.addr,
++				    op->u.munmap.len, finished, &hvc->data);
++			break;
++		case MPROTECT:
++			ret = protect(hvc->id, op->u.mprotect.addr,
++				      op->u.mprotect.len, op->u.mprotect.prot,
++				      finished, &hvc->data);
++			break;
++		default:
++			printk(KERN_ERR "Unknown op type %d in do_ops\n",
++			       op->type);
++			break;
++		}
++	}
++
++	return ret;
++}
++
+ static int add_mmap(unsigned long virt, unsigned long phys, unsigned long len,
+-		    unsigned int prot, struct host_vm_op *ops, int *index,
+-		    int last_filled, struct mm_context *mmu, void **flush,
+-		    int (*do_ops)(struct mm_context *, struct host_vm_op *,
+-				  int, int, void **))
++		    unsigned int prot, struct host_vm_change *hvc)
+ {
+ 	__u64 offset;
+ 	struct host_vm_op *last;
+ 	int fd, ret = 0;
+ 
+ 	fd = phys_mapping(phys, &offset);
+-	if (*index != -1) {
+-		last = &ops[*index];
++	if (hvc->index != 0) {
++		last = &hvc->ops[hvc->index - 1];
+ 		if ((last->type == MMAP) &&
+ 		   (last->u.mmap.addr + last->u.mmap.len == virt) &&
+ 		   (last->u.mmap.prot == prot) && (last->u.mmap.fd == fd) &&
+@@ -34,33 +100,30 @@ static int add_mmap(unsigned long virt, 
  		}
--		tdfx_outl(par, LAUNCH_2D, *(u32*)chardata);
-+		tdfx_outl(par, LAUNCH_2D, *(u32 *)chardata);
- 		chardata +=3D 4;
  	}
-=20
-@@ -1026,11 +1039,11 @@ static void tdfxfb_imageblit(struct fb_i
- 		tdfx_outl(par, LAUNCH_2D, *chardata);
- 		break;
- 	case 2:
--		tdfx_outl(par, LAUNCH_2D, *(u16*)chardata);
-+		tdfx_outl(par, LAUNCH_2D, *(u16 *)chardata);
- 		break;
- 	case 3:
- 		tdfx_outl(par, LAUNCH_2D,
--			*(u16*)chardata | ((chardata[3]) << 24));
-+			*(u16 *)chardata | (chardata[3] << 24));
- 		break;
+ 
+-	if (*index == last_filled) {
+-		ret = (*do_ops)(mmu, ops, last_filled, 0, flush);
+-		*index = -1;
++	if (hvc->index == ARRAY_SIZE(hvc->ops)) {
++		ret = do_ops(hvc, ARRAY_SIZE(hvc->ops), 0);
++		hvc->index = 0;
  	}
+ 
+-	ops[++*index] = ((struct host_vm_op) { .type	= MMAP,
+-			     			.u = { .mmap = {
+-						       .addr	= virt,
+-						       .len	= len,
+-						       .prot	= prot,
+-						       .fd	= fd,
+-						       .offset	= offset }
++	hvc->ops[hvc->index++] = ((struct host_vm_op)
++				  { .type	= MMAP,
++				    .u = { .mmap = { .addr	= virt,
++						     .len	= len,
++						     .prot	= prot,
++						     .fd	= fd,
++						     .offset	= offset }
+ 			   } });
+ 	return ret;
  }
-@@ -1175,8 +1188,9 @@ static int __devinit tdfxfb_probe(struct
- 	struct fb_info *info;
- 	int err, lpitch;
-=20
--	if ((err =3D pci_enable_device(pdev))) {
--		printk(KERN_WARNING "tdfxfb: Can't enable pdev: %d\n", err);
-+	err =3D pci_enable_device(pdev);
-+	if (err) {
-+		printk(KERN_ERR "tdfxfb: Can't enable pdev: %d\n", err);
- 		return err;
+ 
+ static int add_munmap(unsigned long addr, unsigned long len,
+-		      struct host_vm_op *ops, int *index, int last_filled,
+-		      struct mm_context *mmu, void **flush,
+-		      int (*do_ops)(struct mm_context *, struct host_vm_op *,
+-				    int, int, void **))
++		      struct host_vm_change *hvc)
+ {
+ 	struct host_vm_op *last;
+ 	int ret = 0;
+ 
+-	if (*index != -1) {
+-		last = &ops[*index];
++	if (hvc->index != 0) {
++		last = &hvc->ops[hvc->index - 1];
+ 		if ((last->type == MUNMAP) &&
+ 		   (last->u.munmap.addr + last->u.mmap.len == addr)) {
+ 			last->u.munmap.len += len;
+@@ -68,29 +131,26 @@ static int add_munmap(unsigned long addr
+ 		}
  	}
-=20
-@@ -1207,33 +1221,36 @@ static int __devinit tdfxfb_probe(struct
- 	tdfx_fix.mmio_len =3D pci_resource_len(pdev, 0);
- 	if (!request_mem_region(tdfx_fix.mmio_start, tdfx_fix.mmio_len,
- 				"tdfx regbase")) {
--		printk(KERN_WARNING "tdfxfb: Can't reserve regbase\n");
-+		printk(KERN_ERR "tdfxfb: Can't reserve regbase\n");
- 		goto out_err;
+ 
+-	if (*index == last_filled) {
+-		ret = (*do_ops)(mmu, ops, last_filled, 0, flush);
+-		*index = -1;
++	if (hvc->index == ARRAY_SIZE(hvc->ops)) {
++		ret = do_ops(hvc, ARRAY_SIZE(hvc->ops), 0);
++		hvc->index = 0;
  	}
-=20
- 	default_par->regbase_virt =3D
- 		ioremap_nocache(tdfx_fix.mmio_start, tdfx_fix.mmio_len);
- 	if (!default_par->regbase_virt) {
--		printk("fb: Can't remap %s register area.\n", tdfx_fix.id);
-+		printk(KERN_ERR "fb: Can't remap %s register area.\n",
-+				tdfx_fix.id);
- 		goto out_err_regbase;
+ 
+-	ops[++*index] = ((struct host_vm_op) { .type	= MUNMAP,
+-			     		       .u = { .munmap = {
+-						        .addr	= addr,
+-							.len	= len } } });
++	hvc->ops[hvc->index++] = ((struct host_vm_op)
++				  { .type	= MUNMAP,
++			     	    .u = { .munmap = { .addr	= addr,
++						       .len	= len } } });
+ 	return ret;
+ }
+ 
+ static int add_mprotect(unsigned long addr, unsigned long len,
+-			unsigned int prot, struct host_vm_op *ops, int *index,
+-			int last_filled, struct mm_context *mmu, void **flush,
+-			int (*do_ops)(struct mm_context *, struct host_vm_op *,
+-				      int, int, void **))
++			unsigned int prot, struct host_vm_change *hvc)
+ {
+ 	struct host_vm_op *last;
+ 	int ret = 0;
+ 
+-	if (*index != -1) {
+-		last = &ops[*index];
++	if (hvc->index != 0) {
++		last = &hvc->ops[hvc->index - 1];
+ 		if ((last->type == MPROTECT) &&
+ 		   (last->u.mprotect.addr + last->u.mprotect.len == addr) &&
+ 		   (last->u.mprotect.prot == prot)) {
+@@ -99,28 +159,24 @@ static int add_mprotect(unsigned long ad
+ 		}
  	}
-=20
- 	tdfx_fix.smem_start =3D pci_resource_start(pdev, 1);
--	if (!(tdfx_fix.smem_len =3D do_lfb_size(default_par, pdev->device))) =
-{
--		printk("fb: Can't count %s memory.\n", tdfx_fix.id);
-+	tdfx_fix.smem_len =3D do_lfb_size(default_par, pdev->device);
-+	if (!tdfx_fix.smem_len) {
-+		printk(KERN_ERR "fb: Can't count %s memory.\n", tdfx_fix.id);
- 		goto out_err_regbase;
+ 
+-	if (*index == last_filled) {
+-		ret = (*do_ops)(mmu, ops, last_filled, 0, flush);
+-		*index = -1;
++	if (hvc->index == ARRAY_SIZE(hvc->ops)) {
++		ret = do_ops(hvc, ARRAY_SIZE(hvc->ops), 0);
++		hvc->index = 0;
  	}
-=20
- 	if (!request_mem_region(tdfx_fix.smem_start,
- 				pci_resource_len(pdev, 1), "tdfx smem")) {
--		printk(KERN_WARNING "tdfxfb: Can't reserve smem\n");
-+		printk(KERN_ERR "tdfxfb: Can't reserve smem\n");
- 		goto out_err_regbase;
- 	}
-=20
- 	info->screen_base =3D ioremap_nocache(tdfx_fix.smem_start,
- 					    tdfx_fix.smem_len);
- 	if (!info->screen_base) {
--		printk("fb: Can't remap %s framebuffer.\n", tdfx_fix.id);
-+		printk(KERN_ERR "fb: Can't remap %s framebuffer.\n",
-+				tdfx_fix.id);
- 		goto out_err_screenbase;
- 	}
-=20
-@@ -1241,11 +1258,12 @@ static int __devinit tdfxfb_probe(struct
-=20
- 	if (!request_region(pci_resource_start(pdev, 2),
- 			    pci_resource_len(pdev, 2), "tdfx iobase")) {
--		printk(KERN_WARNING "tdfxfb: Can't reserve iobase\n");
-+		printk(KERN_ERR "tdfxfb: Can't reserve iobase\n");
- 		goto out_err_screenbase;
- 	}
-=20
--	printk("fb: %s memory =3D %dK\n", tdfx_fix.id, tdfx_fix.smem_len >> 1=
-0);
-+	printk(KERN_INFO "fb: %s memory =3D %dK\n", tdfx_fix.id,
-+			tdfx_fix.smem_len >> 10);
-=20
- 	default_par->mtrr_handle =3D -1;
- 	if (!nomtrr)
-@@ -1261,7 +1279,7 @@ static int __devinit tdfxfb_probe(struct
- 	info->pseudo_palette	=3D default_par->palette;
- 	info->flags		=3D FBINFO_DEFAULT | FBINFO_HWACCEL_YPAN;
- #ifdef CONFIG_FB_3DFX_ACCEL
--	info->flags             |=3D FBINFO_HWACCEL_FILLRECT |
-+	info->flags		|=3D FBINFO_HWACCEL_FILLRECT |
- 				   FBINFO_HWACCEL_COPYAREA |
- 				   FBINFO_HWACCEL_IMAGEBLIT |
- 				   FBINFO_READS_FAST;
-@@ -1286,12 +1304,12 @@ static int __devinit tdfxfb_probe(struct
- 		goto out_err_iobase;
-=20
- 	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0) {
--		printk(KERN_WARNING "tdfxfb: Can't allocate color map\n");
-+		printk(KERN_ERR "tdfxfb: Can't allocate color map\n");
- 		goto out_err_iobase;
- 	}
-=20
- 	if (register_framebuffer(info) < 0) {
--		printk("tdfxfb: can't register framebuffer\n");
-+		printk(KERN_ERR "tdfxfb: can't register framebuffer\n");
- 		fb_dealloc_cmap(&info->cmap);
- 		goto out_err_iobase;
- 	}
+ 
+-	ops[++*index] = ((struct host_vm_op) { .type	= MPROTECT,
+-			     		       .u = { .mprotect = {
+-						       .addr	= addr,
+-						       .len	= len,
+-						       .prot	= prot } } });
++	hvc->ops[hvc->index++] = ((struct host_vm_op)
++				  { .type	= MPROTECT,
++			     	    .u = { .mprotect = { .addr	= addr,
++							 .len	= len,
++							 .prot	= prot } } });
+ 	return ret;
+ }
+ 
+ #define ADD_ROUND(n, inc) (((n) + (inc)) & ~((inc) - 1))
+ 
+ static inline int update_pte_range(pmd_t *pmd, unsigned long addr,
+-				   unsigned long end, struct host_vm_op *ops,
+-				   int last_op, int *op_index, int force,
+-				   struct mm_context *mmu, void **flush,
+-				   int (*do_ops)(struct mm_context *,
+-						 struct host_vm_op *, int, int,
+-						 void **))
++				   unsigned long end,
++				   struct host_vm_change *hvc)
+ {
+ 	pte_t *pte;
+ 	int r, w, x, prot, ret = 0;
+@@ -138,29 +194,22 @@ static inline int update_pte_range(pmd_t
+ 		}
+ 		prot = ((r ? UM_PROT_READ : 0) | (w ? UM_PROT_WRITE : 0) |
+ 			(x ? UM_PROT_EXEC : 0));
+-		if (force || pte_newpage(*pte)) {
++		if (hvc->force || pte_newpage(*pte)) {
+ 			if (pte_present(*pte))
+ 				ret = add_mmap(addr, pte_val(*pte) & PAGE_MASK,
+-					       PAGE_SIZE, prot, ops, op_index,
+-					       last_op, mmu, flush, do_ops);
+-			else ret = add_munmap(addr, PAGE_SIZE, ops, op_index,
+-					      last_op, mmu, flush, do_ops);
++					       PAGE_SIZE, prot, hvc);
++			else ret = add_munmap(addr, PAGE_SIZE, hvc);
+ 		}
+ 		else if (pte_newprot(*pte))
+-			ret = add_mprotect(addr, PAGE_SIZE, prot, ops, op_index,
+-					   last_op, mmu, flush, do_ops);
++			ret = add_mprotect(addr, PAGE_SIZE, prot, hvc);
+ 		*pte = pte_mkuptodate(*pte);
+ 	} while (pte++, addr += PAGE_SIZE, ((addr != end) && !ret));
+ 	return ret;
+ }
+ 
+ static inline int update_pmd_range(pud_t *pud, unsigned long addr,
+-				   unsigned long end, struct host_vm_op *ops,
+-				   int last_op, int *op_index, int force,
+-				   struct mm_context *mmu, void **flush,
+-				   int (*do_ops)(struct mm_context *,
+-						 struct host_vm_op *, int, int,
+-						 void **))
++				   unsigned long end,
++				   struct host_vm_change *hvc)
+ {
+ 	pmd_t *pmd;
+ 	unsigned long next;
+@@ -170,27 +219,19 @@ static inline int update_pmd_range(pud_t
+ 	do {
+ 		next = pmd_addr_end(addr, end);
+ 		if (!pmd_present(*pmd)) {
+-			if (force || pmd_newpage(*pmd)) {
+-				ret = add_munmap(addr, next - addr, ops,
+-						 op_index, last_op, mmu,
+-						 flush, do_ops);
++			if (hvc->force || pmd_newpage(*pmd)) {
++				ret = add_munmap(addr, next - addr, hvc);
+ 				pmd_mkuptodate(*pmd);
+ 			}
+ 		}
+-		else ret = update_pte_range(pmd, addr, next, ops, last_op,
+-					    op_index, force, mmu, flush,
+-					    do_ops);
++		else ret = update_pte_range(pmd, addr, next, hvc);
+ 	} while (pmd++, addr = next, ((addr != end) && !ret));
+ 	return ret;
+ }
+ 
+ static inline int update_pud_range(pgd_t *pgd, unsigned long addr,
+-				   unsigned long end, struct host_vm_op *ops,
+-				   int last_op, int *op_index, int force,
+-				   struct mm_context *mmu, void **flush,
+-				   int (*do_ops)(struct mm_context *,
+-						 struct host_vm_op *, int, int,
+-						 void **))
++				   unsigned long end,
++				   struct host_vm_change *hvc)
+ {
+ 	pud_t *pud;
+ 	unsigned long next;
+@@ -200,51 +241,39 @@ static inline int update_pud_range(pgd_t
+ 	do {
+ 		next = pud_addr_end(addr, end);
+ 		if (!pud_present(*pud)) {
+-			if (force || pud_newpage(*pud)) {
+-				ret = add_munmap(addr, next - addr, ops,
+-						 op_index, last_op, mmu,
+-						 flush, do_ops);
++			if (hvc->force || pud_newpage(*pud)) {
++				ret = add_munmap(addr, next - addr, hvc);
+ 				pud_mkuptodate(*pud);
+ 			}
+ 		}
+-		else ret = update_pmd_range(pud, addr, next, ops, last_op,
+-					    op_index, force, mmu, flush,
+-					    do_ops);
++		else ret = update_pmd_range(pud, addr, next, hvc);
+ 	} while (pud++, addr = next, ((addr != end) && !ret));
+ 	return ret;
+ }
+ 
+ void fix_range_common(struct mm_struct *mm, unsigned long start_addr,
+-		      unsigned long end_addr, int force,
+-		      int (*do_ops)(struct mm_context *, struct host_vm_op *,
+-				    int, int, void **))
++		      unsigned long end_addr, int force)
+ {
+ 	pgd_t *pgd;
+-	struct mm_context *mmu = &mm->context;
+-	struct host_vm_op ops[1];
++	struct host_vm_change hvc;
+ 	unsigned long addr = start_addr, next;
+-	int ret = 0, last_op = ARRAY_SIZE(ops) - 1, op_index = -1;
+-	void *flush = NULL;
++	int ret = 0;
+ 
+-	ops[0].type = NONE;
++	hvc = INIT_HVC(mm, force);
+ 	pgd = pgd_offset(mm, addr);
+ 	do {
+ 		next = pgd_addr_end(addr, end_addr);
+ 		if (!pgd_present(*pgd)) {
+ 			if (force || pgd_newpage(*pgd)) {
+-				ret = add_munmap(addr, next - addr, ops,
+-						 &op_index, last_op, mmu,
+-						 &flush, do_ops);
++				ret = add_munmap(addr, next - addr, &hvc);
+ 				pgd_mkuptodate(*pgd);
+ 			}
+ 		}
+-		else ret = update_pud_range(pgd, addr, next, ops, last_op,
+-					    &op_index, force, mmu, &flush,
+-					    do_ops);
++		else ret = update_pud_range(pgd, addr, next, &hvc);
+ 	} while (pgd++, addr = next, ((addr != end_addr) && !ret));
+ 
+ 	if (!ret)
+-		ret = (*do_ops)(mmu, ops, op_index, 1, &flush);
++		ret = do_ops(&hvc, hvc.index, 1);
+ 
+ 	/* This is not an else because ret is modified above */
+ 	if (ret) {
+@@ -453,46 +482,13 @@ void __flush_tlb_one(unsigned long addr)
+ 	flush_tlb_kernel_range_common(addr, addr + PAGE_SIZE);
+ }
+ 
+-static int do_ops(struct mm_context *mmu, struct host_vm_op *ops, int last,
+-		  int finished, void **flush)
+-{
+-	struct host_vm_op *op;
+-	int i, ret = 0;
+-
+-	for (i = 0; i <= last && !ret; i++) {
+-	op = &ops[i];
+-		switch(op->type) {
+-		case MMAP:
+-			ret = map(&mmu->id, op->u.mmap.addr, op->u.mmap.len,
+-				  op->u.mmap.prot, op->u.mmap.fd,
+-				  op->u.mmap.offset, finished, flush);
+-			break;
+-		case MUNMAP:
+-			ret = unmap(&mmu->id, op->u.munmap.addr,
+-				    op->u.munmap.len, finished, flush);
+-			break;
+-		case MPROTECT:
+-			ret = protect(&mmu->id, op->u.mprotect.addr,
+-				      op->u.mprotect.len, op->u.mprotect.prot,
+-				      finished, flush);
+-			break;
+-		default:
+-			printk(KERN_ERR "Unknown op type %d in do_ops\n",
+-			       op->type);
+-			break;
+-		}
+-	}
+-
+-	return ret;
+-}
+-
+ static void fix_range(struct mm_struct *mm, unsigned long start_addr,
+ 		      unsigned long end_addr, int force)
+ {
+ 	if (!proc_mm && (end_addr > CONFIG_STUB_START))
+ 		end_addr = CONFIG_STUB_START;
+ 
+-	fix_range_common(mm, start_addr, end_addr, force, do_ops);
++	fix_range_common(mm, start_addr, end_addr, force);
+ }
+ 
+ void flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-git-alsa.patch
-cyber2000fb-checkpatch-fixes.patch
+git-kvm.patch
+uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
+bitops-introduce-lock-ops.patch
