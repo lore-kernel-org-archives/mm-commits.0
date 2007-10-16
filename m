@@ -1,255 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: - uml-generic_clockevents-support.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:38:46 -0700
-Message-ID: <200710162038.l9GKckUd015480@imap1.linux-foundation.org>
+Subject: - tty-bring-the-old-cris-driver-back-somewhere-into-the.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:36:43 -0700
+Message-ID: <200710162036.l9GKahFn015210@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59534 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38333 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965698AbXJPV3D (ORCPT
+	by vger.kernel.org with ESMTP id S1760117AbXJPV3G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:29:03 -0400
+	Tue, 16 Oct 2007 17:29:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: GENERIC_CLOCKEVENTS support
+     tty: bring the old cris driver back somewhere into the realm of new tty buffering
 has been removed from the -mm tree.  Its filename was
-     uml-generic_clockevents-support.patch
+     tty-bring-the-old-cris-driver-back-somewhere-into-the.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: GENERIC_CLOCKEVENTS support
-From: Jeff Dike <jdike@addtoit.com>
+Subject: tty: bring the old cris driver back somewhere into the realm of new tty buffering
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Enable CONFIG_GENERIC_CLOCKEVENTS.
-
-timer_irq gets its name changed to timer_handler, and becomes the recipient of
-timer signals.
-
-The clock_event_device is set up to imitate the current ticking clock, i.e. 
-CLOCK_EVT_FEAT_ONESHOT is not enabled yet.
-
-disable_timer now doesn't ignore SIGALRM and SIGVTALRM because that breaks
-delay calibration.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/Kconfig         |    4 +
- arch/um/defconfig       |    3 +
- arch/um/kernel/time.c   |   99 ++++++++++++++++++--------------------
- arch/um/os-Linux/time.c |    4 -
- 4 files changed, 54 insertions(+), 56 deletions(-)
+ drivers/serial/crisv10.c |   67 ++++++-------------------------------
+ 1 file changed, 12 insertions(+), 55 deletions(-)
 
-diff -puN arch/um/Kconfig~uml-generic_clockevents-support arch/um/Kconfig
---- a/arch/um/Kconfig~uml-generic_clockevents-support
-+++ a/arch/um/Kconfig
-@@ -59,6 +59,10 @@ config GENERIC_TIME
- 	bool
- 	default y
- 
-+config GENERIC_CLOCKEVENTS
-+	bool
-+	default y
-+
- # Used in kernel/irq/manage.c and include/linux/irq.h
- config IRQ_RELEASE_METHOD
- 	bool
-diff -puN arch/um/defconfig~uml-generic_clockevents-support arch/um/defconfig
---- a/arch/um/defconfig~uml-generic_clockevents-support
-+++ a/arch/um/defconfig
-@@ -73,6 +73,9 @@ CONFIG_FLATMEM=y
- CONFIG_FLAT_NODE_MEM_MAP=y
- # CONFIG_SPARSEMEM_STATIC is not set
- CONFIG_SPLIT_PTLOCK_CPUS=4
-+# CONFIG_TICK_ONESHOT is not set
-+# CONFIG_NO_HZ is not set
-+CONFIG_HIGH_RES_TIMERS=y
- CONFIG_LD_SCRIPT_DYN=y
- CONFIG_NET=y
- CONFIG_BINFMT_ELF=y
-diff -puN arch/um/kernel/time.c~uml-generic_clockevents-support arch/um/kernel/time.c
---- a/arch/um/kernel/time.c~uml-generic_clockevents-support
-+++ a/arch/um/kernel/time.c
-@@ -3,6 +3,7 @@
-  * Licensed under the GPL
+diff -puN drivers/serial/crisv10.c~tty-bring-the-old-cris-driver-back-somewhere-into-the drivers/serial/crisv10.c
+--- a/drivers/serial/crisv10.c~tty-bring-the-old-cris-driver-back-somewhere-into-the
++++ a/drivers/serial/crisv10.c
+@@ -514,6 +514,8 @@ struct tty_driver *serial_driver;
+  * TTY_THRESHOLD_THROTTLE/UNTHROTTLE=128
+  * BUF_SIZE can't be > 128
   */
- 
-+#include "linux/clockchips.h"
- #include "linux/interrupt.h"
- #include "linux/jiffies.h"
- #include "linux/threads.h"
-@@ -24,9 +25,10 @@ static unsigned long long prev_nsecs[NR_
- static long long delta[NR_CPUS];		/* Deviation per interval */
- #endif
- 
--void timer_irq(struct uml_pt_regs *regs)
-+void timer_handler(int sig, struct uml_pt_regs *regs)
- {
- 	unsigned long long ticks = 0;
-+	unsigned long flags;
- #ifdef CONFIG_UML_REAL_TIME_CLOCK
- 	int c = cpu();
- 	if (prev_nsecs[c]) {
-@@ -47,89 +49,82 @@ void timer_irq(struct uml_pt_regs *regs)
- #else
- 	ticks = 1;
- #endif
++#define CRIS_BUF_SIZE	512
 +
-+	local_irq_save(flags);
- 	while (ticks > 0) {
- 		do_IRQ(TIMER_IRQ, regs);
- 		ticks--;
+ /* Currently 16 descriptors x 128 bytes = 2048 bytes */
+ #define SERIAL_DESCR_BUF_SIZE 256
+ 
+@@ -2497,55 +2499,18 @@ static void flush_to_flip_buffer(struct 
+ 		return;
  	}
-+	local_irq_restore(flags);
- }
  
--/* Protects local_offset */
--static DEFINE_SPINLOCK(timer_spinlock);
--static unsigned long long local_offset = 0;
--
--static inline unsigned long long get_time(void)
-+static void itimer_set_mode(enum clock_event_mode mode,
-+			    struct clock_event_device *evt)
- {
--	unsigned long long nsecs;
--	unsigned long flags;
--
--	spin_lock_irqsave(&timer_spinlock, flags);
--	nsecs = os_nsecs();
--	nsecs += local_offset;
--	spin_unlock_irqrestore(&timer_spinlock, flags);
-+	switch(mode) {
-+	case CLOCK_EVT_MODE_PERIODIC:
-+		set_interval();
-+		break;
-+
-+	case CLOCK_EVT_MODE_SHUTDOWN:
-+	case CLOCK_EVT_MODE_UNUSED:
-+		disable_timer();
-+		break;
-+	case CLOCK_EVT_MODE_ONESHOT:
-+		BUG();
-+		break;
- 
--	return nsecs;
-+	case CLOCK_EVT_MODE_RESUME:
-+		break;
-+	}
- }
- 
--irqreturn_t um_timer(int irq, void *dev)
--{
--	unsigned long long nsecs;
--	unsigned long flags;
--
--	write_seqlock_irqsave(&xtime_lock, flags);
-+static struct clock_event_device itimer_clockevent = {
-+	.name		= "itimer",
-+	.rating		= 250,
-+	.cpumask	= CPU_MASK_ALL,
-+	.features	= CLOCK_EVT_FEAT_PERIODIC,
-+	.set_mode	= itimer_set_mode,
-+	.set_next_event = NULL,
-+	.shift		= 32,
-+	.irq		= 0,
-+};
- 
--	do_timer(1);
--
--#ifdef CONFIG_UML_REAL_TIME_CLOCK
--	nsecs = get_time();
--#else
--	nsecs = (unsigned long long) xtime.tv_sec * BILLION + xtime.tv_nsec +
--		BILLION / HZ;
+-	length = tty->flip.count;
+-	/* Don't flip more than the ldisc has room for.
+-	 * The return value from ldisc.receive_room(tty) - might not be up to
+-	 * date, the previous flip of up to TTY_FLIPBUF_SIZE might be on the
+-	 * processed and not accounted for yet.
+-	 * Since we use DMA, 1 SERIAL_DESCR_BUF_SIZE could be on the way.
+-	 * Lets buffer data here and let flow control take care of it.
+-	 * Since we normally flip large chunks, the ldisc don't react
+-	 * with throttle until too late if we flip to much.
+-	 */
+-	max_flip_size = tty->ldisc.receive_room(tty);
+-	if (max_flip_size < 0)
+-		max_flip_size = 0;
+-	if (max_flip_size <= (TTY_FLIPBUF_SIZE +         /* Maybe not accounted for */
+-			      length + info->recv_cnt +  /* We have this queued */
+-			      2*SERIAL_DESCR_BUF_SIZE +    /* This could be on the way */
+-			      TTY_THRESHOLD_THROTTLE)) { /* Some slack */
+-		/* check TTY_THROTTLED first so it indicates our state */
+-		if (!test_and_set_bit(TTY_THROTTLED, &tty->flags)) {
+-			DFLOW(DEBUG_LOG(info->line,"flush_to_flip throttles room %lu\n", max_flip_size));
+-			rs_throttle(tty);
+-		}
+-#if 0
+-		else if (max_flip_size <= (TTY_FLIPBUF_SIZE +         /* Maybe not accounted for */
+-					   length + info->recv_cnt +  /* We have this queued */
+-					   SERIAL_DESCR_BUF_SIZE +    /* This could be on the way */
+-					   TTY_THRESHOLD_THROTTLE)) { /* Some slack */
+-			DFLOW(DEBUG_LOG(info->line,"flush_to_flip throttles again! %lu\n", max_flip_size));
+-			rs_throttle(tty);
+-		}
 -#endif
--	xtime.tv_sec = nsecs / NSEC_PER_SEC;
--	xtime.tv_nsec = nsecs - xtime.tv_sec * NSEC_PER_SEC;
+-	}
 -
--	write_sequnlock_irqrestore(&xtime_lock, flags);
-+static irqreturn_t um_timer(int irq, void *dev)
-+{
-+	(*itimer_clockevent.event_handler)(&itimer_clockevent);
- 
- 	return IRQ_HANDLED;
- }
- 
--static void register_timer(void)
-+static void __init setup_itimer(void)
- {
- 	int err;
- 
--	timer_init();
+-	if (max_flip_size > TTY_FLIPBUF_SIZE)
+-		max_flip_size = TTY_FLIPBUF_SIZE;
 -
- 	err = request_irq(TIMER_IRQ, um_timer, IRQF_DISABLED, "timer", NULL);
- 	if (err != 0)
- 		printk(KERN_ERR "register_timer : request_irq failed - "
- 		       "errno = %d\n", -err);
+-	while ((buffer = info->first_recv_buffer) && length < max_flip_size) {
++	while ((buffer = info->first_recv_buffer) != NULL) {
+ 		unsigned int count = buffer->length;
  
--	err = set_interval();
--	if (err != 0)
--		printk(KERN_ERR "register_timer : set_interval failed - "
--		       "errno = %d\n", -err);
-+	itimer_clockevent.mult = div_sc(HZ, NSEC_PER_SEC, 32);
-+	itimer_clockevent.max_delta_ns =
-+		clockevent_delta2ns(60 * HZ, &itimer_clockevent);
-+	itimer_clockevent.min_delta_ns =
-+		clockevent_delta2ns(1, &itimer_clockevent);
-+	clockevents_register_device(&itimer_clockevent);
- }
+-		if (length + count > max_flip_size)
+-			count = max_flip_size - length;
++		count = tty_buffer_request_room(tty, count);
++		if (count == 0) /* Throttle ?? */
++			break;
  
- extern void (*late_time_init)(void);
+-		memcpy(tty->flip.char_buf_ptr + length, buffer->buffer, count);
+-		memset(tty->flip.flag_buf_ptr + length, TTY_NORMAL, count);
+-		tty->flip.flag_buf_ptr[length] = buffer->error;
++		if (count > 1)
++			tty_insert_flip_strings(tty, buffer->buffer, count - 1);
++		tty_insert_flip_char(tty, buffer->buffer[count-1], buffer->error);
  
--void time_init(void)
-+void __init time_init(void)
- {
- 	long long nsecs;
+-		length += count;
+ 		info->recv_cnt -= count;
+-		DFLIP(DEBUG_LOG(info->line,"flip: %i\n", length));
  
-+	timer_init();
-+
- 	nsecs = os_nsecs();
- 	set_normalized_timespec(&wall_to_monotonic, -nsecs / BILLION,
- 				-nsecs % BILLION);
- 	set_normalized_timespec(&xtime, nsecs / BILLION, nsecs % BILLION);
--	late_time_init = register_timer;
--}
--
--void timer_handler(int sig, struct uml_pt_regs *regs)
--{
--	if (current_thread->cpu == 0)
--		timer_irq(regs);
--	local_irq_disable();
--	irq_enter();
--	update_process_times(regs->is_user);
--	irq_exit();
--	local_irq_enable();
-+	late_time_init = setup_itimer;
- }
-diff -puN arch/um/os-Linux/time.c~uml-generic_clockevents-support arch/um/os-Linux/time.c
---- a/arch/um/os-Linux/time.c~uml-generic_clockevents-support
-+++ a/arch/um/os-Linux/time.c
-@@ -34,10 +34,6 @@ void disable_timer(void)
- 	    (setitimer(ITIMER_REAL, &disable, NULL) < 0))
- 		printk(UM_KERN_ERR "disable_timer - setitimer failed, "
- 		       "errno = %d\n", errno);
--
--	/* If there are signals already queued, after unblocking ignore them */
--	signal(SIGALRM, SIG_IGN);
--	signal(SIGVTALRM, SIG_IGN);
- }
+ 		if (count == buffer->length) {
+ 			info->first_recv_buffer = buffer->next;
+@@ -2560,14 +2525,6 @@ static void flush_to_flip_buffer(struct 
+ 	if (!info->first_recv_buffer)
+ 		info->last_recv_buffer = NULL;
  
- int switch_timers(int to_real)
+-	tty->flip.count = length;
+-	DFLIP(if (tty->ldisc.chars_in_buffer(tty) > 3500) {
+-		DEBUG_LOG(info->line, "ldisc %lu\n",
+-			  tty->ldisc.chars_in_buffer(tty));
+-		DEBUG_LOG(info->line, "flip.count %lu\n",
+-			  tty->flip.count);
+-	      }
+-	      );
+ 	restore_flags(flags);
+ 
+ 	DFLIP(
+@@ -2722,17 +2679,17 @@ struct e100_serial * handle_ser_rx_inter
+ 		printk("!NO TTY!\n");
+ 		return info;
+ 	}
+-	if (tty->flip.count >= TTY_FLIPBUF_SIZE - TTY_THRESHOLD_THROTTLE) {
++	if (tty->flip.count >= CRIS_BUF_SIZE - TTY_THRESHOLD_THROTTLE) {
+ 		/* check TTY_THROTTLED first so it indicates our state */
+ 		if (!test_and_set_bit(TTY_THROTTLED, &tty->flags)) {
+ 			DFLOW(DEBUG_LOG(info->line, "rs_throttle flip.count: %i\n", tty->flip.count));
+ 			rs_throttle(tty);
+ 		}
+ 	}
+-	if (tty->flip.count >= TTY_FLIPBUF_SIZE) {
++	if (tty->flip.count >= CRIS_BUF_SIZE) {
+ 		DEBUG_LOG(info->line, "force FLIP! %i\n", tty->flip.count);
+ 		tty->flip.work.func((void *) tty);
+-		if (tty->flip.count >= TTY_FLIPBUF_SIZE) {
++		if (tty->flip.count >= CRIS_BUF_SIZE) {
+ 			DEBUG_LOG(info->line, "FLIP FULL! %i\n", tty->flip.count);
+ 			return info;		/* if TTY_DONT_FLIP is set */
+ 		}
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-git-kvm.patch
-uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
-bitops-introduce-lock-ops.patch
+git-libata-all.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+initio-fix-conflict-when-loading-driver.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
+jsm-remove-further-unneeded-crud.patch
+ttyh-remove-dead-define.patch
+codingstyle-relax-the-80-cole-rule.patch
+add-config_vt_unicode.patch
+keys-missing-word-in-documentation.patch
+ide-cd-is-unmaintained.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+fs-correct-sus-compliance-for-open-of-large-file-without.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+mxser-remove-commented-crap.patch
+char-cyclades-remove-bottom-half-processing.patch
+usb_serial-stop-passing-null-to-functions-that-expect-data.patch
+ark3116-update-termios-handling.patch
+usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch
+ch341-fix-termios-handling.patch
+digi_acceleport-fix-termios-and-also-readability-a-bit.patch
+empeg-clean-up-and-handle-speeds.patch
+ir_usb-termios-handling.patch
+keyspan-termios-tidy.patch
+kobil_sct-termios-encoding-fixups.patch
+option-termios-handling.patch
+sierra-termios.patch
+usb-serial-handle-null-termios-methods-as-no-hardware-changing-support.patch
+whiteheat-clean-up-cant-happen-checks-and-encode-baud.patch
+cp2101-convert-to-new-termios.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+io_edgeport-cleanups-and-tty-speed-reporting.patch
+tty-kill-tty_flipbuf_size.patch
