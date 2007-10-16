@@ -1,88 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - jfs-convert-to-new-aops.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:33:27 -0700
-Message-ID: <200710162033.l9GKXREK014793@imap1.linux-foundation.org>
+Subject: - fat-convert-to-new-aops.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:32:44 -0700
+Message-ID: <200710162032.l9GKWiCc014626@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57703 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55876 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754366AbXJPVp5 (ORCPT
+	by vger.kernel.org with ESMTP id S1754366AbXJPVpy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:45:57 -0400
+	Tue, 16 Oct 2007 17:45:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, shaggy@austin.ibm.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jfs: convert to new aops
+     fat: convert to new aops
 has been removed from the -mm tree.  Its filename was
-     jfs-convert-to-new-aops.patch
+     fat-convert-to-new-aops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: jfs: convert to new aops
+Subject: fat: convert to new aops
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jfs/inode.c |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ fs/fat/inode.c |   27 ++++++++++++++++-----------
+ 1 file changed, 16 insertions(+), 11 deletions(-)
 
-diff -puN fs/jfs/inode.c~jfs-convert-to-new-aops fs/jfs/inode.c
---- a/fs/jfs/inode.c~jfs-convert-to-new-aops
-+++ a/fs/jfs/inode.c
-@@ -255,7 +255,7 @@ int jfs_get_block(struct inode *ip, sect
+diff -puN fs/fat/inode.c~fat-convert-to-new-aops fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-convert-to-new-aops
++++ a/fs/fat/inode.c
+@@ -141,19 +141,24 @@ static int fat_readpages(struct file *fi
+ 	return mpage_readpages(mapping, pages, nr_pages, fat_get_block);
+ }
  
- static int jfs_writepage(struct page *page, struct writeback_control *wbc)
+-static int fat_prepare_write(struct file *file, struct page *page,
+-			     unsigned from, unsigned to)
++static int fat_write_begin(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned flags,
++			struct page **pagep, void **fsdata)
  {
--	return nobh_writepage(page, jfs_get_block, wbc);
-+	return block_write_full_page(page, jfs_get_block, wbc);
- }
- 
- static int jfs_writepages(struct address_space *mapping,
-@@ -275,10 +275,13 @@ static int jfs_readpages(struct file *fi
- 	return mpage_readpages(mapping, pages, nr_pages, jfs_get_block);
- }
- 
--static int jfs_prepare_write(struct file *file,
--			     struct page *page, unsigned from, unsigned to)
--{
--	return nobh_prepare_write(page, from, to, jfs_get_block);
-+static int jfs_write_begin(struct file *file, struct address_space *mapping,
-+				loff_t pos, unsigned len, unsigned flags,
-+				struct page **pagep, void **fsdata)
-+{
+-	return cont_prepare_write(page, from, to, fat_get_block,
+-				  &MSDOS_I(page->mapping->host)->mmu_private);
 +	*pagep = NULL;
-+	return block_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
-+				jfs_get_block);
++	return cont_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
++				fat_get_block,
++				&MSDOS_I(mapping->host)->mmu_private);
  }
  
- static sector_t jfs_bmap(struct address_space *mapping, sector_t block)
-@@ -302,8 +305,8 @@ const struct address_space_operations jf
- 	.writepage	= jfs_writepage,
- 	.writepages	= jfs_writepages,
- 	.sync_page	= block_sync_page,
--	.prepare_write	= jfs_prepare_write,
--	.commit_write	= nobh_commit_write,
-+	.write_begin	= jfs_write_begin,
-+	.write_end	= generic_write_end,
- 	.bmap		= jfs_bmap,
- 	.direct_IO	= jfs_direct_IO,
- };
-@@ -356,7 +359,7 @@ void jfs_truncate(struct inode *ip)
+-static int fat_commit_write(struct file *file, struct page *page,
+-			    unsigned from, unsigned to)
++static int fat_write_end(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned copied,
++			struct page *pagep, void *fsdata)
  {
- 	jfs_info("jfs_truncate: size = 0x%lx", (ulong) ip->i_size);
- 
--	nobh_truncate_page(ip->i_mapping, ip->i_size);
-+	block_truncate_page(ip->i_mapping, ip->i_size, jfs_get_block);
- 
- 	IWRITE_LOCK(ip, RDWRLOCK_NORMAL);
- 	jfs_truncate_nolock(ip, ip->i_size);
+-	struct inode *inode = page->mapping->host;
+-	int err = generic_commit_write(file, page, from, to);
+-	if (!err && !(MSDOS_I(inode)->i_attrs & ATTR_ARCH)) {
++	struct inode *inode = mapping->host;
++	int err;
++	err = generic_write_end(file, mapping, pos, len, copied, pagep, fsdata);
++	if (!(err < 0) && !(MSDOS_I(inode)->i_attrs & ATTR_ARCH)) {
+ 		inode->i_mtime = inode->i_ctime = CURRENT_TIME_SEC;
+ 		MSDOS_I(inode)->i_attrs |= ATTR_ARCH;
+ 		mark_inode_dirty(inode);
+@@ -202,8 +207,8 @@ static const struct address_space_operat
+ 	.writepage	= fat_writepage,
+ 	.writepages	= fat_writepages,
+ 	.sync_page	= block_sync_page,
+-	.prepare_write	= fat_prepare_write,
+-	.commit_write	= fat_commit_write,
++	.write_begin	= fat_write_begin,
++	.write_end	= fat_write_end,
+ 	.direct_IO	= fat_direct_IO,
+ 	.bmap		= _fat_bmap
+ };
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
