@@ -1,192 +1,165 @@
 From: akpm@linux-foundation.org
-Subject: - pie-executable-randomization-fix.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 15:11:02 -0700
-Message-ID: <200710162211.l9GMB2nj020248@imap1.linux-foundation.org>
+Subject: - pie-executable-randomization-fix-2.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 15:11:05 -0700
+Message-ID: <200710162211.l9GMB54K020253@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56545 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58155 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966049AbXJPWL7 (ORCPT
+	by vger.kernel.org with ESMTP id S966053AbXJPWMB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 18:11:59 -0400
+	Tue, 16 Oct 2007 18:12:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jkosina@suse.cz, ak@suse.de, hpa@zytor.com, jakub@redhat.com, kune@deine-taler.de, magnade@gmail.com, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hpa@zytor.com, jakub@redhat.com, jkosina@suse.cz, kune@deine-taler.de, magnade@gmail.com, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     X86_64: add flexmmap support
+     pie-executable-randomization-fix-2
 has been removed from the -mm tree.  Its filename was
-     pie-executable-randomization-fix.patch
+     pie-executable-randomization-fix-2.patch
 
 This patch was dropped because it was folded into pie-executable-randomization.patch
 
 ------------------------------------------------------
-Subject: X86_64: add flexmmap support
-From: Jiri Kosina <jkosina@suse.cz>
+Subject: pie-executable-randomization-fix-2
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add flexible-mmap support for x86_64 and brings the address space layout
-closer to the "new" i?86 address space layout.  Using the legacy layout is
-still possible by
+fs/binfmt_elf.c: In function 'load_elf_binary':
+fs/binfmt_elf.c:1016: warning: 'interp_map_addr' may be used uninitialized in this function
 
-- ADDR_COMPAT_LAYOUT personality
-- having unlimited resource limit for stack
-- legacy_va_layout sysctl setting
-
-This corresponds to the ?86 behavior.
-
-Flexible-mmap support is necessary for establishing proper mapping when
-performing executable code randomization for PIE-compiled binaries,
-otherwise non-randomized brk, which is immediately following the code,
-might not have enough free space.
-
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Jakub Jelinek <jakub@redhat.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Ulrich Kunitz <kune@deine-taler.de>
 Cc: Bret Towe <magnade@gmail.com>
-Cc: Andi Kleen <ak@suse.de>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jakub Jelinek <jakub@redhat.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Ulrich Kunitz <kune@deine-taler.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/mm/mmap.c |  107 ++++++++++++++++++++++++++++++++++------
- 1 files changed, 92 insertions(+), 15 deletions(-)
+ fs/binfmt_elf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/mm/mmap.c~pie-executable-randomization-fix arch/x86_64/mm/mmap.c
---- a/arch/x86/mm/mmap_64.c~pie-executable-randomization-fix
-+++ a/arch/x86/mm/mmap_64.c
-@@ -1,29 +1,106 @@
--/* Copyright 2005 Andi Kleen, SuSE Labs.
-- * Licensed under GPL, v.2
-+/*
-+ *  linux/arch/x86-64/mm/mmap.c
-+ *
-+ *  flexible mmap layout support
-+ *
-+ * Based on code by Ingo Molnar and Andi Kleen, copyrighted
-+ * as follows:
-+ *
-+ * Copyright 2003-2004 Red Hat Inc., Durham, North Carolina.
-+ * All Rights Reserved.
-+ * Copyright 2005 Andi Kleen, SuSE Labs.
-+ * Copyright 2007 Jiri Kosina, SuSE Labs.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-  */
-+
-+#include <linux/personality.h>
- #include <linux/mm.h>
--#include <linux/sched.h>
- #include <linux/random.h>
-+#include <linux/limits.h>
-+#include <linux/sched.h>
- #include <asm/ia32.h>
+diff -puN fs/binfmt_elf.c~pie-executable-randomization-fix-2 fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~pie-executable-randomization-fix-2
++++ a/fs/binfmt_elf.c
+@@ -1013,7 +1013,7 @@ static int load_elf_binary(struct linux_
+ 			elf_entry = load_aout_interp(&loc->interp_ex,
+ 						     interpreter);
+ 		} else {
+-			unsigned long interp_map_addr;	/* unused */
++			unsigned long uninitialized_var(interp_map_addr);
  
--/* Notebook: move the mmap code from sys_x86_64.c over here. */
-+/*
-+ * Top of mmap area (just below the process stack).
-+ *
-+ * Leave an at least ~128 MB hole.
-+ */
-+#define MIN_GAP (128*1024*1024)
-+#define MAX_GAP (TASK_SIZE/6*5)
- 
--void arch_pick_mmap_layout(struct mm_struct *mm)
-+static inline unsigned long mmap_base(void)
-+{
-+	unsigned long gap = current->signal->rlim[RLIMIT_STACK].rlim_cur;
-+
-+	if (gap < MIN_GAP)
-+		gap = MIN_GAP;
-+	else if (gap > MAX_GAP)
-+		gap = MAX_GAP;
-+
-+	return TASK_SIZE - (gap & PAGE_MASK);
-+}
-+
-+static inline int mmap_is_legacy(void)
- {
- #ifdef CONFIG_IA32_EMULATION
--	if (current_thread_info()->flags & _TIF_IA32)
--		return ia32_pick_mmap_layout(mm);
-+	if (test_thread_flag(TIF_IA32))
-+		return 1;
- #endif
--	mm->mmap_base = TASK_UNMAPPED_BASE;
-+
-+	if (current->personality & ADDR_COMPAT_LAYOUT)
-+		return 1;
-+
-+	if (current->signal->rlim[RLIMIT_STACK].rlim_cur == RLIM_INFINITY)
-+		return 1;
-+
-+	return sysctl_legacy_va_layout;
-+}
-+
-+/*
-+ * This function, called very early during the creation of a new
-+ * process VM image, sets up which VM layout function to use:
-+ */
-+void arch_pick_mmap_layout(struct mm_struct *mm)
-+{
-+	int rnd = 0;
- 	if (current->flags & PF_RANDOMIZE) {
- 		/* Add 28bit randomness which is about 40bits of address space
- 		   because mmap base has to be page aligned.
-- 		   or ~1/128 of the total user VM
--	   	   (total user address space is 47bits) */
--		unsigned rnd = get_random_int() & 0xfffffff;
--		mm->mmap_base += ((unsigned long)rnd) << PAGE_SHIFT;
-+		   or ~1/128 of the total user VM
-+		   (total user address space is 47bits) */
-+		rnd = get_random_int() & 0xfffffff;
- 	}
--	mm->get_unmapped_area = arch_get_unmapped_area;
--	mm->unmap_area = arch_unmap_area;
--}
- 
-+	/*
-+	 * Fall back to the standard layout if the personality
-+	 * bit is set, or if the expected stack growth is unlimited:
-+	 */
-+	if (mmap_is_legacy()) {
-+		mm->mmap_base = TASK_UNMAPPED_BASE;
-+		mm->get_unmapped_area = arch_get_unmapped_area;
-+		mm->unmap_area = arch_unmap_area;
-+	} else {
-+		mm->mmap_base = mmap_base();
-+		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
-+		mm->unmap_area = arch_unmap_area_topdown;
-+		if (current->flags & PF_RANDOMIZE)
-+			rnd = -rnd;
-+	}
-+	if (current->flags & PF_RANDOMIZE) {
-+		mm->mmap_base += ((long)rnd) << PAGE_SHIFT;
-+	}
-+}
+ 			elf_entry = load_elf_interp(&loc->interp_elf_ex,
+ 						    interpreter,
 _
 
-Patches currently in -mm which might be from jkosina@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold.patch
+mm-dirty-balancing-for-tasks.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
+oom-change-all_unreclaimable-zone-member-to-flags.patch
+oom-do-not-take-callback_mutex.patch
+writeback-dont-propagate-aop_writepage_activate.patch
+softlockup-add-a-proc-tuning-parameter.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
+do_sys_poll-simplify-playing-with-on-stack-data.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer.patch
+deprecate-aout-elf-interpreters.patch
+ext2-ext3-ext4-add-block-bitmap-validation.patch
 pie-executable-randomization.patch
-pie-executable-randomization-fix.patch
 pie-executable-randomization-fix-2.patch
-pie-executable-randomization-fix-3.patch
-add-config_vt_unicode.patch
-get-rid-of-input-bit-duplicate-defines.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
+f_dupfd_cloexec-implementation-fix-2.patch
+ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
+drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+pnp-use-dev_info-dev_err-etc-in-core-fix.patch
+pnp-add-debug-message-for-adding-new-device-fix-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
