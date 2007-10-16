@@ -1,255 +1,364 @@
 From: akpm@linux-foundation.org
-Subject: - pm3fb-header-file-reduction.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:41:58 -0700
-Message-ID: <200710162041.l9GKfw1M015835@imap1.linux-foundation.org>
+Subject: - tdfxfb-3-fixes.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:42:35 -0700
+Message-ID: <200710162042.l9GKgZIl015894@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58398 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56930 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935286AbXJPVQb (ORCPT
+	by vger.kernel.org with ESMTP id S935497AbXJPVQZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:16:31 -0400
+	Tue, 16 Oct 2007 17:16:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm3fb: header file reduction
+     tdfxfb: 3 fixes
 has been removed from the -mm tree.  Its filename was
-     pm3fb-header-file-reduction.patch
+     tdfxfb-3-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pm3fb: header file reduction
+Subject: tdfxfb: 3 fixes
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-This patch removes constants named AAA_DISABLE with value 0. They are redudant
-and misleading ( a |= AAA_DISABLE does nothing and usually should be
-a &= ~AAA_ENABLE).
+This patch fixes 3 issues:
+- transparency handling in tdfxfb
+- panning with more than 4096 virtual height and acceleration (acceleration
+with x & y > 4096)
+- exit paths on errors in tdfxfb_probe()
+
+Additionally it sets a FBINFO_READS_FAST flag to use smart blitter scrolling
+(speed up on tdfxfb).
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pm3fb.c |    5 ++---
- include/video/pm3fb.h |   37 -------------------------------------
- 2 files changed, 2 insertions(+), 40 deletions(-)
+ drivers/video/tdfxfb.c |  172 ++++++++++++++++++++++++---------------
+ 1 file changed, 108 insertions(+), 64 deletions(-)
 
-diff -puN drivers/video/pm3fb.c~pm3fb-header-file-reduction drivers/video/pm3fb.c
---- a/drivers/video/pm3fb.c~pm3fb-header-file-reduction
-+++ a/drivers/video/pm3fb.c
-@@ -886,7 +886,7 @@ static int pm3fb_set_par(struct fb_info 
- 	if ((info->var.activate & FB_ACTIVATE_MASK) == FB_ACTIVATE_NOW)
- 		par->video |= PM3VideoControl_ENABLE;
- 	else {
--		par->video |= PM3VideoControl_DISABLE;
-+		par->video &= ~PM3VideoControl_ENABLE;
- 		DPRINTK("PM3Video disabled\n");
+diff -puN drivers/video/tdfxfb.c~tdfxfb-3-fixes drivers/video/tdfxfb.c
+--- a/drivers/video/tdfxfb.c~tdfxfb-3-fixes
++++ a/drivers/video/tdfxfb.c
+@@ -502,6 +502,8 @@ static int tdfxfb_check_var(struct fb_va
+ 		return -EINVAL;
  	}
- 	switch (bpp) {
-@@ -911,8 +911,7 @@ static int pm3fb_set_par(struct fb_info 
  
- /*	pm3fb_clear_memory(info, 0);*/
- 	pm3fb_clear_colormap(par, 0, 0, 0);
--	PM3_WRITE_DAC_REG(par, PM3RD_CursorMode,
--			  PM3RD_CursorMode_CURSOR_DISABLE);
-+	PM3_WRITE_DAC_REG(par, PM3RD_CursorMode, 0);
- 	pm3fb_init_engine(info);
- 	pm3fb_write_mode(info);
++	var->transp.offset = 0;
++	var->transp.length = 0;
+ 	switch (var->bits_per_pixel) {
+ 	case 8:
+ 		var->red.length = var->green.length = var->blue.length = 8;
+@@ -515,10 +517,12 @@ static int tdfxfb_check_var(struct fb_va
+ 		var->blue.length  = 5;
+ 		break;
+ 	case 32:
++		var->transp.offset = 24;
++		var->transp.length = 8;
+ 	case 24:
+-		var->red.offset=16;
+-		var->green.offset=8;
+-		var->blue.offset=0;
++		var->red.offset = 16;
++		var->green.offset = 8;
++		var->blue.offset = 0;
+ 		var->red.length = var->green.length = var->blue.length = 8;
+ 		break;
+ 	}
+@@ -874,13 +878,26 @@ static void tdfxfb_fillrect(struct fb_in
+ 	u32 stride = info->fix.line_length;
+ 	u32 fmt= stride | ((bpp + ((bpp == 8) ? 0 : 8)) << 13);
+ 	int tdfx_rop;
++	u32 dx = rect->dx;
++	u32 dy = rect->dy;
++	u32 dstbase = 0;
+ 
+ 	if (rect->rop == ROP_COPY)
+ 		tdfx_rop = TDFX_ROP_COPY;
+ 	else
+ 		tdfx_rop = TDFX_ROP_XOR;
+ 
+-	banshee_make_room(par, 5);
++	/* asume always rect->height < 4096 */
++	if (dy + rect->height > 4095) {
++		dstbase = stride * dy;
++		dy = 0;
++	}
++	/* asume always rect->width < 4096 */
++	if (dx + rect->width > 4095) {
++		dstbase += dx * bpp >> 3;
++		dx = 0;
++	}
++	banshee_make_room(par, 6);
+ 	tdfx_outl(par, DSTFORMAT, fmt);
+ 	if (info->fix.visual == FB_VISUAL_PSEUDOCOLOR) {
+ 		tdfx_outl(par, COLORFORE, rect->color);
+@@ -888,8 +905,9 @@ static void tdfxfb_fillrect(struct fb_in
+ 		tdfx_outl(par, COLORFORE, par->palette[rect->color]);
+ 	}
+ 	tdfx_outl(par, COMMAND_2D, COMMAND_2D_FILLRECT | (tdfx_rop << 24));
++	tdfx_outl(par, DSTBASE, dstbase);
+ 	tdfx_outl(par, DSTSIZE, rect->width | (rect->height << 16));
+-	tdfx_outl(par, LAUNCH_2D, rect->dx | (rect->dy << 16));
++	tdfx_outl(par, LAUNCH_2D, dx | (dy << 16));
+ }
+ 
+ /*
+@@ -904,6 +922,30 @@ static void tdfxfb_copyarea(struct fb_in
+ 	u32 stride = info->fix.line_length;
+ 	u32 blitcmd = COMMAND_2D_S2S_BITBLT | (TDFX_ROP_COPY << 24);
+ 	u32 fmt = stride | ((bpp + ((bpp == 8) ? 0 : 8)) << 13);
++	u32 dstbase = 0;
++	u32 srcbase = 0;
++
++	/* asume always area->height < 4096 */
++	if (sy + area->height > 4095) {
++		srcbase = stride * sy;
++		sy = 0;
++	}
++	/* asume always area->width < 4096 */
++	if (sx + area->width > 4095) {
++		srcbase += sx * bpp >> 3;
++		sx = 0;
++	}
++	/* asume always area->height < 4096 */
++	if (dy + area->height > 4095) {
++		dstbase = stride * dy;
++		dy = 0;
++	}
++	/* asume always area->width < 4096 */
++	if (dx + area->width > 4095) {
++		dstbase += dx * bpp >> 3;
++		dx = 0;
++	}
++
+ 
+ 	if (area->sx <= area->dx) {
+ 		//-X
+@@ -918,13 +960,15 @@ static void tdfxfb_copyarea(struct fb_in
+ 		dy += area->height - 1;
+ 	}
+ 
+-	banshee_make_room(par, 6);
++	banshee_make_room(par, 8);
+ 
+ 	tdfx_outl(par, SRCFORMAT, fmt);
+ 	tdfx_outl(par, DSTFORMAT, fmt);
+ 	tdfx_outl(par, COMMAND_2D, blitcmd);
+ 	tdfx_outl(par, DSTSIZE, area->width | (area->height << 16));
+ 	tdfx_outl(par, DSTXY, dx | (dy << 16));
++	tdfx_outl(par, SRCBASE, srcbase);
++	tdfx_outl(par, DSTBASE, dstbase);
+ 	tdfx_outl(par, LAUNCH_2D, sx | (sy << 16));
+ }
+ 
+@@ -938,35 +982,48 @@ static void tdfxfb_imageblit(struct fb_i
+ 	u32 dstfmt = stride | ((bpp + ((bpp == 8) ? 0 : 8)) << 13);
+ 	u8 *chardata = (u8 *) image->data;
+ 	u32 srcfmt;
++	u32 dx = image->dx;
++	u32 dy = image->dy;
++	u32 dstbase = 0;
+ 
+ 	if (image->depth != 1) {
+ 		//banshee_make_room(par, 6 + ((size + 3) >> 2));
+ 		//srcfmt = stride | ((bpp+((bpp==8) ? 0 : 8)) << 13) | 0x400000;
+ 		cfb_imageblit(info, image);
+ 		return;
+-	} else {
+-		banshee_make_room(par, 8);
+-		switch (info->fix.visual) {
+-		case FB_VISUAL_PSEUDOCOLOR:
+-			tdfx_outl(par, COLORFORE, image->fg_color);
+-			tdfx_outl(par, COLORBACK, image->bg_color);
+-			break;
+-		case FB_VISUAL_TRUECOLOR:
+-		default:
+-			tdfx_outl(par, COLORFORE,
+-				  par->palette[image->fg_color]);
+-			tdfx_outl(par, COLORBACK,
+-				  par->palette[image->bg_color]);
+-		}
++	}
++	banshee_make_room(par, 9);
++	switch (info->fix.visual) {
++	case FB_VISUAL_PSEUDOCOLOR:
++		tdfx_outl(par, COLORFORE, image->fg_color);
++		tdfx_outl(par, COLORBACK, image->bg_color);
++		break;
++	case FB_VISUAL_TRUECOLOR:
++	default:
++		tdfx_outl(par, COLORFORE,
++			  par->palette[image->fg_color]);
++		tdfx_outl(par, COLORBACK,
++			  par->palette[image->bg_color]);
++	}
+ #ifdef __BIG_ENDIAN
+-		srcfmt = 0x400000 | BIT(20);
++	srcfmt = 0x400000 | BIT(20);
+ #else
+-		srcfmt = 0x400000;
++	srcfmt = 0x400000;
+ #endif
++	/* asume always image->height < 4096 */
++	if (dy + image->height > 4095) {
++		dstbase = stride * dy;
++		dy = 0;
++	}
++	/* asume always image->width < 4096 */
++	if (dx + image->width > 4095) {
++		dstbase += dx * bpp >> 3;
++		dx = 0;
+ 	}
+ 
++	tdfx_outl(par, DSTBASE, dstbase);
+ 	tdfx_outl(par, SRCXY, 0);
+-	tdfx_outl(par, DSTXY, image->dx | (image->dy << 16));
++	tdfx_outl(par, DSTXY, dx | (dy << 16));
+ 	tdfx_outl(par, COMMAND_2D, COMMAND_2D_H2S_BITBLT | (TDFX_ROP_COPY << 24));
+ 	tdfx_outl(par, SRCFORMAT, srcfmt);
+ 	tdfx_outl(par, DSTFORMAT, dstfmt);
+@@ -1211,44 +1268,36 @@ static int __devinit tdfxfb_probe(struct
+ 
+ 	tdfx_fix.mmio_start = pci_resource_start(pdev, 0);
+ 	tdfx_fix.mmio_len = pci_resource_len(pdev, 0);
++	if (!request_mem_region(tdfx_fix.mmio_start, tdfx_fix.mmio_len,
++				"tdfx regbase")) {
++		printk(KERN_WARNING "tdfxfb: Can't reserve regbase\n");
++		goto out_err;
++	}
++
+ 	default_par->regbase_virt =
+ 		ioremap_nocache(tdfx_fix.mmio_start, tdfx_fix.mmio_len);
+ 	if (!default_par->regbase_virt) {
+ 		printk("fb: Can't remap %s register area.\n", tdfx_fix.id);
+-		goto out_err;
+-	}
+-
+-	if (!request_mem_region(pci_resource_start(pdev, 0),
+-				pci_resource_len(pdev, 0), "tdfx regbase")) {
+-		printk(KERN_WARNING "tdfxfb: Can't reserve regbase\n");
+-		goto out_err;
++		goto out_err_regbase;
+ 	}
+ 
+ 	tdfx_fix.smem_start = pci_resource_start(pdev, 1);
+ 	if (!(tdfx_fix.smem_len = do_lfb_size(default_par, pdev->device))) {
+ 		printk("fb: Can't count %s memory.\n", tdfx_fix.id);
+-		release_mem_region(pci_resource_start(pdev, 0),
+-				   pci_resource_len(pdev, 0));
+-		goto out_err;
++		goto out_err_regbase;
+ 	}
+ 
+-	if (!request_mem_region(pci_resource_start(pdev, 1),
++	if (!request_mem_region(tdfx_fix.smem_start,
+ 				pci_resource_len(pdev, 1), "tdfx smem")) {
+ 		printk(KERN_WARNING "tdfxfb: Can't reserve smem\n");
+-		release_mem_region(pci_resource_start(pdev, 0),
+-				   pci_resource_len(pdev, 0));
+-		goto out_err;
++		goto out_err_regbase;
+ 	}
+ 
+ 	info->screen_base = ioremap_nocache(tdfx_fix.smem_start,
+ 					    tdfx_fix.smem_len);
+ 	if (!info->screen_base) {
+ 		printk("fb: Can't remap %s framebuffer.\n", tdfx_fix.id);
+-		release_mem_region(pci_resource_start(pdev, 1),
+-				   pci_resource_len(pdev, 1));
+-		release_mem_region(pci_resource_start(pdev, 0),
+-				   pci_resource_len(pdev, 0));
+-		goto out_err;
++		goto out_err_screenbase;
+ 	}
+ 
+ 	default_par->iobase = pci_resource_start(pdev, 2);
+@@ -1256,11 +1305,7 @@ static int __devinit tdfxfb_probe(struct
+ 	if (!request_region(pci_resource_start(pdev, 2),
+ 			    pci_resource_len(pdev, 2), "tdfx iobase")) {
+ 		printk(KERN_WARNING "tdfxfb: Can't reserve iobase\n");
+-		release_mem_region(pci_resource_start(pdev, 1),
+-				   pci_resource_len(pdev, 1));
+-		release_mem_region(pci_resource_start(pdev, 0),
+-				   pci_resource_len(pdev, 0));
+-		goto out_err;
++		goto out_err_screenbase;
+ 	}
+ 
+ 	printk("fb: %s memory = %dK\n", tdfx_fix.id, tdfx_fix.smem_len >> 10);
+@@ -1274,7 +1319,9 @@ static int __devinit tdfxfb_probe(struct
+ 	info->flags		= FBINFO_DEFAULT | FBINFO_HWACCEL_YPAN;
+ #ifdef CONFIG_FB_3DFX_ACCEL
+ 	info->flags             |= FBINFO_HWACCEL_FILLRECT |
+-		FBINFO_HWACCEL_COPYAREA | FBINFO_HWACCEL_IMAGEBLIT;
++				   FBINFO_HWACCEL_COPYAREA |
++				   FBINFO_HWACCEL_IMAGEBLIT |
++				   FBINFO_READS_FAST;
+ #endif
+ 
+ 	if (!mode_option)
+@@ -1288,27 +1335,17 @@ static int __devinit tdfxfb_probe(struct
+ 	lpitch = info->var.xres_virtual * ((info->var.bits_per_pixel + 7) >> 3);
+ 	info->var.yres_virtual = info->fix.smem_len / lpitch;
+ 	if (info->var.yres_virtual < info->var.yres)
+-		goto out_err;
+-
+-#ifdef CONFIG_FB_3DFX_ACCEL
+-	/*
+-	 * FIXME: Limit var->yres_virtual to 4096 because of screen artifacts
+-	 * during scrolling. This is only present if 2D acceleration is
+-	 * enabled.
+-	 */
+-	if (info->var.yres_virtual > 4096)
+-		info->var.yres_virtual = 4096;
+-#endif /* CONFIG_FB_3DFX_ACCEL */
++		goto out_err_iobase;
+ 
+ 	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0) {
+ 		printk(KERN_WARNING "tdfxfb: Can't allocate color map\n");
+-		goto out_err;
++		goto out_err_iobase;
+ 	}
+ 
+ 	if (register_framebuffer(info) < 0) {
+ 		printk("tdfxfb: can't register framebuffer\n");
+ 		fb_dealloc_cmap(&info->cmap);
+-		goto out_err;
++		goto out_err_iobase;
+ 	}
+ 	/*
+ 	 * Our driver data
+@@ -1316,14 +1353,21 @@ static int __devinit tdfxfb_probe(struct
+ 	pci_set_drvdata(pdev, info);
  	return 0;
-diff -puN include/video/pm3fb.h~pm3fb-header-file-reduction include/video/pm3fb.h
---- a/include/video/pm3fb.h~pm3fb-header-file-reduction
-+++ a/include/video/pm3fb.h
-@@ -55,7 +55,6 @@
- 	#define PM3ByApertureMode_BYTESWAP_BADC			(1<<0)
- 	#define PM3ByApertureMode_BYTESWAP_CDAB			(2<<0)
- 	#define PM3ByApertureMode_BYTESWAP_DCBA			(3<<0)
--	#define PM3ByApertureMode_PATCH_DISABLE			(0<<2)
- 	#define PM3ByApertureMode_PATCH_ENABLE			(1<<2)
- 	#define PM3ByApertureMode_FORMAT_RAW			(0<<3)
- 	#define PM3ByApertureMode_FORMAT_YUYV			(1<<3)
-@@ -112,7 +111,6 @@
- #define PM3VsStart						0x3048
- #define PM3VsEnd						0x3050
- #define PM3VideoControl						0x3058
--	#define PM3VideoControl_DISABLE				(0<<0)
- 	#define PM3VideoControl_ENABLE				(1<<0)
- 	#define PM3VideoControl_BLANK_ACTIVE_HIGH		(0<<1)
- 	#define PM3VideoControl_BLANK_ACTIVE_LOW		(1<<1)
-@@ -133,7 +131,6 @@
- 	#define PM3VideoControl_BUFFER_SWAP_SYNCON_FRAMEBLANK	(0<<9)
- 	#define PM3VideoControl_BUFFER_SWAP_FREE_RUNNING	(1<<9)
- 	#define PM3VideoControl_BUFFER_SWAP_LIMITETO_FRAMERATE	(2<<9)
--	#define PM3VideoControl_STEREO_DISABLE			(0<<11)
- 	#define PM3VideoControl_STEREO_ENABLE			(1<<11)
- 	#define PM3VideoControl_RIGHT_EYE_ACTIVE_HIGH		(0<<12)
- 	#define PM3VideoControl_RIGHT_EYE_ACTIVE_LOW		(1<<12)
-@@ -142,12 +139,10 @@
- 	#define PM3VideoControl_SYNC_MODE_INDEPENDENT		(0<<16)
- 	#define PM3VideoControl_SYNC_MODE_SYNCTO_VSA		(1<<16)
- 	#define PM3VideoControl_SYNC_MODE_SYNCTO_VSB		(2<<16)
--	#define PM3VideoControl_PATCH_DISABLE			(0<<18)
- 	#define PM3VideoControl_PATCH_ENABLE			(1<<18)
- 	#define PM3VideoControl_PIXELSIZE_8BIT			(0<<19)
- 	#define PM3VideoControl_PIXELSIZE_16BIT			(1<<19)
- 	#define PM3VideoControl_PIXELSIZE_32BIT			(2<<19)
--	#define PM3VideoControl_DISPLAY_DISABLE			(0<<21)
- 	#define PM3VideoControl_DISPLAY_ENABLE			(1<<21)
- 	#define PM3VideoControl_PATCH_OFFSET_X(off)	(((off)&0x3f)<<22)
- 	#define PM3VideoControl_PATCH_OFFSET_Y(off)	(((off)&0x3f)<<28)
-@@ -159,10 +154,8 @@
- #define PM3MiscControl						0x3088
  
- #define PM3VideoOverlayUpdate					0x3100
--        #define PM3VideoOverlayUpdate_DISABLE                   (0<<0)
-         #define PM3VideoOverlayUpdate_ENABLE                    (1<<0)
- #define PM3VideoOverlayMode					0x3108
--	#define PM3VideoOverlayMode_DISABLE			(0<<0)
- 	#define PM3VideoOverlayMode_ENABLE			(1<<0)
-         #define PM3VideoOverlayMode_BUFFERSYNC_MANUAL           (0<<1)
-         #define PM3VideoOverlayMode_BUFFERSYNC_VIDEOSTREAMA     (1<<1)
-@@ -250,25 +243,16 @@
- #define PM3RD_IndexedData					0x4030
- #define PM3RD_IndexControl					0x4038
- 	#define PM3RD_IndexControl_AUTOINCREMENT_ENABLE		(1<<0)
--	#define PM3RD_IndexControl_AUTOINCREMENT_DISABLE	(0<<0)
- 
- /* Indirect Registers */
- #define PM3RD_MiscControl					0x000
--	#define PM3RD_MiscControl_HIGHCOLOR_RES_DISABLE		(0<<0)
- 	#define PM3RD_MiscControl_HIGHCOLOR_RES_ENABLE		(1<<0)
--	#define PM3RD_MiscControl_PIXELDOUBLE_DISABLE		(0<<1)
- 	#define PM3RD_MiscControl_PIXELDOUBLE_ENABLE		(1<<1)
--	#define PM3RD_MiscControl_LASTREAD_ADDR_DISABLE		(0<<2)
- 	#define PM3RD_MiscControl_LASTREAD_ADDR_ENABLE		(1<<2)
--	#define PM3RD_MiscControl_DIRECTCOLOR_DISABLE		(0<<3)
- 	#define PM3RD_MiscControl_DIRECTCOLOR_ENABLE		(1<<3)
--	#define PM3RD_MiscControl_OVERLAY_DISABLE		(0<<4)
- 	#define PM3RD_MiscControl_OVERLAY_ENABLE		(1<<4)
--	#define PM3RD_MiscControl_PIXELDOUBLE_BUFFER_DISABLE	(0<<5)
- 	#define PM3RD_MiscControl_PIXELDOUBLE_BUFFER_ENABLE	(1<<5)
--	#define PM3RD_MiscControl_VSB_OUTPUT_DISABLE		(0<<6)
- 	#define PM3RD_MiscControl_VSB_OUTPUT_ENABLE		(1<<6)
--	#define PM3RD_MiscControl_STEREODOUBLE_BUFFER_DISABLE	(0<<7)
- 	#define PM3RD_MiscControl_STEREODOUBLE_BUFFER_ENABLE	(1<<7)
- #define PM3RD_SyncControl					0x001
- 	#define PM3RD_SyncControl_HSYNC_ACTIVE_LOW		(0<<0)
-@@ -288,15 +272,10 @@
- #define PM3RD_DACControl					0x002
- 	#define PM3RD_DACControl_DAC_POWER_ON			(0<<0)
- 	#define PM3RD_DACControl_DAC_POWER_OFF			(1<<0)
--	#define PM3RD_DACControl_SYNC_ON_GREEN_DISABLE		(0<<3)
- 	#define PM3RD_DACControl_SYNC_ON_GREEN_ENABLE		(1<<3)
--	#define PM3RD_DACControl_BLANK_RED_DAC_DISABLE		(0<<4)
- 	#define PM3RD_DACControl_BLANK_RED_DAC_ENABLE		(1<<4)
--	#define PM3RD_DACControl_BLANK_GREEN_DAC_DISABLE	(0<<5)
- 	#define PM3RD_DACControl_BLANK_GREEN_DAC_ENABLE		(1<<5)
--	#define PM3RD_DACControl_BLANK_BLUE_DAC_DISABLE		(0<<6)
- 	#define PM3RD_DACControl_BLANK_BLUE_DAC_ENABLE		(1<<6)
--	#define PM3RD_DACControl_BLANK_PEDESTAL_DISABLE		(0<<7)
- 	#define PM3RD_DACControl_BLANK_PEDESTAL_ENABLE		(1<<7)
- #define PM3RD_PixelSize						0x003
- 	#define PM3RD_PixelSize_24_BIT_PIXELS			(4<<0)
-@@ -305,7 +284,6 @@
- 	#define PM3RD_PixelSize_8_BIT_PIXELS			(0<<0)
- #define PM3RD_ColorFormat					0x004
- 	#define PM3RD_ColorFormat_LINEAR_COLOR_EXT_ENABLE	(1<<6)
--	#define PM3RD_ColorFormat_LINEAR_COLOR_EXT_DISABLE	(0<<6)
- 	#define PM3RD_ColorFormat_COLOR_ORDER_BLUE_LOW		(1<<5)
- 	#define PM3RD_ColorFormat_COLOR_ORDER_RED_LOW		(0<<5)
- 	#define PM3RD_ColorFormat_COLOR_FORMAT_MASK		(0x1f<<0)
-@@ -323,7 +301,6 @@
- 	#define PM3RD_ColorFormat_565_FRONT_COLOR		(16<<0)
- 	#define PM3RD_ColorFormat_565_BACK_COLOR		(17<<0)
- #define PM3RD_CursorMode					0x005
--	#define PM3RD_CursorMode_CURSOR_DISABLE			(0<<0)
- 	#define PM3RD_CursorMode_CURSOR_ENABLE			(1<<0)
- 	#define PM3RD_CursorMode_FORMAT_64x64_2BPE_P0123	(0<<2)
- 	#define PM3RD_CursorMode_FORMAT_32x32_2BPE_P0		(1<<2)
-@@ -334,16 +311,12 @@
- 	#define PM3RD_CursorMode_FORMAT_32x32_4BPE_P23		(6<<2)
- 	#define PM3RD_CursorMode_TYPE_MS			(0<<4)
- 	#define PM3RD_CursorMode_TYPE_X				(1<<4)
--	#define PM3RD_CursorMode_REVERSE_PIXEL_ORDER_DISABLE	(0<<6)
- 	#define PM3RD_CursorMode_REVERSE_PIXEL_ORDER_ENABLE	(1<<6)
- 	#define PM3RD_CursorMode_REVERSE_PIXEL_ORDER_3_COLOR	(2<<6)
- 	#define PM3RD_CursorMode_REVERSE_PIXEL_ORDER_15_COLOR	(3<<6)
- #define PM3RD_CursorControl					0x006
--	#define PM3RD_CursorControl_DOUBLE_X_DISABLED		(0<<0)
- 	#define PM3RD_CursorControl_DOUBLE_X_ENABLED		(1<<0)
--	#define PM3RD_CursorControl_DOUBLE_Y_DISABLED		(0<<1)
- 	#define PM3RD_CursorControl_DOUBLE_Y_ENABLED		(1<<1)
--	#define PM3RD_CursorControl_READBACK_POS_DISABLED	(0<<2)
- 	#define PM3RD_CursorControl_READBACK_POS_ENABLED	(1<<2)
- 
- #define PM3RD_CursorXLow					0x007
-@@ -354,16 +327,12 @@
- #define PM3RD_CursorHotSpotY					0x00c
- #define PM3RD_OverlayKey					0x00d
- #define PM3RD_Pan						0x00e
--	#define PM3RD_Pan_DISABLE				(0<<0)
- 	#define PM3RD_Pan_ENABLE				(1<<0)
--	#define PM3RD_Pan_GATE_DISABLE				(0<<1)
- 	#define PM3RD_Pan_GATE_ENABLE				(1<<1)
- #define PM3RD_Sense						0x00f
- 
- #define PM3RD_CheckControl					0x018
--	#define PM3RD_CheckControl_PIXEL_DISABLED		(0<<0)
- 	#define PM3RD_CheckControl_PIXEL_ENABLED		(1<<0)
--	#define PM3RD_CheckControl_LUT_DISABLED			(0<<1)
- 	#define PM3RD_CheckControl_LUT_ENABLED			(1<<1)
- #define PM3RD_CheckPixelRed					0x019
- #define PM3RD_CheckPixelGreen					0x01a
-@@ -374,14 +343,12 @@
- #define PM3RD_Scratch						0x01f
- 
- #define PM3RD_VideoOverlayControl				0x020
--        #define PM3RD_VideoOverlayControl_DISABLE               (0<<0)
-         #define PM3RD_VideoOverlayControl_ENABLE                (1<<0)
-         #define PM3RD_VideoOverlayControl_MODE_MASK             (3<<1)
-         #define PM3RD_VideoOverlayControl_MODE_MAINKEY          (0<<1)
-         #define PM3RD_VideoOverlayControl_MODE_OVERLAYKEY       (1<<1)
-         #define PM3RD_VideoOverlayControl_MODE_ALWAYS           (2<<1)
-         #define PM3RD_VideoOverlayControl_MODE_BLEND            (3<<1)
--        #define PM3RD_VideoOverlayControl_DIRECTCOLOR_DISABLED  (0<<3)
-         #define PM3RD_VideoOverlayControl_DIRECTCOLOR_ENABLED   (1<<3)
-         #define PM3RD_VideoOverlayControl_BLENDSRC_MAIN         (0<<4)
-         #define PM3RD_VideoOverlayControl_BLENDSRC_REGISTER     (1<<4)
-@@ -420,7 +387,6 @@
- 	#define PM3RD_DClkControl_LOCKED			(1<<1)
- 	#define PM3RD_DClkControl_NOT_LOCKED			(0<<1)
- 	#define PM3RD_DClkControl_ENABLE			(1<<0)
--	#define PM3RD_DClkControl_DISABLE			(0<<0)
- #define PM3RD_DClk0PreScale					0x201
- #define PM3RD_DClk0FeedbackScale				0x202
- #define PM3RD_DClk0PostScale					0x203
-@@ -435,7 +401,6 @@
- #define PM3RD_DClk3FeedbackScale				0x20b
- #define PM3RD_DClk3PostScale					0x20c
- #define PM3RD_KClkControl					0x20d
--	#define PM3RD_KClkControl_DISABLE			(0<<0)
- 	#define PM3RD_KClkControl_ENABLE			(1<<0)
- 	#define PM3RD_KClkControl_NOT_LOCKED			(0<<1)
- 	#define PM3RD_KClkControl_LOCKED			(1<<1)
-@@ -450,7 +415,6 @@
- #define PM3RD_KClkFeedbackScale					0x20f
- #define PM3RD_KClkPostScale					0x210
- #define PM3RD_MClkControl					0x211
--	#define PM3RD_MClkControl_DISABLE			(0<<0)
- 	#define PM3RD_MClkControl_ENABLE			(1<<0)
- 	#define PM3RD_MClkControl_NOT_LOCKED			(0<<1)
- 	#define PM3RD_MClkControl_LOCKED			(1<<1)
-@@ -468,7 +432,6 @@
- #define PM3RD_MClkFeedbackScale					0x213
- #define PM3RD_MClkPostScale					0x214
- #define PM3RD_SClkControl					0x215
--	#define PM3RD_SClkControl_DISABLE			(0<<0)
- 	#define PM3RD_SClkControl_ENABLE			(1<<0)
- 	#define PM3RD_SClkControl_NOT_LOCKED			(0<<1)
- 	#define PM3RD_SClkControl_LOCKED			(1<<1)
+-out_err:
++out_err_iobase:
++	release_mem_region(pci_resource_start(pdev, 2),
++			   pci_resource_len(pdev, 2));
++out_err_screenbase:
++	if (info->screen_base)
++		iounmap(info->screen_base);
++	release_mem_region(tdfx_fix.smem_start, pci_resource_len(pdev, 1));
++out_err_regbase:
+ 	/*
+ 	 * Cleanup after anything that was remapped/allocated.
+ 	 */
+ 	if (default_par->regbase_virt)
+ 		iounmap(default_par->regbase_virt);
+-	if (info->screen_base)
+-		iounmap(info->screen_base);
++	release_mem_region(tdfx_fix.mmio_start, tdfx_fix.mmio_len);
++out_err:
+ 	framebuffer_release(info);
+ 	return -ENXIO;
+ }
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
