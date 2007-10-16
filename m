@@ -1,245 +1,339 @@
 From: akpm@linux-foundation.org
-Subject: - pxafb-add-support-for-other-palette-formats.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:42:27 -0700
-Message-ID: <200710162042.l9GKgRRe015885@imap1.linux-foundation.org>
+Subject: - s3c2410fb-add-margin-fields-to-s3c2410fb_display.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:43:11 -0700
+Message-ID: <200710162043.l9GKhBZ1016021@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48331 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33776 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965770AbXJPVOy (ORCPT
+	by vger.kernel.org with ESMTP id S934453AbXJPVPe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:14:54 -0400
+	Tue, 16 Oct 2007 17:15:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hjk@linutronix.de, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pxafb: Add support for other palette formats
+     s3c2410fb: add margin fields to s3c2410fb_display
 has been removed from the -mm tree.  Its filename was
-     pxafb-add-support-for-other-palette-formats.patch
+     s3c2410fb-add-margin-fields-to-s3c2410fb_display.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pxafb: Add support for other palette formats
-From: Hans J. Koch <hjk@linutronix.de>
+Subject: s3c2410fb: add margin fields to s3c2410fb_display
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-This patch adds support for the other three palette formats possible with
-the PXA LCD controller. This is required on boards where an LCD is connected
-with all its 18 bits. With this patch, it's possible to use an 8-bit mode
-with 18-bit palette entries. This used to be possible in 2.4 kernels but
-disappeared in 2.6. With current kernels, you can only get wrong colours
-out of an LCD connected this way.
+This patch adds margins fields to the s3c2410fb_display
+structure. It also sets display type and horizontal
+margins in all platform files that use the s3c2410fb
+driver.
 
-Users can choose the palette format by doing something like this
-in their board definition:
-
-static struct pxafb_mach_info my_fb_info = {
-        [...]
-        .lccr3          = LCCR3_OutEnH | LCCR3_PixFlEdg | LCCR3_PDFOR_3,
-        .lccr4          = LCCR4_PAL_FOR_2,
-        [...]
-};
-
-Signed-off-by: Hans J. Koch <hjk@linutronix.de>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pxafb.c               |   64 +++++++++++++++++++-------
- drivers/video/pxafb.h               |    2 
- include/asm-arm/arch-pxa/pxa-regs.h |   11 ++++
- include/asm-arm/arch-pxa/pxafb.h    |    7 ++
- 4 files changed, 68 insertions(+), 16 deletions(-)
+ arch/arm/mach-s3c2410/mach-amlm5900.c |    7 +++---
+ arch/arm/mach-s3c2410/mach-bast.c     |   27 ++++++++++++++++++++++++
+ arch/arm/mach-s3c2410/mach-h1940.c    |    3 ++
+ arch/arm/mach-s3c2410/mach-qt2410.c   |    9 ++++++++
+ arch/arm/mach-s3c2440/mach-rx3715.c   |   15 ++++++++-----
+ arch/arm/mach-s3c2440/mach-smdk2440.c |    2 +
+ include/asm-arm/arch-s3c2410/fb.h     |    7 ++++++
+ 7 files changed, 61 insertions(+), 9 deletions(-)
 
-diff -puN drivers/video/pxafb.c~pxafb-add-support-for-other-palette-formats drivers/video/pxafb.c
---- a/drivers/video/pxafb.c~pxafb-add-support-for-other-palette-formats
-+++ a/drivers/video/pxafb.c
-@@ -108,20 +108,38 @@ pxafb_setpalettereg(u_int regno, u_int r
- 		       u_int trans, struct fb_info *info)
- {
- 	struct pxafb_info *fbi = (struct pxafb_info *)info;
--	u_int val, ret = 1;
-+	u_int val;
+diff -puN arch/arm/mach-s3c2410/mach-amlm5900.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display arch/arm/mach-s3c2410/mach-amlm5900.c
+--- a/arch/arm/mach-s3c2410/mach-amlm5900.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display
++++ a/arch/arm/mach-s3c2410/mach-amlm5900.c
+@@ -172,12 +172,13 @@ static struct s3c2410fb_display __initda
+ 	.width		= 160,
+ 	.height		= 160,
  
--	if (regno < fbi->palette_size) {
--		if (fbi->fb.var.grayscale) {
--			val = ((blue >> 8) & 0x00ff);
--		} else {
--			val  = ((red   >>  0) & 0xf800);
--			val |= ((green >>  5) & 0x07e0);
--			val |= ((blue  >> 11) & 0x001f);
--		}
-+	if (regno >= fbi->palette_size)
-+		return 1;
+-/* commented out until stn patch is submitted
+-*	.type		= S3C2410_LCDCON1_STN4,
+-*/
++	.type		= S3C2410_LCDCON1_STN4,
 +
-+	if (fbi->fb.var.grayscale) {
-+		fbi->palette_cpu[regno] = ((blue >> 8) & 0x00ff);
-+		return 0;
-+	}
-+
-+	switch (fbi->lccr4 & LCCR4_PAL_FOR_MASK) {
-+	case LCCR4_PAL_FOR_0:
-+		val  = ((red   >>  0) & 0xf800);
-+		val |= ((green >>  5) & 0x07e0);
-+		val |= ((blue  >> 11) & 0x001f);
- 		fbi->palette_cpu[regno] = val;
--		ret = 0;
-+		break;
-+	case LCCR4_PAL_FOR_1:
-+		val  = ((red   << 8) & 0x00f80000);
-+		val |= ((green >> 0) & 0x0000fc00);
-+		val |= ((blue  >> 8) & 0x000000f8);
-+		((u32*)(fbi->palette_cpu))[regno] = val;
-+		break;
-+	case LCCR4_PAL_FOR_2:
-+		val  = ((red   << 8) & 0x00fc0000);
-+		val |= ((green >> 0) & 0x0000fc00);
-+		val |= ((blue  >> 8) & 0x000000fc);
-+		((u32*)(fbi->palette_cpu))[regno] = val;
-+		break;
- 	}
--	return ret;
-+
-+	return 0;
- }
+ 	.xres		= 160,
+ 	.yres		= 160,
+ 	.bpp		= 4,
++	.left_margin	= 1 << (4 + 3),
++	.right_margin	= 8 << 3,
  
- static int
-@@ -363,7 +381,10 @@ static int pxafb_set_par(struct fb_info 
- 	else
- 		fbi->palette_size = var->bits_per_pixel == 1 ? 4 : 1 << var->bits_per_pixel;
+ 	.regs		= {
+ 		.lcdcon1	= 0x00008225,
+diff -puN arch/arm/mach-s3c2410/mach-bast.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display arch/arm/mach-s3c2410/mach-bast.c
+--- a/arch/arm/mach-s3c2410/mach-bast.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display
++++ a/arch/arm/mach-s3c2410/mach-bast.c
+@@ -469,10 +469,13 @@ static struct platform_device bast_devic
  
--	palette_mem_size = fbi->palette_size * sizeof(u16);
-+	if ((fbi->lccr4 & LCCR4_PAL_FOR_MASK) == LCCR4_PAL_FOR_0)
-+		palette_mem_size = fbi->palette_size * sizeof(u16);
-+	else
-+		palette_mem_size = fbi->palette_size * sizeof(u32);
+ static struct s3c2410fb_display __initdata bast_lcd_info[] = {
+ 	{
++		.type		= S3C2410_LCDCON1_TFT,
+ 		.width		= 640,
+ 		.height		= 480,
+ 		.xres		= 320,
+ 		.yres		= 240,
++		.left_margin	= 40,
++		.right_margin	= 20,
  
- 	pr_debug("pxafb: palette_mem_size = 0x%08lx\n", palette_mem_size);
+ 		.bpp		= 4,
  
-@@ -680,7 +701,13 @@ static int pxafb_activate_var(struct fb_
+@@ -485,12 +488,15 @@ static struct s3c2410fb_display __initda
+ 		}
+ 	},
+ 	{
++		.type		= S3C2410_LCDCON1_TFT,
+ 		.width		= 640,
+ 		.height		= 480,
  
- 	fbi->dmadesc_palette_cpu->fsadr = fbi->palette_dma;
- 	fbi->dmadesc_palette_cpu->fidr  = 0;
--	fbi->dmadesc_palette_cpu->ldcmd = (fbi->palette_size * 2) | LDCMD_PAL;
-+	if ((fbi->lccr4 & LCCR4_PAL_FOR_MASK) == LCCR4_PAL_FOR_0)
-+		fbi->dmadesc_palette_cpu->ldcmd = fbi->palette_size *
-+							sizeof(u16);
-+	else
-+		fbi->dmadesc_palette_cpu->ldcmd = fbi->palette_size *
-+							sizeof(u32);
-+	fbi->dmadesc_palette_cpu->ldcmd |= LDCMD_PAL;
+ 		.xres		= 640,
+ 		.yres		= 480,
+ 		.bpp		= 4,
++		.left_margin	= 40,
++		.right_margin	= 20,
  
- 	if (var->bits_per_pixel == 16) {
- 		/* palette shouldn't be loaded in true-color mode */
-@@ -719,6 +746,8 @@ static int pxafb_activate_var(struct fb_
- 	fbi->reg_lccr1 = new_regs.lccr1;
- 	fbi->reg_lccr2 = new_regs.lccr2;
- 	fbi->reg_lccr3 = new_regs.lccr3;
-+	fbi->reg_lccr4 = LCCR4 & (~LCCR4_PAL_FOR_MASK);
-+	fbi->reg_lccr4 |= (fbi->lccr4 & LCCR4_PAL_FOR_MASK);
- 	set_hsync_time(fbi, pcd);
- 	local_irq_restore(flags);
+ 		.regs		= {
+ 			.lcdcon1	= 0x00000176,
+@@ -501,12 +507,15 @@ static struct s3c2410fb_display __initda
+ 		}
+ 	},
+ 	{
++		.type		= S3C2410_LCDCON1_TFT,
+ 		.width		= 640,
+ 		.height		= 480,
  
-@@ -825,6 +854,7 @@ static void pxafb_enable_controller(stru
- 	pr_debug("LCCR1 0x%08x\n", (unsigned int) LCCR1);
- 	pr_debug("LCCR2 0x%08x\n", (unsigned int) LCCR2);
- 	pr_debug("LCCR3 0x%08x\n", (unsigned int) LCCR3);
-+	pr_debug("LCCR4 0x%08x\n", (unsigned int) LCCR4);
- }
+ 		.xres		= 800,
+ 		.yres		= 600,
+ 		.bpp		= 4,
++		.left_margin	= 40,
++		.right_margin	= 20,
  
- static void pxafb_disable_controller(struct pxafb_info *fbi)
-@@ -1094,10 +1124,13 @@ static int __init pxafb_map_video_memory
- 		 * dma_writecombine_mmap)
- 		 */
- 		fbi->fb.fix.smem_start = fbi->screen_dma;
+ 		.regs		= {
+ 			.lcdcon1	= 0x00000176,
+@@ -517,12 +526,15 @@ static struct s3c2410fb_display __initda
+ 		}
+ 	},
+ 	{
++		.type		= S3C2410_LCDCON1_TFT,
+ 		.width		= 640,
+ 		.height		= 480,
+ 
+ 		.xres		= 320,
+ 		.yres		= 240,
+ 		.bpp		= 8,
++		.left_margin	= 40,
++		.right_margin	= 20,
+ 
+ 		.regs		= {
+ 			.lcdcon1	= 0x00000176,
+@@ -533,12 +545,15 @@ static struct s3c2410fb_display __initda
+ 		}
+ 	},
+ 	{
++		.type		= S3C2410_LCDCON1_TFT,
+ 		.width		= 640,
+ 		.height		= 480,
+ 
+ 		.xres		= 640,
+ 		.yres		= 480,
+ 		.bpp		= 8,
++		.left_margin	= 40,
++		.right_margin	= 20,
+ 
+ 		.regs		= {
+ 			.lcdcon1	= 0x00000176,
+@@ -549,12 +564,15 @@ static struct s3c2410fb_display __initda
+ 		}
+ 	},
+ 	{
++		.type		= S3C2410_LCDCON1_TFT,
+ 		.width		= 640,
+ 		.height		= 480,
+ 
+ 		.xres		= 800,
+ 		.yres		= 600,
+ 		.bpp		= 8,
++		.left_margin	= 40,
++		.right_margin	= 20,
+ 
+ 		.regs		= {
+ 			.lcdcon1	= 0x00000176,
+@@ -565,12 +583,15 @@ static struct s3c2410fb_display __initda
+ 		}
+ 	},
+ 	{
++		.type		= S3C2410_LCDCON1_TFT,
+ 		.width		= 640,
+ 		.height		= 480,
+ 
+ 		.xres		= 320,
+ 		.yres		= 240,
+ 		.bpp		= 16,
++		.left_margin	= 40,
++		.right_margin	= 20,
+ 
+ 		.regs		= {
+ 			.lcdcon1	= 0x00000176,
+@@ -581,12 +602,15 @@ static struct s3c2410fb_display __initda
+ 		}
+ 	},
+ 	{
++		.type		= S3C2410_LCDCON1_TFT,
+ 		.width		= 640,
+ 		.height		= 480,
+ 
+ 		.xres		= 640,
+ 		.yres		= 480,
+ 		.bpp		= 16,
++		.left_margin	= 40,
++		.right_margin	= 20,
+ 
+ 		.regs		= {
+ 			.lcdcon1	= 0x00000176,
+@@ -597,12 +621,15 @@ static struct s3c2410fb_display __initda
+ 		}
+ 	},
+ 	{
++		.type		= S3C2410_LCDCON1_TFT,
+ 		.width		= 640,
+ 		.height		= 480,
+ 
+ 		.xres		= 800,
+ 		.yres		= 600,
+ 		.bpp		= 16,
++		.left_margin	= 40,
++		.right_margin	= 20,
+ 
+ 		.regs		= {
+ 			.lcdcon1	= 0x00000176,
+diff -puN arch/arm/mach-s3c2410/mach-h1940.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display arch/arm/mach-s3c2410/mach-h1940.c
+--- a/arch/arm/mach-s3c2410/mach-h1940.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display
++++ a/arch/arm/mach-s3c2410/mach-h1940.c
+@@ -156,11 +156,14 @@ static struct s3c2410fb_display h1940_lc
+ 				S3C2410_LCDCON5_HWSWP,
+ 	},
+ 
++	.type =		S3C2410_LCDCON1_TFT,
+ 	.width =	240,
+ 	.height =	320,
+ 	.xres =		240,
+ 	.yres =		320,
+ 	.bpp =		16,
++	.left_margin =	20,
++	.right_margin =	8,
+ };
+ 
+ static struct s3c2410fb_mach_info h1940_fb_info __initdata = {
+diff -puN arch/arm/mach-s3c2410/mach-qt2410.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display arch/arm/mach-s3c2410/mach-qt2410.c
+--- a/arch/arm/mach-s3c2410/mach-qt2410.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display
++++ a/arch/arm/mach-s3c2410/mach-qt2410.c
+@@ -123,12 +123,15 @@ static struct s3c2410fb_display qt2410_l
+ 				   S3C2410_LCDCON5_HWSWP,
+ 		},
+ 
++		.type		= S3C2410_LCDCON1_TFT,
+ 		.width		= 640,
+ 		.height		= 480,
+ 
+ 		.xres		= 640,
+ 		.yres		= 480,
+ 		.bpp		= 16,
++		.left_margin	= 44,
++		.right_margin	= 116,
+ 	},
+ 	{
+ 		/* Configuration for 480x640 toppoly TD028TTEC1 */
+@@ -157,11 +160,14 @@ static struct s3c2410fb_display qt2410_l
+ 				   S3C2410_LCDCON5_HWSWP,
+ 		},
+ 
++		.type		= S3C2410_LCDCON1_TFT,
+ 		.width		= 480,
+ 		.height		= 640,
+ 		.xres		= 480,
+ 		.yres		= 640,
+ 		.bpp		= 16,
++		.left_margin	= 8,
++		.right_margin	= 24,
+ 	},
+ 	{
+ 		/* Config for 240x320 LCD */
+@@ -190,11 +196,14 @@ static struct s3c2410fb_display qt2410_l
+ 				   S3C2410_LCDCON5_HWSWP,
+ 		},
+ 
++		.type		= S3C2410_LCDCON1_TFT,
+ 		.width		= 240,
+ 		.height		= 320,
+ 		.xres		= 240,
+ 		.yres		= 320,
+ 		.bpp		= 16,
++		.left_margin	= 13,
++		.right_margin	= 8,
+ 	},
+ };
+ 
+diff -puN arch/arm/mach-s3c2440/mach-rx3715.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display arch/arm/mach-s3c2440/mach-rx3715.c
+--- a/arch/arm/mach-s3c2440/mach-rx3715.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display
++++ a/arch/arm/mach-s3c2440/mach-rx3715.c
+@@ -133,12 +133,15 @@ static struct s3c2410fb_display rx3715_l
+ 				S3C2410_LCDCON5_HWSWP,
+ 	},
+ 
+-	.width  =	240,
+-	.height =	320,
 -
- 		fbi->palette_size = fbi->fb.var.bits_per_pixel == 8 ? 256 : 16;
- 
--		palette_mem_size = fbi->palette_size * sizeof(u16);
-+		if ((fbi->lccr4 & LCCR4_PAL_FOR_MASK) == LCCR4_PAL_FOR_0)
-+			palette_mem_size = fbi->palette_size * sizeof(u16);
-+		else
-+			palette_mem_size = fbi->palette_size * sizeof(u32);
+-	.xres	= 240,
+-	.yres	= 320,
+-	.bpp	= 16,
++	.type		= S3C2410_LCDCON1_TFT,
++	.width		= 240,
++	.height		= 320,
 +
- 		pr_debug("pxafb: palette_mem_size = 0x%08lx\n", palette_mem_size);
++	.xres		= 240,
++	.yres		= 320,
++	.bpp		= 16,
++	.left_margin	= 36,
++	.right_margin	= 36,
+ };
  
- 		fbi->palette_cpu = (u16 *)(fbi->map_cpu + PAGE_SIZE - palette_mem_size);
-@@ -1160,6 +1193,7 @@ static struct pxafb_info * __init pxafb_
+ static struct s3c2410fb_mach_info rx3715_fb_info __initdata = {
+diff -puN arch/arm/mach-s3c2440/mach-smdk2440.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display arch/arm/mach-s3c2440/mach-smdk2440.c
+--- a/arch/arm/mach-s3c2440/mach-smdk2440.c~s3c2410fb-add-margin-fields-to-s3c2410fb_display
++++ a/arch/arm/mach-s3c2440/mach-smdk2440.c
+@@ -137,6 +137,8 @@ static struct s3c2410fb_display smdk2440
+ 	.xres		= 240,
+ 	.yres		= 320,
+ 	.bpp		= 16,
++	.left_margin	= 20,
++	.right_margin	= 8,
+ };
  
- 	fbi->lccr0			= inf->lccr0;
- 	fbi->lccr3			= inf->lccr3;
-+	fbi->lccr4			= inf->lccr4;
- 	fbi->state			= C_STARTUP;
- 	fbi->task_state			= (u_char)-1;
+ static struct s3c2410fb_mach_info smdk2440_fb_info __initdata = {
+diff -puN include/asm-arm/arch-s3c2410/fb.h~s3c2410fb-add-margin-fields-to-s3c2410fb_display include/asm-arm/arch-s3c2410/fb.h
+--- a/include/asm-arm/arch-s3c2410/fb.h~s3c2410fb-add-margin-fields-to-s3c2410fb_display
++++ a/include/asm-arm/arch-s3c2410/fb.h
+@@ -36,6 +36,13 @@ struct s3c2410fb_display {
+ 	unsigned short yres;
+ 	unsigned short bpp;
  
-diff -puN drivers/video/pxafb.h~pxafb-add-support-for-other-palette-formats drivers/video/pxafb.h
---- a/drivers/video/pxafb.h~pxafb-add-support-for-other-palette-formats
-+++ a/drivers/video/pxafb.h
-@@ -71,6 +71,7 @@ struct pxafb_info {
- 
- 	u_int			lccr0;
- 	u_int			lccr3;
-+	u_int			lccr4;
- 	u_int			cmap_inverse:1,
- 				cmap_static:1,
- 				unused:30;
-@@ -79,6 +80,7 @@ struct pxafb_info {
- 	u_int			reg_lccr1;
- 	u_int			reg_lccr2;
- 	u_int			reg_lccr3;
-+	u_int			reg_lccr4;
- 
- 	unsigned long	hsync_time;
- 
-diff -puN include/asm-arm/arch-pxa/pxa-regs.h~pxafb-add-support-for-other-palette-formats include/asm-arm/arch-pxa/pxa-regs.h
---- a/include/asm-arm/arch-pxa/pxa-regs.h~pxafb-add-support-for-other-palette-formats
-+++ a/include/asm-arm/arch-pxa/pxa-regs.h
-@@ -1823,6 +1823,7 @@
- #define LCCR1		__REG(0x44000004)  /* LCD Controller Control Register 1 */
- #define LCCR2		__REG(0x44000008)  /* LCD Controller Control Register 2 */
- #define LCCR3		__REG(0x4400000C)  /* LCD Controller Control Register 3 */
-+#define LCCR4		__REG(0x44000010)  /* LCD Controller Control Register 3 */
- #define DFBR0		__REG(0x44000020)  /* DMA Channel 0 Frame Branch Register */
- #define DFBR1		__REG(0x44000024)  /* DMA Channel 1 Frame Branch Register */
- #define LCSR		__REG(0x44000038)  /* LCD Controller Status Register */
-@@ -1836,6 +1837,16 @@
- #define LCCR3_8BPP (3 << 24)
- #define LCCR3_16BPP (4 << 24)
- 
-+#define LCCR3_PDFOR_0 (0 << 30)
-+#define LCCR3_PDFOR_1 (1 << 30)
-+#define LCCR3_PDFOR_2 (2 << 30)
-+#define LCCR3_PDFOR_3 (3 << 30)
++	unsigned short left_margin;  /* value in pixels (TFT) or HCLKs (STN) */
++	unsigned short right_margin; /* value in pixels (TFT) or HCLKs (STN) */
++	unsigned short hsync_len;    /* value in pixels (TFT) or HCLKs (STN) */
++	unsigned short upper_margin;	/* value in lines (TFT) or 0 (STN) */
++	unsigned short lower_margin;	/* value in lines (TFT) or 0 (STN) */
++	unsigned short vsync_len;	/* value in lines (TFT) or 0 (STN) */
 +
-+#define LCCR4_PAL_FOR_0 (0 << 15)
-+#define LCCR4_PAL_FOR_1 (1 << 15)
-+#define LCCR4_PAL_FOR_2 (2 << 15)
-+#define LCCR4_PAL_FOR_MASK (3 << 15)
-+
- #define FDADR0		__REG(0x44000200)  /* DMA Channel 0 Frame Descriptor Address Register */
- #define FSADR0		__REG(0x44000204)  /* DMA Channel 0 Frame Source Address Register */
- #define FIDR0		__REG(0x44000208)  /* DMA Channel 0 Frame ID Register */
-diff -puN include/asm-arm/arch-pxa/pxafb.h~pxafb-add-support-for-other-palette-formats include/asm-arm/arch-pxa/pxafb.h
---- a/include/asm-arm/arch-pxa/pxafb.h~pxafb-add-support-for-other-palette-formats
-+++ a/include/asm-arm/arch-pxa/pxafb.h
-@@ -70,7 +70,12 @@ struct pxafb_mach_info {
- 	 *      LCCR3_HSP, LCCR3_VSP, LCCR0_Pcd(x), LCCR3_Bpp
- 	 */
- 	u_int		lccr3;
--
-+	/* The following should be defined in LCCR4
-+	 *	LCCR4_PAL_FOR_0 or LCCR4_PAL_FOR_1 or LCCR4_PAL_FOR_2
-+	 *
-+	 * All other bits in LCCR4 should be left alone.
-+	 */
-+	u_int		lccr4;
- 	void (*pxafb_backlight_power)(int);
- 	void (*pxafb_lcd_power)(int, struct fb_var_screeninfo *);
- 
+ 	/* lcd configuration registers */
+ 	struct s3c2410fb_hw  regs;
+ };
 _
 
-Patches currently in -mm which might be from hjk@linutronix.de are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
+git-alsa.patch
+cyber2000fb-checkpatch-fixes.patch
