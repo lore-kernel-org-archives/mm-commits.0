@@ -1,58 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - add-support-for-wacom-wacf007-and-wacf008-to-serial-pnp-driver.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:30:05 -0700
-Message-ID: <200710162030.l9GKU5iu014376@imap1.linux-foundation.org>
+Subject: - pcmcia-use-dma_mask_none-for-the-default-for-all.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:29:52 -0700
+Message-ID: <200710162029.l9GKTq7w014346@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43186 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35914 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765267AbXJPUbD (ORCPT
+	by vger.kernel.org with ESMTP id S1762871AbXJPUb1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 16:31:03 -0400
+	Tue, 16 Oct 2007 16:31:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mbroemme@plusserver.de, pazke@orbita1.ru, mm-commits@vger.kernel.org
+To: James.Bottomley@SteelEye.com, alan@lxorguk.ukuu.org.uk, andi@firstfloor.org, htejun@gmail.com, jgarzik@pobox.com, linux@dominikbrodowski.net, protasnb@gmail.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     Add support for Wacom WACF007 and WACF008 to serial pnp driver
+     pcmcia: use DMA_MASK_NONE for the default for all pcmcia devices
 has been removed from the -mm tree.  Its filename was
-     add-support-for-wacom-wacf007-and-wacf008-to-serial-pnp-driver.patch
+     pcmcia-use-dma_mask_none-for-the-default-for-all.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add support for Wacom WACF007 and WACF008 to serial pnp driver
-From: Maik Broemme <mbroemme@plusserver.de>
+Subject: pcmcia: use DMA_MASK_NONE for the default for all pcmcia devices
+From: James Bottomley <James.Bottomley@SteelEye.com>
 
-Notebook manufacturer seems to built a newer Wacom pen enabled tablet to
-recent tablet pcs which are not recognized by the serial pnp driver.
+Most non cardbus devices can't do dma, so flag them as such in the device
+creation routine.
 
-Attached is a patch which makes the newer Wacom WACF007 and WACF008 tablets
-useable with the serial driver.  The device is fully compatible with it.
-
-Signed-off-by: Maik Broemme <mbroemme@plusserver.de>
-Cc: Andrey Panin <pazke@orbita1.ru>
+Signed-off-by: James Bottomley <James.Bottomley@SteelEye.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Natalie Protasevich <protasnb@gmail.com>
+Cc: Jeff Garzik <jgarzik@pobox.com>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pnp.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/pcmcia/ds.c |    4 ++++
+ include/pcmcia/ds.h |    1 +
+ 2 files changed, 5 insertions(+)
 
-diff -puN drivers/serial/8250_pnp.c~add-support-for-wacom-wacf007-and-wacf008-to-serial-pnp-driver drivers/serial/8250_pnp.c
---- a/drivers/serial/8250_pnp.c~add-support-for-wacom-wacf007-and-wacf008-to-serial-pnp-driver
-+++ a/drivers/serial/8250_pnp.c
-@@ -327,6 +327,8 @@ static const struct pnp_device_id pnp_de
- 	{	"WACF004",		0	},
- 	{	"WACF005",		0	},
- 	{       "WACF006",              0       },
-+	{       "WACF007",              0       },
-+	{       "WACF008",              0       },
- 	/* Compaq touchscreen */
- 	{       "FPI2002",              0 },
- 	/* Fujitsu Stylistic touchscreens */
+diff -puN drivers/pcmcia/ds.c~pcmcia-use-dma_mask_none-for-the-default-for-all drivers/pcmcia/ds.c
+--- a/drivers/pcmcia/ds.c~pcmcia-use-dma_mask_none-for-the-default-for-all
++++ a/drivers/pcmcia/ds.c
+@@ -23,6 +23,7 @@
+ #include <linux/crc32.h>
+ #include <linux/firmware.h>
+ #include <linux/kref.h>
++#include <linux/dma-mapping.h>
+ 
+ #define IN_CARD_SERVICES
+ #include <pcmcia/cs_types.h>
+@@ -670,6 +671,9 @@ struct pcmcia_device * pcmcia_device_add
+ 	p_dev->dev.bus = &pcmcia_bus_type;
+ 	p_dev->dev.parent = s->dev.parent;
+ 	p_dev->dev.release = pcmcia_release_dev;
++	/* by default don't allow DMA */
++	p_dev->dma_mask = DMA_MASK_NONE;
++	p_dev->dev.dma_mask = &p_dev->dma_mask;
+ 	bus_id_len = sprintf (p_dev->dev.bus_id, "%d.%d", p_dev->socket->sock, p_dev->device_no);
+ 
+ 	p_dev->devname = kmalloc(6 + bus_id_len + 1, GFP_KERNEL);
+diff -puN include/pcmcia/ds.h~pcmcia-use-dma_mask_none-for-the-default-for-all include/pcmcia/ds.h
+--- a/include/pcmcia/ds.h~pcmcia-use-dma_mask_none-for-the-default-for-all
++++ a/include/pcmcia/ds.h
+@@ -184,6 +184,7 @@ struct pcmcia_device {
+ 
+ 	char *			prod_id[4];
+ 
++	u64			dma_mask;
+ 	struct device		dev;
+ 
+ #ifdef CONFIG_PCMCIA_IOCTL
 _
 
-Patches currently in -mm which might be from mbroemme@plusserver.de are
+Patches currently in -mm which might be from James.Bottomley@SteelEye.com are
 
 origin.patch
+git-scsi-misc.patch
+git-scsi-misc-gdth-fix.patch
+change-struct-marker-users.patch
