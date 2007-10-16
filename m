@@ -1,290 +1,265 @@
 From: akpm@linux-foundation.org
-Subject: - fbcon-convert-struct-font_desc-to-use-iso-c-initializers.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:43:33 -0700
-Message-ID: <200710162043.l9GKhXhW016059@imap1.linux-foundation.org>
+Subject: - spi-driver-runtime-footprint-shrinkage.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:39:46 -0700
+Message-ID: <200710162039.l9GKdkiQ015589@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53714 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47923 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965806AbXJPVO7 (ORCPT
+	by vger.kernel.org with ESMTP id S933584AbXJPVPj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:14:59 -0400
+	Tue, 16 Oct 2007 17:15:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ralf@linux-mips.org, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbcon: Convert struct font_desc to use ISO C initializers
+     SPI driver runtime footprint shrinkage
 has been removed from the -mm tree.  Its filename was
-     fbcon-convert-struct-font_desc-to-use-iso-c-initializers.patch
+     spi-driver-runtime-footprint-shrinkage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fbcon: Convert struct font_desc to use ISO C initializers
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: SPI driver runtime footprint shrinkage
+From: David Brownell <david-b@pacbell.net>
 
-Akpm's patch "newport_con warning fix" got me to look at the console drivers
-again and one thing that I noticed was that none of the fonts was using ISO
-initializers for it's fonts.
+Shrink the runtime footprint of various SPI drivers:
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+  - Move the probe() routine into the init section where practical,
+    using platform_driver_probe() to make that safe.  This often saves
+    around 1KB.  Using platform_driver_probe() can also be a correctness
+    fix, if the probe routine is already marked __init but the driver
+    struct keeps a dangling pointer to it after init section removal.
+
+  - Likewise move remove() routines into the exit sections.
+
+These changes would be inappropriate iff the platform devices were
+actually hotpluggable (e.g. they're found on optional addon cards,
+or in an FPGA that's dynamically reprogrammed).  In these cases,
+that's not the situation; it's an SOC controller and the only device
+is initialized before these drivers.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/font_10x18.c     |   14 +++++++-------
- drivers/video/console/font_6x11.c      |   13 +++++++------
- drivers/video/console/font_7x14.c      |   12 ++++++------
- drivers/video/console/font_8x16.c      |   12 ++++++------
- drivers/video/console/font_8x8.c       |   12 ++++++------
- drivers/video/console/font_acorn_8x8.c |   14 +++++++-------
- drivers/video/console/font_mini_4x6.c  |   12 ++++++------
- drivers/video/console/font_pearl_8x8.c |   12 ++++++------
- drivers/video/console/font_sun12x22.c  |   14 +++++++-------
- drivers/video/console/font_sun8x16.c   |   14 +++++++-------
- 10 files changed, 65 insertions(+), 64 deletions(-)
+ drivers/spi/omap_uwire.c  |    9 ++++-----
+ drivers/spi/pxa2xx_spi.c  |   11 ++++-------
+ drivers/spi/spi_imx.c     |   11 +++++------
+ drivers/spi/spi_mpc83xx.c |    7 +++----
+ drivers/spi/spi_s3c24xx.c |    9 ++++-----
+ 5 files changed, 20 insertions(+), 27 deletions(-)
 
-diff -puN drivers/video/console/font_10x18.c~fbcon-convert-struct-font_desc-to-use-iso-c-initializers drivers/video/console/font_10x18.c
---- a/drivers/video/console/font_10x18.c~fbcon-convert-struct-font_desc-to-use-iso-c-initializers
-+++ a/drivers/video/console/font_10x18.c
-@@ -5133,14 +5133,14 @@ static const unsigned char fontdata_10x1
+diff -puN drivers/spi/omap_uwire.c~spi-driver-runtime-footprint-shrinkage drivers/spi/omap_uwire.c
+--- a/drivers/spi/omap_uwire.c~spi-driver-runtime-footprint-shrinkage
++++ a/drivers/spi/omap_uwire.c
+@@ -481,7 +481,7 @@ static void uwire_off(struct uwire_spi *
+ 	spi_master_put(uwire->bitbang.master);
+ }
  
+-static int uwire_probe(struct platform_device *pdev)
++static int __init uwire_probe(struct platform_device *pdev)
+ {
+ 	struct spi_master	*master;
+ 	struct uwire_spi	*uwire;
+@@ -525,7 +525,7 @@ static int uwire_probe(struct platform_d
+ 	return status;
+ }
  
- const struct font_desc font_10x18 = {
--	FONT10x18_IDX,
--	"10x18",
--	10,
--	18,
--	fontdata_10x18,
-+	.idx	= FONT10x18_IDX,
-+	.name	= "10x18",
-+	.width	= 10,
-+	.height	= 18,
-+	.data	= fontdata_10x18,
- #ifdef __sparc__
--	5
-+	.pref	= 5,
- #else
--	-1
-+	.pref	= -1,
- #endif
+-static int uwire_remove(struct platform_device *pdev)
++static int __exit uwire_remove(struct platform_device *pdev)
+ {
+ 	struct uwire_spi	*uwire = dev_get_drvdata(&pdev->dev);
+ 	int			status;
+@@ -543,8 +543,7 @@ static struct platform_driver uwire_driv
+ 		.bus		= &platform_bus_type,
+ 		.owner		= THIS_MODULE,
+ 	},
+-	.probe		= uwire_probe,
+-	.remove		= uwire_remove,
++	.remove		= __exit_p(uwire_remove),
+ 	// suspend ... unuse ck
+ 	// resume ... use ck
  };
-diff -puN drivers/video/console/font_6x11.c~fbcon-convert-struct-font_desc-to-use-iso-c-initializers drivers/video/console/font_6x11.c
---- a/drivers/video/console/font_6x11.c~fbcon-convert-struct-font_desc-to-use-iso-c-initializers
-+++ a/drivers/video/console/font_6x11.c
-@@ -3342,10 +3342,11 @@ static const unsigned char fontdata_6x11
+@@ -566,7 +565,7 @@ static int __init omap_uwire_init(void)
+ 		omap_writel(val | 0x00AAA000, OMAP730_IO_CONF_9);
+ 	}
  
+-	return platform_driver_register(&uwire_driver);
++	return platform_driver_probe(&uwire_driver, uwire_probe);
+ }
  
- const struct font_desc font_vga_6x11 = {
--	VGA6x11_IDX,
--	"ProFont6x11",
--	6,
--	11,
--	fontdata_6x11,
--	-2000	/* Try avoiding this font if possible unless on MAC */
-+	.idx	= VGA6x11_IDX,
-+	.name	= "ProFont6x11",
-+	.width	= 6,
-+	.height	= 11,
-+	.data	= fontdata_6x11,
-+	/* Try avoiding this font if possible unless on MAC */
-+	.pref	= -2000,
- };
-diff -puN drivers/video/console/font_7x14.c~fbcon-convert-struct-font_desc-to-use-iso-c-initializers drivers/video/console/font_7x14.c
---- a/drivers/video/console/font_7x14.c~fbcon-convert-struct-font_desc-to-use-iso-c-initializers
-+++ a/drivers/video/console/font_7x14.c
-@@ -4109,10 +4109,10 @@ static const unsigned char fontdata_7x14
+ static void __exit omap_uwire_exit(void)
+diff -puN drivers/spi/pxa2xx_spi.c~spi-driver-runtime-footprint-shrinkage drivers/spi/pxa2xx_spi.c
+--- a/drivers/spi/pxa2xx_spi.c~spi-driver-runtime-footprint-shrinkage
++++ a/drivers/spi/pxa2xx_spi.c
+@@ -1229,7 +1229,7 @@ static void cleanup(struct spi_device *s
+ 	kfree(chip);
+ }
  
+-static int init_queue(struct driver_data *drv_data)
++static int __init init_queue(struct driver_data *drv_data)
+ {
+ 	INIT_LIST_HEAD(&drv_data->queue);
+ 	spin_lock_init(&drv_data->lock);
+@@ -1317,7 +1317,7 @@ static int destroy_queue(struct driver_d
+ 	return 0;
+ }
  
- const struct font_desc font_7x14 = {
--	FONT7x14_IDX,
--	"7x14",
--	7,
--	14,
--	fontdata_7x14,
--	0
-+	.idx	= FONT7x14_IDX,
-+	.name	= "7x14",
-+	.width	= 7,
-+	.height	= 14,
-+	.data	= fontdata_7x14,
-+	.pref	= 0,
- };
-diff -puN drivers/video/console/font_8x16.c~fbcon-convert-struct-font_desc-to-use-iso-c-initializers drivers/video/console/font_8x16.c
---- a/drivers/video/console/font_8x16.c~fbcon-convert-struct-font_desc-to-use-iso-c-initializers
-+++ a/drivers/video/console/font_8x16.c
-@@ -4622,10 +4622,10 @@ static const unsigned char fontdata_8x16
+-static int pxa2xx_spi_probe(struct platform_device *pdev)
++static int __init pxa2xx_spi_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct pxa2xx_spi_master *platform_info;
+@@ -1621,8 +1621,7 @@ static struct platform_driver driver = {
+ 		.bus = &platform_bus_type,
+ 		.owner = THIS_MODULE,
+ 	},
+-	.probe = pxa2xx_spi_probe,
+-	.remove = __devexit_p(pxa2xx_spi_remove),
++	.remove = pxa2xx_spi_remove,
+ 	.shutdown = pxa2xx_spi_shutdown,
+ 	.suspend = pxa2xx_spi_suspend,
+ 	.resume = pxa2xx_spi_resume,
+@@ -1630,9 +1629,7 @@ static struct platform_driver driver = {
  
+ static int __init pxa2xx_spi_init(void)
+ {
+-	platform_driver_register(&driver);
+-
+-	return 0;
++	return platform_driver_probe(&driver, pxa2xx_spi_probe);
+ }
+ module_init(pxa2xx_spi_init);
  
- const struct font_desc font_vga_8x16 = {
--	VGA8x16_IDX,
--	"VGA8x16",
--	8,
--	16,
--	fontdata_8x16,
--	0
-+	.idx	= VGA8x16_IDX,
-+	.name	= "VGA8x16",
-+	.width	= 8,
-+	.height	= 16,
-+	.data	= fontdata_8x16,
-+	.pref	= 0,
- };
-diff -puN drivers/video/console/font_8x8.c~fbcon-convert-struct-font_desc-to-use-iso-c-initializers drivers/video/console/font_8x8.c
---- a/drivers/video/console/font_8x8.c~fbcon-convert-struct-font_desc-to-use-iso-c-initializers
-+++ a/drivers/video/console/font_8x8.c
-@@ -2574,10 +2574,10 @@ static const unsigned char fontdata_8x8[
+diff -puN drivers/spi/spi_imx.c~spi-driver-runtime-footprint-shrinkage drivers/spi/spi_imx.c
+--- a/drivers/spi/spi_imx.c~spi-driver-runtime-footprint-shrinkage
++++ a/drivers/spi/spi_imx.c
+@@ -1361,7 +1361,7 @@ static void cleanup(struct spi_device *s
+ 	kfree(spi_get_ctldata(spi));
+ }
  
+-static int init_queue(struct driver_data *drv_data)
++static int __init init_queue(struct driver_data *drv_data)
+ {
+ 	INIT_LIST_HEAD(&drv_data->queue);
+ 	spin_lock_init(&drv_data->lock);
+@@ -1444,7 +1444,7 @@ static int destroy_queue(struct driver_d
+ 	return 0;
+ }
  
- const struct font_desc font_vga_8x8 = {
--	VGA8x8_IDX,
--	"VGA8x8",
--	8,
--	8,
--	fontdata_8x8,
--	0
-+	.idx	= VGA8x8_IDX,
-+	.name	= "VGA8x8",
-+	.width	= 8,
-+	.height	= 8,
-+	.data	= fontdata_8x8,
-+	.pref	= 0,
- };
-diff -puN drivers/video/console/font_acorn_8x8.c~fbcon-convert-struct-font_desc-to-use-iso-c-initializers drivers/video/console/font_acorn_8x8.c
---- a/drivers/video/console/font_acorn_8x8.c~fbcon-convert-struct-font_desc-to-use-iso-c-initializers
-+++ a/drivers/video/console/font_acorn_8x8.c
-@@ -262,14 +262,14 @@ static const unsigned char acorndata_8x8
- };
+-static int spi_imx_probe(struct platform_device *pdev)
++static int __init spi_imx_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct spi_imx_master *platform_info;
+@@ -1622,7 +1622,7 @@ err_no_mem:
+ 	return status;
+ }
  
- const struct font_desc font_acorn_8x8 = {
--	ACORN8x8_IDX,
--	"Acorn8x8",
--	8,
--	8,
--	acorndata_8x8,
-+	.idx	= ACORN8x8_IDX,
-+	.name	= "Acorn8x8",
-+	.width	= 8,
-+	.height	= 8,
-+	.data	= acorndata_8x8,
- #ifdef CONFIG_ARCH_ACORN
--	20
-+	.pref	= 20,
- #else
--	0
-+	.pref	= 0,
- #endif
- };
-diff -puN drivers/video/console/font_mini_4x6.c~fbcon-convert-struct-font_desc-to-use-iso-c-initializers drivers/video/console/font_mini_4x6.c
---- a/drivers/video/console/font_mini_4x6.c~fbcon-convert-struct-font_desc-to-use-iso-c-initializers
-+++ a/drivers/video/console/font_mini_4x6.c
-@@ -2148,11 +2148,11 @@ static const unsigned char fontdata_mini
- };
+-static int __devexit spi_imx_remove(struct platform_device *pdev)
++static int __exit spi_imx_remove(struct platform_device *pdev)
+ {
+ 	struct driver_data *drv_data = platform_get_drvdata(pdev);
+ 	int irq;
+@@ -1739,8 +1739,7 @@ static struct platform_driver driver = {
+ 		.bus = &platform_bus_type,
+ 		.owner = THIS_MODULE,
+ 	},
+-	.probe = spi_imx_probe,
+-	.remove = __devexit_p(spi_imx_remove),
++	.remove = __exit_p(spi_imx_remove),
+ 	.shutdown = spi_imx_shutdown,
+ 	.suspend = spi_imx_suspend,
+ 	.resume = spi_imx_resume,
+@@ -1748,7 +1747,7 @@ static struct platform_driver driver = {
  
- const struct font_desc font_mini_4x6 = {
--	MINI4x6_IDX,
--	"MINI4x6",
--	4,
--	6,
--	fontdata_mini_4x6,
--	3
-+	.idx	= MINI4x6_IDX,
-+	.name	= "MINI4x6",
-+	.width	= 4,
-+	.height	= 6,
-+	.data	= fontdata_mini_4x6,
-+	.pref	= 3,
- };
+ static int __init spi_imx_init(void)
+ {
+-	return platform_driver_register(&driver);
++	return platform_driver_probe(&driver, spi_imx_probe);
+ }
+ module_init(spi_imx_init);
  
-diff -puN drivers/video/console/font_pearl_8x8.c~fbcon-convert-struct-font_desc-to-use-iso-c-initializers drivers/video/console/font_pearl_8x8.c
---- a/drivers/video/console/font_pearl_8x8.c~fbcon-convert-struct-font_desc-to-use-iso-c-initializers
-+++ a/drivers/video/console/font_pearl_8x8.c
-@@ -2578,10 +2578,10 @@ static const unsigned char fontdata_pear
- };
+diff -puN drivers/spi/spi_mpc83xx.c~spi-driver-runtime-footprint-shrinkage drivers/spi/spi_mpc83xx.c
+--- a/drivers/spi/spi_mpc83xx.c~spi-driver-runtime-footprint-shrinkage
++++ a/drivers/spi/spi_mpc83xx.c
+@@ -511,7 +511,7 @@ err:
+ 	return ret;
+ }
  
- const struct font_desc font_pearl_8x8 = {
--	PEARL8x8_IDX,
--	"PEARL8x8",
--	8,
--	8,
--	fontdata_pearl8x8,
--	2
-+	.idx	= PEARL8x8_IDX,
-+	.name	= "PEARL8x8",
-+	.width	= 8,
-+	.height	= 8,
-+	.data	= fontdata_pearl8x8,
-+	.pref	= 2,
- };
-diff -puN drivers/video/console/font_sun12x22.c~fbcon-convert-struct-font_desc-to-use-iso-c-initializers drivers/video/console/font_sun12x22.c
---- a/drivers/video/console/font_sun12x22.c~fbcon-convert-struct-font_desc-to-use-iso-c-initializers
-+++ a/drivers/video/console/font_sun12x22.c
-@@ -6152,14 +6152,14 @@ static const unsigned char fontdata_sun1
+-static int __devexit mpc83xx_spi_remove(struct platform_device *dev)
++static int __exit mpc83xx_spi_remove(struct platform_device *dev)
+ {
+ 	struct mpc83xx_spi *mpc83xx_spi;
+ 	struct spi_master *master;
+@@ -529,8 +529,7 @@ static int __devexit mpc83xx_spi_remove(
  
+ MODULE_ALIAS("mpc83xx_spi");			/* for platform bus hotplug */
+ static struct platform_driver mpc83xx_spi_driver = {
+-	.probe = mpc83xx_spi_probe,
+-	.remove = __devexit_p(mpc83xx_spi_remove),
++	.remove = __exit_p(mpc83xx_spi_remove),
+ 	.driver = {
+ 		   .name = "mpc83xx_spi",
+ 	},
+@@ -538,7 +537,7 @@ static struct platform_driver mpc83xx_sp
  
- const struct font_desc font_sun_12x22 = {
--	SUN12x22_IDX,
--	"SUN12x22",
--	12,
--	22,
--	fontdata_sun12x22,
-+	.idx	= SUN12x22_IDX,
-+	.name	= "SUN12x22",
-+	.width	= 12,
-+	.height	= 22,
-+	.data	= fontdata_sun12x22,
- #ifdef __sparc__
--	5
-+	.pref	= 5,
- #else
--	-1
-+	.pref	= -1,
- #endif
- };
-diff -puN drivers/video/console/font_sun8x16.c~fbcon-convert-struct-font_desc-to-use-iso-c-initializers drivers/video/console/font_sun8x16.c
---- a/drivers/video/console/font_sun8x16.c~fbcon-convert-struct-font_desc-to-use-iso-c-initializers
-+++ a/drivers/video/console/font_sun8x16.c
-@@ -262,14 +262,14 @@ static const unsigned char fontdata_sun8
- };
+ static int __init mpc83xx_spi_init(void)
+ {
+-	return platform_driver_register(&mpc83xx_spi_driver);
++	return platform_driver_probe(&mpc83xx_spi_driver, mpc83xx_spi_probe);
+ }
  
- const struct font_desc font_sun_8x16 = {
--	SUN8x16_IDX,
--	"SUN8x16",
--	8,
--	16,
--	fontdata_sun8x16,
-+	.idx	= SUN8x16_IDX,
-+	.name	= "SUN8x16",
-+	.width	= 8,
-+	.height	= 16,
-+	.data	= fontdata_sun8x16,
- #ifdef __sparc__
--	10
-+	.pref	= 10,
- #else
--	-1
-+	.pref	= -1,
- #endif
- };
+ static void __exit mpc83xx_spi_exit(void)
+diff -puN drivers/spi/spi_s3c24xx.c~spi-driver-runtime-footprint-shrinkage drivers/spi/spi_s3c24xx.c
+--- a/drivers/spi/spi_s3c24xx.c~spi-driver-runtime-footprint-shrinkage
++++ a/drivers/spi/spi_s3c24xx.c
+@@ -233,7 +233,7 @@ static irqreturn_t s3c24xx_spi_irq(int i
+ 	return IRQ_HANDLED;
+ }
+ 
+-static int s3c24xx_spi_probe(struct platform_device *pdev)
++static int __init s3c24xx_spi_probe(struct platform_device *pdev)
+ {
+ 	struct s3c24xx_spi *hw;
+ 	struct spi_master *master;
+@@ -382,7 +382,7 @@ static int s3c24xx_spi_probe(struct plat
+ 	return err;
+ }
+ 
+-static int s3c24xx_spi_remove(struct platform_device *dev)
++static int __exit s3c24xx_spi_remove(struct platform_device *dev)
+ {
+ 	struct s3c24xx_spi *hw = platform_get_drvdata(dev);
+ 
+@@ -429,8 +429,7 @@ static int s3c24xx_spi_resume(struct pla
+ 
+ MODULE_ALIAS("s3c2410_spi");			/* for platform bus hotplug */
+ static struct platform_driver s3c24xx_spidrv = {
+-	.probe		= s3c24xx_spi_probe,
+-	.remove		= s3c24xx_spi_remove,
++	.remove		= __exit_p(s3c24xx_spi_remove),
+ 	.suspend	= s3c24xx_spi_suspend,
+ 	.resume		= s3c24xx_spi_resume,
+ 	.driver		= {
+@@ -441,7 +440,7 @@ static struct platform_driver s3c24xx_sp
+ 
+ static int __init s3c24xx_spi_init(void)
+ {
+-        return platform_driver_register(&s3c24xx_spidrv);
++        return platform_driver_probe(&s3c24xx_spidrv, s3c24xx_spi_probe);
+ }
+ 
+ static void __exit s3c24xx_spi_exit(void)
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
+acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc.patch
 drivers-pmc-msp71xx-gpio-char-driver.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-spelling-fix-weired-weird.patch
-remove-dma_cache_wbackinvwback_inv-functions.patch
-lk201-remove-obsolete-driver.patch
-fix-wrong-filename-reference-in-drivers-testingtxt.patch
-completely-remove-deprecated-irq-flags-sa_.patch
-compile-handle_percpu_irq-even-for-uniprocessor-kernels.patch
-break-elf_platform-and-stack-pointer-randomization-dependency.patch
-add-a-00-index-file-to-documentation-mips.patch
-define-global-bit-macro.patch
-bitops-introduce-lock-ops.patch
-mips-fix-bitops.patch
-mips-lock-bitops.patch
-replace-__attribute_pure__-with-__pure.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
+add-missing-newlines-to-some-uses-of-dev_level-messages.patch
