@@ -1,65 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - jsm-remove-further-unneeded-crud-fix.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 15:10:06 -0700
-Message-ID: <200710162210.l9GMA73g020212@imap1.linux-foundation.org>
+Subject: - use-erestart_restartblock-if-poll-is-interrupted-by-a-signal-fix.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 15:12:07 -0700
+Message-ID: <200710162212.l9GMC7KM020282@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48978 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37892 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966012AbXJPWKm (ORCPT
+	by vger.kernel.org with ESMTP id S1753633AbXJPWMt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 18:10:42 -0400
+	Tue, 16 Oct 2007 18:12:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michal.k.k.piotrowski@gmail.com, alan@redhat.com, scottk@digi.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, chrisw@sous-sol.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/serial/jsm/jsm_tty.c remove unused variable
+     make do_restart_poll() static
 has been removed from the -mm tree.  Its filename was
-     jsm-remove-further-unneeded-crud-fix.patch
+     use-erestart_restartblock-if-poll-is-interrupted-by-a-signal-fix.patch
 
-This patch was dropped because it was folded into jsm-remove-further-un=
-needed-crud.patch
+This patch was dropped because it was folded into use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
 
 ------------------------------------------------------
-Subject: drivers/serial/jsm/jsm_tty.c remove unused variable
-=46rom: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Subject: make do_restart_poll() static
+From: Adrian Bunk <bunk@kernel.org>
 
-drivers/serial/jsm/jsm_tty.c: In function =E2=80=98jsm_input=E2=80=99:
-drivers/serial/jsm/jsm_tty.c:508: warning: unused variable =E2=80=98fli=
-p_len=E2=80=99
+On Wed, Aug 22, 2007 at 02:06:48AM -0700, Andrew Morton wrote:
+>...
+> Changes since 2.6.23-rc2-mm2:
+>...
+> +use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
+>...
+>  The infamous misc
+>...
 
-Cc: Alan Cox <alan@redhat.com>
-Cc: Scott Kilau <scottk@digi.com>=20
+do_restart_poll() can become static.
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Chris Wright <chrisw@sous-sol.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/jsm/jsm_tty.c |    1 -
- 1 files changed, 1 deletion(-)
+ fs/select.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/jsm/jsm_tty.c~jsm-remove-further-unneeded-crud=
--fix drivers/serial/jsm/jsm_tty.c
---- a/drivers/serial/jsm/jsm_tty.c~jsm-remove-further-unneeded-crud-fix
-+++ a/drivers/serial/jsm/jsm_tty.c
-@@ -505,7 +505,6 @@ void jsm_input(struct jsm_channel *ch)
- 	u16 tail;
- 	int data_len;
- 	unsigned long lock_flags;
--	int flip_len =3D 0;
- 	int len =3D 0;
- 	int n =3D 0;
- 	int s =3D 0;
+diff -puN fs/select.c~use-erestart_restartblock-if-poll-is-interrupted-by-a-signal-fix fs/select.c
+--- a/fs/select.c~use-erestart_restartblock-if-poll-is-interrupted-by-a-signal-fix
++++ a/fs/select.c
+@@ -714,7 +714,7 @@ out_fds:
+ 	return err;
+ }
+ 
+-long do_restart_poll(struct restart_block *restart_block)
++static long do_restart_poll(struct restart_block *restart_block)
+ {
+ 	struct pollfd __user *ufds = (struct pollfd __user*)restart_block->arg0;
+ 	int nfds = restart_block->arg1;
 _
 
-Patches currently in -mm which might be from michal.k.k.piotrowski@gmai=
-l.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-jsm-remove-further-unneeded-crud.patch
-jsm-remove-further-unneeded-crud-fix.patch
-revoke-special-mmap-handling-vs-fault-vs-invalidate.patch
-reiser4.patch
+kernel-time-timekeepingc-cleanups.patch
+make-fs-libfscsimple_commit_write-static.patch
+allow-disabling-dnotify-without-embedded.patch
+use-erestart_restartblock-if-poll-is-interrupted-by-a-signal.patch
+use-erestart_restartblock-if-poll-is-interrupted-by-a-signal-fix.patch
+remove-include-asm-ipch.patch
+n_hdlcc-fix-check-after-use.patch
+kernel-sys_nic-add-dummy-sys_ni_syscall-prototype.patch
+make-kernel-profilectime_hook-static.patch
+drivers-block-ccissc-fix-check-after-use.patch
+remove-fs-ext2-balloccreserve_blocks.patch
+bitmaph-remove-dead-artifacts.patch
+sysctl-parport-remove-binary-paths-fix.patch
+sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-cleanup.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-cleanup.patch
+remove-asm-bitopsh-includes.patch
+forbid-asm-bitopsh-direct-inclusion.patch
+alpha-lock-bitops-fix.patch
+reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
+remove-asm-bitopsh-includes-reiser4.patch
