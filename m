@@ -1,144 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: - ext4-convert-to-new-aops-fix.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:14:47 -0700
-Message-ID: <200710160414.l9G4EljB008213@imap1.linux-foundation.org>
+Subject: - reiserfs-convert-to-new-aops-fix2.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:17:03 -0700
+Message-ID: <200710160417.l9G4H34K008345@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59290 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41184 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752695AbXJPEPm (ORCPT
+	by vger.kernel.org with ESMTP id S1751135AbXJPERH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:15:42 -0400
+	Tue, 16 Oct 2007 00:17:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, dmonakhov@sw.ru, mark.fasheh@oracle.com, pbadari@gmail.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext4-convert-to-new-aops fix
+     reiserfs convert to new aops fix2
 has been removed from the -mm tree.  Its filename was
-     ext4-convert-to-new-aops-fix.patch
+     reiserfs-convert-to-new-aops-fix2.patch
 
-This patch was dropped because it was folded into ext4-convert-to-new-aops.patch
+This patch was dropped because it was folded into reiserfs-convert-to-new-aops.patch
 
 ------------------------------------------------------
-Subject: ext4-convert-to-new-aops fix
+Subject: reiserfs convert to new aops fix2
 From: Nick Piggin <npiggin@suse.de>
 
-Don't move journal_stop from under page lock.
-
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Badari Pulavarty <pbadari@gmail.com>
-Cc: Dmitriy Monakhov <dmonakhov@sw.ru>
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/inode.c |   44 +++++++++++++++++++++++++++++++++++++-------
- 1 files changed, 37 insertions(+), 7 deletions(-)
+ fs/reiserfs/inode.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/ext4/inode.c~ext4-convert-to-new-aops-fix fs/ext4/inode.c
---- a/fs/ext4/inode.c~ext4-convert-to-new-aops-fix
-+++ a/fs/ext4/inode.c
-@@ -36,6 +36,7 @@
- #include <linux/mpage.h>
- #include <linux/uio.h>
- #include <linux/bio.h>
-+#include <linux/swap.h> /* mark_page_accessed */
- #include "xattr.h"
- #include "acl.h"
+diff -puN fs/reiserfs/inode.c~reiserfs-convert-to-new-aops-fix2 fs/reiserfs/inode.c
+--- a/fs/reiserfs/inode.c~reiserfs-convert-to-new-aops-fix2
++++ a/fs/reiserfs/inode.c
+@@ -2745,7 +2745,6 @@ static int reiserfs_write_end(struct fil
  
-@@ -1215,6 +1216,31 @@ static int write_end_fn(handle_t *handle
- }
- 
- /*
-+ * Generic write_end handler for ordered and writeback ext4 journal modes.
-+ * We can't use generic_write_end, because that unlocks the page and we need to
-+ * unlock the page after ext4_journal_stop, but ext4_journal_stop must run
-+ * after block_write_end.
-+ */
-+static int ext4_generic_write_end(struct file *file,
-+				struct address_space *mapping,
-+				loff_t pos, unsigned len, unsigned copied,
-+				struct page *page, void *fsdata)
-+{
-+	struct inode *inode = file->f_mapping->host;
-+
-+	copied = block_write_end(file, mapping, pos, len, copied, page, fsdata);
-+
-+	mark_page_accessed(page);
-+
-+	if (pos+copied > inode->i_size) {
-+		i_size_write(inode, pos+copied);
-+		mark_inode_dirty(inode);
-+	}
-+
-+	return copied;
-+}
-+
-+/*
-  * We need to pick up the new inode size which generic_commit_write gave us
-  * `file' can be NULL - eg, when called from page_symlink().
-  *
-@@ -1248,17 +1274,17 @@ static int ext4_ordered_write_end(struct
- 		new_i_size = pos + copied;
- 		if (new_i_size > EXT4_I(inode)->i_disksize)
- 			EXT4_I(inode)->i_disksize = new_i_size;
--		copied = generic_write_end(file, mapping, pos, len, copied,
-+		copied = ext4_generic_write_end(file, mapping, pos, len, copied,
- 							page, fsdata);
- 		if (copied < 0)
- 			ret = copied;
--	} else {
--		unlock_page(page);
--		page_cache_release(page);
- 	}
- 	ret2 = ext4_journal_stop(handle);
- 	if (!ret)
- 		ret = ret2;
-+	unlock_page(page);
-+	page_cache_release(page);
-+
- 	return ret ? ret : copied;
- }
- 
-@@ -1276,7 +1302,7 @@ static int ext4_writeback_write_end(stru
- 	if (new_i_size > EXT4_I(inode)->i_disksize)
- 		EXT4_I(inode)->i_disksize = new_i_size;
- 
--	copied = generic_write_end(file, mapping, pos, len, copied,
-+	copied = ext4_generic_write_end(file, mapping, pos, len, copied,
- 							page, fsdata);
- 	if (copied < 0)
- 		ret = copied;
-@@ -1284,6 +1310,9 @@ static int ext4_writeback_write_end(stru
- 	ret2 = ext4_journal_stop(handle);
- 	if (!ret)
- 		ret = ret2;
-+	unlock_page(page);
-+	page_cache_release(page);
-+
- 	return ret ? ret : copied;
- }
- 
-@@ -1311,8 +1340,6 @@ static int ext4_journalled_write_end(str
- 				to, &partial, write_end_fn);
- 	if (!partial)
- 		SetPageUptodate(page);
--	unlock_page(page);
--	page_cache_release(page);
- 	if (pos+copied > inode->i_size)
- 		i_size_write(inode, pos+copied);
- 	EXT4_I(inode)->i_state |= EXT4_STATE_JDATA;
-@@ -1326,6 +1353,9 @@ static int ext4_journalled_write_end(str
- 	ret2 = ext4_journal_stop(handle);
- 	if (!ret)
- 		ret = ret2;
-+	unlock_page(page);
-+	page_cache_release(page);
-+
- 	return ret ? ret : copied;
- }
+       out:
+ 	unlock_page(page);
+-	mark_page_accessed(page);
+ 	page_cache_release(page);
+ 	return ret == 0 ? copied : ret;
  
 _
 
@@ -170,10 +73,7 @@ block_dev-convert-to-new-aops.patch
 ext2-convert-to-new-aops.patch
 ext3-convert-to-new-aops.patch
 ext4-convert-to-new-aops.patch
-ext4-convert-to-new-aops-fix.patch
-ext4-convert-to-new-aops-fix-fix.patch
 xfs-convert-to-new-aops.patch
-gfs2-convert-to-new-aops-fix.patch
 fs-new-cont-helpers.patch
 fat-convert-to-new-aops.patch
 hfs-convert-to-new-aops.patch
@@ -183,7 +83,6 @@ bfs-convert-to-new-aops.patch
 qnx4-convert-to-new-aops.patch
 reiserfs-use-generic-write.patch
 reiserfs-convert-to-new-aops.patch
-reiserfs-convert-to-new-aops-fix.patch
 reiserfs-convert-to-new-aops-fix2.patch
 reiserfs-use-generic_cont_expand_simple.patch
 with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
