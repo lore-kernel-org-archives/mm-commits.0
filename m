@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-alsa-fixup.patch added to -mm tree
-Date: Tue, 16 Oct 2007 13:15:27 -0700
-Message-ID: <200710162015.l9GKFR5L013745@imap1.linux-foundation.org>
+Subject: + git-acpi-fixup.patch added to -mm tree
+Date: Tue, 16 Oct 2007 13:20:38 -0700
+Message-ID: <200710162020.l9GKKcxW013975@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50533 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47742 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964887AbXJPUPj (ORCPT
+	by vger.kernel.org with ESMTP id S1751478AbXJPUVY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 16:15:39 -0400
+	Tue, 16 Oct 2007 16:21:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, perex@suse.cz, tiwai@suse.de
+Cc: akpm@linux-foundation.org, ibm-acpi@hmh.eng.br, lenb@kernel.org
 
 
 The patch titled
-     git-alsa-fixup
+     git-acpi-fixup
 has been added to the -mm tree.  Its filename is
-     git-alsa-fixup.patch
+     git-acpi-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,128 +26,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-alsa-fixup
+Subject: git-acpi-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix git rejects aginst mainline.
+Fix git rejects between git-acpi and mainline.
 
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Nuke lots of pointess static-declarations-in-a-header while we're there.
+
+Cc: Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/sparc/cs4231.c |   62 -----------------------------------------
- 1 file changed, 62 deletions(-)
+ drivers/misc/thinkpad_acpi.c |    4 ----
+ drivers/misc/thinkpad_acpi.h |    9 ---------
+ 2 files changed, 13 deletions(-)
 
-diff -puN sound/sparc/cs4231.c~git-alsa-fixup sound/sparc/cs4231.c
---- a/sound/sparc/cs4231.c~git-alsa-fixup
-+++ a/sound/sparc/cs4231.c
-@@ -400,14 +400,8 @@ static void snd_cs4231_mce_up(struct snd
+diff -puN drivers/misc/thinkpad_acpi.c~git-acpi-fixup drivers/misc/thinkpad_acpi.c
+--- a/drivers/misc/thinkpad_acpi.c~git-acpi-fixup
++++ a/drivers/misc/thinkpad_acpi.c
+@@ -526,12 +526,8 @@ static char *next_cmd(char **cmds)
+  ****************************************************************************/
  
- static void snd_cs4231_mce_down(struct snd_cs4231 *chip)
- {
--<<<<<<< HEAD:sound/sparc/cs4231.c
--	unsigned long flags;
--	unsigned long end_time;
--	int timeout;
+ static struct platform_device *tpacpi_pdev;
+-<<<<<<< HEAD:drivers/misc/thinkpad_acpi.c
+ static struct device *tpacpi_hwmon;
 -=======
- 	unsigned long flags, timeout;
- 	int reg;
-->>>>>>> FETCH_HEAD:sound/sparc/cs4231.c
+ static struct platform_device *tpacpi_sensors_pdev;
+-static struct class_device *tpacpi_hwmon;
+->>>>>>> FETCH_HEAD:drivers/misc/thinkpad_acpi.c
+ static struct input_dev *tpacpi_inputdev;
+ static struct mutex tpacpi_inputdev_send_mutex;
  
- 	snd_cs4231_busy_wait(chip);
- 	spin_lock_irqsave(&chip->lock, flags);
-@@ -417,84 +411,28 @@ static void snd_cs4231_mce_down(struct s
- 			    CS4231U(chip, REGSEL));
- #endif
- 	chip->mce_bit &= ~CS4231_MCE;
--<<<<<<< HEAD:sound/sparc/cs4231.c
--	timeout = __cs4231_readb(chip, CS4231U(chip, REGSEL));
--	__cs4231_writeb(chip, chip->mce_bit | (timeout & 0x1f),
--=======
- 	reg = __cs4231_readb(chip, CS4231U(chip, REGSEL));
- 	__cs4231_writeb(chip, chip->mce_bit | (reg & 0x1f),
-->>>>>>> FETCH_HEAD:sound/sparc/cs4231.c
- 			CS4231U(chip, REGSEL));
--<<<<<<< HEAD:sound/sparc/cs4231.c
--	if (timeout == 0x80)
--		snd_printdd("mce_down [%p]: serious init problem - "
--			    "codec still busy\n",
--			    chip->port);
--	if ((timeout & CS4231_MCE) == 0) {
--=======
- 	if (reg == 0x80)
- 		snd_printdd("mce_down [%p]: serious init problem "
- 			    "- codec still busy\n", chip->port);
- 	if ((reg & CS4231_MCE) == 0) {
-->>>>>>> FETCH_HEAD:sound/sparc/cs4231.c
- 		spin_unlock_irqrestore(&chip->lock, flags);
- 		return;
- 	}
--<<<<<<< HEAD:sound/sparc/cs4231.c
--
--	/*
--	 * Wait for (possible -- during init auto-calibration may not be set)
--	 * calibration process to start. Needs upto 5 sample periods on AD1848
--	 * which at the slowest possible rate of 5.5125 kHz means 907 us.
--	 */
--	msleep(1);
+diff -puN drivers/misc/thinkpad_acpi.h~git-acpi-fixup drivers/misc/thinkpad_acpi.h
+--- a/drivers/misc/thinkpad_acpi.h~git-acpi-fixup
++++ a/drivers/misc/thinkpad_acpi.h
+@@ -171,15 +171,6 @@ static int parse_strtoul(const char *buf
+ 			unsigned long *value);
  
--	/* check condition up to 250ms */
--	end_time = jiffies + msecs_to_jiffies(250);
--	while (snd_cs4231_in(chip, CS4231_TEST_INIT) &
--		CS4231_CALIB_IN_PROGRESS) {
+ /* Device model */
+-static struct platform_device *tpacpi_pdev;
+-<<<<<<< HEAD:drivers/misc/thinkpad_acpi.h
+-static struct device *tpacpi_hwmon;
 -=======
-->>>>>>> FETCH_HEAD:sound/sparc/cs4231.c
--
--<<<<<<< HEAD:sound/sparc/cs4231.c
--=======
- 	/*
- 	 * Wait for auto-calibration (AC) process to finish, i.e. ACI to go low.
- 	 */
- 	timeout = jiffies + msecs_to_jiffies(250);
- 	do {
-->>>>>>> FETCH_HEAD:sound/sparc/cs4231.c
- 		spin_unlock_irqrestore(&chip->lock, flags);
--<<<<<<< HEAD:sound/sparc/cs4231.c
--		if (time_after(jiffies, end_time)) {
--			snd_printk("mce_down - "
--				   "auto calibration time out (2)\n");
--			return;
--		}
--=======
-->>>>>>> FETCH_HEAD:sound/sparc/cs4231.c
- 		msleep(1);
- 		spin_lock_irqsave(&chip->lock, flags);
--<<<<<<< HEAD:sound/sparc/cs4231.c
--	}
--
--	/* check condition up to 100ms */
--	end_time = jiffies + msecs_to_jiffies(100);
--	while (__cs4231_readb(chip, CS4231U(chip, REGSEL)) & CS4231_INIT) {
--		spin_unlock_irqrestore(&chip->lock, flags);
--		if (time_after(jiffies, end_time)) {
--			snd_printk("mce_down - "
--				   "auto calibration time out (3)\n");
--			return;
--		}
--		msleep(1);
--		spin_lock_irqsave(&chip->lock, flags);
--	}
--=======
- 		reg = snd_cs4231_in(chip, CS4231_TEST_INIT);
- 		reg &= CS4231_CALIB_IN_PROGRESS;
- 	} while (reg && time_before(jiffies, timeout));
-->>>>>>> FETCH_HEAD:sound/sparc/cs4231.c
- 	spin_unlock_irqrestore(&chip->lock, flags);
+-static struct platform_device *tpacpi_sensors_pdev;
+-static struct class_device *tpacpi_hwmon;
+->>>>>>> FETCH_HEAD:drivers/misc/thinkpad_acpi.h
+-static struct platform_driver tpacpi_pdriver;
+-static struct input_dev *tpacpi_inputdev;
+ static int tpacpi_create_driver_attributes(struct device_driver *drv);
+ static void tpacpi_remove_driver_attributes(struct device_driver *drv);
  
- 	if (reg)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 git-acpi.patch
+git-acpi-fixup.patch
 acpi-add-reboot-mechanism.patch
 git-alsa.patch
 git-alsa-fixup.patch
