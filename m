@@ -1,87 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - fix-the-max-path-calculation-in-radix-treec-update.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:06:40 -0700
-Message-ID: <200710160406.l9G46ep2007956@imap1.linux-foundation.org>
+Subject: - mm-use-pagevec-to-rotate-reclaimable-page-kill-redundancy-in-rotate_reclaimable_page.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:08:48 -0700
+Message-ID: <200710160408.l9G48m79008021@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51238 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36541 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751577AbXJPEG5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752068AbXJPEJC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:06:57 -0400
+	Tue, 16 Oct 2007 00:09:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jmoyer@redhat.com, npiggin@suse.de, mm-commits@vger.kernel.org
+To: hugh@veritas.com, hifumi.hisashi@oss.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix-the-max-path-calculation-in-radix-treec update
+     kill redundancy in rotate_reclaimable_page
 has been removed from the -mm tree.  Its filename was
-     fix-the-max-path-calculation-in-radix-treec-update.patch
+     mm-use-pagevec-to-rotate-reclaimable-page-kill-redundancy-in-rotate_reclaimable_page.patch
 
-This patch was dropped because it was folded into fix-the-max-path-calculation-in-radix-treec.patch
+This patch was dropped because it was folded into mm-use-pagevec-to-rotate-reclaimable-page.patch
 
 ------------------------------------------------------
-Subject: fix-the-max-path-calculation-in-radix-treec update
-From: Jeff Moyer <jmoyer@redhat.com>
+Subject: kill redundancy in rotate_reclaimable_page
+From: Hugh Dickins <hugh@veritas.com>
 
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
-Cc: Nick Piggin <npiggin@suse.de>
+a.k.a. mm-use-pagevec-to-rotate-reclaimable-page-cleanup.patch
+
+PageActive and PageLRU twice in a row: of course there used to be a
+lock taken in between those tests; but now that pagevec_move_tail() is
+making those tests under lock, there's no point to repeating them here.
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |   20 ++++++++++++++++----
- 1 files changed, 16 insertions(+), 4 deletions(-)
 
-diff -puN lib/radix-tree.c~fix-the-max-path-calculation-in-radix-treec-update lib/radix-tree.c
---- a/lib/radix-tree.c~fix-the-max-path-calculation-in-radix-treec-update
-+++ a/lib/radix-tree.c
-@@ -61,9 +61,13 @@ struct radix_tree_path {
+diff -puN mm/swap.c~mm-use-pagevec-to-rotate-reclaimable-page-kill-redundancy-in-rotate_reclaimable_page mm/swap.c
+--- a/mm/swap.c~mm-use-pagevec-to-rotate-reclaimable-page-kill-redundancy-in-rotate_reclaimable_page
++++ a/mm/swap.c
+@@ -158,14 +158,13 @@ int rotate_reclaimable_page(struct page 
+ 	if (!PageLRU(page))
+ 		return 1;
  
- #define RADIX_TREE_INDEX_BITS  (8 /* CHAR_BIT */ * sizeof(unsigned long))
- #define RADIX_TREE_MAX_PATH (DIV_ROUND_UP(RADIX_TREE_INDEX_BITS, \
--					  RADIX_TREE_MAP_SHIFT) + 1)
-+					  RADIX_TREE_MAP_SHIFT))
+-	if (PageLRU(page) && !PageActive(page)) {
+-		page_cache_get(page);
+-		local_irq_save(flags);
+-		pvec = &__get_cpu_var(rotate_pvecs);
+-		if (!pagevec_add(pvec, page))
+-			pagevec_move_tail(pvec);
+-		local_irq_restore(flags);
+-	}
++	page_cache_get(page);
++	local_irq_save(flags);
++	pvec = &__get_cpu_var(lru_rotate_pvecs);
++	if (!pagevec_add(pvec, page))
++		pagevec_move_tail(pvec);
++	local_irq_restore(flags);
++
+ 	if (!test_clear_page_writeback(page))
+ 		BUG();
  
--static unsigned long height_to_maxindex[RADIX_TREE_MAX_PATH] __read_mostly;
-+/*
-+ * The height_to_maxindex array needs to be one deeper than the maximum
-+ * path as height 0 holds only 1 entry.
-+ */
-+static unsigned long height_to_maxindex[RADIX_TREE_MAX_PATH + 1] __read_mostly;
- 
- /*
-  * Radix tree node cache.
-@@ -493,7 +497,11 @@ EXPORT_SYMBOL(radix_tree_tag_set);
- void *radix_tree_tag_clear(struct radix_tree_root *root,
- 			unsigned long index, unsigned int tag)
- {
--	struct radix_tree_path path[RADIX_TREE_MAX_PATH], *pathp = path;
-+	/*
-+	 * The radix tree path needs to be one longer than the maximum path
-+	 * since the "list" is null terminated.
-+	 */
-+	struct radix_tree_path path[RADIX_TREE_MAX_PATH + 1], *pathp = path;
- 	struct radix_tree_node *slot = NULL;
- 	unsigned int height, shift;
- 
-@@ -935,7 +943,11 @@ static inline void radix_tree_shrink(str
-  */
- void *radix_tree_delete(struct radix_tree_root *root, unsigned long index)
- {
--	struct radix_tree_path path[RADIX_TREE_MAX_PATH], *pathp = path;
-+	/*
-+	 * The radix tree path needs to be one longer than the maximum path
-+	 * since the "list" is null terminated.
-+	 */
-+	struct radix_tree_path path[RADIX_TREE_MAX_PATH + 1], *pathp = path;
- 	struct radix_tree_node *slot = NULL;
- 	struct radix_tree_node *to_free;
- 	unsigned int height, shift;
 _
 
-Patches currently in -mm which might be from jmoyer@redhat.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-fix-the-max-path-calculation-in-radix-treec.patch
-fix-the-max-path-calculation-in-radix-treec-update.patch
-aio-account-i-o-wait-time-properly.patch
+origin.patch
+mm-clarify-__add_to_swap_cache-locking.patch
+radix-tree-use-indirect-bit.patch
+mm-use-pagevec-to-rotate-reclaimable-page.patch
+mm-use-pagevec-to-rotate-reclaimable-page-kill-redundancy-in-rotate_reclaimable_page.patch
+mm-use-pagevec-to-rotate-reclaimable-page-move_tail_pages-into-lru_add_drain.patch
+introduce-write_begin-write_end-aops-important-fix.patch
+reiserfs-convert-to-new-aops-fix.patch
+hostfs-convert-to-new-aops-fix.patch
+affs-convert-to-new-aops-fix.patch
+flush-cache-before-installing-new-page-at-migraton.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
+flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch
+maps-pssproportional-set-size-accounting-in-smaps.patch
+mm-shmemc-make-3-functions-static.patch
+lib-percpu_counter_sub.patch
+mm-per-device-dirty-threshold-fix.patch
+ext2-reservations.patch
+fix-for-ext2-reservation.patch
+ext2-balloc-use-io_error-label.patch
+memory-controller-memory-accounting-v7-fix-swapoff-breakage-however.patch
+exportfs-add-fid-type.patch
+exportfs-add-new-methods.patch
+shmem-new-export-ops.patch
+exportfs-remove-old-methods.patch
+exportfs-make-struct-export_operations-const.patch
+exportfs-update-documentation.patch
+prio_tree-debugging-patch.patch
