@@ -1,781 +1,728 @@
 From: akpm@linux-foundation.org
-Subject: - s3c2410fb-code-cleanup.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:43:03 -0700
-Message-ID: <200710162043.l9GKh3oZ016012@imap1.linux-foundation.org>
+Subject: - uml-userspace-files-should-call-libc-directly.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:37:59 -0700
+Message-ID: <200710162037.l9GKbxOV015333@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43452 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40918 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965989AbXJPVTl (ORCPT
+	by vger.kernel.org with ESMTP id S965621AbXJPVTX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:19:41 -0400
+	Tue, 16 Oct 2007 17:19:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s3c2410fb: code cleanup
+     uml: userspace files should call libc directly
 has been removed from the -mm tree.  Its filename was
-     s3c2410fb-code-cleanup.patch
+     uml-userspace-files-should-call-libc-directly.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: s3c2410fb: code cleanup
-=46rom: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: uml: userspace files should call libc directly
+From: Jeff Dike <jdike@addtoit.com>
 
-This patch cleans up the driver a bit. It contains
-coding style fixes (pointed by Lindent and checkpatch),
-white space clean ups and few minor code improvements.
+A number of files that were changed in the recent removal of tt mode
+are userspace files which call the os_* wrappers instead of calling
+libc directly.  A few other files were affected by this, through
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+This patch makes these call glibc directly.
+
+There are also style fixes in the affected areas.
+
+os_print_error has no remaining callers, so it is deleted.
+
+There is a interface change to os_set_exec_close, eliminating a
+parameter which was always the same.  The callers are fixed as well.
+
+os_process_pc got its error path cleaned up.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s3c2410fb.c |  359 +++++++++++++++++-------------------
- 1 file changed, 173 insertions(+), 186 deletions(-)
+ arch/um/include/os.h                     |    3 
+ arch/um/kernel/ksyms.c                   |    1 
+ arch/um/kernel/physmem.c                 |    4 
+ arch/um/os-Linux/aio.c                   |    4 
+ arch/um/os-Linux/drivers/ethertap_user.c |   61 ++++++++----
+ arch/um/os-Linux/drivers/tuntap_user.c   |   24 ++--
+ arch/um/os-Linux/file.c                  |  102 +++++++++------------
+ arch/um/os-Linux/helper.c                |    8 +
+ arch/um/os-Linux/mem.c                   |    6 -
+ arch/um/os-Linux/process.c               |   37 ++++---
+ arch/um/os-Linux/skas/process.c          |    4 
+ arch/um/os-Linux/start_up.c              |    5 -
+ 12 files changed, 138 insertions(+), 121 deletions(-)
 
-diff -puN drivers/video/s3c2410fb.c~s3c2410fb-code-cleanup drivers/vide=
-o/s3c2410fb.c
---- a/drivers/video/s3c2410fb.c~s3c2410fb-code-cleanup
-+++ a/drivers/video/s3c2410fb.c
-@@ -31,8 +31,8 @@
-  *	- add pixel clock divisor control
-  *
-  * 2004-11-11: Arnaud Patard <arnaud.patard@rtp-net.org>
-- * 	- Removed the use of currcon as it no more exist
-- * 	- Added LCD power sysfs interface
-+ *	- Removed the use of currcon as it no more exist
-+ *	- Added LCD power sysfs interface
-  *
-  * 2004-11-03: Ben Dooks <ben-linux@fluff.org>
-  *	- minor cleanups
-@@ -49,12 +49,12 @@
-  *      - Suppress command line options
-  *
-  * 2004-09-15: Arnaud Patard <arnaud.patard@rtp-net.org>
-- * 	- code cleanup
-+ *	- code cleanup
-  *
-  * 2004-09-07: Arnaud Patard <arnaud.patard@rtp-net.org>
-- * 	- Renamed from h1940fb.c to s3c2410fb.c
-- * 	- Add support for different devices
-- * 	- Backlight support
-+ *	- Renamed from h1940fb.c to s3c2410fb.c
-+ *	- Add support for different devices
-+ *	- Backlight support
-  *
-  * 2004-09-05: Herbert P=F6tzl <herbert@13thfloor.at>
-  *	- added clock (de-)allocation code
-@@ -102,14 +102,13 @@
-=20
- #include "s3c2410fb.h"
-=20
--
- static struct s3c2410fb_mach_info *mach_info;
-=20
- /* Debugging stuff */
- #ifdef CONFIG_FB_S3C2410_DEBUG
--static int debug	   =3D 1;
-+static int debug	=3D 1;
- #else
--static int debug	   =3D 0;
-+static int debug	=3D 0;
- #endif
-=20
- #define dprintk(msg...)	if (debug) { printk(KERN_DEBUG "s3c2410fb: " m=
-sg); }
-@@ -119,19 +118,20 @@ static int debug	   =3D 0;
- /* s3c2410fb_set_lcdaddr
-  *
-  * initialise lcd controller address pointers
--*/
--
-+ */
- static void s3c2410fb_set_lcdaddr(struct s3c2410fb_info *fbi)
+diff -puN arch/um/include/os.h~uml-userspace-files-should-call-libc-directly arch/um/include/os.h
+--- a/arch/um/include/os.h~uml-userspace-files-should-call-libc-directly
++++ a/arch/um/include/os.h
+@@ -128,9 +128,8 @@ static inline struct openflags of_cloexe
+ extern int os_stat_file(const char *file_name, struct uml_stat *buf);
+ extern int os_stat_fd(const int fd, struct uml_stat *buf);
+ extern int os_access(const char *file, int mode);
+-extern void os_print_error(int error, const char* str);
+ extern int os_get_exec_close(int fd, int *close_on_exec);
+-extern int os_set_exec_close(int fd, int close_on_exec);
++extern int os_set_exec_close(int fd);
+ extern int os_ioctl_generic(int fd, unsigned int cmd, unsigned long arg);
+ extern int os_get_ifname(int fd, char *namebuf);
+ extern int os_set_slip(int fd);
+diff -puN arch/um/kernel/ksyms.c~uml-userspace-files-should-call-libc-directly arch/um/kernel/ksyms.c
+--- a/arch/um/kernel/ksyms.c~uml-userspace-files-should-call-libc-directly
++++ a/arch/um/kernel/ksyms.c
+@@ -40,7 +40,6 @@ EXPORT_SYMBOL(uml_strdup);
+ EXPORT_SYMBOL(os_stat_fd);
+ EXPORT_SYMBOL(os_stat_file);
+ EXPORT_SYMBOL(os_access);
+-EXPORT_SYMBOL(os_print_error);
+ EXPORT_SYMBOL(os_get_exec_close);
+ EXPORT_SYMBOL(os_set_exec_close);
+ EXPORT_SYMBOL(os_getpid);
+diff -puN arch/um/kernel/physmem.c~uml-userspace-files-should-call-libc-directly arch/um/kernel/physmem.c
+--- a/arch/um/kernel/physmem.c~uml-userspace-files-should-call-libc-directly
++++ a/arch/um/kernel/physmem.c
+@@ -99,7 +99,9 @@ void __init setup_physmem(unsigned long 
+ 	err = os_map_memory((void *) uml_reserved, physmem_fd, offset,
+ 			    len - offset, 1, 1, 1);
+ 	if (err < 0) {
+-		os_print_error(err, "Mapping memory");
++		printf("setup_physmem - mapping %ld bytes of memory at 0x%p "
++		       "failed - errno = %d\n", len - offset,
++		       (void *) uml_reserved, err);
+ 		exit(1);
+ 	}
+ 
+diff -puN arch/um/os-Linux/aio.c~uml-userspace-files-should-call-libc-directly arch/um/os-Linux/aio.c
+--- a/arch/um/os-Linux/aio.c~uml-userspace-files-should-call-libc-directly
++++ a/arch/um/os-Linux/aio.c
+@@ -226,8 +226,8 @@ static int init_aio_24(void)
+ 	goto out;
+ 
+ out_close_pipe:
+-	os_close_file(fds[0]);
+-	os_close_file(fds[1]);
++	close(fds[0]);
++	close(fds[1]);
+ 	aio_req_fd_w = -1;
+ 	aio_req_fd_r = -1;
+ out:
+diff -puN arch/um/os-Linux/drivers/ethertap_user.c~uml-userspace-files-should-call-libc-directly arch/um/os-Linux/drivers/ethertap_user.c
+--- a/arch/um/os-Linux/drivers/ethertap_user.c~uml-userspace-files-should-call-libc-directly
++++ a/arch/um/os-Linux/drivers/ethertap_user.c
+@@ -87,11 +87,11 @@ static void etap_pre_exec(void *arg)
+ 	struct etap_pre_exec_data *data = arg;
+ 
+ 	dup2(data->control_remote, 1);
+-	os_close_file(data->data_me);
+-	os_close_file(data->control_me);
++	close(data->data_me);
++	close(data->control_me);
+ }
+ 
+-static int etap_tramp(char *dev, char *gate, int control_me, 
++static int etap_tramp(char *dev, char *gate, int control_me,
+ 		      int control_remote, int data_me, int data_remote)
  {
- 	struct fb_var_screeninfo *var =3D &fbi->fb->var;
- 	unsigned long saddr1, saddr2, saddr3;
-+	int line_length =3D var->xres * var->bits_per_pixel;
-=20
- 	saddr1  =3D fbi->fb->fix.smem_start >> 1;
- 	saddr2  =3D fbi->fb->fix.smem_start;
--	saddr2 +=3D (var->xres * var->yres * var->bits_per_pixel)/8;
--	saddr2>>=3D 1;
-+	saddr2 +=3D (line_length * var->yres) / 8;
-+	saddr2 >>=3D 1;
-=20
--	saddr3 =3D  S3C2410_OFFSIZE(0) | S3C2410_PAGEWIDTH((var->xres * var->=
-bits_per_pixel / 16) & 0x3ff);
-+	saddr3 =3D S3C2410_OFFSIZE(0) |
-+		 S3C2410_PAGEWIDTH((line_length / 16) & 0x3ff);
-=20
- 	dprintk("LCDSADDR1 =3D 0x%08lx\n", saddr1);
- 	dprintk("LCDSADDR2 =3D 0x%08lx\n", saddr2);
-@@ -145,8 +145,7 @@ static void s3c2410fb_set_lcdaddr(struct
- /* s3c2410fb_calc_pixclk()
-  *
-  * calculate divisor for clk->pixclk
--*/
--
-+ */
- static unsigned int s3c2410fb_calc_pixclk(struct s3c2410fb_info *fbi,
- 					  unsigned long pixclk)
- {
-@@ -159,8 +158,8 @@ static unsigned int s3c2410fb_calc_pixcl
- 	 */
-=20
- 	div =3D (unsigned long long)clk * pixclk;
--	do_div(div,1000000UL);
--	do_div(div,1000000UL);
-+	do_div(div, 1000000UL);
-+	do_div(div, 1000000UL);
-=20
- 	dprintk("pixclk %ld, divisor is %ld\n", pixclk, (long)div);
- 	return div;
-@@ -198,93 +197,84 @@ static int s3c2410fb_check_var(struct fb
- 	else if (var->bits_per_pixel < fbi->mach_info->bpp.min)
- 		var->bits_per_pixel =3D fbi->mach_info->bpp.min;
-=20
-+	var->transp.offset =3D 0;
-+	var->transp.length =3D 0;
- 	/* set r/g/b positions */
- 	switch (var->bits_per_pixel) {
--		case 1:
--		case 2:
--		case 4:
--			var->red.offset    	=3D 0;
--			var->red.length    	=3D var->bits_per_pixel;
--			var->green         	=3D var->red;
--			var->blue          	=3D var->red;
--			var->transp.offset 	=3D 0;
--			var->transp.length 	=3D 0;
--			break;
--		case 8:
--			if ( fbi->mach_info->type !=3D S3C2410_LCDCON1_TFT ) {
--				/* 8 bpp 332 */
--				var->red.length		=3D 3;
--				var->red.offset		=3D 5;
--				var->green.length	=3D 3;
--				var->green.offset	=3D 2;
--				var->blue.length	=3D 2;
--				var->blue.offset	=3D 0;
--				var->transp.length	=3D 0;
--			} else {
--				var->red.offset    	=3D 0;
--				var->red.length    	=3D var->bits_per_pixel;
--				var->green         	=3D var->red;
--				var->blue          	=3D var->red;
--				var->transp.offset 	=3D 0;
--				var->transp.length 	=3D 0;
--			}
--			break;
--		case 12:
--			/* 12 bpp 444 */
--			var->red.length		=3D 4;
--			var->red.offset		=3D 8;
--			var->green.length	=3D 4;
--			var->green.offset	=3D 4;
--			var->blue.length	=3D 4;
-+	case 1:
-+	case 2:
-+	case 4:
-+		var->red.offset	=3D 0;
-+		var->red.length	=3D var->bits_per_pixel;
-+		var->green	=3D var->red;
-+		var->blue	=3D var->red;
-+		break;
-+	case 8:
-+		if (fbi->mach_info->type !=3D S3C2410_LCDCON1_TFT) {
-+			/* 8 bpp 332 */
-+			var->red.length		=3D 3;
-+			var->red.offset		=3D 5;
-+			var->green.length	=3D 3;
-+			var->green.offset	=3D 2;
-+			var->blue.length	=3D 2;
- 			var->blue.offset	=3D 0;
--			var->transp.length	=3D 0;
--			break;
--
--		default:
--		case 16:
--			if (fbi->regs.lcdcon5 & S3C2410_LCDCON5_FRM565 ) {
--				/* 16 bpp, 565 format */
--				var->red.offset		=3D 11;
--				var->green.offset	=3D 5;
--				var->blue.offset	=3D 0;
--				var->red.length		=3D 5;
--				var->green.length	=3D 6;
--				var->blue.length	=3D 5;
--				var->transp.length	=3D 0;
--			} else {
--				/* 16 bpp, 5551 format */
--				var->red.offset		=3D 11;
--				var->green.offset	=3D 6;
--				var->blue.offset	=3D 1;
--				var->red.length		=3D 5;
--				var->green.length	=3D 5;
--				var->blue.length	=3D 5;
--				var->transp.length	=3D 0;
--			}
--			break;
--		case 24:
--			/* 24 bpp 888 */
-+		} else {
-+			var->red.offset		=3D 0;
- 			var->red.length		=3D 8;
--			var->red.offset		=3D 16;
--			var->green.length	=3D 8;
--			var->green.offset	=3D 8;
--			var->blue.length	=3D 8;
-+			var->green		=3D var->red;
-+			var->blue		=3D var->red;
-+		}
-+		break;
-+	case 12:
-+		/* 12 bpp 444 */
-+		var->red.length		=3D 4;
-+		var->red.offset		=3D 8;
-+		var->green.length	=3D 4;
-+		var->green.offset	=3D 4;
-+		var->blue.length	=3D 4;
-+		var->blue.offset	=3D 0;
-+		break;
+ 	struct etap_pre_exec_data pe_data;
+@@ -101,7 +101,7 @@ static int etap_tramp(char *dev, char *g
+ 	char gate_buf[sizeof("nnn.nnn.nnn.nnn\0")];
+ 	char *setup_args[] = { "uml_net", version_buf, "ethertap", dev,
+ 			       data_fd_buf, gate_buf, NULL };
+-	char *nosetup_args[] = { "uml_net", version_buf, "ethertap", 
++	char *nosetup_args[] = { "uml_net", version_buf, "ethertap",
+ 				 dev, data_fd_buf, NULL };
+ 	char **args, c;
+ 
+@@ -121,8 +121,8 @@ static int etap_tramp(char *dev, char *g
+ 
+ 	if(pid < 0)
+ 		err = pid;
+-	os_close_file(data_remote);
+-	os_close_file(control_remote);
++	close(data_remote);
++	close(control_remote);
+ 	CATCH_EINTR(n = read(control_me, &c, sizeof(c)));
+ 	if(n != sizeof(c)){
+ 		err = -errno;
+@@ -151,19 +151,23 @@ static int etap_open(void *data)
+ 	if(err)
+ 		return err;
+ 
+-	err = os_pipe(data_fds, 0, 0);
+-	if(err < 0){
+-		printk("data os_pipe failed - err = %d\n", -err);
++	err = socketpair(AF_UNIX, SOCK_DGRAM, 0, data_fds);
++	if(err){
++		err = -errno;
++		printk("etap_open - data socketpair failed - err = %d\n",
++		       errno);
+ 		return err;
+ 	}
+ 
+-	err = os_pipe(control_fds, 1, 0);
+-	if(err < 0){
+-		printk("control os_pipe failed - err = %d\n", -err);
+-		return err;
++	err = socketpair(AF_UNIX, SOCK_STREAM, 0, control_fds);
++	if(err){
++		err = -errno;
++		printk("etap_open - control socketpair failed - err = %d\n",
++		       errno);
++		goto out_close_data;
+ 	}
+ 
+-	err = etap_tramp(pri->dev_name, pri->gate_addr, control_fds[0], 
++	err = etap_tramp(pri->dev_name, pri->gate_addr, control_fds[0],
+ 			 control_fds[1], data_fds[0], data_fds[1]);
+ 	output_len = UM_KERN_PAGE_SIZE;
+ 	output = kmalloc(output_len, UM_GFP_KERNEL);
+@@ -178,13 +182,21 @@ static int etap_open(void *data)
+ 
+ 	if(err < 0){
+ 		printk("etap_tramp failed - err = %d\n", -err);
+-		return err;
++		goto out_close_control;
+ 	}
+ 
+ 	pri->data_fd = data_fds[0];
+ 	pri->control_fd = control_fds[0];
+ 	iter_addresses(pri->dev, etap_open_addr, &pri->control_fd);
+ 	return data_fds[0];
 +
-+	default:
-+	case 16:
-+		if (fbi->regs.lcdcon5 & S3C2410_LCDCON5_FRM565) {
-+			/* 16 bpp, 565 format */
-+			var->red.offset		=3D 11;
-+			var->green.offset	=3D 5;
- 			var->blue.offset	=3D 0;
--			var->transp.length	=3D 0;
--			break;
-+			var->red.length		=3D 5;
-+			var->green.length	=3D 6;
-+			var->blue.length	=3D 5;
-+		} else {
-+			/* 16 bpp, 5551 format */
-+			var->red.offset		=3D 11;
-+			var->green.offset	=3D 6;
-+			var->blue.offset	=3D 1;
-+			var->red.length		=3D 5;
-+			var->green.length	=3D 5;
-+			var->blue.length	=3D 5;
-+		}
-+		break;
-+	case 24:
-+		/* 24 bpp 888 */
-+		var->red.length		=3D 8;
-+		var->red.offset		=3D 16;
-+		var->green.length	=3D 8;
-+		var->green.offset	=3D 8;
-+		var->blue.length	=3D 8;
-+		var->blue.offset	=3D 0;
-+		break;
-=20
-=20
- 	}
- 	return 0;
++out_close_control:
++	close(control_fds[0]);
++	close(control_fds[1]);
++out_close_data:
++	close(data_fds[0]);
++	close(data_fds[1]);
++	return err;
  }
-=20
--
- /* s3c2410fb_activate_var
-  *
-  * activate (set) the controller from the given framebuffer
-  * information
--*/
--
-+ */
- static void s3c2410fb_activate_var(struct s3c2410fb_info *fbi,
- 				   struct fb_var_screeninfo *var)
+ 
+ static void etap_close(int fd, void *data)
+@@ -192,11 +204,19 @@ static void etap_close(int fd, void *dat
+ 	struct ethertap_data *pri = data;
+ 
+ 	iter_addresses(pri->dev, etap_close_addr, &pri->control_fd);
+-	os_close_file(fd);
+-	os_shutdown_socket(pri->data_fd, 1, 1);
+-	os_close_file(pri->data_fd);
++	close(fd);
++
++	if(shutdown(pri->data_fd, SHUT_RDWR) < 0)
++		printk("etap_close - shutdown data socket failed, errno = %d\n",
++		       errno);
++
++	if(shutdown(pri->control_fd, SHUT_RDWR) < 0)
++		printk("etap_close - shutdown control socket failed, "
++		       "errno = %d\n", errno);
++
++	close(pri->data_fd);
+ 	pri->data_fd = -1;
+-	os_close_file(pri->control_fd);
++	close(pri->control_fd);
+ 	pri->control_fd = -1;
+ }
+ 
+@@ -216,13 +236,14 @@ static void etap_add_addr(unsigned char 
+ 	etap_open_addr(addr, netmask, &pri->control_fd);
+ }
+ 
+-static void etap_del_addr(unsigned char *addr, unsigned char *netmask, 
++static void etap_del_addr(unsigned char *addr, unsigned char *netmask,
+ 			  void *data)
  {
-@@ -319,7 +309,8 @@ static void s3c2410fb_activate_var(struc
-=20
- 		default:
- 			/* invalid pixel depth */
--			dev_err(fbi->dev, "invalid bpp %d\n", var->bits_per_pixel);
-+			dev_err(fbi->dev, "invalid bpp %d\n",
-+				var->bits_per_pixel);
- 		}
- 	else
- 		switch (var->bits_per_pixel) {
-@@ -341,19 +332,18 @@ static void s3c2410fb_activate_var(struc
-=20
- 		default:
- 			/* invalid pixel depth */
--			dev_err(fbi->dev, "invalid bpp %d\n", var->bits_per_pixel);
-+			dev_err(fbi->dev, "invalid bpp %d\n",
-+				var->bits_per_pixel);
- 		}
-=20
- 	/* check to see if we need to update sync/borders */
-=20
- 	if (!fbi->mach_info->fixed_syncs) {
- 		dprintk("setting vert: up=3D%d, low=3D%d, sync=3D%d\n",
--			var->upper_margin, var->lower_margin,
--			var->vsync_len);
-+			var->upper_margin, var->lower_margin, var->vsync_len);
-=20
- 		dprintk("setting horz: lft=3D%d, rt=3D%d, sync=3D%d\n",
--			var->left_margin, var->right_margin,
--			var->hsync_len);
-+			var->left_margin, var->right_margin, var->hsync_len);
-=20
- 		fbi->regs.lcdcon2 =3D
- 			S3C2410_LCDCON2_VBPD(var->upper_margin - 1) |
-@@ -373,27 +363,24 @@ static void s3c2410fb_activate_var(struc
- 	fbi->regs.lcdcon2 &=3D ~S3C2410_LCDCON2_LINEVAL(0x3ff);
- 	fbi->regs.lcdcon2 |=3D  S3C2410_LCDCON2_LINEVAL(var->yres - 1);
-=20
--	switch(fbi->mach_info->type) {
--		case S3C2410_LCDCON1_DSCAN4:
--		case S3C2410_LCDCON1_STN8:
--			hs =3D var->xres / 8;
--			break;
--		case S3C2410_LCDCON1_STN4:
--			hs =3D var->xres / 4;
--			break;
--		default:
--		case S3C2410_LCDCON1_TFT:
--			hs =3D var->xres;
--			break;
--
-+	switch (fbi->mach_info->type) {
-+	case S3C2410_LCDCON1_DSCAN4:
-+	case S3C2410_LCDCON1_STN8:
-+		hs =3D var->xres / 8;
-+		break;
-+	case S3C2410_LCDCON1_STN4:
-+		hs =3D var->xres / 4;
-+		break;
-+	default:
-+	case S3C2410_LCDCON1_TFT:
-+		hs =3D var->xres;
-+		break;
- 	}
-=20
- 	/* Special cases : STN color displays */
--	if ( ((fbi->regs.lcdcon1 & S3C2410_LCDCON1_MODEMASK) =3D=3D S3C2410_L=
-CDCON1_STN8BPP) \
--	  || ((fbi->regs.lcdcon1 & S3C2410_LCDCON1_MODEMASK) =3D=3D S3C2410_L=
-CDCON1_STN12BPP) ) {
-+	if (((fbi->regs.lcdcon1 & S3C2410_LCDCON1_MODEMASK) =3D=3D S3C2410_LC=
-DCON1_STN8BPP) ||
-+	    ((fbi->regs.lcdcon1 & S3C2410_LCDCON1_MODEMASK) =3D=3D S3C2410_LC=
-DCON1_STN12BPP))
- 		hs =3D hs * 3;
--	}
--
-=20
- 	fbi->regs.lcdcon3 &=3D ~S3C2410_LCDCON3_HOZVAL(0x7ff);
- 	fbi->regs.lcdcon3 |=3D  S3C2410_LCDCON3_HOZVAL(hs - 1);
-@@ -402,11 +389,10 @@ static void s3c2410fb_activate_var(struc
- 		int clkdiv =3D s3c2410fb_calc_pixclk(fbi, var->pixclock);
-=20
- 		if (fbi->mach_info->type =3D=3D S3C2410_LCDCON1_TFT) {
--			clkdiv =3D (clkdiv / 2) -1;
-+			clkdiv =3D (clkdiv / 2) - 1;
- 			if (clkdiv < 0)
- 				clkdiv =3D 0;
--		}
--		else {
-+		} else {
- 			clkdiv =3D (clkdiv / 2);
- 			if (clkdiv < 2)
- 				clkdiv =3D 2;
-@@ -437,9 +423,8 @@ static void s3c2410fb_activate_var(struc
- 	writel(fbi->regs.lcdcon1, S3C2410_LCDCON1);
+ 	struct ethertap_data *pri = data;
+ 
+ 	if(pri->control_fd == -1)
+ 		return;
++
+ 	etap_close_addr(addr, netmask, &pri->control_fd);
  }
-=20
--
- /*
-- *      s3c2410fb_set_par - Optional function. Alters the hardware sta=
-te.
-+ *      s3c2410fb_set_par - Alters the hardware state.
-  *      @info: frame buffer structure that represents a single frame b=
-uffer
-  *
-  */
-@@ -448,20 +433,19 @@ static int s3c2410fb_set_par(struct fb_i
- 	struct s3c2410fb_info *fbi =3D info->par;
- 	struct fb_var_screeninfo *var =3D &info->var;
-=20
--	switch (var->bits_per_pixel)
--	{
--		case 16:
--			fbi->fb->fix.visual =3D FB_VISUAL_TRUECOLOR;
--			break;
--		case 1:
--			 fbi->fb->fix.visual =3D FB_VISUAL_MONO01;
--			 break;
--		default:
--			 fbi->fb->fix.visual =3D FB_VISUAL_PSEUDOCOLOR;
--			 break;
-+	switch (var->bits_per_pixel) {
-+	case 16:
-+		info->fix.visual =3D FB_VISUAL_TRUECOLOR;
-+		break;
-+	case 1:
-+		info->fix.visual =3D FB_VISUAL_MONO01;
-+		break;
-+	default:
-+		info->fix.visual =3D FB_VISUAL_PSEUDOCOLOR;
-+		break;
- 	}
-=20
--	fbi->fb->fix.line_length     =3D (var->width*var->bits_per_pixel)/8;
-+	info->fix.line_length =3D (var->width * var->bits_per_pixel) / 8;
-=20
- 	/* activate this new configuration */
-=20
-@@ -493,7 +477,8 @@ static void schedule_palette_update(stru
+ 
+diff -puN arch/um/os-Linux/drivers/tuntap_user.c~uml-userspace-files-should-call-libc-directly arch/um/os-Linux/drivers/tuntap_user.c
+--- a/arch/um/os-Linux/drivers/tuntap_user.c~uml-userspace-files-should-call-libc-directly
++++ a/arch/um/os-Linux/drivers/tuntap_user.c
+@@ -62,7 +62,7 @@ static void tuntap_pre_exec(void *arg)
+ 	struct tuntap_pre_exec_data *data = arg;
+ 
+ 	dup2(data->stdout, 1);
+-	os_close_file(data->close_me);
++	close(data->close_me);
  }
-=20
- /* from pxafb.c */
--static inline unsigned int chan_to_field(unsigned int chan, struct fb_=
-bitfield *bf)
-+static inline unsigned int chan_to_field(unsigned int chan,
-+					 struct fb_bitfield *bf)
- {
- 	chan &=3D 0xffff;
- 	chan >>=3D 16 - bf->length;
-@@ -507,18 +492,19 @@ static int s3c2410fb_setcolreg(unsigned=20
- 	struct s3c2410fb_info *fbi =3D info->par;
- 	unsigned int val;
-=20
--	/* dprintk("setcol: regno=3D%d, rgb=3D%d,%d,%d\n", regno, red, green,=
- blue); */
-+	/* dprintk("setcol: regno=3D%d, rgb=3D%d,%d,%d\n",
-+		   regno, red, green, blue); */
-=20
--	switch (fbi->fb->fix.visual) {
-+	switch (info->fix.visual) {
- 	case FB_VISUAL_TRUECOLOR:
--		/* true-colour, use pseuo-palette */
-+		/* true-colour, use pseudo-palette */
-=20
- 		if (regno < 16) {
--			u32 *pal =3D fbi->fb->pseudo_palette;
-+			u32 *pal =3D info->pseudo_palette;
-=20
--			val  =3D chan_to_field(red,   &fbi->fb->var.red);
--			val |=3D chan_to_field(green, &fbi->fb->var.green);
--			val |=3D chan_to_field(blue,  &fbi->fb->var.blue);
-+			val  =3D chan_to_field(red,   &info->var.red);
-+			val |=3D chan_to_field(green, &info->var.green);
-+			val |=3D chan_to_field(blue,  &info->var.blue);
-=20
- 			pal[regno] =3D val;
- 		}
-@@ -539,14 +525,13 @@ static int s3c2410fb_setcolreg(unsigned=20
- 		break;
-=20
- 	default:
--		return 1;   /* unknown type */
-+		return 1;	/* unknown type */
- 	}
-=20
- 	return 0;
- }
-=20
--
--/**
-+/*
-  *      s3c2410fb_blank
-  *	@blank_mode: the blank mode we want.
-  *	@info: frame buffer structure that represents a single frame buffer
-@@ -579,12 +564,14 @@ static int s3c2410fb_blank(int blank_mod
- 	return 0;
- }
-=20
--static int s3c2410fb_debug_show(struct device *dev, struct device_attr=
-ibute *attr, char *buf)
-+static int s3c2410fb_debug_show(struct device *dev,
-+				struct device_attribute *attr, char *buf)
- {
- 	return snprintf(buf, PAGE_SIZE, "%s\n", debug ? "on" : "off");
- }
--static int s3c2410fb_debug_store(struct device *dev, struct device_att=
-ribute *attr,
--					   const char *buf, size_t len)
-+static int s3c2410fb_debug_store(struct device *dev,
-+				 struct device_attribute *attr,
-+				 const char *buf, size_t len)
- {
- 	if (mach_info =3D=3D NULL)
+ 
+ static int tuntap_open_tramp(char *gate, int *fd_out, int me, int remote,
+@@ -88,7 +88,7 @@ static int tuntap_open_tramp(char *gate,
+ 	if(pid < 0)
+ 		return -pid;
+ 
+-	os_close_file(remote);
++	close(remote);
+ 
+ 	msg.msg_name = NULL;
+ 	msg.msg_namelen = 0;
+@@ -125,7 +125,7 @@ static int tuntap_open_tramp(char *gate,
  		return -EINVAL;
-@@ -607,10 +594,7 @@ static int s3c2410fb_debug_store(struct=20
- 	return len;
+ 	}
+ 	*fd_out = ((int *) CMSG_DATA(cmsg))[0];
+-	os_set_exec_close(*fd_out, 1);
++	os_set_exec_close(*fd_out);
+ 	return 0;
  }
-=20
--
--static DEVICE_ATTR(debug, 0666,
--		   s3c2410fb_debug_show,
--		   s3c2410fb_debug_store);
-+static DEVICE_ATTR(debug, 0666, s3c2410fb_debug_show, s3c2410fb_debug_=
-store);
-=20
- static struct fb_ops s3c2410fb_ops =3D {
- 	.owner		=3D THIS_MODULE,
-@@ -623,7 +607,6 @@ static struct fb_ops s3c2410fb_ops =3D {
- 	.fb_imageblit	=3D cfb_imageblit,
- };
-=20
--
- /*
-  * s3c2410fb_map_video_memory():
-  *	Allocates the DRAM memory for the frame buffer.  This buffer is
-@@ -661,7 +644,8 @@ static int __init s3c2410fb_map_video_me
-=20
- static inline void s3c2410fb_unmap_video_memory(struct s3c2410fb_info =
-*fbi)
- {
--	dma_free_writecombine(fbi->dev,fbi->map_size,fbi->map_cpu, fbi->map_d=
-ma);
-+	dma_free_writecombine(fbi->dev, fbi->map_size, fbi->map_cpu,
-+			      fbi->map_dma);
+ 
+@@ -154,20 +154,22 @@ static int tuntap_open(void *data)
+ 		if(ioctl(pri->fd, TUNSETIFF, (void *) &ifr) < 0){
+ 			err = -errno;
+ 			printk("TUNSETIFF failed, errno = %d\n", errno);
+-			os_close_file(pri->fd);
++			close(pri->fd);
+ 			return err;
+ 		}
+ 	}
+ 	else {
+-		err = os_pipe(fds, 0, 0);
+-		if(err < 0){
+-			printk("tuntap_open : os_pipe failed - err = %d\n",
+-			       -err);
++		err = socketpair(AF_UNIX, SOCK_DGRAM, 0, fds);
++		if(err){
++			err = -errno;
++			printk("tuntap_open : socketpair failed - errno = %d\n",
++			       errno);
+ 			return err;
+ 		}
+ 
+ 		buffer = get_output_buffer(&len);
+-		if(buffer != NULL) len--;
++		if(buffer != NULL)
++			len--;
+ 		used = 0;
+ 
+ 		err = tuntap_open_tramp(pri->gate_addr, &pri->fd, fds[0],
+@@ -186,7 +188,7 @@ static int tuntap_open(void *data)
+ 		printk("%s", output);
+ 		free_output_buffer(buffer);
+ 
+-		os_close_file(fds[0]);
++		close(fds[0]);
+ 		iter_addresses(pri->dev, open_addr, pri->dev_name);
+ 	}
+ 
+@@ -199,7 +201,7 @@ static void tuntap_close(int fd, void *d
+ 
+ 	if(!pri->fixed_config) 
+ 		iter_addresses(pri->dev, close_addr, pri->dev_name);
+-	os_close_file(fd);
++	close(fd);
+ 	pri->fd = -1;
  }
-=20
- static inline void modify_gpio(void __iomem *reg,
-@@ -673,11 +657,9 @@ static inline void modify_gpio(void __io
- 	writel(tmp | set, reg);
+ 
+diff -puN arch/um/os-Linux/file.c~uml-userspace-files-should-call-libc-directly arch/um/os-Linux/file.c
+--- a/arch/um/os-Linux/file.c~uml-userspace-files-should-call-libc-directly
++++ a/arch/um/os-Linux/file.c
+@@ -82,13 +82,6 @@ int os_access(const char* file, int mode
+ 	return 0;
  }
-=20
+ 
+-void os_print_error(int error, const char* str)
+-{
+-	errno = error < 0 ? -error : error;
 -
- /*
-  * s3c2410fb_init_registers - Initialise all LCD-related registers
-  */
+-	perror(str);
+-}
 -
- static int s3c2410fb_init_registers(struct s3c2410fb_info *fbi)
+ /* FIXME? required only by hostaudio (because it passes ioctls verbatim) */
+ int os_ioctl_generic(int fd, unsigned int cmd, unsigned long arg)
  {
- 	unsigned long flags;
-@@ -702,7 +684,7 @@ static int s3c2410fb_init_registers(stru
- 	writel(fbi->regs.lcdcon4, regs + S3C2410_LCDCON4);
- 	writel(fbi->regs.lcdcon5, regs + S3C2410_LCDCON5);
-=20
-- 	s3c2410fb_set_lcdaddr(fbi);
-+	s3c2410fb_set_lcdaddr(fbi);
-=20
- 	dprintk("LPCSEL    =3D 0x%08lx\n", mach_info->lpcsel);
- 	writel(mach_info->lpcsel, regs + S3C2410_LPCSEL);
-@@ -721,13 +703,13 @@ static int s3c2410fb_init_registers(stru
- static void s3c2410fb_write_palette(struct s3c2410fb_info *fbi)
- {
- 	unsigned int i;
--	unsigned long ent;
- 	void __iomem *regs =3D fbi->io;
-=20
- 	fbi->palette_ready =3D 0;
-=20
- 	for (i =3D 0; i < 256; i++) {
--		if ((ent =3D fbi->palette_buffer[i]) =3D=3D PALETTE_BUFF_CLEAR)
-+		unsigned long ent =3D fbi->palette_buffer[i];
-+		if (ent =3D=3D PALETTE_BUFF_CLEAR)
- 			continue;
-=20
- 		writel(ent, regs + S3C2410_TFTPAL(i));
-@@ -761,12 +743,12 @@ static irqreturn_t s3c2410fb_irq(int irq
- 	return IRQ_HANDLED;
+@@ -181,19 +174,19 @@ int os_file_mode(char *file, struct open
+ 
+ 	*mode_out = OPENFLAGS();
+ 
+-	err = os_access(file, OS_ACC_W_OK);
+-	if((err < 0) && (err != -EACCES))
+-		return(err);
+-
+-	*mode_out = of_write(*mode_out);
+-
+-	err = os_access(file, OS_ACC_R_OK);
+-	if((err < 0) && (err != -EACCES))
+-		return(err);
++	err = access(file, W_OK);
++	if(err && (errno != EACCES))
++		return -errno;
++	else if(!err)
++		*mode_out = of_write(*mode_out);
+ 
+-	*mode_out = of_read(*mode_out);
++	err = access(file, R_OK);
++	if(err && (errno != EACCES))
++		return -errno;
++	else if(!err)
++		*mode_out = of_read(*mode_out);
+ 
+-	return(0);
++	return err;
  }
-=20
--static char driver_name[]=3D"s3c2410fb";
-+static char driver_name[] =3D "s3c2410fb";
-=20
- static int __init s3c2410fb_probe(struct platform_device *pdev)
+ 
+ int os_open_file(char *file, struct openflags flags, int mode)
+@@ -212,15 +205,15 @@ int os_open_file(char *file, struct open
+ 
+ 	fd = open64(file, f, mode);
+ 	if(fd < 0)
+-		return(-errno);
++		return -errno;
+ 
+ 	if(flags.cl && fcntl(fd, F_SETFD, 1)){
+ 		err = -errno;
+-		os_close_file(fd);
++		close(fd);
+ 		return err;
+ 	}
+ 
+-	return(fd);
++	return fd;
+ }
+ 
+ int os_connect_socket(char *name)
+@@ -292,31 +285,33 @@ int os_file_size(char *file, unsigned lo
+ 	err = os_stat_file(file, &buf);
+ 	if(err < 0){
+ 		printk("Couldn't stat \"%s\" : err = %d\n", file, -err);
+-		return(err);
++		return err;
+ 	}
+ 
+ 	if(S_ISBLK(buf.ust_mode)){
+ 		int fd;
+ 		long blocks;
+ 
+-		fd = os_open_file(file, of_read(OPENFLAGS()), 0);
+-		if(fd < 0){
+-			printk("Couldn't open \"%s\", errno = %d\n", file, -fd);
+-			return(fd);
++		fd = open(file, O_RDONLY, 0);
++		if(fd < 0) {
++			err = -errno;
++			printk("Couldn't open \"%s\", errno = %d\n", file,
++			       errno);
++			return err;
+ 		}
+ 		if(ioctl(fd, BLKGETSIZE, &blocks) < 0){
+ 			err = -errno;
+ 			printk("Couldn't get the block size of \"%s\", "
+ 			       "errno = %d\n", file, errno);
+-			os_close_file(fd);
+-			return(err);
++			close(fd);
++			return err;
+ 		}
+ 		*size_out = ((long long) blocks) * 512;
+-		os_close_file(fd);
+-		return(0);
++		close(fd);
+ 	}
+-	*size_out = buf.ust_size;
+-	return(0);
++	else *size_out = buf.ust_size;
++
++	return 0;
+ }
+ 
+ int os_file_modtime(char *file, unsigned long *modtime)
+@@ -334,35 +329,28 @@ int os_file_modtime(char *file, unsigned
+ 	return 0;
+ }
+ 
+-int os_get_exec_close(int fd, int* close_on_exec)
++int os_get_exec_close(int fd, int *close_on_exec)
  {
- 	struct s3c2410fb_info *info;
--	struct fb_info	   *fbinfo;
-+	struct fb_info *fbinfo;
- 	struct s3c2410fb_hw *mregs;
- 	struct resource *res;
  	int ret;
-@@ -777,7 +759,8 @@ static int __init s3c2410fb_probe(struct
-=20
- 	mach_info =3D pdev->dev.platform_data;
- 	if (mach_info =3D=3D NULL) {
--		dev_err(&pdev->dev,"no platform data for lcd, cannot attach\n");
-+		dev_err(&pdev->dev,
-+			"no platform data for lcd, cannot attach\n");
- 		return -EINVAL;
- 	}
-=20
-@@ -790,9 +773,8 @@ static int __init s3c2410fb_probe(struct
- 	}
-=20
- 	fbinfo =3D framebuffer_alloc(sizeof(struct s3c2410fb_info), &pdev->de=
-v);
--	if (!fbinfo) {
-+	if (!fbinfo)
- 		return -ENOMEM;
--	}
-=20
- 	info =3D fbinfo->par;
- 	info->fb =3D fbinfo;
-@@ -800,12 +782,12 @@ static int __init s3c2410fb_probe(struct
-=20
- 	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (res =3D=3D NULL) {
--		dev_err(&pdev->dev, "failed to get memory registersn");
-+		dev_err(&pdev->dev, "failed to get memory registers\n");
- 		ret =3D -ENXIO;
- 		goto dealloc_fb;
- 	}
-=20
--	size =3D (res->end - res->start)+1;
-+	size =3D (res->end - res->start) + 1;
- 	info->mem =3D request_mem_region(res->start, size, pdev->name);
- 	if (info->mem =3D=3D NULL) {
- 		dev_err(&pdev->dev, "failed to get memory region\n");
-@@ -859,13 +841,19 @@ static int __init s3c2410fb_probe(struct
- 	fbinfo->var.yres_virtual    =3D mach_info->yres.defval;
- 	fbinfo->var.bits_per_pixel  =3D mach_info->bpp.defval;
-=20
--	fbinfo->var.upper_margin    =3D S3C2410_LCDCON2_GET_VBPD(mregs->lcdco=
-n2) + 1;
--	fbinfo->var.lower_margin    =3D S3C2410_LCDCON2_GET_VFPD(mregs->lcdco=
-n2) + 1;
--	fbinfo->var.vsync_len	    =3D S3C2410_LCDCON2_GET_VSPW(mregs->lcdcon2=
-) + 1;
--
--	fbinfo->var.left_margin	    =3D S3C2410_LCDCON3_GET_HFPD(mregs->lcdco=
-n3) + 1;
--	fbinfo->var.right_margin    =3D S3C2410_LCDCON3_GET_HBPD(mregs->lcdco=
-n3) + 1;
--	fbinfo->var.hsync_len	    =3D S3C2410_LCDCON4_GET_HSPW(mregs->lcdcon4=
-) + 1;
-+	fbinfo->var.upper_margin    =3D
-+				S3C2410_LCDCON2_GET_VBPD(mregs->lcdcon2) + 1;
-+	fbinfo->var.lower_margin    =3D
-+				S3C2410_LCDCON2_GET_VFPD(mregs->lcdcon2) + 1;
-+	fbinfo->var.vsync_len	    =3D
-+				S3C2410_LCDCON2_GET_VSPW(mregs->lcdcon2) + 1;
-+
-+	fbinfo->var.left_margin	    =3D
-+				S3C2410_LCDCON3_GET_HFPD(mregs->lcdcon3) + 1;
-+	fbinfo->var.right_margin    =3D
-+				S3C2410_LCDCON3_GET_HBPD(mregs->lcdcon3) + 1;
-+	fbinfo->var.hsync_len	    =3D
-+				S3C2410_LCDCON4_GET_HSPW(mregs->lcdcon4) + 1;
-=20
- 	fbinfo->var.red.offset      =3D 11;
- 	fbinfo->var.green.offset    =3D 5;
-@@ -875,7 +863,7 @@ static int __init s3c2410fb_probe(struct
- 	fbinfo->var.green.length    =3D 6;
- 	fbinfo->var.blue.length     =3D 5;
- 	fbinfo->var.transp.length   =3D 0;
--	fbinfo->fix.smem_len        =3D	mach_info->xres.max *
-+	fbinfo->fix.smem_len	    =3D	mach_info->xres.max *
- 					mach_info->yres.max *
- 					mach_info->bpp.max / 8;
-=20
-@@ -904,20 +892,21 @@ static int __init s3c2410fb_probe(struct
- 	/* Initialize video memory */
- 	ret =3D s3c2410fb_map_video_memory(info);
- 	if (ret) {
--		printk( KERN_ERR "Failed to allocate video RAM: %d\n", ret);
-+		printk(KERN_ERR "Failed to allocate video RAM: %d\n", ret);
- 		ret =3D -ENOMEM;
- 		goto release_clock;
- 	}
-=20
- 	dprintk("got video memory\n");
-=20
--	ret =3D s3c2410fb_init_registers(info);
-+	s3c2410fb_init_registers(info);
-=20
--	ret =3D s3c2410fb_check_var(&fbinfo->var, fbinfo);
-+	s3c2410fb_check_var(&fbinfo->var, fbinfo);
-=20
- 	ret =3D register_framebuffer(fbinfo);
- 	if (ret < 0) {
--		printk(KERN_ERR "Failed to register framebuffer device: %d\n", ret);
-+		printk(KERN_ERR "Failed to register framebuffer device: %d\n",
-+			ret);
- 		goto free_video_memory;
- 	}
-=20
-@@ -935,7 +924,7 @@ release_clock:
- 	clk_disable(info->clk);
- 	clk_put(info->clk);
- release_irq:
--	free_irq(irq,info);
-+	free_irq(irq, info);
- release_regs:
- 	iounmap(info->io);
- release_mem:
-@@ -949,8 +938,7 @@ dealloc_fb:
- /* s3c2410fb_stop_lcd
-  *
-  * shutdown the lcd controller
--*/
--
-+ */
- static void s3c2410fb_stop_lcd(struct s3c2410fb_info *fbi)
- {
- 	unsigned long flags;
-@@ -968,7 +956,7 @@ static void s3c2410fb_stop_lcd(struct s3
-  */
- static int s3c2410fb_remove(struct platform_device *pdev)
- {
--	struct fb_info	   *fbinfo =3D platform_get_drvdata(pdev);
-+	struct fb_info *fbinfo =3D platform_get_drvdata(pdev);
- 	struct s3c2410fb_info *info =3D fbinfo->par;
- 	int irq;
-=20
-@@ -977,14 +965,14 @@ static int s3c2410fb_remove(struct platf
-=20
- 	s3c2410fb_unmap_video_memory(info);
-=20
-- 	if (info->clk) {
-- 		clk_disable(info->clk);
-- 		clk_put(info->clk);
-- 		info->clk =3D NULL;
-+	if (info->clk) {
-+		clk_disable(info->clk);
-+		clk_put(info->clk);
-+		info->clk =3D NULL;
- 	}
-=20
- 	irq =3D platform_get_irq(pdev, 0);
--	free_irq(irq,info);
-+	free_irq(irq, info);
-=20
- 	release_resource(info->mem);
- 	kfree(info->mem);
-@@ -997,7 +985,6 @@ static int s3c2410fb_remove(struct platf
- #ifdef CONFIG_PM
-=20
- /* suspend and resume support for the lcd controller */
--
- static int s3c2410fb_suspend(struct platform_device *dev, pm_message_t=
- state)
- {
- 	struct fb_info	   *fbinfo =3D platform_get_drvdata(dev);
-@@ -1054,10 +1041,10 @@ static void __exit s3c2410fb_cleanup(voi
- 	platform_driver_unregister(&s3c2410fb_driver);
+ 
+-	do {
+-		ret = fcntl(fd, F_GETFD);
+-	} while((ret < 0) && (errno == EINTR)) ;
++	CATCH_EINTR(ret = fcntl(fd, F_GETFD));
+ 
+ 	if(ret < 0)
+-		return(-errno);
++		return -errno;
+ 
+-	*close_on_exec = (ret&FD_CLOEXEC) ? 1 : 0;
+-	return(ret);
++	*close_on_exec = (ret & FD_CLOEXEC) ? 1 : 0;
++	return ret;
  }
-=20
+ 
+-int os_set_exec_close(int fd, int close_on_exec)
++int os_set_exec_close(int fd)
+ {
+-	int flag, err;
 -
- module_init(s3c2410fb_init);
- module_exit(s3c2410fb_cleanup);
-=20
--MODULE_AUTHOR("Arnaud Patard <arnaud.patard@rtp-net.org>, Ben Dooks <b=
-en-linux@fluff.org>");
-+MODULE_AUTHOR("Arnaud Patard <arnaud.patard@rtp-net.org>, "
-+	      "Ben Dooks <ben-linux@fluff.org>");
- MODULE_DESCRIPTION("Framebuffer driver for the s3c2410");
- MODULE_LICENSE("GPL");
+-	if(close_on_exec) flag = FD_CLOEXEC;
+-	else flag = 0;
++	int err;
+ 
+-	do {
+-		err = fcntl(fd, F_SETFD, flag);
+-	} while((err < 0) && (errno == EINTR)) ;
++	CATCH_EINTR(err = fcntl(fd, F_SETFD, FD_CLOEXEC));
+ 
+ 	if(err < 0)
+-		return(-errno);
+-	return(err);
++		return -errno;
++	return err;
+ }
+ 
+ int os_pipe(int *fds, int stream, int close_on_exec)
+@@ -371,16 +359,16 @@ int os_pipe(int *fds, int stream, int cl
+ 
+ 	err = socketpair(AF_UNIX, type, 0, fds);
+ 	if(err < 0)
+-		return(-errno);
++		return -errno;
+ 
+ 	if(!close_on_exec)
+-		return(0);
++		return 0;
+ 
+-	err = os_set_exec_close(fds[0], 1);
++	err = os_set_exec_close(fds[0]);
+ 	if(err < 0)
+ 		goto error;
+ 
+-	err = os_set_exec_close(fds[1], 1);
++	err = os_set_exec_close(fds[1]);
+ 	if(err < 0)
+ 		goto error;
+ 
+@@ -388,9 +376,9 @@ int os_pipe(int *fds, int stream, int cl
+ 
+  error:
+ 	printk("os_pipe : Setting FD_CLOEXEC failed, err = %d\n", -err);
+-	os_close_file(fds[1]);
+-	os_close_file(fds[0]);
+-	return(err);
++	close(fds[1]);
++	close(fds[0]);
++	return err;
+ }
+ 
+ int os_set_fd_async(int fd, int owner)
+@@ -537,7 +525,7 @@ int os_create_unix_socket(char *file, in
+ 		return -errno;
+ 
+ 	if(close_on_exec) {
+-		err = os_set_exec_close(sock, 1);
++		err = os_set_exec_close(sock);
+ 		if(err < 0)
+ 			printk("create_unix_socket : close_on_exec failed, "
+ 		       "err = %d", -err);
+diff -puN arch/um/os-Linux/helper.c~uml-userspace-files-should-call-libc-directly arch/um/os-Linux/helper.c
+--- a/arch/um/os-Linux/helper.c~uml-userspace-files-should-call-libc-directly
++++ a/arch/um/os-Linux/helper.c
+@@ -11,6 +11,7 @@
+ #include <limits.h>
+ #include <sys/signal.h>
+ #include <sys/wait.h>
++#include <sys/socket.h>
+ #include "user.h"
+ #include "kern_util.h"
+ #include "os.h"
+@@ -54,13 +55,14 @@ int run_helper(void (*pre_exec)(void *),
+ 	if (stack == 0)
+ 		return -ENOMEM;
+ 
+-	ret = os_pipe(fds, 1, 0);
++	ret = socketpair(AF_UNIX, SOCK_STREAM, 0, fds);
+ 	if (ret < 0) {
+-		printk("run_helper : pipe failed, ret = %d\n", -ret);
++		ret = -errno;
++		printk("run_helper : pipe failed, errno = %d\n", errno);
+ 		goto out_free;
+ 	}
+ 
+-	ret = os_set_exec_close(fds[1], 1);
++	ret = os_set_exec_close(fds[1]);
+ 	if (ret < 0) {
+ 		printk("run_helper : setting FD_CLOEXEC failed, ret = %d\n",
+ 		       -ret);
+diff -puN arch/um/os-Linux/mem.c~uml-userspace-files-should-call-libc-directly arch/um/os-Linux/mem.c
+--- a/arch/um/os-Linux/mem.c~uml-userspace-files-should-call-libc-directly
++++ a/arch/um/os-Linux/mem.c
+@@ -218,7 +218,7 @@ int __init create_tmp_file(unsigned long
+ 
+ 	err = fchmod(fd, 0777);
+ 	if(err < 0){
+-		perror("os_mode_fd");
++		perror("fchmod");
+ 		exit(1);
+ 	}
+ 
+@@ -226,7 +226,7 @@ int __init create_tmp_file(unsigned long
+ 	 * increase the file size by one byte, to the desired length.
+ 	 */
+ 	if (lseek64(fd, len - 1, SEEK_SET) < 0) {
+-		perror("os_seek_file");
++		perror("lseek64");
+ 		exit(1);
+ 	}
+ 
+@@ -247,7 +247,7 @@ int __init create_mem_file(unsigned long
+ 
+ 	fd = create_tmp_file(len);
+ 
+-	err = os_set_exec_close(fd, 1);
++	err = os_set_exec_close(fd);
+ 	if(err < 0){
+ 		errno = -err;
+ 		perror("exec_close");
+diff -puN arch/um/os-Linux/process.c~uml-userspace-files-should-call-libc-directly arch/um/os-Linux/process.c
+--- a/arch/um/os-Linux/process.c~uml-userspace-files-should-call-libc-directly
++++ a/arch/um/os-Linux/process.c
+@@ -7,6 +7,7 @@
+ #include <unistd.h>
+ #include <errno.h>
+ #include <signal.h>
++#include <fcntl.h>
+ #include <sys/mman.h>
+ #include <sys/ptrace.h>
+ #include <sys/wait.h>
+@@ -28,31 +29,32 @@
+ unsigned long os_process_pc(int pid)
+ {
+ 	char proc_stat[STAT_PATH_LEN], buf[256];
+-	unsigned long pc;
++	unsigned long pc = ARBITRARY_ADDR;
+ 	int fd, err;
+ 
+ 	sprintf(proc_stat, "/proc/%d/stat", pid);
+-	fd = os_open_file(proc_stat, of_read(OPENFLAGS()), 0);
++	fd = open(proc_stat, O_RDONLY, 0);
+ 	if (fd < 0) {
+ 		printk(UM_KERN_ERR "os_process_pc - couldn't open '%s', "
+-		       "err = %d\n", proc_stat, -fd);
+-		return ARBITRARY_ADDR;
++		       "errno = %d\n", proc_stat, errno);
++		goto out;
+ 	}
+ 	CATCH_EINTR(err = read(fd, buf, sizeof(buf)));
+ 	if (err < 0) {
+ 		printk(UM_KERN_ERR "os_process_pc - couldn't read '%s', "
+ 		       "err = %d\n", proc_stat, errno);
+-		os_close_file(fd);
+-		return ARBITRARY_ADDR;
++		goto out_close;
+ 	}
+ 	os_close_file(fd);
+ 	pc = ARBITRARY_ADDR;
+ 	if (sscanf(buf, "%*d " COMM_SCANF " %*c %*d %*d %*d %*d %*d %*d %*d "
+-		  "%*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d "
+-		  "%*d %*d %*d %*d %*d %lu", &pc) != 1) {
++		   "%*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d "
++		   "%*d %*d %*d %*d %*d %lu", &pc) != 1)
+ 		printk(UM_KERN_ERR "os_process_pc - couldn't find pc in '%s'\n",
+ 		       buf);
+-	}
++ out_close:
++	close(fd);
++ out:
+ 	return pc;
+ }
+ 
+@@ -60,25 +62,26 @@ int os_process_parent(int pid)
+ {
+ 	char stat[STAT_PATH_LEN];
+ 	char data[256];
+-	int parent, n, fd;
++	int parent = FAILURE_PID, n, fd;
+ 
+ 	if (pid == -1)
+-		return -1;
++		return parent;
+ 
+ 	snprintf(stat, sizeof(stat), "/proc/%d/stat", pid);
+-	fd = os_open_file(stat, of_read(OPENFLAGS()), 0);
++	fd = open(stat, O_RDONLY, 0);
+ 	if (fd < 0) {
+-		printk(UM_KERN_ERR "Couldn't open '%s', err = %d\n", stat, -fd);
+-		return FAILURE_PID;
++		printk(UM_KERN_ERR "Couldn't open '%s', errno = %d\n", stat,
++		       errno);
++		return parent;
+ 	}
+ 
+ 	CATCH_EINTR(n = read(fd, data, sizeof(data)));
+-	os_close_file(fd);
++	close(fd);
+ 
+ 	if (n < 0) {
+-		printk(UM_KERN_ERR "Couldn't read '%s', err = %d\n", stat,
++		printk(UM_KERN_ERR "Couldn't read '%s', errno = %d\n", stat,
+ 		       errno);
+-		return FAILURE_PID;
++		return parent;
+ 	}
+ 
+ 	parent = FAILURE_PID;
+diff -puN arch/um/os-Linux/skas/process.c~uml-userspace-files-should-call-libc-directly arch/um/os-Linux/skas/process.c
+--- a/arch/um/os-Linux/skas/process.c~uml-userspace-files-should-call-libc-directly
++++ a/arch/um/os-Linux/skas/process.c
+@@ -28,7 +28,7 @@
+ 
+ int is_skas_winch(int pid, int fd, void *data)
+ {
+-	if (pid != os_getpgrp())
++	if (pid != getpgrp())
+ 		return 0;
+ 
+ 	register_winch_irq(-1, fd, -1, data, 0);
+@@ -233,7 +233,7 @@ static int userspace_tramp(void *stack)
+ 			      "failed - errno = %d\n", errno);
+ 	}
+ 
+-	os_stop_process(os_getpid());
++	kill(os_getpid(), SIGSTOP);
+ 	return 0;
+ }
+ 
+diff -puN arch/um/os-Linux/start_up.c~uml-userspace-files-should-call-libc-directly arch/um/os-Linux/start_up.c
+--- a/arch/um/os-Linux/start_up.c~uml-userspace-files-should-call-libc-directly
++++ a/arch/um/os-Linux/start_up.c
+@@ -28,13 +28,14 @@
+ static int ptrace_child(void)
+ {
+ 	int ret;
++	/* Calling os_getpid because some libcs cached getpid incorrectly */
+ 	int pid = os_getpid(), ppid = getppid();
+ 	int sc_result;
+ 
+ 	change_sig(SIGWINCH, 0);
+ 	if (ptrace(PTRACE_TRACEME, 0, 0, 0) < 0) {
+ 		perror("ptrace");
+-		os_kill_process(pid, 0);
++		kill(pid, SIGKILL);
+ 	}
+ 	kill(pid, SIGSTOP);
+ 
+@@ -496,7 +497,7 @@ int __init parse_iomem(char *str, int *a
+ 	file++;
+ 	fd = open(file, O_RDWR, 0);
+ 	if (fd < 0) {
+-		os_print_error(fd, "parse_iomem - Couldn't open io file");
++		perror("parse_iomem - Couldn't open io file");
+ 		goto out;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-git-alsa.patch
-cyber2000fb-checkpatch-fixes.patch
+git-kvm.patch
+uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
+bitops-introduce-lock-ops.patch
