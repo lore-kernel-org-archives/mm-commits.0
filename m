@@ -1,113 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: - do-not-group-pages-by-mobility-type-on-low-memory-systems.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:34:46 -0700
-Message-ID: <200710162034.l9GKYk18014992@imap1.linux-foundation.org>
+Subject: - hfs-convert-to-new-aops.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:32:46 -0700
+Message-ID: <200710162032.l9GKWkPX014649@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34536 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39831 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966099AbXJPVrQ (ORCPT
+	by vger.kernel.org with ESMTP id S966364AbXJPVrf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:47:16 -0400
+	Tue, 16 Oct 2007 17:47:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, apw@shadowen.org, mm-commits@vger.kernel.org
+To: npiggin@suse.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Do not group pages by mobility type on low memory systems
+     hfs: convert to new aops
 has been removed from the -mm tree.  Its filename was
-     do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+     hfs-convert-to-new-aops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Do not group pages by mobility type on low memory systems
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: hfs: convert to new aops
+From: Nick Piggin <npiggin@suse.de>
 
-Grouping pages by mobility can only successfully operate when there are more
-MAX_ORDER_NR_PAGES areas than mobility types.  When there are insufficient
-areas, fallbacks cannot be avoided.  This has noticeable performance impacts
-on machines with small amounts of memory in comparison to MAX_ORDER_NR_PAGES. 
-For example, on IA64 with a configuration including huge pages spans 1GiB with
-MAX_ORDER_NR_PAGES so would need at least 4GiB of RAM before grouping pages by
-mobility would be useful.  In comparison, an x86 would need 16MB.
-
-This patch checks the size of vm_total_pages in build_all_zonelists(). If
-there are not enough areas,  mobility is effectivly disabled by considering
-all allocations as the same type (UNMOVABLE).  This is achived via a
-__read_mostly flag.
-
-With this patch, performance is comparable to disabling grouping pages
-by mobility at compile-time on a test machine with insufficient memory.
-With this patch, it is reasonable to get rid of grouping pages by mobility
-a compile-time option.
-
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   24 +++++++++++++++++++++++-
- 1 file changed, 23 insertions(+), 1 deletion(-)
+ fs/hfs/extent.c |   19 ++++++++-----------
+ fs/hfs/inode.c  |   20 ++++++++++++--------
+ 2 files changed, 20 insertions(+), 19 deletions(-)
 
-diff -puN mm/page_alloc.c~do-not-group-pages-by-mobility-type-on-low-memory-systems mm/page_alloc.c
---- a/mm/page_alloc.c~do-not-group-pages-by-mobility-type-on-low-memory-systems
-+++ a/mm/page_alloc.c
-@@ -159,8 +159,13 @@ EXPORT_SYMBOL(nr_node_ids);
- #endif
+diff -puN fs/hfs/extent.c~hfs-convert-to-new-aops fs/hfs/extent.c
+--- a/fs/hfs/extent.c~hfs-convert-to-new-aops
++++ a/fs/hfs/extent.c
+@@ -464,23 +464,20 @@ void hfs_file_truncate(struct inode *ino
+ 	       (long long)HFS_I(inode)->phys_size, inode->i_size);
+ 	if (inode->i_size > HFS_I(inode)->phys_size) {
+ 		struct address_space *mapping = inode->i_mapping;
++		void *fsdata;
+ 		struct page *page;
+ 		int res;
  
- #ifdef CONFIG_PAGE_GROUP_BY_MOBILITY
-+int page_group_by_mobility_disabled __read_mostly;
-+
- static inline int get_pageblock_migratetype(struct page *page)
- {
-+	if (unlikely(page_group_by_mobility_disabled))
-+		return MIGRATE_UNMOVABLE;
-+
- 	return get_pageblock_flags_group(page, PB_migrate, PB_migrate_end);
++		/* XXX: Can use generic_cont_expand? */
+ 		size = inode->i_size - 1;
+-		page = grab_cache_page(mapping, size >> PAGE_CACHE_SHIFT);
+-		if (!page)
+-			return;
+-		size &= PAGE_CACHE_SIZE - 1;
+-		size++;
+-		res = mapping->a_ops->prepare_write(NULL, page, size, size);
+-		if (!res)
+-			res = mapping->a_ops->commit_write(NULL, page, size, size);
++		res = pagecache_write_begin(NULL, mapping, size+1, 0,
++				AOP_FLAG_UNINTERRUPTIBLE, &page, &fsdata);
++		if (!res) {
++			res = pagecache_write_end(NULL, mapping, size+1, 0, 0,
++					page, fsdata);
++		}
+ 		if (res)
+ 			inode->i_size = HFS_I(inode)->phys_size;
+-		unlock_page(page);
+-		page_cache_release(page);
+-		mark_inode_dirty(inode);
+ 		return;
+ 	} else if (inode->i_size == HFS_I(inode)->phys_size)
+ 		return;
+diff -puN fs/hfs/inode.c~hfs-convert-to-new-aops fs/hfs/inode.c
+--- a/fs/hfs/inode.c~hfs-convert-to-new-aops
++++ a/fs/hfs/inode.c
+@@ -35,10 +35,14 @@ static int hfs_readpage(struct file *fil
+ 	return block_read_full_page(page, hfs_get_block);
  }
  
-@@ -174,6 +179,9 @@ static inline int allocflags_to_migratet
- {
- 	WARN_ON((gfp_flags & GFP_MOVABLE_MASK) == GFP_MOVABLE_MASK);
+-static int hfs_prepare_write(struct file *file, struct page *page, unsigned from, unsigned to)
+-{
+-	return cont_prepare_write(page, from, to, hfs_get_block,
+-				  &HFS_I(page->mapping->host)->phys_size);
++static int hfs_write_begin(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned flags,
++			struct page **pagep, void **fsdata)
++{
++	*pagep = NULL;
++	return cont_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
++				hfs_get_block,
++				&HFS_I(mapping->host)->phys_size);
+ }
  
-+	if (unlikely(page_group_by_mobility_disabled))
-+		return MIGRATE_UNMOVABLE;
-+
- 	/* Cluster high-order atomic allocations together */
- 	if (unlikely(order > 0) &&
- 			(!(gfp_flags & __GFP_WAIT) || in_interrupt()))
-@@ -2375,9 +2383,23 @@ void build_all_zonelists(void)
- 		/* cpuset refresh routine should be here */
- 	}
- 	vm_total_pages = nr_free_pagecache_pages();
--	printk("Built %i zonelists in %s order.  Total pages: %ld\n",
-+	/*
-+	 * Disable grouping by mobility if the number of pages in the
-+	 * system is too low to allow the mechanism to work. It would be
-+	 * more accurate, but expensive to check per-zone. This check is
-+	 * made on memory-hotadd so a system can start with mobility
-+	 * disabled and enable it later
-+	 */
-+	if (vm_total_pages < (MAX_ORDER_NR_PAGES * MIGRATE_TYPES))
-+		page_group_by_mobility_disabled = 1;
-+	else
-+		page_group_by_mobility_disabled = 0;
-+
-+	printk("Built %i zonelists in %s order, mobility grouping %s.  "
-+		"Total pages: %ld\n",
- 			num_online_nodes(),
- 			zonelist_order_name[current_zonelist_order],
-+			page_group_by_mobility_disabled ? "off" : "on",
- 			vm_total_pages);
- #ifdef CONFIG_NUMA
- 	printk("Policy zone: %s\n", zone_names[policy_zone]);
+ static sector_t hfs_bmap(struct address_space *mapping, sector_t block)
+@@ -119,8 +123,8 @@ const struct address_space_operations hf
+ 	.readpage	= hfs_readpage,
+ 	.writepage	= hfs_writepage,
+ 	.sync_page	= block_sync_page,
+-	.prepare_write	= hfs_prepare_write,
+-	.commit_write	= generic_commit_write,
++	.write_begin	= hfs_write_begin,
++	.write_end	= generic_write_end,
+ 	.bmap		= hfs_bmap,
+ 	.releasepage	= hfs_releasepage,
+ };
+@@ -129,8 +133,8 @@ const struct address_space_operations hf
+ 	.readpage	= hfs_readpage,
+ 	.writepage	= hfs_writepage,
+ 	.sync_page	= block_sync_page,
+-	.prepare_write	= hfs_prepare_write,
+-	.commit_write	= generic_commit_write,
++	.write_begin	= hfs_write_begin,
++	.write_end	= generic_write_end,
+ 	.bmap		= hfs_bmap,
+ 	.direct_IO	= hfs_direct_IO,
+ 	.writepages	= hfs_writepages,
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-ext2-reservations.patch
-page-owner-tracking-leak-detector.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+mm-document-tree_lock-zonelock-lockorder.patch
+fs-reiserfs-cleanups.patch
+atomic_opstxt-has-incorrect-misleading-and-insufficient-information.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+bitops-introduce-lock-ops.patch
+alpha-fix-bitops.patch
+alpha-lock-bitops.patch
+alpha-lock-bitops-fix.patch
+ia64-lock-bitops.patch
+mips-fix-bitops.patch
+mips-lock-bitops.patch
+powerpc-lock-bitops.patch
+powerpc-lock-bitops-fix.patch
+bit_spin_lock-use-lock-bitops.patch
+reiser4-fix-for-new-aops-patches.patch
