@@ -1,61 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - move-mm_struct-and-vm_area_struct-fix.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:06:09 -0700
-Message-ID: <200710160406.l9G469n3007930@imap1.linux-foundation.org>
+Subject: - fix-the-max-path-calculation-in-radix-treec-update.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:06:40 -0700
+Message-ID: <200710160406.l9G46ep2007956@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37797 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51238 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751547AbXJPEGi (ORCPT
+	by vger.kernel.org with ESMTP id S1751577AbXJPEG5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:06:38 -0400
+	Tue, 16 Oct 2007 00:06:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aurelien@aurel32.net, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: jmoyer@redhat.com, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     move-mm_struct-and-vm_area_struct fix
+     fix-the-max-path-calculation-in-radix-treec update
 has been removed from the -mm tree.  Its filename was
-     move-mm_struct-and-vm_area_struct-fix.patch
+     fix-the-max-path-calculation-in-radix-treec-update.patch
 
-This patch was dropped because it was folded into move-mm_struct-and-vm_area_struct.patch
+This patch was dropped because it was folded into fix-the-max-path-calculation-in-radix-treec.patch
 
 ------------------------------------------------------
-Subject: move-mm_struct-and-vm_area_struct fix
-From: Aurelien Jarno <aurelien@aurel32.net>
+Subject: fix-the-max-path-calculation-in-radix-treec update
+From: Jeff Moyer <jmoyer@redhat.com>
 
-  CC      arch/mips/kernel/asm-offsets.s
-In file included from include/linux/sched.h:58,
-                 from arch/mips/kernel/asm-offsets.c:13:
-include/linux/mm_types.h:115: error: expected specifier-qualifier-list before 'pgprot_t'
-include/linux/mm_types.h:169: warning: 'struct file' declared inside parameter list
-include/linux/mm_types.h:169: warning: its scope is only this definition or declaration, which is probably not what you want
-include/linux/mm_types.h:175: error: expected specifier-qualifier-list before 'pgd_t'
-
-Signed-off-by: Aurelien Jarno <aurelien@aurel32.net>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    1 +
- 1 files changed, 1 insertion(+)
+ lib/radix-tree.c |   20 ++++++++++++++++----
+ 1 files changed, 16 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/mm_types.h~move-mm_struct-and-vm_area_struct-fix include/linux/mm_types.h
---- a/include/linux/mm_types.h~move-mm_struct-and-vm_area_struct-fix
-+++ a/include/linux/mm_types.h
-@@ -10,6 +10,7 @@
- #include <linux/rbtree.h>
- #include <linux/rwsem.h>
- #include <linux/completion.h>
-+#include <asm/page.h>
- #include <asm/mmu.h>
+diff -puN lib/radix-tree.c~fix-the-max-path-calculation-in-radix-treec-update lib/radix-tree.c
+--- a/lib/radix-tree.c~fix-the-max-path-calculation-in-radix-treec-update
++++ a/lib/radix-tree.c
+@@ -61,9 +61,13 @@ struct radix_tree_path {
  
- struct address_space;
+ #define RADIX_TREE_INDEX_BITS  (8 /* CHAR_BIT */ * sizeof(unsigned long))
+ #define RADIX_TREE_MAX_PATH (DIV_ROUND_UP(RADIX_TREE_INDEX_BITS, \
+-					  RADIX_TREE_MAP_SHIFT) + 1)
++					  RADIX_TREE_MAP_SHIFT))
+ 
+-static unsigned long height_to_maxindex[RADIX_TREE_MAX_PATH] __read_mostly;
++/*
++ * The height_to_maxindex array needs to be one deeper than the maximum
++ * path as height 0 holds only 1 entry.
++ */
++static unsigned long height_to_maxindex[RADIX_TREE_MAX_PATH + 1] __read_mostly;
+ 
+ /*
+  * Radix tree node cache.
+@@ -493,7 +497,11 @@ EXPORT_SYMBOL(radix_tree_tag_set);
+ void *radix_tree_tag_clear(struct radix_tree_root *root,
+ 			unsigned long index, unsigned int tag)
+ {
+-	struct radix_tree_path path[RADIX_TREE_MAX_PATH], *pathp = path;
++	/*
++	 * The radix tree path needs to be one longer than the maximum path
++	 * since the "list" is null terminated.
++	 */
++	struct radix_tree_path path[RADIX_TREE_MAX_PATH + 1], *pathp = path;
+ 	struct radix_tree_node *slot = NULL;
+ 	unsigned int height, shift;
+ 
+@@ -935,7 +943,11 @@ static inline void radix_tree_shrink(str
+  */
+ void *radix_tree_delete(struct radix_tree_root *root, unsigned long index)
+ {
+-	struct radix_tree_path path[RADIX_TREE_MAX_PATH], *pathp = path;
++	/*
++	 * The radix tree path needs to be one longer than the maximum path
++	 * since the "list" is null terminated.
++	 */
++	struct radix_tree_path path[RADIX_TREE_MAX_PATH + 1], *pathp = path;
+ 	struct radix_tree_node *slot = NULL;
+ 	struct radix_tree_node *to_free;
+ 	unsigned int height, shift;
 _
 
-Patches currently in -mm which might be from aurelien@aurel32.net are
+Patches currently in -mm which might be from jmoyer@redhat.com are
 
-origin.patch
-move-mm_struct-and-vm_area_struct.patch
-move-mm_struct-and-vm_area_struct-fix.patch
+fix-the-max-path-calculation-in-radix-treec.patch
+fix-the-max-path-calculation-in-radix-treec-update.patch
+aio-account-i-o-wait-time-properly.patch
