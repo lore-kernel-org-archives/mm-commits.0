@@ -1,294 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: - ps3fb-dont-keep-the-borders-for-non-fullscreen-modes-in-xdr-memory.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:45:36 -0700
-Message-ID: <200710162045.l9GKjakr016282@imap1.linux-foundation.org>
+Subject: - ps3av-dont-distinguish-between-boot-and-non-boot-autodetection.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:45:20 -0700
+Message-ID: <200710162045.l9GKjKDP016255@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45153 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34016 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965052AbXJPU5F (ORCPT
+	by vger.kernel.org with ESMTP id S965787AbXJPU5E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 16:57:05 -0400
+	Tue, 16 Oct 2007 16:57:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Geert.Uytterhoeven@sonycom.com, adaplas@pol.net, mm-commits@vger.kernel.org
+To: Geert.Uytterhoeven@sonycom.com, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ps3fb: don't keep the borders for non-fullscreen modes in XDR memory
+     ps3av: dont distinguish between `boot' and `non-boot' autodetection
 has been removed from the -mm tree.  Its filename was
-     ps3fb-dont-keep-the-borders-for-non-fullscreen-modes-in-xdr-memory.patch
+     ps3av-dont-distinguish-between-boot-and-non-boot-autodetection.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ps3fb: don't keep the borders for non-fullscreen modes in XDR memory
+Subject: ps3av: dont distinguish between `boot' and `non-boot' autodetection
 From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-Don't keep the borders for non-fullscreen modes in XDR memory:
-  - Extract ps3fb_sync_image()
-  - Work around the alignment restrictions of L1GPU_CONTEXT_ATTRIBUTE_FB_BLIT
-    by using an offset with L1GPU_CONTEXT_ATTRIBUTE_DISPLAY_FLIP
-  - Only copy the visible part of the screen on every vblank
-  - Always put the real frame buffer at the start of video memory
-  - Clear fullscreen DDR memory on mode change
+don't distinguish between `boot' and `non-boot' autodetection now the
+autodetection code has been improved
 
 Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/ps3fb.c |  131 ++++++++++++++++++++++------------------
- 1 file changed, 75 insertions(+), 56 deletions(-)
+ drivers/ps3/ps3av.c         |   35 +++++-----------------------------
+ drivers/video/ps3fb.c       |    6 +----
+ include/asm-powerpc/ps3av.h |    4 +--
+ 3 files changed, 10 insertions(+), 35 deletions(-)
 
-diff -puN drivers/video/ps3fb.c~ps3fb-dont-keep-the-borders-for-non-fullscreen-modes-in-xdr-memory drivers/video/ps3fb.c
---- a/drivers/video/ps3fb.c~ps3fb-dont-keep-the-borders-for-non-fullscreen-modes-in-xdr-memory
+diff -puN drivers/ps3/ps3av.c~ps3av-dont-distinguish-between-boot-and-non-boot-autodetection drivers/ps3/ps3av.c
+--- a/drivers/ps3/ps3av.c~ps3av-dont-distinguish-between-boot-and-non-boot-autodetection
++++ a/drivers/ps3/ps3av.c
+@@ -760,8 +760,7 @@ static void ps3av_fixup_monitor_info(str
+ 	}
+ }
+ 
+-static int ps3av_auto_videomode(struct ps3av_pkt_av_get_hw_conf *av_hw_conf,
+-				int boot)
++static int ps3av_auto_videomode(struct ps3av_pkt_av_get_hw_conf *av_hw_conf)
+ {
+ 	int i, res, id = 0, dvi = 0, rgb = 0;
+ 	struct ps3av_pkt_av_get_monitor_info monitor_info;
+@@ -799,28 +798,6 @@ static int ps3av_auto_videomode(struct p
+ 		if (ps3av->region & PS3AV_REGION_RGB)
+ 			rgb = PS3AV_MODE_RGB;
+ 		pr_debug("%s: Using avmulti mode %d\n", __func__, id);
+-	} else if (boot) {
+-		/* HDMI: using DEFAULT HDMI_MODE_ID while booting up */
+-		info = &monitor_info.info;
+-		if (ps3av->region & PS3AV_REGION_60) {
+-			if (info->res_60.res_bits & PS3AV_RESBIT_720x480P)
+-				id = PS3AV_DEFAULT_HDMI_MODE_ID_REG_60;
+-			else if (info->res_50.res_bits & PS3AV_RESBIT_720x576P)
+-				id = PS3AV_DEFAULT_HDMI_MODE_ID_REG_50;
+-			else {
+-				/* default */
+-				id = PS3AV_DEFAULT_HDMI_MODE_ID_REG_60;
+-			}
+-		} else {
+-			if (info->res_50.res_bits & PS3AV_RESBIT_720x576P)
+-				id = PS3AV_DEFAULT_HDMI_MODE_ID_REG_50;
+-			else if (info->res_60.res_bits & PS3AV_RESBIT_720x480P)
+-				id = PS3AV_DEFAULT_HDMI_MODE_ID_REG_60;
+-			else {
+-				/* default */
+-				id = PS3AV_DEFAULT_HDMI_MODE_ID_REG_50;
+-			}
+-		}
+ 	}
+ 
+ 	return id | dvi | rgb;
+@@ -862,7 +839,7 @@ static int ps3av_get_hw_conf(struct ps3a
+ }
+ 
+ /* set mode using id */
+-int ps3av_set_video_mode(u32 id, int boot)
++int ps3av_set_video_mode(u32 id)
+ {
+ 	int size;
+ 	u32 option;
+@@ -876,7 +853,7 @@ int ps3av_set_video_mode(u32 id, int boo
+ 	/* auto mode */
+ 	option = id & ~PS3AV_MODE_MASK;
+ 	if ((id & PS3AV_MODE_MASK) == 0) {
+-		id = ps3av_auto_videomode(&ps3av->av_hw_conf, boot);
++		id = ps3av_auto_videomode(&ps3av->av_hw_conf);
+ 		if (id < 1) {
+ 			printk(KERN_ERR "%s: invalid id :%d\n", __func__, id);
+ 			return -EINVAL;
+@@ -896,9 +873,9 @@ int ps3av_set_video_mode(u32 id, int boo
+ 
+ EXPORT_SYMBOL_GPL(ps3av_set_video_mode);
+ 
+-int ps3av_get_auto_mode(int boot)
++int ps3av_get_auto_mode(void)
+ {
+-	return ps3av_auto_videomode(&ps3av->av_hw_conf, boot);
++	return ps3av_auto_videomode(&ps3av->av_hw_conf);
+ }
+ 
+ EXPORT_SYMBOL_GPL(ps3av_get_auto_mode);
+@@ -1044,7 +1021,7 @@ static int ps3av_probe(struct ps3_system
+ 		       res);
+ 
+ 	ps3av_get_hw_conf(ps3av);
+-	id = ps3av_auto_videomode(&ps3av->av_hw_conf, 1);
++	id = ps3av_auto_videomode(&ps3av->av_hw_conf);
+ 	mutex_lock(&ps3av->mutex);
+ 	ps3av->ps3av_mode = id;
+ 	mutex_unlock(&ps3av->mutex);
+diff -puN drivers/video/ps3fb.c~ps3av-dont-distinguish-between-boot-and-non-boot-autodetection drivers/video/ps3fb.c
+--- a/drivers/video/ps3fb.c~ps3av-dont-distinguish-between-boot-and-non-boot-autodetection
 +++ a/drivers/video/ps3fb.c
-@@ -54,6 +54,7 @@
- #define DDR_SIZE				(0)	/* used no ddr */
- #define GPU_CMD_BUF_SIZE			(64 * 1024)
- #define GPU_IOIF				(0x0d000000UL)
-+#define GPU_ALIGN_UP(x)				_ALIGN_UP((x), 64)
- 
- #define PS3FB_FULL_MODE_BIT			0x80
- 
-@@ -136,6 +137,10 @@ struct ps3fb_par {
- 	int mode_id, new_mode_id;
- 	int res_index;
- 	unsigned int num_frames;	/* num of frame buffers */
-+	unsigned int width;
-+	unsigned int height;
-+	unsigned long full_offset;	/* start of fullscreen DDR fb */
-+	unsigned long fb_offset;	/* start of actual DDR fb */
- };
- 
- struct ps3fb_res_table {
-@@ -291,15 +296,6 @@ static const struct fb_videomode ps3fb_m
- /* Start of the virtual frame buffer (relative to fullscreen ) */
- #define VP_OFF(i)	((WIDTH(i) * Y_OFF(i) + X_OFF(i)) * BPP)
- 
--/*
-- * Start of the virtual frame buffer (relative to start of video memory)
-- * This is PAGE_SIZE aligned for easier mmap()
-- */
--#define VFB_OFF(i)	PAGE_ALIGN(VP_OFF(i))
--
--/* Start of the fullscreen frame buffer (relative to start of video memory) */
--#define FB_OFF(i)	(-VP_OFF(i) & ~PAGE_MASK)
--
- 
- static int ps3fb_mode;
- module_param(ps3fb_mode, int, 0);
-@@ -386,63 +382,72 @@ static const struct fb_videomode *ps3fb_
- 	return &ps3fb_modedb[mode - 1];
- }
- 
--static int ps3fb_sync(struct fb_info *info, u32 frame)
-+static void ps3fb_sync_image(struct device *dev, u64 frame_offset,
-+			     u64 dst_offset, u64 src_offset, u32 width,
-+			     u32 height, u64 line_length)
- {
--	struct ps3fb_par *par = info->par;
--	int i, status, error = 0;
--	u32 xres, yres;
--	u64 fb_ioif, offset;
--
--	acquire_console_sem();
--
--	i = par->res_index;
--	xres = ps3fb_res[i].xres;
--	yres = ps3fb_res[i].yres;
--
--	if (frame > par->num_frames - 1) {
--		dev_dbg(info->device, "%s: invalid frame number (%u)\n",
--			__func__, frame);
--		error = -EINVAL;
--		goto out;
--	}
--	offset = xres * yres * BPP * frame;
-+	int status;
- 
--	fb_ioif = GPU_IOIF + FB_OFF(i) + offset;
- 	status = lv1_gpu_context_attribute(ps3fb.context_handle,
- 					   L1GPU_CONTEXT_ATTRIBUTE_FB_BLIT,
--					   offset, fb_ioif,
-+					   dst_offset, GPU_IOIF + src_offset,
- 					   L1GPU_FB_BLIT_WAIT_FOR_COMPLETION |
--					   (xres << 16) | yres,
--					   xres * BPP);	/* line_length */
-+					   (width << 16) | height,
-+					   line_length);
- 	if (status)
--		dev_err(info->device,
-+		dev_err(dev,
- 			"%s: lv1_gpu_context_attribute FB_BLIT failed: %d\n",
- 			__func__, status);
- #ifdef HEAD_A
- 	status = lv1_gpu_context_attribute(ps3fb.context_handle,
- 					   L1GPU_CONTEXT_ATTRIBUTE_DISPLAY_FLIP,
--					   0, offset, 0, 0);
-+					   0, frame_offset, 0, 0);
- 	if (status)
--		dev_err(info->device,
--			"%s: lv1_gpu_context_attribute FLIP failed: %d\n",
-+		dev_err(dev, "%s: lv1_gpu_context_attribute FLIP failed: %d\n",
- 			__func__, status);
- #endif
- #ifdef HEAD_B
- 	status = lv1_gpu_context_attribute(ps3fb.context_handle,
- 					   L1GPU_CONTEXT_ATTRIBUTE_DISPLAY_FLIP,
--					   1, offset, 0, 0);
-+					   1, frame_offset, 0, 0);
- 	if (status)
--		dev_err(info->device,
--			"%s: lv1_gpu_context_attribute FLIP failed: %d\n",
-+		dev_err(dev, "%s: lv1_gpu_context_attribute FLIP failed: %d\n",
- 			__func__, status);
- #endif
-+}
-+
-+static int ps3fb_sync(struct fb_info *info, u32 frame)
-+{
-+	struct ps3fb_par *par = info->par;
-+	int i, error = 0;
-+	u32 xres, yres;
-+	u64 line_length, base;
-+
-+	acquire_console_sem();
-+
-+	if (frame > par->num_frames - 1) {
-+		dev_dbg(info->device, "%s: invalid frame number (%u)\n",
-+			__func__, frame);
-+		error = -EINVAL;
-+		goto out;
-+	}
-+
-+	i = par->res_index;
-+	xres = ps3fb_res[i].xres;
-+	yres = ps3fb_res[i].yres;
-+
-+	line_length = xres * BPP;
-+	base = frame * yres * line_length;
-+
-+	ps3fb_sync_image(info->device, base + par->full_offset,
-+			 base + par->fb_offset, base, par->width, par->height,
-+			 line_length);
- 
- out:
- 	release_console_sem();
- 	return error;
- }
- 
--
- static int ps3fb_open(struct fb_info *info, int user)
- {
- 	atomic_inc(&ps3fb.f_count);
-@@ -472,7 +477,6 @@ static int ps3fb_check_var(struct fb_var
- {
- 	u32 line_length;
- 	int mode;
--	int i;
- 
- 	dev_dbg(info->device, "var->xres:%u info->var.xres:%u\n", var->xres,
- 		info->var.xres);
-@@ -539,9 +543,7 @@ static int ps3fb_check_var(struct fb_var
- 	}
- 
- 	/* Memory limit */
--	i = ps3fb_get_res_table(var->xres, var->yres, mode);
--	if (ps3fb_res[i].xres*ps3fb_res[i].yres*BPP >
--	    ps3fb.xdr_size - VFB_OFF(i)) {
-+	if (var->yres * line_length > ps3fb.xdr_size) {
- 		dev_dbg(info->device, "Not enough memory\n");
- 		return -ENOMEM;
- 	}
-@@ -559,9 +561,9 @@ static int ps3fb_check_var(struct fb_var
- static int ps3fb_set_par(struct fb_info *info)
- {
- 	struct ps3fb_par *par = info->par;
--	unsigned int mode;
-+	unsigned int mode, lines, maxlines;
+@@ -548,7 +548,6 @@ static int ps3fb_set_par(struct fb_info 
+ 	unsigned int mode;
  	int i;
--	unsigned long offset;
-+	unsigned long offset, dst;
+ 	unsigned long offset;
+-	static int first = 1;
  
- 	dev_dbg(info->device, "xres:%d xv:%d yres:%d yv:%d clock:%d\n",
+ 	DPRINTK("xres:%d xv:%d yres:%d yv:%d clock:%d\n",
  		info->var.xres, info->var.xres_virtual,
-@@ -574,11 +576,9 @@ static int ps3fb_set_par(struct fb_info 
- 	i = ps3fb_get_res_table(info->var.xres, info->var.yres, mode);
- 	par->res_index = i;
- 
--	offset = VFB_OFF(i);
--	info->fix.smem_start = virt_to_abs(ps3fb.xdr_ea) + offset;
--	info->fix.smem_len = ps3fb.xdr_size - offset;
--	info->screen_base = (char __iomem *)ps3fb.xdr_ea + offset;
--	memset(ps3fb.xdr_ea, 0, ps3fb.xdr_size);
-+	info->fix.smem_start = virt_to_abs(ps3fb.xdr_ea);
-+	info->fix.smem_len = ps3fb.xdr_size;
-+	info->screen_base = (char __iomem *)ps3fb.xdr_ea;
- 
- 	par->num_frames = info->fix.smem_len/
- 			  (ps3fb_res[i].xres*ps3fb_res[i].yres*BPP);
-@@ -586,6 +586,12 @@ static int ps3fb_set_par(struct fb_info 
+@@ -572,10 +571,9 @@ static int ps3fb_set_par(struct fb_info 
  	/* Keep the special bits we cannot set using fb_var_screeninfo */
- 	par->new_mode_id = (par->new_mode_id & ~PS3AV_MODE_MASK) | mode;
+ 	ps3fb_mode = (ps3fb_mode & ~PS3AV_MODE_MASK) | mode;
  
-+	par->width = info->var.xres;
-+	par->height = info->var.yres;
-+	offset = VP_OFF(i);
-+	par->fb_offset = GPU_ALIGN_UP(offset);
-+	par->full_offset = par->fb_offset - offset;
-+
- 	if (par->new_mode_id != par->mode_id) {
- 		if (ps3av_set_video_mode(par->new_mode_id)) {
- 			par->new_mode_id = par->mode_id;
-@@ -594,6 +600,21 @@ static int ps3fb_set_par(struct fb_info 
- 		par->mode_id = par->new_mode_id;
- 	}
+-	if (ps3av_set_video_mode(ps3fb_mode, first))
++	if (ps3av_set_video_mode(ps3fb_mode))
+ 		return -EINVAL;
  
-+	/* Clear XDR frame buffer memory */
-+	memset(ps3fb.xdr_ea, 0, ps3fb.xdr_size);
-+
-+	/* Clear DDR frame buffer memory */
-+	lines = ps3fb_res[i].yres * par->num_frames;
-+	if (par->full_offset)
-+		lines++;
-+	maxlines = ps3fb.xdr_size / info->fix.line_length;
-+	for (dst = 0; lines; dst += maxlines * info->fix.line_length) {
-+		unsigned int l = min(lines, maxlines);
-+		ps3fb_sync_image(info->device, 0, dst, 0, ps3fb_res[i].xres, l,
-+				 info->fix.line_length);
-+		lines -= l;
-+	}
-+
+-	first = 0;
  	return 0;
  }
  
-@@ -1005,7 +1026,6 @@ static int __devinit ps3fb_probe(struct 
- 	u64 lpar_reports_size = 0;
- 	u64 xdr_lpar;
- 	int status, res_index;
--	unsigned long offset;
- 	struct task_struct *task;
+@@ -737,7 +735,7 @@ static int ps3fb_ioctl(struct fb_info *i
+ 				break;
  
- 	status = ps3_open_hv_device(dev);
-@@ -1088,13 +1108,12 @@ static int __devinit ps3fb_probe(struct 
- 	par->res_index = res_index;
- 	par->num_frames = 1;
+ 			if (!(val & PS3AV_MODE_MASK)) {
+-				u32 id = ps3av_get_auto_mode(0);
++				u32 id = ps3av_get_auto_mode();
+ 				if (id > 0)
+ 					val = (val & ~PS3AV_MODE_MASK) | id;
+ 			}
+diff -puN include/asm-powerpc/ps3av.h~ps3av-dont-distinguish-between-boot-and-non-boot-autodetection include/asm-powerpc/ps3av.h
+--- a/include/asm-powerpc/ps3av.h~ps3av-dont-distinguish-between-boot-and-non-boot-autodetection
++++ a/include/asm-powerpc/ps3av.h
+@@ -709,9 +709,9 @@ extern int ps3av_cmd_av_get_hw_conf(stru
+ extern int ps3av_cmd_video_get_monitor_info(struct ps3av_pkt_av_get_monitor_info *,
+ 					    u32);
  
--	offset = VFB_OFF(res_index);
--	info->screen_base = (char __iomem *)ps3fb.xdr_ea + offset;
-+	info->screen_base = (char __iomem *)ps3fb.xdr_ea;
- 	info->fbops = &ps3fb_ops;
- 
- 	info->fix = ps3fb_fix;
--	info->fix.smem_start = virt_to_abs(ps3fb.xdr_ea) + offset;
--	info->fix.smem_len = ps3fb.xdr_size - offset;
-+	info->fix.smem_start = virt_to_abs(ps3fb.xdr_ea);
-+	info->fix.smem_len = ps3fb.xdr_size;
- 	info->pseudo_palette = par->pseudo_palette;
- 	info->flags = FBINFO_DEFAULT | FBINFO_READS_FAST;
- 
+-extern int ps3av_set_video_mode(u32, int);
++extern int ps3av_set_video_mode(u32);
+ extern int ps3av_set_audio_mode(u32, u32, u32, u32, u32);
+-extern int ps3av_get_auto_mode(int);
++extern int ps3av_get_auto_mode(void);
+ extern int ps3av_get_mode(void);
+ extern int ps3av_get_scanmode(int);
+ extern int ps3av_get_refresh_rate(int);
 _
 
 Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
