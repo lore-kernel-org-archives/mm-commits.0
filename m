@@ -1,61 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-header-copy-to-userspace.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 14:36:42 -0700
-Message-ID: <200710162136.l9GLag6b018611@imap1.linux-foundation.org>
+Subject: - fs-fix-data-loss-on-error.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:32:15 -0700
+Message-ID: <200710162032.l9GKWF4j014581@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34026 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49025 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965464AbXJPVhZ (ORCPT
+	by vger.kernel.org with ESMTP id S934737AbXJPVhf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:37:25 -0400
+	Tue, 16 Oct 2007 17:37:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: boutcher@cs.umn.edu, mpm@selenic.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix /proc/pid/pagemap header copy to userspace
+     fs: fix data-loss on error
 has been removed from the -mm tree.  Its filename was
-     maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-header-copy-to-userspace.patch
+     fs-fix-data-loss-on-error.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix /proc/pid/pagemap header copy to userspace
-From: Dave Boutcher <boutcher@cs.umn.edu>
+Subject: fs: fix data-loss on error
+From: Nick Piggin <npiggin@suse.de>
 
-Earlier code relied on a broken length calculation copy /proc/pid/pagemap
-header data to userspace.  This fix correctly calls the add_to_pagemap
-routine after the header data is set to copy results to userspace in a sane
-fashion.
+New buffers against uptodate pages are simply be marked uptodate, while the
+buffer_new bit remains set.  This causes error-case code to zero out parts of
+those buffers because it thinks they contain stale data: wrong, they are
+actually uptodate so this is a data loss situation.
 
-Signed-off-by: Dave Boutcher <boutcher@cs.umn.edu>
-Cc: Matt Mackall <mpm@selenic.com>
+Fix this by actually clearning buffer_new and marking the buffer dirty.  It
+makes sense to always clear buffer_new before setting a buffer uptodate.
+
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ fs/buffer.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/proc/task_mmu.c~maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-header-copy-to-userspace fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-header-copy-to-userspace
-+++ a/fs/proc/task_mmu.c
-@@ -689,11 +689,11 @@ static ssize_t pagemap_read(struct file 
- 	pm.out = buf;
- 
- 	if (svpfn == -1) {
--		add_to_pagemap(pm.next, 0, &pm);
- 		((char *)page)[0] = (ntohl(1) != 1);
- 		((char *)page)[1] = PAGE_SHIFT;
- 		((char *)page)[2] = sizeof(unsigned long);
- 		((char *)page)[3] = sizeof(unsigned long);
-+		add_to_pagemap(pm.next, page[0], &pm);
- 	}
- 
- 	down_read(&mm->mmap_sem);
+diff -puN fs/buffer.c~fs-fix-data-loss-on-error fs/buffer.c
+--- a/fs/buffer.c~fs-fix-data-loss-on-error
++++ a/fs/buffer.c
+@@ -1813,7 +1813,9 @@ static int __block_prepare_write(struct 
+ 				unmap_underlying_metadata(bh->b_bdev,
+ 							bh->b_blocknr);
+ 				if (PageUptodate(page)) {
++					clear_buffer_new(bh);
+ 					set_buffer_uptodate(bh);
++					mark_buffer_dirty(bh);
+ 					continue;
+ 				}
+ 				if (block_end > to || block_start < from) {
 _
 
-Patches currently in -mm which might be from boutcher@cs.umn.edu are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-header-copy-to-userspace.patch
+origin.patch
+mm-document-tree_lock-zonelock-lockorder.patch
+fs-reiserfs-cleanups.patch
+atomic_opstxt-has-incorrect-misleading-and-insufficient-information.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+bitops-introduce-lock-ops.patch
+alpha-fix-bitops.patch
+alpha-lock-bitops.patch
+alpha-lock-bitops-fix.patch
+ia64-lock-bitops.patch
+mips-fix-bitops.patch
+mips-lock-bitops.patch
+powerpc-lock-bitops.patch
+powerpc-lock-bitops-fix.patch
+bit_spin_lock-use-lock-bitops.patch
+reiser4-fix-for-new-aops-patches.patch
