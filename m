@@ -1,341 +1,359 @@
 From: akpm@linux-foundation.org
-Subject: - maps2-move-the-page-walker-code-to-lib.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 14:36:22 -0700
-Message-ID: <200710162136.l9GLaMrP018570@imap1.linux-foundation.org>
+Subject: - ext3-convert-to-new-aops.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:32:31 -0700
+Message-ID: <200710162032.l9GKWV0R014609@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36024 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45551 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966075AbXJPVst (ORCPT
+	by vger.kernel.org with ESMTP id S966214AbXJPVsz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:48:49 -0400
+	Tue, 16 Oct 2007 17:48:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpm@selenic.com, jeremy@goop.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, pbadari@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     maps: move the page walker code to lib/
+     ext3: convert to new aops
 has been removed from the -mm tree.  Its filename was
-     maps2-move-the-page-walker-code-to-lib.patch
+     ext3-convert-to-new-aops.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: maps: move the page walker code to lib/
-From: Matt Mackall <mpm@selenic.com>
+Subject: ext3: convert to new aops
+From: Nick Piggin <npiggin@suse.de>
 
-This lets it get shared outside of proc/ and linked in only when needed.
+Various fixes and improvements
 
-[akpm@linux-foundation.org: build fixes]
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |  117 -------------------------------------------
- include/linux/mm.h |   10 +++
- lib/Makefile       |    2 
- lib/pagewalk.c     |  113 +++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 124 insertions(+), 118 deletions(-)
+ fs/ext3/inode.c |  163 ++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 115 insertions(+), 48 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~maps2-move-the-page-walker-code-to-lib fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~maps2-move-the-page-walker-code-to-lib
-+++ a/fs/proc/task_mmu.c
-@@ -280,123 +280,6 @@ static int clear_refs_pte_range(pmd_t *p
- 	return 0;
+diff -puN fs/ext3/inode.c~ext3-convert-to-new-aops fs/ext3/inode.c
+--- a/fs/ext3/inode.c~ext3-convert-to-new-aops
++++ a/fs/ext3/inode.c
+@@ -1147,51 +1147,68 @@ static int do_journal_get_write_access(h
+ 	return ext3_journal_get_write_access(handle, bh);
  }
  
--struct mm_walk {
--	int (*pgd_entry)(pgd_t *, unsigned long, unsigned long, void *);
--	int (*pud_entry)(pud_t *, unsigned long, unsigned long, void *);
--	int (*pmd_entry)(pmd_t *, unsigned long, unsigned long, void *);
--	int (*pte_entry)(pte_t *, unsigned long, unsigned long, void *);
--};
--
--static int walk_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
--			  struct mm_walk *walk, void *private)
--{
--	pte_t *pte;
--	int err;
--
--	for (pte = pte_offset_map(pmd, addr); addr != end;
--	     addr += PAGE_SIZE, pte++) {
--		if (pte_none(*pte))
--			continue;
--		err = walk->pte_entry(pte, addr, addr, private);
--		if (err) {
--			pte_unmap(pte);
--			return err;
--		}
--	}
--	pte_unmap(pte);
--	return 0;
--}
--
--static int walk_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
--			  struct mm_walk *walk, void *private)
--{
--	pmd_t *pmd;
--	unsigned long next;
--	int err;
--
--	for (pmd = pmd_offset(pud, addr); addr != end;
--	     pmd++, addr = next) {
--		next = pmd_addr_end(addr, end);
--		if (pmd_none_or_clear_bad(pmd))
--			continue;
--		if (walk->pmd_entry) {
--			err = walk->pmd_entry(pmd, addr, next, private);
--			if (err)
--				return err;
--		}
--		if (walk->pte_entry) {
--			err = walk_pte_range(pmd, addr, next, walk, private);
--			if (err)
--				return err;
--		}
--	}
--	return 0;
--}
--
--static int walk_pud_range(pgd_t *pgd, unsigned long addr, unsigned long end,
--			  struct mm_walk *walk, void *private)
--{
--	pud_t *pud;
--	unsigned long next;
--	int err;
--
--	for (pud = pud_offset(pgd, addr); addr != end;
--	     pud++, addr = next) {
--		next = pud_addr_end(addr, end);
--		if (pud_none_or_clear_bad(pud))
--			continue;
--		if (walk->pud_entry) {
--			err = walk->pud_entry(pud, addr, next, private);
--			if (err)
--				return err;
--		}
--		if (walk->pmd_entry || walk->pte_entry) {
--			err = walk_pmd_range(pud, addr, next, walk, private);
--			if (err)
--				return err;
--		}
--	}
--	return 0;
--}
--
--/*
-- * walk_page_range - walk a memory map's page tables with a callback
-- * @mm - memory map to walk
-- * @addr - starting address
-- * @end - ending address
-- * @action - callback invoked for every bottom-level (PTE) page table
-- * @private - private data passed to the callback function
-- *
-- * Recursively walk the page table for the memory area in a VMA, calling
-- * a callback for every bottom-level (PTE) page table.
-- */
--static int walk_page_range(struct mm_struct *mm,
--			   unsigned long addr, unsigned long end,
--			   struct mm_walk *walk, void *private)
--{
--	pgd_t *pgd;
--	unsigned long next;
--	int err;
--
--	for (pgd = pgd_offset(mm, addr); addr != end;
--	     pgd++, addr = next) {
--		next = pgd_addr_end(addr, end);
--		if (pgd_none_or_clear_bad(pgd))
--			continue;
--		if (walk->pgd_entry) {
--			err = walk->pgd_entry(pgd, addr, next, private);
--			if (err)
--				return err;
--		}
--		if (walk->pud_entry || walk->pmd_entry || walk->pte_entry) {
--			err = walk_pud_range(pgd, addr, next, walk, private);
--			if (err)
--				return err;
--		}
--	}
--	return 0;
--}
--
- static struct mm_walk smaps_walk = { .pmd_entry = smaps_pte_range };
+-static int ext3_prepare_write(struct file *file, struct page *page,
+-			      unsigned from, unsigned to)
++static int ext3_write_begin(struct file *file, struct address_space *mapping,
++				loff_t pos, unsigned len, unsigned flags,
++				struct page **pagep, void **fsdata)
+ {
+-	struct inode *inode = page->mapping->host;
++	struct inode *inode = mapping->host;
+ 	int ret, needed_blocks = ext3_writepage_trans_blocks(inode);
+ 	handle_t *handle;
+ 	int retries = 0;
++	struct page *page;
++	pgoff_t index;
++	unsigned from, to;
++
++	index = pos >> PAGE_CACHE_SHIFT;
++	from = pos & (PAGE_CACHE_SIZE - 1);
++	to = from + len;
  
- static int show_smap(struct seq_file *m, void *v)
-diff -puN include/linux/mm.h~maps2-move-the-page-walker-code-to-lib include/linux/mm.h
---- a/include/linux/mm.h~maps2-move-the-page-walker-code-to-lib
-+++ a/include/linux/mm.h
-@@ -711,6 +711,16 @@ unsigned long unmap_vmas(struct mmu_gath
- 		struct vm_area_struct *start_vma, unsigned long start_addr,
- 		unsigned long end_addr, unsigned long *nr_accounted,
- 		struct zap_details *);
+ retry:
++	page = __grab_cache_page(mapping, index);
++	if (!page)
++		return -ENOMEM;
++	*pagep = page;
 +
-+struct mm_walk {
-+	int (*pgd_entry)(pgd_t *, unsigned long, unsigned long, void *);
-+	int (*pud_entry)(pud_t *, unsigned long, unsigned long, void *);
-+	int (*pmd_entry)(pmd_t *, unsigned long, unsigned long, void *);
-+	int (*pte_entry)(pte_t *, unsigned long, unsigned long, void *);
-+};
-+
-+int walk_page_range(struct mm_struct *, unsigned long addr, unsigned long end,
-+		    struct mm_walk *walk, void *private);
- void free_pgd_range(struct mmu_gather **tlb, unsigned long addr,
- 		unsigned long end, unsigned long floor, unsigned long ceiling);
- void free_pgtables(struct mmu_gather **tlb, struct vm_area_struct *start_vma,
-diff -puN lib/Makefile~maps2-move-the-page-walker-code-to-lib lib/Makefile
---- a/lib/Makefile~maps2-move-the-page-walker-code-to-lib
-+++ a/lib/Makefile
-@@ -7,7 +7,7 @@ lib-y := ctype.o string.o vsprintf.o kas
- 	 idr.o int_sqrt.o bitmap.o extable.o prio_tree.o \
- 	 sha1.o irq_regs.o reciprocal_div.o argv_split.o
+ 	handle = ext3_journal_start(inode, needed_blocks);
+ 	if (IS_ERR(handle)) {
++		unlock_page(page);
++		page_cache_release(page);
+ 		ret = PTR_ERR(handle);
+ 		goto out;
+ 	}
+-	if (test_opt(inode->i_sb, NOBH) && ext3_should_writeback_data(inode))
+-		ret = nobh_prepare_write(page, from, to, ext3_get_block);
+-	else
+-		ret = block_prepare_write(page, from, to, ext3_get_block);
++	ret = block_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
++							ext3_get_block);
+ 	if (ret)
+-		goto prepare_write_failed;
++		goto write_begin_failed;
  
--lib-$(CONFIG_MMU) += ioremap.o
-+lib-$(CONFIG_MMU) += ioremap.o pagewalk.o
- lib-$(CONFIG_SMP) += cpumask.o
+ 	if (ext3_should_journal_data(inode)) {
+ 		ret = walk_page_buffers(handle, page_buffers(page),
+ 				from, to, NULL, do_journal_get_write_access);
+ 	}
+-prepare_write_failed:
+-	if (ret)
++write_begin_failed:
++	if (ret) {
+ 		ext3_journal_stop(handle);
++		unlock_page(page);
++		page_cache_release(page);
++	}
+ 	if (ret == -ENOSPC && ext3_should_retry_alloc(inode->i_sb, &retries))
+ 		goto retry;
+ out:
+ 	return ret;
+ }
  
- lib-y	+= kobject.o kref.o klist.o
-diff -puN /dev/null lib/pagewalk.c
---- /dev/null
-+++ a/lib/pagewalk.c
-@@ -0,0 +1,113 @@
-+#include <linux/mm.h>
-+#include <linux/highmem.h>
-+#include <linux/sched.h>
 +
-+static int walk_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
-+			  struct mm_walk *walk, void *private)
+ int ext3_journal_dirty_data(handle_t *handle, struct buffer_head *bh)
+ {
+ 	int err = journal_dirty_data(handle, bh);
+ 	if (err)
+ 		ext3_journal_abort_handle(__FUNCTION__, __FUNCTION__,
+-						bh, handle,err);
++						bh, handle, err);
+ 	return err;
+ }
+ 
+-/* For commit_write() in data=journal mode */
+-static int commit_write_fn(handle_t *handle, struct buffer_head *bh)
++/* For write_end() in data=journal mode */
++static int write_end_fn(handle_t *handle, struct buffer_head *bh)
+ {
+ 	if (!buffer_mapped(bh) || buffer_freed(bh))
+ 		return 0;
+@@ -1200,84 +1217,130 @@ static int commit_write_fn(handle_t *han
+ }
+ 
+ /*
++ * Generic write_end handler for ordered and writeback ext3 journal modes.
++ * We can't use generic_write_end, because that unlocks the page and we need to
++ * unlock the page after ext3_journal_stop, but ext3_journal_stop must run
++ * after block_write_end.
++ */
++static int ext3_generic_write_end(struct file *file,
++				struct address_space *mapping,
++				loff_t pos, unsigned len, unsigned copied,
++				struct page *page, void *fsdata)
 +{
-+	pte_t *pte;
-+	int err;
++	struct inode *inode = file->f_mapping->host;
 +
-+	for (pte = pte_offset_map(pmd, addr); addr != end;
-+	     addr += PAGE_SIZE, pte++) {
-+		if (pte_none(*pte))
-+			continue;
-+		err = walk->pte_entry(pte, addr, addr, private);
-+		if (err) {
-+			pte_unmap(pte);
-+			return err;
-+		}
++	copied = block_write_end(file, mapping, pos, len, copied, page, fsdata);
++
++	if (pos+copied > inode->i_size) {
++		i_size_write(inode, pos+copied);
++		mark_inode_dirty(inode);
 +	}
-+	pte_unmap(pte);
-+	return 0;
-+}
 +
-+static int walk_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
-+			  struct mm_walk *walk, void *private)
-+{
-+	pmd_t *pmd;
-+	unsigned long next;
-+	int err;
-+
-+	for (pmd = pmd_offset(pud, addr); addr != end;
-+	     pmd++, addr = next) {
-+		next = pmd_addr_end(addr, end);
-+		if (pmd_none_or_clear_bad(pmd))
-+			continue;
-+		if (walk->pmd_entry) {
-+			err = walk->pmd_entry(pmd, addr, next, private);
-+			if (err)
-+				return err;
-+		}
-+		if (walk->pte_entry) {
-+			err = walk_pte_range(pmd, addr, next, walk, private);
-+			if (err)
-+				return err;
-+		}
-+	}
-+	return 0;
-+}
-+
-+static int walk_pud_range(pgd_t *pgd, unsigned long addr, unsigned long end,
-+			  struct mm_walk *walk, void *private)
-+{
-+	pud_t *pud;
-+	unsigned long next;
-+	int err;
-+
-+	for (pud = pud_offset(pgd, addr); addr != end;
-+	     pud++, addr = next) {
-+		next = pud_addr_end(addr, end);
-+		if (pud_none_or_clear_bad(pud))
-+			continue;
-+		if (walk->pud_entry) {
-+			err = walk->pud_entry(pud, addr, next, private);
-+			if (err)
-+				return err;
-+		}
-+		if (walk->pmd_entry || walk->pte_entry) {
-+			err = walk_pmd_range(pud, addr, next, walk, private);
-+			if (err)
-+				return err;
-+		}
-+	}
-+	return 0;
++	return copied;
 +}
 +
 +/*
-+ * walk_page_range - walk a memory map's page tables with a callback
-+ * @mm - memory map to walk
-+ * @addr - starting address
-+ * @end - ending address
-+ * @walk - set of callbacks to invoke for each level of the tree
-+ * @private - private data passed to the callback function
-+ *
-+ * Recursively walk the page table for the memory area in a VMA, calling
-+ * a callback for every bottom-level (PTE) page table.
-+ */
-+int walk_page_range(struct mm_struct *mm,
-+		    unsigned long addr, unsigned long end,
-+		    struct mm_walk *walk, void *private)
-+{
-+	pgd_t *pgd;
-+	unsigned long next;
-+	int err;
+  * We need to pick up the new inode size which generic_commit_write gave us
+  * `file' can be NULL - eg, when called from page_symlink().
+  *
+  * ext3 never places buffers on inode->i_mapping->private_list.  metadata
+  * buffers are managed internally.
+  */
+-static int ext3_ordered_commit_write(struct file *file, struct page *page,
+-			     unsigned from, unsigned to)
++static int ext3_ordered_write_end(struct file *file,
++				struct address_space *mapping,
++				loff_t pos, unsigned len, unsigned copied,
++				struct page *page, void *fsdata)
+ {
+ 	handle_t *handle = ext3_journal_current_handle();
+-	struct inode *inode = page->mapping->host;
++	struct inode *inode = file->f_mapping->host;
++	unsigned from, to;
+ 	int ret = 0, ret2;
+ 
++	from = pos & (PAGE_CACHE_SIZE - 1);
++	to = from + len;
 +
-+	for (pgd = pgd_offset(mm, addr); addr != end;
-+	     pgd++, addr = next) {
-+		next = pgd_addr_end(addr, end);
-+		if (pgd_none_or_clear_bad(pgd))
-+			continue;
-+		if (walk->pgd_entry) {
-+			err = walk->pgd_entry(pgd, addr, next, private);
-+			if (err)
-+				return err;
-+		}
-+		if (walk->pud_entry || walk->pmd_entry || walk->pte_entry) {
-+			err = walk_pud_range(pgd, addr, next, walk, private);
-+			if (err)
-+				return err;
-+		}
+ 	ret = walk_page_buffers(handle, page_buffers(page),
+ 		from, to, NULL, ext3_journal_dirty_data);
+ 
+ 	if (ret == 0) {
+ 		/*
+-		 * generic_commit_write() will run mark_inode_dirty() if i_size
++		 * generic_write_end() will run mark_inode_dirty() if i_size
+ 		 * changes.  So let's piggyback the i_disksize mark_inode_dirty
+ 		 * into that.
+ 		 */
+ 		loff_t new_i_size;
+ 
+-		new_i_size = ((loff_t)page->index << PAGE_CACHE_SHIFT) + to;
++		new_i_size = pos + copied;
+ 		if (new_i_size > EXT3_I(inode)->i_disksize)
+ 			EXT3_I(inode)->i_disksize = new_i_size;
+-		ret = generic_commit_write(file, page, from, to);
++		copied = ext3_generic_write_end(file, mapping, pos, len, copied,
++							page, fsdata);
++		if (copied < 0)
++			ret = copied;
+ 	}
+ 	ret2 = ext3_journal_stop(handle);
+ 	if (!ret)
+ 		ret = ret2;
+-	return ret;
++	unlock_page(page);
++	page_cache_release(page);
++
++	return ret ? ret : copied;
+ }
+ 
+-static int ext3_writeback_commit_write(struct file *file, struct page *page,
+-			     unsigned from, unsigned to)
++static int ext3_writeback_write_end(struct file *file,
++				struct address_space *mapping,
++				loff_t pos, unsigned len, unsigned copied,
++				struct page *page, void *fsdata)
+ {
+ 	handle_t *handle = ext3_journal_current_handle();
+-	struct inode *inode = page->mapping->host;
++	struct inode *inode = file->f_mapping->host;
+ 	int ret = 0, ret2;
+ 	loff_t new_i_size;
+ 
+-	new_i_size = ((loff_t)page->index << PAGE_CACHE_SHIFT) + to;
++	new_i_size = pos + copied;
+ 	if (new_i_size > EXT3_I(inode)->i_disksize)
+ 		EXT3_I(inode)->i_disksize = new_i_size;
+ 
+-	if (test_opt(inode->i_sb, NOBH) && ext3_should_writeback_data(inode))
+-		ret = nobh_commit_write(file, page, from, to);
+-	else
+-		ret = generic_commit_write(file, page, from, to);
++	copied = ext3_generic_write_end(file, mapping, pos, len, copied,
++							page, fsdata);
++	if (copied < 0)
++		ret = copied;
+ 
+ 	ret2 = ext3_journal_stop(handle);
+ 	if (!ret)
+ 		ret = ret2;
+-	return ret;
++	unlock_page(page);
++	page_cache_release(page);
++
++	return ret ? ret : copied;
+ }
+ 
+-static int ext3_journalled_commit_write(struct file *file,
+-			struct page *page, unsigned from, unsigned to)
++static int ext3_journalled_write_end(struct file *file,
++				struct address_space *mapping,
++				loff_t pos, unsigned len, unsigned copied,
++				struct page *page, void *fsdata)
+ {
+ 	handle_t *handle = ext3_journal_current_handle();
+-	struct inode *inode = page->mapping->host;
++	struct inode *inode = mapping->host;
+ 	int ret = 0, ret2;
+ 	int partial = 0;
+-	loff_t pos;
++	unsigned from, to;
+ 
+-	/*
+-	 * Here we duplicate the generic_commit_write() functionality
+-	 */
+-	pos = ((loff_t)page->index << PAGE_CACHE_SHIFT) + to;
++	from = pos & (PAGE_CACHE_SIZE - 1);
++	to = from + len;
++
++	if (copied < len) {
++		if (!PageUptodate(page))
++			copied = 0;
++		page_zero_new_buffers(page, from+copied, to);
 +	}
-+	return 0;
-+}
+ 
+ 	ret = walk_page_buffers(handle, page_buffers(page), from,
+-				to, &partial, commit_write_fn);
++				to, &partial, write_end_fn);
+ 	if (!partial)
+ 		SetPageUptodate(page);
+-	if (pos > inode->i_size)
+-		i_size_write(inode, pos);
++	if (pos+copied > inode->i_size)
++		i_size_write(inode, pos+copied);
+ 	EXT3_I(inode)->i_state |= EXT3_STATE_JDATA;
+ 	if (inode->i_size > EXT3_I(inode)->i_disksize) {
+ 		EXT3_I(inode)->i_disksize = inode->i_size;
+@@ -1285,10 +1348,14 @@ static int ext3_journalled_commit_write(
+ 		if (!ret)
+ 			ret = ret2;
+ 	}
++
+ 	ret2 = ext3_journal_stop(handle);
+ 	if (!ret)
+ 		ret = ret2;
+-	return ret;
++	unlock_page(page);
++	page_cache_release(page);
++
++	return ret ? ret : copied;
+ }
+ 
+ /*
+@@ -1546,7 +1613,7 @@ static int ext3_journalled_writepage(str
+ 			PAGE_CACHE_SIZE, NULL, do_journal_get_write_access);
+ 
+ 		err = walk_page_buffers(handle, page_buffers(page), 0,
+-				PAGE_CACHE_SIZE, NULL, commit_write_fn);
++				PAGE_CACHE_SIZE, NULL, write_end_fn);
+ 		if (ret == 0)
+ 			ret = err;
+ 		EXT3_I(inode)->i_state |= EXT3_STATE_JDATA;
+@@ -1706,8 +1773,8 @@ static const struct address_space_operat
+ 	.readpages	= ext3_readpages,
+ 	.writepage	= ext3_ordered_writepage,
+ 	.sync_page	= block_sync_page,
+-	.prepare_write	= ext3_prepare_write,
+-	.commit_write	= ext3_ordered_commit_write,
++	.write_begin	= ext3_write_begin,
++	.write_end	= ext3_ordered_write_end,
+ 	.bmap		= ext3_bmap,
+ 	.invalidatepage	= ext3_invalidatepage,
+ 	.releasepage	= ext3_releasepage,
+@@ -1720,8 +1787,8 @@ static const struct address_space_operat
+ 	.readpages	= ext3_readpages,
+ 	.writepage	= ext3_writeback_writepage,
+ 	.sync_page	= block_sync_page,
+-	.prepare_write	= ext3_prepare_write,
+-	.commit_write	= ext3_writeback_commit_write,
++	.write_begin	= ext3_write_begin,
++	.write_end	= ext3_writeback_write_end,
+ 	.bmap		= ext3_bmap,
+ 	.invalidatepage	= ext3_invalidatepage,
+ 	.releasepage	= ext3_releasepage,
+@@ -1734,8 +1801,8 @@ static const struct address_space_operat
+ 	.readpages	= ext3_readpages,
+ 	.writepage	= ext3_journalled_writepage,
+ 	.sync_page	= block_sync_page,
+-	.prepare_write	= ext3_prepare_write,
+-	.commit_write	= ext3_journalled_commit_write,
++	.write_begin	= ext3_write_begin,
++	.write_end	= ext3_journalled_write_end,
+ 	.set_page_dirty	= ext3_journalled_set_page_dirty,
+ 	.bmap		= ext3_bmap,
+ 	.invalidatepage	= ext3_invalidatepage,
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-return-length-calculation.patch
-maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-end-address-calculation.patch
-maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-header-copy-to-userspace.patch
-maps2-add-proc-kpagemap-interface.patch
-mmaps2-vma-out-of-mem_size_stats.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-maps-pssproportional-set-size-accounting-in-smaps.patch
-lib-sortc-optimization.patch
-sparse-pointer-use-of-zero-as-null.patch
-sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+mm-document-tree_lock-zonelock-lockorder.patch
+fs-reiserfs-cleanups.patch
+atomic_opstxt-has-incorrect-misleading-and-insufficient-information.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+bitops-introduce-lock-ops.patch
+alpha-fix-bitops.patch
+alpha-lock-bitops.patch
+alpha-lock-bitops-fix.patch
+ia64-lock-bitops.patch
+mips-fix-bitops.patch
+mips-lock-bitops.patch
+powerpc-lock-bitops.patch
+powerpc-lock-bitops-fix.patch
+bit_spin_lock-use-lock-bitops.patch
+reiser4-fix-for-new-aops-patches.patch
