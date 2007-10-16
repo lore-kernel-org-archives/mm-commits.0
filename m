@@ -1,72 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - add-assembler-equivalents-to-__initdate_refok.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:29:34 -0700
-Message-ID: <200710162029.l9GKTY8a014327@imap1.linux-foundation.org>
+Subject: - use-menuconfig-objects-pcmcia.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:29:37 -0700
+Message-ID: <200710162029.l9GKTbNd014330@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59778 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49045 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935833AbXJPU3t (ORCPT
+	by vger.kernel.org with ESMTP id S935901AbXJPUaB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 16:29:49 -0400
+	Tue, 16 Oct 2007 16:30:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: jengelh@linux01.gwdg.de, jengelh@gmx.de, linux@dominikbrodowski.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add assembler equivalents to __init{,date}_refok
+     Use menuconfig objects: PCMCIA
 has been removed from the -mm tree.  Its filename was
-     add-assembler-equivalents-to-__initdate_refok.patch
+     use-menuconfig-objects-pcmcia.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add assembler equivalents to __init{,date}_refok
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: Use menuconfig objects: PCMCIA
+From: Jan Engelhardt <jengelh@linux01.gwdg.de>
 
-I need __INIT_REFOK to fix a MODPOST warning for a few MIPS configs which
-have to call init code from .text very early in the game due to bootloader
-issues.  __INITDATA_REFOK is just for consistency.
+Use menuconfigs instead of menus, so the whole menu can be disabled at once
+instead of going through all options.
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/pcmcia/Kconfig |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN include/linux/init.h~add-assembler-equivalents-to-__initdate_refok include/linux/init.h
---- a/include/linux/init.h~add-assembler-equivalents-to-__initdate_refok
-+++ a/include/linux/init.h
-@@ -67,8 +67,10 @@
+diff -puN drivers/pcmcia/Kconfig~use-menuconfig-objects-pcmcia drivers/pcmcia/Kconfig
+--- a/drivers/pcmcia/Kconfig~use-menuconfig-objects-pcmcia
++++ a/drivers/pcmcia/Kconfig
+@@ -2,9 +2,7 @@
+ # PCCARD (PCMCIA/CardBus) bus subsystem configuration
+ #
  
- /* For assembly routines */
- #define __INIT		.section	".init.text","ax"
-+#define __INIT_REFOK	.section	".text.init.refok","ax"
- #define __FINIT		.previous
- #define __INITDATA	.section	".init.data","aw"
-+#define __INITDATA_REFOK .section	".data.init.refok","aw"
+-menu "PCCARD (PCMCIA/CardBus) support"
+-
+-config PCCARD
++menuconfig PCCARD
+ 	tristate "PCCard (PCMCIA/CardBus) support"
+ 	depends on HOTPLUG
+ 	---help---
+@@ -278,5 +276,3 @@ config PCCARD_IODYN
+ 	bool
  
- #ifndef __ASSEMBLY__
- /*
+ endif	# PCCARD
+-
+-endmenu
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from jengelh@linux01.gwdg.de are
 
 origin.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-spelling-fix-weired-weird.patch
-remove-dma_cache_wbackinvwback_inv-functions.patch
-lk201-remove-obsolete-driver.patch
-fix-wrong-filename-reference-in-drivers-testingtxt.patch
-completely-remove-deprecated-irq-flags-sa_.patch
-compile-handle_percpu_irq-even-for-uniprocessor-kernels.patch
-break-elf_platform-and-stack-pointer-randomization-dependency.patch
-add-a-00-index-file-to-documentation-mips.patch
-define-global-bit-macro.patch
-bitops-introduce-lock-ops.patch
-mips-fix-bitops.patch
-mips-lock-bitops.patch
-replace-__attribute_pure__-with-__pure.patch
+git-kvm.patch
+fuse-fix-permission-checking-on-sticky-directories-fix.patch
