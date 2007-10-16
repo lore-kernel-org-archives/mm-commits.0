@@ -1,163 +1,244 @@
 From: akpm@linux-foundation.org
-Subject: - slub-optimize-cacheline-use-for-zeroing.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:35:22 -0700
-Message-ID: <200710162035.l9GKZM7u015053@imap1.linux-foundation.org>
+Subject: - fix-memory-hot-remove-not-configured-case.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:35:36 -0700
+Message-ID: <200710162035.l9GKZaRP015074@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49203 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34746 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965571AbXJPVcY (ORCPT
+	by vger.kernel.org with ESMTP id S965740AbXJPVce (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:32:24 -0400
+	Tue, 16 Oct 2007 17:32:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: Optimize cacheline use for zeroing
+     fix memory hot remove not configured case.
 has been removed from the -mm tree.  Its filename was
-     slub-optimize-cacheline-use-for-zeroing.patch
+     fix-memory-hot-remove-not-configured-case.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SLUB: Optimize cacheline use for zeroing
-From: Christoph Lameter <clameter@sgi.com>
+Subject: fix memory hot remove not configured case.
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-We touch a cacheline in the kmem_cache structure for zeroing to get the
-size. However, the hot paths in slab_alloc and slab_free do not reference
-any other fields in kmem_cache, so we may have to just bring in the
-cacheline for this one access.
+Now, arch dependent code around CONFIG_MEMORY_HOTREMOVE is a mess.
+This patch cleans up them. This is against 2.6.23-rc6-mm1.
 
-Add a new field to kmem_cache_cpu that contains the object size. That
-cacheline must already be used in the hotpaths. So we save one cacheline
-on every slab_alloc if we zero.
+ - fix compile failure on ia64/ CONFIG_MEMORY_HOTPLUG && !CONFIG_MEMORY_HOTREMOVE case.
+ - For !CONFIG_MEMORY_HOTREMOVE, add generic no-op remove_memory(),
+   which returns -EINVAL.
+ - removed remove_pages() only used in powerpc.
+ - removed no-op remove_memory() in i386, sh, sparc64, x86_64.
 
-We need to update the kmem_cache_cpu object size if an aliasing operation
-changes the objsize of an non debug slab.
+ - only powerpc returns -ENOSYS at memory hot remove(no-op). changes it
+   to return -EINVAL.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Note:
+Currently, only ia64 supports CONFIG_MEMORY_HOTREMOVE. I welcome other
+archs if there are requirements and testers.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |    1 +
- mm/slub.c                |   14 ++++++++++++--
- 2 files changed, 13 insertions(+), 2 deletions(-)
+ arch/ia64/mm/init.c            |    3 +-
+ arch/powerpc/mm/mem.c          |   45 -------------------------------
+ arch/sh/mm/init.c              |    6 ----
+ arch/sparc64/mm/init.c         |    5 ---
+ arch/x86/mm/init_32.c          |    5 ---
+ arch/x86/mm/init_64.c          |    6 ----
+ include/linux/memory_hotplug.h |   12 +-------
+ mm/memory_hotplug.c            |    6 ++++
+ 8 files changed, 10 insertions(+), 78 deletions(-)
 
-diff -puN include/linux/slub_def.h~slub-optimize-cacheline-use-for-zeroing include/linux/slub_def.h
---- a/include/linux/slub_def.h~slub-optimize-cacheline-use-for-zeroing
-+++ a/include/linux/slub_def.h
-@@ -16,6 +16,7 @@ struct kmem_cache_cpu {
- 	struct page *page;
- 	int node;
- 	unsigned int offset;
-+	unsigned int objsize;
- };
+diff -puN arch/ia64/mm/init.c~fix-memory-hot-remove-not-configured-case arch/ia64/mm/init.c
+--- a/arch/ia64/mm/init.c~fix-memory-hot-remove-not-configured-case
++++ a/arch/ia64/mm/init.c
+@@ -718,7 +718,7 @@ int arch_add_memory(int nid, u64 start, 
  
- struct kmem_cache_node {
-diff -puN mm/slub.c~slub-optimize-cacheline-use-for-zeroing mm/slub.c
---- a/mm/slub.c~slub-optimize-cacheline-use-for-zeroing
-+++ a/mm/slub.c
-@@ -1576,7 +1576,7 @@ static void __always_inline *slab_alloc(
- 	local_irq_restore(flags);
- 
- 	if (unlikely((gfpflags & __GFP_ZERO) && object))
--		memset(object, 0, s->objsize);
-+		memset(object, 0, c->objsize);
- 
- 	return object;
+ 	return ret;
  }
-@@ -1858,8 +1858,9 @@ static void init_kmem_cache_cpu(struct k
+-
++#ifdef CONFIG_MEMORY_HOTREMOVE
+ int remove_memory(u64 start, u64 size)
  {
- 	c->page = NULL;
- 	c->freelist = NULL;
--	c->offset = s->offset / sizeof(void *);
- 	c->node = 0;
-+	c->offset = s->offset / sizeof(void *);
-+	c->objsize = s->objsize;
+ 	unsigned long start_pfn, end_pfn;
+@@ -734,4 +734,5 @@ out:
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(remove_memory);
++#endif /* CONFIG_MEMORY_HOTREMOVE */
+ #endif
+diff -puN arch/powerpc/mm/mem.c~fix-memory-hot-remove-not-configured-case arch/powerpc/mm/mem.c
+--- a/arch/powerpc/mm/mem.c~fix-memory-hot-remove-not-configured-case
++++ a/arch/powerpc/mm/mem.c
+@@ -129,51 +129,6 @@ int __devinit arch_add_memory(int nid, u
+ 	return __add_pages(zone, start_pfn, nr_pages);
  }
  
- static void init_kmem_cache_node(struct kmem_cache_node *n)
-@@ -2852,12 +2853,21 @@ struct kmem_cache *kmem_cache_create(con
- 	down_write(&slub_lock);
- 	s = find_mergeable(size, align, flags, name, ctor);
- 	if (s) {
-+		int cpu;
+-/*
+- * First pass at this code will check to determine if the remove
+- * request is within the RMO.  Do not allow removal within the RMO.
+- */
+-int __devinit remove_memory(u64 start, u64 size)
+-{
+-	struct zone *zone;
+-	unsigned long start_pfn, end_pfn, nr_pages;
+-
+-	start_pfn = start >> PAGE_SHIFT;
+-	nr_pages = size >> PAGE_SHIFT;
+-	end_pfn = start_pfn + nr_pages;
+-
+-	printk("%s(): Attempting to remove memoy in range "
+-			"%lx to %lx\n", __func__, start, start+size);
+-	/*
+-	 * check for range within RMO
+-	 */
+-	zone = page_zone(pfn_to_page(start_pfn));
+-
+-	printk("%s(): memory will be removed from "
+-			"the %s zone\n", __func__, zone->name);
+-
+-	/*
+-	 * not handling removing memory ranges that
+-	 * overlap multiple zones yet
+-	 */
+-	if (end_pfn > (zone->zone_start_pfn + zone->spanned_pages))
+-		goto overlap;
+-
+-	/* make sure it is NOT in RMO */
+-	if ((start < lmb.rmo_size) || ((start+size) < lmb.rmo_size)) {
+-		printk("%s(): range to be removed must NOT be in RMO!\n",
+-			__func__);
+-		goto in_rmo;
+-	}
+-
+-	return __remove_pages(zone, start_pfn, nr_pages);
+-
+-overlap:
+-	printk("%s(): memory range to be removed overlaps "
+-		"multiple zones!!!\n", __func__);
+-in_rmo:
+-	return -1;
+-}
+ #endif /* CONFIG_MEMORY_HOTPLUG */
+ 
+ void show_mem(void)
+diff -puN arch/sh/mm/init.c~fix-memory-hot-remove-not-configured-case arch/sh/mm/init.c
+--- a/arch/sh/mm/init.c~fix-memory-hot-remove-not-configured-case
++++ a/arch/sh/mm/init.c
+@@ -294,12 +294,6 @@ int arch_add_memory(int nid, u64 start, 
+ }
+ EXPORT_SYMBOL_GPL(arch_add_memory);
+ 
+-int remove_memory(u64 start, u64 size)
+-{
+-	return -EINVAL;
+-}
+-EXPORT_SYMBOL_GPL(remove_memory);
+-
+ #ifdef CONFIG_NUMA
+ int memory_add_physaddr_to_nid(u64 addr)
+ {
+diff -puN arch/sparc64/mm/init.c~fix-memory-hot-remove-not-configured-case arch/sparc64/mm/init.c
+--- a/arch/sparc64/mm/init.c~fix-memory-hot-remove-not-configured-case
++++ a/arch/sparc64/mm/init.c
+@@ -1961,9 +1961,4 @@ void online_page(struct page *page)
+ 	num_physpages++;
+ }
+ 
+-int remove_memory(u64 start, u64 size)
+-{
+-	return -EINVAL;
+-}
+-
+ #endif /* CONFIG_MEMORY_HOTPLUG */
+diff -puN arch/x86/mm/init_32.c~fix-memory-hot-remove-not-configured-case arch/x86/mm/init_32.c
+--- a/arch/x86/mm/init_32.c~fix-memory-hot-remove-not-configured-case
++++ a/arch/x86/mm/init_32.c
+@@ -735,11 +735,6 @@ int arch_add_memory(int nid, u64 start, 
+ 	return __add_pages(zone, start_pfn, nr_pages);
+ }
+ 
+-int remove_memory(u64 start, u64 size)
+-{
+-	return -EINVAL;
+-}
+-EXPORT_SYMBOL_GPL(remove_memory);
+ #endif
+ 
+ struct kmem_cache *pmd_cache;
+diff -puN arch/x86/mm/init_64.c~fix-memory-hot-remove-not-configured-case arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~fix-memory-hot-remove-not-configured-case
++++ a/arch/x86/mm/init_64.c
+@@ -474,12 +474,6 @@ error:
+ }
+ EXPORT_SYMBOL_GPL(arch_add_memory);
+ 
+-int remove_memory(u64 start, u64 size)
+-{
+-	return -EINVAL;
+-}
+-EXPORT_SYMBOL_GPL(remove_memory);
+-
+ #if !defined(CONFIG_ACPI_NUMA) && defined(CONFIG_NUMA)
+ int memory_add_physaddr_to_nid(u64 start)
+ {
+diff -puN include/linux/memory_hotplug.h~fix-memory-hot-remove-not-configured-case include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~fix-memory-hot-remove-not-configured-case
++++ a/include/linux/memory_hotplug.h
+@@ -58,10 +58,9 @@ extern int add_one_highpage(struct page 
+ extern void online_page(struct page *page);
+ /* VM interface that may be used by firmware interface */
+ extern int online_pages(unsigned long, unsigned long);
+-#ifdef CONFIG_MEMORY_HOTREMOVE
+-extern int offline_pages(unsigned long, unsigned long, unsigned long);
+ extern void __offline_isolated_pages(unsigned long, unsigned long);
+-#endif
++extern int offline_pages(unsigned long, unsigned long, unsigned long);
 +
- 		s->refcount++;
- 		/*
- 		 * Adjust the object sizes so that we clear
- 		 * the complete object on kzalloc.
- 		 */
- 		s->objsize = max(s->objsize, (int)size);
-+
-+		/*
-+		 * And then we need to update the object size in the
-+		 * per cpu structures
-+		 */
-+		for_each_online_cpu(cpu)
-+			get_cpu_slab(s, cpu)->objsize = s->objsize;
- 		s->inuse = max_t(int, s->inuse, ALIGN(size, sizeof(void *)));
- 		up_write(&slub_lock);
- 		if (sysfs_slab_alias(s, name))
+ /* reasonably generic interface to expand the physical pages in a zone  */
+ extern int __add_pages(struct zone *zone, unsigned long start_pfn,
+ 	unsigned long nr_pages);
+@@ -171,13 +170,6 @@ static inline int mhp_notimplemented(con
+ }
+ 
+ #endif /* ! CONFIG_MEMORY_HOTPLUG */
+-static inline int __remove_pages(struct zone *zone, unsigned long start_pfn,
+-	unsigned long nr_pages)
+-{
+-	printk(KERN_WARNING "%s() called, not yet supported\n", __FUNCTION__);
+-	dump_stack();
+-	return -ENOSYS;
+-}
+ 
+ extern int add_memory(int nid, u64 start, u64 size);
+ extern int arch_add_memory(int nid, u64 start, u64 size);
+diff -puN mm/memory_hotplug.c~fix-memory-hot-remove-not-configured-case mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~fix-memory-hot-remove-not-configured-case
++++ a/mm/memory_hotplug.c
+@@ -555,4 +555,10 @@ failed_removal:
+ 	undo_isolate_page_range(start_pfn, end_pfn);
+ 	return ret;
+ }
++#else
++int remove_memory(u64 start, u64 size)
++{
++	return -EINVAL;
++}
++EXPORT_SYMBOL_GPL(remove_memory);
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-pa-risc-use-page-allocator-instead-of-slab-allocator.patch
-dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
-x86-fix-cpu_to_node-references.patch
-x86-convert-x86_cpu_to_apicid-to-be-a-per-cpu-variable.patch
-x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
-x86-acpi-use-cpu_physical_id.patch
-x86-convert-cpuinfo_x86-array-to-a-per_cpu-array.patch
-slub-simplify-irq-off-handling.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-oom-move-prototypes-to-appropriate-header-file.patch
-oom-move-constraints-to-enum.patch
-oom-change-all_unreclaimable-zone-member-to-flags.patch
-oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
-oom-add-per-zone-locking.patch
-oom-serialize-out-of-memory-calls.patch
-oom-add-oom_kill_allocating_task-sysctl.patch
-oom-suppress-extraneous-stack-and-memory-dump.patch
-oom-compare-cpuset-mems_allowed-instead-of-exclusive.patch
-oom-do-not-take-callback_mutex.patch
-oom-do-not-take-callback_mutex-fix.patch
-oom-prevent-including-schedh-in-header-file.patch
-oom-add-header-file-to-kbuild-as-unifdef.patch
-oom-convert-zone_scan_lock-from-mutex-to-spinlock.patch
-mm-test-and-set-zone-reclaim-lock-before-starting.patch
-mm-test-and-set-zone-reclaim-lock-before-starting-cleanup.patch
-avoid-negative-and-full-width-shifts-in-radix-treec.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-revoke-core-code.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-documentation-vm-slabinfoc-clean-up-this-code.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
-bit_spin_lock-use-lock-bitops.patch
-ext3-support-large-blocksize-up-to-pagesize.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
+git-sh.patch
+memory-controller-make-charging-gfp-mask-aware-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+add-irq-protection-in-the-percpu-counters-cpu-hotplug-callback-path.patch
