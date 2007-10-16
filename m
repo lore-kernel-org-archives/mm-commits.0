@@ -1,595 +1,602 @@
 From: akpm@linux-foundation.org
-Subject: - i-oat-add-support-for-msi-and-msi-x.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:39:28 -0700
-Message-ID: <200710162039.l9GKdSUj015548@imap1.linux-foundation.org>
+Subject: - s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:43:15 -0700
+Message-ID: <200710162043.l9GKhFZe016027@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33917 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47114 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965078AbXJPVSn (ORCPT
+	by vger.kernel.org with ESMTP id S964995AbXJPVSv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:18:43 -0400
+	Tue, 16 Oct 2007 17:18:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shannon.nelson@intel.com, davem@davemloft.net, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     I/OAT: Add support for MSI and MSI-X
+     s3c2410fb: remove lcdcon3 register from s3c2410fb_display
 has been removed from the -mm tree.  Its filename was
-     i-oat-add-support-for-msi-and-msi-x.patch
+     s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: I/OAT: Add support for MSI and MSI-X
-From: Shannon Nelson <shannon.nelson@intel.com>
+Subject: s3c2410fb: remove lcdcon3 register from s3c2410fb_display
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Add support for MSI and MSI-X interrupt handling, including the ability
-to choose the desired interrupt method.
+This patch removes unused lcdcon3 register from the
+s3c2410fb_display structure.
 
-Signed-off-by: Shannon Nelson <shannon.nelson@intel.com>
-Acked-by: David S. Miller <davem@davemloft.net>
-[bunk@kernel.org: drivers/dma/ioat_dma.c: make 3 functions static]
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/ioat_dma.c          |  348 ++++++++++++++++++++++++------
- drivers/dma/ioatdma.h           |   12 +
- drivers/dma/ioatdma_registers.h |    6 
- include/linux/bitops.h          |    6 
- 4 files changed, 305 insertions(+), 67 deletions(-)
+ arch/arm/mach-s3c2410/mach-amlm5900.c |   11 --
+ arch/arm/mach-s3c2410/mach-bast.c     |   99 +++++++------------
+ arch/arm/mach-s3c2410/mach-h1940.c    |   36 ++-----
+ arch/arm/mach-s3c2410/mach-qt2410.c   |  123 +++++++++---------------
+ arch/arm/mach-s3c2440/mach-rx3715.c   |   36 ++-----
+ arch/arm/mach-s3c2440/mach-smdk2440.c |   40 +++----
+ drivers/video/s3c2410fb.c             |   17 +--
+ include/asm-arm/arch-s3c2410/fb.h     |    5 
+ 8 files changed, 151 insertions(+), 216 deletions(-)
 
-diff -puN drivers/dma/ioat_dma.c~i-oat-add-support-for-msi-and-msi-x drivers/dma/ioat_dma.c
---- a/drivers/dma/ioat_dma.c~i-oat-add-support-for-msi-and-msi-x
-+++ a/drivers/dma/ioat_dma.c
-@@ -47,6 +47,65 @@
- static void ioat_dma_start_null_desc(struct ioat_dma_chan *ioat_chan);
- static void ioat_dma_memcpy_cleanup(struct ioat_dma_chan *ioat_chan);
+diff -puN arch/arm/mach-s3c2410/mach-amlm5900.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display arch/arm/mach-s3c2410/mach-amlm5900.c
+--- a/arch/arm/mach-s3c2410/mach-amlm5900.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display
++++ a/arch/arm/mach-s3c2410/mach-amlm5900.c
+@@ -180,13 +180,10 @@ static struct s3c2410fb_display __initda
+ 	.left_margin	= 1 << (4 + 3),
+ 	.right_margin	= 8 << 3,
  
-+static struct ioat_dma_chan *ioat_lookup_chan_by_index(struct ioatdma_device *device,
-+						       int index)
-+{
-+	return device->idx[index];
-+}
-+
-+/**
-+ * ioat_dma_do_interrupt - handler used for single vector interrupt mode
-+ * @irq: interrupt id
-+ * @data: interrupt data
-+ */
-+static irqreturn_t ioat_dma_do_interrupt(int irq, void *data)
-+{
-+	struct ioatdma_device *instance = data;
-+	struct ioat_dma_chan *ioat_chan;
-+	unsigned long attnstatus;
-+	int bit;
-+	u8 intrctrl;
-+
-+	intrctrl = readb(instance->reg_base + IOAT_INTRCTRL_OFFSET);
-+
-+	if (!(intrctrl & IOAT_INTRCTRL_MASTER_INT_EN))
-+		return IRQ_NONE;
-+
-+	if (!(intrctrl & IOAT_INTRCTRL_INT_STATUS)) {
-+		writeb(intrctrl, instance->reg_base + IOAT_INTRCTRL_OFFSET);
-+		return IRQ_NONE;
-+	}
-+
-+	attnstatus = readl(instance->reg_base + IOAT_ATTNSTATUS_OFFSET);
-+	for_each_bit(bit, &attnstatus, BITS_PER_LONG) {
-+		ioat_chan = ioat_lookup_chan_by_index(instance, bit);
-+		tasklet_schedule(&ioat_chan->cleanup_task);
-+	}
-+
-+	writeb(intrctrl, instance->reg_base + IOAT_INTRCTRL_OFFSET);
-+	return IRQ_HANDLED;
-+}
-+
-+/**
-+ * ioat_dma_do_interrupt_msix - handler used for vector-per-channel interrupt mode
-+ * @irq: interrupt id
-+ * @data: interrupt data
-+ */
-+static irqreturn_t ioat_dma_do_interrupt_msix(int irq, void *data)
-+{
-+	struct ioat_dma_chan *ioat_chan = data;
-+
-+	tasklet_schedule(&ioat_chan->cleanup_task);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static void ioat_dma_cleanup_tasklet(unsigned long data);
-+
-+/**
-+ * ioat_dma_enumerate_channels - find and initialize the device's channels
-+ * @device: the device to be enumerated
-+ */
- static int ioat_dma_enumerate_channels(struct ioatdma_device *device)
- {
- 	u8 xfercap_scale;
-@@ -76,6 +135,11 @@ static int ioat_dma_enumerate_channels(s
- 		ioat_chan->common.device = &device->common;
- 		list_add_tail(&ioat_chan->common.device_node,
- 			      &device->common.channels);
-+		device->idx[i] = ioat_chan;
-+		tasklet_init(&ioat_chan->cleanup_task,
-+			     ioat_dma_cleanup_tasklet,
-+			     (unsigned long) ioat_chan);
-+		tasklet_disable(&ioat_chan->cleanup_task);
- 	}
- 	return device->common.chancnt;
- }
-@@ -234,6 +298,7 @@ static int ioat_dma_alloc_chan_resources
- 	writel(((u64) ioat_chan->completion_addr) >> 32,
- 	       ioat_chan->reg_base + IOAT_CHANCMP_OFFSET_HIGH);
+-	.regs		= {
+-		.lcdcon1	= 0x00008225,
+-		.lcdcon2	= 0x0027c000,
+-		.lcdcon3	= 0x00182708,
+-		.lcdcon4	= 0x00000002,
+-		.lcdcon5	= 0x00000001,
+-	}
++	.lcdcon1	= 0x00008225,
++	.lcdcon2	= 0x0027c000,
++	.lcdcon4	= 0x00000002,
++	.lcdcon5	= 0x00000001,
+ };
  
-+	tasklet_enable(&ioat_chan->cleanup_task);
- 	ioat_dma_start_null_desc(ioat_chan);
- 	return i;
- }
-@@ -245,9 +310,14 @@ static void ioat_dma_free_chan_resources
- 	struct ioat_desc_sw *desc, *_desc;
- 	int in_use_descs = 0;
+ static struct s3c2410fb_mach_info __initdata amlm5900_fb_info = {
+diff -puN arch/arm/mach-s3c2410/mach-bast.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display arch/arm/mach-s3c2410/mach-bast.c
+--- a/arch/arm/mach-s3c2410/mach-bast.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display
++++ a/arch/arm/mach-s3c2410/mach-bast.c
+@@ -479,13 +479,10 @@ static struct s3c2410fb_display __initda
  
-+	tasklet_disable(&ioat_chan->cleanup_task);
- 	ioat_dma_memcpy_cleanup(ioat_chan);
+ 		.bpp		= 4,
  
-+	/* Delay 100ms after reset to allow internal DMA logic to quiesce
-+	 * before removing DMA descriptor resources.
-+	 */
- 	writeb(IOAT_CHANCMD_RESET, ioat_chan->reg_base + IOAT_CHANCMD_OFFSET);
-+	mdelay(100);
- 
- 	spin_lock_bh(&ioat_chan->desc_lock);
- 	list_for_each_entry_safe(desc, _desc, &ioat_chan->used_desc, node) {
-@@ -276,6 +346,34 @@ static void ioat_dma_free_chan_resources
- 			in_use_descs - 1);
- 
- 	ioat_chan->last_completion = ioat_chan->completion_addr = 0;
-+	ioat_chan->pending = 0;
-+}
-+/**
-+ * ioat_dma_get_next_descriptor - return the next available descriptor
-+ * @ioat_chan: IOAT DMA channel handle
-+ *
-+ * Gets the next descriptor from the chain, and must be called with the
-+ * channel's desc_lock held.  Allocates more descriptors if the channel
-+ * has run out.
-+ */
-+static struct ioat_desc_sw *ioat_dma_get_next_descriptor(
-+						struct ioat_dma_chan *ioat_chan)
-+{
-+	struct ioat_desc_sw *new = NULL;
-+
-+	if (!list_empty(&ioat_chan->free_desc)) {
-+		new = to_ioat_desc(ioat_chan->free_desc.next);
-+		list_del(&new->node);
-+	} else {
-+		/* try to get another desc */
-+		new = ioat_dma_alloc_descriptor(ioat_chan, GFP_ATOMIC);
-+		/* will this ever happen? */
-+		/* TODO add upper limit on these */
-+		BUG_ON(!new);
-+	}
-+
-+	prefetch(new->hw);
-+	return new;
- }
- 
- static struct dma_async_tx_descriptor *ioat_dma_prep_memcpy(
-@@ -300,17 +398,7 @@ static struct dma_async_tx_descriptor *i
- 
- 	spin_lock_bh(&ioat_chan->desc_lock);
- 	while (len) {
--		if (!list_empty(&ioat_chan->free_desc)) {
--			new = to_ioat_desc(ioat_chan->free_desc.next);
--			list_del(&new->node);
--		} else {
--			/* try to get another desc */
--			new = ioat_dma_alloc_descriptor(ioat_chan, GFP_ATOMIC);
--			/* will this ever happen? */
--			/* TODO add upper limit on these */
--			BUG_ON(!new);
+-		.regs		= {
+-			.lcdcon1	= 0x00000176,
+-			.lcdcon2	= 0x1d77c7c2,
+-			.lcdcon3	= 0x013a7f13,
+-			.lcdcon4	= 0x00000057,
+-			.lcdcon5	= 0x00014b02,
 -		}
--
-+		new = ioat_dma_get_next_descriptor(ioat_chan);
- 		copy = min((u32) len, ioat_chan->xfercap);
++		.lcdcon1	= 0x00000176,
++		.lcdcon2	= 0x1d77c7c2,
++		.lcdcon4	= 0x00000057,
++		.lcdcon5	= 0x00014b02,
+ 	},
+ 	{
+ 		.type		= S3C2410_LCDCON1_TFT,
+@@ -498,13 +495,10 @@ static struct s3c2410fb_display __initda
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
  
- 		new->hw->size = copy;
-@@ -360,6 +448,14 @@ static void ioat_dma_memcpy_issue_pendin
- 	}
- }
+-		.regs		= {
+-			.lcdcon1	= 0x00000176,
+-			.lcdcon2	= 0x1d77c7c2,
+-			.lcdcon3	= 0x013a7f13,
+-			.lcdcon4	= 0x00000057,
+-			.lcdcon5	= 0x00014b02,
+-		}
++		.lcdcon1	= 0x00000176,
++		.lcdcon2	= 0x1d77c7c2,
++		.lcdcon4	= 0x00000057,
++		.lcdcon5	= 0x00014b02,
+ 	},
+ 	{
+ 		.type		= S3C2410_LCDCON1_TFT,
+@@ -517,13 +511,10 @@ static struct s3c2410fb_display __initda
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
  
-+static void ioat_dma_cleanup_tasklet(unsigned long data)
-+{
-+	struct ioat_dma_chan *chan = (void *)data;
-+	ioat_dma_memcpy_cleanup(chan);
-+	writew(IOAT_CHANCTRL_INT_DISABLE,
-+	       chan->reg_base + IOAT_CHANCTRL_OFFSET);
-+}
-+
- static void ioat_dma_memcpy_cleanup(struct ioat_dma_chan *ioat_chan)
- {
- 	unsigned long phys_complete;
-@@ -397,6 +493,7 @@ static void ioat_dma_memcpy_cleanup(stru
- 		return;
- 	}
+-		.regs		= {
+-			.lcdcon1	= 0x00000176,
+-			.lcdcon2	= 0x1d77c7c2,
+-			.lcdcon3	= 0x013a7f13,
+-			.lcdcon4	= 0x00000057,
+-			.lcdcon5	= 0x00014b02,
+-		}
++		.lcdcon1	= 0x00000176,
++		.lcdcon2	= 0x1d77c7c2,
++		.lcdcon4	= 0x00000057,
++		.lcdcon5	= 0x00014b02,
+ 	},
+ 	{
+ 		.type		= S3C2410_LCDCON1_TFT,
+@@ -536,13 +527,10 @@ static struct s3c2410fb_display __initda
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
  
-+	cookie = 0;
- 	spin_lock_bh(&ioat_chan->desc_lock);
- 	list_for_each_entry_safe(desc, _desc, &ioat_chan->used_desc, node) {
+-		.regs		= {
+-			.lcdcon1	= 0x00000176,
+-			.lcdcon2	= 0x1d77c7c2,
+-			.lcdcon3	= 0x013a7f13,
+-			.lcdcon4	= 0x00000057,
+-			.lcdcon5	= 0x00014b02,
+-		}
++		.lcdcon1	= 0x00000176,
++		.lcdcon2	= 0x1d77c7c2,
++		.lcdcon4	= 0x00000057,
++		.lcdcon5	= 0x00014b02,
+ 	},
+ 	{
+ 		.type		= S3C2410_LCDCON1_TFT,
+@@ -555,13 +543,10 @@ static struct s3c2410fb_display __initda
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
  
-@@ -509,48 +606,13 @@ static enum dma_status ioat_dma_is_compl
+-		.regs		= {
+-			.lcdcon1	= 0x00000176,
+-			.lcdcon2	= 0x1d77c7c2,
+-			.lcdcon3	= 0x013a7f13,
+-			.lcdcon4	= 0x00000057,
+-			.lcdcon5	= 0x00014b02,
+-		}
++		.lcdcon1	= 0x00000176,
++		.lcdcon2	= 0x1d77c7c2,
++		.lcdcon4	= 0x00000057,
++		.lcdcon5	= 0x00014b02,
+ 	},
+ 	{
+ 		.type		= S3C2410_LCDCON1_TFT,
+@@ -574,13 +559,10 @@ static struct s3c2410fb_display __initda
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
  
- /* PCI API */
+-		.regs		= {
+-			.lcdcon1	= 0x00000176,
+-			.lcdcon2	= 0x1d77c7c2,
+-			.lcdcon3	= 0x013a7f13,
+-			.lcdcon4	= 0x00000057,
+-			.lcdcon5	= 0x00014b02,
+-		}
++		.lcdcon1	= 0x00000176,
++		.lcdcon2	= 0x1d77c7c2,
++		.lcdcon4	= 0x00000057,
++		.lcdcon5	= 0x00014b02,
+ 	},
+ 	{
+ 		.type		= S3C2410_LCDCON1_TFT,
+@@ -593,13 +575,10 @@ static struct s3c2410fb_display __initda
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
  
--static irqreturn_t ioat_do_interrupt(int irq, void *data)
--{
--	struct ioatdma_device *instance = data;
--	unsigned long attnstatus;
--	u8 intrctrl;
--
--	intrctrl = readb(instance->reg_base + IOAT_INTRCTRL_OFFSET);
--
--	if (!(intrctrl & IOAT_INTRCTRL_MASTER_INT_EN))
--		return IRQ_NONE;
--
--	if (!(intrctrl & IOAT_INTRCTRL_INT_STATUS)) {
--		writeb(intrctrl, instance->reg_base + IOAT_INTRCTRL_OFFSET);
--		return IRQ_NONE;
--	}
--
--	attnstatus = readl(instance->reg_base + IOAT_ATTNSTATUS_OFFSET);
--
--	printk(KERN_ERR "ioatdma: interrupt! status %lx\n", attnstatus);
--
--	writeb(intrctrl, instance->reg_base + IOAT_INTRCTRL_OFFSET);
--	return IRQ_HANDLED;
--}
--
- static void ioat_dma_start_null_desc(struct ioat_dma_chan *ioat_chan)
- {
- 	struct ioat_desc_sw *desc;
+-		.regs		= {
+-			.lcdcon1	= 0x00000176,
+-			.lcdcon2	= 0x1d77c7c2,
+-			.lcdcon3	= 0x013a7f13,
+-			.lcdcon4	= 0x00000057,
+-			.lcdcon5	= 0x00014b02,
+-		}
++		.lcdcon1	= 0x00000176,
++		.lcdcon2	= 0x1d77c7c2,
++		.lcdcon4	= 0x00000057,
++		.lcdcon5	= 0x00014b02,
+ 	},
+ 	{
+ 		.type		= S3C2410_LCDCON1_TFT,
+@@ -612,13 +591,10 @@ static struct s3c2410fb_display __initda
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
  
- 	spin_lock_bh(&ioat_chan->desc_lock);
+-		.regs		= {
+-			.lcdcon1	= 0x00000176,
+-			.lcdcon2	= 0x1d77c7c2,
+-			.lcdcon3	= 0x013a7f13,
+-			.lcdcon4	= 0x00000057,
+-			.lcdcon5	= 0x00014b02,
+-		}
++		.lcdcon1	= 0x00000176,
++		.lcdcon2	= 0x1d77c7c2,
++		.lcdcon4	= 0x00000057,
++		.lcdcon5	= 0x00014b02,
+ 	},
+ 	{
+ 		.type		= S3C2410_LCDCON1_TFT,
+@@ -631,13 +607,10 @@ static struct s3c2410fb_display __initda
+ 		.left_margin	= 40,
+ 		.right_margin	= 20,
  
--	if (!list_empty(&ioat_chan->free_desc)) {
--		desc = to_ioat_desc(ioat_chan->free_desc.next);
--		list_del(&desc->node);
--	} else {
--		/* try to get another desc */
--		spin_unlock_bh(&ioat_chan->desc_lock);
--		desc = ioat_dma_alloc_descriptor(ioat_chan, GFP_KERNEL);
--		spin_lock_bh(&ioat_chan->desc_lock);
--		/* will this ever happen? */
--		BUG_ON(!desc);
--	}
--
-+	desc = ioat_dma_get_next_descriptor(ioat_chan);
- 	desc->hw->ctl = IOAT_DMA_DESCRIPTOR_NUL;
- 	desc->hw->next = 0;
- 	desc->async_tx.ack = 1;
-@@ -571,7 +633,11 @@ static void ioat_dma_start_null_desc(str
-  */
- #define IOAT_TEST_SIZE 2000
- 
--static int ioat_self_test(struct ioatdma_device *device)
-+/**
-+ * ioat_dma_self_test - Perform a IOAT transaction to verify the HW works.
-+ * @device: device to be tested
-+ */
-+static int ioat_dma_self_test(struct ioatdma_device *device)
- {
- 	int i;
- 	u8 *src;
-@@ -639,6 +705,161 @@ out:
- 	return err;
- }
- 
-+static char ioat_interrupt_style[32] = "msix";
-+module_param_string(ioat_interrupt_style, ioat_interrupt_style,
-+		    sizeof(ioat_interrupt_style), 0644);
-+MODULE_PARM_DESC(ioat_interrupt_style,
-+		 "set ioat interrupt style: msix (default), "
-+		 "msix-single-vector, msi, intx)");
-+
-+/**
-+ * ioat_dma_setup_interrupts - setup interrupt handler
-+ * @device: ioat device
-+ */
-+static int ioat_dma_setup_interrupts(struct ioatdma_device *device)
-+{
-+	struct ioat_dma_chan *ioat_chan;
-+	int err, i, j, msixcnt;
-+	u8 intrctrl = 0;
-+
-+	if (!strcmp(ioat_interrupt_style, "msix"))
-+		goto msix;
-+	if (!strcmp(ioat_interrupt_style, "msix-single-vector"))
-+		goto msix_single_vector;
-+	if (!strcmp(ioat_interrupt_style, "msi"))
-+		goto msi;
-+	if (!strcmp(ioat_interrupt_style, "intx"))
-+		goto intx;
-+
-+msix:
-+	/* The number of MSI-X vectors should equal the number of channels */
-+	msixcnt = device->common.chancnt;
-+	for (i = 0; i < msixcnt; i++)
-+		device->msix_entries[i].entry = i;
-+
-+	err = pci_enable_msix(device->pdev, device->msix_entries, msixcnt);
-+	if (err < 0)
-+		goto msi;
-+	if (err > 0)
-+		goto msix_single_vector;
-+
-+	for (i = 0; i < msixcnt; i++) {
-+		ioat_chan = ioat_lookup_chan_by_index(device, i);
-+		err = request_irq(device->msix_entries[i].vector,
-+				  ioat_dma_do_interrupt_msix,
-+				  0, "ioat-msix", ioat_chan);
-+		if (err) {
-+			for (j = 0; j < i; j++) {
-+				ioat_chan =
-+					ioat_lookup_chan_by_index(device, j);
-+				free_irq(device->msix_entries[j].vector,
-+					 ioat_chan);
-+			}
-+			goto msix_single_vector;
-+		}
-+	}
-+	intrctrl |= IOAT_INTRCTRL_MSIX_VECTOR_CONTROL;
-+	device->irq_mode = msix_multi_vector;
-+	goto done;
-+
-+msix_single_vector:
-+	device->msix_entries[0].entry = 0;
-+	err = pci_enable_msix(device->pdev, device->msix_entries, 1);
-+	if (err)
-+		goto msi;
-+
-+	err = request_irq(device->msix_entries[0].vector, ioat_dma_do_interrupt,
-+			  0, "ioat-msix", device);
-+	if (err) {
-+		pci_disable_msix(device->pdev);
-+		goto msi;
-+	}
-+	device->irq_mode = msix_single_vector;
-+	goto done;
-+
-+msi:
-+	err = pci_enable_msi(device->pdev);
-+	if (err)
-+		goto intx;
-+
-+	err = request_irq(device->pdev->irq, ioat_dma_do_interrupt,
-+			  0, "ioat-msi", device);
-+	if (err) {
-+		pci_disable_msi(device->pdev);
-+		goto intx;
-+	}
-+	/*
-+	 * CB 1.2 devices need a bit set in configuration space to enable MSI
-+	 */
-+	if (device->version == IOAT_VER_1_2) {
-+		u32 dmactrl;
-+		pci_read_config_dword(device->pdev,
-+				      IOAT_PCI_DMACTRL_OFFSET, &dmactrl);
-+		dmactrl |= IOAT_PCI_DMACTRL_MSI_EN;
-+		pci_write_config_dword(device->pdev,
-+				       IOAT_PCI_DMACTRL_OFFSET, dmactrl);
-+	}
-+	device->irq_mode = msi;
-+	goto done;
-+
-+intx:
-+	err = request_irq(device->pdev->irq, ioat_dma_do_interrupt,
-+			  IRQF_SHARED, "ioat-intx", device);
-+	if (err)
-+		goto err_no_irq;
-+	device->irq_mode = intx;
-+
-+done:
-+	intrctrl |= IOAT_INTRCTRL_MASTER_INT_EN;
-+	writeb(intrctrl, device->reg_base + IOAT_INTRCTRL_OFFSET);
-+	return 0;
-+
-+err_no_irq:
-+	/* Disable all interrupt generation */
-+	writeb(0, device->reg_base + IOAT_INTRCTRL_OFFSET);
-+	dev_err(&device->pdev->dev, "no usable interrupts\n");
-+	device->irq_mode = none;
-+	return -1;
-+}
-+
-+/**
-+ * ioat_dma_remove_interrupts - remove whatever interrupts were set
-+ * @device: ioat device
-+ */
-+static void ioat_dma_remove_interrupts(struct ioatdma_device *device)
-+{
-+	struct ioat_dma_chan *ioat_chan;
-+	int i;
-+
-+	/* Disable all interrupt generation */
-+	writeb(0, device->reg_base + IOAT_INTRCTRL_OFFSET);
-+
-+	switch (device->irq_mode) {
-+	case msix_multi_vector:
-+		for (i = 0; i < device->common.chancnt; i++) {
-+			ioat_chan = ioat_lookup_chan_by_index(device, i);
-+			free_irq(device->msix_entries[i].vector, ioat_chan);
-+		}
-+		pci_disable_msix(device->pdev);
-+		break;
-+	case msix_single_vector:
-+		free_irq(device->msix_entries[0].vector, device);
-+		pci_disable_msix(device->pdev);
-+		break;
-+	case msi:
-+		free_irq(device->pdev->irq, device);
-+		pci_disable_msi(device->pdev);
-+		break;
-+	case intx:
-+		free_irq(device->pdev->irq, device);
-+		break;
-+	case none:
-+		dev_warn(&device->pdev->dev,
-+			 "call to %s without interrupts setup\n", __func__);
-+	}
-+	device->irq_mode = none;
-+}
-+
- struct ioatdma_device *ioat_dma_probe(struct pci_dev *pdev,
- 				      void __iomem *iobase)
- {
-@@ -684,21 +905,16 @@ struct ioatdma_device *ioat_dma_probe(st
- 	device->common.device_issue_pending = ioat_dma_memcpy_issue_pending;
- 	device->common.device_dependency_added = ioat_dma_dependency_added;
- 	device->common.dev = &pdev->dev;
--	printk(KERN_INFO "ioatdma: Intel(R) I/OAT DMA Engine found,"
--	       " %d channels, device version 0x%02x\n",
--	       device->common.chancnt, device->version);
--
--	pci_set_drvdata(pdev, device);
--	err = request_irq(pdev->irq, &ioat_do_interrupt, IRQF_SHARED, "ioat",
--		device);
--	if (err)
--		goto err_irq;
-+	dev_err(&device->pdev->dev,
-+		"ioatdma: Intel(R) I/OAT DMA Engine found,"
-+		" %d channels, device version 0x%02x\n",
-+		device->common.chancnt, device->version);
- 
--	writeb(IOAT_INTRCTRL_MASTER_INT_EN,
--	       device->reg_base + IOAT_INTRCTRL_OFFSET);
--	pci_set_master(pdev);
-+	err = ioat_dma_setup_interrupts(device);
-+	if (err)
-+		goto err_setup_interrupts;
- 
--	err = ioat_self_test(device);
-+	err = ioat_dma_self_test(device);
- 	if (err)
- 		goto err_self_test;
- 
-@@ -707,8 +923,8 @@ struct ioatdma_device *ioat_dma_probe(st
- 	return device;
- 
- err_self_test:
--	free_irq(device->pdev->irq, device);
--err_irq:
-+	ioat_dma_remove_interrupts(device);
-+err_setup_interrupts:
- 	pci_pool_destroy(device->completion_pool);
- err_completion_pool:
- 	pci_pool_destroy(device->dma_pool);
-@@ -716,8 +932,8 @@ err_dma_pool:
- 	kfree(device);
- err_kzalloc:
- 	iounmap(iobase);
--	printk(KERN_ERR
--	       "ioatdma: Intel(R) I/OAT DMA Engine initialization failed\n");
-+	dev_err(&device->pdev->dev,
-+		"ioatdma: Intel(R) I/OAT DMA Engine initialization failed\n");
- 	return NULL;
- }
- 
-@@ -728,7 +944,7 @@ void ioat_dma_remove(struct ioatdma_devi
- 
- 	dma_async_device_unregister(&device->common);
- 
--	free_irq(device->pdev->irq, device);
-+	ioat_dma_remove_interrupts(device);
- 
- 	pci_pool_destroy(device->dma_pool);
- 	pci_pool_destroy(device->completion_pool);
-diff -puN drivers/dma/ioatdma.h~i-oat-add-support-for-msi-and-msi-x drivers/dma/ioatdma.h
---- a/drivers/dma/ioatdma.h~i-oat-add-support-for-msi-and-msi-x
-+++ a/drivers/dma/ioatdma.h
-@@ -28,6 +28,14 @@
- #include <linux/cache.h>
- #include <linux/pci_ids.h>
- 
-+enum ioat_interrupt {
-+	none = 0,
-+	msix_multi_vector = 1,
-+	msix_single_vector = 2,
-+	msi = 3,
-+	intx = 4,
-+};
-+
- #define IOAT_LOW_COMPLETION_MASK	0xffffffc0
- 
- /**
-@@ -46,6 +54,9 @@ struct ioatdma_device {
- 	struct pci_pool *completion_pool;
- 	struct dma_device common;
- 	u8 version;
-+	enum ioat_interrupt irq_mode;
-+	struct msix_entry msix_entries[4];
-+	struct ioat_dma_chan *idx[4];
+-		.regs		= {
+-			.lcdcon1	= 0x00000176,
+-			.lcdcon2	= 0x1d77c7c2,
+-			.lcdcon3	= 0x013a7f13,
+-			.lcdcon4	= 0x00000057,
+-			.lcdcon5	= 0x00014b02,
+-		}
++		.lcdcon1	= 0x00000176,
++		.lcdcon2	= 0x1d77c7c2,
++		.lcdcon4	= 0x00000057,
++		.lcdcon5	= 0x00014b02,
+ 	},
  };
  
- /**
-@@ -94,6 +105,7 @@ struct ioat_dma_chan {
- 			u32 high;
- 		};
- 	} *completion_virt;
-+	struct tasklet_struct cleanup_task;
+diff -puN arch/arm/mach-s3c2410/mach-h1940.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display arch/arm/mach-s3c2410/mach-h1940.c
+--- a/arch/arm/mach-s3c2410/mach-h1940.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display
++++ a/arch/arm/mach-s3c2410/mach-h1940.c
+@@ -134,27 +134,21 @@ static struct s3c2410_udc_mach_info h194
+  * Set lcd on or off
+  **/
+ static struct s3c2410fb_display h1940_lcd __initdata = {
+-	.regs={
+-		.lcdcon1=	S3C2410_LCDCON1_TFT16BPP | \
+-				S3C2410_LCDCON1_TFT | \
+-				S3C2410_LCDCON1_CLKVAL(0x0C),
+-
+-		.lcdcon2=	S3C2410_LCDCON2_VBPD(7) | \
+-				S3C2410_LCDCON2_LINEVAL(319) | \
+-				S3C2410_LCDCON2_VFPD(6) | \
+-				S3C2410_LCDCON2_VSPW(0),
+-
+-		.lcdcon3=	S3C2410_LCDCON3_HBPD(19) | \
+-				S3C2410_LCDCON3_HOZVAL(239) | \
+-				S3C2410_LCDCON3_HFPD(7),
+-
+-		.lcdcon4=	S3C2410_LCDCON4_MVAL(0) | \
+-				S3C2410_LCDCON4_HSPW(3),
+-
+-		.lcdcon5=	S3C2410_LCDCON5_FRM565 | \
+-				S3C2410_LCDCON5_INVVLINE | \
+-				S3C2410_LCDCON5_HWSWP,
+-	},
++	.lcdcon1=	S3C2410_LCDCON1_TFT16BPP | \
++			S3C2410_LCDCON1_TFT | \
++			S3C2410_LCDCON1_CLKVAL(0x0C),
++
++	.lcdcon2=	S3C2410_LCDCON2_VBPD(7) | \
++			S3C2410_LCDCON2_LINEVAL(319) | \
++			S3C2410_LCDCON2_VFPD(6) | \
++			S3C2410_LCDCON2_VSPW(0),
++
++	.lcdcon4=	S3C2410_LCDCON4_MVAL(0) | \
++			S3C2410_LCDCON4_HSPW(3),
++
++	.lcdcon5=	S3C2410_LCDCON5_FRM565 | \
++			S3C2410_LCDCON5_INVVLINE | \
++			S3C2410_LCDCON5_HWSWP,
+ 
+ 	.type =		S3C2410_LCDCON1_TFT,
+ 	.width =	240,
+diff -puN arch/arm/mach-s3c2410/mach-qt2410.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display arch/arm/mach-s3c2410/mach-qt2410.c
+--- a/arch/arm/mach-s3c2410/mach-qt2410.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display
++++ a/arch/arm/mach-s3c2410/mach-qt2410.c
+@@ -98,30 +98,23 @@ static struct s3c2410_uartcfg smdk2410_u
+ static struct s3c2410fb_display qt2410_lcd_cfg[] __initdata = {
+ 	{
+ 		/* Configuration for 640x480 SHARP LQ080V3DG01 */
+-		.regs	= {
+-
+-			.lcdcon1 = S3C2410_LCDCON1_TFT16BPP |
+-				   S3C2410_LCDCON1_TFT |
+-				   S3C2410_LCDCON1_CLKVAL(0x01), /* HCLK/4 */
+-
+-			.lcdcon2 = S3C2410_LCDCON2_VBPD(18) |	/* 19 */
+-				   S3C2410_LCDCON2_LINEVAL(479) |
+-				   S3C2410_LCDCON2_VFPD(10) |	/* 11 */
+-				   S3C2410_LCDCON2_VSPW(14),	/* 15 */
+-
+-			.lcdcon3 = S3C2410_LCDCON3_HBPD(43) |	/* 44 */
+-				   S3C2410_LCDCON3_HOZVAL(639) | /* 640 */
+-				   S3C2410_LCDCON3_HFPD(115),	/* 116 */
+-
+-			.lcdcon4 = S3C2410_LCDCON4_MVAL(0) |
+-				   S3C2410_LCDCON4_HSPW(95),	/* 96 */
+-
+-			.lcdcon5 = S3C2410_LCDCON5_FRM565 |
+-				   S3C2410_LCDCON5_INVVLINE |
+-				   S3C2410_LCDCON5_INVVFRAME |
+-				   S3C2410_LCDCON5_PWREN |
+-				   S3C2410_LCDCON5_HWSWP,
+-		},
++		.lcdcon1 = S3C2410_LCDCON1_TFT16BPP |
++			   S3C2410_LCDCON1_TFT |
++			   S3C2410_LCDCON1_CLKVAL(0x01), /* HCLK/4 */
++
++		.lcdcon2 = S3C2410_LCDCON2_VBPD(18) |	/* 19 */
++			   S3C2410_LCDCON2_LINEVAL(479) |
++			   S3C2410_LCDCON2_VFPD(10) |	/* 11 */
++			   S3C2410_LCDCON2_VSPW(14),	/* 15 */
++
++		.lcdcon4 = S3C2410_LCDCON4_MVAL(0) |
++			   S3C2410_LCDCON4_HSPW(95),	/* 96 */
++
++		.lcdcon5 = S3C2410_LCDCON5_FRM565 |
++			   S3C2410_LCDCON5_INVVLINE |
++			   S3C2410_LCDCON5_INVVFRAME |
++			   S3C2410_LCDCON5_PWREN |
++			   S3C2410_LCDCON5_HWSWP,
+ 
+ 		.type		= S3C2410_LCDCON1_TFT,
+ 		.width		= 640,
+@@ -135,30 +128,23 @@ static struct s3c2410fb_display qt2410_l
+ 	},
+ 	{
+ 		/* Configuration for 480x640 toppoly TD028TTEC1 */
+-		.regs	= {
+-
+-			.lcdcon1 = S3C2410_LCDCON1_TFT16BPP |
+-				   S3C2410_LCDCON1_TFT |
+-				   S3C2410_LCDCON1_CLKVAL(0x01), /* HCLK/4 */
+-
+-			.lcdcon2 = S3C2410_LCDCON2_VBPD(1) |	/* 2 */
+-				   S3C2410_LCDCON2_LINEVAL(639) |/* 640 */
+-				   S3C2410_LCDCON2_VFPD(3) |	/* 4 */
+-				   S3C2410_LCDCON2_VSPW(1),	/* 2 */
+-
+-			.lcdcon3 = S3C2410_LCDCON3_HBPD(7) |	/* 8 */
+-				   S3C2410_LCDCON3_HOZVAL(479) | /* 479 */
+-				   S3C2410_LCDCON3_HFPD(23),	/* 24 */
+-
+-			.lcdcon4 = S3C2410_LCDCON4_MVAL(0) |
+-				   S3C2410_LCDCON4_HSPW(7),	/* 8 */
+-
+-			.lcdcon5 = S3C2410_LCDCON5_FRM565 |
+-				   S3C2410_LCDCON5_INVVLINE |
+-				   S3C2410_LCDCON5_INVVFRAME |
+-				   S3C2410_LCDCON5_PWREN |
+-				   S3C2410_LCDCON5_HWSWP,
+-		},
++		.lcdcon1 = S3C2410_LCDCON1_TFT16BPP |
++			   S3C2410_LCDCON1_TFT |
++			   S3C2410_LCDCON1_CLKVAL(0x01), /* HCLK/4 */
++
++		.lcdcon2 = S3C2410_LCDCON2_VBPD(1) |	/* 2 */
++			   S3C2410_LCDCON2_LINEVAL(639) |/* 640 */
++			   S3C2410_LCDCON2_VFPD(3) |	/* 4 */
++			   S3C2410_LCDCON2_VSPW(1),	/* 2 */
++
++		.lcdcon4 = S3C2410_LCDCON4_MVAL(0) |
++			   S3C2410_LCDCON4_HSPW(7),	/* 8 */
++
++		.lcdcon5 = S3C2410_LCDCON5_FRM565 |
++			   S3C2410_LCDCON5_INVVLINE |
++			   S3C2410_LCDCON5_INVVFRAME |
++			   S3C2410_LCDCON5_PWREN |
++			   S3C2410_LCDCON5_HWSWP,
+ 
+ 		.type		= S3C2410_LCDCON1_TFT,
+ 		.width		= 480,
+@@ -171,30 +157,23 @@ static struct s3c2410fb_display qt2410_l
+ 	},
+ 	{
+ 		/* Config for 240x320 LCD */
+-		.regs	= {
+-
+-			.lcdcon1 = S3C2410_LCDCON1_TFT16BPP |
+-				   S3C2410_LCDCON1_TFT |
+-				   S3C2410_LCDCON1_CLKVAL(0x04),
+-
+-			.lcdcon2 = S3C2410_LCDCON2_VBPD(1) |
+-				   S3C2410_LCDCON2_LINEVAL(319) |
+-				   S3C2410_LCDCON2_VFPD(6) |
+-				   S3C2410_LCDCON2_VSPW(3),
+-
+-			.lcdcon3 = S3C2410_LCDCON3_HBPD(12) |
+-				   S3C2410_LCDCON3_HOZVAL(239) |
+-				   S3C2410_LCDCON3_HFPD(7),
+-
+-			.lcdcon4 = S3C2410_LCDCON4_MVAL(0) |
+-				   S3C2410_LCDCON4_HSPW(3),
+-
+-			.lcdcon5 = S3C2410_LCDCON5_FRM565 |
+-				   S3C2410_LCDCON5_INVVLINE |
+-				   S3C2410_LCDCON5_INVVFRAME |
+-				   S3C2410_LCDCON5_PWREN |
+-				   S3C2410_LCDCON5_HWSWP,
+-		},
++		.lcdcon1 = S3C2410_LCDCON1_TFT16BPP |
++			   S3C2410_LCDCON1_TFT |
++			   S3C2410_LCDCON1_CLKVAL(0x04),
++
++		.lcdcon2 = S3C2410_LCDCON2_VBPD(1) |
++			   S3C2410_LCDCON2_LINEVAL(319) |
++			   S3C2410_LCDCON2_VFPD(6) |
++			   S3C2410_LCDCON2_VSPW(3),
++
++		.lcdcon4 = S3C2410_LCDCON4_MVAL(0) |
++			   S3C2410_LCDCON4_HSPW(3),
++
++		.lcdcon5 = S3C2410_LCDCON5_FRM565 |
++			   S3C2410_LCDCON5_INVVLINE |
++			   S3C2410_LCDCON5_INVVFRAME |
++			   S3C2410_LCDCON5_PWREN |
++			   S3C2410_LCDCON5_HWSWP,
+ 
+ 		.type		= S3C2410_LCDCON1_TFT,
+ 		.width		= 240,
+diff -puN arch/arm/mach-s3c2440/mach-rx3715.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display arch/arm/mach-s3c2440/mach-rx3715.c
+--- a/arch/arm/mach-s3c2440/mach-rx3715.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display
++++ a/arch/arm/mach-s3c2440/mach-rx3715.c
+@@ -111,27 +111,21 @@ static struct s3c2410_uartcfg rx3715_uar
+ /* framebuffer lcd controller information */
+ 
+ static struct s3c2410fb_display rx3715_lcdcfg __initdata = {
+-	.regs	= {
+-		.lcdcon1 =	S3C2410_LCDCON1_TFT16BPP | \
+-				S3C2410_LCDCON1_TFT | \
+-				S3C2410_LCDCON1_CLKVAL(0x0C),
+-
+-		.lcdcon2 =	S3C2410_LCDCON2_VBPD(5) | \
+-				S3C2410_LCDCON2_LINEVAL(319) | \
+-				S3C2410_LCDCON2_VFPD(6) | \
+-				S3C2410_LCDCON2_VSPW(2),
+-
+-		.lcdcon3 =	S3C2410_LCDCON3_HBPD(35) | \
+-				S3C2410_LCDCON3_HOZVAL(239) | \
+-				S3C2410_LCDCON3_HFPD(35),
+-
+-		.lcdcon4 =	S3C2410_LCDCON4_MVAL(0) | \
+-				S3C2410_LCDCON4_HSPW(7),
+-
+-		.lcdcon5 =	S3C2410_LCDCON5_INVVLINE |
+-				S3C2410_LCDCON5_FRM565 |
+-				S3C2410_LCDCON5_HWSWP,
+-	},
++	.lcdcon1 =	S3C2410_LCDCON1_TFT16BPP | \
++			S3C2410_LCDCON1_TFT | \
++			S3C2410_LCDCON1_CLKVAL(0x0C),
++
++	.lcdcon2 =	S3C2410_LCDCON2_VBPD(5) | \
++			S3C2410_LCDCON2_LINEVAL(319) | \
++			S3C2410_LCDCON2_VFPD(6) | \
++			S3C2410_LCDCON2_VSPW(2),
++
++	.lcdcon4 =	S3C2410_LCDCON4_MVAL(0) | \
++			S3C2410_LCDCON4_HSPW(7),
++
++	.lcdcon5 =	S3C2410_LCDCON5_INVVLINE |
++			S3C2410_LCDCON5_FRM565 |
++			S3C2410_LCDCON5_HWSWP,
+ 
+ 	.type		= S3C2410_LCDCON1_TFT,
+ 	.width		= 240,
+diff -puN arch/arm/mach-s3c2440/mach-smdk2440.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display arch/arm/mach-s3c2440/mach-smdk2440.c
+--- a/arch/arm/mach-s3c2440/mach-smdk2440.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display
++++ a/arch/arm/mach-s3c2440/mach-smdk2440.c
+@@ -104,30 +104,24 @@ static struct s3c2410_uartcfg smdk2440_u
+ /* LCD driver info */
+ 
+ static struct s3c2410fb_display smdk2440_lcd_cfg __initdata = {
+-	.regs	= {
+ 
+-		.lcdcon1	= S3C2410_LCDCON1_TFT16BPP |
+-				  S3C2410_LCDCON1_TFT |
+-				  S3C2410_LCDCON1_CLKVAL(0x04),
+-
+-		.lcdcon2	= S3C2410_LCDCON2_VBPD(7) |
+-				  S3C2410_LCDCON2_LINEVAL(319) |
+-				  S3C2410_LCDCON2_VFPD(6) |
+-				  S3C2410_LCDCON2_VSPW(3),
+-
+-		.lcdcon3	= S3C2410_LCDCON3_HBPD(19) |
+-				  S3C2410_LCDCON3_HOZVAL(239) |
+-				  S3C2410_LCDCON3_HFPD(7),
+-
+-		.lcdcon4	= S3C2410_LCDCON4_MVAL(0) |
+-				  S3C2410_LCDCON4_HSPW(3),
+-
+-		.lcdcon5	= S3C2410_LCDCON5_FRM565 |
+-				  S3C2410_LCDCON5_INVVLINE |
+-				  S3C2410_LCDCON5_INVVFRAME |
+-				  S3C2410_LCDCON5_PWREN |
+-				  S3C2410_LCDCON5_HWSWP,
+-	},
++	.lcdcon1	= S3C2410_LCDCON1_TFT16BPP |
++			  S3C2410_LCDCON1_TFT |
++			  S3C2410_LCDCON1_CLKVAL(0x04),
++
++	.lcdcon2	= S3C2410_LCDCON2_VBPD(7) |
++			  S3C2410_LCDCON2_LINEVAL(319) |
++			  S3C2410_LCDCON2_VFPD(6) |
++			  S3C2410_LCDCON2_VSPW(3),
++
++	.lcdcon4	= S3C2410_LCDCON4_MVAL(0) |
++			  S3C2410_LCDCON4_HSPW(3),
++
++	.lcdcon5	= S3C2410_LCDCON5_FRM565 |
++			  S3C2410_LCDCON5_INVVLINE |
++			  S3C2410_LCDCON5_INVVFRAME |
++			  S3C2410_LCDCON5_PWREN |
++			  S3C2410_LCDCON5_HWSWP,
+ 
+ 	.type		= S3C2410_LCDCON1_TFT16BPP,
+ 
+diff -puN drivers/video/s3c2410fb.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display drivers/video/s3c2410fb.c
+--- a/drivers/video/s3c2410fb.c~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display
++++ a/drivers/video/s3c2410fb.c
+@@ -245,7 +245,7 @@ static int s3c2410fb_check_var(struct fb
+ 
+ 	default:
+ 	case 16:
+-		if (display->regs.lcdcon5 & S3C2410_LCDCON5_FRM565) {
++		if (display->lcdcon5 & S3C2410_LCDCON5_FRM565) {
+ 			/* 16 bpp, 565 format */
+ 			var->red.offset		= 11;
+ 			var->green.offset	= 5;
+@@ -796,7 +796,6 @@ static int __init s3c2410fb_probe(struct
+ 	struct s3c2410fb_info *info;
+ 	struct s3c2410fb_display *display;
+ 	struct fb_info *fbinfo;
+-	struct s3c2410fb_hw *mregs;
+ 	struct resource *res;
+ 	int ret;
+ 	int irq;
+@@ -812,7 +811,6 @@ static int __init s3c2410fb_probe(struct
+ 	}
+ 
+ 	display = mach_info->displays + mach_info->default_display;
+-	mregs = &display->regs;
+ 
+ 	irq = platform_get_irq(pdev, 0);
+ 	if (irq < 0) {
+@@ -855,7 +853,10 @@ static int __init s3c2410fb_probe(struct
+ 
+ 	strcpy(fbinfo->fix.id, driver_name);
+ 
+-	memcpy(&info->regs, &display->regs, sizeof(info->regs));
++	info->regs.lcdcon1 = display->lcdcon1;
++	info->regs.lcdcon2 = display->lcdcon2;
++	info->regs.lcdcon4 = display->lcdcon4;
++	info->regs.lcdcon5 = display->lcdcon5;
+ 
+ 	/* Stop the video and unset ENVID if set */
+ 	info->regs.lcdcon1 &= ~S3C2410_LCDCON1_ENVID;
+@@ -892,14 +893,14 @@ static int __init s3c2410fb_probe(struct
+ 	fbinfo->var.right_margin    = display->right_margin;
+ 
+ 	fbinfo->var.upper_margin    =
+-				S3C2410_LCDCON2_GET_VBPD(mregs->lcdcon2) + 1;
++				S3C2410_LCDCON2_GET_VBPD(display->lcdcon2) + 1;
+ 	fbinfo->var.lower_margin    =
+-				S3C2410_LCDCON2_GET_VFPD(mregs->lcdcon2) + 1;
++				S3C2410_LCDCON2_GET_VFPD(display->lcdcon2) + 1;
+ 	fbinfo->var.vsync_len	    =
+-				S3C2410_LCDCON2_GET_VSPW(mregs->lcdcon2) + 1;
++				S3C2410_LCDCON2_GET_VSPW(display->lcdcon2) + 1;
+ 
+ 	fbinfo->var.hsync_len	    =
+-				S3C2410_LCDCON4_GET_HSPW(mregs->lcdcon4) + 1;
++				S3C2410_LCDCON4_GET_HSPW(display->lcdcon4) + 1;
+ 
+ 	fbinfo->var.red.offset      = 11;
+ 	fbinfo->var.green.offset    = 5;
+diff -puN include/asm-arm/arch-s3c2410/fb.h~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display include/asm-arm/arch-s3c2410/fb.h
+--- a/include/asm-arm/arch-s3c2410/fb.h~s3c2410fb-remove-lcdcon3-register-from-s3c2410fb_display
++++ a/include/asm-arm/arch-s3c2410/fb.h
+@@ -44,7 +44,10 @@ struct s3c2410fb_display {
+ 	unsigned short vsync_len;	/* value in lines (TFT) or 0 (STN) */
+ 
+ 	/* lcd configuration registers */
+-	struct s3c2410fb_hw  regs;
++	unsigned long	lcdcon1;
++	unsigned long	lcdcon2;
++	unsigned long	lcdcon4;
++	unsigned long	lcdcon5;
  };
  
- /* wrapper around hardware descriptor format + additional software fields */
-diff -puN drivers/dma/ioatdma_registers.h~i-oat-add-support-for-msi-and-msi-x drivers/dma/ioatdma_registers.h
---- a/drivers/dma/ioatdma_registers.h~i-oat-add-support-for-msi-and-msi-x
-+++ a/drivers/dma/ioatdma_registers.h
-@@ -1,5 +1,5 @@
- /*
-- * Copyright(c) 2004 - 2006 Intel Corporation. All rights reserved.
-+ * Copyright(c) 2004 - 2007 Intel Corporation. All rights reserved.
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the Free
-@@ -21,6 +21,9 @@
- #ifndef _IOAT_REGISTERS_H_
- #define _IOAT_REGISTERS_H_
- 
-+#define IOAT_PCI_DMACTRL_OFFSET			0x48
-+#define IOAT_PCI_DMACTRL_DMA_EN			0x00000001
-+#define IOAT_PCI_DMACTRL_MSI_EN			0x00000002
- 
- /* MMIO Device Registers */
- #define IOAT_CHANCNT_OFFSET			0x00	/*  8-bit */
-@@ -39,6 +42,7 @@
- #define IOAT_INTRCTRL_MASTER_INT_EN		0x01	/* Master Interrupt Enable */
- #define IOAT_INTRCTRL_INT_STATUS		0x02	/* ATTNSTATUS -or- Channel Int */
- #define IOAT_INTRCTRL_INT			0x04	/* INT_STATUS -and- MASTER_INT_EN */
-+#define IOAT_INTRCTRL_MSIX_VECTOR_CONTROL	0x08    /* Enable all MSI-X vectors */
- 
- #define IOAT_ATTNSTATUS_OFFSET			0x04	/* Each bit is a channel */
- 
-diff -puN include/linux/bitops.h~i-oat-add-support-for-msi-and-msi-x include/linux/bitops.h
---- a/include/linux/bitops.h~i-oat-add-support-for-msi-and-msi-x
-+++ a/include/linux/bitops.h
-@@ -8,6 +8,12 @@
-  */
- #include <asm/bitops.h>
- 
-+#define for_each_bit(bit, addr, size) \
-+	for ((bit) = find_first_bit((addr), (size)); \
-+	     (bit) < (size); \
-+	     (bit) = find_next_bit((addr), (size), (bit) + 1))
-+
-+
- static __inline__ int get_bitmask_order(unsigned int count)
- {
- 	int order;
+ struct s3c2410fb_mach_info {
 _
 
-Patches currently in -mm which might be from shannon.nelson@intel.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-remove-unsafe-from-module-struct.patch
+git-alsa.patch
+cyber2000fb-checkpatch-fixes.patch
