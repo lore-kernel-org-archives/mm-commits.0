@@ -1,85 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - readahead-remove-several-readahead-macros.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:31:04 -0700
-Message-ID: <200710162031.l9GKV4RO014465@imap1.linux-foundation.org>
+Subject: - mm-clarify-__add_to_swap_cache-locking.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:31:22 -0700
+Message-ID: <200710162031.l9GKVMi5014495@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45525 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36867 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966047AbXJPVpI (ORCPT
+	by vger.kernel.org with ESMTP id S965961AbXJPVpH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:45:08 -0400
+	Tue, 16 Oct 2007 17:45:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wfg@mail.ustc.edu.cn, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: npiggin@suse.de, hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     readahead: remove several readahead macros
+     mm: clarify __add_to_swap_cache locking
 has been removed from the -mm tree.  Its filename was
-     readahead-remove-several-readahead-macros.patch
+     mm-clarify-__add_to_swap_cache-locking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: readahead: remove several readahead macros
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: mm: clarify __add_to_swap_cache locking
+From: Nick Piggin <npiggin@suse.de>
 
-Remove VM_MAX_CACHE_HIT, MAX_RA_PAGES and MIN_RA_PAGES.
+__add_to_swap_cache unconditionally sets the page locked, which can be a bit
+alarming to the unsuspecting reader: in the code paths where the page is
+visible to other CPUs, the page should be (and is) already locked.
 
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Instead, just add a check to ensure the page is locked here, and teach the one
+path relying on the old behaviour to call SetPageLocked itself.
+
+[hugh@veritas.com: locking fix]
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 --
- mm/readahead.c     |   10 +---------
- 2 files changed, 1 insertion(+), 11 deletions(-)
+ mm/swap_state.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~readahead-remove-several-readahead-macros include/linux/mm.h
---- a/include/linux/mm.h~readahead-remove-several-readahead-macros
-+++ a/include/linux/mm.h
-@@ -1106,8 +1106,6 @@ int write_one_page(struct page *page, in
- /* readahead.c */
- #define VM_MAX_READAHEAD	128	/* kbytes */
- #define VM_MIN_READAHEAD	16	/* kbytes (includes current page) */
--#define VM_MAX_CACHE_HIT    	256	/* max pages in a row in cache before
--					 * turning readahead off */
+diff -puN mm/swap_state.c~mm-clarify-__add_to_swap_cache-locking mm/swap_state.c
+--- a/mm/swap_state.c~mm-clarify-__add_to_swap_cache-locking
++++ a/mm/swap_state.c
+@@ -74,6 +74,7 @@ static int __add_to_swap_cache(struct pa
+ {
+ 	int error;
  
- int do_page_cache_readahead(struct address_space *mapping, struct file *filp,
- 			pgoff_t offset, unsigned long nr_to_read);
-diff -puN mm/readahead.c~readahead-remove-several-readahead-macros mm/readahead.c
---- a/mm/readahead.c~readahead-remove-several-readahead-macros
-+++ a/mm/readahead.c
-@@ -22,16 +22,8 @@ void default_unplug_io_fn(struct backing
- }
- EXPORT_SYMBOL(default_unplug_io_fn);
++	BUG_ON(!PageLocked(page));
+ 	BUG_ON(PageSwapCache(page));
+ 	BUG_ON(PagePrivate(page));
+ 	error = radix_tree_preload(gfp_mask);
+@@ -83,7 +84,6 @@ static int __add_to_swap_cache(struct pa
+ 						entry.val, page);
+ 		if (!error) {
+ 			page_cache_get(page);
+-			SetPageLocked(page);
+ 			SetPageSwapCache(page);
+ 			set_page_private(page, entry.val);
+ 			total_swapcache_pages++;
+@@ -99,15 +99,18 @@ static int add_to_swap_cache(struct page
+ {
+ 	int error;
  
--/*
-- * Convienent macros for min/max read-ahead pages.
-- * Note that MAX_RA_PAGES is rounded down, while MIN_RA_PAGES is rounded up.
-- * The latter is necessary for systems with large page size(i.e. 64k).
-- */
--#define MAX_RA_PAGES	(VM_MAX_READAHEAD*1024 / PAGE_CACHE_SIZE)
--#define MIN_RA_PAGES	DIV_ROUND_UP(VM_MIN_READAHEAD*1024, PAGE_CACHE_SIZE)
--
- struct backing_dev_info default_backing_dev_info = {
--	.ra_pages	= MAX_RA_PAGES,
-+	.ra_pages	= VM_MAX_READAHEAD * 1024 / PAGE_CACHE_SIZE,
- 	.state		= 0,
- 	.capabilities	= BDI_CAP_MAP_COPY,
- 	.unplug_io_fn	= default_unplug_io_fn,
++	BUG_ON(PageLocked(page));
+ 	if (!swap_duplicate(entry)) {
+ 		INC_CACHE_INFO(noent_race);
+ 		return -ENOENT;
+ 	}
++	SetPageLocked(page);
+ 	error = __add_to_swap_cache(page, entry, GFP_KERNEL);
+ 	/*
+ 	 * Anon pages are already on the LRU, we don't run lru_cache_add here.
+ 	 */
+ 	if (error) {
++		ClearPageLocked(page);
+ 		swap_free(entry);
+ 		if (error == -EEXIST)
+ 			INC_CACHE_INFO(exist_race);
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-maps-pssproportional-set-size-accounting-in-smaps.patch
-convert-ill-defined-log2-to-ilog2.patch
-avoid-negative-and-full-width-shifts-in-radix-treec.patch
-writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
-writeback-fix-ntfs-with-sb_has_dirty_inodes.patch
-writeback-remove-pages_skipped-accounting-in-__block_write_full_page.patch
-writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
-writeback-introduce-writeback_controlmore_io-to-indicate-more-io.patch
-writeback-remove-unnecessary-wait-in-throttle_vm_writeout.patch
+mm-document-tree_lock-zonelock-lockorder.patch
+fs-reiserfs-cleanups.patch
+atomic_opstxt-has-incorrect-misleading-and-insufficient-information.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+bitops-introduce-lock-ops.patch
+alpha-fix-bitops.patch
+alpha-lock-bitops.patch
+alpha-lock-bitops-fix.patch
+ia64-lock-bitops.patch
+mips-fix-bitops.patch
+mips-lock-bitops.patch
+powerpc-lock-bitops.patch
+powerpc-lock-bitops-fix.patch
+bit_spin_lock-use-lock-bitops.patch
+reiser4-fix-for-new-aops-patches.patch
