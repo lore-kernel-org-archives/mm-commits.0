@@ -1,60 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: - git-arm-fixup.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 19:05:00 -0700
-Message-ID: <200710160205.l9G251sj003807@imap1.linux-foundation.org>
+Subject: - git-mips-fixup.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 19:06:40 -0700
+Message-ID: <200710160206.l9G26eQG003854@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33534 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52184 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755534AbXJPCFE (ORCPT
+	by vger.kernel.org with ESMTP id S1752701AbXJPCGn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 22:05:04 -0400
+	Mon, 15 Oct 2007 22:06:43 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9G251HO014839
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9G26e9j014880
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2007 19:05:02 -0700
+	for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2007 19:06:41 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-arm-fixup
+     git-mips-fixup
 has been removed from the -mm tree.  Its filename was
-     git-arm-fixup.patch
+     git-mips-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-arm-fixup
+Subject: git-mips-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/smc91x.c |    3 ---
- 1 file changed, 3 deletions(-)
+ arch/mips/kernel/smp.c                |    4 ----
+ arch/mips/mips-boards/generic/time.c  |    6 ------
+ arch/mips/mm/c-r4k.c                  |    4 ----
+ arch/mips/mm/pg-r4k.c                 |   12 ------------
+ arch/mips/pmc-sierra/yosemite/setup.c |    9 ---------
+ arch/mips/sgi-ip22/ip22-time.c        |    7 -------
+ drivers/net/jazzsonic.c               |    7 -------
+ 7 files changed, 49 deletions(-)
 
-diff -puN drivers/net/smc91x.c~git-arm-fixup drivers/net/smc91x.c
---- a/drivers/net/smc91x.c~git-arm-fixup
-+++ a/drivers/net/smc91x.c
-@@ -173,7 +173,6 @@ MODULE_LICENSE("GPL");
-  */
- #define MII_DELAY		1
+diff -puN arch/mips/kernel/smp.c~git-mips-fixup arch/mips/kernel/smp.c
+--- a/arch/mips/kernel/smp.c~git-mips-fixup
++++ a/arch/mips/kernel/smp.c
+@@ -457,11 +457,7 @@ void flush_tlb_kernel_range(unsigned lon
+ 		.addr2 = end,
+ 	};
  
--<<<<<<< HEAD/drivers/net/smc91x.c
- /* store this information for the driver.. */
- struct smc_local {
- 	/*
-@@ -217,8 +216,6 @@ struct smc_local {
- 	void __iomem *datacs;
- };
- 
+-<<<<<<< HEAD/arch/mips/kernel/smp.c
+-	on_each_cpu(flush_tlb_kernel_range_ipi, &fd, 1, 1);
 -=======
-->>>>>>> /drivers/net/smc91x.c
- #if SMC_DEBUG > 0
- #define DBG(n, args...)					\
- 	do {						\
+ 	on_each_cpu(flush_tlb_kernel_range_ipi, (void *)&fd, 1, 1);
+->>>>>>> /arch/mips/kernel/smp.c
+ }
+ 
+ static void flush_tlb_page_ipi(void *info)
+diff -puN arch/mips/mips-boards/generic/time.c~git-mips-fixup arch/mips/mips-boards/generic/time.c
+--- a/arch/mips/mips-boards/generic/time.c~git-mips-fixup
++++ a/arch/mips/mips-boards/generic/time.c
+@@ -142,13 +142,7 @@ void __init plat_time_init(void)
+         cpu_khz = est_freq / 1000;
+ 
+ 	mips_scroll_message();
+-<<<<<<< HEAD/arch/mips/mips-boards/generic/time.c
+-#ifdef CONFIG_I8253		/* Only Malta has a PIT */
+ 	setup_pit_timer();
+-#endif
+-=======
+-	setup_pit_timer();
+->>>>>>> /arch/mips/mips-boards/generic/time.c
+ }
+ 
+ //static irqreturn_t mips_perf_interrupt(int irq, void *dev_id)
+diff -puN arch/mips/mm/c-r4k.c~git-mips-fixup arch/mips/mm/c-r4k.c
+--- a/arch/mips/mm/c-r4k.c~git-mips-fixup
++++ a/arch/mips/mm/c-r4k.c
+@@ -456,11 +456,7 @@ static inline void local_r4k_flush_cache
+ 			r4k_blast_scache_page(addr);
+ 	}
+ 	if (exec) {
+-<<<<<<< HEAD/arch/mips/mm/c-r4k.c
+-		if (vaddr && cpu_has_vtag_icache && mm == current->active_mm) {
+-=======
+ 		if (vaddr && cpu_has_vtag_icache) {
+->>>>>>> /arch/mips/mm/c-r4k.c
+ 			int cpu = smp_processor_id();
+ 
+ 			if (cpu_context(cpu, mm) != 0)
+diff -puN arch/mips/mm/pg-r4k.c~git-mips-fixup arch/mips/mm/pg-r4k.c
+--- a/arch/mips/mm/pg-r4k.c~git-mips-fixup
++++ a/arch/mips/mm/pg-r4k.c
+@@ -527,17 +527,6 @@ dest = label();
+ 	build_jr_ra();
+ 
+ 	BUG_ON(epc > copy_page_array + ARRAY_SIZE(copy_page_array));
+-<<<<<<< HEAD/arch/mips/mm/pg-r4k.c
+-
+-	pr_info("Synthesized copy page handler (%u instructions).\n",
+-		(unsigned int)(epc - copy_page_array));
+-
+-	pr_debug("\t.set push\n");
+-	pr_debug("\t.set noreorder\n");
+-	for (i = 0; i < (epc - copy_page_array); i++)
+-		pr_debug("\t.word 0x%08x\n", copy_page_array[i]);
+-	pr_debug("\t.set pop\n");
+-=======
+ 
+ 	pr_info("Synthesized copy page handler (%u instructions).\n",
+ 		(unsigned int)(epc - copy_page_array));
+@@ -576,5 +565,4 @@ struct page * ____alloc_zeroed_user_high
+ 	smp_wmb();
+ 
+ 	return page;
+->>>>>>> /arch/mips/mm/pg-r4k.c
+ }
+diff -puN arch/mips/mm/tlbex.c~git-mips-fixup arch/mips/mm/tlbex.c
+diff -puN arch/mips/pmc-sierra/yosemite/setup.c~git-mips-fixup arch/mips/pmc-sierra/yosemite/setup.c
+--- a/arch/mips/pmc-sierra/yosemite/setup.c~git-mips-fixup
++++ a/arch/mips/pmc-sierra/yosemite/setup.c
+@@ -100,21 +100,12 @@ int rtc_mips_set_time(unsigned long tim)
+ 	struct rtc_time tm;
+ 	unsigned long flags;
+ 
+-<<<<<<< HEAD/arch/mips/pmc-sierra/yosemite/setup.c
+-	/*
+-	 * Convert to a more useful format -- note months count from 0
+-	 * and years from 1900
+-	 */
+-	rtc_time_to_tm(tim, &tm);
+-	tm.tm_year += 1900;
+-=======
+ 	/*
+ 	 * Convert to a more useful format -- note months count from 0
+ 	 * and years from 1900
+ 	 */
+ 	rtc_time_to_tm(sec, &tm);
+ 	tm.tm_year += 1900;
+->>>>>>> /arch/mips/pmc-sierra/yosemite/setup.c
+ 	tm.tm_mon += 1;
+ 
+ 	spin_lock_irqsave(&rtc_lock, flags);
+diff -puN arch/mips/sgi-ip22/ip22-time.c~git-mips-fixup arch/mips/sgi-ip22/ip22-time.c
+--- a/arch/mips/sgi-ip22/ip22-time.c~git-mips-fixup
++++ a/arch/mips/sgi-ip22/ip22-time.c
+@@ -173,15 +173,8 @@ __init void plat_time_init(void)
+ 		(int) (r4k_tick % (500000 / HZ)));
+ 
+ 	mips_hpt_frequency = r4k_tick * HZ;
+-<<<<<<< HEAD/arch/mips/sgi-ip22/ip22-time.c
+-
+-	if (ip22_is_fullhouse())
+-		setup_pit_timer();
+-=======
+-
+ 	if (ip22_is_fullhouse)
+ 		setup_pit_timer();
+->>>>>>> /arch/mips/sgi-ip22/ip22-time.c
+ }
+ 
+ /* Generic SGI handler for (spurious) 8254 interrupts */
+diff -puN drivers/net/jazzsonic.c~git-mips-fixup drivers/net/jazzsonic.c
+--- a/drivers/net/jazzsonic.c~git-mips-fixup
++++ a/drivers/net/jazzsonic.c
+@@ -211,13 +211,6 @@ static int __init jazz_sonic_probe(struc
+ 	int i;
+ 	DECLARE_MAC_BUF(mac);
+ 
+-<<<<<<< HEAD/drivers/net/jazzsonic.c
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res)
+-		return -ENODEV;
+-
+-=======
+->>>>>>> /drivers/net/jazzsonic.c
+ 	dev = alloc_etherdev(sizeof(struct sonic_local));
+ 	if (!dev)
+ 		return -ENOMEM;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -65,9 +187,7 @@ git-acpi.patch
 acpi-add-reboot-mechanism.patch
 git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm-fixup.patch
 git-cifs.patch
-git-powerpc-galak.patch
 revert-gregkh-driver-spi-convert-from-class_device-to-device-for-spi.patch
 git-dvb.patch
 applesmc-for-mac-pro-2-x-quad-core-fix.patch
@@ -79,7 +199,6 @@ git-kbuild.patch
 git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
-ata_piix-sata-2port-controller-port-map-fix-checkpatch-fixes.patch
 ide-arm-hack.patch
 git-md-accel-fixup.patch
 git-mips-fixup.patch
