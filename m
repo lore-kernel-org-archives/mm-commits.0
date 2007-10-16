@@ -1,95 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - mm-improve-find_lock_page.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:31:20 -0700
-Message-ID: <200710162031.l9GKVK21014492@imap1.linux-foundation.org>
+Subject: - drain-per-cpu-lists-when-high-order-allocations-fail.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:34:36 -0700
+Message-ID: <200710162034.l9GKYavq014956@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39767 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35825 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965862AbXJPViB (ORCPT
+	by vger.kernel.org with ESMTP id S1765841AbXJPViE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:38:01 -0400
+	Tue, 16 Oct 2007 17:38:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: improve find_lock_page
+     Drain per-cpu lists when high-order allocations fail
 has been removed from the -mm tree.  Its filename was
-     mm-improve-find_lock_page.patch
+     drain-per-cpu-lists-when-high-order-allocations-fail.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mm: improve find_lock_page
-From: Nick Piggin <npiggin@suse.de>
+Subject: Drain per-cpu lists when high-order allocations fail
+From: Mel Gorman <mel@csn.ul.ie>
 
-find_lock_page does not need to recheck ->index because if the page is in the
-right mapping then the index must be the same.  Also, tree_lock does not need
-to be retaken after the page is locked in order to test that ->mapping has not
-changed, because holding the page lock pins its mapping.
+Per-cpu pages can accidentally cause fragmentation because they are free, but
+pinned pages in an otherwise contiguous block.  When this patch is applied,
+the per-cpu caches are drained after the direct-reclaim is entered if the
+requested order is greater than 0.  It simply reuses the code used by suspend
+and hotplug.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |   28 +++++++++++++++++++++++++++-
+ 1 file changed, 27 insertions(+), 1 deletion(-)
 
-diff -puN mm/filemap.c~mm-improve-find_lock_page mm/filemap.c
---- a/mm/filemap.c~mm-improve-find_lock_page
-+++ a/mm/filemap.c
-@@ -621,26 +621,27 @@ struct page *find_lock_page(struct addre
- {
- 	struct page *page;
- 
--	read_lock_irq(&mapping->tree_lock);
- repeat:
-+	read_lock_irq(&mapping->tree_lock);
- 	page = radix_tree_lookup(&mapping->page_tree, offset);
- 	if (page) {
- 		page_cache_get(page);
- 		if (TestSetPageLocked(page)) {
- 			read_unlock_irq(&mapping->tree_lock);
- 			__lock_page(page);
--			read_lock_irq(&mapping->tree_lock);
- 
- 			/* Has the page been truncated while we slept? */
--			if (unlikely(page->mapping != mapping ||
--				     page->index != offset)) {
-+			if (unlikely(page->mapping != mapping)) {
- 				unlock_page(page);
- 				page_cache_release(page);
- 				goto repeat;
- 			}
-+			VM_BUG_ON(page->index != offset);
-+			goto out;
- 		}
+diff -puN mm/page_alloc.c~drain-per-cpu-lists-when-high-order-allocations-fail mm/page_alloc.c
+--- a/mm/page_alloc.c~drain-per-cpu-lists-when-high-order-allocations-fail
++++ a/mm/page_alloc.c
+@@ -876,7 +876,9 @@ void mark_free_pages(struct zone *zone)
  	}
- 	read_unlock_irq(&mapping->tree_lock);
-+out:
- 	return page;
+ 	spin_unlock_irqrestore(&zone->lock, flags);
  }
- EXPORT_SYMBOL(find_lock_page);
++#endif /* CONFIG_PM */
+ 
++#if defined(CONFIG_HIBERNATION) || defined(CONFIG_PAGE_GROUP_BY_MOBILITY)
+ /*
+  * Spill all of this CPU's per-cpu pages back into the buddy allocator.
+  */
+@@ -888,7 +890,28 @@ void drain_local_pages(void)
+ 	__drain_pages(smp_processor_id());
+ 	local_irq_restore(flags);	
+ }
+-#endif /* CONFIG_HIBERNATION */
++
++void smp_drain_local_pages(void *arg)
++{
++	drain_local_pages();
++}
++
++/*
++ * Spill all the per-cpu pages from all CPUs back into the buddy allocator
++ */
++void drain_all_local_pages(void)
++{
++	unsigned long flags;
++
++	local_irq_save(flags);
++	__drain_pages(smp_processor_id());
++	local_irq_restore(flags);
++
++	smp_call_function(smp_drain_local_pages, NULL, 0, 1);
++}
++#else
++void drain_all_local_pages(void) {}
++#endif /* CONFIG_HIBERNATION || CONFIG_PAGE_GROUP_BY_MOBILITY */
+ 
+ /*
+  * Free a 0-order page
+@@ -1480,6 +1503,9 @@ nofail_alloc:
+ 
+ 	cond_resched();
+ 
++	if (order != 0)
++		drain_all_local_pages();
++
+ 	if (likely(did_some_progress)) {
+ 		page = get_page_from_freelist(gfp_mask, order,
+ 						zonelist, alloc_flags);
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 origin.patch
-mm-document-tree_lock-zonelock-lockorder.patch
-fs-reiserfs-cleanups.patch
-atomic_opstxt-has-incorrect-misleading-and-insufficient-information.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
-bitops-introduce-lock-ops.patch
-alpha-fix-bitops.patch
-alpha-lock-bitops.patch
-alpha-lock-bitops-fix.patch
-ia64-lock-bitops.patch
-mips-fix-bitops.patch
-mips-lock-bitops.patch
-powerpc-lock-bitops.patch
-powerpc-lock-bitops-fix.patch
-bit_spin_lock-use-lock-bitops.patch
-reiser4-fix-for-new-aops-patches.patch
+ext2-reservations.patch
+page-owner-tracking-leak-detector.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
