@@ -1,70 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - tgafb-remove-a-redundant-non-mono-test-in-mono-imageblit.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:45:55 -0700
-Message-ID: <200710162045.l9GKjtGJ016312@imap1.linux-foundation.org>
+Subject: - ecryptfs-collapse-flag-set-into-one-statement.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:40:29 -0700
+Message-ID: <200710162040.l9GKeT9w015694@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42455 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46071 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965540AbXJPU5d (ORCPT
+	by vger.kernel.org with ESMTP id S965905AbXJPU6p (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 16:57:33 -0400
+	Tue, 16 Oct 2007 16:58:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: macro@linux-mips.org, Jay.Estabrook@hp.com, adaplas@pol.net, mm-commits@vger.kernel.org
+To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tgafb: remove a redundant non-mono test in mono imageblit
+     eCryptfs: collapse flag set into one statement
 has been removed from the -mm tree.  Its filename was
-     tgafb-remove-a-redundant-non-mono-test-in-mono-imageblit.patch
+     ecryptfs-collapse-flag-set-into-one-statement.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: tgafb: remove a redundant non-mono test in mono imageblit
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
+Subject: eCryptfs: collapse flag set into one statement
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-There is a test in tgafb_mono_imageblit() for a colour image with a fall-back
-to cfb_imageblit().  The test is not necessary as the only caller, which is
-tgafb_imageblit(), checks it too and only invokes this function for monochrome
-images.  It looks like a left-over from before some changes to
-tgafb_imageblit().
+Andrew Morton wrote:
+> > +     crypt_stat->flags |= ECRYPTFS_ENCRYPTED;
+> > +     crypt_stat->flags |= ECRYPTFS_KEY_VALID;
+>
+> Maybe the compiler can optimise those two statements, but we'd
+> normally provide it with some manual help.
 
-Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
-Cc: Antonino Daplas <adaplas@pol.net>
-Cc: Jay Estabrook <Jay.Estabrook@hp.com>
+This patch provides the compiler with some manual help for
+optimizing the setting of some flags.
+
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tgafb.c |    9 ---------
- 1 file changed, 9 deletions(-)
+ fs/ecryptfs/crypto.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/video/tgafb.c~tgafb-remove-a-redundant-non-mono-test-in-mono-imageblit drivers/video/tgafb.c
---- a/drivers/video/tgafb.c~tgafb-remove-a-redundant-non-mono-test-in-mono-imageblit
-+++ a/drivers/video/tgafb.c
-@@ -637,15 +637,6 @@ tgafb_mono_imageblit(struct fb_info *inf
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-collapse-flag-set-into-one-statement fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-collapse-flag-set-into-one-statement
++++ a/fs/ecryptfs/crypto.c
+@@ -1029,8 +1029,7 @@ int ecryptfs_new_file_context(struct den
+ 	int rc = 0;
  
- 	is8bpp = info->var.bits_per_pixel == 8;
- 
--	/* For copies that aren't pixel expansion, there's little we
--	   can do better than the generic code.  */
--	/* ??? There is a DMA write mode; I wonder if that could be
--	   made to pull the data from the image buffer...  */
--	if (image->depth > 1) {
--		cfb_imageblit(info, image);
--		return;
--	}
--
- 	dx = image->dx;
- 	dy = image->dy;
- 	width = image->width;
+ 	ecryptfs_set_default_crypt_stat_vals(crypt_stat, mount_crypt_stat);
+-	crypt_stat->flags |= ECRYPTFS_ENCRYPTED;
+-	crypt_stat->flags |= ECRYPTFS_KEY_VALID;
++	crypt_stat->flags |= (ECRYPTFS_ENCRYPTED | ECRYPTFS_KEY_VALID);
+ 	ecryptfs_copy_mount_wide_flags_to_inode_flags(crypt_stat,
+ 						      mount_crypt_stat);
+ 	rc = ecryptfs_copy_mount_wide_sigs_to_inode_sigs(crypt_stat,
 _
 
-Patches currently in -mm which might be from macro@linux-mips.org are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
 origin.patch
-include-linux-typesh-in-if_fddih.patch
-avoid-negative-and-full-width-shifts-in-radix-treec.patch
-lk201-remove-obsolete-driver.patch
-kernel-printkc-concerns-about-the-console-handover.patch
+git-unionfs.patch
+ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
+vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
