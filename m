@@ -1,424 +1,496 @@
 From: akpm@linux-foundation.org
-Subject: - mm-buffered-write-cleanup.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:32:06 -0700
-Message-ID: <200710162032.l9GKW6gq014568@imap1.linux-foundation.org>
+Subject: - remove-zero_page.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:31:15 -0700
+Message-ID: <200710162031.l9GKVFV9014486@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39595 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40188 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765699AbXJPVls (ORCPT
+	by vger.kernel.org with ESMTP id S934271AbXJPVmb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:41:48 -0400
+	Tue, 16 Oct 2007 17:42:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: buffered write cleanup
+     remove ZERO_PAGE
 has been removed from the -mm tree.  Its filename was
-     mm-buffered-write-cleanup.patch
+     remove-zero_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mm: buffered write cleanup
+Subject: remove ZERO_PAGE
 From: Nick Piggin <npiggin@suse.de>
 
-Quite a bit of code is used in maintaining these "cached pages" that are
-probably pretty unlikely to get used. It would require a narrow race where
-the page is inserted concurrently while this process is allocating a page
-in order to create the spare page. Then a multi-page write into an uncached
-part of the file, to make use of it.
+The commit b5810039a54e5babf428e9a1e89fc1940fabff11 contains the note
 
-Next, the buffered write path (and others) uses its own LRU pagevec when it
-should be just using the per-CPU LRU pagevec (which will cut down on both data
-and code size cacheline footprint). Also, these private LRU pagevecs are
-emptied after just a very short time, in contrast with the per-CPU pagevecs
-that are persistent. Net result: 7.3 times fewer lru_lock acquisitions required
-to add the pages to pagecache for a bulk write (in 4K chunks).
+  A last caveat: the ZERO_PAGE is now refcounted and managed with rmap
+  (and thus mapcounted and count towards shared rss).  These writes to
+  the struct page could cause excessive cacheline bouncing on big
+  systems.  There are a number of ways this could be addressed if it is
+  an issue.
 
-[this gets rid of some cond_resched() calls in readahead.c and mpage.c due
- to clashes in -mm. What put them there, and why? ]
+And indeed this cacheline bouncing has shown up on large SGI systems.
+There was a situation where an Altix system was essentially livelocked
+tearing down ZERO_PAGE pagetables when an HPC app aborted during startup.
+This situation can be avoided in userspace, but it does highlight the
+potential scalability problem with refcounting ZERO_PAGE, and corner
+cases where it can really hurt (we don't want the system to livelock!).
+
+There are several broad ways to fix this problem:
+1. add back some special casing to avoid refcounting ZERO_PAGE
+2. per-node or per-cpu ZERO_PAGES
+3. remove the ZERO_PAGE completely
+
+I will argue for 3. The others should also fix the problem, but they
+result in more complex code than does 3, with little or no real benefit
+that I can see.
+
+Why? Inserting a ZERO_PAGE for anonymous read faults appears to be a
+false optimisation: if an application is performance critical, it would
+not be doing many read faults of new memory, or at least it could be
+expected to write to that memory soon afterwards. If cache or memory use
+is critical, it should not be working with a significant number of
+ZERO_PAGEs anyway (a more compact representation of zeroes should be
+used).
+
+As a sanity check -- mesuring on my desktop system, there are never many
+mappings to the ZERO_PAGE (eg. 2 or 3), thus memory usage here should not
+increase much without it.
+
+When running a make -j4 kernel compile on my dual core system, there are
+about 1,000 mappings to the ZERO_PAGE created per second, but about 1,000
+ZERO_PAGE COW faults per second (less than 1 ZERO_PAGE mapping per second
+is torn down without being COWed). So removing ZERO_PAGE will save 1,000
+page faults per second when running kbuild, while keeping it only saves
+less than 1 page clearing operation per second. 1 page clear is cheaper
+than a thousand faults, presumably, so there isn't an obvious loss.
+
+Neither the logical argument nor these basic tests give a guarantee of no
+regressions. However, this is a reasonable opportunity to try to remove
+the ZERO_PAGE from the pagefault path. If it is found to cause regressions,
+we can reintroduce it and just avoid refcounting it.
+
+The /dev/zero ZERO_PAGE usage and TLB tricks also get nuked.  I don't see
+much use to them except on benchmarks.  All other users of ZERO_PAGE are
+converted just to use ZERO_PAGE(0) for simplicity. We can look at
+replacing them all and maybe ripping out ZERO_PAGE completely when we are
+more satisfied with this solution.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c     |   10 ---
- mm/filemap.c   |  145 ++++++++++++++++++-----------------------------
- mm/readahead.c |   24 ++-----
- 3 files changed, 66 insertions(+), 113 deletions(-)
+ drivers/char/mem.c    |  127 ++++-----------------------------
+ fs/binfmt_elf.c       |    2 
+ fs/binfmt_elf_fdpic.c |    2 
+ fs/direct-io.c        |    4 -
+ include/linux/mm.h    |    2 
+ mm/memory.c           |  151 +++++-----------------------------------
+ 6 files changed, 43 insertions(+), 245 deletions(-)
 
-diff -puN fs/mpage.c~mm-buffered-write-cleanup fs/mpage.c
---- a/fs/mpage.c~mm-buffered-write-cleanup
-+++ a/fs/mpage.c
-@@ -379,31 +379,25 @@ mpage_readpages(struct address_space *ma
- 	struct bio *bio = NULL;
- 	unsigned page_idx;
- 	sector_t last_block_in_bio = 0;
--	struct pagevec lru_pvec;
- 	struct buffer_head map_bh;
- 	unsigned long first_logical_block = 0;
- 
- 	clear_buffer_mapped(&map_bh);
--	pagevec_init(&lru_pvec, 0);
- 	for (page_idx = 0; page_idx < nr_pages; page_idx++) {
- 		struct page *page = list_entry(pages->prev, struct page, lru);
- 
- 		prefetchw(&page->flags);
- 		list_del(&page->lru);
--		if (!add_to_page_cache(page, mapping,
-+		if (!add_to_page_cache_lru(page, mapping,
- 					page->index, GFP_KERNEL)) {
- 			bio = do_mpage_readpage(bio, page,
- 					nr_pages - page_idx,
- 					&last_block_in_bio, &map_bh,
- 					&first_logical_block,
- 					get_block);
--			if (!pagevec_add(&lru_pvec, page))
--				__pagevec_lru_add(&lru_pvec);
--		} else {
--			page_cache_release(page);
- 		}
-+		page_cache_release(page);
- 	}
--	pagevec_lru_add(&lru_pvec);
- 	BUG_ON(!list_empty(pages));
- 	if (bio)
- 		mpage_bio_submit(READ, bio);
-diff -puN mm/filemap.c~mm-buffered-write-cleanup mm/filemap.c
---- a/mm/filemap.c~mm-buffered-write-cleanup
-+++ a/mm/filemap.c
-@@ -666,27 +666,22 @@ EXPORT_SYMBOL(find_lock_page);
- struct page *find_or_create_page(struct address_space *mapping,
- 		pgoff_t index, gfp_t gfp_mask)
- {
--	struct page *page, *cached_page = NULL;
-+	struct page *page;
- 	int err;
- repeat:
- 	page = find_lock_page(mapping, index);
- 	if (!page) {
--		if (!cached_page) {
--			cached_page =
--				__page_cache_alloc(gfp_mask);
--			if (!cached_page)
--				return NULL;
--		}
--		err = add_to_page_cache_lru(cached_page, mapping,
--					index, gfp_mask);
--		if (!err) {
--			page = cached_page;
--			cached_page = NULL;
--		} else if (err == -EEXIST)
--			goto repeat;
-+		page = __page_cache_alloc(gfp_mask);
-+		if (!page)
-+			return NULL;
-+		err = add_to_page_cache_lru(page, mapping, index, gfp_mask);
-+		if (unlikely(err)) {
-+			page_cache_release(page);
-+			page = NULL;
-+			if (err == -EEXIST)
-+				goto repeat;
-+		}
- 	}
--	if (cached_page)
--		page_cache_release(cached_page);
- 	return page;
- }
- EXPORT_SYMBOL(find_or_create_page);
-@@ -872,10 +867,8 @@ void do_generic_mapping_read(struct addr
- 	pgoff_t prev_index;
- 	unsigned long offset;      /* offset into pagecache page */
- 	unsigned int prev_offset;
--	struct page *cached_page;
- 	int error;
- 
--	cached_page = NULL;
- 	index = *ppos >> PAGE_CACHE_SHIFT;
- 	prev_index = ra->prev_pos >> PAGE_CACHE_SHIFT;
- 	prev_offset = ra->prev_pos & (PAGE_CACHE_SIZE-1);
-@@ -1031,23 +1024,20 @@ no_cached_page:
- 		 * Ok, it wasn't cached, so we need to create a new
- 		 * page..
- 		 */
--		if (!cached_page) {
--			cached_page = page_cache_alloc_cold(mapping);
--			if (!cached_page) {
--				desc->error = -ENOMEM;
--				goto out;
--			}
-+		page = page_cache_alloc_cold(mapping);
-+		if (!page) {
-+			desc->error = -ENOMEM;
-+			goto out;
- 		}
--		error = add_to_page_cache_lru(cached_page, mapping,
-+		error = add_to_page_cache_lru(page, mapping,
- 						index, GFP_KERNEL);
- 		if (error) {
-+			page_cache_release(page);
- 			if (error == -EEXIST)
- 				goto find_page;
- 			desc->error = error;
- 			goto out;
- 		}
--		page = cached_page;
--		cached_page = NULL;
- 		goto readpage;
- 	}
- 
-@@ -1057,8 +1047,6 @@ out:
- 	ra->prev_pos |= prev_offset;
- 
- 	*ppos = ((loff_t)index << PAGE_CACHE_SHIFT) + offset;
--	if (cached_page)
--		page_cache_release(cached_page);
- 	if (filp)
- 		file_accessed(filp);
- }
-@@ -1502,35 +1490,28 @@ static struct page *__read_cache_page(st
- 				int (*filler)(void *,struct page*),
- 				void *data)
- {
--	struct page *page, *cached_page = NULL;
-+	struct page *page;
- 	int err;
- repeat:
- 	page = find_get_page(mapping, index);
- 	if (!page) {
--		if (!cached_page) {
--			cached_page = page_cache_alloc_cold(mapping);
--			if (!cached_page)
--				return ERR_PTR(-ENOMEM);
--		}
--		err = add_to_page_cache_lru(cached_page, mapping,
--					index, GFP_KERNEL);
--		if (err == -EEXIST)
--			goto repeat;
--		if (err < 0) {
-+		page = page_cache_alloc_cold(mapping);
-+		if (!page)
-+			return ERR_PTR(-ENOMEM);
-+		err = add_to_page_cache_lru(page, mapping, index, GFP_KERNEL);
-+		if (unlikely(err)) {
-+			page_cache_release(page);
-+			if (err == -EEXIST)
-+				goto repeat;
- 			/* Presumably ENOMEM for radix tree node */
--			page_cache_release(cached_page);
- 			return ERR_PTR(err);
- 		}
--		page = cached_page;
--		cached_page = NULL;
- 		err = filler(data, page);
- 		if (err < 0) {
- 			page_cache_release(page);
- 			page = ERR_PTR(err);
- 		}
- 	}
--	if (cached_page)
--		page_cache_release(cached_page);
- 	return page;
+diff -puN drivers/char/mem.c~remove-zero_page drivers/char/mem.c
+--- a/drivers/char/mem.c~remove-zero_page
++++ a/drivers/char/mem.c
+@@ -625,65 +625,10 @@ static ssize_t splice_write_null(struct 
+ 	return splice_from_pipe(pipe, out, ppos, len, flags, pipe_to_null);
  }
  
-@@ -1607,40 +1588,6 @@ struct page *read_cache_page(struct addr
- EXPORT_SYMBOL(read_cache_page);
- 
- /*
-- * If the page was newly created, increment its refcount and add it to the
-- * caller's lru-buffering pagevec.  This function is specifically for
-- * generic_file_write().
+-#ifdef CONFIG_MMU
+-/*
+- * For fun, we are using the MMU for this.
 - */
--static inline struct page *
--__grab_cache_page(struct address_space *mapping, unsigned long index,
--			struct page **cached_page, struct pagevec *lru_pvec)
+-static inline size_t read_zero_pagealigned(char __user * buf, size_t size)
 -{
--	int err;
--	struct page *page;
--repeat:
--	page = find_lock_page(mapping, index);
--	if (!page) {
--		if (!*cached_page) {
--			*cached_page = page_cache_alloc(mapping);
--			if (!*cached_page)
--				return NULL;
--		}
--		err = add_to_page_cache(*cached_page, mapping,
--					index, GFP_KERNEL);
--		if (err == -EEXIST)
--			goto repeat;
--		if (err == 0) {
--			page = *cached_page;
--			page_cache_get(page);
--			if (!pagevec_add(lru_pvec, page))
--				__pagevec_lru_add(lru_pvec);
--			*cached_page = NULL;
--		}
+-	struct mm_struct *mm;
+-	struct vm_area_struct * vma;
+-	unsigned long addr=(unsigned long)buf;
+-
+-	mm = current->mm;
+-	/* Oops, this was forgotten before. -ben */
+-	down_read(&mm->mmap_sem);
+-
+-	/* For private mappings, just map in zero pages. */
+-	for (vma = find_vma(mm, addr); vma; vma = vma->vm_next) {
+-		unsigned long count;
+-
+-		if (vma->vm_start > addr || (vma->vm_flags & VM_WRITE) == 0)
+-			goto out_up;
+-		if (vma->vm_flags & (VM_SHARED | VM_HUGETLB))
+-			break;
+-		count = vma->vm_end - addr;
+-		if (count > size)
+-			count = size;
+-
+-		zap_page_range(vma, addr, count, NULL);
+-        	if (zeromap_page_range(vma, addr, count, PAGE_COPY))
+-			break;
+-
+-		size -= count;
+-		buf += count;
+-		addr += count;
+-		if (size == 0)
+-			goto out_up;
 -	}
--	return page;
+-
+-	up_read(&mm->mmap_sem);
+-	
+-	/* The shared case is hard. Let's do the conventional zeroing. */ 
+-	do {
+-		unsigned long unwritten = clear_user(buf, PAGE_SIZE);
+-		if (unwritten)
+-			return size + unwritten - PAGE_SIZE;
+-		cond_resched();
+-		buf += PAGE_SIZE;
+-		size -= PAGE_SIZE;
+-	} while (size);
+-
+-	return size;
+-out_up:
+-	up_read(&mm->mmap_sem);
+-	return size;
 -}
 -
--/*
-  * The logic we want is
-  *
-  *	if suid or (sgid and xgrp)
-@@ -1832,6 +1779,33 @@ generic_file_direct_write(struct kiocb *
- }
- EXPORT_SYMBOL(generic_file_direct_write);
+ static ssize_t read_zero(struct file * file, char __user * buf, 
+ 			 size_t count, loff_t *ppos)
+ {
+-	unsigned long left, unwritten, written = 0;
++	size_t written;
  
-+/*
-+ * Find or create a page at the given pagecache position. Return the locked
-+ * page. This function is specifically for buffered writes.
-+ */
-+static struct page *__grab_cache_page(struct address_space *mapping,
-+							pgoff_t index)
-+{
-+	int status;
-+	struct page *page;
-+repeat:
-+	page = find_lock_page(mapping, index);
-+	if (likely(page))
-+		return page;
+ 	if (!count)
+ 		return 0;
+@@ -691,69 +636,33 @@ static ssize_t read_zero(struct file * f
+ 	if (!access_ok(VERIFY_WRITE, buf, count))
+ 		return -EFAULT;
+ 
+-	left = count;
+-
+-	/* do we want to be clever? Arbitrary cut-off */
+-	if (count >= PAGE_SIZE*4) {
+-		unsigned long partial;
+-
+-		/* How much left of the page? */
+-		partial = (PAGE_SIZE-1) & -(unsigned long) buf;
+-		unwritten = clear_user(buf, partial);
+-		written = partial - unwritten;
++	written = 0;
++	while (count) {
++		unsigned long unwritten;
++		size_t chunk = count;
 +
-+	page = page_cache_alloc(mapping);
++		if (chunk > PAGE_SIZE)
++			chunk = PAGE_SIZE;	/* Just for latency reasons */
++		unwritten = clear_user(buf, chunk);
++		written += chunk - unwritten;
+ 		if (unwritten)
+-			goto out;
+-		left -= partial;
+-		buf += partial;
+-		unwritten = read_zero_pagealigned(buf, left & PAGE_MASK);
+-		written += (left & PAGE_MASK) - unwritten;
+-		if (unwritten)
+-			goto out;
+-		buf += left & PAGE_MASK;
+-		left &= ~PAGE_MASK;
+-	}
+-	unwritten = clear_user(buf, left);
+-	written += left - unwritten;
+-out:
+-	return written ? written : -EFAULT;
+-}
+-
+-static int mmap_zero(struct file * file, struct vm_area_struct * vma)
+-{
+-	int err;
+-
+-	if (vma->vm_flags & VM_SHARED)
+-		return shmem_zero_setup(vma);
+-	err = zeromap_page_range(vma, vma->vm_start,
+-			vma->vm_end - vma->vm_start, vma->vm_page_prot);
+-	BUG_ON(err == -EEXIST);
+-	return err;
+-}
+-#else /* CONFIG_MMU */
+-static ssize_t read_zero(struct file * file, char * buf, 
+-			 size_t count, loff_t *ppos)
+-{
+-	size_t todo = count;
+-
+-	while (todo) {
+-		size_t chunk = todo;
+-
+-		if (chunk > 4096)
+-			chunk = 4096;	/* Just for latency reasons */
+-		if (clear_user(buf, chunk))
+-			return -EFAULT;
++			break;
+ 		buf += chunk;
+-		todo -= chunk;
++		count -= chunk;
+ 		cond_resched();
+ 	}
+-	return count;
++	return written ? written : -EFAULT;
+ }
+ 
+ static int mmap_zero(struct file * file, struct vm_area_struct * vma)
+ {
++#ifndef CONFIG_MMU
+ 	return -ENOSYS;
++#endif
++	if (vma->vm_flags & VM_SHARED)
++		return shmem_zero_setup(vma);
++	return 0;
+ }
+-#endif /* CONFIG_MMU */
+ 
+ static ssize_t write_full(struct file * file, const char __user * buf,
+ 			  size_t count, loff_t *ppos)
+diff -puN fs/binfmt_elf.c~remove-zero_page fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~remove-zero_page
++++ a/fs/binfmt_elf.c
+@@ -1725,7 +1725,7 @@ static int elf_core_dump(long signr, str
+ 						&page, &vma) <= 0) {
+ 				DUMP_SEEK(PAGE_SIZE);
+ 			} else {
+-				if (page == ZERO_PAGE(addr)) {
++				if (page == ZERO_PAGE(0)) {
+ 					if (!dump_seek(file, PAGE_SIZE)) {
+ 						page_cache_release(page);
+ 						goto end_coredump;
+diff -puN fs/binfmt_elf_fdpic.c~remove-zero_page fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~remove-zero_page
++++ a/fs/binfmt_elf_fdpic.c
+@@ -1488,7 +1488,7 @@ static int elf_fdpic_dump_segments(struc
+ 					   &page, &vma) <= 0) {
+ 				DUMP_SEEK(file->f_pos + PAGE_SIZE);
+ 			}
+-			else if (page == ZERO_PAGE(addr)) {
++			else if (page == ZERO_PAGE(0)) {
+ 				page_cache_release(page);
+ 				DUMP_SEEK(file->f_pos + PAGE_SIZE);
+ 			}
+diff -puN fs/direct-io.c~remove-zero_page fs/direct-io.c
+--- a/fs/direct-io.c~remove-zero_page
++++ a/fs/direct-io.c
+@@ -163,7 +163,7 @@ static int dio_refill_pages(struct dio *
+ 	up_read(&current->mm->mmap_sem);
+ 
+ 	if (ret < 0 && dio->blocks_available && (dio->rw & WRITE)) {
+-		struct page *page = ZERO_PAGE(dio->curr_user_address);
++		struct page *page = ZERO_PAGE(0);
+ 		/*
+ 		 * A memory fault, but the filesystem has some outstanding
+ 		 * mapped blocks.  We need to use those blocks up to avoid
+@@ -763,7 +763,7 @@ static void dio_zero_block(struct dio *d
+ 
+ 	this_chunk_bytes = this_chunk_blocks << dio->blkbits;
+ 
+-	page = ZERO_PAGE(dio->curr_user_address);
++	page = ZERO_PAGE(0);
+ 	if (submit_page_section(dio, page, 0, this_chunk_bytes, 
+ 				dio->next_block_for_io))
+ 		return;
+diff -puN include/linux/mm.h~remove-zero_page include/linux/mm.h
+--- a/include/linux/mm.h~remove-zero_page
++++ a/include/linux/mm.h
+@@ -779,8 +779,6 @@ void free_pgtables(struct mmu_gather **t
+ 		unsigned long floor, unsigned long ceiling);
+ int copy_page_range(struct mm_struct *dst, struct mm_struct *src,
+ 			struct vm_area_struct *vma);
+-int zeromap_page_range(struct vm_area_struct *vma, unsigned long from,
+-			unsigned long size, pgprot_t prot);
+ void unmap_mapping_range(struct address_space *mapping,
+ 		loff_t const holebegin, loff_t const holelen, int even_cows);
+ 
+diff -puN mm/memory.c~remove-zero_page mm/memory.c
+--- a/mm/memory.c~remove-zero_page
++++ a/mm/memory.c
+@@ -966,7 +966,7 @@ no_page_table:
+ 	 * has touched so far, we don't want to allocate page tables.
+ 	 */
+ 	if (flags & FOLL_ANON) {
+-		page = ZERO_PAGE(address);
++		page = ZERO_PAGE(0);
+ 		if (flags & FOLL_GET)
+ 			get_page(page);
+ 		BUG_ON(flags & FOLL_WRITE);
+@@ -1111,95 +1111,6 @@ int get_user_pages(struct task_struct *t
+ }
+ EXPORT_SYMBOL(get_user_pages);
+ 
+-static int zeromap_pte_range(struct mm_struct *mm, pmd_t *pmd,
+-			unsigned long addr, unsigned long end, pgprot_t prot)
+-{
+-	pte_t *pte;
+-	spinlock_t *ptl;
+-	int err = 0;
+-
+-	pte = pte_alloc_map_lock(mm, pmd, addr, &ptl);
+-	if (!pte)
+-		return -EAGAIN;
+-	arch_enter_lazy_mmu_mode();
+-	do {
+-		struct page *page = ZERO_PAGE(addr);
+-		pte_t zero_pte = pte_wrprotect(mk_pte(page, prot));
+-
+-		if (unlikely(!pte_none(*pte))) {
+-			err = -EEXIST;
+-			pte++;
+-			break;
+-		}
+-		page_cache_get(page);
+-		page_add_file_rmap(page);
+-		inc_mm_counter(mm, file_rss);
+-		set_pte_at(mm, addr, pte, zero_pte);
+-	} while (pte++, addr += PAGE_SIZE, addr != end);
+-	arch_leave_lazy_mmu_mode();
+-	pte_unmap_unlock(pte - 1, ptl);
+-	return err;
+-}
+-
+-static inline int zeromap_pmd_range(struct mm_struct *mm, pud_t *pud,
+-			unsigned long addr, unsigned long end, pgprot_t prot)
+-{
+-	pmd_t *pmd;
+-	unsigned long next;
+-	int err;
+-
+-	pmd = pmd_alloc(mm, pud, addr);
+-	if (!pmd)
+-		return -EAGAIN;
+-	do {
+-		next = pmd_addr_end(addr, end);
+-		err = zeromap_pte_range(mm, pmd, addr, next, prot);
+-		if (err)
+-			break;
+-	} while (pmd++, addr = next, addr != end);
+-	return err;
+-}
+-
+-static inline int zeromap_pud_range(struct mm_struct *mm, pgd_t *pgd,
+-			unsigned long addr, unsigned long end, pgprot_t prot)
+-{
+-	pud_t *pud;
+-	unsigned long next;
+-	int err;
+-
+-	pud = pud_alloc(mm, pgd, addr);
+-	if (!pud)
+-		return -EAGAIN;
+-	do {
+-		next = pud_addr_end(addr, end);
+-		err = zeromap_pmd_range(mm, pud, addr, next, prot);
+-		if (err)
+-			break;
+-	} while (pud++, addr = next, addr != end);
+-	return err;
+-}
+-
+-int zeromap_page_range(struct vm_area_struct *vma,
+-			unsigned long addr, unsigned long size, pgprot_t prot)
+-{
+-	pgd_t *pgd;
+-	unsigned long next;
+-	unsigned long end = addr + size;
+-	struct mm_struct *mm = vma->vm_mm;
+-	int err;
+-
+-	BUG_ON(addr >= end);
+-	pgd = pgd_offset(mm, addr);
+-	flush_cache_range(vma, addr, end);
+-	do {
+-		next = pgd_addr_end(addr, end);
+-		err = zeromap_pud_range(mm, pgd, addr, next, prot);
+-		if (err)
+-			break;
+-	} while (pgd++, addr = next, addr != end);
+-	return err;
+-}
+-
+ pte_t * fastcall get_locked_pte(struct mm_struct *mm, unsigned long addr, spinlock_t **ptl)
+ {
+ 	pgd_t * pgd = pgd_offset(mm, addr);
+@@ -1717,16 +1628,11 @@ gotten:
+ 
+ 	if (unlikely(anon_vma_prepare(vma)))
+ 		goto oom;
+-	if (old_page == ZERO_PAGE(address)) {
+-		new_page = alloc_zeroed_user_highpage_movable(vma, address);
+-		if (!new_page)
+-			goto oom;
+-	} else {
+-		new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
+-		if (!new_page)
+-			goto oom;
+-		cow_user_page(new_page, old_page, address, vma);
+-	}
++	VM_BUG_ON(old_page == ZERO_PAGE(0));
++	new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
++	if (!new_page)
++		goto oom;
++	cow_user_page(new_page, old_page, address, vma);
+ 
+ 	/*
+ 	 * Re-check the pte - we dropped the lock
+@@ -2252,39 +2158,24 @@ static int do_anonymous_page(struct mm_s
+ 	spinlock_t *ptl;
+ 	pte_t entry;
+ 
+-	if (write_access) {
+-		/* Allocate our own private page. */
+-		pte_unmap(page_table);
+-
+-		if (unlikely(anon_vma_prepare(vma)))
+-			goto oom;
+-		page = alloc_zeroed_user_highpage_movable(vma, address);
+-		if (!page)
+-			goto oom;
+-
+-		entry = mk_pte(page, vma->vm_page_prot);
+-		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
++	/* Allocate our own private page. */
++	pte_unmap(page_table);
+ 
+-		page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
+-		if (!pte_none(*page_table))
+-			goto release;
+-		inc_mm_counter(mm, anon_rss);
+-		lru_cache_add_active(page);
+-		page_add_new_anon_rmap(page, vma, address);
+-	} else {
+-		/* Map the ZERO_PAGE - vm_page_prot is readonly */
+-		page = ZERO_PAGE(address);
+-		page_cache_get(page);
+-		entry = mk_pte(page, vma->vm_page_prot);
++	if (unlikely(anon_vma_prepare(vma)))
++		goto oom;
++	page = alloc_zeroed_user_highpage_movable(vma, address);
 +	if (!page)
-+		return NULL;
-+	status = add_to_page_cache_lru(page, mapping, index, GFP_KERNEL);
-+	if (unlikely(status)) {
-+		page_cache_release(page);
-+		if (status == -EEXIST)
-+			goto repeat;
-+		return NULL;
-+	}
-+	return page;
-+}
-+
- ssize_t
- generic_file_buffered_write(struct kiocb *iocb, const struct iovec *iov,
- 		unsigned long nr_segs, loff_t pos, loff_t *ppos,
-@@ -1842,15 +1816,10 @@ generic_file_buffered_write(struct kiocb
- 	const struct address_space_operations *a_ops = mapping->a_ops;
- 	struct inode 	*inode = mapping->host;
- 	long		status = 0;
--	struct page	*page;
--	struct page	*cached_page = NULL;
--	struct pagevec	lru_pvec;
- 	const struct iovec *cur_iov = iov; /* current iovec */
- 	size_t		iov_offset = 0;	   /* offset in the current iovec */
- 	char __user	*buf;
++		goto oom;
  
--	pagevec_init(&lru_pvec, 0);
--
- 	/*
- 	 * handle partial DIO write.  Adjust cur_iov if needed.
- 	 */
-@@ -1862,6 +1831,7 @@ generic_file_buffered_write(struct kiocb
- 	}
+-		ptl = pte_lockptr(mm, pmd);
+-		spin_lock(ptl);
+-		if (!pte_none(*page_table))
+-			goto release;
+-		inc_mm_counter(mm, file_rss);
+-		page_add_file_rmap(page);
+-	}
++	entry = mk_pte(page, vma->vm_page_prot);
++	entry = maybe_mkwrite(pte_mkdirty(entry), vma);
  
- 	do {
-+		struct page *page;
- 		pgoff_t index;		/* Pagecache index for current page */
- 		unsigned long offset;	/* Offset into pagecache page */
- 		unsigned long maxlen;	/* Bytes remaining in current iovec */
-@@ -1888,7 +1858,8 @@ generic_file_buffered_write(struct kiocb
- 		fault_in_pages_readable(buf, maxlen);
- #endif
++	page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
++	if (!pte_none(*page_table))
++		goto release;
++	inc_mm_counter(mm, anon_rss);
++	lru_cache_add_active(page);
++	page_add_new_anon_rmap(page, vma, address);
+ 	set_pte_at(mm, address, page_table, entry);
  
--		page = __grab_cache_page(mapping,index,&cached_page,&lru_pvec);
-+
-+		page = __grab_cache_page(mapping, index);
- 		if (!page) {
- 			status = -ENOMEM;
- 			break;
-@@ -1956,9 +1927,6 @@ fs_write_aop_error:
- 	} while (count);
- 	*ppos = pos;
- 
--	if (cached_page)
--		page_cache_release(cached_page);
--
- 	/*
- 	 * For now, when the user asks for O_SYNC, we'll actually give O_DSYNC
- 	 */
-@@ -1978,7 +1946,6 @@ fs_write_aop_error:
- 	if (unlikely(file->f_flags & O_DIRECT) && written)
- 		status = filemap_write_and_wait(mapping);
- 
--	pagevec_lru_add(&lru_pvec);
- 	return written ? written : status;
- }
- EXPORT_SYMBOL(generic_file_buffered_write);
-diff -puN mm/readahead.c~mm-buffered-write-cleanup mm/readahead.c
---- a/mm/readahead.c~mm-buffered-write-cleanup
-+++ a/mm/readahead.c
-@@ -58,28 +58,25 @@ int read_cache_pages(struct address_spac
- 			int (*filler)(void *, struct page *), void *data)
- {
- 	struct page *page;
--	struct pagevec lru_pvec;
- 	int ret = 0;
- 
--	pagevec_init(&lru_pvec, 0);
--
- 	while (!list_empty(pages)) {
- 		page = list_to_page(pages);
- 		list_del(&page->lru);
--		if (add_to_page_cache(page, mapping, page->index, GFP_KERNEL)) {
-+		if (add_to_page_cache_lru(page, mapping,
-+					page->index, GFP_KERNEL)) {
- 			page_cache_release(page);
- 			continue;
- 		}
-+		page_cache_release(page);
-+
- 		ret = filler(data, page);
--		if (!pagevec_add(&lru_pvec, page))
--			__pagevec_lru_add(&lru_pvec);
--		if (ret) {
-+		if (unlikely(ret)) {
- 			put_pages_list(pages);
- 			break;
- 		}
- 		task_io_account_read(PAGE_CACHE_SIZE);
- 	}
--	pagevec_lru_add(&lru_pvec);
- 	return ret;
- }
- 
-@@ -89,7 +86,6 @@ static int read_pages(struct address_spa
- 		struct list_head *pages, unsigned nr_pages)
- {
- 	unsigned page_idx;
--	struct pagevec lru_pvec;
- 	int ret;
- 
- 	if (mapping->a_ops->readpages) {
-@@ -99,19 +95,15 @@ static int read_pages(struct address_spa
- 		goto out;
- 	}
- 
--	pagevec_init(&lru_pvec, 0);
- 	for (page_idx = 0; page_idx < nr_pages; page_idx++) {
- 		struct page *page = list_to_page(pages);
- 		list_del(&page->lru);
--		if (!add_to_page_cache(page, mapping,
-+		if (!add_to_page_cache_lru(page, mapping,
- 					page->index, GFP_KERNEL)) {
- 			mapping->a_ops->readpage(filp, page);
--			if (!pagevec_add(&lru_pvec, page))
--				__pagevec_lru_add(&lru_pvec);
--		} else
--			page_cache_release(page);
-+		}
-+		page_cache_release(page);
- 	}
--	pagevec_lru_add(&lru_pvec);
- 	ret = 0;
- out:
- 	return ret;
+ 	/* No need to invalidate - it was non-present before */
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
