@@ -1,728 +1,799 @@
 From: akpm@linux-foundation.org
-Subject: - uml-userspace-files-should-call-libc-directly.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:37:59 -0700
-Message-ID: <200710162037.l9GKbxOV015333@imap1.linux-foundation.org>
+Subject: - pm2fb-source-code-improvements.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:42:10 -0700
+Message-ID: <200710162042.l9GKgA1r015864@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40918 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35855 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965621AbXJPVTX (ORCPT
+	by vger.kernel.org with ESMTP id S965980AbXJPVTj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:19:23 -0400
+	Tue, 16 Oct 2007 17:19:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: userspace files should call libc directly
+     pm2fb: source code improvements
 has been removed from the -mm tree.  Its filename was
-     uml-userspace-files-should-call-libc-directly.patch
+     pm2fb-source-code-improvements.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: userspace files should call libc directly
-From: Jeff Dike <jdike@addtoit.com>
+Subject: pm2fb: source code improvements
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-A number of files that were changed in the recent removal of tt mode
-are userspace files which call the os_* wrappers instead of calling
-libc directly.  A few other files were affected by this, through
+This patch concentrates on source compacting, simplification and more
+conformance to kernel coding standards.
+The major changes:
+- RD32() and WR() functions are merged into pm2_RD() and pm2_WR()
+- conditional (with switch()) RDAC functions are separated in two
+unconditional ones
+- the conditional pm2fb_block_op() function is merged into pm2fb_fillrect()
+and pm2fb_copyarea()
+- WAIT_FIFO() values are corrected
 
-This patch makes these call glibc directly.
-
-There are also style fixes in the affected areas.
-
-os_print_error has no remaining callers, so it is deleted.
-
-There is a interface change to os_set_exec_close, eliminating a
-parameter which was always the same.  The callers are fixed as well.
-
-os_process_pc got its error path cleaned up.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/os.h                     |    3 
- arch/um/kernel/ksyms.c                   |    1 
- arch/um/kernel/physmem.c                 |    4 
- arch/um/os-Linux/aio.c                   |    4 
- arch/um/os-Linux/drivers/ethertap_user.c |   61 ++++++++----
- arch/um/os-Linux/drivers/tuntap_user.c   |   24 ++--
- arch/um/os-Linux/file.c                  |  102 +++++++++------------
- arch/um/os-Linux/helper.c                |    8 +
- arch/um/os-Linux/mem.c                   |    6 -
- arch/um/os-Linux/process.c               |   37 ++++---
- arch/um/os-Linux/skas/process.c          |    4 
- arch/um/os-Linux/start_up.c              |    5 -
- 12 files changed, 138 insertions(+), 121 deletions(-)
+ drivers/video/pm2fb.c |  350 +++++++++++++++++-----------------------
+ 1 file changed, 155 insertions(+), 195 deletions(-)
 
-diff -puN arch/um/include/os.h~uml-userspace-files-should-call-libc-directly arch/um/include/os.h
---- a/arch/um/include/os.h~uml-userspace-files-should-call-libc-directly
-+++ a/arch/um/include/os.h
-@@ -128,9 +128,8 @@ static inline struct openflags of_cloexe
- extern int os_stat_file(const char *file_name, struct uml_stat *buf);
- extern int os_stat_fd(const int fd, struct uml_stat *buf);
- extern int os_access(const char *file, int mode);
--extern void os_print_error(int error, const char* str);
- extern int os_get_exec_close(int fd, int *close_on_exec);
--extern int os_set_exec_close(int fd, int close_on_exec);
-+extern int os_set_exec_close(int fd);
- extern int os_ioctl_generic(int fd, unsigned int cmd, unsigned long arg);
- extern int os_get_ifname(int fd, char *namebuf);
- extern int os_set_slip(int fd);
-diff -puN arch/um/kernel/ksyms.c~uml-userspace-files-should-call-libc-directly arch/um/kernel/ksyms.c
---- a/arch/um/kernel/ksyms.c~uml-userspace-files-should-call-libc-directly
-+++ a/arch/um/kernel/ksyms.c
-@@ -40,7 +40,6 @@ EXPORT_SYMBOL(uml_strdup);
- EXPORT_SYMBOL(os_stat_fd);
- EXPORT_SYMBOL(os_stat_file);
- EXPORT_SYMBOL(os_access);
--EXPORT_SYMBOL(os_print_error);
- EXPORT_SYMBOL(os_get_exec_close);
- EXPORT_SYMBOL(os_set_exec_close);
- EXPORT_SYMBOL(os_getpid);
-diff -puN arch/um/kernel/physmem.c~uml-userspace-files-should-call-libc-directly arch/um/kernel/physmem.c
---- a/arch/um/kernel/physmem.c~uml-userspace-files-should-call-libc-directly
-+++ a/arch/um/kernel/physmem.c
-@@ -99,7 +99,9 @@ void __init setup_physmem(unsigned long 
- 	err = os_map_memory((void *) uml_reserved, physmem_fd, offset,
- 			    len - offset, 1, 1, 1);
- 	if (err < 0) {
--		os_print_error(err, "Mapping memory");
-+		printf("setup_physmem - mapping %ld bytes of memory at 0x%p "
-+		       "failed - errno = %d\n", len - offset,
-+		       (void *) uml_reserved, err);
- 		exit(1);
- 	}
+diff -puN drivers/video/pm2fb.c~pm2fb-source-code-improvements drivers/video/pm2fb.c
+--- a/drivers/video/pm2fb.c~pm2fb-source-code-improvements
++++ a/drivers/video/pm2fb.c
+@@ -11,7 +11,7 @@
+  * and additional input from James Simmon's port of Hannu Mallat's tdfx
+  * driver.
+  *
+- * I have a Creative Graphics Blaster Exxtreme card - pm2fb on x86.  I
++ * I have a Creative Graphics Blaster Exxtreme card - pm2fb on x86. I
+  * have no access to other pm2fb implementations. Sparc (and thus
+  * hopefully other big-endian) devices now work, thanks to a lot of
+  * testing work by Ron Murray. I have no access to CVision hardware,
+@@ -146,56 +146,35 @@ static struct fb_var_screeninfo pm2fb_va
+  * Utility functions
+  */
  
-diff -puN arch/um/os-Linux/aio.c~uml-userspace-files-should-call-libc-directly arch/um/os-Linux/aio.c
---- a/arch/um/os-Linux/aio.c~uml-userspace-files-should-call-libc-directly
-+++ a/arch/um/os-Linux/aio.c
-@@ -226,8 +226,8 @@ static int init_aio_24(void)
- 	goto out;
- 
- out_close_pipe:
--	os_close_file(fds[0]);
--	os_close_file(fds[1]);
-+	close(fds[0]);
-+	close(fds[1]);
- 	aio_req_fd_w = -1;
- 	aio_req_fd_r = -1;
- out:
-diff -puN arch/um/os-Linux/drivers/ethertap_user.c~uml-userspace-files-should-call-libc-directly arch/um/os-Linux/drivers/ethertap_user.c
---- a/arch/um/os-Linux/drivers/ethertap_user.c~uml-userspace-files-should-call-libc-directly
-+++ a/arch/um/os-Linux/drivers/ethertap_user.c
-@@ -87,11 +87,11 @@ static void etap_pre_exec(void *arg)
- 	struct etap_pre_exec_data *data = arg;
- 
- 	dup2(data->control_remote, 1);
--	os_close_file(data->data_me);
--	os_close_file(data->control_me);
-+	close(data->data_me);
-+	close(data->control_me);
- }
- 
--static int etap_tramp(char *dev, char *gate, int control_me, 
-+static int etap_tramp(char *dev, char *gate, int control_me,
- 		      int control_remote, int data_me, int data_remote)
- {
- 	struct etap_pre_exec_data pe_data;
-@@ -101,7 +101,7 @@ static int etap_tramp(char *dev, char *g
- 	char gate_buf[sizeof("nnn.nnn.nnn.nnn\0")];
- 	char *setup_args[] = { "uml_net", version_buf, "ethertap", dev,
- 			       data_fd_buf, gate_buf, NULL };
--	char *nosetup_args[] = { "uml_net", version_buf, "ethertap", 
-+	char *nosetup_args[] = { "uml_net", version_buf, "ethertap",
- 				 dev, data_fd_buf, NULL };
- 	char **args, c;
- 
-@@ -121,8 +121,8 @@ static int etap_tramp(char *dev, char *g
- 
- 	if(pid < 0)
- 		err = pid;
--	os_close_file(data_remote);
--	os_close_file(control_remote);
-+	close(data_remote);
-+	close(control_remote);
- 	CATCH_EINTR(n = read(control_me, &c, sizeof(c)));
- 	if(n != sizeof(c)){
- 		err = -errno;
-@@ -151,19 +151,23 @@ static int etap_open(void *data)
- 	if(err)
- 		return err;
- 
--	err = os_pipe(data_fds, 0, 0);
--	if(err < 0){
--		printk("data os_pipe failed - err = %d\n", -err);
-+	err = socketpair(AF_UNIX, SOCK_DGRAM, 0, data_fds);
-+	if(err){
-+		err = -errno;
-+		printk("etap_open - data socketpair failed - err = %d\n",
-+		       errno);
- 		return err;
- 	}
- 
--	err = os_pipe(control_fds, 1, 0);
--	if(err < 0){
--		printk("control os_pipe failed - err = %d\n", -err);
--		return err;
-+	err = socketpair(AF_UNIX, SOCK_STREAM, 0, control_fds);
-+	if(err){
-+		err = -errno;
-+		printk("etap_open - control socketpair failed - err = %d\n",
-+		       errno);
-+		goto out_close_data;
- 	}
- 
--	err = etap_tramp(pri->dev_name, pri->gate_addr, control_fds[0], 
-+	err = etap_tramp(pri->dev_name, pri->gate_addr, control_fds[0],
- 			 control_fds[1], data_fds[0], data_fds[1]);
- 	output_len = UM_KERN_PAGE_SIZE;
- 	output = kmalloc(output_len, UM_GFP_KERNEL);
-@@ -178,13 +182,21 @@ static int etap_open(void *data)
- 
- 	if(err < 0){
- 		printk("etap_tramp failed - err = %d\n", -err);
--		return err;
-+		goto out_close_control;
- 	}
- 
- 	pri->data_fd = data_fds[0];
- 	pri->control_fd = control_fds[0];
- 	iter_addresses(pri->dev, etap_open_addr, &pri->control_fd);
- 	return data_fds[0];
-+
-+out_close_control:
-+	close(control_fds[0]);
-+	close(control_fds[1]);
-+out_close_data:
-+	close(data_fds[0]);
-+	close(data_fds[1]);
-+	return err;
- }
- 
- static void etap_close(int fd, void *data)
-@@ -192,11 +204,19 @@ static void etap_close(int fd, void *dat
- 	struct ethertap_data *pri = data;
- 
- 	iter_addresses(pri->dev, etap_close_addr, &pri->control_fd);
--	os_close_file(fd);
--	os_shutdown_socket(pri->data_fd, 1, 1);
--	os_close_file(pri->data_fd);
-+	close(fd);
-+
-+	if(shutdown(pri->data_fd, SHUT_RDWR) < 0)
-+		printk("etap_close - shutdown data socket failed, errno = %d\n",
-+		       errno);
-+
-+	if(shutdown(pri->control_fd, SHUT_RDWR) < 0)
-+		printk("etap_close - shutdown control socket failed, "
-+		       "errno = %d\n", errno);
-+
-+	close(pri->data_fd);
- 	pri->data_fd = -1;
--	os_close_file(pri->control_fd);
-+	close(pri->control_fd);
- 	pri->control_fd = -1;
- }
- 
-@@ -216,13 +236,14 @@ static void etap_add_addr(unsigned char 
- 	etap_open_addr(addr, netmask, &pri->control_fd);
- }
- 
--static void etap_del_addr(unsigned char *addr, unsigned char *netmask, 
-+static void etap_del_addr(unsigned char *addr, unsigned char *netmask,
- 			  void *data)
- {
- 	struct ethertap_data *pri = data;
- 
- 	if(pri->control_fd == -1)
- 		return;
-+
- 	etap_close_addr(addr, netmask, &pri->control_fd);
- }
- 
-diff -puN arch/um/os-Linux/drivers/tuntap_user.c~uml-userspace-files-should-call-libc-directly arch/um/os-Linux/drivers/tuntap_user.c
---- a/arch/um/os-Linux/drivers/tuntap_user.c~uml-userspace-files-should-call-libc-directly
-+++ a/arch/um/os-Linux/drivers/tuntap_user.c
-@@ -62,7 +62,7 @@ static void tuntap_pre_exec(void *arg)
- 	struct tuntap_pre_exec_data *data = arg;
- 
- 	dup2(data->stdout, 1);
--	os_close_file(data->close_me);
-+	close(data->close_me);
- }
- 
- static int tuntap_open_tramp(char *gate, int *fd_out, int me, int remote,
-@@ -88,7 +88,7 @@ static int tuntap_open_tramp(char *gate,
- 	if(pid < 0)
- 		return -pid;
- 
--	os_close_file(remote);
-+	close(remote);
- 
- 	msg.msg_name = NULL;
- 	msg.msg_namelen = 0;
-@@ -125,7 +125,7 @@ static int tuntap_open_tramp(char *gate,
- 		return -EINVAL;
- 	}
- 	*fd_out = ((int *) CMSG_DATA(cmsg))[0];
--	os_set_exec_close(*fd_out, 1);
-+	os_set_exec_close(*fd_out);
- 	return 0;
- }
- 
-@@ -154,20 +154,22 @@ static int tuntap_open(void *data)
- 		if(ioctl(pri->fd, TUNSETIFF, (void *) &ifr) < 0){
- 			err = -errno;
- 			printk("TUNSETIFF failed, errno = %d\n", errno);
--			os_close_file(pri->fd);
-+			close(pri->fd);
- 			return err;
- 		}
- 	}
- 	else {
--		err = os_pipe(fds, 0, 0);
--		if(err < 0){
--			printk("tuntap_open : os_pipe failed - err = %d\n",
--			       -err);
-+		err = socketpair(AF_UNIX, SOCK_DGRAM, 0, fds);
-+		if(err){
-+			err = -errno;
-+			printk("tuntap_open : socketpair failed - errno = %d\n",
-+			       errno);
- 			return err;
- 		}
- 
- 		buffer = get_output_buffer(&len);
--		if(buffer != NULL) len--;
-+		if(buffer != NULL)
-+			len--;
- 		used = 0;
- 
- 		err = tuntap_open_tramp(pri->gate_addr, &pri->fd, fds[0],
-@@ -186,7 +188,7 @@ static int tuntap_open(void *data)
- 		printk("%s", output);
- 		free_output_buffer(buffer);
- 
--		os_close_file(fds[0]);
-+		close(fds[0]);
- 		iter_addresses(pri->dev, open_addr, pri->dev_name);
- 	}
- 
-@@ -199,7 +201,7 @@ static void tuntap_close(int fd, void *d
- 
- 	if(!pri->fixed_config) 
- 		iter_addresses(pri->dev, close_addr, pri->dev_name);
--	os_close_file(fd);
-+	close(fd);
- 	pri->fd = -1;
- }
- 
-diff -puN arch/um/os-Linux/file.c~uml-userspace-files-should-call-libc-directly arch/um/os-Linux/file.c
---- a/arch/um/os-Linux/file.c~uml-userspace-files-should-call-libc-directly
-+++ a/arch/um/os-Linux/file.c
-@@ -82,13 +82,6 @@ int os_access(const char* file, int mode
- 	return 0;
- }
- 
--void os_print_error(int error, const char* str)
+-static inline u32 RD32(unsigned char __iomem *base, s32 off)
 -{
--	errno = error < 0 ? -error : error;
--
--	perror(str);
+-	return fb_readl(base + off);
 -}
 -
- /* FIXME? required only by hostaudio (because it passes ioctls verbatim) */
- int os_ioctl_generic(int fd, unsigned int cmd, unsigned long arg)
+-static inline void WR32(unsigned char __iomem *base, s32 off, u32 v)
+-{
+-	fb_writel(v, base + off);
+-}
+-
+ static inline u32 pm2_RD(struct pm2fb_par* p, s32 off)
  {
-@@ -181,19 +174,19 @@ int os_file_mode(char *file, struct open
- 
- 	*mode_out = OPENFLAGS();
- 
--	err = os_access(file, OS_ACC_W_OK);
--	if((err < 0) && (err != -EACCES))
--		return(err);
--
--	*mode_out = of_write(*mode_out);
--
--	err = os_access(file, OS_ACC_R_OK);
--	if((err < 0) && (err != -EACCES))
--		return(err);
-+	err = access(file, W_OK);
-+	if(err && (errno != EACCES))
-+		return -errno;
-+	else if(!err)
-+		*mode_out = of_write(*mode_out);
- 
--	*mode_out = of_read(*mode_out);
-+	err = access(file, R_OK);
-+	if(err && (errno != EACCES))
-+		return -errno;
-+	else if(!err)
-+		*mode_out = of_read(*mode_out);
- 
--	return(0);
-+	return err;
+-	return RD32(p->v_regs, off);
++	return fb_readl(p->v_regs + off);
  }
  
- int os_open_file(char *file, struct openflags flags, int mode)
-@@ -212,15 +205,15 @@ int os_open_file(char *file, struct open
+ static inline void pm2_WR(struct pm2fb_par* p, s32 off, u32 v)
+ {
+-	WR32(p->v_regs, off, v);
++	fb_writel(v, p->v_regs + off);
+ }
  
- 	fd = open64(file, f, mode);
- 	if(fd < 0)
--		return(-errno);
-+		return -errno;
+ static inline u32 pm2_RDAC_RD(struct pm2fb_par* p, s32 idx)
+ {
+-	int index = PM2R_RD_INDEXED_DATA;
+-	switch (p->type) {
+-	case PM2_TYPE_PERMEDIA2:
+-		pm2_WR(p, PM2R_RD_PALETTE_WRITE_ADDRESS, idx);
+-		break;
+-	case PM2_TYPE_PERMEDIA2V:
+-		pm2_WR(p, PM2VR_RD_INDEX_LOW, idx & 0xff);
+-		index = PM2VR_RD_INDEXED_DATA;
+-		break;
+-	}
++	pm2_WR(p, PM2R_RD_PALETTE_WRITE_ADDRESS, idx);
+ 	mb();
+-	return pm2_RD(p, index);
++	return pm2_RD(p, PM2R_RD_INDEXED_DATA);
++}
++
++static inline u32 pm2v_RDAC_RD(struct pm2fb_par* p, s32 idx)
++{
++	pm2_WR(p, PM2VR_RD_INDEX_LOW, idx & 0xff);
++	mb();
++	return pm2_RD(p,  PM2VR_RD_INDEXED_DATA);
+ }
  
- 	if(flags.cl && fcntl(fd, F_SETFD, 1)){
- 		err = -errno;
--		os_close_file(fd);
-+		close(fd);
+ static inline void pm2_RDAC_WR(struct pm2fb_par* p, s32 idx, u32 v)
+ {
+-	int index = PM2R_RD_INDEXED_DATA;
+-	switch (p->type) {
+-	case PM2_TYPE_PERMEDIA2:
+-		pm2_WR(p, PM2R_RD_PALETTE_WRITE_ADDRESS, idx);
+-		break;
+-	case PM2_TYPE_PERMEDIA2V:
+-		pm2_WR(p, PM2VR_RD_INDEX_LOW, idx & 0xff);
+-		index = PM2VR_RD_INDEXED_DATA;
+-		break;
+-	}
++	pm2_WR(p, PM2R_RD_PALETTE_WRITE_ADDRESS, idx);
+ 	wmb();
+-	pm2_WR(p, index, v);
++	pm2_WR(p, PM2R_RD_INDEXED_DATA, v);
+ 	wmb();
+ }
+ 
+@@ -212,7 +191,7 @@ static inline void pm2v_RDAC_WR(struct p
+ #else
+ static inline void WAIT_FIFO(struct pm2fb_par* p, u32 a)
+ {
+-	while( pm2_RD(p, PM2R_IN_FIFO_SPACE) < a );
++	while(pm2_RD(p, PM2R_IN_FIFO_SPACE) < a);
+ 	mb();
+ }
+ #endif
+@@ -249,7 +228,7 @@ static u32 partprod(u32 xres)
+ 
+ 	for (i = 0; pp_table[i].width && pp_table[i].width != xres; i++)
+ 		;
+-	if ( pp_table[i].width == 0 )
++	if (pp_table[i].width == 0)
+ 		DPRINTK("invalid width %u\n", xres);
+ 	return pp_table[i].pp;
+ }
+@@ -257,20 +236,17 @@ static u32 partprod(u32 xres)
+ static u32 to3264(u32 timing, int bpp, int is64)
+ {
+ 	switch (bpp) {
++	case 24:
++		timing *= 3;
+ 	case 8:
+-		timing >>= 2 + is64;
+-		break;
++		timing >>= 1;
+ 	case 16:
+-		timing >>= 1 + is64;
+-		break;
+-	case 24:
+-		timing = (timing * 3) >> (2 + is64);
+-		break;
++		timing >>= 1;
+ 	case 32:
+-		if (is64)
+-			timing >>= 1;
+ 		break;
+ 	}
++	if (is64)
++		timing >>= 1;
+ 	return timing;
+ }
+ 
+@@ -289,13 +265,13 @@ static void pm2_mnp(u32 clk, unsigned ch
+ 		for (m = 2; m; m++) {
+ 			f = PM2_REFERENCE_CLOCK * m / n;
+ 			if (f >= 150000 && f <= 300000) {
+-				for ( p = 0; p < 5; p++, f >>= 1) {
+-					curr = ( clk > f ) ? clk - f : f - clk;
+-					if ( curr < delta ) {
+-						delta=curr;
+-						*mm=m;
+-						*nn=n;
+-						*pp=p;
++				for (p = 0; p < 5; p++, f >>= 1) {
++					curr = (clk > f) ? clk - f : f - clk;
++					if (curr < delta) {
++						delta = curr;
++						*mm = m;
++						*nn = n;
++						*pp = p;
+ 					}
+ 				}
+ 			}
+@@ -313,15 +289,15 @@ static void pm2v_mnp(u32 clk, unsigned c
+ 	s32 delta = 1000;
+ 
+ 	*mm = *nn = *pp = 0;
+-	for ( m = 1; m < 128; m++) {
++	for (m = 1; m < 128; m++) {
+ 		for (n = 2 * m + 1; n; n++) {
+-			for ( p = 0; p < 2; p++) {
+-				f = ( PM2_REFERENCE_CLOCK >> ( p + 1 )) * n / m;
+-				if ( clk > f - delta && clk < f + delta ) {
+-					delta = ( clk > f ) ? clk - f : f - clk;
+-					*mm=m;
+-					*nn=n;
+-					*pp=p;
++			for (p = 0; p < 2; p++) {
++				f = (PM2_REFERENCE_CLOCK >> (p + 1)) * n / m;
++				if (clk > f - delta && clk < f + delta) {
++					delta = (clk > f) ? clk - f : f - clk;
++					*mm = m;
++					*nn = n;
++					*pp = p;
+ 				}
+ 			}
+ 		}
+@@ -329,7 +305,7 @@ static void pm2v_mnp(u32 clk, unsigned c
+ }
+ 
+ static void clear_palette(struct pm2fb_par* p) {
+-	int i=256;
++	int i = 256;
+ 
+ 	WAIT_FIFO(p, 1);
+ 	pm2_WR(p, PM2R_RD_PALETTE_WRITE_ADDRESS, 0);
+@@ -369,7 +345,7 @@ static void reset_config(struct pm2fb_pa
+ {
+ 	WAIT_FIFO(p, 52);
+ 	pm2_WR(p, PM2R_CHIP_CONFIG, pm2_RD(p, PM2R_CHIP_CONFIG) &
+-	       ~(PM2F_VGA_ENABLE|PM2F_VGA_FIXED));
++			~(PM2F_VGA_ENABLE | PM2F_VGA_FIXED));
+ 	pm2_WR(p, PM2R_BYPASS_WRITE_MASK, ~(0L));
+ 	pm2_WR(p, PM2R_FRAMEBUFFER_WRITE_MASK, ~(0L));
+ 	pm2_WR(p, PM2R_FIFO_CONTROL, 0);
+@@ -409,16 +385,21 @@ static void reset_config(struct pm2fb_pa
+ 		pm2_RDAC_WR(p, PM2I_RD_MODE_CONTROL, 0); /* no overlay */
+ 		pm2_RDAC_WR(p, PM2I_RD_CURSOR_CONTROL, 0);
+ 		pm2_RDAC_WR(p, PM2I_RD_MISC_CONTROL, PM2F_RD_PALETTE_WIDTH_8);
++		pm2_RDAC_WR(p, PM2I_RD_COLOR_KEY_CONTROL, 0);
++		pm2_RDAC_WR(p, PM2I_RD_OVERLAY_KEY, 0);
++		pm2_RDAC_WR(p, PM2I_RD_RED_KEY, 0);
++		pm2_RDAC_WR(p, PM2I_RD_GREEN_KEY, 0);
++		pm2_RDAC_WR(p, PM2I_RD_BLUE_KEY, 0);
+ 		break;
+ 	case PM2_TYPE_PERMEDIA2V:
+ 		pm2v_RDAC_WR(p, PM2VI_RD_MISC_CONTROL, 1); /* 8bit */
++		pm2v_RDAC_WR(p, PM2I_RD_COLOR_KEY_CONTROL, 0);
++		pm2v_RDAC_WR(p, PM2I_RD_OVERLAY_KEY, 0);
++		pm2v_RDAC_WR(p, PM2I_RD_RED_KEY, 0);
++		pm2v_RDAC_WR(p, PM2I_RD_GREEN_KEY, 0);
++		pm2v_RDAC_WR(p, PM2I_RD_BLUE_KEY, 0);
+ 		break;
+ 	}
+-	pm2_RDAC_WR(p, PM2I_RD_COLOR_KEY_CONTROL, 0);
+-	pm2_RDAC_WR(p, PM2I_RD_OVERLAY_KEY, 0);
+-	pm2_RDAC_WR(p, PM2I_RD_RED_KEY, 0);
+-	pm2_RDAC_WR(p, PM2I_RD_GREEN_KEY, 0);
+-	pm2_RDAC_WR(p, PM2I_RD_BLUE_KEY, 0);
+ }
+ 
+ static void set_aperture(struct pm2fb_par* p, u32 depth)
+@@ -428,7 +409,7 @@ static void set_aperture(struct pm2fb_pa
+ 	 * hosts, the on-chip aperture settings are used where
+ 	 * possible to translate from host to card byte order.
+ 	 */
+-	WAIT_FIFO(p, 4);
++	WAIT_FIFO(p, 2);
+ #ifdef __LITTLE_ENDIAN
+ 	pm2_WR(p, PM2R_APERTURE_ONE, PM2F_APERTURE_STANDARD);
+ #else
+@@ -476,7 +457,7 @@ static void set_memclock(struct pm2fb_pa
+ 	switch (par->type) {
+ 	case PM2_TYPE_PERMEDIA2V:
+ 		pm2v_mnp(clk/2, &m, &n, &p);
+-		WAIT_FIFO(par, 8);
++		WAIT_FIFO(par, 12);
+ 		pm2_WR(par, PM2VR_RD_INDEX_HIGH, PM2VI_RD_MCLK_CONTROL >> 8);
+ 		pm2v_RDAC_WR(par, PM2VI_RD_MCLK_CONTROL, 0);
+ 		pm2v_RDAC_WR(par, PM2VI_RD_MCLK_PRESCALE, m);
+@@ -484,10 +465,9 @@ static void set_memclock(struct pm2fb_pa
+ 		pm2v_RDAC_WR(par, PM2VI_RD_MCLK_POSTSCALE, p);
+ 		pm2v_RDAC_WR(par, PM2VI_RD_MCLK_CONTROL, 1);
+ 		rmb();
+-		for (i = 256;
+-		     i && !(pm2_RDAC_RD(par, PM2VI_RD_MCLK_CONTROL) & 2);
+-		     i--)
+-			;
++		for (i = 256; i; i--)
++			if (pm2v_RDAC_RD(par, PM2VI_RD_MCLK_CONTROL) & 2)
++				break;
+ 		pm2_WR(par, PM2VR_RD_INDEX_HIGH, 0);
+ 		break;
+ 	case PM2_TYPE_PERMEDIA2:
+@@ -499,10 +479,9 @@ static void set_memclock(struct pm2fb_pa
+ 		pm2_RDAC_WR(par, PM2I_RD_MEMORY_CLOCK_3, 8|p);
+ 		pm2_RDAC_RD(par, PM2I_RD_MEMORY_CLOCK_STATUS);
+ 		rmb();
+-		for (i = 256;
+-		     i && !(pm2_RD(par, PM2R_RD_INDEXED_DATA) & PM2F_PLL_LOCKED);
+-		     i--)
+-			;
++		for (i = 256; i; i--)
++			if (pm2_RD(par, PM2R_RD_INDEXED_DATA) & PM2F_PLL_LOCKED)
++				break;
+ 		break;
+ 	}
+ }
+@@ -515,17 +494,16 @@ static void set_pixclock(struct pm2fb_pa
+ 	switch (par->type) {
+ 	case PM2_TYPE_PERMEDIA2:
+ 		pm2_mnp(clk, &m, &n, &p);
+-		WAIT_FIFO(par, 8);
++		WAIT_FIFO(par, 10);
+ 		pm2_RDAC_WR(par, PM2I_RD_PIXEL_CLOCK_A3, 0);
+ 		pm2_RDAC_WR(par, PM2I_RD_PIXEL_CLOCK_A1, m);
+ 		pm2_RDAC_WR(par, PM2I_RD_PIXEL_CLOCK_A2, n);
+ 		pm2_RDAC_WR(par, PM2I_RD_PIXEL_CLOCK_A3, 8|p);
+ 		pm2_RDAC_RD(par, PM2I_RD_PIXEL_CLOCK_STATUS);
+ 		rmb();
+-		for (i = 256;
+-		     i && !(pm2_RD(par, PM2R_RD_INDEXED_DATA) & PM2F_PLL_LOCKED);
+-		     i--)
+-			;
++		for (i = 256; i; i--)
++			if (pm2_RD(par, PM2R_RD_INDEXED_DATA) & PM2F_PLL_LOCKED)
++				break;
+ 		break;
+ 	case PM2_TYPE_PERMEDIA2V:
+ 		pm2v_mnp(clk/2, &m, &n, &p);
+@@ -541,9 +519,7 @@ static void set_pixclock(struct pm2fb_pa
+ 
+ static void set_video(struct pm2fb_par* p, u32 video) {
+ 	u32 tmp;
+-	u32 vsync;
+-
+-	vsync = video;
++	u32 vsync = video;
+ 
+ 	DPRINTK("video = 0x%x\n", video);
+ 
+@@ -553,8 +529,8 @@ static void set_video(struct pm2fb_par* 
+ 	 * driver may well. So always set +hsync/+vsync and then set
+ 	 * the RAMDAC to invert the sync if necessary.
+ 	 */
+-	vsync &= ~(PM2F_HSYNC_MASK|PM2F_VSYNC_MASK);
+-	vsync |= PM2F_HSYNC_ACT_HIGH|PM2F_VSYNC_ACT_HIGH;
++	vsync &= ~(PM2F_HSYNC_MASK | PM2F_VSYNC_MASK);
++	vsync |= PM2F_HSYNC_ACT_HIGH | PM2F_VSYNC_ACT_HIGH;
+ 
+ 	WAIT_FIFO(p, 5);
+ 	pm2_WR(p, PM2R_VIDEO_CONTROL, vsync);
+@@ -581,10 +557,6 @@ static void set_video(struct pm2fb_par* 
+ }
+ 
+ /*
+- *
+- */
+-
+-/**
+  *	pm2fb_check_var - Optional function. Validates a var passed in.
+  *	@var: frame buffer variable screen structure
+  *	@info: frame buffer structure that represents a single frame buffer
+@@ -625,7 +597,7 @@ static int pm2fb_check_var(struct fb_var
+ 	}
+ 
+ 	var->xres = (var->xres + 15) & ~15; /* could sometimes be 8 */
+-	lpitch = var->xres * ((var->bits_per_pixel + 7)>>3);
++	lpitch = var->xres * ((var->bits_per_pixel + 7) >> 3);
+ 
+ 	if (var->xres < 320 || var->xres > 1600) {
+ 		DPRINTK("width not supported: %u\n", var->xres);
+@@ -702,7 +674,9 @@ static int pm2fb_set_par(struct fb_info 
+ {
+ 	struct pm2fb_par *par = info->par;
+ 	u32 pixclock;
+-	u32 width, height, depth;
++	u32 width = (info->var.xres_virtual + 7) & ~7;
++	u32 height = info->var.yres_virtual;
++	u32 depth = (info->var.bits_per_pixel + 7) & ~7;
+ 	u32 hsstart, hsend, hbend, htotal;
+ 	u32 vsstart, vsend, vbend, vtotal;
+ 	u32 stride;
+@@ -712,22 +686,18 @@ static int pm2fb_set_par(struct fb_info 
+ 	u32 txtmap = 0;
+ 	u32 pixsize = 0;
+ 	u32 clrformat = 0;
+-	u32 xres;
++	u32 xres = (info->var.xres + 31) & ~31;
+ 	int data64;
+ 
+ 	reset_card(par);
+ 	reset_config(par);
+ 	clear_palette(par);
+-	if ( par->memclock )
++	if (par->memclock)
+ 		set_memclock(par, par->memclock);
+ 
+-	width = (info->var.xres_virtual + 7) & ~7;
+-	height = info->var.yres_virtual;
+-	depth = (info->var.bits_per_pixel + 7) & ~7;
+ 	depth = (depth > 32) ? 32 : depth;
+ 	data64 = depth > 8 || par->type == PM2_TYPE_PERMEDIA2V;
+ 
+-	xres = (info->var.xres + 31) & ~31;
+ 	pixclock = PICOS2KHZ(info->var.pixclock);
+ 	if (pixclock > PM2_MAX_PIXCLOCK) {
+ 		DPRINTK("pixclock too high (%uKHz)\n", pixclock);
+@@ -767,13 +737,13 @@ static int pm2fb_set_par(struct fb_info 
+ 	}
+ 	else
+ 		video |= PM2F_VSYNC_ACT_LOW;
+-	if ((info->var.vmode & FB_VMODE_MASK)==FB_VMODE_INTERLACED) {
++	if ((info->var.vmode & FB_VMODE_MASK) == FB_VMODE_INTERLACED) {
+ 		DPRINTK("interlaced not supported\n");
+ 		return -EINVAL;
+ 	}
+-	if ((info->var.vmode & FB_VMODE_MASK)==FB_VMODE_DOUBLE)
++	if ((info->var.vmode & FB_VMODE_MASK) == FB_VMODE_DOUBLE)
+ 		video |= PM2F_LINE_DOUBLE;
+-	if ((info->var.activate & FB_ACTIVATE_MASK)==FB_ACTIVATE_NOW)
++	if ((info->var.activate & FB_ACTIVATE_MASK) == FB_ACTIVATE_NOW)
+ 		video |= PM2F_VIDEO_ENABLE;
+ 	par->video = video;
+ 
+@@ -794,8 +764,6 @@ static int pm2fb_set_par(struct fb_info 
+ 
+ 	mb();
+ 	WAIT_FIFO(par, 19);
+-	pm2_RDAC_WR(par, PM2I_RD_COLOR_KEY_CONTROL,
+-		    ( depth == 8 ) ? 0 : PM2F_COLOR_KEY_TEST_OFF);
+ 	switch (depth) {
+ 	case 8:
+ 		pm2_WR(par, PM2R_FB_READ_PIXEL, 0);
+@@ -845,14 +813,18 @@ static int pm2fb_set_par(struct fb_info 
+ 	pm2_WR(par, PM2R_SCREEN_BASE, base);
+ 	wmb();
+ 	set_video(par, video);
+-	WAIT_FIFO(par, 4);
++	WAIT_FIFO(par, 6);
+ 	switch (par->type) {
+ 	case PM2_TYPE_PERMEDIA2:
+ 		pm2_RDAC_WR(par, PM2I_RD_COLOR_MODE, clrmode);
++		pm2_RDAC_WR(par, PM2I_RD_COLOR_KEY_CONTROL,
++			        (depth == 8) ? 0 : PM2F_COLOR_KEY_TEST_OFF);
+ 		break;
+ 	case PM2_TYPE_PERMEDIA2V:
+ 		pm2v_RDAC_WR(par, PM2VI_RD_PIXEL_SIZE, pixsize);
+ 		pm2v_RDAC_WR(par, PM2VI_RD_COLOR_FORMAT, clrformat);
++		pm2v_RDAC_WR(par, PM2I_RD_COLOR_KEY_CONTROL,
++			         (depth == 8) ? 0 : PM2F_COLOR_KEY_TEST_OFF);
+ 		break;
+ 	}
+ 	set_pixclock(par, pixclock);
+@@ -983,11 +955,9 @@ static int pm2fb_pan_display(struct fb_v
+ {
+ 	struct pm2fb_par *p = info->par;
+ 	u32 base;
+-	u32 depth;
+-	u32 xres;
++	u32 depth = (var->bits_per_pixel + 7) & ~7;
++	u32 xres = (var->xres + 31) & ~31;
+ 
+-	xres = (var->xres + 31) & ~31;
+-	depth = (var->bits_per_pixel + 7) & ~7;
+ 	depth = (depth > 32) ? 32 : depth;
+ 	base = to3264(var->yoffset * xres + var->xoffset, depth, 1);
+ 	WAIT_FIFO(p, 1);
+@@ -1029,11 +999,11 @@ static int pm2fb_blank(int blank_mode, s
+ 		break;
+ 	case FB_BLANK_VSYNC_SUSPEND:
+ 		/* VSync: Off */
+-		video &= ~(PM2F_VSYNC_MASK | PM2F_BLANK_LOW );
++		video &= ~(PM2F_VSYNC_MASK | PM2F_BLANK_LOW);
+ 		break;
+ 	case FB_BLANK_HSYNC_SUSPEND:
+ 		/* HSync: Off */
+-		video &= ~(PM2F_HSYNC_MASK | PM2F_BLANK_LOW );
++		video &= ~(PM2F_HSYNC_MASK | PM2F_BLANK_LOW);
+ 		break;
+ 	case FB_BLANK_POWERDOWN:
+ 		/* HSync: Off, VSync: Off */
+@@ -1060,37 +1030,10 @@ static int pm2fb_sync(struct fb_info *in
+ 	return 0;
+ }
+ 
+-/*
+- * block operation. copy=0: rectangle fill, copy=1: rectangle copy.
+- */
+-static void pm2fb_block_op(struct fb_info* info, int copy,
+-				s32 xsrc, s32 ysrc,
+-				s32 x, s32 y, s32 w, s32 h,
+-				u32 color) {
+-	struct pm2fb_par *par = info->par;
+-
+-	if (!w || !h)
+-		return;
+-	WAIT_FIFO(par, 5);
+-	pm2_WR(par, PM2R_CONFIG, PM2F_CONFIG_FB_WRITE_ENABLE |
+-		PM2F_CONFIG_FB_READ_SOURCE_ENABLE);
+-	if (copy)
+-		pm2_WR(par, PM2R_FB_SOURCE_DELTA,
+-			((ysrc-y) & 0xfff) << 16 | ((xsrc-x) & 0xfff));
+-	else
+-		pm2_WR(par, PM2R_FB_BLOCK_COLOR, color);
+-	pm2_WR(par, PM2R_RECTANGLE_ORIGIN, (y << 16) | x);
+-	pm2_WR(par, PM2R_RECTANGLE_SIZE, (h << 16) | w);
+-	wmb();
+-	pm2_WR(par, PM2R_RENDER, PM2F_RENDER_RECTANGLE |
+-				(x<xsrc ? PM2F_INCREASE_X : 0) |
+-				(y<ysrc ? PM2F_INCREASE_Y : 0) |
+-				(copy ? 0 : PM2F_RENDER_FASTFILL));
+-}
+-
+ static void pm2fb_fillrect (struct fb_info *info,
+ 				const struct fb_fillrect *region)
+ {
++  	struct pm2fb_par *par = info->par;
+ 	struct fb_fillrect modded;
+ 	int vxres, vyres;
+ 	u32 color = (info->fix.visual == FB_VISUAL_TRUECOLOR) ?
+@@ -1109,31 +1052,39 @@ static void pm2fb_fillrect (struct fb_in
+ 
+ 	memcpy(&modded, region, sizeof(struct fb_fillrect));
+ 
+-	if(!modded.width || !modded.height ||
+-	   modded.dx >= vxres || modded.dy >= vyres)
++	if (!modded.width || !modded.height ||
++	    modded.dx >= vxres || modded.dy >= vyres)
+ 		return;
+ 
+-	if(modded.dx + modded.width  > vxres)
++	if (modded.dx + modded.width  > vxres)
+ 		modded.width  = vxres - modded.dx;
+-	if(modded.dy + modded.height > vyres)
++	if (modded.dy + modded.height > vyres)
+ 		modded.height = vyres - modded.dy;
+ 
+-	if(info->var.bits_per_pixel == 8)
++	if (info->var.bits_per_pixel == 8)
+ 		color |= color << 8;
+-	if(info->var.bits_per_pixel <= 16)
++	if (info->var.bits_per_pixel <= 16)
+ 		color |= color << 16;
+ 
+-	if(info->var.bits_per_pixel != 24)
+-		pm2fb_block_op(info, 0, 0, 0,
+-				modded.dx, modded.dy,
+-				modded.width, modded.height, color);
+-	else
++	WAIT_FIFO(par, 3);
++	pm2_WR(par, PM2R_CONFIG, PM2F_CONFIG_FB_WRITE_ENABLE);
++	pm2_WR(par, PM2R_RECTANGLE_ORIGIN, (modded.dy << 16) | modded.dx);
++	pm2_WR(par, PM2R_RECTANGLE_SIZE, (modded.height << 16) | modded.width);
++	if (info->var.bits_per_pixel != 24) {
++		WAIT_FIFO(par, 2);
++		pm2_WR(par, PM2R_FB_BLOCK_COLOR, color);
++		wmb();
++		pm2_WR(par, PM2R_RENDER,
++				PM2F_RENDER_RECTANGLE | PM2F_RENDER_FASTFILL);
++	} else {
+ 		cfb_fillrect(info, region);
++	}
+ }
+ 
+ static void pm2fb_copyarea(struct fb_info *info,
+ 				const struct fb_copyarea *area)
+ {
++	struct pm2fb_par *par = info->par;
+ 	struct fb_copyarea modded;
+ 	u32 vxres, vyres;
+ 
+@@ -1149,23 +1100,32 @@ static void pm2fb_copyarea(struct fb_inf
+ 	vxres = info->var.xres_virtual;
+ 	vyres = info->var.yres_virtual;
+ 
+-	if(!modded.width || !modded.height ||
+-	   modded.sx >= vxres || modded.sy >= vyres ||
+-	   modded.dx >= vxres || modded.dy >= vyres)
++	if (!modded.width || !modded.height ||
++	    modded.sx >= vxres || modded.sy >= vyres ||
++	    modded.dx >= vxres || modded.dy >= vyres)
+ 		return;
+ 
+-	if(modded.sx + modded.width > vxres)
++	if (modded.sx + modded.width > vxres)
+ 		modded.width = vxres - modded.sx;
+-	if(modded.dx + modded.width > vxres)
++	if (modded.dx + modded.width > vxres)
+ 		modded.width = vxres - modded.dx;
+-	if(modded.sy + modded.height > vyres)
++	if (modded.sy + modded.height > vyres)
+ 		modded.height = vyres - modded.sy;
+-	if(modded.dy + modded.height > vyres)
++	if (modded.dy + modded.height > vyres)
+ 		modded.height = vyres - modded.dy;
+ 
+-	pm2fb_block_op(info, 1, modded.sx, modded.sy,
+-			modded.dx, modded.dy,
+-			modded.width, modded.height, 0);
++	WAIT_FIFO(par, 5);
++	pm2_WR(par, PM2R_CONFIG, PM2F_CONFIG_FB_WRITE_ENABLE |
++		PM2F_CONFIG_FB_READ_SOURCE_ENABLE);
++	pm2_WR(par, PM2R_FB_SOURCE_DELTA,
++			((modded.sy-modded.dy) & 0xfff) << 16 |
++			((modded.sx-modded.dx) & 0xfff));
++	pm2_WR(par, PM2R_RECTANGLE_ORIGIN, (modded.dy << 16) | modded.dx);
++	pm2_WR(par, PM2R_RECTANGLE_SIZE, (modded.height << 16) | modded.width);
++	wmb();
++	pm2_WR(par, PM2R_RENDER, PM2F_RENDER_RECTANGLE |
++				(modded.dx<modded.sx ? PM2F_INCREASE_X : 0) |
++				(modded.dy<modded.sy ? PM2F_INCREASE_Y : 0));
+ }
+ 
+ static void pm2fb_imageblit(struct fb_info *info, const struct fb_image *image)
+@@ -1183,15 +1143,15 @@ static void pm2fb_imageblit(struct fb_in
+ 		return;
+ 	}
+ 	switch (info->fix.visual) {
+-		case FB_VISUAL_PSEUDOCOLOR:
+-			fgx = image->fg_color;
+-			bgx = image->bg_color;
+-			break;
+-		case FB_VISUAL_TRUECOLOR:
+-		default:
+-			fgx = par->palette[image->fg_color];
+-			bgx = par->palette[image->bg_color];
+-			break;
++	case FB_VISUAL_PSEUDOCOLOR:
++		fgx = image->fg_color;
++		bgx = image->bg_color;
++		break;
++	case FB_VISUAL_TRUECOLOR:
++	default:
++		fgx = par->palette[image->fg_color];
++		bgx = par->palette[image->bg_color];
++		break;
+ 	}
+ 	if (info->var.bits_per_pixel == 8) {
+ 		fgx |= fgx << 8;
+@@ -1211,7 +1171,7 @@ static void pm2fb_imageblit(struct fb_in
+ 			((image->dx + image->width) & 0x0fff));
+ 	pm2_WR(par, PM2R_SCISSOR_MODE, 1);
+ 	/* GXcopy & UNIT_ENABLE */
+-	pm2_WR(par, PM2R_LOGICAL_OP_MODE, (0x3 << 1) | 1 );
++	pm2_WR(par, PM2R_LOGICAL_OP_MODE, (0x3 << 1) | 1);
+ 	pm2_WR(par, PM2R_RECTANGLE_ORIGIN,
+ 			((image->dy & 0xfff) << 16) | (image->dx & 0x0fff));
+ 	pm2_WR(par, PM2R_RECTANGLE_SIZE,
+@@ -1223,10 +1183,10 @@ static void pm2fb_imageblit(struct fb_in
+ 		pm2_WR(par, PM2R_CONSTANT_COLOR, bgx);
+ 		pm2_WR(par, PM2R_RENDER,
+ 			PM2F_RENDER_RECTANGLE |
+-			PM2F_INCREASE_X | PM2F_INCREASE_Y );
++			PM2F_INCREASE_X | PM2F_INCREASE_Y);
+ 		/* BitMapPackEachScanline & invert bits and byte order*/
+ 		/* force background */
+-		pm2_WR(par, PM2R_RASTERIZER_MODE,  (1<<9) | 1 | (3<<7));
++		pm2_WR(par, PM2R_RASTERIZER_MODE,  (1 << 9) | 1 | (3 << 7));
+ 		pm2_WR(par, PM2R_CONSTANT_COLOR, fgx);
+ 		pm2_WR(par, PM2R_RENDER,
+ 			PM2F_RENDER_RECTANGLE |
+@@ -1239,9 +1199,9 @@ static void pm2fb_imageblit(struct fb_in
+ 		pm2_WR(par, PM2R_RENDER,
+ 			PM2F_RENDER_RECTANGLE |
+ 			PM2F_RENDER_FASTFILL |
+-			PM2F_INCREASE_X | PM2F_INCREASE_Y );
++			PM2F_INCREASE_X | PM2F_INCREASE_Y);
+ 		/* invert bits and byte order*/
+-		pm2_WR(par, PM2R_RASTERIZER_MODE,  1 | (3<<7) );
++		pm2_WR(par, PM2R_RASTERIZER_MODE,  1 | (3 << 7));
+ 		pm2_WR(par, PM2R_FB_BLOCK_COLOR, fgx);
+ 		pm2_WR(par, PM2R_RENDER,
+ 			PM2F_RENDER_RECTANGLE |
+@@ -1306,13 +1266,13 @@ static int __devinit pm2fb_probe(struct 
+ 	int err, err_retval = -ENXIO;
+ 
+ 	err = pci_enable_device(pdev);
+-	if ( err ) {
++	if (err) {
+ 		printk(KERN_WARNING "pm2fb: Can't enable pdev: %d\n", err);
  		return err;
  	}
  
--	return(fd);
-+	return fd;
- }
- 
- int os_connect_socket(char *name)
-@@ -292,31 +285,33 @@ int os_file_size(char *file, unsigned lo
- 	err = os_stat_file(file, &buf);
- 	if(err < 0){
- 		printk("Couldn't stat \"%s\" : err = %d\n", file, -err);
--		return(err);
-+		return err;
- 	}
- 
- 	if(S_ISBLK(buf.ust_mode)){
- 		int fd;
- 		long blocks;
- 
--		fd = os_open_file(file, of_read(OPENFLAGS()), 0);
--		if(fd < 0){
--			printk("Couldn't open \"%s\", errno = %d\n", file, -fd);
--			return(fd);
-+		fd = open(file, O_RDONLY, 0);
-+		if(fd < 0) {
-+			err = -errno;
-+			printk("Couldn't open \"%s\", errno = %d\n", file,
-+			       errno);
-+			return err;
- 		}
- 		if(ioctl(fd, BLKGETSIZE, &blocks) < 0){
- 			err = -errno;
- 			printk("Couldn't get the block size of \"%s\", "
- 			       "errno = %d\n", file, errno);
--			os_close_file(fd);
--			return(err);
-+			close(fd);
-+			return err;
- 		}
- 		*size_out = ((long long) blocks) * 512;
--		os_close_file(fd);
--		return(0);
-+		close(fd);
- 	}
--	*size_out = buf.ust_size;
--	return(0);
-+	else *size_out = buf.ust_size;
-+
-+	return 0;
- }
- 
- int os_file_modtime(char *file, unsigned long *modtime)
-@@ -334,35 +329,28 @@ int os_file_modtime(char *file, unsigned
- 	return 0;
- }
- 
--int os_get_exec_close(int fd, int* close_on_exec)
-+int os_get_exec_close(int fd, int *close_on_exec)
- {
- 	int ret;
- 
--	do {
--		ret = fcntl(fd, F_GETFD);
--	} while((ret < 0) && (errno == EINTR)) ;
-+	CATCH_EINTR(ret = fcntl(fd, F_GETFD));
- 
- 	if(ret < 0)
--		return(-errno);
-+		return -errno;
- 
--	*close_on_exec = (ret&FD_CLOEXEC) ? 1 : 0;
--	return(ret);
-+	*close_on_exec = (ret & FD_CLOEXEC) ? 1 : 0;
-+	return ret;
- }
- 
--int os_set_exec_close(int fd, int close_on_exec)
-+int os_set_exec_close(int fd)
- {
--	int flag, err;
--
--	if(close_on_exec) flag = FD_CLOEXEC;
--	else flag = 0;
-+	int err;
- 
--	do {
--		err = fcntl(fd, F_SETFD, flag);
--	} while((err < 0) && (errno == EINTR)) ;
-+	CATCH_EINTR(err = fcntl(fd, F_SETFD, FD_CLOEXEC));
- 
- 	if(err < 0)
--		return(-errno);
--	return(err);
-+		return -errno;
-+	return err;
- }
- 
- int os_pipe(int *fds, int stream, int close_on_exec)
-@@ -371,16 +359,16 @@ int os_pipe(int *fds, int stream, int cl
- 
- 	err = socketpair(AF_UNIX, type, 0, fds);
- 	if(err < 0)
--		return(-errno);
-+		return -errno;
- 
- 	if(!close_on_exec)
--		return(0);
-+		return 0;
- 
--	err = os_set_exec_close(fds[0], 1);
-+	err = os_set_exec_close(fds[0]);
- 	if(err < 0)
- 		goto error;
- 
--	err = os_set_exec_close(fds[1], 1);
-+	err = os_set_exec_close(fds[1]);
- 	if(err < 0)
- 		goto error;
- 
-@@ -388,9 +376,9 @@ int os_pipe(int *fds, int stream, int cl
- 
-  error:
- 	printk("os_pipe : Setting FD_CLOEXEC failed, err = %d\n", -err);
--	os_close_file(fds[1]);
--	os_close_file(fds[0]);
--	return(err);
-+	close(fds[1]);
-+	close(fds[0]);
-+	return err;
- }
- 
- int os_set_fd_async(int fd, int owner)
-@@ -537,7 +525,7 @@ int os_create_unix_socket(char *file, in
- 		return -errno;
- 
- 	if(close_on_exec) {
--		err = os_set_exec_close(sock, 1);
-+		err = os_set_exec_close(sock);
- 		if(err < 0)
- 			printk("create_unix_socket : close_on_exec failed, "
- 		       "err = %d", -err);
-diff -puN arch/um/os-Linux/helper.c~uml-userspace-files-should-call-libc-directly arch/um/os-Linux/helper.c
---- a/arch/um/os-Linux/helper.c~uml-userspace-files-should-call-libc-directly
-+++ a/arch/um/os-Linux/helper.c
-@@ -11,6 +11,7 @@
- #include <limits.h>
- #include <sys/signal.h>
- #include <sys/wait.h>
-+#include <sys/socket.h>
- #include "user.h"
- #include "kern_util.h"
- #include "os.h"
-@@ -54,13 +55,14 @@ int run_helper(void (*pre_exec)(void *),
- 	if (stack == 0)
+ 	info = framebuffer_alloc(sizeof(struct pm2fb_par), &pdev->dev);
+-	if ( !info )
++	if (!info)
  		return -ENOMEM;
+ 	default_par = info->par;
  
--	ret = os_pipe(fds, 1, 0);
-+	ret = socketpair(AF_UNIX, SOCK_STREAM, 0, fds);
- 	if (ret < 0) {
--		printk("run_helper : pipe failed, ret = %d\n", -ret);
-+		ret = -errno;
-+		printk("run_helper : pipe failed, errno = %d\n", errno);
- 		goto out_free;
+@@ -1345,14 +1305,14 @@ static int __devinit pm2fb_probe(struct 
+ 	DPRINTK("Register base at 0x%lx\n", pm2fb_fix.mmio_start);
+ 
+ 	/* Registers - request region and map it. */
+-	if ( !request_mem_region(pm2fb_fix.mmio_start, pm2fb_fix.mmio_len,
+-				 "pm2fb regbase") ) {
++	if (!request_mem_region(pm2fb_fix.mmio_start, pm2fb_fix.mmio_len,
++				"pm2fb regbase")) {
+ 		printk(KERN_WARNING "pm2fb: Can't reserve regbase.\n");
+ 		goto err_exit_neither;
+ 	}
+ 	default_par->v_regs =
+ 		ioremap_nocache(pm2fb_fix.mmio_start, pm2fb_fix.mmio_len);
+-	if ( !default_par->v_regs ) {
++	if (!default_par->v_regs) {
+ 		printk(KERN_WARNING "pm2fb: Can't remap %s register area.\n",
+ 		       pm2fb_fix.id);
+ 		release_mem_region(pm2fb_fix.mmio_start, pm2fb_fix.mmio_len);
+@@ -1367,13 +1327,13 @@ static int __devinit pm2fb_probe(struct 
+ 		default_par->mem_control, default_par->boot_address,
+ 		default_par->mem_config);
+ 
+-	if(default_par->mem_control == 0 &&
++	if (default_par->mem_control == 0 &&
+ 		default_par->boot_address == 0x31 &&
+ 		default_par->mem_config == 0x259fffff) {
+ 		default_par->memclock = CVPPC_MEMCLOCK;
+-		default_par->mem_control=0;
+-		default_par->boot_address=0x20;
+-		default_par->mem_config=0xe6002021;
++		default_par->mem_control = 0;
++		default_par->boot_address = 0x20;
++		default_par->mem_config = 0xe6002021;
+ 		if (pdev->subsystem_vendor == 0x1048 &&
+ 			pdev->subsystem_device == 0x0a31) {
+ 			DPRINTK("subsystem_vendor: %04x, subsystem_device: %04x\n",
+@@ -1381,7 +1341,7 @@ static int __devinit pm2fb_probe(struct 
+ 			DPRINTK("We have not been initialized by VGA BIOS "
+ 				"and are running on an Elsa Winner 2000 Office\n");
+ 			DPRINTK("Initializing card timings manually...\n");
+-			default_par->memclock=70000;
++			default_par->memclock = 70000;
+ 		}
+ 		if (pdev->subsystem_vendor == 0x3d3d &&
+ 			pdev->subsystem_device == 0x0100) {
+@@ -1390,36 +1350,36 @@ static int __devinit pm2fb_probe(struct 
+ 			DPRINTK("We have not been initialized by VGA BIOS "
+ 				"and are running on an 3dlabs reference board\n");
+ 			DPRINTK("Initializing card timings manually...\n");
+-			default_par->memclock=74894;
++			default_par->memclock = 74894;
+ 		}
  	}
  
--	ret = os_set_exec_close(fds[1], 1);
-+	ret = os_set_exec_close(fds[1]);
- 	if (ret < 0) {
- 		printk("run_helper : setting FD_CLOEXEC failed, ret = %d\n",
- 		       -ret);
-diff -puN arch/um/os-Linux/mem.c~uml-userspace-files-should-call-libc-directly arch/um/os-Linux/mem.c
---- a/arch/um/os-Linux/mem.c~uml-userspace-files-should-call-libc-directly
-+++ a/arch/um/os-Linux/mem.c
-@@ -218,7 +218,7 @@ int __init create_tmp_file(unsigned long
- 
- 	err = fchmod(fd, 0777);
- 	if(err < 0){
--		perror("os_mode_fd");
-+		perror("fchmod");
- 		exit(1);
+ 	/* Now work out how big lfb is going to be. */
+ 	switch(default_par->mem_config & PM2F_MEM_CONFIG_RAM_MASK) {
+ 	case PM2F_MEM_BANKS_1:
+-		pm2fb_fix.smem_len=0x200000;
++		pm2fb_fix.smem_len = 0x200000;
+ 		break;
+ 	case PM2F_MEM_BANKS_2:
+-		pm2fb_fix.smem_len=0x400000;
++		pm2fb_fix.smem_len = 0x400000;
+ 		break;
+ 	case PM2F_MEM_BANKS_3:
+-		pm2fb_fix.smem_len=0x600000;
++		pm2fb_fix.smem_len = 0x600000;
+ 		break;
+ 	case PM2F_MEM_BANKS_4:
+-		pm2fb_fix.smem_len=0x800000;
++		pm2fb_fix.smem_len = 0x800000;
+ 		break;
  	}
+ 	pm2fb_fix.smem_start = pci_resource_start(pdev, 1);
  
-@@ -226,7 +226,7 @@ int __init create_tmp_file(unsigned long
- 	 * increase the file size by one byte, to the desired length.
- 	 */
- 	if (lseek64(fd, len - 1, SEEK_SET) < 0) {
--		perror("os_seek_file");
-+		perror("lseek64");
- 		exit(1);
+ 	/* Linear frame buffer - request region and map it. */
+-	if ( !request_mem_region(pm2fb_fix.smem_start, pm2fb_fix.smem_len,
+-				 "pm2fb smem") ) {
++	if (!request_mem_region(pm2fb_fix.smem_start, pm2fb_fix.smem_len,
++				"pm2fb smem")) {
+ 		printk(KERN_WARNING "pm2fb: Can't reserve smem.\n");
+ 		goto err_exit_mmio;
  	}
- 
-@@ -247,7 +247,7 @@ int __init create_mem_file(unsigned long
- 
- 	fd = create_tmp_file(len);
- 
--	err = os_set_exec_close(fd, 1);
-+	err = os_set_exec_close(fd);
- 	if(err < 0){
- 		errno = -err;
- 		perror("exec_close");
-diff -puN arch/um/os-Linux/process.c~uml-userspace-files-should-call-libc-directly arch/um/os-Linux/process.c
---- a/arch/um/os-Linux/process.c~uml-userspace-files-should-call-libc-directly
-+++ a/arch/um/os-Linux/process.c
-@@ -7,6 +7,7 @@
- #include <unistd.h>
- #include <errno.h>
- #include <signal.h>
-+#include <fcntl.h>
- #include <sys/mman.h>
- #include <sys/ptrace.h>
- #include <sys/wait.h>
-@@ -28,31 +29,32 @@
- unsigned long os_process_pc(int pid)
- {
- 	char proc_stat[STAT_PATH_LEN], buf[256];
--	unsigned long pc;
-+	unsigned long pc = ARBITRARY_ADDR;
- 	int fd, err;
- 
- 	sprintf(proc_stat, "/proc/%d/stat", pid);
--	fd = os_open_file(proc_stat, of_read(OPENFLAGS()), 0);
-+	fd = open(proc_stat, O_RDONLY, 0);
- 	if (fd < 0) {
- 		printk(UM_KERN_ERR "os_process_pc - couldn't open '%s', "
--		       "err = %d\n", proc_stat, -fd);
--		return ARBITRARY_ADDR;
-+		       "errno = %d\n", proc_stat, errno);
-+		goto out;
- 	}
- 	CATCH_EINTR(err = read(fd, buf, sizeof(buf)));
- 	if (err < 0) {
- 		printk(UM_KERN_ERR "os_process_pc - couldn't read '%s', "
- 		       "err = %d\n", proc_stat, errno);
--		os_close_file(fd);
--		return ARBITRARY_ADDR;
-+		goto out_close;
- 	}
- 	os_close_file(fd);
- 	pc = ARBITRARY_ADDR;
- 	if (sscanf(buf, "%*d " COMM_SCANF " %*c %*d %*d %*d %*d %*d %*d %*d "
--		  "%*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d "
--		  "%*d %*d %*d %*d %*d %lu", &pc) != 1) {
-+		   "%*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d %*d "
-+		   "%*d %*d %*d %*d %*d %lu", &pc) != 1)
- 		printk(UM_KERN_ERR "os_process_pc - couldn't find pc in '%s'\n",
- 		       buf);
--	}
-+ out_close:
-+	close(fd);
-+ out:
- 	return pc;
- }
- 
-@@ -60,25 +62,26 @@ int os_process_parent(int pid)
- {
- 	char stat[STAT_PATH_LEN];
- 	char data[256];
--	int parent, n, fd;
-+	int parent = FAILURE_PID, n, fd;
- 
- 	if (pid == -1)
--		return -1;
-+		return parent;
- 
- 	snprintf(stat, sizeof(stat), "/proc/%d/stat", pid);
--	fd = os_open_file(stat, of_read(OPENFLAGS()), 0);
-+	fd = open(stat, O_RDONLY, 0);
- 	if (fd < 0) {
--		printk(UM_KERN_ERR "Couldn't open '%s', err = %d\n", stat, -fd);
--		return FAILURE_PID;
-+		printk(UM_KERN_ERR "Couldn't open '%s', errno = %d\n", stat,
-+		       errno);
-+		return parent;
- 	}
- 
- 	CATCH_EINTR(n = read(fd, data, sizeof(data)));
--	os_close_file(fd);
-+	close(fd);
- 
- 	if (n < 0) {
--		printk(UM_KERN_ERR "Couldn't read '%s', err = %d\n", stat,
-+		printk(UM_KERN_ERR "Couldn't read '%s', errno = %d\n", stat,
- 		       errno);
--		return FAILURE_PID;
-+		return parent;
- 	}
- 
- 	parent = FAILURE_PID;
-diff -puN arch/um/os-Linux/skas/process.c~uml-userspace-files-should-call-libc-directly arch/um/os-Linux/skas/process.c
---- a/arch/um/os-Linux/skas/process.c~uml-userspace-files-should-call-libc-directly
-+++ a/arch/um/os-Linux/skas/process.c
-@@ -28,7 +28,7 @@
- 
- int is_skas_winch(int pid, int fd, void *data)
- {
--	if (pid != os_getpgrp())
-+	if (pid != getpgrp())
- 		return 0;
- 
- 	register_winch_irq(-1, fd, -1, data, 0);
-@@ -233,7 +233,7 @@ static int userspace_tramp(void *stack)
- 			      "failed - errno = %d\n", errno);
- 	}
- 
--	os_stop_process(os_getpid());
-+	kill(os_getpid(), SIGSTOP);
- 	return 0;
- }
- 
-diff -puN arch/um/os-Linux/start_up.c~uml-userspace-files-should-call-libc-directly arch/um/os-Linux/start_up.c
---- a/arch/um/os-Linux/start_up.c~uml-userspace-files-should-call-libc-directly
-+++ a/arch/um/os-Linux/start_up.c
-@@ -28,13 +28,14 @@
- static int ptrace_child(void)
- {
- 	int ret;
-+	/* Calling os_getpid because some libcs cached getpid incorrectly */
- 	int pid = os_getpid(), ppid = getppid();
- 	int sc_result;
- 
- 	change_sig(SIGWINCH, 0);
- 	if (ptrace(PTRACE_TRACEME, 0, 0, 0) < 0) {
- 		perror("ptrace");
--		os_kill_process(pid, 0);
-+		kill(pid, SIGKILL);
- 	}
- 	kill(pid, SIGSTOP);
- 
-@@ -496,7 +497,7 @@ int __init parse_iomem(char *str, int *a
- 	file++;
- 	fd = open(file, O_RDWR, 0);
- 	if (fd < 0) {
--		os_print_error(fd, "parse_iomem - Couldn't open io file");
-+		perror("parse_iomem - Couldn't open io file");
- 		goto out;
- 	}
- 
+ 	info->screen_base =
+ 		ioremap_nocache(pm2fb_fix.smem_start, pm2fb_fix.smem_len);
+-	if ( !info->screen_base ) {
++	if (!info->screen_base) {
+ 		printk(KERN_WARNING "pm2fb: Can't ioremap smem area.\n");
+ 		release_mem_region(pm2fb_fix.smem_start, pm2fb_fix.smem_len);
+ 		goto err_exit_mmio;
+@@ -1571,9 +1531,9 @@ static int __init pm2fb_setup(char *opti
+ 	while ((this_opt = strsep(&options, ",")) != NULL) {
+ 		if (!*this_opt)
+ 			continue;
+-		if(!strcmp(this_opt, "lowhsync")) {
++		if (!strcmp(this_opt, "lowhsync")) {
+ 			lowhsync = 1;
+-		} else if(!strcmp(this_opt, "lowvsync")) {
++		} else if (!strcmp(this_opt, "lowvsync")) {
+ 			lowvsync = 1;
+ #ifdef CONFIG_MTRR
+ 		} else if (!strncmp(this_opt, "nomtrr", 6)) {
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-git-kvm.patch
-uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
-bitops-introduce-lock-ops.patch
+git-alsa.patch
+cyber2000fb-checkpatch-fixes.patch
