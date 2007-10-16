@@ -1,126 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: - uml-correctly-handle-skb-allocation-failures.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:39:07 -0700
-Message-ID: <200710162039.l9GKd7T8015516@imap1.linux-foundation.org>
+Subject: - tdfxfb-palette-fixes.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:42:37 -0700
+Message-ID: <200710162042.l9GKgbMg015897@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56009 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39168 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936131AbXJPVHv (ORCPT
+	by vger.kernel.org with ESMTP id S1761059AbXJPVHu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:07:51 -0400
+	Tue, 16 Oct 2007 17:07:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: correctly handle skb allocation failures
+     tdfxfb: palette fixes
 has been removed from the -mm tree.  Its filename was
-     uml-correctly-handle-skb-allocation-failures.patch
+     tdfxfb-palette-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: correctly handle skb allocation failures
-From: Jeff Dike <jdike@addtoit.com>
+Subject: tdfxfb: palette fixes
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Handle memory allocation failures when reading packets.
+This patch fixes:
+- palette setting in 8-bit mode (aka 'funky penguin')
+- grayscale handling
+- adds proper barriers in xxx_inb/outb functions
 
-We have to read something from the host, even if we can't allocate any
-memory.  If we don't, the host side of the device may fill up and stop
-delivering interrupts because no new packets can be queued.
-
-A single sk_buff is allocated whenever an MTU is seen which is larger
-than any seen earlier.  This is used to read packets if there is a
-memory allocation failure.
-
-The large MTU check is done from eth_configure, which is called when a
-interface is added to the system.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/net_kern.c |   47 +++++++++++++++++++++++++++++++++++
- 1 file changed, 47 insertions(+)
+ drivers/video/tdfxfb.c |   18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
-diff -puN arch/um/drivers/net_kern.c~uml-correctly-handle-skb-allocation-failures arch/um/drivers/net_kern.c
---- a/arch/um/drivers/net_kern.c~uml-correctly-handle-skb-allocation-failures
-+++ a/arch/um/drivers/net_kern.c
-@@ -34,6 +34,46 @@ static inline void set_ether_mac(struct 
- static DEFINE_SPINLOCK(opened_lock);
- static LIST_HEAD(opened);
- 
-+/*
-+ * The drop_skb is used when we can't allocate an skb.  The
-+ * packet is read into drop_skb in order to get the data off the
-+ * connection to the host.
-+ * It is reallocated whenever a maximum packet size is seen which is
-+ * larger than any seen before.  update_drop_skb is called from
-+ * eth_configure when a new interface is added.
-+ */
-+static DEFINE_SPINLOCK(drop_lock);
-+static struct sk_buff *drop_skb;
-+static int drop_max;
-+
-+static int update_drop_skb(int max)
-+{
-+	struct sk_buff *new;
-+	unsigned long flags;
-+	int err = 0;
-+
-+	spin_lock_irqsave(&drop_lock, flags);
-+
-+	if (max <= drop_max)
-+		goto out;
-+
-+	err = -ENOMEM;
-+	new = dev_alloc_skb(max);
-+	if (new == NULL)
-+		goto out;
-+
-+	skb_put(new, max);
-+
-+	kfree_skb(drop_skb);
-+	drop_skb = new;
-+	drop_max = max;
-+	err = 0;
-+out:
-+	spin_unlock_irqrestore(&drop_lock, flags);
-+
-+	return err;
-+}
-+
- static int uml_net_rx(struct net_device *dev)
+diff -puN drivers/video/tdfxfb.c~tdfxfb-palette-fixes drivers/video/tdfxfb.c
+--- a/drivers/video/tdfxfb.c~tdfxfb-palette-fixes
++++ a/drivers/video/tdfxfb.c
+@@ -35,7 +35,6 @@
+  * driver by Ilario Nardinocchi, which in turn is based on skeletonfb.
+  *
+  * TODO:
+- * - support for 16/32 bpp needs fixing (funky bootup penguin)
+  * - multihead support (basically need to support an array of fb_infos)
+  * - support other architectures (PPC, Alpha); does the fact that the VGA
+  *   core can be accessed only thru I/O (not memory mapped) complicate
+@@ -184,30 +183,38 @@ static inline void vga_outb(struct tdfx_
+ static inline void gra_outb(struct tdfx_par *par, u32 idx, u8 val)
  {
- 	struct uml_net_private *lp = dev->priv;
-@@ -43,6 +83,9 @@ static int uml_net_rx(struct net_device 
- 	/* If we can't allocate memory, try again next round. */
- 	skb = dev_alloc_skb(lp->max_packet);
- 	if (skb == NULL) {
-+		drop_skb->dev = dev;
-+		/* Read a packet into drop_skb and don't do anything with it. */
-+		(*lp->read)(lp->fd, drop_skb, lp);
- 		lp->stats.rx_dropped++;
- 		return 0;
- 	}
-@@ -447,6 +490,10 @@ static void eth_configure(int n, void *i
- 	dev->watchdog_timeo = (HZ >> 1);
- 	dev->irq = UM_ETH_IRQ;
+ 	vga_outb(par, GRA_I, idx);
++	wmb();
+ 	vga_outb(par, GRA_D, val);
++	wmb();
+ }
  
-+	err = update_drop_skb(lp->max_packet);
-+	if (err)
-+		goto out_undo_user_init;
+ static inline void seq_outb(struct tdfx_par *par, u32 idx, u8 val)
+ {
+ 	vga_outb(par, SEQ_I, idx);
++	wmb();
+ 	vga_outb(par, SEQ_D, val);
++	wmb();
+ }
+ 
+ static inline u8 seq_inb(struct tdfx_par *par, u32 idx)
+ {
+ 	vga_outb(par, SEQ_I, idx);
++	mb();
+ 	return vga_inb(par, SEQ_D);
+ }
+ 
+ static inline void crt_outb(struct tdfx_par *par, u32 idx, u8 val)
+ {
+ 	vga_outb(par, CRT_I, idx);
++	wmb();
+ 	vga_outb(par, CRT_D, val);
++	wmb();
+ }
+ 
+ static inline u8 crt_inb(struct tdfx_par *par, u32 idx)
+ {
+ 	vga_outb(par, CRT_I, idx);
++	mb();
+ 	return vga_inb(par, CRT_D);
+ }
+ 
+@@ -243,6 +250,7 @@ static inline void vga_enable_video(stru
+ static inline void vga_enable_palette(struct tdfx_par *par)
+ {
+ 	vga_inb(par, IS1_R);
++	mb();
+ 	vga_outb(par, ATT_IW, 0x20);
+ }
+ 
+@@ -286,6 +294,8 @@ static inline void do_setpalentry(struct
+ {  
+ 	banshee_make_room(par, 2);
+ 	tdfx_outl(par, DACADDR, regno);
++	/* read after write makes it working */
++	tdfx_inl(par, DACADDR);
+ 	tdfx_outl(par, DACDATA, c);
+ }
+ 
+@@ -771,6 +781,12 @@ static int tdfxfb_setcolreg(unsigned reg
+ 	if (regno >= info->cmap.len || regno > 255)
+ 		return 1;
+ 
++	/* grayscale works only partially under directcolor */
++	if (info->var.grayscale) {
++		/* grayscale = 0.30*R + 0.59*G + 0.11*B */
++		red = green = blue = (red * 77 + green * 151 + blue * 28) >> 8;
++	}
 +
- 	rtnl_lock();
- 	err = register_netdevice(dev);
- 	rtnl_unlock();
+ 	switch (info->fix.visual) {
+ 	case FB_VISUAL_PSEUDOCOLOR:
+ 		rgbcol =(((u32)red   & 0xff00) << 8) |
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-git-kvm.patch
-uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
-bitops-introduce-lock-ops.patch
+git-alsa.patch
+cyber2000fb-checkpatch-fixes.patch
