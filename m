@@ -1,78 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 15:44:50 -0700
-Message-ID: <200710162244.l9GMioqI021660@imap1.linux-foundation.org>
+Subject: - introduce-i_sync-fix.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 15:47:29 -0700
+Message-ID: <200710162247.l9GMlTEp021705@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39026 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47958 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751984AbXJPWpH (ORCPT
+	by vger.kernel.org with ESMTP id S1754702AbXJPWrl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 18:45:07 -0400
+	Tue, 16 Oct 2007 18:47:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wfg@mail.ustc.edu.cn, akpm@linux-foundation.org, dgc@sgi.com, kenchen@google.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, joern@wohnheim.fh-wedel.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     writeback-remove-pages_skipped-accounting-in-__block_write_full_page fix
+     make fs/inode.c:wake_up_inode() static
 has been removed from the -mm tree.  Its filename was
-     writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
+     introduce-i_sync-fix.patch
 
-This patch was dropped because it was folded into writeback-remove-pages_skipped-accounting-in-__block_write_full_page.patch
+This patch was dropped because it was folded into introduce-i_sync.patch
 
 ------------------------------------------------------
-Subject: writeback-remove-pages_skipped-accounting-in-__block_write_full_page fix
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: make fs/inode.c:wake_up_inode() static
+From: Adrian Bunk <bunk@stusta.de>
 
-On Wed, Oct 03, 2007 at 07:55:18AM +1000, David Chinner wrote:
-> >
-> > do not quite agree with each other. The page writeback should be skipped for
-> > 'locked buffer', but here it is 'clean buffer'!
->
-> Ok, so that means we need an equivalent fix in xfs_start_page_writeback()
-> as it will skip pages with clean buffers just like this. Something like
-> this (untested)?
+wake_up_inode() can become static.
 
-Sure OK - as long as it is 'no write because of clean buffer'.
-The only user of pages_skipped is obviously using that semantics.
-
-Cc: Ken Chen <kenchen@google.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-Signed-off-by: David Chinner <dgc@sgi.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Cc: Joern Engel <joern@wohnheim.fh-wedel.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/linux-2.6/xfs_aops.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ fs/inode.c                |   18 +++++++++---------
+ include/linux/writeback.h |    1 -
+ 2 files changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN fs/xfs/linux-2.6/xfs_aops.c~writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix fs/xfs/linux-2.6/xfs_aops.c
---- a/fs/xfs/linux-2.6/xfs_aops.c~writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix
-+++ a/fs/xfs/linux-2.6/xfs_aops.c
-@@ -415,10 +415,9 @@ xfs_start_page_writeback(
- 		clear_page_dirty_for_io(page);
- 	set_page_writeback(page);
- 	unlock_page(page);
--	if (!buffers) {
-+	/* If no buffers on the page are to be written, finish it here */
-+	if (!buffers)
- 		end_page_writeback(page);
--		wbc->pages_skipped++;	/* We didn't write this page */
--	}
+diff -puN fs/inode.c~introduce-i_sync-fix fs/inode.c
+--- a/fs/inode.c~introduce-i_sync-fix
++++ a/fs/inode.c
+@@ -99,6 +99,15 @@ struct inodes_stat_t inodes_stat;
+ 
+ static struct kmem_cache * inode_cachep __read_mostly;
+ 
++static void wake_up_inode(struct inode *inode)
++{
++	/*
++	 * Prevent speculative execution through spin_unlock(&inode_lock);
++	 */
++	smp_mb();
++	wake_up_bit(&inode->i_state, __I_LOCK);
++}
++
+ static struct inode *alloc_inode(struct super_block *sb)
+ {
+ 	static const struct address_space_operations empty_aops;
+@@ -1302,15 +1311,6 @@ static void __wait_on_freeing_inode(stru
+ 	spin_lock(&inode_lock);
  }
  
- static inline int bio_add_buffer(struct bio *bio, struct buffer_head *bh)
+-void wake_up_inode(struct inode *inode)
+-{
+-	/*
+-	 * Prevent speculative execution through spin_unlock(&inode_lock);
+-	 */
+-	smp_mb();
+-	wake_up_bit(&inode->i_state, __I_LOCK);
+-}
+-
+ /*
+  * We rarely want to lock two inodes that do not have a parent/child
+  * relationship (such as directory, child inode) simultaneously. The
+diff -puN include/linux/writeback.h~introduce-i_sync-fix include/linux/writeback.h
+--- a/include/linux/writeback.h~introduce-i_sync-fix
++++ a/include/linux/writeback.h
+@@ -70,7 +70,6 @@ struct writeback_control {
+  * fs/fs-writeback.c
+  */	
+ void writeback_inodes(struct writeback_control *wbc);
+-void wake_up_inode(struct inode *inode);
+ int inode_wait(void *);
+ void sync_inodes_sb(struct super_block *, int wait);
+ void sync_inodes(int wait);
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-convert-ill-defined-log2-to-ilog2.patch
-avoid-negative-and-full-width-shifts-in-radix-treec.patch
-writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
-writeback-fix-ntfs-with-sb_has_dirty_inodes.patch
-writeback-remove-pages_skipped-accounting-in-__block_write_full_page.patch
-writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
-writeback-introduce-writeback_controlmore_io-to-indicate-more-io.patch
-writeback-remove-unnecessary-wait-in-throttle_vm_writeout.patch
+fs-reiserfs-cleanups.patch
+remove-unsafe-from-module-struct.patch
+kernel-rtmutex-debugc-cleanups.patch
+fs-afs-possible-cleanups.patch
+lib-ioremapc-should-include-linux-ioh.patch
+ipc-shmc-make-2-functions-static.patch
+script-to-check-for-undefined-kconfig-symbols.patch
+drivers-block-ccissc-fix-check-after-use.patch
+dontdiff-update-based-on-gitignore-updates.patch
+introduce-i_sync.patch
+introduce-i_sync-fix.patch
+ext2-reservations.patch
+intel-iommu-intel-iommu-driver.patch
+revoke-core-code.patch
+pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
+the-next-round-of-scheduled-oss-code-removal.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
