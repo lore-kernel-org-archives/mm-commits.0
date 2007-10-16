@@ -1,164 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - uml-move-userspace-code-to-userspace-file.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:36:45 -0700
-Message-ID: <200710162036.l9GKajFP015214@imap1.linux-foundation.org>
+Subject: - intel-fb-force-even-line-count-in-interlaced-mode.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:44:46 -0700
+Message-ID: <200710162044.l9GKik1r016194@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55972 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46235 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933284AbXJPVXm (ORCPT
+	by vger.kernel.org with ESMTP id S933284AbXJPVXf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:23:42 -0400
+	Tue, 16 Oct 2007 17:23:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: khc@pm.waw.pl, adaplas@pol.net, sylvain.meyer@worldonline.fr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: move userspace code to userspace file
+     Intel FB: force even line count in interlaced mode
 has been removed from the -mm tree.  Its filename was
-     uml-move-userspace-code-to-userspace-file.patch
+     intel-fb-force-even-line-count-in-interlaced-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: move userspace code to userspace file
-From: Jeff Dike <jdike@addtoit.com>
+Subject: Intel FB: force even line count in interlaced mode
+From: Krzysztof Halasa <khc@pm.waw.pl>
 
-Move some code from a kernelspace file to a userspace file where it fits
-better.  This enables some tidying which is the subject of a later patch.
+Intel FB: the chip adds two halflines automatically in interlaced mode,
+force even line count for the right timings.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Signed-off-by: Krzysztof Halasa <khc@pm.waw.pl>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: <sylvain.meyer@worldonline.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/chan_kern.c |   48 ---------------------------------
- arch/um/drivers/chan_user.c |   49 ++++++++++++++++++++++++++++++++++
- 2 files changed, 49 insertions(+), 48 deletions(-)
+ drivers/video/intelfb/intelfbhw.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN arch/um/drivers/chan_kern.c~uml-move-userspace-code-to-userspace-file arch/um/drivers/chan_kern.c
---- a/arch/um/drivers/chan_kern.c~uml-move-userspace-code-to-userspace-file
-+++ a/arch/um/drivers/chan_kern.c
-@@ -89,54 +89,6 @@ static const struct chan_ops not_configg
- };
- #endif /* CONFIG_NOCONFIG_CHAN */
+diff -puN drivers/video/intelfb/intelfbhw.c~intel-fb-force-even-line-count-in-interlaced-mode drivers/video/intelfb/intelfbhw.c
+--- a/drivers/video/intelfb/intelfbhw.c~intel-fb-force-even-line-count-in-interlaced-mode
++++ a/drivers/video/intelfb/intelfbhw.c
+@@ -317,6 +317,14 @@ int intelfbhw_validate_mode(struct intel
+ 			var->yres, VACTIVE_MASK + 1);
+ 		return 1;
+ 	}
++	if (var->xres < 4) {
++		WRN_MSG("X resolution too small (%d vs 4).\n", var->xres);
++		return 1;
++	}
++	if (var->yres < 4) {
++		WRN_MSG("Y resolution too small (%d vs 4).\n", var->yres);
++		return 1;
++	}
  
--void generic_close(int fd, void *unused)
--{
--	os_close_file(fd);
--}
--
--int generic_read(int fd, char *c_out, void *unused)
--{
--	int n;
--
--	n = os_read_file(fd, c_out, sizeof(*c_out));
--
--	if(n == -EAGAIN)
--		return 0;
--	else if(n == 0)
--		return -EIO;
--	return n;
--}
--
--/* XXX Trivial wrapper around os_write_file */
--
--int generic_write(int fd, const char *buf, int n, void *unused)
--{
--	return os_write_file(fd, buf, n);
--}
--
--int generic_window_size(int fd, void *unused, unsigned short *rows_out,
--			unsigned short *cols_out)
--{
--	int rows, cols;
--	int ret;
--
--	ret = os_window_size(fd, &rows, &cols);
--	if(ret < 0)
--		return ret;
--
--	ret = ((*rows_out != rows) || (*cols_out != cols));
--
--	*rows_out = rows;
--	*cols_out = cols;
--
--	return ret;
--}
--
--void generic_free(void *data)
--{
--	kfree(data);
--}
--
- static void tty_receive_char(struct tty_struct *tty, char ch)
- {
- 	if(tty == NULL) return;
-diff -puN arch/um/drivers/chan_user.c~uml-move-userspace-code-to-userspace-file arch/um/drivers/chan_user.c
---- a/arch/um/drivers/chan_user.c~uml-move-userspace-code-to-userspace-file
-+++ a/arch/um/drivers/chan_user.c
-@@ -19,6 +19,55 @@
- #include "os.h"
- #include "choose-mode.h"
- #include "mode.h"
-+#include "um_malloc.h"
-+
-+void generic_close(int fd, void *unused)
-+{
-+	os_close_file(fd);
-+}
-+
-+int generic_read(int fd, char *c_out, void *unused)
-+{
-+	int n;
-+
-+	n = os_read_file(fd, c_out, sizeof(*c_out));
-+
-+	if(n == -EAGAIN)
-+		return 0;
-+	else if(n == 0)
-+		return -EIO;
-+	return n;
-+}
-+
-+/* XXX Trivial wrapper around os_write_file */
-+
-+int generic_write(int fd, const char *buf, int n, void *unused)
-+{
-+	return os_write_file(fd, buf, n);
-+}
-+
-+int generic_window_size(int fd, void *unused, unsigned short *rows_out,
-+			unsigned short *cols_out)
-+{
-+	int rows, cols;
-+	int ret;
-+
-+	ret = os_window_size(fd, &rows, &cols);
-+	if(ret < 0)
-+		return ret;
-+
-+	ret = ((*rows_out != rows) || (*cols_out != cols));
-+
-+	*rows_out = rows;
-+	*cols_out = cols;
-+
-+	return ret;
-+}
-+
-+void generic_free(void *data)
-+{
-+	kfree(data);
-+}
+ 	/* Check for doublescan modes. */
+ 	if (var->vmode & FB_VMODE_DOUBLE) {
+@@ -324,6 +332,11 @@ int intelfbhw_validate_mode(struct intel
+ 		return 1;
+ 	}
  
- int generic_console_write(int fd, const char *buf, int n)
- {
++	if ((var->vmode & FB_VMODE_INTERLACED) && (var->yres & 1)) {
++		WRN_MSG("Odd number of lines in interlaced mode\n");
++		return 1;
++	}
++
+ 	/* Check if clock is OK. */
+ 	tmp = 1000000000 / var->pixclock;
+ 	if (tmp < MIN_CLOCK) {
+@@ -1127,6 +1140,8 @@ int intelfbhw_mode_to_hw(struct intelfb_
+ 		hblank_end);
+ 
+ 	vactive = var->yres;
++	if (var->vmode & FB_VMODE_INTERLACED)
++		vactive--; /* the chip adds 2 halflines automatically */
+ 	vsync_start = vactive + var->lower_margin;
+ 	vsync_end = vsync_start + var->vsync_len;
+ 	vtotal = vsync_end + var->upper_margin;
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from khc@pm.waw.pl are
 
 origin.patch
-git-kvm.patch
-uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
-bitops-introduce-lock-ops.patch
+git-wireless.patch
