@@ -1,153 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - lockdep-give-each-filesystem-its-own-inode-lock-class.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 19:17:57 -0700
-Message-ID: <200710160217.l9G2Hv7N004242@imap1.linux-foundation.org>
+Subject: - ps3-system-bus-add_uevent_var-fallout.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 19:18:00 -0700
+Message-ID: <200710160218.l9G2I0Kn004250@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46063 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38757 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757143AbXJPCSF (ORCPT
+	by vger.kernel.org with ESMTP id S1757331AbXJPCSJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 22:18:05 -0400
+	Mon, 15 Oct 2007 22:18:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, jack@suse.cz, mm-commits@vger.kernel.org
+To: Geert.Uytterhoeven@sonycom.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep: give each filesystem its own inode lock class
+     PS3 system bus add_uevent_var() fallout
 has been removed from the -mm tree.  Its filename was
-     lockdep-give-each-filesystem-its-own-inode-lock-class.patch
+     ps3-system-bus-add_uevent_var-fallout.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lockdep: give each filesystem its own inode lock class
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: PS3 system bus add_uevent_var() fallout
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-Give each filesystem its own inode lock class. The various filesystems have
-different locking order wrt the inode locks; esp. the pseudo filesystems
-differ from the rest.
+PS3 system bus add_uevent_var() fallout: kill unused variables
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Acked-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c         |   12 +++++++++---
- include/linux/fs.h |    5 +++++
- 2 files changed, 14 insertions(+), 3 deletions(-)
+ arch/powerpc/platforms/ps3/system-bus.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/inode.c~lockdep-give-each-filesystem-its-own-inode-lock-class fs/inode.c
---- a/fs/inode.c~lockdep-give-each-filesystem-its-own-inode-lock-class
-+++ a/fs/inode.c
-@@ -142,6 +142,15 @@ static struct inode *alloc_inode(struct 
- 			return NULL;
- 		}
+diff -puN arch/powerpc/platforms/ps3/system-bus.c~ps3-system-bus-add_uevent_var-fallout arch/powerpc/platforms/ps3/system-bus.c
+--- a/arch/powerpc/platforms/ps3/system-bus.c~ps3-system-bus-add_uevent_var-fallout
++++ a/arch/powerpc/platforms/ps3/system-bus.c
+@@ -440,7 +440,6 @@ static void ps3_system_bus_shutdown(stru
+ static int ps3_system_bus_uevent(struct device *_dev, struct kobj_uevent_env *env)
+ {
+ 	struct ps3_system_bus_device *dev = ps3_dev_to_system_bus_dev(_dev);
+-	int i = 0, length = 0;
  
-+		spin_lock_init(&inode->i_lock);
-+		lockdep_set_class(&inode->i_lock, &sb->s_type->i_lock_key);
-+
-+		mutex_init(&inode->i_mutex);
-+		lockdep_set_class(&inode->i_mutex, &sb->s_type->i_mutex_key);
-+
-+		init_rwsem(&inode->i_alloc_sem);
-+		lockdep_set_class(&inode->i_alloc_sem, &sb->s_type->i_alloc_sem_key);
-+
- 		mapping->a_ops = &empty_aops;
-  		mapping->host = inode;
- 		mapping->flags = 0;
-@@ -190,8 +199,6 @@ void inode_init_once(struct inode *inode
- 	INIT_HLIST_NODE(&inode->i_hash);
- 	INIT_LIST_HEAD(&inode->i_dentry);
- 	INIT_LIST_HEAD(&inode->i_devices);
--	mutex_init(&inode->i_mutex);
--	init_rwsem(&inode->i_alloc_sem);
- 	INIT_RADIX_TREE(&inode->i_data.page_tree, GFP_ATOMIC);
- 	rwlock_init(&inode->i_data.tree_lock);
- 	spin_lock_init(&inode->i_data.i_mmap_lock);
-@@ -199,7 +206,6 @@ void inode_init_once(struct inode *inode
- 	spin_lock_init(&inode->i_data.private_lock);
- 	INIT_RAW_PRIO_TREE_ROOT(&inode->i_data.i_mmap);
- 	INIT_LIST_HEAD(&inode->i_data.i_mmap_nonlinear);
--	spin_lock_init(&inode->i_lock);
- 	i_size_ordered_init(inode);
- #ifdef CONFIG_INOTIFY
- 	INIT_LIST_HEAD(&inode->inotify_watches);
-diff -puN include/linux/fs.h~lockdep-give-each-filesystem-its-own-inode-lock-class include/linux/fs.h
---- a/include/linux/fs.h~lockdep-give-each-filesystem-its-own-inode-lock-class
-+++ a/include/linux/fs.h
-@@ -1357,8 +1357,13 @@ struct file_system_type {
- 	struct module *owner;
- 	struct file_system_type * next;
- 	struct list_head fs_supers;
-+
- 	struct lock_class_key s_lock_key;
- 	struct lock_class_key s_umount_key;
-+
-+	struct lock_class_key i_lock_key;
-+	struct lock_class_key i_mutex_key;
-+	struct lock_class_key i_alloc_sem_key;
- };
- 
- extern int get_sb_bdev(struct file_system_type *fs_type,
+ 	if (add_uevent_var(env, "MODALIAS=ps3:%d", dev->match_id))
+ 		return -ENOMEM;
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
 
 origin.patch
-git-sched.patch
-radix-tree-use-indirect-bit.patch
-nfs-remove-congestion_end.patch
-lib-percpu_counter_add.patch
-lib-percpu_counter_sub.patch
-lib-percpu_counter-variable-batch.patch
-lib-make-percpu_counter_add-take-s64.patch
-lib-percpu_counter_set.patch
-lib-percpu_counter_sum_positive.patch
-lib-percpu_count_sum.patch
-lib-percpu_counter_init-error-handling.patch
-lib-percpu_counter_init_irq.patch
-mm-bdi-init-hooks.patch
-mm-scalable-bdi-statistics-counters.patch
-mm-count-reclaimable-pages-per-bdi.patch
-mm-count-writeback-pages-per-bdi.patch
-lib-floating-proportions.patch
-mm-per-device-dirty-threshold.patch
-mm-per-device-dirty-threshold-warning-fix.patch
-mm-per-device-dirty-threshold-fix.patch
-mm-dirty-balancing-for-tasks.patch
-mm-dirty-balancing-for-tasks-warning-fix.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-peterz-vs-ext4-mballoc-core.patch
-r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
-task-containersv11-add-procfs-interface-containers-bdi-init-hooks.patch
-task-containersv11-shared-container-subsystem-group-arrays-avoid-lockdep-warning.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-workqueue-debug-flushing-deadlocks-with-lockdep.patch
-workqueue-debug-work-related-deadlocks-with-lockdep.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1.patch
+fbdev-fb_create_modedb-non-static-int-first-=-1-fix.patch
+ps3-fix-black-and-white-stripes.patch
+ps3fb-fix-spurious-mode-change-failures.patch
+ps3av-eliminate-unneeded-temporary-variables.patch
+ps3av-eliminate-ps3av_debug.patch
+ps3av-use-ps3-video-mode-ids-in-autodetect-code.patch
+ps3av-treat-dvi-d-like-hdmi-in-autodetect.patch
+ps3av-add-autodetection-for-vesa-modes.patch
+ps3av-add-quirk-database-for-broken-monitors.patch
+ps3av-remove-unused-ps3av_set_mode.patch
+ps3av-dont-distinguish-between-boot-and-non-boot-autodetection.patch
+ps3fb-convert-from-printk-dprintk-to-dev_-pr_.patch
+ps3fb-do-not-print-warnings-on-invalid-frame-numbers.patch
+ps3fb-clean-up-includes.patch
+ps3fb-make-ps3fb_wait_for_vsync-and-ps3fb_flip_ctl-static.patch
+ps3fb-fix-possible-overlap-of-gpu-command-buffer-and-frame-buffer.patch
+ps3fb-use-fb_infopar-properly.patch
+ps3fb-dont-keep-the-borders-for-non-fullscreen-modes-in-xdr-memory.patch
+ps3fb-add-virtual-screen-and-panning-support.patch
+ps3fb-enhance-horizontal-panning-on-firmware-190-and-up.patch
+fb-move-and-rename-extern-declaration-for-global_mode_option.patch
+ps3fb-default-to-480p-on-dvi-d-hdmi-if-video=safe.patch
