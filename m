@@ -1,641 +1,641 @@
 From: akpm@linux-foundation.org
-Subject: - uml-floating-point-signal-delivery-fixes.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:38:16 -0700
-Message-ID: <200710162038.l9GKcG7O015426@imap1.linux-foundation.org>
+Subject: - i-oat-split-pci-startup-from-dma-handling-code.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:39:26 -0700
+Message-ID: <200710162039.l9GKdQp0015545@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56102 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43192 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965931AbXJPVTB (ORCPT
+	by vger.kernel.org with ESMTP id S965823AbXJPVTA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:19:01 -0400
+	Tue, 16 Oct 2007 17:19:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: shannon.nelson@intel.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: floating point signal delivery fixes
+     I/OAT: Split PCI startup from DMA handling code
 has been removed from the -mm tree.  Its filename was
-     uml-floating-point-signal-delivery-fixes.patch
+     i-oat-split-pci-startup-from-dma-handling-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: floating point signal delivery fixes
-From: Jeff Dike <jdike@addtoit.com>
+Subject: I/OAT: Split PCI startup from DMA handling code
+From: Shannon Nelson <shannon.nelson@intel.com>
 
-Handle floating point state in across signals correctly.  UML/i386 needs to
-know whether the host does PTRACE_[GS]ETFPXREGS, so an arch_init_registers
-hook is added, which on x86_64 does nothing.
+Split the general PCI startup from the DMA handling code in order to
+prepare for adding support for DCA services and future versions of the
+ioatdma device.
 
-UML doesn't save and restore floating point registers on kernel entry and
-exit, so they need to be copied between the host process and the sigcontext. 
-save_fpx_registers and restore_fpx_registers are added for this purpose. 
-save_fp_registers and restore_fp_registers already exist.
+    [Rusty Russell] Removal of __unsafe() usage.
 
-There was a bunch of floating point state conversion code in
-arch/um/sys-i386/ptrace.c which isn't needed there, but is needed in signal.c,
-so it is moved over.
-
-The i386 code now distinguishes between fp and fpx state and handles them
-correctly.  The x86_64 code just needs to copy state as-is between the host
-process and the stack.  There are also some fixes there to pass the correct
-address of the floating point state around.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Shannon Nelson <shannon.nelson@intel.com>
+Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/registers.h            |    2 
- arch/um/include/sysdep-i386/ptrace.h   |    2 
- arch/um/include/sysdep-x86_64/ptrace.h |    4 
- arch/um/os-Linux/registers.c           |    2 
- arch/um/os-Linux/sys-i386/registers.c  |   35 +++
- arch/um/sys-i386/ptrace.c              |   79 --------
- arch/um/sys-i386/signal.c              |  221 +++++++++++++++++++++--
- arch/um/sys-x86_64/signal.c            |   53 ++++-
- 8 files changed, 283 insertions(+), 115 deletions(-)
+ drivers/dma/Makefile     |    2 
+ drivers/dma/ioat.c       |  196 +++++++++++++++++++++++++++++++++++++
+ drivers/dma/ioat_dma.c   |  180 +++++++--------------------------
+ drivers/dma/ioatdma.h    |   20 ++-
+ drivers/dma/ioatdma_hw.h |    2 
+ 5 files changed, 254 insertions(+), 146 deletions(-)
 
-diff -puN arch/um/include/registers.h~uml-floating-point-signal-delivery-fixes arch/um/include/registers.h
---- a/arch/um/include/registers.h~uml-floating-point-signal-delivery-fixes
-+++ a/arch/um/include/registers.h
-@@ -12,6 +12,8 @@
- extern void init_thread_registers(struct uml_pt_regs *to);
- extern int save_fp_registers(int pid, unsigned long *fp_regs);
- extern int restore_fp_registers(int pid, unsigned long *fp_regs);
-+extern int save_fpx_registers(int pid, unsigned long *fp_regs);
-+extern int restore_fpx_registers(int pid, unsigned long *fp_regs);
- extern void save_registers(int pid, struct uml_pt_regs *regs);
- extern void restore_registers(int pid, struct uml_pt_regs *regs);
- extern void init_registers(int pid);
-diff -puN arch/um/include/sysdep-i386/ptrace.h~uml-floating-point-signal-delivery-fixes arch/um/include/sysdep-i386/ptrace.h
---- a/arch/um/include/sysdep-i386/ptrace.h~uml-floating-point-signal-delivery-fixes
-+++ a/arch/um/include/sysdep-i386/ptrace.h
-@@ -168,4 +168,6 @@ struct syscall_args {
- 
- #define UPT_FAULTINFO(r) (&(r)->faultinfo)
- 
-+extern void arch_init_registers(int pid);
-+
- #endif
-diff -puN arch/um/include/sysdep-x86_64/ptrace.h~uml-floating-point-signal-delivery-fixes arch/um/include/sysdep-x86_64/ptrace.h
---- a/arch/um/include/sysdep-x86_64/ptrace.h~uml-floating-point-signal-delivery-fixes
-+++ a/arch/um/include/sysdep-x86_64/ptrace.h
-@@ -234,4 +234,8 @@ struct syscall_args {
- 
- #define UPT_FAULTINFO(r) (&(r)->faultinfo)
- 
-+static inline void arch_init_registers(int pid)
-+{
-+}
-+
- #endif
-diff -puN arch/um/os-Linux/registers.c~uml-floating-point-signal-delivery-fixes arch/um/os-Linux/registers.c
---- a/arch/um/os-Linux/registers.c~uml-floating-point-signal-delivery-fixes
-+++ a/arch/um/os-Linux/registers.c
-@@ -47,6 +47,8 @@ void init_registers(int pid)
- 	if (err)
- 		panic("check_ptrace : PTRACE_GETREGS failed, errno = %d",
- 		      errno);
-+
-+	arch_init_registers(pid);
- }
- 
- void get_safe_registers(unsigned long *regs)
-diff -puN arch/um/os-Linux/sys-i386/registers.c~uml-floating-point-signal-delivery-fixes arch/um/os-Linux/sys-i386/registers.c
---- a/arch/um/os-Linux/sys-i386/registers.c~uml-floating-point-signal-delivery-fixes
-+++ a/arch/um/os-Linux/sys-i386/registers.c
-@@ -8,9 +8,6 @@
- #include "longjmp.h"
- #include "user.h"
- 
--/* XXX These need to use [GS]ETFPXREGS and copy_sc_{to,from}_user_skas needs
-- * to pass in a sufficiently large buffer
-- */
- int save_fp_registers(int pid, unsigned long *fp_regs)
- {
- 	if(ptrace(PTRACE_GETFPREGS, pid, 0, fp_regs) < 0)
-@@ -25,6 +22,20 @@ int restore_fp_registers(int pid, unsign
- 	return 0;
- }
- 
-+int save_fpx_registers(int pid, unsigned long *fp_regs)
-+{
-+	if(ptrace(PTRACE_GETFPXREGS, pid, 0, fp_regs) < 0)
-+		return -errno;
-+	return 0;
-+}
-+
-+int restore_fpx_registers(int pid, unsigned long *fp_regs)
-+{
-+	if(ptrace(PTRACE_SETFPXREGS, pid, 0, fp_regs) < 0)
-+		return -errno;
-+	return 0;
-+}
-+
- unsigned long get_thread_reg(int reg, jmp_buf *buf)
- {
- 	switch(reg){
-@@ -36,3 +47,21 @@ unsigned long get_thread_reg(int reg, jm
- 		return 0;
- 	}
- }
-+
-+int have_fpx_regs = 1;
-+
-+void arch_init_registers(int pid)
-+{
-+	unsigned long fpx_regs[HOST_XFP_SIZE];
-+	int err;
-+
-+	err = ptrace(PTRACE_GETFPXREGS, pid, 0, fpx_regs);
-+	if(!err)
-+		return;
-+
-+	if(errno != EIO)
-+		panic("check_ptrace : PTRACE_GETFPXREGS failed, errno = %d",
-+		      errno);
-+
-+	have_fpx_regs = 0;
-+}
-diff -puN arch/um/sys-i386/ptrace.c~uml-floating-point-signal-delivery-fixes arch/um/sys-i386/ptrace.c
---- a/arch/um/sys-i386/ptrace.c~uml-floating-point-signal-delivery-fixes
-+++ a/arch/um/sys-i386/ptrace.c
-@@ -144,85 +144,6 @@ int peek_user(struct task_struct *child,
- 	return put_user(tmp, (unsigned long __user *) data);
- }
- 
--struct i387_fxsave_struct {
--	unsigned short	cwd;
--	unsigned short	swd;
--	unsigned short	twd;
--	unsigned short	fop;
--	long	fip;
--	long	fcs;
--	long	foo;
--	long	fos;
--	long	mxcsr;
--	long	reserved;
--	long	st_space[32];	/* 8*16 bytes for each FP-reg = 128 bytes */
--	long	xmm_space[32];	/* 8*16 bytes for each XMM-reg = 128 bytes */
--	long	padding[56];
--};
--
--/*
-- * FPU tag word conversions.
-- */
--
--static inline unsigned short twd_i387_to_fxsr( unsigned short twd )
--{
--	unsigned int tmp; /* to avoid 16 bit prefixes in the code */
--
--	/* Transform each pair of bits into 01 (valid) or 00 (empty) */
--	tmp = ~twd;
--	tmp = (tmp | (tmp>>1)) & 0x5555; /* 0V0V0V0V0V0V0V0V */
--	/* and move the valid bits to the lower byte. */
--	tmp = (tmp | (tmp >> 1)) & 0x3333; /* 00VV00VV00VV00VV */
--	tmp = (tmp | (tmp >> 2)) & 0x0f0f; /* 0000VVVV0000VVVV */
--	tmp = (tmp | (tmp >> 4)) & 0x00ff; /* 00000000VVVVVVVV */
--	return tmp;
--}
--
--static inline unsigned long twd_fxsr_to_i387( struct i387_fxsave_struct *fxsave )
--{
--	struct _fpxreg *st = NULL;
--	unsigned long twd = (unsigned long) fxsave->twd;
--	unsigned long tag;
--	unsigned long ret = 0xffff0000;
--	int i;
--
--#define FPREG_ADDR(f, n)	((char *)&(f)->st_space + (n) * 16);
--
--	for ( i = 0 ; i < 8 ; i++ ) {
--		if ( twd & 0x1 ) {
--			st = (struct _fpxreg *) FPREG_ADDR( fxsave, i );
--
--			switch ( st->exponent & 0x7fff ) {
--			case 0x7fff:
--				tag = 2;		/* Special */
--				break;
--			case 0x0000:
--				if ( !st->significand[0] &&
--				     !st->significand[1] &&
--				     !st->significand[2] &&
--				     !st->significand[3] ) {
--					tag = 1;	/* Zero */
--				} else {
--					tag = 2;	/* Special */
--				}
--				break;
--			default:
--				if ( st->significand[3] & 0x8000 ) {
--					tag = 0;	/* Valid */
--				} else {
--					tag = 2;	/* Special */
--				}
--				break;
--			}
--		} else {
--			tag = 3;			/* Empty */
--		}
--		ret |= (tag << (2 * i));
--		twd = twd >> 1;
--	}
--	return ret;
--}
--
- static inline int convert_fxsr_to_user(struct _fpstate __user *buf,
- 				       struct pt_regs *regs)
- {
-diff -puN arch/um/sys-i386/signal.c~uml-floating-point-signal-delivery-fixes arch/um/sys-i386/signal.c
---- a/arch/um/sys-i386/signal.c~uml-floating-point-signal-delivery-fixes
-+++ a/arch/um/sys-i386/signal.c
-@@ -32,25 +32,186 @@ void copy_sc(struct uml_pt_regs *regs, v
- 	REGS_SS(regs->gp) = sc->ss;
- }
- 
+diff -puN drivers/dma/Makefile~i-oat-split-pci-startup-from-dma-handling-code drivers/dma/Makefile
+--- a/drivers/dma/Makefile~i-oat-split-pci-startup-from-dma-handling-code
++++ a/drivers/dma/Makefile
+@@ -1,5 +1,5 @@
+ obj-$(CONFIG_DMA_ENGINE) += dmaengine.o
+ obj-$(CONFIG_NET_DMA) += iovlock.o
+ obj-$(CONFIG_INTEL_IOATDMA) += ioatdma.o
+-ioatdma-objs := ioat_dma.o
++ioatdma-objs := ioat.o ioat_dma.o
+ obj-$(CONFIG_INTEL_IOP_ADMA) += iop-adma.o
+diff -puN /dev/null drivers/dma/ioat.c
+--- /dev/null
++++ a/drivers/dma/ioat.c
+@@ -0,0 +1,196 @@
 +/*
-+ * FPU tag word conversions.
++ * Intel I/OAT DMA Linux driver
++ * Copyright(c) 2004 - 2007 Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program; if not, write to the Free Software Foundation, Inc.,
++ * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
++ *
++ * The full GNU General Public License is included in this distribution in
++ * the file called "COPYING".
++ *
 + */
 +
-+static inline unsigned short twd_i387_to_fxsr(unsigned short twd)
-+{
-+	unsigned int tmp; /* to avoid 16 bit prefixes in the code */
++/*
++ * This driver supports an Intel I/OAT DMA engine, which does asynchronous
++ * copy operations.
++ */
 +
-+	/* Transform each pair of bits into 01 (valid) or 00 (empty) */
-+	tmp = ~twd;
-+	tmp = (tmp | (tmp>>1)) & 0x5555; /* 0V0V0V0V0V0V0V0V */
-+	/* and move the valid bits to the lower byte. */
-+	tmp = (tmp | (tmp >> 1)) & 0x3333; /* 00VV00VV00VV00VV */
-+	tmp = (tmp | (tmp >> 2)) & 0x0f0f; /* 0000VVVV0000VVVV */
-+	tmp = (tmp | (tmp >> 4)) & 0x00ff; /* 00000000VVVVVVVV */
-+	return tmp;
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/pci.h>
++#include <linux/interrupt.h>
++#include "ioatdma.h"
++#include "ioatdma_registers.h"
++#include "ioatdma_hw.h"
++
++MODULE_VERSION("1.24");
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Intel Corporation");
++
++static struct pci_device_id ioat_pci_tbl[] = {
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_IOAT) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_IOAT_CNB)  },
++	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_IOAT_SCNB) },
++	{ PCI_DEVICE(PCI_VENDOR_ID_UNISYS, PCI_DEVICE_ID_UNISYS_DMA_DIRECTOR) },
++	{ 0, }
++};
++
++struct ioat_device {
++	struct pci_dev		*pdev;
++	void __iomem		*iobase;
++	struct ioatdma_device	*dma;
++};
++
++static int __devinit ioat_probe(struct pci_dev *pdev,
++				const struct pci_device_id *id);
++#ifdef IOAT_DMA_REMOVE
++static void __devexit ioat_remove(struct pci_dev *pdev);
++#endif
++
++static int ioat_setup_functionality(struct pci_dev *pdev, void __iomem *iobase)
++{
++	struct ioat_device *device = pci_get_drvdata(pdev);
++	u8 version;
++	int err = 0;
++
++	version = readb(iobase + IOAT_VER_OFFSET);
++	switch (version) {
++	case IOAT_VER_1_2:
++		device->dma = ioat_dma_probe(pdev, iobase);
++		break;
++	default:
++		err = -ENODEV;
++		break;
++	}
++	return err;
 +}
 +
-+static inline unsigned long twd_fxsr_to_i387(struct user_fxsr_struct *fxsave)
++static void ioat_shutdown_functionality(struct pci_dev *pdev)
 +{
-+	struct _fpxreg *st = NULL;
-+	unsigned long twd = (unsigned long) fxsave->twd;
-+	unsigned long tag;
-+	unsigned long ret = 0xffff0000;
-+	int i;
++	struct ioat_device *device = pci_get_drvdata(pdev);
 +
-+#define FPREG_ADDR(f, n)	((char *)&(f)->st_space + (n) * 16);
-+
-+	for (i = 0; i < 8; i++) {
-+		if (twd & 0x1) {
-+			st = (struct _fpxreg *) FPREG_ADDR(fxsave, i);
-+
-+			switch (st->exponent & 0x7fff) {
-+			case 0x7fff:
-+				tag = 2;		/* Special */
-+				break;
-+			case 0x0000:
-+				if ( !st->significand[0] &&
-+				     !st->significand[1] &&
-+				     !st->significand[2] &&
-+				     !st->significand[3] ) {
-+					tag = 1;	/* Zero */
-+				} else {
-+					tag = 2;	/* Special */
-+				}
-+				break;
-+			default:
-+				if (st->significand[3] & 0x8000) {
-+					tag = 0;	/* Valid */
-+				} else {
-+					tag = 2;	/* Special */
-+				}
-+				break;
-+			}
-+		} else {
-+			tag = 3;			/* Empty */
-+		}
-+		ret |= (tag << (2 * i));
-+		twd = twd >> 1;
++	if (device->dma) {
++		ioat_dma_remove(device->dma);
++		device->dma = NULL;
 +	}
-+	return ret;
 +}
 +
-+static int convert_fxsr_to_user(struct _fpstate __user *buf,
-+				struct user_fxsr_struct *fxsave)
++static struct pci_driver ioat_pci_drv = {
++	.name		= "ioatdma",
++	.id_table	= ioat_pci_tbl,
++	.probe		= ioat_probe,
++	.shutdown	= ioat_shutdown_functionality,
++#ifdef IOAT_DMA_REMOVE
++	.remove		= __devexit_p(ioat_remove),
++#endif
++};
++
++static int __devinit ioat_probe(struct pci_dev *pdev,
++				const struct pci_device_id *id)
 +{
-+	unsigned long env[7];
-+	struct _fpreg __user *to;
-+	struct _fpxreg *from;
-+	int i;
++	void __iomem *iobase;
++	struct ioat_device *device;
++	unsigned long mmio_start, mmio_len;
++	int err;
 +
-+	env[0] = (unsigned long)fxsave->cwd | 0xffff0000ul;
-+	env[1] = (unsigned long)fxsave->swd | 0xffff0000ul;
-+	env[2] = twd_fxsr_to_i387(fxsave);
-+	env[3] = fxsave->fip;
-+	env[4] = fxsave->fcs | ((unsigned long)fxsave->fop << 16);
-+	env[5] = fxsave->foo;
-+	env[6] = fxsave->fos;
++	err = pci_enable_device(pdev);
++	if (err)
++		goto err_enable_device;
 +
-+	if (__copy_to_user(buf, env, 7 * sizeof(unsigned long)))
-+		return 1;
++	err = pci_request_regions(pdev, ioat_pci_drv.name);
++	if (err)
++		goto err_request_regions;
 +
-+	to = &buf->_st[0];
-+	from = (struct _fpxreg *) &fxsave->st_space[0];
-+	for (i = 0; i < 8; i++, to++, from++) {
-+		unsigned long __user *t = (unsigned long __user *)to;
-+		unsigned long *f = (unsigned long *)from;
++	err = pci_set_dma_mask(pdev, DMA_64BIT_MASK);
++	if (err)
++		err = pci_set_dma_mask(pdev, DMA_32BIT_MASK);
++	if (err)
++		goto err_set_dma_mask;
 +
-+		if (__put_user(*f, t) ||
-+				__put_user(*(f + 1), t + 1) ||
-+				__put_user(from->exponent, &to->exponent))
-+			return 1;
++	err = pci_set_consistent_dma_mask(pdev, DMA_64BIT_MASK);
++	if (err)
++		err = pci_set_consistent_dma_mask(pdev, DMA_32BIT_MASK);
++	if (err)
++		goto err_set_dma_mask;
++
++	mmio_start = pci_resource_start(pdev, 0);
++	mmio_len = pci_resource_len(pdev, 0);
++	iobase = ioremap(mmio_start, mmio_len);
++	if (!iobase) {
++		err = -ENOMEM;
++		goto err_ioremap;
 +	}
++
++	device = kzalloc(sizeof(*device), GFP_KERNEL);
++	if (!device) {
++		err = -ENOMEM;
++		goto err_kzalloc;
++	}
++	device->pdev = pdev;
++	pci_set_drvdata(pdev, device);
++	device->iobase = iobase;
++
++	pci_set_master(pdev);
++
++	err = ioat_setup_functionality(pdev, iobase);
++	if (err)
++		goto err_version;
++
 +	return 0;
++
++err_version:
++	kfree(device);
++err_kzalloc:
++	iounmap(iobase);
++err_ioremap:
++err_set_dma_mask:
++	pci_release_regions(pdev);
++	pci_disable_device(pdev);
++err_request_regions:
++err_enable_device:
++	return err;
 +}
 +
-+static int convert_fxsr_from_user(struct user_fxsr_struct *fxsave,
-+				  struct _fpstate __user *buf)
++#ifdef IOAT_DMA_REMOVE
++/*
++ * It is unsafe to remove this module: if removed while a requested
++ * dma is outstanding, esp. from tcp, it is possible to hang while
++ * waiting for something that will never finish, thus hanging at
++ * least one cpu.  However, if you're feeling lucky and need to do
++ * some testing, this usually works just fine.
++ */
++static void __devexit ioat_remove(struct pci_dev *pdev)
 +{
-+	unsigned long env[7];
-+	struct _fpxreg *to;
-+	struct _fpreg __user *from;
-+	int i;
++	struct ioat_device *device = pci_get_drvdata(pdev);
 +
-+	if (copy_from_user( env, buf, 7 * sizeof(long)))
-+		return 1;
++	ioat_shutdown_functionality(pdev);
 +
-+	fxsave->cwd = (unsigned short)(env[0] & 0xffff);
-+	fxsave->swd = (unsigned short)(env[1] & 0xffff);
-+	fxsave->twd = twd_i387_to_fxsr((unsigned short)(env[2] & 0xffff));
-+	fxsave->fip = env[3];
-+	fxsave->fop = (unsigned short)((env[4] & 0xffff0000ul) >> 16);
-+	fxsave->fcs = (env[4] & 0xffff);
-+	fxsave->foo = env[5];
-+	fxsave->fos = env[6];
++	kfree(device);
 +
-+	to = (struct _fpxreg *) &fxsave->st_space[0];
-+	from = &buf->_st[0];
-+	for (i = 0; i < 8; i++, to++, from++) {
-+		unsigned long *t = (unsigned long *)to;
-+		unsigned long __user *f = (unsigned long __user *)from;
-+
-+		if (__get_user(*t, f) ||
-+		    __get_user(*(t + 1), f + 1) ||
-+		    __get_user(to->exponent, &from->exponent))
-+			return 1;
-+	}
-+	return 0;
++	iounmap(device->iobase);
++	pci_release_regions(pdev);
++	pci_disable_device(pdev);
 +}
++#endif
 +
-+extern int have_fpx_regs;
++static int __init ioat_init_module(void)
++{
++	return pci_register_driver(&ioat_pci_drv);
++}
++module_init(ioat_init_module);
 +
- static int copy_sc_from_user(struct pt_regs *regs,
- 			     struct sigcontext __user *from)
++static void __exit ioat_exit_module(void)
++{
++	pci_unregister_driver(&ioat_pci_drv);
++}
++module_exit(ioat_exit_module);
+diff -puN drivers/dma/ioat_dma.c~i-oat-split-pci-startup-from-dma-handling-code drivers/dma/ioat_dma.c
+--- a/drivers/dma/ioat_dma.c~i-oat-split-pci-startup-from-dma-handling-code
++++ a/drivers/dma/ioat_dma.c
+@@ -39,19 +39,15 @@
+ #define INITIAL_IOAT_DESC_COUNT 128
+ 
+ #define to_ioat_chan(chan) container_of(chan, struct ioat_dma_chan, common)
+-#define to_ioat_device(dev) container_of(dev, struct ioat_device, common)
++#define to_ioatdma_device(dev) container_of(dev, struct ioatdma_device, common)
+ #define to_ioat_desc(lh) container_of(lh, struct ioat_desc_sw, node)
+ #define tx_to_ioat_desc(tx) container_of(tx, struct ioat_desc_sw, async_tx)
+ 
+ /* internal functions */
+ static void ioat_dma_start_null_desc(struct ioat_dma_chan *ioat_chan);
+ static void ioat_dma_memcpy_cleanup(struct ioat_dma_chan *ioat_chan);
+-static int __devinit ioat_probe(struct pci_dev *pdev,
+-				const struct pci_device_id *ent);
+-static void ioat_shutdown(struct pci_dev *pdev);
+-static void __devexit ioat_remove(struct pci_dev *pdev);
+ 
+-static int ioat_dma_enumerate_channels(struct ioat_device *device)
++static int ioat_dma_enumerate_channels(struct ioatdma_device *device)
  {
-- 	struct sigcontext sc;
--	unsigned long fpregs[HOST_FP_SIZE];
-+	struct sigcontext sc;
- 	int err;
+ 	u8 xfercap_scale;
+ 	u32 xfercap;
+@@ -158,17 +154,17 @@ static struct ioat_desc_sw *ioat_dma_all
+ {
+ 	struct ioat_dma_descriptor *desc;
+ 	struct ioat_desc_sw *desc_sw;
+-	struct ioat_device *ioat_device;
++	struct ioatdma_device *ioatdma_device;
+ 	dma_addr_t phys;
  
- 	err = copy_from_user(&sc, from, sizeof(sc));
--	err |= copy_from_user(fpregs, sc.fpstate, sizeof(fpregs));
- 	if (err)
- 		return err;
+-	ioat_device = to_ioat_device(ioat_chan->common.device);
+-	desc = pci_pool_alloc(ioat_device->dma_pool, flags, &phys);
++	ioatdma_device = to_ioatdma_device(ioat_chan->common.device);
++	desc = pci_pool_alloc(ioatdma_device->dma_pool, flags, &phys);
+ 	if (unlikely(!desc))
+ 		return NULL;
  
- 	copy_sc(&regs->regs, &sc);
-+	if (have_fpx_regs) {
-+		struct user_fxsr_struct fpx;
- 
--	err = restore_fp_registers(userspace_pid[0], fpregs);
--	if (err < 0) {
--	  	printk(KERN_ERR "copy_sc_from_user_skas - PTRACE_SETFPREGS "
--		       "failed, errno = %d\n", -err);
--		return err;
-+		err = copy_from_user(&fpx, &sc.fpstate->_fxsr_env[0],
-+				     sizeof(struct user_fxsr_struct));
-+		if (err)
-+			return 1;
-+
-+		err = convert_fxsr_from_user(&fpx, sc.fpstate);
-+		if (err)
-+			return 1;
-+
-+		err = restore_fpx_registers(userspace_pid[current_thread->cpu],
-+					    (unsigned long *) &fpx);
-+		if (err < 0) {
-+			printk(KERN_ERR "copy_sc_from_user - "
-+			       "restore_fpx_registers failed, errno = %d\n",
-+			       -err);
-+			return 1;
-+		}
-+	}
-+	else {
-+		struct user_i387_struct fp;
-+
-+		err = copy_from_user(&fp, sc.fpstate,
-+				     sizeof(struct user_i387_struct));
-+		if (err)
-+			return 1;
-+
-+		err = restore_fp_registers(userspace_pid[current_thread->cpu],
-+					   (unsigned long *) &fp);
-+		if (err < 0) {
-+			printk(KERN_ERR "copy_sc_from_user - "
-+			       "restore_fp_registers failed, errno = %d\n",
-+			       -err);
-+			return 1;
-+		}
+ 	desc_sw = kzalloc(sizeof(*desc_sw), flags);
+ 	if (unlikely(!desc_sw)) {
+-		pci_pool_free(ioat_device->dma_pool, desc, phys);
++		pci_pool_free(ioatdma_device->dma_pool, desc, phys);
+ 		return NULL;
  	}
  
- 	return 0;
-@@ -61,7 +222,6 @@ static int copy_sc_to_user(struct sigcon
- 			   unsigned long sp)
+@@ -245,9 +241,8 @@ static int ioat_dma_alloc_chan_resources
+ static void ioat_dma_free_chan_resources(struct dma_chan *chan)
  {
- 	struct sigcontext sc;
--	unsigned long fpregs[HOST_FP_SIZE];
- 	struct faultinfo * fi = &current->thread.arch.faultinfo;
+ 	struct ioat_dma_chan *ioat_chan = to_ioat_chan(chan);
+-	struct ioat_device *ioat_device = to_ioat_device(chan->device);
++	struct ioatdma_device *ioatdma_device = to_ioatdma_device(chan->device);
+ 	struct ioat_desc_sw *desc, *_desc;
+-	u16 chanctrl;
+ 	int in_use_descs = 0;
+ 
+ 	ioat_dma_memcpy_cleanup(ioat_chan);
+@@ -258,19 +253,19 @@ static void ioat_dma_free_chan_resources
+ 	list_for_each_entry_safe(desc, _desc, &ioat_chan->used_desc, node) {
+ 		in_use_descs++;
+ 		list_del(&desc->node);
+-		pci_pool_free(ioat_device->dma_pool, desc->hw,
++		pci_pool_free(ioatdma_device->dma_pool, desc->hw,
+ 			      desc->async_tx.phys);
+ 		kfree(desc);
+ 	}
+ 	list_for_each_entry_safe(desc, _desc, &ioat_chan->free_desc, node) {
+ 		list_del(&desc->node);
+-		pci_pool_free(ioat_device->dma_pool, desc->hw,
++		pci_pool_free(ioatdma_device->dma_pool, desc->hw,
+ 			      desc->async_tx.phys);
+ 		kfree(desc);
+ 	}
+ 	spin_unlock_bh(&ioat_chan->desc_lock);
+ 
+-	pci_pool_free(ioat_device->completion_pool,
++	pci_pool_free(ioatdma_device->completion_pool,
+ 		      ioat_chan->completion_virt,
+ 		      ioat_chan->completion_addr);
+ 
+@@ -514,25 +509,9 @@ static enum dma_status ioat_dma_is_compl
+ 
+ /* PCI API */
+ 
+-static struct pci_device_id ioat_pci_tbl[] = {
+-	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_IOAT) },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_IOAT_CNB)  },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_IOAT_SCNB) },
+-	{ PCI_DEVICE(PCI_VENDOR_ID_UNISYS, PCI_DEVICE_ID_UNISYS_DMA_DIRECTOR) },
+-	{ 0, }
+-};
+-
+-static struct pci_driver ioat_pci_driver = {
+-	.name 	= "ioatdma",
+-	.id_table = ioat_pci_tbl,
+-	.probe	= ioat_probe,
+-	.shutdown = ioat_shutdown,
+-	.remove	= __devexit_p(ioat_remove),
+-};
+-
+ static irqreturn_t ioat_do_interrupt(int irq, void *data)
+ {
+-	struct ioat_device *instance = data;
++	struct ioatdma_device *instance = data;
+ 	unsigned long attnstatus;
+ 	u8 intrctrl;
+ 
+@@ -592,7 +571,7 @@ static void ioat_dma_start_null_desc(str
+  */
+ #define IOAT_TEST_SIZE 2000
+ 
+-static int ioat_self_test(struct ioat_device *device)
++static int ioat_self_test(struct ioatdma_device *device)
+ {
+ 	int i;
+ 	u8 *src;
+@@ -660,46 +639,25 @@ out:
+ 	return err;
+ }
+ 
+-static int __devinit ioat_probe(struct pci_dev *pdev,
+-				const struct pci_device_id *ent)
++struct ioatdma_device *ioat_dma_probe(struct pci_dev *pdev,
++				      void __iomem *iobase)
+ {
  	int err;
- 
-@@ -86,20 +246,43 @@ static int copy_sc_to_user(struct sigcon
- 	sc.err = fi->error_code;
- 	sc.trapno = fi->trap_no;
- 
--	err = save_fp_registers(userspace_pid[0], fpregs);
--	if (err < 0) {
--	  	printk(KERN_ERR "copy_sc_to_user_skas - PTRACE_GETFPREGS "
--		       "failed, errno = %d\n", err);
--		return 1;
--	}
- 	to_fp = (to_fp ? to_fp : (struct _fpstate __user *) (to + 1));
- 	sc.fpstate = to_fp;
- 
+-	unsigned long mmio_start, mmio_len;
+-	void __iomem *reg_base;
+-	struct ioat_device *device;
+-
+-	err = pci_enable_device(pdev);
 -	if (err)
--	  	return err;
-+	if (have_fpx_regs) {
-+		struct user_fxsr_struct fpx;
-+
-+		err = save_fpx_registers(userspace_pid[current_thread->cpu],
-+					 (unsigned long *) &fpx);
-+		if (err < 0){
-+			printk(KERN_ERR "copy_sc_to_user - save_fpx_registers "
-+			       "failed, errno = %d\n", err);
-+			return 1;
-+		}
-+
-+		err = convert_fxsr_to_user(to_fp, &fpx);
-+		if (err)
-+			return 1;
-+
-+		err |= __put_user(fpx.swd, &to_fp->status);
-+		err |= __put_user(X86_FXSR_MAGIC, &to_fp->magic);
-+		if (err)
-+			return 1;
-+
-+		if (copy_to_user(&to_fp->_fxsr_env[0], &fpx,
-+				 sizeof(struct user_fxsr_struct)))
-+			return 1;
-+	}
-+	else {
-+		struct user_i387_struct fp;
-+
-+		err = save_fp_registers(userspace_pid[current_thread->cpu],
-+					(unsigned long *) &fp);
-+		if (copy_to_user(to_fp, &fp, sizeof(struct user_i387_struct)))
-+			return 1;
-+	}
+-		goto err_enable_device;
+-
+-	err = pci_set_dma_mask(pdev, DMA_64BIT_MASK);
+-	if (err)
+-		err = pci_set_dma_mask(pdev, DMA_32BIT_MASK);
+-	if (err)
+-		goto err_set_dma_mask;
+-
+-	err = pci_request_regions(pdev, ioat_pci_driver.name);
+-	if (err)
+-		goto err_request_regions;
+-
+-	mmio_start = pci_resource_start(pdev, 0);
+-	mmio_len = pci_resource_len(pdev, 0);
+-
+-	reg_base = ioremap(mmio_start, mmio_len);
+-	if (!reg_base) {
+-		err = -ENOMEM;
+-		goto err_ioremap;
+-	}
++	struct ioatdma_device *device;
  
--	return copy_to_user(to, &sc, sizeof(sc)) ||
--	       copy_to_user(to_fp, fpregs, sizeof(fpregs));
-+	return copy_to_user(to, &sc, sizeof(sc));
- }
+ 	device = kzalloc(sizeof(*device), GFP_KERNEL);
+ 	if (!device) {
+ 		err = -ENOMEM;
+ 		goto err_kzalloc;
+ 	}
++	device->pdev = pdev;
++	device->reg_base = iobase;
++	device->version = readb(device->reg_base + IOAT_VER_OFFSET);
  
- static int copy_ucontext_to_user(struct ucontext __user *uc,
-diff -puN arch/um/sys-x86_64/signal.c~uml-floating-point-signal-delivery-fixes arch/um/sys-x86_64/signal.c
---- a/arch/um/sys-x86_64/signal.c~uml-floating-point-signal-delivery-fixes
-+++ a/arch/um/sys-x86_64/signal.c
-@@ -42,8 +42,10 @@ void copy_sc(struct uml_pt_regs *regs, v
- }
+ 	/* DMA coherent memory pool for DMA descriptor allocations */
+ 	device->dma_pool = pci_pool_create("dma_desc_pool", pdev,
+-		sizeof(struct ioat_dma_descriptor), 64, 0);
++					   sizeof(struct ioat_dma_descriptor),
++					   64, 0);
+ 	if (!device->dma_pool) {
+ 		err = -ENOMEM;
+ 		goto err_dma_pool;
+@@ -713,26 +671,6 @@ static int __devinit ioat_probe(struct p
+ 		goto err_completion_pool;
+ 	}
  
- static int copy_sc_from_user(struct pt_regs *regs,
--			     struct sigcontext __user *from)
-+			     struct sigcontext __user *from,
-+			     struct _fpstate __user *fpp)
- {
-+	struct user_i387_struct fp;
- 	int err = 0;
+-	device->pdev = pdev;
+-	pci_set_drvdata(pdev, device);
+-#ifdef CONFIG_PCI_MSI
+-	if (pci_enable_msi(pdev) == 0) {
+-		device->msi = 1;
+-	} else {
+-		device->msi = 0;
+-	}
+-#endif
+-	err = request_irq(pdev->irq, &ioat_do_interrupt, IRQF_SHARED, "ioat",
+-		device);
+-	if (err)
+-		goto err_irq;
+-
+-	device->reg_base = reg_base;
+-
+-	writeb(IOAT_INTRCTRL_MASTER_INT_EN,
+-	       device->reg_base + IOAT_INTRCTRL_OFFSET);
+-	pci_set_master(pdev);
+-
+ 	INIT_LIST_HEAD(&device->common.channels);
+ 	ioat_dma_enumerate_channels(device);
  
- #define GETREG(regs, regno, sc, regname)				\
-@@ -69,10 +71,25 @@ static int copy_sc_from_user(struct pt_r
- 	err |= GETREG(regs, RIP, from, rip);
- 	err |= GETREG(regs, EFLAGS, from, eflags);
- 	err |= GETREG(regs, CS, from, cs);
+@@ -746,9 +684,19 @@ static int __devinit ioat_probe(struct p
+ 	device->common.device_issue_pending = ioat_dma_memcpy_issue_pending;
+ 	device->common.device_dependency_added = ioat_dma_dependency_added;
+ 	device->common.dev = &pdev->dev;
+-	printk(KERN_INFO
+-		 "ioatdma: Intel(R) I/OAT DMA Engine found, %d channels\n",
+-		 device->common.chancnt);
++	printk(KERN_INFO "ioatdma: Intel(R) I/OAT DMA Engine found,"
++	       " %d channels, device version 0x%02x\n",
++	       device->common.chancnt, device->version);
++
++	pci_set_drvdata(pdev, device);
++	err = request_irq(pdev->irq, &ioat_do_interrupt, IRQF_SHARED, "ioat",
++		device);
 +	if (err)
-+		return 1;
++		goto err_irq;
++
++	writeb(IOAT_INTRCTRL_MASTER_INT_EN,
++	       device->reg_base + IOAT_INTRCTRL_OFFSET);
++	pci_set_master(pdev);
  
- #undef GETREG
+ 	err = ioat_self_test(device);
+ 	if (err)
+@@ -756,9 +704,10 @@ static int __devinit ioat_probe(struct p
  
+ 	dma_async_device_register(&device->common);
+ 
+-	return 0;
++	return device;
+ 
+ err_self_test:
++	free_irq(device->pdev->irq, device);
+ err_irq:
+ 	pci_pool_destroy(device->completion_pool);
+ err_completion_pool:
+@@ -766,47 +715,24 @@ err_completion_pool:
+ err_dma_pool:
+ 	kfree(device);
+ err_kzalloc:
+-	iounmap(reg_base);
+-err_ioremap:
+-	pci_release_regions(pdev);
+-err_request_regions:
+-err_set_dma_mask:
+-	pci_disable_device(pdev);
+-err_enable_device:
+-
+-	printk(KERN_INFO
+-		"ioatdma: Intel(R) I/OAT DMA Engine initialization failed\n");
+-
 -	return err;
-+	err = copy_from_user(&fp, fpp, sizeof(struct user_i387_struct));
-+	if (err)
-+		return 1;
-+
-+	err = restore_fp_registers(userspace_pid[current_thread->cpu],
-+				   (unsigned long *) &fp);
-+	if (err < 0) {
-+		printk(KERN_ERR "copy_sc_from_user - "
-+		       "restore_fp_registers failed, errno = %d\n",
-+		       -err);
-+		return 1;
-+	}
-+
-+	return 0;
+-}
+-
+-static void ioat_shutdown(struct pci_dev *pdev)
+-{
+-	struct ioat_device *device;
+-	device = pci_get_drvdata(pdev);
+-
+-	dma_async_device_unregister(&device->common);
++	iounmap(iobase);
++	printk(KERN_ERR
++	       "ioatdma: Intel(R) I/OAT DMA Engine initialization failed\n");
++	return NULL;
  }
  
- static int copy_sc_to_user(struct sigcontext __user *to,
-@@ -80,6 +97,7 @@ static int copy_sc_to_user(struct sigcon
- 			   unsigned long mask, unsigned long sp)
+-static void __devexit ioat_remove(struct pci_dev *pdev)
++void ioat_dma_remove(struct ioatdma_device *device)
  {
- 	struct faultinfo * fi = &current->thread.arch.faultinfo;
-+	struct user_i387_struct fp;
- 	int err = 0;
+-	struct ioat_device *device;
+ 	struct dma_chan *chan, *_chan;
+ 	struct ioat_dma_chan *ioat_chan;
  
- 	err |= __put_user(0, &to->gs);
-@@ -120,6 +138,19 @@ static int copy_sc_to_user(struct sigcon
- #undef PUTREG
+-	device = pci_get_drvdata(pdev);
+ 	dma_async_device_unregister(&device->common);
  
- 	err |= __put_user(mask, &to->oldmask);
-+	if (err)
-+		return 1;
+ 	free_irq(device->pdev->irq, device);
+-#ifdef CONFIG_PCI_MSI
+-	if (device->msi)
+-		pci_disable_msi(device->pdev);
+-#endif
 +
-+	err = save_fp_registers(userspace_pid[current_thread->cpu],
-+				(unsigned long *) &fp);
-+	if (err < 0) {
-+		printk(KERN_ERR "copy_sc_from_user - restore_fp_registers "
-+		       "failed, errno = %d\n", -err);
-+		return 1;
-+	}
+ 	pci_pool_destroy(device->dma_pool);
+ 	pci_pool_destroy(device->completion_pool);
+-	iounmap(device->reg_base);
+-	pci_release_regions(pdev);
+-	pci_disable_device(pdev);
 +
-+	if (copy_to_user(to_fp, &fp, sizeof(struct user_i387_struct)))
-+		return 1;
- 
- 	return(err);
+ 	list_for_each_entry_safe(chan, _chan,
+ 				 &device->common.channels, device_node) {
+ 		ioat_chan = to_ioat_chan(chan);
+@@ -816,25 +742,3 @@ static void __devexit ioat_remove(struct
+ 	kfree(device);
  }
-@@ -129,6 +160,7 @@ struct rt_sigframe
- 	char __user *pretcode;
- 	struct ucontext uc;
- 	struct siginfo info;
-+	struct _fpstate fpstate;
+ 
+-/* MODULE API */
+-MODULE_VERSION("1.9");
+-MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Intel Corporation");
+-
+-static int __init ioat_init_module(void)
+-{
+-	/* it's currently unsafe to unload this module */
+-	/* if forced, worst case is that rmmod hangs */
+-	__unsafe(THIS_MODULE);
+-
+-	return pci_register_driver(&ioat_pci_driver);
+-}
+-
+-module_init(ioat_init_module);
+-
+-static void __exit ioat_exit_module(void)
+-{
+-	pci_unregister_driver(&ioat_pci_driver);
+-}
+-
+-module_exit(ioat_exit_module);
+diff -puN drivers/dma/ioatdma.h~i-oat-split-pci-startup-from-dma-handling-code drivers/dma/ioatdma.h
+--- a/drivers/dma/ioatdma.h~i-oat-split-pci-startup-from-dma-handling-code
++++ a/drivers/dma/ioatdma.h
+@@ -31,22 +31,21 @@
+ #define IOAT_LOW_COMPLETION_MASK	0xffffffc0
+ 
+ /**
+- * struct ioat_device - internal representation of a IOAT device
++ * struct ioatdma_device - internal representation of a IOAT device
+  * @pdev: PCI-Express device
+  * @reg_base: MMIO register space base address
+  * @dma_pool: for allocating DMA descriptors
+  * @common: embedded struct dma_device
+- * @msi: Message Signaled Interrupt number
++ * @version: version of ioatdma device
+  */
+ 
+-struct ioat_device {
++struct ioatdma_device {
+ 	struct pci_dev *pdev;
+ 	void __iomem *reg_base;
+ 	struct pci_pool *dma_pool;
+ 	struct pci_pool *completion_pool;
+-
+ 	struct dma_device common;
+-	u8 msi;
++	u8 version;
  };
  
- #define round_down(m, n) (((m) / (n)) * (n))
-@@ -138,7 +170,6 @@ int setup_signal_stack_si(unsigned long 
- 			  siginfo_t *info, sigset_t *set)
- {
- 	struct rt_sigframe __user *frame;
--	struct _fpstate __user *fp = NULL;
- 	unsigned long save_sp = PT_REGS_RSP(regs);
- 	int err = 0;
- 	struct task_struct *me = current;
-@@ -148,13 +179,6 @@ int setup_signal_stack_si(unsigned long 
- 	/* Subtract 128 for a red zone and 8 for proper alignment */
- 	frame = (struct rt_sigframe __user *) ((unsigned long) frame - 128 - 8);
+ /**
+@@ -84,7 +83,7 @@ struct ioat_dma_chan {
  
--	if (!access_ok(VERIFY_WRITE, fp, sizeof(struct _fpstate)))
--		goto out;
--
--#if 0 /* XXX */
--	if (save_i387(fp) < 0)
--		err |= -1;
--#endif
- 	if (!access_ok(VERIFY_WRITE, frame, sizeof(*frame)))
- 		goto out;
+ 	int pending;
  
-@@ -181,9 +205,9 @@ int setup_signal_stack_si(unsigned long 
- 	err |= __put_user(sas_ss_flags(save_sp),
- 			  &frame->uc.uc_stack.ss_flags);
- 	err |= __put_user(me->sas_ss_size, &frame->uc.uc_stack.ss_size);
--	err |= copy_sc_to_user(&frame->uc.uc_mcontext, fp, regs, set->sig[0],
--		save_sp);
--	err |= __put_user(fp, &frame->uc.uc_mcontext.fpstate);
-+	err |= copy_sc_to_user(&frame->uc.uc_mcontext, &frame->fpstate, regs,
-+			       set->sig[0], save_sp);
-+	err |= __put_user(&frame->fpstate, &frame->uc.uc_mcontext.fpstate);
- 	if (sizeof(*set) == 16) {
- 		__put_user(set->sig[0], &frame->uc.uc_sigmask.sig[0]);
- 		__put_user(set->sig[1], &frame->uc.uc_sigmask.sig[1]);
-@@ -246,7 +270,8 @@ long sys_rt_sigreturn(struct pt_regs *re
- 	recalc_sigpending();
- 	spin_unlock_irq(&current->sighand->siglock);
+-	struct ioat_device *device;
++	struct ioatdma_device *device;
+ 	struct dma_chan common;
  
--	if (copy_sc_from_user(&current->thread.regs, &uc->uc_mcontext))
-+	if (copy_sc_from_user(&current->thread.regs, &uc->uc_mcontext,
-+			      &frame->fpstate))
- 		goto segfault;
+ 	dma_addr_t completion_addr;
+@@ -117,4 +116,13 @@ struct ioat_desc_sw {
+ 	struct dma_async_tx_descriptor async_tx;
+ };
  
- 	/* Avoid ERESTART handling */
++#if defined(CONFIG_INTEL_IOATDMA) || defined(CONFIG_INTEL_IOATDMA_MODULE)
++struct ioatdma_device *ioat_dma_probe(struct pci_dev *pdev,
++				      void __iomem *iobase);
++void ioat_dma_remove(struct ioatdma_device *device);
++#else
++#define ioat_dma_probe(pdev, iobase)    NULL
++#define ioat_dma_remove(device)         do { } while (0)
++#endif
++
+ #endif /* IOATDMA_H */
+diff -puN drivers/dma/ioatdma_hw.h~i-oat-split-pci-startup-from-dma-handling-code drivers/dma/ioatdma_hw.h
+--- a/drivers/dma/ioatdma_hw.h~i-oat-split-pci-startup-from-dma-handling-code
++++ a/drivers/dma/ioatdma_hw.h
+@@ -27,7 +27,7 @@
+ #define IOAT_PCI_RID			0x00
+ #define IOAT_PCI_SVID			0x8086
+ #define IOAT_PCI_SID			0x8086
+-#define IOAT_VER			0x12	/* Version 1.2 */
++#define IOAT_VER_1_2			0x12	/* Version 1.2 */
+ 
+ struct ioat_dma_descriptor {
+ 	uint32_t	size;
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from shannon.nelson@intel.com are
 
 origin.patch
-git-kvm.patch
-uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
-bitops-introduce-lock-ops.patch
+remove-unsafe-from-module-struct.patch
