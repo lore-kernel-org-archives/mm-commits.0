@@ -1,79 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: - filemap-trivial-code-cleanups.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:31:08 -0700
-Message-ID: <200710162031.l9GKV8Jq014473@imap1.linux-foundation.org>
+Subject: - slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 14:42:07 -0700
+Message-ID: <200710162142.l9GLg79j018882@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43157 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52620 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965870AbXJPVmn (ORCPT
+	by vger.kernel.org with ESMTP id S934605AbXJPVm6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:42:43 -0400
+	Tue, 16 Oct 2007 17:42:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wfg@mail.ustc.edu.cn, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     filemap: trivial code cleanups
+     slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix
 has been removed from the -mm tree.  Its filename was
-     filemap-trivial-code-cleanups.patch
+     slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
 
 ------------------------------------------------------
-Subject: filemap: trivial code cleanups
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-- remove unused local next_index in do_generic_mapping_read()
-- remove a redudant page_cache_read() declaration
-
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/ecryptfs/main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/filemap.c~filemap-trivial-code-cleanups mm/filemap.c
---- a/mm/filemap.c~filemap-trivial-code-cleanups
-+++ a/mm/filemap.c
-@@ -869,7 +869,6 @@ void do_generic_mapping_read(struct addr
- 	unsigned long index;
- 	unsigned long offset;
- 	unsigned long last_index;
--	unsigned long next_index;
- 	unsigned long prev_index;
- 	unsigned int prev_offset;
- 	struct page *cached_page;
-@@ -877,7 +876,6 @@ void do_generic_mapping_read(struct addr
- 
- 	cached_page = NULL;
- 	index = *ppos >> PAGE_CACHE_SHIFT;
--	next_index = index;
- 	prev_index = ra->prev_pos >> PAGE_CACHE_SHIFT;
- 	prev_offset = ra->prev_pos & (PAGE_CACHE_SIZE-1);
- 	last_index = (*ppos + desc->count + PAGE_CACHE_SIZE-1) >> PAGE_CACHE_SHIFT;
-@@ -1250,7 +1248,6 @@ asmlinkage ssize_t sys_readahead(int fd,
- }
- 
- #ifdef CONFIG_MMU
--static int FASTCALL(page_cache_read(struct file * file, unsigned long offset));
- /**
-  * page_cache_read - adds requested page to the page cache if not already there
-  * @file:	file to read
+diff -puN fs/ecryptfs/main.c~slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix fs/ecryptfs/main.c
+--- a/fs/ecryptfs/main.c~slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix
++++ a/fs/ecryptfs/main.c
+@@ -590,7 +590,7 @@ static struct ecryptfs_cache_info {
+ 	struct kmem_cache **cache;
+ 	const char *name;
+ 	size_t size;
+-	void (*ctor)(void*, struct kmem_cache *, unsigned long);
++	void (*ctor)(struct kmem_cache *cache, void *obj);
+ } ecryptfs_cache_infos[] = {
+ 	{
+ 		.cache = &ecryptfs_auth_tok_list_item_cache,
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-maps-pssproportional-set-size-accounting-in-smaps.patch
-convert-ill-defined-log2-to-ilog2.patch
-avoid-negative-and-full-width-shifts-in-radix-treec.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+asm-i386-ioh-fix-constness.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold.patch
+mm-dirty-balancing-for-tasks.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-do-not-take-callback_mutex-fix.patch
+writeback-dont-propagate-aop_writepage_activate.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+pm-qos-infrastructure-and-interface-fix.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
+f_dupfd_cloexec-implementation-fix-2.patch
+ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
+drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
 writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
-writeback-fix-ntfs-with-sb_has_dirty_inodes.patch
-writeback-remove-pages_skipped-accounting-in-__block_write_full_page.patch
 writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
-writeback-introduce-writeback_controlmore_io-to-indicate-more-io.patch
-writeback-remove-unnecessary-wait-in-throttle_vm_writeout.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+pnp-use-dev_info-dev_err-etc-in-core-fix.patch
+pnp-add-debug-message-for-adding-new-device-fix-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
