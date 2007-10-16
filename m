@@ -1,198 +1,448 @@
 From: akpm@linux-foundation.org
-Subject: - sparc64-sparsemem_vmemmap-support.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:30:33 -0700
-Message-ID: <200710162030.l9GKUX29014417@imap1.linux-foundation.org>
+Subject: - ocfs2-convert-to-new-aops.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:33:33 -0700
+Message-ID: <200710162033.l9GKXXuF014803@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37743 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43474 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966213AbXJPVs5 (ORCPT
+	by vger.kernel.org with ESMTP id S966203AbXJPVsz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:48:57 -0400
+	Tue, 16 Oct 2007 17:48:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davem@davemloft.net, apw@shadowen.org, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: npiggin@suse.de, mark.fasheh@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SPARC64: SPARSEMEM_VMEMMAP support
+     ocfs2: convert to new aops
 has been removed from the -mm tree.  Its filename was
-     sparc64-sparsemem_vmemmap-support.patch
+     ocfs2-convert-to-new-aops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SPARC64: SPARSEMEM_VMEMMAP support
-From: David Miller <davem@davemloft.net>
+Subject: ocfs2: convert to new aops
+From: Nick Piggin <npiggin@suse.de>
 
-[apw@shadowen.org: style fixups]
-[apw@shadowen.org: vmemmap sparc64: convert to new config options]
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Christoph Lameter <clameter@sgi.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Plug ocfs2 into the ->write_begin and ->write_end aops.
+
+A bunch of custom code is now gone - the iovec iteration stuff during write
+and the ocfs2 splice write actor.
+
+Signed-off-by: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc64/Kconfig          |    2 -
- arch/sparc64/kernel/ktlb.S    |   16 +++++++++
- arch/sparc64/mm/init.c        |   52 ++++++++++++++++++++++++++++++++
- include/asm-sparc64/pgtable.h |    3 +
- 4 files changed, 72 insertions(+), 1 deletion(-)
+ fs/ocfs2/aops.c |   14 +-
+ fs/ocfs2/aops.h |    8 -
+ fs/ocfs2/file.c |  266 ++--------------------------------------------
+ 3 files changed, 22 insertions(+), 266 deletions(-)
 
-diff -puN arch/sparc64/Kconfig~sparc64-sparsemem_vmemmap-support arch/sparc64/Kconfig
---- a/arch/sparc64/Kconfig~sparc64-sparsemem_vmemmap-support
-+++ a/arch/sparc64/Kconfig
-@@ -240,10 +240,10 @@ config ARCH_SELECT_MEMORY_MODEL
+diff -puN fs/ocfs2/aops.c~ocfs2-convert-to-new-aops fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-convert-to-new-aops
++++ a/fs/ocfs2/aops.c
+@@ -1724,9 +1724,9 @@ out:
+ 	return ret;
+ }
  
- config ARCH_SPARSEMEM_ENABLE
- 	def_bool y
-+	select SPARSEMEM_VMEMMAP_ENABLE
+-int ocfs2_write_begin(struct file *file, struct address_space *mapping,
+-		      loff_t pos, unsigned len, unsigned flags,
+-		      struct page **pagep, void **fsdata)
++static int ocfs2_write_begin(struct file *file, struct address_space *mapping,
++			     loff_t pos, unsigned len, unsigned flags,
++			     struct page **pagep, void **fsdata)
+ {
+ 	int ret;
+ 	struct buffer_head *di_bh = NULL;
+@@ -1877,9 +1877,9 @@ out_write_size:
+ 	return copied;
+ }
  
- config ARCH_SPARSEMEM_DEFAULT
- 	def_bool y
--	select SPARSEMEM_STATIC
+-int ocfs2_write_end(struct file *file, struct address_space *mapping,
+-		    loff_t pos, unsigned len, unsigned copied,
+-		    struct page *page, void *fsdata)
++static int ocfs2_write_end(struct file *file, struct address_space *mapping,
++			   loff_t pos, unsigned len, unsigned copied,
++			   struct page *page, void *fsdata)
+ {
+ 	int ret;
+ 	struct inode *inode = mapping->host;
+@@ -1896,6 +1896,8 @@ int ocfs2_write_end(struct file *file, s
+ const struct address_space_operations ocfs2_aops = {
+ 	.readpage	= ocfs2_readpage,
+ 	.writepage	= ocfs2_writepage,
++	.write_begin	= ocfs2_write_begin,
++	.write_end	= ocfs2_write_end,
+ 	.bmap		= ocfs2_bmap,
+ 	.sync_page	= block_sync_page,
+ 	.direct_IO	= ocfs2_direct_IO,
+diff -puN fs/ocfs2/aops.h~ocfs2-convert-to-new-aops fs/ocfs2/aops.h
+--- a/fs/ocfs2/aops.h~ocfs2-convert-to-new-aops
++++ a/fs/ocfs2/aops.h
+@@ -44,14 +44,6 @@ int walk_page_buffers(	handle_t *handle,
+ 			int (*fn)(	handle_t *handle,
+ 					struct buffer_head *bh));
  
- source "mm/Kconfig"
+-int ocfs2_write_begin(struct file *file, struct address_space *mapping,
+-		      loff_t pos, unsigned len, unsigned flags,
+-		      struct page **pagep, void **fsdata);
+-
+-int ocfs2_write_end(struct file *file, struct address_space *mapping,
+-		    loff_t pos, unsigned len, unsigned copied,
+-		    struct page *page, void *fsdata);
+-
+ int ocfs2_write_end_nolock(struct address_space *mapping,
+ 			   loff_t pos, unsigned len, unsigned copied,
+ 			   struct page *page, void *fsdata);
+diff -puN fs/ocfs2/file.c~ocfs2-convert-to-new-aops fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-convert-to-new-aops
++++ a/fs/ocfs2/file.c
+@@ -1881,143 +1881,13 @@ out:
+ 	return ret;
+ }
  
-diff -puN arch/sparc64/kernel/ktlb.S~sparc64-sparsemem_vmemmap-support arch/sparc64/kernel/ktlb.S
---- a/arch/sparc64/kernel/ktlb.S~sparc64-sparsemem_vmemmap-support
-+++ a/arch/sparc64/kernel/ktlb.S
-@@ -226,6 +226,15 @@ kvmap_dtlb_load:
- 	ba,pt		%xcc, sun4v_dtlb_load
- 	 mov		%g5, %g3
+-static inline void
+-ocfs2_set_next_iovec(const struct iovec **iovp, size_t *basep, size_t bytes)
+-{
+-	const struct iovec *iov = *iovp;
+-	size_t base = *basep;
+-
+-	do {
+-		int copy = min(bytes, iov->iov_len - base);
+-
+-		bytes -= copy;
+-		base += copy;
+-		if (iov->iov_len == base) {
+-			iov++;
+-			base = 0;
+-		}
+-	} while (bytes);
+-	*iovp = iov;
+-	*basep = base;
+-}
+-
+-static struct page * ocfs2_get_write_source(char **ret_src_buf,
+-					    const struct iovec *cur_iov,
+-					    size_t iov_offset)
+-{
+-	int ret;
+-	char *buf = cur_iov->iov_base + iov_offset;
+-	struct page *src_page = NULL;
+-	unsigned long off;
+-
+-	off = (unsigned long)(buf) & ~PAGE_CACHE_MASK;
+-
+-	if (!segment_eq(get_fs(), KERNEL_DS)) {
+-		/*
+-		 * Pull in the user page. We want to do this outside
+-		 * of the meta data locks in order to preserve locking
+-		 * order in case of page fault.
+-		 */
+-		ret = get_user_pages(current, current->mm,
+-				     (unsigned long)buf & PAGE_CACHE_MASK, 1,
+-				     0, 0, &src_page, NULL);
+-		if (ret == 1)
+-			*ret_src_buf = kmap(src_page) + off;
+-		else
+-			src_page = ERR_PTR(-EFAULT);
+-	} else {
+-		*ret_src_buf = buf;
+-	}
+-
+-	return src_page;
+-}
+-
+-static void ocfs2_put_write_source(struct page *page)
+-{
+-	if (page) {
+-		kunmap(page);
+-		page_cache_release(page);
+-	}
+-}
+-
+-static ssize_t ocfs2_file_buffered_write(struct file *file, loff_t *ppos,
+-					 const struct iovec *iov,
+-					 unsigned long nr_segs,
+-					 size_t count,
+-					 ssize_t o_direct_written)
+-{
+-	int ret = 0;
+-	ssize_t copied, total = 0;
+-	size_t iov_offset = 0, bytes;
+-	loff_t pos;
+-	const struct iovec *cur_iov = iov;
+-	struct page *user_page, *page;
+-	char * uninitialized_var(buf);
+-	char *dst;
+-	void *fsdata;
+-
+-	/*
+-	 * handle partial DIO write.  Adjust cur_iov if needed.
+-	 */
+-	ocfs2_set_next_iovec(&cur_iov, &iov_offset, o_direct_written);
+-
+-	do {
+-		pos = *ppos;
+-
+-		user_page = ocfs2_get_write_source(&buf, cur_iov, iov_offset);
+-		if (IS_ERR(user_page)) {
+-			ret = PTR_ERR(user_page);
+-			goto out;
+-		}
+-
+-		/* Stay within our page boundaries */
+-		bytes = min((PAGE_CACHE_SIZE - ((unsigned long)pos & ~PAGE_CACHE_MASK)),
+-			    (PAGE_CACHE_SIZE - ((unsigned long)buf & ~PAGE_CACHE_MASK)));
+-		/* Stay within the vector boundary */
+-		bytes = min_t(size_t, bytes, cur_iov->iov_len - iov_offset);
+-		/* Stay within count */
+-		bytes = min(bytes, count);
+-
+-		page = NULL;
+-		ret = ocfs2_write_begin(file, file->f_mapping, pos, bytes, 0,
+-					&page, &fsdata);
+-		if (ret) {
+-			mlog_errno(ret);
+-			goto out;
+-		}
+-
+-		dst = kmap_atomic(page, KM_USER0);
+-		memcpy(dst + (pos & (loff_t)(PAGE_CACHE_SIZE - 1)), buf, bytes);
+-		kunmap_atomic(dst, KM_USER0);
+-		flush_dcache_page(page);
+-		ocfs2_put_write_source(user_page);
+-
+-		copied = ocfs2_write_end(file, file->f_mapping, pos, bytes,
+-					 bytes, page, fsdata);
+-		if (copied < 0) {
+-			mlog_errno(copied);
+-			ret = copied;
+-			goto out;
+-		}
+-
+-		total += copied;
+-		*ppos = pos + copied;
+-		count -= copied;
+-
+-		ocfs2_set_next_iovec(&cur_iov, &iov_offset, copied);
+-	} while(count);
+-
+-out:
+-	return total ? total : ret;
+-}
+-
+ static ssize_t ocfs2_file_aio_write(struct kiocb *iocb,
+ 				    const struct iovec *iov,
+ 				    unsigned long nr_segs,
+ 				    loff_t pos)
+ {
+ 	int ret, direct_io, appending, rw_level, have_alloc_sem  = 0;
+-	int can_do_direct, sync = 0;
++	int can_do_direct;
+ 	ssize_t written = 0;
+ 	size_t ocount;		/* original count */
+ 	size_t count;		/* after file limit checks */
+@@ -2033,12 +1903,6 @@ static ssize_t ocfs2_file_aio_write(stru
+ 	if (iocb->ki_left == 0)
+ 		return 0;
  
-+kvmap_vmemmap:
-+	sub		%g4, %g5, %g5
-+	srlx		%g5, 22, %g5
-+	sethi		%hi(vmemmap_table), %g1
-+	sllx		%g5, 3, %g5
-+	or		%g1, %lo(vmemmap_table), %g1
-+	ba,pt		%xcc, kvmap_dtlb_load
-+	 ldx		[%g1 + %g5], %g5
-+
- kvmap_dtlb_nonlinear:
- 	/* Catch kernel NULL pointer derefs.  */
- 	sethi		%hi(PAGE_SIZE), %g5
-@@ -233,6 +242,13 @@ kvmap_dtlb_nonlinear:
- 	bleu,pn		%xcc, kvmap_dtlb_longpath
- 	 nop
+-	ret = generic_segment_checks(iov, &nr_segs, &ocount, VERIFY_READ);
+-	if (ret)
+-		return ret;
+-
+-	count = ocount;
+-
+ 	vfs_check_frozen(inode->i_sb, SB_FREEZE_WRITE);
  
-+	/* Do not use the TSB for vmemmap.  */
-+	mov		(VMEMMAP_BASE >> 24), %g5
-+	sllx		%g5, 24, %g5
-+	cmp		%g4,%g5
-+	bgeu,pn		%xcc, kvmap_vmemmap
-+	 nop
-+
- 	KERN_TSB_LOOKUP_TL1(%g4, %g6, %g5, %g1, %g2, %g3, kvmap_dtlb_load)
+ 	appending = file->f_flags & O_APPEND ? 1 : 0;
+@@ -2082,33 +1946,23 @@ relock:
+ 		rw_level = -1;
  
- kvmap_dtlb_tsbmiss:
-diff -puN arch/sparc64/mm/init.c~sparc64-sparsemem_vmemmap-support arch/sparc64/mm/init.c
---- a/arch/sparc64/mm/init.c~sparc64-sparsemem_vmemmap-support
-+++ a/arch/sparc64/mm/init.c
-@@ -1645,6 +1645,58 @@ EXPORT_SYMBOL(_PAGE_E);
- unsigned long _PAGE_CACHE __read_mostly;
- EXPORT_SYMBOL(_PAGE_CACHE);
+ 		direct_io = 0;
+-		sync = 1;
+ 		goto relock;
+ 	}
  
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+
-+#define VMEMMAP_CHUNK_SHIFT	22
-+#define VMEMMAP_CHUNK		(1UL << VMEMMAP_CHUNK_SHIFT)
-+#define VMEMMAP_CHUNK_MASK	~(VMEMMAP_CHUNK - 1UL)
-+#define VMEMMAP_ALIGN(x)	(((x)+VMEMMAP_CHUNK-1UL)&VMEMMAP_CHUNK_MASK)
-+
-+#define VMEMMAP_SIZE	((((1UL << MAX_PHYSADDR_BITS) >> PAGE_SHIFT) * \
-+			  sizeof(struct page *)) >> VMEMMAP_CHUNK_SHIFT)
-+unsigned long vmemmap_table[VMEMMAP_SIZE];
-+
-+int __meminit vmemmap_populate(struct page *start, unsigned long nr, int node)
-+{
-+	unsigned long vstart = (unsigned long) start;
-+	unsigned long vend = (unsigned long) (start + nr);
-+	unsigned long phys_start = (vstart - VMEMMAP_BASE);
-+	unsigned long phys_end = (vend - VMEMMAP_BASE);
-+	unsigned long addr = phys_start & VMEMMAP_CHUNK_MASK;
-+	unsigned long end = VMEMMAP_ALIGN(phys_end);
-+	unsigned long pte_base;
-+
-+	pte_base = (_PAGE_VALID | _PAGE_SZ4MB_4U |
-+		    _PAGE_CP_4U | _PAGE_CV_4U |
-+		    _PAGE_P_4U | _PAGE_W_4U);
-+	if (tlb_type == hypervisor)
-+		pte_base = (_PAGE_VALID | _PAGE_SZ4MB_4V |
-+			    _PAGE_CP_4V | _PAGE_CV_4V |
-+			    _PAGE_P_4V | _PAGE_W_4V);
-+
-+	for (; addr < end; addr += VMEMMAP_CHUNK) {
-+		unsigned long *vmem_pp =
-+			vmemmap_table + (addr >> VMEMMAP_CHUNK_SHIFT);
-+		void *block;
-+
-+		if (!(*vmem_pp & _PAGE_VALID)) {
-+			block = vmemmap_alloc_block(1UL << 22, node);
-+			if (!block)
-+				return -ENOMEM;
-+
-+			*vmem_pp = pte_base | __pa(block);
-+
-+			printk(KERN_INFO "[%p-%p] page_structs=%lu "
-+			       "node=%d entry=%lu/%lu\n", start, block, nr,
-+			       node,
-+			       addr >> VMEMMAP_CHUNK_SHIFT,
-+			       VMEMMAP_SIZE >> VMEMMAP_CHUNK_SHIFT);
-+		}
-+	}
-+	return 0;
-+}
-+#endif /* CONFIG_SPARSEMEM_VMEMMAP */
-+
- static void prot_init_common(unsigned long page_none,
- 			     unsigned long page_shared,
- 			     unsigned long page_copy,
-diff -puN include/asm-sparc64/pgtable.h~sparc64-sparsemem_vmemmap-support include/asm-sparc64/pgtable.h
---- a/include/asm-sparc64/pgtable.h~sparc64-sparsemem_vmemmap-support
-+++ a/include/asm-sparc64/pgtable.h
-@@ -42,6 +42,9 @@
- #define HI_OBP_ADDRESS		_AC(0x0000000100000000,UL)
- #define VMALLOC_START		_AC(0x0000000100000000,UL)
- #define VMALLOC_END		_AC(0x0000000200000000,UL)
-+#define VMEMMAP_BASE		_AC(0x0000000200000000,UL)
-+
-+#define vmemmap			((struct page *)VMEMMAP_BASE)
+-	if (!sync && ((file->f_flags & O_SYNC) || IS_SYNC(inode)))
+-		sync = 1;
+-
+-	/*
+-	 * XXX: Is it ok to execute these checks a second time?
+-	 */
+-	ret = generic_write_checks(file, ppos, &count, S_ISBLK(inode->i_mode));
+-	if (ret)
+-		goto out;
+-
+-	/*
+-	 * Set pos so that sync_page_range_nolock() below understands
+-	 * where to start from. We might've moved it around via the
+-	 * calls above. The range we want to actually sync starts from
+-	 * *ppos here.
+-	 *
+-	 */
+-	pos = *ppos;
+-
+ 	/* communicate with ocfs2_dio_end_io */
+ 	ocfs2_iocb_set_rw_locked(iocb, rw_level);
  
- /* XXX All of this needs to be rethought so we can take advantage
-  * XXX cheetah's full 64-bit virtual address space, ie. no more hole
+ 	if (direct_io) {
++		ret = generic_segment_checks(iov, &nr_segs, &ocount,
++					     VERIFY_READ);
++		if (ret)
++			goto out_dio;
++
++		ret = generic_write_checks(file, ppos, &count,
++					   S_ISBLK(inode->i_mode));
++		if (ret)
++			goto out_dio;
++
+ 		written = generic_file_direct_write(iocb, iov, &nr_segs, *ppos,
+ 						    ppos, count, ocount);
+ 		if (written < 0) {
+@@ -2116,14 +1970,8 @@ relock:
+ 			goto out_dio;
+ 		}
+ 	} else {
+-		written = ocfs2_file_buffered_write(file, ppos, iov, nr_segs,
+-						    count, written);
+-		if (written < 0) {
+-			ret = written;
+-			if (ret != -EFAULT || ret != -ENOSPC)
+-				mlog_errno(ret);
+-			goto out;
+-		}
++		written = generic_file_aio_write_nolock(iocb, iov, nr_segs,
++							*ppos);
+ 	}
+ 
+ out_dio:
+@@ -2153,97 +2001,12 @@ out_sems:
+ 	if (have_alloc_sem)
+ 		up_read(&inode->i_alloc_sem);
+ 
+-	if (written > 0 && sync) {
+-		ssize_t err;
+-
+-		err = sync_page_range_nolock(inode, file->f_mapping, pos, count);
+-		if (err < 0)
+-			written = err;
+-	}
+-
+ 	mutex_unlock(&inode->i_mutex);
+ 
+ 	mlog_exit(ret);
+ 	return written ? written : ret;
+ }
+ 
+-static int ocfs2_splice_write_actor(struct pipe_inode_info *pipe,
+-				    struct pipe_buffer *buf,
+-				    struct splice_desc *sd)
+-{
+-	int ret, count;
+-	ssize_t copied = 0;
+-	struct file *file = sd->u.file;
+-	unsigned int offset;
+-	struct page *page = NULL;
+-	void *fsdata;
+-	char *src, *dst;
+-
+-	ret = buf->ops->confirm(pipe, buf);
+-	if (ret)
+-		goto out;
+-
+-	offset = sd->pos & ~PAGE_CACHE_MASK;
+-	count = sd->len;
+-	if (count + offset > PAGE_CACHE_SIZE)
+-		count = PAGE_CACHE_SIZE - offset;
+-
+-	ret = ocfs2_write_begin(file, file->f_mapping, sd->pos, count, 0,
+-				&page, &fsdata);
+-	if (ret) {
+-		mlog_errno(ret);
+-		goto out;
+-	}
+-
+-	src = buf->ops->map(pipe, buf, 1);
+-	dst = kmap_atomic(page, KM_USER1);
+-	memcpy(dst + offset, src + buf->offset, count);
+-	kunmap_atomic(dst, KM_USER1);
+-	buf->ops->unmap(pipe, buf, src);
+-
+-	copied = ocfs2_write_end(file, file->f_mapping, sd->pos, count, count,
+-				 page, fsdata);
+-	if (copied < 0) {
+-		mlog_errno(copied);
+-		ret = copied;
+-		goto out;
+-	}
+-out:
+-
+-	return copied ? copied : ret;
+-}
+-
+-static ssize_t __ocfs2_file_splice_write(struct pipe_inode_info *pipe,
+-					 struct file *out,
+-					 loff_t *ppos,
+-					 size_t len,
+-					 unsigned int flags)
+-{
+-	int ret, err;
+-	struct address_space *mapping = out->f_mapping;
+-	struct inode *inode = mapping->host;
+-	struct splice_desc sd = {
+-		.total_len = len,
+-		.flags = flags,
+-		.pos = *ppos,
+-		.u.file = out,
+-	};
+-
+-	ret = __splice_from_pipe(pipe, &sd, ocfs2_splice_write_actor);
+-	if (ret > 0) {
+-		*ppos += ret;
+-
+-		if (unlikely((out->f_flags & O_SYNC) || IS_SYNC(inode))) {
+-			err = generic_osync_inode(inode, mapping,
+-						  OSYNC_METADATA|OSYNC_DATA);
+-			if (err)
+-				ret = err;
+-		}
+-	}
+-
+-	return ret;
+-}
+-
+ static ssize_t ocfs2_file_splice_write(struct pipe_inode_info *pipe,
+ 				       struct file *out,
+ 				       loff_t *ppos,
+@@ -2273,8 +2036,7 @@ static ssize_t ocfs2_file_splice_write(s
+ 		goto out_unlock;
+ 	}
+ 
+-	/* ok, we're done with i_size and alloc work */
+-	ret = __ocfs2_file_splice_write(pipe, out, ppos, len, flags);
++	ret = generic_file_splice_write_nolock(pipe, out, ppos, len, flags);
+ 
+ out_unlock:
+ 	ocfs2_rw_unlock(inode, 1);
 _
 
-Patches currently in -mm which might be from davem@davemloft.net are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
-net-dccp-fix-link-error-with-config_sysctl.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-git-scsi-misc.patch
-sparc-support-for-new-termios.patch
-sparc-support-for-new-termios-checkpatch-fixes.patch
-git-wireless.patch
-unexport-asm-shmparamh.patch
-kconfig-make-instrumentation-support-non-experimental.patch
-remove-dma_cache_wbackinvwback_inv-functions.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-update-dma-mapping-documentation.patch
-sysctl-fix-neighbour-table-sysctls.patch
-sysctl-ipv6-route-flushing-kill-binary-path.patch
-sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
-sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
-sysctl-remove-broken-netfilter-binary-sysctls.patch
-sysctl-update-sysctl_checks-list-of-binary-paths.patch
+mm-document-tree_lock-zonelock-lockorder.patch
+fs-reiserfs-cleanups.patch
+atomic_opstxt-has-incorrect-misleading-and-insufficient-information.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
 bitops-introduce-lock-ops.patch
+alpha-fix-bitops.patch
+alpha-lock-bitops.patch
+alpha-lock-bitops-fix.patch
+ia64-lock-bitops.patch
+mips-fix-bitops.patch
+mips-lock-bitops.patch
+powerpc-lock-bitops.patch
+powerpc-lock-bitops-fix.patch
+bit_spin_lock-use-lock-bitops.patch
+reiser4-fix-for-new-aops-patches.patch
