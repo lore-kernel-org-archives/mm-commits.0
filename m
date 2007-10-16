@@ -1,88 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - intel-fb-support-for-interlaced-video-modes.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:44:09 -0700
-Message-ID: <200710162044.l9GKi9kY016118@imap1.linux-foundation.org>
+Subject: - ecryptfs-replace-magic-numbers.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:41:10 -0700
+Message-ID: <200710162041.l9GKfA4H015765@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36560 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46437 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965256AbXJPU6y (ORCPT
+	by vger.kernel.org with ESMTP id S965256AbXJPU6w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 16:58:54 -0400
+	Tue, 16 Oct 2007 16:58:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khc@pm.waw.pl, adaplas@pol.net, akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Intel FB: support for interlaced video modes
+     eCryptfs: replace magic numbers
 has been removed from the -mm tree.  Its filename was
-     intel-fb-support-for-interlaced-video-modes.patch
+     ecryptfs-replace-magic-numbers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Intel FB: support for interlaced video modes
-From: Krzysztof Halasa <khc@pm.waw.pl>
+Subject: eCryptfs: replace magic numbers
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Intel framebuffer now supports interlaced video modes.
+Replace some magic numbers with sizeof() equivalents.
 
-Signed-off-by: Krzysztof Halasa <khc@pm.waw.pl>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/intelfb/intelfbhw.c |   12 +++++++-----
- drivers/video/intelfb/intelfbhw.h |    4 ++++
- 2 files changed, 11 insertions(+), 5 deletions(-)
+ fs/ecryptfs/crypto.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/intelfb/intelfbhw.c~intel-fb-support-for-interlaced-video-modes drivers/video/intelfb/intelfbhw.c
---- a/drivers/video/intelfb/intelfbhw.c~intel-fb-support-for-interlaced-video-modes
-+++ a/drivers/video/intelfb/intelfbhw.c
-@@ -323,11 +323,7 @@ intelfbhw_validate_mode(struct intelfb_i
- 		return 1;
- 	}
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-replace-magic-numbers fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-replace-magic-numbers
++++ a/fs/ecryptfs/crypto.c
+@@ -1426,10 +1426,10 @@ static int parse_header_metadata(struct 
+ 	u32 header_extent_size;
+ 	u16 num_header_extents_at_front;
  
--	/* Check for interlaced/doublescan modes. */
--	if (var->vmode & FB_VMODE_INTERLACED) {
--		WRN_MSG("Mode is interlaced.\n");
--		return 1;
--	}
-+	/* Check for doublescan modes. */
- 	if (var->vmode & FB_VMODE_DOUBLE) {
- 		WRN_MSG("Mode is double-scan.\n");
- 		return 1;
-@@ -1220,6 +1216,12 @@ intelfbhw_mode_to_hw(struct intelfb_info
- 
- 	/* Set the palette to 8-bit mode. */
- 	*pipe_conf &= ~PIPECONF_GAMMA;
-+
-+	if (var->vmode & FB_VMODE_INTERLACED)
-+		*pipe_conf |= PIPECONF_INTERLACE_W_FIELD_INDICATION;
-+	else
-+		*pipe_conf &= ~PIPECONF_INTERLACE_MASK;
-+
- 	return 0;
- }
- 
-diff -puN drivers/video/intelfb/intelfbhw.h~intel-fb-support-for-interlaced-video-modes drivers/video/intelfb/intelfbhw.h
---- a/drivers/video/intelfb/intelfbhw.h~intel-fb-support-for-interlaced-video-modes
-+++ a/drivers/video/intelfb/intelfbhw.h
-@@ -286,6 +286,10 @@
- #define PIPECONF_UNLOCKED		0
- #define PIPECONF_GAMMA			(1 << 24)
- #define PIPECONF_PALETTE		0
-+#define PIPECONF_PROGRESSIVE			(0 << 21)
-+#define PIPECONF_INTERLACE_W_FIELD_INDICATION	(6 << 21)
-+#define PIPECONF_INTERLACE_FIELD_0_ONLY		(7 << 21)
-+#define PIPECONF_INTERLACE_MASK			(7 << 21)
- 
- #define DISPARB			0x70030
- #define DISPARB_AEND_MASK		0x1ff
+-	memcpy(&header_extent_size, virt, 4);
++	memcpy(&header_extent_size, virt, sizeof(u32));
+ 	header_extent_size = be32_to_cpu(header_extent_size);
+-	virt += 4;
+-	memcpy(&num_header_extents_at_front, virt, 2);
++	virt += sizeof(u32);
++	memcpy(&num_header_extents_at_front, virt, sizeof(u16));
+ 	num_header_extents_at_front = be16_to_cpu(num_header_extents_at_front);
+ 	crypt_stat->num_header_extents_at_front =
+ 		(int)num_header_extents_at_front;
 _
 
-Patches currently in -mm which might be from khc@pm.waw.pl are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
 origin.patch
-git-wireless.patch
+git-unionfs.patch
+ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
+vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
