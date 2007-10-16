@@ -1,2859 +1,2607 @@
 From: akpm@linux-foundation.org
-Subject: - uml-network-formatting.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:39:00 -0700
-Message-ID: <200710162039.l9GKd0AA015504@imap1.linux-foundation.org>
+Subject: - uml-remove-code-made-redundant-by-choose_mode-removal.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:37:32 -0700
+Message-ID: <200710162037.l9GKbWqV015302@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50236 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36268 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933559AbXJPVd0 (ORCPT
+	by vger.kernel.org with ESMTP id S933559AbXJPVde (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:33:26 -0400
+	Tue, 16 Oct 2007 17:33:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: network formatting
+     uml: remove code made redundant by CHOOSE_MODE removal
 has been removed from the -mm tree.  Its filename was
-     uml-network-formatting.patch
+     uml-remove-code-made-redundant-by-choose_mode-removal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: network formatting
+Subject: uml: remove code made redundant by CHOOSE_MODE removal
 From: Jeff Dike <jdike@addtoit.com>
 
-Style and other non-functional changes in the UML networking code, including
-	include tidying
-	style violations
-	copyright updates
-	printks getting severities
-	userspace code calling libc directly rather than using the os_*
-wrappers
+This patch makes a number of simplifications enabled by the removal of
+CHOOSE_MODE.  There were lots of functions that looked like
 
-There's also a exit path cleanup in the pcap driver.
+	int foo(args){
+		foo_skas(args);
+	}
+
+The bodies of foo_skas are now folded into foo, and their declarations (and
+sometimes entire header files) are deleted.
+
+In addition, the union uml_pt_regs, which was a union between the tt and skas
+register formats, is now a struct, with the tt-mode arm of the union being
+removed.
+
+It turns out that usr2_handler was unused, so it is gone.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/daemon.h                 |   20 --
- arch/um/drivers/daemon_kern.c            |   31 +--
- arch/um/drivers/daemon_user.c            |   81 ++++----
- arch/um/drivers/mcast.h                  |   16 -
- arch/um/drivers/mcast_kern.c             |   55 ++---
- arch/um/drivers/mcast_user.c             |   62 +++---
- arch/um/drivers/net_kern.c               |  197 ++++++++++-----------
- arch/um/drivers/net_user.c               |  126 +++++++------
- arch/um/drivers/pcap_kern.c              |   27 +-
- arch/um/drivers/pcap_user.c              |   49 ++---
- arch/um/drivers/slip_kern.c              |   34 +--
- arch/um/drivers/slip_user.c              |  122 +++++++------
- arch/um/drivers/slirp_kern.c             |   55 +++--
- arch/um/drivers/slirp_user.c             |   67 +++----
- arch/um/drivers/vde_kern.c               |    8 
- arch/um/drivers/vde_user.c               |    8 
- arch/um/os-Linux/drivers/etap.h          |   16 -
- arch/um/os-Linux/drivers/ethertap_kern.c |   36 ++-
- arch/um/os-Linux/drivers/ethertap_user.c |   86 ++++-----
- arch/um/os-Linux/drivers/tuntap.h        |   13 -
- arch/um/os-Linux/drivers/tuntap_kern.c   |   34 +--
- arch/um/os-Linux/drivers/tuntap_user.c   |   75 ++++---
- 22 files changed, 602 insertions(+), 616 deletions(-)
+ arch/um/drivers/harddog_user.c         |    1 
+ arch/um/include/arch.h                 |    4 
+ arch/um/include/as-layout.h            |    2 
+ arch/um/include/irq_user.h             |    2 
+ arch/um/include/kern_util.h            |   22 +--
+ arch/um/include/mconsole.h             |    2 
+ arch/um/include/mode.h                 |   11 -
+ arch/um/include/mode_kern.h            |   11 -
+ arch/um/include/os.h                   |    6 
+ arch/um/include/registers.h            |    6 
+ arch/um/include/skas/mmu-skas.h        |    2 
+ arch/um/include/skas/mode_kern_skas.h  |   42 -----
+ arch/um/include/skas/skas.h            |    2 
+ arch/um/include/sysdep-i386/ptrace.h   |   59 +++-----
+ arch/um/include/sysdep-x86_64/ptrace.h |   88 +++++-------
+ arch/um/include/task.h                 |    2 
+ arch/um/kernel/exec.c                  |   20 ++
+ arch/um/kernel/irq.c                   |    4 
+ arch/um/kernel/physmem.c               |    4 
+ arch/um/kernel/process.c               |  120 +++++++++++++---
+ arch/um/kernel/ptrace.c                |    6 
+ arch/um/kernel/reboot.c                |   21 ++
+ arch/um/kernel/signal.c                |    1 
+ arch/um/kernel/skas/Makefile           |    2 
+ arch/um/kernel/skas/exec.c             |   40 -----
+ arch/um/kernel/skas/mem.c              |   22 ---
+ arch/um/kernel/skas/mmu.c              |    4 
+ arch/um/kernel/skas/process.c          |  158 +---------------------
+ arch/um/kernel/skas/syscall.c          |    4 
+ arch/um/kernel/skas/tlb.c              |  164 -----------------------
+ arch/um/kernel/syscall.c               |    1 
+ arch/um/kernel/time.c                  |    7 
+ arch/um/kernel/tlb.c                   |  134 ++++++++++++++++++
+ arch/um/kernel/trap.c                  |   10 -
+ arch/um/kernel/um_arch.c               |   22 ++-
+ arch/um/os-Linux/aio.c                 |    1 
+ arch/um/os-Linux/main.c                |    1 
+ arch/um/os-Linux/process.c             |    3 
+ arch/um/os-Linux/registers.c           |   12 -
+ arch/um/os-Linux/signal.c              |    5 
+ arch/um/os-Linux/skas/mem.c            |    4 
+ arch/um/os-Linux/skas/process.c        |   24 +--
+ arch/um/os-Linux/skas/trap.c           |   14 -
+ arch/um/os-Linux/start_up.c            |    1 
+ arch/um/os-Linux/trap.c                |    8 -
+ arch/um/os-Linux/umid.c                |    1 
+ arch/um/sys-i386/bugs.c                |    2 
+ arch/um/sys-i386/fault.c               |    2 
+ arch/um/sys-i386/ldt.c                 |    7 
+ arch/um/sys-i386/ptrace.c              |   10 -
+ arch/um/sys-i386/signal.c              |   86 +++++-------
+ arch/um/sys-i386/tls.c                 |    4 
+ arch/um/sys-x86_64/bugs.c              |    2 
+ arch/um/sys-x86_64/fault.c             |    2 
+ arch/um/sys-x86_64/signal.c            |   35 +---
+ arch/um/sys-x86_64/syscalls.c          |    9 -
+ arch/um/sys-x86_64/tls.c               |    2 
+ include/asm-um/mmu_context.h           |   20 --
+ include/asm-um/processor-generic.h     |   16 --
+ include/asm-um/ptrace-generic.h        |    4 
+ include/asm-um/ptrace-i386.h           |   17 --
+ include/asm-um/ptrace-x86_64.h         |   13 -
+ include/asm-um/tlbflush.h              |   13 -
+ 63 files changed, 512 insertions(+), 812 deletions(-)
 
-diff -puN arch/um/drivers/daemon.h~uml-network-formatting arch/um/drivers/daemon.h
---- a/arch/um/drivers/daemon.h~uml-network-formatting
-+++ a/arch/um/drivers/daemon.h
-@@ -1,8 +1,11 @@
--/* 
-- * Copyright (C) 2001 Jeff Dike (jdike@karaya.com)
-+/*
-+ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
- 
-+#ifndef __DAEMON_H__
-+#define __DAEMON_H__
-+
- #include "net_user.h"
- 
- #define SWITCH_VERSION 3
-@@ -20,16 +23,7 @@ struct daemon_data {
- 
- extern const struct net_user_info daemon_user_info;
- 
--extern int daemon_user_write(int fd, void *buf, int len, 
-+extern int daemon_user_write(int fd, void *buf, int len,
- 			     struct daemon_data *pri);
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-+#endif
-diff -puN arch/um/drivers/daemon_kern.c~uml-network-formatting arch/um/drivers/daemon_kern.c
---- a/arch/um/drivers/daemon_kern.c~uml-network-formatting
-+++ a/arch/um/drivers/daemon_kern.c
-@@ -1,16 +1,14 @@
- /*
-- * Copyright (C) 2001 Lennert Buytenhek (buytenh@gnu.org) and 
-+ * Copyright (C) 2001 Lennert Buytenhek (buytenh@gnu.org) and
-  * James Leu (jleu@mindspring.net).
-+ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Copyright (C) 2001 by various other people who didn't put their name here.
-  * Licensed under the GPL.
-  */
- 
--#include "linux/kernel.h"
- #include "linux/init.h"
--#include "linux/netdevice.h"
--#include "linux/etherdevice.h"
-+#include <linux/netdevice.h>
- #include "net_kern.h"
--#include "net_user.h"
- #include "daemon.h"
- 
- struct daemon_init {
-@@ -36,25 +34,26 @@ static void daemon_init(struct net_devic
- 	dpri->data_addr = NULL;
- 	dpri->local_addr = NULL;
- 
--	printk("daemon backend (uml_switch version %d) - %s:%s", 
-+	printk("daemon backend (uml_switch version %d) - %s:%s",
- 	       SWITCH_VERSION, dpri->sock_type, dpri->ctl_sock);
- 	printk("\n");
- }
- 
--static int daemon_read(int fd, struct sk_buff **skb, 
-+static int daemon_read(int fd, struct sk_buff **skb,
- 		       struct uml_net_private *lp)
- {
- 	*skb = ether_adjust_skb(*skb, ETH_HEADER_OTHER);
--	if(*skb == NULL) return(-ENOMEM);
--	return(net_recvfrom(fd, skb_mac_header(*skb),
--			    (*skb)->dev->mtu + ETH_HEADER_OTHER));
-+	if (*skb == NULL)
-+		return -ENOMEM;
-+	return net_recvfrom(fd, skb_mac_header(*skb),
-+			    (*skb)->dev->mtu + ETH_HEADER_OTHER);
- }
- 
- static int daemon_write(int fd, struct sk_buff **skb,
- 			struct uml_net_private *lp)
- {
--	return(daemon_user_write(fd, (*skb)->data, (*skb)->len, 
--				 (struct daemon_data *) &lp->user));
-+	return daemon_user_write(fd, (*skb)->data, (*skb)->len,
-+				 (struct daemon_data *) &lp->user);
- }
- 
- static const struct net_kern_info daemon_kern_info = {
-@@ -72,14 +71,14 @@ static int daemon_setup(char *str, char 
- 	*init = ((struct daemon_init)
- 		{ .sock_type 		= "unix",
- 		  .ctl_sock 		= "/tmp/uml.ctl" });
--	
-+
- 	remain = split_if_spec(str, mac_out, &init->sock_type, &init->ctl_sock,
- 			       NULL);
--	if(remain != NULL)
-+	if (remain != NULL)
- 		printk(KERN_WARNING "daemon_setup : Ignoring data socket "
- 		       "specification\n");
--	
--	return(1);
-+
-+	return 1;
- }
- 
- static struct transport daemon_transport = {
-diff -puN arch/um/drivers/daemon_user.c~uml-network-formatting arch/um/drivers/daemon_user.c
---- a/arch/um/drivers/daemon_user.c~uml-network-formatting
-+++ a/arch/um/drivers/daemon_user.c
-@@ -1,22 +1,23 @@
- /*
-- * Copyright (C) 2001 Lennert Buytenhek (buytenh@gnu.org) and 
-+ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-+ * Copyright (C) 2001 Lennert Buytenhek (buytenh@gnu.org) and
-  * James Leu (jleu@mindspring.net).
-  * Copyright (C) 2001 by various other people who didn't put their name here.
-  * Licensed under the GPL.
-  */
- 
--#include <errno.h>
--#include <unistd.h>
- #include <stdint.h>
-+#include <unistd.h>
-+#include <errno.h>
-+#include <sys/types.h>
- #include <sys/socket.h>
--#include <sys/un.h>
- #include <sys/time.h>
--#include "net_user.h"
-+#include <sys/un.h>
- #include "daemon.h"
--#include "kern_util.h"
--#include "user.h"
-+#include "net_user.h"
+diff -puN arch/um/drivers/harddog_user.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/drivers/harddog_user.c
+--- a/arch/um/drivers/harddog_user.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/drivers/harddog_user.c
+@@ -9,7 +9,6 @@
+ #include "user.h"
+ #include "mconsole.h"
  #include "os.h"
- #include "um_malloc.h"
-+#include "user.h"
+-#include "mode.h"
  
- #define MAX_PACKET (ETH_MAX_PACKET + ETH_HEADER_OTHER)
+ struct dog_data {
+ 	int stdin;
+diff -puN arch/um/include/arch.h~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/include/arch.h
+--- a/arch/um/include/arch.h~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/include/arch.h
+@@ -9,7 +9,7 @@
+ #include "sysdep/ptrace.h"
  
-@@ -36,8 +37,9 @@ static struct sockaddr_un *new_addr(void
- 	struct sockaddr_un *sun;
+ extern void arch_check_bugs(void);
+-extern int arch_fixup(unsigned long address, union uml_pt_regs *regs);
+-extern int arch_handle_signal(int sig, union uml_pt_regs *regs);
++extern int arch_fixup(unsigned long address, struct uml_pt_regs *regs);
++extern int arch_handle_signal(int sig, struct uml_pt_regs *regs);
  
- 	sun = kmalloc(sizeof(struct sockaddr_un), UM_GFP_KERNEL);
--	if(sun == NULL){
--		printk("new_addr: allocation of sockaddr_un failed\n");
-+	if (sun == NULL) {
-+		printk(UM_KERN_ERR "new_addr: allocation of sockaddr_un "
-+		       "failed\n");
- 		return NULL;
- 	}
- 	sun->sun_family = AF_UNIX;
-@@ -54,38 +56,39 @@ static int connect_to_switch(struct daem
- 	int fd, n, err;
+ #endif
+diff -puN arch/um/include/as-layout.h~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/include/as-layout.h
+--- a/arch/um/include/as-layout.h~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/include/as-layout.h
+@@ -29,6 +29,6 @@ extern unsigned long brk_start;
  
- 	pri->control = socket(AF_UNIX, SOCK_STREAM, 0);
--	if(pri->control < 0){
-+	if (pri->control < 0) {
- 		err = -errno;
--		printk("daemon_open : control socket failed, errno = %d\n", 
--		       -err);
-+		printk(UM_KERN_ERR "daemon_open : control socket failed, "
-+		       "errno = %d\n", -err);
- 		return err;
- 	}
+ extern int linux_main(int argc, char **argv);
  
--	if(connect(pri->control, (struct sockaddr *) ctl_addr, 
--		   sizeof(*ctl_addr)) < 0){
-+	if (connect(pri->control, (struct sockaddr *) ctl_addr,
-+		   sizeof(*ctl_addr)) < 0) {
- 		err = -errno;
--		printk("daemon_open : control connect failed, errno = %d\n",
--		       -err);
-+		printk(UM_KERN_ERR "daemon_open : control connect failed, "
-+		       "errno = %d\n", -err);
- 		goto out;
- 	}
+-extern void (*sig_info[])(int, union uml_pt_regs *);
++extern void (*sig_info[])(int, struct uml_pt_regs *);
  
- 	fd = socket(AF_UNIX, SOCK_DGRAM, 0);
--	if(fd < 0){
-+	if (fd < 0) {
- 		err = -errno;
--		printk("daemon_open : data socket failed, errno = %d\n",
--		       -err);
-+		printk(UM_KERN_ERR "daemon_open : data socket failed, "
-+		       "errno = %d\n", -err);
- 		goto out;
- 	}
--	if(bind(fd, (struct sockaddr *) local_addr, sizeof(*local_addr)) < 0){
-+	if (bind(fd, (struct sockaddr *) local_addr, sizeof(*local_addr)) < 0) {
- 		err = -errno;
--		printk("daemon_open : data bind failed, errno = %d\n",
--		       -err);
-+		printk(UM_KERN_ERR "daemon_open : data bind failed, "
-+		       "errno = %d\n", -err);
- 		goto out_close;
- 	}
+ #endif
+diff -puN arch/um/include/irq_user.h~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/include/irq_user.h
+--- a/arch/um/include/irq_user.h~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/include/irq_user.h
+@@ -21,7 +21,7 @@ struct irq_fd {
  
- 	sun = kmalloc(sizeof(struct sockaddr_un), UM_GFP_KERNEL);
--	if(sun == NULL){
--		printk("new_addr: allocation of sockaddr_un failed\n");
-+	if (sun == NULL) {
-+		printk(UM_KERN_ERR "new_addr: allocation of sockaddr_un "
-+		       "failed\n");
- 		err = -ENOMEM;
- 		goto out_close;
- 	}
-@@ -94,18 +97,18 @@ static int connect_to_switch(struct daem
- 	req.version = SWITCH_VERSION;
- 	req.type = REQ_NEW_CONTROL;
- 	req.sock = *local_addr;
--	n = os_write_file(pri->control, &req, sizeof(req));
--	if(n != sizeof(req)){
--		printk("daemon_open : control setup request failed, err = %d\n",
--		       -n);
-+	n = write(pri->control, &req, sizeof(req));
-+	if (n != sizeof(req)) {
-+		printk(UM_KERN_ERR "daemon_open : control setup request "
-+		       "failed, err = %d\n", -errno);
- 		err = -ENOTCONN;
- 		goto out_free;
- 	}
+ enum { IRQ_READ, IRQ_WRITE };
  
--	n = os_read_file(pri->control, sun, sizeof(*sun));
--	if(n != sizeof(*sun)){
--		printk("daemon_open : read of data socket failed, err = %d\n",
--		       -n);
-+	n = read(pri->control, sun, sizeof(*sun));
-+	if (n != sizeof(*sun)) {
-+		printk(UM_KERN_ERR "daemon_open : read of data socket failed, "
-+		       "err = %d\n", -errno);
- 		err = -ENOTCONN;
- 		goto out_free;
- 	}
-@@ -116,9 +119,9 @@ static int connect_to_switch(struct daem
-  out_free:
- 	kfree(sun);
-  out_close:
--	os_close_file(fd);
-+	close(fd);
-  out:
--	os_close_file(pri->control);
-+	close(pri->control);
- 	return err;
- }
+-extern void sigio_handler(int sig, union uml_pt_regs *regs);
++extern void sigio_handler(int sig, struct uml_pt_regs *regs);
+ extern int activate_fd(int irq, int fd, int type, void *dev_id);
+ extern void free_irq_by_irq_and_dev(unsigned int irq, void *dev_id);
+ extern void free_irq_by_fd(int fd);
+diff -puN arch/um/include/kern_util.h~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/include/kern_util.h
+--- a/arch/um/include/kern_util.h~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/include/kern_util.h
+@@ -10,7 +10,7 @@
+ #include "sysdep/faultinfo.h"
+ #include "uml-config.h"
  
-@@ -132,8 +135,8 @@ static int daemon_user_init(void *data, 
- 		int usecs;
- 	} name;
+-typedef void (*kern_hndl)(int, union uml_pt_regs *);
++typedef void (*kern_hndl)(int, struct uml_pt_regs *);
  
--	if(!strcmp(pri->sock_type, "unix"))
--		pri->ctl_addr = new_addr(pri->ctl_sock, 
-+	if (!strcmp(pri->sock_type, "unix"))
-+		pri->ctl_addr = new_addr(pri->ctl_sock,
- 					 strlen(pri->ctl_sock) + 1);
- 	name.zero = 0;
- 	name.pid = os_getpid();
-@@ -142,7 +145,7 @@ static int daemon_user_init(void *data, 
- 	pri->local_addr = new_addr(&name, sizeof(name));
- 	pri->dev = dev;
- 	pri->fd = connect_to_switch(pri);
--	if(pri->fd < 0){
-+	if (pri->fd < 0) {
- 		kfree(pri->local_addr);
- 		pri->local_addr = NULL;
- 		return pri->fd;
-@@ -161,9 +164,9 @@ static void daemon_remove(void *data)
- {
- 	struct daemon_data *pri = data;
+ struct kern_handlers {
+ 	kern_hndl relay_signal;
+@@ -41,7 +41,7 @@ extern unsigned long alloc_stack(int ord
+ extern int do_signal(void);
+ extern int is_stack_fault(unsigned long sp);
+ extern unsigned long segv(struct faultinfo fi, unsigned long ip,
+-			  int is_user, union uml_pt_regs *regs);
++			  int is_user, struct uml_pt_regs *regs);
+ extern int handle_page_fault(unsigned long address, unsigned long ip,
+ 			     int is_write, int is_user, int *code_out);
+ extern void syscall_ready(void);
+@@ -54,7 +54,7 @@ extern int need_finish_fork(void);
+ extern void free_stack(unsigned long stack, int order);
+ extern void add_input_request(int op, void (*proc)(int), void *arg);
+ extern char *current_cmd(void);
+-extern void timer_handler(int sig, union uml_pt_regs *regs);
++extern void timer_handler(int sig, struct uml_pt_regs *regs);
+ extern int set_signals(int enable);
+ extern int pid_to_processor_id(int pid);
+ extern void deliver_signals(void *t);
+@@ -64,9 +64,9 @@ extern void finish_fork(void);
+ extern void paging_init(void);
+ extern void init_flush_vm(void);
+ extern void *syscall_sp(void *t);
+-extern void syscall_trace(union uml_pt_regs *regs, int entryexit);
++extern void syscall_trace(struct uml_pt_regs *regs, int entryexit);
+ extern int hz(void);
+-extern unsigned int do_IRQ(int irq, union uml_pt_regs *regs);
++extern unsigned int do_IRQ(int irq, struct uml_pt_regs *regs);
+ extern void interrupt_end(void);
+ extern void initial_thread_cb(void (*proc)(void *), void *arg);
+ extern int debugger_signal(int status, int pid);
+@@ -76,9 +76,9 @@ extern int init_ptrace_proxy(int idle_pi
+ extern int init_parent_proxy(int pid);
+ extern int singlestepping(void *t);
+ extern void check_stack_overflow(void *ptr);
+-extern void relay_signal(int sig, union uml_pt_regs *regs);
++extern void relay_signal(int sig, struct uml_pt_regs *regs);
+ extern int user_context(unsigned long sp);
+-extern void timer_irq(union uml_pt_regs *regs);
++extern void timer_irq(struct uml_pt_regs *regs);
+ extern void do_uml_exitcalls(void);
+ extern int attach_debugger(int idle_pid, int pid, int stop);
+ extern int config_gdb(char *str);
+@@ -109,11 +109,9 @@ extern void time_init_kern(void);
  
--	os_close_file(pri->fd);
-+	close(pri->fd);
- 	pri->fd = -1;
--	os_close_file(pri->control);
-+	close(pri->control);
- 	pri->control = -1;
- 
- 	kfree(pri->data_addr);
-diff -puN arch/um/drivers/mcast.h~uml-network-formatting arch/um/drivers/mcast.h
---- a/arch/um/drivers/mcast.h~uml-network-formatting
-+++ a/arch/um/drivers/mcast.h
-@@ -1,8 +1,11 @@
- /* 
-- * Copyright (C) 2001 Jeff Dike (jdike@karaya.com)
-+ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
- 
-+#ifndef __DRIVERS_MCAST_H
-+#define __DRIVERS_MCAST_H
-+
- #include "net_user.h"
- 
- struct mcast_data {
-@@ -18,13 +21,4 @@ extern const struct net_user_info mcast_
- extern int mcast_user_write(int fd, void *buf, int len, 
- 			    struct mcast_data *pri);
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-+#endif
-diff -puN arch/um/drivers/mcast_kern.c~uml-network-formatting arch/um/drivers/mcast_kern.c
---- a/arch/um/drivers/mcast_kern.c~uml-network-formatting
-+++ a/arch/um/drivers/mcast_kern.c
-@@ -1,24 +1,20 @@
- /*
-  * user-mode-linux networking multicast transport
-  * Copyright (C) 2001 by Harald Welte <laforge@gnumonks.org>
-+ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  *
-  * based on the existing uml-networking code, which is
-- * Copyright (C) 2001 Lennert Buytenhek (buytenh@gnu.org) and 
-+ * Copyright (C) 2001 Lennert Buytenhek (buytenh@gnu.org) and
-  * James Leu (jleu@mindspring.net).
-  * Copyright (C) 2001 by various other people who didn't put their name here.
-  *
-  * Licensed under the GPL.
-  */
- 
--#include "linux/kernel.h"
- #include "linux/init.h"
--#include "linux/netdevice.h"
--#include "linux/etherdevice.h"
--#include "linux/in.h"
--#include "linux/inet.h"
--#include "net_kern.h"
--#include "net_user.h"
-+#include <linux/netdevice.h>
- #include "mcast.h"
-+#include "net_kern.h"
- 
- struct mcast_init {
- 	char *addr;
-@@ -39,26 +35,23 @@ static void mcast_init(struct net_device
- 	dpri->ttl = init->ttl;
- 	dpri->dev = dev;
- 
--	printk("mcast backend ");
--	printk("multicast address: %s:%u, TTL:%u ",
-+	printk("mcast backend multicast address: %s:%u, TTL:%u\n",
- 	       dpri->addr, dpri->port, dpri->ttl);
+ /* Are we disallowed to sleep? Used to choose between GFP_KERNEL and GFP_ATOMIC. */
+ extern int __cant_sleep(void);
+-extern void sigio_handler(int sig, union uml_pt_regs *regs);
 -
--	printk("\n");
- }
- 
- static int mcast_read(int fd, struct sk_buff **skb, struct uml_net_private *lp)
- {
- 	*skb = ether_adjust_skb(*skb, ETH_HEADER_OTHER);
--	if(*skb == NULL) return(-ENOMEM);
--	return(net_recvfrom(fd, skb_mac_header(*skb),
--			    (*skb)->dev->mtu + ETH_HEADER_OTHER));
-+	if (*skb == NULL)
-+		return -ENOMEM;
-+	return net_recvfrom(fd, skb_mac_header(*skb),
-+			    (*skb)->dev->mtu + ETH_HEADER_OTHER);
- }
- 
--static int mcast_write(int fd, struct sk_buff **skb,
--			struct uml_net_private *lp)
-+static int mcast_write(int fd, struct sk_buff **skb, struct uml_net_private *lp)
- {
--	return mcast_user_write(fd, (*skb)->data, (*skb)->len, 
--				 (struct mcast_data *) &lp->user);
-+	return mcast_user_write(fd, (*skb)->data, (*skb)->len,
-+				(struct mcast_data *) &lp->user);
- }
- 
- static const struct net_kern_info mcast_kern_info = {
-@@ -81,34 +74,34 @@ int mcast_setup(char *str, char **mac_ou
- 
- 	remain = split_if_spec(str, mac_out, &init->addr, &port_str, &ttl_str,
- 			       NULL);
--	if(remain != NULL){
-+	if (remain != NULL) {
- 		printk(KERN_ERR "mcast_setup - Extra garbage on "
- 		       "specification : '%s'\n", remain);
--		return(0);
-+		return 0;
- 	}
--	
--	if(port_str != NULL){
-+
-+	if (port_str != NULL) {
- 		init->port = simple_strtoul(port_str, &last, 10);
--		if((*last != '\0') || (last == port_str)){
--			printk(KERN_ERR "mcast_setup - Bad port : '%s'\n", 
-+		if ((*last != '\0') || (last == port_str)) {
-+			printk(KERN_ERR "mcast_setup - Bad port : '%s'\n",
- 			       port_str);
--			return(0);
-+			return 0;
- 		}
- 	}
- 
--	if(ttl_str != NULL){
-+	if (ttl_str != NULL) {
- 		init->ttl = simple_strtoul(ttl_str, &last, 10);
--		if((*last != '\0') || (last == ttl_str)){
--			printk(KERN_ERR "mcast_setup - Bad ttl : '%s'\n", 
-+		if ((*last != '\0') || (last == ttl_str)) {
-+			printk(KERN_ERR "mcast_setup - Bad ttl : '%s'\n",
- 			       ttl_str);
--			return(0);
-+			return 0;
- 		}
- 	}
- 
- 	printk(KERN_INFO "Configured mcast device: %s:%u-%u\n", init->addr,
- 	       init->port, init->ttl);
- 
--	return(1);
-+	return 1;
- }
- 
- static struct transport mcast_transport = {
-diff -puN arch/um/drivers/mcast_user.c~uml-network-formatting arch/um/drivers/mcast_user.c
---- a/arch/um/drivers/mcast_user.c~uml-network-formatting
-+++ a/arch/um/drivers/mcast_user.c
-@@ -1,9 +1,10 @@
- /*
-  * user-mode-linux networking multicast transport
-+ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Copyright (C) 2001 by Harald Welte <laforge@gnumonks.org>
-  *
-  * based on the existing uml-networking code, which is
-- * Copyright (C) 2001 Lennert Buytenhek (buytenh@gnu.org) and 
-+ * Copyright (C) 2001 Lennert Buytenhek (buytenh@gnu.org) and
-  * James Leu (jleu@mindspring.net).
-  * Copyright (C) 2001 by various other people who didn't put their name here.
-  *
-@@ -11,18 +12,13 @@
-  *
-  */
- 
--#include <errno.h>
- #include <unistd.h>
--#include <sys/socket.h>
--#include <sys/un.h>
--#include <sys/time.h>
-+#include <errno.h>
- #include <netinet/in.h>
--#include "net_user.h"
- #include "mcast.h"
--#include "kern_util.h"
--#include "user.h"
--#include "os.h"
-+#include "net_user.h"
- #include "um_malloc.h"
-+#include "user.h"
- 
- #define MAX_PACKET (ETH_MAX_PACKET + ETH_HEADER_OTHER)
- 
-@@ -31,8 +27,9 @@ static struct sockaddr_in *new_addr(char
- 	struct sockaddr_in *sin;
- 
- 	sin = kmalloc(sizeof(struct sockaddr_in), UM_GFP_KERNEL);
--	if(sin == NULL){
--		printk("new_addr: allocation of sockaddr_in failed\n");
-+	if (sin == NULL) {
-+		printk(UM_KERN_ERR "new_addr: allocation of sockaddr_in "
-+		       "failed\n");
- 		return NULL;
- 	}
- 	sin->sin_family = AF_INET;
-@@ -71,17 +68,17 @@ static int mcast_open(void *data)
- 
- 	fd = socket(AF_INET, SOCK_DGRAM, 0);
- 
--	if (fd < 0){
-+	if (fd < 0) {
- 		err = -errno;
--		printk("mcast_open : data socket failed, errno = %d\n", 
--		       errno);
-+		printk(UM_KERN_ERR "mcast_open : data socket failed, "
-+		       "errno = %d\n", errno);
- 		goto out;
- 	}
- 
- 	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
- 		err = -errno;
--		printk("mcast_open: SO_REUSEADDR failed, errno = %d\n",
--			errno);
-+		printk(UM_KERN_ERR "mcast_open: SO_REUSEADDR failed, "
-+		       "errno = %d\n", errno);
- 		goto out_close;
- 	}
- 
-@@ -89,45 +86,46 @@ static int mcast_open(void *data)
- 	if (setsockopt(fd, SOL_IP, IP_MULTICAST_TTL, &pri->ttl,
- 		       sizeof(pri->ttl)) < 0) {
- 		err = -errno;
--		printk("mcast_open: IP_MULTICAST_TTL failed, error = %d\n",
--			errno);
-+		printk(UM_KERN_ERR "mcast_open: IP_MULTICAST_TTL failed, "
-+		       "error = %d\n", errno);
- 		goto out_close;
- 	}
- 
- 	/* set LOOP, so data does get fed back to local sockets */
- 	if (setsockopt(fd, SOL_IP, IP_MULTICAST_LOOP, &yes, sizeof(yes)) < 0) {
- 		err = -errno;
--		printk("mcast_open: IP_MULTICAST_LOOP failed, error = %d\n",
--			errno);
-+		printk(UM_KERN_ERR "mcast_open: IP_MULTICAST_LOOP failed, "
-+		       "error = %d\n", errno);
- 		goto out_close;
- 	}
- 
- 	/* bind socket to mcast address */
- 	if (bind(fd, (struct sockaddr *) sin, sizeof(*sin)) < 0) {
- 		err = -errno;
--		printk("mcast_open : data bind failed, errno = %d\n", errno);
-+		printk(UM_KERN_ERR "mcast_open : data bind failed, "
-+		       "errno = %d\n", errno);
- 		goto out_close;
- 	}
- 
- 	/* subscribe to the multicast group */
- 	mreq.imr_multiaddr.s_addr = sin->sin_addr.s_addr;
- 	mreq.imr_interface.s_addr = 0;
--	if (setsockopt(fd, SOL_IP, IP_ADD_MEMBERSHIP, 
-+	if (setsockopt(fd, SOL_IP, IP_ADD_MEMBERSHIP,
- 		       &mreq, sizeof(mreq)) < 0) {
- 		err = -errno;
--		printk("mcast_open: IP_ADD_MEMBERSHIP failed, error = %d\n",
--			errno);
--		printk("There appears not to be a multicast-capable network "
--		       "interface on the host.\n");
--		printk("eth0 should be configured in order to use the "
--		       "multicast transport.\n");
-+		printk(UM_KERN_ERR "mcast_open: IP_ADD_MEMBERSHIP failed, "
-+		       "error = %d\n", errno);
-+		printk(UM_KERN_ERR "There appears not to be a multicast-"
-+		       "capable network interface on the host.\n");
-+		printk(UM_KERN_ERR "eth0 should be configured in order to use "
-+		       "the multicast transport.\n");
- 		goto out_close;
- 	}
- 
- 	return fd;
- 
-  out_close:
--	os_close_file(fd);
-+	close(fd);
-  out:
- 	return err;
- }
-@@ -142,11 +140,11 @@ static void mcast_close(int fd, void *da
- 	mreq.imr_interface.s_addr = 0;
- 	if (setsockopt(fd, SOL_IP, IP_DROP_MEMBERSHIP,
- 		       &mreq, sizeof(mreq)) < 0) {
--		printk("mcast_open: IP_DROP_MEMBERSHIP failed, error = %d\n",
--			errno);
-+		printk(UM_KERN_ERR "mcast_open: IP_DROP_MEMBERSHIP failed, "
-+		       "error = %d\n", errno);
- 	}
- 
--	os_close_file(fd);
-+	close(fd);
- }
- 
- int mcast_user_write(int fd, void *buf, int len, struct mcast_data *pri)
-diff -puN arch/um/drivers/net_kern.c~uml-network-formatting arch/um/drivers/net_kern.c
---- a/arch/um/drivers/net_kern.c~uml-network-formatting
-+++ a/arch/um/drivers/net_kern.c
-@@ -1,33 +1,28 @@
- /*
-+ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Copyright (C) 2001 Lennert Buytenhek (buytenh@gnu.org) and
-  * James Leu (jleu@mindspring.net).
-  * Copyright (C) 2001 by various other people who didn't put their name here.
-  * Licensed under the GPL.
-  */
- 
--#include "linux/kernel.h"
--#include "linux/netdevice.h"
--#include "linux/rtnetlink.h"
--#include "linux/skbuff.h"
--#include "linux/socket.h"
--#include "linux/spinlock.h"
--#include "linux/module.h"
--#include "linux/init.h"
--#include "linux/etherdevice.h"
--#include "linux/list.h"
--#include "linux/inetdevice.h"
--#include "linux/ctype.h"
--#include "linux/bootmem.h"
--#include "linux/ethtool.h"
--#include "linux/platform_device.h"
--#include "asm/uaccess.h"
--#include "kern_util.h"
--#include "net_kern.h"
--#include "net_user.h"
--#include "mconsole_kern.h"
-+#include <linux/bootmem.h>
-+#include <linux/etherdevice.h>
-+#include <linux/ethtool.h>
-+#include <linux/inetdevice.h>
-+#include <linux/init.h>
-+#include <linux/list.h>
-+#include <linux/netdevice.h>
-+#include <linux/platform_device.h>
-+#include <linux/rtnetlink.h>
-+#include <linux/skbuff.h>
-+#include <linux/spinlock.h>
- #include "init.h"
--#include "irq_user.h"
- #include "irq_kern.h"
-+#include "irq_user.h"
-+#include "mconsole_kern.h"
-+#include "net_kern.h"
-+#include "net_user.h"
- 
- static inline void set_ether_mac(struct net_device *dev, unsigned char *addr)
- {
-@@ -84,12 +79,12 @@ irqreturn_t uml_net_interrupt(int irq, v
- 	struct uml_net_private *lp = dev->priv;
- 	int err;
- 
--	if(!netif_running(dev))
--		return(IRQ_NONE);
-+	if (!netif_running(dev))
-+		return IRQ_NONE;
- 
- 	spin_lock(&lp->lock);
--	while((err = uml_net_rx(dev)) > 0) ;
--	if(err < 0) {
-+	while ((err = uml_net_rx(dev)) > 0) ;
-+	if (err < 0) {
- 		printk(KERN_ERR
- 		       "Device '%s' read returned %d, shutting it down\n",
- 		       dev->name, err);
-@@ -115,20 +110,20 @@ static int uml_net_open(struct net_devic
- 	struct uml_net_private *lp = dev->priv;
- 	int err;
- 
--	if(lp->fd >= 0){
-+	if (lp->fd >= 0) {
- 		err = -ENXIO;
- 		goto out;
- 	}
- 
- 	lp->fd = (*lp->open)(&lp->user);
--	if(lp->fd < 0){
-+	if (lp->fd < 0) {
- 		err = lp->fd;
- 		goto out;
- 	}
- 
- 	err = um_request_irq(dev->irq, lp->fd, IRQ_READ, uml_net_interrupt,
- 			     IRQF_DISABLED | IRQF_SHARED, dev->name, dev);
--	if(err != 0){
-+	if (err != 0) {
- 		printk(KERN_ERR "uml_net_open: failed to get irq(%d)\n", err);
- 		err = -ENETUNREACH;
- 		goto out_close;
-@@ -141,7 +136,7 @@ static int uml_net_open(struct net_devic
- 	 * is full when we get here.  In this case, new data is never queued,
- 	 * SIGIOs never arrive, and the net never works.
- 	 */
--	while((err = uml_net_rx(dev)) > 0) ;
-+	while ((err = uml_net_rx(dev)) > 0) ;
- 
- 	spin_lock(&opened_lock);
- 	list_add(&lp->list, &opened);
-@@ -149,7 +144,7 @@ static int uml_net_open(struct net_devic
- 
- 	return 0;
- out_close:
--	if(lp->close != NULL) (*lp->close)(lp->fd, &lp->user);
-+	if (lp->close != NULL) (*lp->close)(lp->fd, &lp->user);
- 	lp->fd = -1;
- out:
- 	return err;
-@@ -162,7 +157,7 @@ static int uml_net_close(struct net_devi
- 	netif_stop_queue(dev);
- 
- 	free_irq(dev->irq, dev);
--	if(lp->close != NULL)
-+	if (lp->close != NULL)
- 		(*lp->close)(lp->fd, &lp->user);
- 	lp->fd = -1;
- 
-@@ -185,7 +180,7 @@ static int uml_net_start_xmit(struct sk_
- 
- 	len = (*lp->write)(lp->fd, &skb, lp);
- 
--	if(len == skb->len) {
-+	if (len == skb->len) {
- 		lp->stats.tx_packets++;
- 		lp->stats.tx_bytes += skb->len;
- 		dev->trans_start = jiffies;
-@@ -194,7 +189,7 @@ static int uml_net_start_xmit(struct sk_
- 		/* this is normally done in the interrupt when tx finishes */
- 		netif_wake_queue(dev);
- 	}
--	else if(len == 0){
-+	else if (len == 0) {
- 		netif_start_queue(dev);
- 		lp->stats.tx_dropped++;
- 	}
-@@ -218,8 +213,10 @@ static struct net_device_stats *uml_net_
- 
- static void uml_net_set_multicast_list(struct net_device *dev)
- {
--	if (dev->flags & IFF_PROMISC) return;
--	else if (dev->mc_count)	dev->flags |= IFF_ALLMULTI;
-+	if (dev->flags & IFF_PROMISC)
-+		return;
-+	else if (dev->mc_count)
-+		dev->flags |= IFF_ALLMULTI;
- 	else dev->flags &= ~IFF_ALLMULTI;
- }
- 
-@@ -249,7 +246,7 @@ static int uml_net_change_mtu(struct net
- 	spin_lock_irq(&lp->lock);
- 
- 	new_mtu = (*lp->set_mtu)(new_mtu, &lp->user);
--	if(new_mtu < 0){
-+	if (new_mtu < 0) {
- 		err = new_mtu;
- 		goto out;
- 	}
-@@ -288,13 +285,13 @@ static void setup_etheraddr(char *str, u
- 	char *end;
- 	int i;
- 
--	if(str == NULL)
-+	if (str == NULL)
- 		goto random;
- 
--	for(i=0;i<6;i++){
-+	for (i = 0;i < 6; i++) {
- 		addr[i] = simple_strtoul(str, &end, 16);
--		if((end == str) ||
--		   ((*end != ':') && (*end != ',') && (*end != '\0'))){
-+		if ((end == str) ||
-+		   ((*end != ':') && (*end != ',') && (*end != '\0'))) {
- 			printk(KERN_ERR
- 			       "setup_etheraddr: failed to parse '%s' "
- 			       "as an ethernet address\n", str);
-@@ -349,7 +346,7 @@ static void net_device_release(struct de
- 	struct net_device *netdev = device->dev;
- 	struct uml_net_private *lp = netdev->priv;
- 
--	if(lp->remove != NULL)
-+	if (lp->remove != NULL)
- 		(*lp->remove)(&lp->user);
- 	list_del(&device->list);
- 	kfree(device);
-@@ -413,7 +410,7 @@ static void eth_configure(int n, void *i
- 	device->pdev.name = DRIVER_NAME;
- 	device->pdev.dev.release = net_device_release;
- 	device->pdev.dev.driver_data = device;
--	if(platform_device_register(&device->pdev))
-+	if (platform_device_register(&device->pdev))
- 		goto out_free_netdev;
- 	SET_NETDEV_DEV(dev,&device->pdev.dev);
- 
-@@ -493,9 +490,9 @@ static struct uml_net *find_device(int n
- 	struct list_head *ele;
- 
- 	spin_lock(&devices_lock);
--	list_for_each(ele, &devices){
-+	list_for_each(ele, &devices) {
- 		device = list_entry(ele, struct uml_net, list);
--		if(device->index == n)
-+		if (device->index == n)
- 			goto out;
- 	}
- 	device = NULL;
-@@ -511,19 +508,19 @@ static int eth_parse(char *str, int *ind
- 	int n, err = -EINVAL;;
- 
- 	n = simple_strtoul(str, &end, 0);
--	if(end == str){
-+	if (end == str) {
- 		*error_out = "Bad device number";
- 		return err;
- 	}
- 
- 	str = end;
--	if(*str != '='){
-+	if (*str != '=') {
- 		*error_out = "Expected '=' after device number";
- 		return err;
- 	}
- 
- 	str++;
--	if(find_device(n)){
-+	if (find_device(n)) {
- 		*error_out = "Device already configured";
- 		return err;
- 	}
-@@ -551,20 +548,20 @@ static int check_transport(struct transp
- 	int len;
- 
- 	len = strlen(transport->name);
--	if(strncmp(eth, transport->name, len))
-+	if (strncmp(eth, transport->name, len))
- 		return 0;
- 
- 	eth += len;
--	if(*eth == ',')
-+	if (*eth == ',')
- 		eth++;
--	else if(*eth != '\0')
-+	else if (*eth != '\0')
- 		return 0;
- 
- 	*init_out = kmalloc(transport->setup_size, GFP_KERNEL);
--	if(*init_out == NULL)
-+	if (*init_out == NULL)
- 		return 1;
- 
--	if(!transport->setup(eth, mac_out, *init_out)){
-+	if (!transport->setup(eth, mac_out, *init_out)) {
- 		kfree(*init_out);
- 		*init_out = NULL;
- 	}
-@@ -584,13 +581,13 @@ void register_transport(struct transport
- 	list_add(&new->list, &transports);
- 	spin_unlock(&transports_lock);
- 
--	list_for_each_safe(ele, next, &eth_cmd_line){
-+	list_for_each_safe(ele, next, &eth_cmd_line) {
- 		eth = list_entry(ele, struct eth_init, list);
- 		match = check_transport(new, eth->init, eth->index, &init,
- 					&mac);
--		if(!match)
-+		if (!match)
- 			continue;
--		else if(init != NULL){
-+		else if (init != NULL) {
- 			eth_configure(eth->index, init, mac, new);
- 			kfree(init);
- 		}
-@@ -607,11 +604,11 @@ static int eth_setup_common(char *str, i
- 	int found = 0;
- 
- 	spin_lock(&transports_lock);
--	list_for_each(ele, &transports){
-+	list_for_each(ele, &transports) {
- 		transport = list_entry(ele, struct transport, list);
--	        if(!check_transport(transport, str, index, &init, &mac))
-+	        if (!check_transport(transport, str, index, &init, &mac))
- 			continue;
--		if(init != NULL){
-+		if (init != NULL) {
- 			eth_configure(index, init, mac, transport);
- 			kfree(init);
- 		}
-@@ -630,15 +627,15 @@ static int __init eth_setup(char *str)
- 	int n, err;
- 
- 	err = eth_parse(str, &n, &str, &error);
--	if(err){
-+	if (err) {
- 		printk(KERN_ERR "eth_setup - Couldn't parse '%s' : %s\n",
- 		       str, error);
- 		return 1;
- 	}
- 
- 	new = alloc_bootmem(sizeof(*new));
--	if (new == NULL){
--		printk("eth_init : alloc_bootmem failed\n");
-+	if (new == NULL) {
-+		printk(KERN_ERR "eth_init : alloc_bootmem failed\n");
- 		return 1;
- 	}
- 
-@@ -661,36 +658,36 @@ static int net_config(char *str, char **
- 	int n, err;
- 
- 	err = eth_parse(str, &n, &str, error_out);
--	if(err)
-+	if (err)
- 		return err;
- 
- 	/* This string is broken up and the pieces used by the underlying
- 	 * driver.  So, it is freed only if eth_setup_common fails.
- 	 */
- 	str = kstrdup(str, GFP_KERNEL);
--	if(str == NULL){
-+	if (str == NULL) {
- 	        *error_out = "net_config failed to strdup string";
- 		return -ENOMEM;
- 	}
- 	err = !eth_setup_common(str, n);
--	if(err)
-+	if (err)
- 		kfree(str);
--	return(err);
-+	return err;
- }
- 
- static int net_id(char **str, int *start_out, int *end_out)
- {
--        char *end;
--        int n;
-+	char *end;
-+	int n;
- 
- 	n = simple_strtoul(*str, &end, 0);
--	if((*end != '\0') || (end == *str))
-+	if ((*end != '\0') || (end == *str))
- 		return -1;
- 
--        *start_out = n;
--        *end_out = n;
--        *str = end;
--        return n;
-+	*start_out = n;
-+	*end_out = n;
-+	*str = end;
-+	return n;
- }
- 
- static int net_remove(int n, char **error_out)
-@@ -700,12 +697,12 @@ static int net_remove(int n, char **erro
- 	struct uml_net_private *lp;
- 
- 	device = find_device(n);
--	if(device == NULL)
-+	if (device == NULL)
- 		return -ENODEV;
- 
- 	dev = device->dev;
- 	lp = dev->priv;
--	if(lp->fd > 0)
-+	if (lp->fd > 0)
- 		return -EBUSY;
- 	unregister_netdev(dev);
- 	platform_device_unregister(&device->pdev);
-@@ -731,13 +728,13 @@ static int uml_inetaddr_event(struct not
- 	void (*proc)(unsigned char *, unsigned char *, void *);
- 	unsigned char addr_buf[4], netmask_buf[4];
- 
--	if(dev->open != uml_net_open)
-+	if (dev->open != uml_net_open)
- 		return NOTIFY_DONE;
- 
- 	lp = dev->priv;
- 
- 	proc = NULL;
--	switch (event){
-+	switch (event) {
- 	case NETDEV_UP:
- 		proc = lp->add_address;
- 		break;
-@@ -745,7 +742,7 @@ static int uml_inetaddr_event(struct not
- 		proc = lp->delete_address;
- 		break;
- 	}
--	if(proc != NULL){
-+	if (proc != NULL) {
- 		memcpy(addr_buf, &ifa->ifa_address, sizeof(addr_buf));
- 		memcpy(netmask_buf, &ifa->ifa_mask, sizeof(netmask_buf));
- 		(*proc)(addr_buf, netmask_buf, &lp->user);
-@@ -773,13 +770,13 @@ static int uml_net_init(void)
- 	 * addresses which have already been set up get handled properly.
- 	 */
- 	spin_lock(&opened_lock);
--	list_for_each(ele, &opened){
-+	list_for_each(ele, &opened) {
- 		lp = list_entry(ele, struct uml_net_private, list);
- 		ip = lp->dev->ip_ptr;
--		if(ip == NULL)
-+		if (ip == NULL)
- 			continue;
- 		in = ip->ifa_list;
--		while(in != NULL){
-+		while (in != NULL) {
- 			uml_inetaddr_event(NULL, NETDEV_UP, in);
- 			in = in->ifa_next;
- 		}
-@@ -797,12 +794,12 @@ static void close_devices(void)
- 	struct uml_net_private *lp;
- 
- 	spin_lock(&opened_lock);
--	list_for_each(ele, &opened){
-+	list_for_each(ele, &opened) {
- 		lp = list_entry(ele, struct uml_net_private, list);
- 		free_irq(lp->dev->irq, lp->dev);
--		if((lp->close != NULL) && (lp->fd >= 0))
-+		if ((lp->close != NULL) && (lp->fd >= 0))
- 			(*lp->close)(lp->fd, &lp->user);
--		if(lp->remove != NULL)
-+		if (lp->remove != NULL)
- 			(*lp->remove)(&lp->user);
- 	}
- 	spin_unlock(&opened_lock);
-@@ -812,15 +809,15 @@ __uml_exitcall(close_devices);
- 
- struct sk_buff *ether_adjust_skb(struct sk_buff *skb, int extra)
- {
--	if((skb != NULL) && (skb_tailroom(skb) < extra)){
-+	if ((skb != NULL) && (skb_tailroom(skb) < extra)) {
- 	  	struct sk_buff *skb2;
- 
- 		skb2 = skb_copy_expand(skb, 0, extra, GFP_ATOMIC);
- 		dev_kfree_skb(skb);
- 		skb = skb2;
- 	}
--	if(skb != NULL) skb_put(skb, extra);
--	return(skb);
-+	if (skb != NULL) skb_put(skb, extra);
-+	return skb;
- }
- 
- void iter_addresses(void *d, void (*cb)(unsigned char *, unsigned char *,
-@@ -832,9 +829,9 @@ void iter_addresses(void *d, void (*cb)(
- 	struct in_ifaddr *in;
- 	unsigned char address[4], netmask[4];
- 
--	if(ip == NULL) return;
-+	if (ip == NULL) return;
- 	in = ip->ifa_list;
--	while(in != NULL){
-+	while (in != NULL) {
- 		memcpy(address, &in->ifa_address, sizeof(address));
- 		memcpy(netmask, &in->ifa_mask, sizeof(netmask));
- 		(*cb)(address, netmask, arg);
-@@ -849,15 +846,15 @@ int dev_netmask(void *d, void *m)
- 	struct in_ifaddr *in;
- 	__be32 *mask_out = m;
- 
--	if(ip == NULL)
--		return(1);
-+	if (ip == NULL)
-+		return 1;
- 
- 	in = ip->ifa_list;
--	if(in == NULL)
--		return(1);
-+	if (in == NULL)
-+		return 1;
- 
- 	*mask_out = in->ifa_mask;
--	return(0);
-+	return 0;
- }
- 
- void *get_output_buffer(int *len_out)
-@@ -865,7 +862,7 @@ void *get_output_buffer(int *len_out)
- 	void *ret;
- 
- 	ret = (void *) __get_free_pages(GFP_KERNEL, 0);
--	if(ret) *len_out = PAGE_SIZE;
-+	if (ret) *len_out = PAGE_SIZE;
- 	else *len_out = 0;
- 	return ret;
- }
-@@ -881,16 +878,16 @@ int tap_setup_common(char *str, char *ty
- 	char *remain;
- 
- 	remain = split_if_spec(str, dev_name, mac_out, gate_addr, NULL);
--	if(remain != NULL){
--		printk("tap_setup_common - Extra garbage on specification : "
--		       "'%s'\n", remain);
--		return(1);
-+	if (remain != NULL) {
-+		printk(KERN_ERR "tap_setup_common - Extra garbage on "
-+		       "specification : '%s'\n", remain);
-+		return 1;
- 	}
- 
--	return(0);
-+	return 0;
- }
- 
- unsigned short eth_protocol(struct sk_buff *skb)
- {
--	return(eth_type_trans(skb, skb->dev));
-+	return eth_type_trans(skb, skb->dev);
- }
-diff -puN arch/um/drivers/net_user.c~uml-network-formatting arch/um/drivers/net_user.c
---- a/arch/um/drivers/net_user.c~uml-network-formatting
-+++ a/arch/um/drivers/net_user.c
-@@ -1,34 +1,32 @@
--/* 
-- * Copyright (C) 2001, 2002 Jeff Dike (jdike@karaya.com)
-+/*
-+ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
- 
--#include <stddef.h>
--#include <stdarg.h>
--#include <unistd.h>
- #include <stdio.h>
-+#include <unistd.h>
-+#include <stdarg.h>
- #include <errno.h>
--#include <stdlib.h>
-+#include <stddef.h>
- #include <string.h>
- #include <sys/socket.h>
- #include <sys/wait.h>
--#include <sys/time.h>
--#include "user.h"
--#include "kern_util.h"
- #include "net_user.h"
-+#include "kern_constants.h"
- #include "os.h"
- #include "um_malloc.h"
--#include "kern_constants.h"
-+#include "user.h"
- 
- int tap_open_common(void *dev, char *gate_addr)
- {
- 	int tap_addr[4];
- 
--	if(gate_addr == NULL)
-+	if (gate_addr == NULL)
- 		return 0;
--	if(sscanf(gate_addr, "%d.%d.%d.%d", &tap_addr[0], 
--		  &tap_addr[1], &tap_addr[2], &tap_addr[3]) != 4){
--		printk("Invalid tap IP address - '%s'\n", gate_addr);
-+	if (sscanf(gate_addr, "%d.%d.%d.%d", &tap_addr[0],
-+		  &tap_addr[1], &tap_addr[2], &tap_addr[3]) != 4) {
-+		printk(UM_KERN_ERR "Invalid tap IP address - '%s'\n",
-+		       gate_addr);
- 		return -EINVAL;
- 	}
- 	return 0;
-@@ -38,15 +36,15 @@ void tap_check_ips(char *gate_addr, unsi
- {
- 	int tap_addr[4];
- 
--	if((gate_addr != NULL) && 
--	   (sscanf(gate_addr, "%d.%d.%d.%d", &tap_addr[0], 
--		   &tap_addr[1], &tap_addr[2], &tap_addr[3]) == 4) &&
--	   (eth_addr[0] == tap_addr[0]) && 
--	   (eth_addr[1] == tap_addr[1]) && 
--	   (eth_addr[2] == tap_addr[2]) && 
--	   (eth_addr[3] == tap_addr[3])){
--		printk("The tap IP address and the UML eth IP address"
--		       " must be different\n");
-+	if ((gate_addr != NULL) &&
-+	    (sscanf(gate_addr, "%d.%d.%d.%d", &tap_addr[0],
-+		    &tap_addr[1], &tap_addr[2], &tap_addr[3]) == 4) &&
-+	    (eth_addr[0] == tap_addr[0]) &&
-+	    (eth_addr[1] == tap_addr[1]) &&
-+	    (eth_addr[2] == tap_addr[2]) &&
-+	    (eth_addr[3] == tap_addr[3])) {
-+		printk(UM_KERN_ERR "The tap IP address and the UML eth IP "
-+		       "address must be different\n");
- 	}
- }
- 
-@@ -57,24 +55,28 @@ void read_output(int fd, char *output, i
- 	char c;
- 	char *str;
- 
--	if(output == NULL){
-+	if (output == NULL) {
- 		output = &c;
- 		len = sizeof(c);
- 	}
--		
-+
- 	*output = '\0';
--	ret = os_read_file(fd, &remain, sizeof(remain));
-+	ret = read(fd, &remain, sizeof(remain));
- 
- 	if (ret != sizeof(remain)) {
-+		if (ret < 0)
-+			ret = -errno;
- 		expected = sizeof(remain);
- 		str = "length";
- 		goto err;
- 	}
- 
--	while(remain != 0){
-+	while (remain != 0) {
- 		expected = (remain < len) ? remain : len;
--		ret = os_read_file(fd, output, expected);
-+		ret = read(fd, output, expected);
- 		if (ret != expected) {
-+			if (ret < 0)
-+				ret = -errno;
- 			str = "data";
- 			goto err;
- 		}
-@@ -85,20 +87,22 @@ void read_output(int fd, char *output, i
- 
- err:
- 	if (ret < 0)
--		printk("read_output - read of %s failed, errno = %d\n", str, -ret);
-+		printk(UM_KERN_ERR "read_output - read of %s failed, "
-+		       "errno = %d\n", str, -ret);
- 	else
--		printk("read_output - read of %s failed, read only %d of %d bytes\n", str, ret, expected);
-+		printk(UM_KERN_ERR "read_output - read of %s failed, read only "
-+		       "%d of %d bytes\n", str, ret, expected);
- }
- 
- int net_read(int fd, void *buf, int len)
- {
- 	int n;
- 
--	n = os_read_file(fd,  buf,  len);
-+	n = read(fd,  buf,  len);
- 
--	if(n == -EAGAIN)
-+	if ((n < 0) && (errno == EAGAIN))
- 		return 0;
--	else if(n == 0)
-+	else if (n == 0)
- 		return -ENOTCONN;
- 	return n;
- }
-@@ -108,12 +112,12 @@ int net_recvfrom(int fd, void *buf, int 
- 	int n;
- 
- 	CATCH_EINTR(n = recvfrom(fd,  buf,  len, 0, NULL, NULL));
--	if(n < 0){
--		if(errno == EAGAIN)
-+	if (n < 0) {
-+		if (errno == EAGAIN)
- 			return 0;
- 		return -errno;
- 	}
--	else if(n == 0)
-+	else if (n == 0)
- 		return -ENOTCONN;
- 	return n;
- }
-@@ -122,11 +126,11 @@ int net_write(int fd, void *buf, int len
- {
- 	int n;
- 
--	n = os_write_file(fd, buf, len);
-+	n = write(fd, buf, len);
- 
--	if(n == -EAGAIN)
-+	if ((n < 0) && (errno == EAGAIN))
- 		return 0;
--	else if(n == 0)
-+	else if (n == 0)
- 		return -ENOTCONN;
- 	return n;
- }
-@@ -136,12 +140,12 @@ int net_send(int fd, void *buf, int len)
- 	int n;
- 
- 	CATCH_EINTR(n = send(fd, buf, len, 0));
--	if(n < 0){
--		if(errno == EAGAIN)
-+	if (n < 0) {
-+		if (errno == EAGAIN)
- 			return 0;
- 		return -errno;
- 	}
--	else if(n == 0)
-+	else if (n == 0)
- 		return -ENOTCONN;
- 	return n;
- }
-@@ -152,12 +156,12 @@ int net_sendto(int fd, void *buf, int le
- 
- 	CATCH_EINTR(n = sendto(fd, buf, len, 0, (struct sockaddr *) to,
- 			       sock_len));
--	if(n < 0){
--		if(errno == EAGAIN)
-+	if (n < 0) {
-+		if (errno == EAGAIN)
- 			return 0;
- 		return -errno;
- 	}
--	else if(n == 0)
-+	else if (n == 0)
- 		return -ENOTCONN;
- 	return n;
- }
-@@ -171,7 +175,7 @@ static void change_pre_exec(void *arg)
- {
- 	struct change_pre_exec_data *data = arg;
- 
--	os_close_file(data->close_me);
-+	close(data->close_me);
- 	dup2(data->stdout, 1);
- }
- 
-@@ -181,8 +185,9 @@ static int change_tramp(char **argv, cha
- 	struct change_pre_exec_data pe_data;
- 
- 	err = os_pipe(fds, 1, 0);
--	if(err < 0){
--		printk("change_tramp - pipe failed, err = %d\n", -err);
-+	if (err < 0) {
-+		printk(UM_KERN_ERR "change_tramp - pipe failed, err = %d\n",
-+		       -err);
- 		return err;
- 	}
- 	pe_data.close_me = fds[0];
-@@ -192,8 +197,8 @@ static int change_tramp(char **argv, cha
- 	if (pid > 0)	/* Avoid hang as we won't get data in failure case. */
- 		read_output(fds[0], output, output_len);
- 
--	os_close_file(fds[0]);
--	os_close_file(fds[1]);
-+	close(fds[0]);
-+	close(fds[1]);
- 
- 	if (pid > 0)
- 		CATCH_EINTR(err = waitpid(pid, NULL, 0));
-@@ -206,25 +211,26 @@ static void change(char *dev, char *what
- 	char addr_buf[sizeof("255.255.255.255\0")];
- 	char netmask_buf[sizeof("255.255.255.255\0")];
- 	char version[sizeof("nnnnn\0")];
--	char *argv[] = { "uml_net", version, what, dev, addr_buf, 
-+	char *argv[] = { "uml_net", version, what, dev, addr_buf,
- 			 netmask_buf, NULL };
- 	char *output;
- 	int output_len, pid;
- 
- 	sprintf(version, "%d", UML_NET_VERSION);
- 	sprintf(addr_buf, "%d.%d.%d.%d", addr[0], addr[1], addr[2], addr[3]);
--	sprintf(netmask_buf, "%d.%d.%d.%d", netmask[0], netmask[1], 
-+	sprintf(netmask_buf, "%d.%d.%d.%d", netmask[0], netmask[1],
- 		netmask[2], netmask[3]);
- 
- 	output_len = UM_KERN_PAGE_SIZE;
- 	output = kmalloc(output_len, UM_GFP_KERNEL);
--	if(output == NULL)
--		printk("change : failed to allocate output buffer\n");
-+	if (output == NULL)
-+		printk(UM_KERN_ERR "change : failed to allocate output "
-+		       "buffer\n");
- 
- 	pid = change_tramp(argv, output, output_len);
--	if(pid < 0) return;
-+	if (pid < 0) return;
- 
--	if(output != NULL){
-+	if (output != NULL) {
- 		printk("%s", output);
- 		kfree(output);
- 	}
-@@ -246,13 +252,13 @@ char *split_if_spec(char *str, ...)
- 	va_list ap;
- 
- 	va_start(ap, str);
--	while((arg = va_arg(ap, char **)) != NULL){
--		if(*str == '\0')
-+	while ((arg = va_arg(ap, char **)) != NULL) {
-+		if (*str == '\0')
- 			return NULL;
- 		end = strchr(str, ',');
--		if(end != str)
-+		if (end != str)
- 			*arg = str;
--		if(end == NULL)
-+		if (end == NULL)
- 			return NULL;
- 		*end++ = '\0';
- 		str = end;
-diff -puN arch/um/drivers/pcap_kern.c~uml-network-formatting arch/um/drivers/pcap_kern.c
---- a/arch/um/drivers/pcap_kern.c~uml-network-formatting
-+++ a/arch/um/drivers/pcap_kern.c
-@@ -1,13 +1,11 @@
- /*
-- * Copyright (C) 2002 Jeff Dike <jdike@karaya.com>
-+ * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL.
-  */
- 
- #include "linux/init.h"
--#include "linux/netdevice.h"
--#include "linux/etherdevice.h"
-+#include <linux/netdevice.h>
- #include "net_kern.h"
--#include "net_user.h"
- #include "pcap_user.h"
- 
- struct pcap_init {
-@@ -37,7 +35,7 @@ static int pcap_read(int fd, struct sk_b
- 		       struct uml_net_private *lp)
- {
- 	*skb = ether_adjust_skb(*skb, ETH_HEADER_OTHER);
--	if(*skb == NULL)
-+	if (*skb == NULL)
- 		return -ENOMEM;
- 
- 	return pcap_user_read(fd, skb_mac_header(*skb),
-@@ -71,28 +69,29 @@ int pcap_setup(char *str, char **mac_out
- 
- 	remain = split_if_spec(str, &host_if, &init->filter,
- 			       &options[0], &options[1], mac_out, NULL);
--	if(remain != NULL){
-+	if (remain != NULL) {
- 		printk(KERN_ERR "pcap_setup - Extra garbage on "
- 		       "specification : '%s'\n", remain);
- 		return 0;
- 	}
- 
--	if(host_if != NULL)
-+	if (host_if != NULL)
- 		init->host_if = host_if;
- 
--	for(i = 0; i < ARRAY_SIZE(options); i++){
--		if(options[i] == NULL)
-+	for (i = 0; i < ARRAY_SIZE(options); i++) {
-+		if (options[i] == NULL)
- 			continue;
--		if(!strcmp(options[i], "promisc"))
-+		if (!strcmp(options[i], "promisc"))
- 			init->promisc = 1;
--		else if(!strcmp(options[i], "nopromisc"))
-+		else if (!strcmp(options[i], "nopromisc"))
- 			init->promisc = 0;
--		else if(!strcmp(options[i], "optimize"))
-+		else if (!strcmp(options[i], "optimize"))
- 			init->optimize = 1;
--		else if(!strcmp(options[i], "nooptimize"))
-+		else if (!strcmp(options[i], "nooptimize"))
- 			init->optimize = 0;
- 		else {
--			printk("pcap_setup : bad option - '%s'\n", options[i]);
-+			printk(KERN_ERR "pcap_setup : bad option - '%s'\n",
-+			       options[i]);
- 			return 0;
- 		}
- 	}
-diff -puN arch/um/drivers/pcap_user.c~uml-network-formatting arch/um/drivers/pcap_user.c
---- a/arch/um/drivers/pcap_user.c~uml-network-formatting
-+++ a/arch/um/drivers/pcap_user.c
-@@ -1,19 +1,17 @@
- /*
-- * Copyright (C) 2002 Jeff Dike <jdike@karaya.com>
-+ * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL.
-  */
- 
--#include <unistd.h>
--#include <stdlib.h>
--#include <string.h>
- #include <errno.h>
- #include <pcap.h>
-+#include <string.h>
- #include <asm/types.h>
- #include "net_user.h"
- #include "pcap_user.h"
--#include "user.h"
--#include "um_malloc.h"
- #include "kern_constants.h"
-+#include "um_malloc.h"
-+#include "user.h"
- 
- #define MAX_PACKET (ETH_MAX_PACKET + ETH_HEADER_OTHER)
- 
-@@ -26,7 +24,7 @@ static int pcap_user_init(void *data, vo
- 	char errors[PCAP_ERRBUF_SIZE];
- 
- 	p = pcap_open_live(pri->host_if, MAX_PACKET, pri->promisc, 0, errors);
--	if(p == NULL){
-+	if (p == NULL) {
- 		printk(UM_KERN_ERR "pcap_user_init : pcap_open_live failed - "
- 		       "'%s'\n", errors);
- 		return -EINVAL;
-@@ -43,50 +41,55 @@ static int pcap_open(void *data)
- 	__u32 netmask;
- 	int err;
- 
--	if(pri->pcap == NULL)
-+	if (pri->pcap == NULL)
- 		return -ENODEV;
- 
--	if(pri->filter != NULL){
-+	if (pri->filter != NULL) {
- 		err = dev_netmask(pri->dev, &netmask);
--		if(err < 0){
-+		if (err < 0) {
- 			printk(UM_KERN_ERR "pcap_open : dev_netmask failed\n");
- 			return -EIO;
- 		}
- 
--		pri->compiled = kmalloc(sizeof(struct bpf_program), UM_GFP_KERNEL);
--		if(pri->compiled == NULL){
-+		pri->compiled = kmalloc(sizeof(struct bpf_program),
-+					UM_GFP_KERNEL);
-+		if (pri->compiled == NULL) {
- 			printk(UM_KERN_ERR "pcap_open : kmalloc failed\n");
- 			return -ENOMEM;
- 		}
- 
--		err = pcap_compile(pri->pcap, 
--				   (struct bpf_program *) pri->compiled, 
-+		err = pcap_compile(pri->pcap,
-+				   (struct bpf_program *) pri->compiled,
- 				   pri->filter, pri->optimize, netmask);
--		if(err < 0){
-+		if (err < 0) {
- 			printk(UM_KERN_ERR "pcap_open : pcap_compile failed - "
- 			       "'%s'\n", pcap_geterr(pri->pcap));
--			return -EIO;
-+			goto out;
- 		}
- 
- 		err = pcap_setfilter(pri->pcap, pri->compiled);
--		if(err < 0){
-+		if (err < 0) {
- 			printk(UM_KERN_ERR "pcap_open : pcap_setfilter "
- 			       "failed - '%s'\n", pcap_geterr(pri->pcap));
--			return -EIO;
-+			goto out;
- 		}
- 	}
- 
- 	return PCAP_FD(pri->pcap);
-+
-+ out:
-+	kfree(pri->compiled);
-+	return -EIO;
- }
- 
- static void pcap_remove(void *data)
- {
- 	struct pcap_data *pri = data;
- 
--	if(pri->compiled != NULL)
-+	if (pri->compiled != NULL)
- 		pcap_freecode(pri->compiled);
- 
--	if(pri->pcap != NULL)
-+	if (pri->pcap != NULL)
- 		pcap_close(pri->pcap);
- }
- 
-@@ -95,7 +98,7 @@ struct pcap_handler_data {
- 	int len;
+-extern void copy_sc(union uml_pt_regs *regs, void *from);
+-
++extern void sigio_handler(int sig, struct uml_pt_regs *regs);
++extern void copy_sc(struct uml_pt_regs *regs, void *from);
+ extern unsigned long to_irq_stack(unsigned long *mask_out);
+ unsigned long from_irq_stack(int nested);
+-
++extern int start_uml(void);
+ #endif
+diff -puN arch/um/include/mconsole.h~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/include/mconsole.h
+--- a/arch/um/include/mconsole.h~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/include/mconsole.h
+@@ -63,7 +63,7 @@ struct mc_request
+ 
+ 	struct mconsole_request request;
+ 	struct mconsole_command *cmd;
+-	union uml_pt_regs regs;
++	struct uml_pt_regs regs;
  };
  
--static void handler(u_char *data, const struct pcap_pkthdr *header, 
-+static void handler(u_char *data, const struct pcap_pkthdr *header,
- 		    const u_char *packet)
- {
- 	int len;
-@@ -115,12 +118,12 @@ int pcap_user_read(int fd, void *buffer,
- 	int n;
+ extern char mconsole_socket_name[];
+diff -puN arch/um/include/mode.h~uml-remove-code-made-redundant-by-choose_mode-removal /dev/null
+--- a/arch/um/include/mode.h
++++ /dev/null
+@@ -1,11 +0,0 @@
+-/* 
+- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
+- * Licensed under the GPL
+- */
+-
+-#ifndef __MODE_H__
+-#define __MODE_H__
+-
+-#include "mode-skas.h"
+-
+-#endif
+diff -puN arch/um/include/mode_kern.h~uml-remove-code-made-redundant-by-choose_mode-removal /dev/null
+--- a/arch/um/include/mode_kern.h
++++ /dev/null
+@@ -1,11 +0,0 @@
+-/* 
+- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
+- * Licensed under the GPL
+- */
+-
+-#ifndef __MODE_KERN_H__
+-#define __MODE_KERN_H__
+-
+-#include "mode_kern_skas.h"
+-
+-#endif
+diff -puN arch/um/include/os.h~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/include/os.h
+--- a/arch/um/include/os.h~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/include/os.h
+@@ -281,9 +281,9 @@ extern int protect(struct mm_id * mm_idp
+ extern int is_skas_winch(int pid, int fd, void *data);
+ extern int start_userspace(unsigned long stub_stack);
+ extern int copy_context_skas0(unsigned long stack, int pid);
+-extern void save_registers(int pid, union uml_pt_regs *regs);
+-extern void restore_registers(int pid, union uml_pt_regs *regs);
+-extern void userspace(union uml_pt_regs *regs);
++extern void save_registers(int pid, struct uml_pt_regs *regs);
++extern void restore_registers(int pid, struct uml_pt_regs *regs);
++extern void userspace(struct uml_pt_regs *regs);
+ extern void map_stub_pages(int fd, unsigned long code,
+ 			   unsigned long data, unsigned long stack);
+ extern void new_thread(void *stack, jmp_buf *buf, void (*handler)(void));
+diff -puN arch/um/include/registers.h~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/include/registers.h
+--- a/arch/um/include/registers.h~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/include/registers.h
+@@ -9,11 +9,11 @@
+ #include "sysdep/ptrace.h"
+ #include "sysdep/archsetjmp.h"
  
- 	n = pcap_dispatch(pri->pcap, 1, handler, (u_char *) &hdata);
--	if(n < 0){
-+	if (n < 0) {
- 		printk(UM_KERN_ERR "pcap_dispatch failed - %s\n",
- 		       pcap_geterr(pri->pcap));
- 		return -EIO;
- 	}
--	else if(n == 0) 
-+	else if (n == 0)
- 		return 0;
- 	return hdata.len;
- }
-diff -puN arch/um/drivers/slip_kern.c~uml-network-formatting arch/um/drivers/slip_kern.c
---- a/arch/um/drivers/slip_kern.c~uml-network-formatting
-+++ a/arch/um/drivers/slip_kern.c
-@@ -1,11 +1,12 @@
--#include "linux/kernel.h"
--#include "linux/stddef.h"
--#include "linux/init.h"
--#include "linux/netdevice.h"
--#include "linux/if_arp.h"
-+/*
-+ * Copyright (C) 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-+ * Licensed under the GPL.
-+ */
+-extern void init_thread_registers(union uml_pt_regs *to);
++extern void init_thread_registers(struct uml_pt_regs *to);
+ extern int save_fp_registers(int pid, unsigned long *fp_regs);
+ extern int restore_fp_registers(int pid, unsigned long *fp_regs);
+-extern void save_registers(int pid, union uml_pt_regs *regs);
+-extern void restore_registers(int pid, union uml_pt_regs *regs);
++extern void save_registers(int pid, struct uml_pt_regs *regs);
++extern void restore_registers(int pid, struct uml_pt_regs *regs);
+ extern void init_registers(int pid);
+ extern void get_safe_registers(unsigned long *regs);
+ extern unsigned long get_thread_reg(int reg, jmp_buf *buf);
+diff -puN arch/um/include/skas/mmu-skas.h~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/include/skas/mmu-skas.h
+--- a/arch/um/include/skas/mmu-skas.h~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/include/skas/mmu-skas.h
+@@ -18,6 +18,6 @@ struct mmu_context_skas {
+ 	uml_ldt_t ldt;
+ };
+ 
+-extern void switch_mm_skas(struct mm_id * mm_idp);
++extern void __switch_mm(struct mm_id * mm_idp);
+ 
+ #endif
+diff -puN arch/um/include/skas/mode_kern_skas.h~uml-remove-code-made-redundant-by-choose_mode-removal /dev/null
+--- a/arch/um/include/skas/mode_kern_skas.h
++++ /dev/null
+@@ -1,42 +0,0 @@
+-/*
+- * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{linux.intel,addtoit}.com)
+- * Licensed under the GPL
+- */
+-
+-#ifndef __SKAS_MODE_KERN_H__
+-#define __SKAS_MODE_KERN_H__
+-
+-#include "linux/sched.h"
+-#include "asm/page.h"
+-#include "asm/ptrace.h"
+-#include "mem_user.h"
+-
+-extern void flush_thread_skas(void);
+-extern void switch_to_skas(void *prev, void *next);
+-extern void start_thread_skas(struct pt_regs *regs, unsigned long eip,
+-			      unsigned long esp);
+-extern int copy_thread_skas(int nr, unsigned long clone_flags,
+-			    unsigned long sp, unsigned long stack_top,
+-			    struct task_struct *p, struct pt_regs *regs);
+-extern void release_thread_skas(struct task_struct *task);
+-extern void init_idle_skas(void);
+-extern void flush_tlb_kernel_range_skas(unsigned long start,
+-					unsigned long end);
+-extern void flush_tlb_kernel_vm_skas(void);
+-extern void __flush_tlb_one_skas(unsigned long addr);
+-extern void flush_tlb_range_skas(struct vm_area_struct *vma,
+-				 unsigned long start, unsigned long end);
+-extern void flush_tlb_mm_skas(struct mm_struct *mm);
+-extern void force_flush_all_skas(void);
+-extern long execute_syscall_skas(void *r);
+-extern void before_mem_skas(unsigned long unused);
+-extern unsigned long set_task_sizes_skas(unsigned long *task_size_out);
+-extern int start_uml_skas(void);
+-extern int external_pid_skas(struct task_struct *task);
+-extern int thread_pid_skas(struct task_struct *task);
+-extern void flush_tlb_page_skas(struct vm_area_struct *vma,
+-				unsigned long address);
+-
+-#define kmem_end_skas (host_task_size - 1024 * 1024)
+-
+-#endif
+diff -puN arch/um/include/skas/skas.h~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/include/skas/skas.h
+--- a/arch/um/include/skas/skas.h~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/include/skas/skas.h
+@@ -15,7 +15,7 @@ extern int skas_needs_stub;
+ 
+ extern int user_thread(unsigned long stack, int flags);
+ extern void new_thread_handler(void);
+-extern void handle_syscall(union uml_pt_regs *regs);
++extern void handle_syscall(struct uml_pt_regs *regs);
+ extern int new_mm(unsigned long stack);
+ extern void get_skas_faultinfo(int pid, struct faultinfo * fi);
+ extern long execute_syscall_skas(void *r);
+diff -puN arch/um/include/sysdep-i386/ptrace.h~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/include/sysdep-i386/ptrace.h
+--- a/arch/um/include/sysdep-i386/ptrace.h~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/include/sysdep-i386/ptrace.h
+@@ -52,37 +52,34 @@ extern int sysemu_supported;
+ #define PTRACE_SYSEMU_SINGLESTEP 32
+ #endif
+ 
+-union uml_pt_regs {
+-	struct skas_regs {
+-		unsigned long regs[MAX_REG_NR];
+-		unsigned long fp[HOST_FP_SIZE];
+-		unsigned long xfp[HOST_XFP_SIZE];
+-                struct faultinfo faultinfo;
+-		long syscall;
+-		int is_user;
+-	} skas;
++struct uml_pt_regs {
++	unsigned long regs[MAX_REG_NR];
++	unsigned long fp[HOST_FP_SIZE];
++	unsigned long xfp[HOST_XFP_SIZE];
++	struct faultinfo faultinfo;
++	long syscall;
++	int is_user;
+ };
+ 
+ #define EMPTY_UML_PT_REGS { }
+ 
+-#define UPT_SC(r) ((r)->tt.sc)
+-#define UPT_IP(r) REGS_IP((r)->skas.regs)
+-#define UPT_SP(r) REGS_SP((r)->skas.regs)
+-#define UPT_EFLAGS(r) REGS_EFLAGS((r)->skas.regs)
+-#define UPT_EAX(r) REGS_EAX((r)->skas.regs)
+-#define UPT_EBX(r) REGS_EBX((r)->skas.regs)
+-#define UPT_ECX(r) REGS_ECX((r)->skas.regs)
+-#define UPT_EDX(r) REGS_EDX((r)->skas.regs)
+-#define UPT_ESI(r) REGS_ESI((r)->skas.regs)
+-#define UPT_EDI(r) REGS_EDI((r)->skas.regs)
+-#define UPT_EBP(r) REGS_EBP((r)->skas.regs)
+-#define UPT_ORIG_EAX(r) ((r)->skas.syscall)
+-#define UPT_CS(r) REGS_CS((r)->skas.regs)
+-#define UPT_SS(r) REGS_SS((r)->skas.regs)
+-#define UPT_DS(r) REGS_DS((r)->skas.regs)
+-#define UPT_ES(r) REGS_ES((r)->skas.regs)
+-#define UPT_FS(r) REGS_FS((r)->skas.regs)
+-#define UPT_GS(r) REGS_GS((r)->skas.regs)
++#define UPT_IP(r) REGS_IP((r)->regs)
++#define UPT_SP(r) REGS_SP((r)->regs)
++#define UPT_EFLAGS(r) REGS_EFLAGS((r)->regs)
++#define UPT_EAX(r) REGS_EAX((r)->regs)
++#define UPT_EBX(r) REGS_EBX((r)->regs)
++#define UPT_ECX(r) REGS_ECX((r)->regs)
++#define UPT_EDX(r) REGS_EDX((r)->regs)
++#define UPT_ESI(r) REGS_ESI((r)->regs)
++#define UPT_EDI(r) REGS_EDI((r)->regs)
++#define UPT_EBP(r) REGS_EBP((r)->regs)
++#define UPT_ORIG_EAX(r) ((r)->syscall)
++#define UPT_CS(r) REGS_CS((r)->regs)
++#define UPT_SS(r) REGS_SS((r)->regs)
++#define UPT_DS(r) REGS_DS((r)->regs)
++#define UPT_ES(r) REGS_ES((r)->regs)
++#define UPT_FS(r) REGS_FS((r)->regs)
++#define UPT_GS(r) REGS_GS((r)->regs)
+ 
+ #define UPT_SYSCALL_ARG1(r) UPT_EBX(r)
+ #define UPT_SYSCALL_ARG2(r) UPT_ECX(r)
+@@ -93,7 +90,7 @@ union uml_pt_regs {
+ 
+ extern int user_context(unsigned long sp);
+ 
+-#define UPT_IS_USER(r) ((r)->skas.is_user)
++#define UPT_IS_USER(r) ((r)->is_user)
+ 
+ struct syscall_args {
+ 	unsigned long args[6];
+@@ -162,14 +159,14 @@ struct syscall_args {
+ 	} while (0)
+ 
+ #define UPT_SET_SYSCALL_RETURN(r, res) \
+-	REGS_SET_SYSCALL_RETURN((r)->skas.regs, (res))
++	REGS_SET_SYSCALL_RETURN((r)->regs, (res))
+ 
+-#define UPT_RESTART_SYSCALL(r) REGS_RESTART_SYSCALL((r)->skas.regs)
++#define UPT_RESTART_SYSCALL(r) REGS_RESTART_SYSCALL((r)->regs)
+ 
+ #define UPT_ORIG_SYSCALL(r) UPT_EAX(r)
+ #define UPT_SYSCALL_NR(r) UPT_ORIG_EAX(r)
+ #define UPT_SYSCALL_RET(r) UPT_EAX(r)
+ 
+-#define UPT_FAULTINFO(r) (&(r)->skas.faultinfo)
++#define UPT_FAULTINFO(r) (&(r)->faultinfo)
+ 
+ #endif
+diff -puN arch/um/include/sysdep-x86_64/ptrace.h~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/include/sysdep-x86_64/ptrace.h
+--- a/arch/um/include/sysdep-x86_64/ptrace.h~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/include/sysdep-x86_64/ptrace.h
+@@ -84,58 +84,52 @@
+ 
+ #define REGS_ERR(r) ((r)->fault_type)
+ 
+-/* XXX */
+-union uml_pt_regs {
+-	struct skas_regs {
+-		unsigned long regs[MAX_REG_NR];
+-		unsigned long fp[HOST_FP_SIZE];
+-                struct faultinfo faultinfo;
+-		long syscall;
+-		int is_user;
+-	} skas;
++struct uml_pt_regs {
++	unsigned long regs[MAX_REG_NR];
++	unsigned long fp[HOST_FP_SIZE];
++	struct faultinfo faultinfo;
++	long syscall;
++	int is_user;
+ };
+ 
+ #define EMPTY_UML_PT_REGS { }
+ 
+-#define UPT_RBX(r) REGS_RBX((r)->skas.regs)
+-#define UPT_RCX(r) REGS_RCX((r)->skas.regs)
+-#define UPT_RDX(r) REGS_RDX((r)->skas.regs)
+-#define UPT_RSI(r) REGS_RSI((r)->skas.regs)
+-#define UPT_RDI(r) REGS_RDI((r)->skas.regs)
+-#define UPT_RBP(r) REGS_RBP((r)->skas.regs)
+-#define UPT_RAX(r) REGS_RAX((r)->skas.regs)
+-#define UPT_R8(r) REGS_R8((r)->skas.regs)
+-#define UPT_R9(r) REGS_R9((r)->skas.regs)
+-#define UPT_R10(r) REGS_R10((r)->skas.regs)
+-#define UPT_R11(r) REGS_R11((r)->skas.regs)
+-#define UPT_R12(r) REGS_R12((r)->skas.regs)
+-#define UPT_R13(r) REGS_R13((r)->skas.regs)
+-#define UPT_R14(r) REGS_R14((r)->skas.regs)
+-#define UPT_R15(r) REGS_R15((r)->skas.regs)
+-#define UPT_CS(r) REGS_CS((r)->skas.regs)
+-#define UPT_FS_BASE(r) \
+-	REGS_FS_BASE((r)->skas.regs)
+-#define UPT_FS(r) REGS_FS((r)->skas.regs)
+-#define UPT_GS_BASE(r) \
+-	REGS_GS_BASE((r)->skas.regs)
+-#define UPT_GS(r) REGS_GS((r)->skas.regs)
+-#define UPT_DS(r) REGS_DS((r)->skas.regs)
+-#define UPT_ES(r) REGS_ES((r)->skas.regs)
+-#define UPT_CS(r) REGS_CS((r)->skas.regs)
+-#define UPT_SS(r) REGS_SS((r)->skas.regs)
+-#define UPT_ORIG_RAX(r) REGS_ORIG_RAX((r)->skas.regs)
+-
+-#define UPT_IP(r) REGS_IP((r)->skas.regs)
+-#define UPT_SP(r) REGS_SP((r)->skas.regs)
+-
+-#define UPT_EFLAGS(r) REGS_EFLAGS((r)->skas.regs)
+-#define UPT_SC(r) ((r)->tt.sc)
+-#define UPT_SYSCALL_NR(r) ((r)->skas.syscall)
++#define UPT_RBX(r) REGS_RBX((r)->regs)
++#define UPT_RCX(r) REGS_RCX((r)->regs)
++#define UPT_RDX(r) REGS_RDX((r)->regs)
++#define UPT_RSI(r) REGS_RSI((r)->regs)
++#define UPT_RDI(r) REGS_RDI((r)->regs)
++#define UPT_RBP(r) REGS_RBP((r)->regs)
++#define UPT_RAX(r) REGS_RAX((r)->regs)
++#define UPT_R8(r) REGS_R8((r)->regs)
++#define UPT_R9(r) REGS_R9((r)->regs)
++#define UPT_R10(r) REGS_R10((r)->regs)
++#define UPT_R11(r) REGS_R11((r)->regs)
++#define UPT_R12(r) REGS_R12((r)->regs)
++#define UPT_R13(r) REGS_R13((r)->regs)
++#define UPT_R14(r) REGS_R14((r)->regs)
++#define UPT_R15(r) REGS_R15((r)->regs)
++#define UPT_CS(r) REGS_CS((r)->regs)
++#define UPT_FS_BASE(r) REGS_FS_BASE((r)->regs)
++#define UPT_FS(r) REGS_FS((r)->regs)
++#define UPT_GS_BASE(r) REGS_GS_BASE((r)->regs)
++#define UPT_GS(r) REGS_GS((r)->regs)
++#define UPT_DS(r) REGS_DS((r)->regs)
++#define UPT_ES(r) REGS_ES((r)->regs)
++#define UPT_CS(r) REGS_CS((r)->regs)
++#define UPT_SS(r) REGS_SS((r)->regs)
++#define UPT_ORIG_RAX(r) REGS_ORIG_RAX((r)->regs)
 +
-+#include <linux/if_arp.h>
-+#include <linux/init.h>
-+#include <linux/netdevice.h>
- #include "net_kern.h"
--#include "net_user.h"
--#include "kern.h"
- #include "slip.h"
- 
- struct slip_init {
-@@ -43,21 +44,21 @@ void slip_init(struct net_device *dev, v
- 
- static unsigned short slip_protocol(struct sk_buff *skbuff)
- {
--	return(htons(ETH_P_IP));
-+	return htons(ETH_P_IP);
- }
- 
--static int slip_read(int fd, struct sk_buff **skb, 
-+static int slip_read(int fd, struct sk_buff **skb,
- 		       struct uml_net_private *lp)
- {
--	return(slip_user_read(fd, skb_mac_header(*skb), (*skb)->dev->mtu,
--			      (struct slip_data *) &lp->user));
-+	return slip_user_read(fd, skb_mac_header(*skb), (*skb)->dev->mtu,
-+			      (struct slip_data *) &lp->user);
- }
- 
- static int slip_write(int fd, struct sk_buff **skb,
- 		      struct uml_net_private *lp)
- {
--	return(slip_user_write(fd, (*skb)->data, (*skb)->len, 
--			       (struct slip_data *) &lp->user));
-+	return slip_user_write(fd, (*skb)->data, (*skb)->len,
-+			       (struct slip_data *) &lp->user);
- }
- 
- const struct net_kern_info slip_kern_info = {
-@@ -71,12 +72,11 @@ static int slip_setup(char *str, char **
- {
- 	struct slip_init *init = data;
- 
--	*init = ((struct slip_init)
--		{ .gate_addr 		= NULL });
-+	*init = ((struct slip_init) { .gate_addr = NULL });
- 
--	if(str[0] != '\0') 
-+	if (str[0] != '\0')
- 		init->gate_addr = str;
--	return(1);
-+	return 1;
- }
- 
- static struct transport slip_transport = {
-diff -puN arch/um/drivers/slip_user.c~uml-network-formatting arch/um/drivers/slip_user.c
---- a/arch/um/drivers/slip_user.c~uml-network-formatting
-+++ a/arch/um/drivers/slip_user.c
-@@ -1,21 +1,22 @@
-+/*
-+ * Copyright (C) 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-+ * Licensed under the GPL.
-+ */
++#define UPT_IP(r) REGS_IP((r)->regs)
++#define UPT_SP(r) REGS_SP((r)->regs)
 +
- #include <stdio.h>
- #include <stdlib.h>
- #include <unistd.h>
--#include <stddef.h>
--#include <sched.h>
--#include <string.h>
- #include <errno.h>
-+#include <fcntl.h>
-+#include <string.h>
- #include <sys/termios.h>
- #include <sys/wait.h>
--#include <sys/signal.h>
--#include "kern_util.h"
--#include "user.h"
-+#include "kern_constants.h"
- #include "net_user.h"
--#include "slip.h"
--#include "slip_common.h"
++#define UPT_EFLAGS(r) REGS_EFLAGS((r)->regs)
++#define UPT_SYSCALL_NR(r) ((r)->syscall)
+ #define UPT_SYSCALL_RET(r) UPT_RAX(r)
+ 
+ extern int user_context(unsigned long sp);
+ 
+-#define UPT_IS_USER(r) ((r)->skas.is_user)
++#define UPT_IS_USER(r) ((r)->is_user)
+ 
+ #define UPT_SYSCALL_ARG1(r) UPT_RDI(r)
+ #define UPT_SYSCALL_ARG2(r) UPT_RSI(r)
+@@ -232,12 +226,12 @@ struct syscall_args {
+         })
+ 
+ #define UPT_SET_SYSCALL_RETURN(r, res) \
+-	REGS_SET_SYSCALL_RETURN((r)->skas.regs, (res))
++	REGS_SET_SYSCALL_RETURN((r)->regs, (res))
+ 
+-#define UPT_RESTART_SYSCALL(r) REGS_RESTART_SYSCALL((r)->skas.regs)
++#define UPT_RESTART_SYSCALL(r) REGS_RESTART_SYSCALL((r)->regs)
+ 
+ #define UPT_SEGV_IS_FIXABLE(r) REGS_SEGV_IS_FIXABLE(&r->skas)
+ 
+-#define UPT_FAULTINFO(r) (&(r)->skas.faultinfo)
++#define UPT_FAULTINFO(r) (&(r)->faultinfo)
+ 
+ #endif
+diff -puN arch/um/include/task.h~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/include/task.h
+--- a/arch/um/include/task.h~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/include/task.h
+@@ -3,7 +3,7 @@
+ 
+ #include <kern_constants.h>
+ 
+-#define TASK_REGS(task) ((union uml_pt_regs *) &(((char *) (task))[HOST_TASK_REGS]))
++#define TASK_REGS(task) ((struct uml_pt_regs *) &(((char *) (task))[HOST_TASK_REGS]))
+ #define TASK_PID(task) *((int *) &(((char *) (task))[HOST_TASK_PID]))
+ 
+ #endif
+diff -puN arch/um/kernel/exec.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/kernel/exec.c
+--- a/arch/um/kernel/exec.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/kernel/exec.c
+@@ -18,17 +18,31 @@
+ #include "irq_user.h"
+ #include "tlb.h"
  #include "os.h"
-+#include "slip.h"
- #include "um_malloc.h"
--#include "kern_constants.h"
-+#include "user.h"
+-#include "mode_kern.h"
++#include "skas/skas.h"
  
- static int slip_user_init(void *data, void *dev)
+ void flush_thread(void)
  {
-@@ -31,8 +32,9 @@ static int set_up_tty(int fd)
- 	struct termios tios;
++	void *data = NULL;
++	unsigned long end = proc_mm ? task_size : CONFIG_STUB_START;
++	int ret;
++
+ 	arch_flush_thread(&current->thread.arch);
+-	flush_thread_skas();
++
++	ret = unmap(&current->mm->context.skas.id, 0, end, 1, &data);
++	if(ret){
++		printk("flush_thread - clearing address space failed, "
++		       "err = %d\n", ret);
++		force_sig(SIGKILL, current);
++	}
++
++	__switch_mm(&current->mm->context.skas.id);
+ }
  
- 	if (tcgetattr(fd, &tios) < 0) {
--		printk("could not get initial terminal attributes\n");
--		return(-1);
-+		printk(UM_KERN_ERR "could not get initial terminal "
-+		       "attributes\n");
-+		return -1;
- 	}
+ void start_thread(struct pt_regs *regs, unsigned long eip, unsigned long esp)
+ {
+-	start_thread_skas(regs, eip, esp);
++	set_fs(USER_DS);
++	PT_REGS_IP(regs) = eip;
++	PT_REGS_SP(regs) = esp;
+ }
  
- 	tios.c_cflag = CS8 | CREAD | HUPCL | CLOCAL;
-@@ -48,10 +50,10 @@ static int set_up_tty(int fd)
- 	cfsetispeed(&tios, B38400);
+ #ifdef CONFIG_TTY_LOG
+diff -puN arch/um/kernel/irq.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/kernel/irq.c
+--- a/arch/um/kernel/irq.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/kernel/irq.c
+@@ -91,7 +91,7 @@ static struct irq_fd **last_irq_ptr = &a
  
- 	if (tcsetattr(fd, TCSAFLUSH, &tios) < 0) {
--		printk("failed to set terminal attributes\n");
--		return(-1);
-+		printk(UM_KERN_ERR "failed to set terminal attributes\n");
-+		return -1;
- 	}
+ extern void free_irqs(void);
+ 
+-void sigio_handler(int sig, union uml_pt_regs *regs)
++void sigio_handler(int sig, struct uml_pt_regs *regs)
+ {
+ 	struct irq_fd *irq_fd;
+ 	int n;
+@@ -344,7 +344,7 @@ int deactivate_all_fds(void)
+  * SMP cross-CPU interrupts have their own specific
+  * handlers).
+  */
+-unsigned int do_IRQ(int irq, union uml_pt_regs *regs)
++unsigned int do_IRQ(int irq, struct uml_pt_regs *regs)
+ {
+ 	struct pt_regs *old_regs = set_irq_regs((struct pt_regs *)regs);
+ 	irq_enter();
+diff -puN arch/um/kernel/physmem.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/kernel/physmem.c
+--- a/arch/um/kernel/physmem.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/kernel/physmem.c
+@@ -10,7 +10,7 @@
+ #include "as-layout.h"
+ #include "init.h"
+ #include "kern.h"
+-#include "mode_kern.h"
++#include "mem_user.h"
+ #include "os.h"
+ 
+ static int physmem_fd = -1;
+@@ -61,7 +61,7 @@ static unsigned long kmem_top = 0;
+ unsigned long get_kmem_end(void)
+ {
+ 	if (kmem_top == 0)
+-		kmem_top = kmem_end_skas;
++		kmem_top = host_task_size - 1024 * 1024;
+ 	return kmem_top;
+ }
+ 
+diff -puN arch/um/kernel/process.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/kernel/process.c
+--- a/arch/um/kernel/process.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/kernel/process.c
+@@ -43,8 +43,7 @@
+ #include "frame_kern.h"
+ #include "sigcontext.h"
+ #include "os.h"
+-#include "mode.h"
+-#include "mode_kern.h"
++#include "skas.h"
+ 
+ /* This is a per-cpu array.  A processor only modifies its entry and it only
+  * cares about its entry, so it's OK if another processor is modifying its
+@@ -54,7 +53,8 @@ struct cpu_task cpu_tasks[NR_CPUS] = { [
+ 
+ static inline int external_pid(struct task_struct *task)
+ {
+-	return external_pid_skas(task);
++	/* FIXME: Need to look up userspace_pid by cpu */
++	return(userspace_pid[0]);
+ }
+ 
+ int pid_to_processor_id(int pid)
+@@ -104,6 +104,8 @@ static inline void set_current(struct ta
+ 		{ external_pid(task), task });
+ }
+ 
++extern void arch_switch_to(struct task_struct *from, struct task_struct *to);
++
+ void *_switch_to(void *prev, void *next, void *last)
+ {
+ 	struct task_struct *from = prev;
+@@ -114,7 +116,19 @@ void *_switch_to(void *prev, void *next,
+ 
+ 	do {
+ 		current->thread.saved_task = NULL;
+-		switch_to_skas(prev, next);
++
++		/* XXX need to check runqueues[cpu].idle */
++		if(current->pid == 0)
++			switch_timers(0);
++
++		switch_threads(&from->thread.switch_buf,
++			       &to->thread.switch_buf);
++
++		arch_switch_to(current->thread.prev_sched, current);
++
++		if(current->pid == 0)
++			switch_timers(1);
++
+ 		if(current->thread.saved_task)
+ 			show_regs(&(current->thread.regs));
+ 		next= current->thread.saved_task;
+@@ -133,11 +147,6 @@ void interrupt_end(void)
+ 		do_signal();
+ }
+ 
+-void release_thread(struct task_struct *task)
+-{
+-	release_thread_skas(task);
+-}
+-
+ void exit_thread(void)
+ {
+ }
+@@ -147,27 +156,95 @@ void *get_current(void)
+ 	return current;
+ }
+ 
++extern void schedule_tail(struct task_struct *prev);
++
++/* This is called magically, by its address being stuffed in a jmp_buf
++ * and being longjmp-d to.
++ */
++void new_thread_handler(void)
++{
++	int (*fn)(void *), n;
++	void *arg;
++
++	if(current->thread.prev_sched != NULL)
++		schedule_tail(current->thread.prev_sched);
++	current->thread.prev_sched = NULL;
++
++	fn = current->thread.request.u.thread.proc;
++	arg = current->thread.request.u.thread.arg;
++
++	/* The return value is 1 if the kernel thread execs a process,
++	 * 0 if it just exits
++	 */
++	n = run_kernel_thread(fn, arg, &current->thread.exec_buf);
++	if(n == 1){
++		/* Handle any immediate reschedules or signals */
++		interrupt_end();
++		userspace(&current->thread.regs.regs);
++	}
++	else do_exit(0);
++}
++
++/* Called magically, see new_thread_handler above */
++void fork_handler(void)
++{
++	force_flush_all();
++	if(current->thread.prev_sched == NULL)
++		panic("blech");
++
++	schedule_tail(current->thread.prev_sched);
++
++	/* XXX: if interrupt_end() calls schedule, this call to
++	 * arch_switch_to isn't needed. We could want to apply this to
++	 * improve performance. -bb */
++	arch_switch_to(current->thread.prev_sched, current);
++
++	current->thread.prev_sched = NULL;
++
++	/* Handle any immediate reschedules or signals */
++	interrupt_end();
++
++	userspace(&current->thread.regs.regs);
++}
++
+ int copy_thread(int nr, unsigned long clone_flags, unsigned long sp,
+ 		unsigned long stack_top, struct task_struct * p,
+ 		struct pt_regs *regs)
+ {
+-	int ret;
++	void (*handler)(void);
++	int ret = 0;
+ 
+ 	p->thread = (struct thread_struct) INIT_THREAD;
+-	ret = copy_thread_skas(nr, clone_flags, sp, stack_top, p, regs);
+ 
+-	if (ret || !current->thread.forking)
+-		goto out;
++	if(current->thread.forking){
++	  	memcpy(&p->thread.regs.regs, &regs->regs,
++		       sizeof(p->thread.regs.regs));
++		REGS_SET_SYSCALL_RETURN(p->thread.regs.regs.regs, 0);
++		if(sp != 0)
++			REGS_SP(p->thread.regs.regs.regs) = sp;
+ 
+-	clear_flushed_tls(p);
++		handler = fork_handler;
+ 
+-	/*
+-	 * Set a new TLS for the child thread?
+-	 */
+-	if (clone_flags & CLONE_SETTLS)
+-		ret = arch_copy_tls(p);
++		arch_copy_thread(&current->thread.arch, &p->thread.arch);
++	}
++	else {
++		init_thread_registers(&p->thread.regs.regs);
++		p->thread.request.u.thread = current->thread.request.u.thread;
++		handler = new_thread_handler;
++	}
++
++	new_thread(task_stack_page(p), &p->thread.switch_buf, handler);
++
++	if (current->thread.forking) {
++		clear_flushed_tls(p);
++
++		/*
++		 * Set a new TLS for the child thread?
++		 */
++		if (clone_flags & CLONE_SETTLS)
++			ret = arch_copy_tls(p);
++	}
+ 
+-out:
+ 	return ret;
+ }
+ 
+@@ -198,7 +275,8 @@ void default_idle(void)
+ 
+ void cpu_idle(void)
+ {
+-	init_idle_skas();
++	cpu_tasks[current_thread->cpu].pid = os_getpid();
++	default_idle();
+ }
+ 
+ void *um_virt_to_phys(struct task_struct *task, unsigned long addr,
+diff -puN arch/um/kernel/ptrace.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/kernel/ptrace.c
+--- a/arch/um/kernel/ptrace.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/kernel/ptrace.c
+@@ -228,7 +228,7 @@ long arch_ptrace(struct task_struct *chi
+ #ifdef PTRACE_ARCH_PRCTL
+         case PTRACE_ARCH_PRCTL:
+                 /* XXX Calls ptrace on the host - needs some SMP thinking */
+-                ret = arch_prctl_skas(child, data, (void *) addr);
++                ret = arch_prctl(child, data, (void *) addr);
+                 break;
+ #endif
+ 	default:
+@@ -239,7 +239,7 @@ long arch_ptrace(struct task_struct *chi
+ 	return ret;
+ }
+ 
+-void send_sigtrap(struct task_struct *tsk, union uml_pt_regs *regs,
++void send_sigtrap(struct task_struct *tsk, struct uml_pt_regs *regs,
+ 		  int error_code)
+ {
+ 	struct siginfo info;
+@@ -258,7 +258,7 @@ void send_sigtrap(struct task_struct *ts
+ /* XXX Check PT_DTRACE vs TIF_SINGLESTEP for singlestepping check and
+  * PT_PTRACED vs TIF_SYSCALL_TRACE for syscall tracing check
+  */
+-void syscall_trace(union uml_pt_regs *regs, int entryexit)
++void syscall_trace(struct uml_pt_regs *regs, int entryexit)
+ {
+ 	int is_singlestep = (current->ptrace & PT_DTRACE) && entryexit;
+ 	int tracesysgood;
+diff -puN arch/um/kernel/reboot.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/kernel/reboot.c
+--- a/arch/um/kernel/reboot.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/kernel/reboot.c
+@@ -9,13 +9,30 @@
+ #include "kern_util.h"
+ #include "kern.h"
+ #include "os.h"
+-#include "mode.h"
++#include "skas.h"
+ 
+ void (*pm_power_off)(void);
+ 
+ static void kill_off_processes(void)
+ {
+-	kill_off_processes_skas();
++	if(proc_mm)
++		/*
++		 * FIXME: need to loop over userspace_pids
++		 */
++		os_kill_ptraced_process(userspace_pid[0], 1);
++	else {
++		struct task_struct *p;
++		int pid, me;
++
++		me = os_getpid();
++		for_each_process(p){
++			if(p->mm == NULL)
++				continue;
++
++			pid = p->mm->context.skas.id.u.pid;
++			os_kill_ptraced_process(pid, 1);
++		}
++	}
+ }
+ 
+ void uml_cleanup(void)
+diff -puN arch/um/kernel/signal.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/kernel/signal.c
+--- a/arch/um/kernel/signal.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/kernel/signal.c
+@@ -23,7 +23,6 @@
+ #include "kern.h"
+ #include "frame_kern.h"
+ #include "sigcontext.h"
+-#include "mode.h"
+ 
+ EXPORT_SYMBOL(block_signals);
+ EXPORT_SYMBOL(unblock_signals);
+diff -puN arch/um/kernel/skas/Makefile~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/kernel/skas/Makefile
+--- a/arch/um/kernel/skas/Makefile~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/kernel/skas/Makefile
+@@ -3,7 +3,7 @@
+ # Licensed under the GPL
+ #
+ 
+-obj-y := clone.o exec.o mem.o mmu.o process.o syscall.o tlb.o uaccess.o
++obj-y := clone.o mmu.o process.o syscall.o uaccess.o
+ 
+ # clone.o is in the stub, so it can't be built with profiling
+ # GCC hardened also auto-enables -fpic, but we need %ebx so it can't work ->
+diff -puN arch/um/kernel/skas/exec.c~uml-remove-code-made-redundant-by-choose_mode-removal /dev/null
+--- a/arch/um/kernel/skas/exec.c
++++ /dev/null
+@@ -1,40 +0,0 @@
+-/*
+- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
+- * Licensed under the GPL
+- */
+-
+-#include "linux/kernel.h"
+-#include "asm/current.h"
+-#include "asm/page.h"
+-#include "asm/signal.h"
+-#include "asm/ptrace.h"
+-#include "asm/uaccess.h"
+-#include "asm/mmu_context.h"
+-#include "tlb.h"
+-#include "skas.h"
+-#include "um_mmu.h"
+-#include "os.h"
+-
+-void flush_thread_skas(void)
+-{
+-	void *data = NULL;
+-	unsigned long end = proc_mm ? task_size : CONFIG_STUB_START;
+-	int ret;
+-
+-	ret = unmap(&current->mm->context.skas.id, 0, end, 1, &data);
+-	if(ret){
+-		printk("flush_thread_skas - clearing address space failed, "
+-		       "err = %d\n", ret);
+-		force_sig(SIGKILL, current);
+-	}
+-
+-	switch_mm_skas(&current->mm->context.skas.id);
+-}
+-
+-void start_thread_skas(struct pt_regs *regs, unsigned long eip,
+-		       unsigned long esp)
+-{
+-	set_fs(USER_DS);
+-	PT_REGS_IP(regs) = eip;
+-	PT_REGS_SP(regs) = esp;
+-}
+diff -puN arch/um/kernel/skas/mem.c~uml-remove-code-made-redundant-by-choose_mode-removal /dev/null
+--- a/arch/um/kernel/skas/mem.c
++++ /dev/null
+@@ -1,22 +0,0 @@
+-/* 
+- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
+- * Licensed under the GPL
+- */
+-
+-#include "linux/mm.h"
+-#include "asm/pgtable.h"
+-#include "mem_user.h"
+-#include "skas.h"
+-
+-unsigned long set_task_sizes_skas(unsigned long *task_size_out)
+-{
+-	/* Round up to the nearest 4M */
+-	unsigned long host_task_size = ROUND_4M((unsigned long)
+-						&host_task_size);
+-
+-	if (!skas_needs_stub)
+-		*task_size_out = host_task_size;
+-	else *task_size_out = CONFIG_STUB_START & PGDIR_MASK;
+-
+-	return host_task_size;
+-}
+diff -puN arch/um/kernel/skas/mmu.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/kernel/skas/mmu.c
+--- a/arch/um/kernel/skas/mmu.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/kernel/skas/mmu.c
+@@ -71,7 +71,7 @@ static int init_stub_pte(struct mm_struc
+ 	return(-ENOMEM);
+ }
+ 
+-int init_new_context_skas(struct task_struct *task, struct mm_struct *mm)
++int init_new_context(struct task_struct *task, struct mm_struct *mm)
+ {
+  	struct mmu_context_skas *from_mm = NULL;
+ 	struct mmu_context_skas *to_mm = &mm->context.skas;
+@@ -137,7 +137,7 @@ int init_new_context_skas(struct task_st
+ 	return ret;
+ }
+ 
+-void destroy_context_skas(struct mm_struct *mm)
++void destroy_context(struct mm_struct *mm)
+ {
+ 	struct mmu_context_skas *mmu = &mm->context.skas;
+ 
+diff -puN arch/um/kernel/skas/process.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/kernel/skas/process.c
+--- a/arch/um/kernel/skas/process.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/kernel/skas/process.c
+@@ -18,129 +18,22 @@
+ #include "os.h"
+ #include "tlb.h"
+ #include "kern.h"
+-#include "mode.h"
+ #include "registers.h"
+ 
+-void switch_to_skas(void *prev, void *next)
+-{
+-	struct task_struct *from, *to;
+-
+-	from = prev;
+-	to = next;
+-
+-	/* XXX need to check runqueues[cpu].idle */
+-	if(current->pid == 0)
+-		switch_timers(0);
+-
+-	switch_threads(&from->thread.mode.skas.switch_buf,
+-		       &to->thread.mode.skas.switch_buf);
+-
+-	arch_switch_to_skas(current->thread.prev_sched, current);
+-
+-	if(current->pid == 0)
+-		switch_timers(1);
+-}
+-
+ extern void schedule_tail(struct task_struct *prev);
+ 
+-/* This is called magically, by its address being stuffed in a jmp_buf
+- * and being longjmp-d to.
+- */
+-void new_thread_handler(void)
+-{
+-	int (*fn)(void *), n;
+-	void *arg;
+-
+-	if(current->thread.prev_sched != NULL)
+-		schedule_tail(current->thread.prev_sched);
+-	current->thread.prev_sched = NULL;
+-
+-	fn = current->thread.request.u.thread.proc;
+-	arg = current->thread.request.u.thread.arg;
+-
+-	/* The return value is 1 if the kernel thread execs a process,
+-	 * 0 if it just exits
+-	 */
+-	n = run_kernel_thread(fn, arg, &current->thread.exec_buf);
+-	if(n == 1){
+-		/* Handle any immediate reschedules or signals */
+-		interrupt_end();
+-		userspace(&current->thread.regs.regs);
+-	}
+-	else do_exit(0);
+-}
+-
+-void release_thread_skas(struct task_struct *task)
+-{
+-}
+-
+-/* Called magically, see new_thread_handler above */
+-void fork_handler(void)
+-{
+-	force_flush_all();
+-	if(current->thread.prev_sched == NULL)
+-		panic("blech");
+-
+-	schedule_tail(current->thread.prev_sched);
+-
+-	/* XXX: if interrupt_end() calls schedule, this call to
+-	 * arch_switch_to_skas isn't needed. We could want to apply this to
+-	 * improve performance. -bb */
+-	arch_switch_to_skas(current->thread.prev_sched, current);
+-
+-	current->thread.prev_sched = NULL;
+-
+-/* Handle any immediate reschedules or signals */
+-	interrupt_end();
+-
+-	userspace(&current->thread.regs.regs);
+-}
+-
+-int copy_thread_skas(int nr, unsigned long clone_flags, unsigned long sp,
+-		     unsigned long stack_top, struct task_struct * p,
+-		     struct pt_regs *regs)
+-{
+-	void (*handler)(void);
+-
+-	if(current->thread.forking){
+-	  	memcpy(&p->thread.regs.regs.skas, &regs->regs.skas,
+-		       sizeof(p->thread.regs.regs.skas));
+-		REGS_SET_SYSCALL_RETURN(p->thread.regs.regs.skas.regs, 0);
+-		if(sp != 0) REGS_SP(p->thread.regs.regs.skas.regs) = sp;
+-
+-		handler = fork_handler;
+-
+-		arch_copy_thread(&current->thread.arch, &p->thread.arch);
+-	}
+-	else {
+-		init_thread_registers(&p->thread.regs.regs);
+-		p->thread.request.u.thread = current->thread.request.u.thread;
+-		handler = new_thread_handler;
+-	}
+-
+-	new_thread(task_stack_page(p), &p->thread.mode.skas.switch_buf,
+-		   handler);
+-	return(0);
+-}
+-
+ int new_mm(unsigned long stack)
+ {
+ 	int fd;
+ 
+ 	fd = os_open_file("/proc/mm", of_cloexec(of_write(OPENFLAGS())), 0);
+ 	if(fd < 0)
+-		return(fd);
++		return fd;
+ 
+ 	if(skas_needs_stub)
+ 		map_stub_pages(fd, CONFIG_STUB_CODE, CONFIG_STUB_DATA, stack);
+ 
+-	return(fd);
+-}
+-
+-void init_idle_skas(void)
+-{
+-	cpu_tasks[current_thread->cpu].pid = os_getpid();
+-	default_idle();
++	return fd;
+ }
+ 
+ extern void start_kernel(void);
+@@ -158,14 +51,14 @@ static int __init start_kernel_proc(void
+ 	cpu_online_map = cpumask_of_cpu(0);
+ #endif
+ 	start_kernel();
 -	return(0);
 +	return 0;
  }
  
- struct slip_pre_exec_data {
-@@ -64,9 +66,11 @@ static void slip_pre_exec(void *arg)
+ extern int userspace_pid[];
+ 
+ extern char cpu0_irqstack[];
+ 
+-int __init start_uml_skas(void)
++int __init start_uml(void)
  {
- 	struct slip_pre_exec_data *data = arg;
+ 	stack_protections((unsigned long) &cpu0_irqstack);
+ 	set_sigstack(cpu0_irqstack, THREAD_SIZE);
+@@ -176,49 +69,14 @@ int __init start_uml_skas(void)
  
--	if(data->stdin >= 0) dup2(data->stdin, 0);
-+	if (data->stdin >= 0)
-+		dup2(data->stdin, 0);
- 	dup2(data->stdout, 1);
--	if(data->close_me >= 0) os_close_file(data->close_me);
-+	if (data->close_me >= 0)
-+		close(data->close_me);
+ 	init_task.thread.request.u.thread.proc = start_kernel_proc;
+ 	init_task.thread.request.u.thread.arg = NULL;
+-	return(start_idle_thread(task_stack_page(&init_task),
+-				 &init_task.thread.mode.skas.switch_buf));
+-}
+-
+-int external_pid_skas(struct task_struct *task)
+-{
+-	/* FIXME: Need to look up userspace_pid by cpu */
+-	return(userspace_pid[0]);
+-}
+-
+-int thread_pid_skas(struct task_struct *task)
+-{
+-	/* FIXME: Need to look up userspace_pid by cpu */
+-	return(userspace_pid[0]);
+-}
+-
+-void kill_off_processes_skas(void)
+-{
+-	if(proc_mm)
+-		/*
+-		 * FIXME: need to loop over userspace_pids in
+-		 * kill_off_processes_skas
+-		 */
+-		os_kill_ptraced_process(userspace_pid[0], 1);
+-	else {
+-		struct task_struct *p;
+-		int pid, me;
+-
+-		me = os_getpid();
+-		for_each_process(p){
+-			if(p->mm == NULL)
+-				continue;
+-
+-			pid = p->mm->context.skas.id.u.pid;
+-			os_kill_ptraced_process(pid, 1);
+-		}
+-	}
++	return start_idle_thread(task_stack_page(&init_task),
++				 &init_task.thread.switch_buf);
  }
  
- static int slip_tramp(char **argv, int fd)
-@@ -76,8 +80,9 @@ static int slip_tramp(char **argv, int f
- 	int status, pid, fds[2], err, output_len;
- 
- 	err = os_pipe(fds, 1, 0);
--	if(err < 0){
--		printk("slip_tramp : pipe failed, err = %d\n", -err);
-+	if (err < 0) {
-+		printk(UM_KERN_ERR "slip_tramp : pipe failed, err = %d\n",
-+		       -err);
- 		goto out;
- 	}
- 
-@@ -86,41 +91,42 @@ static int slip_tramp(char **argv, int f
- 	pe_data.stdout = fds[1];
- 	pe_data.close_me = fds[0];
- 	err = run_helper(slip_pre_exec, &pe_data, argv);
--	if(err < 0)
-+	if (err < 0)
- 		goto out_close;
- 	pid = err;
- 
- 	output_len = UM_KERN_PAGE_SIZE;
- 	output = kmalloc(output_len, UM_GFP_KERNEL);
--	if(output == NULL){
--		printk("slip_tramp : failed to allocate output buffer\n");
-+	if (output == NULL) {
-+		printk(UM_KERN_ERR "slip_tramp : failed to allocate output "
-+		       "buffer\n");
- 		os_kill_process(pid, 1);
- 		err = -ENOMEM;
- 		goto out_free;
- 	}
- 
--	os_close_file(fds[1]);
-+	close(fds[1]);
- 	read_output(fds[0], output, output_len);
- 	printk("%s", output);
- 
- 	CATCH_EINTR(err = waitpid(pid, &status, 0));
--	if(err < 0)
-+	if (err < 0)
- 		err = errno;
--	else if(!WIFEXITED(status) || (WEXITSTATUS(status) != 0)){
--		printk("'%s' didn't exit with status 0\n", argv[0]);
-+	else if (!WIFEXITED(status) || (WEXITSTATUS(status) != 0)) {
-+		printk(UM_KERN_ERR "'%s' didn't exit with status 0\n", argv[0]);
- 		err = -EINVAL;
- 	}
- 	else err = 0;
- 
--	os_close_file(fds[0]);
-+	close(fds[0]);
- 
- out_free:
- 	kfree(output);
- 	return err;
- 
- out_close:
--	os_close_file(fds[0]);
--	os_close_file(fds[1]);
-+	close(fds[0]);
-+	close(fds[1]);
- out:
- 	return err;
- }
-@@ -130,60 +136,64 @@ static int slip_open(void *data)
- 	struct slip_data *pri = data;
- 	char version_buf[sizeof("nnnnn\0")];
- 	char gate_buf[sizeof("nnn.nnn.nnn.nnn\0")];
--	char *argv[] = { "uml_net", version_buf, "slip", "up", gate_buf, 
-+	char *argv[] = { "uml_net", version_buf, "slip", "up", gate_buf,
- 			 NULL };
- 	int sfd, mfd, err;
- 
- 	err = get_pty();
--	if(err < 0){
--		printk("slip-open : Failed to open pty, err = %d\n", -err);
-+	if (err < 0) {
-+		printk(UM_KERN_ERR "slip-open : Failed to open pty, err = %d\n",
-+		       -err);
- 		goto out;
- 	}
- 	mfd = err;
- 
--	err = os_open_file(ptsname(mfd), of_rdwr(OPENFLAGS()), 0);
--	if(err < 0){
--		printk("Couldn't open tty for slip line, err = %d\n", -err);
-+	err = open(ptsname(mfd), O_RDWR, 0);
-+	if (err < 0) {
-+		printk(UM_KERN_ERR "Couldn't open tty for slip line, "
-+		       "err = %d\n", -err);
- 		goto out_close;
- 	}
- 	sfd = err;
- 
--	if(set_up_tty(sfd))
-+	if (set_up_tty(sfd))
- 		goto out_close2;
- 
- 	pri->slave = sfd;
- 	pri->slip.pos = 0;
- 	pri->slip.esc = 0;
--	if(pri->gate_addr != NULL){
-+	if (pri->gate_addr != NULL) {
- 		sprintf(version_buf, "%d", UML_NET_VERSION);
- 		strcpy(gate_buf, pri->gate_addr);
- 
- 		err = slip_tramp(argv, sfd);
- 
--		if(err < 0){
--			printk("slip_tramp failed - err = %d\n", -err);
-+		if (err < 0) {
-+			printk(UM_KERN_ERR "slip_tramp failed - err = %d\n",
-+			       -err);
- 			goto out_close2;
- 		}
- 		err = os_get_ifname(pri->slave, pri->name);
--		if(err < 0){
--			printk("get_ifname failed, err = %d\n", -err);
-+		if (err < 0) {
-+			printk(UM_KERN_ERR "get_ifname failed, err = %d\n",
-+			       -err);
- 			goto out_close2;
- 		}
- 		iter_addresses(pri->dev, open_addr, pri->name);
- 	}
- 	else {
- 		err = os_set_slip(sfd);
--		if(err < 0){
--			printk("Failed to set slip discipline encapsulation - "
--			       "err = %d\n", -err);
-+		if (err < 0) {
-+			printk(UM_KERN_ERR "Failed to set slip discipline "
-+			       "encapsulation - err = %d\n", -err);
- 			goto out_close2;
- 		}
- 	}
--	return(mfd);
-+	return mfd;
- out_close2:
--	os_close_file(sfd);
-+	close(sfd);
- out_close:
--	os_close_file(mfd);
-+	close(mfd);
- out:
- 	return err;
- }
-@@ -192,21 +202,21 @@ static void slip_close(int fd, void *dat
+ unsigned long current_stub_stack(void)
  {
- 	struct slip_data *pri = data;
- 	char version_buf[sizeof("nnnnn\0")];
--	char *argv[] = { "uml_net", version_buf, "slip", "down", pri->name, 
-+	char *argv[] = { "uml_net", version_buf, "slip", "down", pri->name,
- 			 NULL };
+ 	if(current->mm == NULL)
+-		return(0);
++		return 0;
+ 
+-	return(current->mm->context.skas.id.stack);
++	return current->mm->context.skas.id.stack;
+ }
+diff -puN arch/um/kernel/skas/syscall.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/kernel/skas/syscall.c
+--- a/arch/um/kernel/skas/syscall.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/kernel/skas/syscall.c
+@@ -13,7 +13,7 @@
+ #include "kern_util.h"
+ #include "syscall.h"
+ 
+-void handle_syscall(union uml_pt_regs *r)
++void handle_syscall(struct uml_pt_regs *r)
+ {
+ 	struct pt_regs *regs = container_of(r, struct pt_regs, regs);
+ 	long result;
+@@ -37,7 +37,7 @@ void handle_syscall(union uml_pt_regs *r
+ 		result = -ENOSYS;
+ 	else result = EXECUTE_SYSCALL(syscall, regs);
+ 
+-	REGS_SET_SYSCALL_RETURN(r->skas.regs, result);
++	REGS_SET_SYSCALL_RETURN(r->regs, result);
+ 
+ 	syscall_trace(r, 1);
+ }
+diff -puN arch/um/kernel/skas/tlb.c~uml-remove-code-made-redundant-by-choose_mode-removal /dev/null
+--- a/arch/um/kernel/skas/tlb.c
++++ /dev/null
+@@ -1,164 +0,0 @@
+-/* 
+- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
+- * Copyright 2003 PathScale, Inc.
+- * Licensed under the GPL
+- */
+-
+-#include "linux/stddef.h"
+-#include "linux/sched.h"
+-#include "linux/mm.h"
+-#include "asm/page.h"
+-#include "asm/pgtable.h"
+-#include "asm/mmu.h"
+-#include "mem_user.h"
+-#include "mem.h"
+-#include "skas.h"
+-#include "os.h"
+-#include "tlb.h"
+-
+-static int do_ops(union mm_context *mmu, struct host_vm_op *ops, int last,
+-		  int finished, void **flush)
+-{
+-	struct host_vm_op *op;
+-        int i, ret = 0;
+-
+-        for(i = 0; i <= last && !ret; i++){
+-		op = &ops[i];
+-		switch(op->type){
+-		case MMAP:
+-			ret = map(&mmu->skas.id, op->u.mmap.addr,
+-				  op->u.mmap.len, op->u.mmap.prot,
+-				  op->u.mmap.fd, op->u.mmap.offset, finished,
+-				  flush);
+-			break;
+-		case MUNMAP:
+-			ret = unmap(&mmu->skas.id, op->u.munmap.addr,
+-				    op->u.munmap.len, finished, flush);
+-			break;
+-		case MPROTECT:
+-			ret = protect(&mmu->skas.id, op->u.mprotect.addr,
+-				      op->u.mprotect.len, op->u.mprotect.prot,
+-				      finished, flush);
+-			break;
+-		default:
+-			printk("Unknown op type %d in do_ops\n", op->type);
+-			break;
+-		}
+-	}
+-
+-	return ret;
+-}
+-
+-extern int proc_mm;
+-
+-static void fix_range(struct mm_struct *mm, unsigned long start_addr,
+-		      unsigned long end_addr, int force)
+-{
+-        if(!proc_mm && (end_addr > CONFIG_STUB_START))
+-                end_addr = CONFIG_STUB_START;
+-
+-        fix_range_common(mm, start_addr, end_addr, force, do_ops);
+-}
+-
+-void __flush_tlb_one_skas(unsigned long addr)
+-{
+-        flush_tlb_kernel_range_common(addr, addr + PAGE_SIZE);
+-}
+-
+-void flush_tlb_range_skas(struct vm_area_struct *vma, unsigned long start, 
+-		     unsigned long end)
+-{
+-        if(vma->vm_mm == NULL)
+-                flush_tlb_kernel_range_common(start, end);
+-        else fix_range(vma->vm_mm, start, end, 0);
+-}
+-
+-void flush_tlb_mm_skas(struct mm_struct *mm)
+-{
+-	unsigned long end;
+-
+-	/* Don't bother flushing if this address space is about to be
+-         * destroyed.
+-         */
+-        if(atomic_read(&mm->mm_users) == 0)
+-                return;
+-
+-	end = proc_mm ? task_size : CONFIG_STUB_START;
+-        fix_range(mm, 0, end, 0);
+-}
+-
+-void force_flush_all_skas(void)
+-{
+-	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma = mm->mmap;
+-
+-	while(vma != NULL) {
+-		fix_range(mm, vma->vm_start, vma->vm_end, 1);
+-		vma = vma->vm_next;
+-	}
+-}
+-
+-void flush_tlb_page_skas(struct vm_area_struct *vma, unsigned long address)
+-{
+-	pgd_t *pgd;
+-	pud_t *pud;
+-	pmd_t *pmd;
+-	pte_t *pte;
+-	struct mm_struct *mm = vma->vm_mm;
+-	void *flush = NULL;
+-	int r, w, x, prot, err = 0;
+-	struct mm_id *mm_id;
+-
+-	pgd = pgd_offset(mm, address);
+-	if(!pgd_present(*pgd))
+-		goto kill;
+-
+-	pud = pud_offset(pgd, address);
+-	if(!pud_present(*pud))
+-		goto kill;
+-
+-	pmd = pmd_offset(pud, address);
+-	if(!pmd_present(*pmd))
+-		goto kill;
+-
+-	pte = pte_offset_kernel(pmd, address);
+-
+-	r = pte_read(*pte);
+-	w = pte_write(*pte);
+-	x = pte_exec(*pte);
+-	if (!pte_young(*pte)) {
+-		r = 0;
+-		w = 0;
+-	} else if (!pte_dirty(*pte)) {
+-		w = 0;
+-	}
+-
+-	mm_id = &mm->context.skas.id;
+-	prot = ((r ? UM_PROT_READ : 0) | (w ? UM_PROT_WRITE : 0) |
+-		(x ? UM_PROT_EXEC : 0));
+-	if(pte_newpage(*pte)){
+-		if(pte_present(*pte)){
+-			unsigned long long offset;
+-			int fd;
+-
+-			fd = phys_mapping(pte_val(*pte) & PAGE_MASK, &offset);
+-			err = map(mm_id, address, PAGE_SIZE, prot, fd, offset,
+-				  1, &flush);
+-		}
+-		else err = unmap(mm_id, address, PAGE_SIZE, 1, &flush);
+-	}
+-	else if(pte_newprot(*pte))
+-		err = protect(mm_id, address, PAGE_SIZE, prot, 1, &flush);
+-
+-	if(err)
+-		goto kill;
+-
+-	*pte = pte_mkuptodate(*pte);
+-
+-	return;
+-
+-kill:
+-	printk("Failed to flush page for address 0x%lx\n", address);
+-	force_sig(SIGKILL, current);
+-}
+-
+diff -puN arch/um/kernel/syscall.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/kernel/syscall.c
+--- a/arch/um/kernel/syscall.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/kernel/syscall.c
+@@ -20,7 +20,6 @@
+ #include "asm/uaccess.h"
+ #include "kern_util.h"
+ #include "sysdep/syscalls.h"
+-#include "mode_kern.h"
+ 
+ /*  Unlocked, I don't care if this is a bit off */
+ int nsyscalls = 0;
+diff -puN arch/um/kernel/time.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/kernel/time.c
+--- a/arch/um/kernel/time.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/kernel/time.c
+@@ -18,7 +18,6 @@
+ #include "asm/param.h"
+ #include "asm/current.h"
+ #include "kern_util.h"
+-#include "mode.h"
+ #include "os.h"
+ 
+ int hz(void)
+@@ -39,7 +38,7 @@ static unsigned long long prev_nsecs[NR_
+ static long long delta[NR_CPUS];		/* Deviation per interval */
+ #endif
+ 
+-void timer_irq(union uml_pt_regs *regs)
++void timer_irq(struct uml_pt_regs *regs)
+ {
+ 	unsigned long long ticks = 0;
+ #ifdef CONFIG_UML_REAL_TIME_CLOCK
+@@ -175,13 +174,13 @@ int do_settimeofday(struct timespec *tv)
+ 	return 0;
+ }
+ 
+-void timer_handler(int sig, union uml_pt_regs *regs)
++void timer_handler(int sig, struct uml_pt_regs *regs)
+ {
+ 	if(current_thread->cpu == 0)
+ 		timer_irq(regs);
+ 	local_irq_disable();
+ 	irq_enter();
+-	update_process_times((regs)->skas.is_user);
++	update_process_times(regs->is_user);
+ 	irq_exit();
+ 	local_irq_enable();
+ }
+diff -puN arch/um/kernel/tlb.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/kernel/tlb.c
+--- a/arch/um/kernel/tlb.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/kernel/tlb.c
+@@ -8,12 +8,12 @@
+ #include "asm/pgalloc.h"
+ #include "asm/pgtable.h"
+ #include "asm/tlbflush.h"
+-#include "mode_kern.h"
+ #include "as-layout.h"
+ #include "tlb.h"
+ #include "mem.h"
+ #include "mem_user.h"
+ #include "os.h"
++#include "skas.h"
+ 
+ static int add_mmap(unsigned long virt, unsigned long phys, unsigned long len,
+ 		    unsigned int prot, struct host_vm_op *ops, int *index,
+@@ -341,6 +341,71 @@ int flush_tlb_kernel_range_common(unsign
+ 	return(updated);
+ }
+ 
++void flush_tlb_page(struct vm_area_struct *vma, unsigned long address)
++{
++	pgd_t *pgd;
++	pud_t *pud;
++	pmd_t *pmd;
++	pte_t *pte;
++	struct mm_struct *mm = vma->vm_mm;
++	void *flush = NULL;
++	int r, w, x, prot, err = 0;
++	struct mm_id *mm_id;
++
++	address &= PAGE_MASK;
++	pgd = pgd_offset(mm, address);
++	if(!pgd_present(*pgd))
++		goto kill;
++
++	pud = pud_offset(pgd, address);
++	if(!pud_present(*pud))
++		goto kill;
++
++	pmd = pmd_offset(pud, address);
++	if(!pmd_present(*pmd))
++		goto kill;
++
++	pte = pte_offset_kernel(pmd, address);
++
++	r = pte_read(*pte);
++	w = pte_write(*pte);
++	x = pte_exec(*pte);
++	if (!pte_young(*pte)) {
++		r = 0;
++		w = 0;
++	} else if (!pte_dirty(*pte)) {
++		w = 0;
++	}
++
++	mm_id = &mm->context.skas.id;
++	prot = ((r ? UM_PROT_READ : 0) | (w ? UM_PROT_WRITE : 0) |
++		(x ? UM_PROT_EXEC : 0));
++	if(pte_newpage(*pte)){
++		if(pte_present(*pte)){
++			unsigned long long offset;
++			int fd;
++
++			fd = phys_mapping(pte_val(*pte) & PAGE_MASK, &offset);
++			err = map(mm_id, address, PAGE_SIZE, prot, fd, offset,
++				  1, &flush);
++		}
++		else err = unmap(mm_id, address, PAGE_SIZE, 1, &flush);
++	}
++	else if(pte_newprot(*pte))
++		err = protect(mm_id, address, PAGE_SIZE, prot, 1, &flush);
++
++	if(err)
++		goto kill;
++
++	*pte = pte_mkuptodate(*pte);
++
++	return;
++
++kill:
++	printk("Failed to flush page for address 0x%lx\n", address);
++	force_sig(SIGKILL, current);
++}
++
+ pgd_t *pgd_offset_proc(struct mm_struct *mm, unsigned long address)
+ {
+ 	return(pgd_offset(mm, address));
+@@ -387,21 +452,80 @@ void flush_tlb_kernel_vm(void)
+ 
+ void __flush_tlb_one(unsigned long addr)
+ {
+-	__flush_tlb_one_skas(addr);
++        flush_tlb_kernel_range_common(addr, addr + PAGE_SIZE);
++}
++
++static int do_ops(union mm_context *mmu, struct host_vm_op *ops, int last,
++		  int finished, void **flush)
++{
++	struct host_vm_op *op;
++        int i, ret = 0;
++
++        for(i = 0; i <= last && !ret; i++){
++		op = &ops[i];
++		switch(op->type){
++		case MMAP:
++			ret = map(&mmu->skas.id, op->u.mmap.addr,
++				  op->u.mmap.len, op->u.mmap.prot,
++				  op->u.mmap.fd, op->u.mmap.offset, finished,
++				  flush);
++			break;
++		case MUNMAP:
++			ret = unmap(&mmu->skas.id, op->u.munmap.addr,
++				    op->u.munmap.len, finished, flush);
++			break;
++		case MPROTECT:
++			ret = protect(&mmu->skas.id, op->u.mprotect.addr,
++				      op->u.mprotect.len, op->u.mprotect.prot,
++				      finished, flush);
++			break;
++		default:
++			printk("Unknown op type %d in do_ops\n", op->type);
++			break;
++		}
++	}
++
++	return ret;
++}
++
++static void fix_range(struct mm_struct *mm, unsigned long start_addr,
++		      unsigned long end_addr, int force)
++{
++        if(!proc_mm && (end_addr > CONFIG_STUB_START))
++                end_addr = CONFIG_STUB_START;
++
++        fix_range_common(mm, start_addr, end_addr, force, do_ops);
+ }
+ 
+ void flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
+ 		     unsigned long end)
+ {
+-	flush_tlb_range_skas(vma, start, end);
++        if(vma->vm_mm == NULL)
++                flush_tlb_kernel_range_common(start, end);
++        else fix_range(vma->vm_mm, start, end, 0);
+ }
+ 
+ void flush_tlb_mm(struct mm_struct *mm)
+ {
+-	flush_tlb_mm_skas(mm);
++	unsigned long end;
++
++	/* Don't bother flushing if this address space is about to be
++         * destroyed.
++         */
++        if(atomic_read(&mm->mm_users) == 0)
++                return;
++
++	end = proc_mm ? task_size : CONFIG_STUB_START;
++        fix_range(mm, 0, end, 0);
+ }
+ 
+ void force_flush_all(void)
+ {
+-	force_flush_all_skas();
++	struct mm_struct *mm = current->mm;
++	struct vm_area_struct *vma = mm->mmap;
++
++	while(vma != NULL) {
++		fix_range(mm, vma->vm_start, vma->vm_end, 1);
++		vma = vma->vm_next;
++	}
+ }
+diff -puN arch/um/kernel/trap.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/kernel/trap.c
+--- a/arch/um/kernel/trap.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/kernel/trap.c
+@@ -128,7 +128,7 @@ static void bad_segv(struct faultinfo fi
+ 	force_sig_info(SIGSEGV, &si, current);
+ }
+ 
+-static void segv_handler(int sig, union uml_pt_regs *regs)
++static void segv_handler(int sig, struct uml_pt_regs *regs)
+ {
+ 	struct faultinfo * fi = UPT_FAULTINFO(regs);
+ 
+@@ -146,7 +146,7 @@ static void segv_handler(int sig, union 
+  * give us bad data!
+  */
+ unsigned long segv(struct faultinfo fi, unsigned long ip, int is_user,
+-		   union uml_pt_regs *regs)
++		   struct uml_pt_regs *regs)
+ {
+ 	struct siginfo si;
+ 	void *catcher;
+@@ -214,7 +214,7 @@ unsigned long segv(struct faultinfo fi, 
+ 	return 0;
+ }
+ 
+-void relay_signal(int sig, union uml_pt_regs *regs)
++void relay_signal(int sig, struct uml_pt_regs *regs)
+ {
+ 	if (arch_handle_signal(sig, regs))
+ 		return;
+@@ -230,14 +230,14 @@ void relay_signal(int sig, union uml_pt_
+ 	force_sig(sig, current);
+ }
+ 
+-static void bus_handler(int sig, union uml_pt_regs *regs)
++static void bus_handler(int sig, struct uml_pt_regs *regs)
+ {
+ 	if (current->thread.fault_catcher != NULL)
+ 		do_longjmp(current->thread.fault_catcher, 1);
+ 	else relay_signal(sig, regs);
+ }
+ 
+-static void winch(int sig, union uml_pt_regs *regs)
++static void winch(int sig, struct uml_pt_regs *regs)
+ {
+ 	do_IRQ(WINCH_IRQ, regs);
+ }
+diff -puN arch/um/kernel/um_arch.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/kernel/um_arch.c
+--- a/arch/um/kernel/um_arch.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/kernel/um_arch.c
+@@ -35,8 +35,6 @@
+ #include "initrd.h"
+ #include "init.h"
+ #include "os.h"
+-#include "mode_kern.h"
+-#include "mode.h"
+ #include "skas.h"
+ 
+ #define DEFAULT_COMMAND_LINE "root=98:0"
+@@ -67,7 +65,8 @@ struct cpuinfo_um boot_cpu_data = {
+ 
+ unsigned long thread_saved_pc(struct task_struct *task)
+ {
+-	return os_process_pc(thread_pid_skas(task));
++	/* FIXME: Need to look up userspace_pid by cpu */
++	return os_process_pc(userspace_pid[0]);
+ }
+ 
+ /* Changed in setup_arch, which is called in early boot */
+@@ -253,6 +252,19 @@ EXPORT_SYMBOL(end_iomem);
+ 
+ extern char __binary_start;
+ 
++static unsigned long set_task_sizes_skas(unsigned long *task_size_out)
++{
++	/* Round up to the nearest 4M */
++	unsigned long host_task_size = ROUND_4M((unsigned long)
++						&host_task_size);
++
++	if (!skas_needs_stub)
++		*task_size_out = host_task_size;
++	else *task_size_out = CONFIG_STUB_START & PGDIR_MASK;
++
++	return host_task_size;
++}
++
+ int __init linux_main(int argc, char **argv)
+ {
+ 	unsigned long avail, diff;
+@@ -289,7 +301,7 @@ int __init linux_main(int argc, char **a
+ 	os_fill_handlinfo(handlinfo_kern);
+ 
+ 	brk_start = (unsigned long) sbrk(0);
+-	before_mem_skas(brk_start);
++
+ 	/* Increase physical memory size for exec-shield users
+ 	so they actually get what they asked for. This should
+ 	add zero for non-exec shield users */
+@@ -354,7 +366,7 @@ int __init linux_main(int argc, char **a
+ 	stack_protections((unsigned long) &init_thread_info);
+ 	os_flush_stdout();
+ 
+-	return start_uml_skas();
++	return start_uml();
+ }
+ 
+ extern int uml_exitcode;
+diff -puN arch/um/os-Linux/aio.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/os-Linux/aio.c
+--- a/arch/um/os-Linux/aio.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/os-Linux/aio.c
+@@ -13,7 +13,6 @@
+ #include "aio.h"
+ #include "init.h"
+ #include "user.h"
+-#include "mode.h"
+ #include "kern_constants.h"
+ 
+ struct aio_thread_req {
+diff -puN arch/um/os-Linux/main.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/os-Linux/main.c
+--- a/arch/um/os-Linux/main.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/os-Linux/main.c
+@@ -18,7 +18,6 @@
+ #include "irq_user.h"
+ #include "user.h"
+ #include "init.h"
+-#include "mode.h"
+ #include "uml-config.h"
+ #include "os.h"
+ #include "um_malloc.h"
+diff -puN arch/um/os-Linux/process.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/os-Linux/process.c
+--- a/arch/um/os-Linux/process.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/os-Linux/process.c
+@@ -244,9 +244,6 @@ void init_new_thread_signals(void)
+ 		    SIGUSR1, SIGIO, SIGWINCH, SIGALRM, SIGVTALRM, -1);
+ 	set_handler(SIGBUS, (__sighandler_t) sig_handler, SA_ONSTACK,
+ 		    SIGUSR1, SIGIO, SIGWINCH, SIGALRM, SIGVTALRM, -1);
+-	set_handler(SIGUSR2, (__sighandler_t) sig_handler,
+-		    SA_ONSTACK, SIGUSR1, SIGIO, SIGWINCH, SIGALRM, SIGVTALRM,
+-		    -1);
+ 	signal(SIGHUP, SIG_IGN);
+ 
+ 	init_irq_signals(1);
+diff -puN arch/um/os-Linux/registers.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/os-Linux/registers.c
+--- a/arch/um/os-Linux/registers.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/os-Linux/registers.c
+@@ -13,26 +13,26 @@
+ 
+ static unsigned long exec_regs[MAX_REG_NR];
+ 
+-void init_thread_registers(union uml_pt_regs *to)
++void init_thread_registers(struct uml_pt_regs *to)
+ {
+-	memcpy(to->skas.regs, exec_regs, sizeof(to->skas.regs));
++	memcpy(to->regs, exec_regs, sizeof(to->regs));
+ }
+ 
+-void save_registers(int pid, union uml_pt_regs *regs)
++void save_registers(int pid, struct uml_pt_regs *regs)
+ {
  	int err;
  
--	if(pri->gate_addr != NULL)
-+	if (pri->gate_addr != NULL)
- 		iter_addresses(pri->dev, close_addr, pri->name);
- 
- 	sprintf(version_buf, "%d", UML_NET_VERSION);
- 
- 	err = slip_tramp(argv, pri->slave);
- 
--	if(err != 0)
--		printk("slip_tramp failed - errno = %d\n", -err);
--	os_close_file(fd);
--	os_close_file(pri->slave);
-+	if (err != 0)
-+		printk(UM_KERN_ERR "slip_tramp failed - errno = %d\n", -err);
-+	close(fd);
-+	close(pri->slave);
- 	pri->slave = -1;
+-	err = ptrace(PTRACE_GETREGS, pid, 0, regs->skas.regs);
++	err = ptrace(PTRACE_GETREGS, pid, 0, regs->regs);
+ 	if(err < 0)
+ 		panic("save_registers - saving registers failed, errno = %d\n",
+ 		      errno);
  }
  
-@@ -222,7 +232,7 @@ int slip_user_write(int fd, void *buf, i
- 
- static int slip_set_mtu(int mtu, void *data)
+-void restore_registers(int pid, union uml_pt_regs *regs)
++void restore_registers(int pid, struct uml_pt_regs *regs)
  {
--	return(mtu);
-+	return mtu;
- }
+ 	int err;
  
- static void slip_add_addr(unsigned char *addr, unsigned char *netmask,
-@@ -230,7 +240,8 @@ static void slip_add_addr(unsigned char 
- {
- 	struct slip_data *pri = data;
- 
--	if(pri->slave < 0) return;
-+	if (pri->slave < 0)
-+		return;
- 	open_addr(addr, netmask, pri->name);
- }
- 
-@@ -239,7 +250,8 @@ static void slip_del_addr(unsigned char 
- {
- 	struct slip_data *pri = data;
- 
--	if(pri->slave < 0) return;
-+	if (pri->slave < 0)
-+		return;
- 	close_addr(addr, netmask, pri->name);
- }
- 
-diff -puN arch/um/drivers/slirp_kern.c~uml-network-formatting arch/um/drivers/slirp_kern.c
---- a/arch/um/drivers/slirp_kern.c~uml-network-formatting
-+++ a/arch/um/drivers/slirp_kern.c
-@@ -1,11 +1,14 @@
--#include "linux/kernel.h"
--#include "linux/stddef.h"
-+/*
-+ * Copyright (C) 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-+ * Licensed under the GPL.
-+ */
-+
-+#include <linux/if_arp.h>
- #include "linux/init.h"
--#include "linux/netdevice.h"
--#include "linux/if_arp.h"
-+#include <linux/netdevice.h>
-+#include <linux/string.h>
- #include "net_kern.h"
- #include "net_user.h"
--#include "kern.h"
- #include "slirp.h"
- 
- struct slirp_init {
-@@ -39,29 +42,28 @@ void slirp_init(struct net_device *dev, 
- 	dev->tx_queue_len = 256;
- 	dev->flags = IFF_NOARP;
- 	printk("SLIRP backend - command line:");
--	for(i=0;spri->argw.argv[i]!=NULL;i++) {
-+	for (i = 0; spri->argw.argv[i] != NULL; i++)
- 		printk(" '%s'",spri->argw.argv[i]);
--	}
- 	printk("\n");
- }
- 
- static unsigned short slirp_protocol(struct sk_buff *skbuff)
- {
--	return(htons(ETH_P_IP));
-+	return htons(ETH_P_IP);
- }
- 
--static int slirp_read(int fd, struct sk_buff **skb, 
-+static int slirp_read(int fd, struct sk_buff **skb,
- 		       struct uml_net_private *lp)
- {
--	return(slirp_user_read(fd, skb_mac_header(*skb), (*skb)->dev->mtu,
--			      (struct slirp_data *) &lp->user));
-+	return slirp_user_read(fd, skb_mac_header(*skb), (*skb)->dev->mtu,
-+			      (struct slirp_data *) &lp->user);
- }
- 
- static int slirp_write(int fd, struct sk_buff **skb,
- 		      struct uml_net_private *lp)
- {
--	return(slirp_user_write(fd, (*skb)->data, (*skb)->len, 
--			       (struct slirp_data *) &lp->user));
-+	return slirp_user_write(fd, (*skb)->data, (*skb)->len,
-+			       (struct slirp_data *) &lp->user);
- }
- 
- const struct net_kern_info slirp_kern_info = {
-@@ -76,31 +78,32 @@ static int slirp_setup(char *str, char *
- 	struct slirp_init *init = data;
- 	int i=0;
- 
--	*init = ((struct slirp_init)
--		{ .argw = { { "slirp", NULL  } } });
-+	*init = ((struct slirp_init) { .argw = { { "slirp", NULL  } } });
- 
- 	str = split_if_spec(str, mac_out, NULL);
- 
--	if(str == NULL) { /* no command line given after MAC addr */
--		return(1);
--	}
-+	if (str == NULL) /* no command line given after MAC addr */
-+		return 1;
- 
- 	do {
--		if(i>=SLIRP_MAX_ARGS-1) {
--			printk("slirp_setup: truncating slirp arguments\n");
-+		if (i >= SLIRP_MAX_ARGS - 1) {
-+			printk(KERN_WARNING "slirp_setup: truncating slirp "
-+			       "arguments\n");
- 			break;
- 		}
- 		init->argw.argv[i++] = str;
- 		while(*str && *str!=',') {
--			if(*str=='_') *str=' ';
-+			if (*str == '_')
-+				*str=' ';
- 			str++;
- 		}
--		if(*str!=',')
-+		if (*str != ',')
- 			break;
--		*str++='\0';
--	} while(1);
--	init->argw.argv[i]=NULL;
--	return(1);
-+		*str++ = '\0';
-+	} while (1);
-+
-+	init->argw.argv[i] = NULL;
-+	return 1;
- }
- 
- static struct transport slirp_transport = {
-diff -puN arch/um/drivers/slirp_user.c~uml-network-formatting arch/um/drivers/slirp_user.c
---- a/arch/um/drivers/slirp_user.c~uml-network-formatting
-+++ a/arch/um/drivers/slirp_user.c
-@@ -1,18 +1,17 @@
--#include <stdio.h>
--#include <stdlib.h>
-+/*
-+ * Copyright (C) 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-+ * Licensed under the GPL.
-+ */
-+
- #include <unistd.h>
--#include <stddef.h>
--#include <sched.h>
--#include <string.h>
- #include <errno.h>
-+#include <string.h>
- #include <sys/wait.h>
--#include <sys/signal.h>
--#include "kern_util.h"
--#include "user.h"
-+#include "kern_constants.h"
- #include "net_user.h"
--#include "slirp.h"
--#include "slip_common.h"
+-	err = ptrace(PTRACE_SETREGS, pid, 0, regs->skas.regs);
++	err = ptrace(PTRACE_SETREGS, pid, 0, regs->regs);
+ 	if(err < 0)
+ 		panic("restore_registers - saving registers failed, "
+ 		      "errno = %d\n", errno);
+diff -puN arch/um/os-Linux/signal.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/os-Linux/signal.c
+--- a/arch/um/os-Linux/signal.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/os-Linux/signal.c
+@@ -16,7 +16,6 @@
+ #include "sysdep/sigcontext.h"
+ #include "sysdep/barrier.h"
+ #include "sigcontext.h"
+-#include "mode.h"
  #include "os.h"
-+#include "slirp.h"
-+#include "user.h"
  
- static int slirp_user_init(void *data, void *dev)
+ /* These are the asynchronous signals.  SIGVTALRM and SIGARLM are handled
+@@ -60,14 +59,14 @@ void sig_handler(int sig, struct sigcont
+ 
+ static void real_alarm_handler(int sig, struct sigcontext *sc)
  {
-@@ -31,8 +30,10 @@ static void slirp_pre_exec(void *arg)
+-	union uml_pt_regs regs;
++	struct uml_pt_regs regs;
+ 
+ 	if(sig == SIGALRM)
+ 		switch_timers(0);
+ 
+ 	if(sc != NULL)
+ 		copy_sc(&regs, sc);
+-	regs.skas.is_user = 0;
++	regs.is_user = 0;
+ 	unblock_signals();
+ 	timer_handler(sig, &regs);
+ 
+diff -puN arch/um/os-Linux/skas/mem.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/os-Linux/skas/mem.c
+--- a/arch/um/os-Linux/skas/mem.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/os-Linux/skas/mem.c
+@@ -294,7 +294,3 @@ int protect(struct mm_id * mm_idp, unsig
+ 
+ 	return ret;
+ }
+-
+-void before_mem_skas(unsigned long unused)
+-{
+-}
+diff -puN arch/um/os-Linux/skas/process.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/os-Linux/skas/process.c
+--- a/arch/um/os-Linux/skas/process.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/os-Linux/skas/process.c
+@@ -131,19 +131,19 @@ void get_skas_faultinfo(int pid, struct 
+ 	}
+ }
+ 
+-static void handle_segv(int pid, union uml_pt_regs * regs)
++static void handle_segv(int pid, struct uml_pt_regs * regs)
  {
- 	struct slirp_pre_exec_data *data = arg;
- 
--	if(data->stdin != -1) dup2(data->stdin, 0);
--	if(data->stdout != -1) dup2(data->stdout, 1);
-+	if (data->stdin != -1)
-+		dup2(data->stdin, 0);
-+	if (data->stdout != -1)
-+		dup2(data->stdout, 1);
+-	get_skas_faultinfo(pid, &regs->skas.faultinfo);
+-	segv(regs->skas.faultinfo, 0, 1, NULL);
++	get_skas_faultinfo(pid, &regs->faultinfo);
++	segv(regs->faultinfo, 0, 1, NULL);
  }
  
- static int slirp_tramp(char **argv, int fd)
-@@ -44,7 +45,7 @@ static int slirp_tramp(char **argv, int 
- 	pe_data.stdout = fd;
- 	pid = run_helper(slirp_pre_exec, &pe_data, argv);
- 
--	return(pid);
-+	return pid;
- }
- 
- static int slirp_open(void *data)
-@@ -53,12 +54,12 @@ static int slirp_open(void *data)
- 	int fds[2], pid, err;
- 
- 	err = os_pipe(fds, 1, 1);
--	if(err)
--		return(err);
-+	if (err)
-+		return err;
- 
- 	err = slirp_tramp(pri->argw.argv, fds[1]);
--	if(err < 0){
--		printk("slirp_tramp failed - errno = %d\n", -err);
-+	if (err < 0) {
-+		printk(UM_KERN_ERR "slirp_tramp failed - errno = %d\n", -err);
- 		goto out;
- 	}
- 	pid = err;
-@@ -68,10 +69,10 @@ static int slirp_open(void *data)
- 	pri->slip.esc = 0;
- 	pri->pid = err;
- 
--	return(fds[0]);
-+	return fds[0];
- out:
--	os_close_file(fds[0]);
--	os_close_file(fds[1]);
-+	close(fds[0]);
-+	close(fds[1]);
- 	return err;
- }
- 
-@@ -80,31 +81,33 @@ static void slirp_close(int fd, void *da
- 	struct slirp_data *pri = data;
- 	int status,err;
- 
--	os_close_file(fd);
--	os_close_file(pri->slave);
-+	close(fd);
-+	close(pri->slave);
- 
- 	pri->slave = -1;
- 
--	if(pri->pid<1) {
--		printk("slirp_close: no child process to shut down\n");
-+	if (pri->pid<1) {
-+		printk(UM_KERN_ERR "slirp_close: no child process to shut "
-+		       "down\n");
- 		return;
- 	}
- 
- #if 0
--	if(kill(pri->pid, SIGHUP)<0) {
--		printk("slirp_close: sending hangup to %d failed (%d)\n",
--			pri->pid, errno);
-+	if (kill(pri->pid, SIGHUP)<0) {
-+		printk(UM_KERN_ERR "slirp_close: sending hangup to %d failed "
-+		       "(%d)\n", pri->pid, errno);
- 	}
- #endif
- 
- 	CATCH_EINTR(err = waitpid(pri->pid, &status, WNOHANG));
--	if(err < 0) {
--		printk("slirp_close: waitpid returned %d\n", errno);
-+	if (err < 0) {
-+		printk(UM_KERN_ERR "slirp_close: waitpid returned %d\n", errno);
- 		return;
- 	}
- 
--	if(err == 0) {
--		printk("slirp_close: process %d has not exited\n", pri->pid);
-+	if (err == 0) {
-+		printk(UM_KERN_ERR "slirp_close: process %d has not exited\n",
-+		       pri->pid);
- 		return;
- 	}
- 
-@@ -123,7 +126,7 @@ int slirp_user_write(int fd, void *buf, 
- 
- static int slirp_set_mtu(int mtu, void *data)
+ /*To use the same value of using_sysemu as the caller, ask it that value (in local_using_sysemu)*/
+-static void handle_trap(int pid, union uml_pt_regs *regs, int local_using_sysemu)
++static void handle_trap(int pid, struct uml_pt_regs *regs, int local_using_sysemu)
  {
--	return(mtu);
-+	return mtu;
+ 	int err, status;
+ 
+ 	/* Mark this as a syscall */
+-	UPT_SYSCALL_NR(regs) = PT_SYSCALL_NR(regs->skas.regs);
++	UPT_SYSCALL_NR(regs) = PT_SYSCALL_NR(regs->regs);
+ 
+ 	if (!local_using_sysemu)
+ 	{
+@@ -286,7 +286,7 @@ int start_userspace(unsigned long stub_s
+ 	return(pid);
  }
  
- const struct net_user_info slirp_user_info = {
-diff -puN arch/um/drivers/vde_kern.c~uml-network-formatting arch/um/drivers/vde_kern.c
---- a/arch/um/drivers/vde_kern.c~uml-network-formatting
-+++ a/arch/um/drivers/vde_kern.c
-@@ -7,10 +7,8 @@
-  *
-  */
+-void userspace(union uml_pt_regs *regs)
++void userspace(struct uml_pt_regs *regs)
+ {
+ 	int err, status, op, pid = userspace_pid[0];
+ 	/* To prevent races if using_sysemu changes under us.*/
+@@ -312,7 +312,7 @@ void userspace(union uml_pt_regs *regs)
+ 			panic("userspace - waitpid failed, errno = %d\n",
+ 			      errno);
  
--#include "linux/kernel.h"
- #include "linux/init.h"
--#include "linux/netdevice.h"
--#include "linux/etherdevice.h"
-+#include <linux/netdevice.h>
- #include "net_kern.h"
- #include "net_user.h"
- #include "vde.h"
-@@ -30,12 +28,12 @@ static void vde_init(struct net_device *
- 	vpri->conn = NULL;
- 	vpri->dev = dev;
+-		regs->skas.is_user = 1;
++		regs->is_user = 1;
+ 		save_registers(pid, regs);
+ 		UPT_SYSCALL_NR(regs) = -1; /* Assume: It's not a syscall */
  
--	printk(KERN_INFO "vde backend - %s, ", vpri->vde_switch ?
-+	printk("vde backend - %s, ", vpri->vde_switch ?
- 	       vpri->vde_switch : "(default socket)");
+@@ -321,7 +321,7 @@ void userspace(union uml_pt_regs *regs)
+ 		  	switch(sig){
+ 			case SIGSEGV:
+ 				if(PTRACE_FULL_FAULTINFO || !ptrace_faultinfo){
+-					get_skas_faultinfo(pid, &regs->skas.faultinfo);
++					get_skas_faultinfo(pid, &regs->faultinfo);
+ 					(*sig_info[SIGSEGV])(SIGSEGV, regs);
+ 				}
+ 				else handle_segv(pid, regs);
+@@ -351,7 +351,7 @@ void userspace(union uml_pt_regs *regs)
  
- 	vde_init_libstuff(vpri, init);
- 
--	printk(KERN_INFO "\n");
-+	printk("\n");
+ 			/* Avoid -ERESTARTSYS handling in host */
+ 			if(PT_SYSCALL_NR_OFFSET != PT_SYSCALL_RET_OFFSET)
+-				PT_SYSCALL_NR(regs->skas.regs) = -1;
++				PT_SYSCALL_NR(regs->regs) = -1;
+ 		}
+ 	}
+ }
+@@ -578,16 +578,16 @@ void reboot_skas(void)
+ 	UML_LONGJMP(&initial_jmpbuf, INIT_JMP_REBOOT);
  }
  
- static int vde_read(int fd, struct sk_buff **skb, struct uml_net_private *lp)
-diff -puN arch/um/drivers/vde_user.c~uml-network-formatting arch/um/drivers/vde_user.c
---- a/arch/um/drivers/vde_user.c~uml-network-formatting
-+++ a/arch/um/drivers/vde_user.c
-@@ -3,15 +3,13 @@
-  * Licensed under the GPL.
-  */
+-void switch_mm_skas(struct mm_id *mm_idp)
++void __switch_mm(struct mm_id *mm_idp)
+ {
+ 	int err;
  
-+#include <stddef.h>
- #include <errno.h>
--#include <unistd.h>
- #include <libvdeplug.h>
--#include "net_user.h"
--#include "kern_util.h"
+-	/* FIXME: need cpu pid in switch_mm_skas */
++	/* FIXME: need cpu pid in __switch_mm */
+ 	if(proc_mm){
+ 		err = ptrace(PTRACE_SWITCH_MM, userspace_pid[0], 0,
+ 			     mm_idp->u.mm_fd);
+ 		if(err)
+-			panic("switch_mm_skas - PTRACE_SWITCH_MM failed, "
++			panic("__switch_mm - PTRACE_SWITCH_MM failed, "
+ 			      "errno = %d\n", errno);
+ 	}
+ 	else userspace_pid[0] = mm_idp->u.pid;
+diff -puN arch/um/os-Linux/skas/trap.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/os-Linux/skas/trap.c
+--- a/arch/um/os-Linux/skas/trap.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/os-Linux/skas/trap.c
+@@ -15,13 +15,13 @@
+ #include "sysdep/ptrace_user.h"
+ #include "os.h"
+ 
+-static union uml_pt_regs ksig_regs[UM_NR_CPUS];
++static struct uml_pt_regs ksig_regs[UM_NR_CPUS];
+ 
+ void sig_handler_common_skas(int sig, void *sc_ptr)
+ {
+ 	struct sigcontext *sc = sc_ptr;
+-	union uml_pt_regs *r;
+-	void (*handler)(int, union uml_pt_regs *);
++	struct uml_pt_regs *r;
++	void (*handler)(int, struct uml_pt_regs *);
+ 	int save_user, save_errno = errno;
+ 
+ 	/* This is done because to allow SIGSEGV to be delivered inside a SEGV
+@@ -42,12 +42,12 @@ void sig_handler_common_skas(int sig, vo
+ 	}
+ 	else r = TASK_REGS(get_current());
+ 
+-	save_user = r->skas.is_user;
+-	r->skas.is_user = 0;
++	save_user = r->is_user;
++	r->is_user = 0;
+ 	if ( sig == SIGFPE || sig == SIGSEGV ||
+ 	     sig == SIGBUS || sig == SIGILL ||
+ 	     sig == SIGTRAP ) {
+-		GET_FAULTINFO_FROM_SC(r->skas.faultinfo, sc);
++		GET_FAULTINFO_FROM_SC(r->faultinfo, sc);
+ 	}
+ 
+ 	change_sig(SIGUSR1, 1);
+@@ -62,5 +62,5 @@ void sig_handler_common_skas(int sig, vo
+ 	handler(sig, r);
+ 
+ 	errno = save_errno;
+-	r->skas.is_user = save_user;
++	r->is_user = save_user;
+ }
+diff -puN arch/um/os-Linux/start_up.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/os-Linux/start_up.c
+--- a/arch/um/os-Linux/start_up.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/os-Linux/start_up.c
+@@ -31,7 +31,6 @@
+ #include "init.h"
+ #include "os.h"
+ #include "uml-config.h"
+-#include "mode.h"
+ #include "tempfile.h"
  #include "kern_constants.h"
--#include "user.h"
--#include "os.h"
-+#include "net_user.h"
- #include "um_malloc.h"
-+#include "user.h"
- #include "vde.h"
- 
- #define MAX_PACKET (ETH_MAX_PACKET + ETH_HEADER_OTHER)
-diff -puN arch/um/os-Linux/drivers/etap.h~uml-network-formatting arch/um/os-Linux/drivers/etap.h
---- a/arch/um/os-Linux/drivers/etap.h~uml-network-formatting
-+++ a/arch/um/os-Linux/drivers/etap.h
-@@ -1,8 +1,11 @@
- /* 
-- * Copyright (C) 2001 Jeff Dike (jdike@karaya.com)
-+ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
- 
-+#ifndef __DRIVERS_ETAP_H
-+#define __DRIVERS_ETAP_H
-+
- #include "net_user.h"
- 
- struct ethertap_data {
-@@ -15,13 +18,4 @@ struct ethertap_data {
- 
- extern const struct net_user_info ethertap_user_info;
- 
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-+#endif
-diff -puN arch/um/os-Linux/drivers/ethertap_kern.c~uml-network-formatting arch/um/os-Linux/drivers/ethertap_kern.c
---- a/arch/um/os-Linux/drivers/ethertap_kern.c~uml-network-formatting
-+++ a/arch/um/os-Linux/drivers/ethertap_kern.c
-@@ -1,16 +1,15 @@
- /*
-- * Copyright (C) 2001 Lennert Buytenhek (buytenh@gnu.org) and 
-+ * Copyright (C) 2001 Lennert Buytenhek (buytenh@gnu.org) and
-  * James Leu (jleu@mindspring.net).
-+ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Copyright (C) 2001 by various other people who didn't put their name here.
-  * Licensed under the GPL.
-  */
- 
- #include "linux/init.h"
--#include "linux/netdevice.h"
--#include "linux/etherdevice.h"
--#include "net_kern.h"
--#include "net_user.h"
-+#include <linux/netdevice.h>
- #include "etap.h"
-+#include "net_kern.h"
- 
- struct ethertap_init {
- 	char *dev_name;
-@@ -42,27 +41,30 @@ static int etap_read(int fd, struct sk_b
- 	int len;
- 
- 	*skb = ether_adjust_skb(*skb, ETH_HEADER_ETHERTAP);
--	if(*skb == NULL) return(-ENOMEM);
-+	if (*skb == NULL)
-+		return -ENOMEM;
- 	len = net_recvfrom(fd, skb_mac_header(*skb),
- 			   (*skb)->dev->mtu + 2 * ETH_HEADER_ETHERTAP);
--	if(len <= 0) return(len);
-+	if (len <= 0)
-+		return len;
- 	skb_pull(*skb, 2);
- 	len -= 2;
--	return(len);
-+	return len;
- }
- 
- static int etap_write(int fd, struct sk_buff **skb, struct uml_net_private *lp)
- {
--	if(skb_headroom(*skb) < 2){
-+	if (skb_headroom(*skb) < 2) {
- 	  	struct sk_buff *skb2;
- 
- 		skb2 = skb_realloc_headroom(*skb, 2);
- 		dev_kfree_skb(*skb);
--		if (skb2 == NULL) return(-ENOMEM);
-+		if (skb2 == NULL)
-+			return -ENOMEM;
- 		*skb = skb2;
- 	}
- 	skb_push(*skb, 2);
--	return(net_send(fd, (*skb)->data, (*skb)->len));
-+	return net_send(fd, (*skb)->data, (*skb)->len);
- }
- 
- const struct net_kern_info ethertap_kern_info = {
-@@ -79,15 +81,15 @@ int ethertap_setup(char *str, char **mac
- 	*init = ((struct ethertap_init)
- 		{ .dev_name 	= NULL,
- 		  .gate_addr 	= NULL });
--	if(tap_setup_common(str, "ethertap", &init->dev_name, mac_out,
-+	if (tap_setup_common(str, "ethertap", &init->dev_name, mac_out,
- 			    &init->gate_addr))
--		return(0);
--	if(init->dev_name == NULL){
--		printk("ethertap_setup : Missing tap device name\n");
--		return(0);
-+		return 0;
-+	if (init->dev_name == NULL) {
-+		printk(KERN_ERR "ethertap_setup : Missing tap device name\n");
-+		return 0;
- 	}
- 
--	return(1);
-+	return 1;
- }
- 
- static struct transport ethertap_transport = {
-diff -puN arch/um/os-Linux/drivers/ethertap_user.c~uml-network-formatting arch/um/os-Linux/drivers/ethertap_user.c
---- a/arch/um/os-Linux/drivers/ethertap_user.c~uml-network-formatting
-+++ a/arch/um/os-Linux/drivers/ethertap_user.c
-@@ -1,4 +1,5 @@
- /*
-+ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Copyright (C) 2001 Lennert Buytenhek (buytenh@gnu.org) and
-  * James Leu (jleu@mindspring.net).
-  * Copyright (C) 2001 by various other people who didn't put their name here.
-@@ -7,20 +8,16 @@
- 
- #include <stdio.h>
- #include <unistd.h>
--#include <stddef.h>
--#include <stdlib.h>
--#include <sys/errno.h>
-+#include <errno.h>
-+#include <string.h>
- #include <sys/socket.h>
- #include <sys/wait.h>
--#include <sys/un.h>
--#include <net/if.h>
--#include "user.h"
--#include "kern_util.h"
--#include "net_user.h"
- #include "etap.h"
-+#include "kern_constants.h"
+ #include "skas.h"
+diff -puN arch/um/os-Linux/trap.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/os-Linux/trap.c
+--- a/arch/um/os-Linux/trap.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/os-Linux/trap.c
+@@ -7,15 +7,10 @@
+ #include <signal.h>
+ #include "kern_util.h"
  #include "os.h"
-+#include "net_user.h"
- #include "um_malloc.h"
--#include "kern_constants.h"
-+#include "user.h"
+-#include "mode.h"
+ #include "longjmp.h"
  
- #define MAX_PACKET ETH_MAX_PACKET
- 
-@@ -49,16 +46,18 @@ static void etap_change(int op, unsigned
- 	memcpy(change.addr, addr, sizeof(change.addr));
- 	memcpy(change.netmask, netmask, sizeof(change.netmask));
- 	CATCH_EINTR(n = write(fd, &change, sizeof(change)));
--	if(n != sizeof(change)){
--		printk("etap_change - request failed, err = %d\n", errno);
-+	if (n != sizeof(change)) {
-+		printk(UM_KERN_ERR "etap_change - request failed, err = %d\n",
-+		       errno);
- 		return;
- 	}
- 
- 	output = kmalloc(UM_KERN_PAGE_SIZE, UM_GFP_KERNEL);
--	if(output == NULL)
--		printk("etap_change : Failed to allocate output buffer\n");
-+	if (output == NULL)
-+		printk(UM_KERN_ERR "etap_change : Failed to allocate output "
-+		       "buffer\n");
- 	read_output(fd, output, UM_KERN_PAGE_SIZE);
--	if(output != NULL){
-+	if (output != NULL) {
- 		printk("%s", output);
- 		kfree(output);
- 	}
-@@ -107,7 +106,7 @@ static int etap_tramp(char *dev, char *g
- 
- 	sprintf(data_fd_buf, "%d", data_remote);
- 	sprintf(version_buf, "%d", UML_NET_VERSION);
--	if(gate != NULL){
-+	if (gate != NULL) {
- 		strcpy(gate_buf, gate);
- 		args = setup_args;
- 	}
-@@ -119,24 +118,26 @@ static int etap_tramp(char *dev, char *g
- 	pe_data.data_me = data_me;
- 	pid = run_helper(etap_pre_exec, &pe_data, args);
- 
--	if(pid < 0)
-+	if (pid < 0)
- 		err = pid;
- 	close(data_remote);
- 	close(control_remote);
- 	CATCH_EINTR(n = read(control_me, &c, sizeof(c)));
--	if(n != sizeof(c)){
-+	if (n != sizeof(c)) {
- 		err = -errno;
--		printk("etap_tramp : read of status failed, err = %d\n", -err);
-+		printk(UM_KERN_ERR "etap_tramp : read of status failed, "
-+		       "err = %d\n", -err);
- 		return err;
- 	}
--	if(c != 1){
--		printk("etap_tramp : uml_net failed\n");
-+	if (c != 1) {
-+		printk(UM_KERN_ERR "etap_tramp : uml_net failed\n");
- 		err = -EINVAL;
- 		CATCH_EINTR(n = waitpid(pid, &status, 0));
--		if(n < 0)
-+		if (n < 0)
- 			err = -errno;
--		else if(!WIFEXITED(status) || (WEXITSTATUS(status) != 1))
--			printk("uml_net didn't exit with status 1\n");
-+		else if (!WIFEXITED(status) || (WEXITSTATUS(status) != 1))
-+			printk(UM_KERN_ERR "uml_net didn't exit with "
-+			       "status 1\n");
- 	}
- 	return err;
- }
-@@ -148,22 +149,22 @@ static int etap_open(void *data)
- 	int data_fds[2], control_fds[2], err, output_len;
- 
- 	err = tap_open_common(pri->dev, pri->gate_addr);
--	if(err)
-+	if (err)
- 		return err;
- 
- 	err = socketpair(AF_UNIX, SOCK_DGRAM, 0, data_fds);
--	if(err){
-+	if (err) {
- 		err = -errno;
--		printk("etap_open - data socketpair failed - err = %d\n",
--		       errno);
-+		printk(UM_KERN_ERR "etap_open - data socketpair failed - "
-+		       "err = %d\n", errno);
- 		return err;
- 	}
- 
- 	err = socketpair(AF_UNIX, SOCK_STREAM, 0, control_fds);
--	if(err){
-+	if (err) {
- 		err = -errno;
--		printk("etap_open - control socketpair failed - err = %d\n",
--		       errno);
-+		printk(UM_KERN_ERR "etap_open - control socketpair failed - "
-+		       "err = %d\n", errno);
- 		goto out_close_data;
- 	}
- 
-@@ -173,15 +174,16 @@ static int etap_open(void *data)
- 	output = kmalloc(output_len, UM_GFP_KERNEL);
- 	read_output(control_fds[0], output, output_len);
- 
--	if(output == NULL)
--		printk("etap_open : failed to allocate output buffer\n");
-+	if (output == NULL)
-+		printk(UM_KERN_ERR "etap_open : failed to allocate output "
-+		       "buffer\n");
- 	else {
- 		printk("%s", output);
- 		kfree(output);
- 	}
- 
--	if(err < 0){
--		printk("etap_tramp failed - err = %d\n", -err);
-+	if (err < 0) {
-+		printk(UM_KERN_ERR "etap_tramp failed - err = %d\n", -err);
- 		goto out_close_control;
- 	}
- 
-@@ -206,14 +208,14 @@ static void etap_close(int fd, void *dat
- 	iter_addresses(pri->dev, etap_close_addr, &pri->control_fd);
- 	close(fd);
- 
--	if(shutdown(pri->data_fd, SHUT_RDWR) < 0)
--		printk("etap_close - shutdown data socket failed, errno = %d\n",
--		       errno);
+-void usr2_handler(int sig, union uml_pt_regs *regs)
+-{
+-}
 -
--	if(shutdown(pri->control_fd, SHUT_RDWR) < 0)
--		printk("etap_close - shutdown control socket failed, "
-+	if (shutdown(pri->data_fd, SHUT_RDWR) < 0)
-+		printk(UM_KERN_ERR "etap_close - shutdown data socket failed, "
- 		       "errno = %d\n", errno);
+ /* Initialized from linux_main() */
+-void (*sig_info[NSIG])(int, union uml_pt_regs *);
++void (*sig_info[NSIG])(int, struct uml_pt_regs *);
  
-+	if (shutdown(pri->control_fd, SHUT_RDWR) < 0)
-+		printk(UM_KERN_ERR "etap_close - shutdown control socket "
-+		       "failed, errno = %d\n", errno);
-+
- 	close(pri->data_fd);
- 	pri->data_fd = -1;
- 	close(pri->control_fd);
-@@ -231,7 +233,7 @@ static void etap_add_addr(unsigned char 
- 	struct ethertap_data *pri = data;
- 
- 	tap_check_ips(pri->gate_addr, addr);
--	if(pri->control_fd == -1)
-+	if (pri->control_fd == -1)
- 		return;
- 	etap_open_addr(addr, netmask, &pri->control_fd);
- }
-@@ -241,7 +243,7 @@ static void etap_del_addr(unsigned char 
+ void os_fill_handlinfo(struct kern_handlers h)
  {
- 	struct ethertap_data *pri = data;
+@@ -28,7 +23,6 @@ void os_fill_handlinfo(struct kern_handl
+ 	sig_info[SIGIO] = h.sigio_handler;
+ 	sig_info[SIGVTALRM] = h.timer_handler;
+ 	sig_info[SIGALRM] = h.timer_handler;
+-	sig_info[SIGUSR2] = usr2_handler;
+ }
  
--	if(pri->control_fd == -1)
-+	if (pri->control_fd == -1)
+ void do_longjmp(void *b, int val)
+diff -puN arch/um/os-Linux/umid.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/os-Linux/umid.c
+--- a/arch/um/os-Linux/umid.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/os-Linux/umid.c
+@@ -11,7 +11,6 @@
+ #include "init.h"
+ #include "os.h"
+ #include "user.h"
+-#include "mode.h"
+ 
+ #define UML_DIR "~/.uml/"
+ 
+diff -puN arch/um/sys-i386/bugs.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/sys-i386/bugs.c
+--- a/arch/um/sys-i386/bugs.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/sys-i386/bugs.c
+@@ -162,7 +162,7 @@ void arch_check_bugs(void)
+ 		host_has_xmm = have_it;
+ }
+ 
+-int arch_handle_signal(int sig, union uml_pt_regs *regs)
++int arch_handle_signal(int sig, struct uml_pt_regs *regs)
+ {
+ 	unsigned char tmp[2];
+ 
+diff -puN arch/um/sys-i386/fault.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/sys-i386/fault.c
+--- a/arch/um/sys-i386/fault.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/sys-i386/fault.c
+@@ -15,7 +15,7 @@ struct exception_table_entry
+ const struct exception_table_entry *search_exception_tables(unsigned long add);
+ 
+ /* Compare this to arch/i386/mm/extable.c:fixup_exception() */
+-int arch_fixup(unsigned long address, union uml_pt_regs *regs)
++int arch_fixup(unsigned long address, struct uml_pt_regs *regs)
+ {
+ 	const struct exception_table_entry *fixup;
+ 
+diff -puN arch/um/sys-i386/ldt.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/sys-i386/ldt.c
+--- a/arch/um/sys-i386/ldt.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/sys-i386/ldt.c
+@@ -13,7 +13,6 @@
+ #include "asm/ldt.h"
+ #include "asm/unistd.h"
+ #include "kern.h"
+-#include "mode_kern.h"
+ #include "os.h"
+ 
+ extern int modify_ldt(int func, void *ptr, unsigned long bytecount);
+@@ -33,7 +32,7 @@ long write_ldt_entry(struct mm_id * mm_i
+ 		 * modify isn't current->active_mm.
+ 		 * If this is called directly by modify_ldt,
+ 		 *     (current->active_mm->context.skas.u == mm_idp)
+-		 * will be true. So no call to switch_mm_skas(mm_idp) is done.
++		 * will be true. So no call to __switch_mm(mm_idp) is done.
+ 		 * If this is called in case of init_new_ldt or PTRACE_LDT,
+ 		 * mm_idp won't belong to current->active_mm, but child->mm.
+ 		 * So we need to switch child's mm into our userspace, then
+@@ -43,7 +42,7 @@ long write_ldt_entry(struct mm_id * mm_i
+ 		 */
+ 		if(!current->active_mm || current->active_mm == &init_mm ||
+ 		   mm_idp != &current->active_mm->context.skas.id)
+-			switch_mm_skas(mm_idp);
++			__switch_mm(mm_idp);
+ 	}
+ 
+ 	if(ptrace_ldt) {
+@@ -88,7 +87,7 @@ long write_ldt_entry(struct mm_id * mm_i
+ 		 */
+ 		if(current->active_mm && current->active_mm != &init_mm &&
+ 		   mm_idp != &current->active_mm->context.skas.id)
+-			switch_mm_skas(&current->active_mm->context.skas.id);
++			__switch_mm(&current->active_mm->context.skas.id);
+ 	}
+ 
+ 	return res;
+diff -puN arch/um/sys-i386/ptrace.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/sys-i386/ptrace.c
+--- a/arch/um/sys-i386/ptrace.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/sys-i386/ptrace.c
+@@ -14,16 +14,18 @@
+ #include "sysdep/sigcontext.h"
+ #include "sysdep/sc.h"
+ 
+-void arch_switch_to_skas(struct task_struct *from, struct task_struct *to)
++extern int arch_switch_tls(struct task_struct *from, struct task_struct *to);
++
++void arch_switch_to(struct task_struct *from, struct task_struct *to)
+ {
+-	int err = arch_switch_tls_skas(from, to);
++	int err = arch_switch_tls(from, to);
+ 	if (!err)
  		return;
  
- 	etap_close_addr(addr, netmask, &pri->control_fd);
-diff -puN arch/um/os-Linux/drivers/tuntap.h~uml-network-formatting arch/um/os-Linux/drivers/tuntap.h
---- a/arch/um/os-Linux/drivers/tuntap.h~uml-network-formatting
-+++ a/arch/um/os-Linux/drivers/tuntap.h
-@@ -1,5 +1,5 @@
- /* 
-- * Copyright (C) 2001, 2002 Jeff Dike (jdike@karaya.com)
-+ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
+ 	if (err != -EINVAL)
+-		printk(KERN_WARNING "arch_switch_tls_skas failed, errno %d, not EINVAL\n", -err);
++		printk(KERN_WARNING "arch_switch_tls failed, errno %d, not EINVAL\n", -err);
+ 	else
+-		printk(KERN_WARNING "arch_switch_tls_skas failed, errno = EINVAL\n");
++		printk(KERN_WARNING "arch_switch_tls failed, errno = EINVAL\n");
+ }
  
-@@ -19,14 +19,3 @@ struct tuntap_data {
- extern const struct net_user_info tuntap_user_info;
+ int is_syscall(unsigned long addr)
+diff -puN arch/um/sys-i386/signal.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/sys-i386/signal.c
+--- a/arch/um/sys-i386/signal.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/sys-i386/signal.c
+@@ -14,30 +14,30 @@
+ #include "registers.h"
+ #include "skas.h"
+ 
+-void copy_sc(union uml_pt_regs *regs, void *from)
++void copy_sc(struct uml_pt_regs *regs, void *from)
+ {
+ 	struct sigcontext *sc = from;
+ 
+-	REGS_GS(regs->skas.regs) = sc->gs;
+-	REGS_FS(regs->skas.regs) = sc->fs;
+-	REGS_ES(regs->skas.regs) = sc->es;
+-	REGS_DS(regs->skas.regs) = sc->ds;
+-	REGS_EDI(regs->skas.regs) = sc->edi;
+-	REGS_ESI(regs->skas.regs) = sc->esi;
+-	REGS_EBP(regs->skas.regs) = sc->ebp;
+-	REGS_SP(regs->skas.regs) = sc->esp;
+-	REGS_EBX(regs->skas.regs) = sc->ebx;
+-	REGS_EDX(regs->skas.regs) = sc->edx;
+-	REGS_ECX(regs->skas.regs) = sc->ecx;
+-	REGS_EAX(regs->skas.regs) = sc->eax;
+-	REGS_IP(regs->skas.regs) = sc->eip;
+-	REGS_CS(regs->skas.regs) = sc->cs;
+-	REGS_EFLAGS(regs->skas.regs) = sc->eflags;
+-	REGS_SS(regs->skas.regs) = sc->ss;
++	REGS_GS(regs->regs) = sc->gs;
++	REGS_FS(regs->regs) = sc->fs;
++	REGS_ES(regs->regs) = sc->es;
++	REGS_DS(regs->regs) = sc->ds;
++	REGS_EDI(regs->regs) = sc->edi;
++	REGS_ESI(regs->regs) = sc->esi;
++	REGS_EBP(regs->regs) = sc->ebp;
++	REGS_SP(regs->regs) = sc->esp;
++	REGS_EBX(regs->regs) = sc->ebx;
++	REGS_EDX(regs->regs) = sc->edx;
++	REGS_ECX(regs->regs) = sc->ecx;
++	REGS_EAX(regs->regs) = sc->eax;
++	REGS_IP(regs->regs) = sc->eip;
++	REGS_CS(regs->regs) = sc->cs;
++	REGS_EFLAGS(regs->regs) = sc->eflags;
++	REGS_SS(regs->regs) = sc->ss;
+ }
+ 
+-static int copy_sc_from_user_skas(struct pt_regs *regs,
+-				  struct sigcontext __user *from)
++static int copy_sc_from_user(struct pt_regs *regs,
++			     struct sigcontext __user *from)
+ {
+   	struct sigcontext sc;
+ 	unsigned long fpregs[HOST_FP_SIZE];
+@@ -60,31 +60,32 @@ static int copy_sc_from_user_skas(struct
+ 	return 0;
+ }
+ 
+-int copy_sc_to_user_skas(struct sigcontext __user *to, struct _fpstate __user *to_fp,
+-                         struct pt_regs *regs, unsigned long sp)
++static int copy_sc_to_user(struct sigcontext __user *to,
++			   struct _fpstate __user *to_fp, struct pt_regs *regs,
++			   unsigned long sp)
+ {
+   	struct sigcontext sc;
+ 	unsigned long fpregs[HOST_FP_SIZE];
+ 	struct faultinfo * fi = &current->thread.arch.faultinfo;
+ 	int err;
+ 
+-	sc.gs = REGS_GS(regs->regs.skas.regs);
+-	sc.fs = REGS_FS(regs->regs.skas.regs);
+-	sc.es = REGS_ES(regs->regs.skas.regs);
+-	sc.ds = REGS_DS(regs->regs.skas.regs);
+-	sc.edi = REGS_EDI(regs->regs.skas.regs);
+-	sc.esi = REGS_ESI(regs->regs.skas.regs);
+-	sc.ebp = REGS_EBP(regs->regs.skas.regs);
++	sc.gs = REGS_GS(regs->regs.regs);
++	sc.fs = REGS_FS(regs->regs.regs);
++	sc.es = REGS_ES(regs->regs.regs);
++	sc.ds = REGS_DS(regs->regs.regs);
++	sc.edi = REGS_EDI(regs->regs.regs);
++	sc.esi = REGS_ESI(regs->regs.regs);
++	sc.ebp = REGS_EBP(regs->regs.regs);
+ 	sc.esp = sp;
+-	sc.ebx = REGS_EBX(regs->regs.skas.regs);
+-	sc.edx = REGS_EDX(regs->regs.skas.regs);
+-	sc.ecx = REGS_ECX(regs->regs.skas.regs);
+-	sc.eax = REGS_EAX(regs->regs.skas.regs);
+-	sc.eip = REGS_IP(regs->regs.skas.regs);
+-	sc.cs = REGS_CS(regs->regs.skas.regs);
+-	sc.eflags = REGS_EFLAGS(regs->regs.skas.regs);
+-	sc.esp_at_signal = regs->regs.skas.regs[UESP];
+-	sc.ss = regs->regs.skas.regs[SS];
++	sc.ebx = REGS_EBX(regs->regs.regs);
++	sc.edx = REGS_EDX(regs->regs.regs);
++	sc.ecx = REGS_ECX(regs->regs.regs);
++	sc.eax = REGS_EAX(regs->regs.regs);
++	sc.eip = REGS_IP(regs->regs.regs);
++	sc.cs = REGS_CS(regs->regs.regs);
++	sc.eflags = REGS_EFLAGS(regs->regs.regs);
++	sc.esp_at_signal = regs->regs.regs[UESP];
++	sc.ss = regs->regs.regs[SS];
+         sc.cr2 = fi->cr2;
+         sc.err = fi->error_code;
+         sc.trapno = fi->trap_no;
+@@ -105,17 +106,6 @@ int copy_sc_to_user_skas(struct sigconte
+ 	       copy_to_user(to_fp, fpregs, sizeof(fpregs));
+ }
+ 
+-static int copy_sc_from_user(struct pt_regs *to, void __user *from)
+-{
+-	return copy_sc_from_user_skas(to, from);
+-}
+-
+-static int copy_sc_to_user(struct sigcontext __user *to, struct _fpstate __user *fp,
+-			   struct pt_regs *from, unsigned long sp)
+-{
+-	return copy_sc_to_user_skas(to, fp, from, sp);
+-}
+-
+ static int copy_ucontext_to_user(struct ucontext __user *uc, struct _fpstate __user *fp,
+ 				 sigset_t *set, unsigned long sp)
+ {
+diff -puN arch/um/sys-i386/tls.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/sys-i386/tls.c
+--- a/arch/um/sys-i386/tls.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/sys-i386/tls.c
+@@ -14,9 +14,7 @@
+ #include "asm/desc.h"
+ #include "kern.h"
+ #include "kern_util.h"
+-#include "mode_kern.h"
+ #include "os.h"
+-#include "mode.h"
+ #include "skas.h"
+ 
+ /*
+@@ -167,7 +165,7 @@ void clear_flushed_tls(struct task_struc
+  * And this will not need be used when (and if) we'll add support to the host
+  * SKAS patch. */
+ 
+-int arch_switch_tls_skas(struct task_struct *from, struct task_struct *to)
++int arch_switch_tls(struct task_struct *from, struct task_struct *to)
+ {
+ 	if (!host_supports_tls)
+ 		return 0;
+diff -puN arch/um/sys-x86_64/bugs.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/sys-x86_64/bugs.c
+--- a/arch/um/sys-x86_64/bugs.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/sys-x86_64/bugs.c
+@@ -14,7 +14,7 @@ void arch_check_bugs(void)
+ {
+ }
+ 
+-int arch_handle_signal(int sig, union uml_pt_regs *regs)
++int arch_handle_signal(int sig, struct uml_pt_regs *regs)
+ {
+ 	return 0;
+ }
+diff -puN arch/um/sys-x86_64/fault.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/sys-x86_64/fault.c
+--- a/arch/um/sys-x86_64/fault.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/sys-x86_64/fault.c
+@@ -14,7 +14,7 @@ struct exception_table_entry
+ };
+ 
+ const struct exception_table_entry *search_exception_tables(unsigned long add);
+-int arch_fixup(unsigned long address, union uml_pt_regs *regs)
++int arch_fixup(unsigned long address, struct uml_pt_regs *regs)
+ {
+ 	const struct exception_table_entry *fixup;
+ 
+diff -puN arch/um/sys-x86_64/signal.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/sys-x86_64/signal.c
+--- a/arch/um/sys-x86_64/signal.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/sys-x86_64/signal.c
+@@ -16,12 +16,12 @@
+ #include "frame_kern.h"
+ #include "skas.h"
+ 
+-void copy_sc(union uml_pt_regs *regs, void *from)
++void copy_sc(struct uml_pt_regs *regs, void *from)
+ {
+ 	struct sigcontext *sc = from;
+ 
+ #define GETREG(regs, regno, sc, regname) \
+-       (regs)->skas.regs[(regno) / sizeof(unsigned long)] = (sc)->regname
++       (regs)->regs[(regno) / sizeof(unsigned long)] = (sc)->regname
+ 
+        GETREG(regs, R8, sc, r8);
+        GETREG(regs, R9, sc, r9);
+@@ -46,13 +46,13 @@ void copy_sc(union uml_pt_regs *regs, vo
+ #undef GETREG
+ }
+ 
+-static int copy_sc_from_user_skas(struct pt_regs *regs,
+-                                 struct sigcontext __user *from)
++static int copy_sc_from_user(struct pt_regs *regs,
++			     struct sigcontext __user *from)
+ {
+        int err = 0;
+ 
+ #define GETREG(regs, regno, sc, regname) \
+-       __get_user((regs)->regs.skas.regs[(regno) / sizeof(unsigned long)], \
++       __get_user((regs)->regs.regs[(regno) / sizeof(unsigned long)], \
+                   &(sc)->regname)
+ 
+        err |= GETREG(regs, R8, from, r8);
+@@ -80,10 +80,9 @@ static int copy_sc_from_user_skas(struct
+        return err;
+ }
+ 
+-int copy_sc_to_user_skas(struct sigcontext __user *to,
+-			 struct _fpstate __user *to_fp,
+-			 struct pt_regs *regs, unsigned long mask,
+-			 unsigned long sp)
++static int copy_sc_to_user(struct sigcontext __user *to,
++			   struct _fpstate __user *to_fp, struct pt_regs *regs,
++			   unsigned long mask, unsigned long sp)
+ {
+         struct faultinfo * fi = &current->thread.arch.faultinfo;
+ 	int err = 0;
+@@ -92,7 +91,7 @@ int copy_sc_to_user_skas(struct sigconte
+ 	err |= __put_user(0, &to->fs);
+ 
+ #define PUTREG(regs, regno, sc, regname) \
+-       __put_user((regs)->regs.skas.regs[(regno) / sizeof(unsigned long)], \
++       __put_user((regs)->regs.regs[(regno) / sizeof(unsigned long)], \
+                   &(sc)->regname)
+ 
+ 	err |= PUTREG(regs, RDI, to, rdi);
+@@ -130,22 +129,6 @@ int copy_sc_to_user_skas(struct sigconte
+ 	return(err);
+ }
+ 
+-static int copy_sc_from_user(struct pt_regs *to, void __user *from)
+-{
+-       int ret;
+-
+-       ret = copy_sc_from_user_skas(to, from);
+-       return(ret);
+-}
+-
+-static int copy_sc_to_user(struct sigcontext __user *to,
+-			   struct _fpstate __user *fp,
+-			   struct pt_regs *from, unsigned long mask,
+-			   unsigned long sp)
+-{
+-       return copy_sc_to_user_skas(to, fp, from, mask, sp);
+-}
+-
+ struct rt_sigframe
+ {
+        char __user *pretcode;
+diff -puN arch/um/sys-x86_64/syscalls.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/sys-x86_64/syscalls.c
+--- a/arch/um/sys-x86_64/syscalls.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/sys-x86_64/syscalls.c
+@@ -28,8 +28,7 @@ asmlinkage long sys_uname64(struct new_u
+ 	return err ? -EFAULT : 0;
+ }
+ 
+-long arch_prctl_skas(struct task_struct *task, int code,
+-                     unsigned long __user *addr)
++long arch_prctl(struct task_struct *task, int code, unsigned long __user *addr)
+ {
+         unsigned long *ptr = addr, tmp;
+ 	long ret;
+@@ -91,7 +90,7 @@ long arch_prctl_skas(struct task_struct 
+ 
+ long sys_arch_prctl(int code, unsigned long addr)
+ {
+-	return arch_prctl_skas(current, code, (unsigned long __user *) addr);
++	return arch_prctl(current, code, (unsigned long __user *) addr);
+ }
+ 
+ long sys_clone(unsigned long clone_flags, unsigned long newsp,
+@@ -108,10 +107,10 @@ long sys_clone(unsigned long clone_flags
+ 	return ret;
+ }
+ 
+-void arch_switch_to_skas(struct task_struct *from, struct task_struct *to)
++void arch_switch_to(struct task_struct *from, struct task_struct *to)
+ {
+         if((to->thread.arch.fs == 0) || (to->mm == NULL))
+                 return;
+ 
+-        arch_prctl_skas(to, ARCH_SET_FS, (void __user *) to->thread.arch.fs);
++        arch_prctl(to, ARCH_SET_FS, (void __user *) to->thread.arch.fs);
+ }
+diff -puN arch/um/sys-x86_64/tls.c~uml-remove-code-made-redundant-by-choose_mode-removal arch/um/sys-x86_64/tls.c
+--- a/arch/um/sys-x86_64/tls.c~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/arch/um/sys-x86_64/tls.c
+@@ -11,7 +11,7 @@ int arch_copy_tls(struct task_struct *t)
+ 	 * (which is argument 5, child_tid, of clone) so it can be set
+ 	 * during context switches.
+ 	 */
+-	t->thread.arch.fs = t->thread.regs.regs.skas.regs[R8 / sizeof(long)];
++	t->thread.arch.fs = t->thread.regs.regs.regs[R8 / sizeof(long)];
+ 
+         return 0;
+ }
+diff -puN include/asm-um/mmu_context.h~uml-remove-code-made-redundant-by-choose_mode-removal include/asm-um/mmu_context.h
+--- a/include/asm-um/mmu_context.h~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/include/asm-um/mmu_context.h
+@@ -29,7 +29,7 @@ static inline void activate_mm(struct mm
+ 	 * possible.
+ 	 */
+ 	if (old != new && (current->flags & PF_BORROWED_MM))
+-		switch_mm_skas(&new->context.skas.id);
++		__switch_mm(&new->context.skas.id);
+ }
+ 
+ static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next, 
+@@ -41,7 +41,7 @@ static inline void switch_mm(struct mm_s
+ 		cpu_clear(cpu, prev->cpu_vm_mask);
+ 		cpu_set(cpu, next->cpu_vm_mask);
+ 		if(next != &init_mm)
+-			switch_mm_skas(&next->context.skas.id);
++			__switch_mm(&next->context.skas.id);
+ 	}
+ }
+ 
+@@ -50,21 +50,9 @@ static inline void enter_lazy_tlb(struct
+ {
+ }
+ 
+-extern int init_new_context_skas(struct task_struct *task, 
+-				 struct mm_struct *mm);
++extern int init_new_context(struct task_struct *task, struct mm_struct *mm);
+ 
+-static inline int init_new_context(struct task_struct *task, 
+-				   struct mm_struct *mm)
+-{
+-	return(init_new_context_skas(task, mm));
+-}
+-
+-extern void destroy_context_skas(struct mm_struct *mm);
+-
+-static inline void destroy_context(struct mm_struct *mm)
+-{
+-	destroy_context_skas(mm);
+-}
++extern void destroy_context(struct mm_struct *mm);
  
  #endif
+ 
+diff -puN include/asm-um/processor-generic.h~uml-remove-code-made-redundant-by-choose_mode-removal include/asm-um/processor-generic.h
+--- a/include/asm-um/processor-generic.h~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/include/asm-um/processor-generic.h
+@@ -32,12 +32,8 @@ struct thread_struct {
+ 	unsigned long temp_stack;
+ 	void *exec_buf;
+ 	struct arch_thread arch;
+-	union {
+-		struct {
+-			jmp_buf switch_buf;
+-			int mm_count;
+-		} skas;
+-	} mode;
++	jmp_buf switch_buf;
++	int mm_count;
+ 	struct {
+ 		int op;
+ 		union {
+@@ -75,7 +71,10 @@ typedef struct {
+ 
+ extern struct task_struct *alloc_task_struct(void);
+ 
+-extern void release_thread(struct task_struct *);
++static inline void release_thread(struct task_struct *task)
++{
++}
++
+ extern int kernel_thread(int (*fn)(void *), void * arg, unsigned long flags);
+ 
+ static inline void prepare_to_copy(struct task_struct *tsk)
+@@ -125,8 +124,7 @@ extern struct cpuinfo_um cpu_data[];
+ #endif
+ 
+ 
+-#define KSTK_REG(tsk, reg) \
+-	get_thread_reg(reg, &tsk->thread.mode.skas.switch_buf)
++#define KSTK_REG(tsk, reg) get_thread_reg(reg, &tsk->thread.switch_buf)
+ #define get_wchan(p) (0)
+ 
+ #endif
+diff -puN include/asm-um/ptrace-generic.h~uml-remove-code-made-redundant-by-choose_mode-removal include/asm-um/ptrace-generic.h
+--- a/include/asm-um/ptrace-generic.h~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/include/asm-um/ptrace-generic.h
+@@ -12,7 +12,7 @@
+ #include "sysdep/ptrace.h"
+ 
+ struct pt_regs {
+-	union uml_pt_regs regs;
++	struct uml_pt_regs regs;
+ };
+ 
+ #define EMPTY_REGS { .regs = EMPTY_UML_PT_REGS }
+@@ -44,7 +44,7 @@ extern int set_fpxregs(unsigned long buf
+ 
+ extern void show_regs(struct pt_regs *regs);
+ 
+-extern void send_sigtrap(struct task_struct *tsk, union uml_pt_regs *regs,
++extern void send_sigtrap(struct task_struct *tsk, struct uml_pt_regs *regs,
+ 			 int error_code);
+ 
+ extern int arch_copy_tls(struct task_struct *new);
+diff -puN include/asm-um/ptrace-i386.h~uml-remove-code-made-redundant-by-choose_mode-removal include/asm-um/ptrace-i386.h
+--- a/include/asm-um/ptrace-i386.h~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/include/asm-um/ptrace-i386.h
+@@ -46,21 +46,4 @@ extern int ptrace_get_thread_area(struct
+ extern int ptrace_set_thread_area(struct task_struct *child, int idx,
+                                   struct user_desc __user *user_desc);
+ 
+-extern int do_set_thread_area_skas(struct user_desc *info);
+-extern int do_get_thread_area_skas(struct user_desc *info);
 -
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/os-Linux/drivers/tuntap_kern.c~uml-network-formatting arch/um/os-Linux/drivers/tuntap_kern.c
---- a/arch/um/os-Linux/drivers/tuntap_kern.c~uml-network-formatting
-+++ a/arch/um/os-Linux/drivers/tuntap_kern.c
-@@ -1,16 +1,13 @@
--/* 
-- * Copyright (C) 2001 Jeff Dike (jdike@karaya.com)
-+/*
-+ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
- 
--#include "linux/stddef.h"
--#include "linux/netdevice.h"
--#include "linux/etherdevice.h"
--#include "linux/skbuff.h"
--#include "linux/init.h"
--#include "asm/errno.h"
-+#include <linux/netdevice.h>
-+#include <linux/init.h>
-+#include <linux/skbuff.h>
-+#include <asm/errno.h>
- #include "net_kern.h"
--#include "net_user.h"
- #include "tuntap.h"
- 
- struct tuntap_init {
-@@ -38,19 +35,20 @@ static void tuntap_init(struct net_devic
- 	printk("\n");
+-extern int do_set_thread_area_tt(struct user_desc *info);
+-extern int do_get_thread_area_tt(struct user_desc *info);
+-
+-extern int arch_switch_tls_skas(struct task_struct *from, struct task_struct *to);
+-extern int arch_switch_tls_tt(struct task_struct *from, struct task_struct *to);
+-
+-extern void arch_switch_to_tt(struct task_struct *from, struct task_struct *to);
+-extern void arch_switch_to_skas(struct task_struct *from, struct task_struct *to);
+-
+-extern int do_get_thread_area_skas(struct user_desc *info);
+-extern int do_set_thread_area_skas(struct user_desc *info);
+-
+-struct task_struct;
+-
+ #endif
+diff -puN include/asm-um/ptrace-x86_64.h~uml-remove-code-made-redundant-by-choose_mode-removal include/asm-um/ptrace-x86_64.h
+--- a/include/asm-um/ptrace-x86_64.h~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/include/asm-um/ptrace-x86_64.h
+@@ -76,15 +76,6 @@ static inline int ptrace_set_thread_area
+         return -ENOSYS;
  }
  
--static int tuntap_read(int fd, struct sk_buff **skb, 
-+static int tuntap_read(int fd, struct sk_buff **skb,
- 		       struct uml_net_private *lp)
- {
- 	*skb = ether_adjust_skb(*skb, ETH_HEADER_OTHER);
--	if(*skb == NULL) return(-ENOMEM);
--	return(net_read(fd, skb_mac_header(*skb),
--			(*skb)->dev->mtu + ETH_HEADER_OTHER));
-+	if (*skb == NULL)
-+		return -ENOMEM;
-+	return net_read(fd, skb_mac_header(*skb),
-+			(*skb)->dev->mtu + ETH_HEADER_OTHER);
- }
- 
--static int tuntap_write(int fd, struct sk_buff **skb, 
-+static int tuntap_write(int fd, struct sk_buff **skb,
- 			struct uml_net_private *lp)
- {
--	return(net_write(fd, (*skb)->data, (*skb)->len));
-+	return net_write(fd, (*skb)->data, (*skb)->len);
- }
- 
- const struct net_kern_info tuntap_kern_info = {
-@@ -67,11 +65,11 @@ int tuntap_setup(char *str, char **mac_o
- 	*init = ((struct tuntap_init)
- 		{ .dev_name 	= NULL,
- 		  .gate_addr 	= NULL });
--	if(tap_setup_common(str, "tuntap", &init->dev_name, mac_out,
-+	if (tap_setup_common(str, "tuntap", &init->dev_name, mac_out,
- 			    &init->gate_addr))
--		return(0);
-+		return 0;
- 
--	return(1);
-+	return 1;
- }
- 
- static struct transport tuntap_transport = {
-diff -puN arch/um/os-Linux/drivers/tuntap_user.c~uml-network-formatting arch/um/os-Linux/drivers/tuntap_user.c
---- a/arch/um/os-Linux/drivers/tuntap_user.c~uml-network-formatting
-+++ a/arch/um/os-Linux/drivers/tuntap_user.c
-@@ -1,25 +1,22 @@
- /* 
-- * Copyright (C) 2001, 2002 Jeff Dike (jdike@karaya.com)
-+ * Copyright (C) 2001 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
- 
- #include <stdio.h>
--#include <stddef.h>
--#include <stdlib.h>
- #include <unistd.h>
- #include <errno.h>
--#include <sys/wait.h>
-+#include <string.h>
-+#include <linux/if_tun.h>
-+#include <net/if.h>
-+#include <sys/ioctl.h>
- #include <sys/socket.h>
--#include <sys/un.h>
-+#include <sys/wait.h>
- #include <sys/uio.h>
--#include <sys/ioctl.h>
--#include <net/if.h>
--#include <linux/if_tun.h>
--#include "net_user.h"
-+#include "kern_constants.h"
-+#include "os.h"
- #include "tuntap.h"
--#include "kern_util.h"
- #include "user.h"
--#include "os.h"
- 
- #define MAX_PACKET ETH_MAX_PACKET
- 
-@@ -37,7 +34,7 @@ static void tuntap_add_addr(unsigned cha
- 	struct tuntap_data *pri = data;
- 
- 	tap_check_ips(pri->gate_addr, addr);
--	if((pri->fd == -1) || pri->fixed_config)
-+	if ((pri->fd == -1) || pri->fixed_config)
- 		return;
- 	open_addr(addr, netmask, pri->dev_name);
- }
-@@ -47,7 +44,7 @@ static void tuntap_del_addr(unsigned cha
- {
- 	struct tuntap_data *pri = data;
- 
--	if((pri->fd == -1) || pri->fixed_config)
-+	if ((pri->fd == -1) || pri->fixed_config)
- 		return;
- 	close_addr(addr, netmask, pri->dev_name);
- }
-@@ -85,14 +82,14 @@ static int tuntap_open_tramp(char *gate,
- 
- 	pid = run_helper(tuntap_pre_exec, &data, argv);
- 
--	if(pid < 0)
-+	if (pid < 0)
- 		return -pid;
- 
- 	close(remote);
- 
- 	msg.msg_name = NULL;
- 	msg.msg_namelen = 0;
--	if(buffer != NULL){
-+	if (buffer != NULL) {
- 		iov = ((struct iovec) { buffer, buffer_len });
- 		msg.msg_iov = &iov;
- 		msg.msg_iovlen = 1;
-@@ -106,22 +103,24 @@ static int tuntap_open_tramp(char *gate,
- 	msg.msg_flags = 0;
- 	n = recvmsg(me, &msg, 0);
- 	*used_out = n;
--	if(n < 0){
-+	if (n < 0) {
- 		err = -errno;
--		printk("tuntap_open_tramp : recvmsg failed - errno = %d\n", 
--		       errno);
-+		printk(UM_KERN_ERR "tuntap_open_tramp : recvmsg failed - "
-+		       "errno = %d\n", errno);
- 		return err;
- 	}
- 	CATCH_EINTR(waitpid(pid, NULL, 0));
- 
- 	cmsg = CMSG_FIRSTHDR(&msg);
--	if(cmsg == NULL){
--		printk("tuntap_open_tramp : didn't receive a message\n");
-+	if (cmsg == NULL) {
-+		printk(UM_KERN_ERR "tuntap_open_tramp : didn't receive a "
-+		       "message\n");
- 		return -EINVAL;
- 	}
--	if((cmsg->cmsg_level != SOL_SOCKET) || 
--	   (cmsg->cmsg_type != SCM_RIGHTS)){
--		printk("tuntap_open_tramp : didn't receive a descriptor\n");
-+	if ((cmsg->cmsg_level != SOL_SOCKET) ||
-+	   (cmsg->cmsg_type != SCM_RIGHTS)) {
-+		printk(UM_KERN_ERR "tuntap_open_tramp : didn't receive a "
-+		       "descriptor\n");
- 		return -EINVAL;
- 	}
- 	*fd_out = ((int *) CMSG_DATA(cmsg))[0];
-@@ -137,38 +136,39 @@ static int tuntap_open(void *data)
- 	int err, fds[2], len, used;
- 
- 	err = tap_open_common(pri->dev, pri->gate_addr);
--	if(err < 0)
-+	if (err < 0)
- 		return err;
- 
--	if(pri->fixed_config){
-+	if (pri->fixed_config) {
- 		pri->fd = os_open_file("/dev/net/tun",
- 				       of_cloexec(of_rdwr(OPENFLAGS())), 0);
--		if(pri->fd < 0){
--			printk("Failed to open /dev/net/tun, err = %d\n",
--			       -pri->fd);
-+		if (pri->fd < 0) {
-+			printk(UM_KERN_ERR "Failed to open /dev/net/tun, "
-+			       "err = %d\n", -pri->fd);
- 			return pri->fd;
- 		}
- 		memset(&ifr, 0, sizeof(ifr));
- 		ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
- 		strlcpy(ifr.ifr_name, pri->dev_name, sizeof(ifr.ifr_name));
--		if(ioctl(pri->fd, TUNSETIFF, (void *) &ifr) < 0){
-+		if (ioctl(pri->fd, TUNSETIFF, (void *) &ifr) < 0) {
- 			err = -errno;
--			printk("TUNSETIFF failed, errno = %d\n", errno);
-+			printk(UM_KERN_ERR "TUNSETIFF failed, errno = %d\n",
-+			       errno);
- 			close(pri->fd);
- 			return err;
- 		}
- 	}
- 	else {
- 		err = socketpair(AF_UNIX, SOCK_DGRAM, 0, fds);
--		if(err){
-+		if (err) {
- 			err = -errno;
--			printk("tuntap_open : socketpair failed - errno = %d\n",
--			       errno);
-+			printk(UM_KERN_ERR "tuntap_open : socketpair failed - "
-+			       "errno = %d\n", errno);
- 			return err;
- 		}
- 
- 		buffer = get_output_buffer(&len);
--		if(buffer != NULL)
-+		if (buffer != NULL)
- 			len--;
- 		used = 0;
- 
-@@ -176,10 +176,11 @@ static int tuntap_open(void *data)
- 					fds[1], buffer, len, &used);
- 
- 		output = buffer;
--		if(err < 0) {
-+		if (err < 0) {
- 			printk("%s", output);
- 			free_output_buffer(buffer);
--			printk("tuntap_open_tramp failed - err = %d\n", -err);
-+			printk(UM_KERN_ERR "tuntap_open_tramp failed - "
-+			       "err = %d\n", -err);
- 			return err;
- 		}
- 
-@@ -199,7 +200,7 @@ static void tuntap_close(int fd, void *d
- {
- 	struct tuntap_data *pri = data;
- 
--	if(!pri->fixed_config) 
-+	if (!pri->fixed_config)
- 		iter_addresses(pri->dev, close_addr, pri->dev_name);
- 	close(fd);
- 	pri->fd = -1;
+-static inline void arch_switch_to_tt(struct task_struct *from,
+-                                     struct task_struct *to)
+-{
+-}
+-
+-extern void arch_switch_to_skas(struct task_struct *from,
+-				struct task_struct *to);
+-
+-extern long arch_prctl_skas(struct task_struct *task, int code,
+-			    unsigned long __user *addr);
+-
++extern long arch_prctl(struct task_struct *task, int code,
++		       unsigned long __user *addr);
+ #endif
+diff -puN include/asm-um/tlbflush.h~uml-remove-code-made-redundant-by-choose_mode-removal include/asm-um/tlbflush.h
+--- a/include/asm-um/tlbflush.h~uml-remove-code-made-redundant-by-choose_mode-removal
++++ a/include/asm-um/tlbflush.h
+@@ -24,18 +24,7 @@ extern void flush_tlb_all(void);
+ extern void flush_tlb_mm(struct mm_struct *mm);
+ extern void flush_tlb_range(struct vm_area_struct *vma, unsigned long start, 
+ 			    unsigned long end);
+-extern void flush_tlb_page_skas(struct vm_area_struct *vma,
+-				unsigned long address);
+-
+-static inline void flush_tlb_page(struct vm_area_struct *vma,
+-				  unsigned long address)
+-{
+-	address &= PAGE_MASK;
+-
+-	flush_tlb_page_skas(vma, address);
+-}
+-
+-extern void flush_tlb_page(struct vm_area_struct *vma, unsigned long vmaddr);
++extern void flush_tlb_page(struct vm_area_struct *vma, unsigned long address);
+ extern void flush_tlb_kernel_vm(void);
+ extern void flush_tlb_kernel_range(unsigned long start, unsigned long end);
+ extern void __flush_tlb_one(unsigned long addr);
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
