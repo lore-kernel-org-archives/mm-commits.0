@@ -1,540 +1,542 @@
 From: akpm@linux-foundation.org
-Subject: - pm2fb-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:42:51 -0700
-Message-ID: <200710162042.l9GKgpWv015922@imap1.linux-foundation.org>
+Subject: - s3c2410fb-source-code-improvements.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:43:39 -0700
+Message-ID: <200710162043.l9GKhdq6016068@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55439 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60204 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965257AbXJPVSZ (ORCPT
+	by vger.kernel.org with ESMTP id S965912AbXJPVSH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:18:25 -0400
+	Tue, 16 Oct 2007 17:18:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm2fb: checkpatch fixes
+     s3c2410fb: source code improvements
 has been removed from the -mm tree.  Its filename was
-     pm2fb-checkpatch-fixes.patch
+     s3c2410fb-source-code-improvements.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pm2fb: checkpatch fixes
+Subject: s3c2410fb: source code improvements
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-This patch fixes all errors detected by checkpatch.pl script in the pm2fb.c
-file.
+This patch:
+- moves more display mode preparations to s3c2410fb_check_var()
+- reduces number of fields in s3c2410fb_info
+- removes redundant values setting in s3c2410fb_probe()
+- removes static mach_info pointer
+- releases fb_info structure in s3c2410fb_remove()
+- changes s3c2410fb_init to __init from __devinit
+- fixes few typos in comments and removes unused includes
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pm2fb.c |  162 +++++++++++++++++++++-------------------
- 1 file changed, 88 insertions(+), 74 deletions(-)
+ drivers/video/s3c2410fb.c |  186 ++++++++++++++----------------------
+ drivers/video/s3c2410fb.h |   14 --
+ 2 files changed, 76 insertions(+), 124 deletions(-)
 
-diff -puN drivers/video/pm2fb.c~pm2fb-checkpatch-fixes drivers/video/pm2fb.c
---- a/drivers/video/pm2fb.c~pm2fb-checkpatch-fixes
-+++ a/drivers/video/pm2fb.c
-@@ -55,9 +55,10 @@
+diff -puN drivers/video/s3c2410fb.c~s3c2410fb-source-code-improvements drivers/video/s3c2410fb.c
+--- a/drivers/video/s3c2410fb.c~s3c2410fb-source-code-improvements
++++ a/drivers/video/s3c2410fb.c
+@@ -20,7 +20,7 @@
+  *
+  * 2004-12-04: Arnaud Patard <arnaud.patard@rtp-net.org>
+  *      - Added the possibility to set on or off the
+- *      debugging mesaages
++ *      debugging messages
+  *      - Replaced 0 and 1 by on or off when reading the
+  *      /sys files
+  *
+@@ -31,7 +31,7 @@
+  *	- add pixel clock divisor control
+  *
+  * 2004-11-11: Arnaud Patard <arnaud.patard@rtp-net.org>
+- *	- Removed the use of currcon as it no more exist
++ *	- Removed the use of currcon as it no more exists
+  *	- Added LCD power sysfs interface
+  *
+  * 2004-11-03: Ben Dooks <ben-linux@fluff.org>
+@@ -82,13 +82,10 @@
+ #include <linux/init.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/interrupt.h>
+-#include <linux/workqueue.h>
+-#include <linux/wait.h>
+ #include <linux/platform_device.h>
+ #include <linux/clk.h>
  
- #undef PM2FB_MASTER_DEBUG
- #ifdef PM2FB_MASTER_DEBUG
--#define DPRINTK(a,b...)	printk(KERN_DEBUG "pm2fb: %s: " a, __FUNCTION__ , ## b)
-+#define DPRINTK(a, b...)	\
-+	printk(KERN_DEBUG "pm2fb: %s: " a, __FUNCTION__ , ## b)
- #else
--#define DPRINTK(a,b...)
-+#define DPRINTK(a, b...)
- #endif
+ #include <asm/io.h>
+-#include <asm/uaccess.h>
+ #include <asm/div64.h>
  
- #define PM2_PIXMAP_SIZE	(1600 * 4)
-@@ -65,7 +66,7 @@
- /*
-  * Driver data
-  */
--static char *mode __devinitdata = NULL;
-+static char *mode __devinitdata;
+ #include <asm/mach/map.h>
+@@ -102,8 +99,6 @@
  
- /*
-  * The XFree GLINT driver will (I think to implement hardware cursor
-@@ -146,31 +147,31 @@ static struct fb_var_screeninfo pm2fb_va
-  * Utility functions
-  */
+ #include "s3c2410fb.h"
  
--static inline u32 pm2_RD(struct pm2fb_par* p, s32 off)
-+static inline u32 pm2_RD(struct pm2fb_par *p, s32 off)
+-static struct s3c2410fb_mach_info *mach_info;
+-
+ /* Debugging stuff */
+ #ifdef CONFIG_FB_S3C2410_DEBUG
+ static int debug	= 1;
+@@ -122,17 +117,16 @@ static int debug	= 0;
+ static void s3c2410fb_set_lcdaddr(struct fb_info *info)
  {
- 	return fb_readl(p->v_regs + off);
- }
+ 	unsigned long saddr1, saddr2, saddr3;
+-	int line_length = info->var.xres * info->var.bits_per_pixel;
+ 	struct s3c2410fb_info *fbi = info->par;
+ 	void __iomem *regs = fbi->io;
  
--static inline void pm2_WR(struct pm2fb_par* p, s32 off, u32 v)
-+static inline void pm2_WR(struct pm2fb_par *p, s32 off, u32 v)
+ 	saddr1  = info->fix.smem_start >> 1;
+ 	saddr2  = info->fix.smem_start;
+-	saddr2 += (line_length * info->var.yres) / 8;
++	saddr2 += info->fix.line_length * info->var.yres;
+ 	saddr2 >>= 1;
+ 
+ 	saddr3 = S3C2410_OFFSIZE(0) |
+-		 S3C2410_PAGEWIDTH((line_length / 16) & 0x3ff);
++		 S3C2410_PAGEWIDTH((info->fix.line_length / 2) & 0x3ff);
+ 
+ 	dprintk("LCDSADDR1 = 0x%08lx\n", saddr1);
+ 	dprintk("LCDSADDR2 = 0x%08lx\n", saddr2);
+@@ -153,14 +147,14 @@ static unsigned int s3c2410fb_calc_pixcl
+ 	unsigned long clk = clk_get_rate(fbi->clk);
+ 	unsigned long long div;
+ 
+-	/* pixclk is in picoseoncds, our clock is in Hz
++	/* pixclk is in picoseconds, our clock is in Hz
+ 	 *
+ 	 * Hz -> picoseconds is / 10^-12
+ 	 */
+ 
+ 	div = (unsigned long long)clk * pixclk;
+-	do_div(div, 1000000UL);
+-	do_div(div, 1000000UL);
++	div >>= 12;			/* div / 2^12 */
++	do_div(div, 625 * 625UL * 625); /* div / 5^12 */
+ 
+ 	dprintk("pixclk %ld, divisor is %ld\n", pixclk, (long)div);
+ 	return div;
+@@ -176,7 +170,7 @@ static int s3c2410fb_check_var(struct fb
+ 			       struct fb_info *info)
  {
- 	fb_writel(v, p->v_regs + off);
- }
+ 	struct s3c2410fb_info *fbi = info->par;
+-	struct s3c2410fb_mach_info *mach_info = fbi->mach_info;
++	struct s3c2410fb_mach_info *mach_info = fbi->dev->platform_data;
+ 	struct s3c2410fb_display *display = NULL;
+ 	unsigned i;
  
--static inline u32 pm2_RDAC_RD(struct pm2fb_par* p, s32 idx)
-+static inline u32 pm2_RDAC_RD(struct pm2fb_par *p, s32 idx)
- {
- 	pm2_WR(p, PM2R_RD_PALETTE_WRITE_ADDRESS, idx);
- 	mb();
- 	return pm2_RD(p, PM2R_RD_INDEXED_DATA);
- }
+@@ -189,7 +183,6 @@ static int s3c2410fb_check_var(struct fb
+ 		    var->xres == mach_info->displays[i].xres &&
+ 		    var->bits_per_pixel == mach_info->displays[i].bpp) {
+ 			display = mach_info->displays + i;
+-			fbi->current_display = i;
+ 			break;
+ 		}
  
--static inline u32 pm2v_RDAC_RD(struct pm2fb_par* p, s32 idx)
-+static inline u32 pm2v_RDAC_RD(struct pm2fb_par *p, s32 idx)
- {
- 	pm2_WR(p, PM2VR_RD_INDEX_LOW, idx & 0xff);
- 	mb();
- 	return pm2_RD(p,  PM2VR_RD_INDEXED_DATA);
- }
+@@ -202,10 +195,22 @@ static int s3c2410fb_check_var(struct fb
+ 	/* it is always the size as the display */
+ 	var->xres_virtual = display->xres;
+ 	var->yres_virtual = display->yres;
++	var->height = display->height;
++	var->width = display->width;
  
--static inline void pm2_RDAC_WR(struct pm2fb_par* p, s32 idx, u32 v)
-+static inline void pm2_RDAC_WR(struct pm2fb_par *p, s32 idx, u32 v)
- {
- 	pm2_WR(p, PM2R_RD_PALETTE_WRITE_ADDRESS, idx);
- 	wmb();
-@@ -178,7 +179,7 @@ static inline void pm2_RDAC_WR(struct pm
- 	wmb();
- }
- 
--static inline void pm2v_RDAC_WR(struct pm2fb_par* p, s32 idx, u32 v)
-+static inline void pm2v_RDAC_WR(struct pm2fb_par *p, s32 idx, u32 v)
- {
- 	pm2_WR(p, PM2VR_RD_INDEX_LOW, idx & 0xff);
- 	wmb();
-@@ -189,9 +190,9 @@ static inline void pm2v_RDAC_WR(struct p
- #ifdef CONFIG_FB_PM2_FIFO_DISCONNECT
- #define WAIT_FIFO(p, a)
- #else
--static inline void WAIT_FIFO(struct pm2fb_par* p, u32 a)
-+static inline void WAIT_FIFO(struct pm2fb_par *p, u32 a)
- {
--	while(pm2_RD(p, PM2R_IN_FIFO_SPACE) < a);
-+	while (pm2_RD(p, PM2R_IN_FIFO_SPACE) < a);
- 	mb();
- }
- #endif
-@@ -250,8 +251,8 @@ static u32 to3264(u32 timing, int bpp, i
- 	return timing;
- }
- 
--static void pm2_mnp(u32 clk, unsigned char* mm, unsigned char* nn,
--		    unsigned char* pp)
-+static void pm2_mnp(u32 clk, unsigned char *mm, unsigned char *nn,
-+		    unsigned char *pp)
- {
- 	unsigned char m;
- 	unsigned char n;
-@@ -279,8 +280,8 @@ static void pm2_mnp(u32 clk, unsigned ch
- 	}
- }
- 
--static void pm2v_mnp(u32 clk, unsigned char* mm, unsigned char* nn,
--		     unsigned char* pp)
-+static void pm2v_mnp(u32 clk, unsigned char *mm, unsigned char *nn,
-+		     unsigned char *pp)
- {
- 	unsigned char m;
- 	unsigned char n;
-@@ -304,7 +305,8 @@ static void pm2v_mnp(u32 clk, unsigned c
- 	}
- }
- 
--static void clear_palette(struct pm2fb_par* p) {
-+static void clear_palette(struct pm2fb_par *p)
-+{
- 	int i = 256;
- 
- 	WAIT_FIFO(p, 1);
-@@ -318,7 +320,7 @@ static void clear_palette(struct pm2fb_p
- 	}
- }
- 
--static void reset_card(struct pm2fb_par* p)
-+static void reset_card(struct pm2fb_par *p)
- {
- 	if (p->type == PM2_TYPE_PERMEDIA2V)
- 		pm2_WR(p, PM2VR_RD_INDEX_HIGH, 0);
-@@ -341,7 +343,7 @@ static void reset_card(struct pm2fb_par*
- 	pm2_WR(p, PM2R_MEM_CONFIG, p->mem_config);
- }
- 
--static void reset_config(struct pm2fb_par* p)
-+static void reset_config(struct pm2fb_par *p)
- {
- 	WAIT_FIFO(p, 53);
- 	pm2_WR(p, PM2R_CHIP_CONFIG, pm2_RD(p, PM2R_CHIP_CONFIG) &
-@@ -398,7 +400,7 @@ static void reset_config(struct pm2fb_pa
- 	}
- }
- 
--static void set_aperture(struct pm2fb_par* p, u32 depth)
-+static void set_aperture(struct pm2fb_par *p, u32 depth)
- {
- 	/*
- 	 * The hardware is little-endian. When used in big-endian
-@@ -428,11 +430,11 @@ static void set_aperture(struct pm2fb_pa
- 	}
- #endif
- 
--	// We don't use aperture two, so this may be superflous
-+	/* We don't use aperture two, so this may be superflous */
- 	pm2_WR(p, PM2R_APERTURE_TWO, PM2F_APERTURE_STANDARD);
- }
- 
--static void set_color(struct pm2fb_par* p, unsigned char regno,
-+static void set_color(struct pm2fb_par *p, unsigned char regno,
- 		      unsigned char r, unsigned char g, unsigned char b)
- {
- 	WAIT_FIFO(p, 4);
-@@ -445,7 +447,7 @@ static void set_color(struct pm2fb_par* 
- 	pm2_WR(p, PM2R_RD_PALETTE_DATA, b);
- }
- 
--static void set_memclock(struct pm2fb_par* par, u32 clk)
-+static void set_memclock(struct pm2fb_par *par, u32 clk)
- {
- 	int i;
- 	unsigned char m, n, p;
-@@ -482,7 +484,7 @@ static void set_memclock(struct pm2fb_pa
- 	}
- }
- 
--static void set_pixclock(struct pm2fb_par* par, u32 clk)
-+static void set_pixclock(struct pm2fb_par *par, u32 clk)
- {
- 	int i;
- 	unsigned char m, n, p;
-@@ -513,7 +515,8 @@ static void set_pixclock(struct pm2fb_pa
- 	}
- }
- 
--static void set_video(struct pm2fb_par* p, u32 video) {
-+static void set_video(struct pm2fb_par *p, u32 video)
-+{
- 	u32 tmp;
- 	u32 vsync = video;
- 
-@@ -572,12 +575,14 @@ static int pm2fb_check_var(struct fb_var
- 	}
- 
- 	if (var->xres != var->xres_virtual) {
--		DPRINTK("virtual x resolution != physical x resolution not supported\n");
-+		DPRINTK("virtual x resolution != "
-+			"physical x resolution not supported\n");
- 		return -EINVAL;
- 	}
- 
- 	if (var->yres > var->yres_virtual) {
--		DPRINTK("virtual y resolution < physical y resolution not possible\n");
-+		DPRINTK("virtual y resolution < "
-+			"physical y resolution not possible\n");
- 		return -EINVAL;
- 	}
- 
-@@ -611,15 +616,18 @@ static int pm2fb_check_var(struct fb_var
- 	}
- 
- 	if (PICOS2KHZ(var->pixclock) > PM2_MAX_PIXCLOCK) {
--		DPRINTK("pixclock too high (%ldKHz)\n", PICOS2KHZ(var->pixclock));
-+		DPRINTK("pixclock too high (%ldKHz)\n",
-+			PICOS2KHZ(var->pixclock));
- 		return -EINVAL;
- 	}
+ 	/* copy lcd settings */
+ 	var->left_margin = display->left_margin;
+ 	var->right_margin = display->right_margin;
++	var->upper_margin = display->upper_margin;
++	var->lower_margin = display->lower_margin;
++	var->vsync_len = display->vsync_len;
++	var->hsync_len = display->hsync_len;
++
++	fbi->regs.lcdcon1 = display->lcdcon1;
++	fbi->regs.lcdcon5 = display->lcdcon5;
++	/* set display type */
++	fbi->regs.lcdcon1 &= ~S3C2410_LCDCON1_TFT;
++	fbi->regs.lcdcon1 |= display->type;
  
  	var->transp.offset = 0;
  	var->transp.length = 0;
--	switch(var->bits_per_pixel) {
-+	switch (var->bits_per_pixel) {
- 	case 8:
--		var->red.length = var->green.length = var->blue.length = 8;
-+		var->red.length = 8;
-+		var->green.length = 8;
-+		var->blue.length = 8;
- 		break;
- 	case 16:
- 		var->red.offset   = 11;
-@@ -635,7 +643,9 @@ static int pm2fb_check_var(struct fb_var
- 		var->red.offset	  = 16;
- 		var->green.offset = 8;
- 		var->blue.offset  = 0;
--		var->red.length = var->green.length = var->blue.length = 8;
-+		var->red.length = 8;
-+		var->green.length = 8;
-+		var->blue.length = 8;
- 		break;
- 	case 24:
- #ifdef __BIG_ENDIAN
-@@ -646,10 +656,13 @@ static int pm2fb_check_var(struct fb_var
- 		var->blue.offset  = 0;
- #endif
- 		var->green.offset = 8;
--		var->red.length = var->green.length = var->blue.length = 8;
-+		var->red.length = 8;
-+		var->green.length = 8;
-+		var->blue.length = 8;
- 		break;
+@@ -420,19 +425,13 @@ static void s3c2410fb_activate_var(struc
+ {
+ 	struct s3c2410fb_info *fbi = info->par;
+ 	void __iomem *regs = fbi->io;
++	int type = fbi->regs.lcdcon1 & S3C2410_LCDCON1_TFT;
+ 	struct fb_var_screeninfo *var = &info->var;
+-	struct s3c2410fb_mach_info *mach_info = fbi->mach_info;
+-	struct s3c2410fb_display *display = mach_info->displays +
+-					    fbi->current_display;
+-
+-	/* set display type */
+-	fbi->regs.lcdcon1 &= ~S3C2410_LCDCON1_TFT;
+-	fbi->regs.lcdcon1 |= display->type;
+ 
+ 	if (var->pixclock > 0) {
+ 		int clkdiv = s3c2410fb_calc_pixclk(fbi, var->pixclock);
+ 
+-		if (display->type == S3C2410_LCDCON1_TFT) {
++		if (type == S3C2410_LCDCON1_TFT) {
+ 			clkdiv = (clkdiv / 2) - 1;
+ 			if (clkdiv < 0)
+ 				clkdiv = 0;
+@@ -446,7 +445,7 @@ static void s3c2410fb_activate_var(struc
+ 		fbi->regs.lcdcon1 |=  S3C2410_LCDCON1_CLKVAL(clkdiv);
  	}
--	var->height = var->width = -1;
-+	var->height = -1;
-+	var->width = -1;
  
- 	var->accel_flags = 0;	/* Can't mmap if this is on */
+-	if (display->type == S3C2410_LCDCON1_TFT)
++	if (type == S3C2410_LCDCON1_TFT)
+ 		s3c2410fb_calculate_tft_lcd_regs(info, &fbi->regs);
+ 	else
+ 		s3c2410fb_calculate_stn_lcd_regs(info, &fbi->regs);
+@@ -470,6 +469,7 @@ static void s3c2410fb_activate_var(struc
+ 	/* set lcd address pointers */
+ 	s3c2410fb_set_lcdaddr(info);
  
-@@ -708,7 +721,8 @@ static int pm2fb_set_par(struct fb_info 
- 		? info->var.lower_margin - 1
- 		: 0;	/* FIXME! */
- 	vsend = info->var.lower_margin + info->var.vsync_len - 1;
--	vbend = info->var.lower_margin + info->var.vsync_len + info->var.upper_margin;
-+	vbend = info->var.lower_margin + info->var.vsync_len +
-+		info->var.upper_margin;
- 	vtotal = info->var.yres + vbend - 1;
- 	stride = to3264(width, depth, 1);
- 	base = to3264(info->var.yoffset * xres + info->var.xoffset, depth, 1);
-@@ -721,18 +735,18 @@ static int pm2fb_set_par(struct fb_info 
- 			video |= PM2F_HSYNC_ACT_LOW;
- 		} else
- 			video |= PM2F_HSYNC_ACT_HIGH;
--	}
--	else
-+	} else
- 		video |= PM2F_HSYNC_ACT_LOW;
++	fbi->regs.lcdcon1 |= S3C2410_LCDCON1_ENVID,
+ 	writel(fbi->regs.lcdcon1, regs + S3C2410_LCDCON1);
+ }
+ 
+@@ -566,9 +566,9 @@ static int s3c2410fb_setcolreg(unsigned 
+ 		if (regno < 256) {
+ 			/* currently assume RGB 5-6-5 mode */
+ 
+-			val  = ((red   >>  0) & 0xf800);
+-			val |= ((green >>  5) & 0x07e0);
+-			val |= ((blue  >> 11) & 0x001f);
++			val  = (red   >>  0) & 0xf800;
++			val |= (green >>  5) & 0x07e0;
++			val |= (blue  >> 11) & 0x001f;
+ 
+ 			writel(val, regs + S3C2410_TFTPAL(regno));
+ 			schedule_palette_update(fbi, regno, val);
+@@ -606,9 +606,6 @@ static int s3c2410fb_blank(int blank_mod
+ 
+ 	dprintk("blank(mode=%d, info=%p)\n", blank_mode, info);
+ 
+-	if (mach_info == NULL)
+-		return -EINVAL;
+-
+ 	if (blank_mode == FB_BLANK_UNBLANK)
+ 		writel(0x0, regs + S3C2410_TPAL);
+ 	else {
+@@ -624,13 +621,11 @@ static int s3c2410fb_debug_show(struct d
+ {
+ 	return snprintf(buf, PAGE_SIZE, "%s\n", debug ? "on" : "off");
+ }
 +
- 	if (info->var.sync & FB_SYNC_VERT_HIGH_ACT) {
- 		if (lowvsync) {
- 			DPRINTK("ignoring +vsync, using -vsync.\n");
- 			video |= PM2F_VSYNC_ACT_LOW;
- 		} else
- 			video |= PM2F_VSYNC_ACT_HIGH;
--	}
--	else
-+	} else
- 		video |= PM2F_VSYNC_ACT_LOW;
-+
- 	if ((info->var.vmode & FB_VMODE_MASK) == FB_VMODE_INTERLACED) {
- 		DPRINTK("interlaced not supported\n");
+ static int s3c2410fb_debug_store(struct device *dev,
+ 				 struct device_attribute *attr,
+ 				 const char *buf, size_t len)
+ {
+-	if (mach_info == NULL)
+-		return -EINVAL;
+-
+ 	if (len < 1)
  		return -EINVAL;
-@@ -817,7 +831,7 @@ static int pm2fb_set_par(struct fb_info 
- 	case PM2_TYPE_PERMEDIA2:
- 		pm2_RDAC_WR(par, PM2I_RD_COLOR_MODE, clrmode);
- 		pm2_RDAC_WR(par, PM2I_RD_COLOR_KEY_CONTROL,
--			        (depth == 8) ? 0 : PM2F_COLOR_KEY_TEST_OFF);
-+				(depth == 8) ? 0 : PM2F_COLOR_KEY_TEST_OFF);
- 		break;
- 	case PM2_TYPE_PERMEDIA2V:
- 		pm2v_RDAC_WR(par, PM2VI_RD_DAC_CONTROL, 0);
-@@ -861,10 +875,9 @@ static int pm2fb_setcolreg(unsigned regn
- 	 */
  
- 	/* grayscale works only partially under directcolor */
--	if (info->var.grayscale) {
--		/* grayscale = 0.30*R + 0.59*G + 0.11*B */
-+	/* grayscale = 0.30*R + 0.59*G + 0.11*B */
-+	if (info->var.grayscale)
- 		red = green = blue = (red * 77 + green * 151 + blue * 28) >> 8;
+@@ -673,36 +668,35 @@ static struct fb_ops s3c2410fb_ops = {
+ static int __init s3c2410fb_map_video_memory(struct fb_info *info)
+ {
+ 	struct s3c2410fb_info *fbi = info->par;
++	dma_addr_t map_dma;
++	unsigned map_size = PAGE_ALIGN(info->fix.smem_len);
+ 
+ 	dprintk("map_video_memory(fbi=%p)\n", fbi);
+ 
+-	fbi->map_size = PAGE_ALIGN(info->fix.smem_len + PAGE_SIZE);
+-	fbi->map_cpu  = dma_alloc_writecombine(fbi->dev, fbi->map_size,
+-					       &fbi->map_dma, GFP_KERNEL);
++	info->screen_base = dma_alloc_writecombine(fbi->dev, map_size,
++						   &map_dma, GFP_KERNEL);
+ 
+-	fbi->map_size = info->fix.smem_len;
+-
+-	if (fbi->map_cpu) {
++	if (info->screen_base) {
+ 		/* prevent initial garbage on screen */
+ 		dprintk("map_video_memory: clear %p:%08x\n",
+-			fbi->map_cpu, fbi->map_size);
+-		memset(fbi->map_cpu, 0xf0, fbi->map_size);
++			info->screen_base, map_size);
++		memset(info->screen_base, 0xf0, map_size);
+ 
+-		fbi->screen_dma		= fbi->map_dma;
+-		info->screen_base	= fbi->map_cpu;
+-		info->fix.smem_start	= fbi->screen_dma;
++		info->fix.smem_start = map_dma;
+ 
+-		dprintk("map_video_memory: dma=%08x cpu=%p size=%08x\n",
+-			fbi->map_dma, fbi->map_cpu, info->fix.smem_len);
++		dprintk("map_video_memory: dma=%08lx cpu=%p size=%08x\n",
++			info->fix.smem_start, info->screen_base, map_size);
+ 	}
+ 
+-	return fbi->map_cpu ? 0 : -ENOMEM;
++	return info->screen_base ? 0 : -ENOMEM;
+ }
+ 
+-static inline void s3c2410fb_unmap_video_memory(struct s3c2410fb_info *fbi)
++static inline void s3c2410fb_unmap_video_memory(struct fb_info *info)
+ {
+-	dma_free_writecombine(fbi->dev, fbi->map_size, fbi->map_cpu,
+-			      fbi->map_dma);
++	struct s3c2410fb_info *fbi = info->par;
++
++	dma_free_writecombine(fbi->dev, PAGE_ALIGN(info->fix.smem_len),
++			      info->screen_base, info->fix.smem_start);
+ }
+ 
+ static inline void modify_gpio(void __iomem *reg,
+@@ -720,6 +714,7 @@ static inline void modify_gpio(void __io
+ static int s3c2410fb_init_registers(struct fb_info *info)
+ {
+ 	struct s3c2410fb_info *fbi = info->par;
++	struct s3c2410fb_mach_info *mach_info = fbi->dev->platform_data;
+ 	unsigned long flags;
+ 	void __iomem *regs = fbi->io;
+ 
+@@ -736,14 +731,6 @@ static int s3c2410fb_init_registers(stru
+ 
+ 	local_irq_restore(flags);
+ 
+-	writel(fbi->regs.lcdcon1, regs + S3C2410_LCDCON1);
+-	writel(fbi->regs.lcdcon2, regs + S3C2410_LCDCON2);
+-	writel(fbi->regs.lcdcon3, regs + S3C2410_LCDCON3);
+-	writel(fbi->regs.lcdcon4, regs + S3C2410_LCDCON4);
+-	writel(fbi->regs.lcdcon5, regs + S3C2410_LCDCON5);
+-
+-	s3c2410fb_set_lcdaddr(info);
+-
+ 	dprintk("LPCSEL    = 0x%08lx\n", mach_info->lpcsel);
+ 	writel(mach_info->lpcsel, regs + S3C2410_LPCSEL);
+ 
+@@ -752,9 +739,6 @@ static int s3c2410fb_init_registers(stru
+ 	/* ensure temporary palette disabled */
+ 	writel(0x00, regs + S3C2410_TPAL);
+ 
+-	/* Enable video by setting the ENVID bit to 1 */
+-	fbi->regs.lcdcon1 |= S3C2410_LCDCON1_ENVID;
+-	writel(fbi->regs.lcdcon1, regs + S3C2410_LCDCON1);
+ 	return 0;
+ }
+ 
+@@ -808,6 +792,7 @@ static int __init s3c2410fb_probe(struct
+ 	struct s3c2410fb_info *info;
+ 	struct s3c2410fb_display *display;
+ 	struct fb_info *fbinfo;
++	struct s3c2410fb_mach_info *mach_info;
+ 	struct resource *res;
+ 	int ret;
+ 	int irq;
+@@ -834,6 +819,8 @@ static int __init s3c2410fb_probe(struct
+ 	if (!fbinfo)
+ 		return -ENOMEM;
+ 
++	platform_set_drvdata(pdev, fbinfo);
++
+ 	info = fbinfo->par;
+ 	info->dev = &pdev->dev;
+ 
+@@ -859,23 +846,14 @@ static int __init s3c2410fb_probe(struct
+ 		goto release_mem;
+ 	}
+ 
+-	platform_set_drvdata(pdev, fbinfo);
+-
+ 	dprintk("devinit\n");
+ 
+ 	strcpy(fbinfo->fix.id, driver_name);
+ 
+-	info->regs.lcdcon1 = display->lcdcon1;
+-	info->regs.lcdcon5 = display->lcdcon5;
+-
+-	/* Stop the video and unset ENVID if set */
+-	info->regs.lcdcon1 &= ~S3C2410_LCDCON1_ENVID;
++	/* Stop the video */
+ 	lcdcon1 = readl(info->io + S3C2410_LCDCON1);
+ 	writel(lcdcon1 & ~S3C2410_LCDCON1_ENVID, info->io + S3C2410_LCDCON1);
+ 
+-	info->mach_info		    = pdev->dev.platform_data;
+-	info->current_display	    = mach_info->default_display;
+-
+ 	fbinfo->fix.type	    = FB_TYPE_PACKED_PIXELS;
+ 	fbinfo->fix.type_aux	    = 0;
+ 	fbinfo->fix.xpanstep	    = 0;
+@@ -885,8 +863,6 @@ static int __init s3c2410fb_probe(struct
+ 
+ 	fbinfo->var.nonstd	    = 0;
+ 	fbinfo->var.activate	    = FB_ACTIVATE_NOW;
+-	fbinfo->var.height	    = display->height;
+-	fbinfo->var.width	    = display->width;
+ 	fbinfo->var.accel_flags     = 0;
+ 	fbinfo->var.vmode	    = FB_VMODE_NONINTERLACED;
+ 
+@@ -894,39 +870,6 @@ static int __init s3c2410fb_probe(struct
+ 	fbinfo->flags		    = FBINFO_FLAG_DEFAULT;
+ 	fbinfo->pseudo_palette      = &info->pseudo_pal;
+ 
+-	fbinfo->var.xres	    = display->xres;
+-	fbinfo->var.xres_virtual    = display->xres;
+-	fbinfo->var.yres	    = display->yres;
+-	fbinfo->var.yres_virtual    = display->yres;
+-	fbinfo->var.bits_per_pixel  = display->bpp;
+-	fbinfo->var.left_margin	    = display->left_margin;
+-	fbinfo->var.right_margin    = display->right_margin;
+-
+-	fbinfo->var.upper_margin    = display->upper_margin;
+-	fbinfo->var.lower_margin    = display->lower_margin;
+-	fbinfo->var.vsync_len	    = display->vsync_len;
+-	fbinfo->var.hsync_len	    = display->hsync_len;
+-
+-	fbinfo->var.red.offset      = 11;
+-	fbinfo->var.green.offset    = 5;
+-	fbinfo->var.blue.offset     = 0;
+-	fbinfo->var.transp.offset   = 0;
+-	fbinfo->var.red.length      = 5;
+-	fbinfo->var.green.length    = 6;
+-	fbinfo->var.blue.length     = 5;
+-	fbinfo->var.transp.length   = 0;
+-
+-	/* find maximum required memory size for display */
+-	for (i = 0; i < mach_info->num_displays; i++) {
+-		unsigned long smem_len = mach_info->displays[i].xres;
+-
+-		smem_len *= mach_info->displays[i].yres;
+-		smem_len *= mach_info->displays[i].bpp;
+-		smem_len >>= 3;
+-		if (fbinfo->fix.smem_len < smem_len)
+-			fbinfo->fix.smem_len = smem_len;
 -	}
+-
+ 	for (i = 0; i < 256; i++)
+ 		info->palette_buffer[i] = PALETTE_BUFF_CLEAR;
  
- 	/* Directcolor:
- 	 *   var->{color}.offset contains start of bitfield
-@@ -931,8 +944,7 @@ static int pm2fb_setcolreg(unsigned regn
- 			break;
- 		}
- 		return 0;
--	}
--	else if (info->fix.visual == FB_VISUAL_PSEUDOCOLOR)
-+	} else if (info->fix.visual == FB_VISUAL_PSEUDOCOLOR)
- 		set_color(par, regno, red, green, blue);
+@@ -949,6 +892,17 @@ static int __init s3c2410fb_probe(struct
+ 
+ 	msleep(1);
+ 
++	/* find maximum required memory size for display */
++	for (i = 0; i < mach_info->num_displays; i++) {
++		unsigned long smem_len = mach_info->displays[i].xres;
++
++		smem_len *= mach_info->displays[i].yres;
++		smem_len *= mach_info->displays[i].bpp;
++		smem_len >>= 3;
++		if (fbinfo->fix.smem_len < smem_len)
++			fbinfo->fix.smem_len = smem_len;
++	}
++
+ 	/* Initialize video memory */
+ 	ret = s3c2410fb_map_video_memory(fbinfo);
+ 	if (ret) {
+@@ -959,6 +913,10 @@ static int __init s3c2410fb_probe(struct
+ 
+ 	dprintk("got video memory\n");
+ 
++	fbinfo->var.xres = display->xres;
++	fbinfo->var.yres = display->yres;
++	fbinfo->var.bits_per_pixel = display->bpp;
++
+ 	s3c2410fb_init_registers(fbinfo);
+ 
+ 	s3c2410fb_check_var(&fbinfo->var, fbinfo);
+@@ -979,7 +937,7 @@ static int __init s3c2410fb_probe(struct
+ 	return 0;
+ 
+ free_video_memory:
+-	s3c2410fb_unmap_video_memory(info);
++	s3c2410fb_unmap_video_memory(fbinfo);
+ release_clock:
+ 	clk_disable(info->clk);
+ 	clk_put(info->clk);
+@@ -991,6 +949,7 @@ release_mem:
+ 	release_resource(info->mem);
+ 	kfree(info->mem);
+ dealloc_fb:
++	platform_set_drvdata(pdev, NULL);
+ 	framebuffer_release(fbinfo);
+ 	return ret;
+ }
+@@ -1020,10 +979,12 @@ static int s3c2410fb_remove(struct platf
+ 	struct s3c2410fb_info *info = fbinfo->par;
+ 	int irq;
+ 
++	unregister_framebuffer(fbinfo);
++
+ 	s3c2410fb_stop_lcd(info);
+ 	msleep(1);
+ 
+-	s3c2410fb_unmap_video_memory(info);
++	s3c2410fb_unmap_video_memory(fbinfo);
+ 
+ 	if (info->clk) {
+ 		clk_disable(info->clk);
+@@ -1034,10 +995,13 @@ static int s3c2410fb_remove(struct platf
+ 	irq = platform_get_irq(pdev, 0);
+ 	free_irq(irq, info);
+ 
++	iounmap(info->io);
++
+ 	release_resource(info->mem);
+ 	kfree(info->mem);
+-	iounmap(info->io);
+-	unregister_framebuffer(fbinfo);
++
++	platform_set_drvdata(pdev, NULL);
++	framebuffer_release(fbinfo);
  
  	return 0;
-@@ -1007,7 +1019,7 @@ static int pm2fb_blank(int blank_mode, s
- 		break;
- 	case FB_BLANK_POWERDOWN:
- 		/* HSync: Off, VSync: Off */
--		video &= ~(PM2F_VSYNC_MASK | PM2F_HSYNC_MASK| PM2F_BLANK_LOW);
-+		video &= ~(PM2F_VSYNC_MASK | PM2F_HSYNC_MASK | PM2F_BLANK_LOW);
- 		break;
- 	}
- 	set_video(par, video);
-@@ -1030,14 +1042,14 @@ static int pm2fb_sync(struct fb_info *in
- 	return 0;
  }
+@@ -1091,7 +1055,7 @@ static struct platform_driver s3c2410fb_
+ 	},
+ };
  
--static void pm2fb_fillrect (struct fb_info *info,
-+static void pm2fb_fillrect(struct fb_info *info,
- 				const struct fb_fillrect *region)
+-int __devinit s3c2410fb_init(void)
++int __init s3c2410fb_init(void)
  {
--  	struct pm2fb_par *par = info->par;
-+	struct pm2fb_par *par = info->par;
- 	struct fb_fillrect modded;
- 	int vxres, vyres;
- 	u32 color = (info->fix.visual == FB_VISUAL_TRUECOLOR) ?
--		((u32*)info->pseudo_palette)[region->color] : region->color;
-+		((u32 *)info->pseudo_palette)[region->color] : region->color;
- 
- 	if (info->state != FBINFO_STATE_RUNNING)
- 		return;
-@@ -1082,7 +1094,8 @@ static void pm2fb_fillrect (struct fb_in
- 		pm2_WR(par, PM2R_CONSTANT_COLOR, color);
- 		wmb();
- 		pm2_WR(par, PM2R_RENDER,
--				PM2F_RENDER_RECTANGLE | PM2F_INCREASE_X | PM2F_INCREASE_Y );
-+				PM2F_RENDER_RECTANGLE |
-+				PM2F_INCREASE_X | PM2F_INCREASE_Y );
- 		pm2_WR(par, PM2R_COLOR_DDA_MODE, 0);
- 	}
+ 	return platform_driver_register(&s3c2410fb_driver);
  }
-@@ -1124,14 +1137,14 @@ static void pm2fb_copyarea(struct fb_inf
- 	pm2_WR(par, PM2R_CONFIG, PM2F_CONFIG_FB_WRITE_ENABLE |
- 		PM2F_CONFIG_FB_READ_SOURCE_ENABLE);
- 	pm2_WR(par, PM2R_FB_SOURCE_DELTA,
--			((modded.sy-modded.dy) & 0xfff) << 16 |
--			((modded.sx-modded.dx) & 0xfff));
-+			((modded.sy - modded.dy) & 0xfff) << 16 |
-+			((modded.sx - modded.dx) & 0xfff));
- 	pm2_WR(par, PM2R_RECTANGLE_ORIGIN, (modded.dy << 16) | modded.dx);
- 	pm2_WR(par, PM2R_RECTANGLE_SIZE, (modded.height << 16) | modded.width);
- 	wmb();
- 	pm2_WR(par, PM2R_RENDER, PM2F_RENDER_RECTANGLE |
--				(modded.dx<modded.sx ? PM2F_INCREASE_X : 0) |
--				(modded.dy<modded.sy ? PM2F_INCREASE_Y : 0));
-+				(modded.dx < modded.sx ? PM2F_INCREASE_X : 0) |
-+				(modded.dy < modded.sy ? PM2F_INCREASE_Y : 0));
- }
+diff -puN drivers/video/s3c2410fb.h~s3c2410fb-source-code-improvements drivers/video/s3c2410fb.h
+--- a/drivers/video/s3c2410fb.h~s3c2410fb-source-code-improvements
++++ a/drivers/video/s3c2410fb.h
+@@ -16,7 +16,7 @@
+  *
+  * 2004-09-07: Arnaud Patard <arnaud.patard@rtp-net.org>
+  * 	- Renamed from h1940fb.h to s3c2410fb.h
+- * 	- Chenged h1940 to s3c2410
++ * 	- Changed h1940 to s3c2410
+  *
+  * 2004-07-15: Arnaud Patard <arnaud.patard@rtp-net.org>
+  *	- First version
+@@ -32,20 +32,8 @@ struct s3c2410fb_info {
+ 	struct resource		*mem;
+ 	void __iomem		*io;
  
- static void pm2fb_imageblit(struct fb_info *info, const struct fb_image *image)
-@@ -1139,7 +1152,7 @@ static void pm2fb_imageblit(struct fb_in
- 	struct pm2fb_par *par = info->par;
- 	u32 height = image->height;
- 	u32 fgx, bgx;
--	const u32 *src = (const u32*)image->data;
-+	const u32 *src = (const u32 *)image->data;
- 	u32 xres = (info->var.xres + 31) & ~31;
+-	struct s3c2410fb_mach_info *mach_info;
+-
+-	unsigned current_display;
+-
+-	/* raw memory addresses */
+-	dma_addr_t		map_dma;	/* physical */
+-	u_char *		map_cpu;	/* virtual */
+-	u_int			map_size;
+-
+ 	struct s3c2410fb_hw	regs;
  
- 	if (info->state != FBINFO_STATE_RUNNING)
-@@ -1269,7 +1282,8 @@ static int __devinit pm2fb_probe(struct 
- {
- 	struct pm2fb_par *default_par;
- 	struct fb_info *info;
--	int err, err_retval = -ENXIO;
-+	int err;
-+	int retval = -ENXIO;
+-	/* addresses of pieces placed in raw buffer */
+-	u_char *		screen_cpu;	/* virtual address of buffer */
+-	dma_addr_t		screen_dma;	/* physical address of buffer */
+ 	unsigned int		palette_ready;
  
- 	err = pci_enable_device(pdev);
- 	if (err) {
-@@ -1342,26 +1356,28 @@ static int __devinit pm2fb_probe(struct 
- 		default_par->mem_config = 0xe6002021;
- 		if (pdev->subsystem_vendor == 0x1048 &&
- 			pdev->subsystem_device == 0x0a31) {
--			DPRINTK("subsystem_vendor: %04x, subsystem_device: %04x\n",
-+			DPRINTK("subsystem_vendor: %04x, "
-+				"subsystem_device: %04x\n",
- 				pdev->subsystem_vendor, pdev->subsystem_device);
--			DPRINTK("We have not been initialized by VGA BIOS "
--				"and are running on an Elsa Winner 2000 Office\n");
-+			DPRINTK("We have not been initialized by VGA BIOS and "
-+				"are running on an Elsa Winner 2000 Office\n");
- 			DPRINTK("Initializing card timings manually...\n");
- 			default_par->memclock = 100000;
- 		}
- 		if (pdev->subsystem_vendor == 0x3d3d &&
- 			pdev->subsystem_device == 0x0100) {
--			DPRINTK("subsystem_vendor: %04x, subsystem_device: %04x\n",
-+			DPRINTK("subsystem_vendor: %04x, "
-+				"subsystem_device: %04x\n",
- 				pdev->subsystem_vendor, pdev->subsystem_device);
--			DPRINTK("We have not been initialized by VGA BIOS "
--				"and are running on an 3dlabs reference board\n");
-+			DPRINTK("We have not been initialized by VGA BIOS and "
-+				"are running on an 3dlabs reference board\n");
- 			DPRINTK("Initializing card timings manually...\n");
- 			default_par->memclock = 74894;
- 		}
- 	}
- 
- 	/* Now work out how big lfb is going to be. */
--	switch(default_par->mem_config & PM2F_MEM_CONFIG_RAM_MASK) {
-+	switch (default_par->mem_config & PM2F_MEM_CONFIG_RAM_MASK) {
- 	case PM2F_MEM_BANKS_1:
- 		pm2fb_fix.smem_len = 0x200000;
- 		break;
-@@ -1411,7 +1427,7 @@ static int __devinit pm2fb_probe(struct 
- 
- 	info->pixmap.addr = kmalloc(PM2_PIXMAP_SIZE, GFP_KERNEL);
- 	if (!info->pixmap.addr) {
--		err_retval = -ENOMEM;
-+		retval = -ENOMEM;
- 		goto err_exit_pixmap;
- 	}
- 	info->pixmap.size = PM2_PIXMAP_SIZE;
-@@ -1461,7 +1477,7 @@ static int __devinit pm2fb_probe(struct 
- 	release_mem_region(pm2fb_fix.mmio_start, pm2fb_fix.mmio_len);
-  err_exit_neither:
- 	framebuffer_release(info);
--	return err_retval;
-+	return retval;
- }
- 
- /**
-@@ -1473,8 +1489,8 @@ static int __devinit pm2fb_probe(struct 
-  */
- static void __devexit pm2fb_remove(struct pci_dev *pdev)
- {
--	struct fb_info* info = pci_get_drvdata(pdev);
--	struct fb_fix_screeninfo* fix = &info->fix;
-+	struct fb_info *info = pci_get_drvdata(pdev);
-+	struct fb_fix_screeninfo *fix = &info->fix;
- 	struct pm2fb_par *par = info->par;
- 
- 	unregister_framebuffer(info);
-@@ -1490,8 +1506,7 @@ static void __devexit pm2fb_remove(struc
- 	release_mem_region(fix->mmio_start, fix->mmio_len);
- 
- 	pci_set_drvdata(pdev, NULL);
--	if (info->pixmap.addr)
--		kfree(info->pixmap.addr);
-+	kfree(info->pixmap.addr);
- 	kfree(info);
- }
- 
-@@ -1523,7 +1538,7 @@ MODULE_DEVICE_TABLE(pci, pm2fb_id_table)
-  */
- static int __init pm2fb_setup(char *options)
- {
--	char* this_opt;
-+	char *this_opt;
- 
- 	if (!options || !*options)
- 		return 0;
-@@ -1531,19 +1546,18 @@ static int __init pm2fb_setup(char *opti
- 	while ((this_opt = strsep(&options, ",")) != NULL) {
- 		if (!*this_opt)
- 			continue;
--		if (!strcmp(this_opt, "lowhsync")) {
-+		if (!strcmp(this_opt, "lowhsync"))
- 			lowhsync = 1;
--		} else if (!strcmp(this_opt, "lowvsync")) {
-+		else if (!strcmp(this_opt, "lowvsync"))
- 			lowvsync = 1;
- #ifdef CONFIG_MTRR
--		} else if (!strncmp(this_opt, "nomtrr", 6)) {
-+		else if (!strncmp(this_opt, "nomtrr", 6))
- 			nomtrr = 1;
- #endif
--		} else if (!strncmp(this_opt, "noaccel", 7)) {
-+		else if (!strncmp(this_opt, "noaccel", 7))
- 			noaccel = 1;
--		} else {
-+		else
- 			mode = this_opt;
--		}
- 	}
- 	return 0;
- }
+ 	/* keep these registers in case we need to re-write palette */
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
