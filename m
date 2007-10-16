@@ -1,739 +1,760 @@
 From: akpm@linux-foundation.org
-Subject: - mbxfb-improvements-and-new-features.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:42:24 -0700
-Message-ID: <200710162042.l9GKgO6R015882@imap1.linux-foundation.org>
+Subject: - uml-network-driver-mtu-cleanups.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:39:04 -0700
+Message-ID: <200710162039.l9GKd4xZ015513@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52726 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48559 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965758AbXJPVT7 (ORCPT
+	by vger.kernel.org with ESMTP id S965630AbXJPVUB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:19:59 -0400
+	Tue, 16 Oct 2007 17:20:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: raph@8d.com, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mbxfb: Improvements and new features
+     uml: network driver MTU cleanups
 has been removed from the -mm tree.  Its filename was
-     mbxfb-improvements-and-new-features.patch
+     uml-network-driver-mtu-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mbxfb: Improvements and new features
-From: Raphael Assenat <raph@8d.com>
+Subject: uml: network driver MTU cleanups
+From: Jeff Dike <jdike@addtoit.com>
 
-This contains the following changes:
+A bunch of MTU-related cleanups in the network code.
 
-* Overlay surface alpha is configured separately from the overlay. This
-prevents display glitches (configure and fill the overlay first, set
-alpha to a visible value next)
+First, there is the addition of the notion of a maximally-sized packet, which
+is the MTU plus headers.  This is used to size the skb that will receive a
+packet.  This allows ether_adjust_skb to go away, as it was used to resize the
+skb after it was allocated.
 
-* Added an ioctl for configuring transparency of the Overlay and graphics
-planes. Blend mode, colorkey mode and global alpha mode are supported.
+Since the skb passed into the low-level read routine is no longer resized, and
+possibly reallocated, there, they (and the write routines) don't need to get
+an sk_buff **.  They just need the sk_buff * now.  The callers of
+ether_adjust_skb still need to do the skb_put, so that's now inlined.
 
-* Added an ioctl for setting the plane order. The overlay plance can be placed
-over or
-under the graphics plane.
+The MAX_PACKET definitions in most of the drivers are gone.
 
-* Added an ioctl for setting and reading chip registers, with mask.
+The set_mtu methods were all the same and did nothing, so they can be
+removed.
 
-* Updated copyright for 2007
+The ethertap driver had a typo which doubled the size of the packet rather
+than adding two bytes to it.  It also wasn't defining its setup_size, causing
+a zero-byte kmalloc and crash when the invalid pointer returned from kmalloc
+was dereferenced.
 
-[adaplas]
-* Coding style changes
-
-Signed-off-by: Raphael Assenat <raph@8d.com>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/mbx/mbxfb.c    |  344 +++++++++++++++++++++++++--------
- drivers/video/mbx/reg_bits.h |   87 ++++++++
- drivers/video/mbx/regs.h     |    2 
- include/video/mbxfb.h        |   53 ++++-
- 4 files changed, 402 insertions(+), 84 deletions(-)
+ arch/um/drivers/daemon_kern.c            |   15 ++-----
+ arch/um/drivers/daemon_user.c            |   11 +----
+ arch/um/drivers/mcast_kern.c             |   13 ++----
+ arch/um/drivers/mcast_user.c             |   11 +----
+ arch/um/drivers/net_kern.c               |   42 ++++-----------------
+ arch/um/drivers/pcap_kern.c              |   13 ++----
+ arch/um/drivers/pcap_user.c              |    9 ++--
+ arch/um/drivers/slip_kern.c              |   10 ++---
+ arch/um/drivers/slip_user.c              |    9 +---
+ arch/um/drivers/slirp_kern.c             |   14 +++----
+ arch/um/drivers/slirp_user.c             |    9 +---
+ arch/um/drivers/vde_kern.c               |   19 +++------
+ arch/um/drivers/vde_user.c               |   11 +----
+ arch/um/include/net_kern.h               |   13 +++---
+ arch/um/include/net_user.h               |    4 +-
+ arch/um/os-Linux/drivers/ethertap_kern.c |   30 +++++----------
+ arch/um/os-Linux/drivers/ethertap_user.c |    9 +---
+ arch/um/os-Linux/drivers/tuntap_kern.c   |   15 ++-----
+ arch/um/os-Linux/drivers/tuntap_user.c   |   11 +----
+ 19 files changed, 80 insertions(+), 188 deletions(-)
 
-diff -puN drivers/video/mbx/mbxfb.c~mbxfb-improvements-and-new-features drivers/video/mbx/mbxfb.c
---- a/drivers/video/mbx/mbxfb.c~mbxfb-improvements-and-new-features
-+++ a/drivers/video/mbx/mbxfb.c
-@@ -1,7 +1,7 @@
+diff -puN arch/um/drivers/daemon_kern.c~uml-network-driver-mtu-cleanups arch/um/drivers/daemon_kern.c
+--- a/arch/um/drivers/daemon_kern.c~uml-network-driver-mtu-cleanups
++++ a/arch/um/drivers/daemon_kern.c
+@@ -39,20 +39,15 @@ static void daemon_init(struct net_devic
+ 	printk("\n");
+ }
+ 
+-static int daemon_read(int fd, struct sk_buff **skb,
+-		       struct uml_net_private *lp)
++static int daemon_read(int fd, struct sk_buff *skb, struct uml_net_private *lp)
+ {
+-	*skb = ether_adjust_skb(*skb, ETH_HEADER_OTHER);
+-	if (*skb == NULL)
+-		return -ENOMEM;
+-	return net_recvfrom(fd, skb_mac_header(*skb),
+-			    (*skb)->dev->mtu + ETH_HEADER_OTHER);
++	return net_recvfrom(fd, skb_mac_header(skb),
++			    skb->dev->mtu + ETH_HEADER_OTHER);
+ }
+ 
+-static int daemon_write(int fd, struct sk_buff **skb,
+-			struct uml_net_private *lp)
++static int daemon_write(int fd, struct sk_buff *skb, struct uml_net_private *lp)
+ {
+-	return daemon_user_write(fd, (*skb)->data, (*skb)->len,
++	return daemon_user_write(fd, skb->data, skb->len,
+ 				 (struct daemon_data *) &lp->user);
+ }
+ 
+diff -puN arch/um/drivers/daemon_user.c~uml-network-driver-mtu-cleanups arch/um/drivers/daemon_user.c
+--- a/arch/um/drivers/daemon_user.c~uml-network-driver-mtu-cleanups
++++ a/arch/um/drivers/daemon_user.c
+@@ -19,8 +19,6 @@
+ #include "um_malloc.h"
+ #include "user.h"
+ 
+-#define MAX_PACKET (ETH_MAX_PACKET + ETH_HEADER_OTHER)
+-
+ enum request_type { REQ_NEW_CONTROL };
+ 
+ #define SWITCH_MAGIC 0xfeedface
+@@ -184,18 +182,13 @@ int daemon_user_write(int fd, void *buf,
+ 	return net_sendto(fd, buf, len, data_addr, sizeof(*data_addr));
+ }
+ 
+-static int daemon_set_mtu(int mtu, void *data)
+-{
+-	return mtu;
+-}
+-
+ const struct net_user_info daemon_user_info = {
+ 	.init		= daemon_user_init,
+ 	.open		= daemon_open,
+ 	.close	 	= NULL,
+ 	.remove	 	= daemon_remove,
+-	.set_mtu	= daemon_set_mtu,
+ 	.add_address	= NULL,
+ 	.delete_address = NULL,
+-	.max_packet	= MAX_PACKET - ETH_HEADER_OTHER
++	.mtu		= ETH_MAX_PACKET,
++	.max_packet	= ETH_MAX_PACKET + ETH_HEADER_OTHER,
+ };
+diff -puN arch/um/drivers/mcast_kern.c~uml-network-driver-mtu-cleanups arch/um/drivers/mcast_kern.c
+--- a/arch/um/drivers/mcast_kern.c~uml-network-driver-mtu-cleanups
++++ a/arch/um/drivers/mcast_kern.c
+@@ -39,18 +39,15 @@ static void mcast_init(struct net_device
+ 	       dpri->addr, dpri->port, dpri->ttl);
+ }
+ 
+-static int mcast_read(int fd, struct sk_buff **skb, struct uml_net_private *lp)
++static int mcast_read(int fd, struct sk_buff *skb, struct uml_net_private *lp)
+ {
+-	*skb = ether_adjust_skb(*skb, ETH_HEADER_OTHER);
+-	if (*skb == NULL)
+-		return -ENOMEM;
+-	return net_recvfrom(fd, skb_mac_header(*skb),
+-			    (*skb)->dev->mtu + ETH_HEADER_OTHER);
++	return net_recvfrom(fd, skb_mac_header(skb),
++			    skb->dev->mtu + ETH_HEADER_OTHER);
+ }
+ 
+-static int mcast_write(int fd, struct sk_buff **skb, struct uml_net_private *lp)
++static int mcast_write(int fd, struct sk_buff *skb, struct uml_net_private *lp)
+ {
+-	return mcast_user_write(fd, (*skb)->data, (*skb)->len,
++	return mcast_user_write(fd, skb->data, skb->len,
+ 				(struct mcast_data *) &lp->user);
+ }
+ 
+diff -puN arch/um/drivers/mcast_user.c~uml-network-driver-mtu-cleanups arch/um/drivers/mcast_user.c
+--- a/arch/um/drivers/mcast_user.c~uml-network-driver-mtu-cleanups
++++ a/arch/um/drivers/mcast_user.c
+@@ -20,8 +20,6 @@
+ #include "um_malloc.h"
+ #include "user.h"
+ 
+-#define MAX_PACKET (ETH_MAX_PACKET + ETH_HEADER_OTHER)
+-
+ static struct sockaddr_in *new_addr(char *addr, unsigned short port)
+ {
+ 	struct sockaddr_in *sin;
+@@ -154,18 +152,13 @@ int mcast_user_write(int fd, void *buf, 
+ 	return net_sendto(fd, buf, len, data_addr, sizeof(*data_addr));
+ }
+ 
+-static int mcast_set_mtu(int mtu, void *data)
+-{
+-	return mtu;
+-}
+-
+ const struct net_user_info mcast_user_info = {
+ 	.init		= mcast_user_init,
+ 	.open		= mcast_open,
+ 	.close	 	= mcast_close,
+ 	.remove	 	= mcast_remove,
+-	.set_mtu	= mcast_set_mtu,
+ 	.add_address	= NULL,
+ 	.delete_address = NULL,
+-	.max_packet	= MAX_PACKET - ETH_HEADER_OTHER
++	.mtu		= ETH_MAX_PACKET,
++	.max_packet	= ETH_MAX_PACKET + ETH_HEADER_OTHER,
+ };
+diff -puN arch/um/drivers/net_kern.c~uml-network-driver-mtu-cleanups arch/um/drivers/net_kern.c
+--- a/arch/um/drivers/net_kern.c~uml-network-driver-mtu-cleanups
++++ a/arch/um/drivers/net_kern.c
+@@ -41,16 +41,16 @@ static int uml_net_rx(struct net_device 
+ 	struct sk_buff *skb;
+ 
+ 	/* If we can't allocate memory, try again next round. */
+-	skb = dev_alloc_skb(dev->mtu);
++	skb = dev_alloc_skb(lp->max_packet);
+ 	if (skb == NULL) {
+ 		lp->stats.rx_dropped++;
+ 		return 0;
+ 	}
+ 
+ 	skb->dev = dev;
+-	skb_put(skb, dev->mtu);
++	skb_put(skb, lp->max_packet);
+ 	skb_reset_mac_header(skb);
+-	pkt_len = (*lp->read)(lp->fd, &skb, lp);
++	pkt_len = (*lp->read)(lp->fd, skb, lp);
+ 
+ 	if (pkt_len > 0) {
+ 		skb_trim(skb, pkt_len);
+@@ -178,7 +178,7 @@ static int uml_net_start_xmit(struct sk_
+ 
+ 	spin_lock_irqsave(&lp->lock, flags);
+ 
+-	len = (*lp->write)(lp->fd, &skb, lp);
++	len = (*lp->write)(lp->fd, skb, lp);
+ 
+ 	if (len == skb->len) {
+ 		lp->stats.tx_packets++;
+@@ -240,22 +240,9 @@ static int uml_net_set_mac(struct net_de
+ 
+ static int uml_net_change_mtu(struct net_device *dev, int new_mtu)
+ {
+-	struct uml_net_private *lp = dev->priv;
+-	int err = 0;
+-
+-	spin_lock_irq(&lp->lock);
+-
+-	new_mtu = (*lp->set_mtu)(new_mtu, &lp->user);
+-	if (new_mtu < 0) {
+-		err = new_mtu;
+-		goto out;
+-	}
+-
+ 	dev->mtu = new_mtu;
+ 
+- out:
+-	spin_unlock_irq(&lp->lock);
+-	return err;
++	return 0;
+ }
+ 
+ static void uml_net_get_drvinfo(struct net_device *dev,
+@@ -427,6 +414,7 @@ static void eth_configure(int n, void *i
+ 		  .dev 			= dev,
+ 		  .fd 			= -1,
+ 		  .mac 			= { 0xfe, 0xfd, 0x0, 0x0, 0x0, 0x0},
++		  .max_packet		= transport->user->max_packet,
+ 		  .protocol 		= transport->kern->protocol,
+ 		  .open 		= transport->user->open,
+ 		  .close 		= transport->user->close,
+@@ -434,8 +422,7 @@ static void eth_configure(int n, void *i
+ 		  .read 		= transport->kern->read,
+ 		  .write 		= transport->kern->write,
+ 		  .add_address 		= transport->user->add_address,
+-		  .delete_address  	= transport->user->delete_address,
+-		  .set_mtu 		= transport->user->set_mtu });
++		  .delete_address  	= transport->user->delete_address });
+ 
+ 	init_timer(&lp->tl);
+ 	spin_lock_init(&lp->lock);
+@@ -447,7 +434,7 @@ static void eth_configure(int n, void *i
+ 		goto out_unregister;
+ 
+ 	set_ether_mac(dev, device->mac);
+-	dev->mtu = transport->user->max_packet;
++	dev->mtu = transport->user->mtu;
+ 	dev->open = uml_net_open;
+ 	dev->hard_start_xmit = uml_net_start_xmit;
+ 	dev->stop = uml_net_close;
+@@ -807,19 +794,6 @@ static void close_devices(void)
+ 
+ __uml_exitcall(close_devices);
+ 
+-struct sk_buff *ether_adjust_skb(struct sk_buff *skb, int extra)
+-{
+-	if ((skb != NULL) && (skb_tailroom(skb) < extra)) {
+-	  	struct sk_buff *skb2;
+-
+-		skb2 = skb_copy_expand(skb, 0, extra, GFP_ATOMIC);
+-		dev_kfree_skb(skb);
+-		skb = skb2;
+-	}
+-	if (skb != NULL) skb_put(skb, extra);
+-	return skb;
+-}
+-
+ void iter_addresses(void *d, void (*cb)(unsigned char *, unsigned char *,
+ 					void *),
+ 		    void *arg)
+diff -puN arch/um/drivers/pcap_kern.c~uml-network-driver-mtu-cleanups arch/um/drivers/pcap_kern.c
+--- a/arch/um/drivers/pcap_kern.c~uml-network-driver-mtu-cleanups
++++ a/arch/um/drivers/pcap_kern.c
+@@ -31,19 +31,14 @@ void pcap_init(struct net_device *dev, v
+ 	printk("pcap backend, host interface %s\n", ppri->host_if);
+ }
+ 
+-static int pcap_read(int fd, struct sk_buff **skb,
+-		       struct uml_net_private *lp)
++static int pcap_read(int fd, struct sk_buff *skb, struct uml_net_private *lp)
+ {
+-	*skb = ether_adjust_skb(*skb, ETH_HEADER_OTHER);
+-	if (*skb == NULL)
+-		return -ENOMEM;
+-
+-	return pcap_user_read(fd, skb_mac_header(*skb),
+-			      (*skb)->dev->mtu + ETH_HEADER_OTHER,
++	return pcap_user_read(fd, skb_mac_header(skb),
++			      skb->dev->mtu + ETH_HEADER_OTHER,
+ 			      (struct pcap_data *) &lp->user);
+ }
+ 
+-static int pcap_write(int fd, struct sk_buff **skb, struct uml_net_private *lp)
++static int pcap_write(int fd, struct sk_buff *skb, struct uml_net_private *lp)
+ {
+ 	return -EPERM;
+ }
+diff -puN arch/um/drivers/pcap_user.c~uml-network-driver-mtu-cleanups arch/um/drivers/pcap_user.c
+--- a/arch/um/drivers/pcap_user.c~uml-network-driver-mtu-cleanups
++++ a/arch/um/drivers/pcap_user.c
+@@ -13,8 +13,6 @@
+ #include "um_malloc.h"
+ #include "user.h"
+ 
+-#define MAX_PACKET (ETH_MAX_PACKET + ETH_HEADER_OTHER)
+-
+ #define PCAP_FD(p) (*(int *)(p))
+ 
+ static int pcap_user_init(void *data, void *dev)
+@@ -23,7 +21,8 @@ static int pcap_user_init(void *data, vo
+ 	pcap_t *p;
+ 	char errors[PCAP_ERRBUF_SIZE];
+ 
+-	p = pcap_open_live(pri->host_if, MAX_PACKET, pri->promisc, 0, errors);
++	p = pcap_open_live(pri->host_if, ETH_MAX_PACKET + ETH_HEADER_OTHER,
++			   pri->promisc, 0, errors);
+ 	if (p == NULL) {
+ 		printk(UM_KERN_ERR "pcap_user_init : pcap_open_live failed - "
+ 		       "'%s'\n", errors);
+@@ -133,8 +132,8 @@ const struct net_user_info pcap_user_inf
+ 	.open		= pcap_open,
+ 	.close	 	= NULL,
+ 	.remove	 	= pcap_remove,
+-	.set_mtu	= NULL,
+ 	.add_address	= NULL,
+ 	.delete_address = NULL,
+-	.max_packet	= MAX_PACKET - ETH_HEADER_OTHER
++	.mtu		= ETH_MAX_PACKET,
++	.max_packet	= ETH_MAX_PACKET + ETH_HEADER_OTHER,
+ };
+diff -puN arch/um/drivers/slip_kern.c~uml-network-driver-mtu-cleanups arch/um/drivers/slip_kern.c
+--- a/arch/um/drivers/slip_kern.c~uml-network-driver-mtu-cleanups
++++ a/arch/um/drivers/slip_kern.c
+@@ -47,17 +47,15 @@ static unsigned short slip_protocol(stru
+ 	return htons(ETH_P_IP);
+ }
+ 
+-static int slip_read(int fd, struct sk_buff **skb,
+-		       struct uml_net_private *lp)
++static int slip_read(int fd, struct sk_buff *skb, struct uml_net_private *lp)
+ {
+-	return slip_user_read(fd, skb_mac_header(*skb), (*skb)->dev->mtu,
++	return slip_user_read(fd, skb_mac_header(skb), skb->dev->mtu,
+ 			      (struct slip_data *) &lp->user);
+ }
+ 
+-static int slip_write(int fd, struct sk_buff **skb,
+-		      struct uml_net_private *lp)
++static int slip_write(int fd, struct sk_buff *skb, struct uml_net_private *lp)
+ {
+-	return slip_user_write(fd, (*skb)->data, (*skb)->len,
++	return slip_user_write(fd, skb->data, skb->len,
+ 			       (struct slip_data *) &lp->user);
+ }
+ 
+diff -puN arch/um/drivers/slip_user.c~uml-network-driver-mtu-cleanups arch/um/drivers/slip_user.c
+--- a/arch/um/drivers/slip_user.c~uml-network-driver-mtu-cleanups
++++ a/arch/um/drivers/slip_user.c
+@@ -230,11 +230,6 @@ int slip_user_write(int fd, void *buf, i
+ 	return slip_proto_write(fd, buf, len, &pri->slip);
+ }
+ 
+-static int slip_set_mtu(int mtu, void *data)
+-{
+-	return mtu;
+-}
+-
+ static void slip_add_addr(unsigned char *addr, unsigned char *netmask,
+ 			  void *data)
+ {
+@@ -260,8 +255,8 @@ const struct net_user_info slip_user_inf
+ 	.open		= slip_open,
+ 	.close	 	= slip_close,
+ 	.remove	 	= NULL,
+-	.set_mtu	= slip_set_mtu,
+ 	.add_address	= slip_add_addr,
+ 	.delete_address = slip_del_addr,
+-	.max_packet	= BUF_SIZE
++	.mtu		= BUF_SIZE,
++	.max_packet	= BUF_SIZE,
+ };
+diff -puN arch/um/drivers/slirp_kern.c~uml-network-driver-mtu-cleanups arch/um/drivers/slirp_kern.c
+--- a/arch/um/drivers/slirp_kern.c~uml-network-driver-mtu-cleanups
++++ a/arch/um/drivers/slirp_kern.c
+@@ -52,18 +52,16 @@ static unsigned short slirp_protocol(str
+ 	return htons(ETH_P_IP);
+ }
+ 
+-static int slirp_read(int fd, struct sk_buff **skb,
+-		       struct uml_net_private *lp)
++static int slirp_read(int fd, struct sk_buff *skb, struct uml_net_private *lp)
+ {
+-	return slirp_user_read(fd, skb_mac_header(*skb), (*skb)->dev->mtu,
+-			      (struct slirp_data *) &lp->user);
++	return slirp_user_read(fd, skb_mac_header(skb), skb->dev->mtu,
++			       (struct slirp_data *) &lp->user);
+ }
+ 
+-static int slirp_write(int fd, struct sk_buff **skb,
+-		      struct uml_net_private *lp)
++static int slirp_write(int fd, struct sk_buff *skb, struct uml_net_private *lp)
+ {
+-	return slirp_user_write(fd, (*skb)->data, (*skb)->len,
+-			       (struct slirp_data *) &lp->user);
++	return slirp_user_write(fd, skb->data, skb->len,
++				(struct slirp_data *) &lp->user);
+ }
+ 
+ const struct net_kern_info slirp_kern_info = {
+diff -puN arch/um/drivers/slirp_user.c~uml-network-driver-mtu-cleanups arch/um/drivers/slirp_user.c
+--- a/arch/um/drivers/slirp_user.c~uml-network-driver-mtu-cleanups
++++ a/arch/um/drivers/slirp_user.c
+@@ -124,18 +124,13 @@ int slirp_user_write(int fd, void *buf, 
+ 	return slip_proto_write(fd, buf, len, &pri->slip);
+ }
+ 
+-static int slirp_set_mtu(int mtu, void *data)
+-{
+-	return mtu;
+-}
+-
+ const struct net_user_info slirp_user_info = {
+ 	.init		= slirp_user_init,
+ 	.open		= slirp_open,
+ 	.close	 	= slirp_close,
+ 	.remove	 	= NULL,
+-	.set_mtu	= slirp_set_mtu,
+ 	.add_address	= NULL,
+ 	.delete_address = NULL,
+-	.max_packet	= BUF_SIZE
++	.mtu		= BUF_SIZE,
++	.max_packet	= BUF_SIZE,
+ };
+diff -puN arch/um/drivers/vde_kern.c~uml-network-driver-mtu-cleanups arch/um/drivers/vde_kern.c
+--- a/arch/um/drivers/vde_kern.c~uml-network-driver-mtu-cleanups
++++ a/arch/um/drivers/vde_kern.c
+@@ -36,30 +36,25 @@ static void vde_init(struct net_device *
+ 	printk("\n");
+ }
+ 
+-static int vde_read(int fd, struct sk_buff **skb, struct uml_net_private *lp)
++static int vde_read(int fd, struct sk_buff *skb, struct uml_net_private *lp)
+ {
+ 	struct vde_data *pri = (struct vde_data *) &lp->user;
+ 
+-	if (pri->conn != NULL) {
+-		*skb = ether_adjust_skb(*skb, ETH_HEADER_OTHER);
+-		if (*skb == NULL)
+-			return -ENOMEM;
+-
+-		return vde_user_read(pri->conn, skb_mac_header(*skb),
+-				     (*skb)->dev->mtu + ETH_HEADER_OTHER);
+-	}
++	if (pri->conn != NULL)
++		return vde_user_read(pri->conn, skb_mac_header(skb),
++				     skb->dev->mtu + ETH_HEADER_OTHER);
+ 
+ 	printk(KERN_ERR "vde_read - we have no VDECONN to read from");
+ 	return -EBADF;
+ }
+ 
+-static int vde_write(int fd, struct sk_buff **skb, struct uml_net_private *lp)
++static int vde_write(int fd, struct sk_buff *skb, struct uml_net_private *lp)
+ {
+ 	struct vde_data *pri = (struct vde_data *) &lp->user;
+ 
+ 	if (pri->conn != NULL)
+-		return vde_user_write((void *)pri->conn, (*skb)->data,
+-				      (*skb)->len);
++		return vde_user_write((void *)pri->conn, skb->data,
++				      skb->len);
+ 
+ 	printk(KERN_ERR "vde_write - we have no VDECONN to write to");
+ 	return -EBADF;
+diff -puN arch/um/drivers/vde_user.c~uml-network-driver-mtu-cleanups arch/um/drivers/vde_user.c
+--- a/arch/um/drivers/vde_user.c~uml-network-driver-mtu-cleanups
++++ a/arch/um/drivers/vde_user.c
+@@ -12,8 +12,6 @@
+ #include "user.h"
+ #include "vde.h"
+ 
+-#define MAX_PACKET (ETH_MAX_PACKET + ETH_HEADER_OTHER)
+-
+ static int vde_user_init(void *data, void *dev)
+ {
+ 	struct vde_data *pri = data;
+@@ -65,20 +63,15 @@ static void vde_remove(void *data)
+ 	printk(UM_KERN_WARNING "vde_remove - we have no VDECONN to remove");
+ }
+ 
+-static int vde_set_mtu(int mtu, void *data)
+-{
+-	return mtu;
+-}
+-
+ const struct net_user_info vde_user_info = {
+ 	.init		= vde_user_init,
+ 	.open		= vde_user_open,
+ 	.close	 	= NULL,
+ 	.remove	 	= vde_remove,
+-	.set_mtu	= vde_set_mtu,
+ 	.add_address	= NULL,
+ 	.delete_address = NULL,
+-	.max_packet	= MAX_PACKET - ETH_HEADER_OTHER
++	.mtu		= ETH_MAX_PACKET,
++	.max_packet	= ETH_MAX_PACKET + ETH_HEADER_OTHER,
+ };
+ 
+ void vde_init_libstuff(struct vde_data *vpri, struct vde_init *init)
+diff -puN arch/um/include/net_kern.h~uml-network-driver-mtu-cleanups arch/um/include/net_kern.h
+--- a/arch/um/include/net_kern.h~uml-network-driver-mtu-cleanups
++++ a/arch/um/include/net_kern.h
+@@ -1,5 +1,5 @@
  /*
-  *  linux/drivers/video/mbx/mbxfb.c
-  *
-- *  Copyright (C) 2006 8D Technologies inc
-+ *  Copyright (C) 2006-2007 8D Technologies inc
-  *  Raphael Assenat <raph@8d.com>
-  *  	- Added video overlay support
-  *  	- Various improvements
-@@ -334,8 +334,8 @@ static int mbxfb_blank(int blank, struct
+- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
++ * Copyright (C) 2002 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
+  */
  
- static int mbxfb_setupOverlay(struct mbxfb_overlaySetup *set)
- {
--	u32 vsctrl, vbbase, vscadr, vsadr;
--	u32 sssize, spoctrl, svctrl, shctrl;
-+	u32 vsctrl, vscadr, vsadr;
-+	u32 sssize, spoctrl, shctrl;
- 	u32 vubase, vvbase;
- 	u32 vovrclk;
+@@ -30,24 +30,24 @@ struct uml_net_private {
+ 	struct work_struct work;
+ 	int fd;
+ 	unsigned char mac[ETH_ALEN];
++	int max_packet;
+ 	unsigned short (*protocol)(struct sk_buff *);
+ 	int (*open)(void *);
+ 	void (*close)(int, void *);
+ 	void (*remove)(void *);
+-	int (*read)(int, struct sk_buff **skb, struct uml_net_private *);
+-	int (*write)(int, struct sk_buff **skb, struct uml_net_private *);
++	int (*read)(int, struct sk_buff *skb, struct uml_net_private *);
++	int (*write)(int, struct sk_buff *skb, struct uml_net_private *);
  
-@@ -349,13 +349,11 @@ static int mbxfb_setupOverlay(struct mbx
- 	vscadr = readl(VSCADR);
- 	vubase = readl(VUBASE);
- 	vvbase = readl(VVBASE);
-+	shctrl = readl(SHCTRL);
- 
- 	spoctrl = readl(SPOCTRL);
- 	sssize = readl(SSSIZE);
- 
--
--	vbbase = Vbbase_Glalpha(set->alpha);
--
- 	vsctrl &= ~(	FMsk(VSCTRL_VSWIDTH) |
- 					FMsk(VSCTRL_VSHEIGHT) |
- 					FMsk(VSCTRL_VPIXFMT) |
-@@ -364,38 +362,41 @@ static int mbxfb_setupOverlay(struct mbx
- 	vsctrl |= Vsctrl_Width(set->width) | Vsctrl_Height(set->height) |
- 				VSCTRL_CSC_EN;
- 
--	vscadr &= ~(VSCADR_STR_EN | VSCADR_COLKEY_EN | VSCADR_COLKEYSRC |
--				FMsk(VSCADR_BLEND_M) | FMsk(VSCADR_BLEND_POS) |
--				FMsk(VSCADR_VBASE_ADR) );
-+	vscadr &= ~(VSCADR_STR_EN | FMsk(VSCADR_VBASE_ADR) );
- 	vubase &= ~(VUBASE_UVHALFSTR | FMsk(VUBASE_UBASE_ADR));
- 	vvbase &= ~(FMsk(VVBASE_VBASE_ADR));
- 
--	switch (set->fmt)
--	{
--		case MBXFB_FMT_YUV12:
--			vsctrl |= VSCTRL_VPIXFMT_YUV12;
-+	switch (set->fmt) {
-+	case MBXFB_FMT_YUV16:
-+		vsctrl |= VSCTRL_VPIXFMT_YUV12;
- 
--			set->Y_stride = ((set->width) + 0xf ) & ~0xf;
-+		set->Y_stride = ((set->width) + 0xf ) & ~0xf;
-+		break;
-+	case MBXFB_FMT_YUV12:
-+		vsctrl |= VSCTRL_VPIXFMT_YUV12;
- 
-+		set->Y_stride = ((set->width) + 0xf ) & ~0xf;
-+		vubase |= VUBASE_UVHALFSTR;
-+
-+		break;
-+	case MBXFB_FMT_UY0VY1:
-+		vsctrl |= VSCTRL_VPIXFMT_UY0VY1;
-+		set->Y_stride = (set->width*2 + 0xf ) & ~0xf;
-+		break;
-+	case MBXFB_FMT_VY0UY1:
-+		vsctrl |= VSCTRL_VPIXFMT_VY0UY1;
-+		set->Y_stride = (set->width*2 + 0xf ) & ~0xf;
-+		break;
-+	case MBXFB_FMT_Y0UY1V:
-+		vsctrl |= VSCTRL_VPIXFMT_Y0UY1V;
-+		set->Y_stride = (set->width*2 + 0xf ) & ~0xf;
-+		break;
-+	case MBXFB_FMT_Y0VY1U:
-+		vsctrl |= VSCTRL_VPIXFMT_Y0VY1U;
-+		set->Y_stride = (set->width*2 + 0xf ) & ~0xf;
- 			break;
--		case MBXFB_FMT_UY0VY1:
--			vsctrl |= VSCTRL_VPIXFMT_UY0VY1;
--			set->Y_stride = (set->width*2 + 0xf ) & ~0xf;
--			break;
--		case MBXFB_FMT_VY0UY1:
--			vsctrl |= VSCTRL_VPIXFMT_VY0UY1;
--			set->Y_stride = (set->width*2 + 0xf ) & ~0xf;
--			break;
--		case MBXFB_FMT_Y0UY1V:
--			vsctrl |= VSCTRL_VPIXFMT_Y0UY1V;
--			set->Y_stride = (set->width*2 + 0xf ) & ~0xf;
--			break;
--		case MBXFB_FMT_Y0VY1U:
--			vsctrl |= VSCTRL_VPIXFMT_Y0VY1U;
--			set->Y_stride = (set->width*2 + 0xf ) & ~0xf;
--			break;
--		default:
--			return -EINVAL;
-+	default:
-+		return -EINVAL;
- 	}
- 
- 	/* VSCTRL has the bits which sets the Video Pixel Format.
-@@ -417,8 +418,7 @@ static int mbxfb_setupOverlay(struct mbx
- 			(0x60000 + set->mem_offset + set->V_offset)>>3);
- 
- 
--	vscadr |= VSCADR_BLEND_VID | VSCADR_BLEND_GLOB |
--		Vscadr_Vbase_Adr((0x60000 + set->mem_offset)>>4);
-+	vscadr |= Vscadr_Vbase_Adr((0x60000 + set->mem_offset)>>4);
- 
- 	if (set->enable)
- 		vscadr |= VSCADR_STR_EN;
-@@ -433,9 +433,8 @@ static int mbxfb_setupOverlay(struct mbx
- 
- 	spoctrl &= ~(SPOCTRL_H_SC_BP | SPOCTRL_V_SC_BP |
- 			SPOCTRL_HV_SC_OR | SPOCTRL_VS_UR_C |
--			FMsk(SPOCTRL_VORDER) | FMsk(SPOCTRL_VPITCH));
--	spoctrl = Spoctrl_Vpitch((set->height<<11)/set->scaled_height)
--							| SPOCTRL_VORDER_2TAP;
-+			FMsk(SPOCTRL_VPITCH));
-+	spoctrl |= Spoctrl_Vpitch((set->height<<11)/set->scaled_height);
- 
- 	/* Bypass horiz/vert scaler when same size */
- 	if (set->scaled_width == set->width)
-@@ -443,14 +442,11 @@ static int mbxfb_setupOverlay(struct mbx
- 	if (set->scaled_height == set->height)
- 		spoctrl |= SPOCTRL_V_SC_BP;
- 
--	svctrl = Svctrl_Initial1(1<<10) | Svctrl_Initial2(1<<10);
--
--	shctrl = Shctrl_Hinitial(4<<11)
--			| Shctrl_Hpitch((set->width<<11)/set->scaled_width);
-+	shctrl &= ~(FMsk(SHCTRL_HPITCH) | SHCTRL_HDECIM);
-+	shctrl |= Shctrl_Hpitch((set->width<<11)/set->scaled_width);
- 
- 	/* Video plane registers */
- 	write_reg(vsctrl, VSCTRL);
--	write_reg(vbbase, VBBASE);
- 	write_reg(vscadr, VSCADR);
- 	write_reg(vubase, VUBASE);
- 	write_reg(vvbase, VVBASE);
-@@ -459,28 +455,8 @@ static int mbxfb_setupOverlay(struct mbx
- 	/* Video scaler registers */
- 	write_reg(sssize, SSSIZE);
- 	write_reg(spoctrl, SPOCTRL);
--	write_reg(svctrl, SVCTRL);
- 	write_reg(shctrl, SHCTRL);
- 
--	/* RAPH: Using those coefficients, the scaled
--	 * image is quite blurry. I dont know how
--	 * to improve them ; The chip documentation
--	 * was not helpful.. */
--	write_reg(0x21212121, VSCOEFF0);
--	write_reg(0x21212121, VSCOEFF1);
--	write_reg(0x21212121, VSCOEFF2);
--	write_reg(0x21212121, VSCOEFF3);
--	write_reg(0x21212121, VSCOEFF4);
--	write_reg(0x00000000, HSCOEFF0);
--	write_reg(0x00000000, HSCOEFF1);
--	write_reg(0x00000000, HSCOEFF2);
--	write_reg(0x03020201, HSCOEFF3);
--	write_reg(0x09070604, HSCOEFF4);
--	write_reg(0x0f0e0c0a, HSCOEFF5);
--	write_reg(0x15141211, HSCOEFF6);
--	write_reg(0x19181716, HSCOEFF7);
--	write_reg(0x00000019, HSCOEFF8);
--
- 	/* Clock */
- 	if (set->enable)
- 		vovrclk |= 1;
-@@ -492,27 +468,206 @@ static int mbxfb_setupOverlay(struct mbx
- 	return 0;
- }
- 
-+static int mbxfb_ioctl_planeorder(struct mbxfb_planeorder *porder)
-+{
-+	unsigned long gscadr, vscadr;
-+
-+	if (porder->bottom == porder->top)
-+		return -EINVAL;
-+
-+	gscadr = readl(GSCADR);
-+	vscadr = readl(VSCADR);
-+
-+	gscadr &= ~(FMsk(GSCADR_BLEND_POS));
-+	vscadr &= ~(FMsk(VSCADR_BLEND_POS));
-+
-+	switch (porder->bottom) {
-+	case MBXFB_PLANE_GRAPHICS:
-+		gscadr |= GSCADR_BLEND_GFX;
-+		break;
-+	case MBXFB_PLANE_VIDEO:
-+		vscadr |= VSCADR_BLEND_GFX;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	switch (porder->top) {
-+	case MBXFB_PLANE_GRAPHICS:
-+		gscadr |= GSCADR_BLEND_VID;
-+		break;
-+	case MBXFB_PLANE_VIDEO:
-+		vscadr |= GSCADR_BLEND_VID;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	write_reg_dly(vscadr, VSCADR);
-+	write_reg_dly(gscadr, GSCADR);
-+
-+	return 0;
-+
-+}
-+
-+static int mbxfb_ioctl_alphactl(struct mbxfb_alphaCtl *alpha)
-+{
-+	unsigned long vscadr, vbbase, vcmsk;
-+	unsigned long gscadr, gbbase, gdrctrl;
-+
-+	vbbase = Vbbase_Glalpha(alpha->overlay_global_alpha) |
-+				Vbbase_Colkey(alpha->overlay_colorkey);
-+
-+	gbbase = Gbbase_Glalpha(alpha->graphics_global_alpha) |
-+				Gbbase_Colkey(alpha->graphics_colorkey);
-+
-+	vcmsk = readl(VCMSK);
-+	vcmsk &= ~(FMsk(VCMSK_COLKEY_M));
-+	vcmsk |= Vcmsk_colkey_m(alpha->overlay_colorkey_mask);
-+
-+	gdrctrl = readl(GDRCTRL);
-+	gdrctrl &= ~(FMsk(GDRCTRL_COLKEYM));
-+	gdrctrl |= Gdrctrl_Colkeym(alpha->graphics_colorkey_mask);
-+
-+	vscadr = readl(VSCADR);
-+	vscadr &= ~(FMsk(VSCADR_BLEND_M) | VSCADR_COLKEYSRC | VSCADR_COLKEY_EN);
-+
-+	gscadr = readl(GSCADR);
-+	gscadr &= ~(FMsk(GSCADR_BLEND_M) | GSCADR_COLKEY_EN | GSCADR_COLKEYSRC);
-+
-+	switch (alpha->overlay_colorkey_mode) {
-+	case MBXFB_COLORKEY_DISABLED:
-+		break;
-+	case MBXFB_COLORKEY_PREVIOUS:
-+		vscadr |= VSCADR_COLKEY_EN;
-+		break;
-+	case MBXFB_COLORKEY_CURRENT:
-+		vscadr |= VSCADR_COLKEY_EN | VSCADR_COLKEYSRC;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	switch (alpha->overlay_blend_mode) {
-+	case MBXFB_ALPHABLEND_NONE:
-+		vscadr |= VSCADR_BLEND_NONE;
-+		break;
-+	case MBXFB_ALPHABLEND_GLOBAL:
-+		vscadr |= VSCADR_BLEND_GLOB;
-+		break;
-+	case MBXFB_ALPHABLEND_PIXEL:
-+		vscadr |= VSCADR_BLEND_PIX;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	switch (alpha->graphics_colorkey_mode) {
-+	case MBXFB_COLORKEY_DISABLED:
-+		break;
-+	case MBXFB_COLORKEY_PREVIOUS:
-+		gscadr |= GSCADR_COLKEY_EN;
-+		break;
-+	case MBXFB_COLORKEY_CURRENT:
-+		gscadr |= GSCADR_COLKEY_EN | GSCADR_COLKEYSRC;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	switch (alpha->graphics_blend_mode) {
-+	case MBXFB_ALPHABLEND_NONE:
-+		gscadr |= GSCADR_BLEND_NONE;
-+		break;
-+	case MBXFB_ALPHABLEND_GLOBAL:
-+		gscadr |= GSCADR_BLEND_GLOB;
-+		break;
-+	case MBXFB_ALPHABLEND_PIXEL:
-+		gscadr |= GSCADR_BLEND_PIX;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	write_reg_dly(vbbase, VBBASE);
-+	write_reg_dly(gbbase, GBBASE);
-+	write_reg_dly(vcmsk, VCMSK);
-+	write_reg_dly(gdrctrl, GDRCTRL);
-+	write_reg_dly(gscadr, GSCADR);
-+	write_reg_dly(vscadr, VSCADR);
-+
-+	return 0;
-+}
-+
- static int mbxfb_ioctl(struct fb_info *info, unsigned int cmd,
- 				unsigned long arg)
- {
--	struct mbxfb_overlaySetup setup;
-+	struct mbxfb_overlaySetup	setup;
-+	struct mbxfb_planeorder 	porder;
-+	struct mbxfb_alphaCtl 		alpha;
-+	struct mbxfb_reg			reg;
- 	int res;
-+	__u32 tmp;
- 
--	if (cmd == MBXFB_IOCX_OVERLAY)
-+	switch (cmd)
- 	{
--		if (copy_from_user(&setup, (void __user*)arg,
--					sizeof(struct mbxfb_overlaySetup)))
-+		case MBXFB_IOCX_OVERLAY:
-+			if (copy_from_user(&setup, (void __user*)arg,
-+						sizeof(struct mbxfb_overlaySetup)))
-+				return -EFAULT;
-+
-+			res = mbxfb_setupOverlay(&setup);
-+			if (res)
-+				return res;
-+
-+			if (copy_to_user((void __user*)arg, &setup,
-+						sizeof(struct mbxfb_overlaySetup)))
-+				return -EFAULT;
-+
-+			return 0;
-+
-+		case MBXFB_IOCS_PLANEORDER:
-+			if (copy_from_user(&porder, (void __user*)arg,
-+					sizeof(struct mbxfb_planeorder)))
- 			return -EFAULT;
- 
--		res = mbxfb_setupOverlay(&setup);
--		if (res)
--			return res;
-+			return mbxfb_ioctl_planeorder(&porder);
- 
--		if (copy_to_user((void __user*)arg, &setup,
--					sizeof(struct mbxfb_overlaySetup)))
-+		case MBXFB_IOCS_ALPHA:
-+			if (copy_from_user(&alpha, (void __user*)arg,
-+					sizeof(struct mbxfb_alphaCtl)))
- 			return -EFAULT;
- 
--		return 0;
-+			return mbxfb_ioctl_alphactl(&alpha);
-+
-+		case MBXFB_IOCS_REG:
-+			if (copy_from_user(&reg, (void __user*)arg,
-+						sizeof(struct mbxfb_reg)))
-+				return -EFAULT;
-+
-+			if (reg.addr >= 0x10000) /* regs are from 0x3fe0000 to 0x3feffff */
-+				return -EINVAL;
-+
-+			tmp = readl(virt_base_2700 + reg.addr);
-+			tmp &= ~reg.mask;
-+			tmp |= reg.val & reg.mask;
-+			writel(tmp, virt_base_2700 + reg.addr);
-+
-+			return 0;
-+		case MBXFB_IOCX_REG:
-+			if (copy_from_user(&reg, (void __user*)arg,
-+						sizeof(struct mbxfb_reg)))
-+				return -EFAULT;
-+
-+			if (reg.addr >= 0x10000)	/* regs are from 0x3fe0000 to 0x3feffff */
-+				return -EINVAL;
-+			reg.val = readl(virt_base_2700 + reg.addr);
-+
-+			if (copy_to_user((void __user*)arg, &reg,
-+						sizeof(struct mbxfb_reg)))
-+				return -EFAULT;
-+
-+			return 0;
- 	}
- 	return -EINVAL;
- }
-@@ -558,7 +713,6 @@ static void __devinit setup_memc(struct 
- 	       LMTYPE);
- 	/* enable memory controller */
- 	write_reg_dly(LMPWR_MC_PWR_ACT, LMPWR);
--
- 	/* perform dummy reads */
- 	for ( i = 0; i < 16; i++ ) {
- 		tmp = readl(fbi->screen_base);
-@@ -588,8 +742,8 @@ static void enable_clocks(struct fb_info
- 	write_reg_dly(0x00000000, VOVRCLK);
- 	write_reg_dly(PIXCLK_EN, PIXCLK);
- 	write_reg_dly(MEMCLK_EN, MEMCLK);
--	write_reg_dly(0x00000006, M24CLK);
--	write_reg_dly(0x00000006, MBXCLK);
-+	write_reg_dly(0x00000001, M24CLK);
-+	write_reg_dly(0x00000001, MBXCLK);
- 	write_reg_dly(SDCLK_EN, SDCLK);
- 	write_reg_dly(0x00000001, PIXCLKDIV);
- }
-@@ -597,6 +751,7 @@ static void enable_clocks(struct fb_info
- static void __devinit setup_graphics(struct fb_info *fbi)
- {
- 	unsigned long gsctrl;
-+	unsigned long vscadr;
- 
- 	gsctrl = GSCTRL_GAMMA_EN | Gsctrl_Width(fbi->var.xres) |
- 		Gsctrl_Height(fbi->var.yres);
-@@ -620,6 +775,11 @@ static void __devinit setup_graphics(str
- 	write_reg_dly(0x00ffffff, GDRCTRL);
- 	write_reg_dly((GSCADR_STR_EN | Gscadr_Gbase_Adr(0x6000)), GSCADR);
- 	write_reg_dly(0x00000000, GPLUT);
-+
-+	vscadr = readl(VSCADR);
-+	vscadr &= ~(FMsk(VSCADR_BLEND_POS) | FMsk(VSCADR_BLEND_M));
-+	vscadr |= VSCADR_BLEND_VID | VSCADR_BLEND_NONE;
-+	write_reg_dly(vscadr, VSCADR);
- }
- 
- static void __devinit setup_display(struct fb_info *fbi)
-@@ -638,13 +798,47 @@ static void __devinit setup_display(stru
- 
- static void __devinit enable_controller(struct fb_info *fbi)
- {
-+	u32 svctrl, shctrl;
-+
- 	write_reg_dly(SYSRST_RST, SYSRST);
- 
-+	/* setup a timeout, raise drive strength */
-+	write_reg_dly(0xffffff0c, SYSCFG);
- 
- 	enable_clocks(fbi);
- 	setup_memc(fbi);
- 	setup_graphics(fbi);
- 	setup_display(fbi);
-+
-+	shctrl = readl(SHCTRL);
-+	shctrl &= ~(FMsk(SHCTRL_HINITIAL));
-+	shctrl |= Shctrl_Hinitial(4<<11);
-+	writel(shctrl, SHCTRL);
-+
-+	svctrl = Svctrl_Initial1(1<<10) | Svctrl_Initial2(1<<10);
-+	writel(svctrl, SVCTRL);
-+
-+	writel(SPOCTRL_H_SC_BP | SPOCTRL_V_SC_BP | SPOCTRL_VORDER_4TAP
-+			, SPOCTRL);
-+
-+	/* Those coefficients are good for scaling up. For scaling
-+	 * down, the application has to calculate them. */
-+	write_reg(0xff000100, VSCOEFF0);
-+	write_reg(0xfdfcfdfe, VSCOEFF1);
-+	write_reg(0x170d0500, VSCOEFF2);
-+	write_reg(0x3d372d22, VSCOEFF3);
-+	write_reg(0x00000040, VSCOEFF4);
-+
-+	write_reg(0xff010100, HSCOEFF0);
-+	write_reg(0x00000000, HSCOEFF1);
-+	write_reg(0x02010000, HSCOEFF2);
-+	write_reg(0x01020302, HSCOEFF3);
-+	write_reg(0xf9fbfe00, HSCOEFF4);
-+	write_reg(0xfbf7f6f7, HSCOEFF5);
-+	write_reg(0x1c110700, HSCOEFF6);
-+	write_reg(0x3e393127, HSCOEFF7);
-+	write_reg(0x00000040, HSCOEFF8);
-+
- }
- 
- #ifdef CONFIG_PM
-diff -puN drivers/video/mbx/reg_bits.h~mbxfb-improvements-and-new-features drivers/video/mbx/reg_bits.h
---- a/drivers/video/mbx/reg_bits.h~mbxfb-improvements-and-new-features
-+++ a/drivers/video/mbx/reg_bits.h
-@@ -215,7 +215,7 @@
- /* GSCADR graphics stream control address register fields */
- #define GSCADR_STR_EN	(1 << 31)
- #define GSCADR_COLKEY_EN	(1 << 30)
--#define GSCADR_COLKEYSCR	(1 << 29)
-+#define GSCADR_COLKEYSRC	(1 << 29)
- #define GSCADR_BLEND_M	Fld(2,27)
- #define GSCADR_BLEND_NONE	((0x0) << FShft(GSCADR_BLEND_M))
- #define GSCADR_BLEND_INV	((0x1) << FShft(GSCADR_BLEND_M))
-@@ -303,6 +303,67 @@
- #define VSADR_YSTART		Fld(11,0)
- #define Vsadr_Ystart(x)		((x) << FShft(VSADR_YSTART))
- 
-+/* VSCTRL - Video Surface Control Register */
-+#define VSCTRL_VPIXFMT		Fld(4,27)
-+#define VSCTRL_VPIXFMT_YUV12	((0x9) << FShft(VSCTRL_VPIXFMT))
-+#define VSCTRL_VPIXFMT_UY0VY1	((0xc) << FShft(VSCTRL_VPIXFMT))
-+#define VSCTRL_VPIXFMT_VY0UY1	((0xd) << FShft(VSCTRL_VPIXFMT))
-+#define VSCTRL_VPIXFMT_Y0UY1V	((0xe) << FShft(VSCTRL_VPIXFMT))
-+#define VSCTRL_VPIXFMT_Y0VY1U	((0xf) << FShft(VSCTRL_VPIXFMT))
-+#define VSCTRL_GAMMA_EN		(1 << 26)
-+#define VSCTRL_CSC_EN		(1 << 25)
-+#define VSCTRL_COSITED		(1 << 22)
-+#define VSCTRL_VSWIDTH		Fld(11,11)
-+#define Vsctrl_Width(Pixels) /* Video Width [1-2048] */ \
-+			(((Pixels) - 1) << FShft(VSCTRL_VSWIDTH))
-+#define VSCTRL_VSHEIGHT		Fld(11,0)
-+#define Vsctrl_Height(Pixels) /* Video Height [1-2048] */ \
-+			(((Pixels) - 1) << FShft(VSCTRL_VSHEIGHT))
-+
-+/* VBBASE - Video Blending Base Register */
-+#define VBBASE_GLALPHA		Fld(8,24)
-+#define Vbbase_Glalpha(x)	((x) << FShft(VBBASE_GLALPHA))
-+
-+#define VBBASE_COLKEY		Fld(24,0)
-+#define Vbbase_Colkey(x)	((x) << FShft(VBBASE_COLKEY))
-+
-+/* VCMSK - Video Color Key Mask Register */
-+#define VCMSK_COLKEY_M		Fld(24,0)
-+#define Vcmsk_colkey_m(x)	((x) << FShft(VCMSK_COLKEY_M))
-+
-+/* VSCADR - Video Stream Control Rddress Register */
-+#define VSCADR_STR_EN		(1 << 31)
-+#define VSCADR_COLKEY_EN	(1 << 30)
-+#define VSCADR_COLKEYSRC	(1 << 29)
-+#define VSCADR_BLEND_M		Fld(2,27)
-+#define VSCADR_BLEND_NONE	((0x0) << FShft(VSCADR_BLEND_M))
-+#define VSCADR_BLEND_INV	((0x1) << FShft(VSCADR_BLEND_M))
-+#define VSCADR_BLEND_GLOB	((0x2) << FShft(VSCADR_BLEND_M))
-+#define VSCADR_BLEND_PIX	((0x3) << FShft(VSCADR_BLEND_M))
-+#define VSCADR_BLEND_POS	Fld(2,24)
-+#define VSCADR_BLEND_GFX	((0x0) << FShft(VSCADR_BLEND_POS))
-+#define VSCADR_BLEND_VID	((0x1) << FShft(VSCADR_BLEND_POS))
-+#define VSCADR_BLEND_CUR	((0x2) << FShft(VSCADR_BLEND_POS))
-+#define VSCADR_VBASE_ADR	Fld(23,0)
-+#define Vscadr_Vbase_Adr(x)	((x) << FShft(VSCADR_VBASE_ADR))
-+
-+/* VUBASE - Video U Base Register */
-+#define VUBASE_UVHALFSTR	(1 << 31)
-+#define VUBASE_UBASE_ADR	Fld(24,0)
-+#define Vubase_Ubase_Adr(x)	((x) << FShft(VUBASE_UBASE_ADR))
-+
-+/* VVBASE - Video V Base Register */
-+#define VVBASE_VBASE_ADR	Fld(24,0)
-+#define Vvbase_Vbase_Adr(x)	((x) << FShft(VVBASE_VBASE_ADR))
-+
-+/* VSADR - Video Stride Address Register */
-+#define VSADR_SRCSTRIDE		Fld(10,22)
-+#define Vsadr_Srcstride(x)	((x) << FShft(VSADR_SRCSTRIDE))
-+#define VSADR_XSTART		Fld(11,11)
-+#define Vsadr_Xstart(x)		((x) << FShft(VSADR_XSTART))
-+#define VSADR_YSTART		Fld(11,0)
-+#define Vsadr_Ystart(x)		((x) << FShft(VSADR_YSTART))
-+
- /* HCCTRL - Hardware Cursor Register fields */
- #define HCCTRL_CUR_EN	(1 << 31)
- #define HCCTRL_COLKEY_EN	(1 << 29)
-@@ -479,6 +540,30 @@
- #define DINTRE_HBLNK1_EN	(1 << 1)
- #define DINTRE_HBLNK0_EN	(1 << 0)
- 
-+/* DINTRS - Display Interrupt Status Register */
-+#define DINTRS_CUR_OR_S		(1 << 18)
-+#define DINTRS_STR2_OR_S	(1 << 17)
-+#define DINTRS_STR1_OR_S	(1 << 16)
-+#define DINTRS_CUR_UR_S		(1 << 6)
-+#define DINTRS_STR2_UR_S	(1 << 5)
-+#define DINTRS_STR1_UR_S	(1 << 4)
-+#define DINTRS_VEVENT1_S	(1 << 3)
-+#define DINTRS_VEVENT0_S	(1 << 2)
-+#define DINTRS_HBLNK1_S		(1 << 1)
-+#define DINTRS_HBLNK0_S		(1 << 0)
-+
-+/* DINTRE - Display Interrupt Enable Register */
-+#define DINTRE_CUR_OR_EN	(1 << 18)
-+#define DINTRE_STR2_OR_EN	(1 << 17)
-+#define DINTRE_STR1_OR_EN	(1 << 16)
-+#define DINTRE_CUR_UR_EN	(1 << 6)
-+#define DINTRE_STR2_UR_EN	(1 << 5)
-+#define DINTRE_STR1_UR_EN	(1 << 4)
-+#define DINTRE_VEVENT1_EN	(1 << 3)
-+#define DINTRE_VEVENT0_EN	(1 << 2)
-+#define DINTRE_HBLNK1_EN	(1 << 1)
-+#define DINTRE_HBLNK0_EN	(1 << 0)
-+
- 
- /* DLSTS - display load status register */
- #define DLSTS_RLD_ADONE	(1 << 23)
-diff -puN drivers/video/mbx/regs.h~mbxfb-improvements-and-new-features drivers/video/mbx/regs.h
---- a/drivers/video/mbx/regs.h~mbxfb-improvements-and-new-features
-+++ a/drivers/video/mbx/regs.h
-@@ -30,7 +30,7 @@
- #define VOVRCLK		__REG_2700G(0x00000044)
- #define PIXCLK		__REG_2700G(0x00000048)
- #define MEMCLK		__REG_2700G(0x0000004c)
--#define M24CLK		__REG_2700G(0x00000054)
-+#define M24CLK		__REG_2700G(0x00000050)
- #define MBXCLK		__REG_2700G(0x00000054)
- #define SDCLK		__REG_2700G(0x00000058)
- #define PIXCLKDIV	__REG_2700G(0x0000005c)
-diff -puN include/video/mbxfb.h~mbxfb-improvements-and-new-features include/video/mbxfb.h
---- a/include/video/mbxfb.h~mbxfb-improvements-and-new-features
-+++ a/include/video/mbxfb.h
-@@ -29,18 +29,18 @@ struct mbxfb_platform_data {
+ 	void (*add_address)(unsigned char *, unsigned char *, void *);
+ 	void (*delete_address)(unsigned char *, unsigned char *, void *);
+-	int (*set_mtu)(int mtu, void *);
+ 	char user[0];
  };
  
- /* planar */
--#define MBXFB_FMT_YUV12		0
-+#define MBXFB_FMT_YUV16		0
-+#define MBXFB_FMT_YUV12		1
- 
- /* packed */
--#define MBXFB_FMT_UY0VY1	1
--#define MBXFB_FMT_VY0UY1	2
--#define MBXFB_FMT_Y0UY1V	3
--#define MBXFB_FMT_Y0VY1U	4
-+#define MBXFB_FMT_UY0VY1	2
-+#define MBXFB_FMT_VY0UY1	3
-+#define MBXFB_FMT_Y0UY1V	4
-+#define MBXFB_FMT_Y0VY1U	5
- struct mbxfb_overlaySetup {
- 	__u32 enable;
- 	__u32 x, y;
- 	__u32 width, height;
--	__u32 alpha;
- 	__u32 fmt;
- 	__u32 mem_offset;
- 	__u32 scaled_width;
-@@ -54,6 +54,45 @@ struct mbxfb_overlaySetup {
- 	__u16 UV_stride;
+ struct net_kern_info {
+ 	void (*init)(struct net_device *, void *);
+ 	unsigned short (*protocol)(struct sk_buff *);
+-	int (*read)(int, struct sk_buff **skb, struct uml_net_private *);
+-	int (*write)(int, struct sk_buff **skb, struct uml_net_private *);
++	int (*read)(int, struct sk_buff *skb, struct uml_net_private *);
++	int (*write)(int, struct sk_buff *skb, struct uml_net_private *);
  };
  
--#define MBXFB_IOCX_OVERLAY	_IOWR(0xF4, 0x00,struct mbxfb_overlaySetup)
-+#define MBXFB_ALPHABLEND_NONE		0
-+#define MBXFB_ALPHABLEND_GLOBAL		1
-+#define MBXFB_ALPHABLEND_PIXEL		2
-+
-+#define MBXFB_COLORKEY_DISABLED		0
-+#define MBXFB_COLORKEY_PREVIOUS		1
-+#define MBXFB_COLORKEY_CURRENT		2
-+struct mbxfb_alphaCtl {
-+	__u8 overlay_blend_mode;
-+	__u8 overlay_colorkey_mode;
-+	__u8 overlay_global_alpha;
-+	__u32 overlay_colorkey;
-+	__u32 overlay_colorkey_mask;
-+
-+	__u8 graphics_blend_mode;
-+	__u8 graphics_colorkey_mode;
-+	__u8 graphics_global_alpha;
-+	__u32 graphics_colorkey;
-+	__u32 graphics_colorkey_mask;
-+};
-+
-+#define MBXFB_PLANE_GRAPHICS	0
-+#define MBXFB_PLANE_VIDEO	1
-+struct mbxfb_planeorder {
-+	__u8 bottom;
-+	__u8 top;
-+};
-+
-+struct mbxfb_reg {
-+	__u32 addr; 	/* offset from 0x03fe 0000 */
-+	__u32 val;		/* value */
-+	__u32 mask;		/* which bits to touch (for write) */
-+};
-+
-+#define MBXFB_IOCX_OVERLAY		_IOWR(0xF4, 0x00,struct mbxfb_overlaySetup)
-+#define MBXFB_IOCG_ALPHA		_IOR(0xF4, 0x01,struct mbxfb_alphaCtl)
-+#define MBXFB_IOCS_ALPHA		_IOW(0xF4, 0x02,struct mbxfb_alphaCtl)
-+#define MBXFB_IOCS_PLANEORDER	_IOR(0xF4, 0x03,struct mbxfb_planeorder)
-+#define MBXFB_IOCS_REG			_IOW(0xF4, 0x04,struct mbxfb_reg)
-+#define MBXFB_IOCX_REG			_IOWR(0xF4, 0x05,struct mbxfb_reg)
+ struct transport {
+@@ -62,7 +62,6 @@ struct transport {
  
- #endif /* __MBX_FB_H */
+ extern struct net_device *ether_init(int);
+ extern unsigned short ether_protocol(struct sk_buff *);
+-extern struct sk_buff *ether_adjust_skb(struct sk_buff *skb, int extra);
+ extern int tap_setup_common(char *str, char *type, char **dev_name,
+ 			    char **mac_out, char **gate_addr);
+ extern void register_transport(struct transport *new);
+diff -puN arch/um/include/net_user.h~uml-network-driver-mtu-cleanups arch/um/include/net_user.h
+--- a/arch/um/include/net_user.h~uml-network-driver-mtu-cleanups
++++ a/arch/um/include/net_user.h
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
++ * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
+  */
+ 
+@@ -18,10 +18,10 @@ struct net_user_info {
+ 	int (*open)(void *);
+ 	void (*close)(int, void *);
+ 	void (*remove)(void *);
+-	int (*set_mtu)(int mtu, void *);
+ 	void (*add_address)(unsigned char *, unsigned char *, void *);
+ 	void (*delete_address)(unsigned char *, unsigned char *, void *);
+ 	int max_packet;
++	int mtu;
+ };
+ 
+ extern void ether_user_init(void *data, void *dev);
+diff -puN arch/um/os-Linux/drivers/ethertap_kern.c~uml-network-driver-mtu-cleanups arch/um/os-Linux/drivers/ethertap_kern.c
+--- a/arch/um/os-Linux/drivers/ethertap_kern.c~uml-network-driver-mtu-cleanups
++++ a/arch/um/os-Linux/drivers/ethertap_kern.c
+@@ -36,35 +36,24 @@ static void etap_init(struct net_device 
+ 	printk("\n");
+ }
+ 
+-static int etap_read(int fd, struct sk_buff **skb, struct uml_net_private *lp)
++static int etap_read(int fd, struct sk_buff *skb, struct uml_net_private *lp)
+ {
+ 	int len;
+ 
+-	*skb = ether_adjust_skb(*skb, ETH_HEADER_ETHERTAP);
+-	if (*skb == NULL)
+-		return -ENOMEM;
+-	len = net_recvfrom(fd, skb_mac_header(*skb),
+-			   (*skb)->dev->mtu + 2 * ETH_HEADER_ETHERTAP);
++	len = net_recvfrom(fd, skb_mac_header(skb),
++			   skb->dev->mtu + 2 + ETH_HEADER_ETHERTAP);
+ 	if (len <= 0)
+-		return len;
+-	skb_pull(*skb, 2);
++		return(len);
++
++	skb_pull(skb, 2);
+ 	len -= 2;
+ 	return len;
+ }
+ 
+-static int etap_write(int fd, struct sk_buff **skb, struct uml_net_private *lp)
++static int etap_write(int fd, struct sk_buff *skb, struct uml_net_private *lp)
+ {
+-	if (skb_headroom(*skb) < 2) {
+-	  	struct sk_buff *skb2;
+-
+-		skb2 = skb_realloc_headroom(*skb, 2);
+-		dev_kfree_skb(*skb);
+-		if (skb2 == NULL)
+-			return -ENOMEM;
+-		*skb = skb2;
+-	}
+-	skb_push(*skb, 2);
+-	return net_send(fd, (*skb)->data, (*skb)->len);
++	skb_push(skb, 2);
++	return net_send(fd, skb->data, skb->len);
+ }
+ 
+ const struct net_kern_info ethertap_kern_info = {
+@@ -99,6 +88,7 @@ static struct transport ethertap_transpo
+ 	.user 		= &ethertap_user_info,
+ 	.kern 		= &ethertap_kern_info,
+ 	.private_size 	= sizeof(struct ethertap_data),
++	.setup_size 	= sizeof(struct ethertap_init),
+ };
+ 
+ static int register_ethertap(void)
+diff -puN arch/um/os-Linux/drivers/ethertap_user.c~uml-network-driver-mtu-cleanups arch/um/os-Linux/drivers/ethertap_user.c
+--- a/arch/um/os-Linux/drivers/ethertap_user.c~uml-network-driver-mtu-cleanups
++++ a/arch/um/os-Linux/drivers/ethertap_user.c
+@@ -222,11 +222,6 @@ static void etap_close(int fd, void *dat
+ 	pri->control_fd = -1;
+ }
+ 
+-static int etap_set_mtu(int mtu, void *data)
+-{
+-	return mtu;
+-}
+-
+ static void etap_add_addr(unsigned char *addr, unsigned char *netmask,
+ 			  void *data)
+ {
+@@ -254,8 +249,8 @@ const struct net_user_info ethertap_user
+ 	.open		= etap_open,
+ 	.close	 	= etap_close,
+ 	.remove	 	= NULL,
+-	.set_mtu	= etap_set_mtu,
+ 	.add_address	= etap_add_addr,
+ 	.delete_address = etap_del_addr,
+-	.max_packet	= MAX_PACKET - ETH_HEADER_ETHERTAP
++	.mtu		= ETH_MAX_PACKET,
++	.max_packet	= ETH_MAX_PACKET + ETH_HEADER_ETHERTAP,
+ };
+diff -puN arch/um/os-Linux/drivers/tuntap_kern.c~uml-network-driver-mtu-cleanups arch/um/os-Linux/drivers/tuntap_kern.c
+--- a/arch/um/os-Linux/drivers/tuntap_kern.c~uml-network-driver-mtu-cleanups
++++ a/arch/um/os-Linux/drivers/tuntap_kern.c
+@@ -35,20 +35,15 @@ static void tuntap_init(struct net_devic
+ 	printk("\n");
+ }
+ 
+-static int tuntap_read(int fd, struct sk_buff **skb,
+-		       struct uml_net_private *lp)
++static int tuntap_read(int fd, struct sk_buff *skb, struct uml_net_private *lp)
+ {
+-	*skb = ether_adjust_skb(*skb, ETH_HEADER_OTHER);
+-	if (*skb == NULL)
+-		return -ENOMEM;
+-	return net_read(fd, skb_mac_header(*skb),
+-			(*skb)->dev->mtu + ETH_HEADER_OTHER);
++	return net_read(fd, skb_mac_header(skb),
++			skb->dev->mtu + ETH_HEADER_OTHER);
+ }
+ 
+-static int tuntap_write(int fd, struct sk_buff **skb,
+-			struct uml_net_private *lp)
++static int tuntap_write(int fd, struct sk_buff *skb, struct uml_net_private *lp)
+ {
+-	return net_write(fd, (*skb)->data, (*skb)->len);
++	return net_write(fd, skb->data, skb->len);
+ }
+ 
+ const struct net_kern_info tuntap_kern_info = {
+diff -puN arch/um/os-Linux/drivers/tuntap_user.c~uml-network-driver-mtu-cleanups arch/um/os-Linux/drivers/tuntap_user.c
+--- a/arch/um/os-Linux/drivers/tuntap_user.c~uml-network-driver-mtu-cleanups
++++ a/arch/um/os-Linux/drivers/tuntap_user.c
+@@ -18,8 +18,6 @@
+ #include "tuntap.h"
+ #include "user.h"
+ 
+-#define MAX_PACKET ETH_MAX_PACKET
+-
+ static int tuntap_user_init(void *data, void *dev)
+ {
+ 	struct tuntap_data *pri = data;
+@@ -206,18 +204,13 @@ static void tuntap_close(int fd, void *d
+ 	pri->fd = -1;
+ }
+ 
+-static int tuntap_set_mtu(int mtu, void *data)
+-{
+-	return mtu;
+-}
+-
+ const struct net_user_info tuntap_user_info = {
+ 	.init		= tuntap_user_init,
+ 	.open		= tuntap_open,
+ 	.close	 	= tuntap_close,
+ 	.remove	 	= NULL,
+-	.set_mtu	= tuntap_set_mtu,
+ 	.add_address	= tuntap_add_addr,
+ 	.delete_address = tuntap_del_addr,
+-	.max_packet	= MAX_PACKET
++	.mtu		= ETH_MAX_PACKET,
++	.max_packet	= ETH_MAX_PACKET + ETH_HEADER_OTHER,
+ };
 _
 
-Patches currently in -mm which might be from raph@8d.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
+git-kvm.patch
+uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
+bitops-introduce-lock-ops.patch
