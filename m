@@ -1,49 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - udf-convert-to-new-aops-fix.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:19:55 -0700
-Message-ID: <200710160419.l9G4JtwM008414@imap1.linux-foundation.org>
+Subject: - sysv-convert-to-new-aops-fix.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:20:11 -0700
+Message-ID: <200710160420.l9G4KBgr008510@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42793 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36733 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752889AbXJPEUA (ORCPT
+	by vger.kernel.org with ESMTP id S1752267AbXJPEUP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:20:00 -0400
+	Tue, 16 Oct 2007 00:20:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     udf convert to new aops fix
+     sysv convert to new aops fix
 has been removed from the -mm tree.  Its filename was
-     udf-convert-to-new-aops-fix.patch
+     sysv-convert-to-new-aops-fix.patch
 
-This patch was dropped because it was folded into udf-convert-to-new-aops.patch
+This patch was dropped because it was folded into sysv-convert-to-new-aops.patch
 
 ------------------------------------------------------
-Subject: udf convert to new aops fix
+Subject: sysv convert to new aops fix
 From: Nick Piggin <npiggin@suse.de>
 
-
-
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/inode.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/sysv/dir.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/udf/inode.c~udf-convert-to-new-aops-fix fs/udf/inode.c
---- a/fs/udf/inode.c~udf-convert-to-new-aops-fix
-+++ a/fs/udf/inode.c
-@@ -137,6 +137,7 @@ static int udf_write_begin(struct file *
- 			loff_t pos, unsigned len, unsigned flags,
- 			struct page **pagep, void **fsdata)
+diff -puN fs/sysv/dir.c~sysv-convert-to-new-aops-fix fs/sysv/dir.c
+--- a/fs/sysv/dir.c~sysv-convert-to-new-aops-fix
++++ a/fs/sysv/dir.c
+@@ -219,7 +219,7 @@ int sysv_add_link(struct dentry *dentry,
+ 	return -EINVAL;
+ 
+ got_it:
+-	pos = (page->index << PAGE_CACHE_SHIFT) +
++	pos = page_offset(page) +
+ 			(char*)de - (char*)page_address(page);
+ 	lock_page(page);
+ 	err = __sysv_write_begin(NULL, page->mapping, pos, SYSV_DIRSIZE,
+@@ -246,7 +246,7 @@ int sysv_delete_entry(struct sysv_dir_en
+ 	struct address_space *mapping = page->mapping;
+ 	struct inode *inode = (struct inode*)mapping->host;
+ 	char *kaddr = (char*)page_address(page);
+-	loff_t pos = (page->index << PAGE_CACHE_SHIFT) + (char *)de - kaddr;
++	loff_t pos = page_offset(page) + (char *)de - kaddr;
+ 	int err;
+ 
+ 	lock_page(page);
+@@ -347,7 +347,7 @@ void sysv_set_link(struct sysv_dir_entry
  {
-+	*pagep = NULL;
- 	return block_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
- 				udf_get_block);
- }
+ 	struct address_space *mapping = page->mapping;
+ 	struct inode *dir = mapping->host;
+-	loff_t pos = (page->index << PAGE_CACHE_SHIFT) +
++	loff_t pos = page_offset(page) +
+ 			(char *)de-(char*)page_address(page);
+ 	int err;
+ 
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
@@ -93,7 +111,6 @@ hostfs-convert-to-new-aops.patch
 jffs2-convert-to-new-aops.patch
 ufs-convert-to-new-aops.patch
 udf-convert-to-new-aops.patch
-udf-convert-to-new-aops-fix.patch
 sysv-convert-to-new-aops.patch
 sysv-convert-to-new-aops-fix.patch
 sysv-convert-to-new-aops-fix2.patch
