@@ -1,53 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:29:24 -0700
-Message-ID: <200710160429.l9G4TOQW008801@imap1.linux-foundation.org>
+Subject: - memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:29:22 -0700
+Message-ID: <200710160429.l9G4TMK2008798@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37069 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38798 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752226AbXJPE32 (ORCPT
+	by vger.kernel.org with ESMTP id S1751837AbXJPE30 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:29:28 -0400
+	Tue, 16 Oct 2007 00:29:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Lee.Schermerhorn@hp.com, clameter@sgi.com, shaohua.li@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clameter@sgi.com, shaohua.li@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3
+     memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2
 has been removed from the -mm tree.  Its filename was
-     memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
+     memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
 
 This patch was dropped because it was folded into memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code.patch
 
 ------------------------------------------------------
-Subject: memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3
+Subject: memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
-
-mm/page_alloc.c: In function `find_next_best_node':
-mm/page_alloc.c:1806: warning: unused variable `pgdat'
 
 Cc: Christoph Lameter <clameter@sgi.com>
 Cc: Shaohua Li <shaohua.li@intel.com>
-Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/mempolicy.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3 mm/page_alloc.c
---- a/mm/page_alloc.c~memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3
-+++ a/mm/page_alloc.c
-@@ -1803,7 +1803,6 @@ static int find_next_best_node(int node,
+diff -puN mm/mempolicy.c~memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2 mm/mempolicy.c
+--- a/mm/mempolicy.c~memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2
++++ a/mm/mempolicy.c
+@@ -965,7 +965,7 @@ asmlinkage long sys_migrate_pages(pid_t 
+ 		goto out;
  	}
  
- 	for_each_node_state(n, N_HIGH_MEMORY) {
--		pg_data_t *pgdat = NODE_DATA(n);
- 		cpumask_t tmp;
- 
- 		/* Don't want a node to appear more than once */
+-	if (!nodes_subset(new, node_online_map)) {
++	if (!nodes_subset(new, node_states[N_HIGH_MEMORY])) {
+ 		err = -EINVAL;
+ 		goto out;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,6 +60,7 @@ nfs-convert-to-new-aops.patch
 fs-restore-nobh.patch
 memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
 memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2.patch
 memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
 categorize-gfp-flags-fix.patch
 bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
