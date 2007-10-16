@@ -1,62 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: - ia64-perfmon-remove-exit_pfm_fs.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 19:17:40 -0700
-Message-ID: <200710160217.l9G2He7v004221@imap1.linux-foundation.org>
+Subject: - ia64-tree-wide-misc-__cpuinitdata-init-exit.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 19:17:37 -0700
+Message-ID: <200710160217.l9G2HbSP004218@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36792 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51190 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757312AbXJPCSJ (ORCPT
+	by vger.kernel.org with ESMTP id S1757077AbXJPCR7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 22:18:09 -0400
+	Mon, 15 Oct 2007 22:17:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: satyam.sharma@gmail.com, eranian@hpl.hp.com, satyam@infradead.org, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: satyam@infradead.org, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64 perfmon: Remove exit_pfm_fs()
+     ia64 tree-wide: Misc __cpu{initdata, init, exit} annotations
 has been removed from the -mm tree.  Its filename was
-     ia64-perfmon-remove-exit_pfm_fs.patch
+     ia64-tree-wide-misc-__cpuinitdata-init-exit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ia64 perfmon: Remove exit_pfm_fs()
-From: "Satyam Sharma" <satyam.sharma@gmail.com>
+Subject: ia64 tree-wide: Misc __cpu{initdata, init, exit} annotations
+From: Satyam Sharma <satyam@infradead.org>
 
-Because it is dead code and not referenced by anybody else (that file cannot
-be built modular).
+* palinfo.c:
+
+palinfo_cpu_notifier is a CPU hotplug notifier_block, and can be
+marked __cpuinitdata, and the callback function palinfo_cpu_callback()
+itself can be marked __cpuinit. create_palinfo_proc_entries() is only
+called from __cpuinit callback or general __init code, therefore a
+candidate for __cpuinit itself. remove_palinfo_proc_entries() is only
+called from __cpuinit callback or general __exit code, therefore a
+candidate for __cpuexit.
+
+* salinfo.c:
+
+The CPU hotplug notifier_block can be __cpuinitdata. The callback
+salinfo_cpu_callback() is incorrectly marked __devinit -- it must
+be __cpuinit instead.
+
+* topology.c:
+
+cache_sysfs_init() is only called at device_initcall() time so marking
+it as __cpuinit is wrong and wasteful. It should be unconditionally
+__init. Also cleanup reference to hotplug notifier callback function
+from this function and replace with cache_add_dev(), which could also
+enable us to use other tricks to replace __cpuinit{data} annotations,
+as recently discussed on this list.
+
+cache_shared_cpu_map_setup() is only ever called from __cpuinit-marked
+functions hence both its definitions (SMP or !SMP) are candidates for
+__cpuinit itself. Also all_cpu_cache_info can be __cpuinitdata because
+only referenced from __cpuinit code.
 
 Signed-off-by: Satyam Sharma <satyam@infradead.org>
 Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Stephane Eranian <eranian@hpl.hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/perfmon.c |    7 -------
- 1 file changed, 7 deletions(-)
+ arch/ia64/kernel/palinfo.c  |    6 +++---
+ arch/ia64/kernel/salinfo.c  |    4 ++--
+ arch/ia64/kernel/topology.c |   12 ++++++------
+ 3 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN arch/ia64/kernel/perfmon.c~ia64-perfmon-remove-exit_pfm_fs arch/ia64/kernel/perfmon.c
---- a/arch/ia64/kernel/perfmon.c~ia64-perfmon-remove-exit_pfm_fs
-+++ a/arch/ia64/kernel/perfmon.c
-@@ -1538,13 +1538,6 @@ init_pfm_fs(void)
- 	return err;
+diff -puN arch/ia64/kernel/palinfo.c~ia64-tree-wide-misc-__cpuinitdata-init-exit arch/ia64/kernel/palinfo.c
+--- a/arch/ia64/kernel/palinfo.c~ia64-tree-wide-misc-__cpuinitdata-init-exit
++++ a/arch/ia64/kernel/palinfo.c
+@@ -907,7 +907,7 @@ palinfo_read_entry(char *page, char **st
+ 	return len;
  }
  
--static void __exit
--exit_pfm_fs(void)
--{
--	unregister_filesystem(&pfm_fs_type);
--	mntput(pfmfs_mnt);
--}
--
- static ssize_t
- pfm_read(struct file *filp, char __user *buf, size_t size, loff_t *ppos)
+-static void
++static void __cpuinit
+ create_palinfo_proc_entries(unsigned int cpu)
  {
+ #	define CPUSTR	"cpu%d"
+@@ -968,7 +968,7 @@ remove_palinfo_proc_entries(unsigned int
+ 	}
+ }
+ 
+-static int palinfo_cpu_callback(struct notifier_block *nfb,
++static int __cpuinit palinfo_cpu_callback(struct notifier_block *nfb,
+ 					unsigned long action, void *hcpu)
+ {
+ 	unsigned int hotcpu = (unsigned long)hcpu;
+@@ -986,7 +986,7 @@ static int palinfo_cpu_callback(struct n
+ 	return NOTIFY_OK;
+ }
+ 
+-static struct notifier_block palinfo_cpu_notifier =
++static struct notifier_block palinfo_cpu_notifier __cpuinitdata =
+ {
+ 	.notifier_call = palinfo_cpu_callback,
+ 	.priority = 0,
+diff -puN arch/ia64/kernel/salinfo.c~ia64-tree-wide-misc-__cpuinitdata-init-exit arch/ia64/kernel/salinfo.c
+--- a/arch/ia64/kernel/salinfo.c~ia64-tree-wide-misc-__cpuinitdata-init-exit
++++ a/arch/ia64/kernel/salinfo.c
+@@ -574,7 +574,7 @@ static const struct file_operations sali
+ 	.write   = salinfo_log_write,
+ };
+ 
+-static int __devinit
++static int __cpuinit
+ salinfo_cpu_callback(struct notifier_block *nb, unsigned long action, void *hcpu)
+ {
+ 	unsigned int i, cpu = (unsigned long)hcpu;
+@@ -615,7 +615,7 @@ salinfo_cpu_callback(struct notifier_blo
+ 	return NOTIFY_OK;
+ }
+ 
+-static struct notifier_block salinfo_cpu_notifier =
++static struct notifier_block salinfo_cpu_notifier __cpuinitdata =
+ {
+ 	.notifier_call = salinfo_cpu_callback,
+ 	.priority = 0,
+diff -puN arch/ia64/kernel/topology.c~ia64-tree-wide-misc-__cpuinitdata-init-exit arch/ia64/kernel/topology.c
+--- a/arch/ia64/kernel/topology.c~ia64-tree-wide-misc-__cpuinitdata-init-exit
++++ a/arch/ia64/kernel/topology.c
+@@ -118,11 +118,11 @@ struct cpu_cache_info {
+ 	struct kobject kobj;
+ };
+ 
+-static struct cpu_cache_info	all_cpu_cache_info[NR_CPUS];
++static struct cpu_cache_info	all_cpu_cache_info[NR_CPUS] __cpuinitdata;
+ #define LEAF_KOBJECT_PTR(x,y)    (&all_cpu_cache_info[x].cache_leaves[y])
+ 
+ #ifdef CONFIG_SMP
+-static void cache_shared_cpu_map_setup( unsigned int cpu,
++static void __cpuinit cache_shared_cpu_map_setup( unsigned int cpu,
+ 		struct cache_info * this_leaf)
+ {
+ 	pal_cache_shared_info_t	csi;
+@@ -157,7 +157,7 @@ static void cache_shared_cpu_map_setup( 
+ 				&csi) == PAL_STATUS_SUCCESS);
+ }
+ #else
+-static void cache_shared_cpu_map_setup(unsigned int cpu,
++static void __cpuinit cache_shared_cpu_map_setup(unsigned int cpu,
+ 		struct cache_info * this_leaf)
+ {
+ 	cpu_set(cpu, this_leaf->shared_cpu_map);
+@@ -428,13 +428,13 @@ static struct notifier_block __cpuinitda
+ 	.notifier_call = cache_cpu_callback
+ };
+ 
+-static int __cpuinit cache_sysfs_init(void)
++static int __init cache_sysfs_init(void)
+ {
+ 	int i;
+ 
+ 	for_each_online_cpu(i) {
+-		cache_cpu_callback(&cache_cpu_notifier, CPU_ONLINE,
+-				(void *)(long)i);
++		struct sys_device *sys_dev = get_cpu_sysdev((unsigned int)i);
++		cache_add_dev(sys_dev);
+ 	}
+ 
+ 	register_hotcpu_notifier(&cache_cpu_notifier);
 _
 
-Patches currently in -mm which might be from satyam.sharma@gmail.com are
+Patches currently in -mm which might be from satyam@infradead.org are
 
 origin.patch
-kill-declare_mutex_locked.patch
+git-ieee1394.patch
+git-watchdog.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
+slub-slob-use-unlikely-for-kfreezero_or_null_ptr-check.patch
+softlockup-improve-debug-output-fix.patch
+argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
+ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
+i2o-fix-defined-but-not-used-build-warnings.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+make-the-pr_-family-of-macros-in-kernelh-complete.patch
+unify-dma_bit_mask-definitions-v31.patch
+redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
+x86-msr-driver-misc-cpuinit-annotations.patch
