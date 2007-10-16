@@ -1,67 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - revert-faster-ext2_clear_inode.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 15:48:45 -0700
-Message-ID: <200710162248.l9GMmjx3021805@imap1.linux-foundation.org>
+Subject: - ext2-reservations-fix-for-percpu_counter-changes.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 15:49:29 -0700
+Message-ID: <200710162249.l9GMnUk7021825@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54156 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43654 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756627AbXJPWtX (ORCPT
+	by vger.kernel.org with ESMTP id S932665AbXJPWtc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 18:49:23 -0400
+	Tue, 16 Oct 2007 18:49:32 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9GMnUML002315
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 16 Oct 2007 15:49:31 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@gmail.com, agruen@suse.de, joern@logfs.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert faster-ext2_clear_inode
+     ext2-reservations-fix-for-percpu_counter-changes
 has been removed from the -mm tree.  Its filename was
-     revert-faster-ext2_clear_inode.patch
+     ext2-reservations-fix-for-percpu_counter-changes.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into ext2-reservations.patch
 
 ------------------------------------------------------
-Subject: revert faster-ext2_clear_inode
+Subject: ext2-reservations-fix-for-percpu_counter-changes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ext2-reservations needs this back again.
-
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Joern Engel <joern@logfs.org>
-Cc: Andreas Gruenbacher <agruen@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/super.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ fs/ext2/balloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext2/super.c~revert-faster-ext2_clear_inode fs/ext2/super.c
---- a/fs/ext2/super.c~revert-faster-ext2_clear_inode
-+++ a/fs/ext2/super.c
-@@ -186,9 +186,9 @@ static void destroy_inodecache(void)
- 	kmem_cache_destroy(ext2_inode_cachep);
- }
- 
--#ifdef CONFIG_EXT2_FS_POSIX_ACL
- static void ext2_clear_inode(struct inode *inode)
- {
-+#ifdef CONFIG_EXT2_FS_POSIX_ACL
- 	struct ext2_inode_info *ei = EXT2_I(inode);
- 
- 	if (ei->i_acl && ei->i_acl != EXT2_ACL_NOT_CACHED) {
-@@ -199,10 +199,8 @@ static void ext2_clear_inode(struct inod
- 		posix_acl_release(ei->i_default_acl);
- 		ei->i_default_acl = EXT2_ACL_NOT_CACHED;
+diff -puN fs/ext2/balloc.c~ext2-reservations-fix-for-percpu_counter-changes fs/ext2/balloc.c
+--- a/fs/ext2/balloc.c~ext2-reservations-fix-for-percpu_counter-changes
++++ a/fs/ext2/balloc.c
+@@ -1403,7 +1403,7 @@ allocated:
  	}
--}
--#else
--#define ext2_clear_inode NULL
- #endif
-+}
  
- static int ext2_show_options(struct seq_file *seq, struct vfsmount *vfs)
- {
+ 	group_adjust_blocks(sb, group_no, gdp, gdp_bh, -num);
+-	percpu_counter_mod(&sbi->s_freeblocks_counter, -num);
++	percpu_counter_sub(&sbi->s_freeblocks_counter, num);
+ 
+ 	mark_buffer_dirty(bitmap_bh);
+ 	if (sb->s_flags & MS_SYNCHRONOUS)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,7 +86,7 @@ writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
 writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
 writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
-revert-faster-ext2_clear_inode.patch
+ext2-reservations.patch
 ext2-reservations-fix-for-percpu_counter-changes.patch
 md-software-raid-autodetect-dev-list-not-array.patch
 do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
