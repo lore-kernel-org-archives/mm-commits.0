@@ -1,106 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-comments-for-some-structs.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:40:33 -0700
-Message-ID: <200710162040.l9GKeXTK015700@imap1.linux-foundation.org>
+Subject: - ecryptfs-kmem_cache-objects-for-multiple-keys-init-exit-functions.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:40:12 -0700
+Message-ID: <200710162040.l9GKeC63015664@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57780 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53323 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753486AbXJPVEa (ORCPT
+	by vger.kernel.org with ESMTP id S1751252AbXJPVEq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:04:30 -0400
+	Tue, 16 Oct 2007 17:04:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eCryptfs: comments for some structs
+     eCryptfs: kmem_cache objects for multiple keys; init/exit functions
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-comments-for-some-structs.patch
+     ecryptfs-kmem_cache-objects-for-multiple-keys-init-exit-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: eCryptfs: comments for some structs
+Subject: eCryptfs: kmem_cache objects for multiple keys; init/exit functions
 From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-Andrew Morton wrote:
-> > +struct ecryptfs_global_auth_tok {
-> > +#define ECRYPTFS_AUTH_TOK_INVALID 0x00000001
-> > +     u32 flags;
-> > +     struct list_head mount_crypt_stat_list;
-> > +     struct key *global_auth_tok_key;
-> > +     struct ecryptfs_auth_tok *global_auth_tok;
-> > +     unsigned char sig[ECRYPTFS_SIG_SIZE_HEX + 1];
-> > +};
-> > +
-> > +struct ecryptfs_key_tfm {
-> > +     struct crypto_blkcipher *key_tfm;
-> > +     size_t key_size;
-> > +     struct mutex key_tfm_mutex;
-> > +     struct list_head key_tfm_list;
-> > +     unsigned char cipher_name[ECRYPTFS_MAX_CIPHER_NAME_SIZE + 1];
-> > +};
->
-> Please consider commenting your struct fields carefully: it's a
-> great way to help other to understand your code.
-
-Add some comments to the ecryptfs_global_auth_tok and ecryptfs_key_tfm
-structs to make their functions more easily ascertained.
+Introduce kmem_cache objects for handling multiple keys per inode.  Add calls
+in the module init and exit code to call the key list
+initialization/destruction functions.
 
 Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/ecryptfs_kernel.h |   26 +++++++++++++++++++++-----
- 1 file changed, 21 insertions(+), 5 deletions(-)
+ fs/ecryptfs/main.c |   44 +++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 36 insertions(+), 8 deletions(-)
 
-diff -puN fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-comments-for-some-structs fs/ecryptfs/ecryptfs_kernel.h
---- a/fs/ecryptfs/ecryptfs_kernel.h~ecryptfs-comments-for-some-structs
-+++ a/fs/ecryptfs/ecryptfs_kernel.h
-@@ -273,20 +273,36 @@ struct ecryptfs_dentry_info {
- 	struct ecryptfs_crypt_stat *crypt_stat;
+diff -puN fs/ecryptfs/main.c~ecryptfs-kmem_cache-objects-for-multiple-keys-init-exit-functions fs/ecryptfs/main.c
+--- a/fs/ecryptfs/main.c~ecryptfs-kmem_cache-objects-for-multiple-keys-init-exit-functions
++++ a/fs/ecryptfs/main.c
+@@ -240,14 +240,11 @@ static int ecryptfs_parse_options(struct
+ 	int cipher_name_set = 0;
+ 	int cipher_key_bytes;
+ 	int cipher_key_bytes_set = 0;
+-	struct key *auth_tok_key = NULL;
+-	struct ecryptfs_auth_tok *auth_tok = NULL;
+ 	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =
+ 		&ecryptfs_superblock_to_private(sb)->mount_crypt_stat;
+ 	substring_t args[MAX_OPT_ARGS];
+ 	int token;
+ 	char *sig_src;
+-	char *sig_dst;
+ 	char *debug_src;
+ 	char *cipher_name_dst;
+ 	char *cipher_name_src;
+@@ -258,6 +255,7 @@ static int ecryptfs_parse_options(struct
+ 		rc = -EINVAL;
+ 		goto out;
+ 	}
++	ecryptfs_init_mount_crypt_stat(mount_crypt_stat);
+ 	while ((p = strsep(&options, ",")) != NULL) {
+ 		if (!*p)
+ 			continue;
+@@ -334,12 +332,10 @@ static int ecryptfs_parse_options(struct
+ 					p);
+ 		}
+ 	}
+-	/* Do not support lack of mount-wide signature in 0.1
+-	 * release */
+ 	if (!sig_set) {
+ 		rc = -EINVAL;
+-		ecryptfs_printk(KERN_ERR, "You must supply a valid "
+-				"passphrase auth tok signature as a mount "
++		ecryptfs_printk(KERN_ERR, "You must supply at least one valid "
++				"auth tok signature as a mount "
+ 				"parameter; see the eCryptfs README\n");
+ 		goto out;
+ 	}
+@@ -615,6 +611,21 @@ static struct ecryptfs_cache_info {
+ 		.name = "ecryptfs_key_record_cache",
+ 		.size = sizeof(struct ecryptfs_key_record),
+ 	},
++	{
++		.cache = &ecryptfs_key_sig_cache,
++		.name = "ecryptfs_key_sig_cache",
++		.size = sizeof(struct ecryptfs_key_sig),
++	},
++	{
++		.cache = &ecryptfs_global_auth_tok_cache,
++		.name = "ecryptfs_global_auth_tok_cache",
++		.size = sizeof(struct ecryptfs_global_auth_tok),
++	},
++	{
++		.cache = &ecryptfs_key_tfm_cache,
++		.name = "ecryptfs_key_tfm_cache",
++		.size = sizeof(struct ecryptfs_key_tfm),
++	},
  };
  
-+/**
-+ * ecryptfs_global_auth_tok structs refer to authentication token keys
-+ * in the user keyring that apply to newly created files. A list of
-+ * these objects hangs off of the mount_crypt_stat struct for any
-+ * given eCryptfs mount. This struct maintains a reference to both the
-+ * key contents and the key itself so that the key can be put on
-+ * unmount.
-+ */
- struct ecryptfs_global_auth_tok {
- #define ECRYPTFS_AUTH_TOK_INVALID 0x00000001
- 	u32 flags;
--	struct list_head mount_crypt_stat_list;
--	struct key *global_auth_tok_key;
--	struct ecryptfs_auth_tok *global_auth_tok;
--	unsigned char sig[ECRYPTFS_SIG_SIZE_HEX + 1];
-+	struct list_head mount_crypt_stat_list; /* Default auth_tok list for
-+						 * the mount_crypt_stat */
-+	struct key *global_auth_tok_key; /* The key from the user's keyring for
-+					  * the sig */
-+	struct ecryptfs_auth_tok *global_auth_tok; /* The key contents */
-+	unsigned char sig[ECRYPTFS_SIG_SIZE_HEX + 1]; /* The key identifier */
+ static void ecryptfs_free_kmem_caches(void)
+@@ -717,7 +728,8 @@ static struct ecryptfs_version_str_map_e
+ 	{ECRYPTFS_VERSIONING_PUBKEY, "pubkey"},
+ 	{ECRYPTFS_VERSIONING_PLAINTEXT_PASSTHROUGH, "plaintext passthrough"},
+ 	{ECRYPTFS_VERSIONING_POLICY, "policy"},
+-	{ECRYPTFS_VERSIONING_XATTR, "metadata in extended attribute"}
++	{ECRYPTFS_VERSIONING_XATTR, "metadata in extended attribute"},
++	{ECRYPTFS_VERSIONING_MULTKEY, "multiple keys per file"}
  };
  
-+/**
-+ * Typically, eCryptfs will use the same ciphers repeatedly throughout
-+ * the course of its operations. In order to avoid unnecessarily
-+ * destroying and initializing the same cipher repeatedly, eCryptfs
-+ * keeps a list of crypto API contexts around to use when needed.
-+ */
- struct ecryptfs_key_tfm {
- 	struct crypto_blkcipher *key_tfm;
- 	size_t key_size;
- 	struct mutex key_tfm_mutex;
--	struct list_head key_tfm_list;
-+	struct list_head key_tfm_list; /* The module's tfm list */
- 	unsigned char cipher_name[ECRYPTFS_MAX_CIPHER_NAME_SIZE + 1];
- };
+ static ssize_t version_str_show(struct ecryptfs_obj *obj, char *buff)
+@@ -782,6 +794,12 @@ out:
  
+ static void do_sysfs_unregistration(void)
+ {
++	int rc;
++
++	if ((rc = ecryptfs_destruct_crypto())) {
++		printk(KERN_ERR "Failure whilst attempting to destruct crypto; "
++		       "rc = [%d]\n", rc);
++	}
+ 	sysfs_remove_file(&ecryptfs_subsys.kobj,
+ 			  &sysfs_attr_version.attr);
+ 	sysfs_remove_file(&ecryptfs_subsys.kobj,
+@@ -830,6 +848,16 @@ static int __init ecryptfs_init(void)
+ 		do_sysfs_unregistration();
+ 		unregister_filesystem(&ecryptfs_fs_type);
+ 		ecryptfs_free_kmem_caches();
++		goto out;
++	}
++	rc = ecryptfs_init_crypto();
++	if (rc) {
++		printk(KERN_ERR "Failure whilst attempting to init crypto; "
++		       "rc = [%d]\n", rc);
++		do_sysfs_unregistration();
++		unregister_filesystem(&ecryptfs_fs_type);
++		ecryptfs_free_kmem_caches();
++		goto out;
+ 	}
+ out:
+ 	return rc;
 _
 
 Patches currently in -mm which might be from mhalcrow@us.ibm.com are
