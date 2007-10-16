@@ -1,52 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - deprecate-aout-elf-interpreters-fix.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 15:07:25 -0700
-Message-ID: <200710162207.l9GM7Pph020055@imap1.linux-foundation.org>
+Subject: - ext2-ext3-ext4-add-block-bitmap-validation-fix.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 15:08:43 -0700
+Message-ID: <200710162208.l9GM8irE020152@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59116 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59202 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935082AbXJPWIZ (ORCPT
+	by vger.kernel.org with ESMTP id S935451AbXJPWJI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 18:08:25 -0400
+	Tue, 16 Oct 2007 18:09:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@novell.com, ak@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adilger@clusterfs.com, aneesh.kumar@linux.vnet.ibm.com, cmm@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     deprecate-aout-elf-interpreters-fix
+     ext2-ext3-ext4-add-block-bitmap-validation-fix
 has been removed from the -mm tree.  Its filename was
-     deprecate-aout-elf-interpreters-fix.patch
+     ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
 
-This patch was dropped because it was folded into deprecate-aout-elf-interpreters.patch
+This patch was dropped because it was folded into ext2-ext3-ext4-add-block-bitmap-validation.patch
 
 ------------------------------------------------------
-Subject: deprecate-aout-elf-interpreters-fix
+Subject: ext2-ext3-ext4-add-block-bitmap-validation-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Andi Kleen <ak@novell.com>
-Cc: Andi Kleen <ak@suse.de>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Andreas Dilger <adilger@clusterfs.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Mingming Cao <cmm@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
+ fs/ext3/balloc.c |    1 +
+ fs/ext4/balloc.c |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~deprecate-aout-elf-interpreters-fix Documentation/feature-removal-schedule.txt
-diff -puN fs/binfmt_elf.c~deprecate-aout-elf-interpreters-fix fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~deprecate-aout-elf-interpreters-fix
-+++ a/fs/binfmt_elf.c
-@@ -744,7 +744,8 @@ static int load_elf_binary(struct linux_
+diff -puN fs/ext3/balloc.c~ext2-ext3-ext4-add-block-bitmap-validation-fix fs/ext3/balloc.c
+--- a/fs/ext3/balloc.c~ext2-ext3-ext4-add-block-bitmap-validation-fix
++++ a/fs/ext3/balloc.c
+@@ -79,6 +79,7 @@ struct ext3_group_desc * ext3_get_group_
+ 		*bh = sbi->s_group_desc[group_desc];
+ 	return desc + offset;
+ }
++
+ static inline int
+ block_in_use(ext3_fsblk_t block, struct super_block *sb, unsigned char *map)
+ {
+diff -puN fs/ext4/balloc.c~ext2-ext3-ext4-add-block-bitmap-validation-fix fs/ext4/balloc.c
+--- a/fs/ext4/balloc.c~ext2-ext3-ext4-add-block-bitmap-validation-fix
++++ a/fs/ext4/balloc.c
+@@ -99,6 +99,7 @@ struct ext4_group_desc * ext4_get_group_
+ 		*bh = sbi->s_group_desc[group_desc];
+ 	return desc;
+ }
++
+ static inline int
+ block_in_use(ext4_fsblk_t block, struct super_block *sb, unsigned char *map)
+ {
+@@ -108,7 +109,6 @@ block_in_use(ext4_fsblk_t block, struct 
+ 	return ext4_test_bit (offset, map);
+ }
  
- 		if (interpreter_type == INTERPRETER_AOUT && warn < 10) {
- 			printk(KERN_WARNING "a.out ELF interpreter %s is "
--	"deprecated and will not be supported anymore\n", elf_interpreter);
-+				"deprecated and will not be supported "
-+				"after Linux 2.6.25\n", elf_interpreter);
- 			warn++;
- 		}
- 
+-
+ /**
+  * read_block_bitmap()
+  * @sb:			super block
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -68,7 +87,7 @@ add-in-sunos-41x-compatible-mode-for-ufs.patch
 core_pattern-fix-up-a-few-miscellaneous-bugs.patch
 printk-add-interfaces-for-external-access-to-the-log-buffer.patch
 deprecate-aout-elf-interpreters.patch
-deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation.patch
 ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
 pie-executable-randomization-fix-2.patch
 binfmt_flat-warning-fixes.patch
