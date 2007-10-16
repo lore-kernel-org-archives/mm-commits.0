@@ -1,98 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - i-oat-add-support-for-msi-and-msi-x-fix.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:50:41 -0700
-Message-ID: <200710160450.l9G4ofRd009614@imap1.linux-foundation.org>
+Subject: - ecryptfs-update-metadata-read-write-functions-cleanup.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:54:27 -0700
+Message-ID: <200710160454.l9G4sREa009700@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48118 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39069 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754755AbXJPEvA (ORCPT
+	by vger.kernel.org with ESMTP id S1754996AbXJPEyl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:51:00 -0400
+	Tue, 16 Oct 2007 00:54:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, shannon.nelson@intel.com, mm-commits@vger.kernel.org
+To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/dma/ioat_dma.c: make 3 functions static
+     eCryptfs: Update metadata read/write functions (cleanup)
 has been removed from the -mm tree.  Its filename was
-     i-oat-add-support-for-msi-and-msi-x-fix.patch
+     ecryptfs-update-metadata-read-write-functions-cleanup.patch
 
-This patch was dropped because it was folded into i-oat-add-support-for-msi-and-msi-x.patch
+This patch was dropped because it was folded into ecryptfs-update-metadata-read-write-functions.patch
 
 ------------------------------------------------------
-Subject: drivers/dma/ioat_dma.c: make 3 functions static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: eCryptfs: Update metadata read/write functions (cleanup)
+From: Michael Halcrow <mhalcrow@us.ibm.com>
 
-This patch makes three needlessly global functions static.
+On Wed, Sep 19, 2007 at 10:48:17PM -0700, Andrew Morton wrote:
+> On Mon, 17 Sep 2007 16:48:44 -0500 Michael Halcrow <mhalcrow@us.ibm.com> wrote:
+> > +		if ((rc = ecryptfs_write_lower(ecryptfs_dentry->d_inode,
+>
+> checkpatch missed the assignment-in-an-if here.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Shannon Nelson <shannon.nelson@intel.com>
+Fix an assignment-in-an-if.
+
+Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/ioat_dma.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/ecryptfs/crypto.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/dma/ioat_dma.c~i-oat-add-support-for-msi-and-msi-x-fix drivers/dma/ioat_dma.c
---- a/drivers/dma/ioat_dma.c~i-oat-add-support-for-msi-and-msi-x-fix
-+++ a/drivers/dma/ioat_dma.c
-@@ -47,8 +47,8 @@
- static void ioat_dma_start_null_desc(struct ioat_dma_chan *ioat_chan);
- static void ioat_dma_memcpy_cleanup(struct ioat_dma_chan *ioat_chan);
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-update-metadata-read-write-functions-cleanup fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-update-metadata-read-write-functions-cleanup
++++ a/fs/ecryptfs/crypto.c
+@@ -1455,8 +1455,9 @@ ecryptfs_write_metadata_to_contents(stru
+ 	int header_pages;
+ 	int rc;
  
--struct ioat_dma_chan *ioat_lookup_chan_by_index(struct ioatdma_device *device,
--						int index)
-+static struct ioat_dma_chan *ioat_lookup_chan_by_index(struct ioatdma_device *device,
-+						       int index)
- {
- 	return device->idx[index];
- }
-@@ -716,7 +716,7 @@ MODULE_PARM_DESC(ioat_interrupt_style,
-  * ioat_dma_setup_interrupts - setup interrupt handler
-  * @device: ioat device
-  */
--int ioat_dma_setup_interrupts(struct ioatdma_device *device)
-+static int ioat_dma_setup_interrupts(struct ioatdma_device *device)
- {
- 	struct ioat_dma_chan *ioat_chan;
- 	int err, i, j, msixcnt;
-@@ -826,7 +826,7 @@ err_no_irq:
-  * ioat_dma_remove_interrupts - remove whatever interrupts were set
-  * @device: ioat device
-  */
--void ioat_dma_remove_interrupts(struct ioatdma_device *device)
-+static void ioat_dma_remove_interrupts(struct ioatdma_device *device)
- {
- 	struct ioat_dma_chan *ioat_chan;
- 	int i;
+-	if ((rc = ecryptfs_write_lower(ecryptfs_dentry->d_inode, page_virt,
+-				       0, PAGE_CACHE_SIZE))) {
++	rc = ecryptfs_write_lower(ecryptfs_dentry->d_inode, page_virt,
++				  0, PAGE_CACHE_SIZE);
++	if (rc) {
+ 		printk(KERN_ERR "%s: Error attempting to write header "
+ 		       "information to lower file; rc = [%d]\n", __FUNCTION__,
+ 		       rc);
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from mhalcrow@us.ibm.com are
 
-origin.patch
-uml-fix-inlines.patch
-i-oat-add-support-for-msi-and-msi-x.patch
-i-oat-add-support-for-msi-and-msi-x-fix.patch
-kernel-time-timekeepingc-cleanups.patch
-make-fs-libfscsimple_commit_write-static.patch
-allow-disabling-dnotify-without-embedded.patch
-use-erestart_restartblock-if-poll-is-interrupted-by-a-signal-fix.patch
-remove-include-asm-ipch.patch
-n_hdlcc-fix-check-after-use.patch
-kernel-sys_nic-add-dummy-sys_ni_syscall-prototype.patch
-make-kernel-profilectime_hook-static.patch
-drivers-block-ccissc-fix-check-after-use.patch
-remove-fs-ext2-balloccreserve_blocks.patch
-pm3fb-mtrr-support-and-noaccel-option-make-pm3fb_init-static-again.patch
-bitmaph-remove-dead-artifacts.patch
-sysctl-parport-remove-binary-paths-fix.patch
-sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-cleanup.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-cleanup.patch
-remove-asm-bitopsh-includes.patch
-forbid-asm-bitopsh-direct-inclusion.patch
-alpha-lock-bitops-fix.patch
-reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
-remove-asm-bitopsh-includes-reiser4.patch
+fs-remove-some-aop_truncated_page.patch
+ecryptfs-add-key-list-structure-search-keyring.patch
+ecryptfs-use-list_for_each_entry_safe-when-wiping-auth-toks.patch
+ecryptfs-kmem_cache-objects-for-multiple-keys-init-exit-functions.patch
+ecryptfs-fix-tag-1-parsing-code.patch
+ecryptfs-fix-tag-3-parsing-code.patch
+ecryptfs-fix-tag-11-parsing-code.patch
+ecryptfs-fix-tag-11-writing-code.patch
+ecryptfs-update-comment-and-debug-statement.patch
+ecryptfs-printk-warning-fixes.patch
+ecryptfs-remove-unnecessary-bug_on.patch
+ecryptfs-collapse-flag-set-into-one-statement.patch
+ecryptfs-grammatical-fix-destruct-to-destroy.patch
+ecryptfs-comments-for-some-structs.patch
+ecryptfs-kerneldoc-fixes-for-cryptoc-and-keystorec.patch
+ecryptfs-remove-unnecessary-variable-initializations.patch
+ecryptfs-make-needlessly-global-symbols-static.patch
+ecryptfs-use-generic_file_splice_read.patch
+ecryptfs-remove-header_extent_size.patch
+ecryptfs-remove-assignments-in-if-statements.patch
+ecryptfs-fix-error-handling.patch
+ecryptfs-read_writec-routines.patch
+ecryptfs-replace-encrypt-decrypt-and-inode-size-write.patch
+ecryptfs-set-up-and-destroy-persistent-lower-file.patch
+ecryptfs-update-metadata-read-write-functions.patch
+ecryptfs-update-metadata-read-write-functions-cleanup.patch
+ecryptfs-make-open-truncate-and-setattr-use-persistent-file.patch
+ecryptfs-convert-mmap-functions-to-use-persistent-file.patch
+ecryptfs-convert-mmap-functions-to-use-persistent-file-fix.patch
+ecryptfs-fix-data-types.patch
+ecryptfs-initialize-persistent-lower-file-on-inode-create.patch
+ecryptfs-remove-unused-functions-and-kmem_cache.patch
+ecryptfs-replace-magic-numbers.patch
+ecryptfs-clean-up-page-flag-handling.patch
+ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
+vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
