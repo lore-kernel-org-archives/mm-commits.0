@@ -1,453 +1,460 @@
 From: akpm@linux-foundation.org
-Subject: - dca-add-direct-cache-access-driver.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:39:31 -0700
-Message-ID: <200710162039.l9GKdVnQ015551@imap1.linux-foundation.org>
+Subject: - cirrusfb-code-improvements.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:43:55 -0700
+Message-ID: <200710162043.l9GKhtKs016094@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37049 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33913 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935497AbXJPVQu (ORCPT
+	by vger.kernel.org with ESMTP id S964951AbXJPVRB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:16:50 -0400
+	Tue, 16 Oct 2007 17:17:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shannon.nelson@intel.com, davem@davemloft.net, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     DCA: Add Direct Cache Access driver
+     cirrusfb: code improvements
 has been removed from the -mm tree.  Its filename was
-     dca-add-direct-cache-access-driver.patch
+     cirrusfb-code-improvements.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: DCA: Add Direct Cache Access driver
-From: Shannon Nelson <shannon.nelson@intel.com>
+Subject: cirrusfb: code improvements
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Direct Cache Access (DCA) is a method for warming the CPU cache before data
-is used, with the intent of lessening the impact of cache misses.  This
-patch adds a manager and interface for matching up client requests for DCA
-services with devices that offer DCA services.
+This patch does some "short-range" code improvements like merging identical
+switch clauses, replacing conditional branches with calculation of values,
+merging only once-used functions into place they are called from.
 
-In order to use DCA, a module must do bus writes with the appropriate tag
-bits set to trigger a cache read for a specific CPU.  However, different
-CPUs and chipsets can require different sets of tag bits, and the methods
-for determining the correct bits may be simple hardcoding or may be a
-hardware specific magic incantation.  This interface is a way for DCA
-clients to find the correct tag bits for the targeted CPU without needing
-to know the specifics.
-
-    [Dave Miller] use DEFINE_SPINLOCK()
-
-Signed-off-by: Shannon Nelson <shannon.nelson@intel.com>
-Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/Kconfig         |    2 
- drivers/Makefile        |    1 
- drivers/dca/Kconfig     |   11 ++
- drivers/dca/Makefile    |    2 
- drivers/dca/dca-core.c  |  200 ++++++++++++++++++++++++++++++++++++++
- drivers/dca/dca-sysfs.c |   88 ++++++++++++++++
- include/linux/dca.h     |   47 ++++++++
- 7 files changed, 351 insertions(+)
+ drivers/video/cirrusfb.c |  216 +++++++------------------------------
+ 1 file changed, 41 insertions(+), 175 deletions(-)
 
-diff -puN drivers/Kconfig~dca-add-direct-cache-access-driver drivers/Kconfig
---- a/drivers/Kconfig~dca-add-direct-cache-access-driver
-+++ a/drivers/Kconfig
-@@ -84,6 +84,8 @@ source "drivers/rtc/Kconfig"
+diff -puN drivers/video/cirrusfb.c~cirrusfb-code-improvements drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-code-improvements
++++ a/drivers/video/cirrusfb.c
+@@ -647,31 +647,17 @@ static int cirrusfb_check_var(struct fb_
+ 	  { -1, -1 } };
  
- source "drivers/dma/Kconfig"
+ 	switch (var->bits_per_pixel) {
+-	case 0 ... 1:
+-		var->bits_per_pixel = 1;
++	case 1:
+ 		nom = 4;
+ 		den = 8;
+ 		break;		/* 8 pixel per byte, only 1/4th of mem usable */
+-	case 2 ... 8:
+-		var->bits_per_pixel = 8;
+-		nom = 1;
++	case 8:
++	case 16:
++	case 24:
++	case 32:
++		nom = var->bits_per_pixel / 8;
+ 		den = 1;
+ 		break;		/* 1 pixel == 1 byte */
+-	case 9 ... 16:
+-		var->bits_per_pixel = 16;
+-		nom = 2;
+-		den = 1;
+-		break;		/* 2 bytes per pixel */
+-	case 17 ... 24:
+-		var->bits_per_pixel = 24;
+-		nom = 3;
+-		den = 1;
+-		break;		/* 3 bytes per pixel */
+-	case 25 ... 32:
+-		var->bits_per_pixel = 32;
+-		nom = 4;
+-		den = 1;
+-		break;		/* 4 bytes per pixel */
+ 	default:
+ 		printk(KERN_ERR "cirrusfb: mode %dx%dx%d rejected..."
+ 			"color depth not supported.\n",
+@@ -732,19 +718,15 @@ static int cirrusfb_check_var(struct fb_
+ 	case 1:
+ 		var->red.offset = 0;
+ 		var->red.length = 1;
+-		var->green.offset = 0;
+-		var->green.length = 1;
+-		var->blue.offset = 0;
+-		var->blue.length = 1;
++		var->green = var->red;
++		var->blue = var->red;
+ 		break;
  
-+source "drivers/dca/Kconfig"
-+
- source "drivers/auxdisplay/Kconfig"
+ 	case 8:
+ 		var->red.offset = 0;
+ 		var->red.length = 6;
+-		var->green.offset = 0;
+-		var->green.length = 6;
+-		var->blue.offset = 0;
+-		var->blue.length = 6;
++		var->green = var->red;
++		var->blue = var->red;
+ 		break;
  
- source "drivers/kvm/Kconfig"
-diff -puN drivers/Makefile~dca-add-direct-cache-access-driver drivers/Makefile
---- a/drivers/Makefile~dca-add-direct-cache-access-driver
-+++ a/drivers/Makefile
-@@ -85,6 +85,7 @@ obj-$(CONFIG_CRYPTO)		+= crypto/
- obj-$(CONFIG_SUPERH)		+= sh/
- obj-$(CONFIG_GENERIC_TIME)	+= clocksource/
- obj-$(CONFIG_DMA_ENGINE)	+= dma/
-+obj-$(CONFIG_DCA)		+= dca/
- obj-$(CONFIG_HID)		+= hid/
- obj-$(CONFIG_PPC_PS3)		+= ps3/
- obj-$(CONFIG_OF)		+= of/
-diff -puN /dev/null drivers/dca/Kconfig
---- /dev/null
-+++ a/drivers/dca/Kconfig
-@@ -0,0 +1,11 @@
-+#
-+# DCA server configuration
-+#
+ 	case 16:
+@@ -763,20 +745,6 @@ static int cirrusfb_check_var(struct fb_
+ 		break;
+ 
+ 	case 24:
+-		if (isPReP) {
+-			var->red.offset = 8;
+-			var->green.offset = 16;
+-			var->blue.offset = 24;
+-		} else {
+-			var->red.offset = 16;
+-			var->green.offset = 8;
+-			var->blue.offset = 0;
+-		}
+-		var->red.length = 8;
+-		var->green.length = 8;
+-		var->blue.length = 8;
+-		break;
+-
+ 	case 32:
+ 		if (isPReP) {
+ 			var->red.offset = 8;
+@@ -828,7 +796,7 @@ static int cirrusfb_decode_var(const str
+ {
+ 	long freq;
+ 	long maxclock;
+-	int maxclockidx = 0;
++	int maxclockidx = var->bits_per_pixel >> 3;
+ 	struct cirrusfb_info *cinfo = info->par;
+ 	int xres, hfront, hsync, hback;
+ 	int yres, vfront, vsync, vback;
+@@ -837,31 +805,18 @@ static int cirrusfb_decode_var(const str
+ 	case 1:
+ 		regs->line_length = var->xres_virtual / 8;
+ 		regs->visual = FB_VISUAL_MONO10;
+-		maxclockidx = 0;
+ 		break;
+ 
+ 	case 8:
+ 		regs->line_length = var->xres_virtual;
+ 		regs->visual = FB_VISUAL_PSEUDOCOLOR;
+-		maxclockidx = 1;
+ 		break;
+ 
+ 	case 16:
+-		regs->line_length = var->xres_virtual * 2;
+-		regs->visual = FB_VISUAL_DIRECTCOLOR;
+-		maxclockidx = 2;
+-		break;
+-
+ 	case 24:
+-		regs->line_length = var->xres_virtual * 3;
+-		regs->visual = FB_VISUAL_DIRECTCOLOR;
+-		maxclockidx = 3;
+-		break;
+-
+ 	case 32:
+-		regs->line_length = var->xres_virtual * 4;
++		regs->line_length = var->xres_virtual * maxclockidx;
+ 		regs->visual = FB_VISUAL_DIRECTCOLOR;
+-		maxclockidx = 4;
+ 		break;
+ 
+ 	default:
+@@ -874,7 +829,7 @@ static int cirrusfb_decode_var(const str
+ 	regs->type = FB_TYPE_PACKED_PIXELS;
+ 
+ 	/* convert from ps to kHz */
+-	freq = 1000000000 / var->pixclock;
++	freq = PICOS2KHZ(var->pixclock);
+ 
+ 	DPRINTK("desired pixclock: %ld kHz\n", freq);
+ 
+@@ -1213,7 +1168,8 @@ static int cirrusfb_set_par_foo(struct f
+ 			break;
+ 
+ 		case BT_PICCOLO:
+-			DPRINTK("(for Piccolo)\n");
++		case BT_SPECTRUM:
++			DPRINTK("(for Piccolo/Spectrum)\n");
+ 			/* ### ueberall 0x22? */
+ 			/* ##vorher 1c MCLK select */
+ 			vga_wseq(regbase, CL_SEQR1F, 0x22);
+@@ -1229,15 +1185,6 @@ static int cirrusfb_set_par_foo(struct f
+ 			vga_wseq(regbase, CL_SEQRF, 0xd0);
+ 			break;
+ 
+-		case BT_SPECTRUM:
+-			DPRINTK("(for Spectrum)\n");
+-			/* ### ueberall 0x22? */
+-			/* ##vorher 1c MCLK select */
+-			vga_wseq(regbase, CL_SEQR1F, 0x22);
+-			/* evtl d0? avoid FIFO underruns..? */
+-			vga_wseq(regbase, CL_SEQRF, 0xb0);
+-			break;
+-
+ 		case BT_PICASSO4:
+ 		case BT_ALPINE:
+ 		case BT_GD5480:
+@@ -1306,19 +1253,7 @@ static int cirrusfb_set_par_foo(struct f
+ 			break;
+ 
+ 		case BT_PICCOLO:
+-			/* ### vorher 1c MCLK select */
+-			vga_wseq(regbase, CL_SEQR1F, 0x22);
+-			/* Fast Page-Mode writes */
+-			vga_wseq(regbase, CL_SEQRF, 0xb0);
+-			break;
+-
+ 		case BT_PICASSO:
+-			/* ### vorher 1c MCLK select */
+-			vga_wseq(regbase, CL_SEQR1F, 0x22);
+-			/* Fast Page-Mode writes */
+-			vga_wseq(regbase, CL_SEQRF, 0xb0);
+-			break;
+-
+ 		case BT_SPECTRUM:
+ 			/* ### vorher 1c MCLK select */
+ 			vga_wseq(regbase, CL_SEQR1F, 0x22);
+@@ -1385,6 +1320,7 @@ static int cirrusfb_set_par_foo(struct f
+ 			break;
+ 
+ 		case BT_PICCOLO:
++		case BT_SPECTRUM:
+ 			vga_wseq(regbase, CL_SEQR7, 0x87);
+ 			/* Fast Page-Mode writes */
+ 			vga_wseq(regbase, CL_SEQRF, 0xb0);
+@@ -1400,14 +1336,6 @@ static int cirrusfb_set_par_foo(struct f
+ 			vga_wseq(regbase, CL_SEQR1F, 0x22);
+ 			break;
+ 
+-		case BT_SPECTRUM:
+-			vga_wseq(regbase, CL_SEQR7, 0x87);
+-			/* Fast Page-Mode writes */
+-			vga_wseq(regbase, CL_SEQRF, 0xb0);
+-			/* MCLK select */
+-			vga_wseq(regbase, CL_SEQR1F, 0x22);
+-			break;
+-
+ 		case BT_PICASSO4:
+ 			vga_wseq(regbase, CL_SEQR7, 0x27);
+ /*			vga_wseq(regbase, CL_SEQR1F, 0x1c);  */
+@@ -1473,6 +1401,7 @@ static int cirrusfb_set_par_foo(struct f
+ 			break;
+ 
+ 		case BT_PICCOLO:
++		case BT_SPECTRUM:
+ 			vga_wseq(regbase, CL_SEQR7, 0x85);
+ 			/* Fast Page-Mode writes */
+ 			vga_wseq(regbase, CL_SEQRF, 0xb0);
+@@ -1488,14 +1417,6 @@ static int cirrusfb_set_par_foo(struct f
+ 			vga_wseq(regbase, CL_SEQR1F, 0x22);
+ 			break;
+ 
+-		case BT_SPECTRUM:
+-			vga_wseq(regbase, CL_SEQR7, 0x85);
+-			/* Fast Page-Mode writes */
+-			vga_wseq(regbase, CL_SEQRF, 0xb0);
+-			/* MCLK select */
+-			vga_wseq(regbase, CL_SEQR1F, 0x22);
+-			break;
+-
+ 		case BT_PICASSO4:
+ 			vga_wseq(regbase, CL_SEQR7, 0x25);
+ /*			vga_wseq(regbase, CL_SEQR1F, 0x1c);  */
+@@ -1662,18 +1583,7 @@ static int cirrusfb_setcolreg(unsigned r
+ 		    (green << info->var.green.offset) |
+ 		    (blue << info->var.blue.offset);
+ 
+-		switch (info->var.bits_per_pixel) {
+-		case 8:
+-			cinfo->pseudo_palette[regno] = v;
+-			break;
+-		case 16:
+-			cinfo->pseudo_palette[regno] = v;
+-			break;
+-		case 24:
+-		case 32:
+-			cinfo->pseudo_palette[regno] = v;
+-			break;
+-		}
++		cinfo->pseudo_palette[regno] = v;
+ 		return 0;
+ 	}
+ 
+@@ -1743,12 +1653,8 @@ static int cirrusfb_pan_display(struct f
+ 	vga_wcrt(cinfo->regbase, CL_CRT1B, tmp2);
+ 
+ 	/* construct bit 19 of screen start address */
+-	if (cirrusfb_board_info[cinfo->btype].scrn_start_bit19) {
+-		tmp2 = 0;
+-		if (base & 0x80000)
+-			tmp2 = 0x80;
+-		vga_wcrt(cinfo->regbase, CL_CRT1D, tmp2);
+-	}
++	if (cirrusfb_board_info[cinfo->btype].scrn_start_bit19)
++		vga_wcrt(cinfo->regbase, CL_CRT1D, (base >> 12) & 0x80);
+ 
+ 	/* write pixel panning value to AR33; this does not quite work in 8bpp
+ 	 *
+@@ -2139,38 +2045,15 @@ static void switch_monitor(struct cirrus
+ /* Linux 2.6-style  accelerated functions */
+ /******************************************/
+ 
+-static void cirrusfb_prim_fillrect(struct fb_info *info,
+-				   const struct fb_fillrect *region)
+-{
+-	struct cirrusfb_info *cinfo = info->par;
+-	int m; /* bytes per pixel */
+-	u32 color = (info->fix.visual == FB_VISUAL_TRUECOLOR) ?
+-		cinfo->pseudo_palette[region->color] : region->color;
+-
+-	if (info->var.bits_per_pixel == 1) {
+-		cirrusfb_RectFill(cinfo->regbase,
+-				  info->var.bits_per_pixel,
+-				  region->dx / 8, region->dy,
+-				  region->width / 8, region->height,
+-				  color,
+-				  cinfo->currentmode.line_length);
+-	} else {
+-		m = (info->var.bits_per_pixel + 7) / 8;
+-		cirrusfb_RectFill(cinfo->regbase,
+-				  info->var.bits_per_pixel,
+-				  region->dx * m, region->dy,
+-				  region->width * m, region->height,
+-				  color,
+-				  cinfo->currentmode.line_length);
+-	}
+-	return;
+-}
+-
+ static void cirrusfb_fillrect(struct fb_info *info,
+ 			      const struct fb_fillrect *region)
+ {
+ 	struct fb_fillrect modded;
+ 	int vxres, vyres;
++	struct cirrusfb_info *cinfo = info->par;
++	int m = info->var.bits_per_pixel;
++	u32 color = (info->fix.visual == FB_VISUAL_TRUECOLOR) ?
++		cinfo->pseudo_palette[region->color] : region->color;
+ 
+ 	if (info->state != FBINFO_STATE_RUNNING)
+ 		return;
+@@ -2193,30 +2076,12 @@ static void cirrusfb_fillrect(struct fb_
+ 	if (modded.dy + modded.height > vyres)
+ 		modded.height = vyres - modded.dy;
+ 
+-	cirrusfb_prim_fillrect(info, &modded);
+-}
+-
+-static void cirrusfb_prim_copyarea(struct fb_info *info,
+-				   const struct fb_copyarea *area)
+-{
+-	struct cirrusfb_info *cinfo = info->par;
+-	int m; /* bytes per pixel */
+-
+-	if (info->var.bits_per_pixel == 1) {
+-		cirrusfb_BitBLT(cinfo->regbase, info->var.bits_per_pixel,
+-				area->sx / 8, area->sy,
+-				area->dx / 8, area->dy,
+-				area->width / 8, area->height,
+-				cinfo->currentmode.line_length);
+-	} else {
+-		m = (info->var.bits_per_pixel + 7) / 8;
+-		cirrusfb_BitBLT(cinfo->regbase, info->var.bits_per_pixel,
+-				area->sx * m, area->sy,
+-				area->dx * m, area->dy,
+-				area->width * m, area->height,
+-				cinfo->currentmode.line_length);
+-	}
+-	return;
++	cirrusfb_RectFill(cinfo->regbase,
++			  info->var.bits_per_pixel,
++			  (region->dx * m) / 8, region->dy,
++			  (region->width * m) / 8, region->height,
++			  color,
++			  cinfo->currentmode.line_length);
+ }
+ 
+ static void cirrusfb_copyarea(struct fb_info *info,
+@@ -2224,13 +2089,8 @@ static void cirrusfb_copyarea(struct fb_
+ {
+ 	struct fb_copyarea modded;
+ 	u32 vxres, vyres;
+-
+-	modded.sx = area->sx;
+-	modded.sy = area->sy;
+-	modded.dx = area->dx;
+-	modded.dy = area->dy;
+-	modded.width  = area->width;
+-	modded.height = area->height;
++	struct cirrusfb_info *cinfo = info->par;
++	int m = info->var.bits_per_pixel;
+ 
+ 	if (info->state != FBINFO_STATE_RUNNING)
+ 		return;
+@@ -2241,6 +2101,7 @@ static void cirrusfb_copyarea(struct fb_
+ 
+ 	vxres = info->var.xres_virtual;
+ 	vyres = info->var.yres_virtual;
++	memcpy(&modded, area, sizeof(struct fb_copyarea));
+ 
+ 	if (!modded.width || !modded.height ||
+ 	   modded.sx >= vxres || modded.sy >= vyres ||
+@@ -2256,7 +2117,12 @@ static void cirrusfb_copyarea(struct fb_
+ 	if (modded.dy + modded.height > vyres)
+ 		modded.height = vyres - modded.dy;
+ 
+-	cirrusfb_prim_copyarea(info, &modded);
++	cirrusfb_BitBLT(cinfo->regbase, info->var.bits_per_pixel,
++			(area->sx * m) / 8, area->sy,
++			(area->dx * m) / 8, area->dy,
++			(area->width * m) / 8, area->height,
++			cinfo->currentmode.line_length);
 +
-+config DCA
-+	tristate "DCA support for clients and providers"
-+	default m
-+	help
-+	  This is a server to help modules that want to use Direct Cache
-+	  Access to find DCA providers that will supply correct CPU tags.
-+
-diff -puN /dev/null drivers/dca/Makefile
---- /dev/null
-+++ a/drivers/dca/Makefile
-@@ -0,0 +1,2 @@
-+obj-$(CONFIG_DCA) += dca.o
-+dca-objs := dca-core.o dca-sysfs.o
-diff -puN /dev/null drivers/dca/dca-core.c
---- /dev/null
-+++ a/drivers/dca/dca-core.c
-@@ -0,0 +1,200 @@
-+/*
-+ * Copyright(c) 2007 Intel Corporation. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the Free
-+ * Software Foundation; either version 2 of the License, or (at your option)
-+ * any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program; if not, write to the Free Software Foundation, Inc., 59
-+ * Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-+ *
-+ * The full GNU General Public License is included in this distribution in the
-+ * file called COPYING.
-+ */
-+
-+/*
-+ * This driver supports an interface for DCA clients and providers to meet.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/notifier.h>
-+#include <linux/device.h>
-+#include <linux/dca.h>
-+
-+MODULE_LICENSE("GPL");
-+
-+/* For now we're assuming a single, global, DCA provider for the system. */
-+
-+static DEFINE_SPINLOCK(dca_lock);
-+
-+static struct dca_provider *global_dca = NULL;
-+
-+/**
-+ * dca_add_requester - add a dca client to the list
-+ * @dev - the device that wants dca service
-+ */
-+int dca_add_requester(struct device *dev)
-+{
-+	int err, slot;
-+
-+	if (!global_dca)
-+		return -ENODEV;
-+
-+	spin_lock(&dca_lock);
-+	slot = global_dca->ops->add_requester(global_dca, dev);
-+	spin_unlock(&dca_lock);
-+	if (slot < 0)
-+		return slot;
-+
-+	err = dca_sysfs_add_req(global_dca, dev, slot);
-+	if (err) {
-+		spin_lock(&dca_lock);
-+		global_dca->ops->remove_requester(global_dca, dev);
-+		spin_unlock(&dca_lock);
-+		return err;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(dca_add_requester);
-+
-+/**
-+ * dca_remove_requester - remove a dca client from the list
-+ * @dev - the device that wants dca service
-+ */
-+int dca_remove_requester(struct device *dev)
-+{
-+	int slot;
-+	if (!global_dca)
-+		return -ENODEV;
-+
-+	spin_lock(&dca_lock);
-+	slot = global_dca->ops->remove_requester(global_dca, dev);
-+	spin_unlock(&dca_lock);
-+	if (slot < 0)
-+		return slot;
-+
-+	dca_sysfs_remove_req(global_dca, slot);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(dca_remove_requester);
-+
-+/**
-+ * dca_get_tag - return the dca tag for the given cpu
-+ * @cpu - the cpuid as returned by get_cpu()
-+ */
-+u8 dca_get_tag(int cpu)
-+{
-+	if (!global_dca)
-+		return -ENODEV;
-+	return global_dca->ops->get_tag(global_dca, cpu);
-+}
-+EXPORT_SYMBOL_GPL(dca_get_tag);
-+
-+/**
-+ * alloc_dca_provider - get data struct for describing a dca provider
-+ * @ops - pointer to struct of dca operation function pointers
-+ * @priv_size - size of extra mem to be added for provider's needs
-+ */
-+struct dca_provider *alloc_dca_provider(struct dca_ops *ops, int priv_size)
-+{
-+	struct dca_provider *dca;
-+	int alloc_size;
-+
-+	alloc_size = (sizeof(*dca) + priv_size);
-+	dca = kzalloc(alloc_size, GFP_KERNEL);
-+	if (!dca)
-+		return NULL;
-+	dca->ops = ops;
-+
-+	return dca;
-+}
-+EXPORT_SYMBOL_GPL(alloc_dca_provider);
-+
-+/**
-+ * free_dca_provider - release the dca provider data struct
-+ * @ops - pointer to struct of dca operation function pointers
-+ * @priv_size - size of extra mem to be added for provider's needs
-+ */
-+void free_dca_provider(struct dca_provider *dca)
-+{
-+	kfree(dca);
-+}
-+EXPORT_SYMBOL_GPL(free_dca_provider);
-+
-+static BLOCKING_NOTIFIER_HEAD(dca_provider_chain);
-+
-+/**
-+ * register_dca_provider - register a dca provider
-+ * @dca - struct created by alloc_dca_provider()
-+ * @dev - device providing dca services
-+ */
-+int register_dca_provider(struct dca_provider *dca, struct device *dev)
-+{
-+	int err;
-+
-+	if (global_dca)
-+		return -EEXIST;
-+	err = dca_sysfs_add_provider(dca, dev);
-+	if (err)
-+		return err;
-+	global_dca = dca;
-+	blocking_notifier_call_chain(&dca_provider_chain,
-+				     DCA_PROVIDER_ADD, NULL);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(register_dca_provider);
-+
-+/**
-+ * unregister_dca_provider - remove a dca provider
-+ * @dca - struct created by alloc_dca_provider()
-+ */
-+void unregister_dca_provider(struct dca_provider *dca)
-+{
-+	if (!global_dca)
-+		return;
-+	blocking_notifier_call_chain(&dca_provider_chain,
-+				     DCA_PROVIDER_REMOVE, NULL);
-+	global_dca = NULL;
-+	dca_sysfs_remove_provider(dca);
-+}
-+EXPORT_SYMBOL_GPL(unregister_dca_provider);
-+
-+/**
-+ * dca_register_notify - register a client's notifier callback
-+ */
-+void dca_register_notify(struct notifier_block *nb)
-+{
-+	blocking_notifier_chain_register(&dca_provider_chain, nb);
-+}
-+EXPORT_SYMBOL_GPL(dca_register_notify);
-+
-+/**
-+ * dca_unregister_notify - remove a client's notifier callback
-+ */
-+void dca_unregister_notify(struct notifier_block *nb)
-+{
-+	blocking_notifier_chain_unregister(&dca_provider_chain, nb);
-+}
-+EXPORT_SYMBOL_GPL(dca_unregister_notify);
-+
-+static int __init dca_init(void)
-+{
-+	return dca_sysfs_init();
-+}
-+
-+static void __exit dca_exit(void)
-+{
-+	dca_sysfs_exit();
-+}
-+
-+module_init(dca_init);
-+module_exit(dca_exit);
-+
-diff -puN /dev/null drivers/dca/dca-sysfs.c
---- /dev/null
-+++ a/drivers/dca/dca-sysfs.c
-@@ -0,0 +1,88 @@
-+#include <linux/kernel.h>
-+#include <linux/spinlock.h>
-+#include <linux/device.h>
-+#include <linux/idr.h>
-+#include <linux/kdev_t.h>
-+#include <linux/err.h>
-+#include <linux/dca.h>
-+
-+static struct class *dca_class;
-+static struct idr dca_idr;
-+static spinlock_t dca_idr_lock;
-+
-+int dca_sysfs_add_req(struct dca_provider *dca, struct device *dev, int slot)
-+{
-+	struct class_device *cd;
-+
-+	cd = class_device_create(dca_class, dca->cd, MKDEV(0, slot + 1),
-+				 dev, "requester%d", slot);
-+	if (IS_ERR(cd))
-+		return PTR_ERR(cd);
-+	return 0;
-+}
-+
-+void dca_sysfs_remove_req(struct dca_provider *dca, int slot)
-+{
-+	class_device_destroy(dca_class, MKDEV(0, slot + 1));
-+}
-+
-+int dca_sysfs_add_provider(struct dca_provider *dca, struct device *dev)
-+{
-+	struct class_device *cd;
-+	int err = 0;
-+
-+idr_try_again:
-+	if (!idr_pre_get(&dca_idr, GFP_KERNEL))
-+		return -ENOMEM;
-+	spin_lock(&dca_idr_lock);
-+	err = idr_get_new(&dca_idr, dca, &dca->id);
-+	spin_unlock(&dca_idr_lock);
-+	switch (err) {
-+	case 0:
-+		break;
-+	case -EAGAIN:
-+		goto idr_try_again;
-+	default:
-+		return err;
-+	}
-+
-+	cd = class_device_create(dca_class, NULL, MKDEV(0, 0),
-+				 dev, "dca%d", dca->id);
-+	if (IS_ERR(cd)) {
-+		spin_lock(&dca_idr_lock);
-+		idr_remove(&dca_idr, dca->id);
-+		spin_unlock(&dca_idr_lock);
-+		return PTR_ERR(cd);
-+	}
-+	dca->cd = cd;
-+	return 0;
-+}
-+
-+void dca_sysfs_remove_provider(struct dca_provider *dca)
-+{
-+	class_device_unregister(dca->cd);
-+	dca->cd = NULL;
-+	spin_lock(&dca_idr_lock);
-+	idr_remove(&dca_idr, dca->id);
-+	spin_unlock(&dca_idr_lock);
-+}
-+
-+int __init dca_sysfs_init(void)
-+{
-+	idr_init(&dca_idr);
-+	spin_lock_init(&dca_idr_lock);
-+
-+	dca_class = class_create(THIS_MODULE, "dca");
-+	if (IS_ERR(dca_class)) {
-+		idr_destroy(&dca_idr);
-+		return PTR_ERR(dca_class);
-+	}
-+	return 0;
-+}
-+
-+void __exit dca_sysfs_exit(void)
-+{
-+	class_destroy(dca_class);
-+	idr_destroy(&dca_idr);
-+}
-+
-diff -puN /dev/null include/linux/dca.h
---- /dev/null
-+++ a/include/linux/dca.h
-@@ -0,0 +1,47 @@
-+#ifndef DCA_H
-+#define DCA_H
-+/* DCA Provider API */
-+
-+/* DCA Notifier Interface */
-+void dca_register_notify(struct notifier_block *nb);
-+void dca_unregister_notify(struct notifier_block *nb);
-+
-+#define DCA_PROVIDER_ADD     0x0001
-+#define DCA_PROVIDER_REMOVE  0x0002
-+
-+struct dca_provider {
-+	struct dca_ops		*ops;
-+	struct class_device 	*cd;
-+	int			 id;
-+};
-+
-+struct dca_ops {
-+	int	(*add_requester)    (struct dca_provider *, struct device *);
-+	int	(*remove_requester) (struct dca_provider *, struct device *);
-+	u8	(*get_tag)	    (struct dca_provider *, int cpu);
-+};
-+
-+struct dca_provider *alloc_dca_provider(struct dca_ops *ops, int priv_size);
-+void free_dca_provider(struct dca_provider *dca);
-+int register_dca_provider(struct dca_provider *dca, struct device *dev);
-+void unregister_dca_provider(struct dca_provider *dca);
-+
-+static inline void *dca_priv(struct dca_provider *dca)
-+{
-+	return (void *)dca + sizeof(struct dca_provider);
-+}
-+
-+/* Requester API */
-+int dca_add_requester(struct device *dev);
-+int dca_remove_requester(struct device *dev);
-+u8 dca_get_tag(int cpu);
-+
-+/* internal stuff */
-+int __init dca_sysfs_init(void);
-+void __exit dca_sysfs_exit(void);
-+int dca_sysfs_add_provider(struct dca_provider *dca, struct device *dev);
-+void dca_sysfs_remove_provider(struct dca_provider *dca);
-+int dca_sysfs_add_req(struct dca_provider *dca, struct device *dev, int slot);
-+void dca_sysfs_remove_req(struct dca_provider *dca, int slot);
-+
-+#endif /* DCA_H */
+ }
+ 
+ static void cirrusfb_imageblit(struct fb_info *info,
+@@ -2366,7 +2232,6 @@ static void cirrusfb_pci_unmap(struct fb
+ 	if (release_io_ports)
+ 		release_region(0x3C0, 32);
+ 	pci_release_regions(pdev);
+-	framebuffer_release(info);
+ }
+ #endif /* CONFIG_PCI */
+ 
+@@ -2383,7 +2248,6 @@ static void __devexit cirrusfb_zorro_unm
+ 		if (zorro_resource_start(cinfo->zdev) > 0x01000000)
+ 			iounmap(info->screen_base);
+ 	}
+-	framebuffer_release(cinfo->info);
+ }
+ #endif /* CONFIG_ZORRO */
+ 
+@@ -2481,6 +2345,7 @@ err_dealloc_cmap:
+ 	fb_dealloc_cmap(&info->cmap);
+ err_unmap_cirrusfb:
+ 	cinfo->unmap(info);
++	framebuffer_release(info);
+ 	return err;
+ }
+ 
+@@ -2495,6 +2360,7 @@ static void __devexit cirrusfb_cleanup(s
+ 	fb_dealloc_cmap(&info->cmap);
+ 	printk("Framebuffer unregistered\n");
+ 	cinfo->unmap(info);
++	framebuffer_release(info);
+ 
+ 	DPRINTK("EXIT\n");
+ }
 _
 
-Patches currently in -mm which might be from shannon.nelson@intel.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-remove-unsafe-from-module-struct.patch
+git-alsa.patch
+cyber2000fb-checkpatch-fixes.patch
