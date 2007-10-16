@@ -1,537 +1,781 @@
 From: akpm@linux-foundation.org
-Subject: - i-oat-code-cleanup-from-checkpatch-output.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:39:23 -0700
-Message-ID: <200710162039.l9GKdNDp015542@imap1.linux-foundation.org>
+Subject: - s3c2410fb-code-cleanup.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:43:03 -0700
+Message-ID: <200710162043.l9GKh3oZ016012@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49426 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43452 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935617AbXJPVTL (ORCPT
+	by vger.kernel.org with ESMTP id S965989AbXJPVTl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:19:11 -0400
+	Tue, 16 Oct 2007 17:19:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shannon.nelson@intel.com, davem@davemloft.net, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     I/OAT: code cleanup from checkpatch output
+     s3c2410fb: code cleanup
 has been removed from the -mm tree.  Its filename was
-     i-oat-code-cleanup-from-checkpatch-output.patch
+     s3c2410fb-code-cleanup.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-Subject: I/OAT: code cleanup from checkpatch output
-From: Shannon Nelson <shannon.nelson@intel.com>
+Subject: s3c2410fb: code cleanup
+=46rom: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Take care of a bunch of little code nits in ioatdma files
+This patch cleans up the driver a bit. It contains
+coding style fixes (pointed by Lindent and checkpatch),
+white space clean ups and few minor code improvements.
 
-Signed-off-by: Shannon Nelson <shannon.nelson@intel.com>
-Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/ioat_dma.c |  198 +++++++++++++++++++++------------------
- 1 file changed, 110 insertions(+), 88 deletions(-)
+ drivers/video/s3c2410fb.c |  359 +++++++++++++++++-------------------
+ 1 file changed, 173 insertions(+), 186 deletions(-)
 
-diff -puN drivers/dma/ioat_dma.c~i-oat-code-cleanup-from-checkpatch-output drivers/dma/ioat_dma.c
---- a/drivers/dma/ioat_dma.c~i-oat-code-cleanup-from-checkpatch-output
-+++ a/drivers/dma/ioat_dma.c
-@@ -1,10 +1,10 @@
- /*
-- * Copyright(c) 2004 - 2006 Intel Corporation. All rights reserved.
-+ * Intel I/OAT DMA Linux driver
-+ * Copyright(c) 2004 - 2007 Intel Corporation.
+diff -puN drivers/video/s3c2410fb.c~s3c2410fb-code-cleanup drivers/vide=
+o/s3c2410fb.c
+--- a/drivers/video/s3c2410fb.c~s3c2410fb-code-cleanup
++++ a/drivers/video/s3c2410fb.c
+@@ -31,8 +31,8 @@
+  *	- add pixel clock divisor control
   *
-  * This program is free software; you can redistribute it and/or modify it
-- * under the terms of the GNU General Public License as published by the Free
-- * Software Foundation; either version 2 of the License, or (at your option)
-- * any later version.
-+ * under the terms and conditions of the GNU General Public License,
-+ * version 2, as published by the Free Software Foundation.
+  * 2004-11-11: Arnaud Patard <arnaud.patard@rtp-net.org>
+- * 	- Removed the use of currcon as it no more exist
+- * 	- Added LCD power sysfs interface
++ *	- Removed the use of currcon as it no more exist
++ *	- Added LCD power sysfs interface
   *
-  * This program is distributed in the hope that it will be useful, but WITHOUT
-  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-@@ -12,11 +12,12 @@
-  * more details.
+  * 2004-11-03: Ben Dooks <ben-linux@fluff.org>
+  *	- minor cleanups
+@@ -49,12 +49,12 @@
+  *      - Suppress command line options
   *
-  * You should have received a copy of the GNU General Public License along with
-- * this program; if not, write to the Free Software Foundation, Inc., 59
-- * Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-+ * this program; if not, write to the Free Software Foundation, Inc.,
-+ * 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
-+ *
-+ * The full GNU General Public License is included in this distribution in
-+ * the file called "COPYING".
+  * 2004-09-15: Arnaud Patard <arnaud.patard@rtp-net.org>
+- * 	- code cleanup
++ *	- code cleanup
   *
-- * The full GNU General Public License is included in this distribution in the
-- * file called COPYING.
-  */
- 
- /*
-@@ -35,17 +36,22 @@
- #include "ioatdma_registers.h"
- #include "ioatdma_hw.h"
- 
-+#define INITIAL_IOAT_DESC_COUNT 128
-+
- #define to_ioat_chan(chan) container_of(chan, struct ioat_dma_chan, common)
- #define to_ioat_device(dev) container_of(dev, struct ioat_device, common)
- #define to_ioat_desc(lh) container_of(lh, struct ioat_desc_sw, node)
- #define tx_to_ioat_desc(tx) container_of(tx, struct ioat_desc_sw, async_tx)
- 
- /* internal functions */
--static int __devinit ioat_probe(struct pci_dev *pdev, const struct pci_device_id *ent);
-+static void ioat_dma_start_null_desc(struct ioat_dma_chan *ioat_chan);
-+static void ioat_dma_memcpy_cleanup(struct ioat_dma_chan *ioat_chan);
-+static int __devinit ioat_probe(struct pci_dev *pdev,
-+				const struct pci_device_id *ent);
- static void ioat_shutdown(struct pci_dev *pdev);
- static void __devexit ioat_remove(struct pci_dev *pdev);
- 
--static int enumerate_dma_channels(struct ioat_device *device)
-+static int ioat_dma_enumerate_channels(struct ioat_device *device)
- {
- 	u8 xfercap_scale;
- 	u32 xfercap;
-@@ -73,13 +79,14 @@ static int enumerate_dma_channels(struct
- 		/* This should be made common somewhere in dmaengine.c */
- 		ioat_chan->common.device = &device->common;
- 		list_add_tail(&ioat_chan->common.device_node,
--		              &device->common.channels);
-+			      &device->common.channels);
- 	}
- 	return device->common.chancnt;
- }
- 
--static void
--ioat_set_src(dma_addr_t addr, struct dma_async_tx_descriptor *tx, int index)
-+static void ioat_set_src(dma_addr_t addr,
-+			 struct dma_async_tx_descriptor *tx,
-+			 int index)
- {
- 	struct ioat_desc_sw *iter, *desc = tx_to_ioat_desc(tx);
- 	struct ioat_dma_chan *ioat_chan = to_ioat_chan(tx->chan);
-@@ -93,8 +100,9 @@ ioat_set_src(dma_addr_t addr, struct dma
- 
- }
- 
--static void
--ioat_set_dest(dma_addr_t addr, struct dma_async_tx_descriptor *tx, int index)
-+static void ioat_set_dest(dma_addr_t addr,
-+			  struct dma_async_tx_descriptor *tx,
-+			  int index)
- {
- 	struct ioat_desc_sw *iter, *desc = tx_to_ioat_desc(tx);
- 	struct ioat_dma_chan *ioat_chan = to_ioat_chan(tx->chan);
-@@ -107,8 +115,7 @@ ioat_set_dest(dma_addr_t addr, struct dm
- 	}
- }
- 
--static dma_cookie_t
--ioat_tx_submit(struct dma_async_tx_descriptor *tx)
-+static dma_cookie_t ioat_tx_submit(struct dma_async_tx_descriptor *tx)
- {
- 	struct ioat_dma_chan *ioat_chan = to_ioat_chan(tx->chan);
- 	struct ioat_desc_sw *desc = tx_to_ioat_desc(tx);
-@@ -146,8 +153,8 @@ ioat_tx_submit(struct dma_async_tx_descr
- }
- 
- static struct ioat_desc_sw *ioat_dma_alloc_descriptor(
--	struct ioat_dma_chan *ioat_chan,
--	gfp_t flags)
-+					struct ioat_dma_chan *ioat_chan,
-+					gfp_t flags)
- {
- 	struct ioat_dma_descriptor *desc;
- 	struct ioat_desc_sw *desc_sw;
-@@ -177,10 +184,6 @@ static struct ioat_desc_sw *ioat_dma_all
- 	return desc_sw;
- }
- 
--#define INITIAL_IOAT_DESC_COUNT 128
+  * 2004-09-07: Arnaud Patard <arnaud.patard@rtp-net.org>
+- * 	- Renamed from h1940fb.c to s3c2410fb.c
+- * 	- Add support for different devices
+- * 	- Backlight support
++ *	- Renamed from h1940fb.c to s3c2410fb.c
++ *	- Add support for different devices
++ *	- Backlight support
+  *
+  * 2004-09-05: Herbert P=F6tzl <herbert@13thfloor.at>
+  *	- added clock (de-)allocation code
+@@ -102,14 +102,13 @@
+=20
+ #include "s3c2410fb.h"
+=20
 -
--static void ioat_start_null_desc(struct ioat_dma_chan *ioat_chan);
--
- /* returns the actual number of allocated descriptors */
- static int ioat_dma_alloc_chan_resources(struct dma_chan *chan)
- {
-@@ -195,15 +198,16 @@ static int ioat_dma_alloc_chan_resources
- 	if (!list_empty(&ioat_chan->free_desc))
- 		return INITIAL_IOAT_DESC_COUNT;
- 
--        /* Setup register to interrupt and write completion status on error */
-+	/* Setup register to interrupt and write completion status on error */
- 	chanctrl = IOAT_CHANCTRL_ERR_INT_EN |
- 		IOAT_CHANCTRL_ANY_ERR_ABORT_EN |
- 		IOAT_CHANCTRL_ERR_COMPLETION_EN;
--        writew(chanctrl, ioat_chan->reg_base + IOAT_CHANCTRL_OFFSET);
-+	writew(chanctrl, ioat_chan->reg_base + IOAT_CHANCTRL_OFFSET);
- 
- 	chanerr = readl(ioat_chan->reg_base + IOAT_CHANERR_OFFSET);
- 	if (chanerr) {
--		printk("IOAT: CHANERR = %x, clearing\n", chanerr);
-+		dev_err(&ioat_chan->device->pdev->dev,
-+			"ioatdma: CHANERR = %x, clearing\n", chanerr);
- 		writel(chanerr, ioat_chan->reg_base + IOAT_CHANERR_OFFSET);
- 	}
- 
-@@ -211,7 +215,8 @@ static int ioat_dma_alloc_chan_resources
- 	for (i = 0; i < INITIAL_IOAT_DESC_COUNT; i++) {
- 		desc = ioat_dma_alloc_descriptor(ioat_chan, GFP_KERNEL);
- 		if (!desc) {
--			printk(KERN_ERR "IOAT: Only %d initial descriptors\n", i);
-+			dev_err(&ioat_chan->device->pdev->dev,
-+				"ioatdma: Only %d initial descriptors\n", i);
- 			break;
- 		}
- 		list_add_tail(&desc->node, &tmp_list);
-@@ -224,8 +229,8 @@ static int ioat_dma_alloc_chan_resources
- 	/* doing 2 32bit writes to mmio since 1 64b write doesn't work */
- 	ioat_chan->completion_virt =
- 		pci_pool_alloc(ioat_chan->device->completion_pool,
--		               GFP_KERNEL,
--		               &ioat_chan->completion_addr);
-+			       GFP_KERNEL,
-+			       &ioat_chan->completion_addr);
- 	memset(ioat_chan->completion_virt, 0,
- 	       sizeof(*ioat_chan->completion_virt));
- 	writel(((u64) ioat_chan->completion_addr) & 0x00000000FFFFFFFF,
-@@ -233,12 +238,10 @@ static int ioat_dma_alloc_chan_resources
- 	writel(((u64) ioat_chan->completion_addr) >> 32,
- 	       ioat_chan->reg_base + IOAT_CHANCMP_OFFSET_HIGH);
- 
--	ioat_start_null_desc(ioat_chan);
-+	ioat_dma_start_null_desc(ioat_chan);
- 	return i;
- }
- 
--static void ioat_dma_memcpy_cleanup(struct ioat_dma_chan *ioat_chan);
--
- static void ioat_dma_free_chan_resources(struct dma_chan *chan)
- {
- 	struct ioat_dma_chan *ioat_chan = to_ioat_chan(chan);
-@@ -268,19 +271,22 @@ static void ioat_dma_free_chan_resources
- 	spin_unlock_bh(&ioat_chan->desc_lock);
- 
- 	pci_pool_free(ioat_device->completion_pool,
--	              ioat_chan->completion_virt,
--	              ioat_chan->completion_addr);
-+		      ioat_chan->completion_virt,
-+		      ioat_chan->completion_addr);
- 
- 	/* one is ok since we left it on there on purpose */
- 	if (in_use_descs > 1)
--		printk(KERN_ERR "IOAT: Freeing %d in use descriptors!\n",
-+		dev_err(&ioat_chan->device->pdev->dev,
-+			"ioatdma: Freeing %d in use descriptors!\n",
- 			in_use_descs - 1);
- 
- 	ioat_chan->last_completion = ioat_chan->completion_addr = 0;
- }
- 
--static struct dma_async_tx_descriptor *
--ioat_dma_prep_memcpy(struct dma_chan *chan, size_t len, int int_en)
-+static struct dma_async_tx_descriptor *ioat_dma_prep_memcpy(
-+						struct dma_chan *chan,
-+						size_t len,
-+						int int_en)
- {
- 	struct ioat_dma_chan *ioat_chan = to_ioat_chan(chan);
- 	struct ioat_desc_sw *first, *prev, *new;
-@@ -343,12 +349,11 @@ ioat_dma_prep_memcpy(struct dma_chan *ch
- 	return new ? &new->async_tx : NULL;
- }
- 
--
- /**
-- * ioat_dma_memcpy_issue_pending - push potentially unrecognized appended descriptors to hw
-+ * ioat_dma_memcpy_issue_pending - push potentially unrecognized appended
-+ *                                 descriptors to hw
-  * @chan: DMA channel handle
-  */
--
- static void ioat_dma_memcpy_issue_pending(struct dma_chan *chan)
- {
- 	struct ioat_dma_chan *ioat_chan = to_ioat_chan(chan);
-@@ -360,15 +365,15 @@ static void ioat_dma_memcpy_issue_pendin
- 	}
- }
- 
--static void ioat_dma_memcpy_cleanup(struct ioat_dma_chan *chan)
-+static void ioat_dma_memcpy_cleanup(struct ioat_dma_chan *ioat_chan)
- {
- 	unsigned long phys_complete;
- 	struct ioat_desc_sw *desc, *_desc;
- 	dma_cookie_t cookie = 0;
- 
--	prefetch(chan->completion_virt);
-+	prefetch(ioat_chan->completion_virt);
- 
--	if (!spin_trylock(&chan->cleanup_lock))
-+	if (!spin_trylock(&ioat_chan->cleanup_lock))
- 		return;
- 
- 	/* The completion writeback can happen at any time,
-@@ -378,26 +383,27 @@ static void ioat_dma_memcpy_cleanup(stru
- 
- #if (BITS_PER_LONG == 64)
- 	phys_complete =
--	chan->completion_virt->full & IOAT_CHANSTS_COMPLETED_DESCRIPTOR_ADDR;
-+	ioat_chan->completion_virt->full & IOAT_CHANSTS_COMPLETED_DESCRIPTOR_ADDR;
+ static struct s3c2410fb_mach_info *mach_info;
+=20
+ /* Debugging stuff */
+ #ifdef CONFIG_FB_S3C2410_DEBUG
+-static int debug	   =3D 1;
++static int debug	=3D 1;
  #else
--	phys_complete = chan->completion_virt->low & IOAT_LOW_COMPLETION_MASK;
-+	phys_complete = ioat_chan->completion_virt->low & IOAT_LOW_COMPLETION_MASK;
+-static int debug	   =3D 0;
++static int debug	=3D 0;
  #endif
- 
--	if ((chan->completion_virt->full & IOAT_CHANSTS_DMA_TRANSFER_STATUS) ==
--		IOAT_CHANSTS_DMA_TRANSFER_STATUS_HALTED) {
--		printk("IOAT: Channel halted, chanerr = %x\n",
--			readl(chan->reg_base + IOAT_CHANERR_OFFSET));
-+	if ((ioat_chan->completion_virt->full & IOAT_CHANSTS_DMA_TRANSFER_STATUS) ==
-+				IOAT_CHANSTS_DMA_TRANSFER_STATUS_HALTED) {
-+		dev_err(&ioat_chan->device->pdev->dev,
-+			"ioatdma: Channel halted, chanerr = %x\n",
-+			readl(ioat_chan->reg_base + IOAT_CHANERR_OFFSET));
- 
- 		/* TODO do something to salvage the situation */
+=20
+ #define dprintk(msg...)	if (debug) { printk(KERN_DEBUG "s3c2410fb: " m=
+sg); }
+@@ -119,19 +118,20 @@ static int debug	   =3D 0;
+ /* s3c2410fb_set_lcdaddr
+  *
+  * initialise lcd controller address pointers
+-*/
+-
++ */
+ static void s3c2410fb_set_lcdaddr(struct s3c2410fb_info *fbi)
+ {
+ 	struct fb_var_screeninfo *var =3D &fbi->fb->var;
+ 	unsigned long saddr1, saddr2, saddr3;
++	int line_length =3D var->xres * var->bits_per_pixel;
+=20
+ 	saddr1  =3D fbi->fb->fix.smem_start >> 1;
+ 	saddr2  =3D fbi->fb->fix.smem_start;
+-	saddr2 +=3D (var->xres * var->yres * var->bits_per_pixel)/8;
+-	saddr2>>=3D 1;
++	saddr2 +=3D (line_length * var->yres) / 8;
++	saddr2 >>=3D 1;
+=20
+-	saddr3 =3D  S3C2410_OFFSIZE(0) | S3C2410_PAGEWIDTH((var->xres * var->=
+bits_per_pixel / 16) & 0x3ff);
++	saddr3 =3D S3C2410_OFFSIZE(0) |
++		 S3C2410_PAGEWIDTH((line_length / 16) & 0x3ff);
+=20
+ 	dprintk("LCDSADDR1 =3D 0x%08lx\n", saddr1);
+ 	dprintk("LCDSADDR2 =3D 0x%08lx\n", saddr2);
+@@ -145,8 +145,7 @@ static void s3c2410fb_set_lcdaddr(struct
+ /* s3c2410fb_calc_pixclk()
+  *
+  * calculate divisor for clk->pixclk
+-*/
+-
++ */
+ static unsigned int s3c2410fb_calc_pixclk(struct s3c2410fb_info *fbi,
+ 					  unsigned long pixclk)
+ {
+@@ -159,8 +158,8 @@ static unsigned int s3c2410fb_calc_pixcl
+ 	 */
+=20
+ 	div =3D (unsigned long long)clk * pixclk;
+-	do_div(div,1000000UL);
+-	do_div(div,1000000UL);
++	do_div(div, 1000000UL);
++	do_div(div, 1000000UL);
+=20
+ 	dprintk("pixclk %ld, divisor is %ld\n", pixclk, (long)div);
+ 	return div;
+@@ -198,93 +197,84 @@ static int s3c2410fb_check_var(struct fb
+ 	else if (var->bits_per_pixel < fbi->mach_info->bpp.min)
+ 		var->bits_per_pixel =3D fbi->mach_info->bpp.min;
+=20
++	var->transp.offset =3D 0;
++	var->transp.length =3D 0;
+ 	/* set r/g/b positions */
+ 	switch (var->bits_per_pixel) {
+-		case 1:
+-		case 2:
+-		case 4:
+-			var->red.offset    	=3D 0;
+-			var->red.length    	=3D var->bits_per_pixel;
+-			var->green         	=3D var->red;
+-			var->blue          	=3D var->red;
+-			var->transp.offset 	=3D 0;
+-			var->transp.length 	=3D 0;
+-			break;
+-		case 8:
+-			if ( fbi->mach_info->type !=3D S3C2410_LCDCON1_TFT ) {
+-				/* 8 bpp 332 */
+-				var->red.length		=3D 3;
+-				var->red.offset		=3D 5;
+-				var->green.length	=3D 3;
+-				var->green.offset	=3D 2;
+-				var->blue.length	=3D 2;
+-				var->blue.offset	=3D 0;
+-				var->transp.length	=3D 0;
+-			} else {
+-				var->red.offset    	=3D 0;
+-				var->red.length    	=3D var->bits_per_pixel;
+-				var->green         	=3D var->red;
+-				var->blue          	=3D var->red;
+-				var->transp.offset 	=3D 0;
+-				var->transp.length 	=3D 0;
+-			}
+-			break;
+-		case 12:
+-			/* 12 bpp 444 */
+-			var->red.length		=3D 4;
+-			var->red.offset		=3D 8;
+-			var->green.length	=3D 4;
+-			var->green.offset	=3D 4;
+-			var->blue.length	=3D 4;
++	case 1:
++	case 2:
++	case 4:
++		var->red.offset	=3D 0;
++		var->red.length	=3D var->bits_per_pixel;
++		var->green	=3D var->red;
++		var->blue	=3D var->red;
++		break;
++	case 8:
++		if (fbi->mach_info->type !=3D S3C2410_LCDCON1_TFT) {
++			/* 8 bpp 332 */
++			var->red.length		=3D 3;
++			var->red.offset		=3D 5;
++			var->green.length	=3D 3;
++			var->green.offset	=3D 2;
++			var->blue.length	=3D 2;
+ 			var->blue.offset	=3D 0;
+-			var->transp.length	=3D 0;
+-			break;
+-
+-		default:
+-		case 16:
+-			if (fbi->regs.lcdcon5 & S3C2410_LCDCON5_FRM565 ) {
+-				/* 16 bpp, 565 format */
+-				var->red.offset		=3D 11;
+-				var->green.offset	=3D 5;
+-				var->blue.offset	=3D 0;
+-				var->red.length		=3D 5;
+-				var->green.length	=3D 6;
+-				var->blue.length	=3D 5;
+-				var->transp.length	=3D 0;
+-			} else {
+-				/* 16 bpp, 5551 format */
+-				var->red.offset		=3D 11;
+-				var->green.offset	=3D 6;
+-				var->blue.offset	=3D 1;
+-				var->red.length		=3D 5;
+-				var->green.length	=3D 5;
+-				var->blue.length	=3D 5;
+-				var->transp.length	=3D 0;
+-			}
+-			break;
+-		case 24:
+-			/* 24 bpp 888 */
++		} else {
++			var->red.offset		=3D 0;
+ 			var->red.length		=3D 8;
+-			var->red.offset		=3D 16;
+-			var->green.length	=3D 8;
+-			var->green.offset	=3D 8;
+-			var->blue.length	=3D 8;
++			var->green		=3D var->red;
++			var->blue		=3D var->red;
++		}
++		break;
++	case 12:
++		/* 12 bpp 444 */
++		var->red.length		=3D 4;
++		var->red.offset		=3D 8;
++		var->green.length	=3D 4;
++		var->green.offset	=3D 4;
++		var->blue.length	=3D 4;
++		var->blue.offset	=3D 0;
++		break;
++
++	default:
++	case 16:
++		if (fbi->regs.lcdcon5 & S3C2410_LCDCON5_FRM565) {
++			/* 16 bpp, 565 format */
++			var->red.offset		=3D 11;
++			var->green.offset	=3D 5;
+ 			var->blue.offset	=3D 0;
+-			var->transp.length	=3D 0;
+-			break;
++			var->red.length		=3D 5;
++			var->green.length	=3D 6;
++			var->blue.length	=3D 5;
++		} else {
++			/* 16 bpp, 5551 format */
++			var->red.offset		=3D 11;
++			var->green.offset	=3D 6;
++			var->blue.offset	=3D 1;
++			var->red.length		=3D 5;
++			var->green.length	=3D 5;
++			var->blue.length	=3D 5;
++		}
++		break;
++	case 24:
++		/* 24 bpp 888 */
++		var->red.length		=3D 8;
++		var->red.offset		=3D 16;
++		var->green.length	=3D 8;
++		var->green.offset	=3D 8;
++		var->blue.length	=3D 8;
++		var->blue.offset	=3D 0;
++		break;
+=20
+=20
  	}
- 
--	if (phys_complete == chan->last_completion) {
--		spin_unlock(&chan->cleanup_lock);
-+	if (phys_complete == ioat_chan->last_completion) {
-+		spin_unlock(&ioat_chan->cleanup_lock);
- 		return;
- 	}
- 
--	spin_lock_bh(&chan->desc_lock);
--	list_for_each_entry_safe(desc, _desc, &chan->used_desc, node) {
-+	spin_lock_bh(&ioat_chan->desc_lock);
-+	list_for_each_entry_safe(desc, _desc, &ioat_chan->used_desc, node) {
- 
- 		/*
- 		 * Incoming DMA requests may use multiple descriptors, due to
-@@ -407,31 +413,36 @@ static void ioat_dma_memcpy_cleanup(stru
- 		if (desc->async_tx.cookie) {
- 			cookie = desc->async_tx.cookie;
- 
--			/* yes we are unmapping both _page and _single alloc'd
--			   regions with unmap_page. Is this *really* that bad?
--			*/
--			pci_unmap_page(chan->device->pdev,
-+			/*
-+			 * yes we are unmapping both _page and _single alloc'd
-+			 * regions with unmap_page. Is this *really* that bad?
-+			 */
-+			pci_unmap_page(ioat_chan->device->pdev,
- 					pci_unmap_addr(desc, dst),
- 					pci_unmap_len(desc, len),
- 					PCI_DMA_FROMDEVICE);
--			pci_unmap_page(chan->device->pdev,
-+			pci_unmap_page(ioat_chan->device->pdev,
- 					pci_unmap_addr(desc, src),
- 					pci_unmap_len(desc, len),
- 					PCI_DMA_TODEVICE);
- 		}
- 
- 		if (desc->async_tx.phys != phys_complete) {
--			/* a completed entry, but not the last, so cleanup
-+			/*
-+			 * a completed entry, but not the last, so cleanup
- 			 * if the client is done with the descriptor
- 			 */
- 			if (desc->async_tx.ack) {
- 				list_del(&desc->node);
--				list_add_tail(&desc->node, &chan->free_desc);
-+				list_add_tail(&desc->node,
-+					      &ioat_chan->free_desc);
- 			} else
- 				desc->async_tx.cookie = 0;
- 		} else {
--			/* last used desc. Do not remove, so we can append from
--			   it, but don't look at it next time, either */
-+			/*
-+			 * last used desc. Do not remove, so we can append from
-+			 * it, but don't look at it next time, either
-+			 */
- 			desc->async_tx.cookie = 0;
- 
- 			/* TODO check status bits? */
-@@ -439,13 +450,13 @@ static void ioat_dma_memcpy_cleanup(stru
- 		}
- 	}
- 
--	spin_unlock_bh(&chan->desc_lock);
-+	spin_unlock_bh(&ioat_chan->desc_lock);
- 
--	chan->last_completion = phys_complete;
-+	ioat_chan->last_completion = phys_complete;
- 	if (cookie != 0)
--		chan->completed_cookie = cookie;
-+		ioat_chan->completed_cookie = cookie;
- 
--	spin_unlock(&chan->cleanup_lock);
-+	spin_unlock(&ioat_chan->cleanup_lock);
+ 	return 0;
  }
- 
- static void ioat_dma_dependency_added(struct dma_chan *chan)
-@@ -466,11 +477,10 @@ static void ioat_dma_dependency_added(st
-  * @done: if not %NULL, updated with last completed transaction
-  * @used: if not %NULL, updated with last used transaction
+=20
+-
+ /* s3c2410fb_activate_var
+  *
+  * activate (set) the controller from the given framebuffer
+  * information
+-*/
+-
++ */
+ static void s3c2410fb_activate_var(struct s3c2410fb_info *fbi,
+ 				   struct fb_var_screeninfo *var)
+ {
+@@ -319,7 +309,8 @@ static void s3c2410fb_activate_var(struc
+=20
+ 		default:
+ 			/* invalid pixel depth */
+-			dev_err(fbi->dev, "invalid bpp %d\n", var->bits_per_pixel);
++			dev_err(fbi->dev, "invalid bpp %d\n",
++				var->bits_per_pixel);
+ 		}
+ 	else
+ 		switch (var->bits_per_pixel) {
+@@ -341,19 +332,18 @@ static void s3c2410fb_activate_var(struc
+=20
+ 		default:
+ 			/* invalid pixel depth */
+-			dev_err(fbi->dev, "invalid bpp %d\n", var->bits_per_pixel);
++			dev_err(fbi->dev, "invalid bpp %d\n",
++				var->bits_per_pixel);
+ 		}
+=20
+ 	/* check to see if we need to update sync/borders */
+=20
+ 	if (!fbi->mach_info->fixed_syncs) {
+ 		dprintk("setting vert: up=3D%d, low=3D%d, sync=3D%d\n",
+-			var->upper_margin, var->lower_margin,
+-			var->vsync_len);
++			var->upper_margin, var->lower_margin, var->vsync_len);
+=20
+ 		dprintk("setting horz: lft=3D%d, rt=3D%d, sync=3D%d\n",
+-			var->left_margin, var->right_margin,
+-			var->hsync_len);
++			var->left_margin, var->right_margin, var->hsync_len);
+=20
+ 		fbi->regs.lcdcon2 =3D
+ 			S3C2410_LCDCON2_VBPD(var->upper_margin - 1) |
+@@ -373,27 +363,24 @@ static void s3c2410fb_activate_var(struc
+ 	fbi->regs.lcdcon2 &=3D ~S3C2410_LCDCON2_LINEVAL(0x3ff);
+ 	fbi->regs.lcdcon2 |=3D  S3C2410_LCDCON2_LINEVAL(var->yres - 1);
+=20
+-	switch(fbi->mach_info->type) {
+-		case S3C2410_LCDCON1_DSCAN4:
+-		case S3C2410_LCDCON1_STN8:
+-			hs =3D var->xres / 8;
+-			break;
+-		case S3C2410_LCDCON1_STN4:
+-			hs =3D var->xres / 4;
+-			break;
+-		default:
+-		case S3C2410_LCDCON1_TFT:
+-			hs =3D var->xres;
+-			break;
+-
++	switch (fbi->mach_info->type) {
++	case S3C2410_LCDCON1_DSCAN4:
++	case S3C2410_LCDCON1_STN8:
++		hs =3D var->xres / 8;
++		break;
++	case S3C2410_LCDCON1_STN4:
++		hs =3D var->xres / 4;
++		break;
++	default:
++	case S3C2410_LCDCON1_TFT:
++		hs =3D var->xres;
++		break;
+ 	}
+=20
+ 	/* Special cases : STN color displays */
+-	if ( ((fbi->regs.lcdcon1 & S3C2410_LCDCON1_MODEMASK) =3D=3D S3C2410_L=
+CDCON1_STN8BPP) \
+-	  || ((fbi->regs.lcdcon1 & S3C2410_LCDCON1_MODEMASK) =3D=3D S3C2410_L=
+CDCON1_STN12BPP) ) {
++	if (((fbi->regs.lcdcon1 & S3C2410_LCDCON1_MODEMASK) =3D=3D S3C2410_LC=
+DCON1_STN8BPP) ||
++	    ((fbi->regs.lcdcon1 & S3C2410_LCDCON1_MODEMASK) =3D=3D S3C2410_LC=
+DCON1_STN12BPP))
+ 		hs =3D hs * 3;
+-	}
+-
+=20
+ 	fbi->regs.lcdcon3 &=3D ~S3C2410_LCDCON3_HOZVAL(0x7ff);
+ 	fbi->regs.lcdcon3 |=3D  S3C2410_LCDCON3_HOZVAL(hs - 1);
+@@ -402,11 +389,10 @@ static void s3c2410fb_activate_var(struc
+ 		int clkdiv =3D s3c2410fb_calc_pixclk(fbi, var->pixclock);
+=20
+ 		if (fbi->mach_info->type =3D=3D S3C2410_LCDCON1_TFT) {
+-			clkdiv =3D (clkdiv / 2) -1;
++			clkdiv =3D (clkdiv / 2) - 1;
+ 			if (clkdiv < 0)
+ 				clkdiv =3D 0;
+-		}
+-		else {
++		} else {
+ 			clkdiv =3D (clkdiv / 2);
+ 			if (clkdiv < 2)
+ 				clkdiv =3D 2;
+@@ -437,9 +423,8 @@ static void s3c2410fb_activate_var(struc
+ 	writel(fbi->regs.lcdcon1, S3C2410_LCDCON1);
+ }
+=20
+-
+ /*
+- *      s3c2410fb_set_par - Optional function. Alters the hardware sta=
+te.
++ *      s3c2410fb_set_par - Alters the hardware state.
+  *      @info: frame buffer structure that represents a single frame b=
+uffer
+  *
+  */
+@@ -448,20 +433,19 @@ static int s3c2410fb_set_par(struct fb_i
+ 	struct s3c2410fb_info *fbi =3D info->par;
+ 	struct fb_var_screeninfo *var =3D &info->var;
+=20
+-	switch (var->bits_per_pixel)
+-	{
+-		case 16:
+-			fbi->fb->fix.visual =3D FB_VISUAL_TRUECOLOR;
+-			break;
+-		case 1:
+-			 fbi->fb->fix.visual =3D FB_VISUAL_MONO01;
+-			 break;
+-		default:
+-			 fbi->fb->fix.visual =3D FB_VISUAL_PSEUDOCOLOR;
+-			 break;
++	switch (var->bits_per_pixel) {
++	case 16:
++		info->fix.visual =3D FB_VISUAL_TRUECOLOR;
++		break;
++	case 1:
++		info->fix.visual =3D FB_VISUAL_MONO01;
++		break;
++	default:
++		info->fix.visual =3D FB_VISUAL_PSEUDOCOLOR;
++		break;
+ 	}
+=20
+-	fbi->fb->fix.line_length     =3D (var->width*var->bits_per_pixel)/8;
++	info->fix.line_length =3D (var->width * var->bits_per_pixel) / 8;
+=20
+ 	/* activate this new configuration */
+=20
+@@ -493,7 +477,8 @@ static void schedule_palette_update(stru
+ }
+=20
+ /* from pxafb.c */
+-static inline unsigned int chan_to_field(unsigned int chan, struct fb_=
+bitfield *bf)
++static inline unsigned int chan_to_field(unsigned int chan,
++					 struct fb_bitfield *bf)
+ {
+ 	chan &=3D 0xffff;
+ 	chan >>=3D 16 - bf->length;
+@@ -507,18 +492,19 @@ static int s3c2410fb_setcolreg(unsigned=20
+ 	struct s3c2410fb_info *fbi =3D info->par;
+ 	unsigned int val;
+=20
+-	/* dprintk("setcol: regno=3D%d, rgb=3D%d,%d,%d\n", regno, red, green,=
+ blue); */
++	/* dprintk("setcol: regno=3D%d, rgb=3D%d,%d,%d\n",
++		   regno, red, green, blue); */
+=20
+-	switch (fbi->fb->fix.visual) {
++	switch (info->fix.visual) {
+ 	case FB_VISUAL_TRUECOLOR:
+-		/* true-colour, use pseuo-palette */
++		/* true-colour, use pseudo-palette */
+=20
+ 		if (regno < 16) {
+-			u32 *pal =3D fbi->fb->pseudo_palette;
++			u32 *pal =3D info->pseudo_palette;
+=20
+-			val  =3D chan_to_field(red,   &fbi->fb->var.red);
+-			val |=3D chan_to_field(green, &fbi->fb->var.green);
+-			val |=3D chan_to_field(blue,  &fbi->fb->var.blue);
++			val  =3D chan_to_field(red,   &info->var.red);
++			val |=3D chan_to_field(green, &info->var.green);
++			val |=3D chan_to_field(blue,  &info->var.blue);
+=20
+ 			pal[regno] =3D val;
+ 		}
+@@ -539,14 +525,13 @@ static int s3c2410fb_setcolreg(unsigned=20
+ 		break;
+=20
+ 	default:
+-		return 1;   /* unknown type */
++		return 1;	/* unknown type */
+ 	}
+=20
+ 	return 0;
+ }
+=20
+-
+-/**
++/*
+  *      s3c2410fb_blank
+  *	@blank_mode: the blank mode we want.
+  *	@info: frame buffer structure that represents a single frame buffer
+@@ -579,12 +564,14 @@ static int s3c2410fb_blank(int blank_mod
+ 	return 0;
+ }
+=20
+-static int s3c2410fb_debug_show(struct device *dev, struct device_attr=
+ibute *attr, char *buf)
++static int s3c2410fb_debug_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
+ {
+ 	return snprintf(buf, PAGE_SIZE, "%s\n", debug ? "on" : "off");
+ }
+-static int s3c2410fb_debug_store(struct device *dev, struct device_att=
+ribute *attr,
+-					   const char *buf, size_t len)
++static int s3c2410fb_debug_store(struct device *dev,
++				 struct device_attribute *attr,
++				 const char *buf, size_t len)
+ {
+ 	if (mach_info =3D=3D NULL)
+ 		return -EINVAL;
+@@ -607,10 +594,7 @@ static int s3c2410fb_debug_store(struct=20
+ 	return len;
+ }
+=20
+-
+-static DEVICE_ATTR(debug, 0666,
+-		   s3c2410fb_debug_show,
+-		   s3c2410fb_debug_store);
++static DEVICE_ATTR(debug, 0666, s3c2410fb_debug_show, s3c2410fb_debug_=
+store);
+=20
+ static struct fb_ops s3c2410fb_ops =3D {
+ 	.owner		=3D THIS_MODULE,
+@@ -623,7 +607,6 @@ static struct fb_ops s3c2410fb_ops =3D {
+ 	.fb_imageblit	=3D cfb_imageblit,
+ };
+=20
+-
+ /*
+  * s3c2410fb_map_video_memory():
+  *	Allocates the DRAM memory for the frame buffer.  This buffer is
+@@ -661,7 +644,8 @@ static int __init s3c2410fb_map_video_me
+=20
+ static inline void s3c2410fb_unmap_video_memory(struct s3c2410fb_info =
+*fbi)
+ {
+-	dma_free_writecombine(fbi->dev,fbi->map_size,fbi->map_cpu, fbi->map_d=
+ma);
++	dma_free_writecombine(fbi->dev, fbi->map_size, fbi->map_cpu,
++			      fbi->map_dma);
+ }
+=20
+ static inline void modify_gpio(void __iomem *reg,
+@@ -673,11 +657,9 @@ static inline void modify_gpio(void __io
+ 	writel(tmp | set, reg);
+ }
+=20
+-
+ /*
+  * s3c2410fb_init_registers - Initialise all LCD-related registers
   */
 -
- static enum dma_status ioat_dma_is_complete(struct dma_chan *chan,
--                                            dma_cookie_t cookie,
--                                            dma_cookie_t *done,
--                                            dma_cookie_t *used)
-+					    dma_cookie_t cookie,
-+					    dma_cookie_t *done,
-+					    dma_cookie_t *used)
+ static int s3c2410fb_init_registers(struct s3c2410fb_info *fbi)
  {
- 	struct ioat_dma_chan *ioat_chan = to_ioat_chan(chan);
- 	dma_cookie_t last_used;
-@@ -481,7 +491,7 @@ static enum dma_status ioat_dma_is_compl
- 	last_complete = ioat_chan->completed_cookie;
- 
- 	if (done)
--		*done= last_complete;
-+		*done = last_complete;
- 	if (used)
- 		*used = last_used;
- 
-@@ -495,7 +505,7 @@ static enum dma_status ioat_dma_is_compl
- 	last_complete = ioat_chan->completed_cookie;
- 
- 	if (done)
--		*done= last_complete;
-+		*done = last_complete;
- 	if (used)
- 		*used = last_used;
- 
-@@ -538,13 +548,13 @@ static irqreturn_t ioat_do_interrupt(int
- 
- 	attnstatus = readl(instance->reg_base + IOAT_ATTNSTATUS_OFFSET);
- 
--	printk(KERN_ERR "ioatdma error: interrupt! status %lx\n", attnstatus);
-+	printk(KERN_ERR "ioatdma: interrupt! status %lx\n", attnstatus);
- 
- 	writeb(intrctrl, instance->reg_base + IOAT_INTRCTRL_OFFSET);
+ 	unsigned long flags;
+@@ -702,7 +684,7 @@ static int s3c2410fb_init_registers(stru
+ 	writel(fbi->regs.lcdcon4, regs + S3C2410_LCDCON4);
+ 	writel(fbi->regs.lcdcon5, regs + S3C2410_LCDCON5);
+=20
+- 	s3c2410fb_set_lcdaddr(fbi);
++	s3c2410fb_set_lcdaddr(fbi);
+=20
+ 	dprintk("LPCSEL    =3D 0x%08lx\n", mach_info->lpcsel);
+ 	writel(mach_info->lpcsel, regs + S3C2410_LPCSEL);
+@@ -721,13 +703,13 @@ static int s3c2410fb_init_registers(stru
+ static void s3c2410fb_write_palette(struct s3c2410fb_info *fbi)
+ {
+ 	unsigned int i;
+-	unsigned long ent;
+ 	void __iomem *regs =3D fbi->io;
+=20
+ 	fbi->palette_ready =3D 0;
+=20
+ 	for (i =3D 0; i < 256; i++) {
+-		if ((ent =3D fbi->palette_buffer[i]) =3D=3D PALETTE_BUFF_CLEAR)
++		unsigned long ent =3D fbi->palette_buffer[i];
++		if (ent =3D=3D PALETTE_BUFF_CLEAR)
+ 			continue;
+=20
+ 		writel(ent, regs + S3C2410_TFTPAL(i));
+@@ -761,12 +743,12 @@ static irqreturn_t s3c2410fb_irq(int irq
  	return IRQ_HANDLED;
  }
- 
--static void ioat_start_null_desc(struct ioat_dma_chan *ioat_chan)
-+static void ioat_dma_start_null_desc(struct ioat_dma_chan *ioat_chan)
+=20
+-static char driver_name[]=3D"s3c2410fb";
++static char driver_name[] =3D "s3c2410fb";
+=20
+ static int __init s3c2410fb_probe(struct platform_device *pdev)
  {
- 	struct ioat_desc_sw *desc;
- 
-@@ -608,9 +618,11 @@ static int ioat_self_test(struct ioat_de
- 
- 	/* Start copy, using first DMA channel */
- 	dma_chan = container_of(device->common.channels.next,
--	                        struct dma_chan,
--	                        device_node);
-+				struct dma_chan,
-+				device_node);
- 	if (ioat_dma_alloc_chan_resources(dma_chan) < 1) {
-+		dev_err(&device->pdev->dev,
-+			"selftest cannot allocate chan resource\n");
- 		err = -ENODEV;
- 		goto out;
+ 	struct s3c2410fb_info *info;
+-	struct fb_info	   *fbinfo;
++	struct fb_info *fbinfo;
+ 	struct s3c2410fb_hw *mregs;
+ 	struct resource *res;
+ 	int ret;
+@@ -777,7 +759,8 @@ static int __init s3c2410fb_probe(struct
+=20
+ 	mach_info =3D pdev->dev.platform_data;
+ 	if (mach_info =3D=3D NULL) {
+-		dev_err(&pdev->dev,"no platform data for lcd, cannot attach\n");
++		dev_err(&pdev->dev,
++			"no platform data for lcd, cannot attach\n");
+ 		return -EINVAL;
  	}
-@@ -628,12 +640,14 @@ static int ioat_self_test(struct ioat_de
- 	msleep(1);
- 
- 	if (ioat_dma_is_complete(dma_chan, cookie, NULL, NULL) != DMA_SUCCESS) {
--		printk(KERN_ERR "ioatdma: Self-test copy timed out, disabling\n");
-+		dev_err(&device->pdev->dev,
-+			"ioatdma: Self-test copy timed out, disabling\n");
- 		err = -ENODEV;
- 		goto free_resources;
+=20
+@@ -790,9 +773,8 @@ static int __init s3c2410fb_probe(struct
  	}
- 	if (memcmp(src, dest, IOAT_TEST_SIZE)) {
--		printk(KERN_ERR "ioatdma: Self-test copy failed compare, disabling\n");
-+		dev_err(&device->pdev->dev,
-+			"ioatdma: Self-test copy failed compare, disabling\n");
- 		err = -ENODEV;
- 		goto free_resources;
+=20
+ 	fbinfo =3D framebuffer_alloc(sizeof(struct s3c2410fb_info), &pdev->de=
+v);
+-	if (!fbinfo) {
++	if (!fbinfo)
+ 		return -ENOMEM;
+-	}
+=20
+ 	info =3D fbinfo->par;
+ 	info->fb =3D fbinfo;
+@@ -800,12 +782,12 @@ static int __init s3c2410fb_probe(struct
+=20
+ 	res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (res =3D=3D NULL) {
+-		dev_err(&pdev->dev, "failed to get memory registersn");
++		dev_err(&pdev->dev, "failed to get memory registers\n");
+ 		ret =3D -ENXIO;
+ 		goto dealloc_fb;
  	}
-@@ -647,7 +661,7 @@ out:
- }
- 
- static int __devinit ioat_probe(struct pci_dev *pdev,
--                                const struct pci_device_id *ent)
-+				const struct pci_device_id *ent)
+=20
+-	size =3D (res->end - res->start)+1;
++	size =3D (res->end - res->start) + 1;
+ 	info->mem =3D request_mem_region(res->start, size, pdev->name);
+ 	if (info->mem =3D=3D NULL) {
+ 		dev_err(&pdev->dev, "failed to get memory region\n");
+@@ -859,13 +841,19 @@ static int __init s3c2410fb_probe(struct
+ 	fbinfo->var.yres_virtual    =3D mach_info->yres.defval;
+ 	fbinfo->var.bits_per_pixel  =3D mach_info->bpp.defval;
+=20
+-	fbinfo->var.upper_margin    =3D S3C2410_LCDCON2_GET_VBPD(mregs->lcdco=
+n2) + 1;
+-	fbinfo->var.lower_margin    =3D S3C2410_LCDCON2_GET_VFPD(mregs->lcdco=
+n2) + 1;
+-	fbinfo->var.vsync_len	    =3D S3C2410_LCDCON2_GET_VSPW(mregs->lcdcon2=
+) + 1;
+-
+-	fbinfo->var.left_margin	    =3D S3C2410_LCDCON3_GET_HFPD(mregs->lcdco=
+n3) + 1;
+-	fbinfo->var.right_margin    =3D S3C2410_LCDCON3_GET_HBPD(mregs->lcdco=
+n3) + 1;
+-	fbinfo->var.hsync_len	    =3D S3C2410_LCDCON4_GET_HSPW(mregs->lcdcon4=
+) + 1;
++	fbinfo->var.upper_margin    =3D
++				S3C2410_LCDCON2_GET_VBPD(mregs->lcdcon2) + 1;
++	fbinfo->var.lower_margin    =3D
++				S3C2410_LCDCON2_GET_VFPD(mregs->lcdcon2) + 1;
++	fbinfo->var.vsync_len	    =3D
++				S3C2410_LCDCON2_GET_VSPW(mregs->lcdcon2) + 1;
++
++	fbinfo->var.left_margin	    =3D
++				S3C2410_LCDCON3_GET_HFPD(mregs->lcdcon3) + 1;
++	fbinfo->var.right_margin    =3D
++				S3C2410_LCDCON3_GET_HBPD(mregs->lcdcon3) + 1;
++	fbinfo->var.hsync_len	    =3D
++				S3C2410_LCDCON4_GET_HSPW(mregs->lcdcon4) + 1;
+=20
+ 	fbinfo->var.red.offset      =3D 11;
+ 	fbinfo->var.green.offset    =3D 5;
+@@ -875,7 +863,7 @@ static int __init s3c2410fb_probe(struct
+ 	fbinfo->var.green.length    =3D 6;
+ 	fbinfo->var.blue.length     =3D 5;
+ 	fbinfo->var.transp.length   =3D 0;
+-	fbinfo->fix.smem_len        =3D	mach_info->xres.max *
++	fbinfo->fix.smem_len	    =3D	mach_info->xres.max *
+ 					mach_info->yres.max *
+ 					mach_info->bpp.max / 8;
+=20
+@@ -904,20 +892,21 @@ static int __init s3c2410fb_probe(struct
+ 	/* Initialize video memory */
+ 	ret =3D s3c2410fb_map_video_memory(info);
+ 	if (ret) {
+-		printk( KERN_ERR "Failed to allocate video RAM: %d\n", ret);
++		printk(KERN_ERR "Failed to allocate video RAM: %d\n", ret);
+ 		ret =3D -ENOMEM;
+ 		goto release_clock;
+ 	}
+=20
+ 	dprintk("got video memory\n");
+=20
+-	ret =3D s3c2410fb_init_registers(info);
++	s3c2410fb_init_registers(info);
+=20
+-	ret =3D s3c2410fb_check_var(&fbinfo->var, fbinfo);
++	s3c2410fb_check_var(&fbinfo->var, fbinfo);
+=20
+ 	ret =3D register_framebuffer(fbinfo);
+ 	if (ret < 0) {
+-		printk(KERN_ERR "Failed to register framebuffer device: %d\n", ret);
++		printk(KERN_ERR "Failed to register framebuffer device: %d\n",
++			ret);
+ 		goto free_video_memory;
+ 	}
+=20
+@@ -935,7 +924,7 @@ release_clock:
+ 	clk_disable(info->clk);
+ 	clk_put(info->clk);
+ release_irq:
+-	free_irq(irq,info);
++	free_irq(irq, info);
+ release_regs:
+ 	iounmap(info->io);
+ release_mem:
+@@ -949,8 +938,7 @@ dealloc_fb:
+ /* s3c2410fb_stop_lcd
+  *
+  * shutdown the lcd controller
+-*/
+-
++ */
+ static void s3c2410fb_stop_lcd(struct s3c2410fb_info *fbi)
  {
- 	int err;
- 	unsigned long mmio_start, mmio_len;
-@@ -691,7 +705,9 @@ static int __devinit ioat_probe(struct p
- 		goto err_dma_pool;
+ 	unsigned long flags;
+@@ -968,7 +956,7 @@ static void s3c2410fb_stop_lcd(struct s3
+  */
+ static int s3c2410fb_remove(struct platform_device *pdev)
+ {
+-	struct fb_info	   *fbinfo =3D platform_get_drvdata(pdev);
++	struct fb_info *fbinfo =3D platform_get_drvdata(pdev);
+ 	struct s3c2410fb_info *info =3D fbinfo->par;
+ 	int irq;
+=20
+@@ -977,14 +965,14 @@ static int s3c2410fb_remove(struct platf
+=20
+ 	s3c2410fb_unmap_video_memory(info);
+=20
+- 	if (info->clk) {
+- 		clk_disable(info->clk);
+- 		clk_put(info->clk);
+- 		info->clk =3D NULL;
++	if (info->clk) {
++		clk_disable(info->clk);
++		clk_put(info->clk);
++		info->clk =3D NULL;
  	}
- 
--	device->completion_pool = pci_pool_create("completion_pool", pdev, sizeof(u64), SMP_CACHE_BYTES, SMP_CACHE_BYTES);
-+	device->completion_pool = pci_pool_create("completion_pool", pdev,
-+						  sizeof(u64), SMP_CACHE_BYTES,
-+						  SMP_CACHE_BYTES);
- 	if (!device->completion_pool) {
- 		err = -ENOMEM;
- 		goto err_completion_pool;
-@@ -713,22 +729,26 @@ static int __devinit ioat_probe(struct p
- 
- 	device->reg_base = reg_base;
- 
--	writeb(IOAT_INTRCTRL_MASTER_INT_EN, device->reg_base + IOAT_INTRCTRL_OFFSET);
-+	writeb(IOAT_INTRCTRL_MASTER_INT_EN,
-+	       device->reg_base + IOAT_INTRCTRL_OFFSET);
- 	pci_set_master(pdev);
- 
- 	INIT_LIST_HEAD(&device->common.channels);
--	enumerate_dma_channels(device);
-+	ioat_dma_enumerate_channels(device);
- 
- 	dma_cap_set(DMA_MEMCPY, device->common.cap_mask);
--	device->common.device_alloc_chan_resources = ioat_dma_alloc_chan_resources;
--	device->common.device_free_chan_resources = ioat_dma_free_chan_resources;
-+	device->common.device_alloc_chan_resources =
-+						ioat_dma_alloc_chan_resources;
-+	device->common.device_free_chan_resources =
-+						ioat_dma_free_chan_resources;
- 	device->common.device_prep_dma_memcpy = ioat_dma_prep_memcpy;
- 	device->common.device_is_tx_complete = ioat_dma_is_complete;
- 	device->common.device_issue_pending = ioat_dma_memcpy_issue_pending;
- 	device->common.device_dependency_added = ioat_dma_dependency_added;
- 	device->common.dev = &pdev->dev;
--	printk(KERN_INFO "Intel(R) I/OAT DMA Engine found, %d channels\n",
--		device->common.chancnt);
-+	printk(KERN_INFO
-+		 "ioatdma: Intel(R) I/OAT DMA Engine found, %d channels\n",
-+		 device->common.chancnt);
- 
- 	err = ioat_self_test(device);
- 	if (err)
-@@ -754,7 +774,8 @@ err_set_dma_mask:
- 	pci_disable_device(pdev);
- err_enable_device:
- 
--	printk(KERN_ERR "Intel(R) I/OAT DMA Engine initialization failed\n");
-+	printk(KERN_INFO
-+		"ioatdma: Intel(R) I/OAT DMA Engine initialization failed\n");
- 
- 	return err;
+=20
+ 	irq =3D platform_get_irq(pdev, 0);
+-	free_irq(irq,info);
++	free_irq(irq, info);
+=20
+ 	release_resource(info->mem);
+ 	kfree(info->mem);
+@@ -997,7 +985,6 @@ static int s3c2410fb_remove(struct platf
+ #ifdef CONFIG_PM
+=20
+ /* suspend and resume support for the lcd controller */
+-
+ static int s3c2410fb_suspend(struct platform_device *dev, pm_message_t=
+ state)
+ {
+ 	struct fb_info	   *fbinfo =3D platform_get_drvdata(dev);
+@@ -1054,10 +1041,10 @@ static void __exit s3c2410fb_cleanup(voi
+ 	platform_driver_unregister(&s3c2410fb_driver);
  }
-@@ -786,7 +807,8 @@ static void __devexit ioat_remove(struct
- 	iounmap(device->reg_base);
- 	pci_release_regions(pdev);
- 	pci_disable_device(pdev);
--	list_for_each_entry_safe(chan, _chan, &device->common.channels, device_node) {
-+	list_for_each_entry_safe(chan, _chan,
-+				 &device->common.channels, device_node) {
- 		ioat_chan = to_ioat_chan(chan);
- 		list_del(&chan->device_node);
- 		kfree(ioat_chan);
+=20
+-
+ module_init(s3c2410fb_init);
+ module_exit(s3c2410fb_cleanup);
+=20
+-MODULE_AUTHOR("Arnaud Patard <arnaud.patard@rtp-net.org>, Ben Dooks <b=
+en-linux@fluff.org>");
++MODULE_AUTHOR("Arnaud Patard <arnaud.patard@rtp-net.org>, "
++	      "Ben Dooks <ben-linux@fluff.org>");
+ MODULE_DESCRIPTION("Framebuffer driver for the s3c2410");
+ MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from shannon.nelson@intel.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-remove-unsafe-from-module-struct.patch
+git-alsa.patch
+cyber2000fb-checkpatch-fixes.patch
