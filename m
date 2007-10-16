@@ -1,444 +1,512 @@
 From: akpm@linux-foundation.org
-Subject: - uml-fold-mmu_context_skas-into-mm_context.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:37:46 -0700
-Message-ID: <200710162037.l9GKbkTl015314@imap1.linux-foundation.org>
+Subject: - cirrusfb-remove-fields-from-cirrusfb_info.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:43:53 -0700
+Message-ID: <200710162043.l9GKhrw3016091@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36552 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45845 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965436AbXJPVSE (ORCPT
+	by vger.kernel.org with ESMTP id S965767AbXJPVSI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:18:04 -0400
+	Tue, 16 Oct 2007 17:18:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: fold mmu_context_skas into mm_context
+     cirrusfb: remove fields from cirrusfb_info
 has been removed from the -mm tree.  Its filename was
-     uml-fold-mmu_context_skas-into-mm_context.patch
+     cirrusfb-remove-fields-from-cirrusfb_info.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: fold mmu_context_skas into mm_context
-From: Jeff Dike <jdike@addtoit.com>
+Subject: cirrusfb: remove fields from cirrusfb_info
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-This patch folds mmu_context_skas into struct mm_context, changing all users
-of these structures as needed.
+This patch removes unused or redundant fields from cirrusfb_info structure.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/skas/mmu-skas.h |   23 ----------------
- arch/um/include/tlb.h           |    2 -
- arch/um/include/um_mmu.h        |   18 ++++++++++--
- arch/um/kernel/exec.c           |    4 +-
- arch/um/kernel/reboot.c         |    2 -
- arch/um/kernel/skas/mmu.c       |   12 ++++----
- arch/um/kernel/skas/process.c   |    2 -
- arch/um/kernel/tlb.c            |   43 ++++++++++++++----------------
- arch/um/sys-i386/ldt.c          |   17 +++++------
- arch/um/sys-x86_64/syscalls.c   |    2 -
- include/asm-um/ldt.h            |    4 --
- include/asm-um/mmu_context.h    |    4 +-
- 12 files changed, 58 insertions(+), 75 deletions(-)
+ drivers/video/cirrusfb.c |  149 ++++++++++++++++---------------------
+ 1 file changed, 68 insertions(+), 81 deletions(-)
 
-diff -puN arch/um/include/skas/mmu-skas.h~uml-fold-mmu_context_skas-into-mm_context /dev/null
---- a/arch/um/include/skas/mmu-skas.h
-+++ /dev/null
-@@ -1,23 +0,0 @@
--/*
-- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
-- * Licensed under the GPL
-- */
--
--#ifndef __SKAS_MMU_H
--#define __SKAS_MMU_H
--
--#include "mm_id.h"
--#include "asm/ldt.h"
--
--struct mmu_context_skas {
--	struct mm_id id;
--	unsigned long last_page_table;
--#ifdef CONFIG_3_LEVEL_PGTABLES
--	unsigned long last_pmd;
--#endif
--	uml_ldt_t ldt;
--};
--
--extern void __switch_mm(struct mm_id * mm_idp);
--
--#endif
-diff -puN arch/um/include/tlb.h~uml-fold-mmu_context_skas-into-mm_context arch/um/include/tlb.h
---- a/arch/um/include/tlb.h~uml-fold-mmu_context_skas-into-mm_context
-+++ a/arch/um/include/tlb.h
-@@ -33,7 +33,7 @@ struct host_vm_op {
- extern void force_flush_all(void);
- extern void fix_range_common(struct mm_struct *mm, unsigned long start_addr,
-                              unsigned long end_addr, int force,
--			     int (*do_ops)(union mm_context *,
-+			     int (*do_ops)(struct mm_context *,
- 					   struct host_vm_op *, int, int,
- 					   void **));
- extern int flush_tlb_kernel_range_common(unsigned long start,
-diff -puN arch/um/include/um_mmu.h~uml-fold-mmu_context_skas-into-mm_context arch/um/include/um_mmu.h
---- a/arch/um/include/um_mmu.h~uml-fold-mmu_context_skas-into-mm_context
-+++ a/arch/um/include/um_mmu.h
-@@ -7,10 +7,22 @@
- #define __ARCH_UM_MMU_H
+diff -puN drivers/video/cirrusfb.c~cirrusfb-remove-fields-from-cirrusfb_info drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-remove-fields-from-cirrusfb_info
++++ a/drivers/video/cirrusfb.c
+@@ -369,23 +369,14 @@ enum cirrusfb_dbg_reg_class {
  
- #include "uml-config.h"
--#include "mmu-skas.h"
-+#include "mm_id.h"
-+#include "asm/ldt.h"
+ /* info about board */
+ struct cirrusfb_info {
+-	struct fb_info *info;
+-
+-	u8 __iomem *fbmem;
+ 	u8 __iomem *regbase;
+-	u8 __iomem *mem;
+-	unsigned long size;
+ 	enum cirrus_board btype;
+ 	unsigned char SFR;	/* Shadow of special function register */
  
--typedef union mm_context {
--	struct mmu_context_skas skas;
-+typedef struct mm_context {
-+	struct mm_id id;
-+	unsigned long last_page_table;
-+#ifdef CONFIG_3_LEVEL_PGTABLES
-+	unsigned long last_pmd;
-+#endif
-+	struct uml_ldt ldt;
- } mm_context_t;
+-	unsigned long fbmem_phys;
+-	unsigned long fbregs_phys;
+-
+ 	struct cirrusfb_regs currentmode;
+ 	int blank_mode;
  
-+extern void __switch_mm(struct mm_id * mm_idp);
-+
-+/* Avoid tangled inclusion with asm/ldt.h */
-+extern long init_new_ldt(struct mm_context *to_mm, struct mm_context *from_mm);
-+extern void free_ldt(struct mm_context *mm);
-+
+ 	u32	pseudo_palette[16];
+-	struct { u8 red, green, blue, pad; } palette[256];
+ 
+ #ifdef CONFIG_ZORRO
+ 	struct zorro_dev *zdev;
+@@ -393,7 +384,7 @@ struct cirrusfb_info {
+ #ifdef CONFIG_PCI
+ 	struct pci_dev *pdev;
  #endif
-diff -puN arch/um/kernel/exec.c~uml-fold-mmu_context_skas-into-mm_context arch/um/kernel/exec.c
---- a/arch/um/kernel/exec.c~uml-fold-mmu_context_skas-into-mm_context
-+++ a/arch/um/kernel/exec.c
-@@ -23,14 +23,14 @@ void flush_thread(void)
+-	void (*unmap)(struct cirrusfb_info *cinfo);
++	void (*unmap)(struct fb_info *info);
+ };
  
- 	arch_flush_thread(&current->thread.arch);
- 
--	ret = unmap(&current->mm->context.skas.id, 0, end, 1, &data);
-+	ret = unmap(&current->mm->context.id, 0, end, 1, &data);
- 	if (ret) {
- 		printk(KERN_ERR "flush_thread - clearing address space failed, "
- 		       "err = %d\n", ret);
- 		force_sig(SIGKILL, current);
+ static unsigned cirrusfb_def_mode = 1;
+@@ -536,7 +527,7 @@ static int cirrusfb_decode_var(const str
+ 				struct cirrusfb_regs *regs,
+ 				const struct fb_info *info);
+ /*--- Internal routines ----------------------------------------------------*/
+-static void init_vgachip(struct cirrusfb_info *cinfo);
++static void init_vgachip(struct fb_info *info);
+ static void switch_monitor(struct cirrusfb_info *cinfo, int on);
+ static void WGen(const struct cirrusfb_info *cinfo,
+ 		 int regnum, unsigned char val);
+@@ -645,7 +636,6 @@ static long cirrusfb_get_mclk(long freq,
+ static int cirrusfb_check_var(struct fb_var_screeninfo *var,
+ 			      struct fb_info *info)
+ {
+-	struct cirrusfb_info *cinfo = info->par;
+ 	int nom, den;		/* translyting from pixels->bytes */
+ 	int yres, i;
+ 	static struct { int xres, yres; } modes[] =
+@@ -690,7 +680,7 @@ static int cirrusfb_check_var(struct fb_
+ 		return -EINVAL;
  	}
  
--	__switch_mm(&current->mm->context.skas.id);
-+	__switch_mm(&current->mm->context.id);
- }
- 
- void start_thread(struct pt_regs *regs, unsigned long eip, unsigned long esp)
-diff -puN arch/um/kernel/reboot.c~uml-fold-mmu_context_skas-into-mm_context arch/um/kernel/reboot.c
---- a/arch/um/kernel/reboot.c~uml-fold-mmu_context_skas-into-mm_context
-+++ a/arch/um/kernel/reboot.c
-@@ -25,7 +25,7 @@ static void kill_off_processes(void)
- 			if(p->mm == NULL)
- 				continue;
- 
--			pid = p->mm->context.skas.id.u.pid;
-+			pid = p->mm->context.id.u.pid;
- 			os_kill_ptraced_process(pid, 1);
+-	if (var->xres * nom / den * var->yres > cinfo->size) {
++	if (var->xres * nom / den * var->yres > info->screen_size) {
+ 		printk(KERN_ERR "cirrusfb: mode %dx%dx%d rejected..."
+ 			"resolution too high to fit into video memory!\n",
+ 			var->xres, var->yres, var->bits_per_pixel);
+@@ -704,7 +694,8 @@ static int cirrusfb_check_var(struct fb_
+ 		printk(KERN_INFO
+ 		     "cirrusfb: using maximum available virtual resolution\n");
+ 		for (i = 0; modes[i].xres != -1; i++) {
+-			if (modes[i].xres * nom / den * modes[i].yres < cinfo->size / 2)
++			int size = modes[i].xres * nom / den * modes[i].yres;
++			if (size < info->screen_size / 2)
+ 				break;
  		}
- 	}
-diff -puN arch/um/kernel/skas/mmu.c~uml-fold-mmu_context_skas-into-mm_context arch/um/kernel/skas/mmu.c
---- a/arch/um/kernel/skas/mmu.c~uml-fold-mmu_context_skas-into-mm_context
-+++ a/arch/um/kernel/skas/mmu.c
-@@ -47,9 +47,9 @@ static int init_stub_pte(struct mm_struc
- 	 * destroy_context_skas.
- 	 */
+ 		if (modes[i].xres == -1) {
+@@ -1018,7 +1009,7 @@ static int cirrusfb_set_par_foo(struct f
+ 	       var->xres, var->yres, var->bits_per_pixel);
+ 	DPRINTK("pixclock: %d\n", var->pixclock);
  
--	mm->context.skas.last_page_table = pmd_page_vaddr(*pmd);
-+	mm->context.last_page_table = pmd_page_vaddr(*pmd);
- #ifdef CONFIG_3_LEVEL_PGTABLES
--	mm->context.skas.last_pmd = (unsigned long) __va(pud_val(*pud));
-+	mm->context.last_pmd = (unsigned long) __va(pud_val(*pud));
- #endif
+-	init_vgachip(cinfo);
++	init_vgachip(info);
  
- 	*pte = mk_pte(virt_to_page(kernel), __pgprot(_PAGE_PRESENT));
-@@ -66,8 +66,8 @@ static int init_stub_pte(struct mm_struc
- 
- int init_new_context(struct task_struct *task, struct mm_struct *mm)
- {
--	struct mmu_context_skas *from_mm = NULL;
--	struct mmu_context_skas *to_mm = &mm->context.skas;
-+ 	struct mm_context *from_mm = NULL;
-+	struct mm_context *to_mm = &mm->context;
- 	unsigned long stack = 0;
- 	int ret = -ENOMEM;
- 
-@@ -97,7 +97,7 @@ int init_new_context(struct task_struct 
- 
- 	to_mm->id.stack = stack;
- 	if (current->mm != NULL && current->mm != &init_mm)
--		from_mm = &current->mm->context.skas;
-+		from_mm = &current->mm->context;
- 
- 	if (proc_mm) {
- 		ret = new_mm(stack);
-@@ -133,7 +133,7 @@ int init_new_context(struct task_struct 
- 
- void destroy_context(struct mm_struct *mm)
- {
--	struct mmu_context_skas *mmu = &mm->context.skas;
-+	struct mm_context *mmu = &mm->context;
- 
- 	if (proc_mm)
- 		os_close_file(mmu->id.u.mm_fd);
-diff -puN arch/um/kernel/skas/process.c~uml-fold-mmu_context_skas-into-mm_context arch/um/kernel/skas/process.c
---- a/arch/um/kernel/skas/process.c~uml-fold-mmu_context_skas-into-mm_context
-+++ a/arch/um/kernel/skas/process.c
-@@ -65,5 +65,5 @@ unsigned long current_stub_stack(void)
- 	if (current->mm == NULL)
+ 	err = cirrusfb_decode_var(var, &regs, info);
+ 	if (err) {
+@@ -1686,10 +1677,6 @@ static int cirrusfb_setcolreg(unsigned r
  		return 0;
- 
--	return current->mm->context.skas.id.stack;
-+	return current->mm->context.id.stack;
- }
-diff -puN arch/um/kernel/tlb.c~uml-fold-mmu_context_skas-into-mm_context arch/um/kernel/tlb.c
---- a/arch/um/kernel/tlb.c~uml-fold-mmu_context_skas-into-mm_context
-+++ a/arch/um/kernel/tlb.c
-@@ -14,8 +14,8 @@
- 
- static int add_mmap(unsigned long virt, unsigned long phys, unsigned long len,
- 		    unsigned int prot, struct host_vm_op *ops, int *index,
--		    int last_filled, union mm_context *mmu, void **flush,
--		    int (*do_ops)(union mm_context *, struct host_vm_op *,
-+		    int last_filled, struct mm_context *mmu, void **flush,
-+		    int (*do_ops)(struct mm_context *, struct host_vm_op *,
- 				  int, int, void **))
- {
- 	__u64 offset;
-@@ -52,8 +52,8 @@ static int add_mmap(unsigned long virt, 
- 
- static int add_munmap(unsigned long addr, unsigned long len,
- 		      struct host_vm_op *ops, int *index, int last_filled,
--		      union mm_context *mmu, void **flush,
--		      int (*do_ops)(union mm_context *, struct host_vm_op *,
-+		      struct mm_context *mmu, void **flush,
-+		      int (*do_ops)(struct mm_context *, struct host_vm_op *,
- 				    int, int, void **))
- {
- 	struct host_vm_op *last;
-@@ -82,8 +82,8 @@ static int add_munmap(unsigned long addr
- 
- static int add_mprotect(unsigned long addr, unsigned long len,
- 			unsigned int prot, struct host_vm_op *ops, int *index,
--			int last_filled, union mm_context *mmu, void **flush,
--			int (*do_ops)(union mm_context *, struct host_vm_op *,
-+			int last_filled, struct mm_context *mmu, void **flush,
-+			int (*do_ops)(struct mm_context *, struct host_vm_op *,
- 				      int, int, void **))
- {
- 	struct host_vm_op *last;
-@@ -117,8 +117,8 @@ static int add_mprotect(unsigned long ad
- static inline int update_pte_range(pmd_t *pmd, unsigned long addr,
- 				   unsigned long end, struct host_vm_op *ops,
- 				   int last_op, int *op_index, int force,
--				   union mm_context *mmu, void **flush,
--				   int (*do_ops)(union mm_context *,
-+				   struct mm_context *mmu, void **flush,
-+				   int (*do_ops)(struct mm_context *,
- 						 struct host_vm_op *, int, int,
- 						 void **))
- {
-@@ -157,8 +157,8 @@ static inline int update_pte_range(pmd_t
- static inline int update_pmd_range(pud_t *pud, unsigned long addr,
- 				   unsigned long end, struct host_vm_op *ops,
- 				   int last_op, int *op_index, int force,
--				   union mm_context *mmu, void **flush,
--				   int (*do_ops)(union mm_context *,
-+				   struct mm_context *mmu, void **flush,
-+				   int (*do_ops)(struct mm_context *,
- 						 struct host_vm_op *, int, int,
- 						 void **))
- {
-@@ -187,8 +187,8 @@ static inline int update_pmd_range(pud_t
- static inline int update_pud_range(pgd_t *pgd, unsigned long addr,
- 				   unsigned long end, struct host_vm_op *ops,
- 				   int last_op, int *op_index, int force,
--				   union mm_context *mmu, void **flush,
--				   int (*do_ops)(union mm_context *,
-+				   struct mm_context *mmu, void **flush,
-+				   int (*do_ops)(struct mm_context *,
- 						 struct host_vm_op *, int, int,
- 						 void **))
- {
-@@ -216,11 +216,11 @@ static inline int update_pud_range(pgd_t
- 
- void fix_range_common(struct mm_struct *mm, unsigned long start_addr,
- 		      unsigned long end_addr, int force,
--		      int (*do_ops)(union mm_context *, struct host_vm_op *,
-+		      int (*do_ops)(struct mm_context *, struct host_vm_op *,
- 				    int, int, void **))
- {
- 	pgd_t *pgd;
--	union mm_context *mmu = &mm->context;
-+	struct mm_context *mmu = &mm->context;
- 	struct host_vm_op ops[1];
- 	unsigned long addr = start_addr, next;
- 	int ret = 0, last_op = ARRAY_SIZE(ops) - 1, op_index = -1;
-@@ -375,7 +375,7 @@ void flush_tlb_page(struct vm_area_struc
- 		w = 0;
  	}
  
--	mm_id = &mm->context.skas.id;
-+	mm_id = &mm->context.id;
- 	prot = ((r ? UM_PROT_READ : 0) | (w ? UM_PROT_WRITE : 0) |
- 		(x ? UM_PROT_EXEC : 0));
- 	if (pte_newpage(*pte)) {
-@@ -453,7 +453,7 @@ void __flush_tlb_one(unsigned long addr)
- 	flush_tlb_kernel_range_common(addr, addr + PAGE_SIZE);
- }
+-	cinfo->palette[regno].red = red;
+-	cinfo->palette[regno].green = green;
+-	cinfo->palette[regno].blue = blue;
+-
+ 	if (info->var.bits_per_pixel == 8)
+ 		WClut(cinfo, regno, red >> 10, green >> 10, blue >> 10);
  
--static int do_ops(union mm_context *mmu, struct host_vm_op *ops, int last,
-+static int do_ops(struct mm_context *mmu, struct host_vm_op *ops, int last,
- 		  int finished, void **flush)
+@@ -1848,8 +1835,9 @@ static int cirrusfb_blank(int blank_mode
+ /****************************************************************************/
+ /**** BEGIN Internal Routines ***********************************************/
+ 
+-static void init_vgachip(struct cirrusfb_info *cinfo)
++static void init_vgachip(struct fb_info *info)
  {
- 	struct host_vm_op *op;
-@@ -463,17 +463,16 @@ static int do_ops(union mm_context *mmu,
- 	op = &ops[i];
- 		switch(op->type) {
- 		case MMAP:
--			ret = map(&mmu->skas.id, op->u.mmap.addr,
--				  op->u.mmap.len, op->u.mmap.prot,
--				  op->u.mmap.fd, op->u.mmap.offset, finished,
--				  flush);
-+			ret = map(&mmu->id, op->u.mmap.addr, op->u.mmap.len,
-+				  op->u.mmap.prot, op->u.mmap.fd,
-+				  op->u.mmap.offset, finished, flush);
- 			break;
- 		case MUNMAP:
--			ret = unmap(&mmu->skas.id, op->u.munmap.addr,
-+			ret = unmap(&mmu->id, op->u.munmap.addr,
- 				    op->u.munmap.len, finished, flush);
- 			break;
- 		case MPROTECT:
--			ret = protect(&mmu->skas.id, op->u.mprotect.addr,
-+			ret = protect(&mmu->id, op->u.mprotect.addr,
- 				      op->u.mprotect.len, op->u.mprotect.prot,
- 				      finished, flush);
- 			break;
-diff -puN arch/um/sys-i386/ldt.c~uml-fold-mmu_context_skas-into-mm_context arch/um/sys-i386/ldt.c
---- a/arch/um/sys-i386/ldt.c~uml-fold-mmu_context_skas-into-mm_context
-+++ a/arch/um/sys-i386/ldt.c
-@@ -33,7 +33,7 @@ long write_ldt_entry(struct mm_id * mm_i
- 		 * Note: I'm unsure: should interrupts be disabled here?
- 		 */
- 		if (!current->active_mm || current->active_mm == &init_mm ||
--		    mm_idp != &current->active_mm->context.skas.id)
-+		    mm_idp != &current->active_mm->context.id)
- 			__switch_mm(mm_idp);
++	struct cirrusfb_info *cinfo = info->par;
+ 	const struct cirrusfb_board_info_rec *bi;
+ 
+ 	DPRINTK("ENTER\n");
+@@ -1903,7 +1891,8 @@ static void init_vgachip(struct cirrusfb
+ 		break;
  	}
  
-@@ -79,8 +79,8 @@ long write_ldt_entry(struct mm_id * mm_i
- 		 * PTRACE_LDT possible to implement.
- 		 */
- 		if (current->active_mm && current->active_mm != &init_mm &&
--		    mm_idp != &current->active_mm->context.skas.id)
--			__switch_mm(&current->active_mm->context.skas.id);
-+		    mm_idp != &current->active_mm->context.id)
-+			__switch_mm(&current->active_mm->context.id);
+-	assert(cinfo->size > 0); /* make sure RAM size set by this point */
++	/* make sure RAM size set by this point */
++	assert(info->screen_size > 0);
+ 
+ 	/* the P4 is not fully initialized here; I rely on it having been */
+ 	/* inited under AmigaOS already, which seems to work just fine    */
+@@ -2089,7 +2078,7 @@ static void init_vgachip(struct cirrusfb
+ 	WHDR(cinfo, 0);	/* Hidden DAC register: - */
+ 
+ 	printk(KERN_DEBUG "cirrusfb: This board has %ld bytes of DRAM memory\n",
+-		cinfo->size);
++		info->screen_size);
+ 	DPRINTK("EXIT\n");
+ 	return;
+ }
+@@ -2150,24 +2139,25 @@ static void switch_monitor(struct cirrus
+ /* Linux 2.6-style  accelerated functions */
+ /******************************************/
+ 
+-static void cirrusfb_prim_fillrect(struct cirrusfb_info *cinfo,
++static void cirrusfb_prim_fillrect(struct fb_info *info,
+ 				   const struct fb_fillrect *region)
+ {
++	struct cirrusfb_info *cinfo = info->par;
+ 	int m; /* bytes per pixel */
+-	u32 color = (cinfo->info->fix.visual == FB_VISUAL_TRUECOLOR) ?
++	u32 color = (info->fix.visual == FB_VISUAL_TRUECOLOR) ?
+ 		cinfo->pseudo_palette[region->color] : region->color;
+ 
+-	if (cinfo->info->var.bits_per_pixel == 1) {
++	if (info->var.bits_per_pixel == 1) {
+ 		cirrusfb_RectFill(cinfo->regbase,
+-				  cinfo->info->var.bits_per_pixel,
++				  info->var.bits_per_pixel,
+ 				  region->dx / 8, region->dy,
+ 				  region->width / 8, region->height,
+ 				  color,
+ 				  cinfo->currentmode.line_length);
+ 	} else {
+-		m = (cinfo->info->var.bits_per_pixel + 7) / 8;
++		m = (info->var.bits_per_pixel + 7) / 8;
+ 		cirrusfb_RectFill(cinfo->regbase,
+-				  cinfo->info->var.bits_per_pixel,
++				  info->var.bits_per_pixel,
+ 				  region->dx * m, region->dy,
+ 				  region->width * m, region->height,
+ 				  color,
+@@ -2179,7 +2169,6 @@ static void cirrusfb_prim_fillrect(struc
+ static void cirrusfb_fillrect(struct fb_info *info,
+ 			      const struct fb_fillrect *region)
+ {
+-	struct cirrusfb_info *cinfo = info->par;
+ 	struct fb_fillrect modded;
+ 	int vxres, vyres;
+ 
+@@ -2204,22 +2193,24 @@ static void cirrusfb_fillrect(struct fb_
+ 	if (modded.dy + modded.height > vyres)
+ 		modded.height = vyres - modded.dy;
+ 
+-	cirrusfb_prim_fillrect(cinfo, &modded);
++	cirrusfb_prim_fillrect(info, &modded);
+ }
+ 
+-static void cirrusfb_prim_copyarea(struct cirrusfb_info *cinfo,
++static void cirrusfb_prim_copyarea(struct fb_info *info,
+ 				   const struct fb_copyarea *area)
+ {
++	struct cirrusfb_info *cinfo = info->par;
+ 	int m; /* bytes per pixel */
+-	if (cinfo->info->var.bits_per_pixel == 1) {
+-		cirrusfb_BitBLT(cinfo->regbase, cinfo->info->var.bits_per_pixel,
++
++	if (info->var.bits_per_pixel == 1) {
++		cirrusfb_BitBLT(cinfo->regbase, info->var.bits_per_pixel,
+ 				area->sx / 8, area->sy,
+ 				area->dx / 8, area->dy,
+ 				area->width / 8, area->height,
+ 				cinfo->currentmode.line_length);
+ 	} else {
+-		m = (cinfo->info->var.bits_per_pixel + 7) / 8;
+-		cirrusfb_BitBLT(cinfo->regbase, cinfo->info->var.bits_per_pixel,
++		m = (info->var.bits_per_pixel + 7) / 8;
++		cirrusfb_BitBLT(cinfo->regbase, info->var.bits_per_pixel,
+ 				area->sx * m, area->sy,
+ 				area->dx * m, area->dy,
+ 				area->width * m, area->height,
+@@ -2231,9 +2222,9 @@ static void cirrusfb_prim_copyarea(struc
+ static void cirrusfb_copyarea(struct fb_info *info,
+ 			      const struct fb_copyarea *area)
+ {
+-	struct cirrusfb_info *cinfo = info->par;
+ 	struct fb_copyarea modded;
+ 	u32 vxres, vyres;
++
+ 	modded.sx = area->sx;
+ 	modded.sy = area->sy;
+ 	modded.dx = area->dx;
+@@ -2265,7 +2256,7 @@ static void cirrusfb_copyarea(struct fb_
+ 	if (modded.dy + modded.height > vyres)
+ 		modded.height = vyres - modded.dy;
+ 
+-	cirrusfb_prim_copyarea(cinfo, &modded);
++	cirrusfb_prim_copyarea(info, &modded);
+ }
+ 
+ static void cirrusfb_imageblit(struct fb_info *info,
+@@ -2363,18 +2354,19 @@ static void get_pci_addrs(const struct p
+ 	DPRINTK("EXIT\n");
+ }
+ 
+-static void cirrusfb_pci_unmap(struct cirrusfb_info *cinfo)
++static void cirrusfb_pci_unmap(struct fb_info *info)
+ {
++	struct cirrusfb_info *cinfo = info->par;
+ 	struct pci_dev *pdev = cinfo->pdev;
+ 
+-	iounmap(cinfo->fbmem);
++	iounmap(info->screen_base);
+ #if 0 /* if system didn't claim this region, we would... */
+ 	release_mem_region(0xA0000, 65535);
+ #endif
+ 	if (release_io_ports)
+ 		release_region(0x3C0, 32);
+ 	pci_release_regions(pdev);
+-	framebuffer_release(cinfo->info);
++	framebuffer_release(info);
+ }
+ #endif /* CONFIG_PCI */
+ 
+@@ -2386,21 +2378,20 @@ static void __devexit cirrusfb_zorro_unm
+ 	if (cinfo->btype == BT_PICASSO4) {
+ 		cinfo->regbase -= 0x600000;
+ 		iounmap((void *)cinfo->regbase);
+-		iounmap((void *)cinfo->fbmem);
++		iounmap(info->screen_base);
+ 	} else {
+ 		if (zorro_resource_start(cinfo->zdev) > 0x01000000)
+-			iounmap((void *)cinfo->fbmem);
++			iounmap(info->screen_base);
+ 	}
+ 	framebuffer_release(cinfo->info);
+ }
+ #endif /* CONFIG_ZORRO */
+ 
+-static int cirrusfb_set_fbinfo(struct cirrusfb_info *cinfo)
++static int cirrusfb_set_fbinfo(struct fb_info *info)
+ {
+-	struct fb_info *info = cinfo->info;
++	struct cirrusfb_info *cinfo = info->par;
+ 	struct fb_var_screeninfo *var = &info->var;
+ 
+-	info->par = cinfo;
+ 	info->pseudo_palette = cinfo->pseudo_palette;
+ 	info->flags = FBINFO_DEFAULT
+ 		    | FBINFO_HWACCEL_XPAN
+@@ -2410,7 +2401,6 @@ static int cirrusfb_set_fbinfo(struct ci
+ 	if (noaccel)
+ 		info->flags |= FBINFO_HWACCEL_DISABLED;
+ 	info->fbops = &cirrusfb_ops;
+-	info->screen_base = cinfo->fbmem;
+ 	if (cinfo->btype == BT_GD5480) {
+ 		if (var->bits_per_pixel == 16)
+ 			info->screen_base += 1 * MB_;
+@@ -2424,9 +2414,9 @@ static int cirrusfb_set_fbinfo(struct ci
+ 
+ 	/* monochrome: only 1 memory plane */
+ 	/* 8 bit and above: Use whole memory area */
+-	info->fix.smem_start = cinfo->fbmem_phys;
+-	info->fix.smem_len   =
+-		(var->bits_per_pixel == 1) ? cinfo->size / 4 : cinfo->size;
++	info->fix.smem_len   = info->screen_size;
++	if (var->bits_per_pixel == 1)
++		info->fix.smem_len /= 4;
+ 	info->fix.type       = cinfo->currentmode.type;
+ 	info->fix.type_aux   = 0;
+ 	info->fix.visual     = cinfo->currentmode.visual;
+@@ -2436,7 +2426,6 @@ static int cirrusfb_set_fbinfo(struct ci
+ 	info->fix.line_length = cinfo->currentmode.line_length;
+ 
+ 	/* FIXME: map region at 0xB8000 if available, fill in here */
+-	info->fix.mmio_start = cinfo->fbregs_phys;
+ 	info->fix.mmio_len   = 0;
+ 	info->fix.accel = FB_ACCEL_NONE;
+ 
+@@ -2445,9 +2434,9 @@ static int cirrusfb_set_fbinfo(struct ci
+ 	return 0;
+ }
+ 
+-static int cirrusfb_register(struct cirrusfb_info *cinfo)
++static int cirrusfb_register(struct fb_info *info)
+ {
+-	struct fb_info *info;
++	struct cirrusfb_info *cinfo = info->par;
+ 	int err;
+ 	enum cirrus_board btype;
+ 
+@@ -2456,13 +2445,12 @@ static int cirrusfb_register(struct cirr
+ 	printk(KERN_INFO "cirrusfb: Driver for Cirrus Logic based "
+ 		"graphic boards, v" CIRRUSFB_VERSION "\n");
+ 
+-	info = cinfo->info;
+ 	btype = cinfo->btype;
+ 
+ 	/* sanity checks */
+ 	assert(btype != BT_NONE);
+ 
+-	DPRINTK("cirrusfb: (RAM start set to: 0x%p)\n", cinfo->fbmem);
++	DPRINTK("cirrusfb: (RAM start set to: 0x%p)\n", info->screen_base);
+ 
+ 	/* Make pretend we've set the var so our structures are in a "good" */
+ 	/* state, even though we haven't written the mode to the hw yet...  */
+@@ -2477,7 +2465,7 @@ static int cirrusfb_register(struct cirr
  	}
  
- 	return res;
-@@ -135,7 +135,7 @@ static int read_ldt(void __user * ptr, u
- {
- 	int i, err = 0;
- 	unsigned long size;
--	uml_ldt_t * ldt = &current->mm->context.skas.ldt;
-+	uml_ldt_t * ldt = &current->mm->context.ldt;
+ 	/* set all the vital stuff */
+-	cirrusfb_set_fbinfo(cinfo);
++	cirrusfb_set_fbinfo(info);
  
- 	if (!ldt->entry_count)
- 		goto out;
-@@ -203,8 +203,8 @@ static int read_default_ldt(void __user 
- 
- static int write_ldt(void __user * ptr, unsigned long bytecount, int func)
- {
--	uml_ldt_t * ldt = &current->mm->context.skas.ldt;
--	struct mm_id * mm_idp = &current->mm->context.skas.id;
-+	uml_ldt_t * ldt = &current->mm->context.ldt;
-+	struct mm_id * mm_idp = &current->mm->context.id;
- 	int i, err;
- 	struct user_desc ldt_info;
- 	struct ldt_entry entry0, *ldt_p;
-@@ -384,8 +384,7 @@ out_free:
- 	free_pages((unsigned long)ldt, order);
+ 	err = register_framebuffer(info);
+ 	if (err < 0) {
+@@ -2492,7 +2480,7 @@ static int cirrusfb_register(struct cirr
+ err_dealloc_cmap:
+ 	fb_dealloc_cmap(&info->cmap);
+ err_unmap_cirrusfb:
+-	cinfo->unmap(cinfo);
++	cinfo->unmap(info);
+ 	return err;
  }
  
--long init_new_ldt(struct mmu_context_skas * new_mm,
--		  struct mmu_context_skas * from_mm)
-+long init_new_ldt(struct mm_context *new_mm, struct mm_context *from_mm)
- {
- 	struct user_desc desc;
- 	short * num_p;
-@@ -483,7 +482,7 @@ long init_new_ldt(struct mmu_context_ska
+@@ -2506,7 +2494,7 @@ static void __devexit cirrusfb_cleanup(s
+ 	unregister_framebuffer(info);
+ 	fb_dealloc_cmap(&info->cmap);
+ 	printk("Framebuffer unregistered\n");
+-	cinfo->unmap(cinfo);
++	cinfo->unmap(info);
+ 
+ 	DPRINTK("EXIT\n");
  }
- 
- 
--void free_ldt(struct mmu_context_skas * mm)
-+void free_ldt(struct mm_context *mm)
- {
- 	int i;
- 
-diff -puN arch/um/sys-x86_64/syscalls.c~uml-fold-mmu_context_skas-into-mm_context arch/um/sys-x86_64/syscalls.c
---- a/arch/um/sys-x86_64/syscalls.c~uml-fold-mmu_context_skas-into-mm_context
-+++ a/arch/um/sys-x86_64/syscalls.c
-@@ -30,7 +30,7 @@ long arch_prctl(struct task_struct *task
- {
- 	unsigned long *ptr = addr, tmp;
- 	long ret;
--	int pid = task->mm->context.skas.id.u.pid;
-+	int pid = task->mm->context.id.u.pid;
- 
- 	/*
- 	 * With ARCH_SET_FS (and ARCH_SET_GS is treated similarly to
-diff -puN include/asm-um/ldt.h~uml-fold-mmu_context_skas-into-mm_context include/asm-um/ldt.h
---- a/include/asm-um/ldt.h~uml-fold-mmu_context_skas-into-mm_context
-+++ a/include/asm-um/ldt.h
-@@ -11,11 +11,7 @@
- #include "asm/semaphore.h"
- #include "asm/host_ldt.h"
- 
--struct mmu_context_skas;
- extern void ldt_host_info(void);
--extern long init_new_ldt(struct mmu_context_skas * to_mm,
--			 struct mmu_context_skas * from_mm);
--extern void free_ldt(struct mmu_context_skas * mm);
- 
- #define LDT_PAGES_MAX \
- 	((LDT_ENTRIES * LDT_ENTRY_SIZE)/PAGE_SIZE)
-diff -puN include/asm-um/mmu_context.h~uml-fold-mmu_context_skas-into-mm_context include/asm-um/mmu_context.h
---- a/include/asm-um/mmu_context.h~uml-fold-mmu_context_skas-into-mm_context
-+++ a/include/asm-um/mmu_context.h
-@@ -29,7 +29,7 @@ static inline void activate_mm(struct mm
- 	 * possible.
- 	 */
- 	if (old != new && (current->flags & PF_BORROWED_MM))
--		__switch_mm(&new->context.skas.id);
-+		__switch_mm(&new->context.id);
- }
- 
- static inline void switch_mm(struct mm_struct *prev, struct mm_struct *next, 
-@@ -41,7 +41,7 @@ static inline void switch_mm(struct mm_s
- 		cpu_clear(cpu, prev->cpu_vm_mask);
- 		cpu_set(cpu, next->cpu_vm_mask);
- 		if(next != &init_mm)
--			__switch_mm(&next->context.skas.id);
-+			__switch_mm(&next->context.id);
+@@ -2535,7 +2523,6 @@ static int cirrusfb_pci_register(struct 
  	}
- }
+ 
+ 	cinfo = info->par;
+-	cinfo->info = info;
+ 	cinfo->pdev = pdev;
+ 	cinfo->btype = btype = (enum cirrus_board) ent->driver_data;
+ 
+@@ -2546,19 +2533,19 @@ static int cirrusfb_pci_register(struct 
+ 	if (isPReP) {
+ 		pci_write_config_dword(pdev, PCI_BASE_ADDRESS_0, 0x00000000);
+ #ifdef CONFIG_PPC_PREP
+-		get_prep_addrs(&board_addr, &cinfo->fbregs_phys);
++		get_prep_addrs(&board_addr, &info->fix.mmio_start);
+ #endif
+ 	/* PReP dies if we ioremap the IO registers, but it works w/out... */
+-		cinfo->regbase = (char __iomem *) cinfo->fbregs_phys;
++		cinfo->regbase = (char __iomem *) info->fix.mmio_start;
+ 	} else {
+ 		DPRINTK("Attempt to get PCI info for Cirrus Graphics Card\n");
+-		get_pci_addrs(pdev, &board_addr, &cinfo->fbregs_phys);
++		get_pci_addrs(pdev, &board_addr, &info->fix.mmio_start);
+ 		/* FIXME: this forces VGA.  alternatives? */
+ 		cinfo->regbase = NULL;
+ 	}
+ 
+ 	DPRINTK("Board address: 0x%lx, register address: 0x%lx\n",
+-		board_addr, cinfo->fbregs_phys);
++		board_addr, info->fix.mmio_start);
+ 
+ 	board_size = (btype == BT_GD5480) ?
+ 		32 * MB_ : cirrusfb_get_memsize(cinfo->regbase);
+@@ -2582,24 +2569,24 @@ static int cirrusfb_pci_register(struct 
+ 	if (request_region(0x3C0, 32, "cirrusfb"))
+ 		release_io_ports = 1;
+ 
+-	cinfo->fbmem = ioremap(board_addr, board_size);
+-	if (!cinfo->fbmem) {
++	info->screen_base = ioremap(board_addr, board_size);
++	if (!info->screen_base) {
+ 		ret = -EIO;
+ 		goto err_release_legacy;
+ 	}
+ 
+-	cinfo->fbmem_phys = board_addr;
+-	cinfo->size = board_size;
++	info->fix.smem_start = board_addr;
++	info->screen_size = board_size;
+ 	cinfo->unmap = cirrusfb_pci_unmap;
+ 
+ 	printk(KERN_INFO " RAM (%lu kB) at 0xx%lx, ",
+-		cinfo->size / KB_, board_addr);
++		info->screen_size / KB_, board_addr);
+ 	printk(KERN_INFO "Cirrus Logic chipset on PCI bus\n");
+ 	pci_set_drvdata(pdev, info);
+ 
+-	ret = cirrusfb_register(cinfo);
++	ret = cirrusfb_register(info);
+ 	if (ret)
+-		iounmap(cinfo->fbmem);
++		iounmap(info->screen_base);
+ 	return ret;
+ 
+ err_release_legacy:
+@@ -2677,7 +2664,7 @@ static int cirrusfb_zorro_register(struc
+ 	cinfo->zdev = z;
+ 	board_addr = zorro_resource_start(z);
+ 	board_size = zorro_resource_len(z);
+-	cinfo->size = size;
++	info->screen_size = size;
+ 
+ 	if (!zorro_request_device(z, "cirrusfb")) {
+ 		printk(KERN_ERR "cirrusfb: cannot reserve region 0x%lx, "
+@@ -2705,27 +2692,27 @@ static int cirrusfb_zorro_register(struc
+ 		DPRINTK("cirrusfb: Virtual address for board set to: $%p\n",
+ 			cinfo->regbase);
+ 		cinfo->regbase += 0x600000;
+-		cinfo->fbregs_phys = board_addr + 0x600000;
++		info->fix.mmio_start = board_addr + 0x600000;
+ 
+-		cinfo->fbmem_phys = board_addr + 16777216;
+-		cinfo->fbmem = ioremap(cinfo->fbmem_phys, 16777216);
+-		if (!cinfo->fbmem)
++		info->fix.smem_start = board_addr + 16777216;
++		info->screen_base = ioremap(info->fix.smem_start, 16777216);
++		if (!info->screen_base)
+ 			goto err_unmap_regbase;
+ 	} else {
+ 		printk(KERN_INFO " REG at $%lx\n",
+ 			(unsigned long) z2->resource.start);
+ 
+-		cinfo->fbmem_phys = board_addr;
++		info->fix.smem_start = board_addr;
+ 		if (board_addr > 0x01000000)
+-			cinfo->fbmem = ioremap(board_addr, board_size);
++			info->screen_base = ioremap(board_addr, board_size);
+ 		else
+-			cinfo->fbmem = (caddr_t) ZTWO_VADDR(board_addr);
+-		if (!cinfo->fbmem)
++			info->screen_base = (caddr_t) ZTWO_VADDR(board_addr);
++		if (!info->screen_base)
+ 			goto err_release_region;
+ 
+ 		/* set address for REG area of board */
+ 		cinfo->regbase = (caddr_t) ZTWO_VADDR(z2->resource.start);
+-		cinfo->fbregs_phys = z2->resource.start;
++		info->fix.mmio_start = z2->resource.start;
+ 
+ 		DPRINTK("cirrusfb: Virtual address for board set to: $%p\n",
+ 			cinfo->regbase);
+@@ -2738,10 +2725,10 @@ static int cirrusfb_zorro_register(struc
+ 	ret = cirrusfb_register(cinfo);
+ 	if (ret) {
+ 		if (btype == BT_PICASSO4) {
+-			iounmap(cinfo->fbmem);
++			iounmap(info->screen_base);
+ 			iounmap(cinfo->regbase - 0x600000);
+ 		} else if (board_addr > 0x01000000)
+-			iounmap(cinfo->fbmem);
++			iounmap(info->screen_base);
+ 	}
+ 	return ret;
  
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-git-kvm.patch
-uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
-bitops-introduce-lock-ops.patch
+git-alsa.patch
+cyber2000fb-checkpatch-fixes.patch
