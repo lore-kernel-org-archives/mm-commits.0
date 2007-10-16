@@ -1,190 +1,354 @@
 From: akpm@linux-foundation.org
-Subject: - dont-group-high-order-atomic-allocations.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:35:00 -0700
-Message-ID: <200710162035.l9GKZ0ME015010@imap1.linux-foundation.org>
+Subject: - gfs2-convert-to-new-aops.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:32:39 -0700
+Message-ID: <200710162032.l9GKWdOo014620@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52127 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37842 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966215AbXJPVtF (ORCPT
+	by vger.kernel.org with ESMTP id S966199AbXJPVsz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:49:05 -0400
+	Tue, 16 Oct 2007 17:48:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, apw@shadowen.org, mm-commits@vger.kernel.org
+To: swhiteho@redhat.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     don't group high order atomic allocations
+     gfs2: convert to new aops
 has been removed from the -mm tree.  Its filename was
-     dont-group-high-order-atomic-allocations.patch
+     gfs2-convert-to-new-aops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: don't group high order atomic allocations
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: gfs2: convert to new aops
+From: Steven Whitehouse <swhiteho@redhat.com>
 
-Grouping high-order atomic allocations together was intended to allow
-bursty users of atomic allocations to work such as e1000 in situations
-where their preallocated buffers were depleted.  This did not work in at
-least one case with a wireless network adapter needing order-1 allocations
-frequently.  To resolve that, the free pages used for min_free_kbytes were
-moved to separate contiguous blocks with the patch
-bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.
-
-It is felt that keeping the free pages in the same contiguous blocks should
-be sufficient for bursty short-lived high-order atomic allocations to
-succeed, maybe even with the e1000.  Even if there is a failure, increasing
-the value of min_free_kbytes will free pages as contiguous bloks in
-contrast to the standard buddy allocator which makes no attempt to keep the
-minimum number of free pages contiguous.
-
-This patch backs out grouping high order atomic allocations together to
-determine if it is really needed or not.  If a new report comes in about
-high-order atomic allocations failing, the feature can be reintroduced to
-determine if it fixes the problem or not.  As a side-effect, this patch
-reduces by 1 the number of bits required to track the mobility type of
-pages within a MAX_ORDER_NR_PAGES block.
-
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Andy Whitcroft <apw@shadowen.org>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h          |    5 +---
- include/linux/pageblock-flags.h |    2 -
- mm/page_alloc.c                 |   37 +++++-------------------------
- 3 files changed, 10 insertions(+), 34 deletions(-)
+ fs/gfs2/ops_address.c |  211 ++++++++++++++++++++++++----------------
+ 1 file changed, 127 insertions(+), 84 deletions(-)
 
-diff -puN include/linux/mmzone.h~dont-group-high-order-atomic-allocations include/linux/mmzone.h
---- a/include/linux/mmzone.h~dont-group-high-order-atomic-allocations
-+++ a/include/linux/mmzone.h
-@@ -36,9 +36,8 @@
- #define MIGRATE_UNMOVABLE     0
- #define MIGRATE_RECLAIMABLE   1
- #define MIGRATE_MOVABLE       2
--#define MIGRATE_HIGHATOMIC    3
--#define MIGRATE_RESERVE       4
--#define MIGRATE_TYPES         5
-+#define MIGRATE_RESERVE       3
-+#define MIGRATE_TYPES         4
+diff -puN fs/gfs2/ops_address.c~gfs2-convert-to-new-aops fs/gfs2/ops_address.c
+--- a/fs/gfs2/ops_address.c~gfs2-convert-to-new-aops
++++ a/fs/gfs2/ops_address.c
+@@ -17,6 +17,7 @@
+ #include <linux/mpage.h>
+ #include <linux/fs.h>
+ #include <linux/writeback.h>
++#include <linux/swap.h>
+ #include <linux/gfs2_ondisk.h>
+ #include <linux/lm_interface.h>
  
- #define for_each_migratetype_order(order, type) \
- 	for (order = 0; order < MAX_ORDER; order++) \
-diff -puN include/linux/pageblock-flags.h~dont-group-high-order-atomic-allocations include/linux/pageblock-flags.h
---- a/include/linux/pageblock-flags.h~dont-group-high-order-atomic-allocations
-+++ a/include/linux/pageblock-flags.h
-@@ -31,7 +31,7 @@
- 
- /* Bit indices that affect a whole block of pages */
- enum pageblock_bits {
--	PB_range(PB_migrate, 3), /* 3 bits required for migrate types */
-+	PB_range(PB_migrate, 2), /* 2 bits required for migrate types */
- 	NR_PAGEBLOCK_BITS
- };
- 
-diff -puN mm/page_alloc.c~dont-group-high-order-atomic-allocations mm/page_alloc.c
---- a/mm/page_alloc.c~dont-group-high-order-atomic-allocations
-+++ a/mm/page_alloc.c
-@@ -174,18 +174,13 @@ static void set_pageblock_migratetype(st
- 					PB_migrate, PB_migrate_end);
+@@ -349,45 +350,49 @@ out_unlock:
  }
  
--static inline int allocflags_to_migratetype(gfp_t gfp_flags, int order)
-+static inline int allocflags_to_migratetype(gfp_t gfp_flags)
- {
- 	WARN_ON((gfp_flags & GFP_MOVABLE_MASK) == GFP_MOVABLE_MASK);
- 
- 	if (unlikely(page_group_by_mobility_disabled))
- 		return MIGRATE_UNMOVABLE;
- 
--	/* Cluster high-order atomic allocations together */
--	if (unlikely(order > 0) &&
--			(!(gfp_flags & __GFP_WAIT) || in_interrupt()))
--		return MIGRATE_HIGHATOMIC;
--
- 	/* Cluster based on mobility */
- 	return (((gfp_flags & __GFP_MOVABLE) != 0) << 1) |
- 		((gfp_flags & __GFP_RECLAIMABLE) != 0);
-@@ -706,11 +701,10 @@ static struct page *__rmqueue_smallest(s
-  * the free lists for the desirable migrate type are depleted
+ /**
+- * gfs2_prepare_write - Prepare to write a page to a file
++ * gfs2_write_begin - Begin to write to a file
+  * @file: The file to write to
+- * @page: The page which is to be prepared for writing
+- * @from: From (byte range within page)
+- * @to: To (byte range within page)
++ * @mapping: The mapping in which to write
++ * @pos: The file offset at which to start writing
++ * @len: Length of the write
++ * @flags: Various flags
++ * @pagep: Pointer to return the page
++ * @fsdata: Pointer to return fs data (unused by GFS2)
+  *
+  * Returns: errno
   */
- static int fallbacks[MIGRATE_TYPES][MIGRATE_TYPES-1] = {
--	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,   MIGRATE_HIGHATOMIC, MIGRATE_RESERVE },
--	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,   MIGRATE_HIGHATOMIC, MIGRATE_RESERVE },
--	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_HIGHATOMIC, MIGRATE_RESERVE },
--	[MIGRATE_HIGHATOMIC]  = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_MOVABLE,    MIGRATE_RESERVE },
--	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE,     MIGRATE_RESERVE,   MIGRATE_RESERVE,    MIGRATE_RESERVE }, /* Never used */
-+	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,   MIGRATE_RESERVE },
-+	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,   MIGRATE_RESERVE },
-+	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_RESERVE },
-+	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE,     MIGRATE_RESERVE,   MIGRATE_RESERVE }, /* Never used */
- };
  
- /*
-@@ -804,9 +798,7 @@ static struct page *__rmqueue_fallback(s
- 	int current_order;
- 	struct page *page;
- 	int migratetype, i;
--	int nonatomic_fallback_atomic = 0;
+-static int gfs2_prepare_write(struct file *file, struct page *page,
+-			      unsigned from, unsigned to)
++static int gfs2_write_begin(struct file *file, struct address_space *mapping,
++			    loff_t pos, unsigned len, unsigned flags,
++			    struct page **pagep, void **fsdata)
+ {
+-	struct gfs2_inode *ip = GFS2_I(page->mapping->host);
+-	struct gfs2_sbd *sdp = GFS2_SB(page->mapping->host);
++	struct gfs2_inode *ip = GFS2_I(mapping->host);
++	struct gfs2_sbd *sdp = GFS2_SB(mapping->host);
+ 	unsigned int data_blocks, ind_blocks, rblocks;
+ 	int alloc_required;
+ 	int error = 0;
+-	loff_t pos = ((loff_t)page->index << PAGE_CACHE_SHIFT) + from;
+-	loff_t end = ((loff_t)page->index << PAGE_CACHE_SHIFT) + to;
+ 	struct gfs2_alloc *al;
+-	unsigned int write_len = to - from;
++	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
++	unsigned from = pos & (PAGE_CACHE_SIZE - 1);
++	unsigned to = from + len;
++	struct page *page;
  
--retry:
- 	/* Find the largest possible block of pages in the other list */
- 	for (current_order = MAX_ORDER-1; current_order >= order;
- 						--current_order) {
-@@ -816,14 +808,6 @@ retry:
- 			/* MIGRATE_RESERVE handled later if necessary */
- 			if (migratetype == MIGRATE_RESERVE)
- 				continue;
--			/*
--			 * Make it hard to fallback to blocks used for
--			 * high-order atomic allocations
--			 */
--			if (migratetype == MIGRATE_HIGHATOMIC &&
--				start_migratetype != MIGRATE_UNMOVABLE &&
--				!nonatomic_fallback_atomic)
--				continue;
+-
+-	gfs2_holder_init(ip->i_gl, LM_ST_EXCLUSIVE, GL_ATIME|LM_FLAG_TRY_1CB, &ip->i_gh);
++	gfs2_holder_init(ip->i_gl, LM_ST_EXCLUSIVE, GL_ATIME, &ip->i_gh);
+ 	error = gfs2_glock_nq_atime(&ip->i_gh);
+-	if (unlikely(error)) {
+-		if (error == GLR_TRYFAILED) {
+-			unlock_page(page);
+-			error = AOP_TRUNCATED_PAGE;
+-			yield();
+-		}
++	if (unlikely(error))
+ 		goto out_uninit;
+-	}
  
- 			area = &(zone->free_area[current_order]);
- 			if (list_empty(&area->free_list[migratetype]))
-@@ -849,8 +833,7 @@ retry:
- 								start_migratetype);
+-	gfs2_write_calc_reserv(ip, write_len, &data_blocks, &ind_blocks);
++	error = -ENOMEM;
++	page = __grab_cache_page(mapping, index);
++	*pagep = page;
++	if (!page)
++		goto out_unlock;
++
++	gfs2_write_calc_reserv(ip, len, &data_blocks, &ind_blocks);
  
- 				/* Claim the whole block if over half of it is free */
--				if ((pages << current_order) >= (1 << (MAX_ORDER-2)) &&
--						migratetype != MIGRATE_HIGHATOMIC)
-+				if ((pages << current_order) >= (1 << (MAX_ORDER-2)))
- 					set_pageblock_migratetype(page,
- 								start_migratetype);
+-	error = gfs2_write_alloc_required(ip, pos, write_len, &alloc_required);
++	error = gfs2_write_alloc_required(ip, pos, len, &alloc_required);
+ 	if (error)
+-		goto out_unlock;
++		goto out_putpage;
  
-@@ -872,12 +855,6 @@ retry:
+ 
+ 	ip->i_alloc.al_requested = 0;
+@@ -420,7 +425,7 @@ static int gfs2_prepare_write(struct fil
+ 		goto out_trans_fail;
+ 
+ 	if (gfs2_is_stuffed(ip)) {
+-		if (end > sdp->sd_sb.sb_bsize - sizeof(struct gfs2_dinode)) {
++		if (pos + len > sdp->sd_sb.sb_bsize - sizeof(struct gfs2_dinode)) {
+ 			error = gfs2_unstuff_dinode(ip, page);
+ 			if (error == 0)
+ 				goto prepare_write;
+@@ -443,6 +448,10 @@ out_qunlock:
+ out_alloc_put:
+ 			gfs2_alloc_put(ip);
  		}
- 	}
++out_putpage:
++		page_cache_release(page);
++		if (pos + len > ip->i_inode.i_size)
++			vmtruncate(&ip->i_inode, ip->i_inode.i_size);
+ out_unlock:
+ 		gfs2_glock_dq_m(1, &ip->i_gh);
+ out_uninit:
+@@ -478,65 +487,117 @@ static void adjust_fs_space(struct inode
+ }
  
--	/* Allow fallback to high-order atomic blocks if memory is that low */
--	if (!nonatomic_fallback_atomic) {
--		nonatomic_fallback_atomic = 1;
--		goto retry;
+ /**
+- * gfs2_commit_write - Commit write to a file
++ * gfs2_stuffed_write_end - Write end for stuffed files
++ * @inode: The inode
++ * @dibh: The buffer_head containing the on-disk inode
++ * @pos: The file position
++ * @len: The length of the write
++ * @copied: How much was actually copied by the VFS
++ * @page: The page
++ *
++ * This copies the data from the page into the inode block after
++ * the inode data structure itself.
++ *
++ * Returns: errno
++ */
++static int gfs2_stuffed_write_end(struct inode *inode, struct buffer_head *dibh,
++				  loff_t pos, unsigned len, unsigned copied,
++				  struct page *page)
++{
++	struct gfs2_inode *ip = GFS2_I(inode);
++	struct gfs2_sbd *sdp = GFS2_SB(inode);
++	u64 to = pos + copied;
++	void *kaddr;
++	unsigned char *buf = dibh->b_data + sizeof(struct gfs2_dinode);
++	struct gfs2_dinode *di = (struct gfs2_dinode *)dibh->b_data;
++
++	BUG_ON((pos + len) > (dibh->b_size - sizeof(struct gfs2_dinode)));
++	kaddr = kmap_atomic(page, KM_USER0);
++	memcpy(buf + pos, kaddr + pos, copied);
++	memset(kaddr + pos + copied, 0, len - copied);
++	flush_dcache_page(page);
++	kunmap_atomic(kaddr, KM_USER0);
++
++	if (!PageUptodate(page))
++		SetPageUptodate(page);
++	unlock_page(page);
++	page_cache_release(page);
++
++	if (inode->i_size < to) {
++		i_size_write(inode, to);
++		ip->i_di.di_size = inode->i_size;
++		di->di_size = cpu_to_be64(inode->i_size);
++		mark_inode_dirty(inode);
++	}
++
++	if (inode == sdp->sd_rindex)
++		adjust_fs_space(inode);
++
++	brelse(dibh);
++	gfs2_trans_end(sdp);
++	gfs2_glock_dq(&ip->i_gh);
++	gfs2_holder_uninit(&ip->i_gh);
++	return copied;
++}
++
++/**
++ * gfs2_write_end
+  * @file: The file to write to
+- * @page: The page containing the data
+- * @from: From (byte range within page)
+- * @to: To (byte range within page)
++ * @mapping: The address space to write to
++ * @pos: The file position
++ * @len: The length of the data
++ * @copied:
++ * @page: The page that has been written
++ * @fsdata: The fsdata (unused in GFS2)
++ *
++ * The main write_end function for GFS2. We have a separate one for
++ * stuffed files as they are slightly different, otherwise we just
++ * put our locking around the VFS provided functions.
+  *
+  * Returns: errno
+  */
+ 
+-static int gfs2_commit_write(struct file *file, struct page *page,
+-			     unsigned from, unsigned to)
++static int gfs2_write_end(struct file *file, struct address_space *mapping,
++			  loff_t pos, unsigned len, unsigned copied,
++			  struct page *page, void *fsdata)
+ {
+ 	struct inode *inode = page->mapping->host;
+ 	struct gfs2_inode *ip = GFS2_I(inode);
+ 	struct gfs2_sbd *sdp = GFS2_SB(inode);
+-	int error = -EOPNOTSUPP;
+ 	struct buffer_head *dibh;
+ 	struct gfs2_alloc *al = &ip->i_alloc;
+ 	struct gfs2_dinode *di;
++	unsigned int from = pos & (PAGE_CACHE_SIZE - 1);
++	unsigned int to = from + len;
++	int ret;
+ 
+-	if (gfs2_assert_withdraw(sdp, gfs2_glock_is_locked_by_me(ip->i_gl)))
+-                goto fail_nounlock;
++	BUG_ON(gfs2_glock_is_locked_by_me(ip->i_gl) == 0);
+ 
+-	error = gfs2_meta_inode_buffer(ip, &dibh);
+-	if (error)
+-		goto fail_endtrans;
++	ret = gfs2_meta_inode_buffer(ip, &dibh);
++	if (unlikely(ret)) {
++		unlock_page(page);
++		page_cache_release(page);
++		goto failed;
++	}
+ 
+ 	gfs2_trans_add_bh(ip->i_gl, dibh, 1);
+-	di = (struct gfs2_dinode *)dibh->b_data;
+ 
+-	if (gfs2_is_stuffed(ip)) {
+-		u64 file_size;
+-		void *kaddr;
+-
+-		file_size = ((u64)page->index << PAGE_CACHE_SHIFT) + to;
++	if (gfs2_is_stuffed(ip))
++		return gfs2_stuffed_write_end(inode, dibh, pos, len, copied, page);
+ 
+-		kaddr = kmap_atomic(page, KM_USER0);
+-		memcpy(dibh->b_data + sizeof(struct gfs2_dinode) + from,
+-		       kaddr + from, to - from);
+-		kunmap_atomic(kaddr, KM_USER0);
++	if (sdp->sd_args.ar_data == GFS2_DATA_ORDERED || gfs2_is_jdata(ip))
++		gfs2_page_add_databufs(ip, page, from, to);
+ 
+-		SetPageUptodate(page);
++	ret = generic_write_end(file, mapping, pos, len, copied, page, fsdata);
+ 
+-		if (inode->i_size < file_size) {
+-			i_size_write(inode, file_size);
++	if (likely(ret >= 0)) {
++		copied = ret;
++		if  ((pos + copied) > inode->i_size) {
++			di = (struct gfs2_dinode *)dibh->b_data;
++			ip->i_di.di_size = inode->i_size;
++			di->di_size = cpu_to_be64(inode->i_size);
+ 			mark_inode_dirty(inode);
+ 		}
+-	} else {
+-		if (sdp->sd_args.ar_data == GFS2_DATA_ORDERED ||
+-		    gfs2_is_jdata(ip))
+-			gfs2_page_add_databufs(ip, page, from, to);
+-		error = generic_commit_write(file, page, from, to);
+-		if (error)
+-			goto fail;
 -	}
 -
- 	/* Use MIGRATE_RESERVE rather than fail an allocation */
- 	return __rmqueue_smallest(zone, order, MIGRATE_RESERVE);
- }
-@@ -1112,7 +1089,7 @@ static struct page *buffered_rmqueue(str
- 	struct page *page;
- 	int cold = !!(gfp_flags & __GFP_COLD);
- 	int cpu;
--	int migratetype = allocflags_to_migratetype(gfp_flags, order);
-+	int migratetype = allocflags_to_migratetype(gfp_flags);
+-	if (ip->i_di.di_size < inode->i_size) {
+-		ip->i_di.di_size = inode->i_size;
+-		di->di_size = cpu_to_be64(inode->i_size);
+ 	}
  
- again:
- 	cpu  = get_cpu();
+ 	if (inode == sdp->sd_rindex)
+@@ -544,33 +605,15 @@ static int gfs2_commit_write(struct file
+ 
+ 	brelse(dibh);
+ 	gfs2_trans_end(sdp);
++failed:
+ 	if (al->al_requested) {
+ 		gfs2_inplace_release(ip);
+ 		gfs2_quota_unlock(ip);
+ 		gfs2_alloc_put(ip);
+ 	}
+-	unlock_page(page);
+-	gfs2_glock_dq_m(1, &ip->i_gh);
+-	lock_page(page);
+-	gfs2_holder_uninit(&ip->i_gh);
+-	return 0;
+-
+-fail:
+-	brelse(dibh);
+-fail_endtrans:
+-	gfs2_trans_end(sdp);
+-	if (al->al_requested) {
+-		gfs2_inplace_release(ip);
+-		gfs2_quota_unlock(ip);
+-		gfs2_alloc_put(ip);
+-	}
+-	unlock_page(page);
+-	gfs2_glock_dq_m(1, &ip->i_gh);
+-	lock_page(page);
++	gfs2_glock_dq(&ip->i_gh);
+ 	gfs2_holder_uninit(&ip->i_gh);
+-fail_nounlock:
+-	ClearPageUptodate(page);
+-	return error;
++	return ret;
+ }
+ 
+ /**
+@@ -799,8 +842,8 @@ const struct address_space_operations gf
+ 	.readpage = gfs2_readpage,
+ 	.readpages = gfs2_readpages,
+ 	.sync_page = block_sync_page,
+-	.prepare_write = gfs2_prepare_write,
+-	.commit_write = gfs2_commit_write,
++	.write_begin = gfs2_write_begin,
++	.write_end = gfs2_write_end,
+ 	.set_page_dirty = gfs2_set_page_dirty,
+ 	.bmap = gfs2_bmap,
+ 	.invalidatepage = gfs2_invalidatepage,
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from swhiteho@redhat.com are
 
 origin.patch
-ext2-reservations.patch
-page-owner-tracking-leak-detector.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+menuconfig-transform-nls-and-dlm-menus.patch
+exportfs-add-fid-type.patch
+exportfs-add-new-methods.patch
+gfs2-new-export-ops.patch
+exportfs-remove-old-methods.patch
+exportfs-make-struct-export_operations-const.patch
+exportfs-update-documentation.patch
