@@ -1,83 +1,294 @@
 From: akpm@linux-foundation.org
-Subject: - add-documentation-block-00-index.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:46:12 -0700
-Message-ID: <200710162046.l9GKkCVT016342@imap1.linux-foundation.org>
+Subject: - ecryptfs-printk-warning-fixes.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:40:24 -0700
+Message-ID: <200710162040.l9GKeOlm015688@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42958 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56305 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965838AbXJPU5U (ORCPT
+	by vger.kernel.org with ESMTP id S965597AbXJPU5L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 16:57:20 -0400
+	Tue, 16 Oct 2007 16:57:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rob@landley.net, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add Documentation/block/00-INDEX
+     ecryptfs: printk warning fixes
 has been removed from the -mm tree.  Its filename was
-     add-documentation-block-00-index.patch
+     ecryptfs-printk-warning-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add Documentation/block/00-INDEX
-From: Rob Landley <rob@landley.net>
+Subject: ecryptfs: printk warning fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add Documentation/block/00-INDEX
+fs/ecryptfs/keystore.c: In function 'parse_tag_1_packet':
+fs/ecryptfs/keystore.c:557: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
+fs/ecryptfs/keystore.c: In function 'parse_tag_3_packet':
+fs/ecryptfs/keystore.c:690: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
+fs/ecryptfs/keystore.c: In function 'parse_tag_11_packet':
+fs/ecryptfs/keystore.c:836: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
+fs/ecryptfs/keystore.c: In function 'write_tag_1_packet':
+fs/ecryptfs/keystore.c:1413: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
+fs/ecryptfs/keystore.c:1413: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
+fs/ecryptfs/keystore.c: In function 'write_tag_11_packet':
+fs/ecryptfs/keystore.c:1472: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
+fs/ecryptfs/keystore.c: In function 'write_tag_3_packet':
+fs/ecryptfs/keystore.c:1663: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
+fs/ecryptfs/keystore.c:1663: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
+fs/ecryptfs/keystore.c: In function 'ecryptfs_generate_key_packet_set':
+fs/ecryptfs/keystore.c:1778: warning: passing argument 2 of 'write_tag_11_packet' from incompatible pointer type
+fs/ecryptfs/main.c: In function 'ecryptfs_parse_options':
+fs/ecryptfs/main.c:363: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
 
-Signed-off-by: Rob Landley <rob@landley.net>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/block/00-INDEX |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ fs/ecryptfs/keystore.c |   16 ++++++++--------
+ fs/ecryptfs/main.c     |    2 +-
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN /dev/null Documentation/block/00-INDEX
---- /dev/null
-+++ a/Documentation/block/00-INDEX
-@@ -0,0 +1,20 @@
-+00-INDEX
-+	- This file
-+as-iosched.txt
-+	- Anticipatory IO scheduler
-+barrier.txt
-+	- I/O Barriers
-+biodoc.txt
-+	- Notes on the Generic Block Layer Rewrite in Linux 2.5
-+capability.txt
-+	- Generic Block Device Capability (/sys/block/<disk>/capability)
-+deadline-iosched.txt
-+	- Deadline IO scheduler tunables
-+ioprio.txt
-+	- Block io priorities (in CFQ scheduler)
-+request.txt
-+	- The members of struct request (in include/linux/blkdev.h)
-+stat.txt
-+	- Block layer statistics in /sys/block/<dev>/stat
-+switching-sched.txt
-+	- Switching I/O schedulers at runtime
+diff -puN fs/ecryptfs/keystore.c~ecryptfs-printk-warning-fixes fs/ecryptfs/keystore.c
+--- a/fs/ecryptfs/keystore.c~ecryptfs-printk-warning-fixes
++++ a/fs/ecryptfs/keystore.c
+@@ -554,7 +554,7 @@ parse_tag_1_packet(struct ecryptfs_crypt
+ 		goto out_free;
+ 	}
+ 	if (unlikely(body_size < (ECRYPTFS_SIG_SIZE + 2))) {
+-		printk(KERN_WARNING "Invalid body size ([%d])\n", body_size);
++		printk(KERN_WARNING "Invalid body size ([%td])\n", body_size);
+ 		rc = -EINVAL;
+ 		goto out_free;
+ 	}
+@@ -687,7 +687,7 @@ parse_tag_3_packet(struct ecryptfs_crypt
+ 		goto out_free;
+ 	}
+ 	if (unlikely(body_size < (ECRYPTFS_SALT_SIZE + 5))) {
+-		printk(KERN_WARNING "Invalid body size ([%d])\n", body_size);
++		printk(KERN_WARNING "Invalid body size ([%td])\n", body_size);
+ 		rc = -EINVAL;
+ 		goto out_free;
+ 	}
+@@ -833,7 +833,7 @@ parse_tag_11_packet(unsigned char *data,
+ 		goto out;
+ 	}
+ 	if (body_size < 14) {
+-		printk(KERN_WARNING "Invalid body size ([%d])\n", body_size);
++		printk(KERN_WARNING "Invalid body size ([%td])\n", body_size);
+ 		rc = -EINVAL;
+ 		goto out;
+ 	}
+@@ -1409,7 +1409,7 @@ encrypted_session_key_set:
+ 			   + key_rec->enc_key_size); /* Encrypted key size */
+ 	if (max_packet_size > (*remaining_bytes)) {
+ 		printk(KERN_ERR "Packet length larger than maximum allowable; "
+-		       "need up to [%d] bytes, but there are only [%d] "
++		       "need up to [%td] bytes, but there are only [%td] "
+ 		       "available\n", max_packet_size, (*remaining_bytes));
+ 		rc = -EINVAL;
+ 		goto out;
+@@ -1449,7 +1449,7 @@ out:
+  * Returns zero on success; non-zero on error.
+  */
+ static int
+-write_tag_11_packet(char *dest, int *remaining_bytes, char *contents,
++write_tag_11_packet(char *dest, size_t *remaining_bytes, char *contents,
+ 		    size_t contents_length, size_t *packet_length)
+ {
+ 	size_t packet_size_length;
+@@ -1468,7 +1468,7 @@ write_tag_11_packet(char *dest, int *rem
+ 			   + contents_length); /* Literal data */
+ 	if (max_packet_size > (*remaining_bytes)) {
+ 		printk(KERN_ERR "Packet length larger than maximum allowable; "
+-		       "need up to [%d] bytes, but there are only [%d] "
++		       "need up to [%td] bytes, but there are only [%td] "
+ 		       "available\n", max_packet_size, (*remaining_bytes));
+ 		rc = -EINVAL;
+ 		goto out;
+@@ -1658,8 +1658,8 @@ encrypted_session_key_set:
+ 			   + 1                       /* Hash iterations */
+ 			   + key_rec->enc_key_size); /* Encrypted key size */
+ 	if (max_packet_size > (*remaining_bytes)) {
+-		printk(KERN_ERR "Packet too large; need up to [%d] bytes, but "
+-		       "there are only [%d] available\n", max_packet_size,
++		printk(KERN_ERR "Packet too large; need up to [%td] bytes, but "
++		       "there are only [%td] available\n", max_packet_size,
+ 		       (*remaining_bytes));
+ 		rc = -EINVAL;
+ 		goto out;
+diff -puN fs/ecryptfs/main.c~ecryptfs-printk-warning-fixes fs/ecryptfs/main.c
+--- a/fs/ecryptfs/main.c~ecryptfs-printk-warning-fixes
++++ a/fs/ecryptfs/main.c
+@@ -359,7 +359,7 @@ static int ecryptfs_parse_options(struct
+ 		     NULL, mount_crypt_stat->global_default_cipher_name,
+ 		     mount_crypt_stat->global_default_cipher_key_size))) {
+ 		printk(KERN_ERR "Error attempting to initialize cipher with "
+-		       "name = [%s] and key size = [%d]; rc = [%d]\n",
++		       "name = [%s] and key size = [%td]; rc = [%d]\n",
+ 		       mount_crypt_stat->global_default_cipher_name,
+ 		       mount_crypt_stat->global_default_cipher_key_size, rc);
+ 		rc = -EINVAL;
 _
 
-Patches currently in -mm which might be from rob@landley.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-comment-typo-in-scripts-kconfig-makefile.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-documentation-make-headers_installtxt.patch
-documentation-add-entries-to-filesystems-00-index-for-several-untracked-files.patch
-add-a-missing-00-index-file-for-documentation-vm.patch
-add-a-00-index-file-to-documentation-mips.patch
-add-a-00-index-file-to-documentation-sysctl.patch
-add-a-00-index-file-to-documentation-telephony.patch
-tweak-documentation-sm501txt.patch
-add-missing-entries-to-top-level-documentation-00-index.patch
-add-documentation-w1w1-masters-00-index.patch
-add-entries-to-documentation-powerpc.patch
-add-documentation-power-00-index.patch
-add-recommended-section-ids-to-deviceiobooktmpl.patch
-add-documentation-rcu-00-index.patch
-fix-make-htmldocs-build-break.patch
-add-section-ids-to-documentation-docbook-filesystemstmpl.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-cifs.patch
+applesmc-for-mac-pro-2-x-quad-core-fix.patch
+console-keyboard-events-and-accessibility.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-jg-warning-fixes.patch
+git-jg-misc-powernow-fix.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-arm-hack.patch
+forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd-fixup.patch
+qla2xxx-printk-fixes.patch
+sparc-support-for-new-termios-checkpatch-fixes.patch
+git-unionfs.patch
+git-watchdog-fixup.patch
+git-wireless.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+asm-i386-ioh-fix-constness.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+git-xfs.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-do-not-take-callback_mutex-fix.patch
+writeback-dont-propagate-aop_writepage_activate.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+pm-qos-infrastructure-and-interface-fix.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
+f_dupfd_cloexec-implementation-fix-2.patch
+ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
+drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+pnp-use-dev_info-dev_err-etc-in-core-fix.patch
+pnp-add-debug-message-for-adding-new-device-fix-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
