@@ -1,218 +1,197 @@
 From: akpm@linux-foundation.org
-Subject: - m32r-convert-to-generic-sys_ptrace.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:36:39 -0700
-Message-ID: <200710162036.l9GKadun015201@imap1.linux-foundation.org>
+Subject: - memory-unplug-v7-memory-hotplug-cleanup.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:35:28 -0700
+Message-ID: <200710162035.l9GKZSHZ015062@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41260 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38814 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965489AbXJPVf2 (ORCPT
+	by vger.kernel.org with ESMTP id S965802AbXJPVf1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:35:28 -0400
+	Tue, 16 Oct 2007 17:35:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, takata@linux-m32r.org, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, pbadari@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m32r: convert to generic sys_ptrace
+     memory unplug: memory hotplug cleanup
 has been removed from the -mm tree.  Its filename was
-     m32r-convert-to-generic-sys_ptrace.patch
+     memory-unplug-v7-memory-hotplug-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: m32r: convert to generic sys_ptrace
-From: Christoph Hellwig <hch@lst.de>
+Subject: memory unplug: memory hotplug cleanup
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Convert m32r to the generic sys_ptrace.  The conversion requires an
-architecture hook after ptrace_attach which this patch adds.  The hook
-will also be needed for a conersion of ia64 to the generic ptrace code.
+A clean up patch for "scanning memory resource [start, end)" operation.
 
-Thanks to Hirokazu Takata for fixing a bug in the first version of this
-code.
+Now, find_next_system_ram() function is used in memory hotplug, but this
+interface is not easy to use and codes are complicated.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+This patch adds walk_memory_resouce(start,len,arg,func) function.
+The function 'func' is called per valid memory resouce range in [start,pfn).
+
+[pbadari@us.ibm.com: Error handling in walk_memory_resource()]
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/kernel/ptrace.c |   42 ++----------------------------------
- include/asm-m32r/ptrace.h |    5 +++-
- kernel/ptrace.c           |   10 ++++++++
- 3 files changed, 17 insertions(+), 40 deletions(-)
+ include/linux/ioport.h         |    3 --
+ include/linux/memory_hotplug.h |    8 +++++
+ kernel/resource.c              |   26 +++++++++++++++++
+ mm/memory_hotplug.c            |   45 +++++++++++++------------------
+ 4 files changed, 52 insertions(+), 30 deletions(-)
 
-diff -puN arch/m32r/kernel/ptrace.c~m32r-convert-to-generic-sys_ptrace arch/m32r/kernel/ptrace.c
---- a/arch/m32r/kernel/ptrace.c~m32r-convert-to-generic-sys_ptrace
-+++ a/arch/m32r/kernel/ptrace.c
-@@ -570,7 +570,7 @@ withdraw_debug_trap(struct pt_regs *regs
- 	}
- }
+diff -puN include/linux/ioport.h~memory-unplug-v7-memory-hotplug-cleanup include/linux/ioport.h
+--- a/include/linux/ioport.h~memory-unplug-v7-memory-hotplug-cleanup
++++ a/include/linux/ioport.h
+@@ -110,9 +110,6 @@ extern int allocate_resource(struct reso
+ int adjust_resource(struct resource *res, resource_size_t start,
+ 		    resource_size_t size);
  
--static void
-+void
- init_debug_traps(struct task_struct *child)
- {
- 	struct debug_trap *p = &child->thread.debug_trap;
-@@ -593,8 +593,8 @@ void ptrace_disable(struct task_struct *
- 	/* nothing to do.. */
- }
- 
--static int
--do_ptrace(long request, struct task_struct *child, long addr, long data)
-+long
-+arch_ptrace(struct task_struct *child, long request, long addr, long data)
- {
- 	int ret;
- 
-@@ -720,42 +720,6 @@ do_ptrace(long request, struct task_stru
- 	return ret;
- }
- 
--asmlinkage long sys_ptrace(long request, long pid, long addr, long data)
--{
--	struct task_struct *child;
--	int ret;
+-/* get registered SYSTEM_RAM resources in specified area */
+-extern int find_next_system_ram(struct resource *res);
 -
--	lock_kernel();
--	if (request == PTRACE_TRACEME) {
--		ret = ptrace_traceme();
--		goto out;
--	}
--
--	child = ptrace_get_task_struct(pid);
--	if (IS_ERR(child)) {
--		ret = PTR_ERR(child);
--		goto out;
--	}
--
--	if (request == PTRACE_ATTACH) {
--		ret = ptrace_attach(child);
--		if (ret == 0)
--			init_debug_traps(child);
--		goto out_tsk;
--	}
--
--	ret = ptrace_check_attach(child, request == PTRACE_KILL);
--	if (ret == 0)
--		ret = do_ptrace(request, child, addr, data);
--
--out_tsk:
--	put_task_struct(child);
--out:
--	unlock_kernel();
--
--	return ret;
--}
--
- /* notification of system call entry/exit
-  * - triggered by current->work.syscall_trace
-  */
-diff -puN include/asm-m32r/ptrace.h~m32r-convert-to-generic-sys_ptrace include/asm-m32r/ptrace.h
---- a/include/asm-m32r/ptrace.h~m32r-convert-to-generic-sys_ptrace
-+++ a/include/asm-m32r/ptrace.h
-@@ -120,7 +120,10 @@ struct pt_regs {
+ /* Convenience shorthand with allocation */
+ #define request_region(start,n,name)	__request_region(&ioport_resource, (start), (n), (name))
+ #define request_mem_region(start,n,name) __request_region(&iomem_resource, (start), (n), (name))
+diff -puN include/linux/memory_hotplug.h~memory-unplug-v7-memory-hotplug-cleanup include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~memory-unplug-v7-memory-hotplug-cleanup
++++ a/include/linux/memory_hotplug.h
+@@ -63,6 +63,14 @@ extern int online_pages(unsigned long, u
+ extern int __add_pages(struct zone *zone, unsigned long start_pfn,
+ 	unsigned long nr_pages);
  
- #include <asm/m32r.h>		/* M32R_PSW_BSM, M32R_PSW_BPM */
- 
--#define __ARCH_SYS_PTRACE	1
-+struct task_struct;
-+extern void init_debug_traps(struct task_struct *);
-+#define arch_ptrace_attach(child) \
-+	init_debug_traps(child)
- 
- #if defined(CONFIG_ISA_M32R2) || defined(CONFIG_CHIP_VDEC2)
- #define user_mode(regs) ((M32R_PSW_BPM & (regs)->psw) != 0)
-diff -puN kernel/ptrace.c~m32r-convert-to-generic-sys_ptrace kernel/ptrace.c
---- a/kernel/ptrace.c~m32r-convert-to-generic-sys_ptrace
-+++ a/kernel/ptrace.c
-@@ -453,6 +453,10 @@ struct task_struct *ptrace_get_task_stru
- 	return child;
- }
- 
-+#ifndef arch_ptrace_attach
-+#define arch_ptrace_attach(child)	do { } while (0)
-+#endif
++/*
++ * Walk thorugh all memory which is registered as resource.
++ * arg is (start_pfn, nr_pages, private_arg_pointer)
++ */
++extern int walk_memory_resource(unsigned long start_pfn,
++			unsigned long nr_pages, void *arg,
++			int (*func)(unsigned long, unsigned long, void *));
 +
- #ifndef __ARCH_SYS_PTRACE
- asmlinkage long sys_ptrace(long request, long pid, long addr, long data)
+ #ifdef CONFIG_NUMA
+ extern int memory_add_physaddr_to_nid(u64 start);
+ #else
+diff -puN kernel/resource.c~memory-unplug-v7-memory-hotplug-cleanup kernel/resource.c
+--- a/kernel/resource.c~memory-unplug-v7-memory-hotplug-cleanup
++++ a/kernel/resource.c
+@@ -234,7 +234,7 @@ EXPORT_SYMBOL(release_resource);
+  * the caller must specify res->start, res->end, res->flags.
+  * If found, returns 0, res is overwritten, if not found, returns -1.
+  */
+-int find_next_system_ram(struct resource *res)
++static int find_next_system_ram(struct resource *res)
  {
-@@ -476,6 +480,12 @@ asmlinkage long sys_ptrace(long request,
+ 	resource_size_t start, end;
+ 	struct resource *p;
+@@ -267,6 +267,30 @@ int find_next_system_ram(struct resource
+ 		res->end = p->end;
+ 	return 0;
+ }
++int
++walk_memory_resource(unsigned long start_pfn, unsigned long nr_pages, void *arg,
++			int (*func)(unsigned long, unsigned long, void *))
++{
++	struct resource res;
++	unsigned long pfn, len;
++	u64 orig_end;
++	int ret = -1;
++	res.start = (u64) start_pfn << PAGE_SHIFT;
++	res.end = ((u64)(start_pfn + nr_pages) << PAGE_SHIFT) - 1;
++	res.flags = IORESOURCE_MEM;
++	orig_end = res.end;
++	while ((res.start < res.end) && (find_next_system_ram(&res) >= 0)) {
++		pfn = (unsigned long)(res.start >> PAGE_SHIFT);
++		len = (unsigned long)((res.end + 1 - res.start) >> PAGE_SHIFT);
++		ret = (*func)(pfn, len, arg);
++		if (ret)
++			break;
++		res.start = res.end + 1;
++		res.end = orig_end;
++	}
++	return ret;
++}
++
+ #endif
  
- 	if (request == PTRACE_ATTACH) {
- 		ret = ptrace_attach(child);
-+		/*
-+		 * Some architectures need to do book-keeping after
-+		 * a ptrace attach.
-+		 */
-+		if (!ret)
-+			arch_ptrace_attach(child);
- 		goto out_put_task_struct;
- 	}
+ /*
+diff -puN mm/memory_hotplug.c~memory-unplug-v7-memory-hotplug-cleanup mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-unplug-v7-memory-hotplug-cleanup
++++ a/mm/memory_hotplug.c
+@@ -161,14 +161,27 @@ static void grow_pgdat_span(struct pglis
+ 					pgdat->node_start_pfn;
+ }
+ 
+-int online_pages(unsigned long pfn, unsigned long nr_pages)
++static int online_pages_range(unsigned long start_pfn, unsigned long nr_pages,
++			void *arg)
+ {
+ 	unsigned long i;
++	unsigned long onlined_pages = *(unsigned long *)arg;
++	struct page *page;
++	if (PageReserved(pfn_to_page(start_pfn)))
++		for (i = 0; i < nr_pages; i++) {
++			page = pfn_to_page(start_pfn + i);
++			online_page(page);
++			onlined_pages++;
++		}
++	*(unsigned long *)arg = onlined_pages;
++	return 0;
++}
++
++
++int online_pages(unsigned long pfn, unsigned long nr_pages)
++{
+ 	unsigned long flags;
+ 	unsigned long onlined_pages = 0;
+-	struct resource res;
+-	u64 section_end;
+-	unsigned long start_pfn;
+ 	struct zone *zone;
+ 	int need_zonelists_rebuild = 0;
+ 
+@@ -191,28 +204,8 @@ int online_pages(unsigned long pfn, unsi
+ 	if (!populated_zone(zone))
+ 		need_zonelists_rebuild = 1;
+ 
+-	res.start = (u64)pfn << PAGE_SHIFT;
+-	res.end = res.start + ((u64)nr_pages << PAGE_SHIFT) - 1;
+-	res.flags = IORESOURCE_MEM; /* we just need system ram */
+-	section_end = res.end;
+-
+-	while ((res.start < res.end) && (find_next_system_ram(&res) >= 0)) {
+-		start_pfn = (unsigned long)(res.start >> PAGE_SHIFT);
+-		nr_pages = (unsigned long)
+-                           ((res.end + 1 - res.start) >> PAGE_SHIFT);
+-
+-		if (PageReserved(pfn_to_page(start_pfn))) {
+-			/* this region's page is not onlined now */
+-			for (i = 0; i < nr_pages; i++) {
+-				struct page *page = pfn_to_page(start_pfn + i);
+-				online_page(page);
+-				onlined_pages++;
+-			}
+-		}
+-
+-		res.start = res.end + 1;
+-		res.end = section_end;
+-	}
++	walk_memory_resource(pfn, nr_pages, &onlined_pages,
++		online_pages_range);
+ 	zone->present_pages += onlined_pages;
+ 	zone->zone_pgdat->node_present_pages += onlined_pages;
  
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-partially-fix-up-the-lookup_one_noperm-mess.patch
-git-xfs.patch
-kill-declare_mutex_locked.patch
-remove-unneded-lock_kernel-in-driver-block-loopc.patch
-ufs-move-non-layout-parts-of-ufs_fsh-to-fs-ufs.patch
-fix-execute-checking-in-permission.patch
-exec-remove-unnecessary-check-for-mnt_noexec.patch
-fix-f_version-type-should-be-u64-instead-of-unsigned-long.patch
-f_dupfd_cloexec-implementation.patch
-f_dupfd_cloexec-implementation-fix-2.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-add-no-submounts-flag.patch
-ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
-knfsd-only-set-attr_kill_sid-if-attr_mode-isnt-being-explicitly-set.patch
-reiserfs-turn-of-attr_kill_sid-at-beginning-of-reiserfs_setattr.patch
-unionfs-fix-unionfs_setattr-to-handle-attr_kill_sid.patch
-vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
-nfs-if-attr_kill_sid-bits-are-set-then-skip-mode-change.patch
-cifs-ignore-mode-change-if-its-just-for-clearing-setuid-setgid-bits.patch
-r-o-bind-mounts-filesystem-helpers-for-custom-struct-files.patch
-r-o-bind-mounts-rearrange-may_open-to-be-r-o-friendly.patch
-r-o-bind-mounts-give-permission-a-local-mnt-variable.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
-make-reiserfs-stop-using-struct-file-for-internal.patch
-revoke-special-mmap-handling.patch
-revoke-core-code.patch
-revoke-support-for-ext2-and-ext3.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
-exportfs-add-fid-type.patch
-exportfs-add-new-methods.patch
-ext2-new-export-ops.patch
-ext3-new-export-ops.patch
-ext4-new-export-ops.patch
-efs-new-export-ops.patch
-jfs-new-export-ops.patch
-ntfs-new-export-ops.patch
-xfs-new-export-ops.patch
-fat-new-export-ops.patch
-isofs-new-export-ops.patch
-shmem-new-export-ops.patch
-reiserfs-new-export-ops.patch
-gfs2-new-export-ops.patch
-ocfs2-new-export-ops.patch
-exportfs-remove-old-methods.patch
-exportfs-make-struct-export_operations-const.patch
-exportfs-update-documentation.patch
-vfs-allow-filesystems-to-implement-atomic-opentruncate.patch
+git-sh.patch
+memory-controller-make-charging-gfp-mask-aware-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+add-irq-protection-in-the-percpu-counters-cpu-hotplug-callback-path.patch
