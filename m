@@ -1,128 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - uml-stop-using-libc-asm-pageh.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:36:58 -0700
-Message-ID: <200710162036.l9GKawju015237@imap1.linux-foundation.org>
+Subject: - clean-up-duplicate-includes-in-drivers-spi.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:39:39 -0700
+Message-ID: <200710162039.l9GKddF2015563@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54091 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58442 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753306AbXJPVIB (ORCPT
+	by vger.kernel.org with ESMTP id S936120AbXJPVHu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:08:01 -0400
+	Tue, 16 Oct 2007 17:07:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: stop using libc asm/page.h
+     Clean up duplicate includes in drivers/spi/
 has been removed from the -mm tree.  Its filename was
-     uml-stop-using-libc-asm-pageh.patch
+     clean-up-duplicate-includes-in-drivers-spi.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: stop using libc asm/page.h
-From: Jeff Dike <jdike@addtoit.com>
+Subject: Clean up duplicate includes in drivers/spi/
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-Remove includes of asm/page.h from libc code.  This header seems to be
-disappearing, and UML doesn't make much use of it anyway.
+This patch cleans up duplicate includes in
+	drivers/spi/
 
-The one use, PAGE_SHIFT in stub.h, is handled by copying the constant from the
-kernel side of the house in common_offsets.h.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Acked-by: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/common-offsets.h   |    1 +
- arch/um/include/sysdep-i386/stub.h |    3 +--
- arch/um/os-Linux/main.c            |    1 -
- arch/um/os-Linux/skas/mem.c        |    1 -
- arch/um/os-Linux/start_up.c        |    1 -
- arch/um/os-Linux/tt.c              |    1 -
- 6 files changed, 2 insertions(+), 6 deletions(-)
+ drivers/spi/pxa2xx_spi.c  |    1 -
+ drivers/spi/spi_bfin5xx.c |    1 -
+ 2 files changed, 2 deletions(-)
 
-diff -puN arch/um/include/common-offsets.h~uml-stop-using-libc-asm-pageh arch/um/include/common-offsets.h
---- a/arch/um/include/common-offsets.h~uml-stop-using-libc-asm-pageh
-+++ a/arch/um/include/common-offsets.h
-@@ -10,6 +10,7 @@ OFFSET(HOST_TASK_PID, task_struct, pid);
+diff -puN drivers/spi/pxa2xx_spi.c~clean-up-duplicate-includes-in-drivers-spi drivers/spi/pxa2xx_spi.c
+--- a/drivers/spi/pxa2xx_spi.c~clean-up-duplicate-includes-in-drivers-spi
++++ a/drivers/spi/pxa2xx_spi.c
+@@ -26,7 +26,6 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/spi/spi.h>
+ #include <linux/workqueue.h>
+-#include <linux/errno.h>
+ #include <linux/delay.h>
  
- DEFINE(UM_KERN_PAGE_SIZE, PAGE_SIZE);
- DEFINE(UM_KERN_PAGE_MASK, PAGE_MASK);
-+DEFINE(UM_KERN_PAGE_SHIFT, PAGE_SHIFT);
- DEFINE(UM_NSEC_PER_SEC, NSEC_PER_SEC);
+ #include <asm/io.h>
+diff -puN drivers/spi/spi_bfin5xx.c~clean-up-duplicate-includes-in-drivers-spi drivers/spi/spi_bfin5xx.c
+--- a/drivers/spi/spi_bfin5xx.c~clean-up-duplicate-includes-in-drivers-spi
++++ a/drivers/spi/spi_bfin5xx.c
+@@ -39,7 +39,6 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/spi/spi.h>
+ #include <linux/workqueue.h>
+-#include <linux/errno.h>
+ #include <linux/delay.h>
  
- DEFINE_STR(UM_KERN_EMERG, KERN_EMERG);
-diff -puN arch/um/include/sysdep-i386/stub.h~uml-stop-using-libc-asm-pageh arch/um/include/sysdep-i386/stub.h
---- a/arch/um/include/sysdep-i386/stub.h~uml-stop-using-libc-asm-pageh
-+++ a/arch/um/include/sysdep-i386/stub.h
-@@ -9,7 +9,6 @@
- #include <sys/mman.h>
- #include <asm/ptrace.h>
- #include <asm/unistd.h>
--#include <asm/page.h>
- #include "stub-data.h"
- #include "kern_constants.h"
- #include "uml-config.h"
-@@ -19,7 +18,7 @@ extern void stub_clone_handler(void);
- 
- #define STUB_SYSCALL_RET EAX
- #define STUB_MMAP_NR __NR_mmap2
--#define MMAP_OFFSET(o) ((o) >> PAGE_SHIFT)
-+#define MMAP_OFFSET(o) ((o) >> UM_KERN_PAGE_SHIFT)
- 
- static inline long stub_syscall0(long syscall)
- {
-diff -puN arch/um/os-Linux/main.c~uml-stop-using-libc-asm-pageh arch/um/os-Linux/main.c
---- a/arch/um/os-Linux/main.c~uml-stop-using-libc-asm-pageh
-+++ a/arch/um/os-Linux/main.c
-@@ -12,7 +12,6 @@
- #include <sys/resource.h>
- #include <sys/mman.h>
- #include <sys/user.h>
--#include <asm/page.h>
- #include "kern_util.h"
- #include "as-layout.h"
- #include "mem_user.h"
-diff -puN arch/um/os-Linux/skas/mem.c~uml-stop-using-libc-asm-pageh arch/um/os-Linux/skas/mem.c
---- a/arch/um/os-Linux/skas/mem.c~uml-stop-using-libc-asm-pageh
-+++ a/arch/um/os-Linux/skas/mem.c
-@@ -9,7 +9,6 @@
- #include <unistd.h>
- #include <sys/mman.h>
- #include <sys/wait.h>
--#include <asm/page.h>
- #include <asm/unistd.h>
- #include "mem_user.h"
- #include "mem.h"
-diff -puN arch/um/os-Linux/start_up.c~uml-stop-using-libc-asm-pageh arch/um/os-Linux/start_up.c
---- a/arch/um/os-Linux/start_up.c~uml-stop-using-libc-asm-pageh
-+++ a/arch/um/os-Linux/start_up.c
-@@ -19,7 +19,6 @@
- #include <sys/mman.h>
- #include <sys/resource.h>
- #include <asm/unistd.h>
--#include <asm/page.h>
- #include <sys/types.h>
- #include "kern_util.h"
- #include "user.h"
-diff -puN arch/um/os-Linux/tt.c~uml-stop-using-libc-asm-pageh arch/um/os-Linux/tt.c
---- a/arch/um/os-Linux/tt.c~uml-stop-using-libc-asm-pageh
-+++ a/arch/um/os-Linux/tt.c
-@@ -17,7 +17,6 @@
- #include <sys/mman.h>
- #include <asm/ptrace.h>
- #include <asm/unistd.h>
--#include <asm/page.h>
- #include "kern_util.h"
- #include "user.h"
- #include "signal_kern.h"
+ #include <asm/io.h>
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
 origin.patch
-git-kvm.patch
-uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
-bitops-introduce-lock-ops.patch
+git-alsa.patch
+git-cifs.patch
+mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
+git-xfs.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+clean-up-duplicate-includes-in-drivers-w1.patch
+clean-up-duplicate-includes-in-fs.patch
+clean-up-duplicate-includes-in-fs-ecryptfs.patch
+clean-up-duplicate-includes-in-kernel.patch
+avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
+docs-ramdisk-initrd-initramfs-corrections.patch
+floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
+floppy-remove-dead-commented-out-code-from-floppy-driver.patch
+floppy-remove-register-keyword-use-from-floppy-driver.patch
+clean-up-duplicate-includes-in-documentation.patch
+add-a-missing-00-index-file-for-documentation-vm.patch
+add-a-missing-00-index-file-for-documentation-vm-fix.patch
+add-a-00-index-file-to-documentation-mips.patch
+add-a-00-index-file-to-documentation-sysctl.patch
+add-a-00-index-file-to-documentation-telephony.patch
+mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
+mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
+cyclades-avoid-label-defined-but-not-used-warning.patch
