@@ -1,313 +1,343 @@
 From: akpm@linux-foundation.org
-Subject: - s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:43:25 -0700
-Message-ID: <200710162043.l9GKhPEG016047@imap1.linux-foundation.org>
+Subject: - tdfxfb-hardware-cursor.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:42:47 -0700
+Message-ID: <200710162042.l9GKglwH015916@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35865 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40345 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935221AbXJPVQF (ORCPT
+	by vger.kernel.org with ESMTP id S934575AbXJPVQO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:16:05 -0400
+	Tue, 16 Oct 2007 17:16:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s3c2410fb: remove lcdcon2 and lcdcon3 register fields
+     tdfxfb: hardware cursor
 has been removed from the -mm tree.  Its filename was
-     s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields.patch
+     tdfxfb-hardware-cursor.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: s3c2410fb: remove lcdcon2 and lcdcon3 register fields
+Subject: tdfxfb: hardware cursor
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-This patch removes unused lcdcon2 and lcdcon3 register value
-from the s3c2410fb_display structure.
+This patch adds hardware cursor support to the tdfxfb driver.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-s3c2410/mach-amlm5900.c |    2 --
- arch/arm/mach-s3c2410/mach-bast.c     |   18 ------------------
- arch/arm/mach-s3c2410/mach-h1940.c    |   10 ----------
- arch/arm/mach-s3c2410/mach-qt2410.c   |   24 ------------------------
- arch/arm/mach-s3c2440/mach-rx3715.c   |   10 ----------
- arch/arm/mach-s3c2440/mach-smdk2440.c |    8 --------
- drivers/video/s3c2410fb.c             |    8 ++------
- include/asm-arm/arch-s3c2410/fb.h     |    3 ---
- 8 files changed, 2 insertions(+), 81 deletions(-)
+ drivers/video/tdfxfb.c |  169 +++++++++++++++++----------------------
+ include/video/tdfx.h   |    8 -
+ 2 files changed, 74 insertions(+), 103 deletions(-)
 
-diff -puN arch/arm/mach-s3c2410/mach-amlm5900.c~s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields arch/arm/mach-s3c2410/mach-amlm5900.c
---- a/arch/arm/mach-s3c2410/mach-amlm5900.c~s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields
-+++ a/arch/arm/mach-s3c2410/mach-amlm5900.c
-@@ -184,8 +184,6 @@ static struct s3c2410fb_display __initda
- 	.lower_margin	= 0,
+diff -puN drivers/video/tdfxfb.c~tdfxfb-hardware-cursor drivers/video/tdfxfb.c
+--- a/drivers/video/tdfxfb.c~tdfxfb-hardware-cursor
++++ a/drivers/video/tdfxfb.c
+@@ -67,7 +67,6 @@
+ #include <linux/init.h>
+ #include <linux/pci.h>
+ #include <asm/io.h>
+-#include <linux/timer.h>
+ #include <linux/spinlock.h>
  
- 	.lcdcon1	= 0x00008225,
--	.lcdcon2	= 0x0027c000,
--	.lcdcon4	= 0x00000002,
- 	.lcdcon5	= 0x00000001,
- };
+ #include <video/tdfx.h>
+@@ -148,8 +147,9 @@ MODULE_DEVICE_TABLE(pci, tdfxfb_id_table
+ /*
+  * Driver data
+  */
+-static int  nopan   = 0;
+-static int  nowrap  = 1;      // not implemented (yet)
++static int nopan;
++static int nowrap = 1;      /* not implemented (yet) */
++static int hwcursor = 1;
+ static char *mode_option __devinitdata = NULL;
  
-diff -puN arch/arm/mach-s3c2410/mach-bast.c~s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields arch/arm/mach-s3c2410/mach-bast.c
---- a/arch/arm/mach-s3c2410/mach-bast.c~s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields
-+++ a/arch/arm/mach-s3c2410/mach-bast.c
-@@ -485,8 +485,6 @@ static struct s3c2410fb_display __initda
- 		.bpp		= 4,
+ /* -------------------------------------------------------------------------
+@@ -378,7 +378,7 @@ static void do_write_regs(struct fb_info
+ 	tdfx_outl(par, VGAINIT0, reg->vgainit0);
+ 	tdfx_outl(par, DACMODE, reg->dacmode);
+ 	tdfx_outl(par, VIDDESKSTRIDE, reg->stride);
+-	tdfx_outl(par, HWCURPATADDR, 0);
++	tdfx_outl(par, HWCURPATADDR, reg->curspataddr);
  
- 		.lcdcon1	= 0x00000176,
--		.lcdcon2	= 0x1d77c7c2,
--		.lcdcon4	= 0x00000057,
- 		.lcdcon5	= 0x00014b02,
- 	},
- 	{
-@@ -505,8 +503,6 @@ static struct s3c2410fb_display __initda
- 		.vsync_len	= 3,
+ 	tdfx_outl(par, VIDSCREENSIZE, reg->screensize);
+ 	tdfx_outl(par, VIDDESKSTART, reg->startaddr);
+@@ -453,6 +453,7 @@ static int tdfxfb_check_var(struct fb_va
+ 		DPRINTK("xoffset not supported\n");
+ 		return -EINVAL;
+ 	}
++	var->yoffset = 0;
  
- 		.lcdcon1	= 0x00000176,
--		.lcdcon2	= 0x1d77c7c2,
--		.lcdcon4	= 0x00000057,
- 		.lcdcon5	= 0x00014b02,
- 	},
- 	{
-@@ -525,8 +521,6 @@ static struct s3c2410fb_display __initda
- 		.vsync_len	= 3,
+ 	/* Banshee doesn't support interlace, but Voodoo4/5 and probably Voodoo3 do. */
+ 	/* no direct information about device id now? use max_pixclock for this... */
+@@ -663,6 +664,9 @@ static int tdfxfb_set_par(struct fb_info
+ 			VGAINIT0_EXTSHIFTOUT;
+ 	reg.vgainit1 = tdfx_inl(par, VGAINIT1) & 0x1fffff;
  
- 		.lcdcon1	= 0x00000176,
--		.lcdcon2	= 0x1d77c7c2,
--		.lcdcon4	= 0x00000057,
- 		.lcdcon5	= 0x00014b02,
- 	},
- 	{
-@@ -545,8 +539,6 @@ static struct s3c2410fb_display __initda
- 		.vsync_len	= 3,
++	if (hwcursor)
++		reg.curspataddr = info->fix.smem_len;
++
+ 	reg.cursloc   = 0;
  
- 		.lcdcon1	= 0x00000176,
--		.lcdcon2	= 0x1d77c7c2,
--		.lcdcon4	= 0x00000057,
- 		.lcdcon5	= 0x00014b02,
- 	},
- 	{
-@@ -565,8 +557,6 @@ static struct s3c2410fb_display __initda
- 		.vsync_len	= 3,
- 
- 		.lcdcon1	= 0x00000176,
--		.lcdcon2	= 0x1d77c7c2,
--		.lcdcon4	= 0x00000057,
- 		.lcdcon5	= 0x00014b02,
- 	},
- 	{
-@@ -585,8 +575,6 @@ static struct s3c2410fb_display __initda
- 		.vsync_len	= 3,
- 
- 		.lcdcon1	= 0x00000176,
--		.lcdcon2	= 0x1d77c7c2,
--		.lcdcon4	= 0x00000057,
- 		.lcdcon5	= 0x00014b02,
- 	},
- 	{
-@@ -605,8 +593,6 @@ static struct s3c2410fb_display __initda
- 		.vsync_len	= 3,
- 
- 		.lcdcon1	= 0x00000176,
--		.lcdcon2	= 0x1d77c7c2,
--		.lcdcon4	= 0x00000057,
- 		.lcdcon5	= 0x00014b02,
- 	},
- 	{
-@@ -625,8 +611,6 @@ static struct s3c2410fb_display __initda
- 		.vsync_len	= 3,
- 
- 		.lcdcon1	= 0x00000176,
--		.lcdcon2	= 0x1d77c7c2,
--		.lcdcon4	= 0x00000057,
- 		.lcdcon5	= 0x00014b02,
- 	},
- 	{
-@@ -645,8 +629,6 @@ static struct s3c2410fb_display __initda
- 		.vsync_len	= 3,
- 
- 		.lcdcon1	= 0x00000176,
--		.lcdcon2	= 0x1d77c7c2,
--		.lcdcon4	= 0x00000057,
- 		.lcdcon5	= 0x00014b02,
- 	},
- };
-diff -puN arch/arm/mach-s3c2410/mach-h1940.c~s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields arch/arm/mach-s3c2410/mach-h1940.c
---- a/arch/arm/mach-s3c2410/mach-h1940.c~s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields
-+++ a/arch/arm/mach-s3c2410/mach-h1940.c
-@@ -138,14 +138,6 @@ static struct s3c2410fb_display h1940_lc
- 			S3C2410_LCDCON1_TFT | \
- 			S3C2410_LCDCON1_CLKVAL(0x0C),
- 
--	.lcdcon2=	S3C2410_LCDCON2_VBPD(7) | \
--			S3C2410_LCDCON2_LINEVAL(319) | \
--			S3C2410_LCDCON2_VFPD(6) | \
--			S3C2410_LCDCON2_VSPW(0),
--
--	.lcdcon4=	S3C2410_LCDCON4_MVAL(0) | \
--			S3C2410_LCDCON4_HSPW(3),
--
- 	.lcdcon5=	S3C2410_LCDCON5_FRM565 | \
- 			S3C2410_LCDCON5_INVVLINE | \
- 			S3C2410_LCDCON5_HWSWP,
-@@ -165,8 +157,6 @@ static struct s3c2410fb_display h1940_lc
- };
- 
- static struct s3c2410fb_mach_info h1940_fb_info __initdata = {
--	.fixed_syncs =		1,
--
- 	.displays = &h1940_lcd,
- 	.num_displays = 1,
- 	.default_display = 0,
-diff -puN arch/arm/mach-s3c2410/mach-qt2410.c~s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields arch/arm/mach-s3c2410/mach-qt2410.c
---- a/arch/arm/mach-s3c2410/mach-qt2410.c~s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields
-+++ a/arch/arm/mach-s3c2410/mach-qt2410.c
-@@ -102,14 +102,6 @@ static struct s3c2410fb_display qt2410_l
- 			   S3C2410_LCDCON1_TFT |
- 			   S3C2410_LCDCON1_CLKVAL(0x01), /* HCLK/4 */
- 
--		.lcdcon2 = S3C2410_LCDCON2_VBPD(18) |	/* 19 */
--			   S3C2410_LCDCON2_LINEVAL(479) |
--			   S3C2410_LCDCON2_VFPD(10) |	/* 11 */
--			   S3C2410_LCDCON2_VSPW(14),	/* 15 */
--
--		.lcdcon4 = S3C2410_LCDCON4_MVAL(0) |
--			   S3C2410_LCDCON4_HSPW(95),	/* 96 */
--
- 		.lcdcon5 = S3C2410_LCDCON5_FRM565 |
- 			   S3C2410_LCDCON5_INVVLINE |
- 			   S3C2410_LCDCON5_INVVFRAME |
-@@ -136,14 +128,6 @@ static struct s3c2410fb_display qt2410_l
- 			   S3C2410_LCDCON1_TFT |
- 			   S3C2410_LCDCON1_CLKVAL(0x01), /* HCLK/4 */
- 
--		.lcdcon2 = S3C2410_LCDCON2_VBPD(1) |	/* 2 */
--			   S3C2410_LCDCON2_LINEVAL(639) |/* 640 */
--			   S3C2410_LCDCON2_VFPD(3) |	/* 4 */
--			   S3C2410_LCDCON2_VSPW(1),	/* 2 */
--
--		.lcdcon4 = S3C2410_LCDCON4_MVAL(0) |
--			   S3C2410_LCDCON4_HSPW(7),	/* 8 */
--
- 		.lcdcon5 = S3C2410_LCDCON5_FRM565 |
- 			   S3C2410_LCDCON5_INVVLINE |
- 			   S3C2410_LCDCON5_INVVFRAME |
-@@ -169,14 +153,6 @@ static struct s3c2410fb_display qt2410_l
- 			   S3C2410_LCDCON1_TFT |
- 			   S3C2410_LCDCON1_CLKVAL(0x04),
- 
--		.lcdcon2 = S3C2410_LCDCON2_VBPD(1) |
--			   S3C2410_LCDCON2_LINEVAL(319) |
--			   S3C2410_LCDCON2_VFPD(6) |
--			   S3C2410_LCDCON2_VSPW(3),
--
--		.lcdcon4 = S3C2410_LCDCON4_MVAL(0) |
--			   S3C2410_LCDCON4_HSPW(3),
--
- 		.lcdcon5 = S3C2410_LCDCON5_FRM565 |
- 			   S3C2410_LCDCON5_INVVLINE |
- 			   S3C2410_LCDCON5_INVVFRAME |
-diff -puN arch/arm/mach-s3c2440/mach-rx3715.c~s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields arch/arm/mach-s3c2440/mach-rx3715.c
---- a/arch/arm/mach-s3c2440/mach-rx3715.c~s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields
-+++ a/arch/arm/mach-s3c2440/mach-rx3715.c
-@@ -115,14 +115,6 @@ static struct s3c2410fb_display rx3715_l
- 			S3C2410_LCDCON1_TFT | \
- 			S3C2410_LCDCON1_CLKVAL(0x0C),
- 
--	.lcdcon2 =	S3C2410_LCDCON2_VBPD(5) | \
--			S3C2410_LCDCON2_LINEVAL(319) | \
--			S3C2410_LCDCON2_VFPD(6) | \
--			S3C2410_LCDCON2_VSPW(2),
--
--	.lcdcon4 =	S3C2410_LCDCON4_MVAL(0) | \
--			S3C2410_LCDCON4_HSPW(7),
--
- 	.lcdcon5 =	S3C2410_LCDCON5_INVVLINE |
- 			S3C2410_LCDCON5_FRM565 |
- 			S3C2410_LCDCON5_HWSWP,
-@@ -159,8 +151,6 @@ static struct s3c2410fb_mach_info rx3715
- 	.gpdcon_mask =	0xffc0fff0,
- 	.gpdup =	0x0000faff,
- 	.gpdup_mask =	0xffffffff,
--
--	.fixed_syncs =	1,
- };
- 
- static struct mtd_partition rx3715_nand_part[] = {
-diff -puN arch/arm/mach-s3c2440/mach-smdk2440.c~s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields arch/arm/mach-s3c2440/mach-smdk2440.c
---- a/arch/arm/mach-s3c2440/mach-smdk2440.c~s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields
-+++ a/arch/arm/mach-s3c2440/mach-smdk2440.c
-@@ -109,14 +109,6 @@ static struct s3c2410fb_display smdk2440
- 			  S3C2410_LCDCON1_TFT |
- 			  S3C2410_LCDCON1_CLKVAL(0x04),
- 
--	.lcdcon2	= S3C2410_LCDCON2_VBPD(7) |
--			  S3C2410_LCDCON2_LINEVAL(319) |
--			  S3C2410_LCDCON2_VFPD(6) |
--			  S3C2410_LCDCON2_VSPW(3),
--
--	.lcdcon4	= S3C2410_LCDCON4_MVAL(0) |
--			  S3C2410_LCDCON4_HSPW(3),
--
- 	.lcdcon5	= S3C2410_LCDCON5_FRM565 |
- 			  S3C2410_LCDCON5_INVVLINE |
- 			  S3C2410_LCDCON5_INVVFRAME |
-diff -puN drivers/video/s3c2410fb.c~s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields drivers/video/s3c2410fb.c
---- a/drivers/video/s3c2410fb.c~s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields
-+++ a/drivers/video/s3c2410fb.c
-@@ -341,8 +341,7 @@ static void s3c2410fb_calculate_stn_lcd_
- 			S3C2410_LCDCON3_LINEBLANK(var->right_margin / 8) |
- 			S3C2410_LCDCON3_HOZVAL(hs - 1);
- 
--	regs->lcdcon4 &= ~S3C2410_LCDCON4_HSPW(0xff);
--	regs->lcdcon4 |=  S3C2410_LCDCON4_HSPW(wlh);
-+	regs->lcdcon4 = S3C2410_LCDCON4_WLH(wlh);
+ 	reg.cursc0    = 0;
+@@ -1012,11 +1016,25 @@ static void tdfxfb_imageblit(struct fb_i
  }
+ #endif /* CONFIG_FB_3DFX_ACCEL */
  
- /* s3c2410fb_calculate_tft_lcd_regs
-@@ -399,8 +398,7 @@ static void s3c2410fb_calculate_tft_lcd_
- 			S3C2410_LCDCON3_HFPD(var->left_margin - 1) |
- 			S3C2410_LCDCON3_HOZVAL(var->xres - 1);
+-#ifdef TDFX_HARDWARE_CURSOR
+ static int tdfxfb_cursor(struct fb_info *info, struct fb_cursor *cursor)
+ {
+ 	struct tdfx_par *par = info->par;
+-	unsigned long flags;
++	u32 vidcfg;
++
++	if (!hwcursor)
++		return -EINVAL;	/* just to force soft_cursor() call */
++
++	/* Too large of a cursor or wrong bpp :-( */
++	if (cursor->image.width > 64 ||
++	    cursor->image.height > 64 ||
++	    cursor->image.depth > 1)
++		return -EINVAL;
++
++	vidcfg = tdfx_inl(par, VIDPROCCFG);
++	if (cursor->enable)
++		tdfx_outl(par, VIDPROCCFG, vidcfg | VIDCFG_HWCURSOR_ENABLE);
++	else
++		tdfx_outl(par, VIDPROCCFG, vidcfg & ~VIDCFG_HWCURSOR_ENABLE);
  
--	regs->lcdcon4 &= ~S3C2410_LCDCON4_HSPW(0xff);
--	regs->lcdcon4 |=  S3C2410_LCDCON4_HSPW(var->hsync_len - 1);
-+	regs->lcdcon4 = S3C2410_LCDCON4_HSPW(var->hsync_len - 1);
+ 	/*
+ 	 * If the cursor is not be changed this means either we want the
+@@ -1026,69 +1044,34 @@ static int tdfxfb_cursor(struct fb_info 
+ 	if (!cursor->set)
+ 		return 0;
+ 
+-	/* Too large of a cursor :-( */
+-	if (cursor->image.width > 64 || cursor->image.height > 64)
+-		return -ENXIO;
+-
+-	/*
+-	 * If we are going to be changing things we should disable
+-	 * the cursor first
+-	 */
+-	if (info->cursor.enable) {
+-		spin_lock_irqsave(&par->DAClock, flags);
+-		info->cursor.enable = 0;
+-		del_timer(&(par->hwcursor.timer));
+-		tdfx_outl(par, VIDPROCCFG, par->hwcursor.disable);
+-		spin_unlock_irqrestore(&par->DAClock, flags);
+-	}
+-
+-	/* Disable the Cursor */
+-	if ((cursor->set && FB_CUR_SETCUR) && !cursor->enable)
+-		return 0;
+-
+ 	/* fix cursor color - XFree86 forgets to restore it properly */
+-	if (cursor->set && FB_CUR_SETCMAP) {
+-		struct fb_cmap cmap = cursor->image.cmap;
++	if (cursor->set & FB_CUR_SETCMAP) {
++		struct fb_cmap cmap = info->cmap;
++		u32 bg_idx = cursor->image.bg_color;
++		u32 fg_idx = cursor->image.fg_color;
+ 		unsigned long bg_color, fg_color;
+ 
+-		cmap.len = 2; /* Voodoo 3+ only support 2 color cursors */
+-		fg_color = ((cmap.red[cmap.start] << 16) |
+-			    (cmap.green[cmap.start] << 8) |
+-			    (cmap.blue[cmap.start]));
+-		bg_color = ((cmap.red[cmap.start + 1] << 16) |
+-			    (cmap.green[cmap.start + 1] << 8) |
+-			    (cmap.blue[cmap.start + 1]));
+-		fb_copy_cmap(&cmap, &info->cursor.image.cmap);
+-		spin_lock_irqsave(&par->DAClock, flags);
++		fg_color = (((u32)cmap.red[fg_idx]   & 0xff00) << 8) |
++			   (((u32)cmap.green[fg_idx] & 0xff00) << 0) |
++			   (((u32)cmap.blue[fg_idx]  & 0xff00) >> 8);
++		bg_color = (((u32)cmap.red[bg_idx]   & 0xff00) << 8) |
++			   (((u32)cmap.green[bg_idx] & 0xff00) << 0) |
++			   (((u32)cmap.blue[bg_idx]  & 0xff00) >> 8);
+ 		banshee_make_room(par, 2);
+ 		tdfx_outl(par, HWCURC0, bg_color);
+ 		tdfx_outl(par, HWCURC1, fg_color);
+-		spin_unlock_irqrestore(&par->DAClock, flags);
+ 	}
+ 
+-	if (cursor->set && FB_CUR_SETPOS) {
+-		int x, y;
++	if (cursor->set & FB_CUR_SETPOS) {
++		int x = cursor->image.dx;
++		int y = cursor->image.dy - info->var.yoffset;
+ 
+-		x = cursor->image.dx;
+-		y = cursor->image.dy;
+-		y -= info->var.yoffset;
+-		info->cursor.image.dx = x;
+-		info->cursor.image.dy = y;
+ 		x += 63;
+ 		y += 63;
+-		spin_lock_irqsave(&par->DAClock, flags);
+ 		banshee_make_room(par, 1);
+ 		tdfx_outl(par, HWCURLOC, (y << 16) + x);
+-		spin_unlock_irqrestore(&par->DAClock, flags);
+ 	}
+-
+-	/* Not supported so we fake it */
+-	if (cursor->set && FB_CUR_SETHOT) {
+-		info->cursor.hot.x = cursor->hot.x;
+-		info->cursor.hot.y = cursor->hot.y;
+-	}
+-
+-	if (cursor->set && FB_CUR_SETSHAPE) {
++	if (cursor->set & (FB_CUR_SETIMAGE | FB_CUR_SETSHAPE)) {
+ 		/*
+ 		 * Voodoo 3 and above cards use 2 monochrome cursor patterns.
+ 		 *    The reason is so the card can fetch 8 words at a time
+@@ -1096,7 +1079,7 @@ static int tdfxfb_cursor(struct fb_info 
+ 		 * This reduces the number of times for access to draw the
+ 		 * cursor for each screen refresh.
+ 		 *    Each pattern is a bitmap of 64 bit wide and 64 bit high
+-		 * (total of 8192 bits or 1024 Kbytes). The two patterns are
++		 * (total of 8192 bits or 1024 bytes). The two patterns are
+ 		 * stored in such a way that pattern 0 always resides in the
+ 		 * lower half (least significant 64 bits) of a 128 bit word
+ 		 * and pattern 1 the upper half. If you examine the data of
+@@ -1107,50 +1090,34 @@ static int tdfxfb_cursor(struct fb_info 
+ 		 * (128 bits) which is the maximum cursor width times two for
+ 		 * the two monochrome patterns.
+ 		 */
+-		u8 *cursorbase = (u8 *)info->cursor.image.data;
+-		char *bitmap = (char *)cursor->image.data;
+-		char *mask = (char *)cursor->mask;
+-		int i, j, k, h = 0;
+-
+-		for (i = 0; i < 64; i++) {
+-			if (i < cursor->image.height) {
+-				j = (cursor->image.width + 7) >> 3;
+-				k = 8 - j;
+-
+-				for (; j > 0; j--) {
+-					/* Pattern 0. Copy the cursor bitmap to it */
+-					fb_writeb(*bitmap, cursorbase + h);
+-					bitmap++;
+-					/* Pattern 1. Copy the cursor mask to it */
+-					fb_writeb(*mask, cursorbase + h + 8);
+-					mask++;
+-					h++;
+-				}
+-				for (; k > 0; k--) {
+-					fb_writeb(0, cursorbase + h);
+-					fb_writeb(~0, cursorbase + h + 8);
+-					h++;
+-				}
+-			} else {
+-				fb_writel(0, cursorbase + h);
+-				fb_writel(0, cursorbase + h + 4);
+-				fb_writel(~0, cursorbase + h + 8);
+-				fb_writel(~0, cursorbase + h + 12);
+-				h += 16;
++		u8 __iomem *cursorbase = info->screen_base + info->fix.smem_len;
++		u8 *bitmap = (u8 *)cursor->image.data;
++		u8 *mask = (u8 *)cursor->mask;
++		int i;
++
++		fb_memset(cursorbase, 0, 1024);
++
++		for (i = 0; i < cursor->image.height; i++) {
++			int h = 0;
++			int j = (cursor->image.width + 7) >> 3;
++
++			for (; j > 0; j--) {
++				u8 data = *mask ^ *bitmap;
++				if (cursor->rop == ROP_COPY)
++					data = *mask & *bitmap;
++				/* Pattern 0. Copy the cursor mask to it */
++				fb_writeb(*mask, cursorbase + h);
++				mask++;
++				/* Pattern 1. Copy the cursor bitmap to it */
++				fb_writeb(data, cursorbase + h + 8);
++				bitmap++;
++				h++;
+ 			}
++			cursorbase += 16;
+ 		}
+ 	}
+-	/* Turn the cursor on */
+-	cursor->enable = 1;
+-	info->cursor = *cursor;
+-	mod_timer(&par->hwcursor.timer, jiffies + HZ / 2);
+-	spin_lock_irqsave(&par->DAClock, flags);
+-	banshee_make_room(par, 1);
+-	tdfx_outl(par, VIDPROCCFG, par->hwcursor.enable);
+-	spin_unlock_irqrestore(&par->DAClock, flags);
+ 	return 0;
  }
+-#endif
  
- /* s3c2410fb_activate_var
-@@ -850,8 +848,6 @@ static int __init s3c2410fb_probe(struct
- 	strcpy(fbinfo->fix.id, driver_name);
+ static struct fb_ops tdfxfb_ops = {
+ 	.owner		= THIS_MODULE,
+@@ -1160,6 +1127,7 @@ static struct fb_ops tdfxfb_ops = {
+ 	.fb_blank	= tdfxfb_blank,
+ 	.fb_pan_display	= tdfxfb_pan_display,
+ 	.fb_sync	= banshee_wait_idle,
++	.fb_cursor	= tdfxfb_cursor,
+ #ifdef CONFIG_FB_3DFX_ACCEL
+ 	.fb_fillrect	= tdfxfb_fillrect,
+ 	.fb_copyarea	= tdfxfb_copyarea,
+@@ -1272,6 +1240,11 @@ static int __devinit tdfxfb_probe(struct
+ 				   FBINFO_HWACCEL_IMAGEBLIT |
+ 				   FBINFO_READS_FAST;
+ #endif
++	/* reserve 8192 bits for cursor */
++	/* the 2.4 driver says PAGE_MASK boundary is not enough for Voodoo4 */
++	if (hwcursor)
++		info->fix.smem_len = (info->fix.smem_len - 1024) &
++					(PAGE_MASK << 1);
  
- 	info->regs.lcdcon1 = display->lcdcon1;
--	info->regs.lcdcon2 = display->lcdcon2;
--	info->regs.lcdcon4 = display->lcdcon4;
- 	info->regs.lcdcon5 = display->lcdcon5;
+ 	if (!mode_option)
+ 		mode_option = "640x480@60";
+@@ -1336,6 +1309,8 @@ static void tdfxfb_setup(char *options)
+ 			nopan = 1;
+ 		} else if (!strcmp(this_opt, "nowrap")) {
+ 			nowrap = 1;
++		} else if (!strcmp(this_opt, "hwcursor")) {
++			hwcursor = simple_strtoul(opt + 9, NULL, 0);
+ 		} else {
+ 			mode_option = this_opt;
+ 		}
+@@ -1394,5 +1369,9 @@ MODULE_AUTHOR("Hannu Mallat <hmallat@cc.
+ MODULE_DESCRIPTION("3Dfx framebuffer device driver");
+ MODULE_LICENSE("GPL");
  
- 	/* Stop the video and unset ENVID if set */
-diff -puN include/asm-arm/arch-s3c2410/fb.h~s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields include/asm-arm/arch-s3c2410/fb.h
---- a/include/asm-arm/arch-s3c2410/fb.h~s3c2410fb-remove-lcdcon2-and-lcdcon3-register-fields
-+++ a/include/asm-arm/arch-s3c2410/fb.h
-@@ -45,13 +45,10 @@ struct s3c2410fb_display {
- 
- 	/* lcd configuration registers */
- 	unsigned long	lcdcon1;
--	unsigned long	lcdcon2;
--	unsigned long	lcdcon4;
- 	unsigned long	lcdcon5;
++module_param(hwcursor, int, 0644);
++MODULE_PARM_DESC(hwcursor, "Enable hardware cursor "
++			"(1=enable, 0=disable, default=1)");
++
+ module_init(tdfxfb_init);
+ module_exit(tdfxfb_exit);
+diff -puN include/video/tdfx.h~tdfxfb-hardware-cursor include/video/tdfx.h
+--- a/include/video/tdfx.h~tdfxfb-hardware-cursor
++++ a/include/video/tdfx.h
+@@ -175,14 +175,6 @@ struct tdfx_par {
+ 	u32 palette[16];
+ 	void __iomem *regbase_virt;
+ 	unsigned long iobase;
+-
+-	struct {
+-		int w, u, d;
+-		unsigned long enable, disable;
+-		struct timer_list timer;
+-	} hwcursor;
+-
+-	spinlock_t DAClock;
  };
  
- struct s3c2410fb_mach_info {
--	unsigned char	fixed_syncs;	/* do not update sync/border */
- 
- 	struct s3c2410fb_display *displays;	/* attached diplays info */
- 	unsigned num_displays;			/* number of defined displays */
+ #endif	/* __KERNEL__ */
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
