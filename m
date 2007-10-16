@@ -1,231 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: - sparsemem-clean-up-spelling-error-in-comments.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:30:18 -0700
-Message-ID: <200710162030.l9GKUICu014390@imap1.linux-foundation.org>
+Subject: - force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 14:55:27 -0700
+Message-ID: <200710162155.l9GLtRaQ019515@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46364 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53970 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966125AbXJPV4U (ORCPT
+	by vger.kernel.org with ESMTP id S933653AbXJPV41 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:56:20 -0400
+	Tue, 16 Oct 2007 17:56:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@shadowen.org, ak@suse.de, benh@kernel.crashing.org, clameter@sgi.com, davem@davemloft.net, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, paulus@samba.org, tony.luck@intel.com, mm
+To: akpm@linux-foundation.org, rpjday@mindspring.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sparsemem: clean up spelling error in comments
+     force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix
 has been removed from the -mm tree.  Its filename was
-     sparsemem-clean-up-spelling-error-in-comments.patch
+     force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
 
 ------------------------------------------------------
-Subject: sparsemem: clean up spelling error in comments
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-SPARSEMEM is a pretty nice framework that unifies quite a bit of code over all
-the arches.  It would be great if it could be the default so that we can get
-rid of various forms of DISCONTIG and other variations on memory maps.  So far
-what has hindered this are the additional lookups that SPARSEMEM introduces
-for virt_to_page and page_address.  This goes so far that the code to do this
-has to be kept in a separate function and cannot be used inline.
+eh?
 
-This patch introduces a virtual memmap mode for SPARSEMEM, in which the memmap
-is mapped into a virtually contigious area, only the active sections are
-physically backed.  This allows virt_to_page page_address and cohorts become
-simple shift/add operations.  No page flag fields, no table lookups, nothing
-involving memory is required.
-
-The two key operations pfn_to_page and page_to_page become:
-
-   #define __pfn_to_page(pfn)      (vmemmap + (pfn))
-   #define __page_to_pfn(page)     ((page) - vmemmap)
-
-By having a virtual mapping for the memmap we allow simple access without
-wasting physical memory.  As kernel memory is typically already mapped 1:1
-this introduces no additional overhead.  The virtual mapping must be big
-enough to allow a struct page to be allocated and mapped for all valid
-physical pages.  This vill make a virtual memmap difficult to use on 32 bit
-platforms that support 36 address bits.
-
-However, if there is enough virtual space available and the arch already maps
-its 1-1 kernel space using TLBs (f.e.  true of IA64 and x86_64) then this
-technique makes SPARSEMEM lookups even more efficient than CONFIG_FLATMEM. 
-FLATMEM needs to read the contents of the mem_map variable to get the start of
-the memmap and then add the offset to the required entry.  vmemmap is a
-constant to which we can simply add the offset.
-
-This patch has the potential to allow us to make SPARSMEM the default (and
-even the only) option for most systems.  It should be optimal on UP, SMP and
-NUMA on most platforms.  Then we may even be able to remove the other memory
-models: FLATMEM, DISCONTIG etc.
-
-The current aim is to bring a common virtually mapped mem_map to all
-architectures.  This should facilitate the removal of the bespoke
-implementations from the architectures.  This also brings performance
-improvements for most architecture making sparsmem vmemmap the more desirable
-memory model.  The ultimate aim of this work is to expand sparsemem support to
-encompass all the features of the other memory models.  This could allow us to
-drop support for and remove the other models in the longer term.
-
-Below are some comparitive kernbench numbers for various architectures,
-comparing default memory model against SPARSEMEM VMEMMAP.  All but ia64 show
-marginal improvement; we expect the ia64 figures to be sorted out when the
-larger mapping support returns.
-
-x86-64 non-NUMA
-             Base    VMEMAP    % change (-ve good)
-User        85.07     84.84    -0.26
-System      34.32     33.84    -1.39
-Total      119.38    118.68    -0.59
-
-ia64
-             Base    VMEMAP    % change (-ve good)
-User      1016.41   1016.93    0.05
-System      50.83     51.02    0.36
-Total     1067.25   1067.95    0.07
-
-x86-64 NUMA
-             Base   VMEMAP    % change (-ve good)
-User        30.77   431.73     0.22
-System      45.39    43.98    -3.11
-Total      476.17   475.71    -0.10
-
-ppc64
-             Base   VMEMAP    % change (-ve good)
-User       488.77   488.35    -0.09
-System      56.92    56.37    -0.97
-Total      545.69   544.72    -0.18
-
-Below are some AIM bencharks on IA64 and x86-64 (thank Bob).  The seems
-pretty much flat as you would expect.
-
-
-ia64 results 2 cpu non-numa 4Gb SCSI disk
-
-Benchmark	Version	Machine	Run Date
-AIM Multiuser Benchmark - Suite VII	"1.1"	extreme	Jun  1 07:17:24 2007
-
-Tasks	Jobs/Min	JTI	Real	CPU	Jobs/sec/task
-1	98.9		100	58.9	1.3	1.6482
-101	5547.1		95	106.0	79.4	0.9154
-201	6377.7		95	183.4	158.3	0.5288
-301	6932.2		95	252.7	237.3	0.3838
-401	7075.8		93	329.8	316.7	0.2941
-501	7235.6		94	403.0	396.2	0.2407
-600	7387.5		94	472.7	475.0	0.2052
-
-Benchmark	Version	Machine	Run Date
-AIM Multiuser Benchmark - Suite VII	"1.1"	vmemmap	Jun  1 09:59:04 2007
-
-Tasks	Jobs/Min	JTI	Real	CPU	Jobs/sec/task
-1	99.1		100	58.8	1.2	1.6509
-101	5480.9		95	107.2	79.2	0.9044
-201	6490.3		95	180.2	157.8	0.5382
-301	6886.6		94	254.4	236.8	0.3813
-401	7078.2		94	329.7	316.0	0.2942
-501	7250.3		95	402.2	395.4	0.2412
-600	7399.1		94	471.9	473.9	0.2055
-
-
-open power 710 2 cpu, 4 Gb, SCSI and configured physically
-
-Benchmark	Version	Machine	Run Date
-AIM Multiuser Benchmark - Suite VII	"1.1"	extreme	May 29 15:42:53 2007
-
-Tasks	Jobs/Min	JTI	Real	CPU	Jobs/sec/task
-1	25.7		100	226.3	4.3	0.4286
-101	1096.0		97	536.4	199.8	0.1809
-201	1236.4		96	946.1	389.1	0.1025
-301	1280.5		96	1368.0	582.3	0.0709
-401	1270.2		95	1837.4	771.0	0.0528
-501	1251.4		96	2330.1	955.9	0.0416
-601	1252.6		96	2792.4	1139.2	0.0347
-701	1245.2		96	3276.5	1334.6	0.0296
-918	1229.5		96	4345.4	1728.7	0.0223
-
-Benchmark	Version	Machine	Run Date
-AIM Multiuser Benchmark - Suite VII	"1.1"	vmemmap	May 30 07:28:26 2007
-
-Tasks	Jobs/Min	JTI	Real	CPU	Jobs/sec/task
-1	25.6		100	226.9	4.3	0.4275
-101	1049.3		97	560.2	198.1	0.1731
-201	1199.1		97	975.6	390.7	0.0994
-301	1261.7		96	1388.5	591.5	0.0699
-401	1256.1		96	1858.1	771.9	0.0522
-501	1220.1		96	2389.7	955.3	0.0406
-601	1224.6		96	2856.3	1133.4	0.0340
-701	1252.0		96	3258.7	1314.1	0.0298
-915	1232.8		96	4319.7	1704.0	0.0225
-
-
-amd64 2 2-core, 4Gb and SATA
-
-Benchmark	Version	Machine	Run Date
-AIM Multiuser Benchmark - Suite VII	"1.1"	extreme	Jun  2 03:59:48 2007
-
-Tasks	Jobs/Min	JTI	Real	CPU	Jobs/sec/task
-1	13.0		100	446.4	2.1	0.2173
-101	533.4		97	1102.0	110.2	0.0880
-201	578.3		97	2022.8	220.8	0.0480
-301	583.8		97	3000.6	332.3	0.0323
-401	580.5		97	4020.1	442.2	0.0241
-501	574.8		98	5072.8	558.8	0.0191
-600	566.5		98	6163.8	671.0	0.0157
-
-Benchmark	Version	Machine	Run Date
-AIM Multiuser Benchmark - Suite VII	"1.1"	vmemmap	Jun  3 04:19:31 2007
-
-Tasks	Jobs/Min	JTI	Real	CPU	Jobs/sec/task
-1	13.0		100	447.8	2.0	0.2166
-101	536.5		97	1095.6	109.7	0.0885
-201	567.7		97	2060.5	219.3	0.0471
-301	582.1		96	3009.4	330.2	0.0322
-401	578.2		96	4036.4	442.4	0.0240
-501	585.1		98	4983.2	555.1	0.0195
-600	565.5		98	6175.2	660.6	0.0157
-
-
-
-This patch:
-
-Fix some spelling errors.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Robert P. J. Day <rpjday@mindspring.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/compiler-gcc.h   |    2 +-
+ include/linux/compiler-gcc3.h  |    2 +-
+ include/linux/compiler-gcc4.h  |    2 +-
+ include/linux/compiler-intel.h |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/sparse.c~sparsemem-clean-up-spelling-error-in-comments mm/sparse.c
---- a/mm/sparse.c~sparsemem-clean-up-spelling-error-in-comments
-+++ a/mm/sparse.c
-@@ -106,7 +106,7 @@ static inline int sparse_index_init(unsi
+diff -puN include/linux/compiler-gcc.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix include/linux/compiler-gcc.h
+--- a/include/linux/compiler-gcc.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix
++++ a/include/linux/compiler-gcc.h
+@@ -1,4 +1,4 @@
+-#ifndef _LINUX_COMPILER_H
++#ifndef __LINUX_COMPILER_H
+ #error "Please don't include <linux/compiler-gcc.h> directly, include <linux/compiler.h> instead."
+ #endif
  
- /*
-  * Although written for the SPARSEMEM_EXTREME case, this happens
-- * to also work for the flat array case becase
-+ * to also work for the flat array case because
-  * NR_SECTION_ROOTS==NR_MEM_SECTIONS.
-  */
- int __section_nr(struct mem_section* ms)
+diff -puN include/linux/compiler-gcc3.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix include/linux/compiler-gcc3.h
+--- a/include/linux/compiler-gcc3.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix
++++ a/include/linux/compiler-gcc3.h
+@@ -1,4 +1,4 @@
+-#ifndef _LINUX_COMPILER_H
++#ifndef __LINUX_COMPILER_H
+ #error "Please don't include <linux/compiler-gcc3.h> directly, include <linux/compiler.h> instead."
+ #endif
+ 
+diff -puN include/linux/compiler-gcc4.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix include/linux/compiler-gcc4.h
+--- a/include/linux/compiler-gcc4.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix
++++ a/include/linux/compiler-gcc4.h
+@@ -1,4 +1,4 @@
+-#ifndef _LINUX_COMPILER_H
++#ifndef __LINUX_COMPILER_H
+ #error "Please don't include <linux/compiler-gcc4.h> directly, include <linux/compiler.h> instead."
+ #endif
+ 
+diff -puN include/linux/compiler-intel.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix include/linux/compiler-intel.h
+--- a/include/linux/compiler-intel.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix
++++ a/include/linux/compiler-intel.h
+@@ -1,4 +1,4 @@
+-#ifndef _LINUX_COMPILER_H
++#ifndef __LINUX_COMPILER_H
+ #error "Please don't include <linux/compiler-intel.h> directly, include <linux/compiler.h> instead."
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
-update-checkpatchpl-to-version-010.patch
-printk-add-kern_cont-annotation.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold.patch
+mm-dirty-balancing-for-tasks.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
+oom-change-all_unreclaimable-zone-member-to-flags.patch
+oom-do-not-take-callback_mutex.patch
+writeback-dont-propagate-aop_writepage_activate.patch
+softlockup-add-a-proc-tuning-parameter.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
+f_dupfd_cloexec-implementation-fix-2.patch
+ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
+drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fix.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irqtasklist-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+pnp-use-dev_info-dev_err-etc-in-core-fix.patch
+pnp-add-debug-message-for-adding-new-device-fix-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
