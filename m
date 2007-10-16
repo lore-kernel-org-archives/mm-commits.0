@@ -1,48 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - ufs-convert-to-new-aops-fix2.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:19:37 -0700
-Message-ID: <200710160419.l9G4JbbI008408@imap1.linux-foundation.org>
+Subject: - ufs-convert-to-new-aops-fix.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:19:35 -0700
+Message-ID: <200710160419.l9G4JZeS008405@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42175 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48642 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752875AbXJPETl (ORCPT
+	by vger.kernel.org with ESMTP id S1752263AbXJPETk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:19:41 -0400
+	Tue, 16 Oct 2007 00:19:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ufs convert to new aops fix2
+     ufs convert to new aops fix
 has been removed from the -mm tree.  Its filename was
-     ufs-convert-to-new-aops-fix2.patch
+     ufs-convert-to-new-aops-fix.patch
 
 This patch was dropped because it was folded into ufs-convert-to-new-aops.patch
 
 ------------------------------------------------------
-Subject: ufs convert to new aops fix2
+Subject: ufs convert to new aops fix
 From: Nick Piggin <npiggin@suse.de>
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/dir.c |    1 -
- 1 files changed, 1 deletion(-)
+ fs/ufs/dir.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/ufs/dir.c~ufs-convert-to-new-aops-fix2 fs/ufs/dir.c
---- a/fs/ufs/dir.c~ufs-convert-to-new-aops-fix2
+diff -puN fs/ufs/dir.c~ufs-convert-to-new-aops-fix fs/ufs/dir.c
+--- a/fs/ufs/dir.c~ufs-convert-to-new-aops-fix
 +++ a/fs/ufs/dir.c
-@@ -55,7 +55,6 @@ static int ufs_commit_chunk(struct page 
- 		err = write_one_page(page, 1);
- 	else
- 		unlock_page(page);
--	mark_page_accessed(page);
- 	return err;
- }
+@@ -89,7 +89,7 @@ ino_t ufs_inode_by_name(struct inode *di
+ void ufs_set_link(struct inode *dir, struct ufs_dir_entry *de,
+ 		  struct page *page, struct inode *inode)
+ {
+-	loff_t pos = (page->index << PAGE_CACHE_SHIFT) +
++	loff_t pos = page_offset(page) +
+ 			(char *) de - (char *) page_address(page);
+ 	unsigned len = fs16_to_cpu(dir->i_sb, de->d_reclen);
+ 	int err;
+@@ -379,7 +379,7 @@ int ufs_add_link(struct dentry *dentry, 
+ 	return -EINVAL;
  
+ got_it:
+-	pos = (page->index << PAGE_CACHE_SHIFT) +
++	pos = page_offset(page) +
+ 			(char*)de - (char*)page_address(page);
+ 	err = __ufs_write_begin(NULL, page->mapping, pos, rec_len,
+ 				AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
+@@ -547,7 +547,7 @@ int ufs_delete_entry(struct inode *inode
+ 	if (pde)
+ 		from = (char*)pde - (char*)page_address(page);
+ 
+-	pos = (page->index << PAGE_CACHE_SHIFT) + from;
++	pos = page_offset(page) + from;
+ 	lock_page(page);
+ 	err = __ufs_write_begin(NULL, mapping, pos, to - from,
+ 				AOP_FLAG_UNINTERRUPTIBLE, &page, NULL);
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
@@ -91,6 +110,7 @@ fuse-convert-to-new-aops.patch
 hostfs-convert-to-new-aops.patch
 jffs2-convert-to-new-aops.patch
 ufs-convert-to-new-aops.patch
+ufs-convert-to-new-aops-fix.patch
 ufs-convert-to-new-aops-fix2.patch
 udf-convert-to-new-aops.patch
 udf-convert-to-new-aops-fix.patch
