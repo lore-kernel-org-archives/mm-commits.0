@@ -1,133 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: - ps3-fix-black-and-white-stripes.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:44:18 -0700
-Message-ID: <200710162044.l9GKiIBu016134@imap1.linux-foundation.org>
+Subject: - slub-optimize-cacheline-use-for-zeroing.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:35:22 -0700
+Message-ID: <200710162035.l9GKZM7u015053@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35188 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49203 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965372AbXJPVcO (ORCPT
+	by vger.kernel.org with ESMTP id S965571AbXJPVcY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:32:14 -0400
+	Tue, 16 Oct 2007 17:32:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Masashi_Kimoto@hq.scei.sony.co.jp, Geert.Uytterhoeven@sonycom.com, adaplas@gmail.com, geoffrey.levand@am.sony.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ps3: Fix black and white stripes
+     SLUB: Optimize cacheline use for zeroing
 has been removed from the -mm tree.  Its filename was
-     ps3-fix-black-and-white-stripes.patch
+     slub-optimize-cacheline-use-for-zeroing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ps3: Fix black and white stripes
-From: Masashi Kimoto <Masashi_Kimoto@hq.scei.sony.co.jp>
+Subject: SLUB: Optimize cacheline use for zeroing
+From: Christoph Lameter <clameter@sgi.com>
 
-Fix the black and white stripes issue with WUXGA monitor via HDMI.
+We touch a cacheline in the kmem_cache structure for zeroing to get the
+size. However, the hot paths in slab_alloc and slab_free do not reference
+any other fields in kmem_cache, so we may have to just bring in the
+cacheline for this one access.
 
-It seems that when we use a VESA resolution from boot up, the AV settings
-driver could not be initialized correctly.  In that case we need a dummy
-packet before VESA setting.
+Add a new field to kmem_cache_cpu that contains the object size. That
+cacheline must already be used in the hotpaths. So we save one cacheline
+on every slab_alloc if we zero.
 
-[Geert] Refactored to reduce code duplication.
+We need to update the kmem_cache_cpu object size if an aliasing operation
+changes the objsize of an non debug slab.
 
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-CC: Geoff Levand <geoffrey.levand@am.sony.com>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ps3/ps3av.c |   58 +++++++++++++++++++++++++++---------------
- 1 file changed, 38 insertions(+), 20 deletions(-)
+ include/linux/slub_def.h |    1 +
+ mm/slub.c                |   14 ++++++++++++--
+ 2 files changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ps3/ps3av.c~ps3-fix-black-and-white-stripes drivers/ps3/ps3av.c
---- a/drivers/ps3/ps3av.c~ps3-fix-black-and-white-stripes
-+++ a/drivers/ps3/ps3av.c
-@@ -491,10 +491,10 @@ static int ps3av_set_videomode(void)
- 	return 0;
+diff -puN include/linux/slub_def.h~slub-optimize-cacheline-use-for-zeroing include/linux/slub_def.h
+--- a/include/linux/slub_def.h~slub-optimize-cacheline-use-for-zeroing
++++ a/include/linux/slub_def.h
+@@ -16,6 +16,7 @@ struct kmem_cache_cpu {
+ 	struct page *page;
+ 	int node;
+ 	unsigned int offset;
++	unsigned int objsize;
+ };
+ 
+ struct kmem_cache_node {
+diff -puN mm/slub.c~slub-optimize-cacheline-use-for-zeroing mm/slub.c
+--- a/mm/slub.c~slub-optimize-cacheline-use-for-zeroing
++++ a/mm/slub.c
+@@ -1576,7 +1576,7 @@ static void __always_inline *slab_alloc(
+ 	local_irq_restore(flags);
+ 
+ 	if (unlikely((gfpflags & __GFP_ZERO) && object))
+-		memset(object, 0, s->objsize);
++		memset(object, 0, c->objsize);
+ 
+ 	return object;
+ }
+@@ -1858,8 +1858,9 @@ static void init_kmem_cache_cpu(struct k
+ {
+ 	c->page = NULL;
+ 	c->freelist = NULL;
+-	c->offset = s->offset / sizeof(void *);
+ 	c->node = 0;
++	c->offset = s->offset / sizeof(void *);
++	c->objsize = s->objsize;
  }
  
--static void ps3av_set_videomode_cont(u32 id, u32 old_id)
-+static void ps3av_set_videomode_packet(u32 id)
- {
- 	struct ps3av_pkt_avb_param avb_param;
--	int i;
-+	unsigned int i;
- 	u32 len = 0, av_video_cs;
- 	const struct avset_video_mode *video_mode;
- 	int res;
-@@ -507,24 +507,6 @@ static void ps3av_set_videomode_cont(u32
- 					ps3av->av_hw_conf.num_of_avmulti;
- 	avb_param.num_of_av_audio_pkt = 0;
- 
--	/* video signal off */
--	ps3av_set_video_disable_sig();
--
--	/* Retail PS3 product doesn't support this */
--	if (id & PS3AV_MODE_HDCP_OFF) {
--		res = ps3av_cmd_av_hdmi_mode(PS3AV_CMD_AV_HDMI_HDCP_OFF);
--		if (res == PS3AV_STATUS_UNSUPPORTED_HDMI_MODE)
--			dev_dbg(&ps3av->dev->core, "Not supported\n");
--		else if (res)
--			dev_dbg(&ps3av->dev->core,
--				"ps3av_cmd_av_hdmi_mode failed\n");
--	} else if (old_id & PS3AV_MODE_HDCP_OFF) {
--		res = ps3av_cmd_av_hdmi_mode(PS3AV_CMD_AV_HDMI_MODE_NORMAL);
--		if (res < 0 && res != PS3AV_STATUS_UNSUPPORTED_HDMI_MODE)
--			dev_dbg(&ps3av->dev->core,
--				"ps3av_cmd_av_hdmi_mode failed\n");
--	}
--
- 	/* video_pkt */
- 	for (i = 0; i < avb_param.num_of_video_pkt; i++)
- 		len += ps3av_cmd_set_video_mode(&avb_param.buf[len],
-@@ -555,6 +537,42 @@ static void ps3av_set_videomode_cont(u32
- 		       __func__);
- 	else if (res)
- 		dev_dbg(&ps3av->dev->core, "ps3av_cmd_avb_param failed\n");
-+}
+ static void init_kmem_cache_node(struct kmem_cache_node *n)
+@@ -2852,12 +2853,21 @@ struct kmem_cache *kmem_cache_create(con
+ 	down_write(&slub_lock);
+ 	s = find_mergeable(size, align, flags, name, ctor);
+ 	if (s) {
++		int cpu;
 +
-+static void ps3av_set_videomode_cont(u32 id, u32 old_id)
-+{
-+	static int vesa = 0;
-+	int res;
+ 		s->refcount++;
+ 		/*
+ 		 * Adjust the object sizes so that we clear
+ 		 * the complete object on kzalloc.
+ 		 */
+ 		s->objsize = max(s->objsize, (int)size);
 +
-+	/* video signal off */
-+	ps3av_set_video_disable_sig();
-+
-+	/*
-+	 * AV backend needs non-VESA mode setting at least one time
-+	 * when VESA mode is used.
-+	 */
-+	if (vesa == 0 && (id & PS3AV_MODE_MASK) >= 11) {
-+		/* vesa mode */
-+		ps3av_set_videomode_packet(2);	/* 480P */
-+	}
-+	vesa = 1;
-+
-+	/* Retail PS3 product doesn't support this */
-+	if (id & PS3AV_MODE_HDCP_OFF) {
-+		res = ps3av_cmd_av_hdmi_mode(PS3AV_CMD_AV_HDMI_HDCP_OFF);
-+		if (res == PS3AV_STATUS_UNSUPPORTED_HDMI_MODE)
-+			dev_dbg(&ps3av->dev->core, "Not supported\n");
-+		else if (res)
-+			dev_dbg(&ps3av->dev->core,
-+				"ps3av_cmd_av_hdmi_mode failed\n");
-+	} else if (old_id & PS3AV_MODE_HDCP_OFF) {
-+		res = ps3av_cmd_av_hdmi_mode(PS3AV_CMD_AV_HDMI_MODE_NORMAL);
-+		if (res < 0 && res != PS3AV_STATUS_UNSUPPORTED_HDMI_MODE)
-+			dev_dbg(&ps3av->dev->core,
-+				"ps3av_cmd_av_hdmi_mode failed\n");
-+	}
-+
-+	ps3av_set_videomode_packet(id);
- 
- 	msleep(1500);
- 	/* av video mute */
++		/*
++		 * And then we need to update the object size in the
++		 * per cpu structures
++		 */
++		for_each_online_cpu(cpu)
++			get_cpu_slab(s, cpu)->objsize = s->objsize;
+ 		s->inuse = max_t(int, s->inuse, ALIGN(size, sizeof(void *)));
+ 		up_write(&slub_lock);
+ 		if (sysfs_slab_alias(s, name))
 _
 
-Patches currently in -mm which might be from Masashi_Kimoto@hq.scei.sony.co.jp are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator.patch
+dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
+x86-fix-cpu_to_node-references.patch
+x86-convert-x86_cpu_to_apicid-to-be-a-per-cpu-variable.patch
+x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
+x86-acpi-use-cpu_physical_id.patch
+x86-convert-cpuinfo_x86-array-to-a-per_cpu-array.patch
+slub-simplify-irq-off-handling.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+oom-move-prototypes-to-appropriate-header-file.patch
+oom-move-constraints-to-enum.patch
+oom-change-all_unreclaimable-zone-member-to-flags.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-add-per-zone-locking.patch
+oom-serialize-out-of-memory-calls.patch
+oom-add-oom_kill_allocating_task-sysctl.patch
+oom-suppress-extraneous-stack-and-memory-dump.patch
+oom-compare-cpuset-mems_allowed-instead-of-exclusive.patch
+oom-do-not-take-callback_mutex.patch
+oom-do-not-take-callback_mutex-fix.patch
+oom-prevent-including-schedh-in-header-file.patch
+oom-add-header-file-to-kbuild-as-unifdef.patch
+oom-convert-zone_scan_lock-from-mutex-to-spinlock.patch
+mm-test-and-set-zone-reclaim-lock-before-starting.patch
+mm-test-and-set-zone-reclaim-lock-before-starting-cleanup.patch
+avoid-negative-and-full-width-shifts-in-radix-treec.patch
+cpu-hotplug-slab-cleanup-cpuup_callback.patch
+cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-core-code.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+documentation-vm-slabinfoc-clean-up-this-code.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
+bit_spin_lock-use-lock-bitops.patch
+ext3-support-large-blocksize-up-to-pagesize.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
