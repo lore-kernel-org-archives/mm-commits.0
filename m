@@ -1,353 +1,353 @@
 From: akpm@linux-foundation.org
-Subject: - alpha-beautify-vmlinuxlds.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:36:31 -0700
-Message-ID: <200710162036.l9GKaV9u015188@imap1.linux-foundation.org>
+Subject: - maps2-add-proc-pid-pagemap-interface.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 14:36:34 -0700
+Message-ID: <200710162136.l9GLaYs6018600@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34800 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37679 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935522AbXJPVg6 (ORCPT
+	by vger.kernel.org with ESMTP id S934310AbXJPVhY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:36:58 -0400
+	Tue, 16 Oct 2007 17:37:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sam@ravnborg.org, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
+To: mpm@selenic.com, jeremy@goop.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: beautify vmlinux.lds
+     maps: add /proc/pid/pagemap interface
 has been removed from the -mm tree.  Its filename was
-     alpha-beautify-vmlinuxlds.patch
+     maps2-add-proc-pid-pagemap-interface.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: alpha: beautify vmlinux.lds
-From: Sam Ravnborg <sam@ravnborg.org>
+Subject: maps: add /proc/pid/pagemap interface
+From: Matt Mackall <mpm@selenic.com>
 
-Introduced a consistent style in vmlinux.lds and it now matches the
-soon-to-be common style for all arch's vmlinux.lds files.
+This interface provides a mapping for each page in an address space to its
+physical page frame number, allowing precise determination of what pages are
+mapped and what pages are shared between processes.
 
-In addition:
-- Replaced hardcoded constant with PAGE_SIZE
-- Fix page.h so PAGE_SIZE can be used from assembler and in lds files
-- Move a few labels inside brackets so linker alignment will not
-  make label point ot a too low address
-- Replaced DWARF and STABS sections with definitions from asm-generic
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
+[akpm@linux-foundation.org: warning fix]
+Signed-off-by: Matt Mackall <mpm@selenic.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/vmlinux.lds.S |  260 +++++++++++++++---------------
- include/asm-alpha/page.h        |    3 
- 2 files changed, 136 insertions(+), 127 deletions(-)
+ fs/proc/base.c     |    8 +
+ fs/proc/internal.h |    2 
+ fs/proc/task_mmu.c |  209 +++++++++++++++++++++++++++++++++++++++++++
+ init/Kconfig       |   10 ++
+ 4 files changed, 228 insertions(+), 1 deletion(-)
 
-diff -puN arch/alpha/kernel/vmlinux.lds.S~alpha-beautify-vmlinuxlds arch/alpha/kernel/vmlinux.lds.S
---- a/arch/alpha/kernel/vmlinux.lds.S~alpha-beautify-vmlinuxlds
-+++ a/arch/alpha/kernel/vmlinux.lds.S
-@@ -1,4 +1,5 @@
- #include <asm-generic/vmlinux.lds.h>
-+#include <asm/page.h>
- 
- OUTPUT_FORMAT("elf64-alpha")
- OUTPUT_ARCH(alpha)
-@@ -8,138 +9,145 @@ jiffies = jiffies_64;
- SECTIONS
- {
- #ifdef CONFIG_ALPHA_LEGACY_START_ADDRESS
--  . = 0xfffffc0000310000;
-+	. = 0xfffffc0000310000;
- #else
--  . = 0xfffffc0001010000;
-+	. = 0xfffffc0001010000;
- #endif
- 
--  _text = .;					/* Text and read-only data */
--  .text : { 
-+	_text = .;	/* Text and read-only data */
-+	.text : {
- 	*(.text.head)
--	TEXT_TEXT
--	SCHED_TEXT
--	LOCK_TEXT
--	*(.fixup)
--	*(.gnu.warning)
--  } :kernel
--  _etext = .;					/* End of text section */
--
--  . = ALIGN(16);
--  __start___ex_table = .;			/* Exception table */
--  __ex_table : { *(__ex_table) }
--  __stop___ex_table = .;
--
--  NOTES :kernel :note
--  .dummy : { *(.dummy) } :kernel
--
--  RODATA
--
--  /* Will be freed after init */
--  . = ALIGN(8192);				/* Init code and data */
--  __init_begin = .;
--  .init.text : { 
--	_sinittext = .;
--	*(.init.text)
--	_einittext = .;
--  }
--  .init.data : { *(.init.data) }
--
--  . = ALIGN(16);
--  __setup_start = .;
--  .init.setup : { *(.init.setup) }
--  __setup_end = .;
--
--  . = ALIGN(8);
--  __initcall_start = .;
--  .initcall.init : {
--	INITCALLS
--  }
--  __initcall_end = .;
-+		TEXT_TEXT
-+		SCHED_TEXT
-+		LOCK_TEXT
-+		*(.fixup)
-+		*(.gnu.warning)
-+	} :kernel
-+	_etext = .;	/* End of text section */
-+
-+	/* Exception table */
-+	. = ALIGN(16);
-+	__ex_table : {
-+		__start___ex_table = .;
-+		*(__ex_table)
-+		__stop___ex_table = .;
-+	}
-+
-+	NOTES :kernel :note
-+	.dummy : {
-+		*(.dummy)
-+	} :kernel
-+
-+	RODATA
-+
-+	/* Will be freed after init */
-+	. = ALIGN(PAGE_SIZE);
-+	/* Init code and data */
-+	__init_begin = .;
-+	.init.text : {
-+		_sinittext = .;
-+		*(.init.text)
-+		_einittext = .;
-+	}
-+	.init.data : {
-+		*(.init.data)
-+	}
-+
-+	. = ALIGN(16);
-+	.init.setup : {
-+		__setup_start = .;
-+		*(.init.setup)
-+		__setup_end = .;
-+	}
-+
-+	. = ALIGN(8);
-+	.initcall.init : {
-+		__initcall_start = .;
-+		INITCALLS
-+		__initcall_end = .;
-+	}
- 
- #ifdef CONFIG_BLK_DEV_INITRD
--  . = ALIGN(8192);
--  __initramfs_start = .;
--  .init.ramfs : { *(.init.ramfs) }
--  __initramfs_end = .;
-+	. = ALIGN(PAGE_SIZE);
-+	.init.ramfs : {
-+		__initramfs_start = .;
-+		*(.init.ramfs)
-+		__initramfs_end = .;
-+	}
- #endif
- 
--  . = ALIGN(8);
--  .con_initcall.init : {
--	__con_initcall_start = .;
--	*(.con_initcall.init)
--	__con_initcall_end = .;
--  }
--
--  . = ALIGN(8);
--  SECURITY_INIT
--
--  PERCPU(8192)
--
--  . = ALIGN(2*8192);
--  __init_end = .;
--  /* Freed after init ends here */
--
--  /* Note 2 page alignment above.  */
--  .data.init_thread : { *(.data.init_thread) }
--
--  . = ALIGN(8192);
--  .data.page_aligned : { *(.data.page_aligned) }
--
--  . = ALIGN(64);
--  .data.cacheline_aligned : { *(.data.cacheline_aligned) }
--
--  _data = .;
--  .data : {					/* Data */
--	DATA_DATA
--	CONSTRUCTORS
--  }
--
--  .got : { *(.got) }
--  .sdata : { *(.sdata) }
--
--  _edata = .;					/* End of data section */
--
--  __bss_start = .;
--  .sbss : { *(.sbss) *(.scommon) }
--  .bss : { *(.bss) *(COMMON) }
--  __bss_stop = .;
--
--  _end = .;
--
--  /* Sections to be discarded */
--  /DISCARD/ : { *(.exit.text) *(.exit.data) *(.exitcall.exit) }
--
--  .mdebug 0 : { *(.mdebug) }
--  .note 0 : { *(.note) }
--  .comment 0 : { *(.comment) }
--
--  /* Stabs debugging sections */
--  .stab 0 : { *(.stab) }
--  .stabstr 0 : { *(.stabstr) }
--  .stab.excl 0 : { *(.stab.excl) }
--  .stab.exclstr 0 : { *(.stab.exclstr) }
--  .stab.index 0 : { *(.stab.index) }
--  .stab.indexstr 0 : { *(.stab.indexstr) }
--  /* DWARF 1 */
--  .debug          0 : { *(.debug) }
--  .line           0 : { *(.line) }
--  /* GNU DWARF 1 extensions */
--  .debug_srcinfo  0 : { *(.debug_srcinfo) }
--  .debug_sfnames  0 : { *(.debug_sfnames) }
--  /* DWARF 1.1 and DWARF 2 */
--  .debug_aranges  0 : { *(.debug_aranges) }
--  .debug_pubnames 0 : { *(.debug_pubnames) }
--  /* DWARF 2 */
--  .debug_info     0 : { *(.debug_info) }
--  .debug_abbrev   0 : { *(.debug_abbrev) }
--  .debug_line     0 : { *(.debug_line) }
--  .debug_frame    0 : { *(.debug_frame) }
--  .debug_str      0 : { *(.debug_str) }
--  .debug_loc      0 : { *(.debug_loc) }
--  .debug_macinfo  0 : { *(.debug_macinfo) }
--  /* SGI/MIPS DWARF 2 extensions */
--  .debug_weaknames 0 : { *(.debug_weaknames) }
--  .debug_funcnames 0 : { *(.debug_funcnames) }
--  .debug_typenames 0 : { *(.debug_typenames) }
--  .debug_varnames  0 : { *(.debug_varnames) }
-+	. = ALIGN(8);
-+	.con_initcall.init : {
-+		__con_initcall_start = .;
-+		*(.con_initcall.init)
-+		__con_initcall_end = .;
-+	}
-+
-+	. = ALIGN(8);
-+	SECURITY_INIT
-+
-+	PERCPU(PAGE_SIZE)
-+
-+	. = ALIGN(2 * PAGE_SIZE);
-+	__init_end = .;
-+	/* Freed after init ends here */
-+
-+	/* Note 2 page alignment above.  */
-+	.data.init_thread : {
-+		*(.data.init_thread)
-+	}
-+
-+	. = ALIGN(PAGE_SIZE);
-+	.data.page_aligned : {
-+		*(.data.page_aligned)
-+	}
-+
-+	. = ALIGN(64);
-+	.data.cacheline_aligned : {
-+		*(.data.cacheline_aligned)
-+	}
-+
-+	_data = .;
-+	/* Data */
-+	.data : {
-+		DATA_DATA
-+		CONSTRUCTORS
-+	}
-+
-+	.got : {
-+		*(.got)
-+	}
-+	.sdata : {
-+		*(.sdata)
-+	}
-+	_edata = .;	/* End of data section */
-+
-+	__bss_start = .;
-+	.sbss : {
-+		*(.sbss)
-+		*(.scommon)
-+	}
-+	.bss : {
-+		*(.bss)
-+		*(COMMON)
-+	}
-+	__bss_stop = .;
-+	_end = .;
-+
-+	/* Sections to be discarded */
-+	/DISCARD/ : {
-+		*(.exit.text)
-+		*(.exit.data)
-+		*(.exitcall.exit)
-+	}
-+
-+	.mdebug 0 : {
-+		*(.mdebug)
-+	}
-+	.note 0 : {
-+		*(.note)
-+	}
-+
-+	STABS_DEBUG
-+	DWARF_DEBUG
+diff -puN fs/proc/base.c~maps2-add-proc-pid-pagemap-interface fs/proc/base.c
+--- a/fs/proc/base.c~maps2-add-proc-pid-pagemap-interface
++++ a/fs/proc/base.c
+@@ -635,7 +635,7 @@ out_no_task:
  }
-diff -puN include/asm-alpha/page.h~alpha-beautify-vmlinuxlds include/asm-alpha/page.h
---- a/include/asm-alpha/page.h~alpha-beautify-vmlinuxlds
-+++ a/include/asm-alpha/page.h
-@@ -3,11 +3,12 @@
+ #endif
  
- #ifdef __KERNEL__
+-static loff_t mem_lseek(struct file * file, loff_t offset, int orig)
++loff_t mem_lseek(struct file * file, loff_t offset, int orig)
+ {
+ 	switch (orig) {
+ 	case 0:
+@@ -2039,6 +2039,9 @@ static const struct pid_entry tgid_base_
+ #ifdef CONFIG_PROC_SMAPS
+ 	REG("smaps",      S_IRUGO, smaps),
+ #endif
++#ifdef CONFIG_PROC_PAGEMAP
++	REG("pagemap",    S_IRUSR, pagemap),
++#endif
+ #endif
+ #ifdef CONFIG_SECURITY
+ 	DIR("attr",       S_IRUGO|S_IXUGO, attr_dir),
+@@ -2329,6 +2332,9 @@ static const struct pid_entry tid_base_s
+ #ifdef CONFIG_PROC_SMAPS
+ 	REG("smaps",     S_IRUGO, smaps),
+ #endif
++#ifdef CONFIG_PROC_PAGEMAP
++	REG("pagemap",    S_IRUSR, pagemap),
++#endif
+ #endif
+ #ifdef CONFIG_SECURITY
+ 	DIR("attr",      S_IRUGO|S_IXUGO, attr_dir),
+diff -puN fs/proc/internal.h~maps2-add-proc-pid-pagemap-interface fs/proc/internal.h
+--- a/fs/proc/internal.h~maps2-add-proc-pid-pagemap-interface
++++ a/fs/proc/internal.h
+@@ -50,11 +50,13 @@ extern int proc_tid_stat(struct task_str
+ extern int proc_tgid_stat(struct task_struct *, char *);
+ extern int proc_pid_status(struct task_struct *, char *);
+ extern int proc_pid_statm(struct task_struct *, char *);
++extern loff_t mem_lseek(struct file * file, loff_t offset, int orig);
  
-+#include <linux/const.h>
- #include <asm/pal.h>
+ extern const struct file_operations proc_maps_operations;
+ extern const struct file_operations proc_numa_maps_operations;
+ extern const struct file_operations proc_smaps_operations;
+ extern const struct file_operations proc_clear_refs_operations;
++extern const struct file_operations proc_pagemap_operations;
  
- /* PAGE_SHIFT determines the page size */
- #define PAGE_SHIFT	13
--#define PAGE_SIZE	(1UL << PAGE_SHIFT)
-+#define PAGE_SIZE	(_AC(1,UL) << PAGE_SHIFT)
- #define PAGE_MASK	(~(PAGE_SIZE-1))
+ void free_proc_entry(struct proc_dir_entry *de);
  
- #ifndef __ASSEMBLY__
+diff -puN fs/proc/task_mmu.c~maps2-add-proc-pid-pagemap-interface fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~maps2-add-proc-pid-pagemap-interface
++++ a/fs/proc/task_mmu.c
+@@ -5,6 +5,7 @@
+ #include <linux/highmem.h>
+ #include <linux/ptrace.h>
+ #include <linux/pagemap.h>
++#include <linux/ptrace.h>
+ #include <linux/mempolicy.h>
+ 
+ #include <asm/elf.h>
+@@ -530,3 +531,211 @@ const struct file_operations proc_numa_m
+ };
+ #endif
+ 
++#ifdef CONFIG_PROC_PAGEMAP
++struct pagemapread {
++	struct mm_struct *mm;
++	unsigned long next;
++	unsigned long *buf;
++	pte_t *ptebuf;
++	unsigned long pos;
++	size_t count;
++	int index;
++	char __user *out;
++};
++
++static int flush_pagemap(struct pagemapread *pm)
++{
++	int n = min(pm->count, pm->index * sizeof(unsigned long));
++	if (copy_to_user(pm->out, pm->buf, n))
++		return -EFAULT;
++	pm->out += n;
++	pm->pos += n;
++	pm->count -= n;
++	pm->index = 0;
++	cond_resched();
++	return 0;
++}
++
++static int add_to_pagemap(unsigned long addr, unsigned long pfn,
++			  struct pagemapread *pm)
++{
++	pm->buf[pm->index++] = pfn;
++	pm->next = addr + PAGE_SIZE;
++	if (pm->index * sizeof(unsigned long) >= PAGE_SIZE ||
++	    pm->index * sizeof(unsigned long) >= pm->count)
++		return flush_pagemap(pm);
++	return 0;
++}
++
++static int pagemap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
++			     void *private)
++{
++	struct pagemapread *pm = private;
++	pte_t *pte;
++	int err;
++
++	pte = pte_offset_map(pmd, addr);
++
++#ifdef CONFIG_HIGHPTE
++	/* copy PTE directory to temporary buffer and unmap it */
++	memcpy(pm->ptebuf, pte, PAGE_ALIGN((unsigned long)pte) - (unsigned long)pte);
++	pte_unmap(pte);
++	pte = pm->ptebuf;
++#endif
++
++	for (; addr != end; pte++, addr += PAGE_SIZE) {
++		if (addr < pm->next)
++			continue;
++		if (!pte_present(*pte))
++			err = add_to_pagemap(addr, -1, pm);
++		else
++			err = add_to_pagemap(addr, pte_pfn(*pte), pm);
++		if (err)
++			return err;
++	}
++
++#ifndef CONFIG_HIGHPTE
++	pte_unmap(pte - 1);
++#endif
++
++	return 0;
++}
++
++static int pagemap_fill(struct pagemapread *pm, unsigned long end)
++{
++	int ret;
++
++	while (pm->next != end) {
++		ret = add_to_pagemap(pm->next, -1UL, pm);
++		if (ret)
++			return ret;
++	}
++	return 0;
++}
++
++static struct mm_walk pagemap_walk = { .pmd_entry = pagemap_pte_range };
++
++/*
++ * /proc/pid/pagemap - an array mapping virtual pages to pfns
++ *
++ * For each page in the address space, this file contains one long
++ * representing the corresponding physical page frame number (PFN) or
++ * -1 if the page isn't present. This allows determining precisely
++ * which pages are mapped and comparing mapped pages between
++ * processes.
++ *
++ * Efficient users of this interface will use /proc/pid/maps to
++ * determine which areas of memory are actually mapped and llseek to
++ * skip over unmapped regions.
++ *
++ * The first 4 bytes of this file form a simple header:
++ *
++ * first byte:   0 for big endian, 1 for little
++ * second byte:  page shift (eg 12 for 4096 byte pages)
++ * third byte:   entry size in bytes (currently either 4 or 8)
++ * fourth byte:  header size
++ */
++static ssize_t pagemap_read(struct file *file, char __user *buf,
++			    size_t count, loff_t *ppos)
++{
++	struct task_struct *task = get_proc_task(file->f_path.dentry->d_inode);
++	unsigned long src = *ppos;
++	unsigned long *page;
++	unsigned long addr, end, vend, svpfn, evpfn;
++	struct mm_struct *mm;
++	struct vm_area_struct *vma;
++	struct pagemapread pm;
++	int ret = -ESRCH;
++
++	if (!task)
++		goto out_no_task;
++
++	ret = -EACCES;
++	if (!ptrace_may_attach(task))
++		goto out;
++
++	ret = -EIO;
++	svpfn = src / sizeof(unsigned long) - 1;
++	addr = PAGE_SIZE * svpfn;
++	if ((svpfn + 1) * sizeof(unsigned long) != src)
++		goto out;
++	evpfn = min((src + count) / sizeof(unsigned long),
++		    ((~0UL) >> PAGE_SHIFT) + 1);
++	count = (evpfn - svpfn) * sizeof(unsigned long);
++	end = PAGE_SIZE * evpfn;
++
++	ret = -ENOMEM;
++	page = kzalloc(PAGE_SIZE, GFP_USER);
++	if (!page)
++		goto out;
++
++#ifdef CONFIG_HIGHPTE
++	pm.ptebuf = kzalloc(PAGE_SIZE, GFP_USER);
++	if (!pm.ptebuf)
++		goto out_free;
++#endif
++
++	ret = 0;
++	mm = get_task_mm(task);
++	if (!mm)
++		goto out_freepte;
++
++	pm.mm = mm;
++	pm.next = addr;
++	pm.buf = page;
++	pm.pos = src;
++	pm.count = count;
++	pm.index = 0;
++	pm.out = buf;
++
++	if (svpfn == -1) {
++		add_to_pagemap(pm.next, 0, &pm);
++		((char *)page)[0] = (ntohl(1) != 1);
++		((char *)page)[1] = PAGE_SHIFT;
++		((char *)page)[2] = sizeof(unsigned long);
++		((char *)page)[3] = sizeof(unsigned long);
++	}
++
++	down_read(&mm->mmap_sem);
++	vma = find_vma(mm, pm.next);
++	while (pm.count > 0 && vma) {
++		if (!ptrace_may_attach(task)) {
++			ret = -EIO;
++			goto out_mm;
++		}
++		vend = min(vma->vm_start - 1, end - 1) + 1;
++		ret = pagemap_fill(&pm, vend);
++		if (ret || !pm.count)
++			break;
++		vend = min(vma->vm_end - 1, end - 1) + 1;
++		ret = walk_page_range(mm, vma->vm_start, vend,
++				      &pagemap_walk, &pm);
++		vma = vma->vm_next;
++	}
++	up_read(&mm->mmap_sem);
++
++	ret = pagemap_fill(&pm, end);
++
++	*ppos = pm.pos;
++	if (!ret)
++		ret = pm.pos - src;
++
++out_mm:
++	mmput(mm);
++out_freepte:
++#ifdef CONFIG_HIGHPTE
++	kfree(pm.ptebuf);
++out_free:
++#endif
++	kfree(page);
++out:
++	put_task_struct(task);
++out_no_task:
++	return ret;
++}
++
++const struct file_operations proc_pagemap_operations = {
++	.llseek		= mem_lseek, /* borrow this */
++	.read		= pagemap_read,
++};
++#endif
+diff -puN init/Kconfig~maps2-add-proc-pid-pagemap-interface init/Kconfig
+--- a/init/Kconfig~maps2-add-proc-pid-pagemap-interface
++++ a/init/Kconfig
+@@ -613,6 +613,16 @@ config PROC_CLEAR_REFS
+           working set size. Disabling this interface will reduce
+           the size of the kernel for small machines.
+ 
++config PROC_PAGEMAP
++	default y
++	bool "Enable /proc/pid/pagemap support" if EMBEDDED && PROC_FS && MMU
++	help
++	  The /proc/pid/pagemap interface allows reading the
++          kernel's virtual memory to page frame mapping to determine which
++          individual pages a process has mapped and which pages it shares
++          with other processes. Disabling this interface will reduce the
++          size of the kernel for small machines.
++
+ endmenu		# General setup
+ 
+ config RT_MUTEXES
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from mpm@selenic.com are
 
 origin.patch
-modpost-problem-when-symbols-move-from-one-module-to-another.patch
-script-to-check-for-undefined-kconfig-symbols.patch
-documentation-make-headers_installtxt.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-return-length-calculation.patch
+maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-end-address-calculation.patch
+maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-header-copy-to-userspace.patch
+maps2-add-proc-kpagemap-interface.patch
+mmaps2-vma-out-of-mem_size_stats.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+maps-pssproportional-set-size-accounting-in-smaps.patch
+lib-sortc-optimization.patch
+sparse-pointer-use-of-zero-as-null.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
