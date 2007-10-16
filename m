@@ -1,80 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - jazzsonic-fix-warning-about-unused-variable.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 19:17:51 -0700
-Message-ID: <200710160217.l9G2Hp7S004234@imap1.linux-foundation.org>
+Subject: - lockdep-fix-mismatched-lockdep_depth-curr_chain_hash.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 19:18:08 -0700
+Message-ID: <200710160218.l9G2I8FZ004265@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59421 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45313 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757312AbXJPCSB (ORCPT
+	by vger.kernel.org with ESMTP id S1757327AbXJPCSf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 22:18:01 -0400
+	Mon, 15 Oct 2007 22:18:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: ghaskins@novell.com, a.p.zijlstra@chello.nl, mingo@elte.hu, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Jazzsonic: Fix warning about unused variable.
+     lockdep: fix mismatched lockdep_depth/curr_chain_hash
 has been removed from the -mm tree.  Its filename was
-     jazzsonic-fix-warning-about-unused-variable.patch
+     lockdep-fix-mismatched-lockdep_depth-curr_chain_hash.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Jazzsonic: Fix warning about unused variable.
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: lockdep: fix mismatched lockdep_depth/curr_chain_hash
+From: Gregory Haskins <ghaskins@novell.com>
 
-Caused by "[NET]: Introduce and use print_mac() and DECLARE_MAC_BUF()"
-aka 0795af5729b18218767fab27c44b1384f72dc9ad.
+It is possible for the current->curr_chain_key to become inconsistent with
+the current index if the chain fails to validate.  The end result is that
+future lock_acquire() operations may inadvertently fail to find a hit in
+the cache resulting in a new node being added to the graph for every
+acquire.
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+[ peterz: this might explain some of the lockdep is so _slow_ complaints. ]
+[ mingo: this does not impact the correctness of validation, but may slow
+  down future operations significantly, if the chain gets very long. ]
+
+Signed-off-by: Gregory Haskins <ghaskins@novell.com>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/jazzsonic.c |    1 -
- 1 file changed, 1 deletion(-)
 
-diff -puN drivers/net/jazzsonic.c~jazzsonic-fix-warning-about-unused-variable drivers/net/jazzsonic.c
---- a/drivers/net/jazzsonic.c~jazzsonic-fix-warning-about-unused-variable
-+++ a/drivers/net/jazzsonic.c
-@@ -208,7 +208,6 @@ static int __init jazz_sonic_probe(struc
- 	struct sonic_local *lp;
- 	struct resource *res;
- 	int err = 0;
--	int i;
- 	DECLARE_MAC_BUF(mac);
+diff -puN kernel/lockdep.c~lockdep-fix-mismatched-lockdep_depth-curr_chain_hash kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-fix-mismatched-lockdep_depth-curr_chain_hash
++++ a/kernel/lockdep.c
+@@ -1521,7 +1521,7 @@ cache_hit:
+ }
  
- 	dev = alloc_etherdev(sizeof(struct sonic_local));
+ static int validate_chain(struct task_struct *curr, struct lockdep_map *lock,
+-	       	struct held_lock *hlock, int chain_head)
++	       	struct held_lock *hlock, int chain_head, u64 chain_key)
+ {
+ 	/*
+ 	 * Trylock needs to maintain the stack of held locks, but it
+@@ -1534,7 +1534,7 @@ static int validate_chain(struct task_st
+ 	 * graph_lock for us)
+ 	 */
+ 	if (!hlock->trylock && (hlock->check == 2) &&
+-			lookup_chain_cache(curr->curr_chain_key, hlock->class)) {
++			lookup_chain_cache(chain_key, hlock->class)) {
+ 		/*
+ 		 * Check whether last held lock:
+ 		 *
+@@ -1576,7 +1576,7 @@ static int validate_chain(struct task_st
+ #else
+ static inline int validate_chain(struct task_struct *curr,
+ 	       	struct lockdep_map *lock, struct held_lock *hlock,
+-		int chain_head)
++		int chain_head, u64 chain_key)
+ {
+ 	return 1;
+ }
+@@ -2450,11 +2450,11 @@ static int __lock_acquire(struct lockdep
+ 		chain_head = 1;
+ 	}
+ 	chain_key = iterate_chain_key(chain_key, id);
+-	curr->curr_chain_key = chain_key;
+ 
+-	if (!validate_chain(curr, lock, hlock, chain_head))
++	if (!validate_chain(curr, lock, hlock, chain_head, chain_key))
+ 		return 0;
+ 
++	curr->curr_chain_key = chain_key;
+ 	curr->lockdep_depth++;
+ 	check_chain_key(curr);
+ #ifdef CONFIG_DEBUG_LOCKDEP
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from ghaskins@novell.com are
 
 origin.patch
-add-assembler-equivalents-to-__initdate_refok.patch
-move-a-few-definitions-to-au1000_xxs1500c.patch
-move-a-few-definitions-to-au1000_xxs1500c-fix.patch
-serial_txx9-cleanup-includes.patch
-during-vm-oom-condition-kill-all-threads-in-process-group.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-clean-up-duplicate-includes-in-drivers-char.patch
-spelling-fix-weired-weird.patch
-remove-dma_cache_wbackinvwback_inv-functions.patch
-lk201-remove-obsolete-driver.patch
-fix-wrong-filename-reference-in-drivers-testingtxt.patch
-completely-remove-deprecated-irq-flags-sa_.patch
-compile-handle_percpu_irq-even-for-uniprocessor-kernels.patch
-break-elf_platform-and-stack-pointer-randomization-dependency.patch
-rtc-make-rtc-ds1742-driver-hotplug-aware-take-2.patch
-fbcon-convert-struct-font_desc-to-use-iso-c-initializers.patch
-fbcon-convert-struct-font_desc-to-use-iso-c-initializers-update.patch
-vt-fix-warnings-in-selectionh.patch
-export-font_vga_8x16.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics.patch
-drivers-video-pmag-ba-fbc-improve-diagnostics-fix.patch
-add-a-00-index-file-to-documentation-mips.patch
-define-global-bit-macro.patch
-bitops-introduce-lock-ops.patch
-mips-fix-bitops.patch
-mips-lock-bitops.patch
-replace-__attribute_pure__-with-__pure.patch
+git-kvm.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
