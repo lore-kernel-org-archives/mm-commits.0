@@ -1,206 +1,353 @@
 From: akpm@linux-foundation.org
-Subject: - maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 14:36:13 -0700
-Message-ID: <200710162136.l9GLaDRe018558@imap1.linux-foundation.org>
+Subject: - alpha-beautify-vmlinuxlds.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:36:31 -0700
+Message-ID: <200710162036.l9GKaV9u015188@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46167 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34800 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965466AbXJPVhA (ORCPT
+	by vger.kernel.org with ESMTP id S935522AbXJPVg6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:37:00 -0400
+	Tue, 16 Oct 2007 17:36:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpm@selenic.com, jeremy@goop.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: sam@ravnborg.org, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     maps: eliminate the pmd_walker struct in the page walker
+     alpha: beautify vmlinux.lds
 has been removed from the -mm tree.  Its filename was
-     maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
+     alpha-beautify-vmlinuxlds.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: maps: eliminate the pmd_walker struct in the page walker
-From: Matt Mackall <mpm@selenic.com>
+Subject: alpha: beautify vmlinux.lds
+From: Sam Ravnborg <sam@ravnborg.org>
 
-Eliminate the pmd_walker struct in the page walker.
+Introduced a consistent style in vmlinux.lds and it now matches the
+soon-to-be common style for all arch's vmlinux.lds files.
 
-This slightly simplifies things for the next few cleanups.
+In addition:
+- Replaced hardcoded constant with PAGE_SIZE
+- Fix page.h so PAGE_SIZE can be used from assembler and in lds files
+- Move a few labels inside brackets so linker alignment will not
+  make label point ot a too low address
+- Replaced DWARF and STABS sections with definitions from asm-generic
 
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   47 ++++++++++++++++++-------------------------
- 1 file changed, 20 insertions(+), 27 deletions(-)
+ arch/alpha/kernel/vmlinux.lds.S |  260 +++++++++++++++---------------
+ include/asm-alpha/page.h        |    3 
+ 2 files changed, 136 insertions(+), 127 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~maps2-eliminate-the-pmd_walker-struct-in-the-page-walker fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~maps2-eliminate-the-pmd_walker-struct-in-the-page-walker
-+++ a/fs/proc/task_mmu.c
-@@ -116,6 +116,7 @@ static void pad_len_spaces(struct seq_fi
+diff -puN arch/alpha/kernel/vmlinux.lds.S~alpha-beautify-vmlinuxlds arch/alpha/kernel/vmlinux.lds.S
+--- a/arch/alpha/kernel/vmlinux.lds.S~alpha-beautify-vmlinuxlds
++++ a/arch/alpha/kernel/vmlinux.lds.S
+@@ -1,4 +1,5 @@
+ #include <asm-generic/vmlinux.lds.h>
++#include <asm/page.h>
  
- struct mem_size_stats
+ OUTPUT_FORMAT("elf64-alpha")
+ OUTPUT_ARCH(alpha)
+@@ -8,138 +9,145 @@ jiffies = jiffies_64;
+ SECTIONS
  {
-+	struct vm_area_struct *vma;
- 	unsigned long resident;
- 	unsigned long shared_clean;
- 	unsigned long shared_dirty;
-@@ -124,13 +125,6 @@ struct mem_size_stats
- 	unsigned long referenced;
- };
+ #ifdef CONFIG_ALPHA_LEGACY_START_ADDRESS
+-  . = 0xfffffc0000310000;
++	. = 0xfffffc0000310000;
+ #else
+-  . = 0xfffffc0001010000;
++	. = 0xfffffc0001010000;
+ #endif
  
--struct pmd_walker {
--	struct vm_area_struct *vma;
--	void *private;
--	void (*action)(struct vm_area_struct *, pmd_t *, unsigned long,
--		       unsigned long, void *);
--};
+-  _text = .;					/* Text and read-only data */
+-  .text : { 
++	_text = .;	/* Text and read-only data */
++	.text : {
+ 	*(.text.head)
+-	TEXT_TEXT
+-	SCHED_TEXT
+-	LOCK_TEXT
+-	*(.fixup)
+-	*(.gnu.warning)
+-  } :kernel
+-  _etext = .;					/* End of text section */
 -
- static int show_map_internal(struct seq_file *m, void *v, struct mem_size_stats *mss)
- {
- 	struct proc_maps_private *priv = m->private;
-@@ -218,11 +212,11 @@ static int show_map(struct seq_file *m, 
- 	return show_map_internal(m, v, NULL);
+-  . = ALIGN(16);
+-  __start___ex_table = .;			/* Exception table */
+-  __ex_table : { *(__ex_table) }
+-  __stop___ex_table = .;
+-
+-  NOTES :kernel :note
+-  .dummy : { *(.dummy) } :kernel
+-
+-  RODATA
+-
+-  /* Will be freed after init */
+-  . = ALIGN(8192);				/* Init code and data */
+-  __init_begin = .;
+-  .init.text : { 
+-	_sinittext = .;
+-	*(.init.text)
+-	_einittext = .;
+-  }
+-  .init.data : { *(.init.data) }
+-
+-  . = ALIGN(16);
+-  __setup_start = .;
+-  .init.setup : { *(.init.setup) }
+-  __setup_end = .;
+-
+-  . = ALIGN(8);
+-  __initcall_start = .;
+-  .initcall.init : {
+-	INITCALLS
+-  }
+-  __initcall_end = .;
++		TEXT_TEXT
++		SCHED_TEXT
++		LOCK_TEXT
++		*(.fixup)
++		*(.gnu.warning)
++	} :kernel
++	_etext = .;	/* End of text section */
++
++	/* Exception table */
++	. = ALIGN(16);
++	__ex_table : {
++		__start___ex_table = .;
++		*(__ex_table)
++		__stop___ex_table = .;
++	}
++
++	NOTES :kernel :note
++	.dummy : {
++		*(.dummy)
++	} :kernel
++
++	RODATA
++
++	/* Will be freed after init */
++	. = ALIGN(PAGE_SIZE);
++	/* Init code and data */
++	__init_begin = .;
++	.init.text : {
++		_sinittext = .;
++		*(.init.text)
++		_einittext = .;
++	}
++	.init.data : {
++		*(.init.data)
++	}
++
++	. = ALIGN(16);
++	.init.setup : {
++		__setup_start = .;
++		*(.init.setup)
++		__setup_end = .;
++	}
++
++	. = ALIGN(8);
++	.initcall.init : {
++		__initcall_start = .;
++		INITCALLS
++		__initcall_end = .;
++	}
+ 
+ #ifdef CONFIG_BLK_DEV_INITRD
+-  . = ALIGN(8192);
+-  __initramfs_start = .;
+-  .init.ramfs : { *(.init.ramfs) }
+-  __initramfs_end = .;
++	. = ALIGN(PAGE_SIZE);
++	.init.ramfs : {
++		__initramfs_start = .;
++		*(.init.ramfs)
++		__initramfs_end = .;
++	}
+ #endif
+ 
+-  . = ALIGN(8);
+-  .con_initcall.init : {
+-	__con_initcall_start = .;
+-	*(.con_initcall.init)
+-	__con_initcall_end = .;
+-  }
+-
+-  . = ALIGN(8);
+-  SECURITY_INIT
+-
+-  PERCPU(8192)
+-
+-  . = ALIGN(2*8192);
+-  __init_end = .;
+-  /* Freed after init ends here */
+-
+-  /* Note 2 page alignment above.  */
+-  .data.init_thread : { *(.data.init_thread) }
+-
+-  . = ALIGN(8192);
+-  .data.page_aligned : { *(.data.page_aligned) }
+-
+-  . = ALIGN(64);
+-  .data.cacheline_aligned : { *(.data.cacheline_aligned) }
+-
+-  _data = .;
+-  .data : {					/* Data */
+-	DATA_DATA
+-	CONSTRUCTORS
+-  }
+-
+-  .got : { *(.got) }
+-  .sdata : { *(.sdata) }
+-
+-  _edata = .;					/* End of data section */
+-
+-  __bss_start = .;
+-  .sbss : { *(.sbss) *(.scommon) }
+-  .bss : { *(.bss) *(COMMON) }
+-  __bss_stop = .;
+-
+-  _end = .;
+-
+-  /* Sections to be discarded */
+-  /DISCARD/ : { *(.exit.text) *(.exit.data) *(.exitcall.exit) }
+-
+-  .mdebug 0 : { *(.mdebug) }
+-  .note 0 : { *(.note) }
+-  .comment 0 : { *(.comment) }
+-
+-  /* Stabs debugging sections */
+-  .stab 0 : { *(.stab) }
+-  .stabstr 0 : { *(.stabstr) }
+-  .stab.excl 0 : { *(.stab.excl) }
+-  .stab.exclstr 0 : { *(.stab.exclstr) }
+-  .stab.index 0 : { *(.stab.index) }
+-  .stab.indexstr 0 : { *(.stab.indexstr) }
+-  /* DWARF 1 */
+-  .debug          0 : { *(.debug) }
+-  .line           0 : { *(.line) }
+-  /* GNU DWARF 1 extensions */
+-  .debug_srcinfo  0 : { *(.debug_srcinfo) }
+-  .debug_sfnames  0 : { *(.debug_sfnames) }
+-  /* DWARF 1.1 and DWARF 2 */
+-  .debug_aranges  0 : { *(.debug_aranges) }
+-  .debug_pubnames 0 : { *(.debug_pubnames) }
+-  /* DWARF 2 */
+-  .debug_info     0 : { *(.debug_info) }
+-  .debug_abbrev   0 : { *(.debug_abbrev) }
+-  .debug_line     0 : { *(.debug_line) }
+-  .debug_frame    0 : { *(.debug_frame) }
+-  .debug_str      0 : { *(.debug_str) }
+-  .debug_loc      0 : { *(.debug_loc) }
+-  .debug_macinfo  0 : { *(.debug_macinfo) }
+-  /* SGI/MIPS DWARF 2 extensions */
+-  .debug_weaknames 0 : { *(.debug_weaknames) }
+-  .debug_funcnames 0 : { *(.debug_funcnames) }
+-  .debug_typenames 0 : { *(.debug_typenames) }
+-  .debug_varnames  0 : { *(.debug_varnames) }
++	. = ALIGN(8);
++	.con_initcall.init : {
++		__con_initcall_start = .;
++		*(.con_initcall.init)
++		__con_initcall_end = .;
++	}
++
++	. = ALIGN(8);
++	SECURITY_INIT
++
++	PERCPU(PAGE_SIZE)
++
++	. = ALIGN(2 * PAGE_SIZE);
++	__init_end = .;
++	/* Freed after init ends here */
++
++	/* Note 2 page alignment above.  */
++	.data.init_thread : {
++		*(.data.init_thread)
++	}
++
++	. = ALIGN(PAGE_SIZE);
++	.data.page_aligned : {
++		*(.data.page_aligned)
++	}
++
++	. = ALIGN(64);
++	.data.cacheline_aligned : {
++		*(.data.cacheline_aligned)
++	}
++
++	_data = .;
++	/* Data */
++	.data : {
++		DATA_DATA
++		CONSTRUCTORS
++	}
++
++	.got : {
++		*(.got)
++	}
++	.sdata : {
++		*(.sdata)
++	}
++	_edata = .;	/* End of data section */
++
++	__bss_start = .;
++	.sbss : {
++		*(.sbss)
++		*(.scommon)
++	}
++	.bss : {
++		*(.bss)
++		*(COMMON)
++	}
++	__bss_stop = .;
++	_end = .;
++
++	/* Sections to be discarded */
++	/DISCARD/ : {
++		*(.exit.text)
++		*(.exit.data)
++		*(.exitcall.exit)
++	}
++
++	.mdebug 0 : {
++		*(.mdebug)
++	}
++	.note 0 : {
++		*(.note)
++	}
++
++	STABS_DEBUG
++	DWARF_DEBUG
  }
+diff -puN include/asm-alpha/page.h~alpha-beautify-vmlinuxlds include/asm-alpha/page.h
+--- a/include/asm-alpha/page.h~alpha-beautify-vmlinuxlds
++++ a/include/asm-alpha/page.h
+@@ -3,11 +3,12 @@
  
--static void smaps_pte_range(struct vm_area_struct *vma, pmd_t *pmd,
--			    unsigned long addr, unsigned long end,
-+static void smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
- 			    void *private)
- {
- 	struct mem_size_stats *mss = private;
-+	struct vm_area_struct *vma = mss->vma;
- 	pte_t *pte, ptent;
- 	spinlock_t *ptl;
- 	struct page *page;
-@@ -258,10 +252,10 @@ static void smaps_pte_range(struct vm_ar
- 	cond_resched();
- }
+ #ifdef __KERNEL__
  
--static void clear_refs_pte_range(struct vm_area_struct *vma, pmd_t *pmd,
--				 unsigned long addr, unsigned long end,
--				 void *private)
-+static void clear_refs_pte_range(pmd_t *pmd, unsigned long addr,
-+				 unsigned long end, void *private)
- {
-+	struct vm_area_struct *vma = private;
- 	pte_t *pte, ptent;
- 	spinlock_t *ptl;
- 	struct page *page;
-@@ -284,8 +278,10 @@ static void clear_refs_pte_range(struct 
- 	cond_resched();
- }
++#include <linux/const.h>
+ #include <asm/pal.h>
  
--static void walk_pmd_range(struct pmd_walker *walker, pud_t *pud,
--				  unsigned long addr, unsigned long end)
-+static void walk_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
-+			   void (*action)(pmd_t *, unsigned long,
-+					  unsigned long, void *),
-+			   void *private)
- {
- 	pmd_t *pmd;
- 	unsigned long next;
-@@ -295,12 +291,14 @@ static void walk_pmd_range(struct pmd_wa
- 		next = pmd_addr_end(addr, end);
- 		if (pmd_none_or_clear_bad(pmd))
- 			continue;
--		walker->action(walker->vma, pmd, addr, next, walker->private);
-+		action(pmd, addr, next, private);
- 	}
- }
+ /* PAGE_SHIFT determines the page size */
+ #define PAGE_SHIFT	13
+-#define PAGE_SIZE	(1UL << PAGE_SHIFT)
++#define PAGE_SIZE	(_AC(1,UL) << PAGE_SHIFT)
+ #define PAGE_MASK	(~(PAGE_SIZE-1))
  
--static void walk_pud_range(struct pmd_walker *walker, pgd_t *pgd,
--				  unsigned long addr, unsigned long end)
-+static void walk_pud_range(pgd_t *pgd, unsigned long addr, unsigned long end,
-+			   void (*action)(pmd_t *, unsigned long,
-+					  unsigned long, void *),
-+			   void *private)
- {
- 	pud_t *pud;
- 	unsigned long next;
-@@ -310,7 +308,7 @@ static void walk_pud_range(struct pmd_wa
- 		next = pud_addr_end(addr, end);
- 		if (pud_none_or_clear_bad(pud))
- 			continue;
--		walk_pmd_range(walker, pud, addr, next);
-+		walk_pmd_range(pud, addr, next, action, private);
- 	}
- }
- 
-@@ -324,18 +322,12 @@ static void walk_pud_range(struct pmd_wa
-  * a callback for every bottom-level (PTE) page table.
-  */
- static void walk_page_range(struct vm_area_struct *vma,
--			    void (*action)(struct vm_area_struct *,
--					   pmd_t *, unsigned long,
-+			    void (*action)(pmd_t *, unsigned long,
- 					   unsigned long, void *),
- 			    void *private)
- {
- 	unsigned long addr = vma->vm_start;
- 	unsigned long end = vma->vm_end;
--	struct pmd_walker walker = {
--		.vma		= vma,
--		.private	= private,
--		.action		= action,
--	};
- 	pgd_t *pgd;
- 	unsigned long next;
- 
-@@ -344,7 +336,7 @@ static void walk_page_range(struct vm_ar
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none_or_clear_bad(pgd))
- 			continue;
--		walk_pud_range(&walker, pgd, addr, next);
-+		walk_pud_range(pgd, addr, next, action, private);
- 	}
- }
- 
-@@ -354,6 +346,7 @@ static int show_smap(struct seq_file *m,
- 	struct mem_size_stats mss;
- 
- 	memset(&mss, 0, sizeof mss);
-+	mss.vma = vma;
- 	if (vma->vm_mm && !is_vm_hugetlb_page(vma))
- 		walk_page_range(vma, smaps_pte_range, &mss);
- 	return show_map_internal(m, v, &mss);
-@@ -366,7 +359,7 @@ void clear_refs_smap(struct mm_struct *m
- 	down_read(&mm->mmap_sem);
- 	for (vma = mm->mmap; vma; vma = vma->vm_next)
- 		if (vma->vm_mm && !is_vm_hugetlb_page(vma))
--			walk_page_range(vma, clear_refs_pte_range, NULL);
-+			walk_page_range(vma, clear_refs_pte_range, vma);
- 	flush_tlb_mm(mm);
- 	up_read(&mm->mmap_sem);
- }
+ #ifndef __ASSEMBLY__
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
 origin.patch
-maps2-eliminate-the-pmd_walker-struct-in-the-page-walker.patch
-maps2-remove-vma-from-args-in-the-page-walker.patch
-maps2-propagate-errors-from-callback-in-page-walker.patch
-maps2-add-callbacks-for-each-level-to-page-walker.patch
-maps2-move-the-page-walker-code-to-lib.patch
-maps2-simplify-interdependence-of-proc-pid-maps-and-smaps.patch
-maps2-move-clear_refs-code-to-task_mmuc.patch
-maps2-regroup-task_mmu-by-interface.patch
-maps2-make-proc-pid-smaps-optional-under-config_embedded.patch
-maps2-make-proc-pid-clear_refs-option-under-config_embedded.patch
-maps2-add-proc-pid-pagemap-interface.patch
-maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-return-length-calculation.patch
-maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-end-address-calculation.patch
-maps2-add-proc-pid-pagemap-interface-fix-proc-pid-pagemap-header-copy-to-userspace.patch
-maps2-add-proc-kpagemap-interface.patch
-mmaps2-vma-out-of-mem_size_stats.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch.patch
-maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
-maps-pssproportional-set-size-accounting-in-smaps.patch
-lib-sortc-optimization.patch
-sparse-pointer-use-of-zero-as-null.patch
-sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+modpost-problem-when-symbols-move-from-one-module-to-another.patch
+script-to-check-for-undefined-kconfig-symbols.patch
+documentation-make-headers_installtxt.patch
