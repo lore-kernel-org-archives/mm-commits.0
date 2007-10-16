@@ -1,98 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - oom-move-prototypes-to-appropriate-header-file-fix.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 14:42:51 -0700
-Message-ID: <200710162142.l9GLgpu1018899@imap1.linux-foundation.org>
+Subject: - qnx4-convert-to-new-aops.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:32:54 -0700
+Message-ID: <200710162032.l9GKWstW014661@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33732 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41416 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966035AbXJPVoE (ORCPT
+	by vger.kernel.org with ESMTP id S965963AbXJPVoW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:44:04 -0400
+	Tue, 16 Oct 2007 17:44:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clg@fr.ibm.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, al@alarsen.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom-move-prototypes-to-appropriate-header-file fix
+     qnx4: convert to new aops
 has been removed from the -mm tree.  Its filename was
-     oom-move-prototypes-to-appropriate-header-file-fix.patch
+     qnx4-convert-to-new-aops.patch
 
-This patch was dropped because it was folded into oom-move-prototypes-to-appropriate-header-file.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: oom-move-prototypes-to-appropriate-header-file fix
-From: Cedric Le Goater <clg@fr.ibm.com>
+Subject: qnx4: convert to new aops
+From: Nick Piggin <npiggin@suse.de>
 
-Andy Whitcroft wrote:
-> Getting compile errors on S390:
->
->     CC      arch/s390/mm/cmm.o
->   arch/s390/mm/cmm.c: In function `cmm_init':
->   arch/s390/mm/cmm.c:431: error: implicit declaration of function
->   				`register_oom_notifier'
->   arch/s390/mm/cmm.c:443: error: implicit declaration of function
->   				`unregister_oom_notifier'
->   make[1]: *** [arch/s390/mm/cmm.o] Error 1
->   make: *** [arch/s390/mm] Error 2
-
-yes. It's from oom-move-prototypes-to-appropriate-header-file.patch.
-
-I think this patch fixes it.
-
-Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Acked-by: Anders Larsen <al@alarsen.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/cmm.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/qnx4/inode.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
-diff -puN arch/s390/mm/cmm.c~oom-move-prototypes-to-appropriate-header-file-fix arch/s390/mm/cmm.c
---- a/arch/s390/mm/cmm.c~oom-move-prototypes-to-appropriate-header-file-fix
-+++ a/arch/s390/mm/cmm.c
-@@ -17,6 +17,7 @@
- #include <linux/ctype.h>
- #include <linux/swap.h>
- #include <linux/kthread.h>
-+#include <linux/oom.h>
+diff -puN fs/qnx4/inode.c~qnx4-convert-to-new-aops fs/qnx4/inode.c
+--- a/fs/qnx4/inode.c~qnx4-convert-to-new-aops
++++ a/fs/qnx4/inode.c
+@@ -433,16 +433,21 @@ static int qnx4_writepage(struct page *p
+ {
+ 	return block_write_full_page(page,qnx4_get_block, wbc);
+ }
++
+ static int qnx4_readpage(struct file *file, struct page *page)
+ {
+ 	return block_read_full_page(page,qnx4_get_block);
+ }
+-static int qnx4_prepare_write(struct file *file, struct page *page,
+-			      unsigned from, unsigned to)
+-{
+-	struct qnx4_inode_info *qnx4_inode = qnx4_i(page->mapping->host);
+-	return cont_prepare_write(page, from, to, qnx4_get_block,
+-				  &qnx4_inode->mmu_private);
++
++static int qnx4_write_begin(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned flags,
++			struct page **pagep, void **fsdata)
++{
++	struct qnx4_inode_info *qnx4_inode = qnx4_i(mapping->host);
++	*pagep = NULL;
++	return cont_write_begin(file, mapping, pos, len, flags, pagep, fsdata,
++				qnx4_get_block,
++				&qnx4_inode->mmu_private);
+ }
+ static sector_t qnx4_bmap(struct address_space *mapping, sector_t block)
+ {
+@@ -452,8 +457,8 @@ static const struct address_space_operat
+ 	.readpage	= qnx4_readpage,
+ 	.writepage	= qnx4_writepage,
+ 	.sync_page	= block_sync_page,
+-	.prepare_write	= qnx4_prepare_write,
+-	.commit_write	= generic_commit_write,
++	.write_begin	= qnx4_write_begin,
++	.write_end	= generic_write_end,
+ 	.bmap		= qnx4_bmap
+ };
  
- #include <asm/pgalloc.h>
- #include <asm/uaccess.h>
 _
 
-Patches currently in -mm which might be from clg@fr.ibm.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-oom-move-prototypes-to-appropriate-header-file.patch
-oom-move-prototypes-to-appropriate-header-file-fix.patch
-handle-the-multi-threaded-inits-exit-properly.patch
-ipc-namespace-remove-config-ipc-ns-fix.patch
-remove-unused-member-from-nsproxy.patch
-use-kmem_cache-macro-to-create-the-nsproxy-cache.patch
-task-containersv11-basic-task-container-framework.patch
-task-containersv11-add-tasks-file-interface.patch
-task-containersv11-add-fork-exit-hooks.patch
-task-containersv11-add-container_clone-interface.patch
-task-containersv11-add-procfs-interface.patch
-task-containersv11-shared-container-subsystem-group-arrays.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers.patch
-task-containersv11-make-cpusets-a-client-of-containers.patch
-task-containersv11-example-cpu-accounting-subsystem.patch
-task-containersv11-simple-task-container-debug-info-subsystem.patch
-containers-implement-namespace-tracking-subsystem-fix-order-of-container-subsystems-in-init-kconfig.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
-make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
+origin.patch
+mm-document-tree_lock-zonelock-lockorder.patch
+fs-reiserfs-cleanups.patch
+atomic_opstxt-has-incorrect-misleading-and-insufficient-information.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+bitops-introduce-lock-ops.patch
+alpha-fix-bitops.patch
+alpha-lock-bitops.patch
+alpha-lock-bitops-fix.patch
+ia64-lock-bitops.patch
+mips-fix-bitops.patch
+mips-lock-bitops.patch
+powerpc-lock-bitops.patch
+powerpc-lock-bitops-fix.patch
+bit_spin_lock-use-lock-bitops.patch
+reiser4-fix-for-new-aops-patches.patch
