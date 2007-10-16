@@ -1,644 +1,236 @@
 From: akpm@linux-foundation.org
-Subject: - uml-style-fixes-in-fp-code.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:38:25 -0700
-Message-ID: <200710162038.l9GKcPJR015446@imap1.linux-foundation.org>
+Subject: - applesmc-for-mac-pro-2-x-quad-core-fix.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 14:19:00 -0700
+Message-ID: <200710162119.l9GLJ1Xs017684@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33261 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55149 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965597AbXJPVTX (ORCPT
+	by vger.kernel.org with ESMTP id S965940AbXJPVTt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:19:23 -0400
+	Tue, 16 Oct 2007 17:19:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, khali@linux-fr.org, mhoffman@lightlink.com, nicolas@boichat.ch, rene@exactcode.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: style fixes in FP code
+     applesmc-for-mac-pro-2-x-quad-core-fix
 has been removed from the -mm tree.  Its filename was
-     uml-style-fixes-in-fp-code.patch
+     applesmc-for-mac-pro-2-x-quad-core-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into applesmc-for-mac-pro-=
+2-x-quad-core.patch
 
 ------------------------------------------------------
-Subject: uml: style fixes in FP code
-From: Jeff Dike <jdike@addtoit.com>
+Subject: applesmc-for-mac-pro-2-x-quad-core-fix
+=46rom: Andrew Morton <akpm@linux-foundation.org>
 
-Tidy the code affected by the floating point fixes.
-
-A bunch of unused stuff is gone, including two sigcontext.c files,
-which turned out to be entirely unneeded.
-
-There are the usual fixes -
-	whitespace and style cleanups
-	copyright updates
-	emacs formatting comments gone
-	include cleanups
-	adding severities to printks
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Mark M. Hoffman <mhoffman@lightlink.com>
+Cc: Nicolas Boichat <nicolas@boichat.ch>
+Cc: Ren=E9 Rebe <rene@exactcode.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/sysdep-i386/sigcontext.h   |   13 --
- arch/um/include/sysdep-x86_64/sigcontext.h |   28 -----
- arch/um/kernel/ptrace.c                    |    2 
- arch/um/os-Linux/sys-i386/registers.c      |   26 +++--
- arch/um/sys-i386/Makefile                  |    6 -
- arch/um/sys-i386/sigcontext.c              |   71 -------------
- arch/um/sys-x86_64/Makefile                |    6 -
- arch/um/sys-x86_64/ptrace.c                |   97 +++++++------------
- arch/um/sys-x86_64/sigcontext.c            |   39 -------
- arch/um/sys-x86_64/signal.c                |   23 ++--
- include/asm-um/elf-x86_64.h                |   12 --
- 11 files changed, 76 insertions(+), 247 deletions(-)
+ drivers/hwmon/applesmc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/um/include/sysdep-i386/sigcontext.h~uml-style-fixes-in-fp-code arch/um/include/sysdep-i386/sigcontext.h
---- a/arch/um/include/sysdep-i386/sigcontext.h~uml-style-fixes-in-fp-code
-+++ a/arch/um/include/sysdep-i386/sigcontext.h
-@@ -6,15 +6,10 @@
- #ifndef __SYS_SIGCONTEXT_I386_H
- #define __SYS_SIGCONTEXT_I386_H
- 
--#include "uml-config.h"
--#include "skas.h"
- #include "sysdep/sc.h"
- 
- #define IP_RESTART_SYSCALL(ip) ((ip) -= 2)
- 
--#define SC_RESTART_SYSCALL(sc) IP_RESTART_SYSCALL(SC_IP(sc))
--#define SC_SET_SYSCALL_RETURN(sc, result) SC_EAX(sc) = (result)
--
- #define GET_FAULTINFO_FROM_SC(fi,sc) \
- 	{ \
- 		(fi).cr2 = SC_CR2(sc); \
-@@ -22,18 +17,10 @@
- 		(fi).trap_no = SC_TRAPNO(sc); \
- 	}
- 
--/* ptrace expects that, at the start of a system call, %eax contains
-- * -ENOSYS, so this makes it so.
-- */
--#define SC_START_SYSCALL(sc) do SC_EAX(sc) = -ENOSYS; while(0)
--
- /* This is Page Fault */
- #define SEGV_IS_FIXABLE(fi)	((fi)->trap_no == 14)
- 
- /* SKAS3 has no trap_no on i386, but get_skas_faultinfo() sets it to 0. */
- #define SEGV_MAYBE_FIXABLE(fi)	((fi)->trap_no == 0 && ptrace_faultinfo)
- 
--extern unsigned long *sc_sigmask(void *sc_ptr);
--extern int sc_get_fpregs(unsigned long buf, void *sc_ptr);
--
- #endif
-diff -puN arch/um/include/sysdep-x86_64/sigcontext.h~uml-style-fixes-in-fp-code arch/um/include/sysdep-x86_64/sigcontext.h
---- a/arch/um/include/sysdep-x86_64/sigcontext.h~uml-style-fixes-in-fp-code
-+++ a/arch/um/include/sysdep-x86_64/sigcontext.h
-@@ -11,43 +11,17 @@
- 
- #define IP_RESTART_SYSCALL(ip) ((ip) -= 2)
- 
--#define SC_RESTART_SYSCALL(sc) IP_RESTART_SYSCALL(SC_IP(sc))
--#define SC_SET_SYSCALL_RETURN(sc, result) SC_RAX(sc) = (result)
--
--#define SC_FAULT_ADDR(sc) SC_CR2(sc)
--#define SC_FAULT_TYPE(sc) SC_ERR(sc)
--
--#define GET_FAULTINFO_FROM_SC(fi,sc) \
-+#define GET_FAULTINFO_FROM_SC(fi, sc) \
- 	{ \
- 		(fi).cr2 = SC_CR2(sc); \
- 		(fi).error_code = SC_ERR(sc); \
- 		(fi).trap_no = SC_TRAPNO(sc); \
- 	}
- 
--/* ptrace expects that, at the start of a system call, %eax contains
-- * -ENOSYS, so this makes it so.
-- */
--
--#define SC_START_SYSCALL(sc) do SC_RAX(sc) = -ENOSYS; while(0)
--
- /* This is Page Fault */
- #define SEGV_IS_FIXABLE(fi)	((fi)->trap_no == 14)
- 
- /* No broken SKAS API, which doesn't pass trap_no, here. */
- #define SEGV_MAYBE_FIXABLE(fi)	0
- 
--extern unsigned long *sc_sigmask(void *sc_ptr);
--
- #endif
--
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
--
-diff -puN arch/um/kernel/ptrace.c~uml-style-fixes-in-fp-code arch/um/kernel/ptrace.c
---- a/arch/um/kernel/ptrace.c~uml-style-fixes-in-fp-code
-+++ a/arch/um/kernel/ptrace.c
-@@ -171,8 +171,6 @@ long arch_ptrace(struct task_struct *chi
- 		 */
- 		ret = copy_to_user(p, &child->thread.arch.faultinfo,
- 				   sizeof(struct ptrace_faultinfo));
--		if (ret)
--			break;
- 		break;
- 	}
- 
-diff -puN arch/um/os-Linux/sys-i386/registers.c~uml-style-fixes-in-fp-code arch/um/os-Linux/sys-i386/registers.c
---- a/arch/um/os-Linux/sys-i386/registers.c~uml-style-fixes-in-fp-code
-+++ a/arch/um/os-Linux/sys-i386/registers.c
-@@ -1,49 +1,55 @@
+diff -puN drivers/hwmon/applesmc.c~applesmc-for-mac-pro-2-x-quad-core-f=
+ix drivers/hwmon/applesmc.c
+--- a/drivers/hwmon/applesmc.c~applesmc-for-mac-pro-2-x-quad-core-fix
++++ a/drivers/hwmon/applesmc.c
+@@ -1026,7 +1026,7 @@ static const struct attribute_group fan_
+ 	{ .attrs =3D fan1_attributes },
+ 	{ .attrs =3D fan2_attributes },
+ 	{ .attrs =3D fan3_attributes },
+-	{ .attrs =3D fan4_attributes }
++	{ .attrs =3D fan4_attributes },
+ };
+=20
  /*
-  * Copyright (C) 2004 PathScale, Inc
-+ * Copyright (C) 2004 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
- 
- #include <errno.h>
--#include <sysdep/ptrace_user.h>
-+#include "kern_constants.h"
- #include "longjmp.h"
- #include "user.h"
-+#include "sysdep/ptrace_user.h"
- 
- int save_fp_registers(int pid, unsigned long *fp_regs)
- {
--	if(ptrace(PTRACE_GETFPREGS, pid, 0, fp_regs) < 0)
-+	if (ptrace(PTRACE_GETFPREGS, pid, 0, fp_regs) < 0)
- 		return -errno;
- 	return 0;
- }
- 
- int restore_fp_registers(int pid, unsigned long *fp_regs)
- {
--	if(ptrace(PTRACE_SETFPREGS, pid, 0, fp_regs) < 0)
-+	if (ptrace(PTRACE_SETFPREGS, pid, 0, fp_regs) < 0)
- 		return -errno;
- 	return 0;
- }
- 
- int save_fpx_registers(int pid, unsigned long *fp_regs)
- {
--	if(ptrace(PTRACE_GETFPXREGS, pid, 0, fp_regs) < 0)
-+	if (ptrace(PTRACE_GETFPXREGS, pid, 0, fp_regs) < 0)
- 		return -errno;
- 	return 0;
- }
- 
- int restore_fpx_registers(int pid, unsigned long *fp_regs)
- {
--	if(ptrace(PTRACE_SETFPXREGS, pid, 0, fp_regs) < 0)
-+	if (ptrace(PTRACE_SETFPXREGS, pid, 0, fp_regs) < 0)
- 		return -errno;
- 	return 0;
- }
- 
- unsigned long get_thread_reg(int reg, jmp_buf *buf)
- {
--	switch(reg){
--	case EIP: return buf[0]->__eip;
--	case UESP: return buf[0]->__esp;
--	case EBP: return buf[0]->__ebp;
-+	switch (reg) {
-+	case EIP:
-+		return buf[0]->__eip;
-+	case UESP:
-+		return buf[0]->__esp;
-+	case EBP:
-+		return buf[0]->__ebp;
- 	default:
--		printk("get_thread_regs - unknown register %d\n", reg);
-+		printk(UM_KERN_ERR "get_thread_regs - unknown register %d\n",
-+		       reg);
- 		return 0;
- 	}
- }
-diff -puN arch/um/sys-i386/Makefile~uml-style-fixes-in-fp-code arch/um/sys-i386/Makefile
---- a/arch/um/sys-i386/Makefile~uml-style-fixes-in-fp-code
-+++ a/arch/um/sys-i386/Makefile
-@@ -3,14 +3,14 @@
- #
- 
- obj-y = bug.o bugs.o checksum.o delay.o fault.o ksyms.o ldt.o ptrace.o \
--	ptrace_user.o setjmp.o signal.o sigcontext.o stub.o stub_segv.o \
--	syscalls.o sysrq.o sys_call_table.o tls.o
-+	ptrace_user.o setjmp.o signal.o stub.o stub_segv.o syscalls.o sysrq.o \
-+	sys_call_table.o tls.o
- 
- subarch-obj-y = lib/bitops_32.o lib/semaphore_32.o lib/string_32.o
- subarch-obj-$(CONFIG_HIGHMEM) += mm/highmem_32.o
- subarch-obj-$(CONFIG_MODULES) += kernel/module_32.o
- 
--USER_OBJS := bugs.o ptrace_user.o sigcontext.o fault.o
-+USER_OBJS := bugs.o ptrace_user.o fault.o
- 
- USER_OBJS += user-offsets.s
- extra-y += user-offsets.s
-diff -puN arch/um/sys-i386/sigcontext.c~uml-style-fixes-in-fp-code /dev/null
---- a/arch/um/sys-i386/sigcontext.c
-+++ /dev/null
-@@ -1,71 +0,0 @@
--/* 
-- * Copyright (C) 2000, 2001, 2002 Jeff Dike (jdike@karaya.com)
-- * Licensed under the GPL
-- */
--
--#include <stddef.h>
--#include <string.h>
--#include <asm/ptrace.h>
--#include <asm/sigcontext.h>
--#include "sysdep/ptrace.h"
--#include "kern_util.h"
--
--void sc_to_sc(void *to_ptr, void *from_ptr)
--{
--	struct sigcontext *to = to_ptr, *from = from_ptr;
--
--	memcpy(to, from, sizeof(*to) + sizeof(struct _fpstate));
--	if(from->fpstate != NULL)
--		to->fpstate = (struct _fpstate *) (to + 1);
--}
--
--unsigned long *sc_sigmask(void *sc_ptr)
--{
--	struct sigcontext *sc = sc_ptr;
--	return &sc->oldmask;
--}
--
--int sc_get_fpregs(unsigned long buf, void *sc_ptr)
--{
--	struct sigcontext *sc = sc_ptr;
--	struct _fpstate *from = sc->fpstate, *to = (struct _fpstate *) buf;
--	int err = 0;
--
--	if(from == NULL){
--		err |= clear_user_proc(&to->cw, sizeof(to->cw));
--		err |= clear_user_proc(&to->sw, sizeof(to->sw));
--		err |= clear_user_proc(&to->tag, sizeof(to->tag));
--		err |= clear_user_proc(&to->ipoff, sizeof(to->ipoff));
--		err |= clear_user_proc(&to->cssel, sizeof(to->cssel));
--		err |= clear_user_proc(&to->dataoff, sizeof(to->dataoff));
--		err |= clear_user_proc(&to->datasel, sizeof(to->datasel));
--		err |= clear_user_proc(&to->_st, sizeof(to->_st));
--	}
--	else {
--		err |= copy_to_user_proc(&to->cw, &from->cw, sizeof(to->cw));
--		err |= copy_to_user_proc(&to->sw, &from->sw, sizeof(to->sw));
--		err |= copy_to_user_proc(&to->tag, &from->tag, 
--					 sizeof(to->tag));
--		err |= copy_to_user_proc(&to->ipoff, &from->ipoff, 
--					 sizeof(to->ipoff));
--		err |= copy_to_user_proc(&to->cssel,& from->cssel, 
--					 sizeof(to->cssel));
--		err |= copy_to_user_proc(&to->dataoff, &from->dataoff, 
--				    sizeof(to->dataoff));
--		err |= copy_to_user_proc(&to->datasel, &from->datasel, 
--				    sizeof(to->datasel));
--		err |= copy_to_user_proc(to->_st, from->_st, sizeof(to->_st));
--	}
--	return(err);
--}
--
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/sys-x86_64/Makefile~uml-style-fixes-in-fp-code arch/um/sys-x86_64/Makefile
---- a/arch/um/sys-x86_64/Makefile~uml-style-fixes-in-fp-code
-+++ a/arch/um/sys-x86_64/Makefile
-@@ -5,8 +5,8 @@
- #
- 
- obj-y = bug.o bugs.o delay.o fault.o ldt.o mem.o ptrace.o ptrace_user.o \
--	setjmp.o sigcontext.o signal.o stub.o stub_segv.o syscalls.o \
--	syscall_table.o sysrq.o ksyms.o tls.o
-+	setjmp.o signal.o stub.o stub_segv.o syscalls.o syscall_table.o \
-+	sysrq.o ksyms.o tls.o
- 
- obj-$(CONFIG_MODULES) += um_module.o
- 
-@@ -15,7 +15,7 @@ subarch-obj-$(CONFIG_MODULES) += kernel/
- 
- ldt-y = ../sys-i386/ldt.o
- 
--USER_OBJS := ptrace_user.o sigcontext.o
-+USER_OBJS := ptrace_user.o
- 
- USER_OBJS += user-offsets.s
- extra-y += user-offsets.s
-diff -puN arch/um/sys-x86_64/ptrace.c~uml-style-fixes-in-fp-code arch/um/sys-x86_64/ptrace.c
---- a/arch/um/sys-x86_64/ptrace.c~uml-style-fixes-in-fp-code
-+++ a/arch/um/sys-x86_64/ptrace.c
-@@ -1,5 +1,6 @@
- /*
-  * Copyright 2003 PathScale, Inc.
-+ * Copyright (C) 2003 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  *
-  * Licensed under the GPL
-  */
-@@ -12,17 +13,10 @@
- #include <asm/uaccess.h>
- #include <asm/elf.h>
- 
--/* XXX x86_64 */
--unsigned long not_ss;
--unsigned long not_ds;
--unsigned long not_es;
--
--#define SC_SS(r) (not_ss)
--#define SC_DS(r) (not_ds)
--#define SC_ES(r) (not_es)
--
--/* determines which flags the user has access to. */
--/* 1 = access 0 = no access */
-+/*
-+ * determines which flags the user has access to.
-+ * 1 = access 0 = no access
-+ */
- #define FLAG_MASK 0x44dd5UL
- 
- int putreg(struct task_struct *child, int regno, unsigned long value)
-@@ -66,20 +60,21 @@ int putreg(struct task_struct *child, in
- 
- int poke_user(struct task_struct *child, long addr, long data)
- {
--        if ((addr & 3) || addr < 0)
--                return -EIO;
-+	if ((addr & 3) || addr < 0)
-+		return -EIO;
- 
--        if (addr < MAX_REG_OFFSET)
--                return putreg(child, addr, data);
--        else if((addr >= offsetof(struct user, u_debugreg[0])) &&
--                (addr <= offsetof(struct user, u_debugreg[7]))){
--                addr -= offsetof(struct user, u_debugreg[0]);
--                addr = addr >> 2;
--                if((addr == 4) || (addr == 5)) return -EIO;
--                child->thread.arch.debugregs[addr] = data;
--                return 0;
--        }
--        return -EIO;
-+	if (addr < MAX_REG_OFFSET)
-+		return putreg(child, addr, data);
-+	else if ((addr >= offsetof(struct user, u_debugreg[0])) &&
-+		(addr <= offsetof(struct user, u_debugreg[7]))){
-+		addr -= offsetof(struct user, u_debugreg[0]);
-+		addr = addr >> 2;
-+		if ((addr == 4) || (addr == 5))
-+			return -EIO;
-+		child->thread.arch.debugregs[addr] = data;
-+		return 0;
-+	}
-+	return -EIO;
- }
- 
- unsigned long getreg(struct task_struct *child, int regno)
-@@ -107,29 +102,22 @@ unsigned long getreg(struct task_struct 
- int peek_user(struct task_struct *child, long addr, long data)
- {
- 	/* read the word at location addr in the USER area. */
--        unsigned long tmp;
-+	unsigned long tmp;
- 
--        if ((addr & 3) || addr < 0)
--                return -EIO;
-+	if ((addr & 3) || addr < 0)
-+		return -EIO;
- 
--        tmp = 0;  /* Default return condition */
--        if(addr < MAX_REG_OFFSET){
--                tmp = getreg(child, addr);
--        }
--        else if((addr >= offsetof(struct user, u_debugreg[0])) &&
--                (addr <= offsetof(struct user, u_debugreg[7]))){
--                addr -= offsetof(struct user, u_debugreg[0]);
--                addr = addr >> 2;
--                tmp = child->thread.arch.debugregs[addr];
--        }
--        return put_user(tmp, (unsigned long *) data);
--}
--
--void arch_switch(void)
--{
--/* XXX
--	printk("arch_switch\n");
--*/
-+	tmp = 0;  /* Default return condition */
-+	if (addr < MAX_REG_OFFSET){
-+		tmp = getreg(child, addr);
-+	}
-+	else if ((addr >= offsetof(struct user, u_debugreg[0])) &&
-+		(addr <= offsetof(struct user, u_debugreg[7]))){
-+		addr -= offsetof(struct user, u_debugreg[0]);
-+		addr = addr >> 2;
-+		tmp = child->thread.arch.debugregs[addr];
-+	}
-+	return put_user(tmp, (unsigned long *) data);
- }
- 
- /* XXX Mostly copied from sys-i386 */
-@@ -139,21 +127,21 @@ int is_syscall(unsigned long addr)
- 	int n;
- 
- 	n = copy_from_user(&instr, (void __user *) addr, sizeof(instr));
--	if(n){
-+	if (n){
- 		/* access_process_vm() grants access to vsyscall and stub,
- 		 * while copy_from_user doesn't. Maybe access_process_vm is
- 		 * slow, but that doesn't matter, since it will be called only
- 		 * in case of singlestepping, if copy_from_user failed.
- 		 */
- 		n = access_process_vm(current, addr, &instr, sizeof(instr), 0);
--		if(n != sizeof(instr)) {
-+		if (n != sizeof(instr)) {
- 			printk("is_syscall : failed to read instruction from "
- 			       "0x%lx\n", addr);
--			return(1);
-+			return 1;
- 		}
- 	}
- 	/* sysenter */
--	return(instr == 0x050f);
-+	return instr == 0x050f;
- }
- 
- int get_fpregs(struct user_i387_struct __user *buf, struct task_struct *child)
-@@ -204,14 +192,3 @@ long subarch_ptrace(struct task_struct *
- 
- 	return ret;
- }
--
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/sys-x86_64/sigcontext.c~uml-style-fixes-in-fp-code /dev/null
---- a/arch/um/sys-x86_64/sigcontext.c
-+++ /dev/null
-@@ -1,39 +0,0 @@
--/*
-- * Copyright 2003 PathScale, Inc.
-- *
-- * Licensed under the GPL
-- */
--
--#include <stdio.h>
--#include <string.h>
--#include <signal.h>
--#include "user.h"
--
--void sc_to_sc(void *to_ptr, void *from_ptr)
--{
--        struct sigcontext *to = to_ptr, *from = from_ptr;
--        int size = sizeof(*to); /* + sizeof(struct _fpstate); */
--
--        memcpy(to, from, size);
--        if(from->fpstate != NULL)
--		to->fpstate = (struct _fpstate *) (to + 1);
--
--	to->fpstate = NULL;
--}
--
--unsigned long *sc_sigmask(void *sc_ptr)
--{
--	struct sigcontext *sc = sc_ptr;
--
--	return(&sc->oldmask);
--}
--
--/* Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/sys-x86_64/signal.c~uml-style-fixes-in-fp-code arch/um/sys-x86_64/signal.c
---- a/arch/um/sys-x86_64/signal.c~uml-style-fixes-in-fp-code
-+++ a/arch/um/sys-x86_64/signal.c
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (C) 2003 PathScale, Inc.
-+ * Copyright (C) 2003 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
- 
-@@ -110,7 +111,8 @@ static int copy_sc_to_user(struct sigcon
- 	err |= PUTREG(regs, RDI, to, rdi);
- 	err |= PUTREG(regs, RSI, to, rsi);
- 	err |= PUTREG(regs, RBP, to, rbp);
--	/* Must use orignal RSP, which is passed in, rather than what's in
-+	/*
-+	 * Must use orignal RSP, which is passed in, rather than what's in
- 	 * the pt_regs, because that's already been updated to point at the
- 	 * signal frame.
- 	 */
-@@ -152,7 +154,7 @@ static int copy_sc_to_user(struct sigcon
- 	if (copy_to_user(to_fp, &fp, sizeof(struct user_i387_struct)))
- 		return 1;
- 
--	return(err);
-+	return err;
- }
- 
- struct rt_sigframe
-@@ -188,7 +190,8 @@ int setup_signal_stack_si(unsigned long 
- 			goto out;
- 	}
- 
--	/* Update SP now because the page fault handler refuses to extend
-+	/*
-+	 * Update SP now because the page fault handler refuses to extend
- 	 * the stack if the faulting address is too far below the current
- 	 * SP, which frame now certainly is.  If there's an error, the original
- 	 * value is restored on the way out.
-@@ -216,8 +219,10 @@ int setup_signal_stack_si(unsigned long 
- 		err |= __copy_to_user(&frame->uc.uc_sigmask, set,
- 				      sizeof(*set));
- 
--	/* Set up to return from userspace.  If provided, use a stub
--	   already in userspace.  */
-+	/*
-+	 * Set up to return from userspace.  If provided, use a stub
-+	 * already in userspace.
-+	 */
- 	/* x86-64 should always use SA_RESTORER. */
- 	if (ka->sa.sa_flags & SA_RESTORER)
- 		err |= __put_user(ka->sa.sa_restorer, &frame->pretcode);
-@@ -239,8 +244,10 @@ int setup_signal_stack_si(unsigned long 
- 	/* In case the signal handler was declared without prototypes */
- 	PT_REGS_RAX(regs) = 0;
- 
--	/* This also works for non SA_SIGINFO handlers because they expect the
--	   next argument after the signal number on the stack. */
-+	/*
-+	 * This also works for non SA_SIGINFO handlers because they expect the
-+	 * next argument after the signal number on the stack.
-+	 */
- 	PT_REGS_RSI(regs) = (unsigned long) &frame->info;
- 	PT_REGS_RDX(regs) = (unsigned long) &frame->uc;
- 	PT_REGS_RIP(regs) = (unsigned long) ka->sa.sa_handler;
-@@ -276,7 +283,7 @@ long sys_rt_sigreturn(struct pt_regs *re
- 
- 	/* Avoid ERESTART handling */
- 	PT_REGS_SYSCALL_NR(&current->thread.regs) = -1;
--	return(PT_REGS_SYSCALL_RET(&current->thread.regs));
-+	return PT_REGS_SYSCALL_RET(&current->thread.regs);
- 
-  segfault:
- 	force_sig(SIGSEGV, current);
-diff -puN include/asm-um/elf-x86_64.h~uml-style-fixes-in-fp-code include/asm-um/elf-x86_64.h
---- a/include/asm-um/elf-x86_64.h~uml-style-fixes-in-fp-code
-+++ a/include/asm-um/elf-x86_64.h
-@@ -1,5 +1,6 @@
- /*
-  * Copyright 2003 PathScale, Inc.
-+ * Copyright (C) 2003 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  *
-  * Licensed under the GPL
-  */
-@@ -122,14 +123,3 @@ extern long elf_aux_hwcap;
- #define SET_PERSONALITY(ex, ibcs2) do ; while(0)
- 
- #endif
--
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org =
+are
 
 origin.patch
+applesmc-for-mac-pro-2-x-quad-core.patch
+applesmc-for-mac-pro-2-x-quad-core-fix.patch
+console-keyboard-events-and-accessibility.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-jg-warning-fixes.patch
+git-jg-misc-powernow-fix.patch
 git-kvm.patch
-uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
-bitops-introduce-lock-ops.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-arm-hack.patch
+forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196c=
+c0107ce9a5bd5a0-checkpatch-fixes.patch
+git-nfs-vs-git-unionfs.patch
+git-nfsd-fixup.patch
+qla2xxx-printk-fixes.patch
+sparc-support-for-new-termios-checkpatch-fixes.patch
+git-unionfs.patch
+git-watchdog-fixup.patch
+git-wireless.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+asm-i386-ioh-fix-constness.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+git-xfs.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-t=
+he-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+maps2-move-the-page-walker-code-to-lib.patch
+maps2-add-proc-pid-pagemap-interface.patch
+maps2-make-proc-pid-smaps-optional-under-config_embeddedpatch-fix.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold-warning-fix.patch
+mm-dirty-balancing-for-tasks-warning-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.pat=
+ch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionf=
+s.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-do-not-take-callback_mutex-fix.patch
+writeback-dont-propagate-aop_writepage_activate.patch
+security-convert-lsm-into-a-static-interface-fix.patch
+security-convert-lsm-into-a-static-interface-fix-2.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-derefe=
+rence-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-opti=
+on-update.patch
+pm-qos-infrastructure-and-interface-fix.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+softlockup-add-a-proc-tuning-parameter-fix.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors-fix.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91-fix.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+do_sys_poll-simplify-playing-with-on-stack-data-fix.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs-fix.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs-fix.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer-fix.patch
+deprecate-aout-elf-interpreters-fix.patch
+ext2-ext3-ext4-add-block-bitmap-validation-fix.patch
+pie-executable-randomization-fix-2.patch
+binfmt_flat-warning-fixes.patch
+console-events-and-accessibility-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+i2o-fix-defined-but-not-used-build-warnings-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+userc-ifdef-mq_bytes-fix.patch
+f_dupfd_cloexec-implementation-fix-2.patch
+ext3-lighten-up-resize-transaction-requirements-checkpatch-fixes.patch
+drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.pat=
+ch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.p=
+atch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.p=
+atch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.p=
+atch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.p=
+atch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.p=
+atch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.p=
+atch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+writeback-remove-pages_skipped-accounting-in-__block_write_full_page-fi=
+x.patch
+revert-faster-ext2_clear_inode.patch
+ext2-reservations-fix-for-percpu_counter-changes.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+do-cpu_dead-migrating-under-read_locktasklist-instead-of-write_lock_irq=
+tasklist-fix.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+pnp-use-dev_info-dev_err-etc-in-core-fix.patch
+pnp-add-debug-message-for-adding-new-device-fix-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke=
+=2Epatch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.=
+patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patc=
+h
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_6=
+4-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.p=
+atch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid=
+_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid=
+_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid=
+_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-=
+fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkp=
+atch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.pat=
+ch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser=
+4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
