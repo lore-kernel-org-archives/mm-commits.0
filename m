@@ -1,148 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: - generic-virtual-memmap-support-for-sparsemem-fix.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 20:58:40 -0700
-Message-ID: <200710160358.l9G3wese007606@imap1.linux-foundation.org>
+Subject: - generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 20:58:47 -0700
+Message-ID: <200710160358.l9G3wlVr007614@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47956 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33394 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758124AbXJPD7Z (ORCPT
+	by vger.kernel.org with ESMTP id S1758464AbXJPD72 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 23:59:25 -0400
+	Mon, 15 Oct 2007 23:59:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, apw@shadowen.org, mm-commits@vger.kernel.org
+To: apw@shadowen.org, clameter@sgi.com, haveblue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sparsemem_vmemamp fix
+     vmemmap: simplify initialisation code and reduce duplication
 has been removed from the -mm tree.  Its filename was
-     generic-virtual-memmap-support-for-sparsemem-fix.patch
+     generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication.patch
 
 This patch was dropped because it was folded into generic-virtual-memmap-support-for-sparsemem.patch
 
 ------------------------------------------------------
-Subject: sparsemem_vmemamp fix
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: vmemmap: simplify initialisation code and reduce duplication
+From: Andy Whitcroft <apw@shadowen.org>
 
-Fix sparsemem_vmemmap init.
+The vmemmap and non-vmemmap implementations of sparse_early_mem_map_alloc()
+share a fair amount of code.  Refactor this into a common wrapper, pulling the
+differences out to sparse_early_mem_map_populate().  This reduces depandancies
+between SPARSMEM and SPARSEMEM_VMEMMAP simplifying separation.
 
-This patch fixes page table handling in sparsemem_vmammap.
-
-Without this, part of vmem_map is not mapped because each section's start addr of
-mem_map is not aligned to PGD/PMD/PUD.
-(In ia64, secion's mem_map size is 3670016bytes. )
-
-for example,
-
- addr     pmd_addr_end(addr_end)         addr + PMD_SIZE
-  |XXXXXXXXXX|??????????????????????????????|XXXXXXXXXXXXXXXXXX
-
-  X ... initialized vmem_map
-  ? ... not intialized
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |   24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+ mm/sparse.c |   41 +++++++++++++++++++++--------------------
+ 1 file changed, 21 insertions(+), 20 deletions(-)
 
-diff -puN mm/sparse.c~generic-virtual-memmap-support-for-sparsemem-fix mm/sparse.c
---- a/mm/sparse.c~generic-virtual-memmap-support-for-sparsemem-fix
+diff -puN mm/sparse.c~generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication mm/sparse.c
+--- a/mm/sparse.c~generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication
 +++ a/mm/sparse.c
-@@ -295,7 +295,7 @@ static int __meminit vmemmap_populate_pt
- {
- 	pte_t *pte;
+@@ -387,33 +387,23 @@ int __meminit vmemmap_populate(struct pa
+ }
+ #endif /* !CONFIG_ARCH_POPULATES_SPARSEMEM_VMEMMAP */
  
--	for (pte = pte_offset_map(pmd, addr); addr < end;
-+	for (pte = pte_offset_kernel(pmd, addr); addr < end;
- 						pte++, addr += PAGE_SIZE)
- 		if (pte_none(*pte)) {
- 			pte_t entry;
-@@ -320,9 +320,10 @@ int __meminit vmemmap_populate_pmd(pud_t
+-static struct page * __init sparse_early_mem_map_alloc(unsigned long pnum)
++static struct page __init *sparse_early_mem_map_populate(unsigned long pnum,
++									int nid)
  {
- 	pmd_t *pmd;
- 	int error = 0;
-+	unsigned long next;
- 
- 	for (pmd = pmd_offset(pud, addr); addr < end && !error;
--						pmd++, addr += PMD_SIZE) {
-+						pmd++, addr = next) {
- 		if (pmd_none(*pmd)) {
- 			void *p = vmemmap_alloc_block(PAGE_SIZE, node);
- 			if (!p)
-@@ -332,9 +333,8 @@ int __meminit vmemmap_populate_pmd(pud_t
- 		} else
- 			vmemmap_verify((pte_t *)pmd, node,
- 					pmd_addr_end(addr, end), end);
+-	struct page *map;
+-	struct mem_section *ms = __nr_to_section(pnum);
+-	int nid = sparse_early_nid(ms);
+-	int error;
 -
--		error = vmemmap_populate_pte(pmd, addr,
--					pmd_addr_end(addr, end), node);
-+		next = pmd_addr_end(addr, end);
-+		error = vmemmap_populate_pte(pmd, addr, next, node);
- 	}
- 	return error;
+-	map = pfn_to_page(pnum * PAGES_PER_SECTION);
+-	error = vmemmap_populate(map, PAGES_PER_SECTION, nid);
+-	if (error) {
+-		printk(KERN_ERR "%s: allocation failed. Error=%d\n",
+-							__FUNCTION__, error);
+-		printk(KERN_ERR "%s: virtual memory map backing failed "
+-			"some memory will not be available.\n", __FUNCTION__);
+-		ms->section_mem_map = 0;
++	struct page *map = pfn_to_page(pnum * PAGES_PER_SECTION);
++	int error = vmemmap_populate(map, PAGES_PER_SECTION, nid);
++	if (error)
+ 		return NULL;
+-	}
++
+ 	return map;
  }
-@@ -345,9 +345,10 @@ static int __meminit vmemmap_populate_pu
+ 
+ #else /* CONFIG_SPARSEMEM_VMEMMAP */
+ 
+-static struct page __init *sparse_early_mem_map_alloc(unsigned long pnum)
++static struct page __init *sparse_early_mem_map_populate(unsigned long pnum,
++									int nid)
  {
- 	pud_t *pud;
- 	int error = 0;
-+	unsigned long next;
+ 	struct page *map;
+-	struct mem_section *ms = __nr_to_section(pnum);
+-	int nid = sparse_early_nid(ms);
  
- 	for (pud = pud_offset(pgd, addr); addr < end && !error;
--						pud++, addr += PUD_SIZE) {
-+						pud++, addr = next) {
- 		if (pud_none(*pud)) {
- 			void *p = vmemmap_alloc_block(PAGE_SIZE, node);
- 			if (!p)
-@@ -355,8 +356,8 @@ static int __meminit vmemmap_populate_pu
+ 	map = alloc_remap(nid, sizeof(struct page) * PAGES_PER_SECTION);
+ 	if (map)
+@@ -426,14 +416,25 @@ static struct page __init *sparse_early_
  
- 			pud_populate(&init_mm, pud, p);
- 		}
--		error = vmemmap_populate_pmd(pud, addr,
--					pud_addr_end(addr, end), node);
-+		next = pud_addr_end(addr, end);
-+		error = vmemmap_populate_pmd(pud, addr, next, node);
- 	}
- 	return error;
+ 	map = alloc_bootmem_node(NODE_DATA(nid),
+ 			sizeof(struct page) * PAGES_PER_SECTION);
++	return map;
++}
++#endif /* !CONFIG_SPARSEMEM_VMEMMAP */
++
++struct page __init *sparse_early_mem_map_alloc(unsigned long pnum)
++{
++	struct page *map;
++	struct mem_section *ms = __nr_to_section(pnum);
++	int nid = sparse_early_nid(ms);
++
++	map = sparse_early_mem_map_populate(pnum, nid);
+ 	if (map)
+ 		return map;
+ 
+-	printk(KERN_WARNING "%s: allocation failed\n", __FUNCTION__);
++	printk(KERN_ERR "%s: sparsemem memory map backing failed "
++			"some memory will not be available.\n", __FUNCTION__);
+ 	ms->section_mem_map = 0;
+ 	return NULL;
  }
-@@ -367,13 +368,14 @@ int __meminit vmemmap_populate(struct pa
- 	pgd_t *pgd;
- 	unsigned long addr = (unsigned long)start_page;
- 	unsigned long end = (unsigned long)(start_page + nr);
-+	unsigned long next;
- 	int error = 0;
+-#endif /* !CONFIG_SPARSEMEM_VMEMMAP */
  
- 	printk(KERN_DEBUG "[%lx-%lx] Virtual memory section"
- 		" (%ld pages) node %d\n", addr, end - 1, nr, node);
- 
- 	for (pgd = pgd_offset_k(addr); addr < end && !error;
--					pgd++, addr += PGDIR_SIZE) {
-+					pgd++, addr = next) {
- 		if (pgd_none(*pgd)) {
- 			void *p = vmemmap_alloc_block(PAGE_SIZE, node);
- 			if (!p)
-@@ -381,8 +383,8 @@ int __meminit vmemmap_populate(struct pa
- 
- 			pgd_populate(&init_mm, pgd, p);
- 		}
--		error = vmemmap_populate_pud(pgd, addr,
--					pgd_addr_end(addr, end), node);
-+		next = pgd_addr_end(addr,end);
-+		error = vmemmap_populate_pud(pgd, addr, next, node);
- 	}
- 	return error;
- }
+ /*
+  * Allocate the accumulated non-linear sections, allocate a mem_map
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from apw@shadowen.org are
 
 sparsemem-clean-up-spelling-error-in-comments.patch
 sparsemem-record-when-a-section-has-a-valid-mem_map.patch
 generic-virtual-memmap-support-for-sparsemem.patch
-generic-virtual-memmap-support-for-sparsemem-fix.patch
+generic-virtual-memmap-support-for-sparsemem-simplify-initialisation-code-and-reduce-duplication.patch
+generic-virtual-memmap-support-for-sparsemem-pull-out-the-vmemmap-code-into-its-own-file.patch
+generic-virtual-memmap-support-vmemmap-generify-initialisation-via-helpers.patch
 x86_64-sparsemem_vmemmap-2m-page-size-support.patch
 x86_64-sparsemem_vmemmap-2m-page-size-support-ensure-end-of-section-memmap-is-initialised.patch
 x86_64-sparsemem_vmemmap-vmemmap-x86_64-convert-to-new-helper-based-initialisation.patch
@@ -151,38 +130,30 @@ ia64-sparsemem_vmemmap-16k-page-size-support-convert-to-new-helper-based-initial
 sparc64-sparsemem_vmemmap-support.patch
 sparc64-sparsemem_vmemmap-support-vmemmap-convert-to-new-config-options.patch
 ppc64-sparsemem_vmemmap-support.patch
+ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function.patch
+ppc64-sparsemem_vmemmap-support-vmemmap-ppc64-convert-vmm_-macros-to-a-real-function-fix.patch
 ppc64-sparsemem_vmemmap-support-convert-to-new-config-options.patch
-memoryless-nodes-generic-management-of-nodemasks-for-various-purposes.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
-memoryless-nodes-introduce-mask-of-nodes-with-memory-fix.patch
-update-n_high_memory-node-state-for-memory-hotadd.patch
-memoryless-nodes-fix-interleave-behavior-for-memoryless-nodes.patch
-memoryless-nodes-oom-use-n_high_memory-map-instead-of-constructing-one-on-the-fly.patch
-memoryless-nodes-no-need-for-kswapd.patch
-memoryless-nodes-slab-support.patch
-memoryless-nodes-slub-support.patch
-memoryless-nodes-uncached-allocator-updates.patch
-memoryless-nodes-allow-profiling-data-to-fall-back-to-other-nodes.patch
-memoryless-nodes-update-memory-policy-and-page-migration.patch
-memoryless-nodes-add-n_cpu-node-state.patch
-memoryless-nodes-add-n_cpu-node-state-move-setup-of-n_cpu-node-state-mask.patch
-memoryless-nodes-drop-one-memoryless-node-boot-warning.patch
-memoryless-nodes-fix-gfp_thisnode-behavior.patch
-memoryless-nodes-use-n_high_memory-for-cpusets.patch
-flush-cache-before-installing-new-page-at-migraton.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix.patch
-flush-icache-before-set_pte-on-ia64-flush-icache-at-set_pte-fix-update.patch
-memory-unplug-v7-memory-hotplug-cleanup.patch
-memory-unplug-v7-memory-hotplug-cleanup-fix.patch
-memory-unplug-v7-page-isolation.patch
-memory-unplug-v7-page-offline.patch
-memory-unplug-v7-page-offline-fix.patch
-memory-unplug-v7-ia64-interface.patch
-fix-memory-hot-remove-not-configured-case.patch
-fix-memory-hot-remove-not-configured-case-fix.patch
-hugetlb-fix-hugepage-allocation-with-memoryless-nodes.patch
-memory-controller-make-charging-gfp-mask-aware-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-add-irq-protection-in-the-percpu-counters-cpu-hotplug-callback-path.patch
+update-n_high_memory-node-state-for-memory-hotadd-fix.patch
+add-a-bitmap-that-is-used-to-track-flags-affecting-a-block-of-pages.patch
+add-a-configure-option-to-group-pages-by-mobility.patch
+move-free-pages-between-lists-on-steal.patch
+group-short-lived-and-reclaimable-kernel-allocations.patch
+do-not-group-pages-by-mobility-type-on-low-memory-systems.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2.patch
+fix-corruption-of-memmap-on-ia64-sparsemem-when-mem_section-is-not-a-power-of-2-fix.patch
+bias-the-location-of-pages-freed-for-min_free_kbytes-in-the-same-max_order_nr_pages-blocks.patch
+remove-page_group_by_mobility.patch
+dont-group-high-order-atomic-allocations.patch
+fix-calculation-in-move_freepages_block-for-counting-pages.patch
+do-not-depend-on-max_order-when-grouping-pages-by-mobility.patch
+print-out-statistics-in-relation-to-fragmentation-avoidance-to-proc-pagetypeinfo.patch
+breakout-page_order-to-internalh-to-avoid-special-knowledge-of-the-buddy-allocator.patch
+memory-hotplug-hot-add-with-sparsemem-vmemmap.patch
+memory-hotplug-hot-add-with-sparsemem-vmemmap-update.patch
+hugetlb-move-update_and_free_page.patch
+hugetlb-try-to-grow-hugetlb-pool-for-map_private-mappings.patch
+hugetlb-try-to-grow-hugetlb-pool-for-map_shared-mappings.patch
+hugetlb-add-hugetlb_dynamic_pool-sysctl.patch
+update-checkpatchpl-to-version-010.patch
+printk-add-kern_cont-annotation.patch
+page-owner-tracking-leak-detector.patch
