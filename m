@@ -1,106 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - fbdev-find-mode-with-the-highest-safest-refresh-rate-in-fb_find_mode.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:44:11 -0700
-Message-ID: <200710162044.l9GKiBvf016121@imap1.linux-foundation.org>
+Subject: - uml-dont-use-glibc-asm-userh.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:38:13 -0700
+Message-ID: <200710162038.l9GKcDUg015422@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52208 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37637 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936130AbXJPVHv (ORCPT
+	by vger.kernel.org with ESMTP id S936122AbXJPVHu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:07:51 -0400
+	Tue, 16 Oct 2007 17:07:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: spock@gentoo.org, adaplas@gmail.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: find mode with the highest/safest refresh rate in fb_find_mode()
+     uml: don't use glibc asm/user.h
 has been removed from the -mm tree.  Its filename was
-     fbdev-find-mode-with-the-highest-safest-refresh-rate-in-fb_find_mode.patch
+     uml-dont-use-glibc-asm-userh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fbdev: find mode with the highest/safest refresh rate in fb_find_mode()
-From: Michal Januszewski <spock@gentoo.org>
+Subject: uml: don't use glibc asm/user.h
+From: Jeff Dike <jdike@addtoit.com>
 
-Currently, if the refresh rate is not specified, fb_find_mode() returns the
-first known video mode with the requested resolution, which provides no
-guarantees wrt the refresh rate.  Change this so that the mode with the
-highest refresh rate is returned when the driver provides a custom video mode
-database and the monitor limits, and a mode with the safe 60 Hz refresh rate
-otherwise.
+Stop including asm/user.h from libc - it seems to be disappearing from
+distros.  It's replaced with sys/user.h which defines user_fpregs_struct and
+user_fpxregs_struct instead of user_i387_struct and struct user_fxsr_struct on
+i386.
 
-Signed-off-by: Michal Januszewski <spock@gentoo.org>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
+As a bonus, on x86_64, I get to dump some stupid typedefs which were needed in
+order to get asm/user.h to compile.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/modedb.c |   41 +++++++++++++++++++++++++++------------
- 1 file changed, 29 insertions(+), 12 deletions(-)
+ arch/um/sys-i386/user-offsets.c   |    6 +++---
+ arch/um/sys-x86_64/user-offsets.c |    9 +--------
+ 2 files changed, 4 insertions(+), 11 deletions(-)
 
-diff -puN drivers/video/modedb.c~fbdev-find-mode-with-the-highest-safest-refresh-rate-in-fb_find_mode drivers/video/modedb.c
---- a/drivers/video/modedb.c~fbdev-find-mode-with-the-highest-safest-refresh-rate-in-fb_find_mode
-+++ a/drivers/video/modedb.c
-@@ -606,26 +606,43 @@ done:
- 	DPRINTK("Trying specified video mode%s %ix%i\n",
- 	    refresh_specified ? "" : " (ignoring refresh rate)", xres, yres);
+diff -puN arch/um/sys-i386/user-offsets.c~uml-dont-use-glibc-asm-userh arch/um/sys-i386/user-offsets.c
+--- a/arch/um/sys-i386/user-offsets.c~uml-dont-use-glibc-asm-userh
++++ a/arch/um/sys-i386/user-offsets.c
+@@ -2,9 +2,9 @@
+ #include <stddef.h>
+ #include <signal.h>
+ #include <sys/poll.h>
++#include <sys/user.h>
+ #include <sys/mman.h>
+ #include <asm/ptrace.h>
+-#include <asm/user.h>
  
--	diff = refresh;
-+	if (!refresh_specified) {
-+		/*
-+		 * If the caller has provided a custom mode database and a
-+		 * valid monspecs structure, we look for the mode with the
-+		 * highest refresh rate.  Otherwise we play it safe it and
-+		 * try to find a mode with a refresh rate closest to the
-+		 * standard 60 Hz.
-+		 */
-+		if (db != modedb &&
-+		    info->monspecs.vfmin && info->monspecs.vfmax &&
-+		    info->monspecs.hfmin && info->monspecs.hfmax &&
-+		    info->monspecs.dclkmax) {
-+			refresh = 1000;
-+		} else {
-+			refresh = 60;
-+		}
-+	}
-+
-+	diff = -1;
- 	best = -1;
- 	for (i = 0; i < dbsize; i++) {
--		if (name_matches(db[i], name, namelen) ||
--		    (res_specified && res_matches(db[i], xres, yres))) {
--			if(!fb_try_mode(var, info, &db[i], bpp)) {
--				if(!refresh_specified || db[i].refresh == refresh)
--					return 1;
--				else {
--					if(diff > abs(db[i].refresh - refresh)) {
--						diff = abs(db[i].refresh - refresh);
--						best = i;
--					}
-+		if ((name_matches(db[i], name, namelen) ||
-+		    (res_specified && res_matches(db[i], xres, yres))) &&
-+		    !fb_try_mode(var, info, &db[i], bpp)) {
-+			if (refresh_specified && db[i].refresh == refresh) {
-+				return 1;
-+			} else {
-+				if (abs(db[i].refresh - refresh) < diff) {
-+					diff = abs(db[i].refresh - refresh);
-+					best = i;
- 				}
- 			}
- 		}
- 	}
- 	if (best != -1) {
- 		fb_try_mode(var, info, &db[best], bpp);
--		return 2;
-+		return (refresh_specified) ? 2 : 1;
- 	}
+ #define DEFINE(sym, val) \
+ 	asm volatile("\n->" #sym " %0 " #val : : "i" (val))
+@@ -48,8 +48,8 @@ void foo(void)
+ 	OFFSET(HOST_SC_FP_ST, _fpstate, _st);
+ 	OFFSET(HOST_SC_FXSR_ENV, _fpstate, _fxsr_env);
  
- 	diff = xres + yres;
+-	DEFINE_LONGS(HOST_FP_SIZE, sizeof(struct user_i387_struct));
+-	DEFINE_LONGS(HOST_XFP_SIZE, sizeof(struct user_fxsr_struct));
++	DEFINE_LONGS(HOST_FP_SIZE, sizeof(struct user_fpregs_struct));
++	DEFINE_LONGS(HOST_XFP_SIZE, sizeof(struct user_fpxregs_struct));
+ 
+ 	DEFINE(HOST_IP, EIP);
+ 	DEFINE(HOST_SP, UESP);
+diff -puN arch/um/sys-x86_64/user-offsets.c~uml-dont-use-glibc-asm-userh arch/um/sys-x86_64/user-offsets.c
+--- a/arch/um/sys-x86_64/user-offsets.c~uml-dont-use-glibc-asm-userh
++++ a/arch/um/sys-x86_64/user-offsets.c
+@@ -3,17 +3,10 @@
+ #include <signal.h>
+ #include <sys/poll.h>
+ #include <sys/mman.h>
++#include <sys/user.h>
+ #define __FRAME_OFFSETS
+ #include <asm/ptrace.h>
+ #include <asm/types.h>
+-/* For some reason, x86_64 defines u64 and u32 only in <pci/types.h>, which I
+- * refuse to include here, even though they're used throughout the headers.
+- * These are used in asm/user.h, and that include can't be avoided because of
+- * the sizeof(struct user_regs_struct) below.
+- */
+-typedef __u64 u64;
+-typedef __u32 u32;
+-#include <asm/user.h>
+ 
+ #define DEFINE(sym, val) \
+         asm volatile("\n->" #sym " %0 " #val : : "i" (val))
 _
 
-Patches currently in -mm which might be from spock@gentoo.org are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
+git-kvm.patch
+uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
+bitops-introduce-lock-ops.patch
