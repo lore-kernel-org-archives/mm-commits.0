@@ -1,56 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: - connector-change-connectors-max-message-size.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:41:40 -0700
-Message-ID: <200710162041.l9GKfejl015813@imap1.linux-foundation.org>
+Subject: - rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:41:17 -0700
+Message-ID: <200710162041.l9GKfHaL015775@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52711 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39655 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965758AbXJPV1F (ORCPT
+	by vger.kernel.org with ESMTP id S933886AbXJPV05 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:27:05 -0400
+	Tue, 16 Oct 2007 17:26:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: spock@gentoo.org, adaplas@gmail.com, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     connector: change connector's max message size
+     rtc_irq_set_freq() requires power-of-two and associated kerneldoc
 has been removed from the -mm tree.  Its filename was
-     connector-change-connectors-max-message-size.patch
+     rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: connector: change connector's max message size
-From: Michal Januszewski <spock@gentoo.org>
+Subject: rtc_irq_set_freq() requires power-of-two and associated kerneldoc
+From: David Brownell <david-b@pacbell.net>
 
-Change the maximum message size to 16k to allow transfers of VBE
-data blocks from userspace.
+RTC periodic IRQs are only defined to work for 2^N Hz values.  This patch
+moves that validity check into the infrastructure, so drivers don't need to
+check it; and adds kerneldoc for the two interface functions related to
+periodic IRQs.  (One of which was quite mysterious until its first use was
+recently checked in!)
 
-Signed-off-by: Michal Januszewski <spock@gentoo.org>
-Signed-off-by: Antonino Daplas <adaplas@gmail.com>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/connector.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/interface.c |   24 ++++++++++++++++++++++++
+ drivers/rtc/rtc-cmos.c  |    8 +++-----
+ 2 files changed, 27 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/connector.h~connector-change-connectors-max-message-size include/linux/connector.h
---- a/include/linux/connector.h~connector-change-connectors-max-message-size
-+++ a/include/linux/connector.h
-@@ -43,7 +43,7 @@
- /*
-  * Maximum connector's message size.
-  */
--#define CONNECTOR_MAX_MSG_SIZE 	1024
-+#define CONNECTOR_MAX_MSG_SIZE		16384
+diff -puN drivers/rtc/interface.c~rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc drivers/rtc/interface.c
+--- a/drivers/rtc/interface.c~rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc
++++ a/drivers/rtc/interface.c
+@@ -12,6 +12,7 @@
+ */
  
- /*
-  * idx and val are unique identifiers which 
+ #include <linux/rtc.h>
++#include <linux/log2.h>
+ 
+ int rtc_read_time(struct rtc_device *rtc, struct rtc_time *tm)
+ {
+@@ -236,6 +237,16 @@ void rtc_irq_unregister(struct rtc_devic
+ }
+ EXPORT_SYMBOL_GPL(rtc_irq_unregister);
+ 
++/**
++ * rtc_irq_set_state - enable/disable 2^N Hz periodic IRQs
++ * @rtc: the rtc device
++ * @task: currently registered with rtc_irq_register()
++ * @enabled: true to enable periodic IRQs
++ * Context: any
++ *
++ * Note that rtc_irq_set_freq() should previously have been used to
++ * specify the desired frequency of periodic IRQ task->func() callbacks.
++ */
+ int rtc_irq_set_state(struct rtc_device *rtc, struct rtc_task *task, int enabled)
+ {
+ 	int err = 0;
+@@ -258,6 +269,16 @@ int rtc_irq_set_state(struct rtc_device 
+ }
+ EXPORT_SYMBOL_GPL(rtc_irq_set_state);
+ 
++/**
++ * rtc_irq_set_freq - set 2^N Hz periodic IRQ frequency for IRQ
++ * @rtc: the rtc device
++ * @task: currently registered with rtc_irq_register()
++ * @freq: positive frequency with which task->func() will be called
++ * Context: any
++ *
++ * Note that rtc_irq_set_state() is used to enable or disable the
++ * periodic IRQs.
++ */
+ int rtc_irq_set_freq(struct rtc_device *rtc, struct rtc_task *task, int freq)
+ {
+ 	int err = 0;
+@@ -266,6 +287,9 @@ int rtc_irq_set_freq(struct rtc_device *
+ 	if (rtc->ops->irq_set_freq == NULL)
+ 		return -ENXIO;
+ 
++	if (!is_power_of_2(freq))
++		return -EINVAL;
++
+ 	spin_lock_irqsave(&rtc->irq_task_lock, flags);
+ 	if (rtc->irq_task != NULL && task == NULL)
+ 		err = -EBUSY;
+diff -puN drivers/rtc/rtc-cmos.c~rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc_irq_set_freq-requires-power-of-two-and-associated-kerneldoc
++++ a/drivers/rtc/rtc-cmos.c
+@@ -246,11 +246,9 @@ static int cmos_irq_set_freq(struct devi
+ 
+ 	/* 0 = no irqs; 1 = 2^15 Hz ... 15 = 2^0 Hz */
+ 	f = ffs(freq);
+-	if (f != 0) {
+-		if (f-- > 16 || freq != (1 << f))
+-			return -EINVAL;
+-		f = 16 - f;
+-	}
++	if (f-- > 16)
++		return -EINVAL;
++	f = 16 - f;
+ 
+ 	spin_lock_irqsave(&rtc_lock, flags);
+ 	CMOS_WRITE(RTC_REF_CLCK_32KHZ | f, RTC_FREQ_SELECT);
 _
 
-Patches currently in -mm which might be from spock@gentoo.org are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
+acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
+add-missing-newlines-to-some-uses-of-dev_level-messages.patch
