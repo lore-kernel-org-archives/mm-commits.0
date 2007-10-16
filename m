@@ -1,61 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-replace-magic-numbers.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:41:10 -0700
-Message-ID: <200710162041.l9GKfA4H015765@imap1.linux-foundation.org>
+Subject: - docbook-fix-kernel-api-content.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:46:04 -0700
+Message-ID: <200710162046.l9GKk4Ad016330@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46437 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50034 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965256AbXJPU6w (ORCPT
+	by vger.kernel.org with ESMTP id S965256AbXJPU64 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 16:58:52 -0400
+	Tue, 16 Oct 2007 16:58:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, rob@landley.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eCryptfs: replace magic numbers
+     docbook: fix kernel-api content
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-replace-magic-numbers.patch
+     docbook-fix-kernel-api-content.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: eCryptfs: replace magic numbers
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: docbook: fix kernel-api content
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Replace some magic numbers with sizeof() equivalents.
 
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Fix kernel-api docbook warnings.
+
+Warning(linux-2.6.23-git8//drivers/message/fusion/mptscsih.c:2618): No description found for parameter 'sc'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Rob Landley <rob@landley.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/crypto.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/message/fusion/mptscsih.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN fs/ecryptfs/crypto.c~ecryptfs-replace-magic-numbers fs/ecryptfs/crypto.c
---- a/fs/ecryptfs/crypto.c~ecryptfs-replace-magic-numbers
-+++ a/fs/ecryptfs/crypto.c
-@@ -1426,10 +1426,10 @@ static int parse_header_metadata(struct 
- 	u32 header_extent_size;
- 	u16 num_header_extents_at_front;
+diff -puN drivers/message/fusion/mptscsih.c~docbook-fix-kernel-api-content drivers/message/fusion/mptscsih.c
+--- a/drivers/message/fusion/mptscsih.c~docbook-fix-kernel-api-content
++++ a/drivers/message/fusion/mptscsih.c
+@@ -2605,14 +2605,10 @@ mptscsih_set_scsi_lookup(MPT_ADAPTER *io
+ }
  
--	memcpy(&header_extent_size, virt, 4);
-+	memcpy(&header_extent_size, virt, sizeof(u32));
- 	header_extent_size = be32_to_cpu(header_extent_size);
--	virt += 4;
--	memcpy(&num_header_extents_at_front, virt, 2);
-+	virt += sizeof(u32);
-+	memcpy(&num_header_extents_at_front, virt, sizeof(u16));
- 	num_header_extents_at_front = be16_to_cpu(num_header_extents_at_front);
- 	crypt_stat->num_header_extents_at_front =
- 		(int)num_header_extents_at_front;
+ /**
+- * SCPNT_TO_LOOKUP_IDX
+- *
+- * search's for a given scmd in the ScsiLookup[] array list
+- *
++ * SCPNT_TO_LOOKUP_IDX - searches for a given scmd in the ScsiLookup[] array list
+  * @ioc: Pointer to MPT_ADAPTER structure
+- * @scmd: scsi_cmnd pointer
+- *
+- **/
++ * @sc: scsi_cmnd pointer
++ */
+ static int
+ SCPNT_TO_LOOKUP_IDX(MPT_ADAPTER *ioc, struct scsi_cmnd *sc)
+ {
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+git-acpi.patch
+git-alsa.patch
+fix-auditscc-kernel-doc.patch
+comment-typo-in-scripts-kconfig-makefile.patch
 git-unionfs.patch
-ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
-vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
+git-watchdog.patch
+git-ipwireless_cs.patch
+security-convert-lsm-into-a-static-interface-fix-2-fix.patch
+docs-ramdisk-initrd-initramfs-corrections.patch
+send-quota-messages-via-netlink-fix.patch
+send-quota-messages-via-netlink-fix-fix.patch
+maintainers-linux-omap-list-is-subscribers-only.patch
+make-the-pr_-family-of-macros-in-kernelh-complete.patch
+doc-about-email-clients-for-linux-patches.patch
+change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch
+dont-truncate-proc-pid-environ-at-4096-characters.patch
+dontdiff-update-based-on-gitignore-updates.patch
+kernel-doc-fix-doc-blocks-and-html.patch
+express-relocatability-of-kernel-on-x86_64-in.patch
+remap_file_pages-kernel-doc-corrections.patch
+hook-up-group-scheduler-with-control-groups.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
+add-samples-subdir.patch
+profile-likely-unlikely-macros.patch
