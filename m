@@ -1,141 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: - mem-policy-add-mpol_f_mems_allowed-get_mempolicy-flag.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:31:48 -0700
-Message-ID: <200710162031.l9GKVm73014533@imap1.linux-foundation.org>
+Subject: - memoryless-nodes-update-memory-policy-and-page-migration.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:34:00 -0700
+Message-ID: <200710162034.l9GKY055014878@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60576 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40543 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760124AbXJPVwg (ORCPT
+	by vger.kernel.org with ESMTP id S933734AbXJPVwu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:52:36 -0400
+	Tue, 16 Oct 2007 17:52:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Lee.Schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, lee.schermerhorn@hp.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, bob.picco@hp.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@skynet.ie, nacc@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Mem Policy: add MPOL_F_MEMS_ALLOWED get_mempolicy() flag
+     Memoryless nodes: Update memory policy and page migration
 has been removed from the -mm tree.  Its filename was
-     mem-policy-add-mpol_f_mems_allowed-get_mempolicy-flag.patch
+     memoryless-nodes-update-memory-policy-and-page-migration.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Mem Policy: add MPOL_F_MEMS_ALLOWED get_mempolicy() flag
-From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Subject: Memoryless nodes: Update memory policy and page migration
+From: Christoph Lameter <clameter@sgi.com>
 
-Allow an application to query the memories allowed by its context.
+Online nodes now may have no memory.  The checks and initialization must
+therefore be changed to no longer use the online functions.
 
-Updated numa_memory_policy.txt to mention that applications can use this to
-obtain allowed memories for constructing valid policies.
+This will correctly initialize the interleave on bootup to only target nodes
+with memory and will make sys_move_pages return an error when a page is to be
+moved to a memoryless node.  Similarly we will get an error if MPOL_BIND and
+MPOL_INTERLEAVE is used on a memoryless node.
 
-TODO:  update out-of-tree libnuma wrapper[s], or maybe add a new
-wrapper--e.g.,  numa_get_mems_allowed() ?
+These are somewhat new semantics.  So far one could specify memoryless nodes
+and we would maybe do the right thing and just ignore the node (or we'd do
+something strange like with MPOL_INTERLEAVE).  If we want to allow the
+specification of memoryless nodes via memory policies then we need to keep
+checking for online nodes.
 
-Also, update numa syscall man pages.
-
-Tested with memtoy V>=0.13.
-
-Signed-off-by:  Lee Schermerhorn <lee.schermerhorn@hp.com>
-Acked-by: Christoph Lameter <clameter@sgi.com>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Acked-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Tested-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Acked-by: Bob Picco <bob.picco@hp.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mel@skynet.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/numa_memory_policy.txt |   33 ++++++++++------------
- include/linux/mempolicy.h               |    1 
- mm/mempolicy.c                          |   12 +++++++-
- 3 files changed, 28 insertions(+), 18 deletions(-)
+ mm/mempolicy.c |   10 +++++-----
+ mm/migrate.c   |    2 +-
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/vm/numa_memory_policy.txt~mem-policy-add-mpol_f_mems_allowed-get_mempolicy-flag Documentation/vm/numa_memory_policy.txt
---- a/Documentation/vm/numa_memory_policy.txt~mem-policy-add-mpol_f_mems_allowed-get_mempolicy-flag
-+++ a/Documentation/vm/numa_memory_policy.txt
-@@ -302,31 +302,30 @@ MEMORY POLICIES AND CPUSETS
- 
- Memory policies work within cpusets as described above.  For memory policies
- that require a node or set of nodes, the nodes are restricted to the set of
--nodes whose memories are allowed by the cpuset constraints.  If the
--intersection of the set of nodes specified for the policy and the set of nodes
--allowed by the cpuset is the empty set, the policy is considered invalid and
--cannot be installed.
-+nodes whose memories are allowed by the cpuset constraints.  If the nodemask
-+specified for the policy contains nodes that are not allowed by the cpuset, or
-+the intersection of the set of nodes specified for the policy and the set of
-+nodes with memory is the empty set, the policy is considered invalid
-+and cannot be installed.
- 
- The interaction of memory policies and cpusets can be problematic for a
- couple of reasons:
- 
--1) the memory policy APIs take physical node id's as arguments.  However, the
--   memory policy APIs do not provide a way to determine what nodes are valid
--   in the context where the application is running.  An application MAY consult
--   the cpuset file system [directly or via an out of tree, and not generally
--   available, libcpuset API] to obtain this information, but then the
--   application must be aware that it is running in a cpuset and use what are
--   intended primarily as administrative APIs.
--
--   However, as long as the policy specifies at least one node that is valid
--   in the controlling cpuset, the policy can be used.
-+1) the memory policy APIs take physical node id's as arguments.  As mentioned
-+   above, it is illegal to specify nodes that are not allowed in the cpuset.
-+   The application must query the allowed nodes using the get_mempolicy()
-+   API with the MPOL_F_MEMS_ALLOWED flag to determine the allowed nodes and
-+   restrict itself to those nodes.  However, the resources available to a
-+   cpuset can be changed by the system administrator, or a workload manager
-+   application, at any time.  So, a task may still get errors attempting to
-+   specify policy nodes, and must query the allowed memories again.
- 
- 2) when tasks in two cpusets share access to a memory region, such as shared
-    memory segments created by shmget() of mmap() with the MAP_ANONYMOUS and
-    MAP_SHARED flags, and any of the tasks install shared policy on the region,
-    only nodes whose memories are allowed in both cpusets may be used in the
--   policies.  Again, obtaining this information requires "stepping outside"
--   the memory policy APIs, as well as knowing in what cpusets other task might
--   be attaching to the shared region, to use the cpuset information.
-+   policies.  Obtaining this information requires "stepping outside" the
-+   memory policy APIs to use the cpuset information and requires that one
-+   know in what cpusets other task might be attaching to the shared region.
-    Furthermore, if the cpusets' allowed memory sets are disjoint, "local"
-    allocation is the only valid policy.
-diff -puN include/linux/mempolicy.h~mem-policy-add-mpol_f_mems_allowed-get_mempolicy-flag include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~mem-policy-add-mpol_f_mems_allowed-get_mempolicy-flag
-+++ a/include/linux/mempolicy.h
-@@ -19,6 +19,7 @@
- /* Flags for get_mem_policy */
- #define MPOL_F_NODE	(1<<0)	/* return next IL mode instead of node mask */
- #define MPOL_F_ADDR	(1<<1)	/* look up vma using address */
-+#define MPOL_F_MEMS_ALLOWED (1<<2) /* return allowed memories */
- 
- /* Flags for mbind */
- #define MPOL_MF_STRICT	(1<<0)	/* Verify existing pages in the mapping */
-diff -puN mm/mempolicy.c~mem-policy-add-mpol_f_mems_allowed-get_mempolicy-flag mm/mempolicy.c
---- a/mm/mempolicy.c~mem-policy-add-mpol_f_mems_allowed-get_mempolicy-flag
+diff -puN mm/mempolicy.c~memoryless-nodes-update-memory-policy-and-page-migration mm/mempolicy.c
+--- a/mm/mempolicy.c~memoryless-nodes-update-memory-policy-and-page-migration
 +++ a/mm/mempolicy.c
-@@ -526,8 +526,18 @@ long do_get_mempolicy(int *policy, nodem
- 	struct mempolicy *pol = current->mempolicy;
+@@ -494,9 +494,9 @@ static void get_zonemask(struct mempolic
+ 		*nodes = p->v.nodes;
+ 		break;
+ 	case MPOL_PREFERRED:
+-		/* or use current node instead of online map? */
++		/* or use current node instead of memory_map? */
+ 		if (p->v.preferred_node < 0)
+-			*nodes = node_online_map;
++			*nodes = node_states[N_HIGH_MEMORY];
+ 		else
+ 			node_set(p->v.preferred_node, *nodes);
+ 		break;
+@@ -1687,7 +1687,7 @@ void __init numa_policy_init(void)
+ 	 * fall back to the largest node if they're all smaller.
+ 	 */
+ 	nodes_clear(interleave_nodes);
+-	for_each_online_node(nid) {
++	for_each_node_state(nid, N_HIGH_MEMORY) {
+ 		unsigned long total_pages = node_present_pages(nid);
  
- 	cpuset_update_task_memory_state();
--	if (flags & ~(unsigned long)(MPOL_F_NODE|MPOL_F_ADDR))
-+	if (flags &
-+		~(unsigned long)(MPOL_F_NODE|MPOL_F_ADDR|MPOL_F_MEMS_ALLOWED))
- 		return -EINVAL;
-+
-+	if (flags & MPOL_F_MEMS_ALLOWED) {
-+		if (flags & (MPOL_F_NODE|MPOL_F_ADDR))
-+			return -EINVAL;
-+		*policy = 0;	/* just so it's initialized */
-+		*nmask  = cpuset_current_mems_allowed;
-+		return 0;
-+	}
-+
- 	if (flags & MPOL_F_ADDR) {
- 		down_read(&mm->mmap_sem);
- 		vma = find_vma_intersection(mm, addr, addr+1);
+ 		/* Preserve the largest node */
+@@ -1973,7 +1973,7 @@ int show_numa_map(struct seq_file *m, vo
+ 		seq_printf(m, " huge");
+ 	} else {
+ 		check_pgd_range(vma, vma->vm_start, vma->vm_end,
+-				&node_online_map, MPOL_MF_STATS, md);
++			&node_states[N_HIGH_MEMORY], MPOL_MF_STATS, md);
+ 	}
+ 
+ 	if (!md->pages)
+@@ -2000,7 +2000,7 @@ int show_numa_map(struct seq_file *m, vo
+ 	if (md->writeback)
+ 		seq_printf(m," writeback=%lu", md->writeback);
+ 
+-	for_each_online_node(n)
++	for_each_node_state(n, N_HIGH_MEMORY)
+ 		if (md->node[n])
+ 			seq_printf(m, " N%d=%lu", n, md->node[n]);
+ out:
+diff -puN mm/migrate.c~memoryless-nodes-update-memory-policy-and-page-migration mm/migrate.c
+--- a/mm/migrate.c~memoryless-nodes-update-memory-policy-and-page-migration
++++ a/mm/migrate.c
+@@ -986,7 +986,7 @@ asmlinkage long sys_move_pages(pid_t pid
+ 				goto out;
+ 
+ 			err = -ENODEV;
+-			if (!node_online(node))
++			if (!node_state(node, N_HIGH_MEMORY))
+ 				goto out;
+ 
+ 			err = -EACCES;
 _
 
-Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix-2.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator.patch
+dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
+x86-fix-cpu_to_node-references.patch
+x86-convert-x86_cpu_to_apicid-to-be-a-per-cpu-variable.patch
+x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
+x86-acpi-use-cpu_physical_id.patch
+x86-convert-cpuinfo_x86-array-to-a-per_cpu-array.patch
+slub-simplify-irq-off-handling.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-fix-2.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+oom-move-prototypes-to-appropriate-header-file.patch
+oom-move-constraints-to-enum.patch
+oom-change-all_unreclaimable-zone-member-to-flags.patch
+oom-change-all_unreclaimable-zone-member-to-flags-fix.patch
+oom-add-per-zone-locking.patch
+oom-serialize-out-of-memory-calls.patch
+oom-add-oom_kill_allocating_task-sysctl.patch
+oom-suppress-extraneous-stack-and-memory-dump.patch
+oom-compare-cpuset-mems_allowed-instead-of-exclusive.patch
+oom-do-not-take-callback_mutex.patch
+oom-do-not-take-callback_mutex-fix.patch
+oom-prevent-including-schedh-in-header-file.patch
+oom-add-header-file-to-kbuild-as-unifdef.patch
+oom-convert-zone_scan_lock-from-mutex-to-spinlock.patch
+mm-test-and-set-zone-reclaim-lock-before-starting.patch
+mm-test-and-set-zone-reclaim-lock-before-starting-cleanup.patch
+avoid-negative-and-full-width-shifts-in-radix-treec.patch
+cpu-hotplug-slab-cleanup-cpuup_callback.patch
+cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-core-code.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+documentation-vm-slabinfoc-clean-up-this-code.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
+bit_spin_lock-use-lock-bitops.patch
+ext3-support-large-blocksize-up-to-pagesize.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
