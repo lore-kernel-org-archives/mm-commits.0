@@ -1,103 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlb-fix-pool-resizing-corner-case-v2.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:36:01 -0700
-Message-ID: <200710162036.l9GKa1ZS015113@imap1.linux-foundation.org>
+Subject: - clean-up-duplicate-includes-in-mm.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:30:49 -0700
+Message-ID: <200710162030.l9GKUnqA014438@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37611 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45377 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754366AbXJPVqI (ORCPT
+	by vger.kernel.org with ESMTP id S966187AbXJPVqu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:46:08 -0400
+	Tue, 16 Oct 2007 17:46:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: agl@us.ibm.com, david@gibson.dropbear.id.au, kenchen@google.com, pbadari@us.ibm.com, wli@holomorphy.com, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb: fix pool resizing corner case
+     Clean up duplicate includes in mm/
 has been removed from the -mm tree.  Its filename was
-     hugetlb-fix-pool-resizing-corner-case-v2.patch
+     clean-up-duplicate-includes-in-mm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: hugetlb: fix pool resizing corner case
-From: Adam Litke <agl@us.ibm.com>
+Subject: Clean up duplicate includes in mm/
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-When shrinking the size of the hugetlb pool via the nr_hugepages sysctl, we
-are careful to keep enough pages around to satisfy reservations.  But the
-calculation is flawed for the following scenario:
+This patch cleans up duplicate includes in
+	mm/
 
-Action                          Pool Counters (Total, Free, Resv)
-======                          =============
-Set pool to 1 page              1 1 0
-Map 1 page MAP_PRIVATE          1 1 0
-Touch the page to fault it in   1 0 0
-Set pool to 3 pages             3 2 0
-Map 2 pages MAP_SHARED          3 2 2
-Set pool to 2 pages             2 1 2 <-- Mistake, should be 3 2 2
-Touch the 2 shared pages        2 0 1 <-- Program crashes here
-
-The last touch above will terminate the process due to lack of huge pages.
-
-This patch corrects the calculation so that it factors in pages being used
-for private mappings.  Andrew, this is a standalone fix suitable for
-mainline.  It is also now corrected in my latest dynamic pool resizing
-patchset which I will send out soon.
-
-Signed-off-by: Adam Litke <agl@us.ibm.com>
-Acked-by: Ken Chen <kenchen@google.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: William Lee Irwin III <wli@holomorphy.com>
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ mm/mempolicy.c |    2 --
+ mm/shmem.c     |    1 -
+ mm/swap.c      |    2 --
+ 3 files changed, 5 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-fix-pool-resizing-corner-case-v2 mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-fix-pool-resizing-corner-case-v2
-+++ a/mm/hugetlb.c
-@@ -403,14 +403,14 @@ static void try_to_free_low(unsigned lon
- 	for (i = 0; i < MAX_NUMNODES; ++i) {
- 		struct page *page, *next;
- 		list_for_each_entry_safe(page, next, &hugepage_freelists[i], lru) {
-+			if (count >= nr_huge_pages)
-+				return;
- 			if (PageHighMem(page))
- 				continue;
- 			list_del(&page->lru);
- 			update_and_free_page(page);
- 			free_huge_pages--;
- 			free_huge_pages_node[page_to_nid(page)]--;
--			if (count >= nr_huge_pages)
--				return;
- 		}
- 	}
- }
-@@ -450,8 +450,6 @@ static unsigned long set_max_huge_pages(
- 			goto out;
+diff -puN mm/mempolicy.c~clean-up-duplicate-includes-in-mm mm/mempolicy.c
+--- a/mm/mempolicy.c~clean-up-duplicate-includes-in-mm
++++ a/mm/mempolicy.c
+@@ -72,7 +72,6 @@
+ #include <linux/hugetlb.h>
+ #include <linux/kernel.h>
+ #include <linux/sched.h>
+-#include <linux/mm.h>
+ #include <linux/nodemask.h>
+ #include <linux/cpuset.h>
+ #include <linux/gfp.h>
+@@ -82,7 +81,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/init.h>
+ #include <linux/compat.h>
+-#include <linux/mempolicy.h>
+ #include <linux/swap.h>
+ #include <linux/seq_file.h>
+ #include <linux/proc_fs.h>
+diff -puN mm/shmem.c~clean-up-duplicate-includes-in-mm mm/shmem.c
+--- a/mm/shmem.c~clean-up-duplicate-includes-in-mm
++++ a/mm/shmem.c
+@@ -49,7 +49,6 @@
+ #include <linux/ctype.h>
+ #include <linux/migrate.h>
+ #include <linux/highmem.h>
+-#include <linux/backing-dev.h>
  
- 	}
--	if (count >= persistent_huge_pages)
--		goto out;
+ #include <asm/uaccess.h>
+ #include <asm/div64.h>
+diff -puN mm/swap.c~clean-up-duplicate-includes-in-mm mm/swap.c
+--- a/mm/swap.c~clean-up-duplicate-includes-in-mm
++++ a/mm/swap.c
+@@ -24,12 +24,10 @@
+ #include <linux/module.h>
+ #include <linux/mm_inline.h>
+ #include <linux/buffer_head.h>	/* for try_to_release_page() */
+-#include <linux/module.h>
+ #include <linux/percpu_counter.h>
+ #include <linux/percpu.h>
+ #include <linux/cpu.h>
+ #include <linux/notifier.h>
+-#include <linux/init.h>
  
- 	/*
- 	 * Decrease the pool size
-@@ -460,7 +458,8 @@ static unsigned long set_max_huge_pages(
- 	 * pages into surplus state as needed so the pool will shrink
- 	 * to the desired size as pages become free.
- 	 */
--	min_count = max(count, resv_huge_pages);
-+	min_count = resv_huge_pages + nr_huge_pages - free_huge_pages;
-+	min_count = max(count, min_count);
- 	try_to_free_low(min_count);
- 	while (min_count < persistent_huge_pages) {
- 		struct page *page = dequeue_huge_page(NULL, 0);
+ /* How many pages do we try to swap or page in/out together? */
+ int page_cluster;
 _
 
-Patches currently in -mm which might be from agl@us.ibm.com are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
 origin.patch
+git-alsa.patch
+git-cifs.patch
+mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
+git-xfs.patch
+clean-up-duplicate-includes-in-drivers-char.patch
+clean-up-duplicate-includes-in-drivers-w1.patch
+clean-up-duplicate-includes-in-fs.patch
+clean-up-duplicate-includes-in-fs-ecryptfs.patch
+clean-up-duplicate-includes-in-kernel.patch
+avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
+docs-ramdisk-initrd-initramfs-corrections.patch
+floppy-do-a-very-minimal-style-cleanup-of-the-floppy-driver.patch
+floppy-remove-dead-commented-out-code-from-floppy-driver.patch
+floppy-remove-register-keyword-use-from-floppy-driver.patch
+clean-up-duplicate-includes-in-documentation.patch
+add-a-missing-00-index-file-for-documentation-vm.patch
+add-a-missing-00-index-file-for-documentation-vm-fix.patch
+add-a-00-index-file-to-documentation-mips.patch
+add-a-00-index-file-to-documentation-sysctl.patch
+add-a-00-index-file-to-documentation-telephony.patch
+mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
+mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
+cyclades-avoid-label-defined-but-not-used-warning.patch
