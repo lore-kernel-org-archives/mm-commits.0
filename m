@@ -1,102 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: - radeonfb-xpress-200m-rc410-support-patch.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:44:37 -0700
-Message-ID: <200710162044.l9GKibZa016162@imap1.linux-foundation.org>
+Subject: - uml-tidy-recently-moved-code.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:36:47 -0700
+Message-ID: <200710162036.l9GKal1e015217@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58655 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39114 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935392AbXJPVYm (ORCPT
+	by vger.kernel.org with ESMTP id S936001AbXJPVZi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:24:42 -0400
+	Tue, 16 Oct 2007 17:25:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sellout@beautyisfleeting.com, adaplas@pol.net, benh@kernel.crashing.org, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Radeonfb Xpress 200M RC410 support
+     uml: tidy recently-moved code
 has been removed from the -mm tree.  Its filename was
-     radeonfb-xpress-200m-rc410-support-patch.patch
+     uml-tidy-recently-moved-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Radeonfb Xpress 200M RC410 support
-From: Sellout Bessie <sellout@beautyisfleeting.com>
+Subject: uml: tidy recently-moved code
+From: Jeff Dike <jdike@addtoit.com>
 
-Make radeonfb work ith the 200m Xpress RC410.  In my tests it was terribly
-unstable and would freeze until I set a refresh rate in the kernel argument
-to 75.
+Now that the generic console operations are in a userspace file, we
+can do the following:
+	directly call into libc instead of through the os_* wrappers
+	eliminate os_window_size since it has only one user
 
-e.g video=radeonfb:1280x800@75
-
-Now it is rock solid.
-
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/ati_ids.h     |    1 +
- drivers/video/aty/radeon_base.c |    3 +++
- drivers/video/aty/radeonfb.h    |    4 +++-
- 3 files changed, 7 insertions(+), 1 deletion(-)
+ arch/um/drivers/chan_user.c |   30 +++++++++++++++---------------
+ arch/um/include/os.h        |    1 -
+ arch/um/os-Linux/file.c     |   13 -------------
+ 3 files changed, 15 insertions(+), 29 deletions(-)
 
-diff -puN drivers/video/aty/ati_ids.h~radeonfb-xpress-200m-rc410-support-patch drivers/video/aty/ati_ids.h
---- a/drivers/video/aty/ati_ids.h~radeonfb-xpress-200m-rc410-support-patch
-+++ a/drivers/video/aty/ati_ids.h
-@@ -188,6 +188,7 @@
- #define PCI_CHIP_MACH64VT		0x5654
- #define PCI_CHIP_MACH64VU		0x5655
- #define PCI_CHIP_MACH64VV		0x5656
-+#define PCI_CHIP_RC410_5A62             0x5A62
- #define PCI_CHIP_RS300_5834		0x5834
- #define PCI_CHIP_RS300_5835		0x5835
- #define PCI_CHIP_RS300_5836		0x5836
-diff -puN drivers/video/aty/radeon_base.c~radeonfb-xpress-200m-rc410-support-patch drivers/video/aty/radeon_base.c
---- a/drivers/video/aty/radeon_base.c~radeonfb-xpress-200m-rc410-support-patch
-+++ a/drivers/video/aty/radeon_base.c
-@@ -145,6 +145,8 @@ static struct pci_device_id radeonfb_pci
- 	/* 9000/Pro */
- 	CHIP_DEF(PCI_CHIP_RV250_If,	RV250,	CHIP_HAS_CRTC2),
- 	CHIP_DEF(PCI_CHIP_RV250_Ig,	RV250,	CHIP_HAS_CRTC2),
-+
-+	CHIP_DEF(PCI_CHIP_RC410_5A62,   RC410,  CHIP_HAS_CRTC2 | CHIP_IS_IGP | CHIP_IS_MOBILITY),
- 	/* Mobility 9100 IGP (U3) */
- 	CHIP_DEF(PCI_CHIP_RS300_5835,	RS300,	CHIP_HAS_CRTC2 | CHIP_IS_IGP | CHIP_IS_MOBILITY),
- 	CHIP_DEF(PCI_CHIP_RS350_7835,	RS300,	CHIP_HAS_CRTC2 | CHIP_IS_IGP | CHIP_IS_MOBILITY),
-@@ -1999,6 +2001,7 @@ static void radeon_identify_vram(struct 
-         if ((rinfo->family == CHIP_FAMILY_RS100) ||
-             (rinfo->family == CHIP_FAMILY_RS200) ||
-             (rinfo->family == CHIP_FAMILY_RS300) ||
-+            (rinfo->family == CHIP_FAMILY_RC410) ||
- 	    (rinfo->family == CHIP_FAMILY_RS480) ) {
-           u32 tom = INREG(NB_TOM);
-           tmp = ((((tom >> 16) - (tom & 0xffff) + 1) << 6) * 1024);
-diff -puN drivers/video/aty/radeonfb.h~radeonfb-xpress-200m-rc410-support-patch drivers/video/aty/radeonfb.h
---- a/drivers/video/aty/radeonfb.h~radeonfb-xpress-200m-rc410-support-patch
-+++ a/drivers/video/aty/radeonfb.h
-@@ -48,6 +48,7 @@ enum radeon_family {
- 	CHIP_FAMILY_RV350,
- 	CHIP_FAMILY_RV380,    /* RV370/RV380/M22/M24 */
- 	CHIP_FAMILY_R420,     /* R420/R423/M18 */
-+	CHIP_FAMILY_RC410,
- 	CHIP_FAMILY_RS480,
- 	CHIP_FAMILY_LAST,
- };
-@@ -66,7 +67,8 @@ enum radeon_family {
- 				((rinfo)->family == CHIP_FAMILY_R350)  || \
- 				((rinfo)->family == CHIP_FAMILY_RV380) || \
- 				((rinfo)->family == CHIP_FAMILY_R420)  || \
--		                ((rinfo)->family == CHIP_FAMILY_RS480) )
-+                               ((rinfo)->family == CHIP_FAMILY_RC410) || \
-+                               ((rinfo)->family == CHIP_FAMILY_RS480))
+diff -puN arch/um/drivers/chan_user.c~uml-tidy-recently-moved-code arch/um/drivers/chan_user.c
+--- a/arch/um/drivers/chan_user.c~uml-tidy-recently-moved-code
++++ a/arch/um/drivers/chan_user.c
+@@ -23,43 +23,43 @@
  
- /*
-  * Chip flags
+ void generic_close(int fd, void *unused)
+ {
+-	os_close_file(fd);
++	close(fd);
+ }
+ 
+ int generic_read(int fd, char *c_out, void *unused)
+ {
+ 	int n;
+ 
+-	n = os_read_file(fd, c_out, sizeof(*c_out));
+-
+-	if(n == -EAGAIN)
++	n = read(fd, c_out, sizeof(*c_out));
++	if (n > 0)
++		return n;
++	else if (errno == EAGAIN)
+ 		return 0;
+-	else if(n == 0)
++	else if (n == 0)
+ 		return -EIO;
+-	return n;
++	return -errno;
+ }
+ 
+-/* XXX Trivial wrapper around os_write_file */
++/* XXX Trivial wrapper around write */
+ 
+ int generic_write(int fd, const char *buf, int n, void *unused)
+ {
+-	return os_write_file(fd, buf, n);
++	return write(fd, buf, n);
+ }
+ 
+ int generic_window_size(int fd, void *unused, unsigned short *rows_out,
+ 			unsigned short *cols_out)
+ {
+-	int rows, cols;
++	struct winsize size;
+ 	int ret;
+ 
+-	ret = os_window_size(fd, &rows, &cols);
+-	if(ret < 0)
+-		return ret;
++	if(ioctl(fd, TIOCGWINSZ, &size) < 0)
++		return -errno;
+ 
+-	ret = ((*rows_out != rows) || (*cols_out != cols));
++	ret = ((*rows_out != size.ws_row) || (*cols_out != size.ws_col));
+ 
+-	*rows_out = rows;
+-	*cols_out = cols;
++	*rows_out = size.ws_row;
++	*cols_out = size.ws_col;
+ 
+ 	return ret;
+ }
+diff -puN arch/um/include/os.h~uml-tidy-recently-moved-code arch/um/include/os.h
+--- a/arch/um/include/os.h~uml-tidy-recently-moved-code
++++ a/arch/um/include/os.h
+@@ -134,7 +134,6 @@ extern void os_print_error(int error, co
+ extern int os_get_exec_close(int fd, int *close_on_exec);
+ extern int os_set_exec_close(int fd, int close_on_exec);
+ extern int os_ioctl_generic(int fd, unsigned int cmd, unsigned long arg);
+-extern int os_window_size(int fd, int *rows, int *cols);
+ extern int os_new_tty_pgrp(int fd, int pid);
+ extern int os_get_ifname(int fd, char *namebuf);
+ extern int os_set_slip(int fd);
+diff -puN arch/um/os-Linux/file.c~uml-tidy-recently-moved-code arch/um/os-Linux/file.c
+--- a/arch/um/os-Linux/file.c~uml-tidy-recently-moved-code
++++ a/arch/um/os-Linux/file.c
+@@ -101,19 +101,6 @@ int os_ioctl_generic(int fd, unsigned in
+ 	return err;
+ }
+ 
+-int os_window_size(int fd, int *rows, int *cols)
+-{
+-	struct winsize size;
+-
+-	if(ioctl(fd, TIOCGWINSZ, &size) < 0)
+-		return -errno;
+-
+-	*rows = size.ws_row;
+-	*cols = size.ws_col;
+-
+-	return 0;
+-}
+-
+ int os_new_tty_pgrp(int fd, int pid)
+ {
+ 	if(ioctl(fd, TIOCSCTTY, 0) < 0)
 _
 
-Patches currently in -mm which might be from sellout@beautyisfleeting.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
+git-kvm.patch
+uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
+bitops-introduce-lock-ops.patch
