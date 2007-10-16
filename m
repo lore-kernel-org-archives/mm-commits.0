@@ -1,129 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-fix-error-handling.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:40:48 -0700
-Message-ID: <200710162040.l9GKemLH015723@imap1.linux-foundation.org>
+Subject: - drivers-block-cpqarraycciss-kill-unused-var.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:46:06 -0700
+Message-ID: <200710162046.l9GKk6SF016333@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58640 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43094 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965131AbXJPVDd (ORCPT
+	by vger.kernel.org with ESMTP id S965417AbXJPVDu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:03:33 -0400
+	Tue, 16 Oct 2007 17:03:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: jeff@garzik.org, jens.axboe@oracle.com, jgarzik@redhat.com, mike.miller@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ecryptfs: fix error handling
+     drivers/block/cpqarray,cciss: kill unused var
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-fix-error-handling.patch
+     drivers-block-cpqarraycciss-kill-unused-var.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ecryptfs: fix error handling
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: drivers/block/cpqarray,cciss: kill unused var
+From: Jeff Garzik <jeff@garzik.org>
 
-The error paths and the module exit code need work. sysfs
-unregistration is not the right place to tear down the crypto
-subsystem, and the code to undo subsystem initializations on various
-error paths is unnecessarily duplicated. This patch addresses those
-issues.
+The recent bio work and subsequent fixups created unused variables.
 
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/main.c |   41 ++++++++++++++++++++---------------------
- 1 file changed, 20 insertions(+), 21 deletions(-)
+ drivers/block/cciss.c    |    1 -
+ drivers/block/cpqarray.c |    3 +--
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN fs/ecryptfs/main.c~ecryptfs-fix-error-handling fs/ecryptfs/main.c
---- a/fs/ecryptfs/main.c~ecryptfs-fix-error-handling
-+++ a/fs/ecryptfs/main.c
-@@ -799,13 +799,6 @@ out:
- 
- static void do_sysfs_unregistration(void)
+diff -puN drivers/block/cciss.c~drivers-block-cpqarraycciss-kill-unused-var drivers/block/cciss.c
+--- a/drivers/block/cciss.c~drivers-block-cpqarraycciss-kill-unused-var
++++ a/drivers/block/cciss.c
+@@ -1191,7 +1191,6 @@ static inline void complete_buffers(stru
  {
--	int rc;
--
--	rc = ecryptfs_destroy_crypto();
--	if (rc) {
--		printk(KERN_ERR "Failure whilst attempting to destroy crypto; "
--		       "rc = [%d]\n", rc);
--	}
- 	sysfs_remove_file(&ecryptfs_subsys.kobj,
- 			  &sysfs_attr_version.attr);
- 	sysfs_remove_file(&ecryptfs_subsys.kobj,
-@@ -836,43 +829,49 @@ static int __init ecryptfs_init(void)
- 	rc = register_filesystem(&ecryptfs_fs_type);
- 	if (rc) {
- 		printk(KERN_ERR "Failed to register filesystem\n");
--		ecryptfs_free_kmem_caches();
--		goto out;
-+		goto out_free_kmem_caches;
- 	}
- 	kobj_set_kset_s(&ecryptfs_subsys, fs_subsys);
- 	rc = do_sysfs_registration();
- 	if (rc) {
- 		printk(KERN_ERR "sysfs registration failed\n");
--		unregister_filesystem(&ecryptfs_fs_type);
--		ecryptfs_free_kmem_caches();
--		goto out;
-+		goto out_unregister_filesystem;
- 	}
- 	rc = ecryptfs_init_messaging(ecryptfs_transport);
- 	if (rc) {
- 		ecryptfs_printk(KERN_ERR, "Failure occured while attempting to "
- 				"initialize the eCryptfs netlink socket\n");
--		do_sysfs_unregistration();
--		unregister_filesystem(&ecryptfs_fs_type);
--		ecryptfs_free_kmem_caches();
--		goto out;
-+		goto out_do_sysfs_unregistration;
- 	}
- 	rc = ecryptfs_init_crypto();
- 	if (rc) {
- 		printk(KERN_ERR "Failure whilst attempting to init crypto; "
- 		       "rc = [%d]\n", rc);
--		do_sysfs_unregistration();
--		unregister_filesystem(&ecryptfs_fs_type);
--		ecryptfs_free_kmem_caches();
--		goto out;
-+		goto out_release_messaging;
- 	}
-+	goto out;
-+out_release_messaging:
-+	ecryptfs_release_messaging(ecryptfs_transport);
-+out_do_sysfs_unregistration:
-+	do_sysfs_unregistration();
-+out_unregister_filesystem:
-+	unregister_filesystem(&ecryptfs_fs_type);
-+out_free_kmem_caches:
-+	ecryptfs_free_kmem_caches();
- out:
- 	return rc;
- }
+ 	while (bio) {
+ 		struct bio *xbh = bio->bi_next;
+-		int nr_sectors = bio_sectors(bio);
  
- static void __exit ecryptfs_exit(void)
+ 		bio->bi_next = NULL;
+ 		bio_endio(bio, status ? 0 : -EIO);
+diff -puN drivers/block/cpqarray.c~drivers-block-cpqarraycciss-kill-unused-var drivers/block/cpqarray.c
+--- a/drivers/block/cpqarray.c~drivers-block-cpqarraycciss-kill-unused-var
++++ a/drivers/block/cpqarray.c
+@@ -981,9 +981,8 @@ static void start_io(ctlr_info_t *h)
+ static inline void complete_buffers(struct bio *bio, int ok)
  {
--	do_sysfs_unregistration();
-+	int rc;
-+
-+	rc = ecryptfs_destroy_crypto();
-+	if (rc)
-+		printk(KERN_ERR "Failure whilst attempting to destroy crypto; "
-+		       "rc = [%d]\n", rc);
- 	ecryptfs_release_messaging(ecryptfs_transport);
-+	do_sysfs_unregistration();
- 	unregister_filesystem(&ecryptfs_fs_type);
- 	ecryptfs_free_kmem_caches();
- }
+ 	struct bio *xbh;
+-	while(bio) {
+-		int nr_sectors = bio_sectors(bio);
+ 
++	while (bio) {
+ 		xbh = bio->bi_next;
+ 		bio->bi_next = NULL;
+ 		
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from jeff@garzik.org are
 
 origin.patch
-git-unionfs.patch
-ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
-vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
+git-jg-misc.patch
+git-jg-warning-fixes.patch
+git-jg-misc-powernow-fix.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+scsi-expose-an-support-to-user-space.patch
+libata-expose-an-to-user-space.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+forcedeth-power-down-phy-when-interface-is-down-checkpatch-fixes.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+tokenring-3c359c-fixed-array-index-problem.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+scsi-use-notifier-chain-for-asynchronous-event.patch
+git-wireless.patch
+dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
+make-the-pr_-family-of-macros-in-kernelh-complete.patch
+doc-about-email-clients-for-linux-patches.patch
+unify-dma_bit_mask-definitions-v31.patch
+drivers-char-ip2-fix-used-uninitd-bug.patch
+drivers-char-ip2-fix-used-uninitd-bug-checkpatch-fixes.patch
+intel-iommu-fix-for-iommu-early-crash-2.patch
+add-missing-newlines-to-some-uses-of-dev_level-messages.patch
+s2io-rename-bit-macro.patch
+define-global-bit-macro.patch
+sparse-pointer-use-of-zero-as-null.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
