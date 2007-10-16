@@ -1,97 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-update-metadata-read-write-functions-cleanup.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:54:27 -0700
-Message-ID: <200710160454.l9G4sREa009700@imap1.linux-foundation.org>
+Subject: - ecryptfs-remove-header_extent_size-fix.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:53:53 -0700
+Message-ID: <200710160453.l9G4rrZv009686@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39069 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45179 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754996AbXJPEyl (ORCPT
+	by vger.kernel.org with ESMTP id S1754910AbXJPEy4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:54:41 -0400
+	Tue, 16 Oct 2007 00:54:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eCryptfs: Update metadata read/write functions (cleanup)
+     ecryptfs: fix printk format warning
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-update-metadata-read-write-functions-cleanup.patch
+     ecryptfs-remove-header_extent_size-fix.patch
 
-This patch was dropped because it was folded into ecryptfs-update-metadata-read-write-functions.patch
+This patch was dropped because it was folded into ecryptfs-remove-header_extent_size.patch
 
 ------------------------------------------------------
-Subject: eCryptfs: Update metadata read/write functions (cleanup)
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: ecryptfs: fix printk format warning
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-On Wed, Sep 19, 2007 at 10:48:17PM -0700, Andrew Morton wrote:
-> On Mon, 17 Sep 2007 16:48:44 -0500 Michael Halcrow <mhalcrow@us.ibm.com> wrote:
-> > +		if ((rc = ecryptfs_write_lower(ecryptfs_dentry->d_inode,
->
-> checkpatch missed the assignment-in-an-if here.
+Fix printk format warning:
+fs/ecryptfs/crypto.c:1443: warning: format '%d' expects type 'int', but argument 2 has type 'size_t'
 
-Fix an assignment-in-an-if.
-
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/crypto.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ fs/ecryptfs/crypto.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ecryptfs/crypto.c~ecryptfs-update-metadata-read-write-functions-cleanup fs/ecryptfs/crypto.c
---- a/fs/ecryptfs/crypto.c~ecryptfs-update-metadata-read-write-functions-cleanup
+diff -puN fs/ecryptfs/crypto.c~ecryptfs-remove-header_extent_size-fix fs/ecryptfs/crypto.c
+--- a/fs/ecryptfs/crypto.c~ecryptfs-remove-header_extent_size-fix
 +++ a/fs/ecryptfs/crypto.c
-@@ -1455,8 +1455,9 @@ ecryptfs_write_metadata_to_contents(stru
- 	int header_pages;
- 	int rc;
- 
--	if ((rc = ecryptfs_write_lower(ecryptfs_dentry->d_inode, page_virt,
--				       0, PAGE_CACHE_SIZE))) {
-+	rc = ecryptfs_write_lower(ecryptfs_dentry->d_inode, page_virt,
-+				  0, PAGE_CACHE_SIZE);
-+	if (rc) {
- 		printk(KERN_ERR "%s: Error attempting to write header "
- 		       "information to lower file; rc = [%d]\n", __FUNCTION__,
- 		       rc);
+@@ -1542,7 +1542,7 @@ static int parse_header_metadata(struct 
+ 		 * crypt_stat->num_header_extents_at_front)
+ 		< ECRYPTFS_MINIMUM_HEADER_EXTENT_SIZE)) {
+ 		rc = -EINVAL;
+-		printk(KERN_WARNING "Invalid number of header extents: [%d]\n",
++		printk(KERN_WARNING "Invalid number of header extents: [%zd]\n",
+ 		       crypt_stat->num_header_extents_at_front);
+ 	}
+ 	return rc;
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-fs-remove-some-aop_truncated_page.patch
-ecryptfs-add-key-list-structure-search-keyring.patch
-ecryptfs-use-list_for_each_entry_safe-when-wiping-auth-toks.patch
-ecryptfs-kmem_cache-objects-for-multiple-keys-init-exit-functions.patch
-ecryptfs-fix-tag-1-parsing-code.patch
-ecryptfs-fix-tag-3-parsing-code.patch
-ecryptfs-fix-tag-11-parsing-code.patch
-ecryptfs-fix-tag-11-writing-code.patch
-ecryptfs-update-comment-and-debug-statement.patch
-ecryptfs-printk-warning-fixes.patch
-ecryptfs-remove-unnecessary-bug_on.patch
-ecryptfs-collapse-flag-set-into-one-statement.patch
-ecryptfs-grammatical-fix-destruct-to-destroy.patch
-ecryptfs-comments-for-some-structs.patch
-ecryptfs-kerneldoc-fixes-for-cryptoc-and-keystorec.patch
-ecryptfs-remove-unnecessary-variable-initializations.patch
-ecryptfs-make-needlessly-global-symbols-static.patch
-ecryptfs-use-generic_file_splice_read.patch
+origin.patch
+mm-use-pagevec-to-rotate-reclaimable-page.patch
 ecryptfs-remove-header_extent_size.patch
-ecryptfs-remove-assignments-in-if-statements.patch
-ecryptfs-fix-error-handling.patch
-ecryptfs-read_writec-routines.patch
-ecryptfs-replace-encrypt-decrypt-and-inode-size-write.patch
-ecryptfs-set-up-and-destroy-persistent-lower-file.patch
-ecryptfs-update-metadata-read-write-functions.patch
-ecryptfs-update-metadata-read-write-functions-cleanup.patch
-ecryptfs-make-open-truncate-and-setattr-use-persistent-file.patch
-ecryptfs-convert-mmap-functions-to-use-persistent-file.patch
-ecryptfs-convert-mmap-functions-to-use-persistent-file-fix.patch
-ecryptfs-fix-data-types.patch
-ecryptfs-initialize-persistent-lower-file-on-inode-create.patch
-ecryptfs-remove-unused-functions-and-kmem_cache.patch
-ecryptfs-replace-magic-numbers.patch
-ecryptfs-clean-up-page-flag-handling.patch
-ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
-vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
+ecryptfs-remove-header_extent_size-fix.patch
+video-gfx-fix-menu-ordering.patch
+video-gfx-merge-kconfig-menus.patch
+kernel-doc-fix-doc-blocks-and-html.patch
+express-relocatability-of-kernel-on-x86_64-in.patch
+remap_file_pages-kernel-doc-corrections.patch
+hook-up-group-scheduler-with-control-groups.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
+add-samples-subdir.patch
+profile-likely-unlikely-macros.patch
