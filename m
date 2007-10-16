@@ -1,148 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - git-nfs-vs-nfs-convert-to-new-aops-fix.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:17:44 -0700
-Message-ID: <200710160417.l9G4Hi1Q008354@imap1.linux-foundation.org>
+Subject: - hostfs-convert-to-new-aops-fix-fix.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:19:17 -0700
+Message-ID: <200710160419.l9G4JHpe008402@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35621 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52109 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759427AbXJPESK (ORCPT
+	by vger.kernel.org with ESMTP id S1750756AbXJPETW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:18:10 -0400
+	Tue, 16 Oct 2007 00:19:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: peterz@infradead.org, akpm@linux-foundation.org, nickpiggin@yahoo.com.au, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-nfs-vs-nfs-convert-to-new-aops fix
+     hostfs convert to new aops fix fix
 has been removed from the -mm tree.  Its filename was
-     git-nfs-vs-nfs-convert-to-new-aops-fix.patch
+     hostfs-convert-to-new-aops-fix-fix.patch
 
-This patch was dropped because it was folded into nfs-convert-to-new-aops.patch
+This patch was dropped because it was folded into hostfs-convert-to-new-aops.patch
 
 ------------------------------------------------------
-Subject: git-nfs-vs-nfs-convert-to-new-aops fix
-From: Peter Zijlstra <peterz@infradead.org>
+Subject: hostfs convert to new aops fix fix
+From: Nick Piggin <npiggin@suse.de>
 
-On Mon, 20 Aug 2007 15:56:10 -0700 akpm@linux-foundation.org wrote:
-
-> ------------------------------------------------------
-> Subject: git-nfs vs nfs-convert-to-new-aops
-> From: Andrew Morton <akpm@linux-foundation.org>
->
-> nfi if this is correct.  How am I supposed to know how to work out what to put
-> in `copied' in write_end?
-
-I can has broken NFS :-)
-
-nfs_write_begin wants to lock the page itself, but we pass it a locked
-page.
-
-> Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-> Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
->
->  fs/nfs/file.c |    9 +++++++--
->  1 file changed, 7 insertions(+), 2 deletions(-)
->
-> diff -puN fs/nfs/file.c~git-nfs-vs-nfs-convert-to-new-aops fs/nfs/file.c
-> --- a/fs/nfs/file.c~git-nfs-vs-nfs-convert-to-new-aops
-> +++ a/fs/nfs/file.c
-> @@ -392,6 +392,7 @@ static int nfs_vm_page_mkwrite(struct vm
->  	struct file *filp = vma->vm_file;
->  	unsigned pagelen;
->  	int ret = -EINVAL;
-> +	void *fsdata;
->
->  	lock_page(page);
->  	if (page->mapping != vma->vm_file->f_path.dentry->d_inode->i_mapping)
-> @@ -399,9 +400,13 @@ static int nfs_vm_page_mkwrite(struct vm
->  	pagelen = nfs_page_length(page);
->  	if (pagelen == 0)
->  		goto out_unlock;
-> -	ret = nfs_prepare_write(filp, page, 0, pagelen);
-> +	ret = nfs_write_begin(filp, page->mapping,
-> +				(loff_t)page->index << PAGE_CACHE_SHIFT,
-> +				pagelen, 0, &page, &fsdata);
->  	if (!ret)
-> -		ret = nfs_commit_write(filp, page, 0, pagelen);
-> +		ret = nfs_write_end(filp, page->mapping,
-> +				(loff_t)page->index << PAGE_CACHE_SHIFT,
-> +				pagelen, pagelen, page, fsdata);
->  out_unlock:
->  	unlock_page(page);
->  	return ret;
-> _
-
-But even with this patch I deadlock on page lock, just not here
-anymore :-/
-
-/me continues the mmap write on nfs adventure...
-
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/file.c |   36 ++++++++++++++++++++++++------------
- 1 file changed, 24 insertions(+), 12 deletions(-)
+ fs/hostfs/hostfs_kern.c |    2 --
+ 1 files changed, 2 deletions(-)
 
-diff -puN fs/nfs/file.c~git-nfs-vs-nfs-convert-to-new-aops-fix fs/nfs/file.c
---- a/fs/nfs/file.c~git-nfs-vs-nfs-convert-to-new-aops-fix
-+++ a/fs/nfs/file.c
-@@ -393,22 +393,34 @@ static int nfs_vm_page_mkwrite(struct vm
- 	unsigned pagelen;
- 	int ret = -EINVAL;
- 	void *fsdata;
-+	struct address_space *mapping;
-+	loff_t offset;
- 
- 	lock_page(page);
--	if (page->mapping != vma->vm_file->f_path.dentry->d_inode->i_mapping)
--		goto out_unlock;
-+	mapping = page->mapping;
-+	if (mapping != vma->vm_file->f_path.dentry->d_inode->i_mapping) {
-+		unlock_page(page);
-+		return -EINVAL;
-+	}
- 	pagelen = nfs_page_length(page);
--	if (pagelen == 0)
--		goto out_unlock;
--	ret = nfs_write_begin(filp, page->mapping,
--				(loff_t)page->index << PAGE_CACHE_SHIFT,
--				pagelen, 0, &page, &fsdata);
--	if (!ret)
--		ret = nfs_write_end(filp, page->mapping,
--				(loff_t)page->index << PAGE_CACHE_SHIFT,
--				pagelen, pagelen, page, fsdata);
--out_unlock:
-+	offset = (loff_t)page->index << PAGE_CACHE_SHIFT;
+diff -puN fs/hostfs/hostfs_kern.c~hostfs-convert-to-new-aops-fix-fix fs/hostfs/hostfs_kern.c
+--- a/fs/hostfs/hostfs_kern.c~hostfs-convert-to-new-aops-fix-fix
++++ a/fs/hostfs/hostfs_kern.c
+@@ -16,7 +16,6 @@
+ #include <linux/list.h>
+ #include <linux/statfs.h>
+ #include <linux/kdev_t.h>
+-#include <linux/swap.h> /* mark_page_accessed */
+ #include <asm/uaccess.h>
+ #include "hostfs.h"
+ #include "kern_util.h"
+@@ -501,7 +500,6 @@ int hostfs_write_end(struct file *file, 
+ 	if (err > 0 && (pos > inode->i_size))
+ 		inode->i_size = pos;
  	unlock_page(page);
-+
-+	/*
-+	 * we can use mapping after releasing the page lock, because:
-+	 * we hold mmap_sem on the fault path, which should pin the vma
-+	 * which should pin the file, which pins the dentry which should
-+	 * hold a reference on inode.
-+	 */
-+
-+	if (pagelen) {
-+		struct page *page2 = NULL;
-+		ret = nfs_write_begin(filp, mapping, offset, pagelen,
-+			       	0, &page2, &fsdata);
-+		if (!ret)
-+			ret = nfs_write_end(filp, mapping, offset, pagelen,
-+				       	pagelen, page2, fsdata);
-+	}
- 	return ret;
- }
+-	mark_page_accessed(page);
+ 	page_cache_release(page);
  
+ 	return err;
 _
 
-Patches currently in -mm which might be from peterz@infradead.org are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos.patch
+origin.patch
+remove-zero_page.patch
+mm-use-lockless-radix-tree-probe.patch
+mm-improve-find_lock_page.patch
+mm-clarify-__add_to_swap_cache-locking.patch
+radix-tree-use-indirect-bit.patch
+calculation-of-pgoff-in-do_linear_fault-uses-mixed.patch
+fs-fix-nobh-error-handling.patch
+mm-revert-kernel_ds-buffered-write-optimisation.patch
+revert-81b0c8713385ce1b1b9058e916edcf9561ad76d6.patch
+revert-6527c2bdf1f833cc18e8f42bd97973d583e4aa83.patch
+mm-clean-up-buffered-write-code.patch
+mm-debug-write-deadlocks.patch
+mm-trim-more-holes.patch
+mm-buffered-write-cleanup.patch
+mm-write-iovec-cleanup.patch
+mm-fix-pagecache-write-deadlocks.patch
+mm-buffered-write-iterator.patch
+fs-fix-data-loss-on-error.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops.patch
+mm-restore-kernel_ds-optimisations.patch
+implement-simple-fs-aops.patch
+block_dev-convert-to-new-aops.patch
+ext2-convert-to-new-aops.patch
+ext3-convert-to-new-aops.patch
+ext4-convert-to-new-aops.patch
+xfs-convert-to-new-aops.patch
+fs-new-cont-helpers.patch
+fat-convert-to-new-aops.patch
+hfs-convert-to-new-aops.patch
+hfsplus-convert-to-new-aops.patch
+hpfs-convert-to-new-aops.patch
+bfs-convert-to-new-aops.patch
+qnx4-convert-to-new-aops.patch
+reiserfs-use-generic-write.patch
+reiserfs-convert-to-new-aops.patch
+reiserfs-use-generic_cont_expand_simple.patch
+with-reiserfs-no-longer-using-the-weird-generic_cont_expand-remove-it-completely.patch
 nfs-convert-to-new-aops.patch
-git-nfs-vs-nfs-convert-to-new-aops-fix.patch
+smb-convert-to-new-aops.patch
+fuse-convert-to-new-aops.patch
+hostfs-convert-to-new-aops.patch
+hostfs-convert-to-new-aops-fix-fix.patch
+jffs2-convert-to-new-aops.patch
+ufs-convert-to-new-aops.patch
+ufs-convert-to-new-aops-fix.patch
+ufs-convert-to-new-aops-fix2.patch
+udf-convert-to-new-aops.patch
+udf-convert-to-new-aops-fix.patch
+sysv-convert-to-new-aops.patch
+sysv-convert-to-new-aops-fix.patch
+sysv-convert-to-new-aops-fix2.patch
+minix-convert-to-new-aops.patch
+minix-convert-to-new-aops-fix.patch
+minix-convert-to-new-aops-fix2.patch
+jfs-convert-to-new-aops.patch
+fs-adfs-convert-to-new-aops.patch
+fs-affs-convert-to-new-aops.patch
+affs-convert-to-new-aops-fix.patch
+affs-convert-to-new-aops-fix-fix.patch
+ocfs2-convert-to-new-aops.patch
+fs-restore-nobh.patch
+fs-restore-nobh-checkpatch-fixes.patch
+fs-remove-some-aop_truncated_page.patch
+make-swappiness-safer-to-use.patch
+mm-document-tree_lock-zonelock-lockorder.patch
+fs-reiserfs-cleanups.patch
+atomic_opstxt-has-incorrect-misleading-and-insufficient-information.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+bitops-introduce-lock-ops.patch
+alpha-fix-bitops.patch
+alpha-lock-bitops.patch
+alpha-lock-bitops-fix.patch
+ia64-lock-bitops.patch
+mips-fix-bitops.patch
+mips-lock-bitops.patch
+powerpc-lock-bitops.patch
+powerpc-lock-bitops-fix.patch
+bit_spin_lock-use-lock-bitops.patch
+reiser4-fix-for-new-aops-patches.patch
