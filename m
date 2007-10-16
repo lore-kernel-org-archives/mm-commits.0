@@ -1,82 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - update-n_high_memory-node-state-for-memory-hotadd-fix.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 21:27:28 -0700
-Message-ID: <200710160427.l9G4RS6L008750@imap1.linux-foundation.org>
+Subject: - memoryless-nodes-add-n_cpu-node-state-move-setup-of-n_cpu-node-state-mask.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 21:28:46 -0700
+Message-ID: <200710160428.l9G4Skn4008775@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43115 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44473 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752048AbXJPE2M (ORCPT
+	by vger.kernel.org with ESMTP id S1750839AbXJPE3K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 00:28:12 -0400
+	Tue, 16 Oct 2007 00:29:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: y-goto@jp.fujitsu.com, apw@shadowen.org, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: Lee.Schermerhorn@hp.com, bob.picco@hp.com, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@skynet.ie, nacc@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     : Fix memory hotplug + sparsemem build.
+     Move setup of N_CPU node state mask
 has been removed from the -mm tree.  Its filename was
-     update-n_high_memory-node-state-for-memory-hotadd-fix.patch
+     memoryless-nodes-add-n_cpu-node-state-move-setup-of-n_cpu-node-state-mask.patch
 
-This patch was dropped because it was folded into memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
+This patch was dropped because it was folded into memoryless-nodes-add-n_cpu-node-state.patch
 
 ------------------------------------------------------
-Subject: : Fix memory hotplug + sparsemem build.
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: Move setup of N_CPU node state mask
+From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 
-Fix kswapd doesn't run when memory is added on memory-less-node.
-Fix compile error of zone->node when CONFIG_NUMA is off.
+Move recording of nodes w/ cpus to before zone loop.  Otherwise, error exit
+could skip setup of N_CPU mask.
 
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Acked-by: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Bob Picco <bob.picco@hp.com>
+Cc: Nishanth Aravamudan <nacc@us.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mel@skynet.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~update-n_high_memory-node-state-for-memory-hotadd-fix mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~update-n_high_memory-node-state-for-memory-hotadd-fix
-+++ a/mm/memory_hotplug.c
-@@ -215,10 +215,12 @@ int online_pages(unsigned long pfn, unsi
- 	}
- 	zone->present_pages += onlined_pages;
- 	zone->zone_pgdat->node_present_pages += onlined_pages;
--	if (onlined_pages)
--		node_set_state(zone->node, N_HIGH_MEMORY);
+diff -puN mm/page_alloc.c~memoryless-nodes-add-n_cpu-node-state-move-setup-of-n_cpu-node-state-mask mm/page_alloc.c
+--- a/mm/page_alloc.c~memoryless-nodes-add-n_cpu-node-state-move-setup-of-n_cpu-node-state-mask
++++ a/mm/page_alloc.c
+@@ -2355,6 +2355,8 @@ static int __cpuinit process_zones(int c
+ 	struct zone *zone, *dzone;
+ 	int node = cpu_to_node(cpu);
  
- 	setup_per_zone_pages_min();
-+	if (onlined_pages) {
-+		kswapd_run(zone_to_nid(zone));
-+		node_set_state(zone_to_nid(zone), N_HIGH_MEMORY);
-+	}
++	node_set_state(node, N_CPU);	/* this node has a cpu */
++
+ 	for_each_zone(zone) {
  
- 	if (need_zonelists_rebuild)
- 		build_all_zonelists();
-@@ -273,9 +275,6 @@ int add_memory(int nid, u64 start, u64 s
- 		if (!pgdat)
- 			return -ENOMEM;
- 		new_pgdat = 1;
--		ret = kswapd_run(nid);
--		if (ret)
--			goto error;
+ 		if (!populated_zone(zone))
+@@ -2372,7 +2374,6 @@ static int __cpuinit process_zones(int c
+ 			 	(zone->present_pages / percpu_pagelist_fraction));
  	}
  
- 	/* call arch's memory hotadd */
+-	node_set_state(node, N_CPU);
+ 	return 0;
+ bad:
+ 	for_each_zone(dzone) {
 _
 
-Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
+Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
 
-clean-up-duplicate-includes-in-include-linux-memory_hotplugh.patch
+origin.patch
+mem-policy-add-mpol_f_mems_allowed-get_mempolicy-flag.patch
+memoryless-nodes-generic-management-of-nodemasks-for-various-purposes.patch
 memoryless-nodes-introduce-mask-of-nodes-with-memory.patch
-update-n_high_memory-node-state-for-memory-hotadd-fix.patch
+memoryless-nodes-add-n_cpu-node-state.patch
+memoryless-nodes-add-n_cpu-node-state-move-setup-of-n_cpu-node-state-mask.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code.patch
 memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix.patch
-fix-panic-of-cpu-online-with-memory-less-node.patch
-move-free-pages-between-lists-on-steal.patch
-memory-unplug-v7-page-isolation.patch
-memory-unplug-v7-page-offline.patch
-memory-unplug-v7-page-offline-fix.patch
-memory-hotplug-hot-add-with-sparsemem-vmemmap.patch
-memory-hotplug-hot-add-with-sparsemem-vmemmap-update.patch
+memoryless-nodes-fixup-uses-of-node_online_map-in-generic-code-fix-2-3.patch
+add-node-states-sysfs-class-attributes-v5.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix-2.patch
