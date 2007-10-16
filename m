@@ -1,59 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-sparc64-fix.patch removed from -mm tree
-Date: Mon, 15 Oct 2007 20:57:19 -0700
-Message-ID: <200710160357.l9G3vJvg007577@imap1.linux-foundation.org>
+Subject: - sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch removed from -mm tree
+Date: Mon, 15 Oct 2007 20:58:03 -0700
+Message-ID: <200710160358.l9G3w34R007600@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44265 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41467 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757372AbXJPD5t (ORCPT
+	by vger.kernel.org with ESMTP id S1758071AbXJPD6l (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 15 Oct 2007 23:57:49 -0400
+	Mon, 15 Oct 2007 23:58:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@suse.de, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, hch@lst.de, linux-arch@vger.kernel.org, prasanna@in.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-sparc64-fix
+     sparsemem-record-when-a-section-has-a-valid-mem_map-fix
 has been removed from the -mm tree.  Its filename was
-     optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-sparc64-fix.patch
+     sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
 
-This patch was dropped because it was folded into optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
+This patch was dropped because it was folded into sparsemem-record-when-a-section-has-a-valid-mem_map.patch
 
 ------------------------------------------------------
-Subject: optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-sparc64-fix
+Subject: sparsemem-record-when-a-section-has-a-valid-mem_map-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from include/linux/kdebug.h:4,
-                 from kernel/notifier.c:1:
-include/asm/kdebug.h:4: warning: "struct pt_regs" declared inside parameter list
-include/asm/kdebug.h:4: warning: its scope is only this definition or declaration, which is probably not what you want
+dude, who wrote checkpatch?
 
-Cc: <linux-arch@vger.kernel.org>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-sparc64/kdebug.h |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/mmzone.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-sparc64/kdebug.h~optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-sparc64-fix include/asm-sparc64/kdebug.h
---- a/include/asm-sparc64/kdebug.h~optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-sparc64-fix
-+++ a/include/asm-sparc64/kdebug.h
-@@ -1,6 +1,8 @@
- #ifndef _SPARC64_KDEBUG_H
- #define _SPARC64_KDEBUG_H
+diff -puN include/linux/mmzone.h~sparsemem-record-when-a-section-has-a-valid-mem_map-fix include/linux/mmzone.h
+--- a/include/linux/mmzone.h~sparsemem-record-when-a-section-has-a-valid-mem_map-fix
++++ a/include/linux/mmzone.h
+@@ -805,9 +805,9 @@ static inline int pfn_valid(unsigned lon
  
-+struct pt_regs;
-+
- extern void bad_trap(struct pt_regs *, long);
+ static inline int pfn_present(unsigned long pfn)
+ {
+-        if (pfn_to_section_nr(pfn) >= NR_MEM_SECTIONS)
+-                return 0;
+-        return present_section(__nr_to_section(pfn_to_section_nr(pfn)));
++	if (pfn_to_section_nr(pfn) >= NR_MEM_SECTIONS)
++		return 0;
++	return present_section(__nr_to_section(pfn_to_section_nr(pfn)));
+ }
  
- /* Grossly misnamed. */
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -61,8 +57,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 slow-down-printk-during-boot.patch
 optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft.patch
-optimize-x86-page-faults-like-all-other-achitectures-and-kill-notifier-cruft-sparc64-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+sparsemem-record-when-a-section-has-a-valid-mem_map.patch
 sparsemem-record-when-a-section-has-a-valid-mem_map-fix.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix.patch
 readahead-combine-file_ra_stateprev_index-prev_offset-into-prev_pos-fix-2.patch
