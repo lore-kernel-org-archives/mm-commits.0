@@ -1,1186 +1,1756 @@
 From: akpm@linux-foundation.org
-Subject: - uml-style-fixes-pass-1.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:37:23 -0700
-Message-ID: <200710162037.l9GKbNIp015288@imap1.linux-foundation.org>
+Subject: - tridentfb-coding-style-improvement.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:42:29 -0700
+Message-ID: <200710162042.l9GKgTBF015888@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50082 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39456 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760367AbXJPVat (ORCPT
+	by vger.kernel.org with ESMTP id S1760423AbXJPVaz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:30:49 -0400
+	Tue, 16 Oct 2007 17:30:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: style fixes pass 1
+     tridentfb: coding style improvement
 has been removed from the -mm tree.  Its filename was
-     uml-style-fixes-pass-1.patch
+     tridentfb-coding-style-improvement.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: style fixes pass 1
-From: Jeff Dike <jdike@addtoit.com>
+Subject: tridentfb: coding style improvement
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Formatting changes in the files which have been changed in the
-tt-removal patchset so far.  These include:
-	copyright updates
-	header file trimming
-	style fixes
-	adding severity to printks
-	indenting Kconfig help according to the predominant kernel style
+This patch contains coding style improvements to the tridentfb driver (white
+spaces, indentations, long lines).
 
-These changes should be entirely non-functional.
+It also moves fb_ops structure after fb api functions are defined.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/Kconfig                          |  199 ++++++++++-----------
- arch/um/Kconfig.char                     |  139 +++++++-------
- arch/um/Kconfig.debug                    |   24 +-
- arch/um/Makefile                         |    8 
- arch/um/include/sysdep-i386/sigcontext.h |   12 -
- arch/um/kernel/Makefile                  |    2 
- arch/um/kernel/init_task.c               |    8 
- arch/um/kernel/smp.c                     |   31 +--
- arch/um/kernel/trap.c                    |  111 +++++------
- arch/um/os-Linux/Makefile                |    2 
- arch/um/os-Linux/sys-i386/Makefile       |    2 
- arch/um/os-Linux/time.c                  |   38 +---
- arch/um/os-Linux/tls.c                   |    4 
- arch/um/sys-i386/Makefile                |    4 
- arch/um/sys-i386/ptrace_user.c           |   13 -
- 15 files changed, 283 insertions(+), 314 deletions(-)
+ drivers/video/tridentfb.c | 1081 +++++++++++++++++++-----------------
+ 1 file changed, 595 insertions(+), 486 deletions(-)
 
-diff -puN arch/um/Kconfig~uml-style-fixes-pass-1 arch/um/Kconfig
---- a/arch/um/Kconfig~uml-style-fixes-pass-1
-+++ a/arch/um/Kconfig
-@@ -66,12 +66,12 @@ config STATIC_LINK
- 	bool "Force a static link"
- 	default n
- 	help
--	This option gives you the ability to force a static link of UML.
--	Normally, UML is linked as a shared binary.  This is inconvenient for
--	use in a chroot jail.  So, if you intend to run UML inside a chroot,
--	you probably want to say Y here.
--	Additionally, this option enables using higher memory spaces (up to
--	2.75G) for UML.
-+	  This option gives you the ability to force a static link of UML.
-+	  Normally, UML is linked as a shared binary.  This is inconvenient for
-+	  use in a chroot jail.  So, if you intend to run UML inside a chroot,
-+	  you probably want to say Y here.
-+	  Additionally, this option enables using higher memory spaces (up to
-+	  2.75G) for UML.
- 
- source "arch/um/Kconfig.arch"
- source "mm/Kconfig"
-@@ -89,18 +89,18 @@ config LD_SCRIPT_DYN
- config NET
- 	bool "Networking support"
- 	help
--	Unless you really know what you are doing, you should say Y here.
--	The reason is that some programs need kernel networking support even
--	when running on a stand-alone machine that isn't connected to any
--	other computer. If you are upgrading from an older kernel, you
--	should consider updating your networking tools too because changes
--	in the kernel and the tools often go hand in hand. The tools are
--	contained in the package net-tools, the location and version number
--	of which are given in <file:Documentation/Changes>.
--
--	For a general introduction to Linux networking, it is highly
--	recommended to read the NET-HOWTO, available from
--	<http://www.tldp.org/docs.html#howto>.
-+	  Unless you really know what you are doing, you should say Y here.
-+	  The reason is that some programs need kernel networking support even
-+	  when running on a stand-alone machine that isn't connected to any
-+	  other computer. If you are upgrading from an older kernel, you
-+	  should consider updating your networking tools too because changes
-+	  in the kernel and the tools often go hand in hand. The tools are
-+	  contained in the package net-tools, the location and version number
-+	  of which are given in <file:Documentation/Changes>.
-+
-+	  For a general introduction to Linux networking, it is highly
-+	  recommended to read the NET-HOWTO, available from
-+	  <http://www.tldp.org/docs.html#howto>.
- 
- 
- source "fs/Kconfig.binfmt"
-@@ -108,74 +108,74 @@ source "fs/Kconfig.binfmt"
- config HOSTFS
- 	tristate "Host filesystem"
- 	help
--        While the User-Mode Linux port uses its own root file system for
--        booting and normal file access, this module lets the UML user
--        access files stored on the host.  It does not require any
--        network connection between the Host and UML.  An example use of
--        this might be:
--
--        mount none /tmp/fromhost -t hostfs -o /tmp/umlshare
--
--        where /tmp/fromhost is an empty directory inside UML and
--        /tmp/umlshare is a directory on the host with files the UML user
--        wishes to access.
-+          While the User-Mode Linux port uses its own root file system for
-+          booting and normal file access, this module lets the UML user
-+          access files stored on the host.  It does not require any
-+          network connection between the Host and UML.  An example use of
-+          this might be:
-+
-+          mount none /tmp/fromhost -t hostfs -o /tmp/umlshare
-+
-+          where /tmp/fromhost is an empty directory inside UML and
-+          /tmp/umlshare is a directory on the host with files the UML user
-+          wishes to access.
- 
--        For more information, see
--        <http://user-mode-linux.sourceforge.net/hostfs.html>.
-+          For more information, see
-+          <http://user-mode-linux.sourceforge.net/hostfs.html>.
- 
--        If you'd like to be able to work with files stored on the host,
--        say Y or M here; otherwise say N.
-+          If you'd like to be able to work with files stored on the host,
-+          say Y or M here; otherwise say N.
- 
- config HPPFS
- 	tristate "HoneyPot ProcFS (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
- 	help
--	hppfs (HoneyPot ProcFS) is a filesystem which allows UML /proc
--	entries to be overridden, removed, or fabricated from the host.
--	Its purpose is to allow a UML to appear to be a physical machine
--	by removing or changing anything in /proc which gives away the
--	identity of a UML.
-+	  hppfs (HoneyPot ProcFS) is a filesystem which allows UML /proc
-+	  entries to be overridden, removed, or fabricated from the host.
-+	  Its purpose is to allow a UML to appear to be a physical machine
-+	  by removing or changing anything in /proc which gives away the
-+	  identity of a UML.
- 
--	See <http://user-mode-linux.sf.net/hppfs.html> for more information.
-+	  See <http://user-mode-linux.sf.net/hppfs.html> for more information.
- 
--	You only need this if you are setting up a UML honeypot.  Otherwise,
--	it is safe to say 'N' here.
-+	  You only need this if you are setting up a UML honeypot.  Otherwise,
-+	  it is safe to say 'N' here.
- 
- config MCONSOLE
- 	bool "Management console"
- 	default y
- 	help
--        The user mode linux management console is a low-level interface to
--        the kernel, somewhat like the i386 SysRq interface.  Since there is
--        a full-blown operating system running under every user mode linux
--        instance, there is much greater flexibility possible than with the
--        SysRq mechanism.
--
--        If you answer 'Y' to this option, to use this feature, you need the
--        mconsole client (called uml_mconsole) which is present in CVS in
--        2.4.5-9um and later (path /tools/mconsole), and is also in the
--        distribution RPM package in 2.4.6 and later.
-+          The user mode linux management console is a low-level interface to
-+          the kernel, somewhat like the i386 SysRq interface.  Since there is
-+          a full-blown operating system running under every user mode linux
-+          instance, there is much greater flexibility possible than with the
-+          SysRq mechanism.
-+
-+          If you answer 'Y' to this option, to use this feature, you need the
-+          mconsole client (called uml_mconsole) which is present in CVS in
-+          2.4.5-9um and later (path /tools/mconsole), and is also in the
-+          distribution RPM package in 2.4.6 and later.
- 
--        It is safe to say 'Y' here.
-+          It is safe to say 'Y' here.
- 
- config MAGIC_SYSRQ
- 	bool "Magic SysRq key"
- 	depends on MCONSOLE
--	---help---
--	If you say Y here, you will have some control over the system even
--	if the system crashes for example during kernel debugging (e.g., you
--	will be able to flush the buffer cache to disk, reboot the system
--	immediately or dump some status information). A key for each of the
--	possible requests is provided.
-+	help
-+	  If you say Y here, you will have some control over the system even
-+	  if the system crashes for example during kernel debugging (e.g., you
-+	  will be able to flush the buffer cache to disk, reboot the system
-+	  immediately or dump some status information). A key for each of the
-+	  possible requests is provided.
- 
--	This is the feature normally accomplished by pressing a key
--	while holding SysRq (Alt+PrintScreen).
-+	  This is the feature normally accomplished by pressing a key
-+	  while holding SysRq (Alt+PrintScreen).
- 
--	On UML, this is accomplished by sending a "sysrq" command with
--	mconsole, followed by the letter for the requested command.
-+	  On UML, this is accomplished by sending a "sysrq" command with
-+	  mconsole, followed by the letter for the requested command.
- 
--	The keys are documented in <file:Documentation/sysrq.txt>. Don't say Y
--	unless you really know what this hack does.
-+	  The keys are documented in <file:Documentation/sysrq.txt>. Don't say Y
-+	  unless you really know what this hack does.
- 
- config SMP
- 	bool "Symmetric multi-processing support (EXPERIMENTAL)"
-@@ -183,24 +183,24 @@ config SMP
- 	#SMP_BROKEN is for x86_64.
- 	depends on EXPERIMENTAL && (!SMP_BROKEN || (BROKEN && SMP_BROKEN))
- 	help
--	This option enables UML SMP support.
--	It is NOT related to having a real SMP box. Not directly, at least.
-+	  This option enables UML SMP support.
-+	  It is NOT related to having a real SMP box. Not directly, at least.
- 
--	UML implements virtual SMP by allowing as many processes to run
--	simultaneously on the host as there are virtual processors configured.
-+	  UML implements virtual SMP by allowing as many processes to run
-+	  simultaneously on the host as there are virtual processors configured.
- 
--	Obviously, if the host is a uniprocessor, those processes will
--	timeshare, but, inside UML, will appear to be running simultaneously.
--	If the host is a multiprocessor, then UML processes may run
--	simultaneously, depending on the host scheduler.
--
--	This, however, is supported only in TT mode. So, if you use the SKAS
--	patch on your host, switching to TT mode and enabling SMP usually gives
--	you worse performances.
--	Also, since the support for SMP has been under-developed, there could
--	be some bugs being exposed by enabling SMP.
-+	  Obviously, if the host is a uniprocessor, those processes will
-+	  timeshare, but, inside UML, will appear to be running simultaneously.
-+	  If the host is a multiprocessor, then UML processes may run
-+	  simultaneously, depending on the host scheduler.
-+
-+	  This, however, is supported only in TT mode. So, if you use the SKAS
-+	  patch on your host, switching to TT mode and enabling SMP usually
-+	  gives	you worse performances.
-+	  Also, since the support for SMP has been under-developed, there could
-+	  be some bugs being exposed by enabling SMP.
- 
--	If you don't know what to do, say N.
-+	  If you don't know what to do, say N.
- 
- config NR_CPUS
- 	int "Maximum number of CPUs (2-32)"
-@@ -212,24 +212,24 @@ config NEST_LEVEL
- 	int "Nesting level"
- 	default "0"
- 	help
--        This is set to the number of layers of UMLs that this UML will be run
--        in.  Normally, this is zero, meaning that it will run directly on the
--        host.  Setting it to one will build a UML that can run inside a UML
--        that is running on the host.  Generally, if you intend this UML to run
--        inside another UML, set CONFIG_NEST_LEVEL to one more than the host
--        UML.
-+          This is set to the number of layers of UMLs that this UML will be run
-+          in.  Normally, this is zero, meaning that it will run directly on the
-+          host.  Setting it to one will build a UML that can run inside a UML
-+          that is running on the host.  Generally, if you intend this UML to run
-+          inside another UML, set CONFIG_NEST_LEVEL to one more than the host
-+          UML.
- 
- config HIGHMEM
- 	bool "Highmem support (EXPERIMENTAL)"
- 	depends on !64BIT && EXPERIMENTAL
- 	default n
- 	help
--	This was used to allow UML to run with big amounts of memory.
--	Currently it is unstable, so if unsure say N.
-+	  This was used to allow UML to run with big amounts of memory.
-+	  Currently it is unstable, so if unsure say N.
- 
--	To use big amounts of memory, it is recommended enable static
--	linking (i.e. CONFIG_STATIC_LINK) - this should allow the
--	guest to use up to 2.75G of memory.
-+	  To use big amounts of memory, it is recommended enable static
-+	  linking (i.e. CONFIG_STATIC_LINK) - this should allow the
-+	  guest to use up to 2.75G of memory.
- 
- config KERNEL_STACK_ORDER
- 	int "Kernel stack size order"
-@@ -237,20 +237,21 @@ config KERNEL_STACK_ORDER
- 	range 1 10 if 64BIT
- 	default 0 if !64BIT
- 	help
--	This option determines the size of UML kernel stacks.  They will
--	be 1 << order pages.  The default is OK unless you're running Valgrind
--	on UML, in which case, set this to 3.
-+	  This option determines the size of UML kernel stacks.  They will
-+	  be 1 << order pages.  The default is OK unless you're running Valgrind
-+	  on UML, in which case, set this to 3.
- 
- config UML_REAL_TIME_CLOCK
- 	bool "Real-time Clock"
- 	default y
- 	help
--	This option makes UML time deltas match wall clock deltas.  This should
--	normally be enabled.  The exception would be if you are debugging with
--	UML and spend long times with UML stopped at a breakpoint.  In this
--	case, when UML is restarted, it will call the timer enough times to make
--	up for the time spent at the breakpoint.  This could result in a
--	noticeable lag.  If this is a problem, then disable this option.
-+	  This option makes UML time deltas match wall clock deltas.  This
-+	  should normally be enabled.  The exception would be if you are
-+	  debugging with UML and spend long times with UML stopped at a
-+	  breakpoint.  In this case, when UML is restarted, it will call the
-+	  timer enough times to make up for the time spent at the breakpoint.
-+	  This could result in a noticeable lag.  If this is a problem, then
-+	  disable this option.
- 
- endmenu
- 
-diff -puN arch/um/Kconfig.char~uml-style-fixes-pass-1 arch/um/Kconfig.char
---- a/arch/um/Kconfig.char~uml-style-fixes-pass-1
-+++ a/arch/um/Kconfig.char
-@@ -5,7 +5,7 @@ config STDERR_CONSOLE
- 	bool "stderr console"
- 	default y
- 	help
--	console driver which dumps all printk messages to stderr.
-+	  console driver which dumps all printk messages to stderr.
- 
- config STDIO_CONSOLE
- 	bool
-@@ -14,58 +14,58 @@ config STDIO_CONSOLE
- config SSL
- 	bool "Virtual serial line"
- 	help
--        The User-Mode Linux environment allows you to create virtual serial
--        lines on the UML that are usually made to show up on the host as
--        ttys or ptys.
-+          The User-Mode Linux environment allows you to create virtual serial
-+          lines on the UML that are usually made to show up on the host as
-+          ttys or ptys.
- 
--        See <http://user-mode-linux.sourceforge.net/input.html> for more
--        information and command line examples of how to use this facility.
-+          See <http://user-mode-linux.sourceforge.net/input.html> for more
-+          information and command line examples of how to use this facility.
- 
--        Unless you have a specific reason for disabling this, say Y.
-+          Unless you have a specific reason for disabling this, say Y.
- 
- config NULL_CHAN
- 	bool "null channel support"
- 	help
--        This option enables support for attaching UML consoles and serial
--        lines to a device similar to /dev/null.  Data written to it disappears
--        and there is never any data to be read.
-+          This option enables support for attaching UML consoles and serial
-+          lines to a device similar to /dev/null.  Data written to it disappears
-+          and there is never any data to be read.
- 
- config PORT_CHAN
- 	bool "port channel support"
- 	help
--        This option enables support for attaching UML consoles and serial
--        lines to host portals.  They may be accessed with 'telnet <host>
--        <port number>'.  Any number of consoles and serial lines may be
--        attached to a single portal, although what UML device you get when
--        you telnet to that portal will be unpredictable.
--        It is safe to say 'Y' here.
-+          This option enables support for attaching UML consoles and serial
-+          lines to host portals.  They may be accessed with 'telnet <host>
-+          <port number>'.  Any number of consoles and serial lines may be
-+          attached to a single portal, although what UML device you get when
-+          you telnet to that portal will be unpredictable.
-+          It is safe to say 'Y' here.
- 
- config PTY_CHAN
- 	bool "pty channel support"
- 	help
--        This option enables support for attaching UML consoles and serial
--        lines to host pseudo-terminals.  Access to both traditional
--        pseudo-terminals (/dev/pty*) and pts pseudo-terminals are controlled
--        with this option.  The assignment of UML devices to host devices
--        will be announced in the kernel message log.
--        It is safe to say 'Y' here.
-+          This option enables support for attaching UML consoles and serial
-+          lines to host pseudo-terminals.  Access to both traditional
-+          pseudo-terminals (/dev/pty*) and pts pseudo-terminals are controlled
-+          with this option.  The assignment of UML devices to host devices
-+          will be announced in the kernel message log.
-+          It is safe to say 'Y' here.
- 
- config TTY_CHAN
- 	bool "tty channel support"
- 	help
--        This option enables support for attaching UML consoles and serial
--        lines to host terminals.  Access to both virtual consoles
--        (/dev/tty*) and the slave side of pseudo-terminals (/dev/ttyp* and
--        /dev/pts/*) are controlled by this option.
--        It is safe to say 'Y' here.
-+          This option enables support for attaching UML consoles and serial
-+          lines to host terminals.  Access to both virtual consoles
-+          (/dev/tty*) and the slave side of pseudo-terminals (/dev/ttyp* and
-+          /dev/pts/*) are controlled by this option.
-+          It is safe to say 'Y' here.
- 
- config XTERM_CHAN
- 	bool "xterm channel support"
- 	help
--        This option enables support for attaching UML consoles and serial
--        lines to xterms.  Each UML device so assigned will be brought up in
--        its own xterm.
--        It is safe to say 'Y' here.
-+          This option enables support for attaching UML consoles and serial
-+          lines to xterms.  Each UML device so assigned will be brought up in
-+          its own xterm.
-+          It is safe to say 'Y' here.
- 
- config NOCONFIG_CHAN
- 	bool
-@@ -75,39 +75,39 @@ config CON_ZERO_CHAN
- 	string "Default main console channel initialization"
- 	default "fd:0,fd:1"
- 	help
--        This is the string describing the channel to which the main console
--        will be attached by default.  This value can be overridden from the
--        command line.  The default value is "fd:0,fd:1", which attaches the
--        main console to stdin and stdout.
--        It is safe to leave this unchanged.
-+          This is the string describing the channel to which the main console
-+          will be attached by default.  This value can be overridden from the
-+          command line.  The default value is "fd:0,fd:1", which attaches the
-+          main console to stdin and stdout.
-+          It is safe to leave this unchanged.
- 
- config CON_CHAN
- 	string "Default console channel initialization"
- 	default "xterm"
- 	help
--        This is the string describing the channel to which all consoles
--        except the main console will be attached by default.  This value can
--        be overridden from the command line.  The default value is "xterm",
--        which brings them up in xterms.
--        It is safe to leave this unchanged, although you may wish to change
--        this if you expect the UML that you build to be run in environments
--        which don't have X or xterm available.
-+          This is the string describing the channel to which all consoles
-+          except the main console will be attached by default.  This value can
-+          be overridden from the command line.  The default value is "xterm",
-+          which brings them up in xterms.
-+          It is safe to leave this unchanged, although you may wish to change
-+          this if you expect the UML that you build to be run in environments
-+          which don't have X or xterm available.
- 
- config SSL_CHAN
- 	string "Default serial line channel initialization"
- 	default "pty"
- 	help
--        This is the string describing the channel to which the serial lines
--        will be attached by default.  This value can be overridden from the
--        command line.  The default value is "pty", which attaches them to
--        traditional pseudo-terminals.
--        It is safe to leave this unchanged, although you may wish to change
--        this if you expect the UML that you build to be run in environments
--        which don't have a set of /dev/pty* devices.
-+          This is the string describing the channel to which the serial lines
-+          will be attached by default.  This value can be overridden from the
-+          command line.  The default value is "pty", which attaches them to
-+          traditional pseudo-terminals.
-+          It is safe to leave this unchanged, although you may wish to change
-+          this if you expect the UML that you build to be run in environments
-+          which don't have a set of /dev/pty* devices.
- 
- config UNIX98_PTYS
- 	bool "Unix98 PTY support"
--	---help---
-+	help
- 	  A pseudo terminal (PTY) is a software device consisting of two
- 	  halves: a master and a slave. The slave device behaves identical to
- 	  a physical terminal; the master device is used by a process to
-@@ -130,7 +130,7 @@ config UNIX98_PTYS
- config LEGACY_PTYS
- 	bool "Legacy (BSD) PTY support"
- 	default y
--	---help---
-+	help
- 	  A pseudo terminal (PTY) is a software device consisting of two
- 	  halves: a master and a slave. The slave device behaves identical to
- 	  a physical terminal; the master device is used by a process to
-@@ -168,7 +168,7 @@ config LEGACY_PTY_COUNT
- 	int "Maximum number of legacy PTY in use"
- 	depends on LEGACY_PTYS
- 	default "256"
--	---help---
-+	help
- 	  The maximum number of legacy PTYs that can be used at any one time.
- 	  The default is 256, and should be more than enough.  Embedded
- 	  systems may want to reduce this to save memory.
-@@ -194,10 +194,10 @@ config UML_WATCHDOG
- config UML_SOUND
- 	tristate "Sound support"
- 	help
--        This option enables UML sound support.  If enabled, it will pull in
--        soundcore and the UML hostaudio relay, which acts as a intermediary
--        between the host's dsp and mixer devices and the UML sound system.
--        It is safe to say 'Y' here.
-+          This option enables UML sound support.  If enabled, it will pull in
-+          soundcore and the UML hostaudio relay, which acts as a intermediary
-+          between the host's dsp and mixer devices and the UML sound system.
-+          It is safe to say 'Y' here.
- 
- config SOUND
- 	tristate
-@@ -215,22 +215,21 @@ config HW_RANDOM
- config UML_RANDOM
- 	tristate "Hardware random number generator"
- 	help
--	This option enables UML's "hardware" random number generator.  It
--	attaches itself to the host's /dev/random, supplying as much entropy
--	as the host has, rather than the small amount the UML gets from its
--	own drivers.  It registers itself as a standard hardware random number
--	generator, major 10, minor 183, and the canonical device name is
--	/dev/hwrng.
--	The way to make use of this is to install the rng-tools package
--	(check your distro, or download from
--	http://sourceforge.net/projects/gkernel/).  rngd periodically reads
--	/dev/hwrng and injects the entropy into /dev/random.
-+	  This option enables UML's "hardware" random number generator.  It
-+	  attaches itself to the host's /dev/random, supplying as much entropy
-+	  as the host has, rather than the small amount the UML gets from its
-+	  own drivers.  It registers itself as a standard hardware random number
-+	  generator, major 10, minor 183, and the canonical device name is
-+	  /dev/hwrng.
-+	  The way to make use of this is to install the rng-tools package
-+	  (check your distro, or download from
-+	  http://sourceforge.net/projects/gkernel/).  rngd periodically reads
-+	  /dev/hwrng and injects the entropy into /dev/random.
- 
- config MMAPPER
- 	tristate "iomem emulation driver"
- 	help
--	This driver allows a host file to be used as emulated IO memory inside
--	UML.
-+	  This driver allows a host file to be used as emulated IO memory inside
-+	  UML.
- 
- endmenu
--
-diff -puN arch/um/Kconfig.debug~uml-style-fixes-pass-1 arch/um/Kconfig.debug
---- a/arch/um/Kconfig.debug~uml-style-fixes-pass-1
-+++ a/arch/um/Kconfig.debug
-@@ -6,27 +6,27 @@ config GPROF
- 	bool "Enable gprof support"
- 	depends on DEBUG_INFO
- 	help
--        This allows profiling of a User-Mode Linux kernel with the gprof
--        utility.
-+	  This allows profiling of a User-Mode Linux kernel with the gprof
-+	  utility.
- 
--        See <http://user-mode-linux.sourceforge.net/gprof.html> for more
--        details.
-+	  See <http://user-mode-linux.sourceforge.net/gprof.html> for more
-+	  details.
- 
--        If you're involved in UML kernel development and want to use gprof,
--        say Y.  If you're unsure, say N.
-+	  If you're involved in UML kernel development and want to use gprof,
-+	  say Y.  If you're unsure, say N.
- 
- config GCOV
- 	bool "Enable gcov support"
- 	depends on DEBUG_INFO
- 	help
--        This option allows developers to retrieve coverage data from a UML
--        session.
-+	  This option allows developers to retrieve coverage data from a UML
-+	  session.
- 
--        See <http://user-mode-linux.sourceforge.net/gprof.html> for more
--        details.
-+	  See <http://user-mode-linux.sourceforge.net/gprof.html> for more
-+	  details.
- 
--        If you're involved in UML kernel development and want to use gcov,
--        say Y.  If you're unsure, say N.
-+	  If you're involved in UML kernel development and want to use gcov,
-+	  say Y.  If you're unsure, say N.
- 
- config DEBUG_STACK_USAGE
- 	bool "Stack utilization instrumentation"
-diff -puN arch/um/Makefile~uml-style-fixes-pass-1 arch/um/Makefile
---- a/arch/um/Makefile~uml-style-fixes-pass-1
-+++ a/arch/um/Makefile
-@@ -2,7 +2,7 @@
- # This file is included by the global makefile so that you can add your own
- # architecture-specific flags and dependencies.
- #
--# Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
-+# Copyright (C) 2002 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
- # Licensed under the GPL
- #
- 
-@@ -124,7 +124,7 @@ endif
- CPPFLAGS_vmlinux.lds = -U$(SUBARCH) -DSTART=$(START) -DELF_ARCH=$(ELF_ARCH) \
- 	-DELF_FORMAT="$(ELF_FORMAT)" -DKERNEL_STACK_SIZE=$(STACK_SIZE)
- 
--#The wrappers will select whether using "malloc" or the kernel allocator.
-+# The wrappers will select whether using "malloc" or the kernel allocator.
- LINK_WRAPS = -Wl,--wrap,malloc -Wl,--wrap,free -Wl,--wrap,calloc
- 
- CFLAGS_vmlinux := $(LINK-y) $(LINK_WRAPS)
-@@ -137,8 +137,8 @@ define cmd_vmlinux__
- 	FORCE ,$^) ; rm -f linux
- endef
- 
--#When cleaning we don't include .config, so we don't include
--#TT or skas makefiles and don't clean skas_ptregs.h.
-+# When cleaning we don't include .config, so we don't include
-+# TT or skas makefiles and don't clean skas_ptregs.h.
- CLEAN_FILES += linux x.i gmon.out $(ARCH_DIR)/include/uml-config.h \
- 	$(ARCH_DIR)/include/user_constants.h \
- 	$(ARCH_DIR)/include/kern_constants.h $(ARCH_DIR)/Kconfig.arch
-diff -puN arch/um/include/sysdep-i386/sigcontext.h~uml-style-fixes-pass-1 arch/um/include/sysdep-i386/sigcontext.h
---- a/arch/um/include/sysdep-i386/sigcontext.h~uml-style-fixes-pass-1
-+++ a/arch/um/include/sysdep-i386/sigcontext.h
-@@ -1,5 +1,5 @@
- /* 
-- * Copyright (C) 2000, 2001, 2002 Jeff Dike (jdike@karaya.com)
-+ * Copyright (C) 2000 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
+diff -puN drivers/video/tridentfb.c~tridentfb-coding-style-improvement drivers/video/tridentfb.c
+--- a/drivers/video/tridentfb.c~tridentfb-coding-style-improvement
++++ a/drivers/video/tridentfb.c
+@@ -1,18 +1,19 @@
+ /*
+  * Frame buffer driver for Trident Blade and Image series
+  *
+- * Copyright 2001,2002 - Jani Monoses   <jani@iv.ro>
++ * Copyright 2001, 2002 - Jani Monoses   <jani@iv.ro>
+  *
+  *
+  * CREDITS:(in order of appearance)
+- * 	skeletonfb.c by Geert Uytterhoeven and other fb code in drivers/video
+- * 	Special thanks ;) to Mattia Crivellini <tia@mclink.it>
+- * 	much inspired by the XFree86 4.x Trident driver sources by Alan Hourihane
+- * 	the FreeVGA project
+- *	Francesco Salvestrini <salvestrini@users.sf.net> XP support,code,suggestions
++ *	skeletonfb.c by Geert Uytterhoeven and other fb code in drivers/video
++ *	Special thanks ;) to Mattia Crivellini <tia@mclink.it>
++ *	much inspired by the XFree86 4.x Trident driver sources
++ *	by Alan Hourihane the FreeVGA project
++ *	Francesco Salvestrini <salvestrini@users.sf.net> XP support,
++ *	code, suggestions
+  * TODO:
+- * 	timing value tweaking so it looks good on every monitor in every mode
+- *	TGUI acceleration	
++ *	timing value tweaking so it looks good on every monitor in every mode
++ *	TGUI acceleration
   */
  
-@@ -37,13 +37,3 @@ extern unsigned long *sc_sigmask(void *s
- extern int sc_get_fpregs(unsigned long buf, void *sc_ptr);
+ #include <linux/module.h>
+@@ -26,11 +27,11 @@
+ #define VERSION		"0.7.8-NEWAPI"
  
+ struct tridentfb_par {
+-	int vclk;		//in MHz
+-	void __iomem * io_virt;	//iospace virtual memory address
++	int vclk;		/* in MHz */
++	void __iomem *io_virt;	/* iospace virtual memory address */
+ };
+ 
+-static unsigned char eng_oper;		//engine operation...
++static unsigned char eng_oper;	/* engine operation... */
+ static struct fb_ops tridentfb_ops;
+ 
+ static struct tridentfb_par default_par;
+@@ -39,11 +40,10 @@ static struct tridentfb_par default_par;
+ static struct fb_info fb_info;
+ static u32 pseudo_pal[16];
+ 
+-
+ static struct fb_var_screeninfo default_var;
+ 
+ static struct fb_fix_screeninfo tridentfb_fix = {
+-	.id = "Trident",	
++	.id = "Trident",
+ 	.type = FB_TYPE_PACKED_PIXELS,
+ 	.ypanstep = 1,
+ 	.visual = FB_VISUAL_PSEUDOCOLOR,
+@@ -55,11 +55,10 @@ static int chip_id;
+ static int defaultaccel;
+ static int displaytype;
+ 
+-
+ /* defaults which are normally overriden by user values */
+ 
+ /* video mode */
+-static char * mode = "640x480";
++static char *mode = "640x480";
+ static int bpp = 8;
+ 
+ static int noaccel;
+@@ -74,7 +73,6 @@ static int memsize;
+ static int memdiff;
+ static int nativex;
+ 
+-
+ module_param(mode, charp, 0);
+ module_param(bpp, int, 0);
+ module_param(center, int, 0);
+@@ -86,88 +84,85 @@ module_param(nativex, int, 0);
+ module_param(fp, int, 0);
+ module_param(crt, int, 0);
+ 
+-
+ static int chip3D;
+ static int chipcyber;
+ 
+ static int is3Dchip(int id)
+ {
+-	return 	((id == BLADE3D) || (id == CYBERBLADEE4) ||
+-		 (id == CYBERBLADEi7) || (id == CYBERBLADEi7D) ||
+-		 (id == CYBER9397) || (id == CYBER9397DVD) ||
+-		 (id == CYBER9520) || (id == CYBER9525DVD) ||
+-		 (id == IMAGE975) || (id == IMAGE985) ||
+-		 (id == CYBERBLADEi1) || (id == CYBERBLADEi1D) ||
+-		 (id ==	CYBERBLADEAi1) || (id == CYBERBLADEAi1D) ||
+-		 (id ==	CYBERBLADEXPm8) || (id == CYBERBLADEXPm16) ||
+-		 (id ==	CYBERBLADEXPAi1));
++	return ((id == BLADE3D) || (id == CYBERBLADEE4) ||
++		(id == CYBERBLADEi7) || (id == CYBERBLADEi7D) ||
++		(id == CYBER9397) || (id == CYBER9397DVD) ||
++		(id == CYBER9520) || (id == CYBER9525DVD) ||
++		(id == IMAGE975) || (id == IMAGE985) ||
++		(id == CYBERBLADEi1) || (id == CYBERBLADEi1D) ||
++		(id == CYBERBLADEAi1) || (id == CYBERBLADEAi1D) ||
++		(id == CYBERBLADEXPm8) || (id == CYBERBLADEXPm16) ||
++		(id == CYBERBLADEXPAi1));
+ }
+ 
+ static int iscyber(int id)
+ {
+ 	switch (id) {
+-		case CYBER9388:		
+-		case CYBER9382:
+-		case CYBER9385:
+-		case CYBER9397:
+-		case CYBER9397DVD:
+-		case CYBER9520:
+-		case CYBER9525DVD:
+-		case CYBERBLADEE4:
+-		case CYBERBLADEi7D:
+-		case CYBERBLADEi1:
+-		case CYBERBLADEi1D: 
+-		case CYBERBLADEAi1: 
+-		case CYBERBLADEAi1D:
+-		case CYBERBLADEXPAi1:
+-			return 1;
+-		
+-		case CYBER9320:
+-		case TGUI9660:     
+-		case IMAGE975:
+-		case IMAGE985:
+-		case BLADE3D:
+-		case CYBERBLADEi7: /* VIA MPV4 integrated version */
++	case CYBER9388:
++	case CYBER9382:
++	case CYBER9385:
++	case CYBER9397:
++	case CYBER9397DVD:
++	case CYBER9520:
++	case CYBER9525DVD:
++	case CYBERBLADEE4:
++	case CYBERBLADEi7D:
++	case CYBERBLADEi1:
++	case CYBERBLADEi1D:
++	case CYBERBLADEAi1:
++	case CYBERBLADEAi1D:
++	case CYBERBLADEXPAi1:
++		return 1;
+ 
+-		default:
+-			/* case CYBERBLDAEXPm8:	 Strange */
+-			/* case CYBERBLDAEXPm16: Strange */
+-			return 0;
++	case CYBER9320:
++	case TGUI9660:
++	case IMAGE975:
++	case IMAGE985:
++	case BLADE3D:
++	case CYBERBLADEi7:	/* VIA MPV4 integrated version */
++
++	default:
++		/* case CYBERBLDAEXPm8:  Strange */
++		/* case CYBERBLDAEXPm16: Strange */
++		return 0;
+ 	}
+ }
+ 
+-#define CRT 0x3D0		//CRTC registers offset for color display
++#define CRT 0x3D0		/* CRTC registers offset for color display */
+ 
+ #ifndef TRIDENT_MMIO
+ 	#define TRIDENT_MMIO 1
  #endif
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/kernel/Makefile~uml-style-fixes-pass-1 arch/um/kernel/Makefile
---- a/arch/um/kernel/Makefile~uml-style-fixes-pass-1
-+++ a/arch/um/kernel/Makefile
-@@ -1,5 +1,5 @@
- #
--# Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
-+# Copyright (C) 2002 - 2007 Jeff Dike (jdike@{addtoit,linux,intel}.com)
- # Licensed under the GPL
- #
  
-diff -puN arch/um/kernel/init_task.c~uml-style-fixes-pass-1 arch/um/kernel/init_task.c
---- a/arch/um/kernel/init_task.c~uml-style-fixes-pass-1
-+++ a/arch/um/kernel/init_task.c
-@@ -3,16 +3,12 @@
-  * Licensed under the GPL
-  */
+ #if TRIDENT_MMIO
+-	#define t_outb(val,reg)	writeb(val,((struct tridentfb_par *)(fb_info.par))->io_virt + reg)
++	#define t_outb(val, reg)	writeb(val,((struct tridentfb_par *)(fb_info.par))->io_virt + reg)
+ 	#define t_inb(reg)	readb(((struct tridentfb_par*)(fb_info.par))->io_virt + reg)
+ #else
+-	#define t_outb(val,reg) outb(val,reg)
++	#define t_outb(val, reg) outb(val, reg)
+ 	#define t_inb(reg) inb(reg)
+ #endif
  
--#include "linux/mm.h"
--#include "linux/fs.h"
--#include "linux/module.h"
- #include "linux/sched.h"
- #include "linux/init_task.h"
-+#include "linux/fs.h"
-+#include "linux/module.h"
- #include "linux/mqueue.h"
- #include "asm/uaccess.h"
--#include "asm/pgtable.h"
--#include "mem_user.h"
--#include "os.h"
  
- static struct fs_struct init_fs = INIT_FS;
- struct mm_struct init_mm = INIT_MM(init_mm);
-diff -puN arch/um/kernel/smp.c~uml-style-fixes-pass-1 arch/um/kernel/smp.c
---- a/arch/um/kernel/smp.c~uml-style-fixes-pass-1
-+++ a/arch/um/kernel/smp.c
-@@ -1,5 +1,5 @@
+ static struct accel_switch {
+-	void (*init_accel)(int,int);
+-	void (*wait_engine)(void);
+-	void (*fill_rect)(__u32,__u32,__u32,__u32,__u32,__u32);
+-	void (*copy_rect)(__u32,__u32,__u32,__u32,__u32,__u32);
++	void (*init_accel) (int, int);
++	void (*wait_engine) (void);
++	void (*fill_rect) (u32, u32, u32, u32, u32, u32);
++	void (*copy_rect) (u32, u32, u32, u32, u32, u32);
+ } *acc;
+ 
+-#define writemmr(r,v)	writel(v, ((struct tridentfb_par *)fb_info.par)->io_virt + r)
++#define writemmr(r, v)	writel(v, ((struct tridentfb_par *)fb_info.par)->io_virt + r)
+ #define readmmr(r)	readl(((struct tridentfb_par *)fb_info.par)->io_virt + r)
+ 
+-
+-
  /*
-- * Copyright (C) 2000 - 2003 Jeff Dike (jdike@addtoit.com)
-+ * Copyright (C) 2000 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
+  * Blade specific acceleration.
   */
  
-@@ -56,12 +56,12 @@ void smp_send_stop(void)
- 	int i;
+-#define point(x,y) ((y)<<16|(x))
++#define point(x, y) ((y) << 16 | (x))
+ #define STA	0x2120
+ #define CMD	0x2144
+ #define ROP	0x2148
+@@ -179,64 +174,71 @@ static struct accel_switch {
  
- 	printk(KERN_INFO "Stopping all CPUs...");
--	for(i = 0; i < num_online_cpus(); i++){
--		if(i == current_thread->cpu)
-+	for (i = 0; i < num_online_cpus(); i++) {
-+		if (i == current_thread->cpu)
- 			continue;
- 		os_write_file(cpu_data[i].ipi_pipe[1], "S", 1);
- 	}
--	printk("done\n");
-+	printk(KERN_INFO "done\n");
+ #define ROP_S	0xCC
+ 
+-static void blade_init_accel(int pitch,int bpp)
++static void blade_init_accel(int pitch, int bpp)
+ {
+-	int v1 = (pitch>>3)<<20;
+-	int tmp = 0,v2;
++	int v1 = (pitch >> 3) << 20;
++	int tmp = 0, v2;
+ 	switch (bpp) {
+-		case 8:tmp = 0;break;
+-		case 15:tmp = 5;break;
+-		case 16:tmp = 1;break;
+-		case 24:
+-		case 32:tmp = 2;break;
+-	}
+-	v2 = v1 | (tmp<<29);
+-	writemmr(0x21C0,v2);
+-	writemmr(0x21C4,v2);
+-	writemmr(0x21B8,v2);
+-	writemmr(0x21BC,v2);
+-	writemmr(0x21D0,v1);
+-	writemmr(0x21D4,v1);
+-	writemmr(0x21C8,v1);
+-	writemmr(0x21CC,v1);
+-	writemmr(0x216C,0);
++	case 8:
++		tmp = 0;
++		break;
++	case 15:
++		tmp = 5;
++		break;
++	case 16:
++		tmp = 1;
++		break;
++	case 24:
++	case 32:
++		tmp = 2;
++		break;
++	}
++	v2 = v1 | (tmp << 29);
++	writemmr(0x21C0, v2);
++	writemmr(0x21C4, v2);
++	writemmr(0x21B8, v2);
++	writemmr(0x21BC, v2);
++	writemmr(0x21D0, v1);
++	writemmr(0x21D4, v1);
++	writemmr(0x21C8, v1);
++	writemmr(0x21CC, v1);
++	writemmr(0x216C, 0);
  }
  
- static cpumask_t smp_commenced_mask = CPU_MASK_NONE;
-@@ -72,7 +72,7 @@ static int idle_proc(void *cpup)
- 	int cpu = (int) cpup, err;
+ static void blade_wait_engine(void)
+ {
+-	while(readmmr(STA) & 0xFA800000);
++	while (readmmr(STA) & 0xFA800000) ;
+ }
  
- 	err = os_pipe(cpu_data[cpu].ipi_pipe, 1, 1);
--	if(err < 0)
-+	if (err < 0)
- 		panic("CPU#%d failed to create IPI pipe, err = %d", cpu, -err);
+-static void blade_fill_rect(__u32 x,__u32 y,__u32 w,__u32 h,__u32 c,__u32 rop)
++static void blade_fill_rect(u32 x, u32 y, u32 w, u32 h, u32 c, u32 rop)
+ {
+-	writemmr(CLR,c);
+-	writemmr(ROP,rop ? 0x66:ROP_S);
+-	writemmr(CMD,0x20000000|1<<19|1<<4|2<<2);
++	writemmr(CLR, c);
++	writemmr(ROP, rop ? 0x66 : ROP_S);
++	writemmr(CMD, 0x20000000 | 1 << 19 | 1 << 4 | 2 << 2);
  
- 	os_set_fd_async(cpu_data[cpu].ipi_pipe[0],
-@@ -80,7 +80,7 @@ static int idle_proc(void *cpup)
+-	writemmr(DR1,point(x,y));
+-	writemmr(DR2,point(x+w-1,y+h-1));
++	writemmr(DR1, point(x, y));
++	writemmr(DR2, point(x + w - 1, y + h - 1));
+ }
  
- 	wmb();
- 	if (cpu_test_and_set(cpu, cpu_callin_map)) {
--		printk("huh, CPU#%d already present??\n", cpu);
-+		printk(KERN_ERR "huh, CPU#%d already present??\n", cpu);
- 		BUG();
+-static void blade_copy_rect(__u32 x1,__u32 y1,__u32 x2,__u32 y2,__u32 w,__u32 h)
++static void blade_copy_rect(u32 x1, u32 y1, u32 x2, u32 y2, u32 w, u32 h)
+ {
+-	__u32 s1,s2,d1,d2;
++	u32 s1, s2, d1, d2;
+ 	int direction = 2;
+-	s1 = point(x1,y1);
+-	s2 = point(x1+w-1,y1+h-1);
+-	d1 = point(x2,y2);
+-	d2 = point(x2+w-1,y2+h-1);
++	s1 = point(x1, y1);
++	s2 = point(x1 + w - 1, y1 + h - 1);
++	d1 = point(x2, y2);
++	d2 = point(x2 + w - 1, y2 + h - 1);
+ 
+ 	if ((y1 > y2) || ((y1 == y2) && (x1 > x2)))
+-			direction = 0;
+-
++		direction = 0;
+ 
+-	writemmr(ROP,ROP_S);
+-	writemmr(CMD,0xE0000000|1<<19|1<<4|1<<2|direction);
++	writemmr(ROP, ROP_S);
++	writemmr(CMD, 0xE0000000 | 1 << 19 | 1 << 4 | 1 << 2 | direction);
+ 
+-	writemmr(SR1,direction?s2:s1);
+-	writemmr(SR2,direction?s1:s2);
+-	writemmr(DR1,direction?d2:d1);
+-	writemmr(DR2,direction?d1:d2);
++	writemmr(SR1, direction ? s2 : s1);
++	writemmr(SR2, direction ? s1 : s2);
++	writemmr(DR1, direction ? d2 : d1);
++	writemmr(DR2, direction ? d1 : d2);
+ }
+ 
+ static struct accel_switch accel_blade = {
+@@ -246,51 +248,72 @@ static struct accel_switch accel_blade =
+ 	blade_copy_rect,
+ };
+ 
+-
+ /*
+  * BladeXP specific acceleration functions
+  */
+ 
+ #define ROP_P 0xF0
+-#define masked_point(x,y) ((y & 0xffff)<<16|(x & 0xffff))
++#define masked_point(x, y) ((y & 0xffff)<<16|(x & 0xffff))
+ 
+-static void xp_init_accel(int pitch,int bpp)
++static void xp_init_accel(int pitch, int bpp)
+ {
+-	int tmp = 0,v1;
++	int tmp = 0, v1;
+ 	unsigned char x = 0;
+ 
+ 	switch (bpp) {
+-		case 8:  x = 0; break;
+-		case 16: x = 1; break;
+-		case 24: x = 3; break;
+-		case 32: x = 2; break;
++	case 8:
++		x = 0;
++		break;
++	case 16:
++		x = 1;
++		break;
++	case 24:
++		x = 3;
++		break;
++	case 32:
++		x = 2;
++		break;
  	}
  
-@@ -99,7 +99,7 @@ static struct task_struct *idle_thread(i
- 	current->thread.request.u.thread.proc = idle_proc;
- 	current->thread.request.u.thread.arg = (void *) cpu;
- 	new_task = fork_idle(cpu);
--	if(IS_ERR(new_task))
-+	if (IS_ERR(new_task))
- 		panic("copy_process failed in idle_thread, error = %ld",
- 		      PTR_ERR(new_task));
+ 	switch (pitch << (bpp >> 3)) {
+-		case 8192:
+-		case 512:  x |= 0x00; break;
+-		case 1024: x |= 0x04; break;
+-		case 2048: x |= 0x08; break;
+-		case 4096: x |= 0x0C; break;
++	case 8192:
++	case 512:
++		x |= 0x00;
++		break;
++	case 1024:
++		x |= 0x04;
++		break;
++	case 2048:
++		x |= 0x08;
++		break;
++	case 4096:
++		x |= 0x0C;
++		break;
+ 	}
  
-@@ -126,14 +126,14 @@ void smp_prepare_cpus(unsigned int maxcp
- 	cpu_set(me, cpu_callin_map);
+-	t_outb(x,0x2125);
++	t_outb(x, 0x2125);
  
- 	err = os_pipe(cpu_data[me].ipi_pipe, 1, 1);
--	if(err < 0)
-+	if (err < 0)
- 		panic("CPU#0 failed to create IPI pipe, errno = %d", -err);
+ 	eng_oper = x | 0x40;
  
- 	os_set_fd_async(cpu_data[me].ipi_pipe[0],
- 		     current->thread.mode.tt.extern_pid);
+ 	switch (bpp) {
+-		case 8:  tmp = 18; break;
+-		case 15:
+-		case 16: tmp = 19; break;
+-		case 24:
+-		case 32: tmp = 20; break;
++	case 8:
++		tmp = 18;
++		break;
++	case 15:
++	case 16:
++		tmp = 19;
++		break;
++	case 24:
++	case 32:
++		tmp = 20;
++		break;
+ 	}
  
--	for(cpu = 1; cpu < ncpus; cpu++){
--		printk("Booting processor %d...\n", cpu);
-+	for (cpu = 1; cpu < ncpus; cpu++) {
-+		printk(KERN_INFO "Booting processor %d...\n", cpu);
+ 	v1 = pitch << tmp;
  
- 		idle = idle_thread(cpu);
+-	writemmr(0x2154,v1);
+-	writemmr(0x2150,v1);
+-	t_outb(3,0x2126);
++	writemmr(0x2154, v1);
++	writemmr(0x2150, v1);
++	t_outb(3, 0x2126);
+ }
  
-@@ -144,8 +144,8 @@ void smp_prepare_cpus(unsigned int maxcp
- 			cpu_relax();
- 
- 		if (cpu_isset(cpu, cpu_callin_map))
--			printk("done\n");
--		else printk("failed\n");
-+			printk(KERN_INFO "done\n");
-+		else printk(KERN_INFO "failed\n");
+ static void xp_wait_engine(void)
+@@ -318,24 +341,24 @@ static void xp_wait_engine(void)
  	}
  }
  
-@@ -187,13 +187,14 @@ void IPI_handler(int cpu)
- 			break;
+-static void xp_fill_rect(__u32 x,__u32 y,__u32 w,__u32 h,__u32 c,__u32 rop)
++static void xp_fill_rect(u32 x, u32 y, u32 w, u32 h, u32 c, u32 rop)
+ {
+-	writemmr(0x2127,ROP_P);
+-	writemmr(0x2158,c);
+-	writemmr(0x2128,0x4000);
+-	writemmr(0x2140,masked_point(h,w));
+-	writemmr(0x2138,masked_point(y,x));
+-	t_outb(0x01,0x2124);
+-        t_outb(eng_oper,0x2125);
++	writemmr(0x2127, ROP_P);
++	writemmr(0x2158, c);
++	writemmr(0x2128, 0x4000);
++	writemmr(0x2140, masked_point(h, w));
++	writemmr(0x2138, masked_point(y, x));
++	t_outb(0x01, 0x2124);
++	t_outb(eng_oper, 0x2125);
+ }
  
- 		case 'S':
--			printk("CPU#%d stopping\n", cpu);
--			while(1)
-+			printk(KERN_INFO "CPU#%d stopping\n", cpu);
-+			while (1)
- 				pause();
- 			break;
+-static void xp_copy_rect(__u32 x1,__u32 y1,__u32 x2,__u32 y2,__u32 w,__u32 h)
++static void xp_copy_rect(u32 x1, u32 y1, u32 x2, u32 y2, u32 w, u32 h)
+ {
+ 	int direction;
+-	__u32 x1_tmp, x2_tmp, y1_tmp, y2_tmp;
++	u32 x1_tmp, x2_tmp, y1_tmp, y2_tmp;
  
- 		default:
--			printk("CPU#%d received unknown IPI [%c]!\n", cpu, c);
-+			printk(KERN_ERR "CPU#%d received unknown IPI [%c]!\n",
-+			       cpu, c);
- 			break;
- 		}
+ 	direction = 0x0004;
+-	
++
+ 	if ((x1 < x2) && (y1 == y2)) {
+ 		direction |= 0x0200;
+ 		x1_tmp = x1 + w - 1;
+@@ -344,53 +367,60 @@ static void xp_copy_rect(__u32 x1,__u32 
+ 		x1_tmp = x1;
+ 		x2_tmp = x2;
  	}
-diff -puN arch/um/kernel/trap.c~uml-style-fixes-pass-1 arch/um/kernel/trap.c
---- a/arch/um/kernel/trap.c~uml-style-fixes-pass-1
-+++ a/arch/um/kernel/trap.c
-@@ -1,38 +1,24 @@
+-  
++
+ 	if (y1 < y2) {
+ 		direction |= 0x0100;
+ 		y1_tmp = y1 + h - 1;
+ 		y2_tmp = y2 + h - 1;
+-  	} else {
++	} else {
+ 		y1_tmp = y1;
+ 		y2_tmp = y2;
+ 	}
+ 
+-	writemmr(0x2128,direction);	
+-	t_outb(ROP_S,0x2127);
+-	writemmr(0x213C,masked_point(y1_tmp,x1_tmp));
+-	writemmr(0x2138,masked_point(y2_tmp,x2_tmp));
+-	writemmr(0x2140,masked_point(h,w));
+-	t_outb(0x01,0x2124);
++	writemmr(0x2128, direction);
++	t_outb(ROP_S, 0x2127);
++	writemmr(0x213C, masked_point(y1_tmp, x1_tmp));
++	writemmr(0x2138, masked_point(y2_tmp, x2_tmp));
++	writemmr(0x2140, masked_point(h, w));
++	t_outb(0x01, 0x2124);
+ }
+ 
+ static struct accel_switch accel_xp = {
+-  	xp_init_accel,
++	xp_init_accel,
+ 	xp_wait_engine,
+ 	xp_fill_rect,
+ 	xp_copy_rect,
+ };
+ 
+-
  /*
-- * Copyright (C) 2000, 2001 Jeff Dike (jdike@karaya.com)
-+ * Copyright (C) 2000 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
+  * Image specific acceleration functions
   */
- 
--#include "linux/kernel.h"
--#include "asm/errno.h"
--#include "linux/sched.h"
--#include "linux/mm.h"
--#include "linux/spinlock.h"
--#include "linux/init.h"
--#include "linux/ptrace.h"
--#include "asm/semaphore.h"
--#include "asm/pgtable.h"
--#include "asm/pgalloc.h"
--#include "asm/tlbflush.h"
--#include "asm/a.out.h"
--#include "asm/current.h"
--#include "asm/irq.h"
--#include "sysdep/sigcontext.h"
--#include "kern_util.h"
--#include "as-layout.h"
-+#include <linux/mm.h>
-+#include <linux/sched.h>
-+#include <linux/hardirq.h>
-+#include <asm/current.h>
-+#include <asm/pgtable.h>
-+#include <asm/tlbflush.h>
- #include "arch.h"
--#include "kern.h"
--#include "chan_kern.h"
--#include "mconsole_kern.h"
--#include "mem.h"
--#include "mem_kern.h"
--#include "sysdep/sigcontext.h"
--#include "sysdep/ptrace.h"
--#include "os.h"
--#include "skas.h"
-+#include "as-layout.h"
-+#include "kern_util.h"
- #include "os.h"
-+#include "sysdep/sigcontext.h"
- 
--/* Note this is constrained to return 0, -EFAULT, -EACCESS, -ENOMEM by segv(). */
-+/*
-+ * Note this is constrained to return 0, -EFAULT, -EACCESS, -ENOMEM by
-+ * segv().
-+ */
- int handle_page_fault(unsigned long address, unsigned long ip,
- 		      int is_write, int is_user, int *code_out)
+-static void image_init_accel(int pitch,int bpp)
++static void image_init_accel(int pitch, int bpp)
  {
-@@ -46,31 +32,33 @@ int handle_page_fault(unsigned long addr
+ 	int tmp = 0;
+-   	switch (bpp) {
+-		case 8:tmp = 0;break;
+-		case 15:tmp = 5;break;
+-		case 16:tmp = 1;break;
+-		case 24:
+-		case 32:tmp = 2;break;
++	switch (bpp) {
++	case 8:
++		tmp = 0;
++		break;
++	case 15:
++		tmp = 5;
++		break;
++	case 16:
++		tmp = 1;
++		break;
++	case 24:
++	case 32:
++		tmp = 2;
++		break;
+ 	}
+ 	writemmr(0x2120, 0xF0000000);
+-	writemmr(0x2120, 0x40000000|tmp);
++	writemmr(0x2120, 0x40000000 | tmp);
+ 	writemmr(0x2120, 0x80000000);
+ 	writemmr(0x2144, 0x00000000);
+ 	writemmr(0x2148, 0x00000000);
+ 	writemmr(0x2150, 0x00000000);
+ 	writemmr(0x2154, 0x00000000);
+-	writemmr(0x2120, 0x60000000|(pitch<<16) |pitch);
++	writemmr(0x2120, 0x60000000 | (pitch << 16) | pitch);
+ 	writemmr(0x216C, 0x00000000);
+ 	writemmr(0x2170, 0x00000000);
+ 	writemmr(0x217C, 0x00000000);
+@@ -400,44 +430,43 @@ static void image_init_accel(int pitch,i
  
- 	*code_out = SEGV_MAPERR;
- 
--	/* If the fault was during atomic operation, don't take the fault, just
--	 * fail. */
-+	/*
-+	 * If the fault was during atomic operation, don't take the fault, just
-+	 * fail.
-+	 */
- 	if (in_atomic())
- 		goto out_nosemaphore;
- 
- 	down_read(&mm->mmap_sem);
- 	vma = find_vma(mm, address);
--	if(!vma)
-+	if (!vma)
- 		goto out;
--	else if(vma->vm_start <= address)
-+	else if (vma->vm_start <= address)
- 		goto good_area;
--	else if(!(vma->vm_flags & VM_GROWSDOWN))
-+	else if (!(vma->vm_flags & VM_GROWSDOWN))
- 		goto out;
--	else if(is_user && !ARCH_IS_STACKGROW(address))
-+	else if (is_user && !ARCH_IS_STACKGROW(address))
- 		goto out;
--	else if(expand_stack(vma, address))
-+	else if (expand_stack(vma, address))
- 		goto out;
- 
- good_area:
- 	*code_out = SEGV_ACCERR;
--	if(is_write && !(vma->vm_flags & VM_WRITE))
-+	if (is_write && !(vma->vm_flags & VM_WRITE))
- 		goto out;
- 
- 	/* Don't require VM_READ|VM_EXEC for write faults! */
--	if(!is_write && !(vma->vm_flags & (VM_READ | VM_EXEC)))
-+	if (!is_write && !(vma->vm_flags & (VM_READ | VM_EXEC)))
- 		goto out;
- 
- 	do {
-@@ -96,9 +84,10 @@ survive:
- 		pud = pud_offset(pgd, address);
- 		pmd = pmd_offset(pud, address);
- 		pte = pte_offset_kernel(pmd, address);
--	} while(!pte_present(*pte));
-+	} while (!pte_present(*pte));
- 	err = 0;
--	/* The below warning was added in place of
-+	/*
-+	 * The below warning was added in place of
- 	 *	pte_mkyoung(); if (is_write) pte_mkdirty();
- 	 * If it's triggered, we'd see normally a hang here (a clean pte is
- 	 * marked read-only to emulate the dirty bit).
-@@ -112,7 +101,7 @@ survive:
- out:
- 	up_read(&mm->mmap_sem);
- out_nosemaphore:
--	return(err);
-+	return err;
- 
- /*
-  * We ran out of memory, or some other thing happened to us that made
-@@ -143,7 +132,7 @@ static void segv_handler(int sig, union 
+ static void image_wait_engine(void)
  {
- 	struct faultinfo * fi = UPT_FAULTINFO(regs);
+-	while(readmmr(0x2164) & 0xF0000000);
++	while (readmmr(0x2164) & 0xF0000000) ;
+ }
  
--	if(UPT_IS_USER(regs) && !SEGV_IS_FIXABLE(fi)){
-+	if (UPT_IS_USER(regs) && !SEGV_IS_FIXABLE(fi)) {
- 		bad_segv(*fi, UPT_IP(regs));
- 		return;
- 	}
-@@ -165,37 +154,41 @@ unsigned long segv(struct faultinfo fi, 
- 	int is_write = FAULT_WRITE(fi);
- 	unsigned long address = FAULT_ADDRESS(fi);
+-static void image_fill_rect(__u32 x, __u32 y, __u32 w, __u32 h, __u32 c, __u32 rop)
++static void image_fill_rect(u32 x, u32 y, u32 w, u32 h, u32 c, u32 rop)
+ {
+-	writemmr(0x2120,0x80000000);
+-	writemmr(0x2120,0x90000000|ROP_S);
++	writemmr(0x2120, 0x80000000);
++	writemmr(0x2120, 0x90000000 | ROP_S);
  
--	if(!is_user && (address >= start_vm) && (address < end_vm)){
-+	if (!is_user && (address >= start_vm) && (address < end_vm)) {
- 		flush_tlb_kernel_vm();
- 		return 0;
- 	}
--	else if(current->mm == NULL) {
-+	else if (current->mm == NULL) {
- 		show_regs(container_of(regs, struct pt_regs, regs));
--  		panic("Segfault with no mm");
-+		panic("Segfault with no mm");
+-	writemmr(0x2144,c);
++	writemmr(0x2144, c);
+ 
+-	writemmr(DR1,point(x,y));
+-	writemmr(DR2,point(x+w-1,y+h-1));
++	writemmr(DR1, point(x, y));
++	writemmr(DR2, point(x + w - 1, y + h - 1));
+ 
+-	writemmr(0x2124,0x80000000|3<<22|1<<10|1<<9);
++	writemmr(0x2124, 0x80000000 | 3 << 22 | 1 << 10 | 1 << 9);
+ }
+ 
+-static void image_copy_rect(__u32 x1,__u32 y1,__u32 x2,__u32 y2,__u32 w,__u32 h)
++static void image_copy_rect(u32 x1, u32 y1, u32 x2, u32 y2, u32 w, u32 h)
+ {
+-	__u32 s1,s2,d1,d2;
++	u32 s1, s2, d1, d2;
+ 	int direction = 2;
+-	s1 = point(x1,y1);
+-	s2 = point(x1+w-1,y1+h-1);
+-	d1 = point(x2,y2);
+-	d2 = point(x2+w-1,y2+h-1);
+-
+-	if ((y1 > y2) || ((y1 == y2) && (x1 >x2)))
+-			direction = 0;
+-
+-	writemmr(0x2120,0x80000000);
+-	writemmr(0x2120,0x90000000|ROP_S);
+-
+-	writemmr(SR1,direction?s2:s1);
+-	writemmr(SR2,direction?s1:s2);
+-	writemmr(DR1,direction?d2:d1);
+-	writemmr(DR2,direction?d1:d2);
+-	writemmr(0x2124,0x80000000|1<<22|1<<10|1<<7|direction);
+-}
++	s1 = point(x1, y1);
++	s2 = point(x1 + w - 1, y1 + h - 1);
++	d1 = point(x2, y2);
++	d2 = point(x2 + w - 1, y2 + h - 1);
+ 
++	if ((y1 > y2) || ((y1 == y2) && (x1 > x2)))
++		direction = 0;
++
++	writemmr(0x2120, 0x80000000);
++	writemmr(0x2120, 0x90000000 | ROP_S);
++
++	writemmr(SR1, direction ? s2 : s1);
++	writemmr(SR2, direction ? s1 : s2);
++	writemmr(DR1, direction ? d2 : d1);
++	writemmr(DR2, direction ? d1 : d2);
++	writemmr(0x2124, 0x80000000 | 1 << 22 | 1 << 10 | 1 << 7 | direction);
++}
+ 
+ static struct accel_switch accel_image = {
+ 	image_init_accel,
+@@ -450,30 +479,34 @@ static struct accel_switch accel_image =
+  * Accel functions called by the upper layers
+  */
+ #ifdef CONFIG_FB_TRIDENT_ACCEL
+-static void tridentfb_fillrect(struct fb_info * info, const struct fb_fillrect *fr)
++static void tridentfb_fillrect(struct fb_info *info,
++			       const struct fb_fillrect *fr)
+ {
+ 	int bpp = info->var.bits_per_pixel;
+ 	int col = 0;
+-	
++
+ 	switch (bpp) {
+-		default:
+-		case 8: col |= fr->color;
+-			col |= col << 8;
+-			col |= col << 16;
+-			break;
+-		case 16: col = ((u32 *)(info->pseudo_palette))[fr->color];
+-			
+-			 break;
+-		case 32: col = ((u32 *)(info->pseudo_palette))[fr->color];
+-			 break;
+-	}		 
+-			
++	default:
++	case 8:
++		col |= fr->color;
++		col |= col << 8;
++		col |= col << 16;
++		break;
++	case 16:
++		col = ((u32 *)(info->pseudo_palette))[fr->color];
++		break;
++	case 32:
++		col = ((u32 *)(info->pseudo_palette))[fr->color];
++		break;
++	}
++
+ 	acc->fill_rect(fr->dx, fr->dy, fr->width, fr->height, col, fr->rop);
+ 	acc->wait_engine();
+ }
+-static void tridentfb_copyarea(struct fb_info *info, const struct fb_copyarea *ca)
++static void tridentfb_copyarea(struct fb_info *info,
++			       const struct fb_copyarea *ca)
+ {
+-	acc->copy_rect(ca->sx,ca->sy,ca->dx,ca->dy,ca->width,ca->height);
++	acc->copy_rect(ca->sx, ca->sy, ca->dx, ca->dy, ca->width, ca->height);
+ 	acc->wait_engine();
+ }
+ #else /* !CONFIG_FB_TRIDENT_ACCEL */
+@@ -488,14 +521,14 @@ static void tridentfb_copyarea(struct fb
+ 
+ static inline unsigned char read3X4(int reg)
+ {
+-	struct tridentfb_par * par = (struct tridentfb_par *)fb_info.par;
++	struct tridentfb_par *par = (struct tridentfb_par *)fb_info.par;
+ 	writeb(reg, par->io_virt + CRT + 4);
+-	return readb( par->io_virt + CRT + 5);
++	return readb(par->io_virt + CRT + 5);
+ }
+ 
+ static inline void write3X4(int reg, unsigned char val)
+ {
+-	struct tridentfb_par * par = (struct tridentfb_par *)fb_info.par;
++	struct tridentfb_par *par = (struct tridentfb_par *)fb_info.par;
+ 	writeb(reg, par->io_virt + CRT + 4);
+ 	writeb(val, par->io_virt + CRT + 5);
+ }
+@@ -520,7 +553,7 @@ static inline unsigned char read3CE(int 
+ 
+ static inline void writeAttr(int reg, unsigned char val)
+ {
+-	readb(((struct tridentfb_par *)fb_info.par)->io_virt + CRT + 0x0A);	//flip-flop to index
++	readb(((struct tridentfb_par *)fb_info.par)->io_virt + CRT + 0x0A);	/* flip-flop to index */
+ 	t_outb(reg, 0x3C0);
+ 	t_outb(val, 0x3C0);
+ }
+@@ -540,32 +573,41 @@ static inline void enable_mmio(void)
+ 	/* Unprotect registers */
+ 	outb(NewMode1, 0x3C4);
+ 	outb(0x80, 0x3C5);
+-  
++
+ 	/* Enable MMIO */
+-	outb(PCIReg, 0x3D4); 
++	outb(PCIReg, 0x3D4);
+ 	outb(inb(0x3D5) | 0x01, 0x3D5);
+ }
+ 
+-
+ #define crtc_unlock()	write3X4(CRTVSyncEnd, read3X4(CRTVSyncEnd) & 0x7F)
+ 
+ /*  Return flat panel's maximum x resolution */
+ static int __devinit get_nativex(void)
+ {
+-	int x,y,tmp;
++	int x, y, tmp;
+ 
+ 	if (nativex)
+ 		return nativex;
+ 
+-       	tmp = (read3CE(VertStretch) >> 4) & 3;
++	tmp = (read3CE(VertStretch) >> 4) & 3;
+ 
+ 	switch (tmp) {
+-		case 0: x = 1280; y = 1024; break;
+-		case 2: x = 1024; y = 768;  break;
+-		case 3: x = 800;  y = 600;  break; 
+-		case 4: x = 1400; y = 1050; break;
+-		case 1: 
+-		default:x = 640;  y = 480;  break;
++	case 0:
++		x = 1280; y = 1024;
++		break;
++	case 2:
++		x = 1024; y = 768;
++		break;
++	case 3:
++		x = 800; y = 600;
++		break;
++	case 4:
++		x = 1400; y = 1050;
++		break;
++	case 1:
++	default:
++		x = 640;  y = 480;
++		break;
  	}
  
- 	if (SEGV_IS_FIXABLE(&fi) || SEGV_MAYBE_FIXABLE(&fi))
--		err = handle_page_fault(address, ip, is_write, is_user, &si.si_code);
-+		err = handle_page_fault(address, ip, is_write, is_user,
-+					&si.si_code);
- 	else {
- 		err = -EFAULT;
--		/* A thread accessed NULL, we get a fault, but CR2 is invalid.
--		 * This code is used in __do_copy_from_user() of TT mode. */
-+		/*
-+		 * A thread accessed NULL, we get a fault, but CR2 is invalid.
-+		 * This code is used in __do_copy_from_user() of TT mode.
-+		 * XXX tt mode is gone, so maybe this isn't needed any more
-+		 */
- 		address = 0;
- 	}
+ 	output("%dx%d flat panel found\n", x, y);
+@@ -576,25 +618,26 @@ static int __devinit get_nativex(void)
+ static void set_lwidth(int width)
+ {
+ 	write3X4(Offset, width & 0xFF);
+-	write3X4(AddColReg, (read3X4(AddColReg) & 0xCF) | ((width & 0x300) >>4));
++	write3X4(AddColReg,
++		 (read3X4(AddColReg) & 0xCF) | ((width & 0x300) >> 4));
+ }
  
- 	catcher = current->thread.fault_catcher;
--	if(!err)
-+	if (!err)
- 		return 0;
--	else if(catcher != NULL){
-+	else if (catcher != NULL) {
- 		current->thread.fault_addr = (void *) address;
- 		do_longjmp(catcher, 1);
- 	}
--	else if(current->thread.fault_addr != NULL)
-+	else if (current->thread.fault_addr != NULL)
- 		panic("fault_addr set but no fault catcher");
--	else if(!is_user && arch_fixup(ip, regs))
-+	else if (!is_user && arch_fixup(ip, regs))
- 		return 0;
+ /* For resolutions smaller than FP resolution stretch */
+ static void screen_stretch(void)
+ {
+-  	if (chip_id != CYBERBLADEXPAi1)
+-  		write3CE(BiosReg,0);
+-  	else
+-  		write3CE(BiosReg,8);
+-	write3CE(VertStretch,(read3CE(VertStretch) & 0x7C) | 1);
+-	write3CE(HorStretch,(read3CE(HorStretch) & 0x7C) | 1);
++	if (chip_id != CYBERBLADEXPAi1)
++		write3CE(BiosReg, 0);
++	else
++		write3CE(BiosReg, 8);
++	write3CE(VertStretch, (read3CE(VertStretch) & 0x7C) | 1);
++	write3CE(HorStretch, (read3CE(HorStretch) & 0x7C) | 1);
+ }
  
--	if(!is_user) {
-+	if (!is_user) {
- 		show_regs(container_of(regs, struct pt_regs, regs));
- 		panic("Kernel mode fault at addr 0x%lx, ip 0x%lx",
- 		      address, ip);
-@@ -209,7 +202,7 @@ unsigned long segv(struct faultinfo fi, 
- 		current->thread.arch.faultinfo = fi;
- 		force_sig_info(SIGBUS, &si, current);
- 	} else if (err == -ENOMEM) {
--		printk("VM: killing process %s\n", current->comm);
-+		printk(KERN_INFO "VM: killing process %s\n", current->comm);
- 		do_exit(SIGKILL);
+ /* For resolutions smaller than FP resolution center */
+ static void screen_center(void)
+ {
+-	write3CE(VertStretch,(read3CE(VertStretch) & 0x7C) | 0x80);
+-	write3CE(HorStretch,(read3CE(HorStretch) & 0x7C) | 0x80);
++	write3CE(VertStretch, (read3CE(VertStretch) & 0x7C) | 0x80);
++	write3CE(HorStretch, (read3CE(HorStretch) & 0x7C) | 0x80);
+ }
+ 
+ /* Address of first shown pixel in display memory */
+@@ -602,40 +645,42 @@ static void set_screen_start(int base)
+ {
+ 	write3X4(StartAddrLow, base & 0xFF);
+ 	write3X4(StartAddrHigh, (base & 0xFF00) >> 8);
+-	write3X4(CRTCModuleTest, (read3X4(CRTCModuleTest) & 0xDF) | ((base & 0x10000) >> 11));
+-	write3X4(CRTHiOrd, (read3X4(CRTHiOrd) & 0xF8) | ((base & 0xE0000) >> 17));
++	write3X4(CRTCModuleTest,
++		 (read3X4(CRTCModuleTest) & 0xDF) | ((base & 0x10000) >> 11));
++	write3X4(CRTHiOrd,
++		 (read3X4(CRTHiOrd) & 0xF8) | ((base & 0xE0000) >> 17));
+ }
+ 
+ /* Use 20.12 fixed-point for NTSC value and frequency calculation */
+-#define calc_freq(n,m,k)  ( ((unsigned long)0xE517 * (n+8) / ((m+2)*(1<<k))) >> 12 )
++#define calc_freq(n, m, k)  ( ((unsigned long)0xE517 * (n + 8) / ((m + 2) * (1 << k))) >> 12 )
+ 
+ /* Set dotclock frequency */
+ static void set_vclk(int freq)
+ {
+-	int m,n,k;
+-	int f,fi,d,di;
+-	unsigned char lo=0,hi=0;
++	int m, n, k;
++	int f, fi, d, di;
++	unsigned char lo = 0, hi = 0;
+ 
+ 	d = 20;
+-	for(k = 2;k>=0;k--)
+-	for(m = 0;m<63;m++)
+-	for(n = 0;n<128;n++) {
+-		fi = calc_freq(n,m,k);
+-		if ((di = abs(fi - freq)) < d) {
+-			d = di;
+-			f = fi;
+-			lo = n;
+-			hi = (k<<6) | m;
+-		}
+-	}
++	for (k = 2; k >= 0; k--)
++		for (m = 0; m < 63; m++)
++			for (n = 0; n < 128; n++) {
++				fi = calc_freq(n, m, k);
++				if ((di = abs(fi - freq)) < d) {
++					d = di;
++					f = fi;
++					lo = n;
++					hi = (k << 6) | m;
++				}
++			}
+ 	if (chip3D) {
+-		write3C4(ClockHigh,hi);
+-		write3C4(ClockLow,lo);
++		write3C4(ClockHigh, hi);
++		write3C4(ClockLow, lo);
  	} else {
- 		BUG_ON(err != -EFAULT);
-@@ -223,13 +216,13 @@ unsigned long segv(struct faultinfo fi, 
- 
- void relay_signal(int sig, union uml_pt_regs *regs)
- {
--	if(arch_handle_signal(sig, regs))
-+	if (arch_handle_signal(sig, regs))
- 		return;
- 
--	if(!UPT_IS_USER(regs)){
--		if(sig == SIGBUS)
--			printk("Bus error - the host /dev/shm or /tmp mount "
--			       "likely just ran out of space\n");
-+	if (!UPT_IS_USER(regs)) {
-+		if (sig == SIGBUS)
-+			printk(KERN_ERR "Bus error - the host /dev/shm or /tmp "
-+			       "mount likely just ran out of space\n");
- 		panic("Kernel mode signal %d", sig);
+-		outb(lo,0x43C8);
+-		outb(hi,0x43C9);
++		outb(lo, 0x43C8);
++		outb(hi, 0x43C9);
  	}
- 
-@@ -239,7 +232,7 @@ void relay_signal(int sig, union uml_pt_
- 
- static void bus_handler(int sig, union uml_pt_regs *regs)
- {
--	if(current->thread.fault_catcher != NULL)
-+	if (current->thread.fault_catcher != NULL)
- 		do_longjmp(current->thread.fault_catcher, 1);
- 	else relay_signal(sig, regs);
+-	debug("VCLK = %X %X\n",hi,lo);
++	debug("VCLK = %X %X\n", hi, lo);
  }
-diff -puN arch/um/os-Linux/Makefile~uml-style-fixes-pass-1 arch/um/os-Linux/Makefile
---- a/arch/um/os-Linux/Makefile~uml-style-fixes-pass-1
-+++ a/arch/um/os-Linux/Makefile
-@@ -1,5 +1,5 @@
- # 
--# Copyright (C) 2000 Jeff Dike (jdike@karaya.com)
-+# Copyright (C) 2000 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
- # Licensed under the GPL
- #
  
-diff -puN arch/um/os-Linux/sys-i386/Makefile~uml-style-fixes-pass-1 arch/um/os-Linux/sys-i386/Makefile
---- a/arch/um/os-Linux/sys-i386/Makefile~uml-style-fixes-pass-1
-+++ a/arch/um/os-Linux/sys-i386/Makefile
-@@ -1,5 +1,5 @@
- #
--# Copyright (C) 2000 Jeff Dike (jdike@karaya.com)
-+# Copyright (C) 2000 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
- # Licensed under the GPL
- #
+ /* Set number of lines for flat panels*/
+@@ -663,7 +708,7 @@ static unsigned int __devinit get_displa
+ 		return DISPLAY_FP;
+ 	if (crt || !chipcyber)
+ 		return DISPLAY_CRT;
+-	return (read3CE(FPConfig) & 0x10)?DISPLAY_FP:DISPLAY_CRT;
++	return (read3CE(FPConfig) & 0x10) ? DISPLAY_FP : DISPLAY_CRT;
+ }
  
-diff -puN arch/um/os-Linux/time.c~uml-style-fixes-pass-1 arch/um/os-Linux/time.c
---- a/arch/um/os-Linux/time.c~uml-style-fixes-pass-1
-+++ a/arch/um/os-Linux/time.c
-@@ -1,21 +1,17 @@
- /*
-- * Copyright (C) 2000, 2001, 2002 Jeff Dike (jdike@karaya.com)
-+ * Copyright (C) 2000 - 2007 Jeff Dike (jdike{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
+ /* Try detecting the video memory size */
+@@ -676,100 +721,136 @@ static unsigned int __devinit get_memsiz
+ 	if (memsize)
+ 		k = memsize * Kb;
+ 	else
+-	switch (chip_id) {
+-		case CYBER9525DVD:    k = 2560 * Kb; break;
++		switch (chip_id) {
++		case CYBER9525DVD:
++			k = 2560 * Kb;
++			break;
+ 		default:
+ 			tmp = read3X4(SPR) & 0x0F;
+ 			switch (tmp) {
  
--#include <stdio.h>
--#include <stdlib.h>
--#include <unistd.h>
-+#include <stddef.h>
-+#include <errno.h>
-+#include <signal.h>
- #include <time.h>
- #include <sys/time.h>
--#include <signal.h>
--#include <errno.h>
- #include "kern_util.h"
--#include "user.h"
--#include "process.h"
- #include "kern_constants.h"
- #include "os.h"
--#include "uml-config.h"
-+#include "user.h"
+-				case 0x01: k = 512;     break;
+-				case 0x02: k = 6 * Mb;  break; /* XP */
+-				case 0x03: k = 1 * Mb;  break;
+-				case 0x04: k = 8 * Mb;  break;
+-				case 0x06: k = 10 * Mb; break; /* XP */
+-				case 0x07: k = 2 * Mb;  break;
+-				case 0x08: k = 12 * Mb; break; /* XP */
+-				case 0x0A: k = 14 * Mb; break; /* XP */
+-				case 0x0C: k = 16 * Mb; break; /* XP */
+-				case 0x0E:                     /* XP */
+-  
+-					tmp2 = read3C4(0xC1);
+-					switch (tmp2) {
+-						case 0x00: k = 20 * Mb; break;
+-						case 0x01: k = 24 * Mb; break;
+-						case 0x10: k = 28 * Mb; break;
+-						case 0x11: k = 32 * Mb; break;
+-						default:   k = 1 * Mb;  break;
+-					}
++			case 0x01:
++				k = 512;
++				break;
++			case 0x02:
++				k = 6 * Mb;	/* XP */
++				break;
++			case 0x03:
++				k = 1 * Mb;
++				break;
++			case 0x04:
++				k = 8 * Mb;
++				break;
++			case 0x06:
++				k = 10 * Mb;	/* XP */
++				break;
++			case 0x07:
++				k = 2 * Mb;
++				break;
++			case 0x08:
++				k = 12 * Mb;	/* XP */
++				break;
++			case 0x0A:
++				k = 14 * Mb;	/* XP */
++				break;
++			case 0x0C:
++				k = 16 * Mb;	/* XP */
++				break;
++			case 0x0E:		/* XP */
++
++				tmp2 = read3C4(0xC1);
++				switch (tmp2) {
++				case 0x00:
++					k = 20 * Mb;
++					break;
++				case 0x01:
++					k = 24 * Mb;
++					break;
++				case 0x10:
++					k = 28 * Mb;
++					break;
++				case 0x11:
++					k = 32 * Mb;
++					break;
++				default:
++					k = 1 * Mb;
++					break;
++				}
++				break;
++
++			case 0x0F:
++				k = 4 * Mb;
++				break;
++			default:
++				k = 1 * Mb;
+ 				break;
+-	
+-				case 0x0F: k = 4 * Mb; break;
+-				default:   k = 1 * Mb;
+ 			}
+-	}
++		}
  
- int set_interval(int is_virtual)
+ 	k -= memdiff * Kb;
+-	output("framebuffer size = %d Kb\n", k/Kb);
++	output("framebuffer size = %d Kb\n", k / Kb);
+ 	return k;
+ }
+ 
+ /* See if we can handle the video mode described in var */
+-static int tridentfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
++static int tridentfb_check_var(struct fb_var_screeninfo *var,
++			       struct fb_info *info)
  {
-@@ -24,7 +20,7 @@ int set_interval(int is_virtual)
- 	struct itimerval interval = ((struct itimerval) { { 0, usec },
- 							  { 0, usec } });
+ 	int bpp = var->bits_per_pixel;
+ 	debug("enter\n");
  
--	if(setitimer(timer_type, &interval, NULL) == -1)
-+	if (setitimer(timer_type, &interval, NULL) == -1)
- 		return -errno;
+ 	/* check color depth */
+-	if (bpp == 24 )
++	if (bpp == 24)
+ 		bpp = var->bits_per_pixel = 32;
+-	/* check whether resolution fits on panel and in memory*/
++	/* check whether resolution fits on panel and in memory */
+ 	if (flatpanel && nativex && var->xres > nativex)
+ 		return -EINVAL;
+-	if (var->xres * var->yres_virtual * bpp/8 > info->fix.smem_len)
++	if (var->xres * var->yres_virtual * bpp / 8 > info->fix.smem_len)
+ 		return -EINVAL;
+ 
+ 	switch (bpp) {
+-		case 8:
+-			var->red.offset = 0;
+-			var->green.offset = 0;
+-			var->blue.offset = 0;
+-			var->red.length = 6;
+-			var->green.length = 6;
+-			var->blue.length = 6;
+-			break;
+-		case 16:
+-			var->red.offset = 11;
+-			var->green.offset = 5;
+-			var->blue.offset = 0;
+-			var->red.length = 5;
+-			var->green.length = 6;
+-			var->blue.length = 5;
+-			break;
+-		case 32:
+-			var->red.offset = 16;
+-			var->green.offset = 8;
+-			var->blue.offset = 0;
+-			var->red.length = 8;
+-			var->green.length = 8;
+-			var->blue.length = 8;
+-			break;
+-		default:
+-			return -EINVAL;	
++	case 8:
++		var->red.offset = 0;
++		var->green.offset = 0;
++		var->blue.offset = 0;
++		var->red.length = 6;
++		var->green.length = 6;
++		var->blue.length = 6;
++		break;
++	case 16:
++		var->red.offset = 11;
++		var->green.offset = 5;
++		var->blue.offset = 0;
++		var->red.length = 5;
++		var->green.length = 6;
++		var->blue.length = 5;
++		break;
++	case 32:
++		var->red.offset = 16;
++		var->green.offset = 8;
++		var->blue.offset = 0;
++		var->red.length = 8;
++		var->green.length = 8;
++		var->blue.length = 8;
++		break;
++	default:
++		return -EINVAL;
+ 	}
+ 	debug("exit\n");
  
  	return 0;
-@@ -33,10 +29,12 @@ int set_interval(int is_virtual)
- void disable_timer(void)
+ 
+ }
++
+ /* Pan the display */
+ static int tridentfb_pan_display(struct fb_var_screeninfo *var,
+-				   struct fb_info *info)
++				 struct fb_info *info)
  {
- 	struct itimerval disable = ((struct itimerval) { { 0, 0 }, { 0, 0 }});
--	if((setitimer(ITIMER_VIRTUAL, &disable, NULL) < 0) ||
--	   (setitimer(ITIMER_REAL, &disable, NULL) < 0))
--		printk("disnable_timer - setitimer failed, errno = %d\n",
--		       errno);
-+
-+	if ((setitimer(ITIMER_VIRTUAL, &disable, NULL) < 0) ||
-+	    (setitimer(ITIMER_REAL, &disable, NULL) < 0))
-+		printk(UM_KERN_ERR "disable_timer - setitimer failed, "
-+		       "errno = %d\n", errno);
-+
- 	/* If there are signals already queued, after unblocking ignore them */
- 	signal(SIGALRM, SIG_IGN);
- 	signal(SIGVTALRM, SIG_IGN);
-@@ -49,7 +47,7 @@ void switch_timers(int to_real)
- 							{ 0, 1000000/hz() }});
- 	int old, new;
+ 	unsigned int offset;
  
--	if(to_real){
-+	if (to_real) {
- 		old = ITIMER_VIRTUAL;
- 		new = ITIMER_REAL;
- 	}
-@@ -58,10 +56,10 @@ void switch_timers(int to_real)
- 		new = ITIMER_VIRTUAL;
- 	}
- 
--	if((setitimer(old, &disable, NULL) < 0) ||
--	   (setitimer(new, &enable, NULL)))
--		printk("switch_timers - setitimer failed, errno = %d\n",
--		       errno);
-+	if ((setitimer(old, &disable, NULL) < 0) ||
-+	    (setitimer(new, &enable, NULL)))
-+		printk(UM_KERN_ERR "switch_timers - setitimer failed, "
-+		       "errno = %d\n", errno);
+ 	debug("enter\n");
+ 	offset = (var->xoffset + (var->yoffset * var->xres))
+-			* var->bits_per_pixel/32;
++		* var->bits_per_pixel / 32;
+ 	info->var.xoffset = var->xoffset;
+ 	info->var.yoffset = var->yoffset;
+ 	set_screen_start(offset);
+@@ -777,36 +858,38 @@ static int tridentfb_pan_display(struct 
+ 	return 0;
  }
  
- unsigned long long os_nsecs(void)
-@@ -69,7 +67,7 @@ unsigned long long os_nsecs(void)
- 	struct timeval tv;
+-#define shadowmode_on()  write3CE(CyberControl,read3CE(CyberControl) | 0x81)
+-#define shadowmode_off() write3CE(CyberControl,read3CE(CyberControl) & 0x7E)
++#define shadowmode_on()  write3CE(CyberControl, read3CE(CyberControl) | 0x81)
++#define shadowmode_off() write3CE(CyberControl, read3CE(CyberControl) & 0x7E)
  
- 	gettimeofday(&tv, NULL);
--	return((unsigned long long) tv.tv_sec * BILLION + tv.tv_usec * 1000);
-+	return (unsigned long long) tv.tv_sec * BILLION + tv.tv_usec * 1000;
+ /* Set the hardware to the requested video mode */
+ static int tridentfb_set_par(struct fb_info *info)
+ {
+-	struct tridentfb_par * par = (struct tridentfb_par *)(info->par);
+-	u32	htotal,hdispend,hsyncstart,hsyncend,hblankstart,hblankend,
+-		vtotal,vdispend,vsyncstart,vsyncend,vblankstart,vblankend;
+-	struct fb_var_screeninfo *var = &info->var;	
++	struct tridentfb_par *par = (struct tridentfb_par *)(info->par);
++	u32 htotal, hdispend, hsyncstart, hsyncend, hblankstart, hblankend;
++	u32 vtotal, vdispend, vsyncstart, vsyncend, vblankstart, vblankend;
++	struct fb_var_screeninfo *var = &info->var;
+ 	int bpp = var->bits_per_pixel;
+ 	unsigned char tmp;
+ 	debug("enter\n");
+-	htotal = (var->xres + var->left_margin + var->right_margin + var->hsync_len)/8 - 10;
+-	hdispend = var->xres/8 - 1;
+-	hsyncstart = (var->xres + var->right_margin)/8;
+-	hsyncend = var->hsync_len/8;
++	hdispend = var->xres / 8 - 1;
++	hsyncstart = (var->xres + var->right_margin) / 8;
++	hsyncend = var->hsync_len / 8;
++	htotal =
++		(var->xres + var->left_margin + var->right_margin +
++		 var->hsync_len) / 8 - 10;
+ 	hblankstart = hdispend + 1;
+ 	hblankend = htotal + 5;
+ 
+-	vtotal = var->yres + var->upper_margin + var->lower_margin + var->vsync_len - 2;
+ 	vdispend = var->yres - 1;
+ 	vsyncstart = var->yres + var->lower_margin;
+ 	vsyncend = var->vsync_len;
++	vtotal = var->upper_margin + vsyncstart + vsyncend - 2;
+ 	vblankstart = var->yres;
+ 	vblankend = vtotal + 2;
+ 
+ 	enable_mmio();
+ 	crtc_unlock();
+-	write3CE(CyberControl,8);
++	write3CE(CyberControl, 8);
+ 
+ 	if (flatpanel && var->xres < nativex) {
+ 		/*
+@@ -814,18 +897,18 @@ static int tridentfb_set_par(struct fb_i
+ 		 * than requested resolution decide whether
+ 		 * we stretch or center
+ 		 */
+-		t_outb(0xEB,0x3C2);
++		t_outb(0xEB, 0x3C2);
+ 
+ 		shadowmode_on();
+ 
+-		if (center) 
++		if (center)
+ 			screen_center();
+ 		else if (stretch)
+ 			screen_stretch();
+ 
+ 	} else {
+-		t_outb(0x2B,0x3C2);
+-		write3CE(CyberControl,8);
++		t_outb(0x2B, 0x3C2);
++		write3CE(CyberControl, 8);
+ 	}
+ 
+ 	/* vertical timing values */
+@@ -834,15 +917,15 @@ static int tridentfb_set_par(struct fb_i
+ 	write3X4(CRTVSyncStart, vsyncstart & 0xFF);
+ 	write3X4(CRTVSyncEnd, (vsyncend & 0x0F));
+ 	write3X4(CRTVBlankStart, vblankstart & 0xFF);
+-	write3X4(CRTVBlankEnd, 0/*p->vblankend & 0xFF*/);
++	write3X4(CRTVBlankEnd, 0 /* p->vblankend & 0xFF */ );
+ 
+ 	/* horizontal timing values */
+ 	write3X4(CRTHTotal, htotal & 0xFF);
+ 	write3X4(CRTHDispEnd, hdispend & 0xFF);
+ 	write3X4(CRTHSyncStart, hsyncstart & 0xFF);
+-	write3X4(CRTHSyncEnd, (hsyncend & 0x1F) | ((hblankend & 0x20)<<2));
++	write3X4(CRTHSyncEnd, (hsyncend & 0x1F) | ((hblankend & 0x20) << 2));
+ 	write3X4(CRTHBlankStart, hblankstart & 0xFF);
+-	write3X4(CRTHBlankEnd, 0/*(p->hblankend & 0x1F)*/);
++	write3X4(CRTHBlankEnd, 0 /* (p->hblankend & 0x1F) */ );
+ 
+ 	/* higher bits of vertical timing values */
+ 	tmp = 0x10;
+@@ -856,7 +939,7 @@ static int tridentfb_set_par(struct fb_i
+ 	if (vsyncstart & 0x200) tmp |= 0x80;
+ 	write3X4(CRTOverflow, tmp);
+ 
+-	tmp = read3X4(CRTHiOrd) | 0x08;	//line compare bit 10
++	tmp = read3X4(CRTHiOrd) | 0x08;	/* line compare bit 10 */
+ 	if (vtotal & 0x400) tmp |= 0x80;
+ 	if (vblankstart & 0x400) tmp |= 0x40;
+ 	if (vsyncstart & 0x400) tmp |= 0x20;
+@@ -867,84 +950,100 @@ static int tridentfb_set_par(struct fb_i
+ 	if (htotal & 0x800) tmp |= 0x800 >> 11;
+ 	if (hblankstart & 0x800) tmp |= 0x800 >> 7;
+ 	write3X4(HorizOverflow, tmp);
+-	
++
+ 	tmp = 0x40;
+ 	if (vblankstart & 0x200) tmp |= 0x20;
+-//FIXME	if (info->var.vmode & FB_VMODE_DOUBLE) tmp |= 0x80;  //double scan for 200 line modes
++//FIXME	if (info->var.vmode & FB_VMODE_DOUBLE) tmp |= 0x80;  /* double scan for 200 line modes */
+ 	write3X4(CRTMaxScanLine, tmp);
+ 
+-	write3X4(CRTLineCompare,0xFF);
+-	write3X4(CRTPRowScan,0);
+-	write3X4(CRTModeControl,0xC3);
++	write3X4(CRTLineCompare, 0xFF);
++	write3X4(CRTPRowScan, 0);
++	write3X4(CRTModeControl, 0xC3);
+ 
+-	write3X4(LinearAddReg,0x20);	//enable linear addressing
++	write3X4(LinearAddReg, 0x20);	/* enable linear addressing */
+ 
+-	tmp = (info->var.vmode & FB_VMODE_INTERLACED) ? 0x84:0x80;
+-	write3X4(CRTCModuleTest,tmp);	//enable access extended memory
++	tmp = (info->var.vmode & FB_VMODE_INTERLACED) ? 0x84 : 0x80;
++	write3X4(CRTCModuleTest, tmp);	/* enable access extended memory */
+ 
+-	write3X4(GraphEngReg, 0x80);	//enable GE for text acceleration
++	write3X4(GraphEngReg, 0x80);	/* enable GE for text acceleration */
+ 
+-#ifdef CONFIG_FB_TRIDENT_ACCEL	
+-	acc->init_accel(info->var.xres,bpp);
++#ifdef CONFIG_FB_TRIDENT_ACCEL
++	acc->init_accel(info->var.xres, bpp);
+ #endif
+-	
++
+ 	switch (bpp) {
+-		case 8:  tmp = 0x00; break;
+-		case 16: tmp = 0x05; break;
+-		case 24: tmp = 0x29; break;
+-		case 32: tmp = 0x09; 
++	case 8:
++		tmp = 0x00;
++		break;
++	case 16:
++		tmp = 0x05;
++		break;
++	case 24:
++		tmp = 0x29;
++		break;
++	case 32:
++		tmp = 0x09;
++		break;
+ 	}
+ 
+ 	write3X4(PixelBusReg, tmp);
+ 
+ 	tmp = 0x10;
+ 	if (chipcyber)
+-	    tmp |= 0x20;
+-	write3X4(DRAMControl, tmp);	//both IO,linear enable
++		tmp |= 0x20;
++	write3X4(DRAMControl, tmp);	/* both IO, linear enable */
+ 
+ 	write3X4(InterfaceSel, read3X4(InterfaceSel) | 0x40);
+-	write3X4(Performance,0x92);
+-	write3X4(PCIReg,0x07);		//MMIO & PCI read and write burst enable
++	write3X4(Performance, 0x92);
++	write3X4(PCIReg, 0x07);		/* MMIO & PCI read and write burst enable */
+ 
+ 	/* convert from picoseconds to MHz */
+-	par->vclk = 1000000/info->var.pixclock;
++	par->vclk = 1000000 / info->var.pixclock;
+ 	if (bpp == 32)
+-		par->vclk *=2;
++		par->vclk *= 2;
+ 	set_vclk(par->vclk);
+ 
+-	write3C4(0,3);
+-	write3C4(1,1);		//set char clock 8 dots wide
+-	write3C4(2,0x0F);	//enable 4 maps because needed in chain4 mode
+-	write3C4(3,0);
+-	write3C4(4,0x0E);	//memory mode enable bitmaps ??
+-
+-	write3CE(MiscExtFunc,(bpp==32)?0x1A:0x12);	//divide clock by 2 if 32bpp
+-							//chain4 mode display and CPU path
+-	write3CE(0x5,0x40);	//no CGA compat,allow 256 col
+-	write3CE(0x6,0x05);	//graphics mode
+-	write3CE(0x7,0x0F);	//planes?
++	write3C4(0, 3);
++	write3C4(1, 1);		/* set char clock 8 dots wide */
++	write3C4(2, 0x0F);	/* enable 4 maps because needed in chain4 mode */
++	write3C4(3, 0);
++	write3C4(4, 0x0E);	/* memory mode enable bitmaps ?? */
++
++	write3CE(MiscExtFunc, (bpp == 32) ? 0x1A : 0x12);	/* divide clock by 2 if 32bpp */
++							/* chain4 mode display and CPU path */
++	write3CE(0x5, 0x40);	/* no CGA compat, allow 256 col */
++	write3CE(0x6, 0x05);	/* graphics mode */
++	write3CE(0x7, 0x0F);	/* planes? */
+ 
+ 	if (chip_id == CYBERBLADEXPAi1) {
+ 		/* This fixes snow-effect in 32 bpp */
+-		write3X4(CRTHSyncStart,0x84);
++		write3X4(CRTHSyncStart, 0x84);
+ 	}
+ 
+-	writeAttr(0x10,0x41);	//graphics mode and support 256 color modes
+-	writeAttr(0x12,0x0F);	//planes
+-	writeAttr(0x13,0);	//horizontal pel panning
+-
+-	//colors
+-	for(tmp = 0;tmp < 0x10;tmp++)
+-		writeAttr(tmp,tmp);
+-	readb(par->io_virt + CRT + 0x0A);	//flip-flop to index
+-	t_outb(0x20, 0x3C0);			//enable attr
++	writeAttr(0x10, 0x41);	/* graphics mode and support 256 color modes */
++	writeAttr(0x12, 0x0F);	/* planes */
++	writeAttr(0x13, 0);	/* horizontal pel panning */
++
++	/* colors */
++	for (tmp = 0; tmp < 0x10; tmp++)
++		writeAttr(tmp, tmp);
++	readb(par->io_virt + CRT + 0x0A);	/* flip-flop to index */
++	t_outb(0x20, 0x3C0);			/* enable attr */
+ 
+ 	switch (bpp) {
+-		case 8:	tmp = 0;break;		//256 colors
+-		case 15: tmp = 0x10;break;
+-		case 16: tmp = 0x30;break;	//hicolor
+-		case 24: 			//truecolor
+-		case 32: tmp = 0xD0;break;
++	case 8:
++		tmp = 0;
++		break;
++	case 15:
++		tmp = 0x10;
++		break;
++	case 16:
++		tmp = 0x30;
++		break;
++	case 24:
++	case 32:
++		tmp = 0xD0;
++		break;
+ 	}
+ 
+ 	t_inb(0x3C8);
+@@ -952,37 +1051,36 @@ static int tridentfb_set_par(struct fb_i
+ 	t_inb(0x3C6);
+ 	t_inb(0x3C6);
+ 	t_inb(0x3C6);
+-	t_outb(tmp,0x3C6);
++	t_outb(tmp, 0x3C6);
+ 	t_inb(0x3C8);
+ 
+ 	if (flatpanel)
+ 		set_number_of_lines(info->var.yres);
+-	set_lwidth(info->var.xres * bpp/(4*16));
++	set_lwidth(info->var.xres * bpp / (4 * 16));
+ 	info->fix.visual = (bpp == 8) ? FB_VISUAL_PSEUDOCOLOR : FB_VISUAL_TRUECOLOR;
+-	info->fix.line_length = info->var.xres * (bpp >> 3);  
+-	info->cmap.len = (bpp == 8) ? 256: 16;
++	info->fix.line_length = info->var.xres * (bpp >> 3);
++	info->cmap.len = (bpp == 8) ? 256 : 16;
+ 	debug("exit\n");
+ 	return 0;
  }
  
- void idle_sleep(int secs)
-diff -puN arch/um/os-Linux/tls.c~uml-style-fixes-pass-1 arch/um/os-Linux/tls.c
---- a/arch/um/os-Linux/tls.c~uml-style-fixes-pass-1
-+++ a/arch/um/os-Linux/tls.c
-@@ -1,10 +1,6 @@
- #include <errno.h>
--#include <unistd.h>
- #include <sys/ptrace.h>
--#include <sys/syscall.h>
--#include <asm/ldt.h>
- #include "sysdep/tls.h"
--#include "uml-config.h"
+ /* Set one color register */
+ static int tridentfb_setcolreg(unsigned regno, unsigned red, unsigned green,
+-				 unsigned blue, unsigned transp,
+-				 struct fb_info *info)
++			       unsigned blue, unsigned transp,
++			       struct fb_info *info)
+ {
+ 	int bpp = info->var.bits_per_pixel;
  
- /* TLS support - we basically rely on the host's one.*/
+ 	if (regno >= info->cmap.len)
+ 		return 1;
  
-diff -puN arch/um/sys-i386/Makefile~uml-style-fixes-pass-1 arch/um/sys-i386/Makefile
---- a/arch/um/sys-i386/Makefile~uml-style-fixes-pass-1
-+++ a/arch/um/sys-i386/Makefile
-@@ -1,3 +1,7 @@
-+#
-+# Copyright (C) 2002 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-+#
+-
+ 	if (bpp == 8) {
+-		t_outb(0xFF,0x3C6);
+-		t_outb(regno,0x3C8);
++		t_outb(0xFF, 0x3C6);
++		t_outb(regno, 0x3C8);
+ 
+-		t_outb(red>>10,0x3C9);
+-		t_outb(green>>10,0x3C9);
+-		t_outb(blue>>10,0x3C9);
++		t_outb(red >> 10, 0x3C9);
++		t_outb(green >> 10, 0x3C9);
++		t_outb(blue >> 10, 0x3C9);
+ 
+ 	} else if (regno < 16) {
+ 		if (bpp == 16) {	/* RGB 565 */
+@@ -994,29 +1092,28 @@ static int tridentfb_setcolreg(unsigned 
+ 			((u32 *)(info->pseudo_palette))[regno] = col;
+ 		} else if (bpp == 32)		/* ARGB 8888 */
+ 			((u32*)info->pseudo_palette)[regno] =
+-				((transp & 0xFF00) <<16) 	|
+-				((red & 0xFF00) << 8) 		|
++				((transp & 0xFF00) << 16)	|
++				((red & 0xFF00) << 8)		|
+ 				((green & 0xFF00))		|
+-				((blue & 0xFF00)>>8);
++				((blue & 0xFF00) >> 8);
+ 	}
+ 
+-//	debug("exit\n");
++/* 	debug("exit\n"); */
+ 	return 0;
+ }
+ 
+ /* Try blanking the screen.For flat panels it does nothing */
+ static int tridentfb_blank(int blank_mode, struct fb_info *info)
+ {
+-	unsigned char PMCont,DPMSCont;
++	unsigned char PMCont, DPMSCont;
+ 
+ 	debug("enter\n");
+ 	if (flatpanel)
+ 		return 0;
+-	t_outb(0x04,0x83C8); /* Read DPMS Control */
++	t_outb(0x04, 0x83C8); /* Read DPMS Control */
+ 	PMCont = t_inb(0x83C6) & 0xFC;
+ 	DPMSCont = read3CE(PowerStatus) & 0xFC;
+-	switch (blank_mode)
+-	{
++	switch (blank_mode) {
+ 	case FB_BLANK_UNBLANK:
+ 		/* Screen: On, HSync: On, VSync: On */
+ 	case FB_BLANK_NORMAL:
+@@ -1039,11 +1136,11 @@ static int tridentfb_blank(int blank_mod
+ 		PMCont |= 0x00;
+ 		DPMSCont |= 0x03;
+ 		break;
+-    	}
++	}
+ 
+-	write3CE(PowerStatus,DPMSCont);
+-	t_outb(4,0x83C8);
+-	t_outb(PMCont,0x83C6);
++	write3CE(PowerStatus, DPMSCont);
++	t_outb(4, 0x83C8);
++	t_outb(PMCont, 0x83C6);
+ 
+ 	debug("exit\n");
+ 
+@@ -1051,7 +1148,20 @@ static int tridentfb_blank(int blank_mod
+ 	return (blank_mode == FB_BLANK_NORMAL) ? 1 : 0;
+ }
+ 
+-static int __devinit trident_pci_probe(struct pci_dev * dev, const struct pci_device_id * id)
++static struct fb_ops tridentfb_ops = {
++	.owner = THIS_MODULE,
++	.fb_setcolreg = tridentfb_setcolreg,
++	.fb_pan_display = tridentfb_pan_display,
++	.fb_blank = tridentfb_blank,
++	.fb_check_var = tridentfb_check_var,
++	.fb_set_par = tridentfb_set_par,
++	.fb_fillrect = tridentfb_fillrect,
++	.fb_copyarea = tridentfb_copyarea,
++	.fb_imageblit = cfb_imageblit,
++};
 +
- obj-y = bug.o bugs.o checksum.o delay.o fault.o ksyms.o ldt.o ptrace.o \
- 	ptrace_user.o setjmp.o signal.o sigcontext.o stub.o stub_segv.o \
- 	syscalls.o sysrq.o sys_call_table.o tls.o
-diff -puN arch/um/sys-i386/ptrace_user.c~uml-style-fixes-pass-1 arch/um/sys-i386/ptrace_user.c
---- a/arch/um/sys-i386/ptrace_user.c~uml-style-fixes-pass-1
-+++ a/arch/um/sys-i386/ptrace_user.c
-@@ -1,19 +1,10 @@
++static int __devinit trident_pci_probe(struct pci_dev * dev,
++				       const struct pci_device_id * id)
+ {
+ 	int err;
+ 	unsigned char revision;
+@@ -1062,31 +1172,42 @@ static int __devinit trident_pci_probe(s
+ 
+ 	chip_id = id->device;
+ 
+-	if(chip_id == CYBERBLADEi1)
++	if (chip_id == CYBERBLADEi1)
+ 		output("*** Please do use cyblafb, Cyberblade/i1 support "
+ 		       "will soon be removed from tridentfb!\n");
+ 
+ 
+ 	/* If PCI id is 0x9660 then further detect chip type */
+-	
++
+ 	if (chip_id == TGUI9660) {
+-		outb(RevisionID,0x3C4);
+-		revision = inb(0x3C5);	
+-	
++		outb(RevisionID, 0x3C4);
++		revision = inb(0x3C5);
++
+ 		switch (revision) {
+-			case 0x22:
+-			case 0x23: chip_id = CYBER9397;break;
+-			case 0x2A: chip_id = CYBER9397DVD;break;
+-			case 0x30:
+-			case 0x33:
+-			case 0x34:
+-			case 0x35:
+-			case 0x38:
+-			case 0x3A:
+-			case 0xB3: chip_id = CYBER9385;break;
+-			case 0x40 ... 0x43: chip_id = CYBER9382;break;
+-			case 0x4A: chip_id = CYBER9388;break;
+-			default:break;	
++		case 0x22:
++		case 0x23:
++			chip_id = CYBER9397;
++			break;
++		case 0x2A:
++			chip_id = CYBER9397DVD;
++			break;
++		case 0x30:
++		case 0x33:
++		case 0x34:
++		case 0x35:
++		case 0x38:
++		case 0x3A:
++		case 0xB3:
++			chip_id = CYBER9385;
++			break;
++		case 0x40 ... 0x43:
++			chip_id = CYBER9382;
++			break;
++		case 0x4A:
++			chip_id = CYBER9388;
++			break;
++		default:
++			break;
+ 		}
+ 	}
+ 
+@@ -1095,8 +1216,7 @@ static int __devinit trident_pci_probe(s
+ 
+ 	if (is_xp(chip_id)) {
+ 		acc = &accel_xp;
+-	} else 
+-	if (is_blade(chip_id)) {
++	} else if (is_blade(chip_id)) {
+ 		acc = &accel_blade;
+ 	} else {
+ 		acc = &accel_image;
+@@ -1108,8 +1228,8 @@ static int __devinit trident_pci_probe(s
+ 	fb_info.par = &default_par;
+ 
+ 	/* setup MMIO region */
+-	tridentfb_fix.mmio_start = pci_resource_start(dev,1);
+-	tridentfb_fix.mmio_len = chip3D ? 0x20000:0x10000;
++	tridentfb_fix.mmio_start = pci_resource_start(dev, 1);
++	tridentfb_fix.mmio_len = chip3D ? 0x20000 : 0x10000;
+ 
+ 	if (!request_mem_region(tridentfb_fix.mmio_start, tridentfb_fix.mmio_len, "tridentfb")) {
+ 		debug("request_region failed!\n");
+@@ -1125,11 +1245,11 @@ static int __devinit trident_pci_probe(s
+ 	}
+ 
+ 	enable_mmio();
+-	
++
+ 	/* setup framebuffer memory */
+-	tridentfb_fix.smem_start = pci_resource_start(dev,0);
++	tridentfb_fix.smem_start = pci_resource_start(dev, 0);
+ 	tridentfb_fix.smem_len = get_memsize();
+-	
++
+ 	if (!request_mem_region(tridentfb_fix.smem_start, tridentfb_fix.smem_len, "tridentfb")) {
+ 		debug("request_mem_region failed!\n");
+ 		err = -1;
+@@ -1137,7 +1257,7 @@ static int __devinit trident_pci_probe(s
+ 	}
+ 
+ 	fb_info.screen_base = ioremap_nocache(tridentfb_fix.smem_start,
+-		       			tridentfb_fix.smem_len);
++					      tridentfb_fix.smem_len);
+ 
+ 	if (!fb_info.screen_base) {
+ 		release_mem_region(tridentfb_fix.smem_start, tridentfb_fix.smem_len);
+@@ -1147,13 +1267,13 @@ static int __devinit trident_pci_probe(s
+ 	}
+ 
+ 	output("%s board found\n", pci_name(dev));
+-#if 0	
+-	output("Trident board found : mem = %X,io = %X, mem_v = %X, io_v = %X\n",
++#if 0
++	output("Trident board found : mem = %X, io = %X, mem_v = %X, io_v = %X\n",
+ 		tridentfb_fix.smem_start, tridentfb_fix.mmio_start, fb_info.screen_base, default_par.io_virt);
+ #endif
+ 	displaytype = get_displaytype();
+ 
+-	if(flatpanel)
++	if (flatpanel)
+ 		nativex = get_nativex();
+ 
+ 	fb_info.fix = tridentfb_fix;
+@@ -1166,11 +1286,11 @@ static int __devinit trident_pci_probe(s
+ #endif
+ 	fb_info.pseudo_palette = pseudo_pal;
+ 
+-	if (!fb_find_mode(&default_var,&fb_info,mode,NULL,0,NULL,bpp)) {
++	if (!fb_find_mode(&default_var, &fb_info, mode, NULL, 0, NULL, bpp)) {
+ 		err = -EINVAL;
+ 		goto out_unmap;
+ 	}
+-	fb_alloc_cmap(&fb_info.cmap,256,0);
++	fb_alloc_cmap(&fb_info.cmap, 256, 0);
+ 	if (defaultaccel && acc)
+ 		default_var.accel_flags |= FB_ACCELF_TEXT;
+ 	else
+@@ -1184,8 +1304,8 @@ static int __devinit trident_pci_probe(s
+ 		goto out_unmap;
+ 	}
+ 	output("fb%d: %s frame buffer device %dx%d-%dbpp\n",
+-	   fb_info.node, fb_info.fix.id,default_var.xres,
+-	   default_var.yres,default_var.bits_per_pixel);
++	   fb_info.node, fb_info.fix.id, default_var.xres,
++	   default_var.yres, default_var.bits_per_pixel);
+ 	return 0;
+ 
+ out_unmap:
+@@ -1196,7 +1316,7 @@ out_unmap:
+ 	return err;
+ }
+ 
+-static void __devexit trident_pci_remove(struct pci_dev * dev)
++static void __devexit trident_pci_remove(struct pci_dev *dev)
+ {
+ 	struct tridentfb_par *par = (struct tridentfb_par*)fb_info.par;
+ 	unregister_framebuffer(&fb_info);
+@@ -1208,69 +1328,70 @@ static void __devexit trident_pci_remove
+ 
+ /* List of boards that we are trying to support */
+ static struct pci_device_id trident_devices[] = {
+-	{PCI_VENDOR_ID_TRIDENT,	BLADE3D, PCI_ANY_ID,PCI_ANY_ID,0,0,0},
+-	{PCI_VENDOR_ID_TRIDENT,	CYBERBLADEi7, PCI_ANY_ID,PCI_ANY_ID,0,0,0},
+-	{PCI_VENDOR_ID_TRIDENT,	CYBERBLADEi7D, PCI_ANY_ID,PCI_ANY_ID,0,0,0},
+-	{PCI_VENDOR_ID_TRIDENT,	CYBERBLADEi1, PCI_ANY_ID,PCI_ANY_ID,0,0,0},
+-	{PCI_VENDOR_ID_TRIDENT,	CYBERBLADEi1D, PCI_ANY_ID,PCI_ANY_ID,0,0,0},
+-	{PCI_VENDOR_ID_TRIDENT,	CYBERBLADEAi1, PCI_ANY_ID,PCI_ANY_ID,0,0,0},
+-	{PCI_VENDOR_ID_TRIDENT,	CYBERBLADEAi1D, PCI_ANY_ID,PCI_ANY_ID,0,0,0},
+-	{PCI_VENDOR_ID_TRIDENT,	CYBERBLADEE4, PCI_ANY_ID,PCI_ANY_ID,0,0,0},
+-	{PCI_VENDOR_ID_TRIDENT,	TGUI9660, PCI_ANY_ID,PCI_ANY_ID,0,0,0},
+-	{PCI_VENDOR_ID_TRIDENT,	IMAGE975, PCI_ANY_ID,PCI_ANY_ID,0,0,0},
+-	{PCI_VENDOR_ID_TRIDENT,	IMAGE985, PCI_ANY_ID,PCI_ANY_ID,0,0,0},
+-	{PCI_VENDOR_ID_TRIDENT,	CYBER9320, PCI_ANY_ID,PCI_ANY_ID,0,0,0},
+-	{PCI_VENDOR_ID_TRIDENT,	CYBER9388, PCI_ANY_ID,PCI_ANY_ID,0,0,0},
+-	{PCI_VENDOR_ID_TRIDENT,	CYBER9520, PCI_ANY_ID,PCI_ANY_ID,0,0,0},
+-	{PCI_VENDOR_ID_TRIDENT,	CYBER9525DVD, PCI_ANY_ID,PCI_ANY_ID,0,0,0},
+-	{PCI_VENDOR_ID_TRIDENT,	CYBER9397, PCI_ANY_ID,PCI_ANY_ID,0,0,0},
+-	{PCI_VENDOR_ID_TRIDENT,	CYBER9397DVD, PCI_ANY_ID,PCI_ANY_ID,0,0,0},
+-	{PCI_VENDOR_ID_TRIDENT,	CYBERBLADEXPAi1, PCI_ANY_ID,PCI_ANY_ID,0,0,0},
+-	{PCI_VENDOR_ID_TRIDENT,	CYBERBLADEXPm8, PCI_ANY_ID,PCI_ANY_ID,0,0,0},
+-	{PCI_VENDOR_ID_TRIDENT,	CYBERBLADEXPm16, PCI_ANY_ID,PCI_ANY_ID,0,0,0},
++	{PCI_VENDOR_ID_TRIDENT,	BLADE3D, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{PCI_VENDOR_ID_TRIDENT,	CYBERBLADEi7, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{PCI_VENDOR_ID_TRIDENT,	CYBERBLADEi7D, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{PCI_VENDOR_ID_TRIDENT,	CYBERBLADEi1, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{PCI_VENDOR_ID_TRIDENT,	CYBERBLADEi1D, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{PCI_VENDOR_ID_TRIDENT,	CYBERBLADEAi1, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{PCI_VENDOR_ID_TRIDENT,	CYBERBLADEAi1D, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{PCI_VENDOR_ID_TRIDENT,	CYBERBLADEE4, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{PCI_VENDOR_ID_TRIDENT,	TGUI9660, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{PCI_VENDOR_ID_TRIDENT,	IMAGE975, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{PCI_VENDOR_ID_TRIDENT,	IMAGE985, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{PCI_VENDOR_ID_TRIDENT,	CYBER9320, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{PCI_VENDOR_ID_TRIDENT,	CYBER9388, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{PCI_VENDOR_ID_TRIDENT,	CYBER9520, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{PCI_VENDOR_ID_TRIDENT,	CYBER9525DVD, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{PCI_VENDOR_ID_TRIDENT,	CYBER9397, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{PCI_VENDOR_ID_TRIDENT,	CYBER9397DVD, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{PCI_VENDOR_ID_TRIDENT,	CYBERBLADEXPAi1, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{PCI_VENDOR_ID_TRIDENT,	CYBERBLADEXPm8, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{PCI_VENDOR_ID_TRIDENT,	CYBERBLADEXPm16, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
+ 	{0,}
+-};	
+-	
+-MODULE_DEVICE_TABLE(pci,trident_devices); 
++};
++
++MODULE_DEVICE_TABLE(pci, trident_devices);
+ 
+ static struct pci_driver tridentfb_pci_driver = {
+-	.name		= "tridentfb",
+-	.id_table	= trident_devices,
+-	.probe		= trident_pci_probe,
+-	.remove		= __devexit_p(trident_pci_remove)
++	.name = "tridentfb",
++	.id_table = trident_devices,
++	.probe = trident_pci_probe,
++	.remove = __devexit_p(trident_pci_remove)
+ };
+ 
  /*
-- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
-+ * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
+  * Parse user specified options (`video=trident:')
+  * example:
+- * 	video=trident:800x600,bpp=16,noaccel
++ *	video=trident:800x600,bpp=16,noaccel
   */
- 
--#include <stdio.h>
--#include <stddef.h>
- #include <errno.h>
--#include <unistd.h>
--#include "ptrace_user.h"
--/* Grr, asm/user.h includes asm/ptrace.h, so has to follow ptrace_user.h */
--#include <asm/user.h>
--#include "kern_util.h"
--#include "user.h"
--#include "os.h"
--#include "uml-config.h"
-+#include <sys/ptrace.h>
- 
- int ptrace_getregs(long pid, unsigned long *regs_out)
+ #ifndef MODULE
+ static int tridentfb_setup(char *options)
  {
+-	char * opt;
++	char *opt;
+ 	if (!options || !*options)
+ 		return 0;
+-	while((opt = strsep(&options,",")) != NULL ) {
+-		if (!*opt) continue;
+-		if (!strncmp(opt,"noaccel",7))
++	while ((opt = strsep(&options, ",")) != NULL) {
++		if (!*opt)
++			continue;
++		if (!strncmp(opt, "noaccel", 7))
+ 			noaccel = 1;
+-		else if (!strncmp(opt,"fp",2))
++		else if (!strncmp(opt, "fp", 2))
+ 			displaytype = DISPLAY_FP;
+-		else if (!strncmp(opt,"crt",3))
++		else if (!strncmp(opt, "crt", 3))
+ 			displaytype = DISPLAY_CRT;
+-		else if (!strncmp(opt,"bpp=",4))
+-			bpp = simple_strtoul(opt+4,NULL,0);
+-		else if (!strncmp(opt,"center",6))
++		else if (!strncmp(opt, "bpp=", 4))
++			bpp = simple_strtoul(opt + 4, NULL, 0);
++		else if (!strncmp(opt, "center", 6))
+ 			center = 1;
+-		else if (!strncmp(opt,"stretch",7))
++		else if (!strncmp(opt, "stretch", 7))
+ 			stretch = 1;
+-		else if (!strncmp(opt,"memsize=",8))
+-			memsize = simple_strtoul(opt+8,NULL,0);
+-		else if (!strncmp(opt,"memdiff=",8))
+-			memdiff = simple_strtoul(opt+8,NULL,0);
+-		else if (!strncmp(opt,"nativex=",8))
+-			nativex = simple_strtoul(opt+8,NULL,0);
++		else if (!strncmp(opt, "memsize=", 8))
++			memsize = simple_strtoul(opt + 8, NULL, 0);
++		else if (!strncmp(opt, "memdiff=", 8))
++			memdiff = simple_strtoul(opt + 8, NULL, 0);
++		else if (!strncmp(opt, "nativex=", 8))
++			nativex = simple_strtoul(opt + 8, NULL, 0);
+ 		else
+ 			mode = opt;
+ 	}
+@@ -1296,18 +1417,6 @@ static void __exit tridentfb_exit(void)
+ 	pci_unregister_driver(&tridentfb_pci_driver);
+ }
+ 
+-static struct fb_ops tridentfb_ops = {
+-	.owner	= THIS_MODULE,
+-	.fb_setcolreg = tridentfb_setcolreg,
+-	.fb_pan_display = tridentfb_pan_display,
+-	.fb_blank = tridentfb_blank,
+-	.fb_check_var = tridentfb_check_var,
+-	.fb_set_par = tridentfb_set_par,
+-	.fb_fillrect = tridentfb_fillrect,
+-	.fb_copyarea= tridentfb_copyarea,
+-	.fb_imageblit = cfb_imageblit,
+-};
+-
+ module_init(tridentfb_init);
+ module_exit(tridentfb_exit);
+ 
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-git-kvm.patch
-uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
-bitops-introduce-lock-ops.patch
+git-alsa.patch
+cyber2000fb-checkpatch-fixes.patch
