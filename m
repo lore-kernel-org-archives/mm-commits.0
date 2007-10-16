@@ -1,115 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: - uml-definitively-kill-subprocesses-on-panic.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:39:14 -0700
-Message-ID: <200710162039.l9GKdEg4015525@imap1.linux-foundation.org>
+Subject: - pmagb-b-fb-improve-diagnostics.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:44:56 -0700
+Message-ID: <200710162044.l9GKiumM016209@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45845 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58739 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935896AbXJPVIB (ORCPT
+	by vger.kernel.org with ESMTP id S1753010AbXJPVIC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:08:01 -0400
+	Tue, 16 Oct 2007 17:08:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ytht.net@gmail.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: macro@linux-mips.org, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: definitively kill subprocesses on panic
+     pmagb-b-fb: improve diagnostics
 has been removed from the -mm tree.  Its filename was
-     uml-definitively-kill-subprocesses-on-panic.patch
+     pmagb-b-fb-improve-diagnostics.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: definitively kill subprocesses on panic
-From: Lepton Wu <ytht.net@gmail.com>
+Subject: pmagb-b-fb: improve diagnostics
+From: Maciej W. Rozycki <macro@linux-mips.org>
 
-In a stock 2.6.22.6 kernel, poweroff a user mode linux guest (2.6.22.6 running
-in skas0 mode) will halt the host linux.  I think the reason is the kernel
-thread abort because of a bug.  Then the sys_reboot in process of user mode
-linux guest is not trapped by the user mode linux kernel and is executed by
-host.  I think it is better to make sure all of our children process to quit
-when user mode linux kernel abort.
+Add error messages to the probe call.
 
-[ jdike - the kernel process needs to ignore SIGTERM, plus the waitpid/kill
-loop is needed to make sure that all of our children are dead before the
-kernel exits ]
+[adaplas]
+On failure, return actual error value instead of -ENXIO.
 
-Signed-off-by: Lepton Wu <ytht.net@gmail.com>
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/skas/process.c |    2 -
- arch/um/os-Linux/util.c         |   38 ++++++++++++++++++++++++++++++
- 2 files changed, 39 insertions(+), 1 deletion(-)
+ drivers/video/pmagb-b-fb.c |   34 +++++++++++++++++++++++++++-------
+ 1 file changed, 27 insertions(+), 7 deletions(-)
 
-diff -puN arch/um/os-Linux/skas/process.c~uml-definitively-kill-subprocesses-on-panic arch/um/os-Linux/skas/process.c
---- a/arch/um/os-Linux/skas/process.c~uml-definitively-kill-subprocesses-on-panic
-+++ a/arch/um/os-Linux/skas/process.c
-@@ -177,7 +177,7 @@ static int userspace_tramp(void *stack)
+diff -puN drivers/video/pmagb-b-fb.c~pmagb-b-fb-improve-diagnostics drivers/video/pmagb-b-fb.c
+--- a/drivers/video/pmagb-b-fb.c~pmagb-b-fb-improve-diagnostics
++++ a/drivers/video/pmagb-b-fb.c
+@@ -254,16 +254,23 @@ static int __init pmagbbfb_probe(struct 
+ 	struct pmagbbfb_par *par;
+ 	char freq0[12], freq1[12];
+ 	u32 vid_base;
++	int err;
  
- 	ptrace(PTRACE_TRACEME, 0, 0, 0);
+ 	info = framebuffer_alloc(sizeof(struct pmagbbfb_par), dev);
+-	if (!info)
++	if (!info) {
++		printk(KERN_ERR "%s: Cannot allocate memory\n", dev->bus_id);
+ 		return -ENOMEM;
++	}
  
--	init_new_thread_signals();
-+	signal(SIGTERM, SIG_DFL);
- 	err = set_interval();
- 	if (err)
- 		panic("userspace_tramp - setting timer failed, errno = %d\n",
-diff -puN arch/um/os-Linux/util.c~uml-definitively-kill-subprocesses-on-panic arch/um/os-Linux/util.c
---- a/arch/um/os-Linux/util.c~uml-definitively-kill-subprocesses-on-panic
-+++ a/arch/um/os-Linux/util.c
-@@ -105,6 +105,44 @@ int setjmp_wrapper(void (*proc)(void *, 
+ 	par = info->par;
+ 	dev_set_drvdata(dev, info);
  
- void os_dump_core(void)
- {
-+	int pid;
-+
- 	signal(SIGSEGV, SIG_DFL);
-+
-+	/*
-+	 * We are about to SIGTERM this entire process group to ensure that
-+	 * nothing is around to run after the kernel exits.  The
-+	 * kernel wants to abort, not die through SIGTERM, so we
-+	 * ignore it here.
-+	 */
-+
-+	signal(SIGTERM, SIG_IGN);
-+	kill(0, SIGTERM);
-+	/*
-+	 * Most of the other processes associated with this UML are
-+	 * likely sTopped, so give them a SIGCONT so they see the
-+	 * SIGTERM.
-+	 */
-+	kill(0, SIGCONT);
-+
-+	/*
-+	 * Now, having sent signals to everyone but us, make sure they
-+	 * die by ptrace.  Processes can survive what's been done to
-+	 * them so far - the mechanism I understand is receiving a
-+	 * SIGSEGV and segfaulting immediately upon return.  There is
-+	 * always a SIGSEGV pending, and (I'm guessing) signals are
-+	 * processed in numeric order so the SIGTERM (signal 15 vs
-+	 * SIGSEGV being signal 11) is never handled.
-+	 *
-+	 * Run a waitpid loop until we get some kind of error.
-+	 * Hopefully, it's ECHILD, but there's not a lot we can do if
-+	 * it's something else.  Tell os_kill_ptraced_process not to
-+	 * wait for the child to report its death because there's
-+	 * nothing reasonable to do if that fails.
-+	 */
-+
-+	while ((pid = waitpid(-1, NULL, WNOHANG)) > 0)
-+		os_kill_ptraced_process(pid, 0);
-+
- 	abort();
+-	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0)
++	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0) {
++		printk(KERN_ERR "%s: Cannot allocate color map\n",
++		       dev->bus_id);
++		err = -ENOMEM;
+ 		goto err_alloc;
++	}
+ 
+ 	info->fbops = &pmagbbfb_ops;
+ 	info->fix = pmagbbfb_fix;
+@@ -273,22 +280,31 @@ static int __init pmagbbfb_probe(struct 
+ 	/* Request the I/O MEM resource.  */
+ 	start = tdev->resource.start;
+ 	len = tdev->resource.end - start + 1;
+-	if (!request_mem_region(start, len, dev->bus_id))
++	if (!request_mem_region(start, len, dev->bus_id)) {
++		printk(KERN_ERR "%s: Cannot reserve FB region\n", dev->bus_id);
++		err = -EBUSY;
+ 		goto err_cmap;
++	}
+ 
+ 	/* MMIO mapping setup.  */
+ 	info->fix.mmio_start = start;
+ 	par->mmio = ioremap_nocache(info->fix.mmio_start, info->fix.mmio_len);
+-	if (!par->mmio)
++	if (!par->mmio) {
++		printk(KERN_ERR "%s: Cannot map MMIO\n", dev->bus_id);
++		err = -ENOMEM;
+ 		goto err_resource;
++	}
+ 	par->sfb = par->mmio + PMAGB_B_SFB;
+ 	par->dac = par->mmio + PMAGB_B_BT459;
+ 
+ 	/* Frame buffer mapping setup.  */
+ 	info->fix.smem_start = start + PMAGB_B_FBMEM;
+ 	par->smem = ioremap_nocache(info->fix.smem_start, info->fix.smem_len);
+-	if (!par->smem)
++	if (!par->smem) {
++		printk(KERN_ERR "%s: Cannot map FB\n", dev->bus_id);
++		err = -ENOMEM;
+ 		goto err_mmio_map;
++	}
+ 	vid_base = sfb_read(par, SFB_REG_VID_BASE);
+ 	info->screen_base = (void __iomem *)par->smem + vid_base * 0x1000;
+ 	info->screen_size = info->fix.smem_len - 2 * vid_base * 0x1000;
+@@ -297,8 +313,12 @@ static int __init pmagbbfb_probe(struct 
+ 	pmagbbfb_screen_setup(info);
+ 	pmagbbfb_osc_setup(info);
+ 
+-	if (register_framebuffer(info) < 0)
++	err = register_framebuffer(info);
++	if (err < 0) {
++		printk(KERN_ERR "%s: Cannot register framebuffer\n",
++		       dev->bus_id);
+ 		goto err_smem_map;
++	}
+ 
+ 	get_device(dev);
+ 
+@@ -330,7 +350,7 @@ err_cmap:
+ 
+ err_alloc:
+ 	framebuffer_release(info);
+-	return -ENXIO;
++	return err;
  }
+ 
+ static int __exit pmagbbfb_remove(struct device *dev)
 _
 
-Patches currently in -mm which might be from ytht.net@gmail.com are
+Patches currently in -mm which might be from macro@linux-mips.org are
 
 origin.patch
-reiserfs-fix-kernel-panic-on-corrupted-directory.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished-fix.patch
+include-linux-typesh-in-if_fddih.patch
+avoid-negative-and-full-width-shifts-in-radix-treec.patch
+lk201-remove-obsolete-driver.patch
+kernel-printkc-concerns-about-the-console-handover.patch
