@@ -1,146 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: - uml-tidy-recently-moved-code.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:36:47 -0700
-Message-ID: <200710162036.l9GKal1e015217@imap1.linux-foundation.org>
+Subject: - rtc-periodic-irq-fix.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:41:14 -0700
+Message-ID: <200710162041.l9GKfEuC015772@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39114 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51126 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936001AbXJPVZi (ORCPT
+	by vger.kernel.org with ESMTP id S936037AbXJPVZk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:25:38 -0400
+	Tue, 16 Oct 2007 17:25:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, blaisorblade@yahoo.it, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: alessandro.zummo@towertech.it, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: tidy recently-moved code
+     RTC: periodic irq fix
 has been removed from the -mm tree.  Its filename was
-     uml-tidy-recently-moved-code.patch
+     rtc-periodic-irq-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: tidy recently-moved code
-From: Jeff Dike <jdike@addtoit.com>
+Subject: RTC: periodic irq fix
+From: Alessandro Zummo <alessandro.zummo@towertech.it>
 
-Now that the generic console operations are in a userspace file, we
-can do the following:
-	directly call into libc instead of through the os_* wrappers
-	eliminate os_window_size since it has only one user
+Add kernel/kernel and kernel/user locking for the periodic irq feature of
+the rtc class.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+PIE ioctls are also supported.
+
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/chan_user.c |   30 +++++++++++++++---------------
- arch/um/include/os.h        |    1 -
- arch/um/os-Linux/file.c     |   13 -------------
- 3 files changed, 15 insertions(+), 29 deletions(-)
+ drivers/rtc/class.c     |    1 +
+ drivers/rtc/interface.c |   15 ++++++++++++---
+ drivers/rtc/rtc-dev.c   |   33 +++++++++++----------------------
+ 3 files changed, 24 insertions(+), 25 deletions(-)
 
-diff -puN arch/um/drivers/chan_user.c~uml-tidy-recently-moved-code arch/um/drivers/chan_user.c
---- a/arch/um/drivers/chan_user.c~uml-tidy-recently-moved-code
-+++ a/arch/um/drivers/chan_user.c
-@@ -23,43 +23,43 @@
+diff -puN drivers/rtc/class.c~rtc-periodic-irq-fix drivers/rtc/class.c
+--- a/drivers/rtc/class.c~rtc-periodic-irq-fix
++++ a/drivers/rtc/class.c
+@@ -153,6 +153,7 @@ struct rtc_device *rtc_device_register(c
+ 	mutex_init(&rtc->ops_lock);
+ 	spin_lock_init(&rtc->irq_lock);
+ 	spin_lock_init(&rtc->irq_task_lock);
++	init_waitqueue_head(&rtc->irq_queue);
  
- void generic_close(int fd, void *unused)
- {
--	os_close_file(fd);
-+	close(fd);
+ 	strlcpy(rtc->name, name, RTC_DEVICE_NAME_SIZE);
+ 	snprintf(rtc->dev.bus_id, BUS_ID_SIZE, "rtc%d", id);
+diff -puN drivers/rtc/interface.c~rtc-periodic-irq-fix drivers/rtc/interface.c
+--- a/drivers/rtc/interface.c~rtc-periodic-irq-fix
++++ a/drivers/rtc/interface.c
+@@ -210,6 +210,10 @@ int rtc_irq_register(struct rtc_device *
+ 	if (task == NULL || task->func == NULL)
+ 		return -EINVAL;
+ 
++	/* Cannot register while the char dev is in use */
++	if (!(mutex_trylock(&rtc->char_lock)))
++		return -EBUSY;
++
+ 	spin_lock_irq(&rtc->irq_task_lock);
+ 	if (rtc->irq_task == NULL) {
+ 		rtc->irq_task = task;
+@@ -217,13 +221,14 @@ int rtc_irq_register(struct rtc_device *
+ 	}
+ 	spin_unlock_irq(&rtc->irq_task_lock);
+ 
++	mutex_unlock(&rtc->char_lock);
++
+ 	return retval;
  }
+ EXPORT_SYMBOL_GPL(rtc_irq_register);
  
- int generic_read(int fd, char *c_out, void *unused)
+ void rtc_irq_unregister(struct rtc_device *rtc, struct rtc_task *task)
  {
- 	int n;
- 
--	n = os_read_file(fd, c_out, sizeof(*c_out));
 -
--	if(n == -EAGAIN)
-+	n = read(fd, c_out, sizeof(*c_out));
-+	if (n > 0)
-+		return n;
-+	else if (errno == EAGAIN)
- 		return 0;
--	else if(n == 0)
-+	else if (n == 0)
- 		return -EIO;
--	return n;
-+	return -errno;
- }
+ 	spin_lock_irq(&rtc->irq_task_lock);
+ 	if (rtc->irq_task == task)
+ 		rtc->irq_task = NULL;
+@@ -240,8 +245,10 @@ int rtc_irq_set_state(struct rtc_device 
+ 		return -ENXIO;
  
--/* XXX Trivial wrapper around os_write_file */
-+/* XXX Trivial wrapper around write */
+ 	spin_lock_irqsave(&rtc->irq_task_lock, flags);
++	if (rtc->irq_task != NULL && task == NULL)
++		err = -EBUSY;
+ 	if (rtc->irq_task != task)
+-		err = -ENXIO;
++		err = -EACCES;
+ 	spin_unlock_irqrestore(&rtc->irq_task_lock, flags);
  
- int generic_write(int fd, const char *buf, int n, void *unused)
- {
--	return os_write_file(fd, buf, n);
-+	return write(fd, buf, n);
- }
+ 	if (err == 0)
+@@ -260,8 +267,10 @@ int rtc_irq_set_freq(struct rtc_device *
+ 		return -ENXIO;
  
- int generic_window_size(int fd, void *unused, unsigned short *rows_out,
- 			unsigned short *cols_out)
- {
--	int rows, cols;
-+	struct winsize size;
- 	int ret;
+ 	spin_lock_irqsave(&rtc->irq_task_lock, flags);
++	if (rtc->irq_task != NULL && task == NULL)
++		err = -EBUSY;
+ 	if (rtc->irq_task != task)
+-		err = -ENXIO;
++		err = -EACCES;
+ 	spin_unlock_irqrestore(&rtc->irq_task_lock, flags);
  
--	ret = os_window_size(fd, &rows, &cols);
--	if(ret < 0)
--		return ret;
-+	if(ioctl(fd, TIOCGWINSZ, &size) < 0)
-+		return -errno;
+ 	if (err == 0) {
+diff -puN drivers/rtc/rtc-dev.c~rtc-periodic-irq-fix drivers/rtc/rtc-dev.c
+--- a/drivers/rtc/rtc-dev.c~rtc-periodic-irq-fix
++++ a/drivers/rtc/rtc-dev.c
+@@ -238,17 +238,6 @@ static int rtc_dev_ioctl(struct inode *i
+ 		break;
+ 	}
  
--	ret = ((*rows_out != rows) || (*cols_out != cols));
-+	ret = ((*rows_out != size.ws_row) || (*cols_out != size.ws_col));
- 
--	*rows_out = rows;
--	*cols_out = cols;
-+	*rows_out = size.ws_row;
-+	*cols_out = size.ws_col;
- 
- 	return ret;
- }
-diff -puN arch/um/include/os.h~uml-tidy-recently-moved-code arch/um/include/os.h
---- a/arch/um/include/os.h~uml-tidy-recently-moved-code
-+++ a/arch/um/include/os.h
-@@ -134,7 +134,6 @@ extern void os_print_error(int error, co
- extern int os_get_exec_close(int fd, int *close_on_exec);
- extern int os_set_exec_close(int fd, int close_on_exec);
- extern int os_ioctl_generic(int fd, unsigned int cmd, unsigned long arg);
--extern int os_window_size(int fd, int *rows, int *cols);
- extern int os_new_tty_pgrp(int fd, int pid);
- extern int os_get_ifname(int fd, char *namebuf);
- extern int os_set_slip(int fd);
-diff -puN arch/um/os-Linux/file.c~uml-tidy-recently-moved-code arch/um/os-Linux/file.c
---- a/arch/um/os-Linux/file.c~uml-tidy-recently-moved-code
-+++ a/arch/um/os-Linux/file.c
-@@ -101,19 +101,6 @@ int os_ioctl_generic(int fd, unsigned in
- 	return err;
- }
- 
--int os_window_size(int fd, int *rows, int *cols)
--{
--	struct winsize size;
+-	/* avoid conflicting IRQ users */
+-	if (cmd == RTC_PIE_ON || cmd == RTC_PIE_OFF || cmd == RTC_IRQP_SET) {
+-		spin_lock_irq(&rtc->irq_task_lock);
+-		if (rtc->irq_task)
+-			err = -EBUSY;
+-		spin_unlock_irq(&rtc->irq_task_lock);
 -
--	if(ioctl(fd, TIOCGWINSZ, &size) < 0)
--		return -errno;
+-		if (err < 0)
+-			return err;
+-	}
 -
--	*rows = size.ws_row;
--	*cols = size.ws_col;
--
--	return 0;
--}
--
- int os_new_tty_pgrp(int fd, int pid)
- {
- 	if(ioctl(fd, TIOCSCTTY, 0) < 0)
+ 	/* try the driver's ioctl interface */
+ 	if (ops->ioctl) {
+ 		err = ops->ioctl(rtc->dev.parent, cmd, arg);
+@@ -338,18 +327,20 @@ static int rtc_dev_ioctl(struct inode *i
+ 		err = rtc_set_time(rtc, &tm);
+ 		break;
+ 
+-	case RTC_IRQP_READ:
+-		if (ops->irq_set_freq)
+-			err = put_user(rtc->irq_freq, (unsigned long __user *)uarg);
+-		else
+-			err = -ENOTTY;
++	case RTC_PIE_ON:
++		err = rtc_irq_set_state(rtc, NULL, 1);
++		break;
++
++	case RTC_PIE_OFF:
++		err = rtc_irq_set_state(rtc, NULL, 0);
+ 		break;
+ 
+ 	case RTC_IRQP_SET:
+-		if (ops->irq_set_freq)
+-			err = rtc_irq_set_freq(rtc, rtc->irq_task, arg);
+-		else
+-			err = -ENOTTY;
++		err = rtc_irq_set_freq(rtc, NULL, arg);
++		break;
++
++	case RTC_IRQP_READ:
++		err = put_user(rtc->irq_freq, (unsigned long __user *)uarg);
+ 		break;
+ 
+ #if 0
+@@ -449,8 +440,6 @@ void rtc_dev_prepare(struct rtc_device *
+ 	rtc->dev.devt = MKDEV(MAJOR(rtc_devt), rtc->id);
+ 
+ 	mutex_init(&rtc->char_lock);
+-	spin_lock_init(&rtc->irq_lock);
+-	init_waitqueue_head(&rtc->irq_queue);
+ #ifdef CONFIG_RTC_INTF_DEV_UIE_EMUL
+ 	INIT_WORK(&rtc->uie_task, rtc_uie_task);
+ 	setup_timer(&rtc->uie_timer, rtc_uie_timer, (unsigned long)rtc);
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from alessandro.zummo@towertech.it are
 
 origin.patch
-git-kvm.patch
-uml-header_ops-conversion-needed-for-non-ethernet-drivers.patch
-bitops-introduce-lock-ops.patch
