@@ -1,183 +1,234 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-fix-tag-1-parsing-code.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 13:40:14 -0700
-Message-ID: <200710162040.l9GKeEs1015667@imap1.linux-foundation.org>
+Subject: - uvesafb-documentation.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 13:41:51 -0700
+Message-ID: <200710162041.l9GKfpUN015826@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49504 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43426 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965657AbXJPVOd (ORCPT
+	by vger.kernel.org with ESMTP id S965502AbXJPVO2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 17:14:33 -0400
+	Tue, 16 Oct 2007 17:14:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhalcrow@us.ibm.com, jsipek@fsl.cs.sunysb.edu, mm-commits@vger.kernel.org
+To: spock@gentoo.org, adaplas@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eCryptfs: fix Tag 1 parsing code
+     uvesafb: documentation
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-fix-tag-1-parsing-code.patch
+     uvesafb-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: eCryptfs: fix Tag 1 parsing code
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: uvesafb: documentation
+From: Michal Januszewski <spock@gentoo.org>
 
-Fix up the Tag 1 parsing code to handle size limits and boundaries more
-explicitly.  Initialize the new auth_tok's flags.
+Documentation for the uvesafb driver.
 
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
+Signed-off-by: Michal Januszewski <spock@gentoo.org>
+Signed-off-by: Antonino Daplas <adaplas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/keystore.c |   78 ++++++++++++++++-----------------------
- 1 file changed, 33 insertions(+), 45 deletions(-)
+ Documentation/fb/uvesafb.txt |  188 +++++++++++++++++++++++++++++++++
+ 1 file changed, 188 insertions(+)
 
-diff -puN fs/ecryptfs/keystore.c~ecryptfs-fix-tag-1-parsing-code fs/ecryptfs/keystore.c
---- a/fs/ecryptfs/keystore.c~ecryptfs-fix-tag-1-parsing-code
-+++ a/fs/ecryptfs/keystore.c
-@@ -512,72 +512,64 @@ parse_tag_1_packet(struct ecryptfs_crypt
- 
- 	(*packet_size) = 0;
- 	(*new_auth_tok) = NULL;
--
--	/* we check that:
--	 *   one byte for the Tag 1 ID flag
--	 *   two bytes for the body size
--	 * do not exceed the maximum_packet_size
-+	/**
-+	 * This format is inspired by OpenPGP; see RFC 2440
-+	 * packet tag 1
-+	 *
-+	 * Tag 1 identifier (1 byte)
-+	 * Max Tag 1 packet size (max 3 bytes)
-+	 * Version (1 byte)
-+	 * Key identifier (8 bytes; ECRYPTFS_SIG_SIZE)
-+	 * Cipher identifier (1 byte)
-+	 * Encrypted key size (arbitrary)
-+	 *
-+	 * 12 bytes minimum packet size
- 	 */
--	if (unlikely((*packet_size) + 3 > max_packet_size)) {
--		ecryptfs_printk(KERN_ERR, "Packet size exceeds max\n");
-+	if (unlikely(max_packet_size < 12)) {
-+		printk(KERN_ERR "Invalid max packet size; must be >=12\n");
- 		rc = -EINVAL;
- 		goto out;
- 	}
--	/* check for Tag 1 identifier - one byte */
- 	if (data[(*packet_size)++] != ECRYPTFS_TAG_1_PACKET_TYPE) {
--		ecryptfs_printk(KERN_ERR, "Enter w/ first byte != 0x%.2x\n",
--				ECRYPTFS_TAG_1_PACKET_TYPE);
-+		printk(KERN_ERR "Enter w/ first byte != 0x%.2x\n",
-+		       ECRYPTFS_TAG_1_PACKET_TYPE);
- 		rc = -EINVAL;
- 		goto out;
- 	}
- 	/* Released: wipe_auth_tok_list called in ecryptfs_parse_packet_set or
- 	 * at end of function upon failure */
- 	auth_tok_list_item =
--		kmem_cache_alloc(ecryptfs_auth_tok_list_item_cache,
--				 GFP_KERNEL);
-+		kmem_cache_zalloc(ecryptfs_auth_tok_list_item_cache,
-+				  GFP_KERNEL);
- 	if (!auth_tok_list_item) {
--		ecryptfs_printk(KERN_ERR, "Unable to allocate memory\n");
-+		printk(KERN_ERR "Unable to allocate memory\n");
- 		rc = -ENOMEM;
- 		goto out;
- 	}
--	memset(auth_tok_list_item, 0,
--	       sizeof(struct ecryptfs_auth_tok_list_item));
- 	(*new_auth_tok) = &auth_tok_list_item->auth_tok;
--	/* check for body size - one to two bytes
--	 *
--	 *              ***** TAG 1 Packet Format *****
--	 *    | version number                     | 1 byte       |
--	 *    | key ID                             | 8 bytes      |
--	 *    | public key algorithm               | 1 byte       |
--	 *    | encrypted session key              | arbitrary    |
--	 */
--	rc = parse_packet_length(&data[(*packet_size)], &body_size,
--				 &length_size);
--	if (rc) {
--		ecryptfs_printk(KERN_WARNING, "Error parsing packet length; "
--				"rc = [%d]\n", rc);
-+	if ((rc = parse_packet_length(&data[(*packet_size)], &body_size,
-+				      &length_size))) {
-+		printk(KERN_WARNING "Error parsing packet length; "
-+		       "rc = [%d]\n", rc);
- 		goto out_free;
- 	}
--	if (unlikely(body_size < (0x02 + ECRYPTFS_SIG_SIZE))) {
--		ecryptfs_printk(KERN_WARNING, "Invalid body size ([%d])\n",
--				body_size);
-+	if (unlikely(body_size < (ECRYPTFS_SIG_SIZE + 2))) {
-+		printk(KERN_WARNING "Invalid body size ([%d])\n", body_size);
- 		rc = -EINVAL;
- 		goto out_free;
- 	}
- 	(*packet_size) += length_size;
- 	if (unlikely((*packet_size) + body_size > max_packet_size)) {
--		ecryptfs_printk(KERN_ERR, "Packet size exceeds max\n");
-+		printk(KERN_WARNING "Packet size exceeds max\n");
- 		rc = -EINVAL;
- 		goto out_free;
- 	}
--	/* Version 3 (from RFC2440) - one byte */
- 	if (unlikely(data[(*packet_size)++] != 0x03)) {
--		ecryptfs_printk(KERN_DEBUG, "Unknown version number "
--				"[%d]\n", data[(*packet_size) - 1]);
-+		printk(KERN_WARNING "Unknown version number [%d]\n",
-+		       data[(*packet_size) - 1]);
- 		rc = -EINVAL;
- 		goto out_free;
- 	}
--	/* Read Signature */
- 	ecryptfs_to_hex((*new_auth_tok)->token.private_key.signature,
- 			&data[(*packet_size)], ECRYPTFS_SIG_SIZE);
- 	*packet_size += ECRYPTFS_SIG_SIZE;
-@@ -585,27 +577,23 @@ parse_tag_1_packet(struct ecryptfs_crypt
- 	 * know which public key encryption algorithm was used */
- 	(*packet_size)++;
- 	(*new_auth_tok)->session_key.encrypted_key_size =
--		body_size - (0x02 + ECRYPTFS_SIG_SIZE);
-+		body_size - (ECRYPTFS_SIG_SIZE + 2);
- 	if ((*new_auth_tok)->session_key.encrypted_key_size
- 	    > ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES) {
--		ecryptfs_printk(KERN_ERR, "Tag 1 packet contains key larger "
--				"than ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES");
-+		printk(KERN_WARNING "Tag 1 packet contains key larger "
-+		       "than ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES");
- 		rc = -EINVAL;
- 		goto out;
- 	}
--	ecryptfs_printk(KERN_DEBUG, "Encrypted key size = [%d]\n",
--			(*new_auth_tok)->session_key.encrypted_key_size);
- 	memcpy((*new_auth_tok)->session_key.encrypted_key,
--	       &data[(*packet_size)], (body_size - 0x02 - ECRYPTFS_SIG_SIZE));
-+	       &data[(*packet_size)], (body_size - (ECRYPTFS_SIG_SIZE + 2)));
- 	(*packet_size) += (*new_auth_tok)->session_key.encrypted_key_size;
- 	(*new_auth_tok)->session_key.flags &=
- 		~ECRYPTFS_CONTAINS_DECRYPTED_KEY;
- 	(*new_auth_tok)->session_key.flags |=
- 		ECRYPTFS_CONTAINS_ENCRYPTED_KEY;
- 	(*new_auth_tok)->token_type = ECRYPTFS_PRIVATE_KEY;
--	(*new_auth_tok)->flags |= ECRYPTFS_PRIVATE_KEY;
--	/* TODO: Why are we setting this flag here? Don't we want the
--	 * userspace to decrypt the session key? */
-+	(*new_auth_tok)->flags = 0;
- 	(*new_auth_tok)->session_key.flags &=
- 		~(ECRYPTFS_USERSPACE_SHOULD_TRY_TO_DECRYPT);
- 	(*new_auth_tok)->session_key.flags &=
+diff -puN /dev/null Documentation/fb/uvesafb.txt
+--- /dev/null
++++ a/Documentation/fb/uvesafb.txt
+@@ -0,0 +1,188 @@
++
++uvesafb - A Generic Driver for VBE2+ compliant video cards
++==========================================================
++
++1. Requirements
++---------------
++
++uvesafb should work with any video card that has a Video BIOS compliant
++with the VBE 2.0 standard.
++
++Unlike other drivers, uvesafb makes use of a userspace helper called
++v86d.  v86d is used to run the x86 Video BIOS code in a simulated and
++controlled environment.  This allows uvesafb to function on arches other
++than x86.  Check the v86d documentation for a list of currently supported
++arches.
++
++v86d source code can be downloaded from the following website:
++  http://dev.gentoo.org/~spock/projects/uvesafb
++
++Please refer to the v86d documentation for detailed configuration and
++installation instructions.
++
++Note that the v86d userspace helper has to be available at all times in
++order for uvesafb to work properly.  If you want to use uvesafb during
++early boot, you will have to include v86d into an initramfs image, and
++either compile it into the kernel or use it as an initrd.
++
++2. Caveats and limitations
++--------------------------
++
++uvesafb is a _generic_ driver which supports a wide variety of video
++cards, but which is ultimately limited by the Video BIOS interface.
++The most important limitations are:
++
++- Lack of any type of acceleration.
++- A strict and limited set of supported video modes.  Often the native
++  or most optimal resolution/refresh rate for your setup will not work
++  with uvesafb, simply because the Video BIOS doesn't support the
++  video mode you want to use.  This can be especially painful with
++  widescreen panels, where native video modes don't have the 4:3 aspect
++  ratio, which is what most BIOS-es are limited to.
++- Adjusting the refresh rate is only possible with a VBE 3.0 compliant
++  Video BIOS.  Note that many nVidia Video BIOS-es claim to be VBE 3.0
++  compliant, while they simply ignore any refresh rate settings.
++
++3. Configuration
++----------------
++
++uvesafb can be compiled either as a module, or directly into the kernel.
++In both cases it supports the same set of configuration options, which
++are either given on the kernel command line or as module parameters, e.g.:
++
++ video=uvesafb:1024x768-32,mtrr:3,ywrap (compiled into the kernel)
++
++ # modprobe uvesafb mode=1024x768-32 mtrr=3 scroll=ywrap  (module)
++
++Accepted options:
++
++ypan    Enable display panning using the VESA protected mode
++        interface.  The visible screen is just a window of the
++        video memory, console scrolling is done by changing the
++        start of the window.  Available on x86 only.
++
++ywrap   Same as ypan, but assumes your gfx board can wrap-around
++        the video memory (i.e. starts reading from top if it
++        reaches the end of video memory).  Faster than ypan.
++        Available on x86 only.
++
++redraw  Scroll by redrawing the affected part of the screen, this
++        is the safe (and slow) default.
++
++(If you're using uvesafb as a module, the above three options are
++ used a parameter of the scroll option, e.g. scroll=ypan.)
++
++vgapal  Use the standard VGA registers for palette changes.
++
++pmipal  Use the protected mode interface for palette changes.
++        This is the default if the protected mode interface is
++        available.  Available on x86 only.
++
++mtrr:n  Setup memory type range registers for the framebuffer
++        where n:
++              0 - disabled (equivalent to nomtrr) (default)
++              1 - uncachable
++              2 - write-back
++              3 - write-combining
++              4 - write-through
++
++        If you see the following in dmesg, choose the type that matches
++        the old one.  In this example, use "mtrr:2".
++...
++mtrr: type mismatch for e0000000,8000000 old: write-back new: write-combining
++...
++
++nomtrr  Do not use memory type range registers.
++
++vremap:n
++        Remap 'n' MiB of video RAM.  If 0 or not specified, remap memory
++        according to video mode.
++
++vtotal:n
++        If the video BIOS of your card incorrectly determines the total
++        amount of video RAM, use this option to override the BIOS (in MiB).
++
++<mode>  The mode you want to set, in the standard modedb format.  Refer to
++        modedb.txt for a detailed description.  When uvesafb is compiled as
++        a module, the mode string should be provided as a value of the
++        'mode' option.
++
++vbemode:x
++        Force the use of VBE mode x.  The mode will only be set if it's
++        found in the VBE-provided list of supported modes.
++        NOTE: The mode number 'x' should be specified in VESA mode number
++        notation, not the Linux kernel one (eg. 257 instead of 769).
++        HINT: If you use this option because normal <mode> parameter does
++        not work for you and you use a X server, you'll probably want to
++        set the 'nocrtc' option to ensure that the video mode is properly
++        restored after console <-> X switches.
++
++nocrtc  Do not use CRTC timings while setting the video mode.  This option
++        has any effect only if the Video BIOS is VBE 3.0 compliant.  Use it
++        if you have problems with modes set the standard way.  Note that
++        using this option implies that any refresh rate adjustments will
++        be ignored and the refresh rate will stay at your BIOS default (60 Hz).
++
++noedid  Do not try to fetch and use EDID-provided modes.
++
++noblank Disable hardware blanking.
++
++v86d:path
++        Set path to the v86d executable. This option is only available as
++        a module parameter, and not as a part of the video= string.  If you
++        need to use it and have uvesafb built into the kernel, use
++        uvesafb.v86d="path".
++
++Additionally, the following parameters may be provided.  They all override the
++EDID-provided values and BIOS defaults.  Refer to your monitor's specs to get
++the correct values for maxhf, maxvf and maxclk for your hardware.
++
++maxhf:n     Maximum horizontal frequency (in kHz).
++maxvf:n     Maximum vertical frequency (in Hz).
++maxclk:n    Maximum pixel clock (in MHz).
++
++4. The sysfs interface
++----------------------
++
++uvesafb provides several sysfs nodes for configurable parameters and
++additional information.
++
++Driver attributes:
++
++/sys/bus/platform/drivers/uvesafb
++  - v86d (default: /sbin/v86d)
++    Path to the v86d executable. v86d is started by uvesafb
++    if an instance of the daemon isn't already running.
++
++Device attributes:
++
++/sys/bus/platform/drivers/uvesafb/uvesafb.0
++  - nocrtc
++    Use the default refresh rate (60 Hz) if set to 1.
++
++  - oem_product_name
++  - oem_product_rev
++  - oem_string
++  - oem_vendor
++    Information about the card and its maker.
++
++  - vbe_modes
++    A list of video modes supported by the Video BIOS along with their
++    VBE mode numbers in hex.
++
++  - vbe_version
++    A BCD value indicating the implemented VBE standard.
++
++5. Miscellaneous
++----------------
++
++Uvesafb will set a video mode with the default refresh rate and timings
++from the Video BIOS if you set pixclock to 0 in fb_var_screeninfo.
++
++
++--
++ Michal Januszewski <spock@gentoo.org>
++ Last updated: 2007-06-16
++
++ Documentation of the uvesafb options is loosely based on vesafb.txt.
++
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from spock@gentoo.org are
 
 origin.patch
-git-unionfs.patch
-ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
-vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
