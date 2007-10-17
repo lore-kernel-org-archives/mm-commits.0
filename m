@@ -1,212 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: + security-convert-lsm-into-a-static-interface-fix-unionfs.patch added to -mm tree
-Date: Tue, 16 Oct 2007 18:36:23 -0700
-Message-ID: <200710170136.l9H1aNEc027911@imap1.linux-foundation.org>
+Subject: - implement-file-posix-capabilities-fix.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 18:37:19 -0700
+Message-ID: <200710170137.l9H1bJvw027925@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54251 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35599 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752487AbXJQBh1 (ORCPT
+	by vger.kernel.org with ESMTP id S1751391AbXJQBhw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 21:37:27 -0400
+	Tue, 16 Oct 2007 21:37:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, arjan@infradead.org, chrisw@sous-sol.org, jmorris@namei.org, jsipek@cs.sunysb.edu, sds@tycho.nsa.gov, serue@us.ibm.com
+To: serue@us.ibm.com, chrisw@sous-sol.org, jmorris@namei.org, morgan@kernel.org, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     security-convert-lsm-into-a-static-interface :fix unionfs
-has been added to the -mm tree.  Its filename is
-     security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+     file capabilities: make file capabilities option EXPERIMENTAL
+has been removed from the -mm tree.  Its filename was
+     implement-file-posix-capabilities-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into implement-file-posix-capabilities.patch
 
 ------------------------------------------------------
-Subject: security-convert-lsm-into-a-static-interface :fix unionfs
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: file capabilities: make file capabilities option EXPERIMENTAL
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-ERROR: "security_inode_permission" [fs/unionfs/unionfs.ko] undefined!
-ERROR: "security_file_ioctl" [fs/unionfs/unionfs.ko] undefined!
+Make file capabilities depend upon CONFIG_EXPERIMENTAL, as few people have
+used them to date.
 
-Need these back.
-
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: James Morris <jmorris@namei.org>
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
 Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
+Cc: James Morris <jmorris@namei.org>
+Cc: Chris Wright <chrisw@sous-sol.org>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/security.c |    2 ++
- 1 file changed, 2 insertions(+)
+ security/Kconfig |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN security/security.c~security-convert-lsm-into-a-static-interface-fix-unionfs security/security.c
---- a/security/security.c~security-convert-lsm-into-a-static-interface-fix-unionfs
-+++ a/security/security.c
-@@ -459,6 +459,7 @@ int security_inode_permission(struct ino
- 		return 0;
- 	return security_ops->inode_permission(inode, mask, nd);
- }
-+EXPORT_SYMBOL(security_inode_permission);
+diff -puN security/Kconfig~implement-file-posix-capabilities-fix security/Kconfig
+--- a/security/Kconfig~implement-file-posix-capabilities-fix
++++ a/security/Kconfig
+@@ -81,8 +81,8 @@ config SECURITY_CAPABILITIES
+ 	  If you are unsure how to answer this question, answer Y.
  
- int security_inode_setattr(struct dentry *dentry, struct iattr *attr)
- {
-@@ -563,6 +564,7 @@ int security_file_ioctl(struct file *fil
- {
- 	return security_ops->file_ioctl(file, cmd, arg);
- }
-+EXPORT_SYMBOL(security_file_ioctl);
- 
- int security_file_mmap(struct file *file, unsigned long reqprot,
- 			unsigned long prot, unsigned long flags,
+ config SECURITY_FILE_CAPABILITIES
+-	bool "File POSIX Capabilities"
+-	depends on SECURITY=n || SECURITY_CAPABILITIES!=n
++	bool "File POSIX Capabilities (EXPERIMENTAL)"
++	depends on (SECURITY=n || SECURITY_CAPABILITIES!=n) && EXPERIMENTAL
+ 	default n
+ 	help
+ 	  This enables filesystem capabilities, allowing you to give
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
-origin.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold.patch
-mm-dirty-balancing-for-tasks.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
-oom-change-all_unreclaimable-zone-member-to-flags.patch
-oom-do-not-take-callback_mutex.patch
-writeback-dont-propagate-aop_writepage_activate.patch
-softlockup-add-a-proc-tuning-parameter.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
-do_sys_poll-simplify-playing-with-on-stack-data.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer.patch
-deprecate-aout-elf-interpreters.patch
-ext2-ext3-ext4-add-block-bitmap-validation.patch
-pie-executable-randomization.patch
-binfmt_flat-warning-fixes.patch
-i2o-fix-defined-but-not-used-build-warnings.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-right.patch
-userc-ifdef-mq_bytes.patch
-ext3-lighten-up-resize-transaction-requirements.patch
-drivers-char-ip2-fix-used-uninitd-bug.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
-md-software-raid-autodetect-dev-list-not-array.patch
-pnp-use-dev_info-dev_err-etc-in-core.patch
+handle-the-multi-threaded-inits-exit-properly.patch
+remove-unused-member-from-nsproxy.patch
+use-kmem_cache-macro-to-create-the-nsproxy-cache.patch
 security-convert-lsm-into-a-static-interface.patch
+implement-file-posix-capabilities.patch
+implement-file-posix-capabilities-fix.patch
+file-capabilities-introduce-cap_setfcap.patch
+file-capabilities-get_file_caps-cleanups.patch
+file-caps-update-selinux-xattr-hooks.patch
+file-capabilities-clear-caps-cleanup.patch
 file-capabilities-clear-caps-cleanup-fix.patch
+file-capabilities-change-xattr-format-v2.patch
+file-capabilities-change-fe-to-a-bool.patch
+file-caps-clean-up-for-linux-capabilityh.patch
 capabilityh-remove-include-of-currenth.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-cifs.patch
-console-keyboard-events-and-accessibility.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-git-jg-warning-fixes.patch
-git-jg-misc-powernow-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-ide-arm-hack.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-git-nfsd-fixup.patch
-qla2xxx-printk-fixes.patch
-sparc-support-for-new-termios.patch
-git-unionfs.patch
-git-nfs-vs-git-unionfs.patch
-git-watchdog-fixup.patch
-git-wireless.patch
-revert-x86_64-mm-cpa-einval.patch
-fix-x86_64-mm-sched-clock-share.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-asm-i386-ioh-fix-constness.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
-git-xfs.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-pm-qos-infrastructure-and-interface-fix.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2-fix-3.patch
-console-events-and-accessibility-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-stop-using-dma_xxbit_mask.patch
-stop-using-dma_xxbit_mask-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-cpuset-sched_load_balance-flag-fix.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
-sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-profile-likely-unlikely-macros-fix.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+file-capabilities-clear-fcaps-on-inode-change.patch
+file-capabilities-clear-fcaps-on-inode-change-fix.patch
+capabilities-reset-current-pdeath_signal-when-increasing-capabilities.patch
+security-cleanups.patch
 security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+v3-file-capabilities-alter-behavior-of-cap_setpcap.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+task-containersv11-basic-task-container-framework.patch
+task-containersv11-add-tasks-file-interface.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
+containers-implement-namespace-tracking-subsystem.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+make-access-to-tasks-nsproxy-lighter.patch
+make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
+make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
+ipc-cleanup-some-code-and-wrong-comments-about-semundo.patch
+virtualization-of-sysv-msg-queues-is-incomplete.patch
