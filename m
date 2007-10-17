@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-ignore-on-disk-s_bmap_nr-value.patch added to -mm tree
-Date: Wed, 17 Oct 2007 15:16:12 -0700
-Message-ID: <200710172216.l9HMGCee011061@imap1.linux-foundation.org>
+Subject: + reiserfs-remove-first_zero_hint-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 17 Oct 2007 15:21:16 -0700
+Message-ID: <200710172221.l9HMLG03011279@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58547 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42504 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757059AbXJQWQe (ORCPT
+	by vger.kernel.org with ESMTP id S1759857AbXJQWV4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Oct 2007 18:16:34 -0400
+	Wed, 17 Oct 2007 18:21:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeffm@suse.com, hch@lst.de, mason@suse.com, vs@namesys.com
+Cc: akpm@linux-foundation.org, hch@lst.de, jeffm@suse.com, mason@suse.com, vs@namesys.com
 
 
 The patch titled
-     reiserfs: ignore on disk s_bmap_nr value
+     reiserfs-remove-first_zero_hint-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     reiserfs-ignore-on-disk-s_bmap_nr-value.patch
+     reiserfs-remove-first_zero_hint-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,278 +26,200 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reiserfs: ignore on disk s_bmap_nr value
-From: Jeff Mahoney <jeffm@suse.com>
+Subject: reiserfs-remove-first_zero_hint-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Implement support for file systems larger than 8 TiB.
+WARNING: no space between function name and open parenthesis '('
+#40: FILE: fs/reiserfs/bitmap.c:1218:
++	BUG_ON (!reiserfs_test_le_bit(0, (unsigned long)bh->b_data))
 
-The reiserfs superblock contains a 16 bit value for counting the number of
-bitmap blocks.  The rest of the disk format supports file systems up to 2^32
-blocks, but the bitmap block limitation artificially limits this to 8 TiB with
-a 4KiB block size.
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-Rather than trust the superblock's 16-bit bitmap block count, we calculate it
-dynamically based on the number of blocks in the file system.  When an
-incorrect value is observed in the superblock, it is zeroed out, ensuring that
-older kernels will not be able to mount the file system.
-
-Userspace support has already been implemented and shipped in reiserfsprogs
-3.6.20.
-
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Chris Mason <mason@suse.com>
 Cc: "Vladimir V. Saveliev" <vs@namesys.com>
+Cc: Chris Mason <mason@suse.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/bitmap.c        |   39 +++++++++++++++++++---------------
- fs/reiserfs/journal.c       |    6 ++---
- fs/reiserfs/resize.c        |    6 ++---
- fs/reiserfs/super.c         |   15 +++++++++++++
- include/linux/reiserfs_fs.h |    5 ++++
- 5 files changed, 48 insertions(+), 23 deletions(-)
+ fs/reiserfs/bitmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/reiserfs/bitmap.c~reiserfs-ignore-on-disk-s_bmap_nr-value fs/reiserfs/bitmap.c
---- a/fs/reiserfs/bitmap.c~reiserfs-ignore-on-disk-s_bmap_nr-value
+diff -puN fs/reiserfs/bitmap.c~reiserfs-remove-first_zero_hint-checkpatch-fixes fs/reiserfs/bitmap.c
+--- a/fs/reiserfs/bitmap.c~reiserfs-remove-first_zero_hint-checkpatch-fixes
 +++ a/fs/reiserfs/bitmap.c
-@@ -61,6 +61,7 @@ static inline void get_bit_address(struc
- int is_reusable(struct super_block *s, b_blocknr_t block, int bit_value)
- {
- 	unsigned int bmap, offset;
-+	unsigned int bmap_count = reiserfs_bmap_count(s);
+@@ -1215,7 +1215,7 @@ void reiserfs_cache_bitmap_metadata(stru
+ 	unsigned long *cur = (unsigned long *)(bh->b_data + bh->b_size);
  
- 	if (block == 0 || block >= SB_BLOCK_COUNT(s)) {
- 		reiserfs_warning(s,
-@@ -76,25 +77,26 @@ int is_reusable(struct super_block *s, b
- 	if (unlikely(test_bit(REISERFS_OLD_FORMAT,
- 			      &(REISERFS_SB(s)->s_properties)))) {
- 		b_blocknr_t bmap1 = REISERFS_SB(s)->s_sbh->b_blocknr + 1;
--		if (block >= bmap1 && block <= bmap1 + SB_BMAP_NR(s)) {
-+		if (block >= bmap1 &&
-+		    block <= bmap1 + bmap_count) {
- 			reiserfs_warning(s, "vs: 4019: is_reusable: "
- 					 "bitmap block %lu(%u) can't be freed or reused",
--					 block, SB_BMAP_NR(s));
-+					 block, bmap_count);
- 			return 0;
- 		}
- 	} else {
- 		if (offset == 0) {
- 			reiserfs_warning(s, "vs: 4020: is_reusable: "
- 					 "bitmap block %lu(%u) can't be freed or reused",
--					 block, SB_BMAP_NR(s));
-+					 block, bmap_count);
- 			return 0;
- 		}
- 	}
+ 	/* The first bit must ALWAYS be 1 */
+-	BUG_ON (!reiserfs_test_le_bit(0, (unsigned long)bh->b_data))
++	BUG_ON(!reiserfs_test_le_bit(0, (unsigned long)bh->b_data))
  
--	if (bmap >= SB_BMAP_NR(s)) {
-+	if (bmap >= bmap_count) {
- 		reiserfs_warning(s,
- 				 "vs-4030: is_reusable: there is no so many bitmap blocks: "
--				 "block=%lu, bitmap_nr=%d", block, bmap);
-+				 "block=%lu, bitmap_nr=%u", block, bmap);
- 		return 0;
- 	}
+ 	info->free_count = 0;
  
-@@ -143,8 +145,8 @@ static int scan_bitmap_block(struct reis
- 
- 	BUG_ON(!th->t_trans_id);
- 
--	RFALSE(bmap_n >= SB_BMAP_NR(s), "Bitmap %d is out of range (0..%d)",
--	       bmap_n, SB_BMAP_NR(s) - 1);
-+	RFALSE(bmap_n >= reiserfs_bmap_count(s), "Bitmap %u is out of "
-+	       "range (0..%u)", bmap_n, reiserfs_bmap_count(s) - 1);
- 	PROC_INFO_INC(s, scan_bitmap.bmap);
- /* this is unclear and lacks comments, explain how journal bitmaps
-    work here for the reader.  Convey a sense of the design here. What
-@@ -249,12 +251,12 @@ static int bmap_hash_id(struct super_blo
- 	} else {
- 		hash_in = (char *)(&id);
- 		hash = keyed_hash(hash_in, 4);
--		bm = hash % SB_BMAP_NR(s);
-+		bm = hash % reiserfs_bmap_count(s);
- 		if (!bm)
- 			bm = 1;
- 	}
- 	/* this can only be true when SB_BMAP_NR = 1 */
--	if (bm >= SB_BMAP_NR(s))
-+	if (bm >= reiserfs_bmap_count(s))
- 		bm = 0;
- 	return bm;
- }
-@@ -328,10 +330,10 @@ static int scan_bitmap(struct reiserfs_t
- 
- 	get_bit_address(s, *start, &bm, &off);
- 	get_bit_address(s, finish, &end_bm, &end_off);
--	if (bm > SB_BMAP_NR(s))
-+	if (bm > reiserfs_bmap_count(s))
- 		return 0;
--	if (end_bm > SB_BMAP_NR(s))
--		end_bm = SB_BMAP_NR(s);
-+	if (end_bm > reiserfs_bmap_count(s))
-+		end_bm = reiserfs_bmap_count(s);
- 
- 	/* When the bitmap is more than 10% free, anyone can allocate.
- 	 * When it's less than 10% free, only files that already use the
-@@ -397,10 +399,12 @@ static void _reiserfs_free_block(struct 
- 
- 	get_bit_address(s, block, &nr, &offset);
- 
--	if (nr >= sb_bmap_nr(rs)) {
-+	if (nr >= reiserfs_bmap_count(s)) {
- 		reiserfs_warning(s, "vs-4075: reiserfs_free_block: "
--				 "block %lu is out of range on %s",
--				 block, reiserfs_bdevname(s));
-+				 "block %lu is out of range on %s "
-+				 "(nr=%u,max=%u)", block,
-+				 reiserfs_bdevname(s), nr,
-+				 reiserfs_bmap_count(s));
- 		return;
- 	}
- 
-@@ -1269,12 +1273,13 @@ struct buffer_head *reiserfs_read_bitmap
- int reiserfs_init_bitmap_cache(struct super_block *sb)
- {
- 	struct reiserfs_bitmap_info *bitmap;
-+	unsigned int bmap_nr = reiserfs_bmap_count(sb);
- 
--	bitmap = vmalloc(sizeof (*bitmap) * SB_BMAP_NR(sb));
-+	bitmap = vmalloc(sizeof (*bitmap) * bmap_nr);
- 	if (bitmap == NULL)
- 		return -ENOMEM;
- 
--	memset(bitmap, 0, sizeof (*bitmap) * SB_BMAP_NR(sb));
-+	memset(bitmap, 0, sizeof (*bitmap) * bmap_nr);
- 
- 	SB_AP_BITMAP(sb) = bitmap;
- 
-diff -puN fs/reiserfs/journal.c~reiserfs-ignore-on-disk-s_bmap_nr-value fs/reiserfs/journal.c
---- a/fs/reiserfs/journal.c~reiserfs-ignore-on-disk-s_bmap_nr-value
-+++ a/fs/reiserfs/journal.c
-@@ -240,7 +240,7 @@ static void cleanup_bitmap_list(struct s
- 	if (jb->bitmaps == NULL)
- 		return;
- 
--	for (i = 0; i < SB_BMAP_NR(p_s_sb); i++) {
-+	for (i = 0; i < reiserfs_bmap_count(p_s_sb); i++) {
- 		if (jb->bitmaps[i]) {
- 			free_bitmap_node(p_s_sb, jb->bitmaps[i]);
- 			jb->bitmaps[i] = NULL;
-@@ -2734,7 +2734,7 @@ int journal_init(struct super_block *p_s
- 	journal->j_persistent_trans = 0;
- 	if (reiserfs_allocate_list_bitmaps(p_s_sb,
- 					   journal->j_list_bitmap,
--					   SB_BMAP_NR(p_s_sb)))
-+					   reiserfs_bmap_count(p_s_sb)))
- 		goto free_and_return;
- 	allocate_bitmap_nodes(p_s_sb);
- 
-@@ -2742,7 +2742,7 @@ int journal_init(struct super_block *p_s
- 	SB_JOURNAL_1st_RESERVED_BLOCK(p_s_sb) = (old_format ?
- 						 REISERFS_OLD_DISK_OFFSET_IN_BYTES
- 						 / p_s_sb->s_blocksize +
--						 SB_BMAP_NR(p_s_sb) +
-+						 reiserfs_bmap_count(p_s_sb) +
- 						 1 :
- 						 REISERFS_DISK_OFFSET_IN_BYTES /
- 						 p_s_sb->s_blocksize + 2);
-diff -puN fs/reiserfs/resize.c~reiserfs-ignore-on-disk-s_bmap_nr-value fs/reiserfs/resize.c
---- a/fs/reiserfs/resize.c~reiserfs-ignore-on-disk-s_bmap_nr-value
-+++ a/fs/reiserfs/resize.c
-@@ -61,7 +61,7 @@ int reiserfs_resize(struct super_block *
- 	}
- 
- 	/* count used bits in last bitmap block */
--	block_r = SB_BLOCK_COUNT(s) - (SB_BMAP_NR(s) - 1) * s->s_blocksize * 8;
-+	block_r = SB_BLOCK_COUNT(s) - (reiserfs_bmap_count(s) - 1) * s->s_blocksize * 8;
- 
- 	/* count bitmap blocks in new fs */
- 	bmap_nr_new = block_count_new / (s->s_blocksize * 8);
-@@ -73,7 +73,7 @@ int reiserfs_resize(struct super_block *
- 
- 	/* save old values */
- 	block_count = SB_BLOCK_COUNT(s);
--	bmap_nr = SB_BMAP_NR(s);
-+	bmap_nr = reiserfs_bmap_count(s);
- 
- 	/* resizing of reiserfs bitmaps (journal and real), if needed */
- 	if (bmap_nr_new > bmap_nr) {
-@@ -200,7 +200,7 @@ int reiserfs_resize(struct super_block *
- 			   free_blocks + (block_count_new - block_count -
- 					  (bmap_nr_new - bmap_nr)));
- 	PUT_SB_BLOCK_COUNT(s, block_count_new);
--	PUT_SB_BMAP_NR(s, bmap_nr_new);
-+	PUT_SB_BMAP_NR(s, bmap_would_wrap(bmap_nr_new) ? : bmap_nr_new );
- 	s->s_dirt = 1;
- 
- 	journal_mark_dirty(&th, s, SB_BUFFER_WITH_SB(s));
-diff -puN fs/reiserfs/super.c~reiserfs-ignore-on-disk-s_bmap_nr-value fs/reiserfs/super.c
---- a/fs/reiserfs/super.c~reiserfs-ignore-on-disk-s_bmap_nr-value
-+++ a/fs/reiserfs/super.c
-@@ -1725,6 +1725,21 @@ static int reiserfs_fill_super(struct su
- 		set_sb_umount_state(rs, REISERFS_ERROR_FS);
- 		set_sb_fs_state(rs, 0);
- 
-+		/* Clear out s_bmap_nr if it would wrap. We can handle this
-+		 * case, but older revisions can't. This will cause the
-+		 * file system to fail mount on those older implementations,
-+		 * avoiding corruption. -jeffm */
-+		if (bmap_would_wrap(reiserfs_bmap_count(s)) &&
-+		    sb_bmap_nr(rs) != 0) {
-+			reiserfs_warning(s, "super-2030: This file system "
-+		                         "claims to use %u bitmap blocks in "
-+		                         "its super block, but requires %u. "
-+		                         "Clearing to zero.", sb_bmap_nr(rs),
-+		                         reiserfs_bmap_count(s));
-+
-+			set_sb_bmap_nr(rs, 0);
-+		}
-+
- 		if (old_format_only(s)) {
- 			/* filesystem of format 3.5 either with standard or non-standard
- 			   journal */
-diff -puN include/linux/reiserfs_fs.h~reiserfs-ignore-on-disk-s_bmap_nr-value include/linux/reiserfs_fs.h
---- a/include/linux/reiserfs_fs.h~reiserfs-ignore-on-disk-s_bmap_nr-value
-+++ a/include/linux/reiserfs_fs.h
-@@ -231,6 +231,11 @@ struct reiserfs_super_block {
-          ((!is_reiserfs_jr(SB_DISK_SUPER_BLOCK(s)) ? \
-          SB_ONDISK_JOURNAL_SIZE(s) + 1 : SB_ONDISK_RESERVED_FOR_JOURNAL(s)))
- 
-+/* s_bmap_nr is a u16 */
-+#define reiserfs_bmap_count(sb)	reiserfs_bmap_nr(SB_BLOCK_COUNT(sb), sb->s_blocksize)
-+#define reiserfs_bmap_nr(count, blk_size) ((count - 1) / (blk_size * 8) + 1)
-+#define bmap_would_wrap(n)		(n > ((1LL << 16) - 1))
-+
- int is_reiserfs_3_5(struct reiserfs_super_block *rs);
- int is_reiserfs_3_6(struct reiserfs_super_block *rs);
- int is_reiserfs_jr(struct reiserfs_super_block *rs);
 _
 
-Patches currently in -mm which might be from jeffm@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-try-to-reap-reiserfs-pages-left-around-by-invalidatepage.patch
-reiserfs-fix-kernel-panic-on-corrupted-directory.patch
+origin.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold.patch
+mm-dirty-balancing-for-tasks.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
+oom-change-all_unreclaimable-zone-member-to-flags.patch
+oom-do-not-take-callback_mutex.patch
+writeback-dont-propagate-aop_writepage_activate.patch
+softlockup-add-a-proc-tuning-parameter.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
+do_sys_poll-simplify-playing-with-on-stack-data.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer.patch
+deprecate-aout-elf-interpreters.patch
+ext2-ext3-ext4-add-block-bitmap-validation.patch
+binfmt_flat-warning-fixes.patch
+i2o-fix-defined-but-not-used-build-warnings.patch
 reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch
-reiserfs-do-not-repair-wrong-journal-params.patch
-reiserfs-fix-up-lockdep-warnings.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-right.patch
+userc-ifdef-mq_bytes.patch
+ext3-lighten-up-resize-transaction-requirements.patch
+drivers-char-ip2-fix-used-uninitd-bug.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+ext2-reservations.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+pnp-use-dev_info-dev_err-etc-in-core.patch
+security-convert-lsm-into-a-static-interface.patch
+ia64-fix-non-numa-build.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-cifs.patch
+console-keyboard-events-and-accessibility.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-jg-warning-fixes.patch
+git-jg-misc-powernow-fix.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-arm-hack.patch
+git-md-accel-fixup.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd-fixup.patch
+fix-build-breakage-if-sysfs-fix.patch
+qla2xxx-printk-fixes.patch
+git-block-fixup.patch
+sparc-support-for-new-termios.patch
+git-unionfs.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+git-nfs-vs-git-unionfs.patch
+git-v9fs-fixup.patch
+git-watchdog-fixup.patch
+git-wireless.patch
+git-wireless-fixup.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+asm-i386-ioh-fix-constness.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+git-newsetup-fixup.patch
+git-xfs.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+pm-qos-infrastructure-and-interface-fix.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+console-events-and-accessibility-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+sync_sb_inodes-propagate-errors.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
 reiserfs-fix-up-lockdep-warnings-checkpatch-fixes.patch
-reiserfs-dont-use-bug-when-panicking.patch
-reiserfs-use-is_reusable-to-catch-corruption.patch
 reiserfs-use-is_reusable-to-catch-corruption-checkpatch-fixes.patch
-reiserfs-fix-usage-of-signed-ints-for-block-numbers.patch
 reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes.patch
-reiserfs-fix-memset-byte-count-during-resize.patch
-reiserfs-remove-first_zero_hint.patch
 reiserfs-remove-first_zero_hint-checkpatch-fixes.patch
-reiserfs-ignore-on-disk-s_bmap_nr-value.patch
-ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
-reiserfs-turn-of-attr_kill_sid-at-beginning-of-reiserfs_setattr.patch
-vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
-exportfs-add-fid-type.patch
-exportfs-add-new-methods.patch
-reiserfs-new-export-ops.patch
-exportfs-remove-old-methods.patch
-exportfs-make-struct-export_operations-const.patch
-exportfs-update-documentation.patch
+reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
