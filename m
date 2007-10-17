@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pata_cs5536-mwdma-fix.patch added to -mm tree
-Date: Wed, 17 Oct 2007 15:03:56 -0700
-Message-ID: <200710172203.l9HM3uCT010542@imap1.linux-foundation.org>
+Subject: + reiserfs-fix-up-lockdep-warnings.patch added to -mm tree
+Date: Wed, 17 Oct 2007 15:11:49 -0700
+Message-ID: <200710172211.l9HMBnCr010855@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53962 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45215 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757075AbXJQWFo (ORCPT
+	by vger.kernel.org with ESMTP id S1757549AbXJQWMc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Oct 2007 18:05:44 -0400
+	Wed, 17 Oct 2007 18:12:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bzolnier@gmail.com, alan@lxorguk.ukuu.org.uk, jeff@garzik.org, martin.petersen@oracle.com
+Cc: jeffm@suse.com, a.p.zijlstra@chello.nl, hch@lst.de, mason@suse.com, vs@namesys.com
 
 
 The patch titled
-     pata_cs5536: MWDMA fix
+     reiserfs: fix up lockdep warnings
 has been added to the -mm tree.  Its filename is
-     pata_cs5536-mwdma-fix.patch
+     reiserfs-fix-up-lockdep-warnings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,48 +26,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_cs5536: MWDMA fix
-From: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Subject: reiserfs: fix up lockdep warnings
+From: Jeff Mahoney <jeffm@suse.com>
 
-* Fix out-of-bound array access for MWDMA modes.
+Add I_MUTEX_XATTR annotations to the inode locking in the reiserfs xattr code.
 
-* Bump driver version.
-
-Acked-by: "Martin K. Petersen" <martin.petersen@oracle.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Signed-off-by: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Chris Mason <mason@suse.com>
+Cc: "Vladimir V. Saveliev" <vs@namesys.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_cs5536.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/reiserfs/xattr.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/pata_cs5536.c~pata_cs5536-mwdma-fix drivers/ata/pata_cs5536.c
---- a/drivers/ata/pata_cs5536.c~pata_cs5536-mwdma-fix
-+++ a/drivers/ata/pata_cs5536.c
-@@ -40,7 +40,7 @@
- #include <asm/msr.h>
- 
- #define DRV_NAME	"pata_cs5536"
--#define DRV_VERSION	"0.0.5"
-+#define DRV_VERSION	"0.0.6"
- 
- enum {
- 	CFG			= 0,
-@@ -214,7 +214,7 @@ static void cs5536_set_dmamode(struct at
- 		cs5536_read(pdev, DTC, &dtc);
- 
- 		dtc &= ~(IDE_DRV_MASK << dshift);
--		dtc |= mwdma_timings[mode] << dshift;
-+		dtc |= mwdma_timings[mode - XFER_MW_DMA_0] << dshift;
- 
- 		cs5536_write(pdev, DTC, dtc);
- 	}
+diff -puN fs/reiserfs/xattr.c~reiserfs-fix-up-lockdep-warnings fs/reiserfs/xattr.c
+--- a/fs/reiserfs/xattr.c~reiserfs-fix-up-lockdep-warnings
++++ a/fs/reiserfs/xattr.c
+@@ -484,7 +484,7 @@ reiserfs_xattr_set(struct inode *inode, 
+ 	/* Resize it so we're ok to write there */
+ 	newattrs.ia_size = buffer_size;
+ 	newattrs.ia_valid = ATTR_SIZE | ATTR_CTIME;
+-	mutex_lock(&xinode->i_mutex);
++	mutex_lock_nested(&xinode->i_mutex, I_MUTEX_XATTR);
+ 	err = notify_change(fp->f_path.dentry, &newattrs);
+ 	if (err)
+ 		goto out_filp;
+@@ -1223,7 +1223,8 @@ int reiserfs_xattr_init(struct super_blo
+ 		if (!IS_ERR(dentry)) {
+ 			if (!(mount_flags & MS_RDONLY) && !dentry->d_inode) {
+ 				struct inode *inode = dentry->d_parent->d_inode;
+-				mutex_lock(&inode->i_mutex);
++				mutex_lock_nested(&inode->i_mutex,
++				                  I_MUTEX_XATTR);
+ 				err = inode->i_op->mkdir(inode, dentry, 0700);
+ 				mutex_unlock(&inode->i_mutex);
+ 				if (err) {
 _
 
-Patches currently in -mm which might be from bzolnier@gmail.com are
+Patches currently in -mm which might be from jeffm@suse.com are
 
-origin.patch
-pata_cs5536-mwdma-fix.patch
-ide-arm-hack.patch
+try-to-reap-reiserfs-pages-left-around-by-invalidatepage.patch
+reiserfs-fix-kernel-panic-on-corrupted-directory.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch
+reiserfs-do-not-repair-wrong-journal-params.patch
+reiserfs-fix-up-lockdep-warnings.patch
+reiserfs-dont-use-bug-when-panicking.patch
+reiserfs-use-is_reusable-to-catch-corruption.patch
+reiserfs-fix-usage-of-signed-ints-for-block-numbers.patch
+reiserfs-fix-memset-byte-count-during-resize.patch
+reiserfs-remove-first_zero_hint.patch
+reiserfs-ignore-on-disk-s_bmap_nr-value.patch
+ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
+reiserfs-turn-of-attr_kill_sid-at-beginning-of-reiserfs_setattr.patch
+vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
+exportfs-add-fid-type.patch
+exportfs-add-new-methods.patch
+reiserfs-new-export-ops.patch
+exportfs-remove-old-methods.patch
+exportfs-make-struct-export_operations-const.patch
+exportfs-update-documentation.patch
