@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpuset-sched_load_balance-kmalloc-fix.patch added to -mm tree
-Date: Wed, 17 Oct 2007 14:41:31 -0700
-Message-ID: <200710172141.l9HLfVhb009773@imap1.linux-foundation.org>
+Subject: + gx-suspmodc-use-boot_cpu_data-instead-of-current_cpu_data.patch added to -mm tree
+Date: Wed, 17 Oct 2007 14:44:11 -0700
+Message-ID: <200710172144.l9HLiBYU009848@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40620 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58866 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754790AbXJQVll (ORCPT
+	by vger.kernel.org with ESMTP id S1755147AbXJQVoi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Oct 2007 17:41:41 -0400
+	Wed, 17 Oct 2007 17:44:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pj@sgi.com, mingo@elte.hu
+Cc: hidave.darkstar@gmail.com, davej@codemonkey.org.uk, stable@kernel.org
 
 
 The patch titled
-     cpuset sched_load_balance kmalloc fix
+     gx-suspmod.c: use boot_cpu_data instead of current_cpu_data
 has been added to the -mm tree.  Its filename is
-     cpuset-sched_load_balance-kmalloc-fix.patch
+     gx-suspmodc-use-boot_cpu_data-instead-of-current_cpu_data.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,133 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cpuset sched_load_balance kmalloc fix
-From: Paul Jackson <pj@sgi.com>
+Subject: gx-suspmod.c: use boot_cpu_data instead of current_cpu_data
+From: Dave Young <hidave.darkstar@gmail.com>
 
-Properly check return value of kmalloc'd dynamic sched domain cpumasks, and
-fallback to a non-kmalloc'd default (one large sched domain) if kmalloc
-fails.
+In preemptible kernel will report BUG: using smp_processor_id() in
+preemptible, so use boot_cpu_data instead of current_cpu_data.
 
-Signed-off-by: Paul Jackson <pj@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+discussion in :
+http://lkml.org/lkml/2007/7/25/32
+
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+CC: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |    4 +++-
- kernel/sched.c  |   25 ++++++++++++++++++++++---
- 2 files changed, 25 insertions(+), 4 deletions(-)
+ arch/x86/kernel/cpu/cpufreq/gx-suspmod.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/cpuset.c~cpuset-sched_load_balance-kmalloc-fix kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-sched_load_balance-kmalloc-fix
-+++ a/kernel/cpuset.c
-@@ -587,6 +587,8 @@ static void rebuild_sched_domains(void)
- 	if (is_sched_load_balance(&top_cpuset)) {
- 		ndoms = 1;
- 		doms = kmalloc(sizeof(cpumask_t), GFP_KERNEL);
-+		if (!doms)
-+			goto rebuild;
- 		*doms = top_cpuset.cpus_allowed;
- 		goto rebuild;
+diff -puN arch/x86/kernel/cpu/cpufreq/gx-suspmod.c~gx-suspmodc-use-boot_cpu_data-instead-of-current_cpu_data arch/x86/kernel/cpu/cpufreq/gx-suspmod.c
+--- a/arch/x86/kernel/cpu/cpufreq/gx-suspmod.c~gx-suspmodc-use-boot_cpu_data-instead-of-current_cpu_data
++++ a/arch/x86/kernel/cpu/cpufreq/gx-suspmod.c
+@@ -181,8 +181,8 @@ static __init struct pci_dev *gx_detect_
+ 	struct pci_dev *gx_pci = NULL;
+ 
+ 	/* check if CPU is a MediaGX or a Geode. */
+-	if ((current_cpu_data.x86_vendor != X86_VENDOR_NSC) &&
+-	    (current_cpu_data.x86_vendor != X86_VENDOR_CYRIX)) {
++	if ((boot_cpu_data.x86_vendor != X86_VENDOR_NSC) &&
++	    (boot_cpu_data.x86_vendor != X86_VENDOR_CYRIX)) {
+ 		dprintk("error: no MediaGX/Geode processor found!\n");
+ 		return NULL;
  	}
-@@ -640,7 +642,7 @@ restart:
- 	/* Convert <csn, csa> to <ndoms, doms> */
- 	doms = kmalloc(ndoms * sizeof(cpumask_t), GFP_KERNEL);
- 	if (!doms)
--		goto done;
-+		goto rebuild;
- 
- 	for (nslot = 0, i = 0; i < csn; i++) {
- 		struct cpuset *a = csa[i];
-diff -puN kernel/sched.c~cpuset-sched_load_balance-kmalloc-fix kernel/sched.c
---- a/kernel/sched.c~cpuset-sched_load_balance-kmalloc-fix
-+++ a/kernel/sched.c
-@@ -6329,6 +6329,13 @@ static cpumask_t *doms_cur;	/* current s
- static int ndoms_cur;		/* number of sched domains in 'doms_cur' */
- 
- /*
-+ * Special case: If a kmalloc of a doms_cur partition (array of
-+ * cpumask_t) fails, then fallback to a single sched domain,
-+ * as determined by the single cpumask_t fallback_doms.
-+ */
-+static cpumask_t fallback_doms;
-+
-+/*
-  * Set up scheduler domains and groups.  Callers must hold the hotplug lock.
-  * For now this just excludes isolated cpus, but could be used to
-  * exclude other special cases in the future.
-@@ -6337,6 +6344,8 @@ static int arch_init_sched_domains(const
- {
- 	ndoms_cur = 1;
- 	doms_cur = kmalloc(sizeof(cpumask_t), GFP_KERNEL);
-+	if (!doms_cur)
-+		doms_cur = &fallback_doms;
- 	cpus_andnot(*doms_cur, *cpu_map, cpu_isolated_map);
- 	register_sched_domain_sysctl();
- 	return build_sched_domains(doms_cur);
-@@ -6376,8 +6385,11 @@ static void detach_destroy_domains(const
-  * current 'doms_cur' domains and in the new 'doms_new', we can leave
-  * it as it is.
-  *
-- * The passed in 'doms_new' must be kmalloc'd, and this routine takes
-- * ownership of it and will kfree it when done with it.
-+ * The passed in 'doms_new' should be kmalloc'd.  This routine takes
-+ * ownership of it and will kfree it when done with it.  If the caller
-+ * failed the kmalloc call, then it can pass in doms_new == NULL,
-+ * and partition_sched_domains() will fallback to the single partition
-+ * 'fallback_doms'.
-  *
-  * Call with hotplug lock held
-  */
-@@ -6385,6 +6397,12 @@ void partition_sched_domains(int ndoms_n
- {
- 	int i, j;
- 
-+	if (doms_new == NULL) {
-+		ndoms_new = 1;
-+		doms_new = &fallback_doms;
-+		cpus_andnot(doms_new[0], cpu_online_map, cpu_isolated_map);
-+	}
-+
- 	/* Destroy deleted domains */
- 	for (i = 0; i < ndoms_cur; i++) {
- 		for (j = 0; j < ndoms_new; j++) {
-@@ -6410,7 +6428,8 @@ match2:
- 	}
- 
- 	/* Remember the new sched domains */
--	kfree(doms_cur);
-+	if (doms_cur != &fallback_doms)
-+		kfree(doms_cur);
- 	doms_cur = doms_new;
- 	ndoms_cur = ndoms_new;
- }
 _
 
-Patches currently in -mm which might be from pj@sgi.com are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
 origin.patch
-git-scsi-misc.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-task-containersv11-basic-task-container-framework.patch
-task-containersv11-add-tasks-file-interface.patch
-task-containersv11-add-fork-exit-hooks.patch
-task-containersv11-add-container_clone-interface.patch
-task-containersv11-add-procfs-interface.patch
-task-containersv11-shared-container-subsystem-group-arrays.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers-fix.patch
-task-containersv11-make-cpusets-a-client-of-containers.patch
-task-containersv11-example-cpu-accounting-subsystem.patch
-task-containersv11-simple-task-container-debug-info-subsystem.patch
-task-containers-enable-containers-by-default-in-some-configs.patch
-whitespace-fixes-cpuset.patch
-cpuset-sched_load_balance-flag.patch
-cpuset-sched_load_balance-flag-fix.patch
-cpuset-sched_load_balance-kmalloc-fix.patch
-cpusets-decrustify-cpuset-mask-update-code.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
-control-groups-replace-cont-with-cgrp-and-other-misc.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-whitespace-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
+zisofs-use-mutex-instead-of-semaphore.patch
+gx-suspmodc-use-boot_cpu_data-instead-of-current_cpu_data.patch
+param_sysfs_builtin-memchr-argument-fix.patch
