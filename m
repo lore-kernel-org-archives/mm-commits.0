@@ -1,58 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-use-dev_info-dev_err-etc-in-core-fix.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 16:05:57 -0700
-Message-ID: <200710162305.l9GN5vGd022432@imap1.linux-foundation.org>
+Subject: - security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 18:33:22 -0700
+Message-ID: <200710170133.l9H1XMmG027770@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42016 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43786 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934307AbXJPXGg (ORCPT
+	by vger.kernel.org with ESMTP id S1751250AbXJQBdy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 19:06:36 -0400
+	Tue, 16 Oct 2007 21:33:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ambx1@neo.rr.com, bjorn.helgaas@hp.com, lenb@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jmorris@namei.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pnp-use-dev_info-dev_err-etc-in-core-fix
+     security-convert-lsm-into-a-static-interface vs fix-null-pointer-dereference-in-__vm_enough_memory
 has been removed from the -mm tree.  Its filename was
-     pnp-use-dev_info-dev_err-etc-in-core-fix.patch
+     security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
 
-This patch was dropped because it was folded into pnp-use-dev_info-dev_err-etc-in-core.patch
+This patch was dropped because it was folded into security-convert-lsm-into-a-static-interface.patch
 
 ------------------------------------------------------
-Subject: pnp-use-dev_info-dev_err-etc-in-core-fix
+Subject: security-convert-lsm-into-a-static-interface vs fix-null-pointer-dereference-in-__vm_enough_memory
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from include/linux/isapnp.h:26,
-                 from drivers/pcmcia/i82365.c:58:
-include/linux/pnp.h:12:1: warning: "DEBUG" redefined
-<command line>:1:1: warning: this is the location of the previous definition
+mm/mmap.c: In function 'insert_vm_struct':
+mm/mmap.c:2080: error: implicit declaration of function 'security_vm_enough_memory_mm'
 
-Cc: Adam Belay <ambx1@neo.rr.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>
+Cc: James Morris <jmorris@namei.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pnp.h |    4 ----
- 1 file changed, 4 deletions(-)
+ include/linux/security.h |    1 +
+ security/security.c      |    6 +++++-
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/pnp.h~pnp-use-dev_info-dev_err-etc-in-core-fix include/linux/pnp.h
---- a/include/linux/pnp.h~pnp-use-dev_info-dev_err-etc-in-core-fix
-+++ a/include/linux/pnp.h
-@@ -8,10 +8,6 @@
+diff -puN include/linux/security.h~security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory include/linux/security.h
+--- a/include/linux/security.h~security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory
++++ a/include/linux/security.h
+@@ -1444,6 +1444,7 @@ int security_quota_on(struct dentry *den
+ int security_syslog(int type);
+ int security_settime(struct timespec *ts, struct timezone *tz);
+ int security_vm_enough_memory(long pages);
++int security_vm_enough_memory_mm(struct mm_struct *mm, long pages);
+ int security_bprm_alloc(struct linux_binprm *bprm);
+ void security_bprm_free(struct linux_binprm *bprm);
+ void security_bprm_apply_creds(struct linux_binprm *bprm, int unsafe);
+diff -puN security/security.c~security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory security/security.c
+--- a/security/security.c~security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory
++++ a/security/security.c
+@@ -237,12 +237,16 @@ int security_settime(struct timespec *ts
+ 	return security_ops->settime(ts, tz);
+ }
  
- #ifdef __KERNEL__
- 
--#ifdef CONFIG_PNP_DEBUG
--#define DEBUG
--#endif
 -
- #include <linux/device.h>
- #include <linux/list.h>
- #include <linux/errno.h>
+ int security_vm_enough_memory(long pages)
+ {
+ 	return security_ops->vm_enough_memory(current->mm, pages);
+ }
+ 
++int security_vm_enough_memory_mm(struct mm_struct *mm, long pages)
++{
++	return security_ops->vm_enough_memory(mm, pages);
++}
++
+ int security_bprm_alloc(struct linux_binprm *bprm)
+ {
+ 	return security_ops->bprm_alloc_security(bprm);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -94,8 +110,62 @@ writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
 writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
 md-software-raid-autodetect-dev-list-not-array.patch
 pnp-use-dev_info-dev_err-etc-in-core.patch
-pnp-use-dev_info-dev_err-etc-in-core-fix.patch
-pnp-add-debug-message-for-adding-new-device-fix-fix.patch
+security-convert-lsm-into-a-static-interface.patch
+security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-cifs.patch
+console-keyboard-events-and-accessibility.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-jg-warning-fixes.patch
+git-jg-misc-powernow-fix.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-arm-hack.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+git-nfsd-fixup.patch
+qla2xxx-printk-fixes.patch
+sparc-support-for-new-termios.patch
+git-unionfs.patch
+git-nfs-vs-git-unionfs.patch
+git-watchdog-fixup.patch
+git-wireless.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+asm-i386-ioh-fix-constness.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+git-xfs.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+pm-qos-infrastructure-and-interface-fix.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+console-events-and-accessibility-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
 revoke-wire-up-i386-system-calls.patch
