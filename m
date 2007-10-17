@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + git-md-accel-fixup.patch added to -mm tree
-Date: Wed, 17 Oct 2007 00:56:14 -0700
-Message-ID: <200710170756.l9H7uE6k010736@imap1.linux-foundation.org>
+Subject: + git-v9fs-fixup.patch added to -mm tree
+Date: Wed, 17 Oct 2007 00:57:00 -0700
+Message-ID: <200710170757.l9H7v0g2010759@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46156 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51391 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754938AbXJQH4p (ORCPT
+	by vger.kernel.org with ESMTP id S1753624AbXJQH5b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Oct 2007 03:56:45 -0400
+	Wed, 17 Oct 2007 03:57:31 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9H7uEMm000700
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9H7v09K000750
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 17 Oct 2007 00:56:15 -0700
+	for <mm-commits@vger.kernel.org>; Wed, 17 Oct 2007 00:57:01 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-md-accel-fixup
+     git-v9fs-fixup
 has been added to the -mm tree.  Its filename is
-     git-md-accel-fixup.patch
+     git-v9fs-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,33 +30,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-md-accel-fixup
+Subject: git-v9fs-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid5.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ include/net/9p/9p.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/md/raid5.c~git-md-accel-fixup drivers/md/raid5.c
---- a/drivers/md/raid5.c~git-md-accel-fixup
-+++ a/drivers/md/raid5.c
-@@ -3858,13 +3858,8 @@ static void raid5_align_endio(struct bio
- 	if (!error && uptodate) {
- 		bio_endio(raid_bi, 0);
- 		if (atomic_dec_and_test(&conf->active_aligned_reads))
--<<<<<<< HEAD:drivers/md/raid5.c
--			wake_up(&conf->wait_for_stripe);
--		return;
+diff -puN include/net/9p/9p.h~git-v9fs-fixup include/net/9p/9p.h
+--- a/include/net/9p/9p.h~git-v9fs-fixup
++++ a/include/net/9p/9p.h
+@@ -415,7 +415,6 @@ int p9_idpool_check(int id, struct p9_id
+ 
+ int p9_error_init(void);
+ int p9_errstr2errno(char *, int);
+-<<<<<<< HEAD:include/net/9p/9p.h
+ 
+ #ifdef CONFIG_SYSCTL
+ int __init p9_sysctl_register(void);
+@@ -430,6 +429,4 @@ static inline void p9_sysctl_unregister(
+ }
+ #endif
+ 
 -=======
- 			wake_up(&conf->wait_for_queue);
--		return 0;
-->>>>>>> FETCH_HEAD:drivers/md/raid5.c
-+		return ;
- 	}
- 
- 
+->>>>>>> FETCH_HEAD:include/net/9p/9p.h
+ #endif /* NET_9P_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -124,6 +124,7 @@ sparc-support-for-new-termios.patch
 git-unionfs.patch
 security-convert-lsm-into-a-static-interface-fix-unionfs.patch
 git-nfs-vs-git-unionfs.patch
+git-v9fs-fixup.patch
 git-watchdog-fixup.patch
 git-wireless.patch
 git-wireless-fixup.patch
