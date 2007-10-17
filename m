@@ -1,253 +1,228 @@
 From: akpm@linux-foundation.org
-Subject: - increase-at_vector_size-to-terminate-saved_auxv-properly.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 02:56:24 -0700
-Message-ID: <200710170956.l9H9uOSD014961@imap1.linux-foundation.org>
+Subject: + ia64-fix-non-numa-build.patch added to -mm tree
+Date: Wed, 17 Oct 2007 13:18:04 -0700
+Message-ID: <200710172018.l9HKI49o006455@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54168 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57410 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755081AbXJQJ52 (ORCPT
+	by vger.kernel.org with ESMTP id S1756479AbXJQUSK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Oct 2007 05:57:28 -0400
+	Wed, 17 Oct 2007 16:18:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: olaf@aepfle.de, benh@kernel.crashing.org, ink@jurassic.park.msu.ru, jakub@redhat.com, lethal@linux-sh.org, olh@suse.de, paulus@samba.org, roland@redhat.com, rth@twiddle.net, tony.luck
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, oomichi@mxs.nes.nec.co.jp, tony.luck@intel.com
 
 
 The patch titled
-     increase AT_VECTOR_SIZE to terminate saved_auxv properly
-has been removed from the -mm tree.  Its filename was
-     increase-at_vector_size-to-terminate-saved_auxv-properly.patch
+     ia64: fix non-numa build
+has been added to the -mm tree.  Its filename is
+     ia64-fix-non-numa-build.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: increase AT_VECTOR_SIZE to terminate saved_auxv properly
-From: Olaf Hering <olaf@aepfle.de>
+Subject: ia64: fix non-numa build
+From: Andrew Morton <akpm@linux-foundation.org>
 
-include/asm-powerpc/elf.h has 6 entries in ARCH_DLINFO.  fs/binfmt_elf.c
-has 14 unconditional NEW_AUX_ENT entries and 2 conditional NEW_AUX_ENT
-entries.  So in the worst case, saved_auxv does not get an AT_NULL entry at
-the end.
+arch/ia64/kernel/machine_kexec.c: In function `arch_crash_save_vmcoreinfo':
+arch/ia64/kernel/machine_kexec.c:131: error: `pgdat_list' undeclared (first use in this function)
+arch/ia64/kernel/machine_kexec.c:131: error: (Each undeclared identifier is reported only once
+arch/ia64/kernel/machine_kexec.c:131: error: for each function it appears in.)
+arch/ia64/kernel/machine_kexec.c:134: error: `node_memblk' undeclared (first use in this function)
+arch/ia64/kernel/machine_kexec.c:135: error: `NR_NODE_MEMBLKS' undeclared (first use in this function)
+arch/ia64/kernel/machine_kexec.c:136: error: invalid application of `sizeof' to incomplete type `node_memblk_s' 
+arch/ia64/kernel/machine_kexec.c:137: error: dereferencing pointer to incomplete type
+arch/ia64/kernel/machine_kexec.c:138: error: dereferencing pointer to incomplete type
+make[1]: *** [arch/ia64/kernel/machine_kexec.o] Error 1
 
-The saved_auxv array must be terminated with an AT_NULL entry.  Make the
-size of mm_struct->saved_auxv arch dependend, based on the number of
-ARCH_DLINFO entries.
-
-Signed-off-by: Olaf Hering <olh@suse.de>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Jakub Jelinek <jakub@redhat.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: "Tony Luck" <tony.luck@intel.com>
+Cc: "Ken'ichi Ohmichi" <oomichi@mxs.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c              |    3 +++
- include/asm-alpha/elf.h      |    1 +
- include/asm-alpha/system.h   |    1 +
- include/asm-ia64/elf.h       |    1 +
- include/asm-ia64/system.h    |    2 ++
- include/asm-powerpc/elf.h    |    1 +
- include/asm-powerpc/system.h |    1 +
- include/asm-sh/elf.h         |    1 +
- include/asm-sh/system.h      |    1 +
- include/asm-x86/elf_32.h     |    1 +
- include/asm-x86/system_32.h  |    1 +
- include/linux/auxvec.h       |    4 +++-
- include/linux/elf.h          |    1 -
- include/linux/mm_types.h     |    7 ++++++-
- 14 files changed, 23 insertions(+), 3 deletions(-)
+ arch/ia64/kernel/machine_kexec.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/binfmt_elf.c~increase-at_vector_size-to-terminate-saved_auxv-properly fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~increase-at_vector_size-to-terminate-saved_auxv-properly
-+++ a/fs/binfmt_elf.c
-@@ -175,6 +175,7 @@ create_elf_tables(struct linux_binprm *b
- 
- 	/* Create the ELF interpreter info */
- 	elf_info = (elf_addr_t *)current->mm->saved_auxv;
-+	/* update AT_VECTOR_SIZE_BASE if the number of NEW_AUX_ENT() changes */
- #define NEW_AUX_ENT(id, val) \
- 	do { \
- 		elf_info[ei_index++] = id; \
-@@ -185,6 +186,8 @@ create_elf_tables(struct linux_binprm *b
- 	/* 
- 	 * ARCH_DLINFO must come first so PPC can do its special alignment of
- 	 * AUXV.
-+	 * update AT_VECTOR_SIZE_ARCH if the number of NEW_AUX_ENT() in
-+	 * ARCH_DLINFO changes
- 	 */
- 	ARCH_DLINFO;
- #endif
-diff -puN include/asm-alpha/elf.h~increase-at_vector_size-to-terminate-saved_auxv-properly include/asm-alpha/elf.h
---- a/include/asm-alpha/elf.h~increase-at_vector_size-to-terminate-saved_auxv-properly
-+++ a/include/asm-alpha/elf.h
-@@ -155,6 +155,7 @@ extern int alpha_l1d_cacheshape;
- extern int alpha_l2_cacheshape;
- extern int alpha_l3_cacheshape;
- 
-+/* update AT_VECTOR_SIZE_ARCH if the number of NEW_AUX_ENT entries changes */
- #define ARCH_DLINFO						\
-   do {								\
-     NEW_AUX_ENT(AT_L1I_CACHESHAPE, alpha_l1i_cacheshape);	\
-diff -puN include/asm-alpha/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly include/asm-alpha/system.h
---- a/include/asm-alpha/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly
-+++ a/include/asm-alpha/system.h
-@@ -48,6 +48,7 @@
- 
- #ifndef __ASSEMBLY__
- #include <linux/kernel.h>
-+#define AT_VECTOR_SIZE_ARCH 4 /* entries in ARCH_DLINFO */
- 
- /*
-  * This is the logout header that should be common to all platforms
-diff -puN include/asm-ia64/elf.h~increase-at_vector_size-to-terminate-saved_auxv-properly include/asm-ia64/elf.h
---- a/include/asm-ia64/elf.h~increase-at_vector_size-to-terminate-saved_auxv-properly
-+++ a/include/asm-ia64/elf.h
-@@ -192,6 +192,7 @@ extern int dump_task_fpu (struct task_st
- 
- #define GATE_EHDR	((const struct elfhdr *) GATE_ADDR)
- 
-+/* update AT_VECTOR_SIZE_ARCH if the number of NEW_AUX_ENT entries changes */
- #define ARCH_DLINFO								\
- do {										\
- 	extern char __kernel_syscall_via_epc[];					\
-diff -puN include/asm-ia64/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly include/asm-ia64/system.h
---- a/include/asm-ia64/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly
-+++ a/include/asm-ia64/system.h
-@@ -32,6 +32,8 @@
- #include <linux/kernel.h>
- #include <linux/types.h>
- 
-+#define AT_VECTOR_SIZE_ARCH 2 /* entries in ARCH_DLINFO */
+diff -puN arch/ia64/kernel/machine_kexec.c~ia64-fix-non-numa-build arch/ia64/kernel/machine_kexec.c
+--- a/arch/ia64/kernel/machine_kexec.c~ia64-fix-non-numa-build
++++ a/arch/ia64/kernel/machine_kexec.c
+@@ -17,6 +17,8 @@
+ #include <linux/efi.h>
+ #include <linux/numa.h>
+ #include <linux/mmzone.h>
 +
- struct pci_vector_struct {
- 	__u16 segment;	/* PCI Segment number */
- 	__u16 bus;	/* PCI Bus number */
-diff -puN include/asm-powerpc/elf.h~increase-at_vector_size-to-terminate-saved_auxv-properly include/asm-powerpc/elf.h
---- a/include/asm-powerpc/elf.h~increase-at_vector_size-to-terminate-saved_auxv-properly
-+++ a/include/asm-powerpc/elf.h
-@@ -291,6 +291,7 @@ extern int arch_setup_additional_pages(s
-  *   AT_IGNOREPPC is used for that.
-  * - for compatibility with glibc ARCH_DLINFO must always be defined on PPC,
-  *   even if DLINFO_ARCH_ITEMS goes to zero or is undefined.
-+ * update AT_VECTOR_SIZE_ARCH if the number of NEW_AUX_ENT entries changes
-  */
- #define ARCH_DLINFO							\
- do {									\
-diff -puN include/asm-powerpc/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly include/asm-powerpc/system.h
---- a/include/asm-powerpc/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly
-+++ a/include/asm-powerpc/system.h
-@@ -40,6 +40,7 @@
- #define set_mb(var, value)	do { var = value; mb(); } while (0)
++#include <asm/numa.h>
+ #include <asm/mmu_context.h>
+ #include <asm/setup.h>
+ #include <asm/delay.h>
+@@ -127,7 +129,7 @@ void machine_kexec(struct kimage *image)
  
- #ifdef __KERNEL__
-+#define AT_VECTOR_SIZE_ARCH 6 /* entries in ARCH_DLINFO */
- #ifdef CONFIG_SMP
- #define smp_mb()	mb()
- #define smp_rmb()	rmb()
-diff -puN include/asm-sh/elf.h~increase-at_vector_size-to-terminate-saved_auxv-properly include/asm-sh/elf.h
---- a/include/asm-sh/elf.h~increase-at_vector_size-to-terminate-saved_auxv-properly
-+++ a/include/asm-sh/elf.h
-@@ -133,6 +133,7 @@ extern void __kernel_vsyscall;
- #define VDSO_BASE		((unsigned long)current->mm->context.vdso)
- #define VDSO_SYM(x)		(VDSO_BASE + (unsigned long)(x))
+ void arch_crash_save_vmcoreinfo(void)
+ {
+-#ifdef CONFIG_ARCH_DISCONTIGMEM_ENABLE
++#if defined(CONFIG_ARCH_DISCONTIGMEM_ENABLE) && defined(CONFIG_NUMA)
+ 	VMCOREINFO_SYMBOL(pgdat_list);
+ 	VMCOREINFO_LENGTH(pgdat_list, MAX_NUMNODES);
  
-+/* update AT_VECTOR_SIZE_ARCH if the number of NEW_AUX_ENT entries changes */
- #define ARCH_DLINFO						\
- do {								\
- 	if (vdso_enabled)					\
-diff -puN include/asm-sh/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly include/asm-sh/system.h
---- a/include/asm-sh/system.h~increase-at_vector_size-to-terminate-saved_auxv-properly
-+++ a/include/asm-sh/system.h
-@@ -15,6 +15,7 @@
- struct task_struct *__switch_to(struct task_struct *prev,
- 				struct task_struct *next);
- 
-+#define AT_VECTOR_SIZE_ARCH 1 /* entries in ARCH_DLINFO */
- /*
-  *	switch_to() should switch tasks to task nr n, first
-  */
-diff -puN include/asm-x86/elf_32.h~increase-at_vector_size-to-terminate-saved_auxv-properly include/asm-x86/elf_32.h
---- a/include/asm-x86/elf_32.h~increase-at_vector_size-to-terminate-saved_auxv-properly
-+++ a/include/asm-x86/elf_32.h
-@@ -153,6 +153,7 @@ extern int arch_setup_additional_pages(s
- 
- extern unsigned int vdso_enabled;
- 
-+/* update AT_VECTOR_SIZE_ARCH if the number of NEW_AUX_ENT entries changes */
- #define ARCH_DLINFO							\
- do if (vdso_enabled) {							\
- 		NEW_AUX_ENT(AT_SYSINFO,	VDSO_ENTRY);			\
-diff -puN include/asm-x86/system_32.h~increase-at_vector_size-to-terminate-saved_auxv-properly include/asm-x86/system_32.h
---- a/include/asm-x86/system_32.h~increase-at_vector_size-to-terminate-saved_auxv-properly
-+++ a/include/asm-x86/system_32.h
-@@ -7,6 +7,7 @@
- #include <asm/cmpxchg.h>
- 
- #ifdef __KERNEL__
-+#define AT_VECTOR_SIZE_ARCH 2 /* entries in ARCH_DLINFO */
- 
- struct task_struct;	/* one of the stranger aspects of C forward declarations.. */
- extern struct task_struct * FASTCALL(__switch_to(struct task_struct *prev, struct task_struct *next));
-diff -puN include/linux/auxvec.h~increase-at_vector_size-to-terminate-saved_auxv-properly include/linux/auxvec.h
---- a/include/linux/auxvec.h~increase-at_vector_size-to-terminate-saved_auxv-properly
-+++ a/include/linux/auxvec.h
-@@ -26,6 +26,8 @@
- 
- #define AT_SECURE 23   /* secure mode boolean */
- 
--#define AT_VECTOR_SIZE  44 /* Size of auxiliary table.  */
-+#ifdef __KERNEL__
-+#define AT_VECTOR_SIZE_BASE (14 + 2) /* NEW_AUX_ENT entries in auxiliary table */
-+#endif
- 
- #endif /* _LINUX_AUXVEC_H */
-diff -puN include/linux/elf.h~increase-at_vector_size-to-terminate-saved_auxv-properly include/linux/elf.h
---- a/include/linux/elf.h~increase-at_vector_size-to-terminate-saved_auxv-properly
-+++ a/include/linux/elf.h
-@@ -2,7 +2,6 @@
- #define _LINUX_ELF_H
- 
- #include <linux/types.h>
--#include <linux/auxvec.h>
- #include <linux/elf-em.h>
- #include <asm/elf.h>
- 
-diff -puN include/linux/mm_types.h~increase-at_vector_size-to-terminate-saved_auxv-properly include/linux/mm_types.h
---- a/include/linux/mm_types.h~increase-at_vector_size-to-terminate-saved_auxv-properly
-+++ a/include/linux/mm_types.h
-@@ -1,7 +1,7 @@
- #ifndef _LINUX_MM_TYPES_H
- #define _LINUX_MM_TYPES_H
- 
--#include <linux/auxvec.h>	/* For AT_VECTOR_SIZE */
-+#include <linux/auxvec.h>
- #include <linux/types.h>
- #include <linux/threads.h>
- #include <linux/list.h>
-@@ -13,6 +13,11 @@
- #include <asm/page.h>
- #include <asm/mmu.h>
- 
-+#ifndef AT_VECTOR_SIZE_ARCH
-+#define AT_VECTOR_SIZE_ARCH 0
-+#endif
-+#define AT_VECTOR_SIZE (2*(AT_VECTOR_SIZE_ARCH + AT_VECTOR_SIZE_BASE + 1))
-+
- struct address_space;
- 
- #if NR_CPUS >= CONFIG_SPLIT_PTLOCK_CPUS
 _
 
-Patches currently in -mm which might be from olaf@aepfle.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-unexport-asm-shmparamh.patch
-remove-consolemaph-from-header-exports.patch
-include-linux-typesh-in-if_fddih.patch
-increase-at_vector_size-to-terminate-saved_auxv-properly.patch
-keep-track-of-network-interface-renaming.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold.patch
+mm-dirty-balancing-for-tasks.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
+oom-change-all_unreclaimable-zone-member-to-flags.patch
+oom-do-not-take-callback_mutex.patch
+writeback-dont-propagate-aop_writepage_activate.patch
+softlockup-add-a-proc-tuning-parameter.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
+do_sys_poll-simplify-playing-with-on-stack-data.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer.patch
+deprecate-aout-elf-interpreters.patch
+ext2-ext3-ext4-add-block-bitmap-validation.patch
+binfmt_flat-warning-fixes.patch
+i2o-fix-defined-but-not-used-build-warnings.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-right.patch
+userc-ifdef-mq_bytes.patch
+ext3-lighten-up-resize-transaction-requirements.patch
+drivers-char-ip2-fix-used-uninitd-bug.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+ext2-reservations.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+pnp-use-dev_info-dev_err-etc-in-core.patch
+security-convert-lsm-into-a-static-interface.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-cifs.patch
+console-keyboard-events-and-accessibility.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-jg-warning-fixes.patch
+git-jg-misc-powernow-fix.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-arm-hack.patch
+git-md-accel-fixup.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd-fixup.patch
+qla2xxx-printk-fixes.patch
+git-block-fixup.patch
+sparc-support-for-new-termios.patch
+git-unionfs.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+git-nfs-vs-git-unionfs.patch
+git-v9fs-fixup.patch
+git-watchdog-fixup.patch
+git-wireless.patch
+git-wireless-fixup.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+asm-i386-ioh-fix-constness.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+git-xfs.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+pm-qos-infrastructure-and-interface-fix.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+console-events-and-accessibility-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+sync_sb_inodes-propagate-errors.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
+ia64-fix-non-numa-build.patch
