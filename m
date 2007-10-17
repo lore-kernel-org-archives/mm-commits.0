@@ -1,89 +1,212 @@
 From: akpm@linux-foundation.org
-Subject: - security-convert-lsm-into-a-static-interface-fix-2-fix.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 18:33:16 -0700
-Message-ID: <200710170133.l9H1XGNr027764@imap1.linux-foundation.org>
+Subject: + security-convert-lsm-into-a-static-interface-fix-unionfs.patch added to -mm tree
+Date: Tue, 16 Oct 2007 18:36:23 -0700
+Message-ID: <200710170136.l9H1aNEc027911@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41853 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54251 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754018AbXJQBfG (ORCPT
+	by vger.kernel.org with ESMTP id S1752487AbXJQBh1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 21:35:06 -0400
+	Tue, 16 Oct 2007 21:37:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, arjan@infradead.org, chrisw@sous-sol.org, jmorris@namei.org, sds@tycho.nsa.gov, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, arjan@infradead.org, chrisw@sous-sol.org, jmorris@namei.org, jsipek@cs.sunysb.edu, sds@tycho.nsa.gov, serue@us.ibm.com
 
 
 The patch titled
-     fix LSM kernel-doc
-has been removed from the -mm tree.  Its filename was
-     security-convert-lsm-into-a-static-interface-fix-2-fix.patch
+     security-convert-lsm-into-a-static-interface :fix unionfs
+has been added to the -mm tree.  Its filename is
+     security-convert-lsm-into-a-static-interface-fix-unionfs.patch
 
-This patch was dropped because it was folded into security-convert-lsm-into-a-static-interface.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: fix LSM kernel-doc
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: security-convert-lsm-into-a-static-interface :fix unionfs
+From: Andrew Morton <akpm@linux-foundation.org>
 
-I'd like mainline (Linus's git) to be kernel-doc clean (it's not, but all of
-the patches for it have been sent, just getting them merged is the challenge).
- One way to address this for future merges is to fix -mm kernel-doc.
+ERROR: "security_inode_permission" [fs/unionfs/unionfs.ko] undefined!
+ERROR: "security_file_ioctl" [fs/unionfs/unionfs.ko] undefined!
 
-The security-convert-to-static patches need this docbook change.
+Need these back.
 
-Warning(linux-2.6.23-rc1-mm1//security/security.c): no structured comments found
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: "Serge E. Hallyn" <serue@us.ibm.com>
 Cc: Arjan van de Ven <arjan@infradead.org>
 Cc: Chris Wright <chrisw@sous-sol.org>
 Cc: James Morris <jmorris@namei.org>
 Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/kernel-api.tmpl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ security/security.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN Documentation/DocBook/kernel-api.tmpl~security-convert-lsm-into-a-static-interface-fix-2-fix Documentation/DocBook/kernel-api.tmpl
---- a/Documentation/DocBook/kernel-api.tmpl~security-convert-lsm-into-a-static-interface-fix-2-fix
-+++ a/Documentation/DocBook/kernel-api.tmpl
-@@ -340,7 +340,7 @@ X!Earch/i386/kernel/mca.c
+diff -puN security/security.c~security-convert-lsm-into-a-static-interface-fix-unionfs security/security.c
+--- a/security/security.c~security-convert-lsm-into-a-static-interface-fix-unionfs
++++ a/security/security.c
+@@ -459,6 +459,7 @@ int security_inode_permission(struct ino
+ 		return 0;
+ 	return security_ops->inode_permission(inode, mask, nd);
+ }
++EXPORT_SYMBOL(security_inode_permission);
  
-   <chapter id="security">
-      <title>Security Framework</title>
--!Esecurity/security.c
-+!Isecurity/security.c
-   </chapter>
+ int security_inode_setattr(struct dentry *dentry, struct iattr *attr)
+ {
+@@ -563,6 +564,7 @@ int security_file_ioctl(struct file *fil
+ {
+ 	return security_ops->file_ioctl(file, cmd, arg);
+ }
++EXPORT_SYMBOL(security_file_ioctl);
  
-   <chapter id="audit">
+ int security_file_mmap(struct file *file, unsigned long reqprot,
+ 			unsigned long prot, unsigned long flags,
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-docs-ramdisk-initrd-initramfs-corrections.patch
-quota-send-messages-via-netlink.patch
-maintainers-linux-omap-list-is-subscribers-only.patch
-make-the-pr_-family-of-macros-in-kernelh-complete.patch
-doc-about-email-clients-for-linux-patches.patch
-change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch
-dont-truncate-proc-pid-environ-at-4096-characters.patch
-dontdiff-update-based-on-gitignore-updates.patch
-kernel-doc-fix-doc-blocks-and-html.patch
-express-relocatability-of-kernel-on-x86_64-in.patch
-remap_file_pages-kernel-doc-corrections.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold.patch
+mm-dirty-balancing-for-tasks.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
+oom-change-all_unreclaimable-zone-member-to-flags.patch
+oom-do-not-take-callback_mutex.patch
+writeback-dont-propagate-aop_writepage_activate.patch
+softlockup-add-a-proc-tuning-parameter.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
+do_sys_poll-simplify-playing-with-on-stack-data.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer.patch
+deprecate-aout-elf-interpreters.patch
+ext2-ext3-ext4-add-block-bitmap-validation.patch
+pie-executable-randomization.patch
+binfmt_flat-warning-fixes.patch
+i2o-fix-defined-but-not-used-build-warnings.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-right.patch
+userc-ifdef-mq_bytes.patch
+ext3-lighten-up-resize-transaction-requirements.patch
+drivers-char-ip2-fix-used-uninitd-bug.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+pnp-use-dev_info-dev_err-etc-in-core.patch
 security-convert-lsm-into-a-static-interface.patch
-security-convert-lsm-into-a-static-interface-fix-2-fix.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+capabilityh-remove-include-of-currenth.patch
 git-acpi.patch
+git-acpi-fixup.patch
+acpi-add-reboot-mechanism.patch
 git-alsa.patch
-fix-auditscc-kernel-doc.patch
-comment-typo-in-scripts-kconfig-makefile.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-cifs.patch
+console-keyboard-events-and-accessibility.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-jg-warning-fixes.patch
+git-jg-misc-powernow-fix.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-arm-hack.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+git-nfsd-fixup.patch
+qla2xxx-printk-fixes.patch
+sparc-support-for-new-termios.patch
 git-unionfs.patch
-git-watchdog.patch
-git-ipwireless_cs.patch
-hook-up-group-scheduler-with-control-groups.patch
+git-nfs-vs-git-unionfs.patch
+git-watchdog-fixup.patch
+git-wireless.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+asm-i386-ioh-fix-constness.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+git-xfs.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+pm-qos-infrastructure-and-interface-fix.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+console-events-and-accessibility-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
 hook-up-group-scheduler-with-control-groups-fix.patch
-combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
-add-samples-subdir.patch
-profile-likely-unlikely-macros.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+profile-likely-unlikely-macros-fix.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
