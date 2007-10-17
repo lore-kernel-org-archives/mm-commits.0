@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tty_ioctl-fix-the-baud_table-check-in-encode_baud_rate.patch added to -mm tree
-Date: Wed, 17 Oct 2007 15:46:22 -0700
-Message-ID: <200710172246.l9HMkMxd012193@imap1.linux-foundation.org>
+Subject: + cpufreq-fix-incorrect-comment-on-show_available_freqs-in-freq_tablec.patch added to -mm tree
+Date: Wed, 17 Oct 2007 15:51:31 -0700
+Message-ID: <200710172251.l9HMpV3S012359@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38304 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36697 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758058AbXJQWrK (ORCPT
+	by vger.kernel.org with ESMTP id S1758206AbXJQWwJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Oct 2007 18:47:10 -0400
+	Wed, 17 Oct 2007 18:52:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: macro@linux-mips.org, alan@lxorguk.ukuu.org.uk
+Cc: fenghua.yu@intel.com, davej@codemonkey.org.uk
 
 
 The patch titled
-     tty_ioctl: fix the baud_table check in encode_baud_rate
+     cpufreq: fix incorrect comment on show_available_freqs() in freq_table.c
 has been added to the -mm tree.  Its filename is
-     tty_ioctl-fix-the-baud_table-check-in-encode_baud_rate.patch
+     cpufreq-fix-incorrect-comment-on-show_available_freqs-in-freq_tablec.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,59 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tty_ioctl: fix the baud_table check in encode_baud_rate
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
+Subject: cpufreq: fix incorrect comment on show_available_freqs() in freq_table.c
+From: Fenghua Yu <fenghua.yu@intel.com>
 
-The tty_termios_encode_baud_rate() function as defined by tty_ioctl.c has a
-problem with the baud_table within.  The comparison operators are reversed
-and as a result this table's entries never match and BOTHER is always used.
+In freq_table.c, show_available_freqs()'s comment is oberviously wrong. 
+Change the comment to a new one to avoid confusion.
 
-Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
-Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_ioctl.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ drivers/cpufreq/freq_table.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/tty_ioctl.c~tty_ioctl-fix-the-baud_table-check-in-encode_baud_rate drivers/char/tty_ioctl.c
---- a/drivers/char/tty_ioctl.c~tty_ioctl-fix-the-baud_table-check-in-encode_baud_rate
-+++ a/drivers/char/tty_ioctl.c
-@@ -228,7 +228,8 @@ EXPORT_SYMBOL(tty_termios_input_baud_rat
-  *	and will all go away once this is done.
+diff -puN drivers/cpufreq/freq_table.c~cpufreq-fix-incorrect-comment-on-show_available_freqs-in-freq_tablec drivers/cpufreq/freq_table.c
+--- a/drivers/cpufreq/freq_table.c~cpufreq-fix-incorrect-comment-on-show_available_freqs-in-freq_tablec
++++ a/drivers/cpufreq/freq_table.c
+@@ -171,7 +171,7 @@ EXPORT_SYMBOL_GPL(cpufreq_frequency_tabl
+ 
+ static struct cpufreq_frequency_table *show_table[NR_CPUS];
+ /**
+- * show_scaling_governor - show the current policy for the specified CPU
++ * show_available_freqs - show available frequencies for the specified CPU
   */
- 
--void tty_termios_encode_baud_rate(struct ktermios *termios, speed_t ibaud, speed_t obaud)
-+void tty_termios_encode_baud_rate(struct ktermios *termios,
-+				  speed_t ibaud, speed_t obaud)
+ static ssize_t show_available_freqs (struct cpufreq_policy *policy, char *buf)
  {
- 	int i = 0;
- 	int ifound = -1, ofound = -1;
-@@ -263,11 +264,15 @@ void tty_termios_encode_baud_rate(struct
- 	 */
- 
- 	do {
--		if (obaud - oclose >= baud_table[i] && obaud + oclose <= baud_table[i]) {
-+		if (obaud - oclose <= baud_table[i] &&
-+		    obaud + oclose >= baud_table[i]) {
- 			termios->c_cflag |= baud_bits[i];
- 			ofound = i;
- 		}
--		if (ibaud - iclose >= baud_table[i] && ibaud + iclose <= baud_table[i]) {
-+		if (ibaud - iclose <= baud_table[i] &&
-+		    ibaud + iclose >= baud_table[i]) {
-+			/* For the case input == output don't set IBAUD bits
-+			   if the user didn't do so */
- 			if (ofound == i && !ibinput)
- 				ifound  = i;
- #ifdef IBSHIFT
 _
 
-Patches currently in -mm which might be from macro@linux-mips.org are
+Patches currently in -mm which might be from fenghua.yu@intel.com are
 
-origin.patch
-include-linux-typesh-in-if_fddih.patch
-avoid-negative-and-full-width-shifts-in-radix-treec.patch
-lk201-remove-obsolete-driver.patch
-tty_ioctl-fix-the-baud_table-check-in-encode_baud_rate.patch
-kernel-printkc-concerns-about-the-console-handover.patch
+cpufreq-fix-incorrect-comment-on-show_available_freqs-in-freq_tablec.patch
