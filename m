@@ -1,122 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - file-capabilities-change-fe-to-a-bool.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 18:37:45 -0700
-Message-ID: <200710170137.l9H1bjJ2027949@imap1.linux-foundation.org>
+Subject: - file-capabilities-introduce-cap_setfcap.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 18:37:29 -0700
+Message-ID: <200710170137.l9H1bTqe027931@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48046 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56063 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756832AbXJQBnY (ORCPT
+	by vger.kernel.org with ESMTP id S1760042AbXJQBnc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 21:43:24 -0400
+	Tue, 16 Oct 2007 21:43:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: serue@us.ibm.com, casey@schaufler-ca.com, chrisw@sous-sol.org, jmorris@namei.org, kaigai@kaigai.gr.jp, morgan@kernel.org, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     file capabilities: change fE to a bool
+     file capabilities: introduce cap_setfcap
 has been removed from the -mm tree.  Its filename was
-     file-capabilities-change-fe-to-a-bool.patch
+     file-capabilities-introduce-cap_setfcap.patch
 
 This patch was dropped because it was folded into implement-file-posix-capabilities.patch
 
 ------------------------------------------------------
-Subject: file capabilities: change fE to a bool
+Subject: file capabilities: introduce cap_setfcap
 From: Serge E. Hallyn <serue@us.ibm.com>
 
-The fE was previously a full capset which was masked with the calculated
-new_permitted to get the process' new effective set.  It is now a single
-bit in the xattr.  This patch changes bprm->cap_effective to a boolean. 
-When that boolean is false, then P'e is the empty set.  When the boolean is
-true, then P'e is set equal to P'p (new_permitted).  The rationale for this
-is that either the application does not know about capabilities, and needs
-to start with all permitted caps in its effective set, or it does know
-about capabilities, and can start with an empty effective set and enable
-the caps it wants when it wants.
+Setting file capabilities previously required the cap_sys_admin capability,
+since they are stored as extended attributes in the security.* namespace.
+
+Introduce CAP_SETFCAP (to mirror CAP_SETPCAP), and require it for setting
+file capabilities instead of CAP_SYS_ADMIN.
+
+Quoting Andrew Morgan,
+
+"CAP_SYS_ADMIN is way too overloaded and this
+functionality is special."
 
 Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Chris Wright <chrisw@sous-sol.org>
 Cc: Andrew Morgan <morgan@kernel.org>
 Cc: Casey Schaufler <casey@schaufler-ca.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: James Morris <jmorris@namei.org>
-Cc: KaiGai Kohei <kaigai@kaigai.gr.jp>
-Cc: Serge E. Hallyn <serue@us.ibm.com>
 Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: KaiGai Kohei <kaigai@kaigai.gr.jp>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/binfmts.h |    3 ++-
- security/commoncap.c    |   16 +++++++++-------
- 2 files changed, 11 insertions(+), 8 deletions(-)
+ include/linux/capability.h |    4 +++-
+ security/commoncap.c       |   12 ++++++++++--
+ 2 files changed, 13 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/binfmts.h~file-capabilities-change-fe-to-a-bool include/linux/binfmts.h
---- a/include/linux/binfmts.h~file-capabilities-change-fe-to-a-bool
-+++ a/include/linux/binfmts.h
-@@ -37,7 +37,8 @@ struct linux_binprm{
- 	int sh_bang;
- 	struct file * file;
- 	int e_uid, e_gid;
--	kernel_cap_t cap_inheritable, cap_permitted, cap_effective;
-+	kernel_cap_t cap_inheritable, cap_permitted;
-+	bool cap_effective;
- 	void *security;
- 	int argc, envc;
- 	char * filename;	/* Name of binary as seen by procps */
-diff -puN security/commoncap.c~file-capabilities-change-fe-to-a-bool security/commoncap.c
---- a/security/commoncap.c~file-capabilities-change-fe-to-a-bool
+diff -puN include/linux/capability.h~file-capabilities-introduce-cap_setfcap include/linux/capability.h
+--- a/include/linux/capability.h~file-capabilities-introduce-cap_setfcap
++++ a/include/linux/capability.h
+@@ -322,7 +322,9 @@ typedef __u32 kernel_cap_t;
+ 
+ #define CAP_AUDIT_CONTROL    30
+ 
+-#define CAP_NUMCAPS	     31
++#define CAP_SETFCAP	     31
++
++#define CAP_NUMCAPS	     32
+ 
+ #ifdef __KERNEL__
+ /* 
+diff -puN security/commoncap.c~file-capabilities-introduce-cap_setfcap security/commoncap.c
+--- a/security/commoncap.c~file-capabilities-introduce-cap_setfcap
 +++ a/security/commoncap.c
-@@ -113,7 +113,7 @@ static inline void bprm_clear_caps(struc
+@@ -290,7 +290,11 @@ int cap_bprm_secureexec (struct linux_bi
+ int cap_inode_setxattr(struct dentry *dentry, char *name, void *value,
+ 		       size_t size, int flags)
  {
- 	cap_clear(bprm->cap_inheritable);
- 	cap_clear(bprm->cap_permitted);
--	cap_clear(bprm->cap_effective);
-+	bprm->cap_effective = false;
- }
+-	if (!strncmp(name, XATTR_SECURITY_PREFIX,
++	if (!strcmp(name, XATTR_NAME_CAPS)) {
++		if (!capable(CAP_SETFCAP))
++			return -EPERM;
++		return 0;
++	} else if (!strncmp(name, XATTR_SECURITY_PREFIX,
+ 		     sizeof(XATTR_SECURITY_PREFIX) - 1)  &&
+ 	    !capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+@@ -299,7 +303,11 @@ int cap_inode_setxattr(struct dentry *de
  
- #ifdef CONFIG_SECURITY_FILE_CAPABILITIES
-@@ -130,8 +130,10 @@ static inline int cap_from_disk(__le32 *
- 
- 	switch ((magic_etc & VFS_CAP_REVISION_MASK)) {
- 	case VFS_CAP_REVISION:
--		bprm->cap_effective = (magic_etc & VFS_CAP_FLAGS_EFFECTIVE)
--					? CAP_FULL_SET : CAP_EMPTY_SET;
-+		if (magic_etc & VFS_CAP_FLAGS_EFFECTIVE)
-+			bprm->cap_effective = true;
-+		else
-+			bprm->cap_effective = false;
- 		bprm->cap_permitted = to_cap_t( le32_to_cpu(caps[1]) );
- 		bprm->cap_inheritable = to_cap_t( le32_to_cpu(caps[2]) );
- 		return 0;
-@@ -212,7 +214,7 @@ int cap_bprm_set_security (struct linux_
- 			cap_set_full (bprm->cap_permitted);
- 		}
- 		if (bprm->e_uid == 0)
--			cap_set_full (bprm->cap_effective);
-+			bprm->cap_effective = true;
- 	}
- 
- 	return ret;
-@@ -252,8 +254,8 @@ void cap_bprm_apply_creds (struct linux_
- 	 * capability rules */
- 	if (!is_init(current)) {
- 		current->cap_permitted = new_permitted;
--		current->cap_effective =
--		    cap_intersect (new_permitted, bprm->cap_effective);
-+		current->cap_effective = bprm->cap_effective ?
-+				new_permitted : 0;
- 	}
- 
- 	/* AUD: Audit candidate if current->cap_effective is set */
-@@ -264,7 +266,7 @@ void cap_bprm_apply_creds (struct linux_
- int cap_bprm_secureexec (struct linux_binprm *bprm)
+ int cap_inode_removexattr(struct dentry *dentry, char *name)
  {
- 	if (current->uid != 0) {
--		if (!cap_isclear(bprm->cap_effective))
-+		if (bprm->cap_effective)
- 			return 1;
- 		if (!cap_isclear(bprm->cap_permitted))
- 			return 1;
+-	if (!strncmp(name, XATTR_SECURITY_PREFIX,
++	if (!strcmp(name, XATTR_NAME_CAPS)) {
++		if (!capable(CAP_SETFCAP))
++			return -EPERM;
++		return 0;
++	} else if (!strncmp(name, XATTR_SECURITY_PREFIX,
+ 		     sizeof(XATTR_SECURITY_PREFIX) - 1)  &&
+ 	    !capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
 _
 
 Patches currently in -mm which might be from serue@us.ibm.com are
@@ -126,6 +102,12 @@ remove-unused-member-from-nsproxy.patch
 use-kmem_cache-macro-to-create-the-nsproxy-cache.patch
 security-convert-lsm-into-a-static-interface.patch
 implement-file-posix-capabilities.patch
+file-capabilities-introduce-cap_setfcap.patch
+file-capabilities-get_file_caps-cleanups.patch
+file-caps-update-selinux-xattr-hooks.patch
+file-capabilities-clear-caps-cleanup.patch
+file-capabilities-clear-caps-cleanup-fix.patch
+file-capabilities-change-xattr-format-v2.patch
 file-capabilities-change-fe-to-a-bool.patch
 file-caps-clean-up-for-linux-capabilityh.patch
 capabilityh-remove-include-of-currenth.patch
