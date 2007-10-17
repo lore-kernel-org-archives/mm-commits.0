@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-dont-use-bug-when-panicking.patch added to -mm tree
-Date: Wed, 17 Oct 2007 15:12:38 -0700
-Message-ID: <200710172212.l9HMCc5b010904@imap1.linux-foundation.org>
+Subject: + reiserfs-use-is_reusable-to-catch-corruption.patch added to -mm tree
+Date: Wed, 17 Oct 2007 15:12:47 -0700
+Message-ID: <200710172212.l9HMCln4010907@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37924 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45353 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758206AbXJQWM6 (ORCPT
+	by vger.kernel.org with ESMTP id S1758486AbXJQWNI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Oct 2007 18:12:58 -0400
+	Wed, 17 Oct 2007 18:13:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jeffm@suse.com, hch@lst.de, mason@suse.com, vs@namesys.com
 
 
 The patch titled
-     reiserfs: dont use BUG when panicking
+     reiserfs: use is_reusable to catch corruption
 has been added to the -mm tree.  Its filename is
-     reiserfs-dont-use-bug-when-panicking.patch
+     reiserfs-use-is_reusable-to-catch-corruption.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,44 +26,79 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reiserfs: dont use BUG when panicking
+Subject: reiserfs: use is_reusable to catch corruption
 From: Jeff Mahoney <jeffm@suse.com>
 
-Change reiserfs_panic() to use panic() initially instead of BUG().  Using
-BUG() ignores the configurable panic behavior, so systems that should be
-failing and rebooting are left hanging.  This causes problems in
-active/standby HA scenarios.
+Build in is_reusable() unconditionally and use it to catch corruption before
+it reaches the block freeing paths.
 
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Chris Mason <mason@suse.com>
 Cc: "Vladimir V. Saveliev" <vs@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/prints.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ fs/reiserfs/bitmap.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
-diff -puN fs/reiserfs/prints.c~reiserfs-dont-use-bug-when-panicking fs/reiserfs/prints.c
---- a/fs/reiserfs/prints.c~reiserfs-dont-use-bug-when-panicking
-+++ a/fs/reiserfs/prints.c
-@@ -356,13 +356,11 @@ extern struct tree_balance *cur_tb;
- void reiserfs_panic(struct super_block *sb, const char *fmt, ...)
- {
- 	do_reiserfs_warning(fmt);
--	printk(KERN_EMERG "REISERFS: panic (device %s): %s\n",
--	       reiserfs_bdevname(sb), error_buf);
--	BUG();
- 
--	/* this is not actually called, but makes reiserfs_panic() "noreturn" */
--	panic("REISERFS: panic (device %s): %s\n",
--	      reiserfs_bdevname(sb), error_buf);
-+	dump_stack();
-+
-+	panic(KERN_EMERG "REISERFS: panic (device %s): %s\n",
-+	       reiserfs_bdevname(sb), error_buf);
+diff -puN fs/reiserfs/bitmap.c~reiserfs-use-is_reusable-to-catch-corruption fs/reiserfs/bitmap.c
+--- a/fs/reiserfs/bitmap.c~reiserfs-use-is_reusable-to-catch-corruption
++++ a/fs/reiserfs/bitmap.c
+@@ -56,7 +56,6 @@ static inline void get_bit_address(struc
+ 	*offset = block & ((s->s_blocksize << 3) - 1);
  }
  
- void reiserfs_abort(struct super_block *sb, int errno, const char *fmt, ...)
+-#ifdef CONFIG_REISERFS_CHECK
+ int is_reusable(struct super_block *s, b_blocknr_t block, int bit_value)
+ {
+ 	int bmap, offset;
+@@ -106,7 +105,6 @@ int is_reusable(struct super_block *s, b
+ 
+ 	return 1;
+ }
+-#endif				/* CONFIG_REISERFS_CHECK */
+ 
+ /* searches in journal structures for a given block number (bmap, off). If block
+    is found in reiserfs journal it suggests next free block candidate to test. */
+@@ -434,12 +432,19 @@ void reiserfs_free_block(struct reiserfs
+ 			 int for_unformatted)
+ {
+ 	struct super_block *s = th->t_super;
+-
+ 	BUG_ON(!th->t_trans_id);
+ 
+ 	RFALSE(!s, "vs-4061: trying to free block on nonexistent device");
+-	RFALSE(is_reusable(s, block, 1) == 0,
+-	       "vs-4071: can not free such block");
++	if (!is_reusable(s, block, 1))
++		return;
++
++	if (block > sb_block_count(REISERFS_SB(s)->s_rs)) {
++		reiserfs_panic(th->t_super, "bitmap-4072",
++		               "Trying to free block outside file system "
++			       "boundaries (%lu > %lu)",
++			       block, sb_block_count(REISERFS_SB(s)->s_rs));
++		return;
++	}
+ 	/* mark it before we clear it, just in case */
+ 	journal_mark_freed(th, s, block);
+ 	_reiserfs_free_block(th, inode, block, for_unformatted);
+@@ -449,11 +454,11 @@ void reiserfs_free_block(struct reiserfs
+ static void reiserfs_free_prealloc_block(struct reiserfs_transaction_handle *th,
+ 					 struct inode *inode, b_blocknr_t block)
+ {
++	BUG_ON(!th->t_trans_id);
+ 	RFALSE(!th->t_super,
+ 	       "vs-4060: trying to free block on nonexistent device");
+-	RFALSE(is_reusable(th->t_super, block, 1) == 0,
+-	       "vs-4070: can not free such block");
+-	BUG_ON(!th->t_trans_id);
++	if (!is_reusable(th->t_super, block, 1))
++		return;
+ 	_reiserfs_free_block(th, inode, block, 1);
+ }
+ 
 _
 
 Patches currently in -mm which might be from jeffm@suse.com are
