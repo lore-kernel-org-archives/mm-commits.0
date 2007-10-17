@@ -1,74 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 18:33:22 -0700
-Message-ID: <200710170133.l9H1XMmG027770@imap1.linux-foundation.org>
+Subject: - security-convert-lsm-into-a-static-interface-fix-unionfs.patch removed from -mm tree
+Date: Tue, 16 Oct 2007 18:33:19 -0700
+Message-ID: <200710170133.l9H1XJcF027767@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43786 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46148 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751250AbXJQBdy (ORCPT
+	by vger.kernel.org with ESMTP id S1752410AbXJQBeS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 21:33:54 -0400
+	Tue, 16 Oct 2007 21:34:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jmorris@namei.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, arjan@infradead.org, chrisw@sous-sol.org, jmorris@namei.org, jsipek@cs.sunysb.edu, sds@tycho.nsa.gov, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     security-convert-lsm-into-a-static-interface vs fix-null-pointer-dereference-in-__vm_enough_memory
+     security-convert-lsm-into-a-static-interface :fix unionfs
 has been removed from the -mm tree.  Its filename was
-     security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
+     security-convert-lsm-into-a-static-interface-fix-unionfs.patch
 
 This patch was dropped because it was folded into security-convert-lsm-into-a-static-interface.patch
 
 ------------------------------------------------------
-Subject: security-convert-lsm-into-a-static-interface vs fix-null-pointer-dereference-in-__vm_enough_memory
+Subject: security-convert-lsm-into-a-static-interface :fix unionfs
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/mmap.c: In function 'insert_vm_struct':
-mm/mmap.c:2080: error: implicit declaration of function 'security_vm_enough_memory_mm'
+ERROR: "security_inode_permission" [fs/unionfs/unionfs.ko] undefined!
+ERROR: "security_file_ioctl" [fs/unionfs/unionfs.ko] undefined!
 
+Need these back.
+
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Chris Wright <chrisw@sous-sol.org>
 Cc: James Morris <jmorris@namei.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/security.h |    1 +
- security/security.c      |    6 +++++-
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ security/security.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/security.h~security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory include/linux/security.h
---- a/include/linux/security.h~security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory
-+++ a/include/linux/security.h
-@@ -1444,6 +1444,7 @@ int security_quota_on(struct dentry *den
- int security_syslog(int type);
- int security_settime(struct timespec *ts, struct timezone *tz);
- int security_vm_enough_memory(long pages);
-+int security_vm_enough_memory_mm(struct mm_struct *mm, long pages);
- int security_bprm_alloc(struct linux_binprm *bprm);
- void security_bprm_free(struct linux_binprm *bprm);
- void security_bprm_apply_creds(struct linux_binprm *bprm, int unsafe);
-diff -puN security/security.c~security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory security/security.c
---- a/security/security.c~security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory
+diff -puN security/security.c~security-convert-lsm-into-a-static-interface-fix-unionfs security/security.c
+--- a/security/security.c~security-convert-lsm-into-a-static-interface-fix-unionfs
 +++ a/security/security.c
-@@ -237,12 +237,16 @@ int security_settime(struct timespec *ts
- 	return security_ops->settime(ts, tz);
+@@ -455,6 +455,7 @@ int security_inode_permission(struct ino
+ 		return 0;
+ 	return security_ops->inode_permission(inode, mask, nd);
  }
++EXPORT_SYMBOL(security_inode_permission);
  
--
- int security_vm_enough_memory(long pages)
+ int security_inode_setattr(struct dentry *dentry, struct iattr *attr)
  {
- 	return security_ops->vm_enough_memory(current->mm, pages);
+@@ -559,6 +560,7 @@ int security_file_ioctl(struct file *fil
+ {
+ 	return security_ops->file_ioctl(file, cmd, arg);
  }
++EXPORT_SYMBOL(security_file_ioctl);
  
-+int security_vm_enough_memory_mm(struct mm_struct *mm, long pages)
-+{
-+	return security_ops->vm_enough_memory(mm, pages);
-+}
-+
- int security_bprm_alloc(struct linux_binprm *bprm)
- {
- 	return security_ops->bprm_alloc_security(bprm);
+ int security_file_mmap(struct file *file, unsigned long reqprot,
+ 			unsigned long prot, unsigned long flags,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,6 +103,7 @@ writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
 md-software-raid-autodetect-dev-list-not-array.patch
 pnp-use-dev_info-dev_err-etc-in-core.patch
 security-convert-lsm-into-a-static-interface.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
 security-convert-lsm-into-a-static-interface-vs-fix-null-pointer-dereference-in-__vm_enough_memory.patch
 file-capabilities-clear-caps-cleanup-fix.patch
 capabilityh-remove-include-of-currenth.patch
