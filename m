@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + git-wireless-fixup.patch added to -mm tree
-Date: Wed, 17 Oct 2007 00:55:19 -0700
-Message-ID: <200710170755.l9H7tJGH010657@imap1.linux-foundation.org>
+Subject: + git-md-accel-fixup.patch added to -mm tree
+Date: Wed, 17 Oct 2007 00:56:14 -0700
+Message-ID: <200710170756.l9H7uE6k010736@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34013 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46156 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753089AbXJQHzw (ORCPT
+	by vger.kernel.org with ESMTP id S1754938AbXJQH4p (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Oct 2007 03:55:52 -0400
+	Wed, 17 Oct 2007 03:56:45 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9H7tJb2000659
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9H7uEMm000700
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 17 Oct 2007 00:55:20 -0700
+	for <mm-commits@vger.kernel.org>; Wed, 17 Oct 2007 00:56:15 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-wireless-fixup
+     git-md-accel-fixup
 has been added to the -mm tree.  Its filename is
-     git-wireless-fixup.patch
+     git-md-accel-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,103 +30,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-wireless-fixup
+Subject: git-md-accel-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/Kconfig |   24 ------------------------
- 1 file changed, 24 deletions(-)
+ drivers/md/raid5.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN drivers/net/wireless/Kconfig~git-wireless-fixup drivers/net/wireless/Kconfig
---- a/drivers/net/wireless/Kconfig~git-wireless-fixup
-+++ a/drivers/net/wireless/Kconfig
-@@ -381,8 +381,6 @@ config PCI_HERMES
- 	  common.  Some of the built-in wireless adaptors in laptops are of
- 	  this variety.
- 
--<<<<<<< HEAD:drivers/net/wireless/Kconfig
+diff -puN drivers/md/raid5.c~git-md-accel-fixup drivers/md/raid5.c
+--- a/drivers/md/raid5.c~git-md-accel-fixup
++++ a/drivers/md/raid5.c
+@@ -3858,13 +3858,8 @@ static void raid5_align_endio(struct bio
+ 	if (!error && uptodate) {
+ 		bio_endio(raid_bi, 0);
+ 		if (atomic_dec_and_test(&conf->active_aligned_reads))
+-<<<<<<< HEAD:drivers/md/raid5.c
+-			wake_up(&conf->wait_for_stripe);
+-		return;
 -=======
- config ATMEL
-       tristate "Atmel at76c50x chipset  802.11b support"
-       depends on (PCI || PCMCIA) && WLAN_80211
-@@ -415,7 +413,6 @@ config USB_ATMEL
- 	  Enable support for USB Wireless devices using Atmel at76c503,
- 	  at76c505 or at76c505a chips.
+ 			wake_up(&conf->wait_for_queue);
+-		return 0;
+->>>>>>> FETCH_HEAD:drivers/md/raid5.c
++		return ;
+ 	}
  
-->>>>>>> FETCH_HEAD:drivers/net/wireless/Kconfig
- config PCMCIA_HERMES
- 	tristate "Hermes PCMCIA card support"
- 	depends on PCMCIA && HERMES
-@@ -585,28 +582,20 @@ config RTL8187
  
- 	  Thanks to Realtek for their support!
- 
--<<<<<<< HEAD:drivers/net/wireless/Kconfig
- config ADM8211
- 	tristate "ADMtek ADM8211 support"
- 	depends on MAC80211 && PCI && WLAN_80211 && EXPERIMENTAL
- 	select CRC32
- 	select EEPROM_93CX6
--=======
- config ATH5K
- 	tristate "Atheros 5xxx wireless cards support"
- 	depends on PCI && MAC80211 && WLAN_80211 && EXPERIMENTAL
- 	default m
-->>>>>>> FETCH_HEAD:drivers/net/wireless/Kconfig
- 	---help---
--<<<<<<< HEAD:drivers/net/wireless/Kconfig
- 	  This driver is for ADM8211A, ADM8211B, and ADM8211C based cards.
- 	  These are PCI/mini-PCI/Cardbus 802.11b chips found in cards such as:
--=======
- 	  This module adds support for atheros 5xxx (e.g. 5212) wireless
- 	  cards. If you have this card in your PC, select this to be build.
-->>>>>>> FETCH_HEAD:drivers/net/wireless/Kconfig
--
--<<<<<<< HEAD:drivers/net/wireless/Kconfig
- 	  Xterasys Cardbus XN-2411b
- 	  Blitz NetWave Point PC
- 	  TrendNet 221pc
-@@ -618,20 +607,12 @@ config ATH5K
- 	  Corega WLPCIB-11
- 	  SMC 2602W V2 EU
- 	  D-Link DWL-520 Revision C
--=======
- 	  This driver uses the kernel's mac80211 subsystem.
-->>>>>>> FETCH_HEAD:drivers/net/wireless/Kconfig
--
--<<<<<<< HEAD:drivers/net/wireless/Kconfig
- 	  However, some of these cards have been replaced with other chips
- 	  like the RTL8180L (Xterasys Cardbus XN-2411b, Belkin F5D6001) or
- 	  the Ralink RT2400 (SMC2635W) without a model number change.
--=======
- 	  If you choose to build a module, it'll be called ath5k. Say M if
- 	  unsure.
-->>>>>>> FETCH_HEAD:drivers/net/wireless/Kconfig
--
--<<<<<<< HEAD:drivers/net/wireless/Kconfig
- 	  Thanks to Infineon-ADMtek for their support of this driver.
- 
- config P54_COMMON
-@@ -648,17 +629,12 @@ config P54_PCI
- 	depends on P54_COMMON && PCI
- 
- source "drivers/net/wireless/iwlwifi/Kconfig"
--=======
-->>>>>>> FETCH_HEAD:drivers/net/wireless/Kconfig
- source "drivers/net/wireless/hostap/Kconfig"
- source "drivers/net/wireless/bcm43xx/Kconfig"
- source "drivers/net/wireless/b43/Kconfig"
- source "drivers/net/wireless/b43legacy/Kconfig"
- source "drivers/net/wireless/zd1211rw/Kconfig"
--<<<<<<< HEAD:drivers/net/wireless/Kconfig
- source "drivers/net/wireless/rt2x00/Kconfig"
--=======
- source "drivers/net/wireless/zd1211rw-mac80211/Kconfig"
-->>>>>>> FETCH_HEAD:drivers/net/wireless/Kconfig
- 
- endmenu
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -185,6 +115,7 @@ git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
 ide-arm-hack.patch
+git-md-accel-fixup.patch
 ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-nfsd-fixup.patch
