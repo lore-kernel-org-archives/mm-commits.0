@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + videopix-frame-grabber-convert-device_lock_sem-to-mutex.patch added to -mm tree
-Date: Wed, 17 Oct 2007 16:00:49 -0700
-Message-ID: <200710172300.l9HN0naD012660@imap1.linux-foundation.org>
+Subject: + ext3-fix-setup_new_group_blocks-locking.patch added to -mm tree
+Date: Wed, 17 Oct 2007 16:07:29 -0700
+Message-ID: <200710172307.l9HN7TE7012954__25397.6720771336$1192662498$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44269 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36267 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932230AbXJQXAy (ORCPT
+	by vger.kernel.org with ESMTP id S1759155AbXJQXHn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Oct 2007 19:00:54 -0400
+	Wed, 17 Oct 2007 19:07:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthias.kaehlcke@gmail.com, davem@davemloft.net
+Cc: sandeen@redhat.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     Videopix Frame Grabber: convert device_lock_sem to mutex
+     ext3: fix setup_new_group_blocks locking
 has been added to the -mm tree.  Its filename is
-     videopix-frame-grabber-convert-device_lock_sem-to-mutex.patch
+     ext3-fix-setup_new_group_blocks-locking.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,72 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Videopix Frame Grabber: convert device_lock_sem to mutex
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: ext3: fix setup_new_group_blocks locking
+From: Eric Sandeen <sandeen@redhat.com>
 
-Videopix Frame Grabber: Convert the semaphore device_lock_sem to the mutex
-API
+setup_new_group_blocks() manipulates the group descriptor block bh under
+the block_bitmap bh's lock.  It shouldn't matter since nobody but resize
+should be touching these blocks, but it's worth fixing up.
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+C: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/sbus/char/vfc.h     |    2 +-
- drivers/sbus/char/vfc_dev.c |    5 +++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ fs/ext3/resize.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/sbus/char/vfc.h~videopix-frame-grabber-convert-device_lock_sem-to-mutex drivers/sbus/char/vfc.h
---- a/drivers/sbus/char/vfc.h~videopix-frame-grabber-convert-device_lock_sem-to-mutex
-+++ a/drivers/sbus/char/vfc.h
-@@ -126,7 +126,7 @@ struct vfc_dev {
- 	volatile struct vfc_regs __iomem *regs;
- 	struct vfc_regs *phys_regs;
- 	unsigned int control_reg;
--	struct semaphore device_lock_sem;
-+	struct mutex device_lock_mtx;
- 	int instance;
- 	int busy;
- 	unsigned long which_io;
-diff -puN drivers/sbus/char/vfc_dev.c~videopix-frame-grabber-convert-device_lock_sem-to-mutex drivers/sbus/char/vfc_dev.c
---- a/drivers/sbus/char/vfc_dev.c~videopix-frame-grabber-convert-device_lock_sem-to-mutex
-+++ a/drivers/sbus/char/vfc_dev.c
-@@ -22,6 +22,7 @@
- #include <linux/fs.h>
- #include <linux/delay.h>
- #include <linux/spinlock.h>
-+#include <linux/mutex.h>
- #include <linux/mm.h>
- 
- #include <asm/openprom.h>
-@@ -54,12 +55,12 @@ static unsigned char saa9051_init_array[
- 
- void vfc_lock_device(struct vfc_dev *dev)
- {
--	down(&dev->device_lock_sem);
-+	mutex_lock(&dev->device_lock_mtx);
- }
- 
- void vfc_unlock_device(struct vfc_dev *dev)
- {
--	up(&dev->device_lock_sem);
-+	mutex_unlock(&dev->device_lock_mtx);
- }
- 
- 
+diff -puN fs/ext3/resize.c~ext3-fix-setup_new_group_blocks-locking fs/ext3/resize.c
+--- a/fs/ext3/resize.c~ext3-fix-setup_new_group_blocks-locking
++++ a/fs/ext3/resize.c
+@@ -245,10 +245,10 @@ static int setup_new_group_blocks(struct
+ 			brelse(gdb);
+ 			goto exit_bh;
+ 		}
+-		lock_buffer(bh);
+-		memcpy(gdb->b_data, sbi->s_group_desc[i]->b_data, bh->b_size);
++		lock_buffer(gdb);
++		memcpy(gdb->b_data, sbi->s_group_desc[i]->b_data, gdb->b_size);
+ 		set_buffer_uptodate(gdb);
+-		unlock_buffer(bh);
++		unlock_buffer(gdb);
+ 		ext3_journal_dirty_metadata(handle, gdb);
+ 		ext3_set_bit(bit, bh->b_data);
+ 		brelse(gdb);
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
-origin.patch
-git-alsa.patch
-generic-ac97-mixer-modem-oss-use-list_for_each_entry.patch
-videopix-frame-grabber-convert-device_lock_sem-to-mutex.patch
-ftdi-elan-driver-convert-ftdi-u132_lock-to-mutex.patch
-fs-file_tablec-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-eventpollc-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-kernel-exitc-use-list_for_each_entry_safe-instead-of-list_for_each_safe.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-mm-oom_killc-use-list_for_each_entry-instead-of-list_for_each.patch
+remove-unused-bh-in-calls-to-ext234_get_group_desc.patch
+limit-minixfs-printks-on-corrupted-dir-i_size.patch
+ext3-remove-ifdef-config_ext3_index.patch
+ext3-lighten-up-resize-transaction-requirements.patch
+ext4-remove-ifdef-config_ext4_index.patch
+ext3-fix-setup_new_group_blocks-locking.patch
