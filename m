@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-remove-first_zero_hint-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 17 Oct 2007 15:21:16 -0700
-Message-ID: <200710172221.l9HMLG03011279@imap1.linux-foundation.org>
+Subject: + reiserfs-fix-up-lockdep-warnings-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 17 Oct 2007 15:21:08 -0700
+Message-ID: <200710172221.l9HML87x011270@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42504 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51756 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759857AbXJQWV4 (ORCPT
+	by vger.kernel.org with ESMTP id S1755310AbXJQWVv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Oct 2007 18:21:56 -0400
+	Wed, 17 Oct 2007 18:21:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hch@lst.de, jeffm@suse.com, mason@suse.com, vs@namesys.com
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, hch@lst.de, jeffm@suse.com, mason@suse.com, vs@namesys.com
 
 
 The patch titled
-     reiserfs-remove-first_zero_hint-checkpatch-fixes
+     reiserfs-fix-up-lockdep-warnings-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     reiserfs-remove-first_zero_hint-checkpatch-fixes.patch
+     reiserfs-fix-up-lockdep-warnings-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,12 +26,12 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reiserfs-remove-first_zero_hint-checkpatch-fixes
+Subject: reiserfs-fix-up-lockdep-warnings-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: no space between function name and open parenthesis '('
-#40: FILE: fs/reiserfs/bitmap.c:1218:
-+	BUG_ON (!reiserfs_test_le_bit(0, (unsigned long)bh->b_data))
+ERROR: use tabs not spaces
+#34: FILE: fs/reiserfs/xattr.c:1227:
++^I^I^I^I$
 
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
@@ -41,24 +41,25 @@ Cc: "Vladimir V. Saveliev" <vs@namesys.com>
 Cc: Chris Mason <mason@suse.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Jeff Mahoney <jeffm@suse.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/bitmap.c |    2 +-
+ fs/reiserfs/xattr.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/reiserfs/bitmap.c~reiserfs-remove-first_zero_hint-checkpatch-fixes fs/reiserfs/bitmap.c
---- a/fs/reiserfs/bitmap.c~reiserfs-remove-first_zero_hint-checkpatch-fixes
-+++ a/fs/reiserfs/bitmap.c
-@@ -1215,7 +1215,7 @@ void reiserfs_cache_bitmap_metadata(stru
- 	unsigned long *cur = (unsigned long *)(bh->b_data + bh->b_size);
- 
- 	/* The first bit must ALWAYS be 1 */
--	BUG_ON (!reiserfs_test_le_bit(0, (unsigned long)bh->b_data))
-+	BUG_ON(!reiserfs_test_le_bit(0, (unsigned long)bh->b_data))
- 
- 	info->free_count = 0;
- 
+diff -puN fs/reiserfs/xattr.c~reiserfs-fix-up-lockdep-warnings-checkpatch-fixes fs/reiserfs/xattr.c
+--- a/fs/reiserfs/xattr.c~reiserfs-fix-up-lockdep-warnings-checkpatch-fixes
++++ a/fs/reiserfs/xattr.c
+@@ -1224,7 +1224,7 @@ int reiserfs_xattr_init(struct super_blo
+ 			if (!(mount_flags & MS_RDONLY) && !dentry->d_inode) {
+ 				struct inode *inode = dentry->d_parent->d_inode;
+ 				mutex_lock_nested(&inode->i_mutex,
+-				                  I_MUTEX_XATTR);
++						  I_MUTEX_XATTR);
+ 				err = inode->i_op->mkdir(inode, dentry, 0700);
+ 				mutex_unlock(&inode->i_mutex);
+ 				if (err) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
