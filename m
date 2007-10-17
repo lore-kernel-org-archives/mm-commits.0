@@ -1,62 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: - capabilities-reset-current-pdeath_signal-when-increasing-capabilities.patch removed from -mm tree
-Date: Tue, 16 Oct 2007 18:38:14 -0700
-Message-ID: <200710170138.l9H1cEsw027979@imap1.linux-foundation.org>
+Subject: - script-to-check-for-undefined-kconfig-symbols.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 00:20:21 -0700
+Message-ID: <200710170720.l9H7KL9K009552@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53378 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54186 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760403AbXJQBoY (ORCPT
+	by vger.kernel.org with ESMTP id S1759365AbXJQHUk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 16 Oct 2007 21:44:24 -0400
+	Wed, 17 Oct 2007 03:20:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: serge@hallyn.com, casey@schaufler-ca.com, chrisw@sous-sol.org, jmorris@namei.org, morgan@kernel.org, sds@tycho.nsa.gov, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: blaisorblade@yahoo.it, bunk@stusta.de, sam@ravnborg.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     capabilities: reset current->pdeath_signal when increasing capabilities
+     Script to check for undefined Kconfig symbols
 has been removed from the -mm tree.  Its filename was
-     capabilities-reset-current-pdeath_signal-when-increasing-capabilities.patch
+     script-to-check-for-undefined-kconfig-symbols.patch
 
-This patch was dropped because it was folded into implement-file-posix-capabilities.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: capabilities: reset current->pdeath_signal when increasing capabilities
-From: "Serge E. Hallyn" <serge@hallyn.com>
+Subject: Script to check for undefined Kconfig symbols
+From: "Paolo 'Blaisorblade' Giarrusso" <blaisorblade@yahoo.it>
 
-If running a program which has file capabilities which are not a subset of
-the capabilities of the current task, reset pdeath_signal = 0 to prevent
-the task parent from (deliberately) signaling a more privileged app.
+To avoid having to look manually for used but undefined Kconfig variables,
+I've written a script which tries do this efficiently, in case all other
+attention fail.  It accounts for _MODULE suffix and for UML_ prefixes to
+Kconfig variable, but otherwise looks for exact matches (i.e.  \<CONFIG_;
+this is done to exclude macros like MMCONFIG_).
 
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Andrew Morgan <morgan@kernel.org>
-Cc: Casey Schaufler <casey@schaufler-ca.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: James Morris <jmorris@namei.org>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Undefined Kconfig variables should be not be removed without care, but for
+instance arch/i386/boot/ uses a bunch of undefined Kconfig vars:
+
+$ scripts/checkunknowndefines.sh arch/i386/boot/
+arch/i386/boot/video.h uses undefined symbol VIDEO_400_HACK
+arch/i386/boot/video-vga.c uses undefined symbol VIDEO_400_HACK
+arch/i386/boot/video.c uses undefined symbol VIDEO_RETAIN
+arch/i386/boot/video.h uses undefined symbol VIDEO_RETAIN
+arch/i386/boot/video.h uses undefined symbol VIDEO_SVGA
+arch/i386/boot/video.h uses undefined symbol VIDEO_VESA
+arch/i386/boot/video-vesa.c uses undefined symbol VIDEO_VESA
+
+It should also be mentioned in SubmittingPatches and SubmitChecklist.
+
+Signed-off-by: Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/commoncap.c |    1 +
- 1 files changed, 1 insertion(+)
+ scripts/checkunknowndefines.sh |   59 +++++++++++++++++++++++++++++++
+ 1 file changed, 59 insertions(+)
 
-diff -puN security/commoncap.c~capabilities-reset-current-pdeath_signal-when-increasing-capabilities security/commoncap.c
---- a/security/commoncap.c~capabilities-reset-current-pdeath_signal-when-increasing-capabilities
-+++ a/security/commoncap.c
-@@ -267,6 +267,7 @@ void cap_bprm_apply_creds (struct linux_
- 	if (bprm->e_uid != current->uid || bprm->e_gid != current->gid ||
- 	    !cap_issubset (new_permitted, current->cap_permitted)) {
- 		set_dumpable(current->mm, suid_dumpable);
-+		current->pdeath_signal = 0;
- 
- 		if (unsafe & ~LSM_UNSAFE_PTRACE_CAP) {
- 			if (!capable(CAP_SETUID)) {
+diff -puN /dev/null scripts/checkunknowndefines.sh
+--- /dev/null
++++ a/scripts/checkunknowndefines.sh
+@@ -0,0 +1,59 @@
++#!/bin/sh
++# Find Kconfig variables used in source code but never defined in Kconfig
++# Copyright (C) 2007, Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
++
++# Tested with dash.
++paths="$@"
++[ -z "$paths" ] && paths=.
++
++# Doing this once at the beginning saves a lot of time, on a cache-hot tree.
++Kconfigs="`find . -name 'Kconfig' -o -name 'Kconfig*[^~]'`"
++
++echo "File list \tundefined symbol used"
++find $paths -name '*.[chS]' -o -name 'Makefile' -o -name 'Makefile*[^~]'| while read i
++do
++	# Output the bare Kconfig variable and the filename; the _MODULE part at
++	# the end is not removed here (would need perl an not-hungry regexp for that).
++	sed -ne 's!^.*\<\(UML_\)\?CONFIG_\([0-9A-Z_]\+\).*!\2 '$i'!p' < $i
++done | \
++# Smart "sort|uniq" implemented in awk and tuned to collect the names of all
++# files which use a given symbol
++awk '{map[$1, count[$1]++] = $2; }
++END {
++	for (combIdx in map) {
++		split(combIdx, separate, SUBSEP);
++		# The value may have been removed.
++		if (! ( (separate[1], separate[2]) in map ) )
++			continue;
++		symb=separate[1];
++		printf "%s ", symb;
++		#Use gawk extension to delete the names vector
++		delete names;
++		#Portably delete the names vector
++		#split("", names);
++		for (i=0; i < count[symb]; i++) {
++			names[map[symb, i]] = 1;
++			# Unfortunately, we may still encounter symb, i in the
++			# outside iteration.
++			delete map[symb, i];
++		}
++		i=0;
++		for (name in names) {
++			if (i > 0)
++				printf ", %s", name;
++			else
++				printf "%s", name;
++			i++;
++		}
++		printf "\n";
++	}
++}' |
++while read symb files; do
++	# Remove the _MODULE suffix when checking the variable name. This should
++	# be done only on tristate symbols, actually, but Kconfig parsing is
++	# beyond the purpose of this script.
++	symb_bare=`echo $symb | sed -e 's/_MODULE//'`
++	if ! grep -q "\<$symb_bare\>" $Kconfigs; then
++		echo "$files: \t$symb"
++	fi
++done|sort
 _
 
-Patches currently in -mm which might be from serge@hallyn.com are
+Patches currently in -mm which might be from blaisorblade@yahoo.it are
 
 origin.patch
-ifdef-struct-task_structsecurity.patch
-implement-file-posix-capabilities.patch
-capabilities-reset-current-pdeath_signal-when-increasing-capabilities.patch
+script-to-check-for-undefined-kconfig-symbols.patch
+bitops-introduce-lock-ops.patch
