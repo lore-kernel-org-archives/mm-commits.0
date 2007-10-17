@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-fix-memset-byte-count-during-resize.patch added to -mm tree
-Date: Wed, 17 Oct 2007 15:15:28 -0700
-Message-ID: <200710172215.l9HMFSj1010971@imap1.linux-foundation.org>
+Subject: + reiserfs-remove-first_zero_hint.patch added to -mm tree
+Date: Wed, 17 Oct 2007 15:15:36 -0700
+Message-ID: <200710172215.l9HMFaMZ010974@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39464 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35480 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762004AbXJQWPt (ORCPT
+	by vger.kernel.org with ESMTP id S1757900AbXJQWP6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Oct 2007 18:15:49 -0400
+	Wed, 17 Oct 2007 18:15:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jeffm@suse.com, hch@lst.de, mason@suse.com, vs@namesys.com
 
 
 The patch titled
-     reiserfs: fix memset byte count during resize
+     reiserfs: remove first_zero_hint
 has been added to the -mm tree.  Its filename is
-     reiserfs-fix-memset-byte-count-during-resize.patch
+     reiserfs-remove-first_zero_hint.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,13 +26,16 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reiserfs: fix memset byte count during resize
+Subject: reiserfs: remove first_zero_hint
 From: Jeff Mahoney <jeffm@suse.com>
 
-Correct the memset in reiserfs_resize to clear the memory allocated for the
-new bitmap info structs.  Previously, it would clear the memory used by the
-old size.  Depending on the contents of memory, this could cause incorrect
-caching behavior for bitmap blocks in the newly allocated area.
+The first_zero_hint metadata caching was never actually used, and it's of
+dubious optimization quality.  This patch removes it.
+
+It doesn't actually shrink the size of the reiserfs_bitmap_info struct, since
+that doesn't work with block sizes larger than 8K.  There was a big fixme in
+there, and with all the work lately in allowing block size > page size, I
+might as well kill the fixme as well.
 
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Chris Mason <mason@suse.com>
@@ -40,21 +43,113 @@ Cc: "Vladimir V. Saveliev" <vs@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/resize.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/reiserfs/bitmap.c           |   27 +++++++++++----------------
+ fs/reiserfs/resize.c           |    6 ------
+ include/linux/reiserfs_fs_sb.h |    4 +---
+ 3 files changed, 12 insertions(+), 25 deletions(-)
 
-diff -puN fs/reiserfs/resize.c~reiserfs-fix-memset-byte-count-during-resize fs/reiserfs/resize.c
---- a/fs/reiserfs/resize.c~reiserfs-fix-memset-byte-count-during-resize
-+++ a/fs/reiserfs/resize.c
-@@ -119,7 +119,7 @@ int reiserfs_resize(struct super_block *
- 			return -ENOMEM;
- 		}
- 		memset(bitmap, 0,
--		       sizeof(struct reiserfs_bitmap_info) * SB_BMAP_NR(s));
-+		       sizeof(struct reiserfs_bitmap_info) * bmap_nr_new);
- 		for (i = 0; i < bmap_nr; i++)
- 			bitmap[i] = old_bitmap[i];
+diff -puN fs/reiserfs/bitmap.c~reiserfs-remove-first_zero_hint fs/reiserfs/bitmap.c
+--- a/fs/reiserfs/bitmap.c~reiserfs-remove-first_zero_hint
++++ a/fs/reiserfs/bitmap.c
+@@ -273,7 +273,7 @@ static inline int block_group_used(struc
+ 	 * to make a better decision. This favors long-term performace gain
+ 	 * with a better on-disk layout vs. a short term gain of skipping the
+ 	 * read and potentially having a bad placement. */
+-	if (info->first_zero_hint == 0) {
++	if (info->free_count == UINT_MAX) {
+ 		struct buffer_head *bh = reiserfs_read_bitmap_block(s, bm);
+ 		brelse(bh);
+ 	}
+@@ -1214,27 +1214,22 @@ void reiserfs_cache_bitmap_metadata(stru
+ {
+ 	unsigned long *cur = (unsigned long *)(bh->b_data + bh->b_size);
  
+-	info->first_zero_hint = 1 << (sb->s_blocksize_bits + 3);
++	/* The first bit must ALWAYS be 1 */
++	BUG_ON (!reiserfs_test_le_bit(0, (unsigned long)bh->b_data))
++
++	info->free_count = 0;
+ 
+ 	while (--cur >= (unsigned long *)bh->b_data) {
+-		int base = ((char *)cur - bh->b_data) << 3;
++		int i;
+ 
+ 		/* 0 and ~0 are special, we can optimize for them */
+-		if (*cur == 0) {
+-			info->first_zero_hint = base;
++		if (*cur == 0)
+ 			info->free_count += BITS_PER_LONG;
+-		} else if (*cur != ~0L) {       /* A mix, investigate */
+-			int b;
+-			for (b = BITS_PER_LONG - 1; b >= 0; b--) {
+-				if (!reiserfs_test_le_bit(b, cur)) {
+-					info->first_zero_hint = base + b;
++		else if (*cur != ~0L)	/* A mix, investigate */
++			for (i = BITS_PER_LONG - 1; i >= 0; i--)
++				if (!reiserfs_test_le_bit(i, cur))
+ 					info->free_count++;
+-				}
+-			}
+-		}
+ 	}
+-	/* The first bit must ALWAYS be 1 */
+-	BUG_ON(info->first_zero_hint == 0);
+ }
+ 
+ struct buffer_head *reiserfs_read_bitmap_block(struct super_block *sb,
+@@ -1264,7 +1259,7 @@ struct buffer_head *reiserfs_read_bitmap
+ 		BUG_ON(!buffer_uptodate(bh));
+ 		BUG_ON(atomic_read(&bh->b_count) == 0);
+ 
+-		if (info->first_zero_hint == 0)
++		if (info->free_count == UINT_MAX)
+ 			reiserfs_cache_bitmap_metadata(sb, bh, info);
+ 	}
+ 
+diff -puN fs/reiserfs/resize.c~reiserfs-remove-first_zero_hint fs/reiserfs/resize.c
+--- a/fs/reiserfs/resize.c~reiserfs-remove-first_zero_hint
++++ a/fs/reiserfs/resize.c
+@@ -143,7 +143,6 @@ int reiserfs_resize(struct super_block *
+ 			mark_buffer_dirty(bh);
+ 			sync_dirty_buffer(bh);
+ 			// update bitmap_info stuff
+-			bitmap[i].first_zero_hint = 1;
+ 			bitmap[i].free_count = sb_blocksize(sb) * 8 - 1;
+ 			brelse(bh);
+ 		}
+@@ -173,8 +172,6 @@ int reiserfs_resize(struct super_block *
+ 	for (i = block_r; i < s->s_blocksize * 8; i++)
+ 		reiserfs_test_and_clear_le_bit(i, bh->b_data);
+ 	info->free_count += s->s_blocksize * 8 - block_r;
+-	if (!info->first_zero_hint)
+-		info->first_zero_hint = block_r;
+ 
+ 	journal_mark_dirty(&th, s, bh);
+ 	brelse(bh);
+@@ -196,9 +193,6 @@ int reiserfs_resize(struct super_block *
+ 	brelse(bh);
+ 
+ 	info->free_count -= s->s_blocksize * 8 - block_r_new;
+-	/* Extreme case where last bitmap is the only valid block in itself. */
+-	if (!info->free_count)
+-		info->first_zero_hint = 0;
+ 	/* update super */
+ 	reiserfs_prepare_for_journal(s, SB_BUFFER_WITH_SB(s), 1);
+ 	free_blocks = SB_FREE_BLOCKS(s);
+diff -puN include/linux/reiserfs_fs_sb.h~reiserfs-remove-first_zero_hint include/linux/reiserfs_fs_sb.h
+--- a/include/linux/reiserfs_fs_sb.h~reiserfs-remove-first_zero_hint
++++ a/include/linux/reiserfs_fs_sb.h
+@@ -265,9 +265,7 @@ enum journal_state_bits {
+ typedef __u32(*hashf_t) (const signed char *, int);
+ 
+ struct reiserfs_bitmap_info {
+-	// FIXME: Won't work with block sizes > 8K
+-	__u16 first_zero_hint;
+-	__u16 free_count;
++	__u32 free_count;
+ };
+ 
+ struct proc_dir_entry;
 _
 
 Patches currently in -mm which might be from jeffm@suse.com are
