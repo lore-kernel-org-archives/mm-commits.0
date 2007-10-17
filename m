@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-use-is_reusable-to-catch-corruption.patch added to -mm tree
-Date: Wed, 17 Oct 2007 15:12:47 -0700
-Message-ID: <200710172212.l9HMCln4010907@imap1.linux-foundation.org>
+Subject: + reiserfs-fix-usage-of-signed-ints-for-block-numbers.patch added to -mm tree
+Date: Wed, 17 Oct 2007 15:13:23 -0700
+Message-ID: <200710172213.l9HMDNnx010926@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45353 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60791 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758486AbXJQWNI (ORCPT
+	by vger.kernel.org with ESMTP id S1758063AbXJQWNp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Oct 2007 18:13:08 -0400
+	Wed, 17 Oct 2007 18:13:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jeffm@suse.com, hch@lst.de, mason@suse.com, vs@namesys.com
 
 
 The patch titled
-     reiserfs: use is_reusable to catch corruption
+     reiserfs: fix usage of signed ints for block numbers
 has been added to the -mm tree.  Its filename is
-     reiserfs-use-is_reusable-to-catch-corruption.patch
+     reiserfs-fix-usage-of-signed-ints-for-block-numbers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,11 +26,14 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reiserfs: use is_reusable to catch corruption
+Subject: reiserfs: fix usage of signed ints for block numbers
 From: Jeff Mahoney <jeffm@suse.com>
 
-Build in is_reusable() unconditionally and use it to catch corruption before
-it reaches the block freeing paths.
+Do a quick signedness check for block numbers.  There are a number of places
+where signed integers are used for block numbers, which limits the usable file
+system size to 8 TiB.  The disk format, excepting a problem which will be
+fixed in the following patch, supports file systems up to 16 TiB in size. 
+This patch cleans up those sites so that we can enable the full usable size.
 
 Signed-off-by: Jeff Mahoney <jeffm@suse.com>
 Cc: Christoph Hellwig <hch@lst.de>
@@ -39,66 +42,267 @@ Cc: "Vladimir V. Saveliev" <vs@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/bitmap.c |   21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+ fs/reiserfs/bitmap.c        |   24 +++++++++++++-----------
+ fs/reiserfs/inode.c         |    8 ++++----
+ fs/reiserfs/journal.c       |   18 ++++++++++--------
+ fs/reiserfs/stree.c         |    6 +++---
+ include/linux/reiserfs_fs.h |   14 ++++++++------
+ 5 files changed, 38 insertions(+), 32 deletions(-)
 
-diff -puN fs/reiserfs/bitmap.c~reiserfs-use-is_reusable-to-catch-corruption fs/reiserfs/bitmap.c
---- a/fs/reiserfs/bitmap.c~reiserfs-use-is_reusable-to-catch-corruption
+diff -puN fs/reiserfs/bitmap.c~reiserfs-fix-usage-of-signed-ints-for-block-numbers fs/reiserfs/bitmap.c
+--- a/fs/reiserfs/bitmap.c~reiserfs-fix-usage-of-signed-ints-for-block-numbers
 +++ a/fs/reiserfs/bitmap.c
-@@ -56,7 +56,6 @@ static inline void get_bit_address(struc
- 	*offset = block & ((s->s_blocksize << 3) - 1);
- }
+@@ -47,7 +47,9 @@
+     test_bit(_ALLOC_ ## optname , &SB_ALLOC_OPTS(s))
  
--#ifdef CONFIG_REISERFS_CHECK
+ static inline void get_bit_address(struct super_block *s,
+-				   b_blocknr_t block, int *bmap_nr, int *offset)
++				   b_blocknr_t block,
++				   unsigned int *bmap_nr,
++				   unsigned int *offset)
+ {
+ 	/* It is in the bitmap block number equal to the block
+ 	 * number divided by the number of bits in a block. */
+@@ -58,7 +60,7 @@ static inline void get_bit_address(struc
+ 
  int is_reusable(struct super_block *s, b_blocknr_t block, int bit_value)
  {
- 	int bmap, offset;
-@@ -106,7 +105,6 @@ int is_reusable(struct super_block *s, b
+-	int bmap, offset;
++	unsigned int bmap, offset;
  
- 	return 1;
- }
--#endif				/* CONFIG_REISERFS_CHECK */
+ 	if (block == 0 || block >= SB_BLOCK_COUNT(s)) {
+ 		reiserfs_warning(s,
+@@ -108,8 +110,8 @@ int is_reusable(struct super_block *s, b
  
  /* searches in journal structures for a given block number (bmap, off). If block
     is found in reiserfs journal it suggests next free block candidate to test. */
-@@ -434,12 +432,19 @@ void reiserfs_free_block(struct reiserfs
- 			 int for_unformatted)
+-static inline int is_block_in_journal(struct super_block *s, int bmap, int
+-				      off, int *next)
++static inline int is_block_in_journal(struct super_block *s, unsigned int bmap,
++                                      int off, int *next)
+ {
+ 	b_blocknr_t tmp;
+ 
+@@ -130,8 +132,8 @@ static inline int is_block_in_journal(st
+ /* it searches for a window of zero bits with given minimum and maximum lengths in one bitmap
+  * block; */
+ static int scan_bitmap_block(struct reiserfs_transaction_handle *th,
+-			     int bmap_n, int *beg, int boundary, int min,
+-			     int max, int unfm)
++                             unsigned int bmap_n, int *beg, int boundary,
++                             int min, int max, int unfm)
  {
  	struct super_block *s = th->t_super;
--
+ 	struct reiserfs_bitmap_info *bi = &SB_AP_BITMAP(s)[bmap_n];
+@@ -307,16 +309,16 @@ __le32 reiserfs_choose_packing(struct in
+  * bitmap and place new blocks there. Returns number of allocated blocks. */
+ static int scan_bitmap(struct reiserfs_transaction_handle *th,
+ 		       b_blocknr_t * start, b_blocknr_t finish,
+-		       int min, int max, int unfm, unsigned long file_block)
++		       int min, int max, int unfm, sector_t file_block)
+ {
+ 	int nr_allocated = 0;
+ 	struct super_block *s = th->t_super;
+ 	/* find every bm and bmap and bmap_nr in this file, and change them all to bitmap_blocknr
+ 	 * - Hans, it is not a block number - Zam. */
+ 
+-	int bm, off;
+-	int end_bm, end_off;
+-	int off_max = s->s_blocksize << 3;
++	unsigned int bm, off;
++	unsigned int end_bm, end_off;
++	unsigned int off_max = s->s_blocksize << 3;
+ 
  	BUG_ON(!th->t_trans_id);
  
- 	RFALSE(!s, "vs-4061: trying to free block on nonexistent device");
--	RFALSE(is_reusable(s, block, 1) == 0,
--	       "vs-4071: can not free such block");
-+	if (!is_reusable(s, block, 1))
-+		return;
-+
-+	if (block > sb_block_count(REISERFS_SB(s)->s_rs)) {
-+		reiserfs_panic(th->t_super, "bitmap-4072",
-+		               "Trying to free block outside file system "
-+			       "boundaries (%lu > %lu)",
-+			       block, sb_block_count(REISERFS_SB(s)->s_rs));
-+		return;
-+	}
- 	/* mark it before we clear it, just in case */
- 	journal_mark_freed(th, s, block);
- 	_reiserfs_free_block(th, inode, block, for_unformatted);
-@@ -449,11 +454,11 @@ void reiserfs_free_block(struct reiserfs
- static void reiserfs_free_prealloc_block(struct reiserfs_transaction_handle *th,
- 					 struct inode *inode, b_blocknr_t block)
+@@ -383,7 +385,7 @@ static void _reiserfs_free_block(struct 
+ 	struct reiserfs_super_block *rs;
+ 	struct buffer_head *sbh, *bmbh;
+ 	struct reiserfs_bitmap_info *apbi;
+-	int nr, offset;
++	unsigned int nr, offset;
+ 
+ 	BUG_ON(!th->t_trans_id);
+ 
+diff -puN fs/reiserfs/inode.c~reiserfs-fix-usage-of-signed-ints-for-block-numbers fs/reiserfs/inode.c
+--- a/fs/reiserfs/inode.c~reiserfs-fix-usage-of-signed-ints-for-block-numbers
++++ a/fs/reiserfs/inode.c
+@@ -199,7 +199,7 @@ static inline void set_block_dev_mapped(
+ // files which were created in the earlier version can not be longer,
+ // than 2 gb
+ //
+-static int file_capable(struct inode *inode, long block)
++static int file_capable(struct inode *inode, sector_t block)
  {
-+	BUG_ON(!th->t_trans_id);
- 	RFALSE(!th->t_super,
- 	       "vs-4060: trying to free block on nonexistent device");
--	RFALSE(is_reusable(th->t_super, block, 1) == 0,
--	       "vs-4070: can not free such block");
--	BUG_ON(!th->t_trans_id);
-+	if (!is_reusable(th->t_super, block, 1))
-+		return;
- 	_reiserfs_free_block(th, inode, block, 1);
+ 	if (get_inode_item_key_version(inode) != KEY_FORMAT_3_5 ||	// it is new file.
+ 	    block < (1 << (31 - inode->i_sb->s_blocksize_bits)))	// old file, but 'block' is inside of 2gb
+@@ -242,7 +242,7 @@ static int restart_transaction(struct re
+ // Please improve the english/clarity in the comment above, as it is
+ // hard to understand.
+ 
+-static int _get_block_create_0(struct inode *inode, long block,
++static int _get_block_create_0(struct inode *inode, sector_t block,
+ 			       struct buffer_head *bh_result, int args)
+ {
+ 	INITIALIZE_PATH(path);
+@@ -250,7 +250,7 @@ static int _get_block_create_0(struct in
+ 	struct buffer_head *bh;
+ 	struct item_head *ih, tmp_ih;
+ 	int fs_gen;
+-	int blocknr;
++	b_blocknr_t blocknr;
+ 	char *p = NULL;
+ 	int chars;
+ 	int ret;
+@@ -569,7 +569,7 @@ static int convert_tail_for_hole(struct 
  }
  
+ static inline int _allocate_block(struct reiserfs_transaction_handle *th,
+-				  long block,
++				  sector_t block,
+ 				  struct inode *inode,
+ 				  b_blocknr_t * allocated_block_nr,
+ 				  struct treepath *path, int flags)
+diff -puN fs/reiserfs/journal.c~reiserfs-fix-usage-of-signed-ints-for-block-numbers fs/reiserfs/journal.c
+--- a/fs/reiserfs/journal.c~reiserfs-fix-usage-of-signed-ints-for-block-numbers
++++ a/fs/reiserfs/journal.c
+@@ -219,11 +219,12 @@ static void allocate_bitmap_nodes(struct
+ 	}
+ }
+ 
+-static int set_bit_in_list_bitmap(struct super_block *p_s_sb, int block,
++static int set_bit_in_list_bitmap(struct super_block *p_s_sb,
++                                  b_blocknr_t block,
+ 				  struct reiserfs_list_bitmap *jb)
+ {
+-	int bmap_nr = block / (p_s_sb->s_blocksize << 3);
+-	int bit_nr = block % (p_s_sb->s_blocksize << 3);
++	unsigned int bmap_nr = block / (p_s_sb->s_blocksize << 3);
++	unsigned int bit_nr = block % (p_s_sb->s_blocksize << 3);
+ 
+ 	if (!jb->bitmaps[bmap_nr]) {
+ 		jb->bitmaps[bmap_nr] = get_bitmap_node(p_s_sb);
+@@ -289,7 +290,7 @@ static int free_bitmap_nodes(struct supe
+ */
+ int reiserfs_allocate_list_bitmaps(struct super_block *p_s_sb,
+ 				   struct reiserfs_list_bitmap *jb_array,
+-				   int bmap_nr)
++				   unsigned int bmap_nr)
+ {
+ 	int i;
+ 	int failed = 0;
+@@ -483,7 +484,7 @@ static inline struct reiserfs_journal_cn
+ **
+ */
+ int reiserfs_in_journal(struct super_block *p_s_sb,
+-			int bmap_nr, int bit_nr, int search_all,
++			unsigned int bmap_nr, int bit_nr, int search_all,
+ 			b_blocknr_t * next_zero_bit)
+ {
+ 	struct reiserfs_journal *journal = SB_JOURNAL(p_s_sb);
+@@ -1013,7 +1014,7 @@ static int flush_commit_list(struct supe
+ 			     struct reiserfs_journal_list *jl, int flushall)
+ {
+ 	int i;
+-	int bn;
++	b_blocknr_t bn;
+ 	struct buffer_head *tbh = NULL;
+ 	unsigned long trans_id = jl->j_trans_id;
+ 	struct reiserfs_journal *journal = SB_JOURNAL(s);
+@@ -2307,8 +2308,9 @@ static int journal_read_transaction(stru
+    Right now it is only used from journal code. But later we might use it
+    from other places.
+    Note: Do not use journal_getblk/sb_getblk functions here! */
+-static struct buffer_head *reiserfs_breada(struct block_device *dev, int block,
+-					   int bufsize, unsigned int max_block)
++static struct buffer_head *reiserfs_breada(struct block_device *dev,
++                                           b_blocknr_t block, int bufsize,
++                                           b_blocknr_t max_block)
+ {
+ 	struct buffer_head *bhlist[BUFNR];
+ 	unsigned int blocks = BUFNR;
+diff -puN fs/reiserfs/stree.c~reiserfs-fix-usage-of-signed-ints-for-block-numbers fs/reiserfs/stree.c
+--- a/fs/reiserfs/stree.c~reiserfs-fix-usage-of-signed-ints-for-block-numbers
++++ a/fs/reiserfs/stree.c
+@@ -559,7 +559,7 @@ static int is_tree_node(struct buffer_he
+ /* The function is NOT SCHEDULE-SAFE! */
+ static void search_by_key_reada(struct super_block *s,
+ 				struct buffer_head **bh,
+-				unsigned long *b, int num)
++				b_blocknr_t *b, int num)
+ {
+ 	int i, j;
+ 
+@@ -611,7 +611,7 @@ int search_by_key(struct super_block *p_
+ 					   DISK_LEAF_NODE_LEVEL */
+     )
+ {
+-	int n_block_number;
++	b_blocknr_t n_block_number;
+ 	int expected_level;
+ 	struct buffer_head *p_s_bh;
+ 	struct path_element *p_s_last_element;
+@@ -619,7 +619,7 @@ int search_by_key(struct super_block *p_
+ 	int right_neighbor_of_leaf_node;
+ 	int fs_gen;
+ 	struct buffer_head *reada_bh[SEARCH_BY_KEY_READA];
+-	unsigned long reada_blocks[SEARCH_BY_KEY_READA];
++	b_blocknr_t reada_blocks[SEARCH_BY_KEY_READA];
+ 	int reada_count = 0;
+ 
+ #ifdef CONFIG_REISERFS_CHECK
+diff -puN include/linux/reiserfs_fs.h~reiserfs-fix-usage-of-signed-ints-for-block-numbers include/linux/reiserfs_fs.h
+--- a/include/linux/reiserfs_fs.h~reiserfs-fix-usage-of-signed-ints-for-block-numbers
++++ a/include/linux/reiserfs_fs.h
+@@ -1734,8 +1734,8 @@ int journal_end_sync(struct reiserfs_tra
+ int journal_mark_freed(struct reiserfs_transaction_handle *,
+ 		       struct super_block *, b_blocknr_t blocknr);
+ int journal_transaction_should_end(struct reiserfs_transaction_handle *, int);
+-int reiserfs_in_journal(struct super_block *p_s_sb, int bmap_nr, int bit_nr,
+-			int searchall, b_blocknr_t * next);
++int reiserfs_in_journal(struct super_block *p_s_sb, unsigned int bmap_nr,
++                        int bit_nr, int searchall, b_blocknr_t * next);
+ int journal_begin(struct reiserfs_transaction_handle *,
+ 		  struct super_block *p_s_sb, unsigned long);
+ int journal_join_abort(struct reiserfs_transaction_handle *,
+@@ -1743,7 +1743,7 @@ int journal_join_abort(struct reiserfs_t
+ void reiserfs_journal_abort(struct super_block *sb, int errno);
+ void reiserfs_abort(struct super_block *sb, int errno, const char *fmt, ...);
+ int reiserfs_allocate_list_bitmaps(struct super_block *s,
+-				   struct reiserfs_list_bitmap *, int);
++				   struct reiserfs_list_bitmap *, unsigned int);
+ 
+ void add_save_link(struct reiserfs_transaction_handle *th,
+ 		   struct inode *inode, int truncate);
+@@ -2041,7 +2041,7 @@ struct buffer_head *get_FEB(struct tree_
+  * arguments, such as node, search path, transaction_handle, etc. */
+ struct __reiserfs_blocknr_hint {
+ 	struct inode *inode;	/* inode passed to allocator, if we allocate unf. nodes */
+-	long block;		/* file offset, in blocks */
++	sector_t block;		/* file offset, in blocks */
+ 	struct in_core_key key;
+ 	struct treepath *path;	/* search path, used by allocator to deternine search_start by
+ 				 * various ways */
+@@ -2099,7 +2099,8 @@ static inline int reiserfs_new_form_bloc
+ static inline int reiserfs_new_unf_blocknrs(struct reiserfs_transaction_handle
+ 					    *th, struct inode *inode,
+ 					    b_blocknr_t * new_blocknrs,
+-					    struct treepath *path, long block)
++					    struct treepath *path,
++					    sector_t block)
+ {
+ 	reiserfs_blocknr_hint_t hint = {
+ 		.th = th,
+@@ -2116,7 +2117,8 @@ static inline int reiserfs_new_unf_block
+ static inline int reiserfs_new_unf_blocknrs2(struct reiserfs_transaction_handle
+ 					     *th, struct inode *inode,
+ 					     b_blocknr_t * new_blocknrs,
+-					     struct treepath *path, long block)
++					     struct treepath *path,
++					     sector_t block)
+ {
+ 	reiserfs_blocknr_hint_t hint = {
+ 		.th = th,
 _
 
 Patches currently in -mm which might be from jeffm@suse.com are
@@ -111,6 +315,7 @@ reiserfs-fix-up-lockdep-warnings.patch
 reiserfs-fix-up-lockdep-warnings-checkpatch-fixes.patch
 reiserfs-dont-use-bug-when-panicking.patch
 reiserfs-use-is_reusable-to-catch-corruption.patch
+reiserfs-use-is_reusable-to-catch-corruption-checkpatch-fixes.patch
 reiserfs-fix-usage-of-signed-ints-for-block-numbers.patch
 reiserfs-fix-memset-byte-count-during-resize.patch
 reiserfs-remove-first_zero_hint.patch
