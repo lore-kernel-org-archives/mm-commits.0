@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ftdi-elan-driver-convert-ftdi-u132_lock-to-mutex.patch added to -mm tree
-Date: Wed, 17 Oct 2007 15:58:46 -0700
-Message-ID: <200710172258.l9HMwkJd012583@imap1.linux-foundation.org>
+Subject: + videopix-frame-grabber-convert-device_lock_sem-to-mutex.patch added to -mm tree
+Date: Wed, 17 Oct 2007 16:00:49 -0700
+Message-ID: <200710172300.l9HN0naD012660@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40220 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44269 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753535AbXJQW6v (ORCPT
+	by vger.kernel.org with ESMTP id S932230AbXJQXAy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Oct 2007 18:58:51 -0400
+	Wed, 17 Oct 2007 19:00:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthias.kaehlcke@gmail.com
+Cc: matthias.kaehlcke@gmail.com, davem@davemloft.net
 
 
 The patch titled
-     FTDI Elan driver: Convert ftdi->u132_lock to mutex
+     Videopix Frame Grabber: convert device_lock_sem to mutex
 has been added to the -mm tree.  Its filename is
-     ftdi-elan-driver-convert-ftdi-u132_lock-to-mutex.patch
+     videopix-frame-grabber-convert-device_lock_sem-to-mutex.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,493 +26,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: FTDI Elan driver: Convert ftdi->u132_lock to mutex
+Subject: Videopix Frame Grabber: convert device_lock_sem to mutex
 From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-FTDI Elan driver: Convert the semaphore ftdi->u132_lock to the mutex API
+Videopix Frame Grabber: Convert the semaphore device_lock_sem to the mutex
+API
 
 Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/ftdi-elan.c |  130 ++++++++++++++++-----------------
- 1 file changed, 65 insertions(+), 65 deletions(-)
+ drivers/sbus/char/vfc.h     |    2 +-
+ drivers/sbus/char/vfc_dev.c |    5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/usb/misc/ftdi-elan.c~ftdi-elan-driver-convert-ftdi-u132_lock-to-mutex drivers/usb/misc/ftdi-elan.c
---- a/drivers/usb/misc/ftdi-elan.c~ftdi-elan-driver-convert-ftdi-u132_lock-to-mutex
-+++ a/drivers/usb/misc/ftdi-elan.c
-@@ -147,7 +147,7 @@ struct u132_target {
- /* Structure to hold all of our device specific stuff*/
- struct usb_ftdi {
-         struct list_head ftdi_list;
--        struct semaphore u132_lock;
-+        struct mutex u132_lock;
-         int command_next;
-         int command_head;
-         struct u132_command command[COMMAND_SIZE];
-@@ -330,39 +330,39 @@ static int ftdi_elan_hcd_init(struct usb
+diff -puN drivers/sbus/char/vfc.h~videopix-frame-grabber-convert-device_lock_sem-to-mutex drivers/sbus/char/vfc.h
+--- a/drivers/sbus/char/vfc.h~videopix-frame-grabber-convert-device_lock_sem-to-mutex
++++ a/drivers/sbus/char/vfc.h
+@@ -126,7 +126,7 @@ struct vfc_dev {
+ 	volatile struct vfc_regs __iomem *regs;
+ 	struct vfc_regs *phys_regs;
+ 	unsigned int control_reg;
+-	struct semaphore device_lock_sem;
++	struct mutex device_lock_mtx;
+ 	int instance;
+ 	int busy;
+ 	unsigned long which_io;
+diff -puN drivers/sbus/char/vfc_dev.c~videopix-frame-grabber-convert-device_lock_sem-to-mutex drivers/sbus/char/vfc_dev.c
+--- a/drivers/sbus/char/vfc_dev.c~videopix-frame-grabber-convert-device_lock_sem-to-mutex
++++ a/drivers/sbus/char/vfc_dev.c
+@@ -22,6 +22,7 @@
+ #include <linux/fs.h>
+ #include <linux/delay.h>
+ #include <linux/spinlock.h>
++#include <linux/mutex.h>
+ #include <linux/mm.h>
  
- static void ftdi_elan_abandon_completions(struct usb_ftdi *ftdi)
+ #include <asm/openprom.h>
+@@ -54,12 +55,12 @@ static unsigned char saa9051_init_array[
+ 
+ void vfc_lock_device(struct vfc_dev *dev)
  {
--        down(&ftdi->u132_lock);
-+        mutex_lock(&ftdi->u132_lock);
-         while (ftdi->respond_next > ftdi->respond_head) {
-                 struct u132_respond *respond = &ftdi->respond[RESPOND_MASK &
-                         ftdi->respond_head++];
-                 *respond->result = -ESHUTDOWN;
-                 *respond->value = 0;
-                 complete(&respond->wait_completion);
--        } up(&ftdi->u132_lock);
-+        } mutex_unlock(&ftdi->u132_lock);
+-	down(&dev->device_lock_sem);
++	mutex_lock(&dev->device_lock_mtx);
  }
  
- static void ftdi_elan_abandon_targets(struct usb_ftdi *ftdi)
+ void vfc_unlock_device(struct vfc_dev *dev)
  {
-         int ed_number = 4;
--        down(&ftdi->u132_lock);
-+        mutex_lock(&ftdi->u132_lock);
-         while (ed_number-- > 0) {
-                 struct u132_target *target = &ftdi->target[ed_number];
-                 if (target->active == 1) {
-                         target->condition_code = TD_DEVNOTRESP;
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         ftdi_elan_do_callback(ftdi, target, NULL, 0);
--                        down(&ftdi->u132_lock);
-+                        mutex_lock(&ftdi->u132_lock);
-                 }
-         }
-         ftdi->recieved = 0;
-         ftdi->expected = 4;
-         ftdi->ed_found = 0;
--        up(&ftdi->u132_lock);
-+        mutex_unlock(&ftdi->u132_lock);
+-	up(&dev->device_lock_sem);
++	mutex_unlock(&dev->device_lock_mtx);
  }
  
- static void ftdi_elan_flush_targets(struct usb_ftdi *ftdi)
- {
-         int ed_number = 4;
--        down(&ftdi->u132_lock);
-+        mutex_lock(&ftdi->u132_lock);
-         while (ed_number-- > 0) {
-                 struct u132_target *target = &ftdi->target[ed_number];
-                 target->abandoning = 1;
-@@ -382,9 +382,9 @@ static void ftdi_elan_flush_targets(stru
-                                 ftdi->command_next += 1;
-                                 ftdi_elan_kick_command_queue(ftdi);
-                         } else {
--                                up(&ftdi->u132_lock);
-+                                mutex_unlock(&ftdi->u132_lock);
-                                 msleep(100);
--                                down(&ftdi->u132_lock);
-+                                mutex_lock(&ftdi->u132_lock);
-                                 goto wait_1;
-                         }
-                 }
-@@ -404,9 +404,9 @@ static void ftdi_elan_flush_targets(stru
-                                 ftdi->command_next += 1;
-                                 ftdi_elan_kick_command_queue(ftdi);
-                         } else {
--                                up(&ftdi->u132_lock);
-+                                mutex_unlock(&ftdi->u132_lock);
-                                 msleep(100);
--                                down(&ftdi->u132_lock);
-+                                mutex_lock(&ftdi->u132_lock);
-                                 goto wait_2;
-                         }
-                 }
-@@ -414,13 +414,13 @@ static void ftdi_elan_flush_targets(stru
-         ftdi->recieved = 0;
-         ftdi->expected = 4;
-         ftdi->ed_found = 0;
--        up(&ftdi->u132_lock);
-+        mutex_unlock(&ftdi->u132_lock);
- }
  
- static void ftdi_elan_cancel_targets(struct usb_ftdi *ftdi)
- {
-         int ed_number = 4;
--        down(&ftdi->u132_lock);
-+        mutex_lock(&ftdi->u132_lock);
-         while (ed_number-- > 0) {
-                 struct u132_target *target = &ftdi->target[ed_number];
-                 target->abandoning = 1;
-@@ -440,9 +440,9 @@ static void ftdi_elan_cancel_targets(str
-                                 ftdi->command_next += 1;
-                                 ftdi_elan_kick_command_queue(ftdi);
-                         } else {
--                                up(&ftdi->u132_lock);
-+                                mutex_unlock(&ftdi->u132_lock);
-                                 msleep(100);
--                                down(&ftdi->u132_lock);
-+                                mutex_lock(&ftdi->u132_lock);
-                                 goto wait;
-                         }
-                 }
-@@ -450,7 +450,7 @@ static void ftdi_elan_cancel_targets(str
-         ftdi->recieved = 0;
-         ftdi->expected = 4;
-         ftdi->ed_found = 0;
--        up(&ftdi->u132_lock);
-+        mutex_unlock(&ftdi->u132_lock);
- }
- 
- static void ftdi_elan_kick_command_queue(struct usb_ftdi *ftdi)
-@@ -886,14 +886,14 @@ static char *have_ed_set_response(struct
-         char *b)
- {
-         int payload = (ed_length >> 0) & 0x07FF;
--        down(&ftdi->u132_lock);
-+        mutex_lock(&ftdi->u132_lock);
-         target->actual = 0;
-         target->non_null = (ed_length >> 15) & 0x0001;
-         target->repeat_number = (ed_length >> 11) & 0x000F;
-         if (ed_type == 0x02) {
-                 if (payload == 0 || target->abandoning > 0) {
-                         target->abandoning = 0;
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         ftdi_elan_do_callback(ftdi, target, 4 + ftdi->response,
-                                 payload);
-                         ftdi->recieved = 0;
-@@ -903,13 +903,13 @@ static char *have_ed_set_response(struct
-                 } else {
-                         ftdi->expected = 4 + payload;
-                         ftdi->ed_found = 1;
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         return b;
-                 }
-         } else if (ed_type == 0x03) {
-                 if (payload == 0 || target->abandoning > 0) {
-                         target->abandoning = 0;
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         ftdi_elan_do_callback(ftdi, target, 4 + ftdi->response,
-                                 payload);
-                         ftdi->recieved = 0;
-@@ -919,12 +919,12 @@ static char *have_ed_set_response(struct
-                 } else {
-                         ftdi->expected = 4 + payload;
-                         ftdi->ed_found = 1;
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         return b;
-                 }
-         } else if (ed_type == 0x01) {
-                 target->abandoning = 0;
--                up(&ftdi->u132_lock);
-+                mutex_unlock(&ftdi->u132_lock);
-                 ftdi_elan_do_callback(ftdi, target, 4 + ftdi->response,
-                         payload);
-                 ftdi->recieved = 0;
-@@ -933,7 +933,7 @@ static char *have_ed_set_response(struct
-                 return ftdi->response;
-         } else {
-                 target->abandoning = 0;
--                up(&ftdi->u132_lock);
-+                mutex_unlock(&ftdi->u132_lock);
-                 ftdi_elan_do_callback(ftdi, target, 4 + ftdi->response,
-                         payload);
-                 ftdi->recieved = 0;
-@@ -947,12 +947,12 @@ static char *have_ed_get_response(struct
-         struct u132_target *target, u16 ed_length, int ed_number, int ed_type,
-         char *b)
- {
--        down(&ftdi->u132_lock);
-+        mutex_lock(&ftdi->u132_lock);
-         target->condition_code = TD_DEVNOTRESP;
-         target->actual = (ed_length >> 0) & 0x01FF;
-         target->non_null = (ed_length >> 15) & 0x0001;
-         target->repeat_number = (ed_length >> 11) & 0x000F;
--        up(&ftdi->u132_lock);
-+        mutex_unlock(&ftdi->u132_lock);
-         if (target->active)
-                 ftdi_elan_do_callback(ftdi, target, NULL, 0);
-         target->abandoning = 0;
-@@ -1278,7 +1278,7 @@ static int ftdi_elan_write_reg(struct us
-                 return -ENODEV;
-         } else {
-                 int command_size;
--                down(&ftdi->u132_lock);
-+                mutex_lock(&ftdi->u132_lock);
-                 command_size = ftdi->command_next - ftdi->command_head;
-                 if (command_size < COMMAND_SIZE) {
-                         struct u132_command *command = &ftdi->command[
-@@ -1292,10 +1292,10 @@ static int ftdi_elan_write_reg(struct us
-                         command->buffer = &command->value;
-                         ftdi->command_next += 1;
-                         ftdi_elan_kick_command_queue(ftdi);
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         return 0;
-                 } else {
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         msleep(100);
-                         goto wait;
-                 }
-@@ -1310,7 +1310,7 @@ static int ftdi_elan_write_config(struct
-                 return -ENODEV;
-         } else {
-                 int command_size;
--                down(&ftdi->u132_lock);
-+                mutex_lock(&ftdi->u132_lock);
-                 command_size = ftdi->command_next - ftdi->command_head;
-                 if (command_size < COMMAND_SIZE) {
-                         struct u132_command *command = &ftdi->command[
-@@ -1324,10 +1324,10 @@ static int ftdi_elan_write_config(struct
-                         command->buffer = &command->value;
-                         ftdi->command_next += 1;
-                         ftdi_elan_kick_command_queue(ftdi);
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         return 0;
-                 } else {
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         msleep(100);
-                         goto wait;
-                 }
-@@ -1342,7 +1342,7 @@ static int ftdi_elan_write_pcimem(struct
-                 return -ENODEV;
-         } else {
-                 int command_size;
--                down(&ftdi->u132_lock);
-+                mutex_lock(&ftdi->u132_lock);
-                 command_size = ftdi->command_next - ftdi->command_head;
-                 if (command_size < COMMAND_SIZE) {
-                         struct u132_command *command = &ftdi->command[
-@@ -1356,10 +1356,10 @@ static int ftdi_elan_write_pcimem(struct
-                         command->buffer = &command->value;
-                         ftdi->command_next += 1;
-                         ftdi_elan_kick_command_queue(ftdi);
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         return 0;
-                 } else {
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         msleep(100);
-                         goto wait;
-                 }
-@@ -1382,7 +1382,7 @@ static int ftdi_elan_read_reg(struct usb
-         } else {
-                 int command_size;
-                 int respond_size;
--                down(&ftdi->u132_lock);
-+                mutex_lock(&ftdi->u132_lock);
-                 command_size = ftdi->command_next - ftdi->command_head;
-                 respond_size = ftdi->respond_next - ftdi->respond_head;
-                 if (command_size < COMMAND_SIZE && respond_size < RESPOND_SIZE)
-@@ -1405,11 +1405,11 @@ static int ftdi_elan_read_reg(struct usb
-                         ftdi->command_next += 1;
-                         ftdi->respond_next += 1;
-                         ftdi_elan_kick_command_queue(ftdi);
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         wait_for_completion(&respond->wait_completion);
-                         return result;
-                 } else {
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         msleep(100);
-                         goto wait;
-                 }
-@@ -1425,7 +1425,7 @@ static int ftdi_elan_read_config(struct 
-         } else {
-                 int command_size;
-                 int respond_size;
--                down(&ftdi->u132_lock);
-+                mutex_lock(&ftdi->u132_lock);
-                 command_size = ftdi->command_next - ftdi->command_head;
-                 respond_size = ftdi->respond_next - ftdi->respond_head;
-                 if (command_size < COMMAND_SIZE && respond_size < RESPOND_SIZE)
-@@ -1449,11 +1449,11 @@ static int ftdi_elan_read_config(struct 
-                         ftdi->command_next += 1;
-                         ftdi->respond_next += 1;
-                         ftdi_elan_kick_command_queue(ftdi);
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         wait_for_completion(&respond->wait_completion);
-                         return result;
-                 } else {
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         msleep(100);
-                         goto wait;
-                 }
-@@ -1469,7 +1469,7 @@ static int ftdi_elan_read_pcimem(struct 
-         } else {
-                 int command_size;
-                 int respond_size;
--                down(&ftdi->u132_lock);
-+                mutex_lock(&ftdi->u132_lock);
-                 command_size = ftdi->command_next - ftdi->command_head;
-                 respond_size = ftdi->respond_next - ftdi->respond_head;
-                 if (command_size < COMMAND_SIZE && respond_size < RESPOND_SIZE)
-@@ -1493,11 +1493,11 @@ static int ftdi_elan_read_pcimem(struct 
-                         ftdi->command_next += 1;
-                         ftdi->respond_next += 1;
-                         ftdi_elan_kick_command_queue(ftdi);
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         wait_for_completion(&respond->wait_completion);
-                         return result;
-                 } else {
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         msleep(100);
-                         goto wait;
-                 }
-@@ -1529,7 +1529,7 @@ static int ftdi_elan_edset_setup(struct 
-                 return -ENODEV;
-         } else {
-                 int command_size;
--                down(&ftdi->u132_lock);
-+                mutex_lock(&ftdi->u132_lock);
-                 command_size = ftdi->command_next - ftdi->command_head;
-                 if (command_size < COMMAND_SIZE) {
-                         struct u132_target *target = &ftdi->target[ed];
-@@ -1550,10 +1550,10 @@ static int ftdi_elan_edset_setup(struct 
-                         target->active = 1;
-                         ftdi->command_next += 1;
-                         ftdi_elan_kick_command_queue(ftdi);
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         return 0;
-                 } else {
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         msleep(100);
-                         goto wait;
-                 }
-@@ -1586,7 +1586,7 @@ static int ftdi_elan_edset_input(struct 
-                 return -ENODEV;
-         } else {
-                 int command_size;
--                down(&ftdi->u132_lock);
-+                mutex_lock(&ftdi->u132_lock);
-                 command_size = ftdi->command_next - ftdi->command_head;
-                 if (command_size < COMMAND_SIZE) {
-                         struct u132_target *target = &ftdi->target[ed];
-@@ -1615,10 +1615,10 @@ static int ftdi_elan_edset_input(struct 
-                         target->active = 1;
-                         ftdi->command_next += 1;
-                         ftdi_elan_kick_command_queue(ftdi);
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         return 0;
-                 } else {
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         msleep(100);
-                         goto wait;
-                 }
-@@ -1651,7 +1651,7 @@ static int ftdi_elan_edset_empty(struct 
-                 return -ENODEV;
-         } else {
-                 int command_size;
--                down(&ftdi->u132_lock);
-+                mutex_lock(&ftdi->u132_lock);
-                 command_size = ftdi->command_next - ftdi->command_head;
-                 if (command_size < COMMAND_SIZE) {
-                         struct u132_target *target = &ftdi->target[ed];
-@@ -1672,10 +1672,10 @@ static int ftdi_elan_edset_empty(struct 
-                         target->active = 1;
-                         ftdi->command_next += 1;
-                         ftdi_elan_kick_command_queue(ftdi);
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         return 0;
-                 } else {
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         msleep(100);
-                         goto wait;
-                 }
-@@ -1708,7 +1708,7 @@ static int ftdi_elan_edset_output(struct
-                 return -ENODEV;
-         } else {
-                 int command_size;
--                down(&ftdi->u132_lock);
-+                mutex_lock(&ftdi->u132_lock);
-                 command_size = ftdi->command_next - ftdi->command_head;
-                 if (command_size < COMMAND_SIZE) {
-                         u8 *b;
-@@ -1751,10 +1751,10 @@ static int ftdi_elan_edset_output(struct
-                         target->active = 1;
-                         ftdi->command_next += 1;
-                         ftdi_elan_kick_command_queue(ftdi);
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         return 0;
-                 } else {
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         msleep(100);
-                         goto wait;
-                 }
-@@ -1787,7 +1787,7 @@ static int ftdi_elan_edset_single(struct
-                 return -ENODEV;
-         } else {
-                 int command_size;
--                down(&ftdi->u132_lock);
-+                mutex_lock(&ftdi->u132_lock);
-                 command_size = ftdi->command_next - ftdi->command_head;
-                 if (command_size < COMMAND_SIZE) {
-                         int remaining_length = urb->transfer_buffer_length -
-@@ -1816,10 +1816,10 @@ static int ftdi_elan_edset_single(struct
-                         target->active = 1;
-                         ftdi->command_next += 1;
-                         ftdi_elan_kick_command_queue(ftdi);
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         return 0;
-                 } else {
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         msleep(100);
-                         goto wait;
-                 }
-@@ -1849,9 +1849,9 @@ static int ftdi_elan_edset_flush(struct 
-                 return -ENODEV;
-         } else {
-                 struct u132_target *target = &ftdi->target[ed];
--                down(&ftdi->u132_lock);
-+                mutex_lock(&ftdi->u132_lock);
-                 if (target->abandoning > 0) {
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         return 0;
-                 } else {
-                         target->abandoning = 1;
-@@ -1873,13 +1873,13 @@ static int ftdi_elan_edset_flush(struct 
-                                         ftdi->command_next += 1;
-                                         ftdi_elan_kick_command_queue(ftdi);
-                                 } else {
--                                        up(&ftdi->u132_lock);
-+                                        mutex_unlock(&ftdi->u132_lock);
-                                         msleep(100);
--                                        down(&ftdi->u132_lock);
-+                                        mutex_lock(&ftdi->u132_lock);
-                                         goto wait_1;
-                                 }
-                         }
--                        up(&ftdi->u132_lock);
-+                        mutex_unlock(&ftdi->u132_lock);
-                         return 0;
-                 }
-         }
-@@ -2793,7 +2793,7 @@ static int ftdi_elan_probe(struct usb_in
-         init_MUTEX(&ftdi->sw_lock);
-         ftdi->udev = usb_get_dev(interface_to_usbdev(interface));
-         ftdi->interface = interface;
--        init_MUTEX(&ftdi->u132_lock);
-+        mutex_init(&ftdi->u132_lock);
-         ftdi->expected = 4;
-         iface_desc = interface->cur_altsetting;
-         for (i = 0; i < iface_desc->desc.bNumEndpoints; ++i) {
 _
 
 Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
@@ -520,6 +86,7 @@ Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 origin.patch
 git-alsa.patch
 generic-ac97-mixer-modem-oss-use-list_for_each_entry.patch
+videopix-frame-grabber-convert-device_lock_sem-to-mutex.patch
 ftdi-elan-driver-convert-ftdi-u132_lock-to-mutex.patch
 fs-file_tablec-use-list_for_each_entry-instead-of-list_for_each.patch
 fs-eventpollc-use-list_for_each_entry-instead-of-list_for_each.patch
