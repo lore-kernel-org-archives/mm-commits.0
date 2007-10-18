@@ -1,134 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-dont-fail-device-init-if-no-dma-channel.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:03:46 -0700
-Message-ID: <200710180703.l9I73k4B031467@imap1.linux-foundation.org>
+Subject: - try-to-reap-reiserfs-pages-left-around-by-invalidatepage.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:00:13 -0700
+Message-ID: <200710180700.l9I70DTF031083@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33244 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42493 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761054AbXJRHby (ORCPT
+	by vger.kernel.org with ESMTP id S1756396AbXJRHcb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:31:54 -0400
+	Thu, 18 Oct 2007 03:32:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbeulich@novell.com, ambx1@neo.rr.com, bjorn.helgaas@hp.com, mm-commits@vger.kernel.org
+To: chris.mason@oracle.com, jeffm@suse.com, vs@namesys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PNP: don't fail device init if no DMA channel available
+     try to reap reiserfs pages left around by invalidatepage
 has been removed from the -mm tree.  Its filename was
-     pnp-dont-fail-device-init-if-no-dma-channel.patch
+     try-to-reap-reiserfs-pages-left-around-by-invalidatepage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PNP: don't fail device init if no DMA channel available
-From: "Jan Beulich" <jbeulich@novell.com>
+Subject: try to reap reiserfs pages left around by invalidatepage
+From: Chris Mason <chris.mason@oracle.com>
 
-Most drivers for devices supporting ISA DMA can operate without DMA as well
-(falling back zo PIO).  Thus it seems inappropriate for PNP to fail device
-initialization in case none of the possible DMA channels are available. 
-Instead, it should be left to the driver to decide what to do if
-request_dma() fails.
+reiserfs_invalidatepage will refuse to free pages if they have been logged
+in data=journal mode, or were pinned down by a data=ordered operation.  For
+data=journal, this is fairly easy to trigger just with fsx-linux, and it
+results in a large number of pages hanging around on the LRUs with
+page->mapping == NULL.
 
-The patch at once adjusts the code to account for the fact that
-pnp_assign_dma() now doesn't need to report failure anymore.
+Calling try_to_free_buffers when reiserfs decides it is done with the page
+allows it to be freed earlier, and with much less VM thrashing.  Lock
+ordering rules mean that reiserfs can't call lock_page when it is releasing
+the buffers, so TestSetPageLocked is used instead.  Contention on these
+pages should be rare, so it should be sufficient most of the time.
 
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Cc: Adam Belay <ambx1@neo.rr.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Chris Mason <chris.mason@oracle.com>
+Cc: "Vladimir V. Saveliev" <vs@namesys.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/manager.c |   29 ++++++++++++-----------------
- 1 file changed, 12 insertions(+), 17 deletions(-)
+ fs/reiserfs/journal.c |   42 ++++++++++++++++++++++++++++++----------
+ 1 file changed, 32 insertions(+), 10 deletions(-)
 
-diff -puN drivers/pnp/manager.c~pnp-dont-fail-device-init-if-no-dma-channel drivers/pnp/manager.c
---- a/drivers/pnp/manager.c~pnp-dont-fail-device-init-if-no-dma-channel
-+++ a/drivers/pnp/manager.c
-@@ -161,7 +161,7 @@ static int pnp_assign_irq(struct pnp_dev
+diff -puN fs/reiserfs/journal.c~try-to-reap-reiserfs-pages-left-around-by-invalidatepage fs/reiserfs/journal.c
+--- a/fs/reiserfs/journal.c~try-to-reap-reiserfs-pages-left-around-by-invalidatepage
++++ a/fs/reiserfs/journal.c
+@@ -615,6 +615,31 @@ static int journal_list_still_alive(stru
  	return 0;
  }
  
--static int pnp_assign_dma(struct pnp_dev *dev, struct pnp_dma *rule, int idx)
-+static void pnp_assign_dma(struct pnp_dev *dev, struct pnp_dma *rule, int idx)
++/*
++ * If page->mapping was null, we failed to truncate this page for
++ * some reason.  Most likely because it was truncated after being
++ * logged via data=journal.
++ *
++ * This does a check to see if the buffer belongs to one of these
++ * lost pages before doing the final put_bh.  If page->mapping was
++ * null, it tries to free buffers on the page, which should make the
++ * final page_cache_release drop the page from the lru.
++ */
++static void release_buffer_page(struct buffer_head *bh)
++{
++	struct page *page = bh->b_page;
++	if (!page->mapping && !TestSetPageLocked(page)) {
++		page_cache_get(page);
++		put_bh(bh);
++		if (!page->mapping)
++			try_to_free_buffers(page);
++		unlock_page(page);
++		page_cache_release(page);
++	} else {
++		put_bh(bh);
++	}
++}
++
+ static void reiserfs_end_buffer_io_sync(struct buffer_head *bh, int uptodate)
  {
- 	resource_size_t *start, *end;
- 	unsigned long *flags;
-@@ -173,15 +173,14 @@ static int pnp_assign_dma(struct pnp_dev
- 	};
- 
- 	if (idx >= PNP_MAX_DMA) {
--		pnp_err
--		    ("More than 2 dmas is incompatible with pnp specifications.");
--		/* pretend we were successful so at least the manager won't try again */
--		return 1;
-+		pnp_err("More than 2 dmas is incompatible with pnp "
-+			"specifications.");
-+		return;
- 	}
- 
- 	/* check if this resource has been manually set, if so skip */
- 	if (!(dev->res.dma_resource[idx].flags & IORESOURCE_AUTO))
--		return 1;
-+		return;
- 
- 	start = &dev->res.dma_resource[idx].start;
- 	end = &dev->res.dma_resource[idx].end;
-@@ -191,19 +190,17 @@ static int pnp_assign_dma(struct pnp_dev
- 	*flags |= rule->flags | IORESOURCE_DMA;
- 	*flags &= ~IORESOURCE_UNSET;
- 
--	if (!rule->map) {
--		*flags |= IORESOURCE_DISABLED;
--		return 1;	/* skip disabled resource requests */
--	}
--
- 	for (i = 0; i < 8; i++) {
- 		if (rule->map & (1 << xtab[i])) {
- 			*start = *end = xtab[i];
- 			if (pnp_check_dma(dev, idx))
--				return 1;
-+				return;
- 		}
- 	}
--	return 0;
-+#ifdef MAX_DMA_CHANNELS
-+	*start = *end = MAX_DMA_CHANNELS;
-+#endif
-+	*flags |= IORESOURCE_UNSET | IORESOURCE_DISABLED;
+ 	char b[BDEVNAME_SIZE];
+@@ -628,8 +653,9 @@ static void reiserfs_end_buffer_io_sync(
+ 		set_buffer_uptodate(bh);
+ 	else
+ 		clear_buffer_uptodate(bh);
++
+ 	unlock_buffer(bh);
+-	put_bh(bh);
++	release_buffer_page(bh);
  }
  
- /**
-@@ -330,8 +327,7 @@ static int pnp_assign_resources(struct p
- 			irq = irq->next;
+ static void reiserfs_end_ordered_io(struct buffer_head *bh, int uptodate)
+@@ -1547,9 +1573,10 @@ static int flush_journal_list(struct sup
+ 				BUG_ON(!test_clear_buffer_journal_dirty
+ 				       (cn->bh));
+ 
+-				/* undo the inc from journal_mark_dirty */
++				/* drop one ref for us */
+ 				put_bh(cn->bh);
+-				brelse(cn->bh);
++				/* drop one ref for journal_mark_dirty */
++				release_buffer_page(cn->bh);
+ 			}
+ 			cn = cn->next;
  		}
- 		while (dma) {
--			if (!pnp_assign_dma(dev, dma, ndma))
--				goto fail;
-+			pnp_assign_dma(dev, dma, ndma);
- 			ndma++;
- 			dma = dma->next;
+@@ -3709,13 +3736,8 @@ int journal_mark_freed(struct reiserfs_t
  		}
-@@ -367,8 +363,7 @@ static int pnp_assign_resources(struct p
- 			irq = irq->next;
- 		}
- 		while (dma) {
--			if (!pnp_assign_dma(dev, dma, ndma))
--				goto fail;
-+			pnp_assign_dma(dev, dma, ndma);
- 			ndma++;
- 			dma = dma->next;
- 		}
+ 	}
+ 
+-	if (bh) {
+-		put_bh(bh);	/* get_hash grabs the buffer */
+-		if (atomic_read(&(bh->b_count)) < 0) {
+-			reiserfs_warning(p_s_sb,
+-					 "journal-2165: bh->b_count < 0");
+-		}
+-	}
++	if (bh)
++		release_buffer_page(bh); /* get_hash grabs the buffer */
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from jbeulich@novell.com are
+Patches currently in -mm which might be from chris.mason@oracle.com are
 
 origin.patch
-git-x86.patch
-revert-x86_64-mm-cpa-einval.patch
-cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
+ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
+reiserfs-turn-of-attr_kill_sid-at-beginning-of-reiserfs_setattr.patch
+vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
