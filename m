@@ -1,172 +1,207 @@
 From: akpm@linux-foundation.org
-Subject: - writeback-fix-periodic-superblock-dirty-inode-flushing.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:02:26 -0700
-Message-ID: <200710180702.l9I72QLD031269@imap1.linux-foundation.org>
+Subject: - fuse-truncate-on-spontaneous-size-change.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:03:24 -0700
+Message-ID: <200710180703.l9I73O2E031430@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36396 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59232 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763104AbXJRHPu (ORCPT
+	by vger.kernel.org with ESMTP id S1763116AbXJRHPv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:15:50 -0400
+	Thu, 18 Oct 2007 03:15:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kenchen@google.com, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     writeback: fix periodic superblock dirty inode flushing
+     fuse: truncate on spontaneous size change
 has been removed from the -mm tree.  Its filename was
-     writeback-fix-periodic-superblock-dirty-inode-flushing.patch
+     fuse-truncate-on-spontaneous-size-change.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: writeback: fix periodic superblock dirty inode flushing
-From: "Ken Chen" <kenchen@google.com>
+Subject: fuse: truncate on spontaneous size change
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Current -mm tree has bucketful of bug fixes in periodic writeback path. 
-However, we still hit a glitch where dirty pages on a given inode aren't
-completely flushed to the disk, and system will accumulate large amount of
-dirty pages beyond what dirty_expire_interval is designed for.
+Memory mappings were only truncated on an explicit truncate, but not when the
+file size was changed externally.
 
-The problem is __sync_single_inode() will move an inode to sb->s_dirty list
-even when there are more pending dirty pages on that inode.  If there is
-another inode with a small number of dirty pages, we hit a case where the loop
-iteration in wb_kupdate() terminates prematurely because wbc.nr_to_write > 0. 
-Thus leaving the inode that has large amount of dirty pages behind and it has
-to wait for another dirty_writeback_interval before we flush it again.  We
-effectively only write out MAX_WRITEBACK_PAGES every dirty_writeback_interval.
-If the rate of dirtying is sufficiently high, the system will start
-accumulate a large number of dirty pages.
+Fix this by moving the truncation code from fuse_setattr to
+fuse_change_attributes.
 
-So fix it by having another sb->s_more_io list on which to park the inode
-while we iterate through sb->s_io and to allow each dirty inode which resides
-on that sb to have an equal chance of flushing some amount of dirty pages.
+Yes, there are races between write and and external truncation, but we can't
+really do anything about them.
 
-Signed-off-by: Ken Chen <kenchen@google.com>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c  |   36 ++++++++++++++----------------------
- fs/super.c         |    1 +
- include/linux/fs.h |    1 +
- 3 files changed, 16 insertions(+), 22 deletions(-)
+ fs/fuse/dir.c   |   46 +++++++++++++---------------------------------
+ fs/fuse/inode.c |   25 ++++++++++++++++++++-----
+ 2 files changed, 33 insertions(+), 38 deletions(-)
 
-diff -puN fs/fs-writeback.c~writeback-fix-periodic-superblock-dirty-inode-flushing fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-fix-periodic-superblock-dirty-inode-flushing
-+++ a/fs/fs-writeback.c
-@@ -165,25 +165,11 @@ static void redirty_tail(struct inode *i
- }
- 
- /*
-- * Redirty an inode, but mark it as the very next-to-be-written inode on its
-- * superblock's dirty-inode list.
-- * We need to preserve s_dirty's reverse-time-orderedness, so we cheat by
-- * setting this inode's dirtied_when to the same value as that of the inode
-- * which is presently head-of-list, if present head-of-list is newer than this
-- * inode. (head-of-list is the least-recently-dirtied inode: the oldest one).
-+ * requeue inode for re-scanning after sb->s_io list is exhausted.
-  */
--static void redirty_head(struct inode *inode)
-+static void requeue_io(struct inode *inode)
- {
--	struct super_block *sb = inode->i_sb;
--
--	if (!list_empty(&sb->s_dirty)) {
--		struct inode *head_inode;
--
--		head_inode = list_entry(sb->s_dirty.prev, struct inode, i_list);
--		if (time_after(inode->dirtied_when, head_inode->dirtied_when))
--			inode->dirtied_when = head_inode->dirtied_when;
--	}
--	list_move_tail(&inode->i_list, &sb->s_dirty);
-+	list_move(&inode->i_list, &inode->i_sb->s_more_io);
- }
- 
- /*
-@@ -255,7 +241,7 @@ __sync_single_inode(struct inode *inode,
- 				 * uncongested.
- 				 */
- 				inode->i_state |= I_DIRTY_PAGES;
--				redirty_head(inode);
-+				requeue_io(inode);
- 			} else {
- 				/*
- 				 * Otherwise fully redirty the inode so that
-@@ -315,7 +301,7 @@ __writeback_single_inode(struct inode *i
- 		 * on s_io.  We'll have another go at writing back this inode
- 		 * when the s_dirty iodes get moved back onto s_io.
- 		 */
--		redirty_head(inode);
-+		requeue_io(inode);
- 
- 		/*
- 		 * Even if we don't actually write the inode itself here,
-@@ -410,14 +396,14 @@ sync_sb_inodes(struct super_block *sb, s
- 			wbc->encountered_congestion = 1;
- 			if (!sb_is_blkdev_sb(sb))
- 				break;		/* Skip a congested fs */
--			redirty_head(inode);
-+			requeue_io(inode);
- 			continue;		/* Skip a congested blockdev */
- 		}
- 
- 		if (wbc->bdi && bdi != wbc->bdi) {
- 			if (!sb_is_blkdev_sb(sb))
- 				break;		/* fs has the wrong queue */
--			redirty_head(inode);
-+			requeue_io(inode);
- 			continue;		/* blockdev has wrong queue */
- 		}
- 
-@@ -427,8 +413,10 @@ sync_sb_inodes(struct super_block *sb, s
- 
- 		/* Was this inode dirtied too recently? */
- 		if (wbc->older_than_this && time_after(inode->dirtied_when,
--						*wbc->older_than_this))
-+						*wbc->older_than_this)) {
-+			list_splice_init(&sb->s_io, sb->s_dirty.prev);
- 			break;
-+		}
- 
- 		/* Is another pdflush already flushing this queue? */
- 		if (current_is_pdflush() && !writeback_acquire(bdi))
-@@ -458,6 +446,10 @@ sync_sb_inodes(struct super_block *sb, s
- 		if (wbc->nr_to_write <= 0)
- 			break;
+diff -puN fs/fuse/dir.c~fuse-truncate-on-spontaneous-size-change fs/fuse/dir.c
+--- a/fs/fuse/dir.c~fuse-truncate-on-spontaneous-size-change
++++ a/fs/fuse/dir.c
+@@ -980,23 +980,6 @@ static void iattr_to_fattr(struct iattr 
  	}
-+
-+	if (list_empty(&sb->s_io))
-+		list_splice_init(&sb->s_more_io, &sb->s_io);
-+
- 	return;		/* Leave any unwritten inodes on s_io */
  }
  
-diff -puN fs/super.c~writeback-fix-periodic-superblock-dirty-inode-flushing fs/super.c
---- a/fs/super.c~writeback-fix-periodic-superblock-dirty-inode-flushing
-+++ a/fs/super.c
-@@ -67,6 +67,7 @@ static struct super_block *alloc_super(s
- 		}
- 		INIT_LIST_HEAD(&s->s_dirty);
- 		INIT_LIST_HEAD(&s->s_io);
-+		INIT_LIST_HEAD(&s->s_more_io);
- 		INIT_LIST_HEAD(&s->s_files);
- 		INIT_LIST_HEAD(&s->s_instances);
- 		INIT_HLIST_HEAD(&s->s_anon);
-diff -puN include/linux/fs.h~writeback-fix-periodic-superblock-dirty-inode-flushing include/linux/fs.h
---- a/include/linux/fs.h~writeback-fix-periodic-superblock-dirty-inode-flushing
-+++ a/include/linux/fs.h
-@@ -1002,6 +1002,7 @@ struct super_block {
- 	struct list_head	s_inodes;	/* all inodes */
- 	struct list_head	s_dirty;	/* dirty inodes */
- 	struct list_head	s_io;		/* parked for writeback */
-+	struct list_head	s_more_io;	/* parked for more writeback */
- 	struct hlist_head	s_anon;		/* anonymous dentries for (nfs) exporting */
- 	struct list_head	s_files;
+-static void fuse_vmtruncate(struct inode *inode, loff_t offset)
+-{
+-	struct fuse_conn *fc = get_fuse_conn(inode);
+-	int need_trunc;
+-
+-	spin_lock(&fc->lock);
+-	need_trunc = inode->i_size > offset;
+-	i_size_write(inode, offset);
+-	spin_unlock(&fc->lock);
+-
+-	if (need_trunc) {
+-		struct address_space *mapping = inode->i_mapping;
+-		unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
+-		truncate_inode_pages(mapping, offset);
+-	}
+-}
+-
+ /*
+  * Set attributes, and at the same time refresh them.
+  *
+@@ -1014,7 +997,6 @@ static int fuse_setattr(struct dentry *e
+ 	struct fuse_setattr_in inarg;
+ 	struct fuse_attr_out outarg;
+ 	int err;
+-	int is_truncate = 0;
  
+ 	if (fc->flags & FUSE_DEFAULT_PERMISSIONS) {
+ 		err = inode_change_ok(inode, attr);
+@@ -1024,7 +1006,6 @@ static int fuse_setattr(struct dentry *e
+ 
+ 	if (attr->ia_valid & ATTR_SIZE) {
+ 		unsigned long limit;
+-		is_truncate = 1;
+ 		if (IS_SWAPFILE(inode))
+ 			return -ETXTBSY;
+ 		limit = current->signal->rlim[RLIMIT_FSIZE].rlim_cur;
+@@ -1051,21 +1032,20 @@ static int fuse_setattr(struct dentry *e
+ 	request_send(fc, req);
+ 	err = req->out.h.error;
+ 	fuse_put_request(fc, req);
+-	if (!err) {
+-		if ((inode->i_mode ^ outarg.attr.mode) & S_IFMT) {
+-			make_bad_inode(inode);
+-			err = -EIO;
+-		} else {
+-			if (is_truncate)
+-				fuse_vmtruncate(inode, outarg.attr.size);
+-			fuse_change_attributes(inode, &outarg.attr);
+-			fi->i_time = time_to_jiffies(outarg.attr_valid,
+-						     outarg.attr_valid_nsec);
+-		}
+-	} else if (err == -EINTR)
+-		fuse_invalidate_attr(inode);
++	if (err) {
++		if (err == -EINTR)
++			fuse_invalidate_attr(inode);
++		return err;
++	}
+ 
+-	return err;
++	if ((inode->i_mode ^ outarg.attr.mode) & S_IFMT) {
++		make_bad_inode(inode);
++		return -EIO;
++	}
++
++	fuse_change_attributes(inode, &outarg.attr);
++	fi->i_time = time_to_jiffies(outarg.attr_valid, outarg.attr_valid_nsec);
++	return 0;
+ }
+ 
+ static int fuse_getattr(struct vfsmount *mnt, struct dentry *entry,
+diff -puN fs/fuse/inode.c~fuse-truncate-on-spontaneous-size-change fs/fuse/inode.c
+--- a/fs/fuse/inode.c~fuse-truncate-on-spontaneous-size-change
++++ a/fs/fuse/inode.c
+@@ -109,20 +109,24 @@ static int fuse_remount_fs(struct super_
+ 	return 0;
+ }
+ 
++static void fuse_truncate(struct address_space *mapping, loff_t offset)
++{
++	/* See vmtruncate() */
++	unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
++	truncate_inode_pages(mapping, offset);
++	unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
++}
++
+ void fuse_change_attributes(struct inode *inode, struct fuse_attr *attr)
+ {
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+-	if (S_ISREG(inode->i_mode) && i_size_read(inode) != attr->size)
+-		invalidate_mapping_pages(inode->i_mapping, 0, -1);
++	loff_t oldsize;
+ 
+ 	inode->i_ino     = attr->ino;
+ 	inode->i_mode    = (inode->i_mode & S_IFMT) + (attr->mode & 07777);
+ 	inode->i_nlink   = attr->nlink;
+ 	inode->i_uid     = attr->uid;
+ 	inode->i_gid     = attr->gid;
+-	spin_lock(&fc->lock);
+-	i_size_write(inode, attr->size);
+-	spin_unlock(&fc->lock);
+ 	inode->i_blocks  = attr->blocks;
+ 	inode->i_atime.tv_sec   = attr->atime;
+ 	inode->i_atime.tv_nsec  = attr->atimensec;
+@@ -130,6 +134,17 @@ void fuse_change_attributes(struct inode
+ 	inode->i_mtime.tv_nsec  = attr->mtimensec;
+ 	inode->i_ctime.tv_sec   = attr->ctime;
+ 	inode->i_ctime.tv_nsec  = attr->ctimensec;
++
++	spin_lock(&fc->lock);
++	oldsize = inode->i_size;
++	i_size_write(inode, attr->size);
++	spin_unlock(&fc->lock);
++
++	if (S_ISREG(inode->i_mode) && oldsize != attr->size) {
++		if (attr->size < oldsize)
++			fuse_truncate(inode->i_mapping, attr->size);
++		invalidate_mapping_pages(inode->i_mapping, 0, -1);
++	}
+ }
+ 
+ static void fuse_init_inode(struct inode *inode, struct fuse_attr *attr)
 _
 
-Patches currently in -mm which might be from kenchen@google.com are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+fuse-fix-allowing-operations.patch
+fuse-fix-race-between-getattr-and-write.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+fuse-clean-up-open-file-passing-in-setattr.patch
+vfs-allow-filesystems-to-implement-atomic-opentruncate.patch
+fuse-improve-utimes-support.patch
+fuse-add-atomic-opentruncate-support.patch
+fuse-support-bsd-locking-semantics.patch
+fuse-add-list-of-writable-files-to-fuse_inode.patch
+fuse-add-helper-for-asynchronous-writes.patch
+fuse-add-support-for-mandatory-locking.patch
+fuse-add-blksize-field-to-fuse_attr.patch
