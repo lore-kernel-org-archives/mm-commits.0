@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:55:00 -0700
-Message-ID: <200710180655.l9I6t06m030563@imap1.linux-foundation.org>
+Subject: - doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:54:56 -0700
+Message-ID: <200710180654.l9I6sukK030557@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36266 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58445 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760692AbXJRHhU (ORCPT
+	by vger.kernel.org with ESMTP id S1760935AbXJRHhU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 18 Oct 2007 03:37:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,42 +15,49 @@ To: m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char/ip2/ip2main.c: kmalloc + memset conversion to kzalloc
+     doc firmware_sample_firmware_class.c: kmalloc + memset conversion to kzalloc
 has been removed from the -mm tree.  Its filename was
-     drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
+     doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/char/ip2/ip2main.c: kmalloc + memset conversion to kzalloc
+Subject: doc firmware_sample_firmware_class.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
- drivers/char/ip2/ip2main.c | 104398 -> 104346 (-52 bytes)
- drivers/char/ip2/ip2main.o | 210710 -> 210702 (-8 bytes)
+ Documentation/firmware_class/firmware_sample_firmware_class.c | 5246 -> 5211 (-35 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ip2/ip2main.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ Documentation/firmware_class/firmware_sample_firmware_class.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/char/ip2/ip2main.c~drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc drivers/char/ip2/ip2main.c
---- a/drivers/char/ip2/ip2main.c~drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc
-+++ a/drivers/char/ip2/ip2main.c
-@@ -646,10 +646,9 @@ ip2_loadmain(int *iop, int *irqp, unsign
+diff -puN Documentation/firmware_class/firmware_sample_firmware_class.c~doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc Documentation/firmware_class/firmware_sample_firmware_class.c
+--- a/Documentation/firmware_class/firmware_sample_firmware_class.c~doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc
++++ a/Documentation/firmware_class/firmware_sample_firmware_class.c
+@@ -109,15 +109,15 @@ static int fw_setup_class_device(struct 
+ 				 const char *fw_name,
+ 				 struct device *device)
+ {
+-	int retval = 0;
+-	struct firmware_priv *fw_priv = kmalloc(sizeof(struct firmware_priv),
+-						GFP_KERNEL);
++	int retval;
++	struct firmware_priv *fw_priv;
  
- 	for ( i = 0; i < IP2_MAX_BOARDS; ++i ) {
- 		if ( ip2config.addr[i] ) {
--			pB = kmalloc( sizeof(i2eBordStr), GFP_KERNEL);
--			if ( pB != NULL ) {
-+			pB = kzalloc(sizeof(i2eBordStr), GFP_KERNEL);
-+			if (pB) {
- 				i2BoardPtrTable[i] = pB;
--				memset( pB, 0, sizeof(i2eBordStr) );
- 				iiSetAddress( pB, ip2config.addr[i], ii2DelayTimer );
- 				iiReset( pB );
- 			} else {
+-	if(!fw_priv){
++	fw_priv = kzalloc(sizeof(struct firmware_priv),	GFP_KERNEL);
++	if (!fw_priv) {
+ 		retval = -ENOMEM;
+ 		goto out;
+ 	}
+-	memset(fw_priv, 0, sizeof(*fw_priv));
++
+ 	memset(class_dev, 0, sizeof(*class_dev));
+ 
+ 	strncpy(fw_priv->fw_id, fw_name, FIRMWARE_NAME_MAX);
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
