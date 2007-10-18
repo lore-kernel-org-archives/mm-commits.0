@@ -1,72 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-vsyscall-fix-the-oops-crash-with-__pa_vsymbol.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:09:06 -0700
-Message-ID: <200710180709.l9I796SR031881@imap1.linux-foundation.org>
+Subject: - add-documentation-w1w1-masters-00-index.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:04:42 -0700
+Message-ID: <200710180704.l9I74ge1031581@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52283 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36914 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762827AbXJRHRV (ORCPT
+	by vger.kernel.org with ESMTP id S1760437AbXJRHSP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:17:21 -0400
+	Thu, 18 Oct 2007 03:18:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: suresh.b.siddha@intel.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, yanmin.zhang@intel.com, mm-commits@vger.kernel.org
+To: rob@landley.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64, vsyscall: fix the oops crash with __pa_vsymbol()
+     Add Documentation/{w1,w1/masters}/00-INDEX
 has been removed from the -mm tree.  Its filename was
-     x86_64-vsyscall-fix-the-oops-crash-with-__pa_vsymbol.patch
+     add-documentation-w1w1-masters-00-index.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64, vsyscall: fix the oops crash with __pa_vsymbol()
-From: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Subject: Add Documentation/{w1,w1/masters}/00-INDEX
+From: Rob Landley <rob@landley.net>
 
-Fix an oops with __pa_vsymbol().  VSYSCALL_FIRST_PAGE is a fixmap index. 
-We want the starting virtual address of the vsyscall page and not the
-index.
+Two 00-INDEX files under Documentation/w1
 
-Reported-by: Yanmin Zhang <yanmin.zhang@intel.com>
-Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Rob Landley <rob@landley.net>
+Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/vsyscall_64.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/w1/00-INDEX         |    8 ++++++++
+ Documentation/w1/masters/00-INDEX |    6 ++++++
+ Documentation/w1/masters/ds2482   |    2 +-
+ Documentation/w1/masters/ds2490   |    2 +-
+ 4 files changed, 16 insertions(+), 2 deletions(-)
 
-diff -puN /dev/null /dev/null
-diff -puN arch/x86/kernel/vsyscall_64.c~x86_64-vsyscall-fix-the-oops-crash-with-__pa_vsymbol arch/x86/kernel/vsyscall_64.c
---- a/arch/x86/kernel/vsyscall_64.c~x86_64-vsyscall-fix-the-oops-crash-with-__pa_vsymbol
-+++ a/arch/x86/kernel/vsyscall_64.c
-@@ -48,7 +48,7 @@
- 	({unsigned long v;  		\
- 	extern char __vsyscall_0; 	\
- 	  asm("" : "=r" (v) : "0" (x)); \
--	  ((v - VSYSCALL_FIRST_PAGE) + __pa_symbol(&__vsyscall_0)); })
-+	  ((v - VSYSCALL_START) + __pa_symbol(&__vsyscall_0)); })
+diff -puN /dev/null Documentation/w1/00-INDEX
+--- /dev/null
++++ a/Documentation/w1/00-INDEX
+@@ -0,0 +1,8 @@
++00-INDEX
++	- This file
++masters/
++	- Individual chips providing 1-wire busses.
++w1.generic
++	- The 1-wire (w1) bus
++w1.netlink
++	- Userspace communication protocol over connector [1].
+diff -puN /dev/null Documentation/w1/masters/00-INDEX
+--- /dev/null
++++ a/Documentation/w1/masters/00-INDEX
+@@ -0,0 +1,6 @@
++00-INDEX
++	- This file
++ds2482
++	- The Maxim/Dallas Semiconductor DS2482 provides 1-wire busses.
++ds2490
++	- The Maxim/Dallas Semiconductor DS2490 builds USB <-> W1 bridges.
+diff -puN Documentation/w1/masters/ds2482~add-documentation-w1w1-masters-00-index Documentation/w1/masters/ds2482
+--- a/Documentation/w1/masters/ds2482~add-documentation-w1w1-masters-00-index
++++ a/Documentation/w1/masters/ds2482
+@@ -15,7 +15,7 @@ Author: Ben Gardner <bgardner@wabtec.com
+ Description
+ -----------
  
- /*
-  * vsyscall_gtod_data contains data that is :
+-The Maixm/Dallas Semiconductor DS2482 is a I2C device that provides
++The Maxim/Dallas Semiconductor DS2482 is a I2C device that provides
+ one (DS2482-100) or eight (DS2482-800) 1-wire busses.
+ 
+ 
+diff -puN Documentation/w1/masters/ds2490~add-documentation-w1w1-masters-00-index Documentation/w1/masters/ds2490
+--- a/Documentation/w1/masters/ds2490~add-documentation-w1w1-masters-00-index
++++ a/Documentation/w1/masters/ds2490
+@@ -10,7 +10,7 @@ Author: Evgeniy Polyakov <johnpol@2ka.mi
+ Description
+ -----------
+ 
+-The Maixm/Dallas Semiconductor DS2490 is a chip
++The Maxim/Dallas Semiconductor DS2490 is a chip
+ which allows to build USB <-> W1 bridges.
+ 
+ DS9490(R) is a USB <-> W1 bus master device
 _
 
-Patches currently in -mm which might be from suresh.b.siddha@intel.com are
+Patches currently in -mm which might be from rob@landley.net are
 
 origin.patch
-git-x86.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
-intel-iommu-iommu-floppy-workaround.patch
-intel-iommu-optimize-sg-map-unmap-calls.patch
+comment-typo-in-scripts-kconfig-makefile.patch
