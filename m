@@ -1,178 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: - softlockup-improve-debug-output.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:52:46 -0700
-Message-ID: <200710180652.l9I6qkiq030314@imap1.linux-foundation.org>
+Subject: - ext2-show-all-mount-options.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:53:53 -0700
+Message-ID: <200710180653.l9I6rrPi030477__15542.2640419149$1192693338$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45535 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33749 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932724AbXJRHlr (ORCPT
+	by vger.kernel.org with ESMTP id S932707AbXJRHlq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:41:47 -0400
+	Thu, 18 Oct 2007 03:41:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, satyam@infradead.org, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     softlockup: improve debug output
+     ext2: show all mount options
 has been removed from the -mm tree.  Its filename was
-     softlockup-improve-debug-output.patch
+     ext2-show-all-mount-options.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: softlockup: improve debug output
-From: Ingo Molnar <mingo@elte.hu>
+Subject: ext2: show all mount options
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Improve the debuggability of kernel lockups by enhancing the debug
-output of the softlockup detector: print the task that causes the lockup
-and try to print a more intelligent backtrace.
+Using mtab is problematic for various reasons, one of them is that
+unprivileged mounts won't turn up in there.  So we want to get rid of it, and
+use /proc/mounts instead.
 
-The old format was:
+But most filesystems are lazy, and are not showing all mount options.  Which
+means, that without mtab, the user won't be able to see some or all of the
+options.
 
-  BUG: soft lockup detected on CPU#1!
-   [<c0105e4a>] show_trace_log_lvl+0x19/0x2e
-   [<c0105f43>] show_trace+0x12/0x14
-   [<c0105f59>] dump_stack+0x14/0x16
-   [<c015f6bc>] softlockup_tick+0xbe/0xd0
-   [<c013457d>] run_local_timers+0x12/0x14
-   [<c01346b8>] update_process_times+0x3e/0x63
-   [<c0145fb8>] tick_sched_timer+0x7c/0xc0
-   [<c0140a75>] hrtimer_interrupt+0x135/0x1ba
-   [<c011bde7>] smp_apic_timer_interrupt+0x6e/0x80
-   [<c0105aa3>] apic_timer_interrupt+0x33/0x38
-   [<c0104f8a>] syscall_call+0x7/0xb
-   =======================
+It would be nice if the generic code could remember the mount options, and
+show them without the need to add extra code to filesystems.  But this is not
+easy, because different filesystems handle mount options given options, and
+not tough the rest.  This is not taken into account by mount(8) either, so
+/etc/mtab will be broken in this case.
 
-The new format is:
+This series fixes up ->show_options() in ext[234].
 
-  BUG: soft lockup detected on CPU#1! [prctl:2363]
-
-  Pid: 2363, comm:                prctl
-  EIP: 0060:[<c013915f>] CPU: 1
-  EIP is at sys_prctl+0x24/0x18c
-   EFLAGS: 00000213    Not tainted  (2.6.22-cfs-v20 #26)
-  EAX: 00000001 EBX: 000003e7 ECX: 00000001 EDX: f6df0000
-  ESI: 000003e7 EDI: 000003e7 EBP: f6df0fb0 DS: 007b ES: 007b FS: 00d8
-  CR0: 8005003b CR2: 4d8c3340 CR3: 3731d000 CR4: 000006d0
-   [<c0105e4a>] show_trace_log_lvl+0x19/0x2e
-   [<c0105f43>] show_trace+0x12/0x14
-   [<c01040be>] show_regs+0x1ab/0x1b3
-   [<c015f807>] softlockup_tick+0xef/0x108
-   [<c013457d>] run_local_timers+0x12/0x14
-   [<c01346b8>] update_process_times+0x3e/0x63
-   [<c0145fcc>] tick_sched_timer+0x7c/0xc0
-   [<c0140a89>] hrtimer_interrupt+0x135/0x1ba
-   [<c011bde7>] smp_apic_timer_interrupt+0x6e/0x80
-   [<c0105aa3>] apic_timer_interrupt+0x33/0x38
-   [<c0104f8a>] syscall_call+0x7/0xb
-   =======================
-
-Note that in the old format we only knew that some system call locked
-up, we didnt know _which_. With the new format we know that it's at a
-specific place in sys_prctl(). [which was where i created an artificial
-kernel lockup to test the new format.]
-
-This is also useful if the lockup happens in user-space - the user-space
-EIP (and other registers) will be printed too. (such a lockup would
-either suggest that the task was running at SCHED_FIFO:99 and looping
-for more than 10 seconds, or that the softlockup detector has a
-false-positive.)
-
-The task name is printed too first, just in case we dont manage to print
-a useful backtrace.
-
-[satyam@infradead.org: fix warning]
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Satyam Sharma <satyam@infradead.org>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/softlockup.c |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ fs/ext2/super.c            |   61 +++++++++++++++++++++++++++++++++--
+ include/linux/ext2_fs_sb.h |    1 
+ 2 files changed, 60 insertions(+), 2 deletions(-)
 
-diff -puN kernel/softlockup.c~softlockup-improve-debug-output kernel/softlockup.c
---- a/kernel/softlockup.c~softlockup-improve-debug-output
-+++ a/kernel/softlockup.c
-@@ -15,6 +15,8 @@
- #include <linux/notifier.h>
- #include <linux/module.h>
+diff -puN fs/ext2/super.c~ext2-show-all-mount-options fs/ext2/super.c
+--- a/fs/ext2/super.c~ext2-show-all-mount-options
++++ a/fs/ext2/super.c
+@@ -203,10 +203,66 @@ static void ext2_clear_inode(struct inod
  
-+#include <asm/irq_regs.h>
+ static int ext2_show_options(struct seq_file *seq, struct vfsmount *vfs)
+ {
+-	struct ext2_sb_info *sbi = EXT2_SB(vfs->mnt_sb);
++	struct super_block *sb = vfs->mnt_sb;
++	struct ext2_sb_info *sbi = EXT2_SB(sb);
++	struct ext2_super_block *es = sbi->s_es;
++	unsigned long def_mount_opts;
 +
- static DEFINE_SPINLOCK(print_lock);
++	def_mount_opts = le32_to_cpu(es->s_default_mount_opts);
  
- static DEFINE_PER_CPU(unsigned long, touch_timestamp);
-@@ -72,6 +74,7 @@ void softlockup_tick(void)
- 	int this_cpu = smp_processor_id();
- 	unsigned long touch_timestamp = per_cpu(touch_timestamp, this_cpu);
- 	unsigned long print_timestamp;
-+	struct pt_regs *regs = get_irq_regs();
- 	unsigned long now;
- 
- 	if (touch_timestamp == 0) {
-@@ -101,15 +104,18 @@ void softlockup_tick(void)
- 		wake_up_process(per_cpu(watchdog_task, this_cpu));
- 
- 	/* Warn about unreasonable 10+ seconds delays: */
--	if (now > (touch_timestamp + 10)) {
--		per_cpu(print_timestamp, this_cpu) = touch_timestamp;
-+	if (now <= (touch_timestamp + 10))
-+		return;
- 
--		spin_lock(&print_lock);
--		printk(KERN_ERR "BUG: soft lockup detected on CPU#%d!\n",
--			this_cpu);
-+	per_cpu(print_timestamp, this_cpu) = touch_timestamp;
+-	if (sbi->s_mount_opt & EXT2_MOUNT_GRPID)
++	if (sbi->s_sb_block != 1)
++		seq_printf(seq, ",sb=%lu", sbi->s_sb_block);
++	if (test_opt(sb, MINIX_DF))
++		seq_puts(seq, ",minixdf");
++	if (test_opt(sb, GRPID))
+ 		seq_puts(seq, ",grpid");
++	if (!test_opt(sb, GRPID) && (def_mount_opts & EXT2_DEFM_BSDGROUPS))
++		seq_puts(seq, ",nogrpid");
++	if (sbi->s_resuid != EXT2_DEF_RESUID ||
++	    le16_to_cpu(es->s_def_resuid) != EXT2_DEF_RESUID) {
++		seq_printf(seq, ",resuid=%u", sbi->s_resuid);
++	}
++	if (sbi->s_resgid != EXT2_DEF_RESGID ||
++	    le16_to_cpu(es->s_def_resgid) != EXT2_DEF_RESGID) {
++		seq_printf(seq, ",resgid=%u", sbi->s_resgid);
++	}
++	if (test_opt(sb, ERRORS_CONT)) {
++		int def_errors = le16_to_cpu(es->s_errors);
 +
-+	spin_lock(&print_lock);
-+	printk(KERN_ERR "BUG: soft lockup detected on CPU#%d!\n", this_cpu);
-+	if (regs)
-+		show_regs(regs);
-+	else
- 		dump_stack();
--		spin_unlock(&print_lock);
--	}
-+	spin_unlock(&print_lock);
- }
++		if (def_errors == EXT2_ERRORS_PANIC ||
++		    def_errors == EXT2_ERRORS_RO) {
++			seq_puts(seq, ",errors=continue");
++		}
++	}
++	if (test_opt(sb, ERRORS_RO))
++		seq_puts(seq, ",errors=remount-ro");
++	if (test_opt(sb, ERRORS_PANIC))
++		seq_puts(seq, ",errors=panic");
++	if (test_opt(sb, NO_UID32))
++		seq_puts(seq, ",nouid32");
++	if (test_opt(sb, DEBUG))
++		seq_puts(seq, ",debug");
++	if (test_opt(sb, OLDALLOC))
++		seq_puts(seq, ",oldalloc");
++
++#ifdef CONFIG_EXT2_FS_XATTR
++	if (test_opt(sb, XATTR_USER))
++		seq_puts(seq, ",user_xattr");
++	if (!test_opt(sb, XATTR_USER) &&
++	    (def_mount_opts & EXT2_DEFM_XATTR_USER)) {
++		seq_puts(seq, ",nouser_xattr");
++	}
++#endif
++
++#ifdef CONFIG_EXT2_FS_POSIX_ACL
++	if (test_opt(sb, POSIX_ACL))
++		seq_puts(seq, ",acl");
++	if (!test_opt(sb, POSIX_ACL) && (def_mount_opts & EXT2_DEFM_ACL))
++		seq_puts(seq, ",noacl");
++#endif
++
++	if (test_opt(sb, NOBH))
++		seq_puts(seq, ",nobh");
  
- /*
+ #if defined(CONFIG_QUOTA)
+ 	if (sbi->s_mount_opt & EXT2_MOUNT_USRQUOTA)
+@@ -659,6 +715,7 @@ static int ext2_fill_super(struct super_
+ 	if (!sbi)
+ 		return -ENOMEM;
+ 	sb->s_fs_info = sbi;
++	sbi->s_sb_block = sb_block;
+ 
+ 	/*
+ 	 * See what the current blocksize for the device is, and
+diff -puN include/linux/ext2_fs_sb.h~ext2-show-all-mount-options include/linux/ext2_fs_sb.h
+--- a/include/linux/ext2_fs_sb.h~ext2-show-all-mount-options
++++ a/include/linux/ext2_fs_sb.h
+@@ -39,6 +39,7 @@ struct ext2_sb_info {
+ 	struct ext2_super_block * s_es;	/* Pointer to the super block in the buffer */
+ 	struct buffer_head ** s_group_desc;
+ 	unsigned long  s_mount_opt;
++	unsigned long s_sb_block;
+ 	uid_t s_resuid;
+ 	gid_t s_resgid;
+ 	unsigned short s_mount_state;
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
-git-acpi.patch
-git-kvm.patch
-net-dccp-fix-link-error-with-config_sysctl.patch
-git-netdev-all.patch
-fix-build-breakage-if-sysfs-fix.patch
-git-x86.patch
-hpet-force-enable-on-vt8235-37-chipsets.patch
-i386-paravirt-boot-sequence.patch
-workqueue-debug-flushing-deadlocks-with-lockdep.patch
-workqueue-debug-work-related-deadlocks-with-lockdep.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-whitespace-fixes-time-syscalls.patch
-whitespace-fixes-interval-timers.patch
-whitespace-fixes-system-timers.patch
-uninline-find_task_by_xxx-set-of-functions.patch
-cpuset-sched_load_balance-flag.patch
-cpuset-sched_load_balance-flag-fix.patch
-cpuset-sched_load_balance-kmalloc-fix.patch
-cpusets-decrustify-cpuset-mask-update-code.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-whitespace-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
-hook-up-group-scheduler-with-control-groups.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-uninline-forkc-exitc.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-kmap_atomic-debugging.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+fuse-fix-allowing-operations.patch
+fuse-fix-race-between-getattr-and-write.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+fuse-clean-up-open-file-passing-in-setattr.patch
+vfs-allow-filesystems-to-implement-atomic-opentruncate.patch
+fuse-improve-utimes-support.patch
+fuse-add-atomic-opentruncate-support.patch
+fuse-support-bsd-locking-semantics.patch
+fuse-add-list-of-writable-files-to-fuse_inode.patch
+fuse-add-helper-for-asynchronous-writes.patch
+fuse-add-support-for-mandatory-locking.patch
+fuse-add-blksize-field-to-fuse_attr.patch
