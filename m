@@ -1,134 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - lp_console-cleanups.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:01:59 -0700
-Message-ID: <200710180701.l9I71xV8031221@imap1.linux-foundation.org>
+Subject: - shrink-task_struct-if-config_futex=n.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:57:09 -0700
+Message-ID: <200710180657.l9I6v9EE030772@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39932 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42700 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755359AbXJRHXb (ORCPT
+	by vger.kernel.org with ESMTP id S1755407AbXJRHXg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:23:31 -0400
+	Thu, 18 Oct 2007 03:23:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pavel@ucw.cz, pavel@suse.cz, mm-commits@vger.kernel.org
+To: adobriyan@sw.ru, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lp_console: cleanups
+     Shrink task_struct if CONFIG_FUTEX=n
 has been removed from the -mm tree.  Its filename was
-     lp_console-cleanups.patch
+     shrink-task_struct-if-config_futex=n.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lp_console: cleanups
-From: Pavel Machek <pavel@ucw.cz>
+Subject: Shrink task_struct if CONFIG_FUTEX=n
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-Remove NULL initializers and clean whitespace a bit.
+robust_list, compat_robust_list, pi_state_list, pi_state_cache are
+really used if futexes are on.
 
-Signed-off-by: Pavel Machek <pavel@suse.cz>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/lp.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ include/linux/sched.h |    3 ++-
+ kernel/exit.c         |    6 +++++-
+ kernel/fork.c         |    3 ++-
+ 3 files changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/lp.c~lp_console-cleanups drivers/char/lp.c
---- a/drivers/char/lp.c~lp_console-cleanups
-+++ a/drivers/char/lp.c
-@@ -144,7 +144,7 @@ static unsigned int lp_count = 0;
- static struct class *lp_class;
+diff -puN include/linux/sched.h~shrink-task_struct-if-config_futex=n include/linux/sched.h
+--- a/include/linux/sched.h~shrink-task_struct-if-config_futex=n
++++ a/include/linux/sched.h
+@@ -1132,13 +1132,14 @@ struct task_struct {
+ 	int cpuset_mems_generation;
+ 	int cpuset_mem_spread_rotor;
+ #endif
++#ifdef CONFIG_FUTEX
+ 	struct robust_list_head __user *robust_list;
+ #ifdef CONFIG_COMPAT
+ 	struct compat_robust_list_head __user *compat_robust_list;
+ #endif
+ 	struct list_head pi_state_list;
+ 	struct futex_pi_state *pi_state_cache;
+-
++#endif
+ 	atomic_t fs_excl;	/* holding fs exclusive resources */
+ 	struct rcu_head rcu;
  
- #ifdef CONFIG_LP_CONSOLE
--static struct parport *console_registered; // initially NULL
-+static struct parport *console_registered;
- #endif /* CONFIG_LP_CONSOLE */
- 
- #undef LP_DEBUG
-@@ -749,8 +749,8 @@ static struct console lpcons = {
- /* --- initialisation code ------------------------------------- */
- 
- static int parport_nr[LP_NO] = { [0 ... LP_NO-1] = LP_PARPORT_UNSPEC };
--static char *parport[LP_NO] = { NULL,  };
--static int reset = 0;
-+static char *parport[LP_NO];
-+static int reset;
- 
- module_param_array(parport, charp, NULL, 0);
- module_param(reset, bool, 0);
-@@ -758,10 +758,10 @@ module_param(reset, bool, 0);
- #ifndef MODULE
- static int __init lp_setup (char *str)
- {
--	static int parport_ptr; // initially zero
-+	static int parport_ptr;
- 	int x;
- 
--	if (get_option (&str, &x)) {
-+	if (get_option(&str, &x)) {
- 		if (x == 0) {
- 			/* disable driver on "lp=" or "lp=0" */
- 			parport_nr[0] = LP_PARPORT_OFF;
-@@ -807,7 +807,7 @@ static int lp_register(int nr, struct pa
- #ifdef CONFIG_LP_CONSOLE
- 	if (!nr) {
- 		if (port->modes & PARPORT_MODE_SAFEININT) {
--			register_console (&lpcons);
-+			register_console(&lpcons);
- 			console_registered = port;
- 			printk (KERN_INFO "lp%d: console ready\n", CONSOLE_LP);
- 		} else
-@@ -823,8 +823,7 @@ static void lp_attach (struct parport *p
- {
- 	unsigned int i;
- 
--	switch (parport_nr[0])
--	{
-+	switch (parport_nr[0]) {
- 	case LP_PARPORT_UNSPEC:
- 	case LP_PARPORT_AUTO:
- 		if (parport_nr[0] == LP_PARPORT_AUTO &&
-@@ -855,7 +854,7 @@ static void lp_detach (struct parport *p
- 	/* Write this some day. */
- #ifdef CONFIG_LP_CONSOLE
- 	if (console_registered == port) {
--		unregister_console (&lpcons);
-+		unregister_console(&lpcons);
- 		console_registered = NULL;
+diff -puN kernel/exit.c~shrink-task_struct-if-config_futex=n kernel/exit.c
+--- a/kernel/exit.c~shrink-task_struct-if-config_futex=n
++++ a/kernel/exit.c
+@@ -947,12 +947,14 @@ fastcall NORET_TYPE void do_exit(long co
+ 		exit_itimers(tsk->signal);
  	}
- #endif /* CONFIG_LP_CONSOLE */
+ 	acct_collect(code, group_dead);
++#ifdef CONFIG_FUTEX
+ 	if (unlikely(tsk->robust_list))
+ 		exit_robust_list(tsk);
+-#if defined(CONFIG_FUTEX) && defined(CONFIG_COMPAT)
++#ifdef CONFIG_COMPAT
+ 	if (unlikely(tsk->compat_robust_list))
+ 		compat_exit_robust_list(tsk);
+ #endif
++#endif
+ 	if (group_dead)
+ 		tty_audit_exit();
+ 	if (unlikely(tsk->audit_context))
+@@ -987,6 +989,7 @@ fastcall NORET_TYPE void do_exit(long co
+ 	mpol_free(tsk->mempolicy);
+ 	tsk->mempolicy = NULL;
+ #endif
++#ifdef CONFIG_FUTEX
+ 	/*
+ 	 * This must happen late, after the PID is not
+ 	 * hashed anymore:
+@@ -995,6 +998,7 @@ fastcall NORET_TYPE void do_exit(long co
+ 		exit_pi_state_list(tsk);
+ 	if (unlikely(current->pi_state_cache))
+ 		kfree(current->pi_state_cache);
++#endif
+ 	/*
+ 	 * Make sure we are holding no locks:
+ 	 */
+diff -puN kernel/fork.c~shrink-task_struct-if-config_futex=n kernel/fork.c
+--- a/kernel/fork.c~shrink-task_struct-if-config_futex=n
++++ a/kernel/fork.c
+@@ -1156,13 +1156,14 @@ static struct task_struct *copy_process(
+ 	 * Clear TID on mm_release()?
+ 	 */
+ 	p->clear_child_tid = (clone_flags & CLONE_CHILD_CLEARTID) ? child_tidptr: NULL;
++#ifdef CONFIG_FUTEX
+ 	p->robust_list = NULL;
+ #ifdef CONFIG_COMPAT
+ 	p->compat_robust_list = NULL;
+ #endif
+ 	INIT_LIST_HEAD(&p->pi_state_list);
+ 	p->pi_state_cache = NULL;
+-
++#endif
+ 	/*
+ 	 * sigaltstack should be cleared when sharing the same VM
+ 	 */
 _
 
-Patches currently in -mm which might be from pavel@ucw.cz are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
 origin.patch
-git-acpi.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-x86.patch
-make-kernel-power-maincsuspend_enter-static.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-rework-struct-platform_suspend_ops-fixup.patch
-pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-freezer-document-relationship-with-memory-shrinking.patch
-freezer-do-not-sync-filesystems-from-freeze_processes.patch
-freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
-freezer-introduce-freezer-firendly-waiting-macros.patch
-freezer-do-not-send-signals-to-kernel-threads.patch
-freezer-be-more-verbose.patch
-freezer-measure-freezing-time.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-s2ram-kill-old-debugging-junk.patch
-hibernation-arbitrary-boot-kernel-support-generic-code-rev-2.patch
-hibernation-arbitrary-boot-kernel-support-on-x86_64-rev-2.patch
-hibernation-pass-cr3-in-the-image-header-on-x86_64-rev-2.patch
-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
-hibernation-check-if-acpi-is-enabled-during-restore-in-the-right-place.patch
-hibernation-enter-platform-hibernation-state-in-a-consistent-way-rev-4.patch
-hibernation-enter-platform-hibernation-state-in-a-consistent-way-rev-4-fix.patch
+add-kernel-notifierc.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
+sysctl-factor-out-sysctl_data.patch
+sysct-mqueue-remove-the-binary-sysctl-numbers.patch
+sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
+sysctl-fix-neighbour-table-sysctls.patch
+sysctl-ipv6-route-flushing-kill-binary-path.patch
+sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
+sysctl-x86_64-remove-unnecessary-binary-paths.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
+sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
+sysctl-error-on-bad-sysctl-tables.patch
+sysctl-update-sysctl_check_table.patch
+uninline-forkc-exitc.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+single_open-seq_release-leak-diagnostics.patch
