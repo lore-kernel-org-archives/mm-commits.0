@@ -1,56 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - remove-consolemaph-from-header-exports.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:55:57 -0700
-Message-ID: <200710180655.l9I6tvpK030657@imap1.linux-foundation.org>
+Subject: - add-vmcore-use-the-existing-ia64_tpa-instead-of-asm-code.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:57:05 -0700
+Message-ID: <200710180657.l9I6v5ue030760@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50550 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48221 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760466AbXJRHPb (ORCPT
+	by vger.kernel.org with ESMTP id S1760340AbXJRHPa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:15:31 -0400
+	Thu, 18 Oct 2007 03:15:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: olaf@aepfle.de, mm-commits@vger.kernel.org
+To: oomichi@mxs.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove consolemap.h from header exports
+     add-vmcore: use the existing ia64_tpa() instead of asm code
 has been removed from the -mm tree.  Its filename was
-     remove-consolemaph-from-header-exports.patch
+     add-vmcore-use-the-existing-ia64_tpa-instead-of-asm-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: remove consolemap.h from header exports
-From: Olaf Hering <olaf@aepfle.de>
+Subject: add-vmcore: use the existing ia64_tpa() instead of asm code
+From: "Ken'ichi Ohmichi" <oomichi@mxs.nes.nec.co.jp>
 
-Remove linux/consolemap.h from make headers_install
-
-It contains no user interfaces.
-The defines in this file are used only for kernel internal state.
-
-Signed-off-by: Olaf Hering <olaf@aepfle.de>
+Signed-off-by: Ken'ichi Ohmichi <oomichi@mxs.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/Kbuild |    1 -
- 1 file changed, 1 deletion(-)
+ arch/ia64/kernel/machine_kexec.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/Kbuild~remove-consolemaph-from-header-exports include/linux/Kbuild
---- a/include/linux/Kbuild~remove-consolemaph-from-header-exports
-+++ a/include/linux/Kbuild
-@@ -46,7 +46,6 @@ header-y += chio.h
- header-y += coda_psdev.h
- header-y += coff.h
- header-y += comstats.h
--header-y += consolemap.h
- header-y += const.h
- header-y += cycx_cfm.h
- header-y += dlm_device.h
+diff -puN arch/ia64/kernel/machine_kexec.c~add-vmcore-use-the-existing-ia64_tpa-instead-of-asm-code arch/ia64/kernel/machine_kexec.c
+--- a/arch/ia64/kernel/machine_kexec.c~add-vmcore-use-the-existing-ia64_tpa-instead-of-asm-code
++++ a/arch/ia64/kernel/machine_kexec.c
+@@ -21,6 +21,7 @@
+ #include <asm/setup.h>
+ #include <asm/delay.h>
+ #include <asm/meminit.h>
++#include <asm/processor.h>
+ 
+ typedef NORET_TYPE void (*relocate_new_kernel_t)(
+ 					unsigned long indirection_page,
+@@ -145,9 +146,6 @@ void arch_crash_save_vmcoreinfo(void)
+ 
+ unsigned long paddr_vmcoreinfo_note(void)
+ {
+-	unsigned long vaddr, paddr;
+-	vaddr = (unsigned long)(char *)&vmcoreinfo_note;
+-	asm volatile ("tpa %0 = %1" : "=r"(paddr) : "r"(vaddr) : "memory");
+-	return paddr;
++	return ia64_tpa((unsigned long)(char *)&vmcoreinfo_note);
+ }
+ 
 _
 
-Patches currently in -mm which might be from olaf@aepfle.de are
+Patches currently in -mm which might be from oomichi@mxs.nes.nec.co.jp are
 
 origin.patch
-keep-track-of-network-interface-renaming.patch
