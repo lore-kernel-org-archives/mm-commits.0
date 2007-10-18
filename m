@@ -1,112 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-elevate-write-count-opend-files-r-o-bind-mounts-fix-bug-in-reiserfs_delete_xattrs.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:21:38 -0700
-Message-ID: <200710180721.l9I7LcPP032309@imap1.linux-foundation.org>
+Subject: - task_struct-move-fpu_counter-and-oomkilladj.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:01:48 -0700
+Message-ID: <200710180701.l9I71moM031206@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50220 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50127 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755309AbXJRHWX (ORCPT
+	by vger.kernel.org with ESMTP id S1759442AbXJRHWZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:22:23 -0400
+	Thu, 18 Oct 2007 03:22:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laurent.riffard@free.fr, haveblue@us.ibm.com, hch@infradead.org, mm-commits@vger.kernel.org
+To: adobriyan@sw.ru, arjan@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r-o-bind-mounts: fix BUG in reiserfs_delete_xattrs
+     task_struct: move ->fpu_counter and ->oomkilladj
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-elevate-write-count-opend-files-r-o-bind-mounts-fi=
-x-bug-in-reiserfs_delete_xattrs.patch
+     task_struct-move-fpu_counter-and-oomkilladj.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts: fix BUG in reiserfs_delete_xattrs
-=46rom: Laurent Riffard <laurent.riffard@free.fr>
+Subject: task_struct: move ->fpu_counter and ->oomkilladj
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-Le 15.10.2007 20:31, Jeff Mahoney a =E9crit :
-> Christoph Hellwig wrote:
->> On Mon, Oct 15, 2007 at 12:34:58AM +0200, Laurent Riffard wrote:
->>> reiserfs_delete_xattrs
->>> reiserfs_delete_inode
->>> generic_delete_inode
->>> generic_drop_inode
->>> iput
->>> do_unlinkat
->>> sys_unlink
->>> sys_enter_past_esp
->>>
->>> I reported a similar BUG in 2.6.22-rc8-mm2 (see
->>> http://lkml.org/lkml/2007/9/27/235). Dave Hansen sent a patch for i=
-t, I
->>> tested it and it was OK for 2.6.22-rc8-mm2.
->>>
->>> I tried this patch on 2.6.23-mm1, and it fixed the BUGs here too.
->> The delete path is a similar case as the one Dave fixed, also cause =
-by
->> a NULL vfsmount passed to dentry_open, but through a different code-=
-path.
->>
->> Untested fix for this problem below:
->
-> Here's a patch I worked up the other night that kills off struct file
-> completely from the xattr code. I've tested it locally.
+There is nice 2 byte hole after struct task_struct::ioprio field
+into which we can put two 1-byte fields: ->fpu_counter and ->oomkilladj.
 
-Sorry Jeff, your patch does not apply on 2.6.23-mm1. The 'struct file'
-removal from reiserfs_xattr_ function is already in -mm
-(make-reiserfs-stop-using-struct-file-for-internal.patch).
-
-The Dave's patch I was refering to is this one:
-
-=3D=3D=3D=3D BEGIN =3D=3D=3D=3D=3D
-The bug is caused by reiserfs creating a special 'struct file' with a
-NULL vfsmount.
-
-/* Opens a file pointer to the attribute associated with inode */
-static struct file *open_xa_file(const struct inode *inode, const char
-*name,
-                                 int flags)
-{
-=2E..
-        fp =3D dentry_open(xafile, NULL, O_RDWR);
-        /* dentry_open dputs the dentry if it fails */
-
-As Christoph just said, this is somewhat of a bandaid.  But, it
-shouldn't hurt anything.
-
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Acked-by: Arjan van de Ven <arjan@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/file_table.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/sched.h |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN fs/file_table.c~r-o-bind-mounts-elevate-write-count-opend-fil=
-es-r-o-bind-mounts-fix-bug-in-reiserfs_delete_xattrs fs/file_table.c
---- a/fs/file_table.c~r-o-bind-mounts-elevate-write-count-opend-files-r=
--o-bind-mounts-fix-bug-in-reiserfs_delete_xattrs
-+++ a/fs/file_table.c
-@@ -236,7 +236,7 @@ void fastcall __fput(struct file *file)
- 	fops_put(file->f_op);
- 	if (file->f_mode & FMODE_WRITE) {
- 		put_write_access(inode);
--		if (!special_file(inode->i_mode))
-+		if (!special_file(inode->i_mode) && mnt)
- 			mnt_drop_write(mnt);
- 	}
- 	put_pid(file->f_owner.pid);
+diff -puN include/linux/sched.h~task_struct-move-fpu_counter-and-oomkilladj include/linux/sched.h
+--- a/include/linux/sched.h~task_struct-move-fpu_counter-and-oomkilladj
++++ a/include/linux/sched.h
+@@ -918,6 +918,16 @@ struct task_struct {
+ #endif
+ 
+ 	unsigned short ioprio;
++	/*
++	 * fpu_counter contains the number of consecutive context switches
++	 * that the FPU is used. If this is over a threshold, the lazy fpu
++	 * saving becomes unlazy to save the trap. This is an unsigned char
++	 * so that after 256 times the counter wraps and the behavior turns
++	 * lazy again; this to deal with bursty apps that only use FPU for
++	 * a short time
++	 */
++	unsigned char fpu_counter;
++	s8 oomkilladj; /* OOM kill score adjustment (bit shift). */
+ #ifdef CONFIG_BLK_DEV_IO_TRACE
+ 	unsigned int btrace_seq;
+ #endif
+@@ -1003,16 +1013,6 @@ struct task_struct {
+ 	struct key *thread_keyring;	/* keyring private to this thread */
+ 	unsigned char jit_keyring;	/* default keyring to attach requested keys to */
+ #endif
+-	/*
+-	 * fpu_counter contains the number of consecutive context switches
+-	 * that the FPU is used. If this is over a threshold, the lazy fpu
+-	 * saving becomes unlazy to save the trap. This is an unsigned char
+-	 * so that after 256 times the counter wraps and the behavior turns
+-	 * lazy again; this to deal with bursty apps that only use FPU for
+-	 * a short time
+-	 */
+-	unsigned char fpu_counter;
+-	s8 oomkilladj; /* OOM kill score adjustment (bit shift). */
+ 	char comm[TASK_COMM_LEN]; /* executable name excluding path
+ 				     - access with [gs]et_task_comm (which lock
+ 				       it with task_lock())
 _
 
-Patches currently in -mm which might be from laurent.riffard@free.fr ar=
-e
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
 origin.patch
-r-o-bind-mounts-elevate-write-count-opend-files-r-o-bind-mounts-fix-bug=
--in-reiserfs_delete_xattrs.patch
-reiser4-drop-size-argument-from-bio_endio-and-bi_end_io.patch
+add-kernel-notifierc.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
+sysctl-factor-out-sysctl_data.patch
+sysct-mqueue-remove-the-binary-sysctl-numbers.patch
+sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
+sysctl-fix-neighbour-table-sysctls.patch
+sysctl-ipv6-route-flushing-kill-binary-path.patch
+sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
+sysctl-x86_64-remove-unnecessary-binary-paths.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
+sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
+sysctl-error-on-bad-sysctl-tables.patch
+sysctl-update-sysctl_check_table.patch
+uninline-forkc-exitc.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+single_open-seq_release-leak-diagnostics.patch
