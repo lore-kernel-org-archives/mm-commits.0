@@ -1,137 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion-fix.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 01:49:40 -0700
-Message-ID: <200710180849.l9I8neEd002893@imap1.linux-foundation.org>
+Subject: - mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 01:50:16 -0700
+Message-ID: <200710180850.l9I8oGuD002910@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48860 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53704 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932356AbXJRIto (ORCPT
+	by vger.kernel.org with ESMTP id S932607AbXJRIuU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 04:49:44 -0400
+	Thu, 18 Oct 2007 04:50:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lethal@linux-sh.org, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: Fix syscall disabled build.
+     mxser: Fix warning: 'CheckIsMoxaMust' defined but not used
 has been removed from the -mm tree.  Its filename was
-     sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion-fix.patch
+     mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
 
-This patch was dropped because it was folded into sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion.patch
+This patch was dropped because it was folded into mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
 
 ------------------------------------------------------
-Subject: sysctl: Fix syscall disabled build.
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: mxser: Fix warning: 'CheckIsMoxaMust' defined but not used
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-deprecated_sysctl_warning() is used for sys_sysctl(), whether
-CONFIG_SYSCTL_SYSCALL is enabled or not. When it was added, it was
-added under the CONFIG_SYSCTL section, so it's not defined if we have
-the support disabled completely.
+drivers/char/mxser.c:427: warning: 'CheckIsMoxaMust' defined but not used
+when building Moxa driver without CONFIG_PCI.
 
-  CC      kernel/sysctl.o
-kernel/sysctl.c: In function 'sys_sysctl':
-kernel/sysctl.c:2601: error: implicit declaration of function 'deprecated_sysctl_warning'
-make[1]: *** [kernel/sysctl.o] Error 1
-make: *** [kernel] Error 2
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
 
-This just moves the function past the end of the CONFIG_SYSCTL space
-so both configurations are happy.
-
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |   56 +++++++++++++++++++++++-----------------------
- 1 file changed, 29 insertions(+), 27 deletions(-)
+ drivers/char/mxser.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sysctl.c~sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion-fix kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion-fix
-+++ a/kernel/sysctl.c
-@@ -55,6 +55,8 @@
- #include <asm/stacktrace.h>
- #endif
+diff -puN drivers/char/mxser.c~mxser-fix-compiler-warning-when-building-withoug-config_pci-fix drivers/char/mxser.c
+--- a/drivers/char/mxser.c~mxser-fix-compiler-warning-when-building-withoug-config_pci-fix
++++ a/drivers/char/mxser.c
+@@ -421,7 +421,7 @@ static void mxser_wait_until_sent(struct
+ static void mxser_startrx(struct tty_struct *tty);
+ static void mxser_stoprx(struct tty_struct *tty);
  
-+static int deprecated_sysctl_warning(struct __sysctl_args *args);
-+
- #if defined(CONFIG_SYSCTL)
- 
- /* External variables not in a header file. */
-@@ -1320,33 +1322,6 @@ struct ctl_table_header *sysctl_head_nex
- 	return NULL;
+-
++#ifdef CONFIG_PCI
+ static int CheckIsMoxaMust(int io)
+ {
+ 	u8 oldmcr, hwid;
+@@ -444,6 +444,7 @@ static int CheckIsMoxaMust(int io)
+ 	}
+ 	return MOXA_OTHER_UART;
  }
++#endif
  
--static int deprecated_sysctl_warning(struct __sysctl_args *args)
--{
--	static int msg_count;
--	int name[CTL_MAXNAME];
--	int i;
--
--	/* Read in the sysctl name for better debug message logging */
--	for (i = 0; i < args->nlen; i++)
--		if (get_user(name[i], args->name + i))
--			return -EFAULT;
--
--	/* Ignore accesses to kernel.version */
--	if ((args->nlen == 2) && (name[0] == CTL_KERN) && (name[1] == KERN_VERSION))
--		return 0;
--
--	if (msg_count < 5) {
--		msg_count++;
--		printk(KERN_INFO
--			"warning: process `%s' used the deprecated sysctl "
--			"system call with ", current->comm);
--		for (i = 0; i < args->nlen; i++)
--			printk("%d.", name[i]);
--		printk("\n");
--	}
--	return 0;
--}
--
- #ifdef CONFIG_SYSCTL_SYSCALL
- int do_sysctl(int __user *name, int nlen, void __user *oldval, size_t __user *oldlenp,
- 	       void __user *newval, size_t newlen)
-@@ -2632,6 +2607,33 @@ int sysctl_ms_jiffies(struct ctl_table *
+ /* above is modified by Victor Yu. 08-15-2002 */
  
- #endif /* CONFIG_SYSCTL_SYSCALL */
- 
-+static int deprecated_sysctl_warning(struct __sysctl_args *args)
-+{
-+	static int msg_count;
-+	int name[CTL_MAXNAME];
-+	int i;
-+
-+	/* Read in the sysctl name for better debug message logging */
-+	for (i = 0; i < args->nlen; i++)
-+		if (get_user(name[i], args->name + i))
-+			return -EFAULT;
-+
-+	/* Ignore accesses to kernel.version */
-+	if ((args->nlen == 2) && (name[0] == CTL_KERN) && (name[1] == KERN_VERSION))
-+		return 0;
-+
-+	if (msg_count < 5) {
-+		msg_count++;
-+		printk(KERN_INFO
-+			"warning: process `%s' used the deprecated sysctl "
-+			"system call with ", current->comm);
-+		for (i = 0; i < args->nlen; i++)
-+			printk("%d.", name[i]);
-+		printk("\n");
-+	}
-+	return 0;
-+}
-+
- /*
-  * No sense putting this after each symbol definition, twice,
-  * exception granted :-)
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
 origin.patch
-sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion.patch
-sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion-fix.patch
-bitops-introduce-lock-ops.patch
+mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
+mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
+cyclades-avoid-label-defined-but-not-used-warning.patch
