@@ -1,180 +1,424 @@
 From: akpm@linux-foundation.org
-Subject: - writeback-dont-propagate-aop_writepage_activate.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:52:22 -0700
-Message-ID: <200710180652.l9I6qMEc030279@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-filesystem-helpers-for-custom-struct-files.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:04:02 -0700
+Message-ID: <200710180704.l9I742IL031497@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60548 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47957 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758224AbXJRH0p (ORCPT
+	by vger.kernel.org with ESMTP id S1757473AbXJRH0s (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:26:45 -0400
+	Thu, 18 Oct 2007 03:26:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     writeback: don't propagate AOP_WRITEPAGE_ACTIVATE
+     r/o bind mounts: filesystem helpers for custom 'struct file's
 has been removed from the -mm tree.  Its filename was
-     writeback-dont-propagate-aop_writepage_activate.patch
+     r-o-bind-mounts-filesystem-helpers-for-custom-struct-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: writeback: don't propagate AOP_WRITEPAGE_ACTIVATE
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: r/o bind mounts: filesystem helpers for custom 'struct file's
+From: Dave Hansen <haveblue@us.ibm.com>
 
-This is a writeback-internal marker but we're propagating it all the way back
-to userspace!.
+Why do we need r/o bind mounts?
 
-Cc: <stable@kernel.org>
+This feature allows a read-only view into a read-write filesystem.  In the
+process of doing that, it also provides infrastructure for keeping track of
+the number of writers to any given mount.
+
+This has a number of uses.  It allows chroots to have parts of filesystems
+writable.  It will be useful for containers in the future because users may
+have root inside a container, but should not be allowed to write to
+somefilesystems.  This also replaces patches that vserver has had out of the
+tree for several years.
+
+It allows security enhancement by making sure that parts of your filesystem
+read-only (such as when you don't trust your FTP server), when you don't want
+to have entire new filesystems mounted, or when you want atime selectively
+updated.  I've been using the following script to test that the feature is
+working as desired.  It takes a directory and makes a regular bind and a r/o
+bind mount of it.  It then performs some normal filesystem operations on the
+three directories, including ones that are expected to fail, like creating a
+file on the r/o mount.
+
+
+This patch:
+
+Some filesystems forego the vfs and may_open() and create their own 'struct
+file's.
+
+This patch creates a couple of helper functions which can be used by these
+filesystems, and will provide a unified place which the r/o bind mount code
+may patch.
+
+Also, rename an existing, static-scope init_file() to a less generic name.
+
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/configfs/dir.c    |    5 ++-
+ fs/file_table.c      |   60 +++++++++++++++++++++++++++++++++++++++++
+ fs/hugetlbfs/inode.c |   22 ++++++---------
+ include/linux/file.h |    9 ++++++
+ ipc/shm.c            |   13 +++-----
+ mm/shmem.c           |    7 +---
+ mm/tiny-shmem.c      |   19 ++++--------
+ net/socket.c         |   18 ++++++------
+ 8 files changed, 104 insertions(+), 49 deletions(-)
 
-diff -puN mm/page-writeback.c~writeback-dont-propagate-aop_writepage_activate mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-dont-propagate-aop_writepage_activate
-+++ a/mm/page-writeback.c
-@@ -849,8 +849,10 @@ retry:
+diff -puN fs/configfs/dir.c~r-o-bind-mounts-filesystem-helpers-for-custom-struct-files fs/configfs/dir.c
+--- a/fs/configfs/dir.c~r-o-bind-mounts-filesystem-helpers-for-custom-struct-files
++++ a/fs/configfs/dir.c
+@@ -142,7 +142,7 @@ static int init_dir(struct inode * inode
+ 	return 0;
+ }
  
- 			ret = (*writepage)(page, wbc, data);
+-static int init_file(struct inode * inode)
++static int configfs_init_file(struct inode * inode)
+ {
+ 	inode->i_size = PAGE_SIZE;
+ 	inode->i_fop = &configfs_file_operations;
+@@ -283,7 +283,8 @@ static int configfs_attach_attr(struct c
  
--			if (unlikely(ret == AOP_WRITEPAGE_ACTIVATE))
-+			if (unlikely(ret == AOP_WRITEPAGE_ACTIVATE)) {
- 				unlock_page(page);
-+				ret = 0;
-+			}
- 			if (ret || (--(wbc->nr_to_write) <= 0))
- 				done = 1;
- 			if (wbc->nonblocking && bdi_write_congested(bdi)) {
+ 	dentry->d_fsdata = configfs_get(sd);
+ 	sd->s_dentry = dentry;
+-	error = configfs_create(dentry, (attr->ca_mode & S_IALLUGO) | S_IFREG, init_file);
++	error = configfs_create(dentry, (attr->ca_mode & S_IALLUGO) | S_IFREG,
++				configfs_init_file);
+ 	if (error) {
+ 		configfs_put(sd);
+ 		return error;
+diff -puN fs/file_table.c~r-o-bind-mounts-filesystem-helpers-for-custom-struct-files fs/file_table.c
+--- a/fs/file_table.c~r-o-bind-mounts-filesystem-helpers-for-custom-struct-files
++++ a/fs/file_table.c
+@@ -137,6 +137,66 @@ fail:
+ 
+ EXPORT_SYMBOL(get_empty_filp);
+ 
++/**
++ * alloc_file - allocate and initialize a 'struct file'
++ * @mnt: the vfsmount on which the file will reside
++ * @dentry: the dentry representing the new file
++ * @mode: the mode with which the new file will be opened
++ * @fop: the 'struct file_operations' for the new file
++ *
++ * Use this instead of get_empty_filp() to get a new
++ * 'struct file'.  Do so because of the same initialization
++ * pitfalls reasons listed for init_file().  This is a
++ * preferred interface to using init_file().
++ *
++ * If all the callers of init_file() are eliminated, its
++ * code should be moved into this function.
++ */
++struct file *alloc_file(struct vfsmount *mnt, struct dentry *dentry,
++		mode_t mode, const struct file_operations *fop)
++{
++	struct file *file;
++	struct path;
++
++	file = get_empty_filp();
++	if (!file)
++		return NULL;
++
++	init_file(file, mnt, dentry, mode, fop);
++	return file;
++}
++EXPORT_SYMBOL(alloc_file);
++
++/**
++ * init_file - initialize a 'struct file'
++ * @file: the already allocated 'struct file' to initialized
++ * @mnt: the vfsmount on which the file resides
++ * @dentry: the dentry representing this file
++ * @mode: the mode the file is opened with
++ * @fop: the 'struct file_operations' for this file
++ *
++ * Use this instead of setting the members directly.  Doing so
++ * avoids making mistakes like forgetting the mntget() or
++ * forgetting to take a write on the mnt.
++ *
++ * Note: This is a crappy interface.  It is here to make
++ * merging with the existing users of get_empty_filp()
++ * who have complex failure logic easier.  All users
++ * of this should be moving to alloc_file().
++ */
++int init_file(struct file *file, struct vfsmount *mnt, struct dentry *dentry,
++	   mode_t mode, const struct file_operations *fop)
++{
++	int error = 0;
++	file->f_path.dentry = dentry;
++	file->f_path.mnt = mntget(mnt);
++	file->f_mapping = dentry->d_inode->i_mapping;
++	file->f_mode = mode;
++	file->f_op = fop;
++	return error;
++}
++EXPORT_SYMBOL(init_file);
++
+ void fastcall fput(struct file *file)
+ {
+ 	if (atomic_dec_and_test(&file->f_count))
+diff -puN fs/hugetlbfs/inode.c~r-o-bind-mounts-filesystem-helpers-for-custom-struct-files fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~r-o-bind-mounts-filesystem-helpers-for-custom-struct-files
++++ a/fs/hugetlbfs/inode.c
+@@ -933,16 +933,11 @@ struct file *hugetlb_file_setup(const ch
+ 	if (!dentry)
+ 		goto out_shm_unlock;
+ 
+-	error = -ENFILE;
+-	file = get_empty_filp();
+-	if (!file)
+-		goto out_dentry;
+-
+ 	error = -ENOSPC;
+ 	inode = hugetlbfs_get_inode(root->d_sb, current->fsuid,
+ 				current->fsgid, S_IFREG | S_IRWXUGO, 0);
+ 	if (!inode)
+-		goto out_file;
++		goto out_dentry;
+ 
+ 	error = -ENOMEM;
+ 	if (hugetlb_reserve_pages(inode, 0, size >> HPAGE_SHIFT))
+@@ -951,17 +946,18 @@ struct file *hugetlb_file_setup(const ch
+ 	d_instantiate(dentry, inode);
+ 	inode->i_size = size;
+ 	inode->i_nlink = 0;
+-	file->f_path.mnt = mntget(hugetlbfs_vfsmount);
+-	file->f_path.dentry = dentry;
+-	file->f_mapping = inode->i_mapping;
+-	file->f_op = &hugetlbfs_file_operations;
+-	file->f_mode = FMODE_WRITE | FMODE_READ;
++
++	error = -ENFILE;
++	file = alloc_file(hugetlbfs_vfsmount, dentry,
++			FMODE_WRITE | FMODE_READ,
++			&hugetlbfs_file_operations);
++	if (!file)
++		goto out_inode;
++
+ 	return file;
+ 
+ out_inode:
+ 	iput(inode);
+-out_file:
+-	put_filp(file);
+ out_dentry:
+ 	dput(dentry);
+ out_shm_unlock:
+diff -puN include/linux/file.h~r-o-bind-mounts-filesystem-helpers-for-custom-struct-files include/linux/file.h
+--- a/include/linux/file.h~r-o-bind-mounts-filesystem-helpers-for-custom-struct-files
++++ a/include/linux/file.h
+@@ -62,6 +62,15 @@ extern struct kmem_cache *filp_cachep;
+ extern void FASTCALL(__fput(struct file *));
+ extern void FASTCALL(fput(struct file *));
+ 
++struct file_operations;
++struct vfsmount;
++struct dentry;
++extern int init_file(struct file *, struct vfsmount *mnt,
++		struct dentry *dentry, mode_t mode,
++		const struct file_operations *fop);
++extern struct file *alloc_file(struct vfsmount *, struct dentry *dentry,
++		mode_t mode, const struct file_operations *fop);
++
+ static inline void fput_light(struct file *file, int fput_needed)
+ {
+ 	if (unlikely(fput_needed))
+diff -puN ipc/shm.c~r-o-bind-mounts-filesystem-helpers-for-custom-struct-files ipc/shm.c
+--- a/ipc/shm.c~r-o-bind-mounts-filesystem-helpers-for-custom-struct-files
++++ a/ipc/shm.c
+@@ -907,7 +907,7 @@ long do_shmat(int shmid, char __user *sh
+ 		goto out_unlock;
+ 
+ 	path.dentry = dget(shp->shm_file->f_path.dentry);
+-	path.mnt    = mntget(shp->shm_file->f_path.mnt);
++	path.mnt    = shp->shm_file->f_path.mnt;
+ 	shp->shm_nattch++;
+ 	size = i_size_read(path.dentry->d_inode);
+ 	shm_unlock(shp);
+@@ -915,18 +915,16 @@ long do_shmat(int shmid, char __user *sh
+ 	err = -ENOMEM;
+ 	sfd = kzalloc(sizeof(*sfd), GFP_KERNEL);
+ 	if (!sfd)
+-		goto out_put_path;
++		goto out_put_dentry;
+ 
+ 	err = -ENOMEM;
+-	file = get_empty_filp();
++
++	file = alloc_file(path.mnt, path.dentry, f_mode, &shm_file_operations);
+ 	if (!file)
+ 		goto out_free;
+ 
+-	file->f_op = &shm_file_operations;
+ 	file->private_data = sfd;
+-	file->f_path = path;
+ 	file->f_mapping = shp->shm_file->f_mapping;
+-	file->f_mode = f_mode;
+ 	sfd->id = shp->id;
+ 	sfd->ns = get_ipc_ns(ns);
+ 	sfd->file = shp->shm_file;
+@@ -977,9 +975,8 @@ out_unlock:
+ 
+ out_free:
+ 	kfree(sfd);
+-out_put_path:
++out_put_dentry:
+ 	dput(path.dentry);
+-	mntput(path.mnt);
+ 	goto out_nattch;
+ }
+ 
+diff -puN mm/shmem.c~r-o-bind-mounts-filesystem-helpers-for-custom-struct-files mm/shmem.c
+--- a/mm/shmem.c~r-o-bind-mounts-filesystem-helpers-for-custom-struct-files
++++ a/mm/shmem.c
+@@ -2543,11 +2543,8 @@ struct file *shmem_file_setup(char *name
+ 	d_instantiate(dentry, inode);
+ 	inode->i_size = size;
+ 	inode->i_nlink = 0;	/* It is unlinked */
+-	file->f_path.mnt = mntget(shm_mnt);
+-	file->f_path.dentry = dentry;
+-	file->f_mapping = inode->i_mapping;
+-	file->f_op = &shmem_file_operations;
+-	file->f_mode = FMODE_WRITE | FMODE_READ;
++	init_file(file, shm_mnt, dentry, FMODE_WRITE | FMODE_READ,
++			&shmem_file_operations);
+ 	return file;
+ 
+ close_file:
+diff -puN mm/tiny-shmem.c~r-o-bind-mounts-filesystem-helpers-for-custom-struct-files mm/tiny-shmem.c
+--- a/mm/tiny-shmem.c~r-o-bind-mounts-filesystem-helpers-for-custom-struct-files
++++ a/mm/tiny-shmem.c
+@@ -66,24 +66,19 @@ struct file *shmem_file_setup(char *name
+ 	if (!dentry)
+ 		goto put_memory;
+ 
+-	error = -ENFILE;
+-	file = get_empty_filp();
+-	if (!file)
+-		goto put_dentry;
+-
+ 	error = -ENOSPC;
+ 	inode = ramfs_get_inode(root->d_sb, S_IFREG | S_IRWXUGO, 0);
+ 	if (!inode)
+-		goto close_file;
++		goto put_dentry;
+ 
+ 	d_instantiate(dentry, inode);
+-	inode->i_nlink = 0;	/* It is unlinked */
++	error = -ENFILE;
++	file = alloc_file(shm_mnt, dentry, FMODE_WRITE | FMODE_READ,
++			&ramfs_file_operations);
++	if (!file)
++		goto put_dentry;
+ 
+-	file->f_path.mnt = mntget(shm_mnt);
+-	file->f_path.dentry = dentry;
+-	file->f_mapping = inode->i_mapping;
+-	file->f_op = &ramfs_file_operations;
+-	file->f_mode = FMODE_WRITE | FMODE_READ;
++	inode->i_nlink = 0;	/* It is unlinked */
+ 
+ 	/* notify everyone as to the change of file size */
+ 	error = do_truncate(dentry, size, 0, file);
+diff -puN net/socket.c~r-o-bind-mounts-filesystem-helpers-for-custom-struct-files net/socket.c
+--- a/net/socket.c~r-o-bind-mounts-filesystem-helpers-for-custom-struct-files
++++ a/net/socket.c
+@@ -364,26 +364,26 @@ static int sock_alloc_fd(struct file **f
+ 
+ static int sock_attach_fd(struct socket *sock, struct file *file)
+ {
++	struct dentry *dentry;
+ 	struct qstr name = { .name = "" };
+ 
+-	file->f_path.dentry = d_alloc(sock_mnt->mnt_sb->s_root, &name);
+-	if (unlikely(!file->f_path.dentry))
++	dentry = d_alloc(sock_mnt->mnt_sb->s_root, &name);
++	if (unlikely(!dentry))
+ 		return -ENOMEM;
+ 
+-	file->f_path.dentry->d_op = &sockfs_dentry_operations;
++	dentry->d_op = &sockfs_dentry_operations;
+ 	/*
+ 	 * We dont want to push this dentry into global dentry hash table.
+ 	 * We pretend dentry is already hashed, by unsetting DCACHE_UNHASHED
+ 	 * This permits a working /proc/$pid/fd/XXX on sockets
+ 	 */
+-	file->f_path.dentry->d_flags &= ~DCACHE_UNHASHED;
+-	d_instantiate(file->f_path.dentry, SOCK_INODE(sock));
+-	file->f_path.mnt = mntget(sock_mnt);
+-	file->f_mapping = file->f_path.dentry->d_inode->i_mapping;
++	dentry->d_flags &= ~DCACHE_UNHASHED;
++	d_instantiate(dentry, SOCK_INODE(sock));
+ 
+ 	sock->file = file;
+-	file->f_op = SOCK_INODE(sock)->i_fop = &socket_file_ops;
+-	file->f_mode = FMODE_READ | FMODE_WRITE;
++	init_file(file, sock_mnt, dentry, FMODE_READ | FMODE_WRITE,
++		  &socket_file_ops);
++	SOCK_INODE(sock)->i_fop = &socket_file_ops;
+ 	file->f_flags = O_RDWR;
+ 	file->f_pos = 0;
+ 	file->private_data = sock;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from haveblue@us.ibm.com are
 
 origin.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-add-reboot-mechanism.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-cifs.patch
-console-keyboard-events-and-accessibility.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-ide-arm-hack.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd-fixup.patch
-fix-build-breakage-if-sysfs-fix.patch
-qla2xxx-printk-fixes.patch
-advansys-depends-on-virt_to_bus.patch
-sparc-support-for-new-termios.patch
-git-unionfs.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-git-nfs-vs-git-unionfs.patch
-git-watchdog-fixup.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-x86.patch
-revert-x86_64-mm-cpa-einval.patch
-fix-x86_64-mm-sched-clock-share.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
-memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-checkpatch-fixes.patch
-memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-revert-x86-save-registers-in-saved_context-during-suspend-and-hibernation.patch
-pm-qos-infrastructure-and-interface-fix.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2-fix-3.patch
-console-events-and-accessibility-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-stop-using-dma_xxbit_mask.patch
-stop-using-dma_xxbit_mask-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes.patch
-sync_sb_inodes-propagate-errors.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-reiserfs-fix-up-lockdep-warnings-checkpatch-fixes.patch
-reiserfs-use-is_reusable-to-catch-corruption-checkpatch-fixes.patch
-reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes.patch
-reiserfs-remove-first_zero_hint-checkpatch-fixes.patch
-reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes.patch
+r-o-bind-mounts-stub-functions.patch
+r-o-bind-mounts-elevate-write-count-opend-files.patch
+r-o-bind-mounts-elevate-write-count-opend-files-r-o-bind-mounts-fix-bug-in-reiserfs_delete_xattrs.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2.patch
+r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
+r-o-bind-mounts-make-access-use-mnt-check.patch
+r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
+r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
+r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
+r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
+r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime.patch
+r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime-fix.patch
+r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
+r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch
+r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
+r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
+r-o-bind-mounts-do_rmdir-elevate-write-count.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
+r-o-bind-mounts-track-number-of-mount-writers-fix.patch
+r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+task-containersv11-basic-task-container-framework.patch
+task-containersv11-add-tasks-file-interface.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups.patch
 task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
 pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-cpuset-sched_load_balance-flag-fix.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
-fix-cpusets-update_cpumask-checkpatch-fixes.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
-sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
-i-oat-tighten-descriptor-setup-performance-fix.patch
-i-oat-add-completion-callback-for-async_tx-interface-use-fix.patch
-i-oat-add-completion-callback-for-async_tx-interface-use-fix-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+reiser4-fix-null-dereference-in-__mnt_is_readonly-in-ftruncate.patch
 page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
