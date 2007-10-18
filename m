@@ -1,113 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - freezer-introduce-freezer-firendly-waiting-macros-fix.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 01:28:06 -0700
-Message-ID: <200710180828.l9I8S6m0002165@imap1.linux-foundation.org>
+Subject: - pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 01:27:37 -0700
+Message-ID: <200710180827.l9I8RbMM002086@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35054 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33663 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755948AbXJRI2r (ORCPT
+	by vger.kernel.org with ESMTP id S1756487AbXJRI2w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 04:28:47 -0400
+	Thu, 18 Oct 2007 04:28:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, domen.puncer@telargo.com, jfannin@gmail.com, lenb@kernel.org, paulus@samba.org, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     freezer-introduce-freezer-firendly-waiting-macros fix
+     pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     freezer-introduce-freezer-firendly-waiting-macros-fix.patch
+     pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into freezer-introduce-freezer-firendly-waiting-macros.patch
+This patch was dropped because it was folded into pm-rework-struct-platform_suspend_ops.patch
 
 ------------------------------------------------------
-Subject: freezer-introduce-freezer-firendly-waiting-macros fix
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix a bug in freezer-introduce-freezer-firendly-waiting-macros.patch which
-uses a wrong variable name in wait_event_freezable() and
-wait_event_freezable_timeout() (this name is also used in
-wait_event_interruptible() and wait_event_interruptible_timeout() which are
-macros and the names clash).
+WARNING: braces {} are not necessary for single statement blocks
+#85: FILE: arch/powerpc/platforms/52xx/lite5200_pm.c:207:
++	if (lite5200_pm_target_state == PM_SUSPEND_STANDBY) {
++		mpc52xx_pm_finish();
+ 	}
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Cc: Domen Puncer <domen.puncer@telargo.com>
+Cc: Joseph Fannin <jfannin@gmail.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/freezer.h |   18 +++++++++---------
- 1 files changed, 9 insertions(+), 9 deletions(-)
+ arch/powerpc/platforms/52xx/lite5200_pm.c |    3 +--
+ asm-powerpc/mpc52xx.h                     |    0 
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/freezer.h~freezer-introduce-freezer-firendly-waiting-macros-fix include/linux/freezer.h
---- a/include/linux/freezer.h~freezer-introduce-freezer-firendly-waiting-macros-fix
-+++ a/include/linux/freezer.h
-@@ -134,28 +134,28 @@ static inline void set_freezable(void)
+diff -puN arch/powerpc/platforms/52xx/lite5200_pm.c~pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes arch/powerpc/platforms/52xx/lite5200_pm.c
+--- a/arch/powerpc/platforms/52xx/lite5200_pm.c~pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes
++++ a/arch/powerpc/platforms/52xx/lite5200_pm.c
+@@ -204,9 +204,8 @@ static int lite5200_pm_enter(suspend_sta
+ static void lite5200_pm_finish(void)
+ {
+ 	/* deep sleep? let mpc52xx code handle that */
+-	if (lite5200_pm_target_state == PM_SUSPEND_STANDBY) {
++	if (lite5200_pm_target_state == PM_SUSPEND_STANDBY)
+ 		mpc52xx_pm_finish();
+-	}
+ }
  
- #define wait_event_freezable(wq, condition)				\
- ({									\
--	int __ret;							\
-+	int __retval;							\
- 	do {								\
--		__ret = wait_event_interruptible(wq, 			\
-+		__retval = wait_event_interruptible(wq, 		\
- 				(condition) || freezing(current));	\
--		if (__ret && !freezing(current))			\
-+		if (__retval && !freezing(current))			\
- 			break;						\
- 		else if (!(condition))					\
--			__ret = -ERESTARTSYS;				\
-+			__retval = -ERESTARTSYS;			\
- 	} while (try_to_freeze());					\
--	__ret;								\
-+	__retval;							\
- })
- 
- 
- #define wait_event_freezable_timeout(wq, condition, timeout)		\
- ({									\
--	long __ret = timeout;						\
-+	long __retval = timeout;					\
- 	do {								\
--		__ret = wait_event_interruptible_timeout(wq,		\
-+		__retval = wait_event_interruptible_timeout(wq,		\
- 				(condition) || freezing(current),	\
--				__ret); 				\
-+				__retval); 				\
- 	} while (try_to_freeze());					\
--	__ret;								\
-+	__retval;							\
- })
- #else /* !CONFIG_PM_SLEEP */
- static inline int frozen(struct task_struct *p) { return 0; }
+ static struct platform_suspend_ops lite5200_pm_ops = {
+diff -puN arch/powerpc/platforms/52xx/mpc52xx_pm.c~pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes arch/powerpc/platforms/52xx/mpc52xx_pm.c
+diff -puN include/asm-powerpc/mpc52xx.h~pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes include/asm-powerpc/mpc52xx.h
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-make-kernel-power-maincsuspend_enter-static.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
 pm-rework-struct-platform_suspend_ops.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-freezer-document-relationship-with-memory-shrinking.patch
-freezer-do-not-sync-filesystems-from-freeze_processes.patch
-freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
-freezer-introduce-freezer-firendly-waiting-macros.patch
-freezer-introduce-freezer-firendly-waiting-macros-fix.patch
-freezer-do-not-send-signals-to-kernel-threads.patch
-unexport-pm_power_off_prepare.patch
-pm_trace-displays-the-wrong-time-from-the-rtc.patch
-freezer-be-more-verbose.patch
-freezer-measure-freezing-time.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch
+pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
 serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-s2ram-kill-old-debugging-junk.patch
-hibernation-arbitrary-boot-kernel-support-generic-code-rev-2.patch
-hibernation-arbitrary-boot-kernel-support-on-x86_64-rev-2.patch
-hibernation-pass-cr3-in-the-image-header-on-x86_64-rev-2.patch
-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
-hibernation-check-if-acpi-is-enabled-during-restore-in-the-right-place.patch
-hibernation-enter-platform-hibernation-state-in-a-consistent-way-rev-4.patch
-hibernation-enter-platform-hibernation-state-in-a-consistent-way-rev-4-fix.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+powerpc-lock-bitops-fix.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+i-oat-tighten-descriptor-setup-performance-fix.patch
+i-oat-add-completion-callback-for-async_tx-interface-use-fix.patch
+i-oat-add-completion-callback-for-async_tx-interface-use-fix-fix.patch
