@@ -1,118 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: - documentation-delete-unreferenced-xterm-linuxxpm-file.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:04:28 -0700
-Message-ID: <200710180704.l9I74SAV031553@imap1.linux-foundation.org>
+Subject: - i2o-fix-defined-but-not-used-build-warnings.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:59:57 -0700
+Message-ID: <200710180659.l9I6xv33031035@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48914 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42164 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763007AbXJRHPq (ORCPT
+	by vger.kernel.org with ESMTP id S1763028AbXJRHPu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:15:46 -0400
+	Thu, 18 Oct 2007 03:15:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, mm-commits@vger.kernel.org
+To: satyam@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Documentation: delete unreferenced xterm-linux.xpm file
+     I2O: Fix "defined but not used" build warnings
 has been removed from the -mm tree.  Its filename was
-     documentation-delete-unreferenced-xterm-linuxxpm-file.patch
+     i2o-fix-defined-but-not-used-build-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Documentation: delete unreferenced xterm-linux.xpm file
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: I2O: Fix "defined but not used" build warnings
+From: Satyam Sharma <satyam@infradead.org>
 
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+drivers/message/i2o/exec-osm.c:539: warning: `i2o_exec_lct_notify' defined but not used
+
+comes when CONFIG_I2O_LCT_NOTIFY_ON_CHANGES=n, because its only callsite
+is #ifdef'ed as such. So let's #ifdef the function definition also. Also
+move the definition to before the callsite, to get rid of forward prototype.
+
+[akpm@linux-foundation.org: fix warnings]
+Signed-off-by: Satyam Sharma <satyam@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/00-INDEX        |    2 -
- Documentation/xterm-linux.xpm |   61 --------------------------------
- 2 files changed, 63 deletions(-)
+ drivers/message/i2o/exec-osm.c |   94 +++++++++++++++----------------
+ 1 file changed, 47 insertions(+), 47 deletions(-)
 
-diff -puN Documentation/00-INDEX~documentation-delete-unreferenced-xterm-linuxxpm-file Documentation/00-INDEX
---- a/Documentation/00-INDEX~documentation-delete-unreferenced-xterm-linuxxpm-file
-+++ a/Documentation/00-INDEX
-@@ -414,7 +414,5 @@ watchdog/
- 	- how to auto-reboot Linux if it has "fallen and can't get up". ;-)
- x86_64/
- 	- directory with info on Linux support for AMD x86-64 (Hammer) machines.
--xterm-linux.xpm
--	- XPM image of penguin logo (see logo.txt) sitting on an xterm.
- zorro.txt
- 	- info on writing drivers for Zorro bus devices found on Amigas.
-diff -puN Documentation/xterm-linux.xpm~documentation-delete-unreferenced-xterm-linuxxpm-file /dev/null
---- a/Documentation/xterm-linux.xpm
-+++ /dev/null
-@@ -1,61 +0,0 @@
--/* XPM */
--/*****************************************************************************/
--/**       This pixmap was made by Torsten Poulin - 1996 - torsten@diku.dk   **/
--/**       It was made by combining xterm-blank.xpm with                     **/
--/**       the wonderfully cute Linux penguin mascot by Larry Ewing.         **/
--/**       I had to change Larry's penguin a little to make it fit.          **/
--/**       xterm-blank.xpm contained the following comment:                  **/
--/**       This pixmap is kindly offered by Ion Cionca - 1992 -              **/
--/**       Swiss Federal Institute of Technology                             **/
--/**       Central Computing Service                                         **/
--/*****************************************************************************/
--static char * image_name [] = {
--/**/
--"64 38 8 1",
--/**/
--" 	s mask	c none",
--".	c gray70",
--"X	c gray85",
--"o	c gray50",
--"O	c yellow",
--"+	c darkolivegreen",
--"@	c white",
--"#	c black",
--"              ######                                            ",
--"             ########                                           ",
--"            ##########    ...........................           ",
--"            ###########  .XXXXXXXXXXXXXXXXXXXXXXXXXXX.          ",
--"            ########### .XXXXXXXXXXXXXXXXXXXXXXXXXXXXXoo        ",
--"            #@@@#@@@### .XX+++++++++++++++++++++++XXXXoo        ",
--"            #@#@#@#@### .XX++++++++++++++++++++++++XXXooo       ",
--"            #@#####@### .XX++@@+@++@+@@@@++@+++++++XXXooo       ",
--"            ###OOO######.XX++++++++++++++++++++++++XXXoooo      ",
--"            ##OOOOOO####.XX++@@@@+@@+@@@+++++++++++XXXoooo      ",
--"            #O#OOO#O####.XX++++++++++++++++++++++++XXXooooo     ",
--"            ##O###OO####.XX++@@@@@@@@@@+@@@@@++++++XXXooooo     ",
--"            ###OOOO@#####XX++++++++++++++++++++++++XXXooooo     ",
--"           ##@###@@@@####XX++@@@+@@@@+@@++@@@++++++XXXooooo     ",
--"           #@@@@@@@@@@####X++++++++++++++++++++++++XXXooooo     ",
--"          ##@@@@@@@@@@#####++@+++++++++++++++++++++XXXooooo     ",
--"         ###@@@@@@@@@@######+++++++++++++++++++++++XXXooooo     ",
--"        ####@@@@@@@@@@@#####+@@@@+@+@@@+@++++++++++XXXooooo     ",
--"        ###@@@@@@@@@@@@######++++++++++++++++++++++XXXooooo     ",
--"        ##@@@@@@@@@@@@@@#####@+@@@@++++++++++++++++XXXooooo     ",
--"       ###@@@@@@@@@@@@@@######++++++++++++++++++++XXXXoooo      ",
--"       ###@@@@@@@@@@@@@@######XXXXXXXXXXXXXXXXXXXXXXXXooo       ",
--"      ###@@@@@@@@@@@@@@@######XXXXXXXXXXXXXXXXXXXXXXXooo        ",
--"      ###@@@@@@@@@@@@@@@@#####ooooooooooooooooooooooo...oo      ",
--"      ###@@@@@@@@@@@@@@@######.........................ooo      ",
--"     #OO##@@@@@@@@@@@@@#######oooooooooooooooooooooooooooo      ",
--"     #OOO##@@@@@@@@@@@#OO####O#XXXXXXXXXXXXXXXXXXXXXXXoooo.. .. ",
--"  ###OOOOO##@@@@@@@@@@#OOO#OOO#XXXXXXXXXXXXXX#######XXoooo  .  .",
--" #OOOOOOOO###@@@@@@@@@#OOOOOOO#ooooooooooooooooooooXXXooo     . ",
--" #OOOOOOOOO###@@@@@@@@@#OOOOOOO##XXXXXXXXXXXXXXXXXooooo      .  ",
--"  #OOOOOOOOO#@@@@@@@@###OOOOOOOOO#XXXXXXXXXXXXXXXoo      oooooo ",
--"  #OOOOOOOOO#@@@@@@@####OOOOOOOO#@@@@@@@@@@@XXXXXoo   ooooo...o ",
--" #OOOOOOOOOOO###########OOOOOO##XXXXXXXXXXXXXXXXoo   ooXXXoo..o ",
--"  ##OOOOOOOOO###########OOOO##@@@@@@@@@@@@@XXXXoo    oXXXXX..o  ",
--"     ###OOOO###    oXX##OOO#XXXXXXXXXXXXXXXXXXoo     o.....oo   ",
--"         ####      oooo####oooooooooooooooooooo      ooooooo    ",
--"                                                                ",
--"                                                                "};
+diff -puN drivers/message/i2o/exec-osm.c~i2o-fix-defined-but-not-used-build-warnings drivers/message/i2o/exec-osm.c
+--- a/drivers/message/i2o/exec-osm.c~i2o-fix-defined-but-not-used-build-warnings
++++ a/drivers/message/i2o/exec-osm.c
+@@ -41,8 +41,6 @@
+ 
+ struct i2o_driver i2o_exec_driver;
+ 
+-static int i2o_exec_lct_notify(struct i2o_controller *c, u32 change_ind);
+-
+ /* global wait list for POST WAIT */
+ static LIST_HEAD(i2o_exec_wait_list);
+ 
+@@ -369,6 +367,53 @@ static int i2o_exec_remove(struct device
+ 	return 0;
+ };
+ 
++#ifdef CONFIG_I2O_LCT_NOTIFY_ON_CHANGES
++/**
++ *	i2o_exec_lct_notify - Send a asynchronus LCT NOTIFY request
++ *	@c: I2O controller to which the request should be send
++ *	@change_ind: change indicator
++ *
++ *	This function sends a LCT NOTIFY request to the I2O controller with
++ *	the change indicator change_ind. If the change_ind == 0 the controller
++ *	replies immediately after the request. If change_ind > 0 the reply is
++ *	send after change indicator of the LCT is > change_ind.
++ */
++static int i2o_exec_lct_notify(struct i2o_controller *c, u32 change_ind)
++{
++	i2o_status_block *sb = c->status_block.virt;
++	struct device *dev;
++	struct i2o_message *msg;
++
++	mutex_lock(&c->lct_lock);
++
++	dev = &c->pdev->dev;
++
++	if (i2o_dma_realloc
++	    (dev, &c->dlct, le32_to_cpu(sb->expected_lct_size), GFP_KERNEL))
++		return -ENOMEM;
++
++	msg = i2o_msg_get_wait(c, I2O_TIMEOUT_MESSAGE_GET);
++	if (IS_ERR(msg))
++		return PTR_ERR(msg);
++
++	msg->u.head[0] = cpu_to_le32(EIGHT_WORD_MSG_SIZE | SGL_OFFSET_6);
++	msg->u.head[1] = cpu_to_le32(I2O_CMD_LCT_NOTIFY << 24 | HOST_TID << 12 |
++				     ADAPTER_TID);
++	msg->u.s.icntxt = cpu_to_le32(i2o_exec_driver.context);
++	msg->u.s.tcntxt = cpu_to_le32(0x00000000);
++	msg->body[0] = cpu_to_le32(0xffffffff);
++	msg->body[1] = cpu_to_le32(change_ind);
++	msg->body[2] = cpu_to_le32(0xd0000000 | c->dlct.len);
++	msg->body[3] = cpu_to_le32(c->dlct.phys);
++
++	i2o_msg_post(c, msg);
++
++	mutex_unlock(&c->lct_lock);
++
++	return 0;
++}
++#endif
++
+ /**
+  *	i2o_exec_lct_modified - Called on LCT NOTIFY reply
+  *	@_work: work struct for a specific controller
+@@ -525,51 +570,6 @@ int i2o_exec_lct_get(struct i2o_controll
+ 	return rc;
+ }
+ 
+-/**
+- *	i2o_exec_lct_notify - Send a asynchronus LCT NOTIFY request
+- *	@c: I2O controller to which the request should be send
+- *	@change_ind: change indicator
+- *
+- *	This function sends a LCT NOTIFY request to the I2O controller with
+- *	the change indicator change_ind. If the change_ind == 0 the controller
+- *	replies immediately after the request. If change_ind > 0 the reply is
+- *	send after change indicator of the LCT is > change_ind.
+- */
+-static int i2o_exec_lct_notify(struct i2o_controller *c, u32 change_ind)
+-{
+-	i2o_status_block *sb = c->status_block.virt;
+-	struct device *dev;
+-	struct i2o_message *msg;
+-
+-	mutex_lock(&c->lct_lock);
+-
+-	dev = &c->pdev->dev;
+-
+-	if (i2o_dma_realloc
+-	    (dev, &c->dlct, le32_to_cpu(sb->expected_lct_size), GFP_KERNEL))
+-		return -ENOMEM;
+-
+-	msg = i2o_msg_get_wait(c, I2O_TIMEOUT_MESSAGE_GET);
+-	if (IS_ERR(msg))
+-		return PTR_ERR(msg);
+-
+-	msg->u.head[0] = cpu_to_le32(EIGHT_WORD_MSG_SIZE | SGL_OFFSET_6);
+-	msg->u.head[1] = cpu_to_le32(I2O_CMD_LCT_NOTIFY << 24 | HOST_TID << 12 |
+-				     ADAPTER_TID);
+-	msg->u.s.icntxt = cpu_to_le32(i2o_exec_driver.context);
+-	msg->u.s.tcntxt = cpu_to_le32(0x00000000);
+-	msg->body[0] = cpu_to_le32(0xffffffff);
+-	msg->body[1] = cpu_to_le32(change_ind);
+-	msg->body[2] = cpu_to_le32(0xd0000000 | c->dlct.len);
+-	msg->body[3] = cpu_to_le32(c->dlct.phys);
+-
+-	i2o_msg_post(c, msg);
+-
+-	mutex_unlock(&c->lct_lock);
+-
+-	return 0;
+-};
+-
+ /* Exec OSM driver struct */
+ struct i2o_driver i2o_exec_driver = {
+ 	.name = OSM_NAME,
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from satyam@infradead.org are
 
 origin.patch
-git-kvm.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+git-watchdog.patch
+unify-dma_bit_mask-definitions-v31.patch
+redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
+x86-msr-driver-misc-cpuinit-annotations.patch
