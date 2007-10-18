@@ -1,94 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - codingstyle-relax-the-80-cole-rule.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:57:20 -0700
-Message-ID: <200710180657.l9I6vKSQ030807@imap1.linux-foundation.org>
+Subject: - limit-minixfs-printks-on-corrupted-dir-i_size.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:56:23 -0700
+Message-ID: <200710180656.l9I6uNPL030696@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57816 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59073 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755503AbXJRHVG (ORCPT
+	by vger.kernel.org with ESMTP id S1755851AbXJRHVX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:21:06 -0400
+	Thu, 18 Oct 2007 03:21:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: sandeen@redhat.com, 7eggert@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CodingStyle: relax the 80-cole rule
+     limit minixfs printks on corrupted dir i_size
 has been removed from the -mm tree.  Its filename was
-     codingstyle-relax-the-80-cole-rule.patch
+     limit-minixfs-printks-on-corrupted-dir-i_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: CodingStyle: relax the 80-cole rule
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: limit minixfs printks on corrupted dir i_size
+From: Eric Sandeen <sandeen@redhat.com>
 
-I would suggest this change to make CodingStyle properly reflect the style
-used by the kernel, rather than the current wording which is wishful
-thinking and misleading, and comes from the same school of thought that
-gets off on prescriptive grammar, latin and comp.std.c
+This attempts to address CVE-2006-6058
+http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2006-6058
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+first reported at http://projects.info-pull.com/mokb/MOKB-17-11-2006.html
+
+Essentially a corrupted minix dir inode reporting a very large
+i_size will loop for a very long time in minix_readdir, minix_find_entry,
+etc, because on EIO they just move on to try the next page.  This is
+under the BKL, printk-storming as well.  This can lock up the machine
+for a very long time.  Simply ratelimiting the printks gets things back
+under control.  Make the message a bit more informative while we're here.
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Cc: Bodo Eggert <7eggert@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/CodingStyle |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ fs/minix/itree_v1.c |    9 +++++++--
+ fs/minix/itree_v2.c |    9 +++++++--
+ 2 files changed, 14 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/CodingStyle~codingstyle-relax-the-80-cole-rule Documentation/CodingStyle
---- a/Documentation/CodingStyle~codingstyle-relax-the-80-cole-rule
-+++ a/Documentation/CodingStyle
-@@ -77,12 +77,15 @@ Get a decent editor and don't leave whit
- Coding style is all about readability and maintainability using commonly
- available tools.
- 
--The limit on the length of lines is 80 columns and this is a hard limit.
-+The limit on the length of lines is 80 columns and this is a strongly
-+preferred limit.
- 
- Statements longer than 80 columns will be broken into sensible chunks.
- Descendants are always substantially shorter than the parent and are placed
- substantially to the right. The same applies to function headers with a long
--argument list. Long strings are as well broken into shorter strings.
-+argument list. Long strings are as well broken into shorter strings. The
-+only exception to this is where exceeding 80 columns significantly increases
-+readability and does not hide information.
- 
- void fun(int a, int b, int c)
+diff -puN fs/minix/itree_v1.c~limit-minixfs-printks-on-corrupted-dir-i_size fs/minix/itree_v1.c
+--- a/fs/minix/itree_v1.c~limit-minixfs-printks-on-corrupted-dir-i_size
++++ a/fs/minix/itree_v1.c
+@@ -23,11 +23,16 @@ static inline block_t *i_data(struct ino
+ static int block_to_path(struct inode * inode, long block, int offsets[DEPTH])
  {
+ 	int n = 0;
++	char b[BDEVNAME_SIZE];
+ 
+ 	if (block < 0) {
+-		printk("minix_bmap: block<0\n");
++		printk("MINIX-fs: block_to_path: block %ld < 0 on dev %s\n",
++			block, bdevname(inode->i_sb->s_bdev, b));
+ 	} else if (block >= (minix_sb(inode->i_sb)->s_max_size/BLOCK_SIZE)) {
+-		printk("minix_bmap: block>big\n");
++		if (printk_ratelimit())
++			printk("MINIX-fs: block_to_path: "
++			       "block %ld too big on dev %s\n",
++				block, bdevname(inode->i_sb->s_bdev, b));
+ 	} else if (block < 7) {
+ 		offsets[n++] = block;
+ 	} else if ((block -= 7) < 512) {
+diff -puN fs/minix/itree_v2.c~limit-minixfs-printks-on-corrupted-dir-i_size fs/minix/itree_v2.c
+--- a/fs/minix/itree_v2.c~limit-minixfs-printks-on-corrupted-dir-i_size
++++ a/fs/minix/itree_v2.c
+@@ -23,12 +23,17 @@ static inline block_t *i_data(struct ino
+ static int block_to_path(struct inode * inode, long block, int offsets[DEPTH])
+ {
+ 	int n = 0;
++	char b[BDEVNAME_SIZE];
+ 	struct super_block *sb = inode->i_sb;
+ 
+ 	if (block < 0) {
+-		printk("minix_bmap: block<0\n");
++		printk("MINIX-fs: block_to_path: block %ld < 0 on dev %s\n",
++			block, bdevname(sb->s_bdev, b));
+ 	} else if (block >= (minix_sb(inode->i_sb)->s_max_size/sb->s_blocksize)) {
+-		printk("minix_bmap: block>big\n");
++		if (printk_ratelimit())
++			printk("MINIX-fs: block_to_path: "
++			       "block %ld too big on dev %s\n",
++				block, bdevname(sb->s_bdev, b));
+ 	} else if (block < 7) {
+ 		offsets[n++] = block;
+ 	} else if ((block -= 7) < 256) {
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
 origin.patch
-tty_ioctl-fix-the-baud_table-check-in-encode_baud_rate.patch
-git-libata-all.patch
-pata_cs5536-mwdma-fix.patch
-libata-sff-correct-use-of-check_status.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-git-scsi-misc.patch
-initio-fix-conflict-when-loading-driver.patch
-isd200-sort-out-usb-ide-dependancy-mess.patch
-sysctl-remove-broken-cdrom-binary-sysctls.patch
-mxser-remove-commented-crap.patch
-char-cyclades-remove-bottom-half-processing.patch
-usb_serial-stop-passing-null-to-functions-that-expect-data.patch
-ark3116-update-termios-handling.patch
-usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch
-ch341-fix-termios-handling.patch
-digi_acceleport-fix-termios-and-also-readability-a-bit.patch
-empeg-clean-up-and-handle-speeds.patch
-ir_usb-termios-handling.patch
-keyspan-termios-tidy.patch
-kobil_sct-termios-encoding-fixups.patch
-option-termios-handling.patch
-sierra-termios.patch
-usb-serial-handle-null-termios-methods-as-no-hardware-changing-support.patch
-whiteheat-clean-up-cant-happen-checks-and-encode-baud.patch
-cp2101-convert-to-new-termios.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-io_edgeport-cleanups-and-tty-speed-reporting.patch
-tty-kill-tty_flipbuf_size.patch
+ext4-remove-ifdef-config_ext4_index.patch
+ext3-fix-setup_new_group_blocks-locking.patch
