@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-dont-use-bug-when-panicking.patch added to -mm tree
-Date: Thu, 18 Oct 2007 14:04:06 -0700
-Message-ID: <200710182104.l9IL46OI031020@imap1.linux-foundation.org>
+Subject: + reiserfs-fix-memset-byte-count-during-resize.patch added to -mm tree
+Date: Thu, 18 Oct 2007 14:04:11 -0700
+Message-ID: <200710182104.l9IL4BKs031026@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55138 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55548 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756636AbXJRVEK (ORCPT
+	by vger.kernel.org with ESMTP id S1758246AbXJRVEP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 17:04:10 -0400
+	Thu, 18 Oct 2007 17:04:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jeffm@suse.com
 
 
 The patch titled
-     reiserfs: dont use BUG when panicking
+     reiserfs: fix memset byte count during resize
 has been added to the -mm tree.  Its filename is
-     reiserfs-dont-use-bug-when-panicking.patch
+     reiserfs-fix-memset-byte-count-during-resize.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,42 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reiserfs: dont use BUG when panicking
+Subject: reiserfs: fix memset byte count during resize
 From: Jeff Mahoney <jeffm@suse.com>
 
-Change reiserfs_panic() to use panic() initially instead of BUG().  Using
-BUG() ignores the configurable panic behavior, so systems that should be
-failing and rebooting are left hanging.  This causes problems in
-active/standby HA scenarios.
+Correct the memset in reiserfs_resize to clear the memory allocated for the
+new bitmap info structs.  Previously, it would clear the memory used by the
+old size.  Depending on the contents of memory, this could cause incorrect
+caching behavior for bitmap blocks in the newly allocated area.
 
 Signed-off-by: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/prints.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ fs/reiserfs/resize.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/reiserfs/prints.c~reiserfs-dont-use-bug-when-panicking fs/reiserfs/prints.c
---- a/fs/reiserfs/prints.c~reiserfs-dont-use-bug-when-panicking
-+++ a/fs/reiserfs/prints.c
-@@ -356,13 +356,11 @@ extern struct tree_balance *cur_tb;
- void reiserfs_panic(struct super_block *sb, const char *fmt, ...)
- {
- 	do_reiserfs_warning(fmt);
--	printk(KERN_EMERG "REISERFS: panic (device %s): %s\n",
--	       reiserfs_bdevname(sb), error_buf);
--	BUG();
+diff -puN fs/reiserfs/resize.c~reiserfs-fix-memset-byte-count-during-resize fs/reiserfs/resize.c
+--- a/fs/reiserfs/resize.c~reiserfs-fix-memset-byte-count-during-resize
++++ a/fs/reiserfs/resize.c
+@@ -119,7 +119,7 @@ int reiserfs_resize(struct super_block *
+ 			return -ENOMEM;
+ 		}
+ 		memset(bitmap, 0,
+-		       sizeof(struct reiserfs_bitmap_info) * SB_BMAP_NR(s));
++		       sizeof(struct reiserfs_bitmap_info) * bmap_nr_new);
+ 		for (i = 0; i < bmap_nr; i++)
+ 			bitmap[i] = old_bitmap[i];
  
--	/* this is not actually called, but makes reiserfs_panic() "noreturn" */
--	panic("REISERFS: panic (device %s): %s\n",
--	      reiserfs_bdevname(sb), error_buf);
-+	dump_stack();
-+
-+	panic(KERN_EMERG "REISERFS: panic (device %s): %s\n",
-+	       reiserfs_bdevname(sb), error_buf);
- }
- 
- void reiserfs_abort(struct super_block *sb, int errno, const char *fmt, ...)
 _
 
 Patches currently in -mm which might be from jeffm@suse.com are
