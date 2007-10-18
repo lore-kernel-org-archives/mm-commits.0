@@ -1,171 +1,195 @@
 From: akpm@linux-foundation.org
-Subject: - oom-compare-cpuset-mems_allowed-instead-of-exclusive.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:51:52 -0700
-Message-ID: <200710180651.l9I6pqqg030223@imap1.linux-foundation.org>
+Subject: - fs-reiserfs-cleanups.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:52:25 -0700
+Message-ID: <200710180652.l9I6qPUl030283@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44394 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53026 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761334AbXJRHpg (ORCPT
+	by vger.kernel.org with ESMTP id S1761408AbXJRHps (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:45:36 -0400
+	Thu, 18 Oct 2007 03:45:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, andrea@suse.de, clameter@sgi.com, mm-commits@vger.kernel.org
+To: bunk@stusta.de, npiggin@suse.de, vs@namesys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom: compare cpuset mems_allowed instead of exclusive  ancestors
+     fs/reiserfs/: cleanups
 has been removed from the -mm tree.  Its filename was
-     oom-compare-cpuset-mems_allowed-instead-of-exclusive.patch
+     fs-reiserfs-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: oom: compare cpuset mems_allowed instead of exclusive  ancestors
-From: David Rientjes <rientjes@google.com>
+Subject: fs/reiserfs/: cleanups
+From: Adrian Bunk <bunk@stusta.de>
 
-Instead of testing for overlap in the memory nodes of the the nearest
-exclusive ancestor of both current and the candidate task, it is better to
-simply test for intersection between the task's mems_allowed in their task
-descriptors.  This does not require taking callback_mutex since it is only
-used as a hint in the badness scoring.
+- remove the following no longer used functions:
+  - bitmap.c: reiserfs_claim_blocks_to_be_allocated()
+  - bitmap.c: reiserfs_release_claimed_blocks()
+  - bitmap.c: reiserfs_can_fit_pages()
 
-Tasks that do not have an intersection in their mems_allowed with the current
-task are not explicitly restricted from being OOM killed because it is quite
-possible that the candidate task has allocated memory there before and has
-since changed its mems_allowed.
+- make the following functions static:
+  - inode.c: restart_transaction()
+  - journal.c: reiserfs_async_progress_wait()
 
-Cc: Andrea Arcangeli <andrea@suse.de>
-Acked-by: Christoph Lameter <clameter@sgi.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Acked-by: Vladimir V. Saveliev <vs@namesys.com>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpuset.h |    6 +++--
- kernel/cpuset.c        |   41 +++++++++------------------------------
- mm/oom_kill.c          |    2 -
- 3 files changed, 15 insertions(+), 34 deletions(-)
+ fs/reiserfs/bitmap.c        |   57 ----------------------------------
+ fs/reiserfs/inode.c         |    4 +-
+ fs/reiserfs/journal.c       |    3 +
+ include/linux/reiserfs_fs.h |    7 ----
+ 4 files changed, 4 insertions(+), 67 deletions(-)
 
-diff -puN include/linux/cpuset.h~oom-compare-cpuset-mems_allowed-instead-of-exclusive include/linux/cpuset.h
---- a/include/linux/cpuset.h~oom-compare-cpuset-mems_allowed-instead-of-exclusive
-+++ a/include/linux/cpuset.h
-@@ -45,7 +45,8 @@ static int inline cpuset_zone_allowed_ha
- 		__cpuset_zone_allowed_hardwall(z, gfp_mask);
+diff -puN fs/reiserfs/bitmap.c~fs-reiserfs-cleanups fs/reiserfs/bitmap.c
+--- a/fs/reiserfs/bitmap.c~fs-reiserfs-cleanups
++++ a/fs/reiserfs/bitmap.c
+@@ -1201,63 +1201,6 @@ int reiserfs_allocate_blocknrs(reiserfs_
+ 	return ret;
  }
  
--extern int cpuset_excl_nodes_overlap(const struct task_struct *p);
-+extern int cpuset_mems_allowed_intersects(const struct task_struct *tsk1,
-+					  const struct task_struct *tsk2);
- 
- #define cpuset_memory_pressure_bump() 				\
- 	do {							\
-@@ -113,7 +114,8 @@ static inline int cpuset_zone_allowed_ha
- 	return 1;
+-/* These 2 functions are here to provide blocks reservation to the rest of kernel */
+-/* Reserve @blocks amount of blocks in fs pointed by @sb. Caller must make sure
+-   there are actually this much blocks on the FS available */
+-void reiserfs_claim_blocks_to_be_allocated(struct super_block *sb,	/* super block of
+-									   filesystem where
+-									   blocks should be
+-									   reserved */
+-					   int blocks	/* How much to reserve */
+-    )
+-{
+-
+-	/* Fast case, if reservation is zero - exit immediately. */
+-	if (!blocks)
+-		return;
+-
+-	spin_lock(&REISERFS_SB(sb)->bitmap_lock);
+-	REISERFS_SB(sb)->reserved_blocks += blocks;
+-	spin_unlock(&REISERFS_SB(sb)->bitmap_lock);
+-}
+-
+-/* Unreserve @blocks amount of blocks in fs pointed by @sb */
+-void reiserfs_release_claimed_blocks(struct super_block *sb,	/* super block of
+-								   filesystem where
+-								   blocks should be
+-								   reserved */
+-				     int blocks	/* How much to unreserve */
+-    )
+-{
+-
+-	/* Fast case, if unreservation is zero - exit immediately. */
+-	if (!blocks)
+-		return;
+-
+-	spin_lock(&REISERFS_SB(sb)->bitmap_lock);
+-	REISERFS_SB(sb)->reserved_blocks -= blocks;
+-	spin_unlock(&REISERFS_SB(sb)->bitmap_lock);
+-	RFALSE(REISERFS_SB(sb)->reserved_blocks < 0,
+-	       "amount of blocks reserved became zero?");
+-}
+-
+-/* This function estimates how much pages we will be able to write to FS
+-   used for reiserfs_file_write() purposes for now. */
+-int reiserfs_can_fit_pages(struct super_block *sb	/* superblock of filesystem
+-							   to estimate space */ )
+-{
+-	int space;
+-
+-	spin_lock(&REISERFS_SB(sb)->bitmap_lock);
+-	space =
+-	    (SB_FREE_BLOCKS(sb) -
+-	     REISERFS_SB(sb)->reserved_blocks) >> (PAGE_CACHE_SHIFT -
+-						   sb->s_blocksize_bits);
+-	spin_unlock(&REISERFS_SB(sb)->bitmap_lock);
+-
+-	return space > 0 ? space : 0;
+-}
+-
+ void reiserfs_cache_bitmap_metadata(struct super_block *sb,
+                                     struct buffer_head *bh,
+                                     struct reiserfs_bitmap_info *info)
+diff -puN fs/reiserfs/inode.c~fs-reiserfs-cleanups fs/reiserfs/inode.c
+--- a/fs/reiserfs/inode.c~fs-reiserfs-cleanups
++++ a/fs/reiserfs/inode.c
+@@ -208,8 +208,8 @@ static int file_capable(struct inode *in
+ 	return 0;
  }
  
--static inline int cpuset_excl_nodes_overlap(const struct task_struct *p)
-+static inline int cpuset_mems_allowed_intersects(const struct task_struct *tsk1,
-+						 const struct task_struct *tsk2)
+-/*static*/ int restart_transaction(struct reiserfs_transaction_handle *th,
+-				   struct inode *inode, struct treepath *path)
++static int restart_transaction(struct reiserfs_transaction_handle *th,
++			       struct inode *inode, struct treepath *path)
  {
- 	return 1;
+ 	struct super_block *s = th->t_super;
+ 	int len = th->t_blocks_allocated;
+diff -puN fs/reiserfs/journal.c~fs-reiserfs-cleanups fs/reiserfs/journal.c
+--- a/fs/reiserfs/journal.c~fs-reiserfs-cleanups
++++ a/fs/reiserfs/journal.c
+@@ -966,7 +966,8 @@ static int flush_older_commits(struct su
+ 	}
+ 	return 0;
  }
-diff -puN kernel/cpuset.c~oom-compare-cpuset-mems_allowed-instead-of-exclusive kernel/cpuset.c
---- a/kernel/cpuset.c~oom-compare-cpuset-mems_allowed-instead-of-exclusive
-+++ a/kernel/cpuset.c
-@@ -2506,41 +2506,20 @@ int cpuset_mem_spread_node(void)
- EXPORT_SYMBOL_GPL(cpuset_mem_spread_node);
- 
- /**
-- * cpuset_excl_nodes_overlap - Do we overlap @p's mem_exclusive ancestors?
-- * @p: pointer to task_struct of some other task.
-+ * cpuset_mems_allowed_intersects - Does @tsk1's mems_allowed intersect @tsk2's?
-+ * @tsk1: pointer to task_struct of some task.
-+ * @tsk2: pointer to task_struct of some other task.
-  *
-- * Description: Return true if the nearest mem_exclusive ancestor
-- * cpusets of tasks @p and current overlap.  Used by oom killer to
-- * determine if task @p's memory usage might impact the memory
-- * available to the current task.
-- *
-- * Call while holding callback_mutex.
-+ * Description: Return true if @tsk1's mems_allowed intersects the
-+ * mems_allowed of @tsk2.  Used by the OOM killer to determine if
-+ * one of the task's memory usage might impact the memory available
-+ * to the other.
-  **/
- 
--int cpuset_excl_nodes_overlap(const struct task_struct *p)
-+int cpuset_mems_allowed_intersects(const struct task_struct *tsk1,
-+				   const struct task_struct *tsk2)
+-int reiserfs_async_progress_wait(struct super_block *s)
++
++static int reiserfs_async_progress_wait(struct super_block *s)
  {
--	const struct cpuset *cs1, *cs2;	/* my and p's cpuset ancestors */
--	int overlap = 1;		/* do cpusets overlap? */
--
--	task_lock(current);
--	if (current->flags & PF_EXITING) {
--		task_unlock(current);
--		goto done;
--	}
--	cs1 = nearest_exclusive_ancestor(current->cpuset);
--	task_unlock(current);
--
--	task_lock((struct task_struct *)p);
--	if (p->flags & PF_EXITING) {
--		task_unlock((struct task_struct *)p);
--		goto done;
--	}
--	cs2 = nearest_exclusive_ancestor(p->cpuset);
--	task_unlock((struct task_struct *)p);
--
--	overlap = nodes_intersects(cs1->mems_allowed, cs2->mems_allowed);
--done:
--	return overlap;
-+	return nodes_intersects(tsk1->mems_allowed, tsk2->mems_allowed);
+ 	DEFINE_WAIT(wait);
+ 	struct reiserfs_journal *j = SB_JOURNAL(s);
+diff -puN include/linux/reiserfs_fs.h~fs-reiserfs-cleanups include/linux/reiserfs_fs.h
+--- a/include/linux/reiserfs_fs.h~fs-reiserfs-cleanups
++++ a/include/linux/reiserfs_fs.h
+@@ -1703,8 +1703,6 @@ static inline int reiserfs_transaction_f
+ 	return th->t_blocks_allocated - th->t_blocks_logged;
  }
  
- /*
-diff -puN mm/oom_kill.c~oom-compare-cpuset-mems_allowed-instead-of-exclusive mm/oom_kill.c
---- a/mm/oom_kill.c~oom-compare-cpuset-mems_allowed-instead-of-exclusive
-+++ a/mm/oom_kill.c
-@@ -143,7 +143,7 @@ unsigned long badness(struct task_struct
- 	 * because p may have allocated or otherwise mapped memory on
- 	 * this node before. However it will be less likely.
- 	 */
--	if (!cpuset_excl_nodes_overlap(p))
-+	if (!cpuset_mems_allowed_intersects(current, p))
- 		points /= 8;
+-int reiserfs_async_progress_wait(struct super_block *s);
+-
+ struct reiserfs_transaction_handle *reiserfs_persistent_transaction(struct
+ 								    super_block
+ 								    *,
+@@ -1859,8 +1857,6 @@ void padd_item(char *item, int total_len
+ #define GET_BLOCK_NO_IMUX     8	/* i_mutex is not held, don't preallocate */
+ #define GET_BLOCK_NO_DANGLE   16	/* don't leave any transactions running */
  
- 	/*
+-int restart_transaction(struct reiserfs_transaction_handle *th,
+-			struct inode *inode, struct treepath *path);
+ void reiserfs_read_locked_inode(struct inode *inode,
+ 				struct reiserfs_iget_args *args);
+ int reiserfs_find_actor(struct inode *inode, void *p);
+@@ -2137,9 +2133,6 @@ void reiserfs_discard_prealloc(struct re
+ 			       struct inode *inode);
+ void reiserfs_discard_all_prealloc(struct reiserfs_transaction_handle *th);
+ #endif
+-void reiserfs_claim_blocks_to_be_allocated(struct super_block *sb, int blocks);
+-void reiserfs_release_claimed_blocks(struct super_block *sb, int blocks);
+-int reiserfs_can_fit_pages(struct super_block *sb);
+ 
+ /* hashes.c */
+ __u32 keyed_hash(const signed char *msg, int len);
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from bunk@stusta.de are
 
 origin.patch
-fix-cpusets-update_cpumask.patch
-fix-cpusets-update_cpumask-checkpatch-fixes.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-resource-counters-v7-fix.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-memcontrol-move-mm_cgroup-to-header-file.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+git-acpi.patch
+git-kvm.patch
+remove-fs-jffs2-ioctlc.patch
+parisc-extern-inline-static-inline.patch
+nsp32_restart_autoscsi-remove-error-check.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+git-x86.patch
+unexport-pm_power_off_prepare.patch
+intel-iommu-intel-iommu-driver.patch
+revoke-core-code.patch
+pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
+the-next-round-of-scheduled-oss-code-removal.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4.patch
+mutex-subsystem-synchro-test-module.patch
