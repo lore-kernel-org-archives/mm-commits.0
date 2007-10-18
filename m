@@ -1,60 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-remove-first_zero_hint-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 11:41:57 -0700
-Message-ID: <200710181841.l9IIfvLC025804@imap1.linux-foundation.org>
+Subject: + git-x86-fixup.patch added to -mm tree
+Date: Thu, 18 Oct 2007 13:28:17 -0700
+Message-ID: <200710182028.l9IKSH9p029646@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43536 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40930 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756835AbXJRSmX (ORCPT
+	by vger.kernel.org with ESMTP id S1765930AbXJRU2w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 14:42:23 -0400
+	Thu, 18 Oct 2007 16:28:52 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9IKSHLj008150
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 18 Oct 2007 13:28:18 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hch@lst.de, jeffm@suse.com, mason@suse.com, vs@namesys.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     reiserfs-remove-first_zero_hint-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     reiserfs-remove-first_zero_hint-checkpatch-fixes.patch
+     git-x86-fixup
+has been added to the -mm tree.  Its filename is
+     git-x86-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: reiserfs-remove-first_zero_hint-checkpatch-fixes
+Subject: git-x86-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: no space between function name and open parenthesis '('
-#40: FILE: fs/reiserfs/bitmap.c:1218:
-+	BUG_ON (!reiserfs_test_le_bit(0, (unsigned long)bh->b_data))
 
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Cc: "Vladimir V. Saveliev" <vs@namesys.com>
-Cc: Chris Mason <mason@suse.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/bitmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/suspend_asm_64.S |   36 +++++++++++++++--------------
+ include/asm-x86/suspend_64.h     |   10 +-------
+ 2 files changed, 21 insertions(+), 25 deletions(-)
 
-diff -puN fs/reiserfs/bitmap.c~reiserfs-remove-first_zero_hint-checkpatch-fixes fs/reiserfs/bitmap.c
---- a/fs/reiserfs/bitmap.c~reiserfs-remove-first_zero_hint-checkpatch-fixes
-+++ a/fs/reiserfs/bitmap.c
-@@ -1215,7 +1215,7 @@ void reiserfs_cache_bitmap_metadata(stru
- 	unsigned long *cur = (unsigned long *)(bh->b_data + bh->b_size);
+diff -puN arch/x86/kernel/suspend_asm_64.S~git-x86-fixup arch/x86/kernel/suspend_asm_64.S
+--- a/arch/x86/kernel/suspend_asm_64.S~git-x86-fixup
++++ a/arch/x86/kernel/suspend_asm_64.S
+@@ -113,23 +113,25 @@ ENTRY(restore_registers)
+ 	movq	%rcx, %cr3
+ 	movq	%rax, %cr4;  # turn PGE back on
  
- 	/* The first bit must ALWAYS be 1 */
--	BUG_ON (!reiserfs_test_le_bit(0, (unsigned long)bh->b_data))
-+	BUG_ON(!reiserfs_test_le_bit(0, (unsigned long)bh->b_data))
+-	movq saved_context_esp(%rip), %rsp
+-	movq saved_context_ebp(%rip), %rbp
+-	/* restore GPRs (we don't restore %rax, it must be 0 anyway) */
+-	movq saved_context_ebx(%rip), %rbx
+-	movq saved_context_ecx(%rip), %rcx
+-	movq saved_context_edx(%rip), %rdx
+-	movq saved_context_esi(%rip), %rsi
+-	movq saved_context_edi(%rip), %rdi
+-	movq saved_context_r08(%rip), %r8
+-	movq saved_context_r09(%rip), %r9
+-	movq saved_context_r10(%rip), %r10
+-	movq saved_context_r11(%rip), %r11
+-	movq saved_context_r12(%rip), %r12
+-	movq saved_context_r13(%rip), %r13
+-	movq saved_context_r14(%rip), %r14
+-	movq saved_context_r15(%rip), %r15
+-	pushq saved_context_eflags(%rip) ; popfq
++	/* We don't restore %rax, it must be 0 anyway */
++	movq	$saved_context, %rax
++	movq	pt_regs_rsp(%rax), %rsp
++	movq	pt_regs_rbp(%rax), %rbp
++	movq	pt_regs_rsi(%rax), %rsi
++	movq	pt_regs_rdi(%rax), %rdi
++	movq	pt_regs_rbx(%rax), %rbx
++	movq	pt_regs_rcx(%rax), %rcx
++	movq	pt_regs_rdx(%rax), %rdx
++	movq	pt_regs_r8(%rax), %r8
++	movq	pt_regs_r9(%rax), %r9
++	movq	pt_regs_r10(%rax), %r10
++	movq	pt_regs_r11(%rax), %r11
++	movq	pt_regs_r12(%rax), %r12
++	movq	pt_regs_r13(%rax), %r13
++	movq	pt_regs_r14(%rax), %r14
++	movq	pt_regs_r15(%rax), %r15
++	pushq	pt_regs_eflags(%rax)
++	popfq
  
- 	info->free_count = 0;
+ 	xorq	%rax, %rax
  
+diff -puN include/asm-x86/suspend_64.h~git-x86-fixup include/asm-x86/suspend_64.h
+--- a/include/asm-x86/suspend_64.h~git-x86-fixup
++++ a/include/asm-x86/suspend_64.h
+@@ -33,16 +33,8 @@ struct saved_context {
+ 	unsigned long tr;
+ 	unsigned long safety;
+ 	unsigned long return_address;
+-	unsigned long eflags;
+ } __attribute__((packed));
+ 
+-/* We'll access these from assembly, so we'd better have them outside struct */
+-extern unsigned long saved_context_eax, saved_context_ebx, saved_context_ecx, saved_context_edx;
+-extern unsigned long saved_context_esp, saved_context_ebp, saved_context_esi, saved_context_edi;
+-extern unsigned long saved_context_r08, saved_context_r09, saved_context_r10, saved_context_r11;
+-extern unsigned long saved_context_r12, saved_context_r13, saved_context_r14, saved_context_r15;
+-extern unsigned long saved_context_eflags;
+-
+ #define loaddebug(thread,register) \
+ 	set_debugreg((thread)->debugreg##register, register)
+ 
+@@ -59,3 +51,5 @@ extern unsigned long saved_rdi;
+ extern int acpi_save_state_mem(void);
+ extern char core_restore_code;
+ extern char restore_registers;
++
++#endif /* __ASM_X86_64_SUSPEND_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,13 +135,15 @@ git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
 ide-arm-hack.patch
+git-net.patch
 ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-nfsd-fixup.patch
+git-parisc.patch
 fix-build-breakage-if-sysfs-fix.patch
-qla2xxx-printk-fixes.patch
+git-scsi-misc.patch
 advansys-depends-on-virt_to_bus.patch
-sparc-support-for-new-termios.patch
+git-sparc64.patch
 git-unionfs.patch
 security-convert-lsm-into-a-static-interface-fix-unionfs.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
@@ -92,9 +152,11 @@ git-watchdog-fixup.patch
 git-wireless.patch
 git-wireless-fixup.patch
 git-x86.patch
+git-x86-fixup.patch
 revert-x86_64-mm-cpa-einval.patch
 fix-x86_64-mm-sched-clock-share.patch
 x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+git-xfs.patch
 memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-checkpatch-fixes.patch
 memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
@@ -125,7 +187,6 @@ peterz-vs-ext4-mballoc-core.patch
 reiserfs-fix-up-lockdep-warnings-checkpatch-fixes.patch
 reiserfs-use-is_reusable-to-catch-corruption-checkpatch-fixes.patch
 reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes.patch
-reiserfs-remove-first_zero_hint-checkpatch-fixes.patch
 reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
