@@ -1,65 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - nbd-use-list_for_each_entry_safe-to-make-it-more-consolidated-and-readable.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:53:08 -0700
-Message-ID: <200710180653.l9I6r8e7030413@imap1.linux-foundation.org>
+Subject: - fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:54:58 -0700
+Message-ID: <200710180654.l9I6swxr030560@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33175 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36803 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759114AbXJRHj3 (ORCPT
+	by vger.kernel.org with ESMTP id S1760733AbXJRHjx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:39:29 -0400
+	Thu, 18 Oct 2007 03:39:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: crquan@gmail.com, paul.clements@steeleye.com, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nbd: use list_for_each_entry_safe to make it more consolidated and readable
+     fs/autofs4/inode.c: kmalloc + memset conversion to kzalloc
 has been removed from the -mm tree.  Its filename was
-     nbd-use-list_for_each_entry_safe-to-make-it-more-consolidated-and-readable.patch
+     fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: nbd: use list_for_each_entry_safe to make it more consolidated and readable
-From: Denis Cheng <crquan@gmail.com>
+Subject: fs/autofs4/inode.c: kmalloc + memset conversion to kzalloc
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-Thus the traverse of the loop may delete nodes, use the safe version.
+ fs/autofs4/inode.c | 10467 -> 10435 (-32 bytes)
+ fs/autofs4/inode.o | 98576 -> 98552 (-24 bytes)
 
-Signed-off-by: Denis Cheng <crquan@gmail.com>
-Cc: Paul Clements <paul.clements@steeleye.com>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Cc: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/nbd.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ fs/autofs4/inode.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/block/nbd.c~nbd-use-list_for_each_entry_safe-to-make-it-more-consolidated-and-readable drivers/block/nbd.c
---- a/drivers/block/nbd.c~nbd-use-list_for_each_entry_safe-to-make-it-more-consolidated-and-readable
-+++ a/drivers/block/nbd.c
-@@ -233,8 +233,7 @@ error_out:
+diff -puN fs/autofs4/inode.c~fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc fs/autofs4/inode.c
+--- a/fs/autofs4/inode.c~fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc
++++ a/fs/autofs4/inode.c
+@@ -312,13 +312,11 @@ int autofs4_fill_super(struct super_bloc
+ 	struct autofs_sb_info *sbi;
+ 	struct autofs_info *ino;
  
- static struct request *nbd_find_request(struct nbd_device *lo, char *handle)
- {
--	struct request *req;
--	struct list_head *tmp;
-+	struct request *req, *tmp;
- 	struct request *xreq;
- 	int err;
+-	sbi = kmalloc(sizeof(*sbi), GFP_KERNEL);
++	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
+ 	if (!sbi)
+ 		goto fail_unlock;
+ 	DPRINTK("starting up, sbi = %p",sbi);
  
-@@ -245,8 +244,7 @@ static struct request *nbd_find_request(
- 		goto out;
- 
- 	spin_lock(&lo->queue_lock);
--	list_for_each(tmp, &lo->queue_head) {
--		req = list_entry(tmp, struct request, queuelist);
-+	list_for_each_entry_safe(req, tmp, &lo->queue_head, queuelist) {
- 		if (req != xreq)
- 			continue;
- 		list_del_init(&req->queuelist);
+-	memset(sbi, 0, sizeof(*sbi));
+-
+ 	s->s_fs_info = sbi;
+ 	sbi->magic = AUTOFS_SBI_MAGIC;
+ 	sbi->pipefd = -1;
 _
 
-Patches currently in -mm which might be from crquan@gmail.com are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
 origin.patch
+git-cifs.patch
+kernel-forkc-remove-unneeded-variable-initialization-in-copy_process.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
