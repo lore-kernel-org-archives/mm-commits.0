@@ -1,129 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - md-software-raid-autodetect-dev-list-not-array.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:02:53 -0700
-Message-ID: <200710180702.l9I72r1e031310@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-elevate-write-count-opend-files-r-o-bind-mounts-fix-bug-in-reiserfs_delete_xattrs.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:21:38 -0700
+Message-ID: <200710180721.l9I7LcPP032309@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38756 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50220 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756969AbXJRHWG (ORCPT
+	by vger.kernel.org with ESMTP id S1755309AbXJRHWX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:22:06 -0400
+	Thu, 18 Oct 2007 03:22:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mjevans1983@gmail.com, neilb@suse.de, mm-commits@vger.kernel.org
+To: laurent.riffard@free.fr, haveblue@us.ibm.com, hch@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: software Raid autodetect dev list not array
+     r-o-bind-mounts: fix BUG in reiserfs_delete_xattrs
 has been removed from the -mm tree.  Its filename was
-     md-software-raid-autodetect-dev-list-not-array.patch
+     r-o-bind-mounts-elevate-write-count-opend-files-r-o-bind-mounts-fi=
+x-bug-in-reiserfs_delete_xattrs.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: md: software Raid autodetect dev list not array
-From: Michael J. Evans <mjevans1983@gmail.com>
+Subject: r-o-bind-mounts: fix BUG in reiserfs_delete_xattrs
+=46rom: Laurent Riffard <laurent.riffard@free.fr>
 
-In current release kernels the md module (Software RAID) uses a static
-array (dev_t[128]) to store partition/device info temporarily for
-autostart.
+Le 15.10.2007 20:31, Jeff Mahoney a =E9crit :
+> Christoph Hellwig wrote:
+>> On Mon, Oct 15, 2007 at 12:34:58AM +0200, Laurent Riffard wrote:
+>>> reiserfs_delete_xattrs
+>>> reiserfs_delete_inode
+>>> generic_delete_inode
+>>> generic_drop_inode
+>>> iput
+>>> do_unlinkat
+>>> sys_unlink
+>>> sys_enter_past_esp
+>>>
+>>> I reported a similar BUG in 2.6.22-rc8-mm2 (see
+>>> http://lkml.org/lkml/2007/9/27/235). Dave Hansen sent a patch for i=
+t, I
+>>> tested it and it was OK for 2.6.22-rc8-mm2.
+>>>
+>>> I tried this patch on 2.6.23-mm1, and it fixed the BUGs here too.
+>> The delete path is a similar case as the one Dave fixed, also cause =
+by
+>> a NULL vfsmount passed to dentry_open, but through a different code-=
+path.
+>>
+>> Untested fix for this problem below:
+>
+> Here's a patch I worked up the other night that kills off struct file
+> completely from the xattr code. I've tested it locally.
 
-I discovered this (and that the devices are added as disks/partitions are
-discovered at boot) while I was debugging why only one of my MD arrays would
-come up whole, while all the others were short a disk.
+Sorry Jeff, your patch does not apply on 2.6.23-mm1. The 'struct file'
+removal from reiserfs_xattr_ function is already in -mm
+(make-reiserfs-stop-using-struct-file-for-internal.patch).
 
-I eventually discovered that it was enumerating through all of 9 of my 11 hds
-(2 had only 4 partitions apiece) while the other 9 have 15 partitions (I
-wanted 64 per drive...).  The last partition of the 8th drive in my 9 drive
-raid 5 sets wasn't added, thus making the final md array short both a parity
-and data disk, and it was started later, elsewhere.
+The Dave's patch I was refering to is this one:
 
-This patch replaces that static array with a list.
+=3D=3D=3D=3D BEGIN =3D=3D=3D=3D=3D
+The bug is caused by reiserfs creating a special 'struct file' with a
+NULL vfsmount.
 
-[akpm@linux-foundation.org: removed unused var]
-Signed-off-by: Michael J. Evans <mjevans1983@gmail.com>
-Cc: Neil Brown <neilb@suse.de>
+/* Opens a file pointer to the attribute associated with inode */
+static struct file *open_xa_file(const struct inode *inode, const char
+*name,
+                                 int flags)
+{
+=2E..
+        fp =3D dentry_open(xafile, NULL, O_RDWR);
+        /* dentry_open dputs the dentry if it fails */
+
+As Christoph just said, this is somewhat of a bandaid.  But, it
+shouldn't hurt anything.
+
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c |   42 +++++++++++++++++++++++++++++++++---------
- 1 file changed, 33 insertions(+), 9 deletions(-)
+ fs/file_table.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/md/md.c~md-software-raid-autodetect-dev-list-not-array drivers/md/md.c
---- a/drivers/md/md.c~md-software-raid-autodetect-dev-list-not-array
-+++ a/drivers/md/md.c
-@@ -5770,26 +5770,47 @@ static int __init md_init(void)
-  * Searches all registered partitions for autorun RAID arrays
-  * at boot time.
-  */
--static dev_t detected_devices[128];
--static int dev_cnt;
-+
-+static LIST_HEAD(all_detected_devices);
-+struct detected_devices_node {
-+	struct list_head list;
-+	dev_t dev;
-+};
- 
- void md_autodetect_dev(dev_t dev)
- {
--	if (dev_cnt >= 0 && dev_cnt < 127)
--		detected_devices[dev_cnt++] = dev;
-+	struct detected_devices_node *node_detected_dev;
-+
-+	node_detected_dev = kzalloc(sizeof(*node_detected_dev), GFP_KERNEL);
-+	if (node_detected_dev) {
-+		node_detected_dev->dev = dev;
-+		list_add_tail(&node_detected_dev->list, &all_detected_devices);
-+	} else {
-+		printk(KERN_CRIT "md: md_autodetect_dev: kzalloc failed"
-+			", skipping dev(%d,%d)\n", MAJOR(dev), MINOR(dev));
-+	}
- }
- 
- 
- static void autostart_arrays(int part)
- {
- 	mdk_rdev_t *rdev;
--	int i;
-+	struct detected_devices_node *node_detected_dev;
-+	dev_t dev;
-+	int i_scanned, i_passed;
- 
--	printk(KERN_INFO "md: Autodetecting RAID arrays.\n");
-+	i_scanned = 0;
-+	i_passed = 0;
- 
--	for (i = 0; i < dev_cnt; i++) {
--		dev_t dev = detected_devices[i];
-+	printk(KERN_INFO "md: Autodetecting RAID arrays.\n");
- 
-+	while (!list_empty(&all_detected_devices) && i_scanned < INT_MAX) {
-+		i_scanned++;
-+		node_detected_dev = list_entry(all_detected_devices.next,
-+					struct detected_devices_node, list);
-+		list_del(&node_detected_dev->list);
-+		dev = node_detected_dev->dev;
-+		kfree(node_detected_dev);
- 		rdev = md_import_device(dev,0, 90);
- 		if (IS_ERR(rdev))
- 			continue;
-@@ -5799,8 +5820,11 @@ static void autostart_arrays(int part)
- 			continue;
- 		}
- 		list_add(&rdev->same_set, &pending_raid_disks);
-+		i_passed++;
+diff -puN fs/file_table.c~r-o-bind-mounts-elevate-write-count-opend-fil=
+es-r-o-bind-mounts-fix-bug-in-reiserfs_delete_xattrs fs/file_table.c
+--- a/fs/file_table.c~r-o-bind-mounts-elevate-write-count-opend-files-r=
+-o-bind-mounts-fix-bug-in-reiserfs_delete_xattrs
++++ a/fs/file_table.c
+@@ -236,7 +236,7 @@ void fastcall __fput(struct file *file)
+ 	fops_put(file->f_op);
+ 	if (file->f_mode & FMODE_WRITE) {
+ 		put_write_access(inode);
+-		if (!special_file(inode->i_mode))
++		if (!special_file(inode->i_mode) && mnt)
+ 			mnt_drop_write(mnt);
  	}
--	dev_cnt = 0;
-+
-+	printk(KERN_INFO "md: Scanned %d and added %d devices.\n",
-+						i_scanned, i_passed);
- 
- 	autorun_devices(part);
- }
+ 	put_pid(file->f_owner.pid);
 _
 
-Patches currently in -mm which might be from mjevans1983@gmail.com are
+Patches currently in -mm which might be from laurent.riffard@free.fr ar=
+e
 
 origin.patch
+r-o-bind-mounts-elevate-write-count-opend-files-r-o-bind-mounts-fix-bug=
+-in-reiserfs_delete_xattrs.patch
+reiser4-drop-size-argument-from-bio_endio-and-bi_end_io.patch
