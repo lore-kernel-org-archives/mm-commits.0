@@ -1,112 +1,510 @@
 From: akpm@linux-foundation.org
-Subject: - nfs-remove-congestion_end.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:51:07 -0700
-Message-ID: <200710180651.l9I6p7sK030145@imap1.linux-foundation.org>
+Subject: - mm-bdi-init-hooks.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:51:20 -0700
+Message-ID: <200710180651.l9I6pK4r030175@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48795 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45249 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758930AbXJRGvk (ORCPT
+	by vger.kernel.org with ESMTP id S1757120AbXJRGv0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 02:51:40 -0400
+	Thu, 18 Oct 2007 02:51:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, bfields@fieldses.org, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nfs: remove congestion_end()
+     mm: bdi init hooks
 has been removed from the -mm tree.  Its filename was
-     nfs-remove-congestion_end.patch
+     mm-bdi-init-hooks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: nfs: remove congestion_end()
+Subject: mm: bdi init hooks
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-These patches aim to improve balance_dirty_pages() and directly address three
-issues:
-  1) inter device starvation
-  2) stacked device deadlocks
-  3) inter process starvation
+provide BDI constructor/destructor hooks
 
-1 and 2 are a direct result from removing the global dirty limit and using
-per device dirty limits. By giving each device its own dirty limit is will
-no longer starve another device, and the cyclic dependancy on the dirty limit
-is broken.
-
-In order to efficiently distribute the dirty limit across the independant
-devices a floating proportion is used, this will allocate a share of the total
-limit proportional to the device's recent activity.
-
-3 is done by also scaling the dirty limit proportional to the current task's
-recent dirty rate.
-
-
-This patch:
-
-
-nfs: remove congestion_end().  It's redundant, clear_bdi_congested() already
-wakes the waiters.
-
+[akpm@linux-foundation.org: compile fix]
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/write.c              |    4 +---
- include/linux/backing-dev.h |    1 -
- mm/backing-dev.c            |   13 -------------
- 3 files changed, 1 insertion(+), 17 deletions(-)
+ block/ll_rw_blk.c               |   13 ++++++++++---
+ drivers/block/rd.c              |   20 +++++++++++++++++++-
+ drivers/char/mem.c              |    5 +++++
+ fs/char_dev.c                   |    1 +
+ fs/configfs/configfs_internal.h |    2 ++
+ fs/configfs/inode.c             |    8 ++++++++
+ fs/configfs/mount.c             |    9 +++++++++
+ fs/fuse/inode.c                 |    9 +++++++++
+ fs/hugetlbfs/inode.c            |    9 ++++++++-
+ fs/nfs/client.c                 |    6 ++++++
+ fs/ocfs2/dlm/dlmfs.c            |    9 ++++++++-
+ fs/ramfs/inode.c                |   12 +++++++++++-
+ fs/sysfs/inode.c                |    5 +++++
+ fs/sysfs/mount.c                |    4 ++++
+ fs/sysfs/sysfs.h                |    1 +
+ include/linux/backing-dev.h     |    8 ++++++++
+ mm/readahead.c                  |    6 ++++++
+ mm/shmem.c                      |    6 ++++++
+ mm/swap.c                       |    5 +++++
+ 19 files changed, 131 insertions(+), 7 deletions(-)
 
-diff -puN fs/nfs/write.c~nfs-remove-congestion_end fs/nfs/write.c
---- a/fs/nfs/write.c~nfs-remove-congestion_end
-+++ a/fs/nfs/write.c
-@@ -242,10 +242,8 @@ static void nfs_end_page_writeback(struc
- 	struct nfs_server *nfss = NFS_SERVER(inode);
+diff -puN block/ll_rw_blk.c~mm-bdi-init-hooks block/ll_rw_blk.c
+--- a/block/ll_rw_blk.c~mm-bdi-init-hooks
++++ a/block/ll_rw_blk.c
+@@ -1786,6 +1786,7 @@ static void blk_release_queue(struct kob
  
- 	end_page_writeback(page);
--	if (atomic_long_dec_return(&nfss->writeback) < NFS_CONGESTION_OFF_THRESH) {
-+	if (atomic_long_dec_return(&nfss->writeback) < NFS_CONGESTION_OFF_THRESH)
- 		clear_bdi_congested(&nfss->backing_dev_info, WRITE);
--		congestion_end(WRITE);
--	}
+ 	blk_trace_shutdown(q);
+ 
++	bdi_destroy(&q->backing_dev_info);
+ 	kmem_cache_free(requestq_cachep, q);
+ }
+ 
+@@ -1839,21 +1840,27 @@ static struct kobj_type queue_ktype;
+ struct request_queue *blk_alloc_queue_node(gfp_t gfp_mask, int node_id)
+ {
+ 	struct request_queue *q;
++	int err;
+ 
+ 	q = kmem_cache_alloc_node(requestq_cachep,
+ 				gfp_mask | __GFP_ZERO, node_id);
+ 	if (!q)
+ 		return NULL;
+ 
++	q->backing_dev_info.unplug_io_fn = blk_backing_dev_unplug;
++	q->backing_dev_info.unplug_io_data = q;
++	err = bdi_init(&q->backing_dev_info);
++	if (err) {
++		kmem_cache_free(requestq_cachep, q);
++		return NULL;
++	}
++
+ 	init_timer(&q->unplug_timer);
+ 
+ 	kobject_set_name(&q->kobj, "%s", "queue");
+ 	q->kobj.ktype = &queue_ktype;
+ 	kobject_init(&q->kobj);
+ 
+-	q->backing_dev_info.unplug_io_fn = blk_backing_dev_unplug;
+-	q->backing_dev_info.unplug_io_data = q;
+-
+ 	mutex_init(&q->sysfs_lock);
+ 
+ 	return q;
+diff -puN drivers/block/rd.c~mm-bdi-init-hooks drivers/block/rd.c
+--- a/drivers/block/rd.c~mm-bdi-init-hooks
++++ a/drivers/block/rd.c
+@@ -411,6 +411,9 @@ static void __exit rd_cleanup(void)
+ 		blk_cleanup_queue(rd_queue[i]);
+ 	}
+ 	unregister_blkdev(RAMDISK_MAJOR, "ramdisk");
++
++	bdi_destroy(&rd_file_backing_dev_info);
++	bdi_destroy(&rd_backing_dev_info);
  }
  
  /*
-diff -puN include/linux/backing-dev.h~nfs-remove-congestion_end include/linux/backing-dev.h
---- a/include/linux/backing-dev.h~nfs-remove-congestion_end
-+++ a/include/linux/backing-dev.h
-@@ -93,7 +93,6 @@ static inline int bdi_rw_congested(struc
- void clear_bdi_congested(struct backing_dev_info *bdi, int rw);
- void set_bdi_congested(struct backing_dev_info *bdi, int rw);
- long congestion_wait(int rw, long timeout);
--void congestion_end(int rw);
+@@ -419,7 +422,19 @@ static void __exit rd_cleanup(void)
+ static int __init rd_init(void)
+ {
+ 	int i;
+-	int err = -ENOMEM;
++	int err;
++
++	err = bdi_init(&rd_backing_dev_info);
++	if (err)
++		goto out2;
++
++	err = bdi_init(&rd_file_backing_dev_info);
++	if (err) {
++		bdi_destroy(&rd_backing_dev_info);
++		goto out2;
++	}
++
++	err = -ENOMEM;
  
- #define bdi_cap_writeback_dirty(bdi) \
- 	(!((bdi)->capabilities & BDI_CAP_NO_WRITEBACK))
-diff -puN mm/backing-dev.c~nfs-remove-congestion_end mm/backing-dev.c
---- a/mm/backing-dev.c~nfs-remove-congestion_end
-+++ a/mm/backing-dev.c
-@@ -54,16 +54,3 @@ long congestion_wait(int rw, long timeou
- 	return ret;
+ 	if (rd_blocksize > PAGE_SIZE || rd_blocksize < 512 ||
+ 			(rd_blocksize & (rd_blocksize-1))) {
+@@ -473,6 +488,9 @@ out:
+ 		put_disk(rd_disks[i]);
+ 		blk_cleanup_queue(rd_queue[i]);
+ 	}
++	bdi_destroy(&rd_backing_dev_info);
++	bdi_destroy(&rd_file_backing_dev_info);
++out2:
+ 	return err;
  }
- EXPORT_SYMBOL(congestion_wait);
--
--/**
-- * congestion_end - wake up sleepers on a congested backing_dev_info
-- * @rw: READ or WRITE
-- */
--void congestion_end(int rw)
--{
--	wait_queue_head_t *wqh = &congestion_wqh[rw];
--
--	if (waitqueue_active(wqh))
--		wake_up(wqh);
--}
--EXPORT_SYMBOL(congestion_end);
+ 
+diff -puN drivers/char/mem.c~mm-bdi-init-hooks drivers/char/mem.c
+--- a/drivers/char/mem.c~mm-bdi-init-hooks
++++ a/drivers/char/mem.c
+@@ -893,6 +893,11 @@ static struct class *mem_class;
+ static int __init chr_dev_init(void)
+ {
+ 	int i;
++	int err;
++
++	err = bdi_init(&zero_bdi);
++	if (err)
++		return err;
+ 
+ 	if (register_chrdev(MEM_MAJOR,"mem",&memory_fops))
+ 		printk("unable to get major %d for memory devs\n", MEM_MAJOR);
+diff -puN fs/char_dev.c~mm-bdi-init-hooks fs/char_dev.c
+--- a/fs/char_dev.c~mm-bdi-init-hooks
++++ a/fs/char_dev.c
+@@ -545,6 +545,7 @@ static struct kobject *base_probe(dev_t 
+ void __init chrdev_init(void)
+ {
+ 	cdev_map = kobj_map_init(base_probe, &chrdevs_lock);
++	bdi_init(&directly_mappable_cdev_bdi);
+ }
+ 
+ 
+diff -puN fs/configfs/configfs_internal.h~mm-bdi-init-hooks fs/configfs/configfs_internal.h
+--- a/fs/configfs/configfs_internal.h~mm-bdi-init-hooks
++++ a/fs/configfs/configfs_internal.h
+@@ -56,6 +56,8 @@ extern int configfs_is_root(struct confi
+ 
+ extern struct inode * configfs_new_inode(mode_t mode, struct configfs_dirent *);
+ extern int configfs_create(struct dentry *, int mode, int (*init)(struct inode *));
++extern int configfs_inode_init(void);
++extern void configfs_inode_exit(void);
+ 
+ extern int configfs_create_file(struct config_item *, const struct configfs_attribute *);
+ extern int configfs_make_dirent(struct configfs_dirent *,
+diff -puN fs/configfs/inode.c~mm-bdi-init-hooks fs/configfs/inode.c
+--- a/fs/configfs/inode.c~mm-bdi-init-hooks
++++ a/fs/configfs/inode.c
+@@ -256,4 +256,12 @@ void configfs_hash_and_remove(struct den
+ 	mutex_unlock(&dir->d_inode->i_mutex);
+ }
+ 
++int __init configfs_inode_init(void)
++{
++	return bdi_init(&configfs_backing_dev_info);
++}
+ 
++void __exit configfs_inode_exit(void)
++{
++	bdi_destroy(&configfs_backing_dev_info);
++}
+diff -puN fs/configfs/mount.c~mm-bdi-init-hooks fs/configfs/mount.c
+--- a/fs/configfs/mount.c~mm-bdi-init-hooks
++++ a/fs/configfs/mount.c
+@@ -154,8 +154,16 @@ static int __init configfs_init(void)
+ 		subsystem_unregister(&config_subsys);
+ 		kmem_cache_destroy(configfs_dir_cachep);
+ 		configfs_dir_cachep = NULL;
++		goto out;
+ 	}
+ 
++	err = configfs_inode_init();
++	if (err) {
++		unregister_filesystem(&configfs_fs_type);
++		subsystem_unregister(&config_subsys);
++		kmem_cache_destroy(configfs_dir_cachep);
++		configfs_dir_cachep = NULL;
++	}
+ out:
+ 	return err;
+ }
+@@ -166,6 +174,7 @@ static void __exit configfs_exit(void)
+ 	subsystem_unregister(&config_subsys);
+ 	kmem_cache_destroy(configfs_dir_cachep);
+ 	configfs_dir_cachep = NULL;
++	configfs_inode_exit();
+ }
+ 
+ MODULE_AUTHOR("Oracle");
+diff -puN fs/fuse/inode.c~mm-bdi-init-hooks fs/fuse/inode.c
+--- a/fs/fuse/inode.c~mm-bdi-init-hooks
++++ a/fs/fuse/inode.c
+@@ -401,6 +401,7 @@ static int fuse_show_options(struct seq_
+ static struct fuse_conn *new_conn(void)
+ {
+ 	struct fuse_conn *fc;
++	int err;
+ 
+ 	fc = kzalloc(sizeof(*fc), GFP_KERNEL);
+ 	if (fc) {
+@@ -416,10 +417,17 @@ static struct fuse_conn *new_conn(void)
+ 		atomic_set(&fc->num_waiting, 0);
+ 		fc->bdi.ra_pages = (VM_MAX_READAHEAD * 1024) / PAGE_CACHE_SIZE;
+ 		fc->bdi.unplug_io_fn = default_unplug_io_fn;
++		err = bdi_init(&fc->bdi);
++		if (err) {
++			kfree(fc);
++			fc = NULL;
++			goto out;
++		}
+ 		fc->reqctr = 0;
+ 		fc->blocked = 1;
+ 		get_random_bytes(&fc->scramble_key, sizeof(fc->scramble_key));
+ 	}
++out:
+ 	return fc;
+ }
+ 
+@@ -429,6 +437,7 @@ void fuse_conn_put(struct fuse_conn *fc)
+ 		if (fc->destroy_req)
+ 			fuse_request_free(fc->destroy_req);
+ 		mutex_destroy(&fc->inst_mutex);
++		bdi_destroy(&fc->bdi);
+ 		kfree(fc);
+ 	}
+ }
+diff -puN fs/hugetlbfs/inode.c~mm-bdi-init-hooks fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~mm-bdi-init-hooks
++++ a/fs/hugetlbfs/inode.c
+@@ -974,11 +974,15 @@ static int __init init_hugetlbfs_fs(void
+ 	int error;
+ 	struct vfsmount *vfsmount;
+ 
++	error = bdi_init(&hugetlbfs_backing_dev_info);
++	if (error)
++		return error;
++
+ 	hugetlbfs_inode_cachep = kmem_cache_create("hugetlbfs_inode_cache",
+ 					sizeof(struct hugetlbfs_inode_info),
+ 					0, 0, init_once);
+ 	if (hugetlbfs_inode_cachep == NULL)
+-		return -ENOMEM;
++		goto out2;
+ 
+ 	error = register_filesystem(&hugetlbfs_fs_type);
+ 	if (error)
+@@ -996,6 +1000,8 @@ static int __init init_hugetlbfs_fs(void
+  out:
+ 	if (error)
+ 		kmem_cache_destroy(hugetlbfs_inode_cachep);
++ out2:
++	bdi_destroy(&hugetlbfs_backing_dev_info);
+ 	return error;
+ }
+ 
+@@ -1003,6 +1009,7 @@ static void __exit exit_hugetlbfs_fs(voi
+ {
+ 	kmem_cache_destroy(hugetlbfs_inode_cachep);
+ 	unregister_filesystem(&hugetlbfs_fs_type);
++	bdi_destroy(&hugetlbfs_backing_dev_info);
+ }
+ 
+ module_init(init_hugetlbfs_fs)
+diff -puN fs/nfs/client.c~mm-bdi-init-hooks fs/nfs/client.c
+--- a/fs/nfs/client.c~mm-bdi-init-hooks
++++ a/fs/nfs/client.c
+@@ -627,6 +627,7 @@ static void nfs_server_set_fsinfo(struct
+ 	if (server->rsize > NFS_MAX_FILE_IO_SIZE)
+ 		server->rsize = NFS_MAX_FILE_IO_SIZE;
+ 	server->rpages = (server->rsize + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
++
+ 	server->backing_dev_info.ra_pages = server->rpages * NFS_MAX_READAHEAD;
+ 
+ 	if (server->wsize > max_rpc_payload)
+@@ -677,6 +678,10 @@ static int nfs_probe_fsinfo(struct nfs_s
+ 		goto out_error;
+ 
+ 	nfs_server_set_fsinfo(server, &fsinfo);
++	error = bdi_init(&server->backing_dev_info);
++	if (error)
++		goto out_error;
++
+ 
+ 	/* Get some general file system info */
+ 	if (server->namelen == 0) {
+@@ -756,6 +761,7 @@ void nfs_free_server(struct nfs_server *
+ 	nfs_put_client(server->nfs_client);
+ 
+ 	nfs_free_iostats(server->io_stats);
++	bdi_destroy(&server->backing_dev_info);
+ 	kfree(server);
+ 	nfs_release_automount_timer();
+ 	dprintk("<-- nfs_free_server()\n");
+diff -puN fs/ocfs2/dlm/dlmfs.c~mm-bdi-init-hooks fs/ocfs2/dlm/dlmfs.c
+--- a/fs/ocfs2/dlm/dlmfs.c~mm-bdi-init-hooks
++++ a/fs/ocfs2/dlm/dlmfs.c
+@@ -588,13 +588,17 @@ static int __init init_dlmfs_fs(void)
+ 
+ 	dlmfs_print_version();
+ 
++	status = bdi_init(&dlmfs_backing_dev_info);
++	if (status)
++		return status;
++
+ 	dlmfs_inode_cache = kmem_cache_create("dlmfs_inode_cache",
+ 				sizeof(struct dlmfs_inode_private),
+ 				0, (SLAB_HWCACHE_ALIGN|SLAB_RECLAIM_ACCOUNT|
+ 					SLAB_MEM_SPREAD),
+ 				dlmfs_init_once);
+ 	if (!dlmfs_inode_cache)
+-		return -ENOMEM;
++		goto bail;
+ 	cleanup_inode = 1;
+ 
+ 	user_dlm_worker = create_singlethread_workqueue("user_dlm");
+@@ -611,6 +615,7 @@ bail:
+ 			kmem_cache_destroy(dlmfs_inode_cache);
+ 		if (cleanup_worker)
+ 			destroy_workqueue(user_dlm_worker);
++		bdi_destroy(&dlmfs_backing_dev_info);
+ 	} else
+ 		printk("OCFS2 User DLM kernel interface loaded\n");
+ 	return status;
+@@ -624,6 +629,8 @@ static void __exit exit_dlmfs_fs(void)
+ 	destroy_workqueue(user_dlm_worker);
+ 
+ 	kmem_cache_destroy(dlmfs_inode_cache);
++
++	bdi_destroy(&dlmfs_backing_dev_info);
+ }
+ 
+ MODULE_AUTHOR("Oracle");
+diff -puN fs/ramfs/inode.c~mm-bdi-init-hooks fs/ramfs/inode.c
+--- a/fs/ramfs/inode.c~mm-bdi-init-hooks
++++ a/fs/ramfs/inode.c
+@@ -223,7 +223,17 @@ module_exit(exit_ramfs_fs)
+ 
+ int __init init_rootfs(void)
+ {
+-	return register_filesystem(&rootfs_fs_type);
++	int err;
++
++	err = bdi_init(&ramfs_backing_dev_info);
++	if (err)
++		return err;
++
++	err = register_filesystem(&rootfs_fs_type);
++	if (err)
++		bdi_destroy(&ramfs_backing_dev_info);
++
++	return err;
+ }
+ 
+ MODULE_LICENSE("GPL");
+diff -puN fs/sysfs/inode.c~mm-bdi-init-hooks fs/sysfs/inode.c
+--- a/fs/sysfs/inode.c~mm-bdi-init-hooks
++++ a/fs/sysfs/inode.c
+@@ -37,6 +37,11 @@ static const struct inode_operations sys
+ 	.setattr	= sysfs_setattr,
+ };
+ 
++int __init sysfs_inode_init(void)
++{
++	return bdi_init(&sysfs_backing_dev_info);
++}
++
+ int sysfs_setattr(struct dentry * dentry, struct iattr * iattr)
+ {
+ 	struct inode * inode = dentry->d_inode;
+diff -puN fs/sysfs/mount.c~mm-bdi-init-hooks fs/sysfs/mount.c
+--- a/fs/sysfs/mount.c~mm-bdi-init-hooks
++++ a/fs/sysfs/mount.c
+@@ -92,6 +92,10 @@ int __init sysfs_init(void)
+ 	if (!sysfs_dir_cachep)
+ 		goto out;
+ 
++	err = sysfs_inode_init();
++	if (err)
++		goto out_err;
++
+ 	err = register_filesystem(&sysfs_fs_type);
+ 	if (!err) {
+ 		sysfs_mount = kern_mount(&sysfs_fs_type);
+diff -puN fs/sysfs/sysfs.h~mm-bdi-init-hooks fs/sysfs/sysfs.h
+--- a/fs/sysfs/sysfs.h~mm-bdi-init-hooks
++++ a/fs/sysfs/sysfs.h
+@@ -146,6 +146,7 @@ static inline void sysfs_put(struct sysf
+ struct inode *sysfs_get_inode(struct sysfs_dirent *sd);
+ int sysfs_setattr(struct dentry *dentry, struct iattr *iattr);
+ int sysfs_hash_and_remove(struct sysfs_dirent *dir_sd, const char *name);
++int sysfs_inode_init(void);
+ 
+ /*
+  * file.c
+diff -puN include/linux/backing-dev.h~mm-bdi-init-hooks include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~mm-bdi-init-hooks
++++ a/include/linux/backing-dev.h
+@@ -34,6 +34,14 @@ struct backing_dev_info {
+ 	void *unplug_io_data;
+ };
+ 
++static inline int bdi_init(struct backing_dev_info *bdi)
++{
++	return 0;
++}
++
++static inline void bdi_destroy(struct backing_dev_info *bdi)
++{
++}
+ 
+ /*
+  * Flags in backing_dev_info::capability
+diff -puN mm/readahead.c~mm-bdi-init-hooks mm/readahead.c
+--- a/mm/readahead.c~mm-bdi-init-hooks
++++ a/mm/readahead.c
+@@ -233,6 +233,12 @@ unsigned long max_sane_readahead(unsigne
+ 		+ node_page_state(numa_node_id(), NR_FREE_PAGES)) / 2);
+ }
+ 
++static int __init readahead_init(void)
++{
++	return bdi_init(&default_backing_dev_info);
++}
++subsys_initcall(readahead_init);
++
+ /*
+  * Submit IO for the read-ahead request in file_ra_state.
+  */
+diff -puN mm/shmem.c~mm-bdi-init-hooks mm/shmem.c
+--- a/mm/shmem.c~mm-bdi-init-hooks
++++ a/mm/shmem.c
+@@ -2464,6 +2464,10 @@ static int __init init_tmpfs(void)
+ {
+ 	int error;
+ 
++	error = bdi_init(&shmem_backing_dev_info);
++	if (error)
++		goto out4;
++
+ 	error = init_inodecache();
+ 	if (error)
+ 		goto out3;
+@@ -2488,6 +2492,8 @@ out1:
+ out2:
+ 	destroy_inodecache();
+ out3:
++	bdi_destroy(&shmem_backing_dev_info);
++out4:
+ 	shm_mnt = ERR_PTR(error);
+ 	return error;
+ }
+diff -puN mm/swap.c~mm-bdi-init-hooks mm/swap.c
+--- a/mm/swap.c~mm-bdi-init-hooks
++++ a/mm/swap.c
+@@ -28,6 +28,7 @@
+ #include <linux/percpu.h>
+ #include <linux/cpu.h>
+ #include <linux/notifier.h>
++#include <linux/backing-dev.h>
+ 
+ /* How many pages do we try to swap or page in/out together? */
+ int page_cluster;
+@@ -547,6 +548,10 @@ void __init swap_setup(void)
+ {
+ 	unsigned long megs = num_physpages >> (20 - PAGE_SHIFT);
+ 
++#ifdef CONFIG_SWAP
++	bdi_init(swapper_space.backing_dev_info);
++#endif
++
+ 	/* Use a smaller cluster for small-memory machines */
+ 	if (megs < 16)
+ 		page_cluster = 2;
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
