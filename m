@@ -1,183 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-do-not-repair-wrong-journal-params.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:02:01 -0700
-Message-ID: <200710180702.l9I721Dt031224@imap1.linux-foundation.org>
+Subject: - use-kmem_cache-macro-to-create-the-nsproxy-cache.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:01:06 -0700
+Message-ID: <200710180701.l9I716hX031149@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43913 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60923 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755171AbXJRHfJ (ORCPT
+	by vger.kernel.org with ESMTP id S1759673AbXJRHff (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:35:09 -0400
+	Thu, 18 Oct 2007 03:35:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: edward@namesys.com, chris.mason@oracle.com, jeffm@suse.com, mm-commits@vger.kernel.org
+To: xemul@openvz.org, clg@fr.ibm.com, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs: do not repair wrong journal params
+     Use KMEM_CACHE macro to create the nsproxy cache
 has been removed from the -mm tree.  Its filename was
-     reiserfs-do-not-repair-wrong-journal-params.patch
+     use-kmem_cache-macro-to-create-the-nsproxy-cache.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: reiserfs: do not repair wrong journal params
-From: Edward Shishkin <edward@namesys.com>
+Subject: Use KMEM_CACHE macro to create the nsproxy cache
+From: Pavel Emelyanov <xemul@openvz.org>
 
-When mounting a file system with wrong journal params do not try to repair
-them, suggest fsck instead.
+The blessed way for standard caches is to use it.  Besides, this may give
+this cache a better alignment.
 
-Signed-off-by: Edward Shishkin <edward@namesys.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: Chris Mason <chris.mason@oracle.com>
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Acked-by: Cedric Le Goater <clg@fr.ibm.com>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/journal.c |  100 ++++++++++++++++++++++------------------
- 1 file changed, 57 insertions(+), 43 deletions(-)
+ kernel/nsproxy.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/reiserfs/journal.c~reiserfs-do-not-repair-wrong-journal-params fs/reiserfs/journal.c
---- a/fs/reiserfs/journal.c~reiserfs-do-not-repair-wrong-journal-params
-+++ a/fs/reiserfs/journal.c
-@@ -2649,6 +2649,61 @@ static int journal_init_dev(struct super
- 	return result;
+diff -puN kernel/nsproxy.c~use-kmem_cache-macro-to-create-the-nsproxy-cache kernel/nsproxy.c
+--- a/kernel/nsproxy.c~use-kmem_cache-macro-to-create-the-nsproxy-cache
++++ a/kernel/nsproxy.c
+@@ -203,8 +203,7 @@ int unshare_nsproxy_namespaces(unsigned 
+ 
+ static int __init nsproxy_cache_init(void)
+ {
+-	nsproxy_cachep = kmem_cache_create("nsproxy", sizeof(struct nsproxy),
+-					   0, SLAB_PANIC, NULL);
++	nsproxy_cachep = KMEM_CACHE(nsproxy, SLAB_PANIC);
+ 	return 0;
  }
  
-+/**
-+ * When creating/tuning a file system user can assign some
-+ * journal params within boundaries which depend on the ratio
-+ * blocksize/standard_blocksize.
-+ *
-+ * For blocks >= standard_blocksize transaction size should
-+ * be not less then JOURNAL_TRANS_MIN_DEFAULT, and not more
-+ * then JOURNAL_TRANS_MAX_DEFAULT.
-+ *
-+ * For blocks < standard_blocksize these boundaries should be
-+ * decreased proportionally.
-+ */
-+#define REISERFS_STANDARD_BLKSIZE (4096)
-+
-+static int check_advise_trans_params(struct super_block *p_s_sb,
-+				     struct reiserfs_journal *journal)
-+{
-+        if (journal->j_trans_max) {
-+	        /* Non-default journal params.
-+		   Do sanity check for them. */
-+	        int ratio = 1;
-+		if (p_s_sb->s_blocksize < REISERFS_STANDARD_BLKSIZE)
-+		        ratio = REISERFS_STANDARD_BLKSIZE / p_s_sb->s_blocksize;
-+
-+		if (journal->j_trans_max > JOURNAL_TRANS_MAX_DEFAULT / ratio ||
-+		    journal->j_trans_max < JOURNAL_TRANS_MIN_DEFAULT / ratio ||
-+		    SB_ONDISK_JOURNAL_SIZE(p_s_sb) / journal->j_trans_max <
-+		    JOURNAL_MIN_RATIO) {
-+		        reiserfs_warning(p_s_sb,
-+				 "sh-462: bad transaction max size (%u). FSCK?",
-+				 journal->j_trans_max);
-+			return 1;
-+		}
-+		if (journal->j_max_batch != (journal->j_trans_max) *
-+		        JOURNAL_MAX_BATCH_DEFAULT/JOURNAL_TRANS_MAX_DEFAULT) {
-+		        reiserfs_warning(p_s_sb,
-+				"sh-463: bad transaction max batch (%u). FSCK?",
-+				journal->j_max_batch);
-+			return 1;
-+		}
-+	} else {
-+		/* Default journal params.
-+                   The file system was created by old version
-+		   of mkreiserfs, so some fields contain zeros,
-+		   and we need to advise proper values for them */
-+	        if (p_s_sb->s_blocksize != REISERFS_STANDARD_BLKSIZE)
-+	                reiserfs_panic(p_s_sb, "sh-464: bad blocksize (%u)",
-+				       p_s_sb->s_blocksize);
-+		journal->j_trans_max = JOURNAL_TRANS_MAX_DEFAULT;
-+		journal->j_max_batch = JOURNAL_MAX_BATCH_DEFAULT;
-+		journal->j_max_commit_age = JOURNAL_MAX_COMMIT_AGE;
-+	}
-+	return 0;
-+}
-+
- /*
- ** must be called once on fs mount.  calls journal_read for you
- */
-@@ -2744,49 +2799,8 @@ int journal_init(struct super_block *p_s
- 	    le32_to_cpu(jh->jh_journal.jp_journal_max_commit_age);
- 	journal->j_max_trans_age = JOURNAL_MAX_TRANS_AGE;
- 
--	if (journal->j_trans_max) {
--		/* make sure these parameters are available, assign it if they are not */
--		__u32 initial = journal->j_trans_max;
--		__u32 ratio = 1;
--
--		if (p_s_sb->s_blocksize < 4096)
--			ratio = 4096 / p_s_sb->s_blocksize;
--
--		if (SB_ONDISK_JOURNAL_SIZE(p_s_sb) / journal->j_trans_max <
--		    JOURNAL_MIN_RATIO)
--			journal->j_trans_max =
--			    SB_ONDISK_JOURNAL_SIZE(p_s_sb) / JOURNAL_MIN_RATIO;
--		if (journal->j_trans_max > JOURNAL_TRANS_MAX_DEFAULT / ratio)
--			journal->j_trans_max =
--			    JOURNAL_TRANS_MAX_DEFAULT / ratio;
--		if (journal->j_trans_max < JOURNAL_TRANS_MIN_DEFAULT / ratio)
--			journal->j_trans_max =
--			    JOURNAL_TRANS_MIN_DEFAULT / ratio;
--
--		if (journal->j_trans_max != initial)
--			reiserfs_warning(p_s_sb,
--					 "sh-461: journal_init: wrong transaction max size (%u). Changed to %u",
--					 initial, journal->j_trans_max);
--
--		journal->j_max_batch = journal->j_trans_max *
--		    JOURNAL_MAX_BATCH_DEFAULT / JOURNAL_TRANS_MAX_DEFAULT;
--	}
--
--	if (!journal->j_trans_max) {
--		/*we have the file system was created by old version of mkreiserfs 
--		   so this field contains zero value */
--		journal->j_trans_max = JOURNAL_TRANS_MAX_DEFAULT;
--		journal->j_max_batch = JOURNAL_MAX_BATCH_DEFAULT;
--		journal->j_max_commit_age = JOURNAL_MAX_COMMIT_AGE;
--
--		/* for blocksize >= 4096 - max transaction size is 1024. For block size < 4096
--		   trans max size is decreased proportionally */
--		if (p_s_sb->s_blocksize < 4096) {
--			journal->j_trans_max /= (4096 / p_s_sb->s_blocksize);
--			journal->j_max_batch = (journal->j_trans_max) * 9 / 10;
--		}
--	}
--
-+	if (check_advise_trans_params(p_s_sb, journal) != 0)
-+	        goto free_and_return;
- 	journal->j_default_max_commit_age = journal->j_max_commit_age;
- 
- 	if (commit_max_age != 0) {
 _
 
-Patches currently in -mm which might be from edward@namesys.com are
+Patches currently in -mm which might be from xemul@openvz.org are
 
 origin.patch
-reiser4.patch
-reiser4-drop-size-argument-from-bio_endio-and-bi_end_io.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
-reiser4-fix-null-dereference-in-__mnt_is_readonly-in-ftruncate.patch
-reiser4-fix-extent2tail.patch
-reiser4-fix-read_tail.patch
-reiser4-fix-unix-file-readpages-filler.patch
-reiser4-fix-readpage_unix_file.patch
-reiser4-fix-for-new-aops-patches.patch
-reiser4-do-not-allocate-struct-file-on-stack.patch
-git-block-vs-reiser4.patch
-reiser4-cryptcompress-misc-fixups.patch
-reiser4-cryptcompress-misc-fixups-2.patch
-reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
-reiser4-change-error-code-base.patch
-reiser4-use-lzo-library-functions.patch
-fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
-reiser4-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
-git-nfsd-broke-reiser4.patch
+git-x86.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+make-access-to-tasks-nsproxy-lighter.patch
+make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
+make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
+pid-namespaces-allow-cloning-of-new-namespace-merge-fix.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-sys_getsid-sys_getpgid-return-wrong-id-for-task-from-another.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-sys_setpgrp-to-work-between-namespaces.patch
+uninline-find_task_by_xxx-set-of-functions.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+isolate-some-explicit-usage-of-task-tgid.patch
+uninline-find_pid-etc-set-of-functions.patch
+uninline-the-task_xid_nr_ns-calls.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-resource-counters-v7-fix.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
+use-helpers-to-obtain-task-pid-in-printks.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-arch-code.patch
+remove-unused-variables-from-fs-proc-basec.patch
+use-task_pid_nr-in-ip_vs_syncc.patch
+use-task_pid_nr-instead-of-pid_nrtask_pid.patch
+reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
