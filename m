@@ -1,79 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - compile-handle_percpu_irq-even-for-uniprocessor-kernels.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:01:35 -0700
-Message-ID: <200710180701.l9I71ZBh031188@imap1.linux-foundation.org>
+Subject: - tweak-proc-ipmi-removal.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:55:14 -0700
+Message-ID: <200710180655.l9I6tEtU030591@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45301 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48873 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763755AbXJRHQ4 (ORCPT
+	by vger.kernel.org with ESMTP id S1755619AbXJRHRk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:16:56 -0400
+	Thu, 18 Oct 2007 03:17:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ralf@linux-mips.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: adobriyan@sw.ru, minyard@acm.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Compile handle_percpu_irq even for uniprocessor kernels
+     Tweak /proc/ipmi removal
 has been removed from the -mm tree.  Its filename was
-     compile-handle_percpu_irq-even-for-uniprocessor-kernels.patch
+     tweak-proc-ipmi-removal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Compile handle_percpu_irq even for uniprocessor kernels
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: Tweak /proc/ipmi removal
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-Compiling handle_percpu_irq only on uniprocessor generates an artificial
-special case so a typical use like:
+Driver does
+	proc_mkdir("ipmi", NULL);
+but
+	remove_proc_entry(proc_ipmi_root->name, &proc_root);
 
-  set_irq_chip_and_handler(irq, &some_irq_type, handle_percpu_irq);
+This is OK and working if only slightly inconsistent.  Also changing
+proc_root to NULL will help OpenVZ which has multiple proc roots and, as we
+now know, requires matching parents in such cases.
 
-needs to be conditionally compiled only on SMP systems as well and an
-alternative UP construct is usually needed - for no good reason.
-
-This fixes uniprocessor configurations for some MIPS SMP systems.
-
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Corey Minyard <minyard@acm.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/chip.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/char/ipmi/ipmi_msghandler.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/irq/chip.c~compile-handle_percpu_irq-even-for-uniprocessor-kernels kernel/irq/chip.c
---- a/kernel/irq/chip.c~compile-handle_percpu_irq-even-for-uniprocessor-kernels
-+++ a/kernel/irq/chip.c
-@@ -503,7 +503,6 @@ out_unlock:
- 	spin_unlock(&desc->lock);
- }
+diff -puN drivers/char/ipmi/ipmi_msghandler.c~tweak-proc-ipmi-removal drivers/char/ipmi/ipmi_msghandler.c
+--- a/drivers/char/ipmi/ipmi_msghandler.c~tweak-proc-ipmi-removal
++++ a/drivers/char/ipmi/ipmi_msghandler.c
+@@ -4136,7 +4136,7 @@ static __exit void cleanup_ipmi(void)
+ 	del_timer_sync(&ipmi_timer);
  
--#ifdef CONFIG_SMP
- /**
-  *	handle_percpu_IRQ - Per CPU local irq handler
-  *	@irq:	the interrupt number
-@@ -529,8 +528,6 @@ handle_percpu_irq(unsigned int irq, stru
- 		desc->chip->eoi(irq);
- }
+ #ifdef CONFIG_PROC_FS
+-	remove_proc_entry(proc_ipmi_root->name, &proc_root);
++	remove_proc_entry(proc_ipmi_root->name, NULL);
+ #endif /* CONFIG_PROC_FS */
  
--#endif /* CONFIG_SMP */
--
- void
- __set_irq_handler(unsigned int irq, irq_flow_handler_t handle, int is_chained,
- 		  const char *name)
+ 	driver_unregister(&ipmidriver);
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
 origin.patch
-netport_conc-fix-build-errors-and-warnings.patch
-au1100fb-fix-modpost-warnings.patch
-logoc-get-rid-of-mips_machgroup.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-define-global-bit-macro.patch
-bitops-introduce-lock-ops.patch
-mips-fix-bitops.patch
-mips-lock-bitops.patch
-replace-__attribute_pure__-with-__pure.patch
+add-kernel-notifierc.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
+sysctl-factor-out-sysctl_data.patch
+sysct-mqueue-remove-the-binary-sysctl-numbers.patch
+sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
+sysctl-fix-neighbour-table-sysctls.patch
+sysctl-ipv6-route-flushing-kill-binary-path.patch
+sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
+sysctl-x86_64-remove-unnecessary-binary-paths.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
+sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
+sysctl-error-on-bad-sysctl-tables.patch
+sysctl-update-sysctl_check_table.patch
+uninline-forkc-exitc.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+single_open-seq_release-leak-diagnostics.patch
