@@ -1,56 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - include-linux-typesh-in-if_fddih.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:56:10 -0700
-Message-ID: <200710180656.l9I6uAlJ030681@imap1.linux-foundation.org>
+Subject: - add-documentation-rcu-00-index.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:05:01 -0700
+Message-ID: <200710180705.l9I751JW031609@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37378 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37551 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763450AbXJRHQR (ORCPT
+	by vger.kernel.org with ESMTP id S1761677AbXJRHQU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:16:17 -0400
+	Thu, 18 Oct 2007 03:16:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: olaf@aepfle.de, macro@linux-mips.org, mm-commits@vger.kernel.org
+To: rob@landley.net, paulmck@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include linux/types.h in if_fddi.h
+     Add Documentation/RCU/00-Index
 has been removed from the -mm tree.  Its filename was
-     include-linux-typesh-in-if_fddih.patch
+     add-documentation-rcu-00-index.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: include linux/types.h in if_fddi.h
-From: Olaf Hering <olaf@aepfle.de>
+Subject: Add Documentation/RCU/00-Index
+From: Rob Landley <rob@landley.net>
 
-include/linux/if_fddi.h is an exported header.
-It uses __be16. Include linux/types.h to get this prototype.
+Add Documentation/RCU/00-INDEX
 
-Signed-off-by: Olaf Hering <olaf@aepfle.de>
-Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
+Signed-off-by: Rob Landley <rob@landley.net>
+Acked-by: Paul E. McKenney <paulmck@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/if_fddi.h |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/RCU/00-INDEX |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff -puN include/linux/if_fddi.h~include-linux-typesh-in-if_fddih include/linux/if_fddi.h
---- a/include/linux/if_fddi.h~include-linux-typesh-in-if_fddih
-+++ a/include/linux/if_fddi.h
-@@ -24,6 +24,8 @@
- #ifndef _LINUX_IF_FDDI_H
- #define _LINUX_IF_FDDI_H
- 
-+#include <linux/types.h>
-+
- /*
-  *  Define max and min legal sizes.  The frame sizes do not include
-  *  4 byte FCS/CRC (frame check sequence).
+diff -puN /dev/null Documentation/RCU/00-INDEX
+--- /dev/null
++++ a/Documentation/RCU/00-INDEX
+@@ -0,0 +1,22 @@
++00-INDEX
++	- This file
++arrayRCU.txt
++	- Using RCU to Protect Read-Mostly Arrays
++checklist.txt
++	- Review Checklist for RCU Patches
++listRCU.txt
++	- Using RCU to Protect Read-Mostly Linked Lists
++NMI-RCU.txt
++	- Using RCU to Protect Dynamic NMI Handlers
++rcuref.txt
++	- Reference-count design for elements of lists/arrays protected by RCU
++rcu.txt
++	- RCU Concepts
++RTFP.txt
++	- List of RCU papers (bibliography) going back to 1980.
++torture.txt
++	- RCU Torture Test Operation (CONFIG_RCU_TORTURE_TEST)
++UP.txt
++	- RCU on Uniprocessor Systems
++whatisRCU.txt
++	- What is RCU?
 _
 
-Patches currently in -mm which might be from olaf@aepfle.de are
+Patches currently in -mm which might be from rob@landley.net are
 
 origin.patch
-keep-track-of-network-interface-renaming.patch
+comment-typo-in-scripts-kconfig-makefile.patch
