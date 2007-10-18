@@ -1,209 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - pm-rework-struct-platform_suspend_ops-fixup.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 01:27:34 -0700
-Message-ID: <200710180827.l9I8RYUM002083@imap1.linux-foundation.org>
+Subject: - serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 01:28:29 -0700
+Message-ID: <200710180828.l9I8STtX002173@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36962 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57348 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756856AbXJRI2w (ORCPT
+	by vger.kernel.org with ESMTP id S1755659AbXJRI3x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 04:28:52 -0400
+	Thu, 18 Oct 2007 04:29:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, domen.puncer@telargo.com, jfannin@gmail.com, lenb@kernel.org, paulus@samba.org, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: dilinger@queued.net, dilinger@debian.org, nigel@suspend2.net, pavel@ucw.cz, rjw@sisk.pl, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PM: Rework struct platform_suspend_ops fixup
+     serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option update
 has been removed from the -mm tree.  Its filename was
-     pm-rework-struct-platform_suspend_ops-fixup.patch
+     serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
 
-This patch was dropped because it was folded into pm-rework-struct-platform_suspend_ops.patch
+This patch was dropped because it was folded into serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch
 
 ------------------------------------------------------
-Subject: PM: Rework struct platform_suspend_ops fixup
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option update
+From: Andres Salomon <dilinger@queued.net>
 
-A recently merged powerpc update has overlapped with the changes introduced by
-the following patches:
+Russell King <rmk@arm.linux.org.uk> wrote:
 
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
+> On Tue, Aug 14, 2007 at 12:37:52PM -0700, akpm@linux-foundation.org wrote:
+[...]
+> > @@ -810,7 +810,15 @@ int update_console_cmdline(char *name, i
+> >  	return -1;
+> >  }
+> >
+> > -#ifndef CONFIG_DISABLE_CONSOLE_SUSPEND
+> > +int console_suspend_enabled = 1;
+>
+> This needs to be exported.
+>
 
-As a result, mpc5200 and lite5200 need to be modified to follow the reworked
-suspend core.
+Thanks for pointing that out; I've updated the patch.  Andrew, can you
+please swap this one in?
 
-Thanks to Joseph Fannin <jfannin@gmail.com> for reporting the problem and
-helping to fix it.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Joseph Fannin <jfannin@gmail.com>
-Cc: Domen Puncer <domen.puncer@telargo.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Andres Salomon <dilinger@debian.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Nigel Cunningham <nigel@suspend2.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/52xx/lite5200_pm.c |   33 +++++++++++++-------
- arch/powerpc/platforms/52xx/mpc52xx_pm.c  |    4 +-
- include/asm-powerpc/mpc52xx.h             |    6 ++-
- 3 files changed, 28 insertions(+), 15 deletions(-)
+ kernel/printk.c |    1 +
+ 1 files changed, 1 insertion(+)
 
-diff -puN arch/powerpc/platforms/52xx/lite5200_pm.c~pm-rework-struct-platform_suspend_ops-fixup arch/powerpc/platforms/52xx/lite5200_pm.c
---- a/arch/powerpc/platforms/52xx/lite5200_pm.c~pm-rework-struct-platform_suspend_ops-fixup
-+++ a/arch/powerpc/platforms/52xx/lite5200_pm.c
-@@ -1,5 +1,5 @@
- #include <linux/init.h>
--#include <linux/pm.h>
-+#include <linux/suspend.h>
- #include <asm/io.h>
- #include <asm/time.h>
- #include <asm/mpc52xx.h>
-@@ -18,6 +18,8 @@ static void __iomem *sram;
- static const int sram_size = 0x4000;	/* 16 kBytes */
- static void __iomem *mbar;
- 
-+static suspend_state_t lite5200_pm_target_state;
-+
- static int lite5200_pm_valid(suspend_state_t state)
- {
- 	switch (state) {
-@@ -29,13 +31,22 @@ static int lite5200_pm_valid(suspend_sta
- 	}
+diff -puN kernel/printk.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update kernel/printk.c
+--- a/kernel/printk.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update
++++ a/kernel/printk.c
+@@ -811,6 +811,7 @@ int update_console_cmdline(char *name, i
  }
  
--static int lite5200_pm_prepare(suspend_state_t state)
-+static int lite5200_pm_set_target(suspend_state_t state)
-+{
-+	if (lite5200_pm_valid(state)) {
-+		lite5200_pm_target_state = state;
-+		return 0;
-+	}
-+	return -EINVAL;
-+}
-+
-+static int lite5200_pm_prepare(void)
+ int console_suspend_enabled = 1;
++EXPORT_SYMBOL(console_suspend_enabled);
+ 
+ static int __init console_suspend_disable(char *str)
  {
- 	/* deep sleep? let mpc52xx code handle that */
--	if (state == PM_SUSPEND_STANDBY)
--		return mpc52xx_pm_prepare(state);
-+	if (lite5200_pm_target_state == PM_SUSPEND_STANDBY)
-+		return mpc52xx_pm_prepare();
- 
--	if (state != PM_SUSPEND_MEM)
-+	if (lite5200_pm_target_state != PM_SUSPEND_MEM)
- 		return -EINVAL;
- 
- 	/* map registers */
-@@ -190,17 +201,17 @@ static int lite5200_pm_enter(suspend_sta
- 	return 0;
- }
- 
--static int lite5200_pm_finish(suspend_state_t state)
-+static void lite5200_pm_finish(void)
- {
- 	/* deep sleep? let mpc52xx code handle that */
--	if (state == PM_SUSPEND_STANDBY) {
--		return mpc52xx_pm_finish(state);
-+	if (lite5200_pm_target_state == PM_SUSPEND_STANDBY) {
-+		mpc52xx_pm_finish();
- 	}
--	return 0;
- }
- 
--static struct pm_ops lite5200_pm_ops = {
-+static struct platform_suspend_ops lite5200_pm_ops = {
- 	.valid		= lite5200_pm_valid,
-+	.set_target	= lite5200_pm_set_target,
- 	.prepare	= lite5200_pm_prepare,
- 	.enter		= lite5200_pm_enter,
- 	.finish		= lite5200_pm_finish,
-@@ -208,6 +219,6 @@ static struct pm_ops lite5200_pm_ops = {
- 
- int __init lite5200_pm_init(void)
- {
--	pm_set_ops(&lite5200_pm_ops);
-+	suspend_set_ops(&lite5200_pm_ops);
- 	return 0;
- }
-diff -puN arch/powerpc/platforms/52xx/mpc52xx_pm.c~pm-rework-struct-platform_suspend_ops-fixup arch/powerpc/platforms/52xx/mpc52xx_pm.c
---- a/arch/powerpc/platforms/52xx/mpc52xx_pm.c~pm-rework-struct-platform_suspend_ops-fixup
-+++ a/arch/powerpc/platforms/52xx/mpc52xx_pm.c
-@@ -57,7 +57,7 @@ int mpc52xx_set_wakeup_gpio(u8 pin, u8 l
- 	return 0;
- }
- 
--static int mpc52xx_pm_prepare(void)
-+int mpc52xx_pm_prepare(void)
- {
- 	/* map the whole register space */
- 	mbar = mpc52xx_find_and_map("mpc5200");
-@@ -163,7 +163,7 @@ int mpc52xx_pm_enter(suspend_state_t sta
- 	return 0;
- }
- 
--static void mpc52xx_pm_finish(void)
-+void mpc52xx_pm_finish(void)
- {
- 	/* call board resume code */
- 	if (mpc52xx_suspend.board_resume_finish)
-diff -puN include/asm-powerpc/mpc52xx.h~pm-rework-struct-platform_suspend_ops-fixup include/asm-powerpc/mpc52xx.h
---- a/include/asm-powerpc/mpc52xx.h~pm-rework-struct-platform_suspend_ops-fixup
-+++ a/include/asm-powerpc/mpc52xx.h
-@@ -18,6 +18,8 @@
- #include <asm/prom.h>
- #endif /* __ASSEMBLY__ */
- 
-+#include <linux/suspend.h>
-+
- 
- /* ======================================================================== */
- /* Structures mapping of some unit register set                             */
-@@ -267,9 +269,9 @@ extern int mpc52xx_set_wakeup_gpio(u8 pi
- extern int __init lite5200_pm_init(void);
- 
- /* lite5200 calls mpc5200 suspend functions, so here they are */
--extern int mpc52xx_pm_prepare(suspend_state_t);
-+extern int mpc52xx_pm_prepare(void);
- extern int mpc52xx_pm_enter(suspend_state_t);
--extern int mpc52xx_pm_finish(suspend_state_t);
-+extern void mpc52xx_pm_finish(void);
- extern char saved_sram[0x4000]; /* reuse buffer from mpc52xx suspend */
- #endif
- #endif /* CONFIG_PM */
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from dilinger@queued.net are
 
 origin.patch
-make-kernel-power-maincsuspend_enter-static.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-rework-struct-platform_suspend_ops-fixup.patch
-pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-freezer-document-relationship-with-memory-shrinking.patch
-freezer-do-not-sync-filesystems-from-freeze_processes.patch
-freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
-freezer-introduce-freezer-firendly-waiting-macros.patch
-freezer-introduce-freezer-firendly-waiting-macros-fix.patch
-freezer-do-not-send-signals-to-kernel-threads.patch
-unexport-pm_power_off_prepare.patch
-pm_trace-displays-the-wrong-time-from-the-rtc.patch
-freezer-be-more-verbose.patch
-freezer-measure-freezing-time.patch
 serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch
 serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-s2ram-kill-old-debugging-junk.patch
-hibernation-arbitrary-boot-kernel-support-generic-code-rev-2.patch
-hibernation-arbitrary-boot-kernel-support-on-x86_64-rev-2.patch
-hibernation-pass-cr3-in-the-image-header-on-x86_64-rev-2.patch
-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
-hibernation-check-if-acpi-is-enabled-during-restore-in-the-right-place.patch
-hibernation-enter-platform-hibernation-state-in-a-consistent-way-rev-4.patch
-hibernation-enter-platform-hibernation-state-in-a-consistent-way-rev-4-fix.patch
