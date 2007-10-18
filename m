@@ -1,158 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - jsm-remove-further-unneeded-crud.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:55:55 -0700
-Message-ID: <200710180655.l9I6ttLb030654@imap1.linux-foundation.org>
+Subject: - completely-remove-deprecated-irq-flags-sa_.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:01:33 -0700
+Message-ID: <200710180701.l9I71XRt031185@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37993 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54760 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759132AbXJRHi1 (ORCPT
+	by vger.kernel.org with ESMTP id S1760833AbXJRHib (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:38:27 -0400
+	Thu, 18 Oct 2007 03:38:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, michal.k.k.piotrowski@gmail.com, scottk@digi.com, mm-commits@vger.kernel.org
+To: darwish.07@gmail.com, James.Bottomley@steeleye.com, ralf@linux-mips.org, willy@debian.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jsm: Remove further unneeded crud
+     Completely remove deprecated IRQ flags (SA_*)
 has been removed from the -mm tree.  Its filename was
-     jsm-remove-further-unneeded-crud.patch
+     completely-remove-deprecated-irq-flags-sa_.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: jsm: Remove further unneeded crud
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Completely remove deprecated IRQ flags (SA_*)
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-Remove some remaining vestiges of the old hacks jsm had to work around the old
-tty buffering.  With the new tty buffering it simply doesn't matter any more.
+Only very little files use the deprecated SA_* IRQ flags in latest pull.  This
+patch series removes such macros from the tree and transfrom old code to the
+new IRQF_* flags.
 
-[michal.k.k.piotrowski@gmail.com: fix warning]
-Signed-off-by: Alan Cox <alan@redhat.com>
-Acked-by: Scott Kilau <scottk@digi.com> 
-Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+I've grepped the whole tree to make sure that no more files than the patched
+ones use such deprecated macros.  I hope this series won't introduce build
+errors.
+
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Matthew Wilcox <willy@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/jsm/jsm_tty.c |   43 ++-------------------------------
- 1 file changed, 3 insertions(+), 40 deletions(-)
+ include/linux/interrupt.h |   22 ----------------------
+ 1 file changed, 22 deletions(-)
 
-diff -puN drivers/serial/jsm/jsm_tty.c~jsm-remove-further-unneeded-crud drivers/serial/jsm/jsm_tty.c
---- a/drivers/serial/jsm/jsm_tty.c~jsm-remove-further-unneeded-crud
-+++ a/drivers/serial/jsm/jsm_tty.c
-@@ -500,13 +500,11 @@ void jsm_input(struct jsm_channel *ch)
- {
- 	struct jsm_board *bd;
- 	struct tty_struct *tp;
--	struct tty_ldisc *ld;
- 	u32 rmask;
- 	u16 head;
- 	u16 tail;
- 	int data_len;
- 	unsigned long lock_flags;
--	int flip_len = 0;
- 	int len = 0;
- 	int n = 0;
- 	int s = 0;
-@@ -574,45 +572,13 @@ void jsm_input(struct jsm_channel *ch)
+diff -puN include/linux/interrupt.h~completely-remove-deprecated-irq-flags-sa_ include/linux/interrupt.h
+--- a/include/linux/interrupt.h~completely-remove-deprecated-irq-flags-sa_
++++ a/include/linux/interrupt.h
+@@ -55,28 +55,6 @@
+ #define IRQF_NOBALANCING	0x00000800
+ #define IRQF_IRQPOLL		0x00001000
  
- 	jsm_printk(READ, INFO, &ch->ch_bd->pci_dev, "start 2\n");
- 
--	/*
--	 * If the rxbuf is empty and we are not throttled, put as much
--	 * as we can directly into the linux TTY buffer.
--	 *
--	 */
--	flip_len = TTY_FLIPBUF_SIZE;
+-/*
+- * Migration helpers. Scheduled for removal in 9/2007
+- * Do not use for new code !
+- */
+-static inline
+-unsigned long __deprecated deprecated_irq_flag(unsigned long flag)
+-{
+-	return flag;
+-}
 -
--	len = min(data_len, flip_len);
--	len = min(len, (N_TTY_BUF_SIZE - 1) - tp->read_cnt);
--	ld = tty_ldisc_ref(tp);
+-#define SA_INTERRUPT		deprecated_irq_flag(IRQF_DISABLED)
+-#define SA_SAMPLE_RANDOM	deprecated_irq_flag(IRQF_SAMPLE_RANDOM)
+-#define SA_SHIRQ		deprecated_irq_flag(IRQF_SHARED)
+-#define SA_PROBEIRQ		deprecated_irq_flag(IRQF_PROBE_SHARED)
+-#define SA_PERCPU		deprecated_irq_flag(IRQF_PERCPU)
 -
--	/*
--	 * If we were unable to get a reference to the ld,
--	 * don't flush our buffer, and act like the ld doesn't
--	 * have any space to put the data right now.
--	 */
--	if (!ld) {
--		len = 0;
--	} else {
--		/*
--		 * If ld doesn't have a pointer to a receive_buf function,
--		 * flush the data, then act like the ld doesn't have any
--		 * space to put the data right now.
--		 */
--		if (!ld->receive_buf) {
--				ch->ch_r_head = ch->ch_r_tail;
--				len = 0;
--		}
--	}
+-#define SA_TRIGGER_LOW		deprecated_irq_flag(IRQF_TRIGGER_LOW)
+-#define SA_TRIGGER_HIGH		deprecated_irq_flag(IRQF_TRIGGER_HIGH)
+-#define SA_TRIGGER_FALLING	deprecated_irq_flag(IRQF_TRIGGER_FALLING)
+-#define SA_TRIGGER_RISING	deprecated_irq_flag(IRQF_TRIGGER_RISING)
+-#define SA_TRIGGER_MASK		deprecated_irq_flag(IRQF_TRIGGER_MASK)
 -
--	if (len <= 0) {
-+	if (data_len <= 0) {
- 		spin_unlock_irqrestore(&ch->ch_lock, lock_flags);
- 		jsm_printk(READ, INFO, &ch->ch_bd->pci_dev, "jsm_input 1\n");
--		if (ld)
--			tty_ldisc_deref(ld);
- 		return;
- 	}
+ typedef irqreturn_t (*irq_handler_t)(int, void *);
  
--	len = tty_buffer_request_room(tp, len);
-+	len = tty_buffer_request_room(tp, data_len);
- 	n = len;
- 
- 	/*
-@@ -647,7 +613,7 @@ void jsm_input(struct jsm_channel *ch)
- 				else if (*(ch->ch_equeue +tail +i) & UART_LSR_FE)
- 					tty_insert_flip_char(tp, *(ch->ch_rqueue +tail +i), TTY_FRAME);
- 				else
--				tty_insert_flip_char(tp, *(ch->ch_rqueue +tail +i), TTY_NORMAL);
-+					tty_insert_flip_char(tp, *(ch->ch_rqueue +tail +i), TTY_NORMAL);
- 			}
- 		} else {
- 			tty_insert_flip_string(tp, ch->ch_rqueue + tail, s) ;
-@@ -666,9 +632,6 @@ void jsm_input(struct jsm_channel *ch)
- 	/* Tell the tty layer its okay to "eat" the data now */
- 	tty_flip_buffer_push(tp);
- 
--	if (ld)
--		tty_ldisc_deref(ld);
--
- 	jsm_printk(IOCTL, INFO, &ch->ch_bd->pci_dev, "finish\n");
- }
- 
+ struct irqaction {
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
 origin.patch
-tty_ioctl-fix-the-baud_table-check-in-encode_baud_rate.patch
-git-libata-all.patch
-pata_cs5536-mwdma-fix.patch
-libata-sff-correct-use-of-check_status.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-git-scsi-misc.patch
-initio-fix-conflict-when-loading-driver.patch
-isd200-sort-out-usb-ide-dependancy-mess.patch
-sysctl-remove-broken-cdrom-binary-sysctls.patch
-mxser-remove-commented-crap.patch
-char-cyclades-remove-bottom-half-processing.patch
-usb_serial-stop-passing-null-to-functions-that-expect-data.patch
-ark3116-update-termios-handling.patch
-usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch
-ch341-fix-termios-handling.patch
-digi_acceleport-fix-termios-and-also-readability-a-bit.patch
-empeg-clean-up-and-handle-speeds.patch
-ir_usb-termios-handling.patch
-keyspan-termios-tidy.patch
-kobil_sct-termios-encoding-fixups.patch
-option-termios-handling.patch
-sierra-termios.patch
-usb-serial-handle-null-termios-methods-as-no-hardware-changing-support.patch
-whiteheat-clean-up-cant-happen-checks-and-encode-baud.patch
-cp2101-convert-to-new-termios.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-io_edgeport-cleanups-and-tty-speed-reporting.patch
-tty-kill-tty_flipbuf_size.patch
+git-kvm.patch
