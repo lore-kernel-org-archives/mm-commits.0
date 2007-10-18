@@ -1,135 +1,258 @@
 From: akpm@linux-foundation.org
-Subject: - use-kmem_cache-macro-to-create-the-nsproxy-cache.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:01:06 -0700
-Message-ID: <200710180701.l9I716hX031149@imap1.linux-foundation.org>
+Subject: - pnp-use-dev_info-dev_err-etc-in-core.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:03:54 -0700
+Message-ID: <200710180703.l9I73sjn031479@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60923 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56018 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759673AbXJRHff (ORCPT
+	by vger.kernel.org with ESMTP id S1760486AbXJRHgR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:35:35 -0400
+	Thu, 18 Oct 2007 03:36:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, clg@fr.ibm.com, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: bjorn.helgaas@hp.com, ambx1@neo.rr.com, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use KMEM_CACHE macro to create the nsproxy cache
+     PNP: use dev_info(), dev_err(), etc in core
 has been removed from the -mm tree.  Its filename was
-     use-kmem_cache-macro-to-create-the-nsproxy-cache.patch
+     pnp-use-dev_info-dev_err-etc-in-core.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Use KMEM_CACHE macro to create the nsproxy cache
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: PNP: use dev_info(), dev_err(), etc in core
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-The blessed way for standard caches is to use it.  Besides, this may give
-this cache a better alignment.
+If we have the struct pnp_dev available, we can use dev_info(), dev_err(),
+etc., to give a little more information and consistency.
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Acked-by: Cedric Le Goater <clg@fr.ibm.com>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
+[akpm@linux-foundation.org: fix warning]
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/nsproxy.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/pnp/Makefile    |    4 ++++
+ drivers/pnp/card.c      |    3 +--
+ drivers/pnp/driver.c    |    5 ++---
+ drivers/pnp/interface.c |    3 +--
+ drivers/pnp/manager.c   |   31 ++++++++++++-------------------
+ drivers/pnp/quirks.c    |   12 ++++++++++--
+ drivers/pnp/resource.c  |    2 +-
+ 7 files changed, 31 insertions(+), 29 deletions(-)
 
-diff -puN kernel/nsproxy.c~use-kmem_cache-macro-to-create-the-nsproxy-cache kernel/nsproxy.c
---- a/kernel/nsproxy.c~use-kmem_cache-macro-to-create-the-nsproxy-cache
-+++ a/kernel/nsproxy.c
-@@ -203,8 +203,7 @@ int unshare_nsproxy_namespaces(unsigned 
+diff -puN drivers/pnp/Makefile~pnp-use-dev_info-dev_err-etc-in-core drivers/pnp/Makefile
+--- a/drivers/pnp/Makefile~pnp-use-dev_info-dev_err-etc-in-core
++++ a/drivers/pnp/Makefile
+@@ -7,3 +7,7 @@ obj-y		:= core.o card.o driver.o resourc
+ obj-$(CONFIG_PNPACPI)		+= pnpacpi/
+ obj-$(CONFIG_PNPBIOS)		+= pnpbios/
+ obj-$(CONFIG_ISAPNP)		+= isapnp/
++
++ifeq ($(CONFIG_PNP_DEBUG),y)
++EXTRA_CFLAGS += -DDEBUG
++endif
+diff -puN drivers/pnp/card.c~pnp-use-dev_info-dev_err-etc-in-core drivers/pnp/card.c
+--- a/drivers/pnp/card.c~pnp-use-dev_info-dev_err-etc-in-core
++++ a/drivers/pnp/card.c
+@@ -198,8 +198,7 @@ int pnp_add_card(struct pnp_card *card)
+ 	card->dev.release = &pnp_release_card;
+ 	error = device_register(&card->dev);
+ 	if (error) {
+-		pnp_err("sysfs failure, card '%s' will be unavailable",
+-			card->dev.bus_id);
++		dev_err(&card->dev, "could not register (err=%d)\n", error);
+ 		return error;
+ 	}
  
- static int __init nsproxy_cache_init(void)
+diff -puN drivers/pnp/driver.c~pnp-use-dev_info-dev_err-etc-in-core drivers/pnp/driver.c
+--- a/drivers/pnp/driver.c~pnp-use-dev_info-dev_err-etc-in-core
++++ a/drivers/pnp/driver.c
+@@ -86,9 +86,6 @@ static int pnp_device_probe(struct devic
+ 	pnp_dev = to_pnp_dev(dev);
+ 	pnp_drv = to_pnp_driver(dev->driver);
+ 
+-	pnp_dbg("match found with the PnP device '%s' and the driver '%s'",
+-		dev->bus_id, pnp_drv->name);
+-
+ 	error = pnp_device_attach(pnp_dev);
+ 	if (error < 0)
+ 		return error;
+@@ -116,6 +113,8 @@ static int pnp_device_probe(struct devic
+ 		error = 0;
+ 	} else
+ 		goto fail;
++
++	dev_dbg(dev, "driver attached\n");
+ 	return error;
+ 
+ fail:
+diff -puN drivers/pnp/interface.c~pnp-use-dev_info-dev_err-etc-in-core drivers/pnp/interface.c
+--- a/drivers/pnp/interface.c~pnp-use-dev_info-dev_err-etc-in-core
++++ a/drivers/pnp/interface.c
+@@ -327,8 +327,7 @@ pnp_set_current_resources(struct device 
+ 
+ 	if (dev->status & PNP_ATTACHED) {
+ 		retval = -EBUSY;
+-		pnp_info("Device %s cannot be configured because it is in use.",
+-			 dev->dev.bus_id);
++		dev_info(&dev->dev, "in use; can't configure\n");
+ 		goto done;
+ 	}
+ 
+diff -puN drivers/pnp/manager.c~pnp-use-dev_info-dev_err-etc-in-core drivers/pnp/manager.c
+--- a/drivers/pnp/manager.c~pnp-use-dev_info-dev_err-etc-in-core
++++ a/drivers/pnp/manager.c
+@@ -22,8 +22,7 @@ static int pnp_assign_port(struct pnp_de
+ 	unsigned long *flags;
+ 
+ 	if (idx >= PNP_MAX_PORT) {
+-		pnp_err
+-		    ("More than 4 ports is incompatible with pnp specifications.");
++		dev_err(&dev->dev, "too many I/O port resources\n");
+ 		/* pretend we were successful so at least the manager won't try again */
+ 		return 1;
+ 	}
+@@ -64,8 +63,7 @@ static int pnp_assign_mem(struct pnp_dev
+ 	unsigned long *flags;
+ 
+ 	if (idx >= PNP_MAX_MEM) {
+-		pnp_err
+-		    ("More than 8 mems is incompatible with pnp specifications.");
++		dev_err(&dev->dev, "too many memory resources\n");
+ 		/* pretend we were successful so at least the manager won't try again */
+ 		return 1;
+ 	}
+@@ -122,8 +120,7 @@ static int pnp_assign_irq(struct pnp_dev
+ 	};
+ 
+ 	if (idx >= PNP_MAX_IRQ) {
+-		pnp_err
+-		    ("More than 2 irqs is incompatible with pnp specifications.");
++		dev_err(&dev->dev, "too many IRQ resources\n");
+ 		/* pretend we were successful so at least the manager won't try again */
+ 		return 1;
+ 	}
+@@ -173,8 +170,7 @@ static void pnp_assign_dma(struct pnp_de
+ 	};
+ 
+ 	if (idx >= PNP_MAX_DMA) {
+-		pnp_err("More than 2 dmas is incompatible with pnp "
+-			"specifications.");
++		dev_err(&dev->dev, "too many DMA resources\n");
+ 		return;
+ 	}
+ 
+@@ -442,8 +438,7 @@ int pnp_auto_config_dev(struct pnp_dev *
+ 	int i = 1;
+ 
+ 	if (!pnp_can_configure(dev)) {
+-		pnp_dbg("Device %s does not support resource configuration.",
+-			dev->dev.bus_id);
++		dev_dbg(&dev->dev, "configuration not supported\n");
+ 		return -ENODEV;
+ 	}
+ 
+@@ -460,7 +455,7 @@ int pnp_auto_config_dev(struct pnp_dev *
+ 		} while (dep);
+ 	}
+ 
+-	pnp_err("Unable to assign resources to device %s.", dev->dev.bus_id);
++	dev_err(&dev->dev, "unable to assign resources\n");
+ 	return -EBUSY;
+ }
+ 
+@@ -473,17 +468,16 @@ int pnp_auto_config_dev(struct pnp_dev *
+ int pnp_start_dev(struct pnp_dev *dev)
  {
--	nsproxy_cachep = kmem_cache_create("nsproxy", sizeof(struct nsproxy),
--					   0, SLAB_PANIC, NULL);
-+	nsproxy_cachep = KMEM_CACHE(nsproxy, SLAB_PANIC);
+ 	if (!pnp_can_write(dev)) {
+-		pnp_dbg("Device %s does not support activation.",
+-			dev->dev.bus_id);
++		dev_dbg(&dev->dev, "activation not supported\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (dev->protocol->set(dev, &dev->res) < 0) {
+-		pnp_err("Failed to activate device %s.", dev->dev.bus_id);
++		dev_err(&dev->dev, "activation failed\n");
+ 		return -EIO;
+ 	}
+ 
+-	pnp_info("Device %s activated.", dev->dev.bus_id);
++	dev_info(&dev->dev, "activated\n");
  	return 0;
  }
  
+@@ -496,16 +490,15 @@ int pnp_start_dev(struct pnp_dev *dev)
+ int pnp_stop_dev(struct pnp_dev *dev)
+ {
+ 	if (!pnp_can_disable(dev)) {
+-		pnp_dbg("Device %s does not support disabling.",
+-			dev->dev.bus_id);
++		dev_dbg(&dev->dev, "disabling not supported\n");
+ 		return -EINVAL;
+ 	}
+ 	if (dev->protocol->disable(dev) < 0) {
+-		pnp_err("Failed to disable device %s.", dev->dev.bus_id);
++		dev_err(&dev->dev, "disable failed\n");
+ 		return -EIO;
+ 	}
+ 
+-	pnp_info("Device %s disabled.", dev->dev.bus_id);
++	dev_info(&dev->dev, "disabled\n");
+ 	return 0;
+ }
+ 
+diff -puN drivers/pnp/quirks.c~pnp-use-dev_info-dev_err-etc-in-core drivers/pnp/quirks.c
+--- a/drivers/pnp/quirks.c~pnp-use-dev_info-dev_err-etc-in-core
++++ a/drivers/pnp/quirks.c
+@@ -17,6 +17,7 @@
+ #include <linux/slab.h>
+ #include <linux/pnp.h>
+ #include <linux/io.h>
++#include <linux/kallsyms.h>
+ #include "base.h"
+ 
+ static void quirk_awe32_resources(struct pnp_dev *dev)
+@@ -133,11 +134,18 @@ static struct pnp_fixup pnp_fixups[] = {
+ void pnp_fixup_device(struct pnp_dev *dev)
+ {
+ 	int i = 0;
++	void (*quirk)(struct pnp_dev *);
+ 
+ 	while (*pnp_fixups[i].id) {
+ 		if (compare_pnp_id(dev->id, pnp_fixups[i].id)) {
+-			pnp_dbg("Calling quirk for %s", dev->dev.bus_id);
+-			pnp_fixups[i].quirk_function(dev);
++			quirk = pnp_fixups[i].quirk_function;
++
++#ifdef DEBUG
++			dev_dbg(&dev->dev, "calling quirk 0x%p", quirk);
++			print_fn_descriptor_symbol(": %s()\n",
++				(unsigned long) *quirk);
++#endif
++			(*quirk)(dev);
+ 		}
+ 		i++;
+ 	}
+diff -puN drivers/pnp/resource.c~pnp-use-dev_info-dev_err-etc-in-core drivers/pnp/resource.c
+--- a/drivers/pnp/resource.c~pnp-use-dev_info-dev_err-etc-in-core
++++ a/drivers/pnp/resource.c
+@@ -51,7 +51,7 @@ struct pnp_option *pnp_register_independ
+ 
+ 	/* this should never happen but if it does we'll try to continue */
+ 	if (dev->independent)
+-		pnp_err("independent resource already registered");
++		dev_err(&dev->dev, "independent resource already registered\n");
+ 	dev->independent = option;
+ 	return option;
+ }
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
 origin.patch
-git-x86.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-make-access-to-tasks-nsproxy-lighter.patch
-make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
-make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-merge-fix.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-sys_getsid-sys_getpgid-return-wrong-id-for-task-from-another.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-sys_setpgrp-to-work-between-namespaces.patch
-uninline-find_task_by_xxx-set-of-functions.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
-uninline-find_pid-etc-set-of-functions.patch
-uninline-the-task_xid_nr_ns-calls.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-resource-counters-v7-fix.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
-use-helpers-to-obtain-task-pid-in-printks.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-arch-code.patch
-remove-unused-variables-from-fs-proc-basec.patch
-use-task_pid_nr-in-ip_vs_syncc.patch
-use-task_pid_nr-instead-of-pid_nrtask_pid.patch
-reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
