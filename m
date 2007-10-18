@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch added to -mm tree
-Date: Wed, 17 Oct 2007 20:59:21 -0700
-Message-ID: <200710180359.l9I3xLYR024181@imap1.linux-foundation.org>
+Subject: + ext2-avoid-rec_len-overflow-with-64kb-block-size.patch added to -mm tree
+Date: Wed, 17 Oct 2007 21:09:51 -0700
+Message-ID: <200710180409.l9I49pRb024573__38322.0838419676$1192680642$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50273 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55692 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750813AbXJREFc (ORCPT
+	by vger.kernel.org with ESMTP id S1761875AbXJREJ4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 00:05:32 -0400
+	Thu, 18 Oct 2007 00:09:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org
+Cc: jack@suse.cz, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     bugfix for memory controller: add helper function for assigning cgroup to page
+     ext2: avoid rec_len overflow with 64KB block size
 has been added to the -mm tree.  Its filename is
-     bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+     ext2-avoid-rec_len-overflow-with-64kb-block-size.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,204 +26,170 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: bugfix for memory controller: add helper function for assigning cgroup to page
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: ext2: avoid rec_len overflow with 64KB block size
+From: Jan Kara <jack@suse.cz>
 
-This patch adds following functions.
-   - clear_page_cgroup(page, pc)
-   - page_cgroup_assign_new_page_group(page, pc)
+With 64KB blocksize, a directory entry can have size 64KB which does not
+fit into 16 bits we have for entry length.  So we store 0xffff instead and
+convert the value when read from / written to disk.
 
-Mainly for cleanup.
-
-A manner "check page->cgroup again after lock_page_cgroup()" is
-implemented in straight way.
-
-A comment in mem_cgroup_uncharge() will be removed by force-empty patch
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Paul Menage <menage@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |  105 +++++++++++++++++++++++++++++++++-------------
- 1 file changed, 76 insertions(+), 29 deletions(-)
+ fs/ext2/dir.c           |   44 +++++++++++++++++++++++++++-----------
+ include/linux/ext2_fs.h |    1 
+ 2 files changed, 33 insertions(+), 12 deletions(-)
 
-diff -puN mm/memcontrol.c~bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page mm/memcontrol.c
---- a/mm/memcontrol.c~bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page
-+++ a/mm/memcontrol.c
-@@ -162,6 +162,48 @@ static void __always_inline unlock_page_
- 	bit_spin_unlock(PAGE_CGROUP_LOCK_BIT, &page->page_cgroup);
- }
+diff -puN fs/ext2/dir.c~ext2-avoid-rec_len-overflow-with-64kb-block-size fs/ext2/dir.c
+--- a/fs/ext2/dir.c~ext2-avoid-rec_len-overflow-with-64kb-block-size
++++ a/fs/ext2/dir.c
+@@ -28,6 +28,24 @@
  
-+/*
-+ * Tie new page_cgroup to struct page under lock_page_cgroup()
-+ * This can fail if the page has been tied to a page_cgroup.
-+ * If success, returns 0.
-+ */
-+static inline int
-+page_cgroup_assign_new_page_cgroup(struct page *page, struct page_cgroup *pc)
+ typedef struct ext2_dir_entry_2 ext2_dirent;
+ 
++static inline unsigned ext2_rec_len_from_disk(__le16 dlen)
 +{
-+	int ret = 0;
++	unsigned len = le16_to_cpu(dlen);
 +
-+	lock_page_cgroup(page);
-+	if (!page_get_page_cgroup(page))
-+		page_assign_page_cgroup(page, pc);
-+	else /* A page is tied to other pc. */
-+		ret = 1;
-+	unlock_page_cgroup(page);
-+	return ret;
++	if (len == EXT2_MAX_REC_LEN)
++		return 1 << 16;
++	return len;
 +}
 +
-+/*
-+ * Clear page->page_cgroup member under lock_page_cgroup().
-+ * If given "pc" value is different from one page->page_cgroup,
-+ * page->cgroup is not cleared.
-+ * Returns a value of page->page_cgroup at lock taken.
-+ * A can can detect failure of clearing by following
-+ *  clear_page_cgroup(page, pc) == pc
-+ */
-+
-+static inline struct page_cgroup *
-+clear_page_cgroup(struct page *page, struct page_cgroup *pc)
++static inline __le16 ext2_rec_len_to_disk(unsigned len)
 +{
-+	struct page_cgroup *ret;
-+	/* lock and clear */
-+	lock_page_cgroup(page);
-+	ret = page_get_page_cgroup(page);
-+	if (likely(ret == pc))
-+		page_assign_page_cgroup(page, NULL);
-+	unlock_page_cgroup(page);
-+	return ret;
++	if (len == (1 << 16))
++		return cpu_to_le16(EXT2_MAX_REC_LEN);
++	else if (len > (1 << 16))
++		BUG();
++	return cpu_to_le16(len);
 +}
 +
-+
- static void __mem_cgroup_move_lists(struct page_cgroup *pc, bool active)
+ /*
+  * ext2 uses block-sized chunks. Arguably, sector-sized ones would be
+  * more robust, but we have what we have
+@@ -106,7 +124,7 @@ static void ext2_check_page(struct page 
+ 	}
+ 	for (offs = 0; offs <= limit - EXT2_DIR_REC_LEN(1); offs += rec_len) {
+ 		p = (ext2_dirent *)(kaddr + offs);
+-		rec_len = le16_to_cpu(p->rec_len);
++		rec_len = ext2_rec_len_from_disk(p->rec_len);
+ 
+ 		if (rec_len < EXT2_DIR_REC_LEN(1))
+ 			goto Eshort;
+@@ -204,7 +222,8 @@ static inline int ext2_match (int len, c
+  */
+ static inline ext2_dirent *ext2_next_entry(ext2_dirent *p)
  {
- 	if (active)
-@@ -270,7 +312,7 @@ int mem_cgroup_charge(struct page *page,
- 				gfp_t gfp_mask)
- {
- 	struct mem_cgroup *mem;
--	struct page_cgroup *pc, *race_pc;
-+	struct page_cgroup *pc;
- 	unsigned long flags;
- 	unsigned long nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
- 
-@@ -293,8 +335,10 @@ retry:
- 			unlock_page_cgroup(page);
- 			cpu_relax();
- 			goto retry;
--		} else
-+		} else {
-+			unlock_page_cgroup(page);
- 			goto done;
-+		}
- 	}
- 
- 	unlock_page_cgroup(page);
-@@ -364,31 +408,26 @@ noreclaim:
- 		goto free_pc;
- 	}
- 
--	lock_page_cgroup(page);
--	/*
--	 * Check if somebody else beat us to allocating the page_cgroup
--	 */
--	race_pc = page_get_page_cgroup(page);
--	if (race_pc) {
--		kfree(pc);
--		pc = race_pc;
--		atomic_inc(&pc->ref_cnt);
--		res_counter_uncharge(&mem->res, PAGE_SIZE);
--		css_put(&mem->css);
--		goto done;
--	}
--
- 	atomic_set(&pc->ref_cnt, 1);
- 	pc->mem_cgroup = mem;
- 	pc->page = page;
--	page_assign_page_cgroup(page, pc);
-+	if (page_cgroup_assign_new_page_cgroup(page, pc)) {
-+		/*
-+		 * an another charge is added to this page already.
-+		 * we do take lock_page_cgroup(page) again and read
-+		 * page->cgroup, increment refcnt.... just retry is OK.
-+		 */
-+		res_counter_uncharge(&mem->res, PAGE_SIZE);
-+		css_put(&mem->css);
-+		kfree(pc);
-+		goto retry;
-+	}
- 
- 	spin_lock_irqsave(&mem->lru_lock, flags);
- 	list_add(&pc->lru, &mem->active_list);
- 	spin_unlock_irqrestore(&mem->lru_lock, flags);
- 
- done:
--	unlock_page_cgroup(page);
- 	return 0;
- free_pc:
- 	kfree(pc);
-@@ -432,17 +471,25 @@ void mem_cgroup_uncharge(struct page_cgr
- 
- 	if (atomic_dec_and_test(&pc->ref_cnt)) {
- 		page = pc->page;
--		lock_page_cgroup(page);
--		mem = pc->mem_cgroup;
--		css_put(&mem->css);
--		page_assign_page_cgroup(page, NULL);
--		unlock_page_cgroup(page);
--		res_counter_uncharge(&mem->res, PAGE_SIZE);
--
-- 		spin_lock_irqsave(&mem->lru_lock, flags);
-- 		list_del_init(&pc->lru);
-- 		spin_unlock_irqrestore(&mem->lru_lock, flags);
--		kfree(pc);
-+		/*
-+		 * get page->cgroup and clear it under lock.
-+		 */
-+		if (clear_page_cgroup(page, pc) == pc) {
-+			mem = pc->mem_cgroup;
-+			css_put(&mem->css);
-+			res_counter_uncharge(&mem->res, PAGE_SIZE);
-+			spin_lock_irqsave(&mem->lru_lock, flags);
-+			list_del_init(&pc->lru);
-+			spin_unlock_irqrestore(&mem->lru_lock, flags);
-+			kfree(pc);
-+		} else {
-+			/*
-+			 * Note:This will be removed when force-empty patch is
-+			 * applied. just show warning here.
-+			 */
-+			printk(KERN_ERR "Race in mem_cgroup_uncharge() ?");
-+			dump_stack();
-+		}
- 	}
+-	return (ext2_dirent *)((char*)p + le16_to_cpu(p->rec_len));
++	return (ext2_dirent *)((char*)p +
++			ext2_rec_len_from_disk(p->rec_len));
  }
  
+ static inline unsigned 
+@@ -316,7 +335,7 @@ ext2_readdir (struct file * filp, void *
+ 					return 0;
+ 				}
+ 			}
+-			filp->f_pos += le16_to_cpu(de->rec_len);
++			filp->f_pos += ext2_rec_len_from_disk(de->rec_len);
+ 		}
+ 		ext2_put_page(page);
+ 	}
+@@ -425,7 +444,7 @@ void ext2_set_link(struct inode *dir, st
+ {
+ 	loff_t pos = page_offset(page) +
+ 			(char *) de - (char *) page_address(page);
+-	unsigned len = le16_to_cpu(de->rec_len);
++	unsigned len = ext2_rec_len_from_disk(de->rec_len);
+ 	int err;
+ 
+ 	lock_page(page);
+@@ -482,7 +501,7 @@ int ext2_add_link (struct dentry *dentry
+ 				/* We hit i_size */
+ 				name_len = 0;
+ 				rec_len = chunk_size;
+-				de->rec_len = cpu_to_le16(chunk_size);
++				de->rec_len = ext2_rec_len_to_disk(chunk_size);
+ 				de->inode = 0;
+ 				goto got_it;
+ 			}
+@@ -496,7 +515,7 @@ int ext2_add_link (struct dentry *dentry
+ 			if (ext2_match (namelen, name, de))
+ 				goto out_unlock;
+ 			name_len = EXT2_DIR_REC_LEN(de->name_len);
+-			rec_len = le16_to_cpu(de->rec_len);
++			rec_len = ext2_rec_len_from_disk(de->rec_len);
+ 			if (!de->inode && rec_len >= reclen)
+ 				goto got_it;
+ 			if (rec_len >= name_len + reclen)
+@@ -518,8 +537,8 @@ got_it:
+ 		goto out_unlock;
+ 	if (de->inode) {
+ 		ext2_dirent *de1 = (ext2_dirent *) ((char *) de + name_len);
+-		de1->rec_len = cpu_to_le16(rec_len - name_len);
+-		de->rec_len = cpu_to_le16(name_len);
++		de1->rec_len = ext2_rec_len_to_disk(rec_len - name_len);
++		de->rec_len = ext2_rec_len_to_disk(name_len);
+ 		de = de1;
+ 	}
+ 	de->name_len = namelen;
+@@ -550,7 +569,8 @@ int ext2_delete_entry (struct ext2_dir_e
+ 	struct inode *inode = mapping->host;
+ 	char *kaddr = page_address(page);
+ 	unsigned from = ((char*)dir - kaddr) & ~(ext2_chunk_size(inode)-1);
+-	unsigned to = ((char*)dir - kaddr) + le16_to_cpu(dir->rec_len);
++	unsigned to = ((char*)dir - kaddr) +
++				ext2_rec_len_from_disk(dir->rec_len);
+ 	loff_t pos;
+ 	ext2_dirent * pde = NULL;
+ 	ext2_dirent * de = (ext2_dirent *) (kaddr + from);
+@@ -574,7 +594,7 @@ int ext2_delete_entry (struct ext2_dir_e
+ 							&page, NULL);
+ 	BUG_ON(err);
+ 	if (pde)
+-		pde->rec_len = cpu_to_le16(to - from);
++		pde->rec_len = ext2_rec_len_to_disk(to - from);
+ 	dir->inode = 0;
+ 	err = ext2_commit_chunk(page, pos, to - from);
+ 	inode->i_ctime = inode->i_mtime = CURRENT_TIME_SEC;
+@@ -610,14 +630,14 @@ int ext2_make_empty(struct inode *inode,
+ 	memset(kaddr, 0, chunk_size);
+ 	de = (struct ext2_dir_entry_2 *)kaddr;
+ 	de->name_len = 1;
+-	de->rec_len = cpu_to_le16(EXT2_DIR_REC_LEN(1));
++	de->rec_len = ext2_rec_len_to_disk(EXT2_DIR_REC_LEN(1));
+ 	memcpy (de->name, ".\0\0", 4);
+ 	de->inode = cpu_to_le32(inode->i_ino);
+ 	ext2_set_de_type (de, inode);
+ 
+ 	de = (struct ext2_dir_entry_2 *)(kaddr + EXT2_DIR_REC_LEN(1));
+ 	de->name_len = 2;
+-	de->rec_len = cpu_to_le16(chunk_size - EXT2_DIR_REC_LEN(1));
++	de->rec_len = ext2_rec_len_to_disk(chunk_size - EXT2_DIR_REC_LEN(1));
+ 	de->inode = cpu_to_le32(parent->i_ino);
+ 	memcpy (de->name, "..\0", 4);
+ 	ext2_set_de_type (de, inode);
+diff -puN include/linux/ext2_fs.h~ext2-avoid-rec_len-overflow-with-64kb-block-size include/linux/ext2_fs.h
+--- a/include/linux/ext2_fs.h~ext2-avoid-rec_len-overflow-with-64kb-block-size
++++ a/include/linux/ext2_fs.h
+@@ -561,6 +561,7 @@ enum {
+ #define EXT2_DIR_ROUND 			(EXT2_DIR_PAD - 1)
+ #define EXT2_DIR_REC_LEN(name_len)	(((name_len) + 8 + EXT2_DIR_ROUND) & \
+ 					 ~EXT2_DIR_ROUND)
++#define EXT2_MAX_REC_LEN		((1<<16)-1)
+ 
+ static inline ext2_fsblk_t
+ ext2_group_first_block_no(struct super_block *sb, unsigned long group_no)
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-origin.patch
-git-sh.patch
-task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups.patch
-task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
-memory-controller-make-charging-gfp-mask-aware-fix.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-add-irq-protection-in-the-percpu-counters-cpu-hotplug-callback-path.patch
+quota-send-messages-via-netlink.patch
+udf-code-style-fixup-v3.patch
+ext2-avoid-rec_len-overflow-with-64kb-block-size.patch
+jbd-config_jbd_debug-cannot-create-proc-entry.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+jbd-fix-commit-code-to-properly-abort-journal.patch
