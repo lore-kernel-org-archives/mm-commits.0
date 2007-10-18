@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + i-oat-add-completion-callback-for-async_tx-interface-use-fix.patch added to -mm tree
-Date: Wed, 17 Oct 2007 17:44:57 -0700
-Message-ID: <200710180044.l9I0ive3016502@imap1.linux-foundation.org>
+Subject: + i-oat-tighten-descriptor-setup-performance-fix.patch added to -mm tree
+Date: Wed, 17 Oct 2007 17:46:19 -0700
+Message-ID: <200710180046.l9I0kJlr016526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39510 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60078 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764233AbXJRApA (ORCPT
+	by vger.kernel.org with ESMTP id S1754264AbXJRAqX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Oct 2007 20:45:00 -0400
+	Wed, 17 Oct 2007 20:46:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, dan.j.williams@intel.com, shannon.nelson@intel.co
 
 
 The patch titled
-     i-oat-add-completion-callback-for-async_tx-interface-use-fix
+     i-oat-tighten-descriptor-setup-performance-fix
 has been added to the -mm tree.  Its filename is
-     i-oat-add-completion-callback-for-async_tx-interface-use-fix.patch
+     i-oat-tighten-descriptor-setup-performance-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i-oat-add-completion-callback-for-async_tx-interface-use-fix
+Subject: i-oat-tighten-descriptor-setup-performance-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Dan Williams <dan.j.williams@intel.com>
@@ -34,36 +34,42 @@ Cc: Shannon Nelson <shannon.nelson@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/ioat_dma.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/dma/ioat_dma.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/dma/ioat_dma.c~i-oat-add-completion-callback-for-async_tx-interface-use-fix drivers/dma/ioat_dma.c
---- a/drivers/dma/ioat_dma.c~i-oat-add-completion-callback-for-async_tx-interface-use-fix
+diff -puN drivers/dma/ioat_dma.c~i-oat-tighten-descriptor-setup-performance-fix drivers/dma/ioat_dma.c
+--- a/drivers/dma/ioat_dma.c~i-oat-tighten-descriptor-setup-performance-fix
 +++ a/drivers/dma/ioat_dma.c
-@@ -654,11 +654,10 @@ static void ioat_dma_start_null_desc(str
-  */
- #define IOAT_TEST_SIZE 2000
+@@ -46,8 +46,8 @@
+ /* internal functions */
+ static void ioat_dma_start_null_desc(struct ioat_dma_chan *ioat_chan);
+ static void ioat_dma_memcpy_cleanup(struct ioat_dma_chan *ioat_chan);
+-static inline struct ioat_desc_sw *ioat_dma_get_next_descriptor(
+-					      struct ioat_dma_chan *ioat_chan);
++static struct ioat_desc_sw *
++ioat_dma_get_next_descriptor(struct ioat_dma_chan *ioat_chan);
  
--static dma_async_tx_callback ioat_dma_test_callback(void *dma_async_param)
-+static void ioat_dma_test_callback(void *dma_async_param)
- {
--	printk(KERN_ERR "ioatdma: ioat_dma_test_callback(0x%04llx)\n",
--		(u64)dma_async_param);
--	return 0;
-+	printk(KERN_ERR "ioatdma: ioat_dma_test_callback(0x%p)\n",
-+			dma_async_param);
+ static inline struct ioat_dma_chan *ioat_lookup_chan_by_index(
+ 						struct ioatdma_device *device,
+@@ -384,6 +384,7 @@ static void ioat_dma_free_chan_resources
+ 	ioat_chan->last_completion = ioat_chan->completion_addr = 0;
+ 	ioat_chan->pending = 0;
  }
- 
++
  /**
-@@ -715,7 +714,7 @@ static int ioat_dma_self_test(struct ioa
- 	addr = dma_map_single(dma_chan->device->dev, dest, IOAT_TEST_SIZE,
- 			DMA_FROM_DEVICE);
- 	ioat_set_dest(addr, tx, 0);
--	tx->callback = (void *)ioat_dma_test_callback;
-+	tx->callback = ioat_dma_test_callback;
- 	tx->callback_param = (void *)0x8086;
- 	cookie = ioat_tx_submit(tx);
- 	if (cookie < 0) {
+  * ioat_dma_get_next_descriptor - return the next available descriptor
+  * @ioat_chan: IOAT DMA channel handle
+@@ -392,8 +393,8 @@ static void ioat_dma_free_chan_resources
+  * channel's desc_lock held.  Allocates more descriptors if the channel
+  * has run out.
+  */
+-static inline struct ioat_desc_sw *ioat_dma_get_next_descriptor(
+-						struct ioat_dma_chan *ioat_chan)
++static struct ioat_desc_sw *
++ioat_dma_get_next_descriptor(struct ioat_dma_chan *ioat_chan)
+ {
+ 	struct ioat_desc_sw *new = NULL;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -215,6 +221,7 @@ uninline-forkc-exitc-checkpatch-fixes.patch
 fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
 fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
 sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+i-oat-tighten-descriptor-setup-performance-fix.patch
 i-oat-add-completion-callback-for-async_tx-interface-use-fix.patch
 make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
