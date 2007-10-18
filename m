@@ -1,64 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - fuse-no-enoent-from-fuse-device-read.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:03:39 -0700
-Message-ID: <200710180703.l9I73dqG031456@imap1.linux-foundation.org>
+Subject: - fuse-set-i_nlink-to-sane-value-after-mount.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:03:28 -0700
+Message-ID: <200710180703.l9I73STF031441@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34362 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56289 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762220AbXJRHPk (ORCPT
+	by vger.kernel.org with ESMTP id S1761887AbXJRHPj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:15:40 -0400
+	Thu, 18 Oct 2007 03:15:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fuse: no ENOENT from fuse device read
+     fuse: set i_nlink to sane value after mount
 has been removed from the -mm tree.  Its filename was
-     fuse-no-enoent-from-fuse-device-read.patch
+     fuse-set-i_nlink-to-sane-value-after-mount.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fuse: no ENOENT from fuse device read
+Subject: fuse: set i_nlink to sane value after mount
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Don't return -ENOENT for a read() on the fuse device when the request was
-aborted.  Instead return -ENODEV, meaning the filesystem has been
-force-umounted or aborted.
+Aufs seems to depend on a positive i_nlink value.  So fill in a dummy but sane
+value for the root inode at mount time.
 
-Previously ENOENT meant that the request was interrupted, but now the
-'aborted' flag is not set in case of interrupts.
+The inode attributes are refreshed with the correct values at the first
+opportunity.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/dev.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ fs/fuse/inode.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/fuse/dev.c~fuse-no-enoent-from-fuse-device-read fs/fuse/dev.c
---- a/fs/fuse/dev.c~fuse-no-enoent-from-fuse-device-read
-+++ a/fs/fuse/dev.c
-@@ -747,11 +747,12 @@ static ssize_t fuse_dev_read(struct kioc
- 	fuse_copy_finish(&cs);
- 	spin_lock(&fc->lock);
- 	req->locked = 0;
--	if (!err && req->aborted)
--		err = -ENOENT;
-+	if (req->aborted) {
-+		request_end(fc, req);
-+		return -ENODEV;
-+	}
- 	if (err) {
--		if (!req->aborted)
--			req->out.h.error = -EIO;
-+		req->out.h.error = -EIO;
- 		request_end(fc, req);
- 		return err;
- 	}
+diff -puN fs/fuse/inode.c~fuse-set-i_nlink-to-sane-value-after-mount fs/fuse/inode.c
+--- a/fs/fuse/inode.c~fuse-set-i_nlink-to-sane-value-after-mount
++++ a/fs/fuse/inode.c
+@@ -472,6 +472,7 @@ static struct inode *get_root_inode(stru
+ 
+ 	attr.mode = mode;
+ 	attr.ino = FUSE_ROOT_ID;
++	attr.nlink = 1;
+ 	return fuse_iget(sb, 1, 0, &attr);
+ }
+ 
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
