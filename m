@@ -1,227 +1,268 @@
 From: akpm@linux-foundation.org
-Subject: + advansys-depends-on-virt_to_bus.patch added to -mm tree
-Date: Wed, 17 Oct 2007 19:21:29 -0700
-Message-ID: <200710180221.l9I2LT7m019918@imap1.linux-foundation.org>
+Subject: - capabilities-implement-64-bit-capabilities.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 20:18:03 -0700
+Message-ID: <200710180318.l9I3I3fT021996@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55837 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36067 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750780AbXJRCWO (ORCPT
+	by vger.kernel.org with ESMTP id S932632AbXJRDSm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Oct 2007 22:22:14 -0400
+	Wed, 17 Oct 2007 23:18:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com, paulus@samba.org, willy@debian.org
+To: serue@us.ibm.com, chrisw@sous-sol.org, jmorris@namei.org, morgan@kernel.org, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     advansys: depends on VIRT_TO_BUS
-has been added to the -mm tree.  Its filename is
-     advansys-depends-on-virt_to_bus.patch
+     capabilities: implement 64-bit capabilities
+has been removed from the -mm tree.  Its filename was
+     capabilities-implement-64-bit-capabilities.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: advansys: depends on VIRT_TO_BUS
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: capabilities: implement 64-bit capabilities
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-Fix powerpc allmodconfig build: advansys requires virt_to_bus() but powerpc
-doesn't implement it.
+We are out of capabilities in the 32-bit capability fields, and several
+users could make use of additional capabilities.  Convert the capabilities
+to 64-bits, change the capability version number accordingly, and convert
+the file capability code to handle both 32-bit and 64-bit file capability
+xattrs.
 
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Matthew Wilcox <willy@debian.org>
+It might seem desirable to also implement back-compatibility to read 32-bit
+caps from userspace, but that becomes problematic with capget, as capget
+could return valid info for processes not using high bits, but would have
+to return -EINVAL for those which were.
+
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Andrew Morgan <morgan@kernel.org>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/array.c            |    6 ++---
+ include/linux/capability.h |   31 +++++++++++++++++++----------
+ security/commoncap.c       |   37 +++++++++++++++++++++++++++--------
+ 3 files changed, 53 insertions(+), 21 deletions(-)
 
-diff -puN drivers/scsi/Kconfig~advansys-depends-on-virt_to_bus drivers/scsi/Kconfig
---- a/drivers/scsi/Kconfig~advansys-depends-on-virt_to_bus
-+++ a/drivers/scsi/Kconfig
-@@ -531,7 +531,7 @@ config SCSI_DPT_I2O
+diff -puN fs/proc/array.c~capabilities-implement-64-bit-capabilities fs/proc/array.c
+--- a/fs/proc/array.c~capabilities-implement-64-bit-capabilities
++++ a/fs/proc/array.c
+@@ -281,9 +281,9 @@ static inline char *task_sig(struct task
  
- config SCSI_ADVANSYS
- 	tristate "AdvanSys SCSI support"
--	depends on SCSI
-+	depends on SCSI && VIRT_TO_BUS
- 	depends on ISA || EISA || PCI
- 	help
- 	  This is a driver for all SCSI host adapters manufactured by
+ static inline char *task_cap(struct task_struct *p, char *buffer)
+ {
+-    return buffer + sprintf(buffer, "CapInh:\t%016x\n"
+-			    "CapPrm:\t%016x\n"
+-			    "CapEff:\t%016x\n",
++    return buffer + sprintf(buffer, "CapInh:\t%016lx\n"
++			    "CapPrm:\t%016lx\n"
++			    "CapEff:\t%016lx\n",
+ 			    cap_t(p->cap_inheritable),
+ 			    cap_t(p->cap_permitted),
+ 			    cap_t(p->cap_effective));
+diff -puN include/linux/capability.h~capabilities-implement-64-bit-capabilities include/linux/capability.h
+--- a/include/linux/capability.h~capabilities-implement-64-bit-capabilities
++++ a/include/linux/capability.h
+@@ -29,7 +29,7 @@ struct task_struct;
+    library since the draft standard requires the use of malloc/free
+    etc.. */
+ 
+-#define _LINUX_CAPABILITY_VERSION  0x19980330
++#define _LINUX_CAPABILITY_VERSION  0x20071015
+ 
+ typedef struct __user_cap_header_struct {
+ 	__u32 version;
+@@ -37,29 +37,40 @@ typedef struct __user_cap_header_struct 
+ } __user *cap_user_header_t;
+ 
+ typedef struct __user_cap_data_struct {
+-        __u32 effective;
+-        __u32 permitted;
+-        __u32 inheritable;
++        __u64 effective;
++        __u64 permitted;
++        __u64 inheritable;
+ } __user *cap_user_data_t;
+ 
+ #define XATTR_CAPS_SUFFIX "capability"
+ #define XATTR_NAME_CAPS XATTR_SECURITY_PREFIX XATTR_CAPS_SUFFIX
+ 
+-#define XATTR_CAPS_SZ (3*sizeof(__le32))
++#define XATTR_CAPS_SZ_1 (3*sizeof(__le32))
++#define XATTR_CAPS_SZ_2 (2*sizeof(__le64) + sizeof(__le32))
+ #define VFS_CAP_REVISION_MASK	0xFF000000
+ #define VFS_CAP_REVISION_1	0x01000000
++#define VFS_CAP_REVISION_2	0x02000000
+ 
+-#define VFS_CAP_REVISION	VFS_CAP_REVISION_1
++#define VFS_CAP_REVISION	VFS_CAP_REVISION_2
++#define XATTR_CAPS_SZ		XATTR_CAPS_SZ_2
+ 
+ #define VFS_CAP_FLAGS_MASK	~VFS_CAP_REVISION_MASK
+ #define VFS_CAP_FLAGS_EFFECTIVE	0x000001
+ 
+-struct vfs_cap_data {
++struct vfs_cap_data_v1 {
+ 	__u32 magic_etc;  /* Little endian */
+ 	__u32 permitted;    /* Little endian */
+ 	__u32 inheritable;  /* Little endian */
+ };
+ 
++struct vfs_cap_data_v2 {
++	__u32 magic_etc;  /* Little endian */
++	__u64 permitted;    /* Little endian */
++	__u64 inheritable;  /* Little endian */
++};
++
++typedef struct vfs_cap_data_v2 vfs_cap_data;
++
+ #ifdef __KERNEL__
+ 
+ /* #define STRICT_CAP_T_TYPECHECKS */
+@@ -67,12 +78,12 @@ struct vfs_cap_data {
+ #ifdef STRICT_CAP_T_TYPECHECKS
+ 
+ typedef struct kernel_cap_struct {
+-	__u32 cap;
++	__u64 cap;
+ } kernel_cap_t;
+ 
+ #else
+ 
+-typedef __u32 kernel_cap_t;
++typedef __u64 kernel_cap_t;
+ 
+ #endif
+ 
+@@ -334,7 +345,7 @@ extern kernel_cap_t cap_bset;
+ #define CAP_INIT_EFF_SET    to_cap_t(~0 & ~CAP_TO_MASK(CAP_SETPCAP))
+ #define CAP_INIT_INH_SET    to_cap_t(0)
+ 
+-#define CAP_TO_MASK(x) (1 << (x))
++#define CAP_TO_MASK(x) (1ULL << (x))
+ #define cap_raise(c, flag)   (cap_t(c) |=  CAP_TO_MASK(flag))
+ #define cap_lower(c, flag)   (cap_t(c) &= ~CAP_TO_MASK(flag))
+ #define cap_raised(c, flag)  (cap_t(c) & CAP_TO_MASK(flag))
+diff -puN security/commoncap.c~capabilities-implement-64-bit-capabilities security/commoncap.c
+--- a/security/commoncap.c~capabilities-implement-64-bit-capabilities
++++ a/security/commoncap.c
+@@ -140,25 +140,46 @@ int cap_inode_killpriv(struct dentry *de
+ 	return inode->i_op->removexattr(dentry, XATTR_NAME_CAPS);
+ }
+ 
+-static inline int cap_from_disk(struct vfs_cap_data *caps,
++union vfs_cap_union {
++	struct vfs_cap_data_v1 v1;
++	struct vfs_cap_data_v2 v2;
++};
++
++static inline int cap_from_disk(union vfs_cap_union *caps,
+ 				struct linux_binprm *bprm,
+ 				int size)
+ {
+ 	__u32 magic_etc;
+ 
+-	if (size != XATTR_CAPS_SZ)
++	if (size != XATTR_CAPS_SZ_1 && size != XATTR_CAPS_SZ_2)
+ 		return -EINVAL;
+ 
+-	magic_etc = le32_to_cpu(caps->magic_etc);
++	magic_etc = le32_to_cpu(caps->v1.magic_etc);
+ 
+ 	switch ((magic_etc & VFS_CAP_REVISION_MASK)) {
+-	case VFS_CAP_REVISION:
++	case VFS_CAP_REVISION_1:
++		if (size != XATTR_CAPS_SZ_1)
++			return -EINVAL;
++		if (magic_etc & VFS_CAP_FLAGS_EFFECTIVE)
++			bprm->cap_effective = true;
++		else
++			bprm->cap_effective = false;
++		bprm->cap_permitted = to_cap_t(
++			(__u64) le32_to_cpu(caps->v1.permitted) );
++		bprm->cap_inheritable = to_cap_t(
++			(__u64) le32_to_cpu(caps->v1.inheritable) );
++		return 0;
++	case VFS_CAP_REVISION_2:
++		if (size != XATTR_CAPS_SZ_2)
++			return -EINVAL;
+ 		if (magic_etc & VFS_CAP_FLAGS_EFFECTIVE)
+ 			bprm->cap_effective = true;
+ 		else
+ 			bprm->cap_effective = false;
+-		bprm->cap_permitted = to_cap_t(le32_to_cpu(caps->permitted));
+-		bprm->cap_inheritable = to_cap_t(le32_to_cpu(caps->inheritable));
++		bprm->cap_permitted = to_cap_t(
++			le64_to_cpu(caps->v2.permitted) );
++		bprm->cap_inheritable = to_cap_t(
++			le64_to_cpu(caps->v2.inheritable) );
+ 		return 0;
+ 	default:
+ 		return -EINVAL;
+@@ -170,7 +191,7 @@ static int get_file_caps(struct linux_bi
+ {
+ 	struct dentry *dentry;
+ 	int rc = 0;
+-	struct vfs_cap_data incaps;
++	union vfs_cap_union incaps;
+ 	struct inode *inode;
+ 
+ 	if (bprm->file->f_vfsmnt->mnt_flags & MNT_NOSUID) {
+@@ -185,7 +206,7 @@ static int get_file_caps(struct linux_bi
+ 
+ 	rc = inode->i_op->getxattr(dentry, XATTR_NAME_CAPS, NULL, 0);
+ 	if (rc > 0) {
+-		if (rc == XATTR_CAPS_SZ)
++		if (rc == XATTR_CAPS_SZ_2 || rc == XATTR_CAPS_SZ_1)
+ 			rc = inode->i_op->getxattr(dentry, XATTR_NAME_CAPS,
+ 						&incaps, XATTR_CAPS_SZ);
+ 		else
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
-origin.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold.patch
-mm-dirty-balancing-for-tasks.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
-oom-change-all_unreclaimable-zone-member-to-flags.patch
-oom-do-not-take-callback_mutex.patch
-writeback-dont-propagate-aop_writepage_activate.patch
-softlockup-add-a-proc-tuning-parameter.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
-do_sys_poll-simplify-playing-with-on-stack-data.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer.patch
-deprecate-aout-elf-interpreters.patch
-ext2-ext3-ext4-add-block-bitmap-validation.patch
-binfmt_flat-warning-fixes.patch
-i2o-fix-defined-but-not-used-build-warnings.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-right.patch
-userc-ifdef-mq_bytes.patch
-ext3-lighten-up-resize-transaction-requirements.patch
-drivers-char-ip2-fix-used-uninitd-bug.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
-ext2-reservations.patch
-md-software-raid-autodetect-dev-list-not-array.patch
-pnp-use-dev_info-dev_err-etc-in-core.patch
+handle-the-multi-threaded-inits-exit-properly.patch
+remove-unused-member-from-nsproxy.patch
+use-kmem_cache-macro-to-create-the-nsproxy-cache.patch
 security-convert-lsm-into-a-static-interface.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-cifs.patch
-ia64-fix-non-numa-build.patch
-console-keyboard-events-and-accessibility.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-git-jg-warning-fixes.patch
-git-jg-misc-powernow-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-ide-arm-hack.patch
-git-md-accel-fixup.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd-fixup.patch
-fix-build-breakage-if-sysfs-fix.patch
-qla2xxx-printk-fixes.patch
-advansys-depends-on-virt_to_bus.patch
-git-block-fixup.patch
-sparc-support-for-new-termios.patch
-git-unionfs.patch
+implement-file-posix-capabilities.patch
+security-cleanups.patch
 security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-git-nfs-vs-git-unionfs.patch
-git-v9fs-fixup.patch
-git-watchdog-fixup.patch
-git-wireless.patch
-git-wireless-fixup.patch
-revert-x86_64-mm-cpa-einval.patch
-fix-x86_64-mm-sched-clock-share.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-asm-i386-ioh-fix-constness.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
-git-newsetup-fixup.patch
-git-xfs.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-clean-up-file-capability-reading.patch
 capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+capabilities-implement-64-bit-capabilities.patch
 capabilities-implement-64-bit-capabilities-checkpatch-fixes.patch
-pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
-pm-qos-infrastructure-and-interface-fix.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2-fix-3.patch
-console-events-and-accessibility-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-stop-using-dma_xxbit_mask.patch
-stop-using-dma_xxbit_mask-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-sync_sb_inodes-propagate-errors.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-reiserfs-fix-up-lockdep-warnings-checkpatch-fixes.patch
-reiserfs-use-is_reusable-to-catch-corruption-checkpatch-fixes.patch
-reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes.patch
-reiserfs-remove-first_zero_hint-checkpatch-fixes.patch
-reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+v3-file-capabilities-alter-behavior-of-cap_setpcap.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+task-containersv11-basic-task-container-framework.patch
+task-containersv11-add-tasks-file-interface.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
+containers-implement-namespace-tracking-subsystem.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
 pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-cpuset-sched_load_balance-flag-fix.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+make-access-to-tasks-nsproxy-lighter.patch
+make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
+make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
+fix-cpusets-update_cpumask.patch
 fix-cpusets-update_cpumask-checkpatch-fixes.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
-sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
-i-oat-tighten-descriptor-setup-performance-fix.patch
-i-oat-add-completion-callback-for-async_tx-interface-use-fix.patch
-i-oat-add-completion-callback-for-async_tx-interface-use-fix-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
+ipc-cleanup-some-code-and-wrong-comments-about-semundo.patch
+virtualization-of-sysv-msg-queues-is-incomplete.patch
