@@ -1,131 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - try-to-reap-reiserfs-pages-left-around-by-invalidatepage.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:00:13 -0700
-Message-ID: <200710180700.l9I70DTF031083@imap1.linux-foundation.org>
+Subject: - ncr53c8xx-remove-deprecated-irq-flags-sa_.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:01:31 -0700
+Message-ID: <200710180701.l9I71Vtc031182@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42493 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40290 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756396AbXJRHcb (ORCPT
+	by vger.kernel.org with ESMTP id S1756546AbXJRHcy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:32:31 -0400
+	Thu, 18 Oct 2007 03:32:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chris.mason@oracle.com, jeffm@suse.com, vs@namesys.com, mm-commits@vger.kernel.org
+To: darwish.07@gmail.com, James.Bottomley@steeleye.com, willy@debian.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     try to reap reiserfs pages left around by invalidatepage
+     NCR53C8XX: Remove deprecated IRQ flags (SA_*)
 has been removed from the -mm tree.  Its filename was
-     try-to-reap-reiserfs-pages-left-around-by-invalidatepage.patch
+     ncr53c8xx-remove-deprecated-irq-flags-sa_.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: try to reap reiserfs pages left around by invalidatepage
-From: Chris Mason <chris.mason@oracle.com>
+Subject: NCR53C8XX: Remove deprecated IRQ flags (SA_*)
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-reiserfs_invalidatepage will refuse to free pages if they have been logged
-in data=journal mode, or were pinned down by a data=ordered operation.  For
-data=journal, this is fairly easy to trigger just with fsx-linux, and it
-results in a large number of pages hanging around on the LRUs with
-page->mapping == NULL.
+Stop using deprecated IRQ flags in ncr53c8xx documentaion.  The new IRQF_*
+macros are used instead.
 
-Calling try_to_free_buffers when reiserfs decides it is done with the page
-allows it to be freed earlier, and with much less VM thrashing.  Lock
-ordering rules mean that reiserfs can't call lock_page when it is releasing
-the buffers, so TestSetPageLocked is used instead.  Contention on these
-pages should be rare, so it should be sufficient most of the time.
-
-Signed-off-by: Chris Mason <chris.mason@oracle.com>
-Cc: "Vladimir V. Saveliev" <vs@namesys.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Matthew Wilcox <willy@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/journal.c |   42 ++++++++++++++++++++++++++++++----------
- 1 file changed, 32 insertions(+), 10 deletions(-)
+ Documentation/scsi/ChangeLog.ncr53c8xx |    6 +++---
+ Documentation/scsi/ncr53c8xx.txt       |   14 +++++++-------
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN fs/reiserfs/journal.c~try-to-reap-reiserfs-pages-left-around-by-invalidatepage fs/reiserfs/journal.c
---- a/fs/reiserfs/journal.c~try-to-reap-reiserfs-pages-left-around-by-invalidatepage
-+++ a/fs/reiserfs/journal.c
-@@ -615,6 +615,31 @@ static int journal_list_still_alive(stru
- 	return 0;
- }
+diff -puN Documentation/scsi/ChangeLog.ncr53c8xx~ncr53c8xx-remove-deprecated-irq-flags-sa_ Documentation/scsi/ChangeLog.ncr53c8xx
+--- a/Documentation/scsi/ChangeLog.ncr53c8xx~ncr53c8xx-remove-deprecated-irq-flags-sa_
++++ a/Documentation/scsi/ChangeLog.ncr53c8xx
+@@ -195,9 +195,9 @@ Sun Feb  14:00 1999 Gerard Roudier (grou
+ 	  Pointed out by Leonard Zubkoff.
+ 	- Allow to tune request_irq() flags from the boot command line using 
+ 	  ncr53c8xx=irqm:??, as follows:
+-	  a) If bit 0x10 is set in irqm, SA_SHIRQ flag is not used.
+-	  b) If bit 0x20 is set in irqm, SA_INTERRUPT flag is not used.
+-	  By default the driver uses both SA_SHIRQ and SA_INTERRUPT.
++	  a) If bit 0x10 is set in irqm, IRQF_SHARED flag is not used.
++	  b) If bit 0x20 is set in irqm, IRQF_DISABLED flag is not used.
++	  By default the driver uses both IRQF_SHARED and IRQF_DISABLED.
+ 	  Option 'ncr53c8xx=irqm:0x20' may be used when an IRQ is shared by 
+ 	  a 53C8XX adapter and a network board.
+ 	- Tiny mispelling fixed (ABORT instead of ABRT). Was fortunately 
+diff -puN Documentation/scsi/ncr53c8xx.txt~ncr53c8xx-remove-deprecated-irq-flags-sa_ Documentation/scsi/ncr53c8xx.txt
+--- a/Documentation/scsi/ncr53c8xx.txt~ncr53c8xx-remove-deprecated-irq-flags-sa_
++++ a/Documentation/scsi/ncr53c8xx.txt
+@@ -785,8 +785,8 @@ port address 0x1400.
+         irqm:0     always open drain
+         irqm:1     same as initial settings (assumed BIOS settings)
+         irqm:2     always totem pole
+-        irqm:0x10  driver will not use SA_SHIRQ flag when requesting irq
+-        irqm:0x20  driver will not use SA_INTERRUPT flag when requesting irq
++        irqm:0x10  driver will not use IRQF_SHARED flag when requesting irq
++        irqm:0x20  driver will not use IRQF_DISABLED flag when requesting irq
  
-+/*
-+ * If page->mapping was null, we failed to truncate this page for
-+ * some reason.  Most likely because it was truncated after being
-+ * logged via data=journal.
-+ *
-+ * This does a check to see if the buffer belongs to one of these
-+ * lost pages before doing the final put_bh.  If page->mapping was
-+ * null, it tries to free buffers on the page, which should make the
-+ * final page_cache_release drop the page from the lru.
-+ */
-+static void release_buffer_page(struct buffer_head *bh)
-+{
-+	struct page *page = bh->b_page;
-+	if (!page->mapping && !TestSetPageLocked(page)) {
-+		page_cache_get(page);
-+		put_bh(bh);
-+		if (!page->mapping)
-+			try_to_free_buffers(page);
-+		unlock_page(page);
-+		page_cache_release(page);
-+	} else {
-+		put_bh(bh);
-+	}
-+}
-+
- static void reiserfs_end_buffer_io_sync(struct buffer_head *bh, int uptodate)
- {
- 	char b[BDEVNAME_SIZE];
-@@ -628,8 +653,9 @@ static void reiserfs_end_buffer_io_sync(
- 		set_buffer_uptodate(bh);
- 	else
- 		clear_buffer_uptodate(bh);
-+
- 	unlock_buffer(bh);
--	put_bh(bh);
-+	release_buffer_page(bh);
- }
+     (Bits 0x10 and 0x20 can be combined with hardware irq mode option)
  
- static void reiserfs_end_ordered_io(struct buffer_head *bh, int uptodate)
-@@ -1547,9 +1573,10 @@ static int flush_journal_list(struct sup
- 				BUG_ON(!test_clear_buffer_journal_dirty
- 				       (cn->bh));
+@@ -1236,15 +1236,15 @@ when the SCSI DATA IN phase is reentered
+ When an IRQ is shared by devices that are handled by different drivers, it 
+ may happen that one driver complains about the request of the IRQ having 
+ failed. Inder Linux-2.0, this may be due to one driver having requested the 
+-IRQ using the SA_INTERRUPT flag but some other having requested the same IRQ 
++IRQ using the IRQF_DISABLED flag but some other having requested the same IRQ
+ without this flag. Under both Linux-2.0 and linux-2.2, this may be caused by 
+-one driver not having requested the IRQ with the SA_SHIRQ flag.
++one driver not having requested the IRQ with the IRQF_SHARED flag.
  
--				/* undo the inc from journal_mark_dirty */
-+				/* drop one ref for us */
- 				put_bh(cn->bh);
--				brelse(cn->bh);
-+				/* drop one ref for journal_mark_dirty */
-+				release_buffer_page(cn->bh);
- 			}
- 			cn = cn->next;
- 		}
-@@ -3709,13 +3736,8 @@ int journal_mark_freed(struct reiserfs_t
- 		}
- 	}
+ By default, the ncr53c8xx and sym53c8xx drivers request IRQs with both the 
+-SA_INTERRUPT and the SA_SHIRQ flag under Linux-2.0 and with only the SA_SHIRQ 
++IRQF_DISABLED and the IRQF_SHARED flag under Linux-2.0 and with only the IRQF_SHARED
+ flag under Linux-2.2.
  
--	if (bh) {
--		put_bh(bh);	/* get_hash grabs the buffer */
--		if (atomic_read(&(bh->b_count)) < 0) {
--			reiserfs_warning(p_s_sb,
--					 "journal-2165: bh->b_count < 0");
--		}
--	}
-+	if (bh)
-+		release_buffer_page(bh); /* get_hash grabs the buffer */
- 	return 0;
- }
+-Under Linux-2.0, you can disable use of SA_INTERRUPT flag from the boot 
++Under Linux-2.0, you can disable use of IRQF_DISABLED flag from the boot
+ command line by using the following option:
  
+      ncr53c8xx=irqm:0x20   (for the generic ncr53c8xx driver)
+@@ -1252,7 +1252,7 @@ command line by using the following opti
+ 
+ If this does not fix the problem, then you may want to check how all other 
+ drivers are requesting the IRQ and report the problem. Note that if at least 
+-a single driver does not request the IRQ with the SA_SHIRQ flag (share IRQ), 
++a single driver does not request the IRQ with the IRQF_SHARED flag (share IRQ),
+ then the request of the IRQ obviously will not succeed for all the drivers.
+ 
+ 15. SCSI problem troubleshooting
 _
 
-Patches currently in -mm which might be from chris.mason@oracle.com are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
 origin.patch
-ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
-reiserfs-turn-of-attr_kill_sid-at-beginning-of-reiserfs_setattr.patch
-vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
+git-kvm.patch
