@@ -1,64 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:55:25 -0700
-Message-ID: <200710180655.l9I6tPaY030607@imap1.linux-foundation.org>
+Subject: - remove-consolemaph-from-header-exports.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:55:57 -0700
+Message-ID: <200710180655.l9I6tvpK030657@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46100 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50550 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760437AbXJRHPb (ORCPT
+	by vger.kernel.org with ESMTP id S1760466AbXJRHPb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 18 Oct 2007 03:15:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, mm-commits@vger.kernel.org
+To: olaf@aepfle.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pnp: avoid a small unlikely memory leak in proc_read_escd()
+     remove consolemap.h from header exports
 has been removed from the -mm tree.  Its filename was
-     avoid-a-small-unlikely-memory-leak-in-proc_read_escd.patch
+     remove-consolemaph-from-header-exports.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pnp: avoid a small unlikely memory leak in proc_read_escd()
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: remove consolemap.h from header exports
+From: Olaf Hering <olaf@aepfle.de>
 
-There's a small and unlikely memory leak in
-drivers/pnp/pnpbios/proc.c::proc_read_escd().  It's inside a sanity check,
-so it probably won't trigger often (if at all), however it *is* a potential
-leak and it's easy to avoid, so let's just fix it :)
+Remove linux/consolemap.h from make headers_install
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+It contains no user interfaces.
+The defines in this file are used only for kernel internal state.
+
+Signed-off-by: Olaf Hering <olaf@aepfle.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/pnpbios/proc.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/Kbuild |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/pnp/pnpbios/proc.c~avoid-a-small-unlikely-memory-leak-in-proc_read_escd drivers/pnp/pnpbios/proc.c
---- a/drivers/pnp/pnpbios/proc.c~avoid-a-small-unlikely-memory-leak-in-proc_read_escd
-+++ a/drivers/pnp/pnpbios/proc.c
-@@ -94,8 +94,9 @@ static int proc_read_escd(char *buf, cha
- 
- 	/* sanity check */
- 	if (escd_size > MAX_SANE_ESCD_SIZE) {
--		printk(KERN_ERR
--		       "PnPBIOS: proc_read_escd: ESCD size reported by BIOS read_escd call is too great\n");
-+		printk(KERN_ERR "PnPBIOS: proc_read_escd: ESCD size reported by"
-+				" BIOS read_escd call is too great\n");
-+		kfree(tmpbuf);
- 		return -EFBIG;
- 	}
- 
+diff -puN include/linux/Kbuild~remove-consolemaph-from-header-exports include/linux/Kbuild
+--- a/include/linux/Kbuild~remove-consolemaph-from-header-exports
++++ a/include/linux/Kbuild
+@@ -46,7 +46,6 @@ header-y += chio.h
+ header-y += coda_psdev.h
+ header-y += coff.h
+ header-y += comstats.h
+-header-y += consolemap.h
+ header-y += const.h
+ header-y += cycx_cfm.h
+ header-y += dlm_device.h
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from olaf@aepfle.de are
 
 origin.patch
-git-cifs.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
-cyclades-avoid-label-defined-but-not-used-warning.patch
+keep-track-of-network-interface-renaming.patch
