@@ -1,67 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - fs-romfs-inodec-trivial-improvements.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:53:12 -0700
-Message-ID: <200710180653.l9I6rCoI030419@imap1.linux-foundation.org>
+Subject: - drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:55:00 -0700
+Message-ID: <200710180655.l9I6t06m030563@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40932 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36266 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760826AbXJRHhS (ORCPT
+	by vger.kernel.org with ESMTP id S1760692AbXJRHhU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:37:18 -0400
+	Thu, 18 Oct 2007 03:37:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/romfs/inode.c: trivial improvements
+     drivers/char/ip2/ip2main.c: kmalloc + memset conversion to kzalloc
 has been removed from the -mm tree.  Its filename was
-     fs-romfs-inodec-trivial-improvements.patch
+     drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fs/romfs/inode.c: trivial improvements
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: drivers/char/ip2/ip2main.c: kmalloc + memset conversion to kzalloc
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-- There are no lists in fs/romfs/inode.c, so using list_entry
-  is a bit confusing.  Replace it with container_of.
+ drivers/char/ip2/ip2main.c | 104398 -> 104346 (-52 bytes)
+ drivers/char/ip2/ip2main.o | 210710 -> 210702 (-8 bytes)
 
-- It is unnecessary to cast the return value of
-  kmem_cache_alloc, since it returns a void* pointer.
-
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/romfs/inode.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/ip2/ip2main.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/romfs/inode.c~fs-romfs-inodec-trivial-improvements fs/romfs/inode.c
---- a/fs/romfs/inode.c~fs-romfs-inodec-trivial-improvements
-+++ a/fs/romfs/inode.c
-@@ -92,7 +92,7 @@ static inline unsigned long romfs_maxsiz
+diff -puN drivers/char/ip2/ip2main.c~drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc drivers/char/ip2/ip2main.c
+--- a/drivers/char/ip2/ip2main.c~drivers-char-ip2-ip2mainc-kmalloc-memset-conversion-to-kzalloc
++++ a/drivers/char/ip2/ip2main.c
+@@ -646,10 +646,9 @@ ip2_loadmain(int *iop, int *irqp, unsign
  
- static inline struct romfs_inode_info *ROMFS_I(struct inode *inode)
- {
--	return list_entry(inode, struct romfs_inode_info, vfs_inode);
-+	return container_of(inode, struct romfs_inode_info, vfs_inode);
- }
- 
- static __u32
-@@ -555,7 +555,7 @@ static struct kmem_cache * romfs_inode_c
- static struct inode *romfs_alloc_inode(struct super_block *sb)
- {
- 	struct romfs_inode_info *ei;
--	ei = (struct romfs_inode_info *)kmem_cache_alloc(romfs_inode_cachep, GFP_KERNEL);
-+	ei = kmem_cache_alloc(romfs_inode_cachep, GFP_KERNEL);
- 	if (!ei)
- 		return NULL;
- 	return &ei->vfs_inode;
+ 	for ( i = 0; i < IP2_MAX_BOARDS; ++i ) {
+ 		if ( ip2config.addr[i] ) {
+-			pB = kmalloc( sizeof(i2eBordStr), GFP_KERNEL);
+-			if ( pB != NULL ) {
++			pB = kzalloc(sizeof(i2eBordStr), GFP_KERNEL);
++			if (pB) {
+ 				i2BoardPtrTable[i] = pB;
+-				memset( pB, 0, sizeof(i2eBordStr) );
+ 				iiSetAddress( pB, ip2config.addr[i], ii2DelayTimer );
+ 				iiReset( pB );
+ 			} else {
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
 origin.patch
-drivers-net-wireless-b43-mainc-fix-an-uninitialized.patch
+git-cifs.patch
+kernel-forkc-remove-unneeded-variable-initialization-in-copy_process.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
