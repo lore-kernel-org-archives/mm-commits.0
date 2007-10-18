@@ -1,107 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - fuse-cleanup-in-release.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:03:35 -0700
-Message-ID: <200710180703.l9I73ZMW031450@imap1.linux-foundation.org>
+Subject: - md-make-sure-read-errors-are-auto-corrected-during-a-check-resync-in-raid1.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:03:04 -0700
+Message-ID: <200710180703.l9I734CG031401@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35100 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51409 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761028AbXJRHPl (ORCPT
+	by vger.kernel.org with ESMTP id S1761123AbXJRHPh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:15:41 -0400
+	Thu, 18 Oct 2007 03:15:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, mm-commits@vger.kernel.org
+To: neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fuse: cleanup in release
+     md: make sure read errors are auto-corrected during a 'check' resync in raid1
 has been removed from the -mm tree.  Its filename was
-     fuse-cleanup-in-release.patch
+     md-make-sure-read-errors-are-auto-corrected-during-a-check-resync-in-raid1.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fuse: cleanup in release
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: md: make sure read errors are auto-corrected during a 'check' resync in raid1
+From: NeilBrown <neilb@suse.de>
 
-Move dput/mntput pair from request_end() to fuse_release_end(), because
-there's no other place they are used.
+Whenever a read error is found, we should attempt to overwrite with correct
+data to 'fix' it.
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+However when do a 'check' pass (which compares data blocks that are
+successfully read, but doesn't normally overwrite) we don't do that.  We
+should.
+
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/dev.c  |    2 --
- fs/fuse/file.c |    8 ++++++++
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ drivers/md/raid1.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/fuse/dev.c~fuse-cleanup-in-release fs/fuse/dev.c
---- a/fs/fuse/dev.c~fuse-cleanup-in-release
-+++ a/fs/fuse/dev.c
-@@ -231,8 +231,6 @@ static void request_end(struct fuse_conn
- 		fc->num_background--;
- 	}
- 	spin_unlock(&fc->lock);
--	dput(req->dentry);
--	mntput(req->vfsmount);
- 	wake_up(&req->waitq);
- 	if (end)
- 		end(fc, req);
-diff -puN fs/fuse/file.c~fuse-cleanup-in-release fs/fuse/file.c
---- a/fs/fuse/file.c~fuse-cleanup-in-release
-+++ a/fs/fuse/file.c
-@@ -71,11 +71,19 @@ static struct fuse_file *fuse_file_get(s
- 	return ff;
- }
- 
-+static void fuse_release_end(struct fuse_conn *fc, struct fuse_req *req)
-+{
-+	dput(req->dentry);
-+	mntput(req->vfsmount);
-+	fuse_put_request(fc, req);
-+}
-+
- static void fuse_file_put(struct fuse_file *ff)
- {
- 	if (atomic_dec_and_test(&ff->count)) {
- 		struct fuse_req *req = ff->reserved_req;
- 		struct fuse_conn *fc = get_fuse_conn(req->dentry->d_inode);
-+		req->end = fuse_release_end;
- 		request_send_background(fc, req);
- 		kfree(ff);
- 	}
+diff -puN drivers/md/raid1.c~md-make-sure-read-errors-are-auto-corrected-during-a-check-resync-in-raid1 drivers/md/raid1.c
+--- a/drivers/md/raid1.c~md-make-sure-read-errors-are-auto-corrected-during-a-check-resync-in-raid1
++++ a/drivers/md/raid1.c
+@@ -1214,7 +1214,8 @@ static void sync_request_write(mddev_t *
+ 					j = 0;
+ 				if (j >= 0)
+ 					mddev->resync_mismatches += r1_bio->sectors;
+-				if (j < 0 || test_bit(MD_RECOVERY_CHECK, &mddev->recovery)) {
++				if (j < 0 || (test_bit(MD_RECOVERY_CHECK, &mddev->recovery)
++					      && test_bit(BIO_UPTODATE, &sbio->bi_flags))) {
+ 					sbio->bi_end_io = NULL;
+ 					rdev_dec_pending(conf->mirrors[i].rdev, mddev);
+ 				} else {
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
-unprivileged-mounts-add-no-submounts-flag.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
-fuse-fix-allowing-operations.patch
-fuse-fix-race-between-getattr-and-write.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
-fuse-clean-up-open-file-passing-in-setattr.patch
-vfs-allow-filesystems-to-implement-atomic-opentruncate.patch
-fuse-improve-utimes-support.patch
-fuse-add-atomic-opentruncate-support.patch
-fuse-support-bsd-locking-semantics.patch
-fuse-add-list-of-writable-files-to-fuse_inode.patch
-fuse-add-helper-for-asynchronous-writes.patch
-fuse-add-support-for-mandatory-locking.patch
-fuse-add-blksize-field-to-fuse_attr.patch
+git-md-accel.patch
+ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
+knfsd-only-set-attr_kill_sid-if-attr_mode-isnt-being-explicitly-set.patch
+vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
+sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
+exportfs-add-fid-type.patch
+exportfs-add-new-methods.patch
+ext2-new-export-ops.patch
+ext3-new-export-ops.patch
+ext4-new-export-ops.patch
+efs-new-export-ops.patch
+jfs-new-export-ops.patch
+ntfs-new-export-ops.patch
+fat-new-export-ops.patch
+isofs-new-export-ops.patch
+shmem-new-export-ops.patch
+reiserfs-new-export-ops.patch
+gfs2-new-export-ops.patch
+ocfs2-new-export-ops.patch
+exportfs-remove-old-methods.patch
+exportfs-make-struct-export_operations-const.patch
+exportfs-update-documentation.patch
