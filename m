@@ -1,60 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - fs-isofs-nameic-remove-uninitialized-local-vars-warning.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:00:49 -0700
-Message-ID: <200710180700.l9I70ndP031116@imap1.linux-foundation.org>
+Subject: - floppy-tolerate-dma-channel-unavailability.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:57:16 -0700
+Message-ID: <200710180657.l9I6vGlP030801@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37413 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57685 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754386AbXJRHP2 (ORCPT
+	by vger.kernel.org with ESMTP id S1760048AbXJRHPc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:15:28 -0400
+	Thu, 18 Oct 2007 03:15:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bbpetkov@yahoo.de, mm-commits@vger.kernel.org
+To: jbeulich@novell.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/isofs/namei.c: Remove uninitialized local vars warning
+     floppy: tolerate DMA channel unavailability
 has been removed from the -mm tree.  Its filename was
-     fs-isofs-nameic-remove-uninitialized-local-vars-warning.patch
+     floppy-tolerate-dma-channel-unavailability.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fs/isofs/namei.c: Remove uninitialized local vars warning
-From: Borislav Petkov <bbpetkov@yahoo.de>
+Subject: floppy: tolerate DMA channel unavailability
+From: "Jan Beulich" <jbeulich@novell.com>
 
-shut up those:
-fs/isofs/namei.c: In function 'isofs_lookup':
-fs/isofs/namei.c:161: warning: 'offset' may be used uninitialized in this function
-fs/isofs/namei.c:161: warning: 'block' may be used uninitialized in this function
+The floppy driver is already written to be able to operate in virtual DMA
+mode.  Thus it can easily be adjusted to tolerate failure from
+fd_request_dma() as long as virtual DMA mode is not disallowed.
 
-By the way, they get overwritten at the end of isofs_find_entry().
-
-Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/isofs/namei.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/block/floppy.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN fs/isofs/namei.c~fs-isofs-nameic-remove-uninitialized-local-vars-warning fs/isofs/namei.c
---- a/fs/isofs/namei.c~fs-isofs-nameic-remove-uninitialized-local-vars-warning
-+++ a/fs/isofs/namei.c
-@@ -158,7 +158,8 @@ isofs_find_entry(struct inode *dir, stru
- struct dentry *isofs_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *nd)
- {
- 	int found;
--	unsigned long block, offset;
-+	unsigned long uninitialized_var(block);
-+	unsigned long uninitialized_var(offset);
- 	struct inode *inode;
- 	struct page *page;
+diff -puN drivers/block/floppy.c~floppy-tolerate-dma-channel-unavailability drivers/block/floppy.c
+--- a/drivers/block/floppy.c~floppy-tolerate-dma-channel-unavailability
++++ a/drivers/block/floppy.c
+@@ -4388,11 +4388,15 @@ static int floppy_grab_irq_and_dma(void)
+ 	if (fd_request_dma()) {
+ 		DPRINT("Unable to grab DMA%d for the floppy driver\n",
+ 		       FLOPPY_DMA);
+-		fd_free_irq();
+-		spin_lock_irqsave(&floppy_usage_lock, flags);
+-		usage_count--;
+-		spin_unlock_irqrestore(&floppy_usage_lock, flags);
+-		return -1;
++		if (can_use_virtual_dma & 2)
++			use_virtual_dma = can_use_virtual_dma = 1;
++		if (!(can_use_virtual_dma & 1)) {
++			fd_free_irq();
++			spin_lock_irqsave(&floppy_usage_lock, flags);
++			usage_count--;
++			spin_unlock_irqrestore(&floppy_usage_lock, flags);
++			return -1;
++		}
+ 	}
  
+ 	for (fdc = 0; fdc < N_FDC; fdc++) {
 _
 
-Patches currently in -mm which might be from bbpetkov@yahoo.de are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
 origin.patch
-unify-dma_bit_mask-definitions-v31.patch
+git-x86.patch
+revert-x86_64-mm-cpa-einval.patch
+cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
