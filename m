@@ -1,229 +1,366 @@
 From: akpm@linux-foundation.org
-Subject: - cleanup-floppyh.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:57:18 -0700
-Message-ID: <200710180657.l9I6vIb9030804@imap1.linux-foundation.org>
+Subject: - fuse-add-reference-counting-to-fuse_file.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:03:22 -0700
+Message-ID: <200710180703.l9I73MV7031427@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39163 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43927 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763290AbXJRHPx (ORCPT
+	by vger.kernel.org with ESMTP id S1762327AbXJRHP5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:15:53 -0400
+	Thu, 18 Oct 2007 03:15:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbeulich@novell.com, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cleanup floppy.h
+     fuse: add reference counting to fuse_file
 has been removed from the -mm tree.  Its filename was
-     cleanup-floppyh.patch
+     fuse-add-reference-counting-to-fuse_file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cleanup floppy.h
-From: "Jan Beulich" <jbeulich@novell.com>
+Subject: fuse: add reference counting to fuse_file
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-AUTO_DMA and FLOPPY_MOTOR_MASK in include/asm-*/floppy.h are dead symbols -
-remove them.
+Make lifetime of 'struct fuse_file' independent from 'struct file' by adding a
+reference counter and destructor.
 
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
+This will enable asynchronous page writeback, where it cannot be guaranteed,
+that the file is not released while a request with this file handle is being
+served.
+
+The actual RELEASE request is only sent when there are no more references to
+the fuse_file.
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/floppy.h   |    2 --
- include/asm-arm/floppy.h     |    2 --
- include/asm-m68k/floppy.h    |    3 ---
- include/asm-mips/floppy.h    |    2 --
- include/asm-parisc/floppy.h  |    4 ----
- include/asm-powerpc/floppy.h |    2 --
- include/asm-ppc/floppy.h     |    2 --
- include/asm-sh/floppy.h      |    4 ----
- include/asm-sparc/floppy.h   |    2 --
- include/asm-sparc64/floppy.h |    4 ----
- include/asm-x86/floppy_32.h  |    4 ----
- include/asm-x86/floppy_64.h  |    4 ----
- 12 files changed, 35 deletions(-)
+ fs/fuse/dev.c    |    2 -
+ fs/fuse/dir.c    |   14 ++++----
+ fs/fuse/file.c   |   72 +++++++++++++++++++++++++++------------------
+ fs/fuse/fuse_i.h |   13 +++++---
+ 4 files changed, 59 insertions(+), 42 deletions(-)
 
-diff -puN include/asm-alpha/floppy.h~cleanup-floppyh include/asm-alpha/floppy.h
---- a/include/asm-alpha/floppy.h~cleanup-floppyh
-+++ a/include/asm-alpha/floppy.h
-@@ -91,8 +91,6 @@ static int FDC2 = -1;
- #define N_FDC 2
- #define N_DRIVE 8
- 
--#define FLOPPY_MOTOR_MASK 0xf0
+diff -puN fs/fuse/dev.c~fuse-add-reference-counting-to-fuse_file fs/fuse/dev.c
+--- a/fs/fuse/dev.c~fuse-add-reference-counting-to-fuse_file
++++ a/fs/fuse/dev.c
+@@ -233,8 +233,6 @@ static void request_end(struct fuse_conn
+ 	spin_unlock(&fc->lock);
+ 	dput(req->dentry);
+ 	mntput(req->vfsmount);
+-	if (req->file)
+-		fput(req->file);
+ 	wake_up(&req->waitq);
+ 	if (end)
+ 		end(fc, req);
+diff -puN fs/fuse/dir.c~fuse-add-reference-counting-to-fuse_file fs/fuse/dir.c
+--- a/fs/fuse/dir.c~fuse-add-reference-counting-to-fuse_file
++++ a/fs/fuse/dir.c
+@@ -288,12 +288,11 @@ static struct dentry *fuse_lookup(struct
+ static void fuse_sync_release(struct fuse_conn *fc, struct fuse_file *ff,
+ 			      u64 nodeid, int flags)
+ {
+-	struct fuse_req *req;
 -
+-	req = fuse_release_fill(ff, nodeid, flags, FUSE_RELEASE);
+-	req->force = 1;
+-	request_send(fc, req);
+-	fuse_put_request(fc, req);
++	fuse_release_fill(ff, nodeid, flags, FUSE_RELEASE);
++	ff->reserved_req->force = 1;
++	request_send(fc, ff->reserved_req);
++	fuse_put_request(fc, ff->reserved_req);
++	kfree(ff);
+ }
+ 
  /*
-  * Most Alphas have no problems with floppy DMA crossing 64k borders,
-  * except for certain ones, like XL and RUFFIAN.
-diff -puN include/asm-arm/floppy.h~cleanup-floppyh include/asm-arm/floppy.h
---- a/include/asm-arm/floppy.h~cleanup-floppyh
-+++ a/include/asm-arm/floppy.h
-@@ -128,8 +128,6 @@ static inline void fd_scandrives (void)
- #define N_FDC 1
- #define N_DRIVE 4
+@@ -859,6 +858,7 @@ static int fuse_readdir(struct file *fil
+ 	struct page *page;
+ 	struct inode *inode = file->f_path.dentry->d_inode;
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
++	struct fuse_file *ff = file->private_data;
+ 	struct fuse_req *req;
  
--#define FLOPPY_MOTOR_MASK 0xf0
+ 	if (is_bad_inode(inode))
+@@ -875,7 +875,7 @@ static int fuse_readdir(struct file *fil
+ 	}
+ 	req->num_pages = 1;
+ 	req->pages[0] = page;
+-	fuse_read_fill(req, file, inode, file->f_pos, PAGE_SIZE, FUSE_READDIR);
++	fuse_read_fill(req, ff, inode, file->f_pos, PAGE_SIZE, FUSE_READDIR);
+ 	request_send(fc, req);
+ 	nbytes = req->out.args[0].size;
+ 	err = req->out.h.error;
+diff -puN fs/fuse/file.c~fuse-add-reference-counting-to-fuse_file fs/fuse/file.c
+--- a/fs/fuse/file.c~fuse-add-reference-counting-to-fuse_file
++++ a/fs/fuse/file.c
+@@ -54,6 +54,7 @@ struct fuse_file *fuse_file_alloc(void)
+ 			kfree(ff);
+ 			ff = NULL;
+ 		}
++		atomic_set(&ff->count, 0);
+ 	}
+ 	return ff;
+ }
+@@ -64,6 +65,22 @@ void fuse_file_free(struct fuse_file *ff
+ 	kfree(ff);
+ }
+ 
++static struct fuse_file *fuse_file_get(struct fuse_file *ff)
++{
++	atomic_inc(&ff->count);
++	return ff;
++}
++
++static void fuse_file_put(struct fuse_file *ff)
++{
++	if (atomic_dec_and_test(&ff->count)) {
++		struct fuse_req *req = ff->reserved_req;
++		struct fuse_conn *fc = get_fuse_conn(req->dentry->d_inode);
++		request_send_background(fc, req);
++		kfree(ff);
++	}
++}
++
+ void fuse_finish_open(struct inode *inode, struct file *file,
+ 		      struct fuse_file *ff, struct fuse_open_out *outarg)
+ {
+@@ -72,7 +89,7 @@ void fuse_finish_open(struct inode *inod
+ 	if (!(outarg->open_flags & FOPEN_KEEP_CACHE))
+ 		invalidate_mapping_pages(inode->i_mapping, 0, -1);
+ 	ff->fh = outarg->fh;
+-	file->private_data = ff;
++	file->private_data = fuse_file_get(ff);
+ }
+ 
+ int fuse_open_common(struct inode *inode, struct file *file, int isdir)
+@@ -113,8 +130,7 @@ int fuse_open_common(struct inode *inode
+ 	return err;
+ }
+ 
+-struct fuse_req *fuse_release_fill(struct fuse_file *ff, u64 nodeid, int flags,
+-				   int opcode)
++void fuse_release_fill(struct fuse_file *ff, u64 nodeid, int flags, int opcode)
+ {
+ 	struct fuse_req *req = ff->reserved_req;
+ 	struct fuse_release_in *inarg = &req->misc.release_in;
+@@ -126,25 +142,24 @@ struct fuse_req *fuse_release_fill(struc
+ 	req->in.numargs = 1;
+ 	req->in.args[0].size = sizeof(struct fuse_release_in);
+ 	req->in.args[0].value = inarg;
+-	kfree(ff);
 -
- #define CROSS_64KB(a,s) (0)
+-	return req;
+ }
  
- /*
-diff -puN include/asm-m68k/floppy.h~cleanup-floppyh include/asm-m68k/floppy.h
---- a/include/asm-m68k/floppy.h~cleanup-floppyh
-+++ a/include/asm-m68k/floppy.h
-@@ -31,9 +31,6 @@ asmlinkage irqreturn_t floppy_hardint(in
- #define FLOPPY0_TYPE (MACH_IS_Q40 ? 6 : 4)
- #define FLOPPY1_TYPE 0
- 
--#define FLOPPY_MOTOR_MASK 0xf0
+ int fuse_release_common(struct inode *inode, struct file *file, int isdir)
+ {
+ 	struct fuse_file *ff = file->private_data;
+ 	if (ff) {
+-		struct fuse_conn *fc = get_fuse_conn(inode);
+-		struct fuse_req *req;
 -
--
- /* basically PC init + set use_virtual_dma */
- #define  FDC1 m68k_floppy_init()
+-		req = fuse_release_fill(ff, get_node_id(inode), file->f_flags,
+-					isdir ? FUSE_RELEASEDIR : FUSE_RELEASE);
++		fuse_release_fill(ff, get_node_id(inode), file->f_flags,
++				  isdir ? FUSE_RELEASEDIR : FUSE_RELEASE);
  
-diff -puN include/asm-mips/floppy.h~cleanup-floppyh include/asm-mips/floppy.h
---- a/include/asm-mips/floppy.h~cleanup-floppyh
-+++ a/include/asm-mips/floppy.h
-@@ -34,8 +34,6 @@ static inline void fd_cacheflush(char * 
- #define N_FDC 1			/* do you *really* want a second controller? */
- #define N_DRIVE 8
+ 		/* Hold vfsmount and dentry until release is finished */
+-		req->vfsmount = mntget(file->f_path.mnt);
+-		req->dentry = dget(file->f_path.dentry);
+-		request_send_background(fc, req);
++		ff->reserved_req->vfsmount = mntget(file->f_path.mnt);
++		ff->reserved_req->dentry = dget(file->f_path.dentry);
++		/*
++		 * Normally this will send the RELEASE request,
++		 * however if some asynchronous READ or WRITE requests
++		 * are outstanding, the sending will be delayed
++		 */
++		fuse_file_put(ff);
+ 	}
  
--#define FLOPPY_MOTOR_MASK 0xf0
--
- /*
-  * The DMA channel used by the floppy controller cannot access data at
-  * addresses >= 16MB
-diff -puN include/asm-parisc/floppy.h~cleanup-floppyh include/asm-parisc/floppy.h
---- a/include/asm-parisc/floppy.h~cleanup-floppyh
-+++ a/include/asm-parisc/floppy.h
-@@ -266,10 +266,6 @@ static int FDC2 = -1;
- #define N_FDC 1
- #define N_DRIVE 8
+ 	/* Return value is ignored by VFS */
+@@ -264,10 +279,9 @@ static int fuse_fsync(struct file *file,
+ 	return fuse_fsync_common(file, de, datasync, 0);
+ }
  
--#define FLOPPY_MOTOR_MASK 0xf0
--
--#define AUTO_DMA
--
- #define EXTRA_FLOPPY_PARAMS
+-void fuse_read_fill(struct fuse_req *req, struct file *file,
++void fuse_read_fill(struct fuse_req *req, struct fuse_file *ff,
+ 		    struct inode *inode, loff_t pos, size_t count, int opcode)
+ {
+-	struct fuse_file *ff = file->private_data;
+ 	struct fuse_read_in *inarg = &req->misc.read_in;
  
- #endif /* __ASM_PARISC_FLOPPY_H */
-diff -puN include/asm-powerpc/floppy.h~cleanup-floppyh include/asm-powerpc/floppy.h
---- a/include/asm-powerpc/floppy.h~cleanup-floppyh
-+++ a/include/asm-powerpc/floppy.h
-@@ -202,8 +202,6 @@ static int FDC2 = -1;
- #define N_FDC 2			/* Don't change this! */
- #define N_DRIVE 8
+ 	inarg->fh = ff->fh;
+@@ -288,7 +302,8 @@ static size_t fuse_send_read(struct fuse
+ 			     struct inode *inode, loff_t pos, size_t count)
+ {
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+-	fuse_read_fill(req, file, inode, pos, count, FUSE_READ);
++	struct fuse_file *ff = file->private_data;
++	fuse_read_fill(req, ff, inode, pos, count, FUSE_READ);
+ 	request_send(fc, req);
+ 	return req->out.args[0].size;
+ }
+@@ -337,20 +352,21 @@ static void fuse_readpages_end(struct fu
+ 			SetPageError(page);
+ 		unlock_page(page);
+ 	}
++	if (req->ff)
++		fuse_file_put(req->ff);
+ 	fuse_put_request(fc, req);
+ }
  
--#define FLOPPY_MOTOR_MASK 0xf0
--
- /*
-  * The PowerPC has no problems with floppy DMA crossing 64k borders.
+-static void fuse_send_readpages(struct fuse_req *req, struct file *file,
++static void fuse_send_readpages(struct fuse_req *req, struct fuse_file *ff,
+ 				struct inode *inode)
+ {
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+ 	loff_t pos = page_offset(req->pages[0]);
+ 	size_t count = req->num_pages << PAGE_CACHE_SHIFT;
+ 	req->out.page_zeroing = 1;
+-	fuse_read_fill(req, file, inode, pos, count, FUSE_READ);
++	fuse_read_fill(req, ff, inode, pos, count, FUSE_READ);
+ 	if (fc->async_read) {
+-		get_file(file);
+-		req->file = file;
++		req->ff = fuse_file_get(ff);
+ 		req->end = fuse_readpages_end;
+ 		request_send_background(fc, req);
+ 	} else {
+@@ -359,15 +375,15 @@ static void fuse_send_readpages(struct f
+ 	}
+ }
+ 
+-struct fuse_readpages_data {
++struct fuse_fill_data {
+ 	struct fuse_req *req;
+-	struct file *file;
++	struct fuse_file *ff;
+ 	struct inode *inode;
+ };
+ 
+ static int fuse_readpages_fill(void *_data, struct page *page)
+ {
+-	struct fuse_readpages_data *data = _data;
++	struct fuse_fill_data *data = _data;
+ 	struct fuse_req *req = data->req;
+ 	struct inode *inode = data->inode;
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+@@ -376,7 +392,7 @@ static int fuse_readpages_fill(void *_da
+ 	    (req->num_pages == FUSE_MAX_PAGES_PER_REQ ||
+ 	     (req->num_pages + 1) * PAGE_CACHE_SIZE > fc->max_read ||
+ 	     req->pages[req->num_pages - 1]->index + 1 != page->index)) {
+-		fuse_send_readpages(req, data->file, inode);
++		fuse_send_readpages(req, data->ff, inode);
+ 		data->req = req = fuse_get_req(fc);
+ 		if (IS_ERR(req)) {
+ 			unlock_page(page);
+@@ -393,14 +409,14 @@ static int fuse_readpages(struct file *f
+ {
+ 	struct inode *inode = mapping->host;
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+-	struct fuse_readpages_data data;
++	struct fuse_fill_data data;
+ 	int err;
+ 
+ 	err = -EIO;
+ 	if (is_bad_inode(inode))
+ 		goto out;
+ 
+-	data.file = file;
++	data.ff = file->private_data;
+ 	data.inode = inode;
+ 	data.req = fuse_get_req(fc);
+ 	err = PTR_ERR(data.req);
+@@ -410,7 +426,7 @@ static int fuse_readpages(struct file *f
+ 	err = read_cache_pages(mapping, pages, fuse_readpages_fill, &data);
+ 	if (!err) {
+ 		if (data.req->num_pages)
+-			fuse_send_readpages(data.req, file, inode);
++			fuse_send_readpages(data.req, data.ff, inode);
+ 		else
+ 			fuse_put_request(fc, data.req);
+ 	}
+diff -puN fs/fuse/fuse_i.h~fuse-add-reference-counting-to-fuse_file fs/fuse/fuse_i.h
+--- a/fs/fuse/fuse_i.h~fuse-add-reference-counting-to-fuse_file
++++ a/fs/fuse/fuse_i.h
+@@ -72,6 +72,9 @@ struct fuse_file {
+ 
+ 	/** File handle used by userspace */
+ 	u64 fh;
++
++	/** Refcount */
++	atomic_t count;
+ };
+ 
+ /** One input argument of a request */
+@@ -216,7 +219,7 @@ struct fuse_req {
+ 	unsigned page_offset;
+ 
+ 	/** File used in the request (or NULL) */
+-	struct file *file;
++	struct fuse_file *ff;
+ 
+ 	/** vfsmount used in release */
+ 	struct vfsmount *vfsmount;
+@@ -420,7 +423,7 @@ void fuse_send_forget(struct fuse_conn *
+ /**
+  * Initialize READ or READDIR request
   */
-diff -puN include/asm-ppc/floppy.h~cleanup-floppyh include/asm-ppc/floppy.h
---- a/include/asm-ppc/floppy.h~cleanup-floppyh
-+++ a/include/asm-ppc/floppy.h
-@@ -166,8 +166,6 @@ static int FDC2 = -1;
- #define N_FDC 2			/* Don't change this! */
- #define N_DRIVE 8
+-void fuse_read_fill(struct fuse_req *req, struct file *file,
++void fuse_read_fill(struct fuse_req *req, struct fuse_file *ff,
+ 		    struct inode *inode, loff_t pos, size_t count, int opcode);
  
--#define FLOPPY_MOTOR_MASK 0xf0
--
- /*
-  * The PowerPC has no problems with floppy DMA crossing 64k borders.
+ /**
+@@ -433,9 +436,9 @@ void fuse_file_free(struct fuse_file *ff
+ void fuse_finish_open(struct inode *inode, struct file *file,
+ 		      struct fuse_file *ff, struct fuse_open_out *outarg);
+ 
+-/** */
+-struct fuse_req *fuse_release_fill(struct fuse_file *ff, u64 nodeid, int flags,
+-				   int opcode);
++/** Fill in ff->reserved_req with a RELEASE request */
++void fuse_release_fill(struct fuse_file *ff, u64 nodeid, int flags, int opcode);
++
+ /**
+  * Send RELEASE or RELEASEDIR request
   */
-diff -puN include/asm-sh/floppy.h~cleanup-floppyh include/asm-sh/floppy.h
---- a/include/asm-sh/floppy.h~cleanup-floppyh
-+++ a/include/asm-sh/floppy.h
-@@ -263,10 +263,6 @@ static int FDC2 = -1;
- #define N_FDC 2
- #define N_DRIVE 8
- 
--#define FLOPPY_MOTOR_MASK 0xf0
--
--#define AUTO_DMA
--
- #define EXTRA_FLOPPY_PARAMS
- 
- #endif /* __ASM_SH_FLOPPY_H */
-diff -puN include/asm-sparc/floppy.h~cleanup-floppyh include/asm-sparc/floppy.h
---- a/include/asm-sparc/floppy.h~cleanup-floppyh
-+++ a/include/asm-sparc/floppy.h
-@@ -77,8 +77,6 @@ static struct sun_floppy_ops sun_fdops;
- #define fd_dma_mem_free(addr,size) (vfree((void *)(addr)))
- #endif
- 
--#define FLOPPY_MOTOR_MASK         0x10
--
- /* XXX This isn't really correct. XXX */
- #define get_dma_residue(x)        (0)
- 
-diff -puN include/asm-sparc64/floppy.h~cleanup-floppyh include/asm-sparc64/floppy.h
---- a/include/asm-sparc64/floppy.h~cleanup-floppyh
-+++ a/include/asm-sparc64/floppy.h
-@@ -84,8 +84,6 @@ static struct sun_floppy_ops sun_fdops;
- #define fd_free_irq()             sun_fdops.fd_free_irq()
- #define fd_eject(drive)           sun_fdops.fd_eject(drive)
- 
--static int FLOPPY_MOTOR_MASK = 0x10;
--
- /* Super paranoid... */
- #undef HAVE_DISABLE_HLT
- 
-@@ -622,7 +620,6 @@ isa_done:
- 	sun_fdops.fd_eject = sun_pci_fd_eject;
- 
-         fdc_status = (unsigned long) &sun_fdc->status_82077;
--	FLOPPY_MOTOR_MASK = 0xf0;
- 
- 	allowed_drive_mask = 0;
- 	sun_floppy_types[0] = 0;
-@@ -729,7 +726,6 @@ static unsigned long __init sun_floppy_i
- 		sun_fdops.fd_eject = sun_pci_fd_eject;
- 
-         	fdc_status = (unsigned long) &sun_fdc->status_82077;
--		FLOPPY_MOTOR_MASK = 0xf0;
- 
- 		/*
- 		 * XXX: Find out on which machines this is really needed.
-diff -puN include/asm-x86/floppy_32.h~cleanup-floppyh include/asm-x86/floppy_32.h
---- a/include/asm-x86/floppy_32.h~cleanup-floppyh
-+++ a/include/asm-x86/floppy_32.h
-@@ -275,10 +275,6 @@ static int FDC2 = -1;
- #define N_FDC 2
- #define N_DRIVE 8
- 
--#define FLOPPY_MOTOR_MASK 0xf0
--
--#define AUTO_DMA
--
- #define EXTRA_FLOPPY_PARAMS
- 
- #endif /* __ASM_I386_FLOPPY_H */
-diff -puN include/asm-x86/floppy_64.h~cleanup-floppyh include/asm-x86/floppy_64.h
---- a/include/asm-x86/floppy_64.h~cleanup-floppyh
-+++ a/include/asm-x86/floppy_64.h
-@@ -274,10 +274,6 @@ static int FDC2 = -1;
- #define N_FDC 2
- #define N_DRIVE 8
- 
--#define FLOPPY_MOTOR_MASK 0xf0
--
--#define AUTO_DMA
--
- #define EXTRA_FLOPPY_PARAMS
- 
- #endif /* __ASM_X86_64_FLOPPY_H */
 _
 
-Patches currently in -mm which might be from jbeulich@novell.com are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
-git-x86.patch
-revert-x86_64-mm-cpa-einval.patch
-cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+fuse-fix-allowing-operations.patch
+fuse-fix-race-between-getattr-and-write.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+fuse-clean-up-open-file-passing-in-setattr.patch
+vfs-allow-filesystems-to-implement-atomic-opentruncate.patch
+fuse-improve-utimes-support.patch
+fuse-add-atomic-opentruncate-support.patch
+fuse-support-bsd-locking-semantics.patch
+fuse-add-list-of-writable-files-to-fuse_inode.patch
+fuse-add-helper-for-asynchronous-writes.patch
+fuse-add-support-for-mandatory-locking.patch
+fuse-add-blksize-field-to-fuse_attr.patch
