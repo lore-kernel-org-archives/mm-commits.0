@@ -1,80 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - kdump-documentation-cleanups.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:04:51 -0700
-Message-ID: <200710180704.l9I74pK7031594@imap1.linux-foundation.org>
+Subject: - lp_console-cleanups.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:01:59 -0700
+Message-ID: <200710180701.l9I71xV8031221@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58052 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39932 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753735AbXJRHXN (ORCPT
+	by vger.kernel.org with ESMTP id S1755359AbXJRHXb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:23:13 -0400
+	Thu, 18 Oct 2007 03:23:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: pavel@ucw.cz, pavel@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kdump: documentation cleanups
+     lp_console: cleanups
 has been removed from the -mm tree.  Its filename was
-     kdump-documentation-cleanups.patch
+     lp_console-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kdump: documentation cleanups
+Subject: lp_console: cleanups
 From: Pavel Machek <pavel@ucw.cz>
 
-This cleans up kdump documentation a bit. Plus I do not think we want
-to mention Linux trademark in _every_ file in documentation....
+Remove NULL initializers and clean whitespace a bit.
 
 Signed-off-by: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kdump/kdump.txt |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ drivers/char/lp.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/kdump/kdump.txt~kdump-documentation-cleanups Documentation/kdump/kdump.txt
---- a/Documentation/kdump/kdump.txt~kdump-documentation-cleanups
-+++ a/Documentation/kdump/kdump.txt
-@@ -13,7 +13,7 @@ dump of the system kernel's memory needs
- the system panics). The system kernel's memory image is preserved across
- the reboot and is accessible to the dump-capture kernel.
+diff -puN drivers/char/lp.c~lp_console-cleanups drivers/char/lp.c
+--- a/drivers/char/lp.c~lp_console-cleanups
++++ a/drivers/char/lp.c
+@@ -144,7 +144,7 @@ static unsigned int lp_count = 0;
+ static struct class *lp_class;
  
--You can use common Linux commands, such as cp and scp, to copy the
-+You can use common commands, such as cp and scp, to copy the
- memory image to a dump file on the local disk, or across the network to
- a remote system.
+ #ifdef CONFIG_LP_CONSOLE
+-static struct parport *console_registered; // initially NULL
++static struct parport *console_registered;
+ #endif /* CONFIG_LP_CONSOLE */
  
-@@ -69,7 +69,7 @@ http://www.kernel.org/pub/linux/kernel/p
+ #undef LP_DEBUG
+@@ -749,8 +749,8 @@ static struct console lpcons = {
+ /* --- initialisation code ------------------------------------- */
  
- This is a symlink to the latest version, which at the time of writing is
- 20061214, the only release of kexec-tools-testing so far. As other versions
--are made released, the older onese will remain available at
-+are released, the older ones will remain available at
- http://www.kernel.org/pub/linux/kernel/people/horms/kexec-tools/
+ static int parport_nr[LP_NO] = { [0 ... LP_NO-1] = LP_PARPORT_UNSPEC };
+-static char *parport[LP_NO] = { NULL,  };
+-static int reset = 0;
++static char *parport[LP_NO];
++static int reset;
  
- Note: Latest kexec-tools-testing git tree is available at
-@@ -339,7 +339,7 @@ If die() is called, and it happens to be
- is called inside interrupt context or die() is called and panic_on_oops is set,
- the system will boot into the dump-capture kernel.
+ module_param_array(parport, charp, NULL, 0);
+ module_param(reset, bool, 0);
+@@ -758,10 +758,10 @@ module_param(reset, bool, 0);
+ #ifndef MODULE
+ static int __init lp_setup (char *str)
+ {
+-	static int parport_ptr; // initially zero
++	static int parport_ptr;
+ 	int x;
  
--On powererpc systems when a soft-reset is generated, die() is called by all cpus
-+On powerpc systems when a soft-reset is generated, die() is called by all cpus
- and the system will boot into the dump-capture kernel.
+-	if (get_option (&str, &x)) {
++	if (get_option(&str, &x)) {
+ 		if (x == 0) {
+ 			/* disable driver on "lp=" or "lp=0" */
+ 			parport_nr[0] = LP_PARPORT_OFF;
+@@ -807,7 +807,7 @@ static int lp_register(int nr, struct pa
+ #ifdef CONFIG_LP_CONSOLE
+ 	if (!nr) {
+ 		if (port->modes & PARPORT_MODE_SAFEININT) {
+-			register_console (&lpcons);
++			register_console(&lpcons);
+ 			console_registered = port;
+ 			printk (KERN_INFO "lp%d: console ready\n", CONSOLE_LP);
+ 		} else
+@@ -823,8 +823,7 @@ static void lp_attach (struct parport *p
+ {
+ 	unsigned int i;
  
- For testing purposes, you can trigger a crash by using "ALT-SysRq-c",
-@@ -405,9 +405,3 @@ Contact
- Vivek Goyal (vgoyal@in.ibm.com)
- Maneesh Soni (maneesh@in.ibm.com)
- 
--
--Trademark
--=========
--
--Linux is a trademark of Linus Torvalds in the United States, other
--countries, or both.
+-	switch (parport_nr[0])
+-	{
++	switch (parport_nr[0]) {
+ 	case LP_PARPORT_UNSPEC:
+ 	case LP_PARPORT_AUTO:
+ 		if (parport_nr[0] == LP_PARPORT_AUTO &&
+@@ -855,7 +854,7 @@ static void lp_detach (struct parport *p
+ 	/* Write this some day. */
+ #ifdef CONFIG_LP_CONSOLE
+ 	if (console_registered == port) {
+-		unregister_console (&lpcons);
++		unregister_console(&lpcons);
+ 		console_registered = NULL;
+ 	}
+ #endif /* CONFIG_LP_CONSOLE */
 _
 
 Patches currently in -mm which might be from pavel@ucw.cz are
