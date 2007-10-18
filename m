@@ -1,174 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-remove-first_zero_hint.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 11:41:48 -0700
-Message-ID: <200710181841.l9IIfmep025799@imap1.linux-foundation.org>
+Subject: - reiserfs-remove-first_zero_hint-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 11:41:57 -0700
+Message-ID: <200710181841.l9IIfvLC025804@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48925 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43536 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752356AbXJRSmP (ORCPT
+	by vger.kernel.org with ESMTP id S1756835AbXJRSmX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 14:42:15 -0400
+	Thu, 18 Oct 2007 14:42:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeffm@suse.com, hch@lst.de, mason@suse.com, vs@namesys.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hch@lst.de, jeffm@suse.com, mason@suse.com, vs@namesys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs: remove first_zero_hint
+     reiserfs-remove-first_zero_hint-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     reiserfs-remove-first_zero_hint.patch
+     reiserfs-remove-first_zero_hint-checkpatch-fixes.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: reiserfs: remove first_zero_hint
-From: Jeff Mahoney <jeffm@suse.com>
+Subject: reiserfs-remove-first_zero_hint-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The first_zero_hint metadata caching was never actually used, and it's of
-dubious optimization quality.  This patch removes it.
+WARNING: no space between function name and open parenthesis '('
+#40: FILE: fs/reiserfs/bitmap.c:1218:
++	BUG_ON (!reiserfs_test_le_bit(0, (unsigned long)bh->b_data))
 
-It doesn't actually shrink the size of the reiserfs_bitmap_info struct, since
-that doesn't work with block sizes larger than 8K.  There was a big fixme in
-there, and with all the work lately in allowing block size > page size, I
-might as well kill the fixme as well.
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Chris Mason <mason@suse.com>
 Cc: "Vladimir V. Saveliev" <vs@namesys.com>
+Cc: Chris Mason <mason@suse.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/bitmap.c           |   27 +++++++++++----------------
- fs/reiserfs/resize.c           |    6 ------
- include/linux/reiserfs_fs_sb.h |    4 +---
- 3 files changed, 12 insertions(+), 25 deletions(-)
+ fs/reiserfs/bitmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/reiserfs/bitmap.c~reiserfs-remove-first_zero_hint fs/reiserfs/bitmap.c
---- a/fs/reiserfs/bitmap.c~reiserfs-remove-first_zero_hint
+diff -puN fs/reiserfs/bitmap.c~reiserfs-remove-first_zero_hint-checkpatch-fixes fs/reiserfs/bitmap.c
+--- a/fs/reiserfs/bitmap.c~reiserfs-remove-first_zero_hint-checkpatch-fixes
 +++ a/fs/reiserfs/bitmap.c
-@@ -273,7 +273,7 @@ static inline int block_group_used(struc
- 	 * to make a better decision. This favors long-term performace gain
- 	 * with a better on-disk layout vs. a short term gain of skipping the
- 	 * read and potentially having a bad placement. */
--	if (info->first_zero_hint == 0) {
-+	if (info->free_count == UINT_MAX) {
- 		struct buffer_head *bh = reiserfs_read_bitmap_block(s, bm);
- 		brelse(bh);
- 	}
-@@ -1214,27 +1214,22 @@ void reiserfs_cache_bitmap_metadata(stru
- {
+@@ -1215,7 +1215,7 @@ void reiserfs_cache_bitmap_metadata(stru
  	unsigned long *cur = (unsigned long *)(bh->b_data + bh->b_size);
  
--	info->first_zero_hint = 1 << (sb->s_blocksize_bits + 3);
-+	/* The first bit must ALWAYS be 1 */
-+	BUG_ON (!reiserfs_test_le_bit(0, (unsigned long)bh->b_data))
-+
-+	info->free_count = 0;
+ 	/* The first bit must ALWAYS be 1 */
+-	BUG_ON (!reiserfs_test_le_bit(0, (unsigned long)bh->b_data))
++	BUG_ON(!reiserfs_test_le_bit(0, (unsigned long)bh->b_data))
  
- 	while (--cur >= (unsigned long *)bh->b_data) {
--		int base = ((char *)cur - bh->b_data) << 3;
-+		int i;
+ 	info->free_count = 0;
  
- 		/* 0 and ~0 are special, we can optimize for them */
--		if (*cur == 0) {
--			info->first_zero_hint = base;
-+		if (*cur == 0)
- 			info->free_count += BITS_PER_LONG;
--		} else if (*cur != ~0L) {       /* A mix, investigate */
--			int b;
--			for (b = BITS_PER_LONG - 1; b >= 0; b--) {
--				if (!reiserfs_test_le_bit(b, cur)) {
--					info->first_zero_hint = base + b;
-+		else if (*cur != ~0L)	/* A mix, investigate */
-+			for (i = BITS_PER_LONG - 1; i >= 0; i--)
-+				if (!reiserfs_test_le_bit(i, cur))
- 					info->free_count++;
--				}
--			}
--		}
- 	}
--	/* The first bit must ALWAYS be 1 */
--	BUG_ON(info->first_zero_hint == 0);
- }
- 
- struct buffer_head *reiserfs_read_bitmap_block(struct super_block *sb,
-@@ -1264,7 +1259,7 @@ struct buffer_head *reiserfs_read_bitmap
- 		BUG_ON(!buffer_uptodate(bh));
- 		BUG_ON(atomic_read(&bh->b_count) == 0);
- 
--		if (info->first_zero_hint == 0)
-+		if (info->free_count == UINT_MAX)
- 			reiserfs_cache_bitmap_metadata(sb, bh, info);
- 	}
- 
-diff -puN fs/reiserfs/resize.c~reiserfs-remove-first_zero_hint fs/reiserfs/resize.c
---- a/fs/reiserfs/resize.c~reiserfs-remove-first_zero_hint
-+++ a/fs/reiserfs/resize.c
-@@ -143,7 +143,6 @@ int reiserfs_resize(struct super_block *
- 			mark_buffer_dirty(bh);
- 			sync_dirty_buffer(bh);
- 			// update bitmap_info stuff
--			bitmap[i].first_zero_hint = 1;
- 			bitmap[i].free_count = sb_blocksize(sb) * 8 - 1;
- 			brelse(bh);
- 		}
-@@ -173,8 +172,6 @@ int reiserfs_resize(struct super_block *
- 	for (i = block_r; i < s->s_blocksize * 8; i++)
- 		reiserfs_test_and_clear_le_bit(i, bh->b_data);
- 	info->free_count += s->s_blocksize * 8 - block_r;
--	if (!info->first_zero_hint)
--		info->first_zero_hint = block_r;
- 
- 	journal_mark_dirty(&th, s, bh);
- 	brelse(bh);
-@@ -196,9 +193,6 @@ int reiserfs_resize(struct super_block *
- 	brelse(bh);
- 
- 	info->free_count -= s->s_blocksize * 8 - block_r_new;
--	/* Extreme case where last bitmap is the only valid block in itself. */
--	if (!info->free_count)
--		info->first_zero_hint = 0;
- 	/* update super */
- 	reiserfs_prepare_for_journal(s, SB_BUFFER_WITH_SB(s), 1);
- 	free_blocks = SB_FREE_BLOCKS(s);
-diff -puN include/linux/reiserfs_fs_sb.h~reiserfs-remove-first_zero_hint include/linux/reiserfs_fs_sb.h
---- a/include/linux/reiserfs_fs_sb.h~reiserfs-remove-first_zero_hint
-+++ a/include/linux/reiserfs_fs_sb.h
-@@ -265,9 +265,7 @@ enum journal_state_bits {
- typedef __u32(*hashf_t) (const signed char *, int);
- 
- struct reiserfs_bitmap_info {
--	// FIXME: Won't work with block sizes > 8K
--	__u16 first_zero_hint;
--	__u16 free_count;
-+	__u32 free_count;
- };
- 
- struct proc_dir_entry;
 _
 
-Patches currently in -mm which might be from jeffm@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
-reiserfs-turn-of-attr_kill_sid-at-beginning-of-reiserfs_setattr.patch
-vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
-reiserfs-fix-up-lockdep-warnings.patch
+stop-using-dma_xxbit_mask.patch
+fuse-fix-race-between-getattr-and-write.patch
+fuse-add-file-handle-to-getattr-operation.patch
+sparse-pointer-use-of-zero-as-null.patch
+i-oat-tighten-descriptor-setup-performance.patch
+i-oat-add-completion-callback-for-async_tx-interface-use.patch
+console-keyboard-events-and-accessibility.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-add-reboot-mechanism.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-cifs.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-arm-hack.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd-fixup.patch
+fix-build-breakage-if-sysfs-fix.patch
+qla2xxx-printk-fixes.patch
+advansys-depends-on-virt_to_bus.patch
+sparc-support-for-new-termios.patch
+git-unionfs.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+git-nfs-vs-git-unionfs.patch
+git-watchdog-fixup.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-x86.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-checkpatch-fixes.patch
+memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+revert-x86-save-registers-in-saved_context-during-suspend-and-hibernation.patch
+pm-qos-infrastructure-and-interface-fix.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+console-events-and-accessibility-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+stop-using-dma_xxbit_mask-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes.patch
+sync_sb_inodes-propagate-errors.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
 reiserfs-fix-up-lockdep-warnings-checkpatch-fixes.patch
-reiserfs-dont-use-bug-when-panicking.patch
-reiserfs-use-is_reusable-to-catch-corruption.patch
 reiserfs-use-is_reusable-to-catch-corruption-checkpatch-fixes.patch
-reiserfs-fix-usage-of-signed-ints-for-block-numbers.patch
 reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes.patch
-reiserfs-fix-memset-byte-count-during-resize.patch
-reiserfs-remove-first_zero_hint.patch
 reiserfs-remove-first_zero_hint-checkpatch-fixes.patch
-reiserfs-ignore-on-disk-s_bmap_nr-value.patch
 reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes.patch
-exportfs-add-fid-type.patch
-exportfs-add-new-methods.patch
-reiserfs-new-export-ops.patch
-exportfs-remove-old-methods.patch
-exportfs-make-struct-export_operations-const.patch
-exportfs-update-documentation.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+fix-cpusets-update_cpumask-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
