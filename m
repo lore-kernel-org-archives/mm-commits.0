@@ -1,83 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - writeback-remove-unnecessary-wait-in-throttle_vm_writeout.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:02:43 -0700
-Message-ID: <200710180702.l9I72hi2031301@imap1.linux-foundation.org>
+Subject: - unexport-asm-shmparamh.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:53:03 -0700
+Message-ID: <200710180653.l9I6r3Ya030407@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42982 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41890 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761497AbXJRHqb (ORCPT
+	by vger.kernel.org with ESMTP id S1761477AbXJRHqk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:46:31 -0400
+	Thu, 18 Oct 2007 03:46:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wfg@mail.ustc.edu.cn, galak@kernel.crashing.org, greg@kroah.com, hirofumi@mail.parknet.co.jp, nickpiggin@yahoo.com.au, riel@redhat.com, zaitcev@redhat.com, mm-commits@vger.kernel.org
+To: olaf@aepfle.de, benh@kernel.crashing.org, davem@davemloft.net, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     writeback: remove unnecessary wait in throttle_vm_writeout()
+     unexport asm/shmparam.h
 has been removed from the -mm tree.  Its filename was
-     writeback-remove-unnecessary-wait-in-throttle_vm_writeout.patch
+     unexport-asm-shmparamh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: writeback: remove unnecessary wait in throttle_vm_writeout()
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: unexport asm/shmparam.h
+From: Olaf Hering <olaf@aepfle.de>
 
-We don't want to introduce pointless delays in throttle_vm_writeout() when
-the writeback limits are not yet exceeded, do we?
+SHMLBA cant possible be used in userspace, see sparc versions of that header.
 
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Kumar Gala <galak@kernel.crashing.org>
-Cc: Pete Zaitcev <zaitcev@redhat.com>
-Cc: Greg KH <greg@kroah.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Do not export asm/shmparam.h during make headers_install_all
+This removes another uservisible place of PAGE_SIZE
+
+Signed-off-by: Olaf Hering <olaf@aepfle.de>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ include/asm-generic/Kbuild.asm |    1 -
+ include/asm-powerpc/Kbuild     |    1 -
+ include/asm-sparc64/shmparam.h |    2 --
+ include/linux/shm.h            |    2 ++
+ 4 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/page-writeback.c~writeback-remove-unnecessary-wait-in-throttle_vm_writeout mm/page-writeback.c
---- a/mm/page-writeback.c~writeback-remove-unnecessary-wait-in-throttle_vm_writeout
-+++ a/mm/page-writeback.c
-@@ -502,16 +502,6 @@ void throttle_vm_writeout(gfp_t gfp_mask
- 	long background_thresh;
- 	long dirty_thresh;
+diff -puN include/asm-generic/Kbuild.asm~unexport-asm-shmparamh include/asm-generic/Kbuild.asm
+--- a/include/asm-generic/Kbuild.asm~unexport-asm-shmparamh
++++ a/include/asm-generic/Kbuild.asm
+@@ -30,6 +30,5 @@ unifdef-y += unistd.h
+ unifdef-y += user.h
  
--	if ((gfp_mask & (__GFP_FS|__GFP_IO)) != (__GFP_FS|__GFP_IO)) {
--		/*
--		 * The caller might hold locks which can prevent IO completion
--		 * or progress in the filesystem.  So we cannot just sit here
--		 * waiting for IO to complete.
--		 */
--		congestion_wait(WRITE, HZ/10);
--		return;
--	}
--
-         for ( ; ; ) {
- 		get_dirty_limits(&background_thresh, &dirty_thresh, NULL, NULL);
+ # These probably shouldn't be exported
+-unifdef-y += shmparam.h
+ unifdef-y += elf.h
+ unifdef-y += page.h
+diff -puN include/asm-powerpc/Kbuild~unexport-asm-shmparamh include/asm-powerpc/Kbuild
+--- a/include/asm-powerpc/Kbuild~unexport-asm-shmparamh
++++ a/include/asm-powerpc/Kbuild
+@@ -15,7 +15,6 @@ header-y += termbits.h
+ header-y += fcntl.h
+ header-y += ipc.h
+ header-y += poll.h
+-header-y += shmparam.h
+ header-y += sockios.h
+ header-y += ucontext.h
+ header-y += ioctl.h
+diff -puN include/asm-sparc64/shmparam.h~unexport-asm-shmparamh include/asm-sparc64/shmparam.h
+--- a/include/asm-sparc64/shmparam.h~unexport-asm-shmparamh
++++ a/include/asm-sparc64/shmparam.h
+@@ -1,7 +1,6 @@
+ /* $Id: shmparam.h,v 1.5 2001/09/24 21:17:57 kanoj Exp $ */
+ #ifndef _ASMSPARC64_SHMPARAM_H
+ #define _ASMSPARC64_SHMPARAM_H
+-#ifdef __KERNEL__
  
-@@ -525,6 +515,14 @@ void throttle_vm_writeout(gfp_t gfp_mask
- 			global_page_state(NR_WRITEBACK) <= dirty_thresh)
-                         	break;
-                 congestion_wait(WRITE, HZ/10);
-+
-+		/*
-+		 * The caller might hold locks which can prevent IO completion
-+		 * or progress in the filesystem.  So we cannot just sit here
-+		 * waiting for IO to complete.
-+		 */
-+		if ((gfp_mask & (__GFP_FS|__GFP_IO)) != (__GFP_FS|__GFP_IO))
-+			break;
-         }
- }
+ #include <asm/spitfire.h>
  
+@@ -9,5 +8,4 @@
+ /* attach addr a multiple of this */
+ #define	SHMLBA	((PAGE_SIZE > L1DCACHE_SIZE) ? PAGE_SIZE : L1DCACHE_SIZE)
+ 
+-#endif /* __KERNEL__ */
+ #endif /* _ASMSPARC64_SHMPARAM_H */
+diff -puN include/linux/shm.h~unexport-asm-shmparamh include/linux/shm.h
+--- a/include/linux/shm.h~unexport-asm-shmparamh
++++ a/include/linux/shm.h
+@@ -16,7 +16,9 @@
+ #define SHMALL (SHMMAX/PAGE_SIZE*(SHMMNI/16)) /* max shm system wide (pages) */
+ #define SHMSEG SHMMNI			 /* max shared segs per process */
+ 
++#ifdef __KERNEL__
+ #include <asm/shmparam.h>
++#endif
+ 
+ /* Obsolete, used only for backwards compatibility and libc5 compiles */
+ struct shmid_ds {
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from olaf@aepfle.de are
 
 origin.patch
+keep-track-of-network-interface-renaming.patch
