@@ -1,70 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - clean-up-duplicate-includes-in-fs.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:53:42 -0700
-Message-ID: <200710180653.l9I6rgiY030460@imap1.linux-foundation.org>
+Subject: - fs-remove-the-unused-mempages-parameter.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:54:09 -0700
+Message-ID: <200710180654.l9I6s9ia030501@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60926 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36989 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932118AbXJRHhi (ORCPT
+	by vger.kernel.org with ESMTP id S932125AbXJRHhl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:37:38 -0400
+	Thu, 18 Oct 2007 03:37:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, mm-commits@vger.kernel.org
+To: crquan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Clean up duplicate includes in fs/
+     fs: remove the unused mempages parameter
 has been removed from the -mm tree.  Its filename was
-     clean-up-duplicate-includes-in-fs.patch
+     fs-remove-the-unused-mempages-parameter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in fs/
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: fs: remove the unused mempages parameter
+From: Denis Cheng <crquan@gmail.com>
 
-This patch cleans up duplicate includes in
-	fs/
+Since the mempages parameter is actually not used, they should be removed.
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Now there is only files_init use the mempages parameter,
+
+ 	files_init(mempages);
+
+but I don't think the adaptation to mempages in files_init is really
+useful; and if files_init also changed to the prototype void (*func)(void),
+the wrapper vfs_caches_init would also not need the mempages parameter.
+
+Signed-off-by: Denis Cheng <crquan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat_ioctl.c |    1 -
- fs/namei.c        |    1 -
- 2 files changed, 2 deletions(-)
+ fs/dcache.c        |    8 ++++----
+ fs/inode.c         |    2 +-
+ fs/namespace.c     |    2 +-
+ include/linux/fs.h |    4 ++--
+ 4 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN fs/compat_ioctl.c~clean-up-duplicate-includes-in-fs fs/compat_ioctl.c
---- a/fs/compat_ioctl.c~clean-up-duplicate-includes-in-fs
-+++ a/fs/compat_ioctl.c
-@@ -108,7 +108,6 @@
- #include <linux/dvb/dmx.h>
- #include <linux/dvb/frontend.h>
- #include <linux/dvb/video.h>
--#include <linux/lp.h>
+diff -puN fs/dcache.c~fs-remove-the-unused-mempages-parameter fs/dcache.c
+--- a/fs/dcache.c~fs-remove-the-unused-mempages-parameter
++++ a/fs/dcache.c
+@@ -2108,7 +2108,7 @@ static void __init dcache_init_early(voi
+ 		INIT_HLIST_HEAD(&dentry_hashtable[loop]);
+ }
  
- #ifdef CONFIG_SPARC
- #include <asm/fbio.h>
-diff -puN fs/namei.c~clean-up-duplicate-includes-in-fs fs/namei.c
---- a/fs/namei.c~clean-up-duplicate-includes-in-fs
-+++ a/fs/namei.c
-@@ -30,7 +30,6 @@
- #include <linux/capability.h>
- #include <linux/file.h>
- #include <linux/fcntl.h>
--#include <linux/namei.h>
- #include <asm/namei.h>
- #include <asm/uaccess.h>
+-static void __init dcache_init(unsigned long mempages)
++static void __init dcache_init(void)
+ {
+ 	int loop;
  
+@@ -2170,10 +2170,10 @@ void __init vfs_caches_init(unsigned lon
+ 	filp_cachep = kmem_cache_create("filp", sizeof(struct file), 0,
+ 			SLAB_HWCACHE_ALIGN|SLAB_PANIC, NULL);
+ 
+-	dcache_init(mempages);
+-	inode_init(mempages);
++	dcache_init();
++	inode_init();
+ 	files_init(mempages);
+-	mnt_init(mempages);
++	mnt_init();
+ 	bdev_cache_init();
+ 	chrdev_init();
+ }
+diff -puN fs/inode.c~fs-remove-the-unused-mempages-parameter fs/inode.c
+--- a/fs/inode.c~fs-remove-the-unused-mempages-parameter
++++ a/fs/inode.c
+@@ -1396,7 +1396,7 @@ void __init inode_init_early(void)
+ 		INIT_HLIST_HEAD(&inode_hashtable[loop]);
+ }
+ 
+-void __init inode_init(unsigned long mempages)
++void __init inode_init(void)
+ {
+ 	int loop;
+ 
+diff -puN fs/namespace.c~fs-remove-the-unused-mempages-parameter fs/namespace.c
+--- a/fs/namespace.c~fs-remove-the-unused-mempages-parameter
++++ a/fs/namespace.c
+@@ -1791,7 +1791,7 @@ static void __init init_mount_tree(void)
+ 	set_fs_root(current->fs, ns->root, ns->root->mnt_root);
+ }
+ 
+-void __init mnt_init(unsigned long mempages)
++void __init mnt_init(void)
+ {
+ 	struct list_head *d;
+ 	unsigned int nr_hash;
+diff -puN include/linux/fs.h~fs-remove-the-unused-mempages-parameter include/linux/fs.h
+--- a/include/linux/fs.h~fs-remove-the-unused-mempages-parameter
++++ a/include/linux/fs.h
+@@ -300,9 +300,9 @@ struct kstatfs;
+ struct vm_area_struct;
+ struct vfsmount;
+ 
+-extern void __init inode_init(unsigned long);
++extern void __init inode_init(void);
+ extern void __init inode_init_early(void);
+-extern void __init mnt_init(unsigned long);
++extern void __init mnt_init(void);
+ extern void __init files_init(unsigned long);
+ 
+ struct buffer_head;
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from crquan@gmail.com are
 
 origin.patch
-git-cifs.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
-cyclades-avoid-label-defined-but-not-used-warning.patch
