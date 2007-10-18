@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix.patch added to -mm tree
-Date: Wed, 17 Oct 2007 20:47:15 -0700
-Message-ID: <200710180347.l9I3lFdv023816@imap1.linux-foundation.org>
+Subject: + memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 17 Oct 2007 20:48:35 -0700
+Message-ID: <200710180348.l9I3mZLK023847@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60238 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36975 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764595AbXJRDrW (ORCPT
+	by vger.kernel.org with ESMTP id S1752728AbXJRDsj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Oct 2007 23:47:22 -0400
+	Wed, 17 Oct 2007 23:48:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix
+     memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix.patch
+     memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix
+Subject: memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ mm/slub.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/slub.c~memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix mm/slub.c
---- a/mm/slub.c~memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix
+diff -puN mm/slub.c~memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-checkpatch-fixes mm/slub.c
+--- a/mm/slub.c~memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-checkpatch-fixes
 +++ a/mm/slub.c
-@@ -2749,6 +2749,7 @@ static int slab_mem_going_online_callbac
- 	struct kmem_cache *s;
- 	struct memory_notify *marg = arg;
- 	int nid = marg->status_change_nid;
-+	int ret = 0;
- 
- 	/*
- 	 * If the node's memory is already available, then kmem_cache_node is
-@@ -2770,14 +2771,16 @@ static int slab_mem_going_online_callbac
+@@ -2764,20 +2764,20 @@ static int slab_mem_going_online_callbac
+ 	 */
+ 	down_read(&slub_lock);
+ 	list_for_each_entry(s, &slab_caches, list) {
+-  		/*
++		/*
+ 		 * XXX: kmem_cache_alloc_node will fallback to other nodes
+ 		 *      since memory is not yet available from the node that
  		 *      is brought up.
-   		 */
+-  		 */
++		 */
  		n = kmem_cache_alloc(kmalloc_caches, GFP_KERNEL);
--		if (!n)
--			return -ENOMEM;
-+		if (!n) {
-+			ret = -ENOMEM;
-+			goto out;
-+		}
+ 		if (!n)
+ 			return -ENOMEM;
  		init_kmem_cache_node(n);
  		s->node[nid] = n;
-   	}
-+out:
+-  	}
++	}
  	up_read(&slub_lock);
--
+ 
 -  	return 0;
-+  	return ret;
++	return 0;
  }
  
  static int slab_memory_callback(struct notifier_block *self,
@@ -150,6 +146,7 @@ asm-i386-ioh-fix-constness.patch
 x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
 git-newsetup-fixup.patch
 git-xfs.patch
+memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-checkpatch-fixes.patch
 memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
