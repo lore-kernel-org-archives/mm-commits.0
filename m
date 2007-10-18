@@ -1,71 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - softlockup-use-cpu_clock-instead-of-sched_clock.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:52:38 -0700
-Message-ID: <200710180652.l9I6qc83030305@imap1.linux-foundation.org>
+Subject: - softlockup-watchdog-style-cleanups.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:52:49 -0700
+Message-ID: <200710180652.l9I6qnTb030317@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37286 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36358 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932153AbXJRHhw (ORCPT
+	by vger.kernel.org with ESMTP id S932146AbXJRHhv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:37:52 -0400
+	Thu, 18 Oct 2007 03:37:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     softlockup: use cpu_clock() instead of sched_clock()
+     softlockup watchdog: style cleanups
 has been removed from the -mm tree.  Its filename was
-     softlockup-use-cpu_clock-instead-of-sched_clock.patch
+     softlockup-watchdog-style-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: softlockup: use cpu_clock() instead of sched_clock()
+Subject: softlockup watchdog: style cleanups
 From: Ingo Molnar <mingo@elte.hu>
 
-sched_clock() is not a reliable time-source, use cpu_clock() instead.
+kernel/softirq.c grew a few style uncleanlinesses in the past few
+months, clean that up. No functional changes:
+
+   text    data     bss     dec     hex filename
+   1126      76       4    1206     4b6 softlockup.o.before
+   1129      76       4    1209     4b9 softlockup.o.after
+
+( the 3 bytes .text increase is due to the "<1>" appended to one of
+  the printk messages. )
 
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/softlockup.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ kernel/softlockup.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN kernel/softlockup.c~softlockup-use-cpu_clock-instead-of-sched_clock kernel/softlockup.c
---- a/kernel/softlockup.c~softlockup-use-cpu_clock-instead-of-sched_clock
+diff -puN kernel/softlockup.c~softlockup-watchdog-style-cleanups kernel/softlockup.c
+--- a/kernel/softlockup.c~softlockup-watchdog-style-cleanups
 +++ a/kernel/softlockup.c
-@@ -40,14 +40,16 @@ static struct notifier_block panic_block
-  * resolution, and we don't need to waste time with a big divide when
-  * 2^30ns == 1.074s.
+@@ -23,7 +23,7 @@ static DEFINE_PER_CPU(unsigned long, tou
+ static DEFINE_PER_CPU(unsigned long, print_timestamp);
+ static DEFINE_PER_CPU(struct task_struct *, watchdog_task);
+ 
+-static int did_panic = 0;
++static int did_panic;
+ 
+ static int
+ softlock_panic(struct notifier_block *this, unsigned long event, void *ptr)
+@@ -121,7 +121,7 @@ void softlockup_tick(void)
+ /*
+  * The watchdog thread - runs every second and touches the timestamp.
   */
--static unsigned long get_timestamp(void)
-+static unsigned long get_timestamp(int this_cpu)
+-static int watchdog(void * __bind_cpu)
++static int watchdog(void *__bind_cpu)
  {
--	return sched_clock() >> 30;  /* 2^30 ~= 10^9 */
-+	return cpu_clock(this_cpu) >> 30;  /* 2^30 ~= 10^9 */
+ 	struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
+ 
+@@ -159,13 +159,13 @@ cpu_callback(struct notifier_block *nfb,
+ 		BUG_ON(per_cpu(watchdog_task, hotcpu));
+ 		p = kthread_create(watchdog, hcpu, "watchdog/%d", hotcpu);
+ 		if (IS_ERR(p)) {
+-			printk("watchdog for %i failed\n", hotcpu);
++			printk(KERN_ERR "watchdog for %i failed\n", hotcpu);
+ 			return NOTIFY_BAD;
+ 		}
+-  		per_cpu(touch_timestamp, hotcpu) = 0;
+-  		per_cpu(watchdog_task, hotcpu) = p;
++		per_cpu(touch_timestamp, hotcpu) = 0;
++		per_cpu(watchdog_task, hotcpu) = p;
+ 		kthread_bind(p, hotcpu);
+- 		break;
++		break;
+ 	case CPU_ONLINE:
+ 	case CPU_ONLINE_FROZEN:
+ 		wake_up_process(per_cpu(watchdog_task, hotcpu));
+@@ -185,7 +185,7 @@ cpu_callback(struct notifier_block *nfb,
+ 		kthread_stop(p);
+ 		break;
+ #endif /* CONFIG_HOTPLUG_CPU */
+- 	}
++	}
+ 	return NOTIFY_OK;
  }
  
- void touch_softlockup_watchdog(void)
- {
--	__raw_get_cpu_var(touch_timestamp) = get_timestamp();
-+	int this_cpu = raw_smp_processor_id();
-+
-+	__raw_get_cpu_var(touch_timestamp) = get_timestamp(this_cpu);
- }
- EXPORT_SYMBOL(touch_softlockup_watchdog);
- 
-@@ -91,7 +93,7 @@ void softlockup_tick(void)
- 		return;
- 	}
- 
--	now = get_timestamp();
-+	now = get_timestamp(this_cpu);
- 
- 	/* Wake up the high-prio watchdog task every second: */
- 	if (now > (touch_timestamp + 1))
 _
 
 Patches currently in -mm which might be from mingo@elte.hu are
