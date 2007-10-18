@@ -1,153 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: - add-config_vt_unicode.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:59:51 -0700
-Message-ID: <200710180659.l9I6xpeT031029@imap1.linux-foundation.org>
+Subject: - ext4-show-all-mount-options.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:53:57 -0700
+Message-ID: <200710180653.l9I6rvv6030483__16550.3839067698$1192693309$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38345 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41563 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761321AbXJRHlZ (ORCPT
+	by vger.kernel.org with ESMTP id S1761302AbXJRHl2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:41:25 -0400
+	Thu, 18 Oct 2007 03:41:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: notting@redhat.com, alan@lxorguk.ukuu.org.uk, dtor@mail.ru, jkosina@suse.cz, samuel.thibault@ens-lyon.org, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add CONFIG_VT_UNICODE
+     ext4: show all mount options
 has been removed from the -mm tree.  Its filename was
-     add-config_vt_unicode.patch
+     ext4-show-all-mount-options.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: add CONFIG_VT_UNICODE
-From: Bill Nottingham <notting@redhat.com>
+Subject: ext4: show all mount options
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-As of now, the kernel defaults to non-unicode and XLATE for the keyboard. 
-We've been changing this in Fedora, but that requires patching the defaults
-in the kernel.
-
-The attached introduces CONFIG_VT_UNICODE, which sets the console in
-unicode mode by default on boot, including both the virtual terminal and
-the keyboard driver.
-
-Signed-off-by: Bill Nottingham <notting@redhat.com>
-Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/Kconfig    |   17 +++++++++++++++++
- drivers/char/keyboard.c |    2 +-
- drivers/char/sysrq.c    |    4 ++--
- drivers/char/vt.c       |    6 +++++-
- drivers/char/vt_ioctl.c |    2 +-
- include/linux/vt_kern.h |    1 +
- 6 files changed, 27 insertions(+), 5 deletions(-)
+ fs/ext4/super.c            |   72 +++++++++++++++++++++++++++++++++++
+ include/linux/ext4_fs_sb.h |    1 
+ 2 files changed, 73 insertions(+)
 
-diff -puN drivers/char/Kconfig~add-config_vt_unicode drivers/char/Kconfig
---- a/drivers/char/Kconfig~add-config_vt_unicode
-+++ a/drivers/char/Kconfig
-@@ -36,6 +36,23 @@ config VT
- 	  If unsure, say Y, or else you won't be able to do much with your new
- 	  shiny Linux system :-)
- 
-+config VT_UNICODE
-+	bool "Virtual console is Unicode by default"
-+	depends on VT
-+	default n
-+	---help---
-+	  If you say Y here, the virtual terminal will be in UTF-8 by default,
-+	  and the keyboard will run in unicode mode.
-+
-+	  If you say N here, the virtual terminal will not be in UTF-8 by
-+	  default, and the keyboard will run in XLATE mode.
-+
-+	  This can also be changed by passing 'default_utf8=<0|1>' on the
-+	  kernel command line.
-+
-+	  Historically, the kernel has defaulted to non-UTF8 and XLATE mode.
-+	  If unsure, say N here.
-+
- config VT_CONSOLE
- 	bool "Support for console on virtual terminal" if EMBEDDED
- 	depends on VT
-diff -puN drivers/char/keyboard.c~add-config_vt_unicode drivers/char/keyboard.c
---- a/drivers/char/keyboard.c~add-config_vt_unicode
-+++ a/drivers/char/keyboard.c
-@@ -1381,7 +1381,7 @@ int __init kbd_init(void)
- 		kbd_table[i].lockstate = KBD_DEFLOCK;
- 		kbd_table[i].slockstate = 0;
- 		kbd_table[i].modeflags = KBD_DEFMODE;
--		kbd_table[i].kbdmode = VC_XLATE;
-+		kbd_table[i].kbdmode = default_utf8 ? VC_UNICODE : VC_XLATE;
- 	}
- 
- 	error = input_register_handler(&kbd_handler);
-diff -puN drivers/char/sysrq.c~add-config_vt_unicode drivers/char/sysrq.c
---- a/drivers/char/sysrq.c~add-config_vt_unicode
-+++ a/drivers/char/sysrq.c
-@@ -108,12 +108,12 @@ static void sysrq_handle_unraw(int key, 
- 	struct kbd_struct *kbd = &kbd_table[fg_console];
- 
- 	if (kbd)
--		kbd->kbdmode = VC_XLATE;
-+		kbd->kbdmode = default_utf8 ? VC_UNICODE : VC_XLATE;
+diff -puN fs/ext4/super.c~ext4-show-all-mount-options fs/ext4/super.c
+--- a/fs/ext4/super.c~ext4-show-all-mount-options
++++ a/fs/ext4/super.c
+@@ -596,9 +596,80 @@ static inline void ext4_show_quota_optio
+ #endif
  }
- static struct sysrq_key_op sysrq_unraw_op = {
- 	.handler	= sysrq_handle_unraw,
- 	.help_msg	= "unRaw",
--	.action_msg	= "Keyboard mode set to XLATE",
-+	.action_msg	= "Keyboard mode set to system default",
- 	.enable_mask	= SYSRQ_ENABLE_KEYBOARD,
- };
- #else
-diff -puN drivers/char/vt.c~add-config_vt_unicode drivers/char/vt.c
---- a/drivers/char/vt.c~add-config_vt_unicode
-+++ a/drivers/char/vt.c
-@@ -158,7 +158,11 @@ static void blank_screen_t(unsigned long
- static void set_palette(struct vc_data *vc);
  
- static int printable;		/* Is console ready for printing? */
--static int default_utf8;
-+#ifdef CONFIG_VT_UNICODE
-+int default_utf8 = 1;
-+#else
-+int default_utf8;
-+#endif
- module_param(default_utf8, int, S_IRUGO | S_IWUSR);
- 
- /*
-diff -puN drivers/char/vt_ioctl.c~add-config_vt_unicode drivers/char/vt_ioctl.c
---- a/drivers/char/vt_ioctl.c~add-config_vt_unicode
-+++ a/drivers/char/vt_ioctl.c
-@@ -1125,7 +1125,7 @@ int vt_waitactive(int vt)
- void reset_vc(struct vc_data *vc)
++/*
++ * Show an option if
++ *  - it's set to a non-default value OR
++ *  - if the per-sb default is different from the global default
++ */
+ static int ext4_show_options(struct seq_file *seq, struct vfsmount *vfs)
  {
- 	vc->vc_mode = KD_TEXT;
--	kbd_table[vc->vc_num].kbdmode = VC_XLATE;
-+	kbd_table[vc->vc_num].kbdmode = default_utf8 ? VC_UNICODE : VC_XLATE;
- 	vc->vt_mode.mode = VT_AUTO;
- 	vc->vt_mode.waitv = 0;
- 	vc->vt_mode.relsig = 0;
-diff -puN include/linux/vt_kern.h~add-config_vt_unicode include/linux/vt_kern.h
---- a/include/linux/vt_kern.h~add-config_vt_unicode
-+++ a/include/linux/vt_kern.h
-@@ -87,6 +87,7 @@ extern int unbind_con_driver(const struc
- extern char con_buf[CON_BUF_SIZE];
- extern struct mutex con_buf_mtx;
- extern char vt_dont_switch;
-+extern int default_utf8;
+ 	struct super_block *sb = vfs->mnt_sb;
++	struct ext4_sb_info *sbi = EXT4_SB(sb);
++	struct ext4_super_block *es = sbi->s_es;
++	unsigned long def_mount_opts;
++
++	def_mount_opts = le32_to_cpu(es->s_default_mount_opts);
++
++	if (sbi->s_sb_block != 1)
++		seq_printf(seq, ",sb=%llu", sbi->s_sb_block);
++	if (test_opt(sb, MINIX_DF))
++		seq_puts(seq, ",minixdf");
++	if (test_opt(sb, GRPID))
++		seq_puts(seq, ",grpid");
++	if (!test_opt(sb, GRPID) && (def_mount_opts & EXT4_DEFM_BSDGROUPS))
++		seq_puts(seq, ",nogrpid");
++	if (sbi->s_resuid != EXT4_DEF_RESUID ||
++	    le16_to_cpu(es->s_def_resuid) != EXT4_DEF_RESUID) {
++		seq_printf(seq, ",resuid=%u", sbi->s_resuid);
++	}
++	if (sbi->s_resgid != EXT4_DEF_RESGID ||
++	    le16_to_cpu(es->s_def_resgid) != EXT4_DEF_RESGID) {
++		seq_printf(seq, ",resgid=%u", sbi->s_resgid);
++	}
++	if (test_opt(sb, ERRORS_CONT)) {
++		int def_errors = le16_to_cpu(es->s_errors);
++
++		if (def_errors == EXT4_ERRORS_PANIC ||
++		    def_errors == EXT4_ERRORS_RO) {
++			seq_puts(seq, ",errors=continue");
++		}
++	}
++	if (test_opt(sb, ERRORS_RO))
++		seq_puts(seq, ",errors=remount-ro");
++	if (test_opt(sb, ERRORS_PANIC))
++		seq_puts(seq, ",errors=panic");
++	if (test_opt(sb, NO_UID32))
++		seq_puts(seq, ",nouid32");
++	if (test_opt(sb, DEBUG))
++		seq_puts(seq, ",debug");
++	if (test_opt(sb, OLDALLOC))
++		seq_puts(seq, ",oldalloc");
++#ifdef CONFIG_EXT4_FS_XATTR
++	if (test_opt(sb, XATTR_USER))
++		seq_puts(seq, ",user_xattr");
++	if (!test_opt(sb, XATTR_USER) &&
++	    (def_mount_opts & EXT4_DEFM_XATTR_USER)) {
++		seq_puts(seq, ",nouser_xattr");
++	}
++#endif
++#ifdef CONFIG_EXT4_FS_POSIX_ACL
++	if (test_opt(sb, POSIX_ACL))
++		seq_puts(seq, ",acl");
++	if (!test_opt(sb, POSIX_ACL) && (def_mount_opts & EXT4_DEFM_ACL))
++		seq_puts(seq, ",noacl");
++#endif
++	if (!test_opt(sb, RESERVATION))
++		seq_puts(seq, ",noreservation");
++	if (sbi->s_commit_interval) {
++		seq_printf(seq, ",commit=%u",
++			   (unsigned) (sbi->s_commit_interval / HZ));
++	}
++	if (test_opt(sb, BARRIER))
++		seq_puts(seq, ",barrier=1");
++	if (test_opt(sb, NOBH))
++		seq_puts(seq, ",nobh");
++	if (!test_opt(sb, EXTENTS))
++		seq_puts(seq, ",noextents");
  
- struct vt_spawn_console {
- 	spinlock_t lock;
+ 	if (test_opt(sb, DATA_FLAGS) == EXT4_MOUNT_JOURNAL_DATA)
+ 		seq_puts(seq, ",data=journal");
+@@ -1486,6 +1557,7 @@ static int ext4_fill_super (struct super
+ 	sbi->s_mount_opt = 0;
+ 	sbi->s_resuid = EXT4_DEF_RESUID;
+ 	sbi->s_resgid = EXT4_DEF_RESGID;
++	sbi->s_sb_block = sb_block;
+ 
+ 	unlock_kernel();
+ 
+diff -puN include/linux/ext4_fs_sb.h~ext4-show-all-mount-options include/linux/ext4_fs_sb.h
+--- a/include/linux/ext4_fs_sb.h~ext4-show-all-mount-options
++++ a/include/linux/ext4_fs_sb.h
+@@ -45,6 +45,7 @@ struct ext4_sb_info {
+ 	struct ext4_super_block * s_es;	/* Pointer to the super block in the buffer */
+ 	struct buffer_head ** s_group_desc;
+ 	unsigned long  s_mount_opt;
++	ext4_fsblk_t s_sb_block;
+ 	uid_t s_resuid;
+ 	gid_t s_resgid;
+ 	unsigned short s_mount_state;
 _
 
-Patches currently in -mm which might be from notting@redhat.com are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
-remove-config_vt_unicode.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+fuse-fix-allowing-operations.patch
+fuse-fix-race-between-getattr-and-write.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+fuse-clean-up-open-file-passing-in-setattr.patch
+vfs-allow-filesystems-to-implement-atomic-opentruncate.patch
+fuse-improve-utimes-support.patch
+fuse-add-atomic-opentruncate-support.patch
+fuse-support-bsd-locking-semantics.patch
+fuse-add-list-of-writable-files-to-fuse_inode.patch
+fuse-add-helper-for-asynchronous-writes.patch
+fuse-add-support-for-mandatory-locking.patch
+fuse-add-blksize-field-to-fuse_attr.patch
