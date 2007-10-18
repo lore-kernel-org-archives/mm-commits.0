@@ -1,41 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-use-dev_info-in-system-driver.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:03:56 -0700
-Message-ID: <200710180703.l9I73u4F031482@imap1.linux-foundation.org>
+Subject: - pnp-remove-null-pointer-checks.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:03:51 -0700
+Message-ID: <200710180703.l9I73p2Z031473@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58565 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59220 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755519AbXJRHbC (ORCPT
+	by vger.kernel.org with ESMTP id S1760243AbXJRHb3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:31:02 -0400
+	Thu, 18 Oct 2007 03:31:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bjorn.helgaas@hp.com, ambx1@neo.rr.com, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PNP: use dev_info() in system driver
+     PNP: remove null pointer checks
 has been removed from the -mm tree.  Its filename was
-     pnp-use-dev_info-in-system-driver.patch
+     pnp-remove-null-pointer-checks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PNP: use dev_info() in system driver
+Subject: PNP: remove null pointer checks
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Use dev_info() for a little consistency.  Changes this:
-
-    pnp: 00:01: ioport range 0xf50-0xf58 has been reserved
-    pnp: 00:01: ioport range 0x408-0x40f has been reserved
-    pnp: 00:01: ioport range 0x900-0x903 has been reserved
-
-to this:
-
-    system 00:01: ioport range 0xf50-0xf58 has been reserved
-    system 00:01: ioport range 0x408-0x40f has been reserved
-    system 00:01: ioport range 0x900-0x903 has been reserved
+Remove some null pointer checks.  Null pointers in these areas indicate
+programming errors, and I think it's better to oops immediately rather than
+return an error that is easily ignored.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: Adam Belay <ambx1@neo.rr.com>
@@ -43,81 +35,88 @@ Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/system.c |   29 ++++++++++++++++-------------
- 1 file changed, 16 insertions(+), 13 deletions(-)
+ drivers/pnp/card.c  |   15 ---------------
+ include/linux/pnp.h |    6 +++---
+ 2 files changed, 3 insertions(+), 18 deletions(-)
 
-diff -puN drivers/pnp/system.c~pnp-use-dev_info-in-system-driver drivers/pnp/system.c
---- a/drivers/pnp/system.c~pnp-use-dev_info-in-system-driver
-+++ a/drivers/pnp/system.c
-@@ -22,36 +22,39 @@ static const struct pnp_device_id pnp_de
- 	{"", 0}
- };
- 
--static void reserve_range(const char *pnpid, resource_size_t start,
-+static void reserve_range(struct pnp_dev *dev, resource_size_t start,
- 			  resource_size_t end, int port)
+diff -puN drivers/pnp/card.c~pnp-remove-null-pointer-checks drivers/pnp/card.c
+--- a/drivers/pnp/card.c~pnp-remove-null-pointer-checks
++++ a/drivers/pnp/card.c
+@@ -104,10 +104,6 @@ int pnp_add_card_id(struct pnp_id *id, s
  {
--	struct resource *res;
- 	char *regionid;
-+	const char *pnpid = dev->dev.bus_id;
-+	struct resource *res;
+ 	struct pnp_id *ptr;
  
- 	regionid = kmalloc(16, GFP_KERNEL);
--	if (regionid == NULL)
-+	if (!regionid)
- 		return;
-+
- 	snprintf(regionid, 16, "pnp %s", pnpid);
- 	if (port)
- 		res = request_region(start, end - start + 1, regionid);
- 	else
- 		res = request_mem_region(start, end - start + 1, regionid);
--	if (res == NULL)
--		kfree(regionid);
--	else
-+	if (res)
- 		res->flags &= ~IORESOURCE_BUSY;
-+	else
-+		kfree(regionid);
-+
- 	/*
- 	 * Failures at this point are usually harmless. pci quirks for
- 	 * example do reserve stuff they know about too, so we may well
- 	 * have double reservations.
- 	 */
--	printk(KERN_INFO "pnp: %s: %s range 0x%llx-0x%llx %s reserved\n",
--	       pnpid, port ? "ioport" : "iomem",
--	       (unsigned long long)start, (unsigned long long)end,
--	       NULL != res ? "has been" : "could not be");
-+	dev_info(&dev->dev, "%s range 0x%llx-0x%llx %s reserved\n",
-+		port ? "ioport" : "iomem",
-+		(unsigned long long) start, (unsigned long long) end,
-+		res ? "has been" : "could not be");
- }
+-	if (!id)
+-		return -EINVAL;
+-	if (!card)
+-		return -EINVAL;
+ 	id->next = NULL;
+ 	ptr = card->id;
+ 	while (ptr && ptr->next)
+@@ -124,8 +120,6 @@ static void pnp_free_card_ids(struct pnp
+ 	struct pnp_id *id;
+ 	struct pnp_id *next;
  
--static void reserve_resources_of_dev(const struct pnp_dev *dev)
-+static void reserve_resources_of_dev(struct pnp_dev *dev)
+-	if (!card)
+-		return;
+ 	id = card->id;
+ 	while (id) {
+ 		next = id->next;
+@@ -197,9 +191,6 @@ int pnp_add_card(struct pnp_card *card)
+ 	int error;
+ 	struct list_head *pos, *temp;
+ 
+-	if (!card || !card->protocol)
+-		return -EINVAL;
+-
+ 	sprintf(card->dev.bus_id, "%02x:%02x", card->protocol->number,
+ 		card->number);
+ 	card->dev.parent = &card->protocol->dev;
+@@ -243,8 +234,6 @@ void pnp_remove_card(struct pnp_card *ca
  {
- 	int i;
+ 	struct list_head *pos, *temp;
  
-@@ -73,7 +76,7 @@ static void reserve_resources_of_dev(con
- 		if (pnp_port_end(dev, i) < pnp_port_start(dev, i))
- 			continue;	/* invalid */
+-	if (!card)
+-		return;
+ 	device_unregister(&card->dev);
+ 	spin_lock(&pnp_lock);
+ 	list_del(&card->global_list);
+@@ -263,8 +252,6 @@ void pnp_remove_card(struct pnp_card *ca
+  */
+ int pnp_add_card_device(struct pnp_card *card, struct pnp_dev *dev)
+ {
+-	if (!card || !dev || !dev->protocol)
+-		return -EINVAL;
+ 	dev->dev.parent = &card->dev;
+ 	dev->card_link = NULL;
+ 	snprintf(dev->dev.bus_id, BUS_ID_SIZE, "%02x:%02x.%02x",
+@@ -348,8 +335,6 @@ void pnp_release_card_device(struct pnp_
+ {
+ 	struct pnp_card_driver *drv = dev->card_link->driver;
  
--		reserve_range(dev->dev.bus_id, pnp_port_start(dev, i),
-+		reserve_range(dev, pnp_port_start(dev, i),
- 			      pnp_port_end(dev, i), 1);
- 	}
+-	if (!drv)
+-		return;
+ 	drv->link.remove = &card_remove;
+ 	device_release_driver(&dev->dev);
+ 	drv->link.remove = &card_remove_first;
+diff -puN include/linux/pnp.h~pnp-remove-null-pointer-checks include/linux/pnp.h
+--- a/include/linux/pnp.h~pnp-remove-null-pointer-checks
++++ a/include/linux/pnp.h
+@@ -243,11 +243,11 @@ struct pnp_fixup {
+ #define PNP_CONFIGURABLE	0x0008
+ #define PNP_REMOVABLE		0x0010
  
-@@ -81,7 +84,7 @@ static void reserve_resources_of_dev(con
- 		if (!pnp_mem_valid(dev, i))
- 			continue;
- 
--		reserve_range(dev->dev.bus_id, pnp_mem_start(dev, i),
-+		reserve_range(dev, pnp_mem_start(dev, i),
- 			      pnp_mem_end(dev, i), 0);
- 	}
- }
+-#define pnp_can_read(dev)	(((dev)->protocol) && ((dev)->protocol->get) && \
++#define pnp_can_read(dev)	(((dev)->protocol->get) && \
+ 				 ((dev)->capabilities & PNP_READ))
+-#define pnp_can_write(dev)	(((dev)->protocol) && ((dev)->protocol->set) && \
++#define pnp_can_write(dev)	(((dev)->protocol->set) && \
+ 				 ((dev)->capabilities & PNP_WRITE))
+-#define pnp_can_disable(dev)	(((dev)->protocol) && ((dev)->protocol->disable) && \
++#define pnp_can_disable(dev)	(((dev)->protocol->disable) && \
+ 				 ((dev)->capabilities & PNP_DISABLE))
+ #define pnp_can_configure(dev)	((!(dev)->active) && \
+ 				 ((dev)->capabilities & PNP_CONFIGURABLE))
 _
 
 Patches currently in -mm which might be from bjorn.helgaas@hp.com are
