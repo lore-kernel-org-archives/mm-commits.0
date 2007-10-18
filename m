@@ -1,89 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - fix-make-htmldocs-build-break.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:05:03 -0700
-Message-ID: <200710180705.l9I753W5031618@imap1.linux-foundation.org>
+Subject: - change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:01:10 -0700
+Message-ID: <200710180701.l9I71App031155@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51437 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38906 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758860AbXJRHSp (ORCPT
+	by vger.kernel.org with ESMTP id S1751439AbXJRHTK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:18:45 -0400
+	Thu, 18 Oct 2007 03:19:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rob@landley.net, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: major@openvz.org, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix "make htmldocs" build break.
+     change inotifyfs magic as the same magic is used for futexfs
 has been removed from the -mm tree.  Its filename was
-     fix-make-htmldocs-build-break.patch
+     change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix "make htmldocs" build break.
-From: Rob Landley <rob@landley.net>
+Subject: change inotifyfs magic as the same magic is used for futexfs
+From: Andrey Mirkin <major@openvz.org>
 
-Fix two htmldocs build breaks, introduced by moving include/linux/usb_gadget.h to
-include/linux/usb/gadget.h and combining resume.c and suspend.c into main.c in
-drivers/base/power.
+Right now futexfs and inotifyfs have one magic 0xBAD1DEA, that looks a
+little bit confusing.  Use 0xBAD1DEA as magic for futexfs and 0x2BAD1DEA as
+magic for inotifyfs.
 
-Signed-off-by: Rob Landley <rob@landley.net>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Signed-off-by: Andrey Mirkin <major@openvz.org>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/gadget.tmpl     |    6 +++---
- Documentation/DocBook/kernel-api.tmpl |    3 +--
- 2 files changed, 4 insertions(+), 5 deletions(-)
+ fs/inotify_user.c     |    4 +++-
+ include/linux/magic.h |    3 +++
+ kernel/futex.c        |    3 ++-
+ 3 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/DocBook/gadget.tmpl~fix-make-htmldocs-build-break Documentation/DocBook/gadget.tmpl
---- a/Documentation/DocBook/gadget.tmpl~fix-make-htmldocs-build-break
-+++ a/Documentation/DocBook/gadget.tmpl
-@@ -144,7 +144,7 @@ with the lowest level (which directly ha
- 	<para>This is the lowest software level.
- 	It is the only layer that talks to hardware,
- 	through registers, fifos, dma, irqs, and the like.
--	The <filename>&lt;linux/usb_gadget.h&gt;</filename> API abstracts
-+	The <filename>&lt;linux/usb/gadget.h&gt;</filename> API abstracts
- 	the peripheral controller endpoint hardware.
- 	That hardware is exposed through endpoint objects, which accept
- 	streams of IN/OUT buffers, and through callbacks that interact
-@@ -494,7 +494,7 @@ side drivers (and usbcore).
- <sect1 id="core"><title>Core Objects and Methods</title>
+diff -puN fs/inotify_user.c~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2 fs/inotify_user.c
+--- a/fs/inotify_user.c~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2
++++ a/fs/inotify_user.c
+@@ -31,6 +31,7 @@
+ #include <linux/list.h>
+ #include <linux/inotify.h>
+ #include <linux/syscalls.h>
++#include <linux/magic.h>
  
- <para>These are declared in
--<filename>&lt;linux/usb_gadget.h&gt;</filename>,
-+<filename>&lt;linux/usb/gadget.h&gt;</filename>,
- and are used by gadget drivers to interact with
- USB peripheral controller drivers.
- </para>
-@@ -509,7 +509,7 @@ USB peripheral controller drivers.
- 	     unless the explanations are trivial.
- 	  -->
+ #include <asm/ioctls.h>
  
--!Iinclude/linux/usb_gadget.h
-+!Iinclude/linux/usb/gadget.h
- </sect1>
+@@ -684,7 +685,8 @@ static int
+ inotify_get_sb(struct file_system_type *fs_type, int flags,
+ 	       const char *dev_name, void *data, struct vfsmount *mnt)
+ {
+-	return get_sb_pseudo(fs_type, "inotify", NULL, 0xBAD1DEA, mnt);
++	return get_sb_pseudo(fs_type, "inotify", NULL,
++			INOTIFYFS_SUPER_MAGIC, mnt);
+ }
  
- <sect1 id="utils"><title>Optional Utilities</title>
-diff -puN Documentation/DocBook/kernel-api.tmpl~fix-make-htmldocs-build-break Documentation/DocBook/kernel-api.tmpl
---- a/Documentation/DocBook/kernel-api.tmpl~fix-make-htmldocs-build-break
-+++ a/Documentation/DocBook/kernel-api.tmpl
-@@ -386,8 +386,7 @@ X!Edrivers/base/interface.c
- !Edrivers/base/bus.c
-      </sect1>
-      <sect1><title>Device Drivers Power Management</title>
--!Edrivers/base/power/resume.c
--!Edrivers/base/power/suspend.c
-+!Edrivers/base/power/main.c
-      </sect1>
-      <sect1><title>Device Drivers ACPI Support</title>
- <!-- Internal functions only
+ static struct file_system_type inotify_fs_type = {
+diff -puN include/linux/magic.h~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2 include/linux/magic.h
+--- a/include/linux/magic.h~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2
++++ a/include/linux/magic.h
+@@ -38,4 +38,7 @@
+ #define SMB_SUPER_MAGIC		0x517B
+ #define USBDEVICE_SUPER_MAGIC	0x9fa2
+ 
++#define FUTEXFS_SUPER_MAGIC	0xBAD1DEA
++#define INOTIFYFS_SUPER_MAGIC	0x2BAD1DEA
++
+ #endif /* __LINUX_MAGIC_H__ */
+diff -puN kernel/futex.c~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2 kernel/futex.c
+--- a/kernel/futex.c~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2
++++ a/kernel/futex.c
+@@ -52,6 +52,7 @@
+ #include <linux/syscalls.h>
+ #include <linux/signal.h>
+ #include <linux/module.h>
++#include <linux/magic.h>
+ #include <asm/futex.h>
+ 
+ #include "rtmutex_common.h"
+@@ -2080,7 +2081,7 @@ static int futexfs_get_sb(struct file_sy
+ 			  int flags, const char *dev_name, void *data,
+ 			  struct vfsmount *mnt)
+ {
+-	return get_sb_pseudo(fs_type, "futex", NULL, 0xBAD1DEA, mnt);
++	return get_sb_pseudo(fs_type, "futex", NULL, FUTEXFS_SUPER_MAGIC, mnt);
+ }
+ 
+ static struct file_system_type futex_fs_type = {
 _
 
-Patches currently in -mm which might be from rob@landley.net are
+Patches currently in -mm which might be from major@openvz.org are
 
 origin.patch
-comment-typo-in-scripts-kconfig-makefile.patch
