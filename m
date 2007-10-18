@@ -1,90 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - break-elf_platform-and-stack-pointer-randomization-dependency.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:01:43 -0700
-Message-ID: <200710180701.l9I71hVk031200@imap1.linux-foundation.org>
+Subject: - reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:00:45 -0700
+Message-ID: <200710180700.l9I70jsl031110@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50416 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57661 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932146AbXJRHiB (ORCPT
+	by vger.kernel.org with ESMTP id S932205AbXJRHiB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 18 Oct 2007 03:38:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fbuihuu@gmail.com, arjan@infradead.org, mingo@elte.hu, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: ytht.net@gmail.com, chris.mason@oracle.com, jeffm@suse.com, vs@namesys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Break ELF_PLATFORM and stack pointer randomization dependency
+     reiserfs: workaround for dead loop in finish_unfinished
 has been removed from the -mm tree.  Its filename was
-     break-elf_platform-and-stack-pointer-randomization-dependency.patch
+     reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Break ELF_PLATFORM and stack pointer randomization dependency
-From: Franck Bui-Huu <fbuihuu@gmail.com>
+Subject: reiserfs: workaround for dead loop in finish_unfinished
+From: Lepton Wu <ytht.net@gmail.com>
 
-Currently arch_align_stack() is used by fs/binfmt_elf.c to randomize
-stack pointer inside a page. But this happens only if ELF_PLATFORM
-symbol is defined.
+There is possible dead loop in finish_unfinished function.
 
-ELF_PLATFORM is normally set if the architecture wants ld.so to load
-implementation specific libraries for optimization. And currently a
-lot of architectures just yield this symbol to NULL.
+In most situation, the call chain iput -> ...  -> reiserfs_delete_inode ->
+remove_save_link will success.  But for some reason such as data
+corruption, reiserfs_delete_inode fails on reiserfs_do_truncate ->
+search_for_position_by_key.
 
-This is the case for MIPS architecture where ELF_PLATFORM is NULL but
-arch_align_stack() has been redefined to do stack inside page
-randomization. So in this case no randomization is actually done.
+Then remove_save_link won't be called.  We always get the same
+"save_link_key" in the while loop in finish_unfinished function.  The
+following patch adds a check for the possible dead loop and just remove
+save link when deap loop.
 
-This patch breaks this dependency which seems to be useless and allows
-platforms such MIPS to do the randomization.
-
-Signed-off-by: Franck Bui-Huu <fbuihuu@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+[akpm@linux-foundation.org: cleanups]
+Signed-off-by: Lepton Wu <ytht.net@gmail.com>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
+Cc: "Vladimir V. Saveliev" <vs@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ fs/reiserfs/super.c |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN fs/binfmt_elf.c~break-elf_platform-and-stack-pointer-randomization-dependency fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~break-elf_platform-and-stack-pointer-randomization-dependency
-+++ a/fs/binfmt_elf.c
-@@ -151,6 +151,14 @@ create_elf_tables(struct linux_binprm *b
- 	struct vm_area_struct *vma;
+diff -puN fs/reiserfs/super.c~reiserfs-workaround-for-dead-loop-in-finish_unfinished fs/reiserfs/super.c
+--- a/fs/reiserfs/super.c~reiserfs-workaround-for-dead-loop-in-finish_unfinished
++++ a/fs/reiserfs/super.c
+@@ -145,7 +145,7 @@ static int finish_unfinished(struct supe
+ {
+ 	INITIALIZE_PATH(path);
+ 	struct cpu_key max_cpu_key, obj_key;
+-	struct reiserfs_key save_link_key;
++	struct reiserfs_key save_link_key, last_inode_key;
+ 	int retval = 0;
+ 	struct item_head *ih;
+ 	struct buffer_head *bh;
+@@ -166,6 +166,8 @@ static int finish_unfinished(struct supe
+ 	set_cpu_key_k_offset(&max_cpu_key, ~0U);
+ 	max_cpu_key.key_length = 3;
  
- 	/*
-+	 * In some cases (e.g. Hyper-Threading), we want to avoid L1
-+	 * evictions by the processes running on the same package. One
-+	 * thing we can do is to shuffle the initial stack for them.
-+	 */
++	memset(&last_inode_key, 0, sizeof(last_inode_key));
 +
-+	p = arch_align_stack(p);
-+
-+	/*
- 	 * If this architecture has a platform capability string, copy it
- 	 * to userspace.  In some cases (Sparc), this info is impossible
- 	 * for userspace to get any other way, in others (i386) it is
-@@ -160,14 +168,6 @@ create_elf_tables(struct linux_binprm *b
- 	if (k_platform) {
- 		size_t len = strlen(k_platform) + 1;
+ #ifdef CONFIG_QUOTA
+ 	/* Needed for iput() to work correctly and not trash data */
+ 	if (s->s_flags & MS_ACTIVE) {
+@@ -278,8 +280,18 @@ static int finish_unfinished(struct supe
+ 			REISERFS_I(inode)->i_flags |= i_link_saved_unlink_mask;
+ 			/* not completed unlink (rmdir) found */
+ 			reiserfs_info(s, "Removing %k..", INODE_PKEY(inode));
+-			/* removal gets completed in iput */
+-			retval = 0;
++			if (memcmp(&last_inode_key, INODE_PKEY(inode),
++					sizeof(last_inode_key))){
++				last_inode_key = *INODE_PKEY(inode);
++				/* removal gets completed in iput */
++				retval = 0;
++			} else {
++				reiserfs_warning(s, "Dead loop in "
++						"finish_unfinished detected, "
++						"just remove save link\n");
++				retval = remove_save_link_only(s,
++							&save_link_key, 0);
++			}
+ 		}
  
--		/*
--		 * In some cases (e.g. Hyper-Threading), we want to avoid L1
--		 * evictions by the processes running on the same package. One
--		 * thing we can do is to shuffle the initial stack for them.
--		 */
--
--		p = arch_align_stack(p);
--
- 		u_platform = (elf_addr_t __user *)STACK_ALLOC(p, len);
- 		if (__copy_to_user(u_platform, k_platform, len))
- 			return -EFAULT;
+ 		iput(inode);
 _
 
-Patches currently in -mm which might be from fbuihuu@gmail.com are
+Patches currently in -mm which might be from ytht.net@gmail.com are
 
 origin.patch
