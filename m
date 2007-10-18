@@ -1,104 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - fuse-fix-page-invalidation.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:03:26 -0700
-Message-ID: <200710180703.l9I73Ql2031438@imap1.linux-foundation.org>
+Subject: - fix-wrong-filename-reference-in-drivers-testingtxt.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:01:26 -0700
+Message-ID: <200710180701.l9I71Qp2031176@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34328 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41774 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762643AbXJRHPl (ORCPT
+	by vger.kernel.org with ESMTP id S1761418AbXJRHPh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:15:41 -0400
+	Thu, 18 Oct 2007 03:15:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, mm-commits@vger.kernel.org
+To: ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fuse: fix page invalidation
+     Fix wrong filename reference in drivers-testing.txt
 has been removed from the -mm tree.  Its filename was
-     fuse-fix-page-invalidation.patch
+     fix-wrong-filename-reference-in-drivers-testingtxt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fuse: fix page invalidation
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: Fix wrong filename reference in drivers-testing.txt
+From: Ralf Baechle <ralf@linux-mips.org>
 
-Other than truncate, there are two cases, when fuse tries to get rid
-of cached pages:
-
- a) in open, if KEEP_CACHE flag is not set
- b) in getattr, if file size changed spontaneously
-
-Until now invalidate_mapping_pages() were used, which didn't get rid
-of mapped pages.  This is wrong, and becomes more wrong as dirty pages
-are introduced.  So instead properly invalidate all pages with
-invalidate_inode_pages2().
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/file.c  |    2 +-
- fs/fuse/inode.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ Documentation/power/drivers-testing.txt |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/fuse/file.c~fuse-fix-page-invalidation fs/fuse/file.c
---- a/fs/fuse/file.c~fuse-fix-page-invalidation
-+++ a/fs/fuse/file.c
-@@ -87,7 +87,7 @@ void fuse_finish_open(struct inode *inod
- 	if (outarg->open_flags & FOPEN_DIRECT_IO)
- 		file->f_op = &fuse_direct_io_file_operations;
- 	if (!(outarg->open_flags & FOPEN_KEEP_CACHE))
--		invalidate_mapping_pages(inode->i_mapping, 0, -1);
-+		invalidate_inode_pages2(inode->i_mapping);
- 	ff->fh = outarg->fh;
- 	file->private_data = fuse_file_get(ff);
- }
-diff -puN fs/fuse/inode.c~fuse-fix-page-invalidation fs/fuse/inode.c
---- a/fs/fuse/inode.c~fuse-fix-page-invalidation
-+++ a/fs/fuse/inode.c
-@@ -143,7 +143,7 @@ void fuse_change_attributes(struct inode
- 	if (S_ISREG(inode->i_mode) && oldsize != attr->size) {
- 		if (attr->size < oldsize)
- 			fuse_truncate(inode->i_mapping, attr->size);
--		invalidate_mapping_pages(inode->i_mapping, 0, -1);
-+		invalidate_inode_pages2(inode->i_mapping);
- 	}
- }
+diff -puN Documentation/power/drivers-testing.txt~fix-wrong-filename-reference-in-drivers-testingtxt Documentation/power/drivers-testing.txt
+--- a/Documentation/power/drivers-testing.txt~fix-wrong-filename-reference-in-drivers-testingtxt
++++ a/Documentation/power/drivers-testing.txt
+@@ -14,8 +14,8 @@ the machine's BIOS.
+ Of course, for this purpose the test system has to be known to suspend and
+ resume without the driver being tested.  Thus, if possible, you should first
+ resolve all suspend/resume-related problems in the test system before you start
+-testing the new driver.  Please see Documents/power/basic-pm-debugging.txt for
+-more information about the debugging of suspend/resume functionality.
++testing the new driver.  Please see Documentation/power/basic-pm-debugging.txt
++for more information about the debugging of suspend/resume functionality.
+ 
+ 2. Testing the driver
  
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
 origin.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
-unprivileged-mounts-add-no-submounts-flag.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
-fuse-fix-allowing-operations.patch
-fuse-fix-race-between-getattr-and-write.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
-fuse-clean-up-open-file-passing-in-setattr.patch
-vfs-allow-filesystems-to-implement-atomic-opentruncate.patch
-fuse-improve-utimes-support.patch
-fuse-add-atomic-opentruncate-support.patch
-fuse-support-bsd-locking-semantics.patch
-fuse-add-list-of-writable-files-to-fuse_inode.patch
-fuse-add-helper-for-asynchronous-writes.patch
-fuse-add-support-for-mandatory-locking.patch
-fuse-add-blksize-field-to-fuse_attr.patch
+netport_conc-fix-build-errors-and-warnings.patch
+au1100fb-fix-modpost-warnings.patch
+logoc-get-rid-of-mips_machgroup.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+define-global-bit-macro.patch
+bitops-introduce-lock-ops.patch
+mips-fix-bitops.patch
+mips-lock-bitops.patch
+replace-__attribute_pure__-with-__pure.patch
