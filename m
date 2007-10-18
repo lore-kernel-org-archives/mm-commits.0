@@ -1,75 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - floppy-remove-register-keyword-use-from-floppy-driver.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:03:16 -0700
-Message-ID: <200710180703.l9I73G6Q031418@imap1.linux-foundation.org>
+Subject: - cramfs-error-message-about-endianess.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:56:12 -0700
+Message-ID: <200710180656.l9I6uCQC030684@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59040 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35893 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760416AbXJRHPd (ORCPT
+	by vger.kernel.org with ESMTP id S1762044AbXJRHPp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:15:33 -0400
+	Thu, 18 Oct 2007 03:15:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, mm-commits@vger.kernel.org
+To: lists-receive@programmierforen.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     floppy: remove register keyword use from floppy driver
+     cramfs: error message about endianess
 has been removed from the -mm tree.  Its filename was
-     floppy-remove-register-keyword-use-from-floppy-driver.patch
+     cramfs-error-message-about-endianess.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: floppy: remove register keyword use from floppy driver
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: cramfs: error message about endianess
+From: Andi Drebes <lists-receive@programmierforen.de>
 
-The floppy drive is slow.  These days I see absolutely no good reason why the
-floppy driver should try to gain a tiny bit of speed by telling gcc to
-optimize access to some variables via the register keyword.  Better to just
-leave gcc free to do whatever optimizations it deduces to be sane and not
-hamper it by telling it that some variables in the floppy driver are special
-and need to be fast (they don't).
+The README file in the cramfs subdirectory says: "All data is currently in
+host-endian format; neither mkcramfs nor the kernel ever do swabbing."
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+If somebody tries to mount a cramfs with the wrong endianess, cramfs only
+complains about a wrong magic but doesn't inform the user that only the
+endianess isn't right.
+
+The following patch adds an error message to the cramfs sources.  If a user
+tries to mount a cramfs with the wrong endianess using the patched sources,
+cramfs will display the message "cramfs: wrong endianess".
+
+Signed-off-by: Andi Drebes <lists-receive@programmierforen.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ fs/cramfs/inode.c         |   11 ++++++++++-
+ include/linux/cramfs_fs.h |    1 +
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN drivers/block/floppy.c~floppy-remove-register-keyword-use-from-floppy-driver drivers/block/floppy.c
---- a/drivers/block/floppy.c~floppy-remove-register-keyword-use-from-floppy-driver
-+++ a/drivers/block/floppy.c
-@@ -783,7 +783,10 @@ static inline int is_selected(int dor, i
+diff -puN fs/cramfs/inode.c~cramfs-error-message-about-endianess fs/cramfs/inode.c
+--- a/fs/cramfs/inode.c~cramfs-error-message-about-endianess
++++ a/fs/cramfs/inode.c
+@@ -258,12 +258,21 @@ static int cramfs_fill_super(struct supe
  
- static int set_dor(int fdc, char mask, char data)
- {
--	register unsigned char drive, unit, newdor, olddor;
-+	unsigned char unit;
-+	unsigned char drive;
-+	unsigned char newdor;
-+	unsigned char olddor;
+ 	/* Do sanity checks on the superblock */
+ 	if (super.magic != CRAMFS_MAGIC) {
++		/* check for wrong endianess */
++		if (super.magic == CRAMFS_MAGIC_WEND) {
++			if (!silent)
++				printk(KERN_ERR "cramfs: wrong endianess\n");
++			goto out;
++		}
++
+ 		/* check at 512 byte offset */
+ 		mutex_lock(&read_mutex);
+ 		memcpy(&super, cramfs_read(sb, 512, sizeof(super)), sizeof(super));
+ 		mutex_unlock(&read_mutex);
+ 		if (super.magic != CRAMFS_MAGIC) {
+-			if (!silent)
++			if (super.magic == CRAMFS_MAGIC_WEND && !silent)
++				printk(KERN_ERR "cramfs: wrong endianess\n");
++			else if (!silent)
+ 				printk(KERN_ERR "cramfs: wrong magic\n");
+ 			goto out;
+ 		}
+diff -puN include/linux/cramfs_fs.h~cramfs-error-message-about-endianess include/linux/cramfs_fs.h
+--- a/include/linux/cramfs_fs.h~cramfs-error-message-about-endianess
++++ a/include/linux/cramfs_fs.h
+@@ -4,6 +4,7 @@
+ #include <linux/types.h>
  
- 	if (FDCS->address == -1)
- 		return -1;
-@@ -937,7 +940,7 @@ static void motor_off_callback(unsigned 
- static void floppy_off(unsigned int drive)
- {
- 	unsigned long volatile delta;
--	register int fdc = FDC(drive);
-+	int fdc = FDC(drive);
+ #define CRAMFS_MAGIC		0x28cd3d45	/* some random number */
++#define CRAMFS_MAGIC_WEND	0x453dcd28	/* magic number with the wrong endianess */
+ #define CRAMFS_SIGNATURE	"Compressed ROMFS"
  
- 	if (!(FDCS->dor & (0x10 << UNIT(drive))))
- 		return;
+ /*
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from lists-receive@programmierforen.de are
 
 origin.patch
-git-cifs.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
-cyclades-avoid-label-defined-but-not-used-warning.patch
+fs-cramfs-inodec-remove-unused-variable.patch
+fs-cramfs-inodec-replace-hardcoded-value-with-preprocessor-constant.patch
