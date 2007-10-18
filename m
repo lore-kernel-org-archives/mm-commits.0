@@ -1,60 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:52:36 -0700
-Message-ID: <200710180652.l9I6qaNI030302@imap1.linux-foundation.org>
+Subject: - time-simplify-smp_call_function_single-call-sequence.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:53:51 -0700
+Message-ID: <200710180653.l9I6rpa0030474@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35676 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52790 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932345AbXJRHnF (ORCPT
+	by vger.kernel.org with ESMTP id S932351AbXJRHnS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:43:05 -0400
+	Thu, 18 Oct 2007 03:43:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paulmck@linux.vnet.ibm.com, ak@suse.de, mingo@elte.hu, mm-commits@vger.kernel.org
+To: avi@qumranet.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove workaround for unimmunized rcu_dereference from mce_log()
+     time: simplify smp_call_function_single() call sequence
 has been removed from the -mm tree.  Its filename was
-     remove-workaround-for-unimmunized-rcu_dereference-from-mce_log.patch
+     time-simplify-smp_call_function_single-call-sequence.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove workaround for unimmunized rcu_dereference from mce_log()
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: time: simplify smp_call_function_single() call sequence
+From: Avi Kivity <avi@qumranet.com>
 
-Remove the rmb() from mce_log(), since the immunized version of
-rcu_dereference() makes it unnecessary.
+smp_call_function_single() now knows how to call the function on the
+current cpu.
 
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/mce_64.c |    3 ---
- 1 file changed, 3 deletions(-)
+ kernel/time/tick-broadcast.c |   17 ++++-------------
+ 1 file changed, 4 insertions(+), 13 deletions(-)
 
-diff -puN arch/x86/kernel/mce_64.c~remove-workaround-for-unimmunized-rcu_dereference-from-mce_log arch/x86/kernel/mce_64.c
---- a/arch/x86/kernel/mce_64.c~remove-workaround-for-unimmunized-rcu_dereference-from-mce_log
-+++ a/arch/x86/kernel/mce_64.c
-@@ -76,9 +76,6 @@ void mce_log(struct mce *mce)
- 	wmb();
- 	for (;;) {
- 		entry = rcu_dereference(mcelog.next);
--		/* The rmb forces the compiler to reload next in each
--		    iteration */
--		rmb();
- 		for (;;) {
- 			/* When the buffer fills up discard new entries. Assume
- 			   that the earlier errors are the more interesting. */
+diff -puN kernel/time/tick-broadcast.c~time-simplify-smp_call_function_single-call-sequence kernel/time/tick-broadcast.c
+--- a/kernel/time/tick-broadcast.c~time-simplify-smp_call_function_single-call-sequence
++++ a/kernel/time/tick-broadcast.c
+@@ -274,21 +274,12 @@ out:
+  */
+ void tick_broadcast_on_off(unsigned long reason, int *oncpu)
+ {
+-	int cpu = get_cpu();
+-
+-	if (!cpu_isset(*oncpu, cpu_online_map)) {
++	if (!cpu_isset(*oncpu, cpu_online_map))
+ 		printk(KERN_ERR "tick-braodcast: ignoring broadcast for "
+ 		       "offline CPU #%d\n", *oncpu);
+-	} else {
+-
+-		if (cpu == *oncpu)
+-			tick_do_broadcast_on_off(&reason);
+-		else
+-			smp_call_function_single(*oncpu,
+-						 tick_do_broadcast_on_off,
+-						 &reason, 1, 1);
+-	}
+-	put_cpu();
++	else
++		smp_call_function_single(*oncpu, tick_do_broadcast_on_off,
++					 &reason, 1, 1);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
+Patches currently in -mm which might be from avi@qumranet.com are
 
 origin.patch
-make-access-to-tasks-nsproxy-lighter.patch
-make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
-make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
+git-kvm.patch
