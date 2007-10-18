@@ -1,56 +1,227 @@
 From: akpm@linux-foundation.org
-Subject: - tokenring-3c359c-fixed-array-index-problem.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:05:32 -0700
-Message-ID: <200710180705.l9I75WIv031655@imap1.linux-foundation.org>
+Subject: - writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:02:09 -0700
+Message-ID: <200710180702.l9I729ea031242@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41748 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50615 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760067AbXJRHP3 (ORCPT
+	by vger.kernel.org with ESMTP id S1759259AbXJRHP0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:15:29 -0400
+	Thu, 18 Oct 2007 03:15:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: meissner@suse.de, jeff@garzik.org, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mikew@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tokenring/3c359.c: fixed array index problem
+     writeback: fix time-ordering of the per-superblock dirty-inode lists
 has been removed from the -mm tree.  Its filename was
-     tokenring-3c359c-fixed-array-index-problem.patch
+     writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: tokenring/3c359.c: fixed array index problem
-From: Marcus Meissner <meissner@suse.de>
+Subject: writeback: fix time-ordering of the per-superblock dirty-inode lists
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The xl_laa array is just 6 bytes long, so we should substract 10 from the
-index, like is also done some lines above already.
+When writeback has finished writing back an inode it looks to see if that
+inode is still dirty.  If it is, that means that a process redirtied the inode
+while its writeback was in progress.
 
-Signed-off-by: Marcus Meissner <meissner@suse.de>
-Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Jeff Garzik <jeff@garzik.org>
+What we need to do here is to refile the redirtied inode onto the s_dirty
+list.
+
+But we're doing that wrongly: it could be that this inode was redirtied
+_before_ the last inode on s_dirty.  We're blindly appending this inode to the
+list, after an inode which might be less-recently-dirtied, thus violating the
+list's ordering.
+
+So we must either insertion-sort this inode into the correct place, or we must
+update this inode's dirtied_when field when appending it to the reverse-sorted
+s_dirty list, to preserve the reverse-time-ordering.
+
+This patch does the latter: if this inode was dirtied less recently than the
+tail inode then copy the tail inode's timestamp into this inode.
+
+This means that in rare circumstances, some inodes will be writen back later
+than they should have been.  But the time slip will be small.
+
+Cc: Mike Waychison <mikew@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tokenring/3c359.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/fs-writeback.c |   26 +++++++++++++++++++++++++-
+ 1 file changed, 25 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/tokenring/3c359.c~tokenring-3c359c-fixed-array-index-problem drivers/net/tokenring/3c359.c
---- a/drivers/net/tokenring/3c359.c~tokenring-3c359c-fixed-array-index-problem
-+++ a/drivers/net/tokenring/3c359.c
-@@ -760,7 +760,7 @@ static int xl_open_hw(struct net_device 
- 	if (xl_priv->xl_laa[0]) {  /* If using a LAA address */
- 		for (i=10;i<16;i++) { 
- 			writel( (MEM_BYTE_WRITE | 0xD0000 | xl_priv->srb) + i, xl_mmio + MMIO_MAC_ACCESS_CMD) ; 
--			writeb(xl_priv->xl_laa[i],xl_mmio + MMIO_MACDATA) ; 
-+			writeb(xl_priv->xl_laa[i-10], xl_mmio + MMIO_MACDATA);
- 		}
- 		memcpy(dev->dev_addr,xl_priv->xl_laa,dev->addr_len) ; 
- 	} else { /* Regular hardware address */ 
+diff -puN fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists
++++ a/fs/fs-writeback.c
+@@ -141,6 +141,30 @@ static int write_inode(struct inode *ino
+ }
+ 
+ /*
++ * Redirty an inode: set its when-it-was dirtied timestamp and move it to the
++ * furthest end of its superblock's dirty-inode list.
++ *
++ * Before stamping the inode's ->dirtied_when, we check to see whether it is
++ * already the most-recently-dirtied inode on the s_dirty list.  If that is
++ * the case then the inode must have been redirtied while it was being written
++ * out and we don't reset its dirtied_when.
++ */
++static void redirty_tail(struct inode *inode)
++{
++	struct super_block *sb = inode->i_sb;
++
++	if (!list_empty(&sb->s_dirty)) {
++		struct inode *tail_inode;
++
++		tail_inode = list_entry(sb->s_dirty.next, struct inode, i_list);
++		if (!time_after_eq(inode->dirtied_when,
++				tail_inode->dirtied_when))
++			inode->dirtied_when = jiffies;
++	}
++	list_move(&inode->i_list, &sb->s_dirty);
++}
++
++/*
+  * Write a single inode's dirty pages and inode data out to disk.
+  * If `wait' is set, wait on the writeout.
+  *
+@@ -219,7 +243,7 @@ __sync_single_inode(struct inode *inode,
+ 			 * Someone redirtied the inode while were writing back
+ 			 * the pages.
+ 			 */
+-			list_move(&inode->i_list, &sb->s_dirty);
++			redirty_tail(inode);
+ 		} else if (atomic_read(&inode->i_count)) {
+ 			/*
+ 			 * The inode is clean, inuse
 _
 
-Patches currently in -mm which might be from meissner@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-add-reboot-mechanism.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-cifs.patch
+console-keyboard-events-and-accessibility.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-arm-hack.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd-fixup.patch
+fix-build-breakage-if-sysfs-fix.patch
+qla2xxx-printk-fixes.patch
+advansys-depends-on-virt_to_bus.patch
+sparc-support-for-new-termios.patch
+git-unionfs.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+git-nfs-vs-git-unionfs.patch
+git-watchdog-fixup.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-x86.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-checkpatch-fixes.patch
+memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+revert-x86-save-registers-in-saved_context-during-suspend-and-hibernation.patch
+pm-qos-infrastructure-and-interface-fix.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+console-events-and-accessibility-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes.patch
+sync_sb_inodes-propagate-errors.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+reiserfs-fix-up-lockdep-warnings-checkpatch-fixes.patch
+reiserfs-use-is_reusable-to-catch-corruption-checkpatch-fixes.patch
+reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes.patch
+reiserfs-remove-first_zero_hint-checkpatch-fixes.patch
+reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+fix-cpusets-update_cpumask-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+i-oat-tighten-descriptor-setup-performance-fix.patch
+i-oat-add-completion-callback-for-async_tx-interface-use-fix.patch
+i-oat-add-completion-callback-for-async_tx-interface-use-fix-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
