@@ -1,87 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - add-vmcore-add-nodemask_ts-size-and-nr_free_pagess-value-to-vmcoreinfo_data.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:57:03 -0700
-Message-ID: <200710180657.l9I6v3rR030757@imap1.linux-foundation.org>
+Subject: - fuse-cleanup-in-release.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:03:35 -0700
+Message-ID: <200710180703.l9I73ZMW031450@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50713 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35100 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761881AbXJRHPj (ORCPT
+	by vger.kernel.org with ESMTP id S1761028AbXJRHPl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:15:39 -0400
+	Thu, 18 Oct 2007 03:15:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oomichi@mxs.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-vmcore: add nodemask_t's size and NR_FREE_PAGES's value to vmcoreinfo_data
+     fuse: cleanup in release
 has been removed from the -mm tree.  Its filename was
-     add-vmcore-add-nodemask_ts-size-and-nr_free_pagess-value-to-vmcoreinfo_data.patch
+     fuse-cleanup-in-release.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: add-vmcore: add nodemask_t's size and NR_FREE_PAGES's value to vmcoreinfo_data
-From: "Ken'ichi Ohmichi" <oomichi@mxs.nes.nec.co.jp>
+Subject: fuse: cleanup in release
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-[2/3] Add nodemask_t's size and NR_FREE_PAGES's value to vmcoreinfo_data.
-  The dump filetering command 'makedumpfile'(v1.1.6 or before) had assumed
-  the above values, and it was not good from the reliability viewpoint.
-  So makedumpfile v1.2.0 came to need these values and I created the patch
-  to let the kernel output them.
-  makedumpfile site:
-  https://sourceforge.net/projects/makedumpfile/
+Move dput/mntput pair from request_end() to fuse_release_end(), because
+there's no other place they are used.
 
-Signed-off-by: Ken'ichi Ohmichi <oomichi@mxs.nes.nec.co.jp>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |    5 +++++
- kernel/kexec.c        |    2 ++
- 2 files changed, 7 insertions(+)
+ fs/fuse/dev.c  |    2 --
+ fs/fuse/file.c |    8 ++++++++
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/kexec.h~add-vmcore-add-nodemask_ts-size-and-nr_free_pagess-value-to-vmcoreinfo_data include/linux/kexec.h
---- a/include/linux/kexec.h~add-vmcore-add-nodemask_ts-size-and-nr_free_pagess-value-to-vmcoreinfo_data
-+++ a/include/linux/kexec.h
-@@ -132,11 +132,16 @@ unsigned long paddr_vmcoreinfo_note(void
- #define SIZE(name) \
- 	vmcoreinfo_append_str("SIZE(%s)=%lu\n", #name, \
- 			      (unsigned long)sizeof(struct name))
-+#define TYPEDEF_SIZE(name) \
-+	vmcoreinfo_append_str("SIZE(%s)=%lu\n", #name, \
-+			      (unsigned long)sizeof(name))
- #define OFFSET(name, field) \
- 	vmcoreinfo_append_str("OFFSET(%s.%s)=%lu\n", #name, #field, \
- 			      (unsigned long)&(((struct name *)0)->field))
- #define LENGTH(name, value) \
- 	vmcoreinfo_append_str("LENGTH(%s)=%lu\n", #name, (unsigned long)value)
-+#define NUMBER(name) \
-+	vmcoreinfo_append_str("NUMBER(%s)=%ld\n", #name, (long)name)
- #define CONFIG(name) \
- 	vmcoreinfo_append_str("CONFIG_%s=y\n", #name)
+diff -puN fs/fuse/dev.c~fuse-cleanup-in-release fs/fuse/dev.c
+--- a/fs/fuse/dev.c~fuse-cleanup-in-release
++++ a/fs/fuse/dev.c
+@@ -231,8 +231,6 @@ static void request_end(struct fuse_conn
+ 		fc->num_background--;
+ 	}
+ 	spin_unlock(&fc->lock);
+-	dput(req->dentry);
+-	mntput(req->vfsmount);
+ 	wake_up(&req->waitq);
+ 	if (end)
+ 		end(fc, req);
+diff -puN fs/fuse/file.c~fuse-cleanup-in-release fs/fuse/file.c
+--- a/fs/fuse/file.c~fuse-cleanup-in-release
++++ a/fs/fuse/file.c
+@@ -71,11 +71,19 @@ static struct fuse_file *fuse_file_get(s
+ 	return ff;
+ }
  
-diff -puN kernel/kexec.c~add-vmcore-add-nodemask_ts-size-and-nr_free_pagess-value-to-vmcoreinfo_data kernel/kexec.c
---- a/kernel/kexec.c~add-vmcore-add-nodemask_ts-size-and-nr_free_pagess-value-to-vmcoreinfo_data
-+++ a/kernel/kexec.c
-@@ -1218,6 +1218,7 @@ static int __init crash_save_vmcoreinfo_
- 	SIZE(zone);
- 	SIZE(free_area);
- 	SIZE(list_head);
-+	TYPEDEF_SIZE(nodemask_t);
- 	OFFSET(page, flags);
- 	OFFSET(page, _count);
- 	OFFSET(page, mapping);
-@@ -1237,6 +1238,7 @@ static int __init crash_save_vmcoreinfo_
- 	OFFSET(list_head, next);
- 	OFFSET(list_head, prev);
- 	LENGTH(zone.free_area, MAX_ORDER);
-+	NUMBER(NR_FREE_PAGES);
- 
- 	arch_crash_save_vmcoreinfo();
- 
++static void fuse_release_end(struct fuse_conn *fc, struct fuse_req *req)
++{
++	dput(req->dentry);
++	mntput(req->vfsmount);
++	fuse_put_request(fc, req);
++}
++
+ static void fuse_file_put(struct fuse_file *ff)
+ {
+ 	if (atomic_dec_and_test(&ff->count)) {
+ 		struct fuse_req *req = ff->reserved_req;
+ 		struct fuse_conn *fc = get_fuse_conn(req->dentry->d_inode);
++		req->end = fuse_release_end;
+ 		request_send_background(fc, req);
+ 		kfree(ff);
+ 	}
 _
 
-Patches currently in -mm which might be from oomichi@mxs.nes.nec.co.jp are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+fuse-fix-allowing-operations.patch
+fuse-fix-race-between-getattr-and-write.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+fuse-clean-up-open-file-passing-in-setattr.patch
+vfs-allow-filesystems-to-implement-atomic-opentruncate.patch
+fuse-improve-utimes-support.patch
+fuse-add-atomic-opentruncate-support.patch
+fuse-support-bsd-locking-semantics.patch
+fuse-add-list-of-writable-files-to-fuse_inode.patch
+fuse-add-helper-for-asynchronous-writes.patch
+fuse-add-support-for-mandatory-locking.patch
+fuse-add-blksize-field-to-fuse_attr.patch
