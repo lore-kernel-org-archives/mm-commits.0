@@ -1,96 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - x86-acpi-use-cpu_physical_id.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:09:02 -0700
-Message-ID: <200710180709.l9I792Gu031875@imap1.linux-foundation.org>
+Subject: - allow-disabling-dnotify-without-embedded.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:56:29 -0700
+Message-ID: <200710180656.l9I6uT5Q030705@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43782 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39896 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762593AbXJRHRT (ORCPT
+	by vger.kernel.org with ESMTP id S1759902AbXJRHRS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:17:19 -0400
+	Thu, 18 Oct 2007 03:17:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: travis@sgi.com, ak@suse.de, clameter@sgi.com, lenb@kernel.org, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: acpi: use cpu_physical_id()
+     allow disabling DNOTIFY without EMBEDDED
 has been removed from the -mm tree.  Its filename was
-     x86-acpi-use-cpu_physical_id.patch
+     allow-disabling-dnotify-without-embedded.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86: acpi: use cpu_physical_id()
-From: Mike Travis <travis@sgi.com>
+Subject: allow disabling DNOTIFY without EMBEDDED
+From: Adrian Bunk <bunk@kernel.org>
 
-This is from an earlier message from Christoph Lameter:
+Allow disabling DNOTIFY with CONFIG_EMBEDDED=n.
 
-    processor_core.c currently tries to determine the apicid by special casing
-    for IA64 and x86. The desired information is readily available via
+I'm currently running a kernel with dnotify disabled and I haven't run into
+any problem.  Is there any popular application left that breaks without
+dnotify support in the kernel?
 
-	    cpu_physical_id()
+Note that this patch does not remove dnotify support, it still defaults to
+"y", and the help text recommends enabling it.
 
-    on IA64, i386 and x86_64.
-
-    Signed-off-by: Christoph Lameter <clameter@sgi.com>
-
-Additionally, boot_cpu_id needed to be exported to fix compile errors in
-dma code when !CONFIG_SMP.
-
-Signed-off-by: Mike Travis <travis@sgi.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/mpparse_64.c  |    2 ++
- drivers/acpi/processor_core.c |    8 +-------
- 2 files changed, 3 insertions(+), 7 deletions(-)
+ fs/Kconfig |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/mpparse_64.c~x86-acpi-use-cpu_physical_id arch/x86/kernel/mpparse_64.c
---- a/arch/x86/kernel/mpparse_64.c~x86-acpi-use-cpu_physical_id
-+++ a/arch/x86/kernel/mpparse_64.c
-@@ -57,6 +57,8 @@ unsigned long mp_lapic_addr = 0;
+diff -puN fs/Kconfig~allow-disabling-dnotify-without-embedded fs/Kconfig
+--- a/fs/Kconfig~allow-disabling-dnotify-without-embedded
++++ a/fs/Kconfig
+@@ -555,7 +555,7 @@ config QUOTACTL
+ 	default y
  
- /* Processor that is doing the boot up */
- unsigned int boot_cpu_id = -1U;
-+EXPORT_SYMBOL(boot_cpu_id);
-+
- /* Internal processor count */
- unsigned int num_processors __cpuinitdata = 0;
+ config DNOTIFY
+-	bool "Dnotify support" if EMBEDDED
++	bool "Dnotify support"
+ 	default y
+ 	help
+ 	  Dnotify is a directory-based per-fd file change notification system
+@@ -563,7 +563,7 @@ config DNOTIFY
+ 	  superior alternatives, but some applications may still rely on
+ 	  dnotify.
  
-diff -puN drivers/acpi/processor_core.c~x86-acpi-use-cpu_physical_id drivers/acpi/processor_core.c
---- a/drivers/acpi/processor_core.c~x86-acpi-use-cpu_physical_id
-+++ a/drivers/acpi/processor_core.c
-@@ -422,12 +422,6 @@ static int map_lsapic_id(struct acpi_sub
- 	return 0;
- }
+-	  Because of this, if unsure, say Y.
++	  If unsure, say Y.
  
--#ifdef CONFIG_IA64
--#define arch_cpu_to_apicid 	ia64_cpu_to_sapicid
--#else
--#define arch_cpu_to_apicid 	x86_cpu_to_apicid
--#endif
--
- static int map_madt_entry(u32 acpi_id)
- {
- 	unsigned long madt_end, entry;
-@@ -501,7 +495,7 @@ static int get_cpu_id(acpi_handle handle
- 		return apic_id;
- 
- 	for (i = 0; i < NR_CPUS; ++i) {
--		if (arch_cpu_to_apicid[i] == apic_id)
-+		if (cpu_physical_id(i) == apic_id)
- 			return i;
- 	}
- 	return -1;
+ config AUTOFS_FS
+ 	tristate "Kernel automounter support"
 _
 
-Patches currently in -mm which might be from travis@sgi.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-git-x86.patch
+git-dvb.patch
+git-nfs-make-nfs_wb_page_priority-static.patch
+drivers-net-wireless-b43-mainc-fix-an-uninitialized.patch
+make-kernel-power-maincsuspend_enter-static.patch
+sysctl-parport-remove-binary-paths-fix.patch
+sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-cleanup.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-cleanup.patch
+remove-asm-bitopsh-includes.patch
+forbid-asm-bitopsh-direct-inclusion.patch
+alpha-lock-bitops-fix.patch
+reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
+remove-asm-bitopsh-includes-reiser4.patch
