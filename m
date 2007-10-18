@@ -1,84 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-update-sysctl_check_table-sysctl-update-sysctl_check-to-handle-compiled-out-code.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 01:49:17 -0700
-Message-ID: <200710180849.l9I8nHb7002887@imap1.linux-foundation.org>
+Subject: - sysctl-update-sysctl_checks-list-of-binary-paths.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 01:49:16 -0700
+Message-ID: <200710180849.l9I8nGCZ002884@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40370 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54221 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932356AbXJRItT (ORCPT
+	by vger.kernel.org with ESMTP id S932342AbXJRItX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 04:49:19 -0400
+	Thu, 18 Oct 2007 04:49:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, davem@davemloft.net, kaber@trash.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: update sysctl_check to handle compiled out code.
+     sysctl: update sysctl_checks list of binary paths
 has been removed from the -mm tree.  Its filename was
-     sysctl-update-sysctl_check_table-sysctl-update-sysctl_check-to-handle-compiled-out-code.patch
+     sysctl-update-sysctl_checks-list-of-binary-paths.patch
 
 This patch was dropped because it was folded into sysctl-update-sysctl_check_table.patch
 
 ------------------------------------------------------
-Subject: sysctl: update sysctl_check to handle compiled out code.
-From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: sysctl: update sysctl_checks list of binary paths
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-Currently sysctl_check_table will complain if a strategy routine
-is missing when we have sys_sysctl compiled out, or a proc_handler
-is missing when we have procfs compiled out.  At least some
-of the custom handlers actually expand to NULL when this is the
-case so the warning is actually a problem.
-
-Valdis.Kletnieks@vt.edu writes:
-> As far as "something else wrong", I'm still seeing these in -rc3-mm1
->
-> [    0.628000] sysctl table check failed: /kernel/ostype .1.1 Missing strategy
-> [ 0.628000] sysctl table check failed: /kernel/osrelease .1.2 Missing strategy
-> [    0.628000] sysctl table check failed: /kernel/version .1.4 Missing strategy
-> [ 0.628000] sysctl table check failed: /kernel/hostname .1.7 Missing strategy
-> [ 0.628000] sysctl table check failed: /kernel/domainname .1.8 Missing strategy
-> [    0.628000] sysctl table check failed: /kernel/shmmax .1.34 Missing strategy
-> [    0.628000] sysctl table check failed: /kernel/shmall .1.41 Missing strategy
-> [    0.628000] sysctl table check failed: /kernel/shmmni .1.45 Missing strategy
-> [    0.628000] sysctl table check failed: /kernel/msgmax .1.35 Missing strategy
-> [    0.628000] sysctl table check failed: /kernel/msgmni .1.42 Missing strategy
-> [    0.628000] sysctl table check failed: /kernel/msgmnb .1.36 Missing strategy
-> [    0.628000] sysctl table check failed: /kernel/sem .1.43 Missing strategy
-
-So don't worry about missing strategy routines, or missing proc_handler
-routines when they will never be called.
+In the netfilter code and the ipv6 ipqueue code I have found two more binary
+paths that don't conflict with anything.  So this patch adds them to the list
+of valid sysctl binary paths.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl_check.c |    4 ++++
- 1 files changed, 4 insertions(+)
+ kernel/sysctl_check.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN kernel/sysctl_check.c~sysctl-update-sysctl_check_table-sysctl-update-sysctl_check-to-handle-compiled-out-code kernel/sysctl_check.c
---- a/kernel/sysctl_check.c~sysctl-update-sysctl_check_table-sysctl-update-sysctl_check-to-handle-compiled-out-code
+diff -puN kernel/sysctl_check.c~sysctl-update-sysctl_checks-list-of-binary-paths kernel/sysctl_check.c
+--- a/kernel/sysctl_check.c~sysctl-update-sysctl_checks-list-of-binary-paths
 +++ a/kernel/sysctl_check.c
-@@ -1534,14 +1534,18 @@ int sysctl_check_table(struct ctl_table 
- 						set_fail(&fail, table, "No max");
- 				}
- 			}
-+#ifdef CONFIG_SYSCTL_SYSCALL
- 			if (table->ctl_name && !table->strategy)
- 				set_fail(&fail, table, "Missing strategy");
-+#endif
- #if 0
- 			if (!table->ctl_name && table->strategy)
- 				set_fail(&fail, table, "Strategy without ctl_name");
- #endif
-+#ifdef CONFIG_PROC_FS
- 			if (table->procname && !table->proc_handler)
- 				set_fail(&fail, table, "No proc_handler");
-+#endif
- #if 0
- 			if (!table->procname && table->proc_handler)
- 				set_fail(&fail, table, "proc_handler without procname");
+@@ -565,6 +565,7 @@ static struct trans_ctl_table trans_net_
+ 	{ NET_IPV6_IP6FRAG_TIME,	"ip6frag_time" },
+ 	{ NET_IPV6_IP6FRAG_SECRET_INTERVAL,	"ip6frag_secret_interval" },
+ 	{ NET_IPV6_MLD_MAX_MSF,		"mld_max_msf" },
++	{ 2088 /* IPQ_QMAX */,		"ip6_queue_maxlen" },
+ 	{}
+ };
+ 
+@@ -723,6 +724,7 @@ static struct trans_ctl_table trans_net_
+ 	{ NET_LLC,		"llc",		trans_net_llc_table },
+ 	{ NET_NETFILTER,	"netfilter",	trans_net_netfilter_table },
+ 	{ NET_DCCP,		"dccp",		trans_net_dccp_table },
++	{ 2089,			"nf_conntrack_max" },
+ 	{}
+ };
+ 
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
@@ -102,6 +80,7 @@ sysctl-remove-the-cad_pid-binary-sysctl-path.patch
 sysctl-properly-register-the-irda-binary-sysctl-numbers.patch
 sysctl-error-on-bad-sysctl-tables.patch
 sysctl-update-sysctl_check_table.patch
+sysctl-update-sysctl_checks-list-of-binary-paths.patch
 sysctl-update-sysctl_check_table-sysctl-update-sysctl_check-to-handle-compiled-out-code.patch
 sysctl-for-irda-update-sysctl_checks-list-of-binary-paths.patch
 sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion.patch
