@@ -1,88 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - make-rcutorture-rng-use-temporal-entropy.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:56:36 -0700
-Message-ID: <200710180656.l9I6uaw0030714@imap1.linux-foundation.org>
+Subject: - update-dma-mapping-documentation.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:04:48 -0700
+Message-ID: <200710180704.l9I74mCg031591@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48239 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58201 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760072AbXJRH2G (ORCPT
+	by vger.kernel.org with ESMTP id S1759909AbXJRH2T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:28:06 -0400
+	Thu, 18 Oct 2007 03:28:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paulmck@linux.vnet.ibm.com, ego@in.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: matthew@wil.cx, davem@davemloft.net, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Make rcutorture RNG use temporal entropy
+     Update DMA-mapping documentation
 has been removed from the -mm tree.  Its filename was
-     make-rcutorture-rng-use-temporal-entropy.patch
+     update-dma-mapping-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Make rcutorture RNG use temporal entropy
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Update DMA-mapping documentation
+From: Matthew Wilcox <matthew@wil.cx>
 
-Repost of http://lkml.org/lkml/2007/8/10/472 made available by request.
+A couple of updates haven't considered whether the documentation makes
+sense as a whole any more.  Three changes here:
 
-The locking used by get_random_bytes() can conflict with the
-preempt_disable() and synchronize_sched() form of RCU.  This patch changes
-rcutorture's RNG to gather entropy from the new cpu_clock() interface
-(relying on interrupts, preemption, daemons, and rcutorture's reader
-thread's rock-bottom scheduling priority to provide useful entropy), and
-also adds and EXPORT_SYMBOL_GPL() to make that interface available to GPLed
-kernel modules such as rcutorture.
+ - Remove the reference to the "DAC Addressing for Address Space Hungry
+   Devices" section which was deleted by Jan Beulich.
+ - Remove the comment about DMA_24BIT_MASK which became obsolete when
+   Tobias Klauser changed the code to actually use DMA_24BIT_MASK.
+ - Remove the section "64-bit DMA and DAC cycle support" since it's
+   fully covered above, and contains a reference to the section deleted
+   by Jan.
 
-Passes several hours of rcutorture.
-
-[ego@in.ibm.com: Use raw_smp_processor_id() in rcu_random()]
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Gautham R Shenoy <ego@in.ibm.com>
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcutorture.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ Documentation/DMA-mapping.txt |   20 --------------------
+ 1 file changed, 20 deletions(-)
 
-diff -puN kernel/rcutorture.c~make-rcutorture-rng-use-temporal-entropy kernel/rcutorture.c
---- a/kernel/rcutorture.c~make-rcutorture-rng-use-temporal-entropy
-+++ a/kernel/rcutorture.c
-@@ -41,7 +41,6 @@
- #include <linux/notifier.h>
- #include <linux/freezer.h>
- #include <linux/cpu.h>
--#include <linux/random.h>
- #include <linux/delay.h>
- #include <linux/byteorder/swabb.h>
- #include <linux/stat.h>
-@@ -165,16 +164,14 @@ struct rcu_random_state {
+diff -puN Documentation/DMA-mapping.txt~update-dma-mapping-documentation Documentation/DMA-mapping.txt
+--- a/Documentation/DMA-mapping.txt~update-dma-mapping-documentation
++++ a/Documentation/DMA-mapping.txt
+@@ -189,12 +189,6 @@ smaller mask as pci_set_dma_mask(). Howe
+ device driver only uses consistent allocations, one would have to
+ check the return value from pci_set_consistent_dma_mask().
  
- /*
-  * Crude but fast random-number generator.  Uses a linear congruential
-- * generator, with occasional help from get_random_bytes().
-+ * generator, with occasional help from cpu_clock().
-  */
- static unsigned long
- rcu_random(struct rcu_random_state *rrsp)
- {
--	long refresh;
+-If your 64-bit device is going to be an enormous consumer of DMA
+-mappings, this can be problematic since the DMA mappings are a
+-finite resource on many platforms.  Please see the "DAC Addressing
+-for Address Space Hungry Devices" section near the end of this
+-document for how to handle this case.
 -
- 	if (--rrsp->rrs_count < 0) {
--		get_random_bytes(&refresh, sizeof(refresh));
--		rrsp->rrs_state += refresh;
-+		rrsp->rrs_state +=
-+			(unsigned long)cpu_clock(raw_smp_processor_id());
- 		rrsp->rrs_count = RCU_RANDOM_REFRESH;
+ Finally, if your device can only drive the low 24-bits of
+ address during PCI bus mastering you might do something like:
+ 
+@@ -203,8 +197,6 @@ address during PCI bus mastering you mig
+ 		       "mydev: 24-bit DMA addressing not available.\n");
+ 		goto ignore_this_device;
  	}
- 	rrsp->rrs_state = rrsp->rrs_state * RCU_RANDOM_MULT + RCU_RANDOM_ADD;
+-[Better use DMA_24BIT_MASK instead of 0x00ffffff.
+-See linux/include/dma-mapping.h for reference.]
+ 
+ When pci_set_dma_mask() is successful, and returns zero, the PCI layer
+ saves away this mask you have provided.  The PCI layer will use this
+@@ -652,18 +644,6 @@ It is planned to completely remove virt_
+ they are entirely deprecated.  Some ports already do not provide these
+ as it is impossible to correctly support them.
+ 
+-		64-bit DMA and DAC cycle support
+-
+-Do you understand all of the text above?  Great, then you already
+-know how to use 64-bit DMA addressing under Linux.  Simply make
+-the appropriate pci_set_dma_mask() calls based upon your cards
+-capabilities, then use the mapping APIs above.
+-
+-It is that simple.
+-
+-Well, not for some odd devices.  See the next section for information
+-about that.
+-
+ 		Optimizing Unmap State Space Consumption
+ 
+ On many platforms, pci_unmap_{single,page}() is simply a nop.
 _
 
-Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
+Patches currently in -mm which might be from matthew@wil.cx are
 
 origin.patch
-make-access-to-tasks-nsproxy-lighter.patch
-make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
-make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
+git-scsi-misc.patch
+make-sure-nobodys-leaking-resources.patch
