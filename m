@@ -1,108 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - drop-some-headers-from-mmh.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:59:13 -0700
-Message-ID: <200710180659.l9I6xDbS030964@imap1.linux-foundation.org>
+Subject: - remove-valueless-definition-of-hard-selected-ramfs-option.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:59:25 -0700
+Message-ID: <200710180659.l9I6xPic030982@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49889 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39212 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753612AbXJRG7R (ORCPT
+	by vger.kernel.org with ESMTP id S1754808AbXJRG73 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 02:59:17 -0400
+	Thu, 18 Oct 2007 02:59:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Drop some headers from mm.h
+     Remove valueless definition of hard-selected RAMFS option
 has been removed from the -mm tree.  Its filename was
-     drop-some-headers-from-mmh.patch
+     remove-valueless-definition-of-hard-selected-ramfs-option.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Drop some headers from mm.h
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Remove valueless definition of hard-selected RAMFS option
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-mm.h doesn't use directly anything from mutex.h and backing-dev.h, so
-remove them and add them back to files which need them.
+Since CONFIG_RAMFS is currently hard-selected to "y", and since
+Documentation/filesystems/ramfs-rootfs-initramfs.txt reads as follows:
 
-Cross-compile tested on many configs and archs.
+"The amount of code required to implement ramfs is tiny, because all the
+work is done by the existing Linux caching infrastructure.  Basically,
+you're mounting the disk cache as a filesystem.  Because of this, ramfs is
+not an optional component removable via menuconfig, since there would be
+negligible space savings."
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+It seems pointless to leave this as a Kconfig entry.
+
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/write.c     |    2 +-
- include/linux/mm.h |    2 --
- mm/fremap.c        |    2 +-
- mm/mmap.c          |    1 +
- mm/truncate.c      |    1 +
- 5 files changed, 4 insertions(+), 4 deletions(-)
+ fs/Kconfig        |   14 --------------
+ fs/Makefile       |    2 +-
+ fs/ramfs/Makefile |    2 +-
+ 3 files changed, 2 insertions(+), 16 deletions(-)
 
-diff -puN fs/afs/write.c~drop-some-headers-from-mmh fs/afs/write.c
---- a/fs/afs/write.c~drop-some-headers-from-mmh
-+++ a/fs/afs/write.c
-@@ -8,7 +8,7 @@
-  * as published by the Free Software Foundation; either version
-  * 2 of the License, or (at your option) any later version.
-  */
+diff -puN fs/Kconfig~remove-valueless-definition-of-hard-selected-ramfs-option fs/Kconfig
+--- a/fs/Kconfig~remove-valueless-definition-of-hard-selected-ramfs-option
++++ a/fs/Kconfig
+@@ -999,20 +999,6 @@ config HUGETLBFS
+ config HUGETLB_PAGE
+ 	def_bool HUGETLBFS
+ 
+-config RAMFS
+-	bool
+-	default y
+-	---help---
+-	  Ramfs is a file system which keeps all files in RAM. It allows
+-	  read and write access.
 -
-+#include <linux/backing-dev.h>
- #include <linux/slab.h>
- #include <linux/fs.h>
- #include <linux/pagemap.h>
-diff -puN include/linux/mm.h~drop-some-headers-from-mmh include/linux/mm.h
---- a/include/linux/mm.h~drop-some-headers-from-mmh
-+++ a/include/linux/mm.h
-@@ -10,9 +10,7 @@
- #include <linux/mmzone.h>
- #include <linux/rbtree.h>
- #include <linux/prio_tree.h>
--#include <linux/mutex.h>
- #include <linux/debug_locks.h>
--#include <linux/backing-dev.h>
- #include <linux/mm_types.h>
- 
- struct mempolicy;
-diff -puN mm/fremap.c~drop-some-headers-from-mmh mm/fremap.c
---- a/mm/fremap.c~drop-some-headers-from-mmh
-+++ a/mm/fremap.c
-@@ -5,7 +5,7 @@
-  *
-  * started by Ingo Molnar, Copyright (C) 2002, 2003
-  */
+-	  It is more of an programming example than a useable file system.  If
+-	  you need a file system which lives in RAM with limit checking use
+-	  tmpfs.
 -
-+#include <linux/backing-dev.h>
- #include <linux/mm.h>
- #include <linux/swap.h>
- #include <linux/file.h>
-diff -puN mm/mmap.c~drop-some-headers-from-mmh mm/mmap.c
---- a/mm/mmap.c~drop-some-headers-from-mmh
-+++ a/mm/mmap.c
-@@ -7,6 +7,7 @@
-  */
+-	  To compile this as a module, choose M here: the module will be called
+-	  ramfs.
+-
+ config CONFIGFS_FS
+ 	tristate "Userspace-driven configuration filesystem (EXPERIMENTAL)"
+ 	depends on SYSFS && EXPERIMENTAL
+diff -puN fs/Makefile~remove-valueless-definition-of-hard-selected-ramfs-option fs/Makefile
+--- a/fs/Makefile~remove-valueless-definition-of-hard-selected-ramfs-option
++++ a/fs/Makefile
+@@ -72,7 +72,7 @@ obj-$(CONFIG_JBD)		+= jbd/
+ obj-$(CONFIG_JBD2)		+= jbd2/
+ obj-$(CONFIG_EXT2_FS)		+= ext2/
+ obj-$(CONFIG_CRAMFS)		+= cramfs/
+-obj-$(CONFIG_RAMFS)		+= ramfs/
++obj-y				+= ramfs/
+ obj-$(CONFIG_HUGETLBFS)		+= hugetlbfs/
+ obj-$(CONFIG_CODA_FS)		+= coda/
+ obj-$(CONFIG_MINIX_FS)		+= minix/
+diff -puN fs/ramfs/Makefile~remove-valueless-definition-of-hard-selected-ramfs-option fs/ramfs/Makefile
+--- a/fs/ramfs/Makefile~remove-valueless-definition-of-hard-selected-ramfs-option
++++ a/fs/ramfs/Makefile
+@@ -2,7 +2,7 @@
+ # Makefile for the linux ramfs routines.
+ #
  
- #include <linux/slab.h>
-+#include <linux/backing-dev.h>
- #include <linux/mm.h>
- #include <linux/shm.h>
- #include <linux/mman.h>
-diff -puN mm/truncate.c~drop-some-headers-from-mmh mm/truncate.c
---- a/mm/truncate.c~drop-some-headers-from-mmh
-+++ a/mm/truncate.c
-@@ -8,6 +8,7 @@
-  */
+-obj-$(CONFIG_RAMFS) += ramfs.o
++obj-y += ramfs.o
  
- #include <linux/kernel.h>
-+#include <linux/backing-dev.h>
- #include <linux/mm.h>
- #include <linux/swap.h>
- #include <linux/module.h>
+ file-mmu-y := file-nommu.o
+ file-mmu-$(CONFIG_MMU) := file-mmu.o
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
-remove-struct-task_structio_wait.patch
+git-kvm.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
