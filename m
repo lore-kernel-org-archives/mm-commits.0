@@ -1,165 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-lighten-up-resize-transaction-requirements.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:01:55 -0700
-Message-ID: <200710180701.l9I71tFd031215@imap1.linux-foundation.org>
+Subject: - writeback-introduce-writeback_controlmore_io-to-indicate-more-io.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:02:37 -0700
+Message-ID: <200710180702.l9I72bQ3031290@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42187 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42058 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760188AbXJRHdX (ORCPT
+	by vger.kernel.org with ESMTP id S1756357AbXJRHeA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:33:23 -0400
+	Thu, 18 Oct 2007 03:34:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sandeen@redhat.com, adilger@clusterfs.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: wfg@mail.ustc.edu.cn, dgc@sgi.com, kenchen@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: lighten up resize transaction requirements
+     writeback: introduce writeback_control.more_io to indicate more io
 has been removed from the -mm tree.  Its filename was
-     ext3-lighten-up-resize-transaction-requirements.patch
+     writeback-introduce-writeback_controlmore_io-to-indicate-more-io.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ext3: lighten up resize transaction requirements
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: writeback: introduce writeback_control.more_io to indicate more io
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-When resizing online, setup_new_group_blocks attempts to reserve a
-potentially very large transaction, depending on the current filesystem
-geometry.  For some journal sizes, there may not be enough room for this
-transaction, and the online resize will fail.
+After making dirty a 100M file, the normal behavior is to start the writeback
+for all data after 30s delays.  But sometimes the following happens instead:
 
-The patch below resizes & restarts the transaction as necessary while
-setting up the new group, and should work with even the smallest journal.
+	- after 30s:    ~4M
+	- after 5s:     ~4M
+	- after 5s:     all remaining 92M
 
-Tested with something like:
+Some analyze shows that the internal io dispatch queues goes like this:
 
-[root@newbox ~]# dd if=/dev/zero of=fsfile bs=1024 count=32768
-[root@newbox ~]# mkfs.ext3 -b 1024 fsfile 16384
-[root@newbox ~]# mount -o loop fsfile mnt/
-[root@newbox ~]# resize2fs /dev/loop0
-resize2fs 1.40.2 (12-Jul-2007)
-Filesystem at /dev/loop0 is mounted on /root/mnt; on-line resizing required
-old desc_blocks = 1, new_desc_blocks = 1
-Performing an on-line resize of /dev/loop0 to 32768 (1k) blocks.
-resize2fs: No space left on device While trying to add group #2
-[root@newbox ~]# dmesg | tail -n 1
-JBD: resize2fs wants too many credits (258 > 256)
-[root@newbox ~]#
+		s_io            s_more_io
+		-------------------------
+	1)	100M,1K         0
+	2)	1K              96M
+	3)	0               96M
 
-With the below change, it works.
+1) initial state with a 100M file and a 1K file
+2) 4M written, nr_to_write <= 0, so write more
+3) 1K written, nr_to_write > 0, no more writes(BUG)
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Acked-by: Andreas Dilger <adilger@clusterfs.com>
-Cc: <linux-ext4@vger.kernel.org>
+nr_to_write > 0 in (3) fools the upper layer to think that data have all been
+written out.  The big dirty file is actually still sitting in s_more_io.  We
+cannot simply splice s_more_io back to s_io as soon as s_io becomes empty, and
+let the loop in generic_sync_sb_inodes() continue: this may starve newly
+expired inodes in s_dirty.  It is also not an option to draw inodes from both
+s_more_io and s_dirty, an let the loop go on: this might lead to live locks,
+and might also starve other superblocks in sync time(well kupdate may still
+starve some superblocks, that's another bug).
+
+We have to return when a full scan of s_io completes.  So nr_to_write > 0 does
+not necessarily mean that "all data are written".  This patch introduces a
+flag writeback_control.more_io to indicate this situation.  With it the big
+dirty file no longer has to wait for the next kupdate invocation 5s later.
+
+Cc: David Chinner <dgc@sgi.com>
+Cc: Ken Chen <kenchen@google.com>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/resize.c |   51 +++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 49 insertions(+), 2 deletions(-)
+ fs/fs-writeback.c         |    2 ++
+ include/linux/writeback.h |    1 +
+ mm/page-writeback.c       |    9 ++++++---
+ 3 files changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN fs/ext3/resize.c~ext3-lighten-up-resize-transaction-requirements fs/ext3/resize.c
---- a/fs/ext3/resize.c~ext3-lighten-up-resize-transaction-requirements
-+++ a/fs/ext3/resize.c
-@@ -154,6 +154,34 @@ static void mark_bitmap_end(int start_bi
+diff -puN fs/fs-writeback.c~writeback-introduce-writeback_controlmore_io-to-indicate-more-io fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-introduce-writeback_controlmore_io-to-indicate-more-io
++++ a/fs/fs-writeback.c
+@@ -473,6 +473,8 @@ sync_sb_inodes(struct super_block *sb, s
+ 		if (wbc->nr_to_write <= 0)
+ 			break;
+ 	}
++	if (!list_empty(&sb->s_more_io))
++		wbc->more_io = 1;
+ 	return;		/* Leave any unwritten inodes on s_io */
  }
  
+diff -puN include/linux/writeback.h~writeback-introduce-writeback_controlmore_io-to-indicate-more-io include/linux/writeback.h
+--- a/include/linux/writeback.h~writeback-introduce-writeback_controlmore_io-to-indicate-more-io
++++ a/include/linux/writeback.h
+@@ -62,6 +62,7 @@ struct writeback_control {
+ 	unsigned for_reclaim:1;		/* Invoked from the page allocator */
+ 	unsigned for_writepages:1;	/* This is a writepages() call */
+ 	unsigned range_cyclic:1;	/* range_start is cyclic */
++	unsigned more_io:1;		/* more io to be dispatched */
+ };
+ 
  /*
-+ * If we have fewer than thresh credits, extend by EXT3_MAX_TRANS_DATA.
-+ * If that fails, restart the transaction & regain write access for the
-+ * buffer head which is used for block_bitmap modifications.
-+ */
-+static int extend_or_restart_transaction(handle_t *handle, int thresh,
-+					 struct buffer_head *bh)
-+{
-+	int err;
-+
-+	if (handle->h_buffer_credits >= thresh)
-+		return 0;
-+
-+	err = ext3_journal_extend(handle, EXT3_MAX_TRANS_DATA);
-+	if (err < 0)
-+		return err;
-+	if (err) {
-+		err = ext3_journal_restart(handle, EXT3_MAX_TRANS_DATA);
-+		if (err)
-+			return err;
-+		err = ext3_journal_get_write_access(handle, bh);
-+		if (err)
-+			return err;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-  * Set up the block and inode bitmaps, and the inode table for the new group.
-  * This doesn't need to be part of the main transaction, since we are only
-  * changing blocks outside the actual filesystem.  We still do journaling to
-@@ -175,8 +203,9 @@ static int setup_new_group_blocks(struct
- 	int i;
- 	int err = 0, err2;
- 
--	handle = ext3_journal_start_sb(sb, reserved_gdb + gdblocks +
--				       2 + sbi->s_itb_per_group);
-+	/* This transaction may be extended/restarted along the way */
-+	handle = ext3_journal_start_sb(sb, EXT3_MAX_TRANS_DATA);
-+
- 	if (IS_ERR(handle))
- 		return PTR_ERR(handle);
- 
-@@ -203,6 +232,10 @@ static int setup_new_group_blocks(struct
- 
- 		ext3_debug("update backup group %#04lx (+%d)\n", block, bit);
- 
-+		err = extend_or_restart_transaction(handle, 1, bh);
-+		if (err)
-+			goto exit_bh;
-+
- 		gdb = sb_getblk(sb, block);
- 		if (!gdb) {
- 			err = -EIO;
-@@ -228,6 +261,10 @@ static int setup_new_group_blocks(struct
- 
- 		ext3_debug("clear reserved block %#04lx (+%d)\n", block, bit);
- 
-+		err = extend_or_restart_transaction(handle, 1, bh);
-+		if (err)
-+			goto exit_bh;
-+
- 		if (IS_ERR(gdb = bclean(handle, sb, block))) {
- 			err = PTR_ERR(bh);
- 			goto exit_bh;
-@@ -249,6 +286,11 @@ static int setup_new_group_blocks(struct
- 		struct buffer_head *it;
- 
- 		ext3_debug("clear inode block %#04lx (+%d)\n", block, bit);
-+
-+		err = extend_or_restart_transaction(handle, 1, bh);
-+		if (err)
-+			goto exit_bh;
-+
- 		if (IS_ERR(it = bclean(handle, sb, block))) {
- 			err = PTR_ERR(it);
- 			goto exit_bh;
-@@ -257,6 +299,11 @@ static int setup_new_group_blocks(struct
- 		brelse(it);
- 		ext3_set_bit(bit, bh->b_data);
+diff -puN mm/page-writeback.c~writeback-introduce-writeback_controlmore_io-to-indicate-more-io mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-introduce-writeback_controlmore_io-to-indicate-more-io
++++ a/mm/page-writeback.c
+@@ -553,6 +553,7 @@ static void background_writeout(unsigned
+ 			global_page_state(NR_UNSTABLE_NFS) < background_thresh
+ 				&& min_pages <= 0)
+ 			break;
++		wbc.more_io = 0;
+ 		wbc.encountered_congestion = 0;
+ 		wbc.nr_to_write = MAX_WRITEBACK_PAGES;
+ 		wbc.pages_skipped = 0;
+@@ -560,8 +561,9 @@ static void background_writeout(unsigned
+ 		min_pages -= MAX_WRITEBACK_PAGES - wbc.nr_to_write;
+ 		if (wbc.nr_to_write > 0 || wbc.pages_skipped > 0) {
+ 			/* Wrote less than expected */
+-			congestion_wait(WRITE, HZ/10);
+-			if (!wbc.encountered_congestion)
++			if (wbc.encountered_congestion || wbc.more_io)
++				congestion_wait(WRITE, HZ/10);
++			else
+ 				break;
+ 		}
  	}
-+
-+	err = extend_or_restart_transaction(handle, 2, bh);
-+	if (err)
-+		goto exit_bh;
-+
- 	mark_bitmap_end(input->blocks_count, EXT3_BLOCKS_PER_GROUP(sb),
- 			bh->b_data);
- 	ext3_journal_dirty_metadata(handle, bh);
+@@ -626,11 +628,12 @@ static void wb_kupdate(unsigned long arg
+ 			global_page_state(NR_UNSTABLE_NFS) +
+ 			(inodes_stat.nr_inodes - inodes_stat.nr_unused);
+ 	while (nr_to_write > 0) {
++		wbc.more_io = 0;
+ 		wbc.encountered_congestion = 0;
+ 		wbc.nr_to_write = MAX_WRITEBACK_PAGES;
+ 		writeback_inodes(&wbc);
+ 		if (wbc.nr_to_write > 0) {
+-			if (wbc.encountered_congestion)
++			if (wbc.encountered_congestion || wbc.more_io)
+ 				congestion_wait(WRITE, HZ/10);
+ 			else
+ 				break;	/* All the old data is written */
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
 origin.patch
-ext4-remove-ifdef-config_ext4_index.patch
-ext3-fix-setup_new_group_blocks-locking.patch
