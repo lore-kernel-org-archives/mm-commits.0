@@ -1,94 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-time-timekeepingc-cleanups.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:56:25 -0700
-Message-ID: <200710180656.l9I6uP6V030699@imap1.linux-foundation.org>
+Subject: - documentation-make-headers_installtxt.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:04:13 -0700
+Message-ID: <200710180704.l9I74DTV031532@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58209 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35807 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760017AbXJRH2F (ORCPT
+	by vger.kernel.org with ESMTP id S1756302AbXJRH3E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:28:05 -0400
+	Thu, 18 Oct 2007 03:29:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, johnstul@us.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: rob@landley.net, dwmw2@infradead.org, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/time/timekeeping.c: cleanups
+     Documentation/make/headers_install.txt
 has been removed from the -mm tree.  Its filename was
-     kernel-time-timekeepingc-cleanups.patch
+     documentation-make-headers_installtxt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kernel/time/timekeeping.c: cleanups
-From: Adrian Bunk <bunk@kernel.org>
+Subject: Documentation/make/headers_install.txt
+From: Rob Landley <rob@landley.net>
 
-- remove the no longer required __attribute__((weak)) of xtime_lock
-- remove the following no longer used EXPORT_SYMBOL's:
-  - xtime
-  - xtime_lock
+Some documentation for "make headers_install".
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
+Signed-off-by: Rob Landley <rob@landley.net>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/time.h      |    2 +-
- kernel/time/timekeeping.c |    5 +----
- 2 files changed, 2 insertions(+), 5 deletions(-)
+ Documentation/make/headers_install.txt |   46 +++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
 
-diff -puN include/linux/time.h~kernel-time-timekeepingc-cleanups include/linux/time.h
---- a/include/linux/time.h~kernel-time-timekeepingc-cleanups
-+++ a/include/linux/time.h
-@@ -92,7 +92,7 @@ static inline struct timespec timespec_s
- 
- extern struct timespec xtime;
- extern struct timespec wall_to_monotonic;
--extern seqlock_t xtime_lock __attribute__((weak));
-+extern seqlock_t xtime_lock;
- 
- extern unsigned long read_persistent_clock(void);
- extern int update_persistent_clock(struct timespec now);
-diff -puN kernel/time/timekeeping.c~kernel-time-timekeepingc-cleanups kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~kernel-time-timekeepingc-cleanups
-+++ a/kernel/time/timekeeping.c
-@@ -24,9 +24,7 @@
-  * This read-write spinlock protects us from races in SMP while
-  * playing with xtime and avenrun.
-  */
--__attribute__((weak)) __cacheline_aligned_in_smp DEFINE_SEQLOCK(xtime_lock);
--
--EXPORT_SYMBOL(xtime_lock);
-+__cacheline_aligned_in_smp DEFINE_SEQLOCK(xtime_lock);
- 
- 
- /*
-@@ -47,7 +45,6 @@ EXPORT_SYMBOL(xtime_lock);
- struct timespec xtime __attribute__ ((aligned (16)));
- struct timespec wall_to_monotonic __attribute__ ((aligned (16)));
- static unsigned long total_sleep_time;		/* seconds */
--EXPORT_SYMBOL(xtime);
- 
- static struct timespec xtime_cache __attribute__ ((aligned (16)));
- static inline void update_xtime_cache(u64 nsec)
+diff -puN /dev/null Documentation/make/headers_install.txt
+--- /dev/null
++++ a/Documentation/make/headers_install.txt
+@@ -0,0 +1,46 @@
++Exporting kernel headers for use by userspace
++=============================================
++
++The "make headers_install" command exports the kernel's header files in a
++form suitable for use by userspace programs.
++
++The linux kernel's exported header files describe the API for user space
++programs attempting to use kernel services.  These kernel header files are
++used by the system's C library (such as glibc or uClibc) to define available
++system calls, as well as constants and structures to be used with these
++system calls.  The C library's header files include the kernel header files
++from the "linux" subdirectory.  The system's libc headers are usually
++installed at the default location /usr/include and the kernel headers in
++subdirectories under that (most notably /usr/include/linux and
++/usr/include/asm).
++
++Kernel headers are backwards compatible, but not forwards compatible.  This
++means that a program built against a C library using older kernel headers
++should run on a newer kernel (although it may not have access to new
++features), but a program built against newer kernel headers may not work on an
++older kernel.
++
++The "make headers_install" command can be run in the top level directory of the
++kernel source code (or using a standard out-of-tree build).  It takes two
++optional arguments:
++
++  make headers_install ARCH=i386 INSTALL_HDR_PATH=/usr/include
++
++ARCH indicates which architecture to produce headers for, and defaults to the
++current architecture.  The linux/asm directory of the exported kernel headers
++is platform-specific, to see a complete list of supported architectures use
++the command:
++
++  ls -d include/asm-* | sed 's/.*-//'
++
++INSTALL_HDR_PATH indicates where to install the headers.  It defaults to
++"./usr/include".
++
++The command "make headers_install_all" exports headers for all architectures
++simultaneously.  (This is mostly of interest to distribution maintainers,
++who create an architecture-independent tarball from the resulting include
++directory.)  Remember to provide the appropriate linux/asm directory via "mv"
++or "ln -s" before building a C library with headers exported this way.
++
++The kernel header export infrastructure is maintained by David Woodhouse
++<dwmw2@infradead.org>.
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from rob@landley.net are
 
 origin.patch
-git-dvb.patch
-git-nfs-make-nfs_wb_page_priority-static.patch
-drivers-net-wireless-b43-mainc-fix-an-uninitialized.patch
-make-kernel-power-maincsuspend_enter-static.patch
-sysctl-parport-remove-binary-paths-fix.patch
-sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-cleanup.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-cleanup.patch
-remove-asm-bitopsh-includes.patch
-forbid-asm-bitopsh-direct-inclusion.patch
-alpha-lock-bitops-fix.patch
-reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
-remove-asm-bitopsh-includes-reiser4.patch
+comment-typo-in-scripts-kconfig-makefile.patch
