@@ -1,68 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:54:58 -0700
-Message-ID: <200710180654.l9I6swxr030560@imap1.linux-foundation.org>
+Subject: - nbd-change-a-parameters-type-to-remove-a-memcpy-call.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:53:10 -0700
+Message-ID: <200710180653.l9I6rAAL030416@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36803 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36212 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760733AbXJRHjx (ORCPT
+	by vger.kernel.org with ESMTP id S1761031AbXJRHjy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:39:53 -0400
+	Thu, 18 Oct 2007 03:39:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.kozlowski@tuxland.pl, raven@themaw.net, mm-commits@vger.kernel.org
+To: crquan@gmail.com, paul.clements@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/autofs4/inode.c: kmalloc + memset conversion to kzalloc
+     nbd: change a parameter's type to remove a memcpy call
 has been removed from the -mm tree.  Its filename was
-     fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc.patch
+     nbd-change-a-parameters-type-to-remove-a-memcpy-call.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fs/autofs4/inode.c: kmalloc + memset conversion to kzalloc
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: nbd: change a parameter's type to remove a memcpy call
+From: Denis Cheng <crquan@gmail.com>
 
- fs/autofs4/inode.c | 10467 -> 10435 (-32 bytes)
- fs/autofs4/inode.o | 98576 -> 98552 (-24 bytes)
+This memcpy looks so strange, in fact it's merely a pointer dereference, so I
+change the parameter's type to refer it more directly, this could make the
+memcpy not needed anymore.
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Ian Kent <raven@themaw.net>
+In the function nbd_read_stat where nbd_find_request is only once called, the
+parameter served should be transformed accordingly.
+
+Signed-off-by: Denis Cheng <crquan@gmail.com>
+Cc: Paul Clements <paul.clements@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/inode.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/block/nbd.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN fs/autofs4/inode.c~fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc fs/autofs4/inode.c
---- a/fs/autofs4/inode.c~fs-autofs4-inodec-kmalloc-memset-conversion-to-kzalloc
-+++ a/fs/autofs4/inode.c
-@@ -312,13 +312,11 @@ int autofs4_fill_super(struct super_bloc
- 	struct autofs_sb_info *sbi;
- 	struct autofs_info *ino;
+diff -puN drivers/block/nbd.c~nbd-change-a-parameters-type-to-remove-a-memcpy-call drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-change-a-parameters-type-to-remove-a-memcpy-call
++++ a/drivers/block/nbd.c
+@@ -231,14 +231,12 @@ error_out:
+ 	return 1;
+ }
  
--	sbi = kmalloc(sizeof(*sbi), GFP_KERNEL);
-+	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
- 	if (!sbi)
- 		goto fail_unlock;
- 	DPRINTK("starting up, sbi = %p",sbi);
+-static struct request *nbd_find_request(struct nbd_device *lo, char *handle)
++static struct request *nbd_find_request(struct nbd_device *lo,
++					struct request *xreq)
+ {
+ 	struct request *req, *tmp;
+-	struct request *xreq;
+ 	int err;
  
--	memset(sbi, 0, sizeof(*sbi));
+-	memcpy(&xreq, handle, sizeof(xreq));
 -
- 	s->s_fs_info = sbi;
- 	sbi->magic = AUTOFS_SBI_MAGIC;
- 	sbi->pipefd = -1;
+ 	err = wait_event_interruptible(lo->active_wq, lo->active_req != xreq);
+ 	if (unlikely(err))
+ 		goto out;
+@@ -293,7 +291,7 @@ static struct request *nbd_read_stat(str
+ 		goto harderror;
+ 	}
+ 
+-	req = nbd_find_request(lo, reply.handle);
++	req = nbd_find_request(lo, *(struct request **)reply.handle);
+ 	if (unlikely(IS_ERR(req))) {
+ 		result = PTR_ERR(req);
+ 		if (result != -ENOENT)
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from crquan@gmail.com are
 
 origin.patch
-git-cifs.patch
-kernel-forkc-remove-unneeded-variable-initialization-in-copy_process.patch
-fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
-reiser4-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
