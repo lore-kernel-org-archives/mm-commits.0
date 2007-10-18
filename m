@@ -1,117 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-give-permission-a-local-mnt-variable.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:04:07 -0700
-Message-ID: <200710180704.l9I7475A031503@imap1.linux-foundation.org>
+Subject: - rename-signalfd_siginfo-fields.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:01:41 -0700
+Message-ID: <200710180701.l9I71fOR031197@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50265 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50369 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755714AbXJRHZQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753429AbXJRHZc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:25:16 -0400
+	Thu, 18 Oct 2007 03:25:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, hch@lst.de, mm-commits@vger.kernel.org
+To: davidel@xmailserver.org, mtk-manpages@gmx.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r/o bind mounts: give permission() a local 'mnt' variable
+     rename signalfd_siginfo fields
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-give-permission-a-local-mnt-variable.patch
+     rename-signalfd_siginfo-fields.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: r/o bind mounts: give permission() a local 'mnt' variable
-From: Dave Hansen <haveblue@us.ibm.com>
+Subject: rename signalfd_siginfo fields
+From: Davide Libenzi <davidel@xmailserver.org>
 
-First of all, this makes the structure jumping look a little bit cleaner.  So,
-this stands alone as a tiny cleanup.  But, we also need 'mnt' by itself a few
-more times later in this series, so this isn't _just_ a cleanup.
+For Michael Kerrisk request, the following patch renames signalfd_siginfo
+fields in order to keep them consistent with the siginfo_t ones.
 
-Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk-manpages@gmx.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/signalfd.c            |   44 ++++++++++++++++++-------------------
+ include/linux/signalfd.h |   32 +++++++++++++-------------
+ 2 files changed, 38 insertions(+), 38 deletions(-)
 
-diff -puN fs/namei.c~r-o-bind-mounts-give-permission-a-local-mnt-variable fs/namei.c
---- a/fs/namei.c~r-o-bind-mounts-give-permission-a-local-mnt-variable
-+++ a/fs/namei.c
-@@ -228,6 +228,10 @@ int generic_permission(struct inode *ino
- int permission(struct inode *inode, int mask, struct nameidata *nd)
- {
- 	int retval, submask;
-+	struct vfsmount *mnt = NULL;
-+
-+	if (nd)
-+		mnt = nd->mnt;
- 
- 	if (mask & MAY_WRITE) {
- 		umode_t mode = inode->i_mode;
-@@ -251,7 +255,7 @@ int permission(struct inode *inode, int 
- 		 * MAY_EXEC on regular files is denied if the fs is mounted
- 		 * with the "noexec" flag.
- 		 */
--		if (nd && nd->mnt && (nd->mnt->mnt_flags & MNT_NOEXEC))
-+		if (mnt && (mnt->mnt_flags & MNT_NOEXEC))
- 			return -EACCES;
+diff -puN fs/signalfd.c~rename-signalfd_siginfo-fields fs/signalfd.c
+--- a/fs/signalfd.c~rename-signalfd_siginfo-fields
++++ a/fs/signalfd.c
+@@ -74,45 +74,45 @@ static int signalfd_copyinfo(struct sign
+ 	 * If you change siginfo_t structure, please be sure
+ 	 * this code is fixed accordingly.
+ 	 */
+-	err |= __put_user(kinfo->si_signo, &uinfo->signo);
+-	err |= __put_user(kinfo->si_errno, &uinfo->err);
+-	err |= __put_user((short)kinfo->si_code, &uinfo->code);
++	err |= __put_user(kinfo->si_signo, &uinfo->ssi_signo);
++	err |= __put_user(kinfo->si_errno, &uinfo->ssi_errno);
++	err |= __put_user((short) kinfo->si_code, &uinfo->ssi_code);
+ 	switch (kinfo->si_code & __SI_MASK) {
+ 	case __SI_KILL:
+-		err |= __put_user(kinfo->si_pid, &uinfo->pid);
+-		err |= __put_user(kinfo->si_uid, &uinfo->uid);
++		err |= __put_user(kinfo->si_pid, &uinfo->ssi_pid);
++		err |= __put_user(kinfo->si_uid, &uinfo->ssi_uid);
+ 		break;
+ 	case __SI_TIMER:
+-		 err |= __put_user(kinfo->si_tid, &uinfo->tid);
+-		 err |= __put_user(kinfo->si_overrun, &uinfo->overrun);
+-		 err |= __put_user((long)kinfo->si_ptr, &uinfo->svptr);
++		 err |= __put_user(kinfo->si_tid, &uinfo->ssi_tid);
++		 err |= __put_user(kinfo->si_overrun, &uinfo->ssi_overrun);
++		 err |= __put_user((long) kinfo->si_ptr, &uinfo->ssi_ptr);
+ 		break;
+ 	case __SI_POLL:
+-		err |= __put_user(kinfo->si_band, &uinfo->band);
+-		err |= __put_user(kinfo->si_fd, &uinfo->fd);
++		err |= __put_user(kinfo->si_band, &uinfo->ssi_band);
++		err |= __put_user(kinfo->si_fd, &uinfo->ssi_fd);
+ 		break;
+ 	case __SI_FAULT:
+-		err |= __put_user((long)kinfo->si_addr, &uinfo->addr);
++		err |= __put_user((long) kinfo->si_addr, &uinfo->ssi_addr);
+ #ifdef __ARCH_SI_TRAPNO
+-		err |= __put_user(kinfo->si_trapno, &uinfo->trapno);
++		err |= __put_user(kinfo->si_trapno, &uinfo->ssi_trapno);
+ #endif
+ 		break;
+ 	case __SI_CHLD:
+-		err |= __put_user(kinfo->si_pid, &uinfo->pid);
+-		err |= __put_user(kinfo->si_uid, &uinfo->uid);
+-		err |= __put_user(kinfo->si_status, &uinfo->status);
+-		err |= __put_user(kinfo->si_utime, &uinfo->utime);
+-		err |= __put_user(kinfo->si_stime, &uinfo->stime);
++		err |= __put_user(kinfo->si_pid, &uinfo->ssi_pid);
++		err |= __put_user(kinfo->si_uid, &uinfo->ssi_uid);
++		err |= __put_user(kinfo->si_status, &uinfo->ssi_status);
++		err |= __put_user(kinfo->si_utime, &uinfo->ssi_utime);
++		err |= __put_user(kinfo->si_stime, &uinfo->ssi_stime);
+ 		break;
+ 	case __SI_RT: /* This is not generated by the kernel as of now. */
+ 	case __SI_MESGQ: /* But this is */
+-		err |= __put_user(kinfo->si_pid, &uinfo->pid);
+-		err |= __put_user(kinfo->si_uid, &uinfo->uid);
+-		err |= __put_user((long)kinfo->si_ptr, &uinfo->svptr);
++		err |= __put_user(kinfo->si_pid, &uinfo->ssi_pid);
++		err |= __put_user(kinfo->si_uid, &uinfo->ssi_uid);
++		err |= __put_user((long) kinfo->si_ptr, &uinfo->ssi_ptr);
+ 		break;
+ 	default: /* this is just in case for now ... */
+-		err |= __put_user(kinfo->si_pid, &uinfo->pid);
+-		err |= __put_user(kinfo->si_uid, &uinfo->uid);
++		err |= __put_user(kinfo->si_pid, &uinfo->ssi_pid);
++		err |= __put_user(kinfo->si_uid, &uinfo->ssi_uid);
+ 		break;
  	}
  
+diff -puN include/linux/signalfd.h~rename-signalfd_siginfo-fields include/linux/signalfd.h
+--- a/include/linux/signalfd.h~rename-signalfd_siginfo-fields
++++ a/include/linux/signalfd.h
+@@ -10,22 +10,22 @@
+ 
+ 
+ struct signalfd_siginfo {
+-	__u32 signo;
+-	__s32 err;
+-	__s32 code;
+-	__u32 pid;
+-	__u32 uid;
+-	__s32 fd;
+-	__u32 tid;
+-	__u32 band;
+-	__u32 overrun;
+-	__u32 trapno;
+-	__s32 status;
+-	__s32 svint;
+-	__u64 svptr;
+-	__u64 utime;
+-	__u64 stime;
+-	__u64 addr;
++	__u32 ssi_signo;
++	__s32 ssi_errno;
++	__s32 ssi_code;
++	__u32 ssi_pid;
++	__u32 ssi_uid;
++	__s32 ssi_fd;
++	__u32 ssi_tid;
++	__u32 ssi_band;
++	__u32 ssi_overrun;
++	__u32 ssi_trapno;
++	__s32 ssi_status;
++	__s32 ssi_int;
++	__u64 ssi_ptr;
++	__u64 ssi_utime;
++	__u64 ssi_stime;
++	__u64 ssi_addr;
+ 
+ 	/*
+ 	 * Pad strcture to 128 bytes. Remember to update the
 _
 
-Patches currently in -mm which might be from haveblue@us.ibm.com are
+Patches currently in -mm which might be from davidel@xmailserver.org are
 
 origin.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-elevate-write-count-opend-files.patch
-r-o-bind-mounts-elevate-write-count-opend-files-r-o-bind-mounts-fix-bug-in-reiserfs_delete_xattrs.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
-ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2.patch
-r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
-r-o-bind-mounts-make-access-use-mnt-check.patch
-r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
-r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
-r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
-r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime.patch
-r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime-fix.patch
-r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch
-r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
-r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
-r-o-bind-mounts-do_rmdir-elevate-write-count.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
-r-o-bind-mounts-track-number-of-mount-writers-fix.patch
-r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-task-containersv11-basic-task-container-framework.patch
-task-containersv11-add-tasks-file-interface.patch
-task-containersv11-add-fork-exit-hooks.patch
-task-containersv11-add-container_clone-interface.patch
-task-containersv11-add-procfs-interface.patch
-task-containersv11-shared-container-subsystem-group-arrays.patch
-task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups.patch
-task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers.patch
-task-containersv11-make-cpusets-a-client-of-containers.patch
-task-containersv11-example-cpu-accounting-subsystem.patch
-task-containersv11-simple-task-container-debug-info-subsystem.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-reiser4-fix-null-dereference-in-__mnt_is_readonly-in-ftruncate.patch
-page-owner-tracking-leak-detector.patch
+git-kvm.patch
+sparse-pointer-use-of-zero-as-null.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
