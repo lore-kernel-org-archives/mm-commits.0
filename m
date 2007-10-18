@@ -1,191 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - remove-unsafe-from-module-struct.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:53:59 -0700
-Message-ID: <200710180653.l9I6rxAa030486@imap1.linux-foundation.org>
+Subject: - menuconfig-transform-network-filesystems-menu.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:01:19 -0700
+Message-ID: <200710180701.l9I71JbU031167@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58221 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40969 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761717AbXJRHsN (ORCPT
+	by vger.kernel.org with ESMTP id S932563AbXJRHsP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:48:13 -0400
+	Thu, 18 Oct 2007 03:48:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, bunk@stusta.de, dan.j.williams@intel.com, shannon.nelson@intel.com, sri@us.ibm.com, vladislav.yasevich@hp.com, mm-commits@vger.kernel.org
+To: jengelh@computergmbh.de, bfields@fieldses.org, dhowells@redhat.com, ericvh@hera.kernel.org, jengelh@gmx.de, neilb@suse.de, sfrench@us.ibm.com, trond.myklebust@fys.uio.no, mm-commits@v
 
 
 The patch titled
-     Remove "unsafe" from module struct
+     menuconfig: transform Network Filesystems menu
 has been removed from the -mm tree.  Its filename was
-     remove-unsafe-from-module-struct.patch
+     menuconfig-transform-network-filesystems-menu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove "unsafe" from module struct
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: menuconfig: transform Network Filesystems menu
+From: Jan Engelhardt <jengelh@computergmbh.de>
 
-Adrian Bunk points out that "unsafe" was used to mark modules touched by
-the deprecated MOD_INC_USE_COUNT interface, which has long gone.  It's time
-to remove the member from the module structure, as well.
+Turn Network File Systems into a menuconfig so that it can be disabled at
+once.
 
-If you want a module which can't unload, don't register an exit function.
+(Note: I added a "default y". If you do not like that, speak up.)
 
-(Vlad Yasevich says SCTP is now safe to unload, so just remove the
-__unsafe there).
-
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Acked-by: Shannon Nelson <shannon.nelson@intel.com>
-Acked-by: Dan Williams <dan.j.williams@intel.com>
-Acked-by: Vlad Yasevich <vladislav.yasevich@hp.com>
-Cc: Sridhar Samudrala <sri@us.ibm.com>
-Cc: Adrian Bunk <bunk@stusta.de>
+Signed-off-by: Jan Engelhardt <jengelh@gmx.de>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Steven French <sfrench@us.ibm.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Eric Van Hensbergen <ericvh@hera.kernel.org>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/iop-adma.c |    9 ++++-----
- include/linux/module.h |   15 ---------------
- kernel/module.c        |   21 +++++----------------
- net/sctp/protocol.c    |    1 -
- 4 files changed, 9 insertions(+), 37 deletions(-)
+ fs/Kconfig |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-diff -puN drivers/dma/iop-adma.c~remove-unsafe-from-module-struct drivers/dma/iop-adma.c
---- a/drivers/dma/iop-adma.c~remove-unsafe-from-module-struct
-+++ a/drivers/dma/iop-adma.c
-@@ -1446,21 +1446,20 @@ static struct platform_driver iop_adma_d
+diff -puN fs/Kconfig~menuconfig-transform-network-filesystems-menu fs/Kconfig
+--- a/fs/Kconfig~menuconfig-transform-network-filesystems-menu
++++ a/fs/Kconfig
+@@ -1547,8 +1547,20 @@ config UFS_DEBUG
  
- static int __init iop_adma_init (void)
- {
--	/* it's currently unsafe to unload this module */
--	/* if forced, worst case is that rmmod hangs */
--	__unsafe(THIS_MODULE);
--
- 	return platform_driver_register(&iop_adma_driver);
- }
+ endmenu
  
-+/* it's currently unsafe to unload this module */
-+#if 0
- static void __exit iop_adma_exit (void)
- {
- 	platform_driver_unregister(&iop_adma_driver);
- 	return;
- }
-+module_exit(iop_adma_exit);
-+#endif
+-menu "Network File Systems"
++menuconfig NETWORK_FILESYSTEMS
++	bool "Network File Systems"
++	default y
+ 	depends on NET
++	---help---
++	  Say Y here to get to see options for network filesystems and
++	  filesystem-related networking code, such as NFS daemon and
++	  RPCSEC security modules.
++	  This option alone does not add any kernel code.
++
++	  If you say N, all options in this submenu will be skipped and
++	  disabled; if unsure, say Y here.
++
++if NETWORK_FILESYSTEMS
  
- module_init(iop_adma_init);
--module_exit(iop_adma_exit);
+ config NFS_FS
+ 	tristate "NFS file system support"
+@@ -2094,7 +2106,7 @@ config 9P_FS
  
- MODULE_AUTHOR("Intel Corporation");
- MODULE_DESCRIPTION("IOP ADMA Engine Driver");
-diff -puN include/linux/module.h~remove-unsafe-from-module-struct include/linux/module.h
---- a/include/linux/module.h~remove-unsafe-from-module-struct
-+++ a/include/linux/module.h
-@@ -312,9 +312,6 @@ struct module
- 	/* Arch-specific module values */
- 	struct mod_arch_specific arch;
+ 	  If unsure, say N.
  
--	/* Am I unsafe to unload? */
--	int unsafe;
--
- 	unsigned int taints;	/* same bits as kernel:tainted */
+-endmenu
++endif # NETWORK_FILESYSTEMS
  
- #ifdef CONFIG_GENERIC_BUG
-@@ -441,16 +438,6 @@ static inline void __module_get(struct m
- 	__mod ? __mod->name : "kernel";		\
- })
- 
--#define __unsafe(mod)							     \
--do {									     \
--	if (mod && !(mod)->unsafe) {					     \
--		printk(KERN_WARNING					     \
--		       "Module %s cannot be unloaded due to unsafe usage in" \
--		       " %s:%u\n", (mod)->name, __FILE__, __LINE__);	     \
--		(mod)->unsafe = 1;					     \
--	}								     \
--} while(0)
--
- /* For kallsyms to ask for address resolution.  NULL means not found. */
- const char *module_address_lookup(unsigned long addr,
- 				  unsigned long *symbolsize,
-@@ -518,8 +505,6 @@ static inline void module_put(struct mod
- 
- #define module_name(mod) "kernel"
- 
--#define __unsafe(mod)
--
- /* For kallsyms to ask for address resolution.  NULL means not found. */
- static inline const char *module_address_lookup(unsigned long addr,
- 						unsigned long *symbolsize,
-diff -puN kernel/module.c~remove-unsafe-from-module-struct kernel/module.c
---- a/kernel/module.c~remove-unsafe-from-module-struct
-+++ a/kernel/module.c
-@@ -692,8 +692,7 @@ sys_delete_module(const char __user *nam
- 	}
- 
- 	/* If it has an init func, it must have an exit func to unload */
--	if ((mod->init != NULL && mod->exit == NULL)
--	    || mod->unsafe) {
-+	if (mod->init && !mod->exit) {
- 		forced = try_force_unload(flags);
- 		if (!forced) {
- 			/* This module can't be removed */
-@@ -741,11 +740,6 @@ static void print_unload_info(struct seq
- 		seq_printf(m, "%s,", use->module_which_uses->name);
- 	}
- 
--	if (mod->unsafe) {
--		printed_something = 1;
--		seq_printf(m, "[unsafe],");
--	}
--
- 	if (mod->init != NULL && mod->exit == NULL) {
- 		printed_something = 1;
- 		seq_printf(m, "[permanent],");
-@@ -2011,15 +2005,10 @@ sys_init_module(void __user *umod,
-                    buggy refcounters. */
- 		mod->state = MODULE_STATE_GOING;
- 		synchronize_sched();
--		if (mod->unsafe)
--			printk(KERN_ERR "%s: module is now stuck!\n",
--			       mod->name);
--		else {
--			module_put(mod);
--			mutex_lock(&module_mutex);
--			free_module(mod);
--			mutex_unlock(&module_mutex);
--		}
-+		module_put(mod);
-+		mutex_lock(&module_mutex);
-+		free_module(mod);
-+		mutex_unlock(&module_mutex);
- 		return ret;
- 	}
- 
-diff -puN net/sctp/protocol.c~remove-unsafe-from-module-struct net/sctp/protocol.c
---- a/net/sctp/protocol.c~remove-unsafe-from-module-struct
-+++ a/net/sctp/protocol.c
-@@ -1228,7 +1228,6 @@ SCTP_STATIC __init int sctp_init(void)
- 	if (status)
- 		goto err_v6_add_protocol;
- 
--	__unsafe(THIS_MODULE);
- 	status = 0;
- out:
- 	return status;
+ if BLOCK
+ menu "Partition Types"
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from jengelh@computergmbh.de are
 
 origin.patch
-git-kvm.patch
-git-x86.patch
-update-boot-spec-to-207.patch
-add-weak-for-creating-weak-asm-labels.patch
-i386-paravirt-boot-sequence.patch
-cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
-linux-kernel-markers.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-coding-style-fixes.patch
-linux-kernel-markers-samples-coding-style-fix.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+remove-config_vt_unicode.patch
+intel-iommu-iommu-gfx-workaround-kconfig-fix.patch
+intel-iommu-iommu-floppy-workaround-kconfig-fix.patch
