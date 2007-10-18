@@ -1,94 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: - avoid-negative-and-full-width-shifts-in-radix-treec.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:59:47 -0700
-Message-ID: <200710180659.l9I6xlTj031022@imap1.linux-foundation.org>
+Subject: - i386-convert-mm_context_t-semaphore-to-a-mutex.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:07:37 -0700
+Message-ID: <200710180707.l9I77bsk031715@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59016 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35563 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753730AbXJRHA1 (ORCPT
+	by vger.kernel.org with ESMTP id S1755067AbXJRHIC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:00:27 -0400
+	Thu, 18 Oct 2007 03:08:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: firefly@vax64.dk, clameter@sgi.com, hch@infradead.org, macro@linux-mips.org, nickpiggin@yahoo.com.au, penberg@cs.helsinki.fi, schwab@suse.de, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
+To: lcapitulino@mandriva.com.br, ak@suse.de, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     avoid negative (and full-width) shifts in radix-tree.c
+     i386: convert mm_context_t semaphore to a mutex
 has been removed from the -mm tree.  Its filename was
-     avoid-negative-and-full-width-shifts-in-radix-treec.patch
+     i386-convert-mm_context_t-semaphore-to-a-mutex.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: avoid negative (and full-width) shifts in radix-tree.c
-From: Peter Lund <firefly@vax64.dk>
+Subject: i386: convert mm_context_t semaphore to a mutex
+From: "Luiz Fernando N. Capitulino" <lcapitulino@mandriva.com.br>
 
-Negative shifts are not allowed in C (the result is undefined).  Same thing
-with full-width shifts.
-
-It works on most platforms but not on the VAX with gcc 4.0.1 (it results in an
-"operand reserved" fault).
-
-Shifting by more than the width of the value on the left is also not
-allowed.  I think the extra '>> 1' tacked on at the end in the original
-code was an attempt to work around that.  Getting rid of that is an extra
-feature of this patch.
-
-Here's the chapter and verse, taken from the final draft of the C99
-standard ("6.5.7 Bitwise shift operators", paragraph 3):
-
-  "The integer promotions are performed on each of the operands. The
-  type of the result is that of the promoted left operand. If the
-  value of the right operand is negative or is greater than or equal
-  to the width of the promoted left operand, the behavior is
-  undefined."
-
-Thank you to Jan-Benedict Glaw, Christoph Hellwig, Maciej Rozycki, Pekka
-Enberg, Andreas Schwab, and Christoph Lameter for review.  Special thanks
-to Andreas for spotting that my fix only removed half the undefined
-behaviour.
-
-Signed-off-by: Peter Lund <firefly@vax64.dk>
-Christoph Lameter <clameter@sgi.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Andreas Schwab <schwab@suse.de>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: WU Fengguang <wfg@mail.ustc.edu.cn>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Luiz Fernando N. Capitulino <lcapitulino@mandriva.com.br>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ arch/x86/kernel/i386_ksyms_32.c |    1 +
+ arch/x86/kernel/ldt_32.c        |   14 +++++++-------
+ arch/x86/kernel/ptrace_32.c     |    4 ++--
+ arch/x86/mm/fault_32.c          |    4 ++--
+ include/asm-x86/mmu_32.h        |    4 ++--
+ 5 files changed, 14 insertions(+), 13 deletions(-)
 
-diff -puN lib/radix-tree.c~avoid-negative-and-full-width-shifts-in-radix-treec lib/radix-tree.c
---- a/lib/radix-tree.c~avoid-negative-and-full-width-shifts-in-radix-treec
-+++ a/lib/radix-tree.c
-@@ -1049,12 +1049,14 @@ radix_tree_node_ctor(struct kmem_cache *
+diff -puN arch/x86/kernel/i386_ksyms_32.c~i386-convert-mm_context_t-semaphore-to-a-mutex arch/x86/kernel/i386_ksyms_32.c
+--- a/arch/x86/kernel/i386_ksyms_32.c~i386-convert-mm_context_t-semaphore-to-a-mutex
++++ a/arch/x86/kernel/i386_ksyms_32.c
+@@ -1,4 +1,5 @@
+ #include <linux/module.h>
++#include <asm/semaphore.h>
+ #include <asm/checksum.h>
+ #include <asm/desc.h>
  
- static __init unsigned long __maxindex(unsigned int height)
- {
--	unsigned int tmp = height * RADIX_TREE_MAP_SHIFT;
--	unsigned long index = (~0UL >> (RADIX_TREE_INDEX_BITS - tmp - 1)) >> 1;
-+	unsigned int width = height * RADIX_TREE_MAP_SHIFT;
-+	int shift = RADIX_TREE_INDEX_BITS - width;
+diff -puN arch/x86/kernel/ldt_32.c~i386-convert-mm_context_t-semaphore-to-a-mutex arch/x86/kernel/ldt_32.c
+--- a/arch/x86/kernel/ldt_32.c~i386-convert-mm_context_t-semaphore-to-a-mutex
++++ a/arch/x86/kernel/ldt_32.c
+@@ -92,13 +92,13 @@ int init_new_context(struct task_struct 
+ 	struct mm_struct * old_mm;
+ 	int retval = 0;
  
--	if (tmp >= RADIX_TREE_INDEX_BITS)
--		index = ~0UL;
--	return index;
-+	if (shift < 0)
-+		return ~0UL;
-+	if (shift >= BITS_PER_LONG)
-+		return 0UL;
-+	return ~0UL >> shift;
+-	init_MUTEX(&mm->context.sem);
++	mutex_init(&mm->context.lock);
+ 	mm->context.size = 0;
+ 	old_mm = current->mm;
+ 	if (old_mm && old_mm->context.size > 0) {
+-		down(&old_mm->context.sem);
++		mutex_lock(&old_mm->context.lock);
+ 		retval = copy_ldt(&mm->context, &old_mm->context);
+-		up(&old_mm->context.sem);
++		mutex_unlock(&old_mm->context.lock);
+ 	}
+ 	return retval;
  }
+@@ -130,7 +130,7 @@ static int read_ldt(void __user * ptr, u
+ 	if (bytecount > LDT_ENTRY_SIZE*LDT_ENTRIES)
+ 		bytecount = LDT_ENTRY_SIZE*LDT_ENTRIES;
  
- static __init void radix_tree_init_maxindex(void)
+-	down(&mm->context.sem);
++	mutex_lock(&mm->context.lock);
+ 	size = mm->context.size*LDT_ENTRY_SIZE;
+ 	if (size > bytecount)
+ 		size = bytecount;
+@@ -138,7 +138,7 @@ static int read_ldt(void __user * ptr, u
+ 	err = 0;
+ 	if (copy_to_user(ptr, mm->context.ldt, size))
+ 		err = -EFAULT;
+-	up(&mm->context.sem);
++	mutex_unlock(&mm->context.lock);
+ 	if (err < 0)
+ 		goto error_return;
+ 	if (size != bytecount) {
+@@ -194,7 +194,7 @@ static int write_ldt(void __user * ptr, 
+ 			goto out;
+ 	}
+ 
+-	down(&mm->context.sem);
++	mutex_lock(&mm->context.lock);
+ 	if (ldt_info.entry_number >= mm->context.size) {
+ 		error = alloc_ldt(&current->mm->context, ldt_info.entry_number+1, 1);
+ 		if (error < 0)
+@@ -221,7 +221,7 @@ install:
+ 	error = 0;
+ 
+ out_unlock:
+-	up(&mm->context.sem);
++	mutex_unlock(&mm->context.lock);
+ out:
+ 	return error;
+ }
+diff -puN arch/x86/kernel/ptrace_32.c~i386-convert-mm_context_t-semaphore-to-a-mutex arch/x86/kernel/ptrace_32.c
+--- a/arch/x86/kernel/ptrace_32.c~i386-convert-mm_context_t-semaphore-to-a-mutex
++++ a/arch/x86/kernel/ptrace_32.c
+@@ -165,7 +165,7 @@ static unsigned long convert_eip_to_line
+ 
+ 		seg &= ~7UL;
+ 
+-		down(&child->mm->context.sem);
++		mutex_lock(&child->mm->context.lock);
+ 		if (unlikely((seg >> 3) >= child->mm->context.size))
+ 			addr = -1L; /* bogus selector, access would fault */
+ 		else {
+@@ -179,7 +179,7 @@ static unsigned long convert_eip_to_line
+ 				addr &= 0xffff;
+ 			addr += base;
+ 		}
+-		up(&child->mm->context.sem);
++		mutex_unlock(&child->mm->context.lock);
+ 	}
+ 	return addr;
+ }
+diff -puN arch/x86/mm/fault_32.c~i386-convert-mm_context_t-semaphore-to-a-mutex arch/x86/mm/fault_32.c
+--- a/arch/x86/mm/fault_32.c~i386-convert-mm_context_t-semaphore-to-a-mutex
++++ a/arch/x86/mm/fault_32.c
+@@ -105,7 +105,7 @@ static inline unsigned long get_segment_
+ 	   LDT and other horrors are only used in user space. */
+ 	if (seg & (1<<2)) {
+ 		/* Must lock the LDT while reading it. */
+-		down(&current->mm->context.sem);
++		mutex_lock(&current->mm->context.lock);
+ 		desc = current->mm->context.ldt;
+ 		desc = (void *)desc + (seg & ~7);
+ 	} else {
+@@ -118,7 +118,7 @@ static inline unsigned long get_segment_
+ 	base = get_desc_base((unsigned long *)desc);
+ 
+ 	if (seg & (1<<2)) { 
+-		up(&current->mm->context.sem);
++		mutex_unlock(&current->mm->context.lock);
+ 	} else
+ 		put_cpu();
+ 
+diff -puN include/asm-x86/mmu_32.h~i386-convert-mm_context_t-semaphore-to-a-mutex include/asm-x86/mmu_32.h
+--- a/include/asm-x86/mmu_32.h~i386-convert-mm_context_t-semaphore-to-a-mutex
++++ a/include/asm-x86/mmu_32.h
+@@ -1,7 +1,7 @@
+ #ifndef __i386_MMU_H
+ #define __i386_MMU_H
+ 
+-#include <asm/semaphore.h>
++#include <linux/mutex.h>
+ /*
+  * The i386 doesn't have a mmu context, but
+  * we put the segment information here.
+@@ -10,7 +10,7 @@
+  */
+ typedef struct { 
+ 	int size;
+-	struct semaphore sem;
++	struct mutex lock;
+ 	void *ldt;
+ 	void *vdso;
+ } mm_context_t;
 _
 
-Patches currently in -mm which might be from firefly@vax64.dk are
+Patches currently in -mm which might be from lcapitulino@mandriva.com.br are
 
 origin.patch
