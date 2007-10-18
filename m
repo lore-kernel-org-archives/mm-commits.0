@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - md-sync_action-in-sysfs-returns-wrong-value-for-readonly-arrays.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:02:59 -0700
-Message-ID: <200710180702.l9I72xtG031320@imap1.linux-foundation.org>
+Subject: - md-fix-a-bug-in-some-never-used-code.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:02:57 -0700
+Message-ID: <200710180702.l9I72vSD031317@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52318 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56410 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760067AbXJRHPh (ORCPT
+	by vger.kernel.org with ESMTP id S1761207AbXJRHPh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 18 Oct 2007 03:15:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,45 +15,65 @@ To: neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: 'sync_action' in sysfs returns wrong value for readonly arrays
+     md: fix a bug in some never-used code.
 has been removed from the -mm tree.  Its filename was
-     md-sync_action-in-sysfs-returns-wrong-value-for-readonly-arrays.patch
+     md-fix-a-bug-in-some-never-used-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: md: 'sync_action' in sysfs returns wrong value for readonly arrays
+Subject: md: fix a bug in some never-used code.
 From: NeilBrown <neilb@suse.de>
 
-When an array is started read-only, MD_RECOVERY_NEEDED can be set but no
-recovery will be running.  This causes 'sync_action' to report the wrong
-value.
+http://bugzilla.kernel.org/show_bug.cgi?id=3277
 
-We could remove the test for MD_RECOVERY_NEEDED, but doing so would leave a
-small gap after requesting a sync action, where 'sync_action' would still
-report the old value.
+There is a seq_printf here that isn't being passed a 'seq'.  Howeve as the
+code is inside #ifdef MD_DEBUG, nobody noticed.
 
-So make sure that for a read-only array, 'sync_action' always returns 'idle'.
+Also remove some extra spaces.
 
 Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/md/raid0.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/md/md.c~md-sync_action-in-sysfs-returns-wrong-value-for-readonly-arrays drivers/md/md.c
---- a/drivers/md/md.c~md-sync_action-in-sysfs-returns-wrong-value-for-readonly-arrays
-+++ a/drivers/md/md.c
-@@ -2714,7 +2714,7 @@ action_show(mddev_t *mddev, char *page)
+diff -puN drivers/md/raid0.c~md-fix-a-bug-in-some-never-used-code drivers/md/raid0.c
+--- a/drivers/md/raid0.c~md-fix-a-bug-in-some-never-used-code
++++ a/drivers/md/raid0.c
+@@ -472,7 +472,7 @@ bad_map:
+ 	bio_io_error(bio);
+ 	return 0;
+ }
+-			   
++
+ static void raid0_status (struct seq_file *seq, mddev_t *mddev)
  {
- 	char *type = "idle";
- 	if (test_bit(MD_RECOVERY_RUNNING, &mddev->recovery) ||
--	    test_bit(MD_RECOVERY_NEEDED, &mddev->recovery)) {
-+	    (!mddev->ro && test_bit(MD_RECOVERY_NEEDED, &mddev->recovery))) {
- 		if (test_bit(MD_RECOVERY_RESHAPE, &mddev->recovery))
- 			type = "reshape";
- 		else if (test_bit(MD_RECOVERY_SYNC, &mddev->recovery)) {
+ #undef MD_DEBUG
+@@ -480,18 +480,18 @@ static void raid0_status (struct seq_fil
+ 	int j, k, h;
+ 	char b[BDEVNAME_SIZE];
+ 	raid0_conf_t *conf = mddev_to_conf(mddev);
+-  
++
+ 	h = 0;
+ 	for (j = 0; j < conf->nr_strip_zones; j++) {
+ 		seq_printf(seq, "      z%d", j);
+ 		if (conf->hash_table[h] == conf->strip_zone+j)
+-			seq_printf("(h%d)", h++);
++			seq_printf(seq, "(h%d)", h++);
+ 		seq_printf(seq, "=[");
+ 		for (k = 0; k < conf->strip_zone[j].nb_dev; k++)
+-			seq_printf (seq, "%s/", bdevname(
++			seq_printf(seq, "%s/", bdevname(
+ 				conf->strip_zone[j].dev[k]->bdev,b));
+ 
+-		seq_printf (seq, "] zo=%d do=%d s=%d\n",
++		seq_printf(seq, "] zo=%d do=%d s=%d\n",
+ 				conf->strip_zone[j].zone_offset,
+ 				conf->strip_zone[j].dev_offset,
+ 				conf->strip_zone[j].size);
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
