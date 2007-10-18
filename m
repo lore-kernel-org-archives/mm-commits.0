@@ -1,117 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - wait_task_zombie-dont-fight-with-non-existing-race-with-a-dying-ptracee.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:55:36 -0700
-Message-ID: <200710180655.l9I6taoW030627@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-create-cleanup-helper-svc_msnfs.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:04:09 -0700
+Message-ID: <200710180704.l9I749LH031506@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35160 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38653 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750974AbXJRH0J (ORCPT
+	by vger.kernel.org with ESMTP id S1754328AbXJRH0Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:26:09 -0400
+	Thu, 18 Oct 2007 03:26:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, hch@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     wait_task_zombie: don't fight with non-existing race with a dying ptracee
+     r/o bind mounts: create cleanup helper svc_msnfs()
 has been removed from the -mm tree.  Its filename was
-     wait_task_zombie-dont-fight-with-non-existing-race-with-a-dying-ptracee.patch
+     r-o-bind-mounts-create-cleanup-helper-svc_msnfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: wait_task_zombie: don't fight with non-existing race with a dying ptracee
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: r/o bind mounts: create cleanup helper svc_msnfs()
+From: Dave Hansen <haveblue@us.ibm.com>
 
-The "p->exit_signal == -1 && p->ptrace == 0" check and the comment are
-bogus.  We already did exactly the same check in eligible_child(), we did
-not drop tasklist_lock since then, and both variables need
-write_lock(tasklist) to be changed.
+I'm going to be modifying nfsd_rename() shortly to support read-only bind
+mounts.  This #ifdef is around the area I'm patching, and it starts to get
+really ugly if I just try to add my new code by itself.  Using this little
+helper makes things a lot cleaner to use.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    7 -------
- 1 file changed, 7 deletions(-)
+ fs/nfsd/vfs.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN kernel/exit.c~wait_task_zombie-dont-fight-with-non-existing-race-with-a-dying-ptracee kernel/exit.c
---- a/kernel/exit.c~wait_task_zombie-dont-fight-with-non-existing-race-with-a-dying-ptracee
-+++ a/kernel/exit.c
-@@ -1189,13 +1189,6 @@ static int wait_task_zombie(struct task_
- 		BUG_ON(state != EXIT_DEAD);
- 		return 0;
- 	}
--	if (unlikely(p->exit_signal == -1 && p->ptrace == 0)) {
--		/*
--		 * This can only happen in a race with a ptraced thread
--		 * dying on another processor.
--		 */
--		return 0;
--	}
+diff -puN fs/nfsd/vfs.c~r-o-bind-mounts-create-cleanup-helper-svc_msnfs fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~r-o-bind-mounts-create-cleanup-helper-svc_msnfs
++++ a/fs/nfsd/vfs.c
+@@ -865,6 +865,15 @@ static int nfsd_direct_splice_actor(stru
+ 	return __splice_from_pipe(pipe, sd, nfsd_splice_actor);
+ }
  
- 	/* traced means p->ptrace, but not vice versa */
- 	traced = (p->real_parent != p->parent);
++static inline int svc_msnfs(struct svc_fh *ffhp)
++{
++#ifdef MSNFS
++	return (ffhp->fh_export->ex_flags & NFSEXP_MSNFS);
++#else
++	return 0;
++#endif
++}
++
+ static __be32
+ nfsd_vfs_read(struct svc_rqst *rqstp, struct svc_fh *fhp, struct file *file,
+               loff_t offset, struct kvec *vec, int vlen, unsigned long *count)
+@@ -877,11 +886,9 @@ nfsd_vfs_read(struct svc_rqst *rqstp, st
+ 
+ 	err = nfserr_perm;
+ 	inode = file->f_path.dentry->d_inode;
+-#ifdef MSNFS
+-	if ((fhp->fh_export->ex_flags & NFSEXP_MSNFS) &&
+-		(!lock_may_read(inode, offset, *count)))
++
++	if (svc_msnfs(fhp) && !lock_may_read(inode, offset, *count))
+ 		goto out;
+-#endif
+ 
+ 	/* Get readahead parameters */
+ 	ra = nfsd_get_raparms(inode->i_sb->s_dev, inode->i_ino);
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from haveblue@us.ibm.com are
 
 origin.patch
-git-x86.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
-cpu-hotplug-topology-remove-topology_dev_map.patch
-cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
-make-access-to-tasks-nsproxy-lighter.patch
-make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
-make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
-workqueue-debug-flushing-deadlocks-with-lockdep.patch
-workqueue-debug-work-related-deadlocks-with-lockdep.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-merge-fix.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-uninline-find_task_by_xxx-set-of-functions.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
-uninline-find_pid-etc-set-of-functions.patch
-uninline-the-task_xid_nr_ns-calls.patch
-proc-export-a-processes-resource-limits-via-proc-pid.patch
-fix-tsk-exit_state-usage-resend.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-whitespace-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
+r-o-bind-mounts-stub-functions.patch
+r-o-bind-mounts-elevate-write-count-opend-files.patch
+r-o-bind-mounts-elevate-write-count-opend-files-r-o-bind-mounts-fix-bug-in-reiserfs_delete_xattrs.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2.patch
+r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
+r-o-bind-mounts-make-access-use-mnt-check.patch
+r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
+r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
+r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
+r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime.patch
+r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime-fix.patch
+r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
+r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch
+r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
+r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
+r-o-bind-mounts-do_rmdir-elevate-write-count.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
+r-o-bind-mounts-track-number-of-mount-writers-fix.patch
+r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+task-containersv11-basic-task-container-framework.patch
+task-containersv11-add-tasks-file-interface.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+reiser4-fix-null-dereference-in-__mnt_is_readonly-in-ftruncate.patch
+page-owner-tracking-leak-detector.patch
