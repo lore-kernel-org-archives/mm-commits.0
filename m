@@ -1,156 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: - x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:09:00 -0700
-Message-ID: <200710180709.l9I790Nq031863@imap1.linux-foundation.org>
+Subject: - fuse-no-abort-on-interrupt.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:03:37 -0700
+Message-ID: <200710180703.l9I73buc031453@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32867 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38870 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763100AbXJRHPu (ORCPT
+	by vger.kernel.org with ESMTP id S1761722AbXJRHPo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:15:50 -0400
+	Thu, 18 Oct 2007 03:15:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: travis@sgi.com, ak@suse.de, clameter@sgi.com, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: Convert cpu_llc_id to be a per cpu variable 
+     fuse: no abort on interrupt
 has been removed from the -mm tree.  Its filename was
-     x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
+     fuse-no-abort-on-interrupt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86: Convert cpu_llc_id to be a per cpu variable 
-From: Mike Travis <travis@sgi.com>
+Subject: fuse: no abort on interrupt
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Convert cpu_llc_id from a static array sized by NR_CPUS to a per_cpu variable.
- This saves sizeof(cpu_llc_id) * NR unused cpus.  Access is mostly from
-startup and CPU HOTPLUG functions.
+Don't set 'aborted' flag on a request if it's interrupted.  We have to wait
+for the answer anyway, and this would only a very little time while copying
+the reply.
 
-Note there's an addtional change of the type of cpu_llc_id from int to u8 for
-ARCH i386 to correspond with the same type in ARCH x86_64.
+This means, that write() on the fuse device will not return -ENOENT during
+normal operation, only if the filesystem is aborted by a forced umount or
+through the fusectl interface.
 
-Signed-off-by: Mike Travis <travis@sgi.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+This could simplify userspace code somewhat when backward compatibility with
+earlier kernel versions is not required.
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/intel_cacheinfo.c |    4 ++--
- arch/x86/kernel/smpboot_32.c          |    6 +++---
- arch/x86/kernel/smpboot_64.c          |    6 +++---
- include/asm-x86/processor_32.h        |    6 +++++-
- include/asm-x86/smp_64.h              |    3 ++-
- 5 files changed, 15 insertions(+), 10 deletions(-)
+ fs/fuse/dev.c |   43 ++++++++++++++++++++++++-------------------
+ 1 file changed, 24 insertions(+), 19 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/intel_cacheinfo.c~x86-convert-cpu_llc_id-to-be-a-per-cpu-variable arch/x86/kernel/cpu/intel_cacheinfo.c
---- a/arch/x86/kernel/cpu/intel_cacheinfo.c~x86-convert-cpu_llc_id-to-be-a-per-cpu-variable
-+++ a/arch/x86/kernel/cpu/intel_cacheinfo.c
-@@ -417,14 +417,14 @@ unsigned int __cpuinit init_intel_cachei
- 	if (new_l2) {
- 		l2 = new_l2;
- #ifdef CONFIG_X86_HT
--		cpu_llc_id[cpu] = l2_id;
-+		per_cpu(cpu_llc_id, cpu) = l2_id;
- #endif
+diff -puN fs/fuse/dev.c~fuse-no-abort-on-interrupt fs/fuse/dev.c
+--- a/fs/fuse/dev.c~fuse-no-abort-on-interrupt
++++ a/fs/fuse/dev.c
+@@ -273,28 +273,41 @@ static void request_wait_answer(struct f
+ 			queue_interrupt(fc, req);
  	}
  
- 	if (new_l3) {
- 		l3 = new_l3;
- #ifdef CONFIG_X86_HT
--		cpu_llc_id[cpu] = l3_id;
-+		per_cpu(cpu_llc_id, cpu) = l3_id;
- #endif
+-	if (req->force) {
+-		spin_unlock(&fc->lock);
+-		wait_event(req->waitq, req->state == FUSE_REQ_FINISHED);
+-		spin_lock(&fc->lock);
+-	} else {
++	if (!req->force) {
+ 		sigset_t oldset;
+ 
+ 		/* Only fatal signals may interrupt this */
+ 		block_sigs(&oldset);
+ 		wait_answer_interruptible(fc, req);
+ 		restore_sigs(&oldset);
++
++		if (req->aborted)
++			goto aborted;
++		if (req->state == FUSE_REQ_FINISHED)
++			return;
++
++		/* Request is not yet in userspace, bail out */
++		if (req->state == FUSE_REQ_PENDING) {
++			list_del(&req->list);
++			__fuse_put_request(req);
++			req->out.h.error = -EINTR;
++			return;
++		}
  	}
  
-diff -puN arch/x86/kernel/smpboot_32.c~x86-convert-cpu_llc_id-to-be-a-per-cpu-variable arch/x86/kernel/smpboot_32.c
---- a/arch/x86/kernel/smpboot_32.c~x86-convert-cpu_llc_id-to-be-a-per-cpu-variable
-+++ a/arch/x86/kernel/smpboot_32.c
-@@ -67,7 +67,7 @@ int smp_num_siblings = 1;
- EXPORT_SYMBOL(smp_num_siblings);
+-	if (req->aborted)
+-		goto aborted;
+-	if (req->state == FUSE_REQ_FINISHED)
+- 		return;
++	/*
++	 * Either request is already in userspace, or it was forced.
++	 * Wait it out.
++	 */
++	spin_unlock(&fc->lock);
++	wait_event(req->waitq, req->state == FUSE_REQ_FINISHED);
++	spin_lock(&fc->lock);
  
- /* Last level cache ID of each logical CPU */
--int cpu_llc_id[NR_CPUS] __cpuinitdata = {[0 ... NR_CPUS-1] = BAD_APICID};
-+DEFINE_PER_CPU(u8, cpu_llc_id) = BAD_APICID;
+-	req->out.h.error = -EINTR;
+-	req->aborted = 1;
++	if (!req->aborted)
++		return;
  
- /* representing HT siblings of each logical CPU */
- DEFINE_PER_CPU(cpumask_t, cpu_sibling_map);
-@@ -348,8 +348,8 @@ void __cpuinit set_cpu_sibling_map(int c
+  aborted:
++	BUG_ON(req->state != FUSE_REQ_FINISHED);
+ 	if (req->locked) {
+ 		/* This is uninterruptible sleep, because data is
+ 		   being copied to/from the buffers of req.  During
+@@ -305,14 +318,6 @@ static void request_wait_answer(struct f
+ 		wait_event(req->waitq, !req->locked);
+ 		spin_lock(&fc->lock);
  	}
+-	if (req->state == FUSE_REQ_PENDING) {
+-		list_del(&req->list);
+-		__fuse_put_request(req);
+-	} else if (req->state == FUSE_REQ_SENT) {
+-		spin_unlock(&fc->lock);
+-		wait_event(req->waitq, req->state == FUSE_REQ_FINISHED);
+-		spin_lock(&fc->lock);
+-	}
+ }
  
- 	for_each_cpu_mask(i, cpu_sibling_setup_map) {
--		if (cpu_llc_id[cpu] != BAD_APICID &&
--		    cpu_llc_id[cpu] == cpu_llc_id[i]) {
-+		if (per_cpu(cpu_llc_id, cpu) != BAD_APICID &&
-+		    per_cpu(cpu_llc_id, cpu) == per_cpu(cpu_llc_id, i)) {
- 			cpu_set(i, c[cpu].llc_shared_map);
- 			cpu_set(cpu, c[i].llc_shared_map);
- 		}
-diff -puN arch/x86/kernel/smpboot_64.c~x86-convert-cpu_llc_id-to-be-a-per-cpu-variable arch/x86/kernel/smpboot_64.c
---- a/arch/x86/kernel/smpboot_64.c~x86-convert-cpu_llc_id-to-be-a-per-cpu-variable
-+++ a/arch/x86/kernel/smpboot_64.c
-@@ -65,7 +65,7 @@ int smp_num_siblings = 1;
- EXPORT_SYMBOL(smp_num_siblings);
- 
- /* Last level cache ID of each logical CPU */
--u8 cpu_llc_id[NR_CPUS] __cpuinitdata  = {[0 ... NR_CPUS-1] = BAD_APICID};
-+DEFINE_PER_CPU(u8, cpu_llc_id) = BAD_APICID;
- 
- /* Bitmask of currently online CPUs */
- cpumask_t cpu_online_map __read_mostly;
-@@ -284,8 +284,8 @@ static inline void set_cpu_sibling_map(i
- 	}
- 
- 	for_each_cpu_mask(i, cpu_sibling_setup_map) {
--		if (cpu_llc_id[cpu] != BAD_APICID &&
--		    cpu_llc_id[cpu] == cpu_llc_id[i]) {
-+		if (per_cpu(cpu_llc_id, cpu) != BAD_APICID &&
-+		    per_cpu(cpu_llc_id, cpu) == per_cpu(cpu_llc_id, i)) {
- 			cpu_set(i, c[cpu].llc_shared_map);
- 			cpu_set(cpu, c[i].llc_shared_map);
- 		}
-diff -puN include/asm-x86/processor_32.h~x86-convert-cpu_llc_id-to-be-a-per-cpu-variable include/asm-x86/processor_32.h
---- a/include/asm-x86/processor_32.h~x86-convert-cpu_llc_id-to-be-a-per-cpu-variable
-+++ a/include/asm-x86/processor_32.h
-@@ -110,7 +110,11 @@ extern struct cpuinfo_x86 cpu_data[];
- #define current_cpu_data boot_cpu_data
- #endif
- 
--extern	int cpu_llc_id[NR_CPUS];
-+/*
-+ * the following now lives in the per cpu area:
-+ * extern	int cpu_llc_id[NR_CPUS];
-+ */
-+DECLARE_PER_CPU(u8, cpu_llc_id);
- extern char ignore_fpu_irq;
- 
- void __init cpu_detect(struct cpuinfo_x86 *c);
-diff -puN include/asm-x86/smp_64.h~x86-convert-cpu_llc_id-to-be-a-per-cpu-variable include/asm-x86/smp_64.h
---- a/include/asm-x86/smp_64.h~x86-convert-cpu_llc_id-to-be-a-per-cpu-variable
-+++ a/include/asm-x86/smp_64.h
-@@ -49,7 +49,7 @@ extern int smp_call_function_mask(cpumas
-  */
- DECLARE_PER_CPU(cpumask_t, cpu_sibling_map);
- DECLARE_PER_CPU(cpumask_t, cpu_core_map);
--extern u8 cpu_llc_id[NR_CPUS];
-+DECLARE_PER_CPU(u8, cpu_llc_id);
- 
- #define SMP_TRAMPOLINE_BASE 0x6000
- 
-@@ -121,6 +121,7 @@ static __inline int logical_smp_processo
- #ifdef CONFIG_SMP
- #define cpu_physical_id(cpu)		per_cpu(x86_cpu_to_apicid, cpu)
- #else
-+extern unsigned int boot_cpu_id;
- #define cpu_physical_id(cpu)		boot_cpu_id
- #endif /* !CONFIG_SMP */
- #endif
+ static unsigned len_args(unsigned numargs, struct fuse_arg *args)
 _
 
-Patches currently in -mm which might be from travis@sgi.com are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
-git-x86.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+fuse-fix-allowing-operations.patch
+fuse-fix-race-between-getattr-and-write.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+fuse-clean-up-open-file-passing-in-setattr.patch
+vfs-allow-filesystems-to-implement-atomic-opentruncate.patch
+fuse-improve-utimes-support.patch
+fuse-add-atomic-opentruncate-support.patch
+fuse-support-bsd-locking-semantics.patch
+fuse-add-list-of-writable-files-to-fuse_inode.patch
+fuse-add-helper-for-asynchronous-writes.patch
+fuse-add-support-for-mandatory-locking.patch
+fuse-add-blksize-field-to-fuse_attr.patch
