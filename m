@@ -1,75 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: - __group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:55:38 -0700
-Message-ID: <200710180655.l9I6tcsM030630@imap1.linux-foundation.org>
+Subject: - exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:56:49 -0700
+Message-ID: <200710180656.l9I6unpM030732@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45168 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33195 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757473AbXJRH0i (ORCPT
+	by vger.kernel.org with ESMTP id S1756365AbXJRH0k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:26:38 -0400
+	Thu, 18 Oct 2007 03:26:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     __group_complete_signal: eliminate unneeded wakeup of ->group_exit_task
+     exec: RT sub-thread can livelock and monopolize CPU on exec
 has been removed from the -mm tree.  Its filename was
-     __group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch
+     exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: __group_complete_signal: eliminate unneeded wakeup of ->group_exit_task
+Subject: exec: RT sub-thread can livelock and monopolize CPU on exec
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Cleanup.  __group_complete_signal() wakes up ->group_exit_task twice.  The
-second wakeup's state includes TASK_UNINTERRUPTIBLE, which is not very
-appropriate.
+de_thread() yields waiting for ->group_leader to be a zombie. This deadlocks
+if an rt-prio execer shares the same cpu with ->group_leader. Change the code
+to use ->group_exit_task/notify_count mechanics.
 
-Change the code to pass the "correct" argument to signal_wake_up() and kill
-now unneeded wake_up_process().
+This patch certainly uglifies the code, perhaps someone can suggest something
+better.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ fs/exec.c     |   28 +++++++++++++++-------------
+ kernel/exit.c |   10 +++++++---
+ 2 files changed, 22 insertions(+), 16 deletions(-)
 
-diff -puN kernel/signal.c~__group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task kernel/signal.c
---- a/kernel/signal.c~__group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task
-+++ a/kernel/signal.c
-@@ -909,8 +909,7 @@ __group_complete_signal(int sig, struct 
- 			do {
- 				sigaddset(&t->pending.signal, SIGKILL);
- 				signal_wake_up(t, 1);
--				t = next_thread(t);
--			} while (t != p);
-+			} while_each_thread(p, t);
- 			return;
- 		}
- 
-@@ -928,13 +927,11 @@ __group_complete_signal(int sig, struct 
- 		rm_from_queue(SIG_KERNEL_STOP_MASK, &p->signal->shared_pending);
- 		p->signal->group_stop_count = 0;
- 		p->signal->group_exit_task = t;
--		t = p;
-+		p = t;
- 		do {
- 			p->signal->group_stop_count++;
--			signal_wake_up(t, 0);
--			t = next_thread(t);
--		} while (t != p);
--		wake_up_process(p->signal->group_exit_task);
-+			signal_wake_up(t, t == p);
-+		} while_each_thread(p, t);
- 		return;
+diff -puN fs/exec.c~exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec fs/exec.c
+--- a/fs/exec.c~exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec
++++ a/fs/exec.c
+@@ -801,16 +801,15 @@ static int de_thread(struct task_struct 
+ 			hrtimer_restart(&sig->real_timer);
+ 		spin_lock_irq(lock);
  	}
++
++	sig->notify_count = count;
++	sig->group_exit_task = tsk;
+ 	while (atomic_read(&sig->count) > count) {
+-		sig->group_exit_task = tsk;
+-		sig->notify_count = count;
+ 		__set_current_state(TASK_UNINTERRUPTIBLE);
+ 		spin_unlock_irq(lock);
+ 		schedule();
+ 		spin_lock_irq(lock);
+ 	}
+-	sig->group_exit_task = NULL;
+-	sig->notify_count = 0;
+ 	spin_unlock_irq(lock);
  
+ 	/*
+@@ -819,14 +818,17 @@ static int de_thread(struct task_struct 
+ 	 * and to assume its PID:
+ 	 */
+ 	if (!thread_group_leader(tsk)) {
+-		/*
+-		 * Wait for the thread group leader to be a zombie.
+-		 * It should already be zombie at this point, most
+-		 * of the time.
+-		 */
+ 		leader = tsk->group_leader;
+-		while (leader->exit_state != EXIT_ZOMBIE)
+-			yield();
++
++		sig->notify_count = -1;
++		for (;;) {
++			write_lock_irq(&tasklist_lock);
++			if (likely(leader->exit_state))
++				break;
++			__set_current_state(TASK_UNINTERRUPTIBLE);
++			write_unlock_irq(&tasklist_lock);
++			schedule();
++		}
+ 
+ 		/*
+ 		 * The only record we have of the real-time age of a
+@@ -840,8 +842,6 @@ static int de_thread(struct task_struct 
+ 		 */
+ 		tsk->start_time = leader->start_time;
+ 
+-		write_lock_irq(&tasklist_lock);
+-
+ 		BUG_ON(leader->tgid != tsk->tgid);
+ 		BUG_ON(tsk->pid == tsk->tgid);
+ 		/*
+@@ -874,6 +874,8 @@ static int de_thread(struct task_struct 
+ 		write_unlock_irq(&tasklist_lock);
+         }
+ 
++	sig->group_exit_task = NULL;
++	sig->notify_count = 0;
+ 	/*
+ 	 * There may be one thread left which is just exiting,
+ 	 * but it's safe to stop telling the group to kill themselves.
+diff -puN kernel/exit.c~exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec kernel/exit.c
+--- a/kernel/exit.c~exec-rt-sub-thread-can-livelock-and-monopolize-cpu-on-exec
++++ a/kernel/exit.c
+@@ -92,10 +92,9 @@ static void __exit_signal(struct task_st
+ 		 * If there is any task waiting for the group exit
+ 		 * then notify it:
+ 		 */
+-		if (sig->group_exit_task && atomic_read(&sig->count) == sig->notify_count) {
++		if (sig->group_exit_task && atomic_read(&sig->count) == sig->notify_count)
+ 			wake_up_process(sig->group_exit_task);
+-			sig->group_exit_task = NULL;
+-		}
++
+ 		if (tsk == sig->curr_target)
+ 			sig->curr_target = next_thread(tsk);
+ 		/*
+@@ -827,6 +826,11 @@ static void exit_notify(struct task_stru
+ 		state = EXIT_DEAD;
+ 	tsk->exit_state = state;
+ 
++	if (thread_group_leader(tsk) &&
++	    tsk->signal->notify_count < 0 &&
++	    tsk->signal->group_exit_task)
++		wake_up_process(tsk->signal->group_exit_task);
++
+ 	write_unlock_irq(&tasklist_lock);
+ 
+ 	list_for_each_safe(_p, _n, &ptrace_dead) {
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
