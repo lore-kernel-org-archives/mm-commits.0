@@ -1,168 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: - i2o-fix-defined-but-not-used-build-warnings.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:59:57 -0700
-Message-ID: <200710180659.l9I6xv33031035@imap1.linux-foundation.org>
+Subject: - x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:09:00 -0700
+Message-ID: <200710180709.l9I790Nq031863@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42164 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32867 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763028AbXJRHPu (ORCPT
+	by vger.kernel.org with ESMTP id S1763100AbXJRHPu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 18 Oct 2007 03:15:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: satyam@infradead.org, mm-commits@vger.kernel.org
+To: travis@sgi.com, ak@suse.de, clameter@sgi.com, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     I2O: Fix "defined but not used" build warnings
+     x86: Convert cpu_llc_id to be a per cpu variable 
 has been removed from the -mm tree.  Its filename was
-     i2o-fix-defined-but-not-used-build-warnings.patch
+     x86-convert-cpu_llc_id-to-be-a-per-cpu-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: I2O: Fix "defined but not used" build warnings
-From: Satyam Sharma <satyam@infradead.org>
+Subject: x86: Convert cpu_llc_id to be a per cpu variable 
+From: Mike Travis <travis@sgi.com>
 
-drivers/message/i2o/exec-osm.c:539: warning: `i2o_exec_lct_notify' defined but not used
+Convert cpu_llc_id from a static array sized by NR_CPUS to a per_cpu variable.
+ This saves sizeof(cpu_llc_id) * NR unused cpus.  Access is mostly from
+startup and CPU HOTPLUG functions.
 
-comes when CONFIG_I2O_LCT_NOTIFY_ON_CHANGES=n, because its only callsite
-is #ifdef'ed as such. So let's #ifdef the function definition also. Also
-move the definition to before the callsite, to get rid of forward prototype.
+Note there's an addtional change of the type of cpu_llc_id from int to u8 for
+ARCH i386 to correspond with the same type in ARCH x86_64.
 
-[akpm@linux-foundation.org: fix warnings]
-Signed-off-by: Satyam Sharma <satyam@infradead.org>
+Signed-off-by: Mike Travis <travis@sgi.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/i2o/exec-osm.c |   94 +++++++++++++++----------------
- 1 file changed, 47 insertions(+), 47 deletions(-)
+ arch/x86/kernel/cpu/intel_cacheinfo.c |    4 ++--
+ arch/x86/kernel/smpboot_32.c          |    6 +++---
+ arch/x86/kernel/smpboot_64.c          |    6 +++---
+ include/asm-x86/processor_32.h        |    6 +++++-
+ include/asm-x86/smp_64.h              |    3 ++-
+ 5 files changed, 15 insertions(+), 10 deletions(-)
 
-diff -puN drivers/message/i2o/exec-osm.c~i2o-fix-defined-but-not-used-build-warnings drivers/message/i2o/exec-osm.c
---- a/drivers/message/i2o/exec-osm.c~i2o-fix-defined-but-not-used-build-warnings
-+++ a/drivers/message/i2o/exec-osm.c
-@@ -41,8 +41,6 @@
+diff -puN arch/x86/kernel/cpu/intel_cacheinfo.c~x86-convert-cpu_llc_id-to-be-a-per-cpu-variable arch/x86/kernel/cpu/intel_cacheinfo.c
+--- a/arch/x86/kernel/cpu/intel_cacheinfo.c~x86-convert-cpu_llc_id-to-be-a-per-cpu-variable
++++ a/arch/x86/kernel/cpu/intel_cacheinfo.c
+@@ -417,14 +417,14 @@ unsigned int __cpuinit init_intel_cachei
+ 	if (new_l2) {
+ 		l2 = new_l2;
+ #ifdef CONFIG_X86_HT
+-		cpu_llc_id[cpu] = l2_id;
++		per_cpu(cpu_llc_id, cpu) = l2_id;
+ #endif
+ 	}
  
- struct i2o_driver i2o_exec_driver;
+ 	if (new_l3) {
+ 		l3 = new_l3;
+ #ifdef CONFIG_X86_HT
+-		cpu_llc_id[cpu] = l3_id;
++		per_cpu(cpu_llc_id, cpu) = l3_id;
+ #endif
+ 	}
  
--static int i2o_exec_lct_notify(struct i2o_controller *c, u32 change_ind);
--
- /* global wait list for POST WAIT */
- static LIST_HEAD(i2o_exec_wait_list);
+diff -puN arch/x86/kernel/smpboot_32.c~x86-convert-cpu_llc_id-to-be-a-per-cpu-variable arch/x86/kernel/smpboot_32.c
+--- a/arch/x86/kernel/smpboot_32.c~x86-convert-cpu_llc_id-to-be-a-per-cpu-variable
++++ a/arch/x86/kernel/smpboot_32.c
+@@ -67,7 +67,7 @@ int smp_num_siblings = 1;
+ EXPORT_SYMBOL(smp_num_siblings);
  
-@@ -369,6 +367,53 @@ static int i2o_exec_remove(struct device
- 	return 0;
- };
+ /* Last level cache ID of each logical CPU */
+-int cpu_llc_id[NR_CPUS] __cpuinitdata = {[0 ... NR_CPUS-1] = BAD_APICID};
++DEFINE_PER_CPU(u8, cpu_llc_id) = BAD_APICID;
  
-+#ifdef CONFIG_I2O_LCT_NOTIFY_ON_CHANGES
-+/**
-+ *	i2o_exec_lct_notify - Send a asynchronus LCT NOTIFY request
-+ *	@c: I2O controller to which the request should be send
-+ *	@change_ind: change indicator
-+ *
-+ *	This function sends a LCT NOTIFY request to the I2O controller with
-+ *	the change indicator change_ind. If the change_ind == 0 the controller
-+ *	replies immediately after the request. If change_ind > 0 the reply is
-+ *	send after change indicator of the LCT is > change_ind.
+ /* representing HT siblings of each logical CPU */
+ DEFINE_PER_CPU(cpumask_t, cpu_sibling_map);
+@@ -348,8 +348,8 @@ void __cpuinit set_cpu_sibling_map(int c
+ 	}
+ 
+ 	for_each_cpu_mask(i, cpu_sibling_setup_map) {
+-		if (cpu_llc_id[cpu] != BAD_APICID &&
+-		    cpu_llc_id[cpu] == cpu_llc_id[i]) {
++		if (per_cpu(cpu_llc_id, cpu) != BAD_APICID &&
++		    per_cpu(cpu_llc_id, cpu) == per_cpu(cpu_llc_id, i)) {
+ 			cpu_set(i, c[cpu].llc_shared_map);
+ 			cpu_set(cpu, c[i].llc_shared_map);
+ 		}
+diff -puN arch/x86/kernel/smpboot_64.c~x86-convert-cpu_llc_id-to-be-a-per-cpu-variable arch/x86/kernel/smpboot_64.c
+--- a/arch/x86/kernel/smpboot_64.c~x86-convert-cpu_llc_id-to-be-a-per-cpu-variable
++++ a/arch/x86/kernel/smpboot_64.c
+@@ -65,7 +65,7 @@ int smp_num_siblings = 1;
+ EXPORT_SYMBOL(smp_num_siblings);
+ 
+ /* Last level cache ID of each logical CPU */
+-u8 cpu_llc_id[NR_CPUS] __cpuinitdata  = {[0 ... NR_CPUS-1] = BAD_APICID};
++DEFINE_PER_CPU(u8, cpu_llc_id) = BAD_APICID;
+ 
+ /* Bitmask of currently online CPUs */
+ cpumask_t cpu_online_map __read_mostly;
+@@ -284,8 +284,8 @@ static inline void set_cpu_sibling_map(i
+ 	}
+ 
+ 	for_each_cpu_mask(i, cpu_sibling_setup_map) {
+-		if (cpu_llc_id[cpu] != BAD_APICID &&
+-		    cpu_llc_id[cpu] == cpu_llc_id[i]) {
++		if (per_cpu(cpu_llc_id, cpu) != BAD_APICID &&
++		    per_cpu(cpu_llc_id, cpu) == per_cpu(cpu_llc_id, i)) {
+ 			cpu_set(i, c[cpu].llc_shared_map);
+ 			cpu_set(cpu, c[i].llc_shared_map);
+ 		}
+diff -puN include/asm-x86/processor_32.h~x86-convert-cpu_llc_id-to-be-a-per-cpu-variable include/asm-x86/processor_32.h
+--- a/include/asm-x86/processor_32.h~x86-convert-cpu_llc_id-to-be-a-per-cpu-variable
++++ a/include/asm-x86/processor_32.h
+@@ -110,7 +110,11 @@ extern struct cpuinfo_x86 cpu_data[];
+ #define current_cpu_data boot_cpu_data
+ #endif
+ 
+-extern	int cpu_llc_id[NR_CPUS];
++/*
++ * the following now lives in the per cpu area:
++ * extern	int cpu_llc_id[NR_CPUS];
 + */
-+static int i2o_exec_lct_notify(struct i2o_controller *c, u32 change_ind)
-+{
-+	i2o_status_block *sb = c->status_block.virt;
-+	struct device *dev;
-+	struct i2o_message *msg;
-+
-+	mutex_lock(&c->lct_lock);
-+
-+	dev = &c->pdev->dev;
-+
-+	if (i2o_dma_realloc
-+	    (dev, &c->dlct, le32_to_cpu(sb->expected_lct_size), GFP_KERNEL))
-+		return -ENOMEM;
-+
-+	msg = i2o_msg_get_wait(c, I2O_TIMEOUT_MESSAGE_GET);
-+	if (IS_ERR(msg))
-+		return PTR_ERR(msg);
-+
-+	msg->u.head[0] = cpu_to_le32(EIGHT_WORD_MSG_SIZE | SGL_OFFSET_6);
-+	msg->u.head[1] = cpu_to_le32(I2O_CMD_LCT_NOTIFY << 24 | HOST_TID << 12 |
-+				     ADAPTER_TID);
-+	msg->u.s.icntxt = cpu_to_le32(i2o_exec_driver.context);
-+	msg->u.s.tcntxt = cpu_to_le32(0x00000000);
-+	msg->body[0] = cpu_to_le32(0xffffffff);
-+	msg->body[1] = cpu_to_le32(change_ind);
-+	msg->body[2] = cpu_to_le32(0xd0000000 | c->dlct.len);
-+	msg->body[3] = cpu_to_le32(c->dlct.phys);
-+
-+	i2o_msg_post(c, msg);
-+
-+	mutex_unlock(&c->lct_lock);
-+
-+	return 0;
-+}
-+#endif
-+
- /**
-  *	i2o_exec_lct_modified - Called on LCT NOTIFY reply
-  *	@_work: work struct for a specific controller
-@@ -525,51 +570,6 @@ int i2o_exec_lct_get(struct i2o_controll
- 	return rc;
- }
++DECLARE_PER_CPU(u8, cpu_llc_id);
+ extern char ignore_fpu_irq;
  
--/**
-- *	i2o_exec_lct_notify - Send a asynchronus LCT NOTIFY request
-- *	@c: I2O controller to which the request should be send
-- *	@change_ind: change indicator
-- *
-- *	This function sends a LCT NOTIFY request to the I2O controller with
-- *	the change indicator change_ind. If the change_ind == 0 the controller
-- *	replies immediately after the request. If change_ind > 0 the reply is
-- *	send after change indicator of the LCT is > change_ind.
-- */
--static int i2o_exec_lct_notify(struct i2o_controller *c, u32 change_ind)
--{
--	i2o_status_block *sb = c->status_block.virt;
--	struct device *dev;
--	struct i2o_message *msg;
--
--	mutex_lock(&c->lct_lock);
--
--	dev = &c->pdev->dev;
--
--	if (i2o_dma_realloc
--	    (dev, &c->dlct, le32_to_cpu(sb->expected_lct_size), GFP_KERNEL))
--		return -ENOMEM;
--
--	msg = i2o_msg_get_wait(c, I2O_TIMEOUT_MESSAGE_GET);
--	if (IS_ERR(msg))
--		return PTR_ERR(msg);
--
--	msg->u.head[0] = cpu_to_le32(EIGHT_WORD_MSG_SIZE | SGL_OFFSET_6);
--	msg->u.head[1] = cpu_to_le32(I2O_CMD_LCT_NOTIFY << 24 | HOST_TID << 12 |
--				     ADAPTER_TID);
--	msg->u.s.icntxt = cpu_to_le32(i2o_exec_driver.context);
--	msg->u.s.tcntxt = cpu_to_le32(0x00000000);
--	msg->body[0] = cpu_to_le32(0xffffffff);
--	msg->body[1] = cpu_to_le32(change_ind);
--	msg->body[2] = cpu_to_le32(0xd0000000 | c->dlct.len);
--	msg->body[3] = cpu_to_le32(c->dlct.phys);
--
--	i2o_msg_post(c, msg);
--
--	mutex_unlock(&c->lct_lock);
--
--	return 0;
--};
--
- /* Exec OSM driver struct */
- struct i2o_driver i2o_exec_driver = {
- 	.name = OSM_NAME,
+ void __init cpu_detect(struct cpuinfo_x86 *c);
+diff -puN include/asm-x86/smp_64.h~x86-convert-cpu_llc_id-to-be-a-per-cpu-variable include/asm-x86/smp_64.h
+--- a/include/asm-x86/smp_64.h~x86-convert-cpu_llc_id-to-be-a-per-cpu-variable
++++ a/include/asm-x86/smp_64.h
+@@ -49,7 +49,7 @@ extern int smp_call_function_mask(cpumas
+  */
+ DECLARE_PER_CPU(cpumask_t, cpu_sibling_map);
+ DECLARE_PER_CPU(cpumask_t, cpu_core_map);
+-extern u8 cpu_llc_id[NR_CPUS];
++DECLARE_PER_CPU(u8, cpu_llc_id);
+ 
+ #define SMP_TRAMPOLINE_BASE 0x6000
+ 
+@@ -121,6 +121,7 @@ static __inline int logical_smp_processo
+ #ifdef CONFIG_SMP
+ #define cpu_physical_id(cpu)		per_cpu(x86_cpu_to_apicid, cpu)
+ #else
++extern unsigned int boot_cpu_id;
+ #define cpu_physical_id(cpu)		boot_cpu_id
+ #endif /* !CONFIG_SMP */
+ #endif
 _
 
-Patches currently in -mm which might be from satyam@infradead.org are
+Patches currently in -mm which might be from travis@sgi.com are
 
 origin.patch
-git-watchdog.patch
-unify-dma_bit_mask-definitions-v31.patch
-redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
-x86-msr-driver-misc-cpuinit-annotations.patch
+git-x86.patch
