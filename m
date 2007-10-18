@@ -1,124 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: - do_sigaction-dont-worry-about-signal_pending.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:56:51 -0700
-Message-ID: <200710180656.l9I6upox030735@imap1.linux-foundation.org>
+Subject: - udf-code-style-fixup-v3.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:00:58 -0700
+Message-ID: <200710180700.l9I70w2J031128@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36526 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41526 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755101AbXJRH0U (ORCPT
+	by vger.kernel.org with ESMTP id S1755150AbXJRH0b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:26:20 -0400
+	Thu, 18 Oct 2007 03:26:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: gorcunov@gmail.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     do_sigaction: don't worry about signal_pending()
+     UDF: coding style fixups
 has been removed from the -mm tree.  Its filename was
-     do_sigaction-dont-worry-about-signal_pending.patch
+     udf-code-style-fixup-v3.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: do_sigaction: don't worry about signal_pending()
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: UDF: coding style fixups
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-do_sigaction() returns -ERESTARTNOINTR if signal_pending(). The comment says:
+This patch does additional coding style fixup.  Initially the code is being
+distorted by Lindent (in my patches sent not very long ago) and fixed in
+the followup patches but this stuff was accidently missed.
 
-	* If there might be a fatal signal pending on multiple
-	* threads, make sure we take it before changing the action.
+New and old compiled files were compared with cmp to check for being
+identically.  So the patch will not break the kernel.
 
-I think this is not needed. We should only worry about SIGNAL_GROUP_EXIT case,
-bit it implies a pending SIGKILL which can't be cleared by do_sigaction.
-
-Kill this special case.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Roland McGrath <roland@redhat.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    9 ---------
- 1 file changed, 9 deletions(-)
+ fs/udf/super.c   |   51 ++++++++++++++++-----------------------------
+ fs/udf/udftime.c |    8 +++----
+ 2 files changed, 23 insertions(+), 36 deletions(-)
 
-diff -puN kernel/signal.c~do_sigaction-dont-worry-about-signal_pending kernel/signal.c
---- a/kernel/signal.c~do_sigaction-dont-worry-about-signal_pending
-+++ a/kernel/signal.c
-@@ -2294,15 +2294,6 @@ int do_sigaction(int sig, struct k_sigac
- 	k = &current->sighand->action[sig-1];
+diff -puN fs/udf/super.c~udf-code-style-fixup-v3 fs/udf/super.c
+--- a/fs/udf/super.c~udf-code-style-fixup-v3
++++ a/fs/udf/super.c
+@@ -913,8 +913,7 @@ static int udf_load_partdesc(struct supe
+ 					UDF_SB_PARTMAPS(sb)[i].s_uspace.s_table =
+ 						udf_iget(sb, loc);
+ 					if (!UDF_SB_PARTMAPS(sb)[i].s_uspace.s_table) {
+-						udf_debug("cannot load unallocSpaceTable (part %d)\n",
+-							i);
++						udf_debug("cannot load unallocSpaceTable (part %d)\n", i);
+ 						return 1;
+ 					}
+ 					UDF_SB_PARTFLAGS(sb,i) |= UDF_PART_FLAG_UNALLOC_TABLE;
+@@ -944,8 +943,7 @@ static int udf_load_partdesc(struct supe
+ 					UDF_SB_PARTMAPS(sb)[i].s_fspace.s_table =
+ 						udf_iget(sb, loc);
+ 					if (!UDF_SB_PARTMAPS(sb)[i].s_fspace.s_table) {
+-						udf_debug("cannot load freedSpaceTable (part %d)\n",
+-							i);
++						udf_debug("cannot load freedSpaceTable (part %d)\n", i);
+ 						return 1;
+ 					}
+ 					UDF_SB_PARTFLAGS(sb,i) |= UDF_PART_FLAG_FREED_TABLE;
+@@ -1293,19 +1291,16 @@ static int udf_load_partition(struct sup
  
- 	spin_lock_irq(&current->sighand->siglock);
--	if (signal_pending(current)) {
--		/*
--		 * If there might be a fatal signal pending on multiple
--		 * threads, make sure we take it before changing the action.
--		 */
--		spin_unlock_irq(&current->sighand->siglock);
--		return -ERESTARTNOINTR;
--	}
--
- 	if (oact)
- 		*oact = *k;
+ 			if (!UDF_SB_LASTBLOCK(sb)) {
+ 				udf_debug("Unable to determine Lastblock (For "
+-						"Virtual Partition)\n");
++					  "Virtual Partition)\n");
+ 				return 1;
+ 			}
+ 
+ 			for (j = 0; j < UDF_SB_NUMPARTS(sb); j++) {
+-				if (j != i && UDF_SB_PARTVSN(sb, i) ==
+-					UDF_SB_PARTVSN(sb, j) &&
+-				    	UDF_SB_PARTNUM(sb, i) ==
+-						UDF_SB_PARTNUM(sb, j)) {
++				if (j != i &&
++				    UDF_SB_PARTVSN(sb, i) == UDF_SB_PARTVSN(sb, j) &&
++				    UDF_SB_PARTNUM(sb, i) == UDF_SB_PARTNUM(sb, j)) {
+ 					ino.partitionReferenceNum = j;
+-					ino.logicalBlockNum =
+-					    UDF_SB_LASTBLOCK(sb) -
+-					    UDF_SB_PARTROOT(sb, j);
++					ino.logicalBlockNum = UDF_SB_LASTBLOCK(sb) - UDF_SB_PARTROOT(sb, j);
+ 					break;
+ 				}
+ 			}
+@@ -1318,9 +1313,9 @@ static int udf_load_partition(struct sup
+ 
+ 			if (UDF_SB_PARTTYPE(sb, i) == UDF_VIRTUAL_MAP15) {
+ 				UDF_SB_TYPEVIRT(sb, i).s_start_offset =
+-				    udf_ext0_offset(UDF_SB_VAT(sb));
++					udf_ext0_offset(UDF_SB_VAT(sb));
+ 				UDF_SB_TYPEVIRT(sb, i).s_num_entries =
+-				    (UDF_SB_VAT(sb)->i_size - 36) >> 2;
++					(UDF_SB_VAT(sb)->i_size - 36) >> 2;
+ 			} else if (UDF_SB_PARTTYPE(sb, i) == UDF_VIRTUAL_MAP20) {
+ 				struct buffer_head *bh = NULL;
+ 				uint32_t pos;
+@@ -1330,19 +1325,15 @@ static int udf_load_partition(struct sup
+ 				if (!bh)
+ 					return 1;
+ 				UDF_SB_TYPEVIRT(sb, i).s_start_offset =
+-				    le16_to_cpu(((struct
+-					virtualAllocationTable20 *)bh->b_data +
+-					  udf_ext0_offset(UDF_SB_VAT(sb)))->
+-						lengthHeader) +
+-					  udf_ext0_offset(UDF_SB_VAT(sb));
+-				UDF_SB_TYPEVIRT(sb, i).s_num_entries =
+-				    (UDF_SB_VAT(sb)->i_size -
+-				     UDF_SB_TYPEVIRT(sb, i).s_start_offset) >> 2;
++					le16_to_cpu(((struct virtualAllocationTable20 *)bh->b_data +
++						     udf_ext0_offset(UDF_SB_VAT(sb)))->lengthHeader) +
++					udf_ext0_offset(UDF_SB_VAT(sb));
++				UDF_SB_TYPEVIRT(sb, i).s_num_entries = (UDF_SB_VAT(sb)->i_size -
++									UDF_SB_TYPEVIRT(sb, i).s_start_offset) >> 2;
+ 				brelse(bh);
+ 			}
+ 			UDF_SB_PARTROOT(sb, i) = udf_get_pblock(sb, 0, i, 0);
+-			UDF_SB_PARTLEN(sb, i) = UDF_SB_PARTLEN(sb,
+-						ino.partitionReferenceNum);
++			UDF_SB_PARTLEN(sb, i) = UDF_SB_PARTLEN(sb, ino.partitionReferenceNum);
+ 		}
+ 	}
+ 	return 0;
+@@ -1357,21 +1348,17 @@ static void udf_open_lvid(struct super_b
+ 		UDF_SB_LVIDIU(sb)->impIdent.identSuffix[0] = UDF_OS_CLASS_UNIX;
+ 		UDF_SB_LVIDIU(sb)->impIdent.identSuffix[1] = UDF_OS_ID_LINUX;
+ 		if (udf_time_to_stamp(&cpu_time, CURRENT_TIME))
+-			UDF_SB_LVID(sb)->recordingDateAndTime =
+-			    cpu_to_lets(cpu_time);
++			UDF_SB_LVID(sb)->recordingDateAndTime = cpu_to_lets(cpu_time);
+ 		UDF_SB_LVID(sb)->integrityType = LVID_INTEGRITY_TYPE_OPEN;
+ 
+-		UDF_SB_LVID(sb)->descTag.descCRC =
+-		    cpu_to_le16(udf_crc((char *)UDF_SB_LVID(sb) + sizeof(tag),
+-					le16_to_cpu(UDF_SB_LVID(sb)->descTag.
+-						    descCRCLength), 0));
++		UDF_SB_LVID(sb)->descTag.descCRC = cpu_to_le16(udf_crc((char *)UDF_SB_LVID(sb) + sizeof(tag),
++								       le16_to_cpu(UDF_SB_LVID(sb)->descTag.descCRCLength), 0));
+ 
+ 		UDF_SB_LVID(sb)->descTag.tagChecksum = 0;
+ 		for (i = 0; i < 16; i++)
+ 			if (i != 4)
+ 				UDF_SB_LVID(sb)->descTag.tagChecksum +=
+-				    ((uint8_t *) &
+-				     (UDF_SB_LVID(sb)->descTag))[i];
++					((uint8_t *) &(UDF_SB_LVID(sb)->descTag))[i];
+ 
+ 		mark_buffer_dirty(UDF_SB_LVIDBH(sb));
+ 	}
+diff -puN fs/udf/udftime.c~udf-code-style-fixup-v3 fs/udf/udftime.c
+--- a/fs/udf/udftime.c~udf-code-style-fixup-v3
++++ a/fs/udf/udftime.c
+@@ -108,10 +108,10 @@ time_t *udf_stamp_to_time(time_t *dest, 
+ 	*dest = year_seconds[src.year - EPOCH_YEAR];
+ 	*dest -= offset * 60;
+ 
+-	yday = ((__mon_yday[__isleap (src.year)]
+-		 [src.month - 1]) + (src.day - 1));
+-	*dest += ( ( (yday * 24) + src.hour ) * 60 + src.minute ) * 60 + src.second;
+-	*dest_usec = src.centiseconds * 10000 + src.hundredsOfMicroseconds * 100 + src.microseconds;
++	yday = ((__mon_yday[__isleap(src.year)][src.month - 1]) + src.day - 1);
++	*dest += (((yday * 24) + src.hour) * 60 + src.minute) * 60 + src.second;
++	*dest_usec = src.centiseconds * 10000 +
++			src.hundredsOfMicroseconds * 100 + src.microseconds;
+ 	return dest;
+ }
  
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
 origin.patch
-git-x86.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
-cpu-hotplug-topology-remove-topology_dev_map.patch
-cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
-make-access-to-tasks-nsproxy-lighter.patch
-make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
-make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
-workqueue-debug-flushing-deadlocks-with-lockdep.patch
-workqueue-debug-work-related-deadlocks-with-lockdep.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-merge-fix.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-uninline-find_task_by_xxx-set-of-functions.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
-uninline-find_pid-etc-set-of-functions.patch
-uninline-the-task_xid_nr_ns-calls.patch
-proc-export-a-processes-resource-limits-via-proc-pid.patch
-fix-tsk-exit_state-usage-resend.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-whitespace-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
+git-cifs.patch
