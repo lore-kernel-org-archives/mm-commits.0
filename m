@@ -1,84 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - nbd-set-uninitialized-devices-to-size-0.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:57:22 -0700
-Message-ID: <200710180657.l9I6vM1x030810@imap1.linux-foundation.org>
+Subject: - md-sync_action-in-sysfs-returns-wrong-value-for-readonly-arrays.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:02:59 -0700
+Message-ID: <200710180702.l9I72xtG031320@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47624 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52318 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759259AbXJRHPe (ORCPT
+	by vger.kernel.org with ESMTP id S1760067AbXJRHPh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:15:34 -0400
+	Thu, 18 Oct 2007 03:15:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paul.clements@steeleye.com, mm-commits@vger.kernel.org
+To: neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NBD: set uninitialized devices to size 0
+     md: 'sync_action' in sysfs returns wrong value for readonly arrays
 has been removed from the -mm tree.  Its filename was
-     nbd-set-uninitialized-devices-to-size-0.patch
+     md-sync_action-in-sysfs-returns-wrong-value-for-readonly-arrays.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: NBD: set uninitialized devices to size 0
-From: Paul Clements <paul.clements@steeleye.com>
+Subject: md: 'sync_action' in sysfs returns wrong value for readonly arrays
+From: NeilBrown <neilb@suse.de>
 
-This fixes errors with utilities (such as LVM's vgscan) that try to scan all
-devices.  Previously this would generate read errors when uninitialized nbd
-devices were scanned:
+When an array is started read-only, MD_RECOVERY_NEEDED can be set but no
+recovery will be running.  This causes 'sync_action' to report the wrong
+value.
 
-# vgscan
-   Reading all physical volumes.  This may take a while...
-   /dev/nbd0: read failed after 0 of 1024 at 0: Input/output error
-   /dev/nbd0: read failed after 0 of 1024 at 509804544: Input/output error
-   /dev/nbd0: read failed after 0 of 2048 at 0: Input/output error
-   /dev/nbd1: read failed after 0 of 1024 at 509804544: Input/output error
-   /dev/nbd1: read failed after 0 of 2048 at 0: Input/output error
+We could remove the test for MD_RECOVERY_NEEDED, but doing so would leave a
+small gap after requesting a sync action, where 'sync_action' would still
+report the old value.
 
- From now on, uninitialized nbd devices will have size zero, which
-prevents these errors.
+So make sure that for a read-only array, 'sync_action' always returns 'idle'.
 
-Signed-off-by: Paul Clements <paul.clements@steeleye.com>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/nbd.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/md/md.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/nbd.c~nbd-set-uninitialized-devices-to-size-0 drivers/block/nbd.c
---- a/drivers/block/nbd.c~nbd-set-uninitialized-devices-to-size-0
-+++ a/drivers/block/nbd.c
-@@ -578,6 +578,9 @@ static int nbd_ioctl(struct inode *inode
- 		printk(KERN_WARNING "%s: queue cleared\n", lo->disk->disk_name);
- 		if (file)
- 			fput(file);
-+		lo->bytesize = 0;
-+		inode->i_bdev->bd_inode->i_size = 0;
-+		set_capacity(lo->disk, 0);
- 		return lo->harderror;
- 	case NBD_CLEAR_QUE:
- 		/*
-@@ -655,14 +658,14 @@ static int __init nbd_init(void)
- 		mutex_init(&nbd_dev[i].tx_lock);
- 		init_waitqueue_head(&nbd_dev[i].active_wq);
- 		nbd_dev[i].blksize = 1024;
--		nbd_dev[i].bytesize = 0x7ffffc00ULL << 10; /* 2TB */
-+		nbd_dev[i].bytesize = 0;
- 		disk->major = NBD_MAJOR;
- 		disk->first_minor = i;
- 		disk->fops = &nbd_fops;
- 		disk->private_data = &nbd_dev[i];
- 		disk->flags |= GENHD_FL_SUPPRESS_PARTITION_INFO;
- 		sprintf(disk->disk_name, "nbd%d", i);
--		set_capacity(disk, 0x7ffffc00ULL << 1); /* 2 TB */
-+		set_capacity(disk, 0);
- 		add_disk(disk);
- 	}
- 
+diff -puN drivers/md/md.c~md-sync_action-in-sysfs-returns-wrong-value-for-readonly-arrays drivers/md/md.c
+--- a/drivers/md/md.c~md-sync_action-in-sysfs-returns-wrong-value-for-readonly-arrays
++++ a/drivers/md/md.c
+@@ -2714,7 +2714,7 @@ action_show(mddev_t *mddev, char *page)
+ {
+ 	char *type = "idle";
+ 	if (test_bit(MD_RECOVERY_RUNNING, &mddev->recovery) ||
+-	    test_bit(MD_RECOVERY_NEEDED, &mddev->recovery)) {
++	    (!mddev->ro && test_bit(MD_RECOVERY_NEEDED, &mddev->recovery))) {
+ 		if (test_bit(MD_RECOVERY_RESHAPE, &mddev->recovery))
+ 			type = "reshape";
+ 		else if (test_bit(MD_RECOVERY_SYNC, &mddev->recovery)) {
 _
 
-Patches currently in -mm which might be from paul.clements@steeleye.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
+git-md-accel.patch
+ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
+knfsd-only-set-attr_kill_sid-if-attr_mode-isnt-being-explicitly-set.patch
+vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
+sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
+exportfs-add-fid-type.patch
+exportfs-add-new-methods.patch
+ext2-new-export-ops.patch
+ext3-new-export-ops.patch
+ext4-new-export-ops.patch
+efs-new-export-ops.patch
+jfs-new-export-ops.patch
+ntfs-new-export-ops.patch
+fat-new-export-ops.patch
+isofs-new-export-ops.patch
+shmem-new-export-ops.patch
+reiserfs-new-export-ops.patch
+gfs2-new-export-ops.patch
+ocfs2-new-export-ops.patch
+exportfs-remove-old-methods.patch
+exportfs-make-struct-export_operations-const.patch
+exportfs-update-documentation.patch
