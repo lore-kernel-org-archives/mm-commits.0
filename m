@@ -1,366 +1,283 @@
 From: akpm@linux-foundation.org
-Subject: - fuse-add-reference-counting-to-fuse_file.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:03:22 -0700
-Message-ID: <200710180703.l9I73MV7031427@imap1.linux-foundation.org>
+Subject: - nbd-allow-hung-network-i-o-to-be-cancelled.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:57:24 -0700
+Message-ID: <200710180657.l9I6vO41030813@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43927 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37439 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762327AbXJRHP5 (ORCPT
+	by vger.kernel.org with ESMTP id S1763206AbXJRHPw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:15:57 -0400
+	Thu, 18 Oct 2007 03:15:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, mm-commits@vger.kernel.org
+To: paul.clements@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fuse: add reference counting to fuse_file
+     NBD: allow hung network I/O to be cancelled
 has been removed from the -mm tree.  Its filename was
-     fuse-add-reference-counting-to-fuse_file.patch
+     nbd-allow-hung-network-i-o-to-be-cancelled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fuse: add reference counting to fuse_file
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: NBD: allow hung network I/O to be cancelled
+From: Paul Clements <paul.clements@steeleye.com>
 
-Make lifetime of 'struct fuse_file' independent from 'struct file' by adding a
-reference counter and destructor.
+Allow NBD I/O to be cancelled when a network outage occurs.  Previously, I/O
+would just hang, and if enough I/O was hung in nbd, the system (at least
+user-level) would completely hang until a TCP timeout (default, 15 minutes)
+occurred.
 
-This will enable asynchronous page writeback, where it cannot be guaranteed,
-that the file is not released while a request with this file handle is being
-served.
+The patch introduces a new ioctl NBD_SET_TIMEOUT that allows a transmit
+timeout value (in seconds) to be specified.  Any network send that exceeds the
+timeout will be cancelled and the nbd connection will be shut down.  I've
+tested with various timeout values and 6 seconds seems to be a good choice for
+the timeout.  If the NBD_SET_TIMEOUT ioctl is not called, you get the old (I/O
+hang) behavior.
 
-The actual RELEASE request is only sent when there are no more references to
-the fuse_file.
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Signed-off-by: Paul Clements <paul.clements@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/dev.c    |    2 -
- fs/fuse/dir.c    |   14 ++++----
- fs/fuse/file.c   |   72 +++++++++++++++++++++++++++------------------
- fs/fuse/fuse_i.h |   13 +++++---
- 4 files changed, 59 insertions(+), 42 deletions(-)
+ drivers/block/nbd.c |   93 ++++++++++++++++++++++++++++--------------
+ include/linux/nbd.h |    2 
+ 2 files changed, 64 insertions(+), 31 deletions(-)
 
-diff -puN fs/fuse/dev.c~fuse-add-reference-counting-to-fuse_file fs/fuse/dev.c
---- a/fs/fuse/dev.c~fuse-add-reference-counting-to-fuse_file
-+++ a/fs/fuse/dev.c
-@@ -233,8 +233,6 @@ static void request_end(struct fuse_conn
- 	spin_unlock(&fc->lock);
- 	dput(req->dentry);
- 	mntput(req->vfsmount);
--	if (req->file)
--		fput(req->file);
- 	wake_up(&req->waitq);
- 	if (end)
- 		end(fc, req);
-diff -puN fs/fuse/dir.c~fuse-add-reference-counting-to-fuse_file fs/fuse/dir.c
---- a/fs/fuse/dir.c~fuse-add-reference-counting-to-fuse_file
-+++ a/fs/fuse/dir.c
-@@ -288,12 +288,11 @@ static struct dentry *fuse_lookup(struct
- static void fuse_sync_release(struct fuse_conn *fc, struct fuse_file *ff,
- 			      u64 nodeid, int flags)
- {
--	struct fuse_req *req;
--
--	req = fuse_release_fill(ff, nodeid, flags, FUSE_RELEASE);
--	req->force = 1;
--	request_send(fc, req);
--	fuse_put_request(fc, req);
-+	fuse_release_fill(ff, nodeid, flags, FUSE_RELEASE);
-+	ff->reserved_req->force = 1;
-+	request_send(fc, ff->reserved_req);
-+	fuse_put_request(fc, ff->reserved_req);
-+	kfree(ff);
+diff -puN drivers/block/nbd.c~nbd-allow-hung-network-i-o-to-be-cancelled drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-allow-hung-network-i-o-to-be-cancelled
++++ a/drivers/block/nbd.c
+@@ -113,12 +113,42 @@ static void nbd_end_request(struct reque
+ 	spin_unlock_irqrestore(q->queue_lock, flags);
  }
  
- /*
-@@ -859,6 +858,7 @@ static int fuse_readdir(struct file *fil
- 	struct page *page;
- 	struct inode *inode = file->f_path.dentry->d_inode;
- 	struct fuse_conn *fc = get_fuse_conn(inode);
-+	struct fuse_file *ff = file->private_data;
- 	struct fuse_req *req;
- 
- 	if (is_bad_inode(inode))
-@@ -875,7 +875,7 @@ static int fuse_readdir(struct file *fil
- 	}
- 	req->num_pages = 1;
- 	req->pages[0] = page;
--	fuse_read_fill(req, file, inode, file->f_pos, PAGE_SIZE, FUSE_READDIR);
-+	fuse_read_fill(req, ff, inode, file->f_pos, PAGE_SIZE, FUSE_READDIR);
- 	request_send(fc, req);
- 	nbytes = req->out.args[0].size;
- 	err = req->out.h.error;
-diff -puN fs/fuse/file.c~fuse-add-reference-counting-to-fuse_file fs/fuse/file.c
---- a/fs/fuse/file.c~fuse-add-reference-counting-to-fuse_file
-+++ a/fs/fuse/file.c
-@@ -54,6 +54,7 @@ struct fuse_file *fuse_file_alloc(void)
- 			kfree(ff);
- 			ff = NULL;
- 		}
-+		atomic_set(&ff->count, 0);
- 	}
- 	return ff;
- }
-@@ -64,6 +65,22 @@ void fuse_file_free(struct fuse_file *ff
- 	kfree(ff);
- }
- 
-+static struct fuse_file *fuse_file_get(struct fuse_file *ff)
++static void sock_shutdown(struct nbd_device *lo, int lock)
 +{
-+	atomic_inc(&ff->count);
-+	return ff;
-+}
-+
-+static void fuse_file_put(struct fuse_file *ff)
-+{
-+	if (atomic_dec_and_test(&ff->count)) {
-+		struct fuse_req *req = ff->reserved_req;
-+		struct fuse_conn *fc = get_fuse_conn(req->dentry->d_inode);
-+		request_send_background(fc, req);
-+		kfree(ff);
++	/* Forcibly shutdown the socket causing all listeners
++	 * to error
++	 *
++	 * FIXME: This code is duplicated from sys_shutdown, but
++	 * there should be a more generic interface rather than
++	 * calling socket ops directly here */
++	if (lock)
++		mutex_lock(&lo->tx_lock);
++	if (lo->sock) {
++		printk(KERN_WARNING "%s: shutting down socket\n",
++			lo->disk->disk_name);
++		lo->sock->ops->shutdown(lo->sock, SEND_SHUTDOWN|RCV_SHUTDOWN);
++		lo->sock = NULL;
 +	}
++	if (lock)
++		mutex_unlock(&lo->tx_lock);
 +}
 +
- void fuse_finish_open(struct inode *inode, struct file *file,
- 		      struct fuse_file *ff, struct fuse_open_out *outarg)
++static void nbd_xmit_timeout(unsigned long arg)
++{
++	struct task_struct *task = (struct task_struct *)arg;
++
++	printk(KERN_WARNING "nbd: killing hung xmit (%s, pid: %d)\n",
++		task->comm, task->pid);
++	force_sig(SIGKILL, task);
++}
++
+ /*
+  *  Send or receive packet.
+  */
+-static int sock_xmit(struct socket *sock, int send, void *buf, int size,
++static int sock_xmit(struct nbd_device *lo, int send, void *buf, int size,
+ 		int msg_flags)
  {
-@@ -72,7 +89,7 @@ void fuse_finish_open(struct inode *inod
- 	if (!(outarg->open_flags & FOPEN_KEEP_CACHE))
- 		invalidate_mapping_pages(inode->i_mapping, 0, -1);
- 	ff->fh = outarg->fh;
--	file->private_data = ff;
-+	file->private_data = fuse_file_get(ff);
++	struct socket *sock = lo->sock;
+ 	int result;
+ 	struct msghdr msg;
+ 	struct kvec iov;
+@@ -139,9 +169,20 @@ static int sock_xmit(struct socket *sock
+ 		msg.msg_controllen = 0;
+ 		msg.msg_flags = msg_flags | MSG_NOSIGNAL;
+ 
+-		if (send)
++		if (send) {
++			struct timer_list ti;
++
++			if (lo->xmit_timeout) {
++				init_timer(&ti);
++				ti.function = nbd_xmit_timeout;
++				ti.data = (unsigned long)current;
++				ti.expires = jiffies + lo->xmit_timeout;
++				add_timer(&ti);
++			}
+ 			result = kernel_sendmsg(sock, &msg, &iov, 1, size);
+-		else
++			if (lo->xmit_timeout)
++				del_timer_sync(&ti);
++		} else
+ 			result = kernel_recvmsg(sock, &msg, &iov, 1, size, 0);
+ 
+ 		if (signal_pending(current)) {
+@@ -150,6 +191,7 @@ static int sock_xmit(struct socket *sock
+ 				current->pid, current->comm,
+ 				dequeue_signal_lock(current, &current->blocked, &info));
+ 			result = -EINTR;
++			sock_shutdown(lo, !send);
+ 			break;
+ 		}
+ 
+@@ -167,23 +209,22 @@ static int sock_xmit(struct socket *sock
+ 	return result;
  }
  
- int fuse_open_common(struct inode *inode, struct file *file, int isdir)
-@@ -113,8 +130,7 @@ int fuse_open_common(struct inode *inode
- 	return err;
+-static inline int sock_send_bvec(struct socket *sock, struct bio_vec *bvec,
++static inline int sock_send_bvec(struct nbd_device *lo, struct bio_vec *bvec,
+ 		int flags)
+ {
+ 	int result;
+ 	void *kaddr = kmap(bvec->bv_page);
+-	result = sock_xmit(sock, 1, kaddr + bvec->bv_offset, bvec->bv_len,
+-			flags);
++	result = sock_xmit(lo, 1, kaddr + bvec->bv_offset, bvec->bv_len, flags);
+ 	kunmap(bvec->bv_page);
+ 	return result;
  }
  
--struct fuse_req *fuse_release_fill(struct fuse_file *ff, u64 nodeid, int flags,
--				   int opcode)
-+void fuse_release_fill(struct fuse_file *ff, u64 nodeid, int flags, int opcode)
++/* always call with the tx_lock held */
+ static int nbd_send_req(struct nbd_device *lo, struct request *req)
  {
- 	struct fuse_req *req = ff->reserved_req;
- 	struct fuse_release_in *inarg = &req->misc.release_in;
-@@ -126,25 +142,24 @@ struct fuse_req *fuse_release_fill(struc
- 	req->in.numargs = 1;
- 	req->in.args[0].size = sizeof(struct fuse_release_in);
- 	req->in.args[0].value = inarg;
--	kfree(ff);
--
--	return req;
+ 	int result, flags;
+ 	struct nbd_request request;
+ 	unsigned long size = req->nr_sectors << 9;
+-	struct socket *sock = lo->sock;
+ 
+ 	request.magic = htonl(NBD_REQUEST_MAGIC);
+ 	request.type = htonl(nbd_cmd(req));
+@@ -196,8 +237,8 @@ static int nbd_send_req(struct nbd_devic
+ 			nbdcmd_to_ascii(nbd_cmd(req)),
+ 			(unsigned long long)req->sector << 9,
+ 			req->nr_sectors << 9);
+-	result = sock_xmit(sock, 1, &request, sizeof(request),
+-			(nbd_cmd(req) == NBD_CMD_WRITE)? MSG_MORE: 0);
++	result = sock_xmit(lo, 1, &request, sizeof(request),
++			(nbd_cmd(req) == NBD_CMD_WRITE) ? MSG_MORE : 0);
+ 	if (result <= 0) {
+ 		printk(KERN_ERR "%s: Send control failed (result %d)\n",
+ 				lo->disk->disk_name, result);
+@@ -217,7 +258,7 @@ static int nbd_send_req(struct nbd_devic
+ 				flags = MSG_MORE;
+ 			dprintk(DBG_TX, "%s: request %p: sending %d bytes data\n",
+ 					lo->disk->disk_name, req, bvec->bv_len);
+-			result = sock_send_bvec(sock, bvec, flags);
++			result = sock_send_bvec(lo, bvec, flags);
+ 			if (result <= 0) {
+ 				printk(KERN_ERR "%s: Send data failed (result %d)\n",
+ 						lo->disk->disk_name, result);
+@@ -257,11 +298,11 @@ out:
+ 	return ERR_PTR(err);
  }
  
- int fuse_release_common(struct inode *inode, struct file *file, int isdir)
+-static inline int sock_recv_bvec(struct socket *sock, struct bio_vec *bvec)
++static inline int sock_recv_bvec(struct nbd_device *lo, struct bio_vec *bvec)
  {
- 	struct fuse_file *ff = file->private_data;
- 	if (ff) {
--		struct fuse_conn *fc = get_fuse_conn(inode);
--		struct fuse_req *req;
--
--		req = fuse_release_fill(ff, get_node_id(inode), file->f_flags,
--					isdir ? FUSE_RELEASEDIR : FUSE_RELEASE);
-+		fuse_release_fill(ff, get_node_id(inode), file->f_flags,
-+				  isdir ? FUSE_RELEASEDIR : FUSE_RELEASE);
+ 	int result;
+ 	void *kaddr = kmap(bvec->bv_page);
+-	result = sock_xmit(sock, 0, kaddr + bvec->bv_offset, bvec->bv_len,
++	result = sock_xmit(lo, 0, kaddr + bvec->bv_offset, bvec->bv_len,
+ 			MSG_WAITALL);
+ 	kunmap(bvec->bv_page);
+ 	return result;
+@@ -273,10 +314,9 @@ static struct request *nbd_read_stat(str
+ 	int result;
+ 	struct nbd_reply reply;
+ 	struct request *req;
+-	struct socket *sock = lo->sock;
  
- 		/* Hold vfsmount and dentry until release is finished */
--		req->vfsmount = mntget(file->f_path.mnt);
--		req->dentry = dget(file->f_path.dentry);
--		request_send_background(fc, req);
-+		ff->reserved_req->vfsmount = mntget(file->f_path.mnt);
-+		ff->reserved_req->dentry = dget(file->f_path.dentry);
-+		/*
-+		 * Normally this will send the RELEASE request,
-+		 * however if some asynchronous READ or WRITE requests
-+		 * are outstanding, the sending will be delayed
-+		 */
-+		fuse_file_put(ff);
+ 	reply.magic = 0;
+-	result = sock_xmit(sock, 0, &reply, sizeof(reply), MSG_WAITALL);
++	result = sock_xmit(lo, 0, &reply, sizeof(reply), MSG_WAITALL);
+ 	if (result <= 0) {
+ 		printk(KERN_ERR "%s: Receive control failed (result %d)\n",
+ 				lo->disk->disk_name, result);
+@@ -317,7 +357,7 @@ static struct request *nbd_read_stat(str
+ 		struct bio_vec *bvec;
+ 
+ 		rq_for_each_segment(bvec, req, iter) {
+-			result = sock_recv_bvec(sock, bvec);
++			result = sock_recv_bvec(lo, bvec);
+ 			if (result <= 0) {
+ 				printk(KERN_ERR "%s: Receive data failed (result %d)\n",
+ 						lo->disk->disk_name, result);
+@@ -392,6 +432,7 @@ static void nbd_clear_que(struct nbd_dev
  	}
- 
- 	/* Return value is ignored by VFS */
-@@ -264,10 +279,9 @@ static int fuse_fsync(struct file *file,
- 	return fuse_fsync_common(file, de, datasync, 0);
  }
  
--void fuse_read_fill(struct fuse_req *req, struct file *file,
-+void fuse_read_fill(struct fuse_req *req, struct fuse_file *ff,
- 		    struct inode *inode, loff_t pos, size_t count, int opcode)
- {
--	struct fuse_file *ff = file->private_data;
- 	struct fuse_read_in *inarg = &req->misc.read_in;
++
+ /*
+  * We always wait for result of write, for now. It would be nice to make it optional
+  * in future
+@@ -500,7 +541,9 @@ static int nbd_ioctl(struct inode *inode
+ 		sreq.nr_sectors = 0;
+                 if (!lo->sock)
+ 			return -EINVAL;
++		mutex_lock(&lo->tx_lock);
+                 nbd_send_req(lo, &sreq);
++		mutex_unlock(&lo->tx_lock);
+                 return 0;
+  
+ 	case NBD_CLEAR_SOCK:
+@@ -544,6 +587,9 @@ static int nbd_ioctl(struct inode *inode
+ 		set_blocksize(inode->i_bdev, lo->blksize);
+ 		set_capacity(lo->disk, lo->bytesize >> 9);
+ 		return 0;
++	case NBD_SET_TIMEOUT:
++		lo->xmit_timeout = arg * HZ;
++		return 0;
+ 	case NBD_SET_SIZE_BLOCKS:
+ 		lo->bytesize = ((u64) arg) * lo->blksize;
+ 		inode->i_bdev->bd_inode->i_size = lo->bytesize;
+@@ -556,22 +602,7 @@ static int nbd_ioctl(struct inode *inode
+ 		error = nbd_do_it(lo);
+ 		if (error)
+ 			return error;
+-		/* on return tidy up in case we have a signal */
+-		/* Forcibly shutdown the socket causing all listeners
+-		 * to error
+-		 *
+-		 * FIXME: This code is duplicated from sys_shutdown, but
+-		 * there should be a more generic interface rather than
+-		 * calling socket ops directly here */
+-		mutex_lock(&lo->tx_lock);
+-		if (lo->sock) {
+-			printk(KERN_WARNING "%s: shutting down socket\n",
+-				lo->disk->disk_name);
+-			lo->sock->ops->shutdown(lo->sock,
+-				SEND_SHUTDOWN|RCV_SHUTDOWN);
+-			lo->sock = NULL;
+-		}
+-		mutex_unlock(&lo->tx_lock);
++		sock_shutdown(lo, 1);
+ 		file = lo->file;
+ 		lo->file = NULL;
+ 		nbd_clear_que(lo);
+diff -puN include/linux/nbd.h~nbd-allow-hung-network-i-o-to-be-cancelled include/linux/nbd.h
+--- a/include/linux/nbd.h~nbd-allow-hung-network-i-o-to-be-cancelled
++++ a/include/linux/nbd.h
+@@ -26,6 +26,7 @@
+ #define NBD_PRINT_DEBUG	_IO( 0xab, 6 )
+ #define NBD_SET_SIZE_BLOCKS	_IO( 0xab, 7 )
+ #define NBD_DISCONNECT  _IO( 0xab, 8 )
++#define NBD_SET_TIMEOUT _IO( 0xab, 9 )
  
- 	inarg->fh = ff->fh;
-@@ -288,7 +302,8 @@ static size_t fuse_send_read(struct fuse
- 			     struct inode *inode, loff_t pos, size_t count)
- {
- 	struct fuse_conn *fc = get_fuse_conn(inode);
--	fuse_read_fill(req, file, inode, pos, count, FUSE_READ);
-+	struct fuse_file *ff = file->private_data;
-+	fuse_read_fill(req, ff, inode, pos, count, FUSE_READ);
- 	request_send(fc, req);
- 	return req->out.args[0].size;
- }
-@@ -337,20 +352,21 @@ static void fuse_readpages_end(struct fu
- 			SetPageError(page);
- 		unlock_page(page);
- 	}
-+	if (req->ff)
-+		fuse_file_put(req->ff);
- 	fuse_put_request(fc, req);
- }
- 
--static void fuse_send_readpages(struct fuse_req *req, struct file *file,
-+static void fuse_send_readpages(struct fuse_req *req, struct fuse_file *ff,
- 				struct inode *inode)
- {
- 	struct fuse_conn *fc = get_fuse_conn(inode);
- 	loff_t pos = page_offset(req->pages[0]);
- 	size_t count = req->num_pages << PAGE_CACHE_SHIFT;
- 	req->out.page_zeroing = 1;
--	fuse_read_fill(req, file, inode, pos, count, FUSE_READ);
-+	fuse_read_fill(req, ff, inode, pos, count, FUSE_READ);
- 	if (fc->async_read) {
--		get_file(file);
--		req->file = file;
-+		req->ff = fuse_file_get(ff);
- 		req->end = fuse_readpages_end;
- 		request_send_background(fc, req);
- 	} else {
-@@ -359,15 +375,15 @@ static void fuse_send_readpages(struct f
- 	}
- }
- 
--struct fuse_readpages_data {
-+struct fuse_fill_data {
- 	struct fuse_req *req;
--	struct file *file;
-+	struct fuse_file *ff;
- 	struct inode *inode;
+ enum {
+ 	NBD_CMD_READ = 0,
+@@ -65,6 +66,7 @@ struct nbd_device {
+ 	int blksize;
+ 	u64 bytesize;
+ 	pid_t pid; /* pid of nbd-client, if attached */
++	int xmit_timeout;
  };
  
- static int fuse_readpages_fill(void *_data, struct page *page)
- {
--	struct fuse_readpages_data *data = _data;
-+	struct fuse_fill_data *data = _data;
- 	struct fuse_req *req = data->req;
- 	struct inode *inode = data->inode;
- 	struct fuse_conn *fc = get_fuse_conn(inode);
-@@ -376,7 +392,7 @@ static int fuse_readpages_fill(void *_da
- 	    (req->num_pages == FUSE_MAX_PAGES_PER_REQ ||
- 	     (req->num_pages + 1) * PAGE_CACHE_SIZE > fc->max_read ||
- 	     req->pages[req->num_pages - 1]->index + 1 != page->index)) {
--		fuse_send_readpages(req, data->file, inode);
-+		fuse_send_readpages(req, data->ff, inode);
- 		data->req = req = fuse_get_req(fc);
- 		if (IS_ERR(req)) {
- 			unlock_page(page);
-@@ -393,14 +409,14 @@ static int fuse_readpages(struct file *f
- {
- 	struct inode *inode = mapping->host;
- 	struct fuse_conn *fc = get_fuse_conn(inode);
--	struct fuse_readpages_data data;
-+	struct fuse_fill_data data;
- 	int err;
- 
- 	err = -EIO;
- 	if (is_bad_inode(inode))
- 		goto out;
- 
--	data.file = file;
-+	data.ff = file->private_data;
- 	data.inode = inode;
- 	data.req = fuse_get_req(fc);
- 	err = PTR_ERR(data.req);
-@@ -410,7 +426,7 @@ static int fuse_readpages(struct file *f
- 	err = read_cache_pages(mapping, pages, fuse_readpages_fill, &data);
- 	if (!err) {
- 		if (data.req->num_pages)
--			fuse_send_readpages(data.req, file, inode);
-+			fuse_send_readpages(data.req, data.ff, inode);
- 		else
- 			fuse_put_request(fc, data.req);
- 	}
-diff -puN fs/fuse/fuse_i.h~fuse-add-reference-counting-to-fuse_file fs/fuse/fuse_i.h
---- a/fs/fuse/fuse_i.h~fuse-add-reference-counting-to-fuse_file
-+++ a/fs/fuse/fuse_i.h
-@@ -72,6 +72,9 @@ struct fuse_file {
- 
- 	/** File handle used by userspace */
- 	u64 fh;
-+
-+	/** Refcount */
-+	atomic_t count;
- };
- 
- /** One input argument of a request */
-@@ -216,7 +219,7 @@ struct fuse_req {
- 	unsigned page_offset;
- 
- 	/** File used in the request (or NULL) */
--	struct file *file;
-+	struct fuse_file *ff;
- 
- 	/** vfsmount used in release */
- 	struct vfsmount *vfsmount;
-@@ -420,7 +423,7 @@ void fuse_send_forget(struct fuse_conn *
- /**
-  * Initialize READ or READDIR request
-  */
--void fuse_read_fill(struct fuse_req *req, struct file *file,
-+void fuse_read_fill(struct fuse_req *req, struct fuse_file *ff,
- 		    struct inode *inode, loff_t pos, size_t count, int opcode);
- 
- /**
-@@ -433,9 +436,9 @@ void fuse_file_free(struct fuse_file *ff
- void fuse_finish_open(struct inode *inode, struct file *file,
- 		      struct fuse_file *ff, struct fuse_open_out *outarg);
- 
--/** */
--struct fuse_req *fuse_release_fill(struct fuse_file *ff, u64 nodeid, int flags,
--				   int opcode);
-+/** Fill in ff->reserved_req with a RELEASE request */
-+void fuse_release_fill(struct fuse_file *ff, u64 nodeid, int flags, int opcode);
-+
- /**
-  * Send RELEASE or RELEASEDIR request
-  */
+ #endif
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from paul.clements@steeleye.com are
 
 origin.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
-unprivileged-mounts-add-no-submounts-flag.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
-fuse-fix-allowing-operations.patch
-fuse-fix-race-between-getattr-and-write.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
-fuse-clean-up-open-file-passing-in-setattr.patch
-vfs-allow-filesystems-to-implement-atomic-opentruncate.patch
-fuse-improve-utimes-support.patch
-fuse-add-atomic-opentruncate-support.patch
-fuse-support-bsd-locking-semantics.patch
-fuse-add-list-of-writable-files-to-fuse_inode.patch
-fuse-add-helper-for-asynchronous-writes.patch
-fuse-add-support-for-mandatory-locking.patch
-fuse-add-blksize-field-to-fuse_attr.patch
