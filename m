@@ -1,62 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:54:19 -0700
-Message-ID: <200710180654.l9I6sJkr030513@imap1.linux-foundation.org>
+Subject: - fix-very-high-interrupt-rate-for-irq8-rtc-unless-pnpacpi=off.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:03:48 -0700
+Message-ID: <200710180703.l9I73mRG031470@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37580 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42481 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932380AbXJRHn0 (ORCPT
+	by vger.kernel.org with ESMTP id S932391AbXJRHnb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:43:26 -0400
+	Thu, 18 Oct 2007 03:43:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nhorman@tuxdriver.com, jeremy@goop.org, satyam@infradead.org, mm-commits@vger.kernel.org
+To: olel@ans.pl, ak@suse.de, ambx1@neo.rr.com, bjorn.helgaas@hp.com, ole@ans.pl, shaohua.li@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     argv_split: allow argv_split to handle NULL pointer in argcp parameter gracefully
+     Fix very high interrupt rate for IRQ8 (rtc) unless pnpacpi=off
 has been removed from the -mm tree.  Its filename was
-     argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully.patch
+     fix-very-high-interrupt-rate-for-irq8-rtc-unless-pnpacpi=off.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: argv_split: allow argv_split to handle NULL pointer in argcp parameter gracefully
-From: Neil Horman <nhorman@tuxdriver.com>
+Subject: Fix very high interrupt rate for IRQ8 (rtc) unless pnpacpi=off
+From: Krzysztof Oledzki <olel@ans.pl>
 
-It would be nice if the argv_split library function could gracefully handle
-a NULL pointer in the argcp parameter, so as to allow functions using it
-that did not care about the value of argc to not have to declare a useless
-variable.  This patch accomplishes that.  Tested by me, with successful
-results.
+Workaround for broken systems with BIOS that makes RTC interrupt level
+triggered and/or active low.
 
-Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
-Acked-by: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Satyam Sharma <satyam@infradead.org>
+See http://bugzilla.kernel.org/show_bug.cgi?id=5243
+
+Based on the patch from Shaohua Li <shaohua.li@intel.com>
+
+Signed-off-by: Krzysztof Piotr Oledzki <ole@ans.pl>
+Cc: "Li, Shaohua" <shaohua.li@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Adam Belay <ambx1@neo.rr.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/argv_split.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/pnp/pnpacpi/rsparser.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN lib/argv_split.c~argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully lib/argv_split.c
---- a/lib/argv_split.c~argv_split-allow-argv_split-to-handle-null-pointer-in-argcp-parameter-gracefully
-+++ a/lib/argv_split.c
-@@ -75,7 +75,9 @@ char **argv_split(gfp_t gfp, const char 
- 	if (argv == NULL)
- 		goto out;
+diff -puN drivers/pnp/pnpacpi/rsparser.c~fix-very-high-interrupt-rate-for-irq8-rtc-unless-pnpacpi=off drivers/pnp/pnpacpi/rsparser.c
+--- a/drivers/pnp/pnpacpi/rsparser.c~fix-very-high-interrupt-rate-for-irq8-rtc-unless-pnpacpi=off
++++ a/drivers/pnp/pnpacpi/rsparser.c
+@@ -85,6 +85,16 @@ static void pnpacpi_parse_allocated_irqr
+ 	if (i >= PNP_MAX_IRQ)
+ 		return;
  
--	*argcp = argc;
-+	if (argcp)
-+		*argcp = argc;
++#ifdef CONFIG_X86
++	if (gsi < 16 && (triggering != ACPI_EDGE_SENSITIVE ||
++				polarity != ACPI_ACTIVE_HIGH)) {
++		pnp_warn("BIOS BUG: legacy PNP IRQ %d should be edge trigger, "
++				"active high", gsi);
++		triggering = ACPI_EDGE_SENSITIVE;
++		polarity = ACPI_ACTIVE_HIGH;
++	}
++#endif
 +
- 	argvp = argv;
- 
- 	while (*str) {
+ 	res->irq_resource[i].flags = IORESOURCE_IRQ;	// Also clears _UNSET flag
+ 	res->irq_resource[i].flags |= irq_flags(triggering, polarity);
+ 	irq = acpi_register_gsi(gsi, triggering, polarity);
 _
 
-Patches currently in -mm which might be from nhorman@tuxdriver.com are
+Patches currently in -mm which might be from olel@ans.pl are
 
 origin.patch
-proc-export-a-processes-resource-limits-via-proc-pid.patch
