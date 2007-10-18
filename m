@@ -1,104 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - writeback-fix-ntfs-with-sb_has_dirty_inodes.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:02:30 -0700
-Message-ID: <200710180702.l9I72Uw8031276@imap1.linux-foundation.org>
+Subject: - ipc-namespace-remove-config-ipc-ns-fix.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:59:59 -0700
+Message-ID: <200710180659.l9I6xxHd031038@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49002 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46808 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754531AbXJRH37 (ORCPT
+	by vger.kernel.org with ESMTP id S1761575AbXJRHab (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:29:59 -0400
+	Thu, 18 Oct 2007 03:30:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wfg@mail.ustc.edu.cn, aia21@cantab.net, kenchen@google.com, mm-commits@vger.kernel.org
+To: clg@fr.ibm.com, ebiederm@xmision.com, rpjday@mindspring.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     writeback: fix ntfs with sb_has_dirty_inodes()
+     ipc namespace: remove config ipc ns fix
 has been removed from the -mm tree.  Its filename was
-     writeback-fix-ntfs-with-sb_has_dirty_inodes.patch
+     ipc-namespace-remove-config-ipc-ns-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: writeback: fix ntfs with sb_has_dirty_inodes()
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: ipc namespace: remove config ipc ns fix
+From: Cedric Le Goater <clg@fr.ibm.com>
 
-NTFS's if-condition on dirty inodes is not complete.  Fix it with
-sb_has_dirty_inodes().
+Finish the work : kill all #ifdef CONFIG_IPC_NS.
 
-Cc: Anton Altaparmakov <aia21@cantab.net>
-Cc: Ken Chen <kenchen@google.com>
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Thanks Robert !
+
+Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Eric Biederman <ebiederm@xmision.com>
+Cc: Robert P. J. Day <rpjday@mindspring.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c  |   10 +++++++++-
- fs/ntfs/super.c    |    4 ++--
- include/linux/fs.h |    1 +
- 3 files changed, 12 insertions(+), 3 deletions(-)
+ ipc/ipc_sysctl.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN fs/fs-writeback.c~writeback-fix-ntfs-with-sb_has_dirty_inodes fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-fix-ntfs-with-sb_has_dirty_inodes
-+++ a/fs/fs-writeback.c
-@@ -199,6 +199,14 @@ static void queue_io(struct super_block 
- 	move_expired_inodes(&sb->s_dirty, &sb->s_io, older_than_this);
+diff -puN ipc/ipc_sysctl.c~ipc-namespace-remove-config-ipc-ns-fix ipc/ipc_sysctl.c
+--- a/ipc/ipc_sysctl.c~ipc-namespace-remove-config-ipc-ns-fix
++++ a/ipc/ipc_sysctl.c
+@@ -15,7 +15,6 @@
+ #include <linux/sysctl.h>
+ #include <linux/uaccess.h>
+ 
+-#ifdef CONFIG_IPC_NS
+ static void *get_ipc(ctl_table *table)
+ {
+ 	char *which = table->data;
+@@ -23,9 +22,6 @@ static void *get_ipc(ctl_table *table)
+ 	which = (which - (char *)&init_ipc_ns) + (char *)ipc_ns;
+ 	return which;
  }
+-#else
+-#define get_ipc(T) ((T)->data)
+-#endif
  
-+int sb_has_dirty_inodes(struct super_block *sb)
-+{
-+	return !list_empty(&sb->s_dirty) ||
-+	       !list_empty(&sb->s_io) ||
-+	       !list_empty(&sb->s_more_io);
-+}
-+EXPORT_SYMBOL(sb_has_dirty_inodes);
-+
- /*
-  * Write a single inode's dirty pages and inode data out to disk.
-  * If `wait' is set, wait on the writeout.
-@@ -497,7 +505,7 @@ writeback_inodes(struct writeback_contro
- restart:
- 	sb = sb_entry(super_blocks.prev);
- 	for (; sb != sb_entry(&super_blocks); sb = sb_entry(sb->s_list.prev)) {
--		if (!list_empty(&sb->s_dirty) || !list_empty(&sb->s_io)) {
-+		if (sb_has_dirty_inodes(sb)) {
- 			/* we're making our own get_super here */
- 			sb->s_count++;
- 			spin_unlock(&sb_lock);
-diff -puN fs/ntfs/super.c~writeback-fix-ntfs-with-sb_has_dirty_inodes fs/ntfs/super.c
---- a/fs/ntfs/super.c~writeback-fix-ntfs-with-sb_has_dirty_inodes
-+++ a/fs/ntfs/super.c
-@@ -2381,14 +2381,14 @@ static void ntfs_put_super(struct super_
- 	 */
- 	ntfs_commit_inode(vol->mft_ino);
- 	write_inode_now(vol->mft_ino, 1);
--	if (!list_empty(&sb->s_dirty)) {
-+	if (sb_has_dirty_inodes(sb)) {
- 		const char *s1, *s2;
- 
- 		mutex_lock(&vol->mft_ino->i_mutex);
- 		truncate_inode_pages(vol->mft_ino->i_mapping, 0);
- 		mutex_unlock(&vol->mft_ino->i_mutex);
- 		write_inode_now(vol->mft_ino, 1);
--		if (!list_empty(&sb->s_dirty)) {
-+		if (sb_has_dirty_inodes(sb)) {
- 			static const char *_s1 = "inodes";
- 			static const char *_s2 = "";
- 			s1 = _s1;
-diff -puN include/linux/fs.h~writeback-fix-ntfs-with-sb_has_dirty_inodes include/linux/fs.h
---- a/include/linux/fs.h~writeback-fix-ntfs-with-sb_has_dirty_inodes
-+++ a/include/linux/fs.h
-@@ -1729,6 +1729,7 @@ extern int bdev_read_only(struct block_d
- extern int set_blocksize(struct block_device *, int);
- extern int sb_set_blocksize(struct super_block *, int);
- extern int sb_min_blocksize(struct super_block *, int);
-+extern int sb_has_dirty_inodes(struct super_block *);
- 
- extern int generic_file_mmap(struct file *, struct vm_area_struct *);
- extern int generic_file_readonly_mmap(struct file *, struct vm_area_struct *);
+ #ifdef CONFIG_PROC_FS
+ static int proc_ipc_dointvec(ctl_table *table, int write, struct file *filp,
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from clg@fr.ibm.com are
 
 origin.patch
+task-containersv11-basic-task-container-framework.patch
+task-containersv11-add-tasks-file-interface.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
+containers-implement-namespace-tracking-subsystem-fix-order-of-container-subsystems-in-init-kconfig.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
+make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
+fix-cpusets-update_cpumask.patch
+fix-cpusets-update_cpumask-checkpatch-fixes.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
