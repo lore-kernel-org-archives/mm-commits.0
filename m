@@ -1,89 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - oom-convert-zone_scan_lock-from-mutex-to-spinlock.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:52:06 -0700
-Message-ID: <200710180652.l9I6q6Sh030242@imap1.linux-foundation.org>
+Subject: - oom-move-constraints-to-enum.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:51:38 -0700
+Message-ID: <200710180651.l9I6pcgR030205@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45233 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40514 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932510AbXJRHoR (ORCPT
+	by vger.kernel.org with ESMTP id S932434AbXJRHob (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:44:17 -0400
+	Thu, 18 Oct 2007 03:44:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rientjes@google.com, andrea@suse.de, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom: convert zone_scan_lock from mutex to spinlock
+     oom: move constraints to enum
 has been removed from the -mm tree.  Its filename was
-     oom-convert-zone_scan_lock-from-mutex-to-spinlock.patch
+     oom-move-constraints-to-enum.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: oom: convert zone_scan_lock from mutex to spinlock
+Subject: oom: move constraints to enum
 From: David Rientjes <rientjes@google.com>
 
-There's no reason to sleep in try_set_zone_oom() or clear_zonelist_oom() if
-the lock can't be acquired; it will be available soon enough once the zonelist
-scanning is done.  All other threads waiting for the OOM killer are also
-contingent on the exiting task being able to acquire the lock in
-clear_zonelist_oom() so it doesn't make sense to put it to sleep.
+The OOM killer's CONSTRAINT definitions are really more appropriate in an
+enum, so define them in include/linux/oom.h.
 
 Cc: Andrea Arcangeli <andrea@suse.de>
-Cc: Christoph Lameter <clameter@sgi.com>
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/linux/oom.h |    9 +++++++++
+ mm/oom_kill.c       |   12 +++---------
+ 2 files changed, 12 insertions(+), 9 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-convert-zone_scan_lock-from-mutex-to-spinlock mm/oom_kill.c
---- a/mm/oom_kill.c~oom-convert-zone_scan_lock-from-mutex-to-spinlock
+diff -puN include/linux/oom.h~oom-move-constraints-to-enum include/linux/oom.h
+--- a/include/linux/oom.h~oom-move-constraints-to-enum
++++ a/include/linux/oom.h
+@@ -11,6 +11,15 @@
+ 
+ #ifdef __KERNEL__
+ 
++/*
++ * Types of limitations to the nodes from which allocations may occur
++ */
++enum oom_constraint {
++	CONSTRAINT_NONE,
++	CONSTRAINT_CPUSET,
++	CONSTRAINT_MEMORY_POLICY,
++};
++
+ extern void out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask, int order);
+ extern int register_oom_notifier(struct notifier_block *nb);
+ extern int unregister_oom_notifier(struct notifier_block *nb);
+diff -puN mm/oom_kill.c~oom-move-constraints-to-enum mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-move-constraints-to-enum
 +++ a/mm/oom_kill.c
-@@ -28,7 +28,7 @@
- 
- int sysctl_panic_on_oom;
- int sysctl_oom_kill_allocating_task;
--static DEFINE_MUTEX(zone_scan_mutex);
-+static DEFINE_SPINLOCK(zone_scan_mutex);
- /* #define DEBUG */
- 
- /**
-@@ -396,7 +396,7 @@ int try_set_zone_oom(struct zonelist *zo
- 
- 	z = zonelist->zones;
- 
--	mutex_lock(&zone_scan_mutex);
-+	spin_lock(&zone_scan_mutex);
- 	do {
- 		if (zone_is_oom_locked(*z)) {
- 			ret = 0;
-@@ -413,7 +413,7 @@ int try_set_zone_oom(struct zonelist *zo
- 		zone_set_flag(*z, ZONE_OOM_LOCKED);
- 	} while (*(++z) != NULL);
- out:
--	mutex_unlock(&zone_scan_mutex);
-+	spin_unlock(&zone_scan_mutex);
- 	return ret;
+@@ -164,16 +164,10 @@ unsigned long badness(struct task_struct
  }
  
-@@ -428,11 +428,11 @@ void clear_zonelist_oom(struct zonelist 
+ /*
+- * Types of limitations to the nodes from which allocations may occur
+- */
+-#define CONSTRAINT_NONE 1
+-#define CONSTRAINT_MEMORY_POLICY 2
+-#define CONSTRAINT_CPUSET 3
+-
+-/*
+  * Determine the type of allocation constraint.
+  */
+-static inline int constrained_alloc(struct zonelist *zonelist, gfp_t gfp_mask)
++static inline enum oom_constraint constrained_alloc(struct zonelist *zonelist,
++						    gfp_t gfp_mask)
+ {
+ #ifdef CONFIG_NUMA
+ 	struct zone **z;
+@@ -393,7 +387,7 @@ void out_of_memory(struct zonelist *zone
+ 	struct task_struct *p;
+ 	unsigned long points = 0;
+ 	unsigned long freed = 0;
+-	int constraint;
++	enum oom_constraint constraint;
  
- 	z = zonelist->zones;
- 
--	mutex_lock(&zone_scan_mutex);
-+	spin_lock(&zone_scan_mutex);
- 	do {
- 		zone_clear_flag(*z, ZONE_OOM_LOCKED);
- 	} while (*(++z) != NULL);
--	mutex_unlock(&zone_scan_mutex);
-+	spin_unlock(&zone_scan_mutex);
- }
- 
- /**
+ 	blocking_notifier_call_chain(&oom_notify_list, 0, &freed);
+ 	if (freed > 0)
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
