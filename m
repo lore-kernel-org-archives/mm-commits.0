@@ -1,81 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - tweak-proc-ipmi-removal.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:55:14 -0700
-Message-ID: <200710180655.l9I6tEtU030591@imap1.linux-foundation.org>
+Subject: - dcache-trivial-comment-fix.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:00:05 -0700
+Message-ID: <200710180700.l9I705wH031072@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48873 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39357 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755619AbXJRHRk (ORCPT
+	by vger.kernel.org with ESMTP id S1763736AbXJRHQw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:17:40 -0400
+	Thu, 18 Oct 2007 03:16:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@sw.ru, minyard@acm.org, mm-commits@vger.kernel.org
+To: bfields@fieldses.org, bfields@citi.umich.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Tweak /proc/ipmi removal
+     dcache: trivial comment fix
 has been removed from the -mm tree.  Its filename was
-     tweak-proc-ipmi-removal.patch
+     dcache-trivial-comment-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Tweak /proc/ipmi removal
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: dcache: trivial comment fix
+From: "J. Bruce Fields" <bfields@fieldses.org>
 
-Driver does
-	proc_mkdir("ipmi", NULL);
-but
-	remove_proc_entry(proc_ipmi_root->name, &proc_root);
+As it stands this comment is confusing, and not quite grammatical.
 
-This is OK and working if only slightly inconsistent.  Also changing
-proc_root to NULL will help OpenVZ which has multiple proc roots and, as we
-now know, requires matching parents in such cases.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Corey Minyard <minyard@acm.org>
+Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_msghandler.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/dcache.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_msghandler.c~tweak-proc-ipmi-removal drivers/char/ipmi/ipmi_msghandler.c
---- a/drivers/char/ipmi/ipmi_msghandler.c~tweak-proc-ipmi-removal
-+++ a/drivers/char/ipmi/ipmi_msghandler.c
-@@ -4136,7 +4136,7 @@ static __exit void cleanup_ipmi(void)
- 	del_timer_sync(&ipmi_timer);
- 
- #ifdef CONFIG_PROC_FS
--	remove_proc_entry(proc_ipmi_root->name, &proc_root);
-+	remove_proc_entry(proc_ipmi_root->name, NULL);
- #endif /* CONFIG_PROC_FS */
- 
- 	driver_unregister(&ipmidriver);
+diff -puN fs/dcache.c~dcache-trivial-comment-fix fs/dcache.c
+--- a/fs/dcache.c~dcache-trivial-comment-fix
++++ a/fs/dcache.c
+@@ -1510,8 +1510,8 @@ static void switch_names(struct dentry *
+  * This forceful removal will result in ugly /proc output if
+  * somebody holds a file open that got deleted due to a rename.
+  * We could be nicer about the deleted file, and let it show
+- * up under the name it got deleted rather than the name that
+- * deleted it.
++ * up under the name it had before it was deleted rather than
++ * the original name of the file that was moved on top of it.
+  */
+  
+ /*
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from bfields@fieldses.org are
 
 origin.patch
-add-kernel-notifierc.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2.patch
-add-kernel-notifierc-fix-2-fix-3.patch
-sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
-sysctl-factor-out-sysctl_data.patch
-sysct-mqueue-remove-the-binary-sysctl-numbers.patch
-sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
-sysctl-fix-neighbour-table-sysctls.patch
-sysctl-ipv6-route-flushing-kill-binary-path.patch
+git-nfs-make-nfs_wb_page_priority-static.patch
+ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
+knfsd-only-set-attr_kill_sid-if-attr_mode-isnt-being-explicitly-set.patch
+vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
+nfs-if-attr_kill_sid-bits-are-set-then-skip-mode-change.patch
 sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
-sysctl-x86_64-remove-unnecessary-binary-paths.patch
-sysctl-remove-broken-cdrom-binary-sysctls.patch
-sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
-sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
-sysctl-error-on-bad-sysctl-tables.patch
-sysctl-update-sysctl_check_table.patch
-uninline-forkc-exitc.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-single_open-seq_release-leak-diagnostics.patch
+exportfs-add-fid-type.patch
+exportfs-add-new-methods.patch
+ext2-new-export-ops.patch
+ext3-new-export-ops.patch
+ext4-new-export-ops.patch
+efs-new-export-ops.patch
+jfs-new-export-ops.patch
+ntfs-new-export-ops.patch
+fat-new-export-ops.patch
+isofs-new-export-ops.patch
+shmem-new-export-ops.patch
+reiserfs-new-export-ops.patch
+gfs2-new-export-ops.patch
+ocfs2-new-export-ops.patch
+exportfs-remove-old-methods.patch
+exportfs-make-struct-export_operations-const.patch
+exportfs-update-documentation.patch
