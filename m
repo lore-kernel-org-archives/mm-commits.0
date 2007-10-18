@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ucc_geth-add-support-for-netpoll.patch added to -mm tree
-Date: Wed, 17 Oct 2007 21:02:23 -0700
-Message-ID: <200710180402.l9I42Nfb024338@imap1.linux-foundation.org>
+Subject: + phy-implement-release-function.patch added to -mm tree
+Date: Wed, 17 Oct 2007 21:02:25 -0700
+Message-ID: <200710180402.l9I42PbU024341@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60720 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34931 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750782AbXJRECe (ORCPT
+	by vger.kernel.org with ESMTP id S1750782AbXJRECi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 00:02:34 -0400
+	Thu, 18 Oct 2007 00:02:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avorontsov@ru.mvista.com
+Cc: avorontsov@ru.mvista.com, afleming@freescale.com
 
 
 The patch titled
-     ucc_geth: add support for netpoll
+     phy: implement release function
 has been added to the -mm tree.  Its filename is
-     ucc_geth-add-support-for-netpoll.patch
+     phy-implement-release-function.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,57 +26,114 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ucc_geth: add support for netpoll
+Subject: phy: implement release function
 From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-Add netpoll support for the QE UCC Gigabit Ethernet driver.  The approach is
-very similar to the gianfar driver.
+Lately I've got this nice badness on mdio bus removal:
 
-Tested using netconsole.
+Device 'e0103120:06' does not have a release() function, it is broken and must be fixed.
+------------[ cut here ]------------
+Badness at drivers/base/core.c:107
+NIP: c015c1a8 LR: c015c1a8 CTR: c0157488
+REGS: c34bdcf0 TRAP: 0700   Not tainted  (2.6.23-rc5-g9ebadfbb-dirty)
+MSR: 00029032 <EE,ME,IR,DR>  CR: 24088422  XER: 00000000
+...
+[c34bdda0] [c015c1a8] device_release+0x78/0x80 (unreliable)
+[c34bddb0] [c01354cc] kobject_cleanup+0x80/0xbc
+[c34bddd0] [c01365f0] kref_put+0x54/0x6c
+[c34bdde0] [c013543c] kobject_put+0x24/0x34
+[c34bddf0] [c015c384] put_device+0x1c/0x2c
+[c34bde00] [c0180e84] mdiobus_unregister+0x2c/0x58
+...
+
+Though actually there is nothing broken, it just device
+subsystem core expects another "pattern" of resource managment.
+
+This patch implement phy device's release function, thus
+we're getting rid of this badness.
+
+Also small hidden bug fixed, hope none other introduced. ;-)
 
 Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Acked-by: Andy Fleming <afleming@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ucc_geth.c |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ drivers/net/phy/mdio_bus.c   |    9 +++++----
+ drivers/net/phy/phy_device.c |   13 +++++++++++++
+ include/linux/phy.h          |    1 +
+ 3 files changed, 19 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/ucc_geth.c~ucc_geth-add-support-for-netpoll drivers/net/ucc_geth.c
---- a/drivers/net/ucc_geth.c~ucc_geth-add-support-for-netpoll
-+++ a/drivers/net/ucc_geth.c
-@@ -3676,6 +3676,22 @@ static irqreturn_t ucc_geth_irq_handler(
- 	return IRQ_HANDLED;
- }
+diff -puN drivers/net/phy/mdio_bus.c~phy-implement-release-function drivers/net/phy/mdio_bus.c
+--- a/drivers/net/phy/mdio_bus.c~phy-implement-release-function
++++ a/drivers/net/phy/mdio_bus.c
+@@ -91,9 +91,12 @@ int mdiobus_register(struct mii_bus *bus
  
-+#ifdef CONFIG_NET_POLL_CONTROLLER
-+/*
-+ * Polling 'interrupt' - used by things like netconsole to send skbs
-+ * without having to re-enable interrupts. It's not called while
-+ * the interrupt routine is executing.
-+ */
-+static void ucc_netpoll(struct net_device *dev)
+ 			err = device_register(&phydev->dev);
+ 
+-			if (err)
++			if (err) {
+ 				printk(KERN_ERR "phy %d failed to register\n",
+ 						i);
++				phy_device_free(phydev);
++				phydev = NULL;
++			}
+ 		}
+ 
+ 		bus->phy_map[i] = phydev;
+@@ -110,10 +113,8 @@ void mdiobus_unregister(struct mii_bus *
+ 	int i;
+ 
+ 	for (i = 0; i < PHY_MAX_ADDR; i++) {
+-		if (bus->phy_map[i]) {
++		if (bus->phy_map[i])
+ 			device_unregister(&bus->phy_map[i]->dev);
+-			kfree(bus->phy_map[i]);
+-		}
+ 	}
+ }
+ EXPORT_SYMBOL(mdiobus_unregister);
+diff -puN drivers/net/phy/phy_device.c~phy-implement-release-function drivers/net/phy/phy_device.c
+--- a/drivers/net/phy/phy_device.c~phy-implement-release-function
++++ a/drivers/net/phy/phy_device.c
+@@ -44,6 +44,17 @@ static struct phy_driver genphy_driver;
+ extern int mdio_bus_init(void);
+ extern void mdio_bus_exit(void);
+ 
++void phy_device_free(struct phy_device *phydev)
 +{
-+	struct ucc_geth_private *ugeth = netdev_priv(dev);
-+
-+	disable_irq(ugeth->ug_info->uf_info.irq);
-+	ucc_geth_irq_handler(ugeth->ug_info->uf_info.irq, dev);
-+	enable_irq(ugeth->ug_info->uf_info.irq);
++	kfree(phydev);
 +}
-+#endif /* CONFIG_NET_POLL_CONTROLLER */
++EXPORT_SYMBOL(phy_device_free);
 +
- /* Called when something needs to use the ethernet device */
- /* Returns 0 for success. */
- static int ucc_geth_open(struct net_device *dev)
-@@ -3965,6 +3981,9 @@ static int ucc_geth_probe(struct of_devi
- #ifdef CONFIG_UGETH_NAPI
- 	netif_napi_add(dev, &ugeth->napi, ucc_geth_poll, UCC_GETH_DEV_WEIGHT);
- #endif				/* CONFIG_UGETH_NAPI */
-+#ifdef CONFIG_NET_POLL_CONTROLLER
-+	dev->poll_controller = ucc_netpoll;
-+#endif
- 	dev->stop = ucc_geth_close;
- //    dev->change_mtu = ucc_geth_change_mtu;
- 	dev->mtu = 1500;
++static void phy_device_release(struct device *dev)
++{
++	phy_device_free(to_phy_device(dev));
++}
++
+ struct phy_device* phy_device_create(struct mii_bus *bus, int addr, int phy_id)
+ {
+ 	struct phy_device *dev;
+@@ -54,6 +65,8 @@ struct phy_device* phy_device_create(str
+ 	if (NULL == dev)
+ 		return (struct phy_device*) PTR_ERR((void*)-ENOMEM);
+ 
++	dev->dev.release = phy_device_release;
++
+ 	dev->speed = 0;
+ 	dev->duplex = -1;
+ 	dev->pause = dev->asym_pause = 0;
+diff -puN include/linux/phy.h~phy-implement-release-function include/linux/phy.h
+--- a/include/linux/phy.h~phy-implement-release-function
++++ a/include/linux/phy.h
+@@ -401,6 +401,7 @@ int phy_mii_ioctl(struct phy_device *phy
+ int phy_start_interrupts(struct phy_device *phydev);
+ void phy_print_status(struct phy_device *phydev);
+ struct phy_device* phy_device_create(struct mii_bus *bus, int addr, int phy_id);
++void phy_device_free(struct phy_device *phydev);
+ 
+ extern struct bus_type mdio_bus_type;
+ #endif /* __PHY_H */
 _
 
 Patches currently in -mm which might be from avorontsov@ru.mvista.com are
