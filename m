@@ -1,102 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - vfs-check-nanoseconds-in-utimensat.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:56:02 -0700
-Message-ID: <200710180656.l9I6u2EH030669@imap1.linux-foundation.org>
+Subject: - codingstyle-relax-the-80-cole-rule.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:57:20 -0700
+Message-ID: <200710180657.l9I6vKSQ030807@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33926 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57816 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755334AbXJRHUo (ORCPT
+	by vger.kernel.org with ESMTP id S1755503AbXJRHVG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:20:44 -0400
+	Thu, 18 Oct 2007 03:21:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, drepper@redhat.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     VFS: check nanoseconds in utimensat
+     CodingStyle: relax the 80-cole rule
 has been removed from the -mm tree.  Its filename was
-     vfs-check-nanoseconds-in-utimensat.patch
+     codingstyle-relax-the-80-cole-rule.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: VFS: check nanoseconds in utimensat
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: CodingStyle: relax the 80-cole rule
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-utimensat() (and possibly other callers of do_utimes()) didn't check if the
-nanosecond value was within the allowed range.
+I would suggest this change to make CodingStyle properly reflect the style
+used by the kernel, rather than the current wording which is wishful
+thinking and misleading, and comes from the same school of thought that
+gets off on prescriptive grammar, latin and comp.std.c
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Ulrich Drepper <drepper@redhat.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/utimes.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ Documentation/CodingStyle |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN fs/utimes.c~vfs-check-nanoseconds-in-utimensat fs/utimes.c
---- a/fs/utimes.c~vfs-check-nanoseconds-in-utimensat
-+++ a/fs/utimes.c
-@@ -38,6 +38,14 @@ asmlinkage long sys_utime(char __user *f
+diff -puN Documentation/CodingStyle~codingstyle-relax-the-80-cole-rule Documentation/CodingStyle
+--- a/Documentation/CodingStyle~codingstyle-relax-the-80-cole-rule
++++ a/Documentation/CodingStyle
+@@ -77,12 +77,15 @@ Get a decent editor and don't leave whit
+ Coding style is all about readability and maintainability using commonly
+ available tools.
  
- #endif
+-The limit on the length of lines is 80 columns and this is a hard limit.
++The limit on the length of lines is 80 columns and this is a strongly
++preferred limit.
  
-+static bool nsec_valid(long nsec)
-+{
-+	if (nsec == UTIME_OMIT || nsec == UTIME_NOW)
-+		return true;
-+
-+	return nsec >= 0 && nsec <= 999999999;
-+}
-+
- /* If times==NULL, set access and modification to current time,
-  * must be owner or have write permission.
-  * Else, update from *times, must be owner or super user.
-@@ -52,6 +60,11 @@ long do_utimes(int dfd, char __user *fil
- 	struct file *f = NULL;
+ Statements longer than 80 columns will be broken into sensible chunks.
+ Descendants are always substantially shorter than the parent and are placed
+ substantially to the right. The same applies to function headers with a long
+-argument list. Long strings are as well broken into shorter strings.
++argument list. Long strings are as well broken into shorter strings. The
++only exception to this is where exceeding 80 columns significantly increases
++readability and does not hide information.
  
- 	error = -EINVAL;
-+	if (times && (!nsec_valid(times[0].tv_nsec) ||
-+		      !nsec_valid(times[1].tv_nsec))) {
-+		goto out;
-+	}
-+
- 	if (flags & ~AT_SYMLINK_NOFOLLOW)
- 		goto out;
- 
+ void fun(int a, int b, int c)
+ {
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
-unprivileged-mounts-add-no-submounts-flag.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
-fuse-fix-allowing-operations.patch
-fuse-fix-race-between-getattr-and-write.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
-fuse-clean-up-open-file-passing-in-setattr.patch
-vfs-allow-filesystems-to-implement-atomic-opentruncate.patch
-fuse-improve-utimes-support.patch
-fuse-add-atomic-opentruncate-support.patch
-fuse-support-bsd-locking-semantics.patch
-fuse-add-list-of-writable-files-to-fuse_inode.patch
-fuse-add-helper-for-asynchronous-writes.patch
-fuse-add-support-for-mandatory-locking.patch
-fuse-add-blksize-field-to-fuse_attr.patch
+tty_ioctl-fix-the-baud_table-check-in-encode_baud_rate.patch
+git-libata-all.patch
+pata_cs5536-mwdma-fix.patch
+libata-sff-correct-use-of-check_status.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+git-scsi-misc.patch
+initio-fix-conflict-when-loading-driver.patch
+isd200-sort-out-usb-ide-dependancy-mess.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+mxser-remove-commented-crap.patch
+char-cyclades-remove-bottom-half-processing.patch
+usb_serial-stop-passing-null-to-functions-that-expect-data.patch
+ark3116-update-termios-handling.patch
+usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch
+ch341-fix-termios-handling.patch
+digi_acceleport-fix-termios-and-also-readability-a-bit.patch
+empeg-clean-up-and-handle-speeds.patch
+ir_usb-termios-handling.patch
+keyspan-termios-tidy.patch
+kobil_sct-termios-encoding-fixups.patch
+option-termios-handling.patch
+sierra-termios.patch
+usb-serial-handle-null-termios-methods-as-no-hardware-changing-support.patch
+whiteheat-clean-up-cant-happen-checks-and-encode-baud.patch
+cp2101-convert-to-new-termios.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+io_edgeport-cleanups-and-tty-speed-reporting.patch
+tty-kill-tty_flipbuf_size.patch
