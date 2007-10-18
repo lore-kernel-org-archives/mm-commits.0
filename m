@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - exec-simplify-the-new-sighand-allocation.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:56:45 -0700
-Message-ID: <200710180656.l9I6ujSp030726@imap1.linux-foundation.org>
+Subject: - __group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:55:38 -0700
+Message-ID: <200710180655.l9I6tcsM030630@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44847 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45168 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756885AbXJRH0i (ORCPT
+	by vger.kernel.org with ESMTP id S1757473AbXJRH0i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 18 Oct 2007 03:26:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,95 +15,61 @@ To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     exec: simplify the new ->sighand allocation
+     __group_complete_signal: eliminate unneeded wakeup of ->group_exit_task
 has been removed from the -mm tree.  Its filename was
-     exec-simplify-the-new-sighand-allocation.patch
+     __group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: exec: simplify the new ->sighand allocation
+Subject: __group_complete_signal: eliminate unneeded wakeup of ->group_exit_task
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-de_thread() pre-allocates newsighand to make sure that exec() can't fail after
-killing all sub-threads. Imho, this buys nothing, but complicates the code:
+Cleanup.  __group_complete_signal() wakes up ->group_exit_task twice.  The
+second wakeup's state includes TASK_UNINTERRUPTIBLE, which is not very
+appropriate.
 
-	- this is (mostly) needed to handle CLONE_SIGHAND without CLONE_THREAD
-	  tasks, this is very unlikely (if ever used) case
-
-	- unless we already have some serious problems, GFP_KERNEL allocation
-	  should not fail
-
-	- ENOMEM still can happen after de_thread(), ->sighand is not the last
-	  object we have to allocate
-
-Change the code to allocate the new ->sighand on demand.
+Change the code to pass the "correct" argument to signal_wake_up() and kill
+now unneeded wake_up_process().
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   24 +++++++++---------------
- 1 file changed, 9 insertions(+), 15 deletions(-)
+ kernel/signal.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN fs/exec.c~exec-simplify-the-new-sighand-allocation fs/exec.c
---- a/fs/exec.c~exec-simplify-the-new-sighand-allocation
-+++ a/fs/exec.c
-@@ -747,7 +747,7 @@ static int exec_mmap(struct mm_struct *m
- static int de_thread(struct task_struct *tsk)
- {
- 	struct signal_struct *sig = tsk->signal;
--	struct sighand_struct *newsighand, *oldsighand = tsk->sighand;
-+	struct sighand_struct *oldsighand = tsk->sighand;
- 	spinlock_t *lock = &oldsighand->siglock;
- 	struct task_struct *leader = NULL;
- 	int count;
-@@ -761,10 +761,6 @@ static int de_thread(struct task_struct 
- 		return 0;
+diff -puN kernel/signal.c~__group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task kernel/signal.c
+--- a/kernel/signal.c~__group_complete_signal-eliminate-unneeded-wakeup-of-group_exit_task
++++ a/kernel/signal.c
+@@ -909,8 +909,7 @@ __group_complete_signal(int sig, struct 
+ 			do {
+ 				sigaddset(&t->pending.signal, SIGKILL);
+ 				signal_wake_up(t, 1);
+-				t = next_thread(t);
+-			} while (t != p);
++			} while_each_thread(p, t);
+ 			return;
+ 		}
+ 
+@@ -928,13 +927,11 @@ __group_complete_signal(int sig, struct 
+ 		rm_from_queue(SIG_KERNEL_STOP_MASK, &p->signal->shared_pending);
+ 		p->signal->group_stop_count = 0;
+ 		p->signal->group_exit_task = t;
+-		t = p;
++		p = t;
+ 		do {
+ 			p->signal->group_stop_count++;
+-			signal_wake_up(t, 0);
+-			t = next_thread(t);
+-		} while (t != p);
+-		wake_up_process(p->signal->group_exit_task);
++			signal_wake_up(t, t == p);
++		} while_each_thread(p, t);
+ 		return;
  	}
  
--	newsighand = kmem_cache_alloc(sighand_cachep, GFP_KERNEL);
--	if (!newsighand)
--		return -ENOMEM;
--
- 	if (thread_group_empty(tsk))
- 		goto no_thread_group;
- 
-@@ -781,7 +777,6 @@ static int de_thread(struct task_struct 
- 		 */
- 		spin_unlock_irq(lock);
- 		read_unlock(&tasklist_lock);
--		kmem_cache_free(sighand_cachep, newsighand);
- 		return -EAGAIN;
- 	}
- 
-@@ -899,17 +894,16 @@ no_thread_group:
- 	if (leader)
- 		release_task(leader);
- 
--	if (atomic_read(&oldsighand->count) == 1) {
--		/*
--		 * Now that we nuked the rest of the thread group,
--		 * it turns out we are not sharing sighand any more either.
--		 * So we can just keep it.
--		 */
--		kmem_cache_free(sighand_cachep, newsighand);
--	} else {
-+	if (atomic_read(&oldsighand->count) != 1) {
-+		struct sighand_struct *newsighand;
- 		/*
--		 * Move our state over to newsighand and switch it in.
-+		 * This ->sighand is shared with the CLONE_SIGHAND
-+		 * but not CLONE_THREAD task, switch to the new one.
- 		 */
-+		newsighand = kmem_cache_alloc(sighand_cachep, GFP_KERNEL);
-+		if (!newsighand)
-+			return -ENOMEM;
-+
- 		atomic_set(&newsighand->count, 1);
- 		memcpy(newsighand->action, oldsighand->action,
- 		       sizeof(newsighand->action));
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
