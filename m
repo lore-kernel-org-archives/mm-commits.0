@@ -1,207 +1,231 @@
 From: akpm@linux-foundation.org
-Subject: - fuse-truncate-on-spontaneous-size-change.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:03:24 -0700
-Message-ID: <200710180703.l9I73O2E031430@imap1.linux-foundation.org>
+Subject: - add-vmcore-add-a-prefix-vmcoreinfo_-to-the-vmcoreinfo-macros.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:57:07 -0700
+Message-ID: <200710180657.l9I6v77j030767@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59232 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43623 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763116AbXJRHPv (ORCPT
+	by vger.kernel.org with ESMTP id S1763202AbXJRHPw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:15:51 -0400
+	Thu, 18 Oct 2007 03:15:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, mm-commits@vger.kernel.org
+To: oomichi@mxs.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fuse: truncate on spontaneous size change
+     add-vmcore: add a prefix "VMCOREINFO_" to the vmcoreinfo macros
 has been removed from the -mm tree.  Its filename was
-     fuse-truncate-on-spontaneous-size-change.patch
+     add-vmcore-add-a-prefix-vmcoreinfo_-to-the-vmcoreinfo-macros.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fuse: truncate on spontaneous size change
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: add-vmcore: add a prefix "VMCOREINFO_" to the vmcoreinfo macros
+From: "Ken'ichi Ohmichi" <oomichi@mxs.nes.nec.co.jp>
 
-Memory mappings were only truncated on an explicit truncate, but not when the
-file size was changed externally.
+Add a prefix "VMCOREINFO_" to the vmcoreinfo macros.  Old vmcoreinfo macros
+were defined as generic names SYMBOL/SIZE/OFFSET /LENGTH/CONFIG, and it is
+impossible to grep for them.  So these names should be changed.  This
+discussion is the following:
+http://www.ussg.iu.edu/hypermail/linux/kernel/0709.1/0415.html
 
-Fix this by moving the truncation code from fuse_setattr to
-fuse_change_attributes.
-
-Yes, there are races between write and and external truncation, but we can't
-really do anything about them.
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Signed-off-by: Ken'ichi Ohmichi <oomichi@mxs.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/dir.c   |   46 +++++++++++++---------------------------------
- fs/fuse/inode.c |   25 ++++++++++++++++++++-----
- 2 files changed, 33 insertions(+), 38 deletions(-)
+ arch/ia64/kernel/machine_kexec.c   |   18 +++----
+ arch/x86/kernel/machine_kexec_32.c |    6 +-
+ arch/x86/kernel/machine_kexec_64.c |    4 -
+ include/linux/kexec.h              |   14 ++---
+ kernel/kexec.c                     |   68 +++++++++++++--------------
+ 5 files changed, 55 insertions(+), 55 deletions(-)
 
-diff -puN fs/fuse/dir.c~fuse-truncate-on-spontaneous-size-change fs/fuse/dir.c
---- a/fs/fuse/dir.c~fuse-truncate-on-spontaneous-size-change
-+++ a/fs/fuse/dir.c
-@@ -980,23 +980,6 @@ static void iattr_to_fattr(struct iattr 
- 	}
- }
- 
--static void fuse_vmtruncate(struct inode *inode, loff_t offset)
--{
--	struct fuse_conn *fc = get_fuse_conn(inode);
--	int need_trunc;
--
--	spin_lock(&fc->lock);
--	need_trunc = inode->i_size > offset;
--	i_size_write(inode, offset);
--	spin_unlock(&fc->lock);
--
--	if (need_trunc) {
--		struct address_space *mapping = inode->i_mapping;
--		unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
--		truncate_inode_pages(mapping, offset);
--	}
--}
--
- /*
-  * Set attributes, and at the same time refresh them.
-  *
-@@ -1014,7 +997,6 @@ static int fuse_setattr(struct dentry *e
- 	struct fuse_setattr_in inarg;
- 	struct fuse_attr_out outarg;
- 	int err;
--	int is_truncate = 0;
- 
- 	if (fc->flags & FUSE_DEFAULT_PERMISSIONS) {
- 		err = inode_change_ok(inode, attr);
-@@ -1024,7 +1006,6 @@ static int fuse_setattr(struct dentry *e
- 
- 	if (attr->ia_valid & ATTR_SIZE) {
- 		unsigned long limit;
--		is_truncate = 1;
- 		if (IS_SWAPFILE(inode))
- 			return -ETXTBSY;
- 		limit = current->signal->rlim[RLIMIT_FSIZE].rlim_cur;
-@@ -1051,21 +1032,20 @@ static int fuse_setattr(struct dentry *e
- 	request_send(fc, req);
- 	err = req->out.h.error;
- 	fuse_put_request(fc, req);
--	if (!err) {
--		if ((inode->i_mode ^ outarg.attr.mode) & S_IFMT) {
--			make_bad_inode(inode);
--			err = -EIO;
--		} else {
--			if (is_truncate)
--				fuse_vmtruncate(inode, outarg.attr.size);
--			fuse_change_attributes(inode, &outarg.attr);
--			fi->i_time = time_to_jiffies(outarg.attr_valid,
--						     outarg.attr_valid_nsec);
--		}
--	} else if (err == -EINTR)
--		fuse_invalidate_attr(inode);
-+	if (err) {
-+		if (err == -EINTR)
-+			fuse_invalidate_attr(inode);
-+		return err;
-+	}
- 
--	return err;
-+	if ((inode->i_mode ^ outarg.attr.mode) & S_IFMT) {
-+		make_bad_inode(inode);
-+		return -EIO;
-+	}
-+
-+	fuse_change_attributes(inode, &outarg.attr);
-+	fi->i_time = time_to_jiffies(outarg.attr_valid, outarg.attr_valid_nsec);
-+	return 0;
- }
- 
- static int fuse_getattr(struct vfsmount *mnt, struct dentry *entry,
-diff -puN fs/fuse/inode.c~fuse-truncate-on-spontaneous-size-change fs/fuse/inode.c
---- a/fs/fuse/inode.c~fuse-truncate-on-spontaneous-size-change
-+++ a/fs/fuse/inode.c
-@@ -109,20 +109,24 @@ static int fuse_remount_fs(struct super_
- 	return 0;
- }
- 
-+static void fuse_truncate(struct address_space *mapping, loff_t offset)
-+{
-+	/* See vmtruncate() */
-+	unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
-+	truncate_inode_pages(mapping, offset);
-+	unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
-+}
-+
- void fuse_change_attributes(struct inode *inode, struct fuse_attr *attr)
+diff -puN arch/ia64/kernel/machine_kexec.c~add-vmcore-add-a-prefix-vmcoreinfo_-to-the-vmcoreinfo-macros arch/ia64/kernel/machine_kexec.c
+--- a/arch/ia64/kernel/machine_kexec.c~add-vmcore-add-a-prefix-vmcoreinfo_-to-the-vmcoreinfo-macros
++++ a/arch/ia64/kernel/machine_kexec.c
+@@ -128,19 +128,19 @@ void machine_kexec(struct kimage *image)
+ void arch_crash_save_vmcoreinfo(void)
  {
- 	struct fuse_conn *fc = get_fuse_conn(inode);
--	if (S_ISREG(inode->i_mode) && i_size_read(inode) != attr->size)
--		invalidate_mapping_pages(inode->i_mapping, 0, -1);
-+	loff_t oldsize;
+ #ifdef CONFIG_ARCH_DISCONTIGMEM_ENABLE
+-	SYMBOL(pgdat_list);
+-	LENGTH(pgdat_list, MAX_NUMNODES);
++	VMCOREINFO_SYMBOL(pgdat_list);
++	VMCOREINFO_LENGTH(pgdat_list, MAX_NUMNODES);
  
- 	inode->i_ino     = attr->ino;
- 	inode->i_mode    = (inode->i_mode & S_IFMT) + (attr->mode & 07777);
- 	inode->i_nlink   = attr->nlink;
- 	inode->i_uid     = attr->uid;
- 	inode->i_gid     = attr->gid;
--	spin_lock(&fc->lock);
--	i_size_write(inode, attr->size);
--	spin_unlock(&fc->lock);
- 	inode->i_blocks  = attr->blocks;
- 	inode->i_atime.tv_sec   = attr->atime;
- 	inode->i_atime.tv_nsec  = attr->atimensec;
-@@ -130,6 +134,17 @@ void fuse_change_attributes(struct inode
- 	inode->i_mtime.tv_nsec  = attr->mtimensec;
- 	inode->i_ctime.tv_sec   = attr->ctime;
- 	inode->i_ctime.tv_nsec  = attr->ctimensec;
-+
-+	spin_lock(&fc->lock);
-+	oldsize = inode->i_size;
-+	i_size_write(inode, attr->size);
-+	spin_unlock(&fc->lock);
-+
-+	if (S_ISREG(inode->i_mode) && oldsize != attr->size) {
-+		if (attr->size < oldsize)
-+			fuse_truncate(inode->i_mapping, attr->size);
-+		invalidate_mapping_pages(inode->i_mapping, 0, -1);
-+	}
+-	SYMBOL(node_memblk);
+-	LENGTH(node_memblk, NR_NODE_MEMBLKS);
+-	SIZE(node_memblk_s);
+-	OFFSET(node_memblk_s, start_paddr);
+-	OFFSET(node_memblk_s, size);
++	VMCOREINFO_SYMBOL(node_memblk);
++	VMCOREINFO_LENGTH(node_memblk, NR_NODE_MEMBLKS);
++	VMCOREINFO_SIZE(node_memblk_s);
++	VMCOREINFO_OFFSET(node_memblk_s, start_paddr);
++	VMCOREINFO_OFFSET(node_memblk_s, size);
+ #endif
+ #ifdef CONFIG_PGTABLE_3
+-	CONFIG(PGTABLE_3);
++	VMCOREINFO_CONFIG(PGTABLE_3);
+ #elif  CONFIG_PGTABLE_4
+-	CONFIG(PGTABLE_4);
++	VMCOREINFO_CONFIG(PGTABLE_4);
+ #endif
  }
  
- static void fuse_init_inode(struct inode *inode, struct fuse_attr *attr)
+diff -puN arch/x86/kernel/machine_kexec_32.c~add-vmcore-add-a-prefix-vmcoreinfo_-to-the-vmcoreinfo-macros arch/x86/kernel/machine_kexec_32.c
+--- a/arch/x86/kernel/machine_kexec_32.c~add-vmcore-add-a-prefix-vmcoreinfo_-to-the-vmcoreinfo-macros
++++ a/arch/x86/kernel/machine_kexec_32.c
+@@ -174,11 +174,11 @@ early_param("crashkernel", parse_crashke
+ void arch_crash_save_vmcoreinfo(void)
+ {
+ #ifdef CONFIG_ARCH_DISCONTIGMEM_ENABLE
+-	SYMBOL(node_data);
+-	LENGTH(node_data, MAX_NUMNODES);
++	VMCOREINFO_SYMBOL(node_data);
++	VMCOREINFO_LENGTH(node_data, MAX_NUMNODES);
+ #endif
+ #ifdef CONFIG_X86_PAE
+-	CONFIG(X86_PAE);
++	VMCOREINFO_CONFIG(X86_PAE);
+ #endif
+ }
+ 
+diff -puN arch/x86/kernel/machine_kexec_64.c~add-vmcore-add-a-prefix-vmcoreinfo_-to-the-vmcoreinfo-macros arch/x86/kernel/machine_kexec_64.c
+--- a/arch/x86/kernel/machine_kexec_64.c~add-vmcore-add-a-prefix-vmcoreinfo_-to-the-vmcoreinfo-macros
++++ a/arch/x86/kernel/machine_kexec_64.c
+@@ -261,8 +261,8 @@ early_param("crashkernel", setup_crashke
+ void arch_crash_save_vmcoreinfo(void)
+ {
+ #ifdef CONFIG_ARCH_DISCONTIGMEM_ENABLE
+-	SYMBOL(node_data);
+-	LENGTH(node_data, MAX_NUMNODES);
++	VMCOREINFO_SYMBOL(node_data);
++	VMCOREINFO_LENGTH(node_data, MAX_NUMNODES);
+ #endif
+ }
+ 
+diff -puN include/linux/kexec.h~add-vmcore-add-a-prefix-vmcoreinfo_-to-the-vmcoreinfo-macros include/linux/kexec.h
+--- a/include/linux/kexec.h~add-vmcore-add-a-prefix-vmcoreinfo_-to-the-vmcoreinfo-macros
++++ a/include/linux/kexec.h
+@@ -127,22 +127,22 @@ void vmcoreinfo_append_str(const char *f
+ 	__attribute__ ((format (printf, 1, 2)));
+ unsigned long paddr_vmcoreinfo_note(void);
+ 
+-#define SYMBOL(name) \
++#define VMCOREINFO_SYMBOL(name) \
+ 	vmcoreinfo_append_str("SYMBOL(%s)=%lx\n", #name, (unsigned long)&name)
+-#define SIZE(name) \
++#define VMCOREINFO_SIZE(name) \
+ 	vmcoreinfo_append_str("SIZE(%s)=%lu\n", #name, \
+ 			      (unsigned long)sizeof(struct name))
+-#define TYPEDEF_SIZE(name) \
++#define VMCOREINFO_TYPEDEF_SIZE(name) \
+ 	vmcoreinfo_append_str("SIZE(%s)=%lu\n", #name, \
+ 			      (unsigned long)sizeof(name))
+-#define OFFSET(name, field) \
++#define VMCOREINFO_OFFSET(name, field) \
+ 	vmcoreinfo_append_str("OFFSET(%s.%s)=%lu\n", #name, #field, \
+ 			      (unsigned long)&(((struct name *)0)->field))
+-#define LENGTH(name, value) \
++#define VMCOREINFO_LENGTH(name, value) \
+ 	vmcoreinfo_append_str("LENGTH(%s)=%lu\n", #name, (unsigned long)value)
+-#define NUMBER(name) \
++#define VMCOREINFO_NUMBER(name) \
+ 	vmcoreinfo_append_str("NUMBER(%s)=%ld\n", #name, (long)name)
+-#define CONFIG(name) \
++#define VMCOREINFO_CONFIG(name) \
+ 	vmcoreinfo_append_str("CONFIG_%s=y\n", #name)
+ 
+ extern struct kimage *kexec_image;
+diff -puN kernel/kexec.c~add-vmcore-add-a-prefix-vmcoreinfo_-to-the-vmcoreinfo-macros kernel/kexec.c
+--- a/kernel/kexec.c~add-vmcore-add-a-prefix-vmcoreinfo_-to-the-vmcoreinfo-macros
++++ a/kernel/kexec.c
+@@ -1198,47 +1198,47 @@ static int __init crash_save_vmcoreinfo_
+ 	vmcoreinfo_append_str("OSRELEASE=%s\n", init_uts_ns.name.release);
+ 	vmcoreinfo_append_str("PAGESIZE=%ld\n", PAGE_SIZE);
+ 
+-	SYMBOL(init_uts_ns);
+-	SYMBOL(node_online_map);
+-	SYMBOL(swapper_pg_dir);
+-	SYMBOL(_stext);
++	VMCOREINFO_SYMBOL(init_uts_ns);
++	VMCOREINFO_SYMBOL(node_online_map);
++	VMCOREINFO_SYMBOL(swapper_pg_dir);
++	VMCOREINFO_SYMBOL(_stext);
+ 
+ #ifndef CONFIG_NEED_MULTIPLE_NODES
+-	SYMBOL(mem_map);
+-	SYMBOL(contig_page_data);
++	VMCOREINFO_SYMBOL(mem_map);
++	VMCOREINFO_SYMBOL(contig_page_data);
+ #endif
+ #ifdef CONFIG_SPARSEMEM
+-	SYMBOL(mem_section);
+-	LENGTH(mem_section, NR_SECTION_ROOTS);
+-	SIZE(mem_section);
+-	OFFSET(mem_section, section_mem_map);
++	VMCOREINFO_SYMBOL(mem_section);
++	VMCOREINFO_LENGTH(mem_section, NR_SECTION_ROOTS);
++	VMCOREINFO_SIZE(mem_section);
++	VMCOREINFO_OFFSET(mem_section, section_mem_map);
+ #endif
+-	SIZE(page);
+-	SIZE(pglist_data);
+-	SIZE(zone);
+-	SIZE(free_area);
+-	SIZE(list_head);
+-	TYPEDEF_SIZE(nodemask_t);
+-	OFFSET(page, flags);
+-	OFFSET(page, _count);
+-	OFFSET(page, mapping);
+-	OFFSET(page, lru);
+-	OFFSET(pglist_data, node_zones);
+-	OFFSET(pglist_data, nr_zones);
++	VMCOREINFO_SIZE(page);
++	VMCOREINFO_SIZE(pglist_data);
++	VMCOREINFO_SIZE(zone);
++	VMCOREINFO_SIZE(free_area);
++	VMCOREINFO_SIZE(list_head);
++	VMCOREINFO_TYPEDEF_SIZE(nodemask_t);
++	VMCOREINFO_OFFSET(page, flags);
++	VMCOREINFO_OFFSET(page, _count);
++	VMCOREINFO_OFFSET(page, mapping);
++	VMCOREINFO_OFFSET(page, lru);
++	VMCOREINFO_OFFSET(pglist_data, node_zones);
++	VMCOREINFO_OFFSET(pglist_data, nr_zones);
+ #ifdef CONFIG_FLAT_NODE_MEM_MAP
+-	OFFSET(pglist_data, node_mem_map);
++	VMCOREINFO_OFFSET(pglist_data, node_mem_map);
+ #endif
+-	OFFSET(pglist_data, node_start_pfn);
+-	OFFSET(pglist_data, node_spanned_pages);
+-	OFFSET(pglist_data, node_id);
+-	OFFSET(zone, free_area);
+-	OFFSET(zone, vm_stat);
+-	OFFSET(zone, spanned_pages);
+-	OFFSET(free_area, free_list);
+-	OFFSET(list_head, next);
+-	OFFSET(list_head, prev);
+-	LENGTH(zone.free_area, MAX_ORDER);
+-	NUMBER(NR_FREE_PAGES);
++	VMCOREINFO_OFFSET(pglist_data, node_start_pfn);
++	VMCOREINFO_OFFSET(pglist_data, node_spanned_pages);
++	VMCOREINFO_OFFSET(pglist_data, node_id);
++	VMCOREINFO_OFFSET(zone, free_area);
++	VMCOREINFO_OFFSET(zone, vm_stat);
++	VMCOREINFO_OFFSET(zone, spanned_pages);
++	VMCOREINFO_OFFSET(free_area, free_list);
++	VMCOREINFO_OFFSET(list_head, next);
++	VMCOREINFO_OFFSET(list_head, prev);
++	VMCOREINFO_LENGTH(zone.free_area, MAX_ORDER);
++	VMCOREINFO_NUMBER(NR_FREE_PAGES);
+ 
+ 	arch_crash_save_vmcoreinfo();
+ 
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from oomichi@mxs.nes.nec.co.jp are
 
 origin.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
-unprivileged-mounts-add-no-submounts-flag.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
-fuse-fix-allowing-operations.patch
-fuse-fix-race-between-getattr-and-write.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
-fuse-clean-up-open-file-passing-in-setattr.patch
-vfs-allow-filesystems-to-implement-atomic-opentruncate.patch
-fuse-improve-utimes-support.patch
-fuse-add-atomic-opentruncate-support.patch
-fuse-support-bsd-locking-semantics.patch
-fuse-add-list-of-writable-files-to-fuse_inode.patch
-fuse-add-helper-for-asynchronous-writes.patch
-fuse-add-support-for-mandatory-locking.patch
-fuse-add-blksize-field-to-fuse_attr.patch
