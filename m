@@ -1,135 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:09:04 -0700
-Message-ID: <200710180709.l9I794J2031878@imap1.linux-foundation.org>
+Subject: - git-md-accel-fix-type-that-is-stopping-raid5-grow-from-working.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:05:30 -0700
+Message-ID: <200710180705.l9I75UBX031652@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47152 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47979 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754897AbXJRHPL (ORCPT
+	by vger.kernel.org with ESMTP id S1755120AbXJRHPN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:15:11 -0400
+	Thu, 18 Oct 2007 03:15:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Yinghai.Lu@Sun.COM, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
+To: neilb@suse.de, dan.j.williams@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: check MSR to get MMCONFIG for AMD Family 10h Opteron
+     git-md-accel: fix type that is stopping raid5 grow from working.
 has been removed from the -mm tree.  Its filename was
-     x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron.patch
+     git-md-accel-fix-type-that-is-stopping-raid5-grow-from-working.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: check MSR to get MMCONFIG for AMD Family 10h Opteron
-From: Yinghai Lu <Yinghai.Lu@Sun.COM>
+Subject: git-md-accel: fix type that is stopping raid5 grow from working.
+From: NeilBrown <neilb@suse.de>
 
-So even MCFG is not there, we still can use MMCONFIG.
+This kmem_cache_create is creating a cache that already exists.  We could use
+the alternate name, just like we do a few lines up.
 
-Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Signed-off-by: Neil Brown <neilb@suse.de>
+Cc: "Dan Williams" <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/pci/mmconfig-shared.c |   58 ++++++++++++++++++++++++++----
- 1 file changed, 52 insertions(+), 6 deletions(-)
+ drivers/md/raid5.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/i386/pci/mmconfig-shared.c~x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron arch/i386/pci/mmconfig-shared.c
---- a/arch/x86/pci/mmconfig-shared.c~x86_64-check-msr-to-get-mmconfig-for-amd-family-10h-opteron
-+++ a/arch/x86/pci/mmconfig-shared.c
-@@ -133,33 +133,79 @@ static const char __init *pci_mmcfg_inte
- 	return "Intel Corporation 945G/GZ/P/PL Express Memory Controller Hub";
- }
+diff -puN drivers/md/raid5.c~git-md-accel-fix-type-that-is-stopping-raid5-grow-from-working drivers/md/raid5.c
+--- a/drivers/md/raid5.c~git-md-accel-fix-type-that-is-stopping-raid5-grow-from-working
++++ a/drivers/md/raid5.c
+@@ -1380,7 +1380,7 @@ static int resize_stripes(raid5_conf_t *
+ 	if (!sc)
+ 		return -ENOMEM;
  
-+static const char __init *pci_mmcfg_amd_fam10h(void)
-+{
-+	u32 low, high, address;
-+	u64 base;
-+	int i;
-+	unsigned segnbits = 0, busnbits;
-+
-+	address = 0xc0010058;
-+	if (rdmsr_safe(address, &low, &high))
-+		return NULL;
-+
-+	/* mmconfig is not enable */
-+	if (!(low & 1))
-+		return NULL;
-+
-+	base = high & 0xffff;
-+	base <<= 32;
-+
-+	busnbits = (low >> 2) & 0x0f;
-+	if (busnbits > 8) {
-+		segnbits = busnbits - 8;
-+		busnbits = 8;
-+	}
-+
-+	pci_mmcfg_config_num = (1 << segnbits);
-+	pci_mmcfg_config = kzalloc(sizeof(pci_mmcfg_config[0]) * pci_mmcfg_config_num, GFP_KERNEL);
-+	if (!pci_mmcfg_config)
-+		return NULL;
-+
-+	for (i=0; i < (1 << segnbits); i++) {
-+		pci_mmcfg_config[i].address = base + (1<<28) * i;
-+		pci_mmcfg_config[i].pci_segment = i;
-+		pci_mmcfg_config[i].start_bus_number = 0;
-+		pci_mmcfg_config[i].end_bus_number = (1 << busnbits) - 1;
-+	}
-+
-+	return "AMD Family 10h NB";
-+}
-+
- struct pci_mmcfg_hostbridge_probe {
-+	u32 bus;
-+	u32 devfn;
- 	u32 vendor;
- 	u32 device;
- 	const char *(*probe)(void);
- };
- 
- static struct pci_mmcfg_hostbridge_probe pci_mmcfg_probes[] __initdata = {
--	{ PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_E7520_MCH, pci_mmcfg_e7520 },
--	{ PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82945G_HB, pci_mmcfg_intel_945 },
-+	{ 0, PCI_DEVFN(0, 0), PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_E7520_MCH, pci_mmcfg_e7520 },
-+	{ 0, PCI_DEVFN(0, 0), PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82945G_HB, pci_mmcfg_intel_945 },
-+	{ 0, PCI_DEVFN(0x18, 0), PCI_VENDOR_ID_AMD, 0x1200, pci_mmcfg_amd_fam10h },
-+	{ 0xff, PCI_DEVFN(0, 0), PCI_VENDOR_ID_AMD, 0x1200, pci_mmcfg_amd_fam10h },
- };
- 
- static int __init pci_mmcfg_check_hostbridge(void)
- {
- 	u32 l;
-+	u32 bus, devfn;
- 	u16 vendor, device;
- 	int i;
- 	const char *name;
- 
--	pci_conf1_read(0, 0, PCI_DEVFN(0,0), 0, 4, &l);
--	vendor = l & 0xffff;
--	device = (l >> 16) & 0xffff;
--
- 	pci_mmcfg_config_num = 0;
- 	pci_mmcfg_config = NULL;
- 	name = NULL;
- 
- 	for (i = 0; !name && i < ARRAY_SIZE(pci_mmcfg_probes); i++) {
-+		bus =  pci_mmcfg_probes[i].bus;
-+		devfn = pci_mmcfg_probes[i].devfn;
-+		pci_conf1_read(0, bus, devfn, 0, 4, &l);
-+		vendor = l & 0xffff;
-+		device = (l >> 16) & 0xffff;
-+
- 		if (pci_mmcfg_probes[i].vendor == vendor &&
- 		    pci_mmcfg_probes[i].device == device)
- 			name = pci_mmcfg_probes[i].probe();
+-	sc_q = kmem_cache_create(conf->sq_cache_name[conf->active_name],
++	sc_q = kmem_cache_create(conf->sq_cache_name[1-conf->active_name],
+ 			       (sizeof(struct stripe_queue)+(newsize-1) *
+ 				sizeof(struct r5_queue_dev)) +
+ 				r5_io_weight_size(newsize) +
 _
 
-Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-git-x86.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
-x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is.patch
-kernel-printkc-concerns-about-the-console-handover.patch
+git-md-accel.patch
+ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
+knfsd-only-set-attr_kill_sid-if-attr_mode-isnt-being-explicitly-set.patch
+vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
+sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
+exportfs-add-fid-type.patch
+exportfs-add-new-methods.patch
+ext2-new-export-ops.patch
+ext3-new-export-ops.patch
+ext4-new-export-ops.patch
+efs-new-export-ops.patch
+jfs-new-export-ops.patch
+ntfs-new-export-ops.patch
+fat-new-export-ops.patch
+isofs-new-export-ops.patch
+shmem-new-export-ops.patch
+reiserfs-new-export-ops.patch
+gfs2-new-export-ops.patch
+ocfs2-new-export-ops.patch
+exportfs-remove-old-methods.patch
+exportfs-make-struct-export_operations-const.patch
+exportfs-update-documentation.patch
