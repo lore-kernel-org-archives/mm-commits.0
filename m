@@ -1,80 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - ipc-shmc-make-2-functions-static.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:54:45 -0700
-Message-ID: <200710180654.l9I6sjxQ030548@imap1.linux-foundation.org>
+Subject: - add-a-00-index-file-to-documentation-mips.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:04:19 -0700
+Message-ID: <200710180704.l9I74JLY031541@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57878 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34032 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760776AbXJRHh2 (ORCPT
+	by vger.kernel.org with ESMTP id S932106AbXJRHhf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:37:28 -0400
+	Thu, 18 Oct 2007 03:37:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, ralf@linux-mips.org, rdunlap@xenotime.net, rob@landley.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipc/shm.c: make 2 functions static
+     Add a 00-INDEX file to Documentation/mips/
 has been removed from the -mm tree.  Its filename was
-     ipc-shmc-make-2-functions-static.patch
+     add-a-00-index-file-to-documentation-mips.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ipc/shm.c: make 2 functions static
-From: Adrian Bunk <bunk@stusta.de>
+Subject: Add a 00-INDEX file to Documentation/mips/
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-This patch makes two needlessly global functions static.
+Add a 00-INDEX file to Documentation/mips/
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Cc: Rob Landley <rob@landley.net>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ Documentation/mips/00-INDEX |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN ipc/shm.c~ipc-shmc-make-2-functions-static ipc/shm.c
---- a/ipc/shm.c~ipc-shmc-make-2-functions-static
-+++ a/ipc/shm.c
-@@ -233,7 +233,7 @@ static int shm_fault(struct vm_area_stru
- }
- 
- #ifdef CONFIG_NUMA
--int shm_set_policy(struct vm_area_struct *vma, struct mempolicy *new)
-+static int shm_set_policy(struct vm_area_struct *vma, struct mempolicy *new)
- {
- 	struct file *file = vma->vm_file;
- 	struct shm_file_data *sfd = shm_file_data(file);
-@@ -243,7 +243,8 @@ int shm_set_policy(struct vm_area_struct
- 	return err;
- }
- 
--struct mempolicy *shm_get_policy(struct vm_area_struct *vma, unsigned long addr)
-+static struct mempolicy *shm_get_policy(struct vm_area_struct *vma,
-+					unsigned long addr)
- {
- 	struct file *file = vma->vm_file;
- 	struct shm_file_data *sfd = shm_file_data(file);
+diff -puN /dev/null Documentation/mips/00-INDEX
+--- /dev/null
++++ a/Documentation/mips/00-INDEX
+@@ -0,0 +1,8 @@
++00-INDEX
++	- this file.
++AU1xxx_IDE.README
++	- README for MIPS AU1XXX IDE driver.
++GT64120.README
++	- README for dir with info on MIPS boards using GT-64120 or GT-64120A.
++time.README
++	- README for MIPS time services.
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
 origin.patch
-git-acpi.patch
-git-kvm.patch
-remove-fs-jffs2-ioctlc.patch
-parisc-extern-inline-static-inline.patch
-nsp32_restart_autoscsi-remove-error-check.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-git-x86.patch
-unexport-pm_power_off_prepare.patch
-intel-iommu-intel-iommu-driver.patch
-revoke-core-code.patch
-pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
-the-next-round-of-scheduled-oss-code-removal.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+git-cifs.patch
+mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
+mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
+mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
+cyclades-avoid-label-defined-but-not-used-warning.patch
