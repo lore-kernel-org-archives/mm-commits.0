@@ -1,178 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: - add-kernel-notifierc-fix.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 13:30:45 -0700
-Message-ID: <200710182030.l9IKUjF5029691@imap1.linux-foundation.org>
+Subject: - add-kernel-notifierc-fix-2-fix-3.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 13:30:50 -0700
+Message-ID: <200710182030.l9IKUoWx029697@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51912 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34403 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752369AbXJRUbx (ORCPT
+	by vger.kernel.org with ESMTP id S1759355AbXJRUcA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 16:31:53 -0400
+	Thu, 18 Oct 2007 16:32:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, adobriyan@sw.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-kernel-notifierc-fix
+     add-kernel-notifierc-fix-2-fix-3
 has been removed from the -mm tree.  Its filename was
-     add-kernel-notifierc-fix.patch
+     add-kernel-notifierc-fix-2-fix-3.patch
 
 This patch was dropped because it was folded into add-kernel-notifierc.patch
 
 ------------------------------------------------------
-Subject: add-kernel-notifierc-fix
+Subject: add-kernel-notifierc-fix-2-fix-3
 From: Andrew Morton <akpm@linux-foundation.org>
-
-Might as well fix all the checkpatch warnigns while we're there.
 
 Cc: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/notifier.c |   21 +++------------------
- 1 files changed, 3 insertions(+), 18 deletions(-)
+ kernel/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/notifier.c~add-kernel-notifierc-fix kernel/notifier.c
---- a/kernel/notifier.c~add-kernel-notifierc-fix
-+++ a/kernel/notifier.c
-@@ -107,7 +107,6 @@ int atomic_notifier_chain_register(struc
- 	spin_unlock_irqrestore(&nh->lock, flags);
- 	return ret;
- }
--
- EXPORT_SYMBOL_GPL(atomic_notifier_chain_register);
+diff -puN kernel/Makefile~add-kernel-notifierc-fix-2-fix-3 kernel/Makefile
+--- a/kernel/Makefile~add-kernel-notifierc-fix-2-fix-3
++++ a/kernel/Makefile
+@@ -8,7 +8,7 @@ obj-y     = sched.o fork.o exec_domain.o
+ 	    signal.o sys.o kmod.o workqueue.o pid.o \
+ 	    rcupdate.o extable.o params.o posix-timers.o \
+ 	    kthread.o wait.o kfifo.o sys_ni.o posix-cpu-timers.o mutex.o \
+-	    hrtimer.o rwsem.o nsproxy.o srcu.o die_notifier.o \
++	    hrtimer.o rwsem.o nsproxy.o srcu.o \
+ 	    utsname.o sysctl_check.o pm_qos_params.o notifier.o
  
- /**
-@@ -131,7 +130,6 @@ int atomic_notifier_chain_unregister(str
- 	synchronize_rcu();
- 	return ret;
- }
--
- EXPORT_SYMBOL_GPL(atomic_notifier_chain_unregister);
- 
- /**
-@@ -165,7 +163,6 @@ int __kprobes __atomic_notifier_call_cha
- 	rcu_read_unlock();
- 	return ret;
- }
--
- EXPORT_SYMBOL_GPL(__atomic_notifier_call_chain);
- 
- int __kprobes atomic_notifier_call_chain(struct atomic_notifier_head *nh,
-@@ -173,8 +170,8 @@ int __kprobes atomic_notifier_call_chain
- {
- 	return __atomic_notifier_call_chain(nh, val, v, -1, NULL);
- }
--
- EXPORT_SYMBOL_GPL(atomic_notifier_call_chain);
-+
- /*
-  *	Blocking notifier chain routines.  All access to the chain is
-  *	synchronized by an rwsem.
-@@ -209,7 +206,6 @@ int blocking_notifier_chain_register(str
- 	up_write(&nh->rwsem);
- 	return ret;
- }
--
- EXPORT_SYMBOL_GPL(blocking_notifier_chain_register);
- 
- /**
-@@ -240,7 +236,6 @@ int blocking_notifier_chain_unregister(s
- 	up_write(&nh->rwsem);
- 	return ret;
- }
--
- EXPORT_SYMBOL_GPL(blocking_notifier_chain_unregister);
- 
- /**
-@@ -311,7 +306,6 @@ int raw_notifier_chain_register(struct r
- {
- 	return notifier_chain_register(&nh->head, n);
- }
--
- EXPORT_SYMBOL_GPL(raw_notifier_chain_register);
- 
- /**
-@@ -329,7 +323,6 @@ int raw_notifier_chain_unregister(struct
- {
- 	return notifier_chain_unregister(&nh->head, n);
- }
--
- EXPORT_SYMBOL_GPL(raw_notifier_chain_unregister);
- 
- /**
-@@ -358,7 +351,6 @@ int __raw_notifier_call_chain(struct raw
- {
- 	return notifier_call_chain(&nh->head, val, v, nr_to_call, nr_calls);
- }
--
- EXPORT_SYMBOL_GPL(__raw_notifier_call_chain);
- 
- int raw_notifier_call_chain(struct raw_notifier_head *nh,
-@@ -366,7 +358,6 @@ int raw_notifier_call_chain(struct raw_n
- {
- 	return __raw_notifier_call_chain(nh, val, v, -1, NULL);
- }
--
- EXPORT_SYMBOL_GPL(raw_notifier_call_chain);
- 
- /*
-@@ -403,7 +394,6 @@ int srcu_notifier_chain_register(struct 
- 	mutex_unlock(&nh->mutex);
- 	return ret;
- }
--
- EXPORT_SYMBOL_GPL(srcu_notifier_chain_register);
- 
- /**
-@@ -435,7 +425,6 @@ int srcu_notifier_chain_unregister(struc
- 	synchronize_srcu(&nh->srcu);
- 	return ret;
- }
--
- EXPORT_SYMBOL_GPL(srcu_notifier_chain_unregister);
- 
- /**
-@@ -498,7 +487,6 @@ void srcu_init_notifier_head(struct srcu
- 		BUG();
- 	nh->head = NULL;
- }
--
- EXPORT_SYMBOL_GPL(srcu_init_notifier_head);
- 
- /**
-@@ -512,11 +500,10 @@ EXPORT_SYMBOL_GPL(srcu_init_notifier_hea
-  *	always returns zero.
-  */
- 
--int register_reboot_notifier(struct notifier_block * nb)
-+int register_reboot_notifier(struct notifier_block *nb)
- {
- 	return blocking_notifier_chain_register(&reboot_notifier_list, nb);
- }
--
- EXPORT_SYMBOL(register_reboot_notifier);
- 
- /**
-@@ -529,15 +516,13 @@ EXPORT_SYMBOL(register_reboot_notifier);
-  *	Returns zero on success, or %-ENOENT on failure.
-  */
- 
--int unregister_reboot_notifier(struct notifier_block * nb)
-+int unregister_reboot_notifier(struct notifier_block *nb)
- {
- 	return blocking_notifier_chain_unregister(&reboot_notifier_list, nb);
- }
--
- EXPORT_SYMBOL(unregister_reboot_notifier);
- 
- 
--
- static ATOMIC_NOTIFIER_HEAD(die_chain);
- 
- int notify_die(enum die_val val, const char *str,
+ obj-$(CONFIG_STACKTRACE) += stacktrace.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -228,7 +99,6 @@ pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
 pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers-checkpatch-fixes.patch
 deprecate-smbfs-in-favour-of-cifs.patch
 add-kernel-notifierc.patch
-add-kernel-notifierc-fix.patch
 add-kernel-notifierc-fix-2-fix-3.patch
 console-events-and-accessibility-fix.patch
 procfs-detect-duplicate-names-fix.patch
