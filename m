@@ -1,66 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-cleanup-struct-irqaction-initializers.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:07:59 -0700
-Message-ID: <200710180707.l9I77x5n031748@imap1.linux-foundation.org>
+Subject: - x86-make-io-apic-not-connected-pin-print-complete.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:07:41 -0700
+Message-ID: <200710180707.l9I77fbS031721@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48286 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32912 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759537AbXJRHIS (ORCPT
+	by vger.kernel.org with ESMTP id S1759475AbXJRHIR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:08:18 -0400
+	Thu, 18 Oct 2007 03:08:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, mm-commits@vger.kernel.org
+To: Yinghai.Lu@Sun.COM, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
 
 
 The patch titled
-     X86_64: cleanup struct irqaction initializers
+     x86: make io-apic not connected pin print complete
 has been removed from the -mm tree.  Its filename was
-     x86_64-cleanup-struct-irqaction-initializers.patch
+     x86-make-io-apic-not-connected-pin-print-complete.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: X86_64: cleanup struct irqaction initializers
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: x86: make io-apic not connected pin print complete
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Normally we will have two segment not connected pin pin0, and pin after
+15...
+
+So we need to print out "not connected\n" for previous segment, before
+printing out connected pins info...
+
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
 Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/i8259.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/i386/kernel/io_apic.c   |    5 +++++
+ arch/x86_64/kernel/io_apic.c |    6 +++++-
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/i8259.c~x86_64-cleanup-struct-irqaction-initializers arch/x86_64/kernel/i8259.c
---- a/arch/x86/kernel/i8259_64.c~x86_64-cleanup-struct-irqaction-initializers
-+++ a/arch/x86/kernel/i8259_64.c
-@@ -395,7 +395,11 @@ device_initcall(i8259A_init_sysfs);
-  * IRQ2 is cascade interrupt to second interrupt controller
-  */
+diff -puN arch/i386/kernel/io_apic.c~x86-make-io-apic-not-connected-pin-print-complete arch/i386/kernel/io_apic.c
+--- a/arch/x86/kernel/io_apic_32.c~x86-make-io-apic-not-connected-pin-print-complete
++++ a/arch/x86/kernel/io_apic_32.c
+@@ -1293,6 +1293,11 @@ static void __init setup_IO_APIC_irqs(vo
+ 			continue;
+ 		}
  
--static struct irqaction irq2 = { no_action, 0, CPU_MASK_NONE, "cascade", NULL, NULL};
-+static struct irqaction irq2 = {
-+	.handler = no_action,
-+	.mask = CPU_MASK_NONE,
-+	.name = "cascade",
-+};
- DEFINE_PER_CPU(vector_irq_t, vector_irq) = {
- 	[0 ... IRQ0_VECTOR - 1] = -1,
- 	[IRQ0_VECTOR] = 0,
++		if (!first_notcon) {
++			apic_printk(APIC_VERBOSE, " not connected.\n");
++			first_notcon = 1;
++		}
++
+ 		entry.trigger = irq_trigger(idx);
+ 		entry.polarity = irq_polarity(idx);
+ 
+diff -puN arch/x86_64/kernel/io_apic.c~x86-make-io-apic-not-connected-pin-print-complete arch/x86_64/kernel/io_apic.c
+--- a/arch/x86/kernel/io_apic_64.c~x86-make-io-apic-not-connected-pin-print-complete
++++ a/arch/x86/kernel/io_apic_64.c
+@@ -875,6 +875,10 @@ static void __init setup_IO_APIC_irqs(vo
+ 				apic_printk(APIC_VERBOSE, ", %d-%d", mp_ioapics[apic].mpc_apicid, pin);
+ 			continue;
+ 		}
++		if (!first_notcon) {
++			apic_printk(APIC_VERBOSE, " not connected.\n");
++			first_notcon = 1;
++		}
+ 
+ 		irq = pin_2_irq(idx, apic, pin);
+ 		add_pin_to_irq(irq, apic, pin);
+@@ -885,7 +889,7 @@ static void __init setup_IO_APIC_irqs(vo
+ 	}
+ 
+ 	if (!first_notcon)
+-		apic_printk(APIC_VERBOSE," not connected.\n");
++		apic_printk(APIC_VERBOSE, " not connected.\n");
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
 origin.patch
-git-acpi.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
 git-x86.patch
-hpet-force-enable-on-vt8235-37-chipsets.patch
-i386-paravirt-boot-sequence.patch
-revert-x86-save-registers-in-saved_context-during-suspend-and-hibernation.patch
-fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-whitespace-fixes-time-syscalls.patch
-whitespace-fixes-interval-timers.patch
-whitespace-fixes-system-timers.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is.patch
+kernel-printkc-concerns-about-the-console-handover.patch
