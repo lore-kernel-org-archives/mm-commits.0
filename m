@@ -1,179 +1,343 @@
 From: akpm@linux-foundation.org
-Subject: - udf-code-style-fixup-v3.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:00:58 -0700
-Message-ID: <200710180700.l9I70w2J031128@imap1.linux-foundation.org>
+Subject: - remove-strict-ansi-check-from-__u64-in-asm-typesh.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:56:15 -0700
+Message-ID: <200710180656.l9I6uF11030687@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41526 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42432 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755150AbXJRH0b (ORCPT
+	by vger.kernel.org with ESMTP id S1756365AbXJRH0g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:26:31 -0400
+	Thu, 18 Oct 2007 03:26:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@gmail.com, jack@suse.cz, mm-commits@vger.kernel.org
+To: olh@suse.de, linux-arch@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     UDF: coding style fixups
+     remove strict ansi check from __u64 in asm/types.h
 has been removed from the -mm tree.  Its filename was
-     udf-code-style-fixup-v3.patch
+     remove-strict-ansi-check-from-__u64-in-asm-typesh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: UDF: coding style fixups
-From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: remove strict ansi check from __u64 in asm/types.h
+From: Olaf Hering <olh@suse.de>
 
-This patch does additional coding style fixup.  Initially the code is being
-distorted by Lindent (in my patches sent not very long ago) and fixed in
-the followup patches but this stuff was accidently missed.
+Remove the __STRICT_ANSI__ check from the __u64/__s64 declaration on
+32bit targets.
 
-New and old compiled files were compared with cmp to check for being
-identically.  So the patch will not break the kernel.
+GCC can be made to warn about usage of long long types with ISO C90
+(-ansi), but only with -pedantic.  You can write this in a way that even
+then it doesn't cause warnings, namely by:
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: Jan Kara <jack@suse.cz>
+#ifdef __GNUC__
+__extension__ typedef __signed__ long long __s64;
+__extension__ typedef unsigned long long __u64;
+#endif
+
+The __extension__ keyword in front of this switches off any pedantic
+warnings for this expression.
+
+Signed-off-by: Olaf Hering <olh@suse.de>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/udf/super.c   |   51 ++++++++++++++++-----------------------------
- fs/udf/udftime.c |    8 +++----
- 2 files changed, 23 insertions(+), 36 deletions(-)
+ include/asm-arm/types.h      |    6 +++---
+ include/asm-avr32/types.h    |    6 +++---
+ include/asm-blackfin/types.h |    6 +++---
+ include/asm-cris/types.h     |    6 +++---
+ include/asm-frv/types.h      |    6 +++---
+ include/asm-h8300/types.h    |    6 +++---
+ include/asm-m32r/types.h     |    6 +++---
+ include/asm-m68k/types.h     |    6 +++---
+ include/asm-mips/types.h     |    6 +++---
+ include/asm-parisc/types.h   |    6 +++---
+ include/asm-powerpc/types.h  |    6 +++---
+ include/asm-s390/types.h     |    6 +++---
+ include/asm-sh/types.h       |    6 +++---
+ include/asm-sh64/types.h     |    6 +++---
+ include/asm-v850/types.h     |    6 +++---
+ include/asm-x86/types_32.h   |    6 +++---
+ include/asm-xtensa/types.h   |    6 +++---
+ 17 files changed, 51 insertions(+), 51 deletions(-)
 
-diff -puN fs/udf/super.c~udf-code-style-fixup-v3 fs/udf/super.c
---- a/fs/udf/super.c~udf-code-style-fixup-v3
-+++ a/fs/udf/super.c
-@@ -913,8 +913,7 @@ static int udf_load_partdesc(struct supe
- 					UDF_SB_PARTMAPS(sb)[i].s_uspace.s_table =
- 						udf_iget(sb, loc);
- 					if (!UDF_SB_PARTMAPS(sb)[i].s_uspace.s_table) {
--						udf_debug("cannot load unallocSpaceTable (part %d)\n",
--							i);
-+						udf_debug("cannot load unallocSpaceTable (part %d)\n", i);
- 						return 1;
- 					}
- 					UDF_SB_PARTFLAGS(sb,i) |= UDF_PART_FLAG_UNALLOC_TABLE;
-@@ -944,8 +943,7 @@ static int udf_load_partdesc(struct supe
- 					UDF_SB_PARTMAPS(sb)[i].s_fspace.s_table =
- 						udf_iget(sb, loc);
- 					if (!UDF_SB_PARTMAPS(sb)[i].s_fspace.s_table) {
--						udf_debug("cannot load freedSpaceTable (part %d)\n",
--							i);
-+						udf_debug("cannot load freedSpaceTable (part %d)\n", i);
- 						return 1;
- 					}
- 					UDF_SB_PARTFLAGS(sb,i) |= UDF_PART_FLAG_FREED_TABLE;
-@@ -1293,19 +1291,16 @@ static int udf_load_partition(struct sup
+diff -puN include/asm-arm/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-arm/types.h
+--- a/include/asm-arm/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-arm/types.h
+@@ -19,9 +19,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
  
- 			if (!UDF_SB_LASTBLOCK(sb)) {
- 				udf_debug("Unable to determine Lastblock (For "
--						"Virtual Partition)\n");
-+					  "Virtual Partition)\n");
- 				return 1;
- 			}
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
  
- 			for (j = 0; j < UDF_SB_NUMPARTS(sb); j++) {
--				if (j != i && UDF_SB_PARTVSN(sb, i) ==
--					UDF_SB_PARTVSN(sb, j) &&
--				    	UDF_SB_PARTNUM(sb, i) ==
--						UDF_SB_PARTNUM(sb, j)) {
-+				if (j != i &&
-+				    UDF_SB_PARTVSN(sb, i) == UDF_SB_PARTVSN(sb, j) &&
-+				    UDF_SB_PARTNUM(sb, i) == UDF_SB_PARTNUM(sb, j)) {
- 					ino.partitionReferenceNum = j;
--					ino.logicalBlockNum =
--					    UDF_SB_LASTBLOCK(sb) -
--					    UDF_SB_PARTROOT(sb, j);
-+					ino.logicalBlockNum = UDF_SB_LASTBLOCK(sb) - UDF_SB_PARTROOT(sb, j);
- 					break;
- 				}
- 			}
-@@ -1318,9 +1313,9 @@ static int udf_load_partition(struct sup
+ #endif /* __ASSEMBLY__ */
+diff -puN include/asm-avr32/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-avr32/types.h
+--- a/include/asm-avr32/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-avr32/types.h
+@@ -25,9 +25,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
  
- 			if (UDF_SB_PARTTYPE(sb, i) == UDF_VIRTUAL_MAP15) {
- 				UDF_SB_TYPEVIRT(sb, i).s_start_offset =
--				    udf_ext0_offset(UDF_SB_VAT(sb));
-+					udf_ext0_offset(UDF_SB_VAT(sb));
- 				UDF_SB_TYPEVIRT(sb, i).s_num_entries =
--				    (UDF_SB_VAT(sb)->i_size - 36) >> 2;
-+					(UDF_SB_VAT(sb)->i_size - 36) >> 2;
- 			} else if (UDF_SB_PARTTYPE(sb, i) == UDF_VIRTUAL_MAP20) {
- 				struct buffer_head *bh = NULL;
- 				uint32_t pos;
-@@ -1330,19 +1325,15 @@ static int udf_load_partition(struct sup
- 				if (!bh)
- 					return 1;
- 				UDF_SB_TYPEVIRT(sb, i).s_start_offset =
--				    le16_to_cpu(((struct
--					virtualAllocationTable20 *)bh->b_data +
--					  udf_ext0_offset(UDF_SB_VAT(sb)))->
--						lengthHeader) +
--					  udf_ext0_offset(UDF_SB_VAT(sb));
--				UDF_SB_TYPEVIRT(sb, i).s_num_entries =
--				    (UDF_SB_VAT(sb)->i_size -
--				     UDF_SB_TYPEVIRT(sb, i).s_start_offset) >> 2;
-+					le16_to_cpu(((struct virtualAllocationTable20 *)bh->b_data +
-+						     udf_ext0_offset(UDF_SB_VAT(sb)))->lengthHeader) +
-+					udf_ext0_offset(UDF_SB_VAT(sb));
-+				UDF_SB_TYPEVIRT(sb, i).s_num_entries = (UDF_SB_VAT(sb)->i_size -
-+									UDF_SB_TYPEVIRT(sb, i).s_start_offset) >> 2;
- 				brelse(bh);
- 			}
- 			UDF_SB_PARTROOT(sb, i) = udf_get_pblock(sb, 0, i, 0);
--			UDF_SB_PARTLEN(sb, i) = UDF_SB_PARTLEN(sb,
--						ino.partitionReferenceNum);
-+			UDF_SB_PARTLEN(sb, i) = UDF_SB_PARTLEN(sb, ino.partitionReferenceNum);
- 		}
- 	}
- 	return 0;
-@@ -1357,21 +1348,17 @@ static void udf_open_lvid(struct super_b
- 		UDF_SB_LVIDIU(sb)->impIdent.identSuffix[0] = UDF_OS_CLASS_UNIX;
- 		UDF_SB_LVIDIU(sb)->impIdent.identSuffix[1] = UDF_OS_ID_LINUX;
- 		if (udf_time_to_stamp(&cpu_time, CURRENT_TIME))
--			UDF_SB_LVID(sb)->recordingDateAndTime =
--			    cpu_to_lets(cpu_time);
-+			UDF_SB_LVID(sb)->recordingDateAndTime = cpu_to_lets(cpu_time);
- 		UDF_SB_LVID(sb)->integrityType = LVID_INTEGRITY_TYPE_OPEN;
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
  
--		UDF_SB_LVID(sb)->descTag.descCRC =
--		    cpu_to_le16(udf_crc((char *)UDF_SB_LVID(sb) + sizeof(tag),
--					le16_to_cpu(UDF_SB_LVID(sb)->descTag.
--						    descCRCLength), 0));
-+		UDF_SB_LVID(sb)->descTag.descCRC = cpu_to_le16(udf_crc((char *)UDF_SB_LVID(sb) + sizeof(tag),
-+								       le16_to_cpu(UDF_SB_LVID(sb)->descTag.descCRCLength), 0));
+ #endif /* __ASSEMBLY__ */
+diff -puN include/asm-blackfin/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-blackfin/types.h
+--- a/include/asm-blackfin/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-blackfin/types.h
+@@ -27,9 +27,9 @@ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
  
- 		UDF_SB_LVID(sb)->descTag.tagChecksum = 0;
- 		for (i = 0; i < 16; i++)
- 			if (i != 4)
- 				UDF_SB_LVID(sb)->descTag.tagChecksum +=
--				    ((uint8_t *) &
--				     (UDF_SB_LVID(sb)->descTag))[i];
-+					((uint8_t *) &(UDF_SB_LVID(sb)->descTag))[i];
+ /* HK0617   -- Changes to unsigned long temporarily */
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
  
- 		mark_buffer_dirty(UDF_SB_LVIDBH(sb));
- 	}
-diff -puN fs/udf/udftime.c~udf-code-style-fixup-v3 fs/udf/udftime.c
---- a/fs/udf/udftime.c~udf-code-style-fixup-v3
-+++ a/fs/udf/udftime.c
-@@ -108,10 +108,10 @@ time_t *udf_stamp_to_time(time_t *dest, 
- 	*dest = year_seconds[src.year - EPOCH_YEAR];
- 	*dest -= offset * 60;
+ #endif				/* __ASSEMBLY__ */
+diff -puN include/asm-cris/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-cris/types.h
+--- a/include/asm-cris/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-cris/types.h
+@@ -19,9 +19,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
  
--	yday = ((__mon_yday[__isleap (src.year)]
--		 [src.month - 1]) + (src.day - 1));
--	*dest += ( ( (yday * 24) + src.hour ) * 60 + src.minute ) * 60 + src.second;
--	*dest_usec = src.centiseconds * 10000 + src.hundredsOfMicroseconds * 100 + src.microseconds;
-+	yday = ((__mon_yday[__isleap(src.year)][src.month - 1]) + src.day - 1);
-+	*dest += (((yday * 24) + src.hour) * 60 + src.minute) * 60 + src.second;
-+	*dest_usec = src.centiseconds * 10000 +
-+			src.hundredsOfMicroseconds * 100 + src.microseconds;
- 	return dest;
- }
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
  
+ #endif /* __ASSEMBLY__ */
+diff -puN include/asm-frv/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-frv/types.h
+--- a/include/asm-frv/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-frv/types.h
+@@ -30,9 +30,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ 
+ #endif /* __ASSEMBLY__ */
+diff -puN include/asm-h8300/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-h8300/types.h
+--- a/include/asm-h8300/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-h8300/types.h
+@@ -27,9 +27,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ 
+ /*
+diff -puN include/asm-m32r/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-m32r/types.h
+--- a/include/asm-m32r/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-m32r/types.h
+@@ -19,9 +19,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ #endif /* __ASSEMBLY__ */
+ 
+diff -puN include/asm-m68k/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-m68k/types.h
+--- a/include/asm-m68k/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-m68k/types.h
+@@ -27,9 +27,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ 
+ #endif /* __ASSEMBLY__ */
+diff -puN include/asm-mips/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-mips/types.h
+--- a/include/asm-mips/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-mips/types.h
+@@ -34,9 +34,9 @@ typedef unsigned long __u64;
+ 
+ #else
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ 
+ #endif
+diff -puN include/asm-parisc/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-parisc/types.h
+--- a/include/asm-parisc/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-parisc/types.h
+@@ -19,9 +19,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ 
+ #endif /* __ASSEMBLY__ */
+diff -puN include/asm-powerpc/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-powerpc/types.h
+--- a/include/asm-powerpc/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-powerpc/types.h
+@@ -40,9 +40,9 @@ typedef unsigned int __u32;
+ typedef __signed__ long __s64;
+ typedef unsigned long __u64;
+ #else
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ #endif /* __powerpc64__ */
+ 
+diff -puN include/asm-s390/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-s390/types.h
+--- a/include/asm-s390/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-s390/types.h
+@@ -28,9 +28,9 @@ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+ #ifndef __s390x__
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ #else /* __s390x__ */
+ typedef __signed__ long __s64;
+diff -puN include/asm-sh/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-sh/types.h
+--- a/include/asm-sh/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-sh/types.h
+@@ -19,9 +19,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ 
+ #endif /* __ASSEMBLY__ */
+diff -puN include/asm-sh64/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-sh64/types.h
+--- a/include/asm-sh64/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-sh64/types.h
+@@ -30,9 +30,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ 
+ #endif /* __ASSEMBLY__ */
+diff -puN include/asm-v850/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-v850/types.h
+--- a/include/asm-v850/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-v850/types.h
+@@ -27,9 +27,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ 
+ #endif /* !__ASSEMBLY__ */
+diff -puN include/asm-x86/types_32.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-x86/types_32.h
+--- a/include/asm-x86/types_32.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-x86/types_32.h
+@@ -19,9 +19,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ 
+ #endif /* __ASSEMBLY__ */
+diff -puN include/asm-xtensa/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh include/asm-xtensa/types.h
+--- a/include/asm-xtensa/types.h~remove-strict-ansi-check-from-__u64-in-asm-typesh
++++ a/include/asm-xtensa/types.h
+@@ -38,9 +38,9 @@ typedef unsigned short __u16;
+ typedef __signed__ int __s32;
+ typedef unsigned int __u32;
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+-typedef __signed__ long long __s64;
+-typedef unsigned long long __u64;
++#if defined(__GNUC__)
++__extension__ typedef __signed__ long long __s64;
++__extension__ typedef unsigned long long __u64;
+ #endif
+ 
+ /*
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from olh@suse.de are
 
 origin.patch
-git-cifs.patch
