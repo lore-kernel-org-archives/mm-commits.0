@@ -1,68 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:55:32 -0700
-Message-ID: <200710180655.l9I6tWBF030621@imap1.linux-foundation.org>
+Subject: - exec-simplify-the-new-sighand-allocation.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:56:45 -0700
+Message-ID: <200710180656.l9I6ujSp030726@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54360 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44847 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756483AbXJRH0h (ORCPT
+	by vger.kernel.org with ESMTP id S1756885AbXJRH0i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:26:37 -0400
+	Thu, 18 Oct 2007 03:26:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     exit_notify: don't take tasklist for TIF_SIGPENDING re-targeting
+     exec: simplify the new ->sighand allocation
 has been removed from the -mm tree.  Its filename was
-     exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting.patch
+     exec-simplify-the-new-sighand-allocation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: exit_notify: don't take tasklist for TIF_SIGPENDING re-targeting
+Subject: exec: simplify the new ->sighand allocation
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-->siglock provides enough protection to iterate over the thread group.
+de_thread() pre-allocates newsighand to make sure that exec() can't fail after
+killing all sub-threads. Imho, this buys nothing, but complicates the code:
+
+	- this is (mostly) needed to handle CLONE_SIGHAND without CLONE_THREAD
+	  tasks, this is very unlikely (if ever used) case
+
+	- unless we already have some serious problems, GFP_KERNEL allocation
+	  should not fail
+
+	- ENOMEM still can happen after de_thread(), ->sighand is not the last
+	  object we have to allocate
+
+Change the code to allocate the new ->sighand on demand.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Roland McGrath <roland@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ fs/exec.c |   24 +++++++++---------------
+ 1 file changed, 9 insertions(+), 15 deletions(-)
 
-diff -puN kernel/exit.c~exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting kernel/exit.c
---- a/kernel/exit.c~exit_notify-dont-take-tasklist-for-tif_sigpending-re-targeting
-+++ a/kernel/exit.c
-@@ -747,13 +747,11 @@ static void exit_notify(struct task_stru
- 		 * Now we'll wake all the threads in the group just to make
- 		 * sure someone gets all the pending signals.
- 		 */
--		read_lock(&tasklist_lock);
- 		spin_lock_irq(&tsk->sighand->siglock);
- 		for (t = next_thread(tsk); t != tsk; t = next_thread(t))
- 			if (!signal_pending(t) && !(t->flags & PF_EXITING))
- 				recalc_sigpending_and_wake(t);
- 		spin_unlock_irq(&tsk->sighand->siglock);
--		read_unlock(&tasklist_lock);
+diff -puN fs/exec.c~exec-simplify-the-new-sighand-allocation fs/exec.c
+--- a/fs/exec.c~exec-simplify-the-new-sighand-allocation
++++ a/fs/exec.c
+@@ -747,7 +747,7 @@ static int exec_mmap(struct mm_struct *m
+ static int de_thread(struct task_struct *tsk)
+ {
+ 	struct signal_struct *sig = tsk->signal;
+-	struct sighand_struct *newsighand, *oldsighand = tsk->sighand;
++	struct sighand_struct *oldsighand = tsk->sighand;
+ 	spinlock_t *lock = &oldsighand->siglock;
+ 	struct task_struct *leader = NULL;
+ 	int count;
+@@ -761,10 +761,6 @@ static int de_thread(struct task_struct 
+ 		return 0;
  	}
  
- 	write_lock_irq(&tasklist_lock);
-@@ -781,9 +779,8 @@ static void exit_notify(struct task_stru
- 	 * and we were the only connection outside, so our pgrp
- 	 * is about to become orphaned.
- 	 */
--	 
- 	t = tsk->real_parent;
--	
+-	newsighand = kmem_cache_alloc(sighand_cachep, GFP_KERNEL);
+-	if (!newsighand)
+-		return -ENOMEM;
+-
+ 	if (thread_group_empty(tsk))
+ 		goto no_thread_group;
+ 
+@@ -781,7 +777,6 @@ static int de_thread(struct task_struct 
+ 		 */
+ 		spin_unlock_irq(lock);
+ 		read_unlock(&tasklist_lock);
+-		kmem_cache_free(sighand_cachep, newsighand);
+ 		return -EAGAIN;
+ 	}
+ 
+@@ -899,17 +894,16 @@ no_thread_group:
+ 	if (leader)
+ 		release_task(leader);
+ 
+-	if (atomic_read(&oldsighand->count) == 1) {
+-		/*
+-		 * Now that we nuked the rest of the thread group,
+-		 * it turns out we are not sharing sighand any more either.
+-		 * So we can just keep it.
+-		 */
+-		kmem_cache_free(sighand_cachep, newsighand);
+-	} else {
++	if (atomic_read(&oldsighand->count) != 1) {
++		struct sighand_struct *newsighand;
+ 		/*
+-		 * Move our state over to newsighand and switch it in.
++		 * This ->sighand is shared with the CLONE_SIGHAND
++		 * but not CLONE_THREAD task, switch to the new one.
+ 		 */
++		newsighand = kmem_cache_alloc(sighand_cachep, GFP_KERNEL);
++		if (!newsighand)
++			return -ENOMEM;
 +
- 	pgrp = task_pgrp(tsk);
- 	if ((task_pgrp(t) != pgrp) &&
- 	    (task_session(t) == task_session(tsk)) &&
+ 		atomic_set(&newsighand->count, 1);
+ 		memcpy(newsighand->action, oldsighand->action,
+ 		       sizeof(newsighand->action));
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
