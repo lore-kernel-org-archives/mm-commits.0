@@ -1,46 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - oom-serialize-out-of-memory-calls.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:51:45 -0700
-Message-ID: <200710180651.l9I6pjbl030214@imap1.linux-foundation.org>
+Subject: - oom-suppress-extraneous-stack-and-memory-dump.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:51:50 -0700
+Message-ID: <200710180651.l9I6poAu030220@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45920 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40336 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932803AbXJRHoo (ORCPT
+	by vger.kernel.org with ESMTP id S933012AbXJRHo5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:44:44 -0400
+	Thu, 18 Oct 2007 03:44:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rientjes@google.com, andrea@suse.de, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oom: serialize out of memory calls
+     oom: suppress extraneous stack and memory dump
 has been removed from the -mm tree.  Its filename was
-     oom-serialize-out-of-memory-calls.patch
+     oom-suppress-extraneous-stack-and-memory-dump.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: oom: serialize out of memory calls
+Subject: oom: suppress extraneous stack and memory dump
 From: David Rientjes <rientjes@google.com>
 
-A final allocation attempt with a very high watermark needs to be attempted
-before invoking out_of_memory().  OOM killer serialization needs to occur
-before this final attempt, otherwise tasks attempting to OOM-lock all zones in
-its zonelist may spin and acquire the lock unnecessarily after the OOM
-condition has already been alleviated.
-
-If the final allocation does succeed, the zonelist is simply OOM-unlocked and
-__alloc_pages() returns the page.  Otherwise, the OOM killer is invoked.
-
-If the task cannot acquire OOM-locks on all zones in its zonelist, it is put
-to sleep and the allocation is retried when it gets rescheduled.  One of its
-zones is already marked as being in the OOM killer so it'll hopefully be
-getting some free memory soon, at least enough to satisfy a high watermark
-allocation attempt.  This prevents needlessly killing a task when the OOM
-condition would have already been alleviated if it had simply been given
-enough time.
+Suppresses the extraneous stack and memory dump when a parallel OOM killing
+has been found.  There's no need to fill the ring buffer with this information
+if its already been printed and the condition that triggered the previous OOM
+killer has not yet been alleviated.
 
 Cc: Andrea Arcangeli <andrea@suse.de>
 Acked-by: Christoph Lameter <clameter@sgi.com>
@@ -48,46 +36,78 @@ Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ mm/oom_kill.c |   27 ++++++++++++++-------------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
 
-diff -puN mm/page_alloc.c~oom-serialize-out-of-memory-calls mm/page_alloc.c
---- a/mm/page_alloc.c~oom-serialize-out-of-memory-calls
-+++ a/mm/page_alloc.c
-@@ -1587,6 +1587,11 @@ nofail_alloc:
- 		if (page)
- 			goto got_pg;
- 	} else if ((gfp_mask & __GFP_FS) && !(gfp_mask & __GFP_NORETRY)) {
-+		if (!try_set_zone_oom(zonelist)) {
-+			schedule_timeout_uninterruptible(1);
-+			goto restart;
-+		}
+diff -puN mm/oom_kill.c~oom-suppress-extraneous-stack-and-memory-dump mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-suppress-extraneous-stack-and-memory-dump
++++ a/mm/oom_kill.c
+@@ -333,12 +333,20 @@ static int oom_kill_task(struct task_str
+ 	return 0;
+ }
+ 
+-static int oom_kill_process(struct task_struct *p, unsigned long points,
+-		const char *message)
++static int oom_kill_process(struct task_struct *p, gfp_t gfp_mask, int order,
++			    unsigned long points, const char *message)
+ {
+ 	struct task_struct *c;
+ 	struct list_head *tsk;
+ 
++	if (printk_ratelimit()) {
++		printk(KERN_WARNING "%s invoked oom-killer: "
++			"gfp_mask=0x%x, order=%d, oomkilladj=%d\n",
++			current->comm, gfp_mask, order, current->oomkilladj);
++		dump_stack();
++		show_mem();
++	}
 +
- 		/*
- 		 * Go through the zonelist yet one more time, keep
- 		 * very high watermark here, this is only to catch
-@@ -1595,14 +1600,19 @@ nofail_alloc:
- 		 */
- 		page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, order,
- 				zonelist, ALLOC_WMARK_HIGH|ALLOC_CPUSET);
--		if (page)
-+		if (page) {
-+			clear_zonelist_oom(zonelist);
- 			goto got_pg;
-+		}
+ 	/*
+ 	 * If the task is already exiting, don't alarm the sysadmin or kill
+ 	 * its children or threads, just set TIF_MEMDIE so it can die quickly
+@@ -447,14 +455,6 @@ void out_of_memory(struct zonelist *zone
+ 		/* Got some memory back in the last second. */
+ 		return;
  
- 		/* The OOM killer will not help higher order allocs so fail */
--		if (order > PAGE_ALLOC_COSTLY_ORDER)
-+		if (order > PAGE_ALLOC_COSTLY_ORDER) {
-+			clear_zonelist_oom(zonelist);
- 			goto nopage;
-+		}
+-	if (printk_ratelimit()) {
+-		printk(KERN_WARNING "%s invoked oom-killer: "
+-			"gfp_mask=0x%x, order=%d, oomkilladj=%d\n",
+-			current->comm, gfp_mask, order, current->oomkilladj);
+-		dump_stack();
+-		show_mem();
+-	}
+-
+ 	if (sysctl_panic_on_oom == 2)
+ 		panic("out of memory. Compulsory panic_on_oom is selected.\n");
  
- 		out_of_memory(zonelist, gfp_mask, order);
-+		clear_zonelist_oom(zonelist);
- 		goto restart;
- 	}
+@@ -468,7 +468,7 @@ void out_of_memory(struct zonelist *zone
  
+ 	switch (constraint) {
+ 	case CONSTRAINT_MEMORY_POLICY:
+-		oom_kill_process(current, points,
++		oom_kill_process(current, gfp_mask, order, points,
+ 				"No available memory (MPOL_BIND)");
+ 		break;
+ 
+@@ -478,7 +478,7 @@ void out_of_memory(struct zonelist *zone
+ 		/* Fall-through */
+ 	case CONSTRAINT_CPUSET:
+ 		if (sysctl_oom_kill_allocating_task) {
+-			oom_kill_process(current, points,
++			oom_kill_process(current, gfp_mask, order, points,
+ 					"Out of memory (oom_kill_allocating_task)");
+ 			break;
+ 		}
+@@ -499,7 +499,8 @@ retry:
+ 			panic("Out of memory and no killable processes...\n");
+ 		}
+ 
+-		if (oom_kill_process(p, points, "Out of memory"))
++		if (oom_kill_process(p, points, gfp_mask, order,
++				     "Out of memory"))
+ 			goto retry;
+ 
+ 		break;
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
