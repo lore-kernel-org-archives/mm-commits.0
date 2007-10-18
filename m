@@ -1,195 +1,287 @@
 From: akpm@linux-foundation.org
-Subject: - fs-reiserfs-cleanups.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:52:25 -0700
-Message-ID: <200710180652.l9I6qPUl030283@imap1.linux-foundation.org>
+Subject: - oom-change-all_unreclaimable-zone-member-to-flags.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:51:40 -0700
+Message-ID: <200710180651.l9I6pe1w030208@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53026 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47726 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761408AbXJRHps (ORCPT
+	by vger.kernel.org with ESMTP id S1761417AbXJRHp7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:45:48 -0400
+	Thu, 18 Oct 2007 03:45:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, npiggin@suse.de, vs@namesys.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, andrea@suse.de, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/reiserfs/: cleanups
+     oom: change all_unreclaimable zone member to flags
 has been removed from the -mm tree.  Its filename was
-     fs-reiserfs-cleanups.patch
+     oom-change-all_unreclaimable-zone-member-to-flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fs/reiserfs/: cleanups
-From: Adrian Bunk <bunk@stusta.de>
+Subject: oom: change all_unreclaimable zone member to flags
+From: David Rientjes <rientjes@google.com>
 
-- remove the following no longer used functions:
-  - bitmap.c: reiserfs_claim_blocks_to_be_allocated()
-  - bitmap.c: reiserfs_release_claimed_blocks()
-  - bitmap.c: reiserfs_can_fit_pages()
+Convert the int all_unreclaimable member of struct zone to unsigned long
+flags.  This can now be used to specify several different zone flags such as
+all_unreclaimable and reclaim_in_progress, which can now be removed and
+converted to a per-zone flag.
 
-- make the following functions static:
-  - inode.c: restart_transaction()
-  - journal.c: reiserfs_async_progress_wait()
+Flags are set and cleared as follows:
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: Vladimir V. Saveliev <vs@namesys.com>
-Cc: Nick Piggin <npiggin@suse.de>
+	zone_set_flag(struct zone *zone, zone_flags_t flag)
+	zone_clear_flag(struct zone *zone, zone_flags_t flag)
+
+Defines the first zone flags, ZONE_ALL_UNRECLAIMABLE and ZONE_RECLAIM_LOCKED,
+which have the same semantics as the old zone->all_unreclaimable and
+zone->reclaim_in_progress, respectively.  Also converts all current users that
+set or clear either flag to use the new interface.
+
+Helper functions are defined to test the flags:
+
+	int zone_is_all_unreclaimable(const struct zone *zone)
+	int zone_is_reclaim_locked(const struct zone *zone)
+
+All flag operators are of the atomic variety because there are currently
+readers that are implemented that do not take zone->lock.
+
+[akpm@linux-foundation.org: add needed include]
+Cc: Andrea Arcangeli <andrea@suse.de>
+Acked-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/bitmap.c        |   57 ----------------------------------
- fs/reiserfs/inode.c         |    4 +-
- fs/reiserfs/journal.c       |    3 +
- include/linux/reiserfs_fs.h |    7 ----
- 4 files changed, 4 insertions(+), 67 deletions(-)
+ include/linux/mmzone.h |   29 +++++++++++++++++++++++++----
+ mm/page_alloc.c        |    8 ++++----
+ mm/vmscan.c            |   25 +++++++++++++------------
+ mm/vmstat.c            |    2 +-
+ 4 files changed, 43 insertions(+), 21 deletions(-)
 
-diff -puN fs/reiserfs/bitmap.c~fs-reiserfs-cleanups fs/reiserfs/bitmap.c
---- a/fs/reiserfs/bitmap.c~fs-reiserfs-cleanups
-+++ a/fs/reiserfs/bitmap.c
-@@ -1201,63 +1201,6 @@ int reiserfs_allocate_blocknrs(reiserfs_
- 	return ret;
- }
+diff -puN include/linux/mmzone.h~oom-change-all_unreclaimable-zone-member-to-flags include/linux/mmzone.h
+--- a/include/linux/mmzone.h~oom-change-all_unreclaimable-zone-member-to-flags
++++ a/include/linux/mmzone.h
+@@ -7,6 +7,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/list.h>
+ #include <linux/wait.h>
++#include <linux/bitops.h>
+ #include <linux/cache.h>
+ #include <linux/threads.h>
+ #include <linux/numa.h>
+@@ -262,10 +263,7 @@ struct zone {
+ 	unsigned long		nr_scan_active;
+ 	unsigned long		nr_scan_inactive;
+ 	unsigned long		pages_scanned;	   /* since last reclaim */
+-	int			all_unreclaimable; /* All pages pinned */
+-
+-	/* A count of how many reclaimers are scanning this zone */
+-	atomic_t		reclaim_in_progress;
++	unsigned long		flags;		   /* zone flags, see below */
  
--/* These 2 functions are here to provide blocks reservation to the rest of kernel */
--/* Reserve @blocks amount of blocks in fs pointed by @sb. Caller must make sure
--   there are actually this much blocks on the FS available */
--void reiserfs_claim_blocks_to_be_allocated(struct super_block *sb,	/* super block of
--									   filesystem where
--									   blocks should be
--									   reserved */
--					   int blocks	/* How much to reserve */
--    )
--{
--
--	/* Fast case, if reservation is zero - exit immediately. */
--	if (!blocks)
--		return;
--
--	spin_lock(&REISERFS_SB(sb)->bitmap_lock);
--	REISERFS_SB(sb)->reserved_blocks += blocks;
--	spin_unlock(&REISERFS_SB(sb)->bitmap_lock);
--}
--
--/* Unreserve @blocks amount of blocks in fs pointed by @sb */
--void reiserfs_release_claimed_blocks(struct super_block *sb,	/* super block of
--								   filesystem where
--								   blocks should be
--								   reserved */
--				     int blocks	/* How much to unreserve */
--    )
--{
--
--	/* Fast case, if unreservation is zero - exit immediately. */
--	if (!blocks)
--		return;
--
--	spin_lock(&REISERFS_SB(sb)->bitmap_lock);
--	REISERFS_SB(sb)->reserved_blocks -= blocks;
--	spin_unlock(&REISERFS_SB(sb)->bitmap_lock);
--	RFALSE(REISERFS_SB(sb)->reserved_blocks < 0,
--	       "amount of blocks reserved became zero?");
--}
--
--/* This function estimates how much pages we will be able to write to FS
--   used for reiserfs_file_write() purposes for now. */
--int reiserfs_can_fit_pages(struct super_block *sb	/* superblock of filesystem
--							   to estimate space */ )
--{
--	int space;
--
--	spin_lock(&REISERFS_SB(sb)->bitmap_lock);
--	space =
--	    (SB_FREE_BLOCKS(sb) -
--	     REISERFS_SB(sb)->reserved_blocks) >> (PAGE_CACHE_SHIFT -
--						   sb->s_blocksize_bits);
--	spin_unlock(&REISERFS_SB(sb)->bitmap_lock);
--
--	return space > 0 ? space : 0;
--}
--
- void reiserfs_cache_bitmap_metadata(struct super_block *sb,
-                                     struct buffer_head *bh,
-                                     struct reiserfs_bitmap_info *info)
-diff -puN fs/reiserfs/inode.c~fs-reiserfs-cleanups fs/reiserfs/inode.c
---- a/fs/reiserfs/inode.c~fs-reiserfs-cleanups
-+++ a/fs/reiserfs/inode.c
-@@ -208,8 +208,8 @@ static int file_capable(struct inode *in
- 	return 0;
- }
+ 	/* Zone statistics */
+ 	atomic_long_t		vm_stat[NR_VM_ZONE_STAT_ITEMS];
+@@ -343,6 +341,29 @@ struct zone {
+ 	const char		*name;
+ } ____cacheline_internodealigned_in_smp;
  
--/*static*/ int restart_transaction(struct reiserfs_transaction_handle *th,
--				   struct inode *inode, struct treepath *path)
-+static int restart_transaction(struct reiserfs_transaction_handle *th,
-+			       struct inode *inode, struct treepath *path)
- {
- 	struct super_block *s = th->t_super;
- 	int len = th->t_blocks_allocated;
-diff -puN fs/reiserfs/journal.c~fs-reiserfs-cleanups fs/reiserfs/journal.c
---- a/fs/reiserfs/journal.c~fs-reiserfs-cleanups
-+++ a/fs/reiserfs/journal.c
-@@ -966,7 +966,8 @@ static int flush_older_commits(struct su
- 	}
- 	return 0;
- }
--int reiserfs_async_progress_wait(struct super_block *s)
++typedef enum {
++	ZONE_ALL_UNRECLAIMABLE,		/* all pages pinned */
++	ZONE_RECLAIM_LOCKED,		/* prevents concurrent reclaim */
++} zone_flags_t;
 +
-+static int reiserfs_async_progress_wait(struct super_block *s)
++static inline void zone_set_flag(struct zone *zone, zone_flags_t flag)
++{
++	set_bit(flag, &zone->flags);
++}
++static inline void zone_clear_flag(struct zone *zone, zone_flags_t flag)
++{
++	clear_bit(flag, &zone->flags);
++}
++
++static inline int zone_is_all_unreclaimable(const struct zone *zone)
++{
++	return test_bit(ZONE_ALL_UNRECLAIMABLE, &zone->flags);
++}
++static inline int zone_is_reclaim_locked(const struct zone *zone)
++{
++	return test_bit(ZONE_RECLAIM_LOCKED, &zone->flags);
++}
++
+ /*
+  * The "priority" of VM scanning is how much of the queues we will scan in one
+  * go. A value of 12 for DEF_PRIORITY implies that we will scan 1/4096th of the
+diff -puN mm/page_alloc.c~oom-change-all_unreclaimable-zone-member-to-flags mm/page_alloc.c
+--- a/mm/page_alloc.c~oom-change-all_unreclaimable-zone-member-to-flags
++++ a/mm/page_alloc.c
+@@ -490,7 +490,7 @@ static void free_pages_bulk(struct zone 
+ 					struct list_head *list, int order)
  {
- 	DEFINE_WAIT(wait);
- 	struct reiserfs_journal *j = SB_JOURNAL(s);
-diff -puN include/linux/reiserfs_fs.h~fs-reiserfs-cleanups include/linux/reiserfs_fs.h
---- a/include/linux/reiserfs_fs.h~fs-reiserfs-cleanups
-+++ a/include/linux/reiserfs_fs.h
-@@ -1703,8 +1703,6 @@ static inline int reiserfs_transaction_f
- 	return th->t_blocks_allocated - th->t_blocks_logged;
+ 	spin_lock(&zone->lock);
+-	zone->all_unreclaimable = 0;
++	zone_clear_flag(zone, ZONE_ALL_UNRECLAIMABLE);
+ 	zone->pages_scanned = 0;
+ 	while (count--) {
+ 		struct page *page;
+@@ -507,7 +507,7 @@ static void free_pages_bulk(struct zone 
+ static void free_one_page(struct zone *zone, struct page *page, int order)
+ {
+ 	spin_lock(&zone->lock);
+-	zone->all_unreclaimable = 0;
++	zone_clear_flag(zone, ZONE_ALL_UNRECLAIMABLE);
+ 	zone->pages_scanned = 0;
+ 	__free_one_page(page, zone, order);
+ 	spin_unlock(&zone->lock);
+@@ -1851,7 +1851,7 @@ void show_free_areas(void)
+ 			K(zone_page_state(zone, NR_INACTIVE)),
+ 			K(zone->present_pages),
+ 			zone->pages_scanned,
+-			(zone->all_unreclaimable ? "yes" : "no")
++			(zone_is_all_unreclaimable(zone) ? "yes" : "no")
+ 			);
+ 		printk("lowmem_reserve[]:");
+ 		for (i = 0; i < MAX_NR_ZONES; i++)
+@@ -3372,7 +3372,7 @@ static void __meminit free_area_init_cor
+ 		zone->nr_scan_active = 0;
+ 		zone->nr_scan_inactive = 0;
+ 		zap_zone_vm_stats(zone);
+-		atomic_set(&zone->reclaim_in_progress, 0);
++		zone->flags = 0;
+ 		if (!size)
+ 			continue;
+ 
+diff -puN mm/vmscan.c~oom-change-all_unreclaimable-zone-member-to-flags mm/vmscan.c
+--- a/mm/vmscan.c~oom-change-all_unreclaimable-zone-member-to-flags
++++ a/mm/vmscan.c
+@@ -1108,7 +1108,7 @@ static unsigned long shrink_zone(int pri
+ 	unsigned long nr_to_scan;
+ 	unsigned long nr_reclaimed = 0;
+ 
+-	atomic_inc(&zone->reclaim_in_progress);
++	zone_set_flag(zone, ZONE_RECLAIM_LOCKED);
+ 
+ 	/*
+ 	 * Add one to `nr_to_scan' just to make sure that the kernel will
+@@ -1149,7 +1149,7 @@ static unsigned long shrink_zone(int pri
+ 
+ 	throttle_vm_writeout(sc->gfp_mask);
+ 
+-	atomic_dec(&zone->reclaim_in_progress);
++	zone_clear_flag(zone, ZONE_RECLAIM_LOCKED);
+ 	return nr_reclaimed;
  }
  
--int reiserfs_async_progress_wait(struct super_block *s);
--
- struct reiserfs_transaction_handle *reiserfs_persistent_transaction(struct
- 								    super_block
- 								    *,
-@@ -1859,8 +1857,6 @@ void padd_item(char *item, int total_len
- #define GET_BLOCK_NO_IMUX     8	/* i_mutex is not held, don't preallocate */
- #define GET_BLOCK_NO_DANGLE   16	/* don't leave any transactions running */
+@@ -1187,7 +1187,7 @@ static unsigned long shrink_zones(int pr
  
--int restart_transaction(struct reiserfs_transaction_handle *th,
--			struct inode *inode, struct treepath *path);
- void reiserfs_read_locked_inode(struct inode *inode,
- 				struct reiserfs_iget_args *args);
- int reiserfs_find_actor(struct inode *inode, void *p);
-@@ -2137,9 +2133,6 @@ void reiserfs_discard_prealloc(struct re
- 			       struct inode *inode);
- void reiserfs_discard_all_prealloc(struct reiserfs_transaction_handle *th);
- #endif
--void reiserfs_claim_blocks_to_be_allocated(struct super_block *sb, int blocks);
--void reiserfs_release_claimed_blocks(struct super_block *sb, int blocks);
--int reiserfs_can_fit_pages(struct super_block *sb);
+ 		note_zone_scanning_priority(zone, priority);
  
- /* hashes.c */
- __u32 keyed_hash(const signed char *msg, int len);
+-		if (zone->all_unreclaimable && priority != DEF_PRIORITY)
++		if (zone_is_all_unreclaimable(zone) && priority != DEF_PRIORITY)
+ 			continue;	/* Let kswapd poll it */
+ 
+ 		sc->all_unreclaimable = 0;
+@@ -1368,7 +1368,8 @@ loop_again:
+ 			if (!populated_zone(zone))
+ 				continue;
+ 
+-			if (zone->all_unreclaimable && priority != DEF_PRIORITY)
++			if (zone_is_all_unreclaimable(zone) &&
++			    priority != DEF_PRIORITY)
+ 				continue;
+ 
+ 			if (!zone_watermark_ok(zone, order, zone->pages_high,
+@@ -1403,7 +1404,8 @@ loop_again:
+ 			if (!populated_zone(zone))
+ 				continue;
+ 
+-			if (zone->all_unreclaimable && priority != DEF_PRIORITY)
++			if (zone_is_all_unreclaimable(zone) &&
++					priority != DEF_PRIORITY)
+ 				continue;
+ 
+ 			if (!zone_watermark_ok(zone, order, zone->pages_high,
+@@ -1424,12 +1426,13 @@ loop_again:
+ 						lru_pages);
+ 			nr_reclaimed += reclaim_state->reclaimed_slab;
+ 			total_scanned += sc.nr_scanned;
+-			if (zone->all_unreclaimable)
++			if (zone_is_all_unreclaimable(zone))
+ 				continue;
+ 			if (nr_slab == 0 && zone->pages_scanned >=
+ 				(zone_page_state(zone, NR_ACTIVE)
+ 				+ zone_page_state(zone, NR_INACTIVE)) * 6)
+-					zone->all_unreclaimable = 1;
++					zone_set_flag(zone,
++						      ZONE_ALL_UNRECLAIMABLE);
+ 			/*
+ 			 * If we've done a decent amount of scanning and
+ 			 * the reclaim ratio is low, start doing writepage
+@@ -1595,7 +1598,7 @@ static unsigned long shrink_all_zones(un
+ 		if (!populated_zone(zone))
+ 			continue;
+ 
+-		if (zone->all_unreclaimable && prio != DEF_PRIORITY)
++		if (zone_is_all_unreclaimable(zone) && prio != DEF_PRIORITY)
+ 			continue;
+ 
+ 		/* For pass = 0 we don't shrink the active list */
+@@ -1919,10 +1922,8 @@ int zone_reclaim(struct zone *zone, gfp_
+ 	 * not have reclaimable pages and if we should not delay the allocation
+ 	 * then do not scan.
+ 	 */
+-	if (!(gfp_mask & __GFP_WAIT) ||
+-		zone->all_unreclaimable ||
+-		atomic_read(&zone->reclaim_in_progress) > 0 ||
+-		(current->flags & PF_MEMALLOC))
++	if (!(gfp_mask & __GFP_WAIT) || zone_is_all_unreclaimable(zone) ||
++		zone_is_reclaim_locked(zone) || (current->flags & PF_MEMALLOC))
+ 			return 0;
+ 
+ 	/*
+diff -puN mm/vmstat.c~oom-change-all_unreclaimable-zone-member-to-flags mm/vmstat.c
+--- a/mm/vmstat.c~oom-change-all_unreclaimable-zone-member-to-flags
++++ a/mm/vmstat.c
+@@ -704,7 +704,7 @@ static void zoneinfo_show_print(struct s
+ 		   "\n  all_unreclaimable: %u"
+ 		   "\n  prev_priority:     %i"
+ 		   "\n  start_pfn:         %lu",
+-		   zone->all_unreclaimable,
++			   zone_is_all_unreclaimable(zone),
+ 		   zone->prev_priority,
+ 		   zone->zone_start_pfn);
+ 	seq_putc(m, '\n');
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-git-acpi.patch
-git-kvm.patch
-remove-fs-jffs2-ioctlc.patch
-parisc-extern-inline-static-inline.patch
-nsp32_restart_autoscsi-remove-error-check.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-git-x86.patch
-unexport-pm_power_off_prepare.patch
-intel-iommu-intel-iommu-driver.patch
-revoke-core-code.patch
-pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
-the-next-round-of-scheduled-oss-code-removal.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+fix-cpusets-update_cpumask.patch
+fix-cpusets-update_cpumask-checkpatch-fixes.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-resource-counters-v7-fix.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memcontrol-move-mm_cgroup-to-header-file.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
