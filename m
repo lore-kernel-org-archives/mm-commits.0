@@ -1,52 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - wait_task_zombie-remove-unneeded-child-signal-check.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:55:27 -0700
-Message-ID: <200710180655.l9I6tR6g030611@imap1.linux-foundation.org>
+Subject: - exec-consolidate-2-fast-paths.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:56:47 -0700
+Message-ID: <200710180656.l9I6ulsk030729@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41406 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36781 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754971AbXJRHYZ (ORCPT
+	by vger.kernel.org with ESMTP id S1755742AbXJRHYj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:24:25 -0400
+	Thu, 18 Oct 2007 03:24:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     wait_task_zombie: remove unneeded child->signal check
+     exec: consolidate 2 fast-paths
 has been removed from the -mm tree.  Its filename was
-     wait_task_zombie-remove-unneeded-child-signal-check.patch
+     exec-consolidate-2-fast-paths.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: wait_task_zombie: remove unneeded child->signal check
+Subject: exec: consolidate 2 fast-paths
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-A zombie must have a valid ->signal, we are going to release it and
-__exit_signal() starts with BUG_ON(!sig).
+Now that we don't pre-allocate the new ->sighand, we can kill the first fast
+path, it doesn't make sense any longer. At best, it can save one "list_empty()"
+check but leads to the code duplication.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/exec.c |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff -puN kernel/exit.c~wait_task_zombie-remove-unneeded-child-signal-check kernel/exit.c
---- a/kernel/exit.c~wait_task_zombie-remove-unneeded-child-signal-check
-+++ a/kernel/exit.c
-@@ -1201,7 +1201,7 @@ static int wait_task_zombie(struct task_
- 		return 0;
- 	}
+diff -puN fs/exec.c~exec-consolidate-2-fast-paths fs/exec.c
+--- a/fs/exec.c~exec-consolidate-2-fast-paths
++++ a/fs/exec.c
+@@ -752,15 +752,6 @@ static int de_thread(struct task_struct 
+ 	struct task_struct *leader = NULL;
+ 	int count;
  
--	if (likely(p->real_parent == p->parent) && likely(p->signal)) {
-+	if (likely(p->real_parent == p->parent)) {
- 		struct signal_struct *psig;
- 		struct signal_struct *sig;
+-	/*
+-	 * If we don't share sighandlers, then we aren't sharing anything
+-	 * and we can just re-use it all.
+-	 */
+-	if (atomic_read(&oldsighand->count) <= 1) {
+-		exit_itimers(sig);
+-		return 0;
+-	}
+-
+ 	if (thread_group_empty(tsk))
+ 		goto no_thread_group;
  
 _
 
