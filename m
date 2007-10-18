@@ -1,106 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - remap_file_pages-kernel-doc-corrections.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:04:57 -0700
-Message-ID: <200710180704.l9I74vAt031603@imap1.linux-foundation.org>
+Subject: - md-software-raid-autodetect-dev-list-not-array.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:02:53 -0700
+Message-ID: <200710180702.l9I72r1e031310@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49844 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38756 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756673AbXJRHVe (ORCPT
+	by vger.kernel.org with ESMTP id S1756969AbXJRHWG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:21:34 -0400
+	Thu, 18 Oct 2007 03:22:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: mjevans1983@gmail.com, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remap_file_pages: kernel-doc corrections
+     md: software Raid autodetect dev list not array
 has been removed from the -mm tree.  Its filename was
-     remap_file_pages-kernel-doc-corrections.patch
+     md-software-raid-autodetect-dev-list-not-array.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: remap_file_pages: kernel-doc corrections
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: md: software Raid autodetect dev list not array
+From: Michael J. Evans <mjevans1983@gmail.com>
 
-Fix kernel-doc for sys_remap_file_pages() and add info to the 'prot' NOTE. 
-Rename __prot parameter to prot.
+In current release kernels the md module (Software RAID) uses a static
+array (dev_t[128]) to store partition/device info temporarily for
+autostart.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Nick Piggin <nickpiggin@yahoo.com.au>
+I discovered this (and that the devices are added as disks/partitions are
+discovered at boot) while I was debugging why only one of my MD arrays would
+come up whole, while all the others were short a disk.
+
+I eventually discovered that it was enumerating through all of 9 of my 11 hds
+(2 had only 4 partitions apiece) while the other 9 have 15 partitions (I
+wanted 64 per drive...).  The last partition of the 8th drive in my 9 drive
+raid 5 sets wasn't added, thus making the final md array short both a parity
+and data disk, and it was started later, elsewhere.
+
+This patch replaces that static array with a list.
+
+[akpm@linux-foundation.org: removed unused var]
+Signed-off-by: Michael J. Evans <mjevans1983@gmail.com>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/fremap.c |   24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+ drivers/md/md.c |   42 +++++++++++++++++++++++++++++++++---------
+ 1 file changed, 33 insertions(+), 9 deletions(-)
 
-diff -puN mm/fremap.c~remap_file_pages-kernel-doc-corrections mm/fremap.c
---- a/mm/fremap.c~remap_file_pages-kernel-doc-corrections
-+++ a/mm/fremap.c
-@@ -97,26 +97,28 @@ static int populate_range(struct mm_stru
+diff -puN drivers/md/md.c~md-software-raid-autodetect-dev-list-not-array drivers/md/md.c
+--- a/drivers/md/md.c~md-software-raid-autodetect-dev-list-not-array
++++ a/drivers/md/md.c
+@@ -5770,26 +5770,47 @@ static int __init md_init(void)
+  * Searches all registered partitions for autorun RAID arrays
+  * at boot time.
+  */
+-static dev_t detected_devices[128];
+-static int dev_cnt;
++
++static LIST_HEAD(all_detected_devices);
++struct detected_devices_node {
++	struct list_head list;
++	dev_t dev;
++};
  
+ void md_autodetect_dev(dev_t dev)
+ {
+-	if (dev_cnt >= 0 && dev_cnt < 127)
+-		detected_devices[dev_cnt++] = dev;
++	struct detected_devices_node *node_detected_dev;
++
++	node_detected_dev = kzalloc(sizeof(*node_detected_dev), GFP_KERNEL);
++	if (node_detected_dev) {
++		node_detected_dev->dev = dev;
++		list_add_tail(&node_detected_dev->list, &all_detected_devices);
++	} else {
++		printk(KERN_CRIT "md: md_autodetect_dev: kzalloc failed"
++			", skipping dev(%d,%d)\n", MAJOR(dev), MINOR(dev));
++	}
  }
  
--/***
-- * sys_remap_file_pages - remap arbitrary pages of a shared backing store
-- *                        file within an existing vma.
-+/**
-+ * sys_remap_file_pages - remap arbitrary pages of an existing VM_SHARED vma
-  * @start: start of the remapped virtual memory range
-  * @size: size of the remapped virtual memory range
-- * @prot: new protection bits of the range
-- * @pgoff: to be mapped page of the backing store file
-+ * @prot: new protection bits of the range (see NOTE)
-+ * @pgoff: to-be-mapped page of the backing store file
-  * @flags: 0 or MAP_NONBLOCKED - the later will cause no IO.
-  *
-- * this syscall works purely via pagetables, so it's the most efficient
-+ * sys_remap_file_pages remaps arbitrary pages of an existing VM_SHARED vma
-+ * (shared backing store file).
-+ *
-+ * This syscall works purely via pagetables, so it's the most efficient
-  * way to map the same (large) file into a given virtual window. Unlike
-  * mmap()/mremap() it does not create any new vmas. The new mappings are
-  * also safe across swapout.
-  *
-- * NOTE: the 'prot' parameter right now is ignored, and the vma's default
-- * protection is used. Arbitrary protections might be implemented in the
-- * future.
-+ * NOTE: the 'prot' parameter right now is ignored (but must be zero),
-+ * and the vma's default protection is used. Arbitrary protections
-+ * might be implemented in the future.
-  */
- asmlinkage long sys_remap_file_pages(unsigned long start, unsigned long size,
--	unsigned long __prot, unsigned long pgoff, unsigned long flags)
-+	unsigned long prot, unsigned long pgoff, unsigned long flags)
- {
- 	struct mm_struct *mm = current->mm;
- 	struct address_space *mapping;
-@@ -125,7 +127,7 @@ asmlinkage long sys_remap_file_pages(uns
- 	int err = -EINVAL;
- 	int has_write_lock = 0;
  
--	if (__prot)
-+	if (prot)
- 		return err;
- 	/*
- 	 * Sanitize the syscall parameters:
+ static void autostart_arrays(int part)
+ {
+ 	mdk_rdev_t *rdev;
+-	int i;
++	struct detected_devices_node *node_detected_dev;
++	dev_t dev;
++	int i_scanned, i_passed;
+ 
+-	printk(KERN_INFO "md: Autodetecting RAID arrays.\n");
++	i_scanned = 0;
++	i_passed = 0;
+ 
+-	for (i = 0; i < dev_cnt; i++) {
+-		dev_t dev = detected_devices[i];
++	printk(KERN_INFO "md: Autodetecting RAID arrays.\n");
+ 
++	while (!list_empty(&all_detected_devices) && i_scanned < INT_MAX) {
++		i_scanned++;
++		node_detected_dev = list_entry(all_detected_devices.next,
++					struct detected_devices_node, list);
++		list_del(&node_detected_dev->list);
++		dev = node_detected_dev->dev;
++		kfree(node_detected_dev);
+ 		rdev = md_import_device(dev,0, 90);
+ 		if (IS_ERR(rdev))
+ 			continue;
+@@ -5799,8 +5820,11 @@ static void autostart_arrays(int part)
+ 			continue;
+ 		}
+ 		list_add(&rdev->same_set, &pending_raid_disks);
++		i_passed++;
+ 	}
+-	dev_cnt = 0;
++
++	printk(KERN_INFO "md: Scanned %d and added %d devices.\n",
++						i_scanned, i_passed);
+ 
+ 	autorun_devices(part);
+ }
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from mjevans1983@gmail.com are
 
 origin.patch
-git-acpi.patch
-fix-auditscc-kernel-doc.patch
-comment-typo-in-scripts-kconfig-makefile.patch
-git-unionfs.patch
-git-watchdog.patch
-git-ipwireless_cs.patch
-hook-up-group-scheduler-with-control-groups.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
-add-samples-subdir.patch
-i-oat-cleanup-pci-issues.patch
-profile-likely-unlikely-macros.patch
