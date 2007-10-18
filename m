@@ -1,173 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - i386-convert-mm_context_t-semaphore-to-a-mutex.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:07:37 -0700
-Message-ID: <200710180707.l9I77bsk031715@imap1.linux-foundation.org>
+Subject: - x86-fix-cpu_to_node-references.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:07:49 -0700
+Message-ID: <200710180707.l9I77nSB031734@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35563 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60343 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755067AbXJRHIC (ORCPT
+	by vger.kernel.org with ESMTP id S1752563AbXJRHIA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:08:02 -0400
+	Thu, 18 Oct 2007 03:08:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lcapitulino@mandriva.com.br, ak@suse.de, mingo@elte.hu, mm-commits@vger.kernel.org
+To: travis@sgi.com, ak@suse.de, clameter@sgi.com, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: convert mm_context_t semaphore to a mutex
+     x86: fix cpu_to_node references 
 has been removed from the -mm tree.  Its filename was
-     i386-convert-mm_context_t-semaphore-to-a-mutex.patch
+     x86-fix-cpu_to_node-references.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: convert mm_context_t semaphore to a mutex
-From: "Luiz Fernando N. Capitulino" <lcapitulino@mandriva.com.br>
+Subject: x86: fix cpu_to_node references 
+From: Mike Travis <travis@sgi.com>
 
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Luiz Fernando N. Capitulino <lcapitulino@mandriva.com.br>
+In x86_64 and i386 architectures most arrays that are sized using NR_CPUS lay
+in local memory on node 0.  Not only will most (99%?) of the systems not use
+all the slots in these arrays, particularly when NR_CPUS is increased to
+accommodate future very high cpu count systems, but a number of cache lines
+are passed unnecessarily on the system bus when these arrays are referenced by
+cpus on other nodes.
+
+Typically, the values in these arrays are referenced by the cpu accessing it's
+own values, though when passing IPI interrupts, the cpu does access the data
+relevant to the targeted cpu/node.  Of course, if the referencing cpu is not
+on node 0, then the reference will still require cross node exchanges of cache
+lines.  A common use of this is for an interrupt service routine to pass the
+interrupt to other cpus local to that node.
+
+Ideally, all the elements in these arrays should be moved to the per_cpu data
+area.  In some cases (such as x86_cpu_to_apicid) the array is referenced
+before the per_cpu data areas are setup.  In this case, a static array is
+declared in the __initdata area and initialized by the booting cpu (BSP).  The
+values are then moved to the per_cpu area after it is initialized and the
+original static array is freed with the rest of the __initdata.
+
+
+This patch:
+
+Fix four instances where cpu_to_node is referenced by array instead of via the
+cpu_to_node macro.  This is preparation to moving it to the per_cpu data area.
+
+Signed-off-by: Mike Travis <travis@sgi.com>
 Cc: Andi Kleen <ak@suse.de>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/i386_ksyms_32.c |    1 +
- arch/x86/kernel/ldt_32.c        |   14 +++++++-------
- arch/x86/kernel/ptrace_32.c     |    4 ++--
- arch/x86/mm/fault_32.c          |    4 ++--
- include/asm-x86/mmu_32.h        |    4 ++--
- 5 files changed, 14 insertions(+), 13 deletions(-)
+ arch/x86/kernel/vsyscall_64.c |    2 +-
+ arch/x86/mm/numa_64.c         |    4 ++--
+ arch/x86/mm/srat_64.c         |    4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86/kernel/i386_ksyms_32.c~i386-convert-mm_context_t-semaphore-to-a-mutex arch/x86/kernel/i386_ksyms_32.c
---- a/arch/x86/kernel/i386_ksyms_32.c~i386-convert-mm_context_t-semaphore-to-a-mutex
-+++ a/arch/x86/kernel/i386_ksyms_32.c
-@@ -1,4 +1,5 @@
- #include <linux/module.h>
-+#include <asm/semaphore.h>
- #include <asm/checksum.h>
- #include <asm/desc.h>
- 
-diff -puN arch/x86/kernel/ldt_32.c~i386-convert-mm_context_t-semaphore-to-a-mutex arch/x86/kernel/ldt_32.c
---- a/arch/x86/kernel/ldt_32.c~i386-convert-mm_context_t-semaphore-to-a-mutex
-+++ a/arch/x86/kernel/ldt_32.c
-@@ -92,13 +92,13 @@ int init_new_context(struct task_struct 
- 	struct mm_struct * old_mm;
- 	int retval = 0;
- 
--	init_MUTEX(&mm->context.sem);
-+	mutex_init(&mm->context.lock);
- 	mm->context.size = 0;
- 	old_mm = current->mm;
- 	if (old_mm && old_mm->context.size > 0) {
--		down(&old_mm->context.sem);
-+		mutex_lock(&old_mm->context.lock);
- 		retval = copy_ldt(&mm->context, &old_mm->context);
--		up(&old_mm->context.sem);
-+		mutex_unlock(&old_mm->context.lock);
- 	}
- 	return retval;
+diff -puN arch/x86/kernel/vsyscall_64.c~x86-fix-cpu_to_node-references arch/x86/kernel/vsyscall_64.c
+--- a/arch/x86/kernel/vsyscall_64.c~x86-fix-cpu_to_node-references
++++ a/arch/x86/kernel/vsyscall_64.c
+@@ -288,7 +288,7 @@ static void __cpuinit vsyscall_set_cpu(i
+ 	unsigned long *d;
+ 	unsigned long node = 0;
+ #ifdef CONFIG_NUMA
+-	node = cpu_to_node[cpu];
++	node = cpu_to_node(cpu);
+ #endif
+ 	if (cpu_has(&cpu_data[cpu], X86_FEATURE_RDTSCP))
+ 		write_rdtscp_aux((node << 12) | cpu);
+diff -puN arch/x86/mm/numa_64.c~x86-fix-cpu_to_node-references arch/x86/mm/numa_64.c
+--- a/arch/x86/mm/numa_64.c~x86-fix-cpu_to_node-references
++++ a/arch/x86/mm/numa_64.c
+@@ -261,7 +261,7 @@ void __init numa_init_array(void)
+ 	   We round robin the existing nodes. */
+ 	rr = first_node(node_online_map);
+ 	for (i = 0; i < NR_CPUS; i++) {
+-		if (cpu_to_node[i] != NUMA_NO_NODE)
++		if (cpu_to_node(i) != NUMA_NO_NODE)
+ 			continue;
+  		numa_set_node(i, rr);
+ 		rr = next_node(rr, node_online_map);
+@@ -543,7 +543,7 @@ __cpuinit void numa_add_cpu(int cpu)
+ void __cpuinit numa_set_node(int cpu, int node)
+ {
+ 	cpu_pda(cpu)->nodenumber = node;
+-	cpu_to_node[cpu] = node;
++	cpu_to_node(cpu) = node;
  }
-@@ -130,7 +130,7 @@ static int read_ldt(void __user * ptr, u
- 	if (bytecount > LDT_ENTRY_SIZE*LDT_ENTRIES)
- 		bytecount = LDT_ENTRY_SIZE*LDT_ENTRIES;
  
--	down(&mm->context.sem);
-+	mutex_lock(&mm->context.lock);
- 	size = mm->context.size*LDT_ENTRY_SIZE;
- 	if (size > bytecount)
- 		size = bytecount;
-@@ -138,7 +138,7 @@ static int read_ldt(void __user * ptr, u
- 	err = 0;
- 	if (copy_to_user(ptr, mm->context.ldt, size))
- 		err = -EFAULT;
--	up(&mm->context.sem);
-+	mutex_unlock(&mm->context.lock);
- 	if (err < 0)
- 		goto error_return;
- 	if (size != bytecount) {
-@@ -194,7 +194,7 @@ static int write_ldt(void __user * ptr, 
- 			goto out;
+ unsigned long __init numa_free_all_bootmem(void) 
+diff -puN arch/x86/mm/srat_64.c~x86-fix-cpu_to_node-references arch/x86/mm/srat_64.c
+--- a/arch/x86/mm/srat_64.c~x86-fix-cpu_to_node-references
++++ a/arch/x86/mm/srat_64.c
+@@ -431,9 +431,9 @@ int __init acpi_scan_nodes(unsigned long
+ 			setup_node_bootmem(i, nodes[i].start, nodes[i].end);
+ 
+ 	for (i = 0; i < NR_CPUS; i++) {
+-		if (cpu_to_node[i] == NUMA_NO_NODE)
++		if (cpu_to_node(i) == NUMA_NO_NODE)
+ 			continue;
+-		if (!node_isset(cpu_to_node[i], node_possible_map))
++		if (!node_isset(cpu_to_node(i), node_possible_map))
+ 			numa_set_node(i, NUMA_NO_NODE);
  	}
- 
--	down(&mm->context.sem);
-+	mutex_lock(&mm->context.lock);
- 	if (ldt_info.entry_number >= mm->context.size) {
- 		error = alloc_ldt(&current->mm->context, ldt_info.entry_number+1, 1);
- 		if (error < 0)
-@@ -221,7 +221,7 @@ install:
- 	error = 0;
- 
- out_unlock:
--	up(&mm->context.sem);
-+	mutex_unlock(&mm->context.lock);
- out:
- 	return error;
- }
-diff -puN arch/x86/kernel/ptrace_32.c~i386-convert-mm_context_t-semaphore-to-a-mutex arch/x86/kernel/ptrace_32.c
---- a/arch/x86/kernel/ptrace_32.c~i386-convert-mm_context_t-semaphore-to-a-mutex
-+++ a/arch/x86/kernel/ptrace_32.c
-@@ -165,7 +165,7 @@ static unsigned long convert_eip_to_line
- 
- 		seg &= ~7UL;
- 
--		down(&child->mm->context.sem);
-+		mutex_lock(&child->mm->context.lock);
- 		if (unlikely((seg >> 3) >= child->mm->context.size))
- 			addr = -1L; /* bogus selector, access would fault */
- 		else {
-@@ -179,7 +179,7 @@ static unsigned long convert_eip_to_line
- 				addr &= 0xffff;
- 			addr += base;
- 		}
--		up(&child->mm->context.sem);
-+		mutex_unlock(&child->mm->context.lock);
- 	}
- 	return addr;
- }
-diff -puN arch/x86/mm/fault_32.c~i386-convert-mm_context_t-semaphore-to-a-mutex arch/x86/mm/fault_32.c
---- a/arch/x86/mm/fault_32.c~i386-convert-mm_context_t-semaphore-to-a-mutex
-+++ a/arch/x86/mm/fault_32.c
-@@ -105,7 +105,7 @@ static inline unsigned long get_segment_
- 	   LDT and other horrors are only used in user space. */
- 	if (seg & (1<<2)) {
- 		/* Must lock the LDT while reading it. */
--		down(&current->mm->context.sem);
-+		mutex_lock(&current->mm->context.lock);
- 		desc = current->mm->context.ldt;
- 		desc = (void *)desc + (seg & ~7);
- 	} else {
-@@ -118,7 +118,7 @@ static inline unsigned long get_segment_
- 	base = get_desc_base((unsigned long *)desc);
- 
- 	if (seg & (1<<2)) { 
--		up(&current->mm->context.sem);
-+		mutex_unlock(&current->mm->context.lock);
- 	} else
- 		put_cpu();
- 
-diff -puN include/asm-x86/mmu_32.h~i386-convert-mm_context_t-semaphore-to-a-mutex include/asm-x86/mmu_32.h
---- a/include/asm-x86/mmu_32.h~i386-convert-mm_context_t-semaphore-to-a-mutex
-+++ a/include/asm-x86/mmu_32.h
-@@ -1,7 +1,7 @@
- #ifndef __i386_MMU_H
- #define __i386_MMU_H
- 
--#include <asm/semaphore.h>
-+#include <linux/mutex.h>
- /*
-  * The i386 doesn't have a mmu context, but
-  * we put the segment information here.
-@@ -10,7 +10,7 @@
-  */
- typedef struct { 
- 	int size;
--	struct semaphore sem;
-+	struct mutex lock;
- 	void *ldt;
- 	void *vdso;
- } mm_context_t;
+ 	numa_init_array();
 _
 
-Patches currently in -mm which might be from lcapitulino@mandriva.com.br are
+Patches currently in -mm which might be from travis@sgi.com are
 
 origin.patch
+git-x86.patch
