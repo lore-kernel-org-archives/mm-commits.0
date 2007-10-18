@@ -1,70 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - git-newsetup-fixup.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:13:16 -0700
-Message-ID: <200710180613.l9I6DGtO028852@imap1.linux-foundation.org>
+Subject: - git-alsa-fixup.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:16:14 -0700
+Message-ID: <200710180616.l9I6GE58028895@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58033 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49218 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752719AbXJRGNS (ORCPT
+	by vger.kernel.org with ESMTP id S1753507AbXJRGQZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 02:13:18 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9I6DGwK024386
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 17 Oct 2007 23:13:17 -0700
+	Thu, 18 Oct 2007 02:16:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-newsetup-fixup
+     git-alsa-fixup
 has been removed from the -mm tree.  Its filename was
-     git-newsetup-fixup.patch
+     git-alsa-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-newsetup-fixup
+Subject: git-alsa-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Fix git rejects aginst mainline.
+
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/Kbuild      |    1 -
- include/asm-x86/bootparam.h |    3 +++
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ sound/sparc/cs4231.c |   62 -----------------------------------------
+ 1 file changed, 62 deletions(-)
 
-diff -puN include/asm-x86/Kbuild~git-newsetup-fixup include/asm-x86/Kbuild
---- a/include/asm-x86/Kbuild~git-newsetup-fixup
-+++ a/include/asm-x86/Kbuild
-@@ -2,7 +2,6 @@ include include/asm-generic/Kbuild.asm
+diff -puN sound/sparc/cs4231.c~git-alsa-fixup sound/sparc/cs4231.c
+--- a/sound/sparc/cs4231.c~git-alsa-fixup
++++ a/sound/sparc/cs4231.c
+@@ -400,14 +400,8 @@ static void snd_cs4231_mce_up(struct snd
  
- header-y += boot.h
- header-y += bootparam.h
--header-y += bootsetup.h
- header-y += debugreg_32.h
- header-y += debugreg_64.h
- header-y += debugreg.h
-diff -puN include/asm-x86/bootparam.h~git-newsetup-fixup include/asm-x86/bootparam.h
---- a/include/asm-x86/bootparam.h~git-newsetup-fixup
-+++ a/include/asm-x86/bootparam.h
-@@ -14,6 +14,9 @@ struct setup_header {
- 	__u16	root_flags;
- 	__u32	syssize;
- 	__u16	ram_size;
-+#define RAMDISK_IMAGE_START_MASK	0x07FF
-+#define RAMDISK_PROMPT_FLAG		0x8000
-+#define RAMDISK_LOAD_FLAG		0x4000
- 	__u16	vid_mode;
- 	__u16	root_dev;
- 	__u16	boot_flag;
+ static void snd_cs4231_mce_down(struct snd_cs4231 *chip)
+ {
+-<<<<<<< HEAD:sound/sparc/cs4231.c
+-	unsigned long flags;
+-	unsigned long end_time;
+-	int timeout;
+-=======
+ 	unsigned long flags, timeout;
+ 	int reg;
+->>>>>>> FETCH_HEAD:sound/sparc/cs4231.c
+ 
+ 	snd_cs4231_busy_wait(chip);
+ 	spin_lock_irqsave(&chip->lock, flags);
+@@ -417,84 +411,28 @@ static void snd_cs4231_mce_down(struct s
+ 			    CS4231U(chip, REGSEL));
+ #endif
+ 	chip->mce_bit &= ~CS4231_MCE;
+-<<<<<<< HEAD:sound/sparc/cs4231.c
+-	timeout = __cs4231_readb(chip, CS4231U(chip, REGSEL));
+-	__cs4231_writeb(chip, chip->mce_bit | (timeout & 0x1f),
+-=======
+ 	reg = __cs4231_readb(chip, CS4231U(chip, REGSEL));
+ 	__cs4231_writeb(chip, chip->mce_bit | (reg & 0x1f),
+->>>>>>> FETCH_HEAD:sound/sparc/cs4231.c
+ 			CS4231U(chip, REGSEL));
+-<<<<<<< HEAD:sound/sparc/cs4231.c
+-	if (timeout == 0x80)
+-		snd_printdd("mce_down [%p]: serious init problem - "
+-			    "codec still busy\n",
+-			    chip->port);
+-	if ((timeout & CS4231_MCE) == 0) {
+-=======
+ 	if (reg == 0x80)
+ 		snd_printdd("mce_down [%p]: serious init problem "
+ 			    "- codec still busy\n", chip->port);
+ 	if ((reg & CS4231_MCE) == 0) {
+->>>>>>> FETCH_HEAD:sound/sparc/cs4231.c
+ 		spin_unlock_irqrestore(&chip->lock, flags);
+ 		return;
+ 	}
+-<<<<<<< HEAD:sound/sparc/cs4231.c
+-
+-	/*
+-	 * Wait for (possible -- during init auto-calibration may not be set)
+-	 * calibration process to start. Needs upto 5 sample periods on AD1848
+-	 * which at the slowest possible rate of 5.5125 kHz means 907 us.
+-	 */
+-	msleep(1);
+ 
+-	/* check condition up to 250ms */
+-	end_time = jiffies + msecs_to_jiffies(250);
+-	while (snd_cs4231_in(chip, CS4231_TEST_INIT) &
+-		CS4231_CALIB_IN_PROGRESS) {
+-=======
+->>>>>>> FETCH_HEAD:sound/sparc/cs4231.c
+-
+-<<<<<<< HEAD:sound/sparc/cs4231.c
+-=======
+ 	/*
+ 	 * Wait for auto-calibration (AC) process to finish, i.e. ACI to go low.
+ 	 */
+ 	timeout = jiffies + msecs_to_jiffies(250);
+ 	do {
+->>>>>>> FETCH_HEAD:sound/sparc/cs4231.c
+ 		spin_unlock_irqrestore(&chip->lock, flags);
+-<<<<<<< HEAD:sound/sparc/cs4231.c
+-		if (time_after(jiffies, end_time)) {
+-			snd_printk("mce_down - "
+-				   "auto calibration time out (2)\n");
+-			return;
+-		}
+-=======
+->>>>>>> FETCH_HEAD:sound/sparc/cs4231.c
+ 		msleep(1);
+ 		spin_lock_irqsave(&chip->lock, flags);
+-<<<<<<< HEAD:sound/sparc/cs4231.c
+-	}
+-
+-	/* check condition up to 100ms */
+-	end_time = jiffies + msecs_to_jiffies(100);
+-	while (__cs4231_readb(chip, CS4231U(chip, REGSEL)) & CS4231_INIT) {
+-		spin_unlock_irqrestore(&chip->lock, flags);
+-		if (time_after(jiffies, end_time)) {
+-			snd_printk("mce_down - "
+-				   "auto calibration time out (3)\n");
+-			return;
+-		}
+-		msleep(1);
+-		spin_lock_irqsave(&chip->lock, flags);
+-	}
+-=======
+ 		reg = snd_cs4231_in(chip, CS4231_TEST_INIT);
+ 		reg &= CS4231_CALIB_IN_PROGRESS;
+ 	} while (reg && time_before(jiffies, timeout));
+->>>>>>> FETCH_HEAD:sound/sparc/cs4231.c
+ 	spin_unlock_irqrestore(&chip->lock, flags);
+ 
+ 	if (reg)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-add-reboot-mechanism.patch
+git-alsa-fixup.patch
 console-keyboard-events-and-accessibility.patch
 first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
 git-kvm.patch
@@ -89,8 +171,6 @@ git-x86.patch
 revert-x86_64-mm-cpa-einval.patch
 fix-x86_64-mm-sched-clock-share.patch
 x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
-git-newsetup-fixup.patch
-git-xfs.patch
 memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-checkpatch-fixes.patch
 memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
