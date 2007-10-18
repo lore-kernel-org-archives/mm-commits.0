@@ -1,170 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: - softlockup-add-a-proc-tuning-parameter.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:52:51 -0700
-Message-ID: <200710180652.l9I6qpId030320@imap1.linux-foundation.org>
+Subject: - mm-test-and-set-zone-reclaim-lock-before-starting.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:52:11 -0700
+Message-ID: <200710180652.l9I6qBqW030270@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35678 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54756 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760123AbXJRHpS (ORCPT
+	by vger.kernel.org with ESMTP id S1761341AbXJRHpT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:45:18 -0400
+	Thu, 18 Oct 2007 03:45:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kiran@scalex86.org, mingo@elte.hu, shai@scalex86.org, mm-commits@vger.kernel.org
+To: rientjes@google.com, andrea@suse.de, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     softlockup: add a /proc tuning parameter
+     mm: test and set zone reclaim lock before starting reclaim
 has been removed from the -mm tree.  Its filename was
-     softlockup-add-a-proc-tuning-parameter.patch
+     mm-test-and-set-zone-reclaim-lock-before-starting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: softlockup: add a /proc tuning parameter
-From: Ravikiran G Thirumalai <kiran@scalex86.org>
+Subject: mm: test and set zone reclaim lock before starting reclaim
+From: David Rientjes <rientjes@google.com>
 
-Control the trigger limit for softlockup warnings.  This is useful for
-debugging softlockups, by lowering the softlockup_thresh to identify
-possible softlockups earlier.
+Introduces new zone flag interface for testing and setting flags:
 
-This patch:
-1. Adds a sysctl softlockup_thresh with valid values of 1-60s
-   (Higher value to disable false positives)
-2. Changes the softlockup printk to print the cpu softlockup time
+	int zone_test_and_set_flag(struct zone *zone, zone_flags_t flag)
 
-[akpm@linux-foundation.org: Fix various warnings and add definition of "two"]
-Signed-off-by: Ravikiran Thirumalai <kiran@scalex86.org>
-Signed-off-by: Shai Fultheim <shai@scalex86.org>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Instead of setting and clearing ZONE_RECLAIM_LOCKED each time shrink_zone() is
+called, this flag is test and set before starting zone reclaim.  Zone reclaim
+starts in __alloc_pages() when a zone's watermark fails and the system is in
+zone_reclaim_mode.  If it's already in reclaim, there's no need to start again
+so it is simply considered full for that allocation attempt.
+
+There is a change of behavior with regard to concurrent zone shrinking.  It is
+now possible for try_to_free_pages() or kswapd to already be shrinking a
+particular zone when __alloc_pages() starts zone reclaim.  In this case, it is
+possible for two concurrent threads to invoke shrink_zone() for a single zone.
+
+This change forbids a zone to be in zone reclaim twice, which was always the
+behavior, but allows for concurrent try_to_free_pages() or kswapd shrinking
+when starting zone reclaim.
+
+Cc: Andrea Arcangeli <andrea@suse.de>
+Cc: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/kernel.txt |    8 +++++++
- include/linux/sched.h           |    1 
- kernel/softlockup.c             |    7 ++++--
- kernel/sysctl.c                 |   33 +++++++++++++++++++++++-------
- 4 files changed, 40 insertions(+), 9 deletions(-)
+ include/linux/mmzone.h |    8 ++++++++
+ mm/vmscan.c            |   23 +++++++++++++----------
+ 2 files changed, 21 insertions(+), 10 deletions(-)
 
-diff -puN Documentation/sysctl/kernel.txt~softlockup-add-a-proc-tuning-parameter Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~softlockup-add-a-proc-tuning-parameter
-+++ a/Documentation/sysctl/kernel.txt
-@@ -320,6 +320,14 @@ kernel.  This value defaults to SHMMAX.
- 
- ==============================================================
- 
-+softlockup_thresh:
-+
-+This value can be used to lower the softlockup tolerance
-+threshold. The default threshold is 10s.  If a cpu is locked up
-+for 10s, the kernel complains.  Valid values are 1-60s.
-+
-+==============================================================
-+
- tainted: 
- 
- Non-zero if the kernel has been tainted.  Numeric values, which
-diff -puN include/linux/sched.h~softlockup-add-a-proc-tuning-parameter include/linux/sched.h
---- a/include/linux/sched.h~softlockup-add-a-proc-tuning-parameter
-+++ a/include/linux/sched.h
-@@ -261,6 +261,7 @@ extern void softlockup_tick(void);
- extern void spawn_softlockup_task(void);
- extern void touch_softlockup_watchdog(void);
- extern void touch_all_softlockup_watchdogs(void);
-+extern int softlockup_thresh;
- #else
- static inline void softlockup_tick(void)
+diff -puN include/linux/mmzone.h~mm-test-and-set-zone-reclaim-lock-before-starting include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-test-and-set-zone-reclaim-lock-before-starting
++++ a/include/linux/mmzone.h
+@@ -351,6 +351,12 @@ static inline void zone_set_flag(struct 
  {
-diff -puN kernel/softlockup.c~softlockup-add-a-proc-tuning-parameter kernel/softlockup.c
---- a/kernel/softlockup.c~softlockup-add-a-proc-tuning-parameter
-+++ a/kernel/softlockup.c
-@@ -24,6 +24,7 @@ static DEFINE_PER_CPU(unsigned long, pri
- static DEFINE_PER_CPU(struct task_struct *, watchdog_task);
- 
- static int did_panic;
-+int softlockup_thresh = 10;
- 
- static int
- softlock_panic(struct notifier_block *this, unsigned long event, void *ptr)
-@@ -104,13 +105,15 @@ void softlockup_tick(void)
- 		wake_up_process(per_cpu(watchdog_task, this_cpu));
- 
- 	/* Warn about unreasonable 10+ seconds delays: */
--	if (now <= (touch_timestamp + 10))
-+	if (now <= (touch_timestamp + softlockup_thresh))
- 		return;
- 
- 	per_cpu(print_timestamp, this_cpu) = touch_timestamp;
- 
- 	spin_lock(&print_lock);
--	printk(KERN_ERR "BUG: soft lockup detected on CPU#%d!\n", this_cpu);
-+	printk(KERN_ERR "BUG: soft lockup - CPU#%d stuck for %lus! [%s:%d]\n",
-+			this_cpu, now - touch_timestamp,
-+				current->comm, current->pid);
- 	if (regs)
- 		show_regs(regs);
- 	else
-diff -puN kernel/sysctl.c~softlockup-add-a-proc-tuning-parameter kernel/sysctl.c
---- a/kernel/sysctl.c~softlockup-add-a-proc-tuning-parameter
-+++ a/kernel/sysctl.c
-@@ -80,6 +80,19 @@ extern int maps_protect;
- extern int sysctl_stat_interval;
- extern int audit_argv_kb;
- 
-+/* Constants used for minimum and  maximum */
-+#ifdef CONFIG_DETECT_SOFTLOCKUP
-+static int one = 1;
-+static int sixty = 60;
-+#endif
+ 	set_bit(flag, &zone->flags);
+ }
 +
-+#ifdef CONFIG_MMU
-+static int two = 2;
-+#endif
++static inline int zone_test_and_set_flag(struct zone *zone, zone_flags_t flag)
++{
++	return test_and_set_bit(flag, &zone->flags);
++}
 +
-+static int zero;
-+static int one_hundred = 100;
+ static inline void zone_clear_flag(struct zone *zone, zone_flags_t flag)
+ {
+ 	clear_bit(flag, &zone->flags);
+@@ -360,10 +366,12 @@ static inline int zone_is_all_unreclaima
+ {
+ 	return test_bit(ZONE_ALL_UNRECLAIMABLE, &zone->flags);
+ }
 +
- /* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and GID */
- static int maxolduid = 65535;
- static int minolduid;
-@@ -711,6 +724,19 @@ static ctl_table kern_table[] = {
- 		.proc_handler	= &proc_dointvec,
- 	},
+ static inline int zone_is_reclaim_locked(const struct zone *zone)
+ {
+ 	return test_bit(ZONE_RECLAIM_LOCKED, &zone->flags);
+ }
++
+ static inline int zone_is_oom_locked(const struct zone *zone)
+ {
+ 	return test_bit(ZONE_OOM_LOCKED, &zone->flags);
+diff -puN mm/vmscan.c~mm-test-and-set-zone-reclaim-lock-before-starting mm/vmscan.c
+--- a/mm/vmscan.c~mm-test-and-set-zone-reclaim-lock-before-starting
++++ a/mm/vmscan.c
+@@ -1108,8 +1108,6 @@ static unsigned long shrink_zone(int pri
+ 	unsigned long nr_to_scan;
+ 	unsigned long nr_reclaimed = 0;
+ 
+-	zone_set_flag(zone, ZONE_RECLAIM_LOCKED);
+-
+ 	/*
+ 	 * Add one to `nr_to_scan' just to make sure that the kernel will
+ 	 * slowly sift through the active list.
+@@ -1148,8 +1146,6 @@ static unsigned long shrink_zone(int pri
+ 	}
+ 
+ 	throttle_vm_writeout(sc->gfp_mask);
+-
+-	zone_clear_flag(zone, ZONE_RECLAIM_LOCKED);
+ 	return nr_reclaimed;
+ }
+ 
+@@ -1900,6 +1896,7 @@ static int __zone_reclaim(struct zone *z
+ int zone_reclaim(struct zone *zone, gfp_t gfp_mask, unsigned int order)
+ {
+ 	int node_id;
++	int ret;
+ 
+ 	/*
+ 	 * Zone reclaim reclaims unmapped file backed pages and
+@@ -1917,13 +1914,13 @@ int zone_reclaim(struct zone *zone, gfp_
+ 			<= zone->min_slab_pages)
+ 		return 0;
+ 
++	if (zone_is_all_unreclaimable(zone))
++		return 0;
++
+ 	/*
+-	 * Avoid concurrent zone reclaims, do not reclaim in a zone that does
+-	 * not have reclaimable pages and if we should not delay the allocation
+-	 * then do not scan.
++	 * Do not scan if the allocation should not be delayed.
+ 	 */
+-	if (!(gfp_mask & __GFP_WAIT) || zone_is_all_unreclaimable(zone) ||
+-		zone_is_reclaim_locked(zone) || (current->flags & PF_MEMALLOC))
++	if (!(gfp_mask & __GFP_WAIT) || (current->flags & PF_MEMALLOC))
+ 			return 0;
+ 
+ 	/*
+@@ -1935,6 +1932,12 @@ int zone_reclaim(struct zone *zone, gfp_
+ 	node_id = zone_to_nid(zone);
+ 	if (node_state(node_id, N_CPU) && node_id != numa_node_id())
+ 		return 0;
+-	return __zone_reclaim(zone, gfp_mask, order);
++
++	if (zone_test_and_set_flag(zone, ZONE_RECLAIM_LOCKED))
++		return 0;
++	ret = __zone_reclaim(zone, gfp_mask, order);
++	zone_clear_flag(zone, ZONE_RECLAIM_LOCKED);
++
++	return ret;
+ }
  #endif
-+#ifdef CONFIG_DETECT_SOFTLOCKUP
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "softlockup_thresh",
-+		.data		= &softlockup_thresh,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= &proc_dointvec_minmax,
-+		.strategy	= &sysctl_intvec,
-+		.extra1		= &one,
-+		.extra2		= &sixty,
-+	},
-+#endif
- #ifdef CONFIG_COMPAT
- 	{
- 		.ctl_name	= KERN_COMPAT_LOG,
-@@ -757,13 +783,6 @@ static ctl_table kern_table[] = {
- 	{ .ctl_name = 0 }
- };
- 
--/* Constants for minimum and maximum testing in vm_table.
--   We use these as one-element integer vectors. */
--static int zero;
--static int two = 2;
--static int one_hundred = 100;
--
--
- static ctl_table vm_table[] = {
- 	{
- 		.ctl_name	= VM_OVERCOMMIT_MEMORY,
 _
 
-Patches currently in -mm which might be from kiran@scalex86.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-slab-leaks3-default-y.patch
+fix-cpusets-update_cpumask.patch
+fix-cpusets-update_cpumask-checkpatch-fixes.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-resource-counters-v7-fix.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memcontrol-move-mm_cgroup-to-header-file.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
