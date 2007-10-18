@@ -1,131 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: - express-relocatability-of-kernel-on-x86_64-in-documentation.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:04:30 -0700
-Message-ID: <200710180704.l9I74UtO031556@imap1.linux-foundation.org>
+Subject: - remove-unused-member-from-nsproxy.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:01:04 -0700
+Message-ID: <200710180701.l9I714Tt031144@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37790 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43147 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932320AbXJRHmE (ORCPT
+	by vger.kernel.org with ESMTP id S932419AbXJRHmW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:42:04 -0400
+	Thu, 18 Oct 2007 03:42:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bwalle@suse.de, ebiederm@xmission.com, hbabu@us.ibm.com, rdunlap@xenotime.net, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
+To: xemul@openvz.org, clg@fr.ibm.com, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Express relocatability of kernel on x86_64 in documentation
+     Remove unused member from nsproxy
 has been removed from the -mm tree.  Its filename was
-     express-relocatability-of-kernel-on-x86_64-in-documentation.patch
+     remove-unused-member-from-nsproxy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Express relocatability of kernel on x86_64 in documentation
-From: Bernhard Walle <bwalle@suse.de>
+Subject: Remove unused member from nsproxy
+From: Pavel Emelyanov <xemul@openvz.org>
 
-This patch adapts the Documentation/kdump/kdump.txt file to express the fact
-that the x86_64 kernel is now also relocatable.  This makes i386 and x86_64
-now behave the same, simplifying the documentation.
+The nslock spinlock is not used in the kernel at all.  Remove it.
 
-Signed-off-by: Bernhard Walle <bwalle@suse.de>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Haren Myneni <hbabu@us.ibm.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kdump/kdump.txt |   35 +++++---------------------------
- 1 file changed, 6 insertions(+), 29 deletions(-)
+ include/linux/init_task.h |    1 -
+ include/linux/nsproxy.h   |    1 -
+ 2 files changed, 2 deletions(-)
 
-diff -puN Documentation/kdump/kdump.txt~express-relocatability-of-kernel-on-x86_64-in-documentation Documentation/kdump/kdump.txt
---- a/Documentation/kdump/kdump.txt~express-relocatability-of-kernel-on-x86_64-in-documentation
-+++ a/Documentation/kdump/kdump.txt
-@@ -159,16 +159,17 @@ Dump-capture kernel config options (Arch
-    CONFIG_PROC_VMCORE=y
-    (CONFIG_PROC_VMCORE is set by default when CONFIG_CRASH_DUMP is selected.)
- 
--Dump-capture kernel config options (Arch Dependent, i386)
----------------------------------------------------------
--1) On x86, enable high memory support under "Processor type and
-+Dump-capture kernel config options (Arch Dependent, i386 and x86_64)
-+--------------------------------------------------------------------
-+
-+1) On i386, enable high memory support under "Processor type and
-    features":
- 
-    CONFIG_HIGHMEM64G=y
-    or
-    CONFIG_HIGHMEM4G
- 
--2) On x86 and x86_64, disable symmetric multi-processing support
-+2) On i386 and x86_64, disable symmetric multi-processing support
-    under "Processor type and features":
- 
-    CONFIG_SMP=n
-@@ -203,28 +204,6 @@ Dump-capture kernel config options (Arch
- 5) Make and install the kernel and its modules. DO NOT add this kernel
-    to the boot loader configuration files.
- 
--Dump-capture kernel config options (Arch Dependent, x86_64)
------------------------------------------------------------
--1) On x86 and x86_64, disable symmetric multi-processing support
--   under "Processor type and features":
--
--   CONFIG_SMP=n
--
--   (If CONFIG_SMP=y, then specify maxcpus=1 on the kernel command line
--   when loading the dump-capture kernel, see section "Load the Dump-capture
--   Kernel".)
--
--2) Use a suitable value for "Physical address where the kernel is
--   loaded" (under "Processor type and features"). This only appears when
--   "kernel crash dumps" is enabled. By default this value is 0x1000000
--   (16MB). It should be the same as X in the "crashkernel=Y@X" boot
--   parameter.
--
--   For x86_64, normally "CONFIG_PHYSICAL_START=0x1000000".
--
--3) Make and install the kernel and its modules. DO NOT add this kernel
--   to the boot loader configuration files.
--
- Dump-capture kernel config options (Arch Dependent, ppc64)
- ----------------------------------------------------------
- 
-@@ -282,11 +261,9 @@ Based on the architecture and type of im
- can choose to load the uncompressed vmlinux or compressed bzImage/vmlinuz
- of dump-capture kernel. Following is the summary.
- 
--For i386:
-+For i386 and x86_64:
- 	- Use vmlinux if kernel is not relocatable.
- 	- Use bzImage/vmlinuz if kernel is relocatable.
--For x86_64:
--	- Use vmlinux
- For ppc64:
- 	- Use vmlinux
- For ia64:
+diff -puN include/linux/init_task.h~remove-unused-member-from-nsproxy include/linux/init_task.h
+--- a/include/linux/init_task.h~remove-unused-member-from-nsproxy
++++ a/include/linux/init_task.h
+@@ -76,7 +76,6 @@ extern struct nsproxy init_nsproxy;
+ #define INIT_NSPROXY(nsproxy) {						\
+ 	.pid_ns		= &init_pid_ns,					\
+ 	.count		= ATOMIC_INIT(1),				\
+-	.nslock		= __SPIN_LOCK_UNLOCKED(nsproxy.nslock),		\
+ 	.uts_ns		= &init_uts_ns,					\
+ 	.mnt_ns		= NULL,						\
+ 	INIT_NET_NS(net_ns)                                             \
+diff -puN include/linux/nsproxy.h~remove-unused-member-from-nsproxy include/linux/nsproxy.h
+--- a/include/linux/nsproxy.h~remove-unused-member-from-nsproxy
++++ a/include/linux/nsproxy.h
+@@ -23,7 +23,6 @@ struct pid_namespace;
+  */
+ struct nsproxy {
+ 	atomic_t count;
+-	spinlock_t nslock;
+ 	struct uts_namespace *uts_ns;
+ 	struct ipc_namespace *ipc_ns;
+ 	struct mnt_namespace *mnt_ns;
 _
 
-Patches currently in -mm which might be from bwalle@suse.de are
+Patches currently in -mm which might be from xemul@openvz.org are
 
 origin.patch
-extended-crashkernel-command-line.patch
-extended-crashkernel-command-line-update.patch
-extended-crashkernel-command-line-comment-fix.patch
-extended-crashkernel-command-line-improve-error-handling-in-parse_crashkernel_mem.patch
-use-extended-crashkernel-command-line-on-i386.patch
-use-extended-crashkernel-command-line-on-i386-update.patch
-use-extended-crashkernel-command-line-on-x86_64.patch
-use-extended-crashkernel-command-line-on-x86_64-update.patch
-use-extended-crashkernel-command-line-on-ia64.patch
-use-extended-crashkernel-command-line-on-ia64-fix.patch
-use-extended-crashkernel-command-line-on-ia64-update.patch
-use-extended-crashkernel-command-line-on-ppc64.patch
-use-extended-crashkernel-command-line-on-ppc64-update.patch
-use-extended-crashkernel-command-line-on-sh.patch
-use-extended-crashkernel-command-line-on-sh-update.patch
-add-documentation-for-extended-crashkernel-syntax.patch
-add-documentation-for-extended-crashkernel-syntax-add-extended-crashkernel-syntax-to-kernel-parameterstxt.patch
+git-x86.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+make-access-to-tasks-nsproxy-lighter.patch
+make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
+make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
+pid-namespaces-allow-cloning-of-new-namespace-merge-fix.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-sys_getsid-sys_getpgid-return-wrong-id-for-task-from-another.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-sys_setpgrp-to-work-between-namespaces.patch
+uninline-find_task_by_xxx-set-of-functions.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+isolate-some-explicit-usage-of-task-tgid.patch
+uninline-find_pid-etc-set-of-functions.patch
+uninline-the-task_xid_nr_ns-calls.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-resource-counters-v7-fix.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
+use-helpers-to-obtain-task-pid-in-printks.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-arch-code.patch
+remove-unused-variables-from-fs-proc-basec.patch
+use-task_pid_nr-in-ip_vs_syncc.patch
+use-task_pid_nr-instead-of-pid_nrtask_pid.patch
+reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
