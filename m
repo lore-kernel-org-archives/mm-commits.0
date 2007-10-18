@@ -1,119 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-make-pnpacpi_suspend-handle-errors.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:03:43 -0700
-Message-ID: <200710180703.l9I73hWe031462@imap1.linux-foundation.org>
+Subject: - slab_panic-more-proc-posix-timers-shmem.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:52:53 -0700
+Message-ID: <200710180652.l9I6qrm8030323@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46457 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57817 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932205AbXJRHiE (ORCPT
+	by vger.kernel.org with ESMTP id S1760776AbXJRHiQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:38:04 -0400
+	Thu, 18 Oct 2007 03:38:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, ambx1@neo.rr.com, bjorn.helgaas@hp.com, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: adobriyan@sw.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PNP: make pnpacpi_suspend handle errors
+     SLAB_PANIC more (proc, posix-timers, shmem)
 has been removed from the -mm tree.  Its filename was
-     pnp-make-pnpacpi_suspend-handle-errors.patch
+     slab_panic-more-proc-posix-timers-shmem.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PNP: make pnpacpi_suspend handle errors
-=46rom: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: SLAB_PANIC more (proc, posix-timers, shmem)
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-pnpacpi_suspend() doesn't check the result returned by
-acpi_pm_device_sleep_state() before passing it to acpi_bus_set_power(),
-which may not be desirable.  =A0Make it select the target power state o=
-f the
-device using its second argument if acpi_pm_device_sleep_state() fails.
+These aren't modular, so SLAB_PANIC is OK.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Looks-ok-to: Pavel Machek <pavel@ucw.cz>
-Cc: Adam Belay <ambx1@neo.rr.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/pnpacpi/core.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ fs/proc/inode.c       |    4 +---
+ kernel/posix-timers.c |    3 ++-
+ mm/shmem.c            |    4 +---
+ 3 files changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN drivers/pnp/pnpacpi/core.c~pnp-make-pnpacpi_suspend-handle-er=
-rors drivers/pnp/pnpacpi/core.c
---- a/drivers/pnp/pnpacpi/core.c~pnp-make-pnpacpi_suspend-handle-errors
-+++ a/drivers/pnp/pnpacpi/core.c
-@@ -130,11 +130,16 @@ static int pnpacpi_disable_resources(str
- #ifdef CONFIG_ACPI_SLEEP
- static int pnpacpi_suspend(struct pnp_dev *dev, pm_message_t state)
- {
--	return acpi_bus_set_power((acpi_handle) dev->data,
--				  acpi_pm_device_sleep_state(&dev->dev,
--							     device_may_wakeup
--							     (&dev->dev),
--							     NULL));
-+	int power_state;
-+
-+	power_state =3D acpi_pm_device_sleep_state(&dev->dev,
-+						device_may_wakeup(&dev->dev),
-+						NULL);
-+	if (power_state < 0)
-+		power_state =3D (state.event =3D=3D PM_EVENT_ON) ?
-+				ACPI_STATE_D0 : ACPI_STATE_D3;
-+
-+	return acpi_bus_set_power((acpi_handle) dev->data, power_state);
+diff -puN fs/proc/inode.c~slab_panic-more-proc-posix-timers-shmem fs/proc/inode.c
+--- a/fs/proc/inode.c~slab_panic-more-proc-posix-timers-shmem
++++ a/fs/proc/inode.c
+@@ -119,10 +119,8 @@ int __init proc_init_inodecache(void)
+ 	proc_inode_cachep = kmem_cache_create("proc_inode_cache",
+ 					     sizeof(struct proc_inode),
+ 					     0, (SLAB_RECLAIM_ACCOUNT|
+-						SLAB_MEM_SPREAD),
++						SLAB_MEM_SPREAD|SLAB_PANIC),
+ 					     init_once);
+-	if (proc_inode_cachep == NULL)
+-		return -ENOMEM;
+ 	return 0;
  }
-=20
- static int pnpacpi_resume(struct pnp_dev *dev)
+ 
+diff -puN kernel/posix-timers.c~slab_panic-more-proc-posix-timers-shmem kernel/posix-timers.c
+--- a/kernel/posix-timers.c~slab_panic-more-proc-posix-timers-shmem
++++ a/kernel/posix-timers.c
+@@ -241,7 +241,8 @@ static __init int init_posix_timers(void
+ 	register_posix_clock(CLOCK_MONOTONIC, &clock_monotonic);
+ 
+ 	posix_timers_cache = kmem_cache_create("posix_timers_cache",
+-					sizeof (struct k_itimer), 0, 0, NULL);
++					sizeof (struct k_itimer), 0, SLAB_PANIC,
++					NULL);
+ 	idr_init(&posix_timers_id);
+ 	return 0;
+ }
+diff -puN mm/shmem.c~slab_panic-more-proc-posix-timers-shmem mm/shmem.c
+--- a/mm/shmem.c~slab_panic-more-proc-posix-timers-shmem
++++ a/mm/shmem.c
+@@ -2343,9 +2343,7 @@ static int init_inodecache(void)
+ {
+ 	shmem_inode_cachep = kmem_cache_create("shmem_inode_cache",
+ 				sizeof(struct shmem_inode_info),
+-				0, 0, init_once);
+-	if (shmem_inode_cachep == NULL)
+-		return -ENOMEM;
++				0, SLAB_PANIC, init_once);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
 origin.patch
-git-acpi.patch
-git-x86.patch
-revert-x86_64-mm-cpa-einval.patch
-make-kernel-power-maincsuspend_enter-static.patch
-pm-move-definition-of-struct-pm_ops-to-suspendh.patch
-pm-rename-struct-pm_ops-and-related-things.patch
-pm-rework-struct-platform_suspend_ops.patch
-pm-rework-struct-platform_suspend_ops-fixup.patch
-pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
-pm-make-suspend_ops-static.patch
-pm-rework-struct-hibernation_ops.patch
-pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
-freezer-document-relationship-with-memory-shrinking.patch
-freezer-do-not-sync-filesystems-from-freeze_processes.patch
-freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
-freezer-introduce-freezer-firendly-waiting-macros.patch
-freezer-introduce-freezer-firendly-waiting-macros-fix.patch
-freezer-do-not-send-signals-to-kernel-threads.patch
-unexport-pm_power_off_prepare.patch
-pm_trace-displays-the-wrong-time-from-the-rtc.patch
-freezer-be-more-verbose.patch
-freezer-measure-freezing-time.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-opti=
-on.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-opti=
-on-update.patch
-s2ram-kill-old-debugging-junk.patch
-revert-x86-save-registers-in-saved_context-during-suspend-and-hibernati=
-on.patch
-hibernation-arbitrary-boot-kernel-support-generic-code-rev-2.patch
-hibernation-arbitrary-boot-kernel-support-on-x86_64-rev-2.patch
-hibernation-pass-cr3-in-the-image-header-on-x86_64-rev-2.patch
-hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64=
-=2Epatch
-hibernation-check-if-acpi-is-enabled-during-restore-in-the-right-place.=
-patch
-hibernation-enter-platform-hibernation-state-in-a-consistent-way-rev-4.=
-patch
-hibernation-enter-platform-hibernation-state-in-a-consistent-way-rev-4-=
-fix.patch
-shrink_slab-handle-bad-shrinkers.patch
+add-kernel-notifierc.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
+sysctl-factor-out-sysctl_data.patch
+sysct-mqueue-remove-the-binary-sysctl-numbers.patch
+sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
+sysctl-fix-neighbour-table-sysctls.patch
+sysctl-ipv6-route-flushing-kill-binary-path.patch
+sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
+sysctl-x86_64-remove-unnecessary-binary-paths.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
+sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
+sysctl-error-on-bad-sysctl-tables.patch
+sysctl-update-sysctl_check_table.patch
+uninline-forkc-exitc.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+single_open-seq_release-leak-diagnostics.patch
