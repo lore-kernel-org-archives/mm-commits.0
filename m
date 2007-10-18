@@ -1,122 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: + initio-merge-fallout.patch added to -mm tree
-Date: Wed, 17 Oct 2007 18:22:16 -0700
-Message-ID: <200710180122.l9I1MGIW017983@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-elevate-write-count-opend-files-r-o-bind-mounts-fix-bug-in-reiserfs_delete_xattrs.patch added to -mm tree
+Date: Wed, 17 Oct 2007 18:41:44 -0700
+Message-ID: <200710180141.l9I1fiA7018573@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38233 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48313 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759900AbXJRBWp (ORCPT
+	by vger.kernel.org with ESMTP id S1754358AbXJRBmF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Oct 2007 21:22:45 -0400
+	Wed, 17 Oct 2007 21:42:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, James.Bottomley@steeleye.com, alan@redhat.com
+Cc: laurent.riffard@free.fr, haveblue@us.ibm.com, hch@infradead.org
 
 
 The patch titled
-     initio: merge fallout
+     r-o-bind-mounts: fix BUG in reiserfs_delete_xattrs
 has been added to the -mm tree.  Its filename is
-     initio-merge-fallout.patch
+     r-o-bind-mounts-elevate-write-count-opend-files-r-o-bind-mounts-fi=
+x-bug-in-reiserfs_delete_xattrs.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: initio: merge fallout
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: r-o-bind-mounts: fix BUG in reiserfs_delete_xattrs
+=46rom: Laurent Riffard <laurent.riffard@free.fr>
 
-Fix IRQ reporting - just assign the ->pci_dev pointer earlier and use the
-pci_dev irq field rather than keeping a private one
+Le 15.10.2007 20:31, Jeff Mahoney a =E9crit :
+> Christoph Hellwig wrote:
+>> On Mon, Oct 15, 2007 at 12:34:58AM +0200, Laurent Riffard wrote:
+>>> reiserfs_delete_xattrs
+>>> reiserfs_delete_inode
+>>> generic_delete_inode
+>>> generic_drop_inode
+>>> iput
+>>> do_unlinkat
+>>> sys_unlink
+>>> sys_enter_past_esp
+>>>
+>>> I reported a similar BUG in 2.6.22-rc8-mm2 (see
+>>> http://lkml.org/lkml/2007/9/27/235). Dave Hansen sent a patch for i=
+t, I
+>>> tested it and it was OK for 2.6.22-rc8-mm2.
+>>>
+>>> I tried this patch on 2.6.23-mm1, and it fixed the BUGs here too.
+>> The delete path is a similar case as the one Dave fixed, also cause =
+by
+>> a NULL vfsmount passed to dentry_open, but through a different code-=
+path.
+>>
+>> Untested fix for this problem below:
+>
+> Here's a patch I worked up the other night that kills off struct file
+> completely from the xattr code. I've tested it locally.
 
-Init the spinlock as it works better on SMP that way
+Sorry Jeff, your patch does not apply on 2.6.23-mm1. The 'struct file'
+removal from reiserfs_xattr_ function is already in -mm
+(make-reiserfs-stop-using-struct-file-for-internal.patch).
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+The Dave's patch I was refering to is this one:
+
+=3D=3D=3D=3D BEGIN =3D=3D=3D=3D=3D
+The bug is caused by reiserfs creating a special 'struct file' with a
+NULL vfsmount.
+
+/* Opens a file pointer to the attribute associated with inode */
+static struct file *open_xa_file(const struct inode *inode, const char
+*name,
+                                 int flags)
+{
+=2E..
+        fp =3D dentry_open(xafile, NULL, O_RDWR);
+        /* dentry_open dputs the dentry if it fails */
+
+As Christoph just said, this is somewhat of a bandaid.  But, it
+shouldn't hurt anything.
+
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/initio.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/file_table.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/initio.c~initio-merge-fallout drivers/scsi/initio.c
---- a/drivers/scsi/initio.c~initio-merge-fallout
-+++ a/drivers/scsi/initio.c
-@@ -665,7 +665,7 @@ static void initio_init(struct initio_ho
- 		host->max_tags[i] = 0xFF;
- 	}			/* for                          */
- 	printk("i91u: PCI Base=0x%04X, IRQ=%d, BIOS=0x%04X0, SCSI ID=%d\n",
--	       host->addr, host->irq,
-+	       host->addr, host->pci_dev->irq,
- 	       host->bios_addr, host->scsi_id);
- 	/* Reset SCSI Bus */
- 	if (host->config & HCC_SCSI_RESET) {
-@@ -2892,6 +2892,8 @@ static int initio_probe_one(struct pci_d
- 		goto out_release_region;
+diff -puN fs/file_table.c~r-o-bind-mounts-elevate-write-count-opend-fil=
+es-r-o-bind-mounts-fix-bug-in-reiserfs_delete_xattrs fs/file_table.c
+--- a/fs/file_table.c~r-o-bind-mounts-elevate-write-count-opend-files-r=
+-o-bind-mounts-fix-bug-in-reiserfs_delete_xattrs
++++ a/fs/file_table.c
+@@ -236,7 +236,7 @@ void fastcall __fput(struct file *file)
+ 	fops_put(file->f_op);
+ 	if (file->f_mode & FMODE_WRITE) {
+ 		put_write_access(inode);
+-		if (!special_file(inode->i_mode))
++		if (!special_file(inode->i_mode) && mnt)
+ 			mnt_drop_write(mnt);
  	}
- 
-+	host->pci_dev = pdev;
-+
- 	host->num_scbs = num_scb;
- 	host->scb = scb;
- 	host->next_pending = scb;
-@@ -2906,6 +2908,7 @@ static int initio_probe_one(struct pci_d
- 	host->scb_end = tmp;
- 	host->first_avail = scb;
- 	host->last_avail = prev;
-+	spin_lock_init(&host->avail_lock);
- 
- 	initio_init(host, phys_to_virt(bios_seg << 4));
- 
-@@ -2929,7 +2932,6 @@ static int initio_probe_one(struct pci_d
- 	}
- 
- 	pci_set_drvdata(pdev, shost);
--	host->pci_dev = pdev;
- 
- 	error = scsi_add_host(shost, &pdev->dev);
- 	if (error)
+ 	put_pid(file->f_owner.pid);
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from laurent.riffard@free.fr ar=
+e
 
 origin.patch
-mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
-jsm-remove-further-unneeded-crud.patch
-ttyh-remove-dead-define.patch
-codingstyle-relax-the-80-cole-rule.patch
-add-config_vt_unicode.patch
-keys-make-request_key-and-co-fundamentally-asynchronous.patch
-ide-cd-is-unmaintained.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-right.patch
-fs-correct-sus-compliance-for-open-of-large-file-without.patch
-tty_ioctl-fix-the-baud_table-check-in-encode_baud_rate.patch
-git-libata-all.patch
-pata_cs5536-mwdma-fix.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-initio-fix-conflict-when-loading-driver.patch
-initio-merge-fallout.patch
-sysctl-remove-broken-cdrom-binary-sysctls.patch
-mxser-remove-commented-crap.patch
-char-cyclades-remove-bottom-half-processing.patch
-usb_serial-stop-passing-null-to-functions-that-expect-data.patch
-ark3116-update-termios-handling.patch
-usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch
-ch341-fix-termios-handling.patch
-digi_acceleport-fix-termios-and-also-readability-a-bit.patch
-empeg-clean-up-and-handle-speeds.patch
-ir_usb-termios-handling.patch
-keyspan-termios-tidy.patch
-kobil_sct-termios-encoding-fixups.patch
-option-termios-handling.patch
-sierra-termios.patch
-usb-serial-handle-null-termios-methods-as-no-hardware-changing-support.patch
-whiteheat-clean-up-cant-happen-checks-and-encode-baud.patch
-cp2101-convert-to-new-termios.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-io_edgeport-cleanups-and-tty-speed-reporting.patch
-tty-kill-tty_flipbuf_size.patch
+r-o-bind-mounts-elevate-write-count-opend-files-r-o-bind-mounts-fix-bug=
+-in-reiserfs_delete_xattrs.patch
+reiser4-drop-size-argument-from-bio_endio-and-bi_end_io.patch
