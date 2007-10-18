@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i-oat-add-completion-callback-for-async_tx-interface-use-fix-fix.patch added to -mm tree
-Date: Wed, 17 Oct 2007 18:11:55 -0700
-Message-ID: <200710180111.l9I1BtRu017529@imap1.linux-foundation.org>
+Subject: + pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch added to -mm tree
+Date: Wed, 17 Oct 2007 18:15:05 -0700
+Message-ID: <200710180115.l9I1F5O2017669@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40022 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35006 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758972AbXJRBL6 (ORCPT
+	by vger.kernel.org with ESMTP id S1757858AbXJRBPd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Oct 2007 21:11:58 -0400
+	Wed, 17 Oct 2007 21:15:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dan.j.williams@intel.com, shannon.nelson@intel.com
+Cc: mgross@linux.intel.com, abelay@novell.com, arjan@infradead.org, lenb@kernel.org, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     i-oat-add-completion-callback-for-async_tx-interface-use-fix-fix
+     pm-qos: static initialization with blocking notifiers
 has been added to the -mm tree.  Its filename is
-     i-oat-add-completion-callback-for-async_tx-interface-use-fix-fix.patch
+     pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,196 +26,384 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: i-oat-add-completion-callback-for-async_tx-interface-use-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pm-qos: static initialization with blocking notifiers
+From: Mark Gross <mgross@linux.intel.com>
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Shannon Nelson <shannon.nelson@intel.com>
+Update the pm_qos code in the mm1 tree.  It removes the PM_QOS_CPUIDLE
+parameter (replacing it with PM_CPU_DMA_LATENCY), It changes the
+notifications from srcu to blocking in hopes of fixing the WARNS reported
+by xxx, and it changes the initialization to me largely static to avoid
+initialization race with cpu-idle.
+
+I think we will have to re-visit the static vrs dynamic initialization and
+this init race in a while to support pm_qos parameters per power domain
+(i.e.  per cpu-socket) based on platform information (ACPI) but for now
+lets see if this fixes the warnings reported.
+
+Signed-off-by: mark gross <mgross@linux.intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Adam Belay <abelay@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/ioat_dma.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/cpuidle/cpuidle.c          |    2 
+ drivers/cpuidle/governors/ladder.c |    2 
+ drivers/cpuidle/governors/menu.c   |    2 
+ include/linux/pm_qos_params.h      |   13 --
+ kernel/pm_qos_params.c             |  151 ++++++++++++++-------------
+ 5 files changed, 85 insertions(+), 85 deletions(-)
 
-diff -puN drivers/dma/ioat_dma.c~i-oat-add-completion-callback-for-async_tx-interface-use-fix-fix drivers/dma/ioat_dma.c
---- a/drivers/dma/ioat_dma.c~i-oat-add-completion-callback-for-async_tx-interface-use-fix-fix
-+++ a/drivers/dma/ioat_dma.c
-@@ -657,7 +657,7 @@ static void ioat_dma_start_null_desc(str
+diff -puN drivers/cpuidle/cpuidle.c~pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers drivers/cpuidle/cpuidle.c
+--- a/drivers/cpuidle/cpuidle.c~pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers
++++ a/drivers/cpuidle/cpuidle.c
+@@ -268,7 +268,7 @@ static struct notifier_block cpuidle_lat
  
- static void ioat_dma_test_callback(void *dma_async_param)
+ static inline void latency_notifier_init(struct notifier_block *n)
  {
--	printk(KERN_ERR "ioatdma: ioat_dma_test_callback(0x%p)\n",
-+	printk(KERN_ERR "ioatdma: ioat_dma_test_callback(%p)\n",
- 			dma_async_param);
+-        pm_qos_add_notifier(PM_QOS_CPUIDLE, n);
++        pm_qos_add_notifier(PM_QOS_CPU_DMA_LATENCY, n);
  }
  
+ #else /* CONFIG_SMP */
+diff -puN drivers/cpuidle/governors/ladder.c~pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers drivers/cpuidle/governors/ladder.c
+--- a/drivers/cpuidle/governors/ladder.c~pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers
++++ a/drivers/cpuidle/governors/ladder.c
+@@ -82,7 +82,7 @@ static int ladder_select_state(struct cp
+ 	if (last_idx < dev->state_count - 1 &&
+ 	    last_residency > last_state->threshold.promotion_time &&
+ 	    dev->states[last_idx + 1].exit_latency <=
+-			pm_qos_requirement(PM_QOS_CPUIDLE)) {
++			pm_qos_requirement(PM_QOS_CPU_DMA_LATENCY)) {
+ 		last_state->stats.promotion_count++;
+ 		last_state->stats.demotion_count = 0;
+ 		if (last_state->stats.promotion_count >= last_state->threshold.promotion_count) {
+diff -puN drivers/cpuidle/governors/menu.c~pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers drivers/cpuidle/governors/menu.c
+--- a/drivers/cpuidle/governors/menu.c~pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers
++++ a/drivers/cpuidle/governors/menu.c
+@@ -48,7 +48,7 @@ static int menu_select(struct cpuidle_de
+ 			break;
+ 		if (s->target_residency > data->predicted_us)
+ 			break;
+-		if (s->exit_latency > pm_qos_requirement(PM_QOS_CPUIDLE))
++		if (s->exit_latency > pm_qos_requirement(PM_QOS_CPU_DMA_LATENCY))
+ 			break;
+ 	}
+ 
+diff -puN include/linux/pm_qos_params.h~pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers include/linux/pm_qos_params.h
+--- a/include/linux/pm_qos_params.h~pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers
++++ a/include/linux/pm_qos_params.h
+@@ -6,23 +6,12 @@
+ #include <linux/notifier.h>
+ #include <linux/miscdevice.h>
+ 
+-struct requirement_list {
+-	struct list_head list;
+-	union {
+-		s32 value;
+-		s32 usec;
+-		s32 kbps;
+-	};
+-	char *name;
+-};
+-
+ #define PM_QOS_RESERVED 0
+ #define PM_QOS_CPU_DMA_LATENCY 1
+ #define PM_QOS_NETWORK_LATENCY 2
+ #define PM_QOS_NETWORK_THROUGHPUT 3
+-#define PM_QOS_CPUIDLE 4
+ 
+-#define PM_QOS_NUM_CLASSES 5
++#define PM_QOS_NUM_CLASSES 4
+ #define PM_QOS_DEFAULT_VALUE -1
+ 
+ int pm_qos_add_requirement(int qos, char *name, s32 value);
+diff -puN kernel/pm_qos_params.c~pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers kernel/pm_qos_params.c
+--- a/kernel/pm_qos_params.c~pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers
++++ a/kernel/pm_qos_params.c
+@@ -46,17 +46,70 @@
+  * or pm_qos_object list and pm_qos_objects need to happen with pm_qos_lock
+  * held, taken with _irqsave.  One lock to rule them all
+  */
++struct requirement_list {
++	struct list_head list;
++	union {
++		s32 value;
++		s32 usec;
++		s32 kbps;
++	};
++	char *name;
++};
++
++static s32 max_compare(s32 v1, s32 v2);
++static s32 min_compare(s32 v1, s32 v2);
+ 
+ struct pm_qos_object {
+ 	struct requirement_list requirements;
+-	struct srcu_notifier_head notifiers;
++	struct blocking_notifier_head *notifiers;
+ 	struct miscdevice pm_qos_power_miscdev;
+ 	char *name;
+ 	s32 default_value;
+ 	s32 target_value;
+ 	s32 (*comparitor)(s32, s32);
+ };
+-static struct pm_qos_object pm_qos_array[PM_QOS_NUM_CLASSES];
++
++static struct pm_qos_object null_pm_qos;
++static BLOCKING_NOTIFIER_HEAD(cpu_dma_lat_notifier);
++static struct pm_qos_object cpu_dma_pm_qos = {
++	.requirements = {LIST_HEAD_INIT(cpu_dma_pm_qos.requirements.list)},
++	.notifiers = &cpu_dma_lat_notifier,
++	.name = "cpu_dma_latency",
++	.default_value = 2000 * USEC_PER_SEC,
++	.target_value = 2000 * USEC_PER_SEC,
++	.comparitor = min_compare
++};
++
++static BLOCKING_NOTIFIER_HEAD(network_lat_notifier);
++static struct pm_qos_object network_lat_pm_qos = {
++	.requirements = {LIST_HEAD_INIT(network_lat_pm_qos.requirements.list)},
++	.notifiers = &network_lat_notifier,
++	.name = "network_latency",
++	.default_value = 2000 * USEC_PER_SEC,
++	.target_value = 2000 * USEC_PER_SEC,
++	.comparitor = min_compare
++};
++
++
++static BLOCKING_NOTIFIER_HEAD(network_throughput_notifier);
++static struct pm_qos_object network_throughput_pm_qos = {
++	.requirements =
++		{LIST_HEAD_INIT(network_throughput_pm_qos.requirements.list)},
++	.notifiers = &network_throughput_notifier,
++	.name = "network_throughput",
++	.default_value = 0,
++	.target_value = 0,
++	.comparitor = max_compare
++};
++
++
++static struct pm_qos_object *pm_qos_array[] = {
++	&null_pm_qos,
++	&cpu_dma_pm_qos,
++	&network_lat_pm_qos,
++	&network_throughput_pm_qos
++};
++
+ static DEFINE_SPINLOCK(pm_qos_lock);
+ 
+ static ssize_t pm_qos_power_write(struct file *filp, const char __user *buf,
+@@ -81,29 +134,31 @@ static s32 min_compare(s32 v1, s32 v2)
+ 	return min(v1, v2);
+ }
+ 
++
++
+ /* assumes pm_qos_lock is held */
+ static void update_target(int target)
+ {
+ 	s32 extreme_value;
+ 	struct requirement_list *node;
+ 
+-	extreme_value = pm_qos_array[target].default_value;
++	extreme_value = pm_qos_array[target]->default_value;
+ 	list_for_each_entry(node,
+-			&pm_qos_array[target].requirements.list, list) {
+-		extreme_value = pm_qos_array[target].comparitor(
++			&pm_qos_array[target]->requirements.list, list) {
++		extreme_value = pm_qos_array[target]->comparitor(
+ 				extreme_value, node->value);
+ 	}
+-	if (pm_qos_array[target].target_value != extreme_value) {
+-		pm_qos_array[target].target_value = extreme_value;
++	if (pm_qos_array[target]->target_value != extreme_value) {
++		pm_qos_array[target]->target_value = extreme_value;
+ 		pr_debug(KERN_ERR "new target for qos %d is %d\n", target,
+-			pm_qos_array[target].target_value);
+-		srcu_notifier_call_chain(&pm_qos_array[target].notifiers,
+-			(unsigned long) pm_qos_array[target].target_value,
++			pm_qos_array[target]->target_value);
++		blocking_notifier_call_chain(pm_qos_array[target]->notifiers,
++			(unsigned long) pm_qos_array[target]->target_value,
+ 						NULL);
+ 	}
+ }
+ 
+-static int register_new_pm_qos_misc(struct pm_qos_object *qos)
++static int register_pm_qos_misc(struct pm_qos_object *qos)
+ {
+ 	qos->pm_qos_power_miscdev.minor = MISC_DYNAMIC_MINOR;
+ 	qos->pm_qos_power_miscdev.name = qos->name;
+@@ -112,38 +167,6 @@ static int register_new_pm_qos_misc(stru
+ 	return misc_register(&qos->pm_qos_power_miscdev);
+ }
+ 
+-
+-/* constructors */
+-static int init_pm_qos_object(int pm_qos_class, const char *name,
+-			s32 default_value, s32 (*comparitor)(s32, s32))
+-{
+-	int ret = -ENOMEM;
+-	struct pm_qos_object *qos = NULL;
+-
+-	if (pm_qos_class < PM_QOS_NUM_CLASSES) {
+-		qos = &pm_qos_array[pm_qos_class];
+-		qos->name = kstrdup(name, GFP_KERNEL);
+-		if (!qos->name)
+-			goto cleanup;
+-
+-		qos->default_value = default_value;
+-		qos->target_value = default_value;
+-		qos->comparitor = comparitor;
+-		srcu_init_notifier_head(&qos->notifiers);
+-		INIT_LIST_HEAD(&qos->requirements.list);
+-		ret = register_new_pm_qos_misc(qos);
+-		if (ret < 0)
+-			goto cleanup;
+-	} else
+-		ret = -EINVAL;
+-
+-	return ret;
+-cleanup:
+-	kfree(qos->name);
+-
+-	return ret;
+-}
+-
+ static int find_pm_qos_object_by_minor(int minor)
+ {
+ 	int pm_qos_class;
+@@ -151,24 +174,12 @@ static int find_pm_qos_object_by_minor(i
+ 	for (pm_qos_class = 0;
+ 		pm_qos_class < PM_QOS_NUM_CLASSES; pm_qos_class++) {
+ 		if (minor ==
+-			pm_qos_array[pm_qos_class].pm_qos_power_miscdev.minor)
++			pm_qos_array[pm_qos_class]->pm_qos_power_miscdev.minor)
+ 			return pm_qos_class;
+ 	}
+ 	return -1;
+ }
+ 
+-static int new_latency_qos(int pm_qos_class, const char *name)
+-{
+-	return init_pm_qos_object(pm_qos_class, name, 2000 * USEC_PER_SEC,
+-			min_compare);
+-	/* 2000 sec is about infinite */
+-}
+-
+-static int new_throughput_qos(int pm_qos_class, const char *name)
+-{
+-	return init_pm_qos_object(pm_qos_class, name, 0, max_compare);
+-}
+-
+ /**
+  * pm_qos_requirement - returns current system wide qos expectation
+  * @pm_qos_class: identification of which qos value is requested
+@@ -181,7 +192,7 @@ int pm_qos_requirement(int pm_qos_class)
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&pm_qos_lock, flags);
+-	ret_val = pm_qos_array[pm_qos_class].target_value;
++	ret_val = pm_qos_array[pm_qos_class]->target_value;
+ 	spin_unlock_irqrestore(&pm_qos_lock, flags);
+ 
+ 	return ret_val;
+@@ -206,7 +217,7 @@ int pm_qos_add_requirement(int pm_qos_cl
+ 	dep = kzalloc(sizeof(struct requirement_list), GFP_KERNEL);
+ 	if (dep) {
+ 		if (value == PM_QOS_DEFAULT_VALUE)
+-			dep->value = pm_qos_array[pm_qos_class].default_value;
++			dep->value = pm_qos_array[pm_qos_class]->default_value;
+ 		else
+ 			dep->value = value;
+ 		dep->name = kstrdup(name, GFP_KERNEL);
+@@ -215,7 +226,7 @@ int pm_qos_add_requirement(int pm_qos_cl
+ 
+ 		spin_lock_irqsave(&pm_qos_lock, flags);
+ 		list_add(&dep->list,
+-			&pm_qos_array[pm_qos_class].requirements.list);
++			&pm_qos_array[pm_qos_class]->requirements.list);
+ 		update_target(pm_qos_class);
+ 		spin_unlock_irqrestore(&pm_qos_lock, flags);
+ 
+@@ -247,11 +258,11 @@ int pm_qos_update_requirement(int pm_qos
+ 
+ 	spin_lock_irqsave(&pm_qos_lock, flags);
+ 	list_for_each_entry(node,
+-		&pm_qos_array[pm_qos_class].requirements.list, list) {
++		&pm_qos_array[pm_qos_class]->requirements.list, list) {
+ 		if (strcmp(node->name, name) == 0) {
+ 			if (new_value == PM_QOS_DEFAULT_VALUE)
+ 				node->value =
+-				pm_qos_array[pm_qos_class].default_value;
++				pm_qos_array[pm_qos_class]->default_value;
+ 			else
+ 				node->value = new_value;
+ 			pending_update = 1;
+@@ -283,7 +294,7 @@ void pm_qos_remove_requirement(int pm_qo
+ 
+ 	spin_lock_irqsave(&pm_qos_lock, flags);
+ 	list_for_each_entry(node,
+-		&pm_qos_array[pm_qos_class].requirements.list, list) {
++		&pm_qos_array[pm_qos_class]->requirements.list, list) {
+ 		if (strcmp(node->name, name) == 0) {
+ 			kfree(node->name);
+ 			list_del(&node->list);
+@@ -312,8 +323,8 @@ EXPORT_SYMBOL_GPL(pm_qos_remove_requirem
+ 	int retval;
+ 
+ 	spin_lock_irqsave(&pm_qos_lock, flags);
+-	retval = srcu_notifier_chain_register(
+-			&pm_qos_array[pm_qos_class].notifiers, notifier);
++	retval = blocking_notifier_chain_register(
++			pm_qos_array[pm_qos_class]->notifiers, notifier);
+ 	spin_unlock_irqrestore(&pm_qos_lock, flags);
+ 
+ 	return retval;
+@@ -334,8 +345,8 @@ int pm_qos_remove_notifier(int pm_qos_cl
+ 	int retval;
+ 
+ 	spin_lock_irqsave(&pm_qos_lock, flags);
+-	retval = srcu_notifier_chain_unregister(
+-			&pm_qos_array[pm_qos_class].notifiers, notifier);
++	retval = blocking_notifier_chain_unregister(
++			pm_qos_array[pm_qos_class]->notifiers, notifier);
+ 	spin_unlock_irqrestore(&pm_qos_lock, flags);
+ 
+ 	return retval;
+@@ -395,18 +406,18 @@ static ssize_t pm_qos_power_write(struct
+ static int __init pm_qos_power_init(void)
+ {
+ 	int ret = 0;
+-	ret = new_latency_qos(PM_QOS_CPU_DMA_LATENCY, "cpu_dma_latency");
++
++	ret = register_pm_qos_misc(&cpu_dma_pm_qos);
+ 	if (ret < 0) {
+ 		printk(KERN_ERR "pm_qos_param: cpu_dma_latency setup failed\n");
+ 		return ret;
+ 	}
+-	ret = new_latency_qos(PM_QOS_NETWORK_LATENCY, "network_latency");
++	ret = register_pm_qos_misc(&network_lat_pm_qos);
+ 	if (ret < 0) {
+ 		printk(KERN_ERR "pm_qos_param: network_latency setup failed\n");
+ 		return ret;
+ 	}
+-	ret = new_throughput_qos(PM_QOS_NETWORK_THROUGHPUT,
+-			"network_throughput");
++	ret = register_pm_qos_misc(&network_throughput_pm_qos);
+ 	if (ret < 0)
+ 		printk(KERN_ERR
+ 			"pm_qos_param: network_throughput setup failed\n");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mgross@linux.intel.com are
 
 origin.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold.patch
-mm-dirty-balancing-for-tasks.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
-oom-change-all_unreclaimable-zone-member-to-flags.patch
-oom-do-not-take-callback_mutex.patch
-writeback-dont-propagate-aop_writepage_activate.patch
-softlockup-add-a-proc-tuning-parameter.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
-do_sys_poll-simplify-playing-with-on-stack-data.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer.patch
-deprecate-aout-elf-interpreters.patch
-ext2-ext3-ext4-add-block-bitmap-validation.patch
-binfmt_flat-warning-fixes.patch
-i2o-fix-defined-but-not-used-build-warnings.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-right.patch
-userc-ifdef-mq_bytes.patch
-ext3-lighten-up-resize-transaction-requirements.patch
-drivers-char-ip2-fix-used-uninitd-bug.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
-ext2-reservations.patch
-md-software-raid-autodetect-dev-list-not-array.patch
-pnp-use-dev_info-dev_err-etc-in-core.patch
-security-convert-lsm-into-a-static-interface.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-cifs.patch
-ia64-fix-non-numa-build.patch
-console-keyboard-events-and-accessibility.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-git-jg-warning-fixes.patch
-git-jg-misc-powernow-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-ide-arm-hack.patch
-git-md-accel-fixup.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd-fixup.patch
-fix-build-breakage-if-sysfs-fix.patch
-qla2xxx-printk-fixes.patch
-git-block-fixup.patch
-sparc-support-for-new-termios.patch
-git-unionfs.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-git-nfs-vs-git-unionfs.patch
-git-v9fs-fixup.patch
-git-watchdog-fixup.patch
-git-wireless.patch
-git-wireless-fixup.patch
-revert-x86_64-mm-cpa-einval.patch
-fix-x86_64-mm-sched-clock-share.patch
-intel_cacheinfo-misc-section-annotation-fixes.patch
-asm-i386-ioh-fix-constness.patch
-x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
-git-newsetup-fixup.patch
-git-xfs.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-capabilities-implement-64-bit-capabilities-checkpatch-fixes.patch
-pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
-serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+pm-qos-infrastructure-and-interface.patch
 pm-qos-infrastructure-and-interface-fix.patch
 pm-qos-infrastructure-and-interface-vs-git-acpi.patch
 pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2-fix-3.patch
-console-events-and-accessibility-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-stop-using-dma_xxbit_mask.patch
-stop-using-dma_xxbit_mask-fix.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-sync_sb_inodes-propagate-errors.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-reiserfs-fix-up-lockdep-warnings-checkpatch-fixes.patch
-reiserfs-use-is_reusable-to-catch-corruption-checkpatch-fixes.patch
-reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes.patch
-reiserfs-remove-first_zero_hint-checkpatch-fixes.patch
-reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-cpuset-sched_load_balance-flag-fix.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
-fix-cpusets-update_cpumask-checkpatch-fixes.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-powerpc-lock-bitops-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
-sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
-i-oat-tighten-descriptor-setup-performance-fix.patch
-i-oat-add-completion-callback-for-async_tx-interface-use-fix.patch
-i-oat-add-completion-callback-for-async_tx-interface-use-fix-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+latencyc-use-qos-infrastructure.patch
