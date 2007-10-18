@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-fix-memset-byte-count-during-resize.patch added to -mm tree
-Date: Thu, 18 Oct 2007 14:04:11 -0700
-Message-ID: <200710182104.l9IL4BKs031026@imap1.linux-foundation.org>
+Subject: + reiserfs-use-is_reusable-to-catch-corruption.patch added to -mm tree
+Date: Thu, 18 Oct 2007 14:04:09 -0700
+Message-ID: <200710182104.l9IL49bZ031023@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55548 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59315 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758246AbXJRVEP (ORCPT
+	by vger.kernel.org with ESMTP id S1758120AbXJRVEN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 17:04:15 -0400
+	Thu, 18 Oct 2007 17:04:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jeffm@suse.com
 
 
 The patch titled
-     reiserfs: fix memset byte count during resize
+     reiserfs: use is_reusable to catch corruption
 has been added to the -mm tree.  Its filename is
-     reiserfs-fix-memset-byte-count-during-resize.patch
+     reiserfs-use-is_reusable-to-catch-corruption.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,75 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reiserfs: fix memset byte count during resize
+Subject: reiserfs: use is_reusable to catch corruption
 From: Jeff Mahoney <jeffm@suse.com>
 
-Correct the memset in reiserfs_resize to clear the memory allocated for the
-new bitmap info structs.  Previously, it would clear the memory used by the
-old size.  Depending on the contents of memory, this could cause incorrect
-caching behavior for bitmap blocks in the newly allocated area.
+Build in is_reusable() unconditionally and use it to catch corruption before
+it reaches the block freeing paths.
 
 Signed-off-by: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/resize.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/reiserfs/bitmap.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
-diff -puN fs/reiserfs/resize.c~reiserfs-fix-memset-byte-count-during-resize fs/reiserfs/resize.c
---- a/fs/reiserfs/resize.c~reiserfs-fix-memset-byte-count-during-resize
-+++ a/fs/reiserfs/resize.c
-@@ -119,7 +119,7 @@ int reiserfs_resize(struct super_block *
- 			return -ENOMEM;
- 		}
- 		memset(bitmap, 0,
--		       sizeof(struct reiserfs_bitmap_info) * SB_BMAP_NR(s));
-+		       sizeof(struct reiserfs_bitmap_info) * bmap_nr_new);
- 		for (i = 0; i < bmap_nr; i++)
- 			bitmap[i] = old_bitmap[i];
+diff -puN fs/reiserfs/bitmap.c~reiserfs-use-is_reusable-to-catch-corruption fs/reiserfs/bitmap.c
+--- a/fs/reiserfs/bitmap.c~reiserfs-use-is_reusable-to-catch-corruption
++++ a/fs/reiserfs/bitmap.c
+@@ -56,7 +56,6 @@ static inline void get_bit_address(struc
+ 	*offset = block & ((s->s_blocksize << 3) - 1);
+ }
+ 
+-#ifdef CONFIG_REISERFS_CHECK
+ int is_reusable(struct super_block *s, b_blocknr_t block, int bit_value)
+ {
+ 	int bmap, offset;
+@@ -106,7 +105,6 @@ int is_reusable(struct super_block *s, b
+ 
+ 	return 1;
+ }
+-#endif				/* CONFIG_REISERFS_CHECK */
+ 
+ /* searches in journal structures for a given block number (bmap, off). If block
+    is found in reiserfs journal it suggests next free block candidate to test. */
+@@ -434,12 +432,19 @@ void reiserfs_free_block(struct reiserfs
+ 			 int for_unformatted)
+ {
+ 	struct super_block *s = th->t_super;
+-
+ 	BUG_ON(!th->t_trans_id);
+ 
+ 	RFALSE(!s, "vs-4061: trying to free block on nonexistent device");
+-	RFALSE(is_reusable(s, block, 1) == 0,
+-	       "vs-4071: can not free such block");
++	if (!is_reusable(s, block, 1))
++		return;
++
++	if (block > sb_block_count(REISERFS_SB(s)->s_rs)) {
++		reiserfs_panic(th->t_super, "bitmap-4072",
++			       "Trying to free block outside file system "
++			       "boundaries (%lu > %lu)",
++			       block, sb_block_count(REISERFS_SB(s)->s_rs));
++		return;
++	}
+ 	/* mark it before we clear it, just in case */
+ 	journal_mark_freed(th, s, block);
+ 	_reiserfs_free_block(th, inode, block, for_unformatted);
+@@ -449,11 +454,11 @@ void reiserfs_free_block(struct reiserfs
+ static void reiserfs_free_prealloc_block(struct reiserfs_transaction_handle *th,
+ 					 struct inode *inode, b_blocknr_t block)
+ {
++	BUG_ON(!th->t_trans_id);
+ 	RFALSE(!th->t_super,
+ 	       "vs-4060: trying to free block on nonexistent device");
+-	RFALSE(is_reusable(th->t_super, block, 1) == 0,
+-	       "vs-4070: can not free such block");
+-	BUG_ON(!th->t_trans_id);
++	if (!is_reusable(th->t_super, block, 1))
++		return;
+ 	_reiserfs_free_block(th, inode, block, 1);
+ }
  
 _
 
