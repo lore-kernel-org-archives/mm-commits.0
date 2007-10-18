@@ -1,59 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - tweak-documentation-sm501txt.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:04:38 -0700
-Message-ID: <200710180704.l9I74cbm031571@imap1.linux-foundation.org>
+Subject: - ext2-4-use-is_power_of_2.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:56:19 -0700
+Message-ID: <200710180656.l9I6uJQq030693__3006.80434234$1192691885$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54737 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47459 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763528AbXJRHQZ (ORCPT
+	by vger.kernel.org with ESMTP id S1763655AbXJRHQm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:16:25 -0400
+	Thu, 18 Oct 2007 03:16:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rob@landley.net, ben@simtec.co.uk, mm-commits@vger.kernel.org
+To: vignesh.babu@wipro.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Tweak Documentation/SM501.txt
+     ext2/4: use is_power_of_2()
 has been removed from the -mm tree.  Its filename was
-     tweak-documentation-sm501txt.patch
+     ext2-4-use-is_power_of_2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Tweak Documentation/SM501.txt
-From: Rob Landley <rob@landley.net>
+Subject: ext2/4: use is_power_of_2()
+From: vignesh babu <vignesh.babu@wipro.com>
 
-The existing Documentation/SM501.txt gives no clue what the chip is or does,
-so copy the description from Kconfig help text.
+Replace n & (n - 1) with is_power_of_2(n)
 
-Acked-by: Ben Dooks <ben@simtec.co.uk>
-Signed-off-by: Rob Landley <rob@landley.net>
+Signed-off-by: vignesh babu <vignesh.babu@wipro.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/SM501.txt |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/ext2/super.c |    3 ++-
+ fs/ext4/super.c |    2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/SM501.txt~tweak-documentation-sm501txt Documentation/SM501.txt
---- a/Documentation/SM501.txt~tweak-documentation-sm501txt
-+++ a/Documentation/SM501.txt
-@@ -3,6 +3,11 @@
- 
- Copyright 2006, 2007 Simtec Electronics
- 
-+The Silicon Motion SM501 multimedia companion chip is a multifunction device
-+which may provide numerous interfaces including USB host controller USB gadget,
-+Asyncronous Serial ports, Audio functions and a dual display video interface.
-+The device may be connected by PCI or local bus with varying functions enabled.
-+
- Core
- ----
- 
+diff -puN fs/ext2/super.c~ext2-4-use-is_power_of_2 fs/ext2/super.c
+--- a/fs/ext2/super.c~ext2-4-use-is_power_of_2
++++ a/fs/ext2/super.c
+@@ -30,6 +30,7 @@
+ #include <linux/vfs.h>
+ #include <linux/seq_file.h>
+ #include <linux/mount.h>
++#include <linux/log2.h>
+ #include <asm/uaccess.h>
+ #include "ext2.h"
+ #include "xattr.h"
+@@ -862,7 +863,7 @@ static int ext2_fill_super(struct super_
+ 		sbi->s_inode_size = le16_to_cpu(es->s_inode_size);
+ 		sbi->s_first_ino = le32_to_cpu(es->s_first_ino);
+ 		if ((sbi->s_inode_size < EXT2_GOOD_OLD_INODE_SIZE) ||
+-		    (sbi->s_inode_size & (sbi->s_inode_size - 1)) ||
++		    !is_power_of_2(sbi->s_inode_size) ||
+ 		    (sbi->s_inode_size > blocksize)) {
+ 			printk ("EXT2-fs: unsupported inode size: %d\n",
+ 				sbi->s_inode_size);
+diff -puN fs/ext4/super.c~ext2-4-use-is_power_of_2 fs/ext4/super.c
+--- a/fs/ext4/super.c~ext2-4-use-is_power_of_2
++++ a/fs/ext4/super.c
+@@ -1738,7 +1738,7 @@ static int ext4_fill_super (struct super
+ 	if (EXT4_HAS_INCOMPAT_FEATURE(sb, EXT4_FEATURE_INCOMPAT_64BIT)) {
+ 		if (sbi->s_desc_size < EXT4_MIN_DESC_SIZE_64BIT ||
+ 		    sbi->s_desc_size > EXT4_MAX_DESC_SIZE ||
+-		    sbi->s_desc_size & (sbi->s_desc_size - 1)) {
++		    !is_power_of_2(sbi->s_desc_size)) {
+ 			printk(KERN_ERR
+ 			       "EXT4-fs: unsupported descriptor size %lu\n",
+ 			       sbi->s_desc_size);
 _
 
-Patches currently in -mm which might be from rob@landley.net are
+Patches currently in -mm which might be from vignesh.babu@wipro.com are
 
 origin.patch
-comment-typo-in-scripts-kconfig-makefile.patch
