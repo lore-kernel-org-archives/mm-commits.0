@@ -1,103 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - md-fix-a-bug-in-some-never-used-code.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:02:57 -0700
-Message-ID: <200710180702.l9I72vSD031317@imap1.linux-foundation.org>
+Subject: - floppy-remove-register-keyword-use-from-floppy-driver.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:03:16 -0700
+Message-ID: <200710180703.l9I73G6Q031418@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56410 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59040 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761207AbXJRHPh (ORCPT
+	by vger.kernel.org with ESMTP id S1760416AbXJRHPd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:15:37 -0400
+	Thu, 18 Oct 2007 03:15:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: fix a bug in some never-used code.
+     floppy: remove register keyword use from floppy driver
 has been removed from the -mm tree.  Its filename was
-     md-fix-a-bug-in-some-never-used-code.patch
+     floppy-remove-register-keyword-use-from-floppy-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: md: fix a bug in some never-used code.
-From: NeilBrown <neilb@suse.de>
+Subject: floppy: remove register keyword use from floppy driver
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-http://bugzilla.kernel.org/show_bug.cgi?id=3277
+The floppy drive is slow.  These days I see absolutely no good reason why the
+floppy driver should try to gain a tiny bit of speed by telling gcc to
+optimize access to some variables via the register keyword.  Better to just
+leave gcc free to do whatever optimizations it deduces to be sane and not
+hamper it by telling it that some variables in the floppy driver are special
+and need to be fast (they don't).
 
-There is a seq_printf here that isn't being passed a 'seq'.  Howeve as the
-code is inside #ifdef MD_DEBUG, nobody noticed.
-
-Also remove some extra spaces.
-
-Signed-off-by: Neil Brown <neilb@suse.de>
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid0.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/block/floppy.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN drivers/md/raid0.c~md-fix-a-bug-in-some-never-used-code drivers/md/raid0.c
---- a/drivers/md/raid0.c~md-fix-a-bug-in-some-never-used-code
-+++ a/drivers/md/raid0.c
-@@ -472,7 +472,7 @@ bad_map:
- 	bio_io_error(bio);
- 	return 0;
- }
--			   
-+
- static void raid0_status (struct seq_file *seq, mddev_t *mddev)
- {
- #undef MD_DEBUG
-@@ -480,18 +480,18 @@ static void raid0_status (struct seq_fil
- 	int j, k, h;
- 	char b[BDEVNAME_SIZE];
- 	raid0_conf_t *conf = mddev_to_conf(mddev);
--  
-+
- 	h = 0;
- 	for (j = 0; j < conf->nr_strip_zones; j++) {
- 		seq_printf(seq, "      z%d", j);
- 		if (conf->hash_table[h] == conf->strip_zone+j)
--			seq_printf("(h%d)", h++);
-+			seq_printf(seq, "(h%d)", h++);
- 		seq_printf(seq, "=[");
- 		for (k = 0; k < conf->strip_zone[j].nb_dev; k++)
--			seq_printf (seq, "%s/", bdevname(
-+			seq_printf(seq, "%s/", bdevname(
- 				conf->strip_zone[j].dev[k]->bdev,b));
+diff -puN drivers/block/floppy.c~floppy-remove-register-keyword-use-from-floppy-driver drivers/block/floppy.c
+--- a/drivers/block/floppy.c~floppy-remove-register-keyword-use-from-floppy-driver
++++ a/drivers/block/floppy.c
+@@ -783,7 +783,10 @@ static inline int is_selected(int dor, i
  
--		seq_printf (seq, "] zo=%d do=%d s=%d\n",
-+		seq_printf(seq, "] zo=%d do=%d s=%d\n",
- 				conf->strip_zone[j].zone_offset,
- 				conf->strip_zone[j].dev_offset,
- 				conf->strip_zone[j].size);
+ static int set_dor(int fdc, char mask, char data)
+ {
+-	register unsigned char drive, unit, newdor, olddor;
++	unsigned char unit;
++	unsigned char drive;
++	unsigned char newdor;
++	unsigned char olddor;
+ 
+ 	if (FDCS->address == -1)
+ 		return -1;
+@@ -937,7 +940,7 @@ static void motor_off_callback(unsigned 
+ static void floppy_off(unsigned int drive)
+ {
+ 	unsigned long volatile delta;
+-	register int fdc = FDC(drive);
++	int fdc = FDC(drive);
+ 
+ 	if (!(FDCS->dor & (0x10 << UNIT(drive))))
+ 		return;
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
 origin.patch
-git-md-accel.patch
-ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
-knfsd-only-set-attr_kill_sid-if-attr_mode-isnt-being-explicitly-set.patch
-vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
-sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
-exportfs-add-fid-type.patch
-exportfs-add-new-methods.patch
-ext2-new-export-ops.patch
-ext3-new-export-ops.patch
-ext4-new-export-ops.patch
-efs-new-export-ops.patch
-jfs-new-export-ops.patch
-ntfs-new-export-ops.patch
-fat-new-export-ops.patch
-isofs-new-export-ops.patch
-shmem-new-export-ops.patch
-reiserfs-new-export-ops.patch
-gfs2-new-export-ops.patch
-ocfs2-new-export-ops.patch
-exportfs-remove-old-methods.patch
-exportfs-make-struct-export_operations-const.patch
-exportfs-update-documentation.patch
+git-cifs.patch
+mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
+mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
+mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
+cyclades-avoid-label-defined-but-not-used-warning.patch
