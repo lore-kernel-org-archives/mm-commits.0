@@ -1,90 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - clean-up-duplicate-includes-in-drivers-char.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:53:32 -0700
-Message-ID: <200710180653.l9I6rWsH030454@imap1.linux-foundation.org>
+Subject: - oom-do-not-take-callback_mutex.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:51:55 -0700
+Message-ID: <200710180651.l9I6ptEF030226@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50451 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40779 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932402AbXJRHnn (ORCPT
+	by vger.kernel.org with ESMTP id S932417AbXJRHns (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:43:43 -0400
+	Thu, 18 Oct 2007 03:43:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, ralf@linux-mips.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: rientjes@google.com, andrea@suse.de, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Clean up duplicate includes in drivers/char/
+     oom: do not take callback_mutex
 has been removed from the -mm tree.  Its filename was
-     clean-up-duplicate-includes-in-drivers-char.patch
+     oom-do-not-take-callback_mutex.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in drivers/char/
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: oom: do not take callback_mutex
+From: David Rientjes <rientjes@google.com>
 
-This patch cleans up duplicate includes in
-	drivers/char/
+Since no task descriptor's 'cpuset' field is dereferenced in the execution of
+the OOM killer anymore, it is no longer necessary to take callback_mutex.
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+[akpm@linux-foundation.org: restore cpuset_lock for other patches]
+Cc: Andrea Arcangeli <andrea@suse.de>
+Acked-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mbcs.c     |    1 -
- drivers/char/ppdev.c    |    1 -
- drivers/char/synclink.c |    4 ----
- 3 files changed, 6 deletions(-)
+ mm/oom_kill.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/char/mbcs.c~clean-up-duplicate-includes-in-drivers-char drivers/char/mbcs.c
---- a/drivers/char/mbcs.c~clean-up-duplicate-includes-in-drivers-char
-+++ a/drivers/char/mbcs.c
-@@ -22,7 +22,6 @@
- #include <linux/delay.h>
- #include <linux/device.h>
- #include <linux/mm.h>
--#include <linux/fs.h>
- #include <linux/uio.h>
- #include <asm/io.h>
- #include <asm/uaccess.h>
-diff -puN drivers/char/ppdev.c~clean-up-duplicate-includes-in-drivers-char drivers/char/ppdev.c
---- a/drivers/char/ppdev.c~clean-up-duplicate-includes-in-drivers-char
-+++ a/drivers/char/ppdev.c
-@@ -66,7 +66,6 @@
- #include <linux/poll.h>
- #include <linux/major.h>
- #include <linux/ppdev.h>
--#include <linux/device.h>
- #include <asm/uaccess.h>
+diff -puN mm/oom_kill.c~oom-do-not-take-callback_mutex mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-do-not-take-callback_mutex
++++ a/mm/oom_kill.c
+@@ -463,7 +463,6 @@ void out_of_memory(struct zonelist *zone
+ 	 * NUMA) that may require different handling.
+ 	 */
+ 	constraint = constrained_alloc(zonelist, gfp_mask);
+-	cpuset_lock();
+ 	read_lock(&tasklist_lock);
  
- #define PP_VERSION "ppdev: user-space parallel port driver"
-diff -puN drivers/char/synclink.c~clean-up-duplicate-includes-in-drivers-char drivers/char/synclink.c
---- a/drivers/char/synclink.c~clean-up-duplicate-includes-in-drivers-char
-+++ a/drivers/char/synclink.c
-@@ -81,13 +81,9 @@
- #include <linux/mm.h>
- #include <linux/slab.h>
- #include <linux/delay.h>
--
- #include <linux/netdevice.h>
--
- #include <linux/vmalloc.h>
- #include <linux/init.h>
--
--#include <linux/delay.h>
- #include <linux/ioctl.h>
+ 	switch (constraint) {
+@@ -495,7 +494,6 @@ retry:
+ 		/* Found nothing?!?! Either we hang forever, or we panic. */
+ 		if (!p) {
+ 			read_unlock(&tasklist_lock);
+-			cpuset_unlock();
+ 			panic("Out of memory and no killable processes...\n");
+ 		}
  
- #include <asm/system.h>
+@@ -508,7 +506,6 @@ retry:
+ 
+ out:
+ 	read_unlock(&tasklist_lock);
+-	cpuset_unlock();
+ 
+ 	/*
+ 	 * Give "p" a good chance of killing itself before we
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-git-cifs.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
-cyclades-avoid-label-defined-but-not-used-warning.patch
+fix-cpusets-update_cpumask.patch
+fix-cpusets-update_cpumask-checkpatch-fixes.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-resource-counters-v7-fix.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memcontrol-move-mm_cgroup-to-header-file.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
