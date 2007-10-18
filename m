@@ -1,75 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - bitmaph-remove-dead-artifacts.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:02:55 -0700
-Message-ID: <200710180702.l9I72tiT031313@imap1.linux-foundation.org>
+Subject: - pnp-add-debug-message-for-adding-new-device.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:04:00 -0700
+Message-ID: <200710180704.l9I740ea031488@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33179 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46909 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760038AbXJRH1P (ORCPT
+	by vger.kernel.org with ESMTP id S1759678AbXJRH1T (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:27:15 -0400
+	Thu, 18 Oct 2007 03:27:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, bfields@fieldses.org, neilb@suse.de, mm-commits@vger.kernel.org
+To: bjorn.helgaas@hp.com, ambx1@neo.rr.com, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bitmap.h: remove dead artifacts
+     PNP: add debug message for adding new device
 has been removed from the -mm tree.  Its filename was
-     bitmaph-remove-dead-artifacts.patch
+     pnp-add-debug-message-for-adding-new-device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: bitmap.h: remove dead artifacts
-From: Adrian Bunk <bunk@kernel.org>
+Subject: PNP: add debug message for adding new device
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-bitmap_active() no longer exists and BITMAP_ACTIVE is no longer used.
+Add PNP debug message when adding a device, remove similar PNPACPI message
+with less information.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Neil Brown <neilb@suse.de>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/raid/bitmap.h |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/pnp/core.c         |   28 ++++++++++++++++++++++++----
+ drivers/pnp/pnpacpi/core.c |    1 -
+ 2 files changed, 24 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/raid/bitmap.h~bitmaph-remove-dead-artifacts include/linux/raid/bitmap.h
---- a/include/linux/raid/bitmap.h~bitmaph-remove-dead-artifacts
-+++ a/include/linux/raid/bitmap.h
-@@ -138,7 +138,6 @@ typedef __u16 bitmap_counter_t;
+diff -puN drivers/pnp/core.c~pnp-add-debug-message-for-adding-new-device drivers/pnp/core.c
+--- a/drivers/pnp/core.c~pnp-add-debug-message-for-adding-new-device
++++ a/drivers/pnp/core.c
+@@ -125,9 +125,11 @@ int __pnp_add_device(struct pnp_dev *dev
+ 	spin_unlock(&pnp_lock);
  
- /* use these for bitmap->flags and bitmap->sb->state bit-fields */
- enum bitmap_state {
--	BITMAP_ACTIVE = 0x001, /* the bitmap is in use */
- 	BITMAP_STALE  = 0x002,  /* the bitmap file is out of date or had -EIO */
- 	BITMAP_WRITE_ERROR = 0x004, /* A write error has occurred */
- 	BITMAP_HOSTENDIAN = 0x8000,
-@@ -258,7 +257,6 @@ struct bitmap {
- int  bitmap_create(mddev_t *mddev);
- void bitmap_flush(mddev_t *mddev);
- void bitmap_destroy(mddev_t *mddev);
--int  bitmap_active(struct bitmap *bitmap);
+ 	ret = device_register(&dev->dev);
+-	if (ret == 0)
+-		pnp_interface_attach_device(dev);
+-	return ret;
++	if (ret)
++		return ret;
++
++	pnp_interface_attach_device(dev);
++	return 0;
+ }
  
- char *file_path(struct file *file, char *buf, int count);
- void bitmap_print_sb(struct bitmap *bitmap);
+ /*
+@@ -138,12 +140,30 @@ int __pnp_add_device(struct pnp_dev *dev
+  */
+ int pnp_add_device(struct pnp_dev *dev)
+ {
++	int ret;
++
+ 	if (dev->card)
+ 		return -EINVAL;
++
+ 	dev->dev.parent = &dev->protocol->dev;
+ 	sprintf(dev->dev.bus_id, "%02x:%02x", dev->protocol->number,
+ 		dev->number);
+-	return __pnp_add_device(dev);
++	ret = __pnp_add_device(dev);
++	if (ret)
++		return ret;
++
++#ifdef CONFIG_PNP_DEBUG
++	{
++		struct pnp_id *id;
++
++		dev_printk(KERN_DEBUG, &dev->dev, "%s device, IDs",
++			dev->protocol->name);
++		for (id = dev->id; id; id = id->next)
++			printk(" %s", id->id);
++		printk(" (%s)\n", dev->active ? "active" : "disabled");
++	}
++#endif
++	return 0;
+ }
+ 
+ void __pnp_remove_device(struct pnp_dev *dev)
+diff -puN drivers/pnp/pnpacpi/core.c~pnp-add-debug-message-for-adding-new-device drivers/pnp/pnpacpi/core.c
+--- a/drivers/pnp/pnpacpi/core.c~pnp-add-debug-message-for-adding-new-device
++++ a/drivers/pnp/pnpacpi/core.c
+@@ -171,7 +171,6 @@ static int __init pnpacpi_add_device(str
+ 	    is_exclusive_device(device))
+ 		return 0;
+ 
+-	pnp_dbg("ACPI device : hid %s", acpi_device_hid(device));
+ 	dev = kzalloc(sizeof(struct pnp_dev), GFP_KERNEL);
+ 	if (!dev) {
+ 		pnp_err("Out of memory");
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
 origin.patch
-git-dvb.patch
-git-nfs-make-nfs_wb_page_priority-static.patch
-drivers-net-wireless-b43-mainc-fix-an-uninitialized.patch
-make-kernel-power-maincsuspend_enter-static.patch
-sysctl-parport-remove-binary-paths-fix.patch
-sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-cleanup.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-cleanup.patch
-remove-asm-bitopsh-includes.patch
-forbid-asm-bitopsh-direct-inclusion.patch
-alpha-lock-bitops-fix.patch
-reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
-remove-asm-bitopsh-includes-reiser4.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
