@@ -1,92 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:52:57 -0700
-Message-ID: <200710180652.l9I6qvd8030329@imap1.linux-foundation.org>
+Subject: - break-elf_platform-and-stack-pointer-randomization-dependency.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:01:43 -0700
+Message-ID: <200710180701.l9I71hVk031200@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39287 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50416 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932142AbXJRHhw (ORCPT
+	by vger.kernel.org with ESMTP id S932146AbXJRHiB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:37:52 -0400
+	Thu, 18 Oct 2007 03:38:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@mindspring.com, mm-commits@vger.kernel.org
+To: fbuihuu@gmail.com, arjan@infradead.org, mingo@elte.hu, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Force erroneous inclusions of compiler-*.h files to be errors
+     Break ELF_PLATFORM and stack pointer randomization dependency
 has been removed from the -mm tree.  Its filename was
-     force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
+     break-elf_platform-and-stack-pointer-randomization-dependency.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Force erroneous inclusions of compiler-*.h files to be errors
-From: "Robert P. J. Day" <rpjday@mindspring.com>
+Subject: Break ELF_PLATFORM and stack pointer randomization dependency
+From: Franck Bui-Huu <fbuihuu@gmail.com>
 
-Replace worthless comments with actual preprocessor errors when including
-the wrong versions of the compiler.h files.
+Currently arch_align_stack() is used by fs/binfmt_elf.c to randomize
+stack pointer inside a page. But this happens only if ELF_PLATFORM
+symbol is defined.
 
-[akpm@linux-foundation.org: make it work]
-Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
+ELF_PLATFORM is normally set if the architecture wants ld.so to load
+implementation specific libraries for optimization. And currently a
+lot of architectures just yield this symbol to NULL.
+
+This is the case for MIPS architecture where ELF_PLATFORM is NULL but
+arch_align_stack() has been redefined to do stack inside page
+randomization. So in this case no randomization is actually done.
+
+This patch breaks this dependency which seems to be useless and allows
+platforms such MIPS to do the randomization.
+
+Signed-off-by: Franck Bui-Huu <fbuihuu@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc.h   |    4 +++-
- include/linux/compiler-gcc3.h  |    4 +++-
- include/linux/compiler-gcc4.h  |    4 +++-
- include/linux/compiler-intel.h |    4 +++-
- 4 files changed, 12 insertions(+), 4 deletions(-)
+ fs/binfmt_elf.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/compiler-gcc.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors
-+++ a/include/linux/compiler-gcc.h
-@@ -1,4 +1,6 @@
--/* Never include this file directly.  Include <linux/compiler.h> instead.  */
-+#ifndef __LINUX_COMPILER_H
-+#error "Please don't include <linux/compiler-gcc.h> directly, include <linux/compiler.h> instead."
-+#endif
+diff -puN fs/binfmt_elf.c~break-elf_platform-and-stack-pointer-randomization-dependency fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~break-elf_platform-and-stack-pointer-randomization-dependency
++++ a/fs/binfmt_elf.c
+@@ -151,6 +151,14 @@ create_elf_tables(struct linux_binprm *b
+ 	struct vm_area_struct *vma;
  
- /*
-  * Common definitions for all gcc versions go here.
-diff -puN include/linux/compiler-gcc3.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors include/linux/compiler-gcc3.h
---- a/include/linux/compiler-gcc3.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors
-+++ a/include/linux/compiler-gcc3.h
-@@ -1,4 +1,6 @@
--/* Never include this file directly.  Include <linux/compiler.h> instead.  */
-+#ifndef __LINUX_COMPILER_H
-+#error "Please don't include <linux/compiler-gcc3.h> directly, include <linux/compiler.h> instead."
-+#endif
+ 	/*
++	 * In some cases (e.g. Hyper-Threading), we want to avoid L1
++	 * evictions by the processes running on the same package. One
++	 * thing we can do is to shuffle the initial stack for them.
++	 */
++
++	p = arch_align_stack(p);
++
++	/*
+ 	 * If this architecture has a platform capability string, copy it
+ 	 * to userspace.  In some cases (Sparc), this info is impossible
+ 	 * for userspace to get any other way, in others (i386) it is
+@@ -160,14 +168,6 @@ create_elf_tables(struct linux_binprm *b
+ 	if (k_platform) {
+ 		size_t len = strlen(k_platform) + 1;
  
- /* These definitions are for GCC v3.x.  */
- #include <linux/compiler-gcc.h>
-diff -puN include/linux/compiler-gcc4.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors include/linux/compiler-gcc4.h
---- a/include/linux/compiler-gcc4.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors
-+++ a/include/linux/compiler-gcc4.h
-@@ -1,4 +1,6 @@
--/* Never include this file directly.  Include <linux/compiler.h> instead.  */
-+#ifndef __LINUX_COMPILER_H
-+#error "Please don't include <linux/compiler-gcc4.h> directly, include <linux/compiler.h> instead."
-+#endif
- 
- /* These definitions are for GCC v4.x.  */
- #include <linux/compiler-gcc.h>
-diff -puN include/linux/compiler-intel.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors include/linux/compiler-intel.h
---- a/include/linux/compiler-intel.h~force-erroneous-inclusions-of-compiler-h-files-to-be-errors
-+++ a/include/linux/compiler-intel.h
-@@ -1,4 +1,6 @@
--/* Never include this file directly.  Include <linux/compiler.h> instead.  */
-+#ifndef __LINUX_COMPILER_H
-+#error "Please don't include <linux/compiler-intel.h> directly, include <linux/compiler.h> instead."
-+#endif
- 
- #ifdef __ECC
- 
+-		/*
+-		 * In some cases (e.g. Hyper-Threading), we want to avoid L1
+-		 * evictions by the processes running on the same package. One
+-		 * thing we can do is to shuffle the initial stack for them.
+-		 */
+-
+-		p = arch_align_stack(p);
+-
+ 		u_platform = (elf_addr_t __user *)STACK_ALLOC(p, len);
+ 		if (__copy_to_user(u_platform, k_platform, len))
+ 			return -EFAULT;
 _
 
-Patches currently in -mm which might be from rpjday@mindspring.com are
+Patches currently in -mm which might be from fbuihuu@gmail.com are
 
 origin.patch
-git-kvm.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
