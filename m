@@ -1,130 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - fix-build-breakage-if-sysfs.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:05:38 -0700
-Message-ID: <200710180705.l9I75c0D031664@imap1.linux-foundation.org>
+Subject: - hptiop-avoid-buffer-overflow-when-returning-sense-data.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:05:42 -0700
+Message-ID: <200710180705.l9I75gli031670@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58615 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35367 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762868AbXJRHPm (ORCPT
+	by vger.kernel.org with ESMTP id S1761531AbXJRHPh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:15:42 -0400
+	Thu, 18 Oct 2007 03:15:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhaval@linux.vnet.ibm.com, mingo@elte.hu, vatsa@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: linux@highpoint-tech.com, James.Bottomley@steeleye.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: fix build breakage if !SYSFS
+     hptiop: avoid buffer overflow when returning sense data
 has been removed from the -mm tree.  Its filename was
-     fix-build-breakage-if-sysfs.patch
+     hptiop-avoid-buffer-overflow-when-returning-sense-data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sched: fix build breakage if !SYSFS
-From: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Subject: hptiop: avoid buffer overflow when returning sense data
+From: HighPoint Linux Team <linux@highpoint-tech.com>
 
-When CONFIG_SYSFS is not set, CONFIG_FAIR_USER_SCHED fails to build
-with
+avoid buffer overflow when returning sense data.
 
-kernel/built-in.o: In function `uids_kobject_init':
-(.init.text+0x1488): undefined reference to `kernel_subsys'
-kernel/built-in.o: In function `uids_kobject_init':
-(.init.text+0x1490): undefined reference to `kernel_subsys'
-kernel/built-in.o: In function `uids_kobject_init':
-(.init.text+0x1480): undefined reference to `kernel_subsys'
-kernel/built-in.o: In function `uids_kobject_init':
-(.init.text+0x1494): undefined reference to `kernel_subsys'
+With current adapter firmware the driver is working but future firmware
+updates may return sense data larger than 96 bytes, causing overflow on
+scp->sense_buffer and a kernel crash.
 
-This patch fixes this build error.
+This fix should be backported to earlier kernels.
 
-Signed-off-by: Srivatsa Vaddagiri <vatsa@linux.vnet.ibm.com>
-Signed-off-by: Dhaval Giani <dhaval@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: HighPoint Linux Team <linux@highpoint-tech.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    2 ++
- kernel/user.c         |   23 +++++++++++++++--------
- 2 files changed, 17 insertions(+), 8 deletions(-)
+ drivers/scsi/hptiop.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/sched.h~fix-build-breakage-if-sysfs include/linux/sched.h
---- a/include/linux/sched.h~fix-build-breakage-if-sysfs
-+++ a/include/linux/sched.h
-@@ -535,10 +535,12 @@ struct user_struct {
+diff -puN drivers/scsi/hptiop.c~hptiop-avoid-buffer-overflow-when-returning-sense-data drivers/scsi/hptiop.c
+--- a/drivers/scsi/hptiop.c~hptiop-avoid-buffer-overflow-when-returning-sense-data
++++ a/drivers/scsi/hptiop.c
+@@ -375,8 +375,9 @@ static void hptiop_host_request_callback
+ 		scp->result = SAM_STAT_CHECK_CONDITION;
+ 		memset(&scp->sense_buffer,
+ 				0, sizeof(scp->sense_buffer));
+-		memcpy(&scp->sense_buffer,
+-			&req->sg_list, le32_to_cpu(req->dataxfer_length));
++		memcpy(&scp->sense_buffer, &req->sg_list,
++				min(sizeof(scp->sense_buffer),
++					le32_to_cpu(req->dataxfer_length)));
+ 		break;
  
- #ifdef CONFIG_FAIR_USER_SCHED
- 	struct task_group *tg;
-+#ifdef CONFIG_SYSFS
- 	struct kset kset;
- 	struct subsys_attribute user_attr;
- 	struct work_struct work;
- #endif
-+#endif
- };
- 
- #ifdef CONFIG_FAIR_USER_SCHED
-diff -puN kernel/user.c~fix-build-breakage-if-sysfs kernel/user.c
---- a/kernel/user.c~fix-build-breakage-if-sysfs
-+++ a/kernel/user.c
-@@ -84,9 +84,6 @@ static struct user_struct *uid_hash_find
- 
- #ifdef CONFIG_FAIR_USER_SCHED
- 
--static struct kobject uids_kobject; /* represents /sys/kernel/uids directory */
--static DEFINE_MUTEX(uids_mutex);
--
- static void sched_destroy_user(struct user_struct *up)
- {
- 	sched_destroy_group(up->tg);
-@@ -108,6 +105,19 @@ static void sched_switch_user(struct tas
- 	sched_move_task(p);
- }
- 
-+#else	/* CONFIG_FAIR_USER_SCHED */
-+
-+static void sched_destroy_user(struct user_struct *up) { }
-+static int sched_create_user(struct user_struct *up) { return 0; }
-+static void sched_switch_user(struct task_struct *p) { }
-+
-+#endif	/* CONFIG_FAIR_USER_SCHED */
-+
-+#if defined(CONFIG_FAIR_USER_SCHED) && defined(CONFIG_SYSFS)
-+
-+static struct kobject uids_kobject; /* represents /sys/kernel/uids directory */
-+static DEFINE_MUTEX(uids_mutex);
-+
- static inline void uids_mutex_lock(void)
- {
- 	mutex_lock(&uids_mutex);
-@@ -254,11 +264,8 @@ static inline void free_user(struct user
- 	schedule_work(&up->work);
- }
- 
--#else	/* CONFIG_FAIR_USER_SCHED */
-+#else	/* CONFIG_FAIR_USER_SCHED && CONFIG_SYSFS */
- 
--static void sched_destroy_user(struct user_struct *up) { }
--static int sched_create_user(struct user_struct *up) { return 0; }
--static void sched_switch_user(struct task_struct *p) { }
- static inline int user_kobject_create(struct user_struct *up) { return 0; }
- static inline void uids_mutex_lock(void) { }
- static inline void uids_mutex_unlock(void) { }
-@@ -277,7 +284,7 @@ static inline void free_user(struct user
- 	kmem_cache_free(uid_cachep, up);
- }
- 
--#endif	/* CONFIG_FAIR_USER_SCHED */
-+#endif
- 
- /*
-  * Locate the user_struct for the passed UID.  If found, take a ref on it.  The
+ 	default:
 _
 
-Patches currently in -mm which might be from dhaval@linux.vnet.ibm.com are
+Patches currently in -mm which might be from linux@highpoint-tech.com are
 
 origin.patch
-fix-build-breakage-if-sysfs-fix.patch
-hook-up-group-scheduler-with-control-groups.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
+git-scsi-misc.patch
