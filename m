@@ -1,65 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 14:11:04 -0700
-Message-ID: <200710182111.l9ILB4Kn031269@imap1.linux-foundation.org>
+Subject: - reiserfs-use-is_reusable-to-catch-corruption-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 14:10:55 -0700
+Message-ID: <200710182110.l9ILAu9f031257@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56835 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51008 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759775AbXJRVLy (ORCPT
+	by vger.kernel.org with ESMTP id S1764858AbXJRVLt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 17:11:54 -0400
+	Thu, 18 Oct 2007 17:11:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, hch@lst.de, jeffm@suse.com, mason@suse.com, vs@namesys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes
+     reiserfs-use-is_reusable-to-catch-corruption-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes.patch
+     reiserfs-use-is_reusable-to-catch-corruption-checkpatch-fixes.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes
+Subject: reiserfs-use-is_reusable-to-catch-corruption-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: no space between function name and open parenthesis '('
-#138: FILE: fs/reiserfs/bitmap.c:1278:
-+	bitmap = vmalloc(sizeof (*bitmap) * bmap_nr);
-
-WARNING: no space between function name and open parenthesis '('
-#143: FILE: fs/reiserfs/bitmap.c:1282:
-+	memset(bitmap, 0, sizeof (*bitmap) * bmap_nr);
-
-WARNING: line over 80 characters
-#185: FILE: fs/reiserfs/resize.c:64:
-+	block_r = SB_BLOCK_COUNT(s) - (reiserfs_bmap_count(s) - 1) * s->s_blocksize * 8;
-
-ERROR: no space before that close parenthesis ')'
-#203: FILE: fs/reiserfs/resize.c:203:
-+	PUT_SB_BMAP_NR(s, bmap_would_wrap(bmap_nr_new) ? : bmap_nr_new );
-
 ERROR: use tabs not spaces
-#221: FILE: fs/reiserfs/super.c:1735:
+#50: FILE: fs/reiserfs/bitmap.c:443:
 +^I^I$
-
-ERROR: use tabs not spaces
-#222: FILE: fs/reiserfs/super.c:1736:
-+^I^I$
-
-ERROR: use tabs not spaces
-#223: FILE: fs/reiserfs/super.c:1737:
-+^I^I$
-
-ERROR: use tabs not spaces
-#224: FILE: fs/reiserfs/super.c:1738:
-+^I^I$
-
-WARNING: line over 80 characters
-#240: FILE: include/linux/reiserfs_fs.h:235:
-+#define reiserfs_bmap_count(sb)	reiserfs_bmap_nr(SB_BLOCK_COUNT(sb), sb->s_blocksize)
 
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
@@ -72,58 +40,21 @@ Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/bitmap.c |    4 ++--
- fs/reiserfs/resize.c |    2 +-
- fs/reiserfs/super.c  |    8 ++++----
- 3 files changed, 7 insertions(+), 7 deletions(-)
+ fs/reiserfs/bitmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/reiserfs/bitmap.c~reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes fs/reiserfs/bitmap.c
---- a/fs/reiserfs/bitmap.c~reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes
+diff -puN fs/reiserfs/bitmap.c~reiserfs-use-is_reusable-to-catch-corruption-checkpatch-fixes fs/reiserfs/bitmap.c
+--- a/fs/reiserfs/bitmap.c~reiserfs-use-is_reusable-to-catch-corruption-checkpatch-fixes
 +++ a/fs/reiserfs/bitmap.c
-@@ -1275,11 +1275,11 @@ int reiserfs_init_bitmap_cache(struct su
- 	struct reiserfs_bitmap_info *bitmap;
- 	unsigned int bmap_nr = reiserfs_bmap_count(sb);
+@@ -440,7 +440,7 @@ void reiserfs_free_block(struct reiserfs
  
--	bitmap = vmalloc(sizeof (*bitmap) * bmap_nr);
-+	bitmap = vmalloc(sizeof(*bitmap) * bmap_nr);
- 	if (bitmap == NULL)
- 		return -ENOMEM;
- 
--	memset(bitmap, 0, sizeof (*bitmap) * bmap_nr);
-+	memset(bitmap, 0, sizeof(*bitmap) * bmap_nr);
- 
- 	SB_AP_BITMAP(sb) = bitmap;
- 
-diff -puN fs/reiserfs/resize.c~reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes fs/reiserfs/resize.c
---- a/fs/reiserfs/resize.c~reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes
-+++ a/fs/reiserfs/resize.c
-@@ -200,7 +200,7 @@ int reiserfs_resize(struct super_block *
- 			   free_blocks + (block_count_new - block_count -
- 					  (bmap_nr_new - bmap_nr)));
- 	PUT_SB_BLOCK_COUNT(s, block_count_new);
--	PUT_SB_BMAP_NR(s, bmap_would_wrap(bmap_nr_new) ? : bmap_nr_new );
-+	PUT_SB_BMAP_NR(s, bmap_would_wrap(bmap_nr_new) ? : bmap_nr_new);
- 	s->s_dirt = 1;
- 
- 	journal_mark_dirty(&th, s, SB_BUFFER_WITH_SB(s));
-diff -puN fs/reiserfs/super.c~reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes fs/reiserfs/super.c
---- a/fs/reiserfs/super.c~reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes
-+++ a/fs/reiserfs/super.c
-@@ -1732,10 +1732,10 @@ static int reiserfs_fill_super(struct su
- 		if (bmap_would_wrap(reiserfs_bmap_count(s)) &&
- 		    sb_bmap_nr(rs) != 0) {
- 			reiserfs_warning(s, "super-2030: This file system "
--		                         "claims to use %u bitmap blocks in "
--		                         "its super block, but requires %u. "
--		                         "Clearing to zero.", sb_bmap_nr(rs),
--		                         reiserfs_bmap_count(s));
-+					 "claims to use %u bitmap blocks in "
-+					 "its super block, but requires %u. "
-+					 "Clearing to zero.", sb_bmap_nr(rs),
-+					 reiserfs_bmap_count(s));
- 
- 			set_sb_bmap_nr(rs, 0);
- 		}
+ 	if (block > sb_block_count(REISERFS_SB(s)->s_rs)) {
+ 		reiserfs_panic(th->t_super, "bitmap-4072",
+-		               "Trying to free block outside file system "
++			       "Trying to free block outside file system "
+ 			       "boundaries (%lu > %lu)",
+ 			       block, sb_block_count(REISERFS_SB(s)->s_rs));
+ 		return;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -192,6 +123,8 @@ jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
 peterz-vs-ext4-mballoc-core.patch
 64-bit-i_version-afs-fixes.patch
 reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes-2.patch
+reiserfs-use-is_reusable-to-catch-corruption-checkpatch-fixes.patch
+reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes.patch
 reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
