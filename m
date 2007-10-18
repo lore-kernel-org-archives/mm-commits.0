@@ -1,138 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: - shrink-task_struct-if-config_futex=n.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:57:09 -0700
-Message-ID: <200710180657.l9I6v9EE030772@imap1.linux-foundation.org>
+Subject: - documentation-vm-slabinfoc-clean-up-this-code.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:04:55 -0700
+Message-ID: <200710180704.l9I74tFH031600@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42700 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54296 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755407AbXJRHXg (ORCPT
+	by vger.kernel.org with ESMTP id S1755458AbXJRHXq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:23:36 -0400
+	Thu, 18 Oct 2007 03:23:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@sw.ru, mingo@elte.hu, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Shrink task_struct if CONFIG_FUTEX=n
+     Documentation/vm/slabinfo.c: clean up this code
 has been removed from the -mm tree.  Its filename was
-     shrink-task_struct-if-config_futex=n.patch
+     documentation-vm-slabinfoc-clean-up-this-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Shrink task_struct if CONFIG_FUTEX=n
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: Documentation/vm/slabinfo.c: clean up this code
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-robust_list, compat_robust_list, pi_state_list, pi_state_cache are
-really used if futexes are on.
+This patch does the following cleanups for Documentation/vm/slabinfo.c:
 
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+	- Fix two memory leaks;
+	- Constify some char pointers;
+	- Use snprintf instead of sprintf in case of buffer overflow;
+	- Fix some indentations;
+	- Other little improvements.
+
+Acked-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    3 ++-
- kernel/exit.c         |    6 +++++-
- kernel/fork.c         |    3 ++-
- 3 files changed, 9 insertions(+), 3 deletions(-)
+ Documentation/vm/slabinfo.c |   27 +++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/sched.h~shrink-task_struct-if-config_futex=n include/linux/sched.h
---- a/include/linux/sched.h~shrink-task_struct-if-config_futex=n
-+++ a/include/linux/sched.h
-@@ -1132,13 +1132,14 @@ struct task_struct {
- 	int cpuset_mems_generation;
- 	int cpuset_mem_spread_rotor;
- #endif
-+#ifdef CONFIG_FUTEX
- 	struct robust_list_head __user *robust_list;
- #ifdef CONFIG_COMPAT
- 	struct compat_robust_list_head __user *compat_robust_list;
- #endif
- 	struct list_head pi_state_list;
- 	struct futex_pi_state *pi_state_cache;
--
-+#endif
- 	atomic_t fs_excl;	/* holding fs exclusive resources */
- 	struct rcu_head rcu;
+diff -puN Documentation/vm/slabinfo.c~documentation-vm-slabinfoc-clean-up-this-code Documentation/vm/slabinfo.c
+--- a/Documentation/vm/slabinfo.c~documentation-vm-slabinfoc-clean-up-this-code
++++ a/Documentation/vm/slabinfo.c
+@@ -11,6 +11,7 @@
+ #include <stdlib.h>
+ #include <sys/types.h>
+ #include <dirent.h>
++#include <strings.h>
+ #include <string.h>
+ #include <unistd.h>
+ #include <stdarg.h>
+@@ -84,7 +85,7 @@ void fatal(const char *x, ...)
+ 	va_start(ap, x);
+ 	vfprintf(stderr, x, ap);
+ 	va_end(ap);
+-	exit(1);
++	exit(EXIT_FAILURE);
+ }
  
-diff -puN kernel/exit.c~shrink-task_struct-if-config_futex=n kernel/exit.c
---- a/kernel/exit.c~shrink-task_struct-if-config_futex=n
-+++ a/kernel/exit.c
-@@ -947,12 +947,14 @@ fastcall NORET_TYPE void do_exit(long co
- 		exit_itimers(tsk->signal);
- 	}
- 	acct_collect(code, group_dead);
-+#ifdef CONFIG_FUTEX
- 	if (unlikely(tsk->robust_list))
- 		exit_robust_list(tsk);
--#if defined(CONFIG_FUTEX) && defined(CONFIG_COMPAT)
-+#ifdef CONFIG_COMPAT
- 	if (unlikely(tsk->compat_robust_list))
- 		compat_exit_robust_list(tsk);
- #endif
-+#endif
- 	if (group_dead)
- 		tty_audit_exit();
- 	if (unlikely(tsk->audit_context))
-@@ -987,6 +989,7 @@ fastcall NORET_TYPE void do_exit(long co
- 	mpol_free(tsk->mempolicy);
- 	tsk->mempolicy = NULL;
- #endif
-+#ifdef CONFIG_FUTEX
- 	/*
- 	 * This must happen late, after the PID is not
- 	 * hashed anymore:
-@@ -995,6 +998,7 @@ fastcall NORET_TYPE void do_exit(long co
- 		exit_pi_state_list(tsk);
- 	if (unlikely(current->pi_state_cache))
- 		kfree(current->pi_state_cache);
-+#endif
- 	/*
- 	 * Make sure we are holding no locks:
- 	 */
-diff -puN kernel/fork.c~shrink-task_struct-if-config_futex=n kernel/fork.c
---- a/kernel/fork.c~shrink-task_struct-if-config_futex=n
-+++ a/kernel/fork.c
-@@ -1156,13 +1156,14 @@ static struct task_struct *copy_process(
- 	 * Clear TID on mm_release()?
- 	 */
- 	p->clear_child_tid = (clone_flags & CLONE_CHILD_CLEARTID) ? child_tidptr: NULL;
-+#ifdef CONFIG_FUTEX
- 	p->robust_list = NULL;
- #ifdef CONFIG_COMPAT
- 	p->compat_robust_list = NULL;
- #endif
- 	INIT_LIST_HEAD(&p->pi_state_list);
- 	p->pi_state_cache = NULL;
--
-+#endif
- 	/*
- 	 * sigaltstack should be cleared when sharing the same VM
- 	 */
+ void usage(void)
+@@ -119,14 +120,14 @@ void usage(void)
+ 	);
+ }
+ 
+-unsigned long read_obj(char *name)
++unsigned long read_obj(const char *name)
+ {
+ 	FILE *f = fopen(name, "r");
+ 
+ 	if (!f)
+ 		buffer[0] = 0;
+ 	else {
+-		if (!fgets(buffer,sizeof(buffer), f))
++		if (!fgets(buffer, sizeof(buffer), f))
+ 			buffer[0] = 0;
+ 		fclose(f);
+ 		if (buffer[strlen(buffer)] == '\n')
+@@ -139,7 +140,7 @@ unsigned long read_obj(char *name)
+ /*
+  * Get the contents of an attribute
+  */
+-unsigned long get_obj(char *name)
++unsigned long get_obj(const char *name)
+ {
+ 	if (!read_obj(name))
+ 		return 0;
+@@ -147,7 +148,7 @@ unsigned long get_obj(char *name)
+ 	return atol(buffer);
+ }
+ 
+-unsigned long get_obj_and_str(char *name, char **x)
++unsigned long get_obj_and_str(const char *name, char **x)
+ {
+ 	unsigned long result = 0;
+ 	char *p;
+@@ -166,12 +167,12 @@ unsigned long get_obj_and_str(char *name
+ 	return result;
+ }
+ 
+-void set_obj(struct slabinfo *s, char *name, int n)
++void set_obj(struct slabinfo *s, const char *name, int n)
+ {
+ 	char x[100];
+ 	FILE *f;
+ 
+-	sprintf(x, "%s/%s", s->name, name);
++	snprintf(x, 100, "%s/%s", s->name, name);
+ 	f = fopen(x, "w");
+ 	if (!f)
+ 		fatal("Cannot write to %s\n", x);
+@@ -180,13 +181,13 @@ void set_obj(struct slabinfo *s, char *n
+ 	fclose(f);
+ }
+ 
+-unsigned long read_slab_obj(struct slabinfo *s, char *name)
++unsigned long read_slab_obj(struct slabinfo *s, const char *name)
+ {
+ 	char x[100];
+ 	FILE *f;
+-	int l;
++	size_t l;
+ 
+-	sprintf(x, "%s/%s", s->name, name);
++	snprintf(x, 100, "%s/%s", s->name, name);
+ 	f = fopen(x, "r");
+ 	if (!f) {
+ 		buffer[0] = 0;
+@@ -453,7 +454,7 @@ void slabcache(struct slabinfo *s)
+ 		return;
+ 
+ 	store_size(size_str, slab_size(s));
+-	sprintf(dist_str,"%lu/%lu/%d", s->slabs, s->partial, s->cpu_slabs);
++	snprintf(dist_str, 40, "%lu/%lu/%d", s->slabs, s->partial, s->cpu_slabs);
+ 
+ 	if (!line++)
+ 		first_line();
+@@ -1062,6 +1063,7 @@ void read_slab_dir(void)
+ 			slab->partial = get_obj("partial");
+ 			slab->partial = get_obj_and_str("partial", &t);
+ 			decode_numa_list(slab->numa_partial, t);
++			free(t);
+ 			slab->poison = get_obj("poison");
+ 			slab->reclaim_account = get_obj("reclaim_account");
+ 			slab->red_zone = get_obj("red_zone");
+@@ -1069,6 +1071,7 @@ void read_slab_dir(void)
+ 			slab->slab_size = get_obj("slab_size");
+ 			slab->slabs = get_obj_and_str("slabs", &t);
+ 			decode_numa_list(slab->numa, t);
++			free(t);
+ 			slab->store_user = get_obj("store_user");
+ 			slab->trace = get_obj("trace");
+ 			chdir("..");
+@@ -1148,7 +1151,7 @@ int main(int argc, char *argv[])
+ 
+ 	while ((c = getopt_long(argc, argv, "ad::efhil1noprstvzTS",
+ 						opts, NULL)) != -1)
+-	switch(c) {
++		switch (c) {
+ 		case '1':
+ 			show_single_ref = 1;
+ 			break;
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
 origin.patch
-add-kernel-notifierc.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2.patch
-add-kernel-notifierc-fix-2-fix-3.patch
-sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
-sysctl-factor-out-sysctl_data.patch
-sysct-mqueue-remove-the-binary-sysctl-numbers.patch
-sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
-sysctl-fix-neighbour-table-sysctls.patch
-sysctl-ipv6-route-flushing-kill-binary-path.patch
-sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
-sysctl-x86_64-remove-unnecessary-binary-paths.patch
-sysctl-remove-broken-cdrom-binary-sysctls.patch
-sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
-sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
-sysctl-error-on-bad-sysctl-tables.patch
-sysctl-update-sysctl_check_table.patch
-uninline-forkc-exitc.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-single_open-seq_release-leak-diagnostics.patch
+drivers-net-wireless-b43-mainc-fix-an-uninitialized.patch
