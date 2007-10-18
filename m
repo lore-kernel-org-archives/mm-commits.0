@@ -1,92 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - add-documentation-w1w1-masters-00-index.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:04:42 -0700
-Message-ID: <200710180704.l9I74ge1031581@imap1.linux-foundation.org>
+Subject: - mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:55:53 -0700
+Message-ID: <200710180655.l9I6trJU030651@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36914 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43861 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760437AbXJRHSP (ORCPT
+	by vger.kernel.org with ESMTP id S1760437AbXJRHSd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:18:15 -0400
+	Thu, 18 Oct 2007 03:18:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rob@landley.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add Documentation/{w1,w1/masters}/00-INDEX
+     mxser: Remove use of dead TTY_FLIPBUF_SIZE definition
 has been removed from the -mm tree.  Its filename was
-     add-documentation-w1w1-masters-00-index.patch
+     mxser-remove-use-of-dead-tty_flipbuf_size-definition.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add Documentation/{w1,w1/masters}/00-INDEX
-From: Rob Landley <rob@landley.net>
+Subject: mxser: Remove use of dead TTY_FLIPBUF_SIZE definition
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Two 00-INDEX files under Documentation/w1
+We simply define it to the same value.  Nowdays the TTY flip value is
+irrelevant but the value it used is as good as any so why risk breaking it
 
-Signed-off-by: Rob Landley <rob@landley.net>
-Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/w1/00-INDEX         |    8 ++++++++
- Documentation/w1/masters/00-INDEX |    6 ++++++
- Documentation/w1/masters/ds2482   |    2 +-
- Documentation/w1/masters/ds2490   |    2 +-
- 4 files changed, 16 insertions(+), 2 deletions(-)
+ drivers/char/mxser.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN /dev/null Documentation/w1/00-INDEX
---- /dev/null
-+++ a/Documentation/w1/00-INDEX
-@@ -0,0 +1,8 @@
-+00-INDEX
-+	- This file
-+masters/
-+	- Individual chips providing 1-wire busses.
-+w1.generic
-+	- The 1-wire (w1) bus
-+w1.netlink
-+	- Userspace communication protocol over connector [1].
-diff -puN /dev/null Documentation/w1/masters/00-INDEX
---- /dev/null
-+++ a/Documentation/w1/masters/00-INDEX
-@@ -0,0 +1,6 @@
-+00-INDEX
-+	- This file
-+ds2482
-+	- The Maxim/Dallas Semiconductor DS2482 provides 1-wire busses.
-+ds2490
-+	- The Maxim/Dallas Semiconductor DS2490 builds USB <-> W1 bridges.
-diff -puN Documentation/w1/masters/ds2482~add-documentation-w1w1-masters-00-index Documentation/w1/masters/ds2482
---- a/Documentation/w1/masters/ds2482~add-documentation-w1w1-masters-00-index
-+++ a/Documentation/w1/masters/ds2482
-@@ -15,7 +15,7 @@ Author: Ben Gardner <bgardner@wabtec.com
- Description
- -----------
+diff -puN drivers/char/mxser.h~mxser-remove-use-of-dead-tty_flipbuf_size-definition drivers/char/mxser.h
+--- a/drivers/char/mxser.h~mxser-remove-use-of-dead-tty_flipbuf_size-definition
++++ a/drivers/char/mxser.h
+@@ -30,8 +30,7 @@
  
--The Maixm/Dallas Semiconductor DS2482 is a I2C device that provides
-+The Maxim/Dallas Semiconductor DS2482 is a I2C device that provides
- one (DS2482-100) or eight (DS2482-800) 1-wire busses.
+ #define TTY_THRESHOLD_THROTTLE  128
  
+-#define LO_WATER	 	(TTY_FLIPBUF_SIZE)
+-#define HI_WATER		(TTY_FLIPBUF_SIZE*2*3/4)
++#define HI_WATER		768
  
-diff -puN Documentation/w1/masters/ds2490~add-documentation-w1w1-masters-00-index Documentation/w1/masters/ds2490
---- a/Documentation/w1/masters/ds2490~add-documentation-w1w1-masters-00-index
-+++ a/Documentation/w1/masters/ds2490
-@@ -10,7 +10,7 @@ Author: Evgeniy Polyakov <johnpol@2ka.mi
- Description
- -----------
- 
--The Maixm/Dallas Semiconductor DS2490 is a chip
-+The Maxim/Dallas Semiconductor DS2490 is a chip
- which allows to build USB <-> W1 bridges.
- 
- DS9490(R) is a USB <-> W1 bus master device
+ // added by James. 03-11-2004.
+ #define MOXA_SDS_GETICOUNTER  	(MOXA + 68)
 _
 
-Patches currently in -mm which might be from rob@landley.net are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-comment-typo-in-scripts-kconfig-makefile.patch
+tty_ioctl-fix-the-baud_table-check-in-encode_baud_rate.patch
+git-libata-all.patch
+pata_cs5536-mwdma-fix.patch
+libata-sff-correct-use-of-check_status.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+git-scsi-misc.patch
+initio-fix-conflict-when-loading-driver.patch
+isd200-sort-out-usb-ide-dependancy-mess.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+mxser-remove-commented-crap.patch
+char-cyclades-remove-bottom-half-processing.patch
+usb_serial-stop-passing-null-to-functions-that-expect-data.patch
+ark3116-update-termios-handling.patch
+usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch
+ch341-fix-termios-handling.patch
+digi_acceleport-fix-termios-and-also-readability-a-bit.patch
+empeg-clean-up-and-handle-speeds.patch
+ir_usb-termios-handling.patch
+keyspan-termios-tidy.patch
+kobil_sct-termios-encoding-fixups.patch
+option-termios-handling.patch
+sierra-termios.patch
+usb-serial-handle-null-termios-methods-as-no-hardware-changing-support.patch
+whiteheat-clean-up-cant-happen-checks-and-encode-baud.patch
+cp2101-convert-to-new-termios.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+io_edgeport-cleanups-and-tty-speed-reporting.patch
+tty-kill-tty_flipbuf_size.patch
