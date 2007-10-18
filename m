@@ -1,107 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: - make-unregister_binfmt-return-void.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:52:31 -0700
-Message-ID: <200710180652.l9I6qVNd030291@imap1.linux-foundation.org>
+Subject: - jsm-remove-further-unneeded-crud.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:55:55 -0700
+Message-ID: <200710180655.l9I6ttLb030654@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39205 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37993 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761104AbXJRHiR (ORCPT
+	by vger.kernel.org with ESMTP id S1759132AbXJRHi1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:38:17 -0400
+	Thu, 18 Oct 2007 03:38:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@sw.ru, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, michal.k.k.piotrowski@gmail.com, scottk@digi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Make unregister_binfmt() return void
+     jsm: Remove further unneeded crud
 has been removed from the -mm tree.  Its filename was
-     make-unregister_binfmt-return-void.patch
+     jsm-remove-further-unneeded-crud.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Make unregister_binfmt() return void
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: jsm: Remove further unneeded crud
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-list_del() hardly can fail, so checking for return value is pointless
-(and current code always return 0).
+Remove some remaining vestiges of the old hacks jsm had to work around the old
+tty buffering.  With the new tty buffering it simply doesn't matter any more.
 
-Nobody really cared that return value anyway.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+[michal.k.k.piotrowski@gmail.com: fix warning]
+Signed-off-by: Alan Cox <alan@redhat.com>
+Acked-by: Scott Kilau <scottk@digi.com> 
+Cc: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/ia32/binfmt_elf32.c |    2 +-
- fs/exec.c                     |    3 +--
- include/linux/binfmts.h       |    2 +-
- 3 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/serial/jsm/jsm_tty.c |   43 ++-------------------------------
+ 1 file changed, 3 insertions(+), 40 deletions(-)
 
-diff -puN arch/ia64/ia32/binfmt_elf32.c~make-unregister_binfmt-return-void arch/ia64/ia32/binfmt_elf32.c
---- a/arch/ia64/ia32/binfmt_elf32.c~make-unregister_binfmt-return-void
-+++ a/arch/ia64/ia32/binfmt_elf32.c
-@@ -240,7 +240,7 @@ static int __init check_elf32_binfmt(voi
+diff -puN drivers/serial/jsm/jsm_tty.c~jsm-remove-further-unneeded-crud drivers/serial/jsm/jsm_tty.c
+--- a/drivers/serial/jsm/jsm_tty.c~jsm-remove-further-unneeded-crud
++++ a/drivers/serial/jsm/jsm_tty.c
+@@ -500,13 +500,11 @@ void jsm_input(struct jsm_channel *ch)
  {
- 	if (cpu_uses_ia32el()) {
- 		printk("Please use IA-32 EL for executing IA-32 binaries\n");
--		return unregister_binfmt(&elf_format);
-+		unregister_binfmt(&elf_format);
+ 	struct jsm_board *bd;
+ 	struct tty_struct *tp;
+-	struct tty_ldisc *ld;
+ 	u32 rmask;
+ 	u16 head;
+ 	u16 tail;
+ 	int data_len;
+ 	unsigned long lock_flags;
+-	int flip_len = 0;
+ 	int len = 0;
+ 	int n = 0;
+ 	int s = 0;
+@@ -574,45 +572,13 @@ void jsm_input(struct jsm_channel *ch)
+ 
+ 	jsm_printk(READ, INFO, &ch->ch_bd->pci_dev, "start 2\n");
+ 
+-	/*
+-	 * If the rxbuf is empty and we are not throttled, put as much
+-	 * as we can directly into the linux TTY buffer.
+-	 *
+-	 */
+-	flip_len = TTY_FLIPBUF_SIZE;
+-
+-	len = min(data_len, flip_len);
+-	len = min(len, (N_TTY_BUF_SIZE - 1) - tp->read_cnt);
+-	ld = tty_ldisc_ref(tp);
+-
+-	/*
+-	 * If we were unable to get a reference to the ld,
+-	 * don't flush our buffer, and act like the ld doesn't
+-	 * have any space to put the data right now.
+-	 */
+-	if (!ld) {
+-		len = 0;
+-	} else {
+-		/*
+-		 * If ld doesn't have a pointer to a receive_buf function,
+-		 * flush the data, then act like the ld doesn't have any
+-		 * space to put the data right now.
+-		 */
+-		if (!ld->receive_buf) {
+-				ch->ch_r_head = ch->ch_r_tail;
+-				len = 0;
+-		}
+-	}
+-
+-	if (len <= 0) {
++	if (data_len <= 0) {
+ 		spin_unlock_irqrestore(&ch->ch_lock, lock_flags);
+ 		jsm_printk(READ, INFO, &ch->ch_bd->pci_dev, "jsm_input 1\n");
+-		if (ld)
+-			tty_ldisc_deref(ld);
+ 		return;
  	}
- 	return 0;
+ 
+-	len = tty_buffer_request_room(tp, len);
++	len = tty_buffer_request_room(tp, data_len);
+ 	n = len;
+ 
+ 	/*
+@@ -647,7 +613,7 @@ void jsm_input(struct jsm_channel *ch)
+ 				else if (*(ch->ch_equeue +tail +i) & UART_LSR_FE)
+ 					tty_insert_flip_char(tp, *(ch->ch_rqueue +tail +i), TTY_FRAME);
+ 				else
+-				tty_insert_flip_char(tp, *(ch->ch_rqueue +tail +i), TTY_NORMAL);
++					tty_insert_flip_char(tp, *(ch->ch_rqueue +tail +i), TTY_NORMAL);
+ 			}
+ 		} else {
+ 			tty_insert_flip_string(tp, ch->ch_rqueue + tail, s) ;
+@@ -666,9 +632,6 @@ void jsm_input(struct jsm_channel *ch)
+ 	/* Tell the tty layer its okay to "eat" the data now */
+ 	tty_flip_buffer_push(tp);
+ 
+-	if (ld)
+-		tty_ldisc_deref(ld);
+-
+ 	jsm_printk(IOCTL, INFO, &ch->ch_bd->pci_dev, "finish\n");
  }
-diff -puN fs/exec.c~make-unregister_binfmt-return-void fs/exec.c
---- a/fs/exec.c~make-unregister_binfmt-return-void
-+++ a/fs/exec.c
-@@ -81,12 +81,11 @@ int register_binfmt(struct linux_binfmt 
  
- EXPORT_SYMBOL(register_binfmt);
- 
--int unregister_binfmt(struct linux_binfmt * fmt)
-+void unregister_binfmt(struct linux_binfmt * fmt)
- {
- 	write_lock(&binfmt_lock);
- 	list_del(&fmt->lh);
- 	write_unlock(&binfmt_lock);
--	return 0;
- }
- 
- EXPORT_SYMBOL(unregister_binfmt);
-diff -puN include/linux/binfmts.h~make-unregister_binfmt-return-void include/linux/binfmts.h
---- a/include/linux/binfmts.h~make-unregister_binfmt-return-void
-+++ a/include/linux/binfmts.h
-@@ -73,7 +73,7 @@ struct linux_binfmt {
- };
- 
- extern int register_binfmt(struct linux_binfmt *);
--extern int unregister_binfmt(struct linux_binfmt *);
-+extern void unregister_binfmt(struct linux_binfmt *);
- 
- extern int prepare_binprm(struct linux_binprm *);
- extern int __must_check remove_arg_zero(struct linux_binprm *);
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-add-kernel-notifierc.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2.patch
-add-kernel-notifierc-fix-2-fix-3.patch
-sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
-sysctl-factor-out-sysctl_data.patch
-sysct-mqueue-remove-the-binary-sysctl-numbers.patch
-sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
-sysctl-fix-neighbour-table-sysctls.patch
-sysctl-ipv6-route-flushing-kill-binary-path.patch
-sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
-sysctl-x86_64-remove-unnecessary-binary-paths.patch
+tty_ioctl-fix-the-baud_table-check-in-encode_baud_rate.patch
+git-libata-all.patch
+pata_cs5536-mwdma-fix.patch
+libata-sff-correct-use-of-check_status.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+git-scsi-misc.patch
+initio-fix-conflict-when-loading-driver.patch
+isd200-sort-out-usb-ide-dependancy-mess.patch
 sysctl-remove-broken-cdrom-binary-sysctls.patch
-sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
-sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
-sysctl-error-on-bad-sysctl-tables.patch
-sysctl-update-sysctl_check_table.patch
-uninline-forkc-exitc.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-single_open-seq_release-leak-diagnostics.patch
+mxser-remove-commented-crap.patch
+char-cyclades-remove-bottom-half-processing.patch
+usb_serial-stop-passing-null-to-functions-that-expect-data.patch
+ark3116-update-termios-handling.patch
+usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch
+ch341-fix-termios-handling.patch
+digi_acceleport-fix-termios-and-also-readability-a-bit.patch
+empeg-clean-up-and-handle-speeds.patch
+ir_usb-termios-handling.patch
+keyspan-termios-tidy.patch
+kobil_sct-termios-encoding-fixups.patch
+option-termios-handling.patch
+sierra-termios.patch
+usb-serial-handle-null-termios-methods-as-no-hardware-changing-support.patch
+whiteheat-clean-up-cant-happen-checks-and-encode-baud.patch
+cp2101-convert-to-new-termios.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+io_edgeport-cleanups-and-tty-speed-reporting.patch
+tty-kill-tty_flipbuf_size.patch
