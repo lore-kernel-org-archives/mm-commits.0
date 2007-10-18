@@ -1,209 +1,191 @@
 From: akpm@linux-foundation.org
-Subject: - fix-f_version-type-should-be-u64-instead-of-unsigned-long.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:56:40 -0700
-Message-ID: <200710180656.l9I6ueEW030720__30088.8990554542$1192693712$gmane$org@imap1.linux-foundation.org>
+Subject: - remove-unsafe-from-module-struct.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:53:59 -0700
+Message-ID: <200710180653.l9I6rxAa030486@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59977 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58221 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761664AbXJRHsL (ORCPT
+	by vger.kernel.org with ESMTP id S1761717AbXJRHsN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:48:11 -0400
+	Thu, 18 Oct 2007 03:48:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, bfields@fieldses.org, hch@lst.de, linux-ext4@vger.kernel.org, mark.fasheh@oracle.com, mbligh@google.com, rdunlap@xenotime.net, trond.myklebust@fys.uio.no
+To: rusty@rustcorp.com.au, bunk@stusta.de, dan.j.williams@intel.com, shannon.nelson@intel.com, sri@us.ibm.com, vladislav.yasevich@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix f_version type: should be u64 instead of unsigned long
+     Remove "unsafe" from module struct
 has been removed from the -mm tree.  Its filename was
-     fix-f_version-type-should-be-u64-instead-of-unsigned-long.patch
+     remove-unsafe-from-module-struct.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix f_version type: should be u64 instead of unsigned long
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: Remove "unsafe" from module struct
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Fix f_version type: should be u64 instead of long
+Adrian Bunk points out that "unsafe" was used to mark modules touched by
+the deprecated MOD_INC_USE_COUNT interface, which has long gone.  It's time
+to remove the member from the module structure, as well.
 
-There is a type inconsistency between struct inode i_version and struct file
-f_version.
+If you want a module which can't unload, don't register an exit function.
 
-fs.h:
+(Vlad Yasevich says SCTP is now safe to unload, so just remove the
+__unsafe there).
 
-struct inode
-  u64                     i_version;
-
-and
-
-struct file
-  unsigned long           f_version;
-
-Users do:
-
-fs/ext3/dir.c:
-
-if (filp->f_version != inode->i_version) {
-
-So why isn't f_version a u64 ? It becomes a problem if versions gets
-higher than 2^32 and we are on an architecture where longs are 32 bits.
-
-This patch changes the f_version type to u64, and updates the users accordingly.
-
-It applies to 2.6.23-rc2-mm2.
-
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Martin Bligh <mbligh@google.com>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: Al Viro <viro@ftp.linux.org.uk>
-Cc: <linux-ext4@vger.kernel.org>
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Acked-by: Shannon Nelson <shannon.nelson@intel.com>
+Acked-by: Dan Williams <dan.j.williams@intel.com>
+Acked-by: Vlad Yasevich <vladislav.yasevich@hp.com>
+Cc: Sridhar Samudrala <sri@us.ibm.com>
+Cc: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/dir.c            |    2 +-
- fs/ext4/dir.c            |    2 +-
- fs/ocfs2/dir.c           |   10 +++++-----
- fs/proc/base.c           |    4 ++--
- include/linux/fs.h       |    2 +-
- include/linux/seq_file.h |    2 +-
- 6 files changed, 11 insertions(+), 11 deletions(-)
+ drivers/dma/iop-adma.c |    9 ++++-----
+ include/linux/module.h |   15 ---------------
+ kernel/module.c        |   21 +++++----------------
+ net/sctp/protocol.c    |    1 -
+ 4 files changed, 9 insertions(+), 37 deletions(-)
 
-diff -puN fs/ext3/dir.c~fix-f_version-type-should-be-u64-instead-of-unsigned-long fs/ext3/dir.c
---- a/fs/ext3/dir.c~fix-f_version-type-should-be-u64-instead-of-unsigned-long
-+++ a/fs/ext3/dir.c
-@@ -210,7 +210,7 @@ revalidate:
- 				 * not the directory has been modified
- 				 * during the copy operation.
- 				 */
--				unsigned long version = filp->f_version;
-+				u64 version = filp->f_version;
+diff -puN drivers/dma/iop-adma.c~remove-unsafe-from-module-struct drivers/dma/iop-adma.c
+--- a/drivers/dma/iop-adma.c~remove-unsafe-from-module-struct
++++ a/drivers/dma/iop-adma.c
+@@ -1446,21 +1446,20 @@ static struct platform_driver iop_adma_d
  
- 				error = filldir(dirent, de->name,
- 						de->name_len,
-diff -puN fs/ext4/dir.c~fix-f_version-type-should-be-u64-instead-of-unsigned-long fs/ext4/dir.c
---- a/fs/ext4/dir.c~fix-f_version-type-should-be-u64-instead-of-unsigned-long
-+++ a/fs/ext4/dir.c
-@@ -210,7 +210,7 @@ revalidate:
- 				 * not the directory has been modified
- 				 * during the copy operation.
- 				 */
--				unsigned long version = filp->f_version;
-+				u64 version = filp->f_version;
- 
- 				error = filldir(dirent, de->name,
- 						de->name_len,
-diff -puN fs/ocfs2/dir.c~fix-f_version-type-should-be-u64-instead-of-unsigned-long fs/ocfs2/dir.c
---- a/fs/ocfs2/dir.c~fix-f_version-type-should-be-u64-instead-of-unsigned-long
-+++ a/fs/ocfs2/dir.c
-@@ -586,7 +586,7 @@ bail:
+ static int __init iop_adma_init (void)
+ {
+-	/* it's currently unsafe to unload this module */
+-	/* if forced, worst case is that rmmod hangs */
+-	__unsafe(THIS_MODULE);
+-
+ 	return platform_driver_register(&iop_adma_driver);
  }
  
- static int ocfs2_dir_foreach_blk_id(struct inode *inode,
--				    unsigned long *f_version,
-+				    u64 *f_version,
- 				    loff_t *f_pos, void *priv,
- 				    filldir_t filldir, int *filldir_err)
++/* it's currently unsafe to unload this module */
++#if 0
+ static void __exit iop_adma_exit (void)
  {
-@@ -648,7 +648,7 @@ revalidate:
- 			 * not the directory has been modified
- 			 * during the copy operation.
- 			 */
--			unsigned long version = *f_version;
-+			u64 version = *f_version;
- 			unsigned char d_type = DT_UNKNOWN;
- 
- 			if (de->file_type < OCFS2_FT_MAX)
-@@ -677,7 +677,7 @@ out:
+ 	platform_driver_unregister(&iop_adma_driver);
+ 	return;
  }
++module_exit(iop_adma_exit);
++#endif
  
- static int ocfs2_dir_foreach_blk_el(struct inode *inode,
--				    unsigned long *f_version,
-+				    u64 *f_version,
- 				    loff_t *f_pos, void *priv,
- 				    filldir_t filldir, int *filldir_err)
- {
-@@ -798,7 +798,7 @@ out:
- 	return stored;
- }
+ module_init(iop_adma_init);
+-module_exit(iop_adma_exit);
  
--static int ocfs2_dir_foreach_blk(struct inode *inode, unsigned long *f_version,
-+static int ocfs2_dir_foreach_blk(struct inode *inode, u64 *f_version,
- 				 loff_t *f_pos, void *priv, filldir_t filldir,
- 				 int *filldir_err)
- {
-@@ -818,7 +818,7 @@ int ocfs2_dir_foreach(struct inode *inod
- 		      filldir_t filldir)
- {
- 	int ret = 0, filldir_err = 0;
--	unsigned long version = inode->i_version;
-+	u64 version = inode->i_version;
+ MODULE_AUTHOR("Intel Corporation");
+ MODULE_DESCRIPTION("IOP ADMA Engine Driver");
+diff -puN include/linux/module.h~remove-unsafe-from-module-struct include/linux/module.h
+--- a/include/linux/module.h~remove-unsafe-from-module-struct
++++ a/include/linux/module.h
+@@ -312,9 +312,6 @@ struct module
+ 	/* Arch-specific module values */
+ 	struct mod_arch_specific arch;
  
- 	while (*f_pos < i_size_read(inode)) {
- 		ret = ocfs2_dir_foreach_blk(inode, &version, f_pos, priv,
-diff -puN fs/proc/base.c~fix-f_version-type-should-be-u64-instead-of-unsigned-long fs/proc/base.c
---- a/fs/proc/base.c~fix-f_version-type-should-be-u64-instead-of-unsigned-long
-+++ a/fs/proc/base.c
-@@ -2586,7 +2586,7 @@ static int proc_task_readdir(struct file
- 	/* f_version caches the tgid value that the last readdir call couldn't
- 	 * return. lseek aka telldir automagically resets f_version to 0.
- 	 */
--	tid = filp->f_version;
-+	tid = (int)filp->f_version;
- 	filp->f_version = 0;
- 	for (task = first_tid(leader, tid, pos - 2);
- 	     task;
-@@ -2595,7 +2595,7 @@ static int proc_task_readdir(struct file
- 		if (proc_task_fill_cache(filp, dirent, filldir, task, tid) < 0) {
- 			/* returning this tgid failed, save it as the first
- 			 * pid for the next readir call */
--			filp->f_version = tid;
-+			filp->f_version = (u64)tid;
- 			put_task_struct(task);
- 			break;
- 		}
-diff -puN include/linux/fs.h~fix-f_version-type-should-be-u64-instead-of-unsigned-long include/linux/fs.h
---- a/include/linux/fs.h~fix-f_version-type-should-be-u64-instead-of-unsigned-long
-+++ a/include/linux/fs.h
-@@ -792,7 +792,7 @@ struct file {
- 	unsigned int		f_uid, f_gid;
- 	struct file_ra_state	f_ra;
+-	/* Am I unsafe to unload? */
+-	int unsafe;
+-
+ 	unsigned int taints;	/* same bits as kernel:tainted */
  
--	unsigned long		f_version;
-+	u64			f_version;
- #ifdef CONFIG_SECURITY
- 	void			*f_security;
- #endif
-diff -puN include/linux/seq_file.h~fix-f_version-type-should-be-u64-instead-of-unsigned-long include/linux/seq_file.h
---- a/include/linux/seq_file.h~fix-f_version-type-should-be-u64-instead-of-unsigned-long
-+++ a/include/linux/seq_file.h
-@@ -18,7 +18,7 @@ struct seq_file {
- 	size_t from;
- 	size_t count;
- 	loff_t index;
--	loff_t version;
-+	u64 version;
- 	struct mutex lock;
- 	const struct seq_operations *op;
- 	void *private;
+ #ifdef CONFIG_GENERIC_BUG
+@@ -441,16 +438,6 @@ static inline void __module_get(struct m
+ 	__mod ? __mod->name : "kernel";		\
+ })
+ 
+-#define __unsafe(mod)							     \
+-do {									     \
+-	if (mod && !(mod)->unsafe) {					     \
+-		printk(KERN_WARNING					     \
+-		       "Module %s cannot be unloaded due to unsafe usage in" \
+-		       " %s:%u\n", (mod)->name, __FILE__, __LINE__);	     \
+-		(mod)->unsafe = 1;					     \
+-	}								     \
+-} while(0)
+-
+ /* For kallsyms to ask for address resolution.  NULL means not found. */
+ const char *module_address_lookup(unsigned long addr,
+ 				  unsigned long *symbolsize,
+@@ -518,8 +505,6 @@ static inline void module_put(struct mod
+ 
+ #define module_name(mod) "kernel"
+ 
+-#define __unsafe(mod)
+-
+ /* For kallsyms to ask for address resolution.  NULL means not found. */
+ static inline const char *module_address_lookup(unsigned long addr,
+ 						unsigned long *symbolsize,
+diff -puN kernel/module.c~remove-unsafe-from-module-struct kernel/module.c
+--- a/kernel/module.c~remove-unsafe-from-module-struct
++++ a/kernel/module.c
+@@ -692,8 +692,7 @@ sys_delete_module(const char __user *nam
+ 	}
+ 
+ 	/* If it has an init func, it must have an exit func to unload */
+-	if ((mod->init != NULL && mod->exit == NULL)
+-	    || mod->unsafe) {
++	if (mod->init && !mod->exit) {
+ 		forced = try_force_unload(flags);
+ 		if (!forced) {
+ 			/* This module can't be removed */
+@@ -741,11 +740,6 @@ static void print_unload_info(struct seq
+ 		seq_printf(m, "%s,", use->module_which_uses->name);
+ 	}
+ 
+-	if (mod->unsafe) {
+-		printed_something = 1;
+-		seq_printf(m, "[unsafe],");
+-	}
+-
+ 	if (mod->init != NULL && mod->exit == NULL) {
+ 		printed_something = 1;
+ 		seq_printf(m, "[permanent],");
+@@ -2011,15 +2005,10 @@ sys_init_module(void __user *umod,
+                    buggy refcounters. */
+ 		mod->state = MODULE_STATE_GOING;
+ 		synchronize_sched();
+-		if (mod->unsafe)
+-			printk(KERN_ERR "%s: module is now stuck!\n",
+-			       mod->name);
+-		else {
+-			module_put(mod);
+-			mutex_lock(&module_mutex);
+-			free_module(mod);
+-			mutex_unlock(&module_mutex);
+-		}
++		module_put(mod);
++		mutex_lock(&module_mutex);
++		free_module(mod);
++		mutex_unlock(&module_mutex);
+ 		return ret;
+ 	}
+ 
+diff -puN net/sctp/protocol.c~remove-unsafe-from-module-struct net/sctp/protocol.c
+--- a/net/sctp/protocol.c~remove-unsafe-from-module-struct
++++ a/net/sctp/protocol.c
+@@ -1228,7 +1228,6 @@ SCTP_STATIC __init int sctp_init(void)
+ 	if (status)
+ 		goto err_v6_add_protocol;
+ 
+-	__unsafe(THIS_MODULE);
+ 	status = 0;
+ out:
+ 	return status;
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
 origin.patch
-change-struct-marker-users.patch
-combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
+git-kvm.patch
+git-x86.patch
+update-boot-spec-to-207.patch
+add-weak-for-creating-weak-asm-labels.patch
+i386-paravirt-boot-sequence.patch
+cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
 linux-kernel-markers.patch
 linux-kernel-markers-checkpatch-fixes.patch
 linux-kernel-markers-coding-style-fixes.patch
-linux-kernel-markers-alignment-fix.patch
-add-samples-subdir.patch
-linux-kernel-markers-samples.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
 linux-kernel-markers-samples-coding-style-fix.patch
-linux-kernel-markers-samples-remove-asm.patch
-linux-kernel-markers-documentation.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
