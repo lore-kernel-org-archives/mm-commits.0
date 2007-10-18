@@ -1,103 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - fs-mark-nibblemap-const.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:53:14 -0700
-Message-ID: <200710180653.l9I6rEIf030422@imap1.linux-foundation.org>
+Subject: - slub-simplify-irq-off-handling.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:51:31 -0700
+Message-ID: <200710180651.l9I6pV3G030196@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43361 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55629 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932148AbXJRHhw (ORCPT
+	by vger.kernel.org with ESMTP id S932123AbXJRHhv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:37:52 -0400
+	Thu, 18 Oct 2007 03:37:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: phdm@macqel.be, mm-commits@vger.kernel.org
+To: clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: mark nibblemap const
+     SLUB: simplify IRQ off handling
 has been removed from the -mm tree.  Its filename was
-     fs-mark-nibblemap-const.patch
+     slub-simplify-irq-off-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fs: mark nibblemap const
-From: Philippe De Muyter <phdm@macqel.be>
+Subject: SLUB: simplify IRQ off handling
+From: Christoph Lameter <clameter@sgi.com>
 
-Signed-off-by: Philippe De Muyter <phdm@macqel.be>
+Move irq handling out of new slab into __slab_alloc.  That is useful for
+Mathieu's cmpxchg_local patchset and also allows us to remove the crude
+local_irq_off in early_kmem_cache_alloc().
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/bitmap.c  |    2 +-
- fs/ext2/balloc.c  |    2 +-
- fs/ext3/bitmap.c  |    2 +-
- fs/ext4/bitmap.c  |    2 +-
- fs/minix/bitmap.c |    2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
+ mm/slub.c |   18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
 
-diff -puN fs/affs/bitmap.c~fs-mark-nibblemap-const fs/affs/bitmap.c
---- a/fs/affs/bitmap.c~fs-mark-nibblemap-const
-+++ a/fs/affs/bitmap.c
-@@ -11,7 +11,7 @@
+diff -puN mm/slub.c~slub-simplify-irq-off-handling mm/slub.c
+--- a/mm/slub.c~slub-simplify-irq-off-handling
++++ a/mm/slub.c
+@@ -1085,9 +1085,6 @@ static struct page *new_slab(struct kmem
  
- /* This is, of course, shamelessly stolen from fs/minix */
+ 	BUG_ON(flags & GFP_SLAB_BUG_MASK);
  
--static int nibblemap[] = { 0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4 };
-+static const int nibblemap[] = { 0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4 };
+-	if (flags & __GFP_WAIT)
+-		local_irq_enable();
+-
+ 	page = allocate_slab(s,
+ 		flags & (GFP_RECLAIM_MASK | GFP_CONSTRAINT_MASK), node);
+ 	if (!page)
+@@ -1120,8 +1117,6 @@ static struct page *new_slab(struct kmem
+ 	page->freelist = start;
+ 	page->inuse = 0;
+ out:
+-	if (flags & __GFP_WAIT)
+-		local_irq_disable();
+ 	return page;
+ }
  
- static u32
- affs_count_free_bits(u32 blocksize, const void *data)
-diff -puN fs/ext2/balloc.c~fs-mark-nibblemap-const fs/ext2/balloc.c
---- a/fs/ext2/balloc.c~fs-mark-nibblemap-const
-+++ a/fs/ext2/balloc.c
-@@ -522,7 +522,7 @@ io_error:
+@@ -1505,7 +1500,14 @@ new_slab:
+ 		goto load_freelist;
+ 	}
  
- #ifdef EXT2FS_DEBUG
++	if (gfpflags & __GFP_WAIT)
++		local_irq_enable();
++
+ 	new = new_slab(s, gfpflags, node);
++
++	if (gfpflags & __GFP_WAIT)
++		local_irq_disable();
++
+ 	if (new) {
+ 		c = get_cpu_slab(s, smp_processor_id());
+ 		if (c->page) {
+@@ -2039,12 +2041,6 @@ static struct kmem_cache_node *early_kme
+ 	init_kmem_cache_node(n);
+ 	atomic_long_inc(&n->nr_slabs);
+ 	add_partial(n, page);
+-
+-	/*
+-	 * new_slab() disables interupts. If we do not reenable interrupts here
+-	 * then bootup would continue with interrupts disabled.
+-	 */
+-	local_irq_enable();
+ 	return n;
+ }
  
--static int nibblemap[] = {4, 3, 3, 2, 3, 2, 2, 1, 3, 2, 2, 1, 2, 1, 1, 0};
-+static const int nibblemap[] = {4, 3, 3, 2, 3, 2, 2, 1, 3, 2, 2, 1, 2, 1, 1, 0};
- 
- unsigned long ext2_count_free (struct buffer_head * map, unsigned int numchars)
- {
-diff -puN fs/ext3/bitmap.c~fs-mark-nibblemap-const fs/ext3/bitmap.c
---- a/fs/ext3/bitmap.c~fs-mark-nibblemap-const
-+++ a/fs/ext3/bitmap.c
-@@ -13,7 +13,7 @@
- 
- #ifdef EXT3FS_DEBUG
- 
--static int nibblemap[] = {4, 3, 3, 2, 3, 2, 2, 1, 3, 2, 2, 1, 2, 1, 1, 0};
-+static const int nibblemap[] = {4, 3, 3, 2, 3, 2, 2, 1, 3, 2, 2, 1, 2, 1, 1, 0};
- 
- unsigned long ext3_count_free (struct buffer_head * map, unsigned int numchars)
- {
-diff -puN fs/ext4/bitmap.c~fs-mark-nibblemap-const fs/ext4/bitmap.c
---- a/fs/ext4/bitmap.c~fs-mark-nibblemap-const
-+++ a/fs/ext4/bitmap.c
-@@ -13,7 +13,7 @@
- 
- #ifdef EXT4FS_DEBUG
- 
--static int nibblemap[] = {4, 3, 3, 2, 3, 2, 2, 1, 3, 2, 2, 1, 2, 1, 1, 0};
-+static const int nibblemap[] = {4, 3, 3, 2, 3, 2, 2, 1, 3, 2, 2, 1, 2, 1, 1, 0};
- 
- unsigned long ext4_count_free (struct buffer_head * map, unsigned int numchars)
- {
-diff -puN fs/minix/bitmap.c~fs-mark-nibblemap-const fs/minix/bitmap.c
---- a/fs/minix/bitmap.c~fs-mark-nibblemap-const
-+++ a/fs/minix/bitmap.c
-@@ -17,7 +17,7 @@
- #include <linux/bitops.h>
- #include <linux/sched.h>
- 
--static int nibblemap[] = { 4,3,3,2,3,2,2,1,3,2,2,1,2,1,1,0 };
-+static const int nibblemap[] = { 4,3,3,2,3,2,2,1,3,2,2,1,2,1,1,0 };
- 
- static unsigned long count_free(struct buffer_head *map[], unsigned numblocks, __u32 numbits)
- {
 _
 
-Patches currently in -mm which might be from phdm@macqel.be are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
+pa-risc-use-page-allocator-instead-of-slab-allocator.patch
+mem-policy-fix-mempolicy-usage-in-pci-driver.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+git-x86.patch
+cpu-hotplug-slab-cleanup-cpuup_callback.patch
+cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
+revoke-core-code.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-whitespace-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
+bit_spin_lock-use-lock-bitops.patch
+ext3-support-large-blocksize-up-to-pagesize.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
