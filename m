@@ -1,119 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - zisofs-use-mutex-instead-of-semaphore.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:52:55 -0700
-Message-ID: <200710180652.l9I6qtkj030326@imap1.linux-foundation.org>
+Subject: - ufs-implement-show_options.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:54:17 -0700
+Message-ID: <200710180654.l9I6sH13030510@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36624 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41835 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932264AbXJRHkh (ORCPT
+	by vger.kernel.org with ESMTP id S1760847AbXJRHkx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:40:37 -0400
+	Thu, 18 Oct 2007 03:40:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidave.darkstar@gmail.com, hpa@zytor.com, mm-commits@vger.kernel.org
+To: dushistov@mail.ru, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     zisofs use mutex instead of semaphore
+     ufs: implement show_options
 has been removed from the -mm tree.  Its filename was
-     zisofs-use-mutex-instead-of-semaphore.patch
+     ufs-implement-show_options.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: zisofs use mutex instead of semaphore
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: ufs: implement show_options
+From: Evgeniy Dushistov <dushistov@mail.ru>
 
-Use mutex instead of semaphore in fs/isofs/compress.c, and remove an
-unnecessary variable.
+An implementation of show_options method for UFS.
 
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
-Acked-by: H. Peter Anvin <hpa@zytor.com>
+Signed-off-by: Evgeniy Dushistov <dushistov@mail.ru>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/isofs/compress.c |   25 +++++--------------------
- 1 file changed, 5 insertions(+), 20 deletions(-)
+ fs/ufs/super.c |   43 +++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 39 insertions(+), 4 deletions(-)
 
-diff -puN fs/isofs/compress.c~zisofs-use-mutex-instead-of-semaphore fs/isofs/compress.c
---- a/fs/isofs/compress.c~zisofs-use-mutex-instead-of-semaphore
-+++ a/fs/isofs/compress.c
-@@ -33,7 +33,7 @@ static char zisofs_sink_page[PAGE_CACHE_
-  * allocation; this avoids failures at block-decompression time.
-  */
- static void *zisofs_zlib_workspace;
--static struct semaphore zisofs_zlib_semaphore;
-+static DEFINE_MUTEX(zisofs_zlib_lock);
+diff -puN fs/ufs/super.c~ufs-implement-show_options fs/ufs/super.c
+--- a/fs/ufs/super.c~ufs-implement-show_options
++++ a/fs/ufs/super.c
+@@ -88,6 +88,8 @@
+ #include <linux/buffer_head.h>
+ #include <linux/vfs.h>
+ #include <linux/log2.h>
++#include <linux/mount.h>
++#include <linux/seq_file.h>
  
- /*
-  * When decompressing, we typically obtain more than one page
-@@ -180,9 +180,9 @@ static int zisofs_readpage(struct file *
+ #include "swab.h"
+ #include "util.h"
+@@ -286,10 +288,21 @@ void ufs_warning (struct super_block * s
+ }
  
- 		/* First block is special since it may be fractional.
- 		   We also wait for it before grabbing the zlib
--		   semaphore; odds are that the subsequent blocks are
-+		   mutex; odds are that the subsequent blocks are
- 		   going to come in in short order so we don't hold
--		   the zlib semaphore longer than necessary. */
-+		   the zlib mutex longer than necessary. */
- 
- 		if ( !bh || (wait_on_buffer(bh), !buffer_uptodate(bh)) ) {
- 			printk(KERN_DEBUG "zisofs: Hit null buffer, fpage = %d, xpage = %d, csize = %ld\n",
-@@ -194,7 +194,7 @@ static int zisofs_readpage(struct file *
- 		csize -= stream.avail_in;
- 
- 		stream.workspace = zisofs_zlib_workspace;
--		down(&zisofs_zlib_semaphore);
-+		mutex_lock(&zisofs_zlib_lock);
- 		
- 		zerr = zlib_inflateInit(&stream);
- 		if ( zerr != Z_OK ) {
-@@ -281,7 +281,7 @@ static int zisofs_readpage(struct file *
- 		zlib_inflateEnd(&stream);
- 
- 	z_eio:
--		up(&zisofs_zlib_semaphore);
-+		mutex_unlock(&zisofs_zlib_lock);
- 
- 	b_eio:
- 		for ( i = 0 ; i < haveblocks ; i++ ) {
-@@ -317,31 +317,16 @@ const struct address_space_operations zi
- 	/* No bmap operation supported */
+ enum {
+-	Opt_type_old, Opt_type_sunx86, Opt_type_sun, Opt_type_sunos, Opt_type_44bsd,
+-	Opt_type_ufs2, Opt_type_hp, Opt_type_nextstepcd, Opt_type_nextstep,
+-	Opt_type_openstep, Opt_onerror_panic, Opt_onerror_lock,
+-	Opt_onerror_umount, Opt_onerror_repair, Opt_err
++       Opt_type_old = UFS_MOUNT_UFSTYPE_OLD,
++       Opt_type_sunx86 = UFS_MOUNT_UFSTYPE_SUNx86,
++       Opt_type_sun = UFS_MOUNT_UFSTYPE_SUN,
++       Opt_type_sunos = UFS_MOUNT_UFSTYPE_SUNOS,
++       Opt_type_44bsd = UFS_MOUNT_UFSTYPE_44BSD,
++       Opt_type_ufs2 = UFS_MOUNT_UFSTYPE_UFS2,
++       Opt_type_hp = UFS_MOUNT_UFSTYPE_HP,
++       Opt_type_nextstepcd = UFS_MOUNT_UFSTYPE_NEXTSTEP_CD,
++       Opt_type_nextstep = UFS_MOUNT_UFSTYPE_NEXTSTEP,
++       Opt_type_openstep = UFS_MOUNT_UFSTYPE_OPENSTEP,
++       Opt_onerror_panic = UFS_MOUNT_ONERROR_PANIC,
++       Opt_onerror_lock = UFS_MOUNT_ONERROR_LOCK,
++       Opt_onerror_umount = UFS_MOUNT_ONERROR_UMOUNT,
++       Opt_onerror_repair = UFS_MOUNT_ONERROR_REPAIR,
++       Opt_err
  };
  
--static int initialized;
--
- int __init zisofs_init(void)
- {
--	if ( initialized ) {
--		printk("zisofs_init: called more than once\n");
--		return 0;
--	}
--
- 	zisofs_zlib_workspace = vmalloc(zlib_inflate_workspacesize());
- 	if ( !zisofs_zlib_workspace )
- 		return -ENOMEM;
--	init_MUTEX(&zisofs_zlib_semaphore);
- 
--	initialized = 1;
+ static match_table_t tokens = {
+@@ -304,6 +317,7 @@ static match_table_t tokens = {
+ 	{Opt_type_nextstepcd, "ufstype=nextstep-cd"},
+ 	{Opt_type_nextstep, "ufstype=nextstep"},
+ 	{Opt_type_openstep, "ufstype=openstep"},
++/*end of possible ufs types */
+ 	{Opt_onerror_panic, "onerror=panic"},
+ 	{Opt_onerror_lock, "onerror=lock"},
+ 	{Opt_onerror_umount, "onerror=umount"},
+@@ -1206,6 +1220,26 @@ static int ufs_remount (struct super_blo
  	return 0;
  }
  
- void zisofs_cleanup(void)
++static int ufs_show_options(struct seq_file *seq, struct vfsmount *vfs)
++{
++	struct ufs_sb_info *sbi = UFS_SB(vfs->mnt_sb);
++	unsigned mval = sbi->s_mount_opt & UFS_MOUNT_UFSTYPE;
++	struct match_token *tp = tokens;
++
++	while (tp->token != Opt_onerror_panic && tp->token != mval)
++		++tp;
++	BUG_ON(tp->token == Opt_onerror_panic);
++	seq_printf(seq, ",%s", tp->pattern);
++
++	mval = sbi->s_mount_opt & UFS_MOUNT_ONERROR;
++	while (tp->token != Opt_err && tp->token != mval)
++		++tp;
++	BUG_ON(tp->token == Opt_err);
++	seq_printf(seq, ",%s", tp->pattern);
++
++	return 0;
++}
++
+ static int ufs_statfs(struct dentry *dentry, struct kstatfs *buf)
  {
--	if ( !initialized ) {
--		printk("zisofs_cleanup: called without initialization\n");
--		return;
--	}
--
- 	vfree(zisofs_zlib_workspace);
--	initialized = 0;
- }
+ 	struct super_block *sb = dentry->d_sb;
+@@ -1298,6 +1332,7 @@ static const struct super_operations ufs
+ 	.write_super	= ufs_write_super,
+ 	.statfs		= ufs_statfs,
+ 	.remount_fs	= ufs_remount,
++	.show_options   = ufs_show_options,
+ #ifdef CONFIG_QUOTA
+ 	.quota_read	= ufs_quota_read,
+ 	.quota_write	= ufs_quota_write,
 _
 
-Patches currently in -mm which might be from hidave.darkstar@gmail.com are
+Patches currently in -mm which might be from dushistov@mail.ru are
 
 origin.patch
-gx-suspmodc-use-boot_cpu_data-instead-of-current_cpu_data.patch
-param_sysfs_builtin-memchr-argument-fix.patch
