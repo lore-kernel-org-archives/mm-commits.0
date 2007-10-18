@@ -1,80 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: - add-documentation-power-00-index.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:04:46 -0700
-Message-ID: <200710180704.l9I74k7D031588@imap1.linux-foundation.org>
+Subject: - fix-build-breakage-if-sysfs.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:05:38 -0700
+Message-ID: <200710180705.l9I75c0D031664@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41834 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58615 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762225AbXJRHPm (ORCPT
+	by vger.kernel.org with ESMTP id S1762868AbXJRHPm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 18 Oct 2007 03:15:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rob@landley.net, mm-commits@vger.kernel.org
+To: dhaval@linux.vnet.ibm.com, mingo@elte.hu, vatsa@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add Documentation/power/00-INDEX
+     sched: fix build breakage if !SYSFS
 has been removed from the -mm tree.  Its filename was
-     add-documentation-power-00-index.patch
+     fix-build-breakage-if-sysfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add Documentation/power/00-INDEX
-From: Rob Landley <rob@landley.net>
+Subject: sched: fix build breakage if !SYSFS
+From: Dhaval Giani <dhaval@linux.vnet.ibm.com>
 
-Add Documentation/power/00-INDEX
+When CONFIG_SYSFS is not set, CONFIG_FAIR_USER_SCHED fails to build
+with
 
-Signed-off-by: Rob Landley <rob@landley.net>
+kernel/built-in.o: In function `uids_kobject_init':
+(.init.text+0x1488): undefined reference to `kernel_subsys'
+kernel/built-in.o: In function `uids_kobject_init':
+(.init.text+0x1490): undefined reference to `kernel_subsys'
+kernel/built-in.o: In function `uids_kobject_init':
+(.init.text+0x1480): undefined reference to `kernel_subsys'
+kernel/built-in.o: In function `uids_kobject_init':
+(.init.text+0x1494): undefined reference to `kernel_subsys'
+
+This patch fixes this build error.
+
+Signed-off-by: Srivatsa Vaddagiri <vatsa@linux.vnet.ibm.com>
+Signed-off-by: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/power/00-INDEX |   34 +++++++++++++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
+ include/linux/sched.h |    2 ++
+ kernel/user.c         |   23 +++++++++++++++--------
+ 2 files changed, 17 insertions(+), 8 deletions(-)
 
-diff -puN /dev/null Documentation/power/00-INDEX
---- /dev/null
-+++ a/Documentation/power/00-INDEX
-@@ -0,0 +1,34 @@
-+00-INDEX
-+	- This file
-+basic-pm-debugging.txt
-+	- Debugging suspend and resume
-+devices.txt
-+	- How drivers interact with system-wide power management
-+drivers-testing.txt
-+	- Testing suspend and resume support in device drivers
-+freezing-of-tasks.txt
-+	- How processes and controlled during suspend
-+interface.txt
-+	- Power management user interface in /sys/power
-+notifiers.txt
-+	- Registering suspend notifiers in device drivers
-+pci.txt
-+	- How the PCI Subsystem Does Power Management
-+s2ram.txt
-+	- How to get suspend to ram working (and debug it when it isn't)
-+states.txt
-+	- System power management states
-+swsusp-and-swap-files.txt
-+	- Using swap files with software suspend (to disk)
-+swsusp-dmcrypt.txt
-+	- How to use dm-crypt and software suspend (to disk) together
-+swsusp.txt
-+	- Goals, implementation, and usage of software suspend (ACPI S3)
-+tricks.txt
-+	- How to trick software suspend (to disk) into working when it isn't
-+userland-swsusp.txt
-+	- Experimental implementation of software suspend in userspace
-+video_extension.txt
-+	- ACPI video extensions
-+video.txt
-+	- Video issues during resume from suspend
+diff -puN include/linux/sched.h~fix-build-breakage-if-sysfs include/linux/sched.h
+--- a/include/linux/sched.h~fix-build-breakage-if-sysfs
++++ a/include/linux/sched.h
+@@ -535,10 +535,12 @@ struct user_struct {
+ 
+ #ifdef CONFIG_FAIR_USER_SCHED
+ 	struct task_group *tg;
++#ifdef CONFIG_SYSFS
+ 	struct kset kset;
+ 	struct subsys_attribute user_attr;
+ 	struct work_struct work;
+ #endif
++#endif
+ };
+ 
+ #ifdef CONFIG_FAIR_USER_SCHED
+diff -puN kernel/user.c~fix-build-breakage-if-sysfs kernel/user.c
+--- a/kernel/user.c~fix-build-breakage-if-sysfs
++++ a/kernel/user.c
+@@ -84,9 +84,6 @@ static struct user_struct *uid_hash_find
+ 
+ #ifdef CONFIG_FAIR_USER_SCHED
+ 
+-static struct kobject uids_kobject; /* represents /sys/kernel/uids directory */
+-static DEFINE_MUTEX(uids_mutex);
+-
+ static void sched_destroy_user(struct user_struct *up)
+ {
+ 	sched_destroy_group(up->tg);
+@@ -108,6 +105,19 @@ static void sched_switch_user(struct tas
+ 	sched_move_task(p);
+ }
+ 
++#else	/* CONFIG_FAIR_USER_SCHED */
++
++static void sched_destroy_user(struct user_struct *up) { }
++static int sched_create_user(struct user_struct *up) { return 0; }
++static void sched_switch_user(struct task_struct *p) { }
++
++#endif	/* CONFIG_FAIR_USER_SCHED */
++
++#if defined(CONFIG_FAIR_USER_SCHED) && defined(CONFIG_SYSFS)
++
++static struct kobject uids_kobject; /* represents /sys/kernel/uids directory */
++static DEFINE_MUTEX(uids_mutex);
++
+ static inline void uids_mutex_lock(void)
+ {
+ 	mutex_lock(&uids_mutex);
+@@ -254,11 +264,8 @@ static inline void free_user(struct user
+ 	schedule_work(&up->work);
+ }
+ 
+-#else	/* CONFIG_FAIR_USER_SCHED */
++#else	/* CONFIG_FAIR_USER_SCHED && CONFIG_SYSFS */
+ 
+-static void sched_destroy_user(struct user_struct *up) { }
+-static int sched_create_user(struct user_struct *up) { return 0; }
+-static void sched_switch_user(struct task_struct *p) { }
+ static inline int user_kobject_create(struct user_struct *up) { return 0; }
+ static inline void uids_mutex_lock(void) { }
+ static inline void uids_mutex_unlock(void) { }
+@@ -277,7 +284,7 @@ static inline void free_user(struct user
+ 	kmem_cache_free(uid_cachep, up);
+ }
+ 
+-#endif	/* CONFIG_FAIR_USER_SCHED */
++#endif
+ 
+ /*
+  * Locate the user_struct for the passed UID.  If found, take a ref on it.  The
 _
 
-Patches currently in -mm which might be from rob@landley.net are
+Patches currently in -mm which might be from dhaval@linux.vnet.ibm.com are
 
 origin.patch
-comment-typo-in-scripts-kconfig-makefile.patch
+fix-build-breakage-if-sysfs-fix.patch
+hook-up-group-scheduler-with-control-groups.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
