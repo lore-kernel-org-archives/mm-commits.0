@@ -1,78 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-char-ip2-fix-used-uninitd-bug.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:02:07 -0700
-Message-ID: <200710180702.l9I727Rg031239@imap1.linux-foundation.org>
+Subject: - spin_lock_unlocked-cleanups.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:01:45 -0700
+Message-ID: <200710180701.l9I71jC0031203@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41505 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51071 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762792AbXJRHRQ (ORCPT
+	by vger.kernel.org with ESMTP id S1763704AbXJRHQt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:17:16 -0400
+	Thu, 18 Oct 2007 03:16:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff@garzik.org, jgarzik@redhat.com, mm-commits@vger.kernel.org
+To: 12o3l@tiscali.nl, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char/ip2: fix used-uninit'd bug
+     spin_lock_unlocked cleanups
 has been removed from the -mm tree.  Its filename was
-     drivers-char-ip2-fix-used-uninitd-bug.patch
+     spin_lock_unlocked-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/char/ip2: fix used-uninit'd bug
-From: Jeff Garzik <jeff@garzik.org>
+Subject: spin_lock_unlocked cleanups
+From: roel <12o3l@tiscali.nl>
 
-Fix bug flagged by a variable-used-uninitialized warning.
+Replace some SPIN_LOCK_UNLOCKED with DEFINE_SPINLOCK
 
-[akpm@linux-foundation.org: coding-style]
-Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
+Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
+Acked-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ip2/ip2main.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ arch/mips/pci/ops-pmcmsp.c |    2 +-
+ arch/powerpc/mm/slice.c    |    2 +-
+ fs/sysfs/dir.c             |    4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/ip2/ip2main.c~drivers-char-ip2-fix-used-uninitd-bug drivers/char/ip2/ip2main.c
---- a/drivers/char/ip2/ip2main.c~drivers-char-ip2-fix-used-uninitd-bug
-+++ a/drivers/char/ip2/ip2main.c
-@@ -619,11 +619,7 @@ ip2_loadmain(int *iop, int *irqp, unsign
- 					ip2config.irq[i] = pci_dev_i->irq;
- 				} else {	// ann error
- 					ip2config.addr[i] = 0;
--					if (status == PCIBIOS_DEVICE_NOT_FOUND) {
--						printk( KERN_ERR "IP2: PCI board %d not found\n", i );
--					} else {
--						printk( KERN_ERR "IP2: PCI error 0x%x \n", status );
--					}
-+					printk(KERN_ERR "IP2: PCI board %d not found\n", i);
- 				} 
- 			}
- #else
+diff -puN arch/mips/pci/ops-pmcmsp.c~spin_lock_unlocked-cleanups arch/mips/pci/ops-pmcmsp.c
+--- a/arch/mips/pci/ops-pmcmsp.c~spin_lock_unlocked-cleanups
++++ a/arch/mips/pci/ops-pmcmsp.c
+@@ -206,7 +206,7 @@ static void pci_proc_init(void)
+ }
+ #endif /* CONFIG_PROC_FS && PCI_COUNTERS */
+ 
+-spinlock_t bpci_lock = SPIN_LOCK_UNLOCKED;
++DEFINE_SPINLOCK(bpci_lock);
+ 
+ /*****************************************************************************
+  *
+diff -puN arch/powerpc/mm/slice.c~spin_lock_unlocked-cleanups arch/powerpc/mm/slice.c
+--- a/arch/powerpc/mm/slice.c~spin_lock_unlocked-cleanups
++++ a/arch/powerpc/mm/slice.c
+@@ -34,7 +34,7 @@
+ #include <asm/mmu.h>
+ #include <asm/spu.h>
+ 
+-static spinlock_t slice_convert_lock = SPIN_LOCK_UNLOCKED;
++static DEFINE_SPINLOCK(slice_convert_lock);
+ 
+ 
+ #ifdef DEBUG
+diff -puN fs/sysfs/dir.c~spin_lock_unlocked-cleanups fs/sysfs/dir.c
+--- a/fs/sysfs/dir.c~spin_lock_unlocked-cleanups
++++ a/fs/sysfs/dir.c
+@@ -24,9 +24,9 @@
+ 
+ DEFINE_MUTEX(sysfs_mutex);
+ DEFINE_MUTEX(sysfs_rename_mutex);
+-spinlock_t sysfs_assoc_lock = SPIN_LOCK_UNLOCKED;
++DEFINE_SPINLOCK(sysfs_assoc_lock);
+ 
+-static spinlock_t sysfs_ino_lock = SPIN_LOCK_UNLOCKED;
++static DEFINE_SPINLOCK(sysfs_ino_lock);
+ static DEFINE_IDA(sysfs_ino_ida);
+ 
+ /**
 _
 
-Patches currently in -mm which might be from jeff@garzik.org are
+Patches currently in -mm which might be from 12o3l@tiscali.nl are
 
 origin.patch
-git-jg-misc.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-scsi-expose-an-support-to-user-space.patch
-libata-expose-an-to-user-space.patch
-pata_cs5536-mwdma-fix.patch
-git-netdev-all.patch
-forcedeth-power-down-phy-when-interface-is-down.patch
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-scsi-use-notifier-chain-for-asynchronous-event.patch
-git-wireless.patch
-unify-dma_bit_mask-definitions-v31.patch
-intel-iommu-fix-for-iommu-early-crash-2.patch
-add-missing-newlines-to-some-uses-of-dev_level-messages.patch
-s2io-rename-bit-macro.patch
-define-global-bit-macro.patch
-sparse-pointer-use-of-zero-as-null.patch
-sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
