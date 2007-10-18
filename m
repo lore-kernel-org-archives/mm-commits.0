@@ -1,146 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - remove-unused-member-from-nsproxy.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:01:04 -0700
-Message-ID: <200710180701.l9I714Tt031144@imap1.linux-foundation.org>
+Subject: - express-relocatability-of-kernel-on-x86_64-in.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:04:32 -0700
+Message-ID: <200710180704.l9I74Whe031559@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43147 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34214 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932419AbXJRHmW (ORCPT
+	by vger.kernel.org with ESMTP id S932337AbXJRHmJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:42:22 -0400
+	Thu, 18 Oct 2007 03:42:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, clg@fr.ibm.com, ebiederm@xmission.com, herbert@13thfloor.at, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, bwalle@suse.de, ebiederm@xmission.com, hbabu@us.ibm.com, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove unused member from nsproxy
+     Update help text for CONFIG_CRASH_DUMP
 has been removed from the -mm tree.  Its filename was
-     remove-unused-member-from-nsproxy.patch
+     express-relocatability-of-kernel-on-x86_64-in.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove unused member from nsproxy
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: Update help text for CONFIG_CRASH_DUMP
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-The nslock spinlock is not used in the kernel at all.  Remove it.
+Fix typos in CONFIG_RELOCATABLE.  Use tab + 2 spaces for indentation on all
+lines.
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Bernhard Walle <bwalle@suse.de>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Haren Myneni <hbabu@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init_task.h |    1 -
- include/linux/nsproxy.h   |    1 -
- 2 files changed, 2 deletions(-)
+ arch/i386/Kconfig   |   17 +++++++++--------
+ arch/x86_64/Kconfig |   21 +++++++++++----------
+ 2 files changed, 20 insertions(+), 18 deletions(-)
 
-diff -puN include/linux/init_task.h~remove-unused-member-from-nsproxy include/linux/init_task.h
---- a/include/linux/init_task.h~remove-unused-member-from-nsproxy
-+++ a/include/linux/init_task.h
-@@ -76,7 +76,6 @@ extern struct nsproxy init_nsproxy;
- #define INIT_NSPROXY(nsproxy) {						\
- 	.pid_ns		= &init_pid_ns,					\
- 	.count		= ATOMIC_INIT(1),				\
--	.nslock		= __SPIN_LOCK_UNLOCKED(nsproxy.nslock),		\
- 	.uts_ns		= &init_uts_ns,					\
- 	.mnt_ns		= NULL,						\
- 	INIT_NET_NS(net_ns)                                             \
-diff -puN include/linux/nsproxy.h~remove-unused-member-from-nsproxy include/linux/nsproxy.h
---- a/include/linux/nsproxy.h~remove-unused-member-from-nsproxy
-+++ a/include/linux/nsproxy.h
-@@ -23,7 +23,6 @@ struct pid_namespace;
-  */
- struct nsproxy {
- 	atomic_t count;
--	spinlock_t nslock;
- 	struct uts_namespace *uts_ns;
- 	struct ipc_namespace *ipc_ns;
- 	struct mnt_namespace *mnt_ns;
+diff -puN arch/i386/Kconfig~express-relocatability-of-kernel-on-x86_64-in arch/i386/Kconfig
+--- a/arch/i386/Kconfig~express-relocatability-of-kernel-on-x86_64-in
++++ a/arch/i386/Kconfig
+@@ -831,12 +831,13 @@ config CRASH_DUMP
+ 	depends on HIGHMEM
+ 	help
+ 	  Generate crash dump after being started by kexec.
+-          This should be normally only set in special crash dump kernels
++	  This should be normally only set in special crash dump kernels
+ 	  which are loaded in the main kernel with kexec-tools into
+ 	  a specially reserved region and then later executed after
+ 	  a crash by kdump/kexec. The crash dump kernel must be compiled
+-          to a memory address not used by the main kernel or BIOS using
+-          PHYSICAL_START.
++	  to a memory address not used by the main kernel or BIOS using
++	  PHYSICAL_START, or it must be built as a relocatable image
++	  (CONFIG_RELOCATABLE=y).
+ 	  For more details see Documentation/kdump/kdump.txt
+ 
+ config PHYSICAL_START
+@@ -882,17 +883,17 @@ config PHYSICAL_START
+ 	  Don't change this unless you know what you are doing.
+ 
+ config RELOCATABLE
+-	bool "Build a relocatable kernel(EXPERIMENTAL)"
++	bool "Build a relocatable kernel (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
+ 	help
+ 	  This builds a kernel image that retains relocation information
+-          so it can be loaded someplace besides the default 1MB.
++	  so it can be loaded someplace besides the default 1MB.
+ 	  The relocations tend to make the kernel binary about 10% larger,
+-          but are discarded at runtime.
++	  but are discarded at runtime.
+ 
+ 	  One use is for the kexec on panic case where the recovery kernel
+-          must live at a different physical address than the primary
+-          kernel.
++	  must live at a different physical address than the primary
++	  kernel.
+ 
+ config PHYSICAL_ALIGN
+ 	hex "Alignment value to which kernel should be aligned"
+diff -puN arch/x86_64/Kconfig~express-relocatability-of-kernel-on-x86_64-in arch/x86_64/Kconfig
+--- a/arch/x86_64/Kconfig~express-relocatability-of-kernel-on-x86_64-in
++++ a/arch/x86_64/Kconfig
+@@ -582,17 +582,18 @@ config CRASH_DUMP
+ 	bool "kernel crash dumps (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
+ 	help
+-          Generate crash dump after being started by kexec.
+-          This should be normally only set in special crash dump kernels
+-          which are loaded in the main kernel with kexec-tools into
+-          a specially reserved region and then later executed after
+-          a crash by kdump/kexec. The crash dump kernel must be compiled
++	  Generate crash dump after being started by kexec.
++	  This should be normally only set in special crash dump kernels
++	  which are loaded in the main kernel with kexec-tools into
++	  a specially reserved region and then later executed after
++	  a crash by kdump/kexec. The crash dump kernel must be compiled
+ 	  to a memory address not used by the main kernel or BIOS using
+-	  PHYSICAL_START.
+-          For more details see Documentation/kdump/kdump.txt
++	  PHYSICAL_START, or it must be built as a relocatable image
++	  (CONFIG_RELOCATABLE=y).
++	  For more details see Documentation/kdump/kdump.txt
+ 
+ config RELOCATABLE
+-	bool "Build a relocatable kernel(EXPERIMENTAL)"
++	bool "Build a relocatable kernel (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
+ 	help
+ 	  Builds a relocatable kernel. This enables loading and running
+@@ -603,8 +604,8 @@ config RELOCATABLE
+ 	  must live at a different physical address than the primary
+ 	  kernel.
+ 
+-	  Note: If CONFIG_RELOCATABLE=y, then kernel run from the address
+-	  it has been loaded at and compile time physical address
++	  Note: If CONFIG_RELOCATABLE=y, then the kernel runs from the address
++	  it has been loaded at and the compile time physical address
+ 	  (CONFIG_PHYSICAL_START) is ignored.
+ 
+ config PHYSICAL_START
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-git-x86.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-make-access-to-tasks-nsproxy-lighter.patch
-make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
-make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-merge-fix.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-sys_getsid-sys_getpgid-return-wrong-id-for-task-from-another.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-sys_setpgrp-to-work-between-namespaces.patch
-uninline-find_task_by_xxx-set-of-functions.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
-uninline-find_pid-etc-set-of-functions.patch
-uninline-the-task_xid_nr_ns-calls.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-resource-counters-v7-fix.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
-use-helpers-to-obtain-task-pid-in-printks.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-arch-code.patch
-remove-unused-variables-from-fs-proc-basec.patch
-use-task_pid_nr-in-ip_vs_syncc.patch
-use-task_pid_nr-instead-of-pid_nrtask_pid.patch
-reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
+git-acpi.patch
+fix-auditscc-kernel-doc.patch
+comment-typo-in-scripts-kconfig-makefile.patch
+git-unionfs.patch
+git-watchdog.patch
+git-ipwireless_cs.patch
+hook-up-group-scheduler-with-control-groups.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
+add-samples-subdir.patch
+i-oat-cleanup-pci-issues.patch
+profile-likely-unlikely-macros.patch
