@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups.patch added to -mm tree
-Date: Wed, 17 Oct 2007 20:32:15 -0700
-Message-ID: <200710180332.l9I3WFt3022551@imap1.linux-foundation.org>
+Subject: + task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch added to -mm tree
+Date: Wed, 17 Oct 2007 20:32:22 -0700
+Message-ID: <200710180332.l9I3WMpL022555@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35722 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44028 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752308AbXJRDcv (ORCPT
+	by vger.kernel.org with ESMTP id S1759480AbXJRDdI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Oct 2007 23:32:51 -0400
+	Wed, 17 Oct 2007 23:33:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: menage@google.com, balbir@in.ibm.com, clg@fr.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, kamezawa.hiroyu@jp.fujitsu.com, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com
+Cc: akpm@linux-foundation.org, balbir@in.ibm.com, clg@fr.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com
 
 
 The patch titled
-     Simplify /proc/cgroups
+     task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix
 has been added to the -mm tree.  Its filename is
-     task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups.patch
+     task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,162 +26,208 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Simplify /proc/cgroups
-From: menage@google.com (Paul Menage)
+Subject: task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch simplifies /proc/cgroups by removing pointers and some debugging
-information, and simply presenting a list of subsystems, which hierarchy
-they are part of (if any) and the number of cgroups created for that
-subsystem.  Hierarchy id is determined by the bitmask of subsystem ids
-attached to that hierarchy.
-
-Several people have commented that /proc/cgroups is too confusing or
-contains strange information. Here's an attempt to simplify it. New
-typical output looks like:
-
-#subsys_name	hierarchy	num_cgroups
-cpuset	1	2
-cpuacct	10	1
-debug	0	1
-ns	10	1
-memory	0	1
-cpu	0	1
-
-Maybe there should be more tabs so that the columns line up better?
-But then it'll be out of line if people create subsystems with longer
-names ...
-
-Signed-off-by: Paul Menage <menage@google.com>
-Cc: Serge E. Hallyn <serue@us.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Kirill Korotaev <dev@openvz.org>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Kirill Korotaev <dev@openvz.org>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
+Cc: menage@google.com (Paul Menage)
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   25 ++++---------------------
- 1 file changed, 4 insertions(+), 21 deletions(-)
+ kernel/cgroup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/cgroup.c~task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups kernel/cgroup.c
---- a/kernel/cgroup.c~task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups
+diff -puN kernel/cgroup.c~task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix kernel/cgroup.c
+--- a/kernel/cgroup.c~task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix
 +++ a/kernel/cgroup.c
-@@ -2118,31 +2118,14 @@ static int proc_cgroupstats_show(struct 
- 	int i;
- 	struct cgroupfs_root *root;
- 
-+	seq_puts(m, "#subsys_name\thierarchy\tnum_cgroups\n");
+@@ -2122,7 +2122,7 @@ static int proc_cgroupstats_show(struct 
  	mutex_lock(&cgroup_mutex);
--	seq_puts(m, "Hierarchies:\n");
--	for_each_root(root) {
--		struct cgroup_subsys *ss;
--		int first = 1;
--		seq_printf(m, "%p: bits=%lx cgroups=%d (", root,
--			   root->subsys_bits, root->number_of_cgroups);
--		for_each_subsys(root, ss) {
--			seq_printf(m, "%s%s", first ? "" : ", ", ss->name);
--			first = false;
--		}
--		seq_putc(m, ')');
--		if (root->sb) {
--			seq_printf(m, " s_active=%d",
--				   atomic_read(&root->sb->s_active));
--		}
--		seq_putc(m, '\n');
--	}
--	seq_puts(m, "Subsystems:\n");
  	for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
  		struct cgroup_subsys *ss = subsys[i];
--		seq_printf(m, "%d: name=%s hierarchy=%p\n",
--			   i, ss->name, ss->root);
-+		seq_printf(m, "%s\t%d\t%d\n",
-+			   ss->name, ss->root->subsys_bits,
-+			   ss->root->number_of_cgroups);
+-		seq_printf(m, "%s\t%d\t%d\n",
++		seq_printf(m, "%s\t%lu\t%d\n",
+ 			   ss->name, ss->root->subsys_bits,
+ 			   ss->root->number_of_cgroups);
  	}
--	seq_printf(m, "Control Group groups: %d\n", css_set_count);
- 	mutex_unlock(&cgroup_mutex);
- 	return 0;
- }
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-task-containersv11-basic-task-container-framework.patch
+origin.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold.patch
+mm-dirty-balancing-for-tasks.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
+oom-change-all_unreclaimable-zone-member-to-flags.patch
+oom-do-not-take-callback_mutex.patch
+writeback-dont-propagate-aop_writepage_activate.patch
+softlockup-add-a-proc-tuning-parameter.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
+do_sys_poll-simplify-playing-with-on-stack-data.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer.patch
+deprecate-aout-elf-interpreters.patch
+ext2-ext3-ext4-add-block-bitmap-validation.patch
+binfmt_flat-warning-fixes.patch
+i2o-fix-defined-but-not-used-build-warnings.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-right.patch
+userc-ifdef-mq_bytes.patch
+ext3-lighten-up-resize-transaction-requirements.patch
+drivers-char-ip2-fix-used-uninitd-bug.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+ext2-reservations.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+pnp-use-dev_info-dev_err-etc-in-core.patch
+security-convert-lsm-into-a-static-interface.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-cifs.patch
+ia64-fix-non-numa-build.patch
+console-keyboard-events-and-accessibility.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-jg-warning-fixes.patch
+git-jg-misc-powernow-fix.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-arm-hack.patch
+git-md-accel-fixup.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd-fixup.patch
+fix-build-breakage-if-sysfs-fix.patch
+qla2xxx-printk-fixes.patch
+advansys-depends-on-virt_to_bus.patch
+git-block-fixup.patch
+sparc-support-for-new-termios.patch
+git-unionfs.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+git-nfs-vs-git-unionfs.patch
+git-v9fs-fixup.patch
+git-watchdog-fixup.patch
+git-wireless.patch
+git-wireless-fixup.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+asm-i386-ioh-fix-constness.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+git-newsetup-fixup.patch
+git-xfs.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+pm-qos-infrastructure-and-interface-fix.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+console-events-and-accessibility-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+sync_sb_inodes-propagate-errors.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+reiserfs-fix-up-lockdep-warnings-checkpatch-fixes.patch
+reiserfs-use-is_reusable-to-catch-corruption-checkpatch-fixes.patch
+reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes.patch
+reiserfs-remove-first_zero_hint-checkpatch-fixes.patch
+reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
 task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-basic-task-container-framework-containers-fix-refcount-bug.patch
-task-containersv11-basic-task-container-framework-fix-cgroup_create_dir-comments.patch
-task-containersv11-add-tasks-file-interface.patch
-add-cgroup-write_uint-helper-method.patch
-task-containersv11-add-fork-exit-hooks.patch
-task-containersv11-add-container_clone-interface.patch
-task-containersv11-add-container_clone-interface-containers-fix-refcount-bug.patch
-task-containersv11-add-procfs-interface.patch
-task-containersv11-shared-container-subsystem-group-arrays.patch
-task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups.patch
 task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-avoid-lockdep-warning.patch
 task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers-fix.patch
-task-containersv11-make-cpusets-a-client-of-containers.patch
-task-containersv11-example-cpu-accounting-subsystem.patch
-task-containersv11-simple-task-container-debug-info-subsystem.patch
-task-containers-enable-containers-by-default-in-some-configs.patch
-add-containerstats-v3.patch
 add-containerstats-v3-fix.patch
-containers-implement-namespace-tracking-subsystem.patch
-containers-implement-namespace-tracking-subsystem-fix-order-of-container-subsystems-in-init-kconfig.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
 pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-uninline-find_task_by_xxx-set-of-functions.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-uninline-find_pid-etc-set-of-functions.patch
-uninline-the-task_xid_nr_ns-calls.patch
-cpusets-decrustify-cpuset-mask-update-code.patch
-fix-cpusets-update_cpumask.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
 fix-cpusets-update_cpumask-checkpatch-fixes.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-memory-accounting-v7-fix.patch
 memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
 memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
 memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-use-task_pid_nr-instead-of-pid_nrtask_pid.patch
-control-groups-replace-cont-with-cgrp-and-other-misc.patch
-hook-up-group-scheduler-with-control-groups.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
 hook-up-group-scheduler-with-control-groups-fix.patch
-add-a-refcount-check-in-dput.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+i-oat-tighten-descriptor-setup-performance-fix.patch
+i-oat-add-completion-callback-for-async_tx-interface-use-fix.patch
+i-oat-add-completion-callback-for-async_tx-interface-use-fix-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
