@@ -1,561 +1,415 @@
 From: akpm@linux-foundation.org
-Subject: - remove-dma_cache_wbackinvwback_inv-functions.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:00:08 -0700
-Message-ID: <200710180700.l9I708DW031077@imap1.linux-foundation.org>
+Subject: - introduce-i_sync.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:02:40 -0700
+Message-ID: <200710180702.l9I72e8D031295@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50221 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57960 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761575AbXJRHrk (ORCPT
+	by vger.kernel.org with ESMTP id S1761626AbXJRHrq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:47:40 -0400
+	Thu, 18 Oct 2007 03:47:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ralf@linux-mips.org, davem@davemloft.net, hskinnemoen@atmel.com, kyle@parisc-linux.org, lethal@linux-sh.org, linux-arch@vger.kernel.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: joern@wohnheim.fh-wedel.de, aia21@cam.ac.uk, bunk@stusta.de, dgc@sgi.com, hch@infradead.org, shaggy@linux.vnet.ibm.com, viro@ftp.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove dma_cache_(wback|inv|wback_inv) functions
+     introduce I_SYNC
 has been removed from the -mm tree.  Its filename was
-     remove-dma_cache_wbackinvwback_inv-functions.patch
+     introduce-i_sync.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove dma_cache_(wback|inv|wback_inv) functions
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: introduce I_SYNC
+From: Joern Engel <joern@wohnheim.fh-wedel.de>
 
-dma_cache_(wback|inv|wback_inv) were the earliest attempt on a generalized
-cache managment API for I/O purposes.  Originally it was basically the raw
-MIPS low level cache API exported to the entire world.  The API has
-suffered from a lack of documentation, was not very widely used unlike it's
-more modern brothers and can easily be replaced by dma_cache_sync.  So
-remove it rsp.  turn the surviving bits back into an arch private API, as
-discussed on linux-arch.
+I_LOCK was used for several unrelated purposes, which caused deadlock
+situations in certain filesystems as a side effect.  One of the purposes
+now uses the new I_SYNC bit.
 
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
-Acked-by: Paul Mackerras <paulus@samba.org>
-Acked-by: David S. Miller <davem@davemloft.net>
-Acked-by: Kyle McMartin <kyle@parisc-linux.org>
-Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: <linux-arch@vger.kernel.org>
+Also document the various bits and change their order from historical to
+logical.
+
+[bunk@stusta.de: make fs/inode.c:wake_up_inode() static]
+Signed-off-by: Joern Engel <joern@wohnheim.fh-wedel.de>
+Cc: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
+Cc: David Chinner <dgc@sgi.com>
+Cc: Anton Altaparmakov <aia21@cam.ac.uk>
+Cc: Al Viro <viro@ftp.linux.org.uk>
+Cc: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/mm/dma-coherent.c        |    6 +--
- arch/mips/mm/cache.c                |    2 -
- arch/sh/drivers/pci/dma-dreamcast.c |    2 -
- arch/sh/mm/consistent.c             |    8 ++--
- arch/sh64/mm/consistent.c           |    3 +
- include/asm-alpha/io.h              |    6 ---
- include/asm-avr32/io.h              |    7 ---
- include/asm-blackfin/io.h           |    4 --
- include/asm-h8300/io.h              |    6 ---
- include/asm-ia64/io.h               |    4 --
- include/asm-m68k/io.h               |    6 ---
- include/asm-m68knommu/io.h          |    6 ---
- include/asm-mips/io.h               |    2 +
- include/asm-parisc/io.h             |    5 --
- include/asm-powerpc/io.h            |   17 ---------
- include/asm-ppc/io.h                |   17 ---------
- include/asm-sh/floppy.h             |    2 -
- include/asm-sh/io.h                 |   25 -------------
- include/asm-sh64/dma-mapping.h      |    6 ++-
- include/asm-sh64/io.h               |   48 --------------------------
- include/asm-sparc/io.h              |    7 ---
- include/asm-sparc64/io.h            |    6 ---
- include/asm-x86/io_32.h             |   11 -----
- include/asm-x86/io_64.h             |    6 ---
- 24 files changed, 19 insertions(+), 193 deletions(-)
+ fs/fs-writeback.c           |   39 +++++++++++-------
+ fs/hugetlbfs/inode.c        |    2 
+ fs/inode.c                  |   24 +++++------
+ fs/jfs/jfs_txnmgr.c         |    9 +++-
+ fs/xfs/linux-2.6/xfs_iops.c |    4 -
+ include/linux/fs.h          |   70 +++++++++++++++++++++++++++++-----
+ include/linux/writeback.h   |    8 +++
+ mm/page-writeback.c         |    2 
+ 8 files changed, 116 insertions(+), 42 deletions(-)
 
-diff -puN arch/avr32/mm/dma-coherent.c~remove-dma_cache_wbackinvwback_inv-functions arch/avr32/mm/dma-coherent.c
---- a/arch/avr32/mm/dma-coherent.c~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/arch/avr32/mm/dma-coherent.c
-@@ -21,13 +21,13 @@ void dma_cache_sync(struct device *dev, 
+diff -puN fs/fs-writeback.c~introduce-i_sync fs/fs-writeback.c
+--- a/fs/fs-writeback.c~introduce-i_sync
++++ a/fs/fs-writeback.c
+@@ -100,11 +100,11 @@ void __mark_inode_dirty(struct inode *in
+ 		inode->i_state |= flags;
  
- 	switch (direction) {
- 	case DMA_FROM_DEVICE:		/* invalidate only */
--		dma_cache_inv(vaddr, size);
-+		invalidate_dcache_region(vaddr, size);
- 		break;
- 	case DMA_TO_DEVICE:		/* writeback only */
--		dma_cache_wback(vaddr, size);
-+		clean_dcache_region(vaddr, size);
- 		break;
- 	case DMA_BIDIRECTIONAL:		/* writeback and invalidate */
--		dma_cache_wback_inv(vaddr, size);
-+		flush_dcache_region(vaddr, size);
- 		break;
- 	default:
- 		BUG();
-diff -puN arch/mips/mm/cache.c~remove-dma_cache_wbackinvwback_inv-functions arch/mips/mm/cache.c
---- a/arch/mips/mm/cache.c~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/arch/mips/mm/cache.c
-@@ -47,8 +47,6 @@ void (*_dma_cache_wback)(unsigned long s
- void (*_dma_cache_inv)(unsigned long start, unsigned long size);
+ 		/*
+-		 * If the inode is locked, just update its dirty state. 
++		 * If the inode is being synced, just update its dirty state.
+ 		 * The unlocker will place the inode on the appropriate
+ 		 * superblock list, based upon its state.
+ 		 */
+-		if (inode->i_state & I_LOCK)
++		if (inode->i_state & I_SYNC)
+ 			goto out;
  
- EXPORT_SYMBOL(_dma_cache_wback_inv);
--EXPORT_SYMBOL(_dma_cache_wback);
--EXPORT_SYMBOL(_dma_cache_inv);
- 
- #endif /* CONFIG_DMA_NONCOHERENT */
- 
-diff -puN arch/sh/drivers/pci/dma-dreamcast.c~remove-dma_cache_wbackinvwback_inv-functions arch/sh/drivers/pci/dma-dreamcast.c
---- a/arch/sh/drivers/pci/dma-dreamcast.c~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/arch/sh/drivers/pci/dma-dreamcast.c
-@@ -51,7 +51,7 @@ void *dreamcast_consistent_alloc(struct 
- 	buf = P2SEGADDR(buf);
- 
- 	/* Flush the dcache before we hand off the buffer */
--	dma_cache_wback_inv((void *)buf, size);
-+	__flush_purge_region((void *)buf, size);
- 
- 	return (void *)buf;
- }
-diff -puN arch/sh/mm/consistent.c~remove-dma_cache_wbackinvwback_inv-functions arch/sh/mm/consistent.c
---- a/arch/sh/mm/consistent.c~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/arch/sh/mm/consistent.c
-@@ -34,7 +34,7 @@ void *consistent_alloc(gfp_t gfp, size_t
- 	/*
- 	 * We must flush the cache before we pass it on to the device
- 	 */
--	dma_cache_wback_inv(ret, size);
-+	__flush_purge_region(ret, size);
- 
- 	page = virt_to_page(ret);
- 	free = page + (size >> PAGE_SHIFT);
-@@ -68,13 +68,13 @@ void consistent_sync(void *vaddr, size_t
- 
- 	switch (direction) {
- 	case DMA_FROM_DEVICE:		/* invalidate only */
--		dma_cache_inv(p1addr, size);
-+		__flush_invalidate_region(p1addr, size);
- 		break;
- 	case DMA_TO_DEVICE:		/* writeback only */
--		dma_cache_wback(p1addr, size);
-+		__flush_wback_region(p1addr, size);
- 		break;
- 	case DMA_BIDIRECTIONAL:		/* writeback and invalidate */
--		dma_cache_wback_inv(p1addr, size);
-+		__flush_purge_region(p1addr, size);
- 		break;
- 	default:
- 		BUG();
-diff -puN arch/sh64/mm/consistent.c~remove-dma_cache_wbackinvwback_inv-functions arch/sh64/mm/consistent.c
---- a/arch/sh64/mm/consistent.c~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/arch/sh64/mm/consistent.c
-@@ -11,6 +11,7 @@
- #include <linux/mm.h>
- #include <linux/string.h>
- #include <linux/pci.h>
-+#include <linux/dma-mapping.h>
- #include <linux/module.h>
- #include <asm/io.h>
- 
-@@ -32,7 +33,7 @@ void *consistent_alloc(struct pci_dev *h
- 	if (vp != NULL) {
- 		memset(vp, 0, size);
- 		*dma_handle = virt_to_phys(ret);
--		dma_cache_wback_inv((unsigned long)ret, size);
-+		dma_cache_sync(NULL, ret, size, DMA_BIDIRECTIONAL);
- 	}
- 
- 	return vp;
-diff -puN include/asm-alpha/io.h~remove-dma_cache_wbackinvwback_inv-functions include/asm-alpha/io.h
---- a/include/asm-alpha/io.h~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/include/asm-alpha/io.h
-@@ -551,12 +551,6 @@ extern void outsl (unsigned long port, c
- #endif
- #define RTC_ALWAYS_BCD	0
- 
--/* Nothing to do */
--
--#define dma_cache_inv(_start,_size)		do { } while (0)
--#define dma_cache_wback(_start,_size)		do { } while (0)
--#define dma_cache_wback_inv(_start,_size)	do { } while (0)
--
- /*
-  * Some mucking forons use if[n]def writeq to check if platform has it.
-  * It's a bloody bad idea and we probably want ARCH_HAS_WRITEQ for them
-diff -puN include/asm-avr32/io.h~remove-dma_cache_wbackinvwback_inv-functions include/asm-avr32/io.h
---- a/include/asm-avr32/io.h~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/include/asm-avr32/io.h
-@@ -298,13 +298,6 @@ extern void __iounmap(void __iomem *addr
- #define ioport_map(port, nr)	ioremap(port, nr)
- #define ioport_unmap(port)	iounmap(port)
- 
--#define dma_cache_wback_inv(_start, _size)	\
--	flush_dcache_region(_start, _size)
--#define dma_cache_inv(_start, _size)		\
--	invalidate_dcache_region(_start, _size)
--#define dma_cache_wback(_start, _size)		\
--	clean_dcache_region(_start, _size)
--
- /*
-  * Convert a physical pointer to a virtual kernel pointer for /dev/mem
-  * access
-diff -puN include/asm-blackfin/io.h~remove-dma_cache_wbackinvwback_inv-functions include/asm-blackfin/io.h
---- a/include/asm-blackfin/io.h~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/include/asm-blackfin/io.h
-@@ -183,10 +183,6 @@ extern void blkfin_inv_cache_all(void);
- #define	ioport_map(port, nr)		((void __iomem*)(port))
- #define	ioport_unmap(addr)
- 
--#define dma_cache_inv(_start,_size) do { blkfin_inv_cache_all();} while (0)
--#define dma_cache_wback(_start,_size) do { } while (0)
--#define dma_cache_wback_inv(_start,_size) do { blkfin_inv_cache_all();} while (0)
--
- /* Pages to physical address... */
- #define page_to_phys(page)      ((page - mem_map) << PAGE_SHIFT)
- #define page_to_bus(page)       ((page - mem_map) << PAGE_SHIFT)
-diff -puN include/asm-h8300/io.h~remove-dma_cache_wbackinvwback_inv-functions include/asm-h8300/io.h
---- a/include/asm-h8300/io.h~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/include/asm-h8300/io.h
-@@ -264,12 +264,6 @@ static inline void *ioremap_fullcache(un
- 
- extern void iounmap(void *addr);
- 
--/* Nothing to do */
--
--#define dma_cache_inv(_start,_size)		do { } while (0)
--#define dma_cache_wback(_start,_size)		do { } while (0)
--#define dma_cache_wback_inv(_start,_size)	do { } while (0)
--
- /* H8/300 internal I/O functions */
- static __inline__ unsigned char ctrl_inb(unsigned long addr)
- {
-diff -puN include/asm-ia64/io.h~remove-dma_cache_wbackinvwback_inv-functions include/asm-ia64/io.h
---- a/include/asm-ia64/io.h~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/include/asm-ia64/io.h
-@@ -435,10 +435,6 @@ extern void memcpy_fromio(void *dst, con
- extern void memcpy_toio(volatile void __iomem *dst, const void *src, long n);
- extern void memset_io(volatile void __iomem *s, int c, long n);
- 
--#define dma_cache_inv(_start,_size)             do { } while (0)
--#define dma_cache_wback(_start,_size)           do { } while (0)
--#define dma_cache_wback_inv(_start,_size)       do { } while (0)
--
- # endif /* __KERNEL__ */
- 
- /*
-diff -puN include/asm-m68k/io.h~remove-dma_cache_wbackinvwback_inv-functions include/asm-m68k/io.h
---- a/include/asm-m68k/io.h~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/include/asm-m68k/io.h
-@@ -384,12 +384,6 @@ static inline void __iomem *ioremap_full
- 	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
+ 		/*
+@@ -172,6 +172,15 @@ static void requeue_io(struct inode *ino
+ 	list_move(&inode->i_list, &inode->i_sb->s_more_io);
  }
  
--
--/* m68k caches aren't DMA coherent */
--extern void dma_cache_wback_inv(unsigned long start, unsigned long size);
--extern void dma_cache_wback(unsigned long start, unsigned long size);
--extern void dma_cache_inv(unsigned long start, unsigned long size);
--
- static inline void memset_io(volatile void __iomem *addr, unsigned char val, int count)
- {
- 	__builtin_memset((void __force *) addr, val, count);
-diff -puN include/asm-m68knommu/io.h~remove-dma_cache_wbackinvwback_inv-functions include/asm-m68knommu/io.h
---- a/include/asm-m68knommu/io.h~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/include/asm-m68knommu/io.h
-@@ -165,12 +165,6 @@ static inline void *ioremap_fullcache(un
- 
- extern void iounmap(void *addr);
- 
--/* Nothing to do */
--
--#define dma_cache_inv(_start,_size)		do { } while (0)
--#define dma_cache_wback(_start,_size)		do { } while (0)
--#define dma_cache_wback_inv(_start,_size)	do { } while (0)
--
- /* Pages to physical address... */
- #define page_to_phys(page)      ((page - mem_map) << PAGE_SHIFT)
- #define page_to_bus(page)       ((page - mem_map) << PAGE_SHIFT)
-diff -puN include/asm-mips/io.h~remove-dma_cache_wbackinvwback_inv-functions include/asm-mips/io.h
---- a/include/asm-mips/io.h~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/include/asm-mips/io.h
-@@ -554,6 +554,8 @@ static inline void memcpy_toio(volatile 
-  *    caches.  Dirty lines of the caches may be written back or simply
-  *    be discarded.  This operation is necessary before dma operations
-  *    to the memory.
-+ *
-+ * This API used to be exported; it now is for arch code internal use only.
-  */
- #ifdef CONFIG_DMA_NONCOHERENT
- 
-diff -puN include/asm-parisc/io.h~remove-dma_cache_wbackinvwback_inv-functions include/asm-parisc/io.h
---- a/include/asm-parisc/io.h~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/include/asm-parisc/io.h
-@@ -270,11 +270,6 @@ extern void outsl (unsigned long port, c
- /* IO Port space is :      BBiiii   where BB is HBA number. */
- #define IO_SPACE_LIMIT 0x00ffffff
- 
--
--#define dma_cache_inv(_start,_size)		do { flush_kernel_dcache_range(_start,_size); } while (0)
--#define dma_cache_wback(_start,_size)		do { flush_kernel_dcache_range(_start,_size); } while (0)
--#define dma_cache_wback_inv(_start,_size)	do { flush_kernel_dcache_range(_start,_size); } while (0)
--
- /* PA machines have an MM I/O space from 0xf0000000-0xffffffff in 32
-  * bit mode and from 0xfffffffff0000000-0xfffffffffffffff in 64 bit
-  * mode (essentially just sign extending.  This macro takes in a 32
-diff -puN include/asm-powerpc/io.h~remove-dma_cache_wbackinvwback_inv-functions include/asm-powerpc/io.h
---- a/include/asm-powerpc/io.h~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/include/asm-powerpc/io.h
-@@ -498,23 +498,6 @@ static inline void name at					\
- #define writeq	writeq
- #endif
- 
--#ifdef CONFIG_NOT_COHERENT_CACHE
--
--#define dma_cache_inv(_start,_size) \
--	invalidate_dcache_range(_start, (_start + _size))
--#define dma_cache_wback(_start,_size) \
--	clean_dcache_range(_start, (_start + _size))
--#define dma_cache_wback_inv(_start,_size) \
--	flush_dcache_range(_start, (_start + _size))
--
--#else /* CONFIG_NOT_COHERENT_CACHE */
--
--#define dma_cache_inv(_start,_size)		do { } while (0)
--#define dma_cache_wback(_start,_size)		do { } while (0)
--#define dma_cache_wback_inv(_start,_size)	do { } while (0)
--
--#endif /* !CONFIG_NOT_COHERENT_CACHE */
--
- /*
-  * Convert a physical pointer to a virtual kernel pointer for /dev/mem
-  * access
-diff -puN include/asm-ppc/io.h~remove-dma_cache_wbackinvwback_inv-functions include/asm-ppc/io.h
---- a/include/asm-ppc/io.h~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/include/asm-ppc/io.h
-@@ -478,23 +478,6 @@ extern void pci_iounmap(struct pci_dev *
- #include <asm/mpc8260_pci9.h>
- #endif
- 
--#ifdef CONFIG_NOT_COHERENT_CACHE
--
--#define dma_cache_inv(_start,_size) \
--	invalidate_dcache_range(_start, (_start + _size))
--#define dma_cache_wback(_start,_size) \
--	clean_dcache_range(_start, (_start + _size))
--#define dma_cache_wback_inv(_start,_size) \
--	flush_dcache_range(_start, (_start + _size))
--
--#else
--
--#define dma_cache_inv(_start,_size)		do { } while (0)
--#define dma_cache_wback(_start,_size)		do { } while (0)
--#define dma_cache_wback_inv(_start,_size)	do { } while (0)
--
--#endif
--
- /*
-  * Convert a physical pointer to a virtual kernel pointer for /dev/mem
-  * access
-diff -puN include/asm-sh/floppy.h~remove-dma_cache_wbackinvwback_inv-functions include/asm-sh/floppy.h
---- a/include/asm-sh/floppy.h~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/include/asm-sh/floppy.h
-@@ -213,7 +213,7 @@ static int hard_dma_setup(char *addr, un
- 	}
- #endif
- 
--	dma_cache_wback_inv(addr, size);
-+	__flush_purge_region(addr, size);
- 
- 	/* actual, physical DMA */
- 	doing_pdma = 0;
-diff -puN include/asm-sh/io.h~remove-dma_cache_wbackinvwback_inv-functions include/asm-sh/io.h
---- a/include/asm-sh/io.h~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/include/asm-sh/io.h
-@@ -327,31 +327,6 @@ __ioremap_mode(unsigned long offset, uns
- 	__iounmap((addr))
- 
- /*
-- * The caches on some architectures aren't dma-coherent and have need to
-- * handle this in software.  There are three types of operations that
-- * can be applied to dma buffers.
-- *
-- *  - dma_cache_wback_inv(start, size) makes caches and RAM coherent by
-- *    writing the content of the caches back to memory, if necessary.
-- *    The function also invalidates the affected part of the caches as
-- *    necessary before DMA transfers from outside to memory.
-- *  - dma_cache_inv(start, size) invalidates the affected parts of the
-- *    caches.  Dirty lines of the caches may be written back or simply
-- *    be discarded.  This operation is necessary before dma operations
-- *    to the memory.
-- *  - dma_cache_wback(start, size) writes back any dirty lines but does
-- *    not invalidate the cache.  This can be used before DMA reads from
-- *    memory,
-- */
--
--#define dma_cache_wback_inv(_start,_size) \
--    __flush_purge_region(_start,_size)
--#define dma_cache_inv(_start,_size) \
--    __flush_invalidate_region(_start,_size)
--#define dma_cache_wback(_start,_size) \
--    __flush_wback_region(_start,_size)
--
--/*
-  * Convert a physical pointer to a virtual kernel pointer for /dev/mem
-  * access
-  */
-diff -puN include/asm-sh64/dma-mapping.h~remove-dma_cache_wbackinvwback_inv-functions include/asm-sh64/dma-mapping.h
---- a/include/asm-sh64/dma-mapping.h~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/include/asm-sh64/dma-mapping.h
-@@ -42,7 +42,11 @@ static inline void dma_free_coherent(str
- static inline void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
- 				  enum dma_data_direction dir)
- {
--	dma_cache_wback_inv((unsigned long)vaddr, size);
-+	unsigned long s = (unsigned long) vaddr & L1_CACHE_ALIGN_MASK;
-+	unsigned long e = (vaddr + size) & L1_CACHE_ALIGN_MASK;
++static void inode_sync_complete(struct inode *inode)
++{
++	/*
++	 * Prevent speculative execution through spin_unlock(&inode_lock);
++	 */
++	smp_mb();
++	wake_up_bit(&inode->i_state, __I_SYNC);
++}
 +
-+	for (; s <= e; s += L1_CACHE_BYTES)
-+		asm volatile ("ocbp	%0, 0" : : "r" (s));
+ /*
+  * Move expired dirty inodes from @delaying_queue to @dispatch_queue.
+  */
+@@ -225,11 +234,11 @@ __sync_single_inode(struct inode *inode,
+ 	int wait = wbc->sync_mode == WB_SYNC_ALL;
+ 	int ret;
+ 
+-	BUG_ON(inode->i_state & I_LOCK);
++	BUG_ON(inode->i_state & I_SYNC);
+ 
+-	/* Set I_LOCK, reset I_DIRTY */
++	/* Set I_SYNC, reset I_DIRTY */
+ 	dirty = inode->i_state & I_DIRTY;
+-	inode->i_state |= I_LOCK;
++	inode->i_state |= I_SYNC;
+ 	inode->i_state &= ~I_DIRTY;
+ 
+ 	spin_unlock(&inode_lock);
+@@ -250,7 +259,7 @@ __sync_single_inode(struct inode *inode,
+ 	}
+ 
+ 	spin_lock(&inode_lock);
+-	inode->i_state &= ~I_LOCK;
++	inode->i_state &= ~I_SYNC;
+ 	if (!(inode->i_state & I_FREEING)) {
+ 		if (!(inode->i_state & I_DIRTY) &&
+ 		    mapping_tagged(mapping, PAGECACHE_TAG_DIRTY)) {
+@@ -305,7 +314,7 @@ __sync_single_inode(struct inode *inode,
+ 			list_move(&inode->i_list, &inode_unused);
+ 		}
+ 	}
+-	wake_up_inode(inode);
++	inode_sync_complete(inode);
+ 	return ret;
  }
  
- static inline dma_addr_t dma_map_single(struct device *dev,
-diff -puN include/asm-sh64/io.h~remove-dma_cache_wbackinvwback_inv-functions include/asm-sh64/io.h
---- a/include/asm-sh64/io.h~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/include/asm-sh64/io.h
-@@ -182,54 +182,6 @@ unsigned long onchip_remap(unsigned long
- extern void onchip_unmap(unsigned long vaddr);
+@@ -324,7 +333,7 @@ __writeback_single_inode(struct inode *i
+ 	else
+ 		WARN_ON(inode->i_state & I_WILL_FREE);
  
- /*
-- * The caches on some architectures aren't dma-coherent and have need to
-- * handle this in software.  There are three types of operations that
-- * can be applied to dma buffers.
-- *
-- *  - dma_cache_wback_inv(start, size) makes caches and RAM coherent by
-- *    writing the content of the caches back to memory, if necessary.
-- *    The function also invalidates the affected part of the caches as
-- *    necessary before DMA transfers from outside to memory.
-- *  - dma_cache_inv(start, size) invalidates the affected parts of the
-- *    caches.  Dirty lines of the caches may be written back or simply
-- *    be discarded.  This operation is necessary before dma operations
-- *    to the memory.
-- *  - dma_cache_wback(start, size) writes back any dirty lines but does
-- *    not invalidate the cache.  This can be used before DMA reads from
-- *    memory,
-- */
--
--static __inline__ void dma_cache_wback_inv (unsigned long start, unsigned long size)
--{
--	unsigned long s = start & L1_CACHE_ALIGN_MASK;
--	unsigned long e = (start + size) & L1_CACHE_ALIGN_MASK;
--
--	for (; s <= e; s += L1_CACHE_BYTES)
--		asm volatile ("ocbp	%0, 0" : : "r" (s));
--}
--
--static __inline__ void dma_cache_inv (unsigned long start, unsigned long size)
--{
--	// Note that caller has to be careful with overzealous
--	// invalidation should there be partial cache lines at the extremities
--	// of the specified range
--	unsigned long s = start & L1_CACHE_ALIGN_MASK;
--	unsigned long e = (start + size) & L1_CACHE_ALIGN_MASK;
--
--	for (; s <= e; s += L1_CACHE_BYTES)
--		asm volatile ("ocbi	%0, 0" : : "r" (s));
--}
--
--static __inline__ void dma_cache_wback (unsigned long start, unsigned long size)
--{
--	unsigned long s = start & L1_CACHE_ALIGN_MASK;
--	unsigned long e = (start + size) & L1_CACHE_ALIGN_MASK;
--
--	for (; s <= e; s += L1_CACHE_BYTES)
--		asm volatile ("ocbwb	%0, 0" : : "r" (s));
--}
--
--/*
-  * Convert a physical pointer to a virtual kernel pointer for /dev/mem
-  * access
+-	if ((wbc->sync_mode != WB_SYNC_ALL) && (inode->i_state & I_LOCK)) {
++	if ((wbc->sync_mode != WB_SYNC_ALL) && (inode->i_state & I_SYNC)) {
+ 		struct address_space *mapping = inode->i_mapping;
+ 		int ret;
+ 
+@@ -350,16 +359,16 @@ __writeback_single_inode(struct inode *i
+ 	/*
+ 	 * It's a data-integrity sync.  We must wait.
+ 	 */
+-	if (inode->i_state & I_LOCK) {
+-		DEFINE_WAIT_BIT(wq, &inode->i_state, __I_LOCK);
++	if (inode->i_state & I_SYNC) {
++		DEFINE_WAIT_BIT(wq, &inode->i_state, __I_SYNC);
+ 
+-		wqh = bit_waitqueue(&inode->i_state, __I_LOCK);
++		wqh = bit_waitqueue(&inode->i_state, __I_SYNC);
+ 		do {
+ 			spin_unlock(&inode_lock);
+ 			__wait_on_bit(wqh, &wq, inode_wait,
+ 							TASK_UNINTERRUPTIBLE);
+ 			spin_lock(&inode_lock);
+-		} while (inode->i_state & I_LOCK);
++		} while (inode->i_state & I_SYNC);
+ 	}
+ 	return __sync_single_inode(inode, wbc);
+ }
+@@ -392,7 +401,7 @@ __writeback_single_inode(struct inode *i
+  * The inodes to be written are parked on sb->s_io.  They are moved back onto
+  * sb->s_dirty as they are selected for writing.  This way, none can be missed
+  * on the writer throttling path, and we get decent balancing between many
+- * throttled threads: we don't want them all piling up on __wait_on_inode.
++ * throttled threads: we don't want them all piling up on inode_sync_wait.
   */
-diff -puN include/asm-sparc/io.h~remove-dma_cache_wbackinvwback_inv-functions include/asm-sparc/io.h
---- a/include/asm-sparc/io.h~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/include/asm-sparc/io.h
-@@ -310,13 +310,6 @@ extern void sbus_iounmap(volatile void _
- #define RTC_PORT(x)   (rtc_port + (x))
- #define RTC_ALWAYS_BCD  0
+ static void
+ sync_sb_inodes(struct super_block *sb, struct writeback_control *wbc)
+@@ -661,7 +670,7 @@ int write_inode_now(struct inode *inode,
+ 	ret = __writeback_single_inode(inode, &wbc);
+ 	spin_unlock(&inode_lock);
+ 	if (sync)
+-		wait_on_inode(inode);
++		inode_sync_wait(inode);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(write_inode_now);
+@@ -736,7 +745,7 @@ int generic_osync_inode(struct inode *in
+ 			err = err2;
+ 	}
+ 	else
+-		wait_on_inode(inode);
++		inode_sync_wait(inode);
  
--/* Nothing to do */
--/* P3: Only IDE DMA may need these. XXX Verify that it still does... */
--
--#define dma_cache_inv(_start,_size)		do { } while (0)
--#define dma_cache_wback(_start,_size)		do { } while (0)
--#define dma_cache_wback_inv(_start,_size)	do { } while (0)
--
- #endif
+ 	return err;
+ }
+diff -puN fs/hugetlbfs/inode.c~introduce-i_sync fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~introduce-i_sync
++++ a/fs/hugetlbfs/inode.c
+@@ -384,7 +384,7 @@ static void hugetlbfs_forget_inode(struc
+ 	struct super_block *sb = inode->i_sb;
  
- #define __ARCH_HAS_NO_PAGE_ZERO_MAPPED		1
-diff -puN include/asm-sparc64/io.h~remove-dma_cache_wbackinvwback_inv-functions include/asm-sparc64/io.h
---- a/include/asm-sparc64/io.h~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/include/asm-sparc64/io.h
-@@ -474,12 +474,6 @@ extern void pci_iounmap(struct pci_dev *
- #define sbus_iounmap(__addr, __size)	\
- 	release_region((unsigned long)(__addr), (__size))
+ 	if (!hlist_unhashed(&inode->i_hash)) {
+-		if (!(inode->i_state & (I_DIRTY|I_LOCK)))
++		if (!(inode->i_state & (I_DIRTY|I_SYNC)))
+ 			list_move(&inode->i_list, &inode_unused);
+ 		inodes_stat.nr_unused++;
+ 		if (!sb || (sb->s_flags & MS_ACTIVE)) {
+diff -puN fs/inode.c~introduce-i_sync fs/inode.c
+--- a/fs/inode.c~introduce-i_sync
++++ a/fs/inode.c
+@@ -99,6 +99,15 @@ struct inodes_stat_t inodes_stat;
  
--/* Nothing to do */
--
--#define dma_cache_inv(_start,_size)		do { } while (0)
--#define dma_cache_wback(_start,_size)		do { } while (0)
--#define dma_cache_wback_inv(_start,_size)	do { } while (0)
--
- /*
-  * Convert a physical pointer to a virtual kernel pointer for /dev/mem
-  * access
-diff -puN include/asm-x86/io_32.h~remove-dma_cache_wbackinvwback_inv-functions include/asm-x86/io_32.h
---- a/include/asm-x86/io_32.h~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/include/asm-x86/io_32.h
-@@ -237,18 +237,9 @@ static inline void flush_write_buffers(v
- 	__asm__ __volatile__ ("lock; addl $0,0(%%esp)": : :"memory");
+ static struct kmem_cache * inode_cachep __read_mostly;
+ 
++static void wake_up_inode(struct inode *inode)
++{
++	/*
++	 * Prevent speculative execution through spin_unlock(&inode_lock);
++	 */
++	smp_mb();
++	wake_up_bit(&inode->i_state, __I_LOCK);
++}
++
+ static struct inode *alloc_inode(struct super_block *sb)
+ {
+ 	static const struct address_space_operations empty_aops;
+@@ -232,7 +241,7 @@ void __iget(struct inode * inode)
+ 		return;
+ 	}
+ 	atomic_inc(&inode->i_count);
+-	if (!(inode->i_state & (I_DIRTY|I_LOCK)))
++	if (!(inode->i_state & (I_DIRTY|I_SYNC)))
+ 		list_move(&inode->i_list, &inode_in_use);
+ 	inodes_stat.nr_unused--;
+ }
+@@ -253,7 +262,7 @@ void clear_inode(struct inode *inode)
+ 	BUG_ON(inode->i_data.nrpages);
+ 	BUG_ON(!(inode->i_state & I_FREEING));
+ 	BUG_ON(inode->i_state & I_CLEAR);
+-	wait_on_inode(inode);
++	inode_sync_wait(inode);
+ 	DQUOT_DROP(inode);
+ 	if (inode->i_sb->s_op->clear_inode)
+ 		inode->i_sb->s_op->clear_inode(inode);
+@@ -1071,7 +1080,7 @@ static void generic_forget_inode(struct 
+ 	struct super_block *sb = inode->i_sb;
+ 
+ 	if (!hlist_unhashed(&inode->i_hash)) {
+-		if (!(inode->i_state & (I_DIRTY|I_LOCK)))
++		if (!(inode->i_state & (I_DIRTY|I_SYNC)))
+ 			list_move(&inode->i_list, &inode_unused);
+ 		inodes_stat.nr_unused++;
+ 		if (sb->s_flags & MS_ACTIVE) {
+@@ -1314,15 +1323,6 @@ static void __wait_on_freeing_inode(stru
+ 	spin_lock(&inode_lock);
  }
  
--#define dma_cache_inv(_start,_size)		flush_write_buffers()
--#define dma_cache_wback(_start,_size)		flush_write_buffers()
--#define dma_cache_wback_inv(_start,_size)	flush_write_buffers()
+-void wake_up_inode(struct inode *inode)
+-{
+-	/*
+-	 * Prevent speculative execution through spin_unlock(&inode_lock);
+-	 */
+-	smp_mb();
+-	wake_up_bit(&inode->i_state, __I_LOCK);
+-}
 -
- #else
+ /*
+  * We rarely want to lock two inodes that do not have a parent/child
+  * relationship (such as directory, child inode) simultaneously. The
+diff -puN fs/jfs/jfs_txnmgr.c~introduce-i_sync fs/jfs/jfs_txnmgr.c
+--- a/fs/jfs/jfs_txnmgr.c~introduce-i_sync
++++ a/fs/jfs/jfs_txnmgr.c
+@@ -1289,7 +1289,14 @@ int txCommit(tid_t tid,		/* transaction 
+ 		 * commit the transaction synchronously, so the last iput
+ 		 * will be done by the calling thread (or later)
+ 		 */
+-		if (tblk->u.ip->i_state & I_LOCK)
++		/*
++		 * I believe this code is no longer needed.  Splitting I_LOCK
++		 * into two bits, I_LOCK and I_SYNC should prevent this
++		 * deadlock as well.  But since I don't have a JFS testload
++		 * to verify this, only a trivial s/I_LOCK/I_SYNC/ was done.
++		 * Joern
++		 */
++		if (tblk->u.ip->i_state & I_SYNC)
+ 			tblk->xflag &= ~COMMIT_LAZY;
+ 	}
  
--/* Nothing to do */
--
--#define dma_cache_inv(_start,_size)		do { } while (0)
--#define dma_cache_wback(_start,_size)		do { } while (0)
--#define dma_cache_wback_inv(_start,_size)	do { } while (0)
--#define flush_write_buffers()
-+#define flush_write_buffers() do { } while (0)
+diff -puN fs/xfs/linux-2.6/xfs_iops.c~introduce-i_sync fs/xfs/linux-2.6/xfs_iops.c
+--- a/fs/xfs/linux-2.6/xfs_iops.c~introduce-i_sync
++++ a/fs/xfs/linux-2.6/xfs_iops.c
+@@ -133,7 +133,7 @@ xfs_ichgtime(
+ 	 */
+ 	SYNCHRONIZE();
+ 	ip->i_update_core = 1;
+-	if (!(inode->i_state & I_LOCK))
++	if (!(inode->i_state & I_SYNC))
+ 		mark_inode_dirty_sync(inode);
+ }
  
+@@ -185,7 +185,7 @@ xfs_ichgtime_fast(
+ 	 */
+ 	SYNCHRONIZE();
+ 	ip->i_update_core = 1;
+-	if (!(inode->i_state & I_LOCK))
++	if (!(inode->i_state & I_SYNC))
+ 		mark_inode_dirty_sync(inode);
+ }
+ 
+diff -puN include/linux/fs.h~introduce-i_sync include/linux/fs.h
+--- a/include/linux/fs.h~introduce-i_sync
++++ a/include/linux/fs.h
+@@ -1261,16 +1261,68 @@ struct super_operations {
  #endif
+ };
  
-diff -puN include/asm-x86/io_64.h~remove-dma_cache_wbackinvwback_inv-functions include/asm-x86/io_64.h
---- a/include/asm-x86/io_64.h~remove-dma_cache_wbackinvwback_inv-functions
-+++ a/include/asm-x86/io_64.h
-@@ -249,12 +249,6 @@ void memset_io(volatile void __iomem *a,
-  */
- #define __ISA_IO_base ((char __iomem *)(PAGE_OFFSET))
+-/* Inode state bits.  Protected by inode_lock. */
+-#define I_DIRTY_SYNC		1 /* Not dirty enough for O_DATASYNC */
+-#define I_DIRTY_DATASYNC	2 /* Data-related inode changes pending */
+-#define I_DIRTY_PAGES		4 /* Data-related inode changes pending */
+-#define __I_LOCK		3
++/*
++ * Inode state bits.  Protected by inode_lock.
++ *
++ * Three bits determine the dirty state of the inode, I_DIRTY_SYNC,
++ * I_DIRTY_DATASYNC and I_DIRTY_PAGES.
++ *
++ * Four bits define the lifetime of an inode.  Initially, inodes are I_NEW,
++ * until that flag is cleared.  I_WILL_FREE, I_FREEING and I_CLEAR are set at
++ * various stages of removing an inode.
++ *
++ * Two bits are used for locking and completion notification, I_LOCK and I_SYNC.
++ *
++ * I_DIRTY_SYNC		Inode itself is dirty.
++ * I_DIRTY_DATASYNC	Data-related inode changes pending
++ * I_DIRTY_PAGES	Inode has dirty pages.  Inode itself may be clean.
++ * I_NEW		get_new_inode() sets i_state to I_LOCK|I_NEW.  Both
++ *			are cleared by unlock_new_inode(), called from iget().
++ * I_WILL_FREE		Must be set when calling write_inode_now() if i_count
++ *			is zero.  I_FREEING must be set when I_WILL_FREE is
++ *			cleared.
++ * I_FREEING		Set when inode is about to be freed but still has dirty
++ *			pages or buffers attached or the inode itself is still
++ *			dirty.
++ * I_CLEAR		Set by clear_inode().  In this state the inode is clean
++ *			and can be destroyed.
++ *
++ *			Inodes that are I_WILL_FREE, I_FREEING or I_CLEAR are
++ *			prohibited for many purposes.  iget() must wait for
++ *			the inode to be completely released, then create it
++ *			anew.  Other functions will just ignore such inodes,
++ *			if appropriate.  I_LOCK is used for waiting.
++ *
++ * I_LOCK		Serves as both a mutex and completion notification.
++ *			New inodes set I_LOCK.  If two processes both create
++ *			the same inode, one of them will release its inode and
++ *			wait for I_LOCK to be released before returning.
++ *			Inodes in I_WILL_FREE, I_FREEING or I_CLEAR state can
++ *			also cause waiting on I_LOCK, without I_LOCK actually
++ *			being set.  find_inode() uses this to prevent returning
++ *			nearly-dead inodes.
++ * I_SYNC		Similar to I_LOCK, but limited in scope to writeback
++ *			of inode dirty data.  Having a seperate lock for this
++ *			purpose reduces latency and prevents some filesystem-
++ *			specific deadlocks.
++ *
++ * Q: Why does I_DIRTY_DATASYNC exist?  It appears as if it could be replaced
++ *    by (I_DIRTY_SYNC|I_DIRTY_PAGES).
++ * Q: What is the difference between I_WILL_FREE and I_FREEING?
++ * Q: igrab() only checks on (I_FREEING|I_WILL_FREE).  Should it also check on
++ *    I_CLEAR?  If not, why?
++ */
++#define I_DIRTY_SYNC		1
++#define I_DIRTY_DATASYNC	2
++#define I_DIRTY_PAGES		4
++#define I_NEW			8
++#define I_WILL_FREE		16
++#define I_FREEING		32
++#define I_CLEAR			64
++#define __I_LOCK		7
+ #define I_LOCK			(1 << __I_LOCK)
+-#define I_FREEING		16
+-#define I_CLEAR			32
+-#define I_NEW			64
+-#define I_WILL_FREE		128
++#define __I_SYNC		8
++#define I_SYNC			(1 << __I_SYNC)
  
--/* Nothing to do */
--
--#define dma_cache_inv(_start,_size)		do { } while (0)
--#define dma_cache_wback(_start,_size)		do { } while (0)
--#define dma_cache_wback_inv(_start,_size)	do { } while (0)
--
- #define flush_write_buffers() 
+ #define I_DIRTY (I_DIRTY_SYNC | I_DIRTY_DATASYNC | I_DIRTY_PAGES)
  
- extern int iommu_bio_merge;
+diff -puN include/linux/writeback.h~introduce-i_sync include/linux/writeback.h
+--- a/include/linux/writeback.h~introduce-i_sync
++++ a/include/linux/writeback.h
+@@ -69,7 +69,6 @@ struct writeback_control {
+  * fs/fs-writeback.c
+  */	
+ void writeback_inodes(struct writeback_control *wbc);
+-void wake_up_inode(struct inode *inode);
+ int inode_wait(void *);
+ void sync_inodes_sb(struct super_block *, int wait);
+ void sync_inodes(int wait);
+@@ -81,6 +80,13 @@ static inline void wait_on_inode(struct 
+ 	wait_on_bit(&inode->i_state, __I_LOCK, inode_wait,
+ 							TASK_UNINTERRUPTIBLE);
+ }
++static inline void inode_sync_wait(struct inode *inode)
++{
++	might_sleep();
++	wait_on_bit(&inode->i_state, __I_SYNC, inode_wait,
++							TASK_UNINTERRUPTIBLE);
++}
++
+ 
+ /*
+  * mm/page-writeback.c
+diff -puN mm/page-writeback.c~introduce-i_sync mm/page-writeback.c
+--- a/mm/page-writeback.c~introduce-i_sync
++++ a/mm/page-writeback.c
+@@ -37,7 +37,7 @@
+ 
+ /*
+  * The maximum number of pages to writeout in a single bdflush/kupdate
+- * operation.  We do this so we don't hold I_LOCK against an inode for
++ * operation.  We do this so we don't hold I_SYNC against an inode for
+  * enormous amounts of time, which would block a userspace task which has
+  * been forced to throttle against that inode.  Also, the code reevaluates
+  * the dirty each time it has written this many pages.
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from joern@wohnheim.fh-wedel.de are
 
 origin.patch
-netport_conc-fix-build-errors-and-warnings.patch
-au1100fb-fix-modpost-warnings.patch
-logoc-get-rid-of-mips_machgroup.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-define-global-bit-macro.patch
-bitops-introduce-lock-ops.patch
-mips-fix-bitops.patch
-mips-lock-bitops.patch
-replace-__attribute_pure__-with-__pure.patch
