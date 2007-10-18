@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-rearrange-patch-for-notifier-of-memory-hotplug.patch added to -mm tree
-Date: Wed, 17 Oct 2007 20:47:12 -0700
-Message-ID: <200710180347.l9I3lCsu023810@imap1.linux-foundation.org>
+Subject: + memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix.patch added to -mm tree
+Date: Wed, 17 Oct 2007 20:47:15 -0700
+Message-ID: <200710180347.l9I3lFdv023816@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58524 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60238 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762454AbXJRDrQ (ORCPT
+	by vger.kernel.org with ESMTP id S1764595AbXJRDrW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Oct 2007 23:47:16 -0400
+	Wed, 17 Oct 2007 23:47:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: y-goto@jp.fujitsu.com
+Cc: akpm@linux-foundation.org, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     memory hotplug: rearrange memory hotplug notifier
+     memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-rearrange-patch-for-notifier-of-memory-hotplug.patch
+     memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,236 +26,218 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memory hotplug: rearrange memory hotplug notifier
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Current memory notifier has some defects yet.  (Fortunately, nothing uses
-it.) This patch is to fix and rearrange for them.
-
-  - Add information of start_pfn, nr_pages, and node id if node status is
-    changes from/to memoryless node for callback functions.
-    Callbacks can't do anything without those information.
-  - Add notification going-online status.
-    It is necessary for creating per node structure before the node's
-    pages are available.
-  - Move GOING_OFFLINE status notification after page isolation.
-    It is good place for return memory like cache for callback,
-    because returned page is not used again.
-  - Make CANCEL events for rollingback when error occurs.
-  - Delete MEM_MAPPING_INVALID notification. It will be not used.
-  - Fix compile error of (un)register_memory_notifier().
-
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c  |    9 -------
- include/linux/memory.h |   29 +++++++++++++----------
- mm/memory_hotplug.c    |   48 ++++++++++++++++++++++++++++++++++++---
- 3 files changed, 62 insertions(+), 24 deletions(-)
+ mm/slub.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN drivers/base/memory.c~memory-hotplug-rearrange-patch-for-notifier-of-memory-hotplug drivers/base/memory.c
---- a/drivers/base/memory.c~memory-hotplug-rearrange-patch-for-notifier-of-memory-hotplug
-+++ a/drivers/base/memory.c
-@@ -137,7 +137,7 @@ static ssize_t show_mem_state(struct sys
- 	return len;
- }
+diff -puN mm/slub.c~memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix mm/slub.c
+--- a/mm/slub.c~memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix
++++ a/mm/slub.c
+@@ -2749,6 +2749,7 @@ static int slab_mem_going_online_callbac
+ 	struct kmem_cache *s;
+ 	struct memory_notify *marg = arg;
+ 	int nid = marg->status_change_nid;
++	int ret = 0;
  
--static inline int memory_notify(unsigned long val, void *v)
-+int memory_notify(unsigned long val, void *v)
- {
- 	return blocking_notifier_call_chain(&memory_chain, val, v);
- }
-@@ -183,7 +183,6 @@ memory_block_action(struct memory_block 
- 			break;
- 		case MEM_OFFLINE:
- 			mem->state = MEM_GOING_OFFLINE;
--			memory_notify(MEM_GOING_OFFLINE, NULL);
- 			start_paddr = page_to_pfn(first_page) << PAGE_SHIFT;
- 			ret = remove_memory(start_paddr,
- 					    PAGES_PER_SECTION << PAGE_SHIFT);
-@@ -191,7 +190,6 @@ memory_block_action(struct memory_block 
- 				mem->state = old_state;
- 				break;
- 			}
--			memory_notify(MEM_MAPPING_INVALID, NULL);
- 			break;
- 		default:
- 			printk(KERN_WARNING "%s(%p, %ld) unknown action: %ld\n",
-@@ -199,11 +197,6 @@ memory_block_action(struct memory_block 
- 			WARN_ON(1);
- 			ret = -EINVAL;
- 	}
--	/*
--	 * For now, only notify on successful memory operations
--	 */
--	if (!ret)
--		memory_notify(action, NULL);
- 
- 	return ret;
- }
-diff -puN include/linux/memory.h~memory-hotplug-rearrange-patch-for-notifier-of-memory-hotplug include/linux/memory.h
---- a/include/linux/memory.h~memory-hotplug-rearrange-patch-for-notifier-of-memory-hotplug
-+++ a/include/linux/memory.h
-@@ -41,18 +41,15 @@ struct memory_block {
- #define	MEM_ONLINE		(1<<0) /* exposed to userspace */
- #define	MEM_GOING_OFFLINE	(1<<1) /* exposed to userspace */
- #define	MEM_OFFLINE		(1<<2) /* exposed to userspace */
--
--/*
-- * All of these states are currently kernel-internal for notifying
-- * kernel components and architectures.
-- *
-- * For MEM_MAPPING_INVALID, all notifier chains with priority >0
-- * are called before pfn_to_page() becomes invalid.  The priority=0
-- * entry is reserved for the function that actually makes
-- * pfn_to_page() stop working.  Any notifiers that want to be called
-- * after that should have priority <0.
-- */
--#define	MEM_MAPPING_INVALID	(1<<3)
-+#define	MEM_GOING_ONLINE	(1<<3)
-+#define	MEM_CANCEL_ONLINE	(1<<4)
-+#define	MEM_CANCEL_OFFLINE	(1<<5)
-+
-+struct memory_notify {
-+	unsigned long start_pfn;
-+	unsigned long nr_pages;
-+	int status_change_nid;
-+};
- 
- struct notifier_block;
- struct mem_section;
-@@ -69,12 +66,18 @@ static inline int register_memory_notifi
- static inline void unregister_memory_notifier(struct notifier_block *nb)
- {
- }
-+static inline int memory_notify(unsigned long val, void *v)
-+{
-+	return 0;
-+}
- #else
-+extern int register_memory_notifier(struct notifier_block *nb);
-+extern void unregister_memory_notifier(struct notifier_block *nb);
- extern int register_new_memory(struct mem_section *);
- extern int unregister_memory_section(struct mem_section *);
- extern int memory_dev_init(void);
- extern int remove_memory_block(unsigned long, struct mem_section *, int);
--
-+extern int memory_notify(unsigned long val, void *v);
- #define CONFIG_MEM_BLOCK_SIZE	(PAGES_PER_SECTION<<PAGE_SHIFT)
- 
- 
-diff -puN mm/memory_hotplug.c~memory-hotplug-rearrange-patch-for-notifier-of-memory-hotplug mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-rearrange-patch-for-notifier-of-memory-hotplug
-+++ a/mm/memory_hotplug.c
-@@ -187,7 +187,24 @@ int online_pages(unsigned long pfn, unsi
- 	unsigned long onlined_pages = 0;
- 	struct zone *zone;
- 	int need_zonelists_rebuild = 0;
-+	int nid;
-+	int ret;
-+	struct memory_notify arg;
- 
-+	arg.start_pfn = pfn;
-+	arg.nr_pages = nr_pages;
-+	arg.status_change_nid = -1;
-+
-+	nid = page_to_nid(pfn_to_page(pfn));
-+	if (node_present_pages(nid) == 0)
-+		arg.status_change_nid = nid;
-+
-+	ret = memory_notify(MEM_GOING_ONLINE, &arg);
-+	ret = notifier_to_errno(ret);
-+	if (ret) {
-+		memory_notify(MEM_CANCEL_ONLINE, &arg);
-+		return ret;
-+	}
  	/*
- 	 * This doesn't need a lock to do pfn_to_page().
- 	 * The section can't be removed here because of the
-@@ -222,6 +239,10 @@ int online_pages(unsigned long pfn, unsi
- 		build_all_zonelists();
- 	vm_total_pages = nr_free_pagecache_pages();
- 	writeback_set_ratelimit();
-+
-+	if (onlined_pages)
-+		memory_notify(MEM_ONLINE, &arg);
-+
- 	return 0;
+ 	 * If the node's memory is already available, then kmem_cache_node is
+@@ -2770,14 +2771,16 @@ static int slab_mem_going_online_callbac
+ 		 *      is brought up.
+   		 */
+ 		n = kmem_cache_alloc(kmalloc_caches, GFP_KERNEL);
+-		if (!n)
+-			return -ENOMEM;
++		if (!n) {
++			ret = -ENOMEM;
++			goto out;
++		}
+ 		init_kmem_cache_node(n);
+ 		s->node[nid] = n;
+   	}
++out:
+ 	up_read(&slub_lock);
+-
+-  	return 0;
++  	return ret;
  }
- #endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
-@@ -467,8 +488,9 @@ int offline_pages(unsigned long start_pf
- {
- 	unsigned long pfn, nr_pages, expire;
- 	long offlined_pages;
--	int ret, drain, retry_max;
-+	int ret, drain, retry_max, node;
- 	struct zone *zone;
-+	struct memory_notify arg;
  
- 	BUG_ON(start_pfn >= end_pfn);
- 	/* at least, alignment against pageblock is necessary */
-@@ -480,11 +502,27 @@ int offline_pages(unsigned long start_pf
- 	   we assume this for now. .*/
- 	if (!test_pages_in_a_zone(start_pfn, end_pfn))
- 		return -EINVAL;
-+
-+	zone = page_zone(pfn_to_page(start_pfn));
-+	node = zone_to_nid(zone);
-+	nr_pages = end_pfn - start_pfn;
-+
- 	/* set above range as isolated */
- 	ret = start_isolate_page_range(start_pfn, end_pfn);
- 	if (ret)
- 		return ret;
--	nr_pages = end_pfn - start_pfn;
-+
-+	arg.start_pfn = start_pfn;
-+	arg.nr_pages = nr_pages;
-+	arg.status_change_nid = -1;
-+	if (nr_pages >= node_present_pages(node))
-+		arg.status_change_nid = node;
-+
-+	ret = memory_notify(MEM_GOING_OFFLINE, &arg);
-+	ret = notifier_to_errno(ret);
-+	if (ret)
-+		goto failed_removal;
-+
- 	pfn = start_pfn;
- 	expire = jiffies + timeout;
- 	drain = 0;
-@@ -539,20 +577,24 @@ repeat:
- 	/* reset pagetype flags */
- 	start_isolate_page_range(start_pfn, end_pfn);
- 	/* removal success */
--	zone = page_zone(pfn_to_page(start_pfn));
- 	zone->present_pages -= offlined_pages;
- 	zone->zone_pgdat->node_present_pages -= offlined_pages;
- 	totalram_pages -= offlined_pages;
- 	num_physpages -= offlined_pages;
-+
- 	vm_total_pages = nr_free_pagecache_pages();
- 	writeback_set_ratelimit();
-+
-+	memory_notify(MEM_OFFLINE, &arg);
- 	return 0;
- 
- failed_removal:
- 	printk(KERN_INFO "memory offlining %lx to %lx failed\n",
- 		start_pfn, end_pfn);
-+	memory_notify(MEM_CANCEL_OFFLINE, &arg);
- 	/* pushback to free area */
- 	undo_isolate_page_range(start_pfn, end_pfn);
-+
- 	return ret;
- }
- #else
+ static int slab_memory_callback(struct notifier_block *self,
 _
 
-Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-memory-hotplug-make-description-of-memory-hotplug-notifier-in-document.patch
-memory-hotplug-rearrange-patch-for-notifier-of-memory-hotplug.patch
-memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic.patch
+mm-bdi-init-hooks.patch
+mm-per-device-dirty-threshold.patch
+mm-dirty-balancing-for-tasks.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
+oom-change-all_unreclaimable-zone-member-to-flags.patch
+oom-do-not-take-callback_mutex.patch
+writeback-dont-propagate-aop_writepage_activate.patch
+softlockup-add-a-proc-tuning-parameter.patch
+force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
+driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
+do_sys_poll-simplify-playing-with-on-stack-data.patch
+pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
+add-in-sunos-41x-compatible-mode-for-ufs.patch
+core_pattern-fix-up-a-few-miscellaneous-bugs.patch
+printk-add-interfaces-for-external-access-to-the-log-buffer.patch
+deprecate-aout-elf-interpreters.patch
+ext2-ext3-ext4-add-block-bitmap-validation.patch
+binfmt_flat-warning-fixes.patch
+i2o-fix-defined-but-not-used-build-warnings.patch
+reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch
+tty-expose-new-methods-needed-for-drivers-to-get-termios-right.patch
+userc-ifdef-mq_bytes.patch
+ext3-lighten-up-resize-transaction-requirements.patch
+drivers-char-ip2-fix-used-uninitd-bug.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
+writeback-fix-comment-use-helper-function.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
+writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
+writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
+ext2-reservations.patch
+md-software-raid-autodetect-dev-list-not-array.patch
+pnp-use-dev_info-dev_err-etc-in-core.patch
+security-convert-lsm-into-a-static-interface.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+git-alsa-fixup.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-cifs.patch
+ia64-fix-non-numa-build.patch
+console-keyboard-events-and-accessibility.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-jg-warning-fixes.patch
+git-jg-misc-powernow-fix.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-arm-hack.patch
+git-md-accel-fixup.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd-fixup.patch
+fix-build-breakage-if-sysfs-fix.patch
+qla2xxx-printk-fixes.patch
+advansys-depends-on-virt_to_bus.patch
+git-block-fixup.patch
+sparc-support-for-new-termios.patch
+git-unionfs.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+git-nfs-vs-git-unionfs.patch
+git-v9fs-fixup.patch
+git-watchdog-fixup.patch
+git-wireless.patch
+git-wireless-fixup.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+intel_cacheinfo-misc-section-annotation-fixes.patch
+asm-i386-ioh-fix-constness.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+git-newsetup-fixup.patch
+git-xfs.patch
 memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+pm-qos-infrastructure-and-interface-fix.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+console-events-and-accessibility-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+sync_sb_inodes-propagate-errors.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+reiserfs-fix-up-lockdep-warnings-checkpatch-fixes.patch
+reiserfs-use-is_reusable-to-catch-corruption-checkpatch-fixes.patch
+reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes.patch
+reiserfs-remove-first_zero_hint-checkpatch-fixes.patch
+reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+fix-cpusets-update_cpumask-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+i-oat-tighten-descriptor-setup-performance-fix.patch
+i-oat-add-completion-callback-for-async_tx-interface-use-fix.patch
+i-oat-add-completion-callback-for-async_tx-interface-use-fix-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
