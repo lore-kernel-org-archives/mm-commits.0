@@ -1,227 +1,210 @@
 From: akpm@linux-foundation.org
-Subject: - docs-ramdisk-initrd-initramfs-corrections.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:59:31 -0700
-Message-ID: <200710180659.l9I6xVZb030991@imap1.linux-foundation.org>
+Subject: - cciss-fix-error-reporting-for-sg_io.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:57:26 -0700
+Message-ID: <200710180659.l9I6vQrl030816@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43944 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58758 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758452AbXJRHAM (ORCPT
+	by vger.kernel.org with ESMTP id S1754812AbXJRHAP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:00:12 -0400
+	Thu, 18 Oct 2007 03:00:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, bos@serpentine.com, hpa@zytor.com, jesper.juhl@gmail.com, rob@landley.net, werner@almesberger.net, mm-commits@vger.kernel.org
+To: scameron@quandary.americas.cpqcorp.net, mike.miller@hp.com, steve.cameron@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     docs: ramdisk/initrd/initramfs corrections
+     cciss: fix error reporting for SG_IO
 has been removed from the -mm tree.  Its filename was
-     docs-ramdisk-initrd-initramfs-corrections.patch
+     cciss-fix-error-reporting-for-sg_io.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: docs: ramdisk/initrd/initramfs corrections
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: cciss: fix error reporting for SG_IO
+From: Steve Cameron <scameron@quandary.americas.cpqcorp.net>
 
-initrd/initramfs/ramdisk docs:
-- fix typos/spellos/grammar
-- clarify RAM disk config location
-- correct cpio option
+This fixes a problem with the way cciss was filling out the "errors" field
+of the request structure upon completion of requests.  Previously, it just
+put a 1 or a 0 in there and used the negation of this as the uptodate
+parameter to one of the functions in the block layer, being a block device.
+ For the SG_IO ioctl, this was not sufficient, and we noticed that, for
+example, sg_turs from sg3_utils did not correctly detect problems due to
+cciss having set rq->errors incorrectly.
 
-Acked-by: Bryan O'Sullivan <bos@serpentine.com>
-Acked-by: Rob Landley <rob@landley.net>
-Cc: Werner Almesberger <werner@almesberger.net>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Jesper Juhl <jesper.juhl@gmail.com>
+Signed-off-by: Stephen M. Cameron <steve.cameron@hp.com>
+Acked-by: Mike Miller <mike.miller@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/early-userspace/README                 |    6 +--
- Documentation/filesystems/ramfs-rootfs-initramfs.txt |   14 ++++----
- Documentation/initrd.txt                             |   12 +++----
- Documentation/ramdisk.txt                            |   17 ++++++----
- 4 files changed, 27 insertions(+), 22 deletions(-)
+ drivers/block/cciss.c |   79 ++++++++++++++++++++++++++++++----------
+ 1 file changed, 61 insertions(+), 18 deletions(-)
 
-diff -puN Documentation/early-userspace/README~docs-ramdisk-initrd-initramfs-corrections Documentation/early-userspace/README
---- a/Documentation/early-userspace/README~docs-ramdisk-initrd-initramfs-corrections
-+++ a/Documentation/early-userspace/README
-@@ -19,7 +19,7 @@ It consists of several major infrastruct
- - klibc, a userspace C library, currently packaged separately, that is
-   optimized for correctness and small size.
+diff -puN drivers/block/cciss.c~cciss-fix-error-reporting-for-sg_io drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-fix-error-reporting-for-sg_io
++++ a/drivers/block/cciss.c
+@@ -2365,30 +2365,55 @@ static inline void resend_cciss_cmd(ctlr
+ 	start_io(h);
+ }
  
--The cpio file format used by initramfs is the "newc" (aka "cpio -c")
-+The cpio file format used by initramfs is the "newc" (aka "cpio -H newc")
- format, and is documented in the file "buffer-format.txt".  There are
- two ways to add an early userspace image: specify an existing cpio
- archive to be used as the image or have the kernel build process build
-@@ -44,7 +44,7 @@ The image is specified as one or more so
- CONFIG_INITRAMFS_SOURCE.  Sources can be either directories or files -
- cpio archives are *not* allowed when building from sources.
- 
--A source directory will have it and all of it's contents packaged.  The
-+A source directory will have it and all of its contents packaged.  The
- specified directory name will be mapped to '/'.  When packaging a
- directory, limited user and group ID translation can be performed.
- INITRAMFS_ROOT_UID can be set to a user ID that needs to be mapped to
-@@ -144,7 +144,7 @@ c) using initramfs.  The call to prepare
-    initrd format, an cpio archive.  It must be called "/init".  This binary
-    is responsible to do all the things prepare_namespace() would do.
- 
--   To remain backwards compatibility, the /init binary will only run if it
-+   To maintain backwards compatibility, the /init binary will only run if it
-    comes via an initramfs cpio archive.  If this is not the case,
-    init/main.c:init() will run prepare_namespace() to mount the final root
-    and exec one of the predefined init binaries.
-diff -puN Documentation/filesystems/ramfs-rootfs-initramfs.txt~docs-ramdisk-initrd-initramfs-corrections Documentation/filesystems/ramfs-rootfs-initramfs.txt
---- a/Documentation/filesystems/ramfs-rootfs-initramfs.txt~docs-ramdisk-initrd-initramfs-corrections
-+++ a/Documentation/filesystems/ramfs-rootfs-initramfs.txt
-@@ -8,7 +8,7 @@ What is ramfs?
- 
- Ramfs is a very simple filesystem that exports Linux's disk caching
- mechanisms (the page cache and dentry cache) as a dynamically resizable
--ram-based filesystem.
-+RAM-based filesystem.
- 
- Normally all files are cached in memory by Linux.  Pages of data read from
- backing store (usually the block device the filesystem is mounted on) are kept
-@@ -34,7 +34,7 @@ ramfs and ramdisk:
- ------------------
- 
- The older "ram disk" mechanism created a synthetic block device out of
--an area of ram and used it as backing store for a filesystem.  This block
-+an area of RAM and used it as backing store for a filesystem.  This block
- device was of fixed size, so the filesystem mounted on it was of fixed
- size.  Using a ram disk also required unnecessarily copying memory from the
- fake block device into the page cache (and copying changes back out), as well
-@@ -46,8 +46,8 @@ unnecessary work for the CPU, and pollut
- to avoid this copying by playing with the page tables, but they're unpleasantly
- complicated and turn out to be about as expensive as the copying anyway.)
- More to the point, all the work ramfs is doing has to happen _anyway_,
--since all file access goes through the page and dentry caches.  The ram
--disk is simply unnecessary, ramfs is internally much simpler.
-+since all file access goes through the page and dentry caches.  The RAM
-+disk is simply unnecessary; ramfs is internally much simpler.
- 
- Another reason ramdisks are semi-obsolete is that the introduction of
- loopback devices offered a more flexible and convenient way to create
-@@ -103,7 +103,7 @@ All this differs from the old initrd in 
-     initramfs archive is a gzipped cpio archive (like tar only simpler,
-     see cpio(1) and Documentation/early-userspace/buffer-format.txt).  The
-     kernel's cpio extraction code is not only extremely small, it's also
--    __init data that can be discarded during the boot process.
-+    __init text and data that can be discarded during the boot process.
- 
-   - The program run by the old initrd (which was called /initrd, not /init) did
-     some setup and then returned to the kernel, while the init program from
-@@ -220,7 +220,7 @@ device) but the separate packaging of in
- non-GPL code you'd like to run from initramfs, without conflating it with
- the GPL licensed Linux kernel binary).
- 
--It can also be used to supplement the kernel's built-in initamfs image.  The
-+It can also be used to supplement the kernel's built-in initramfs image.  The
- files in the external archive will overwrite any conflicting files in
- the built-in initramfs archive.  Some distributors also prefer to customize
- a single kernel image with task-specific initramfs images, without recompiling.
-@@ -339,7 +339,7 @@ smooth transition and allowing early boo
- The move to early userspace is necessary because finding and mounting the real
- root device is complex.  Root partitions can span multiple devices (raid or
- separate journal).  They can be out on the network (requiring dhcp, setting a
--specific mac address, logging into a server, etc).  They can live on removable
-+specific MAC address, logging into a server, etc).  They can live on removable
- media, with dynamically allocated major/minor numbers and persistent naming
- issues requiring a full udev implementation to sort out.  They can be
- compressed, encrypted, copy-on-write, loopback mounted, strangely partitioned,
-diff -puN Documentation/initrd.txt~docs-ramdisk-initrd-initramfs-corrections Documentation/initrd.txt
---- a/Documentation/initrd.txt~docs-ramdisk-initrd-initramfs-corrections
-+++ a/Documentation/initrd.txt
-@@ -80,8 +80,8 @@ Compressed cpio images
- ----------------------
- 
- Recent kernels have support for populating a ramdisk from a compressed cpio
--archive, on such systems, the creation of a ramdisk image doesn't need to
--involve special block devices or loopbacks, you merely create a directory on
-+archive. On such systems, the creation of a ramdisk image doesn't need to
-+involve special block devices or loopbacks; you merely create a directory on
- disk with the desired initrd content, cd to that directory, and run (as an
- example):
- 
-@@ -293,7 +293,7 @@ information as small as possible. In thi
- generated with all the necessary modules. Then, only /sbin/init or a file
- read by it would have to be different.
- 
--A third scenario are more convenient recovery disks, because information
-+A third scenario is more convenient recovery disks, because information
- like the location of the root FS partition doesn't have to be provided at
- boot time, but the system loaded from initrd can invoke a user-friendly
- dialog and it can also perform some sanity checks (or even some form of
-@@ -339,8 +339,8 @@ the new, supported mechanism is called "
- Mixed change_root and pivot_root mechanism
- ------------------------------------------
- 
--In case you did not want to use root=/dev/ram0 to trig the pivot_root mechanism,
--you may create both /linuxrc and /sbin/init in your initrd image.
-+In case you did not want to use root=/dev/ram0 to trigger the pivot_root
-+mechanism, you may create both /linuxrc and /sbin/init in your initrd image.
- 
- /linuxrc would contain only the following:
- 
-@@ -350,7 +350,7 @@ echo 0x0100 >/proc/sys/kernel/real-root-
- umount -n /proc
- 
- Once linuxrc exited, the kernel would mount again your initrd as root,
--this time executing /sbin/init. Again, it would be duty of this init
-+this time executing /sbin/init. Again, it would be the duty of this init
- to build the right environment (maybe using the root= device passed on
- the cmdline) before the final execution of the real /sbin/init.
- 
-diff -puN Documentation/ramdisk.txt~docs-ramdisk-initrd-initramfs-corrections Documentation/ramdisk.txt
---- a/Documentation/ramdisk.txt~docs-ramdisk-initrd-initramfs-corrections
-+++ a/Documentation/ramdisk.txt
-@@ -22,16 +22,21 @@ The RAM disk dynamically grows as more s
- RAM from the buffer cache. The driver marks the buffers it is using as dirty
- so that the VM subsystem does not try to reclaim them later.
- 
--Also, the RAM disk supports up to 16 RAM disks out of the box, and can
--be reconfigured to support up to 255 RAM disks - change "#define NUM_RAMDISKS"
--in drivers/block/rd.c.  To use RAM disk support with your system, run
--'./MAKEDEV ram' from the /dev directory.  RAM disks are all major number 1, and
--start with minor number 0 for /dev/ram0, etc.  If used, modern kernels use
--/dev/ram0 for an initrd.
-+The RAM disk supports up to 16 RAM disks by default, and can be reconfigured
-+to support an unlimited number of RAM disks (at your own risk).  Just change
-+the configuration symbol BLK_DEV_RAM_COUNT in the Block drivers config menu
-+and (re)build the kernel.
++static inline unsigned int make_status_bytes(unsigned int scsi_status_byte,
++	unsigned int msg_byte, unsigned int host_byte,
++	unsigned int driver_byte)
++{
++	/* inverse of macros in scsi.h */
++	return (scsi_status_byte & 0xff) |
++		((msg_byte & 0xff) << 8) |
++		((host_byte & 0xff) << 16) |
++		((driver_byte & 0xff) << 24);
++}
 +
-+To use RAM disk support with your system, run './MAKEDEV ram' from the /dev
-+directory.  RAM disks are all major number 1, and start with minor number 0
-+for /dev/ram0, etc.  If used, modern kernels use /dev/ram0 for an initrd.
+ static inline int evaluate_target_status(CommandList_struct *cmd)
+ {
+ 	unsigned char sense_key;
+-	int error_count = 1;
++	unsigned char status_byte, msg_byte, host_byte, driver_byte;
++	int error_value;
++
++	/* If we get in here, it means we got "target status", that is, scsi status */
++	status_byte = cmd->err_info->ScsiStatus;
++	driver_byte = DRIVER_OK;
++	msg_byte = cmd->err_info->CommandStatus; /* correct?  seems too device specific */
++
++	if (blk_pc_request(cmd->rq))
++		host_byte = DID_PASSTHROUGH;
++	else
++		host_byte = DID_OK;
++
++	error_value = make_status_bytes(status_byte, msg_byte,
++		host_byte, driver_byte);
  
- The old "ramdisk=<ram_size>" has been changed to "ramdisk_size=<ram_size>" to
- make it clearer.  The original "ramdisk=<ram_size>" has been kept around for
- compatibility reasons, but it may be removed in the future.
-+There are also config symbols (in the Block drivers config menu) for these
-+variables:  BLK_DEV_RAM_SIZE defaults to 4096 and BLK_DEV_RAM_BLOCKSIZE
-+defaults to 1024.
+-	if (cmd->err_info->ScsiStatus != 0x02) { /* not check condition? */
++	if (cmd->err_info->ScsiStatus != SAM_STAT_CHECK_CONDITION) {
+ 		if (!blk_pc_request(cmd->rq))
+ 			printk(KERN_WARNING "cciss: cmd %p "
+ 			       "has SCSI Status 0x%x\n",
+ 			       cmd, cmd->err_info->ScsiStatus);
+-		return error_count;
++		return error_value;
+ 	}
  
- The new RAM disk also has the ability to load compressed RAM disk images,
- allowing one to squeeze more programs onto an average installation or
+ 	/* check the sense key */
+ 	sense_key = 0xf & cmd->err_info->SenseInfo[2];
+ 	/* no status or recovered error */
+-	if ((sense_key == 0x0) || (sense_key == 0x1))
+-		error_count = 0;
++	if (((sense_key == 0x0) || (sense_key == 0x1)) && !blk_pc_request(cmd->rq))
++		error_value = 0;
+ 
+ 	if (!blk_pc_request(cmd->rq)) { /* Not SG_IO or similar? */
+-		if (error_count != 0)
++		if (error_value != 0)
+ 			printk(KERN_WARNING "cciss: cmd %p has CHECK CONDITION"
+ 			       " sense key = 0x%x\n", cmd, sense_key);
+-		return error_count;
++		return error_value;
+ 	}
+ 
+ 	/* SG_IO or similar, copy sense data back */
+@@ -2400,7 +2425,7 @@ static inline int evaluate_target_status
+ 	} else
+ 		cmd->rq->sense_len = 0;
+ 
+-	return error_count;
++	return error_value;
+ }
+ 
+ /* checks the status of the job and calls complete buffers to mark all
+@@ -2416,7 +2441,7 @@ static inline void complete_command(ctlr
+ 	rq->errors = 0;
+ 
+ 	if (timeout)
+-		rq->errors = 1;
++		rq->errors = make_status_bytes(0, 0, 0, DRIVER_TIMEOUT);
+ 
+ 	if (cmd->err_info->CommandStatus == 0)	/* no error has occurred */
+ 		goto after_error_processing;
+@@ -2442,32 +2467,44 @@ static inline void complete_command(ctlr
+ 	case CMD_INVALID:
+ 		printk(KERN_WARNING "cciss: cmd %p is "
+ 		       "reported invalid\n", cmd);
+-		rq->errors = 1;
++		rq->errors = make_status_bytes(SAM_STAT_GOOD,
++			cmd->err_info->CommandStatus, DRIVER_OK,
++			blk_pc_request(cmd->rq) ? DID_PASSTHROUGH : DID_ERROR);
+ 		break;
+ 	case CMD_PROTOCOL_ERR:
+ 		printk(KERN_WARNING "cciss: cmd %p has "
+ 		       "protocol error \n", cmd);
+-		rq->errors = 1;
++		rq->errors = make_status_bytes(SAM_STAT_GOOD,
++			cmd->err_info->CommandStatus, DRIVER_OK,
++			blk_pc_request(cmd->rq) ? DID_PASSTHROUGH : DID_ERROR);
+ 		break;
+ 	case CMD_HARDWARE_ERR:
+ 		printk(KERN_WARNING "cciss: cmd %p had "
+ 		       " hardware error\n", cmd);
+-		rq->errors = 1;
++		rq->errors = make_status_bytes(SAM_STAT_GOOD,
++			cmd->err_info->CommandStatus, DRIVER_OK,
++			blk_pc_request(cmd->rq) ? DID_PASSTHROUGH : DID_ERROR);
+ 		break;
+ 	case CMD_CONNECTION_LOST:
+ 		printk(KERN_WARNING "cciss: cmd %p had "
+ 		       "connection lost\n", cmd);
+-		rq->errors = 1;
++		rq->errors = make_status_bytes(SAM_STAT_GOOD,
++			cmd->err_info->CommandStatus, DRIVER_OK,
++			blk_pc_request(cmd->rq) ? DID_PASSTHROUGH : DID_ERROR);
+ 		break;
+ 	case CMD_ABORTED:
+ 		printk(KERN_WARNING "cciss: cmd %p was "
+ 		       "aborted\n", cmd);
+-		rq->errors = 1;
++		rq->errors = make_status_bytes(SAM_STAT_GOOD,
++			cmd->err_info->CommandStatus, DRIVER_OK,
++			blk_pc_request(cmd->rq) ? DID_PASSTHROUGH : DID_ABORT);
+ 		break;
+ 	case CMD_ABORT_FAILED:
+ 		printk(KERN_WARNING "cciss: cmd %p reports "
+ 		       "abort failed\n", cmd);
+-		rq->errors = 1;
++		rq->errors = make_status_bytes(SAM_STAT_GOOD,
++			cmd->err_info->CommandStatus, DRIVER_OK,
++			blk_pc_request(cmd->rq) ? DID_PASSTHROUGH : DID_ERROR);
+ 		break;
+ 	case CMD_UNSOLICITED_ABORT:
+ 		printk(KERN_WARNING "cciss%d: unsolicited "
+@@ -2481,17 +2518,23 @@ static inline void complete_command(ctlr
+ 			printk(KERN_WARNING
+ 			       "cciss%d: %p retried too "
+ 			       "many times\n", h->ctlr, cmd);
+-		rq->errors = 1;
++		rq->errors = make_status_bytes(SAM_STAT_GOOD,
++			cmd->err_info->CommandStatus, DRIVER_OK,
++			blk_pc_request(cmd->rq) ? DID_PASSTHROUGH : DID_ABORT);
+ 		break;
+ 	case CMD_TIMEOUT:
+ 		printk(KERN_WARNING "cciss: cmd %p timedout\n", cmd);
+-		rq->errors = 1;
++		rq->errors = make_status_bytes(SAM_STAT_GOOD,
++			cmd->err_info->CommandStatus, DRIVER_OK,
++			blk_pc_request(cmd->rq) ? DID_PASSTHROUGH : DID_ERROR);
+ 		break;
+ 	default:
+ 		printk(KERN_WARNING "cciss: cmd %p returned "
+ 		       "unknown status %x\n", cmd,
+ 		       cmd->err_info->CommandStatus);
+-		rq->errors = 1;
++		rq->errors = make_status_bytes(SAM_STAT_GOOD,
++			cmd->err_info->CommandStatus, DRIVER_OK,
++			blk_pc_request(cmd->rq) ? DID_PASSTHROUGH : DID_ERROR);
+ 	}
+ 
+ after_error_processing:
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from scameron@quandary.americas.cpqcorp.net are
 
 origin.patch
-git-acpi.patch
-fix-auditscc-kernel-doc.patch
-comment-typo-in-scripts-kconfig-makefile.patch
-git-unionfs.patch
-git-watchdog.patch
-git-ipwireless_cs.patch
-hook-up-group-scheduler-with-control-groups.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
-add-samples-subdir.patch
-i-oat-cleanup-pci-issues.patch
-profile-likely-unlikely-macros.patch
