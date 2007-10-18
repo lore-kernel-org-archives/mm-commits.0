@@ -1,171 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-show-all-mount-options.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:53:55 -0700
-Message-ID: <200710180653.l9I6rtA3030480@imap1.linux-foundation.org>
+Subject: - add-reset_devices-to-the-recommended-parameters.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:04:36 -0700
+Message-ID: <200710180704.l9I74avV031566@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52528 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49414 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761058AbXJRHlN (ORCPT
+	by vger.kernel.org with ESMTP id S1761302AbXJRHlZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:41:13 -0400
+	Thu, 18 Oct 2007 03:41:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: bwalle@suse.de, ebiederm@xmission.com, hbabu@us.ibm.com, rdunlap@xenotime.net, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: show all mount options
+     Add reset_devices to the recommended parameters
 has been removed from the -mm tree.  Its filename was
-     ext3-show-all-mount-options.patch
+     add-reset_devices-to-the-recommended-parameters.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ext3: show all mount options
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: Add reset_devices to the recommended parameters
+From: Bernhard Walle <bwalle@suse.de>
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: <linux-ext4@vger.kernel.org>
+This patch adds the "reset_devices" option (that's used only by one device
+driver for now) to the recommended list of command line parameters for kdump.
+
+Meaning (Documentation/kernel-parameters.txt):
+    reset_devices   [KNL] Force drivers to reset the underlying device
+                    during initialization.
+
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Haren Myneni <hbabu@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/super.c            |   70 +++++++++++++++++++++++++++++++++++
- include/linux/ext3_fs_sb.h |    1 
- 2 files changed, 71 insertions(+)
+ Documentation/kdump/kdump.txt |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ext3/super.c~ext3-show-all-mount-options fs/ext3/super.c
---- a/fs/ext3/super.c~ext3-show-all-mount-options
-+++ a/fs/ext3/super.c
-@@ -545,9 +545,78 @@ static inline void ext3_show_quota_optio
- #endif
- }
+diff -puN Documentation/kdump/kdump.txt~add-reset_devices-to-the-recommended-parameters Documentation/kdump/kdump.txt
+--- a/Documentation/kdump/kdump.txt~add-reset_devices-to-the-recommended-parameters
++++ a/Documentation/kdump/kdump.txt
+@@ -292,10 +292,10 @@ Following are the arch specific command 
+ loading dump-capture kernel.
  
-+/*
-+ * Show an option if
-+ *  - it's set to a non-default value OR
-+ *  - if the per-sb default is different from the global default
-+ */
- static int ext3_show_options(struct seq_file *seq, struct vfsmount *vfs)
- {
- 	struct super_block *sb = vfs->mnt_sb;
-+	struct ext3_sb_info *sbi = EXT3_SB(sb);
-+	struct ext3_super_block *es = sbi->s_es;
-+	unsigned long def_mount_opts;
-+
-+	def_mount_opts = le32_to_cpu(es->s_default_mount_opts);
-+
-+	if (sbi->s_sb_block != 1)
-+		seq_printf(seq, ",sb=%lu", sbi->s_sb_block);
-+	if (test_opt(sb, MINIX_DF))
-+		seq_puts(seq, ",minixdf");
-+	if (test_opt(sb, GRPID))
-+		seq_puts(seq, ",grpid");
-+	if (!test_opt(sb, GRPID) && (def_mount_opts & EXT3_DEFM_BSDGROUPS))
-+		seq_puts(seq, ",nogrpid");
-+	if (sbi->s_resuid != EXT3_DEF_RESUID ||
-+	    le16_to_cpu(es->s_def_resuid) != EXT3_DEF_RESUID) {
-+		seq_printf(seq, ",resuid=%u", sbi->s_resuid);
-+	}
-+	if (sbi->s_resgid != EXT3_DEF_RESGID ||
-+	    le16_to_cpu(es->s_def_resgid) != EXT3_DEF_RESGID) {
-+		seq_printf(seq, ",resgid=%u", sbi->s_resgid);
-+	}
-+	if (test_opt(sb, ERRORS_CONT)) {
-+		int def_errors = le16_to_cpu(es->s_errors);
-+
-+		if (def_errors == EXT3_ERRORS_PANIC ||
-+		    def_errors == EXT3_ERRORS_RO) {
-+			seq_puts(seq, ",errors=continue");
-+		}
-+	}
-+	if (test_opt(sb, ERRORS_RO))
-+		seq_puts(seq, ",errors=remount-ro");
-+	if (test_opt(sb, ERRORS_PANIC))
-+		seq_puts(seq, ",errors=panic");
-+	if (test_opt(sb, NO_UID32))
-+		seq_puts(seq, ",nouid32");
-+	if (test_opt(sb, DEBUG))
-+		seq_puts(seq, ",debug");
-+	if (test_opt(sb, OLDALLOC))
-+		seq_puts(seq, ",oldalloc");
-+#ifdef CONFIG_EXT3_FS_XATTR
-+	if (test_opt(sb, XATTR_USER))
-+		seq_puts(seq, ",user_xattr");
-+	if (!test_opt(sb, XATTR_USER) &&
-+	    (def_mount_opts & EXT3_DEFM_XATTR_USER)) {
-+		seq_puts(seq, ",nouser_xattr");
-+	}
-+#endif
-+#ifdef CONFIG_EXT3_FS_POSIX_ACL
-+	if (test_opt(sb, POSIX_ACL))
-+		seq_puts(seq, ",acl");
-+	if (!test_opt(sb, POSIX_ACL) && (def_mount_opts & EXT3_DEFM_ACL))
-+		seq_puts(seq, ",noacl");
-+#endif
-+	if (!test_opt(sb, RESERVATION))
-+		seq_puts(seq, ",noreservation");
-+	if (sbi->s_commit_interval) {
-+		seq_printf(seq, ",commit=%u",
-+			   (unsigned) (sbi->s_commit_interval / HZ));
-+	}
-+	if (test_opt(sb, BARRIER))
-+		seq_puts(seq, ",barrier=1");
-+	if (test_opt(sb, NOBH))
-+		seq_puts(seq, ",nobh");
+ For i386, x86_64 and ia64:
+-	"1 irqpoll maxcpus=1"
++	"1 irqpoll maxcpus=1 reset_devices"
  
- 	if (test_opt(sb, DATA_FLAGS) == EXT3_MOUNT_JOURNAL_DATA)
- 		seq_puts(seq, ",data=journal");
-@@ -1425,6 +1494,7 @@ static int ext3_fill_super (struct super
- 	sbi->s_mount_opt = 0;
- 	sbi->s_resuid = EXT3_DEF_RESUID;
- 	sbi->s_resgid = EXT3_DEF_RESGID;
-+	sbi->s_sb_block = sb_block;
+ For ppc64:
+-	"1 maxcpus=1 noirqdistrib"
++	"1 maxcpus=1 noirqdistrib reset_devices"
  
- 	unlock_kernel();
  
-diff -puN include/linux/ext3_fs_sb.h~ext3-show-all-mount-options include/linux/ext3_fs_sb.h
---- a/include/linux/ext3_fs_sb.h~ext3-show-all-mount-options
-+++ a/include/linux/ext3_fs_sb.h
-@@ -44,6 +44,7 @@ struct ext3_sb_info {
- 	struct ext3_super_block * s_es;	/* Pointer to the super block in the buffer */
- 	struct buffer_head ** s_group_desc;
- 	unsigned long  s_mount_opt;
-+	ext3_fsblk_t s_sb_block;
- 	uid_t s_resuid;
- 	gid_t s_resgid;
- 	unsigned short s_mount_state;
+ Notes on loading the dump-capture kernel:
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from bwalle@suse.de are
 
 origin.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
-unprivileged-mounts-add-no-submounts-flag.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
-fuse-fix-allowing-operations.patch
-fuse-fix-race-between-getattr-and-write.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
-fuse-clean-up-open-file-passing-in-setattr.patch
-vfs-allow-filesystems-to-implement-atomic-opentruncate.patch
-fuse-improve-utimes-support.patch
-fuse-add-atomic-opentruncate-support.patch
-fuse-support-bsd-locking-semantics.patch
-fuse-add-list-of-writable-files-to-fuse_inode.patch
-fuse-add-helper-for-asynchronous-writes.patch
-fuse-add-support-for-mandatory-locking.patch
-fuse-add-blksize-field-to-fuse_attr.patch
+extended-crashkernel-command-line.patch
+extended-crashkernel-command-line-update.patch
+extended-crashkernel-command-line-comment-fix.patch
+extended-crashkernel-command-line-improve-error-handling-in-parse_crashkernel_mem.patch
+use-extended-crashkernel-command-line-on-i386.patch
+use-extended-crashkernel-command-line-on-i386-update.patch
+use-extended-crashkernel-command-line-on-x86_64.patch
+use-extended-crashkernel-command-line-on-x86_64-update.patch
+use-extended-crashkernel-command-line-on-ia64.patch
+use-extended-crashkernel-command-line-on-ia64-fix.patch
+use-extended-crashkernel-command-line-on-ia64-update.patch
+use-extended-crashkernel-command-line-on-ppc64.patch
+use-extended-crashkernel-command-line-on-ppc64-update.patch
+use-extended-crashkernel-command-line-on-sh.patch
+use-extended-crashkernel-command-line-on-sh-update.patch
+add-documentation-for-extended-crashkernel-syntax.patch
+add-documentation-for-extended-crashkernel-syntax-add-extended-crashkernel-syntax-to-kernel-parameterstxt.patch
