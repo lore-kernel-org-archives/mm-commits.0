@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 17 Oct 2007 17:57:01 -0700
-Message-ID: <200710180057.l9I0v1Md016910@imap1.linux-foundation.org>
+Date: Wed, 17 Oct 2007 17:57:33 -0700
+Message-ID: <200710180057.l9I0vYZk017014@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56682 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54233 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933349AbXJRA54 (ORCPT
+	by vger.kernel.org with ESMTP id S933511AbXJRA57 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Oct 2007 20:57:56 -0400
+	Wed, 17 Oct 2007 20:57:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -72,7 +72,7 @@ diff -puN security/commoncap.c~capabilities-clean-up-file-capability-reading-che
 -		bprm->cap_permitted = to_cap_t( le32_to_cpu(caps->permitted) );
 -		bprm->cap_inheritable = to_cap_t( le32_to_cpu(caps->inheritable) );
 +		bprm->cap_permitted = to_cap_t(le32_to_cpu(caps->permitted));
-+		bprm->cap_inheritable = to_cap_t(le32_to_cpu(caps->inheritable) );
++		bprm->cap_inheritable = to_cap_t(le32_to_cpu(caps->inheritable));
  		return 0;
  	default:
  		return -EINVAL;
