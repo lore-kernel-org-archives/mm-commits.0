@@ -1,123 +1,195 @@
 From: akpm@linux-foundation.org
-Subject: - wait_task_stopped-continued-remove-unneeded-p-signal-=-null-check.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:55:40 -0700
-Message-ID: <200710180655.l9I6tesn030633@imap1.linux-foundation.org>
+Subject: - add-mmf_dump_elf_headers.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:55:44 -0700
+Message-ID: <200710180655.l9I6tiXo030639@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56081 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52160 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757571AbXJRH0k (ORCPT
+	by vger.kernel.org with ESMTP id S1758145AbXJRH0o (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:26:40 -0400
+	Thu, 18 Oct 2007 03:26:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: roland@redhat.com, hidehiro.kawai.ez@hitachi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     wait_task_stopped/continued: remove unneeded p->signal != NULL check
+     Add MMF_DUMP_ELF_HEADERS
 has been removed from the -mm tree.  Its filename was
-     wait_task_stopped-continued-remove-unneeded-p-signal-=-null-check.patch
+     add-mmf_dump_elf_headers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: wait_task_stopped/continued: remove unneeded p->signal != NULL check
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: Add MMF_DUMP_ELF_HEADERS
+From: Roland McGrath <roland@redhat.com>
 
-The child was found on ->children list under tasklist_lock, it must have a
-valid ->signal. __exit_signal() both removes the task from parent->children
-and clears ->signal "atomically" under write_lock(tasklist).
+This adds the MMF_DUMP_ELF_HEADERS option to /proc/pid/coredump_filter. 
+This dumps the first page (only) of a private file mapping if it appears to
+be a mapping of an ELF file.  Including these pages in the core dump may
+give sufficient identifying information to associate the original DSO and
+executable file images and their debugging information with a core file in
+a generic way just from its contents (e.g.  when those binaries were built
+with ld --build-id).  I expect this to become the default behavior
+eventually.  Existing versions of gdb can be confused by the core dumps it
+creates, so it won't enabled by default for some time to come.  Soon many
+people will have systems with a gdb that handle these dumps, so they can
+arrange to set the bit at boot and have it inherited system-wide.
 
-Remove unneeded checks.
+This also cleans up the checking of the MMF_DUMP_* flag bits, which did not
+need to be using atomic macros.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Roland McGrath <roland@redhat.com>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ fs/binfmt_elf.c       |   78 +++++++++++++++++++++++++++-------------
+ include/linux/sched.h |    3 +
+ 2 files changed, 55 insertions(+), 26 deletions(-)
 
-diff -puN kernel/exit.c~wait_task_stopped-continued-remove-unneeded-p-signal-=-null-check kernel/exit.c
---- a/kernel/exit.c~wait_task_stopped-continued-remove-unneeded-p-signal-=-null-check
-+++ a/kernel/exit.c
-@@ -1322,7 +1322,7 @@ static int wait_task_stopped(struct task
- 	if (!p->exit_code)
- 		return 0;
- 	if (delayed_group_leader && !(p->ptrace & PT_PTRACED) &&
--	    p->signal && p->signal->group_stop_count > 0)
-+	    p->signal->group_stop_count > 0)
- 		/*
- 		 * A group stop is in progress and this is the group leader.
- 		 * We won't report until all threads have stopped.
-@@ -1436,9 +1436,6 @@ static int wait_task_continued(struct ta
- 	pid_t pid;
- 	uid_t uid;
+diff -puN fs/binfmt_elf.c~add-mmf_dump_elf_headers fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~add-mmf_dump_elf_headers
++++ a/fs/binfmt_elf.c
+@@ -1201,35 +1201,68 @@ static int dump_seek(struct file *file, 
+ }
  
--	if (unlikely(!p->signal))
--		return 0;
+ /*
+- * Decide whether a segment is worth dumping; default is yes to be
+- * sure (missing info is worse than too much; etc).
+- * Personally I'd include everything, and use the coredump limit...
+- *
+- * I think we should skip something. But I am not sure how. H.J.
++ * Decide what to dump of a segment, part, all or none.
+  */
+-static int maydump(struct vm_area_struct *vma, unsigned long mm_flags)
++static unsigned long vma_dump_size(struct vm_area_struct *vma,
++				   unsigned long mm_flags)
+ {
+ 	/* The vma can be set up to tell us the answer directly.  */
+ 	if (vma->vm_flags & VM_ALWAYSDUMP)
+-		return 1;
++		goto whole;
+ 
+ 	/* Do not dump I/O mapped devices or special mappings */
+ 	if (vma->vm_flags & (VM_IO | VM_RESERVED))
+ 		return 0;
+ 
++#define FILTER(type)	(mm_flags & (1UL << MMF_DUMP_##type))
++
+ 	/* By default, dump shared memory if mapped from an anonymous file. */
+ 	if (vma->vm_flags & VM_SHARED) {
+-		if (vma->vm_file->f_path.dentry->d_inode->i_nlink == 0)
+-			return test_bit(MMF_DUMP_ANON_SHARED, &mm_flags);
+-		else
+-			return test_bit(MMF_DUMP_MAPPED_SHARED, &mm_flags);
++		if (vma->vm_file->f_path.dentry->d_inode->i_nlink == 0 ?
++		    FILTER(ANON_SHARED) : FILTER(MAPPED_SHARED))
++			goto whole;
++		return 0;
+ 	}
+ 
+-	/* By default, if it hasn't been written to, don't write it out. */
+-	if (!vma->anon_vma)
+-		return test_bit(MMF_DUMP_MAPPED_PRIVATE, &mm_flags);
++	/* Dump segments that have been written to.  */
++	if (vma->anon_vma && FILTER(ANON_PRIVATE))
++		goto whole;
++	if (vma->vm_file == NULL)
++		return 0;
++
++	if (FILTER(MAPPED_PRIVATE))
++		goto whole;
+ 
+-	return test_bit(MMF_DUMP_ANON_PRIVATE, &mm_flags);
++	/*
++	 * If this looks like the beginning of a DSO or executable mapping,
++	 * check for an ELF header.  If we find one, dump the first page to
++	 * aid in determining what was mapped here.
++	 */
++	if (FILTER(ELF_HEADERS) && vma->vm_file != NULL && vma->vm_pgoff == 0) {
++		u32 __user *header = (u32 __user *) vma->vm_start;
++		u32 word;
++		/*
++		 * Doing it this way gets the constant folded by GCC.
++		 */
++		union {
++			u32 cmp;
++			char elfmag[SELFMAG];
++		} magic;
++		BUILD_BUG_ON(SELFMAG != sizeof word);
++		magic.elfmag[EI_MAG0] = ELFMAG0;
++		magic.elfmag[EI_MAG1] = ELFMAG1;
++		magic.elfmag[EI_MAG2] = ELFMAG2;
++		magic.elfmag[EI_MAG3] = ELFMAG3;
++		if (get_user(word, header) == 0 && word == magic.cmp)
++			return PAGE_SIZE;
++	}
++
++#undef	FILTER
++
++	return 0;
++
++whole:
++	return vma->vm_end - vma->vm_start;
+ }
+ 
+ /* An ELF note in memory */
+@@ -1669,16 +1702,13 @@ static int elf_core_dump(long signr, str
+ 	for (vma = first_vma(current, gate_vma); vma != NULL;
+ 			vma = next_vma(vma, gate_vma)) {
+ 		struct elf_phdr phdr;
+-		size_t sz;
 -
- 	if (!(p->signal->flags & SIGNAL_STOP_CONTINUED))
- 		return 0;
+-		sz = vma->vm_end - vma->vm_start;
  
+ 		phdr.p_type = PT_LOAD;
+ 		phdr.p_offset = offset;
+ 		phdr.p_vaddr = vma->vm_start;
+ 		phdr.p_paddr = 0;
+-		phdr.p_filesz = maydump(vma, mm_flags) ? sz : 0;
+-		phdr.p_memsz = sz;
++		phdr.p_filesz = vma_dump_size(vma, mm_flags);
++		phdr.p_memsz = vma->vm_end - vma->vm_start;
+ 		offset += phdr.p_filesz;
+ 		phdr.p_flags = vma->vm_flags & VM_READ ? PF_R : 0;
+ 		if (vma->vm_flags & VM_WRITE)
+@@ -1718,13 +1748,11 @@ static int elf_core_dump(long signr, str
+ 	for (vma = first_vma(current, gate_vma); vma != NULL;
+ 			vma = next_vma(vma, gate_vma)) {
+ 		unsigned long addr;
++		unsigned long end;
+ 
+-		if (!maydump(vma, mm_flags))
+-			continue;
++		end = vma->vm_start + vma_dump_size(vma, mm_flags);
+ 
+-		for (addr = vma->vm_start;
+-		     addr < vma->vm_end;
+-		     addr += PAGE_SIZE) {
++		for (addr = vma->vm_start; addr < end; addr += PAGE_SIZE) {
+ 			struct page *page;
+ 			struct vm_area_struct *vma;
+ 
+diff -puN include/linux/sched.h~add-mmf_dump_elf_headers include/linux/sched.h
+--- a/include/linux/sched.h~add-mmf_dump_elf_headers
++++ a/include/linux/sched.h
+@@ -359,8 +359,9 @@ extern int get_dumpable(struct mm_struct
+ #define MMF_DUMP_ANON_SHARED	3
+ #define MMF_DUMP_MAPPED_PRIVATE	4
+ #define MMF_DUMP_MAPPED_SHARED	5
++#define MMF_DUMP_ELF_HEADERS	6
+ #define MMF_DUMP_FILTER_SHIFT	MMF_DUMPABLE_BITS
+-#define MMF_DUMP_FILTER_BITS	4
++#define MMF_DUMP_FILTER_BITS	5
+ #define MMF_DUMP_FILTER_MASK \
+ 	(((1 << MMF_DUMP_FILTER_BITS) - 1) << MMF_DUMP_FILTER_SHIFT)
+ #define MMF_DUMP_FILTER_DEFAULT \
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from roland@redhat.com are
 
 origin.patch
-git-x86.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
-cpu-hotplug-topology-remove-topology_dev_map.patch
-cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
-make-access-to-tasks-nsproxy-lighter.patch
-make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
-make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
-workqueue-debug-flushing-deadlocks-with-lockdep.patch
-workqueue-debug-work-related-deadlocks-with-lockdep.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-merge-fix.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-uninline-find_task_by_xxx-set-of-functions.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
-uninline-find_pid-etc-set-of-functions.patch
-uninline-the-task_xid_nr_ns-calls.patch
-proc-export-a-processes-resource-limits-via-proc-pid.patch
+x86_64-use-linux-elfcore-compath.patch
 fix-tsk-exit_state-usage-resend.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-whitespace-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
