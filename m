@@ -1,54 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-sys_nic-add-dummy-sys_ni_syscall-prototype.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:59:19 -0700
-Message-ID: <200710180659.l9I6xJTt030973@imap1.linux-foundation.org>
+Subject: - make-kernel-profilectime_hook-static.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:59:21 -0700
+Message-ID: <200710180659.l9I6xLWV030976@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40489 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55378 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754508AbXJRG7e (ORCPT
+	by vger.kernel.org with ESMTP id S1755080AbXJRG7f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 02:59:34 -0400
+	Thu, 18 Oct 2007 02:59:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/sys_ni.c: add dummy sys_ni_syscall() prototype
+     make kernel/profile.c:time_hook static
 has been removed from the -mm tree.  Its filename was
-     kernel-sys_nic-add-dummy-sys_ni_syscall-prototype.patch
+     make-kernel-profilectime_hook-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kernel/sys_ni.c: add dummy sys_ni_syscall() prototype
+Subject: make kernel/profile.c:time_hook static
 From: Adrian Bunk <bunk@kernel.org>
 
-kernel/sys_ni.c can't #include <linux/syscalls.h> due to cond_syscall(),
-but let's tell gcc to not warn with -Wmissing-prototypes.
+{,un}register_timer_hook() is the API that should be used.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys_ni.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/profile.h |    3 ---
+ kernel/profile.c        |    2 +-
+ 2 files changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN kernel/sys_ni.c~kernel-sys_nic-add-dummy-sys_ni_syscall-prototype kernel/sys_ni.c
---- a/kernel/sys_ni.c~kernel-sys_nic-add-dummy-sys_ni_syscall-prototype
-+++ a/kernel/sys_ni.c
-@@ -4,6 +4,10 @@
+diff -puN include/linux/profile.h~make-kernel-profilectime_hook-static include/linux/profile.h
+--- a/include/linux/profile.h~make-kernel-profilectime_hook-static
++++ a/include/linux/profile.h
+@@ -78,9 +78,6 @@ int profile_event_unregister(enum profil
+ int register_timer_hook(int (*hook)(struct pt_regs *));
+ void unregister_timer_hook(int (*hook)(struct pt_regs *));
  
- #include <asm/unistd.h>
+-/* Timer based profiling hook */
+-extern int (*timer_hook)(struct pt_regs *);
+-
+ struct pt_regs;
  
-+/*  we can't #include <linux/syscalls.h> here,
-+    but tell gcc to not warn with -Wmissing-prototypes  */
-+asmlinkage long sys_ni_syscall(void);
-+
- /*
-  * Non-implemented system calls get redirected here.
-  */
+ #else
+diff -puN kernel/profile.c~make-kernel-profilectime_hook-static kernel/profile.c
+--- a/kernel/profile.c~make-kernel-profilectime_hook-static
++++ a/kernel/profile.c
+@@ -37,7 +37,7 @@ struct profile_hit {
+ #define NR_PROFILE_GRP		(NR_PROFILE_HIT/PROFILE_GRPSZ)
+ 
+ /* Oprofile timer tick hook */
+-int (*timer_hook)(struct pt_regs *) __read_mostly;
++static int (*timer_hook)(struct pt_regs *) __read_mostly;
+ 
+ static atomic_t *prof_buffer;
+ static unsigned long prof_len, prof_shift;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
