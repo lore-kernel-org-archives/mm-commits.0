@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-random-hard-freeze-with-avm-cards-using-b1dma.patch added to -mm tree
-Date: Thu, 18 Oct 2007 14:13:23 -0700
-Message-ID: <200710182113.l9ILDNwh031450@imap1.linux-foundation.org>
+Subject: + fix-random-hard-freeze-with-avm-cards-using-b1dma-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 18 Oct 2007 14:14:02 -0700
+Message-ID: <200710182114.l9ILE3RY031478@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41770 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56577 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758624AbXJRVN5 (ORCPT
+	by vger.kernel.org with ESMTP id S1755459AbXJRVOe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 17:13:57 -0400
+	Thu, 18 Oct 2007 17:14:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kkeil@suse.de
+Cc: akpm@linux-foundation.org, kkeil@suse.de
 
 
 The patch titled
-     isdn: fix random hard freeze with AVM cards using b1dma
+     fix-random-hard-freeze-with-avm-cards-using-b1dma-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     fix-random-hard-freeze-with-avm-cards-using-b1dma.patch
+     fix-random-hard-freeze-with-avm-cards-using-b1dma-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,111 +26,157 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: isdn: fix random hard freeze with AVM cards using b1dma
-From: Karsten Keil <kkeil@suse.de>
+Subject: fix-random-hard-freeze-with-avm-cards-using-b1dma-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This fixes the hard freeze debugded for AVM C4 cards using the b1dma
-interface.
+ERROR: use tabs not spaces
+#88: FILE: drivers/isdn/hardware/avm/b1dma.c:842:
++ ^I^Iunsigned long flags;$
 
-Signed-off-by: Karsten Keil <kkeil@suse.de>
+total: 1 errors, 0 warnings, 76 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hardware/avm/b1dma.c |   28 +++++++++++++++++++---------
- 1 file changed, 19 insertions(+), 9 deletions(-)
+ drivers/isdn/hardware/avm/b1dma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/isdn/hardware/avm/b1dma.c~fix-random-hard-freeze-with-avm-cards-using-b1dma drivers/isdn/hardware/avm/b1dma.c
---- a/drivers/isdn/hardware/avm/b1dma.c~fix-random-hard-freeze-with-avm-cards-using-b1dma
+diff -puN drivers/isdn/hardware/avm/b1dma.c~fix-random-hard-freeze-with-avm-cards-using-b1dma-checkpatch-fixes drivers/isdn/hardware/avm/b1dma.c
+--- a/drivers/isdn/hardware/avm/b1dma.c~fix-random-hard-freeze-with-avm-cards-using-b1dma-checkpatch-fixes
 +++ a/drivers/isdn/hardware/avm/b1dma.c
-@@ -486,11 +486,13 @@ static void b1dma_handle_rx(avmcard *car
- 					card->name);
- 		} else {
- 			memcpy(skb_put(skb, MsgLen), card->msgbuf, MsgLen);
--			if (CAPIMSG_CMD(skb->data) == CAPI_DATA_B3_CONF)
-+			if (CAPIMSG_CMD(skb->data) == CAPI_DATA_B3_CONF) {
-+				spin_lock(&card->lock);
- 				capilib_data_b3_conf(&cinfo->ncci_head, ApplId,
--						     CAPIMSG_NCCI(skb->data),
--						     CAPIMSG_MSGID(skb->data));
--
-+					CAPIMSG_NCCI(skb->data),
-+					CAPIMSG_MSGID(skb->data));
-+				spin_unlock(&card->lock);
-+			}
- 			capi_ctr_handle_message(ctrl, ApplId, skb);
- 		}
- 		break;
-@@ -500,9 +502,9 @@ static void b1dma_handle_rx(avmcard *car
- 		ApplId = _get_word(&p);
- 		NCCI = _get_word(&p);
- 		WindowSize = _get_word(&p);
--
-+		spin_lock(&card->lock);
- 		capilib_new_ncci(&cinfo->ncci_head, ApplId, NCCI, WindowSize);
--
-+		spin_unlock(&card->lock);
- 		break;
- 
- 	case RECEIVE_FREE_NCCI:
-@@ -510,9 +512,11 @@ static void b1dma_handle_rx(avmcard *car
- 		ApplId = _get_word(&p);
- 		NCCI = _get_word(&p);
- 
--		if (NCCI != 0xffffffff)
-+		if (NCCI != 0xffffffff) {
-+			spin_lock(&card->lock);
- 			capilib_free_ncci(&cinfo->ncci_head, ApplId, NCCI);
--
-+			spin_unlock(&card->lock);
-+		}
- 		break;
- 
- 	case RECEIVE_START:
-@@ -751,10 +755,10 @@ void b1dma_reset_ctr(struct capi_ctr *ct
- 
- 	spin_lock_irqsave(&card->lock, flags);
-  	b1dma_reset(card);
--	spin_unlock_irqrestore(&card->lock, flags);
- 
- 	memset(cinfo->version, 0, sizeof(cinfo->version));
- 	capilib_release(&cinfo->ncci_head);
-+	spin_unlock_irqrestore(&card->lock, flags);
- 	capi_ctr_reseted(ctrl);
- }
- 
-@@ -803,8 +807,11 @@ void b1dma_release_appl(struct capi_ctr 
- 	avmcard *card = cinfo->card;
- 	struct sk_buff *skb;
- 	void *p;
-+	unsigned long flags;
- 
-+	spin_lock_irqsave(&card->lock, flags);
- 	capilib_release_appl(&cinfo->ncci_head, appl);
-+	spin_unlock_irqrestore(&card->lock, flags);
- 
- 	skb = alloc_skb(7, GFP_ATOMIC);
- 	if (!skb) {
-@@ -832,10 +839,13 @@ u16 b1dma_send_message(struct capi_ctr *
+@@ -839,7 +839,7 @@ u16 b1dma_send_message(struct capi_ctr *
  	u16 retval = CAPI_NOERROR;
  
   	if (CAPIMSG_CMD(skb->data) == CAPI_DATA_B3_REQ) {
-+ 		unsigned long flags;
-+		spin_lock_irqsave(&card->lock, flags);
+- 		unsigned long flags;
++		unsigned long flags;
+ 		spin_lock_irqsave(&card->lock, flags);
  		retval = capilib_data_b3_req(&cinfo->ncci_head,
  					     CAPIMSG_APPID(skb->data),
- 					     CAPIMSG_NCCI(skb->data),
- 					     CAPIMSG_MSGID(skb->data));
-+		spin_unlock_irqrestore(&card->lock, flags);
- 	}
- 	if (retval == CAPI_NOERROR) 
- 		b1dma_queue_tx(card, skb);
 _
 
-Patches currently in -mm which might be from kkeil@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-fix-random-freezes-with-avm-b1-drivers.patch
-fix-random-hard-freeze-with-avm-c4-card.patch
-fix-random-hard-freeze-with-avm-c4-card-part-2.patch
-fix-random-hard-freeze-with-avm-cards-using-b1dma.patch
-fix-random-hard-freeze-with-avm-t1-cards.patch
+stop-using-dma_xxbit_mask.patch
+fuse-fix-race-between-getattr-and-write.patch
+fuse-add-file-handle-to-getattr-operation.patch
+sparse-pointer-use-of-zero-as-null.patch
+i-oat-tighten-descriptor-setup-performance.patch
+i-oat-add-completion-callback-for-async_tx-interface-use.patch
+console-keyboard-events-and-accessibility.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-add-reboot-mechanism.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-cifs.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-arm-hack.patch
+git-net.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd-fixup.patch
+git-parisc.patch
+fix-build-breakage-if-sysfs-fix.patch
+git-scsi-misc.patch
+advansys-depends-on-virt_to_bus.patch
+git-sparc64.patch
+git-unionfs.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+git-nfs-vs-git-unionfs.patch
+git-watchdog-fixup.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-x86.patch
+git-x86-fixup.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-checkpatch-fixes.patch
+memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+pm-qos-infrastructure-and-interface-fix.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+add-kernel-notifierc.patch
+console-events-and-accessibility-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes.patch
+sync_sb_inodes-propagate-errors.patch
+fix-random-hard-freeze-with-avm-cards-using-b1dma-checkpatch-fixes.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes-2.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+fix-cpusets-update_cpumask-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
