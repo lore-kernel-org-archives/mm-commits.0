@@ -1,68 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - git-jg-warning-fixes.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 22:58:40 -0700
-Message-ID: <200710180558.l9I5wfxQ028346@imap1.linux-foundation.org>
+Subject: - git-md-accel-fixup.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 22:58:58 -0700
+Message-ID: <200710180558.l9I5wxbo028357@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60374 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51955 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753783AbXJRF6s (ORCPT
+	by vger.kernel.org with ESMTP id S1752712AbXJRF7B (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 01:58:48 -0400
+	Thu, 18 Oct 2007 01:59:01 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9I5wxAt023816
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 17 Oct 2007 22:59:00 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-jg-misc warning fixes
+     git-md-accel-fixup
 has been removed from the -mm tree.  Its filename was
-     git-jg-warning-fixes.patch
+     git-md-accel-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-jg-misc warning fixes
+Subject: git-md-accel-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/i386/kernel/acpi/sleep.c:95: warning: initialization from incompatible pointer type
-drivers/acpi/processor_idle.c:183: warning: initialization from incompatible pointer type
-arch/i386/kernel/acpi/boot.c:968: warning: initialization from incompatible pointer type
-arch/i386/kernel/acpi/boot.c:980: warning: initialization from incompatible pointer type
-arch/i386/kernel/acpi/boot.c:988: warning: initialization from incompatible pointer type
-arch/i386/kernel/acpi/boot.c:996: warning: initialization from incompatible pointer type
-arch/i386/kernel/acpi/boot.c:1004: warning: initialization from incompatible pointer type
-arch/i386/kernel/acpi/boot.c:1012: warning: initialization from incompatible pointer type
-arch/i386/kernel/acpi/boot.c:1020: warning: initialization from incompatible pointer type
-arch/i386/kernel/acpi/boot.c:1028: warning: initialization from incompatible pointer type
-arch/i386/kernel/acpi/boot.c:1036: warning: initialization from incompatible pointer type
-arch/i386/kernel/acpi/boot.c:1044: warning: initialization from incompatible pointer type
-arch/i386/kernel/acpi/boot.c:1052: warning: initialization from incompatible pointer type
-arch/i386/kernel/acpi/boot.c:1060: warning: initialization from incompatible pointer type
-arch/i386/kernel/acpi/boot.c:1072: warning: initialization from incompatible pointer type
-arch/i386/kernel/acpi/boot.c:1089: warning: initialization from incompatible pointer type
-arch/i386/kernel/acpi/boot.c:1097: warning: initialization from incompatible pointer type
-arch/i386/kernel/acpi/boot.c:1108: warning: initialization from incompatible pointer type
-arch/i386/kernel/acpi/boot.c:1119: warning: initialization from incompatible pointer type
-
-Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/md/raid5.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN drivers/acpi/processor_idle.c~git-jg-warning-fixes drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~git-jg-warning-fixes
-+++ a/drivers/acpi/processor_idle.c
-@@ -123,7 +123,7 @@ static int set_max_cstate(const struct d
-  * Dell provides a driver for other operating systems to hack around this bug, so we know
-  * it's safe.
-  */
--static int dmi_force_c3(struct dmi_system_id *id)
-+static int dmi_force_c3(const struct dmi_system_id *id)
- {
- 	forced_c3 = 1;
+diff -puN drivers/md/raid5.c~git-md-accel-fixup drivers/md/raid5.c
+--- a/drivers/md/raid5.c~git-md-accel-fixup
++++ a/drivers/md/raid5.c
+@@ -3858,13 +3858,8 @@ static void raid5_align_endio(struct bio
+ 	if (!error && uptodate) {
+ 		bio_endio(raid_bi, 0);
+ 		if (atomic_dec_and_test(&conf->active_aligned_reads))
+-<<<<<<< HEAD:drivers/md/raid5.c
+-			wake_up(&conf->wait_for_stripe);
+-		return;
+-=======
+ 			wake_up(&conf->wait_for_queue);
+-		return 0;
+->>>>>>> FETCH_HEAD:drivers/md/raid5.c
++		return ;
+ 	}
+ 
  
 _
 
@@ -71,8 +60,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 console-keyboard-events-and-accessibility.patch
 first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-git-jg-warning-fixes.patch
-git-jg-misc-powernow-fix.patch
 git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
