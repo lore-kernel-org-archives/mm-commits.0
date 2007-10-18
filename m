@@ -1,132 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - clean-up-duplicate-includes-in-kernel.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:53:46 -0700
-Message-ID: <200710180653.l9I6rkYP030471@imap1.linux-foundation.org>
+Subject: - oom-serialize-out-of-memory-calls.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:51:45 -0700
+Message-ID: <200710180651.l9I6pjbl030214@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40447 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45920 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932539AbXJRHoh (ORCPT
+	by vger.kernel.org with ESMTP id S932803AbXJRHoo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:44:37 -0400
+	Thu, 18 Oct 2007 03:44:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, paulmck@linux.vnet.ibm.com, ssatyam@cse.iitk.ac.in, mm-commits@vger.kernel.org
+To: rientjes@google.com, andrea@suse.de, clameter@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Clean up duplicate includes in kernel/
+     oom: serialize out of memory calls
 has been removed from the -mm tree.  Its filename was
-     clean-up-duplicate-includes-in-kernel.patch
+     oom-serialize-out-of-memory-calls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in kernel/
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: oom: serialize out of memory calls
+From: David Rientjes <rientjes@google.com>
 
-This patch cleans up duplicate includes in
-	kernel/
+A final allocation attempt with a very high watermark needs to be attempted
+before invoking out_of_memory().  OOM killer serialization needs to occur
+before this final attempt, otherwise tasks attempting to OOM-lock all zones in
+its zonelist may spin and acquire the lock unnecessarily after the OOM
+condition has already been alleviated.
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Reviewed-by: Satyam Sharma <ssatyam@cse.iitk.ac.in>
+If the final allocation does succeed, the zonelist is simply OOM-unlocked and
+__alloc_pages() returns the page.  Otherwise, the OOM killer is invoked.
+
+If the task cannot acquire OOM-locks on all zones in its zonelist, it is put
+to sleep and the allocation is retried when it gets rescheduled.  One of its
+zones is already marked as being in the OOM killer so it'll hopefully be
+getting some free memory soon, at least enough to satisfy a high watermark
+allocation attempt.  This prevents needlessly killing a task when the OOM
+condition would have already been alleviated if it had simply been given
+enough time.
+
+Cc: Andrea Arcangeli <andrea@suse.de>
+Acked-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/auditsc.c    |    1 -
- kernel/exit.c       |    1 -
- kernel/kexec.c      |    1 -
- kernel/rcupdate.c   |    1 -
- kernel/rcutorture.c |    1 -
- kernel/taskstats.c  |    1 -
- kernel/time.c       |    1 -
- 7 files changed, 7 deletions(-)
+ mm/page_alloc.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN kernel/auditsc.c~clean-up-duplicate-includes-in-kernel kernel/auditsc.c
---- a/kernel/auditsc.c~clean-up-duplicate-includes-in-kernel
-+++ a/kernel/auditsc.c
-@@ -45,7 +45,6 @@
- #include <linux/init.h>
- #include <asm/types.h>
- #include <asm/atomic.h>
--#include <asm/types.h>
- #include <linux/fs.h>
- #include <linux/namei.h>
- #include <linux/mm.h>
-diff -puN kernel/exit.c~clean-up-duplicate-includes-in-kernel kernel/exit.c
---- a/kernel/exit.c~clean-up-duplicate-includes-in-kernel
-+++ a/kernel/exit.c
-@@ -44,7 +44,6 @@
- #include <linux/resource.h>
- #include <linux/blkdev.h>
- #include <linux/task_io_accounting_ops.h>
--#include <linux/freezer.h>
+diff -puN mm/page_alloc.c~oom-serialize-out-of-memory-calls mm/page_alloc.c
+--- a/mm/page_alloc.c~oom-serialize-out-of-memory-calls
++++ a/mm/page_alloc.c
+@@ -1587,6 +1587,11 @@ nofail_alloc:
+ 		if (page)
+ 			goto got_pg;
+ 	} else if ((gfp_mask & __GFP_FS) && !(gfp_mask & __GFP_NORETRY)) {
++		if (!try_set_zone_oom(zonelist)) {
++			schedule_timeout_uninterruptible(1);
++			goto restart;
++		}
++
+ 		/*
+ 		 * Go through the zonelist yet one more time, keep
+ 		 * very high watermark here, this is only to catch
+@@ -1595,14 +1600,19 @@ nofail_alloc:
+ 		 */
+ 		page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, order,
+ 				zonelist, ALLOC_WMARK_HIGH|ALLOC_CPUSET);
+-		if (page)
++		if (page) {
++			clear_zonelist_oom(zonelist);
+ 			goto got_pg;
++		}
  
- #include <asm/uaccess.h>
- #include <asm/unistd.h>
-diff -puN kernel/kexec.c~clean-up-duplicate-includes-in-kernel kernel/kexec.c
---- a/kernel/kexec.c~clean-up-duplicate-includes-in-kernel
-+++ a/kernel/kexec.c
-@@ -17,7 +17,6 @@
- #include <linux/highmem.h>
- #include <linux/syscalls.h>
- #include <linux/reboot.h>
--#include <linux/syscalls.h>
- #include <linux/ioport.h>
- #include <linux/hardirq.h>
- #include <linux/elf.h>
-diff -puN kernel/rcupdate.c~clean-up-duplicate-includes-in-kernel kernel/rcupdate.c
---- a/kernel/rcupdate.c~clean-up-duplicate-includes-in-kernel
-+++ a/kernel/rcupdate.c
-@@ -45,7 +45,6 @@
- #include <linux/moduleparam.h>
- #include <linux/percpu.h>
- #include <linux/notifier.h>
--#include <linux/rcupdate.h>
- #include <linux/cpu.h>
- #include <linux/mutex.h>
+ 		/* The OOM killer will not help higher order allocs so fail */
+-		if (order > PAGE_ALLOC_COSTLY_ORDER)
++		if (order > PAGE_ALLOC_COSTLY_ORDER) {
++			clear_zonelist_oom(zonelist);
+ 			goto nopage;
++		}
  
-diff -puN kernel/rcutorture.c~clean-up-duplicate-includes-in-kernel kernel/rcutorture.c
---- a/kernel/rcutorture.c~clean-up-duplicate-includes-in-kernel
-+++ a/kernel/rcutorture.c
-@@ -35,7 +35,6 @@
- #include <linux/sched.h>
- #include <asm/atomic.h>
- #include <linux/bitops.h>
--#include <linux/module.h>
- #include <linux/completion.h>
- #include <linux/moduleparam.h>
- #include <linux/percpu.h>
-diff -puN kernel/taskstats.c~clean-up-duplicate-includes-in-kernel kernel/taskstats.c
---- a/kernel/taskstats.c~clean-up-duplicate-includes-in-kernel
-+++ a/kernel/taskstats.c
-@@ -20,7 +20,6 @@
- #include <linux/taskstats_kern.h>
- #include <linux/tsacct_kern.h>
- #include <linux/delayacct.h>
--#include <linux/tsacct_kern.h>
- #include <linux/cpumask.h>
- #include <linux/percpu.h>
- #include <net/genetlink.h>
-diff -puN kernel/time.c~clean-up-duplicate-includes-in-kernel kernel/time.c
---- a/kernel/time.c~clean-up-duplicate-includes-in-kernel
-+++ a/kernel/time.c
-@@ -34,7 +34,6 @@
- #include <linux/syscalls.h>
- #include <linux/security.h>
- #include <linux/fs.h>
--#include <linux/module.h>
+ 		out_of_memory(zonelist, gfp_mask, order);
++		clear_zonelist_oom(zonelist);
+ 		goto restart;
+ 	}
  
- #include <asm/uaccess.h>
- #include <asm/unistd.h>
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-git-cifs.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
-cyclades-avoid-label-defined-but-not-used-warning.patch
+fix-cpusets-update_cpumask.patch
+fix-cpusets-update_cpumask-checkpatch-fixes.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-resource-counters-v7-fix.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memcontrol-move-mm_cgroup-to-header-file.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
