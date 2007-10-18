@@ -1,63 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: - cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 01:47:09 -0700
-Message-ID: <200710180847.l9I8l95o002756@imap1.linux-foundation.org>
+Subject: - sysctl-remove-broken-cdrom-binary-sysctls-update.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 01:47:55 -0700
+Message-ID: <200710180847.l9I8ltQI002767@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45023 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45554 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932259AbXJRIsG (ORCPT
+	by vger.kernel.org with ESMTP id S932342AbXJRIsK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 04:48:06 -0400
+	Thu, 18 Oct 2007 04:48:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nix.or.die@googlemail.com, ak@suse.de, akinobu.mita@gmail.com, ashok.raj@intel.com, ego@in.ibm.com, jbeulich@novell.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling: fix a section mismatch warning
+     sysctl: remove broken cdrom binary sysctls (update)
 has been removed from the -mm tree.  Its filename was
-     cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
+     sysctl-remove-broken-cdrom-binary-sysctls-update.patch
 
-This patch was dropped because it was folded into cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
+This patch was dropped because it was folded into sysctl-remove-broken-cdrom-binary-sysctls.patch
 
 ------------------------------------------------------
-Subject: cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling: fix a section mismatch warning
-From: Gabriel C <nix.or.die@googlemail.com>
+Subject: sysctl: remove broken cdrom binary sysctls (update)
+From: ebiederm@xmission.com (Eric W. Biederman)
 
-...
+The binary interface for the cdrom sysctls can't possilby work.  So remove
+the binary sysctls and reduce cdrom_sysctl_handler to it's essentials (to
+kill the uses of ctl_name).
 
-WARNING: vmlinux.o(.text+0x8b9f): Section mismatch: reference to .init.text:cache_remove_shared_cpu_map (between 'cpuid4_cache_sysfs_exit' and 'unexpected_machine_check')
+Since the last time this patch was posted I radically
+simplified cdrom_sysctl_helper to meet address Alan's objections.
 
-...
-
-Signed-off-by: Gabriel Craciunescu <nix.or.die@googlemail.com>
-Cc: Ashok Raj <ashok.raj@intel.com>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/intel_cacheinfo.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/cdrom/cdrom.c |   35 +++++++----------------------------
+ 1 file changed, 7 insertions(+), 28 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/intel_cacheinfo.c~cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning arch/i386/kernel/cpu/intel_cacheinfo.c
---- a/arch/x86/kernel/cpu/intel_cacheinfo.c~cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning
-+++ a/arch/x86/kernel/cpu/intel_cacheinfo.c
-@@ -681,7 +681,7 @@ static struct kobj_type ktype_percpu_ent
- 	.sysfs_ops	= &sysfs_ops,
- };
- 
--static void cpuid4_cache_sysfs_exit(unsigned int cpu)
-+static void __cpuinit cpuid4_cache_sysfs_exit(unsigned int cpu)
+diff -puN drivers/cdrom/cdrom.c~sysctl-remove-broken-cdrom-binary-sysctls-update drivers/cdrom/cdrom.c
+--- a/drivers/cdrom/cdrom.c~sysctl-remove-broken-cdrom-binary-sysctls-update
++++ a/drivers/cdrom/cdrom.c
+@@ -3458,40 +3458,19 @@ static void cdrom_update_settings(void)
+ static int cdrom_sysctl_handler(ctl_table *ctl, int write, struct file * filp,
+ 				void __user *buffer, size_t *lenp, loff_t *ppos)
  {
- 	kfree(cache_kobject[cpu]);
- 	kfree(index_kobject[cpu]);
+-	int *valp = ctl->data;
+-	int val = *valp;
+ 	int ret;
+ 	
+ 	ret = proc_dointvec(ctl, write, filp, buffer, lenp, ppos);
+ 
+-	if (write && *valp != val) {
++	if (write) {
+ 	
+ 		/* we only care for 1 or 0. */
+-		if (*valp)
+-			*valp = 1;
+-		else
+-			*valp = 0;
+-
+-		if (strcmp(ctl->procname, "autoclose") == 0) {
+-			if (valp == &cdrom_sysctl_settings.autoclose)
+-				autoclose = cdrom_sysctl_settings.autoclose;
+-		}
+-		else if (strcmp(ctl->procname, "autoeject") == 0) {
+-			if (valp == &cdrom_sysctl_settings.autoeject)
+-				autoeject = cdrom_sysctl_settings.autoeject;
+-		}
+-		else if (strcmp(ctl->procname, "debug") == 0) {
+-			if (valp == &cdrom_sysctl_settings.debug)
+-				debug = cdrom_sysctl_settings.debug;
+-		}
+-		else if (strcmp(ctl->procname, "lock") == 0) {
+-			if (valp == &cdrom_sysctl_settings.lock)
+-				lockdoor = cdrom_sysctl_settings.lock;
+-		}
+-		else if (strcmp(ctl->procname, "check_media") == 0) {
+-			if (valp == &cdrom_sysctl_settings.check)
+-				check_media_type = cdrom_sysctl_settings.check;
+-		}
++		autoclose        = !!cdrom_sysctl_settings.autoclose;
++		autoeject        = !!cdrom_sysctl_settings.autoeject;
++		debug	         = !!cdrom_sysctl_settings.debug;
++		lockdoor         = !!cdrom_sysctl_settings.lock;
++		check_media_type = !!cdrom_sysctl_settings.check;
++
+ 		/* update the option flags according to the changes. we
+ 		   don't have per device options through sysctl yet,
+ 		   but we will have and then this will disappear. */
 _
 
-Patches currently in -mm which might be from nix.or.die@googlemail.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
 origin.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
+sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
+sysctl-factor-out-sysctl_data.patch
+sysct-mqueue-remove-the-binary-sysctl-numbers.patch
+sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
+sysctl-fix-neighbour-table-sysctls.patch
+sysctl-ipv6-route-flushing-kill-binary-path.patch
+sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
+sysctl-x86_64-remove-unnecessary-binary-paths.patch
+sysctl-remove-broken-cdrom-binary-sysctls.patch
+sysctl-remove-broken-cdrom-binary-sysctls-update.patch
+sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
+sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
+sysctl-parport-remove-binary-paths.patch
+sysctl-parport-remove-binary-paths-fix.patch
+sysctl-simplify-the-pty-sysctl-logic.patch
+sysctl-remove-broken-netfilter-binary-sysctls.patch
+sysctl-remove-the-cad_pid-binary-sysctl-path.patch
+sysctl-properly-register-the-irda-binary-sysctl-numbers.patch
+sysctl-error-on-bad-sysctl-tables.patch
+sysctl-error-on-bad-sysctl-tables-kernel-sysctl_checkc-must-include-linux-stringh.patch
+sysctl-update-sysctl_check_table.patch
+sysctl-update-sysctl_checks-list-of-binary-paths.patch
+sysctl-update-sysctl_check_table-sysctl-update-sysctl_check-to-handle-compiled-out-code.patch
+sysctl-for-irda-update-sysctl_checks-list-of-binary-paths.patch
+sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion.patch
+sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion-fix.patch
