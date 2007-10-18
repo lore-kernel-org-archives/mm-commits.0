@@ -1,100 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: - i386-cleanup-struct-irqaction-initializers.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:07:57 -0700
-Message-ID: <200710180707.l9I77vpp031743@imap1.linux-foundation.org>
+Subject: - x86-64-calgary-get-rid-of-translate_phb.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:08:10 -0700
+Message-ID: <200710180708.l9I78AVX031838@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41771 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35121 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759521AbXJRHIL (ORCPT
+	by vger.kernel.org with ESMTP id S1759555AbXJRHIV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:08:11 -0400
+	Thu, 18 Oct 2007 03:08:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, ak@suse.de, mm-commits@vger.kernel.org
+To: muli@il.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: cleanup struct irqaction initializers
+     x86-64: Calgary - get rid of translate_phb
 has been removed from the -mm tree.  Its filename was
-     i386-cleanup-struct-irqaction-initializers.patch
+     x86-64-calgary-get-rid-of-translate_phb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i386: cleanup struct irqaction initializers
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: x86-64: Calgary - get rid of translate_phb
+From: Muli Ben-Yehuda <muli@il.ibm.com>
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@suse.de>
+Now that we check for translation enabled/disabled based on the presence of
+the IOMMU translation table, we can get rid of translate_phb.
+
+Signed-off-by: Muli Ben-Yehuda <muli@il.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/i8259_32.c    |    6 +++++-
- arch/x86/mach-default/setup.c |    6 +++++-
- arch/x86/mach-voyager/setup.c |    6 +++++-
- 3 files changed, 15 insertions(+), 3 deletions(-)
+ arch/x86_64/kernel/pci-calgary.c |   31 ++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 16 deletions(-)
 
-diff -puN arch/x86/kernel/i8259_32.c~i386-cleanup-struct-irqaction-initializers arch/x86/kernel/i8259_32.c
---- a/arch/x86/kernel/i8259_32.c~i386-cleanup-struct-irqaction-initializers
-+++ a/arch/x86/kernel/i8259_32.c
-@@ -349,7 +349,11 @@ static irqreturn_t math_error_irq(int cp
-  * New motherboards sometimes make IRQ 13 be a PCI interrupt,
-  * so allow interrupt sharing.
-  */
--static struct irqaction fpu_irq = { math_error_irq, 0, CPU_MASK_NONE, "fpu", NULL, NULL };
-+static struct irqaction fpu_irq = {
-+	.handler = math_error_irq,
-+	.mask = CPU_MASK_NONE,
-+	.name = "fpu",
-+};
+diff -puN arch/x86_64/kernel/pci-calgary.c~x86-64-calgary-get-rid-of-translate_phb arch/x86_64/kernel/pci-calgary.c
+--- a/arch/x86/kernel/pci-calgary_64.c~x86-64-calgary-get-rid-of-translate_phb
++++ a/arch/x86/kernel/pci-calgary_64.c
+@@ -228,12 +228,6 @@ static inline int translation_enabled(st
+ 	return (tbl != NULL);
+ }
  
- void __init init_ISA_irqs (void)
+-static inline int translate_phb(struct pci_dev* dev)
+-{
+-	int disabled = bus_info[dev->bus->number].translation_disabled;
+-	return !disabled;
+-}
+-
+ static void iommu_range_reserve(struct iommu_table *tbl,
+ 	unsigned long start_addr, unsigned int npages)
  {
-diff -puN arch/x86/mach-default/setup.c~i386-cleanup-struct-irqaction-initializers arch/x86/mach-default/setup.c
---- a/arch/x86/mach-default/setup.c~i386-cleanup-struct-irqaction-initializers
-+++ a/arch/x86/mach-default/setup.c
-@@ -35,7 +35,11 @@ void __init pre_intr_init_hook(void)
- /*
-  * IRQ2 is cascade interrupt to second interrupt controller
-  */
--static struct irqaction irq2 = { no_action, 0, CPU_MASK_NONE, "cascade", NULL, NULL};
-+static struct irqaction irq2 = {
-+	.handler = no_action,
-+	.mask = CPU_MASK_NONE,
-+	.name = "cascade",
-+};
- 
- /**
-  * intr_init_hook - post gate setup interrupt initialisation
-diff -puN arch/x86/mach-voyager/setup.c~i386-cleanup-struct-irqaction-initializers arch/x86/mach-voyager/setup.c
---- a/arch/x86/mach-voyager/setup.c~i386-cleanup-struct-irqaction-initializers
-+++ a/arch/x86/mach-voyager/setup.c
-@@ -18,7 +18,11 @@ void __init pre_intr_init_hook(void)
- /*
-  * IRQ2 is cascade interrupt to second interrupt controller
-  */
--static struct irqaction irq2 = { no_action, 0, CPU_MASK_NONE, "cascade", NULL, NULL};
-+static struct irqaction irq2 = {
-+	.handler = no_action,
-+	.mask = CPU_MASK_NONE,
-+	.name = "cascade",
-+};
- 
- void __init intr_init_hook(void)
+@@ -1200,7 +1194,7 @@ static int __init calgary_init(void)
  {
+ 	int ret;
+ 	struct pci_dev *dev = NULL;
+-	void *tce_space;
++	struct calgary_bus_info *info;
+ 
+ 	ret = calgary_locate_bbars();
+ 	if (ret)
+@@ -1212,12 +1206,14 @@ static int __init calgary_init(void)
+ 			break;
+ 		if (!is_cal_pci_dev(dev->device))
+ 			continue;
+-		if (!translate_phb(dev)) {
++
++		info = &bus_info[dev->bus->number];
++		if (info->translation_disabled) {
+ 			calgary_init_one_nontraslated(dev);
+ 			continue;
+ 		}
+-		tce_space = bus_info[dev->bus->number].tce_space;
+-		if (!tce_space && !translate_empty_slots)
++
++		if (!info->tce_space && !translate_empty_slots)
+ 			continue;
+ 
+ 		ret = calgary_init_one(dev);
+@@ -1235,11 +1231,13 @@ error:
+ 			break;
+ 		if (!is_cal_pci_dev(dev->device))
+ 			continue;
+-		if (!translate_phb(dev)) {
++
++		info = &bus_info[dev->bus->number];
++		if (info->translation_disabled) {
+ 			pci_dev_put(dev);
+ 			continue;
+ 		}
+-		if (!bus_info[dev->bus->number].tce_space && !translate_empty_slots)
++		if (!info->tce_space && !translate_empty_slots)
+ 			continue;
+ 
+ 		calgary_disable_translation(dev);
+@@ -1552,7 +1550,7 @@ static void __init calgary_fixup_one_tce
+ static int __init calgary_fixup_tce_spaces(void)
+ {
+ 	struct pci_dev *dev = NULL;
+-	void *tce_space;
++	struct calgary_bus_info *info;
+ 
+ 	if (no_iommu || swiotlb || !calgary_detected)
+ 		return -ENODEV;
+@@ -1565,11 +1563,12 @@ static int __init calgary_fixup_tce_spac
+ 			break;
+ 		if (!is_cal_pci_dev(dev->device))
+ 			continue;
+-		if (!translate_phb(dev))
++
++		info = &bus_info[dev->bus->number];
++		if (info->translation_disabled)
+ 			continue;
+ 
+-		tce_space = bus_info[dev->bus->number].tce_space;
+-		if (!tce_space)
++		if (!info->tce_space)
+ 			continue;
+ 
+ 		calgary_fixup_one_tce_space(dev);
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from muli@il.ibm.com are
 
 origin.patch
-git-acpi.patch
-git-x86.patch
-hpet-force-enable-on-vt8235-37-chipsets.patch
-i386-paravirt-boot-sequence.patch
-revert-x86-save-registers-in-saved_context-during-suspend-and-hibernation.patch
-fix-discrepancy-between-vdso-based-gettimeofday-and-sys_gettimeofday.patch
-kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
-whitespace-fixes-time-syscalls.patch
-whitespace-fixes-interval-timers.patch
-whitespace-fixes-system-timers.patch
+unify-dma_bit_mask-definitions-v31.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
