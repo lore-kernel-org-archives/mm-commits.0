@@ -1,180 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - delay-creation-of-khcvd-thread.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:01:12 -0700
-Message-ID: <200710180701.l9I71Cka031158@imap1.linux-foundation.org>
+Subject: - pnp-make-pnpacpi_suspend-handle-errors.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:03:43 -0700
+Message-ID: <200710180703.l9I73hWe031462@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49900 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46457 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757167AbXJRHiM (ORCPT
+	by vger.kernel.org with ESMTP id S932205AbXJRHiE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:38:12 -0400
+	Thu, 18 Oct 2007 03:38:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, benh@kernel.crashing.org, jeremy@goop.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, ambx1@neo.rr.com, bjorn.helgaas@hp.com, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Delay creation of khcvd thread
+     PNP: make pnpacpi_suspend handle errors
 has been removed from the -mm tree.  Its filename was
-     delay-creation-of-khcvd-thread.patch
+     pnp-make-pnpacpi_suspend-handle-errors.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-Subject: Delay creation of khcvd thread
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: PNP: make pnpacpi_suspend handle errors
+=46rom: Rafael J. Wysocki <rjw@sisk.pl>
 
-This changes hvc_init() to be called only when someone actually uses the
-hvc_console driver.  Dave Jones complained when profiling bootup.
+pnpacpi_suspend() doesn't check the result returned by
+acpi_pm_device_sleep_state() before passing it to acpi_bus_set_power(),
+which may not be desirable.  =A0Make it select the target power state o=
+f the
+device using its second argument if acpi_pm_device_sleep_state() fails.
 
-hvc_console used to only be for Power aka pSeries: now lguest and Xen both
-want it built-in in case the kernel is a guest under one of those, even
-though usually it will be a native boot.
-
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Looks-ok-to: Pavel Machek <pavel@ucw.cz>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/Kconfig       |    4 +-
- drivers/char/hvc_console.c |   56 +++++++++++++++++++++++++----------
- 2 files changed, 42 insertions(+), 18 deletions(-)
+ drivers/pnp/pnpacpi/core.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN drivers/char/Kconfig~delay-creation-of-khcvd-thread drivers/char/Kconfig
---- a/drivers/char/Kconfig~delay-creation-of-khcvd-thread
-+++ a/drivers/char/Kconfig
-@@ -585,8 +585,8 @@ config TIPAR
- config HVC_DRIVER
- 	bool
- 	help
--	  Users of pSeries machines that want to utilize the hvc console front-end
--	  module for their backend console driver should select this option.
-+	  Generic "hypervisor virtual console" infrastructure for various
-+	  hypervisors (pSeries, Xen, lguest).
- 	  It will automatically be selected if one of the back-end console drivers
- 	  is selected.
- 
-diff -puN drivers/char/hvc_console.c~delay-creation-of-khcvd-thread drivers/char/hvc_console.c
---- a/drivers/char/hvc_console.c~delay-creation-of-khcvd-thread
-+++ a/drivers/char/hvc_console.c
-@@ -69,6 +69,8 @@ static struct task_struct *hvc_task;
- /* Picks up late kicks after list walk but before schedule() */
- static int hvc_kicked;
- 
-+static int hvc_init(void);
-+
- #ifdef CONFIG_MAGIC_SYSRQ
- static int sysrq_pressed;
- #endif
-@@ -754,6 +756,13 @@ struct hvc_struct __devinit *hvc_alloc(u
- 	struct hvc_struct *hp;
- 	int i;
- 
-+	/* We wait until a driver actually comes along */
-+	if (!hvc_driver) {
-+		int err = hvc_init();
-+		if (err)
-+			return ERR_PTR(err);
-+	}
-+
- 	hp = kmalloc(ALIGN(sizeof(*hp), sizeof(long)) + outbuf_size,
- 			GFP_KERNEL);
- 	if (!hp)
-@@ -829,16 +838,18 @@ int __devexit hvc_remove(struct hvc_stru
- 	return 0;
- }
- 
--/* Driver initialization.  Follow console initialization.  This is where the TTY
-- * interfaces start to become available. */
--static int __init hvc_init(void)
-+/* Driver initialization: called as soon as someone uses hvc_alloc(). */
-+static int hvc_init(void)
+diff -puN drivers/pnp/pnpacpi/core.c~pnp-make-pnpacpi_suspend-handle-er=
+rors drivers/pnp/pnpacpi/core.c
+--- a/drivers/pnp/pnpacpi/core.c~pnp-make-pnpacpi_suspend-handle-errors
++++ a/drivers/pnp/pnpacpi/core.c
+@@ -130,11 +130,16 @@ static int pnpacpi_disable_resources(str
+ #ifdef CONFIG_ACPI_SLEEP
+ static int pnpacpi_suspend(struct pnp_dev *dev, pm_message_t state)
  {
- 	struct tty_driver *drv;
-+	int err;
- 
- 	/* We need more than hvc_count adapters due to hotplug additions. */
- 	drv = alloc_tty_driver(HVC_ALLOC_TTY_ADAPTERS);
--	if (!drv)
--		return -ENOMEM;
-+	if (!drv) {
-+		err = -ENOMEM;
-+		goto out;
-+	}
- 
- 	drv->owner = THIS_MODULE;
- 	drv->driver_name = "hvc";
-@@ -854,30 +865,43 @@ static int __init hvc_init(void)
- 	 * added later. */
- 	hvc_task = kthread_run(khvcd, NULL, "khvcd");
- 	if (IS_ERR(hvc_task)) {
--		panic("Couldn't create kthread for console.\n");
--		put_tty_driver(drv);
--		return -EIO;
-+		printk(KERN_ERR "Couldn't create kthread for console.\n");
-+		err = PTR_ERR(hvc_task);
-+		goto put_tty;
- 	}
- 
--	if (tty_register_driver(drv))
--		panic("Couldn't register hvc console driver\n");
-+	err = tty_register_driver(drv);
-+	if (err) {
-+		printk(KERN_ERR "Couldn't register hvc console driver\n");
-+		goto stop_thread;
-+	}
- 
-+	/* FIXME: This mb() seems completely random.  Remove it. */
- 	mb();
- 	hvc_driver = drv;
- 	return 0;
+-	return acpi_bus_set_power((acpi_handle) dev->data,
+-				  acpi_pm_device_sleep_state(&dev->dev,
+-							     device_may_wakeup
+-							     (&dev->dev),
+-							     NULL));
++	int power_state;
 +
-+put_tty:
-+	put_tty_driver(hvc_driver);
-+stop_thread:
-+	kthread_stop(hvc_task);
-+	hvc_task = NULL;
-+out:
-+	return err;
++	power_state =3D acpi_pm_device_sleep_state(&dev->dev,
++						device_may_wakeup(&dev->dev),
++						NULL);
++	if (power_state < 0)
++		power_state =3D (state.event =3D=3D PM_EVENT_ON) ?
++				ACPI_STATE_D0 : ACPI_STATE_D3;
++
++	return acpi_bus_set_power((acpi_handle) dev->data, power_state);
  }
--module_init(hvc_init);
- 
- /* This isn't particularly necessary due to this being a console driver
-  * but it is nice to be thorough.
-  */
- static void __exit hvc_exit(void)
- {
--	kthread_stop(hvc_task);
-+	if (hvc_driver) {
-+		kthread_stop(hvc_task);
- 
--	tty_unregister_driver(hvc_driver);
--	/* return tty_struct instances allocated in hvc_init(). */
--	put_tty_driver(hvc_driver);
--	unregister_console(&hvc_con_driver);
-+		tty_unregister_driver(hvc_driver);
-+		/* return tty_struct instances allocated in hvc_init(). */
-+		put_tty_driver(hvc_driver);
-+		unregister_console(&hvc_con_driver);
-+	}
- }
- module_exit(hvc_exit);
+=20
+ static int pnpacpi_resume(struct pnp_dev *dev)
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-git-kvm.patch
+git-acpi.patch
 git-x86.patch
-update-boot-spec-to-207.patch
-add-weak-for-creating-weak-asm-labels.patch
-i386-paravirt-boot-sequence.patch
-cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
-linux-kernel-markers.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-coding-style-fixes.patch
-linux-kernel-markers-samples-coding-style-fix.patch
-mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+revert-x86_64-mm-cpa-einval.patch
+make-kernel-power-maincsuspend_enter-static.patch
+pm-move-definition-of-struct-pm_ops-to-suspendh.patch
+pm-rename-struct-pm_ops-and-related-things.patch
+pm-rework-struct-platform_suspend_ops.patch
+pm-rework-struct-platform_suspend_ops-fixup.patch
+pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
+pm-make-suspend_ops-static.patch
+pm-rework-struct-hibernation_ops.patch
+pm-rename-hibernation_ops-to-platform_hibernation_ops.patch
+freezer-document-relationship-with-memory-shrinking.patch
+freezer-do-not-sync-filesystems-from-freeze_processes.patch
+freezer-prevent-new-tasks-from-inheriting-tif_freeze-set.patch
+freezer-introduce-freezer-firendly-waiting-macros.patch
+freezer-introduce-freezer-firendly-waiting-macros-fix.patch
+freezer-do-not-send-signals-to-kernel-threads.patch
+unexport-pm_power_off_prepare.patch
+pm_trace-displays-the-wrong-time-from-the-rtc.patch
+freezer-be-more-verbose.patch
+freezer-measure-freezing-time.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-opti=
+on.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-opti=
+on-update.patch
+s2ram-kill-old-debugging-junk.patch
+revert-x86-save-registers-in-saved_context-during-suspend-and-hibernati=
+on.patch
+hibernation-arbitrary-boot-kernel-support-generic-code-rev-2.patch
+hibernation-arbitrary-boot-kernel-support-on-x86_64-rev-2.patch
+hibernation-pass-cr3-in-the-image-header-on-x86_64-rev-2.patch
+hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64=
+=2Epatch
+hibernation-check-if-acpi-is-enabled-during-restore-in-the-right-place.=
+patch
+hibernation-enter-platform-hibernation-state-in-a-consistent-way-rev-4.=
+patch
+hibernation-enter-platform-hibernation-state-in-a-consistent-way-rev-4-=
+fix.patch
+shrink_slab-handle-bad-shrinkers.patch
