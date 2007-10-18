@@ -1,78 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - dcache-trivial-comment-fix.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:00:05 -0700
-Message-ID: <200710180700.l9I705wH031072@imap1.linux-foundation.org>
+Subject: - add-recommended-section-ids-to-deviceiobooktmpl.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:04:59 -0700
+Message-ID: <200710180704.l9I74x6A031606@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39357 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50048 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763736AbXJRHQw (ORCPT
+	by vger.kernel.org with ESMTP id S1761054AbXJRHRB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:16:52 -0400
+	Thu, 18 Oct 2007 03:17:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bfields@fieldses.org, bfields@citi.umich.edu, mm-commits@vger.kernel.org
+To: rob@landley.net, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dcache: trivial comment fix
+     Add recommended section IDs to deviceiobook.tmpl
 has been removed from the -mm tree.  Its filename was
-     dcache-trivial-comment-fix.patch
+     add-recommended-section-ids-to-deviceiobooktmpl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dcache: trivial comment fix
-From: "J. Bruce Fields" <bfields@fieldses.org>
+Subject: Add recommended section IDs to deviceiobook.tmpl
+From: Rob Landley <rob@landley.net>
 
-As it stands this comment is confusing, and not quite grammatical.
+Add recommended section ID tags to deviceiobook.tmpl
 
-Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
+Because otherwise the link #anchors in the html vary from build to build.
+
+Signed-off-by: Rob Landley <rob@landley.net>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/DocBook/deviceiobook.tmpl |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/dcache.c~dcache-trivial-comment-fix fs/dcache.c
---- a/fs/dcache.c~dcache-trivial-comment-fix
-+++ a/fs/dcache.c
-@@ -1510,8 +1510,8 @@ static void switch_names(struct dentry *
-  * This forceful removal will result in ugly /proc output if
-  * somebody holds a file open that got deleted due to a rename.
-  * We could be nicer about the deleted file, and let it show
-- * up under the name it got deleted rather than the name that
-- * deleted it.
-+ * up under the name it had before it was deleted rather than
-+ * the original name of the file that was moved on top of it.
-  */
-  
- /*
+diff -puN Documentation/DocBook/deviceiobook.tmpl~add-recommended-section-ids-to-deviceiobooktmpl Documentation/DocBook/deviceiobook.tmpl
+--- a/Documentation/DocBook/deviceiobook.tmpl~add-recommended-section-ids-to-deviceiobooktmpl
++++ a/Documentation/DocBook/deviceiobook.tmpl
+@@ -85,7 +85,7 @@
+ 
+   <chapter id="mmio">
+     <title>Memory Mapped IO</title>
+-    <sect1>
++    <sect1 id="getting_access_to_the_device">
+       <title>Getting Access to the Device</title>
+       <para>
+ 	The most widely supported form of IO is memory mapped IO.
+@@ -114,7 +114,7 @@
+       </para>
+     </sect1>
+ 
+-    <sect1>
++    <sect1 id="accessing_the_device">
+       <title>Accessing the device</title>
+       <para>
+ 	The part of the interface most used by drivers is reading and
+@@ -272,9 +272,9 @@ CPU B:  spin_unlock_irqrestore(&amp;dev_
+ 
+   </chapter>
+ 
+-  <chapter>
++  <chapter id="port_space_accesses">
+     <title>Port Space Accesses</title>
+-    <sect1>
++    <sect1 id="port_space_explained">
+       <title>Port Space Explained</title>
+ 
+       <para>
+@@ -291,7 +291,7 @@ CPU B:  spin_unlock_irqrestore(&amp;dev_
+       </para>
+ 
+     </sect1>
+-    <sect1>
++    <sect1 id="accessing_port_space">
+       <title>Accessing Port Space</title>
+       <para>
+ 	Accesses to this space are provided through a set of functions
 _
 
-Patches currently in -mm which might be from bfields@fieldses.org are
+Patches currently in -mm which might be from rob@landley.net are
 
 origin.patch
-git-nfs-make-nfs_wb_page_priority-static.patch
-ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
-knfsd-only-set-attr_kill_sid-if-attr_mode-isnt-being-explicitly-set.patch
-vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
-nfs-if-attr_kill_sid-bits-are-set-then-skip-mode-change.patch
-sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
-exportfs-add-fid-type.patch
-exportfs-add-new-methods.patch
-ext2-new-export-ops.patch
-ext3-new-export-ops.patch
-ext4-new-export-ops.patch
-efs-new-export-ops.patch
-jfs-new-export-ops.patch
-ntfs-new-export-ops.patch
-fat-new-export-ops.patch
-isofs-new-export-ops.patch
-shmem-new-export-ops.patch
-reiserfs-new-export-ops.patch
-gfs2-new-export-ops.patch
-ocfs2-new-export-ops.patch
-exportfs-remove-old-methods.patch
-exportfs-make-struct-export_operations-const.patch
-exportfs-update-documentation.patch
+comment-typo-in-scripts-kconfig-makefile.patch
