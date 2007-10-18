@@ -1,72 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:54:56 -0700
-Message-ID: <200710180654.l9I6sukK030557@imap1.linux-foundation.org>
+Subject: - move-preempt_notifiers-into-an-always-included-kconfig.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:57:13 -0700
+Message-ID: <200710180657.l9I6vDRO030798@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58445 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39651 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760935AbXJRHhU (ORCPT
+	by vger.kernel.org with ESMTP id S1760935AbXJRHh3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:37:20 -0400
+	Thu, 18 Oct 2007 03:37:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
+To: avi@qumranet.com, geert@linux-m68k.org, mingo@elte.hu, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     doc firmware_sample_firmware_class.c: kmalloc + memset conversion to kzalloc
+     Move PREEMPT_NOTIFIERS into an always-included Kconfig
 has been removed from the -mm tree.  Its filename was
-     doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc.patch
+     move-preempt_notifiers-into-an-always-included-kconfig.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: doc firmware_sample_firmware_class.c: kmalloc + memset conversion to kzalloc
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: Move PREEMPT_NOTIFIERS into an always-included Kconfig
+From: Avi Kivity <avi@qumranet.com>
 
- Documentation/firmware_class/firmware_sample_firmware_class.c | 5246 -> 5211 (-35 bytes)
+Kconfig.preempt is not included on some archs (for example, m68k).  On those
+archs, the Kconfig machinery complains that KVM selects an undefined symbol
+PREEMPT_NOTIFIERS (which lives in Kconfig.preempt).
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+So move the offending symbol into a Kconfig file which is included by
+everyone.
+
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Avi Kivity <avi@qumranet.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/firmware_class/firmware_sample_firmware_class.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ init/Kconfig           |    3 +++
+ kernel/Kconfig.preempt |    3 ---
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/firmware_class/firmware_sample_firmware_class.c~doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc Documentation/firmware_class/firmware_sample_firmware_class.c
---- a/Documentation/firmware_class/firmware_sample_firmware_class.c~doc-firmware_sample_firmware_classc-kmalloc-memset-conversion-to-kzalloc
-+++ a/Documentation/firmware_class/firmware_sample_firmware_class.c
-@@ -109,15 +109,15 @@ static int fw_setup_class_device(struct 
- 				 const char *fw_name,
- 				 struct device *device)
- {
--	int retval = 0;
--	struct firmware_priv *fw_priv = kmalloc(sizeof(struct firmware_priv),
--						GFP_KERNEL);
-+	int retval;
-+	struct firmware_priv *fw_priv;
+diff -puN init/Kconfig~move-preempt_notifiers-into-an-always-included-kconfig init/Kconfig
+--- a/init/Kconfig~move-preempt_notifiers-into-an-always-included-kconfig
++++ a/init/Kconfig
+@@ -689,3 +689,6 @@ config STOP_MACHINE
+ 	  Need stop_machine() primitive.
  
--	if(!fw_priv){
-+	fw_priv = kzalloc(sizeof(struct firmware_priv),	GFP_KERNEL);
-+	if (!fw_priv) {
- 		retval = -ENOMEM;
- 		goto out;
- 	}
--	memset(fw_priv, 0, sizeof(*fw_priv));
+ source "block/Kconfig"
 +
- 	memset(class_dev, 0, sizeof(*class_dev));
++config PREEMPT_NOTIFIERS
++	bool
+diff -puN kernel/Kconfig.preempt~move-preempt_notifiers-into-an-always-included-kconfig kernel/Kconfig.preempt
+--- a/kernel/Kconfig.preempt~move-preempt_notifiers-into-an-always-included-kconfig
++++ a/kernel/Kconfig.preempt
+@@ -63,6 +63,3 @@ config PREEMPT_BKL
+ 	  Say Y here if you are building a kernel for a desktop system.
+ 	  Say N if you are unsure.
  
- 	strncpy(fw_priv->fw_id, fw_name, FIRMWARE_NAME_MAX);
+-config PREEMPT_NOTIFIERS
+-	bool
+-
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from avi@qumranet.com are
 
 origin.patch
-git-cifs.patch
-kernel-forkc-remove-unneeded-variable-initialization-in-copy_process.patch
-fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
-reiser4-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
+git-kvm.patch
