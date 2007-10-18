@@ -1,88 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - writeback-fix-comment-use-helper-function.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:02:17 -0700
-Message-ID: <200710180702.l9I72Hjt031254@imap1.linux-foundation.org>
+Subject: - writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:02:24 -0700
+Message-ID: <200710180702.l9I72OS8031263@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38268 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41287 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760304AbXJRHPV (ORCPT
+	by vger.kernel.org with ESMTP id S1760140AbXJRHPU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:15:21 -0400
+	Thu, 18 Oct 2007 03:15:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mikew@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     writeback: fix comment, use helper function
+     writeback: fix time ordering of the per superblock dirty inode lists 7
 has been removed from the -mm tree.  Its filename was
-     writeback-fix-comment-use-helper-function.patch
+     writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: writeback: fix comment, use helper function
+Subject: writeback: fix time ordering of the per superblock dirty inode lists 7
 From: Andrew Morton <akpm@linux-foundation.org>
 
-There's a comment in there which claims that the inode is left on s_io
-if nfs chickened out of writing some data.
+This one fixes four bugs.
 
-But that's not been true for three years. 
-9290280ced13c85689adeffa587e9a53bd3a5873 fixed a livelock by moving these
-inodes back onto s_dirty.  Fix the comment.
+There are a few situation in there where writeback decides it is going to skip
+over a blockdev inode on the kernel-internal blockdev superblock.  It
+presently does this by moving the blockdev inode onto the tail of the blockdev
+superblock's s_dirty.  But
 
-In the second leg of the `if', use redirty_tail() rather than open-coding it.
+a) this screws up s_dirty's reverse-time-orderedness and
 
-Add weaselly comment indicating lack of confidence in the code and lack of the
-fortitude which would be needed to fiddle with it.
+b) refiling the blockdev for writeback in another 30 second is rude.  We
+   should try again sooner than that.
+
+Fix all this up by using redirty_head(): move the blockdev inode onto the head
+of the blockdev superblock's s_dirty list for prompt writeback.
 
 Cc: Mike Waychison <mikew@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ fs/fs-writeback.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/fs-writeback.c~writeback-fix-comment-use-helper-function fs/fs-writeback.c
---- a/fs/fs-writeback.c~writeback-fix-comment-use-helper-function
+diff -puN fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7 fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7
 +++ a/fs/fs-writeback.c
-@@ -201,7 +201,6 @@ __sync_single_inode(struct inode *inode,
- {
- 	unsigned dirty;
- 	struct address_space *mapping = inode->i_mapping;
--	struct super_block *sb = inode->i_sb;
- 	int wait = wbc->sync_mode == WB_SYNC_ALL;
- 	int ret;
+@@ -410,14 +410,14 @@ sync_sb_inodes(struct super_block *sb, s
+ 			wbc->encountered_congestion = 1;
+ 			if (!sb_is_blkdev_sb(sb))
+ 				break;		/* Skip a congested fs */
+-			list_move(&inode->i_list, &sb->s_dirty);
++			redirty_head(inode);
+ 			continue;		/* Skip a congested blockdev */
+ 		}
  
-@@ -237,7 +236,16 @@ __sync_single_inode(struct inode *inode,
- 			/*
- 			 * We didn't write back all the pages.  nfs_writepages()
- 			 * sometimes bales out without doing anything. Redirty
--			 * the inode.  It is still on sb->s_io.
-+			 * the inode.  It is moved from s_io onto s_dirty.
-+			 */
-+			/*
-+			 * akpm: if the caller was the kupdate function we put
-+			 * this inode at the head of s_dirty so it gets first
-+			 * consideration.  Otherwise, move it to the tail, for
-+			 * the reasons described there.  I'm not really sure
-+			 * how much sense this makes.  Presumably I had a good
-+			 * reasons for doing it this way, and I'd rather not
-+			 * muck with it at present.
- 			 */
- 			if (wbc->for_kupdate) {
- 				/*
-@@ -257,8 +265,7 @@ __sync_single_inode(struct inode *inode,
- 				 * all the other files.
- 				 */
- 				inode->i_state |= I_DIRTY_PAGES;
--				inode->dirtied_when = jiffies;
--				list_move(&inode->i_list, &sb->s_dirty);
-+				redirty_tail(inode);
- 			}
- 		} else if (inode->i_state & I_DIRTY) {
- 			/*
+ 		if (wbc->bdi && bdi != wbc->bdi) {
+ 			if (!sb_is_blkdev_sb(sb))
+ 				break;		/* fs has the wrong queue */
+-			list_move(&inode->i_list, &sb->s_dirty);
++			redirty_head(inode);
+ 			continue;		/* blockdev has wrong queue */
+ 		}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
