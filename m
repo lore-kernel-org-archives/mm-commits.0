@@ -1,83 +1,206 @@
 From: akpm@linux-foundation.org
-Subject: - completely-remove-deprecated-irq-flags-sa_.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:01:33 -0700
-Message-ID: <200710180701.l9I71XRt031185@imap1.linux-foundation.org>
+Subject: - add-sys-module-name-notes.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:54:37 -0700
+Message-ID: <200710180654.l9I6sbji030536@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54760 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39074 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760833AbXJRHib (ORCPT
+	by vger.kernel.org with ESMTP id S1761212AbXJRHih (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:38:31 -0400
+	Thu, 18 Oct 2007 03:38:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: darwish.07@gmail.com, James.Bottomley@steeleye.com, ralf@linux-mips.org, willy@debian.org, mm-commits@vger.kernel.org
+To: roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Completely remove deprecated IRQ flags (SA_*)
+     Add /sys/module/name/notes
 has been removed from the -mm tree.  Its filename was
-     completely-remove-deprecated-irq-flags-sa_.patch
+     add-sys-module-name-notes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Completely remove deprecated IRQ flags (SA_*)
-From: "Ahmed S. Darwish" <darwish.07@gmail.com>
+Subject: Add /sys/module/name/notes
+From: Roland McGrath <roland@redhat.com>
 
-Only very little files use the deprecated SA_* IRQ flags in latest pull.  This
-patch series removes such macros from the tree and transfrom old code to the
-new IRQF_* flags.
+This patch adds the /sys/module/<name>/notes/ magic directory, which has a
+file for each allocated SHT_NOTE section that appears in <name>.ko.  This
+is the counterpart for each module of /sys/kernel/notes for vmlinux. 
+Reading this delivers the contents of the module's SHT_NOTE sections.  This
+lets userland easily glean any detailed information about that module's
+build that was stored there at compile time (e.g.  by ld --build-id).
 
-I've grepped the whole tree to make sure that no more files than the patched
-ones use such deprecated macros.  I hope this series won't introduce build
-errors.
-
-Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Matthew Wilcox <willy@debian.org>
+Signed-off-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/interrupt.h |   22 ----------------------
- 1 file changed, 22 deletions(-)
+ include/linux/module.h |    3 +
+ kernel/module.c        |  106 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 109 insertions(+)
 
-diff -puN include/linux/interrupt.h~completely-remove-deprecated-irq-flags-sa_ include/linux/interrupt.h
---- a/include/linux/interrupt.h~completely-remove-deprecated-irq-flags-sa_
-+++ a/include/linux/interrupt.h
-@@ -55,28 +55,6 @@
- #define IRQF_NOBALANCING	0x00000800
- #define IRQF_IRQPOLL		0x00001000
+diff -puN include/linux/module.h~add-sys-module-name-notes include/linux/module.h
+--- a/include/linux/module.h~add-sys-module-name-notes
++++ a/include/linux/module.h
+@@ -343,6 +343,9 @@ struct module
  
--/*
-- * Migration helpers. Scheduled for removal in 9/2007
-- * Do not use for new code !
-- */
--static inline
--unsigned long __deprecated deprecated_irq_flag(unsigned long flag)
--{
--	return flag;
--}
--
--#define SA_INTERRUPT		deprecated_irq_flag(IRQF_DISABLED)
--#define SA_SAMPLE_RANDOM	deprecated_irq_flag(IRQF_SAMPLE_RANDOM)
--#define SA_SHIRQ		deprecated_irq_flag(IRQF_SHARED)
--#define SA_PROBEIRQ		deprecated_irq_flag(IRQF_PROBE_SHARED)
--#define SA_PERCPU		deprecated_irq_flag(IRQF_PERCPU)
--
--#define SA_TRIGGER_LOW		deprecated_irq_flag(IRQF_TRIGGER_LOW)
--#define SA_TRIGGER_HIGH		deprecated_irq_flag(IRQF_TRIGGER_HIGH)
--#define SA_TRIGGER_FALLING	deprecated_irq_flag(IRQF_TRIGGER_FALLING)
--#define SA_TRIGGER_RISING	deprecated_irq_flag(IRQF_TRIGGER_RISING)
--#define SA_TRIGGER_MASK		deprecated_irq_flag(IRQF_TRIGGER_MASK)
--
- typedef irqreturn_t (*irq_handler_t)(int, void *);
+ 	/* Section attributes */
+ 	struct module_sect_attrs *sect_attrs;
++
++	/* Notes attributes */
++	struct module_notes_attrs *notes_attrs;
+ #endif
  
- struct irqaction {
+ 	/* Per-cpu data. */
+diff -puN kernel/module.c~add-sys-module-name-notes kernel/module.c
+--- a/kernel/module.c~add-sys-module-name-notes
++++ a/kernel/module.c
+@@ -20,6 +20,7 @@
+ #include <linux/moduleloader.h>
+ #include <linux/init.h>
+ #include <linux/kallsyms.h>
++#include <linux/sysfs.h>
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+ #include <linux/vmalloc.h>
+@@ -1047,6 +1048,100 @@ static void remove_sect_attrs(struct mod
+ 	}
+ }
+ 
++/*
++ * /sys/module/foo/notes/.section.name gives contents of SHT_NOTE sections.
++ */
++
++struct module_notes_attrs {
++	struct kobject *dir;
++	unsigned int notes;
++	struct bin_attribute attrs[0];
++};
++
++static ssize_t module_notes_read(struct kobject *kobj,
++				 struct bin_attribute *bin_attr,
++				 char *buf, loff_t pos, size_t count)
++{
++	/*
++	 * The caller checked the pos and count against our size.
++	 */
++	memcpy(buf, bin_attr->private + pos, count);
++	return count;
++}
++
++static void free_notes_attrs(struct module_notes_attrs *notes_attrs,
++			     unsigned int i)
++{
++	if (notes_attrs->dir) {
++		while (i-- > 0)
++			sysfs_remove_bin_file(notes_attrs->dir,
++					      &notes_attrs->attrs[i]);
++		kobject_del(notes_attrs->dir);
++	}
++	kfree(notes_attrs);
++}
++
++static void add_notes_attrs(struct module *mod, unsigned int nsect,
++			    char *secstrings, Elf_Shdr *sechdrs)
++{
++	unsigned int notes, loaded, i;
++	struct module_notes_attrs *notes_attrs;
++	struct bin_attribute *nattr;
++
++	/* Count notes sections and allocate structures.  */
++	notes = 0;
++	for (i = 0; i < nsect; i++)
++		if ((sechdrs[i].sh_flags & SHF_ALLOC) &&
++		    (sechdrs[i].sh_type == SHT_NOTE))
++			++notes;
++
++	if (notes == 0)
++		return;
++
++	notes_attrs = kzalloc(sizeof(*notes_attrs)
++			      + notes * sizeof(notes_attrs->attrs[0]),
++			      GFP_KERNEL);
++	if (notes_attrs == NULL)
++		return;
++
++	notes_attrs->notes = notes;
++	nattr = &notes_attrs->attrs[0];
++	for (loaded = i = 0; i < nsect; ++i) {
++		if (!(sechdrs[i].sh_flags & SHF_ALLOC))
++			continue;
++		if (sechdrs[i].sh_type == SHT_NOTE) {
++			nattr->attr.name = mod->sect_attrs->attrs[loaded].name;
++			nattr->attr.mode = S_IRUGO;
++			nattr->size = sechdrs[i].sh_size;
++			nattr->private = (void *) sechdrs[i].sh_addr;
++			nattr->read = module_notes_read;
++			++nattr;
++		}
++		++loaded;
++	}
++
++	notes_attrs->dir = kobject_add_dir(&mod->mkobj.kobj, "notes");
++	if (!notes_attrs->dir)
++		goto out;
++
++	for (i = 0; i < notes; ++i)
++		if (sysfs_create_bin_file(notes_attrs->dir,
++					  &notes_attrs->attrs[i]))
++			goto out;
++
++	mod->notes_attrs = notes_attrs;
++	return;
++
++  out:
++	free_notes_attrs(notes_attrs, i);
++}
++
++static void remove_notes_attrs(struct module *mod)
++{
++	if (mod->notes_attrs)
++		free_notes_attrs(mod->notes_attrs, mod->notes_attrs->notes);
++}
++
+ #else
+ 
+ static inline void add_sect_attrs(struct module *mod, unsigned int nsect,
+@@ -1057,6 +1152,15 @@ static inline void add_sect_attrs(struct
+ static inline void remove_sect_attrs(struct module *mod)
+ {
+ }
++
++static inline void add_notes_attrs(struct module *mod, unsigned int nsect,
++				   char *sectstrings, Elf_Shdr *sechdrs)
++{
++}
++
++static inline void remove_notes_attrs(struct module *mod)
++{
++}
+ #endif /* CONFIG_KALLSYMS */
+ 
+ #ifdef CONFIG_SYSFS
+@@ -1191,6 +1295,7 @@ static void free_module(struct module *m
+ {
+ 	/* Delete from various lists */
+ 	stop_machine_run(__unlink_module, mod, NR_CPUS);
++	remove_notes_attrs(mod);
+ 	remove_sect_attrs(mod);
+ 	mod_kobject_remove(mod);
+ 
+@@ -1918,6 +2023,7 @@ static struct module *load_module(void _
+ 	if (err < 0)
+ 		goto arch_cleanup;
+ 	add_sect_attrs(mod, hdr->e_shnum, secstrings, sechdrs);
++	add_notes_attrs(mod, hdr->e_shnum, secstrings, sechdrs);
+ 
+ 	/* Size of section 0 is 0, so this works well if no unwind info. */
+ 	mod->unwind_info = unwind_add_table(mod,
 _
 
-Patches currently in -mm which might be from darwish.07@gmail.com are
+Patches currently in -mm which might be from roland@redhat.com are
 
 origin.patch
-git-kvm.patch
+x86_64-use-linux-elfcore-compath.patch
+fix-tsk-exit_state-usage-resend.patch
