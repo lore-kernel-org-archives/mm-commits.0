@@ -1,79 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - exec-simplify-sighand-switching.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:56:43 -0700
-Message-ID: <200710180656.l9I6uhuX030723@imap1.linux-foundation.org>
+Subject: - module-return-error-when-mod_sysfs_init-failed.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:01:53 -0700
+Message-ID: <200710180701.l9I71rAk031212@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58562 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50975 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760046AbXJRH0u (ORCPT
+	by vger.kernel.org with ESMTP id S1761276AbXJRH07 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:26:50 -0400
+	Thu, 18 Oct 2007 03:26:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, gregkh@suse.de, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     exec: simplify ->sighand switching
+     module: return error when mod_sysfs_init() failed
 has been removed from the -mm tree.  Its filename was
-     exec-simplify-sighand-switching.patch
+     module-return-error-when-mod_sysfs_init-failed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: exec: simplify ->sighand switching
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: module: return error when mod_sysfs_init() failed
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-There is no any reason to do recalc_sigpending() after changing ->sighand.
-To begin with, recalc_sigpending() does not take ->sighand into account.
+load_module() returns zero when mod_sysfs_init() fails, then the module
+loading will succeed accidentally.
 
-This means we don't need to take newsighand->siglock while changing sighands.
-rcu_assign_pointer() provides a necessary barrier, and if another process
-reads the new ->sighand it should either take tasklist_lock or it should use
-lock_task_sighand() which has a corresponding smp_read_barrier_depends().
+This patch makes load_module() return error correctly in that case.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
+Acked-by: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ kernel/module.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/exec.c~exec-simplify-sighand-switching fs/exec.c
---- a/fs/exec.c~exec-simplify-sighand-switching
-+++ a/fs/exec.c
-@@ -916,12 +916,7 @@ no_thread_group:
+diff -puN kernel/module.c~module-return-error-when-mod_sysfs_init-failed kernel/module.c
+--- a/kernel/module.c~module-return-error-when-mod_sysfs_init-failed
++++ a/kernel/module.c
+@@ -1881,7 +1881,8 @@ static struct module *load_module(void _
+ 	module_unload_init(mod);
  
- 		write_lock_irq(&tasklist_lock);
- 		spin_lock(&oldsighand->siglock);
--		spin_lock_nested(&newsighand->siglock, SINGLE_DEPTH_NESTING);
--
- 		rcu_assign_pointer(tsk->sighand, newsighand);
--		recalc_sigpending();
--
--		spin_unlock(&newsighand->siglock);
- 		spin_unlock(&oldsighand->siglock);
- 		write_unlock_irq(&tasklist_lock);
+ 	/* Initialize kobject, so we can reference it. */
+-	if (mod_sysfs_init(mod) != 0)
++	err = mod_sysfs_init(mod);
++	if (err)
+ 		goto cleanup;
  
-@@ -931,12 +926,11 @@ no_thread_group:
- 	BUG_ON(!thread_group_leader(tsk));
- 	return 0;
- }
--	
-+
- /*
-  * These functions flushes out all traces of the currently running executable
-  * so that a new one can be started
-  */
--
- static void flush_old_files(struct files_struct * files)
- {
- 	long j = -1;
+ 	/* Set up license info based on the info section */
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
 git-x86.patch
@@ -86,48 +67,3 @@ cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
 cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
 cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
 cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
-make-access-to-tasks-nsproxy-lighter.patch
-make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
-make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
-workqueue-debug-flushing-deadlocks-with-lockdep.patch
-workqueue-debug-work-related-deadlocks-with-lockdep.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-merge-fix.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-uninline-find_task_by_xxx-set-of-functions.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
-uninline-find_pid-etc-set-of-functions.patch
-uninline-the-task_xid_nr_ns-calls.patch
-proc-export-a-processes-resource-limits-via-proc-pid.patch
-fix-tsk-exit_state-usage-resend.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-whitespace-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
