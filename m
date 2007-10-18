@@ -1,70 +1,278 @@
 From: akpm@linux-foundation.org
-Subject: - ia64-fix-non-numa-build.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:05:26 -0700
-Message-ID: <200710180705.l9I75QPl031646@imap1.linux-foundation.org>
+Subject: - git-block-fixup.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:05:44 -0700
+Message-ID: <200710180705.l9I75iha031673@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43182 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57548 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755759AbXJRHPS (ORCPT
+	by vger.kernel.org with ESMTP id S1760067AbXJRHPR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:15:18 -0400
+	Thu, 18 Oct 2007 03:15:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, oomichi@mxs.nes.nec.co.jp, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64: fix non-numa build
+     git-block-fixup
 has been removed from the -mm tree.  Its filename was
-     ia64-fix-non-numa-build.patch
+     git-block-fixup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ia64: fix non-numa build
+Subject: git-block-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/ia64/kernel/machine_kexec.c: In function `arch_crash_save_vmcoreinfo':
-arch/ia64/kernel/machine_kexec.c:131: error: `pgdat_list' undeclared (first use in this function)
-arch/ia64/kernel/machine_kexec.c:131: error: (Each undeclared identifier is reported only once
-arch/ia64/kernel/machine_kexec.c:131: error: for each function it appears in.)
-arch/ia64/kernel/machine_kexec.c:134: error: `node_memblk' undeclared (first use in this function)
-arch/ia64/kernel/machine_kexec.c:135: error: `NR_NODE_MEMBLKS' undeclared (first use in this function)
-arch/ia64/kernel/machine_kexec.c:136: error: invalid application of `sizeof' to incomplete type `node_memblk_s' 
-arch/ia64/kernel/machine_kexec.c:137: error: dereferencing pointer to incomplete type
-arch/ia64/kernel/machine_kexec.c:138: error: dereferencing pointer to incomplete type
-make[1]: *** [arch/ia64/kernel/machine_kexec.o] Error 1
+fix git rejects...
 
-Cc: "Tony Luck" <tony.luck@intel.com>
-Cc: "Ken'ichi Ohmichi" <oomichi@mxs.nes.nec.co.jp>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/machine_kexec.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/splice.c |  215 --------------------------------------------------
+ 1 file changed, 215 deletions(-)
 
-diff -puN arch/ia64/kernel/machine_kexec.c~ia64-fix-non-numa-build arch/ia64/kernel/machine_kexec.c
---- a/arch/ia64/kernel/machine_kexec.c~ia64-fix-non-numa-build
-+++ a/arch/ia64/kernel/machine_kexec.c
-@@ -17,6 +17,8 @@
- #include <linux/efi.h>
- #include <linux/numa.h>
- #include <linux/mmzone.h>
-+
-+#include <asm/numa.h>
- #include <asm/mmu_context.h>
- #include <asm/setup.h>
- #include <asm/delay.h>
-@@ -127,7 +129,7 @@ void machine_kexec(struct kimage *image)
+diff -puN fs/splice.c~git-block-fixup fs/splice.c
+--- a/fs/splice.c~git-block-fixup
++++ a/fs/splice.c
+@@ -1208,218 +1208,6 @@ static int copy_from_user_mmap_sem(void 
+ }
  
- void arch_crash_save_vmcoreinfo(void)
+ /*
+- * Just copy the data to user space
+- */
+-static int pipe_to_user_copy(struct pipe_inode_info *pipe,
+-			     struct pipe_buffer *buf, struct splice_desc *sd)
+-{
+-	char *src;
+-	int ret;
+-
+-	ret = buf->ops->confirm(pipe, buf);
+-	if (unlikely(ret))
+-		return ret;
+-
+-	/*
+-	 * See if we can use the atomic maps, by prefaulting in the
+-	 * pages and doing an atomic copy
+-	 */
+-	if (!fault_in_pages_writeable(sd->u.userptr, sd->len)) {
+-		src = buf->ops->map(pipe, buf, 1);
+-		ret = __copy_to_user_inatomic(sd->u.userptr, src + buf->offset,
+-							sd->len);
+-		buf->ops->unmap(pipe, buf, src);
+-		if (!ret) {
+-			ret = sd->len;
+-			goto out;
+-		}
+-	}
+-
+-	/*
+-	 * No dice, use slow non-atomic map and copy
+-	 */
+-	src = buf->ops->map(pipe, buf, 0);
+-
+-	ret = sd->len;
+-	if (copy_to_user(sd->u.userptr, src + buf->offset, sd->len))
+-		ret = -EFAULT;
+-
+-	buf->ops->unmap(pipe, buf, src);
+-out:
+-	if (ret > 0)
+-		sd->u.userptr += ret;
+-	return ret;
+-}
+-
+-/*
+- * This actor doesn't really do anything interesting, it merely settles
+- * the pipe page and adds it to the work list for insertion when the entire
+- * pipe has been processed.
+- */
+-static int pipe_to_user_map(struct pipe_inode_info *pipe,
+-			    struct pipe_buffer *buf, struct splice_desc *sd)
+-{
+-	struct splice_pipe_desc *spd = sd->u.data;
+-	int error;
+-
+-	if (buf->len & ~PAGE_MASK)
+-		return -EINVAL;
+-
+-	error = buf->ops->confirm(pipe, buf);
+-	if (!error) {
+-		spd->pages[spd->nr_pages++] = buf->page;
+-		return buf->len;
+-	}
+-
+-	return error;
+-}
+-
+-/*
+- * Setup a vma for this address range, and let pipe_to_user_map() insert
+- * pages into that.
+- */
+-static int vmsplice_pipe_map(struct pipe_inode_info *pipe,
+-			     struct splice_desc *sd)
+-{
+-	struct mm_struct *mm = current->mm;
+-	struct page *pages[PIPE_BUFFERS];
+-	struct splice_pipe_desc spd = {
+-		.pages = pages,
+-	};
+-	struct vm_area_struct *vma;
+-	unsigned long addr;
+-	int ret, i, err;
+-
+-	if (sd->total_len & ~PAGE_MASK)
+-		return -EINVAL;
+-
+-	/*
+-	 * Run through the pipe buffers and settle the contents. The number
+-	 * of processed pages will be put in spd.nr_pages.
+-	 */
+-	addr = (unsigned long) sd->u.userptr;
+-	sd->pos = 0;
+-	sd->u.data = &spd;
+-	err = __splice_from_pipe(pipe, sd, pipe_to_user_map);
+-	if (unlikely(err <= 0))
+-		return err;
+-	else if (unlikely(!spd.nr_pages))
+-		return 0;
+-
+-	/*
+-	 * We have a non-zero number of pages available. Now find the
+-	 * associated vma so we can establish pages mappings there.
+-	 */
+-	ret = -EINVAL;
+-	down_read(&mm->mmap_sem);
+-
+-	vma = find_vma(mm, addr);
+-	if (unlikely(!vma))
+-		goto out;
+-
+-	for (i = ret = err = 0; i < spd.nr_pages; i++) {
+-		err = vm_insert_page(vma, addr, spd.pages[i]);
+-		if (unlikely(err))
+-			break;
+-
+-		addr += PAGE_SIZE;
+-		ret += PAGE_SIZE;
+-	}
+-
+-out:
+-	up_read(&mm->mmap_sem);
+-
+-	if (err && !ret)
+-		ret = err;
+-
+-	return ret;
+-}
+-
+-/*
+- * vmsplice a pipe to user memory. If SPLICE_F_MOVE is set, we will attempt
+- * to move the pipe pages to the user address space. Otherwise a simple
+- * copy is done.
+- */
+-static long vmsplice_to_user(struct file *file, const struct iovec __user *iov,
+-			     unsigned long nr_segs, unsigned int flags)
+-{
+-	struct pipe_inode_info *pipe;
+-	struct splice_desc sd;
+-	long spliced, ret;
+-
+-	pipe = pipe_info(file->f_path.dentry->d_inode);
+-	if (!pipe)
+-		return -EBADF;
+-
+-	if (pipe->inode)
+-		mutex_lock(&pipe->inode->i_mutex);
+-
+-	spliced = ret = 0;
+-	while (nr_segs) {
+-		void __user *base;
+-		size_t len;
+-
+-		/*
+-		 * Get user address base and length for this iovec.
+-		 */
+-		ret = get_user(base, &iov->iov_base);
+-		if (unlikely(ret))
+-			break;
+-		ret = get_user(len, &iov->iov_len);
+-		if (unlikely(ret))
+-			break;
+-
+-		/*
+-		 * Sanity check this iovec. 0 read succeeds.
+-		 */
+-		if (unlikely(!len))
+-			break;
+-		if (unlikely(!base)) {
+-			ret = -EFAULT;
+-			break;
+-		}
+-
+-		sd.len = 0;
+-		sd.total_len = len;
+-		sd.flags = flags;
+-		sd.u.userptr = base;
+-		sd.pos = 0;
+-
+-		/*
+-		 * SPLICE_F_MOVE is set, don't copy the data but attempt
+-		 * to map it into the app address space.
+-		 */
+-		if (flags & SPLICE_F_MOVE)
+-			ret = vmsplice_pipe_map(pipe, &sd);
+-		else
+-			ret = __splice_from_pipe(pipe, &sd, pipe_to_user_copy);
+-
+-		if (ret < 0)
+-			break;
+-
+-		spliced += ret;
+-
+-		/*
+-		 * If we transferred less than a pipe buffer length, break
+-		 * out of the loop and let the caller retry.
+-		 */
+-		if (ret < len)
+-			break;
+-
+-		nr_segs--;
+-		iov++;
+-	}
+-
+-	if (pipe->inode)
+-		mutex_unlock(&pipe->inode->i_mutex);
+-
+-	if (!spliced)
+-		spliced = ret;
+-
+-	return spliced;
+-}
+-
+-/*
+  * Map an iov into an array of pages and offset/length tupples. With the
+  * partial_page structure, we can map several non-contiguous ranges into
+  * our ones pages[] map instead of splitting that operation into pieces.
+@@ -1525,7 +1313,6 @@ static int get_iovec_page_array(const st
+ 	return error;
+ }
+ 
+-<<<<<<< HEAD:fs/splice.c
+ static int pipe_to_user(struct pipe_inode_info *pipe, struct pipe_buffer *buf,
+ 			struct splice_desc *sd)
  {
--#ifdef CONFIG_ARCH_DISCONTIGMEM_ENABLE
-+#if defined(CONFIG_ARCH_DISCONTIGMEM_ENABLE) && defined(CONFIG_NUMA)
- 	VMCOREINFO_SYMBOL(pgdat_list);
- 	VMCOREINFO_LENGTH(pgdat_list, MAX_NUMNODES);
+@@ -1644,8 +1431,6 @@ static long vmsplice_to_user(struct file
+ 	return ret;
+ }
  
+-=======
+->>>>>>> FETCH_HEAD:fs/splice.c
+ /*
+  * vmsplice splices a user address range into a pipe. It can be thought of
+  * as splice-from-memory, where the regular splice is splice-from-file (or
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
