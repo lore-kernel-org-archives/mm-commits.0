@@ -1,123 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: - ufs-implement-show_options.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:54:17 -0700
-Message-ID: <200710180654.l9I6sH13030510@imap1.linux-foundation.org>
+Subject: - ext3-show-all-mount-options.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:53:55 -0700
+Message-ID: <200710180653.l9I6rtA3030480@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41835 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52528 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760847AbXJRHkx (ORCPT
+	by vger.kernel.org with ESMTP id S1761058AbXJRHlN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:40:53 -0400
+	Thu, 18 Oct 2007 03:41:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dushistov@mail.ru, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ufs: implement show_options
+     ext3: show all mount options
 has been removed from the -mm tree.  Its filename was
-     ufs-implement-show_options.patch
+     ext3-show-all-mount-options.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ufs: implement show_options
-From: Evgeniy Dushistov <dushistov@mail.ru>
+Subject: ext3: show all mount options
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-An implementation of show_options method for UFS.
-
-Signed-off-by: Evgeniy Dushistov <dushistov@mail.ru>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/super.c |   43 +++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 39 insertions(+), 4 deletions(-)
+ fs/ext3/super.c            |   70 +++++++++++++++++++++++++++++++++++
+ include/linux/ext3_fs_sb.h |    1 
+ 2 files changed, 71 insertions(+)
 
-diff -puN fs/ufs/super.c~ufs-implement-show_options fs/ufs/super.c
---- a/fs/ufs/super.c~ufs-implement-show_options
-+++ a/fs/ufs/super.c
-@@ -88,6 +88,8 @@
- #include <linux/buffer_head.h>
- #include <linux/vfs.h>
- #include <linux/log2.h>
-+#include <linux/mount.h>
-+#include <linux/seq_file.h>
- 
- #include "swab.h"
- #include "util.h"
-@@ -286,10 +288,21 @@ void ufs_warning (struct super_block * s
+diff -puN fs/ext3/super.c~ext3-show-all-mount-options fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-show-all-mount-options
++++ a/fs/ext3/super.c
+@@ -545,9 +545,78 @@ static inline void ext3_show_quota_optio
+ #endif
  }
  
- enum {
--	Opt_type_old, Opt_type_sunx86, Opt_type_sun, Opt_type_sunos, Opt_type_44bsd,
--	Opt_type_ufs2, Opt_type_hp, Opt_type_nextstepcd, Opt_type_nextstep,
--	Opt_type_openstep, Opt_onerror_panic, Opt_onerror_lock,
--	Opt_onerror_umount, Opt_onerror_repair, Opt_err
-+       Opt_type_old = UFS_MOUNT_UFSTYPE_OLD,
-+       Opt_type_sunx86 = UFS_MOUNT_UFSTYPE_SUNx86,
-+       Opt_type_sun = UFS_MOUNT_UFSTYPE_SUN,
-+       Opt_type_sunos = UFS_MOUNT_UFSTYPE_SUNOS,
-+       Opt_type_44bsd = UFS_MOUNT_UFSTYPE_44BSD,
-+       Opt_type_ufs2 = UFS_MOUNT_UFSTYPE_UFS2,
-+       Opt_type_hp = UFS_MOUNT_UFSTYPE_HP,
-+       Opt_type_nextstepcd = UFS_MOUNT_UFSTYPE_NEXTSTEP_CD,
-+       Opt_type_nextstep = UFS_MOUNT_UFSTYPE_NEXTSTEP,
-+       Opt_type_openstep = UFS_MOUNT_UFSTYPE_OPENSTEP,
-+       Opt_onerror_panic = UFS_MOUNT_ONERROR_PANIC,
-+       Opt_onerror_lock = UFS_MOUNT_ONERROR_LOCK,
-+       Opt_onerror_umount = UFS_MOUNT_ONERROR_UMOUNT,
-+       Opt_onerror_repair = UFS_MOUNT_ONERROR_REPAIR,
-+       Opt_err
- };
- 
- static match_table_t tokens = {
-@@ -304,6 +317,7 @@ static match_table_t tokens = {
- 	{Opt_type_nextstepcd, "ufstype=nextstep-cd"},
- 	{Opt_type_nextstep, "ufstype=nextstep"},
- 	{Opt_type_openstep, "ufstype=openstep"},
-+/*end of possible ufs types */
- 	{Opt_onerror_panic, "onerror=panic"},
- 	{Opt_onerror_lock, "onerror=lock"},
- 	{Opt_onerror_umount, "onerror=umount"},
-@@ -1206,6 +1220,26 @@ static int ufs_remount (struct super_blo
- 	return 0;
- }
- 
-+static int ufs_show_options(struct seq_file *seq, struct vfsmount *vfs)
-+{
-+	struct ufs_sb_info *sbi = UFS_SB(vfs->mnt_sb);
-+	unsigned mval = sbi->s_mount_opt & UFS_MOUNT_UFSTYPE;
-+	struct match_token *tp = tokens;
-+
-+	while (tp->token != Opt_onerror_panic && tp->token != mval)
-+		++tp;
-+	BUG_ON(tp->token == Opt_onerror_panic);
-+	seq_printf(seq, ",%s", tp->pattern);
-+
-+	mval = sbi->s_mount_opt & UFS_MOUNT_ONERROR;
-+	while (tp->token != Opt_err && tp->token != mval)
-+		++tp;
-+	BUG_ON(tp->token == Opt_err);
-+	seq_printf(seq, ",%s", tp->pattern);
-+
-+	return 0;
-+}
-+
- static int ufs_statfs(struct dentry *dentry, struct kstatfs *buf)
++/*
++ * Show an option if
++ *  - it's set to a non-default value OR
++ *  - if the per-sb default is different from the global default
++ */
+ static int ext3_show_options(struct seq_file *seq, struct vfsmount *vfs)
  {
- 	struct super_block *sb = dentry->d_sb;
-@@ -1298,6 +1332,7 @@ static const struct super_operations ufs
- 	.write_super	= ufs_write_super,
- 	.statfs		= ufs_statfs,
- 	.remount_fs	= ufs_remount,
-+	.show_options   = ufs_show_options,
- #ifdef CONFIG_QUOTA
- 	.quota_read	= ufs_quota_read,
- 	.quota_write	= ufs_quota_write,
+ 	struct super_block *sb = vfs->mnt_sb;
++	struct ext3_sb_info *sbi = EXT3_SB(sb);
++	struct ext3_super_block *es = sbi->s_es;
++	unsigned long def_mount_opts;
++
++	def_mount_opts = le32_to_cpu(es->s_default_mount_opts);
++
++	if (sbi->s_sb_block != 1)
++		seq_printf(seq, ",sb=%lu", sbi->s_sb_block);
++	if (test_opt(sb, MINIX_DF))
++		seq_puts(seq, ",minixdf");
++	if (test_opt(sb, GRPID))
++		seq_puts(seq, ",grpid");
++	if (!test_opt(sb, GRPID) && (def_mount_opts & EXT3_DEFM_BSDGROUPS))
++		seq_puts(seq, ",nogrpid");
++	if (sbi->s_resuid != EXT3_DEF_RESUID ||
++	    le16_to_cpu(es->s_def_resuid) != EXT3_DEF_RESUID) {
++		seq_printf(seq, ",resuid=%u", sbi->s_resuid);
++	}
++	if (sbi->s_resgid != EXT3_DEF_RESGID ||
++	    le16_to_cpu(es->s_def_resgid) != EXT3_DEF_RESGID) {
++		seq_printf(seq, ",resgid=%u", sbi->s_resgid);
++	}
++	if (test_opt(sb, ERRORS_CONT)) {
++		int def_errors = le16_to_cpu(es->s_errors);
++
++		if (def_errors == EXT3_ERRORS_PANIC ||
++		    def_errors == EXT3_ERRORS_RO) {
++			seq_puts(seq, ",errors=continue");
++		}
++	}
++	if (test_opt(sb, ERRORS_RO))
++		seq_puts(seq, ",errors=remount-ro");
++	if (test_opt(sb, ERRORS_PANIC))
++		seq_puts(seq, ",errors=panic");
++	if (test_opt(sb, NO_UID32))
++		seq_puts(seq, ",nouid32");
++	if (test_opt(sb, DEBUG))
++		seq_puts(seq, ",debug");
++	if (test_opt(sb, OLDALLOC))
++		seq_puts(seq, ",oldalloc");
++#ifdef CONFIG_EXT3_FS_XATTR
++	if (test_opt(sb, XATTR_USER))
++		seq_puts(seq, ",user_xattr");
++	if (!test_opt(sb, XATTR_USER) &&
++	    (def_mount_opts & EXT3_DEFM_XATTR_USER)) {
++		seq_puts(seq, ",nouser_xattr");
++	}
++#endif
++#ifdef CONFIG_EXT3_FS_POSIX_ACL
++	if (test_opt(sb, POSIX_ACL))
++		seq_puts(seq, ",acl");
++	if (!test_opt(sb, POSIX_ACL) && (def_mount_opts & EXT3_DEFM_ACL))
++		seq_puts(seq, ",noacl");
++#endif
++	if (!test_opt(sb, RESERVATION))
++		seq_puts(seq, ",noreservation");
++	if (sbi->s_commit_interval) {
++		seq_printf(seq, ",commit=%u",
++			   (unsigned) (sbi->s_commit_interval / HZ));
++	}
++	if (test_opt(sb, BARRIER))
++		seq_puts(seq, ",barrier=1");
++	if (test_opt(sb, NOBH))
++		seq_puts(seq, ",nobh");
+ 
+ 	if (test_opt(sb, DATA_FLAGS) == EXT3_MOUNT_JOURNAL_DATA)
+ 		seq_puts(seq, ",data=journal");
+@@ -1425,6 +1494,7 @@ static int ext3_fill_super (struct super
+ 	sbi->s_mount_opt = 0;
+ 	sbi->s_resuid = EXT3_DEF_RESUID;
+ 	sbi->s_resgid = EXT3_DEF_RESGID;
++	sbi->s_sb_block = sb_block;
+ 
+ 	unlock_kernel();
+ 
+diff -puN include/linux/ext3_fs_sb.h~ext3-show-all-mount-options include/linux/ext3_fs_sb.h
+--- a/include/linux/ext3_fs_sb.h~ext3-show-all-mount-options
++++ a/include/linux/ext3_fs_sb.h
+@@ -44,6 +44,7 @@ struct ext3_sb_info {
+ 	struct ext3_super_block * s_es;	/* Pointer to the super block in the buffer */
+ 	struct buffer_head ** s_group_desc;
+ 	unsigned long  s_mount_opt;
++	ext3_fsblk_t s_sb_block;
+ 	uid_t s_resuid;
+ 	gid_t s_resgid;
+ 	unsigned short s_mount_state;
 _
 
-Patches currently in -mm which might be from dushistov@mail.ru are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+fuse-fix-allowing-operations.patch
+fuse-fix-race-between-getattr-and-write.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+fuse-clean-up-open-file-passing-in-setattr.patch
+vfs-allow-filesystems-to-implement-atomic-opentruncate.patch
+fuse-improve-utimes-support.patch
+fuse-add-atomic-opentruncate-support.patch
+fuse-support-bsd-locking-semantics.patch
+fuse-add-list-of-writable-files-to-fuse_inode.patch
+fuse-add-helper-for-asynchronous-writes.patch
+fuse-add-support-for-mandatory-locking.patch
+fuse-add-blksize-field-to-fuse_attr.patch
