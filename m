@@ -1,131 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-mce-poll-at-idle_start-and-printk-fix.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:08:55 -0700
-Message-ID: <200710180708.l9I78thK031857@imap1.linux-foundation.org>
+Subject: - git-jg-misc-powernow-fix.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:05:28 -0700
+Message-ID: <200710180705.l9I75S0c031649@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33628 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39794 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759996AbXJRHJE (ORCPT
+	by vger.kernel.org with ESMTP id S1754397AbXJRHPK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:09:04 -0400
+	Thu, 18 Oct 2007 03:15:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: thockin@google.com, ak@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: mce poll at IDLE_START and printk fix
+     git-jg-misc-powernow-fix
 has been removed from the -mm tree.  Its filename was
-     x86_64-mce-poll-at-idle_start-and-printk-fix.patch
+     git-jg-misc-powernow-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: mce poll at IDLE_START and printk fix
-From: Tim Hockin <thockin@google.com>
+Subject: git-jg-misc-powernow-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Background:
- The MCE handler already has an idle-task handler which checks for the
- TIF_MCE_NOTIFY flag.  Given that the system is idle at that point, we can
- get even better granularity of MCE logging by polling for MCEs whenever
- we enter the idle loop.  This exposes a small imperfection in the
- printk() rate limiting whereby that last "Events Logged" message might
- not get printed if no more MCEs arrive.
-
-Description:
- This patch extends the MCE idle notifier callback to poll for MCEs on the
- current CPU at IDLE_START time.  It also adds one new static variable to
- track whether any events have been logged since the last printk() and
- causes a printk at the next rate-limited opportunity.
-
-Result:
- MCEs are found more rapidly on systems with bad memory.
-
-Alternatives:
- None.
-
-Testing:
- I used software to inject correctable and uncorrectable errors.  An
- application poll()ing /dev/mcelog gets woken up very quickly after error
- injection.
-
-Signed-off-by: Tim Hockin <thockin@google.com>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86_64/kernel/mce.c |   29 +++++++++++++++++++++--------
- 1 file changed, 21 insertions(+), 8 deletions(-)
+ arch/i386/kernel/cpu/cpufreq/powernow-k7.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86_64/kernel/mce.c~x86_64-mce-poll-at-idle_start-and-printk-fix arch/x86_64/kernel/mce.c
---- a/arch/x86/kernel/mce_64.c~x86_64-mce-poll-at-idle_start-and-printk-fix
-+++ a/arch/x86/kernel/mce_64.c
-@@ -309,10 +309,10 @@ void do_machine_check(struct pt_regs * r
- 		}
- 	}
- 
-+ out:
- 	/* notify userspace ASAP */
- 	set_thread_flag(TIF_MCE_NOTIFY);
- 
-- out:
- 	/* the last thing we do is clear state */
- 	for (i = 0; i < banks; i++)
- 		wrmsrl(MSR_IA32_MC0_STATUS+4*i, 0);
-@@ -391,30 +391,43 @@ static void mcheck_timer(struct work_str
-  */
- int mce_notify_user(void)
- {
-+	static int do_printk;
-+	int retval = 0;
-+
- 	clear_thread_flag(TIF_MCE_NOTIFY);
--	if (test_and_clear_bit(0, &notify_user)) {
--		static unsigned long last_print;
--		unsigned long now = jiffies;
- 
-+	/* notify userspace apps as soon as possible */
-+	if (test_and_clear_bit(0, &notify_user)) {
- 		wake_up_interruptible(&mce_wait);
- 		if (trigger[0])
- 			call_usermodehelper(trigger, trigger_argv, NULL,
- 						UMH_NO_WAIT);
-+		do_printk = 1;
-+		retval = 1;
-+	}
-+
-+	/* only log a message periodically */
-+	if (do_printk) {
-+		static unsigned long last_print;
-+		unsigned long now = jiffies;
- 
- 		if (time_after_eq(now, last_print + (check_interval*HZ))) {
- 			last_print = now;
- 			printk(KERN_INFO "Machine check events logged\n");
-+			do_printk = 0;
- 		}
--
--		return 1;
- 	}
--	return 0;
-+	return retval;
+diff -puN arch/i386/kernel/cpu/cpufreq/powernow-k7.c~git-jg-misc-powernow-fix arch/i386/kernel/cpu/cpufreq/powernow-k7.c
+--- a/arch/x86/kernel/cpu/cpufreq/powernow-k7.c~git-jg-misc-powernow-fix
++++ a/arch/x86/kernel/cpu/cpufreq/powernow-k7.c
+@@ -565,7 +565,7 @@ static unsigned int powernow_get(unsigne
  }
  
--/* see if the idle task needs to notify userspace */
-+/* take advantage of idle time to manage MCEs */
- static int
- mce_idle_callback(struct notifier_block *nfb, unsigned long action, void *junk)
+ 
+-static int __init acer_cpufreq_pst(struct dmi_system_id *d)
++static int __init acer_cpufreq_pst(const struct dmi_system_id *d)
  {
-+	/* poll for new MCEs on this CPU */
-+	if (action == IDLE_START)
-+		mcheck_check_cpu(NULL);
-+
- 	/* IDLE_END should be safe - interrupts are back on */
- 	if (action == IDLE_END && test_thread_flag(TIF_MCE_NOTIFY))
- 		mce_notify_user();
+ 	printk(KERN_WARNING "%s laptop with broken PST tables in BIOS detected.\n", d->ident);
+ 	printk(KERN_WARNING "You need to downgrade to 3A21 (09/09/2002), or try a newer BIOS than 3A71 (01/20/2003)\n");
 _
 
-Patches currently in -mm which might be from thockin@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-add-reboot-mechanism.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-cifs.patch
+console-keyboard-events-and-accessibility.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-arm-hack.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd-fixup.patch
+fix-build-breakage-if-sysfs-fix.patch
+qla2xxx-printk-fixes.patch
+advansys-depends-on-virt_to_bus.patch
+sparc-support-for-new-termios.patch
+git-unionfs.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+git-nfs-vs-git-unionfs.patch
+git-watchdog-fixup.patch
+git-wireless.patch
+git-wireless-fixup.patch
 git-x86.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-checkpatch-fixes.patch
+memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+pm-rework-struct-platform_suspend_ops-fixup-checkpatch-fixes.patch
+serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option-update.patch
+revert-x86-save-registers-in-saved_context-during-suspend-and-hibernation.patch
+pm-qos-infrastructure-and-interface-fix.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+add-kernel-notifierc-fix.patch
+add-kernel-notifierc-fix-2-fix-3.patch
+console-events-and-accessibility-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+stop-using-dma_xxbit_mask.patch
+stop-using-dma_xxbit_mask-fix.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes.patch
+sync_sb_inodes-propagate-errors.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+reiserfs-fix-up-lockdep-warnings-checkpatch-fixes.patch
+reiserfs-use-is_reusable-to-catch-corruption-checkpatch-fixes.patch
+reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes.patch
+reiserfs-remove-first_zero_hint-checkpatch-fixes.patch
+reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+fix-cpusets-update_cpumask-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+powerpc-lock-bitops-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
+i-oat-tighten-descriptor-setup-performance-fix.patch
+i-oat-add-completion-callback-for-async_tx-interface-use-fix.patch
+i-oat-add-completion-callback-for-async_tx-interface-use-fix-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
