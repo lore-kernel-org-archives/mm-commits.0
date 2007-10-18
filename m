@@ -1,64 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - local_t-update-documentation.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:59:29 -0700
-Message-ID: <200710180659.l9I6xTGr030988@imap1.linux-foundation.org>
+Subject: - make-dmapool-code-use-__set_current_state.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:59:38 -0700
+Message-ID: <200710180659.l9I6xc7R031000@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45910 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49963 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755825AbXJRG7o (ORCPT
+	by vger.kernel.org with ESMTP id S1757087AbXJRG7q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 02:59:44 -0400
+	Thu, 18 Oct 2007 02:59:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, grundler@parisc-linux.org, mm-commits@vger.kernel.org
+To: arjan@infradead.org, arjan@Linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     local_t: update documentation
+     make dmapool code use __set_current_state()
 has been removed from the -mm tree.  Its filename was
-     local_t-update-documentation.patch
+     make-dmapool-code-use-__set_current_state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: local_t: update documentation
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: make dmapool code use __set_current_state()
+From: Arjan van de Ven <arjan@infradead.org>
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Grant Grundler <grundler@parisc-linux.org>
+Signed-off-by: Arjan van de Ven <arjan@Linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/local_ops.txt |    2 +-
+ drivers/base/dmapool.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/local_ops.txt~local_t-update-documentation Documentation/local_ops.txt
---- a/Documentation/local_ops.txt~local_t-update-documentation
-+++ a/Documentation/local_ops.txt
-@@ -27,7 +27,7 @@ CPU which owns the data. Therefore, care
- CPU writes to the local_t data. This is done by using per cpu data and making
- sure that we modify it from within a preemption safe context. It is however
- permitted to read local_t data from any CPU : it will then appear to be written
--out of order wrt other memory writes on the owner CPU.
-+out of order wrt other memory writes by the owner CPU.
+diff -puN drivers/base/dmapool.c~make-dmapool-code-use-__set_current_state drivers/base/dmapool.c
+--- a/drivers/base/dmapool.c~make-dmapool-code-use-__set_current_state
++++ a/drivers/base/dmapool.c
+@@ -302,7 +302,7 @@ restart:
+ 		if (mem_flags & __GFP_WAIT) {
+ 			DECLARE_WAITQUEUE (wait, current);
  
+-			current->state = TASK_INTERRUPTIBLE;
++			__set_current_state(TASK_INTERRUPTIBLE);
+ 			add_wait_queue (&pool->waitq, &wait);
+ 			spin_unlock_irqrestore (&pool->lock, flags);
  
- * Implementation for a given architecture
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from arjan@infradead.org are
 
 origin.patch
-change-struct-marker-users.patch
-combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
-linux-kernel-markers.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-coding-style-fixes.patch
-linux-kernel-markers-alignment-fix.patch
-add-samples-subdir.patch
-linux-kernel-markers-samples.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-linux-kernel-markers-samples-coding-style-fix.patch
-linux-kernel-markers-samples-remove-asm.patch
-linux-kernel-markers-documentation.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-fix.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers-checkpatch-fixes.patch
+latencyc-use-qos-infrastructure.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
+intel-iommu-optimize-sg-map-unmap-calls.patch
+uninline-forkc-exitc.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
