@@ -1,59 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - clean-up-duplicate-includes-in-documentation.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:04:11 -0700
-Message-ID: <200710180704.l9I74BEY031529@imap1.linux-foundation.org>
+Subject: - compile-handle_percpu_irq-even-for-uniprocessor-kernels.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:01:35 -0700
+Message-ID: <200710180701.l9I71ZBh031188@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46990 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45301 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763041AbXJRHQp (ORCPT
+	by vger.kernel.org with ESMTP id S1763755AbXJRHQ4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:16:45 -0400
+	Thu, 18 Oct 2007 03:16:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, balbir@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: ralf@linux-mips.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Clean up duplicate includes in Documentation/
+     Compile handle_percpu_irq even for uniprocessor kernels
 has been removed from the -mm tree.  Its filename was
-     clean-up-duplicate-includes-in-documentation.patch
+     compile-handle_percpu_irq-even-for-uniprocessor-kernels.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Clean up duplicate includes in Documentation/
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: Compile handle_percpu_irq even for uniprocessor kernels
+From: Ralf Baechle <ralf@linux-mips.org>
 
-This patch cleans up duplicate includes in
-	Documentation/
+Compiling handle_percpu_irq only on uniprocessor generates an artificial
+special case so a typical use like:
 
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+  set_irq_chip_and_handler(irq, &some_irq_type, handle_percpu_irq);
+
+needs to be conditionally compiled only on SMP systems as well and an
+alternative UP construct is usually needed - for no good reason.
+
+This fixes uniprocessor configurations for some MIPS SMP systems.
+
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Acked-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/getdelays.c |    1 -
- 1 file changed, 1 deletion(-)
+ kernel/irq/chip.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN Documentation/accounting/getdelays.c~clean-up-duplicate-includes-in-documentation Documentation/accounting/getdelays.c
---- a/Documentation/accounting/getdelays.c~clean-up-duplicate-includes-in-documentation
-+++ a/Documentation/accounting/getdelays.c
-@@ -21,7 +21,6 @@
- #include <sys/types.h>
- #include <sys/stat.h>
- #include <sys/socket.h>
--#include <sys/types.h>
- #include <signal.h>
+diff -puN kernel/irq/chip.c~compile-handle_percpu_irq-even-for-uniprocessor-kernels kernel/irq/chip.c
+--- a/kernel/irq/chip.c~compile-handle_percpu_irq-even-for-uniprocessor-kernels
++++ a/kernel/irq/chip.c
+@@ -503,7 +503,6 @@ out_unlock:
+ 	spin_unlock(&desc->lock);
+ }
  
- #include <linux/genetlink.h>
+-#ifdef CONFIG_SMP
+ /**
+  *	handle_percpu_IRQ - Per CPU local irq handler
+  *	@irq:	the interrupt number
+@@ -529,8 +528,6 @@ handle_percpu_irq(unsigned int irq, stru
+ 		desc->chip->eoi(irq);
+ }
+ 
+-#endif /* CONFIG_SMP */
+-
+ void
+ __set_irq_handler(unsigned int irq, irq_flow_handler_t handle, int is_chained,
+ 		  const char *name)
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
 origin.patch
-git-cifs.patch
-mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
-mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
-cyclades-avoid-label-defined-but-not-used-warning.patch
+netport_conc-fix-build-errors-and-warnings.patch
+au1100fb-fix-modpost-warnings.patch
+logoc-get-rid-of-mips_machgroup.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+define-global-bit-macro.patch
+bitops-introduce-lock-ops.patch
+mips-fix-bitops.patch
+mips-lock-bitops.patch
+replace-__attribute_pure__-with-__pure.patch
