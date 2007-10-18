@@ -1,173 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: - dont-truncate-proc-pid-environ-at-4096-characters.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:01:23 -0700
-Message-ID: <200710180701.l9I71NeV031173@imap1.linux-foundation.org>
+Subject: - f_dupfd_cloexec-implementation.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:01:50 -0700
+Message-ID: <200710180701.l9I71oQX031209@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45170 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49950 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761408AbXJRHp3 (ORCPT
+	by vger.kernel.org with ESMTP id S1756117AbXJRHpQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:45:29 -0400
+	Thu, 18 Oct 2007 03:45:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: james-p@moving-picture.com, aarapov@redhat.com, adobriyan@gmail.com, hpa@zytor.com, jengelh@computergmbh.de, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: drepper@redhat.com, hch@lst.de, kyle@mcmartin.ca, linux-arch@vger.kernel.org, sfr@canb.auug.org.au, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Don't truncate /proc/PID/environ at 4096 characters
+     F_DUPFD_CLOEXEC implementation
 has been removed from the -mm tree.  Its filename was
-     dont-truncate-proc-pid-environ-at-4096-characters.patch
+     f_dupfd_cloexec-implementation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Don't truncate /proc/PID/environ at 4096 characters
-From: "James Pearson" <james-p@moving-picture.com>
+Subject: F_DUPFD_CLOEXEC implementation
+From: Ulrich Drepper <drepper@redhat.com>
 
-/proc/PID/environ currently truncates at 4096 characters, patch based on
-the /proc/PID/mem code.
+One more small change to extend the availability of creation of file
+descriptors with FD_CLOEXEC set.  Adding a new command to fcntl() requires
+no new system call and the overall impact on code size if minimal.
 
-Signed-off-by: James Pearson <james-p@moving-picture.com>
-Cc: Anton Arapov <aarapov@redhat.com>
-Cc: Jan Engelhardt <jengelh@computergmbh.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+If this patch gets accepted we will also add this change to the next
+revision of the POSIX spec.
+
+To test the patch, use the following little program.  Adjust the value of
+F_DUPFD_CLOEXEC appropriately.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#include <errno.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#ifndef F_DUPFD_CLOEXEC
+# define F_DUPFD_CLOEXEC 12
+#endif
+
+int
+main (int argc, char *argv[])
+{
+  if  (argc > 1)
+    {
+      if (fcntl (3, F_GETFD) == 0)
+	{
+	  puts ("descriptor not closed");
+	  exit (1);
+	}
+      if (errno != EBADF)
+	{
+	  puts ("error not EBADF");
+	  exit (1);
+	}
+
+      exit (0);
+    }
+  int fd = fcntl (STDOUT_FILENO, F_DUPFD_CLOEXEC, 0);
+  if (fd == -1 && errno == EINVAL)
+    {
+      puts ("F_DUPFD_CLOEXEC not supported");
+      return 0;
+    }
+  if (fd != 3)
+    {
+      puts ("program called with descriptors other than 0,1,2");
+      return 1;
+    }
+
+  execl ("/proc/self/exe", "/proc/self/exe", "1", NULL);
+  puts ("execl failed");
+  return 1;
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Signed-off-by: Ulrich Drepper <drepper@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: <linux-arch@vger.kernel.org>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   95 +++++++++++++++++++++++++++++++++++------------
- 1 file changed, 72 insertions(+), 23 deletions(-)
+ fs/fcntl.c            |   12 ++++++++----
+ include/linux/fcntl.h |   15 ++++++++++-----
+ 2 files changed, 18 insertions(+), 9 deletions(-)
 
-diff -puN fs/proc/base.c~dont-truncate-proc-pid-environ-at-4096-characters fs/proc/base.c
---- a/fs/proc/base.c~dont-truncate-proc-pid-environ-at-4096-characters
-+++ a/fs/proc/base.c
-@@ -199,27 +199,6 @@ static int proc_root_link(struct inode *
- 	 (task->state == TASK_STOPPED || task->state == TASK_TRACED) && \
- 	 security_ptrace(current,task) == 0))
+diff -puN fs/fcntl.c~f_dupfd_cloexec-implementation fs/fcntl.c
+--- a/fs/fcntl.c~f_dupfd_cloexec-implementation
++++ a/fs/fcntl.c
+@@ -110,7 +110,7 @@ out:
+ 	return error;
+ }
  
--static int proc_pid_environ(struct task_struct *task, char * buffer)
--{
--	int res = 0;
--	struct mm_struct *mm = get_task_mm(task);
--	if (mm) {
--		unsigned int len;
--
--		res = -ESRCH;
--		if (!ptrace_may_attach(task))
--			goto out;
--
--		len  = mm->env_end - mm->env_start;
--		if (len > PAGE_SIZE)
--			len = PAGE_SIZE;
--		res = access_process_vm(task, mm->env_start, buffer, len, 0);
--out:
--		mmput(mm);
--	}
--	return res;
--}
--
- static int proc_pid_cmdline(struct task_struct *task, char * buffer)
+-static int dupfd(struct file *file, unsigned int start)
++static int dupfd(struct file *file, unsigned int start, int cloexec)
  {
- 	int res = 0;
-@@ -658,6 +637,76 @@ static const struct file_operations proc
- 	.open		= mem_open,
- };
+ 	struct files_struct * files = current->files;
+ 	struct fdtable *fdt;
+@@ -122,7 +122,10 @@ static int dupfd(struct file *file, unsi
+ 		/* locate_fd() may have expanded fdtable, load the ptr */
+ 		fdt = files_fdtable(files);
+ 		FD_SET(fd, fdt->open_fds);
+-		FD_CLR(fd, fdt->close_on_exec);
++		if (cloexec)
++			FD_SET(fd, fdt->close_on_exec);
++		else
++			FD_CLR(fd, fdt->close_on_exec);
+ 		spin_unlock(&files->file_lock);
+ 		fd_install(fd, file);
+ 	} else {
+@@ -195,7 +198,7 @@ asmlinkage long sys_dup(unsigned int fil
+ 	struct file * file = fget(fildes);
  
-+static ssize_t environ_read(struct file *file, char __user *buf,
-+			size_t count, loff_t *ppos)
-+{
-+	struct task_struct *task = get_proc_task(file->f_dentry->d_inode);
-+	char *page;
-+	unsigned long src = *ppos;
-+	int ret = -ESRCH;
-+	struct mm_struct *mm;
+ 	if (file)
+-		ret = dupfd(file, 0);
++		ret = dupfd(file, 0, 0);
+ 	return ret;
+ }
+ 
+@@ -319,8 +322,9 @@ static long do_fcntl(int fd, unsigned in
+ 
+ 	switch (cmd) {
+ 	case F_DUPFD:
++	case F_DUPFD_CLOEXEC:
+ 		get_file(filp);
+-		err = dupfd(filp, arg);
++		err = dupfd(filp, arg, cmd == F_DUPFD_CLOEXEC);
+ 		break;
+ 	case F_GETFD:
+ 		err = get_close_on_exec(fd) ? FD_CLOEXEC : 0;
+diff -puN include/linux/fcntl.h~f_dupfd_cloexec-implementation include/linux/fcntl.h
+--- a/include/linux/fcntl.h~f_dupfd_cloexec-implementation
++++ a/include/linux/fcntl.h
+@@ -3,12 +3,17 @@
+ 
+ #include <asm/fcntl.h>
+ 
+-/* Cancel a blocking posix lock; internal use only until we expose an
+- * asynchronous lock api to userspace: */
+-#define F_CANCELLK	(F_LINUX_SPECIFIC_BASE+5)
++#define F_SETLEASE	(F_LINUX_SPECIFIC_BASE + 0)
++#define F_GETLEASE	(F_LINUX_SPECIFIC_BASE + 1)
+ 
+-#define F_SETLEASE	(F_LINUX_SPECIFIC_BASE+0)
+-#define F_GETLEASE	(F_LINUX_SPECIFIC_BASE+1)
++/*
++ * Cancel a blocking posix lock; internal use only until we expose an
++ * asynchronous lock api to userspace:
++ */
++#define F_CANCELLK	(F_LINUX_SPECIFIC_BASE + 5)
 +
-+	if (!task)
-+		goto out_no_task;
-+
-+	if (!ptrace_may_attach(task))
-+		goto out;
-+
-+	ret = -ENOMEM;
-+	page = (char *)__get_free_page(GFP_TEMPORARY);
-+	if (!page)
-+		goto out;
-+
-+	ret = 0;
-+
-+	mm = get_task_mm(task);
-+	if (!mm)
-+		goto out_free;
-+
-+	while (count > 0) {
-+		int this_len, retval, max_len;
-+
-+		this_len = mm->env_end - (mm->env_start + src);
-+
-+		if (this_len <= 0)
-+			break;
-+
-+		max_len = (count > PAGE_SIZE) ? PAGE_SIZE : count;
-+		this_len = (this_len > max_len) ? max_len : this_len;
-+
-+		retval = access_process_vm(task, (mm->env_start + src),
-+			page, this_len, 0);
-+
-+		if (retval <= 0) {
-+			ret = retval;
-+			break;
-+		}
-+
-+		if (copy_to_user(buf, page, retval)) {
-+			ret = -EFAULT;
-+			break;
-+		}
-+
-+		ret += retval;
-+		src += retval;
-+		buf += retval;
-+		count -= retval;
-+	}
-+	*ppos = src;
-+
-+	mmput(mm);
-+out_free:
-+	free_page((unsigned long) page);
-+out:
-+	put_task_struct(task);
-+out_no_task:
-+	return ret;
-+}
-+
-+static const struct file_operations proc_environ_operations = {
-+	.read		= environ_read,
-+};
-+
- static ssize_t oom_adjust_read(struct file *file, char __user *buf,
- 				size_t count, loff_t *ppos)
- {
-@@ -2049,7 +2098,7 @@ static const struct pid_entry tgid_base_
- 	DIR("task",       S_IRUGO|S_IXUGO, task),
- 	DIR("fd",         S_IRUSR|S_IXUSR, fd),
- 	DIR("fdinfo",     S_IRUSR|S_IXUSR, fdinfo),
--	INF("environ",    S_IRUSR, pid_environ),
-+	REG("environ",    S_IRUSR, environ),
- 	INF("auxv",       S_IRUSR, pid_auxv),
- 	INF("status",     S_IRUGO, pid_status),
- #ifdef CONFIG_SCHED_DEBUG
-@@ -2336,7 +2385,7 @@ out_no_task:
- static const struct pid_entry tid_base_stuff[] = {
- 	DIR("fd",        S_IRUSR|S_IXUSR, fd),
- 	DIR("fdinfo",    S_IRUSR|S_IXUSR, fdinfo),
--	INF("environ",   S_IRUSR, pid_environ),
-+	REG("environ",   S_IRUSR, environ),
- 	INF("auxv",      S_IRUSR, pid_auxv),
- 	INF("status",    S_IRUGO, pid_status),
- #ifdef CONFIG_SCHED_DEBUG
++/* Create a file descriptor with FD_CLOEXEC set. */
++#define F_DUPFD_CLOEXEC	(F_LINUX_SPECIFIC_BASE + 6)
+ 
+ /*
+  * Request nofications on a directory.
 _
 
-Patches currently in -mm which might be from james-p@moving-picture.com are
+Patches currently in -mm which might be from drepper@redhat.com are
 
 origin.patch
