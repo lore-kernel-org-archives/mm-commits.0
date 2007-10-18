@@ -1,67 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:54:53 -0700
-Message-ID: <200710180654.l9I6srQc030554@imap1.linux-foundation.org>
+Subject: - zisofs-use-mutex-instead-of-semaphore.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:52:55 -0700
+Message-ID: <200710180652.l9I6qtkj030326@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51507 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36624 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761302AbXJRHkU (ORCPT
+	by vger.kernel.org with ESMTP id S932264AbXJRHkh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:40:20 -0400
+	Thu, 18 Oct 2007 03:40:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.kozlowski@tuxland.pl, alan@redhat.com, mm-commits@vger.kernel.org
+To: hidave.darkstar@gmail.com, hpa@zytor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char/consolemap.c: kmalloc + memset conversion to kzalloc
+     zisofs use mutex instead of semaphore
 has been removed from the -mm tree.  Its filename was
-     drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc.patch
+     zisofs-use-mutex-instead-of-semaphore.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: drivers/char/consolemap.c: kmalloc + memset conversion to kzalloc
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: zisofs use mutex instead of semaphore
+From: Dave Young <hidave.darkstar@gmail.com>
 
- drivers/char/consolemap.c | 22678 -> 22650 (-28 bytes)
- drivers/char/consolemap.o | 90113 -> 90029 (-84 bytes)
+Use mutex instead of semaphore in fs/isofs/compress.c, and remove an
+unnecessary variable.
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Acked-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Acked-by: H. Peter Anvin <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/consolemap.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/isofs/compress.c |   25 +++++--------------------
+ 1 file changed, 5 insertions(+), 20 deletions(-)
 
-diff -puN drivers/char/consolemap.c~drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc drivers/char/consolemap.c
---- a/drivers/char/consolemap.c~drivers-char-consolemapc-kmalloc-memset-conversion-to-kzalloc
-+++ a/drivers/char/consolemap.c
-@@ -494,12 +494,11 @@ int con_clear_unimap(struct vc_data *vc,
- 	p = (struct uni_pagedir *)*vc->vc_uni_pagedir_loc;
- 	if (p && p->readonly) return -EIO;
- 	if (!p || --p->refcount) {
--		q = kmalloc(sizeof(*p), GFP_KERNEL);
-+		q = kzalloc(sizeof(*p), GFP_KERNEL);
- 		if (!q) {
- 			if (p) p->refcount++;
- 			return -ENOMEM;
- 		}
--		memset(q, 0, sizeof(*q));
- 		q->refcount=1;
- 		*vc->vc_uni_pagedir_loc = (unsigned long)q;
- 	} else {
+diff -puN fs/isofs/compress.c~zisofs-use-mutex-instead-of-semaphore fs/isofs/compress.c
+--- a/fs/isofs/compress.c~zisofs-use-mutex-instead-of-semaphore
++++ a/fs/isofs/compress.c
+@@ -33,7 +33,7 @@ static char zisofs_sink_page[PAGE_CACHE_
+  * allocation; this avoids failures at block-decompression time.
+  */
+ static void *zisofs_zlib_workspace;
+-static struct semaphore zisofs_zlib_semaphore;
++static DEFINE_MUTEX(zisofs_zlib_lock);
+ 
+ /*
+  * When decompressing, we typically obtain more than one page
+@@ -180,9 +180,9 @@ static int zisofs_readpage(struct file *
+ 
+ 		/* First block is special since it may be fractional.
+ 		   We also wait for it before grabbing the zlib
+-		   semaphore; odds are that the subsequent blocks are
++		   mutex; odds are that the subsequent blocks are
+ 		   going to come in in short order so we don't hold
+-		   the zlib semaphore longer than necessary. */
++		   the zlib mutex longer than necessary. */
+ 
+ 		if ( !bh || (wait_on_buffer(bh), !buffer_uptodate(bh)) ) {
+ 			printk(KERN_DEBUG "zisofs: Hit null buffer, fpage = %d, xpage = %d, csize = %ld\n",
+@@ -194,7 +194,7 @@ static int zisofs_readpage(struct file *
+ 		csize -= stream.avail_in;
+ 
+ 		stream.workspace = zisofs_zlib_workspace;
+-		down(&zisofs_zlib_semaphore);
++		mutex_lock(&zisofs_zlib_lock);
+ 		
+ 		zerr = zlib_inflateInit(&stream);
+ 		if ( zerr != Z_OK ) {
+@@ -281,7 +281,7 @@ static int zisofs_readpage(struct file *
+ 		zlib_inflateEnd(&stream);
+ 
+ 	z_eio:
+-		up(&zisofs_zlib_semaphore);
++		mutex_unlock(&zisofs_zlib_lock);
+ 
+ 	b_eio:
+ 		for ( i = 0 ; i < haveblocks ; i++ ) {
+@@ -317,31 +317,16 @@ const struct address_space_operations zi
+ 	/* No bmap operation supported */
+ };
+ 
+-static int initialized;
+-
+ int __init zisofs_init(void)
+ {
+-	if ( initialized ) {
+-		printk("zisofs_init: called more than once\n");
+-		return 0;
+-	}
+-
+ 	zisofs_zlib_workspace = vmalloc(zlib_inflate_workspacesize());
+ 	if ( !zisofs_zlib_workspace )
+ 		return -ENOMEM;
+-	init_MUTEX(&zisofs_zlib_semaphore);
+ 
+-	initialized = 1;
+ 	return 0;
+ }
+ 
+ void zisofs_cleanup(void)
+ {
+-	if ( !initialized ) {
+-		printk("zisofs_cleanup: called without initialization\n");
+-		return;
+-	}
+-
+ 	vfree(zisofs_zlib_workspace);
+-	initialized = 0;
+ }
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
 origin.patch
-git-cifs.patch
-kernel-forkc-remove-unneeded-variable-initialization-in-copy_process.patch
-fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
-reiser4-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
+gx-suspmodc-use-boot_cpu_data-instead-of-current_cpu_data.patch
+param_sysfs_builtin-memchr-argument-fix.patch
