@@ -1,258 +1,234 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-use-dev_info-dev_err-etc-in-core.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:03:54 -0700
-Message-ID: <200710180703.l9I73sjn031479@imap1.linux-foundation.org>
+Subject: - wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:55:29 -0700
+Message-ID: <200710180655.l9I6tTNT030616@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56018 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59334 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760486AbXJRHgR (ORCPT
+	by vger.kernel.org with ESMTP id S1760556AbXJRHg2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:36:17 -0400
+	Thu, 18 Oct 2007 03:36:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bjorn.helgaas@hp.com, ambx1@neo.rr.com, lenb@kernel.org, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PNP: use dev_info(), dev_err(), etc in core
+     wait_task_zombie: fix 2/3 races vs forget_original_parent()
 has been removed from the -mm tree.  Its filename was
-     pnp-use-dev_info-dev_err-etc-in-core.patch
+     wait_task_zombie-fix-2-3-races-vs-forget_original_parent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PNP: use dev_info(), dev_err(), etc in core
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: wait_task_zombie: fix 2/3 races vs forget_original_parent()
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-If we have the struct pnp_dev available, we can use dev_info(), dev_err(),
-etc., to give a little more information and consistency.
+Two threads, T1 and T2.  T2 ptraces P, and P is not a child of ptracer's
+thread group.  P exits and goes to TASK_ZOMBIE.
 
-[akpm@linux-foundation.org: fix warning]
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Adam Belay <ambx1@neo.rr.com>
-Cc: Len Brown <lenb@kernel.org>
+T1 does wait_task_zombie(P):
+
+	P->exit_state = TASK_DEAD;
+	...
+	read_unlock(&tasklist_lock);
+
+					T2 does exit(), takes tasklist,
+					forget_original_parent() does
+					__ptrace_unlink(P) but doesn't
+					call do_notify_parent(P) because
+					p->exit_state == EXIT_DEAD.
+
+Now, P is not visible to our process: __ptrace_unlink() removed it from
+->children. We should send notification to P->parent and release P if and
+only if SIGCHLD is ignored.
+
+And we have 3 bugs:
+
+1. P->parent does do_wait() and gets -ECHILD (P is on ->parent->children,
+   but its state is TASK_DEAD).
+
+2. // wait_task_zombie() continues
+
+	if (put_user(...)) {
+		// TODO: is this safe?
+		p->exit_state = EXIT_ZOMBIE;
+		return;
+	}
+
+   we return without notification/release, task_struct leaked.
+
+   Solution: ignore -EFAULT and proceed. It is an application's bug if
+   we can't fill infop/stat_addr (in case of VM_FAULT_OOM we have much
+   more problems).
+
+3. // wait_task_zombie() continues
+
+	if (p->real_parent != p->parent) {
+		// Not taken, it was untraced'ed
+		...
+	}
+
+	release_task(p);
+
+   we released the task which we shouldn't.
+
+   Solution: check ->real_parent != ->parent before, under tasklist_lock,
+   but use ptrace_unlink() instead of __ptrace_unlink() to check ->ptrace.
+
+This patch hopefully solves 2 and 3, the 1st bug will be fixed later, we need
+some cleanups in forget_original_parent/reparent_thread.
+
+However, the first race is very unlikely and not critical, so I hope it makes
+sense to fix 1 and 2 for now.
+
+4. Small cleanup: don't "restore" EXIT_ZOMBIE unless we know we are not going
+   to realease the child.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/Makefile    |    4 ++++
- drivers/pnp/card.c      |    3 +--
- drivers/pnp/driver.c    |    5 ++---
- drivers/pnp/interface.c |    3 +--
- drivers/pnp/manager.c   |   31 ++++++++++++-------------------
- drivers/pnp/quirks.c    |   12 ++++++++++--
- drivers/pnp/resource.c  |    2 +-
- 7 files changed, 31 insertions(+), 29 deletions(-)
+ kernel/exit.c |   45 +++++++++++++++++++++------------------------
+ 1 file changed, 21 insertions(+), 24 deletions(-)
 
-diff -puN drivers/pnp/Makefile~pnp-use-dev_info-dev_err-etc-in-core drivers/pnp/Makefile
---- a/drivers/pnp/Makefile~pnp-use-dev_info-dev_err-etc-in-core
-+++ a/drivers/pnp/Makefile
-@@ -7,3 +7,7 @@ obj-y		:= core.o card.o driver.o resourc
- obj-$(CONFIG_PNPACPI)		+= pnpacpi/
- obj-$(CONFIG_PNPBIOS)		+= pnpbios/
- obj-$(CONFIG_ISAPNP)		+= isapnp/
-+
-+ifeq ($(CONFIG_PNP_DEBUG),y)
-+EXTRA_CFLAGS += -DDEBUG
-+endif
-diff -puN drivers/pnp/card.c~pnp-use-dev_info-dev_err-etc-in-core drivers/pnp/card.c
---- a/drivers/pnp/card.c~pnp-use-dev_info-dev_err-etc-in-core
-+++ a/drivers/pnp/card.c
-@@ -198,8 +198,7 @@ int pnp_add_card(struct pnp_card *card)
- 	card->dev.release = &pnp_release_card;
- 	error = device_register(&card->dev);
- 	if (error) {
--		pnp_err("sysfs failure, card '%s' will be unavailable",
--			card->dev.bus_id);
-+		dev_err(&card->dev, "could not register (err=%d)\n", error);
- 		return error;
- 	}
- 
-diff -puN drivers/pnp/driver.c~pnp-use-dev_info-dev_err-etc-in-core drivers/pnp/driver.c
---- a/drivers/pnp/driver.c~pnp-use-dev_info-dev_err-etc-in-core
-+++ a/drivers/pnp/driver.c
-@@ -86,9 +86,6 @@ static int pnp_device_probe(struct devic
- 	pnp_dev = to_pnp_dev(dev);
- 	pnp_drv = to_pnp_driver(dev->driver);
- 
--	pnp_dbg("match found with the PnP device '%s' and the driver '%s'",
--		dev->bus_id, pnp_drv->name);
--
- 	error = pnp_device_attach(pnp_dev);
- 	if (error < 0)
- 		return error;
-@@ -116,6 +113,8 @@ static int pnp_device_probe(struct devic
- 		error = 0;
- 	} else
- 		goto fail;
-+
-+	dev_dbg(dev, "driver attached\n");
- 	return error;
- 
- fail:
-diff -puN drivers/pnp/interface.c~pnp-use-dev_info-dev_err-etc-in-core drivers/pnp/interface.c
---- a/drivers/pnp/interface.c~pnp-use-dev_info-dev_err-etc-in-core
-+++ a/drivers/pnp/interface.c
-@@ -327,8 +327,7 @@ pnp_set_current_resources(struct device 
- 
- 	if (dev->status & PNP_ATTACHED) {
- 		retval = -EBUSY;
--		pnp_info("Device %s cannot be configured because it is in use.",
--			 dev->dev.bus_id);
-+		dev_info(&dev->dev, "in use; can't configure\n");
- 		goto done;
- 	}
- 
-diff -puN drivers/pnp/manager.c~pnp-use-dev_info-dev_err-etc-in-core drivers/pnp/manager.c
---- a/drivers/pnp/manager.c~pnp-use-dev_info-dev_err-etc-in-core
-+++ a/drivers/pnp/manager.c
-@@ -22,8 +22,7 @@ static int pnp_assign_port(struct pnp_de
- 	unsigned long *flags;
- 
- 	if (idx >= PNP_MAX_PORT) {
--		pnp_err
--		    ("More than 4 ports is incompatible with pnp specifications.");
-+		dev_err(&dev->dev, "too many I/O port resources\n");
- 		/* pretend we were successful so at least the manager won't try again */
- 		return 1;
- 	}
-@@ -64,8 +63,7 @@ static int pnp_assign_mem(struct pnp_dev
- 	unsigned long *flags;
- 
- 	if (idx >= PNP_MAX_MEM) {
--		pnp_err
--		    ("More than 8 mems is incompatible with pnp specifications.");
-+		dev_err(&dev->dev, "too many memory resources\n");
- 		/* pretend we were successful so at least the manager won't try again */
- 		return 1;
- 	}
-@@ -122,8 +120,7 @@ static int pnp_assign_irq(struct pnp_dev
- 	};
- 
- 	if (idx >= PNP_MAX_IRQ) {
--		pnp_err
--		    ("More than 2 irqs is incompatible with pnp specifications.");
-+		dev_err(&dev->dev, "too many IRQ resources\n");
- 		/* pretend we were successful so at least the manager won't try again */
- 		return 1;
- 	}
-@@ -173,8 +170,7 @@ static void pnp_assign_dma(struct pnp_de
- 	};
- 
- 	if (idx >= PNP_MAX_DMA) {
--		pnp_err("More than 2 dmas is incompatible with pnp "
--			"specifications.");
-+		dev_err(&dev->dev, "too many DMA resources\n");
- 		return;
- 	}
- 
-@@ -442,8 +438,7 @@ int pnp_auto_config_dev(struct pnp_dev *
- 	int i = 1;
- 
- 	if (!pnp_can_configure(dev)) {
--		pnp_dbg("Device %s does not support resource configuration.",
--			dev->dev.bus_id);
-+		dev_dbg(&dev->dev, "configuration not supported\n");
- 		return -ENODEV;
- 	}
- 
-@@ -460,7 +455,7 @@ int pnp_auto_config_dev(struct pnp_dev *
- 		} while (dep);
- 	}
- 
--	pnp_err("Unable to assign resources to device %s.", dev->dev.bus_id);
-+	dev_err(&dev->dev, "unable to assign resources\n");
- 	return -EBUSY;
- }
- 
-@@ -473,17 +468,16 @@ int pnp_auto_config_dev(struct pnp_dev *
- int pnp_start_dev(struct pnp_dev *dev)
+diff -puN kernel/exit.c~wait_task_zombie-fix-2-3-races-vs-forget_original_parent kernel/exit.c
+--- a/kernel/exit.c~wait_task_zombie-fix-2-3-races-vs-forget_original_parent
++++ a/kernel/exit.c
+@@ -1158,8 +1158,7 @@ static int wait_task_zombie(struct task_
+ 			    int __user *stat_addr, struct rusage __user *ru)
  {
- 	if (!pnp_can_write(dev)) {
--		pnp_dbg("Device %s does not support activation.",
--			dev->dev.bus_id);
-+		dev_dbg(&dev->dev, "activation not supported\n");
- 		return -EINVAL;
+ 	unsigned long state;
+-	int retval;
+-	int status;
++	int retval, status, traced;
+ 
+ 	if (unlikely(noreap)) {
+ 		pid_t pid = p->pid;
+@@ -1201,7 +1200,10 @@ static int wait_task_zombie(struct task_
+ 		return 0;
  	}
  
- 	if (dev->protocol->set(dev, &dev->res) < 0) {
--		pnp_err("Failed to activate device %s.", dev->dev.bus_id);
-+		dev_err(&dev->dev, "activation failed\n");
- 		return -EIO;
- 	}
- 
--	pnp_info("Device %s activated.", dev->dev.bus_id);
-+	dev_info(&dev->dev, "activated\n");
- 	return 0;
- }
- 
-@@ -496,16 +490,15 @@ int pnp_start_dev(struct pnp_dev *dev)
- int pnp_stop_dev(struct pnp_dev *dev)
- {
- 	if (!pnp_can_disable(dev)) {
--		pnp_dbg("Device %s does not support disabling.",
--			dev->dev.bus_id);
-+		dev_dbg(&dev->dev, "disabling not supported\n");
- 		return -EINVAL;
- 	}
- 	if (dev->protocol->disable(dev) < 0) {
--		pnp_err("Failed to disable device %s.", dev->dev.bus_id);
-+		dev_err(&dev->dev, "disable failed\n");
- 		return -EIO;
- 	}
- 
--	pnp_info("Device %s disabled.", dev->dev.bus_id);
-+	dev_info(&dev->dev, "disabled\n");
- 	return 0;
- }
- 
-diff -puN drivers/pnp/quirks.c~pnp-use-dev_info-dev_err-etc-in-core drivers/pnp/quirks.c
---- a/drivers/pnp/quirks.c~pnp-use-dev_info-dev_err-etc-in-core
-+++ a/drivers/pnp/quirks.c
-@@ -17,6 +17,7 @@
- #include <linux/slab.h>
- #include <linux/pnp.h>
- #include <linux/io.h>
-+#include <linux/kallsyms.h>
- #include "base.h"
- 
- static void quirk_awe32_resources(struct pnp_dev *dev)
-@@ -133,11 +134,18 @@ static struct pnp_fixup pnp_fixups[] = {
- void pnp_fixup_device(struct pnp_dev *dev)
- {
- 	int i = 0;
-+	void (*quirk)(struct pnp_dev *);
- 
- 	while (*pnp_fixups[i].id) {
- 		if (compare_pnp_id(dev->id, pnp_fixups[i].id)) {
--			pnp_dbg("Calling quirk for %s", dev->dev.bus_id);
--			pnp_fixups[i].quirk_function(dev);
-+			quirk = pnp_fixups[i].quirk_function;
+-	if (likely(p->real_parent == p->parent)) {
++	/* traced means p->ptrace, but not vice versa */
++	traced = (p->real_parent != p->parent);
 +
-+#ifdef DEBUG
-+			dev_dbg(&dev->dev, "calling quirk 0x%p", quirk);
-+			print_fn_descriptor_symbol(": %s()\n",
-+				(unsigned long) *quirk);
-+#endif
-+			(*quirk)(dev);
++	if (likely(!traced)) {
+ 		struct signal_struct *psig;
+ 		struct signal_struct *sig;
+ 
+@@ -1288,35 +1290,30 @@ static int wait_task_zombie(struct task_
+ 		retval = put_user(p->pid, &infop->si_pid);
+ 	if (!retval && infop)
+ 		retval = put_user(p->uid, &infop->si_uid);
+-	if (retval) {
+-		// TODO: is this safe?
+-		p->exit_state = EXIT_ZOMBIE;
+-		return retval;
+-	}
+-	retval = p->pid;
+-	if (p->real_parent != p->parent) {
++	if (!retval)
++		retval = p->pid;
++
++	if (traced) {
+ 		write_lock_irq(&tasklist_lock);
+-		/* Double-check with lock held.  */
+-		if (p->real_parent != p->parent) {
+-			__ptrace_unlink(p);
+-			// TODO: is this safe?
+-			p->exit_state = EXIT_ZOMBIE;
+-			/*
+-			 * If this is not a detached task, notify the parent.
+-			 * If it's still not detached after that, don't release
+-			 * it now.
+-			 */
++		/* We dropped tasklist, ptracer could die and untrace */
++		ptrace_unlink(p);
++		/*
++		 * If this is not a detached task, notify the parent.
++		 * If it's still not detached after that, don't release
++		 * it now.
++		 */
++		if (p->exit_signal != -1) {
++			do_notify_parent(p, p->exit_signal);
+ 			if (p->exit_signal != -1) {
+-				do_notify_parent(p, p->exit_signal);
+-				if (p->exit_signal != -1)
+-					p = NULL;
++				p->exit_state = EXIT_ZOMBIE;
++				p = NULL;
+ 			}
  		}
- 		i++;
+ 		write_unlock_irq(&tasklist_lock);
  	}
-diff -puN drivers/pnp/resource.c~pnp-use-dev_info-dev_err-etc-in-core drivers/pnp/resource.c
---- a/drivers/pnp/resource.c~pnp-use-dev_info-dev_err-etc-in-core
-+++ a/drivers/pnp/resource.c
-@@ -51,7 +51,7 @@ struct pnp_option *pnp_register_independ
- 
- 	/* this should never happen but if it does we'll try to continue */
- 	if (dev->independent)
--		pnp_err("independent resource already registered");
-+		dev_err(&dev->dev, "independent resource already registered\n");
- 	dev->independent = option;
- 	return option;
+ 	if (p != NULL)
+ 		release_task(p);
+-	BUG_ON(!retval);
++
+ 	return retval;
  }
+ 
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
+git-x86.patch
+cpu-hotplug-slab-cleanup-cpuup_callback.patch
+cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
+cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
+cpu-hotplug-topology-remove-topology_dev_map.patch
+cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
+cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
+make-access-to-tasks-nsproxy-lighter.patch
+make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
+make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
+workqueue-debug-flushing-deadlocks-with-lockdep.patch
+workqueue-debug-work-related-deadlocks-with-lockdep.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
+pid-namespaces-allow-cloning-of-new-namespace-merge-fix.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+uninline-find_task_by_xxx-set-of-functions.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+isolate-some-explicit-usage-of-task-tgid.patch
+uninline-find_pid-etc-set-of-functions.patch
+uninline-the-task_xid_nr_ns-calls.patch
+proc-export-a-processes-resource-limits-via-proc-pid.patch
+fix-tsk-exit_state-usage-resend.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-whitespace-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
