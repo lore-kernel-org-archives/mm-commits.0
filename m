@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + capabilities-implement-64-bit-capabilities-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 17 Oct 2007 18:01:51 -0700
-Message-ID: <200710180101.l9I11pms017152@imap1.linux-foundation.org>
+Subject: + i-oat-add-completion-callback-for-async_tx-interface-use-fix-fix.patch added to -mm tree
+Date: Wed, 17 Oct 2007 18:11:55 -0700
+Message-ID: <200710180111.l9I1BtRu017529@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56982 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40022 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760912AbXJRBHf (ORCPT
+	by vger.kernel.org with ESMTP id S1758972AbXJRBL6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Oct 2007 21:07:35 -0400
+	Wed, 17 Oct 2007 21:11:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, chrisw@sous-sol.org, jmorris@namei.org, morgan@kernel.org, sds@tycho.nsa.gov, serue@us.ibm.com
+Cc: akpm@linux-foundation.org, dan.j.williams@intel.com, shannon.nelson@intel.com
 
 
 The patch titled
-     capabilities-implement-64-bit-capabilities-checkpatch-fixes
+     i-oat-add-completion-callback-for-async_tx-interface-use-fix-fix
 has been added to the -mm tree.  Its filename is
-     capabilities-implement-64-bit-capabilities-checkpatch-fixes.patch
+     i-oat-add-completion-callback-for-async_tx-interface-use-fix-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,105 +26,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: capabilities-implement-64-bit-capabilities-checkpatch-fixes
+Subject: i-oat-add-completion-callback-for-async_tx-interface-use-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: use tabs not spaces
-#62: FILE: include/linux/capability.h:40:
-$
-
-ERROR: use tabs not spaces
-#63: FILE: include/linux/capability.h:41:
-$
-
-ERROR: use tabs not spaces
-#64: FILE: include/linux/capability.h:42:
-$
-
-WARNING: do not add new typedefs
-#97: FILE: include/linux/capability.h:72:
-+typedef struct vfs_cap_data_v2 vfs_cap_data;
-
-WARNING: do not add new typedefs
-#113: FILE: include/linux/capability.h:86:
-+typedef __u64 kernel_cap_t;
-
-ERROR: no space before that close parenthesis ')'
-#162: FILE: security/commoncap.c:168:
-+			(__u64) le32_to_cpu(caps->v1.permitted) );
-
-ERROR: no space before that close parenthesis ')'
-#164: FILE: security/commoncap.c:170:
-+			(__u64) le32_to_cpu(caps->v1.inheritable) );
-
-ERROR: no space before that close parenthesis ')'
-#176: FILE: security/commoncap.c:180:
-+			le64_to_cpu(caps->v2.permitted) );
-
-ERROR: no space before that close parenthesis ')'
-#178: FILE: security/commoncap.c:182:
-+			le64_to_cpu(caps->v2.inheritable) );
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Cc: Andrew Morgan <morgan@kernel.org>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: James Morris <jmorris@namei.org>
-Cc: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Shannon Nelson <shannon.nelson@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/capability.h |    6 +++---
- security/commoncap.c       |    9 ++++-----
- 2 files changed, 7 insertions(+), 8 deletions(-)
+ drivers/dma/ioat_dma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/capability.h~capabilities-implement-64-bit-capabilities-checkpatch-fixes include/linux/capability.h
---- a/include/linux/capability.h~capabilities-implement-64-bit-capabilities-checkpatch-fixes
-+++ a/include/linux/capability.h
-@@ -37,9 +37,9 @@ typedef struct __user_cap_header_struct 
- } __user *cap_user_header_t;
+diff -puN drivers/dma/ioat_dma.c~i-oat-add-completion-callback-for-async_tx-interface-use-fix-fix drivers/dma/ioat_dma.c
+--- a/drivers/dma/ioat_dma.c~i-oat-add-completion-callback-for-async_tx-interface-use-fix-fix
++++ a/drivers/dma/ioat_dma.c
+@@ -657,7 +657,7 @@ static void ioat_dma_start_null_desc(str
  
- typedef struct __user_cap_data_struct {
--        __u64 effective;
--        __u64 permitted;
--        __u64 inheritable;
-+	__u64 effective;
-+	__u64 permitted;
-+	__u64 inheritable;
- } __user *cap_user_data_t;
+ static void ioat_dma_test_callback(void *dma_async_param)
+ {
+-	printk(KERN_ERR "ioatdma: ioat_dma_test_callback(0x%p)\n",
++	printk(KERN_ERR "ioatdma: ioat_dma_test_callback(%p)\n",
+ 			dma_async_param);
+ }
  
- #define XATTR_CAPS_SUFFIX "capability"
-diff -puN security/commoncap.c~capabilities-implement-64-bit-capabilities-checkpatch-fixes security/commoncap.c
---- a/security/commoncap.c~capabilities-implement-64-bit-capabilities-checkpatch-fixes
-+++ a/security/commoncap.c
-@@ -165,9 +165,9 @@ static inline int cap_from_disk(union vf
- 		else
- 			bprm->cap_effective = false;
- 		bprm->cap_permitted = to_cap_t(
--			(__u64) le32_to_cpu(caps->v1.permitted) );
-+			(__u64)le32_to_cpu(caps->v1.permitted));
- 		bprm->cap_inheritable = to_cap_t(
--			(__u64) le32_to_cpu(caps->v1.inheritable) );
-+			(__u64)le32_to_cpu(caps->v1.inheritable));
- 		return 0;
- 	case VFS_CAP_REVISION_2:
- 		if (size != XATTR_CAPS_SZ_2)
-@@ -176,10 +176,9 @@ static inline int cap_from_disk(union vf
- 			bprm->cap_effective = true;
- 		else
- 			bprm->cap_effective = false;
--		bprm->cap_permitted = to_cap_t(
--			le64_to_cpu(caps->v2.permitted) );
-+		bprm->cap_permitted = to_cap_t(le64_to_cpu(caps->v2.permitted));
- 		bprm->cap_inheritable = to_cap_t(
--			le64_to_cpu(caps->v2.inheritable) );
-+					le64_to_cpu(caps->v2.inheritable));
- 		return 0;
- 	default:
- 		return -EINVAL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -280,6 +204,7 @@ fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
 sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
 i-oat-tighten-descriptor-setup-performance-fix.patch
 i-oat-add-completion-callback-for-async_tx-interface-use-fix.patch
+i-oat-add-completion-callback-for-async_tx-interface-use-fix-fix.patch
 make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
 git-block-vs-reiser4.patch
