@@ -1,98 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:01:10 -0700
-Message-ID: <200710180701.l9I71App031155@imap1.linux-foundation.org>
+Subject: - anon-inodes-use-open-coded-atomic_inc-for-the-shared-inode.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:01:28 -0700
+Message-ID: <200710180701.l9I71SHM031179@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38906 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49188 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751439AbXJRHTK (ORCPT
+	by vger.kernel.org with ESMTP id S1750932AbXJRHTn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:19:10 -0400
+	Thu, 18 Oct 2007 03:19:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: major@openvz.org, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: davidel@xmailserver.org, yanzheng@21cn.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     change inotifyfs magic as the same magic is used for futexfs
+     anon-inodes use open coded atomic_inc for the shared inode
 has been removed from the -mm tree.  Its filename was
-     change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2.patch
+     anon-inodes-use-open-coded-atomic_inc-for-the-shared-inode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: change inotifyfs magic as the same magic is used for futexfs
-From: Andrey Mirkin <major@openvz.org>
+Subject: anon-inodes use open coded atomic_inc for the shared inode
+From: Davide Libenzi <davidel@xmailserver.org>
 
-Right now futexfs and inotifyfs have one magic 0xBAD1DEA, that looks a
-little bit confusing.  Use 0xBAD1DEA as magic for futexfs and 0x2BAD1DEA as
-magic for inotifyfs.
+Since we know the shared inode count is always >0, we can avoid igrab()
+and use an open coded atomic_inc().
 
-Signed-off-by: Andrey Mirkin <major@openvz.org>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+This also fixes a bug noticed by Yan Zheng <yanzheng@21cn.com>: were checking
+for an IS_ERR() return from igrab(), but it actually returns NULL on error.
+
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: Yan Zheng <yanzheng@21cn.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inotify_user.c     |    4 +++-
- include/linux/magic.h |    3 +++
- kernel/futex.c        |    3 ++-
- 3 files changed, 8 insertions(+), 2 deletions(-)
+ fs/anon_inodes.c |   25 ++++++++++++-------------
+ 1 file changed, 12 insertions(+), 13 deletions(-)
 
-diff -puN fs/inotify_user.c~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2 fs/inotify_user.c
---- a/fs/inotify_user.c~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2
-+++ a/fs/inotify_user.c
-@@ -31,6 +31,7 @@
- #include <linux/list.h>
- #include <linux/inotify.h>
- #include <linux/syscalls.h>
-+#include <linux/magic.h>
- 
- #include <asm/ioctls.h>
- 
-@@ -684,7 +685,8 @@ static int
- inotify_get_sb(struct file_system_type *fs_type, int flags,
- 	       const char *dev_name, void *data, struct vfsmount *mnt)
+diff -puN fs/anon_inodes.c~anon-inodes-use-open-coded-atomic_inc-for-the-shared-inode fs/anon_inodes.c
+--- a/fs/anon_inodes.c~anon-inodes-use-open-coded-atomic_inc-for-the-shared-inode
++++ a/fs/anon_inodes.c
+@@ -76,7 +76,6 @@ int anon_inode_getfd(int *pfd, struct in
  {
--	return get_sb_pseudo(fs_type, "inotify", NULL, 0xBAD1DEA, mnt);
-+	return get_sb_pseudo(fs_type, "inotify", NULL,
-+			INOTIFYFS_SUPER_MAGIC, mnt);
- }
+ 	struct qstr this;
+ 	struct dentry *dentry;
+-	struct inode *inode;
+ 	struct file *file;
+ 	int error, fd;
  
- static struct file_system_type inotify_fs_type = {
-diff -puN include/linux/magic.h~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2 include/linux/magic.h
---- a/include/linux/magic.h~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2
-+++ a/include/linux/magic.h
-@@ -38,4 +38,7 @@
- #define SMB_SUPER_MAGIC		0x517B
- #define USBDEVICE_SUPER_MAGIC	0x9fa2
+@@ -86,15 +85,9 @@ int anon_inode_getfd(int *pfd, struct in
+ 	if (!file)
+ 		return -ENFILE;
  
-+#define FUTEXFS_SUPER_MAGIC	0xBAD1DEA
-+#define INOTIFYFS_SUPER_MAGIC	0x2BAD1DEA
+-	inode = igrab(anon_inode_inode);
+-	if (IS_ERR(inode)) {
+-		error = PTR_ERR(inode);
+-		goto err_put_filp;
+-	}
+-
+ 	error = get_unused_fd();
+ 	if (error < 0)
+-		goto err_iput;
++		goto err_put_filp;
+ 	fd = error;
+ 
+ 	/*
+@@ -108,14 +101,22 @@ int anon_inode_getfd(int *pfd, struct in
+ 	dentry = d_alloc(anon_inode_mnt->mnt_sb->s_root, &this);
+ 	if (!dentry)
+ 		goto err_put_unused_fd;
 +
- #endif /* __LINUX_MAGIC_H__ */
-diff -puN kernel/futex.c~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2 kernel/futex.c
---- a/kernel/futex.c~change-inotifyfs-magic-as-the-same-magic-is-used-for-futexfs-v2
-+++ a/kernel/futex.c
-@@ -52,6 +52,7 @@
- #include <linux/syscalls.h>
- #include <linux/signal.h>
- #include <linux/module.h>
-+#include <linux/magic.h>
- #include <asm/futex.h>
++	/*
++	 * We know the anon_inode inode count is always greater than zero,
++	 * so we can avoid doing an igrab() and we can use an open-coded
++	 * atomic_inc().
++	 */
++	atomic_inc(&anon_inode_inode->i_count);
++
+ 	dentry->d_op = &anon_inodefs_dentry_operations;
+ 	/* Do not publish this dentry inside the global dentry hash table */
+ 	dentry->d_flags &= ~DCACHE_UNHASHED;
+-	d_instantiate(dentry, inode);
++	d_instantiate(dentry, anon_inode_inode);
  
- #include "rtmutex_common.h"
-@@ -2080,7 +2081,7 @@ static int futexfs_get_sb(struct file_sy
- 			  int flags, const char *dev_name, void *data,
- 			  struct vfsmount *mnt)
- {
--	return get_sb_pseudo(fs_type, "futex", NULL, 0xBAD1DEA, mnt);
-+	return get_sb_pseudo(fs_type, "futex", NULL, FUTEXFS_SUPER_MAGIC, mnt);
- }
+ 	file->f_path.mnt = mntget(anon_inode_mnt);
+ 	file->f_path.dentry = dentry;
+-	file->f_mapping = inode->i_mapping;
++	file->f_mapping = anon_inode_inode->i_mapping;
  
- static struct file_system_type futex_fs_type = {
+ 	file->f_pos = 0;
+ 	file->f_flags = O_RDWR;
+@@ -127,14 +128,12 @@ int anon_inode_getfd(int *pfd, struct in
+ 	fd_install(fd, file);
+ 
+ 	*pfd = fd;
+-	*pinode = inode;
++	*pinode = anon_inode_inode;
+ 	*pfile = file;
+ 	return 0;
+ 
+ err_put_unused_fd:
+ 	put_unused_fd(fd);
+-err_iput:
+-	iput(inode);
+ err_put_filp:
+ 	put_filp(file);
+ 	return error;
 _
 
-Patches currently in -mm which might be from major@openvz.org are
+Patches currently in -mm which might be from davidel@xmailserver.org are
 
 origin.patch
+git-kvm.patch
+sparse-pointer-use-of-zero-as-null.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
