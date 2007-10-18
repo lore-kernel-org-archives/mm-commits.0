@@ -1,61 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - shrink-struct-task_structoomkilladj.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:56:17 -0700
-Message-ID: <200710180656.l9I6uHSf030690@imap1.linux-foundation.org>
+Subject: - delete-gcc-295-compatible-structure-definition.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:00:47 -0700
+Message-ID: <200710180700.l9I70lCs031113@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48104 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40662 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760481AbXJRHPc (ORCPT
+	by vger.kernel.org with ESMTP id S1760140AbXJRHP3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:15:32 -0400
+	Thu, 18 Oct 2007 03:15:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: rpjday@mindspring.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Shrink struct task_struct::oomkilladj
+     Delete gcc-2.95 compatible structure definition.
 has been removed from the -mm tree.  Its filename was
-     shrink-struct-task_structoomkilladj.patch
+     delete-gcc-295-compatible-structure-definition.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Shrink struct task_struct::oomkilladj
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Delete gcc-2.95 compatible structure definition.
+From: "Robert P. J. Day" <rpjday@mindspring.com>
 
-oomkilladj is int, but values which can be assigned to it are -17, [-16,
-15], thus fitting into s8.
+Since nothing earlier than gcc-3.2 is supported for kernel
+compilation, that 2.95 hack can be removed.
 
-While patch itself doesn't help in making task_struct smaller, because of
-natural alignment of ->link_count, it will make picture clearer wrt futher
-task_struct reduction patches.  My plan is to move ->fpu_counter and
-->oomkilladj after ->ioprio filling hole on i386 and x86_64.  But that's
-for later, because bloated distro configs need looking at as well.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Robert P. J. Day <rpjday@mindspring.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slab.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/sched.h~shrink-struct-task_structoomkilladj include/linux/sched.h
---- a/include/linux/sched.h~shrink-struct-task_structoomkilladj
-+++ a/include/linux/sched.h
-@@ -1010,7 +1010,7 @@ struct task_struct {
- 	 * a short time
- 	 */
- 	unsigned char fpu_counter;
--	int oomkilladj; /* OOM kill score adjustment (bit shift). */
-+	s8 oomkilladj; /* OOM kill score adjustment (bit shift). */
- 	char comm[TASK_COMM_LEN]; /* executable name excluding path
- 				     - access with [gs]et_task_comm (which lock
- 				       it with task_lock())
+diff -puN mm/slab.c~delete-gcc-295-compatible-structure-definition mm/slab.c
+--- a/mm/slab.c~delete-gcc-295-compatible-structure-definition
++++ a/mm/slab.c
+@@ -267,11 +267,10 @@ struct array_cache {
+ 	unsigned int batchcount;
+ 	unsigned int touched;
+ 	spinlock_t lock;
+-	void *entry[0];	/*
++	void *entry[];	/*
+ 			 * Must have this definition in here for the proper
+ 			 * alignment of array_cache. Also simplifies accessing
+ 			 * the entries.
+-			 * [0] is for gcc 2.95. It should really be [].
+ 			 */
+ };
+ 
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from rpjday@mindspring.com are
 
 origin.patch
-remove-struct-task_structio_wait.patch
+git-kvm.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
