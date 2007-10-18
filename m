@@ -1,69 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - module-return-error-when-mod_sysfs_init-failed.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:01:53 -0700
-Message-ID: <200710180701.l9I71rAk031212@imap1.linux-foundation.org>
+Subject: - add-a-00-index-file-to-documentation-sysctl.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:04:21 -0700
+Message-ID: <200710180704.l9I74LrW031544@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50975 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59272 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761276AbXJRH07 (ORCPT
+	by vger.kernel.org with ESMTP id S1761422AbXJRH1F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:26:59 -0400
+	Thu, 18 Oct 2007 03:27:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, gregkh@suse.de, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, rdunlap@xenotime.net, rob@landley.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     module: return error when mod_sysfs_init() failed
+     Add a 00-INDEX file to Documentation/sysctl/
 has been removed from the -mm tree.  Its filename was
-     module-return-error-when-mod_sysfs_init-failed.patch
+     add-a-00-index-file-to-documentation-sysctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: module: return error when mod_sysfs_init() failed
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: Add a 00-INDEX file to Documentation/sysctl/
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-load_module() returns zero when mod_sysfs_init() fails, then the module
-loading will succeed accidentally.
+Add a 00-INDEX file to Documentation/sysctl/
 
-This patch makes load_module() return error correctly in that case.
-
-Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
-Acked-by: Rusty Russell <rusty@rustcorp.com.au>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Cc: Rob Landley <rob@landley.net>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/sysctl/00-INDEX |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff -puN kernel/module.c~module-return-error-when-mod_sysfs_init-failed kernel/module.c
---- a/kernel/module.c~module-return-error-when-mod_sysfs_init-failed
-+++ a/kernel/module.c
-@@ -1881,7 +1881,8 @@ static struct module *load_module(void _
- 	module_unload_init(mod);
- 
- 	/* Initialize kobject, so we can reference it. */
--	if (mod_sysfs_init(mod) != 0)
-+	err = mod_sysfs_init(mod);
-+	if (err)
- 		goto cleanup;
- 
- 	/* Set up license info based on the info section */
+diff -puN /dev/null Documentation/sysctl/00-INDEX
+--- /dev/null
++++ a/Documentation/sysctl/00-INDEX
+@@ -0,0 +1,16 @@
++00-INDEX
++	- this file.
++README
++	- general information about /proc/sys/ sysctl files.
++abi.txt
++	- documentation for /proc/sys/abi/*.
++ctl_unnumbered.txt
++	- explanation of why one should not add new binary sysctl numbers.
++fs.txt
++	- documentation for /proc/sys/fs/*.
++kernel.txt
++	- documentation for /proc/sys/kernel/*.
++sunrpc.txt
++	- documentation for /proc/sys/sunrpc/*.
++vm.txt
++	- documentation for /proc/sys/vm/*.
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
 origin.patch
-git-x86.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
-cpu-hotplug-topology-remove-topology_dev_map.patch
-cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
+git-cifs.patch
+mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
+mxser-fix-compiler-warning-when-building-withoug-config_pci.patch
+mxser-fix-compiler-warning-when-building-withoug-config_pci-fix.patch
+cyclades-avoid-label-defined-but-not-used-warning.patch
