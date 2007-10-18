@@ -1,126 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: + ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 17 Oct 2007 21:16:13 -0700
-Message-ID: <200710180416.l9I4GDGP024759@imap1.linux-foundation.org>
+Subject: - git-jg-warning-fixes.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 22:58:40 -0700
+Message-ID: <200710180558.l9I5wfxQ028346@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52485 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60374 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750734AbXJREQS (ORCPT
+	by vger.kernel.org with ESMTP id S1753783AbXJRF6s (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 00:16:18 -0400
+	Thu, 18 Oct 2007 01:58:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jack@suse.cz, linux-ext4@vger.kernel.org
+To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes.patch
+     git-jg-misc warning fixes
+has been removed from the -mm tree.  Its filename was
+     git-jg-warning-fixes.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes
+Subject: git-jg-misc warning fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "(foo*)" should be "(foo *)"
-#58: FILE: fs/ext2/dir.c:225:
-+       return (ext2_dirent *)((char*)p +
+arch/i386/kernel/acpi/sleep.c:95: warning: initialization from incompatible pointer type
+drivers/acpi/processor_idle.c:183: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:968: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:980: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:988: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:996: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1004: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1012: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1020: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1028: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1036: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1044: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1052: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1060: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1072: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1089: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1097: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1108: warning: initialization from incompatible pointer type
+arch/i386/kernel/acpi/boot.c:1119: warning: initialization from incompatible pointer type
 
-ERROR: "(foo*)" should be "(foo *)"
-#115: FILE: fs/ext2/dir.c:572:
-+       unsigned to = ((char*)dir - kaddr) +
-
-total: 2 errors, 0 warnings, 123 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Cc: <linux-ext4@vger.kernel.org>
-Cc: Jan Kara <jack@suse.cz>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/dir.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/processor_idle.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext2/dir.c~ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes fs/ext2/dir.c
---- a/fs/ext2/dir.c~ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes
-+++ a/fs/ext2/dir.c
-@@ -222,7 +222,7 @@ static inline int ext2_match (int len, c
+diff -puN drivers/acpi/processor_idle.c~git-jg-warning-fixes drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~git-jg-warning-fixes
++++ a/drivers/acpi/processor_idle.c
+@@ -123,7 +123,7 @@ static int set_max_cstate(const struct d
+  * Dell provides a driver for other operating systems to hack around this bug, so we know
+  * it's safe.
   */
- static inline ext2_dirent *ext2_next_entry(ext2_dirent *p)
+-static int dmi_force_c3(struct dmi_system_id *id)
++static int dmi_force_c3(const struct dmi_system_id *id)
  {
--	return (ext2_dirent *)((char*)p +
-+	return (ext2_dirent *)((char *)p +
- 			ext2_rec_len_from_disk(p->rec_len));
- }
+ 	forced_c3 = 1;
  
-@@ -569,7 +569,7 @@ int ext2_delete_entry (struct ext2_dir_e
- 	struct inode *inode = mapping->host;
- 	char *kaddr = page_address(page);
- 	unsigned from = ((char*)dir - kaddr) & ~(ext2_chunk_size(inode)-1);
--	unsigned to = ((char*)dir - kaddr) +
-+	unsigned to = ((char *)dir - kaddr) +
- 				ext2_rec_len_from_disk(dir->rec_len);
- 	loff_t pos;
- 	ext2_dirent * pde = NULL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-bdi-init-hooks.patch
-mm-per-device-dirty-threshold.patch
-mm-dirty-balancing-for-tasks.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters.patch
-oom-change-all_unreclaimable-zone-member-to-flags.patch
-oom-do-not-take-callback_mutex.patch
-writeback-dont-propagate-aop_writepage_activate.patch
-softlockup-add-a-proc-tuning-parameter.patch
-force-erroneous-inclusions-of-compiler-h-files-to-be-errors.patch
-driver-for-the-atmel-on-chip-ssc-on-at32ap-and-at91.patch
-do_sys_poll-simplify-playing-with-on-stack-data.patch
-pcmcia-compactflash-driver-for-pa-semi-electra-boards.patch
-add-in-sunos-41x-compatible-mode-for-ufs.patch
-core_pattern-fix-up-a-few-miscellaneous-bugs.patch
-printk-add-interfaces-for-external-access-to-the-log-buffer.patch
-deprecate-aout-elf-interpreters.patch
-ext2-ext3-ext4-add-block-bitmap-validation.patch
-binfmt_flat-warning-fixes.patch
-i2o-fix-defined-but-not-used-build-warnings.patch
-reiserfs-workaround-for-dead-loop-in-finish_unfinished.patch
-tty-expose-new-methods-needed-for-drivers-to-get-termios-right.patch
-userc-ifdef-mq_bytes.patch
-ext3-lighten-up-resize-transaction-requirements.patch
-drivers-char-ip2-fix-used-uninitd-bug.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-2.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-3.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-4.patch
-writeback-fix-comment-use-helper-function.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-5.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-6.patch
-writeback-fix-time-ordering-of-the-per-superblock-dirty-inode-lists-7.patch
-writeback-fix-time-ordering-of-the-per-superblock-inode-lists-8.patch
-ext2-reservations.patch
-md-software-raid-autodetect-dev-list-not-array.patch
-pnp-use-dev_info-dev_err-etc-in-core.patch
-security-convert-lsm-into-a-static-interface.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-git-alsa-fixup.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-cifs.patch
-ia64-fix-non-numa-build.patch
 console-keyboard-events-and-accessibility.patch
 first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
 git-jg-warning-fixes.patch
