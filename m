@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + phy-implement-release-function.patch added to -mm tree
-Date: Wed, 17 Oct 2007 21:02:25 -0700
-Message-ID: <200710180402.l9I42PbU024341@imap1.linux-foundation.org>
+Subject: + bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch added to -mm tree
+Date: Wed, 17 Oct 2007 20:59:21 -0700
+Message-ID: <200710180359.l9I3xLYR024181@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34931 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50273 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750782AbXJRECi (ORCPT
+	by vger.kernel.org with ESMTP id S1750813AbXJREFc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 00:02:38 -0400
+	Thu, 18 Oct 2007 00:05:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avorontsov@ru.mvista.com, afleming@freescale.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     phy: implement release function
+     bugfix for memory controller: add helper function for assigning cgroup to page
 has been added to the -mm tree.  Its filename is
-     phy-implement-release-function.patch
+     bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,119 +26,204 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: phy: implement release function
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: bugfix for memory controller: add helper function for assigning cgroup to page
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Lately I've got this nice badness on mdio bus removal:
+This patch adds following functions.
+   - clear_page_cgroup(page, pc)
+   - page_cgroup_assign_new_page_group(page, pc)
 
-Device 'e0103120:06' does not have a release() function, it is broken and must be fixed.
-------------[ cut here ]------------
-Badness at drivers/base/core.c:107
-NIP: c015c1a8 LR: c015c1a8 CTR: c0157488
-REGS: c34bdcf0 TRAP: 0700   Not tainted  (2.6.23-rc5-g9ebadfbb-dirty)
-MSR: 00029032 <EE,ME,IR,DR>  CR: 24088422  XER: 00000000
-...
-[c34bdda0] [c015c1a8] device_release+0x78/0x80 (unreliable)
-[c34bddb0] [c01354cc] kobject_cleanup+0x80/0xbc
-[c34bddd0] [c01365f0] kref_put+0x54/0x6c
-[c34bdde0] [c013543c] kobject_put+0x24/0x34
-[c34bddf0] [c015c384] put_device+0x1c/0x2c
-[c34bde00] [c0180e84] mdiobus_unregister+0x2c/0x58
-...
+Mainly for cleanup.
 
-Though actually there is nothing broken, it just device
-subsystem core expects another "pattern" of resource managment.
+A manner "check page->cgroup again after lock_page_cgroup()" is
+implemented in straight way.
 
-This patch implement phy device's release function, thus
-we're getting rid of this badness.
+A comment in mem_cgroup_uncharge() will be removed by force-empty patch
 
-Also small hidden bug fixed, hope none other introduced. ;-)
-
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Acked-by: Andy Fleming <afleming@freescale.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Paul Menage <menage@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/phy/mdio_bus.c   |    9 +++++----
- drivers/net/phy/phy_device.c |   13 +++++++++++++
- include/linux/phy.h          |    1 +
- 3 files changed, 19 insertions(+), 4 deletions(-)
+ mm/memcontrol.c |  105 +++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 76 insertions(+), 29 deletions(-)
 
-diff -puN drivers/net/phy/mdio_bus.c~phy-implement-release-function drivers/net/phy/mdio_bus.c
---- a/drivers/net/phy/mdio_bus.c~phy-implement-release-function
-+++ a/drivers/net/phy/mdio_bus.c
-@@ -91,9 +91,12 @@ int mdiobus_register(struct mii_bus *bus
+diff -puN mm/memcontrol.c~bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page mm/memcontrol.c
+--- a/mm/memcontrol.c~bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page
++++ a/mm/memcontrol.c
+@@ -162,6 +162,48 @@ static void __always_inline unlock_page_
+ 	bit_spin_unlock(PAGE_CGROUP_LOCK_BIT, &page->page_cgroup);
+ }
  
- 			err = device_register(&phydev->dev);
++/*
++ * Tie new page_cgroup to struct page under lock_page_cgroup()
++ * This can fail if the page has been tied to a page_cgroup.
++ * If success, returns 0.
++ */
++static inline int
++page_cgroup_assign_new_page_cgroup(struct page *page, struct page_cgroup *pc)
++{
++	int ret = 0;
++
++	lock_page_cgroup(page);
++	if (!page_get_page_cgroup(page))
++		page_assign_page_cgroup(page, pc);
++	else /* A page is tied to other pc. */
++		ret = 1;
++	unlock_page_cgroup(page);
++	return ret;
++}
++
++/*
++ * Clear page->page_cgroup member under lock_page_cgroup().
++ * If given "pc" value is different from one page->page_cgroup,
++ * page->cgroup is not cleared.
++ * Returns a value of page->page_cgroup at lock taken.
++ * A can can detect failure of clearing by following
++ *  clear_page_cgroup(page, pc) == pc
++ */
++
++static inline struct page_cgroup *
++clear_page_cgroup(struct page *page, struct page_cgroup *pc)
++{
++	struct page_cgroup *ret;
++	/* lock and clear */
++	lock_page_cgroup(page);
++	ret = page_get_page_cgroup(page);
++	if (likely(ret == pc))
++		page_assign_page_cgroup(page, NULL);
++	unlock_page_cgroup(page);
++	return ret;
++}
++
++
+ static void __mem_cgroup_move_lists(struct page_cgroup *pc, bool active)
+ {
+ 	if (active)
+@@ -270,7 +312,7 @@ int mem_cgroup_charge(struct page *page,
+ 				gfp_t gfp_mask)
+ {
+ 	struct mem_cgroup *mem;
+-	struct page_cgroup *pc, *race_pc;
++	struct page_cgroup *pc;
+ 	unsigned long flags;
+ 	unsigned long nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
  
--			if (err)
-+			if (err) {
- 				printk(KERN_ERR "phy %d failed to register\n",
- 						i);
-+				phy_device_free(phydev);
-+				phydev = NULL;
-+			}
- 		}
+@@ -293,8 +335,10 @@ retry:
+ 			unlock_page_cgroup(page);
+ 			cpu_relax();
+ 			goto retry;
+-		} else
++		} else {
++			unlock_page_cgroup(page);
+ 			goto done;
++		}
+ 	}
  
- 		bus->phy_map[i] = phydev;
-@@ -110,10 +113,8 @@ void mdiobus_unregister(struct mii_bus *
- 	int i;
+ 	unlock_page_cgroup(page);
+@@ -364,31 +408,26 @@ noreclaim:
+ 		goto free_pc;
+ 	}
  
- 	for (i = 0; i < PHY_MAX_ADDR; i++) {
--		if (bus->phy_map[i]) {
-+		if (bus->phy_map[i])
- 			device_unregister(&bus->phy_map[i]->dev);
--			kfree(bus->phy_map[i]);
--		}
+-	lock_page_cgroup(page);
+-	/*
+-	 * Check if somebody else beat us to allocating the page_cgroup
+-	 */
+-	race_pc = page_get_page_cgroup(page);
+-	if (race_pc) {
+-		kfree(pc);
+-		pc = race_pc;
+-		atomic_inc(&pc->ref_cnt);
+-		res_counter_uncharge(&mem->res, PAGE_SIZE);
+-		css_put(&mem->css);
+-		goto done;
+-	}
+-
+ 	atomic_set(&pc->ref_cnt, 1);
+ 	pc->mem_cgroup = mem;
+ 	pc->page = page;
+-	page_assign_page_cgroup(page, pc);
++	if (page_cgroup_assign_new_page_cgroup(page, pc)) {
++		/*
++		 * an another charge is added to this page already.
++		 * we do take lock_page_cgroup(page) again and read
++		 * page->cgroup, increment refcnt.... just retry is OK.
++		 */
++		res_counter_uncharge(&mem->res, PAGE_SIZE);
++		css_put(&mem->css);
++		kfree(pc);
++		goto retry;
++	}
+ 
+ 	spin_lock_irqsave(&mem->lru_lock, flags);
+ 	list_add(&pc->lru, &mem->active_list);
+ 	spin_unlock_irqrestore(&mem->lru_lock, flags);
+ 
+ done:
+-	unlock_page_cgroup(page);
+ 	return 0;
+ free_pc:
+ 	kfree(pc);
+@@ -432,17 +471,25 @@ void mem_cgroup_uncharge(struct page_cgr
+ 
+ 	if (atomic_dec_and_test(&pc->ref_cnt)) {
+ 		page = pc->page;
+-		lock_page_cgroup(page);
+-		mem = pc->mem_cgroup;
+-		css_put(&mem->css);
+-		page_assign_page_cgroup(page, NULL);
+-		unlock_page_cgroup(page);
+-		res_counter_uncharge(&mem->res, PAGE_SIZE);
+-
+- 		spin_lock_irqsave(&mem->lru_lock, flags);
+- 		list_del_init(&pc->lru);
+- 		spin_unlock_irqrestore(&mem->lru_lock, flags);
+-		kfree(pc);
++		/*
++		 * get page->cgroup and clear it under lock.
++		 */
++		if (clear_page_cgroup(page, pc) == pc) {
++			mem = pc->mem_cgroup;
++			css_put(&mem->css);
++			res_counter_uncharge(&mem->res, PAGE_SIZE);
++			spin_lock_irqsave(&mem->lru_lock, flags);
++			list_del_init(&pc->lru);
++			spin_unlock_irqrestore(&mem->lru_lock, flags);
++			kfree(pc);
++		} else {
++			/*
++			 * Note:This will be removed when force-empty patch is
++			 * applied. just show warning here.
++			 */
++			printk(KERN_ERR "Race in mem_cgroup_uncharge() ?");
++			dump_stack();
++		}
  	}
  }
- EXPORT_SYMBOL(mdiobus_unregister);
-diff -puN drivers/net/phy/phy_device.c~phy-implement-release-function drivers/net/phy/phy_device.c
---- a/drivers/net/phy/phy_device.c~phy-implement-release-function
-+++ a/drivers/net/phy/phy_device.c
-@@ -44,6 +44,17 @@ static struct phy_driver genphy_driver;
- extern int mdio_bus_init(void);
- extern void mdio_bus_exit(void);
  
-+void phy_device_free(struct phy_device *phydev)
-+{
-+	kfree(phydev);
-+}
-+EXPORT_SYMBOL(phy_device_free);
-+
-+static void phy_device_release(struct device *dev)
-+{
-+	phy_device_free(to_phy_device(dev));
-+}
-+
- struct phy_device* phy_device_create(struct mii_bus *bus, int addr, int phy_id)
- {
- 	struct phy_device *dev;
-@@ -54,6 +65,8 @@ struct phy_device* phy_device_create(str
- 	if (NULL == dev)
- 		return (struct phy_device*) PTR_ERR((void*)-ENOMEM);
- 
-+	dev->dev.release = phy_device_release;
-+
- 	dev->speed = 0;
- 	dev->duplex = -1;
- 	dev->pause = dev->asym_pause = 0;
-diff -puN include/linux/phy.h~phy-implement-release-function include/linux/phy.h
---- a/include/linux/phy.h~phy-implement-release-function
-+++ a/include/linux/phy.h
-@@ -401,6 +401,7 @@ int phy_mii_ioctl(struct phy_device *phy
- int phy_start_interrupts(struct phy_device *phydev);
- void phy_print_status(struct phy_device *phydev);
- struct phy_device* phy_device_create(struct mii_bus *bus, int addr, int phy_id);
-+void phy_device_free(struct phy_device *phydev);
- 
- extern struct bus_type mdio_bus_type;
- #endif /* __PHY_H */
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-ucc_geth-fix-module-removal.patch
-ucc_geth-add-support-for-netpoll.patch
-phy-implement-release-function.patch
+git-sh.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
+memory-controller-make-charging-gfp-mask-aware-fix.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+add-irq-protection-in-the-percpu-counters-cpu-hotplug-callback-path.patch
