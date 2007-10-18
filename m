@@ -1,102 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - userc-ifdef-mq_bytes.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:01:02 -0700
-Message-ID: <200710180701.l9I712Hh031141@imap1.linux-foundation.org>
+Subject: - md-expose-the-degraded-status-of-an-assembled-array-through-sysfs.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:03:01 -0700
+Message-ID: <200710180703.l9I731OY031325@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43106 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36241 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762555AbXJRHQR (ORCPT
+	by vger.kernel.org with ESMTP id S1762021AbXJRHQ1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:16:17 -0400
+	Thu, 18 Oct 2007 03:16:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@sw.ru, mm-commits@vger.kernel.org
+To: iusty@k1024.org, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     user.c: #ifdef ->mq_bytes
+     md: expose the degraded status of an assembled array through sysfs
 has been removed from the -mm tree.  Its filename was
-     userc-ifdef-mq_bytes.patch
+     md-expose-the-degraded-status-of-an-assembled-array-through-sysfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: user.c: #ifdef ->mq_bytes
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: md: expose the degraded status of an assembled array through sysfs
+From: Iustin Pop <iusty@k1024.org>
 
-For those who deselect POSIX message queues.
+The 'degraded' attribute is useful to quickly determine if the array is
+degraded, instead of parsing 'mdadm -D' output or relying on the other
+techniques (number of working devices against number of defined devices,
+etc.).  The md code already keeps track of this attribute, so it's useful to
+export it.
 
-Reduces SLAB size of user_struct from 64 to 32 bytes here, SLUB size -- from
-40 bytes to 32 bytes.
-
-[akpm@linux-foundation.org: fix build]
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Signed-off-by: Iustin Pop <iusty@k1024.org>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    2 ++
- kernel/user.c         |    4 ++--
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/md/md.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN include/linux/sched.h~userc-ifdef-mq_bytes include/linux/sched.h
---- a/include/linux/sched.h~userc-ifdef-mq_bytes
-+++ a/include/linux/sched.h
-@@ -518,8 +518,10 @@ struct user_struct {
- 	atomic_t inotify_watches; /* How many inotify watches does this user have? */
- 	atomic_t inotify_devs;	/* How many inotify devs does this user have opened? */
- #endif
-+#ifdef CONFIG_POSIX_MQUEUE
- 	/* protected by mq_lock	*/
- 	unsigned long mq_bytes;	/* How many bytes can be allocated to mqueue? */
-+#endif
- 	unsigned long locked_shm; /* How many pages of mlocked shm ? */
+diff -puN drivers/md/md.c~md-expose-the-degraded-status-of-an-assembled-array-through-sysfs drivers/md/md.c
+--- a/drivers/md/md.c~md-expose-the-degraded-status-of-an-assembled-array-through-sysfs
++++ a/drivers/md/md.c
+@@ -2833,6 +2833,12 @@ sync_max_store(mddev_t *mddev, const cha
+ static struct md_sysfs_entry md_sync_max =
+ __ATTR(sync_speed_max, S_IRUGO|S_IWUSR, sync_max_show, sync_max_store);
  
- #ifdef CONFIG_KEYS
-diff -puN kernel/user.c~userc-ifdef-mq_bytes kernel/user.c
---- a/kernel/user.c~userc-ifdef-mq_bytes
-+++ a/kernel/user.c
-@@ -44,7 +44,6 @@ struct user_struct root_user = {
- 	.processes	= ATOMIC_INIT(1),
- 	.files		= ATOMIC_INIT(0),
- 	.sigpending	= ATOMIC_INIT(0),
--	.mq_bytes	= 0,
- 	.locked_shm     = 0,
- #ifdef CONFIG_KEYS
- 	.uid_keyring	= &root_user_keyring,
-@@ -341,8 +340,9 @@ struct user_struct * alloc_uid(struct us
- 		atomic_set(&new->inotify_watches, 0);
- 		atomic_set(&new->inotify_devs, 0);
- #endif
--
-+#ifdef CONFIG_POSIX_MQUEUE
- 		new->mq_bytes = 0;
-+#endif
- 		new->locked_shm = 0;
++static ssize_t
++degraded_show(mddev_t *mddev, char *page)
++{
++	return sprintf(page, "%d\n", mddev->degraded);
++}
++static struct md_sysfs_entry md_degraded = __ATTR_RO(degraded);
  
- 		if (alloc_uid_keyring(new, current) < 0) {
+ static ssize_t
+ sync_speed_show(mddev_t *mddev, char *page)
+@@ -2976,6 +2982,7 @@ static struct attribute *md_redundancy_a
+ 	&md_suspend_lo.attr,
+ 	&md_suspend_hi.attr,
+ 	&md_bitmap.attr,
++	&md_degraded.attr,
+ 	NULL,
+ };
+ static struct attribute_group md_redundancy_group = {
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from iusty@k1024.org are
 
 origin.patch
-add-kernel-notifierc.patch
-add-kernel-notifierc-fix.patch
-add-kernel-notifierc-fix-2.patch
-add-kernel-notifierc-fix-2-fix-3.patch
-sysctl-core-stop-using-the-unnecessary-ctl_table-typedef.patch
-sysctl-factor-out-sysctl_data.patch
-sysct-mqueue-remove-the-binary-sysctl-numbers.patch
-sysctl-remove-binary-sysctl-support-where-it-clearly-doesnt-work.patch
-sysctl-fix-neighbour-table-sysctls.patch
-sysctl-ipv6-route-flushing-kill-binary-path.patch
-sysctl-remove-broken-sunrpc-debug-binary-sysctls.patch
-sysctl-x86_64-remove-unnecessary-binary-paths.patch
-sysctl-remove-broken-cdrom-binary-sysctls.patch
-sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
-sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
-sysctl-error-on-bad-sysctl-tables.patch
-sysctl-update-sysctl_check_table.patch
-uninline-forkc-exitc.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-single_open-seq_release-leak-diagnostics.patch
