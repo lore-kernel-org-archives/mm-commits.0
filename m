@@ -1,61 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - exec-consolidate-2-fast-paths.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:56:47 -0700
-Message-ID: <200710180656.l9I6ulsk030729@imap1.linux-foundation.org>
+Subject: - zap_other_threads-dont-optimize-thread_group_empty-case.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:55:34 -0700
+Message-ID: <200710180655.l9I6tYCe030624@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36781 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43738 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755742AbXJRHYj (ORCPT
+	by vger.kernel.org with ESMTP id S1751364AbXJRHY6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:24:39 -0400
+	Thu, 18 Oct 2007 03:24:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     exec: consolidate 2 fast-paths
+     zap_other_threads: don't optimize thread_group_empty() case
 has been removed from the -mm tree.  Its filename was
-     exec-consolidate-2-fast-paths.patch
+     zap_other_threads-dont-optimize-thread_group_empty-case.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: exec: consolidate 2 fast-paths
+Subject: zap_other_threads: don't optimize thread_group_empty() case
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Now that we don't pre-allocate the new ->sighand, we can kill the first fast
-path, it doesn't make sense any longer. At best, it can save one "list_empty()"
-check but leads to the code duplication.
+Nowadays thread_group_empty() and next_thread() are simple list operations,
+this optimization doesn't make sense: we are doing exactly same check one
+line below.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    9 ---------
- 1 file changed, 9 deletions(-)
+ kernel/signal.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN fs/exec.c~exec-consolidate-2-fast-paths fs/exec.c
---- a/fs/exec.c~exec-consolidate-2-fast-paths
-+++ a/fs/exec.c
-@@ -752,15 +752,6 @@ static int de_thread(struct task_struct 
- 	struct task_struct *leader = NULL;
- 	int count;
+diff -puN kernel/signal.c~zap_other_threads-dont-optimize-thread_group_empty-case kernel/signal.c
+--- a/kernel/signal.c~zap_other_threads-dont-optimize-thread_group_empty-case
++++ a/kernel/signal.c
+@@ -985,9 +985,6 @@ void zap_other_threads(struct task_struc
+ 	p->signal->flags = SIGNAL_GROUP_EXIT;
+ 	p->signal->group_stop_count = 0;
  
--	/*
--	 * If we don't share sighandlers, then we aren't sharing anything
--	 * and we can just re-use it all.
--	 */
--	if (atomic_read(&oldsighand->count) <= 1) {
--		exit_itimers(sig);
--		return 0;
--	}
+-	if (thread_group_empty(p))
+-		return;
 -
- 	if (thread_group_empty(tsk))
- 		goto no_thread_group;
- 
+ 	for (t = next_thread(p); t != p; t = next_thread(t)) {
+ 		/*
+ 		 * Don't bother with already dead threads
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
