@@ -1,177 +1,190 @@
 From: akpm@linux-foundation.org
-Subject: - ext2-show-all-mount-options.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:53:53 -0700
-Message-ID: <200710180653.l9I6rrPi030477__15542.2640419149$1192693338$gmane$org@imap1.linux-foundation.org>
+Subject: - powerpc-use-linux-elfcore-compath.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:55:23 -0700
+Message-ID: <200710180655.l9I6tNe5030604@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33749 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43219 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932707AbXJRHlq (ORCPT
+	by vger.kernel.org with ESMTP id S1760038AbXJRHlz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:41:46 -0400
+	Thu, 18 Oct 2007 03:41:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: roland@redhat.com, ak@suse.de, benh@kernel.crashing.org, paulus@samba.org, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext2: show all mount options
+     powerpc: Use linux/elfcore-compat.h
 has been removed from the -mm tree.  Its filename was
-     ext2-show-all-mount-options.patch
+     powerpc-use-linux-elfcore-compath.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ext2: show all mount options
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: powerpc: Use linux/elfcore-compat.h
+From: Roland McGrath <roland@redhat.com>
 
-Using mtab is problematic for various reasons, one of them is that
-unprivileged mounts won't turn up in there.  So we want to get rid of it, and
-use /proc/mounts instead.
+This makes powerpc64's compat code use the new linux/elfcore-compat.h,
+reducing some hand-copied duplication.
 
-But most filesystems are lazy, and are not showing all mount options.  Which
-means, that without mtab, the user won't be able to see some or all of the
-options.
-
-It would be nice if the generic code could remember the mount options, and
-show them without the need to add extra code to filesystems.  But this is not
-easy, because different filesystems handle mount options given options, and
-not tough the rest.  This is not taken into account by mount(8) either, so
-/etc/mtab will be broken in this case.
-
-This series fixes up ->show_options() in ext[234].
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Andi Kleen <ak@suse.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/super.c            |   61 +++++++++++++++++++++++++++++++++--
- include/linux/ext2_fs_sb.h |    1 
- 2 files changed, 60 insertions(+), 2 deletions(-)
+ arch/powerpc/kernel/binfmt_elf32.c |   67 ++++++++++++---------------
+ include/asm-powerpc/elf.h          |   38 ++++++++-------
+ 2 files changed, 51 insertions(+), 54 deletions(-)
 
-diff -puN fs/ext2/super.c~ext2-show-all-mount-options fs/ext2/super.c
---- a/fs/ext2/super.c~ext2-show-all-mount-options
-+++ a/fs/ext2/super.c
-@@ -203,10 +203,66 @@ static void ext2_clear_inode(struct inod
+diff -puN arch/powerpc/kernel/binfmt_elf32.c~powerpc-use-linux-elfcore-compath arch/powerpc/kernel/binfmt_elf32.c
+--- a/arch/powerpc/kernel/binfmt_elf32.c~powerpc-use-linux-elfcore-compath
++++ a/arch/powerpc/kernel/binfmt_elf32.c
+@@ -13,49 +13,44 @@
+  * 2 of the License, or (at your option) any later version.
+  */
  
- static int ext2_show_options(struct seq_file *seq, struct vfsmount *vfs)
+-#define ELF_ARCH		EM_PPC
+-#define ELF_CLASS		ELFCLASS32
+-#define ELF_DATA		ELFDATA2MSB;
+-
+ #include <asm/processor.h>
+ #include <linux/module.h>
+-#include <linux/elfcore.h>
+ #include <linux/compat.h>
++#include <linux/elfcore-compat.h>
+ 
+-#define elf_prstatus elf_prstatus32
+-struct elf_prstatus32
++#undef	ELF_ARCH
++#undef	ELF_CLASS
++#define ELF_CLASS	ELFCLASS32
++#define ELF_ARCH	EM_PPC
++
++#undef	elfhdr
++#undef	elf_phdr
++#undef	elf_note
++#undef	elf_addr_t
++#define elfhdr		elf32_hdr
++#define elf_phdr	elf32_phdr
++#define elf_note	elf32_note
++#define elf_addr_t	Elf32_Off
++
++#define elf_prstatus	compat_elf_prstatus
++#define elf_prpsinfo	compat_elf_prpsinfo
++
++#define elf_core_copy_regs compat_elf_core_copy_regs
++static inline void compat_elf_core_copy_regs(compat_elf_gregset_t *elf_regs,
++					     struct pt_regs *regs)
  {
--	struct ext2_sb_info *sbi = EXT2_SB(vfs->mnt_sb);
-+	struct super_block *sb = vfs->mnt_sb;
-+	struct ext2_sb_info *sbi = EXT2_SB(sb);
-+	struct ext2_super_block *es = sbi->s_es;
-+	unsigned long def_mount_opts;
-+
-+	def_mount_opts = le32_to_cpu(es->s_default_mount_opts);
+-	struct elf_siginfo pr_info;	/* Info associated with signal */
+-	short	pr_cursig;		/* Current signal */
+-	unsigned int pr_sigpend;	/* Set of pending signals */
+-	unsigned int pr_sighold;	/* Set of held signals */
+-	pid_t	pr_pid;
+-	pid_t	pr_ppid;
+-	pid_t	pr_pgrp;
+-	pid_t	pr_sid;
+-	struct compat_timeval pr_utime;	/* User time */
+-	struct compat_timeval pr_stime;	/* System time */
+-	struct compat_timeval pr_cutime;	/* Cumulative user time */
+-	struct compat_timeval pr_cstime;	/* Cumulative system time */
+-	elf_gregset_t pr_reg;		/* General purpose registers. */
+-	int pr_fpvalid;		/* True if math co-processor being used. */
+-};
++	PPC_ELF_CORE_COPY_REGS((*elf_regs), regs);
++}
  
--	if (sbi->s_mount_opt & EXT2_MOUNT_GRPID)
-+	if (sbi->s_sb_block != 1)
-+		seq_printf(seq, ",sb=%lu", sbi->s_sb_block);
-+	if (test_opt(sb, MINIX_DF))
-+		seq_puts(seq, ",minixdf");
-+	if (test_opt(sb, GRPID))
- 		seq_puts(seq, ",grpid");
-+	if (!test_opt(sb, GRPID) && (def_mount_opts & EXT2_DEFM_BSDGROUPS))
-+		seq_puts(seq, ",nogrpid");
-+	if (sbi->s_resuid != EXT2_DEF_RESUID ||
-+	    le16_to_cpu(es->s_def_resuid) != EXT2_DEF_RESUID) {
-+		seq_printf(seq, ",resuid=%u", sbi->s_resuid);
-+	}
-+	if (sbi->s_resgid != EXT2_DEF_RESGID ||
-+	    le16_to_cpu(es->s_def_resgid) != EXT2_DEF_RESGID) {
-+		seq_printf(seq, ",resgid=%u", sbi->s_resgid);
-+	}
-+	if (test_opt(sb, ERRORS_CONT)) {
-+		int def_errors = le16_to_cpu(es->s_errors);
-+
-+		if (def_errors == EXT2_ERRORS_PANIC ||
-+		    def_errors == EXT2_ERRORS_RO) {
-+			seq_puts(seq, ",errors=continue");
-+		}
-+	}
-+	if (test_opt(sb, ERRORS_RO))
-+		seq_puts(seq, ",errors=remount-ro");
-+	if (test_opt(sb, ERRORS_PANIC))
-+		seq_puts(seq, ",errors=panic");
-+	if (test_opt(sb, NO_UID32))
-+		seq_puts(seq, ",nouid32");
-+	if (test_opt(sb, DEBUG))
-+		seq_puts(seq, ",debug");
-+	if (test_opt(sb, OLDALLOC))
-+		seq_puts(seq, ",oldalloc");
-+
-+#ifdef CONFIG_EXT2_FS_XATTR
-+	if (test_opt(sb, XATTR_USER))
-+		seq_puts(seq, ",user_xattr");
-+	if (!test_opt(sb, XATTR_USER) &&
-+	    (def_mount_opts & EXT2_DEFM_XATTR_USER)) {
-+		seq_puts(seq, ",nouser_xattr");
-+	}
-+#endif
-+
-+#ifdef CONFIG_EXT2_FS_POSIX_ACL
-+	if (test_opt(sb, POSIX_ACL))
-+		seq_puts(seq, ",acl");
-+	if (!test_opt(sb, POSIX_ACL) && (def_mount_opts & EXT2_DEFM_ACL))
-+		seq_puts(seq, ",noacl");
-+#endif
-+
-+	if (test_opt(sb, NOBH))
-+		seq_puts(seq, ",nobh");
+-#define elf_prpsinfo elf_prpsinfo32
+-struct elf_prpsinfo32
++#define elf_core_copy_task_regs compat_elf_core_copy_task_regs
++static int compat_elf_core_copy_task_regs(struct task_struct *tsk,
++					  compat_elf_gregset_t *elf_regs)
+ {
+-	char	pr_state;	/* numeric process state */
+-	char	pr_sname;	/* char for pr_state */
+-	char	pr_zomb;	/* zombie */
+-	char	pr_nice;	/* nice val */
+-	unsigned int pr_flag;	/* flags */
+-	u32	pr_uid;
+-	u32	pr_gid;
+-	pid_t	pr_pid, pr_ppid, pr_pgrp, pr_sid;
+-	/* Lots missing */
+-	char	pr_fname[16];	/* filename of executable */
+-	char	pr_psargs[ELF_PRARGSZ];	/* initial part of arg list */
+-};
++	struct pt_regs *regs = tsk->thread.regs;
++	if (regs)
++		compat_elf_core_copy_regs(elf_regs, regs);
++	return 1;
++}
  
- #if defined(CONFIG_QUOTA)
- 	if (sbi->s_mount_opt & EXT2_MOUNT_USRQUOTA)
-@@ -659,6 +715,7 @@ static int ext2_fill_super(struct super_
- 	if (!sbi)
- 		return -ENOMEM;
- 	sb->s_fs_info = sbi;
-+	sbi->s_sb_block = sb_block;
+ #include <linux/time.h>
  
- 	/*
- 	 * See what the current blocksize for the device is, and
-diff -puN include/linux/ext2_fs_sb.h~ext2-show-all-mount-options include/linux/ext2_fs_sb.h
---- a/include/linux/ext2_fs_sb.h~ext2-show-all-mount-options
-+++ a/include/linux/ext2_fs_sb.h
-@@ -39,6 +39,7 @@ struct ext2_sb_info {
- 	struct ext2_super_block * s_es;	/* Pointer to the super block in the buffer */
- 	struct buffer_head ** s_group_desc;
- 	unsigned long  s_mount_opt;
-+	unsigned long s_sb_block;
- 	uid_t s_resuid;
- 	gid_t s_resgid;
- 	unsigned short s_mount_state;
+diff -puN include/asm-powerpc/elf.h~powerpc-use-linux-elfcore-compath include/asm-powerpc/elf.h
+--- a/include/asm-powerpc/elf.h~powerpc-use-linux-elfcore-compath
++++ a/include/asm-powerpc/elf.h
+@@ -101,6 +101,7 @@ typedef elf_greg_t64 elf_gregset_t64[ELF
+ 
+ typedef unsigned int elf_greg_t32;
+ typedef elf_greg_t32 elf_gregset_t32[ELF_NGREG];
++typedef elf_gregset_t32 compat_elf_gregset_t;
+ 
+ /*
+  * ELF_ARCH, CLASS, and DATA are used to set parameters in the core dumps.
+@@ -175,26 +176,27 @@ typedef elf_vrreg_t elf_vrregset_t32[ELF
+ 
+ #define ELF_ET_DYN_BASE         (0x20000000)
+ 
+-/* Common routine for both 32-bit and 64-bit processes */
++/*
++ * Our registers are always unsigned longs, whether we're a 32 bit
++ * process or 64 bit, on either a 64 bit or 32 bit kernel.
++ *
++ * This macro relies on elf_regs[i] having the right type to truncate to,
++ * either u32 or u64.  It defines the body of the elf_core_copy_regs
++ * function, either the native one with elf_gregset_t elf_regs or
++ * the 32-bit one with elf_gregset_t32 elf_regs.
++ */
++#define PPC_ELF_CORE_COPY_REGS(elf_regs, regs) \
++	int i, nregs = min(sizeof(*regs) / sizeof(unsigned long), \
++			   (size_t)ELF_NGREG);			  \
++	for (i = 0; i < nregs; i++) \
++		elf_regs[i] = ((unsigned long *) regs)[i]; \
++	memset(&elf_regs[i], 0, (ELF_NGREG - i) * sizeof(elf_regs[0]))
++
++/* Common routine for both 32-bit and 64-bit native processes */
+ static inline void ppc_elf_core_copy_regs(elf_gregset_t elf_regs,
+-					    struct pt_regs *regs)
++					  struct pt_regs *regs)
+ {
+-	int i, nregs;
+-
+-	memset((void *)elf_regs, 0, sizeof(elf_gregset_t));
+-
+-	/* Our registers are always unsigned longs, whether we're a 32 bit
+-	 * process or 64 bit, on either a 64 bit or 32 bit kernel.
+-	 * Don't use ELF_GREG_TYPE here. */
+-	nregs = sizeof(struct pt_regs) / sizeof(unsigned long);
+-	if (nregs > ELF_NGREG)
+-		nregs = ELF_NGREG;
+-
+-	for (i = 0; i < nregs; i++) {
+-		/* This will correctly truncate 64 bit registers to 32 bits
+-		 * for a 32 bit process on a 64 bit kernel. */
+-		elf_regs[i] = (elf_greg_t)((ELF_GREG_TYPE *)regs)[i];
+-	}
++	PPC_ELF_CORE_COPY_REGS(elf_regs, regs);
+ }
+ #define ELF_CORE_COPY_REGS(gregs, regs) ppc_elf_core_copy_regs(gregs, regs);
+ 
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from roland@redhat.com are
 
 origin.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
-unprivileged-mounts-add-no-submounts-flag.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
-fuse-fix-allowing-operations.patch
-fuse-fix-race-between-getattr-and-write.patch
-fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
-fuse-add-file-handle-to-getattr-operation.patch
-fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
-fuse-clean-up-open-file-passing-in-setattr.patch
-vfs-allow-filesystems-to-implement-atomic-opentruncate.patch
-fuse-improve-utimes-support.patch
-fuse-add-atomic-opentruncate-support.patch
-fuse-support-bsd-locking-semantics.patch
-fuse-add-list-of-writable-files-to-fuse_inode.patch
-fuse-add-helper-for-asynchronous-writes.patch
-fuse-add-support-for-mandatory-locking.patch
-fuse-add-blksize-field-to-fuse_attr.patch
+x86_64-use-linux-elfcore-compath.patch
+fix-tsk-exit_state-usage-resend.patch
