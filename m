@@ -1,65 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:07:45 -0700
-Message-ID: <200710180707.l9I77jtW031727@imap1.linux-foundation.org>
+Subject: - dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:07:40 -0700
+Message-ID: <200710180707.l9I77enM031718@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48887 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40147 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759830AbXJRHI3 (ORCPT
+	by vger.kernel.org with ESMTP id S1759863AbXJRHIa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:08:29 -0400
+	Thu, 18 Oct 2007 03:08:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: satyam@infradead.org, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
+To: Yinghai.Lu@Sun.COM, ak@suse.de, apw@shadowen.org, clameter@sgi.com, jeff@garzik.org, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
 
 
 The patch titled
-     intel_cacheinfo: Call cache_add_dev from cache_sysfs_init  explicitly
+     dma: use dev_to_node to get node for device in dma_alloc_pages
 has been removed from the -mm tree.  Its filename was
-     intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init.patch
+     dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: intel_cacheinfo: Call cache_add_dev from cache_sysfs_init  explicitly
-From: Satyam Sharma <satyam@infradead.org>
+Subject: dma: use dev_to_node to get node for device in dma_alloc_pages
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-Call cache_add_dev() from cache_sysfs_init() explicitly, instead of
-referencing the CPU notifier callback directly from generic startup code. 
-Looks cleaner (to me at least) this way, and also makes it possible to use
-other tricks to replace __cpuinit{data} annotations, as recently discussed on
-this list.
-
-Signed-off-by: Satyam Sharma <satyam@infradead.org>
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
+Acked-by: Christoph Lameter <clameter@sgi.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/kernel/cpu/intel_cacheinfo.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86_64/kernel/pci-dma.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN arch/i386/kernel/cpu/intel_cacheinfo.c~intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init arch/i386/kernel/cpu/intel_cacheinfo.c
---- a/arch/x86/kernel/cpu/intel_cacheinfo.c~intel_cacheinfo-call-cache_add_dev-from-cache_sysfs_init
-+++ a/arch/x86/kernel/cpu/intel_cacheinfo.c
-@@ -794,8 +794,8 @@ static int __cpuinit cache_sysfs_init(vo
- 	register_hotcpu_notifier(&cacheinfo_cpu_notifier);
+diff -puN arch/x86_64/kernel/pci-dma.c~dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages arch/x86_64/kernel/pci-dma.c
+--- a/arch/x86/kernel/pci-dma_64.c~dma-use-dev_to_node-to-get-node-for-device-in-dma_alloc_pages
++++ a/arch/x86/kernel/pci-dma_64.c
+@@ -51,11 +51,9 @@ dma_alloc_pages(struct device *dev, gfp_
+ {
+ 	struct page *page;
+ 	int node;
+-#ifdef CONFIG_PCI
+-	if (dev->bus == &pci_bus_type)
+-		node = pcibus_to_node(to_pci_dev(dev)->bus);
+-	else
+-#endif
++
++	node = dev_to_node(dev);
++	if (node == -1)
+ 		node = numa_node_id();
  
- 	for_each_online_cpu(i) {
--		cacheinfo_cpu_callback(&cacheinfo_cpu_notifier, CPU_ONLINE,
--			(void *)(long)i);
-+		struct sys_device *sys_dev = get_cpu_sysdev((unsigned int)i);
-+		cache_add_dev(sys_dev);
- 	}
- 
- 	return 0;
+ 	if (node < first_node(node_online_map))
 _
 
-Patches currently in -mm which might be from satyam@infradead.org are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
 origin.patch
-git-watchdog.patch
-unify-dma_bit_mask-definitions-v31.patch
-redefine-unregister_hotcpu_notifier-hotplug_cpu-stubs.patch
-x86-msr-driver-misc-cpuinit-annotations.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+git-x86.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+x86_64-set-cfg_size-for-amd-family-10h-in-case-mmconfig-is.patch
+kernel-printkc-concerns-about-the-console-handover.patch
