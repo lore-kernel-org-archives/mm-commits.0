@@ -1,107 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - fix-config_debug_shirq-trigger-on-free_irq.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:54:06 -0700
-Message-ID: <200710180654.l9I6s6Fj030498@imap1.linux-foundation.org>
+Subject: - immunize-rcu_dereference-against-crazy-compiler-writers.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:52:33 -0700
+Message-ID: <200710180652.l9I6qX3x030294@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60658 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52452 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932419AbXJRHnv (ORCPT
+	by vger.kernel.org with ESMTP id S932422AbXJRHnv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 18 Oct 2007 03:43:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwmw2@infradead.org, andy@greyhouse.net, fernando@oss.ntt.co.jp, mm-commits@vger.kernel.org
+To: paulmck@linux.vnet.ibm.com, josh@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix CONFIG_DEBUG_SHIRQ trigger on free_irq()
+     Immunize rcu_dereference() against crazy compiler writers
 has been removed from the -mm tree.  Its filename was
-     fix-config_debug_shirq-trigger-on-free_irq.patch
+     immunize-rcu_dereference-against-crazy-compiler-writers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Fix CONFIG_DEBUG_SHIRQ trigger on free_irq()
-From: David Woodhouse <dwmw2@infradead.org>
+Subject: Immunize rcu_dereference() against crazy compiler writers
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 
-Andy Gospodarek pointed out that because we return in the middle of the
-free_irq() function, we never actually do call the IRQ handler that just
-got deregistered. This should fix it, although I expect Andrew will want
-to convert those 'return's to 'break'. That's a separate change though.
+Turns out that compiler writers are a bit more aggressive about optimizing
+than one might expect.  This patch prevents a number of such optimizations
+from messing up rcu_deference().  This is not merely a theoretical problem, as
+evidenced by the rmb() in mce_log().
 
-Signed-off-by: David Woodhouse <dwmw2@infradead.org>
-Cc: Andy Gospodarek <andy@greyhouse.net>
-Cc: Fernando Luis Vzquez Cao <fernando@oss.ntt.co.jp>
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Acked-by: Josh Triplett <josh@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/manage.c |   31 +++++++++++++++----------------
- 1 file changed, 15 insertions(+), 16 deletions(-)
+ include/linux/rcupdate.h |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN kernel/irq/manage.c~fix-config_debug_shirq-trigger-on-free_irq kernel/irq/manage.c
---- a/kernel/irq/manage.c~fix-config_debug_shirq-trigger-on-free_irq
-+++ a/kernel/irq/manage.c
-@@ -405,7 +405,6 @@ void free_irq(unsigned int irq, void *de
- 	struct irq_desc *desc;
- 	struct irqaction **p;
- 	unsigned long flags;
--	irqreturn_t (*handler)(int, void *) = NULL;
+diff -puN include/linux/rcupdate.h~immunize-rcu_dereference-against-crazy-compiler-writers include/linux/rcupdate.h
+--- a/include/linux/rcupdate.h~immunize-rcu_dereference-against-crazy-compiler-writers
++++ a/include/linux/rcupdate.h
+@@ -231,6 +231,18 @@ extern struct lockdep_map rcu_lock_map;
+ 		local_bh_enable(); \
+ 	} while(0)
  
- 	WARN_ON(in_interrupt());
- 	if (irq >= NR_IRQS)
-@@ -445,8 +444,21 @@ void free_irq(unsigned int irq, void *de
++/*
++ * Prevent the compiler from merging or refetching accesses.  The compiler
++ * is also forbidden from reordering successive instances of ACCESS_ONCE(),
++ * but only when the compiler is aware of some particular ordering.  One way
++ * to make the compiler aware of ordering is to put the two invocations of
++ * ACCESS_ONCE() in different C statements.
++ *
++ * This macro does absolutely -nothing- to prevent the CPU from reordering,
++ * merging, or refetching absolutely anything at any time.
++ */
++#define ACCESS_ONCE(x) (*(volatile typeof(x) *)&(x))
++
+ /**
+  * rcu_dereference - fetch an RCU-protected pointer in an
+  * RCU read-side critical section.  This pointer may later
+@@ -242,7 +254,7 @@ extern struct lockdep_map rcu_lock_map;
+  */
  
- 			/* Make sure it's not being used on another CPU */
- 			synchronize_irq(irq);
--			if (action->flags & IRQF_SHARED)
--				handler = action->handler;
-+#ifdef CONFIG_DEBUG_SHIRQ
-+			/*
-+			 * It's a shared IRQ -- the driver ought to be
-+			 * prepared for it to happen even now it's
-+			 * being freed, so let's make sure....  We do
-+			 * this after actually deregistering it, to
-+			 * make sure that a 'real' IRQ doesn't run in
-+			 * parallel with our fake
-+			 */
-+			if (action->flags & IRQF_SHARED) {
-+				local_irq_save(flags);
-+				action->handler(irq, dev_id);
-+				local_irq_restore(flags);
-+			}
-+#endif
- 			kfree(action);
- 			return;
- 		}
-@@ -454,19 +466,6 @@ void free_irq(unsigned int irq, void *de
- 		spin_unlock_irqrestore(&desc->lock, flags);
- 		return;
- 	}
--#ifdef CONFIG_DEBUG_SHIRQ
--	if (handler) {
--		/*
--		 * It's a shared IRQ -- the driver ought to be prepared for it
--		 * to happen even now it's being freed, so let's make sure....
--		 * We do this after actually deregistering it, to make sure that
--		 * a 'real' IRQ doesn't run in parallel with our fake
--		 */
--		local_irq_save(flags);
--		handler(irq, dev_id);
--		local_irq_restore(flags);
--	}
--#endif
- }
- EXPORT_SYMBOL(free_irq);
- 
+ #define rcu_dereference(p)     ({ \
+-				typeof(p) _________p1 = p; \
++				typeof(p) _________p1 = ACCESS_ONCE(p); \
+ 				smp_read_barrier_depends(); \
+ 				(_________p1); \
+ 				})
 _
 
-Patches currently in -mm which might be from dwmw2@infradead.org are
+Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
 
 origin.patch
-remove-fs-jffs2-ioctlc.patch
-console-events-and-accessibility-fix.patch
-whitespace-fixes-audit-filtering.patch
-whitespace-fixes-syscall-auditing.patch
-whitespace-fixes-system-auditing.patch
-add-missing-newlines-to-some-uses-of-dev_level-messages.patch
+make-access-to-tasks-nsproxy-lighter.patch
+make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
+make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
