@@ -1,100 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - limit-minixfs-printks-on-corrupted-dir-i_size.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:56:23 -0700
-Message-ID: <200710180656.l9I6uNPL030696@imap1.linux-foundation.org>
+Subject: - remap_file_pages-kernel-doc-corrections.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:04:57 -0700
+Message-ID: <200710180704.l9I74vAt031603@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59073 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49844 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755851AbXJRHVX (ORCPT
+	by vger.kernel.org with ESMTP id S1756673AbXJRHVe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:21:23 -0400
+	Thu, 18 Oct 2007 03:21:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sandeen@redhat.com, 7eggert@gmx.de, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     limit minixfs printks on corrupted dir i_size
+     remap_file_pages: kernel-doc corrections
 has been removed from the -mm tree.  Its filename was
-     limit-minixfs-printks-on-corrupted-dir-i_size.patch
+     remap_file_pages-kernel-doc-corrections.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: limit minixfs printks on corrupted dir i_size
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: remap_file_pages: kernel-doc corrections
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-This attempts to address CVE-2006-6058
-http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2006-6058
+Fix kernel-doc for sys_remap_file_pages() and add info to the 'prot' NOTE. 
+Rename __prot parameter to prot.
 
-first reported at http://projects.info-pull.com/mokb/MOKB-17-11-2006.html
-
-Essentially a corrupted minix dir inode reporting a very large
-i_size will loop for a very long time in minix_readdir, minix_find_entry,
-etc, because on EIO they just move on to try the next page.  This is
-under the BKL, printk-storming as well.  This can lock up the machine
-for a very long time.  Simply ratelimiting the printks gets things back
-under control.  Make the message a bit more informative while we're here.
-
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc: Bodo Eggert <7eggert@gmx.de>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/minix/itree_v1.c |    9 +++++++--
- fs/minix/itree_v2.c |    9 +++++++--
- 2 files changed, 14 insertions(+), 4 deletions(-)
+ mm/fremap.c |   24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
-diff -puN fs/minix/itree_v1.c~limit-minixfs-printks-on-corrupted-dir-i_size fs/minix/itree_v1.c
---- a/fs/minix/itree_v1.c~limit-minixfs-printks-on-corrupted-dir-i_size
-+++ a/fs/minix/itree_v1.c
-@@ -23,11 +23,16 @@ static inline block_t *i_data(struct ino
- static int block_to_path(struct inode * inode, long block, int offsets[DEPTH])
- {
- 	int n = 0;
-+	char b[BDEVNAME_SIZE];
+diff -puN mm/fremap.c~remap_file_pages-kernel-doc-corrections mm/fremap.c
+--- a/mm/fremap.c~remap_file_pages-kernel-doc-corrections
++++ a/mm/fremap.c
+@@ -97,26 +97,28 @@ static int populate_range(struct mm_stru
  
- 	if (block < 0) {
--		printk("minix_bmap: block<0\n");
-+		printk("MINIX-fs: block_to_path: block %ld < 0 on dev %s\n",
-+			block, bdevname(inode->i_sb->s_bdev, b));
- 	} else if (block >= (minix_sb(inode->i_sb)->s_max_size/BLOCK_SIZE)) {
--		printk("minix_bmap: block>big\n");
-+		if (printk_ratelimit())
-+			printk("MINIX-fs: block_to_path: "
-+			       "block %ld too big on dev %s\n",
-+				block, bdevname(inode->i_sb->s_bdev, b));
- 	} else if (block < 7) {
- 		offsets[n++] = block;
- 	} else if ((block -= 7) < 512) {
-diff -puN fs/minix/itree_v2.c~limit-minixfs-printks-on-corrupted-dir-i_size fs/minix/itree_v2.c
---- a/fs/minix/itree_v2.c~limit-minixfs-printks-on-corrupted-dir-i_size
-+++ a/fs/minix/itree_v2.c
-@@ -23,12 +23,17 @@ static inline block_t *i_data(struct ino
- static int block_to_path(struct inode * inode, long block, int offsets[DEPTH])
- {
- 	int n = 0;
-+	char b[BDEVNAME_SIZE];
- 	struct super_block *sb = inode->i_sb;
+ }
  
- 	if (block < 0) {
--		printk("minix_bmap: block<0\n");
-+		printk("MINIX-fs: block_to_path: block %ld < 0 on dev %s\n",
-+			block, bdevname(sb->s_bdev, b));
- 	} else if (block >= (minix_sb(inode->i_sb)->s_max_size/sb->s_blocksize)) {
--		printk("minix_bmap: block>big\n");
-+		if (printk_ratelimit())
-+			printk("MINIX-fs: block_to_path: "
-+			       "block %ld too big on dev %s\n",
-+				block, bdevname(sb->s_bdev, b));
- 	} else if (block < 7) {
- 		offsets[n++] = block;
- 	} else if ((block -= 7) < 256) {
+-/***
+- * sys_remap_file_pages - remap arbitrary pages of a shared backing store
+- *                        file within an existing vma.
++/**
++ * sys_remap_file_pages - remap arbitrary pages of an existing VM_SHARED vma
+  * @start: start of the remapped virtual memory range
+  * @size: size of the remapped virtual memory range
+- * @prot: new protection bits of the range
+- * @pgoff: to be mapped page of the backing store file
++ * @prot: new protection bits of the range (see NOTE)
++ * @pgoff: to-be-mapped page of the backing store file
+  * @flags: 0 or MAP_NONBLOCKED - the later will cause no IO.
+  *
+- * this syscall works purely via pagetables, so it's the most efficient
++ * sys_remap_file_pages remaps arbitrary pages of an existing VM_SHARED vma
++ * (shared backing store file).
++ *
++ * This syscall works purely via pagetables, so it's the most efficient
+  * way to map the same (large) file into a given virtual window. Unlike
+  * mmap()/mremap() it does not create any new vmas. The new mappings are
+  * also safe across swapout.
+  *
+- * NOTE: the 'prot' parameter right now is ignored, and the vma's default
+- * protection is used. Arbitrary protections might be implemented in the
+- * future.
++ * NOTE: the 'prot' parameter right now is ignored (but must be zero),
++ * and the vma's default protection is used. Arbitrary protections
++ * might be implemented in the future.
+  */
+ asmlinkage long sys_remap_file_pages(unsigned long start, unsigned long size,
+-	unsigned long __prot, unsigned long pgoff, unsigned long flags)
++	unsigned long prot, unsigned long pgoff, unsigned long flags)
+ {
+ 	struct mm_struct *mm = current->mm;
+ 	struct address_space *mapping;
+@@ -125,7 +127,7 @@ asmlinkage long sys_remap_file_pages(uns
+ 	int err = -EINVAL;
+ 	int has_write_lock = 0;
+ 
+-	if (__prot)
++	if (prot)
+ 		return err;
+ 	/*
+ 	 * Sanitize the syscall parameters:
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-ext4-remove-ifdef-config_ext4_index.patch
-ext3-fix-setup_new_group_blocks-locking.patch
+git-acpi.patch
+fix-auditscc-kernel-doc.patch
+comment-typo-in-scripts-kconfig-makefile.patch
+git-unionfs.patch
+git-watchdog.patch
+git-ipwireless_cs.patch
+hook-up-group-scheduler-with-control-groups.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
+add-samples-subdir.patch
+i-oat-cleanup-pci-issues.patch
+profile-likely-unlikely-macros.patch
