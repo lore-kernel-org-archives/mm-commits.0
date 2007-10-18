@@ -1,227 +1,402 @@
 From: akpm@linux-foundation.org
-Subject: - fs-afs-possible-cleanups.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:54:41 -0700
-Message-ID: <200710180654.l9I6sf6o030542@imap1.linux-foundation.org>
+Subject: - kill-declare_mutex_locked.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:53:06 -0700
+Message-ID: <200710180653.l9I6r6dL030410@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38875 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37815 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932351AbXJRHmZ (ORCPT
+	by vger.kernel.org with ESMTP id S932334AbXJRHmc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:42:25 -0400
+	Thu, 18 Oct 2007 03:42:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: hch@lst.de, satyam.sharma@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/afs/: possible cleanups
+     kill DECLARE_MUTEX_LOCKED
 has been removed from the -mm tree.  Its filename was
-     fs-afs-possible-cleanups.patch
+     kill-declare_mutex_locked.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fs/afs/: possible cleanups
-From: Adrian Bunk <bunk@stusta.de>
+Subject: kill DECLARE_MUTEX_LOCKED
+From: Christoph Hellwig <hch@lst.de>
 
-This patch contains the following possible cleanups:
-- make the following needlessly global functions static:
-  - rxrpc.c: afs_send_pages()
-  - vlocation.c: afs_vlocation_queue_for_updates()
-  - write.c: afs_writepages_region()
-- make the following needlessly global variables static:
-  - mntpt.c: afs_mntpt_expiry_timeout
-  - proc.c: afs_vlocation_states[]
-  - server.c: afs_server_timeout
-  - vlocation.c: afs_vlocation_timeout
-  - vlocation.c: afs_vlocation_update_timeout
-- #if 0 the following unused function:
-  - cell.c: afs_get_cell_maybe()
-- #if 0 the following unused variables:
-  - callback.c: afs_vnode_update_timeout
-  - cmservice.c: struct afs_cm_workqueue
+DECLARE_MUTEX_LOCKED was used for semaphores used as completions and we've
+got rid of them.  Well, except for one in libusual that the maintainer
+explicitly wants to keep as semaphore.  So convert that useage to an
+explicit sema_init and kill of DECLARE_MUTEX_LOCKED so that new code is
+reminded to use a completion.
 
-Signed-off-by: Adrian Bunk <bunk@stusta.de>
-Acked-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: "Satyam Sharma" <satyam.sharma@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/callback.c  |    2 ++
- fs/afs/cell.c      |    2 ++
- fs/afs/cmservice.c |    2 ++
- fs/afs/internal.h  |    1 -
- fs/afs/mntpt.c     |    2 +-
- fs/afs/proc.c      |    2 +-
- fs/afs/rxrpc.c     |    3 ++-
- fs/afs/server.c    |    2 +-
- fs/afs/vlocation.c |    6 +++---
- fs/afs/write.c     |    6 +++---
- 10 files changed, 17 insertions(+), 11 deletions(-)
+ drivers/usb/storage/libusual.c    |    4 +++-
+ include/asm-alpha/semaphore.h     |    1 -
+ include/asm-arm/semaphore.h       |    1 -
+ include/asm-avr32/semaphore.h     |    1 -
+ include/asm-blackfin/semaphore.h  |    1 -
+ include/asm-cris/semaphore.h      |    1 -
+ include/asm-frv/semaphore.h       |    1 -
+ include/asm-h8300/semaphore.h     |    1 -
+ include/asm-ia64/semaphore.h      |    1 -
+ include/asm-m32r/semaphore.h      |    1 -
+ include/asm-m68k/semaphore.h      |    1 -
+ include/asm-m68knommu/semaphore.h |    1 -
+ include/asm-mips/semaphore.h      |    1 -
+ include/asm-parisc/semaphore.h    |    1 -
+ include/asm-powerpc/semaphore.h   |    1 -
+ include/asm-s390/semaphore.h      |    1 -
+ include/asm-sh/semaphore.h        |    1 -
+ include/asm-sh64/semaphore.h      |    1 -
+ include/asm-sparc/semaphore.h     |    1 -
+ include/asm-sparc64/semaphore.h   |    1 -
+ include/asm-v850/semaphore.h      |    1 -
+ include/asm-x86/semaphore_32.h    |    1 -
+ include/asm-x86/semaphore_64.h    |    1 -
+ include/asm-xtensa/semaphore.h    |    1 -
+ 24 files changed, 3 insertions(+), 24 deletions(-)
 
-diff -puN fs/afs/callback.c~fs-afs-possible-cleanups fs/afs/callback.c
---- a/fs/afs/callback.c~fs-afs-possible-cleanups
-+++ a/fs/afs/callback.c
-@@ -20,7 +20,9 @@
- #include <linux/sched.h>
- #include "internal.h"
+diff -puN drivers/usb/storage/libusual.c~kill-declare_mutex_locked drivers/usb/storage/libusual.c
+--- a/drivers/usb/storage/libusual.c~kill-declare_mutex_locked
++++ a/drivers/usb/storage/libusual.c
+@@ -30,7 +30,7 @@ static atomic_t usu_bias = ATOMIC_INIT(U
+ #define BIAS_NAME_SIZE  (sizeof("usb-storage"))
+ static const char *bias_names[3] = { "none", "usb-storage", "ub" };
  
-+#if 0
- unsigned afs_vnode_update_timeout = 10;
-+#endif  /*  0  */
+-static DECLARE_MUTEX_LOCKED(usu_init_notify);
++static struct semaphore usu_init_notify;
+ static DECLARE_COMPLETION(usu_end_notify);
+ static atomic_t total_threads = ATOMIC_INIT(0);
  
- #define afs_breakring_space(server) \
- 	CIRC_SPACE((server)->cb_break_head, (server)->cb_break_tail,	\
-diff -puN fs/afs/cell.c~fs-afs-possible-cleanups fs/afs/cell.c
---- a/fs/afs/cell.c~fs-afs-possible-cleanups
-+++ a/fs/afs/cell.c
-@@ -265,6 +265,7 @@ struct afs_cell *afs_cell_lookup(const c
- 	return cell;
- }
- 
-+#if 0
- /*
-  * try and get a cell record
-  */
-@@ -280,6 +281,7 @@ struct afs_cell *afs_get_cell_maybe(stru
- 	write_unlock(&afs_cells_lock);
- 	return cell;
- }
-+#endif  /*  0  */
- 
- /*
-  * destroy a cell record
-diff -puN fs/afs/cmservice.c~fs-afs-possible-cleanups fs/afs/cmservice.c
---- a/fs/afs/cmservice.c~fs-afs-possible-cleanups
-+++ a/fs/afs/cmservice.c
-@@ -16,7 +16,9 @@
- #include "internal.h"
- #include "afs_cm.h"
- 
-+#if 0
- struct workqueue_struct *afs_cm_workqueue;
-+#endif  /*  0  */
- 
- static int afs_deliver_cb_init_call_back_state(struct afs_call *,
- 					       struct sk_buff *, bool);
-diff -puN fs/afs/internal.h~fs-afs-possible-cleanups fs/afs/internal.h
---- a/fs/afs/internal.h~fs-afs-possible-cleanups
-+++ a/fs/afs/internal.h
-@@ -570,7 +570,6 @@ extern int afs_abort_to_error(u32);
-  */
- extern const struct inode_operations afs_mntpt_inode_operations;
- extern const struct file_operations afs_mntpt_file_operations;
--extern unsigned long afs_mntpt_expiry_timeout;
- 
- extern int afs_mntpt_check_symlink(struct afs_vnode *, struct key *);
- extern void afs_mntpt_kill_timer(void);
-diff -puN fs/afs/mntpt.c~fs-afs-possible-cleanups fs/afs/mntpt.c
---- a/fs/afs/mntpt.c~fs-afs-possible-cleanups
-+++ a/fs/afs/mntpt.c
-@@ -42,7 +42,7 @@ const struct inode_operations afs_mntpt_
- static LIST_HEAD(afs_vfsmounts);
- static DECLARE_DELAYED_WORK(afs_mntpt_expiry_timer, afs_mntpt_expiry_timed_out);
- 
--unsigned long afs_mntpt_expiry_timeout = 10 * 60;
-+static unsigned long afs_mntpt_expiry_timeout = 10 * 60;
- 
- /*
-  * check a symbolic link to see whether it actually encodes a mountpoint
-diff -puN fs/afs/proc.c~fs-afs-possible-cleanups fs/afs/proc.c
---- a/fs/afs/proc.c~fs-afs-possible-cleanups
-+++ a/fs/afs/proc.c
-@@ -513,7 +513,7 @@ static void afs_proc_cell_volumes_stop(s
- 	up_read(&cell->vl_sem);
- }
- 
--const char afs_vlocation_states[][4] = {
-+static const char afs_vlocation_states[][4] = {
- 	[AFS_VL_NEW]			= "New",
- 	[AFS_VL_CREATING]		= "Crt",
- 	[AFS_VL_VALID]			= "Val",
-diff -puN fs/afs/rxrpc.c~fs-afs-possible-cleanups fs/afs/rxrpc.c
---- a/fs/afs/rxrpc.c~fs-afs-possible-cleanups
-+++ a/fs/afs/rxrpc.c
-@@ -239,7 +239,8 @@ void afs_flat_call_destructor(struct afs
- /*
-  * attach the data from a bunch of pages on an inode to a call
-  */
--int afs_send_pages(struct afs_call *call, struct msghdr *msg, struct kvec *iov)
-+static int afs_send_pages(struct afs_call *call, struct msghdr *msg,
-+			  struct kvec *iov)
+@@ -204,6 +204,8 @@ static int __init usb_usual_init(void)
  {
- 	struct page *pages[8];
- 	unsigned count, n, loop, offset, to;
-diff -puN fs/afs/server.c~fs-afs-possible-cleanups fs/afs/server.c
---- a/fs/afs/server.c~fs-afs-possible-cleanups
-+++ a/fs/afs/server.c
-@@ -13,7 +13,7 @@
- #include <linux/slab.h>
- #include "internal.h"
+ 	int rc;
  
--unsigned afs_server_timeout = 10;	/* server timeout in seconds */
-+static unsigned afs_server_timeout = 10;	/* server timeout in seconds */
++	sema_init(&usu_init_notify, 0);
++
+ 	rc = usb_register(&usu_driver);
+ 	up(&usu_init_notify);
+ 	return rc;
+diff -puN include/asm-alpha/semaphore.h~kill-declare_mutex_locked include/asm-alpha/semaphore.h
+--- a/include/asm-alpha/semaphore.h~kill-declare_mutex_locked
++++ a/include/asm-alpha/semaphore.h
+@@ -30,7 +30,6 @@ struct semaphore {
+ 	struct semaphore name = __SEMAPHORE_INITIALIZER(name,count)
  
- static void afs_reap_server(struct work_struct *);
+ #define DECLARE_MUTEX(name)		__DECLARE_SEMAPHORE_GENERIC(name,1)
+-#define DECLARE_MUTEX_LOCKED(name)	__DECLARE_SEMAPHORE_GENERIC(name,0)
  
-diff -puN fs/afs/vlocation.c~fs-afs-possible-cleanups fs/afs/vlocation.c
---- a/fs/afs/vlocation.c~fs-afs-possible-cleanups
-+++ a/fs/afs/vlocation.c
-@@ -15,8 +15,8 @@
- #include <linux/sched.h>
- #include "internal.h"
- 
--unsigned afs_vlocation_timeout = 10;	/* volume location timeout in seconds */
--unsigned afs_vlocation_update_timeout = 10 * 60;
-+static unsigned afs_vlocation_timeout = 10;	/* volume location timeout in seconds */
-+static unsigned afs_vlocation_update_timeout = 10 * 60;
- 
- static void afs_vlocation_reaper(struct work_struct *);
- static void afs_vlocation_updater(struct work_struct *);
-@@ -335,7 +335,7 @@ static int afs_vlocation_fill_in_record(
- /*
-  * queue a vlocation record for updates
-  */
--void afs_vlocation_queue_for_updates(struct afs_vlocation *vl)
-+static void afs_vlocation_queue_for_updates(struct afs_vlocation *vl)
+ static inline void sema_init(struct semaphore *sem, int val)
  {
- 	struct afs_vlocation *xvl;
+diff -puN include/asm-arm/semaphore.h~kill-declare_mutex_locked include/asm-arm/semaphore.h
+--- a/include/asm-arm/semaphore.h~kill-declare_mutex_locked
++++ a/include/asm-arm/semaphore.h
+@@ -28,7 +28,6 @@ struct semaphore {
+ 	struct semaphore name = __SEMAPHORE_INIT(name,count)
  
-diff -puN fs/afs/write.c~fs-afs-possible-cleanups fs/afs/write.c
---- a/fs/afs/write.c~fs-afs-possible-cleanups
-+++ a/fs/afs/write.c
-@@ -510,9 +510,9 @@ int afs_writepage(struct page *page, str
- /*
-  * write a region of pages back to the server
-  */
--int afs_writepages_region(struct address_space *mapping,
--			  struct writeback_control *wbc,
--			  pgoff_t index, pgoff_t end, pgoff_t *_next)
-+static int afs_writepages_region(struct address_space *mapping,
-+				 struct writeback_control *wbc,
-+				 pgoff_t index, pgoff_t end, pgoff_t *_next)
+ #define DECLARE_MUTEX(name)		__DECLARE_SEMAPHORE_GENERIC(name,1)
+-#define DECLARE_MUTEX_LOCKED(name)	__DECLARE_SEMAPHORE_GENERIC(name,0)
+ 
+ static inline void sema_init(struct semaphore *sem, int val)
  {
- 	struct backing_dev_info *bdi = mapping->backing_dev_info;
- 	struct afs_writeback *wb;
+diff -puN include/asm-avr32/semaphore.h~kill-declare_mutex_locked include/asm-avr32/semaphore.h
+--- a/include/asm-avr32/semaphore.h~kill-declare_mutex_locked
++++ a/include/asm-avr32/semaphore.h
+@@ -36,7 +36,6 @@ struct semaphore {
+ 	struct semaphore name = __SEMAPHORE_INITIALIZER(name,count)
+ 
+ #define DECLARE_MUTEX(name) __DECLARE_SEMAPHORE_GENERIC(name,1)
+-#define DECLARE_MUTEX_LOCKED(name) __DECLARE_SEMAPHORE_GENERIC(name,0)
+ 
+ static inline void sema_init (struct semaphore *sem, int val)
+ {
+diff -puN include/asm-blackfin/semaphore.h~kill-declare_mutex_locked include/asm-blackfin/semaphore.h
+--- a/include/asm-blackfin/semaphore.h~kill-declare_mutex_locked
++++ a/include/asm-blackfin/semaphore.h
+@@ -35,7 +35,6 @@ struct semaphore {
+ 	struct semaphore name = __SEMAPHORE_INITIALIZER(name,count)
+ 
+ #define DECLARE_MUTEX(name) __DECLARE_SEMAPHORE_GENERIC(name,1)
+-#define DECLARE_MUTEX_LOCKED(name) __DECLARE_SEMAPHORE_GENERIC(name,0)
+ 
+ static inline void sema_init(struct semaphore *sem, int val)
+ {
+diff -puN include/asm-cris/semaphore.h~kill-declare_mutex_locked include/asm-cris/semaphore.h
+--- a/include/asm-cris/semaphore.h~kill-declare_mutex_locked
++++ a/include/asm-cris/semaphore.h
+@@ -35,7 +35,6 @@ struct semaphore {
+         struct semaphore name = __SEMAPHORE_INITIALIZER(name,count)
+ 
+ #define DECLARE_MUTEX(name) __DECLARE_SEMAPHORE_GENERIC(name,1)
+-#define DECLARE_MUTEX_LOCKED(name) __DECLARE_SEMAPHORE_GENERIC(name,0)
+ 
+ static inline void sema_init(struct semaphore *sem, int val)
+ {
+diff -puN include/asm-frv/semaphore.h~kill-declare_mutex_locked include/asm-frv/semaphore.h
+--- a/include/asm-frv/semaphore.h~kill-declare_mutex_locked
++++ a/include/asm-frv/semaphore.h
+@@ -49,7 +49,6 @@ struct semaphore {
+ 	struct semaphore name = __SEMAPHORE_INITIALIZER(name,count)
+ 
+ #define DECLARE_MUTEX(name) __DECLARE_SEMAPHORE_GENERIC(name,1)
+-#define DECLARE_MUTEX_LOCKED(name) __DECLARE_SEMAPHORE_GENERIC(name,0)
+ 
+ static inline void sema_init (struct semaphore *sem, int val)
+ {
+diff -puN include/asm-h8300/semaphore.h~kill-declare_mutex_locked include/asm-h8300/semaphore.h
+--- a/include/asm-h8300/semaphore.h~kill-declare_mutex_locked
++++ a/include/asm-h8300/semaphore.h
+@@ -39,7 +39,6 @@ struct semaphore {
+ 	struct semaphore name = __SEMAPHORE_INITIALIZER(name,count)
+ 
+ #define DECLARE_MUTEX(name) __DECLARE_SEMAPHORE_GENERIC(name,1)
+-#define DECLARE_MUTEX_LOCKED(name) __DECLARE_SEMAPHORE_GENERIC(name,0)
+ 
+ static inline void sema_init (struct semaphore *sem, int val)
+ {
+diff -puN include/asm-ia64/semaphore.h~kill-declare_mutex_locked include/asm-ia64/semaphore.h
+--- a/include/asm-ia64/semaphore.h~kill-declare_mutex_locked
++++ a/include/asm-ia64/semaphore.h
+@@ -28,7 +28,6 @@ struct semaphore {
+ 	struct semaphore name = __SEMAPHORE_INITIALIZER(name, count)
+ 
+ #define DECLARE_MUTEX(name)		__DECLARE_SEMAPHORE_GENERIC(name, 1)
+-#define DECLARE_MUTEX_LOCKED(name)	__DECLARE_SEMAPHORE_GENERIC(name, 0)
+ 
+ static inline void
+ sema_init (struct semaphore *sem, int val)
+diff -puN include/asm-m32r/semaphore.h~kill-declare_mutex_locked include/asm-m32r/semaphore.h
+--- a/include/asm-m32r/semaphore.h~kill-declare_mutex_locked
++++ a/include/asm-m32r/semaphore.h
+@@ -35,7 +35,6 @@ struct semaphore {
+ 	struct semaphore name = __SEMAPHORE_INITIALIZER(name,count)
+ 
+ #define DECLARE_MUTEX(name) __DECLARE_SEMAPHORE_GENERIC(name,1)
+-#define DECLARE_MUTEX_LOCKED(name) __DECLARE_SEMAPHORE_GENERIC(name,0)
+ 
+ static inline void sema_init (struct semaphore *sem, int val)
+ {
+diff -puN include/asm-m68k/semaphore.h~kill-declare_mutex_locked include/asm-m68k/semaphore.h
+--- a/include/asm-m68k/semaphore.h~kill-declare_mutex_locked
++++ a/include/asm-m68k/semaphore.h
+@@ -40,7 +40,6 @@ struct semaphore {
+ 	struct semaphore name = __SEMAPHORE_INITIALIZER(name,count)
+ 
+ #define DECLARE_MUTEX(name) __DECLARE_SEMAPHORE_GENERIC(name,1)
+-#define DECLARE_MUTEX_LOCKED(name) __DECLARE_SEMAPHORE_GENERIC(name,0)
+ 
+ static inline void sema_init(struct semaphore *sem, int val)
+ {
+diff -puN include/asm-m68knommu/semaphore.h~kill-declare_mutex_locked include/asm-m68knommu/semaphore.h
+--- a/include/asm-m68knommu/semaphore.h~kill-declare_mutex_locked
++++ a/include/asm-m68knommu/semaphore.h
+@@ -39,7 +39,6 @@ struct semaphore {
+ 	struct semaphore name = __SEMAPHORE_INITIALIZER(name,count)
+ 
+ #define DECLARE_MUTEX(name) __DECLARE_SEMAPHORE_GENERIC(name,1)
+-#define DECLARE_MUTEX_LOCKED(name) __DECLARE_SEMAPHORE_GENERIC(name,0)
+ 
+ static inline void sema_init (struct semaphore *sem, int val)
+ {
+diff -puN include/asm-mips/semaphore.h~kill-declare_mutex_locked include/asm-mips/semaphore.h
+--- a/include/asm-mips/semaphore.h~kill-declare_mutex_locked
++++ a/include/asm-mips/semaphore.h
+@@ -49,7 +49,6 @@ struct semaphore {
+ 	struct semaphore name = __SEMAPHORE_INITIALIZER(name, count)
+ 
+ #define DECLARE_MUTEX(name)		__DECLARE_SEMAPHORE_GENERIC(name, 1)
+-#define DECLARE_MUTEX_LOCKED(name)	__DECLARE_SEMAPHORE_GENERIC(name, 0)
+ 
+ static inline void sema_init(struct semaphore *sem, int val)
+ {
+diff -puN include/asm-parisc/semaphore.h~kill-declare_mutex_locked include/asm-parisc/semaphore.h
+--- a/include/asm-parisc/semaphore.h~kill-declare_mutex_locked
++++ a/include/asm-parisc/semaphore.h
+@@ -53,7 +53,6 @@ struct semaphore {
+ 	struct semaphore name = __SEMAPHORE_INITIALIZER(name,count)
+ 
+ #define DECLARE_MUTEX(name) __DECLARE_SEMAPHORE_GENERIC(name,1)
+-#define DECLARE_MUTEX_LOCKED(name) __DECLARE_SEMAPHORE_GENERIC(name,0)
+ 
+ extern inline void sema_init (struct semaphore *sem, int val)
+ {
+diff -puN include/asm-powerpc/semaphore.h~kill-declare_mutex_locked include/asm-powerpc/semaphore.h
+--- a/include/asm-powerpc/semaphore.h~kill-declare_mutex_locked
++++ a/include/asm-powerpc/semaphore.h
+@@ -35,7 +35,6 @@ struct semaphore {
+ 	struct semaphore name = __SEMAPHORE_INITIALIZER(name,count)
+ 
+ #define DECLARE_MUTEX(name)		__DECLARE_SEMAPHORE_GENERIC(name, 1)
+-#define DECLARE_MUTEX_LOCKED(name)	__DECLARE_SEMAPHORE_GENERIC(name, 0)
+ 
+ static inline void sema_init (struct semaphore *sem, int val)
+ {
+diff -puN include/asm-s390/semaphore.h~kill-declare_mutex_locked include/asm-s390/semaphore.h
+--- a/include/asm-s390/semaphore.h~kill-declare_mutex_locked
++++ a/include/asm-s390/semaphore.h
+@@ -33,7 +33,6 @@ struct semaphore {
+ 	struct semaphore name = __SEMAPHORE_INITIALIZER(name,count)
+ 
+ #define DECLARE_MUTEX(name) __DECLARE_SEMAPHORE_GENERIC(name,1)
+-#define DECLARE_MUTEX_LOCKED(name) __DECLARE_SEMAPHORE_GENERIC(name,0)
+ 
+ static inline void sema_init (struct semaphore *sem, int val)
+ {
+diff -puN include/asm-sh/semaphore.h~kill-declare_mutex_locked include/asm-sh/semaphore.h
+--- a/include/asm-sh/semaphore.h~kill-declare_mutex_locked
++++ a/include/asm-sh/semaphore.h
+@@ -37,7 +37,6 @@ struct semaphore {
+ 	struct semaphore name = __SEMAPHORE_INITIALIZER(name,count)
+ 
+ #define DECLARE_MUTEX(name) __DECLARE_SEMAPHORE_GENERIC(name,1)
+-#define DECLARE_MUTEX_LOCKED(name) __DECLARE_SEMAPHORE_GENERIC(name,0)
+ 
+ static inline void sema_init (struct semaphore *sem, int val)
+ {
+diff -puN include/asm-sh64/semaphore.h~kill-declare_mutex_locked include/asm-sh64/semaphore.h
+--- a/include/asm-sh64/semaphore.h~kill-declare_mutex_locked
++++ a/include/asm-sh64/semaphore.h
+@@ -44,7 +44,6 @@ struct semaphore {
+ 	struct semaphore name = __SEMAPHORE_INITIALIZER(name,count)
+ 
+ #define DECLARE_MUTEX(name) __DECLARE_SEMAPHORE_GENERIC(name,1)
+-#define DECLARE_MUTEX_LOCKED(name) __DECLARE_SEMAPHORE_GENERIC(name,0)
+ 
+ static inline void sema_init (struct semaphore *sem, int val)
+ {
+diff -puN include/asm-sparc/semaphore.h~kill-declare_mutex_locked include/asm-sparc/semaphore.h
+--- a/include/asm-sparc/semaphore.h~kill-declare_mutex_locked
++++ a/include/asm-sparc/semaphore.h
+@@ -26,7 +26,6 @@ struct semaphore {
+ 	struct semaphore name = __SEMAPHORE_INITIALIZER(name,count)
+ 
+ #define DECLARE_MUTEX(name) __DECLARE_SEMAPHORE_GENERIC(name,1)
+-#define DECLARE_MUTEX_LOCKED(name) __DECLARE_SEMAPHORE_GENERIC(name,0)
+ 
+ static inline void sema_init (struct semaphore *sem, int val)
+ {
+diff -puN include/asm-sparc64/semaphore.h~kill-declare_mutex_locked include/asm-sparc64/semaphore.h
+--- a/include/asm-sparc64/semaphore.h~kill-declare_mutex_locked
++++ a/include/asm-sparc64/semaphore.h
+@@ -26,7 +26,6 @@ struct semaphore {
+ 	struct semaphore name = __SEMAPHORE_INITIALIZER(name,count)
+ 
+ #define DECLARE_MUTEX(name)		__DECLARE_SEMAPHORE_GENERIC(name, 1)
+-#define DECLARE_MUTEX_LOCKED(name)	__DECLARE_SEMAPHORE_GENERIC(name, 0)
+ 
+ static inline void sema_init (struct semaphore *sem, int val)
+ {
+diff -puN include/asm-v850/semaphore.h~kill-declare_mutex_locked include/asm-v850/semaphore.h
+--- a/include/asm-v850/semaphore.h~kill-declare_mutex_locked
++++ a/include/asm-v850/semaphore.h
+@@ -22,7 +22,6 @@ struct semaphore {
+ 	struct semaphore name = __SEMAPHORE_INITIALIZER (name,count)
+ 
+ #define DECLARE_MUTEX(name)		__DECLARE_SEMAPHORE_GENERIC (name,1)
+-#define DECLARE_MUTEX_LOCKED(name)	__DECLARE_SEMAPHORE_GENERIC (name,0)
+ 
+ static inline void sema_init (struct semaphore *sem, int val)
+ {
+diff -puN include/asm-x86/semaphore_32.h~kill-declare_mutex_locked include/asm-x86/semaphore_32.h
+--- a/include/asm-x86/semaphore_32.h~kill-declare_mutex_locked
++++ a/include/asm-x86/semaphore_32.h
+@@ -59,7 +59,6 @@ struct semaphore {
+ 	struct semaphore name = __SEMAPHORE_INITIALIZER(name,count)
+ 
+ #define DECLARE_MUTEX(name) __DECLARE_SEMAPHORE_GENERIC(name,1)
+-#define DECLARE_MUTEX_LOCKED(name) __DECLARE_SEMAPHORE_GENERIC(name,0)
+ 
+ static inline void sema_init (struct semaphore *sem, int val)
+ {
+diff -puN include/asm-x86/semaphore_64.h~kill-declare_mutex_locked include/asm-x86/semaphore_64.h
+--- a/include/asm-x86/semaphore_64.h~kill-declare_mutex_locked
++++ a/include/asm-x86/semaphore_64.h
+@@ -60,7 +60,6 @@ struct semaphore {
+ 	struct semaphore name = __SEMAPHORE_INITIALIZER(name,count)
+ 
+ #define DECLARE_MUTEX(name) __DECLARE_SEMAPHORE_GENERIC(name,1)
+-#define DECLARE_MUTEX_LOCKED(name) __DECLARE_SEMAPHORE_GENERIC(name,0)
+ 
+ static inline void sema_init (struct semaphore *sem, int val)
+ {
+diff -puN include/asm-xtensa/semaphore.h~kill-declare_mutex_locked include/asm-xtensa/semaphore.h
+--- a/include/asm-xtensa/semaphore.h~kill-declare_mutex_locked
++++ a/include/asm-xtensa/semaphore.h
+@@ -33,7 +33,6 @@ struct semaphore {
+ 	struct semaphore name = __SEMAPHORE_INITIALIZER(name,count)
+ 
+ #define DECLARE_MUTEX(name) __DECLARE_SEMAPHORE_GENERIC(name,1)
+-#define DECLARE_MUTEX_LOCKED(name) __DECLARE_SEMAPHORE_GENERIC(name,0)
+ 
+ static inline void sema_init (struct semaphore *sem, int val)
+ {
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from hch@lst.de are
 
 origin.patch
-git-acpi.patch
-git-kvm.patch
-remove-fs-jffs2-ioctlc.patch
-parisc-extern-inline-static-inline.patch
-nsp32_restart_autoscsi-remove-error-check.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-git-x86.patch
-unexport-pm_power_off_prepare.patch
-intel-iommu-intel-iommu-driver.patch
+dcache-dont-expose-uninitialized-memory-in.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+reiserfs-fix-up-lockdep-warnings.patch
+reiserfs-fix-up-lockdep-warnings-checkpatch-fixes.patch
+reiserfs-dont-use-bug-when-panicking.patch
+reiserfs-use-is_reusable-to-catch-corruption.patch
+reiserfs-use-is_reusable-to-catch-corruption-checkpatch-fixes.patch
+reiserfs-fix-usage-of-signed-ints-for-block-numbers.patch
+reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes.patch
+reiserfs-fix-memset-byte-count-during-resize.patch
+reiserfs-remove-first_zero_hint.patch
+reiserfs-remove-first_zero_hint-checkpatch-fixes.patch
+reiserfs-ignore-on-disk-s_bmap_nr-value.patch
+reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes.patch
+ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
+knfsd-only-set-attr_kill_sid-if-attr_mode-isnt-being-explicitly-set.patch
+reiserfs-turn-of-attr_kill_sid-at-beginning-of-reiserfs_setattr.patch
+unionfs-fix-unionfs_setattr-to-handle-attr_kill_sid.patch
+vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
+nfs-if-attr_kill_sid-bits-are-set-then-skip-mode-change.patch
+cifs-ignore-mode-change-if-its-just-for-clearing-setuid-setgid-bits.patch
+r-o-bind-mounts-stub-functions.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
+revoke-special-mmap-handling.patch
 revoke-core-code.patch
-pid-namespaces-define-is_global_init-and-is_container_init-m32r-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-kernel-pidc-remove-unused-exports.patch
-the-next-round-of-scheduled-oss-code-removal.patch
-reiser4-export-remove_from_page_cache.patch
-reiser4.patch
-mutex-subsystem-synchro-test-module.patch
+revoke-support-for-ext2-and-ext3.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
+exportfs-add-fid-type.patch
+exportfs-add-new-methods.patch
+ext2-new-export-ops.patch
+ext3-new-export-ops.patch
+ext4-new-export-ops.patch
+efs-new-export-ops.patch
+jfs-new-export-ops.patch
+ntfs-new-export-ops.patch
+fat-new-export-ops.patch
+isofs-new-export-ops.patch
+shmem-new-export-ops.patch
+reiserfs-new-export-ops.patch
+gfs2-new-export-ops.patch
+ocfs2-new-export-ops.patch
+exportfs-remove-old-methods.patch
+exportfs-make-struct-export_operations-const.patch
+exportfs-update-documentation.patch
+vfs-allow-filesystems-to-implement-atomic-opentruncate.patch
