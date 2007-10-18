@@ -1,184 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: + onenand-sim-fix-kernel-doc-and-typos.patch added to -mm tree
-Date: Thu, 18 Oct 2007 14:00:16 -0700
-Message-ID: <200710182100.l9IL0G3f030838@imap1.linux-foundation.org>
+Subject: - reiserfs-use-is_reusable-to-catch-corruption.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 14:01:01 -0700
+Message-ID: <200710182101.l9IL110D030848@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58320 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33747 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755099AbXJRVAv (ORCPT
+	by vger.kernel.org with ESMTP id S1758342AbXJRVBW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 17:00:51 -0400
+	Thu, 18 Oct 2007 17:01:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+To: jeffm@suse.com, hch@lst.de, mason@suse.com, vs@namesys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     onenand-sim: fix kernel-doc and typos
-has been added to the -mm tree.  Its filename is
-     onenand-sim-fix-kernel-doc-and-typos.patch
+     reiserfs: use is_reusable to catch corruption
+has been removed from the -mm tree.  Its filename was
+     reiserfs-use-is_reusable-to-catch-corruption.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: onenand-sim: fix kernel-doc and typos
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: reiserfs: use is_reusable to catch corruption
+From: Jeff Mahoney <jeffm@suse.com>
 
-Correct kernel-doc notation and descriptions.  Correct other typos.
+Build in is_reusable() unconditionally and use it to catch corruption before
+it reaches the block freeing paths.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Chris Mason <mason@suse.com>
+Cc: "Vladimir V. Saveliev" <vs@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/onenand/onenand_sim.c |   49 ++++++++++++++--------------
- 1 file changed, 25 insertions(+), 24 deletions(-)
+ fs/reiserfs/bitmap.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
-diff -puN drivers/mtd/onenand/onenand_sim.c~onenand-sim-fix-kernel-doc-and-typos drivers/mtd/onenand/onenand_sim.c
---- a/drivers/mtd/onenand/onenand_sim.c~onenand-sim-fix-kernel-doc-and-typos
-+++ a/drivers/mtd/onenand/onenand_sim.c
-@@ -88,11 +88,11 @@ do {									\
- 
- /**
-  * onenand_lock_handle - Handle Lock scheme
-- * @param this		OneNAND device structure
-- * @param cmd		The command to be sent
-+ * @this:		OneNAND device structure
-+ * @cmd:		The command to be sent
-  *
-  * Send lock command to OneNAND device.
-- * The lock scheme is depends on chip type.
-+ * The lock scheme depends on chip type.
-  */
- static void onenand_lock_handle(struct onenand_chip *this, int cmd)
- {
-@@ -131,8 +131,8 @@ static void onenand_lock_handle(struct o
- 
- /**
-  * onenand_bootram_handle - Handle BootRAM area
-- * @param this		OneNAND device structure
-- * @param cmd		The command to be sent
-+ * @this:		OneNAND device structure
-+ * @cmd:		The command to be sent
-  *
-  * Emulate BootRAM area. It is possible to do basic operation using BootRAM.
-  */
-@@ -153,10 +153,10 @@ static void onenand_bootram_handle(struc
- 
- /**
-  * onenand_update_interrupt - Set interrupt register
-- * @param this         OneNAND device structure
-- * @param cmd          The command to be sent
-+ * @this:         OneNAND device structure
-+ * @cmd:          The command to be sent
-  *
-- * Update interrupt register. The status is depends on command.
-+ * Update interrupt register. The status depends on command.
-  */
- static void onenand_update_interrupt(struct onenand_chip *this, int cmd)
- {
-@@ -189,11 +189,12 @@ static void onenand_update_interrupt(str
+diff -puN fs/reiserfs/bitmap.c~reiserfs-use-is_reusable-to-catch-corruption fs/reiserfs/bitmap.c
+--- a/fs/reiserfs/bitmap.c~reiserfs-use-is_reusable-to-catch-corruption
++++ a/fs/reiserfs/bitmap.c
+@@ -56,7 +56,6 @@ static inline void get_bit_address(struc
+ 	*offset = block & ((s->s_blocksize << 3) - 1);
  }
  
- /**
-- * onenand_check_overwrite - Check over-write if happend
-- * @param dest		The destination pointer
-- * @param src		The source pointer
-- * @param count		The length to be check
-- * @return		0 on same, otherwise 1
-+ * onenand_check_overwrite - Check if over-write happened
-+ * @dest:		The destination pointer
-+ * @src:		The source pointer
-+ * @count:		The length to be check
-+ *
-+ * Returns:		0 on same, otherwise 1
-  *
-  * Compare the source with destination
-  */
-@@ -213,10 +214,10 @@ static int onenand_check_overwrite(void 
+-#ifdef CONFIG_REISERFS_CHECK
+ int is_reusable(struct super_block *s, b_blocknr_t block, int bit_value)
+ {
+ 	int bmap, offset;
+@@ -106,7 +105,6 @@ int is_reusable(struct super_block *s, b
  
- /**
-  * onenand_data_handle - Handle OneNAND Core and DataRAM
-- * @param this		OneNAND device structure
-- * @param cmd		The command to be sent
-- * @param dataram	Which dataram used
-- * @param offset	The offset to OneNAND Core
-+ * @this:		OneNAND device structure
-+ * @cmd:		The command to be sent
-+ * @dataram:		Which dataram used
-+ * @offset:		The offset to OneNAND Core
-  *
-  * Copy data from OneNAND Core to DataRAM (read)
-  * Copy data from DataRAM to OneNAND Core (write)
-@@ -295,8 +296,8 @@ static void onenand_data_handle(struct o
+ 	return 1;
+ }
+-#endif				/* CONFIG_REISERFS_CHECK */
  
- /**
-  * onenand_command_handle - Handle command
-- * @param this		OneNAND device structure
-- * @param cmd		The command to be sent
-+ * @this:		OneNAND device structure
-+ * @cmd:		The command to be sent
-  *
-  * Emulate OneNAND command.
-  */
-@@ -350,8 +351,8 @@ static void onenand_command_handle(struc
+ /* searches in journal structures for a given block number (bmap, off). If block
+    is found in reiserfs journal it suggests next free block candidate to test. */
+@@ -434,12 +432,19 @@ void reiserfs_free_block(struct reiserfs
+ 			 int for_unformatted)
+ {
+ 	struct super_block *s = th->t_super;
+-
+ 	BUG_ON(!th->t_trans_id);
  
- /**
-  * onenand_writew - [OneNAND Interface] Emulate write operation
-- * @param value		value to write
-- * @param addr		address to write
-+ * @value:		value to write
-+ * @addr:		address to write
-  *
-  * Write OneNAND register with value
-  */
-@@ -373,7 +374,7 @@ static void onenand_writew(unsigned shor
+ 	RFALSE(!s, "vs-4061: trying to free block on nonexistent device");
+-	RFALSE(is_reusable(s, block, 1) == 0,
+-	       "vs-4071: can not free such block");
++	if (!is_reusable(s, block, 1))
++		return;
++
++	if (block > sb_block_count(REISERFS_SB(s)->s_rs)) {
++		reiserfs_panic(th->t_super, "bitmap-4072",
++		               "Trying to free block outside file system "
++			       "boundaries (%lu > %lu)",
++			       block, sb_block_count(REISERFS_SB(s)->s_rs));
++		return;
++	}
+ 	/* mark it before we clear it, just in case */
+ 	journal_mark_freed(th, s, block);
+ 	_reiserfs_free_block(th, inode, block, for_unformatted);
+@@ -449,11 +454,11 @@ void reiserfs_free_block(struct reiserfs
+ static void reiserfs_free_prealloc_block(struct reiserfs_transaction_handle *th,
+ 					 struct inode *inode, b_blocknr_t block)
+ {
++	BUG_ON(!th->t_trans_id);
+ 	RFALSE(!th->t_super,
+ 	       "vs-4060: trying to free block on nonexistent device");
+-	RFALSE(is_reusable(th->t_super, block, 1) == 0,
+-	       "vs-4070: can not free such block");
+-	BUG_ON(!th->t_trans_id);
++	if (!is_reusable(th->t_super, block, 1))
++		return;
+ 	_reiserfs_free_block(th, inode, block, 1);
+ }
  
- /**
-  * flash_init - Initialize OneNAND simulator
-- * @param flash		OneNAND simulaotr data strucutres
-+ * @flash:		OneNAND simulator data strucutres
-  *
-  * Initialize OneNAND simulator.
-  */
-@@ -416,7 +417,7 @@ static int __init flash_init(struct onen
- 
- /**
-  * flash_exit - Clean up OneNAND simulator
-- * @param flash		OneNAND simulaotr data strucutres
-+ * @flash:		OneNAND simulator data structures
-  *
-  * Clean up OneNAND simulator.
-  */
-@@ -449,7 +450,7 @@ static int __init onenand_sim_init(void)
- 	info->onenand.write_word = onenand_writew;
- 
- 	if (flash_init(&info->flash)) {
--		printk(KERN_ERR "Unable to allocat flash.\n");
-+		printk(KERN_ERR "Unable to allocate flash.\n");
- 		kfree(ffchars);
- 		kfree(info);
- 		return -ENOMEM;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from jeffm@suse.com are
 
 origin.patch
-i-oat-cleanup-pci-issues.patch
-git-acpi.patch
-fix-auditscc-kernel-doc.patch
-comment-typo-in-scripts-kconfig-makefile.patch
-onenand-sim-fix-kernel-doc-and-typos.patch
-git-net.patch
-git-unionfs.patch
-git-watchdog.patch
-git-ipwireless_cs.patch
-hook-up-group-scheduler-with-control-groups.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
-add-samples-subdir.patch
-profile-likely-unlikely-macros.patch
+ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
+reiserfs-turn-of-attr_kill_sid-at-beginning-of-reiserfs_setattr.patch
+vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
+reiserfs-fix-up-lockdep-warnings-checkpatch-fixes.patch
+reiserfs-use-is_reusable-to-catch-corruption.patch
+reiserfs-use-is_reusable-to-catch-corruption-checkpatch-fixes.patch
+reiserfs-fix-usage-of-signed-ints-for-block-numbers.patch
+reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes.patch
+reiserfs-fix-memset-byte-count-during-resize.patch
+reiserfs-ignore-on-disk-s_bmap_nr-value.patch
+reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes.patch
+exportfs-add-fid-type.patch
+exportfs-add-new-methods.patch
+reiserfs-new-export-ops.patch
+exportfs-remove-old-methods.patch
+exportfs-make-struct-export_operations-const.patch
+exportfs-update-documentation.patch
