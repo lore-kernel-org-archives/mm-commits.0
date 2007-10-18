@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch added to -mm tree
-Date: Wed, 17 Oct 2007 20:59:14 -0700
-Message-ID: <200710180359.l9I3xEel024175@imap1.linux-foundation.org>
+Subject: + bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch added to -mm tree
+Date: Wed, 17 Oct 2007 20:59:19 -0700
+Message-ID: <200710180359.l9I3xJIh024178@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57835 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56115 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751475AbXJREA0 (ORCPT
+	by vger.kernel.org with ESMTP id S1750937AbXJREA0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 18 Oct 2007 00:00:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     bugfix for memory cgroup controller: charge refcnt race fix
+     bugfix for memory cgroup controller: fix error handling path in mem_charge_cgroup
 has been added to the -mm tree.  Its filename is
-     bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+     bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,26 +26,16 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: bugfix for memory cgroup controller: charge refcnt race fix
+Subject: bugfix for memory cgroup controller: fix error handling path in mem_charge_cgroup
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-The logic of uncharge is
- - decrement refcnt -> lock page cgroup -> remove page cgroup.
-But the logic of charging is
- - lock page cgroup -> increment refcnt -> return.
+This unlock_page_cgroup() is unnecessary.
 
-Then, one charge will be added to a page_cgroup under being removed.
-This makes no big trouble (like panic) but one charge is lost.
-
-This patch add a test at charging to verify page_cgroup's refcnt is
-greater than 0. If not, unlock and retry.
-
-Changelog v2->v3
+Changelog: v1 -> v2
  * adjusted to 2.6.23-mm1
-Changelog v1->v2:
- * added cpu_relax() before retry.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Pavel Emelianov <xemul@openvz.org>
 Cc: Paul Menage <menage@google.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
@@ -58,35 +48,22 @@ Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/memcontrol.c~bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix mm/memcontrol.c
---- a/mm/memcontrol.c~bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix
+diff -puN mm/memcontrol.c~bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup mm/memcontrol.c
+--- a/mm/memcontrol.c~bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup
 +++ a/mm/memcontrol.c
-@@ -281,14 +281,20 @@ int mem_cgroup_charge(struct page *page,
- 	 * to see if the cgroup page already has a page_cgroup associated
- 	 * with it
- 	 */
-+retry:
- 	lock_page_cgroup(page);
- 	pc = page_get_page_cgroup(page);
- 	/*
- 	 * The page_cgroup exists and the page has already been accounted
- 	 */
- 	if (pc) {
--		atomic_inc(&pc->ref_cnt);
--		goto done;
-+		if (unlikely(!atomic_inc_not_zero(&pc->ref_cnt))) {
-+			/* this page is under being uncharged ? */
-+			unlock_page_cgroup(page);
-+			cpu_relax();
-+			goto retry;
-+		} else
-+			goto done;
- 	}
+@@ -392,9 +392,7 @@ done:
+ 	return 0;
+ free_pc:
+ 	kfree(pc);
+-	return -ENOMEM;
+ err:
+-	unlock_page_cgroup(page);
+ 	return -ENOMEM;
+ }
  
- 	unlock_page_cgroup(page);
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
