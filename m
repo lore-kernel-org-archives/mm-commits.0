@@ -1,71 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - i-oat-tighten-descriptor-setup-performance-fix.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 01:57:44 -0700
-Message-ID: <200710180857.l9I8vip5003146@imap1.linux-foundation.org>
+Subject: - sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 01:57:04 -0700
+Message-ID: <200710180857.l9I8v4qs003128@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38819 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49182 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932666AbXJRI6Q (ORCPT
+	by vger.kernel.org with ESMTP id S932691AbXJRI6L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 04:58:16 -0400
+	Thu, 18 Oct 2007 04:58:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dan.j.williams@intel.com, shannon.nelson@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, arnd@arndb.de, davidel@xmailserver.org, jeff@garzik.org, mpm@selenic.com, raven@themaw.net, sds@tycho.nsa.gov, shemminger@linux-foundation.org
 
 
 The patch titled
-     i-oat-tighten-descriptor-setup-performance-fix
+     sparse-pointer-use-of-zero-as-null-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     i-oat-tighten-descriptor-setup-performance-fix.patch
+     sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into i-oat-tighten-descriptor-setup-performance.patch
+This patch was dropped because it was folded into sparse-pointer-use-of-zero-as-null.patch
 
 ------------------------------------------------------
-Subject: i-oat-tighten-descriptor-setup-performance-fix
+Subject: sparse-pointer-use-of-zero-as-null-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Shannon Nelson <shannon.nelson@intel.com>
+ERROR: do not use assignment in if condition
+#50: FILE: drivers/base/dmapool.c:369:
++	if ((page = pool_find_page (pool, dma)) == NULL) {
+
+ERROR: no space after that open parenthesis '('
+#74: FILE: fs/autofs/waitq.c:185:
++	for ( wql = &sbi->queues; (wq = *wql) != NULL; wql = &wq->next ) {
+
+ERROR: no space before that close parenthesis ')'
+#74: FILE: fs/autofs/waitq.c:185:
++	for ( wql = &sbi->queues; (wq = *wql) != NULL; wql = &wq->next ) {
+
+WARNING: line over 80 characters
+#155: FILE: fs/jbd/journal.c:232:
++		wait_event(journal->j_wait_done_commit, journal->j_task == NULL);
+
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Cc: Andi Kleen <ak@suse.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Ian Kent <raven@themaw.net>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/ioat_dma.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/base/dmapool.c |    2 +-
+ fs/autofs/waitq.c      |    2 +-
+ fs/jbd/journal.c       |    3 ++-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/dma/ioat_dma.c~i-oat-tighten-descriptor-setup-performance-fix drivers/dma/ioat_dma.c
---- a/drivers/dma/ioat_dma.c~i-oat-tighten-descriptor-setup-performance-fix
-+++ a/drivers/dma/ioat_dma.c
-@@ -46,8 +46,8 @@
- /* internal functions */
- static void ioat_dma_start_null_desc(struct ioat_dma_chan *ioat_chan);
- static void ioat_dma_memcpy_cleanup(struct ioat_dma_chan *ioat_chan);
--static inline struct ioat_desc_sw *ioat_dma_get_next_descriptor(
--					      struct ioat_dma_chan *ioat_chan);
-+static struct ioat_desc_sw *
-+ioat_dma_get_next_descriptor(struct ioat_dma_chan *ioat_chan);
+diff -puN drivers/base/dmapool.c~sparse-pointer-use-of-zero-as-null-checkpatch-fixes drivers/base/dmapool.c
+--- a/drivers/base/dmapool.c~sparse-pointer-use-of-zero-as-null-checkpatch-fixes
++++ a/drivers/base/dmapool.c
+@@ -366,7 +366,7 @@ dma_pool_free (struct dma_pool *pool, vo
+ 	unsigned long		flags;
+ 	int			map, block;
  
- static inline struct ioat_dma_chan *ioat_lookup_chan_by_index(
- 						struct ioatdma_device *device,
-@@ -384,6 +384,7 @@ static void ioat_dma_free_chan_resources
- 	ioat_chan->last_completion = ioat_chan->completion_addr = 0;
- 	ioat_chan->pending = 0;
- }
-+
- /**
-  * ioat_dma_get_next_descriptor - return the next available descriptor
-  * @ioat_chan: IOAT DMA channel handle
-@@ -392,8 +393,8 @@ static void ioat_dma_free_chan_resources
-  * channel's desc_lock held.  Allocates more descriptors if the channel
-  * has run out.
-  */
--static inline struct ioat_desc_sw *ioat_dma_get_next_descriptor(
--						struct ioat_dma_chan *ioat_chan)
-+static struct ioat_desc_sw *
-+ioat_dma_get_next_descriptor(struct ioat_dma_chan *ioat_chan)
+-	if ((page = pool_find_page (pool, dma)) == NULL) {
++	if ((page = pool_find_page(pool, dma)) == NULL) {
+ 		if (pool->dev)
+ 			dev_err(pool->dev, "dma_pool_free %s, %p/%lx (bad dma)\n",
+ 				pool->name, vaddr, (unsigned long) dma);
+diff -puN fs/autofs/waitq.c~sparse-pointer-use-of-zero-as-null-checkpatch-fixes fs/autofs/waitq.c
+--- a/fs/autofs/waitq.c~sparse-pointer-use-of-zero-as-null-checkpatch-fixes
++++ a/fs/autofs/waitq.c
+@@ -182,7 +182,7 @@ int autofs_wait_release(struct autofs_sb
  {
- 	struct ioat_desc_sw *new = NULL;
+ 	struct autofs_wait_queue *wq, **wql;
  
+-	for ( wql = &sbi->queues; (wq = *wql) != NULL; wql = &wq->next ) {
++	for (wql = &sbi->queues; (wq = *wql) != NULL; wql = &wq->next) {
+ 		if ( wq->wait_queue_token == wait_queue_token )
+ 			break;
+ 	}
+diff -puN fs/jbd/journal.c~sparse-pointer-use-of-zero-as-null-checkpatch-fixes fs/jbd/journal.c
+--- a/fs/jbd/journal.c~sparse-pointer-use-of-zero-as-null-checkpatch-fixes
++++ a/fs/jbd/journal.c
+@@ -230,7 +230,8 @@ static void journal_kill_thread(journal_
+ 	while (journal->j_task) {
+ 		wake_up(&journal->j_wait_commit);
+ 		spin_unlock(&journal->j_state_lock);
+-		wait_event(journal->j_wait_done_commit, journal->j_task == NULL);
++		wait_event(journal->j_wait_done_commit,
++				journal->j_task == NULL);
+ 		spin_lock(&journal->j_state_lock);
+ 	}
+ 	spin_unlock(&journal->j_state_lock);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,7 +107,7 @@ stop-using-dma_xxbit_mask.patch
 fuse-fix-race-between-getattr-and-write.patch
 fuse-add-file-handle-to-getattr-operation.patch
 sparse-pointer-use-of-zero-as-null.patch
-i-oat-tighten-descriptor-setup-performance.patch
+sparse-pointer-use-of-zero-as-null-checkpatch-fixes.patch
 i-oat-tighten-descriptor-setup-performance-fix.patch
 i-oat-add-completion-callback-for-async_tx-interface-use-fix.patch
 i-oat-add-completion-callback-for-async_tx-interface-use-fix-fix.patch
