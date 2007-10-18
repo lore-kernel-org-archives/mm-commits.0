@@ -1,141 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - aoe-remove-unecessary-wrapper-function.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:55:48 -0700
-Message-ID: <200710180655.l9I6tm97030645@imap1.linux-foundation.org>
+Subject: - add-vmcore-add-nodemask_ts-size-and-nr_free_pagess-value-to-vmcoreinfo_data.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:57:03 -0700
+Message-ID: <200710180657.l9I6v3rR030757@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60239 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50713 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762828AbXJRHPm (ORCPT
+	by vger.kernel.org with ESMTP id S1761881AbXJRHPj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:15:42 -0400
+	Thu, 18 Oct 2007 03:15:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ecashin@coraid.com, mm-commits@vger.kernel.org
+To: oomichi@mxs.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     aoe: remove unecessary wrapper function
+     add-vmcore: add nodemask_t's size and NR_FREE_PAGES's value to vmcoreinfo_data
 has been removed from the -mm tree.  Its filename was
-     aoe-remove-unecessary-wrapper-function.patch
+     add-vmcore-add-nodemask_ts-size-and-nr_free_pagess-value-to-vmcoreinfo_data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: aoe: remove unecessary wrapper function
-From: "Ed L. Cashin" <ecashin@coraid.com>
+Subject: add-vmcore: add nodemask_t's size and NR_FREE_PAGES's value to vmcoreinfo_data
+From: "Ken'ichi Ohmichi" <oomichi@mxs.nes.nec.co.jp>
 
-We can just use skb_mac_header now, and we don't need a wrapper function to
-perform the cast.  Instead of requiring the reader to check aoe.h to look
-up what an aoe_hdr function does, I'd rather do without it.
+[2/3] Add nodemask_t's size and NR_FREE_PAGES's value to vmcoreinfo_data.
+  The dump filetering command 'makedumpfile'(v1.1.6 or before) had assumed
+  the above values, and it was not good from the reliability viewpoint.
+  So makedumpfile v1.2.0 came to need these values and I created the patch
+  to let the kernel output them.
+  makedumpfile site:
+  https://sourceforge.net/projects/makedumpfile/
 
+Signed-off-by: Ken'ichi Ohmichi <oomichi@mxs.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoe.h    |    9 ---------
- drivers/block/aoe/aoecmd.c |   14 +++++++-------
- drivers/block/aoe/aoenet.c |    2 +-
- 3 files changed, 8 insertions(+), 17 deletions(-)
+ include/linux/kexec.h |    5 +++++
+ kernel/kexec.c        |    2 ++
+ 2 files changed, 7 insertions(+)
 
-diff -puN drivers/block/aoe/aoe.h~aoe-remove-unecessary-wrapper-function drivers/block/aoe/aoe.h
---- a/drivers/block/aoe/aoe.h~aoe-remove-unecessary-wrapper-function
-+++ a/drivers/block/aoe/aoe.h
-@@ -48,15 +48,6 @@ struct aoe_hdr {
- 	__be32 tag;
- };
+diff -puN include/linux/kexec.h~add-vmcore-add-nodemask_ts-size-and-nr_free_pagess-value-to-vmcoreinfo_data include/linux/kexec.h
+--- a/include/linux/kexec.h~add-vmcore-add-nodemask_ts-size-and-nr_free_pagess-value-to-vmcoreinfo_data
++++ a/include/linux/kexec.h
+@@ -132,11 +132,16 @@ unsigned long paddr_vmcoreinfo_note(void
+ #define SIZE(name) \
+ 	vmcoreinfo_append_str("SIZE(%s)=%lu\n", #name, \
+ 			      (unsigned long)sizeof(struct name))
++#define TYPEDEF_SIZE(name) \
++	vmcoreinfo_append_str("SIZE(%s)=%lu\n", #name, \
++			      (unsigned long)sizeof(name))
+ #define OFFSET(name, field) \
+ 	vmcoreinfo_append_str("OFFSET(%s.%s)=%lu\n", #name, #field, \
+ 			      (unsigned long)&(((struct name *)0)->field))
+ #define LENGTH(name, value) \
+ 	vmcoreinfo_append_str("LENGTH(%s)=%lu\n", #name, (unsigned long)value)
++#define NUMBER(name) \
++	vmcoreinfo_append_str("NUMBER(%s)=%ld\n", #name, (long)name)
+ #define CONFIG(name) \
+ 	vmcoreinfo_append_str("CONFIG_%s=y\n", #name)
  
--#ifdef __KERNEL__
--#include <linux/skbuff.h>
--
--static inline struct aoe_hdr *aoe_hdr(const struct sk_buff *skb)
--{
--	return (struct aoe_hdr *)skb_mac_header(skb);
--}
--#endif
--
- struct aoe_atahdr {
- 	unsigned char aflags;
- 	unsigned char errfeat;
-diff -puN drivers/block/aoe/aoecmd.c~aoe-remove-unecessary-wrapper-function drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~aoe-remove-unecessary-wrapper-function
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -120,7 +120,7 @@ aoecmd_ata_rw(struct aoedev *d, struct f
+diff -puN kernel/kexec.c~add-vmcore-add-nodemask_ts-size-and-nr_free_pagess-value-to-vmcoreinfo_data kernel/kexec.c
+--- a/kernel/kexec.c~add-vmcore-add-nodemask_ts-size-and-nr_free_pagess-value-to-vmcoreinfo_data
++++ a/kernel/kexec.c
+@@ -1218,6 +1218,7 @@ static int __init crash_save_vmcoreinfo_
+ 	SIZE(zone);
+ 	SIZE(free_area);
+ 	SIZE(list_head);
++	TYPEDEF_SIZE(nodemask_t);
+ 	OFFSET(page, flags);
+ 	OFFSET(page, _count);
+ 	OFFSET(page, mapping);
+@@ -1237,6 +1238,7 @@ static int __init crash_save_vmcoreinfo_
+ 	OFFSET(list_head, next);
+ 	OFFSET(list_head, prev);
+ 	LENGTH(zone.free_area, MAX_ORDER);
++	NUMBER(NR_FREE_PAGES);
  
- 	/* initialize the headers & frame */
- 	skb = f->skb;
--	h = aoe_hdr(skb);
-+	h = (struct aoe_hdr *) skb_mac_header(skb);
- 	ah = (struct aoe_atahdr *) (h+1);
- 	skb_put(skb, sizeof *h + sizeof *ah);
- 	memset(h, 0, skb->len);
-@@ -209,7 +209,7 @@ aoecmd_cfg_pkts(ushort aoemajor, unsigne
- 		skb->dev = ifp;
- 		if (sl_tail == NULL)
- 			sl_tail = skb;
--		h = aoe_hdr(skb);
-+		h = (struct aoe_hdr *) skb_mac_header(skb);
- 		memset(h, 0, sizeof *h + sizeof *ch);
+ 	arch_crash_save_vmcoreinfo();
  
- 		memset(h->dst, 0xff, sizeof h->dst);
-@@ -304,7 +304,7 @@ rexmit(struct aoedev *d, struct frame *f
- 	aoechr_error(buf);
- 
- 	skb = f->skb;
--	h = aoe_hdr(skb);
-+	h = (struct aoe_hdr *) skb_mac_header(skb);
- 	ah = (struct aoe_atahdr *) (h+1);
- 	f->tag = n;
- 	h->tag = cpu_to_be32(n);
-@@ -533,7 +533,7 @@ aoecmd_ata_rsp(struct sk_buff *skb)
- 	char ebuf[128];
- 	u16 aoemajor;
- 
--	hin = aoe_hdr(skb);
-+	hin = (struct aoe_hdr *) skb_mac_header(skb);
- 	aoemajor = be16_to_cpu(get_unaligned(&hin->major));
- 	d = aoedev_by_aoeaddr(aoemajor, hin->minor);
- 	if (d == NULL) {
-@@ -565,7 +565,7 @@ aoecmd_ata_rsp(struct sk_buff *skb)
- 	calc_rttavg(d, tsince(f->tag));
- 
- 	ahin = (struct aoe_atahdr *) (hin+1);
--	hout = aoe_hdr(f->skb);
-+	hout = (struct aoe_hdr *) skb_mac_header(f->skb);
- 	ahout = (struct aoe_atahdr *) (hout+1);
- 	buf = f->buf;
- 
-@@ -699,7 +699,7 @@ aoecmd_ata_id(struct aoedev *d)
- 
- 	/* initialize the headers & frame */
- 	skb = f->skb;
--	h = aoe_hdr(skb);
-+	h = (struct aoe_hdr *) skb_mac_header(skb);
- 	ah = (struct aoe_atahdr *) (h+1);
- 	skb_put(skb, sizeof *h + sizeof *ah);
- 	memset(h, 0, skb->len);
-@@ -730,7 +730,7 @@ aoecmd_cfg_rsp(struct sk_buff *skb)
- 	enum { MAXFRAMES = 16 };
- 	u16 n;
- 
--	h = aoe_hdr(skb);
-+	h = (struct aoe_hdr *) skb_mac_header(skb);
- 	ch = (struct aoe_cfghdr *) (h+1);
- 
- 	/*
-diff -puN drivers/block/aoe/aoenet.c~aoe-remove-unecessary-wrapper-function drivers/block/aoe/aoenet.c
---- a/drivers/block/aoe/aoenet.c~aoe-remove-unecessary-wrapper-function
-+++ a/drivers/block/aoe/aoenet.c
-@@ -127,7 +127,7 @@ aoenet_rcv(struct sk_buff *skb, struct n
- 		goto exit;
- 	skb_push(skb, ETH_HLEN);	/* (1) */
- 
--	h = aoe_hdr(skb);
-+	h = (struct aoe_hdr *) skb_mac_header(skb);
- 	n = be32_to_cpu(get_unaligned(&h->tag));
- 	if ((h->verfl & AOEFL_RSP) == 0 || (n & 1<<31))
- 		goto exit;
 _
 
-Patches currently in -mm which might be from ecashin@coraid.com are
+Patches currently in -mm which might be from oomichi@mxs.nes.nec.co.jp are
 
 origin.patch
