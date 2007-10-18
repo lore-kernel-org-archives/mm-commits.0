@@ -1,206 +1,271 @@
 From: akpm@linux-foundation.org
-Subject: - add-sys-module-name-notes.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:54:37 -0700
-Message-ID: <200710180654.l9I6sbji030536@imap1.linux-foundation.org>
+Subject: - mm-dirty-balancing-for-tasks.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:51:29 -0700
+Message-ID: <200710180651.l9I6pTvX030193@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39074 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60566 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761212AbXJRHih (ORCPT
+	by vger.kernel.org with ESMTP id S1761253AbXJRHio (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:38:37 -0400
+	Thu, 18 Oct 2007 03:38:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roland@redhat.com, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add /sys/module/name/notes
+     mm: dirty balancing for tasks
 has been removed from the -mm tree.  Its filename was
-     add-sys-module-name-notes.patch
+     mm-dirty-balancing-for-tasks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add /sys/module/name/notes
-From: Roland McGrath <roland@redhat.com>
+Subject: mm: dirty balancing for tasks
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-This patch adds the /sys/module/<name>/notes/ magic directory, which has a
-file for each allocated SHT_NOTE section that appears in <name>.ko.  This
-is the counterpart for each module of /sys/kernel/notes for vmlinux. 
-Reading this delivers the contents of the module's SHT_NOTE sections.  This
-lets userland easily glean any detailed information about that module's
-build that was stored there at compile time (e.g.  by ld --build-id).
+Based on ideas of Andrew:
+  http://marc.info/?l=linux-kernel&m=102912915020543&w=2
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
+Scale the bdi dirty limit inversly with the tasks dirty rate.
+This makes heavy writers have a lower dirty limit than the occasional writer.
+
+Andrea proposed something similar:
+  http://lwn.net/Articles/152277/
+
+The main disadvantage to his patch is that he uses an unrelated quantity to
+measure time, which leaves him with a workload dependant tunable. Other than
+that the two approaches appear quite similar.
+
+[akpm@linux-foundation.org: fix warning]
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/module.h |    3 +
- kernel/module.c        |  106 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 109 insertions(+)
+ include/linux/init_task.h |    1 
+ include/linux/sched.h     |    2 +
+ kernel/fork.c             |   10 +++++++
+ mm/page-writeback.c       |   50 +++++++++++++++++++++++++++++++++++-
+ 4 files changed, 62 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/module.h~add-sys-module-name-notes include/linux/module.h
---- a/include/linux/module.h~add-sys-module-name-notes
-+++ a/include/linux/module.h
-@@ -343,6 +343,9 @@ struct module
- 
- 	/* Section attributes */
- 	struct module_sect_attrs *sect_attrs;
-+
-+	/* Notes attributes */
-+	struct module_notes_attrs *notes_attrs;
+diff -puN include/linux/init_task.h~mm-dirty-balancing-for-tasks include/linux/init_task.h
+--- a/include/linux/init_task.h~mm-dirty-balancing-for-tasks
++++ a/include/linux/init_task.h
+@@ -171,6 +171,7 @@ extern struct group_info init_groups;
+ 		[PIDTYPE_PGID] = INIT_PID_LINK(PIDTYPE_PGID),		\
+ 		[PIDTYPE_SID]  = INIT_PID_LINK(PIDTYPE_SID),		\
+ 	},								\
++	.dirties = INIT_PROP_LOCAL_SINGLE(dirties),			\
+ 	INIT_TRACE_IRQFLAGS						\
+ 	INIT_LOCKDEP							\
+ }
+diff -puN include/linux/sched.h~mm-dirty-balancing-for-tasks include/linux/sched.h
+--- a/include/linux/sched.h~mm-dirty-balancing-for-tasks
++++ a/include/linux/sched.h
+@@ -74,6 +74,7 @@ struct sched_param {
+ #include <linux/pid.h>
+ #include <linux/percpu.h>
+ #include <linux/topology.h>
++#include <linux/proportions.h>
+ #include <linux/seccomp.h>
+ #include <linux/rcupdate.h>
+ #include <linux/futex.h>
+@@ -1149,6 +1150,7 @@ struct task_struct {
+ #ifdef CONFIG_FAULT_INJECTION
+ 	int make_it_fail;
  #endif
++	struct prop_local_single dirties;
+ };
  
- 	/* Per-cpu data. */
-diff -puN kernel/module.c~add-sys-module-name-notes kernel/module.c
---- a/kernel/module.c~add-sys-module-name-notes
-+++ a/kernel/module.c
-@@ -20,6 +20,7 @@
- #include <linux/moduleloader.h>
- #include <linux/init.h>
- #include <linux/kallsyms.h>
-+#include <linux/sysfs.h>
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/vmalloc.h>
-@@ -1047,6 +1048,100 @@ static void remove_sect_attrs(struct mod
+ /*
+diff -puN kernel/fork.c~mm-dirty-balancing-for-tasks kernel/fork.c
+--- a/kernel/fork.c~mm-dirty-balancing-for-tasks
++++ a/kernel/fork.c
+@@ -107,6 +107,7 @@ static struct kmem_cache *mm_cachep;
+ 
+ void free_task(struct task_struct *tsk)
+ {
++	prop_local_destroy_single(&tsk->dirties);
+ 	free_thread_info(tsk->stack);
+ 	rt_mutex_debug_task_free(tsk);
+ 	free_task_struct(tsk);
+@@ -163,6 +164,7 @@ static struct task_struct *dup_task_stru
+ {
+ 	struct task_struct *tsk;
+ 	struct thread_info *ti;
++	int err;
+ 
+ 	prepare_to_copy(orig);
+ 
+@@ -178,6 +180,14 @@ static struct task_struct *dup_task_stru
+ 
+ 	*tsk = *orig;
+ 	tsk->stack = ti;
++
++	err = prop_local_init_single(&tsk->dirties);
++	if (err) {
++		free_thread_info(ti);
++		free_task_struct(tsk);
++		return NULL;
++	}
++
+ 	setup_thread_stack(tsk, orig);
+ 
+ #ifdef CONFIG_CC_STACKPROTECTOR
+diff -puN mm/page-writeback.c~mm-dirty-balancing-for-tasks mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-dirty-balancing-for-tasks
++++ a/mm/page-writeback.c
+@@ -118,6 +118,7 @@ static void background_writeout(unsigned
+  *
+  */
+ static struct prop_descriptor vm_completions;
++static struct prop_descriptor vm_dirties;
+ 
+ static unsigned long determine_dirtyable_memory(void);
+ 
+@@ -146,6 +147,7 @@ int dirty_ratio_handler(struct ctl_table
+ 	if (ret == 0 && write && vm_dirty_ratio != old_ratio) {
+ 		int shift = calc_period_shift();
+ 		prop_change_shift(&vm_completions, shift);
++		prop_change_shift(&vm_dirties, shift);
+ 	}
+ 	return ret;
+ }
+@@ -159,6 +161,11 @@ static inline void __bdi_writeout_inc(st
+ 	__prop_inc_percpu(&vm_completions, &bdi->completions);
+ }
+ 
++static inline void task_dirty_inc(struct task_struct *tsk)
++{
++	prop_inc_single(&vm_dirties, &tsk->dirties);
++}
++
+ /*
+  * Obtain an accurate fraction of the BDI's portion.
+  */
+@@ -198,6 +205,37 @@ clip_bdi_dirty_limit(struct backing_dev_
+ 	*pbdi_dirty = min(*pbdi_dirty, avail_dirty);
+ }
+ 
++static inline void task_dirties_fraction(struct task_struct *tsk,
++		long *numerator, long *denominator)
++{
++	prop_fraction_single(&vm_dirties, &tsk->dirties,
++				numerator, denominator);
++}
++
++/*
++ * scale the dirty limit
++ *
++ * task specific dirty limit:
++ *
++ *   dirty -= (dirty/8) * p_{t}
++ */
++void task_dirty_limit(struct task_struct *tsk, long *pdirty)
++{
++	long numerator, denominator;
++	long dirty = *pdirty;
++	u64 inv = dirty >> 3;
++
++	task_dirties_fraction(tsk, &numerator, &denominator);
++	inv *= numerator;
++	do_div(inv, denominator);
++
++	dirty -= inv;
++	if (dirty < *pdirty/2)
++		dirty = *pdirty/2;
++
++	*pdirty = dirty;
++}
++
+ /*
+  * Work out the current dirty-memory clamping and background writeout
+  * thresholds.
+@@ -304,6 +342,7 @@ get_dirty_limits(long *pbackground, long
+ 
+ 		*pbdi_dirty = bdi_dirty;
+ 		clip_bdi_dirty_limit(bdi, dirty, pbdi_dirty);
++		task_dirty_limit(current, pbdi_dirty);
  	}
  }
  
-+/*
-+ * /sys/module/foo/notes/.section.name gives contents of SHT_NOTE sections.
-+ */
-+
-+struct module_notes_attrs {
-+	struct kobject *dir;
-+	unsigned int notes;
-+	struct bin_attribute attrs[0];
-+};
-+
-+static ssize_t module_notes_read(struct kobject *kobj,
-+				 struct bin_attribute *bin_attr,
-+				 char *buf, loff_t pos, size_t count)
-+{
-+	/*
-+	 * The caller checked the pos and count against our size.
-+	 */
-+	memcpy(buf, bin_attr->private + pos, count);
-+	return count;
-+}
-+
-+static void free_notes_attrs(struct module_notes_attrs *notes_attrs,
-+			     unsigned int i)
-+{
-+	if (notes_attrs->dir) {
-+		while (i-- > 0)
-+			sysfs_remove_bin_file(notes_attrs->dir,
-+					      &notes_attrs->attrs[i]);
-+		kobject_del(notes_attrs->dir);
-+	}
-+	kfree(notes_attrs);
-+}
-+
-+static void add_notes_attrs(struct module *mod, unsigned int nsect,
-+			    char *secstrings, Elf_Shdr *sechdrs)
-+{
-+	unsigned int notes, loaded, i;
-+	struct module_notes_attrs *notes_attrs;
-+	struct bin_attribute *nattr;
-+
-+	/* Count notes sections and allocate structures.  */
-+	notes = 0;
-+	for (i = 0; i < nsect; i++)
-+		if ((sechdrs[i].sh_flags & SHF_ALLOC) &&
-+		    (sechdrs[i].sh_type == SHT_NOTE))
-+			++notes;
-+
-+	if (notes == 0)
-+		return;
-+
-+	notes_attrs = kzalloc(sizeof(*notes_attrs)
-+			      + notes * sizeof(notes_attrs->attrs[0]),
-+			      GFP_KERNEL);
-+	if (notes_attrs == NULL)
-+		return;
-+
-+	notes_attrs->notes = notes;
-+	nattr = &notes_attrs->attrs[0];
-+	for (loaded = i = 0; i < nsect; ++i) {
-+		if (!(sechdrs[i].sh_flags & SHF_ALLOC))
-+			continue;
-+		if (sechdrs[i].sh_type == SHT_NOTE) {
-+			nattr->attr.name = mod->sect_attrs->attrs[loaded].name;
-+			nattr->attr.mode = S_IRUGO;
-+			nattr->size = sechdrs[i].sh_size;
-+			nattr->private = (void *) sechdrs[i].sh_addr;
-+			nattr->read = module_notes_read;
-+			++nattr;
-+		}
-+		++loaded;
-+	}
-+
-+	notes_attrs->dir = kobject_add_dir(&mod->mkobj.kobj, "notes");
-+	if (!notes_attrs->dir)
-+		goto out;
-+
-+	for (i = 0; i < notes; ++i)
-+		if (sysfs_create_bin_file(notes_attrs->dir,
-+					  &notes_attrs->attrs[i]))
-+			goto out;
-+
-+	mod->notes_attrs = notes_attrs;
-+	return;
-+
-+  out:
-+	free_notes_attrs(notes_attrs, i);
-+}
-+
-+static void remove_notes_attrs(struct module *mod)
-+{
-+	if (mod->notes_attrs)
-+		free_notes_attrs(mod->notes_attrs, mod->notes_attrs->notes);
-+}
-+
- #else
+@@ -720,6 +759,7 @@ void __init page_writeback_init(void)
  
- static inline void add_sect_attrs(struct module *mod, unsigned int nsect,
-@@ -1057,6 +1152,15 @@ static inline void add_sect_attrs(struct
- static inline void remove_sect_attrs(struct module *mod)
+ 	shift = calc_period_shift();
+ 	prop_descriptor_init(&vm_completions, shift);
++	prop_descriptor_init(&vm_dirties, shift);
+ }
+ 
+ /**
+@@ -998,7 +1038,7 @@ EXPORT_SYMBOL(redirty_page_for_writepage
+  * If the mapping doesn't provide a set_page_dirty a_op, then
+  * just fall through and assume that it wants buffer_heads.
+  */
+-int fastcall set_page_dirty(struct page *page)
++static int __set_page_dirty(struct page *page)
  {
+ 	struct address_space *mapping = page_mapping(page);
+ 
+@@ -1016,6 +1056,14 @@ int fastcall set_page_dirty(struct page 
+ 	}
+ 	return 0;
  }
 +
-+static inline void add_notes_attrs(struct module *mod, unsigned int nsect,
-+				   char *sectstrings, Elf_Shdr *sechdrs)
++int fastcall set_page_dirty(struct page *page)
 +{
++	int ret = __set_page_dirty(page);
++	if (ret)
++		task_dirty_inc(current);
++	return ret;
 +}
-+
-+static inline void remove_notes_attrs(struct module *mod)
-+{
-+}
- #endif /* CONFIG_KALLSYMS */
+ EXPORT_SYMBOL(set_page_dirty);
  
- #ifdef CONFIG_SYSFS
-@@ -1191,6 +1295,7 @@ static void free_module(struct module *m
- {
- 	/* Delete from various lists */
- 	stop_machine_run(__unlink_module, mod, NR_CPUS);
-+	remove_notes_attrs(mod);
- 	remove_sect_attrs(mod);
- 	mod_kobject_remove(mod);
- 
-@@ -1918,6 +2023,7 @@ static struct module *load_module(void _
- 	if (err < 0)
- 		goto arch_cleanup;
- 	add_sect_attrs(mod, hdr->e_shnum, secstrings, sechdrs);
-+	add_notes_attrs(mod, hdr->e_shnum, secstrings, sechdrs);
- 
- 	/* Size of section 0 is 0, so this works well if no unwind info. */
- 	mod->unwind_info = unwind_add_table(mod,
+ /*
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
-x86_64-use-linux-elfcore-compath.patch
-fix-tsk-exit_state-usage-resend.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
+peterz-vs-ext4-mballoc-core.patch
+reiserfs-fix-up-lockdep-warnings.patch
+reiserfs-fix-up-lockdep-warnings-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
+task-containersv11-add-procfs-interface-containers-bdi-init-hooks.patch
+task-containersv11-shared-container-subsystem-group-arrays-avoid-lockdep-warning.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+workqueue-debug-flushing-deadlocks-with-lockdep.patch
+workqueue-debug-work-related-deadlocks-with-lockdep.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fix-cpusets-update_cpumask.patch
+fix-cpusets-update_cpumask-checkpatch-fixes.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
