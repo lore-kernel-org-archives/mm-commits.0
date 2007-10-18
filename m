@@ -1,65 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes-2.patch added to -mm tree
-Date: Thu, 18 Oct 2007 14:11:17 -0700
-Message-ID: <200710182111.l9ILBHdY031293@imap1.linux-foundation.org>
+Subject: - reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 14:11:00 -0700
+Message-ID: <200710182111.l9ILB0oe031260@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50462 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35808 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764993AbXJRVLv (ORCPT
+	by vger.kernel.org with ESMTP id S1764906AbXJRVLv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 18 Oct 2007 17:11:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeffm@suse.com
+To: akpm@linux-foundation.org, hch@lst.de, jeffm@suse.com, mason@suse.com, vs@namesys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes-2
-has been added to the -mm tree.  Its filename is
-     reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes-2.patch
+     reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes-2
+Subject: reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: need consistent spacing around '-' (ctx:WxV)
-#241: FILE: include/linux/reiserfs_fs.h:290:
-+	return (SB_BLOCK_COUNT(sb) -1) / (sb->s_blocksize * 8) + 1;
- 	                           ^
+ERROR: use tabs not spaces
+#53: FILE: fs/reiserfs/bitmap.c:114:
+$
 
-total: 1 errors, 0 warnings, 193 lines checked
+ERROR: use tabs not spaces
+#63: FILE: fs/reiserfs/bitmap.c:135:
+$
+
+ERROR: use tabs not spaces
+#64: FILE: fs/reiserfs/bitmap.c:136:
+$
+
+ERROR: use tabs not spaces
+#146: FILE: fs/reiserfs/journal.c:223:
+$
+
+ERROR: use tabs not spaces
+#190: FILE: fs/reiserfs/journal.c:2312:
+$
+
+ERROR: use tabs not spaces
+#191: FILE: fs/reiserfs/journal.c:2313:
+$
+
+ERROR: use tabs not spaces
+#235: FILE: include/linux/reiserfs_fs.h:1738:
+$
+
+ERROR: "foo * bar" should be "foo *bar"
+#235: FILE: include/linux/reiserfs_fs.h:1738:
++                        int bit_nr, int searchall, b_blocknr_t * next);
+
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
-Please run checkpatch prior to sending patches
-
+Cc: "Vladimir V. Saveliev" <vs@namesys.com>
+Cc: Chris Mason <mason@suse.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ fs/reiserfs/bitmap.c        |    6 +++---
+ fs/reiserfs/journal.c       |    6 +++---
  include/linux/reiserfs_fs.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/reiserfs_fs.h~reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes-2 include/linux/reiserfs_fs.h
---- a/include/linux/reiserfs_fs.h~reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes-2
-+++ a/include/linux/reiserfs_fs.h
-@@ -287,7 +287,7 @@ static inline struct reiserfs_sb_info *R
-  * which overflows on large file systems. */
- static inline u32 reiserfs_bmap_count(struct super_block *sb)
+diff -puN fs/reiserfs/bitmap.c~reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes fs/reiserfs/bitmap.c
+--- a/fs/reiserfs/bitmap.c~reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes
++++ a/fs/reiserfs/bitmap.c
+@@ -111,7 +111,7 @@ int is_reusable(struct super_block *s, b
+ /* searches in journal structures for a given block number (bmap, off). If block
+    is found in reiserfs journal it suggests next free block candidate to test. */
+ static inline int is_block_in_journal(struct super_block *s, unsigned int bmap,
+-                                      int off, int *next)
++				      int off, int *next)
  {
--	return (SB_BLOCK_COUNT(sb) -1) / (sb->s_blocksize * 8) + 1;
-+	return (SB_BLOCK_COUNT(sb) - 1) / (sb->s_blocksize * 8) + 1;
+ 	b_blocknr_t tmp;
+ 
+@@ -132,8 +132,8 @@ static inline int is_block_in_journal(st
+ /* it searches for a window of zero bits with given minimum and maximum lengths in one bitmap
+  * block; */
+ static int scan_bitmap_block(struct reiserfs_transaction_handle *th,
+-                             unsigned int bmap_n, int *beg, int boundary,
+-                             int min, int max, int unfm)
++			     unsigned int bmap_n, int *beg, int boundary,
++			     int min, int max, int unfm)
+ {
+ 	struct super_block *s = th->t_super;
+ 	struct reiserfs_bitmap_info *bi = &SB_AP_BITMAP(s)[bmap_n];
+diff -puN fs/reiserfs/journal.c~reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes fs/reiserfs/journal.c
+--- a/fs/reiserfs/journal.c~reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes
++++ a/fs/reiserfs/journal.c
+@@ -220,7 +220,7 @@ static void allocate_bitmap_nodes(struct
  }
  
- static inline int bmap_would_wrap(unsigned bmap_nr)
+ static int set_bit_in_list_bitmap(struct super_block *p_s_sb,
+-                                  b_blocknr_t block,
++				  b_blocknr_t block,
+ 				  struct reiserfs_list_bitmap *jb)
+ {
+ 	unsigned int bmap_nr = block / (p_s_sb->s_blocksize << 3);
+@@ -2309,8 +2309,8 @@ static int journal_read_transaction(stru
+    from other places.
+    Note: Do not use journal_getblk/sb_getblk functions here! */
+ static struct buffer_head *reiserfs_breada(struct block_device *dev,
+-                                           b_blocknr_t block, int bufsize,
+-                                           b_blocknr_t max_block)
++					   b_blocknr_t block, int bufsize,
++					   b_blocknr_t max_block)
+ {
+ 	struct buffer_head *bhlist[BUFNR];
+ 	unsigned int blocks = BUFNR;
+diff -puN include/linux/reiserfs_fs.h~reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes include/linux/reiserfs_fs.h
+--- a/include/linux/reiserfs_fs.h~reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes
++++ a/include/linux/reiserfs_fs.h
+@@ -1735,7 +1735,7 @@ int journal_mark_freed(struct reiserfs_t
+ 		       struct super_block *, b_blocknr_t blocknr);
+ int journal_transaction_should_end(struct reiserfs_transaction_handle *, int);
+ int reiserfs_in_journal(struct super_block *p_s_sb, unsigned int bmap_nr,
+-                        int bit_nr, int searchall, b_blocknr_t * next);
++		        int bit_nr, int searchall, b_blocknr_t *next);
+ int journal_begin(struct reiserfs_transaction_handle *,
+ 		  struct super_block *p_s_sb, unsigned long);
+ int journal_join_abort(struct reiserfs_transaction_handle *,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -128,6 +199,8 @@ jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
 peterz-vs-ext4-mballoc-core.patch
 64-bit-i_version-afs-fixes.patch
 reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes-2.patch
+reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes.patch
+reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
 revoke-wire-up-i386-system-calls.patch
