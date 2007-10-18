@@ -1,143 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: - atomic_opstxt-has-incorrect-misleading-and-insufficient-information.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:00:56 -0700
-Message-ID: <200710180700.l9I70uwG031125@imap1.linux-foundation.org>
+Subject: - reiserfs-do-not-repair-wrong-journal-params.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:02:01 -0700
+Message-ID: <200710180702.l9I721Dt031224@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45846 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43913 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755171AbXJRHet (ORCPT
+	by vger.kernel.org with ESMTP id S1755171AbXJRHfJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:34:49 -0400
+	Thu, 18 Oct 2007 03:35:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mattilinnanvuori@yahoo.com, npiggin@suse.de, paulmck@us.ibm.com, mm-commits@vger.kernel.org
+To: edward@namesys.com, chris.mason@oracle.com, jeffm@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atomic_ops.txt has incorrect, misleading and insufficient information [Bug 9020]
+     reiserfs: do not repair wrong journal params
 has been removed from the -mm tree.  Its filename was
-     atomic_opstxt-has-incorrect-misleading-and-insufficient-information.patch
+     reiserfs-do-not-repair-wrong-journal-params.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: atomic_ops.txt has incorrect, misleading and insufficient information [Bug 9020]
-From: Matti Linnanvuori <mattilinnanvuori@yahoo.com>
+Subject: reiserfs: do not repair wrong journal params
+From: Edward Shishkin <edward@namesys.com>
 
-atomic_ops.txt has incorrect, misleading and insufficient information about
-semantics of initializer, atomic_set, atomic_read and atomic_xchg.
+When mounting a file system with wrong journal params do not try to repair
+them, suggest fsck instead.
 
-It also incorrectly implies that operations mentioned above are not actual
-atomic operations.
-
-Included is most of the patch Document non-semantics of atomic_read() and
-atomic_set() by Chris Snook, except the word "assignment".
-
-Signed-off-by: Matti Linnanvuori <mattilinnanvuori@yahoo.com>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Signed-off-by: Edward Shishkin <edward@namesys.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
+Cc: Chris Mason <chris.mason@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/atomic_ops.txt |   53 ++++++++++++++++++++++++++++++---
- 1 file changed, 49 insertions(+), 4 deletions(-)
+ fs/reiserfs/journal.c |  100 ++++++++++++++++++++++------------------
+ 1 file changed, 57 insertions(+), 43 deletions(-)
 
-diff -puN Documentation/atomic_ops.txt~atomic_opstxt-has-incorrect-misleading-and-insufficient-information Documentation/atomic_ops.txt
---- a/Documentation/atomic_ops.txt~atomic_opstxt-has-incorrect-misleading-and-insufficient-information
-+++ a/Documentation/atomic_ops.txt
-@@ -14,12 +14,15 @@ suffice:
+diff -puN fs/reiserfs/journal.c~reiserfs-do-not-repair-wrong-journal-params fs/reiserfs/journal.c
+--- a/fs/reiserfs/journal.c~reiserfs-do-not-repair-wrong-journal-params
++++ a/fs/reiserfs/journal.c
+@@ -2649,6 +2649,61 @@ static int journal_init_dev(struct super
+ 	return result;
+ }
  
- 	typedef struct { volatile int counter; } atomic_t;
- 
-+Historically, counter has been declared volatile.  This is now discouraged.
-+See Documentation/volatile-considered-harmful.txt for the complete rationale.
++/**
++ * When creating/tuning a file system user can assign some
++ * journal params within boundaries which depend on the ratio
++ * blocksize/standard_blocksize.
++ *
++ * For blocks >= standard_blocksize transaction size should
++ * be not less then JOURNAL_TRANS_MIN_DEFAULT, and not more
++ * then JOURNAL_TRANS_MAX_DEFAULT.
++ *
++ * For blocks < standard_blocksize these boundaries should be
++ * decreased proportionally.
++ */
++#define REISERFS_STANDARD_BLKSIZE (4096)
 +
- local_t is very similar to atomic_t. If the counter is per CPU and only
- updated by one CPU, local_t is probably more appropriate. Please see
- Documentation/local_ops.txt for the semantics of local_t.
- 
--	The first operations to implement for atomic_t's are the
--initializers and plain reads.
-+The first operations to implement for atomic_t's are the initializers and
-+plain reads.
- 
- 	#define ATOMIC_INIT(i)		{ (i) }
- 	#define atomic_set(v, i)	((v)->counter = (i))
-@@ -28,6 +31,12 @@ The first macro is used in definitions, 
- 
- static atomic_t my_counter = ATOMIC_INIT(1);
- 
-+The initializer is atomic in that the return values of the atomic operations
-+are guaranteed to be correct reflecting the initialized value if the
-+initializer is used before runtime.  If the initializer is used at runtime, a
-+proper implicit or explicit read memory barrier is needed before reading the
-+value with atomic_read from another thread.
++static int check_advise_trans_params(struct super_block *p_s_sb,
++				     struct reiserfs_journal *journal)
++{
++        if (journal->j_trans_max) {
++	        /* Non-default journal params.
++		   Do sanity check for them. */
++	        int ratio = 1;
++		if (p_s_sb->s_blocksize < REISERFS_STANDARD_BLKSIZE)
++		        ratio = REISERFS_STANDARD_BLKSIZE / p_s_sb->s_blocksize;
 +
- The second interface can be used at runtime, as in:
- 
- 	struct foo { atomic_t counter; };
-@@ -40,13 +49,43 @@ The second interface can be used at runt
- 		return -ENOMEM;
- 	atomic_set(&k->counter, 0);
- 
-+The setting is atomic in that the return values of the atomic operations by
-+all threads are guaranteed to be correct reflecting either the value that has
-+been set with this operation or set with another operation.  A proper implicit
-+or explicit memory barrier is needed before the value set with the operation
-+is guaranteed to be readable with atomic_read from another thread.
++		if (journal->j_trans_max > JOURNAL_TRANS_MAX_DEFAULT / ratio ||
++		    journal->j_trans_max < JOURNAL_TRANS_MIN_DEFAULT / ratio ||
++		    SB_ONDISK_JOURNAL_SIZE(p_s_sb) / journal->j_trans_max <
++		    JOURNAL_MIN_RATIO) {
++		        reiserfs_warning(p_s_sb,
++				 "sh-462: bad transaction max size (%u). FSCK?",
++				 journal->j_trans_max);
++			return 1;
++		}
++		if (journal->j_max_batch != (journal->j_trans_max) *
++		        JOURNAL_MAX_BATCH_DEFAULT/JOURNAL_TRANS_MAX_DEFAULT) {
++		        reiserfs_warning(p_s_sb,
++				"sh-463: bad transaction max batch (%u). FSCK?",
++				journal->j_max_batch);
++			return 1;
++		}
++	} else {
++		/* Default journal params.
++                   The file system was created by old version
++		   of mkreiserfs, so some fields contain zeros,
++		   and we need to advise proper values for them */
++	        if (p_s_sb->s_blocksize != REISERFS_STANDARD_BLKSIZE)
++	                reiserfs_panic(p_s_sb, "sh-464: bad blocksize (%u)",
++				       p_s_sb->s_blocksize);
++		journal->j_trans_max = JOURNAL_TRANS_MAX_DEFAULT;
++		journal->j_max_batch = JOURNAL_MAX_BATCH_DEFAULT;
++		journal->j_max_commit_age = JOURNAL_MAX_COMMIT_AGE;
++	}
++	return 0;
++}
 +
- Next, we have:
+ /*
+ ** must be called once on fs mount.  calls journal_read for you
+ */
+@@ -2744,49 +2799,8 @@ int journal_init(struct super_block *p_s
+ 	    le32_to_cpu(jh->jh_journal.jp_journal_max_commit_age);
+ 	journal->j_max_trans_age = JOURNAL_MAX_TRANS_AGE;
  
- 	#define atomic_read(v)	((v)->counter)
+-	if (journal->j_trans_max) {
+-		/* make sure these parameters are available, assign it if they are not */
+-		__u32 initial = journal->j_trans_max;
+-		__u32 ratio = 1;
+-
+-		if (p_s_sb->s_blocksize < 4096)
+-			ratio = 4096 / p_s_sb->s_blocksize;
+-
+-		if (SB_ONDISK_JOURNAL_SIZE(p_s_sb) / journal->j_trans_max <
+-		    JOURNAL_MIN_RATIO)
+-			journal->j_trans_max =
+-			    SB_ONDISK_JOURNAL_SIZE(p_s_sb) / JOURNAL_MIN_RATIO;
+-		if (journal->j_trans_max > JOURNAL_TRANS_MAX_DEFAULT / ratio)
+-			journal->j_trans_max =
+-			    JOURNAL_TRANS_MAX_DEFAULT / ratio;
+-		if (journal->j_trans_max < JOURNAL_TRANS_MIN_DEFAULT / ratio)
+-			journal->j_trans_max =
+-			    JOURNAL_TRANS_MIN_DEFAULT / ratio;
+-
+-		if (journal->j_trans_max != initial)
+-			reiserfs_warning(p_s_sb,
+-					 "sh-461: journal_init: wrong transaction max size (%u). Changed to %u",
+-					 initial, journal->j_trans_max);
+-
+-		journal->j_max_batch = journal->j_trans_max *
+-		    JOURNAL_MAX_BATCH_DEFAULT / JOURNAL_TRANS_MAX_DEFAULT;
+-	}
+-
+-	if (!journal->j_trans_max) {
+-		/*we have the file system was created by old version of mkreiserfs 
+-		   so this field contains zero value */
+-		journal->j_trans_max = JOURNAL_TRANS_MAX_DEFAULT;
+-		journal->j_max_batch = JOURNAL_MAX_BATCH_DEFAULT;
+-		journal->j_max_commit_age = JOURNAL_MAX_COMMIT_AGE;
+-
+-		/* for blocksize >= 4096 - max transaction size is 1024. For block size < 4096
+-		   trans max size is decreased proportionally */
+-		if (p_s_sb->s_blocksize < 4096) {
+-			journal->j_trans_max /= (4096 / p_s_sb->s_blocksize);
+-			journal->j_max_batch = (journal->j_trans_max) * 9 / 10;
+-		}
+-	}
+-
++	if (check_advise_trans_params(p_s_sb, journal) != 0)
++	        goto free_and_return;
+ 	journal->j_default_max_commit_age = journal->j_max_commit_age;
  
--which simply reads the current value of the counter.
-+which simply reads the counter value currently visible to the calling thread.
-+The read is atomic in that the return value is guaranteed to be one of the
-+values initialized or modified with the interface operations if a proper
-+implicit or explicit memory barrier is used after possible runtime
-+initialization by any other thread and the value is modified only with the
-+interface operations.  atomic_read does not guarantee that the runtime
-+initialization by any other thread is visible yet, so the user of the
-+interface must take care of that with a proper implicit or explicit memory
-+barrier.
-+
-+*** WARNING: atomic_read() and atomic_set() DO NOT IMPLY BARRIERS! ***
-+
-+Some architectures may choose to use the volatile keyword, barriers, or inline
-+assembly to guarantee some degree of immediacy for atomic_read() and
-+atomic_set().  This is not uniformly guaranteed, and may change in the future,
-+so all users of atomic_t should treat atomic_read() and atomic_set() as simple
-+C statements that may be reordered or optimized away entirely by the compiler
-+or processor, and explicitly invoke the appropriate compiler and/or memory
-+barrier for each use case.  Failure to do so will result in code that may
-+suddenly break when used with different architectures or compiler
-+optimizations, or even changes in unrelated code which changes how the
-+compiler optimizes the section accessing atomic_t variables.
- 
--Now, we move onto the actual atomic operation interfaces.
-+*** YOU HAVE BEEN WARNED! ***
-+
-+Now, we move onto the atomic operation interfaces typically implemented with
-+the help of assembly code.
- 
- 	void atomic_add(int i, atomic_t *v);
- 	void atomic_sub(int i, atomic_t *v);
-@@ -121,6 +160,12 @@ operation.
- 
- Then:
- 
-+	int atomic_xchg(atomic_t *v, int new);
-+
-+This performs an atomic exchange operation on the atomic variable v, setting
-+the given new value.  It returns the old value that the atomic variable v had
-+just before the operation.
-+
- 	int atomic_cmpxchg(atomic_t *v, int old, int new);
- 
- This performs an atomic compare exchange operation on the atomic value v,
+ 	if (commit_max_age != 0) {
 _
 
-Patches currently in -mm which might be from mattilinnanvuori@yahoo.com are
+Patches currently in -mm which might be from edward@namesys.com are
 
 origin.patch
+reiser4.patch
+reiser4-drop-size-argument-from-bio_endio-and-bi_end_io.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
+reiser4-fix-null-dereference-in-__mnt_is_readonly-in-ftruncate.patch
+reiser4-fix-extent2tail.patch
+reiser4-fix-read_tail.patch
+reiser4-fix-unix-file-readpages-filler.patch
+reiser4-fix-readpage_unix_file.patch
+reiser4-fix-for-new-aops-patches.patch
+reiser4-do-not-allocate-struct-file-on-stack.patch
+git-block-vs-reiser4.patch
+reiser4-cryptcompress-misc-fixups.patch
+reiser4-cryptcompress-misc-fixups-2.patch
+reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
+reiser4-change-error-code-base.patch
+reiser4-use-lzo-library-functions.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
+git-nfsd-broke-reiser4.patch
