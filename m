@@ -1,94 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - documentation-make-headers_installtxt.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 00:04:13 -0700
-Message-ID: <200710180704.l9I74DTV031532@imap1.linux-foundation.org>
+Subject: - exec-remove-unnecessary-check-for-mnt_noexec.patch removed from -mm tree
+Date: Wed, 17 Oct 2007 23:56:06 -0700
+Message-ID: <200710180656.l9I6u6ZZ030675@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35807 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60447 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756302AbXJRH3E (ORCPT
+	by vger.kernel.org with ESMTP id S1760017AbXJRH3P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:29:04 -0400
+	Thu, 18 Oct 2007 03:29:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rob@landley.net, dwmw2@infradead.org, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, hch@lst.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Documentation/make/headers_install.txt
+     exec: remove unnecessary check for MNT_NOEXEC
 has been removed from the -mm tree.  Its filename was
-     documentation-make-headers_installtxt.patch
+     exec-remove-unnecessary-check-for-mnt_noexec.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Documentation/make/headers_install.txt
-From: Rob Landley <rob@landley.net>
+Subject: exec: remove unnecessary check for MNT_NOEXEC
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Some documentation for "make headers_install".
+vfs_permission(MAY_EXEC) checks if the filesystem is mounted with "noexec", so
+there's no need to repeat this check in sys_uselib() and open_exec().
 
-Signed-off-by: Rob Landley <rob@landley.net>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/make/headers_install.txt |   46 +++++++++++++++++++++++
- 1 file changed, 46 insertions(+)
+ fs/exec.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN /dev/null Documentation/make/headers_install.txt
---- /dev/null
-+++ a/Documentation/make/headers_install.txt
-@@ -0,0 +1,46 @@
-+Exporting kernel headers for use by userspace
-+=============================================
-+
-+The "make headers_install" command exports the kernel's header files in a
-+form suitable for use by userspace programs.
-+
-+The linux kernel's exported header files describe the API for user space
-+programs attempting to use kernel services.  These kernel header files are
-+used by the system's C library (such as glibc or uClibc) to define available
-+system calls, as well as constants and structures to be used with these
-+system calls.  The C library's header files include the kernel header files
-+from the "linux" subdirectory.  The system's libc headers are usually
-+installed at the default location /usr/include and the kernel headers in
-+subdirectories under that (most notably /usr/include/linux and
-+/usr/include/asm).
-+
-+Kernel headers are backwards compatible, but not forwards compatible.  This
-+means that a program built against a C library using older kernel headers
-+should run on a newer kernel (although it may not have access to new
-+features), but a program built against newer kernel headers may not work on an
-+older kernel.
-+
-+The "make headers_install" command can be run in the top level directory of the
-+kernel source code (or using a standard out-of-tree build).  It takes two
-+optional arguments:
-+
-+  make headers_install ARCH=i386 INSTALL_HDR_PATH=/usr/include
-+
-+ARCH indicates which architecture to produce headers for, and defaults to the
-+current architecture.  The linux/asm directory of the exported kernel headers
-+is platform-specific, to see a complete list of supported architectures use
-+the command:
-+
-+  ls -d include/asm-* | sed 's/.*-//'
-+
-+INSTALL_HDR_PATH indicates where to install the headers.  It defaults to
-+"./usr/include".
-+
-+The command "make headers_install_all" exports headers for all architectures
-+simultaneously.  (This is mostly of interest to distribution maintainers,
-+who create an architecture-independent tarball from the resulting include
-+directory.)  Remember to provide the appropriate linux/asm directory via "mv"
-+or "ln -s" before building a C library with headers exported this way.
-+
-+The kernel header export infrastructure is maintained by David Woodhouse
-+<dwmw2@infradead.org>.
+diff -puN fs/exec.c~exec-remove-unnecessary-check-for-mnt_noexec fs/exec.c
+--- a/fs/exec.c~exec-remove-unnecessary-check-for-mnt_noexec
++++ a/fs/exec.c
+@@ -112,9 +112,6 @@ asmlinkage long sys_uselib(const char __
+ 	if (error)
+ 		goto out;
+ 
+-	error = -EACCES;
+-	if (nd.mnt->mnt_flags & MNT_NOEXEC)
+-		goto exit;
+ 	error = -EINVAL;
+ 	if (!S_ISREG(nd.dentry->d_inode->i_mode))
+ 		goto exit;
+@@ -658,8 +655,7 @@ struct file *open_exec(const char *name)
+ 	if (!err) {
+ 		struct inode *inode = nd.dentry->d_inode;
+ 		file = ERR_PTR(-EACCES);
+-		if (!(nd.mnt->mnt_flags & MNT_NOEXEC) &&
+-		    S_ISREG(inode->i_mode)) {
++		if (S_ISREG(inode->i_mode)) {
+ 			int err = vfs_permission(&nd, MAY_EXEC);
+ 			file = ERR_PTR(err);
+ 			if (!err) {
 _
 
-Patches currently in -mm which might be from rob@landley.net are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
-comment-typo-in-scripts-kconfig-makefile.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+fuse-fix-allowing-operations.patch
+fuse-fix-race-between-getattr-and-write.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+fuse-clean-up-open-file-passing-in-setattr.patch
+vfs-allow-filesystems-to-implement-atomic-opentruncate.patch
+fuse-improve-utimes-support.patch
+fuse-add-atomic-opentruncate-support.patch
+fuse-support-bsd-locking-semantics.patch
+fuse-add-list-of-writable-files-to-fuse_inode.patch
+fuse-add-helper-for-asynchronous-writes.patch
+fuse-add-support-for-mandatory-locking.patch
+fuse-add-blksize-field-to-fuse_attr.patch
