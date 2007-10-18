@@ -1,121 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: - pi-futex-set-pf_exiting-without-taking-pi_lock.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:55:05 -0700
-Message-ID: <200710180655.l9I6t5UJ030576@imap1.linux-foundation.org>
+Subject: - fuse-fix-permission-checking-on-sticky-directories.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:03:32 -0700
+Message-ID: <200710180703.l9I73Ws8031447@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38180 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43873 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752407AbXJRHZq (ORCPT
+	by vger.kernel.org with ESMTP id S1756332AbXJRH0J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:25:46 -0400
+	Thu, 18 Oct 2007 03:26:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, mingo@elte.hu, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, jengelh@linux01.gwdg.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pi-futex: set PF_EXITING without taking ->pi_lock
+     fuse: fix permission checking on sticky directories
 has been removed from the -mm tree.  Its filename was
-     pi-futex-set-pf_exiting-without-taking-pi_lock.patch
+     fuse-fix-permission-checking-on-sticky-directories.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pi-futex: set PF_EXITING without taking ->pi_lock
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: fuse: fix permission checking on sticky directories
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-It is a bit annoying that do_exit() takes ->pi_lock to set PF_EXITING.  All
-we need is to synchronize with lookup_pi_state() which saw this task
-without PF_EXITING under ->pi_lock.
+The VFS checks sticky bits on the parent directory even if the filesystem
+defines it's own ->permission().  In some situations (sshfs, mountlo, etc) the
+user does have permission to delete a file even if the attribute based
+checking would not allow it.
 
-Change do_exit() to use spin_unlock_wait().
+So work around this by storing the permission bits separately and returning
+them in stat(), but cutting the permission bits off from inode->i_mode.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+This is slightly hackish, but it's probably not worth it to add new
+infrastructure in VFS and a slight performance penalty for all filesystems,
+just for the sake of fuse.
+
+[Jan Engelhardt] cosmetic fixes
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Jan Engelhardt <jengelh@linux01.gwdg.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/fuse/dir.c    |    4 +++-
+ fs/fuse/fuse_i.h |    4 ++++
+ fs/fuse/inode.c  |   12 +++++++++++-
+ 3 files changed, 18 insertions(+), 2 deletions(-)
 
-diff -puN kernel/exit.c~pi-futex-set-pf_exiting-without-taking-pi_lock kernel/exit.c
---- a/kernel/exit.c~pi-futex-set-pf_exiting-without-taking-pi_lock
-+++ a/kernel/exit.c
-@@ -931,13 +931,13 @@ fastcall NORET_TYPE void do_exit(long co
- 		schedule();
- 	}
+diff -puN fs/fuse/dir.c~fuse-fix-permission-checking-on-sticky-directories fs/fuse/dir.c
+--- a/fs/fuse/dir.c~fuse-fix-permission-checking-on-sticky-directories
++++ a/fs/fuse/dir.c
+@@ -1054,8 +1054,10 @@ static int fuse_getattr(struct vfsmount 
+ 	if (fi->i_time < get_jiffies_64())
+ 		err = fuse_do_getattr(inode);
  
-+	tsk->flags |= PF_EXITING;
- 	/*
- 	 * tsk->flags are checked in the futex code to protect against
- 	 * an exiting task cleaning up the robust pi futexes.
- 	 */
--	spin_lock_irq(&tsk->pi_lock);
--	tsk->flags |= PF_EXITING;
--	spin_unlock_irq(&tsk->pi_lock);
-+	smp_mb();
-+	spin_unlock_wait(&tsk->pi_lock);
+-	if (!err)
++	if (!err) {
+ 		generic_fillattr(inode, stat);
++		stat->mode = fi->orig_i_mode;
++	}
  
- 	if (unlikely(in_atomic()))
- 		printk(KERN_INFO "note: %s[%d] exited with preempt_count %d\n",
+ 	return err;
+ }
+diff -puN fs/fuse/fuse_i.h~fuse-fix-permission-checking-on-sticky-directories fs/fuse/fuse_i.h
+--- a/fs/fuse/fuse_i.h~fuse-fix-permission-checking-on-sticky-directories
++++ a/fs/fuse/fuse_i.h
+@@ -63,6 +63,10 @@ struct fuse_inode {
+ 
+ 	/** Time in jiffies until the file attributes are valid */
+ 	u64 i_time;
++
++	/** The sticky bit in inode->i_mode may have been removed, so
++	    preserve the original mode */
++	mode_t orig_i_mode;
+ };
+ 
+ /** FUSE specific file data */
+diff -puN fs/fuse/inode.c~fuse-fix-permission-checking-on-sticky-directories fs/fuse/inode.c
+--- a/fs/fuse/inode.c~fuse-fix-permission-checking-on-sticky-directories
++++ a/fs/fuse/inode.c
+@@ -120,10 +120,11 @@ static void fuse_truncate(struct address
+ void fuse_change_attributes(struct inode *inode, struct fuse_attr *attr)
+ {
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
++	struct fuse_inode *fi = get_fuse_inode(inode);
+ 	loff_t oldsize;
+ 
+ 	inode->i_ino     = attr->ino;
+-	inode->i_mode    = (inode->i_mode & S_IFMT) + (attr->mode & 07777);
++	inode->i_mode    = (inode->i_mode & S_IFMT) | (attr->mode & 07777);
+ 	inode->i_nlink   = attr->nlink;
+ 	inode->i_uid     = attr->uid;
+ 	inode->i_gid     = attr->gid;
+@@ -135,6 +136,15 @@ void fuse_change_attributes(struct inode
+ 	inode->i_ctime.tv_sec   = attr->ctime;
+ 	inode->i_ctime.tv_nsec  = attr->ctimensec;
+ 
++	/*
++	 * Don't set the sticky bit in i_mode, unless we want the VFS
++	 * to check permissions.  This prevents failures due to the
++	 * check in may_delete().
++	 */
++	fi->orig_i_mode = inode->i_mode;
++	if (!(fc->flags & FUSE_DEFAULT_PERMISSIONS))
++		inode->i_mode &= ~S_ISVTX;
++
+ 	spin_lock(&fc->lock);
+ 	oldsize = inode->i_size;
+ 	i_size_write(inode, attr->size);
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
-git-x86.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-cpu-hotplug-cpu-deliver-cpu_up_canceled-only-to-notify_oked-callbacks-with-cpu_up_prepare.patch
-cpu-hotplug-topology-remove-topology_dev_map.patch
-cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-mce-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
-cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling-fix-a-section-mismatch-warning.patch
-make-access-to-tasks-nsproxy-lighter.patch
-make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
-make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
-workqueue-debug-flushing-deadlocks-with-lockdep.patch
-workqueue-debug-work-related-deadlocks-with-lockdep.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-merge-fix.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-uninline-find_task_by_xxx-set-of-functions.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
-uninline-find_pid-etc-set-of-functions.patch
-uninline-the-task_xid_nr_ns-calls.patch
-proc-export-a-processes-resource-limits-via-proc-pid.patch
-fix-tsk-exit_state-usage-resend.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-whitespace-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+fuse-fix-allowing-operations.patch
+fuse-fix-race-between-getattr-and-write.patch
+fuse-fix-race-between-getattr-and-write-checkpatch-fixes.patch
+fuse-add-file-handle-to-getattr-operation.patch
+fuse-add-file-handle-to-getattr-operation-checkpatch-fixes.patch
+fuse-clean-up-open-file-passing-in-setattr.patch
+vfs-allow-filesystems-to-implement-atomic-opentruncate.patch
+fuse-improve-utimes-support.patch
+fuse-add-atomic-opentruncate-support.patch
+fuse-support-bsd-locking-semantics.patch
+fuse-add-list-of-writable-files-to-fuse_inode.patch
+fuse-add-helper-for-asynchronous-writes.patch
+fuse-add-support-for-mandatory-locking.patch
+fuse-add-blksize-field-to-fuse_attr.patch
