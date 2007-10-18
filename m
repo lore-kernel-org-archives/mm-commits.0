@@ -1,66 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - alpha-lock-bitops-fix.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 01:52:06 -0700
-Message-ID: <200710180852.l9I8q60h002944@imap1.linux-foundation.org>
+Subject: - powerpc-add-scaled-time-accounting-speedup.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 01:51:23 -0700
+Message-ID: <200710180851.l9I8pNXS002925@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37508 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58604 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755610AbXJRIwd (ORCPT
+	by vger.kernel.org with ESMTP id S932643AbXJRIwM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 04:52:33 -0400
+	Thu, 18 Oct 2007 04:52:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, ink@jurassic.park.msu.ru, npiggin@suse.de, rth@twiddle.net, mm-commits@vger.kernel.org
+To: pbadari@us.ibm.com, balbir@in.ibm.com, benh@kernel.crashing.org, jlan@engr.sgi.com, mikey@neuling.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha bitops.h must #include <asm/barrier.h>
+     Avoid unnecessary PURR reading
 has been removed from the -mm tree.  Its filename was
-     alpha-lock-bitops-fix.patch
+     powerpc-add-scaled-time-accounting-speedup.patch
 
-This patch was dropped because it was folded into alpha-lock-bitops.patch
+This patch was dropped because it was folded into powerpc-add-scaled-time-accounting.patch
 
 ------------------------------------------------------
-Subject: alpha bitops.h must #include <asm/barrier.h>
-From: Adrian Bunk <bunk@kernel.org>
+Subject: Avoid unnecessary PURR reading
+From: Badari Pulavarty <pbadari@us.ibm.com>
 
-In file included from /home/bunk/linux/kernel-2.6/linux-2.6.23-rc4-mm1/include/linux/bitops.h:17,
-                 from /home/bunk/linux/kernel-2.6/linux-2.6.23-rc4-mm1/include/linux/kernel.h:15,
-                 from /home/bunk/linux/kernel-2.6/linux-2.6.23-rc4-mm1/include/linux/sched.h:50,
-                 from /home/bunk/linux/kernel-2.6/linux-2.6.23-rc4-mm1/arch/alpha/kernel/asm-offsets.c:9:
-include2/asm/bitops.h: In function 'clear_bit_unlock':
-include2/asm/bitops.h:75: error: implicit declaration of function 'smp_mb'
-make[2]: *** [arch/alpha/kernel/asm-offsets.s] Error 1
+Avoid reading PURR multiple times, by passing it in to read_spurr().
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Michael Neuling <mikey@neuling.org>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Jay Lan <jlan@engr.sgi.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/bitops.h |    1 +
- 1 file changed, 1 insertion(+)
+ arch/powerpc/kernel/time.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-alpha/bitops.h~alpha-lock-bitops-fix include/asm-alpha/bitops.h
---- a/include/asm-alpha/bitops.h~alpha-lock-bitops-fix
-+++ a/include/asm-alpha/bitops.h
-@@ -6,6 +6,7 @@
- #endif
- 
- #include <asm/compiler.h>
-+#include <asm/barrier.h>
+diff -puN arch/powerpc/kernel/time.c~powerpc-add-scaled-time-accounting-speedup arch/powerpc/kernel/time.c
+--- a/arch/powerpc/kernel/time.c~powerpc-add-scaled-time-accounting-speedup
++++ a/arch/powerpc/kernel/time.c
+@@ -214,11 +214,11 @@ static u64 read_purr(void)
+ /*
+  * Read the SPURR on systems that have it, otherwise the purr
+  */
+-static u64 read_spurr(void)
++static u64 read_spurr(u64 purr)
+ {
+ 	if (cpu_has_feature(CPU_FTR_SPURR))
+ 		return mfspr(SPRN_SPURR);
+-	return read_purr();
++	return purr;
+ }
  
  /*
-  * Copyright 1994, Linus Torvalds.
+@@ -234,7 +234,7 @@ void account_system_vtime(struct task_st
+ 	now = read_purr();
+ 	delta = now - get_paca()->startpurr;
+ 	get_paca()->startpurr = now;
+-	nowscaled = read_spurr();
++	nowscaled = read_spurr(now);
+ 	deltascaled = nowscaled - get_paca()->startspurr;
+ 	get_paca()->startspurr = nowscaled;
+ 	if (!in_interrupt()) {
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from pbadari@us.ibm.com are
 
 origin.patch
-make-kernel-power-maincsuspend_enter-static.patch
-sysctl-parport-remove-binary-paths.patch
-sysctl-error-on-bad-sysctl-tables.patch
-alpha-lock-bitops.patch
-alpha-lock-bitops-fix.patch
+sysctl-remove-the-binary-interface-for-aio-nr-aio-max-nr-acpi_video_flags.patch
+powerpc-add-scaled-time-accounting.patch
+powerpc-add-scaled-time-accounting-speedup.patch
