@@ -1,131 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: - clean-out-unused-code-in-dentry-pruning.patch removed from -mm tree
-Date: Wed, 17 Oct 2007 23:56:08 -0700
-Message-ID: <200710180656.l9I6u8Xl030678@imap1.linux-foundation.org>
+Subject: - fuse-clean-up-execute-permission-checking.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 00:03:41 -0700
+Message-ID: <200710180703.l9I73fJ2031459@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55869 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59167 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763027AbXJRHPs (ORCPT
+	by vger.kernel.org with ESMTP id S1763051AbXJRHPt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 03:15:48 -0400
+	Thu, 18 Oct 2007 03:15:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     clean out unused code in dentry pruning
+     fuse: clean up execute permission checking
 has been removed from the -mm tree.  Its filename was
-     clean-out-unused-code-in-dentry-pruning.patch
+     fuse-clean-up-execute-permission-checking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: clean out unused code in dentry pruning
+Subject: fuse: clean up execute permission checking
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-It looks like in the end all pruners want parents removed.
+Define a new function fuse_refresh_attributes() that conditionally refreshes
+the attributes based on the validity timeout.
 
-So remove unused code and function arguments.
+In fuse_permission() only refresh the attributes for checking the execute bits
+if necessary.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c |   24 ++++++++++--------------
- 1 file changed, 10 insertions(+), 14 deletions(-)
+ fs/fuse/dir.c |   49 ++++++++++++++++++++++++++++++------------------
+ 1 file changed, 31 insertions(+), 18 deletions(-)
 
-diff -puN fs/dcache.c~clean-out-unused-code-in-dentry-pruning fs/dcache.c
---- a/fs/dcache.c~clean-out-unused-code-in-dentry-pruning
-+++ a/fs/dcache.c
-@@ -381,20 +381,17 @@ restart:
-  * Throw away a dentry - free the inode, dput the parent.  This requires that
-  * the LRU list has already been removed.
-  *
-- * If prune_parents is true, try to prune ancestors as well.
-+ * Try to prune ancestors as well.  This is necessary to prevent
-+ * quadratic behavior of shrink_dcache_parent(), but is also expected
-+ * to be beneficial in reducing dentry cache fragmentation.
-  *
-  * Called with dcache_lock, drops it and then regains.
-  * Called with dentry->d_lock held, drops it.
-  */
--static void prune_one_dentry(struct dentry * dentry, int prune_parents)
-+static void prune_one_dentry(struct dentry * dentry)
- {
- 	__d_drop(dentry);
- 	dentry = d_kill(dentry);
--	if (!prune_parents) {
--		dput(dentry);
--		spin_lock(&dcache_lock);
--		return;
--	}
- 
- 	/*
- 	 * Prune ancestors.  Locking is simpler than in dput(),
-@@ -422,7 +419,6 @@ static void prune_one_dentry(struct dent
-  * @count: number of entries to try and free
-  * @sb: if given, ignore dentries for other superblocks
-  *         which are being unmounted.
-- * @prune_parents: if true, try to prune ancestors as well in one go
-  *
-  * Shrink the dcache. This is done when we need
-  * more memory, or simply when we need to unmount
-@@ -433,7 +429,7 @@ static void prune_one_dentry(struct dent
-  * all the dentries are in use.
-  */
-  
--static void prune_dcache(int count, struct super_block *sb, int prune_parents)
-+static void prune_dcache(int count, struct super_block *sb)
- {
- 	spin_lock(&dcache_lock);
- 	for (; count ; count--) {
-@@ -493,7 +489,7 @@ static void prune_dcache(int count, stru
- 		 * without taking the s_umount lock (I already hold it).
- 		 */
- 		if (sb && dentry->d_sb == sb) {
--			prune_one_dentry(dentry, prune_parents);
-+			prune_one_dentry(dentry);
- 			continue;
- 		}
- 		/*
-@@ -508,7 +504,7 @@ static void prune_dcache(int count, stru
- 		s_umount = &dentry->d_sb->s_umount;
- 		if (down_read_trylock(s_umount)) {
- 			if (dentry->d_sb->s_root != NULL) {
--				prune_one_dentry(dentry, prune_parents);
-+				prune_one_dentry(dentry);
- 				up_read(s_umount);
- 				continue;
- 			}
-@@ -579,7 +575,7 @@ repeat:
- 			spin_unlock(&dentry->d_lock);
- 			continue;
- 		}
--		prune_one_dentry(dentry, 1);
-+		prune_one_dentry(dentry);
- 		cond_resched_lock(&dcache_lock);
- 		goto repeat;
- 	}
-@@ -858,7 +854,7 @@ void shrink_dcache_parent(struct dentry 
- 	int found;
- 
- 	while ((found = select_parent(parent)) != 0)
--		prune_dcache(found, parent->d_sb, 1);
-+		prune_dcache(found, parent->d_sb);
+diff -puN fs/fuse/dir.c~fuse-clean-up-execute-permission-checking fs/fuse/dir.c
+--- a/fs/fuse/dir.c~fuse-clean-up-execute-permission-checking
++++ a/fs/fuse/dir.c
+@@ -695,6 +695,20 @@ static int fuse_do_getattr(struct inode 
  }
  
  /*
-@@ -878,7 +874,7 @@ static int shrink_dcache_memory(int nr, 
- 	if (nr) {
- 		if (!(gfp_mask & __GFP_FS))
- 			return -1;
--		prune_dcache(nr, NULL, 1);
-+		prune_dcache(nr, NULL);
++ * Check if attributes are still valid, and if not send a GETATTR
++ * request to refresh them.
++ */
++static int fuse_refresh_attributes(struct inode *inode)
++{
++	struct fuse_inode *fi = get_fuse_inode(inode);
++
++	if (fi->i_time < get_jiffies_64())
++		return fuse_do_getattr(inode);
++	else
++		return 0;
++}
++
++/*
+  * Calling into a user-controlled filesystem gives the filesystem
+  * daemon ptrace-like capabilities over the requester process.  This
+  * means, that the filesystem daemon is able to record the exact
+@@ -770,7 +784,6 @@ static int fuse_access(struct inode *ino
+ static int fuse_permission(struct inode *inode, int mask, struct nameidata *nd)
+ {
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+-	struct fuse_inode *fi = get_fuse_inode(inode);
+ 	bool refreshed = false;
+ 	int err = 0;
+ 
+@@ -778,12 +791,11 @@ static int fuse_permission(struct inode 
+ 		return -EACCES;
+ 
+ 	/*
+-	 * If attributes are needed, but are stale, refresh them
+-	 * before proceeding
++	 * If attributes are needed, refresh them before proceeding
+ 	 */
+-	if (((fc->flags & FUSE_DEFAULT_PERMISSIONS) || (mask & MAY_EXEC)) &&
+-	    fi->i_time < get_jiffies_64()) {
+-		err = fuse_do_getattr(inode);
++	if ((fc->flags & FUSE_DEFAULT_PERMISSIONS) ||
++	    ((mask & MAY_EXEC) && S_ISREG(inode->i_mode))) {
++		err = fuse_refresh_attributes(inode);
+ 		if (err)
+ 			return err;
+ 
+@@ -806,14 +818,17 @@ static int fuse_permission(struct inode 
+ 		   exist.  So if permissions are revoked this won't be
+ 		   noticed immediately, only after the attribute
+ 		   timeout has expired */
+-
+-	} else {
+-		int mode = inode->i_mode;
+-		if ((mask & MAY_EXEC) && !S_ISDIR(mode) && !(mode & S_IXUGO))
+-			return -EACCES;
+-
+-		if (nd && (nd->flags & (LOOKUP_ACCESS | LOOKUP_CHDIR)))
+-			return fuse_access(inode, mask);
++	} else if (nd && (nd->flags & (LOOKUP_ACCESS | LOOKUP_CHDIR))) {
++		err = fuse_access(inode, mask);
++	} else if ((mask & MAY_EXEC) && S_ISREG(inode->i_mode)) {
++		if (!(inode->i_mode & S_IXUGO)) {
++			if (refreshed)
++				return -EACCES;
++
++			err = fuse_do_getattr(inode);
++			if (!err && !(inode->i_mode & S_IXUGO))
++				return -EACCES;
++		}
  	}
- 	return (dentry_stat.nr_unused / 100) * sysctl_vfs_cache_pressure;
+ 	return err;
  }
+@@ -1046,14 +1061,12 @@ static int fuse_getattr(struct vfsmount 
+ 	struct inode *inode = entry->d_inode;
+ 	struct fuse_inode *fi = get_fuse_inode(inode);
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+-	int err = 0;
++	int err;
+ 
+ 	if (!fuse_allow_task(fc, current))
+ 		return -EACCES;
+ 
+-	if (fi->i_time < get_jiffies_64())
+-		err = fuse_do_getattr(inode);
+-
++	err = fuse_refresh_attributes(inode);
+ 	if (!err) {
+ 		generic_fillattr(inode, stat);
+ 		stat->mode = fi->orig_i_mode;
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
