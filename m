@@ -1,61 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-fix-up-lockdep-warnings-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 14:10:51 -0700
-Message-ID: <200710182110.l9ILApvM031254@imap1.linux-foundation.org>
+Subject: + reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes-2.patch added to -mm tree
+Date: Thu, 18 Oct 2007 14:11:17 -0700
+Message-ID: <200710182111.l9ILBHdY031293@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47082 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50462 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764655AbXJRVLp (ORCPT
+	by vger.kernel.org with ESMTP id S1764993AbXJRVLv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 17:11:45 -0400
+	Thu, 18 Oct 2007 17:11:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, hch@lst.de, jeffm@suse.com, mason@suse.com, vs@namesys.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, jeffm@suse.com
 
 
 The patch titled
-     reiserfs-fix-up-lockdep-warnings-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     reiserfs-fix-up-lockdep-warnings-checkpatch-fixes.patch
+     reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes-2
+has been added to the -mm tree.  Its filename is
+     reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes-2.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: reiserfs-fix-up-lockdep-warnings-checkpatch-fixes
+Subject: reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: use tabs not spaces
-#34: FILE: fs/reiserfs/xattr.c:1227:
-+^I^I^I^I$
+ERROR: need consistent spacing around '-' (ctx:WxV)
+#241: FILE: include/linux/reiserfs_fs.h:290:
++	return (SB_BLOCK_COUNT(sb) -1) / (sb->s_blocksize * 8) + 1;
+ 	                           ^
 
+total: 1 errors, 0 warnings, 193 lines checked
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
-Cc: "Vladimir V. Saveliev" <vs@namesys.com>
-Cc: Chris Mason <mason@suse.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Please run checkpatch prior to sending patches
+
 Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/xattr.c |    2 +-
+ include/linux/reiserfs_fs.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/reiserfs/xattr.c~reiserfs-fix-up-lockdep-warnings-checkpatch-fixes fs/reiserfs/xattr.c
---- a/fs/reiserfs/xattr.c~reiserfs-fix-up-lockdep-warnings-checkpatch-fixes
-+++ a/fs/reiserfs/xattr.c
-@@ -1224,7 +1224,7 @@ int reiserfs_xattr_init(struct super_blo
- 			if (!(mount_flags & MS_RDONLY) && !dentry->d_inode) {
- 				struct inode *inode = dentry->d_parent->d_inode;
- 				mutex_lock_nested(&inode->i_mutex,
--				                  I_MUTEX_XATTR);
-+						  I_MUTEX_XATTR);
- 				err = inode->i_op->mkdir(inode, dentry, 0700);
- 				mutex_unlock(&inode->i_mutex);
- 				if (err) {
+diff -puN include/linux/reiserfs_fs.h~reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes-2 include/linux/reiserfs_fs.h
+--- a/include/linux/reiserfs_fs.h~reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes-2
++++ a/include/linux/reiserfs_fs.h
+@@ -287,7 +287,7 @@ static inline struct reiserfs_sb_info *R
+  * which overflows on large file systems. */
+ static inline u32 reiserfs_bmap_count(struct super_block *sb)
+ {
+-	return (SB_BLOCK_COUNT(sb) -1) / (sb->s_blocksize * 8) + 1;
++	return (SB_BLOCK_COUNT(sb) - 1) / (sb->s_blocksize * 8) + 1;
+ }
+ 
+ static inline int bmap_would_wrap(unsigned bmap_nr)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -124,10 +128,6 @@ jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
 peterz-vs-ext4-mballoc-core.patch
 64-bit-i_version-afs-fixes.patch
 reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes-2.patch
-reiserfs-fix-up-lockdep-warnings-checkpatch-fixes.patch
-reiserfs-use-is_reusable-to-catch-corruption-checkpatch-fixes.patch
-reiserfs-fix-usage-of-signed-ints-for-block-numbers-checkpatch-fixes.patch
-reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
 revoke-wire-up-i386-system-calls.patch
