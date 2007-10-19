@@ -1,284 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - hibernation-check-if-acpi-is-enabled-during-restore-in-the-right-place.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:41:28 -0700
-Message-ID: <200710190341.l9J3fStx012822@imap1.linux-foundation.org>
+Subject: - char-rocket-fix-dynamic_dev-tty.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:44:34 -0700
+Message-ID: <200710190344.l9J3iYQi013155@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41964 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46766 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966522AbXJSD4A (ORCPT
+	by vger.kernel.org with ESMTP id S966517AbXJSD4A (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 18 Oct 2007 23:56:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, wferi@niif.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Hibernation: Check if ACPI is enabled during restore in the right =
-place
+     Char: rocket, fix dynamic_dev tty
 has been removed from the -mm tree.  Its filename was
-     hibernation-check-if-acpi-is-enabled-during-restore-in-the-right-p=
-lace.patch
+     char-rocket-fix-dynamic_dev-tty.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Hibernation: Check if ACPI is enabled during restore in the ri=
-ght place
-=46rom: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: Char: rocket, fix dynamic_dev tty
+From: Jiri Slaby <jirislaby@gmail.com>
 
-The following scenario leads to total confusion of the platform firmwar=
-e on
-some boxes (eg. HPC nx6325):
-* Hibernate with ACPI enabled
-* Resume passing "acpi=3Doff" to the boot kernel
+- register_device unconditionally (non-pci dependent) to have also isa
+  devices in /dev
+- unregister devices on module removal
+- don't set TTY_DRIVER_DYNAMIC_DEV twice (removed the one dependent on some
+  macro)
 
-To prevent this from happening it's necessary to check if ACPI is enabl=
-ed (and
-enable it if that's not the case) _right_ _after_ control has been tran=
-sfered
-from the boot kernel to the image kernel, before device_power_up() is c=
-alled
-(ie.  with interrupts disabled).  =A0Enabling ACPI after calling
-device_power_up() turns out to be insufficient.
-
-=46or this reason, introduce new hibernation callback ->leave() that wi=
-ll be
-executed before device_power_up() by the restored image kernel.  =A0To =
-make it
-work, it also is necessary to move swsusp_suspend() from swsusp.c to di=
-sk.c
-(it's name is changed to "create_image", which is more up to the point)=
-=2E
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Ferenc Wagner <wferi@niif.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/sleep/main.c |   10 ++++++
- include/linux/suspend.h   |    7 ++++
- kernel/power/disk.c       |   58 +++++++++++++++++++++++++++++++++++-
- kernel/power/power.h      |    1=20
- kernel/power/swsusp.c     |   33 --------------------
- 5 files changed, 74 insertions(+), 35 deletions(-)
+ drivers/char/rocket.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN drivers/acpi/sleep/main.c~hibernation-check-if-acpi-is-enable=
-d-during-restore-in-the-right-place drivers/acpi/sleep/main.c
---- a/drivers/acpi/sleep/main.c~hibernation-check-if-acpi-is-enabled-du=
-ring-restore-in-the-right-place
-+++ a/drivers/acpi/sleep/main.c
-@@ -257,6 +257,15 @@ static int acpi_hibernation_enter(void)
- 	return ACPI_SUCCESS(status) ? 0 : -EFAULT;
+diff -puN drivers/char/rocket.c~char-rocket-fix-dynamic_dev-tty drivers/char/rocket.c
+--- a/drivers/char/rocket.c~char-rocket-fix-dynamic_dev-tty
++++ a/drivers/char/rocket.c
+@@ -700,8 +700,8 @@ static void init_r_port(int board, int a
+ 	spin_lock_init(&info->slock);
+ 	mutex_init(&info->write_mtx);
+ 	rp_table[line] = info;
+-	if (pci_dev)
+-		tty_register_device(rocket_driver, line, &pci_dev->dev);
++	tty_register_device(rocket_driver, line, pci_dev ? &pci_dev->dev :
++			NULL);
  }
-=20
-+static void acpi_hibernation_leave(void)
-+{
-+	/*
-+	 * If ACPI is not enabled by the BIOS and the boot kernel, we need to
-+	 * enable it here.
-+	 */
-+	acpi_enable();
-+}
+ 
+ /*
+@@ -2438,7 +2438,7 @@ static int __init rp_init(void)
+ 	rocket_driver->init_termios.c_ispeed = 9600;
+ 	rocket_driver->init_termios.c_ospeed = 9600;
+ #ifdef ROCKET_SOFT_FLOW
+-	rocket_driver->flags |= TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
++	rocket_driver->flags |= TTY_DRIVER_REAL_RAW;
+ #endif
+ 	tty_set_operations(rocket_driver, &rocket_ops);
+ 
+@@ -2495,10 +2495,14 @@ static void rp_cleanup_module(void)
+ 	if (retval)
+ 		printk(KERN_INFO "Error %d while trying to unregister "
+ 		       "rocketport driver\n", -retval);
+-	put_tty_driver(rocket_driver);
+ 
+ 	for (i = 0; i < MAX_RP_PORTS; i++)
+-		kfree(rp_table[i]);
++		if (rp_table[i]) {
++			tty_unregister_device(rocket_driver, i);
++			kfree(rp_table[i]);
++		}
 +
- static void acpi_hibernation_finish(void)
- {
- 	acpi_leave_sleep_state(ACPI_STATE_S4);
-@@ -288,6 +297,7 @@ static struct platform_hibernation_ops a
- 	.finish =3D acpi_hibernation_finish,
- 	.prepare =3D acpi_hibernation_prepare,
- 	.enter =3D acpi_hibernation_enter,
-+	.leave =3D acpi_hibernation_leave,
- 	.pre_restore =3D acpi_hibernation_pre_restore,
- 	.restore_cleanup =3D acpi_hibernation_restore_cleanup,
- };
-diff -puN include/linux/suspend.h~hibernation-check-if-acpi-is-enabled-=
-during-restore-in-the-right-place include/linux/suspend.h
---- a/include/linux/suspend.h~hibernation-check-if-acpi-is-enabled-duri=
-ng-restore-in-the-right-place
-+++ a/include/linux/suspend.h
-@@ -156,6 +156,12 @@ extern void mark_free_pages(struct zone=20
-  *	Called after the nonboot CPUs have been disabled and all of the low
-  *	level devices have been shut down (runs with IRQs off).
-  *
-+ * @leave: Perform the first stage of the cleanup after the system sle=
-ep state
-+ *	indicated by @set_target() has been left.
-+ *	Called right after the control has been passed from the boot kernel=
- to
-+ *	the image kernel, before the nonboot CPUs are enabled and before de=
-vices
-+ *	are resumed.  Executed with interrupts disabled.
-+ *
-  * @pre_restore: Prepare system for the restoration from a hibernation=
- image.
-  *	Called right after devices have been frozen and before the nonboot
-  *	CPUs are disabled (runs with IRQs on).
-@@ -170,6 +176,7 @@ struct platform_hibernation_ops {
- 	void (*finish)(void);
- 	int (*prepare)(void);
- 	int (*enter)(void);
-+	void (*leave)(void);
- 	int (*pre_restore)(void);
- 	void (*restore_cleanup)(void);
- };
-diff -puN kernel/power/disk.c~hibernation-check-if-acpi-is-enabled-duri=
-ng-restore-in-the-right-place kernel/power/disk.c
---- a/kernel/power/disk.c~hibernation-check-if-acpi-is-enabled-during-r=
-estore-in-the-right-place
-+++ a/kernel/power/disk.c
-@@ -93,6 +93,17 @@ static int platform_pre_snapshot(int pla
- }
-=20
- /**
-+ *	platform_leave - prepare the machine for switching to the normal mo=
-de
-+ *	of operation using the platform driver (called with interrupts disa=
-bled)
-+ */
-+
-+static void platform_leave(int platform_mode)
-+{
-+	if (platform_mode && hibernation_ops)
-+		hibernation_ops->leave();
-+}
-+
-+/**
-  *	platform_finish - switch the machine to the normal mode of operatio=
-n
-  *	using the platform driver (must be called after platform_prepare())
-  */
-@@ -129,6 +140,51 @@ static void platform_restore_cleanup(int
- }
-=20
- /**
-+ *	create_image - freeze devices that need to be frozen with interrupt=
-s
-+ *	off, create the hibernation image and thaw those devices.  Control
-+ *	reappears in this routine after a restore.
-+ */
-+
-+int create_image(int platform_mode)
-+{
-+	int error;
-+
-+	error =3D arch_prepare_suspend();
-+	if (error)
-+		return error;
-+
-+	local_irq_disable();
-+	/* At this point, device_suspend() has been called, but *not*
-+	 * device_power_down(). We *must* call device_power_down() now.
-+	 * Otherwise, drivers for some devices (e.g. interrupt controllers)
-+	 * become desynchronized with the actual state of the hardware
-+	 * at resume time, and evil weirdness ensues.
-+	 */
-+	error =3D device_power_down(PMSG_FREEZE);
-+	if (error) {
-+		printk(KERN_ERR "Some devices failed to power down, "
-+			KERN_ERR "aborting suspend\n");
-+		goto Enable_irqs;
-+	}
-+
-+	save_processor_state();
-+	error =3D swsusp_arch_suspend();
-+	if (error)
-+		printk(KERN_ERR "Error %d while creating the image\n", error);
-+	/* Restore control flow magically appears here */
-+	restore_processor_state();
-+	if (!in_suspend)
-+		platform_leave(platform_mode);
-+	/* NOTE:  device_power_up() is just a resume() for devices
-+	 * that suspended with irqs off ... no overall powerup.
-+	 */
-+	device_power_up();
-+ Enable_irqs:
-+	local_irq_enable();
-+	return error;
-+}
-+
-+/**
-  *	hibernation_snapshot - quiesce devices and create the hibernation
-  *	snapshot image.
-  *	@platform_mode - if set, use the platform driver, if available, to
-@@ -163,7 +219,7 @@ int hibernation_snapshot(int platform_mo
- 	if (!error) {
- 		if (hibernation_mode !=3D HIBERNATION_TEST) {
- 			in_suspend =3D 1;
--			error =3D swsusp_suspend();
-+			error =3D create_image(platform_mode);
- 			/* Control returns here after successful restore */
- 		} else {
- 			printk("swsusp debug: Waiting for 5 seconds.\n");
-diff -puN kernel/power/power.h~hibernation-check-if-acpi-is-enabled-dur=
-ing-restore-in-the-right-place kernel/power/power.h
---- a/kernel/power/power.h~hibernation-check-if-acpi-is-enabled-during-=
-restore-in-the-right-place
-+++ a/kernel/power/power.h
-@@ -183,7 +183,6 @@ extern int swsusp_swap_in_use(void);
- extern int swsusp_check(void);
- extern int swsusp_shrink_memory(void);
- extern void swsusp_free(void);
--extern int swsusp_suspend(void);
- extern int swsusp_resume(void);
- extern int swsusp_read(unsigned int *flags_p);
- extern int swsusp_write(unsigned int flags);
-diff -puN kernel/power/swsusp.c~hibernation-check-if-acpi-is-enabled-du=
-ring-restore-in-the-right-place kernel/power/swsusp.c
---- a/kernel/power/swsusp.c~hibernation-check-if-acpi-is-enabled-during=
--restore-in-the-right-place
-+++ a/kernel/power/swsusp.c
-@@ -270,39 +270,6 @@ int swsusp_shrink_memory(void)
- 	return 0;
- }
-=20
--int swsusp_suspend(void)
--{
--	int error;
--
--	if ((error =3D arch_prepare_suspend()))
--		return error;
--
--	local_irq_disable();
--	/* At this point, device_suspend() has been called, but *not*
--	 * device_power_down(). We *must* device_power_down() now.
--	 * Otherwise, drivers for some devices (e.g. interrupt controllers)
--	 * become desynchronized with the actual state of the hardware
--	 * at resume time, and evil weirdness ensues.
--	 */
--	if ((error =3D device_power_down(PMSG_FREEZE))) {
--		printk(KERN_ERR "Some devices failed to power down, aborting suspend=
-\n");
--		goto Enable_irqs;
--	}
--
--	save_processor_state();
--	if ((error =3D swsusp_arch_suspend()))
--		printk(KERN_ERR "Error %d suspending\n", error);
--	/* Restore control flow magically appears here */
--	restore_processor_state();
--	/* NOTE:  device_power_up() is just a resume() for devices
--	 * that suspended with irqs off ... no overall powerup.
--	 */
--	device_power_up();
-- Enable_irqs:
--	local_irq_enable();
--	return error;
--}
--
- int swsusp_resume(void)
- {
- 	int error;
++	put_tty_driver(rocket_driver);
+ 
+ 	for (i = 0; i < NUM_BOARDS; i++) {
+ 		if (rcktpt_io_addr[i] <= 0 || is_PCI[i])
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-git-acpi.patch
-revert-x86_64-mm-cpa-einval.patch
+git-dvb.patch
+v4l-stk11xx-add-a-new-webcam-driver.patch
+v4l-stk11xx-use-array_size-in-another-2-cases.patch
+v4l-stk11xx-use-retval-from-stk11xx_check_device.patch
+v4l-stk11xx-add-static-to-tables.patch
+git-wireless.patch
+misc-phantom-synchronize_irq-on-suspend.patch
+misc-phantom-add-comment-about-openhaptics.patch
+misc-phantom-improved-data-passing.patch
+fs-select-remove-unused-macros.patch
+remove-asm-bitopsh-includes.patch
+forbid-asm-bitopsh-direct-inclusion.patch
+cyber2000fb-rename-bit-macro.patch
+i2c-pxa-rename-bit-macro-to-pxa_bit.patch
+s2io-rename-bit-macro.patch
+amba-pl011-rename-bit-macro.patch
+define-first-set-of-bit-macros.patch
+get-rid-of-input-bit-duplicate-defines.patch
+define-global-bit-macro.patch
+flashpoint-use-bit-instead-of-bitw.patch
+remove-bits_to_type-macro.patch
+remove-bits_to_type-macro-fix.patch
+remove-asm-bitopsh-includes-reiser4.patch
 shrink_slab-handle-bad-shrinkers.patch
