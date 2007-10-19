@@ -1,129 +1,306 @@
 From: akpm@linux-foundation.org
-Subject: - virtualization-of-sysv-msg-queues-is-incomplete.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:53:56 -0700
-Message-ID: <200710192253.l9JMruFu024473@imap1.linux-foundation.org>
+Subject: - define-global-bit-macro.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:52:55 -0700
+Message-ID: <200710192252.l9JMqt6j024314@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40590 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34921 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967053AbXJSXHk (ORCPT
+	by vger.kernel.org with ESMTP id S967064AbXJSXH4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 19:07:40 -0400
+	Fri, 19 Oct 2007 19:07:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dev@openvz.org, Nadia.Derbey@bull.net, alexey@openvz.org, ebiederm@xmission.com, pierre.peiffer@bull.net, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, James.Bottomley@steeleye.com, adaplas@pol.net, benh@kernel.crashing.org, dtor@mail.ru, galak@gate.crashing.org, jeff@garzik.org, linville@tuxdriver.com, paulus@sam
 
 
 The patch titled
-     virtualization of sysv msg queues is incomplete
+     define global BIT macro
 has been removed from the -mm tree.  Its filename was
-     virtualization-of-sysv-msg-queues-is-incomplete.patch
+     define-global-bit-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: virtualization of sysv msg queues is incomplete
-From: Kirill Korotaev <dev@openvz.org>
+Subject: define global BIT macro
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Virtualization of sysv msg queues is incomplete: msg_hdrs and msg_bytes
-variables visible from userspace are global.  Let's make them
-per-namespace.
+define global BIT macro
 
-Signed-off-by: Alexey Kuznetsov <alexey@openvz.org>
-Signed-off-by: Kirill Korotaev <dev@openvz.org>
-Cc: Pierre Peiffer <pierre.peiffer@bull.net>
-Cc: Nadia Derbey <Nadia.Derbey@bull.net>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+move all local BIT defines to the new globally define macro.
+
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ipc.h |    2 ++
- ipc/msg.c           |   21 ++++++++++-----------
- 2 files changed, 12 insertions(+), 11 deletions(-)
+ arch/ppc/platforms/chestnut.c               |    1 -
+ drivers/edac/edac_core.h                    |    2 --
+ drivers/firmware/dcdbas.h                   |    2 --
+ drivers/input/serio/maceps2.c               |    2 --
+ drivers/net/eth16i.c                        |    1 -
+ drivers/net/meth.h                          |    3 ---
+ drivers/net/wireless/hostap/hostap_common.h |    3 ---
+ drivers/scsi/FlashPoint.c                   |    1 -
+ drivers/scsi/nsp32.h                        |    5 -----
+ drivers/scsi/pcmcia/nsp_cs.h                |    1 -
+ drivers/video/pnx4008/sdum.h                |    3 ---
+ include/asm-arm/arch-ixp4xx/io.h            |    3 ---
+ include/asm-mips/ip32/crime.h               |    3 ---
+ include/asm-mips/ip32/mace.h                |    3 ---
+ include/linux/bitops.h                      |    1 +
+ include/video/sstfb.h                       |    1 -
+ include/video/tdfx.h                        |    2 --
+ net/mac80211/ieee80211_i.h                  |    2 --
+ 18 files changed, 1 insertion(+), 38 deletions(-)
 
-diff -puN include/linux/ipc.h~virtualization-of-sysv-msg-queues-is-incomplete include/linux/ipc.h
---- a/include/linux/ipc.h~virtualization-of-sysv-msg-queues-is-incomplete
-+++ a/include/linux/ipc.h
-@@ -111,6 +111,8 @@ struct ipc_namespace {
- 	int		msg_ctlmax;
- 	int		msg_ctlmnb;
- 	int		msg_ctlmni;
-+	atomic_t	msg_bytes;
-+	atomic_t	msg_hdrs;
+diff -puN arch/ppc/platforms/chestnut.c~define-global-bit-macro arch/ppc/platforms/chestnut.c
+--- a/arch/ppc/platforms/chestnut.c~define-global-bit-macro
++++ a/arch/ppc/platforms/chestnut.c
+@@ -49,7 +49,6 @@ extern void gen550_progress(char *, unsi
+ extern void gen550_init(int, struct uart_port *);
+ extern void mv64360_pcibios_fixup(mv64x60_handle_t *bh);
  
- 	size_t		shm_ctlmax;
- 	size_t		shm_ctlall;
-diff -puN ipc/msg.c~virtualization-of-sysv-msg-queues-is-incomplete ipc/msg.c
---- a/ipc/msg.c~virtualization-of-sysv-msg-queues-is-incomplete
-+++ a/ipc/msg.c
-@@ -66,9 +66,6 @@ struct msg_sender {
- #define SEARCH_NOTEQUAL		3
- #define SEARCH_LESSEQUAL	4
+-#define BIT(x) (1<<x)
+ #define CHESTNUT_PRESERVE_MASK (BIT(MV64x60_CPU2DEV_0_WIN) | \
+ 				BIT(MV64x60_CPU2DEV_1_WIN) | \
+ 				BIT(MV64x60_CPU2DEV_2_WIN) | \
+diff -puN drivers/edac/edac_core.h~define-global-bit-macro drivers/edac/edac_core.h
+--- a/drivers/edac/edac_core.h~define-global-bit-macro
++++ a/drivers/edac/edac_core.h
+@@ -94,8 +94,6 @@ extern int edac_debug_level;
  
--static atomic_t msg_bytes =	ATOMIC_INIT(0);
--static atomic_t msg_hdrs =	ATOMIC_INIT(0);
+ #endif				/* !CONFIG_EDAC_DEBUG */
+ 
+-#define BIT(x) (1 << (x))
 -
- static struct ipc_ids init_msg_ids;
+ #define PCI_VEND_DEV(vend, dev) PCI_VENDOR_ID_ ## vend, \
+ 	PCI_DEVICE_ID_ ## vend ## _ ## dev
  
- #define msg_ids(ns)	(*((ns)->ids[IPC_MSG_IDS]))
-@@ -88,6 +85,8 @@ static void __msg_init_ns(struct ipc_nam
- 	ns->msg_ctlmax = MSGMAX;
- 	ns->msg_ctlmnb = MSGMNB;
- 	ns->msg_ctlmni = MSGMNI;
-+	atomic_set(&ns->msg_bytes, 0);
-+	atomic_set(&ns->msg_hdrs, 0);
- 	ipc_init_ids(ids);
- }
+diff -puN drivers/firmware/dcdbas.h~define-global-bit-macro drivers/firmware/dcdbas.h
+--- a/drivers/firmware/dcdbas.h~define-global-bit-macro
++++ a/drivers/firmware/dcdbas.h
+@@ -20,8 +20,6 @@
+ #include <linux/sysfs.h>
+ #include <linux/types.h>
  
-@@ -293,10 +292,10 @@ static void freeque(struct ipc_namespace
- 		struct msg_msg *msg = list_entry(tmp, struct msg_msg, m_list);
+-#define BIT(x)					(1UL << x)
+-
+ #define MAX_SMI_DATA_BUF_SIZE			(256 * 1024)
  
- 		tmp = tmp->next;
--		atomic_dec(&msg_hdrs);
-+		atomic_dec(&ns->msg_hdrs);
- 		free_msg(msg);
- 	}
--	atomic_sub(msq->q_cbytes, &msg_bytes);
-+	atomic_sub(msq->q_cbytes, &ns->msg_bytes);
- 	security_msg_queue_free(msq);
- 	ipc_rcu_putref(msq);
- }
-@@ -463,8 +462,8 @@ asmlinkage long sys_msgctl(int msqid, in
- 		down_read(&msg_ids(ns).rw_mutex);
- 		if (cmd == MSG_INFO) {
- 			msginfo.msgpool = msg_ids(ns).in_use;
--			msginfo.msgmap = atomic_read(&msg_hdrs);
--			msginfo.msgtql = atomic_read(&msg_bytes);
-+			msginfo.msgmap = atomic_read(&ns->msg_hdrs);
-+			msginfo.msgtql = atomic_read(&ns->msg_bytes);
- 		} else {
- 			msginfo.msgmap = MSGMAP;
- 			msginfo.msgpool = MSGPOOL;
-@@ -735,8 +734,8 @@ long do_msgsnd(int msqid, long mtype, vo
- 		list_add_tail(&msg->m_list, &msq->q_messages);
- 		msq->q_cbytes += msgsz;
- 		msq->q_qnum++;
--		atomic_add(msgsz, &msg_bytes);
--		atomic_inc(&msg_hdrs);
-+		atomic_add(msgsz, &ns->msg_bytes);
-+		atomic_inc(&ns->msg_hdrs);
- 	}
+ #define HC_ACTION_NONE				(0)
+diff -puN drivers/input/serio/maceps2.c~define-global-bit-macro drivers/input/serio/maceps2.c
+--- a/drivers/input/serio/maceps2.c~define-global-bit-macro
++++ a/drivers/input/serio/maceps2.c
+@@ -31,8 +31,6 @@ MODULE_LICENSE("GPL");
  
- 	err = 0;
-@@ -840,8 +839,8 @@ long do_msgrcv(int msqid, long *pmtype, 
- 			msq->q_rtime = get_seconds();
- 			msq->q_lrpid = task_tgid_vnr(current);
- 			msq->q_cbytes -= msg->m_ts;
--			atomic_sub(msg->m_ts, &msg_bytes);
--			atomic_dec(&msg_hdrs);
-+			atomic_sub(msg->m_ts, &ns->msg_bytes);
-+			atomic_dec(&ns->msg_hdrs);
- 			ss_wakeup(&msq->q_senders, 0);
- 			msg_unlock(msq);
- 			break;
+ #define MACE_PS2_TIMEOUT 10000 /* in 50us unit */
+ 
+-#define BIT(x) (1UL << (x))
+-
+ #define PS2_STATUS_CLOCK_SIGNAL  BIT(0) /* external clock signal */
+ #define PS2_STATUS_CLOCK_INHIBIT BIT(1) /* clken output signal */
+ #define PS2_STATUS_TX_INPROGRESS BIT(2) /* transmission in progress */
+diff -puN drivers/net/eth16i.c~define-global-bit-macro drivers/net/eth16i.c
+--- a/drivers/net/eth16i.c~define-global-bit-macro
++++ a/drivers/net/eth16i.c
+@@ -170,7 +170,6 @@ static char *version =
+ 
+ 
+ /* Few macros */
+-#define BIT(a)		       ( (1 << (a)) )
+ #define BITSET(ioaddr, bnum)   ((outb(((inb(ioaddr)) | (bnum)), ioaddr)))
+ #define BITCLR(ioaddr, bnum)   ((outb(((inb(ioaddr)) & (~(bnum))), ioaddr)))
+ 
+diff -puN drivers/net/meth.h~define-global-bit-macro drivers/net/meth.h
+--- a/drivers/net/meth.h~define-global-bit-macro
++++ a/drivers/net/meth.h
+@@ -28,9 +28,6 @@
+ #define RX_BUFFER_OFFSET (sizeof(rx_status_vector)+2) /* staus vector + 2 bytes of padding */
+ #define RX_BUCKET_SIZE 256
+ 
+-#undef BIT
+-#define BIT(x)	(1UL << (x))
+-
+ /* For more detailed explanations of what each field menas,
+    see Nick's great comments to #defines below (or docs, if
+    you are lucky enough toget hold of them :)*/
+diff -puN drivers/net/wireless/hostap/hostap_common.h~define-global-bit-macro drivers/net/wireless/hostap/hostap_common.h
+--- a/drivers/net/wireless/hostap/hostap_common.h~define-global-bit-macro
++++ a/drivers/net/wireless/hostap/hostap_common.h
+@@ -4,9 +4,6 @@
+ #include <linux/types.h>
+ #include <linux/if_ether.h>
+ 
+-#define BIT(x) (1 << (x))
+-
+-
+ /* IEEE 802.11 defines */
+ 
+ /* Information Element IDs */
+diff -puN drivers/scsi/FlashPoint.c~define-global-bit-macro drivers/scsi/FlashPoint.c
+--- a/drivers/scsi/FlashPoint.c~define-global-bit-macro
++++ a/drivers/scsi/FlashPoint.c
+@@ -25,7 +25,6 @@
+ 
+ #define FAILURE         0xFFFFFFFFL
+ 
+-#define BIT(x)          ((unsigned char)(1<<(x)))	/* single-bit mask in bit position x */
+ #define BITW(x)          ((unsigned short)(1<<(x)))	/* single-bit mask in bit position x */
+ 
+ struct sccb;
+diff -puN drivers/scsi/nsp32.h~define-global-bit-macro drivers/scsi/nsp32.h
+--- a/drivers/scsi/nsp32.h~define-global-bit-macro
++++ a/drivers/scsi/nsp32.h
+@@ -69,11 +69,6 @@ typedef u32 u32_le;
+ typedef u16 u16_le;
+ 
+ /*
+- * MACRO
+- */
+-#define BIT(x)      (1UL << (x))
+-
+-/*
+  * BASIC Definitions
+  */
+ #ifndef TRUE
+diff -puN drivers/scsi/pcmcia/nsp_cs.h~define-global-bit-macro drivers/scsi/pcmcia/nsp_cs.h
+--- a/drivers/scsi/pcmcia/nsp_cs.h~define-global-bit-macro
++++ a/drivers/scsi/pcmcia/nsp_cs.h
+@@ -24,7 +24,6 @@
+ /************************************
+  * Some useful macros...
+  */
+-#define BIT(x)      (1L << (x))
+ 
+ /* SCSI initiator must be ID 7 */
+ #define NSP_INITIATOR_ID  7
+diff -puN drivers/video/pnx4008/sdum.h~define-global-bit-macro drivers/video/pnx4008/sdum.h
+--- a/drivers/video/pnx4008/sdum.h~define-global-bit-macro
++++ a/drivers/video/pnx4008/sdum.h
+@@ -77,9 +77,6 @@
+ #define CONF_DIRTYDETECTION_OFF	(0x600)
+ #define CONF_DIRTYDETECTION_ON	(0x601)
+ 
+-/* Set the corresponding bit. */
+-#define BIT(n) (0x1U << (n))
+-
+ struct dumchannel_uf {
+ 	int channelnr;
+ 	u32 *dirty;
+diff -puN include/asm-arm/arch-ixp4xx/io.h~define-global-bit-macro include/asm-arm/arch-ixp4xx/io.h
+--- a/include/asm-arm/arch-ixp4xx/io.h~define-global-bit-macro
++++ a/include/asm-arm/arch-ixp4xx/io.h
+@@ -17,9 +17,6 @@
+ 
+ #define IO_SPACE_LIMIT 0xffff0000
+ 
+-#define	BIT(x)	((1)<<(x))
+-
+-
+ extern int (*ixp4xx_pci_read)(u32 addr, u32 cmd, u32* data);
+ extern int ixp4xx_pci_write(u32 addr, u32 cmd, u32 data);
+ 
+diff -puN include/asm-mips/ip32/crime.h~define-global-bit-macro include/asm-mips/ip32/crime.h
+--- a/include/asm-mips/ip32/crime.h~define-global-bit-macro
++++ a/include/asm-mips/ip32/crime.h
+@@ -17,9 +17,6 @@
+  */
+ #define CRIME_BASE	0x14000000	/* physical */
+ 
+-#undef BIT
+-#define BIT(x)	(1UL << (x))
+-
+ struct sgi_crime {
+ 	volatile unsigned long id;
+ #define CRIME_ID_MASK			0xff
+diff -puN include/asm-mips/ip32/mace.h~define-global-bit-macro include/asm-mips/ip32/mace.h
+--- a/include/asm-mips/ip32/mace.h~define-global-bit-macro
++++ a/include/asm-mips/ip32/mace.h
+@@ -17,9 +17,6 @@
+  */
+ #define MACE_BASE	0x1f000000	/* physical */
+ 
+-#undef BIT
+-#define BIT(x) (1UL << (x))
+-
+ /*
+  * PCI interface
+  */
+diff -puN include/linux/bitops.h~define-global-bit-macro include/linux/bitops.h
+--- a/include/linux/bitops.h~define-global-bit-macro
++++ a/include/linux/bitops.h
+@@ -3,6 +3,7 @@
+ #include <asm/types.h>
+ 
+ #ifdef	__KERNEL__
++#define BIT(nr)			(1UL << (nr))
+ #define BIT_MASK(nr)		(1UL << ((nr) % BITS_PER_LONG))
+ #define BIT_WORD(nr)		((nr) / BITS_PER_LONG)
+ #define BITS_TO_TYPE(nr, t)	(((nr)+(t)-1)/(t))
+diff -puN include/video/sstfb.h~define-global-bit-macro include/video/sstfb.h
+--- a/include/video/sstfb.h~define-global-bit-macro
++++ a/include/video/sstfb.h
+@@ -68,7 +68,6 @@
+ #  define print_var(X,Y...)
+ #endif
+ 
+-#define BIT(x)		(1ul<<(x))
+ #define POW2(x)		(1ul<<(x))
+ 
+ /*
+diff -puN include/video/tdfx.h~define-global-bit-macro include/video/tdfx.h
+--- a/include/video/tdfx.h~define-global-bit-macro
++++ a/include/video/tdfx.h
+@@ -79,8 +79,6 @@
+ 
+ /* register bitfields (not all, only as needed) */
+ 
+-#define BIT(x)	(1UL << (x))
+-
+ /* COMMAND_2D reg. values */
+ #define TDFX_ROP_COPY		0xcc	/* src */
+ #define TDFX_ROP_INVERT		0x55	/* NOT dst */
+diff -puN net/mac80211/ieee80211_i.h~define-global-bit-macro net/mac80211/ieee80211_i.h
+--- a/net/mac80211/ieee80211_i.h~define-global-bit-macro
++++ a/net/mac80211/ieee80211_i.h
+@@ -37,8 +37,6 @@
+ 
+ struct ieee80211_local;
+ 
+-#define BIT(x) (1 << (x))
+-
+ #define IEEE80211_ALIGN32_PAD(a) ((4 - ((a) & 3)) & 3)
+ 
+ /* Maximum number of broadcast/multicast frames to buffer when some of the
 _
 
-Patches currently in -mm which might be from dev@openvz.org are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
+git-dvb.patch
+v4l-stk11xx-add-a-new-webcam-driver.patch
+v4l-stk11xx-use-array_size-in-another-2-cases.patch
+v4l-stk11xx-use-retval-from-stk11xx_check_device.patch
+v4l-stk11xx-add-static-to-tables.patch
+git-wireless.patch
+dzh-remove-useless-unused-module-junk.patch
+dz-always-check-if-it-is-safe-to-console_putchar.patch
+dz-dont-panic-when-request_irq-fails.patch
+dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
+dz-update-kconfig-description.patch
+dz-rename-the-serial-console-structure.patch
+dz-fix-locking-issues.patch
+dz-handle-special-conditions-on-reception-correctly.patch
+maintainers-add-self-for-the-dz-serial-driver.patch
+remove-asm-bitopsh-includes-reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
