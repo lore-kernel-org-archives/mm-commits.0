@@ -1,72 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 16:29:12 -0700
-Message-ID: <200710192329.l9JNTCXi025800@imap1.linux-foundation.org>
+Subject: - capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 16:28:24 -0700
+Message-ID: <200710192328.l9JNSPDn025784@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36591 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53073 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932973AbXJSX3R (ORCPT
+	by vger.kernel.org with ESMTP id S935834AbXJSX3Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 19:29:17 -0400
+	Fri, 19 Oct 2007 19:29:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jack@suse.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, chrisw@sous-sol.org, morgan@kernel.org, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes
+     capabilities-clean-up-file-capability-reading-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes.patch
+     capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into ext2-avoid-rec_len-overflow-with-64kb-block-size.patch
+This patch was dropped because it was folded into capabilities-clean-up-file-capability-reading.patch
 
 ------------------------------------------------------
-Subject: ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes
+Subject: capabilities-clean-up-file-capability-reading-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "(foo*)" should be "(foo *)"
-#58: FILE: fs/ext2/dir.c:225:
-+       return (ext2_dirent *)((char*)p +
+ERROR: no space after that open parenthesis '('
+#63: FILE: security/commoncap.c:160:
++		bprm->cap_permitted = to_cap_t( le32_to_cpu(caps->permitted) );
 
-ERROR: "(foo*)" should be "(foo *)"
-#115: FILE: fs/ext2/dir.c:572:
-+       unsigned to = ((char*)dir - kaddr) +
+ERROR: no space before that close parenthesis ')'
+#63: FILE: security/commoncap.c:160:
++		bprm->cap_permitted = to_cap_t( le32_to_cpu(caps->permitted) );
 
-total: 2 errors, 0 warnings, 123 lines checked
+WARNING: line over 80 characters
+#64: FILE: security/commoncap.c:161:
++		bprm->cap_inheritable = to_cap_t( le32_to_cpu(caps->inheritable) );
+
+ERROR: no space after that open parenthesis '('
+#64: FILE: security/commoncap.c:161:
++		bprm->cap_inheritable = to_cap_t( le32_to_cpu(caps->inheritable) );
+
+ERROR: no space before that close parenthesis ')'
+#64: FILE: security/commoncap.c:161:
++		bprm->cap_inheritable = to_cap_t( le32_to_cpu(caps->inheritable) );
+
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
-Cc: <linux-ext4@vger.kernel.org>
-Cc: Jan Kara <jack@suse.cz>
+Cc: Andrew Morgan <morgan@kernel.org>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: Serge E. Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/dir.c |    4 ++--
+ security/commoncap.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ext2/dir.c~ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes fs/ext2/dir.c
---- a/fs/ext2/dir.c~ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes
-+++ a/fs/ext2/dir.c
-@@ -222,7 +222,7 @@ static inline int ext2_match (int len, c
-  */
- static inline ext2_dirent *ext2_next_entry(ext2_dirent *p)
- {
--	return (ext2_dirent *)((char*)p +
-+	return (ext2_dirent *)((char *)p +
- 			ext2_rec_len_from_disk(p->rec_len));
- }
- 
-@@ -569,7 +569,7 @@ int ext2_delete_entry (struct ext2_dir_e
- 	struct inode *inode = mapping->host;
- 	char *kaddr = page_address(page);
- 	unsigned from = ((char*)dir - kaddr) & ~(ext2_chunk_size(inode)-1);
--	unsigned to = ((char*)dir - kaddr) +
-+	unsigned to = ((char *)dir - kaddr) +
- 				ext2_rec_len_from_disk(dir->rec_len);
- 	loff_t pos;
- 	ext2_dirent * pde = NULL;
+diff -puN security/commoncap.c~capabilities-clean-up-file-capability-reading-checkpatch-fixes security/commoncap.c
+--- a/security/commoncap.c~capabilities-clean-up-file-capability-reading-checkpatch-fixes
++++ a/security/commoncap.c
+@@ -207,8 +207,8 @@ static inline int cap_from_disk(struct v
+ 			bprm->cap_effective = true;
+ 		else
+ 			bprm->cap_effective = false;
+-		bprm->cap_permitted = to_cap_t( le32_to_cpu(caps->permitted) );
+-		bprm->cap_inheritable = to_cap_t( le32_to_cpu(caps->inheritable) );
++		bprm->cap_permitted = to_cap_t(le32_to_cpu(caps->permitted));
++		bprm->cap_inheritable = to_cap_t(le32_to_cpu(caps->inheritable));
+ 		return 0;
+ 	default:
+ 		return -EINVAL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,7 +79,14 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic.patch
 capabilities-clean-up-file-capability-reading.patch
-ext2-avoid-rec_len-overflow-with-64kb-block-size.patch
+capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+pm-qos-infrastructure-and-interface-fix.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
 ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes.patch
 sync_sb_inodes-propagate-errors.patch
 intel-iommu-pci-generic-helper-function.patch
