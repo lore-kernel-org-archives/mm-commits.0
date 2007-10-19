@@ -1,63 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - use-extended-crashkernel-command-line-on-x86_64-update.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 21:32:18 -0700
-Message-ID: <200710190432.l9J4WIlc015206@imap1.linux-foundation.org>
+Subject: - use-extended-crashkernel-command-line-on-ia64-update.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 21:32:42 -0700
+Message-ID: <200710190432.l9J4WgGD015223@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47836 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53070 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752125AbXJSEcW (ORCPT
+	by vger.kernel.org with ESMTP id S1750963AbXJSEcr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 00:32:22 -0400
+	Fri, 19 Oct 2007 00:32:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bwalle@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use extended crashkernel command line on x86_64 (update)
+     Use extended crashkernel command line on ia64 (update)
 has been removed from the -mm tree.  Its filename was
-     use-extended-crashkernel-command-line-on-x86_64-update.patch
+     use-extended-crashkernel-command-line-on-ia64-update.patch
 
-This patch was dropped because it was folded into use-extended-crashkernel-command-line-on-x86_64.patch
+This patch was dropped because it was folded into use-extended-crashkernel-command-line-on-ia64.patch
 
 ------------------------------------------------------
-Subject: Use extended crashkernel command line on x86_64 (update)
+Subject: Use extended crashkernel command line on ia64 (update)
 From: Bernhard Walle <bwalle@suse.de>
 
-This patch removes the crashkernel parsing from
-arch/x86_64/kernel/machine_kexec.c and calls the generic function, introduced in
-the last patch, in setup_bootmem_allocator().
+This patch adapts IA64 to use the generic parse_crashkernel() function
+instead of its own parsing for the crashkernel command line.
 
-This is necessary because the amount of System RAM must be known in this
-function now because of the new syntax.
+Because the total amount of System RAM must be known when calling this
+function, efi_memmap_init() is modified to return its accumulated total_memory
+variable.
+
+Also, the crashkernel handling is moved in an own function in
+arch/ia64/kernel/setup.c to make the code more readable.
 
 Signed-off-by: Bernhard Walle <bwalle@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup_64.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/ia64/kernel/setup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/setup_64.c~use-extended-crashkernel-command-line-on-x86_64-update arch/x86/kernel/setup_64.c
---- a/arch/x86/kernel/setup_64.c~use-extended-crashkernel-command-line-on-x86_64-update
-+++ a/arch/x86/kernel/setup_64.c
-@@ -194,11 +194,11 @@ static inline void copy_edd(void)
- #ifdef CONFIG_KEXEC
- static void __init reserve_crashkernel(void)
+diff -puN arch/ia64/kernel/efi.c~use-extended-crashkernel-command-line-on-ia64-update arch/ia64/kernel/efi.c
+diff -puN arch/ia64/kernel/setup.c~use-extended-crashkernel-command-line-on-ia64-update arch/ia64/kernel/setup.c
+--- a/arch/ia64/kernel/setup.c~use-extended-crashkernel-command-line-on-ia64-update
++++ a/arch/ia64/kernel/setup.c
+@@ -261,7 +261,7 @@ void __init
+ reserve_memory (void)
  {
--	unsigned long long 	free_mem;
--	unsigned long long 	crash_size, crash_base;
--	int			ret;
-+	unsigned long long free_mem;
-+	unsigned long long crash_size, crash_base;
-+	int ret;
+ 	int n = 0;
+-	unsigned long total_memory = 0;
++	unsigned long total_memory;
  
--	free_mem = max_low_pfn << PAGE_SHIFT;
-+	free_mem = ((unsigned long long)max_low_pfn - min_low_pfn) << PAGE_SHIFT;
- 
- 	ret = parse_crashkernel(boot_command_line, free_mem,
- 			&crash_size, &crash_base);
+ 	/*
+ 	 * none of the entries in this table overlap
 _
 
 Patches currently in -mm which might be from bwalle@suse.de are
@@ -66,9 +63,7 @@ origin.patch
 extended-crashkernel-command-line.patch
 use-extended-crashkernel-command-line-on-i386.patch
 use-extended-crashkernel-command-line-on-x86_64.patch
-use-extended-crashkernel-command-line-on-x86_64-update.patch
 use-extended-crashkernel-command-line-on-ia64.patch
-use-extended-crashkernel-command-line-on-ia64-fix.patch
 use-extended-crashkernel-command-line-on-ia64-update.patch
 use-extended-crashkernel-command-line-on-ppc64.patch
 use-extended-crashkernel-command-line-on-ppc64-update.patch
