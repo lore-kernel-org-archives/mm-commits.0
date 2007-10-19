@@ -1,142 +1,255 @@
 From: akpm@linux-foundation.org
-Subject: - whitespace-fixes-process-accounting.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:43:32 -0700
-Message-ID: <200710190343.l9J3hW4U013069@imap1.linux-foundation.org>
+Subject: - freezer-do-not-send-signals-to-kernel-threads.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:41:03 -0700
+Message-ID: <200710190341.l9J3f3R7012767@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36452 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52263 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966266AbXJSDzt (ORCPT
+	by vger.kernel.org with ESMTP id S934635AbXJSD4U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:55:49 -0400
+	Thu, 18 Oct 2007 23:56:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, nigel@nigel.suspend2.net, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     whitespace fixes: process accounting
+     freezer: do not send signals to kernel threads
 has been removed from the -mm tree.  Its filename was
-     whitespace-fixes-process-accounting.patch
+     freezer-do-not-send-signals-to-kernel-threads.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: whitespace fixes: process accounting
-From: Daniel Walker <dwalker@mvista.com>
+Subject: freezer: do not send signals to kernel threads
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Lots of converting spaces to tabs.
+The freezer should not send signals to kernel threads, since that may lead to
+subtle problems.  In particular, commit
+b74d0deb968e1f85942f17080eace015ce3c332c has changed recalc_sigpending_tsk()
+so that it doesn't clear TIF_SIGPENDING.  For this reason, if the freezer
+continues to send fake signals to kernel threads and the freezing of kernel
+threads fails, some of them may be running with TIF_SIGPENDING set forever.
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Accordingly, recalc_sigpending_tsk() shouldn't set the task's TIF_SIGPENDING
+flag if TIF_FREEZE is set.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/acct.c |   64 ++++++++++++++++++++++++------------------------
- 1 file changed, 32 insertions(+), 32 deletions(-)
+ Documentation/power/freezing-of-tasks.txt |   31 +++--
+ kernel/power/process.c                    |  107 +++++++++++++-------
+ kernel/signal.c                           |    1 
+ 3 files changed, 93 insertions(+), 46 deletions(-)
 
-diff -puN kernel/acct.c~whitespace-fixes-process-accounting kernel/acct.c
---- a/kernel/acct.c~whitespace-fixes-process-accounting
-+++ a/kernel/acct.c
-@@ -329,16 +329,16 @@ static comp_t encode_comp_t(unsigned lon
- 	}
+diff -puN Documentation/power/freezing-of-tasks.txt~freezer-do-not-send-signals-to-kernel-threads Documentation/power/freezing-of-tasks.txt
+--- a/Documentation/power/freezing-of-tasks.txt~freezer-do-not-send-signals-to-kernel-threads
++++ a/Documentation/power/freezing-of-tasks.txt
+@@ -19,12 +19,13 @@ we only consider hibernation, but the de
+ Namely, as the first step of the hibernation procedure the function
+ freeze_processes() (defined in kernel/power/process.c) is called.  It executes
+ try_to_freeze_tasks() that sets TIF_FREEZE for all of the freezable tasks and
+-sends a fake signal to each of them.  A task that receives such a signal and has
+-TIF_FREEZE set, should react to it by calling the refrigerator() function
+-(defined in kernel/power/process.c), which sets the task's PF_FROZEN flag,
+-changes its state to TASK_UNINTERRUPTIBLE and makes it loop until PF_FROZEN is
+-cleared for it.  Then, we say that the task is 'frozen' and therefore the set of
+-functions handling this mechanism is called 'the freezer' (these functions are
++either wakes them up, if they are kernel threads, or sends fake signals to them,
++if they are user space processes.  A task that has TIF_FREEZE set, should react
++to it by calling the function called refrigerator() (defined in
++kernel/power/process.c), which sets the task's PF_FROZEN flag, changes its state
++to TASK_UNINTERRUPTIBLE and makes it loop until PF_FROZEN is cleared for it.
++Then, we say that the task is 'frozen' and therefore the set of functions
++handling this mechanism is referred to as 'the freezer' (these functions are
+ defined in kernel/power/process.c and include/linux/freezer.h).  User space
+ processes are generally frozen before kernel threads.
  
- 	/*
--         * If we need to round up, do it (and handle overflow correctly).
--         */
-+	 * If we need to round up, do it (and handle overflow correctly).
-+	 */
- 	if (rnd && (++value > MAXFRACT)) {
- 		value >>= EXPSIZE;
- 		exp++;
- 	}
+@@ -35,21 +36,27 @@ task enter refrigerator() if the flag is
  
- 	/*
--         * Clean it up and polish it off.
--         */
-+	 * Clean it up and polish it off.
-+	 */
- 	exp <<= MANTSIZE;		/* Shift the exponent into place */
- 	exp += value;			/* and add on the mantissa. */
- 	return exp;
-@@ -361,30 +361,30 @@ static comp_t encode_comp_t(unsigned lon
+ For user space processes try_to_freeze() is called automatically from the
+ signal-handling code, but the freezable kernel threads need to call it
+-explicitly in suitable places.  The code to do this may look like the following:
++explicitly in suitable places or use the wait_event_freezable() or
++wait_event_freezable_timeout() macros (defined in include/linux/freezer.h)
++that combine interruptible sleep with checking if TIF_FREEZE is set and calling
++try_to_freeze().  The main loop of a freezable kernel thread may look like the
++following one:
  
- static comp2_t encode_comp2_t(u64 value)
- {
--        int exp, rnd;
-+	int exp, rnd;
++	set_freezable();
+ 	do {
+ 		hub_events();
+-		wait_event_interruptible(khubd_wait,
+-					!list_empty(&hub_event_list));
+-		try_to_freeze();
+-	} while (!signal_pending(current));
++		wait_event_freezable(khubd_wait,
++				!list_empty(&hub_event_list) ||
++				kthread_should_stop());
++	} while (!kthread_should_stop() || !list_empty(&hub_event_list));
  
--        exp = (value > (MAXFRACT2>>1));
--        rnd = 0;
--        while (value > MAXFRACT2) {
--                rnd = value & 1;
--                value >>= 1;
--                exp++;
--        }
--
--        /*
--         * If we need to round up, do it (and handle overflow correctly).
--         */
--        if (rnd && (++value > MAXFRACT2)) {
--                value >>= 1;
--                exp++;
--        }
--
--        if (exp > MAXEXP2) {
--                /* Overflow. Return largest representable number instead. */
--                return (1ul << (MANTSIZE2+EXPSIZE2-1)) - 1;
--        } else {
--                return (value & (MAXFRACT2>>1)) | (exp << (MANTSIZE2-1));
--        }
-+	exp = (value > (MAXFRACT2>>1));
-+	rnd = 0;
-+	while (value > MAXFRACT2) {
-+		rnd = value & 1;
-+		value >>= 1;
-+		exp++;
-+	}
-+
-+	/*
-+	 * If we need to round up, do it (and handle overflow correctly).
-+	 */
-+	if (rnd && (++value > MAXFRACT2)) {
-+		value >>= 1;
-+		exp++;
-+	}
-+
-+	if (exp > MAXEXP2) {
-+		/* Overflow. Return largest representable number instead. */
-+		return (1ul << (MANTSIZE2+EXPSIZE2-1)) - 1;
-+	} else {
-+		return (value & (MAXFRACT2>>1)) | (exp << (MANTSIZE2-1));
-+	}
+ (from drivers/usb/core/hub.c::hub_thread()).
+ 
+ If a freezable kernel thread fails to call try_to_freeze() after the freezer has
+ set TIF_FREEZE for it, the freezing of tasks will fail and the entire
+ hibernation operation will be cancelled.  For this reason, freezable kernel
+-threads must call try_to_freeze() somewhere.
++threads must call try_to_freeze() somewhere or use one of the
++wait_event_freezable() and wait_event_freezable_timeout() macros.
+ 
+ After the system memory state has been restored from a hibernation image and
+ devices have been reinitialized, the function thaw_processes() is called in
+diff -puN kernel/power/process.c~freezer-do-not-send-signals-to-kernel-threads kernel/power/process.c
+--- a/kernel/power/process.c~freezer-do-not-send-signals-to-kernel-threads
++++ a/kernel/power/process.c
+@@ -75,21 +75,79 @@ void refrigerator(void)
+ 	__set_current_state(save);
  }
- #endif
  
-@@ -501,14 +501,14 @@ static void do_acct_process(struct file 
- 	ac.ac_swaps = encode_comp_t(0);
+-static void freeze_task(struct task_struct *p)
++static void fake_signal_wake_up(struct task_struct *p, int resume)
+ {
+ 	unsigned long flags;
  
- 	/*
--         * Kernel segment override to datasegment and write it
--         * to the accounting file.
--         */
-+	 * Kernel segment override to datasegment and write it
-+	 * to the accounting file.
-+	 */
- 	fs = get_fs();
- 	set_fs(KERNEL_DS);
- 	/*
-- 	 * Accounting records are not subject to resource limits.
-- 	 */
-+	 * Accounting records are not subject to resource limits.
-+	 */
- 	flim = current->signal->rlim[RLIMIT_FSIZE].rlim_cur;
- 	current->signal->rlim[RLIMIT_FSIZE].rlim_cur = RLIM_INFINITY;
- 	file->f_op->write(file, (char *)&ac,
+-	if (!freezing(p)) {
++	spin_lock_irqsave(&p->sighand->siglock, flags);
++	signal_wake_up(p, resume);
++	spin_unlock_irqrestore(&p->sighand->siglock, flags);
++}
++
++static void send_fake_signal(struct task_struct *p)
++{
++	if (p->state == TASK_STOPPED)
++		force_sig_specific(SIGSTOP, p);
++	fake_signal_wake_up(p, p->state == TASK_STOPPED);
++}
++
++static int has_mm(struct task_struct *p)
++{
++	return (p->mm && !(p->flags & PF_BORROWED_MM));
++}
++
++/**
++ *	freeze_task - send a freeze request to given task
++ *	@p: task to send the request to
++ *	@with_mm_only: if set, the request will only be sent if the task has its
++ *		own mm
++ *	Return value: 0, if @with_mm_only is set and the task has no mm of its
++ *		own or the task is frozen, 1, otherwise
++ *
++ *	The freeze request is sent by seting the tasks's TIF_FREEZE flag and
++ *	either sending a fake signal to it or waking it up, depending on whether
++ *	or not it has its own mm (ie. it is a user land task).  If @with_mm_only
++ *	is set and the task has no mm of its own (ie. it is a kernel thread),
++ *	its TIF_FREEZE flag should not be set.
++ *
++ *	The task_lock() is necessary to prevent races with exit_mm() or
++ *	use_mm()/unuse_mm() from occuring.
++ */
++static int freeze_task(struct task_struct *p, int with_mm_only)
++{
++	int ret = 1;
++
++	task_lock(p);
++	if (freezing(p)) {
++		if (has_mm(p)) {
++			if (!signal_pending(p))
++				fake_signal_wake_up(p, 0);
++		} else {
++			if (with_mm_only)
++				ret = 0;
++			else
++				wake_up_state(p, TASK_INTERRUPTIBLE);
++		}
++	} else {
+ 		rmb();
+-		if (!frozen(p)) {
+-			set_freeze_flag(p);
+-			if (p->state == TASK_STOPPED)
+-				force_sig_specific(SIGSTOP, p);
+-			spin_lock_irqsave(&p->sighand->siglock, flags);
+-			signal_wake_up(p, p->state == TASK_STOPPED);
+-			spin_unlock_irqrestore(&p->sighand->siglock, flags);
++		if (frozen(p)) {
++			ret = 0;
++		} else {
++			if (has_mm(p)) {
++				set_freeze_flag(p);
++				send_fake_signal(p);
++			} else {
++				if (with_mm_only) {
++					ret = 0;
++				} else {
++					set_freeze_flag(p);
++					wake_up_state(p, TASK_INTERRUPTIBLE);
++				}
++			}
+ 		}
+ 	}
++	task_unlock(p);
++	return ret;
+ }
+ 
+ static void cancel_freezing(struct task_struct *p)
+@@ -119,31 +177,14 @@ static int try_to_freeze_tasks(int freez
+ 			if (frozen(p) || !freezeable(p))
+ 				continue;
+ 
+-			if (freeze_user_space) {
+-				if (p->state == TASK_TRACED &&
+-				    frozen(p->parent)) {
+-					cancel_freezing(p);
+-					continue;
+-				}
+-				/*
+-				 * Kernel threads should not have TIF_FREEZE set
+-				 * at this point, so we must ensure that either
+-				 * p->mm is not NULL *and* PF_BORROWED_MM is
+-				 * unset, or TIF_FRREZE is left unset.
+-				 * The task_lock() is necessary to prevent races
+-				 * with exit_mm() or use_mm()/unuse_mm() from
+-				 * occuring.
+-				 */
+-				task_lock(p);
+-				if (!p->mm || (p->flags & PF_BORROWED_MM)) {
+-					task_unlock(p);
+-					continue;
+-				}
+-				freeze_task(p);
+-				task_unlock(p);
+-			} else {
+-				freeze_task(p);
++			if (p->state == TASK_TRACED && frozen(p->parent)) {
++				cancel_freezing(p);
++				continue;
+ 			}
++
++			if (!freeze_task(p, freeze_user_space))
++				continue;
++
+ 			if (!freezer_should_skip(p))
+ 				todo++;
+ 		} while_each_thread(g, p);
+diff -puN kernel/signal.c~freezer-do-not-send-signals-to-kernel-threads kernel/signal.c
+--- a/kernel/signal.c~freezer-do-not-send-signals-to-kernel-threads
++++ a/kernel/signal.c
+@@ -99,7 +99,6 @@ static inline int has_pending_signals(si
+ static int recalc_sigpending_tsk(struct task_struct *t)
+ {
+ 	if (t->signal->group_stop_count > 0 ||
+-	    (freezing(t)) ||
+ 	    PENDING(&t->pending, &t->blocked) ||
+ 	    PENDING(&t->signal->shared_pending, &t->blocked)) {
+ 		set_tsk_thread_flag(t, TIF_SIGPENDING);
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-whitespace-fixes-task-exit-handling.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
+git-acpi.patch
+revert-x86_64-mm-cpa-einval.patch
+shrink_slab-handle-bad-shrinkers.patch
