@@ -1,65 +1,181 @@
 From: akpm@linux-foundation.org
-Subject: - whitespace-fixes-cpuset.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:43:34 -0700
-Message-ID: <200710190343.l9J3hYYl013072@imap1.linux-foundation.org>
+Subject: - sysct-mqueue-remove-the-binary-sysctl-numbers.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:42:34 -0700
+Message-ID: <200710190342.l9J3gYie012906@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53694 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48199 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966496AbXJSDz4 (ORCPT
+	by vger.kernel.org with ESMTP id S966133AbXJSD4b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:55:56 -0400
+	Thu, 18 Oct 2007 23:56:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, pj@sgi.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, adobriyan@sw.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     whitespace fixes: cpuset
+     sysctl mqueue: remove the binary sysctl numbers
 has been removed from the -mm tree.  Its filename was
-     whitespace-fixes-cpuset.patch
+     sysct-mqueue-remove-the-binary-sysctl-numbers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: whitespace fixes: cpuset
-From: Daniel Walker <dwalker@mvista.com>
+Subject: sysctl mqueue: remove the binary sysctl numbers
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: Paul Jackson <pj@sgi.com>
+Because of a conflict with FS_INODE_NR none of the binary sysctl numbers use
+by mqueue, were available to user space.  So just remove them.
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ ipc/mqueue.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff -puN kernel/cpuset.c~whitespace-fixes-cpuset kernel/cpuset.c
---- a/kernel/cpuset.c~whitespace-fixes-cpuset
-+++ a/kernel/cpuset.c
-@@ -2431,12 +2431,12 @@ int __cpuset_zone_allowed_hardwall(struc
- 	node = zone_to_nid(z);
- 	if (node_isset(node, current->mems_allowed))
- 		return 1;
--        /*
--         * Allow tasks that have access to memory reserves because they have
--         * been OOM killed to get memory anywhere.
--         */
--        if (unlikely(test_thread_flag(TIF_MEMDIE)))
--                return 1;
-+	/*
-+	 * Allow tasks that have access to memory reserves because they have
-+	 * been OOM killed to get memory anywhere.
-+	 */
-+	if (unlikely(test_thread_flag(TIF_MEMDIE)))
-+		return 1;
- 	return 0;
- }
+diff -puN ipc/mqueue.c~sysct-mqueue-remove-the-binary-sysctl-numbers ipc/mqueue.c
+--- a/ipc/mqueue.c~sysct-mqueue-remove-the-binary-sysctl-numbers
++++ a/ipc/mqueue.c
+@@ -44,12 +44,6 @@
+ #define STATE_PENDING	1
+ #define STATE_READY	2
  
+-/* used by sysctl */
+-#define FS_MQUEUE 	1
+-#define CTL_QUEUESMAX 	2
+-#define CTL_MSGMAX 	3
+-#define CTL_MSGSIZEMAX 	4
+-
+ /* default values */
+ #define DFLT_QUEUESMAX	256	/* max number of message queues */
+ #define DFLT_MSGMAX 	10	/* max number of messages in each queue */
+@@ -1196,7 +1190,6 @@ static int msg_maxsize_limit_max = INT_M
+ 
+ static ctl_table mq_sysctls[] = {
+ 	{
+-		.ctl_name	= CTL_QUEUESMAX,
+ 		.procname	= "queues_max",
+ 		.data		= &queues_max,
+ 		.maxlen		= sizeof(int),
+@@ -1204,7 +1197,6 @@ static ctl_table mq_sysctls[] = {
+ 		.proc_handler	= &proc_dointvec,
+ 	},
+ 	{
+-		.ctl_name	= CTL_MSGMAX,
+ 		.procname	= "msg_max",
+ 		.data		= &msg_max,
+ 		.maxlen		= sizeof(int),
+@@ -1214,7 +1206,6 @@ static ctl_table mq_sysctls[] = {
+ 		.extra2		= &msg_max_limit_max,
+ 	},
+ 	{
+-		.ctl_name	= CTL_MSGSIZEMAX,
+ 		.procname	= "msgsize_max",
+ 		.data		= &msgsize_max,
+ 		.maxlen		= sizeof(int),
+@@ -1228,7 +1219,6 @@ static ctl_table mq_sysctls[] = {
+ 
+ static ctl_table mq_sysctl_dir[] = {
+ 	{
+-		.ctl_name	= FS_MQUEUE,
+ 		.procname	= "mqueue",
+ 		.mode		= 0555,
+ 		.child		= mq_sysctls,
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
 origin.patch
-whitespace-fixes-task-exit-handling.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
+update-boot-spec-to-207.patch
+i386-paravirt-boot-sequence.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+task-containersv11-basic-task-container-framework.patch
+task-containersv11-add-tasks-file-interface.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+make-access-to-tasks-nsproxy-lighter.patch
+make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
+make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+uninline-find_task_by_xxx-set-of-functions.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+isolate-some-explicit-usage-of-task-tgid.patch
+uninline-find_pid-etc-set-of-functions.patch
+uninline-the-task_xid_nr_ns-calls.patch
+fix-cpusets-update_cpumask.patch
+fix-cpusets-update_cpumask-checkpatch-fixes.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
+virtualization-of-sysv-msg-queues-is-incomplete.patch
+extended-crashkernel-command-line.patch
+use-extended-crashkernel-command-line-on-i386.patch
+use-extended-crashkernel-command-line-on-x86_64.patch
+use-extended-crashkernel-command-line-on-ia64.patch
+use-extended-crashkernel-command-line-on-ia64-fix.patch
+use-extended-crashkernel-command-line-on-ppc64.patch
+use-extended-crashkernel-command-line-on-sh.patch
+add-documentation-for-extended-crashkernel-syntax.patch
+kexec-add-bss-to-resource-tree.patch
+kexec-introduce-bootmem_exclusive.patch
+kexec-use-bootmem_exclusive-on-x86.patch
