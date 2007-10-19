@@ -1,101 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: - jbd-fix-jbd-warnings-when-compiling-with-config_jbd_debug.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:49:41 -0700
-Message-ID: <200710192249.l9JMnfLM023988__31881.6299819902$1192835205$gmane$org@imap1.linux-foundation.org>
+Subject: - reiserfs-remove-first_zero_hint.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:49:50 -0700
+Message-ID: <200710192249.l9JMnog1024011@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51400 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55632 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966981AbXJSXFb (ORCPT
+	by vger.kernel.org with ESMTP id S966744AbXJSXFU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 19:05:31 -0400
+	Fri, 19 Oct 2007 19:05:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jrs@us.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: jeffm@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     JBD: Fix JBD warnings when compiling with CONFIG_JBD_DEBUG
+     reiserfs: remove first_zero_hint
 has been removed from the -mm tree.  Its filename was
-     jbd-fix-jbd-warnings-when-compiling-with-config_jbd_debug.patch
+     reiserfs-remove-first_zero_hint.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: JBD: Fix JBD warnings when compiling with CONFIG_JBD_DEBUG
-From: Jose R. Santos <jrs@us.ibm.com>
+Subject: reiserfs: remove first_zero_hint
+From: Jeff Mahoney <jeffm@suse.com>
 
-Note from Mingming's JBD2 fix:
+The first_zero_hint metadata caching was never actually used, and it's of
+dubious optimization quality.  This patch removes it.
 
-Noticed all warnings are occurs when the debug level is 0.  Then found the
-"jbd2: Move jbd2-debug file to debugfs" patch
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=0f49d5d019afa4e94253bfc92f0daca3badb990b
+It doesn't actually shrink the size of the reiserfs_bitmap_info struct, since
+that doesn't work with block sizes larger than 8K.  There was a big fixme in
+there, and with all the work lately in allowing block size > page size, I
+might as well kill the fixme as well.
 
-changed the jbd2_journal_enable_debug from int type to u8, makes the
-jbd_debug comparision is always true when the debugging level is 0.  Thus
-the compile warning occurs.
-
-Thought about changing the jbd2_journal_enable_debug data type back to int,
-but can't, because the jbd2-debug is moved to debug fs, where calling
-debugfs_create_u8() to create the debugfs entry needs the value to be u8
-type.
-
-Even if we changed the data type back to int, the code is still buggy,
-kernel should not print jbd2 debug message if the jbd2_journal_enable_debug
-is set to 0.  But this is not the case.
-
-The fix is change the level of debugging to 1.  The same should fixed in
-ext3/JBD, but currently ext3 jbd-debug via /proc fs is broken, so we
-probably should fix it all together.
-
-Signed-off-by: Jose R. Santos <jrs@us.ibm.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/inode.c   |    2 +-
- fs/jbd/recovery.c |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ fs/reiserfs/bitmap.c           |   29 ++++++++++++-----------------
+ fs/reiserfs/resize.c           |    6 ------
+ include/linux/reiserfs_fs_sb.h |    4 +---
+ 3 files changed, 13 insertions(+), 26 deletions(-)
 
-diff -puN fs/ext3/inode.c~jbd-fix-jbd-warnings-when-compiling-with-config_jbd_debug fs/ext3/inode.c
---- a/fs/ext3/inode.c~jbd-fix-jbd-warnings-when-compiling-with-config_jbd_debug
-+++ a/fs/ext3/inode.c
-@@ -2954,7 +2954,7 @@ int ext3_write_inode(struct inode *inode
- 		return 0;
- 
- 	if (ext3_journal_current_handle()) {
--		jbd_debug(0, "called recursively, non-PF_MEMALLOC!\n");
-+		jbd_debug(1, "called recursively, non-PF_MEMALLOC!\n");
- 		dump_stack();
- 		return -EIO;
+diff -puN fs/reiserfs/bitmap.c~reiserfs-remove-first_zero_hint fs/reiserfs/bitmap.c
+--- a/fs/reiserfs/bitmap.c~reiserfs-remove-first_zero_hint
++++ a/fs/reiserfs/bitmap.c
+@@ -273,7 +273,7 @@ static inline int block_group_used(struc
+ 	 * to make a better decision. This favors long-term performace gain
+ 	 * with a better on-disk layout vs. a short term gain of skipping the
+ 	 * read and potentially having a bad placement. */
+-	if (info->first_zero_hint == 0) {
++	if (info->free_count == UINT_MAX) {
+ 		struct buffer_head *bh = reiserfs_read_bitmap_block(s, bm);
+ 		brelse(bh);
  	}
-diff -puN fs/jbd/recovery.c~jbd-fix-jbd-warnings-when-compiling-with-config_jbd_debug fs/jbd/recovery.c
---- a/fs/jbd/recovery.c~jbd-fix-jbd-warnings-when-compiling-with-config_jbd_debug
-+++ a/fs/jbd/recovery.c
-@@ -250,10 +250,10 @@ int journal_recover(journal_t *journal)
- 	if (!err)
- 		err = do_one_pass(journal, &info, PASS_REPLAY);
+@@ -1214,27 +1214,22 @@ void reiserfs_cache_bitmap_metadata(stru
+ {
+ 	unsigned long *cur = (unsigned long *)(bh->b_data + bh->b_size);
  
--	jbd_debug(0, "JBD: recovery, exit status %d, "
-+	jbd_debug(1, "JBD: recovery, exit status %d, "
- 		  "recovered transactions %u to %u\n",
- 		  err, info.start_transaction, info.end_transaction);
--	jbd_debug(0, "JBD: Replayed %d and revoked %d/%d blocks\n",
-+	jbd_debug(1, "JBD: Replayed %d and revoked %d/%d blocks\n",
- 		  info.nr_replays, info.nr_revoke_hits, info.nr_revokes);
+-	info->first_zero_hint = 1 << (sb->s_blocksize_bits + 3);
++	/* The first bit must ALWAYS be 1 */
++	BUG_ON(!reiserfs_test_le_bit(0, (unsigned long *)bh->b_data));
++
++	info->free_count = 0;
  
- 	/* Restart the log at the next transaction ID, thus invalidating
-@@ -297,7 +297,7 @@ int journal_skip_recovery(journal_t *jou
- #ifdef CONFIG_JBD_DEBUG
- 		int dropped = info.end_transaction - be32_to_cpu(sb->s_sequence);
- #endif
--		jbd_debug(0,
-+		jbd_debug(1,
- 			  "JBD: ignoring %d transaction%s from the journal.\n",
- 			  dropped, (dropped == 1) ? "" : "s");
- 		journal->j_transaction_sequence = ++info.end_transaction;
+ 	while (--cur >= (unsigned long *)bh->b_data) {
+-		int base = ((char *)cur - bh->b_data) << 3;
++		int i;
+ 
+ 		/* 0 and ~0 are special, we can optimize for them */
+-		if (*cur == 0) {
+-			info->first_zero_hint = base;
++		if (*cur == 0)
+ 			info->free_count += BITS_PER_LONG;
+-		} else if (*cur != ~0L) {       /* A mix, investigate */
+-			int b;
+-			for (b = BITS_PER_LONG - 1; b >= 0; b--) {
+-				if (!reiserfs_test_le_bit(b, cur)) {
+-					info->first_zero_hint = base + b;
++		else if (*cur != ~0L)	/* A mix, investigate */
++			for (i = BITS_PER_LONG - 1; i >= 0; i--)
++				if (!reiserfs_test_le_bit(i, cur))
+ 					info->free_count++;
+-				}
+-			}
+-		}
+ 	}
+-	/* The first bit must ALWAYS be 1 */
+-	BUG_ON(info->first_zero_hint == 0);
+ }
+ 
+ struct buffer_head *reiserfs_read_bitmap_block(struct super_block *sb,
+@@ -1264,7 +1259,7 @@ struct buffer_head *reiserfs_read_bitmap
+ 		BUG_ON(!buffer_uptodate(bh));
+ 		BUG_ON(atomic_read(&bh->b_count) == 0);
+ 
+-		if (info->first_zero_hint == 0)
++		if (info->free_count == UINT_MAX)
+ 			reiserfs_cache_bitmap_metadata(sb, bh, info);
+ 	}
+ 
+@@ -1279,7 +1274,7 @@ int reiserfs_init_bitmap_cache(struct su
+ 	if (bitmap == NULL)
+ 		return -ENOMEM;
+ 
+-	memset(bitmap, 0, sizeof (*bitmap) * SB_BMAP_NR(sb));
++	memset(bitmap, 0xff, sizeof(*bitmap) * SB_BMAP_NR(sb));
+ 
+ 	SB_AP_BITMAP(sb) = bitmap;
+ 
+diff -puN fs/reiserfs/resize.c~reiserfs-remove-first_zero_hint fs/reiserfs/resize.c
+--- a/fs/reiserfs/resize.c~reiserfs-remove-first_zero_hint
++++ a/fs/reiserfs/resize.c
+@@ -143,7 +143,6 @@ int reiserfs_resize(struct super_block *
+ 			mark_buffer_dirty(bh);
+ 			sync_dirty_buffer(bh);
+ 			// update bitmap_info stuff
+-			bitmap[i].first_zero_hint = 1;
+ 			bitmap[i].free_count = sb_blocksize(sb) * 8 - 1;
+ 			brelse(bh);
+ 		}
+@@ -173,8 +172,6 @@ int reiserfs_resize(struct super_block *
+ 	for (i = block_r; i < s->s_blocksize * 8; i++)
+ 		reiserfs_test_and_clear_le_bit(i, bh->b_data);
+ 	info->free_count += s->s_blocksize * 8 - block_r;
+-	if (!info->first_zero_hint)
+-		info->first_zero_hint = block_r;
+ 
+ 	journal_mark_dirty(&th, s, bh);
+ 	brelse(bh);
+@@ -196,9 +193,6 @@ int reiserfs_resize(struct super_block *
+ 	brelse(bh);
+ 
+ 	info->free_count -= s->s_blocksize * 8 - block_r_new;
+-	/* Extreme case where last bitmap is the only valid block in itself. */
+-	if (!info->free_count)
+-		info->first_zero_hint = 0;
+ 	/* update super */
+ 	reiserfs_prepare_for_journal(s, SB_BUFFER_WITH_SB(s), 1);
+ 	free_blocks = SB_FREE_BLOCKS(s);
+diff -puN include/linux/reiserfs_fs_sb.h~reiserfs-remove-first_zero_hint include/linux/reiserfs_fs_sb.h
+--- a/include/linux/reiserfs_fs_sb.h~reiserfs-remove-first_zero_hint
++++ a/include/linux/reiserfs_fs_sb.h
+@@ -265,9 +265,7 @@ enum journal_state_bits {
+ typedef __u32(*hashf_t) (const signed char *, int);
+ 
+ struct reiserfs_bitmap_info {
+-	// FIXME: Won't work with block sizes > 8K
+-	__u16 first_zero_hint;
+-	__u16 free_count;
++	__u32 free_count;
+ };
+ 
+ struct proc_dir_entry;
 _
 
-Patches currently in -mm which might be from jrs@us.ibm.com are
+Patches currently in -mm which might be from jeffm@suse.com are
 
 origin.patch
+exportfs-add-fid-type.patch
+exportfs-add-new-methods.patch
+reiserfs-new-export-ops.patch
+exportfs-remove-old-methods.patch
+exportfs-make-struct-export_operations-const.patch
+exportfs-update-documentation.patch
