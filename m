@@ -1,89 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - isdn-sc-remove-unused-request_irq-and-unnecessary-header-file.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:49:30 -0700
-Message-ID: <200710192249.l9JMnUBJ023973@imap1.linux-foundation.org>
+Subject: - jbd-fix-commit-code-to-properly-abort-journal.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:49:39 -0700
+Message-ID: <200710192249.l9JMndNP023985__40429.2874657132$1192834204$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55760 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53854 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757329AbXJSWtk (ORCPT
+	by vger.kernel.org with ESMTP id S1757216AbXJSWto (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 18:49:40 -0400
+	Fri, 19 Oct 2007 18:49:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fernando@oss.ntt.co.jp, kkeil@suse.de, mm-commits@vger.kernel.org
+To: jack@suse.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isdn/sc: remove unused REQUEST_IRQ and unnecessary header file
+     jbd: fix commit code to properly abort journal
 has been removed from the -mm tree.  Its filename was
-     isdn-sc-remove-unused-request_irq-and-unnecessary-header-file.patch
+     jbd-fix-commit-code-to-properly-abort-journal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: isdn/sc: remove unused REQUEST_IRQ and unnecessary header file
-From: Fernando Luis =?ISO-8859-1?Q?V=E1zquez?= Cao <fernando@oss.ntt.co.jp>
+Subject: jbd: fix commit code to properly abort journal
+From: Jan Kara <jack@suse.cz>
 
-REQUEST_IRQ is never used, so delete it. In the process get rid of the
-macro FREE_IRQ which makes the code unnecessarily difficult to read.
+We should really call journal_abort() and not __journal_abort_hard() in
+case of errors.  The latter call does not record the error in the journal
+superblock and thus filesystem won't be marked as with errors later (and
+user could happily mount it without any warning).
 
-Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
-Acked-by: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/sc/debug.h    |   19 -------------------
- drivers/isdn/sc/includes.h |    1 -
- drivers/isdn/sc/init.c     |    2 +-
- 3 files changed, 1 insertion(+), 21 deletions(-)
+ fs/jbd/commit.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/isdn/sc/debug.h~isdn-sc-remove-unused-request_irq-and-unnecessary-header-file /dev/null
---- a/drivers/isdn/sc/debug.h
-+++ /dev/null
-@@ -1,19 +0,0 @@
--/* $Id: debug.h,v 1.2.8.1 2001/09/23 22:24:59 kai Exp $
-- *
-- * Copyright (C) 1996  SpellCaster Telecommunications Inc.
-- *
-- * This software may be used and distributed according to the terms
-- * of the GNU General Public License, incorporated herein by reference.
-- *
-- * For more information, please contact gpl-info@spellcast.com or write:
-- *
-- *     SpellCaster Telecommunications Inc.
-- *     5621 Finch Avenue East, Unit #3
-- *     Scarborough, Ontario  Canada
-- *     M1B 2T9
-- *     +1 (416) 297-8565
-- *     +1 (416) 297-6433 Facsimile
-- */
--
--#define REQUEST_IRQ(a,b,c,d,e) request_irq(a,b,c,d,e)
--#define FREE_IRQ(a,b) free_irq(a,b)
-diff -puN drivers/isdn/sc/includes.h~isdn-sc-remove-unused-request_irq-and-unnecessary-header-file drivers/isdn/sc/includes.h
---- a/drivers/isdn/sc/includes.h~isdn-sc-remove-unused-request_irq-and-unnecessary-header-file
-+++ a/drivers/isdn/sc/includes.h
-@@ -14,4 +14,3 @@
- #include <linux/timer.h>
- #include <linux/wait.h>
- #include <linux/isdnif.h>
--#include "debug.h"
-diff -puN drivers/isdn/sc/init.c~isdn-sc-remove-unused-request_irq-and-unnecessary-header-file drivers/isdn/sc/init.c
---- a/drivers/isdn/sc/init.c~isdn-sc-remove-unused-request_irq-and-unnecessary-header-file
-+++ a/drivers/isdn/sc/init.c
-@@ -404,7 +404,7 @@ static void __exit sc_exit(void)
- 		/*
- 		 * Release the IRQ
- 		 */
--		FREE_IRQ(sc_adapter[i]->interrupt, NULL);
-+		free_irq(sc_adapter[i]->interrupt, NULL);
+diff -puN fs/jbd/commit.c~jbd-fix-commit-code-to-properly-abort-journal fs/jbd/commit.c
+--- a/fs/jbd/commit.c~jbd-fix-commit-code-to-properly-abort-journal
++++ a/fs/jbd/commit.c
+@@ -466,7 +466,7 @@ void journal_commit_transaction(journal_
+ 	spin_unlock(&journal->j_list_lock);
  
- 		/*
- 		 * Reset for a clean start
+ 	if (err)
+-		__journal_abort_hard(journal);
++		journal_abort(journal, err);
+ 
+ 	journal_write_revoke_records(journal, commit_transaction);
+ 
+@@ -524,7 +524,7 @@ void journal_commit_transaction(journal_
+ 
+ 			descriptor = journal_get_descriptor_buffer(journal);
+ 			if (!descriptor) {
+-				__journal_abort_hard(journal);
++				journal_abort(journal, -EIO);
+ 				continue;
+ 			}
+ 
+@@ -557,7 +557,7 @@ void journal_commit_transaction(journal_
+ 		   and repeat this loop: we'll fall into the
+ 		   refile-on-abort condition above. */
+ 		if (err) {
+-			__journal_abort_hard(journal);
++			journal_abort(journal, err);
+ 			continue;
+ 		}
+ 
+@@ -748,7 +748,7 @@ wait_for_iobuf:
+ 		err = -EIO;
+ 
+ 	if (err)
+-		__journal_abort_hard(journal);
++		journal_abort(journal, err);
+ 
+ 	/* End of a transaction!  Finally, we can do checkpoint
+            processing: any buffers committed as a result of this
 _
 
-Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-make-smart-battery-system-depend-on-acpi_sbs.patch
+ext2-avoid-rec_len-overflow-with-64kb-block-size.patch
+ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes.patch
