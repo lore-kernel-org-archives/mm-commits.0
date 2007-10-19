@@ -1,64 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - whitespace-fixes-interval-timers.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:43:59 -0700
-Message-ID: <200710190343.l9J3hxpf013110@imap1.linux-foundation.org>
+Subject: - cyclades-avoid-label-defined-but-not-used-warning.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:44:24 -0700
+Message-ID: <200710190344.l9J3iOcj013140@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43711 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58039 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966101AbXJSD4f (ORCPT
+	by vger.kernel.org with ESMTP id S966486AbXJSDzx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:56:35 -0400
+	Thu, 18 Oct 2007 23:55:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     whitespace fixes: interval timers
+     Cyclades: Avoid label defined but not used warning
 has been removed from the -mm tree.  Its filename was
-     whitespace-fixes-interval-timers.patch
+     cyclades-avoid-label-defined-but-not-used-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: whitespace fixes: interval timers
-From: Daniel Walker <dwalker@mvista.com>
+Subject: Cyclades: Avoid label defined but not used warning
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+   CC      drivers/char/cyclades.o
+ drivers/char/cyclades.c: In function 'cy_init':
+ drivers/char/cyclades.c:5488: warning: label 'err_unr' defined but not used
+
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Acked-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/itimer.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/cyclades.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN kernel/itimer.c~whitespace-fixes-interval-timers kernel/itimer.c
---- a/kernel/itimer.c~whitespace-fixes-interval-timers
-+++ a/kernel/itimer.c
-@@ -130,7 +130,7 @@ asmlinkage long sys_getitimer(int which,
- enum hrtimer_restart it_real_fn(struct hrtimer *timer)
- {
- 	struct signal_struct *sig =
--	    container_of(timer, struct signal_struct, real_timer);
-+		container_of(timer, struct signal_struct, real_timer);
+diff -puN drivers/char/cyclades.c~cyclades-avoid-label-defined-but-not-used-warning drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~cyclades-avoid-label-defined-but-not-used-warning
++++ a/drivers/char/cyclades.c
+@@ -5362,13 +5362,13 @@ static int __init cy_init(void)
+ #ifdef CONFIG_PCI
+ 	/* look for pci boards */
+ 	retval = pci_register_driver(&cy_pci_driver);
+-	if (retval && !nboards)
+-		goto err_unr;
++	if (retval && !nboards) {
++		tty_unregister_driver(cy_serial_driver);
++		goto err_frtty;
++	}
+ #endif
  
- 	send_group_sig_info(SIGALRM, SEND_SIG_PRIV, sig->tsk);
- 
-@@ -291,6 +291,6 @@ asmlinkage long sys_setitimer(int which,
- 		return error;
- 
- 	if (copy_to_user(ovalue, &get_buffer, sizeof(get_buffer)))
--		return -EFAULT; 
-+		return -EFAULT;
  	return 0;
- }
+-err_unr:
+-	tty_unregister_driver(cy_serial_driver);
+ err_frtty:
+ 	put_tty_driver(cy_serial_driver);
+ err:
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
 origin.patch
-whitespace-fixes-task-exit-handling.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
+git-cifs.patch
+mga_dma-return-err-not-just-zero-from-mga_do_cleanup_dma.patch
+git-xfs.patch
