@@ -1,123 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-lock-bitops.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:45:27 -0700
-Message-ID: <200710190345.l9J3jRhm013223@imap1.linux-foundation.org>
+Subject: - char-moxa-remove-sleep_on.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:44:30 -0700
+Message-ID: <200710190344.l9J3iUTp013149@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48761 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45078 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933839AbXJSDze (ORCPT
+	by vger.kernel.org with ESMTP id S934301AbXJSDze (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 18 Oct 2007 23:55:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: lock bitops
+     Char: moxa, remove sleep_on
 has been removed from the -mm tree.  Its filename was
-     powerpc-lock-bitops.patch
+     char-moxa-remove-sleep_on.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: powerpc: lock bitops
-From: Nick Piggin <npiggin@suse.de>
+Subject: Char: moxa, remove sleep_on
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Add non-trivial lock bitops implementation for powerpc.
+interruptible_sleep_on is deprecated, use completion instead
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-powerpc/bitops.h |   46 ++++++++++++++++++++++++++++++++-
- 1 file changed, 45 insertions(+), 1 deletion(-)
+ drivers/char/moxa.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-powerpc/bitops.h~powerpc-lock-bitops include/asm-powerpc/bitops.h
---- a/include/asm-powerpc/bitops.h~powerpc-lock-bitops
-+++ a/include/asm-powerpc/bitops.h
-@@ -86,6 +86,24 @@ static __inline__ void clear_bit(int nr,
- 	: "cc" );
+diff -puN drivers/char/moxa.c~char-moxa-remove-sleep_on drivers/char/moxa.c
+--- a/drivers/char/moxa.c~char-moxa-remove-sleep_on
++++ a/drivers/char/moxa.c
+@@ -41,6 +41,7 @@
+ #include <linux/pci.h>
+ #include <linux/init.h>
+ #include <linux/bitops.h>
++#include <linux/completion.h>
+ 
+ #include <asm/system.h>
+ #include <asm/io.h>
+@@ -142,7 +143,7 @@ struct moxa_port {
+ 	struct tty_struct *tty;
+ 	int cflag;
+ 	wait_queue_head_t open_wait;
+-	wait_queue_head_t close_wait;
++	struct completion close_wait;
+ 
+ 	struct timer_list emptyTimer;
+ 
+@@ -374,7 +375,7 @@ static int __init moxa_init(void)
+ 		ch->closing_wait = 30 * HZ;
+ 		ch->cflag = B9600 | CS8 | CREAD | CLOCAL | HUPCL;
+ 		init_waitqueue_head(&ch->open_wait);
+-		init_waitqueue_head(&ch->close_wait);
++		init_completion(&ch->close_wait);
+ 
+ 		setup_timer(&ch->emptyTimer, moxa_check_xmit_empty,
+ 				(unsigned long)ch);
+@@ -577,7 +578,7 @@ static void moxa_close(struct tty_struct
+ 		wake_up_interruptible(&ch->open_wait);
+ 	}
+ 	ch->asyncflags &= ~(ASYNC_NORMAL_ACTIVE | ASYNC_CLOSING);
+-	wake_up_interruptible(&ch->close_wait);
++	complete_all(&ch->close_wait);
  }
  
-+static __inline__ void clear_bit_unlock(int nr, volatile unsigned long *addr)
-+{
-+	unsigned long old;
-+	unsigned long mask = BITOP_MASK(nr);
-+	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
-+
-+	__asm__ __volatile__(
-+	LWSYNC_ON_SMP
-+"1:"	PPC_LLARX "%0,0,%3	# clear_bit_unlock\n"
-+	"andc	%0,%0,%2\n"
-+	PPC405_ERR77(0,%3)
-+	PPC_STLCX "%0,0,%3\n"
-+	"bne-	1b"
-+	: "=&r" (old), "+m" (*p)
-+	: "r" (mask), "r" (p)
-+	: "cc", "memory");
-+}
-+
- static __inline__ void change_bit(int nr, volatile unsigned long *addr)
- {
- 	unsigned long old;
-@@ -125,6 +143,27 @@ static __inline__ int test_and_set_bit(u
- 	return (old & mask) != 0;
- }
- 
-+static __inline__ int test_and_set_bit_lock(unsigned long nr,
-+				       volatile unsigned long *addr)
-+{
-+	unsigned long old, t;
-+	unsigned long mask = BITOP_MASK(nr);
-+	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
-+
-+	__asm__ __volatile__(
-+"1:"	PPC_LLARX "%0,0,%3		# test_and_set_bit_lock\n"
-+	"or	%1,%0,%2 \n"
-+	PPC405_ERR77(0,%3)
-+	PPC_STLCX "%1,0,%3 \n"
-+	"bne-	1b"
-+	ISYNC_ON_SMP
-+	: "=&r" (old), "=&r" (t)
-+	: "r" (mask), "r" (p)
-+	: "cc", "memory");
-+
-+	return (old & mask) != 0;
-+}
-+
- static __inline__ int test_and_clear_bit(unsigned long nr,
- 					 volatile unsigned long *addr)
- {
-@@ -185,6 +224,12 @@ static __inline__ void set_bits(unsigned
- 
- #include <asm-generic/bitops/non-atomic.h>
- 
-+static __inline__ void __clear_bit_unlock(int nr, volatile unsigned long *addr)
-+{
-+	__asm__ __volatile__(LWSYNC_ON_SMP "" ::: "memory");
-+	__clear_bit(nr, addr);
-+}
-+
- /*
-  * Return the zero-based bit position (LE, not IBM bit numbering) of
-  * the most significant 1-bit in a double word.
-@@ -266,7 +311,6 @@ static __inline__ int fls(unsigned int x
- #include <asm-generic/bitops/fls64.h>
- 
- #include <asm-generic/bitops/hweight.h>
--#include <asm-generic/bitops/lock.h>
- 
- #define find_first_zero_bit(addr, size) find_next_zero_bit((addr), (size), 0)
- unsigned long find_next_zero_bit(const unsigned long *addr,
+ static int moxa_write(struct tty_struct *tty,
+@@ -941,7 +942,7 @@ static int moxa_block_till_ready(struct 
+ 	 */
+ 	if (tty_hung_up_p(filp) || (ch->asyncflags & ASYNC_CLOSING)) {
+ 		if (ch->asyncflags & ASYNC_CLOSING)
+-			interruptible_sleep_on(&ch->close_wait);
++			wait_for_completion_interruptible(&ch->close_wait);
+ #ifdef SERIAL_DO_RESTART
+ 		if (ch->asyncflags & ASYNC_HUP_NOTIFY)
+ 			return (-EAGAIN);
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
-reiser4-fix-for-new-aops-patches.patch
+git-dvb.patch
+v4l-stk11xx-add-a-new-webcam-driver.patch
+v4l-stk11xx-use-array_size-in-another-2-cases.patch
+v4l-stk11xx-use-retval-from-stk11xx_check_device.patch
+v4l-stk11xx-add-static-to-tables.patch
+git-wireless.patch
+misc-phantom-synchronize_irq-on-suspend.patch
+misc-phantom-add-comment-about-openhaptics.patch
+misc-phantom-improved-data-passing.patch
+fs-select-remove-unused-macros.patch
+remove-asm-bitopsh-includes.patch
+forbid-asm-bitopsh-direct-inclusion.patch
+cyber2000fb-rename-bit-macro.patch
+i2c-pxa-rename-bit-macro-to-pxa_bit.patch
+s2io-rename-bit-macro.patch
+amba-pl011-rename-bit-macro.patch
+define-first-set-of-bit-macros.patch
+get-rid-of-input-bit-duplicate-defines.patch
+define-global-bit-macro.patch
+flashpoint-use-bit-instead-of-bitw.patch
+remove-bits_to_type-macro.patch
+remove-bits_to_type-macro-fix.patch
+remove-asm-bitopsh-includes-reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
