@@ -1,56 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - git-watchdog-fixup.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:36:03 -0700
-Message-ID: <200710190336.l9J3a4aG012480@imap1.linux-foundation.org>
+Subject: - git-x86-fixup.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:37:38 -0700
+Message-ID: <200710190337.l9J3bcE1012529@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51493 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57155 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933924AbXJSDgG (ORCPT
+	by vger.kernel.org with ESMTP id S934146AbXJSDhk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:36:06 -0400
+	Thu, 18 Oct 2007 23:37:40 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9J3a4Ws030384
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9J3bcsJ030455
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 18 Oct 2007 20:36:05 -0700
+	for <mm-commits@vger.kernel.org>; Thu, 18 Oct 2007 20:37:39 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-watchdog-fixup
+     git-x86-fixup
 has been removed from the -mm tree.  Its filename was
-     git-watchdog-fixup.patch
+     git-x86-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-watchdog-fixup
+Subject: git-x86-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
+
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/Kconfig |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/x86/kernel/suspend_asm_64.S |   36 +++++++++++++++--------------
+ include/asm-x86/suspend_64.h     |   10 +-------
+ 2 files changed, 21 insertions(+), 25 deletions(-)
 
-diff -puN drivers/Kconfig~git-watchdog-fixup drivers/Kconfig
---- a/drivers/Kconfig~git-watchdog-fixup
-+++ a/drivers/Kconfig
-@@ -58,11 +58,9 @@ source "drivers/power/Kconfig"
+diff -puN arch/x86/kernel/suspend_asm_64.S~git-x86-fixup arch/x86/kernel/suspend_asm_64.S
+--- a/arch/x86/kernel/suspend_asm_64.S~git-x86-fixup
++++ a/arch/x86/kernel/suspend_asm_64.S
+@@ -113,23 +113,25 @@ ENTRY(restore_registers)
+ 	movq	%rcx, %cr3
+ 	movq	%rax, %cr4;  # turn PGE back on
  
- source "drivers/hwmon/Kconfig"
+-	movq saved_context_esp(%rip), %rsp
+-	movq saved_context_ebp(%rip), %rbp
+-	/* restore GPRs (we don't restore %rax, it must be 0 anyway) */
+-	movq saved_context_ebx(%rip), %rbx
+-	movq saved_context_ecx(%rip), %rcx
+-	movq saved_context_edx(%rip), %rdx
+-	movq saved_context_esi(%rip), %rsi
+-	movq saved_context_edi(%rip), %rdi
+-	movq saved_context_r08(%rip), %r8
+-	movq saved_context_r09(%rip), %r9
+-	movq saved_context_r10(%rip), %r10
+-	movq saved_context_r11(%rip), %r11
+-	movq saved_context_r12(%rip), %r12
+-	movq saved_context_r13(%rip), %r13
+-	movq saved_context_r14(%rip), %r14
+-	movq saved_context_r15(%rip), %r15
+-	pushq saved_context_eflags(%rip) ; popfq
++	/* We don't restore %rax, it must be 0 anyway */
++	movq	$saved_context, %rax
++	movq	pt_regs_rsp(%rax), %rsp
++	movq	pt_regs_rbp(%rax), %rbp
++	movq	pt_regs_rsi(%rax), %rsi
++	movq	pt_regs_rdi(%rax), %rdi
++	movq	pt_regs_rbx(%rax), %rbx
++	movq	pt_regs_rcx(%rax), %rcx
++	movq	pt_regs_rdx(%rax), %rdx
++	movq	pt_regs_r8(%rax), %r8
++	movq	pt_regs_r9(%rax), %r9
++	movq	pt_regs_r10(%rax), %r10
++	movq	pt_regs_r11(%rax), %r11
++	movq	pt_regs_r12(%rax), %r12
++	movq	pt_regs_r13(%rax), %r13
++	movq	pt_regs_r14(%rax), %r14
++	movq	pt_regs_r15(%rax), %r15
++	pushq	pt_regs_eflags(%rax)
++	popfq
  
--<<<<<<< HEAD:drivers/Kconfig
- source "drivers/ssb/Kconfig"
--=======
+ 	xorq	%rax, %rax
+ 
+diff -puN include/asm-x86/suspend_64.h~git-x86-fixup include/asm-x86/suspend_64.h
+--- a/include/asm-x86/suspend_64.h~git-x86-fixup
++++ a/include/asm-x86/suspend_64.h
+@@ -33,16 +33,8 @@ struct saved_context {
+ 	unsigned long tr;
+ 	unsigned long safety;
+ 	unsigned long return_address;
+-	unsigned long eflags;
+ } __attribute__((packed));
+ 
+-/* We'll access these from assembly, so we'd better have them outside struct */
+-extern unsigned long saved_context_eax, saved_context_ebx, saved_context_ecx, saved_context_edx;
+-extern unsigned long saved_context_esp, saved_context_ebp, saved_context_esi, saved_context_edi;
+-extern unsigned long saved_context_r08, saved_context_r09, saved_context_r10, saved_context_r11;
+-extern unsigned long saved_context_r12, saved_context_r13, saved_context_r14, saved_context_r15;
+-extern unsigned long saved_context_eflags;
+-
+ #define loaddebug(thread,register) \
+ 	set_debugreg((thread)->debugreg##register, register)
+ 
+@@ -59,3 +51,5 @@ extern unsigned long saved_rdi;
+ extern int acpi_save_state_mem(void);
+ extern char core_restore_code;
+ extern char restore_registers;
 +
- source "drivers/watchdog/Kconfig"
-->>>>>>> FETCH_HEAD:drivers/Kconfig
- 
- source "drivers/mfd/Kconfig"
- 
++#endif /* __ASM_X86_64_SUSPEND_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,7 +136,6 @@ git-unionfs.patch
 security-convert-lsm-into-a-static-interface-fix-unionfs.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
 git-nfs-vs-git-unionfs.patch
-git-watchdog-fixup.patch
 git-wireless.patch
 git-wireless-fixup.patch
 git-x86.patch
