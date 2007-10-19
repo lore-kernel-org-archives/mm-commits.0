@@ -1,100 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: - pid-namespaces-move-exit_task_namespaces.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:51:21 -0700
-Message-ID: <200710192251.l9JMpLA8024176@imap1.linux-foundation.org>
+Subject: - cyber2000fb-rename-bit-macro.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:52:33 -0700
+Message-ID: <200710192252.l9JMqX0B024284@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60462 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33443 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933613AbXJSXGR (ORCPT
+	by vger.kernel.org with ESMTP id S966999AbXJSXGQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 19:06:17 -0400
+	Fri, 19 Oct 2007 19:06:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, ebiederm@xmission.com, menage@google.com, oleg@tv-sign.ru, sukadev@us.ibm.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, adaplas@pol.net, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pid namespaces: move exit_task_namespaces()
+     cyber2000fb, rename BIT macro
 has been removed from the -mm tree.  Its filename was
-     pid-namespaces-move-exit_task_namespaces.patch
+     cyber2000fb-rename-bit-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pid namespaces: move exit_task_namespaces()
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: cyber2000fb, rename BIT macro
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Make task release its namespaces after it has reparented all his children to
-child_reaper, but before it notifies its parent about its death.
+cyber2000fb, rename BIT macro
 
-The reason to release namespaces after reparenting is that when task exits it
-may send a signal to its parent (SIGCHLD), but if the parent has already
-exited its namespaces there will be no way to decide what pid to dever to him
-- parent can be from different namespace.
+BIT will be global macro for (1 << x)
 
-The reason to release namespace before notifying the parent it that when task
-sends a SIGCHLD to parent it can call wait() on this taks and release it.  But
-releasing the mnt namespace implies dropping of all the mounts in the mnt
-namespace and NFS expects the task to have valid sighand pointer.
-
-Thanks to Oleg for pointing out some races that can apear and helping with
-patches and fixes.
-
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Cc: Paul Menage <menage@google.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/cyber2000fb.c |   44 +++++++++++++++++-----------------
+ 1 file changed, 22 insertions(+), 22 deletions(-)
 
-diff -puN kernel/exit.c~pid-namespaces-move-exit_task_namespaces kernel/exit.c
---- a/kernel/exit.c~pid-namespaces-move-exit_task_namespaces
-+++ a/kernel/exit.c
-@@ -774,6 +774,7 @@ static void exit_notify(struct task_stru
- 	 *	jobs, send them a SIGHUP and then a SIGCONT.  (POSIX 3.2.2.2)
+diff -puN drivers/video/cyber2000fb.c~cyber2000fb-rename-bit-macro drivers/video/cyber2000fb.c
+--- a/drivers/video/cyber2000fb.c~cyber2000fb-rename-bit-macro
++++ a/drivers/video/cyber2000fb.c
+@@ -549,7 +549,7 @@ cyber2000fb_decode_crtc(struct par_info 
+ {
+ 	u_int Htotal, Hblankend, Hsyncend;
+ 	u_int Vtotal, Vdispend, Vblankstart, Vblankend, Vsyncstart, Vsyncend;
+-#define BIT(v,b1,m,b2) (((v >> b1) & m) << b2)
++#define ENCODE_BIT(v,b1,m,b2) (((v >> b1) & m) << b2)
+ 
+ 	hw->crtc[13] = hw->pitch;
+ 	hw->crtc[17] = 0xe3;
+@@ -569,13 +569,13 @@ cyber2000fb_decode_crtc(struct par_info 
+ 
+ 	Hblankend   = (Htotal - 4*8) >> 3;
+ 
+-	hw->crtc[3] = BIT(Hblankend,  0, 0x1f,  0) |
+-		      BIT(1,          0, 0x01,  7);
++	hw->crtc[3] = ENCODE_BIT(Hblankend,  0, 0x1f,  0) |
++		      ENCODE_BIT(1,          0, 0x01,  7);
+ 
+ 	Hsyncend    = (var->xres + var->right_margin + var->hsync_len) >> 3;
+ 
+-	hw->crtc[5] = BIT(Hsyncend,   0, 0x1f,  0) |
+-		      BIT(Hblankend,  5, 0x01,  7);
++	hw->crtc[5] = ENCODE_BIT(Hsyncend,   0, 0x1f,  0) |
++		      ENCODE_BIT(Hblankend,  5, 0x01,  7);
+ 
+ 	Vdispend    = var->yres - 1;
+ 	Vsyncstart  = var->yres + var->lower_margin;
+@@ -590,20 +590,20 @@ cyber2000fb_decode_crtc(struct par_info 
+ 	Vblankend   = Vtotal - 10;
+ 
+ 	hw->crtc[6]  = Vtotal;
+-	hw->crtc[7]  = BIT(Vtotal,     8, 0x01,  0) |
+-			BIT(Vdispend,   8, 0x01,  1) |
+-			BIT(Vsyncstart, 8, 0x01,  2) |
+-			BIT(Vblankstart,8, 0x01,  3) |
+-			BIT(1,          0, 0x01,  4) |
+-	        	BIT(Vtotal,     9, 0x01,  5) |
+-			BIT(Vdispend,   9, 0x01,  6) |
+-			BIT(Vsyncstart, 9, 0x01,  7);
+-	hw->crtc[9]  = BIT(0,          0, 0x1f,  0) |
+-		        BIT(Vblankstart,9, 0x01,  5) |
+-			BIT(1,          0, 0x01,  6);
++	hw->crtc[7]  = ENCODE_BIT(Vtotal,     8, 0x01,  0) |
++			ENCODE_BIT(Vdispend,   8, 0x01,  1) |
++			ENCODE_BIT(Vsyncstart, 8, 0x01,  2) |
++			ENCODE_BIT(Vblankstart,8, 0x01,  3) |
++			ENCODE_BIT(1,          0, 0x01,  4) |
++	        	ENCODE_BIT(Vtotal,     9, 0x01,  5) |
++			ENCODE_BIT(Vdispend,   9, 0x01,  6) |
++			ENCODE_BIT(Vsyncstart, 9, 0x01,  7);
++	hw->crtc[9]  = ENCODE_BIT(0,          0, 0x1f,  0) |
++		        ENCODE_BIT(Vblankstart,9, 0x01,  5) |
++			ENCODE_BIT(1,          0, 0x01,  6);
+ 	hw->crtc[10] = Vsyncstart;
+-	hw->crtc[11] = BIT(Vsyncend,   0, 0x0f,  0) |
+-		       BIT(1,          0, 0x01,  7);
++	hw->crtc[11] = ENCODE_BIT(Vsyncend,   0, 0x0f,  0) |
++		       ENCODE_BIT(1,          0, 0x01,  7);
+ 	hw->crtc[12] = Vdispend;
+ 	hw->crtc[15] = Vblankstart;
+ 	hw->crtc[16] = Vblankend;
+@@ -615,10 +615,10 @@ cyber2000fb_decode_crtc(struct par_info 
+ 	 * 4=LINECOMP:10 5-IVIDEO 6=FIXCNT
  	 */
- 	forget_original_parent(tsk);
-+	exit_task_namespaces(tsk);
+ 	hw->crtc_ofl =
+-		BIT(Vtotal,     10, 0x01,  0) |
+-		BIT(Vdispend,   10, 0x01,  1) |
+-		BIT(Vsyncstart, 10, 0x01,  2) |
+-		BIT(Vblankstart,10, 0x01,  3) |
++		ENCODE_BIT(Vtotal,     10, 0x01,  0) |
++		ENCODE_BIT(Vdispend,   10, 0x01,  1) |
++		ENCODE_BIT(Vsyncstart, 10, 0x01,  2) |
++		ENCODE_BIT(Vblankstart,10, 0x01,  3) |
+ 		EXT_CRT_VRTOFL_LINECOMP10;
  
- 	write_lock_irq(&tasklist_lock);
- 	/*
-@@ -984,7 +985,6 @@ fastcall NORET_TYPE void do_exit(long co
- 		module_put(tsk->binfmt->module);
- 
- 	proc_exit_connector(tsk);
--	exit_task_namespaces(tsk);
- 	exit_notify(tsk);
- #ifdef CONFIG_NUMA
- 	mpol_free(tsk->mempolicy);
+ 	/* woody: set the interlaced bit... */
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-resource-counters-v7-fix.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
+git-dvb.patch
+v4l-stk11xx-add-a-new-webcam-driver.patch
+v4l-stk11xx-use-array_size-in-another-2-cases.patch
+v4l-stk11xx-use-retval-from-stk11xx_check_device.patch
+v4l-stk11xx-add-static-to-tables.patch
+git-wireless.patch
+dzh-remove-useless-unused-module-junk.patch
+dz-always-check-if-it-is-safe-to-console_putchar.patch
+dz-dont-panic-when-request_irq-fails.patch
+dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
+dz-update-kconfig-description.patch
+dz-rename-the-serial-console-structure.patch
+dz-fix-locking-issues.patch
+dz-handle-special-conditions-on-reception-correctly.patch
+maintainers-add-self-for-the-dz-serial-driver.patch
+remove-asm-bitopsh-includes-reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
