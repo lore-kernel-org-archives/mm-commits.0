@@ -1,62 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-fix-memset-byte-count-during-resize.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:49:48 -0700
-Message-ID: <200710192249.l9JMnmUL024004@imap1.linux-foundation.org>
+Subject: - fs-select-remove-unused-macros.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:52:26 -0700
+Message-ID: <200710192252.l9JMqQHL024270@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34108 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35775 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763598AbXJSXFL (ORCPT
+	by vger.kernel.org with ESMTP id S1764474AbXJSXFO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 19:05:11 -0400
+	Fri, 19 Oct 2007 19:05:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeffm@suse.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs: fix memset byte count during resize
+     fs/select, remove unused macros
 has been removed from the -mm tree.  Its filename was
-     reiserfs-fix-memset-byte-count-during-resize.patch
+     fs-select-remove-unused-macros.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: reiserfs: fix memset byte count during resize
-From: Jeff Mahoney <jeffm@suse.com>
+Subject: fs/select, remove unused macros
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Correct the memset in reiserfs_resize to clear the memory allocated for the
-new bitmap info structs.  Previously, it would clear the memory used by the
-old size.  Depending on the contents of memory, this could cause incorrect
-caching behavior for bitmap blocks in the newly allocated area.
+fs/select, remove unused macros
 
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+this is due to preparation for global BIT macro
+
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/resize.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/select.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN fs/reiserfs/resize.c~reiserfs-fix-memset-byte-count-during-resize fs/reiserfs/resize.c
---- a/fs/reiserfs/resize.c~reiserfs-fix-memset-byte-count-during-resize
-+++ a/fs/reiserfs/resize.c
-@@ -119,7 +119,7 @@ int reiserfs_resize(struct super_block *
- 			return -ENOMEM;
- 		}
- 		memset(bitmap, 0,
--		       sizeof(struct reiserfs_bitmap_info) * SB_BMAP_NR(s));
-+		       sizeof(struct reiserfs_bitmap_info) * bmap_nr_new);
- 		for (i = 0; i < bmap_nr; i++)
- 			bitmap[i] = old_bitmap[i];
+diff -puN fs/select.c~fs-select-remove-unused-macros fs/select.c
+--- a/fs/select.c~fs-select-remove-unused-macros
++++ a/fs/select.c
+@@ -177,11 +177,6 @@ get_max:
+ 	return max;
+ }
  
+-#define BIT(i)		(1UL << ((i)&(__NFDBITS-1)))
+-#define MEM(i,m)	((m)+(unsigned)(i)/__NFDBITS)
+-#define ISSET(i,m)	(((i)&*(m)) != 0)
+-#define SET(i,m)	(*(m) |= (i))
+-
+ #define POLLIN_SET (POLLRDNORM | POLLRDBAND | POLLIN | POLLHUP | POLLERR)
+ #define POLLOUT_SET (POLLWRBAND | POLLWRNORM | POLLOUT | POLLERR)
+ #define POLLEX_SET (POLLPRI)
 _
 
-Patches currently in -mm which might be from jeffm@suse.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-exportfs-add-fid-type.patch
-exportfs-add-new-methods.patch
-reiserfs-new-export-ops.patch
-exportfs-remove-old-methods.patch
-exportfs-make-struct-export_operations-const.patch
-exportfs-update-documentation.patch
+git-dvb.patch
+v4l-stk11xx-add-a-new-webcam-driver.patch
+v4l-stk11xx-use-array_size-in-another-2-cases.patch
+v4l-stk11xx-use-retval-from-stk11xx_check_device.patch
+v4l-stk11xx-add-static-to-tables.patch
+git-wireless.patch
+dzh-remove-useless-unused-module-junk.patch
+dz-always-check-if-it-is-safe-to-console_putchar.patch
+dz-dont-panic-when-request_irq-fails.patch
+dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
+dz-update-kconfig-description.patch
+dz-rename-the-serial-console-structure.patch
+dz-fix-locking-issues.patch
+dz-handle-special-conditions-on-reception-correctly.patch
+maintainers-add-self-for-the-dz-serial-driver.patch
+remove-asm-bitopsh-includes-reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
