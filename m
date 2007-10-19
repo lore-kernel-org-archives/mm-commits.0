@@ -1,83 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - task-containersv11-basic-task-container-framework-fix.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 21:09:41 -0700
-Message-ID: <200710190409.l9J49fb0014324@imap1.linux-foundation.org>
+Subject: - task-containersv11-basic-task-container-framework-containers-fix-refcount-bug.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 21:09:44 -0700
+Message-ID: <200710190409.l9J49iTR014327@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59640 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51698 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751102AbXJSEJs (ORCPT
+	by vger.kernel.org with ESMTP id S1751288AbXJSEJy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 00:09:48 -0400
+	Fri, 19 Oct 2007 00:09:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     task-cgroupsv11-basic-task-cgroup-framework-fix
+     Control Groups: Fix refcount bug
 has been removed from the -mm tree.  Its filename was
-     task-containersv11-basic-task-container-framework-fix.patch
+     task-containersv11-basic-task-container-framework-containers-fix-refcount-bug.patch
 
 This patch was dropped because it was folded into task-containersv11-basic-task-container-framework.patch
 
 ------------------------------------------------------
-Subject: task-cgroupsv11-basic-task-cgroup-framework-fix
-From: "Paul Menage" <menage@google.com>
+Subject: Control Groups: Fix refcount bug
+From: Paul Menage <menage@google.com>
 
-On 7/28/07, Andrew Morton <akpm@linux-foundation.org> wrote:
-> >  [<c0154ad2>] proc_cpuset_show+0x5e/0xb9
-> >  [<c01976b1>] seq_read+0xef/0x266
-> >  [<c0181398>] vfs_read+0x8e/0x117
-> >  [<c01817c9>] sys_read+0x3d/0x61
-> >  [<c010401e>] sysenter_past_esp+0x5f/0x99
-> >  =======================
-> > INFO: lockdep is turned off.
-> > Code: 00 89 d8 83 c4 0c 5b 5e 5f 5d c3 55 89 e5 57 56 53 83 ec 08 89
-> > 45 f0 89 55 ec 89 d3 01 cb 8d 43 ff c6 43 ff 00 8b 55 f0 8b 72 1c <8b>
-> > 56 3c 29 d0 3b 45 ec 72 45 89 d1 c1 e9 02 8b 76 40 89 c7 f3
-> > EIP: [<c01536a7>] cgroup_path+0x20/0x7b SS:ESP 0068:c5ccff00
->
+Fix a reference counting bug in cgroupfs
 
-Oops, this is a case of trying to read /proc/self/cpuset when cpusets
-are completely unmounted. It works fine when cpusets is mounted as
-part of any hierarchy, or part of an active but unmounted hierarchy.
-Attached patch fixes it, and should be rolled in to the first patch of
-the series. (basic framework patch).
+As part of the extraction of cpusetfs to cgroupfs, a call to
+cpuset_get_dentry() was lost (justified by the fact that the dentry in
+question was now being passed down by the caller).  Since
+cpuset_get_dentry() called lookup_one_len(), this resulted in a reference
+count being missed from the directory dentry.
 
+This patch removes cgroup_get_dentry() and replaces it with direct calls
+to lookup_one_len(); the initialization of cgroupfs dentry ops is done
+now in cgroup_create_file() at dentry creation time.
 
+Signed-off-by: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ kernel/cgroup.c |   24 +++++++-----------------
+ 1 file changed, 7 insertions(+), 17 deletions(-)
 
-diff -puN kernel/cgroup.c~task-cgroupsv11-basic-task-cgroup-framework-fix kernel/cgroup.c
---- a/kernel/cgroup.c~task-cgroupsv11-basic-task-cgroup-framework-fix
+diff -puN kernel/cgroup.c~task-cgroupsv11-basic-task-cgroup-framework-cgroups-fix-refcount-bug kernel/cgroup.c
+--- a/kernel/cgroup.c~task-cgroupsv11-basic-task-cgroup-framework-cgroups-fix-refcount-bug
 +++ a/kernel/cgroup.c
-@@ -683,6 +683,15 @@ int cgroup_path(const struct containe
+@@ -250,19 +250,6 @@ static void cgroup_diput(struct dentr
+ 	iput(inode);
+ }
+ 
+-static struct dentry *cgroup_get_dentry(struct dentry *parent,
+-					   const char *name)
+-{
+-	struct dentry *d = lookup_one_len(name, parent, strlen(name));
+-	static struct dentry_operations cgroup_dops = {
+-		.d_iput = cgroup_diput,
+-	};
+-
+-	if (!IS_ERR(d))
+-		d->d_op = &cgroup_dops;
+-	return d;
+-}
+-
+ static void remove_dir(struct dentry *d)
  {
- 	char *start;
- 
-+	if (cont == dummytop) {
-+		/*
-+		 * Inactive subsystems have no dentry for their root
-+		 * cgroup
-+		 */
-+		strcpy(buf, "/");
-+		return 0;
-+	}
+ 	struct dentry *parent = dget(d->d_parent);
+@@ -824,6 +811,10 @@ static struct inode_operations cgroup
+ static int cgroup_create_file(struct dentry *dentry, int mode,
+ 				struct super_block *sb)
+ {
++	static struct dentry_operations cgroup_dops = {
++		.d_iput = cgroup_diput,
++	};
 +
- 	start = buf + buflen;
+ 	struct inode *inode;
  
- 	*--start = '\0';
+ 	if (!dentry)
+@@ -849,7 +840,7 @@ static int cgroup_create_file(struct 
+ 		inode->i_size = 0;
+ 		inode->i_fop = &cgroup_file_operations;
+ 	}
+-
++	dentry->d_op = &cgroup_dops;
+ 	d_instantiate(dentry, inode);
+ 	dget(dentry);	/* Extra count - pin the dentry in core */
+ 	return 0;
+@@ -870,13 +861,12 @@ static int cgroup_create_dir(struct c
+ 	int error = 0;
+ 
+ 	parent = cont->parent->dentry;
+-	if (IS_ERR(dentry))
+-		return PTR_ERR(dentry);
+ 	error = cgroup_create_file(dentry, S_IFDIR | mode, cont->root->sb);
+ 	if (!error) {
+ 		dentry->d_fsdata = cont;
+ 		inc_nlink(parent->d_inode);
+ 		cont->dentry = dentry;
++		dget(dentry);
+ 	}
+ 	dput(dentry);
+ 
+@@ -898,7 +888,7 @@ int cgroup_add_file(struct cgroup 
+ 	}
+ 	strcat(name, cft->name);
+ 	BUG_ON(!mutex_is_locked(&dir->d_inode->i_mutex));
+-	dentry = cgroup_get_dentry(dir, name);
++	dentry = lookup_one_len(name, dir, strlen(name));
+ 	if (!IS_ERR(dentry)) {
+ 		error = cgroup_create_file(dentry, 0644 | S_IFREG,
+ 						cont->root->sb);
 _
 
 Patches currently in -mm which might be from menage@google.com are
 
 cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
 task-containersv11-basic-task-container-framework.patch
-task-containersv11-basic-task-container-framework-fix.patch
 task-containersv11-basic-task-container-framework-containers-fix-refcount-bug.patch
 task-containersv11-basic-task-container-framework-fix-cgroup_create_dir-comments.patch
 task-containersv11-add-tasks-file-interface.patch
