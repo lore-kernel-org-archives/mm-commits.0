@@ -1,346 +1,231 @@
 From: akpm@linux-foundation.org
-Subject: - ipmi-new-nmi-handling.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:46:20 -0700
-Message-ID: <200710190346.l9J3kKqK013322@imap1.linux-foundation.org>
+Subject: - i-oat-clean-up-error-handling-and-some-print-messages.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:46:33 -0700
+Message-ID: <200710190346.l9J3kX4F013340@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46084 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37958 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763988AbXJSDzS (ORCPT
+	by vger.kernel.org with ESMTP id S1764074AbXJSDzY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:55:18 -0400
+	Thu, 18 Oct 2007 23:55:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minyard@acm.org, mm-commits@vger.kernel.org
+To: shannon.nelson@intel.com, dan.j.williams@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IPMI: new NMI handling
+     I/OAT: clean up error handling and some print messages
 has been removed from the -mm tree.  Its filename was
-     ipmi-new-nmi-handling.patch
+     i-oat-clean-up-error-handling-and-some-print-messages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: IPMI: new NMI handling
-From: Corey Minyard <minyard@acm.org>
+Subject: I/OAT: clean up error handling and some print messages
+From: Shannon Nelson <shannon.nelson@intel.com>
 
-Convert over to the new NMI handling for getting IPMI watchdog timeouts via an
-NMI.  This add config options to know if there is the ability to receive NMIs
-and if it has an NMI post processing call.  Then it modifies the IPMI watchdog
-to take advantage of this so that it can know if an NMI comes in.
+Make better use of dev_err(), and catch an error where the transaction
+creation might fail.
 
-It also adds testing that the IPMI NMI watchdog works.
-
-Signed-off-by: Corey Minyard <minyard@acm.org>
+Signed-off-by: Shannon Nelson <shannon.nelson@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/IPMI.txt            |    8 -
- drivers/char/ipmi/ipmi_watchdog.c |  146 ++++++++++++++++++++--------
- 2 files changed, 110 insertions(+), 44 deletions(-)
+ drivers/dma/ioat.c     |    3 ++-
+ drivers/dma/ioat_dca.c |   12 ++++++------
+ drivers/dma/ioat_dma.c |   32 +++++++++++++++++++++-----------
+ drivers/dma/ioatdma.h  |    2 ++
+ 4 files changed, 31 insertions(+), 18 deletions(-)
 
-diff -puN Documentation/IPMI.txt~ipmi-new-nmi-handling Documentation/IPMI.txt
---- a/Documentation/IPMI.txt~ipmi-new-nmi-handling
-+++ a/Documentation/IPMI.txt
-@@ -584,9 +584,11 @@ The watchdog will panic and start a 120 
- gets a pre-action.  During a panic or a reboot, the watchdog will
- start a 120 timer if it is running to make sure the reboot occurs.
+diff -puN drivers/dma/ioat.c~i-oat-clean-up-error-handling-and-some-print-messages drivers/dma/ioat.c
+--- a/drivers/dma/ioat.c~i-oat-clean-up-error-handling-and-some-print-messages
++++ a/drivers/dma/ioat.c
+@@ -34,7 +34,7 @@
+ #include "ioatdma_registers.h"
+ #include "ioatdma_hw.h"
  
--Note that if you use the NMI preaction for the watchdog, you MUST
--NOT use nmi watchdog mode 1.  If you use the NMI watchdog, you
--must use mode 2.
-+Note that if you use the NMI preaction for the watchdog, you MUST NOT
-+use the nmi watchdog.  There is no reasonable way to tell if an NMI
-+comes from the IPMI controller, so it must assume that if it gets an
-+otherwise unhandled NMI, it must be from IPMI and it will panic
-+immediately.
+-MODULE_VERSION("1.24");
++MODULE_VERSION(IOAT_DMA_VERSION);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Intel Corporation");
  
- Once you open the watchdog timer, you must write a 'V' character to the
- device to close it, or the timer will not stop.  This is a new semantic
-diff -puN drivers/char/ipmi/ipmi_watchdog.c~ipmi-new-nmi-handling drivers/char/ipmi/ipmi_watchdog.c
---- a/drivers/char/ipmi/ipmi_watchdog.c~ipmi-new-nmi-handling
-+++ a/drivers/char/ipmi/ipmi_watchdog.c
-@@ -50,10 +50,19 @@
- #include <linux/poll.h>
- #include <linux/string.h>
- #include <linux/ctype.h>
-+#include <linux/delay.h>
- #include <asm/atomic.h>
- 
--#ifdef CONFIG_X86_LOCAL_APIC
--#include <asm/apic.h>
-+#ifdef CONFIG_X86
-+/* This is ugly, but I've determined that x86 is the only architecture
-+   that can reasonably support the IPMI NMI watchdog timeout at this
-+   time.  If another architecture adds this capability somehow, it
-+   will have to be a somewhat different mechanism and I have no idea
-+   how it will work.  So in the unlikely event that another
-+   architecture supports this, we can figure out a good generic
-+   mechanism for it at that time. */
-+#include <asm/kdebug.h>
-+#define HAVE_DIE_NMI
- #endif
- 
- #define	PFX "IPMI Watchdog: "
-@@ -313,6 +322,11 @@ static unsigned char ipmi_version_minor;
- /* If a pretimeout occurs, this is used to allow only one panic to happen. */
- static atomic_t preop_panic_excl = ATOMIC_INIT(-1);
- 
-+#ifdef HAVE_DIE_NMI
-+static int testing_nmi;
-+static int nmi_handler_registered;
-+#endif
-+
- static int ipmi_heartbeat(void);
- 
- /* We use a mutex to make sure that only one thing can send a set
-@@ -352,6 +366,9 @@ static int i_ipmi_set_timeout(struct ipm
- 	int                               hbnow = 0;
- 
- 
-+	/* These can be cleared as we are setting the timeout. */
-+	pretimeout_since_last_heartbeat = 0;
-+
- 	data[0] = 0;
- 	WDOG_SET_TIMER_USE(data[0], WDOG_TIMER_USE_SMS_OS);
- 
-@@ -426,13 +443,12 @@ static int ipmi_set_timeout(int do_heart
- 
- 	wait_for_completion(&set_timeout_wait);
- 
-+	mutex_unlock(&set_timeout_lock);
-+
- 	if ((do_heartbeat == IPMI_SET_TIMEOUT_FORCE_HB)
- 	    || ((send_heartbeat_now)
- 		&& (do_heartbeat == IPMI_SET_TIMEOUT_HB_IF_NECESSARY)))
--	{
- 		rv = ipmi_heartbeat();
--	}
--	mutex_unlock(&set_timeout_lock);
- 
- out:
- 	return rv;
-@@ -556,9 +572,8 @@ static int ipmi_heartbeat(void)
- 	int                               rv;
- 	struct ipmi_system_interface_addr addr;
- 
--	if (ipmi_ignore_heartbeat) {
-+	if (ipmi_ignore_heartbeat)
- 		return 0;
--	}
- 
- 	if (ipmi_start_timer_on_heartbeat) {
- 		ipmi_start_timer_on_heartbeat = 0;
-@@ -569,7 +584,6 @@ static int ipmi_heartbeat(void)
- 		   We don't want to set the action, though, we want to
- 		   leave that alone (thus it can't be combined with the
- 		   above operation. */
--		pretimeout_since_last_heartbeat = 0;
- 		return ipmi_set_timeout(IPMI_SET_TIMEOUT_HB_IF_NECESSARY);
- 	}
- 
-@@ -927,6 +941,45 @@ static void ipmi_register_watchdog(int i
- 		printk(KERN_CRIT PFX "Unable to register misc device\n");
- 	}
- 
-+#ifdef HAVE_DIE_NMI
-+	if (nmi_handler_registered) {
-+		int old_pretimeout = pretimeout;
-+		int old_timeout = timeout;
-+		int old_preop_val = preop_val;
-+
-+		/* Set the pretimeout to go off in a second and give
-+		   ourselves plenty of time to stop the timer. */
-+		ipmi_watchdog_state = WDOG_TIMEOUT_RESET;
-+		preop_val = WDOG_PREOP_NONE; /* Make sure nothing happens */
-+		pretimeout = 99;
-+		timeout = 100;
-+
-+		testing_nmi = 1;
-+
-+		rv = ipmi_set_timeout(IPMI_SET_TIMEOUT_FORCE_HB);
-+		if (rv) {
-+			printk(KERN_WARNING PFX "Error starting timer to"
-+			       " test NMI: 0x%x.  The NMI pretimeout will"
-+			       " likely not work\n", rv);
-+			rv = 0;
-+			goto out_restore;
-+		}
-+
-+		msleep(1500);
-+
-+		if (testing_nmi != 2) {
-+			printk(KERN_WARNING PFX "IPMI NMI didn't seem to"
-+			       " occur.  The NMI pretimeout will"
-+			       " likely not work\n");
-+		}
-+	out_restore:
-+		testing_nmi = 0;
-+		preop_val = old_preop_val;
-+		pretimeout = old_pretimeout;
-+		timeout = old_timeout;
-+	}
-+#endif
-+
-  out:
- 	if ((start_now) && (rv == 0)) {
- 		/* Run from startup, so start the timer now. */
-@@ -934,6 +987,10 @@ static void ipmi_register_watchdog(int i
- 		ipmi_watchdog_state = action_val;
- 		ipmi_set_timeout(IPMI_SET_TIMEOUT_FORCE_HB);
- 		printk(KERN_INFO PFX "Starting now!\n");
-+	} else {
-+		/* Stop the timer now. */
-+		ipmi_watchdog_state = WDOG_TIMEOUT_NONE;
-+		ipmi_set_timeout(IPMI_SET_TIMEOUT_NO_HB);
- 	}
- }
- 
-@@ -968,17 +1025,41 @@ static void ipmi_unregister_watchdog(int
- 	return;
- }
- 
--#ifdef HAVE_NMI_HANDLER
-+#ifdef HAVE_DIE_NMI
- static int
--ipmi_nmi(void *dev_id, int cpu, int handled)
-+ipmi_nmi(struct notifier_block *self, unsigned long val, void *data)
+@@ -85,6 +85,7 @@ static void ioat_shutdown_functionality(
  {
-+	struct die_args *args = data;
-+
-+	if (val != DIE_NMI)
-+		return NOTIFY_OK;
-+
-+	/* Hack, if it's a memory or I/O error, ignore it. */
-+	if (args->err & 0xc0)
-+		return NOTIFY_OK;
-+
-+	/*
-+	 * If we get here, it's an NMI that's not a memory or I/O
-+	 * error.  We can't truly tell if it's from IPMI or not
-+	 * without sending a message, and sending a message is almost
-+	 * impossible because of locking.
-+	 */
-+
-+	if (testing_nmi) {
-+		testing_nmi = 2;
-+		return NOTIFY_STOP;
-+	}
-+
-         /* If we are not expecting a timeout, ignore it. */
- 	if (ipmi_watchdog_state == WDOG_TIMEOUT_NONE)
--		return NOTIFY_DONE;
-+		return NOTIFY_OK;
-+
-+	if (preaction_val != WDOG_PRETIMEOUT_NMI)
-+		return NOTIFY_OK;
+ 	struct ioat_device *device = pci_get_drvdata(pdev);
  
- 	/* If no one else handled the NMI, we assume it was the IPMI
-            watchdog. */
--	if ((!handled) && (preop_val == WDOG_PREOP_PANIC)) {
-+	if (preop_val == WDOG_PREOP_PANIC) {
- 		/* On some machines, the heartbeat will give
- 		   an error and not work unless we re-enable
- 		   the timer.   So do so. */
-@@ -987,18 +1068,12 @@ ipmi_nmi(void *dev_id, int cpu, int hand
- 			panic(PFX "pre-timeout");
- 	}
- 
--	return NOTIFY_DONE;
-+	return NOTIFY_STOP;
++	dev_err(&pdev->dev, "Removing dma and dca services\n");
+ 	if (device->dca) {
+ 		unregister_dca_provider(device->dca);
+ 		free_dca_provider(device->dca);
+diff -puN drivers/dma/ioat_dca.c~i-oat-clean-up-error-handling-and-some-print-messages drivers/dma/ioat_dca.c
+--- a/drivers/dma/ioat_dca.c~i-oat-clean-up-error-handling-and-some-print-messages
++++ a/drivers/dma/ioat_dca.c
+@@ -65,7 +65,7 @@ static inline u16 dcaid_from_pcidev(stru
+ 	return (pci->bus->number << 8) | pci->devfn;
  }
  
--static struct nmi_handler ipmi_nmi_handler =
--{
--	.link     = LIST_HEAD_INIT(ipmi_nmi_handler.link),
--	.dev_name = "ipmi_watchdog",
--	.dev_id   = NULL,
--	.handler  = ipmi_nmi,
--	.priority = 0, /* Call us last. */
-+static struct notifier_block ipmi_nmi_handler = {
-+	.notifier_call = ipmi_nmi
- };
--int nmi_handler_registered;
- #endif
- 
- static int wdog_reboot_handler(struct notifier_block *this,
-@@ -1115,7 +1190,7 @@ static int preaction_op(const char *inva
- 		preaction_val = WDOG_PRETIMEOUT_NONE;
- 	else if (strcmp(inval, "pre_smi") == 0)
- 		preaction_val = WDOG_PRETIMEOUT_SMI;
--#ifdef HAVE_NMI_HANDLER
-+#ifdef HAVE_DIE_NMI
- 	else if (strcmp(inval, "pre_nmi") == 0)
- 		preaction_val = WDOG_PRETIMEOUT_NMI;
- #endif
-@@ -1149,7 +1224,7 @@ static int preop_op(const char *inval, c
- 
- static void check_parms(void)
+-static int dca_enabled_in_bios(void)
++static int dca_enabled_in_bios(struct pci_dev *pdev)
  {
--#ifdef HAVE_NMI_HANDLER
-+#ifdef HAVE_DIE_NMI
- 	int do_nmi = 0;
- 	int rv;
+ 	/* CPUID level 9 returns DCA configuration */
+ 	/* Bit 0 indicates DCA enabled by the BIOS */
+@@ -75,17 +75,17 @@ static int dca_enabled_in_bios(void)
+ 	cpuid_level_9 = cpuid_eax(9);
+ 	res = test_bit(0, &cpuid_level_9);
+ 	if (!res)
+-		printk(KERN_ERR "ioat dma: DCA is disabled in BIOS\n");
++		dev_err(&pdev->dev, "DCA is disabled in BIOS\n");
  
-@@ -1162,20 +1237,9 @@ static void check_parms(void)
- 			preop_op("preop_none", NULL);
- 			do_nmi = 0;
+ 	return res;
+ }
+ 
+-static int system_has_dca_enabled(void)
++static int system_has_dca_enabled(struct pci_dev *pdev)
+ {
+ 	if (boot_cpu_has(X86_FEATURE_DCA))
+-		return dca_enabled_in_bios();
++		return dca_enabled_in_bios(pdev);
+ 
+-	printk(KERN_ERR "ioat dma: boot cpu doesn't have X86_FEATURE_DCA\n");
++	dev_err(&pdev->dev, "boot cpu doesn't have X86_FEATURE_DCA\n");
+ 	return 0;
+ }
+ 
+@@ -208,7 +208,7 @@ struct dca_provider *ioat_dca_init(struc
+ 	int i;
+ 	int err;
+ 
+-	if (!system_has_dca_enabled())
++	if (!system_has_dca_enabled(pdev))
+ 		return NULL;
+ 
+ 	/* I/OAT v1 systems must have a known tag_map to support DCA */
+diff -puN drivers/dma/ioat_dma.c~i-oat-clean-up-error-handling-and-some-print-messages drivers/dma/ioat_dma.c
+--- a/drivers/dma/ioat_dma.c~i-oat-clean-up-error-handling-and-some-print-messages
++++ a/drivers/dma/ioat_dma.c
+@@ -267,7 +267,7 @@ static int ioat_dma_alloc_chan_resources
+ 	chanerr = readl(ioat_chan->reg_base + IOAT_CHANERR_OFFSET);
+ 	if (chanerr) {
+ 		dev_err(&ioat_chan->device->pdev->dev,
+-			"ioatdma: CHANERR = %x, clearing\n", chanerr);
++			"CHANERR = %x, clearing\n", chanerr);
+ 		writel(chanerr, ioat_chan->reg_base + IOAT_CHANERR_OFFSET);
+ 	}
+ 
+@@ -276,7 +276,7 @@ static int ioat_dma_alloc_chan_resources
+ 		desc = ioat_dma_alloc_descriptor(ioat_chan, GFP_KERNEL);
+ 		if (!desc) {
+ 			dev_err(&ioat_chan->device->pdev->dev,
+-				"ioatdma: Only %d initial descriptors\n", i);
++				"Only %d initial descriptors\n", i);
+ 			break;
  		}
--#ifdef CONFIG_X86_LOCAL_APIC
--		if (nmi_watchdog == NMI_IO_APIC) {
--			printk(KERN_WARNING PFX "nmi_watchdog is set to IO APIC"
--			       " mode (value is %d), that is incompatible"
--			       " with using NMI in the IPMI watchdog."
--			       " Disabling IPMI nmi pretimeout.\n",
--			       nmi_watchdog);
--			preaction_val = WDOG_PRETIMEOUT_NONE;
--			do_nmi = 0;
--		}
--#endif
+ 		list_add_tail(&desc->node, &tmp_list);
+@@ -342,7 +342,7 @@ static void ioat_dma_free_chan_resources
+ 	/* one is ok since we left it on there on purpose */
+ 	if (in_use_descs > 1)
+ 		dev_err(&ioat_chan->device->pdev->dev,
+-			"ioatdma: Freeing %d in use descriptors!\n",
++			"Freeing %d in use descriptors!\n",
+ 			in_use_descs - 1);
+ 
+ 	ioat_chan->last_completion = ioat_chan->completion_addr = 0;
+@@ -482,7 +482,7 @@ static void ioat_dma_memcpy_cleanup(stru
+ 	if ((ioat_chan->completion_virt->full & IOAT_CHANSTS_DMA_TRANSFER_STATUS) ==
+ 				IOAT_CHANSTS_DMA_TRANSFER_STATUS_HALTED) {
+ 		dev_err(&ioat_chan->device->pdev->dev,
+-			"ioatdma: Channel halted, chanerr = %x\n",
++			"Channel halted, chanerr = %x\n",
+ 			readl(ioat_chan->reg_base + IOAT_CHANERR_OFFSET));
+ 
+ 		/* TODO do something to salvage the situation */
+@@ -643,7 +643,7 @@ static int ioat_dma_self_test(struct ioa
+ 	u8 *src;
+ 	u8 *dest;
+ 	struct dma_chan *dma_chan;
+-	struct dma_async_tx_descriptor *tx;
++	struct dma_async_tx_descriptor *tx = NULL;
+ 	dma_addr_t addr;
+ 	dma_cookie_t cookie;
+ 	int err = 0;
+@@ -673,6 +673,13 @@ static int ioat_dma_self_test(struct ioa
  	}
- 	if (do_nmi && !nmi_handler_registered) {
--		rv = request_nmi(&ipmi_nmi_handler);
-+		rv = register_die_notifier(&ipmi_nmi_handler);
- 		if (rv) {
- 			printk(KERN_WARNING PFX
- 			       "Can't register nmi handler\n");
-@@ -1183,7 +1247,7 @@ static void check_parms(void)
- 		} else
- 			nmi_handler_registered = 1;
- 	} else if (!do_nmi && nmi_handler_registered) {
--		release_nmi(&ipmi_nmi_handler);
-+		unregister_die_notifier(&ipmi_nmi_handler);
- 		nmi_handler_registered = 0;
+ 
+ 	tx = ioat_dma_prep_memcpy(dma_chan, IOAT_TEST_SIZE, 0);
++	if (!tx) {
++		dev_err(&device->pdev->dev,
++			"Self-test prep failed, disabling\n");
++		err = -ENODEV;
++		goto free_resources;
++	}
++
+ 	async_tx_ack(tx);
+ 	addr = dma_map_single(dma_chan->device->dev, src, IOAT_TEST_SIZE,
+ 			DMA_TO_DEVICE);
+@@ -686,13 +693,13 @@ static int ioat_dma_self_test(struct ioa
+ 
+ 	if (ioat_dma_is_complete(dma_chan, cookie, NULL, NULL) != DMA_SUCCESS) {
+ 		dev_err(&device->pdev->dev,
+-			"ioatdma: Self-test copy timed out, disabling\n");
++			"Self-test copy timed out, disabling\n");
+ 		err = -ENODEV;
+ 		goto free_resources;
  	}
- #endif
-@@ -1219,9 +1283,9 @@ static int __init ipmi_wdog_init(void)
+ 	if (memcmp(src, dest, IOAT_TEST_SIZE)) {
+ 		dev_err(&device->pdev->dev,
+-			"ioatdma: Self-test copy failed compare, disabling\n");
++			"Self-test copy failed compare, disabling\n");
+ 		err = -ENODEV;
+ 		goto free_resources;
+ 	}
+@@ -730,6 +737,9 @@ static int ioat_dma_setup_interrupts(str
+ 		goto msi;
+ 	if (!strcmp(ioat_interrupt_style, "intx"))
+ 		goto intx;
++	dev_err(&device->pdev->dev, "invalid ioat_interrupt_style %s\n",
++		ioat_interrupt_style);
++	goto err_no_irq;
  
- 	rv = ipmi_smi_watcher_register(&smi_watcher);
- 	if (rv) {
--#ifdef HAVE_NMI_HANDLER
--		if (preaction_val == WDOG_PRETIMEOUT_NMI)
--			release_nmi(&ipmi_nmi_handler);
-+#ifdef HAVE_DIE_NMI
-+		if (nmi_handler_registered)
-+			unregister_die_notifier(&ipmi_nmi_handler);
- #endif
- 		atomic_notifier_chain_unregister(&panic_notifier_list,
- 						 &wdog_panic_notifier);
-@@ -1240,9 +1304,9 @@ static void __exit ipmi_wdog_exit(void)
- 	ipmi_smi_watcher_unregister(&smi_watcher);
- 	ipmi_unregister_watchdog(watchdog_ifnum);
+ msix:
+ 	/* The number of MSI-X vectors should equal the number of channels */
+@@ -906,9 +916,9 @@ struct ioatdma_device *ioat_dma_probe(st
+ 	device->common.device_dependency_added = ioat_dma_dependency_added;
+ 	device->common.dev = &pdev->dev;
+ 	dev_err(&device->pdev->dev,
+-		"ioatdma: Intel(R) I/OAT DMA Engine found,"
+-		" %d channels, device version 0x%02x\n",
+-		device->common.chancnt, device->version);
++		"Intel(R) I/OAT DMA Engine found,"
++		" %d channels, device version 0x%02x, driver version %s\n",
++		device->common.chancnt, device->version, IOAT_DMA_VERSION);
  
--#ifdef HAVE_NMI_HANDLER
-+#ifdef HAVE_DIE_NMI
- 	if (nmi_handler_registered)
--		release_nmi(&ipmi_nmi_handler);
-+		unregister_die_notifier(&ipmi_nmi_handler);
- #endif
+ 	err = ioat_dma_setup_interrupts(device);
+ 	if (err)
+@@ -932,7 +942,7 @@ err_dma_pool:
+ 	kfree(device);
+ err_kzalloc:
+ 	dev_err(&device->pdev->dev,
+-		"ioatdma: Intel(R) I/OAT DMA Engine initialization failed\n");
++		"Intel(R) I/OAT DMA Engine initialization failed\n");
+ 	return NULL;
+ }
  
- 	atomic_notifier_chain_unregister(&panic_notifier_list,
+diff -puN drivers/dma/ioatdma.h~i-oat-clean-up-error-handling-and-some-print-messages drivers/dma/ioatdma.h
+--- a/drivers/dma/ioatdma.h~i-oat-clean-up-error-handling-and-some-print-messages
++++ a/drivers/dma/ioatdma.h
+@@ -28,6 +28,8 @@
+ #include <linux/cache.h>
+ #include <linux/pci_ids.h>
+ 
++#define IOAT_DMA_VERSION "1.26"
++
+ enum ioat_interrupt {
+ 	none = 0,
+ 	msix_multi_vector = 1,
 _
 
-Patches currently in -mm which might be from minyard@acm.org are
+Patches currently in -mm which might be from shannon.nelson@intel.com are
 
 origin.patch
