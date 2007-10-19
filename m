@@ -1,55 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: - vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:42:20 -0700
-Message-ID: <200710190342.l9J3gKYJ012891@imap1.linux-foundation.org>
+Subject: - ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:42:12 -0700
+Message-ID: <200710190342.l9J3gCpR012882@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35578 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37145 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966266AbXJSD5t (ORCPT
+	by vger.kernel.org with ESMTP id S966416AbXJSD5s (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:57:49 -0400
+	Thu, 18 Oct 2007 23:57:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jlayton@redhat.com, bfields@fieldses.org, chris.mason@oracle.com, hch@lst.de, jeffm@suse.com, jsipek@cs.sunysb.edu, mhalcrow@us.ibm.com, neilb@suse.de, sfrench@us.ibm.com, trond.mykle
 
 
 The patch titled
-     VFS: make notify_change pass ATTR_KILL_S*ID to setattr operations
+     ecryptfs: allow lower fs to interpret ATTR_KILL_S*ID
 has been removed from the -mm tree.  Its filename was
-     vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
+     ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: VFS: make notify_change pass ATTR_KILL_S*ID to setattr operations
+Subject: ecryptfs: allow lower fs to interpret ATTR_KILL_S*ID
 From: Jeff Layton <jlayton@redhat.com>
 
-When an unprivileged process attempts to modify a file that has the setuid or
-setgid bits set, the VFS will attempt to clear these bits.  The VFS will set
-the ATTR_KILL_SUID or ATTR_KILL_SGID bits in the ia_valid mask, and then call
-notify_change to clear these bits and set the mode accordingly.
-
-With a networked filesystem (NFS and CIFS in particular but likely others),
-the client machine or process may not have credentials that allow for setting
-the mode.  In some situations, this can lead to file corruption, an operation
-failing outright because the setattr fails, or to races that lead to a mode
-change being reverted.
-
-In this situation, we'd like to just leave the handling of this to the server
-and ignore these bits.  The problem is that by the time the setattr op is
-called, the VFS has already reinterpreted the ATTR_KILL_* bits into a mode
-change.  The setattr operation has no way to know its intent.
-
-The following patch fixes this by making notify_change no longer clear the
-ATTR_KILL_SUID and ATTR_KILL_SGID bits in the ia_valid before handing it off
-to the setattr inode op.  setattr can then check for the presence of these
-bits, and if they're set it can assume that the mode change was only for the
-purposes of clearing these bits.
-
-This means that we now have an implicit assumption that notify_change is never
-called with ATTR_MODE and either ATTR_KILL_S*ID bit set.  Nothing currently
-enforces that, so this patch also adds a BUG() if that occurs.
+Make sure ecryptfs doesn't trip the BUG() in notify_change.  This also allows
+the lower filesystem to interpret ATTR_KILL_S*ID in its own way.
 
 Signed-off-by: Jeff Layton <jlayton@redhat.com>
 Cc: Michael Halcrow <mhalcrow@us.ibm.com>
@@ -65,68 +42,27 @@ Cc: Steven French <sfrench@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/attr.c |   26 ++++++++++++++++----------
- 1 file changed, 16 insertions(+), 10 deletions(-)
+ fs/ecryptfs/inode.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN fs/attr.c~vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations fs/attr.c
---- a/fs/attr.c~vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations
-+++ a/fs/attr.c
-@@ -103,12 +103,11 @@ EXPORT_SYMBOL(inode_setattr);
- int notify_change(struct dentry * dentry, struct iattr * attr)
- {
- 	struct inode *inode = dentry->d_inode;
--	mode_t mode;
-+	mode_t mode = inode->i_mode;
- 	int error;
- 	struct timespec now;
- 	unsigned int ia_valid = attr->ia_valid;
- 
--	mode = inode->i_mode;
- 	now = current_fs_time(inode->i_sb);
- 
- 	attr->ia_ctime = now;
-@@ -125,18 +124,25 @@ int notify_change(struct dentry * dentry
- 		if (error)
- 			return error;
+diff -puN fs/ecryptfs/inode.c~ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid fs/ecryptfs/inode.c
+--- a/fs/ecryptfs/inode.c~ecryptfs-allow-lower-fs-to-interpret-attr_kill_sid
++++ a/fs/ecryptfs/inode.c
+@@ -914,6 +914,14 @@ static int ecryptfs_setattr(struct dentr
+ 		if (rc < 0)
+ 			goto out;
  	}
 +
 +	/*
-+	 * We now pass ATTR_KILL_S*ID to the lower level setattr function so
-+	 * that the function has the ability to reinterpret a mode change
-+	 * that's due to these bits. This adds an implicit restriction that
-+	 * no function will ever call notify_change with both ATTR_MODE and
-+	 * ATTR_KILL_S*ID set.
++	 * mode change is for clearing setuid/setgid bits. Allow lower fs
++	 * to interpret this in its own way.
 +	 */
-+	if ((ia_valid & (ATTR_KILL_SUID|ATTR_KILL_SGID)) &&
-+	    (ia_valid & ATTR_MODE))
-+		BUG();
++	if (ia->ia_valid & (ATTR_KILL_SUID | ATTR_KILL_SGID))
++		ia->ia_valid &= ~ATTR_MODE;
 +
- 	if (ia_valid & ATTR_KILL_SUID) {
--		attr->ia_valid &= ~ATTR_KILL_SUID;
- 		if (mode & S_ISUID) {
--			if (!(ia_valid & ATTR_MODE)) {
--				ia_valid = attr->ia_valid |= ATTR_MODE;
--				attr->ia_mode = inode->i_mode;
--			}
--			attr->ia_mode &= ~S_ISUID;
-+			ia_valid = attr->ia_valid |= ATTR_MODE;
-+			attr->ia_mode = (inode->i_mode & ~S_ISUID);
- 		}
- 	}
- 	if (ia_valid & ATTR_KILL_SGID) {
--		attr->ia_valid &= ~ ATTR_KILL_SGID;
- 		if ((mode & (S_ISGID | S_IXGRP)) == (S_ISGID | S_IXGRP)) {
- 			if (!(ia_valid & ATTR_MODE)) {
- 				ia_valid = attr->ia_valid |= ATTR_MODE;
-@@ -145,7 +151,7 @@ int notify_change(struct dentry * dentry
- 			attr->ia_mode &= ~S_ISGID;
- 		}
- 	}
--	if (!attr->ia_valid)
-+	if (!(attr->ia_valid & ~(ATTR_KILL_SUID | ATTR_KILL_SGID)))
- 		return 0;
- 
- 	if (ia_valid & ATTR_SIZE)
+ 	rc = notify_change(lower_dentry, ia);
+ out:
+ 	fsstack_copy_attr_all(inode, lower_inode, NULL);
 _
 
 Patches currently in -mm which might be from jlayton@redhat.com are
