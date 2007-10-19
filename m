@@ -1,51 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - char-rocket-fix-signed-unsigned-warning.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:44:43 -0700
-Message-ID: <200710190344.l9J3ihhP013167@imap1.linux-foundation.org>
+Subject: - char-moxa-fix-and-optimise-empty-timer.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:44:13 -0700
+Message-ID: <200710190344.l9J3iDgA013125@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47453 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36954 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763985AbXJSDzc (ORCPT
+	by vger.kernel.org with ESMTP id S934259AbXJSDze (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:55:32 -0400
+	Thu, 18 Oct 2007 23:55:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: rocket, fix signed/unsigned warning
+     Char: moxa, fix and optimise empty timer
 has been removed from the -mm tree.  Its filename was
-     char-rocket-fix-signed-unsigned-warning.patch
+     char-moxa-fix-and-optimise-empty-timer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: rocket, fix signed/unsigned warning
+Subject: Char: moxa, fix and optimise empty timer
 From: Jiri Slaby <jirislaby@gmail.com>
+
+moxa, fix and optimise empty timer
+
+don't wait and delete empty timer in empty timer function. Also fire next
+empty timer at rounded jiffies to save power.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rocket.c |    4 ++--
+ drivers/char/moxa.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/rocket.c~char-rocket-fix-signed-unsigned-warning drivers/char/rocket.c
---- a/drivers/char/rocket.c~char-rocket-fix-signed-unsigned-warning
-+++ a/drivers/char/rocket.c
-@@ -549,8 +549,8 @@ static void rp_handle_port(struct r_port
- static void rp_do_poll(unsigned long dummy)
- {
- 	CONTROLLER_t *ctlp;
--	int ctrl, aiop, ch, line, i;
--	unsigned int xmitmask;
-+	int ctrl, aiop, ch, line;
-+	unsigned int xmitmask, i;
- 	unsigned int CtlMask;
- 	unsigned char AiopMask;
- 	Word_t bit;
+diff -puN drivers/char/moxa.c~char-moxa-fix-and-optimise-empty-timer drivers/char/moxa.c
+--- a/drivers/char/moxa.c~char-moxa-fix-and-optimise-empty-timer
++++ a/drivers/char/moxa.c
+@@ -1040,14 +1040,14 @@ static void check_xmit_empty(unsigned lo
+ 	struct moxa_port *ch;
+ 
+ 	ch = (struct moxa_port *) data;
+-	del_timer_sync(&moxa_ports[ch->port].emptyTimer);
+ 	if (ch->tty && (ch->statusflags & EMPTYWAIT)) {
+ 		if (MoxaPortTxQueue(ch->port) == 0) {
+ 			ch->statusflags &= ~EMPTYWAIT;
+ 			tty_wakeup(ch->tty);
+ 			return;
+ 		}
+-		mod_timer(&moxa_ports[ch->port].emptyTimer, jiffies + HZ);
++		mod_timer(&moxa_ports[ch->port].emptyTimer,
++				round_jiffies(jiffies + HZ));
+ 	} else
+ 		ch->statusflags &= ~EMPTYWAIT;
+ }
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
