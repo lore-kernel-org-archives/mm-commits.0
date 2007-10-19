@@ -1,168 +1,254 @@
 From: akpm@linux-foundation.org
-Subject: - isolate-the-explicit-usage-of-signal-pgrp.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:53:09 -0700
-Message-ID: <200710192253.l9JMr9xq024406@imap1.linux-foundation.org>
+Subject: - pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:51:36 -0700
+Message-ID: <200710192251.l9JMpap7024197@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60869 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55853 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763923AbXJSXGq (ORCPT
+	by vger.kernel.org with ESMTP id S934285AbXJSXGg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 19:06:46 -0400
+	Fri, 19 Oct 2007 19:06:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, clg@fr.ibm.com, ebiederm@xmission.com, herbert@13thfloor.at, oleg@tv-sign.ru, serue@us.ibm.com, sukadev@us.ibm.com, mm-commits@vger.kernel.org
+To: xemul@openvz.org, ebiederm@xmission.com, menage@google.com, oleg@tv-sign.ru, sukadev@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Isolate the explicit usage of signal->pgrp
+     pid namespaces: helpers to find the task by its numerical ids
 has been removed from the -mm tree.  Its filename was
-     isolate-the-explicit-usage-of-signal-pgrp.patch
+     pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Isolate the explicit usage of signal->pgrp
+Subject: pid namespaces: helpers to find the task by its numerical ids
 From: Pavel Emelyanov <xemul@openvz.org>
 
-The pgrp field is not used widely around the kernel so it is now marked as
-deprecated with appropriate comment.
+When searching the task by numerical id on may need to find it using global
+pid (as it is done now in kernel) or by its virtual id, e.g.  when sending a
+signal to a task from one namespace the sender will specify the task's virtual
+id and we should find the task by this value.
 
-The initialization of INIT_SIGNALS is trimmed because
-a) they are set to 0 automatically;
-b) gcc cannot properly initialize two anonymous (the second one
-   is the one with the session) unions. In this particular case
-   to make it compile we'd have to add some field initialized
-   right before the .pgrp.
-
-This is the same patch as the 1ec320afdc9552c92191d5f89fcd1ebe588334ca one
-(from Cedric), but for the pgrp field.
-
-Some progress report:
-
-We have to deprecate the pid, tgid, session and pgrp fields on struct
-task_struct and struct signal_struct.  The session and pgrp are already
-deprecated.  The tgid value is close to being such - the worst known usage
-in in fs/locks.c and audit code.  The pid field deprecation is mainly
-blocked by numerous printk-s around the kernel that print the tsk->pid to
-log.
-
+[akpm@linux-foundation.org: fix gfs2 linkage]
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Paul Menage <menage@google.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init_task.h |    3 ---
- include/linux/sched.h     |   19 +++++++++++++++++--
- kernel/exit.c             |    2 +-
- kernel/fork.c             |    4 ++--
- kernel/sys.c              |    2 +-
- 5 files changed, 21 insertions(+), 9 deletions(-)
+ fs/proc/base.c        |    2 -
+ include/linux/pid.h   |   16 +++++++++++++-
+ include/linux/sched.h |   31 ++++++++++++++++++++++++++--
+ kernel/pid.c          |   43 ++++++++++++++++++++++++----------------
+ 4 files changed, 70 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/init_task.h~isolate-the-explicit-usage-of-signal-pgrp include/linux/init_task.h
---- a/include/linux/init_task.h~isolate-the-explicit-usage-of-signal-pgrp
-+++ a/include/linux/init_task.h
-@@ -67,9 +67,6 @@
- 	.posix_timers	 = LIST_HEAD_INIT(sig.posix_timers),		\
- 	.cpu_timers	= INIT_CPU_TIMERS(sig.cpu_timers),		\
- 	.rlim		= INIT_RLIMITS,					\
--	.pgrp		= 0,						\
--	.tty_old_pgrp   = NULL,						\
--	{ .__session      = 0},						\
- }
+diff -puN fs/proc/base.c~pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids fs/proc/base.c
+--- a/fs/proc/base.c~pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids
++++ a/fs/proc/base.c
+@@ -2333,7 +2333,7 @@ static struct task_struct *next_tgid(uns
+ 	rcu_read_lock();
+ retry:
+ 	task = NULL;
+-	pid = find_ge_pid(tgid);
++	pid = find_ge_pid(tgid, &init_pid_ns);
+ 	if (pid) {
+ 		tgid = pid->nr + 1;
+ 		task = pid_task(pid, PIDTYPE_PID);
+diff -puN include/linux/pid.h~pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids include/linux/pid.h
+--- a/include/linux/pid.h~pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids
++++ a/include/linux/pid.h
+@@ -99,17 +99,29 @@ extern void FASTCALL(detach_pid(struct t
+ extern void FASTCALL(transfer_pid(struct task_struct *old,
+ 				  struct task_struct *new, enum pid_type));
  
- extern struct nsproxy init_nsproxy;
-diff -puN include/linux/sched.h~isolate-the-explicit-usage-of-signal-pgrp include/linux/sched.h
---- a/include/linux/sched.h~isolate-the-explicit-usage-of-signal-pgrp
++struct pid_namespace;
++extern struct pid_namespace init_pid_ns;
++
+ /*
+  * look up a PID in the hash table. Must be called with the tasklist_lock
+  * or rcu_read_lock() held.
++ *
++ * find_pid_ns() finds the pid in the namespace specified
++ * find_pid() find the pid by its global id, i.e. in the init namespace
++ * find_vpid() finr the pid by its virtual id, i.e. in the current namespace
++ *
++ * see also find_task_by_pid() set in include/linux/sched.h
+  */
+-extern struct pid *FASTCALL(find_pid(int nr));
++extern struct pid *FASTCALL(find_pid_ns(int nr, struct pid_namespace *ns));
++
++#define find_vpid(pid)	find_pid_ns(pid, current->nsproxy->pid_ns)
++#define find_pid(pid)	find_pid_ns(pid, &init_pid_ns)
+ 
+ /*
+  * Lookup a PID in the hash table, and return with it's count elevated.
+  */
+ extern struct pid *find_get_pid(int nr);
+-extern struct pid *find_ge_pid(int nr);
++extern struct pid *find_ge_pid(int nr, struct pid_namespace *);
+ 
+ extern struct pid *alloc_pid(struct pid_namespace *ns);
+ extern void FASTCALL(free_pid(struct pid *pid));
+diff -puN include/linux/sched.h~pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids include/linux/sched.h
+--- a/include/linux/sched.h~pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids
 +++ a/include/linux/sched.h
-@@ -429,7 +429,17 @@ struct signal_struct {
- 	cputime_t it_prof_incr, it_virt_incr;
+@@ -1514,8 +1514,35 @@ extern struct task_struct init_task;
  
- 	/* job control IDs */
--	pid_t pgrp;
-+
-+	/*
-+	 * pgrp and session fields are deprecated.
-+	 * use the task_session_Xnr and task_pgrp_Xnr routines below
-+	 */
-+
-+	union {
-+		pid_t pgrp __deprecated;
-+		pid_t __pgrp;
-+	};
-+
- 	struct pid *tty_old_pgrp;
+ extern struct   mm_struct init_mm;
  
- 	union {
-@@ -1196,6 +1206,11 @@ static inline void set_task_session(stru
- 	tsk->signal->__session = session;
- }
- 
-+static inline void set_task_pgrp(struct task_struct *tsk, pid_t pgrp)
-+{
-+	tsk->signal->__pgrp = pgrp;
-+}
+-#define find_task_by_pid(nr)	find_task_by_pid_type(PIDTYPE_PID, nr)
+-extern struct task_struct *find_task_by_pid_type(int type, int pid);
++extern struct pid_namespace init_pid_ns;
 +
- static inline struct pid *task_pid(struct task_struct *task)
++/*
++ * find a task by one of its numerical ids
++ *
++ * find_task_by_pid_type_ns():
++ *      it is the most generic call - it finds a task by all id,
++ *      type and namespace specified
++ * find_task_by_pid_ns():
++ *      finds a task by its pid in the specified namespace
++ * find_task_by_pid_type():
++ *      finds a task by its global id with the specified type, e.g.
++ *      by global session id
++ * find_task_by_pid():
++ *      finds a task by its global pid
++ *
++ * see also find_pid() etc in include/linux/pid.h
++ */
++
++extern struct task_struct *find_task_by_pid_type_ns(int type, int pid,
++		struct pid_namespace *ns);
++
++#define find_task_by_pid_ns(nr, ns)	\
++		find_task_by_pid_type_ns(PIDTYPE_PID, nr, ns)
++#define find_task_by_pid_type(type, nr)	\
++		find_task_by_pid_type_ns(type, nr, &init_pid_ns)
++#define find_task_by_pid(nr)		\
++		find_task_by_pid_type(PIDTYPE_PID, nr)
++
+ extern void __set_special_pids(pid_t session, pid_t pgrp);
+ 
+ /* per-UID process charging. */
+diff -puN kernel/pid.c~pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids kernel/pid.c
+--- a/kernel/pid.c~pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids
++++ a/kernel/pid.c
+@@ -71,6 +71,7 @@ struct pid_namespace init_pid_ns = {
+ 	.level = 0,
+ 	.child_reaper = &init_task,
+ };
++EXPORT_SYMBOL_GPL(init_pid_ns);
+ 
+ int is_global_init(struct task_struct *tsk)
  {
- 	return task->pids[PIDTYPE_PID].pid;
-@@ -1268,7 +1283,7 @@ static inline pid_t task_tgid_vnr(struct
+@@ -210,7 +211,8 @@ fastcall void free_pid(struct pid *pid)
+ 	unsigned long flags;
  
- static inline pid_t task_pgrp_nr(struct task_struct *tsk)
+ 	spin_lock_irqsave(&pidmap_lock, flags);
+-	hlist_del_rcu(&pid->pid_chain);
++	for (i = 0; i <= pid->level; i++)
++		hlist_del_rcu(&pid->numbers[i].pid_chain);
+ 	spin_unlock_irqrestore(&pidmap_lock, flags);
+ 
+ 	for (i = 0; i <= pid->level; i++)
+@@ -225,6 +227,7 @@ struct pid *alloc_pid(struct pid_namespa
+ 	enum pid_type type;
+ 	int i, nr;
+ 	struct pid_namespace *tmp;
++	struct upid *upid;
+ 
+ 	pid = kmem_cache_alloc(ns->pid_cachep, GFP_KERNEL);
+ 	if (!pid)
+@@ -251,7 +254,11 @@ struct pid *alloc_pid(struct pid_namespa
+ 		INIT_HLIST_HEAD(&pid->tasks[type]);
+ 
+ 	spin_lock_irq(&pidmap_lock);
+-	hlist_add_head_rcu(&pid->pid_chain, &pid_hash[pid_hashfn(pid->nr, ns)]);
++	for (i = ns->level; i >= 0; i--) {
++		upid = &pid->numbers[i];
++		hlist_add_head_rcu(&upid->pid_chain,
++				&pid_hash[pid_hashfn(upid->nr, upid->ns)]);
++	}
+ 	spin_unlock_irq(&pidmap_lock);
+ 
+ out:
+@@ -266,19 +273,20 @@ out_free:
+ 	goto out;
+ }
+ 
+-struct pid * fastcall find_pid(int nr)
++struct pid * fastcall find_pid_ns(int nr, struct pid_namespace *ns)
  {
--	return tsk->signal->pgrp;
-+	return tsk->signal->__pgrp;
+ 	struct hlist_node *elem;
+-	struct pid *pid;
++	struct upid *pnr;
++
++	hlist_for_each_entry_rcu(pnr, elem,
++			&pid_hash[pid_hashfn(nr, ns)], pid_chain)
++		if (pnr->nr == nr && pnr->ns == ns)
++			return container_of(pnr, struct pid,
++					numbers[ns->level]);
+ 
+-	hlist_for_each_entry_rcu(pid, elem,
+-			&pid_hash[pid_hashfn(nr, &init_pid_ns)], pid_chain) {
+-		if (pid->nr == nr)
+-			return pid;
+-	}
+ 	return NULL;
+ }
+-EXPORT_SYMBOL_GPL(find_pid);
++EXPORT_SYMBOL_GPL(find_pid_ns);
+ 
+ /*
+  * attach_pid() must be called with the tasklist_lock write-held.
+@@ -338,12 +346,13 @@ struct task_struct * fastcall pid_task(s
+ /*
+  * Must be called under rcu_read_lock() or with tasklist_lock read-held.
+  */
+-struct task_struct *find_task_by_pid_type(int type, int nr)
++struct task_struct *find_task_by_pid_type_ns(int type, int nr,
++		struct pid_namespace *ns)
+ {
+-	return pid_task(find_pid(nr), type);
++	return pid_task(find_pid_ns(nr, ns), type);
  }
  
- pid_t task_pgrp_nr_ns(struct task_struct *tsk, struct pid_namespace *ns);
-diff -puN kernel/exit.c~isolate-the-explicit-usage-of-signal-pgrp kernel/exit.c
---- a/kernel/exit.c~isolate-the-explicit-usage-of-signal-pgrp
-+++ a/kernel/exit.c
-@@ -306,7 +306,7 @@ void __set_special_pids(pid_t session, p
- 	}
- 	if (task_pgrp_nr(curr) != pgrp) {
- 		detach_pid(curr, PIDTYPE_PGID);
--		curr->signal->pgrp = pgrp;
-+		set_task_pgrp(curr, pgrp);
- 		attach_pid(curr, PIDTYPE_PGID, find_pid(pgrp));
- 	}
- }
-diff -puN kernel/fork.c~isolate-the-explicit-usage-of-signal-pgrp kernel/fork.c
---- a/kernel/fork.c~isolate-the-explicit-usage-of-signal-pgrp
-+++ a/kernel/fork.c
-@@ -1293,13 +1293,13 @@ static struct task_struct *copy_process(
- 			if (clone_flags & CLONE_NEWPID) {
- 				p->nsproxy->pid_ns->child_reaper = p;
- 				p->signal->tty = NULL;
--				p->signal->pgrp = p->pid;
-+				set_task_pgrp(p, p->pid);
- 				set_task_session(p, p->pid);
- 				attach_pid(p, PIDTYPE_PGID, pid);
- 				attach_pid(p, PIDTYPE_SID, pid);
- 			} else {
- 				p->signal->tty = current->signal->tty;
--				p->signal->pgrp = task_pgrp_nr(current);
-+				set_task_pgrp(p, task_pgrp_nr(current));
- 				set_task_session(p, task_session_nr(current));
- 				attach_pid(p, PIDTYPE_PGID,
- 						task_pgrp(current));
-diff -puN kernel/sys.c~isolate-the-explicit-usage-of-signal-pgrp kernel/sys.c
---- a/kernel/sys.c~isolate-the-explicit-usage-of-signal-pgrp
-+++ a/kernel/sys.c
-@@ -977,7 +977,7 @@ asmlinkage long sys_setpgid(pid_t pid, p
- 		detach_pid(p, PIDTYPE_PGID);
- 		pid = find_vpid(pgid);
- 		attach_pid(p, PIDTYPE_PGID, pid);
--		p->signal->pgrp = pid_nr(pid);
-+		set_task_pgrp(p, pid_nr(pid));
- 	}
+-EXPORT_SYMBOL(find_task_by_pid_type);
++EXPORT_SYMBOL(find_task_by_pid_type_ns);
  
- 	err = 0;
+ struct pid *get_task_pid(struct task_struct *task, enum pid_type type)
+ {
+@@ -370,7 +379,7 @@ struct pid *find_get_pid(pid_t nr)
+ 	struct pid *pid;
+ 
+ 	rcu_read_lock();
+-	pid = get_pid(find_pid(nr));
++	pid = get_pid(find_vpid(nr));
+ 	rcu_read_unlock();
+ 
+ 	return pid;
+@@ -394,15 +403,15 @@ pid_t pid_nr_ns(struct pid *pid, struct 
+  *
+  * If there is a pid at nr this function is exactly the same as find_pid.
+  */
+-struct pid *find_ge_pid(int nr)
++struct pid *find_ge_pid(int nr, struct pid_namespace *ns)
+ {
+ 	struct pid *pid;
+ 
+ 	do {
+-		pid = find_pid(nr);
++		pid = find_pid_ns(nr, ns);
+ 		if (pid)
+ 			break;
+-		nr = next_pidmap(task_active_pid_ns(current), nr);
++		nr = next_pidmap(ns, nr);
+ 	} while (nr > 0);
+ 
+ 	return pid;
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
