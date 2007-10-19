@@ -1,114 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: - task-containers-enable-containers-by-default-in-some-configs.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:50:32 -0700
-Message-ID: <200710192250.l9JMoWBs024096@imap1.linux-foundation.org>
+Subject: - ip-justification-for-local-port-range-robustness.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:54:41 -0700
+Message-ID: <200710192254.l9JMsffk024555@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60034 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45644 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967003AbXJSXFe (ORCPT
+	by vger.kernel.org with ESMTP id S966840AbXJSXF1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 19:05:34 -0400
+	Fri, 19 Oct 2007 19:05:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pj@sgi.com, menage@google.com, mm-commits@vger.kernel.org
+To: aarapov@redhat.com, davem@davemloft.net, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     task cgroups: enable cgroups by default in some configs
+     ip: justification for local port range robustness
 has been removed from the -mm tree.  Its filename was
-     task-containers-enable-containers-by-default-in-some-configs.patch
+     ip-justification-for-local-port-range-robustness.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: task cgroups: enable cgroups by default in some configs
-From: Paul Jackson <pj@sgi.com>
+Subject: ip: justification for local port range robustness
+From: Anton Arapov <aarapov@redhat.com>
 
-In pre-cgroup cpusets, a few config files enabled cpusets by default. 
+There is a justifying patch for Stephen's patches.  Stephen's patches
+disallows using a port range of one single port and brakes the meaning of the
+'remaining' variable, in some places it has different meaning.  My patch gives
+back the sense of 'remaining' variable.  It should mean how many ports are
+remaining and nothing else.  Also my patch allows using a single port.
 
-Signed-off-by: Paul Jackson <pj@sgi.com>
-Cc: Paul Menage <menage@google.com>
+I am sure we must be able to use mentioned port range, this does not
+restricted by documentation and does not brake current behavior.
+
+usefull links:
+Patches posted by Stephen Hemminger
+  http://marc.info/?l=linux-netdev&m=119206106218187&w=2
+  http://marc.info/?l=linux-netdev&m=119206109918235&w=2
+
+Andrew Morton's comment
+  http://marc.info/?l=linux-kernel&m=119248225007737&w=2
+
+  1. Allows using a port range of one single port.
+  2. Gives back sense of 'remaining' variable.
+
+Signed-off-by: Anton Arapov <aarapov@redhat.com>
+Acked-by: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/configs/sn2_defconfig          |    1 +
- arch/mips/configs/ip27_defconfig         |    1 +
- arch/mips/configs/sb1250-swarm_defconfig |    1 +
- arch/powerpc/configs/cell_defconfig      |    1 +
- arch/powerpc/configs/ppc64_defconfig     |    1 +
- arch/powerpc/configs/pseries_defconfig   |    1 +
- 6 files changed, 6 insertions(+)
+ drivers/infiniband/core/cma.c   |    5 +++--
+ net/ipv4/inet_connection_sock.c |    2 +-
+ net/ipv4/inet_hashtables.c      |    2 +-
+ net/ipv4/sysctl_net_ipv4.c      |    4 ++--
+ net/ipv4/udp.c                  |    5 +++--
+ net/ipv6/inet6_hashtables.c     |    2 +-
+ 6 files changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN arch/ia64/configs/sn2_defconfig~task-containers-enable-containers-by-default-in-some-configs arch/ia64/configs/sn2_defconfig
---- a/arch/ia64/configs/sn2_defconfig~task-containers-enable-containers-by-default-in-some-configs
-+++ a/arch/ia64/configs/sn2_defconfig
-@@ -26,6 +26,7 @@ CONFIG_TASK_IO_ACCOUNTING=y
- # CONFIG_AUDIT is not set
- # CONFIG_IKCONFIG is not set
- CONFIG_LOG_BUF_SHIFT=20
-+CONFIG_CGROUPS=y
- CONFIG_CPUSETS=y
- CONFIG_SYSFS_DEPRECATED=y
- CONFIG_RELAY=y
-diff -puN arch/mips/configs/ip27_defconfig~task-containers-enable-containers-by-default-in-some-configs arch/mips/configs/ip27_defconfig
---- a/arch/mips/configs/ip27_defconfig~task-containers-enable-containers-by-default-in-some-configs
-+++ a/arch/mips/configs/ip27_defconfig
-@@ -175,6 +175,7 @@ CONFIG_POSIX_MQUEUE=y
- CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=15
-+CONFIG_CGROUPS=y
- CONFIG_CPUSETS=y
- CONFIG_SYSFS_DEPRECATED=y
- CONFIG_RELAY=y
-diff -puN arch/mips/configs/sb1250-swarm_defconfig~task-containers-enable-containers-by-default-in-some-configs arch/mips/configs/sb1250-swarm_defconfig
---- a/arch/mips/configs/sb1250-swarm_defconfig~task-containers-enable-containers-by-default-in-some-configs
-+++ a/arch/mips/configs/sb1250-swarm_defconfig
-@@ -196,6 +196,7 @@ CONFIG_SYSVIPC_SYSCTL=y
- # CONFIG_UTS_NS is not set
- # CONFIG_AUDIT is not set
- # CONFIG_IKCONFIG is not set
-+CONFIG_CGROUPS=y
- CONFIG_CPUSETS=y
- CONFIG_SYSFS_DEPRECATED=y
- CONFIG_RELAY=y
-diff -puN arch/powerpc/configs/cell_defconfig~task-containers-enable-containers-by-default-in-some-configs arch/powerpc/configs/cell_defconfig
---- a/arch/powerpc/configs/cell_defconfig~task-containers-enable-containers-by-default-in-some-configs
-+++ a/arch/powerpc/configs/cell_defconfig
-@@ -68,6 +68,7 @@ CONFIG_SYSVIPC_SYSCTL=y
- CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=15
-+CONFIG_CGROUPS=y
- CONFIG_CPUSETS=y
- CONFIG_SYSFS_DEPRECATED=y
- # CONFIG_RELAY is not set
-diff -puN arch/powerpc/configs/ppc64_defconfig~task-containers-enable-containers-by-default-in-some-configs arch/powerpc/configs/ppc64_defconfig
---- a/arch/powerpc/configs/ppc64_defconfig~task-containers-enable-containers-by-default-in-some-configs
-+++ a/arch/powerpc/configs/ppc64_defconfig
-@@ -71,6 +71,7 @@ CONFIG_TASK_DELAY_ACCT=y
- CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=17
-+CONFIG_CGROUPS=y
- CONFIG_CPUSETS=y
- CONFIG_SYSFS_DEPRECATED=y
- CONFIG_RELAY=y
-diff -puN arch/powerpc/configs/pseries_defconfig~task-containers-enable-containers-by-default-in-some-configs arch/powerpc/configs/pseries_defconfig
---- a/arch/powerpc/configs/pseries_defconfig~task-containers-enable-containers-by-default-in-some-configs
-+++ a/arch/powerpc/configs/pseries_defconfig
-@@ -71,6 +71,7 @@ CONFIG_AUDITSYSCALL=y
- CONFIG_IKCONFIG=y
- CONFIG_IKCONFIG_PROC=y
- CONFIG_LOG_BUF_SHIFT=17
-+CONFIG_CGROUPS=y
- CONFIG_CPUSETS=y
- CONFIG_SYSFS_DEPRECATED=y
- # CONFIG_RELAY is not set
+diff -puN drivers/infiniband/core/cma.c~ip-justification-for-local-port-range-robustness drivers/infiniband/core/cma.c
+--- a/drivers/infiniband/core/cma.c~ip-justification-for-local-port-range-robustness
++++ a/drivers/infiniband/core/cma.c
+@@ -2803,11 +2803,12 @@ static void cma_remove_one(struct ib_dev
+ 
+ static int cma_init(void)
+ {
+-	int ret, low, high;
++	int ret, low, high, remaining;
+ 
+ 	get_random_bytes(&next_port, sizeof next_port);
+ 	inet_get_local_port_range(&low, &high);
+-	next_port = ((unsigned int) next_port % (high - low)) + low;
++	remaining = (high - low) + 1;
++	next_port = ((unsigned int) next_port % remaining) + low;
+ 
+ 	cma_wq = create_singlethread_workqueue("rdma_cm");
+ 	if (!cma_wq)
+diff -puN net/ipv4/inet_connection_sock.c~ip-justification-for-local-port-range-robustness net/ipv4/inet_connection_sock.c
+--- a/net/ipv4/inet_connection_sock.c~ip-justification-for-local-port-range-robustness
++++ a/net/ipv4/inet_connection_sock.c
+@@ -93,7 +93,7 @@ int inet_csk_get_port(struct inet_hashin
+ 		int remaining, rover, low, high;
+ 
+ 		inet_get_local_port_range(&low, &high);
+-		remaining = high - low;
++		remaining = (high - low) + 1;
+ 		rover = net_random() % remaining + low;
+ 
+ 		do {
+diff -puN net/ipv4/inet_hashtables.c~ip-justification-for-local-port-range-robustness net/ipv4/inet_hashtables.c
+--- a/net/ipv4/inet_hashtables.c~ip-justification-for-local-port-range-robustness
++++ a/net/ipv4/inet_hashtables.c
+@@ -286,7 +286,7 @@ int inet_hash_connect(struct inet_timewa
+ 		struct inet_timewait_sock *tw = NULL;
+ 
+ 		inet_get_local_port_range(&low, &high);
+-		remaining = high - low;
++		remaining = (high - low) + 1;
+ 
+ 		local_bh_disable();
+ 		for (i = 1; i <= remaining; i++) {
+diff -puN net/ipv4/sysctl_net_ipv4.c~ip-justification-for-local-port-range-robustness net/ipv4/sysctl_net_ipv4.c
+--- a/net/ipv4/sysctl_net_ipv4.c~ip-justification-for-local-port-range-robustness
++++ a/net/ipv4/sysctl_net_ipv4.c
+@@ -122,7 +122,7 @@ static int ipv4_local_port_range(ctl_tab
+ 	ret = proc_dointvec_minmax(&tmp, write, filp, buffer, lenp, ppos);
+ 
+ 	if (write && ret == 0) {
+-		if (range[1] <= range[0])
++		if (range[1] < range[0])
+ 			ret = -EINVAL;
+ 		else
+ 			set_local_port_range(range);
+@@ -150,7 +150,7 @@ static int ipv4_sysctl_local_port_range(
+ 
+ 	ret = sysctl_intvec(&tmp, name, nlen, oldval, oldlenp, newval, newlen);
+ 	if (ret == 0 && newval && newlen) {
+-		if (range[1] <= range[0])
++		if (range[1] < range[0])
+ 			ret = -EINVAL;
+ 		else
+ 			set_local_port_range(range);
+diff -puN net/ipv4/udp.c~ip-justification-for-local-port-range-robustness net/ipv4/udp.c
+--- a/net/ipv4/udp.c~ip-justification-for-local-port-range-robustness
++++ a/net/ipv4/udp.c
+@@ -147,13 +147,14 @@ int __udp_lib_get_port(struct sock *sk, 
+ 	write_lock_bh(&udp_hash_lock);
+ 
+ 	if (!snum) {
+-		int i, low, high;
++		int i, low, high, remaining;
+ 		unsigned rover, best, best_size_so_far;
+ 
+ 		inet_get_local_port_range(&low, &high);
++		remaining = (high - low) + 1;
+ 
+ 		best_size_so_far = UINT_MAX;
+-		best = rover = net_random() % (high - low) + low;
++		best = rover = net_random() % remaining + low;
+ 
+ 		/* 1st pass: look for empty (or shortest) hash chain */
+ 		for (i = 0; i < UDP_HTABLE_SIZE; i++) {
+diff -puN net/ipv6/inet6_hashtables.c~ip-justification-for-local-port-range-robustness net/ipv6/inet6_hashtables.c
+--- a/net/ipv6/inet6_hashtables.c~ip-justification-for-local-port-range-robustness
++++ a/net/ipv6/inet6_hashtables.c
+@@ -261,7 +261,7 @@ int inet6_hash_connect(struct inet_timew
+ 		struct inet_timewait_sock *tw = NULL;
+ 
+ 		inet_get_local_port_range(&low, &high);
+-		remaining = high - low;
++		remaining = (high - low) + 1;
+ 
+ 		local_bh_disable();
+ 		for (i = 1; i <= remaining; i++) {
 _
 
-Patches currently in -mm which might be from pj@sgi.com are
+Patches currently in -mm which might be from aarapov@redhat.com are
 
 origin.patch
-git-scsi-misc.patch
