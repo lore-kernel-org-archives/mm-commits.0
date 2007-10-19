@@ -1,77 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - modpost-problem-when-symbols-move-from-one-module-to-another.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:46:39 -0700
-Message-ID: <200710190346.l9J3kdEa013352@imap1.linux-foundation.org>
+Subject: - vfs-allow-filesystems-to-implement-atomic-opentruncate.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:45:51 -0700
+Message-ID: <200710190345.l9J3jpxx013254@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45162 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36470 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934445AbXJSD43 (ORCPT
+	by vger.kernel.org with ESMTP id S966184AbXJSDzo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:56:29 -0400
+	Thu, 18 Oct 2007 23:55:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xyzzy@speakeasy.org, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, adilger@clusterfs.com, hch@lst.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     modpost: fix problem with out of date Module.symvers
+     VFS: allow filesystems to implement atomic open+truncate
 has been removed from the -mm tree.  Its filename was
-     modpost-problem-when-symbols-move-from-one-module-to-another.patch
+     vfs-allow-filesystems-to-implement-atomic-opentruncate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: modpost: fix problem with out of date Module.symvers
-From: Trent Piepho <xyzzy@speakeasy.org>
+Subject: VFS: allow filesystems to implement atomic open+truncate
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-When part of build an external module tree, modpost first reads in the
-kernel's and then the external tree's Module.symvers files.  From these files
-it establishes a symbol => module mapping.  When it later reads in each module
-built and processes the symbols it finds, it discovers the symbol=>module
-mapping from Module.symvers and leaves it as it is.
+Add a new attribute flag ATTR_OPEN, with the meaning: "truncation was
+initiated by open() due to the O_TRUNC flag".
 
-The problem comes with a module has been re-named or a symbol has moved from
-one module to another, since the Module.symvers file was generated.  modpost
-does not update the symbol=>module mapping when it finds the new location of
-the symbol when scanning the newly built modules.  This results in the module
-containing incorrect dependency information and the new Module.symvers file
-written by modpost will also contain the incorrect mappings, perpetuating the
-problem to the next build, and so on.
+This way filesystems wanting to implement truncation within their ->open()
+method can ignore such truncate requests.
 
-When building the out of kernel development tree for kernel subsystem, like
-v4l-dvb or ALSA, deleting the external Module.symvers file before building
-(which the kernel build system doesn't do and shouldn't be necessary anyway),
-won't fix the problem.  modpost still reads the kernel's Module.symvers, and
-since we a building a kernel subsystem, it will define the same symbols as the
-external modules.
+This is a quick & dirty hack, but it comes for free.
 
-Signed-off-by: Trent Piepho <xyzzy@speakeasy.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Dilger <adilger@clusterfs.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/mod/modpost.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/namei.c         |    6 ++++--
+ include/linux/fs.h |    1 +
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN scripts/mod/modpost.c~modpost-problem-when-symbols-move-from-one-module-to-another scripts/mod/modpost.c
---- a/scripts/mod/modpost.c~modpost-problem-when-symbols-move-from-one-module-to-another
-+++ a/scripts/mod/modpost.c
-@@ -268,6 +268,9 @@ static struct symbol *sym_add_exported(c
- 			     "was in %s%s\n", mod->name, name,
- 			     s->module->name,
- 			     is_vmlinux(s->module->name) ?"":".ko");
-+		} else {
-+			/* In case Modules.symvers was out of date */
-+			s->module = mod;
+diff -puN fs/namei.c~vfs-allow-filesystems-to-implement-atomic-opentruncate fs/namei.c
+--- a/fs/namei.c~vfs-allow-filesystems-to-implement-atomic-opentruncate
++++ a/fs/namei.c
+@@ -1659,8 +1659,10 @@ int may_open(struct nameidata *nd, int a
+ 		error = locks_verify_locked(inode);
+ 		if (!error) {
+ 			DQUOT_INIT(inode);
+-			
+-			error = do_truncate(dentry, 0, ATTR_MTIME|ATTR_CTIME, NULL);
++
++			error = do_truncate(dentry, 0,
++					    ATTR_MTIME|ATTR_CTIME|ATTR_OPEN,
++					    NULL);
  		}
- 	}
- 	s->preloaded = 0;
+ 		put_write_access(inode);
+ 		if (error)
+diff -puN include/linux/fs.h~vfs-allow-filesystems-to-implement-atomic-opentruncate include/linux/fs.h
+--- a/include/linux/fs.h~vfs-allow-filesystems-to-implement-atomic-opentruncate
++++ a/include/linux/fs.h
+@@ -330,6 +330,7 @@ typedef void (dio_iodone_t)(struct kiocb
+ #define ATTR_KILL_SGID	4096
+ #define ATTR_FILE	8192
+ #define ATTR_KILL_PRIV	16384
++#define ATTR_OPEN	32768	/* Truncating from open(O_TRUNC) */
+ 
+ /*
+  * This is the Inode Attributes structure, used for notify_change().  It
 _
 
-Patches currently in -mm which might be from xyzzy@speakeasy.org are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
-git-alsa.patch
-git-dvb.patch
-git-kbuild.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
