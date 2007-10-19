@@ -1,173 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - mips-lock-bitops.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:45:25 -0700
-Message-ID: <200710190345.l9J3jPAv013218@imap1.linux-foundation.org>
+Subject: - procfs-detect-duplicate-names-fix.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:55:20 -0700
+Message-ID: <200710190355.l9J3tKKh013782@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41962 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56020 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934331AbXJSDzg (ORCPT
+	by vger.kernel.org with ESMTP id S1763046AbXJSDzX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:55:36 -0400
+	Thu, 18 Oct 2007 23:55:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, rui.zhang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mips: lock bitops
+     procfs-detect-duplicate-names-fix
 has been removed from the -mm tree.  Its filename was
-     mips-lock-bitops.patch
+     procfs-detect-duplicate-names-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into procfs-detect-duplicate-names.patch
 
 ------------------------------------------------------
-Subject: mips: lock bitops
-From: Nick Piggin <npiggin@suse.de>
+Subject: procfs-detect-duplicate-names-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-mips can avoid one mb when acquiring a lock with test_and_set_bit_lock.
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-mips/bitops.h |   97 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 96 insertions(+), 1 deletion(-)
+ fs/proc/generic.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-mips/bitops.h~mips-lock-bitops include/asm-mips/bitops.h
---- a/include/asm-mips/bitops.h~mips-lock-bitops
-+++ a/include/asm-mips/bitops.h
-@@ -172,6 +172,20 @@ static inline void clear_bit(unsigned lo
- }
+diff -puN fs/proc/generic.c~procfs-detect-duplicate-names-fix fs/proc/generic.c
+--- a/fs/proc/generic.c~procfs-detect-duplicate-names-fix
++++ a/fs/proc/generic.c
+@@ -523,7 +523,7 @@ static const struct inode_operations pro
  
- /*
-+ * clear_bit_unlock - Clears a bit in memory
-+ * @nr: Bit to clear
-+ * @addr: Address to start counting from
-+ *
-+ * clear_bit() is atomic and implies release semantics before the memory
-+ * operation. It can be used for an unlock.
-+ */
-+static inline void clear_bit_unlock(unsigned long nr, volatile unsigned long *addr)
-+{
-+	smp_mb__before_clear_bit();
-+	clear_bit(nr, addr);
-+}
-+
-+/*
-  * change_bit - Toggle a bit in memory
-  * @nr: Bit to change
-  * @addr: Address to start counting from
-@@ -297,6 +311,73 @@ static inline int test_and_set_bit(unsig
- }
- 
- /*
-+ * test_and_set_bit_lock - Set a bit and return its old value
-+ * @nr: Bit to set
-+ * @addr: Address to count from
-+ *
-+ * This operation is atomic and implies acquire ordering semantics
-+ * after the memory operation.
-+ */
-+static inline int test_and_set_bit_lock(unsigned long nr,
-+	volatile unsigned long *addr)
-+{
-+	unsigned short bit = nr & SZLONG_MASK;
-+	unsigned long res;
-+
-+	if (cpu_has_llsc && R10000_LLSC_WAR) {
-+		unsigned long *m = ((unsigned long *) addr) + (nr >> SZLONG_LOG);
-+		unsigned long temp;
-+
-+		__asm__ __volatile__(
-+		"	.set	mips3					\n"
-+		"1:	" __LL "%0, %1		# test_and_set_bit	\n"
-+		"	or	%2, %0, %3				\n"
-+		"	" __SC	"%2, %1					\n"
-+		"	beqzl	%2, 1b					\n"
-+		"	and	%2, %0, %3				\n"
-+		"	.set	mips0					\n"
-+		: "=&r" (temp), "=m" (*m), "=&r" (res)
-+		: "r" (1UL << bit), "m" (*m)
-+		: "memory");
-+	} else if (cpu_has_llsc) {
-+		unsigned long *m = ((unsigned long *) addr) + (nr >> SZLONG_LOG);
-+		unsigned long temp;
-+
-+		__asm__ __volatile__(
-+		"	.set	push					\n"
-+		"	.set	noreorder				\n"
-+		"	.set	mips3					\n"
-+		"1:	" __LL "%0, %1		# test_and_set_bit	\n"
-+		"	or	%2, %0, %3				\n"
-+		"	" __SC	"%2, %1					\n"
-+		"	beqz	%2, 2f					\n"
-+		"	 and	%2, %0, %3				\n"
-+		"	.subsection 2					\n"
-+		"2:	b	1b					\n"
-+		"	 nop						\n"
-+		"	.previous					\n"
-+		"	.set	pop					\n"
-+		: "=&r" (temp), "=m" (*m), "=&r" (res)
-+		: "r" (1UL << bit), "m" (*m)
-+		: "memory");
-+	} else {
-+		volatile unsigned long *a = addr;
-+		unsigned long mask;
-+		unsigned long flags;
-+
-+		a += nr >> SZLONG_LOG;
-+		mask = 1UL << bit;
-+		raw_local_irq_save(flags);
-+		res = (mask & *a);
-+		*a |= mask;
-+		raw_local_irq_restore(flags);
-+	}
-+
-+	smp_llsc_mb();
-+
-+	return res != 0;
-+}
-+/*
-  * test_and_clear_bit - Clear a bit and return its old value
-  * @nr: Bit to clear
-  * @addr: Address to count from
-@@ -459,6 +540,21 @@ static inline int test_and_change_bit(un
- #include <asm-generic/bitops/non-atomic.h>
- 
- /*
-+ * __clear_bit_unlock - Clears a bit in memory
-+ * @nr: Bit to clear
-+ * @addr: Address to start counting from
-+ *
-+ * __clear_bit() is non-atomic and implies release semantics before the memory
-+ * operation. It can be used for an unlock if no other CPUs can concurrently
-+ * modify other bits in the word.
-+ */
-+static inline void __clear_bit_unlock(unsigned long nr, volatile unsigned long *addr)
-+{
-+	smp_mb();
-+	__clear_bit(nr, addr);
-+}
-+
-+/*
-  * Return the bit position (0..63) of the most significant 1 bit in a word
-  * Returns -1 if no 1 bit exists
-  */
-@@ -562,7 +658,6 @@ static inline int ffs(int word)
- 
- #include <asm-generic/bitops/sched.h>
- #include <asm-generic/bitops/hweight.h>
--#include <asm-generic/bitops/lock.h>
- #include <asm-generic/bitops/ext2-non-atomic.h>
- #include <asm-generic/bitops/ext2-atomic.h>
- #include <asm-generic/bitops/minix.h>
+ static int proc_register(struct proc_dir_entry * dir, struct proc_dir_entry * dp)
+ {
+-	struct proc_dir_entry *tmp = NULL;
++	struct proc_dir_entry *tmp;
+ 	unsigned int i;
+ 	
+ 	i = get_inode_number();
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
-reiser4-fix-for-new-aops-patches.patch
+console-keyboard-events-and-accessibility.patch
+add-kernel-notifierc.patch
+console-events-and-accessibility.patch
+procfs-detect-duplicate-names.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes.patch
+sync_sb_inodes-propagate-errors.patch
+fix-random-hard-freeze-with-avm-cards-using-b1dma-checkpatch-fixes.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes-2.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+fix-cpusets-update_cpumask-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+kexec-add-bss-to-resource-tree-checkpatch-fixes.patch
+kexec-introduce-bootmem_exclusive-checkpatch-fixes.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
