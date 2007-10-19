@@ -1,126 +1,231 @@
 From: akpm@linux-foundation.org
-Subject: - ipmi-remove-bogus-semaphore-from-watchdog.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:46:14 -0700
-Message-ID: <200710190346.l9J3kE1u013313@imap1.linux-foundation.org>
+Subject: - fuse-add-file-handle-to-getattr-operation.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:45:47 -0700
+Message-ID: <200710190345.l9J3jl3w013248@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40036 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60612 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752604AbXJSDzU (ORCPT
+	by vger.kernel.org with ESMTP id S1761372AbXJSDzS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:55:20 -0400
+	Thu, 18 Oct 2007 23:55:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cminyard@mvista.com, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IPMI: remove bogus semaphore from watchdog
+     fuse: add file handle to getattr operation
 has been removed from the -mm tree.  Its filename was
-     ipmi-remove-bogus-semaphore-from-watchdog.patch
+     fuse-add-file-handle-to-getattr-operation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: IPMI: remove bogus semaphore from watchdog
-From: Corey Minyard <cminyard@mvista.com>
+Subject: fuse: add file handle to getattr operation
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Lockdep was giving an error when loading the IPMI watchdog module.  It turns
-out that if you try to claim a lock in a parameter handling routine, lockdep
-won't see that lock as "static" yet because the module is not yet on the
-module list, so it will complain.
+Add necessary protocol changes for supplying a file handle with the getattr
+operation.  Step the API version to 7.9.
 
-However, the semaphore in question is completely unnecessary.  So just remove
-it.
+This patch doesn't actually supply the file handle, because that needs some
+kind of VFS support, which we haven't yet been able to agree upon.
 
-Signed-off-by: Corey Minyard <cminyard@mvista.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_watchdog.c |   17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
+ fs/fuse/dir.c        |   37 +++++++++++++++++++++++++------------
+ fs/fuse/inode.c      |    2 +-
+ include/linux/fuse.h |   23 +++++++++++++++++++++--
+ 3 files changed, 47 insertions(+), 15 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_watchdog.c~ipmi-remove-bogus-semaphore-from-watchdog drivers/char/ipmi/ipmi_watchdog.c
---- a/drivers/char/ipmi/ipmi_watchdog.c~ipmi-remove-bogus-semaphore-from-watchdog
-+++ a/drivers/char/ipmi/ipmi_watchdog.c
-@@ -166,8 +166,6 @@ static char expect_close;
- 
- static int ifnum_to_use = -1;
- 
--static DECLARE_RWSEM(register_sem);
--
- /* Parameters to ipmi_set_timeout */
- #define IPMI_SET_TIMEOUT_NO_HB			0
- #define IPMI_SET_TIMEOUT_HB_IF_NECESSARY	1
-@@ -193,11 +191,9 @@ static int set_param_int(const char *val
- 	if (endp == val)
- 		return -EINVAL;
- 
--	down_read(&register_sem);
- 	*((int *)kp->arg) = l;
- 	if (watchdog_user)
- 		rv = ipmi_set_timeout(IPMI_SET_TIMEOUT_HB_IF_NECESSARY);
--	up_read(&register_sem);
- 
- 	return rv;
- }
-@@ -226,17 +222,15 @@ static int set_param_str(const char *val
- 
- 	s = strstrip(valcp);
- 
--	down_read(&register_sem);
- 	rv = fn(s, NULL);
- 	if (rv)
--		goto out_unlock;
-+		goto out;
- 
- 	check_parms();
- 	if (watchdog_user)
- 		rv = ipmi_set_timeout(IPMI_SET_TIMEOUT_HB_IF_NECESSARY);
- 
-- out_unlock:
--	up_read(&register_sem);
-+ out:
- 	return rv;
+diff -puN fs/fuse/dir.c~fuse-add-file-handle-to-getattr-operation fs/fuse/dir.c
+--- a/fs/fuse/dir.c~fuse-add-file-handle-to-getattr-operation
++++ a/fs/fuse/dir.c
+@@ -705,10 +705,12 @@ static void fuse_fillattr(struct inode *
+ 	stat->blksize = (1 << inode->i_blkbits);
  }
  
-@@ -895,7 +889,6 @@ static void ipmi_register_watchdog(int i
+-static int fuse_do_getattr(struct inode *inode, struct kstat *stat)
++static int fuse_do_getattr(struct inode *inode, struct kstat *stat,
++			   struct file *file)
  {
- 	int rv = -EBUSY;
+ 	int err;
+-	struct fuse_attr_out arg;
++	struct fuse_getattr_in inarg;
++	struct fuse_attr_out outarg;
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+ 	struct fuse_req *req;
+ 	u64 attr_version;
+@@ -721,24 +723,35 @@ static int fuse_do_getattr(struct inode 
+ 	attr_version = fc->attr_version;
+ 	spin_unlock(&fc->lock);
  
--	down_write(&register_sem);
- 	if (watchdog_user)
- 		goto out;
- 
-@@ -922,8 +915,6 @@ static void ipmi_register_watchdog(int i
++	memset(&inarg, 0, sizeof(inarg));
++	/* Directories have separate file-handle space */
++	if (file && S_ISREG(inode->i_mode)) {
++		struct fuse_file *ff = file->private_data;
++
++		inarg.getattr_flags |= FUSE_GETATTR_FH;
++		inarg.fh = ff->fh;
++	}
+ 	req->in.h.opcode = FUSE_GETATTR;
+ 	req->in.h.nodeid = get_node_id(inode);
++	req->in.numargs = 1;
++	req->in.args[0].size = sizeof(inarg);
++	req->in.args[0].value = &inarg;
+ 	req->out.numargs = 1;
+-	req->out.args[0].size = sizeof(arg);
+-	req->out.args[0].value = &arg;
++	req->out.args[0].size = sizeof(outarg);
++	req->out.args[0].value = &outarg;
+ 	request_send(fc, req);
+ 	err = req->out.h.error;
+ 	fuse_put_request(fc, req);
+ 	if (!err) {
+-		if ((inode->i_mode ^ arg.attr.mode) & S_IFMT) {
++		if ((inode->i_mode ^ outarg.attr.mode) & S_IFMT) {
+ 			make_bad_inode(inode);
+ 			err = -EIO;
+ 		} else {
+-			fuse_change_attributes(inode, &arg.attr,
+-					       attr_timeout(&arg),
++			fuse_change_attributes(inode, &outarg.attr,
++					       attr_timeout(&outarg),
+ 					       attr_version);
+ 			if (stat)
+-				fuse_fillattr(inode, &arg.attr, stat);
++				fuse_fillattr(inode, &outarg.attr, stat);
+ 		}
  	}
+ 	return err;
+@@ -833,7 +846,7 @@ static int fuse_permission(struct inode 
+ 	    ((mask & MAY_EXEC) && S_ISREG(inode->i_mode))) {
+ 		struct fuse_inode *fi = get_fuse_inode(inode);
+ 		if (fi->i_time < get_jiffies_64()) {
+-			err = fuse_do_getattr(inode, NULL);
++			err = fuse_do_getattr(inode, NULL, NULL);
+ 			if (err)
+ 				return err;
  
-  out:
--	up_write(&register_sem);
--
- 	if ((start_now) && (rv == 0)) {
- 		/* Run from startup, so start the timer now. */
- 		start_now = 0; /* Disable this function after first startup. */
-@@ -937,8 +928,6 @@ static void ipmi_unregister_watchdog(int
- {
- 	int rv;
+@@ -848,7 +861,7 @@ static int fuse_permission(struct inode 
+ 		   attributes.  This is also needed, because the root
+ 		   node will at first have no permissions */
+ 		if (err == -EACCES && !refreshed) {
+-			err = fuse_do_getattr(inode, NULL);
++			err = fuse_do_getattr(inode, NULL, NULL);
+ 			if (!err)
+ 				err = generic_permission(inode, mask, NULL);
+ 		}
+@@ -864,7 +877,7 @@ static int fuse_permission(struct inode 
+ 			if (refreshed)
+ 				return -EACCES;
  
--	down_write(&register_sem);
--
- 	if (!watchdog_user)
- 		goto out;
+-			err = fuse_do_getattr(inode, NULL);
++			err = fuse_do_getattr(inode, NULL, NULL);
+ 			if (!err && !(inode->i_mode & S_IXUGO))
+ 				return -EACCES;
+ 		}
+@@ -1107,7 +1120,7 @@ static int fuse_getattr(struct vfsmount 
+ 		return -EACCES;
  
-@@ -963,7 +952,7 @@ static void ipmi_unregister_watchdog(int
- 	watchdog_user = NULL;
+ 	if (fi->i_time < get_jiffies_64())
+-		err = fuse_do_getattr(inode, stat);
++		err = fuse_do_getattr(inode, stat, NULL);
+ 	else {
+ 		err = 0;
+ 		generic_fillattr(inode, stat);
+diff -puN fs/fuse/inode.c~fuse-add-file-handle-to-getattr-operation fs/fuse/inode.c
+--- a/fs/fuse/inode.c~fuse-add-file-handle-to-getattr-operation
++++ a/fs/fuse/inode.c
+@@ -553,7 +553,7 @@ static void fuse_send_init(struct fuse_c
+ 	arg->major = FUSE_KERNEL_VERSION;
+ 	arg->minor = FUSE_KERNEL_MINOR_VERSION;
+ 	arg->max_readahead = fc->bdi.ra_pages * PAGE_CACHE_SIZE;
+-	arg->flags |= FUSE_ASYNC_READ | FUSE_POSIX_LOCKS;
++	arg->flags |= FUSE_ASYNC_READ | FUSE_POSIX_LOCKS | FUSE_FILE_OPS;
+ 	req->in.h.opcode = FUSE_INIT;
+ 	req->in.numargs = 1;
+ 	req->in.args[0].size = sizeof(*arg);
+diff -puN include/linux/fuse.h~fuse-add-file-handle-to-getattr-operation include/linux/fuse.h
+--- a/include/linux/fuse.h~fuse-add-file-handle-to-getattr-operation
++++ a/include/linux/fuse.h
+@@ -6,7 +6,14 @@
+     See the file COPYING.
+ */
  
-  out:
--	up_write(&register_sem);
-+	return;
- }
+-/* This file defines the kernel interface of FUSE */
++/*
++ * This file defines the kernel interface of FUSE
++ *
++ * Protocol changelog:
++ *
++ * 7.9:
++ *  - new fuse_getattr_in input argument of GETATTR
++ */
  
- #ifdef HAVE_NMI_HANDLER
+ #include <asm/types.h>
+ #include <linux/major.h>
+@@ -15,7 +22,7 @@
+ #define FUSE_KERNEL_VERSION 7
+ 
+ /** Minor version number of this interface */
+-#define FUSE_KERNEL_MINOR_VERSION 8
++#define FUSE_KERNEL_MINOR_VERSION 9
+ 
+ /** The node ID of the root inode */
+ #define FUSE_ROOT_ID 1
+@@ -91,12 +98,18 @@ struct fuse_file_lock {
+  */
+ #define FUSE_ASYNC_READ		(1 << 0)
+ #define FUSE_POSIX_LOCKS	(1 << 1)
++#define FUSE_FILE_OPS		(1 << 2)
+ 
+ /**
+  * Release flags
+  */
+ #define FUSE_RELEASE_FLUSH	(1 << 0)
+ 
++/**
++ * Getattr flags
++ */
++#define FUSE_GETATTR_FH		(1 << 0)
++
+ enum fuse_opcode {
+ 	FUSE_LOOKUP	   = 1,
+ 	FUSE_FORGET	   = 2,  /* no reply */
+@@ -154,6 +167,12 @@ struct fuse_forget_in {
+ 	__u64	nlookup;
+ };
+ 
++struct fuse_getattr_in {
++	__u32	getattr_flags;
++	__u32	dummy;
++	__u64	fh;
++};
++
+ struct fuse_attr_out {
+ 	__u64	attr_valid;	/* Cache timeout for the attributes */
+ 	__u32	attr_valid_nsec;
 _
 
-Patches currently in -mm which might be from cminyard@mvista.com are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
