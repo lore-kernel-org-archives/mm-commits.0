@@ -1,263 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: - replace-__attribute_pure__-with-__pure.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:46:10 -0700
-Message-ID: <200710190346.l9J3kAH5013287@imap1.linux-foundation.org>
+Subject: - sysctl-x86_64-remove-unnecessary-binary-paths.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:42:44 -0700
+Message-ID: <200710190342.l9J3gi1b012926@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57538 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57035 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966462AbXJSD4r (ORCPT
+	by vger.kernel.org with ESMTP id S966465AbXJSD4u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:56:47 -0400
+	Thu, 18 Oct 2007 23:56:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ralf@linux-mips.org, benh@kernel.crashing.org, bryan.wu@analog.com, mchehab@infradead.org, paulus@samba.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, adobriyan@sw.ru, ak@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Replace __attribute_pure__ with __pure
+     sysctl: x86_64 remove unnecessary binary paths
 has been removed from the -mm tree.  Its filename was
-     replace-__attribute_pure__-with-__pure.patch
+     sysctl-x86_64-remove-unnecessary-binary-paths.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Replace __attribute_pure__ with __pure
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: sysctl: x86_64 remove unnecessary binary paths
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-To be consistent with the use of attributes in the rest of the kernel
-replace all use of __attribute_pure__ with __pure and delete the definition
-of __attribute_pure__.
-
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Acked-by: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Bryan Wu <bryan.wu@analog.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/nwfpe/fpopcode.h         |    6 +++---
- drivers/media/video/v4l1-compat.c |    2 +-
- include/asm-blackfin/processor.h  |    4 ++--
- include/asm-ppc/time.h            |    2 +-
- include/linux/compiler-gcc.h      |   12 +++++++++++-
- include/linux/compiler.h          |   14 --------------
- lib/crc32.c                       |   12 ++++++------
- lib/libcrc32c.c                   |    6 +++---
- 8 files changed, 27 insertions(+), 31 deletions(-)
+ arch/x86/ia32/ia32_binfmt.c   |    1 -
+ arch/x86/kernel/vsyscall_64.c |   10 +---------
+ 2 files changed, 1 insertion(+), 10 deletions(-)
 
-diff -puN arch/arm/nwfpe/fpopcode.h~replace-__attribute_pure__-with-__pure arch/arm/nwfpe/fpopcode.h
---- a/arch/arm/nwfpe/fpopcode.h~replace-__attribute_pure__-with-__pure
-+++ a/arch/arm/nwfpe/fpopcode.h
-@@ -369,20 +369,20 @@ TABLE 5
- #define getRoundingMode(opcode)		((opcode & MASK_ROUNDING_MODE) >> 5)
+diff -puN arch/x86/ia32/ia32_binfmt.c~sysctl-x86_64-remove-unnecessary-binary-paths arch/x86/ia32/ia32_binfmt.c
+--- a/arch/x86/ia32/ia32_binfmt.c~sysctl-x86_64-remove-unnecessary-binary-paths
++++ a/arch/x86/ia32/ia32_binfmt.c
+@@ -289,7 +289,6 @@ static void elf32_init(struct pt_regs *r
  
- #ifdef CONFIG_FPE_NWFPE_XP
--static inline __attribute_pure__ floatx80 getExtendedConstant(const unsigned int nIndex)
-+static inline floatx80 __pure getExtendedConstant(const unsigned int nIndex)
- {
- 	extern const floatx80 floatx80Constant[];
- 	return floatx80Constant[nIndex];
- }
- #endif
- 
--static inline __attribute_pure__ float64 getDoubleConstant(const unsigned int nIndex)
-+static inline float64 __pure getDoubleConstant(const unsigned int nIndex)
- {
- 	extern const float64 float64Constant[];
- 	return float64Constant[nIndex];
+ static ctl_table abi_table2[] = {
+ 	{
+-		.ctl_name	= 99,
+ 		.procname	= "vsyscall32",
+ 		.data		= &sysctl_vsyscall32,
+ 		.maxlen		= sizeof(int),
+diff -puN arch/x86/kernel/vsyscall_64.c~sysctl-x86_64-remove-unnecessary-binary-paths arch/x86/kernel/vsyscall_64.c
+--- a/arch/x86/kernel/vsyscall_64.c~sysctl-x86_64-remove-unnecessary-binary-paths
++++ a/arch/x86/kernel/vsyscall_64.c
+@@ -266,18 +266,10 @@ out:
+ 	return ret;
  }
  
--static inline __attribute_pure__ float32 getSingleConstant(const unsigned int nIndex)
-+static inline float32 __pure getSingleConstant(const unsigned int nIndex)
- {
- 	extern const float32 float32Constant[];
- 	return float32Constant[nIndex];
-diff -puN drivers/media/video/v4l1-compat.c~replace-__attribute_pure__-with-__pure drivers/media/video/v4l1-compat.c
---- a/drivers/media/video/v4l1-compat.c~replace-__attribute_pure__-with-__pure
-+++ a/drivers/media/video/v4l1-compat.c
-@@ -144,7 +144,7 @@ const static unsigned int palette2pixelf
- 	[VIDEO_PALETTE_YUV422P] = V4L2_PIX_FMT_YUV422P,
- };
- 
--static unsigned int __attribute_pure__
-+static unsigned int __pure
- palette_to_pixelformat(unsigned int palette)
- {
- 	if (palette < ARRAY_SIZE(palette2pixelformat))
-diff -puN include/asm-blackfin/processor.h~replace-__attribute_pure__-with-__pure include/asm-blackfin/processor.h
---- a/include/asm-blackfin/processor.h~replace-__attribute_pure__-with-__pure
-+++ a/include/asm-blackfin/processor.h
-@@ -104,13 +104,13 @@ unsigned long get_wchan(struct task_stru
- #define cpu_relax()    	barrier()
- 
- /* Get the Silicon Revision of the chip */
--static inline __attribute_pure__ uint32_t bfin_revid(void)
-+static inline uint32_t __pure bfin_revid(void)
- {
- 	/* stored in the upper 4 bits */
- 	return bfin_read_CHIPID() >> 28;
- }
- 
--static inline __attribute_pure__ uint32_t bfin_compiled_revid(void)
-+static inline uint32_t __pure bfin_compiled_revid(void)
- {
- #if defined(CONFIG_BF_REV_0_0)
- 	return 0;
-diff -puN include/asm-ppc/time.h~replace-__attribute_pure__-with-__pure include/asm-ppc/time.h
---- a/include/asm-ppc/time.h~replace-__attribute_pure__-with-__pure
-+++ a/include/asm-ppc/time.h
-@@ -57,7 +57,7 @@ static __inline__ void set_dec(unsigned 
- /* Accessor functions for the timebase (RTC on 601) registers. */
- /* If one day CONFIG_POWER is added just define __USE_RTC as 1 */
- #ifdef CONFIG_6xx
--extern __inline__ int __attribute_pure__ __USE_RTC(void) {
-+extern __inline__ int __pure __USE_RTC(void) {
- 	return (mfspr(SPRN_PVR)>>16) == 1;
- }
- #else
-diff -puN include/linux/compiler-gcc.h~replace-__attribute_pure__-with-__pure include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~replace-__attribute_pure__-with-__pure
-+++ a/include/linux/compiler-gcc.h
-@@ -36,10 +36,20 @@
- #define __weak				__attribute__((weak))
- #define __naked				__attribute__((naked))
- #define __noreturn			__attribute__((noreturn))
-+
-+/*
-+ * From the GCC manual:
-+ *
-+ * Many functions have no effects except the return value and their
-+ * return value depends only on the parameters and/or global
-+ * variables.  Such a function can be subject to common subexpression
-+ * elimination and loop optimization just as an arithmetic operator
-+ * would be.
-+ * [...]
-+ */
- #define __pure				__attribute__((pure))
- #define __aligned(x)			__attribute__((aligned(x)))
- #define __printf(a,b)			__attribute__((format(printf,a,b)))
- #define  noinline			__attribute__((noinline))
--#define __attribute_pure__		__attribute__((pure))
- #define __attribute_const__		__attribute__((__const__))
- #define __maybe_unused			__attribute__((unused))
-diff -puN include/linux/compiler.h~replace-__attribute_pure__-with-__pure include/linux/compiler.h
---- a/include/linux/compiler.h~replace-__attribute_pure__-with-__pure
-+++ a/include/linux/compiler.h
-@@ -132,20 +132,6 @@ extern void __chk_io_ptr(const volatile 
- # define __maybe_unused		/* unimplemented */
- #endif
- 
--/*
-- * From the GCC manual:
-- *
-- * Many functions have no effects except the return value and their
-- * return value depends only on the parameters and/or global
-- * variables.  Such a function can be subject to common subexpression
-- * elimination and loop optimization just as an arithmetic operator
-- * would be.
-- * [...]
-- */
--#ifndef __attribute_pure__
--# define __attribute_pure__	/* unimplemented */
--#endif
+-static int vsyscall_sysctl_nostrat(ctl_table *t, int __user *name, int nlen,
+-				void __user *oldval, size_t __user *oldlenp,
+-				void __user *newval, size_t newlen)
+-{
+-	return -ENOSYS;
+-}
 -
- #ifndef noinline
- #define noinline
- #endif
-diff -puN lib/crc32.c~replace-__attribute_pure__-with-__pure lib/crc32.c
---- a/lib/crc32.c~replace-__attribute_pure__-with-__pure
-+++ a/lib/crc32.c
-@@ -49,7 +49,7 @@ MODULE_LICENSE("GPL");
-  * @p: pointer to buffer over which CRC is run
-  * @len: length of buffer @p
-  */
--u32 __attribute_pure__ crc32_le(u32 crc, unsigned char const *p, size_t len);
-+u32 __pure crc32_le(u32 crc, unsigned char const *p, size_t len);
- 
- #if CRC_LE_BITS == 1
- /*
-@@ -57,7 +57,7 @@ u32 __attribute_pure__ crc32_le(u32 crc,
-  * simplified by inlining the table in ?: form.
-  */
- 
--u32 __attribute_pure__ crc32_le(u32 crc, unsigned char const *p, size_t len)
-+u32 __pure crc32_le(u32 crc, unsigned char const *p, size_t len)
- {
- 	int i;
- 	while (len--) {
-@@ -69,7 +69,7 @@ u32 __attribute_pure__ crc32_le(u32 crc,
- }
- #else				/* Table-based approach */
- 
--u32 __attribute_pure__ crc32_le(u32 crc, unsigned char const *p, size_t len)
-+u32 __pure crc32_le(u32 crc, unsigned char const *p, size_t len)
- {
- # if CRC_LE_BITS == 8
- 	const u32      *b =(u32 *)p;
-@@ -145,7 +145,7 @@ u32 __attribute_pure__ crc32_le(u32 crc,
-  * @p: pointer to buffer over which CRC is run
-  * @len: length of buffer @p
-  */
--u32 __attribute_pure__ crc32_be(u32 crc, unsigned char const *p, size_t len);
-+u32 __pure crc32_be(u32 crc, unsigned char const *p, size_t len);
- 
- #if CRC_BE_BITS == 1
- /*
-@@ -153,7 +153,7 @@ u32 __attribute_pure__ crc32_be(u32 crc,
-  * simplified by inlining the table in ?: form.
-  */
- 
--u32 __attribute_pure__ crc32_be(u32 crc, unsigned char const *p, size_t len)
-+u32 __pure crc32_be(u32 crc, unsigned char const *p, size_t len)
- {
- 	int i;
- 	while (len--) {
-@@ -167,7 +167,7 @@ u32 __attribute_pure__ crc32_be(u32 crc,
- }
- 
- #else				/* Table-based approach */
--u32 __attribute_pure__ crc32_be(u32 crc, unsigned char const *p, size_t len)
-+u32 __pure crc32_be(u32 crc, unsigned char const *p, size_t len)
- {
- # if CRC_BE_BITS == 8
- 	const u32      *b =(u32 *)p;
-diff -puN lib/libcrc32c.c~replace-__attribute_pure__-with-__pure lib/libcrc32c.c
---- a/lib/libcrc32c.c~replace-__attribute_pure__-with-__pure
-+++ a/lib/libcrc32c.c
-@@ -66,7 +66,7 @@ EXPORT_SYMBOL(crc32c_le);
-  * loop below with crc32 and vary the POLY if we don't find value in terms
-  * of space and maintainability in keeping the two modules separate.
-  */
--u32 __attribute_pure__
-+u32 __pure
- crc32c_le(u32 crc, unsigned char const *p, size_t len)
- {
- 	int i;
-@@ -160,7 +160,7 @@ static const u32 crc32c_table[256] = {
-  * crc using table.
-  */
- 
--u32 __attribute_pure__
-+u32 __pure
- crc32c_le(u32 seed, unsigned char const *data, size_t length)
- {
- 	u32 crc = __cpu_to_le32(seed);
-@@ -177,7 +177,7 @@ crc32c_le(u32 seed, unsigned char const 
- EXPORT_SYMBOL(crc32c_be);
- 
- #if CRC_BE_BITS == 1
--u32 __attribute_pure__
-+u32 __pure
- crc32c_be(u32 crc, unsigned char const *p, size_t len)
- {
- 	int i;
+ static ctl_table kernel_table2[] = {
+-	{ .ctl_name = 99, .procname = "vsyscall64",
++	{ .procname = "vsyscall64",
+ 	  .data = &vsyscall_gtod_data.sysctl_enabled, .maxlen = sizeof(int),
+ 	  .mode = 0644,
+-	  .strategy = vsyscall_sysctl_nostrat,
+ 	  .proc_handler = vsyscall_sysctl_change },
+ 	{}
+ };
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
 origin.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-define-global-bit-macro.patch
+update-boot-spec-to-207.patch
+i386-paravirt-boot-sequence.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+task-containersv11-basic-task-container-framework.patch
+task-containersv11-add-tasks-file-interface.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+make-access-to-tasks-nsproxy-lighter.patch
+make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
+make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+uninline-find_task_by_xxx-set-of-functions.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+isolate-some-explicit-usage-of-task-tgid.patch
+uninline-find_pid-etc-set-of-functions.patch
+uninline-the-task_xid_nr_ns-calls.patch
+fix-cpusets-update_cpumask.patch
+fix-cpusets-update_cpumask-checkpatch-fixes.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
+virtualization-of-sysv-msg-queues-is-incomplete.patch
+extended-crashkernel-command-line.patch
+use-extended-crashkernel-command-line-on-i386.patch
+use-extended-crashkernel-command-line-on-x86_64.patch
+use-extended-crashkernel-command-line-on-ia64.patch
+use-extended-crashkernel-command-line-on-ia64-fix.patch
+use-extended-crashkernel-command-line-on-ppc64.patch
+use-extended-crashkernel-command-line-on-sh.patch
+add-documentation-for-extended-crashkernel-syntax.patch
+kexec-add-bss-to-resource-tree.patch
+kexec-introduce-bootmem_exclusive.patch
+kexec-use-bootmem_exclusive-on-x86.patch
