@@ -1,77 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - jbd-remove-printk-from-j_assert-macros.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:49:34 -0700
-Message-ID: <200710192249.l9JMnYf7023979@imap1.linux-foundation.org>
+Subject: - fix-a-trivial-typo-in-scripts-checkstackpl.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:49:21 -0700
+Message-ID: <200710192249.l9JMnLNQ023958@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57501 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55115 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758126AbXJSWt6 (ORCPT
+	by vger.kernel.org with ESMTP id S1757856AbXJSWuG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 18:49:58 -0400
+	Fri, 19 Oct 2007 18:50:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: csnook@redhat.com, sct@redhat.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: joern@logfs.org, andre@finow14.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jbd: remove printk() from J_ASSERT macros
+     fix a trivial typo in scripts/checkstack.pl
 has been removed from the -mm tree.  Its filename was
-     jbd-remove-printk-from-j_assert-macros.patch
+     fix-a-trivial-typo-in-scripts-checkstackpl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: jbd: remove printk() from J_ASSERT macros
-From: Chris Snook <csnook@redhat.com>
+Subject: fix a trivial typo in scripts/checkstack.pl
+From: Joern Engel <joern@logfs.org>
 
-Remove printk from J_ASSERT to preserve registers during BUG.
+Trivial change in a comment.
 
-Signed-off-by: Chris Snook <csnook@redhat.com>
-Cc: "Stephen C. Tweedie" <sct@redhat.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Signed-off-by: Joern Engel <joern@logfs.org>
+Signed-off-by: Andre Haupt <andre@finow14.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/jbd.h |   16 +---------------
- 1 file changed, 1 insertion(+), 15 deletions(-)
+ scripts/checkstack.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/jbd.h~jbd-remove-printk-from-j_assert-macros include/linux/jbd.h
---- a/include/linux/jbd.h~jbd-remove-printk-from-j_assert-macros
-+++ a/include/linux/jbd.h
-@@ -248,17 +248,7 @@ typedef struct journal_superblock_s
- #include <linux/fs.h>
- #include <linux/sched.h>
+diff -puN scripts/checkstack.pl~fix-a-trivial-typo-in-scripts-checkstackpl scripts/checkstack.pl
+--- a/scripts/checkstack.pl~fix-a-trivial-typo-in-scripts-checkstackpl
++++ a/scripts/checkstack.pl
+@@ -15,7 +15,7 @@
+ #	AVR32 port by Haavard Skinnemoen <hskinnemoen@atmel.com>
+ #
+ #	Usage:
+-#	objdump -d vmlinux | stackcheck.pl [arch]
++#	objdump -d vmlinux | scripts/checkstack.pl [arch]
+ #
+ #	TODO :	Port to all architectures (one regex per arch)
  
--#define JBD_ASSERTIONS
--#ifdef JBD_ASSERTIONS
--#define J_ASSERT(assert)						\
--do {									\
--	if (!(assert)) {						\
--		printk (KERN_EMERG					\
--			"Assertion failure in %s() at %s:%d: \"%s\"\n",	\
--			__FUNCTION__, __FILE__, __LINE__, # assert);	\
--		BUG();							\
--	}								\
--} while (0)
-+#define J_ASSERT(assert)	BUG_ON(!(assert))
- 
- #if defined(CONFIG_BUFFER_DEBUG)
- void buffer_assertion_failure(struct buffer_head *bh);
-@@ -274,10 +264,6 @@ void buffer_assertion_failure(struct buf
- #define J_ASSERT_JH(jh, expr)	J_ASSERT(expr)
- #endif
- 
--#else
--#define J_ASSERT(assert)	do { } while (0)
--#endif		/* JBD_ASSERTIONS */
--
- #if defined(JBD_PARANOID_IOFAIL)
- #define J_EXPECT(expr, why...)		J_ASSERT(expr)
- #define J_EXPECT_BH(bh, expr, why...)	J_ASSERT_BH(bh, expr)
 _
 
-Patches currently in -mm which might be from csnook@redhat.com are
+Patches currently in -mm which might be from joern@logfs.org are
 
 origin.patch
-jbd2-remove-printk-from-j_assert-macros.patch
