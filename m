@@ -1,101 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - whitespace-fixes-fork.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:43:42 -0700
-Message-ID: <200710190343.l9J3hg4d013084@imap1.linux-foundation.org>
+Subject: - ext3-support-large-blocksize-up-to-pagesize.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:45:37 -0700
+Message-ID: <200710190345.l9J3jbPG013236__45.8392235033855$1192766322$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53608 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55215 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966237AbXJSDzq (ORCPT
+	by vger.kernel.org with ESMTP id S966134AbXJSDzp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:55:46 -0400
+	Thu, 18 Oct 2007 23:55:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, mm-commits@vger.kernel.org
+To: sho@tnes.nec.co.jp, clameter@sgi.com, cmm@us.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     whitespace fixes: fork
+     ext3: support large blocksize up to PAGESIZE
 has been removed from the -mm tree.  Its filename was
-     whitespace-fixes-fork.patch
+     ext3-support-large-blocksize-up-to-pagesize.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: whitespace fixes: fork
-From: Daniel Walker <dwalker@mvista.com>
+Subject: ext3: support large blocksize up to PAGESIZE
+From: Takashi Sato <sho@tnes.nec.co.jp>
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
+This patch set supports large block size(>4k, <=64k) in ext3 just enlarging
+the block size limit.  But it is NOT possible to have 64kB blocksize on
+ext3 without some changes to the directory handling code.  The reason is
+that an empty 64kB directory block would have a rec_len == (__u16)2^16 ==
+0, and this would cause an error to be hit in the filesystem.  The proposed
+solution is treat 64k rec_len with a an impossible value like rec_len =
+0xffff to handle this.
+
+The Patch-set consists of the following 2 patches.
+  [1/2]  ext3: enlarge blocksize
+         - Allow blocksize up to pagesize
+
+  [2/2]  ext3: fix rec_len overflow
+         - prevent rec_len from overflow with 64KB blocksize
+
+Now on 64k page ppc64 box runs with this patch set we could create a 64k
+block size ext3, and able to handle empty directory block.
+
+Signed-off-by: Takashi Sato <sho@tnes.nec.co.jp>
+Signed-off-by: Mingming Cao <cmm@us.ibm.com>
+Cc: <linux-ext4@vger.kernel.org>
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ fs/ext3/super.c         |    6 +++++-
+ include/linux/ext3_fs.h |    4 ++--
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN kernel/fork.c~whitespace-fixes-fork kernel/fork.c
---- a/kernel/fork.c~whitespace-fixes-fork
-+++ a/kernel/fork.c
-@@ -268,7 +268,7 @@ static inline int dup_mmap(struct mm_str
- 			get_file(file);
- 			if (tmp->vm_flags & VM_DENYWRITE)
- 				atomic_dec(&inode->i_writecount);
--      
-+
- 			/* insert tmp into the share list, just after mpnt */
- 			spin_lock(&file->f_mapping->i_mmap_lock);
- 			tmp->vm_truncate_count = mpnt->vm_truncate_count;
-@@ -331,7 +331,7 @@ static inline void mm_free_pgd(struct mm
- #define mm_free_pgd(mm)
- #endif /* CONFIG_MMU */
+diff -puN fs/ext3/super.c~ext3-support-large-blocksize-up-to-pagesize fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-support-large-blocksize-up-to-pagesize
++++ a/fs/ext3/super.c
+@@ -1620,7 +1620,11 @@ static int ext3_fill_super (struct super
+ 		}
  
-- __cacheline_aligned_in_smp DEFINE_SPINLOCK(mmlist_lock);
-+__cacheline_aligned_in_smp DEFINE_SPINLOCK(mmlist_lock);
- 
- #define allocate_mm()	(kmem_cache_alloc(mm_cachep, GFP_KERNEL))
- #define free_mm(mm)	(kmem_cache_free(mm_cachep, (mm)))
-@@ -738,8 +738,8 @@ static struct files_struct *dup_fd(struc
- 	/* compute the remainder to be cleared */
- 	size = (new_fdt->max_fds - open_files) * sizeof(struct file *);
- 
--	/* This is long word aligned thus could use a optimized version */ 
--	memset(new_fds, 0, size); 
-+	/* This is long word aligned thus could use a optimized version */
-+	memset(new_fds, 0, size);
- 
- 	if (new_fdt->max_fds > open_files) {
- 		int left = (new_fdt->max_fds-open_files)/8;
-@@ -1069,12 +1069,12 @@ static struct task_struct *copy_process(
- 	task_io_accounting_init(p);
- 	acct_clear_integrals(p);
- 
-- 	p->it_virt_expires = cputime_zero;
-+	p->it_virt_expires = cputime_zero;
- 	p->it_prof_expires = cputime_zero;
-- 	p->it_sched_expires = 0;
-- 	INIT_LIST_HEAD(&p->cpu_timers[0]);
-- 	INIT_LIST_HEAD(&p->cpu_timers[1]);
-- 	INIT_LIST_HEAD(&p->cpu_timers[2]);
-+	p->it_sched_expires = 0;
-+	INIT_LIST_HEAD(&p->cpu_timers[0]);
-+	INIT_LIST_HEAD(&p->cpu_timers[1]);
-+	INIT_LIST_HEAD(&p->cpu_timers[2]);
- 
- 	p->lock_depth = -1;		/* -1 = no lock */
- 	do_posix_clock_monotonic_gettime(&p->start_time);
-@@ -1239,7 +1239,7 @@ static struct task_struct *copy_process(
- 	 * A fatal signal pending means that current will exit, so the new
- 	 * thread can't slip out of an OOM kill (or normal SIGKILL).
-  	 */
-- 	recalc_sigpending();
-+	recalc_sigpending();
- 	if (signal_pending(current)) {
- 		spin_unlock(&current->sighand->siglock);
- 		write_unlock_irq(&tasklist_lock);
+ 		brelse (bh);
+-		sb_set_blocksize(sb, blocksize);
++		if (!sb_set_blocksize(sb, blocksize)) {
++			printk(KERN_ERR "EXT3-fs: bad blocksize %d.\n",
++				blocksize);
++			goto out_fail;
++		}
+ 		logic_sb_block = (sb_block * EXT3_MIN_BLOCK_SIZE) / blocksize;
+ 		offset = (sb_block * EXT3_MIN_BLOCK_SIZE) % blocksize;
+ 		bh = sb_bread(sb, logic_sb_block);
+diff -puN include/linux/ext3_fs.h~ext3-support-large-blocksize-up-to-pagesize include/linux/ext3_fs.h
+--- a/include/linux/ext3_fs.h~ext3-support-large-blocksize-up-to-pagesize
++++ a/include/linux/ext3_fs.h
+@@ -72,8 +72,8 @@
+  * Macro-instructions used to manage several block sizes
+  */
+ #define EXT3_MIN_BLOCK_SIZE		1024
+-#define	EXT3_MAX_BLOCK_SIZE		4096
+-#define EXT3_MIN_BLOCK_LOG_SIZE		  10
++#define	EXT3_MAX_BLOCK_SIZE		65536
++#define EXT3_MIN_BLOCK_LOG_SIZE		10
+ #ifdef __KERNEL__
+ # define EXT3_BLOCK_SIZE(s)		((s)->s_blocksize)
+ #else
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from sho@tnes.nec.co.jp are
 
 origin.patch
-whitespace-fixes-task-exit-handling.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
