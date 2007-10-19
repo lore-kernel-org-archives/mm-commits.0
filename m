@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-edac-i3000-code-tidying.patch added to -mm tree
-Date: Fri, 19 Oct 2007 14:18:11 -0700
-Message-ID: <200710192118.l9JLIBbU020596@imap1.linux-foundation.org>
+Subject: + drivers-edac-add-marvell-mv64x60-driver-fix.patch added to -mm tree
+Date: Fri, 19 Oct 2007 14:18:23 -0700
+Message-ID: <200710192118.l9JLINhn020609@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58057 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48508 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966615AbXJSVSY (ORCPT
+	by vger.kernel.org with ESMTP id S1760722AbXJSVS5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 17:18:24 -0400
+	Fri, 19 Oct 2007 17:18:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: juhlenko@akamai.com, alan@lxorguk.ukuu.org.uk, dougthompson@xmission.com
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, djiang@mvista.com, dougthompson@xmission.com
 
 
 The patch titled
-     drivers-edac: i3000 code tidying
+     drivers-edac-add-marvell-mv64x60-driver-fix
 has been added to the -mm tree.  Its filename is
-     drivers-edac-i3000-code-tidying.patch
+     drivers-edac-add-marvell-mv64x60-driver-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,314 +26,133 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers-edac: i3000 code tidying
-From: Jason Uhlenkott <juhlenko@akamai.com>
+Subject: drivers-edac-add-marvell-mv64x60-driver-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Style cleanup, mostly just 80-column fixes.
-
-Signed-off-by: Jason Uhlenkott <juhlenko@akamai.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+Cc: Dave Jiang <djiang@mvista.com>
+Cc: Douglas Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/i3000_edac.c |  207 +++++++++++++++++++-----------------
- 1 file changed, 110 insertions(+), 97 deletions(-)
+ drivers/edac/mv64x60_edac.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/edac/i3000_edac.c~drivers-edac-i3000-code-tidying drivers/edac/i3000_edac.c
---- a/drivers/edac/i3000_edac.c~drivers-edac-i3000-code-tidying
-+++ a/drivers/edac/i3000_edac.c
-@@ -30,105 +30,112 @@
- #define I3000_MCHBAR_MASK	0xffffc000
- #define I3000_MMR_WINDOW_SIZE	16384
+diff -puN drivers/edac/mv64x60_edac.c~drivers-edac-add-marvell-mv64x60-driver-fix drivers/edac/mv64x60_edac.c
+--- a/drivers/edac/mv64x60_edac.c~drivers-edac-add-marvell-mv64x60-driver-fix
++++ a/drivers/edac/mv64x60_edac.c
+@@ -21,7 +21,7 @@
+ #include "edac_module.h"
+ #include "mv64x60_edac.h"
  
--#define I3000_EDEAP		0x70	/* Extended DRAM Error Address Pointer (8b)
--					 *
--					 * 7:1   reserved
--					 * 0     bit 32 of address
--					 */
--#define I3000_DEAP		0x58	/* DRAM Error Address Pointer (32b)
--					 *
--					 * 31:7  address
--					 * 6:1   reserved
--					 * 0     Error channel 0/1
--					 */
--#define I3000_DEAP_GRAIN	(1 << 7)
--#define I3000_DEAP_PFN(edeap, deap)	((((edeap) & 1) << (32 - PAGE_SHIFT)) | \
--					((deap) >> PAGE_SHIFT))
--#define I3000_DEAP_OFFSET(deap)		((deap) & ~(I3000_DEAP_GRAIN-1) & ~PAGE_MASK)
-+#define I3000_EDEAP	0x70	/* Extended DRAM Error Address Pointer (8b)
-+				 *
-+				 * 7:1   reserved
-+				 * 0     bit 32 of address
-+				 */
-+#define I3000_DEAP	0x58	/* DRAM Error Address Pointer (32b)
-+				 *
-+				 * 31:7  address
-+				 * 6:1   reserved
-+				 * 0     Error channel 0/1
-+				 */
-+#define I3000_DEAP_GRAIN 		(1 << 7)
-+#define I3000_DEAP_PFN(edeap, deap)	((((edeap) & 1) << (32 - PAGE_SHIFT)) \
-+					| ((deap) >> PAGE_SHIFT))
-+#define I3000_DEAP_OFFSET(deap)		((deap) & ~(I3000_DEAP_GRAIN-1) & \
-+					~PAGE_MASK)
- #define I3000_DEAP_CHANNEL(deap)	((deap) & 1)
- 
--#define I3000_DERRSYN		0x5c	/* DRAM Error Syndrome (8b)
--					 *
--					 *  7:0  DRAM ECC Syndrome
--					 */
--
--#define I3000_ERRSTS		0xc8	/* Error Status Register (16b)
--					 *
--					 * 15:12 reserved
--					 * 11    MCH Thermal Sensor Event for SMI/SCI/SERR
--					 * 10    reserved
--					 *  9    LOCK to non-DRAM Memory Flag (LCKF)
--					 *  8    Received Refresh Timeout Flag (RRTOF)
--					 *  7:2  reserved
--					 *  1    Multiple-bit DRAM ECC Error Flag (DMERR)
--					 *  0    Single-bit DRAM ECC Error Flag (DSERR)
--					 */
-+#define I3000_DERRSYN	0x5c	/* DRAM Error Syndrome (8b)
-+				 *
-+				 *  7:0  DRAM ECC Syndrome
-+				 */
-+
-+#define I3000_ERRSTS	0xc8	/* Error Status Register (16b)
-+				 *
-+				 * 15:12 reserved
-+				 * 11    MCH Thermal Sensor Event
-+				 *         for SMI/SCI/SERR
-+				 * 10    reserved
-+				 *  9    LOCK to non-DRAM Memory Flag (LCKF)
-+				 *  8    Received Refresh Timeout Flag (RRTOF)
-+				 *  7:2  reserved
-+				 *  1    Multi-bit DRAM ECC Error Flag (DMERR)
-+				 *  0    Single-bit DRAM ECC Error Flag (DSERR)
-+				 */
- #define I3000_ERRSTS_BITS	0x0b03	/* bits which indicate errors */
- #define I3000_ERRSTS_UE		0x0002
- #define I3000_ERRSTS_CE		0x0001
- 
--#define I3000_ERRCMD		0xca	/* Error Command (16b)
--					 *
--					 * 15:12 reserved
--					 * 11    SERR on MCH Thermal Sensor Event (TSESERR)
--					 * 10    reserved
--					 *  9    SERR on LOCK to non-DRAM Memory (LCKERR)
--					 *  8    SERR on DRAM Refresh Timeout (DRTOERR)
--					 *  7:2  reserved
--					 *  1    SERR Multiple-Bit DRAM ECC Error (DMERR)
--					 *  0    SERR on Single-Bit ECC Error (DSERR)
--					 */
-+#define I3000_ERRCMD	0xca	/* Error Command (16b)
-+				 *
-+				 * 15:12 reserved
-+				 * 11    SERR on MCH Thermal Sensor Event
-+				 *         (TSESERR)
-+				 * 10    reserved
-+				 *  9    SERR on LOCK to non-DRAM Memory
-+				 *         (LCKERR)
-+				 *  8    SERR on DRAM Refresh Timeout
-+				 *         (DRTOERR)
-+				 *  7:2  reserved
-+				 *  1    SERR Multi-Bit DRAM ECC Error
-+				 *         (DMERR)
-+				 *  0    SERR on Single-Bit ECC Error
-+				 *         (DSERR)
-+				 */
- 
- /* Intel  MMIO register space - device 0 function 0 - MMR space */
- 
- #define I3000_DRB_SHIFT 25	/* 32MiB grain */
- 
--#define I3000_C0DRB		0x100	/* Channel 0 DRAM Rank Boundary (8b x 4)
--					 *
--					 * 7:0   Channel 0 DRAM Rank Boundary Address
--					 */
--#define I3000_C1DRB		0x180	/* Channel 1 DRAM Rank Boundary (8b x 4)
--					 *
--					 * 7:0   Channel 1 DRAM Rank Boundary Address
--					 */
--
--#define I3000_C0DRA		0x108	/* Channel 0 DRAM Rank Attribute (8b x 2)
--					 *
--					 * 7     reserved
--					 * 6:4   DRAM odd Rank Attribute
--					 * 3     reserved
--					 * 2:0   DRAM even Rank Attribute
--					 *
--					 * Each attribute defines the page
--					 * size of the corresponding rank:
--					 *     000: unpopulated
--					 *     001: reserved
--					 *     010: 4 KB
--					 *     011: 8 KB
--					 *     100: 16 KB
--					 *     Others: reserved
--					 */
--#define I3000_C1DRA		0x188	/* Channel 1 DRAM Rank Attribute (8b x 2) */
--#define ODD_RANK_ATTRIB(dra) (((dra) & 0x70) >> 4)
--#define EVEN_RANK_ATTRIB(dra) ((dra) & 0x07)
--
--#define I3000_C0DRC0		0x120	/* DRAM Controller Mode 0 (32b)
--					 *
--					 * 31:30 reserved
--					 * 29    Initialization Complete (IC)
--					 * 28:11 reserved
--					 * 10:8  Refresh Mode Select (RMS)
--					 * 7     reserved
--					 * 6:4   Mode Select (SMS)
--					 * 3:2   reserved
--					 * 1:0   DRAM Type (DT)
--					 */
--
--#define I3000_C0DRC1		0x124	/* DRAM Controller Mode 1 (32b)
--					 *
--					 * 31    Enhanced Addressing Enable (ENHADE)
--					 * 30:0  reserved
--					 */
-+#define I3000_C0DRB	0x100	/* Channel 0 DRAM Rank Boundary (8b x 4)
-+				 *
-+				 * 7:0   Channel 0 DRAM Rank Boundary Address
-+				 */
-+#define I3000_C1DRB	0x180	/* Channel 1 DRAM Rank Boundary (8b x 4)
-+				 *
-+				 * 7:0   Channel 1 DRAM Rank Boundary Address
-+				 */
-+
-+#define I3000_C0DRA	0x108	/* Channel 0 DRAM Rank Attribute (8b x 2)
-+				 *
-+				 * 7     reserved
-+				 * 6:4   DRAM odd Rank Attribute
-+				 * 3     reserved
-+				 * 2:0   DRAM even Rank Attribute
-+				 *
-+				 * Each attribute defines the page
-+				 * size of the corresponding rank:
-+				 *     000: unpopulated
-+				 *     001: reserved
-+				 *     010: 4 KB
-+				 *     011: 8 KB
-+				 *     100: 16 KB
-+				 *     Others: reserved
-+				 */
-+#define I3000_C1DRA	0x188	/* Channel 1 DRAM Rank Attribute (8b x 2) */
-+#define ODD_RANK_ATTRIB(dra)	(((dra) & 0x70) >> 4)
-+#define EVEN_RANK_ATTRIB(dra)	((dra) & 0x07)
-+
-+#define I3000_C0DRC0	0x120	/* DRAM Controller Mode 0 (32b)
-+				 *
-+				 * 31:30 reserved
-+				 * 29    Initialization Complete (IC)
-+				 * 28:11 reserved
-+				 * 10:8  Refresh Mode Select (RMS)
-+				 * 7     reserved
-+				 * 6:4   Mode Select (SMS)
-+				 * 3:2   reserved
-+				 * 1:0   DRAM Type (DT)
-+				 */
-+
-+#define I3000_C0DRC1	0x124	/* DRAM Controller Mode 1 (32b)
-+				 *
-+				 * 31    Enhanced Addressing Enable (ENHADE)
-+				 * 30:0  reserved
-+				 */
- 
- enum i3000p_chips {
- 	I3000 = 0,
-@@ -187,7 +194,8 @@ static void i3000_get_error_info(struct 
- 		pci_read_config_byte(pdev, I3000_DERRSYN, &info->derrsyn);
- 	}
- 
--	/* Clear any error bits.
-+	/*
-+	 * Clear any error bits.
- 	 * (Yes, we really clear bits by writing 1 to them.)
- 	 */
- 	pci_write_bits16(pdev, I3000_ERRSTS, I3000_ERRSTS_BITS,
-@@ -245,7 +253,8 @@ static int i3000_is_interleaved(const un
- {
- 	int i;
- 
--	/* If the channels aren't populated identically then
-+	/*
-+	 * If the channels aren't populated identically then
- 	 * we're not interleaved.
- 	 */
- 	for (i = 0; i < I3000_RANKS_PER_CHANNEL / 2; i++)
-@@ -254,7 +263,8 @@ static int i3000_is_interleaved(const un
- 						EVEN_RANK_ATTRIB(c1dra[i]))
- 			return 0;
- 
--	/* If the rank boundaries for the two channels are different
-+	/*
-+	 * If the rank boundaries for the two channels are different
- 	 * then we're not interleaved.
- 	 */
- 	for (i = 0; i < I3000_RANKS_PER_CHANNEL; i++)
-@@ -300,7 +310,8 @@ static int i3000_probe1(struct pci_dev *
- 
- 	iounmap(window);
- 
--	/* Figure out how many channels we have.
-+	/*
-+	 * Figure out how many channels we have.
- 	 *
- 	 * If we have what the datasheet calls "asymmetric channels"
- 	 * (essentially the same as what was called "virtual single
-@@ -363,7 +374,8 @@ static int i3000_probe1(struct pci_dev *
- 		csrow->edac_mode = EDAC_UNKNOWN;
- 	}
- 
--	/* Clear any error bits.
-+	/*
-+	 * Clear any error bits.
- 	 * (Yes, we really clear bits by writing 1 to them.)
- 	 */
- 	pci_write_bits16(pdev, I3000_ERRSTS, I3000_ERRSTS_BITS,
-@@ -390,7 +402,7 @@ static int i3000_probe1(struct pci_dev *
- 	debugf3("MC: %s(): success\n", __func__);
- 	return 0;
- 
--      fail:
-+fail:
- 	if (mci)
- 		edac_mc_free(mci);
- 
-@@ -409,7 +421,7 @@ static int __devinit i3000_init_one(stru
- 		return -EIO;
- 
- 	rc = i3000_probe1(pdev, ent->driver_data);
--	if (mci_pdev == NULL)
-+	if (!mci_pdev)
- 		mci_pdev = pci_dev_get(pdev);
- 
- 	return rc;
-@@ -424,7 +436,8 @@ static void __devexit i3000_remove_one(s
- 	if (i3000_pci)
- 		edac_pci_release_generic_ctl(i3000_pci);
- 
--	if ((mci = edac_mc_del_mc(&pdev->dev)) == NULL)
-+	mci = edac_mc_del_mc(&pdev->dev);
-+	if (!mci)
- 		return;
- 
- 	edac_mc_free(mci);
-@@ -457,7 +470,7 @@ static int __init i3000_init(void)
- 	if (pci_rc < 0)
- 		goto fail0;
- 
--	if (mci_pdev == NULL) {
-+	if (!mci_pdev) {
- 		i3000_registered = 0;
- 		mci_pdev = pci_get_device(PCI_VENDOR_ID_INTEL,
- 					PCI_DEVICE_ID_INTEL_3000_HB, NULL);
+-const char *mv64x60_ctl_name = "MV64x60";
++static const char *mv64x60_ctl_name = "MV64x60";
+ static int edac_dev_idx;
+ static int edac_pci_idx;
+ static int edac_mc_idx;
 _
 
-Patches currently in -mm which might be from juhlenko@akamai.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-drivers-edac-i3000-code-tidying.patch
-drivers-edac-i3000-replace-macros-with-functions.patch
+origin.patch
+try-this.patch
+advansys-depends-on-virt_to_bus.patch
+console-keyboard-events-and-accessibility.patch
+add-kernel-notifierc.patch
+console-events-and-accessibility.patch
+fix-random-hard-freeze-with-avm-cards-using-b1dma.patch
+jbd-config_jbd_debug-cannot-create-proc-entry.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+add-containerstats-v3.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+workqueue-debug-flushing-deadlocks-with-lockdep.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+cpuset-sched_load_balance-flag.patch
+cpusets-decrustify-cpuset-mask-update-code.patch
+fix-cpusets-update_cpumask.patch
+remove-bits_to_type-macro.patch
+use-helpers-to-obtain-task-pid-in-printks.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified.patch
+ipc-integrate-ipc_checkid-into-ipc_lock.patch
+hook-up-group-scheduler-with-control-groups.patch
+linux-kernel-markers.patch
+linux-kernel-markers-samples.patch
+uninline-forkc-exitc.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-add-reboot-mechanism.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-cifs.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-arm-hack.patch
+nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd-fixup.patch
+git-parisc.patch
+fix-build-breakage-if-sysfs-fix.patch
+git-scsi-misc.patch
+git-unionfs.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-x86.patch
+git-x86-fixup.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+git-xfs.patch
+memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-checkpatch-fixes.patch
+memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+pm-qos-infrastructure-and-interface-fix.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes.patch
+sync_sb_inodes-propagate-errors.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+kexec-add-bss-to-resource-tree-checkpatch-fixes.patch
+kexec-introduce-bootmem_exclusive-checkpatch-fixes.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
