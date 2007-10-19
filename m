@@ -1,283 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-use-linux-elfcore-compath.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:47:58 -0700
-Message-ID: <200710190347.l9J3lw01013426@imap1.linux-foundation.org>
+Subject: - hibernation-arbitrary-boot-kernel-support-generic-code-rev-2.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:41:19 -0700
+Message-ID: <200710190341.l9J3fJJr012810@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48331 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37868 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966130AbXJSD4K (ORCPT
+	by vger.kernel.org with ESMTP id S934582AbXJSD4Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:56:10 -0400
+	Thu, 18 Oct 2007 23:56:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roland@redhat.com, ak@suse.de, benh@kernel.crashing.org, paulus@samba.org, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, ak@suse.de, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: Use linux/elfcore-compat.h
+     Hibernation: Arbitrary boot kernel support - generic code
 has been removed from the -mm tree.  Its filename was
-     x86_64-use-linux-elfcore-compath.patch
+     hibernation-arbitrary-boot-kernel-support-generic-code-rev-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64: Use linux/elfcore-compat.h
-From: Roland McGrath <roland@redhat.com>
+Subject: Hibernation: Arbitrary boot kernel support - generic code
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-This makes x86-64's ia32 code use the new linux/elfcore-compat.h, reducing
-some hand-copied duplication.
+Add the bits needed for supporting arbitrary boot kernels to the common
+hibernation code.
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+To support arbitrary boot kernels, make it possible to replace the 'struct
+new_utsname' and the kernel version in the hibernation image header by some
+architecture specific data that will be used to verify if the image is valid
+and to restore the image.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Cc: Andi Kleen <ak@suse.de>
-Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/ia32/ia32_binfmt.c |  124 ++++++++++++----------------------
- include/asm-x86/compat.h    |    6 +
- 2 files changed, 52 insertions(+), 78 deletions(-)
+ kernel/power/power.h    |   20 +++++++++++++-
+ kernel/power/snapshot.c |   53 +++++++++++++++++++++++++-------------
+ 2 files changed, 54 insertions(+), 19 deletions(-)
 
-diff -puN arch/x86/ia32/ia32_binfmt.c~x86_64-use-linux-elfcore-compath arch/x86/ia32/ia32_binfmt.c
---- a/arch/x86/ia32/ia32_binfmt.c~x86_64-use-linux-elfcore-compath
-+++ a/arch/x86/ia32/ia32_binfmt.c
-@@ -5,10 +5,6 @@
-  * This tricks binfmt_elf.c into loading 32bit binaries using lots 
-  * of ugly preprocessor tricks. Talk about very very poor man's inheritance.
-  */ 
--#define __ASM_X86_64_ELF_H 1
--
--#undef ELF_CLASS
--#define ELF_CLASS ELFCLASS32
+diff -puN kernel/power/power.h~hibernation-arbitrary-boot-kernel-support-generic-code-rev-2 kernel/power/power.h
+--- a/kernel/power/power.h~hibernation-arbitrary-boot-kernel-support-generic-code-rev-2
++++ a/kernel/power/power.h
+@@ -11,14 +11,32 @@ struct swsusp_info {
+ 	unsigned long		size;
+ } __attribute__((aligned(PAGE_SIZE)));
  
- #include <linux/types.h>
- #include <linux/stddef.h>
-@@ -19,6 +15,7 @@
- #include <linux/binfmts.h>
- #include <linux/mm.h>
- #include <linux/security.h>
-+#include <linux/elfcore-compat.h>
++#ifdef CONFIG_HIBERNATION
++#ifdef CONFIG_ARCH_HIBERNATION_HEADER
++/* Maximum size of architecture specific data in a hibernation header */
++#define MAX_ARCH_HEADER_SIZE	(sizeof(struct new_utsname) + 4)
  
- #include <asm/segment.h> 
- #include <asm/ptrace.h>
-@@ -31,6 +28,20 @@
- #include <asm/ia32.h>
- #include <asm/vsyscall32.h>
- 
-+#undef	ELF_ARCH
-+#undef	ELF_CLASS
-+#define ELF_CLASS	ELFCLASS32
-+#define ELF_ARCH	EM_386
++extern int arch_hibernation_header_save(void *addr, unsigned int max_size);
++extern int arch_hibernation_header_restore(void *addr);
 +
-+#undef	elfhdr
-+#undef	elf_phdr
-+#undef	elf_note
-+#undef	elf_addr_t
-+#define elfhdr		elf32_hdr
-+#define elf_phdr	elf32_phdr
-+#define elf_note	elf32_note
-+#define elf_addr_t	Elf32_Off
++static inline int init_header_complete(struct swsusp_info *info)
++{
++	return arch_hibernation_header_save(info, MAX_ARCH_HEADER_SIZE);
++}
 +
- #define ELF_NAME "elf/i386"
++static inline char *check_image_kernel(struct swsusp_info *info)
++{
++	return arch_hibernation_header_restore(info) ?
++			"architecture specific data" : NULL;
++}
++#endif /* CONFIG_ARCH_HIBERNATION_HEADER */
  
- #define AT_SYSINFO 32
-@@ -48,74 +59,20 @@ int sysctl_vsyscall32 = 1;
- } while(0)
- 
- struct file;
--struct elf_phdr; 
- 
- #define IA32_EMULATOR 1
- 
--#define ELF_ET_DYN_BASE		(TASK_UNMAPPED_BASE + 0x1000000)
--
--#undef ELF_ARCH
--#define ELF_ARCH EM_386
--
--#define ELF_DATA	ELFDATA2LSB
--
--#define USE_ELF_CORE_DUMP 1
-+#undef ELF_ET_DYN_BASE
- 
--/* Override elfcore.h */ 
--#define _LINUX_ELFCORE_H 1
--typedef unsigned int elf_greg_t;
--
--#define ELF_NGREG (sizeof (struct user_regs_struct32) / sizeof(elf_greg_t))
--typedef elf_greg_t elf_gregset_t[ELF_NGREG];
--
--struct elf_siginfo
--{
--	int	si_signo;			/* signal number */
--	int	si_code;			/* extra code */
--	int	si_errno;			/* errno */
--};
-+#define ELF_ET_DYN_BASE		(TASK_UNMAPPED_BASE + 0x1000000)
- 
- #define jiffies_to_timeval(a,b) do { (b)->tv_usec = 0; (b)->tv_sec = (a)/HZ; }while(0)
- 
--struct elf_prstatus
--{
--	struct elf_siginfo pr_info;	/* Info associated with signal */
--	short	pr_cursig;		/* Current signal */
--	unsigned int pr_sigpend;	/* Set of pending signals */
--	unsigned int pr_sighold;	/* Set of held signals */
--	pid_t	pr_pid;
--	pid_t	pr_ppid;
--	pid_t	pr_pgrp;
--	pid_t	pr_sid;
--	struct compat_timeval pr_utime;	/* User time */
--	struct compat_timeval pr_stime;	/* System time */
--	struct compat_timeval pr_cutime;	/* Cumulative user time */
--	struct compat_timeval pr_cstime;	/* Cumulative system time */
--	elf_gregset_t pr_reg;	/* GP registers */
--	int pr_fpvalid;		/* True if math co-processor being used.  */
--};
--
--#define ELF_PRARGSZ	(80)	/* Number of chars for args */
--
--struct elf_prpsinfo
--{
--	char	pr_state;	/* numeric process state */
--	char	pr_sname;	/* char for pr_state */
--	char	pr_zomb;	/* zombie */
--	char	pr_nice;	/* nice val */
--	unsigned int pr_flag;	/* flags */
--	__u16	pr_uid;
--	__u16	pr_gid;
--	pid_t	pr_pid, pr_ppid, pr_pgrp, pr_sid;
--	/* Lots missing */
--	char	pr_fname[16];	/* filename of executable */
--	char	pr_psargs[ELF_PRARGSZ];	/* initial part of arg list */
--};
--
- #define _GET_SEG(x) \
- 	({ __u32 seg; asm("movl %%" __stringify(x) ",%0" : "=r"(seg)); seg; })
- 
- /* Assumes current==process to be dumped */
-+#undef	ELF_CORE_COPY_REGS
- #define ELF_CORE_COPY_REGS(pr_reg, regs)       		\
- 	pr_reg[0] = regs->rbx;				\
- 	pr_reg[1] = regs->rcx;				\
-@@ -135,36 +92,41 @@ struct elf_prpsinfo
- 	pr_reg[15] = regs->rsp;				\
- 	pr_reg[16] = regs->ss;
- 
--#define user user32
-+
-+#define elf_prstatus	compat_elf_prstatus
-+#define elf_prpsinfo	compat_elf_prpsinfo
-+#define elf_fpregset_t	struct user_i387_ia32_struct
-+#define	elf_fpxregset_t	struct user32_fxsr_struct
-+#define user		user32
- 
- #undef elf_read_implies_exec
- #define elf_read_implies_exec(ex, executable_stack)     (executable_stack != EXSTACK_DISABLE_X)
--//#include <asm/ia32.h>
--#include <linux/elf.h>
--
--typedef struct user_i387_ia32_struct elf_fpregset_t;
--typedef struct user32_fxsr_struct elf_fpxregset_t;
--
- 
--static inline void elf_core_copy_regs(elf_gregset_t *elfregs, struct pt_regs *regs)
-+#define elf_core_copy_regs		elf32_core_copy_regs
-+static inline void elf32_core_copy_regs(compat_elf_gregset_t *elfregs,
-+					struct pt_regs *regs)
- {
--	ELF_CORE_COPY_REGS((*elfregs), regs)
-+	ELF_CORE_COPY_REGS((&elfregs->ebx), regs)
- }
- 
--static inline int elf_core_copy_task_regs(struct task_struct *t, elf_gregset_t* elfregs)
-+#define elf_core_copy_task_regs		elf32_core_copy_task_regs
-+static inline int elf32_core_copy_task_regs(struct task_struct *t,
-+					    compat_elf_gregset_t* elfregs)
- {	
- 	struct pt_regs *pp = task_pt_regs(t);
--	ELF_CORE_COPY_REGS((*elfregs), pp);
-+	ELF_CORE_COPY_REGS((&elfregs->ebx), pp);
- 	/* fix wrong segments */ 
--	(*elfregs)[7] = t->thread.ds; 
--	(*elfregs)[9] = t->thread.fsindex; 
--	(*elfregs)[10] = t->thread.gsindex; 
--	(*elfregs)[8] = t->thread.es; 	
-+	elfregs->ds = t->thread.ds;
-+	elfregs->fs = t->thread.fsindex;
-+	elfregs->gs = t->thread.gsindex;
-+	elfregs->es = t->thread.es;
- 	return 1; 
- }
- 
-+#define elf_core_copy_task_fpregs	elf32_core_copy_task_fpregs
- static inline int 
--elf_core_copy_task_fpregs(struct task_struct *tsk, struct pt_regs *regs, elf_fpregset_t *fpu)
-+elf32_core_copy_task_fpregs(struct task_struct *tsk, struct pt_regs *regs,
-+			    elf_fpregset_t *fpu)
- {
- 	struct _fpstate_ia32 *fpstate = (void*)fpu; 
- 	mm_segment_t oldfs = get_fs();
-@@ -186,8 +148,9 @@ elf_core_copy_task_fpregs(struct task_st
- 
- #define ELF_CORE_COPY_XFPREGS 1
- #define ELF_CORE_XFPREG_TYPE NT_PRXFPREG
-+#define elf_core_copy_task_xfpregs	elf32_core_copy_task_xfpregs
- static inline int 
--elf_core_copy_task_xfpregs(struct task_struct *t, elf_fpxregset_t *xfpu)
-+elf32_core_copy_task_xfpregs(struct task_struct *t, elf_fpxregset_t *xfpu)
- {
- 	struct pt_regs *regs = task_pt_regs(t);
- 	if (!tsk_used_math(t))
-@@ -206,6 +169,10 @@ elf_core_copy_task_xfpregs(struct task_s
- 
- extern int force_personality32;
- 
-+#undef	ELF_EXEC_PAGESIZE
-+#undef	ELF_HWCAP
-+#undef	ELF_PLATFORM
-+#undef	SET_PERSONALITY
- #define ELF_EXEC_PAGESIZE PAGE_SIZE
- #define ELF_HWCAP (boot_cpu_data.x86_capability[0])
- #define ELF_PLATFORM  ("i686")
-@@ -231,6 +198,7 @@ do {							\
- 
- #define load_elf_binary load_elf32_binary
- 
-+#undef	ELF_PLAT_INIT
- #define ELF_PLAT_INIT(r, load_addr)	elf32_init(r)
- 
- #undef start_thread
-diff -puN include/asm-x86/compat.h~x86_64-use-linux-elfcore-compath include/asm-x86/compat.h
---- a/include/asm-x86/compat.h~x86_64-use-linux-elfcore-compath
-+++ a/include/asm-x86/compat.h
-@@ -6,6 +6,7 @@
-  */
- #include <linux/types.h>
- #include <linux/sched.h>
-+#include <asm/user32.h>
- 
- #define COMPAT_USER_HZ	100
- 
-@@ -181,6 +182,11 @@ struct compat_shmid64_ds {
- };
- 
+-#ifdef CONFIG_HIBERNATION
  /*
-+ * The type of struct elf_prstatus.pr_reg in compatible core dumps.
-+ */
-+typedef struct user_regs_struct32 compat_elf_gregset_t;
+  * Keep some memory free so that I/O operations can succeed without paging
+  * [Might this be more than 4 MB?]
+  */
+ #define PAGES_FOR_IO	((4096 * 1024) >> PAGE_SHIFT)
 +
-+/*
-  * A pointer passed in from user mode. This should not
-  * be used for syscall parameters, just declare them
-  * as pointers because the syscall entry code will have
+ /*
+  * Keep 1 MB of memory free so that device drivers can allocate some pages in
+  * their .suspend() routines without breaking the suspend to disk.
+diff -puN kernel/power/snapshot.c~hibernation-arbitrary-boot-kernel-support-generic-code-rev-2 kernel/power/snapshot.c
+--- a/kernel/power/snapshot.c~hibernation-arbitrary-boot-kernel-support-generic-code-rev-2
++++ a/kernel/power/snapshot.c
+@@ -1239,17 +1239,39 @@ asmlinkage int swsusp_save(void)
+ 	return 0;
+ }
+ 
+-static void init_header(struct swsusp_info *info)
++#ifndef CONFIG_ARCH_HIBERNATION_HEADER
++static int init_header_complete(struct swsusp_info *info)
+ {
+-	memset(info, 0, sizeof(struct swsusp_info));
++	memcpy(&info->uts, init_utsname(), sizeof(struct new_utsname));
+ 	info->version_code = LINUX_VERSION_CODE;
++	return 0;
++}
++
++static char *check_image_kernel(struct swsusp_info *info)
++{
++	if (info->version_code != LINUX_VERSION_CODE)
++		return "kernel version";
++	if (strcmp(info->uts.sysname,init_utsname()->sysname))
++		return "system type";
++	if (strcmp(info->uts.release,init_utsname()->release))
++		return "kernel release";
++	if (strcmp(info->uts.version,init_utsname()->version))
++		return "version";
++	if (strcmp(info->uts.machine,init_utsname()->machine))
++		return "machine";
++	return NULL;
++}
++#endif /* CONFIG_ARCH_HIBERNATION_HEADER */
++
++static int init_header(struct swsusp_info *info)
++{
++	memset(info, 0, sizeof(struct swsusp_info));
+ 	info->num_physpages = num_physpages;
+-	memcpy(&info->uts, init_utsname(), sizeof(struct new_utsname));
+-	info->cpus = num_online_cpus();
+ 	info->image_pages = nr_copy_pages;
+ 	info->pages = nr_copy_pages + nr_meta_pages + 1;
+ 	info->size = info->pages;
+ 	info->size <<= PAGE_SHIFT;
++	return init_header_complete(info);
+ }
+ 
+ /**
+@@ -1303,7 +1325,11 @@ int snapshot_read_next(struct snapshot_h
+ 			return -ENOMEM;
+ 	}
+ 	if (!handle->offset) {
+-		init_header((struct swsusp_info *)buffer);
++		int error;
++
++		error = init_header((struct swsusp_info *)buffer);
++		if (error)
++			return error;
+ 		handle->buffer = buffer;
+ 		memory_bm_position_reset(&orig_bm);
+ 		memory_bm_position_reset(&copy_bm);
+@@ -1394,22 +1420,13 @@ duplicate_memory_bitmap(struct memory_bi
+ 	}
+ }
+ 
+-static inline int check_header(struct swsusp_info *info)
++static int check_header(struct swsusp_info *info)
+ {
+-	char *reason = NULL;
++	char *reason;
+ 
+-	if (info->version_code != LINUX_VERSION_CODE)
+-		reason = "kernel version";
+-	if (info->num_physpages != num_physpages)
++	reason = check_image_kernel(info);
++	if (!reason && info->num_physpages != num_physpages)
+ 		reason = "memory size";
+-	if (strcmp(info->uts.sysname,init_utsname()->sysname))
+-		reason = "system type";
+-	if (strcmp(info->uts.release,init_utsname()->release))
+-		reason = "kernel release";
+-	if (strcmp(info->uts.version,init_utsname()->version))
+-		reason = "version";
+-	if (strcmp(info->uts.machine,init_utsname()->machine))
+-		reason = "machine";
+ 	if (reason) {
+ 		printk(KERN_ERR "swsusp: Resume mismatch: %s\n", reason);
+ 		return -EPERM;
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-ia64-check-segrellds-vs-build-id.patch
-ia64-vdso-vs-build-id.patch
-git-x86.patch
-fix-tsk-exit_state-usage-resend.patch
+git-acpi.patch
+revert-x86_64-mm-cpa-einval.patch
+shrink_slab-handle-bad-shrinkers.patch
