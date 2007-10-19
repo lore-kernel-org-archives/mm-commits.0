@@ -1,208 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: - freezer-introduce-freezer-firendly-waiting-macros.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:41:01 -0700
-Message-ID: <200710190341.l9J3f14u012757@imap1.linux-foundation.org>
+Subject: - whitespace-fixes-process-accounting.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:43:32 -0700
+Message-ID: <200710190343.l9J3hW4U013069@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59231 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36452 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934601AbXJSD4U (ORCPT
+	by vger.kernel.org with ESMTP id S966266AbXJSDzt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:56:20 -0400
+	Thu, 18 Oct 2007 23:55:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, nigel@nigel.suspend2.net, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: dwalker@mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     freezer: introduce freezer-friendly waiting macros
+     whitespace fixes: process accounting
 has been removed from the -mm tree.  Its filename was
-     freezer-introduce-freezer-firendly-waiting-macros.patch
+     whitespace-fixes-process-accounting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: freezer: introduce freezer-friendly waiting macros
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: whitespace fixes: process accounting
+From: Daniel Walker <dwalker@mvista.com>
 
-Introduce freezer-friendly wrappers around wait_event_interruptible() and
-wait_event_interruptible_timeout(), originally defined in <linux/wait.h>, to
-be used in freezable kernel threads.  Make some of the freezable kernel
-threads use them.
+Lots of converting spaces to tabs.
 
-This is necessary for the freezer to stop sending signals to kernel threads,
-which is implemented in the next patch.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/gameport/gameport.c         |    3 -
- drivers/input/serio/serio.c               |    3 -
- drivers/input/touchscreen/ucb1400_ts.c    |    3 -
- drivers/media/dvb/dvb-core/dvb_frontend.c |    3 +
- drivers/usb/core/hub.c                    |    3 -
- drivers/usb/storage/usb.c                 |    5 --
- include/linux/freezer.h                   |   38 ++++++++++++++++++++
- 7 files changed, 45 insertions(+), 13 deletions(-)
+ kernel/acct.c |   64 ++++++++++++++++++++++++------------------------
+ 1 file changed, 32 insertions(+), 32 deletions(-)
 
-diff -puN drivers/input/gameport/gameport.c~freezer-introduce-freezer-firendly-waiting-macros drivers/input/gameport/gameport.c
---- a/drivers/input/gameport/gameport.c~freezer-introduce-freezer-firendly-waiting-macros
-+++ a/drivers/input/gameport/gameport.c
-@@ -448,9 +448,8 @@ static int gameport_thread(void *nothing
- 	set_freezable();
- 	do {
- 		gameport_handle_event();
--		wait_event_interruptible(gameport_wait,
-+		wait_event_freezable(gameport_wait,
- 			kthread_should_stop() || !list_empty(&gameport_event_list));
--		try_to_freeze();
- 	} while (!kthread_should_stop());
- 
- 	printk(KERN_DEBUG "gameport: kgameportd exiting\n");
-diff -puN drivers/input/serio/serio.c~freezer-introduce-freezer-firendly-waiting-macros drivers/input/serio/serio.c
---- a/drivers/input/serio/serio.c~freezer-introduce-freezer-firendly-waiting-macros
-+++ a/drivers/input/serio/serio.c
-@@ -387,9 +387,8 @@ static int serio_thread(void *nothing)
- 	set_freezable();
- 	do {
- 		serio_handle_event();
--		wait_event_interruptible(serio_wait,
-+		wait_event_freezable(serio_wait,
- 			kthread_should_stop() || !list_empty(&serio_event_list));
--		try_to_freeze();
- 	} while (!kthread_should_stop());
- 
- 	printk(KERN_DEBUG "serio: kseriod exiting\n");
-diff -puN drivers/input/touchscreen/ucb1400_ts.c~freezer-introduce-freezer-firendly-waiting-macros drivers/input/touchscreen/ucb1400_ts.c
---- a/drivers/input/touchscreen/ucb1400_ts.c~freezer-introduce-freezer-firendly-waiting-macros
-+++ a/drivers/input/touchscreen/ucb1400_ts.c
-@@ -333,10 +333,9 @@ static int ucb1400_ts_thread(void *_ucb)
- 			timeout = msecs_to_jiffies(10);
- 		}
- 
--		wait_event_interruptible_timeout(ucb->ts_wait,
-+		wait_event_freezable_timeout(ucb->ts_wait,
- 			ucb->irq_pending || ucb->ts_restart || kthread_should_stop(),
- 			timeout);
--		try_to_freeze();
+diff -puN kernel/acct.c~whitespace-fixes-process-accounting kernel/acct.c
+--- a/kernel/acct.c~whitespace-fixes-process-accounting
++++ a/kernel/acct.c
+@@ -329,16 +329,16 @@ static comp_t encode_comp_t(unsigned lon
  	}
  
- 	/* Send the "pen off" if we are stopping with the pen still active */
-diff -puN drivers/media/dvb/dvb-core/dvb_frontend.c~freezer-introduce-freezer-firendly-waiting-macros drivers/media/dvb/dvb-core/dvb_frontend.c
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c~freezer-introduce-freezer-firendly-waiting-macros
-+++ a/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -527,7 +527,8 @@ static int dvb_frontend_thread(void *dat
- 		up(&fepriv->sem);	    /* is locked when we enter the thread... */
- restart:
- 		timeout = wait_event_interruptible_timeout(fepriv->wait_queue,
--			dvb_frontend_should_wakeup(fe) || kthread_should_stop(),
-+			dvb_frontend_should_wakeup(fe) || kthread_should_stop()
-+				|| freezing(current),
- 			fepriv->delay);
- 
- 		if (kthread_should_stop() || dvb_frontend_is_exiting(fe)) {
-diff -puN drivers/usb/core/hub.c~freezer-introduce-freezer-firendly-waiting-macros drivers/usb/core/hub.c
---- a/drivers/usb/core/hub.c~freezer-introduce-freezer-firendly-waiting-macros
-+++ a/drivers/usb/core/hub.c
-@@ -2870,10 +2870,9 @@ static int hub_thread(void *__unused)
- 	set_freezable();
- 	do {
- 		hub_events();
--		wait_event_interruptible(khubd_wait,
-+		wait_event_freezable(khubd_wait,
- 				!list_empty(&hub_event_list) ||
- 				kthread_should_stop());
--		try_to_freeze();
- 	} while (!kthread_should_stop() || !list_empty(&hub_event_list));
- 
- 	pr_debug("%s: khubd exiting\n", usbcore_name);
-diff -puN drivers/usb/storage/usb.c~freezer-introduce-freezer-firendly-waiting-macros drivers/usb/storage/usb.c
---- a/drivers/usb/storage/usb.c~freezer-introduce-freezer-firendly-waiting-macros
-+++ a/drivers/usb/storage/usb.c
-@@ -907,12 +907,9 @@ static int usb_stor_scan_thread(void * _
- 	if (delay_use > 0) {
- 		printk(KERN_DEBUG "usb-storage: waiting for device "
- 				"to settle before scanning\n");
--retry:
--		wait_event_interruptible_timeout(us->delay_wait,
-+		wait_event_freezable_timeout(us->delay_wait,
- 				test_bit(US_FLIDX_DISCONNECTING, &us->flags),
- 				delay_use * HZ);
--		if (try_to_freeze())
--			goto retry;
+ 	/*
+-         * If we need to round up, do it (and handle overflow correctly).
+-         */
++	 * If we need to round up, do it (and handle overflow correctly).
++	 */
+ 	if (rnd && (++value > MAXFRACT)) {
+ 		value >>= EXPSIZE;
+ 		exp++;
  	}
  
- 	/* If the device is still connected, perform the scanning */
-diff -puN include/linux/freezer.h~freezer-introduce-freezer-firendly-waiting-macros include/linux/freezer.h
---- a/include/linux/freezer.h~freezer-introduce-freezer-firendly-waiting-macros
-+++ a/include/linux/freezer.h
-@@ -4,6 +4,7 @@
- #define FREEZER_H_INCLUDED
+ 	/*
+-         * Clean it up and polish it off.
+-         */
++	 * Clean it up and polish it off.
++	 */
+ 	exp <<= MANTSIZE;		/* Shift the exponent into place */
+ 	exp += value;			/* and add on the mantissa. */
+ 	return exp;
+@@ -361,30 +361,30 @@ static comp_t encode_comp_t(unsigned lon
  
- #include <linux/sched.h>
-+#include <linux/wait.h>
+ static comp2_t encode_comp2_t(u64 value)
+ {
+-        int exp, rnd;
++	int exp, rnd;
  
- #ifdef CONFIG_PM_SLEEP
- /*
-@@ -126,6 +127,36 @@ static inline void set_freezable(void)
- 	current->flags &= ~PF_NOFREEZE;
+-        exp = (value > (MAXFRACT2>>1));
+-        rnd = 0;
+-        while (value > MAXFRACT2) {
+-                rnd = value & 1;
+-                value >>= 1;
+-                exp++;
+-        }
+-
+-        /*
+-         * If we need to round up, do it (and handle overflow correctly).
+-         */
+-        if (rnd && (++value > MAXFRACT2)) {
+-                value >>= 1;
+-                exp++;
+-        }
+-
+-        if (exp > MAXEXP2) {
+-                /* Overflow. Return largest representable number instead. */
+-                return (1ul << (MANTSIZE2+EXPSIZE2-1)) - 1;
+-        } else {
+-                return (value & (MAXFRACT2>>1)) | (exp << (MANTSIZE2-1));
+-        }
++	exp = (value > (MAXFRACT2>>1));
++	rnd = 0;
++	while (value > MAXFRACT2) {
++		rnd = value & 1;
++		value >>= 1;
++		exp++;
++	}
++
++	/*
++	 * If we need to round up, do it (and handle overflow correctly).
++	 */
++	if (rnd && (++value > MAXFRACT2)) {
++		value >>= 1;
++		exp++;
++	}
++
++	if (exp > MAXEXP2) {
++		/* Overflow. Return largest representable number instead. */
++		return (1ul << (MANTSIZE2+EXPSIZE2-1)) - 1;
++	} else {
++		return (value & (MAXFRACT2>>1)) | (exp << (MANTSIZE2-1));
++	}
  }
+ #endif
  
-+/*
-+ * Freezer-friendly wrappers around wait_event_interruptible() and
-+ * wait_event_interruptible_timeout(), originally defined in <linux/wait.h>
-+ */
-+
-+#define wait_event_freezable(wq, condition)				\
-+({									\
-+	int __retval;							\
-+	do {								\
-+		__retval = wait_event_interruptible(wq, 		\
-+				(condition) || freezing(current));	\
-+		if (__retval && !freezing(current))			\
-+			break;						\
-+		else if (!(condition))					\
-+			__retval = -ERESTARTSYS;			\
-+	} while (try_to_freeze());					\
-+	__retval;							\
-+})
-+
-+
-+#define wait_event_freezable_timeout(wq, condition, timeout)		\
-+({									\
-+	long __retval = timeout;					\
-+	do {								\
-+		__retval = wait_event_interruptible_timeout(wq,		\
-+				(condition) || freezing(current),	\
-+				__retval); 				\
-+	} while (try_to_freeze());					\
-+	__retval;							\
-+})
- #else /* !CONFIG_PM_SLEEP */
- static inline int frozen(struct task_struct *p) { return 0; }
- static inline int freezing(struct task_struct *p) { return 0; }
-@@ -143,6 +174,13 @@ static inline void freezer_do_not_count(
- static inline void freezer_count(void) {}
- static inline int freezer_should_skip(struct task_struct *p) { return 0; }
- static inline void set_freezable(void) {}
-+
-+#define wait_event_freezable(wq, condition)				\
-+		wait_event_interruptible(wq, condition)
-+
-+#define wait_event_freezable_timeout(wq, condition, timeout)		\
-+		wait_event_interruptible_timeout(wq, condition, timeout)
-+
- #endif /* !CONFIG_PM_SLEEP */
+@@ -501,14 +501,14 @@ static void do_acct_process(struct file 
+ 	ac.ac_swaps = encode_comp_t(0);
  
- #endif	/* FREEZER_H_INCLUDED */
+ 	/*
+-         * Kernel segment override to datasegment and write it
+-         * to the accounting file.
+-         */
++	 * Kernel segment override to datasegment and write it
++	 * to the accounting file.
++	 */
+ 	fs = get_fs();
+ 	set_fs(KERNEL_DS);
+ 	/*
+- 	 * Accounting records are not subject to resource limits.
+- 	 */
++	 * Accounting records are not subject to resource limits.
++	 */
+ 	flim = current->signal->rlim[RLIMIT_FSIZE].rlim_cur;
+ 	current->signal->rlim[RLIMIT_FSIZE].rlim_cur = RLIM_INFINITY;
+ 	file->f_op->write(file, (char *)&ac,
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
 origin.patch
-git-acpi.patch
-revert-x86_64-mm-cpa-einval.patch
-shrink_slab-handle-bad-shrinkers.patch
+whitespace-fixes-task-exit-handling.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
