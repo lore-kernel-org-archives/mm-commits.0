@@ -1,260 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: - pid-namespaces-helpers-to-obtain-pid-numbers.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:51:34 -0700
-Message-ID: <200710192251.l9JMpYtL024194@imap1.linux-foundation.org>
+Subject: - uninline-forkc-exitc.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:54:35 -0700
+Message-ID: <200710192254.l9JMsZkW024545@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59243 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60874 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935656AbXJSXGi (ORCPT
+	by vger.kernel.org with ESMTP id S966804AbXJSXGi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 19 Oct 2007 19:06:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, ebiederm@xmission.com, menage@google.com, oleg@tv-sign.ru, sukadev@us.ibm.com, mm-commits@vger.kernel.org
+To: adobriyan@sw.ru, arjan@infradead.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pid namespaces: helpers to obtain pid numbers
+     Uninline fork.c/exit.c
 has been removed from the -mm tree.  Its filename was
-     pid-namespaces-helpers-to-obtain-pid-numbers.patch
+     uninline-forkc-exitc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pid namespaces: helpers to obtain pid numbers
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: Uninline fork.c/exit.c
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-When showing pid to user or getting the pid numerical id for in-kernel use the
-value of this id may differ depending on the namespace.
+Save ~650 bytes here.
 
-This set of helpers is used to get the global pid nr, the virtual (i.e.  seen
-by task in its namespace) nr and the nr as it is seen from the specified
-namespace.
+add/remove: 4/0 grow/shrink: 0/7 up/down: 430/-1088 (-658)
+function                                     old     new   delta
+__copy_fs_struct                               -     202    +202
+__put_fs_struct                                -     112    +112
+__exit_fs                                      -      58     +58
+__exit_files                                   -      58     +58
+exit_files                                    58       2     -56
+put_fs_struct                                112       5    -107
+exit_fs                                      161       2    -159
+sys_unshare                                  774     590    -184
+copy_process                                4031    3840    -191
+do_exit                                     1791    1597    -194
+copy_fs_struct                               202       5    -197
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Cc: Paul Menage <menage@google.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+No difference in lmbench lat_proc tests on 2-way Opteron 246.
+Smaaaal degradation on UP P4 (within errors).
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid.h   |   24 ++++++++
- include/linux/sched.h |  108 ++++++++++++++++++++++++++++++++++++----
- kernel/pid.c          |   13 ++++
- 3 files changed, 134 insertions(+), 11 deletions(-)
+ kernel/exit.c |    6 +++---
+ kernel/fork.c |   20 ++++++++++----------
+ 2 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/pid.h~pid-namespaces-helpers-to-obtain-pid-numbers include/linux/pid.h
---- a/include/linux/pid.h~pid-namespaces-helpers-to-obtain-pid-numbers
-+++ a/include/linux/pid.h
-@@ -114,11 +114,33 @@ extern struct pid *find_ge_pid(int nr);
- extern struct pid *alloc_pid(struct pid_namespace *ns);
- extern void FASTCALL(free_pid(struct pid *pid));
+diff -puN kernel/exit.c~uninline-forkc-exitc kernel/exit.c
+--- a/kernel/exit.c~uninline-forkc-exitc
++++ a/kernel/exit.c
+@@ -493,7 +493,7 @@ void reset_files_struct(struct task_stru
+ }
+ EXPORT_SYMBOL(reset_files_struct);
  
-+/*
-+ * the helpers to get the pid's id seen from different namespaces
-+ *
-+ * pid_nr()    : global id, i.e. the id seen from the init namespace;
-+ * pid_vnr()   : virtual id, i.e. the id seen from the namespace this pid
-+ *               belongs to. this only makes sence when called in the
-+ *               context of the task that belongs to the same namespace;
-+ * pid_nr_ns() : id seen from the ns specified.
-+ *
-+ * see also task_xid_nr() etc in include/linux/sched.h
-+ */
-+
- static inline pid_t pid_nr(struct pid *pid)
+-static inline void __exit_files(struct task_struct *tsk)
++static void __exit_files(struct task_struct *tsk)
  {
- 	pid_t nr = 0;
- 	if (pid)
--		nr = pid->nr;
-+		nr = pid->numbers[0].nr;
-+	return nr;
-+}
-+
-+pid_t pid_nr_ns(struct pid *pid, struct pid_namespace *ns);
-+
-+static inline pid_t pid_vnr(struct pid *pid)
-+{
-+	pid_t nr = 0;
-+	if (pid)
-+		nr = pid->numbers[pid->level].nr;
- 	return nr;
+ 	struct files_struct * files = tsk->files;
+ 
+@@ -510,7 +510,7 @@ void exit_files(struct task_struct *tsk)
+ 	__exit_files(tsk);
  }
  
-diff -puN include/linux/sched.h~pid-namespaces-helpers-to-obtain-pid-numbers include/linux/sched.h
---- a/include/linux/sched.h~pid-namespaces-helpers-to-obtain-pid-numbers
-+++ a/include/linux/sched.h
-@@ -1188,16 +1188,6 @@ static inline int rt_task(struct task_st
- 	return rt_prio(p->prio);
- }
- 
--static inline pid_t task_pgrp_nr(struct task_struct *tsk)
--{
--	return tsk->signal->pgrp;
--}
--
--static inline pid_t task_session_nr(struct task_struct *tsk)
--{
--	return tsk->signal->__session;
--}
--
- static inline void set_task_session(struct task_struct *tsk, pid_t session)
+-static inline void __put_fs_struct(struct fs_struct *fs)
++static void __put_fs_struct(struct fs_struct *fs)
  {
- 	tsk->signal->__session = session;
-@@ -1223,6 +1213,104 @@ static inline struct pid *task_session(s
- 	return task->group_leader->pids[PIDTYPE_SID].pid;
+ 	/* No need to hold fs->lock if we are killing it */
+ 	if (atomic_dec_and_test(&fs->count)) {
+@@ -531,7 +531,7 @@ void put_fs_struct(struct fs_struct *fs)
+ 	__put_fs_struct(fs);
  }
  
-+struct pid_namespace;
-+
-+/*
-+ * the helpers to get the task's different pids as they are seen
-+ * from various namespaces
-+ *
-+ * task_xid_nr()     : global id, i.e. the id seen from the init namespace;
-+ * task_xid_vnr()    : virtual id, i.e. the id seen from the namespace the task
-+ *                     belongs to. this only makes sence when called in the
-+ *                     context of the task that belongs to the same namespace;
-+ * task_xid_nr_ns()  : id seen from the ns specified;
-+ *
-+ * set_task_vxid()   : assigns a virtual id to a task;
-+ *
-+ * task_ppid_nr_ns() : the parent's id as seen from the namespace specified.
-+ *                     the result depends on the namespace and whether the
-+ *                     task in question is the namespace's init. e.g. for the
-+ *                     namespace's init this will return 0 when called from
-+ *                     the namespace of this init, or appropriate id otherwise.
-+ *
-+ *
-+ * see also pid_nr() etc in include/linux/pid.h
-+ */
-+
-+static inline pid_t task_pid_nr(struct task_struct *tsk)
-+{
-+	return tsk->pid;
-+}
-+
-+static inline pid_t task_pid_nr_ns(struct task_struct *tsk,
-+		struct pid_namespace *ns)
-+{
-+	return pid_nr_ns(task_pid(tsk), ns);
-+}
-+
-+static inline pid_t task_pid_vnr(struct task_struct *tsk)
-+{
-+	return pid_vnr(task_pid(tsk));
-+}
-+
-+
-+static inline pid_t task_tgid_nr(struct task_struct *tsk)
-+{
-+	return tsk->tgid;
-+}
-+
-+static inline pid_t task_tgid_nr_ns(struct task_struct *tsk,
-+		struct pid_namespace *ns)
-+{
-+	return pid_nr_ns(task_tgid(tsk), ns);
-+}
-+
-+static inline pid_t task_tgid_vnr(struct task_struct *tsk)
-+{
-+	return pid_vnr(task_tgid(tsk));
-+}
-+
-+
-+static inline pid_t task_pgrp_nr(struct task_struct *tsk)
-+{
-+	return tsk->signal->pgrp;
-+}
-+
-+static inline pid_t task_pgrp_nr_ns(struct task_struct *tsk,
-+		struct pid_namespace *ns)
-+{
-+	return pid_nr_ns(task_pgrp(tsk), ns);
-+}
-+
-+static inline pid_t task_pgrp_vnr(struct task_struct *tsk)
-+{
-+	return pid_vnr(task_pgrp(tsk));
-+}
-+
-+
-+static inline pid_t task_session_nr(struct task_struct *tsk)
-+{
-+	return tsk->signal->__session;
-+}
-+
-+static inline pid_t task_session_nr_ns(struct task_struct *tsk,
-+		struct pid_namespace *ns)
-+{
-+	return pid_nr_ns(task_session(tsk), ns);
-+}
-+
-+static inline pid_t task_session_vnr(struct task_struct *tsk)
-+{
-+	return pid_vnr(task_session(tsk));
-+}
-+
-+
-+static inline pid_t task_ppid_nr_ns(struct task_struct *tsk,
-+		struct pid_namespace *ns)
-+{
-+	return pid_nr_ns(task_pid(rcu_dereference(tsk->real_parent)), ns);
-+}
-+
- /**
-  * pid_alive - check that a task structure is not stale
-  * @p: Task structure to be checked.
-diff -puN kernel/pid.c~pid-namespaces-helpers-to-obtain-pid-numbers kernel/pid.c
---- a/kernel/pid.c~pid-namespaces-helpers-to-obtain-pid-numbers
-+++ a/kernel/pid.c
-@@ -376,6 +376,19 @@ struct pid *find_get_pid(pid_t nr)
- 	return pid;
+-static inline void __exit_fs(struct task_struct *tsk)
++static void __exit_fs(struct task_struct *tsk)
+ {
+ 	struct fs_struct * fs = tsk->fs;
+ 
+diff -puN kernel/fork.c~uninline-forkc-exitc kernel/fork.c
+--- a/kernel/fork.c~uninline-forkc-exitc
++++ a/kernel/fork.c
+@@ -206,7 +206,7 @@ static struct task_struct *dup_task_stru
  }
  
-+pid_t pid_nr_ns(struct pid *pid, struct pid_namespace *ns)
-+{
-+	struct upid *upid;
-+	pid_t nr = 0;
-+
-+	if (pid && ns->level <= pid->level) {
-+		upid = &pid->numbers[ns->level];
-+		if (upid->ns == ns)
-+			nr = upid->nr;
-+	}
-+	return nr;
-+}
-+
- /*
-  * Used by proc to find the first pid that is greater then or equal to nr.
-  *
+ #ifdef CONFIG_MMU
+-static inline int dup_mmap(struct mm_struct *mm, struct mm_struct *oldmm)
++static int dup_mmap(struct mm_struct *mm, struct mm_struct *oldmm)
+ {
+ 	struct vm_area_struct *mpnt, *tmp, **pprev;
+ 	struct rb_node **rb_link, *rb_parent;
+@@ -584,7 +584,7 @@ fail_nomem:
+ 	return retval;
+ }
+ 
+-static inline struct fs_struct *__copy_fs_struct(struct fs_struct *old)
++static struct fs_struct *__copy_fs_struct(struct fs_struct *old)
+ {
+ 	struct fs_struct *fs = kmem_cache_alloc(fs_cachep, GFP_KERNEL);
+ 	/* We don't need to lock fs - think why ;-) */
+@@ -616,7 +616,7 @@ struct fs_struct *copy_fs_struct(struct 
+ 
+ EXPORT_SYMBOL_GPL(copy_fs_struct);
+ 
+-static inline int copy_fs(unsigned long clone_flags, struct task_struct * tsk)
++static int copy_fs(unsigned long clone_flags, struct task_struct *tsk)
+ {
+ 	if (clone_flags & CLONE_FS) {
+ 		atomic_inc(&current->fs->count);
+@@ -819,7 +819,7 @@ int unshare_files(void)
+ 
+ EXPORT_SYMBOL(unshare_files);
+ 
+-static inline int copy_sighand(unsigned long clone_flags, struct task_struct * tsk)
++static int copy_sighand(unsigned long clone_flags, struct task_struct *tsk)
+ {
+ 	struct sighand_struct *sig;
+ 
+@@ -842,7 +842,7 @@ void __cleanup_sighand(struct sighand_st
+ 		kmem_cache_free(sighand_cachep, sighand);
+ }
+ 
+-static inline int copy_signal(unsigned long clone_flags, struct task_struct * tsk)
++static int copy_signal(unsigned long clone_flags, struct task_struct *tsk)
+ {
+ 	struct signal_struct *sig;
+ 	int ret;
+@@ -924,7 +924,7 @@ void __cleanup_signal(struct signal_stru
+ 	kmem_cache_free(signal_cachep, sig);
+ }
+ 
+-static inline void cleanup_signal(struct task_struct *tsk)
++static void cleanup_signal(struct task_struct *tsk)
+ {
+ 	struct signal_struct *sig = tsk->signal;
+ 
+@@ -934,7 +934,7 @@ static inline void cleanup_signal(struct
+ 		__cleanup_signal(sig);
+ }
+ 
+-static inline void copy_flags(unsigned long clone_flags, struct task_struct *p)
++static void copy_flags(unsigned long clone_flags, struct task_struct *p)
+ {
+ 	unsigned long new_flags = p->flags;
+ 
+@@ -953,7 +953,7 @@ asmlinkage long sys_set_tid_address(int 
+ 	return task_pid_vnr(current);
+ }
+ 
+-static inline void rt_mutex_init_task(struct task_struct *p)
++static void rt_mutex_init_task(struct task_struct *p)
+ {
+ 	spin_lock_init(&p->pi_lock);
+ #ifdef CONFIG_RT_MUTEXES
+@@ -1385,7 +1385,7 @@ struct task_struct * __cpuinit fork_idle
+ 	return task;
+ }
+ 
+-static inline int fork_traceflag (unsigned clone_flags)
++static int fork_traceflag(unsigned clone_flags)
+ {
+ 	if (clone_flags & CLONE_UNTRACED)
+ 		return 0;
+@@ -1521,7 +1521,7 @@ void __init proc_caches_init(void)
+  * Check constraints on flags passed to the unshare system call and
+  * force unsharing of additional process context as appropriate.
+  */
+-static inline void check_unshare_flags(unsigned long *flags_ptr)
++static void check_unshare_flags(unsigned long *flags_ptr)
+ {
+ 	/*
+ 	 * If unsharing a thread from a thread group, must also
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
 origin.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-resource-counters-v7-fix.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
+single_open-seq_release-leak-diagnostics.patch
