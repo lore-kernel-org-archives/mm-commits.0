@@ -1,231 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - fuse-add-file-handle-to-getattr-operation.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:45:47 -0700
-Message-ID: <200710190345.l9J3jl3w013248@imap1.linux-foundation.org>
+Subject: - ia64-lock-bitops.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:45:21 -0700
+Message-ID: <200710190345.l9J3jL6F013210@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60612 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44058 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761372AbXJSDzS (ORCPT
+	by vger.kernel.org with ESMTP id S1764065AbXJSDzY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:55:18 -0400
+	Thu, 18 Oct 2007 23:55:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, mm-commits@vger.kernel.org
+To: npiggin@suse.de, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fuse: add file handle to getattr operation
+     ia64: lock bitops
 has been removed from the -mm tree.  Its filename was
-     fuse-add-file-handle-to-getattr-operation.patch
+     ia64-lock-bitops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fuse: add file handle to getattr operation
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: ia64: lock bitops
+From: Nick Piggin <npiggin@suse.de>
 
-Add necessary protocol changes for supplying a file handle with the getattr
-operation.  Step the API version to 7.9.
+Convert ia64 to new bitops.
 
-This patch doesn't actually supply the file handle, because that needs some
-kind of VFS support, which we haven't yet been able to agree upon.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/dir.c        |   37 +++++++++++++++++++++++++------------
- fs/fuse/inode.c      |    2 +-
- include/linux/fuse.h |   23 +++++++++++++++++++++--
- 3 files changed, 47 insertions(+), 15 deletions(-)
+ include/asm-ia64/bitops.h |   43 ++++++++++++++++++++++++++++++++++--
+ 1 file changed, 41 insertions(+), 2 deletions(-)
 
-diff -puN fs/fuse/dir.c~fuse-add-file-handle-to-getattr-operation fs/fuse/dir.c
---- a/fs/fuse/dir.c~fuse-add-file-handle-to-getattr-operation
-+++ a/fs/fuse/dir.c
-@@ -705,10 +705,12 @@ static void fuse_fillattr(struct inode *
- 	stat->blksize = (1 << inode->i_blkbits);
+diff -puN include/asm-ia64/bitops.h~ia64-lock-bitops include/asm-ia64/bitops.h
+--- a/include/asm-ia64/bitops.h~ia64-lock-bitops
++++ a/include/asm-ia64/bitops.h
+@@ -94,6 +94,38 @@ clear_bit (int nr, volatile void *addr)
  }
  
--static int fuse_do_getattr(struct inode *inode, struct kstat *stat)
-+static int fuse_do_getattr(struct inode *inode, struct kstat *stat,
-+			   struct file *file)
- {
- 	int err;
--	struct fuse_attr_out arg;
-+	struct fuse_getattr_in inarg;
-+	struct fuse_attr_out outarg;
- 	struct fuse_conn *fc = get_fuse_conn(inode);
- 	struct fuse_req *req;
- 	u64 attr_version;
-@@ -721,24 +723,35 @@ static int fuse_do_getattr(struct inode 
- 	attr_version = fc->attr_version;
- 	spin_unlock(&fc->lock);
- 
-+	memset(&inarg, 0, sizeof(inarg));
-+	/* Directories have separate file-handle space */
-+	if (file && S_ISREG(inode->i_mode)) {
-+		struct fuse_file *ff = file->private_data;
-+
-+		inarg.getattr_flags |= FUSE_GETATTR_FH;
-+		inarg.fh = ff->fh;
-+	}
- 	req->in.h.opcode = FUSE_GETATTR;
- 	req->in.h.nodeid = get_node_id(inode);
-+	req->in.numargs = 1;
-+	req->in.args[0].size = sizeof(inarg);
-+	req->in.args[0].value = &inarg;
- 	req->out.numargs = 1;
--	req->out.args[0].size = sizeof(arg);
--	req->out.args[0].value = &arg;
-+	req->out.args[0].size = sizeof(outarg);
-+	req->out.args[0].value = &outarg;
- 	request_send(fc, req);
- 	err = req->out.h.error;
- 	fuse_put_request(fc, req);
- 	if (!err) {
--		if ((inode->i_mode ^ arg.attr.mode) & S_IFMT) {
-+		if ((inode->i_mode ^ outarg.attr.mode) & S_IFMT) {
- 			make_bad_inode(inode);
- 			err = -EIO;
- 		} else {
--			fuse_change_attributes(inode, &arg.attr,
--					       attr_timeout(&arg),
-+			fuse_change_attributes(inode, &outarg.attr,
-+					       attr_timeout(&outarg),
- 					       attr_version);
- 			if (stat)
--				fuse_fillattr(inode, &arg.attr, stat);
-+				fuse_fillattr(inode, &outarg.attr, stat);
- 		}
- 	}
- 	return err;
-@@ -833,7 +846,7 @@ static int fuse_permission(struct inode 
- 	    ((mask & MAY_EXEC) && S_ISREG(inode->i_mode))) {
- 		struct fuse_inode *fi = get_fuse_inode(inode);
- 		if (fi->i_time < get_jiffies_64()) {
--			err = fuse_do_getattr(inode, NULL);
-+			err = fuse_do_getattr(inode, NULL, NULL);
- 			if (err)
- 				return err;
- 
-@@ -848,7 +861,7 @@ static int fuse_permission(struct inode 
- 		   attributes.  This is also needed, because the root
- 		   node will at first have no permissions */
- 		if (err == -EACCES && !refreshed) {
--			err = fuse_do_getattr(inode, NULL);
-+			err = fuse_do_getattr(inode, NULL, NULL);
- 			if (!err)
- 				err = generic_permission(inode, mask, NULL);
- 		}
-@@ -864,7 +877,7 @@ static int fuse_permission(struct inode 
- 			if (refreshed)
- 				return -EACCES;
- 
--			err = fuse_do_getattr(inode, NULL);
-+			err = fuse_do_getattr(inode, NULL, NULL);
- 			if (!err && !(inode->i_mode & S_IXUGO))
- 				return -EACCES;
- 		}
-@@ -1107,7 +1120,7 @@ static int fuse_getattr(struct vfsmount 
- 		return -EACCES;
- 
- 	if (fi->i_time < get_jiffies_64())
--		err = fuse_do_getattr(inode, stat);
-+		err = fuse_do_getattr(inode, stat, NULL);
- 	else {
- 		err = 0;
- 		generic_fillattr(inode, stat);
-diff -puN fs/fuse/inode.c~fuse-add-file-handle-to-getattr-operation fs/fuse/inode.c
---- a/fs/fuse/inode.c~fuse-add-file-handle-to-getattr-operation
-+++ a/fs/fuse/inode.c
-@@ -553,7 +553,7 @@ static void fuse_send_init(struct fuse_c
- 	arg->major = FUSE_KERNEL_VERSION;
- 	arg->minor = FUSE_KERNEL_MINOR_VERSION;
- 	arg->max_readahead = fc->bdi.ra_pages * PAGE_CACHE_SIZE;
--	arg->flags |= FUSE_ASYNC_READ | FUSE_POSIX_LOCKS;
-+	arg->flags |= FUSE_ASYNC_READ | FUSE_POSIX_LOCKS | FUSE_FILE_OPS;
- 	req->in.h.opcode = FUSE_INIT;
- 	req->in.numargs = 1;
- 	req->in.args[0].size = sizeof(*arg);
-diff -puN include/linux/fuse.h~fuse-add-file-handle-to-getattr-operation include/linux/fuse.h
---- a/include/linux/fuse.h~fuse-add-file-handle-to-getattr-operation
-+++ a/include/linux/fuse.h
-@@ -6,7 +6,14 @@
-     See the file COPYING.
- */
- 
--/* This file defines the kernel interface of FUSE */
-+/*
-+ * This file defines the kernel interface of FUSE
+ /**
++ * clear_bit_unlock - Clears a bit in memory with release
++ * @nr: Bit to clear
++ * @addr: Address to start counting from
 + *
-+ * Protocol changelog:
-+ *
-+ * 7.9:
-+ *  - new fuse_getattr_in input argument of GETATTR
++ * clear_bit_unlock() is atomic and may not be reordered.  It does
++ * contain a memory barrier suitable for unlock type operations.
 + */
- 
- #include <asm/types.h>
- #include <linux/major.h>
-@@ -15,7 +22,7 @@
- #define FUSE_KERNEL_VERSION 7
- 
- /** Minor version number of this interface */
--#define FUSE_KERNEL_MINOR_VERSION 8
-+#define FUSE_KERNEL_MINOR_VERSION 9
- 
- /** The node ID of the root inode */
- #define FUSE_ROOT_ID 1
-@@ -91,12 +98,18 @@ struct fuse_file_lock {
++static __inline__ void
++clear_bit_unlock (int nr, volatile void *addr)
++{
++	__u32 mask, old, new;
++	volatile __u32 *m;
++	CMPXCHG_BUGCHECK_DECL
++
++	m = (volatile __u32 *) addr + (nr >> 5);
++	mask = ~(1 << (nr & 31));
++	do {
++		CMPXCHG_BUGCHECK(m);
++		old = *m;
++		new = old & mask;
++	} while (cmpxchg_rel(m, old, new) != old);
++}
++
++/**
++ * __clear_bit_unlock - Non-atomically clear a bit with release
++ *
++ * This is like clear_bit_unlock, but the implementation may use a non-atomic
++ * store (this one uses an atomic, however).
++ */
++#define __clear_bit_unlock clear_bit_unlock
++
++/**
+  * __clear_bit - Clears a bit in memory (non-atomic version)
   */
- #define FUSE_ASYNC_READ		(1 << 0)
- #define FUSE_POSIX_LOCKS	(1 << 1)
-+#define FUSE_FILE_OPS		(1 << 2)
+ static __inline__ void
+@@ -170,6 +202,15 @@ test_and_set_bit (int nr, volatile void 
+ }
  
  /**
-  * Release flags
-  */
- #define FUSE_RELEASE_FLUSH	(1 << 0)
- 
-+/**
-+ * Getattr flags
++ * test_and_set_bit_lock - Set a bit and return its old value for lock
++ * @nr: Bit to set
++ * @addr: Address to count from
++ *
++ * This is the same as test_and_set_bit on ia64
 + */
-+#define FUSE_GETATTR_FH		(1 << 0)
++#define test_and_set_bit_lock test_and_set_bit
 +
- enum fuse_opcode {
- 	FUSE_LOOKUP	   = 1,
- 	FUSE_FORGET	   = 2,  /* no reply */
-@@ -154,6 +167,12 @@ struct fuse_forget_in {
- 	__u64	nlookup;
- };
++/**
+  * __test_and_set_bit - Set a bit and return its old value
+  * @nr: Bit to set
+  * @addr: Address to count from
+@@ -371,8 +412,6 @@ hweight64 (unsigned long x)
+ #define hweight16(x)	(unsigned int) hweight64((x) & 0xfffful)
+ #define hweight8(x)	(unsigned int) hweight64((x) & 0xfful)
  
-+struct fuse_getattr_in {
-+	__u32	getattr_flags;
-+	__u32	dummy;
-+	__u64	fh;
-+};
-+
- struct fuse_attr_out {
- 	__u64	attr_valid;	/* Cache timeout for the attributes */
- 	__u32	attr_valid_nsec;
+-#include <asm-generic/bitops/lock.h>
+-
+ #endif /* __KERNEL__ */
+ 
+ #include <asm-generic/bitops/find.h>
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
-unprivileged-mounts-add-no-submounts-flag.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
 fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+reiser4-fix-for-new-aops-patches.patch
