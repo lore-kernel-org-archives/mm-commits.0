@@ -1,204 +1,1201 @@
 From: akpm@linux-foundation.org
-Subject: - jbd-config_jbd_debug-cannot-create-proc-entry.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:49:37 -0700
-Message-ID: <200710192249.l9JMnbrf023982@imap1.linux-foundation.org>
+Subject: - add-kernel-notifierc.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:49:16 -0700
+Message-ID: <200710192249.l9JMnG22023952@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33571 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52326 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757527AbXJSWtz (ORCPT
+	by vger.kernel.org with ESMTP id S1757899AbXJSWt6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 18:49:55 -0400
+	Fri, 19 Oct 2007 18:49:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jrs@us.ibm.com, jack@suse.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: adobriyan@sw.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jbd: config_jbd_debug cannot create /proc entry
+     Add kernel/notifier.c
 has been removed from the -mm tree.  Its filename was
-     jbd-config_jbd_debug-cannot-create-proc-entry.patch
+     add-kernel-notifierc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: jbd: config_jbd_debug cannot create /proc entry
-From: "Jose R. Santos" <jrs@us.ibm.com>
+Subject: Add kernel/notifier.c
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-The jbd-debug file used to be located in /proc/sys/fs/jbd-debug, but
-create_proc_entry() does not do lookups on file names that are more that
-one directory deep.  This causes the entry creation to fail and hence, no
-proc file is created.
+There is separate notifier header, but no separate notifier .c file.
 
-Instead of fixing this on procfs might as well move the jbd2-debug file to
-debugfs which would be the preferred location for this kind of tunable. 
-The new location is now /sys/kernel/debug/jbd/jbd-debug.
+Extract notifier code out of kernel/sys.c which will remain for
+misc syscalls I hope. Merge kernel/die_notifier.c into kernel/notifier.c.
 
-[akpm@linux-foundation.org: zillions of cleanups]
-Signed-off-by: Jose R. Santos <jrs@us.ibm.com>
-Acked-by: Jan Kara <jack@suse.cz>
-Cc: <linux-ext4@vger.kernel.org>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig          |   10 +++---
- fs/jbd/journal.c    |   64 +++++++++++++-----------------------------
- include/linux/jbd.h |    2 -
- 3 files changed, 27 insertions(+), 49 deletions(-)
+ include/linux/notifier.h |    2 
+ kernel/Makefile          |    4 
+ kernel/die_notifier.c    |   38 --
+ kernel/notifier.c        |  539 +++++++++++++++++++++++++++++++++++++
+ kernel/sys.c             |  531 ------------------------------------
+ 5 files changed, 543 insertions(+), 571 deletions(-)
 
-diff -puN fs/Kconfig~jbd-config_jbd_debug-cannot-create-proc-entry fs/Kconfig
---- a/fs/Kconfig~jbd-config_jbd_debug-cannot-create-proc-entry
-+++ a/fs/Kconfig
-@@ -220,7 +220,7 @@ config JBD
+diff -puN include/linux/notifier.h~add-kernel-notifierc include/linux/notifier.h
+--- a/include/linux/notifier.h~add-kernel-notifierc
++++ a/include/linux/notifier.h
+@@ -240,5 +240,7 @@ static inline int notifier_to_errno(int 
+ #define KBD_KEYSYM		0x0004 /* Keyboard keysym */
+ #define KBD_POST_KEYSYM		0x0005 /* Called after keyboard keysym interpretation */
  
- config JBD_DEBUG
- 	bool "JBD (ext3) debugging support"
--	depends on JBD
-+	depends on JBD && DEBUG_FS
- 	help
- 	  If you are using the ext3 journaled file system (or potentially any
- 	  other file system/device using JBD), this option allows you to
-@@ -229,10 +229,10 @@ config JBD_DEBUG
- 	  debugging output will be turned off.
++extern struct blocking_notifier_head reboot_notifier_list;
++
+ #endif /* __KERNEL__ */
+ #endif /* _LINUX_NOTIFIER_H */
+diff -puN kernel/Makefile~add-kernel-notifierc kernel/Makefile
+--- a/kernel/Makefile~add-kernel-notifierc
++++ a/kernel/Makefile
+@@ -8,8 +8,8 @@ obj-y     = sched.o fork.o exec_domain.o
+ 	    signal.o sys.o kmod.o workqueue.o pid.o \
+ 	    rcupdate.o extable.o params.o posix-timers.o \
+ 	    kthread.o wait.o kfifo.o sys_ni.o posix-cpu-timers.o mutex.o \
+-	    hrtimer.o rwsem.o latency.o nsproxy.o srcu.o die_notifier.o \
+-	    utsname.o sysctl_check.o
++	    hrtimer.o rwsem.o latency.o nsproxy.o srcu.o \
++	    utsname.o sysctl_check.o notifier.o
  
- 	  If you select Y here, then you will be able to turn on debugging
--	  with "echo N > /proc/sys/fs/jbd-debug", where N is a number between
--	  1 and 5, the higher the number, the more debugging output is
--	  generated.  To turn debugging off again, do
--	  "echo 0 > /proc/sys/fs/jbd-debug".
-+	  with "echo N > /sys/kernel/debug/jbd/jbd-debug", where N is a
-+	  number between 1 and 5, the higher the number, the more debugging
-+	  output is generated.  To turn debugging off again, do
-+	  "echo 0 > /sys/kernel/debug/jbd/jbd-debug".
+ obj-$(CONFIG_STACKTRACE) += stacktrace.o
+ obj-y += time/
+diff -puN kernel/die_notifier.c~add-kernel-notifierc /dev/null
+--- a/kernel/die_notifier.c
++++ /dev/null
+@@ -1,38 +0,0 @@
+-
+-#include <linux/module.h>
+-#include <linux/notifier.h>
+-#include <linux/vmalloc.h>
+-#include <linux/kdebug.h>
+-
+-
+-static ATOMIC_NOTIFIER_HEAD(die_chain);
+-
+-int notify_die(enum die_val val, const char *str,
+-	       struct pt_regs *regs, long err, int trap, int sig)
+-{
+-	struct die_args args = {
+-		.regs		= regs,
+-		.str		= str,
+-		.err		= err,
+-		.trapnr		= trap,
+-		.signr		= sig,
+-
+-	};
+-
+-	return atomic_notifier_call_chain(&die_chain, val, &args);
+-}
+-
+-int register_die_notifier(struct notifier_block *nb)
+-{
+-	vmalloc_sync_all();
+-	return atomic_notifier_chain_register(&die_chain, nb);
+-}
+-EXPORT_SYMBOL_GPL(register_die_notifier);
+-
+-int unregister_die_notifier(struct notifier_block *nb)
+-{
+-	return atomic_notifier_chain_unregister(&die_chain, nb);
+-}
+-EXPORT_SYMBOL_GPL(unregister_die_notifier);
+-
+-
+diff -puN /dev/null kernel/notifier.c
+--- /dev/null
++++ a/kernel/notifier.c
+@@ -0,0 +1,539 @@
++#include <linux/kdebug.h>
++#include <linux/kprobes.h>
++#include <linux/module.h>
++#include <linux/notifier.h>
++#include <linux/rcupdate.h>
++#include <linux/vmalloc.h>
++
++/*
++ *	Notifier list for kernel code which wants to be called
++ *	at shutdown. This is used to stop any idling DMA operations
++ *	and the like.
++ */
++BLOCKING_NOTIFIER_HEAD(reboot_notifier_list);
++
++/*
++ *	Notifier chain core routines.  The exported routines below
++ *	are layered on top of these, with appropriate locking added.
++ */
++
++static int notifier_chain_register(struct notifier_block **nl,
++		struct notifier_block *n)
++{
++	while ((*nl) != NULL) {
++		if (n->priority > (*nl)->priority)
++			break;
++		nl = &((*nl)->next);
++	}
++	n->next = *nl;
++	rcu_assign_pointer(*nl, n);
++	return 0;
++}
++
++static int notifier_chain_unregister(struct notifier_block **nl,
++		struct notifier_block *n)
++{
++	while ((*nl) != NULL) {
++		if ((*nl) == n) {
++			rcu_assign_pointer(*nl, n->next);
++			return 0;
++		}
++		nl = &((*nl)->next);
++	}
++	return -ENOENT;
++}
++
++/**
++ * notifier_call_chain - Informs the registered notifiers about an event.
++ *	@nl:		Pointer to head of the blocking notifier chain
++ *	@val:		Value passed unmodified to notifier function
++ *	@v:		Pointer passed unmodified to notifier function
++ *	@nr_to_call:	Number of notifier functions to be called. Don't care
++ *			value of this parameter is -1.
++ *	@nr_calls:	Records the number of notifications sent. Don't care
++ *			value of this field is NULL.
++ *	@returns:	notifier_call_chain returns the value returned by the
++ *			last notifier function called.
++ */
++static int __kprobes notifier_call_chain(struct notifier_block **nl,
++					unsigned long val, void *v,
++					int nr_to_call,	int *nr_calls)
++{
++	int ret = NOTIFY_DONE;
++	struct notifier_block *nb, *next_nb;
++
++	nb = rcu_dereference(*nl);
++
++	while (nb && nr_to_call) {
++		next_nb = rcu_dereference(nb->next);
++		ret = nb->notifier_call(nb, val, v);
++
++		if (nr_calls)
++			(*nr_calls)++;
++
++		if ((ret & NOTIFY_STOP_MASK) == NOTIFY_STOP_MASK)
++			break;
++		nb = next_nb;
++		nr_to_call--;
++	}
++	return ret;
++}
++
++/*
++ *	Atomic notifier chain routines.  Registration and unregistration
++ *	use a spinlock, and call_chain is synchronized by RCU (no locks).
++ */
++
++/**
++ *	atomic_notifier_chain_register - Add notifier to an atomic notifier chain
++ *	@nh: Pointer to head of the atomic notifier chain
++ *	@n: New entry in notifier chain
++ *
++ *	Adds a notifier to an atomic notifier chain.
++ *
++ *	Currently always returns zero.
++ */
++int atomic_notifier_chain_register(struct atomic_notifier_head *nh,
++		struct notifier_block *n)
++{
++	unsigned long flags;
++	int ret;
++
++	spin_lock_irqsave(&nh->lock, flags);
++	ret = notifier_chain_register(&nh->head, n);
++	spin_unlock_irqrestore(&nh->lock, flags);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(atomic_notifier_chain_register);
++
++/**
++ *	atomic_notifier_chain_unregister - Remove notifier from an atomic notifier chain
++ *	@nh: Pointer to head of the atomic notifier chain
++ *	@n: Entry to remove from notifier chain
++ *
++ *	Removes a notifier from an atomic notifier chain.
++ *
++ *	Returns zero on success or %-ENOENT on failure.
++ */
++int atomic_notifier_chain_unregister(struct atomic_notifier_head *nh,
++		struct notifier_block *n)
++{
++	unsigned long flags;
++	int ret;
++
++	spin_lock_irqsave(&nh->lock, flags);
++	ret = notifier_chain_unregister(&nh->head, n);
++	spin_unlock_irqrestore(&nh->lock, flags);
++	synchronize_rcu();
++	return ret;
++}
++EXPORT_SYMBOL_GPL(atomic_notifier_chain_unregister);
++
++/**
++ *	__atomic_notifier_call_chain - Call functions in an atomic notifier chain
++ *	@nh: Pointer to head of the atomic notifier chain
++ *	@val: Value passed unmodified to notifier function
++ *	@v: Pointer passed unmodified to notifier function
++ *	@nr_to_call: See the comment for notifier_call_chain.
++ *	@nr_calls: See the comment for notifier_call_chain.
++ *
++ *	Calls each function in a notifier chain in turn.  The functions
++ *	run in an atomic context, so they must not block.
++ *	This routine uses RCU to synchronize with changes to the chain.
++ *
++ *	If the return value of the notifier can be and'ed
++ *	with %NOTIFY_STOP_MASK then atomic_notifier_call_chain()
++ *	will return immediately, with the return value of
++ *	the notifier function which halted execution.
++ *	Otherwise the return value is the return value
++ *	of the last notifier function called.
++ */
++int __kprobes __atomic_notifier_call_chain(struct atomic_notifier_head *nh,
++					unsigned long val, void *v,
++					int nr_to_call, int *nr_calls)
++{
++	int ret;
++
++	rcu_read_lock();
++	ret = notifier_call_chain(&nh->head, val, v, nr_to_call, nr_calls);
++	rcu_read_unlock();
++	return ret;
++}
++EXPORT_SYMBOL_GPL(__atomic_notifier_call_chain);
++
++int __kprobes atomic_notifier_call_chain(struct atomic_notifier_head *nh,
++		unsigned long val, void *v)
++{
++	return __atomic_notifier_call_chain(nh, val, v, -1, NULL);
++}
++EXPORT_SYMBOL_GPL(atomic_notifier_call_chain);
++
++/*
++ *	Blocking notifier chain routines.  All access to the chain is
++ *	synchronized by an rwsem.
++ */
++
++/**
++ *	blocking_notifier_chain_register - Add notifier to a blocking notifier chain
++ *	@nh: Pointer to head of the blocking notifier chain
++ *	@n: New entry in notifier chain
++ *
++ *	Adds a notifier to a blocking notifier chain.
++ *	Must be called in process context.
++ *
++ *	Currently always returns zero.
++ */
++int blocking_notifier_chain_register(struct blocking_notifier_head *nh,
++		struct notifier_block *n)
++{
++	int ret;
++
++	/*
++	 * This code gets used during boot-up, when task switching is
++	 * not yet working and interrupts must remain disabled.  At
++	 * such times we must not call down_write().
++	 */
++	if (unlikely(system_state == SYSTEM_BOOTING))
++		return notifier_chain_register(&nh->head, n);
++
++	down_write(&nh->rwsem);
++	ret = notifier_chain_register(&nh->head, n);
++	up_write(&nh->rwsem);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(blocking_notifier_chain_register);
++
++/**
++ *	blocking_notifier_chain_unregister - Remove notifier from a blocking notifier chain
++ *	@nh: Pointer to head of the blocking notifier chain
++ *	@n: Entry to remove from notifier chain
++ *
++ *	Removes a notifier from a blocking notifier chain.
++ *	Must be called from process context.
++ *
++ *	Returns zero on success or %-ENOENT on failure.
++ */
++int blocking_notifier_chain_unregister(struct blocking_notifier_head *nh,
++		struct notifier_block *n)
++{
++	int ret;
++
++	/*
++	 * This code gets used during boot-up, when task switching is
++	 * not yet working and interrupts must remain disabled.  At
++	 * such times we must not call down_write().
++	 */
++	if (unlikely(system_state == SYSTEM_BOOTING))
++		return notifier_chain_unregister(&nh->head, n);
++
++	down_write(&nh->rwsem);
++	ret = notifier_chain_unregister(&nh->head, n);
++	up_write(&nh->rwsem);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(blocking_notifier_chain_unregister);
++
++/**
++ *	__blocking_notifier_call_chain - Call functions in a blocking notifier chain
++ *	@nh: Pointer to head of the blocking notifier chain
++ *	@val: Value passed unmodified to notifier function
++ *	@v: Pointer passed unmodified to notifier function
++ *	@nr_to_call: See comment for notifier_call_chain.
++ *	@nr_calls: See comment for notifier_call_chain.
++ *
++ *	Calls each function in a notifier chain in turn.  The functions
++ *	run in a process context, so they are allowed to block.
++ *
++ *	If the return value of the notifier can be and'ed
++ *	with %NOTIFY_STOP_MASK then blocking_notifier_call_chain()
++ *	will return immediately, with the return value of
++ *	the notifier function which halted execution.
++ *	Otherwise the return value is the return value
++ *	of the last notifier function called.
++ */
++int __blocking_notifier_call_chain(struct blocking_notifier_head *nh,
++				   unsigned long val, void *v,
++				   int nr_to_call, int *nr_calls)
++{
++	int ret = NOTIFY_DONE;
++
++	/*
++	 * We check the head outside the lock, but if this access is
++	 * racy then it does not matter what the result of the test
++	 * is, we re-check the list after having taken the lock anyway:
++	 */
++	if (rcu_dereference(nh->head)) {
++		down_read(&nh->rwsem);
++		ret = notifier_call_chain(&nh->head, val, v, nr_to_call,
++					nr_calls);
++		up_read(&nh->rwsem);
++	}
++	return ret;
++}
++EXPORT_SYMBOL_GPL(__blocking_notifier_call_chain);
++
++int blocking_notifier_call_chain(struct blocking_notifier_head *nh,
++		unsigned long val, void *v)
++{
++	return __blocking_notifier_call_chain(nh, val, v, -1, NULL);
++}
++EXPORT_SYMBOL_GPL(blocking_notifier_call_chain);
++
++/*
++ *	Raw notifier chain routines.  There is no protection;
++ *	the caller must provide it.  Use at your own risk!
++ */
++
++/**
++ *	raw_notifier_chain_register - Add notifier to a raw notifier chain
++ *	@nh: Pointer to head of the raw notifier chain
++ *	@n: New entry in notifier chain
++ *
++ *	Adds a notifier to a raw notifier chain.
++ *	All locking must be provided by the caller.
++ *
++ *	Currently always returns zero.
++ */
++int raw_notifier_chain_register(struct raw_notifier_head *nh,
++		struct notifier_block *n)
++{
++	return notifier_chain_register(&nh->head, n);
++}
++EXPORT_SYMBOL_GPL(raw_notifier_chain_register);
++
++/**
++ *	raw_notifier_chain_unregister - Remove notifier from a raw notifier chain
++ *	@nh: Pointer to head of the raw notifier chain
++ *	@n: Entry to remove from notifier chain
++ *
++ *	Removes a notifier from a raw notifier chain.
++ *	All locking must be provided by the caller.
++ *
++ *	Returns zero on success or %-ENOENT on failure.
++ */
++int raw_notifier_chain_unregister(struct raw_notifier_head *nh,
++		struct notifier_block *n)
++{
++	return notifier_chain_unregister(&nh->head, n);
++}
++EXPORT_SYMBOL_GPL(raw_notifier_chain_unregister);
++
++/**
++ *	__raw_notifier_call_chain - Call functions in a raw notifier chain
++ *	@nh: Pointer to head of the raw notifier chain
++ *	@val: Value passed unmodified to notifier function
++ *	@v: Pointer passed unmodified to notifier function
++ *	@nr_to_call: See comment for notifier_call_chain.
++ *	@nr_calls: See comment for notifier_call_chain
++ *
++ *	Calls each function in a notifier chain in turn.  The functions
++ *	run in an undefined context.
++ *	All locking must be provided by the caller.
++ *
++ *	If the return value of the notifier can be and'ed
++ *	with %NOTIFY_STOP_MASK then raw_notifier_call_chain()
++ *	will return immediately, with the return value of
++ *	the notifier function which halted execution.
++ *	Otherwise the return value is the return value
++ *	of the last notifier function called.
++ */
++int __raw_notifier_call_chain(struct raw_notifier_head *nh,
++			      unsigned long val, void *v,
++			      int nr_to_call, int *nr_calls)
++{
++	return notifier_call_chain(&nh->head, val, v, nr_to_call, nr_calls);
++}
++EXPORT_SYMBOL_GPL(__raw_notifier_call_chain);
++
++int raw_notifier_call_chain(struct raw_notifier_head *nh,
++		unsigned long val, void *v)
++{
++	return __raw_notifier_call_chain(nh, val, v, -1, NULL);
++}
++EXPORT_SYMBOL_GPL(raw_notifier_call_chain);
++
++/*
++ *	SRCU notifier chain routines.    Registration and unregistration
++ *	use a mutex, and call_chain is synchronized by SRCU (no locks).
++ */
++
++/**
++ *	srcu_notifier_chain_register - Add notifier to an SRCU notifier chain
++ *	@nh: Pointer to head of the SRCU notifier chain
++ *	@n: New entry in notifier chain
++ *
++ *	Adds a notifier to an SRCU notifier chain.
++ *	Must be called in process context.
++ *
++ *	Currently always returns zero.
++ */
++int srcu_notifier_chain_register(struct srcu_notifier_head *nh,
++		struct notifier_block *n)
++{
++	int ret;
++
++	/*
++	 * This code gets used during boot-up, when task switching is
++	 * not yet working and interrupts must remain disabled.  At
++	 * such times we must not call mutex_lock().
++	 */
++	if (unlikely(system_state == SYSTEM_BOOTING))
++		return notifier_chain_register(&nh->head, n);
++
++	mutex_lock(&nh->mutex);
++	ret = notifier_chain_register(&nh->head, n);
++	mutex_unlock(&nh->mutex);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(srcu_notifier_chain_register);
++
++/**
++ *	srcu_notifier_chain_unregister - Remove notifier from an SRCU notifier chain
++ *	@nh: Pointer to head of the SRCU notifier chain
++ *	@n: Entry to remove from notifier chain
++ *
++ *	Removes a notifier from an SRCU notifier chain.
++ *	Must be called from process context.
++ *
++ *	Returns zero on success or %-ENOENT on failure.
++ */
++int srcu_notifier_chain_unregister(struct srcu_notifier_head *nh,
++		struct notifier_block *n)
++{
++	int ret;
++
++	/*
++	 * This code gets used during boot-up, when task switching is
++	 * not yet working and interrupts must remain disabled.  At
++	 * such times we must not call mutex_lock().
++	 */
++	if (unlikely(system_state == SYSTEM_BOOTING))
++		return notifier_chain_unregister(&nh->head, n);
++
++	mutex_lock(&nh->mutex);
++	ret = notifier_chain_unregister(&nh->head, n);
++	mutex_unlock(&nh->mutex);
++	synchronize_srcu(&nh->srcu);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(srcu_notifier_chain_unregister);
++
++/**
++ *	__srcu_notifier_call_chain - Call functions in an SRCU notifier chain
++ *	@nh: Pointer to head of the SRCU notifier chain
++ *	@val: Value passed unmodified to notifier function
++ *	@v: Pointer passed unmodified to notifier function
++ *	@nr_to_call: See comment for notifier_call_chain.
++ *	@nr_calls: See comment for notifier_call_chain
++ *
++ *	Calls each function in a notifier chain in turn.  The functions
++ *	run in a process context, so they are allowed to block.
++ *
++ *	If the return value of the notifier can be and'ed
++ *	with %NOTIFY_STOP_MASK then srcu_notifier_call_chain()
++ *	will return immediately, with the return value of
++ *	the notifier function which halted execution.
++ *	Otherwise the return value is the return value
++ *	of the last notifier function called.
++ */
++int __srcu_notifier_call_chain(struct srcu_notifier_head *nh,
++			       unsigned long val, void *v,
++			       int nr_to_call, int *nr_calls)
++{
++	int ret;
++	int idx;
++
++	idx = srcu_read_lock(&nh->srcu);
++	ret = notifier_call_chain(&nh->head, val, v, nr_to_call, nr_calls);
++	srcu_read_unlock(&nh->srcu, idx);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(__srcu_notifier_call_chain);
++
++int srcu_notifier_call_chain(struct srcu_notifier_head *nh,
++		unsigned long val, void *v)
++{
++	return __srcu_notifier_call_chain(nh, val, v, -1, NULL);
++}
++EXPORT_SYMBOL_GPL(srcu_notifier_call_chain);
++
++/**
++ *	srcu_init_notifier_head - Initialize an SRCU notifier head
++ *	@nh: Pointer to head of the srcu notifier chain
++ *
++ *	Unlike other sorts of notifier heads, SRCU notifier heads require
++ *	dynamic initialization.  Be sure to call this routine before
++ *	calling any of the other SRCU notifier routines for this head.
++ *
++ *	If an SRCU notifier head is deallocated, it must first be cleaned
++ *	up by calling srcu_cleanup_notifier_head().  Otherwise the head's
++ *	per-cpu data (used by the SRCU mechanism) will leak.
++ */
++void srcu_init_notifier_head(struct srcu_notifier_head *nh)
++{
++	mutex_init(&nh->mutex);
++	if (init_srcu_struct(&nh->srcu) < 0)
++		BUG();
++	nh->head = NULL;
++}
++EXPORT_SYMBOL_GPL(srcu_init_notifier_head);
++
++/**
++ *	register_reboot_notifier - Register function to be called at reboot time
++ *	@nb: Info about notifier function to be called
++ *
++ *	Registers a function with the list of functions
++ *	to be called at reboot time.
++ *
++ *	Currently always returns zero, as blocking_notifier_chain_register()
++ *	always returns zero.
++ */
++int register_reboot_notifier(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_register(&reboot_notifier_list, nb);
++}
++EXPORT_SYMBOL(register_reboot_notifier);
++
++/**
++ *	unregister_reboot_notifier - Unregister previously registered reboot notifier
++ *	@nb: Hook to be unregistered
++ *
++ *	Unregisters a previously registered reboot
++ *	notifier function.
++ *
++ *	Returns zero on success, or %-ENOENT on failure.
++ */
++int unregister_reboot_notifier(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_unregister(&reboot_notifier_list, nb);
++}
++EXPORT_SYMBOL(unregister_reboot_notifier);
++
++static ATOMIC_NOTIFIER_HEAD(die_chain);
++
++int notify_die(enum die_val val, const char *str,
++	       struct pt_regs *regs, long err, int trap, int sig)
++{
++	struct die_args args = {
++		.regs	= regs,
++		.str	= str,
++		.err	= err,
++		.trapnr	= trap,
++		.signr	= sig,
++
++	};
++	return atomic_notifier_call_chain(&die_chain, val, &args);
++}
++
++int register_die_notifier(struct notifier_block *nb)
++{
++	vmalloc_sync_all();
++	return atomic_notifier_chain_register(&die_chain, nb);
++}
++EXPORT_SYMBOL_GPL(register_die_notifier);
++
++int unregister_die_notifier(struct notifier_block *nb)
++{
++	return atomic_notifier_chain_unregister(&die_chain, nb);
++}
++EXPORT_SYMBOL_GPL(unregister_die_notifier);
+diff -puN kernel/sys.c~add-kernel-notifierc kernel/sys.c
+--- a/kernel/sys.c~add-kernel-notifierc
++++ a/kernel/sys.c
+@@ -106,537 +106,6 @@ EXPORT_SYMBOL(cad_pid);
  
- config JBD2
- 	tristate
-diff -puN fs/jbd/journal.c~jbd-config_jbd_debug-cannot-create-proc-entry fs/jbd/journal.c
---- a/fs/jbd/journal.c~jbd-config_jbd_debug-cannot-create-proc-entry
-+++ a/fs/jbd/journal.c
-@@ -35,6 +35,7 @@
- #include <linux/kthread.h>
- #include <linux/poison.h>
- #include <linux/proc_fs.h>
-+#include <linux/debugfs.h>
+ void (*pm_power_off_prepare)(void);
  
- #include <asm/uaccess.h>
- #include <asm/page.h>
-@@ -1851,64 +1852,41 @@ void journal_put_journal_head(struct jou
- }
- 
- /*
-- * /proc tunables
-+ * debugfs tunables
-  */
--#if defined(CONFIG_JBD_DEBUG)
--int journal_enable_debug;
--EXPORT_SYMBOL(journal_enable_debug);
--#endif
-+#ifdef CONFIG_JBD_DEBUG
- 
--#if defined(CONFIG_JBD_DEBUG) && defined(CONFIG_PROC_FS)
-+u8 journal_enable_debug __read_mostly;
-+EXPORT_SYMBOL(journal_enable_debug);
- 
--static struct proc_dir_entry *proc_jbd_debug;
-+static struct dentry *jbd_debugfs_dir;
-+static struct dentry *jbd_debug;
- 
--static int read_jbd_debug(char *page, char **start, off_t off,
--			  int count, int *eof, void *data)
-+static void __init jbd_create_debugfs_entry(void)
- {
+-/*
+- *	Notifier list for kernel code which wants to be called
+- *	at shutdown. This is used to stop any idling DMA operations
+- *	and the like. 
+- */
+-
+-static BLOCKING_NOTIFIER_HEAD(reboot_notifier_list);
+-
+-/*
+- *	Notifier chain core routines.  The exported routines below
+- *	are layered on top of these, with appropriate locking added.
+- */
+-
+-static int notifier_chain_register(struct notifier_block **nl,
+-		struct notifier_block *n)
+-{
+-	while ((*nl) != NULL) {
+-		if (n->priority > (*nl)->priority)
+-			break;
+-		nl = &((*nl)->next);
+-	}
+-	n->next = *nl;
+-	rcu_assign_pointer(*nl, n);
+-	return 0;
+-}
+-
+-static int notifier_chain_unregister(struct notifier_block **nl,
+-		struct notifier_block *n)
+-{
+-	while ((*nl) != NULL) {
+-		if ((*nl) == n) {
+-			rcu_assign_pointer(*nl, n->next);
+-			return 0;
+-		}
+-		nl = &((*nl)->next);
+-	}
+-	return -ENOENT;
+-}
+-
+-/**
+- * notifier_call_chain - Informs the registered notifiers about an event.
+- *	@nl:		Pointer to head of the blocking notifier chain
+- *	@val:		Value passed unmodified to notifier function
+- *	@v:		Pointer passed unmodified to notifier function
+- *	@nr_to_call:	Number of notifier functions to be called. Don't care
+- *		     	value of this parameter is -1.
+- *	@nr_calls:	Records the number of notifications sent. Don't care
+- *		   	value of this field is NULL.
+- * 	@returns:	notifier_call_chain returns the value returned by the
+- *			last notifier function called.
+- */
+-
+-static int __kprobes notifier_call_chain(struct notifier_block **nl,
+-					unsigned long val, void *v,
+-					int nr_to_call,	int *nr_calls)
+-{
+-	int ret = NOTIFY_DONE;
+-	struct notifier_block *nb, *next_nb;
+-
+-	nb = rcu_dereference(*nl);
+-
+-	while (nb && nr_to_call) {
+-		next_nb = rcu_dereference(nb->next);
+-		ret = nb->notifier_call(nb, val, v);
+-
+-		if (nr_calls)
+-			(*nr_calls)++;
+-
+-		if ((ret & NOTIFY_STOP_MASK) == NOTIFY_STOP_MASK)
+-			break;
+-		nb = next_nb;
+-		nr_to_call--;
+-	}
+-	return ret;
+-}
+-
+-/*
+- *	Atomic notifier chain routines.  Registration and unregistration
+- *	use a spinlock, and call_chain is synchronized by RCU (no locks).
+- */
+-
+-/**
+- *	atomic_notifier_chain_register - Add notifier to an atomic notifier chain
+- *	@nh: Pointer to head of the atomic notifier chain
+- *	@n: New entry in notifier chain
+- *
+- *	Adds a notifier to an atomic notifier chain.
+- *
+- *	Currently always returns zero.
+- */
+-
+-int atomic_notifier_chain_register(struct atomic_notifier_head *nh,
+-		struct notifier_block *n)
+-{
+-	unsigned long flags;
 -	int ret;
 -
--	ret = sprintf(page + off, "%d\n", journal_enable_debug);
--	*eof = 1;
+-	spin_lock_irqsave(&nh->lock, flags);
+-	ret = notifier_chain_register(&nh->head, n);
+-	spin_unlock_irqrestore(&nh->lock, flags);
 -	return ret;
-+	jbd_debugfs_dir = debugfs_create_dir("jbd", NULL);
-+	if (jbd_debugfs_dir)
-+		jbd_debug = debugfs_create_u8("jbd-debug", S_IRUGO,
-+					       jbd_debugfs_dir,
-+					       &journal_enable_debug);
- }
- 
--static int write_jbd_debug(struct file *file, const char __user *buffer,
--			   unsigned long count, void *data)
-+static void __exit jbd_remove_debugfs_entry(void)
- {
--	char buf[32];
+-}
 -
--	if (count > ARRAY_SIZE(buf) - 1)
--		count = ARRAY_SIZE(buf) - 1;
--	if (copy_from_user(buf, buffer, count))
--		return -EFAULT;
--	buf[ARRAY_SIZE(buf) - 1] = '\0';
--	journal_enable_debug = simple_strtoul(buf, NULL, 10);
--	return count;
-+	debugfs_remove(jbd_debug);
-+	debugfs_remove(jbd_debugfs_dir);
- }
- 
--#define JBD_PROC_NAME "sys/fs/jbd-debug"
-+#else
- 
--static void __init create_jbd_proc_entry(void)
-+static inline void jbd_create_debugfs_entry(void)
- {
--	proc_jbd_debug = create_proc_entry(JBD_PROC_NAME, 0644, NULL);
--	if (proc_jbd_debug) {
--		/* Why is this so hard? */
--		proc_jbd_debug->read_proc = read_jbd_debug;
--		proc_jbd_debug->write_proc = write_jbd_debug;
+-EXPORT_SYMBOL_GPL(atomic_notifier_chain_register);
+-
+-/**
+- *	atomic_notifier_chain_unregister - Remove notifier from an atomic notifier chain
+- *	@nh: Pointer to head of the atomic notifier chain
+- *	@n: Entry to remove from notifier chain
+- *
+- *	Removes a notifier from an atomic notifier chain.
+- *
+- *	Returns zero on success or %-ENOENT on failure.
+- */
+-int atomic_notifier_chain_unregister(struct atomic_notifier_head *nh,
+-		struct notifier_block *n)
+-{
+-	unsigned long flags;
+-	int ret;
+-
+-	spin_lock_irqsave(&nh->lock, flags);
+-	ret = notifier_chain_unregister(&nh->head, n);
+-	spin_unlock_irqrestore(&nh->lock, flags);
+-	synchronize_rcu();
+-	return ret;
+-}
+-
+-EXPORT_SYMBOL_GPL(atomic_notifier_chain_unregister);
+-
+-/**
+- *	__atomic_notifier_call_chain - Call functions in an atomic notifier chain
+- *	@nh: Pointer to head of the atomic notifier chain
+- *	@val: Value passed unmodified to notifier function
+- *	@v: Pointer passed unmodified to notifier function
+- *	@nr_to_call: See the comment for notifier_call_chain.
+- *	@nr_calls: See the comment for notifier_call_chain.
+- *
+- *	Calls each function in a notifier chain in turn.  The functions
+- *	run in an atomic context, so they must not block.
+- *	This routine uses RCU to synchronize with changes to the chain.
+- *
+- *	If the return value of the notifier can be and'ed
+- *	with %NOTIFY_STOP_MASK then atomic_notifier_call_chain()
+- *	will return immediately, with the return value of
+- *	the notifier function which halted execution.
+- *	Otherwise the return value is the return value
+- *	of the last notifier function called.
+- */
+- 
+-int __kprobes __atomic_notifier_call_chain(struct atomic_notifier_head *nh,
+-					unsigned long val, void *v,
+-					int nr_to_call, int *nr_calls)
+-{
+-	int ret;
+-
+-	rcu_read_lock();
+-	ret = notifier_call_chain(&nh->head, val, v, nr_to_call, nr_calls);
+-	rcu_read_unlock();
+-	return ret;
+-}
+-
+-EXPORT_SYMBOL_GPL(__atomic_notifier_call_chain);
+-
+-int __kprobes atomic_notifier_call_chain(struct atomic_notifier_head *nh,
+-		unsigned long val, void *v)
+-{
+-	return __atomic_notifier_call_chain(nh, val, v, -1, NULL);
+-}
+-
+-EXPORT_SYMBOL_GPL(atomic_notifier_call_chain);
+-/*
+- *	Blocking notifier chain routines.  All access to the chain is
+- *	synchronized by an rwsem.
+- */
+-
+-/**
+- *	blocking_notifier_chain_register - Add notifier to a blocking notifier chain
+- *	@nh: Pointer to head of the blocking notifier chain
+- *	@n: New entry in notifier chain
+- *
+- *	Adds a notifier to a blocking notifier chain.
+- *	Must be called in process context.
+- *
+- *	Currently always returns zero.
+- */
+- 
+-int blocking_notifier_chain_register(struct blocking_notifier_head *nh,
+-		struct notifier_block *n)
+-{
+-	int ret;
+-
+-	/*
+-	 * This code gets used during boot-up, when task switching is
+-	 * not yet working and interrupts must remain disabled.  At
+-	 * such times we must not call down_write().
+-	 */
+-	if (unlikely(system_state == SYSTEM_BOOTING))
+-		return notifier_chain_register(&nh->head, n);
+-
+-	down_write(&nh->rwsem);
+-	ret = notifier_chain_register(&nh->head, n);
+-	up_write(&nh->rwsem);
+-	return ret;
+-}
+-
+-EXPORT_SYMBOL_GPL(blocking_notifier_chain_register);
+-
+-/**
+- *	blocking_notifier_chain_unregister - Remove notifier from a blocking notifier chain
+- *	@nh: Pointer to head of the blocking notifier chain
+- *	@n: Entry to remove from notifier chain
+- *
+- *	Removes a notifier from a blocking notifier chain.
+- *	Must be called from process context.
+- *
+- *	Returns zero on success or %-ENOENT on failure.
+- */
+-int blocking_notifier_chain_unregister(struct blocking_notifier_head *nh,
+-		struct notifier_block *n)
+-{
+-	int ret;
+-
+-	/*
+-	 * This code gets used during boot-up, when task switching is
+-	 * not yet working and interrupts must remain disabled.  At
+-	 * such times we must not call down_write().
+-	 */
+-	if (unlikely(system_state == SYSTEM_BOOTING))
+-		return notifier_chain_unregister(&nh->head, n);
+-
+-	down_write(&nh->rwsem);
+-	ret = notifier_chain_unregister(&nh->head, n);
+-	up_write(&nh->rwsem);
+-	return ret;
+-}
+-
+-EXPORT_SYMBOL_GPL(blocking_notifier_chain_unregister);
+-
+-/**
+- *	__blocking_notifier_call_chain - Call functions in a blocking notifier chain
+- *	@nh: Pointer to head of the blocking notifier chain
+- *	@val: Value passed unmodified to notifier function
+- *	@v: Pointer passed unmodified to notifier function
+- *	@nr_to_call: See comment for notifier_call_chain.
+- *	@nr_calls: See comment for notifier_call_chain.
+- *
+- *	Calls each function in a notifier chain in turn.  The functions
+- *	run in a process context, so they are allowed to block.
+- *
+- *	If the return value of the notifier can be and'ed
+- *	with %NOTIFY_STOP_MASK then blocking_notifier_call_chain()
+- *	will return immediately, with the return value of
+- *	the notifier function which halted execution.
+- *	Otherwise the return value is the return value
+- *	of the last notifier function called.
+- */
+- 
+-int __blocking_notifier_call_chain(struct blocking_notifier_head *nh,
+-				   unsigned long val, void *v,
+-				   int nr_to_call, int *nr_calls)
+-{
+-	int ret = NOTIFY_DONE;
+-
+-	/*
+-	 * We check the head outside the lock, but if this access is
+-	 * racy then it does not matter what the result of the test
+-	 * is, we re-check the list after having taken the lock anyway:
+-	 */
+-	if (rcu_dereference(nh->head)) {
+-		down_read(&nh->rwsem);
+-		ret = notifier_call_chain(&nh->head, val, v, nr_to_call,
+-					nr_calls);
+-		up_read(&nh->rwsem);
 -	}
- }
- 
--static void __exit remove_jbd_proc_entry(void)
-+static inline void jbd_remove_debugfs_entry(void)
+-	return ret;
+-}
+-EXPORT_SYMBOL_GPL(__blocking_notifier_call_chain);
+-
+-int blocking_notifier_call_chain(struct blocking_notifier_head *nh,
+-		unsigned long val, void *v)
+-{
+-	return __blocking_notifier_call_chain(nh, val, v, -1, NULL);
+-}
+-EXPORT_SYMBOL_GPL(blocking_notifier_call_chain);
+-
+-/*
+- *	Raw notifier chain routines.  There is no protection;
+- *	the caller must provide it.  Use at your own risk!
+- */
+-
+-/**
+- *	raw_notifier_chain_register - Add notifier to a raw notifier chain
+- *	@nh: Pointer to head of the raw notifier chain
+- *	@n: New entry in notifier chain
+- *
+- *	Adds a notifier to a raw notifier chain.
+- *	All locking must be provided by the caller.
+- *
+- *	Currently always returns zero.
+- */
+-
+-int raw_notifier_chain_register(struct raw_notifier_head *nh,
+-		struct notifier_block *n)
+-{
+-	return notifier_chain_register(&nh->head, n);
+-}
+-
+-EXPORT_SYMBOL_GPL(raw_notifier_chain_register);
+-
+-/**
+- *	raw_notifier_chain_unregister - Remove notifier from a raw notifier chain
+- *	@nh: Pointer to head of the raw notifier chain
+- *	@n: Entry to remove from notifier chain
+- *
+- *	Removes a notifier from a raw notifier chain.
+- *	All locking must be provided by the caller.
+- *
+- *	Returns zero on success or %-ENOENT on failure.
+- */
+-int raw_notifier_chain_unregister(struct raw_notifier_head *nh,
+-		struct notifier_block *n)
+-{
+-	return notifier_chain_unregister(&nh->head, n);
+-}
+-
+-EXPORT_SYMBOL_GPL(raw_notifier_chain_unregister);
+-
+-/**
+- *	__raw_notifier_call_chain - Call functions in a raw notifier chain
+- *	@nh: Pointer to head of the raw notifier chain
+- *	@val: Value passed unmodified to notifier function
+- *	@v: Pointer passed unmodified to notifier function
+- *	@nr_to_call: See comment for notifier_call_chain.
+- *	@nr_calls: See comment for notifier_call_chain
+- *
+- *	Calls each function in a notifier chain in turn.  The functions
+- *	run in an undefined context.
+- *	All locking must be provided by the caller.
+- *
+- *	If the return value of the notifier can be and'ed
+- *	with %NOTIFY_STOP_MASK then raw_notifier_call_chain()
+- *	will return immediately, with the return value of
+- *	the notifier function which halted execution.
+- *	Otherwise the return value is the return value
+- *	of the last notifier function called.
+- */
+-
+-int __raw_notifier_call_chain(struct raw_notifier_head *nh,
+-			      unsigned long val, void *v,
+-			      int nr_to_call, int *nr_calls)
+-{
+-	return notifier_call_chain(&nh->head, val, v, nr_to_call, nr_calls);
+-}
+-
+-EXPORT_SYMBOL_GPL(__raw_notifier_call_chain);
+-
+-int raw_notifier_call_chain(struct raw_notifier_head *nh,
+-		unsigned long val, void *v)
+-{
+-	return __raw_notifier_call_chain(nh, val, v, -1, NULL);
+-}
+-
+-EXPORT_SYMBOL_GPL(raw_notifier_call_chain);
+-
+-/*
+- *	SRCU notifier chain routines.    Registration and unregistration
+- *	use a mutex, and call_chain is synchronized by SRCU (no locks).
+- */
+-
+-/**
+- *	srcu_notifier_chain_register - Add notifier to an SRCU notifier chain
+- *	@nh: Pointer to head of the SRCU notifier chain
+- *	@n: New entry in notifier chain
+- *
+- *	Adds a notifier to an SRCU notifier chain.
+- *	Must be called in process context.
+- *
+- *	Currently always returns zero.
+- */
+-
+-int srcu_notifier_chain_register(struct srcu_notifier_head *nh,
+-		struct notifier_block *n)
+-{
+-	int ret;
+-
+-	/*
+-	 * This code gets used during boot-up, when task switching is
+-	 * not yet working and interrupts must remain disabled.  At
+-	 * such times we must not call mutex_lock().
+-	 */
+-	if (unlikely(system_state == SYSTEM_BOOTING))
+-		return notifier_chain_register(&nh->head, n);
+-
+-	mutex_lock(&nh->mutex);
+-	ret = notifier_chain_register(&nh->head, n);
+-	mutex_unlock(&nh->mutex);
+-	return ret;
+-}
+-
+-EXPORT_SYMBOL_GPL(srcu_notifier_chain_register);
+-
+-/**
+- *	srcu_notifier_chain_unregister - Remove notifier from an SRCU notifier chain
+- *	@nh: Pointer to head of the SRCU notifier chain
+- *	@n: Entry to remove from notifier chain
+- *
+- *	Removes a notifier from an SRCU notifier chain.
+- *	Must be called from process context.
+- *
+- *	Returns zero on success or %-ENOENT on failure.
+- */
+-int srcu_notifier_chain_unregister(struct srcu_notifier_head *nh,
+-		struct notifier_block *n)
+-{
+-	int ret;
+-
+-	/*
+-	 * This code gets used during boot-up, when task switching is
+-	 * not yet working and interrupts must remain disabled.  At
+-	 * such times we must not call mutex_lock().
+-	 */
+-	if (unlikely(system_state == SYSTEM_BOOTING))
+-		return notifier_chain_unregister(&nh->head, n);
+-
+-	mutex_lock(&nh->mutex);
+-	ret = notifier_chain_unregister(&nh->head, n);
+-	mutex_unlock(&nh->mutex);
+-	synchronize_srcu(&nh->srcu);
+-	return ret;
+-}
+-
+-EXPORT_SYMBOL_GPL(srcu_notifier_chain_unregister);
+-
+-/**
+- *	__srcu_notifier_call_chain - Call functions in an SRCU notifier chain
+- *	@nh: Pointer to head of the SRCU notifier chain
+- *	@val: Value passed unmodified to notifier function
+- *	@v: Pointer passed unmodified to notifier function
+- *	@nr_to_call: See comment for notifier_call_chain.
+- *	@nr_calls: See comment for notifier_call_chain
+- *
+- *	Calls each function in a notifier chain in turn.  The functions
+- *	run in a process context, so they are allowed to block.
+- *
+- *	If the return value of the notifier can be and'ed
+- *	with %NOTIFY_STOP_MASK then srcu_notifier_call_chain()
+- *	will return immediately, with the return value of
+- *	the notifier function which halted execution.
+- *	Otherwise the return value is the return value
+- *	of the last notifier function called.
+- */
+-
+-int __srcu_notifier_call_chain(struct srcu_notifier_head *nh,
+-			       unsigned long val, void *v,
+-			       int nr_to_call, int *nr_calls)
+-{
+-	int ret;
+-	int idx;
+-
+-	idx = srcu_read_lock(&nh->srcu);
+-	ret = notifier_call_chain(&nh->head, val, v, nr_to_call, nr_calls);
+-	srcu_read_unlock(&nh->srcu, idx);
+-	return ret;
+-}
+-EXPORT_SYMBOL_GPL(__srcu_notifier_call_chain);
+-
+-int srcu_notifier_call_chain(struct srcu_notifier_head *nh,
+-		unsigned long val, void *v)
+-{
+-	return __srcu_notifier_call_chain(nh, val, v, -1, NULL);
+-}
+-EXPORT_SYMBOL_GPL(srcu_notifier_call_chain);
+-
+-/**
+- *	srcu_init_notifier_head - Initialize an SRCU notifier head
+- *	@nh: Pointer to head of the srcu notifier chain
+- *
+- *	Unlike other sorts of notifier heads, SRCU notifier heads require
+- *	dynamic initialization.  Be sure to call this routine before
+- *	calling any of the other SRCU notifier routines for this head.
+- *
+- *	If an SRCU notifier head is deallocated, it must first be cleaned
+- *	up by calling srcu_cleanup_notifier_head().  Otherwise the head's
+- *	per-cpu data (used by the SRCU mechanism) will leak.
+- */
+-
+-void srcu_init_notifier_head(struct srcu_notifier_head *nh)
+-{
+-	mutex_init(&nh->mutex);
+-	if (init_srcu_struct(&nh->srcu) < 0)
+-		BUG();
+-	nh->head = NULL;
+-}
+-
+-EXPORT_SYMBOL_GPL(srcu_init_notifier_head);
+-
+-/**
+- *	register_reboot_notifier - Register function to be called at reboot time
+- *	@nb: Info about notifier function to be called
+- *
+- *	Registers a function with the list of functions
+- *	to be called at reboot time.
+- *
+- *	Currently always returns zero, as blocking_notifier_chain_register()
+- *	always returns zero.
+- */
+- 
+-int register_reboot_notifier(struct notifier_block * nb)
+-{
+-	return blocking_notifier_chain_register(&reboot_notifier_list, nb);
+-}
+-
+-EXPORT_SYMBOL(register_reboot_notifier);
+-
+-/**
+- *	unregister_reboot_notifier - Unregister previously registered reboot notifier
+- *	@nb: Hook to be unregistered
+- *
+- *	Unregisters a previously registered reboot
+- *	notifier function.
+- *
+- *	Returns zero on success, or %-ENOENT on failure.
+- */
+- 
+-int unregister_reboot_notifier(struct notifier_block * nb)
+-{
+-	return blocking_notifier_chain_unregister(&reboot_notifier_list, nb);
+-}
+-
+-EXPORT_SYMBOL(unregister_reboot_notifier);
+-
+ static int set_one_prio(struct task_struct *p, int niceval, int error)
  {
--	if (proc_jbd_debug)
--		remove_proc_entry(JBD_PROC_NAME, NULL);
- }
- 
--#else
--
--#define create_jbd_proc_entry() do {} while (0)
--#define remove_jbd_proc_entry() do {} while (0)
--
- #endif
- 
- struct kmem_cache *jbd_handle_cache;
-@@ -1965,7 +1943,7 @@ static int __init journal_init(void)
- 	ret = journal_init_caches();
- 	if (ret != 0)
- 		journal_destroy_caches();
--	create_jbd_proc_entry();
-+	jbd_create_debugfs_entry();
- 	return ret;
- }
- 
-@@ -1976,7 +1954,7 @@ static void __exit journal_exit(void)
- 	if (n)
- 		printk(KERN_EMERG "JBD: leaked %d journal_heads!\n", n);
- #endif
--	remove_jbd_proc_entry();
-+	jbd_remove_debugfs_entry();
- 	journal_destroy_caches();
- }
- 
-diff -puN include/linux/jbd.h~jbd-config_jbd_debug-cannot-create-proc-entry include/linux/jbd.h
---- a/include/linux/jbd.h~jbd-config_jbd_debug-cannot-create-proc-entry
-+++ a/include/linux/jbd.h
-@@ -58,7 +58,7 @@
-  * CONFIG_JBD_DEBUG is on.
-  */
- #define JBD_EXPENSIVE_CHECKING
--extern int journal_enable_debug;
-+extern u8 journal_enable_debug;
- 
- #define jbd_debug(n, f, a...)						\
- 	do {								\
+ 	int no_nice;
 _
 
-Patches currently in -mm which might be from jrs@us.ibm.com are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
 origin.patch
+single_open-seq_release-leak-diagnostics.patch
