@@ -1,84 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: - unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:49:00 -0700
-Message-ID: <200710192249.l9JMn0vH023928@imap1.linux-foundation.org>
+Subject: - setup-vma-vm_page_prot-by-vm_get_page_prot.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:49:14 -0700
+Message-ID: <200710192249.l9JMnEIb023949@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41988 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38851 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756861AbXJSWtV (ORCPT
+	by vger.kernel.org with ESMTP id S1755330AbXJSWt1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 18:49:21 -0400
+	Fri, 19 Oct 2007 18:49:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, hch@lst.de, linuxram@us.ibm.com, mm-commits@vger.kernel.org
+To: coyli@suse.de, hugh@veritas.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     put declaration of put_filesystem() in fs.h
+     setup vma->vm_page_prot by vm_get_page_prot()
 has been removed from the -mm tree.  Its filename was
-     unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+     setup-vma-vm_page_prot-by-vm_get_page_prot.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: put declaration of put_filesystem() in fs.h
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: setup vma->vm_page_prot by vm_get_page_prot()
+From: Coly Li <coyli@suse.de>
 
-Declarations go into headers.
+This patch uses vm_get_page_prot() to setup vma->vm_page_prot.
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Ram Pai <linuxram@us.ibm.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Though inside vm_get_page_prot() the protection flags is AND with
+(VM_READ|VM_WRITE|VM_EXEC|VM_SHARED), it does not hurt correct code.
+
+Signed-off-by: Coly Li <coyli@suse.de>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c         |    4 ----
- include/linux/fs.h |    2 ++
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ arch/ia64/mm/init.c |    2 +-
+ fs/exec.c           |    2 +-
+ mm/mmap.c           |   11 ++++-------
+ mm/mprotect.c       |    6 ++----
+ 4 files changed, 8 insertions(+), 13 deletions(-)
 
-diff -puN fs/super.c~unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh fs/super.c
---- a/fs/super.c~unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh
-+++ a/fs/super.c
-@@ -40,10 +40,6 @@
- #include <asm/uaccess.h>
+diff -puN arch/ia64/mm/init.c~setup-vma-vm_page_prot-by-vm_get_page_prot arch/ia64/mm/init.c
+--- a/arch/ia64/mm/init.c~setup-vma-vm_page_prot-by-vm_get_page_prot
++++ a/arch/ia64/mm/init.c
+@@ -127,8 +127,8 @@ ia64_init_addr_space (void)
+ 		vma->vm_mm = current->mm;
+ 		vma->vm_start = current->thread.rbs_bot & PAGE_MASK;
+ 		vma->vm_end = vma->vm_start + PAGE_SIZE;
+-		vma->vm_page_prot = protection_map[VM_DATA_DEFAULT_FLAGS & 0x7];
+ 		vma->vm_flags = VM_DATA_DEFAULT_FLAGS|VM_GROWSUP|VM_ACCOUNT;
++		vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
+ 		down_write(&current->mm->mmap_sem);
+ 		if (insert_vm_struct(current->mm, vma)) {
+ 			up_write(&current->mm->mmap_sem);
+diff -puN fs/exec.c~setup-vma-vm_page_prot-by-vm_get_page_prot fs/exec.c
+--- a/fs/exec.c~setup-vma-vm_page_prot-by-vm_get_page_prot
++++ a/fs/exec.c
+@@ -234,7 +234,7 @@ static int __bprm_mm_init(struct linux_b
+ 	vma->vm_start = vma->vm_end - PAGE_SIZE;
  
+ 	vma->vm_flags = VM_STACK_FLAGS;
+-	vma->vm_page_prot = protection_map[vma->vm_flags & 0x7];
++	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
+ 	err = insert_vm_struct(mm, vma);
+ 	if (err) {
+ 		up_write(&mm->mmap_sem);
+diff -puN mm/mmap.c~setup-vma-vm_page_prot-by-vm_get_page_prot mm/mmap.c
+--- a/mm/mmap.c~setup-vma-vm_page_prot-by-vm_get_page_prot
++++ a/mm/mmap.c
+@@ -1048,8 +1048,7 @@ int vma_wants_writenotify(struct vm_area
  
--void get_filesystem(struct file_system_type *fs);
--void put_filesystem(struct file_system_type *fs);
--struct file_system_type *get_fs_type(const char *name);
--
- LIST_HEAD(super_blocks);
- DEFINE_SPINLOCK(sb_lock);
+ 	/* The open routine did something to the protections already? */
+ 	if (pgprot_val(vma->vm_page_prot) !=
+-	    pgprot_val(protection_map[vm_flags &
+-		    (VM_READ|VM_WRITE|VM_EXEC|VM_SHARED)]))
++	    pgprot_val(vm_get_page_prot(vm_flags)))
+ 		return 0;
  
-diff -puN include/linux/fs.h~unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh include/linux/fs.h
---- a/include/linux/fs.h~unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh
-+++ a/include/linux/fs.h
-@@ -1922,6 +1922,8 @@ extern int vfs_fstat(unsigned int, struc
+ 	/* Specialty mapping? */
+@@ -1130,8 +1129,7 @@ munmap_back:
+ 	vma->vm_start = addr;
+ 	vma->vm_end = addr + len;
+ 	vma->vm_flags = vm_flags;
+-	vma->vm_page_prot = protection_map[vm_flags &
+-				(VM_READ|VM_WRITE|VM_EXEC|VM_SHARED)];
++	vma->vm_page_prot = vm_get_page_prot(vm_flags);
+ 	vma->vm_pgoff = pgoff;
  
- extern int vfs_ioctl(struct file *, unsigned int, unsigned int, unsigned long);
+ 	if (file) {
+@@ -2002,8 +2000,7 @@ unsigned long do_brk(unsigned long addr,
+ 	vma->vm_end = addr + len;
+ 	vma->vm_pgoff = pgoff;
+ 	vma->vm_flags = flags;
+-	vma->vm_page_prot = protection_map[flags &
+-				(VM_READ|VM_WRITE|VM_EXEC|VM_SHARED)];
++	vma->vm_page_prot = vm_get_page_prot(flags);
+ 	vma_link(mm, vma, prev, rb_link, rb_parent);
+ out:
+ 	mm->total_vm += len >> PAGE_SHIFT;
+@@ -2209,7 +2206,7 @@ int install_special_mapping(struct mm_st
+ 	vma->vm_end = addr + len;
  
-+extern void get_filesystem(struct file_system_type *fs);
-+extern void put_filesystem(struct file_system_type *fs);
- extern struct file_system_type *get_fs_type(const char *name);
- extern struct super_block *get_super(struct block_device *);
- extern struct super_block *user_get_super(dev_t);
+ 	vma->vm_flags = vm_flags | mm->def_flags;
+-	vma->vm_page_prot = protection_map[vma->vm_flags & 7];
++	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
+ 
+ 	vma->vm_ops = &special_mapping_vmops;
+ 	vma->vm_private_data = pages;
+diff -puN mm/mprotect.c~setup-vma-vm_page_prot-by-vm_get_page_prot mm/mprotect.c
+--- a/mm/mprotect.c~setup-vma-vm_page_prot-by-vm_get_page_prot
++++ a/mm/mprotect.c
+@@ -192,11 +192,9 @@ success:
+ 	 * held in write mode.
+ 	 */
+ 	vma->vm_flags = newflags;
+-	vma->vm_page_prot = protection_map[newflags &
+-		(VM_READ|VM_WRITE|VM_EXEC|VM_SHARED)];
++	vma->vm_page_prot = vm_get_page_prot(newflags);
+ 	if (vma_wants_writenotify(vma)) {
+-		vma->vm_page_prot = protection_map[newflags &
+-			(VM_READ|VM_WRITE|VM_EXEC)];
++		vma->vm_page_prot = vm_get_page_prot(newflags);
+ 		dirty_accountable = 1;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from coyli@suse.de are
 
 origin.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
-unprivileged-mounts-add-no-submounts-flag.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
