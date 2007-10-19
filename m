@@ -1,261 +1,851 @@
 From: akpm@linux-foundation.org
-Subject: - char-moxa-cleanup-prints.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:44:26 -0700
-Message-ID: <200710190344.l9J3iQru013143@imap1.linux-foundation.org>
+Subject: - update-checkpatchpl-to-version-011.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:41:46 -0700
+Message-ID: <200710190341.l9J3fkiP012846@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42224 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40983 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764000AbXJSDzm (ORCPT
+	by vger.kernel.org with ESMTP id S934609AbXJSD4U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:55:42 -0400
+	Thu, 18 Oct 2007 23:56:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: moxa, cleanup prints
+     update checkpatch.pl to version 0.11
 has been removed from the -mm tree.  Its filename was
-     char-moxa-cleanup-prints.patch
+     update-checkpatchpl-to-version-011.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: moxa, cleanup prints
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: update checkpatch.pl to version 0.11
+From: Andy Whitcroft <apw@shadowen.org>
 
-- use dev_* where pdev is available (probe function)
-- add some printks on fail paths
-- add KERN_ macros otherwise
-- remove useless verbose variable
-- wrap lines to 80 cols at most
+This version brings a more cautious checkpatch.pl by default.  The more
+subjective checks are only applied with the --strict option.  It also
+brings the usual slew of corrections for false positives.  Of note:
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+  - new tree detection, the source tree will be found via the executable
+  - a major revamp of the unary detection to make it more parser like
+  - a new summary at the bottom of the report
+  - --strict option for subjective checks
+  - --file to enable checking on complete files
+  - support for use in emacs "compile" window
+
+Andy Whitcroft (27):
+      Version: 0.11
+      fix up cat_vet for the case where there are no control characters
+      any cast to a pointer introduces a type
+      cpp unary operator detection needs to float
+      attributes are also valid in type definitions
+      sizeof may be a bareword and makes its argument unary
+      unary checks for #ifdef et al need to find end of line
+      add new --file mode to handle raw source files
+      add --strict/--subjective which enables the subjective tests
+      add some additional standard type suffixes
+      cpp #elif is also a unary prefix
+      case is not a function name
+      widen asm volatile exceptions
+      __kprobes is a type attribute
+      typeof is a unary operator
+      function open parenthesis checks should check all occurances
+      expand sizeof() binary exceptions
+      linux/irq.h should not be recommended
+      work harder to find the kernel root and add --root=
+      fix --emacs mode line numbers and string concatenation warnings
+      add a summary to the bottom of the main report
+      loosen assignment in if checks
+      update operator spacing to maintain tabs in output
+      revamp unary detection
+      corruption/line wrapped patches need only reporting once
+      revamp s/u/be/le 8/16/32/64 bit types
+      handle missing ,1 in uni-diff header
+
+Mike D. Day (2):
+      Adds support to checkpatch.pl for running in the emacs compile window.
+      checkpatch: Fix line number reporting
+
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/moxa.c |   73 +++++++++++++++++-------------------------
- 1 file changed, 31 insertions(+), 42 deletions(-)
+ scripts/checkpatch.pl |  514 ++++++++++++++++++++++++++--------------
+ 1 file changed, 340 insertions(+), 174 deletions(-)
 
-diff -puN drivers/char/moxa.c~char-moxa-cleanup-prints drivers/char/moxa.c
---- a/drivers/char/moxa.c~char-moxa-cleanup-prints
-+++ a/drivers/char/moxa.c
-@@ -166,7 +166,6 @@ struct moxa_port {
+diff -puN scripts/checkpatch.pl~update-checkpatchpl-to-version-011 scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~update-checkpatchpl-to-version-011
++++ a/scripts/checkpatch.pl
+@@ -9,7 +9,7 @@ use strict;
+ my $P = $0;
+ $P =~ s@.*/@@g;
  
- #define WAKEUP_CHARS		256
+-my $V = '0.10';
++my $V = '0.11';
  
--static int verbose = 0;
- static int ttymajor = MOXAMAJOR;
- /* Variables for insmod */
- #ifdef MODULE
-@@ -184,7 +183,6 @@ module_param_array(baseaddr, int, NULL, 
- module_param_array(numports, int, NULL, 0);
- #endif
- module_param(ttymajor, int, 0);
--module_param(verbose, bool, 0644);
+ use Getopt::Long qw(:config no_auto_abbrev);
  
- /*
-  * static functions:
-@@ -283,8 +281,10 @@ static int __devinit moxa_pci_probe(stru
- 	int retval;
+@@ -18,12 +18,21 @@ my $tree = 1;
+ my $chk_signoff = 1;
+ my $chk_patch = 1;
+ my $tst_type = 0;
++my $emacs = 0;
++my $file = 0;
++my $check = 0;
++my $root;
+ GetOptions(
+-	'q|quiet'	=> \$quiet,
++	'q|quiet+'	=> \$quiet,
+ 	'tree!'		=> \$tree,
+ 	'signoff!'	=> \$chk_signoff,
+ 	'patch!'	=> \$chk_patch,
+ 	'test-type!'	=> \$tst_type,
++	'emacs!'	=> \$emacs,
++	'file!'		=> \$file,
++	'subjective!'	=> \$check,
++	'strict!'	=> \$check,
++	'root=s'	=> \$root,
+ ) or exit;
  
- 	retval = pci_enable_device(pdev);
--	if (retval)
-+	if (retval) {
-+		dev_err(&pdev->dev, "can't enable pci device\n");
- 		goto err;
-+	}
- 
- 	for (i = 0; i < MAX_BOARDS; i++)
- 		if (moxa_boards[i].basemem == NULL)
-@@ -292,16 +292,17 @@ static int __devinit moxa_pci_probe(stru
- 
- 	retval = -ENODEV;
- 	if (i >= MAX_BOARDS) {
--		if (verbose)
--			printk("More than %d MOXA Intellio family boards "
-+		dev_warn(&pdev->dev, "more than %u MOXA Intellio family boards "
- 				"found. Board is ignored.\n", MAX_BOARDS);
- 		goto err;
- 	}
- 
- 	board = &moxa_boards[i];
- 	board->basemem = pci_iomap(pdev, 2, 0x4000);
--	if (board->basemem == NULL)
-+	if (board->basemem == NULL) {
-+		dev_err(&pdev->dev, "can't remap io space 2\n");
- 		goto err;
-+	}
- 
- 	board->boardType = board_type;
- 	switch (board_type) {
-@@ -347,7 +348,8 @@ static int __init moxa_init(void)
- 	int i, numBoards, retval = 0;
- 	struct moxa_port *ch;
- 
--	printk(KERN_INFO "MOXA Intellio family driver version %s\n", MOXA_VERSION);
-+	printk(KERN_INFO "MOXA Intellio family driver version %s\n",
-+			MOXA_VERSION);
- 	moxaDriver = alloc_tty_driver(MAX_PORTS + 1);
- 	if (!moxaDriver)
- 		return -ENOMEM;
-@@ -378,7 +380,7 @@ static int __init moxa_init(void)
- 				(unsigned long)ch);
- 	}
- 
--	printk("Tty devices major number = %d\n", ttymajor);
-+	pr_debug("Moxa tty devices major number = %d\n", ttymajor);
- 
- 	if (tty_register_driver(moxaDriver)) {
- 		printk(KERN_ERR "Couldn't install MOXA Smartio family driver !\n");
-@@ -400,11 +402,10 @@ static int __init moxa_init(void)
- 				moxa_boards[numBoards].numPorts = moxa_isa_boards[i].numPorts;
- 			moxa_boards[numBoards].busType = MOXA_BUS_TYPE_ISA;
- 			moxa_boards[numBoards].baseAddr = moxa_isa_boards[i].baseAddr;
--			if (verbose)
--				printk("Board %2d: %s board(baseAddr=%lx)\n",
--				       numBoards + 1,
--				       moxa_brdname[moxa_boards[numBoards].boardType - 1],
--				       moxa_boards[numBoards].baseAddr);
-+			pr_debug("Moxa board %2d: %s board(baseAddr=%lx)\n",
-+			       numBoards + 1,
-+			       moxa_brdname[moxa_boards[numBoards].boardType-1],
-+			       moxa_boards[numBoards].baseAddr);
- 			numBoards++;
- 		}
- 	}
-@@ -413,14 +414,13 @@ static int __init moxa_init(void)
- 	for (i = 0; i < MAX_BOARDS; i++) {
- 		if ((type[i] == MOXA_BOARD_C218_ISA) ||
- 		    (type[i] == MOXA_BOARD_C320_ISA)) {
--			if (verbose)
--				printk("Board %2d: %s board(baseAddr=%lx)\n",
--				       numBoards + 1,
--				       moxa_brdname[type[i] - 1],
--				       (unsigned long) baseaddr[i]);
-+			pr_debug("Moxa board %2d: %s board(baseAddr=%lx)\n",
-+			       numBoards + 1, moxa_brdname[type[i] - 1],
-+			       (unsigned long)baseaddr[i]);
- 			if (numBoards >= MAX_BOARDS) {
--				if (verbose)
--					printk("More than %d MOXA Intellio family boards found. Board is ignored.", MAX_BOARDS);
-+				printk(KERN_WARNING "More than %d MOXA "
-+					"Intellio family boards found. Board "
-+					"is ignored.\n", MAX_BOARDS);
- 				continue;
- 			}
- 			moxa_boards[numBoards].boardType = type[i];
-@@ -456,16 +456,14 @@ static void __exit moxa_exit(void)
- {
- 	int i;
- 
--	if (verbose)
--		printk("Unloading module moxa ...\n");
--
- 	del_timer_sync(&moxaTimer);
- 
- 	for (i = 0; i < MAX_PORTS; i++)
- 		del_timer_sync(&moxa_ports[i].emptyTimer);
- 
- 	if (tty_unregister_driver(moxaDriver))
--		printk("Couldn't unregister MOXA Intellio family serial driver\n");
-+		printk(KERN_ERR "Couldn't unregister MOXA Intellio family "
-+				"serial driver\n");
- 	put_tty_driver(moxaDriver);
- 
- #ifdef CONFIG_PCI
-@@ -475,9 +473,6 @@ static void __exit moxa_exit(void)
- 	for (i = 0; i < MAX_BOARDS; i++)
- 		if (moxa_boards[i].basemem)
- 			iounmap(moxa_boards[i].basemem);
--
--	if (verbose)
--		printk("Done\n");
+ my $exit = 0;
+@@ -33,19 +42,110 @@ if ($#ARGV < 0) {
+ 	print "version: $V\n";
+ 	print "options: -q           => quiet\n";
+ 	print "         --no-tree    => run without a kernel tree\n";
++	print "         --emacs      => emacs compile window format\n";
++	print "         --file       => check a source file\n";
++	print "         --strict     => enable more subjective tests\n";
++	print "         --root       => path to the kernel tree root\n";
+ 	exit(1);
  }
  
- module_init(moxa_init);
-@@ -532,9 +527,7 @@ static void moxa_close(struct tty_struct
- 		return;
- 	}
- 	if (!MoxaPortIsValid(port)) {
--#ifdef SERIAL_DEBUG_CLOSE
--		printk("Invalid portno in moxa_close\n");
--#endif
-+		pr_debug("Invalid portno in moxa_close\n");
- 		tty->driver_data = NULL;
- 		return;
- 	}
-@@ -547,13 +540,13 @@ static void moxa_close(struct tty_struct
- 	ch = (struct moxa_port *) tty->driver_data;
+-if ($tree && !top_of_kernel_tree()) {
+-	print "Must be run from the top-level dir. of a kernel tree\n";
+-	exit(2);
++if ($tree) {
++	if (defined $root) {
++		if (!top_of_kernel_tree($root)) {
++			die "$P: $root: --root does not point at a valid tree\n";
++		}
++	} else {
++		if (top_of_kernel_tree('.')) {
++			$root = '.';
++		} elsif ($0 =~ m@(.*)/scripts/[^/]*$@ &&
++						top_of_kernel_tree($1)) {
++			$root = $1;
++		}
++	}
++
++	if (!defined $root) {
++		print "Must be run from the top-level dir. of a kernel tree\n";
++		exit(2);
++	}
+ }
  
- 	if ((tty->count == 1) && (ch->count != 1)) {
--		printk("moxa_close: bad serial port count; tty->count is 1, "
--		       "ch->count is %d\n", ch->count);
-+		printk(KERN_WARNING "moxa_close: bad serial port count; "
-+			"tty->count is 1, ch->count is %d\n", ch->count);
- 		ch->count = 1;
++my $emitted_corrupt = 0;
++
++our $Ident       = qr{[A-Za-z_][A-Za-z\d_]*};
++our $Storage	= qr{extern|static|asmlinkage};
++our $Sparse	= qr{
++			__user|
++			__kernel|
++			__force|
++			__iomem|
++			__must_check|
++			__init_refok|
++			__kprobes|
++			fastcall
++		}x;
++our $Attribute	= qr{
++			const|
++			__read_mostly|
++			__kprobes|
++			__(?:mem|cpu|dev|)(?:initdata|init)
++		  }x;
++our $Inline	= qr{inline|__always_inline|noinline};
++our $NonptrType	= qr{
++			\b
++			(?:const\s+)?
++			(?:unsigned\s+)?
++			(?:
++				void|
++				char|
++				short|
++				int|
++				long|
++				unsigned|
++				float|
++				double|
++				bool|
++				long\s+int|
++				long\s+long|
++				long\s+long\s+int|
++				(?:__)?(?:u|s|be|le)(?:8|16|32|64)|
++				struct\s+$Ident|
++				union\s+$Ident|
++				enum\s+$Ident|
++				${Ident}_t|
++				${Ident}_handler|
++				${Ident}_handler_fn
++			)
++			(?:\s+$Sparse)*
++			\b
++		  }x;
++
++our $Type	= qr{
++			\b$NonptrType\b
++			(?:\s*\*+\s*const|\s*\*+|(?:\s*\[\s*\])+)?
++			(?:\s+$Sparse|\s+$Attribute)*
++		  }x;
++our $Declare	= qr{(?:$Storage\s+)?$Type};
++our $Member	= qr{->$Ident|\.$Ident|\[[^]]*\]};
++our $Lval	= qr{$Ident(?:$Member)*};
++
++our $Constant	= qr{(?:[0-9]+|0x[0-9a-fA-F]+)[UL]*};
++our $Assignment	= qr{(?:\*\=|/=|%=|\+=|-=|<<=|>>=|&=|\^=|\|=|=)};
++our $Operators	= qr{
++			<=|>=|==|!=|
++			=>|->|<<|>>|<|>|!|~|
++			&&|\|\||,|\^|\+\+|--|&|\||\+|-|\*|\/
++		  }x;
++
++our $Bare = '';
++
++$chk_signoff = 0 if ($file);
++
+ my @dep_includes = ();
+ my @dep_functions = ();
+-my $removal = 'Documentation/feature-removal-schedule.txt';
+-if ($tree && -f $removal) {
+-	open(REMOVE, "<$removal") || die "$P: $removal: open failed - $!\n";
++my $removal = "Documentation/feature-removal-schedule.txt";
++if ($tree && -f "$root/$removal") {
++	open(REMOVE, "<$root/$removal") ||
++				die "$P: $removal: open failed - $!\n";
+ 	while (<REMOVE>) {
+ 		if (/^Check:\s+(.*\S)/) {
+ 			for my $entry (split(/[, ]+/, $1)) {
+@@ -61,28 +161,42 @@ if ($tree && -f $removal) {
+ }
+ 
+ my @rawlines = ();
+-while (<>) {
+-	chomp;
+-	push(@rawlines, $_);
+-	if (eof(ARGV)) {
+-		if (!process($ARGV, @rawlines)) {
+-			$exit = 1;
+-		}
+-		@rawlines = ();
++for my $filename (@ARGV) {
++	if ($file) {
++		open(FILE, "diff -u /dev/null $filename|") ||
++			die "$P: $filename: diff failed - $!\n";
++	} else {
++		open(FILE, "<$filename") ||
++			die "$P: $filename: open failed - $!\n";
++	}
++	while (<FILE>) {
++		chomp;
++		push(@rawlines, $_);
++	}
++	close(FILE);
++	if (!process($filename, @rawlines)) {
++		$exit = 1;
  	}
- 	if (--ch->count < 0) {
--		printk("moxa_close: bad serial port count, device=%s\n",
--		       tty->name);
-+		printk(KERN_WARNING "moxa_close: bad serial port count, "
-+			"device=%s\n", tty->name);
- 		ch->count = 0;
++	@rawlines = ();
+ }
+ 
+ exit($exit);
+ 
+ sub top_of_kernel_tree {
+-	if ((-f "COPYING") && (-f "CREDITS") && (-f "Kbuild") &&
+-	    (-f "MAINTAINERS") && (-f "Makefile") && (-f "README") &&
+-	    (-d "Documentation") && (-d "arch") && (-d "include") &&
+-	    (-d "drivers") && (-d "fs") && (-d "init") && (-d "ipc") &&
+-	    (-d "kernel") && (-d "lib") && (-d "scripts")) {
+-		return 1;
++	my ($root) = @_;
++
++	my @tree_check = (
++		"COPYING", "CREDITS", "Kbuild", "MAINTAINERS", "Makefile",
++		"README", "Documentation", "arch", "include", "drivers",
++		"fs", "init", "ipc", "kernel", "lib", "scripts",
++	);
++
++	foreach my $check (@tree_check) {
++		if (! -e $root . '/' . $check) {
++			return 0;
++		}
  	}
- 	if (ch->count) {
-@@ -971,10 +964,8 @@ static int block_till_ready(struct tty_s
- 	 */
- 	retval = 0;
- 	add_wait_queue(&ch->open_wait, &wait);
--#ifdef SERIAL_DEBUG_OPEN
--	printk("block_til_ready before block: ttys%d, count = %d\n",
--	       ch->line, ch->count);
--#endif
-+	pr_debug("block_til_ready before block: ttys%d, count = %d\n",
-+		ch->port, ch->count);
- 	spin_lock_irqsave(&moxa_lock, flags);
- 	if (!tty_hung_up_p(filp))
- 		ch->count--;
-@@ -1013,10 +1004,8 @@ static int block_till_ready(struct tty_s
- 		ch->count++;
- 	ch->blocked_open--;
- 	spin_unlock_irqrestore(&moxa_lock, flags);
--#ifdef SERIAL_DEBUG_OPEN
--	printk("block_til_ready after blocking: ttys%d, count = %d\n",
--	       ch->line, ch->count);
--#endif
-+	pr_debug("block_til_ready after blocking: ttys%d, count = %d\n",
-+		ch->port, ch->count);
- 	if (retval)
- 		return (retval);
- 	/* FIXME: review to see if we need to use set_bit on these */
+-	return 0;
++	return 1;
+ }
+ 
+ sub expand_tabs {
+@@ -105,6 +219,20 @@ sub expand_tabs {
+ 
+ 	return $res;
+ }
++sub copy_spacing {
++	my ($str) = @_;
++
++	my $res = '';
++	for my $c (split(//, $str)) {
++		if ($c eq "\t") {
++			$res .= $c;
++		} else {
++			$res .= ' ';
++		}
++	}
++
++	return $res;
++}
+ 
+ sub line_stats {
+ 	my ($line) = @_;
+@@ -260,47 +388,138 @@ sub ctx_has_comment {
+ 	return ($cmt ne '');
+ }
+ 
+-sub ctx_expr_before {
+-	my ($line) = @_;
+-
+-	##print "CHECK<$line>\n";
+-
+-	my $pos = length($line) - 1;
+-	my $count = 0;
+-	my $c;
++sub cat_vet {
++	my ($vet) = @_;
++	my ($res, $coded);
+ 
+-	for (; $pos >= 0; $pos--) {
+-		$c = substr($line, $pos, 1);
+-		##print "CHECK: c<$c> count<$count>\n";
+-		if ($c eq ')') {
+-			$count++;
+-		} elsif ($c eq '(') {
+-			last if (--$count == 0);
++	$res = '';
++	while ($vet =~ /([^[:cntrl:]]*)([[:cntrl:]]|$)/g) {
++		$res .= $1;
++		if ($2 ne '') {
++			$coded = sprintf("^%c", unpack('C', $2) + 64);
++			$res .= $coded;
+ 		}
+ 	}
++	$res =~ s/$/\$/;
+ 
+-	##print "CHECK: result<" . substr($line, 0, $pos) . ">\n";
+-
+-	return substr($line, 0, $pos);
++	return $res;
+ }
+ 
+-sub cat_vet {
+-	my ($vet) = @_;
+-	my ($res, $coded);
++sub annotate_values {
++	my ($stream, $type) = @_;
+ 
+-	$res = '';
+-	while ($vet =~ /([^[:cntrl:]]*)([[:cntrl:]])/g) {
+-		$coded = sprintf("^%c", unpack('C', $2) + 64);
+-		$res .= $1 . $coded;
++	my $res;
++	my $cur = $stream;
++
++	my $debug = 0;
++
++	print "$stream\n" if ($debug);
++
++	##my $type = 'N';
++	my $pos = 0;
++	my $preprocessor = 0;
++	my $paren = 0;
++	my @paren_type;
++
++	# Include any user defined types we may have found as we went.
++	my $type_match = "(?:$Type$Bare)";
++
++	while (length($cur)) {
++		print " <$type> " if ($debug);
++		if ($cur =~ /^(\s+)/o) {
++			print "WS($1)\n" if ($debug);
++			if ($1 =~ /\n/ && $preprocessor) {
++				$preprocessor = 0;
++				$type = 'N';
++			}
++
++		} elsif ($cur =~ /^($type_match)/) {
++			print "DECLARE($1)\n" if ($debug);
++			$type = 'T';
++
++		} elsif ($cur =~ /^(#\s*define\s*$Ident)(\(?)/o) {
++			print "DEFINE($1)\n" if ($debug);
++			$preprocessor = 1;
++			$paren_type[$paren] = 'N';
++
++		} elsif ($cur =~ /^(#\s*(?:ifdef|ifndef|if|else|endif))/o) {
++			print "PRE($1)\n" if ($debug);
++			$preprocessor = 1;
++			$type = 'N';
++
++		} elsif ($cur =~ /^(\\\n)/o) {
++			print "PRECONT($1)\n" if ($debug);
++
++		} elsif ($cur =~ /^(sizeof)\s*(\()?/o) {
++			print "SIZEOF($1)\n" if ($debug);
++			if (defined $2) {
++				$paren_type[$paren] = 'V';
++			}
++			$type = 'N';
++
++		} elsif ($cur =~ /^(if|while|typeof)\b/o) {
++			print "COND($1)\n" if ($debug);
++			$paren_type[$paren] = 'N';
++			$type = 'N';
++
++		} elsif ($cur =~/^(return|case|else)/o) {
++			print "KEYWORD($1)\n" if ($debug);
++			$type = 'N';
++
++		} elsif ($cur =~ /^(\()/o) {
++			print "PAREN('$1')\n" if ($debug);
++			$paren++;
++			$type = 'N';
++
++		} elsif ($cur =~ /^(\))/o) {
++			$paren-- if ($paren > 0);
++			if (defined $paren_type[$paren]) {
++				$type = $paren_type[$paren];
++				undef $paren_type[$paren];
++				print "PAREN('$1') -> $type\n" if ($debug);
++			} else {
++				print "PAREN('$1')\n" if ($debug);
++			}
++
++		} elsif ($cur =~ /^($Ident)\(/o) {
++			print "FUNC($1)\n" if ($debug);
++			$paren_type[$paren] = 'V';
++
++		} elsif ($cur =~ /^($Ident|$Constant)/o) {
++			print "IDENT($1)\n" if ($debug);
++			$type = 'V';
++
++		} elsif ($cur =~ /^($Assignment)/o) {
++			print "ASSIGN($1)\n" if ($debug);
++			$type = 'N';
++
++		} elsif ($cur =~ /^(;|{|}|\?|:|\[)/o) {
++			print "END($1)\n" if ($debug);
++			$type = 'N';
++
++		} elsif ($cur =~ /^($Operators)/o) {
++			print "OP($1)\n" if ($debug);
++			if ($1 ne '++' && $1 ne '--') {
++				$type = 'N';
++			}
++
++		} elsif ($cur =~ /(^.)/o) {
++			print "C($1)\n" if ($debug);
++		}
++		if (defined $1) {
++			$cur = substr($cur, length($1));
++			$res .= $type x length($1);
++		}
+ 	}
+-	$res =~ s/$/\$/;
+ 
+ 	return $res;
+ }
+ 
++my $prefix = '';
++
+ my @report = ();
+ sub report {
+-	push(@report, $_[0]);
++	push(@report, $prefix . $_[0]);
+ }
+ sub report_dump {
+ 	@report;
+@@ -308,14 +527,19 @@ sub report_dump {
+ sub ERROR {
+ 	report("ERROR: $_[0]\n");
+ 	our $clean = 0;
++	our $cnt_error++;
+ }
+ sub WARN {
+ 	report("WARNING: $_[0]\n");
+ 	our $clean = 0;
++	our $cnt_warn++;
+ }
+ sub CHK {
+-	report("CHECK: $_[0]\n");
+-	our $clean = 0;
++	if ($check) {
++		report("CHECK: $_[0]\n");
++		our $clean = 0;
++		our $cnt_chk++;
++	}
+ }
+ 
+ sub process {
+@@ -335,6 +559,11 @@ sub process {
+ 	my $signoff = 0;
+ 	my $is_patch = 0;
+ 
++	our $cnt_lines = 0;
++	our $cnt_error = 0;
++	our $cnt_warn = 0;
++	our $cnt_chk = 0;
++
+ 	# Trace the real file/line as we go.
+ 	my $realfile = '';
+ 	my $realline = 0;
+@@ -343,62 +572,10 @@ sub process {
+ 	my $in_comment = 0;
+ 	my $first_line = 0;
+ 
+-	my $Ident	= qr{[A-Za-z\d_]+};
+-	my $Storage	= qr{extern|static|asmlinkage};
+-	my $Sparse	= qr{
+-				__user|
+-				__kernel|
+-				__force|
+-				__iomem|
+-				__must_check|
+-				__init_refok|
+-				fastcall
+-			}x;
+-	my $Inline	= qr{inline|__always_inline|noinline};
+-	my $NonptrType	= qr{
+-				\b
+-				(?:const\s+)?
+-				(?:unsigned\s+)?
+-				(?:
+-					void|
+-					char|
+-					short|
+-					int|
+-					long|
+-					unsigned|
+-					float|
+-					double|
+-					bool|
+-					long\s+int|
+-					long\s+long|
+-					long\s+long\s+int|
+-					u8|u16|u32|u64|
+-					s8|s16|s32|s64|
+-					struct\s+$Ident|
+-					union\s+$Ident|
+-					enum\s+$Ident|
+-					${Ident}_t
+-				)
+-				(?:\s+$Sparse)*
+-				\b
+-			  }x;
+-	my $Type	= qr{
+-				\b$NonptrType\b
+-				(?:\s*\*+\s*const|\s*\*+|(?:\s*\[\s*\])+)?
+-				(?:\s+$Sparse)*
+-			  }x;
+-	my $Declare	= qr{(?:$Storage\s+)?$Type};
+-	my $Attribute	= qr{
+-				const|
+-				__read_mostly|
+-				__(?:mem|cpu|dev|)(?:initdata|init)
+-			  }x;
+-	my $Member	= qr{->$Ident|\.$Ident|\[[^]]*\]};
+-	my $Lval	= qr{$Ident(?:$Member)*};
++	my $prev_values = 'N';
+ 
+ 	# Possible bare types.
+ 	my @bare = ();
+-	my $Bare = $NonptrType;
+ 
+ 	# Pre-scan the patch looking for any __setup documentation.
+ 	my @setup_docs = ();
+@@ -417,11 +594,14 @@ sub process {
+ 		}
+ 	}
+ 
++	$prefix = '';
++
+ 	foreach my $line (@lines) {
+ 		$linenr++;
+ 
+ 		my $rawline = $line;
+ 
++
+ #extract the filename as it passes
+ 		if ($line=~/^\+\+\+\s+(\S+)/) {
+ 			$realfile=$1;
+@@ -430,7 +610,7 @@ sub process {
+ 			next;
+ 		}
+ #extract the line range in the file after the patch is applied
+-		if ($line=~/^\@\@ -\d+,\d+ \+(\d+)(,(\d+))? \@\@/) {
++		if ($line=~/^\@\@ -\d+(?:,\d+)? \+(\d+)(,(\d+))? \@\@/) {
+ 			$is_patch = 1;
+ 			$first_line = $linenr + 1;
+ 			$in_comment = 0;
+@@ -440,6 +620,7 @@ sub process {
+ 			} else {
+ 				$realcnt=1+1;
+ 			}
++			$prev_values = 'N';
+ 			next;
+ 		}
+ 
+@@ -473,18 +654,24 @@ sub process {
+ 			# Track the previous line.
+ 			($prevline, $stashline) = ($stashline, $line);
+ 			($previndent, $stashindent) = ($stashindent, $indent);
++
+ 		} elsif ($realcnt == 1) {
+ 			$realcnt--;
+ 		}
+ 
+ #make up the handle for any error we report on this line
+-		$here = "#$linenr: ";
++		$here = "#$linenr: " if (!$file);
++		$here = "#$realline: " if ($file);
+ 		$here .= "FILE: $realfile:$realline:" if ($realcnt != 0);
+ 
+ 		my $hereline = "$here\n$line\n";
+ 		my $herecurr = "$here\n$line\n";
+ 		my $hereprev = "$here\n$prevline\n$line\n";
+ 
++		$prefix = "$filename:$realline: " if ($emacs && $file);
++		$prefix = "$filename:$linenr: " if ($emacs && !$file);
++		$cnt_lines++ if ($realcnt != 0);
++
+ #check the patch for a signoff:
+ 		if ($line =~ /^\s*signed-off-by:/i) {
+ 			# This is a signoff, if ugly, so do not double report.
+@@ -502,7 +689,7 @@ sub process {
+ # Check for wrappage within a valid hunk of the file
+ 		if ($realcnt != 0 && $line !~ m{^(?:\+|-| |$)}) {
+ 			ERROR("patch seems to be corrupt (line wrapped?)\n" .
+-				$herecurr);
++				$herecurr) if (!$emitted_corrupt++);
+ 		}
+ 
+ # UTF-8 regex found at http://www.w3.org/International/questions/qa-forms-utf-8.en.php
+@@ -568,8 +755,12 @@ sub process {
+ 		    $line !~ /^.\s*(?:$Storage\s+)?(?:$Inline\s+)?$Type\b/ &&
+ 		    $line !~ /$Ident:\s*$/ &&
+ 		    $line !~ /^.\s*$Ident\s*\(/ &&
++		     # definitions in global scope can only start with types
+ 		    ($line =~ /^.(?:$Storage\s+)?(?:$Inline\s+)?($Ident)\b/ ||
+-		     $line =~ /^.\s*(?:$Storage\s+)?($Ident)\b\s*\**\s*$Ident\s*(?:;|=)/)) {
++		     # declarations always start with types
++		     $line =~ /^.\s*(?:$Storage\s+)?($Ident)\b\s*\**\s*$Ident\s*(?:;|=)/) ||
++		     # any (foo ... *) is a pointer cast, and foo is a type
++		     $line =~ /\(($Ident)(?:\s+$Sparse)*\s*\*+\s*\)/) {
+ 			my $possible = $1;
+ 			if ($possible !~ /^(?:$Storage|$Type|DEFINE_\S+)$/ &&
+ 			    $possible ne 'goto' && $possible ne 'return' &&
+@@ -579,7 +770,7 @@ sub process {
+ 				#print "POSSIBLE<$possible>\n";
+ 				push(@bare, $possible);
+ 				my $bare = join("|", @bare);
+-				$Bare	= qr{
++				$Bare	= '|' . qr{
+ 						\b(?:$bare)\b
+ 						(?:\s*\*+\s*const|\s*\*+|(?:\s*\[\s*\])+)?
+ 						(?:\s+$Sparse)*
+@@ -641,6 +832,14 @@ sub process {
+ 			}
+ 		}
+ 
++		# Track the 'values' across context and added lines.
++		my $opline = $line; $opline =~ s/^./ /;
++		my $curr_values = annotate_values($opline . "\n", $prev_values);
++		$curr_values = $prev_values . $curr_values;
++		#warn "--> $opline\n";
++		#warn "--> $curr_values ($prev_values)\n";
++		$prev_values = substr($curr_values, -1);
++
+ #ignore lines not being added
+ 		if ($line=~/^[^\+]/) {next;}
+ 
+@@ -678,6 +877,7 @@ sub process {
+ 		}
+ 		# Remove C99 comments.
+ 		$line =~ s@//.*@@;
++		$opline =~ s@//.*@@;
+ 
+ #EXPORT_SYMBOL should immediately follow its function closing }.
+ 		if (($line =~ /EXPORT_SYMBOL.*\((.*)\)/) ||
+@@ -766,18 +966,13 @@ sub process {
+ 		}
+ 
+ # check for spaces between functions and their parentheses.
+-		if ($line =~ /($Ident)\s+\(/ &&
+-		    $1 !~ /^(?:if|for|while|switch|return|volatile|__volatile__|__attribute__|format|__extension__|Copyright)$/ &&
+-		    $line !~ /$Type\s+\(/ && $line !~ /^.\#\s*define\b/) {
+-			WARN("no space between function name and open parenthesis '('\n" . $herecurr);
++		while ($line =~ /($Ident)\s+\(/g) {
++			if ($1 !~ /^(?:if|for|while|switch|return|volatile|__volatile__|__attribute__|format|__extension__|Copyright|case)$/ &&
++		            $line !~ /$Type\s+\(/ && $line !~ /^.\#\s*define\b/) {
++				WARN("no space between function name and open parenthesis '('\n" . $herecurr);
++			}
+ 		}
+ # Check operator spacing.
+-		# Note we expand the line with the leading + as the real
+-		# line will be displayed with the leading + and the tabs
+-		# will therefore also expand that way.
+-		my $opline = $line;
+-		$opline = expand_tabs($opline);
+-		$opline =~ s/^./ /;
+ 		if (!($line=~/\#\s*include/)) {
+ 			my $ops = qr{
+ 				<<=|>>=|<=|>=|==|!=|
+@@ -787,6 +982,9 @@ sub process {
+ 			}x;
+ 			my @elements = split(/($ops|;)/, $opline);
+ 			my $off = 0;
++
++			my $blank = copy_spacing($opline);
++
+ 			for (my $n = 0; $n < $#elements; $n += 2) {
+ 				$off += length($elements[$n]);
+ 
+@@ -822,62 +1020,24 @@ sub process {
+ 
+ 				my $at = "(ctx:$ctx)";
+ 
+-				my $ptr = (" " x $off) . "^";
++				my $ptr = substr($blank, 0, $off) . "^";
+ 				my $hereptr = "$hereline$ptr\n";
+ 
+ 				# Classify operators into binary, unary, or
+ 				# definitions (* only) where they have more
+ 				# than one mode.
+-				my $unary_ctx = $prevline . $ca;
+-				$unary_ctx =~ s/^./ /;
+-				my $is_unary = 0;
+-				my $Unary = qr{
+-					(?:
+-						^|;|,|$ops|\(|\?|:|
+-						\(\s*$Type\s*\)|
+-						$Type|
+-						return|case|else|
+-						\{|\}|
+-						\[|
+-						^.\#\s*define\s+$Ident\s*(?:\([^\)]*\))?|
+-						^.\#\s*else|
+-						^.\#\s*endif|
+-						^.\#\s*(?:if|ifndef|ifdef)\b.*
+-					)\s*(?:|\\)\s*$
+-				}x;
+-				my $UnaryFalse = qr{
+-					sizeof\s*\(\s*$Type\s*\)\s*$
+-				}x;
+-				my $UnaryDefine = qr{
+-					 (?:$Type|$Bare)\s*|
+-					 (?:$Type|$Bare).*,\s*\**
+-				}x;
+-				if ($op eq '-' || $op eq '&' || $op eq '*') {
+-					# An operator is binary if the left hand
+-					# side is a value.  Pick out the known
+-					# non-values.
+-					if ($unary_ctx =~ /$Unary$/s &&
+-					    $unary_ctx !~ /$UnaryFalse$/s) {
+-						$is_unary = 1;
+-
+-					# Special handling for ')' check if this
+-					# brace represents a conditional, if so
+-					# we are unary.
+-					} elsif ($unary_ctx =~ /\)\s*$/) {
+-						my $before = ctx_expr_before($unary_ctx);
+-						if ($before =~ /(?:for|if|while)\s*$/) {
+-							$is_unary = 1;
+-						}
+-					}
+-
+-					# Check for type definition for of '*'.
+-					if ($op eq '*' && $unary_ctx =~ /$UnaryDefine$/) {
+-						$is_unary = 2;
+-					}
++				my $op_type = substr($curr_values, $off + 1, 1);
++				my $op_left = substr($curr_values, $off, 1);
++				my $is_unary;
++				if ($op_type eq 'T') {
++					$is_unary = 2;
++				} elsif ($op_left eq 'V') {
++					$is_unary = 0;
++				} else {
++					$is_unary = 1;
+ 				}
+-
+ 				#if ($op eq '-' || $op eq '&' || $op eq '*') {
+-				#	print "UNARY: <$is_unary $a:$op:$c> <$ca:$op:$cc> <$unary_ctx>\n";
++				#	print "UNARY: <$op_left$op_type $is_unary $a:$op:$c> <$ca:$op:$cc> <$unary_ctx>\n";
+ 				#}
+ 
+ 				# ; should have either the end of line or a space or \ after it
+@@ -952,7 +1112,7 @@ sub process {
+ 
+ # check for multiple assignments
+ 		if ($line =~ /^.\s*$Lval\s*=\s*$Lval\s*=(?!=)/) {
+-			WARN("multiple assignments should be avoided\n" . $herecurr);
++			CHK("multiple assignments should be avoided\n" . $herecurr);
+ 		}
+ 
+ ## # check for multiple declarations, allowing for a function declaration
+@@ -1012,7 +1172,7 @@ sub process {
+ 		}
+ 
+ # Check for illegal assignment in if conditional.
+-		if ($line=~/\bif\s*\(.*[^<>!=]=[^=].*\)/) {
++		if ($line=~/\bif\s*\(.*[^<>!=]=[^=]/) {
+ 			#next if ($line=~/\".*\Q$op\E.*\"/ or $line=~/\'\Q$op\E\'/);
+ 			ERROR("do not use assignment in if condition\n" . $herecurr);
+ 		}
+@@ -1038,8 +1198,8 @@ sub process {
+ 
+ #warn if <asm/foo.h> is #included and <linux/foo.h> is available (uses RAW line)
+ 		if ($tree && $rawline =~ m{^.\#\s*include\s*\<asm\/(.*)\.h\>}) {
+-			my $checkfile = "include/linux/$1.h";
+-			if (-f $checkfile) {
++			my $checkfile = "$root/include/linux/$1.h";
++			if (-f $checkfile && $1 ne 'irq.h') {
+ 				CHK("Use #include <linux/$1.h> instead of <asm/$1.h>\n" .
+ 					$herecurr);
+ 			}
+@@ -1151,7 +1311,8 @@ sub process {
+ 		}
+ 
+ # no volatiles please
+-		if ($line =~ /\bvolatile\b/ && $line !~ /\basm\s+volatile\b/) {
++		my $asm_volatile = qr{\b(__asm__|asm)\s+(__volatile__|volatile)\b};
++		if ($line =~ /\bvolatile\b/ && $line !~ /$asm_volatile/) {
+ 			WARN("Use of volatile is usually wrong: see Documentation/volatile-considered-harmful.txt\n" . $herecurr);
+ 		}
+ 
+@@ -1240,6 +1401,11 @@ sub process {
+ 
+ 	if ($clean == 0 && ($chk_patch || $is_patch)) {
+ 		print report_dump();
++		if ($quiet < 2) {
++			print "total: $cnt_error errors, $cnt_warn warnings, " .
++				(($check)? "$cnt_chk checks, " : "") .
++				"$cnt_lines lines checked\n";
++		}
+ 	}
+ 	if ($clean == 1 && $quiet == 0) {
+ 		print "Your patch has no obvious style problems and is ready for submission.\n"
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from apw@shadowen.org are
 
 origin.patch
-git-dvb.patch
-v4l-stk11xx-add-a-new-webcam-driver.patch
-v4l-stk11xx-use-array_size-in-another-2-cases.patch
-v4l-stk11xx-use-retval-from-stk11xx_check_device.patch
-v4l-stk11xx-add-static-to-tables.patch
-git-wireless.patch
-misc-phantom-synchronize_irq-on-suspend.patch
-misc-phantom-add-comment-about-openhaptics.patch
-misc-phantom-improved-data-passing.patch
-fs-select-remove-unused-macros.patch
-remove-asm-bitopsh-includes.patch
-forbid-asm-bitopsh-direct-inclusion.patch
-cyber2000fb-rename-bit-macro.patch
-i2c-pxa-rename-bit-macro-to-pxa_bit.patch
-s2io-rename-bit-macro.patch
-amba-pl011-rename-bit-macro.patch
-define-first-set-of-bit-macros.patch
-get-rid-of-input-bit-duplicate-defines.patch
-define-global-bit-macro.patch
-flashpoint-use-bit-instead-of-bitw.patch
-remove-bits_to_type-macro.patch
-remove-bits_to_type-macro-fix.patch
-remove-asm-bitopsh-includes-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+page-owner-tracking-leak-detector.patch
