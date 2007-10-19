@@ -1,93 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: - remove-config_vt_unicode.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:40:28 -0700
-Message-ID: <200710190340.l9J3eSM0012712@imap1.linux-foundation.org>
+Subject: - hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:41:26 -0700
+Message-ID: <200710190341.l9J3fQwM012819@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42327 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58356 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966527AbXJSD4H (ORCPT
+	by vger.kernel.org with ESMTP id S934331AbXJSD4P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:56:07 -0400
+	Thu, 18 Oct 2007 23:56:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jengelh@computergmbh.de, notting@redhat.com, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, ak@suse.de, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove CONFIG_VT_UNICODE
+     Hibernation: Use temporary page tables for kernel text mapping on x86_64
 has been removed from the -mm tree.  Its filename was
-     remove-config_vt_unicode.patch
+     hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove CONFIG_VT_UNICODE
-From: Jan Engelhardt <jengelh@computergmbh.de>
+Subject: Hibernation: Use temporary page tables for kernel text mapping on x86_64
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Since default_utf8 is already a sysfs attribute, having an extra
-CONFIG_VT_UNICODE compile-time option is redundant, since sysfs attributes can
-be set at boot and run time.
+Use temporary page tables for the kernel text mapping during hibernation
+restore on x86_64.
 
-Also let Linux VCs default to UTF-8 (as per the discussion at
-http://lkml.org/lkml/2007/9/6/99).
+Without the patch, the original boot kernel's page tables that represent the
+kernel text mapping are used while the core of the image kernel is being
+restored.  However, in principle, if the boot kernel is not identical to the
+image kernel, the location of these page tables in the image kernel need not
+be the same, so we should create a safe copy of the kernel text mapping prior
+to restoring the core of the image kernel.
 
-Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
-Cc: Bill Nottingham <notting@redhat.com>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/Kconfig |   17 -----------------
- drivers/char/vt.c    |    6 +-----
- 2 files changed, 1 insertion(+), 22 deletions(-)
+ arch/x86/kernel/suspend_64.c |   39 +++++++++++++++++++++++++++------
+ 1 file changed, 33 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/Kconfig~remove-config_vt_unicode drivers/char/Kconfig
---- a/drivers/char/Kconfig~remove-config_vt_unicode
-+++ a/drivers/char/Kconfig
-@@ -36,23 +36,6 @@ config VT
- 	  If unsure, say Y, or else you won't be able to do much with your new
- 	  shiny Linux system :-)
+diff -puN arch/x86/kernel/suspend_64.c~hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64 arch/x86/kernel/suspend_64.c
+--- a/arch/x86/kernel/suspend_64.c~hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64
++++ a/arch/x86/kernel/suspend_64.c
+@@ -197,25 +197,42 @@ static int res_phys_pud_init(pud_t *pud,
+ 	return 0;
+ }
  
--config VT_UNICODE
--	bool "Virtual console is Unicode by default"
--	depends on VT
--	default n
--	---help---
--	  If you say Y here, the virtual terminal will be in UTF-8 by default,
--	  and the keyboard will run in unicode mode.
--
--	  If you say N here, the virtual terminal will not be in UTF-8 by
--	  default, and the keyboard will run in XLATE mode.
--
--	  This can also be changed by passing 'default_utf8=<0|1>' on the
--	  kernel command line.
--
--	  Historically, the kernel has defaulted to non-UTF8 and XLATE mode.
--	  If unsure, say N here.
--
- config VT_CONSOLE
- 	bool "Support for console on virtual terminal" if EMBEDDED
- 	depends on VT
-diff -puN drivers/char/vt.c~remove-config_vt_unicode drivers/char/vt.c
---- a/drivers/char/vt.c~remove-config_vt_unicode
-+++ a/drivers/char/vt.c
-@@ -158,11 +158,7 @@ static void blank_screen_t(unsigned long
- static void set_palette(struct vc_data *vc);
++static int res_kernel_text_pud_init(pud_t *pud, unsigned long start)
++{
++	pmd_t *pmd;
++	unsigned long paddr;
++
++	pmd = (pmd_t *)get_safe_page(GFP_ATOMIC);
++	if (!pmd)
++		return -ENOMEM;
++	set_pud(pud + pud_index(start), __pud(__pa(pmd) | _KERNPG_TABLE));
++	for (paddr = 0; paddr < KERNEL_TEXT_SIZE; pmd++, paddr += PMD_SIZE) {
++		unsigned long pe;
++
++		pe = __PAGE_KERNEL_LARGE_EXEC | _PAGE_GLOBAL | paddr;
++		pe &= __supported_pte_mask;
++		set_pmd(pmd, __pmd(pe));
++	}
++
++	return 0;
++}
++
+ static int set_up_temporary_mappings(void)
+ {
+ 	unsigned long start, end, next;
++	pud_t *pud;
+ 	int error;
  
- static int printable;		/* Is console ready for printing? */
--#ifdef CONFIG_VT_UNICODE
--int default_utf8 = 1;
--#else
--int default_utf8;
--#endif
-+int default_utf8 = true;
- module_param(default_utf8, int, S_IRUGO | S_IWUSR);
+ 	temp_level4_pgt = (pgd_t *)get_safe_page(GFP_ATOMIC);
+ 	if (!temp_level4_pgt)
+ 		return -ENOMEM;
  
- /*
+-	/* It is safe to reuse the original kernel mapping */
+-	set_pgd(temp_level4_pgt + pgd_index(__START_KERNEL_map),
+-		init_level4_pgt[pgd_index(__START_KERNEL_map)]);
+-
+ 	/* Set up the direct mapping from scratch */
+ 	start = (unsigned long)pfn_to_kaddr(0);
+ 	end = (unsigned long)pfn_to_kaddr(end_pfn);
+ 
+ 	for (; start < end; start = next) {
+-		pud_t *pud = (pud_t *)get_safe_page(GFP_ATOMIC);
++		pud = (pud_t *)get_safe_page(GFP_ATOMIC);
+ 		if (!pud)
+ 			return -ENOMEM;
+ 		next = start + PGDIR_SIZE;
+@@ -226,7 +243,17 @@ static int set_up_temporary_mappings(voi
+ 		set_pgd(temp_level4_pgt + pgd_index(start),
+ 			mk_kernel_pgd(__pa(pud)));
+ 	}
+-	return 0;
++
++	/* Set up the kernel text mapping from scratch */
++	pud = (pud_t *)get_safe_page(GFP_ATOMIC);
++	if (!pud)
++		return -ENOMEM;
++	error = res_kernel_text_pud_init(pud, __START_KERNEL_map);
++	if (!error)
++		set_pgd(temp_level4_pgt + pgd_index(__START_KERNEL_map),
++			__pgd(__pa(pud) | _PAGE_TABLE));
++
++	return error;
+ }
+ 
+ int swsusp_arch_resume(void)
 _
 
-Patches currently in -mm which might be from jengelh@computergmbh.de are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-intel-iommu-iommu-gfx-workaround-kconfig-fix.patch
-intel-iommu-iommu-floppy-workaround-kconfig-fix.patch
+git-acpi.patch
+revert-x86_64-mm-cpa-einval.patch
+shrink_slab-handle-bad-shrinkers.patch
