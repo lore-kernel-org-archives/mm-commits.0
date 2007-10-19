@@ -1,47 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - task-containersv11-automatic-userspace-notification-of-idle-containers.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:50:19 -0700
-Message-ID: <200710192250.l9JMoJDo024083@imap1.linux-foundation.org>
+Subject: - task-containersv11-add-container_clone-interface.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:50:10 -0700
+Message-ID: <200710192250.l9JMoAoO024054@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44272 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36881 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757764AbXJSXHP (ORCPT
+	by vger.kernel.org with ESMTP id S1765293AbXJSXHU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 19:07:15 -0400
+	Fri, 19 Oct 2007 19:07:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: menage@google.com, balbir@in.ibm.com, clg@fr.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com
 
 
 The patch titled
-     Task Control Groups: automatic userspace notification of idle cgroups
+     Task Control Groups:  add cgroup_clone() interface
 has been removed from the -mm tree.  Its filename was
-     task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+     task-containersv11-add-container_clone-interface.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Task Control Groups: automatic userspace notification of idle cgroups
+Subject: Task Control Groups:  add cgroup_clone() interface
 From: Paul Menage <menage@google.com>
 
-Add the following files to the cgroup filesystem:
+Add support for cgroup_clone(), a way to create new cgroups intended to
+be used for systems such as namespace unsharing.  A new subsystem callback,
+post_clone(), is added to allow subsystems to automatically configure cloned
+cgroups.
 
-notify_on_release - configures/reports whether the cgroup subsystem should
-attempt to run a release script when this cgroup becomes unused
-
-release_agent - configures/reports the release agent to be used for this
-hierarchy (top level in each hierarchy only)
-
-releasable - reports whether this cgroup would have been auto-released if
-notify_on_release was true and a release agent was configured (mainly useful
-for debugging)
-
-To avoid locking issues, invoking the userspace release agent is done via a
-workqueue task; cgroups that need to have their release agents invoked by
-the workqueue task are linked on to a list.
-
-[pj@sgi.com: Need to include kmod.h]
 Signed-off-by: Paul Menage <menage@google.com>
 Cc: Serge E. Hallyn <serue@us.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -52,734 +40,192 @@ Cc: Kirill Korotaev <dev@openvz.org>
 Cc: Herbert Poetzl <herbert@13thfloor.at>
 Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Cc: Cedric Le Goater <clg@fr.ibm.com>
-Signed-off-by: Paul Jackson <pj@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |   11 -
- kernel/cgroup.c        |  426 +++++++++++++++++++++++++++++++++++----
- 2 files changed, 394 insertions(+), 43 deletions(-)
+ Documentation/cgroups.txt |    7 +
+ include/linux/cgroup.h    |    3 
+ kernel/cgroup.c           |  135 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 145 insertions(+)
 
-diff -puN include/linux/cgroup.h~task-containersv11-automatic-userspace-notification-of-idle-containers include/linux/cgroup.h
---- a/include/linux/cgroup.h~task-containersv11-automatic-userspace-notification-of-idle-containers
-+++ a/include/linux/cgroup.h
-@@ -77,10 +77,11 @@ static inline void css_get(struct cgroup
-  * css_get()
-  */
+diff -puN Documentation/cgroups.txt~task-containersv11-add-container_clone-interface Documentation/cgroups.txt
+--- a/Documentation/cgroups.txt~task-containersv11-add-container_clone-interface
++++ a/Documentation/cgroups.txt
+@@ -504,6 +504,13 @@ include/linux/cgroup.h for details).  No
+ method can return an error code, the error code is currently not
+ always handled well.
  
-+extern void __css_put(struct cgroup_subsys_state *css);
- static inline void css_put(struct cgroup_subsys_state *css)
- {
- 	if (!test_bit(CSS_ROOT, &css->flags))
--		atomic_dec(&css->refcnt);
-+		__css_put(css);
- }
- 
- struct cgroup {
-@@ -112,6 +113,13 @@ struct cgroup {
- 	 * tasks in this cgroup. Protected by css_set_lock
- 	 */
- 	struct list_head css_sets;
++void post_clone(struct cgroup_subsys *ss, struct cgroup *cont)
 +
-+	/*
-+	 * Linked list running through all cgroups that can
-+	 * potentially be reaped by the release agent. Protected by
-+	 * release_list_lock
-+	 */
-+	struct list_head release_list;
- };
++Called at the end of cgroup_clone() to do any paramater
++initialization which might be required before a task could attach.  For
++example in cpusets, no task may attach before 'cpus' and 'mems' are set
++up.
++
+ void bind(struct cgroup_subsys *ss, struct cgroup *root)
+ LL=callback_mutex
  
- /* A css_set is a structure holding pointers to a set of
-@@ -293,7 +301,6 @@ struct task_struct *cgroup_iter_next(str
- 					struct cgroup_iter *it);
- void cgroup_iter_end(struct cgroup *cont, struct cgroup_iter *it);
+diff -puN include/linux/cgroup.h~task-containersv11-add-container_clone-interface include/linux/cgroup.h
+--- a/include/linux/cgroup.h~task-containersv11-add-container_clone-interface
++++ a/include/linux/cgroup.h
+@@ -182,6 +182,7 @@ struct cgroup_subsys {
+ 	void (*exit)(struct cgroup_subsys *ss, struct task_struct *task);
+ 	int (*populate)(struct cgroup_subsys *ss,
+ 			struct cgroup *cont);
++	void (*post_clone)(struct cgroup_subsys *ss, struct cgroup *cont);
+ 	void (*bind)(struct cgroup_subsys *ss, struct cgroup *root);
+ 	int subsys_id;
+ 	int active;
+@@ -221,6 +222,8 @@ static inline struct cgroup* task_cgroup
  
--
+ int cgroup_path(const struct cgroup *cont, char *buf, int buflen);
+ 
++int cgroup_clone(struct task_struct *tsk, struct cgroup_subsys *ss);
++
  #else /* !CONFIG_CGROUPS */
  
  static inline int cgroup_init_early(void) { return 0; }
-diff -puN kernel/cgroup.c~task-containersv11-automatic-userspace-notification-of-idle-containers kernel/cgroup.c
---- a/kernel/cgroup.c~task-containersv11-automatic-userspace-notification-of-idle-containers
+diff -puN kernel/cgroup.c~task-containersv11-add-container_clone-interface kernel/cgroup.c
+--- a/kernel/cgroup.c~task-containersv11-add-container_clone-interface
 +++ a/kernel/cgroup.c
-@@ -43,8 +43,11 @@
- #include <linux/spinlock.h>
- #include <linux/string.h>
- #include <linux/sort.h>
-+#include <linux/kmod.h>
- #include <asm/atomic.h>
- 
-+static DEFINE_MUTEX(cgroup_mutex);
-+
- /* Generate an array of cgroup subsystem pointers */
- #define SUBSYS(_x) &_x ## _subsys,
- 
-@@ -83,6 +86,13 @@ struct cgroupfs_root {
- 
- 	/* Hierarchy-specific flags */
- 	unsigned long flags;
-+
-+	/* The path to use for release notifications. No locking
-+	 * between setting and use - so if userspace updates this
-+	 * while child cgroups exist, you could miss a
-+	 * notification. We ensure that it's always a valid
-+	 * NUL-terminated string */
-+	char release_agent_path[PATH_MAX];
- };
- 
- 
-@@ -110,7 +120,13 @@ static int need_forkexit_callback;
- 
- /* bits in struct cgroup flags field */
- enum {
-+	/* Control Group is dead */
- 	CONT_REMOVED,
-+	/* Control Group has previously had a child cgroup or a task,
-+	 * but no longer (only if CONT_NOTIFY_ON_RELEASE is set) */
-+	CONT_RELEASABLE,
-+	/* Control Group requires release notifications to userspace */
-+	CONT_NOTIFY_ON_RELEASE,
- };
- 
- /* convenient tests for these bits */
-@@ -124,6 +140,19 @@ enum {
- 	ROOT_NOPREFIX, /* mounted subsystems have no named prefix */
- };
- 
-+inline int cgroup_is_releasable(const struct cgroup *cont)
-+{
-+	const int bits =
-+		(1 << CONT_RELEASABLE) |
-+		(1 << CONT_NOTIFY_ON_RELEASE);
-+	return (cont->flags & bits) == bits;
-+}
-+
-+inline int notify_on_release(const struct cgroup *cont)
-+{
-+	return test_bit(CONT_NOTIFY_ON_RELEASE, &cont->flags);
-+}
-+
- /*
-  * for_each_subsys() allows you to iterate on each subsystem attached to
-  * an active hierarchy
-@@ -135,6 +164,14 @@ list_for_each_entry(_ss, &_root->subsys_
- #define for_each_root(_root) \
- list_for_each_entry(_root, &roots, root_list)
- 
-+/* the list of cgroups eligible for automatic release. Protected by
-+ * release_list_lock */
-+static LIST_HEAD(release_list);
-+static DEFINE_SPINLOCK(release_list_lock);
-+static void cgroup_release_agent(struct work_struct *work);
-+static DECLARE_WORK(release_agent_work, cgroup_release_agent);
-+static void check_for_release(struct cgroup *cont);
-+
- /* Link structure for associating css_set objects with cgroups */
- struct cg_cgroup_link {
- 	/*
-@@ -189,11 +226,8 @@ static int use_task_css_set_links;
- /*
-  * unlink a css_set from the list and free it
-  */
--static void release_css_set(struct kref *k)
-+static void unlink_css_set(struct css_set *cg)
- {
--	struct css_set *cg = container_of(k, struct css_set, ref);
--	int i;
--
- 	write_lock(&css_set_lock);
- 	list_del(&cg->list);
- 	css_set_count--;
-@@ -206,11 +240,39 @@ static void release_css_set(struct kref 
- 		kfree(link);
- 	}
- 	write_unlock(&css_set_lock);
--	for (i = 0; i < CGROUP_SUBSYS_COUNT; i++)
--		atomic_dec(&cg->subsys[i]->cgroup->count);
-+}
-+
-+static void __release_css_set(struct kref *k, int taskexit)
-+{
-+	int i;
-+	struct css_set *cg = container_of(k, struct css_set, ref);
-+
-+	unlink_css_set(cg);
-+
-+	rcu_read_lock();
-+	for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
-+		struct cgroup *cont = cg->subsys[i]->cgroup;
-+		if (atomic_dec_and_test(&cont->count) &&
-+		    notify_on_release(cont)) {
-+			if (taskexit)
-+				set_bit(CONT_RELEASABLE, &cont->flags);
-+			check_for_release(cont);
-+		}
-+	}
-+	rcu_read_unlock();
- 	kfree(cg);
- }
- 
-+static void release_css_set(struct kref *k)
-+{
-+	__release_css_set(k, 0);
-+}
-+
-+static void release_css_set_taskexit(struct kref *k)
-+{
-+	__release_css_set(k, 1);
-+}
-+
- /*
-  * refcounted get/put for css_set objects
-  */
-@@ -224,6 +286,11 @@ static inline void put_css_set(struct cs
- 	kref_put(&cg->ref, release_css_set);
- }
- 
-+static inline void put_css_set_taskexit(struct css_set *cg)
-+{
-+	kref_put(&cg->ref, release_css_set_taskexit);
-+}
-+
- /*
-  * find_existing_css_set() is a helper for
-  * find_css_set(), and checks to see whether an existing
-@@ -465,8 +532,6 @@ static struct css_set *find_css_set(
-  * update of a tasks cgroup pointer by attach_task()
-  */
- 
--static DEFINE_MUTEX(cgroup_mutex);
--
- /**
-  * cgroup_lock - lock out any changes to cgroup structures
-  *
-@@ -526,6 +591,13 @@ static void cgroup_diput(struct dentry *
- 	if (S_ISDIR(inode->i_mode)) {
- 		struct cgroup *cont = dentry->d_fsdata;
- 		BUG_ON(!(cgroup_is_removed(cont)));
-+		/* It's possible for external users to be holding css
-+		 * reference counts on a cgroup; css_put() needs to
-+		 * be able to access the cgroup after decrementing
-+		 * the reference count in order to know if it needs to
-+		 * queue the cgroup to be handled by the release
-+		 * agent */
-+		synchronize_rcu();
- 		kfree(cont);
- 	}
- 	iput(inode);
-@@ -657,6 +729,8 @@ static int cgroup_show_options(struct se
- 		seq_printf(seq, ",%s", ss->name);
- 	if (test_bit(ROOT_NOPREFIX, &root->flags))
- 		seq_puts(seq, ",noprefix");
-+	if (strlen(root->release_agent_path))
-+		seq_printf(seq, ",release_agent=%s", root->release_agent_path);
- 	mutex_unlock(&cgroup_mutex);
- 	return 0;
- }
-@@ -664,6 +738,7 @@ static int cgroup_show_options(struct se
- struct cgroup_sb_opts {
- 	unsigned long subsys_bits;
- 	unsigned long flags;
-+	char *release_agent;
- };
- 
- /* Convert a hierarchy specifier into a bitmask of subsystems and
-@@ -675,6 +750,7 @@ static int parse_cgroupfs_options(char *
- 
- 	opts->subsys_bits = 0;
- 	opts->flags = 0;
-+	opts->release_agent = NULL;
- 
- 	while ((token = strsep(&o, ",")) != NULL) {
- 		if (!*token)
-@@ -683,6 +759,15 @@ static int parse_cgroupfs_options(char *
- 			opts->subsys_bits = (1 << CGROUP_SUBSYS_COUNT) - 1;
- 		} else if (!strcmp(token, "noprefix")) {
- 			set_bit(ROOT_NOPREFIX, &opts->flags);
-+		} else if (!strncmp(token, "release_agent=", 14)) {
-+			/* Specifying two release agents is forbidden */
-+			if (opts->release_agent)
-+				return -EINVAL;
-+			opts->release_agent = kzalloc(PATH_MAX, GFP_KERNEL);
-+			if (!opts->release_agent)
-+				return -ENOMEM;
-+			strncpy(opts->release_agent, token + 14, PATH_MAX - 1);
-+			opts->release_agent[PATH_MAX - 1] = 0;
- 		} else {
- 			struct cgroup_subsys *ss;
- 			int i;
-@@ -732,7 +817,11 @@ static int cgroup_remount(struct super_b
- 	if (!ret)
- 		cgroup_populate_dir(cont);
- 
-+	if (opts.release_agent)
-+		strcpy(root->release_agent_path, opts.release_agent);
-  out_unlock:
-+	if (opts.release_agent)
-+		kfree(opts.release_agent);
- 	mutex_unlock(&cgroup_mutex);
- 	mutex_unlock(&cont->dentry->d_inode->i_mutex);
- 	return ret;
-@@ -756,6 +845,7 @@ static void init_cgroup_root(struct cgro
- 	INIT_LIST_HEAD(&cont->sibling);
- 	INIT_LIST_HEAD(&cont->children);
- 	INIT_LIST_HEAD(&cont->css_sets);
-+	INIT_LIST_HEAD(&cont->release_list);
- }
- 
- static int cgroup_test_super(struct super_block *sb, void *data)
-@@ -830,8 +920,11 @@ static int cgroup_get_sb(struct file_sys
- 
- 	/* First find the desired set of subsystems */
- 	ret = parse_cgroupfs_options(data, &opts);
--	if (ret)
-+	if (ret) {
-+		if (opts.release_agent)
-+			kfree(opts.release_agent);
- 		return ret;
-+	}
- 
- 	root = kzalloc(sizeof(*root), GFP_KERNEL);
- 	if (!root)
-@@ -840,6 +933,10 @@ static int cgroup_get_sb(struct file_sys
- 	init_cgroup_root(root);
- 	root->subsys_bits = opts.subsys_bits;
- 	root->flags = opts.flags;
-+	if (opts.release_agent) {
-+		strcpy(root->release_agent_path, opts.release_agent);
-+		kfree(opts.release_agent);
-+	}
- 
- 	sb = sget(fs_type, cgroup_test_super, cgroup_set_super, root);
- 
-@@ -1120,7 +1217,7 @@ static int attach_task(struct cgroup *co
- 			ss->attach(ss, cont, oldcont, tsk);
- 		}
- 	}
--
-+	set_bit(CONT_RELEASABLE, &oldcont->flags);
- 	synchronize_rcu();
- 	put_css_set(cg);
- 	return 0;
-@@ -1170,6 +1267,9 @@ enum cgroup_filetype {
- 	FILE_ROOT,
- 	FILE_DIR,
- 	FILE_TASKLIST,
-+	FILE_NOTIFY_ON_RELEASE,
-+	FILE_RELEASABLE,
-+	FILE_RELEASE_AGENT,
- };
- 
- static ssize_t cgroup_write_uint(struct cgroup *cont, struct cftype *cft,
-@@ -1240,6 +1340,32 @@ static ssize_t cgroup_common_file_write(
- 	case FILE_TASKLIST:
- 		retval = attach_task_by_pid(cont, buffer);
- 		break;
-+	case FILE_NOTIFY_ON_RELEASE:
-+		clear_bit(CONT_RELEASABLE, &cont->flags);
-+		if (simple_strtoul(buffer, NULL, 10) != 0)
-+			set_bit(CONT_NOTIFY_ON_RELEASE, &cont->flags);
-+		else
-+			clear_bit(CONT_NOTIFY_ON_RELEASE, &cont->flags);
-+		break;
-+	case FILE_RELEASE_AGENT:
-+	{
-+		struct cgroupfs_root *root = cont->root;
-+		/* Strip trailing newline */
-+		if (nbytes && (buffer[nbytes-1] == '\n')) {
-+			buffer[nbytes-1] = 0;
-+		}
-+		if (nbytes < sizeof(root->release_agent_path)) {
-+			/* We never write anything other than '\0'
-+			 * into the last char of release_agent_path,
-+			 * so it always remains a NUL-terminated
-+			 * string */
-+			strncpy(root->release_agent_path, buffer, nbytes);
-+			root->release_agent_path[nbytes] = 0;
-+		} else {
-+			retval = -ENOSPC;
-+		}
-+		break;
-+	}
- 	default:
- 		retval = -EINVAL;
- 		goto out2;
-@@ -1281,6 +1407,49 @@ static ssize_t cgroup_read_uint(struct c
- 	return simple_read_from_buffer(buf, nbytes, ppos, tmp, len);
- }
- 
-+static ssize_t cgroup_common_file_read(struct cgroup *cont,
-+					  struct cftype *cft,
-+					  struct file *file,
-+					  char __user *buf,
-+					  size_t nbytes, loff_t *ppos)
-+{
-+	enum cgroup_filetype type = cft->private;
-+	char *page;
-+	ssize_t retval = 0;
-+	char *s;
-+
-+	if (!(page = (char *)__get_free_page(GFP_KERNEL)))
-+		return -ENOMEM;
-+
-+	s = page;
-+
-+	switch (type) {
-+	case FILE_RELEASE_AGENT:
-+	{
-+		struct cgroupfs_root *root;
-+		size_t n;
-+		mutex_lock(&cgroup_mutex);
-+		root = cont->root;
-+		n = strnlen(root->release_agent_path,
-+			    sizeof(root->release_agent_path));
-+		n = min(n, (size_t) PAGE_SIZE);
-+		strncpy(s, root->release_agent_path, n);
-+		mutex_unlock(&cgroup_mutex);
-+		s += n;
-+		break;
-+	}
-+	default:
-+		retval = -EINVAL;
-+		goto out;
-+	}
-+	*s++ = '\n';
-+
-+	retval = simple_read_from_buffer(buf, nbytes, ppos, page, s - page);
-+out:
-+	free_page((unsigned long)page);
-+	return retval;
-+}
-+
- static ssize_t cgroup_file_read(struct file *file, char __user *buf,
- 				   size_t nbytes, loff_t *ppos)
- {
-@@ -1699,16 +1868,49 @@ static int cgroup_tasks_release(struct i
- 	return 0;
- }
- 
-+static u64 cgroup_read_notify_on_release(struct cgroup *cont,
-+					    struct cftype *cft)
-+{
-+	return notify_on_release(cont);
-+}
-+
-+static u64 cgroup_read_releasable(struct cgroup *cont, struct cftype *cft)
-+{
-+	return test_bit(CONT_RELEASABLE, &cont->flags);
-+}
-+
- /*
-  * for the common functions, 'private' gives the type of file
-  */
--static struct cftype cft_tasks = {
--	.name = "tasks",
--	.open = cgroup_tasks_open,
--	.read = cgroup_tasks_read,
-+static struct cftype files[] = {
-+	{
-+		.name = "tasks",
-+		.open = cgroup_tasks_open,
-+		.read = cgroup_tasks_read,
-+		.write = cgroup_common_file_write,
-+		.release = cgroup_tasks_release,
-+		.private = FILE_TASKLIST,
-+	},
-+
-+	{
-+		.name = "notify_on_release",
-+		.read_uint = cgroup_read_notify_on_release,
-+		.write = cgroup_common_file_write,
-+		.private = FILE_NOTIFY_ON_RELEASE,
-+	},
-+
-+	{
-+		.name = "releasable",
-+		.read_uint = cgroup_read_releasable,
-+		.private = FILE_RELEASABLE,
-+	}
-+};
-+
-+static struct cftype cft_release_agent = {
-+	.name = "release_agent",
-+	.read = cgroup_common_file_read,
- 	.write = cgroup_common_file_write,
--	.release = cgroup_tasks_release,
--	.private = FILE_TASKLIST,
-+	.private = FILE_RELEASE_AGENT,
- };
- 
- static int cgroup_populate_dir(struct cgroup *cont)
-@@ -1719,10 +1921,15 @@ static int cgroup_populate_dir(struct cg
- 	/* First clear out any existing files */
- 	cgroup_clear_directory(cont->dentry);
- 
--	err = cgroup_add_file(cont, NULL, &cft_tasks);
-+	err = cgroup_add_files(cont, NULL, files, ARRAY_SIZE(files));
- 	if (err < 0)
- 		return err;
- 
-+	if (cont == cont->top_cgroup) {
-+		if ((err = cgroup_add_file(cont, NULL, &cft_release_agent)) < 0)
-+			return err;
-+	}
-+
- 	for_each_subsys(cont->root, ss) {
- 		if (ss->populate && (err = ss->populate(ss, cont)) < 0)
- 			return err;
-@@ -1779,6 +1986,7 @@ static long cgroup_create(struct cgroup 
- 	INIT_LIST_HEAD(&cont->sibling);
- 	INIT_LIST_HEAD(&cont->children);
- 	INIT_LIST_HEAD(&cont->css_sets);
-+	INIT_LIST_HEAD(&cont->release_list);
- 
- 	cont->parent = parent;
- 	cont->root = parent->root;
-@@ -1840,6 +2048,38 @@ static int cgroup_mkdir(struct inode *di
- 	return cgroup_create(c_parent, dentry, mode | S_IFDIR);
- }
- 
-+static inline int cgroup_has_css_refs(struct cgroup *cont)
-+{
-+	/* Check the reference count on each subsystem. Since we
-+	 * already established that there are no tasks in the
-+	 * cgroup, if the css refcount is also 0, then there should
-+	 * be no outstanding references, so the subsystem is safe to
-+	 * destroy. We scan across all subsystems rather than using
-+	 * the per-hierarchy linked list of mounted subsystems since
-+	 * we can be called via check_for_release() with no
-+	 * synchronization other than RCU, and the subsystem linked
-+	 * list isn't RCU-safe */
-+	int i;
-+	for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
-+		struct cgroup_subsys *ss = subsys[i];
-+		struct cgroup_subsys_state *css;
-+		/* Skip subsystems not in this hierarchy */
-+		if (ss->root != cont->root)
-+			continue;
-+		css = cont->subsys[ss->subsys_id];
-+		/* When called from check_for_release() it's possible
-+		 * that by this point the cgroup has been removed
-+		 * and the css deleted. But a false-positive doesn't
-+		 * matter, since it can only happen if the cgroup
-+		 * has been deleted and hence no longer needs the
-+		 * release agent to be called anyway. */
-+		if (css && atomic_read(&css->refcnt)) {
-+			return 1;
-+		}
-+	}
-+	return 0;
-+}
-+
- static int cgroup_rmdir(struct inode *unused_dir, struct dentry *dentry)
- {
- 	struct cgroup *cont = dentry->d_fsdata;
-@@ -1848,7 +2088,6 @@ static int cgroup_rmdir(struct inode *un
- 	struct cgroup_subsys *ss;
- 	struct super_block *sb;
- 	struct cgroupfs_root *root;
--	int css_busy = 0;
- 
- 	/* the vfs holds both inode->i_mutex already */
- 
-@@ -1866,20 +2105,7 @@ static int cgroup_rmdir(struct inode *un
- 	root = cont->root;
- 	sb = root->sb;
- 
--	/* Check the reference count on each subsystem. Since we
--	 * already established that there are no tasks in the
--	 * cgroup, if the css refcount is also 0, then there should
--	 * be no outstanding references, so the subsystem is safe to
--	 * destroy */
--	for_each_subsys(root, ss) {
--		struct cgroup_subsys_state *css;
--		css = cont->subsys[ss->subsys_id];
--		if (atomic_read(&css->refcnt)) {
--			css_busy = 1;
--			break;
--		}
--	}
--	if (css_busy) {
-+	if (cgroup_has_css_refs(cont)) {
- 		mutex_unlock(&cgroup_mutex);
- 		return -EBUSY;
- 	}
-@@ -1889,7 +2115,11 @@ static int cgroup_rmdir(struct inode *un
- 			ss->destroy(ss, cont);
- 	}
- 
-+	spin_lock(&release_list_lock);
- 	set_bit(CONT_REMOVED, &cont->flags);
-+	if (!list_empty(&cont->release_list))
-+		list_del(&cont->release_list);
-+	spin_unlock(&release_list_lock);
- 	/* delete my sibling from parent->children */
- 	list_del(&cont->sibling);
- 	spin_lock(&cont->dentry->d_lock);
-@@ -1901,6 +2131,9 @@ static int cgroup_rmdir(struct inode *un
- 	dput(d);
- 	root->number_of_cgroups--;
- 
-+	set_bit(CONT_RELEASABLE, &parent->flags);
-+	check_for_release(parent);
-+
- 	mutex_unlock(&cgroup_mutex);
- 	/* Drop the active superblock reference that we took when we
- 	 * created the cgroup */
-@@ -1938,15 +2171,15 @@ static void cgroup_init_subsys(struct cg
-  	/* If this subsystem requested that it be notified with fork
-  	 * events, we should send it one now for every process in the
-  	 * system */
-- 	if (ss->fork) {
-- 		struct task_struct *g, *p;
-+	if (ss->fork) {
-+		struct task_struct *g, *p;
- 
-- 		read_lock(&tasklist_lock);
-- 		do_each_thread(g, p) {
-- 			ss->fork(ss, p);
-- 		} while_each_thread(g, p);
-- 		read_unlock(&tasklist_lock);
-- 	}
-+		read_lock(&tasklist_lock);
-+		do_each_thread(g, p) {
-+			ss->fork(ss, p);
-+		} while_each_thread(g, p);
-+		read_unlock(&tasklist_lock);
-+	}
- 
- 	need_forkexit_callback |= ss->fork || ss->exit;
- 
-@@ -2263,7 +2496,7 @@ void cgroup_exit(struct task_struct *tsk
- 	tsk->cgroups = &init_css_set;
+@@ -1708,3 +1708,138 @@ void cgroup_exit(struct task_struct *tsk
+ 	tsk->cgroups = init_task.cgroups;
  	task_unlock(tsk);
- 	if (cg)
--		put_css_set(cg);
-+		put_css_set_taskexit(cg);
  }
- 
- /**
-@@ -2374,7 +2607,10 @@ int cgroup_clone(struct task_struct *tsk
- 
-  out_release:
- 	mutex_unlock(&inode->i_mutex);
 +
++/**
++ * cgroup_clone - duplicate the current cgroup in the hierarchy
++ * that the given subsystem is attached to, and move this task into
++ * the new child
++ */
++int cgroup_clone(struct task_struct *tsk, struct cgroup_subsys *subsys)
++{
++	struct dentry *dentry;
++	int ret = 0;
++	char nodename[MAX_CGROUP_TYPE_NAMELEN];
++	struct cgroup *parent, *child;
++	struct inode *inode;
++	struct css_set *cg;
++	struct cgroupfs_root *root;
++	struct cgroup_subsys *ss;
++
++	/* We shouldn't be called by an unregistered subsystem */
++	BUG_ON(!subsys->active);
++
++	/* First figure out what hierarchy and cgroup we're dealing
++	 * with, and pin them so we can drop cgroup_mutex */
 +	mutex_lock(&cgroup_mutex);
- 	put_css_set(cg);
++ again:
++	root = subsys->root;
++	if (root == &rootnode) {
++		printk(KERN_INFO
++		       "Not cloning cgroup for unused subsystem %s\n",
++		       subsys->name);
++		mutex_unlock(&cgroup_mutex);
++		return 0;
++	}
++	cg = &tsk->cgroups;
++	parent = task_cgroup(tsk, subsys->subsys_id);
++
++	snprintf(nodename, MAX_CGROUP_TYPE_NAMELEN, "node_%d", tsk->pid);
++
++	/* Pin the hierarchy */
++	atomic_inc(&parent->root->sb->s_active);
++
 +	mutex_unlock(&cgroup_mutex);
- 	deactivate_super(parent->root->sb);
- 	return ret;
- }
-@@ -2404,3 +2640,111 @@ int cgroup_is_descendant(const struct cg
- 	ret = (cont == target);
- 	return ret;
- }
 +
-+static void check_for_release(struct cgroup *cont)
-+{
-+	/* All of these checks rely on RCU to keep the cgroup
-+	 * structure alive */
-+	if (cgroup_is_releasable(cont) && !atomic_read(&cont->count)
-+	    && list_empty(&cont->children) && !cgroup_has_css_refs(cont)) {
-+		/* Control Group is currently removeable. If it's not
-+		 * already queued for a userspace notification, queue
-+		 * it now */
-+		int need_schedule_work = 0;
-+		spin_lock(&release_list_lock);
-+		if (!cgroup_is_removed(cont) &&
-+		    list_empty(&cont->release_list)) {
-+			list_add(&cont->release_list, &release_list);
-+			need_schedule_work = 1;
-+		}
-+		spin_unlock(&release_list_lock);
-+		if (need_schedule_work)
-+			schedule_work(&release_agent_work);
-+	}
-+}
++	/* Now do the VFS work to create a cgroup */
++	inode = parent->dentry->d_inode;
 +
-+void __css_put(struct cgroup_subsys_state *css)
-+{
-+	struct cgroup *cont = css->cgroup;
-+	rcu_read_lock();
-+	if (atomic_dec_and_test(&css->refcnt) && notify_on_release(cont)) {
-+		set_bit(CONT_RELEASABLE, &cont->flags);
-+		check_for_release(cont);
++	/* Hold the parent directory mutex across this operation to
++	 * stop anyone else deleting the new cgroup */
++	mutex_lock(&inode->i_mutex);
++	dentry = lookup_one_len(nodename, parent->dentry, strlen(nodename));
++	if (IS_ERR(dentry)) {
++		printk(KERN_INFO
++		       "Couldn't allocate dentry for %s: %ld\n", nodename,
++		       PTR_ERR(dentry));
++		ret = PTR_ERR(dentry);
++		goto out_release;
 +	}
-+	rcu_read_unlock();
++
++	/* Create the cgroup directory, which also creates the cgroup */
++	ret = vfs_mkdir(inode, dentry, S_IFDIR | 0755);
++	child = __d_cont(dentry);
++	dput(dentry);
++	if (ret) {
++		printk(KERN_INFO
++		       "Failed to create cgroup %s: %d\n", nodename,
++		       ret);
++		goto out_release;
++	}
++
++	if (!child) {
++		printk(KERN_INFO
++		       "Couldn't find new cgroup %s\n", nodename);
++		ret = -ENOMEM;
++		goto out_release;
++	}
++
++	/* The cgroup now exists. Retake cgroup_mutex and check
++	 * that we're still in the same state that we thought we
++	 * were. */
++	mutex_lock(&cgroup_mutex);
++	if ((root != subsys->root) ||
++	    (parent != task_cgroup(tsk, subsys->subsys_id))) {
++		/* Aargh, we raced ... */
++		mutex_unlock(&inode->i_mutex);
++
++		deactivate_super(parent->root->sb);
++		/* The cgroup is still accessible in the VFS, but
++		 * we're not going to try to rmdir() it at this
++		 * point. */
++		printk(KERN_INFO
++		       "Race in cgroup_clone() - leaking cgroup %s\n",
++		       nodename);
++		goto again;
++	}
++
++	/* do any required auto-setup */
++	for_each_subsys(root, ss) {
++		if (ss->post_clone)
++			ss->post_clone(ss, child);
++	}
++
++	/* All seems fine. Finish by moving the task into the new cgroup */
++	ret = attach_task(child, tsk);
++	mutex_unlock(&cgroup_mutex);
++
++ out_release:
++	mutex_unlock(&inode->i_mutex);
++	deactivate_super(parent->root->sb);
++	return ret;
 +}
 +
 +/*
-+ * Notify userspace when a cgroup is released, by running the
-+ * configured release agent with the name of the cgroup (path
-+ * relative to the root of cgroup file system) as the argument.
++ * See if "cont" is a descendant of the current task's cgroup in
++ * the appropriate hierarchy
 + *
-+ * Most likely, this user command will try to rmdir this cgroup.
++ * If we are sending in dummytop, then presumably we are creating
++ * the top cgroup in the subsystem.
 + *
-+ * This races with the possibility that some other task will be
-+ * attached to this cgroup before it is removed, or that some other
-+ * user task will 'mkdir' a child cgroup of this cgroup.  That's ok.
-+ * The presumed 'rmdir' will fail quietly if this cgroup is no longer
-+ * unused, and this cgroup will be reprieved from its death sentence,
-+ * to continue to serve a useful existence.  Next time it's released,
-+ * we will get notified again, if it still has 'notify_on_release' set.
-+ *
-+ * The final arg to call_usermodehelper() is UMH_WAIT_EXEC, which
-+ * means only wait until the task is successfully execve()'d.  The
-+ * separate release agent task is forked by call_usermodehelper(),
-+ * then control in this thread returns here, without waiting for the
-+ * release agent task.  We don't bother to wait because the caller of
-+ * this routine has no use for the exit status of the release agent
-+ * task, so no sense holding our caller up for that.
-+ *
++ * Called only by the ns (nsproxy) cgroup.
 + */
-+
-+static void cgroup_release_agent(struct work_struct *work)
++int cgroup_is_descendant(const struct cgroup *cont)
 +{
-+	BUG_ON(work != &release_agent_work);
-+	mutex_lock(&cgroup_mutex);
-+	spin_lock(&release_list_lock);
-+	while (!list_empty(&release_list)) {
-+		char *argv[3], *envp[3];
-+		int i;
-+		char *pathbuf;
-+		struct cgroup *cont = list_entry(release_list.next,
-+						    struct cgroup,
-+						    release_list);
-+		list_del_init(&cont->release_list);
-+		spin_unlock(&release_list_lock);
-+		pathbuf = kmalloc(PAGE_SIZE, GFP_KERNEL);
-+		if (!pathbuf) {
-+			spin_lock(&release_list_lock);
-+			continue;
-+		}
++	int ret;
++	struct cgroup *target;
++	int subsys_id;
 +
-+		if (cgroup_path(cont, pathbuf, PAGE_SIZE) < 0) {
-+			kfree(pathbuf);
-+			spin_lock(&release_list_lock);
-+			continue;
-+		}
++	if (cont == dummytop)
++		return 1;
 +
-+		i = 0;
-+		argv[i++] = cont->root->release_agent_path;
-+		argv[i++] = (char *)pathbuf;
-+		argv[i] = NULL;
-+
-+		i = 0;
-+		/* minimal command environment */
-+		envp[i++] = "HOME=/";
-+		envp[i++] = "PATH=/sbin:/bin:/usr/sbin:/usr/bin";
-+		envp[i] = NULL;
-+
-+		/* Drop the lock while we invoke the usermode helper,
-+		 * since the exec could involve hitting disk and hence
-+		 * be a slow process */
-+		mutex_unlock(&cgroup_mutex);
-+		call_usermodehelper(argv[0], argv, envp, UMH_WAIT_EXEC);
-+		kfree(pathbuf);
-+		mutex_lock(&cgroup_mutex);
-+		spin_lock(&release_list_lock);
-+	}
-+	spin_unlock(&release_list_lock);
-+	mutex_unlock(&cgroup_mutex);
++	get_first_subsys(cont, NULL, &subsys_id);
++	target = task_cgroup(current, subsys_id);
++	while (cont != target && cont!= cont->top_cgroup)
++		cont = cont->parent;
++	ret = (cont == target);
++	return ret;
 +}
 _
 
