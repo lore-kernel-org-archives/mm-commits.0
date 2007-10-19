@@ -1,103 +1,270 @@
 From: akpm@linux-foundation.org
-Subject: - ext4-flex_bg-kernel-support-v2.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:48:25 -0700
-Message-ID: <200710190348.l9J3mPDA013543__44105.6565534838$1192765768$gmane$org@imap1.linux-foundation.org>
+Subject: - ext4-remove-ifdef-config_ext4_index.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:48:18 -0700
+Message-ID: <200710190348.l9J3mIa1013530@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49374 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35854 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757660AbXJSDtB (ORCPT
+	by vger.kernel.org with ESMTP id S1762263AbXJSDtD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:49:01 -0400
+	Thu, 18 Oct 2007 23:49:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jrs@us.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: sandeen@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext4: FLEX_BG Kernel support
+     ext4: remove #ifdef CONFIG_EXT4_INDEX
 has been removed from the -mm tree.  Its filename was
-     ext4-flex_bg-kernel-support-v2.patch
+     ext4-remove-ifdef-config_ext4_index.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ext4: FLEX_BG Kernel support
-From: Jose R. Santos <jrs@us.ibm.com>
+Subject: ext4: remove #ifdef CONFIG_EXT4_INDEX
+From: Eric Sandeen <sandeen@redhat.com>
 
-This feature relaxes check restrictions on where each block groups meta
-data is located within the storage media.  This allows for the allocation
-of bitmaps or inode tables outside the block group boundaries in cases
-where bad blocks forces us to look for new blocks which the owning block
-group can not satisfy.  This will also allow for new meta-data allocation
-schemes to improve performance and scalability.
+ext4: remove #ifdef CONFIG_EXT4_INDEX
 
-Signed-off-by: Jose R. Santos <jrs@us.ibm.com>
-Cc: <linux-ext4@vger.kernel.org>
+CONFIG_EXT4_INDEX is not an exposed config option in the kernel, and it is
+unconditionally defined in ext4_fs.h.  tune2fs is already able to turn off
+dir indexing, so at this point it's just cluttering up the code.  Remove
+it.
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Signed-off-by: Mingming Cao <cmm@us.ibm.com>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/super.c         |    9 +++++++--
- include/linux/ext4_fs.h |    4 +++-
- 2 files changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN fs/ext4/super.c~ext4-flex_bg-kernel-support-v2 fs/ext4/super.c
---- a/fs/ext4/super.c~ext4-flex_bg-kernel-support-v2
-+++ a/fs/ext4/super.c
-@@ -1358,13 +1358,17 @@ static int ext4_check_descriptors (struc
- 	ext4_fsblk_t inode_table;
- 	struct ext4_group_desc * gdp = NULL;
- 	int desc_block = 0;
-+	int flexbg_flag = 0;
- 	int i;
+---
+ fs/ext4/dir.c           |    7 -------
+ fs/ext4/namei.c         |   20 --------------------
+ include/linux/ext4_fs.h |   14 ++------------
+ 3 files changed, 2 insertions(+), 39 deletions(-)
+
+Index: linux-2.6.23-rc9/fs/ext4/dir.c
+===================================================================
+--- linux-2.6.23-rc9.orig/fs/ext4/dir.c	2007-10-05 10:12:37.000000000 -0700
++++ linux-2.6.23-rc9/fs/ext4/dir.c	2007-10-05 10:13:17.000000000 -0700
+@@ -47,9 +47,7 @@ const struct file_operations ext4_dir_op
+ 	.compat_ioctl	= ext4_compat_ioctl,
+ #endif
+ 	.fsync		= ext4_sync_file,	/* BKL held */
+-#ifdef CONFIG_EXT4_INDEX
+ 	.release	= ext4_release_dir,
+-#endif
+ };
  
-+	if (EXT4_HAS_INCOMPAT_FEATURE(sb, EXT4_FEATURE_INCOMPAT_FLEX_BG))
-+		flexbg_flag = 1;
-+
- 	ext4_debug ("Checking group descriptors");
  
- 	for (i = 0; i < sbi->s_groups_count; i++)
- 	{
--		if (i == sbi->s_groups_count - 1)
-+		if (i == sbi->s_groups_count - 1 || flexbg_flag)
- 			last_block = ext4_blocks_count(sbi->s_es) - 1;
- 		else
- 			last_block = first_block +
-@@ -1409,7 +1413,8 @@ static int ext4_check_descriptors (struc
- 				   le16_to_cpu(gdp->bg_checksum));
- 			return 0;
- 		}
--		first_block += EXT4_BLOCKS_PER_GROUP(sb);
-+		if (!flexbg_flag)
-+			first_block += EXT4_BLOCKS_PER_GROUP(sb);
- 		gdp = (struct ext4_group_desc *)
- 			((__u8 *)gdp + EXT4_DESC_SIZE(sb));
+@@ -107,7 +105,6 @@ static int ext4_readdir(struct file * fi
+ 
+ 	sb = inode->i_sb;
+ 
+-#ifdef CONFIG_EXT4_INDEX
+ 	if (EXT4_HAS_COMPAT_FEATURE(inode->i_sb,
+ 				    EXT4_FEATURE_COMPAT_DIR_INDEX) &&
+ 	    ((EXT4_I(inode)->i_flags & EXT4_INDEX_FL) ||
+@@ -123,7 +120,6 @@ static int ext4_readdir(struct file * fi
+ 		 */
+ 		EXT4_I(filp->f_path.dentry->d_inode)->i_flags &= ~EXT4_INDEX_FL;
  	}
-diff -puN include/linux/ext4_fs.h~ext4-flex_bg-kernel-support-v2 include/linux/ext4_fs.h
---- a/include/linux/ext4_fs.h~ext4-flex_bg-kernel-support-v2
-+++ a/include/linux/ext4_fs.h
-@@ -682,13 +682,15 @@ static inline int ext4_valid_inum(struct
- #define EXT4_FEATURE_INCOMPAT_META_BG		0x0010
- #define EXT4_FEATURE_INCOMPAT_EXTENTS		0x0040 /* extents support */
- #define EXT4_FEATURE_INCOMPAT_64BIT		0x0080
-+#define EXT4_FEATURE_INCOMPAT_FLEX_BG		0x0200
+-#endif
+ 	stored = 0;
+ 	offset = filp->f_pos & (sb->s_blocksize - 1);
  
- #define EXT4_FEATURE_COMPAT_SUPP	EXT2_FEATURE_COMPAT_EXT_ATTR
- #define EXT4_FEATURE_INCOMPAT_SUPP	(EXT4_FEATURE_INCOMPAT_FILETYPE| \
- 					 EXT4_FEATURE_INCOMPAT_RECOVER| \
- 					 EXT4_FEATURE_INCOMPAT_META_BG| \
- 					 EXT4_FEATURE_INCOMPAT_EXTENTS| \
--					 EXT4_FEATURE_INCOMPAT_64BIT)
-+					 EXT4_FEATURE_INCOMPAT_64BIT| \
-+					 EXT4_FEATURE_INCOMPAT_FLEX_BG)
- #define EXT4_FEATURE_RO_COMPAT_SUPP	(EXT4_FEATURE_RO_COMPAT_SPARSE_SUPER| \
- 					 EXT4_FEATURE_RO_COMPAT_LARGE_FILE| \
- 					 EXT4_FEATURE_RO_COMPAT_GDT_CSUM| \
-_
+@@ -232,7 +228,6 @@ out:
+ 	return ret;
+ }
+ 
+-#ifdef CONFIG_EXT4_INDEX
+ /*
+  * These functions convert from the major/minor hash to an f_pos
+  * value.
+@@ -518,5 +513,3 @@ static int ext4_release_dir (struct inod
+ 
+ 	return 0;
+ }
+-
+-#endif
+Index: linux-2.6.23-rc9/fs/ext4/namei.c
+===================================================================
+--- linux-2.6.23-rc9.orig/fs/ext4/namei.c	2007-10-05 10:12:37.000000000 -0700
++++ linux-2.6.23-rc9/fs/ext4/namei.c	2007-10-05 10:13:17.000000000 -0700
+@@ -144,7 +144,6 @@ struct dx_map_entry
+ 	u16 size;
+ };
+ 
+-#ifdef CONFIG_EXT4_INDEX
+ static inline unsigned dx_get_block (struct dx_entry *entry);
+ static void dx_set_block (struct dx_entry *entry, unsigned value);
+ static inline unsigned dx_get_hash (struct dx_entry *entry);
+@@ -766,8 +765,6 @@ static void dx_insert_block(struct dx_fr
+ 	dx_set_block(new, block);
+ 	dx_set_count(entries, count + 1);
+ }
+-#endif
+-
+ 
+ static void ext4_update_dx_flag(struct inode *inode)
+ {
+@@ -869,7 +866,6 @@ static struct buffer_head * ext4_find_en
+ 	name = dentry->d_name.name;
+ 	if (namelen > EXT4_NAME_LEN)
+ 		return NULL;
+-#ifdef CONFIG_EXT4_INDEX
+ 	if (is_dx(dir)) {
+ 		bh = ext4_dx_find_entry(dentry, res_dir, &err);
+ 		/*
+@@ -881,7 +877,6 @@ static struct buffer_head * ext4_find_en
+ 			return bh;
+ 		dxtrace(printk("ext4_find_entry: dx failed, falling back\n"));
+ 	}
+-#endif
+ 	nblocks = dir->i_size >> EXT4_BLOCK_SIZE_BITS(sb);
+ 	start = EXT4_I(dir)->i_dir_start_lookup;
+ 	if (start >= nblocks)
+@@ -957,7 +952,6 @@ cleanup_and_exit:
+ 	return ret;
+ }
+ 
+-#ifdef CONFIG_EXT4_INDEX
+ static struct buffer_head * ext4_dx_find_entry(struct dentry *dentry,
+ 		       struct ext4_dir_entry_2 **res_dir, int *err)
+ {
+@@ -1025,7 +1019,6 @@ errout:
+ 	dx_release (frames);
+ 	return NULL;
+ }
+-#endif
+ 
+ static struct dentry *ext4_lookup(struct inode * dir, struct dentry *dentry, struct nameidata *nd)
+ {
+@@ -1121,7 +1114,6 @@ static inline void ext4_set_de_type(stru
+ 		de->file_type = ext4_type_by_mode[(mode & S_IFMT)>>S_SHIFT];
+ }
+ 
+-#ifdef CONFIG_EXT4_INDEX
+ /*
+  * Move count entries from end of map between two memory locations.
+  * Returns pointer to last entry moved.
+@@ -1266,8 +1258,6 @@ errout:
+ 	*error = err;
+ 	return NULL;
+ }
+-#endif
+-
+ 
+ /*
+  * Add a new entry into a directory (leaf) block.  If de is non-NULL,
+@@ -1364,7 +1354,6 @@ static int add_dirent_to_buf(handle_t *h
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_EXT4_INDEX
+ /*
+  * This converts a one block unindexed directory to a 3 block indexed
+  * directory, and adds the dentry to the indexed directory.
+@@ -1443,7 +1432,6 @@ static int make_indexed_dir(handle_t *ha
+ 
+ 	return add_dirent_to_buf(handle, dentry, inode, de, bh);
+ }
+-#endif
+ 
+ /*
+  *	ext4_add_entry()
+@@ -1464,9 +1452,7 @@ static int ext4_add_entry (handle_t *han
+ 	struct ext4_dir_entry_2 *de;
+ 	struct super_block * sb;
+ 	int	retval;
+-#ifdef CONFIG_EXT4_INDEX
+ 	int	dx_fallback=0;
+-#endif
+ 	unsigned blocksize;
+ 	u32 block, blocks;
+ 
+@@ -1474,7 +1460,6 @@ static int ext4_add_entry (handle_t *han
+ 	blocksize = sb->s_blocksize;
+ 	if (!dentry->d_name.len)
+ 		return -EINVAL;
+-#ifdef CONFIG_EXT4_INDEX
+ 	if (is_dx(dir)) {
+ 		retval = ext4_dx_add_entry(handle, dentry, inode);
+ 		if (!retval || (retval != ERR_BAD_DX_DIR))
+@@ -1483,7 +1468,6 @@ static int ext4_add_entry (handle_t *han
+ 		dx_fallback++;
+ 		ext4_mark_inode_dirty(handle, dir);
+ 	}
+-#endif
+ 	blocks = dir->i_size >> sb->s_blocksize_bits;
+ 	for (block = 0, offset = 0; block < blocks; block++) {
+ 		bh = ext4_bread(handle, dir, block, 0, &retval);
+@@ -1493,11 +1477,9 @@ static int ext4_add_entry (handle_t *han
+ 		if (retval != -ENOSPC)
+ 			return retval;
+ 
+-#ifdef CONFIG_EXT4_INDEX
+ 		if (blocks == 1 && !dx_fallback &&
+ 		    EXT4_HAS_COMPAT_FEATURE(sb, EXT4_FEATURE_COMPAT_DIR_INDEX))
+ 			return make_indexed_dir(handle, dentry, inode, bh);
+-#endif
+ 		brelse(bh);
+ 	}
+ 	bh = ext4_append(handle, dir, &block, &retval);
+@@ -1509,7 +1491,6 @@ static int ext4_add_entry (handle_t *han
+ 	return add_dirent_to_buf(handle, dentry, inode, de, bh);
+ }
+ 
+-#ifdef CONFIG_EXT4_INDEX
+ /*
+  * Returns 0 for success, or a negative error value
+  */
+@@ -1644,7 +1625,6 @@ cleanup:
+ 	dx_release(frames);
+ 	return err;
+ }
+-#endif
+ 
+ /*
+  * ext4_delete_entry deletes a directory entry by merging it with the
+Index: linux-2.6.23-rc9/include/linux/ext4_fs.h
+===================================================================
+--- linux-2.6.23-rc9.orig/include/linux/ext4_fs.h	2007-10-05 10:13:13.000000000 -0700
++++ linux-2.6.23-rc9/include/linux/ext4_fs.h	2007-10-05 10:13:17.000000000 -0700
+@@ -36,10 +36,6 @@
+ /*max window size: 1024(direct blocks) + 3([t,d]indirect blocks) */
+ #define EXT4_MAX_RESERVE_BLOCKS		1027
+ #define EXT4_RESERVE_WINDOW_NOT_ALLOCATED 0
+-/*
+- * Always enable hashed directories
+- */
+-#define CONFIG_EXT4_INDEX
+ 
+ /*
+  * Debug code
+@@ -766,17 +762,11 @@ struct ext4_dir_entry_2 {
+  * (c) Daniel Phillips, 2001
+  */
+ 
+-#ifdef CONFIG_EXT4_INDEX
+-  #define is_dx(dir) (EXT4_HAS_COMPAT_FEATURE(dir->i_sb, \
+-					      EXT4_FEATURE_COMPAT_DIR_INDEX) && \
++#define is_dx(dir) (EXT4_HAS_COMPAT_FEATURE(dir->i_sb, \
++				      EXT4_FEATURE_COMPAT_DIR_INDEX) && \
+ 		      (EXT4_I(dir)->i_flags & EXT4_INDEX_FL))
+ #define EXT4_DIR_LINK_MAX(dir) (!is_dx(dir) && (dir)->i_nlink >= EXT4_LINK_MAX)
+ #define EXT4_DIR_LINK_EMPTY(dir) ((dir)->i_nlink == 2 || (dir)->i_nlink == 1)
+-#else
+-  #define is_dx(dir) 0
+-#define EXT4_DIR_LINK_MAX(dir) ((dir)->i_nlink >= EXT4_LINK_MAX)
+-#define EXT4_DIR_LINK_EMPTY(dir) ((dir)->i_nlink == 2)
+-#endif
+ 
+ /* Legal values for the dx_root hash_version field: */
+ 
 
-Patches currently in -mm which might be from jrs@us.ibm.com are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
 origin.patch
-jbd-config_jbd_debug-cannot-create-proc-entry.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-jbd-fix-jbd-warnings-when-compiling-with-config_jbd_debug.patch
