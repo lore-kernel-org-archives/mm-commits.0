@@ -1,66 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - mm-oom_killc-use-list_for_each_entry-instead-of-list_for_each.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:51:14 -0700
-Message-ID: <200710192251.l9JMpEnM024167@imap1.linux-foundation.org>
+Subject: - jbd-fix-jbd-warnings-when-compiling-with-config_jbd_debug.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:49:41 -0700
+Message-ID: <200710192249.l9JMnfLM023988__31881.6299819902$1192835205$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43684 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51400 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765217AbXJSXF1 (ORCPT
+	by vger.kernel.org with ESMTP id S966981AbXJSXFb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 19:05:27 -0400
+	Fri, 19 Oct 2007 19:05:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.kaehlcke@gmail.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: jrs@us.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm/oom_kill.c: Use list_for_each_entry instead of list_for_each
+     JBD: Fix JBD warnings when compiling with CONFIG_JBD_DEBUG
 has been removed from the -mm tree.  Its filename was
-     mm-oom_killc-use-list_for_each_entry-instead-of-list_for_each.patch
+     jbd-fix-jbd-warnings-when-compiling-with-config_jbd_debug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mm/oom_kill.c: Use list_for_each_entry instead of list_for_each
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: JBD: Fix JBD warnings when compiling with CONFIG_JBD_DEBUG
+From: Jose R. Santos <jrs@us.ibm.com>
 
-mm/oom_kill.c: Convert list_for_each to list_for_each_entry in
-oom_kill_process()
+Note from Mingming's JBD2 fix:
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Noticed all warnings are occurs when the debug level is 0.  Then found the
+"jbd2: Move jbd2-debug file to debugfs" patch
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=0f49d5d019afa4e94253bfc92f0daca3badb990b
+
+changed the jbd2_journal_enable_debug from int type to u8, makes the
+jbd_debug comparision is always true when the debugging level is 0.  Thus
+the compile warning occurs.
+
+Thought about changing the jbd2_journal_enable_debug data type back to int,
+but can't, because the jbd2-debug is moved to debug fs, where calling
+debugfs_create_u8() to create the debugfs entry needs the value to be u8
+type.
+
+Even if we changed the data type back to int, the code is still buggy,
+kernel should not print jbd2 debug message if the jbd2_journal_enable_debug
+is set to 0.  But this is not the case.
+
+The fix is change the level of debugging to 1.  The same should fixed in
+ext3/JBD, but currently ext3 jbd-debug via /proc fs is broken, so we
+probably should fix it all together.
+
+Signed-off-by: Jose R. Santos <jrs@us.ibm.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/ext3/inode.c   |    2 +-
+ fs/jbd/recovery.c |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom_killc-use-list_for_each_entry-instead-of-list_for_each mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_killc-use-list_for_each_entry-instead-of-list_for_each
-+++ a/mm/oom_kill.c
-@@ -337,7 +337,6 @@ static int oom_kill_process(struct task_
- 			    unsigned long points, const char *message)
- {
- 	struct task_struct *c;
--	struct list_head *tsk;
+diff -puN fs/ext3/inode.c~jbd-fix-jbd-warnings-when-compiling-with-config_jbd_debug fs/ext3/inode.c
+--- a/fs/ext3/inode.c~jbd-fix-jbd-warnings-when-compiling-with-config_jbd_debug
++++ a/fs/ext3/inode.c
+@@ -2954,7 +2954,7 @@ int ext3_write_inode(struct inode *inode
+ 		return 0;
  
- 	if (printk_ratelimit()) {
- 		printk(KERN_WARNING "%s invoked oom-killer: "
-@@ -360,8 +359,7 @@ static int oom_kill_process(struct task_
- 					message, p->pid, p->comm, points);
+ 	if (ext3_journal_current_handle()) {
+-		jbd_debug(0, "called recursively, non-PF_MEMALLOC!\n");
++		jbd_debug(1, "called recursively, non-PF_MEMALLOC!\n");
+ 		dump_stack();
+ 		return -EIO;
+ 	}
+diff -puN fs/jbd/recovery.c~jbd-fix-jbd-warnings-when-compiling-with-config_jbd_debug fs/jbd/recovery.c
+--- a/fs/jbd/recovery.c~jbd-fix-jbd-warnings-when-compiling-with-config_jbd_debug
++++ a/fs/jbd/recovery.c
+@@ -250,10 +250,10 @@ int journal_recover(journal_t *journal)
+ 	if (!err)
+ 		err = do_one_pass(journal, &info, PASS_REPLAY);
  
- 	/* Try to kill a child first */
--	list_for_each(tsk, &p->children) {
--		c = list_entry(tsk, struct task_struct, sibling);
-+	list_for_each_entry(c, &p->children, sibling) {
- 		if (c->mm == p->mm)
- 			continue;
- 		if (!oom_kill_task(c))
+-	jbd_debug(0, "JBD: recovery, exit status %d, "
++	jbd_debug(1, "JBD: recovery, exit status %d, "
+ 		  "recovered transactions %u to %u\n",
+ 		  err, info.start_transaction, info.end_transaction);
+-	jbd_debug(0, "JBD: Replayed %d and revoked %d/%d blocks\n",
++	jbd_debug(1, "JBD: Replayed %d and revoked %d/%d blocks\n",
+ 		  info.nr_replays, info.nr_revoke_hits, info.nr_revokes);
+ 
+ 	/* Restart the log at the next transaction ID, thus invalidating
+@@ -297,7 +297,7 @@ int journal_skip_recovery(journal_t *jou
+ #ifdef CONFIG_JBD_DEBUG
+ 		int dropped = info.end_transaction - be32_to_cpu(sb->s_sequence);
+ #endif
+-		jbd_debug(0,
++		jbd_debug(1,
+ 			  "JBD: ignoring %d transaction%s from the journal.\n",
+ 			  dropped, (dropped == 1) ? "" : "s");
+ 		journal->j_transaction_sequence = ++info.end_transaction;
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from jrs@us.ibm.com are
 
 origin.patch
-generic-ac97-mixer-modem-oss-use-list_for_each_entry.patch
-ftdi-elan-driver-convert-ftdi-u132_lock-to-mutex.patch
