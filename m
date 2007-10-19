@@ -1,87 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 22:07:32 -0700
-Message-ID: <200710190507.l9J57W2D016512@imap1.linux-foundation.org>
+Subject: - pid-namespaces-allow-cloning-of-new-namespace-merge-fix.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 22:15:08 -0700
+Message-ID: <200710190515.l9J5F8vJ016814@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53346 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35251 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752748AbXJSFOA (ORCPT
+	by vger.kernel.org with ESMTP id S1751987AbXJSFP2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 01:14:00 -0400
+	Fri, 19 Oct 2007 01:15:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, ghaskins@novell.com, mingo@elte.hu, stable@kernel.org, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, adobriyan@openvz.org, sukadev@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes
+     pid-namespaces-allow-cloning-of-new-namespace merge fix
 has been removed from the -mm tree.  Its filename was
-     lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+     pid-namespaces-allow-cloning-of-new-namespace-merge-fix.patch
 
-This patch was dropped because it was folded into workqueue-debug-flushing-deadlocks-with-lockdep.patch
+This patch was dropped because it was folded into pid-namespaces-allow-cloning-of-new-namespace.patch
 
 ------------------------------------------------------
-Subject: lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pid-namespaces-allow-cloning-of-new-namespace merge fix
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-ERROR: use tabs not spaces
-#29: FILE: kernel/lockdep.c:1524:
-+^I       ^I$
-
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-
-Cc: <stable@kernel.org>
-Cc: Gregory Haskins <ghaskins@novell.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Alexey Dobriyan <adobriyan@openvz.org>
+Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ kernel/fork.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN kernel/lockdep.c~lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes
-+++ a/kernel/lockdep.c
-@@ -1521,7 +1521,7 @@ cache_hit:
- }
+diff -puN kernel/fork.c~pid-namespaces-allow-cloning-of-new-namespace-merge-fix kernel/fork.c
+--- a/kernel/fork.c~pid-namespaces-allow-cloning-of-new-namespace-merge-fix
++++ a/kernel/fork.c
+@@ -1429,6 +1429,9 @@ long do_fork(unsigned long clone_flags,
+ 			task_pid_nr_ns(p, current->nsproxy->pid_ns) :
+ 				task_pid_vnr(p);
  
- static int validate_chain(struct task_struct *curr, struct lockdep_map *lock,
--	       	struct held_lock *hlock, int chain_head, u64 chain_key)
-+		struct held_lock *hlock, int chain_head, u64 chain_key)
- {
- 	/*
- 	 * Trylock needs to maintain the stack of held locks, but it
++		if (clone_flags & CLONE_PARENT_SETTID)
++			put_user(nr, parent_tidptr);
++
+ 		if (clone_flags & CLONE_VFORK) {
+ 			p->vfork_done = &vfork;
+ 			init_completion(&vfork);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-console-keyboard-events-and-accessibility.patch
-add-kernel-notifierc.patch
-console-events-and-accessibility.patch
-fix-random-hard-freeze-with-avm-cards-using-b1dma.patch
-jbd-config_jbd_debug-cannot-create-proc-entry.patch
-task-containersv11-shared-container-subsystem-group-arrays.patch
-add-containerstats-v3.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
+make-access-to-tasks-nsproxy-lighter.patch
 workqueue-debug-flushing-deadlocks-with-lockdep.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
 pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-allow-cloning-of-new-namespace-merge-fix.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-cpuset-sched_load_balance-flag.patch
-cpusets-decrustify-cpuset-mask-update-code.patch
-fix-cpusets-update_cpumask.patch
-remove-bits_to_type-macro.patch
-use-helpers-to-obtain-task-pid-in-printks.patch
+uninline-find_task_by_xxx-set-of-functions.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+isolate-some-explicit-usage-of-task-tgid.patch
+uninline-find_pid-etc-set-of-functions.patch
+uninline-the-task_xid_nr_ns-calls.patch
+proc-export-a-processes-resource-limits-via-proc-pid.patch
+fix-tsk-exit_state-usage-resend.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
 hotplug-cpu-migrate-a-task-within-its-cpuset.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified.patch
-ipc-integrate-ipc_checkid-into-ipc_lock.patch
-hook-up-group-scheduler-with-control-groups.patch
-linux-kernel-markers.patch
-linux-kernel-markers-samples.patch
-uninline-forkc-exitc.patch
