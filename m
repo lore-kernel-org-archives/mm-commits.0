@@ -1,105 +1,320 @@
 From: akpm@linux-foundation.org
-Subject: - mxser-remove-commented-crap.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:43:26 -0700
-Message-ID: <200710190343.l9J3hQsv013055@imap1.linux-foundation.org>
+Subject: - char-cyclades-remove-bottom-half-processing.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:44:15 -0700
+Message-ID: <200710190344.l9J3iF3H013128@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46666 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49685 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934165AbXJSD42 (ORCPT
+	by vger.kernel.org with ESMTP id S934363AbXJSD4b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:56:28 -0400
+	Thu, 18 Oct 2007 23:56:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk, paulkf@microgate.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mxser: remove commented crap
+     Char: cyclades, remove bottom half processing
 has been removed from the -mm tree.  Its filename was
-     mxser-remove-commented-crap.patch
+     char-cyclades-remove-bottom-half-processing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mxser: remove commented crap
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Char: cyclades, remove bottom half processing
+From: Jiri Slaby <jirislaby@gmail.com>
 
-This is years dead code and it keeps turning up in confusing ways when
-grepping for stuff.
+The work done in bottom half doesn't cost much cpu time (e.g.  tty_hangup
+itself schedules its own bottom half), it's possible to do the work in isr
+directly and save hence some .text.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Paul Fulghum <paulkf@microgate.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser.c |   19 -------------------
- 1 file changed, 19 deletions(-)
+ drivers/char/cyclades.c  |  111 ++++++-------------------------------
+ include/linux/cyclades.h |   15 -----
+ 2 files changed, 20 insertions(+), 106 deletions(-)
 
-diff -puN drivers/char/mxser.c~mxser-remove-commented-crap drivers/char/mxser.c
---- a/drivers/char/mxser.c~mxser-remove-commented-crap
-+++ a/drivers/char/mxser.c
-@@ -1938,14 +1938,6 @@ static irqreturn_t mxser_interrupt(int i
- 				inb(info->base + UART_MSR);
- 				continue;
- 			}
--			/* above add by Victor Yu. 09-13-2002 */
--			/*
--			   if (info->tty->flip.count < TTY_FLIPBUF_SIZE / 4) {
--			   info->IER |= MOXA_MUST_RECV_ISR;
--			   outb(info->IER, info->base + UART_IER);
--			   }
--			 */
--
+diff -puN drivers/char/cyclades.c~char-cyclades-remove-bottom-half-processing drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~char-cyclades-remove-bottom-half-processing
++++ a/drivers/char/cyclades.c
+@@ -897,71 +897,6 @@ static inline int serial_paranoia_check(
+ 	return 0;
+ }				/* serial_paranoia_check */
  
- 			/* mask by Victor Yu. 09-13-2002
- 			   if ( !info->tty ||
-@@ -2599,19 +2591,8 @@ static int mxser_change_speed(struct mxs
- 		info->IER |= UART_IER_MSI;
- 		if ((info->type == PORT_16550A) || (info->IsMoxaMustChipFlag)) {
- 			info->MCR |= UART_MCR_AFE;
--			/* status = mxser_get_msr(info->base, 0, info->port); */
 -/*
--	save_flags(flags);
--	cli();
--	status = inb(baseaddr + UART_MSR);
--	restore_flags(flags);
--*/
--			/* mxser_check_modem_status(info, status); */
- 		} else {
--			/* status = mxser_get_msr(info->base, 0, info->port); */
--			/* MX_LOCK(&info->slock); */
- 			status = inb(info->base + UART_MSR);
--			/* MX_UNLOCK(&info->slock); */
- 			if (info->tty->hw_stopped) {
- 				if (status & UART_MSR_CTS) {
- 					info->tty->hw_stopped = 0;
+- * This routine is used by the interrupt handler to schedule
+- * processing in the software interrupt portion of the driver
+- * (also known as the "bottom half").  This can be called any
+- * number of times for any channel without harm.
+- */
+-static inline void cy_sched_event(struct cyclades_port *info, int event)
+-{
+-	info->event |= 1 << event; /* remember what kind of event and who */
+-	schedule_work(&info->tqueue);
+-}				/* cy_sched_event */
+-
+-/*
+- * This routine is used to handle the "bottom half" processing for the
+- * serial driver, known also the "software interrupt" processing.
+- * This processing is done at the kernel interrupt level, after the
+- * cy#/_interrupt() has returned, BUT WITH INTERRUPTS TURNED ON.  This
+- * is where time-consuming activities which can not be done in the
+- * interrupt driver proper are done; the interrupt driver schedules
+- * them using cy_sched_event(), and they get done here.
+- *
+- * This is done through one level of indirection--the task queue.
+- * When a hardware interrupt service routine wants service by the
+- * driver's bottom half, it enqueues the appropriate tq_struct (one
+- * per port) to the keventd work queue and sets a request flag
+- * that the work queue be processed.
+- *
+- * Although this may seem unwieldy, it gives the system a way to
+- * pass an argument (in this case the pointer to the cyclades_port
+- * structure) to the bottom half of the driver.  Previous kernels
+- * had to poll every port to see if that port needed servicing.
+- */
+-static void
+-do_softint(struct work_struct *work)
+-{
+-	struct cyclades_port *info =
+-		container_of(work, struct cyclades_port, tqueue);
+-	struct tty_struct    *tty;
+-
+-	tty = info->tty;
+-	if (!tty)
+-		return;
+-
+-	if (test_and_clear_bit(Cy_EVENT_HANGUP, &info->event)) {
+-		tty_hangup(info->tty);
+-		wake_up_interruptible(&info->open_wait);
+-		        info->flags &= ~ASYNC_NORMAL_ACTIVE;
+-	}
+-	if (test_and_clear_bit(Cy_EVENT_OPEN_WAKEUP, &info->event))
+-		wake_up_interruptible(&info->open_wait);
+-#ifdef CONFIG_CYZ_INTR
+-	if (test_and_clear_bit(Cy_EVENT_Z_RX_FULL, &info->event) &&
+-			!timer_pending(&cyz_rx_full_timer[info->line]))
+-		mod_timer(&cyz_rx_full_timer[info->line], jiffies + 1);
+-#endif
+-	if (test_and_clear_bit(Cy_EVENT_DELTA_WAKEUP, &info->event))
+-		wake_up_interruptible(&info->delta_msr_wait);
+-	tty_wakeup(tty);
+-#ifdef Z_WAKE
+-	if (test_and_clear_bit(Cy_EVENT_SHUTDOWN_WAKEUP, &info->event))
+-		complete(&info->shutdown_wait);
+-#endif
+-} /* do_softint */
+-
+-
+ /***********************************************************/
+ /********* Start of block of Cyclom-Y specific code ********/
+ 
+@@ -1243,7 +1178,7 @@ static void cyy_intr_chip(struct cyclade
+ 			cy_writeb(base_addr + (CySRER << index),
+ 				  readb(base_addr + (CySRER << index)) &
+ 				  ~CyTxRdy);
+-			goto txdone;
++			goto txend;
+ 		}
+ 
+ 		/* load the on-chip space for outbound data */
+@@ -1334,9 +1269,7 @@ static void cyy_intr_chip(struct cyclade
+ 		}
+ 
+ txdone:
+-		if (info->xmit_cnt < WAKEUP_CHARS) {
+-			cy_sched_event(info, Cy_EVENT_WRITE_WAKEUP);
+-		}
++		tty_wakeup(info->tty);
+ txend:
+ 		/* end of service */
+ 		cy_writeb(base_addr + (CyTIR << index), (save_xir & 0x3f));
+@@ -1369,17 +1302,16 @@ txend:
+ 				if (mdm_change & CyRI)
+ 					info->icount.rng++;
+ 
+-				cy_sched_event(info, Cy_EVENT_DELTA_WAKEUP);
++				wake_up_interruptible(&info->delta_msr_wait);
+ 			}
+ 
+ 			if ((mdm_change & CyDCD) &&
+ 					(info->flags & ASYNC_CHECK_CD)) {
+-				if (mdm_status & CyDCD) {
+-					cy_sched_event(info,
+-							Cy_EVENT_OPEN_WAKEUP);
+-				} else {
+-					cy_sched_event(info, Cy_EVENT_HANGUP);
++				if (!(mdm_status & CyDCD)) {
++					tty_hangup(info->tty);
++					info->flags &= ~ASYNC_NORMAL_ACTIVE;
+ 				}
++				wake_up_interruptible(&info->open_wait);
+ 			}
+ 			if ((mdm_change & CyCTS) &&
+ 					(info->flags & ASYNC_CTS_FLOW)) {
+@@ -1394,8 +1326,7 @@ txend:
+ 								(CySRER <<
+ 									index))|
+ 							CyTxRdy);
+-						cy_sched_event(info,
+-							Cy_EVENT_WRITE_WAKEUP);
++						tty_wakeup(info->tty);
+ 					}
+ 				} else {
+ 					if (!(mdm_status & CyCTS)) {
+@@ -1633,9 +1564,11 @@ cyz_handle_rx(struct cyclades_port *info
+ 				char_count = rx_put - rx_get;
+ 			else
+ 				char_count = rx_put - rx_get + rx_bufsize;
+-			if (char_count >= (int)readl(&buf_ctrl->rx_threshold)) {
+-				cy_sched_event(info, Cy_EVENT_Z_RX_FULL);
+-			}
++			if (char_count >= (int)readl(&buf_ctrl->rx_threshold) &&
++					!timer_pending(&cyz_rx_full_timer[
++							info->line]))
++				mod_timer(&cyz_rx_full_timer[info->line],
++						jiffies + 1);
+ #endif
+ 			info->idle_stats.recv_idle = jiffies;
+ 			tty_schedule_flip(tty);
+@@ -1717,9 +1650,7 @@ cyz_handle_tx(struct cyclades_port *info
+ 		}
+ #endif
+ ztxdone:
+-		if (info->xmit_cnt < WAKEUP_CHARS) {
+-			cy_sched_event(info, Cy_EVENT_WRITE_WAKEUP);
+-		}
++		tty_wakeup(tty);
+ 		/* Update tx_put */
+ 		cy_writel(&buf_ctrl->tx_put, tx_put);
+ 	}
+@@ -1781,10 +1712,11 @@ static void cyz_handle_cmd(struct cyclad
+ 				if ((fw_ver > 241 ? ((u_long) param) :
+ 						readl(&ch_ctrl->rs_status)) &
+ 						C_RS_DCD) {
+-					cy_sched_event(info,
+-						 	Cy_EVENT_OPEN_WAKEUP);
++					wake_up_interruptible(&info->open_wait);
+ 				} else {
+-					cy_sched_event(info, Cy_EVENT_HANGUP);
++					tty_hangup(info->tty);
++					wake_up_interruptible(&info->open_wait);
++					info->flags &= ~ASYNC_NORMAL_ACTIVE;
+ 				}
+ 			}
+ 			break;
+@@ -1802,7 +1734,7 @@ static void cyz_handle_cmd(struct cyclad
+ 			break;
+ #ifdef Z_WAKE
+ 		case C_CM_IOCTLW:
+-			cy_sched_event(info, Cy_EVENT_SHUTDOWN_WAKEUP);
++			complete(&info->shutdown_wait);
+ 			break;
+ #endif
+ #ifdef CONFIG_CYZ_INTR
+@@ -1834,7 +1766,7 @@ static void cyz_handle_cmd(struct cyclad
+ 			break;
+ 		}
+ 		if (delta_count)
+-			cy_sched_event(info, Cy_EVENT_DELTA_WAKEUP);
++			wake_up_interruptible(&info->delta_msr_wait);
+ 		if (special_count)
+ 			tty_schedule_flip(tty);
+ 	}
+@@ -2812,7 +2744,6 @@ static void cy_close(struct tty_struct *
+ 	spin_lock_irqsave(&card->card_lock, flags);
+ 
+ 	tty->closing = 0;
+-	info->event = 0;
+ 	info->tty = NULL;
+ 	if (info->blocked_open) {
+ 		spin_unlock_irqrestore(&card->card_lock, flags);
+@@ -4444,7 +4375,6 @@ static void cy_hangup(struct tty_struct 
+ 
+ 	cy_flush_buffer(tty);
+ 	shutdown(info);
+-	info->event = 0;
+ 	info->count = 0;
+ #ifdef CY_DEBUG_COUNT
+ 	printk(KERN_DEBUG "cyc:cy_hangup (%d): setting count to 0\n",
+@@ -4502,7 +4432,6 @@ static int __devinit cy_init_card(struct
+ 		info->closing_wait = CLOSING_WAIT_DELAY;
+ 		info->close_delay = 5 * HZ / 10;
+ 
+-		INIT_WORK(&info->tqueue, do_softint);
+ 		init_waitqueue_head(&info->open_wait);
+ 		init_waitqueue_head(&info->close_wait);
+ 		init_completion(&info->shutdown_wait);
+diff -puN include/linux/cyclades.h~char-cyclades-remove-bottom-half-processing include/linux/cyclades.h
+--- a/include/linux/cyclades.h~char-cyclades-remove-bottom-half-processing
++++ a/include/linux/cyclades.h
+@@ -569,7 +569,6 @@ struct cyclades_port {
+ 	int                     x_char; /* to be pushed out ASAP */
+ 	int			close_delay;
+ 	unsigned short		closing_wait;
+-	unsigned long		event;
+ 	int			count;	/* # of fd on device */
+ 	int                     breakon;
+ 	int                     breakoff;
+@@ -584,7 +583,6 @@ struct cyclades_port {
+ 	struct cyclades_monitor	mon;
+ 	struct cyclades_idle_stats	idle_stats;
+ 	struct cyclades_icount	icount;
+-	struct work_struct	tqueue;
+ 	wait_queue_head_t       open_wait;
+ 	wait_queue_head_t       close_wait;
+ 	struct completion       shutdown_wait;
+@@ -592,19 +590,6 @@ struct cyclades_port {
+ 	int throttle;
+ };
+ 
+-/*
+- * Events are used to schedule things to happen at timer-interrupt
+- * time, instead of at cy interrupt time.
+- */
+-#define Cy_EVENT_READ_PROCESS		0
+-#define Cy_EVENT_WRITE_WAKEUP		1
+-#define Cy_EVENT_HANGUP			2
+-#define Cy_EVENT_BREAK			3
+-#define Cy_EVENT_OPEN_WAKEUP		4
+-#define Cy_EVENT_SHUTDOWN_WAKEUP	5
+-#define	Cy_EVENT_DELTA_WAKEUP		6
+-#define	Cy_EVENT_Z_RX_FULL		7
+-
+ #define	CLOSING_WAIT_DELAY	30*HZ
+ #define CY_CLOSING_WAIT_NONE	65535
+ #define CY_CLOSING_WAIT_INF	0
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-git-libata-all.patch
-pata_cs5536-mwdma-fix.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-git-scsi-misc.patch
-initio-fix-conflict-when-loading-driver.patch
-isd200-sort-out-usb-ide-dependancy-mess.patch
-usb_serial-stop-passing-null-to-functions-that-expect-data.patch
-ark3116-update-termios-handling.patch
-usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch
-ch341-fix-termios-handling.patch
-digi_acceleport-fix-termios-and-also-readability-a-bit.patch
-empeg-clean-up-and-handle-speeds.patch
-ir_usb-termios-handling.patch
-keyspan-termios-tidy.patch
-kobil_sct-termios-encoding-fixups.patch
-option-termios-handling.patch
-sierra-termios.patch
-usb-serial-handle-null-termios-methods-as-no-hardware-changing-support.patch
-whiteheat-clean-up-cant-happen-checks-and-encode-baud.patch
-cp2101-convert-to-new-termios.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-io_edgeport-cleanups-and-tty-speed-reporting.patch
-tty-kill-tty_flipbuf_size.patch
+git-dvb.patch
+v4l-stk11xx-add-a-new-webcam-driver.patch
+v4l-stk11xx-use-array_size-in-another-2-cases.patch
+v4l-stk11xx-use-retval-from-stk11xx_check_device.patch
+v4l-stk11xx-add-static-to-tables.patch
+git-wireless.patch
+misc-phantom-synchronize_irq-on-suspend.patch
+misc-phantom-add-comment-about-openhaptics.patch
+misc-phantom-improved-data-passing.patch
+fs-select-remove-unused-macros.patch
+remove-asm-bitopsh-includes.patch
+forbid-asm-bitopsh-direct-inclusion.patch
+cyber2000fb-rename-bit-macro.patch
+i2c-pxa-rename-bit-macro-to-pxa_bit.patch
+s2io-rename-bit-macro.patch
+amba-pl011-rename-bit-macro.patch
+define-first-set-of-bit-macros.patch
+get-rid-of-input-bit-duplicate-defines.patch
+define-global-bit-macro.patch
+flashpoint-use-bit-instead-of-bitw.patch
+remove-bits_to_type-macro.patch
+remove-bits_to_type-macro-fix.patch
+remove-asm-bitopsh-includes-reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
