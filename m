@@ -1,105 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-use-is_reusable-to-catch-corruption.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:49:47 -0700
-Message-ID: <200710192249.l9JMnluB023997@imap1.linux-foundation.org>
+Subject: - kernel-exitc-use-list_for_each_entry_safe-instead-of-list_for_each_safe.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:51:10 -0700
+Message-ID: <200710192251.l9JMpARc024161@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36179 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44607 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765117AbXJSXFQ (ORCPT
+	by vger.kernel.org with ESMTP id S966659AbXJSXFR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 19:05:16 -0400
+	Fri, 19 Oct 2007 19:05:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeffm@suse.com, mm-commits@vger.kernel.org
+To: matthias.kaehlcke@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs: use is_reusable to catch corruption
+     kernel/exit.c: Use list_for_each_entry(_safe) instead of list_for_each(_safe)
 has been removed from the -mm tree.  Its filename was
-     reiserfs-use-is_reusable-to-catch-corruption.patch
+     kernel-exitc-use-list_for_each_entry_safe-instead-of-list_for_each_safe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: reiserfs: use is_reusable to catch corruption
-From: Jeff Mahoney <jeffm@suse.com>
+Subject: kernel/exit.c: Use list_for_each_entry(_safe) instead of list_for_each(_safe)
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-Build in is_reusable() unconditionally and use it to catch corruption before
-it reaches the block freeing paths.
+kernel/exit.c: Convert list_for_each(_safe) to
+list_for_each_entry(_safe) in forget_original_parent(), exit_notify()
+and do_wait()
 
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/bitmap.c |   21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+ kernel/exit.c |   19 ++++++-------------
+ 1 file changed, 6 insertions(+), 13 deletions(-)
 
-diff -puN fs/reiserfs/bitmap.c~reiserfs-use-is_reusable-to-catch-corruption fs/reiserfs/bitmap.c
---- a/fs/reiserfs/bitmap.c~reiserfs-use-is_reusable-to-catch-corruption
-+++ a/fs/reiserfs/bitmap.c
-@@ -56,7 +56,6 @@ static inline void get_bit_address(struc
- 	*offset = block & ((s->s_blocksize << 3) - 1);
- }
- 
--#ifdef CONFIG_REISERFS_CHECK
- int is_reusable(struct super_block *s, b_blocknr_t block, int bit_value)
+diff -puN kernel/exit.c~kernel-exitc-use-list_for_each_entry_safe-instead-of-list_for_each_safe kernel/exit.c
+--- a/kernel/exit.c~kernel-exitc-use-list_for_each_entry_safe-instead-of-list_for_each_safe
++++ a/kernel/exit.c
+@@ -669,8 +669,7 @@ reparent_thread(struct task_struct *p, s
+ static void
+ forget_original_parent(struct task_struct *father, struct list_head *to_release)
  {
- 	int bmap, offset;
-@@ -106,7 +105,6 @@ int is_reusable(struct super_block *s, b
+-	struct task_struct *p, *reaper = father;
+-	struct list_head *_p, *_n;
++	struct task_struct *p, *n, *reaper = father;
  
- 	return 1;
- }
--#endif				/* CONFIG_REISERFS_CHECK */
+ 	do {
+ 		reaper = next_thread(reaper);
+@@ -688,9 +687,8 @@ forget_original_parent(struct task_struc
+ 	 *
+ 	 * Search them and reparent children.
+ 	 */
+-	list_for_each_safe(_p, _n, &father->children) {
++	list_for_each_entry_safe(p, n, &father->children, sibling) {
+ 		int ptrace;
+-		p = list_entry(_p, struct task_struct, sibling);
  
- /* searches in journal structures for a given block number (bmap, off). If block
-    is found in reiserfs journal it suggests next free block candidate to test. */
-@@ -434,12 +432,19 @@ void reiserfs_free_block(struct reiserfs
- 			 int for_unformatted)
- {
- 	struct super_block *s = th->t_super;
+ 		ptrace = p->ptrace;
+ 
+@@ -718,8 +716,7 @@ forget_original_parent(struct task_struc
+ 		if (unlikely(ptrace && p->exit_state == EXIT_ZOMBIE && p->exit_signal == -1))
+ 			list_add(&p->ptrace_list, to_release);
+ 	}
+-	list_for_each_safe(_p, _n, &father->ptrace_children) {
+-		p = list_entry(_p, struct task_struct, ptrace_list);
++	list_for_each_entry_safe(p, n, &father->ptrace_children, ptrace_list) {
+ 		p->real_parent = reaper;
+ 		reparent_thread(p, father, 1);
+ 	}
+@@ -1518,12 +1515,9 @@ repeat:
+ 	tsk = current;
+ 	do {
+ 		struct task_struct *p;
+-		struct list_head *_p;
+ 		int ret;
+ 
+-		list_for_each(_p,&tsk->children) {
+-			p = list_entry(_p, struct task_struct, sibling);
 -
- 	BUG_ON(!th->t_trans_id);
- 
- 	RFALSE(!s, "vs-4061: trying to free block on nonexistent device");
--	RFALSE(is_reusable(s, block, 1) == 0,
--	       "vs-4071: can not free such block");
-+	if (!is_reusable(s, block, 1))
-+		return;
-+
-+	if (block > sb_block_count(REISERFS_SB(s)->s_rs)) {
-+		reiserfs_panic(th->t_super, "bitmap-4072",
-+			       "Trying to free block outside file system "
-+			       "boundaries (%lu > %lu)",
-+			       block, sb_block_count(REISERFS_SB(s)->s_rs));
-+		return;
-+	}
- 	/* mark it before we clear it, just in case */
- 	journal_mark_freed(th, s, block);
- 	_reiserfs_free_block(th, inode, block, for_unformatted);
-@@ -449,11 +454,11 @@ void reiserfs_free_block(struct reiserfs
- static void reiserfs_free_prealloc_block(struct reiserfs_transaction_handle *th,
- 					 struct inode *inode, b_blocknr_t block)
- {
-+	BUG_ON(!th->t_trans_id);
- 	RFALSE(!th->t_super,
- 	       "vs-4060: trying to free block on nonexistent device");
--	RFALSE(is_reusable(th->t_super, block, 1) == 0,
--	       "vs-4070: can not free such block");
--	BUG_ON(!th->t_trans_id);
-+	if (!is_reusable(th->t_super, block, 1))
-+		return;
- 	_reiserfs_free_block(th, inode, block, 1);
- }
- 
++		list_for_each_entry(p, &tsk->children, sibling) {
+ 			ret = eligible_child(pid, options, p);
+ 			if (!ret)
+ 				continue;
+@@ -1605,9 +1599,8 @@ check_continued:
+ 			}
+ 		}
+ 		if (!flag) {
+-			list_for_each(_p, &tsk->ptrace_children) {
+-				p = list_entry(_p, struct task_struct,
+-						ptrace_list);
++			list_for_each_entry(p, &tsk->ptrace_children,
++					    ptrace_list) {
+ 				if (!eligible_child(pid, options, p))
+ 					continue;
+ 				flag = 1;
 _
 
-Patches currently in -mm which might be from jeffm@suse.com are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
 origin.patch
-exportfs-add-fid-type.patch
-exportfs-add-new-methods.patch
-reiserfs-new-export-ops.patch
-exportfs-remove-old-methods.patch
-exportfs-make-struct-export_operations-const.patch
-exportfs-update-documentation.patch
+generic-ac97-mixer-modem-oss-use-list_for_each_entry.patch
+ftdi-elan-driver-convert-ftdi-u132_lock-to-mutex.patch
