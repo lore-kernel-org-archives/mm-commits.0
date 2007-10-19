@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - fuse-add-support-for-mandatory-locking.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:46:03 -0700
-Message-ID: <200710190346.l9J3k3YU013278@imap1.linux-foundation.org>
+Subject: - fuse-fix-allowing-operations.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:45:42 -0700
+Message-ID: <200710190345.l9J3jgvL013242@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54623 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42405 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763985AbXJSDzS (ORCPT
+	by vger.kernel.org with ESMTP id S1752604AbXJSDzS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 18 Oct 2007 23:55:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,223 +15,93 @@ To: mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fuse: add support for mandatory locking
+     fuse: fix allowing operations
 has been removed from the -mm tree.  Its filename was
-     fuse-add-support-for-mandatory-locking.patch
+     fuse-fix-allowing-operations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fuse: add support for mandatory locking
+Subject: fuse: fix allowing operations
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-For mandatory locking the userspace filesystem needs to know the lock
-ownership for read, write and truncate operations.
+The following operation didn't check if sending the request was allowed:
 
-This patch adds the necessary fields to the protocol.
+  setattr
+  listxattr
+  statfs
+
+Some other operations don't explicitly do the check, but VFS calls
+->permission() which checks this.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/dir.c        |    5 +++++
- fs/fuse/file.c       |   37 +++++++++++++++++++++++++++++--------
- fs/fuse/fuse_i.h     |    2 ++
- include/linux/fuse.h |   17 +++++++++++++++--
- 4 files changed, 51 insertions(+), 10 deletions(-)
+ fs/fuse/dir.c    |    8 +++++++-
+ fs/fuse/fuse_i.h |    5 +++++
+ fs/fuse/inode.c  |    5 +++++
+ 3 files changed, 17 insertions(+), 1 deletion(-)
 
-diff -puN fs/fuse/dir.c~fuse-add-support-for-mandatory-locking fs/fuse/dir.c
---- a/fs/fuse/dir.c~fuse-add-support-for-mandatory-locking
+diff -puN fs/fuse/dir.c~fuse-fix-allowing-operations fs/fuse/dir.c
+--- a/fs/fuse/dir.c~fuse-fix-allowing-operations
 +++ a/fs/fuse/dir.c
-@@ -1108,6 +1108,11 @@ static int fuse_do_setattr(struct dentry
- 		inarg.valid |= FATTR_FH;
- 		inarg.fh = ff->fh;
- 	}
-+	if (attr->ia_valid & ATTR_SIZE) {
-+		/* For mandatory locking in truncate */
-+		inarg.valid |= FATTR_LOCKOWNER;
-+		inarg.lock_owner = fuse_lock_owner_id(fc, current->files);
-+	}
- 	req->in.h.opcode = FUSE_SETATTR;
- 	req->in.h.nodeid = get_node_id(inode);
- 	req->in.numargs = 1;
-diff -puN fs/fuse/file.c~fuse-add-support-for-mandatory-locking fs/fuse/file.c
---- a/fs/fuse/file.c~fuse-add-support-for-mandatory-locking
-+++ a/fs/fuse/file.c
-@@ -189,7 +189,7 @@ static int fuse_release(struct inode *in
-  * Scramble the ID space with XTEA, so that the value of the files_struct
-  * pointer is not exposed to userspace.
+@@ -721,7 +721,7 @@ static int fuse_refresh_attributes(struc
+  * for which the owner of the mount has ptrace privilege.  This
+  * excludes processes started by other users, suid or sgid processes.
   */
--static u64 fuse_lock_owner_id(struct fuse_conn *fc, fl_owner_t id)
-+u64 fuse_lock_owner_id(struct fuse_conn *fc, fl_owner_t id)
+-static int fuse_allow_task(struct fuse_conn *fc, struct task_struct *task)
++int fuse_allow_task(struct fuse_conn *fc, struct task_struct *task)
  {
- 	u32 *k = fc->scramble_key;
- 	u64 v = (unsigned long) id;
-@@ -308,11 +308,19 @@ void fuse_read_fill(struct fuse_req *req
- }
+ 	if (fc->flags & FUSE_ALLOW_OTHER)
+ 		return 1;
+@@ -1005,6 +1005,9 @@ static int fuse_setattr(struct dentry *e
+ 	struct fuse_attr_out outarg;
+ 	int err;
  
- static size_t fuse_send_read(struct fuse_req *req, struct file *file,
--			     struct inode *inode, loff_t pos, size_t count)
-+			     struct inode *inode, loff_t pos, size_t count,
-+			     fl_owner_t owner)
- {
- 	struct fuse_conn *fc = get_fuse_conn(inode);
- 	struct fuse_file *ff = file->private_data;
++	if (!fuse_allow_task(fc, current))
++		return -EACCES;
 +
- 	fuse_read_fill(req, ff, inode, pos, count, FUSE_READ);
-+	if (owner != NULL) {
-+		struct fuse_read_in *inarg = &req->misc.read_in;
+ 	if (fc->flags & FUSE_DEFAULT_PERMISSIONS) {
+ 		err = inode_change_ok(inode, attr);
+ 		if (err)
+@@ -1172,6 +1175,9 @@ static ssize_t fuse_listxattr(struct den
+ 	struct fuse_getxattr_out outarg;
+ 	ssize_t ret;
+ 
++	if (!fuse_allow_task(fc, current))
++		return -EACCES;
 +
-+		inarg->read_flags |= FUSE_READ_LOCKOWNER;
-+		inarg->lock_owner = fuse_lock_owner_id(fc, owner);
-+	}
- 	request_send(fc, req);
- 	return req->out.args[0].size;
- }
-@@ -336,7 +344,8 @@ static int fuse_readpage(struct file *fi
- 	req->out.page_zeroing = 1;
- 	req->num_pages = 1;
- 	req->pages[0] = page;
--	fuse_send_read(req, file, inode, page_offset(page), PAGE_CACHE_SIZE);
-+	fuse_send_read(req, file, inode, page_offset(page), PAGE_CACHE_SIZE,
-+		       NULL);
- 	err = req->out.h.error;
- 	fuse_put_request(fc, req);
- 	if (!err)
-@@ -447,6 +456,7 @@ static void fuse_write_fill(struct fuse_
- 			    struct inode *inode, loff_t pos, size_t count,
- 			    int writepage)
- {
-+	struct fuse_conn *fc = get_fuse_conn(inode);
- 	struct fuse_write_in *inarg = &req->misc.write.in;
- 	struct fuse_write_out *outarg = &req->misc.write.out;
+ 	if (fc->no_listxattr)
+ 		return -EOPNOTSUPP;
  
-@@ -459,7 +469,10 @@ static void fuse_write_fill(struct fuse_
- 	req->in.h.nodeid = get_node_id(inode);
- 	req->in.argpages = 1;
- 	req->in.numargs = 2;
--	req->in.args[0].size = sizeof(struct fuse_write_in);
-+	if (fc->minor < 9)
-+		req->in.args[0].size = FUSE_COMPAT_WRITE_IN_SIZE;
-+	else
-+		req->in.args[0].size = sizeof(struct fuse_write_in);
- 	req->in.args[0].value = inarg;
- 	req->in.args[1].size = count;
- 	req->out.numargs = 1;
-@@ -468,10 +481,16 @@ static void fuse_write_fill(struct fuse_
- }
- 
- static size_t fuse_send_write(struct fuse_req *req, struct file *file,
--			      struct inode *inode, loff_t pos, size_t count)
-+			      struct inode *inode, loff_t pos, size_t count,
-+			      fl_owner_t owner)
- {
- 	struct fuse_conn *fc = get_fuse_conn(inode);
- 	fuse_write_fill(req, file->private_data, inode, pos, count, 0);
-+	if (owner != NULL) {
-+		struct fuse_write_in *inarg = &req->misc.write.in;
-+		inarg->write_flags |= FUSE_WRITE_LOCKOWNER;
-+		inarg->lock_owner = fuse_lock_owner_id(fc, owner);
-+	}
- 	request_send(fc, req);
- 	return req->misc.write.out.size;
- }
-@@ -508,7 +527,7 @@ static int fuse_buffered_write(struct fi
- 	req->num_pages = 1;
- 	req->pages[0] = page;
- 	req->page_offset = offset;
--	nres = fuse_send_write(req, file, inode, pos, count);
-+	nres = fuse_send_write(req, file, inode, pos, count, NULL);
- 	err = req->out.h.error;
- 	fuse_put_request(fc, req);
- 	if (!err && !nres)
-@@ -609,9 +628,11 @@ static ssize_t fuse_direct_io(struct fil
- 		nbytes = (req->num_pages << PAGE_SHIFT) - req->page_offset;
- 		nbytes = min(count, nbytes);
- 		if (write)
--			nres = fuse_send_write(req, file, inode, pos, nbytes);
-+			nres = fuse_send_write(req, file, inode, pos, nbytes,
-+					       current->files);
- 		else
--			nres = fuse_send_read(req, file, inode, pos, nbytes);
-+			nres = fuse_send_read(req, file, inode, pos, nbytes,
-+					      current->files);
- 		fuse_release_user_pages(req, !write);
- 		if (req->out.h.error) {
- 			if (!res)
-diff -puN fs/fuse/fuse_i.h~fuse-add-support-for-mandatory-locking fs/fuse/fuse_i.h
---- a/fs/fuse/fuse_i.h~fuse-add-support-for-mandatory-locking
+diff -puN fs/fuse/fuse_i.h~fuse-fix-allowing-operations fs/fuse/fuse_i.h
+--- a/fs/fuse/fuse_i.h~fuse-fix-allowing-operations
 +++ a/fs/fuse/fuse_i.h
-@@ -591,3 +591,5 @@ int fuse_valid_type(int m);
-  * Is task allowed to perform filesystem operation?
+@@ -565,3 +565,8 @@ void fuse_ctl_remove_conn(struct fuse_co
+  * Is file type valid?
   */
- int fuse_allow_task(struct fuse_conn *fc, struct task_struct *task);
-+
-+u64 fuse_lock_owner_id(struct fuse_conn *fc, fl_owner_t id);
-diff -puN include/linux/fuse.h~fuse-add-support-for-mandatory-locking include/linux/fuse.h
---- a/include/linux/fuse.h~fuse-add-support-for-mandatory-locking
-+++ a/include/linux/fuse.h
-@@ -14,6 +14,7 @@
-  * 7.9:
-  *  - new fuse_getattr_in input argument of GETATTR
-  *  - add lk_flags in fuse_lk_in
-+ *  - add lock_owner field to fuse_setattr_in, fuse_read_in and fuse_write_in
-  */
- 
- #include <asm/types.h>
-@@ -86,6 +87,7 @@ struct fuse_file_lock {
- #define FATTR_FH	(1 << 6)
- #define FATTR_ATIME_NOW	(1 << 7)
- #define FATTR_MTIME_NOW	(1 << 8)
-+#define FATTR_LOCKOWNER	(1 << 9)
- 
- /**
-  * Flags returned by the OPEN request
-@@ -123,8 +125,15 @@ struct fuse_file_lock {
-  * WRITE flags
-  *
-  * FUSE_WRITE_CACHE: delayed write from page cache, file handle is guessed
-+ * FUSE_WRITE_LOCKOWNER: lock_owner field is valid
-  */
- #define FUSE_WRITE_CACHE	(1 << 0)
-+#define FUSE_WRITE_LOCKOWNER	(1 << 1)
+ int fuse_valid_type(int m);
 +
 +/**
-+ * Read flags
++ * Is task allowed to perform filesystem operation?
 + */
-+#define FUSE_READ_LOCKOWNER	(1 << 1)
++int fuse_allow_task(struct fuse_conn *fc, struct task_struct *task);
+diff -puN fs/fuse/inode.c~fuse-fix-allowing-operations fs/fuse/inode.c
+--- a/fs/fuse/inode.c~fuse-fix-allowing-operations
++++ a/fs/fuse/inode.c
+@@ -287,6 +287,11 @@ static int fuse_statfs(struct dentry *de
+ 	struct fuse_statfs_out outarg;
+ 	int err;
  
- enum fuse_opcode {
- 	FUSE_LOOKUP	   = 1,
-@@ -219,7 +228,7 @@ struct fuse_setattr_in {
- 	__u32	padding;
- 	__u64	fh;
- 	__u64	size;
--	__u64	unused1;
-+	__u64	lock_owner;
- 	__u64	atime;
- 	__u64	mtime;
- 	__u64	unused2;
-@@ -262,14 +271,18 @@ struct fuse_read_in {
- 	__u64	fh;
- 	__u64	offset;
- 	__u32	size;
--	__u32	padding;
-+	__u32	read_flags;
-+	__u64	lock_owner;
- };
- 
-+#define FUSE_COMPAT_WRITE_IN_SIZE 24
++	if (!fuse_allow_task(fc, current)) {
++		buf->f_type = FUSE_SUPER_MAGIC;
++		return 0;
++	}
 +
- struct fuse_write_in {
- 	__u64	fh;
- 	__u64	offset;
- 	__u32	size;
- 	__u32	write_flags;
-+	__u64	lock_owner;
- };
- 
- struct fuse_write_out {
+ 	req = fuse_get_req(fc);
+ 	if (IS_ERR(req))
+ 		return PTR_ERR(req);
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
