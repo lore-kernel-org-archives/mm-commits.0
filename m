@@ -1,62 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - fs-file_tablec-use-list_for_each_entry-instead-of-list_for_each.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:51:04 -0700
-Message-ID: <200710192251.l9JMp4jm024152@imap1.linux-foundation.org>
+Subject: - kernel-forkc-remove-unneeded-variable-initialization-in-copy_process.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:54:32 -0700
+Message-ID: <200710192254.l9JMsW7m024542@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57987 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36678 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760682AbXJSXFK (ORCPT
+	by vger.kernel.org with ESMTP id S1764343AbXJSXFN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 19:05:10 -0400
+	Fri, 19 Oct 2007 19:05:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.kaehlcke@gmail.com, mm-commits@vger.kernel.org
+To: m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/file_table.c: use list_for_each_entry() instead of list_for_each()
+     kernel/fork.c: remove unneeded variable initialization in copy_process()
 has been removed from the -mm tree.  Its filename was
-     fs-file_tablec-use-list_for_each_entry-instead-of-list_for_each.patch
+     kernel-forkc-remove-unneeded-variable-initialization-in-copy_process.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fs/file_table.c: use list_for_each_entry() instead of list_for_each()
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: kernel/fork.c: remove unneeded variable initialization in copy_process()
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-fs/file_table.c: use list_for_each_entry() instead of list_for_each()
-in fs_may_remount_ro()
+This initialization of is not needed so just remove it.
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/file_table.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ kernel/fork.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/file_table.c~fs-file_tablec-use-list_for_each_entry-instead-of-list_for_each fs/file_table.c
---- a/fs/file_table.c~fs-file_tablec-use-list_for_each_entry-instead-of-list_for_each
-+++ a/fs/file_table.c
-@@ -323,12 +323,11 @@ void file_kill(struct file *file)
- 
- int fs_may_remount_ro(struct super_block *sb)
+diff -puN kernel/fork.c~kernel-forkc-remove-unneeded-variable-initialization-in-copy_process kernel/fork.c
+--- a/kernel/fork.c~kernel-forkc-remove-unneeded-variable-initialization-in-copy_process
++++ a/kernel/fork.c
+@@ -978,7 +978,7 @@ static struct task_struct *copy_process(
+ 					struct pid *pid)
  {
--	struct list_head *p;
-+	struct file *file;
+ 	int retval;
+-	struct task_struct *p = NULL;
++	struct task_struct *p;
+ 	int cgroup_callbacks_done = 0;
  
- 	/* Check that no files are currently opened for writing. */
- 	file_list_lock();
--	list_for_each(p, &sb->s_files) {
--		struct file *file = list_entry(p, struct file, f_u.fu_list);
-+	list_for_each_entry(file, &sb->s_files, f_u.fu_list) {
- 		struct inode *inode = file->f_path.dentry->d_inode;
- 
- 		/* File with pending delete? */
+ 	if ((clone_flags & (CLONE_NEWNS|CLONE_FS)) == (CLONE_NEWNS|CLONE_FS))
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
 origin.patch
-generic-ac97-mixer-modem-oss-use-list_for_each_entry.patch
-ftdi-elan-driver-convert-ftdi-u132_lock-to-mutex.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
