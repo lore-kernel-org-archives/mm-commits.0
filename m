@@ -1,43 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: - pid-namespaces-initialize-the-namespaces-proc_mnt.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:51:50 -0700
-Message-ID: <200710192251.l9JMpoNx024215@imap1.linux-foundation.org>
+Subject: - pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:51:25 -0700
+Message-ID: <200710192251.l9JMpPgo024182@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58345 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44640 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966766AbXJSXGb (ORCPT
+	by vger.kernel.org with ESMTP id S966932AbXJSXGt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 19:06:31 -0400
+	Fri, 19 Oct 2007 19:06:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: xemul@openvz.org, ebiederm@xmission.com, menage@google.com, oleg@tv-sign.ru, sukadev@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pid namespaces: initialize the namespace's proc_mnt
+     pid namespaces: prepare proc_flust_task() to flush entries from multiple proc trees
 has been removed from the -mm tree.  Its filename was
-     pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+     pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pid namespaces: initialize the namespace's proc_mnt
+Subject: pid namespaces: prepare proc_flust_task() to flush entries from multiple proc trees
 From: Pavel Emelyanov <xemul@openvz.org>
 
-The namespace's proc_mnt must be kern_mount-ed to make this pointer always
-valid, independently of whether the user space mounted the proc or not.  This
-solves raced in proc_flush_task, etc.  with the proc_mnt switching from NULL
-to not-NULL.
+The first part is trivial - we just make the proc_flush_task() to operate on
+arbitrary vfsmount with arbitrary ids and pass the pid and global proc_mnt to
+it.
 
-The initialization is done after the init's pid is created and hashed to make
-proc_get_sb() finr it and get for root inode.
+The other change is more tricky: I moved the proc_flush_task() call in
+release_task() higher to address the following problem.
 
-Sice the namespace holds the vfsmnt, vfsmnt holds the superblock and the
-superblock holds the namespace we must explicitly break this circle to destroy
-all the stuff.  This is done after the init of the namespace dies.  Running a
-few steps forward - when init exits it will kill all its children, so no
-proc_mnt will be needed after its death.
+When flushing task from many proc trees we need to know the set of ids (not
+just one pid) to find the dentries' names to flush.  Thus we need to pass the
+task's pid to proc_flush_task() as struct pid is the only object that can
+provide all the pid numbers.  But after __exit_signal() task has detached all
+his pids and this information is lost.
+
+This creates a tiny gap for proc_pid_lookup() to bring some dentries back to
+tree and keep them in hash (since pids are still alive before __exit_signal())
+till the next shrink, but since proc_flush_task() does not provide a 100%
+guarantee that the dentries will be flushed, this is OK to do so.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
@@ -47,105 +51,117 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c          |    4 ++++
- fs/proc/root.c          |   16 ++++++++++++++++
- include/linux/proc_fs.h |   12 ++++++++++++
- kernel/fork.c           |    7 +++++++
- 4 files changed, 39 insertions(+)
+ fs/proc/base.c          |   27 ++++++++++++++++++++-------
+ include/linux/proc_fs.h |    4 +++-
+ kernel/exit.c           |    2 +-
+ 3 files changed, 24 insertions(+), 9 deletions(-)
 
-diff -puN fs/proc/base.c~pid-namespaces-initialize-the-namespaces-proc_mnt fs/proc/base.c
---- a/fs/proc/base.c~pid-namespaces-initialize-the-namespaces-proc_mnt
+diff -puN fs/proc/base.c~pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees fs/proc/base.c
+--- a/fs/proc/base.c~pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees
 +++ a/fs/proc/base.c
-@@ -2275,6 +2275,10 @@ void proc_flush_task(struct task_struct 
- 		proc_flush_task_mnt(upid->ns->proc_mnt, upid->nr,
- 				leader ? 0 : tgid->numbers[i].nr);
+@@ -74,6 +74,7 @@
+ #include <linux/nsproxy.h>
+ #include <linux/oom.h>
+ #include <linux/elf.h>
++#include <linux/pid_namespace.h>
+ #include "internal.h"
+ 
+ /* NOTE:
+@@ -2204,27 +2205,27 @@ static const struct inode_operations pro
+  *       that no dcache entries will exist at process exit time it
+  *       just makes it very unlikely that any will persist.
+  */
+-void proc_flush_task(struct task_struct *task)
++static void proc_flush_task_mnt(struct vfsmount *mnt, pid_t pid, pid_t tgid)
+ {
+ 	struct dentry *dentry, *leader, *dir;
+ 	char buf[PROC_NUMBUF];
+ 	struct qstr name;
+ 
+ 	name.name = buf;
+-	name.len = snprintf(buf, sizeof(buf), "%d", task->pid);
+-	dentry = d_hash_and_lookup(proc_mnt->mnt_root, &name);
++	name.len = snprintf(buf, sizeof(buf), "%d", pid);
++	dentry = d_hash_and_lookup(mnt->mnt_root, &name);
+ 	if (dentry) {
+ 		shrink_dcache_parent(dentry);
+ 		d_drop(dentry);
+ 		dput(dentry);
  	}
-+
-+	upid = &pid->numbers[pid->level];
-+	if (upid->nr == 1)
-+		pid_ns_release_proc(upid->ns);
+ 
+-	if (thread_group_leader(task))
++	if (tgid == 0)
+ 		goto out;
+ 
+ 	name.name = buf;
+-	name.len = snprintf(buf, sizeof(buf), "%d", task->tgid);
+-	leader = d_hash_and_lookup(proc_mnt->mnt_root, &name);
++	name.len = snprintf(buf, sizeof(buf), "%d", tgid);
++	leader = d_hash_and_lookup(mnt->mnt_root, &name);
+ 	if (!leader)
+ 		goto out;
+ 
+@@ -2235,7 +2236,7 @@ void proc_flush_task(struct task_struct 
+ 		goto out_put_leader;
+ 
+ 	name.name = buf;
+-	name.len = snprintf(buf, sizeof(buf), "%d", task->pid);
++	name.len = snprintf(buf, sizeof(buf), "%d", pid);
+ 	dentry = d_hash_and_lookup(dir, &name);
+ 	if (dentry) {
+ 		shrink_dcache_parent(dentry);
+@@ -2250,6 +2251,18 @@ out:
+ 	return;
  }
  
++/*
++ * when flushing dentries from proc one need to flush them from global
++ * proc (proc_mnt) and from all the namespaces' procs this task was seen
++ * in. this call is supposed to make all this job.
++ */
++
++void proc_flush_task(struct task_struct *task)
++{
++	proc_flush_task_mnt(proc_mnt, task->pid,
++			thread_group_leader(task) ? 0 : task->tgid);
++}
++
  static struct dentry *proc_pid_instantiate(struct inode *dir,
-diff -puN fs/proc/root.c~pid-namespaces-initialize-the-namespaces-proc_mnt fs/proc/root.c
---- a/fs/proc/root.c~pid-namespaces-initialize-the-namespaces-proc_mnt
-+++ a/fs/proc/root.c
-@@ -212,6 +212,22 @@ struct proc_dir_entry proc_root = {
- 	.parent		= &proc_root,
- };
- 
-+int pid_ns_prepare_proc(struct pid_namespace *ns)
-+{
-+	struct vfsmount *mnt;
-+
-+	mnt = kern_mount_data(&proc_fs_type, ns);
-+	if (IS_ERR(mnt))
-+		return PTR_ERR(mnt);
-+
-+	return 0;
-+}
-+
-+void pid_ns_release_proc(struct pid_namespace *ns)
-+{
-+	mntput(ns->proc_mnt);
-+}
-+
- EXPORT_SYMBOL(proc_symlink);
- EXPORT_SYMBOL(proc_mkdir);
- EXPORT_SYMBOL(create_proc_entry);
-diff -puN include/linux/proc_fs.h~pid-namespaces-initialize-the-namespaces-proc_mnt include/linux/proc_fs.h
---- a/include/linux/proc_fs.h~pid-namespaces-initialize-the-namespaces-proc_mnt
+ 					   struct dentry * dentry,
+ 					   struct task_struct *task, const void *ptr)
+diff -puN include/linux/proc_fs.h~pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees
 +++ a/include/linux/proc_fs.h
-@@ -143,6 +143,9 @@ extern const struct file_operations proc
- extern const struct file_operations proc_kmsg_operations;
- extern const struct file_operations ppc_htab_operations;
+@@ -207,7 +207,9 @@ extern void proc_net_remove(struct net *
+ #define proc_net_create(net, name, mode, info)	({ (void)(mode), NULL; })
+ static inline void proc_net_remove(struct net *net, const char *name) {}
  
-+extern int pid_ns_prepare_proc(struct pid_namespace *ns);
-+extern void pid_ns_release_proc(struct pid_namespace *ns);
-+
- /*
-  * proc_tty.c
-  */
-@@ -235,6 +238,15 @@ static inline void proc_tty_unregister_d
- 
- extern struct proc_dir_entry proc_root;
- 
-+static inline int pid_ns_prepare_proc(struct pid_namespace *ns)
-+{
-+	return 0;
-+}
-+
-+static inline void pid_ns_release_proc(struct pid_namespace *ns)
+-static inline void proc_flush_task(struct task_struct *task) { }
++static inline void proc_flush_task(struct task_struct *task)
 +{
 +}
-+
- #endif /* CONFIG_PROC_FS */
  
- #if !defined(CONFIG_PROC_KCORE)
-diff -puN kernel/fork.c~pid-namespaces-initialize-the-namespaces-proc_mnt kernel/fork.c
---- a/kernel/fork.c~pid-namespaces-initialize-the-namespaces-proc_mnt
-+++ a/kernel/fork.c
-@@ -50,6 +50,7 @@
- #include <linux/taskstats_kern.h>
- #include <linux/random.h>
- #include <linux/tty.h>
-+#include <linux/proc_fs.h>
- 
- #include <asm/pgtable.h>
- #include <asm/pgalloc.h>
-@@ -1150,6 +1151,12 @@ static struct task_struct *copy_process(
- 		pid = alloc_pid(task_active_pid_ns(p));
- 		if (!pid)
- 			goto bad_fork_cleanup_namespaces;
-+
-+		if (clone_flags & CLONE_NEWPID) {
-+			retval = pid_ns_prepare_proc(task_active_pid_ns(p));
-+			if (retval < 0)
-+				goto bad_fork_free_pid;
-+		}
+ static inline struct proc_dir_entry *create_proc_entry(const char *name,
+ 	mode_t mode, struct proc_dir_entry *parent) { return NULL; }
+diff -puN kernel/exit.c~pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees kernel/exit.c
+--- a/kernel/exit.c~pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees
++++ a/kernel/exit.c
+@@ -148,6 +148,7 @@ void release_task(struct task_struct * p
+ 	int zap_leader;
+ repeat:
+ 	atomic_dec(&p->user->processes);
++	proc_flush_task(p);
+ 	write_lock_irq(&tasklist_lock);
+ 	ptrace_unlink(p);
+ 	BUG_ON(!list_empty(&p->ptrace_list) || !list_empty(&p->ptrace_children));
+@@ -175,7 +176,6 @@ repeat:
  	}
  
- 	p->pid = pid_nr(pid);
+ 	write_unlock_irq(&tasklist_lock);
+-	proc_flush_task(p);
+ 	release_thread(p);
+ 	call_rcu(&p->rcu, delayed_put_task_struct);
+ 
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
