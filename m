@@ -1,84 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - linux-kernel-markers-samples-remove-asm.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 21:36:45 -0700
-Message-ID: <200710190436.l9J4ajwe015413@imap1.linux-foundation.org>
+Subject: - uninline-forkc-exitc-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 21:37:14 -0700
+Message-ID: <200710190437.l9J4bEw6015425@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59955 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49776 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751392AbXJSEg6 (ORCPT
+	by vger.kernel.org with ESMTP id S1753600AbXJSEiI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 00:36:58 -0400
+	Fri, 19 Oct 2007 00:38:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adobriyan@sw.ru, arjan@infradead.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Linux Kernel Markers - Remove Unneeded asm
+     uninline-forkc-exitc-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     linux-kernel-markers-samples-remove-asm.patch
+     uninline-forkc-exitc-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into linux-kernel-markers-samples.patch
+This patch was dropped because it was folded into uninline-forkc-exitc.patch
 
 ------------------------------------------------------
-Subject: Linux Kernel Markers - Remove Unneeded asm
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: uninline-forkc-exitc-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-On s390 (with some compiler) :
+ERROR: "foo * bar" should be "foo *bar"
+#85: FILE: kernel/fork.c:624:
++static int copy_fs(unsigned long clone_flags, struct task_struct * tsk)
 
-> samples/markers/marker-example.c: In function 'my_open':
-> samples/markers/marker-example.c:22: warning: asm operand 0 probably doesn't
-> match constraints
-> samples/markers/marker-example.c:24: warning: asm operand 0 probably doesn't
-> match constraints
-> samples/markers/marker-example.c:22: error: impossible constraint in 'asm'
-> samples/markers/marker-example.c:24: error: impossible constraint in 'asm'
+ERROR: "foo * bar" should be "foo *bar"
+#94: FILE: kernel/fork.c:827:
++static int copy_sighand(unsigned long clone_flags, struct task_struct * tsk)
 
-It is there to specify that the __mark_##name variable is used. In the
-first implementations, I did not pass it as a parameter to the following
-function call, so I had to find a way to tell gcc that it should not go
-away. I first planned to use a "__used" attribute, but Jeremy said it
-was buggy on some gcc versions. (http://lkml.org/lkml/2006/10/17/235)
+ERROR: "foo * bar" should be "foo *bar"
+#103: FILE: kernel/fork.c:850:
++static int copy_signal(unsigned long clone_flags, struct task_struct * tsk)
 
-He suggested the following:
-  asm volatile("" : : "m" (thing));
+WARNING: no space between function name and open parenthesis '('
+#139: FILE: kernel/fork.c:1396:
++static int fork_traceflag (unsigned clone_flags)
 
-But I guess it ended up not working so well, since I changed it for a
-"i" operand. However, if some s390 gccs do not like it, it's better to
-figure out another solution.
-
-Well, as a very very simple solution, let's just remove the asm. It is
-not needed anymore since the pointer is passed as parameter to the
-called function.
-
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/marker.h |    1 -
- 1 file changed, 1 deletion(-)
+ kernel/fork.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/marker.h~linux-kernel-markers-samples-remove-asm include/linux/marker.h
---- a/include/linux/marker.h~linux-kernel-markers-samples-remove-asm
-+++ a/include/linux/marker.h
-@@ -61,7 +61,6 @@ struct marker {
- 		__attribute__((section("__markers"), aligned(8))) =	\
- 		{ __mstrtab_name_##name, __mstrtab_format_##name,	\
- 		0, __mark_empty_function, NULL };			\
--		asm volatile("" : : "i" (&__mark_##name));		\
- 		__mark_check_format(format, ## args);			\
- 		if (unlikely(__mark_##name.state)) {			\
- 			preempt_disable();				\
+diff -puN kernel/fork.c~uninline-forkc-exitc-checkpatch-fixes kernel/fork.c
+--- a/kernel/fork.c~uninline-forkc-exitc-checkpatch-fixes
++++ a/kernel/fork.c
+@@ -621,7 +621,7 @@ struct fs_struct *copy_fs_struct(struct 
+ 
+ EXPORT_SYMBOL_GPL(copy_fs_struct);
+ 
+-static int copy_fs(unsigned long clone_flags, struct task_struct * tsk)
++static int copy_fs(unsigned long clone_flags, struct task_struct *tsk)
+ {
+ 	if (clone_flags & CLONE_FS) {
+ 		atomic_inc(&current->fs->count);
+@@ -824,7 +824,7 @@ int unshare_files(void)
+ 
+ EXPORT_SYMBOL(unshare_files);
+ 
+-static int copy_sighand(unsigned long clone_flags, struct task_struct * tsk)
++static int copy_sighand(unsigned long clone_flags, struct task_struct *tsk)
+ {
+ 	struct sighand_struct *sig;
+ 
+@@ -847,7 +847,7 @@ void __cleanup_sighand(struct sighand_st
+ 		kmem_cache_free(sighand_cachep, sighand);
+ }
+ 
+-static int copy_signal(unsigned long clone_flags, struct task_struct * tsk)
++static int copy_signal(unsigned long clone_flags, struct task_struct *tsk)
+ {
+ 	struct signal_struct *sig;
+ 	int ret;
+@@ -1387,7 +1387,7 @@ struct task_struct * __cpuinit fork_idle
+ 	return task;
+ }
+ 
+-static int fork_traceflag (unsigned clone_flags)
++static int fork_traceflag(unsigned clone_flags)
+ {
+ 	if (clone_flags & CLONE_UNTRACED)
+ 		return 0;
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-change-struct-marker-users.patch
-combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
+console-keyboard-events-and-accessibility.patch
+add-kernel-notifierc.patch
+console-events-and-accessibility.patch
+fix-random-hard-freeze-with-avm-cards-using-b1dma.patch
+jbd-config_jbd_debug-cannot-create-proc-entry.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+add-containerstats-v3.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+cpuset-sched_load_balance-flag.patch
+cpusets-decrustify-cpuset-mask-update-code.patch
+fix-cpusets-update_cpumask.patch
+remove-bits_to_type-macro.patch
+use-helpers-to-obtain-task-pid-in-printks.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified.patch
+ipc-integrate-ipc_checkid-into-ipc_lock.patch
+hook-up-group-scheduler-with-control-groups.patch
 linux-kernel-markers.patch
-add-samples-subdir.patch
 linux-kernel-markers-samples.patch
-linux-kernel-markers-samples-remove-asm.patch
-linux-kernel-markers-documentation.patch
+uninline-forkc-exitc.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
