@@ -1,153 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: - pid-namespaces-destroy-pid-namespace-on-inits-death.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:51:56 -0700
-Message-ID: <200710192251.l9JMpu7U024224@imap1.linux-foundation.org>
+Subject: - uninline-the-task_xid_nr_ns-calls.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:52:10 -0700
+Message-ID: <200710192252.l9JMqA2R024248@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41818 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58734 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966753AbXJSXGa (ORCPT
+	by vger.kernel.org with ESMTP id S966756AbXJSXGb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 19:06:30 -0400
+	Fri, 19 Oct 2007 19:06:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sukadev@us.ibm.com, ebiederm@xmission.com, menage@google.com, oleg@tv-sign.ru, xemul@openvz.org, mm-commits@vger.kernel.org
+To: xemul@openvz.org, ebiederm@xmission.com, menage@google.com, oleg@tv-sign.ru, sukadev@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pid namespaces: destroy pid namespace on init's death
+     Uninline the task_xid_nr_ns() calls
 has been removed from the -mm tree.  Its filename was
-     pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+     uninline-the-task_xid_nr_ns-calls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pid namespaces: destroy pid namespace on init's death
-From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Subject: Uninline the task_xid_nr_ns() calls
+From: Pavel Emelyanov <xemul@openvz.org>
 
-Terminate all processes in a namespace when the reaper of the namespace is
-exiting.  We do this by walking the pidmap of the namespace and sending
-SIGKILL to all processes.
+Since these are expanded into call to pid_nr_ns() anyway, it's OK to move
+the whole routine out-of-line.  This is a cheap way to save ~100 bytes from
+vmlinux.  Together with the previous two patches, it saves half-a-kilo from
+the vmlinux.
 
-Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Acked-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Un-inline other (currently inlined) functions must be done with additional
+performance testing.
+
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Paul Menage <menage@google.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid.h |    1 +
- kernel/exit.c       |   27 ++++++++++++++++++++++++++-
- kernel/pid.c        |   38 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 65 insertions(+), 1 deletion(-)
+ include/linux/sched.h |   24 ++++--------------------
+ kernel/pid.c          |   24 ++++++++++++++++++++++++
+ 2 files changed, 28 insertions(+), 20 deletions(-)
 
-diff -puN include/linux/pid.h~pid-namespaces-destroy-pid-namespace-on-inits-death include/linux/pid.h
---- a/include/linux/pid.h~pid-namespaces-destroy-pid-namespace-on-inits-death
-+++ a/include/linux/pid.h
-@@ -125,6 +125,7 @@ extern struct pid *find_ge_pid(int nr, s
- 
- extern struct pid *alloc_pid(struct pid_namespace *ns);
- extern void FASTCALL(free_pid(struct pid *pid));
-+extern void zap_pid_ns_processes(struct pid_namespace *pid_ns);
- 
- /*
-  * the helpers to get the pid's id seen from different namespaces
-diff -puN kernel/exit.c~pid-namespaces-destroy-pid-namespace-on-inits-death kernel/exit.c
---- a/kernel/exit.c~pid-namespaces-destroy-pid-namespace-on-inits-death
-+++ a/kernel/exit.c
-@@ -879,7 +879,32 @@ static inline void exit_child_reaper(str
- 	if (likely(tsk->group_leader != task_child_reaper(tsk)))
- 		return;
- 
--	panic("Attempted to kill init!");
-+	if (tsk->nsproxy->pid_ns == &init_pid_ns)
-+		panic("Attempted to kill init!");
-+
-+	/*
-+	 * @tsk is the last thread in the 'cgroup-init' and is exiting.
-+	 * Terminate all remaining processes in the namespace and reap them
-+	 * before exiting @tsk.
-+	 *
-+	 * Note that @tsk (last thread of cgroup-init) may not necessarily
-+	 * be the child-reaper (i.e main thread of cgroup-init) of the
-+	 * namespace i.e the child_reaper may have already exited.
-+	 *
-+	 * Even after a child_reaper exits, we let it inherit orphaned children,
-+	 * because, pid_ns->child_reaper remains valid as long as there is
-+	 * at least one living sub-thread in the cgroup init.
-+
-+	 * This living sub-thread of the cgroup-init will be notified when
-+	 * a child inherited by the 'child-reaper' exits (do_notify_parent()
-+	 * uses __group_send_sig_info()). Further, when reaping child processes,
-+	 * do_wait() iterates over children of all living sub threads.
-+
-+	 * i.e even though 'child_reaper' thread is listed as the parent of the
-+	 * orphaned children, any living sub-thread in the cgroup-init can
-+	 * perform the role of the child_reaper.
-+	 */
-+	zap_pid_ns_processes(tsk->nsproxy->pid_ns);
+diff -puN include/linux/sched.h~uninline-the-task_xid_nr_ns-calls include/linux/sched.h
+--- a/include/linux/sched.h~uninline-the-task_xid_nr_ns-calls
++++ a/include/linux/sched.h
+@@ -1243,11 +1243,7 @@ static inline pid_t task_pid_nr(struct t
+ 	return tsk->pid;
  }
  
- fastcall NORET_TYPE void do_exit(long code)
-diff -puN kernel/pid.c~pid-namespaces-destroy-pid-namespace-on-inits-death kernel/pid.c
---- a/kernel/pid.c~pid-namespaces-destroy-pid-namespace-on-inits-death
+-static inline pid_t task_pid_nr_ns(struct task_struct *tsk,
+-		struct pid_namespace *ns)
+-{
+-	return pid_nr_ns(task_pid(tsk), ns);
+-}
++pid_t task_pid_nr_ns(struct task_struct *tsk, struct pid_namespace *ns);
+ 
+ static inline pid_t task_pid_vnr(struct task_struct *tsk)
+ {
+@@ -1260,11 +1256,7 @@ static inline pid_t task_tgid_nr(struct 
+ 	return tsk->tgid;
+ }
+ 
+-static inline pid_t task_tgid_nr_ns(struct task_struct *tsk,
+-		struct pid_namespace *ns)
+-{
+-	return pid_nr_ns(task_tgid(tsk), ns);
+-}
++pid_t task_tgid_nr_ns(struct task_struct *tsk, struct pid_namespace *ns);
+ 
+ static inline pid_t task_tgid_vnr(struct task_struct *tsk)
+ {
+@@ -1277,11 +1269,7 @@ static inline pid_t task_pgrp_nr(struct 
+ 	return tsk->signal->pgrp;
+ }
+ 
+-static inline pid_t task_pgrp_nr_ns(struct task_struct *tsk,
+-		struct pid_namespace *ns)
+-{
+-	return pid_nr_ns(task_pgrp(tsk), ns);
+-}
++pid_t task_pgrp_nr_ns(struct task_struct *tsk, struct pid_namespace *ns);
+ 
+ static inline pid_t task_pgrp_vnr(struct task_struct *tsk)
+ {
+@@ -1294,11 +1282,7 @@ static inline pid_t task_session_nr(stru
+ 	return tsk->signal->__session;
+ }
+ 
+-static inline pid_t task_session_nr_ns(struct task_struct *tsk,
+-		struct pid_namespace *ns)
+-{
+-	return pid_nr_ns(task_session(tsk), ns);
+-}
++pid_t task_session_nr_ns(struct task_struct *tsk, struct pid_namespace *ns);
+ 
+ static inline pid_t task_session_vnr(struct task_struct *tsk)
+ {
+diff -puN kernel/pid.c~uninline-the-task_xid_nr_ns-calls kernel/pid.c
+--- a/kernel/pid.c~uninline-the-task_xid_nr_ns-calls
 +++ a/kernel/pid.c
-@@ -34,6 +34,7 @@
- #include <linux/hash.h>
- #include <linux/pid_namespace.h>
- #include <linux/init_task.h>
-+#include <linux/syscalls.h>
- 
- #define pid_hashfn(nr, ns)	\
- 	hash_long((unsigned long)nr + (unsigned long)ns, pidhash_shift)
-@@ -567,6 +568,43 @@ void free_pid_ns(struct kref *kref)
- 		put_pid_ns(parent);
+@@ -443,6 +443,30 @@ pid_t pid_nr_ns(struct pid *pid, struct 
+ 	return nr;
  }
  
-+void zap_pid_ns_processes(struct pid_namespace *pid_ns)
++pid_t task_pid_nr_ns(struct task_struct *tsk, struct pid_namespace *ns)
 +{
-+	int nr;
-+	int rc;
-+
-+	/*
-+	 * The last thread in the cgroup-init thread group is terminating.
-+	 * Find remaining pid_ts in the namespace, signal and wait for them
-+	 * to exit.
-+	 *
-+	 * Note:  This signals each threads in the namespace - even those that
-+	 * 	  belong to the same thread group, To avoid this, we would have
-+	 * 	  to walk the entire tasklist looking a processes in this
-+	 * 	  namespace, but that could be unnecessarily expensive if the
-+	 * 	  pid namespace has just a few processes. Or we need to
-+	 * 	  maintain a tasklist for each pid namespace.
-+	 *
-+	 */
-+	read_lock(&tasklist_lock);
-+	nr = next_pidmap(pid_ns, 1);
-+	while (nr > 0) {
-+		kill_proc_info(SIGKILL, SEND_SIG_PRIV, nr);
-+		nr = next_pidmap(pid_ns, nr);
-+	}
-+	read_unlock(&tasklist_lock);
-+
-+	do {
-+		clear_thread_flag(TIF_SIGPENDING);
-+		rc = sys_wait4(-1, NULL, __WALL, NULL);
-+	} while (rc != -ECHILD);
-+
-+
-+	/* Child reaper for the pid namespace is going away */
-+	pid_ns->child_reaper = NULL;
-+	return;
++	return pid_nr_ns(task_pid(tsk), ns);
 +}
++EXPORT_SYMBOL(task_pid_nr_ns);
++
++pid_t task_tgid_nr_ns(struct task_struct *tsk, struct pid_namespace *ns)
++{
++	return pid_nr_ns(task_tgid(tsk), ns);
++}
++EXPORT_SYMBOL(task_tgid_nr_ns);
++
++pid_t task_pgrp_nr_ns(struct task_struct *tsk, struct pid_namespace *ns)
++{
++	return pid_nr_ns(task_pgrp(tsk), ns);
++}
++EXPORT_SYMBOL(task_pgrp_nr_ns);
++
++pid_t task_session_nr_ns(struct task_struct *tsk, struct pid_namespace *ns)
++{
++	return pid_nr_ns(task_session(tsk), ns);
++}
++EXPORT_SYMBOL(task_session_nr_ns);
 +
  /*
-  * The pid hash table is scaled according to the amount of memory in the
-  * machine.  From a minimum of 16 slots up to 4096 slots at one gigabyte or
+  * Used by proc to find the first pid that is greater then or equal to nr.
+  *
 _
 
-Patches currently in -mm which might be from sukadev@us.ibm.com are
+Patches currently in -mm which might be from xemul@openvz.org are
 
 origin.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-resource-counters-v7-fix.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
