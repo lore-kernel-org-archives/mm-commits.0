@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: - task-containersv11-add-container_clone-interface.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:50:10 -0700
-Message-ID: <200710192250.l9JMoAoO024054@imap1.linux-foundation.org>
+Subject: - task-containersv11-add-procfs-interface.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:50:13 -0700
+Message-ID: <200710192250.l9JMoDYs024057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36881 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42380 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765293AbXJSXHU (ORCPT
+	by vger.kernel.org with ESMTP id S967044AbXJSXHg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 19:07:20 -0400
+	Fri, 19 Oct 2007 19:07:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, balbir@in.ibm.com, clg@fr.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com
+To: menage@google.com, a.p.zijlstra@chello.nl, balbir@in.ibm.com, clg@fr.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, pj@sgi.com, serue@us.ib
 
 
 The patch titled
-     Task Control Groups:  add cgroup_clone() interface
+     Task Control Groups:  add procfs interface
 has been removed from the -mm tree.  Its filename was
-     task-containersv11-add-container_clone-interface.patch
+     task-containersv11-add-procfs-interface.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Task Control Groups:  add cgroup_clone() interface
+Subject: Task Control Groups:  add procfs interface
 From: Paul Menage <menage@google.com>
 
-Add support for cgroup_clone(), a way to create new cgroups intended to
-be used for systems such as namespace unsharing.  A new subsystem callback,
-post_clone(), is added to allow subsystems to automatically configure cloned
-cgroups.
+Add:
 
+/proc/cgroups - general system info
+
+/proc/*/cgroup - per-task cgroup membership info
+
+[a.p.zijlstra@chello.nl: cgroups: bdi init hooks]
 Signed-off-by: Paul Menage <menage@google.com>
 Cc: Serge E. Hallyn <serue@us.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -40,193 +42,243 @@ Cc: Kirill Korotaev <dev@openvz.org>
 Cc: Herbert Poetzl <herbert@13thfloor.at>
 Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Cc: Cedric Le Goater <clg@fr.ibm.com>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups.txt |    7 +
- include/linux/cgroup.h    |    3 
- kernel/cgroup.c           |  135 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 145 insertions(+)
+ fs/proc/base.c         |    7 +
+ include/linux/cgroup.h |    2 
+ kernel/cgroup.c        |  146 ++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 152 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/cgroups.txt~task-containersv11-add-container_clone-interface Documentation/cgroups.txt
---- a/Documentation/cgroups.txt~task-containersv11-add-container_clone-interface
-+++ a/Documentation/cgroups.txt
-@@ -504,6 +504,13 @@ include/linux/cgroup.h for details).  No
- method can return an error code, the error code is currently not
- always handled well.
- 
-+void post_clone(struct cgroup_subsys *ss, struct cgroup *cont)
-+
-+Called at the end of cgroup_clone() to do any paramater
-+initialization which might be required before a task could attach.  For
-+example in cpusets, no task may attach before 'cpus' and 'mems' are set
-+up.
-+
- void bind(struct cgroup_subsys *ss, struct cgroup *root)
- LL=callback_mutex
- 
-diff -puN include/linux/cgroup.h~task-containersv11-add-container_clone-interface include/linux/cgroup.h
---- a/include/linux/cgroup.h~task-containersv11-add-container_clone-interface
+diff -puN fs/proc/base.c~task-containersv11-add-procfs-interface fs/proc/base.c
+--- a/fs/proc/base.c~task-containersv11-add-procfs-interface
++++ a/fs/proc/base.c
+@@ -67,6 +67,7 @@
+ #include <linux/mount.h>
+ #include <linux/security.h>
+ #include <linux/ptrace.h>
++#include <linux/cgroup.h>
+ #include <linux/cpuset.h>
+ #include <linux/audit.h>
+ #include <linux/poll.h>
+@@ -2133,6 +2134,9 @@ static const struct pid_entry tgid_base_
+ #ifdef CONFIG_CPUSETS
+ 	REG("cpuset",     S_IRUGO, cpuset),
+ #endif
++#ifdef CONFIG_CGROUPS
++	REG("cgroup",  S_IRUGO, cgroup),
++#endif
+ 	INF("oom_score",  S_IRUGO, oom_score),
+ 	REG("oom_adj",    S_IRUGO|S_IWUSR, oom_adjust),
+ #ifdef CONFIG_AUDITSYSCALL
+@@ -2419,6 +2423,9 @@ static const struct pid_entry tid_base_s
+ #ifdef CONFIG_CPUSETS
+ 	REG("cpuset",    S_IRUGO, cpuset),
+ #endif
++#ifdef CONFIG_CGROUPS
++	REG("cgroup",  S_IRUGO, cgroup),
++#endif
+ 	INF("oom_score", S_IRUGO, oom_score),
+ 	REG("oom_adj",   S_IRUGO|S_IWUSR, oom_adjust),
+ #ifdef CONFIG_AUDITSYSCALL
+diff -puN include/linux/cgroup.h~task-containersv11-add-procfs-interface include/linux/cgroup.h
+--- a/include/linux/cgroup.h~task-containersv11-add-procfs-interface
 +++ a/include/linux/cgroup.h
-@@ -182,6 +182,7 @@ struct cgroup_subsys {
- 	void (*exit)(struct cgroup_subsys *ss, struct task_struct *task);
- 	int (*populate)(struct cgroup_subsys *ss,
- 			struct cgroup *cont);
-+	void (*post_clone)(struct cgroup_subsys *ss, struct cgroup *cont);
- 	void (*bind)(struct cgroup_subsys *ss, struct cgroup *root);
- 	int subsys_id;
- 	int active;
-@@ -221,6 +222,8 @@ static inline struct cgroup* task_cgroup
+@@ -29,6 +29,8 @@ extern void cgroup_fork(struct task_stru
+ extern void cgroup_fork_callbacks(struct task_struct *p);
+ extern void cgroup_exit(struct task_struct *p, int run_callbacks);
  
- int cgroup_path(const struct cgroup *cont, char *buf, int buflen);
- 
-+int cgroup_clone(struct task_struct *tsk, struct cgroup_subsys *ss);
++extern struct file_operations proc_cgroup_operations;
 +
- #else /* !CONFIG_CGROUPS */
- 
- static inline int cgroup_init_early(void) { return 0; }
-diff -puN kernel/cgroup.c~task-containersv11-add-container_clone-interface kernel/cgroup.c
---- a/kernel/cgroup.c~task-containersv11-add-container_clone-interface
+ /* Per-subsystem/per-cgroup state maintained by the system. */
+ struct cgroup_subsys_state {
+ 	/* The cgroup that this subsystem is attached to. Useful
+diff -puN kernel/cgroup.c~task-containersv11-add-procfs-interface kernel/cgroup.c
+--- a/kernel/cgroup.c~task-containersv11-add-procfs-interface
 +++ a/kernel/cgroup.c
-@@ -1708,3 +1708,138 @@ void cgroup_exit(struct task_struct *tsk
- 	tsk->cgroups = init_task.cgroups;
- 	task_unlock(tsk);
+@@ -33,6 +33,7 @@
+ #include <linux/mutex.h>
+ #include <linux/mount.h>
+ #include <linux/pagemap.h>
++#include <linux/proc_fs.h>
+ #include <linux/rcupdate.h>
+ #include <linux/sched.h>
+ #include <linux/seq_file.h>
+@@ -247,13 +248,15 @@ static int cgroup_mkdir(struct inode *di
+ static int cgroup_rmdir(struct inode *unused_dir, struct dentry *dentry);
+ static int cgroup_populate_dir(struct cgroup *cont);
+ static struct inode_operations cgroup_dir_inode_operations;
++static struct file_operations proc_cgroupstats_operations;
++
++static struct backing_dev_info cgroup_backing_dev_info = {
++	.capabilities	= BDI_CAP_NO_ACCT_DIRTY | BDI_CAP_NO_WRITEBACK,
++};
+ 
+ static struct inode *cgroup_new_inode(mode_t mode, struct super_block *sb)
+ {
+ 	struct inode *inode = new_inode(sb);
+-	static struct backing_dev_info cgroup_backing_dev_info = {
+-		.capabilities	= BDI_CAP_NO_ACCT_DIRTY | BDI_CAP_NO_WRITEBACK,
+-	};
+ 
+ 	if (inode) {
+ 		inode->i_mode = mode;
+@@ -1600,6 +1603,11 @@ int __init cgroup_init(void)
+ {
+ 	int err;
+ 	int i;
++	struct proc_dir_entry *entry;
++
++	err = bdi_init(&cgroup_backing_dev_info);
++	if (err)
++		return err;
+ 
+ 	for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
+ 		struct cgroup_subsys *ss = subsys[i];
+@@ -1611,10 +1619,142 @@ int __init cgroup_init(void)
+ 	if (err < 0)
+ 		goto out;
+ 
++	entry = create_proc_entry("cgroups", 0, NULL);
++	if (entry)
++		entry->proc_fops = &proc_cgroupstats_operations;
++
+ out:
++	if (err)
++		bdi_destroy(&cgroup_backing_dev_info);
++
+ 	return err;
  }
-+
-+/**
-+ * cgroup_clone - duplicate the current cgroup in the hierarchy
-+ * that the given subsystem is attached to, and move this task into
-+ * the new child
-+ */
-+int cgroup_clone(struct task_struct *tsk, struct cgroup_subsys *subsys)
-+{
-+	struct dentry *dentry;
-+	int ret = 0;
-+	char nodename[MAX_CGROUP_TYPE_NAMELEN];
-+	struct cgroup *parent, *child;
-+	struct inode *inode;
-+	struct css_set *cg;
-+	struct cgroupfs_root *root;
-+	struct cgroup_subsys *ss;
-+
-+	/* We shouldn't be called by an unregistered subsystem */
-+	BUG_ON(!subsys->active);
-+
-+	/* First figure out what hierarchy and cgroup we're dealing
-+	 * with, and pin them so we can drop cgroup_mutex */
-+	mutex_lock(&cgroup_mutex);
-+ again:
-+	root = subsys->root;
-+	if (root == &rootnode) {
-+		printk(KERN_INFO
-+		       "Not cloning cgroup for unused subsystem %s\n",
-+		       subsys->name);
-+		mutex_unlock(&cgroup_mutex);
-+		return 0;
-+	}
-+	cg = &tsk->cgroups;
-+	parent = task_cgroup(tsk, subsys->subsys_id);
-+
-+	snprintf(nodename, MAX_CGROUP_TYPE_NAMELEN, "node_%d", tsk->pid);
-+
-+	/* Pin the hierarchy */
-+	atomic_inc(&parent->root->sb->s_active);
-+
-+	mutex_unlock(&cgroup_mutex);
-+
-+	/* Now do the VFS work to create a cgroup */
-+	inode = parent->dentry->d_inode;
-+
-+	/* Hold the parent directory mutex across this operation to
-+	 * stop anyone else deleting the new cgroup */
-+	mutex_lock(&inode->i_mutex);
-+	dentry = lookup_one_len(nodename, parent->dentry, strlen(nodename));
-+	if (IS_ERR(dentry)) {
-+		printk(KERN_INFO
-+		       "Couldn't allocate dentry for %s: %ld\n", nodename,
-+		       PTR_ERR(dentry));
-+		ret = PTR_ERR(dentry);
-+		goto out_release;
-+	}
-+
-+	/* Create the cgroup directory, which also creates the cgroup */
-+	ret = vfs_mkdir(inode, dentry, S_IFDIR | 0755);
-+	child = __d_cont(dentry);
-+	dput(dentry);
-+	if (ret) {
-+		printk(KERN_INFO
-+		       "Failed to create cgroup %s: %d\n", nodename,
-+		       ret);
-+		goto out_release;
-+	}
-+
-+	if (!child) {
-+		printk(KERN_INFO
-+		       "Couldn't find new cgroup %s\n", nodename);
-+		ret = -ENOMEM;
-+		goto out_release;
-+	}
-+
-+	/* The cgroup now exists. Retake cgroup_mutex and check
-+	 * that we're still in the same state that we thought we
-+	 * were. */
-+	mutex_lock(&cgroup_mutex);
-+	if ((root != subsys->root) ||
-+	    (parent != task_cgroup(tsk, subsys->subsys_id))) {
-+		/* Aargh, we raced ... */
-+		mutex_unlock(&inode->i_mutex);
-+
-+		deactivate_super(parent->root->sb);
-+		/* The cgroup is still accessible in the VFS, but
-+		 * we're not going to try to rmdir() it at this
-+		 * point. */
-+		printk(KERN_INFO
-+		       "Race in cgroup_clone() - leaking cgroup %s\n",
-+		       nodename);
-+		goto again;
-+	}
-+
-+	/* do any required auto-setup */
-+	for_each_subsys(root, ss) {
-+		if (ss->post_clone)
-+			ss->post_clone(ss, child);
-+	}
-+
-+	/* All seems fine. Finish by moving the task into the new cgroup */
-+	ret = attach_task(child, tsk);
-+	mutex_unlock(&cgroup_mutex);
-+
-+ out_release:
-+	mutex_unlock(&inode->i_mutex);
-+	deactivate_super(parent->root->sb);
-+	return ret;
-+}
-+
+ 
 +/*
-+ * See if "cont" is a descendant of the current task's cgroup in
-+ * the appropriate hierarchy
-+ *
-+ * If we are sending in dummytop, then presumably we are creating
-+ * the top cgroup in the subsystem.
-+ *
-+ * Called only by the ns (nsproxy) cgroup.
++ * proc_cgroup_show()
++ *  - Print task's cgroup paths into seq_file, one line for each hierarchy
++ *  - Used for /proc/<pid>/cgroup.
++ *  - No need to task_lock(tsk) on this tsk->cgroup reference, as it
++ *    doesn't really matter if tsk->cgroup changes after we read it,
++ *    and we take cgroup_mutex, keeping attach_task() from changing it
++ *    anyway.  No need to check that tsk->cgroup != NULL, thanks to
++ *    the_top_cgroup_hack in cgroup_exit(), which sets an exiting tasks
++ *    cgroup to top_cgroup.
 + */
-+int cgroup_is_descendant(const struct cgroup *cont)
++
++/* TODO: Use a proper seq_file iterator */
++static int proc_cgroup_show(struct seq_file *m, void *v)
 +{
-+	int ret;
-+	struct cgroup *target;
-+	int subsys_id;
++	struct pid *pid;
++	struct task_struct *tsk;
++	char *buf;
++	int retval;
++	struct cgroupfs_root *root;
 +
-+	if (cont == dummytop)
-+		return 1;
++	retval = -ENOMEM;
++	buf = kmalloc(PAGE_SIZE, GFP_KERNEL);
++	if (!buf)
++		goto out;
 +
-+	get_first_subsys(cont, NULL, &subsys_id);
-+	target = task_cgroup(current, subsys_id);
-+	while (cont != target && cont!= cont->top_cgroup)
-+		cont = cont->parent;
-+	ret = (cont == target);
-+	return ret;
++	retval = -ESRCH;
++	pid = m->private;
++	tsk = get_pid_task(pid, PIDTYPE_PID);
++	if (!tsk)
++		goto out_free;
++
++	retval = 0;
++
++	mutex_lock(&cgroup_mutex);
++
++	for_each_root(root) {
++		struct cgroup_subsys *ss;
++		struct cgroup *cont;
++		int subsys_id;
++		int count = 0;
++
++		/* Skip this hierarchy if it has no active subsystems */
++		if (!root->actual_subsys_bits)
++			continue;
++		for_each_subsys(root, ss)
++			seq_printf(m, "%s%s", count++ ? "," : "", ss->name);
++		seq_putc(m, ':');
++		get_first_subsys(&root->top_cgroup, NULL, &subsys_id);
++		cont = task_cgroup(tsk, subsys_id);
++		retval = cgroup_path(cont, buf, PAGE_SIZE);
++		if (retval < 0)
++			goto out_unlock;
++		seq_puts(m, buf);
++		seq_putc(m, '\n');
++	}
++
++out_unlock:
++	mutex_unlock(&cgroup_mutex);
++	put_task_struct(tsk);
++out_free:
++	kfree(buf);
++out:
++	return retval;
 +}
++
++static int cgroup_open(struct inode *inode, struct file *file)
++{
++	struct pid *pid = PROC_I(inode)->pid;
++	return single_open(file, proc_cgroup_show, pid);
++}
++
++struct file_operations proc_cgroup_operations = {
++	.open		= cgroup_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
++/* Display information about each subsystem and each hierarchy */
++static int proc_cgroupstats_show(struct seq_file *m, void *v)
++{
++	int i;
++	struct cgroupfs_root *root;
++
++	mutex_lock(&cgroup_mutex);
++	seq_puts(m, "Hierarchies:\n");
++	for_each_root(root) {
++		struct cgroup_subsys *ss;
++		int first = 1;
++		seq_printf(m, "%p: bits=%lx cgroups=%d (", root,
++			   root->subsys_bits, root->number_of_cgroups);
++		for_each_subsys(root, ss) {
++			seq_printf(m, "%s%s", first ? "" : ", ", ss->name);
++			first = false;
++		}
++		seq_putc(m, ')');
++		if (root->sb) {
++			seq_printf(m, " s_active=%d",
++				   atomic_read(&root->sb->s_active));
++		}
++		seq_putc(m, '\n');
++	}
++	seq_puts(m, "Subsystems:\n");
++	for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
++		struct cgroup_subsys *ss = subsys[i];
++		seq_printf(m, "%d: name=%s hierarchy=%p\n",
++			   i, ss->name, ss->root);
++	}
++	mutex_unlock(&cgroup_mutex);
++	return 0;
++}
++
++static int cgroupstats_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, proc_cgroupstats_show, 0);
++}
++
++static struct file_operations proc_cgroupstats_operations = {
++	.open = cgroupstats_open,
++	.read = seq_read,
++	.llseek = seq_lseek,
++	.release = single_release,
++};
++
+ /**
+  * cgroup_fork - attach newly forked task to its parents cgroup.
+  * @tsk: pointer to task_struct of forking parent process.
 _
 
 Patches currently in -mm which might be from menage@google.com are
