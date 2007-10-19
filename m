@@ -1,197 +1,221 @@
 From: akpm@linux-foundation.org
-Subject: - whitespace-fixes-module-loading.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:43:44 -0700
-Message-ID: <200710190343.l9J3hibC013087@imap1.linux-foundation.org>
+Subject: - s2ram-kill-old-debugging-junk.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:41:17 -0700
+Message-ID: <200710190341.l9J3fH54012807@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41795 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39015 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763307AbXJSDzu (ORCPT
+	by vger.kernel.org with ESMTP id S934407AbXJSD4e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:55:50 -0400
+	Thu, 18 Oct 2007 23:56:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, mm-commits@vger.kernel.org
+To: pavel@ucw.cz, ak@suse.de, pavel@suse.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     whitespace fixes: module loading
+     s2ram: kill old debugging junk
 has been removed from the -mm tree.  Its filename was
-     whitespace-fixes-module-loading.patch
+     s2ram-kill-old-debugging-junk.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: whitespace fixes: module loading
-From: Daniel Walker <dwalker@mvista.com>
+Subject: s2ram: kill old debugging junk
+From: Pavel Machek <pavel@ucw.cz>
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
+This removes old debugging stuff, that should be no longer neccessary.  It
+accessed VGA hardware (which may not be ready at this point), and used LEDs
+at port 80 for debugging.
+
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |   38 +++++++++++++++++++-------------------
- 1 file changed, 19 insertions(+), 19 deletions(-)
+ arch/x86/kernel/acpi/wakeup_32.S |   12 ----------
+ arch/x86/kernel/acpi/wakeup_64.S |   32 -----------------------------
+ 2 files changed, 1 insertion(+), 43 deletions(-)
 
-diff -puN kernel/module.c~whitespace-fixes-module-loading kernel/module.c
---- a/kernel/module.c~whitespace-fixes-module-loading
-+++ a/kernel/module.c
-@@ -105,7 +105,7 @@ void __module_put_and_exit(struct module
- 	do_exit(code);
- }
- EXPORT_SYMBOL(__module_put_and_exit);
+diff -puN arch/x86/kernel/acpi/wakeup_32.S~s2ram-kill-old-debugging-junk arch/x86/kernel/acpi/wakeup_32.S
+--- a/arch/x86/kernel/acpi/wakeup_32.S~s2ram-kill-old-debugging-junk
++++ a/arch/x86/kernel/acpi/wakeup_32.S
+@@ -11,7 +11,7 @@
+ #
+ # If physical address of wakeup_code is 0x12345, BIOS should call us with
+ # cs = 0x1234, eip = 0x05
+-# 
++#
+ 
+ #define BEEP \
+ 	inb	$97, %al; 	\
+@@ -52,7 +52,6 @@ wakeup_code:
+ 	BEEP
+ 1:
+ 	mov	$(wakeup_stack - wakeup_code), %sp		# Private stack is needed for ASUS board
+-	movw	$0x0e00 + 'S', %fs:(0x12)
+ 
+ 	pushl	$0						# Kill any dangerous flags
+ 	popfl
+@@ -90,9 +89,6 @@ wakeup_code:
+ 	# make sure %cr4 is set correctly (features, etc)
+ 	movl	real_save_cr4 - wakeup_code, %eax
+ 	movl	%eax, %cr4
+-	movw	$0xb800, %ax
+-	movw	%ax,%fs
+-	movw	$0x0e00 + 'i', %fs:(0x12)
+ 	
+ 	# need a gdt -- use lgdtl to force 32-bit operands, in case
+ 	# the GDT is located past 16 megabytes.
+@@ -102,8 +98,6 @@ wakeup_code:
+ 	movl	%eax, %cr0
+ 	jmp 1f
+ 1:
+-	movw	$0x0e00 + 'n', %fs:(0x14)
+-
+ 	movl	real_magic - wakeup_code, %eax
+ 	cmpl	$0x12345678, %eax
+ 	jne	bogus_real_magic
+@@ -122,13 +116,11 @@ real_save_cr4:	.long 0
+ real_magic:	.long 0
+ video_mode:	.long 0
+ realmode_flags:	.long 0
+-beep_flags:	.long 0
+ real_efer_save_restore:	.long 0
+ real_save_efer_edx: 	.long 0
+ real_save_efer_eax: 	.long 0
+ 
+ bogus_real_magic:
+-	movw	$0x0e00 + 'B', %fs:(0x12)
+ 	jmp bogus_real_magic
+ 
+ /* This code uses an extended set of video mode numbers. These include:
+@@ -194,7 +186,6 @@ wakeup_pmode_return:
+ 	movw	%ax, %es
+ 	movw	%ax, %fs
+ 	movw	%ax, %gs
+-	movw	$0x0e00 + 'u', 0xb8016
+ 
+ 	# reload the gdt, as we need the full 32 bit address
+ 	lgdt	saved_gdt
+@@ -218,7 +209,6 @@ wakeup_pmode_return:
+ 	jmp	*%eax
+ 
+ bogus_magic:
+-	movw	$0x0e00 + 'B', 0xb8018
+ 	jmp	bogus_magic
+ 
+ 
+diff -puN arch/x86/kernel/acpi/wakeup_64.S~s2ram-kill-old-debugging-junk arch/x86/kernel/acpi/wakeup_64.S
+--- a/arch/x86/kernel/acpi/wakeup_64.S~s2ram-kill-old-debugging-junk
++++ a/arch/x86/kernel/acpi/wakeup_64.S
+@@ -41,7 +41,6 @@ wakeup_code:
+ 
+ # Running in *copy* of this code, somewhere in low 1MB.
+ 
+-	movb	$0xa1, %al	;  outb %al, $0x80
+ 	cli
+ 	cld
+ 	# setup data segment
+@@ -65,11 +64,6 @@ wakeup_code:
+ 	cmpl	$0x12345678, %eax
+ 	jne	bogus_real_magic
+ 
+-  	call	verify_cpu			# Verify the cpu supports long
+-						# mode
+-	testl	%eax, %eax
+-	jnz	no_longmode
+-
+ 	testl	$1, realmode_flags - wakeup_code
+ 	jz	1f
+ 	lcall   $0xc000,$3
+@@ -84,12 +78,6 @@ wakeup_code:
+ 	call	mode_set
+ 1:
+ 
+- 	movw	$0xb800, %ax
+-	movw	%ax,%fs
+-	movw	$0x0e00 + 'L', %fs:(0x10)
+-
+-	movb	$0xa2, %al	;  outb %al, $0x80
 -	
-+
- /* Find a module section: 0 means not found. */
- static unsigned int find_sec(Elf_Ehdr *hdr,
- 			     Elf_Shdr *sechdrs,
-@@ -179,7 +179,7 @@ static unsigned long __find_symbol(const
- 	struct module *mod;
- 	const struct kernel_symbol *ks;
+ 	mov	%ds, %ax			# Find 32bit wakeup_code addr
+ 	movzx   %ax, %esi			# (Convert %ds:gdt to a liner ptr)
+ 	shll    $4, %esi
+@@ -117,14 +105,10 @@ wakeup_32_vector:
+ 	.code32
+ wakeup_32:
+ # Running in this code, but at low address; paging is not yet turned on.
+-	movb	$0xa5, %al	;  outb %al, $0x80
  
--	/* Core kernel first. */ 
-+	/* Core kernel first. */
- 	*owner = NULL;
- 	ks = lookup_symbol(name, __start___ksymtab, __stop___ksymtab);
- 	if (ks) {
-@@ -231,7 +231,7 @@ static unsigned long __find_symbol(const
- 		return ks->value;
- 	}
+ 	movl	$__KERNEL_DS, %eax
+ 	movl	%eax, %ds
  
--	/* Now try modules. */ 
-+	/* Now try modules. */
- 	list_for_each_entry(mod, &modules, list) {
- 		*owner = mod;
- 		ks = lookup_symbol(name, mod->syms, mod->syms + mod->num_syms);
-@@ -285,7 +285,7 @@ static unsigned long __find_symbol(const
- 		}
- 	}
- 	DEBUGP("Failed to find symbol %s\n", name);
-- 	return 0;
-+	return 0;
- }
+-	movw	$0x0e00 + 'i', %ds:(0xb8012)
+-	movb	$0xa8, %al	;  outb %al, $0x80;
+-
+ 	/*
+ 	 * Prepare for entering 64bits mode
+ 	 */
+@@ -200,16 +184,11 @@ wakeup_long64:
+ 	 */
+ 	lgdt	cpu_gdt_descr
  
- /* Search for module by name: must hold module_mutex. */
-@@ -441,7 +441,7 @@ static int percpu_modinit(void)
- 	}
+-	movw	$0x0e00 + 'n', %ds:(0xb8014)
+-	movb	$0xa9, %al	;  outb %al, $0x80
+-
+ 	movq    saved_magic, %rax
+ 	movq    $0x123456789abcdef0, %rdx
+ 	cmpq    %rdx, %rax
+ 	jne     bogus_64_magic
  
- 	return 0;
--}	
-+}
- __initcall(percpu_modinit);
- #else /* ... !CONFIG_SMP */
- static inline void *percpu_modalloc(unsigned long size, unsigned long align,
-@@ -483,8 +483,8 @@ static int modinfo_##field##_exists(stru
- }                                                                     \
- static void free_modinfo_##field(struct module *mod)                  \
- {                                                                     \
--        kfree(mod->field);                                            \
--        mod->field = NULL;                                            \
-+	kfree(mod->field);                                            \
-+	mod->field = NULL;                                            \
- }                                                                     \
- static struct module_attribute modinfo_##field = {                    \
- 	.attr = { .name = __stringify(field), .mode = 0444 },         \
-@@ -990,7 +990,7 @@ static void add_sect_attrs(struct module
- 	struct module_sect_attrs *sect_attrs;
- 	struct module_sect_attr *sattr;
- 	struct attribute **gattr;
+-	movw	$0x0e00 + 'u', %ds:(0xb8016)
 -	
-+
- 	/* Count loaded sections and allocate structures */
- 	for (i = 0; i < nsect; i++)
- 		if (sechdrs[i].sh_flags & SHF_ALLOC)
-@@ -1348,14 +1348,14 @@ static int verify_export_symbols(struct 
- 	const unsigned long *crc;
+ 	nop
+ 	nop
+ 	movw	$__KERNEL_DS, %ax
+@@ -220,13 +199,11 @@ wakeup_long64:
+ 	movw	%ax, %gs
+ 	movq	saved_rsp, %rsp
  
- 	for (i = 0; i < mod->num_syms; i++)
--	        if (__find_symbol(mod->syms[i].name, &owner, &crc, 1)) {
-+		if (__find_symbol(mod->syms[i].name, &owner, &crc, 1)) {
- 			name = mod->syms[i].name;
- 			ret = -ENOEXEC;
- 			goto dup;
- 		}
+-	movw	$0x0e00 + 'x', %ds:(0xb8018)
+ 	movq	saved_rbx, %rbx
+ 	movq	saved_rdi, %rdi
+ 	movq	saved_rsi, %rsi
+ 	movq	saved_rbp, %rbp
  
- 	for (i = 0; i < mod->num_gpl_syms; i++)
--	        if (__find_symbol(mod->gpl_syms[i].name, &owner, &crc, 1)) {
-+		if (__find_symbol(mod->gpl_syms[i].name, &owner, &crc, 1)) {
- 			name = mod->gpl_syms[i].name;
- 			ret = -ENOEXEC;
- 			goto dup;
-@@ -1929,7 +1929,7 @@ static struct module *load_module(void _
- 		mod->unused_crcs = (void *)sechdrs[unusedgplcrcindex].sh_addr;
+-	movw	$0x0e00 + '!', %ds:(0xb801a)
+ 	movq	saved_rip, %rax
+ 	jmp	*%rax
  
- #ifdef CONFIG_MODVERSIONS
--	if ((mod->num_syms && !crcindex) || 
-+	if ((mod->num_syms && !crcindex) ||
- 	    (mod->num_gpl_syms && !gplcrcindex) ||
- 	    (mod->num_gpl_future_syms && !gplfuturecrcindex) ||
- 	    (mod->num_unused_syms && !unusedcrcindex) ||
-@@ -2016,7 +2016,7 @@ static struct module *load_module(void _
- 	if (err < 0)
- 		goto arch_cleanup;
+@@ -256,21 +233,12 @@ realmode_flags:	.quad 0
  
--	err = mod_sysfs_setup(mod, 
-+	err = mod_sysfs_setup(mod,
- 			      (struct kernel_param *)
- 			      sechdrs[setupindex].sh_addr,
- 			      sechdrs[setupindex].sh_size
-@@ -2028,8 +2028,8 @@ static struct module *load_module(void _
+ .code16
+ bogus_real_magic:
+-	movb	$0xba,%al	;  outb %al,$0x80
+ 	jmp bogus_real_magic
  
- 	/* Size of section 0 is 0, so this works well if no unwind info. */
- 	mod->unwind_info = unwind_add_table(mod,
--	                                    (void *)sechdrs[unwindex].sh_addr,
--	                                    sechdrs[unwindex].sh_size);
-+					    (void *)sechdrs[unwindex].sh_addr,
-+					    sechdrs[unwindex].sh_size);
+ .code64
+ bogus_64_magic:
+-	movb	$0xb3,%al	;  outb %al,$0x80
+ 	jmp bogus_64_magic
  
- 	/* Get rid of temporary copy */
- 	vfree(hdr);
-@@ -2146,7 +2146,7 @@ static inline int within(unsigned long a
-  */
- static inline int is_arm_mapping_symbol(const char *str)
- {
--	return str[0] == '$' && strchr("atd", str[1]) 
-+	return str[0] == '$' && strchr("atd", str[1])
- 	       && (str[2] == '\0' || str[2] == '.');
- }
- 
-@@ -2161,11 +2161,11 @@ static const char *get_ksymbol(struct mo
- 	/* At worse, next value is at end of module */
- 	if (within(addr, mod->module_init, mod->init_size))
- 		nextval = (unsigned long)mod->module_init+mod->init_text_size;
--	else 
-+	else
- 		nextval = (unsigned long)mod->module_core+mod->core_text_size;
- 
- 	/* Scan for closest preceeding symbol, and next symbol. (ELF
--           starts real symbols at 1). */
-+	   starts real symbols at 1). */
- 	for (i = 1; i < mod->num_symtab; i++) {
- 		if (mod->symtab[i].st_shndx == SHN_UNDEF)
- 			continue;
-@@ -2407,7 +2407,7 @@ const struct exception_table_entry *sear
- 	list_for_each_entry(mod, &modules, list) {
- 		if (mod->num_exentries == 0)
- 			continue;
--				
-+
- 		e = search_extable(mod->extable,
- 				   mod->extable + mod->num_exentries - 1,
- 				   addr);
-@@ -2417,7 +2417,7 @@ const struct exception_table_entry *sear
- 	preempt_enable();
- 
- 	/* Now, if we found one, we are running inside it now, hence
--           we cannot unload the module, hence no refcnt needed. */
-+	   we cannot unload the module, hence no refcnt needed. */
- 	return e;
- }
- 
+-.code16
+-no_longmode:
+-	movb    $0xbc,%al       ;  outb %al,$0x80
+-	jmp no_longmode
+-
+-#include "../verify_cpu_64.S"
+-	
+ /* This code uses an extended set of video mode numbers. These include:
+  * Aliases for standard modes
+  *	NORMAL_VGA (-1)
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from pavel@ucw.cz are
 
 origin.patch
-whitespace-fixes-task-exit-handling.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
+git-acpi.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
