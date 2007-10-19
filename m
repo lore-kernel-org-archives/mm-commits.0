@@ -1,91 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - extended-crashkernel-command-line-update.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 21:30:51 -0700
-Message-ID: <200710190430.l9J4Uq9H015170@imap1.linux-foundation.org>
+Subject: - extended-crashkernel-command-line-comment-fix.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 21:30:54 -0700
+Message-ID: <200710190430.l9J4UsWs015173@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44547 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50457 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966574AbXJSEa4 (ORCPT
+	by vger.kernel.org with ESMTP id S966579AbXJSEa7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 00:30:56 -0400
+	Fri, 19 Oct 2007 00:30:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bwalle@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Extended crashkernel command line (update)
+     extended-crashkernel-command-line comment fix
 has been removed from the -mm tree.  Its filename was
-     extended-crashkernel-command-line-update.patch
+     extended-crashkernel-command-line-comment-fix.patch
 
 This patch was dropped because it was folded into extended-crashkernel-command-line.patch
 
 ------------------------------------------------------
-Subject: Extended crashkernel command line (update)
+Subject: extended-crashkernel-command-line comment fix
 From: Bernhard Walle <bwalle@suse.de>
 
-This is the generic part of the patch. It adds a parse_crashkernel() function
-in kernel/kexec.c that is called by the architecture specific code that
-actually reserves the memory. That function takes the whole command line and
-looks itself for "crashkernel=" in it.
-
-If there are multiple occurrences, then the last one is taken.  The advantage
-is that if you have a bootloader like lilo or elilo which allows you to append
-a command line parameter but not to remove one (like in GRUB), then you can add
-another crashkernel value for testing at the boot command line and this one
-overwrites the command line in the configuration then.
+Only use 'offset' and not 'base' for the address where the reserved area
+starts.
 
 Signed-off-by: Bernhard Walle <bwalle@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |    1 +
- kernel/kexec.c        |    7 ++++---
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ kernel/kexec.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/kexec.h~extended-crashkernel-command-line-update include/linux/kexec.h
---- a/include/linux/kexec.h~extended-crashkernel-command-line-update
-+++ a/include/linux/kexec.h
-@@ -186,6 +186,7 @@ extern note_buf_t *crash_notes;
- extern u32 vmcoreinfo_note[VMCOREINFO_NOTE_SIZE/4];
- extern size_t vmcoreinfo_size;
- extern size_t vmcoreinfo_max_size;
-+
- int __init parse_crashkernel(char *cmdline, unsigned long long system_ram,
- 		unsigned long long *crash_size, unsigned long long *crash_base);
- 
-diff -puN kernel/kexec.c~extended-crashkernel-command-line-update kernel/kexec.c
---- a/kernel/kexec.c~extended-crashkernel-command-line-update
+diff -puN kernel/kexec.c~extended-crashkernel-command-line-comment-fix kernel/kexec.c
+--- a/kernel/kexec.c~extended-crashkernel-command-line-comment-fix
 +++ a/kernel/kexec.c
-@@ -1162,9 +1162,9 @@ module_init(crash_notes_memory_init)
+@@ -1157,7 +1157,7 @@ module_init(crash_notes_memory_init)
+ /*
+  * This function parses command lines in the format
+  *
+- *   crashkernel=<ramsize-range>:<size>[,...][@<base>]
++ *   crashkernel=ramsize-range:size[,...][@offset]
+  *
   * The function returns 0 on success and -EINVAL on failure.
   */
- static int __init parse_crashkernel_mem(char 			*cmdline,
--					unsigned long 		system_ram,
--					unsigned long long 	*crash_size,
--					unsigned long long 	*crash_base)
-+					unsigned long long	system_ram,
-+					unsigned long long	*crash_size,
-+					unsigned long long	*crash_base)
- {
- 	char *cur = cmdline;
- 
-@@ -1254,6 +1254,7 @@ int __init parse_crashkernel(char 		 *cm
- 	char 	*p = cmdline, *ck_cmdline = NULL;
- 	char	*first_colon, *first_space;
- 
-+	BUG_ON(!crash_size || !crash_base);
- 	*crash_size = 0;
- 	*crash_base = 0;
- 
+@@ -1222,7 +1222,7 @@ static int __init parse_crashkernel_mem(
+ /*
+  * That function parses "simple" (old) crashkernel command lines like
+  *
+- * 	crashkernel=size[@base]
++ * 	crashkernel=size[@offset]
+  *
+  * It returns 0 on success and -EINVAL on failure.
+  */
 _
 
 Patches currently in -mm which might be from bwalle@suse.de are
 
 origin.patch
 extended-crashkernel-command-line.patch
-extended-crashkernel-command-line-update.patch
 extended-crashkernel-command-line-comment-fix.patch
 extended-crashkernel-command-line-improve-error-handling-in-parse_crashkernel_mem.patch
 use-extended-crashkernel-command-line-on-i386.patch
