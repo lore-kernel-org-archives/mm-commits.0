@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - ipc-integrate-ipc_checkid-into-ipc_lock.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:53:39 -0700
-Message-ID: <200710192253.l9JMrdVf024442@imap1.linux-foundation.org>
+Subject: - ipc-unify-the-syscalls-code.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:53:35 -0700
+Message-ID: <200710192253.l9JMrZhX024436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57565 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51872 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966676AbXJSXF6 (ORCPT
+	by vger.kernel.org with ESMTP id S966708AbXJSXF6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 19 Oct 2007 19:05:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,606 +15,534 @@ To: Nadia.Derbey@bull.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipc: integrate ipc_checkid() into ipc_lock()
+     ipc: unify the syscalls code
 has been removed from the -mm tree.  Its filename was
-     ipc-integrate-ipc_checkid-into-ipc_lock.patch
+     ipc-unify-the-syscalls-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ipc: integrate ipc_checkid() into ipc_lock()
+Subject: ipc: unify the syscalls code
 From: Nadia Derbey <Nadia.Derbey@bull.net>
 
-This patch introduces a new ipc_lock_check() routine interface:
-   . each time ipc_checkid() is called, this is done after calling ipc_lock().
-     ipc_checkid() is now called from inside ipc_lock_check().
+This patch introduces a change into the sys_msgget(), sys_semget() and
+sys_shmget() routines: they now share a common code, which is better for
+maintainability.
 
-[akpm@linux-foundation.org: build fix]
-[akpm@linux-foundation.org: fix RCU locking]
 Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c  |   62 +++++++++++++++++------------------
- ipc/sem.c  |   70 ++++++++++++++++++---------------------
- ipc/shm.c  |   90 +++++++++++++++++++++++++++------------------------
- ipc/util.c |   23 +------------
- ipc/util.h |   43 ++++++++++++++++++++++--
- 5 files changed, 152 insertions(+), 136 deletions(-)
+ ipc/msg.c  |   61 ++++++++----------------------
+ ipc/sem.c  |   78 +++++++++++++++------------------------
+ ipc/shm.c  |   75 ++++++++++++++-----------------------
+ ipc/util.c |  101 ++++++++++++++++++++++++++++++++++++++++++++++++++-
+ ipc/util.h |   43 +++++++++++++++++++++
+ 5 files changed, 217 insertions(+), 141 deletions(-)
 
-diff -puN ipc/msg.c~ipc-integrate-ipc_checkid-into-ipc_lock ipc/msg.c
---- a/ipc/msg.c~ipc-integrate-ipc_checkid-into-ipc_lock
+diff -puN ipc/msg.c~ipc-unify-the-syscalls-code ipc/msg.c
+--- a/ipc/msg.c~ipc-unify-the-syscalls-code
 +++ a/ipc/msg.c
-@@ -73,10 +73,7 @@ static struct ipc_ids init_msg_ids;
- 
- #define msg_ids(ns)	(*((ns)->ids[IPC_MSG_IDS]))
- 
--#define msg_lock(ns, id)	((struct msg_queue*)ipc_lock(&msg_ids(ns), id))
- #define msg_unlock(msq)		ipc_unlock(&(msq)->q_perm)
--#define msg_checkid(ns, msq, msgid)	\
--	ipc_checkid(&msg_ids(ns), &msq->q_perm, msgid)
- #define msg_buildid(ns, id, seq) \
+@@ -81,7 +81,7 @@ static struct ipc_ids init_msg_ids;
  	ipc_buildid(&msg_ids(ns), id, seq)
  
-@@ -139,6 +136,17 @@ void __init msg_init(void)
- 				IPC_MSG_IDS, sysvipc_msg_proc_show);
- }
- 
-+static inline struct msg_queue *msg_lock(struct ipc_namespace *ns, int id)
-+{
-+	return (struct msg_queue *) ipc_lock(&msg_ids(ns), id);
-+}
-+
-+static inline struct msg_queue *msg_lock_check(struct ipc_namespace *ns,
-+						int id)
-+{
-+	return (struct msg_queue *) ipc_lock_check(&msg_ids(ns), id);
-+}
-+
- static inline void msg_rmid(struct ipc_namespace *ns, struct msg_queue *s)
- {
+ static void freeque(struct ipc_namespace *, struct msg_queue *);
+-static int newque (struct ipc_namespace *ns, key_t key, int msgflg);
++static int newque(struct ipc_namespace *, struct ipc_params *);
+ #ifdef CONFIG_PROC_FS
+ static int sysvipc_msg_proc_show(struct seq_file *s, void *it);
+ #endif
+@@ -144,10 +144,12 @@ static inline void msg_rmid(struct ipc_n
  	ipc_rmid(&msg_ids(ns), &s->q_perm);
-@@ -445,18 +453,15 @@ asmlinkage long sys_msgctl(int msqid, in
- 		if (!buf)
- 			return -EFAULT;
- 
--		memset(&tbuf, 0, sizeof(tbuf));
--
--		msq = msg_lock(ns, msqid);
--		if (msq == NULL)
--			return -EINVAL;
--
- 		if (cmd == MSG_STAT) {
-+			msq = msg_lock(ns, msqid);
-+			if (IS_ERR(msq))
-+				return PTR_ERR(msq);
- 			success_return = msq->q_perm.id;
- 		} else {
--			err = -EIDRM;
--			if (msg_checkid(ns, msq, msqid))
--				goto out_unlock;
-+			msq = msg_lock_check(ns, msqid);
-+			if (IS_ERR(msq))
-+				return PTR_ERR(msq);
- 			success_return = 0;
- 		}
- 		err = -EACCES;
-@@ -467,6 +472,8 @@ asmlinkage long sys_msgctl(int msqid, in
- 		if (err)
- 			goto out_unlock;
- 
-+		memset(&tbuf, 0, sizeof(tbuf));
-+
- 		kernel_to_ipc64_perm(&msq->q_perm, &tbuf.msg_perm);
- 		tbuf.msg_stime  = msq->q_stime;
- 		tbuf.msg_rtime  = msq->q_rtime;
-@@ -494,14 +501,12 @@ asmlinkage long sys_msgctl(int msqid, in
- 	}
- 
- 	mutex_lock(&msg_ids(ns).mutex);
--	msq = msg_lock(ns, msqid);
--	err = -EINVAL;
--	if (msq == NULL)
-+	msq = msg_lock_check(ns, msqid);
-+	if (IS_ERR(msq)) {
-+		err = PTR_ERR(msq);
- 		goto out_up;
-+	}
- 
--	err = -EIDRM;
--	if (msg_checkid(ns, msq, msqid))
--		goto out_unlock_up;
- 	ipcp = &msq->q_perm;
- 
- 	err = audit_ipc_obj(ipcp);
-@@ -644,14 +649,11 @@ long do_msgsnd(int msqid, long mtype, vo
- 	msg->m_type = mtype;
- 	msg->m_ts = msgsz;
- 
--	msq = msg_lock(ns, msqid);
--	err = -EINVAL;
--	if (msq == NULL)
-+	msq = msg_lock_check(ns, msqid);
-+	if (IS_ERR(msq)) {
-+		err = PTR_ERR(msq);
- 		goto out_free;
--
--	err= -EIDRM;
--	if (msg_checkid(ns, msq, msqid))
--		goto out_unlock_free;
-+	}
- 
- 	for (;;) {
- 		struct msg_sender s;
-@@ -758,13 +760,9 @@ long do_msgrcv(int msqid, long *pmtype, 
- 	mode = convert_mode(&msgtyp, msgflg);
- 	ns = current->nsproxy->ipc_ns;
- 
--	msq = msg_lock(ns, msqid);
--	if (msq == NULL)
--		return -EINVAL;
--
--	msg = ERR_PTR(-EIDRM);
--	if (msg_checkid(ns, msq, msqid))
--		goto out_unlock;
-+	msq = msg_lock_check(ns, msqid);
-+	if (IS_ERR(msq))
-+		return PTR_ERR(msq);
- 
- 	for (;;) {
- 		struct msg_receiver msr_d;
-diff -puN ipc/sem.c~ipc-integrate-ipc_checkid-into-ipc_lock ipc/sem.c
---- a/ipc/sem.c~ipc-integrate-ipc_checkid-into-ipc_lock
-+++ a/ipc/sem.c
-@@ -88,7 +88,6 @@
- 
- #define sem_ids(ns)	(*((ns)->ids[IPC_SEM_IDS]))
- 
--#define sem_lock(ns, id)	((struct sem_array*)ipc_lock(&sem_ids(ns), id))
- #define sem_unlock(sma)		ipc_unlock(&(sma)->sem_perm)
- #define sem_checkid(ns, sma, semid)	\
- 	ipc_checkid(&sem_ids(ns),&sma->sem_perm,semid)
-@@ -175,6 +174,17 @@ void __init sem_init (void)
- 				IPC_SEM_IDS, sysvipc_sem_proc_show);
  }
  
-+static inline struct sem_array *sem_lock(struct ipc_namespace *ns, int id)
-+{
-+	return (struct sem_array *) ipc_lock(&sem_ids(ns), id);
-+}
-+
-+static inline struct sem_array *sem_lock_check(struct ipc_namespace *ns,
-+						int id)
-+{
-+	return (struct sem_array *) ipc_lock_check(&sem_ids(ns), id);
-+}
-+
- static inline void sem_rmid(struct ipc_namespace *ns, struct sem_array *s)
+-static int newque (struct ipc_namespace *ns, key_t key, int msgflg)
++static int newque(struct ipc_namespace *ns, struct ipc_params *params)
  {
- 	ipc_rmid(&sem_ids(ns), &s->sem_perm);
-@@ -599,11 +609,9 @@ static int semctl_nolock(struct ipc_name
- 		struct semid64_ds tbuf;
- 		int id;
+ 	struct msg_queue *msq;
+ 	int id, retval;
++	key_t key = params->key;
++	int msgflg = params->flg;
  
--		memset(&tbuf,0,sizeof(tbuf));
--
- 		sma = sem_lock(ns, semid);
--		if(sma == NULL)
--			return -EINVAL;
-+		if (IS_ERR(sma))
-+			return PTR_ERR(sma);
+ 	msq = ipc_rcu_alloc(sizeof(*msq));
+ 	if (!msq)
+@@ -264,56 +266,27 @@ static void freeque(struct ipc_namespace
+ 	ipc_rcu_putref(msq);
+ }
  
- 		err = -EACCES;
- 		if (ipcperms (&sma->sem_perm, S_IRUGO))
-@@ -615,6 +623,8 @@ static int semctl_nolock(struct ipc_name
- 
- 		id = sma->sem_perm.id;
- 
-+		memset(&tbuf, 0, sizeof(tbuf));
++static inline int msg_security(void *msq, int msgflg)
++{
++	return security_msg_queue_associate((struct msg_queue *) msq, msgflg);
++}
 +
- 		kernel_to_ipc64_perm(&sma->sem_perm, &tbuf.sem_perm);
- 		tbuf.sem_otime  = sma->sem_otime;
- 		tbuf.sem_ctime  = sma->sem_ctime;
-@@ -643,16 +653,12 @@ static int semctl_main(struct ipc_namesp
- 	ushort* sem_io = fast_sem_io;
- 	int nsems;
+ asmlinkage long sys_msgget(key_t key, int msgflg)
+ {
+-	struct msg_queue *msq;
+-	int ret;
+ 	struct ipc_namespace *ns;
++	struct ipc_ops msg_ops;
++	struct ipc_params msg_params;
  
--	sma = sem_lock(ns, semid);
--	if(sma==NULL)
--		return -EINVAL;
-+	sma = sem_lock_check(ns, semid);
-+	if (IS_ERR(sma))
-+		return PTR_ERR(sma);
+ 	ns = current->nsproxy->ipc_ns;
  
- 	nsems = sma->sem_nsems;
- 
--	err=-EIDRM;
--	if (sem_checkid(ns,sma,semid))
--		goto out_unlock;
+-	ret = idr_pre_get(&msg_ids(ns).ipcs_idr, GFP_KERNEL);
 -
- 	err = -EACCES;
- 	if (ipcperms (&sma->sem_perm, (cmd==SETVAL||cmd==SETALL)?S_IWUGO:S_IRUGO))
- 		goto out_unlock;
-@@ -864,14 +870,10 @@ static int semctl_down(struct ipc_namesp
- 		if(copy_semid_from_user (&setbuf, arg.buf, version))
- 			return -EFAULT;
- 	}
--	sma = sem_lock(ns, semid);
--	if(sma==NULL)
--		return -EINVAL;
-+	sma = sem_lock_check(ns, semid);
-+	if (IS_ERR(sma))
-+		return PTR_ERR(sma);
+-	if (key == IPC_PRIVATE)  {
+-		if (!ret)
+-			ret = -ENOMEM;
+-		else {
+-			mutex_lock(&msg_ids(ns).mutex);
+-			ret = newque(ns, key, msgflg);
+-			mutex_unlock(&msg_ids(ns).mutex);
+-		}
+-	} else {
+-		mutex_lock(&msg_ids(ns).mutex);
+-		msq = (struct msg_queue *) ipc_findkey(&msg_ids(ns), key);
+-		if (msq == NULL) {
+-			/* key not used */
+-			if (!(msgflg & IPC_CREAT))
+-				ret = -ENOENT;
+-			else if (!ret)
+-				ret = -ENOMEM;
+-			else
+-				ret = newque(ns, key, msgflg);
+-		} else {
+-			/* msq has been locked by ipc_findkey() */
++	msg_ops.getnew = newque;
++	msg_ops.associate = msg_security;
++	msg_ops.more_checks = NULL;
  
--	if (sem_checkid(ns,sma,semid)) {
--		err=-EIDRM;
--		goto out_unlock;
--	}	
- 	ipcp = &sma->sem_perm;
- 
- 	err = audit_ipc_obj(ipcp);
-@@ -1055,15 +1057,10 @@ static struct sem_undo *find_undo(struct
- 		goto out;
- 
- 	/* no undo structure around - allocate one. */
--	sma = sem_lock(ns, semid);
--	un = ERR_PTR(-EINVAL);
--	if(sma==NULL)
--		goto out;
--	un = ERR_PTR(-EIDRM);
--	if (sem_checkid(ns,sma,semid)) {
--		sem_unlock(sma);
--		goto out;
+-			if (msgflg & IPC_CREAT && msgflg & IPC_EXCL)
+-				ret = -EEXIST;
+-			else {
+-				if (ipcperms(&msq->q_perm, msgflg))
+-					ret = -EACCES;
+-				else {
+-					ret = security_msg_queue_associate(
+-								msq, msgflg);
+-					if (!ret)
+-						ret = msq->q_perm.id;
+-				}
+-			}
+-			msg_unlock(msq);
+-		}
+-		mutex_unlock(&msg_ids(ns).mutex);
 -	}
-+	sma = sem_lock_check(ns, semid);
-+	if (IS_ERR(sma))
-+		return ERR_PTR(PTR_ERR(sma));
-+
- 	nsems = sma->sem_nsems;
- 	ipc_rcu_getref(sma);
- 	sem_unlock(sma);
-@@ -1169,15 +1166,14 @@ retry_undos:
- 	} else
- 		un = NULL;
++	msg_params.key = key;
++	msg_params.flg = msgflg;
  
--	sma = sem_lock(ns, semid);
--	error=-EINVAL;
--	if(sma==NULL)
-+	sma = sem_lock_check(ns, semid);
-+	if (IS_ERR(sma)) {
-+		error = PTR_ERR(sma);
- 		goto out_free;
--	error = -EIDRM;
--	if (sem_checkid(ns,sma,semid))
--		goto out_unlock_free;
-+	}
-+
- 	/*
--	 * semid identifies are not unique - find_undo may have
-+	 * semid identifiers are not unique - find_undo may have
- 	 * allocated an undo structure, it was invalidated by an RMID
- 	 * and now a new array with received the same id. Check and retry.
- 	 */
-@@ -1243,7 +1239,7 @@ retry_undos:
- 	}
- 
- 	sma = sem_lock(ns, semid);
--	if(sma==NULL) {
-+	if (IS_ERR(sma)) {
- 		BUG_ON(queue.prev != NULL);
- 		error = -EIDRM;
- 		goto out_free;
-@@ -1343,7 +1339,7 @@ void exit_sem(struct task_struct *tsk)
- 		if(semid == -1)
- 			continue;
- 		sma = sem_lock(ns, semid);
--		if (sma == NULL)
-+		if (IS_ERR(sma))
- 			continue;
- 
- 		if (u->semid == -1)
-diff -puN ipc/shm.c~ipc-integrate-ipc_checkid-into-ipc_lock ipc/shm.c
---- a/ipc/shm.c~ipc-integrate-ipc_checkid-into-ipc_lock
-+++ a/ipc/shm.c
-@@ -59,8 +59,6 @@ static struct ipc_ids init_shm_ids;
- 
- #define shm_ids(ns)	(*((ns)->ids[IPC_SHM_IDS]))
- 
--#define shm_lock(ns, id)		\
--	((struct shmid_kernel*)ipc_lock(&shm_ids(ns),id))
- #define shm_unlock(shp)			\
- 	ipc_unlock(&(shp)->shm_perm)
- #define shm_buildid(ns, id, seq)	\
-@@ -139,12 +137,15 @@ void __init shm_init (void)
- 				IPC_SHM_IDS, sysvipc_shm_proc_show);
+-	return ret;
++	return ipcget(ns, &msg_ids(ns), &msg_ops, &msg_params);
  }
  
--static inline int shm_checkid(struct ipc_namespace *ns,
--		struct shmid_kernel *s, int id)
-+static inline struct shmid_kernel *shm_lock(struct ipc_namespace *ns, int id)
+ static inline unsigned long
+diff -puN ipc/sem.c~ipc-unify-the-syscalls-code ipc/sem.c
+--- a/ipc/sem.c~ipc-unify-the-syscalls-code
++++ a/ipc/sem.c
+@@ -97,7 +97,7 @@
+ 
+ static struct ipc_ids init_sem_ids;
+ 
+-static int newary(struct ipc_namespace *, key_t, int, int);
++static int newary(struct ipc_namespace *, struct ipc_params *);
+ static void freeary(struct ipc_namespace *, struct sem_array *);
+ #ifdef CONFIG_PROC_FS
+ static int sysvipc_sem_proc_show(struct seq_file *s, void *it);
+@@ -214,12 +214,15 @@ static inline void sem_rmid(struct ipc_n
+  */
+ #define IN_WAKEUP	1
+ 
+-static int newary (struct ipc_namespace *ns, key_t key, int nsems, int semflg)
++static int newary(struct ipc_namespace *ns, struct ipc_params *params)
  {
--	if (ipc_checkid(&shm_ids(ns), &s->shm_perm, id))
--		return -EIDRM;
--	return 0;
-+	return (struct shmid_kernel *) ipc_lock(&shm_ids(ns), id);
+ 	int id;
+ 	int retval;
+ 	struct sem_array *sma;
+ 	int size;
++	key_t key = params->key;
++	int nsems = params->u.nsems;
++	int semflg = params->flg;
+ 
+ 	if (!nsems)
+ 		return -EINVAL;
+@@ -263,61 +266,40 @@ static int newary (struct ipc_namespace 
+ 	return sma->sem_perm.id;
+ }
+ 
+-asmlinkage long sys_semget (key_t key, int nsems, int semflg)
++
++static inline int sem_security(void *sma, int semflg)
++{
++	return security_sem_associate((struct sem_array *) sma, semflg);
 +}
 +
-+static inline struct shmid_kernel *shm_lock_check(struct ipc_namespace *ns,
-+						int id)
++static inline int sem_more_checks(void *sma, struct ipc_params *params)
 +{
-+	return (struct shmid_kernel *) ipc_lock_check(&shm_ids(ns), id);
- }
- 
- static inline void shm_rmid(struct ipc_namespace *ns, struct shmid_kernel *s)
-@@ -167,7 +168,7 @@ static void shm_open(struct vm_area_stru
- 	struct shmid_kernel *shp;
- 
- 	shp = shm_lock(sfd->ns, sfd->id);
--	BUG_ON(!shp);
-+	BUG_ON(IS_ERR(shp));
- 	shp->shm_atim = get_seconds();
- 	shp->shm_lprid = task_tgid_vnr(current);
- 	shp->shm_nattch++;
-@@ -213,7 +214,7 @@ static void shm_close(struct vm_area_str
- 	mutex_lock(&shm_ids(ns).mutex);
- 	/* remove from the list of attaches of the shm segment */
- 	shp = shm_lock(ns, sfd->id);
--	BUG_ON(!shp);
-+	BUG_ON(IS_ERR(shp));
- 	shp->shm_lprid = task_tgid_vnr(current);
- 	shp->shm_dtim = get_seconds();
- 	shp->shm_nattch--;
-@@ -662,17 +663,25 @@ asmlinkage long sys_shmctl (int shmid, i
- 	{
- 		struct shmid64_ds tbuf;
- 		int result;
--		memset(&tbuf, 0, sizeof(tbuf));
--		shp = shm_lock(ns, shmid);
--		if(shp==NULL) {
--			err = -EINVAL;
++	if (params->u.nsems > ((struct sem_array *)sma)->sem_nsems)
++		return -EINVAL;
 +
-+		if (!buf) {
-+			err = -EFAULT;
- 			goto out;
--		} else if (cmd == SHM_STAT) {
-+		}
-+
-+		if (cmd == SHM_STAT) {
-+			shp = shm_lock(ns, shmid);
-+			if (IS_ERR(shp)) {
-+				err = PTR_ERR(shp);
-+				goto out;
-+			}
- 			result = shp->shm_perm.id;
- 		} else {
--			err = shm_checkid(ns, shp,shmid);
--			if(err)
--				goto out_unlock;
-+			shp = shm_lock_check(ns, shmid);
-+			if (IS_ERR(shp)) {
-+				err = PTR_ERR(shp);
-+				goto out;
-+			}
- 			result = 0;
- 		}
- 		err=-EACCES;
-@@ -681,6 +690,7 @@ asmlinkage long sys_shmctl (int shmid, i
- 		err = security_shm_shmctl(shp, cmd);
- 		if (err)
- 			goto out_unlock;
-+		memset(&tbuf, 0, sizeof(tbuf));
- 		kernel_to_ipc64_perm(&shp->shm_perm, &tbuf.shm_perm);
- 		tbuf.shm_segsz	= shp->shm_segsz;
- 		tbuf.shm_atime	= shp->shm_atim;
-@@ -699,14 +709,11 @@ asmlinkage long sys_shmctl (int shmid, i
- 	case SHM_LOCK:
- 	case SHM_UNLOCK:
- 	{
--		shp = shm_lock(ns, shmid);
--		if(shp==NULL) {
--			err = -EINVAL;
-+		shp = shm_lock_check(ns, shmid);
-+		if (IS_ERR(shp)) {
-+			err = PTR_ERR(shp);
- 			goto out;
- 		}
--		err = shm_checkid(ns, shp,shmid);
--		if(err)
--			goto out_unlock;
- 
- 		err = audit_ipc_obj(&(shp->shm_perm));
- 		if (err)
-@@ -756,13 +763,11 @@ asmlinkage long sys_shmctl (int shmid, i
- 		 *	the name away when the usage hits zero.
- 		 */
- 		mutex_lock(&shm_ids(ns).mutex);
--		shp = shm_lock(ns, shmid);
--		err = -EINVAL;
--		if (shp == NULL) 
-+		shp = shm_lock_check(ns, shmid);
-+		if (IS_ERR(shp)) {
-+			err = PTR_ERR(shp);
- 			goto out_up;
--		err = shm_checkid(ns, shp, shmid);
--		if(err)
--			goto out_unlock_up;
-+		}
- 
- 		err = audit_ipc_obj(&(shp->shm_perm));
- 		if (err)
-@@ -786,18 +791,21 @@ asmlinkage long sys_shmctl (int shmid, i
- 
- 	case IPC_SET:
- 	{
-+		if (!buf) {
-+			err = -EFAULT;
-+			goto out;
-+		}
-+
- 		if (copy_shmid_from_user (&setbuf, buf, version)) {
- 			err = -EFAULT;
- 			goto out;
- 		}
- 		mutex_lock(&shm_ids(ns).mutex);
--		shp = shm_lock(ns, shmid);
--		err=-EINVAL;
--		if(shp==NULL)
-+		shp = shm_lock_check(ns, shmid);
-+		if (IS_ERR(shp)) {
-+			err = PTR_ERR(shp);
- 			goto out_up;
--		err = shm_checkid(ns, shp,shmid);
--		if(err)
--			goto out_unlock_up;
-+		}
- 		err = audit_ipc_obj(&(shp->shm_perm));
- 		if (err)
- 			goto out_unlock_up;
-@@ -903,13 +911,11 @@ long do_shmat(int shmid, char __user *sh
- 	 * additional creator id...
- 	 */
- 	ns = current->nsproxy->ipc_ns;
--	shp = shm_lock(ns, shmid);
--	if(shp == NULL)
-+	shp = shm_lock_check(ns, shmid);
-+	if (IS_ERR(shp)) {
-+		err = PTR_ERR(shp);
- 		goto out;
--
--	err = shm_checkid(ns, shp,shmid);
--	if (err)
--		goto out_unlock;
-+	}
- 
- 	err = -EACCES;
- 	if (ipcperms(&shp->shm_perm, acc_mode))
-@@ -970,7 +976,7 @@ invalid:
- out_nattch:
- 	mutex_lock(&shm_ids(ns).mutex);
- 	shp = shm_lock(ns, shmid);
--	BUG_ON(!shp);
-+	BUG_ON(IS_ERR(shp));
- 	shp->shm_nattch--;
- 	if(shp->shm_nattch == 0 &&
- 	   shp->shm_perm.mode & SHM_DEST)
-diff -puN ipc/util.c~ipc-integrate-ipc_checkid-into-ipc_lock ipc/util.c
---- a/ipc/util.c~ipc-integrate-ipc_checkid-into-ipc_lock
-+++ a/ipc/util.c
-@@ -678,7 +678,7 @@ struct kern_ipc_perm *ipc_lock(struct ip
- 	out = idr_find(&ids->ipcs_idr, lid);
- 	if (out == NULL) {
- 		rcu_read_unlock();
--		return NULL;
-+		return ERR_PTR(-EINVAL);
- 	}
- 
- 	spin_lock(&out->lock);
-@@ -689,36 +689,17 @@ struct kern_ipc_perm *ipc_lock(struct ip
- 	if (out->deleted) {
- 		spin_unlock(&out->lock);
- 		rcu_read_unlock();
--		return NULL;
-+		return ERR_PTR(-EINVAL);
- 	}
- 
- 	return out;
- }
- 
--void ipc_lock_by_ptr(struct kern_ipc_perm *perm)
--{
--	rcu_read_lock();
--	spin_lock(&perm->lock);
--}
--
--void ipc_unlock(struct kern_ipc_perm* perm)
--{
--	spin_unlock(&perm->lock);
--	rcu_read_unlock();
--}
--
- int ipc_buildid(struct ipc_ids* ids, int id, int seq)
- {
- 	return SEQ_MULTIPLIER*seq + id;
- }
- 
--int ipc_checkid(struct ipc_ids* ids, struct kern_ipc_perm* ipcp, int uid)
--{
--	if(uid/SEQ_MULTIPLIER != ipcp->seq)
--		return 1;
--	return 0;
--}
--
- #ifdef __ARCH_WANT_IPC_PARSE_VERSION
- 
- 
-diff -puN ipc/util.h~ipc-integrate-ipc_checkid-into-ipc_lock ipc/util.h
---- a/ipc/util.h~ipc-integrate-ipc_checkid-into-ipc_lock
-+++ a/ipc/util.h
-@@ -11,6 +11,7 @@
- #define _IPC_UTIL_H
- 
- #include <linux/idr.h>
-+#include <linux/err.h>
- 
- #define USHRT_MAX 0xffff
- #define SEQ_MULTIPLIER	(IPCMNI)
-@@ -103,11 +104,8 @@ void* ipc_rcu_alloc(int size);
- void ipc_rcu_getref(void *ptr);
- void ipc_rcu_putref(void *ptr);
- 
--struct kern_ipc_perm* ipc_lock(struct ipc_ids* ids, int id);
--void ipc_lock_by_ptr(struct kern_ipc_perm *ipcp);
--void ipc_unlock(struct kern_ipc_perm* perm);
-+struct kern_ipc_perm *ipc_lock(struct ipc_ids *, int);
- int ipc_buildid(struct ipc_ids* ids, int id, int seq);
--int ipc_checkid(struct ipc_ids* ids, struct kern_ipc_perm* ipcp, int uid);
- 
- void kernel_to_ipc64_perm(struct kern_ipc_perm *in, struct ipc64_perm *out);
- void ipc64_perm_to_ipc_perm(struct ipc64_perm *in, struct ipc_perm *out);
-@@ -127,6 +125,43 @@ extern int ipcget_new(struct ipc_namespa
- extern int ipcget_public(struct ipc_namespace *, struct ipc_ids *,
- 			struct ipc_ops *, struct ipc_params *);
- 
-+static inline int ipc_checkid(struct ipc_ids *ids, struct kern_ipc_perm *ipcp,
-+				int uid)
-+{
-+	if (uid / SEQ_MULTIPLIER != ipcp->seq)
-+		return 1;
 +	return 0;
 +}
 +
-+static inline void ipc_lock_by_ptr(struct kern_ipc_perm *perm)
++asmlinkage long sys_semget(key_t key, int nsems, int semflg)
+ {
+-	int err;
+-	struct sem_array *sma;
+ 	struct ipc_namespace *ns;
++	struct ipc_ops sem_ops;
++	struct ipc_params sem_params;
+ 
+ 	ns = current->nsproxy->ipc_ns;
+ 
+ 	if (nsems < 0 || nsems > ns->sc_semmsl)
+ 		return -EINVAL;
+ 
+-	err = idr_pre_get(&sem_ids(ns).ipcs_idr, GFP_KERNEL);
++	sem_ops.getnew = newary;
++	sem_ops.associate = sem_security;
++	sem_ops.more_checks = sem_more_checks;
++
++	sem_params.key = key;
++	sem_params.flg = semflg;
++	sem_params.u.nsems = nsems;
+ 
+-	if (key == IPC_PRIVATE) {
+-		if (!err)
+-			err = -ENOMEM;
+-		else {
+-			mutex_lock(&sem_ids(ns).mutex);
+-			err = newary(ns, key, nsems, semflg);
+-			mutex_unlock(&sem_ids(ns).mutex);
+-		}
+-	} else {
+-		mutex_lock(&sem_ids(ns).mutex);
+-		sma = (struct sem_array *) ipc_findkey(&sem_ids(ns), key);
+-		if (sma == NULL) {
+-			/* key not used */
+-			if (!(semflg & IPC_CREAT))
+-				err = -ENOENT;
+-			else if (!err)
+-				err = -ENOMEM;
+-			else
+-				err = newary(ns, key, nsems, semflg);
+-		} else {
+-			/* sma has been locked by ipc_findkey() */
+-
+-			if (semflg & IPC_CREAT && semflg & IPC_EXCL)
+-				err = -EEXIST;
+-			else {
+-				if (nsems > sma->sem_nsems)
+-					err = -EINVAL;
+-				else if (ipcperms(&sma->sem_perm, semflg))
+-					err = -EACCES;
+-				else {
+-					err = security_sem_associate(sma,
+-								semflg);
+-					if (!err)
+-						err = sma->sem_perm.id;
+-				}
+-			}
+-			sem_unlock(sma);
+-		}
+-		mutex_unlock(&sem_ids(ns).mutex);
+-	}
+-
+-	return err;
++	return ipcget(ns, &sem_ids(ns), &sem_ops, &sem_params);
+ }
+ 
+ /* Manage the doubly linked list sma->sem_pending as a FIFO:
+diff -puN ipc/shm.c~ipc-unify-the-syscalls-code ipc/shm.c
+--- a/ipc/shm.c~ipc-unify-the-syscalls-code
++++ a/ipc/shm.c
+@@ -68,8 +68,7 @@ static struct ipc_ids init_shm_ids;
+ #define shm_buildid(ns, id, seq)	\
+ 	ipc_buildid(&shm_ids(ns), id, seq)
+ 
+-static int newseg (struct ipc_namespace *ns, key_t key,
+-		int shmflg, size_t size);
++static int newseg(struct ipc_namespace *, struct ipc_params *);
+ static void shm_open(struct vm_area_struct *vma);
+ static void shm_close(struct vm_area_struct *vma);
+ static void shm_destroy (struct ipc_namespace *ns, struct shmid_kernel *shp);
+@@ -341,8 +340,11 @@ static struct vm_operations_struct shm_v
+ #endif
+ };
+ 
+-static int newseg (struct ipc_namespace *ns, key_t key, int shmflg, size_t size)
++static int newseg(struct ipc_namespace *ns, struct ipc_params *params)
+ {
++	key_t key = params->key;
++	int shmflg = params->flg;
++	size_t size = params->u.size;
+ 	int error;
+ 	struct shmid_kernel *shp;
+ 	int numpages = (size + PAGE_SIZE -1) >> PAGE_SHIFT;
+@@ -423,57 +425,36 @@ no_file:
+ 	return error;
+ }
+ 
++static inline int shm_security(void *shp, int shmflg)
 +{
-+	rcu_read_lock();
-+	spin_lock(&perm->lock);
++	return security_shm_associate((struct shmid_kernel *) shp, shmflg);
 +}
 +
-+static inline void ipc_unlock(struct kern_ipc_perm *perm)
++static inline int shm_more_checks(void *shp, struct ipc_params *params)
 +{
-+	spin_unlock(&perm->lock);
-+	rcu_read_unlock();
++	if (((struct shmid_kernel *)shp)->shm_segsz < params->u.size)
++		return -EINVAL;
++
++	return 0;
 +}
 +
-+static inline struct kern_ipc_perm *ipc_lock_check(struct ipc_ids *ids,
-+						int id)
+ asmlinkage long sys_shmget (key_t key, size_t size, int shmflg)
+ {
+-	struct shmid_kernel *shp;
+-	int err;
+ 	struct ipc_namespace *ns;
++	struct ipc_ops shm_ops;
++	struct ipc_params shm_params;
+ 
+ 	ns = current->nsproxy->ipc_ns;
+ 
+-	err = idr_pre_get(&shm_ids(ns).ipcs_idr, GFP_KERNEL);
++	shm_ops.getnew = newseg;
++	shm_ops.associate = shm_security;
++	shm_ops.more_checks = shm_more_checks;
++
++	shm_params.key = key;
++	shm_params.flg = shmflg;
++	shm_params.u.size = size;
+ 
+-	if (key == IPC_PRIVATE) {
+-		if (!err)
+-			err = -ENOMEM;
+-		else {
+-			mutex_lock(&shm_ids(ns).mutex);
+-			err = newseg(ns, key, shmflg, size);
+-			mutex_unlock(&shm_ids(ns).mutex);
+-		}
+-	} else {
+-		mutex_lock(&shm_ids(ns).mutex);
+-		shp = (struct shmid_kernel *) ipc_findkey(&shm_ids(ns), key);
+-		if (shp == NULL) {
+-			if (!(shmflg & IPC_CREAT))
+-				err = -ENOENT;
+-			else if (!err)
+-				err = -ENOMEM;
+-			else
+-				err = newseg(ns, key, shmflg, size);
+-		} else {
+-			/* shp has been locked by ipc_findkey() */
+-
+-			if ((shmflg & IPC_CREAT) && (shmflg & IPC_EXCL))
+-				err = -EEXIST;
+-			else {
+-				if (shp->shm_segsz < size)
+-					err = -EINVAL;
+-				else if (ipcperms(&shp->shm_perm, shmflg))
+-					err = -EACCES;
+-				else {
+-					err = security_shm_associate(shp,
+-								shmflg);
+-					if (!err)
+-						err = shp->shm_perm.id;
+-				}
+-			}
+-			shm_unlock(shp);
+-		}
+-		mutex_unlock(&shm_ids(ns).mutex);
+-	}
+-
+-	return err;
++	return ipcget(ns, &shm_ids(ns), &shm_ops, &shm_params);
+ }
+ 
+ static inline unsigned long copy_shmid_to_user(void __user *buf, struct shmid64_ds *in, int version)
+diff -puN ipc/util.c~ipc-unify-the-syscalls-code ipc/util.c
+--- a/ipc/util.c~ipc-unify-the-syscalls-code
++++ a/ipc/util.c
+@@ -197,7 +197,7 @@ void __init ipc_init_proc_interface(cons
+  *	If key is found ipc contains its ipc structure
+  */
+  
+-struct kern_ipc_perm *ipc_findkey(struct ipc_ids *ids, key_t key)
++static struct kern_ipc_perm *ipc_findkey(struct ipc_ids *ids, key_t key)
+ {
+ 	struct kern_ipc_perm *ipc;
+ 	int next_id;
+@@ -301,6 +301,105 @@ int ipc_addid(struct ipc_ids* ids, struc
+ }
+ 
+ /**
++ *	ipcget_new	-	create a new ipc object
++ *	@ns: namespace
++ *	@ids: identifer set
++ *	@ops: the actual creation routine to call
++ *	@params: its parameters
++ *
++ *	This routine is called sys_msgget, sys_semget() and sys_shmget() when
++ *	the key is IPC_PRIVATE
++ */
++int ipcget_new(struct ipc_namespace *ns, struct ipc_ids *ids,
++		struct ipc_ops *ops, struct ipc_params *params)
 +{
-+	struct kern_ipc_perm *out;
++	int err;
 +
-+	out = ipc_lock(ids, id);
-+	if (IS_ERR(out))
-+		return out;
++	err = idr_pre_get(&ids->ipcs_idr, GFP_KERNEL);
 +
-+	if (ipc_checkid(ids, out, id)) {
-+		ipc_unlock(out);
-+		return ERR_PTR(-EIDRM);
++	if (!err)
++		return -ENOMEM;
++
++	mutex_lock(&ids->mutex);
++	err = ops->getnew(ns, params);
++	mutex_unlock(&ids->mutex);
++
++	return err;
++}
++
++/**
++ *	ipc_check_perms	-	check security and permissions for an IPC
++ *	@ipcp: ipc permission set
++ *	@ids: identifer set
++ *	@ops: the actual security routine to call
++ *	@params: its parameters
++ */
++static int ipc_check_perms(struct kern_ipc_perm *ipcp, struct ipc_ops *ops,
++			struct ipc_params *params)
++{
++	int err;
++
++	if (ipcperms(ipcp, params->flg))
++		err = -EACCES;
++	else {
++		err = ops->associate(ipcp, params->flg);
++		if (!err)
++			err = ipcp->id;
 +	}
 +
-+	return out;
++	return err;
 +}
 +
- static inline int ipcget(struct ipc_namespace *ns, struct ipc_ids *ids,
- 			struct ipc_ops *ops, struct ipc_params *params)
- {
++/**
++ *	ipcget_public	-	get an ipc object or create a new one
++ *	@ns: namespace
++ *	@ids: identifer set
++ *	@ops: the actual creation routine to call
++ *	@params: its parameters
++ *
++ *	This routine is called sys_msgget, sys_semget() and sys_shmget() when
++ *	the key is not IPC_PRIVATE
++ */
++int ipcget_public(struct ipc_namespace *ns, struct ipc_ids *ids,
++		struct ipc_ops *ops, struct ipc_params *params)
++{
++	struct kern_ipc_perm *ipcp;
++	int flg = params->flg;
++	int err;
++
++	err = idr_pre_get(&ids->ipcs_idr, GFP_KERNEL);
++
++	mutex_lock(&ids->mutex);
++	ipcp = ipc_findkey(ids, params->key);
++	if (ipcp == NULL) {
++		/* key not used */
++		if (!(flg & IPC_CREAT))
++			err = -ENOENT;
++		else if (!err)
++			err = -ENOMEM;
++		else
++			err = ops->getnew(ns, params);
++	} else {
++		/* ipc object has been locked by ipc_findkey() */
++
++		if (flg & IPC_CREAT && flg & IPC_EXCL)
++			err = -EEXIST;
++		else {
++			err = 0;
++			if (ops->more_checks)
++				err = ops->more_checks(ipcp, params);
++			if (!err)
++				err = ipc_check_perms(ipcp, ops, params);
++		}
++		ipc_unlock(ipcp);
++	}
++	mutex_unlock(&ids->mutex);
++
++	return err;
++}
++
++
++/**
+  *	ipc_rmid	-	remove an IPC identifier
+  *	@ids: identifier set
+  *	@id: ipc perm structure containing the identifier to remove
+diff -puN ipc/util.h~ipc-unify-the-syscalls-code ipc/util.h
+--- a/ipc/util.h~ipc-unify-the-syscalls-code
++++ a/ipc/util.h
+@@ -35,6 +35,35 @@ struct ipc_ids {
+ 	struct idr ipcs_idr;
+ };
+ 
++/*
++ * Structure that holds the parameters needed by the ipc operations
++ * (see after)
++ */
++struct ipc_params {
++	key_t key;
++	int flg;
++	union {
++		size_t size;	/* for shared memories */
++		int nsems;	/* for semaphores */
++	} u;			/* holds the getnew() specific param */
++};
++
++/*
++ * Structure that holds some ipc operations. This structure is used to unify
++ * the calls to sys_msgget(), sys_semget(), sys_shmget()
++ *      . routine to call to create a new ipc object. Can be one of newque,
++ *        newary, newseg
++ *      . routine to call to call to check permissions for a new ipc object.
++ *        Can be one of security_msg_associate, security_sem_associate,
++ *        security_shm_associate
++ *      . routine to call for an extra check if needed
++ */
++struct ipc_ops {
++	int (*getnew) (struct ipc_namespace *, struct ipc_params *);
++	int (*associate) (void *, int);
++	int (*more_checks) (void *, struct ipc_params *);
++};
++
+ struct seq_file;
+ 
+ void ipc_init_ids(struct ipc_ids *);
+@@ -50,7 +79,6 @@ void __init ipc_init_proc_interface(cons
+ #define IPC_SHM_IDS	2
+ 
+ /* must be called with ids->mutex acquired.*/
+-struct kern_ipc_perm *ipc_findkey(struct ipc_ids *ids, key_t key);
+ int ipc_addid(struct ipc_ids *, struct kern_ipc_perm *, int);
+ int ipc_get_maxid(struct ipc_ids *);
+ 
+@@ -95,5 +123,18 @@ int ipc_parse_version (int *cmd);
+ extern void free_msg(struct msg_msg *msg);
+ extern struct msg_msg *load_msg(const void __user *src, int len);
+ extern int store_msg(void __user *dest, struct msg_msg *msg, int len);
++extern int ipcget_new(struct ipc_namespace *, struct ipc_ids *,
++			struct ipc_ops *, struct ipc_params *);
++extern int ipcget_public(struct ipc_namespace *, struct ipc_ids *,
++			struct ipc_ops *, struct ipc_params *);
++
++static inline int ipcget(struct ipc_namespace *ns, struct ipc_ids *ids,
++			struct ipc_ops *ops, struct ipc_params *params)
++{
++	if (params->key == IPC_PRIVATE)
++		return ipcget_new(ns, ids, ops, params);
++	else
++		return ipcget_public(ns, ids, ops, params);
++}
+ 
+ #endif
 _
 
 Patches currently in -mm which might be from Nadia.Derbey@bull.net are
