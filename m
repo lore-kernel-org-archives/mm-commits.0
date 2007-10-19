@@ -1,112 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: + slub-avoid-atomic-operation-for-slab_unlock.patch added to -mm tree
-Date: Thu, 18 Oct 2007 15:31:36 -0700
-Message-ID: <200710182231.l9IMVaPG001850@imap1.linux-foundation.org>
+Subject: - git-watchdog-fixup.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:36:03 -0700
+Message-ID: <200710190336.l9J3a4aG012480@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52747 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51493 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754684AbXJRWbj (ORCPT
+	by vger.kernel.org with ESMTP id S933924AbXJSDgG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 18:31:39 -0400
+	Thu, 18 Oct 2007 23:36:06 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9J3a4Ws030384
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 18 Oct 2007 20:36:05 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, nickpiggin@yahoo.com.au
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: avoid atomic operation for slab_unlock
-has been added to the -mm tree.  Its filename is
-     slub-avoid-atomic-operation-for-slab_unlock.patch
+     git-watchdog-fixup
+has been removed from the -mm tree.  Its filename was
+     git-watchdog-fixup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: SLUB: avoid atomic operation for slab_unlock
-From: Christoph Lameter <clameter@sgi.com>
+Subject: git-watchdog-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Currently page flags are only modified in SLUB under page lock.  This means
-that we do not need an atomic operation to release the lock since there is
-nothing we can race against that is modifying page flags.  We can simply
-clear the bit without the use of an atomic operation and make sure that
-this change becomes visible after the other changes to slab metadata
-through a memory barrier.
-
-The performance of slab_free() increases 10-15% (SMP configuration doing
-a long series of remote frees).
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ drivers/Kconfig |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN mm/slub.c~slub-avoid-atomic-operation-for-slab_unlock mm/slub.c
---- a/mm/slub.c~slub-avoid-atomic-operation-for-slab_unlock
-+++ a/mm/slub.c
-@@ -1181,9 +1181,22 @@ static __always_inline void slab_lock(st
- 	bit_spin_lock(PG_locked, &page->flags);
- }
+diff -puN drivers/Kconfig~git-watchdog-fixup drivers/Kconfig
+--- a/drivers/Kconfig~git-watchdog-fixup
++++ a/drivers/Kconfig
+@@ -58,11 +58,9 @@ source "drivers/power/Kconfig"
  
-+/*
-+ * Slab unlock version that avoids having to use atomic operations
-+ * (echos some of the code of bit_spin_unlock!)
-+ */
- static __always_inline void slab_unlock(struct page *page)
- {
--	bit_spin_unlock(PG_locked, &page->flags);
-+#ifdef CONFIG_SMP
-+	unsigned long flags;
-+
-+	flags = page->flags & ~(1 << PG_locked);
-+
-+	smp_wmb();
-+	page->flags = flags;
-+#endif
-+	preempt_enable();
-+	__release(bitlock);
- }
+ source "drivers/hwmon/Kconfig"
  
- static __always_inline int slab_trylock(struct page *page)
+-<<<<<<< HEAD:drivers/Kconfig
+ source "drivers/ssb/Kconfig"
+-=======
++
+ source "drivers/watchdog/Kconfig"
+->>>>>>> FETCH_HEAD:drivers/Kconfig
+ 
+ source "drivers/mfd/Kconfig"
+ 
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-cpu-hotplug-slab-cleanup-cpuup_callback.patch
-cpu-hotplug-slab-fix-memory-leak-in-cpu-hotplug-error-path.patch
-bit_spin_lock-use-lock-bitops.patch
-ext3-support-large-blocksize-up-to-pagesize.patch
+console-keyboard-events-and-accessibility.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-add-reboot-mechanism.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-cifs.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-arm-hack.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd-fixup.patch
 git-parisc.patch
-mem-policy-fix-mempolicy-usage-in-pci-driver.patch
+fix-build-breakage-if-sysfs-fix.patch
+git-scsi-misc.patch
+advansys-depends-on-virt_to_bus.patch
+git-unionfs.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+git-nfs-vs-git-unionfs.patch
+git-watchdog-fixup.patch
+git-wireless.patch
+git-wireless-fixup.patch
 git-x86.patch
-slub-avoid-atomic-operation-for-slab_unlock.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
+git-x86-fixup.patch
+revert-x86_64-mm-cpa-einval.patch
+fix-x86_64-mm-sched-clock-share.patch
+x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
+git-xfs.patch
+memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-checkpatch-fixes.patch
+memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+pm-qos-infrastructure-and-interface-fix.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+add-kernel-notifierc.patch
+console-events-and-accessibility-fix.patch
+procfs-detect-duplicate-names-fix.patch
+procfs-detect-duplicate-names-fix-fix-2.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes.patch
+sync_sb_inodes-propagate-errors.patch
+fix-random-hard-freeze-with-avm-cards-using-b1dma-checkpatch-fixes.patch
 intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
 intel-iommu-iova-allocation-and-management-routines.patch
 intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
 intel-iommu-iommu-floppy-workaround.patch
-revoke-core-code.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes-2.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+fix-cpusets-update_cpumask-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
 memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
 hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-whitespace-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+kexec-add-bss-to-resource-tree-checkpatch-fixes.patch
+kexec-introduce-bootmem_exclusive-checkpatch-fixes.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+git-block-vs-reiser4.patch
+git-nfsd-broke-reiser4.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
 page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
