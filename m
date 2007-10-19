@@ -1,229 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: - serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:41:13 -0700
-Message-ID: <200710190341.l9J3fDVc012784@imap1.linux-foundation.org>
+Subject: - vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:42:20 -0700
+Message-ID: <200710190342.l9J3gKYJ012891@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57027 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35578 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966378AbXJSD5Q (ORCPT
+	by vger.kernel.org with ESMTP id S966266AbXJSD5t (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:57:16 -0400
+	Thu, 18 Oct 2007 23:57:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dilinger@debian.org, nigel@suspend2.net, pavel@ucw.cz, rjw@sisk.pl, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: jlayton@redhat.com, bfields@fieldses.org, chris.mason@oracle.com, hch@lst.de, jeffm@suse.com, jsipek@cs.sunysb.edu, mhalcrow@us.ibm.com, neilb@suse.de, sfrench@us.ibm.com, trond.mykle
 
 
 The patch titled
-     serial: turn serial console suspend a boot rather than compile time option
+     VFS: make notify_change pass ATTR_KILL_S*ID to setattr operations
 has been removed from the -mm tree.  Its filename was
-     serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch
+     vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: serial: turn serial console suspend a boot rather than compile time option
-From: Andres Salomon <dilinger@debian.org>
+Subject: VFS: make notify_change pass ATTR_KILL_S*ID to setattr operations
+From: Jeff Layton <jlayton@redhat.com>
 
-Currently, there's a CONFIG_DISABLE_CONSOLE_SUSPEND that allows one to stop
-the serial console from being suspended when the rest of the machine goes
-to sleep.  This is incredibly useful for debugging power management-related
-things; however, having it as a compile-time option has proved to be
-incredibly inconvenient for us (OLPC).  There are plenty of times that we
-want serial console to not suspend, but for the most part we'd like serial
-console to be suspended.
+When an unprivileged process attempts to modify a file that has the setuid or
+setgid bits set, the VFS will attempt to clear these bits.  The VFS will set
+the ATTR_KILL_SUID or ATTR_KILL_SGID bits in the ia_valid mask, and then call
+notify_change to clear these bits and set the mode accordingly.
 
-This drops CONFIG_DISABLE_CONSOLE_SUSPEND, and replaces it with a kernel
-boot parameter (no_console_suspend).  By default, the serial console will
-be suspended along with the rest of the system; by passing
-'no_console_suspend' to the kernel during boot, serial console will remain
-alive during suspend.
+With a networked filesystem (NFS and CIFS in particular but likely others),
+the client machine or process may not have credentials that allow for setting
+the mode.  In some situations, this can lead to file corruption, an operation
+failing outright because the setattr fails, or to races that lead to a mode
+change being reverted.
 
-For now, this is pretty serial console specific; further fixes could be
-applied to make this work for things like netconsole.
+In this situation, we'd like to just leave the handling of this to the server
+and ignore these bits.  The problem is that by the time the setattr op is
+called, the VFS has already reinterpreted the ATTR_KILL_* bits into a mode
+change.  The setattr operation has no way to know its intent.
 
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Nigel Cunningham <nigel@suspend2.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
+The following patch fixes this by making notify_change no longer clear the
+ATTR_KILL_SUID and ATTR_KILL_SGID bits in the ia_valid before handing it off
+to the setattr inode op.  setattr can then check for the presence of these
+bits, and if they're set it can assume that the mode change was only for the
+purposes of clearing these bits.
+
+This means that we now have an implicit assumption that notify_change is never
+called with ATTR_MODE and either ATTR_KILL_S*ID bit set.  Nothing currently
+enforces that, so this patch also adds a BUG() if that occurs.
+
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Neil Brown <neilb@suse.de>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
+Cc: "Vladimir V. Saveliev" <vs@namesys.com>
+Cc: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Steven French <sfrench@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt        |   10 ++++++++++
- Documentation/power/basic-pm-debugging.txt |    4 ++--
- arch/powerpc/configs/pmac32_defconfig      |    1 -
- drivers/serial/serial_core.c               |   10 ++++------
- include/linux/console.h                    |    7 ++-----
- kernel/power/Kconfig                       |   11 -----------
- kernel/printk.c                            |   16 ++++++++++++++--
- 7 files changed, 32 insertions(+), 27 deletions(-)
+ fs/attr.c |   26 ++++++++++++++++----------
+ 1 file changed, 16 insertions(+), 10 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
-+++ a/Documentation/kernel-parameters.txt
-@@ -479,6 +479,16 @@ and is between 256 and 4096 characters. 
- 			UART at the specified I/O port or MMIO address.
- 			The options are the same as for ttyS, above.
- 
-+	no_console_suspend
-+			[HW] Never suspend the console
-+			Disable suspending of consoles during suspend and
-+			hibernate operations.  Once disabled, debugging
-+			messages can reach various consoles while the rest
-+			of the system is being put to sleep (ie, while
-+			debugging driver suspend/resume hooks).  This may
-+			not work reliably with all consoles, but is known
-+			to work with serial and VGA consoles.
-+
- 	cpcihp_generic=	[HW,PCI] Generic port I/O CompactPCI driver
- 			Format:
- 			<first_slot>,<last_slot>,<port>,<enum_bit>[,<debug>]
-diff -puN Documentation/power/basic-pm-debugging.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option Documentation/power/basic-pm-debugging.txt
---- a/Documentation/power/basic-pm-debugging.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
-+++ a/Documentation/power/basic-pm-debugging.txt
-@@ -78,8 +78,8 @@ c) Advanced debugging
- In case the STD does not work on your system even in the minimal configuration
- and compiling more drivers as modules is not practical or some modules cannot
- be unloaded, you can use one of the more advanced debugging techniques to find
--the problem.  First, if there is a serial port in your box, you can set the
--CONFIG_DISABLE_CONSOLE_SUSPEND kernel configuration option and try to log kernel
-+the problem.  First, if there is a serial port in your box, you can boot the
-+kernel with the 'no_console_suspend' parameter and try to log kernel
- messages using the serial console.  This may provide you with some information
- about the reasons of the suspend (resume) failure.  Alternatively, it may be
- possible to use a FireWire port for debugging with firescope
-diff -puN arch/powerpc/configs/pmac32_defconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option arch/powerpc/configs/pmac32_defconfig
---- a/arch/powerpc/configs/pmac32_defconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
-+++ a/arch/powerpc/configs/pmac32_defconfig
-@@ -209,7 +209,6 @@ CONFIG_PM=y
- # CONFIG_PM_LEGACY is not set
- CONFIG_PM_DEBUG=y
- # CONFIG_PM_VERBOSE is not set
--# CONFIG_DISABLE_CONSOLE_SUSPEND is not set
- CONFIG_PM_SLEEP=y
- CONFIG_SUSPEND=y
- CONFIG_HIBERNATION=y
-diff -puN drivers/serial/serial_core.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
-+++ a/drivers/serial/serial_core.c
-@@ -1959,12 +1959,11 @@ int uart_suspend_port(struct uart_driver
- 
- 	mutex_lock(&state->mutex);
- 
--#ifdef CONFIG_DISABLE_CONSOLE_SUSPEND
--	if (uart_console(port)) {
-+	if (!console_suspend_enabled && uart_console(port)) {
-+		/* we're going to avoid suspending serial console */
- 		mutex_unlock(&state->mutex);
- 		return 0;
- 	}
--#endif
- 
- 	tty_dev = device_find_child(port->dev, &match, serial_match_port);
- 	if (device_may_wakeup(tty_dev)) {
-@@ -2016,12 +2015,11 @@ int uart_resume_port(struct uart_driver 
- 
- 	mutex_lock(&state->mutex);
- 
--#ifdef CONFIG_DISABLE_CONSOLE_SUSPEND
--	if (uart_console(port)) {
-+	if (!console_suspend_enabled && uart_console(port)) {
-+		/* no need to resume serial console, it wasn't suspended */
- 		mutex_unlock(&state->mutex);
- 		return 0;
- 	}
--#endif
- 
- 	if (!port->suspended) {
- 		disable_irq_wake(port->irq);
-diff -puN include/linux/console.h~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option include/linux/console.h
---- a/include/linux/console.h~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
-+++ a/include/linux/console.h
-@@ -122,14 +122,11 @@ extern void console_stop(struct console 
- extern void console_start(struct console *);
- extern int is_console_locked(void);
- 
--#ifndef CONFIG_DISABLE_CONSOLE_SUSPEND
-+extern int console_suspend_enabled;
-+
- /* Suspend and resume console messages over PM events */
- extern void suspend_console(void);
- extern void resume_console(void);
--#else
--static inline void suspend_console(void) {}
--static inline void resume_console(void) {}
--#endif /* CONFIG_DISABLE_CONSOLE_SUSPEND */
- 
- int mda_console_init(void);
- void prom_con_init(void);
-diff -puN kernel/power/Kconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option kernel/power/Kconfig
---- a/kernel/power/Kconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
-+++ a/kernel/power/Kconfig
-@@ -44,17 +44,6 @@ config PM_VERBOSE
- 	---help---
- 	This option enables verbose messages from the Power Management code.
- 
--config DISABLE_CONSOLE_SUSPEND
--	bool "Keep console(s) enabled during suspend/resume (DANGEROUS)"
--	depends on PM_DEBUG && PM_SLEEP
--	default n
--	---help---
--	This option turns off the console suspend mechanism that prevents
--	debug messages from reaching the console during the suspend/resume
--	operations.  This may be helpful when debugging device drivers'
--	suspend/resume routines, but may itself lead to problems, for example
--	if netconsole is used.
--
- config PM_TRACE
- 	bool "Suspend/resume event tracing"
- 	depends on PM_DEBUG && X86 && PM_SLEEP && EXPERIMENTAL
-diff -puN kernel/printk.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option kernel/printk.c
---- a/kernel/printk.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
-+++ a/kernel/printk.c
-@@ -862,7 +862,16 @@ int update_console_cmdline(char *name, i
- 	return -1;
- }
- 
--#ifndef CONFIG_DISABLE_CONSOLE_SUSPEND
-+int console_suspend_enabled = 1;
-+EXPORT_SYMBOL(console_suspend_enabled);
-+
-+static int __init console_suspend_disable(char *str)
-+{
-+	console_suspend_enabled = 0;
-+	return 1;
-+}
-+__setup("no_console_suspend", console_suspend_disable);
-+
- /**
-  * suspend_console - suspend the console subsystem
-  *
-@@ -870,6 +879,8 @@ int update_console_cmdline(char *name, i
-  */
- void suspend_console(void)
+diff -puN fs/attr.c~vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations fs/attr.c
+--- a/fs/attr.c~vfs-make-notify_change-pass-attr_kill_sid-to-setattr-operations
++++ a/fs/attr.c
+@@ -103,12 +103,11 @@ EXPORT_SYMBOL(inode_setattr);
+ int notify_change(struct dentry * dentry, struct iattr * attr)
  {
-+	if (!console_suspend_enabled)
-+		return;
- 	printk("Suspending console(s)\n");
- 	acquire_console_sem();
- 	console_suspended = 1;
-@@ -877,10 +888,11 @@ void suspend_console(void)
+ 	struct inode *inode = dentry->d_inode;
+-	mode_t mode;
++	mode_t mode = inode->i_mode;
+ 	int error;
+ 	struct timespec now;
+ 	unsigned int ia_valid = attr->ia_valid;
  
- void resume_console(void)
- {
-+	if (!console_suspend_enabled)
-+		return;
- 	console_suspended = 0;
- 	release_console_sem();
- }
--#endif /* CONFIG_DISABLE_CONSOLE_SUSPEND */
+-	mode = inode->i_mode;
+ 	now = current_fs_time(inode->i_sb);
  
- /**
-  * acquire_console_sem - lock the console system for exclusive use.
+ 	attr->ia_ctime = now;
+@@ -125,18 +124,25 @@ int notify_change(struct dentry * dentry
+ 		if (error)
+ 			return error;
+ 	}
++
++	/*
++	 * We now pass ATTR_KILL_S*ID to the lower level setattr function so
++	 * that the function has the ability to reinterpret a mode change
++	 * that's due to these bits. This adds an implicit restriction that
++	 * no function will ever call notify_change with both ATTR_MODE and
++	 * ATTR_KILL_S*ID set.
++	 */
++	if ((ia_valid & (ATTR_KILL_SUID|ATTR_KILL_SGID)) &&
++	    (ia_valid & ATTR_MODE))
++		BUG();
++
+ 	if (ia_valid & ATTR_KILL_SUID) {
+-		attr->ia_valid &= ~ATTR_KILL_SUID;
+ 		if (mode & S_ISUID) {
+-			if (!(ia_valid & ATTR_MODE)) {
+-				ia_valid = attr->ia_valid |= ATTR_MODE;
+-				attr->ia_mode = inode->i_mode;
+-			}
+-			attr->ia_mode &= ~S_ISUID;
++			ia_valid = attr->ia_valid |= ATTR_MODE;
++			attr->ia_mode = (inode->i_mode & ~S_ISUID);
+ 		}
+ 	}
+ 	if (ia_valid & ATTR_KILL_SGID) {
+-		attr->ia_valid &= ~ ATTR_KILL_SGID;
+ 		if ((mode & (S_ISGID | S_IXGRP)) == (S_ISGID | S_IXGRP)) {
+ 			if (!(ia_valid & ATTR_MODE)) {
+ 				ia_valid = attr->ia_valid |= ATTR_MODE;
+@@ -145,7 +151,7 @@ int notify_change(struct dentry * dentry
+ 			attr->ia_mode &= ~S_ISGID;
+ 		}
+ 	}
+-	if (!attr->ia_valid)
++	if (!(attr->ia_valid & ~(ATTR_KILL_SUID | ATTR_KILL_SGID)))
+ 		return 0;
+ 
+ 	if (ia_valid & ATTR_SIZE)
 _
 
-Patches currently in -mm which might be from dilinger@debian.org are
+Patches currently in -mm which might be from jlayton@redhat.com are
 
 origin.patch
-git-x86.patch
+git-cifs.patch
+unionfs-fix-unionfs_setattr-to-handle-attr_kill_sid.patch
