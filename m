@@ -1,526 +1,213 @@
 From: akpm@linux-foundation.org
-Subject: - pm-rework-struct-platform_suspend_ops.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:40:46 -0700
-Message-ID: <200710190340.l9J3ek1P012733@imap1.linux-foundation.org>
+Subject: - sysctl-simplify-the-pty-sysctl-logic.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:42:56 -0700
+Message-ID: <200710190342.l9J3guCV012944@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37487 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49699 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966400AbXJSD4p (ORCPT
+	by vger.kernel.org with ESMTP id S934405AbXJSDzl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:56:45 -0400
+	Thu, 18 Oct 2007 23:55:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, greg@kroah.com, lenb@kernel.org, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PM: Rework struct platform_suspend_ops
+     sysctl: simplify the pty sysctl logic
 has been removed from the -mm tree.  Its filename was
-     pm-rework-struct-platform_suspend_ops.patch
+     sysctl-simplify-the-pty-sysctl-logic.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PM: Rework struct platform_suspend_ops
-=46rom: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: sysctl: simplify the pty sysctl logic
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-There is no reason why the .prepare() and .finish() methods in 'struct
-platform_suspend_ops' should take any arguments, since architectures do=
-n't use
-these methods' argument in any practically meaningful way (ie.  either =
-the
-target system sleep state is conveyed to the platform by .set_target(),=
- or
-there is only one suspend state supported and it is indicated to the PM=
- core
-by .valid(), or .prepare() and .finish() aren't defined at all).  =A0Th=
-ere also
-is no reason why .finish() should return any result.
+Instead of having a bunch of ifdefs in sysctl.c move all of the pty sysctl
+logic into drivers/char/pty.c
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Greg KH <greg@kroah.com>
+As well as cleaning up the logic this prevents sysctl_check_table from
+complaining that the root table has a NULL data pointer on something with
+generic methods.
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-omap1/pm.c                  |   20 +------
- arch/arm/mach-omap2/pm.c                  |   20 +------
- arch/blackfin/mach-common/pm.c            |   53 +-------------------
- arch/powerpc/platforms/52xx/lite5200_pm.c |   34 ++++++++----
- arch/powerpc/platforms/52xx/mpc52xx_pm.c  |    9 ---
- drivers/acpi/sleep/main.c                 |    7 --
- include/asm-powerpc/mpc52xx.h             |    6 +-
- include/linux/suspend.h                   |   13 +---
- kernel/power/main.c                       |   12 +---
- 9 files changed, 49 insertions(+), 125 deletions(-)
+ drivers/char/pty.c |   24 +++++++++++++++++++++++-
+ kernel/sysctl.c    |   11 -----------
+ 2 files changed, 23 insertions(+), 12 deletions(-)
 
-diff -puN arch/arm/mach-omap1/pm.c~pm-rework-struct-platform_suspend_op=
-s arch/arm/mach-omap1/pm.c
---- a/arch/arm/mach-omap1/pm.c~pm-rework-struct-platform_suspend_ops
-+++ a/arch/arm/mach-omap1/pm.c
-@@ -599,27 +599,15 @@ static void (*saved_idle)(void) =3D NULL;
-=20
- /*
-  *	omap_pm_prepare - Do preliminary suspend work.
-- *	@state:		suspend state we're entering.
-  *
-  */
--static int omap_pm_prepare(suspend_state_t state)
-+static int omap_pm_prepare(void)
- {
--	int error =3D 0;
--
- 	/* We cannot sleep in idle until we have resumed */
- 	saved_idle =3D pm_idle;
- 	pm_idle =3D NULL;
-=20
--	switch (state)
--	{
--	case PM_SUSPEND_STANDBY:
--	case PM_SUSPEND_MEM:
--		break;
--	default:
--		return -EINVAL;
--	}
--
--	return error;
-+	return 0;
- }
-=20
-=20
-@@ -647,16 +635,14 @@ static int omap_pm_enter(suspend_state_t
-=20
- /**
-  *	omap_pm_finish - Finish up suspend sequence.
-- *	@state:		State we're coming out of.
-  *
-  *	This is called after we wake back up (or if entering the sleep stat=
-e
-  *	failed).
-  */
-=20
--static int omap_pm_finish(suspend_state_t state)
-+static void omap_pm_finish(void)
- {
- 	pm_idle =3D saved_idle;
--	return 0;
- }
-=20
-=20
-diff -puN arch/arm/mach-omap2/pm.c~pm-rework-struct-platform_suspend_op=
-s arch/arm/mach-omap2/pm.c
---- a/arch/arm/mach-omap2/pm.c~pm-rework-struct-platform_suspend_ops
-+++ a/arch/arm/mach-omap2/pm.c
-@@ -70,25 +70,12 @@ void omap2_pm_idle(void)
- 	local_irq_enable();
- }
-=20
--static int omap2_pm_prepare(suspend_state_t state)
-+static int omap2_pm_prepare(void)
- {
--	int error =3D 0;
--
- 	/* We cannot sleep in idle until we have resumed */
- 	saved_idle =3D pm_idle;
- 	pm_idle =3D NULL;
--
--	switch (state)
--	{
--	case PM_SUSPEND_STANDBY:
--	case PM_SUSPEND_MEM:
--		break;
--
--	default:
--		return -EINVAL;
--	}
--
--	return error;
-+	return 0;
- }
-=20
- #define INT0_WAKE_MASK	(OMAP_IRQ_BIT(INT_24XX_GPIO_BANK1) |	\
-@@ -356,10 +343,9 @@ static int omap2_pm_enter(suspend_state_
- 	return ret;
- }
-=20
--static int omap2_pm_finish(suspend_state_t state)
-+static void omap2_pm_finish(void)
- {
- 	pm_idle =3D saved_idle;
--	return 0;
- }
-=20
- static struct platform_suspend_ops omap_pm_ops =3D {
-diff -puN arch/blackfin/mach-common/pm.c~pm-rework-struct-platform_susp=
-end_ops arch/blackfin/mach-common/pm.c
---- a/arch/blackfin/mach-common/pm.c~pm-rework-struct-platform_suspend_=
-ops
-+++ a/arch/blackfin/mach-common/pm.c
-@@ -89,28 +89,15 @@ void bfin_pm_suspend_standby_enter(void)
- #endif				/* CONFIG_PM_WAKEUP_GPIO_BY_SIC_IWR */
- }
-=20
--
- /*
-- *	bfin_pm_prepare - Do preliminary suspend work.
-- *	@state:		suspend state we're entering.
-+ *	bfin_pm_valid - Tell the PM core that we only support the standby s=
-leep
-+ *			state
-+ *	@state:		suspend state we're checking.
-  *
-  */
--static int bfin_pm_prepare(suspend_state_t state)
-+static int bfin_pm_valid(suspend_state_t state)
- {
--	int error =3D 0;
--
--	switch (state) {
--	case PM_SUSPEND_STANDBY:
--		break;
--
--	case PM_SUSPEND_MEM:
--		return -ENOTSUPP;
--
--	default:
--		return -EINVAL;
--	}
--
--	return error;
-+	return (state =3D=3D PM_SUSPEND_STANDBY);
- }
-=20
- /*
-@@ -135,38 +122,8 @@ static int bfin_pm_enter(suspend_state_t
- 	return 0;
- }
-=20
--/*
-- *	bfin_pm_finish - Finish up suspend sequence.
-- *	@state:		State we're coming out of.
-- *
-- *	This is called after we wake back up (or if entering the sleep stat=
-e
-- *	failed).
-- */
--static int bfin_pm_finish(suspend_state_t state)
--{
--	switch (state) {
--	case PM_SUSPEND_STANDBY:
--		break;
--
--	case PM_SUSPEND_MEM:
--		return -ENOTSUPP;
--
--	default:
--		return -EINVAL;
--	}
--
--	return 0;
--}
--
--static int bfin_pm_valid(suspend_state_t state)
--{
--	return (state =3D=3D PM_SUSPEND_STANDBY);
--}
--
- struct platform_suspend_ops bfin_pm_ops =3D {
--	.prepare =3D bfin_pm_prepare,
- 	.enter =3D bfin_pm_enter,
--	.finish =3D bfin_pm_finish,
- 	.valid	=3D bfin_pm_valid,
+diff -puN drivers/char/pty.c~sysctl-simplify-the-pty-sysctl-logic drivers/char/pty.c
+--- a/drivers/char/pty.c~sysctl-simplify-the-pty-sysctl-logic
++++ a/drivers/char/pty.c
+@@ -318,7 +318,7 @@ int pty_limit = NR_UNIX98_PTY_DEFAULT;
+ static int pty_limit_min = 0;
+ static int pty_limit_max = NR_UNIX98_PTY_MAX;
+ 
+-ctl_table pty_table[] = {
++static struct ctl_table pty_table[] = {
+ 	{
+ 		.ctl_name	= PTY_MAX,
+ 		.procname	= "max",
+@@ -340,6 +340,27 @@ ctl_table pty_table[] = {
+ 	}
  };
-=20
-diff -puN arch/powerpc/platforms/52xx/lite5200_pm.c~pm-rework-struct-pl=
-atform_suspend_ops arch/powerpc/platforms/52xx/lite5200_pm.c
---- a/arch/powerpc/platforms/52xx/lite5200_pm.c~pm-rework-struct-platfo=
-rm_suspend_ops
-+++ a/arch/powerpc/platforms/52xx/lite5200_pm.c
-@@ -1,5 +1,5 @@
- #include <linux/init.h>
--#include <linux/pm.h>
-+#include <linux/suspend.h>
- #include <asm/io.h>
- #include <asm/time.h>
- #include <asm/mpc52xx.h>
-@@ -18,6 +18,8 @@ static void __iomem *sram;
- static const int sram_size =3D 0x4000;	/* 16 kBytes */
- static void __iomem *mbar;
-=20
-+static suspend_state_t lite5200_pm_target_state;
+ 
++static struct ctl_table pty_kern_table[] = {
++	{
++		.ctl_name	= KERN_PTY,
++		.procname	= "pty",
++		.mode		= 0555,
++		.child		= pty_table,
++	},
++	{}
++};
 +
- static int lite5200_pm_valid(suspend_state_t state)
- {
- 	switch (state) {
-@@ -29,13 +31,22 @@ static int lite5200_pm_valid(suspend_sta
- 	}
- }
-=20
--static int lite5200_pm_prepare(suspend_state_t state)
-+static int lite5200_pm_set_target(suspend_state_t state)
-+{
-+	if (lite5200_pm_valid(state)) {
-+		lite5200_pm_target_state =3D state;
-+		return 0;
-+	}
-+	return -EINVAL;
-+}
++static struct ctl_table pty_root_table[] = {
++	{
++		.ctl_name	= CTL_KERN,
++		.procname	= "kernel",
++		.mode		= 0555,
++		.child		= pty_kern_table,
++	},
++	{}
++};
 +
-+static int lite5200_pm_prepare(void)
++
+ static int pty_unix98_ioctl(struct tty_struct *tty, struct file *file,
+ 			    unsigned int cmd, unsigned long arg)
  {
- 	/* deep sleep? let mpc52xx code handle that */
--	if (state =3D=3D PM_SUSPEND_STANDBY)
--		return mpc52xx_pm_prepare(state);
-+	if (lite5200_pm_target_state =3D=3D PM_SUSPEND_STANDBY)
-+		return mpc52xx_pm_prepare();
-=20
--	if (state !=3D PM_SUSPEND_MEM)
-+	if (lite5200_pm_target_state !=3D PM_SUSPEND_MEM)
- 		return -EINVAL;
-=20
- 	/* map registers */
-@@ -190,17 +201,16 @@ static int lite5200_pm_enter(suspend_sta
- 	return 0;
+@@ -404,6 +425,7 @@ static void __init unix98_pty_init(void)
+ 		panic("Couldn't register Unix98 pts driver");
+ 
+ 	pty_table[1].data = &ptm_driver->refcount;
++	register_sysctl_table(pty_root_table);
  }
-=20
--static int lite5200_pm_finish(suspend_state_t state)
-+static void lite5200_pm_finish(void)
- {
- 	/* deep sleep? let mpc52xx code handle that */
--	if (state =3D=3D PM_SUSPEND_STANDBY) {
--		return mpc52xx_pm_finish(state);
--	}
--	return 0;
-+	if (lite5200_pm_target_state =3D=3D PM_SUSPEND_STANDBY)
-+		mpc52xx_pm_finish();
- }
-=20
--static struct pm_ops lite5200_pm_ops =3D {
-+static struct platform_suspend_ops lite5200_pm_ops =3D {
- 	.valid		=3D lite5200_pm_valid,
-+	.set_target	=3D lite5200_pm_set_target,
- 	.prepare	=3D lite5200_pm_prepare,
- 	.enter		=3D lite5200_pm_enter,
- 	.finish		=3D lite5200_pm_finish,
-@@ -208,6 +218,6 @@ static struct pm_ops lite5200_pm_ops =3D {
-=20
- int __init lite5200_pm_init(void)
- {
--	pm_set_ops(&lite5200_pm_ops);
-+	suspend_set_ops(&lite5200_pm_ops);
- 	return 0;
- }
-diff -puN arch/powerpc/platforms/52xx/mpc52xx_pm.c~pm-rework-struct-pla=
-tform_suspend_ops arch/powerpc/platforms/52xx/mpc52xx_pm.c
---- a/arch/powerpc/platforms/52xx/mpc52xx_pm.c~pm-rework-struct-platfor=
-m_suspend_ops
-+++ a/arch/powerpc/platforms/52xx/mpc52xx_pm.c
-@@ -57,11 +57,8 @@ int mpc52xx_set_wakeup_gpio(u8 pin, u8 l
- 	return 0;
- }
-=20
--int mpc52xx_pm_prepare(suspend_state_t state)
-+int mpc52xx_pm_prepare(void)
- {
--	if (state !=3D PM_SUSPEND_STANDBY)
--		return -EINVAL;
--
- 	/* map the whole register space */
- 	mbar =3D mpc52xx_find_and_map("mpc5200");
- 	if (!mbar) {
-@@ -166,15 +163,13 @@ int mpc52xx_pm_enter(suspend_state_t sta
- 	return 0;
- }
-=20
--int mpc52xx_pm_finish(suspend_state_t state)
-+void mpc52xx_pm_finish(void)
- {
- 	/* call board resume code */
- 	if (mpc52xx_suspend.board_resume_finish)
- 		mpc52xx_suspend.board_resume_finish(mbar);
-=20
- 	iounmap(mbar);
--
--	return 0;
- }
-=20
- static struct platform_suspend_ops mpc52xx_pm_ops =3D {
-diff -puN drivers/acpi/sleep/main.c~pm-rework-struct-platform_suspend_o=
-ps drivers/acpi/sleep/main.c
---- a/drivers/acpi/sleep/main.c~pm-rework-struct-platform_suspend_ops
-+++ a/drivers/acpi/sleep/main.c
-@@ -85,13 +85,12 @@ static int acpi_pm_set_target(suspend_st
-=20
- /**
-  *	acpi_pm_prepare - Do preliminary suspend work.
-- *	@pm_state: ignored
-  *
-  *	If necessary, set the firmware waking vector and do arch-specific
-  *	nastiness to get the wakeup code to the waking vector.
-  */
-=20
--static int acpi_pm_prepare(suspend_state_t pm_state)
-+static int acpi_pm_prepare(void)
- {
- 	int error =3D acpi_sleep_prepare(acpi_target_sleep_state);
-=20
-@@ -160,13 +159,12 @@ static int acpi_pm_enter(suspend_state_t
-=20
- /**
-  *	acpi_pm_finish - Finish up suspend sequence.
-- *	@pm_state: ignored
-  *
-  *	This is called after we wake back up (or if entering the sleep stat=
-e
-  *	failed).=20
-  */
-=20
--static int acpi_pm_finish(suspend_state_t pm_state)
-+static void acpi_pm_finish(void)
- {
- 	u32 acpi_state =3D acpi_target_sleep_state;
-=20
-@@ -184,7 +182,6 @@ static int acpi_pm_finish(suspend_state_
- 		init_8259A(0);
- 	}
+ #else
+ static inline void unix98_pty_init(void) { }
+diff -puN kernel/sysctl.c~sysctl-simplify-the-pty-sysctl-logic kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-simplify-the-pty-sysctl-logic
++++ a/kernel/sysctl.c
+@@ -163,9 +163,6 @@ static struct ctl_table fs_table[];
+ static struct ctl_table debug_table[];
+ static struct ctl_table dev_table[];
+ extern struct ctl_table random_table[];
+-#ifdef CONFIG_UNIX98_PTYS
+-extern struct ctl_table pty_table[];
+-#endif
+ #ifdef CONFIG_INOTIFY_USER
+ extern struct ctl_table inotify_table[];
  #endif
--	return 0;
- }
-=20
- static int acpi_pm_state_valid(suspend_state_t pm_state)
-diff -puN include/asm-powerpc/mpc52xx.h~pm-rework-struct-platform_suspe=
-nd_ops include/asm-powerpc/mpc52xx.h
---- a/include/asm-powerpc/mpc52xx.h~pm-rework-struct-platform_suspend_o=
-ps
-+++ a/include/asm-powerpc/mpc52xx.h
-@@ -18,6 +18,8 @@
- #include <asm/prom.h>
- #endif /* __ASSEMBLY__ */
-=20
-+#include <linux/suspend.h>
-+
-=20
- /* =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D */
- /* Structures mapping of some unit register set                       =
-      */
-@@ -267,9 +269,9 @@ extern int mpc52xx_set_wakeup_gpio(u8 pi
- extern int __init lite5200_pm_init(void);
-=20
- /* lite5200 calls mpc5200 suspend functions, so here they are */
--extern int mpc52xx_pm_prepare(suspend_state_t);
-+extern int mpc52xx_pm_prepare(void);
- extern int mpc52xx_pm_enter(suspend_state_t);
--extern int mpc52xx_pm_finish(suspend_state_t);
-+extern void mpc52xx_pm_finish(void);
- extern char saved_sram[0x4000]; /* reuse buffer from mpc52xx suspend *=
-/
- #endif
- #endif /* CONFIG_PM */
-diff -puN include/linux/suspend.h~pm-rework-struct-platform_suspend_ops=
- include/linux/suspend.h
---- a/include/linux/suspend.h~pm-rework-struct-platform_suspend_ops
-+++ a/include/linux/suspend.h
-@@ -46,12 +46,10 @@ typedef int __bitwise suspend_state_t;
-  *	@prepare() fails.  If @set_target() fails (ie. returns nonzero),
-  *	@prepare(), @enter() and @finish() will not be called by the PM cor=
-e.
-  *	This callback is optional.  However, if it is implemented, the argu=
-ment
-- *	passed to @prepare(), @enter() and @finish() is meaningless and sho=
-uld
-- *	be ignored.
-+ *	passed to @enter() is meaningless and should be ignored.
-  *
-  * @prepare: Prepare the platform for entering the system sleep state =
-indicated
-- *	by @set_target() or represented by the argument if @set_target() is=
- not
-- *	implemented.
-+ *	by @set_target().
-  *	@prepare() is called right after devices have been suspended (ie. t=
-he
-  *	appropriate .suspend() method has been executed for each device) an=
-d
-  *	before the nonboot CPUs are disabled (it is executed with IRQs enab=
-led).
-@@ -67,8 +65,7 @@ typedef int __bitwise suspend_state_t;
-  *
-  * @finish: Called when the system has just left a sleep state, right =
-after
-  *	the nonboot CPUs have been enabled and before devices are resumed (=
-it is
-- *	executed with IRQs enabled).  If @set_target() is not implemented, =
-the
-- *	argument represents the sleep state being left.
-+ *	executed with IRQs enabled).
-  *	This callback is optional, but should be implemented by the platfor=
-ms
-  *	that implement @prepare().  If implemented, it is always called aft=
-er
-  *	@enter() (even if @enter() fails).
-@@ -76,9 +73,9 @@ typedef int __bitwise suspend_state_t;
- struct platform_suspend_ops {
- 	int (*valid)(suspend_state_t state);
- 	int (*set_target)(suspend_state_t state);
--	int (*prepare)(suspend_state_t state);
-+	int (*prepare)(void);
- 	int (*enter)(suspend_state_t state);
--	int (*finish)(suspend_state_t state);
-+	void (*finish)(void);
- };
-=20
- #ifdef CONFIG_SUSPEND
-diff -puN kernel/power/main.c~pm-rework-struct-platform_suspend_ops ker=
-nel/power/main.c
---- a/kernel/power/main.c~pm-rework-struct-platform_suspend_ops
-+++ a/kernel/power/main.c
-@@ -58,13 +58,6 @@ int suspend_valid_only_mem(suspend_state
- 	return state =3D=3D PM_SUSPEND_MEM;
- }
-=20
--
--static inline void pm_finish(suspend_state_t state)
--{
--	if (suspend_ops->finish)
--		suspend_ops->finish(state);
--}
--
- /**
-  *	suspend_prepare - Do prep work before entering low-power state.
-  *
-@@ -171,7 +164,7 @@ int suspend_devices_and_enter(suspend_st
- 		goto Resume_console;
- 	}
- 	if (suspend_ops->prepare) {
--		error =3D suspend_ops->prepare(state);
-+		error =3D suspend_ops->prepare();
- 		if (error)
- 			goto Resume_devices;
- 	}
-@@ -180,7 +173,8 @@ int suspend_devices_and_enter(suspend_st
- 		suspend_enter(state);
-=20
- 	enable_nonboot_cpus();
--	pm_finish(state);
-+	if (suspend_ops->finish)
-+		suspend_ops->finish();
-  Resume_devices:
- 	device_resume();
-  Resume_console:
+@@ -534,14 +531,6 @@ static struct ctl_table kern_table[] = {
+ 		.mode		= 0555,
+ 		.child		= random_table,
+ 	},
+-#ifdef CONFIG_UNIX98_PTYS
+-	{
+-		.ctl_name	= KERN_PTY,
+-		.procname	= "pty",
+-		.mode		= 0555,
+-		.child		= pty_table,
+-	},
+-#endif
+ 	{
+ 		.ctl_name	= KERN_OVERFLOWUID,
+ 		.procname	= "overflowuid",
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
 origin.patch
-git-acpi.patch
-revert-x86_64-mm-cpa-einval.patch
-shrink_slab-handle-bad-shrinkers.patch
+update-boot-spec-to-207.patch
+i386-paravirt-boot-sequence.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+task-containersv11-basic-task-container-framework.patch
+task-containersv11-add-tasks-file-interface.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+make-access-to-tasks-nsproxy-lighter.patch
+make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
+make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+uninline-find_task_by_xxx-set-of-functions.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+isolate-some-explicit-usage-of-task-tgid.patch
+uninline-find_pid-etc-set-of-functions.patch
+uninline-the-task_xid_nr_ns-calls.patch
+fix-cpusets-update_cpumask.patch
+fix-cpusets-update_cpumask-checkpatch-fixes.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
+virtualization-of-sysv-msg-queues-is-incomplete.patch
+extended-crashkernel-command-line.patch
+use-extended-crashkernel-command-line-on-i386.patch
+use-extended-crashkernel-command-line-on-x86_64.patch
+use-extended-crashkernel-command-line-on-ia64.patch
+use-extended-crashkernel-command-line-on-ia64-fix.patch
+use-extended-crashkernel-command-line-on-ppc64.patch
+use-extended-crashkernel-command-line-on-sh.patch
+add-documentation-for-extended-crashkernel-syntax.patch
+kexec-add-bss-to-resource-tree.patch
+kexec-introduce-bootmem_exclusive.patch
+kexec-use-bootmem_exclusive-on-x86.patch
