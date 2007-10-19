@@ -1,73 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - ipmi-documentation-fixes.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:46:16 -0700
-Message-ID: <200710190346.l9J3kG50013316@imap1.linux-foundation.org>
+Subject: - x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:47:53 -0700
+Message-ID: <200710190347.l9J3lriY013419@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60836 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48746 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764000AbXJSDzS (ORCPT
+	by vger.kernel.org with ESMTP id S1756614AbXJSDzT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:55:18 -0400
+	Thu, 18 Oct 2007 23:55:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cminyard@mvista.com, mm-commits@vger.kernel.org
+To: Yinghai.Lu@Sun.COM, yinghai.lu@Sun.COM, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IPMI: documentation fixes
+     x86_64: check and enable MMCONFIG for AMD Family 10h Opteron
 has been removed from the -mm tree.  Its filename was
-     ipmi-documentation-fixes.patch
+     x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: IPMI: documentation fixes
-From: Corey Minyard <cminyard@mvista.com>
+Subject: x86_64: check and enable MMCONFIG for AMD Family 10h Opteron
+From: Yinghai Lu <Yinghai.Lu@Sun.COM>
 
-Clean up IPMI documentation to remove references to high-res timers and add
-info about the polling thread.  Also fix an doc error for a parameter.
-
-Signed-off-by: Corey Minyard <cminyard@mvista.com>
+[akpm@linux-foundation.org: section fix]
+Signed-off-by: Yinghai Lu <yinghai.lu@sun.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/IPMI.txt |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ arch/x86/kernel/setup_64.c |   29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
-diff -puN Documentation/IPMI.txt~ipmi-documentation-fixes Documentation/IPMI.txt
---- a/Documentation/IPMI.txt~ipmi-documentation-fixes
-+++ a/Documentation/IPMI.txt
-@@ -441,17 +441,20 @@ ACPI, and if none of those then a KCS de
- 0xca2.  If you want to turn this off, set the "trydefaults" option to
- false.
+diff -puN arch/x86/kernel/setup_64.c~x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron arch/x86/kernel/setup_64.c
+--- a/arch/x86/kernel/setup_64.c~x86_64-check-and-enable-mmconfig-for-amd-family-10h-opteron
++++ a/arch/x86/kernel/setup_64.c
+@@ -486,6 +486,32 @@ static int nearby_node(int apicid)
+ }
+ #endif
  
--If you have high-res timers compiled into the kernel, the driver will
--use them to provide much better performance.  Note that if you do not
--have high-res timers enabled in the kernel and you don't have
--interrupts enabled, the driver will run VERY slowly.  Don't blame me,
-+If your IPMI interface does not support interrupts and is a KCS or
-+SMIC interface, the IPMI driver will start a kernel thread for the
-+interface to help speed things up.  This is a low-priority kernel
-+thread that constantly polls the IPMI driver while an IPMI operation
-+is in progress.  The force_kipmid module parameter will all the user to
-+force this thread on or off.  If you force it off and don't have
-+interrupts, the driver will run VERY slowly.  Don't blame me,
- these interfaces suck.
++/*[39:8] */
++/* why not using 0xfe000000 ? */
++#define FAM10H_PCI_MMIO_BASE 0xc0000000
++static void __cpuinit fam10h_check_enable_mmcfg(struct cpuinfo_x86 *c)
++{
++	u32 low, high, address;
++
++	address = 0xc0010058;
++	if (rdmsr_safe(address, &low, &high))
++		return;
++
++	if (low & 1)
++		return;
++
++	printk(KERN_INFO "Enable MMCONFIG on AMD Family 10h\n");
++	/*
++	 * If it is not enabled, enable it and assume only one segment
++	 * with 256 busses.
++	 */
++	low &= ~(0xfff00000 | (0xf<<2));
++	low |= (8<<2) | (1<<0);
++	high &= ~(0x0000ffff);
++	high |= (FAM10H_PCI_MMIO_BASE>>(32-8));
++	wrmsr_safe(address, low, high);
++}
++
+ /*
+  * On a AMD dual core setup the lower bits of the APIC id distingush the cores.
+  * Assumes number of cores is a power of two.
+@@ -673,6 +699,9 @@ static void __cpuinit init_amd(struct cp
+ 	    !rdmsr_safe(MSR_VM_CR, &flags, &dummy) &&
+ 	    (flags & 0x18))
+ 		set_bit(X86_FEATURE_VIRT_DISABLED, &c->x86_capability);
++
++	if (c->x86 == 0x10)
++		fam10h_check_enable_mmcfg(c);
+ }
  
- The driver supports a hot add and remove of interfaces.  This way,
- interfaces can be added or removed after the kernel is up and running.
--This is done using /sys/modules/ipmi_si/hotmod, which is a write-only
--parameter.  You write a string to this interface.  The string has the
--format:
-+This is done using /sys/modules/ipmi_si/parameters/hotmod, which is a
-+write-only parameter.  You write a string to this interface.  The string
-+has the format:
-    <op1>[:op2[:op3...]]
- The "op"s are:
-    add|remove,kcs|bt|smic,mem|i/o,<address>[,<opt1>[,<opt2>[,...]]]
+ static int enable_svm_lock(char *s)
 _
 
-Patches currently in -mm which might be from cminyard@mvista.com are
+Patches currently in -mm which might be from Yinghai.Lu@Sun.COM are
 
 origin.patch
+git-kbuild.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+git-x86.patch
+kernel-printkc-concerns-about-the-console-handover.patch
