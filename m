@@ -1,139 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - fix-random-hard-freeze-with-avm-t1-cards.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:49:28 -0700
-Message-ID: <200710192249.l9JMnSbe023968@imap1.linux-foundation.org>
+Subject: - isdn-sc-remove-unused-request_irq-and-unnecessary-header-file.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:49:30 -0700
+Message-ID: <200710192249.l9JMnUBJ023973@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55058 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55760 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757497AbXJSWtc (ORCPT
+	by vger.kernel.org with ESMTP id S1757329AbXJSWtk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 18:49:32 -0400
+	Fri, 19 Oct 2007 18:49:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kkeil@suse.de, mm-commits@vger.kernel.org
+To: fernando@oss.ntt.co.jp, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isdn: fix random hard freeze with AVM T1 cards
+     isdn/sc: remove unused REQUEST_IRQ and unnecessary header file
 has been removed from the -mm tree.  Its filename was
-     fix-random-hard-freeze-with-avm-t1-cards.patch
+     isdn-sc-remove-unused-request_irq-and-unnecessary-header-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: isdn: fix random hard freeze with AVM T1 cards
-From: Karsten Keil <kkeil@suse.de>
+Subject: isdn/sc: remove unused REQUEST_IRQ and unnecessary header file
+From: Fernando Luis =?ISO-8859-1?Q?V=E1zquez?= Cao <fernando@oss.ntt.co.jp>
 
-This fixes the hard freeze debugged for AVM C4 cards for the AVM T1 cards.
+REQUEST_IRQ is never used, so delete it. In the process get rid of the
+macro FREE_IRQ which makes the code unnecessarily difficult to read.
 
-Signed-off-by: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Acked-by: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hardware/avm/t1isa.c |   28 ++++++++++++----------------
- 1 file changed, 12 insertions(+), 16 deletions(-)
+ drivers/isdn/sc/debug.h    |   19 -------------------
+ drivers/isdn/sc/includes.h |    1 -
+ drivers/isdn/sc/init.c     |    2 +-
+ 3 files changed, 1 insertion(+), 21 deletions(-)
 
-diff -puN drivers/isdn/hardware/avm/t1isa.c~fix-random-hard-freeze-with-avm-t1-cards drivers/isdn/hardware/avm/t1isa.c
---- a/drivers/isdn/hardware/avm/t1isa.c~fix-random-hard-freeze-with-avm-t1-cards
-+++ a/drivers/isdn/hardware/avm/t1isa.c
-@@ -180,8 +180,8 @@ static irqreturn_t t1isa_interrupt(int i
- 
- 			ApplId = (unsigned) b1_get_word(card->port);
- 			MsgLen = t1_get_slice(card->port, card->msgbuf);
--			spin_unlock_irqrestore(&card->lock, flags);
- 			if (!(skb = alloc_skb(MsgLen, GFP_ATOMIC))) {
-+				spin_unlock_irqrestore(&card->lock, flags);
- 				printk(KERN_ERR "%s: incoming packet dropped\n",
- 						card->name);
- 			} else {
-@@ -190,7 +190,7 @@ static irqreturn_t t1isa_interrupt(int i
- 					capilib_data_b3_conf(&cinfo->ncci_head, ApplId,
- 							     CAPIMSG_NCCI(skb->data),
- 							     CAPIMSG_MSGID(skb->data));
+diff -puN drivers/isdn/sc/debug.h~isdn-sc-remove-unused-request_irq-and-unnecessary-header-file /dev/null
+--- a/drivers/isdn/sc/debug.h
++++ /dev/null
+@@ -1,19 +0,0 @@
+-/* $Id: debug.h,v 1.2.8.1 2001/09/23 22:24:59 kai Exp $
+- *
+- * Copyright (C) 1996  SpellCaster Telecommunications Inc.
+- *
+- * This software may be used and distributed according to the terms
+- * of the GNU General Public License, incorporated herein by reference.
+- *
+- * For more information, please contact gpl-info@spellcast.com or write:
+- *
+- *     SpellCaster Telecommunications Inc.
+- *     5621 Finch Avenue East, Unit #3
+- *     Scarborough, Ontario  Canada
+- *     M1B 2T9
+- *     +1 (416) 297-8565
+- *     +1 (416) 297-6433 Facsimile
+- */
 -
-+				spin_unlock_irqrestore(&card->lock, flags);
- 				capi_ctr_handle_message(ctrl, ApplId, skb);
- 			}
- 			break;
-@@ -200,21 +200,17 @@ static irqreturn_t t1isa_interrupt(int i
- 			ApplId = b1_get_word(card->port);
- 			NCCI = b1_get_word(card->port);
- 			WindowSize = b1_get_word(card->port);
--			spin_unlock_irqrestore(&card->lock, flags);
--
- 			capilib_new_ncci(&cinfo->ncci_head, ApplId, NCCI, WindowSize);
--
-+			spin_unlock_irqrestore(&card->lock, flags);
- 			break;
+-#define REQUEST_IRQ(a,b,c,d,e) request_irq(a,b,c,d,e)
+-#define FREE_IRQ(a,b) free_irq(a,b)
+diff -puN drivers/isdn/sc/includes.h~isdn-sc-remove-unused-request_irq-and-unnecessary-header-file drivers/isdn/sc/includes.h
+--- a/drivers/isdn/sc/includes.h~isdn-sc-remove-unused-request_irq-and-unnecessary-header-file
++++ a/drivers/isdn/sc/includes.h
+@@ -14,4 +14,3 @@
+ #include <linux/timer.h>
+ #include <linux/wait.h>
+ #include <linux/isdnif.h>
+-#include "debug.h"
+diff -puN drivers/isdn/sc/init.c~isdn-sc-remove-unused-request_irq-and-unnecessary-header-file drivers/isdn/sc/init.c
+--- a/drivers/isdn/sc/init.c~isdn-sc-remove-unused-request_irq-and-unnecessary-header-file
++++ a/drivers/isdn/sc/init.c
+@@ -404,7 +404,7 @@ static void __exit sc_exit(void)
+ 		/*
+ 		 * Release the IRQ
+ 		 */
+-		FREE_IRQ(sc_adapter[i]->interrupt, NULL);
++		free_irq(sc_adapter[i]->interrupt, NULL);
  
- 		case RECEIVE_FREE_NCCI:
- 
- 			ApplId = b1_get_word(card->port);
- 			NCCI = b1_get_word(card->port);
--			spin_unlock_irqrestore(&card->lock, flags);
--
- 			if (NCCI != 0xffffffff)
- 				capilib_free_ncci(&cinfo->ncci_head, ApplId, NCCI);
--
-+			spin_unlock_irqrestore(&card->lock, flags);
- 			break;
- 
- 		case RECEIVE_START:
-@@ -333,13 +329,16 @@ static void t1isa_reset_ctr(struct capi_
- 	avmctrl_info *cinfo = (avmctrl_info *)(ctrl->driverdata);
- 	avmcard *card = cinfo->card;
- 	unsigned int port = card->port;
-+	unsigned long flags;
- 
- 	t1_disable_irq(port);
- 	b1_reset(port);
- 	b1_reset(port);
- 
- 	memset(cinfo->version, 0, sizeof(cinfo->version));
-+	spin_lock_irqsave(&card->lock, flags);
- 	capilib_release(&cinfo->ncci_head);
-+	spin_unlock_irqrestore(&card->lock, flags);
- 	capi_ctr_reseted(ctrl);
- }
- 
-@@ -466,29 +465,26 @@ static u16 t1isa_send_message(struct cap
- 	u8 subcmd = CAPIMSG_SUBCOMMAND(skb->data);
- 	u16 dlen, retval;
- 
-+	spin_lock_irqsave(&card->lock, flags);
- 	if (CAPICMD(cmd, subcmd) == CAPI_DATA_B3_REQ) {
- 		retval = capilib_data_b3_req(&cinfo->ncci_head,
- 					     CAPIMSG_APPID(skb->data),
- 					     CAPIMSG_NCCI(skb->data),
- 					     CAPIMSG_MSGID(skb->data));
--		if (retval != CAPI_NOERROR) 
-+		if (retval != CAPI_NOERROR) {
-+			spin_unlock_irqrestore(&card->lock, flags);
- 			return retval;
--
-+		}
- 		dlen = CAPIMSG_DATALEN(skb->data);
- 
--		spin_lock_irqsave(&card->lock, flags);
- 		b1_put_byte(port, SEND_DATA_B3_REQ);
- 		t1_put_slice(port, skb->data, len);
- 		t1_put_slice(port, skb->data + len, dlen);
--		spin_unlock_irqrestore(&card->lock, flags);
- 	} else {
--
--		spin_lock_irqsave(&card->lock, flags);
- 		b1_put_byte(port, SEND_MESSAGE);
- 		t1_put_slice(port, skb->data, len);
--		spin_unlock_irqrestore(&card->lock, flags);
- 	}
--
-+	spin_unlock_irqrestore(&card->lock, flags);
- 	dev_kfree_skb_any(skb);
- 	return CAPI_NOERROR;
- }
+ 		/*
+ 		 * Reset for a clean start
 _
 
-Patches currently in -mm which might be from kkeil@suse.de are
+Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
 
 origin.patch
+make-smart-battery-system-depend-on-acpi_sbs.patch
