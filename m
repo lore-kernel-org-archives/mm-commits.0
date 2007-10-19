@@ -1,116 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - freezer-do-not-sync-filesystems-from-freeze_processes.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:40:57 -0700
-Message-ID: <200710190340.l9J3evH9012751@imap1.linux-foundation.org>
+Subject: - freezer-document-relationship-with-memory-shrinking.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:40:55 -0700
+Message-ID: <200710190340.l9J3et7j012748@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44029 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44683 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965759AbXJSD4P (ORCPT
+	by vger.kernel.org with ESMTP id S966272AbXJSD4O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:56:15 -0400
+	Thu, 18 Oct 2007 23:56:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rjw@sisk.pl, nigel@nigel.suspend2.net, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     freezer: do not sync filesystems from freeze_processes
+     freezer: document relationship with memory shrinking
 has been removed from the -mm tree.  Its filename was
-     freezer-do-not-sync-filesystems-from-freeze_processes.patch
+     freezer-document-relationship-with-memory-shrinking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: freezer: do not sync filesystems from freeze_processes
+Subject: freezer: document relationship with memory shrinking
 From: Rafael J. Wysocki <rjw@sisk.pl>
 
-The syncing of filesystems from within the freezer is generally not needed. 
-Also, if there's an ext3 filesystem loopback-mounted from a FUSE one, the
-syncing results in writes to it and deadlocks.  Similarly, it will deadlock if
-FUSE implements sync.
-
-Change freeze_processes() so that it doesn't execute sys_sync() and make the
-suspend and hibernation code path sync filesystems independently of the
-freezer.
+One important reason to freeze tasks, which is that we don't want them to
+allocate memory after freeing it for the hibernation image, has not been
+documented.  Fix it.
 
 Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
+Acked-by: Nigel Cunningham <nigel@nigel.suspend2.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/disk.c    |    4 ++++
- kernel/power/main.c    |    6 ++++++
- kernel/power/process.c |    1 -
- kernel/power/user.c    |    4 ++++
- 4 files changed, 14 insertions(+), 1 deletion(-)
+ Documentation/power/freezing-of-tasks.txt |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN kernel/power/disk.c~freezer-do-not-sync-filesystems-from-freeze_processes kernel/power/disk.c
---- a/kernel/power/disk.c~freezer-do-not-sync-filesystems-from-freeze_processes
-+++ a/kernel/power/disk.c
-@@ -313,6 +313,10 @@ int hibernate(void)
- 	if (error)
- 		goto Exit;
+diff -puN Documentation/power/freezing-of-tasks.txt~freezer-document-relationship-with-memory-shrinking Documentation/power/freezing-of-tasks.txt
+--- a/Documentation/power/freezing-of-tasks.txt~freezer-document-relationship-with-memory-shrinking
++++ a/Documentation/power/freezing-of-tasks.txt
+@@ -81,7 +81,16 @@ hibernation image has been created and b
+ The majority of these are user space processes, but if any of the kernel threads
+ may cause something like this to happen, they have to be freezable.
  
-+	printk("Syncing filesystems ... ");
-+	sys_sync();
-+	printk("done.\n");
+-2. The second reason is to prevent user space processes and some kernel threads
++2. Next, to create the hibernation image we need to free a sufficient amount of
++memory (approximately 50% of available RAM) and we need to do that before
++devices are deactivated, because we generally need them for swapping out.  Then,
++after the memory for the image has been freed, we don't want tasks to allocate
++additional memory and we prevent them from doing that by freezing them earlier.
++[Of course, this also means that device drivers should not allocate substantial
++amounts of memory from their .suspend() callbacks before hibernation, but this
++is e separate issue.]
 +
- 	error = prepare_processes();
- 	if (error)
- 		goto Finish;
-diff -puN kernel/power/main.c~freezer-do-not-sync-filesystems-from-freeze_processes kernel/power/main.c
---- a/kernel/power/main.c~freezer-do-not-sync-filesystems-from-freeze_processes
-+++ a/kernel/power/main.c
-@@ -20,6 +20,7 @@
- #include <linux/resume-trace.h>
- #include <linux/freezer.h>
- #include <linux/vmstat.h>
-+#include <linux/syscalls.h>
++3. The third reason is to prevent user space processes and some kernel threads
+ from interfering with the suspending and resuming of devices.  A user space
+ process running on a second CPU while we are suspending devices may, for
+ example, be troublesome and without the freezing of tasks we would need some
+@@ -111,7 +120,7 @@ frozen before the driver's .suspend() ca
+ thawed after the driver's .resume() callback has run, so it won't be accessing
+ the device while it's suspended.
  
- #include "power.h"
- 
-@@ -230,9 +231,14 @@ static int enter_state(suspend_state_t s
- 
- 	if (!valid_state(state))
- 		return -ENODEV;
-+
- 	if (!mutex_trylock(&pm_mutex))
- 		return -EBUSY;
- 
-+	printk("Syncing filesystems ... ");
-+	sys_sync();
-+	printk("done.\n");
-+
- 	pr_debug("PM: Preparing system for %s sleep\n", pm_states[state]);
- 	if ((error = suspend_prepare()))
- 		goto Unlock;
-diff -puN kernel/power/process.c~freezer-do-not-sync-filesystems-from-freeze_processes kernel/power/process.c
---- a/kernel/power/process.c~freezer-do-not-sync-filesystems-from-freeze_processes
-+++ a/kernel/power/process.c
-@@ -191,7 +191,6 @@ int freeze_processes(void)
- 	if (error)
- 		return error;
- 
--	sys_sync();
- 	error = try_to_freeze_tasks(FREEZER_KERNEL_THREADS);
- 	if (error)
- 		return error;
-diff -puN kernel/power/user.c~freezer-do-not-sync-filesystems-from-freeze_processes kernel/power/user.c
---- a/kernel/power/user.c~freezer-do-not-sync-filesystems-from-freeze_processes
-+++ a/kernel/power/user.c
-@@ -153,6 +153,10 @@ static int snapshot_ioctl(struct inode *
- 		mutex_lock(&pm_mutex);
- 		error = pm_notifier_call_chain(PM_HIBERNATION_PREPARE);
- 		if (!error) {
-+			printk("Syncing filesystems ... ");
-+			sys_sync();
-+			printk("done.\n");
-+
- 			error = freeze_processes();
- 			if (error)
- 				thaw_processes();
+-3. Another reason for freezing tasks is to prevent user space processes from
++4. Another reason for freezing tasks is to prevent user space processes from
+ realizing that hibernation (or suspend) operation takes place.  Ideally, user
+ space processes should not notice that such a system-wide operation has occurred
+ and should continue running without any problems after the restore (or resume
 _
 
 Patches currently in -mm which might be from rjw@sisk.pl are
