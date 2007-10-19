@@ -1,53 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 21:27:42 -0700
-Message-ID: <200710190427.l9J4RgUq014987@imap1.linux-foundation.org>
+Subject: - cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 21:29:08 -0700
+Message-ID: <200710190429.l9J4T8t0015119@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56458 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35858 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752176AbXJSE2P (ORCPT
+	by vger.kernel.org with ESMTP id S1751295AbXJSE3M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 00:28:15 -0400
+	Fri, 19 Oct 2007 00:29:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clameter@sgi.com, cpw@sgi.com, mingo@elte.hu, oleg@tv-sign.ru, pj@sgi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hotplug-cpu-migrate-a-task-within-its-cpuset-fix
+     cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+     cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into hotplug-cpu-migrate-a-task-within-its-cpuset.patch
+This patch was dropped because it was folded into cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified.patch
 
 ------------------------------------------------------
-Subject: hotplug-cpu-migrate-a-task-within-its-cpuset-fix
+Subject: cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Cliff Wickman <cpw@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Paul Jackson <pj@sgi.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sched.c~hotplug-cpu-migrate-a-task-within-its-cpuset-fix kernel/sched.c
---- a/kernel/sched.c~hotplug-cpu-migrate-a-task-within-its-cpuset-fix
-+++ a/kernel/sched.c
-@@ -5033,7 +5033,7 @@ static void move_task_off_dead_cpu(int d
- 
- 		/* No more Mr. Nice Guy. */
- 		if (dest_cpu == NR_CPUS) {
--		cpumask_t cpus_allowed = cpuset_cpus_allowed_locked();
-+		cpumask_t cpus_allowed = cpuset_cpus_allowed_locked(p);
- 		/*
- 		 * Try to stay on the same cpuset, where the current cpuset
- 		 * may be a subset of all cpus.
+diff -puN kernel/cpu.c~cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes kernel/cpu.c
+--- a/kernel/cpu.c~cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes
++++ a/kernel/cpu.c
+@@ -266,10 +266,11 @@ int __cpuinit cpu_up(unsigned int cpu)
+ {
+ 	int err = 0;
+ 	if (!cpu_isset(cpu, cpu_possible_map)) {
+-		printk("can't online cpu %d because it is not configured "
+-		       "as may-hotadded at boot time\n", cpu);
+-#if defined(CONFIG_IA64) || defined (CONFIG_X86_64) || defined(CONFIG_S390)
+-		printk("please check additional_cpus= boot parameter\n");
++		printk(KERN_ERR "can't online cpu %d because it is not "
++			"configured as may-hotadd at boot time\n", cpu);
++#if defined(CONFIG_IA64) || defined(CONFIG_X86_64) || defined(CONFIG_S390)
++		printk(KERN_ERR "please check additional_cpus= boot "
++				"parameter\n");
+ #endif
+ 		return -EINVAL;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,7 +73,7 @@ fix-cpusets-update_cpumask.patch
 remove-bits_to_type-macro.patch
 use-helpers-to-obtain-task-pid-in-printks.patch
 hotplug-cpu-migrate-a-task-within-its-cpuset.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified.patch
 cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
 ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
 ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
