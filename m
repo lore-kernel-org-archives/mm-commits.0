@@ -1,140 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - i2c-pxa-rename-bit-macro-to-pxa_bit.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:52:38 -0700
-Message-ID: <200710192252.l9JMqc07024290@imap1.linux-foundation.org>
+Subject: - pid-namespaces-move-exit_task_namespaces.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:51:21 -0700
+Message-ID: <200710192251.l9JMpLA8024176@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43319 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60462 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935173AbXJSXGS (ORCPT
+	by vger.kernel.org with ESMTP id S933613AbXJSXGR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 19:06:18 -0400
+	Fri, 19 Oct 2007 19:06:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, khali@linux-fr.org, nico@cam.org, mm-commits@vger.kernel.org
+To: xemul@openvz.org, ebiederm@xmission.com, menage@google.com, oleg@tv-sign.ru, sukadev@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i2c-pxa, rename BIT macro to PXA_BIT
+     pid namespaces: move exit_task_namespaces()
 has been removed from the -mm tree.  Its filename was
-     i2c-pxa-rename-bit-macro-to-pxa_bit.patch
+     pid-namespaces-move-exit_task_namespaces.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: i2c-pxa, rename BIT macro to PXA_BIT
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: pid namespaces: move exit_task_namespaces()
+From: Pavel Emelyanov <xemul@openvz.org>
 
-i2c-pxa, rename BIT macro to PXA_BIT
+Make task release its namespaces after it has reparented all his children to
+child_reaper, but before it notifies its parent about its death.
 
-BIT macro will be global definiton of (1 << x)
+The reason to release namespaces after reparenting is that when task exits it
+may send a signal to its parent (SIGCHLD), but if the parent has already
+exited its namespaces there will be no way to decide what pid to dever to him
+- parent can be from different namespace.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Nicolas Pitre <nico@cam.org>
-Cc: Jean Delvare <khali@linux-fr.org>
+The reason to release namespace before notifying the parent it that when task
+sends a SIGCHLD to parent it can call wait() on this taks and release it.  But
+releasing the mnt namespace implies dropping of all the mounts in the mnt
+namespace and NFS expects the task to have valid sighand pointer.
+
+Thanks to Oleg for pointing out some races that can apear and helping with
+patches and fixes.
+
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Cc: Paul Menage <menage@google.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-pxa.c |   54 ++++++++++++++++-----------------
- 1 file changed, 27 insertions(+), 27 deletions(-)
+ kernel/exit.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/i2c/busses/i2c-pxa.c~i2c-pxa-rename-bit-macro-to-pxa_bit drivers/i2c/busses/i2c-pxa.c
---- a/drivers/i2c/busses/i2c-pxa.c~i2c-pxa-rename-bit-macro-to-pxa_bit
-+++ a/drivers/i2c/busses/i2c-pxa.c
-@@ -85,7 +85,7 @@ struct bits {
- 	const char *set;
- 	const char *unset;
- };
--#define BIT(m, s, u)	{ .mask = m, .set = s, .unset = u }
-+#define PXA_BIT(m, s, u)	{ .mask = m, .set = s, .unset = u }
+diff -puN kernel/exit.c~pid-namespaces-move-exit_task_namespaces kernel/exit.c
+--- a/kernel/exit.c~pid-namespaces-move-exit_task_namespaces
++++ a/kernel/exit.c
+@@ -774,6 +774,7 @@ static void exit_notify(struct task_stru
+ 	 *	jobs, send them a SIGHUP and then a SIGCONT.  (POSIX 3.2.2.2)
+ 	 */
+ 	forget_original_parent(tsk);
++	exit_task_namespaces(tsk);
  
- static inline void
- decode_bits(const char *prefix, const struct bits *bits, int num, u32 val)
-@@ -100,17 +100,17 @@ decode_bits(const char *prefix, const st
- }
+ 	write_lock_irq(&tasklist_lock);
+ 	/*
+@@ -984,7 +985,6 @@ fastcall NORET_TYPE void do_exit(long co
+ 		module_put(tsk->binfmt->module);
  
- static const struct bits isr_bits[] = {
--	BIT(ISR_RWM,	"RX",		"TX"),
--	BIT(ISR_ACKNAK,	"NAK",		"ACK"),
--	BIT(ISR_UB,	"Bsy",		"Rdy"),
--	BIT(ISR_IBB,	"BusBsy",	"BusRdy"),
--	BIT(ISR_SSD,	"SlaveStop",	NULL),
--	BIT(ISR_ALD,	"ALD",		NULL),
--	BIT(ISR_ITE,	"TxEmpty",	NULL),
--	BIT(ISR_IRF,	"RxFull",	NULL),
--	BIT(ISR_GCAD,	"GenCall",	NULL),
--	BIT(ISR_SAD,	"SlaveAddr",	NULL),
--	BIT(ISR_BED,	"BusErr",	NULL),
-+	PXA_BIT(ISR_RWM,	"RX",		"TX"),
-+	PXA_BIT(ISR_ACKNAK,	"NAK",		"ACK"),
-+	PXA_BIT(ISR_UB,		"Bsy",		"Rdy"),
-+	PXA_BIT(ISR_IBB,	"BusBsy",	"BusRdy"),
-+	PXA_BIT(ISR_SSD,	"SlaveStop",	NULL),
-+	PXA_BIT(ISR_ALD,	"ALD",		NULL),
-+	PXA_BIT(ISR_ITE,	"TxEmpty",	NULL),
-+	PXA_BIT(ISR_IRF,	"RxFull",	NULL),
-+	PXA_BIT(ISR_GCAD,	"GenCall",	NULL),
-+	PXA_BIT(ISR_SAD,	"SlaveAddr",	NULL),
-+	PXA_BIT(ISR_BED,	"BusErr",	NULL),
- };
- 
- static void decode_ISR(unsigned int val)
-@@ -120,21 +120,21 @@ static void decode_ISR(unsigned int val)
- }
- 
- static const struct bits icr_bits[] = {
--	BIT(ICR_START,  "START",	NULL),
--	BIT(ICR_STOP,   "STOP",		NULL),
--	BIT(ICR_ACKNAK, "ACKNAK",	NULL),
--	BIT(ICR_TB,     "TB",		NULL),
--	BIT(ICR_MA,     "MA",		NULL),
--	BIT(ICR_SCLE,   "SCLE",		"scle"),
--	BIT(ICR_IUE,    "IUE",		"iue"),
--	BIT(ICR_GCD,    "GCD",		NULL),
--	BIT(ICR_ITEIE,  "ITEIE",	NULL),
--	BIT(ICR_IRFIE,  "IRFIE",	NULL),
--	BIT(ICR_BEIE,   "BEIE",		NULL),
--	BIT(ICR_SSDIE,  "SSDIE",	NULL),
--	BIT(ICR_ALDIE,  "ALDIE",	NULL),
--	BIT(ICR_SADIE,  "SADIE",	NULL),
--	BIT(ICR_UR,     "UR",		"ur"),
-+	PXA_BIT(ICR_START,  "START",	NULL),
-+	PXA_BIT(ICR_STOP,   "STOP",	NULL),
-+	PXA_BIT(ICR_ACKNAK, "ACKNAK",	NULL),
-+	PXA_BIT(ICR_TB,     "TB",	NULL),
-+	PXA_BIT(ICR_MA,     "MA",	NULL),
-+	PXA_BIT(ICR_SCLE,   "SCLE",	"scle"),
-+	PXA_BIT(ICR_IUE,    "IUE",	"iue"),
-+	PXA_BIT(ICR_GCD,    "GCD",	NULL),
-+	PXA_BIT(ICR_ITEIE,  "ITEIE",	NULL),
-+	PXA_BIT(ICR_IRFIE,  "IRFIE",	NULL),
-+	PXA_BIT(ICR_BEIE,   "BEIE",	NULL),
-+	PXA_BIT(ICR_SSDIE,  "SSDIE",	NULL),
-+	PXA_BIT(ICR_ALDIE,  "ALDIE",	NULL),
-+	PXA_BIT(ICR_SADIE,  "SADIE",	NULL),
-+	PXA_BIT(ICR_UR,     "UR",		"ur"),
- };
- 
- static void decode_ICR(unsigned int val)
+ 	proc_exit_connector(tsk);
+-	exit_task_namespaces(tsk);
+ 	exit_notify(tsk);
+ #ifdef CONFIG_NUMA
+ 	mpol_free(tsk->mempolicy);
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from xemul@openvz.org are
 
 origin.patch
-git-dvb.patch
-v4l-stk11xx-add-a-new-webcam-driver.patch
-v4l-stk11xx-use-array_size-in-another-2-cases.patch
-v4l-stk11xx-use-retval-from-stk11xx_check_device.patch
-v4l-stk11xx-add-static-to-tables.patch
-git-wireless.patch
-dzh-remove-useless-unused-module-junk.patch
-dz-always-check-if-it-is-safe-to-console_putchar.patch
-dz-dont-panic-when-request_irq-fails.patch
-dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
-dz-update-kconfig-description.patch
-dz-rename-the-serial-console-structure.patch
-dz-fix-locking-issues.patch
-dz-handle-special-conditions-on-reception-correctly.patch
-maintainers-add-self-for-the-dz-serial-driver.patch
-remove-asm-bitopsh-includes-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-resource-counters-v7-fix.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
