@@ -1,199 +1,495 @@
 From: akpm@linux-foundation.org
-Subject: - pid-namespaces-rework-forget_original_parent.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:51:18 -0700
-Message-ID: <200710192251.l9JMpIh7024173@imap1.linux-foundation.org>
+Subject: - add-containerstats-v3.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:50:34 -0700
+Message-ID: <200710192250.l9JMoYGN024099@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48507 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48082 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966088AbXJSXGa (ORCPT
+	by vger.kernel.org with ESMTP id S966755AbXJSXGa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 19 Oct 2007 19:06:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, ebiederm@xmission.com, menage@google.com, sukadev@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: balbir@linux.vnet.ibm.com, jlan@engr.sgi.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pid namespaces: rework forget_original_parent()
+     Add cgroupstats
 has been removed from the -mm tree.  Its filename was
-     pid-namespaces-rework-forget_original_parent.patch
+     add-containerstats-v3.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pid namespaces: rework forget_original_parent()
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: Add cgroupstats
+From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-A pid namespace is a "view" of a particular set of tasks on the system.  They
-work in a similar way to filesystem namespaces.  A file (or a process) can be
-accessed in multiple namespaces, but it may have a different name in each.  In
-a filesystem, this name might be /etc/passwd in one namespace, but
-/chroot/etc/passwd in another.
+This patch is inspired by the discussion at
+http://lkml.org/lkml/2007/4/11/187 and implements per cgroup statistics
+as suggested by Andrew Morton in http://lkml.org/lkml/2007/4/11/263.  The
+patch is on top of 2.6.21-mm1 with Paul's cgroups v9 patches (forward
+ported)
 
-For processes, a process may have pid 1234 in one namespace, but be pid 1 in
-another.  This allows new pid namespaces to have basically arbitrary pids, and
-not have to worry about what pids exist in other namespaces.  This is
-essential for checkpoint/restart where a restarted process's pid might collide
-with an existing process on the system's pid.
+This patch implements per cgroup statistics infrastructure and re-uses
+code from the taskstats interface.  A new set of cgroup operations are
+registered with commands and attributes.  It should be very easy to
+*extend* per cgroup statistics, by adding members to the cgroupstats
+structure.
 
-In this particular implementation, pid namespaces have a parent-child
-relationship, just like processes.  A process in a pid namespace may see all
-of the processes in the same namespace, as well as all of the processes in all
-of the namespaces which are children of its namespace.  Processes may not,
-however, see others which are in their parent's namespace, but not in their
-own.  The same goes for sibling namespaces.
+The current model for cgroupstats is a pull, a push model (to post
+statistics on interesting events), should be very easy to add.  Currently
+user space requests for statistics by passing the cgroup file
+descriptor.  Statistics about the state of all the tasks in the cgroup
+is returned to user space.
 
-The know issue to be solved in the nearest future is signal handling in the
-namespace boundary.  That is, currently the namespace's init is treated like
-an ordinary task that can be killed from within an namespace.  Ideally, the
-signal handling by the namespace's init should have two sides: when signaling
-the init from its namespace, the init should look like a real init task, i.e. 
-receive only those signals, that is explicitly wants to; when signaling the
-init from one of the parent namespaces, init should look like an ordinary
-task, i.e.  receive any signal, only taking the general permissions into
-account.
+TODO's/NOTE:
 
-The pid namespace was developed by Pavel Emlyanov and Sukadev Bhattiprolu and
-we eventually came to almost the same implementation, which differed in some
-details.  This set is based on Pavel's patches, but it includes comments and
-patches that from Sukadev.
+This patch provides an infrastructure for implementing cgroup statistics.
+Based on the needs of each controller, we can incrementally add more statistics,
+event based support for notification of statistics, accumulation of taskstats
+into cgroup statistics in the future.
 
-Many thanks to Oleg, who reviewed the patches, pointed out many BUGs and made
-valuable advises on how to make this set cleaner.
+Sample output
 
+# ./cgroupstats -C /cgroup/a
+sleeping 2, blocked 0, running 1, stopped 0, uninterruptible 0
 
+# ./cgroupstats -C /cgroup/
+sleeping 154, blocked 0, running 0, stopped 0, uninterruptible 0
 
-This patch:
+If the approach looks good, I'll enhance and post the user space utility for
+the same
 
-We have to call exit_task_namespaces() only after the exiting task has
-reparented all his children and is sure that no other threads will reparent
-theirs for it.  Why this is needed is explained in appropriate patch.  This
-one only reworks the forget_original_parent() so that after calling this a
-task cannot be/become parent of any other task.
+Feedback, comments, test results are always welcome!
 
-We check PF_EXITING instead of ->exit_state while choosing the new parent. 
-Note that tasklits_lock acts as a barrier, everyone who takes tasklist after
-us (when forget_original_parent() drops it) must see PF_EXITING.
-
-The other changes are just cleanups.  They just move some code from
-exit_notify to forget_original_parent().  It is a bit silly to declare
-ptrace_dead in exit_notify(), take tasklist, pass ptrace_dead to
-forget_original_parent(), unlock-lock-unlock tasklist, and then use
-ptrace_dead.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+[akpm@linux-foundation.org: build fix]
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Paul Menage <menage@google.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Jay Lan <jlan@engr.sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   39 +++++++++++++++++++++------------------
- 1 file changed, 21 insertions(+), 18 deletions(-)
+ Documentation/accounting/cgroupstats.txt |   27 ++++++++
+ include/linux/Kbuild                     |    1 
+ include/linux/cgroup.h                   |    8 ++
+ include/linux/cgroupstats.h              |   70 +++++++++++++++++++++
+ include/linux/delayacct.h                |   13 +++
+ kernel/cgroup.c                          |   55 ++++++++++++++++
+ kernel/taskstats.c                       |   67 ++++++++++++++++++++
+ 7 files changed, 241 insertions(+)
 
-diff -puN kernel/exit.c~pid-namespaces-rework-forget_original_parent kernel/exit.c
---- a/kernel/exit.c~pid-namespaces-rework-forget_original_parent
-+++ a/kernel/exit.c
-@@ -666,10 +666,14 @@ reparent_thread(struct task_struct *p, s
-  * the child reaper process (ie "init") in our pid
-  * space.
+diff -puN /dev/null Documentation/accounting/cgroupstats.txt
+--- /dev/null
++++ a/Documentation/accounting/cgroupstats.txt
+@@ -0,0 +1,27 @@
++Control Groupstats is inspired by the discussion at
++http://lkml.org/lkml/2007/4/11/187 and implements per cgroup statistics as
++suggested by Andrew Morton in http://lkml.org/lkml/2007/4/11/263.
++
++Per cgroup statistics infrastructure re-uses code from the taskstats
++interface. A new set of cgroup operations are registered with commands
++and attributes specific to cgroups. It should be very easy to
++extend per cgroup statistics, by adding members to the cgroupstats
++structure.
++
++The current model for cgroupstats is a pull, a push model (to post
++statistics on interesting events), should be very easy to add. Currently
++user space requests for statistics by passing the cgroup path.
++Statistics about the state of all the tasks in the cgroup is returned to
++user space.
++
++NOTE: We currently rely on delay accounting for extracting information
++about tasks blocked on I/O. If CONFIG_TASK_DELAY_ACCT is disabled, this
++information will not be available.
++
++To extract cgroup statistics a utility very similar to getdelays.c
++has been developed, the sample output of the utility is shown below
++
++~/balbir/cgroupstats # ./getdelays  -C "/cgroup/a"
++sleeping 1, blocked 0, running 1, stopped 0, uninterruptible 0
++~/balbir/cgroupstats # ./getdelays  -C "/cgroup"
++sleeping 155, blocked 0, running 1, stopped 0, uninterruptible 2
+diff -puN include/linux/Kbuild~add-containerstats-v3 include/linux/Kbuild
+--- a/include/linux/Kbuild~add-containerstats-v3
++++ a/include/linux/Kbuild
+@@ -47,6 +47,7 @@ header-y += coda_psdev.h
+ header-y += coff.h
+ header-y += comstats.h
+ header-y += const.h
++header-y += cgroupstats.h
+ header-y += cycx_cfm.h
+ header-y += dlm_device.h
+ header-y += dlm_netlink.h
+diff -puN include/linux/cgroup.h~add-containerstats-v3 include/linux/cgroup.h
+--- a/include/linux/cgroup.h~add-containerstats-v3
++++ a/include/linux/cgroup.h
+@@ -13,6 +13,7 @@
+ #include <linux/cpumask.h>
+ #include <linux/nodemask.h>
+ #include <linux/rcupdate.h>
++#include <linux/cgroupstats.h>
+ 
+ #ifdef CONFIG_CGROUPS
+ 
+@@ -29,6 +30,8 @@ extern void cgroup_fork(struct task_stru
+ extern void cgroup_fork_callbacks(struct task_struct *p);
+ extern void cgroup_post_fork(struct task_struct *p);
+ extern void cgroup_exit(struct task_struct *p, int run_callbacks);
++extern int cgroupstats_build(struct cgroupstats *stats,
++				struct dentry *dentry);
+ 
+ extern struct file_operations proc_cgroup_operations;
+ 
+@@ -313,6 +316,11 @@ static inline void cgroup_exit(struct ta
+ 
+ static inline void cgroup_lock(void) {}
+ static inline void cgroup_unlock(void) {}
++static inline int cgroupstats_build(struct cgroupstats *stats,
++					struct dentry *dentry)
++{
++	return -EINVAL;
++}
+ 
+ #endif /* !CONFIG_CGROUPS */
+ 
+diff -puN /dev/null include/linux/cgroupstats.h
+--- /dev/null
++++ a/include/linux/cgroupstats.h
+@@ -0,0 +1,70 @@
++/* cgroupstats.h - exporting per-cgroup statistics
++ *
++ * Copyright IBM Corporation, 2007
++ * Author Balbir Singh <balbir@linux.vnet.ibm.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of version 2.1 of the GNU Lesser General Public License
++ * as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it would be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
++ */
++
++#ifndef _LINUX_CGROUPSTATS_H
++#define _LINUX_CGROUPSTATS_H
++
++#include <linux/taskstats.h>
++
++/*
++ * Data shared between user space and kernel space on a per cgroup
++ * basis. This data is shared using taskstats.
++ *
++ * Most of these states are derived by looking at the task->state value
++ * For the nr_io_wait state, a flag in the delay accounting structure
++ * indicates that the task is waiting on IO
++ *
++ * Each member is aligned to a 8 byte boundary.
++ */
++struct cgroupstats {
++	__u64	nr_sleeping;		/* Number of tasks sleeping */
++	__u64	nr_running;		/* Number of tasks running */
++	__u64	nr_stopped;		/* Number of tasks in stopped state */
++	__u64	nr_uninterruptible;	/* Number of tasks in uninterruptible */
++					/* state */
++	__u64	nr_io_wait;		/* Number of tasks waiting on IO */
++};
++
++/*
++ * Commands sent from userspace
++ * Not versioned. New commands should only be inserted at the enum's end
++ * prior to __CGROUPSTATS_CMD_MAX
++ */
++
++enum {
++	CGROUPSTATS_CMD_UNSPEC = __TASKSTATS_CMD_MAX,	/* Reserved */
++	CGROUPSTATS_CMD_GET,		/* user->kernel request/get-response */
++	CGROUPSTATS_CMD_NEW,		/* kernel->user event */
++	__CGROUPSTATS_CMD_MAX,
++};
++
++#define CGROUPSTATS_CMD_MAX (__CGROUPSTATS_CMD_MAX - 1)
++
++enum {
++	CGROUPSTATS_TYPE_UNSPEC = 0,	/* Reserved */
++	CGROUPSTATS_TYPE_CGROUP_STATS,	/* contains name + stats */
++	__CGROUPSTATS_TYPE_MAX,
++};
++
++#define CGROUPSTATS_TYPE_MAX (__CGROUPSTATS_TYPE_MAX - 1)
++
++enum {
++	CGROUPSTATS_CMD_ATTR_UNSPEC = 0,
++	CGROUPSTATS_CMD_ATTR_FD,
++	__CGROUPSTATS_CMD_ATTR_MAX,
++};
++
++#define CGROUPSTATS_CMD_ATTR_MAX (__CGROUPSTATS_CMD_ATTR_MAX - 1)
++
++#endif /* _LINUX_CGROUPSTATS_H */
+diff -puN include/linux/delayacct.h~add-containerstats-v3 include/linux/delayacct.h
+--- a/include/linux/delayacct.h~add-containerstats-v3
++++ a/include/linux/delayacct.h
+@@ -26,6 +26,7 @@
+  * Used to set current->delays->flags
   */
--static void
--forget_original_parent(struct task_struct *father, struct list_head *to_release)
-+static void forget_original_parent(struct task_struct *father)
+ #define DELAYACCT_PF_SWAPIN	0x00000001	/* I am doing a swapin */
++#define DELAYACCT_PF_BLKIO	0x00000002	/* I am waiting on IO */
+ 
+ #ifdef CONFIG_TASK_DELAY_ACCT
+ 
+@@ -39,6 +40,14 @@ extern void __delayacct_blkio_end(void);
+ extern int __delayacct_add_tsk(struct taskstats *, struct task_struct *);
+ extern __u64 __delayacct_blkio_ticks(struct task_struct *);
+ 
++static inline int delayacct_is_task_waiting_on_io(struct task_struct *p)
++{
++	if (p->delays)
++		return (p->delays->flags & DELAYACCT_PF_BLKIO);
++	else
++		return 0;
++}
++
+ static inline void delayacct_set_flag(int flag)
  {
- 	struct task_struct *p, *n, *reaper = father;
-+	struct list_head ptrace_dead;
-+
-+	INIT_LIST_HEAD(&ptrace_dead);
-+
-+	write_lock_irq(&tasklist_lock);
+ 	if (current->delays)
+@@ -71,6 +80,7 @@ static inline void delayacct_tsk_free(st
  
- 	do {
- 		reaper = next_thread(reaper);
-@@ -677,7 +681,7 @@ forget_original_parent(struct task_struc
- 			reaper = task_child_reaper(father);
- 			break;
- 		}
--	} while (reaper->exit_state);
-+	} while (reaper->flags & PF_EXITING);
- 
- 	/*
- 	 * There are only two places where our children can be:
-@@ -714,12 +718,23 @@ forget_original_parent(struct task_struc
- 		 * while it was being traced by us, to be able to see it in wait4.
- 		 */
- 		if (unlikely(ptrace && p->exit_state == EXIT_ZOMBIE && p->exit_signal == -1))
--			list_add(&p->ptrace_list, to_release);
-+			list_add(&p->ptrace_list, &ptrace_dead);
- 	}
-+
- 	list_for_each_entry_safe(p, n, &father->ptrace_children, ptrace_list) {
- 		p->real_parent = reaper;
- 		reparent_thread(p, father, 1);
- 	}
-+
-+	write_unlock_irq(&tasklist_lock);
-+	BUG_ON(!list_empty(&father->children));
-+	BUG_ON(!list_empty(&father->ptrace_children));
-+
-+	list_for_each_entry_safe(p, n, &ptrace_dead, ptrace_list) {
-+		list_del_init(&p->ptrace_list);
-+		release_task(p);
-+	}
-+
+ static inline void delayacct_blkio_start(void)
+ {
++	delayacct_set_flag(DELAYACCT_PF_BLKIO);
+ 	if (current->delays)
+ 		__delayacct_blkio_start();
+ }
+@@ -79,6 +89,7 @@ static inline void delayacct_blkio_end(v
+ {
+ 	if (current->delays)
+ 		__delayacct_blkio_end();
++	delayacct_clear_flag(DELAYACCT_PF_BLKIO);
  }
  
- /*
-@@ -730,7 +745,6 @@ static void exit_notify(struct task_stru
+ static inline int delayacct_add_tsk(struct taskstats *d,
+@@ -116,6 +127,8 @@ static inline int delayacct_add_tsk(stru
+ { return 0; }
+ static inline __u64 delayacct_blkio_ticks(struct task_struct *tsk)
+ { return 0; }
++static inline int delayacct_is_task_waiting_on_io(struct task_struct *p)
++{ return 0; }
+ #endif /* CONFIG_TASK_DELAY_ACCT */
+ 
+ #endif
+diff -puN kernel/cgroup.c~add-containerstats-v3 kernel/cgroup.c
+--- a/kernel/cgroup.c~add-containerstats-v3
++++ a/kernel/cgroup.c
+@@ -44,6 +44,9 @@
+ #include <linux/string.h>
+ #include <linux/sort.h>
+ #include <linux/kmod.h>
++#include <linux/delayacct.h>
++#include <linux/cgroupstats.h>
++
+ #include <asm/atomic.h>
+ 
+ static DEFINE_MUTEX(cgroup_mutex);
+@@ -1766,6 +1769,58 @@ static int pid_array_load(pid_t *pidarra
+ 	return n;
+ }
+ 
++/**
++ * Build and fill cgroupstats so that taskstats can export it to user
++ * space.
++ *
++ * @stats: cgroupstats to fill information into
++ * @dentry: A dentry entry belonging to the cgroup for which stats have
++ * been requested.
++ */
++int cgroupstats_build(struct cgroupstats *stats, struct dentry *dentry)
++{
++	int ret = -EINVAL;
++	struct cgroup *cont;
++	struct cgroup_iter it;
++	struct task_struct *tsk;
++	/*
++	 * Validate dentry by checking the superblock operations
++	 */
++	if (dentry->d_sb->s_op != &cgroup_ops)
++		 goto err;
++
++	ret = 0;
++	cont = dentry->d_fsdata;
++	rcu_read_lock();
++
++	cgroup_iter_start(cont, &it);
++	while ((tsk = cgroup_iter_next(cont, &it))) {
++		switch (tsk->state) {
++		case TASK_RUNNING:
++			stats->nr_running++;
++			break;
++		case TASK_INTERRUPTIBLE:
++			stats->nr_sleeping++;
++			break;
++		case TASK_UNINTERRUPTIBLE:
++			stats->nr_uninterruptible++;
++			break;
++		case TASK_STOPPED:
++			stats->nr_stopped++;
++			break;
++		default:
++			if (delayacct_is_task_waiting_on_io(tsk))
++				stats->nr_io_wait++;
++			break;
++		}
++	}
++	cgroup_iter_end(cont, &it);
++
++	rcu_read_unlock();
++err:
++	return ret;
++}
++
+ static int cmppid(const void *a, const void *b)
  {
- 	int state;
- 	struct task_struct *t;
--	struct list_head ptrace_dead, *_p, *_n;
- 	struct pid *pgrp;
+ 	return *(pid_t *)a - *(pid_t *)b;
+diff -puN kernel/taskstats.c~add-containerstats-v3 kernel/taskstats.c
+--- a/kernel/taskstats.c~add-containerstats-v3
++++ a/kernel/taskstats.c
+@@ -22,6 +22,10 @@
+ #include <linux/delayacct.h>
+ #include <linux/cpumask.h>
+ #include <linux/percpu.h>
++#include <linux/cgroupstats.h>
++#include <linux/cgroup.h>
++#include <linux/fs.h>
++#include <linux/file.h>
+ #include <net/genetlink.h>
+ #include <asm/atomic.h>
  
- 	if (signal_pending(tsk) && !(tsk->signal->flags & SIGNAL_GROUP_EXIT)
-@@ -751,8 +765,6 @@ static void exit_notify(struct task_stru
- 		spin_unlock_irq(&tsk->sighand->siglock);
- 	}
+@@ -49,6 +53,11 @@ __read_mostly = {
+ 	[TASKSTATS_CMD_ATTR_REGISTER_CPUMASK] = { .type = NLA_STRING },
+ 	[TASKSTATS_CMD_ATTR_DEREGISTER_CPUMASK] = { .type = NLA_STRING },};
  
--	write_lock_irq(&tasklist_lock);
--
- 	/*
- 	 * This does two things:
- 	 *
-@@ -761,12 +773,9 @@ static void exit_notify(struct task_stru
- 	 *	as a result of our exiting, and if they have any stopped
- 	 *	jobs, send them a SIGHUP and then a SIGCONT.  (POSIX 3.2.2.2)
- 	 */
-+	forget_original_parent(tsk);
++static struct nla_policy
++cgroupstats_cmd_get_policy[CGROUPSTATS_CMD_ATTR_MAX+1] __read_mostly = {
++	[CGROUPSTATS_CMD_ATTR_FD] = { .type = NLA_U32 },
++};
++
+ struct listener {
+ 	struct list_head list;
+ 	pid_t pid;
+@@ -372,6 +381,51 @@ err:
+ 	return NULL;
+ }
  
--	INIT_LIST_HEAD(&ptrace_dead);
--	forget_original_parent(tsk, &ptrace_dead);
--	BUG_ON(!list_empty(&tsk->children));
--	BUG_ON(!list_empty(&tsk->ptrace_children));
--
-+	write_lock_irq(&tasklist_lock);
- 	/*
- 	 * Check to see if any process groups have become orphaned
- 	 * as a result of our exiting, and if they have any stopped
-@@ -831,12 +840,6 @@ static void exit_notify(struct task_stru
++static int cgroupstats_user_cmd(struct sk_buff *skb, struct genl_info *info)
++{
++	int rc = 0;
++	struct sk_buff *rep_skb;
++	struct cgroupstats *stats;
++	struct nlattr *na;
++	size_t size;
++	u32 fd;
++	struct file *file;
++	int fput_needed;
++
++	na = info->attrs[CGROUPSTATS_CMD_ATTR_FD];
++	if (!na)
++		return -EINVAL;
++
++	fd = nla_get_u32(info->attrs[CGROUPSTATS_CMD_ATTR_FD]);
++	file = fget_light(fd, &fput_needed);
++	if (file) {
++		size = nla_total_size(sizeof(struct cgroupstats));
++
++		rc = prepare_reply(info, CGROUPSTATS_CMD_NEW, &rep_skb,
++					size);
++		if (rc < 0)
++			goto err;
++
++		na = nla_reserve(rep_skb, CGROUPSTATS_TYPE_CGROUP_STATS,
++					sizeof(struct cgroupstats));
++		stats = nla_data(na);
++		memset(stats, 0, sizeof(*stats));
++
++		rc = cgroupstats_build(stats, file->f_dentry);
++		if (rc < 0)
++			goto err;
++
++		fput_light(file, fput_needed);
++		return send_reply(rep_skb, info->snd_pid);
++	}
++
++err:
++	if (file)
++		fput_light(file, fput_needed);
++	nlmsg_free(rep_skb);
++	return rc;
++}
++
+ static int taskstats_user_cmd(struct sk_buff *skb, struct genl_info *info)
+ {
+ 	int rc = 0;
+@@ -522,6 +576,12 @@ static struct genl_ops taskstats_ops = {
+ 	.policy		= taskstats_cmd_get_policy,
+ };
  
- 	write_unlock_irq(&tasklist_lock);
++static struct genl_ops cgroupstats_ops = {
++	.cmd		= CGROUPSTATS_CMD_GET,
++	.doit		= cgroupstats_user_cmd,
++	.policy		= cgroupstats_cmd_get_policy,
++};
++
+ /* Needed early in initialization */
+ void __init taskstats_init_early(void)
+ {
+@@ -546,8 +606,15 @@ static int __init taskstats_init(void)
+ 	if (rc < 0)
+ 		goto err;
  
--	list_for_each_safe(_p, _n, &ptrace_dead) {
--		list_del_init(_p);
--		t = list_entry(_p, struct task_struct, ptrace_list);
--		release_task(t);
--	}
--
- 	/* If the process is dead, release it - nobody will wait for it */
- 	if (state == EXIT_DEAD)
- 		release_task(tsk);
++	rc = genl_register_ops(&family, &cgroupstats_ops);
++	if (rc < 0)
++		goto err_cgroup_ops;
++
+ 	family_registered = 1;
++	printk("registered taskstats version %d\n", TASKSTATS_GENL_VERSION);
+ 	return 0;
++err_cgroup_ops:
++	genl_unregister_ops(&family, &taskstats_ops);
+ err:
+ 	genl_unregister_family(&family);
+ 	return rc;
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
 
 origin.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-resource-counters-v7-fix.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-memory-accounting-v7-fix.patch
+memory-controller-memory-accounting-v7-fix-swapoff-breakage-however.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix-2.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-cleanup.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-cleanup.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memory-controller-make-charging-gfp-mask-aware-fix.patch
+memory-controller-bug_on.patch
+memcontrol-move-mm_cgroup-to-header-file.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
