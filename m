@@ -1,103 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - uninline-find_pid-etc-set-of-functions.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:52:08 -0700
-Message-ID: <200710192252.l9JMq82v024245@imap1.linux-foundation.org>
+Subject: - pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:51:48 -0700
+Message-ID: <200710192251.l9JMpmlg024212@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36100 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56353 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934494AbXJSXGV (ORCPT
+	by vger.kernel.org with ESMTP id S1764443AbXJSXG0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 19:06:21 -0400
+	Fri, 19 Oct 2007 19:06:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: xemul@openvz.org, ebiederm@xmission.com, menage@google.com, oleg@tv-sign.ru, sukadev@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Uninline find_pid etc set of functions
+     pid namespaces: make proc_flush_task() actually from entries from multiple namespaces
 has been removed from the -mm tree.  Its filename was
-     uninline-find_pid-etc-set-of-functions.patch
+     pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Uninline find_pid etc set of functions
+Subject: pid namespaces: make proc_flush_task() actually from entries from multiple namespaces
 From: Pavel Emelyanov <xemul@openvz.org>
 
-The find_pid/_vpid/_pid_ns functions are used to find the struct pid by its
-id, depending on whic id - global or virtual - is used.
-
-The find_vpid() is a macro that pushes the current->nsproxy->pid_ns on the
-stack to call another function - find_pid_ns().  It turned out, that this
-dereference together with the push itself cause the kernel text size to
-grow too much.
-
-Move all these out-of-line.  Together with the previous patch this saves a
-bit less that 400 bytes from .text section.
+This means that proc_flush_task_mnt() is to be called for many proc mounts and
+with different ids, depending on the namespace this pid is to be flushed from.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 Cc: Paul Menage <menage@google.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid.h |    5 ++---
- kernel/capability.c |    2 +-
- kernel/pid.c        |   12 ++++++++++++
- 3 files changed, 15 insertions(+), 4 deletions(-)
+ fs/proc/base.c |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/pid.h~uninline-find_pid-etc-set-of-functions include/linux/pid.h
---- a/include/linux/pid.h~uninline-find_pid-etc-set-of-functions
-+++ a/include/linux/pid.h
-@@ -110,9 +110,8 @@ extern struct pid_namespace init_pid_ns;
-  * see also find_task_by_pid() set in include/linux/sched.h
-  */
- extern struct pid *FASTCALL(find_pid_ns(int nr, struct pid_namespace *ns));
--
--#define find_vpid(pid)	find_pid_ns(pid, current->nsproxy->pid_ns)
--#define find_pid(pid)	find_pid_ns(pid, &init_pid_ns)
-+extern struct pid *find_vpid(int nr);
-+extern struct pid *find_pid(int nr);
+diff -puN fs/proc/base.c~pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces fs/proc/base.c
+--- a/fs/proc/base.c~pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces
++++ a/fs/proc/base.c
+@@ -2259,8 +2259,22 @@ out:
  
- /*
-  * Lookup a PID in the hash table, and return with it's count elevated.
-diff -puN kernel/capability.c~uninline-find_pid-etc-set-of-functions kernel/capability.c
---- a/kernel/capability.c~uninline-find_pid-etc-set-of-functions
-+++ a/kernel/capability.c
-@@ -96,7 +96,7 @@ static inline int cap_set_pg(int pgrp_nr
- 	int found = 0;
- 	struct pid *pgrp;
- 
--	pgrp = find_pid_ns(pgrp_nr, current->nsproxy->pid_ns);
-+	pgrp = find_vpid(pgrp_nr);
- 	do_each_pid_task(pgrp, PIDTYPE_PGID, g) {
- 		target = g;
- 		while_each_thread(g, target) {
-diff -puN kernel/pid.c~uninline-find_pid-etc-set-of-functions kernel/pid.c
---- a/kernel/pid.c~uninline-find_pid-etc-set-of-functions
-+++ a/kernel/pid.c
-@@ -302,6 +302,18 @@ struct pid * fastcall find_pid_ns(int nr
+ void proc_flush_task(struct task_struct *task)
+ {
+-	proc_flush_task_mnt(proc_mnt, task->pid,
+-			thread_group_leader(task) ? 0 : task->tgid);
++	int i, leader;
++	struct pid *pid, *tgid;
++	struct upid *upid;
++
++	leader = thread_group_leader(task);
++	proc_flush_task_mnt(proc_mnt, task->pid, leader ? task->tgid : 0);
++	pid = task_pid(task);
++	if (pid->level == 0)
++		return;
++
++	tgid = task_tgid(task);
++	for (i = 1; i <= pid->level; i++) {
++		upid = &pid->numbers[i];
++		proc_flush_task_mnt(upid->ns->proc_mnt, upid->nr,
++				leader ? 0 : tgid->numbers[i].nr);
++	}
  }
- EXPORT_SYMBOL_GPL(find_pid_ns);
  
-+struct pid *find_vpid(int nr)
-+{
-+	return find_pid_ns(nr, current->nsproxy->pid_ns);
-+}
-+EXPORT_SYMBOL_GPL(find_vpid);
-+
-+struct pid *find_pid(int nr)
-+{
-+	return find_pid_ns(nr, &init_pid_ns);
-+}
-+EXPORT_SYMBOL_GPL(find_pid);
-+
- /*
-  * attach_pid() must be called with the tasklist_lock write-held.
-  */
+ static struct dentry *proc_pid_instantiate(struct inode *dir,
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
