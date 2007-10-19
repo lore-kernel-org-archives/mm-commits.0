@@ -1,141 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - cyber2000fb-rename-bit-macro.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:52:33 -0700
-Message-ID: <200710192252.l9JMqX0B024284@imap1.linux-foundation.org>
+Subject: - linux-kernel-markers-documentation.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:54:30 -0700
+Message-ID: <200710192254.l9JMsUBQ024539@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33443 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42841 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966999AbXJSXGQ (ORCPT
+	by vger.kernel.org with ESMTP id S966869AbXJSXGQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 19 Oct 2007 19:06:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, adaplas@pol.net, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, fche@redhat.com, hch@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cyber2000fb, rename BIT macro
+     Linux Kernel Markers - Documentation
 has been removed from the -mm tree.  Its filename was
-     cyber2000fb-rename-bit-macro.patch
+     linux-kernel-markers-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cyber2000fb, rename BIT macro
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: Linux Kernel Markers - Documentation
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-cyber2000fb, rename BIT macro
+Here is some documentation explaining what is/how to use the Linux
+Kernel Markers.
 
-BIT will be global macro for (1 << x)
-
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Acked-by: "Frank Ch. Eigler" <fche@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cyber2000fb.c |   44 +++++++++++++++++-----------------
- 1 file changed, 22 insertions(+), 22 deletions(-)
+ Documentation/markers.txt |   81 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 81 insertions(+)
 
-diff -puN drivers/video/cyber2000fb.c~cyber2000fb-rename-bit-macro drivers/video/cyber2000fb.c
---- a/drivers/video/cyber2000fb.c~cyber2000fb-rename-bit-macro
-+++ a/drivers/video/cyber2000fb.c
-@@ -549,7 +549,7 @@ cyber2000fb_decode_crtc(struct par_info 
- {
- 	u_int Htotal, Hblankend, Hsyncend;
- 	u_int Vtotal, Vdispend, Vblankstart, Vblankend, Vsyncstart, Vsyncend;
--#define BIT(v,b1,m,b2) (((v >> b1) & m) << b2)
-+#define ENCODE_BIT(v,b1,m,b2) (((v >> b1) & m) << b2)
- 
- 	hw->crtc[13] = hw->pitch;
- 	hw->crtc[17] = 0xe3;
-@@ -569,13 +569,13 @@ cyber2000fb_decode_crtc(struct par_info 
- 
- 	Hblankend   = (Htotal - 4*8) >> 3;
- 
--	hw->crtc[3] = BIT(Hblankend,  0, 0x1f,  0) |
--		      BIT(1,          0, 0x01,  7);
-+	hw->crtc[3] = ENCODE_BIT(Hblankend,  0, 0x1f,  0) |
-+		      ENCODE_BIT(1,          0, 0x01,  7);
- 
- 	Hsyncend    = (var->xres + var->right_margin + var->hsync_len) >> 3;
- 
--	hw->crtc[5] = BIT(Hsyncend,   0, 0x1f,  0) |
--		      BIT(Hblankend,  5, 0x01,  7);
-+	hw->crtc[5] = ENCODE_BIT(Hsyncend,   0, 0x1f,  0) |
-+		      ENCODE_BIT(Hblankend,  5, 0x01,  7);
- 
- 	Vdispend    = var->yres - 1;
- 	Vsyncstart  = var->yres + var->lower_margin;
-@@ -590,20 +590,20 @@ cyber2000fb_decode_crtc(struct par_info 
- 	Vblankend   = Vtotal - 10;
- 
- 	hw->crtc[6]  = Vtotal;
--	hw->crtc[7]  = BIT(Vtotal,     8, 0x01,  0) |
--			BIT(Vdispend,   8, 0x01,  1) |
--			BIT(Vsyncstart, 8, 0x01,  2) |
--			BIT(Vblankstart,8, 0x01,  3) |
--			BIT(1,          0, 0x01,  4) |
--	        	BIT(Vtotal,     9, 0x01,  5) |
--			BIT(Vdispend,   9, 0x01,  6) |
--			BIT(Vsyncstart, 9, 0x01,  7);
--	hw->crtc[9]  = BIT(0,          0, 0x1f,  0) |
--		        BIT(Vblankstart,9, 0x01,  5) |
--			BIT(1,          0, 0x01,  6);
-+	hw->crtc[7]  = ENCODE_BIT(Vtotal,     8, 0x01,  0) |
-+			ENCODE_BIT(Vdispend,   8, 0x01,  1) |
-+			ENCODE_BIT(Vsyncstart, 8, 0x01,  2) |
-+			ENCODE_BIT(Vblankstart,8, 0x01,  3) |
-+			ENCODE_BIT(1,          0, 0x01,  4) |
-+	        	ENCODE_BIT(Vtotal,     9, 0x01,  5) |
-+			ENCODE_BIT(Vdispend,   9, 0x01,  6) |
-+			ENCODE_BIT(Vsyncstart, 9, 0x01,  7);
-+	hw->crtc[9]  = ENCODE_BIT(0,          0, 0x1f,  0) |
-+		        ENCODE_BIT(Vblankstart,9, 0x01,  5) |
-+			ENCODE_BIT(1,          0, 0x01,  6);
- 	hw->crtc[10] = Vsyncstart;
--	hw->crtc[11] = BIT(Vsyncend,   0, 0x0f,  0) |
--		       BIT(1,          0, 0x01,  7);
-+	hw->crtc[11] = ENCODE_BIT(Vsyncend,   0, 0x0f,  0) |
-+		       ENCODE_BIT(1,          0, 0x01,  7);
- 	hw->crtc[12] = Vdispend;
- 	hw->crtc[15] = Vblankstart;
- 	hw->crtc[16] = Vblankend;
-@@ -615,10 +615,10 @@ cyber2000fb_decode_crtc(struct par_info 
- 	 * 4=LINECOMP:10 5-IVIDEO 6=FIXCNT
- 	 */
- 	hw->crtc_ofl =
--		BIT(Vtotal,     10, 0x01,  0) |
--		BIT(Vdispend,   10, 0x01,  1) |
--		BIT(Vsyncstart, 10, 0x01,  2) |
--		BIT(Vblankstart,10, 0x01,  3) |
-+		ENCODE_BIT(Vtotal,     10, 0x01,  0) |
-+		ENCODE_BIT(Vdispend,   10, 0x01,  1) |
-+		ENCODE_BIT(Vsyncstart, 10, 0x01,  2) |
-+		ENCODE_BIT(Vblankstart,10, 0x01,  3) |
- 		EXT_CRT_VRTOFL_LINECOMP10;
- 
- 	/* woody: set the interlaced bit... */
+diff -puN /dev/null Documentation/markers.txt
+--- /dev/null
++++ a/Documentation/markers.txt
+@@ -0,0 +1,81 @@
++ 	             Using the Linux Kernel Markers
++
++			    Mathieu Desnoyers
++
++
++This document introduces Linux Kernel Markers and their use. It provides
++examples of how to insert markers in the kernel and connect probe functions to
++them and provides some examples of probe functions.
++
++
++* Purpose of markers
++
++A marker placed in code provides a hook to call a function (probe) that you can
++provide at runtime. A marker can be "on" (a probe is connected to it) or "off"
++(no probe is attached). When a marker is "off" it has no effect, except for
++adding a tiny time penalty (checking a condition for a branch) and space
++penalty (adding a few bytes for the function call at the end of the
++instrumented function and adds a data structure in a separate section).  When a
++marker is "on", the function you provide is called each time the marker is
++executed, in the execution context of the caller. When the function provided
++ends its execution, it returns to the caller (continuing from the marker site).
++
++You can put markers at important locations in the code. Markers are
++lightweight hooks that can pass an arbitrary number of parameters,
++described in a printk-like format string, to the attached probe function.
++
++They can be used for tracing and performance accounting.
++
++
++* Usage
++
++In order to use the macro trace_mark, you should include linux/marker.h.
++
++#include <linux/marker.h>
++
++And,
++
++trace_mark(subsystem_event, "%d %s", someint, somestring);
++Where :
++- subsystem_event is an identifier unique to your event
++    - subsystem is the name of your subsystem.
++    - event is the name of the event to mark.
++- "%d %s" is the formatted string for the serializer.
++- someint is an integer.
++- somestring is a char pointer.
++
++Connecting a function (probe) to a marker is done by providing a probe (function
++to call) for the specific marker through marker_probe_register() and can be
++activated by calling marker_arm(). Marker deactivation can be done by calling
++marker_disarm() as many times as marker_arm() has been called. Removing a probe
++is done through marker_probe_unregister(); it will disarm the probe and make
++sure there is no caller left using the probe when it returns. Probe removal is
++preempt-safe because preemption is disabled around the probe call. See the
++"Probe example" section below for a sample probe module.
++
++The marker mechanism supports inserting multiple instances of the same marker.
++Markers can be put in inline functions, inlined static functions, and
++unrolled loops as well as regular functions.
++
++The naming scheme "subsystem_event" is suggested here as a convention intended
++to limit collisions. Marker names are global to the kernel: they are considered
++as being the same whether they are in the core kernel image or in modules.
++Conflicting format strings for markers with the same name will cause the markers
++to be detected to have a different format string not to be armed and will output
++a printk warning which identifies the inconsistency:
++
++"Format mismatch for probe probe_name (format), marker (format)"
++
++
++* Probe / marker example
++
++See the example provided in samples/markers/src
++
++Compile them with your kernel.
++
++Run, as root :
++modprobe marker-example (insmod order is not important)
++modprobe probe-example
++cat /proc/marker-example (returns an expected error)
++rmmod marker-example probe-example
++dmesg
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
-git-dvb.patch
-v4l-stk11xx-add-a-new-webcam-driver.patch
-v4l-stk11xx-use-array_size-in-another-2-cases.patch
-v4l-stk11xx-use-retval-from-stk11xx_check_device.patch
-v4l-stk11xx-add-static-to-tables.patch
-git-wireless.patch
-dzh-remove-useless-unused-module-junk.patch
-dz-always-check-if-it-is-safe-to-console_putchar.patch
-dz-dont-panic-when-request_irq-fails.patch
-dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
-dz-update-kconfig-description.patch
-dz-rename-the-serial-console-structure.patch
-dz-fix-locking-issues.patch
-dz-handle-special-conditions-on-reception-correctly.patch
-maintainers-add-self-for-the-dz-serial-driver.patch
-remove-asm-bitopsh-includes-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
