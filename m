@@ -1,94 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - uninline-forkc-exitc-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 21:37:14 -0700
-Message-ID: <200710190437.l9J4bEw6015425@imap1.linux-foundation.org>
+Subject: - git-nfs-vs-git-unionfs.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 21:39:08 -0700
+Message-ID: <200710190439.l9J4d8E1015560@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49776 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53300 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753600AbXJSEiI (ORCPT
+	by vger.kernel.org with ESMTP id S934221AbXJSEj1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 00:38:08 -0400
+	Fri, 19 Oct 2007 00:39:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@sw.ru, arjan@infradead.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jsipek@cs.sunysb.edu, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uninline-forkc-exitc-checkpatch-fixes
+     git-nfs-vs-git-unionfs
 has been removed from the -mm tree.  Its filename was
-     uninline-forkc-exitc-checkpatch-fixes.patch
+     git-nfs-vs-git-unionfs.patch
 
-This patch was dropped because it was folded into uninline-forkc-exitc.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: uninline-forkc-exitc-checkpatch-fixes
+Subject: git-nfs-vs-git-unionfs
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "foo * bar" should be "foo *bar"
-#85: FILE: kernel/fork.c:624:
-+static int copy_fs(unsigned long clone_flags, struct task_struct * tsk)
+Put this back - unionfs uses it.
 
-ERROR: "foo * bar" should be "foo *bar"
-#94: FILE: kernel/fork.c:827:
-+static int copy_sighand(unsigned long clone_flags, struct task_struct * tsk)
+Please don't commit unreviewed VFS patches to fs-specific trees.
 
-ERROR: "foo * bar" should be "foo *bar"
-#103: FILE: kernel/fork.c:850:
-+static int copy_signal(unsigned long clone_flags, struct task_struct * tsk)
-
-WARNING: no space between function name and open parenthesis '('
-#139: FILE: kernel/fork.c:1396:
-+static int fork_traceflag (unsigned clone_flags)
-
-Cc: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/writeback.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/fork.c~uninline-forkc-exitc-checkpatch-fixes kernel/fork.c
---- a/kernel/fork.c~uninline-forkc-exitc-checkpatch-fixes
-+++ a/kernel/fork.c
-@@ -621,7 +621,7 @@ struct fs_struct *copy_fs_struct(struct 
+diff -puN include/linux/writeback.h~git-nfs-vs-git-unionfs include/linux/writeback.h
+--- a/include/linux/writeback.h~git-nfs-vs-git-unionfs
++++ a/include/linux/writeback.h
+@@ -63,6 +63,7 @@ struct writeback_control {
+ 	unsigned for_writepages:1;	/* This is a writepages() call */
+ 	unsigned range_cyclic:1;	/* range_start is cyclic */
+ 	unsigned more_io:1;		/* more io to be dispatched */
++	void *fs_private;               /* For use by ->writepages() */
+ };
  
- EXPORT_SYMBOL_GPL(copy_fs_struct);
- 
--static int copy_fs(unsigned long clone_flags, struct task_struct * tsk)
-+static int copy_fs(unsigned long clone_flags, struct task_struct *tsk)
- {
- 	if (clone_flags & CLONE_FS) {
- 		atomic_inc(&current->fs->count);
-@@ -824,7 +824,7 @@ int unshare_files(void)
- 
- EXPORT_SYMBOL(unshare_files);
- 
--static int copy_sighand(unsigned long clone_flags, struct task_struct * tsk)
-+static int copy_sighand(unsigned long clone_flags, struct task_struct *tsk)
- {
- 	struct sighand_struct *sig;
- 
-@@ -847,7 +847,7 @@ void __cleanup_sighand(struct sighand_st
- 		kmem_cache_free(sighand_cachep, sighand);
- }
- 
--static int copy_signal(unsigned long clone_flags, struct task_struct * tsk)
-+static int copy_signal(unsigned long clone_flags, struct task_struct *tsk)
- {
- 	struct signal_struct *sig;
- 	int ret;
-@@ -1387,7 +1387,7 @@ struct task_struct * __cpuinit fork_idle
- 	return task;
- }
- 
--static int fork_traceflag (unsigned clone_flags)
-+static int fork_traceflag(unsigned clone_flags)
- {
- 	if (clone_flags & CLONE_UNTRACED)
- 		return 0;
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -119,4 +78,3 @@ hook-up-group-scheduler-with-control-groups.patch
 linux-kernel-markers.patch
 linux-kernel-markers-samples.patch
 uninline-forkc-exitc.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
