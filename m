@@ -1,579 +1,259 @@
 From: akpm@linux-foundation.org
-Subject: - pm-move-definition-of-struct-pm_ops-to-suspendh.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:40:40 -0700
-Message-ID: <200710190340.l9J3eeVu012727@imap1.linux-foundation.org>
+Subject: - ext4-remove-obsolete-fragments.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:48:16 -0700
+Message-ID: <200710190348.l9J3mG05013527@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47239 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41593 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964809AbXJSDlt (ORCPT
+	by vger.kernel.org with ESMTP id S1760196AbXJSDsx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:41:49 -0400
+	Thu, 18 Oct 2007 23:48:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, greg@kroah.com, lenb@kernel.org, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: coyli@suse.de, adilger@clusterfs.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PM: Move definition of struct pm_ops to suspend.h
+     ext4: remove obsolete `fragments'
 has been removed from the -mm tree.  Its filename was
-     pm-move-definition-of-struct-pm_ops-to-suspendh.patch
+     ext4-remove-obsolete-fragments.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PM: Move definition of struct pm_ops to suspend.h
-=46rom: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: ext4: remove obsolete `fragments'
+From: Coly Li <coyli@suse.de>
 
-Move the definition of 'struct pm_ops' and related functions from <linu=
-x/pm.h>
-to <linux/suspend.h> .
+Once ext4 will not implement fragment, it is believed it will never be
+implement in future.  Therefore fragment related source code in ext4 should
+be obsoleted -- no one will use it.
 
-There are, at least, the following reasons to do that:
-* 'struct pm_ops' is specifically related to suspend and not to the pow=
-er
-=A0 management in general.
-* As long as 'struct pm_ops' is defined in <linux/pm.h>, any modificati=
-on of it
-=A0 causes the entire kernel to be recompiled, which is unnecessary and=
- annoying.
-* Some suspend-related features are already defined in <linux/suspend.h=
->, so it
-=A0 is logical to move the definition of 'struct pm_ops' into there.
-* 'struct hibernation_ops', being the hibernation-related counterpart o=
-f
-=A0 'struct pm_ops', is defined in <linux/suspend.h> .
+This patch obsolete fragment from ext4.  Another patch posted on linux-ext4
+removing fragment supporting from e2fsprogs.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Coly Li <coyli@suse.de>
+Acked-by: Andreas Dilger <adilger@clusterfs.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/common/sharpsl_pm.c             |    1=20
- arch/arm/mach-at91/pm.c                  |    3=20
- arch/arm/mach-omap1/pm.c                 |    3=20
- arch/arm/mach-omap2/pm.c                 |    9 -
- arch/arm/mach-pnx4008/pm.c               |    2=20
- arch/arm/mach-pxa/pxa25x.c               |    2=20
- arch/arm/mach-pxa/pxa27x.c               |    2=20
- arch/blackfin/mach-common/pm.c           |    2=20
- arch/powerpc/platforms/52xx/mpc52xx_pm.c |    2=20
- drivers/char/apm-emulation.c             |    2=20
- include/asm-arm/arch-pxa/pm.h            |    2=20
- include/linux/pm.h                       |   98 -----------------
- include/linux/suspend.h                  |  121 +++++++++++++++++++--
- 13 files changed, 122 insertions(+), 127 deletions(-)
+ fs/ext4/ialloc.c           |    5 -----
+ fs/ext4/inode.c            |   10 ----------
+ fs/ext4/super.c            |   15 ---------------
+ include/linux/ext4_fs.h    |   35 ++++++-----------------------------
+ include/linux/ext4_fs_i.h  |    5 -----
+ include/linux/ext4_fs_sb.h |    3 ---
+ 6 files changed, 6 insertions(+), 67 deletions(-)
 
-diff -puN arch/arm/common/sharpsl_pm.c~pm-move-definition-of-struct-pm_=
-ops-to-suspendh arch/arm/common/sharpsl_pm.c
---- a/arch/arm/common/sharpsl_pm.c~pm-move-definition-of-struct-pm_ops-=
-to-suspendh
-+++ a/arch/arm/common/sharpsl_pm.c
-@@ -24,6 +24,7 @@
- #include <linux/platform_device.h>
- #include <linux/leds.h>
- #include <linux/apm-emulation.h>
-+#include <linux/suspend.h>
-=20
- #include <asm/hardware.h>
- #include <asm/mach-types.h>
-diff -puN arch/arm/mach-at91/pm.c~pm-move-definition-of-struct-pm_ops-t=
-o-suspendh arch/arm/mach-at91/pm.c
---- a/arch/arm/mach-at91/pm.c~pm-move-definition-of-struct-pm_ops-to-su=
-spendh
-+++ a/arch/arm/mach-at91/pm.c
-@@ -10,10 +10,9 @@
-  * (at your option) any later version.
-  */
-=20
--#include <linux/pm.h>
-+#include <linux/suspend.h>
- #include <linux/sched.h>
- #include <linux/proc_fs.h>
--#include <linux/pm.h>
- #include <linux/interrupt.h>
- #include <linux/sysfs.h>
- #include <linux/module.h>
-diff -puN arch/arm/mach-omap1/pm.c~pm-move-definition-of-struct-pm_ops-=
-to-suspendh arch/arm/mach-omap1/pm.c
---- a/arch/arm/mach-omap1/pm.c~pm-move-definition-of-struct-pm_ops-to-s=
-uspendh
-+++ a/arch/arm/mach-omap1/pm.c
-@@ -35,10 +35,9 @@
-  * 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
-=20
--#include <linux/pm.h>
-+#include <linux/suspend.h>
- #include <linux/sched.h>
- #include <linux/proc_fs.h>
--#include <linux/pm.h>
- #include <linux/interrupt.h>
- #include <linux/sysfs.h>
- #include <linux/module.h>
-diff -puN arch/arm/mach-omap2/pm.c~pm-move-definition-of-struct-pm_ops-=
-to-suspendh arch/arm/mach-omap2/pm.c
---- a/arch/arm/mach-omap2/pm.c~pm-move-definition-of-struct-pm_ops-to-s=
-uspendh
-+++ a/arch/arm/mach-omap2/pm.c
-@@ -16,10 +16,9 @@
-  * published by the Free Software Foundation.
-  */
-=20
--#include <linux/pm.h>
-+#include <linux/suspend.h>
- #include <linux/sched.h>
- #include <linux/proc_fs.h>
--#include <linux/pm.h>
- #include <linux/interrupt.h>
- #include <linux/sysfs.h>
- #include <linux/module.h>
-@@ -85,9 +84,6 @@ static int omap2_pm_prepare(suspend_stat
- 	case PM_SUSPEND_MEM:
- 		break;
-=20
--	case PM_SUSPEND_DISK:
--		return -ENOTSUPP;
--
- 	default:
- 		return -EINVAL;
+diff -puN fs/ext4/ialloc.c~ext4-remove-obsolete-fragments fs/ext4/ialloc.c
+--- a/fs/ext4/ialloc.c~ext4-remove-obsolete-fragments
++++ a/fs/ext4/ialloc.c
+@@ -573,11 +573,6 @@ got:
+ 	/* dirsync only applies to directories */
+ 	if (!S_ISDIR(mode))
+ 		ei->i_flags &= ~EXT4_DIRSYNC_FL;
+-#ifdef EXT4_FRAGMENTS
+-	ei->i_faddr = 0;
+-	ei->i_frag_no = 0;
+-	ei->i_frag_size = 0;
+-#endif
+ 	ei->i_file_acl = 0;
+ 	ei->i_dir_acl = 0;
+ 	ei->i_dtime = 0;
+diff -puN fs/ext4/inode.c~ext4-remove-obsolete-fragments fs/ext4/inode.c
+--- a/fs/ext4/inode.c~ext4-remove-obsolete-fragments
++++ a/fs/ext4/inode.c
+@@ -2711,11 +2711,6 @@ void ext4_read_inode(struct inode * inod
  	}
-@@ -353,9 +349,6 @@ static int omap2_pm_enter(suspend_state_
- 	case PM_SUSPEND_MEM:
- 		ret =3D omap2_pm_suspend();
- 		break;
--	case PM_SUSPEND_DISK:
--		ret =3D -ENOTSUPP;
--		break;
- 	default:
- 		ret =3D -EINVAL;
+ 	inode->i_blocks = le32_to_cpu(raw_inode->i_blocks);
+ 	ei->i_flags = le32_to_cpu(raw_inode->i_flags);
+-#ifdef EXT4_FRAGMENTS
+-	ei->i_faddr = le32_to_cpu(raw_inode->i_faddr);
+-	ei->i_frag_no = raw_inode->i_frag;
+-	ei->i_frag_size = raw_inode->i_fsize;
+-#endif
+ 	ei->i_file_acl = le32_to_cpu(raw_inode->i_file_acl);
+ 	if (EXT4_SB(inode->i_sb)->s_es->s_creator_os !=
+ 	    cpu_to_le32(EXT4_OS_HURD))
+@@ -2860,11 +2855,6 @@ static int ext4_do_update_inode(handle_t
+ 	raw_inode->i_blocks = cpu_to_le32(inode->i_blocks);
+ 	raw_inode->i_dtime = cpu_to_le32(ei->i_dtime);
+ 	raw_inode->i_flags = cpu_to_le32(ei->i_flags);
+-#ifdef EXT4_FRAGMENTS
+-	raw_inode->i_faddr = cpu_to_le32(ei->i_faddr);
+-	raw_inode->i_frag = ei->i_frag_no;
+-	raw_inode->i_fsize = ei->i_frag_size;
+-#endif
+ 	if (EXT4_SB(inode->i_sb)->s_es->s_creator_os !=
+ 	    cpu_to_le32(EXT4_OS_HURD))
+ 		raw_inode->i_file_acl_high =
+diff -puN fs/ext4/super.c~ext4-remove-obsolete-fragments fs/ext4/super.c
+--- a/fs/ext4/super.c~ext4-remove-obsolete-fragments
++++ a/fs/ext4/super.c
+@@ -1726,14 +1726,6 @@ static int ext4_fill_super (struct super
+ 		if (sbi->s_inode_size > EXT4_GOOD_OLD_INODE_SIZE)
+ 			sb->s_time_gran = 1 << (EXT4_EPOCH_BITS - 2);
  	}
-diff -puN arch/arm/mach-pnx4008/pm.c~pm-move-definition-of-struct-pm_op=
-s-to-suspendh arch/arm/mach-pnx4008/pm.c
---- a/arch/arm/mach-pnx4008/pm.c~pm-move-definition-of-struct-pm_ops-to=
--suspendh
-+++ a/arch/arm/mach-pnx4008/pm.c
-@@ -15,7 +15,7 @@
- #include <linux/rtc.h>
- #include <linux/sched.h>
- #include <linux/proc_fs.h>
--#include <linux/pm.h>
-+#include <linux/suspend.h>
- #include <linux/delay.h>
- #include <linux/clk.h>
-=20
-diff -puN arch/arm/mach-pxa/pxa25x.c~pm-move-definition-of-struct-pm_op=
-s-to-suspendh arch/arm/mach-pxa/pxa25x.c
---- a/arch/arm/mach-pxa/pxa25x.c~pm-move-definition-of-struct-pm_ops-to=
--suspendh
-+++ a/arch/arm/mach-pxa/pxa25x.c
-@@ -20,7 +20,7 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/platform_device.h>
--#include <linux/pm.h>
-+#include <linux/suspend.h>
-=20
- #include <asm/hardware.h>
- #include <asm/arch/irqs.h>
-diff -puN arch/arm/mach-pxa/pxa27x.c~pm-move-definition-of-struct-pm_op=
-s-to-suspendh arch/arm/mach-pxa/pxa27x.c
---- a/arch/arm/mach-pxa/pxa27x.c~pm-move-definition-of-struct-pm_ops-to=
--suspendh
-+++ a/arch/arm/mach-pxa/pxa27x.c
-@@ -14,7 +14,7 @@
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/init.h>
--#include <linux/pm.h>
-+#include <linux/suspend.h>
- #include <linux/platform_device.h>
-=20
- #include <asm/hardware.h>
-diff -puN arch/blackfin/mach-common/pm.c~pm-move-definition-of-struct-p=
-m_ops-to-suspendh arch/blackfin/mach-common/pm.c
---- a/arch/blackfin/mach-common/pm.c~pm-move-definition-of-struct-pm_op=
-s-to-suspendh
-+++ a/arch/blackfin/mach-common/pm.c
-@@ -32,7 +32,7 @@
-  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-  */
-=20
--#include <linux/pm.h>
-+#include <linux/suspend.h>
- #include <linux/sched.h>
- #include <linux/proc_fs.h>
- #include <linux/io.h>
-diff -puN arch/powerpc/platforms/52xx/mpc52xx_pm.c~pm-move-definition-o=
-f-struct-pm_ops-to-suspendh arch/powerpc/platforms/52xx/mpc52xx_pm.c
---- a/arch/powerpc/platforms/52xx/mpc52xx_pm.c~pm-move-definition-of-st=
-ruct-pm_ops-to-suspendh
-+++ a/arch/powerpc/platforms/52xx/mpc52xx_pm.c
-@@ -1,5 +1,5 @@
- #include <linux/init.h>
--#include <linux/pm.h>
-+#include <linux/suspend.h>
- #include <linux/io.h>
- #include <asm/time.h>
- #include <asm/cacheflush.h>
-diff -puN drivers/char/apm-emulation.c~pm-move-definition-of-struct-pm_=
-ops-to-suspendh drivers/char/apm-emulation.c
---- a/drivers/char/apm-emulation.c~pm-move-definition-of-struct-pm_ops-=
-to-suspendh
-+++ a/drivers/char/apm-emulation.c
-@@ -18,7 +18,7 @@
- #include <linux/apm_bios.h>
- #include <linux/capability.h>
- #include <linux/sched.h>
--#include <linux/pm.h>
-+#include <linux/suspend.h>
- #include <linux/apm-emulation.h>
- #include <linux/freezer.h>
- #include <linux/device.h>
-diff -puN include/asm-arm/arch-pxa/pm.h~pm-move-definition-of-struct-pm=
-_ops-to-suspendh include/asm-arm/arch-pxa/pm.h
---- a/include/asm-arm/arch-pxa/pm.h~pm-move-definition-of-struct-pm_ops=
--to-suspendh
-+++ a/include/asm-arm/arch-pxa/pm.h
-@@ -7,6 +7,8 @@
-  *
-  */
-=20
-+#include <linux/suspend.h>
-+
- struct pxa_cpu_pm_fns {
- 	int	save_size;
- 	void	(*save)(unsigned long *);
-diff -puN include/linux/pm.h~pm-move-definition-of-struct-pm_ops-to-sus=
-pendh include/linux/pm.h
---- a/include/linux/pm.h~pm-move-definition-of-struct-pm_ops-to-suspend=
-h
-+++ a/include/linux/pm.h
-@@ -104,104 +104,6 @@ extern void (*pm_idle)(void);
- extern void (*pm_power_off)(void);
- extern void (*pm_power_off_prepare)(void);
-=20
--typedef int __bitwise suspend_state_t;
--
--#define PM_SUSPEND_ON		((__force suspend_state_t) 0)
--#define PM_SUSPEND_STANDBY	((__force suspend_state_t) 1)
--#define PM_SUSPEND_MEM		((__force suspend_state_t) 3)
--#define PM_SUSPEND_MAX		((__force suspend_state_t) 4)
--
--/**
-- * struct pm_ops - Callbacks for managing platform dependent system sl=
-eep
-- *	states.
-- *
-- * @valid: Callback to determine if given system sleep state is suppor=
-ted by
-- *	the platform.
-- *	Valid (ie. supported) states are advertised in /sys/power/state.  N=
-ote
-- *	that it still may be impossible to enter given system sleep state i=
-f the
-- *	conditions aren't right.
-- *	There is the %pm_valid_only_mem function available that can be assi=
-gned
-- *	to this if the platform only supports mem sleep.
-- *
-- * @set_target: Tell the platform which system sleep state is going to=
- be
-- *	entered.
-- *	@set_target() is executed right prior to suspending devices.  The
-- *	information conveyed to the platform code by @set_target() should b=
-e
-- *	disregarded by the platform as soon as @finish() is executed and if
-- *	@prepare() fails.  If @set_target() fails (ie. returns nonzero),
-- *	@prepare(), @enter() and @finish() will not be called by the PM cor=
-e.
-- *	This callback is optional.  However, if it is implemented, the argu=
-ment
-- *	passed to @prepare(), @enter() and @finish() is meaningless and sho=
-uld
-- *	be ignored.
-- *
-- * @prepare: Prepare the platform for entering the system sleep state =
-indicated
-- *	by @set_target() or represented by the argument if @set_target() is=
- not
-- *	implemented.
-- *	@prepare() is called right after devices have been suspended (ie. t=
-he
-- *	appropriate .suspend() method has been executed for each device) an=
-d
-- *	before the nonboot CPUs are disabled (it is executed with IRQs enab=
-led).
-- *	This callback is optional.  It returns 0 on success or a negative
-- *	error code otherwise, in which case the system cannot enter the des=
-ired
-- *	sleep state (@enter() and @finish() will not be called in that case=
-).
-- *
-- * @enter: Enter the system sleep state indicated by @set_target() or
-- *	represented by the argument if @set_target() is not implemented.
-- *	This callback is mandatory.  It returns 0 on success or a negative
-- *	error code otherwise, in which case the system cannot enter the des=
-ired
-- *	sleep state.
-- *
-- * @finish: Called when the system has just left a sleep state, right =
-after
-- *	the nonboot CPUs have been enabled and before devices are resumed (=
-it is
-- *	executed with IRQs enabled).  If @set_target() is not implemented, =
-the
-- *	argument represents the sleep state being left.
-- *	This callback is optional, but should be implemented by the platfor=
-ms
-- *	that implement @prepare().  If implemented, it is always called aft=
-er
-- *	@enter() (even if @enter() fails).
-- */
--struct pm_ops {
--	int (*valid)(suspend_state_t state);
--	int (*set_target)(suspend_state_t state);
--	int (*prepare)(suspend_state_t state);
--	int (*enter)(suspend_state_t state);
--	int (*finish)(suspend_state_t state);
--};
--
--#ifdef CONFIG_SUSPEND
--extern struct pm_ops *pm_ops;
--
--/**
-- * pm_set_ops - set platform dependent power management ops
-- * @pm_ops: The new power management operations to set.
-- */
--extern void pm_set_ops(struct pm_ops *pm_ops);
--extern int pm_valid_only_mem(suspend_state_t state);
--
--/**
-- * arch_suspend_disable_irqs - disable IRQs for suspend
-- *
-- * Disables IRQs (in the default case). This is a weak symbol in the c=
-ommon
-- * code and thus allows architectures to override it if more needs to =
-be
-- * done. Not called for suspend to disk.
-- */
--extern void arch_suspend_disable_irqs(void);
--
--/**
-- * arch_suspend_enable_irqs - enable IRQs after suspend
-- *
-- * Enables IRQs (in the default case). This is a weak symbol in the co=
-mmon
-- * code and thus allows architectures to override it if more needs to =
-be
-- * done. Not called for suspend to disk.
-- */
--extern void arch_suspend_enable_irqs(void);
--
--extern int pm_suspend(suspend_state_t state);
--#else /* !CONFIG_SUSPEND */
--#define suspend_valid_only_mem	NULL
--
--static inline void pm_set_ops(struct pm_ops *pm_ops) {}
--static inline int pm_suspend(suspend_state_t state) { return -ENOSYS; =
-}
--#endif /* !CONFIG_SUSPEND */
--
+-	sbi->s_frag_size = EXT4_MIN_FRAG_SIZE <<
+-				   le32_to_cpu(es->s_log_frag_size);
+-	if (blocksize != sbi->s_frag_size) {
+-		printk(KERN_ERR
+-		       "EXT4-fs: fragsize %lu != blocksize %u (unsupported)\n",
+-		       sbi->s_frag_size, blocksize);
+-		goto failed_mount;
+-	}
+ 	sbi->s_desc_size = le16_to_cpu(es->s_desc_size);
+ 	if (EXT4_HAS_INCOMPAT_FEATURE(sb, EXT4_FEATURE_INCOMPAT_64BIT)) {
+ 		if (sbi->s_desc_size < EXT4_MIN_DESC_SIZE_64BIT ||
+@@ -1747,7 +1739,6 @@ static int ext4_fill_super (struct super
+ 	} else
+ 		sbi->s_desc_size = EXT4_MIN_DESC_SIZE;
+ 	sbi->s_blocks_per_group = le32_to_cpu(es->s_blocks_per_group);
+-	sbi->s_frags_per_group = le32_to_cpu(es->s_frags_per_group);
+ 	sbi->s_inodes_per_group = le32_to_cpu(es->s_inodes_per_group);
+ 	if (EXT4_INODE_SIZE(sb) == 0)
+ 		goto cantfind_ext4;
+@@ -1771,12 +1762,6 @@ static int ext4_fill_super (struct super
+ 			sbi->s_blocks_per_group);
+ 		goto failed_mount;
+ 	}
+-	if (sbi->s_frags_per_group > blocksize * 8) {
+-		printk (KERN_ERR
+-			"EXT4-fs: #fragments per group too big: %lu\n",
+-			sbi->s_frags_per_group);
+-		goto failed_mount;
+-	}
+ 	if (sbi->s_inodes_per_group > blocksize * 8) {
+ 		printk (KERN_ERR
+ 			"EXT4-fs: #inodes per group too big: %lu\n",
+diff -puN include/linux/ext4_fs.h~ext4-remove-obsolete-fragments include/linux/ext4_fs.h
+--- a/include/linux/ext4_fs.h~ext4-remove-obsolete-fragments
++++ a/include/linux/ext4_fs.h
+@@ -105,20 +105,6 @@
+ #define EXT4_BLOCK_ALIGN(size, blkbits)		ALIGN((size), (1 << (blkbits)))
+ 
  /*
-  * Device power management
-  */
-diff -puN include/linux/suspend.h~pm-move-definition-of-struct-pm_ops-t=
-o-suspendh include/linux/suspend.h
---- a/include/linux/suspend.h~pm-move-definition-of-struct-pm_ops-to-su=
-spendh
-+++ a/include/linux/suspend.h
-@@ -1,5 +1,5 @@
--#ifndef _LINUX_SWSUSP_H
--#define _LINUX_SWSUSP_H
-+#ifndef _LINUX_SUSPEND_H
-+#define _LINUX_SUSPEND_H
-=20
- #if defined(CONFIG_X86) || defined(CONFIG_FRV) || defined(CONFIG_PPC32=
-) || defined(CONFIG_PPC64)
- #include <asm/suspend.h>
-@@ -9,6 +9,113 @@
- #include <linux/init.h>
- #include <linux/pm.h>
- #include <linux/mm.h>
-+#include <asm/errno.h>
-+
-+#if defined(CONFIG_PM_SLEEP) && defined(CONFIG_VT) && defined(CONFIG_V=
-T_CONSOLE)
-+extern int pm_prepare_console(void);
-+extern void pm_restore_console(void);
-+#else
-+static inline int pm_prepare_console(void) { return 0; }
-+static inline void pm_restore_console(void) {}
-+#endif
-+
-+typedef int __bitwise suspend_state_t;
-+
-+#define PM_SUSPEND_ON		((__force suspend_state_t) 0)
-+#define PM_SUSPEND_STANDBY	((__force suspend_state_t) 1)
-+#define PM_SUSPEND_MEM		((__force suspend_state_t) 3)
-+#define PM_SUSPEND_MAX		((__force suspend_state_t) 4)
-+
-+/**
-+ * struct pm_ops - Callbacks for managing platform dependent system sl=
-eep
-+ *	states.
-+ *
-+ * @valid: Callback to determine if given system sleep state is suppor=
-ted by
-+ *	the platform.
-+ *	Valid (ie. supported) states are advertised in /sys/power/state.  N=
-ote
-+ *	that it still may be impossible to enter given system sleep state i=
-f the
-+ *	conditions aren't right.
-+ *	There is the %pm_valid_only_mem function available that can be assi=
-gned
-+ *	to this if the platform only supports mem sleep.
-+ *
-+ * @set_target: Tell the platform which system sleep state is going to=
- be
-+ *	entered.
-+ *	@set_target() is executed right prior to suspending devices.  The
-+ *	information conveyed to the platform code by @set_target() should b=
-e
-+ *	disregarded by the platform as soon as @finish() is executed and if
-+ *	@prepare() fails.  If @set_target() fails (ie. returns nonzero),
-+ *	@prepare(), @enter() and @finish() will not be called by the PM cor=
-e.
-+ *	This callback is optional.  However, if it is implemented, the argu=
-ment
-+ *	passed to @prepare(), @enter() and @finish() is meaningless and sho=
-uld
-+ *	be ignored.
-+ *
-+ * @prepare: Prepare the platform for entering the system sleep state =
-indicated
-+ *	by @set_target() or represented by the argument if @set_target() is=
- not
-+ *	implemented.
-+ *	@prepare() is called right after devices have been suspended (ie. t=
-he
-+ *	appropriate .suspend() method has been executed for each device) an=
-d
-+ *	before the nonboot CPUs are disabled (it is executed with IRQs enab=
-led).
-+ *	This callback is optional.  It returns 0 on success or a negative
-+ *	error code otherwise, in which case the system cannot enter the des=
-ired
-+ *	sleep state (@enter() and @finish() will not be called in that case=
-).
-+ *
-+ * @enter: Enter the system sleep state indicated by @set_target() or
-+ *	represented by the argument if @set_target() is not implemented.
-+ *	This callback is mandatory.  It returns 0 on success or a negative
-+ *	error code otherwise, in which case the system cannot enter the des=
-ired
-+ *	sleep state.
-+ *
-+ * @finish: Called when the system has just left a sleep state, right =
-after
-+ *	the nonboot CPUs have been enabled and before devices are resumed (=
-it is
-+ *	executed with IRQs enabled).  If @set_target() is not implemented, =
-the
-+ *	argument represents the sleep state being left.
-+ *	This callback is optional, but should be implemented by the platfor=
-ms
-+ *	that implement @prepare().  If implemented, it is always called aft=
-er
-+ *	@enter() (even if @enter() fails).
-+ */
-+struct pm_ops {
-+	int (*valid)(suspend_state_t state);
-+	int (*set_target)(suspend_state_t state);
-+	int (*prepare)(suspend_state_t state);
-+	int (*enter)(suspend_state_t state);
-+	int (*finish)(suspend_state_t state);
-+};
-+
-+#ifdef CONFIG_SUSPEND
-+extern struct pm_ops *pm_ops;
-+
-+/**
-+ * pm_set_ops - set platform dependent power management ops
-+ * @pm_ops: The new power management operations to set.
-+ */
-+extern void pm_set_ops(struct pm_ops *pm_ops);
-+extern int pm_valid_only_mem(suspend_state_t state);
-+
-+/**
-+ * arch_suspend_disable_irqs - disable IRQs for suspend
-+ *
-+ * Disables IRQs (in the default case). This is a weak symbol in the c=
-ommon
-+ * code and thus allows architectures to override it if more needs to =
-be
-+ * done. Not called for suspend to disk.
-+ */
-+extern void arch_suspend_disable_irqs(void);
-+
-+/**
-+ * arch_suspend_enable_irqs - enable IRQs after suspend
-+ *
-+ * Enables IRQs (in the default case). This is a weak symbol in the co=
-mmon
-+ * code and thus allows architectures to override it if more needs to =
-be
-+ * done. Not called for suspend to disk.
-+ */
-+extern void arch_suspend_enable_irqs(void);
-+
-+extern int pm_suspend(suspend_state_t state);
-+#else /* !CONFIG_SUSPEND */
-+#define suspend_valid_only_mem	NULL
-+
-+static inline void pm_set_ops(struct pm_ops *pm_ops) {}
-+static inline int pm_suspend(suspend_state_t state) { return -ENOSYS; =
-}
-+#endif /* !CONFIG_SUSPEND */
-=20
- /* struct pbe is used for creating lists of pages that should be resto=
-red
-  * atomically during the resume from disk, because the page frames the=
-y have
-@@ -24,14 +131,6 @@ struct pbe {
- extern void drain_local_pages(void);
- extern void mark_free_pages(struct zone *zone);
-=20
--#if defined(CONFIG_PM_SLEEP) && defined(CONFIG_VT) && defined(CONFIG_V=
-T_CONSOLE)
--extern int pm_prepare_console(void);
--extern void pm_restore_console(void);
+- * Macro-instructions used to manage fragments
+- */
+-#define EXT4_MIN_FRAG_SIZE		1024
+-#define	EXT4_MAX_FRAG_SIZE		4096
+-#define EXT4_MIN_FRAG_LOG_SIZE		  10
+-#ifdef __KERNEL__
+-# define EXT4_FRAG_SIZE(s)		(EXT4_SB(s)->s_frag_size)
+-# define EXT4_FRAGS_PER_BLOCK(s)	(EXT4_SB(s)->s_frags_per_block)
 -#else
--static inline int pm_prepare_console(void) { return 0; }
--static inline void pm_restore_console(void) {}
+-# define EXT4_FRAG_SIZE(s)		(EXT4_MIN_FRAG_SIZE << (s)->s_log_frag_size)
+-# define EXT4_FRAGS_PER_BLOCK(s)	(EXT4_BLOCK_SIZE(s) / EXT4_FRAG_SIZE(s))
 -#endif
 -
- /**
-  * struct hibernation_ops - hibernation platform support
-  *
-@@ -130,4 +229,4 @@ static inline void register_nosave_regio
- }
- #endif
-=20
--#endif /* _LINUX_SWSUSP_H */
-+#endif /* _LINUX_SUSPEND_H */
+-/*
+  * Structure of a blocks group descriptor
+  */
+ struct ext4_group_desc
+@@ -311,27 +297,24 @@ struct ext4_inode {
+ 	__le32	i_generation;	/* File version (for NFS) */
+ 	__le32	i_file_acl;	/* File ACL */
+ 	__le32	i_dir_acl;	/* Directory ACL */
+-	__le32	i_faddr;	/* Fragment address */
++	__le32	i_obso_faddr;	/* Obsoleted fragment address */
+ 	union {
+ 		struct {
+-			__u8	l_i_frag;	/* Fragment number */
+-			__u8	l_i_fsize;	/* Fragment size */
++			__le16	l_i_reserved1;	/* Obsoleted fragment number/size which are removed in ext4 */
+ 			__le16	l_i_file_acl_high;
+ 			__le16	l_i_uid_high;	/* these 2 fields */
+ 			__le16	l_i_gid_high;	/* were reserved2[0] */
+ 			__u32	l_i_reserved2;
+ 		} linux2;
+ 		struct {
+-			__u8	h_i_frag;	/* Fragment number */
+-			__u8	h_i_fsize;	/* Fragment size */
++			__le16	h_i_reserved1;	/* Obsoleted fragment number/size which are removed in ext4 */
+ 			__u16	h_i_mode_high;
+ 			__u16	h_i_uid_high;
+ 			__u16	h_i_gid_high;
+ 			__u32	h_i_author;
+ 		} hurd2;
+ 		struct {
+-			__u8	m_i_frag;	/* Fragment number */
+-			__u8	m_i_fsize;	/* Fragment size */
++			__le16	h_i_reserved1;	/* Obsoleted fragment number/size which are removed in ext4 */
+ 			__le16	m_i_file_acl_high;
+ 			__u32	m_i_reserved2[2];
+ 		} masix2;
+@@ -419,8 +402,6 @@ do {									       \
+ 
+ #if defined(__KERNEL__) || defined(__linux__)
+ #define i_reserved1	osd1.linux1.l_i_reserved1
+-#define i_frag		osd2.linux2.l_i_frag
+-#define i_fsize		osd2.linux2.l_i_fsize
+ #define i_file_acl_high	osd2.linux2.l_i_file_acl_high
+ #define i_uid_low	i_uid
+ #define i_gid_low	i_gid
+@@ -431,8 +412,6 @@ do {									       \
+ #elif defined(__GNU__)
+ 
+ #define i_translator	osd1.hurd1.h_i_translator
+-#define i_frag		osd2.hurd2.h_i_frag;
+-#define i_fsize		osd2.hurd2.h_i_fsize;
+ #define i_uid_high	osd2.hurd2.h_i_uid_high
+ #define i_gid_high	osd2.hurd2.h_i_gid_high
+ #define i_author	osd2.hurd2.h_i_author
+@@ -440,8 +419,6 @@ do {									       \
+ #elif defined(__masix__)
+ 
+ #define i_reserved1	osd1.masix1.m_i_reserved1
+-#define i_frag		osd2.masix2.m_i_frag
+-#define i_fsize		osd2.masix2.m_i_fsize
+ #define i_file_acl_high	osd2.masix2.m_i_file_acl_high
+ #define i_reserved2	osd2.masix2.m_i_reserved2
+ 
+@@ -528,9 +505,9 @@ struct ext4_super_block {
+ /*10*/	__le32	s_free_inodes_count;	/* Free inodes count */
+ 	__le32	s_first_data_block;	/* First Data Block */
+ 	__le32	s_log_block_size;	/* Block size */
+-	__le32	s_log_frag_size;	/* Fragment size */
++	__le32	s_obso_log_frag_size;	/* Obsoleted fragment size */
+ /*20*/	__le32	s_blocks_per_group;	/* # Blocks per group */
+-	__le32	s_frags_per_group;	/* # Fragments per group */
++	__le32	s_obso_frags_per_group;	/* Obsoleted fragments per group */
+ 	__le32	s_inodes_per_group;	/* # Inodes per group */
+ 	__le32	s_mtime;		/* Mount time */
+ /*30*/	__le32	s_wtime;		/* Write time */
+diff -puN include/linux/ext4_fs_i.h~ext4-remove-obsolete-fragments include/linux/ext4_fs_i.h
+--- a/include/linux/ext4_fs_i.h~ext4-remove-obsolete-fragments
++++ a/include/linux/ext4_fs_i.h
+@@ -78,11 +78,6 @@ struct ext4_ext_cache {
+ struct ext4_inode_info {
+ 	__le32	i_data[15];	/* unconverted */
+ 	__u32	i_flags;
+-#ifdef EXT4_FRAGMENTS
+-	__u32	i_faddr;
+-	__u8	i_frag_no;
+-	__u8	i_frag_size;
+-#endif
+ 	ext4_fsblk_t	i_file_acl;
+ 	__u32	i_dir_acl;
+ 	__u32	i_dtime;
+diff -puN include/linux/ext4_fs_sb.h~ext4-remove-obsolete-fragments include/linux/ext4_fs_sb.h
+--- a/include/linux/ext4_fs_sb.h~ext4-remove-obsolete-fragments
++++ a/include/linux/ext4_fs_sb.h
+@@ -28,11 +28,8 @@
+  * third extended-fs super-block data in memory
+  */
+ struct ext4_sb_info {
+-	unsigned long s_frag_size;	/* Size of a fragment in bytes */
+ 	unsigned long s_desc_size;	/* Size of a group descriptor in bytes */
+-	unsigned long s_frags_per_block;/* Number of fragments per block */
+ 	unsigned long s_inodes_per_block;/* Number of inodes per block */
+-	unsigned long s_frags_per_group;/* Number of fragments in a group */
+ 	unsigned long s_blocks_per_group;/* Number of blocks in a group */
+ 	unsigned long s_inodes_per_group;/* Number of inodes in a group */
+ 	unsigned long s_itb_per_group;	/* Number of inode table blocks per group */
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from coyli@suse.de are
 
 origin.patch
-git-acpi.patch
-revert-x86_64-mm-cpa-einval.patch
-shrink_slab-handle-bad-shrinkers.patch
+setup-vma-vm_page_prot-by-vm_get_page_prot.patch
