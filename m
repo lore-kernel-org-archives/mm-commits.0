@@ -1,164 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: - ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:53:58 -0700
-Message-ID: <200710192253.l9JMrw1X024476@imap1.linux-foundation.org>
+Subject: - kernel-api-docbook-fix-content-problems.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:49:52 -0700
+Message-ID: <200710192249.l9JMnqKG024020@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55088 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36584 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757764AbXJSXGN (ORCPT
+	by vger.kernel.org with ESMTP id S966889AbXJSXGJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 19:06:13 -0400
+	Fri, 19 Oct 2007 19:06:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Pierre.Peiffer@bull.net, Nadia.Derbey@bull.net, pierre.peiffer@bull.net, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, jens.axboe@oracle.com, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IPC: fix error case when idr-cache is empty in ipcget()
+     kernel-api docbook: fix content problems
 has been removed from the -mm tree.  Its filename was
-     ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget.patch
+     kernel-api-docbook-fix-content-problems.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: IPC: fix error case when idr-cache is empty in ipcget()
-From: Pierre Peiffer <Pierre.Peiffer@bull.net>
+Subject: kernel-api docbook: fix content problems
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-With the use of idr to store the ipc, the case where the idr cache is
-empty, when idr_get_new is called (this may happen even if we call
-idr_pre_get() before), is not well handled: it lets
-semget()/shmget()/msgget() return ENOSPC when this cache is empty, what 1. 
-does not reflect the facts and 2.  does not conform to the man(s).
+Fix kernel-api docbook contents problems.
 
-This patch fixes this by retrying the whole process of allocation in this case.
+docproc: linux-2.6.23-git13/include/asm-x86/unaligned_32.h: No such file or directory
+Warning(linux-2.6.23-git13//include/linux/list.h:482): bad line: 			of list entry
+Warning(linux-2.6.23-git13//mm/filemap.c:864): No description found for parameter 'ra'
+Warning(linux-2.6.23-git13//block/ll_rw_blk.c:3760): No description found for parameter 'req'
+Warning(linux-2.6.23-git13//include/linux/input.h:1077): No description found for parameter 'private'
+Warning(linux-2.6.23-git13//include/linux/input.h:1077): No description found for parameter 'cdev'
 
-Signed-off-by: Pierre Peiffer <pierre.peiffer@bull.net>
-Cc: Nadia Derbey <Nadia.Derbey@bull.net>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: WU Fengguang <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c  |    4 ++--
- ipc/sem.c  |    4 ++--
- ipc/shm.c  |    5 +++--
- ipc/util.c |   16 +++++++++++-----
- 4 files changed, 18 insertions(+), 11 deletions(-)
+ Documentation/DocBook/kernel-api.tmpl |    2 +-
+ block/ll_rw_blk.c                     |    2 +-
+ include/linux/input.h                 |    4 +++-
+ include/linux/list.h                  |    3 +--
+ mm/filemap.c                          |    2 +-
+ 5 files changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN ipc/msg.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget ipc/msg.c
---- a/ipc/msg.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget
-+++ a/ipc/msg.c
-@@ -203,10 +203,10 @@ static int newque(struct ipc_namespace *
- 	 * ipc_addid() locks msq
- 	 */
- 	id = ipc_addid(&msg_ids(ns), &msq->q_perm, ns->msg_ctlmni);
--	if (id == -1) {
-+	if (id < 0) {
- 		security_msg_queue_free(msq);
- 		ipc_rcu_putref(msq);
--		return -ENOSPC;
-+		return id;
- 	}
+diff -puN Documentation/DocBook/kernel-api.tmpl~kernel-api-docbook-fix-content-problems Documentation/DocBook/kernel-api.tmpl
+--- a/Documentation/DocBook/kernel-api.tmpl~kernel-api-docbook-fix-content-problems
++++ a/Documentation/DocBook/kernel-api.tmpl
+@@ -46,7 +46,7 @@
  
- 	msq->q_perm.id = msg_buildid(id, msq->q_perm.seq);
-diff -puN ipc/sem.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget ipc/sem.c
---- a/ipc/sem.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget
-+++ a/ipc/sem.c
-@@ -283,10 +283,10 @@ static int newary(struct ipc_namespace *
- 	}
+      <sect1><title>Atomic and pointer manipulation</title>
+ !Iinclude/asm-x86/atomic_32.h
+-!Iinclude/asm-x86/unaligned_32.h
++!Iinclude/asm-x86/unaligned.h
+      </sect1>
  
- 	id = ipc_addid(&sem_ids(ns), &sma->sem_perm, ns->sc_semmni);
--	if(id == -1) {
-+	if (id < 0) {
- 		security_sem_free(sma);
- 		ipc_rcu_putref(sma);
--		return -ENOSPC;
-+		return id;
- 	}
- 	ns->used_sems += nsems;
+      <sect1><title>Delaying, scheduling, and timer routines</title>
+diff -puN block/ll_rw_blk.c~kernel-api-docbook-fix-content-problems block/ll_rw_blk.c
+--- a/block/ll_rw_blk.c~kernel-api-docbook-fix-content-problems
++++ a/block/ll_rw_blk.c
+@@ -3739,7 +3739,7 @@ EXPORT_SYMBOL(end_dequeued_request);
  
-diff -puN ipc/shm.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget ipc/shm.c
---- a/ipc/shm.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget
-+++ a/ipc/shm.c
-@@ -433,10 +433,11 @@ static int newseg(struct ipc_namespace *
- 	if (IS_ERR(file))
- 		goto no_file;
- 
--	error = -ENOSPC;
- 	id = shm_addid(ns, shp);
--	if(id == -1) 
-+	if (id < 0) {
-+		error = id;
- 		goto no_id;
-+	}
- 
- 	shp->shm_cprid = task_tgid_vnr(current);
- 	shp->shm_lprid = 0;
-diff -puN ipc/util.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget ipc/util.c
---- a/ipc/util.c~ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget
-+++ a/ipc/util.c
-@@ -262,7 +262,7 @@ int ipc_get_maxid(struct ipc_ids *ids)
-  *	Add an entry 'new' to the IPC ids idr. The permissions object is
-  *	initialised and the first free entry is set up and the id assigned
-  *	is returned. The 'new' entry is returned in a locked state on success.
-- *	On failure the entry is not locked and -1 is returned.
-+ *	On failure the entry is not locked and a negative err-code is returned.
+ /**
+  * end_request - end I/O on the current segment of the request
+- * @rq:		the request being processed
++ * @req:	the request being processed
+  * @uptodate:	error value or 0/1 uptodate flag
   *
-  *	Called with ipc_ids.rw_mutex held as a writer.
+  * Description:
+diff -puN include/linux/input.h~kernel-api-docbook-fix-content-problems include/linux/input.h
+--- a/include/linux/input.h~kernel-api-docbook-fix-content-problems
++++ a/include/linux/input.h
+@@ -1005,13 +1005,15 @@ struct ff_effect {
+  * @going_away: marks devices that are in a middle of unregistering and
+  *	causes input_open_device*() fail with -ENODEV.
+  * @dev: driver model's view of this device
++ * @cdev: union for struct device pointer
+  * @h_list: list of input handles associated with the device. When
+  *	accessing the list dev->mutex must be held
+  * @node: used to place the device onto input_dev_list
   */
-@@ -275,11 +275,11 @@ int ipc_addid(struct ipc_ids* ids, struc
- 		size = IPCMNI;
- 
- 	if (ids->in_use >= size)
--		return -1;
-+		return -ENOSPC;
- 
- 	err = idr_get_new(&ids->ipcs_idr, new, &id);
- 	if (err)
--		return -1;
-+		return err;
- 
- 	ids->in_use++;
- 
-@@ -311,7 +311,7 @@ int ipcget_new(struct ipc_namespace *ns,
- 		struct ipc_ops *ops, struct ipc_params *params)
- {
- 	int err;
+ struct input_dev {
 -
-+retry:
- 	err = idr_pre_get(&ids->ipcs_idr, GFP_KERNEL);
++	/* private: */
+ 	void *private;	/* do not use */
++	/* public: */
  
- 	if (!err)
-@@ -321,6 +321,9 @@ int ipcget_new(struct ipc_namespace *ns,
- 	err = ops->getnew(ns, params);
- 	up_write(&ids->rw_mutex);
+ 	const char *name;
+ 	const char *phys;
+diff -puN include/linux/list.h~kernel-api-docbook-fix-content-problems include/linux/list.h
+--- a/include/linux/list.h~kernel-api-docbook-fix-content-problems
++++ a/include/linux/list.h
+@@ -478,8 +478,7 @@ static inline void list_splice_init_rcu(
+ 		pos = n, n = pos->next)
  
-+	if (err == -EAGAIN)
-+		goto retry;
-+
- 	return err;
- }
- 
-@@ -374,7 +377,7 @@ int ipcget_public(struct ipc_namespace *
- 	struct kern_ipc_perm *ipcp;
- 	int flg = params->flg;
- 	int err;
--
-+retry:
- 	err = idr_pre_get(&ids->ipcs_idr, GFP_KERNEL);
- 
- 	/*
-@@ -411,6 +414,9 @@ int ipcget_public(struct ipc_namespace *
- 	}
- 	up_write(&ids->rw_mutex);
- 
-+	if (err == -EAGAIN)
-+		goto retry;
-+
- 	return err;
- }
- 
+ /**
+- * list_for_each_prev_safe - iterate over a list backwards safe against removal
+-			of list entry
++ * list_for_each_prev_safe - iterate over a list backwards safe against removal of list entry
+  * @pos:	the &struct list_head to use as a loop cursor.
+  * @n:		another &struct list_head to use as temporary storage
+  * @head:	the head for your list.
+diff -puN mm/filemap.c~kernel-api-docbook-fix-content-problems mm/filemap.c
+--- a/mm/filemap.c~kernel-api-docbook-fix-content-problems
++++ a/mm/filemap.c
+@@ -841,7 +841,7 @@ static void shrink_readahead_size_eio(st
+ /**
+  * do_generic_mapping_read - generic file read routine
+  * @mapping:	address_space to be read
+- * @_ra:	file's readahead state
++ * @ra:		file's readahead state
+  * @filp:	the file to read
+  * @ppos:	current file position
+  * @desc:	read_descriptor
 _
 
-Patches currently in -mm which might be from Pierre.Peiffer@bull.net are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+fix-auditscc-kernel-doc.patch
+libata-fix-kernel-doc-param-name.patch
+onenand-sim-fix-kernel-doc-and-typos.patch
+git-unionfs.patch
+git-watchdog.patch
+git-ipwireless_cs.patch
+profile-likely-unlikely-macros.patch
