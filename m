@@ -1,108 +1,380 @@
 From: akpm@linux-foundation.org
-Subject: - add-documentation-for-extended-crashkernel-syntax.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:54:13 -0700
-Message-ID: <200710192254.l9JMsDK3024509@imap1.linux-foundation.org>
+Subject: - task-containersv11-example-cpu-accounting-subsystem.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:50:26 -0700
+Message-ID: <200710192250.l9JMoQEg024089@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60659 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60924 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S967016AbXJSXGv (ORCPT
+	by vger.kernel.org with ESMTP id S1764673AbXJSXHT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 19:06:51 -0400
+	Fri, 19 Oct 2007 19:07:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bwalle@suse.de, ak@suse.de, benh@kernel.crashing.org, ebiederm@xmission.com, lethal@linux-sh.org, paulus@samba.org, tony.luck@intel.com, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
+To: menage@google.com, balbir@in.ibm.com, clg@fr.ibm.com, dev@openvz.org, ebiederm@xmission.com, haveblue@us.ibm.com, herbert@13thfloor.at, pj@sgi.com, serue@us.ibm.com, vatsa@in.ibm.com
 
 
 The patch titled
-     Add documentation for extended crashkernel syntax
+     Task Control Groups:  example CPU accounting subsystem
 has been removed from the -mm tree.  Its filename was
-     add-documentation-for-extended-crashkernel-syntax.patch
+     task-containersv11-example-cpu-accounting-subsystem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Add documentation for extended crashkernel syntax
-From: Bernhard Walle <bwalle@suse.de>
+Subject: Task Control Groups:  example CPU accounting subsystem
+From: Paul Menage <menage@google.com>
 
-This adds the documentation for the extended crashkernel syntax into
-Documentation/kdump/kdump.txt.
+This example demonstrates how to use the generic cgroup subsystem for a
+simple resource tracker that counts, for the processes in a cgroup, the
+total CPU time used and the %CPU used in the last complete 10 second interval.
 
-Signed-off-by: Bernhard Walle <bwalle@suse.de>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Portions contributed by Balbir Singh <balbir@in.ibm.com>
+
+Signed-off-by: Paul Menage <menage@google.com>
+Cc: Serge E. Hallyn <serue@us.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Kirill Korotaev <dev@openvz.org>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kdump/kdump.txt       |   26 ++++++++++++++++++++++++++
- Documentation/kernel-parameters.txt |    7 +++++++
- 2 files changed, 33 insertions(+)
+ include/linux/cgroup_subsys.h |    6 +
+ include/linux/cpu_acct.h      |   14 ++
+ init/Kconfig                  |    7 +
+ kernel/Makefile               |    1 
+ kernel/cpu_acct.c             |  186 ++++++++++++++++++++++++++++++++
+ kernel/sched.c                |   14 +-
+ 6 files changed, 225 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/kdump/kdump.txt~add-documentation-for-extended-crashkernel-syntax Documentation/kdump/kdump.txt
---- a/Documentation/kdump/kdump.txt~add-documentation-for-extended-crashkernel-syntax
-+++ a/Documentation/kdump/kdump.txt
-@@ -231,6 +231,32 @@ Dump-capture kernel config options (Arch
-   any space below the alignment point will be wasted.
+diff -puN include/linux/cgroup_subsys.h~task-containersv11-example-cpu-accounting-subsystem include/linux/cgroup_subsys.h
+--- a/include/linux/cgroup_subsys.h~task-containersv11-example-cpu-accounting-subsystem
++++ a/include/linux/cgroup_subsys.h
+@@ -13,4 +13,10 @@ SUBSYS(cpuset)
  
+ /* */
  
-+Extended crashkernel syntax
-+===========================
++#ifdef CONFIG_CGROUP_CPUACCT
++SUBSYS(cpuacct)
++#endif
 +
-+While the "crashkernel=size[@offset]" syntax is sufficient for most
-+configurations, sometimes it's handy to have the reserved memory dependent
-+on the value of System RAM -- that's mostly for distributors that pre-setup
-+the kernel command line to avoid a unbootable system after some memory has
-+been removed from the machine.
++/* */
 +
-+The syntax is:
+ /* */
+diff -puN /dev/null include/linux/cpu_acct.h
+--- /dev/null
++++ a/include/linux/cpu_acct.h
+@@ -0,0 +1,14 @@
 +
-+    crashkernel=<range1>:<size1>[,<range2>:<size2>,...][@offset]
-+    range=start-[end]
++#ifndef _LINUX_CPU_ACCT_H
++#define _LINUX_CPU_ACCT_H
 +
-+For example:
++#include <linux/cgroup.h>
++#include <asm/cputime.h>
 +
-+    crashkernel=512M-2G:64M,2G-:128M
++#ifdef CONFIG_CGROUP_CPUACCT
++extern void cpuacct_charge(struct task_struct *, cputime_t cputime);
++#else
++static void inline cpuacct_charge(struct task_struct *p, cputime_t cputime) {}
++#endif
 +
-+This would mean:
-+
-+    1) if the RAM is smaller than 512M, then don't reserve anything
-+       (this is the "rescue" case)
-+    2) if the RAM size is between 512M and 2G, then reserve 64M
-+    3) if the RAM size is larger than 2G, then reserve 128M
-+
-+
- Boot into System Kernel
- =======================
++#endif
+diff -puN init/Kconfig~task-containersv11-example-cpu-accounting-subsystem init/Kconfig
+--- a/init/Kconfig~task-containersv11-example-cpu-accounting-subsystem
++++ a/init/Kconfig
+@@ -335,6 +335,13 @@ config PROC_PID_CPUSET
+ 	depends on CPUSETS
+ 	default y
  
-diff -puN Documentation/kernel-parameters.txt~add-documentation-for-extended-crashkernel-syntax Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~add-documentation-for-extended-crashkernel-syntax
-+++ a/Documentation/kernel-parameters.txt
-@@ -497,6 +497,13 @@ and is between 256 and 4096 characters. 
- 			[KNL] Reserve a chunk of physical memory to
- 			hold a kernel to switch to with kexec on panic.
- 
-+	crashkernel=range1:size1[,range2:size2,...][@offset]
-+			[KNL] Same as above, but depends on the memory
-+			in the running system. The syntax of range is
-+			start-[end] where start and end are both
-+			a memory unit (amount[KMG]). See also
-+			Documentation/kdump/kdump.txt for a example.
++config CGROUP_CPUACCT
++	bool "Simple CPU accounting cgroup subsystem"
++	depends on CGROUPS
++	help
++	  Provides a simple Resource Controller for monitoring the
++	  total CPU consumed by the tasks in a cgroup
 +
- 	cs4232=		[HW,OSS]
- 			Format: <io>,<irq>,<dma>,<dma2>,<mpuio>,<mpuirq>
+ config RELAY
+ 	bool "Kernel->user space relay support (formerly relayfs)"
+ 	help
+diff -puN kernel/Makefile~task-containersv11-example-cpu-accounting-subsystem kernel/Makefile
+--- a/kernel/Makefile~task-containersv11-example-cpu-accounting-subsystem
++++ a/kernel/Makefile
+@@ -38,6 +38,7 @@ obj-$(CONFIG_KEXEC) += kexec.o
+ obj-$(CONFIG_COMPAT) += compat.o
+ obj-$(CONFIG_CGROUPS) += cgroup.o
+ obj-$(CONFIG_CPUSETS) += cpuset.o
++obj-$(CONFIG_CGROUP_CPUACCT) += cpu_acct.o
+ obj-$(CONFIG_IKCONFIG) += configs.o
+ obj-$(CONFIG_STOP_MACHINE) += stop_machine.o
+ obj-$(CONFIG_AUDIT) += audit.o auditfilter.o
+diff -puN /dev/null kernel/cpu_acct.c
+--- /dev/null
++++ a/kernel/cpu_acct.c
+@@ -0,0 +1,186 @@
++/*
++ * kernel/cpu_acct.c - CPU accounting cgroup subsystem
++ *
++ * Copyright (C) Google Inc, 2006
++ *
++ * Developed by Paul Menage (menage@google.com) and Balbir Singh
++ * (balbir@in.ibm.com)
++ *
++ */
++
++/*
++ * Example cgroup subsystem for reporting total CPU usage of tasks in a
++ * cgroup, along with percentage load over a time interval
++ */
++
++#include <linux/module.h>
++#include <linux/cgroup.h>
++#include <linux/fs.h>
++#include <linux/rcupdate.h>
++
++#include <asm/div64.h>
++
++struct cpuacct {
++	struct cgroup_subsys_state css;
++	spinlock_t lock;
++	/* total time used by this class */
++	cputime64_t time;
++
++	/* time when next load calculation occurs */
++	u64 next_interval_check;
++
++	/* time used in current period */
++	cputime64_t current_interval_time;
++
++	/* time used in last period */
++	cputime64_t last_interval_time;
++};
++
++struct cgroup_subsys cpuacct_subsys;
++
++static inline struct cpuacct *cgroup_ca(struct cgroup *cont)
++{
++	return container_of(cgroup_subsys_state(cont, cpuacct_subsys_id),
++			    struct cpuacct, css);
++}
++
++static inline struct cpuacct *task_ca(struct task_struct *task)
++{
++	return container_of(task_subsys_state(task, cpuacct_subsys_id),
++			    struct cpuacct, css);
++}
++
++#define INTERVAL (HZ * 10)
++
++static inline u64 next_interval_boundary(u64 now)
++{
++	/* calculate the next interval boundary beyond the
++	 * current time */
++	do_div(now, INTERVAL);
++	return (now + 1) * INTERVAL;
++}
++
++static struct cgroup_subsys_state *cpuacct_create(
++	struct cgroup_subsys *ss, struct cgroup *cont)
++{
++	struct cpuacct *ca = kzalloc(sizeof(*ca), GFP_KERNEL);
++
++	if (!ca)
++		return ERR_PTR(-ENOMEM);
++	spin_lock_init(&ca->lock);
++	ca->next_interval_check = next_interval_boundary(get_jiffies_64());
++	return &ca->css;
++}
++
++static void cpuacct_destroy(struct cgroup_subsys *ss,
++			    struct cgroup *cont)
++{
++	kfree(cgroup_ca(cont));
++}
++
++/* Lazily update the load calculation if necessary. Called with ca locked */
++static void cpuusage_update(struct cpuacct *ca)
++{
++	u64 now = get_jiffies_64();
++
++	/* If we're not due for an update, return */
++	if (ca->next_interval_check > now)
++		return;
++
++	if (ca->next_interval_check <= (now - INTERVAL)) {
++		/* If it's been more than an interval since the last
++		 * check, then catch up - the last interval must have
++		 * been zero load */
++		ca->last_interval_time = 0;
++		ca->next_interval_check = next_interval_boundary(now);
++	} else {
++		/* If a steal takes the last interval time negative,
++		 * then we just ignore it */
++		if ((s64)ca->current_interval_time > 0)
++			ca->last_interval_time = ca->current_interval_time;
++		else
++			ca->last_interval_time = 0;
++		ca->next_interval_check += INTERVAL;
++	}
++	ca->current_interval_time = 0;
++}
++
++static u64 cpuusage_read(struct cgroup *cont, struct cftype *cft)
++{
++	struct cpuacct *ca = cgroup_ca(cont);
++	u64 time;
++
++	spin_lock_irq(&ca->lock);
++	cpuusage_update(ca);
++	time = cputime64_to_jiffies64(ca->time);
++	spin_unlock_irq(&ca->lock);
++
++	/* Convert 64-bit jiffies to seconds */
++	time *= 1000;
++	do_div(time, HZ);
++	return time;
++}
++
++static u64 load_read(struct cgroup *cont, struct cftype *cft)
++{
++	struct cpuacct *ca = cgroup_ca(cont);
++	u64 time;
++
++	/* Find the time used in the previous interval */
++	spin_lock_irq(&ca->lock);
++	cpuusage_update(ca);
++	time = cputime64_to_jiffies64(ca->last_interval_time);
++	spin_unlock_irq(&ca->lock);
++
++	/* Convert time to a percentage, to give the load in the
++	 * previous period */
++	time *= 100;
++	do_div(time, INTERVAL);
++
++	return time;
++}
++
++static struct cftype files[] = {
++	{
++		.name = "usage",
++		.read_uint = cpuusage_read,
++	},
++	{
++		.name = "load",
++		.read_uint = load_read,
++	}
++};
++
++static int cpuacct_populate(struct cgroup_subsys *ss, struct cgroup *cont)
++{
++	return cgroup_add_files(cont, ss, files, ARRAY_SIZE(files));
++}
++
++void cpuacct_charge(struct task_struct *task, cputime_t cputime)
++{
++
++	struct cpuacct *ca;
++	unsigned long flags;
++
++	if (!cpuacct_subsys.active)
++		return;
++	rcu_read_lock();
++	ca = task_ca(task);
++	if (ca) {
++		spin_lock_irqsave(&ca->lock, flags);
++		cpuusage_update(ca);
++		ca->time = cputime64_add(ca->time, cputime);
++		ca->current_interval_time =
++			cputime64_add(ca->current_interval_time, cputime);
++		spin_unlock_irqrestore(&ca->lock, flags);
++	}
++	rcu_read_unlock();
++}
++
++struct cgroup_subsys cpuacct_subsys = {
++	.name = "cpuacct",
++	.create = cpuacct_create,
++	.destroy = cpuacct_destroy,
++	.populate = cpuacct_populate,
++	.subsys_id = cpuacct_subsys_id,
++};
+diff -puN kernel/sched.c~task-containersv11-example-cpu-accounting-subsystem kernel/sched.c
+--- a/kernel/sched.c~task-containersv11-example-cpu-accounting-subsystem
++++ a/kernel/sched.c
+@@ -51,6 +51,7 @@
+ #include <linux/cpu.h>
+ #include <linux/cpuset.h>
+ #include <linux/percpu.h>
++#include <linux/cpu_acct.h>
+ #include <linux/kthread.h>
+ #include <linux/seq_file.h>
+ #include <linux/sysctl.h>
+@@ -3307,9 +3308,13 @@ void account_user_time(struct task_struc
+ {
+ 	struct cpu_usage_stat *cpustat = &kstat_this_cpu.cpustat;
+ 	cputime64_t tmp;
++	struct rq *rq = this_rq();
  
+ 	p->utime = cputime_add(p->utime, cputime);
+ 
++	if (p != rq->idle)
++		cpuacct_charge(p, cputime);
++
+ 	/* Add user time to cpustat. */
+ 	tmp = cputime_to_cputime64(cputime);
+ 	if (TASK_NICE(p) > 0)
+@@ -3374,9 +3379,10 @@ void account_system_time(struct task_str
+ 		cpustat->irq = cputime64_add(cpustat->irq, tmp);
+ 	else if (softirq_count())
+ 		cpustat->softirq = cputime64_add(cpustat->softirq, tmp);
+-	else if (p != rq->idle)
++	else if (p != rq->idle) {
+ 		cpustat->system = cputime64_add(cpustat->system, tmp);
+-	else if (atomic_read(&rq->nr_iowait) > 0)
++		cpuacct_charge(p, cputime);
++	} else if (atomic_read(&rq->nr_iowait) > 0)
+ 		cpustat->iowait = cputime64_add(cpustat->iowait, tmp);
+ 	else
+ 		cpustat->idle = cputime64_add(cpustat->idle, tmp);
+@@ -3412,8 +3418,10 @@ void account_steal_time(struct task_stru
+ 			cpustat->iowait = cputime64_add(cpustat->iowait, tmp);
+ 		else
+ 			cpustat->idle = cputime64_add(cpustat->idle, tmp);
+-	} else
++	} else {
+ 		cpustat->steal = cputime64_add(cpustat->steal, tmp);
++		cpuacct_charge(p, -tmp);
++	}
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from bwalle@suse.de are
+Patches currently in -mm which might be from menage@google.com are
 
 origin.patch
-kexec-add-bss-to-resource-tree.patch
-kexec-add-bss-to-resource-tree-checkpatch-fixes.patch
-kexec-introduce-bootmem_exclusive.patch
-kexec-introduce-bootmem_exclusive-checkpatch-fixes.patch
-kexec-use-bootmem_exclusive-on-x86.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+add-a-refcount-check-in-dput.patch
