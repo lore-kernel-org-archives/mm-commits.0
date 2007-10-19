@@ -1,33 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: - task-containersv11-basic-task-container-framework-fix-cgroup_create_dir-comments.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 21:09:46 -0700
-Message-ID: <200710190409.l9J49kCt014330@imap1.linux-foundation.org>
+Subject: - task-containersv11-add-container_clone-interface-containers-fix-refcount-bug.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 21:11:03 -0700
+Message-ID: <200710190411.l9J4B397014363@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33756 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44350 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751294AbXJSEJy (ORCPT
+	by vger.kernel.org with ESMTP id S1751200AbXJSELK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 00:09:54 -0400
+	Fri, 19 Oct 2007 00:11:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, balajirao@gmail.com, mm-commits@vger.kernel.org
+To: menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix cgroup_create_dir() comments
+     Control Groups: Fix refcount bug
 has been removed from the -mm tree.  Its filename was
-     task-containersv11-basic-task-container-framework-fix-cgroup_create_dir-comments.patch
+     task-containersv11-add-container_clone-interface-containers-fix-refcount-bug.patch
 
-This patch was dropped because it was folded into task-containersv11-basic-task-container-framework.patch
+This patch was dropped because it was folded into task-containersv11-add-container_clone-interface.patch
 
 ------------------------------------------------------
-Subject: Fix cgroup_create_dir() comments
+Subject: Control Groups: Fix refcount bug
 From: Paul Menage <menage@google.com>
 
-Comment fixed, to match the actual arguments.
+Fix a reference counting bug in cgroupfs
 
-Signed-off-by: Balaji Rao <balajirao@gmail.com>
+As part of the extraction of cpusetfs to cgroupfs, a call to
+cpuset_get_dentry() was lost (justified by the fact that the dentry in
+question was now being passed down by the caller). Since
+cpuset_get_dentry() called lookup_one_len(), this resulted in a
+reference count being missed from the directory dentry.
+
+This patch removes cgroup_get_dentry() and replaces it with direct
+calls to lookup_one_len(); the initialization of cgroupfs dentry
+ops is done now in cgroup_create_file() at dentry creation time.
+
 Signed-off-by: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
@@ -35,25 +44,24 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  kernel/cgroup.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/cgroup.c~task-containersv11-basic-task-container-framework-fix-cgroup_create_dir-comments kernel/cgroup.c
---- a/kernel/cgroup.c~task-containersv11-basic-task-container-framework-fix-cgroup_create_dir-comments
+diff -puN kernel/cgroup.c~task-containersv11-add-container_clone-interface-containers-fix-refcount-bug kernel/cgroup.c
+--- a/kernel/cgroup.c~task-containersv11-add-container_clone-interface-containers-fix-refcount-bug
 +++ a/kernel/cgroup.c
-@@ -851,7 +851,7 @@ static int cgroup_create_file(struct den
-  *	cont:	the cgroup we create the directory for.
-  *		It must have a valid ->parent field
-  *		And we are going to fill its ->dentry field.
-- *	name:	The name to give to the cgroup directory. Will be copied.
-+ *	dentry: dentry of the new container
-  *	mode:	mode to set on new directory.
-  */
- static int cgroup_create_dir(struct cgroup *cont, struct dentry *dentry,
+@@ -1756,7 +1756,7 @@ int cgroup_clone(struct task_struct *tsk
+ 	/* Hold the parent directory mutex across this operation to
+ 	 * stop anyone else deleting the new cgroup */
+ 	mutex_lock(&inode->i_mutex);
+-	dentry = cgroup_get_dentry(parent->dentry, nodename);
++	dentry = lookup_one_len(nodename, parent->dentry, strlen(nodename));
+ 	if (IS_ERR(dentry)) {
+ 		printk(KERN_INFO
+ 		       "Couldn't allocate dentry for %s: %ld\n", nodename,
 _
 
 Patches currently in -mm which might be from menage@google.com are
 
 cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
 task-containersv11-basic-task-container-framework.patch
-task-containersv11-basic-task-container-framework-fix-cgroup_create_dir-comments.patch
 task-containersv11-add-tasks-file-interface.patch
 add-cgroup-write_uint-helper-method.patch
 task-containersv11-add-fork-exit-hooks.patch
