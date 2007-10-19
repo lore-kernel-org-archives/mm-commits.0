@@ -1,144 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - procfs-detect-duplicate-names-fix-fix-2.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:55:23 -0700
-Message-ID: <200710190355.l9J3tNYm013785@imap1.linux-foundation.org>
+Subject: - char-rocket-remove-pci_read_config_dwordclass_revision.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:44:39 -0700
+Message-ID: <200710190344.l9J3id5N013161@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47179 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45140 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764092AbXJSDz0 (ORCPT
+	by vger.kernel.org with ESMTP id S934479AbXJSDzh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:55:26 -0400
+	Thu, 18 Oct 2007 23:55:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rui.zhang@intel.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     procfs-detect-duplicate-names-fix-fix-2
+     Char: rocket, remove pci_read_config_dword(CLASS_REVISION)
 has been removed from the -mm tree.  Its filename was
-     procfs-detect-duplicate-names-fix-fix-2.patch
+     char-rocket-remove-pci_read_config_dwordclass_revision.patch
 
-This patch was dropped because it was folded into procfs-detect-duplicate-names.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: procfs-detect-duplicate-names-fix-fix-2
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Char: rocket, remove pci_read_config_dword(CLASS_REVISION)
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Cc: Zhang Rui <rui.zhang@intel.com>
+We may use pdev->revision instead of reading pci config space directly, so
+remove pci_read_config_dword invoking.
+
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/char/rocket.c |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff -puN fs/proc/generic.c~procfs-detect-duplicate-names-fix-fix-2 fs/proc/generic.c
---- a/fs/proc/generic.c~procfs-detect-duplicate-names-fix-fix-2
-+++ a/fs/proc/generic.c
-@@ -523,7 +523,7 @@ static const struct inode_operations pro
+diff -puN drivers/char/rocket.c~char-rocket-remove-pci_read_config_dwordclass_revision drivers/char/rocket.c
+--- a/drivers/char/rocket.c~char-rocket-remove-pci_read_config_dwordclass_revision
++++ a/drivers/char/rocket.c
+@@ -1873,8 +1873,6 @@ static __init int register_PCI(int i, st
+ 	int fast_clock = 0;
+ 	int altChanRingIndicator = 0;
+ 	int ports_per_aiop = 8;
+-	int ret;
+-	unsigned int class_rev;
+ 	WordIO_t ConfigIO = 0;
+ 	ByteIO_t UPCIRingInd = 0;
  
- static int proc_register(struct proc_dir_entry * dir, struct proc_dir_entry * dp)
- {
--	struct proc_dir_entry *tmp;
-+	struct proc_dir_entry *de;
- 	unsigned int i;
- 	
- 	i = get_inode_number();
-@@ -549,8 +549,8 @@ static int proc_register(struct proc_dir
+@@ -1882,12 +1880,6 @@ static __init int register_PCI(int i, st
+ 		return 0;
  
- 	spin_lock(&proc_subdir_lock);
+ 	rcktpt_io_addr[i] = pci_resource_start(dev, 0);
+-	ret = pci_read_config_dword(dev, PCI_CLASS_REVISION, &class_rev);
+-
+-	if (ret) {
+-		printk(KERN_INFO "  Error during register_PCI(), unable to read config dword \n");
+-		return 0;
+-	}
  
--	for (tmp = dir->subdir, i = 0; tmp && !i; tmp = tmp->next)
--		if (!strcmp(dp->name, tmp->name))
-+	for (de = dir->subdir, i = 0; de && !i; de = de->next)
-+		if (!strcmp(dp->name, de->name))
- 			i = 1;
+ 	rcktpt_type[i] = ROCKET_TYPE_NORMAL;
+ 	rocketModel[i].loadrm2 = 0;
+@@ -2041,8 +2033,9 @@ static __init int register_PCI(int i, st
+ 		ports_per_aiop = 6;
+ 		str = "6-port";
  
- 	dp->next = dir->subdir;
-@@ -559,8 +559,8 @@ static int proc_register(struct proc_dir
- 	spin_unlock(&proc_subdir_lock);
- 
- 	if (i) {
--		printk(KERN_WARNING
--			"Duplicate file names \"%s\" detected.", dp->name);
-+		printk(KERN_WARNING "Duplicate file names \"%s\" detected.",
-+				dp->name);
- 		dump_stack();
- 	}
- 
+-		/*  If class_rev is 1, the rocketmodem flash must be loaded.  If it is 2 it is a "socketed" version. */
+-		if ((class_rev & 0xFF) == 1) {
++		/*  If revision is 1, the rocketmodem flash must be loaded.
++		 *  If it is 2 it is a "socketed" version. */
++		if (dev->revision == 1) {
+ 			rcktpt_type[i] = ROCKET_TYPE_MODEMII;
+ 			rocketModel[i].loadrm2 = 1;
+ 		} else {
+@@ -2057,7 +2050,7 @@ static __init int register_PCI(int i, st
+ 		max_num_aiops = 1;
+ 		ports_per_aiop = 4;
+ 		str = "4-port";
+-		if ((class_rev & 0xFF) == 1) {
++		if (dev->revision == 1) {
+ 			rcktpt_type[i] = ROCKET_TYPE_MODEMII;
+ 			rocketModel[i].loadrm2 = 1;
+ 		} else {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-console-keyboard-events-and-accessibility.patch
-add-kernel-notifierc.patch
-console-events-and-accessibility.patch
-procfs-detect-duplicate-names.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes.patch
-sync_sb_inodes-propagate-errors.patch
-fix-random-hard-freeze-with-avm-cards-using-b1dma-checkpatch-fixes.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes-2.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-cpuset-sched_load_balance-flag-fix.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
-fix-cpusets-update_cpumask-checkpatch-fixes.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
+git-dvb.patch
+v4l-stk11xx-add-a-new-webcam-driver.patch
+v4l-stk11xx-use-array_size-in-another-2-cases.patch
+v4l-stk11xx-use-retval-from-stk11xx_check_device.patch
+v4l-stk11xx-add-static-to-tables.patch
+git-wireless.patch
+misc-phantom-synchronize_irq-on-suspend.patch
+misc-phantom-add-comment-about-openhaptics.patch
+misc-phantom-improved-data-passing.patch
+fs-select-remove-unused-macros.patch
+remove-asm-bitopsh-includes.patch
+forbid-asm-bitopsh-direct-inclusion.patch
+cyber2000fb-rename-bit-macro.patch
+i2c-pxa-rename-bit-macro-to-pxa_bit.patch
+s2io-rename-bit-macro.patch
+amba-pl011-rename-bit-macro.patch
+define-first-set-of-bit-macros.patch
+get-rid-of-input-bit-duplicate-defines.patch
+define-global-bit-macro.patch
+flashpoint-use-bit-instead-of-bitw.patch
+remove-bits_to_type-macro.patch
 remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-kexec-add-bss-to-resource-tree-checkpatch-fixes.patch
-kexec-introduce-bootmem_exclusive-checkpatch-fixes.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
+remove-asm-bitopsh-includes-reiser4.patch
 shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
