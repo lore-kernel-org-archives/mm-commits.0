@@ -1,121 +1,165 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-simplify-the-pty-sysctl-logic.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:42:56 -0700
-Message-ID: <200710190342.l9J3guCV012944@imap1.linux-foundation.org>
+Subject: - sysctl-factor-out-sysctl_data.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:42:32 -0700
+Message-ID: <200710190342.l9J3gWfC012903@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49699 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47806 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934405AbXJSDzl (ORCPT
+	by vger.kernel.org with ESMTP id S934418AbXJSD4e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:55:41 -0400
+	Thu, 18 Oct 2007 23:56:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, adobriyan@sw.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: simplify the pty sysctl logic
+     sysctl: Factor out sysctl_data.
 has been removed from the -mm tree.  Its filename was
-     sysctl-simplify-the-pty-sysctl-logic.patch
+     sysctl-factor-out-sysctl_data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: simplify the pty sysctl logic
+Subject: sysctl: Factor out sysctl_data.
 From: Eric W. Biederman <ebiederm@xmission.com>
 
-Instead of having a bunch of ifdefs in sysctl.c move all of the pty sysctl
-logic into drivers/char/pty.c
+There as been no easy way to wrap the default sysctl strategy routine except
+for returning 0.  Which is not always what we want.  The few instances I have
+seen that want different behaviour have written their own version of
+sysctl_data.  While not too hard it is unnecessary code and has the potential
+for extra bugs.
 
-As well as cleaning up the logic this prevents sysctl_check_table from
-complaining that the root table has a NULL data pointer on something with
-generic methods.
+So to make these situations easier and make that part of sysctl more symetric
+I have factord sysctl_data out of do_sysctl_strategy and exported as a
+function everyone can use.
+
+Further having sysctl_data be an explicit function makes checking for badly
+formed sysctl tables much easier.
 
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/pty.c |   24 +++++++++++++++++++++++-
- kernel/sysctl.c    |   11 -----------
- 2 files changed, 23 insertions(+), 12 deletions(-)
+ include/linux/sysctl.h |    1 
+ kernel/sysctl.c        |   66 +++++++++++++++++++++++++++------------
+ 2 files changed, 47 insertions(+), 20 deletions(-)
 
-diff -puN drivers/char/pty.c~sysctl-simplify-the-pty-sysctl-logic drivers/char/pty.c
---- a/drivers/char/pty.c~sysctl-simplify-the-pty-sysctl-logic
-+++ a/drivers/char/pty.c
-@@ -318,7 +318,7 @@ int pty_limit = NR_UNIX98_PTY_DEFAULT;
- static int pty_limit_min = 0;
- static int pty_limit_max = NR_UNIX98_PTY_MAX;
+diff -puN include/linux/sysctl.h~sysctl-factor-out-sysctl_data include/linux/sysctl.h
+--- a/include/linux/sysctl.h~sysctl-factor-out-sysctl_data
++++ a/include/linux/sysctl.h
+@@ -972,6 +972,7 @@ extern int do_sysctl_strategy (struct ct
+ 			       void __user *oldval, size_t __user *oldlenp,
+ 			       void __user *newval, size_t newlen);
  
--ctl_table pty_table[] = {
-+static struct ctl_table pty_table[] = {
- 	{
- 		.ctl_name	= PTY_MAX,
- 		.procname	= "max",
-@@ -340,6 +340,27 @@ ctl_table pty_table[] = {
- 	}
- };
- 
-+static struct ctl_table pty_kern_table[] = {
-+	{
-+		.ctl_name	= KERN_PTY,
-+		.procname	= "pty",
-+		.mode		= 0555,
-+		.child		= pty_table,
-+	},
-+	{}
-+};
-+
-+static struct ctl_table pty_root_table[] = {
-+	{
-+		.ctl_name	= CTL_KERN,
-+		.procname	= "kernel",
-+		.mode		= 0555,
-+		.child		= pty_kern_table,
-+	},
-+	{}
-+};
-+
-+
- static int pty_unix98_ioctl(struct tty_struct *tty, struct file *file,
- 			    unsigned int cmd, unsigned long arg)
- {
-@@ -404,6 +425,7 @@ static void __init unix98_pty_init(void)
- 		panic("Couldn't register Unix98 pts driver");
- 
- 	pty_table[1].data = &ptm_driver->refcount;
-+	register_sysctl_table(pty_root_table);
- }
- #else
- static inline void unix98_pty_init(void) { }
-diff -puN kernel/sysctl.c~sysctl-simplify-the-pty-sysctl-logic kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-simplify-the-pty-sysctl-logic
++extern ctl_handler sysctl_data;
+ extern ctl_handler sysctl_string;
+ extern ctl_handler sysctl_intvec;
+ extern ctl_handler sysctl_jiffies;
+diff -puN kernel/sysctl.c~sysctl-factor-out-sysctl_data kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-factor-out-sysctl_data
 +++ a/kernel/sysctl.c
-@@ -163,9 +163,6 @@ static struct ctl_table fs_table[];
- static struct ctl_table debug_table[];
- static struct ctl_table dev_table[];
- extern struct ctl_table random_table[];
--#ifdef CONFIG_UNIX98_PTYS
--extern struct ctl_table pty_table[];
--#endif
- #ifdef CONFIG_INOTIFY_USER
- extern struct ctl_table inotify_table[];
- #endif
-@@ -534,14 +531,6 @@ static struct ctl_table kern_table[] = {
- 		.mode		= 0555,
- 		.child		= random_table,
- 	},
--#ifdef CONFIG_UNIX98_PTYS
--	{
--		.ctl_name	= KERN_PTY,
--		.procname	= "pty",
--		.mode		= 0555,
--		.child		= pty_table,
--	},
--#endif
- 	{
- 		.ctl_name	= KERN_OVERFLOWUID,
- 		.procname	= "overflowuid",
+@@ -1443,7 +1443,6 @@ int do_sysctl_strategy (struct ctl_table
+ 			void __user *newval, size_t newlen)
+ {
+ 	int op = 0, rc;
+-	size_t len;
+ 
+ 	if (oldval)
+ 		op |= 004;
+@@ -1464,25 +1463,10 @@ int do_sysctl_strategy (struct ctl_table
+ 	/* If there is no strategy routine, or if the strategy returns
+ 	 * zero, proceed with automatic r/w */
+ 	if (table->data && table->maxlen) {
+-		if (oldval && oldlenp) {
+-			if (get_user(len, oldlenp))
+-				return -EFAULT;
+-			if (len) {
+-				if (len > table->maxlen)
+-					len = table->maxlen;
+-				if(copy_to_user(oldval, table->data, len))
+-					return -EFAULT;
+-				if(put_user(len, oldlenp))
+-					return -EFAULT;
+-			}
+-		}
+-		if (newval && newlen) {
+-			len = newlen;
+-			if (len > table->maxlen)
+-				len = table->maxlen;
+-			if(copy_from_user(table->data, newval, len))
+-				return -EFAULT;
+-		}
++		rc = sysctl_data(table, name, nlen, oldval, oldlenp,
++				 newval, newlen);
++		if (rc < 0)
++			return rc;
+ 	}
+ 	return 0;
+ }
+@@ -2381,6 +2365,40 @@ int proc_doulongvec_ms_jiffies_minmax(st
+  * General sysctl support routines 
+  */
+ 
++/* The generic sysctl data routine (used if no strategy routine supplied) */
++int sysctl_data(struct ctl_table *table, int __user *name, int nlen,
++		void __user *oldval, size_t __user *oldlenp,
++		void __user *newval, size_t newlen)
++{
++	size_t len;
++
++	/* Get out of I don't have a variable */
++	if (!table->data || !table->maxlen)
++		return -ENOTDIR;
++
++	if (oldval && oldlenp) {
++		if (get_user(len, oldlenp))
++			return -EFAULT;
++		if (len) {
++			if (len > table->maxlen)
++				len = table->maxlen;
++			if (copy_to_user(oldval, table->data, len))
++				return -EFAULT;
++			if (put_user(len, oldlenp))
++				return -EFAULT;
++		}
++	}
++
++	if (newval && newlen) {
++		if (newlen > table->maxlen)
++			newlen = table->maxlen;
++
++		if (copy_from_user(table->data, newval, newlen))
++			return -EFAULT;
++	}
++	return 1;
++}
++
+ /* The generic string strategy routine: */
+ int sysctl_string(struct ctl_table *table, int __user *name, int nlen,
+ 		  void __user *oldval, size_t __user *oldlenp,
+@@ -2569,6 +2587,13 @@ out:
+ 	return -ENOSYS;
+ }
+ 
++int sysctl_data(struct ctl_table *table, int __user *name, int nlen,
++		  void __user *oldval, size_t __user *oldlenp,
++		  void __user *newval, size_t newlen)
++{
++	return -ENOSYS;
++}
++
+ int sysctl_string(struct ctl_table *table, int __user *name, int nlen,
+ 		  void __user *oldval, size_t __user *oldlenp,
+ 		  void __user *newval, size_t newlen)
+@@ -2616,4 +2641,5 @@ EXPORT_SYMBOL(sysctl_intvec);
+ EXPORT_SYMBOL(sysctl_jiffies);
+ EXPORT_SYMBOL(sysctl_ms_jiffies);
+ EXPORT_SYMBOL(sysctl_string);
++EXPORT_SYMBOL(sysctl_data);
+ EXPORT_SYMBOL(unregister_sysctl_table);
 _
 
 Patches currently in -mm which might be from ebiederm@xmission.com are
