@@ -1,57 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 21:20:34 -0700
-Message-ID: <200710190420.l9J4KYZJ014742@imap1.linux-foundation.org>
+Subject: - pid-namespaces-changes-to-show-virtual-ids-to-user-sys_getsid-sys_getpgid-return-wrong-id-for-task-from-another.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 21:21:19 -0700
+Message-ID: <200710190421.l9J4LJMq014775@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43560 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39597 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751633AbXJSEVA (ORCPT
+	by vger.kernel.org with ESMTP id S1751823AbXJSEVW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 00:21:00 -0400
+	Fri, 19 Oct 2007 00:21:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, adobriyan@openvz.org, oleg@tv-sign.ru, sukadev@us.ibm.com, mm-commits@vger.kernel.org
+To: xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix check for return value of create_pid_namespace
+     sys_getsid/sys_getpgid return wrong id for task from another namespace
 has been removed from the -mm tree.  Its filename was
-     pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
+     pid-namespaces-changes-to-show-virtual-ids-to-user-sys_getsid-sys_getpgid-return-wrong-id-for-task-from-another.patch
 
-This patch was dropped because it was folded into pid-namespaces-allow-cloning-of-new-namespace.patch
+This patch was dropped because it was folded into pid-namespaces-changes-to-show-virtual-ids-to-user.patch
 
 ------------------------------------------------------
-Subject: Fix check for return value of create_pid_namespace
+Subject: sys_getsid/sys_getpgid return wrong id for task from another namespace
 From: Pavel Emelyanov <xemul@openvz.org>
 
-The function in question returns ERR_PTR-s to indicate the
-error, while the caller checks for return value to be NULL.
-
-Found during testing the OpenVZ kernel with pid namespaces.
+When calling the sys_getsid/sys_getpgid for task, that actually lives in
+another namespace (sub-namespace) the return value should be not the id as
+this task sees it, but the id as the caller does.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Signed-off-by: Alexey Dobriyan <adobriyan@openvz.org>
-Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sys.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN kernel/pid.c~pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace kernel/pid.c
---- a/kernel/pid.c~pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace
-+++ a/kernel/pid.c
-@@ -544,7 +544,7 @@ struct pid_namespace *copy_pid_ns(unsign
- 		goto out_put;
+diff -puN kernel/sys.c~pid-namespaces-changes-to-show-virtual-ids-to-user-sys_getsid-sys_getpgid-return-wrong-id-for-task-from-another kernel/sys.c
+--- a/kernel/sys.c~pid-namespaces-changes-to-show-virtual-ids-to-user-sys_getsid-sys_getpgid-return-wrong-id-for-task-from-another
++++ a/kernel/sys.c
+@@ -994,16 +994,17 @@ asmlinkage long sys_getpgid(pid_t pid)
+ 	else {
+ 		int retval;
+ 		struct task_struct *p;
++		struct pid_namespace *ns;
  
- 	new_ns = create_pid_namespace(old_ns->level + 1);
--	if (new_ns != NULL)
-+	if (!IS_ERR(new_ns))
- 		new_ns->parent = get_pid_ns(old_ns);
+-		read_lock(&tasklist_lock);
+-		p = find_task_by_pid_ns(pid,
+-				current->nsproxy->pid_ns);
++		ns = current->nsproxy->pid_ns;
  
- out_put:
++		read_lock(&tasklist_lock);
++		p = find_task_by_pid_ns(pid, ns);
+ 		retval = -ESRCH;
+ 		if (p) {
+ 			retval = security_task_getpgid(p);
+ 			if (!retval)
+-				retval = task_pgrp_vnr(p);
++				retval = task_pgrp_nr_ns(p, ns);
+ 		}
+ 		read_unlock(&tasklist_lock);
+ 		return retval;
+@@ -1027,16 +1028,17 @@ asmlinkage long sys_getsid(pid_t pid)
+ 	else {
+ 		int retval;
+ 		struct task_struct *p;
++		struct pid_namespace *ns;
+ 
+-		read_lock(&tasklist_lock);
+-		p = find_task_by_pid_ns(pid,
+-				current->nsproxy->pid_ns);
++		ns = current->nsproxy->pid_ns;
+ 
++		read_lock(&tasklist_lock);
++		p = find_task_by_pid_ns(pid, ns);
+ 		retval = -ESRCH;
+ 		if (p) {
+ 			retval = security_task_getsid(p);
+ 			if (!retval)
+-				retval = task_session_vnr(p);
++				retval = task_session_nr_ns(p, ns);
+ 		}
+ 		read_unlock(&tasklist_lock);
+ 		return retval;
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
@@ -79,18 +110,12 @@ pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
 pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
 pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
 pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-allow-cloning-of-new-namespace-fix-check-for-return-value-of-create_pid_namespace.patch
 pid-namespaces-allow-cloning-of-new-namespace-merge-fix.patch
 pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
 pid-namespaces-initialize-the-namespaces-proc_mnt.patch
 pid-namespaces-allow-signalling-container-init.patch
 pid-namespaces-destroy-pid-namespace-on-inits-death.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-return-value-of-sys_set_tid_address.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user-sys_getsid-sys_getpgid-return-wrong-id-for-task-from-another.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user-fix-the-sys_setpgrp-to-work-between-namespaces.patch
 uninline-find_task_by_xxx-set-of-functions.patch
