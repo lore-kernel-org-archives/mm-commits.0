@@ -1,168 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: - jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 21:08:44 -0700
-Message-ID: <200710190408.l9J48iMu014237__19598.0764263824$1192766965$gmane$org@imap1.linux-foundation.org>
+Subject: - task-containersv11-basic-task-container-framework-fix.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 21:09:41 -0700
+Message-ID: <200710190409.l9J49fb0014324@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37953 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59640 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750904AbXJSEJD (ORCPT
+	by vger.kernel.org with ESMTP id S1751102AbXJSEJs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 00:09:03 -0400
+	Fri, 19 Oct 2007 00:09:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jack@suse.cz, jrs@us.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: menage@google.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jbd-config_jbd_debug-cannot-create-proc-entry-fix
+     task-cgroupsv11-basic-task-cgroup-framework-fix
 has been removed from the -mm tree.  Its filename was
-     jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+     task-containersv11-basic-task-container-framework-fix.patch
 
-This patch was dropped because it was folded into jbd-config_jbd_debug-cannot-create-proc-entry.patch
+This patch was dropped because it was folded into task-containersv11-basic-task-container-framework.patch
 
 ------------------------------------------------------
-Subject: jbd-config_jbd_debug-cannot-create-proc-entry-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: task-cgroupsv11-basic-task-cgroup-framework-fix
+From: "Paul Menage" <menage@google.com>
 
-- use `#ifdef foo' instead of `#if defined(foo)'
+On 7/28/07, Andrew Morton <akpm@linux-foundation.org> wrote:
+> >  [<c0154ad2>] proc_cpuset_show+0x5e/0xb9
+> >  [<c01976b1>] seq_read+0xef/0x266
+> >  [<c0181398>] vfs_read+0x8e/0x117
+> >  [<c01817c9>] sys_read+0x3d/0x61
+> >  [<c010401e>] sysenter_past_esp+0x5f/0x99
+> >  =======================
+> > INFO: lockdep is turned off.
+> > Code: 00 89 d8 83 c4 0c 5b 5e 5f 5d c3 55 89 e5 57 56 53 83 ec 08 89
+> > 45 f0 89 55 ec 89 d3 01 cb 8d 43 ff c6 43 ff 00 8b 55 f0 8b 72 1c <8b>
+> > 56 3c 29 d0 3b 45 ec 72 45 89 d1 c1 e9 02 8b 76 40 89 c7 f3
+> > EIP: [<c01536a7>] cgroup_path+0x20/0x7b SS:ESP 0068:c5ccff00
+>
 
-- CONFIG_JBD_DEBUG depends on CONFIG_DEBUG_FS so we don't need to duplicate
-  that logic in the .c file ifdefs
+Oops, this is a case of trying to read /proc/self/cpuset when cpusets
+are completely unmounted. It works fine when cpusets is mounted as
+part of any hierarchy, or part of an active but unmounted hierarchy.
+Attached patch fixes it, and should be rolled in to the first patch of
+the series. (basic framework patch).
 
-- Make journal_enable_debug __read_mostly just for the heck of it
 
-- Make jbd_debugfs_dir and jbd_debug static
-
-- debugfs_remove(NULL) is legal: remove unneeded tests
-
-- jbd_create_debugfs_entry is a better name than create_jbd_debugfs_entry
-
-- ditto remove_jbd_debugfs_entry
-
-- C functions are preferred over macros
-
-- Avoid declaring multiple variables in a single line.
-
-Cc: "Jose R. Santos" <jrs@us.ibm.com>
-Cc: <linux-ext4@vger.kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jose R. Santos <jrs@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/journal.c |   34 ++++++++++++++++++----------------
- 1 file changed, 18 insertions(+), 16 deletions(-)
+ kernel/cgroup.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN fs/jbd/journal.c~jbd-config_jbd_debug-cannot-create-proc-entry-fix fs/jbd/journal.c
---- a/fs/jbd/journal.c~jbd-config_jbd_debug-cannot-create-proc-entry-fix
-+++ a/fs/jbd/journal.c
-@@ -1858,16 +1858,15 @@ void journal_put_journal_head(struct jou
- /*
-  * debugfs tunables
-  */
--#if defined(CONFIG_JBD_DEBUG)
--u8 journal_enable_debug;
--EXPORT_SYMBOL(journal_enable_debug);
--#endif
-+#ifdef CONFIG_JBD_DEBUG
- 
--#if defined(CONFIG_JBD_DEBUG) && defined(CONFIG_DEBUG_FS)
-+u8 journal_enable_debug __read_mostly;
-+EXPORT_SYMBOL(journal_enable_debug);
- 
--struct dentry  *jbd_debugfs_dir, *jbd_debug;
-+static struct dentry *jbd_debugfs_dir;
-+static struct dentry *jbd_debug;
- 
--static void __init create_jbd_debugfs_entry(void)
-+static void __init jbd_create_debugfs_entry(void)
+diff -puN kernel/cgroup.c~task-cgroupsv11-basic-task-cgroup-framework-fix kernel/cgroup.c
+--- a/kernel/cgroup.c~task-cgroupsv11-basic-task-cgroup-framework-fix
++++ a/kernel/cgroup.c
+@@ -683,6 +683,15 @@ int cgroup_path(const struct containe
  {
- 	jbd_debugfs_dir = debugfs_create_dir("jbd", NULL);
- 	if (jbd_debugfs_dir)
-@@ -1876,18 +1875,21 @@ static void __init create_jbd_debugfs_en
- 					       &journal_enable_debug);
- }
+ 	char *start;
  
--static void __exit remove_jbd_debugfs_entry(void)
-+static void __exit jbd_remove_debugfs_entry(void)
- {
--	if (jbd_debug)
--		debugfs_remove(jbd_debug);
--	if (jbd_debugfs_dir)
--		debugfs_remove(jbd_debugfs_dir);
-+	debugfs_remove(jbd_debug);
-+	debugfs_remove(jbd_debugfs_dir);
- }
- 
- #else
- 
--#define create_jbd_debugfs_entry() do {} while (0)
--#define remove_jbd_debugfs_entry() do {} while (0)
-+static inline void jbd_create_debugfs_entry(void)
-+{
-+}
++	if (cont == dummytop) {
++		/*
++		 * Inactive subsystems have no dentry for their root
++		 * cgroup
++		 */
++		strcpy(buf, "/");
++		return 0;
++	}
 +
-+static inline void jbd_remove_debugfs_entry(void)
-+{
-+}
+ 	start = buf + buflen;
  
- #endif
- 
-@@ -1945,7 +1947,7 @@ static int __init journal_init(void)
- 	ret = journal_init_caches();
- 	if (ret != 0)
- 		journal_destroy_caches();
--	create_jbd_debugfs_entry();
-+	jbd_create_debugfs_entry();
- 	return ret;
- }
- 
-@@ -1956,7 +1958,7 @@ static void __exit journal_exit(void)
- 	if (n)
- 		printk(KERN_EMERG "JBD: leaked %d journal_heads!\n", n);
- #endif
--	remove_jbd_debugfs_entry();
-+	jbd_remove_debugfs_entry();
- 	journal_destroy_caches();
- }
- 
+ 	*--start = '\0';
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from menage@google.com are
 
-origin.patch
-console-keyboard-events-and-accessibility.patch
-add-kernel-notifierc.patch
-console-events-and-accessibility.patch
-fix-random-hard-freeze-with-avm-cards-using-b1dma.patch
-jbd-config_jbd_debug-cannot-create-proc-entry.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+task-containersv11-basic-task-container-framework.patch
 task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-basic-task-container-framework-containers-fix-refcount-bug.patch
+task-containersv11-basic-task-container-framework-fix-cgroup_create_dir-comments.patch
+task-containersv11-add-tasks-file-interface.patch
+add-cgroup-write_uint-helper-method.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-container_clone-interface-containers-fix-refcount-bug.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups.patch
 task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-avoid-lockdep-warning.patch
 task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers-fix.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
+task-containers-enable-containers-by-default-in-some-configs.patch
+add-containerstats-v3.patch
 add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+containers-implement-namespace-tracking-subsystem.patch
+containers-implement-namespace-tracking-subsystem-fix-order-of-container-subsystems-in-init-kconfig.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
 pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+uninline-find_task_by_xxx-set-of-functions.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-cpuset-sched_load_balance-flag-fix.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+uninline-find_pid-etc-set-of-functions.patch
+uninline-the-task_xid_nr_ns-calls.patch
+cpusets-decrustify-cpuset-mask-update-code.patch
+fix-cpusets-update_cpumask.patch
 fix-cpusets-update_cpumask-checkpatch-fixes.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
+use-task_pid_nr-instead-of-pid_nrtask_pid.patch
+control-groups-replace-cont-with-cgrp-and-other-misc.patch
+hook-up-group-scheduler-with-control-groups.patch
 hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
