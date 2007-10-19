@@ -1,147 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: - ipc-cleanup-some-code-and-wrong-comments-about-semundo.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:53:54 -0700
-Message-ID: <200710192253.l9JMrsJG024470@imap1.linux-foundation.org>
+Subject: - i2c-pxa-rename-bit-macro-to-pxa_bit.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:52:38 -0700
+Message-ID: <200710192252.l9JMqc07024290@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48727 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43319 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966979AbXJSXGO (ORCPT
+	by vger.kernel.org with ESMTP id S935173AbXJSXGS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 19:06:14 -0400
+	Fri, 19 Oct 2007 19:06:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pierre.peiffer@bull.net, Nadia.Derbey@bull.net, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, khali@linux-fr.org, nico@cam.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IPC: cleanup some code and wrong comments about semundo list managment
+     i2c-pxa, rename BIT macro to PXA_BIT
 has been removed from the -mm tree.  Its filename was
-     ipc-cleanup-some-code-and-wrong-comments-about-semundo.patch
+     i2c-pxa-rename-bit-macro-to-pxa_bit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: IPC: cleanup some code and wrong comments about semundo list managment
-From: Pierre Peiffer <pierre.peiffer@bull.net>
+Subject: i2c-pxa, rename BIT macro to PXA_BIT
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Some comments about sem_undo_list seem wrong.
-About the comment above unlock_semundo:
-"... If task2 now exits before task1 releases the lock (by calling
-unlock_semundo()), then task1 will never call spin_unlock(). ..."
+i2c-pxa, rename BIT macro to PXA_BIT
 
-This is just wrong, I see no reason for which task1 will not call
-spin_unlock... The rest of this comment is also wrong... Unless I
-miss something (of course).
+BIT macro will be global definiton of (1 << x)
 
-Finally, (un)lock_semundo functions are useless, so remove them
-for simplification. (this avoids an useless if statement)
-
-Signed-off-by: Pierre Peiffer <pierre.peiffer@bull.net>
-Cc: Nadia Derbey <Nadia.Derbey@bull.net>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Nicolas Pitre <nico@cam.org>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |   46 ++++++----------------------------------------
- 1 file changed, 6 insertions(+), 40 deletions(-)
+ drivers/i2c/busses/i2c-pxa.c |   54 ++++++++++++++++-----------------
+ 1 file changed, 27 insertions(+), 27 deletions(-)
 
-diff -puN ipc/sem.c~ipc-cleanup-some-code-and-wrong-comments-about-semundo ipc/sem.c
---- a/ipc/sem.c~ipc-cleanup-some-code-and-wrong-comments-about-semundo
-+++ a/ipc/sem.c
-@@ -999,36 +999,6 @@ asmlinkage long sys_semctl (int semid, i
- 	}
+diff -puN drivers/i2c/busses/i2c-pxa.c~i2c-pxa-rename-bit-macro-to-pxa_bit drivers/i2c/busses/i2c-pxa.c
+--- a/drivers/i2c/busses/i2c-pxa.c~i2c-pxa-rename-bit-macro-to-pxa_bit
++++ a/drivers/i2c/busses/i2c-pxa.c
+@@ -85,7 +85,7 @@ struct bits {
+ 	const char *set;
+ 	const char *unset;
+ };
+-#define BIT(m, s, u)	{ .mask = m, .set = s, .unset = u }
++#define PXA_BIT(m, s, u)	{ .mask = m, .set = s, .unset = u }
+ 
+ static inline void
+ decode_bits(const char *prefix, const struct bits *bits, int num, u32 val)
+@@ -100,17 +100,17 @@ decode_bits(const char *prefix, const st
  }
  
--static inline void lock_semundo(void)
--{
--	struct sem_undo_list *undo_list;
--
--	undo_list = current->sysvsem.undo_list;
--	if (undo_list)
--		spin_lock(&undo_list->lock);
--}
--
--/* This code has an interaction with copy_semundo().
-- * Consider; two tasks are sharing the undo_list. task1
-- * acquires the undo_list lock in lock_semundo().  If task2 now
-- * exits before task1 releases the lock (by calling
-- * unlock_semundo()), then task1 will never call spin_unlock().
-- * This leave the sem_undo_list in a locked state.  If task1 now creats task3
-- * and once again shares the sem_undo_list, the sem_undo_list will still be
-- * locked, and future SEM_UNDO operations will deadlock.  This case is
-- * dealt with in copy_semundo() by having it reinitialize the spin lock when 
-- * the refcnt goes from 1 to 2.
-- */
--static inline void unlock_semundo(void)
--{
--	struct sem_undo_list *undo_list;
--
--	undo_list = current->sysvsem.undo_list;
--	if (undo_list)
--		spin_unlock(&undo_list->lock);
--}
--
--
- /* If the task doesn't already have a undo_list, then allocate one
-  * here.  We guarantee there is only one thread using this undo list,
-  * and current is THE ONE
-@@ -1089,9 +1059,9 @@ static struct sem_undo *find_undo(struct
- 	if (error)
- 		return ERR_PTR(error);
+ static const struct bits isr_bits[] = {
+-	BIT(ISR_RWM,	"RX",		"TX"),
+-	BIT(ISR_ACKNAK,	"NAK",		"ACK"),
+-	BIT(ISR_UB,	"Bsy",		"Rdy"),
+-	BIT(ISR_IBB,	"BusBsy",	"BusRdy"),
+-	BIT(ISR_SSD,	"SlaveStop",	NULL),
+-	BIT(ISR_ALD,	"ALD",		NULL),
+-	BIT(ISR_ITE,	"TxEmpty",	NULL),
+-	BIT(ISR_IRF,	"RxFull",	NULL),
+-	BIT(ISR_GCAD,	"GenCall",	NULL),
+-	BIT(ISR_SAD,	"SlaveAddr",	NULL),
+-	BIT(ISR_BED,	"BusErr",	NULL),
++	PXA_BIT(ISR_RWM,	"RX",		"TX"),
++	PXA_BIT(ISR_ACKNAK,	"NAK",		"ACK"),
++	PXA_BIT(ISR_UB,		"Bsy",		"Rdy"),
++	PXA_BIT(ISR_IBB,	"BusBsy",	"BusRdy"),
++	PXA_BIT(ISR_SSD,	"SlaveStop",	NULL),
++	PXA_BIT(ISR_ALD,	"ALD",		NULL),
++	PXA_BIT(ISR_ITE,	"TxEmpty",	NULL),
++	PXA_BIT(ISR_IRF,	"RxFull",	NULL),
++	PXA_BIT(ISR_GCAD,	"GenCall",	NULL),
++	PXA_BIT(ISR_SAD,	"SlaveAddr",	NULL),
++	PXA_BIT(ISR_BED,	"BusErr",	NULL),
+ };
  
--	lock_semundo();
-+	spin_lock(&ulp->lock);
- 	un = lookup_undo(ulp, semid);
--	unlock_semundo();
-+	spin_unlock(&ulp->lock);
- 	if (likely(un!=NULL))
- 		goto out;
- 
-@@ -1114,10 +1084,10 @@ static struct sem_undo *find_undo(struct
- 	new->semadj = (short *) &new[1];
- 	new->semid = semid;
- 
--	lock_semundo();
-+	spin_lock(&ulp->lock);
- 	un = lookup_undo(ulp, semid);
- 	if (un) {
--		unlock_semundo();
-+		spin_unlock(&ulp->lock);
- 		kfree(new);
- 		ipc_lock_by_ptr(&sma->sem_perm);
- 		ipc_rcu_putref(sma);
-@@ -1128,7 +1098,7 @@ static struct sem_undo *find_undo(struct
- 	ipc_rcu_putref(sma);
- 	if (sma->sem_perm.deleted) {
- 		sem_unlock(sma);
--		unlock_semundo();
-+		spin_unlock(&ulp->lock);
- 		kfree(new);
- 		un = ERR_PTR(-EIDRM);
- 		goto out;
-@@ -1139,7 +1109,7 @@ static struct sem_undo *find_undo(struct
- 	sma->undo = new;
- 	sem_unlock(sma);
- 	un = new;
--	unlock_semundo();
-+	spin_unlock(&ulp->lock);
- out:
- 	return un;
+ static void decode_ISR(unsigned int val)
+@@ -120,21 +120,21 @@ static void decode_ISR(unsigned int val)
  }
-@@ -1315,10 +1285,6 @@ asmlinkage long sys_semop (int semid, st
  
- /* If CLONE_SYSVSEM is set, establish sharing of SEM_UNDO state between
-  * parent and child tasks.
-- *
-- * See the notes above unlock_semundo() regarding the spin_lock_init()
-- * in this code.  Initialize the undo_list->lock here instead of get_undo_list()
-- * because of the reasoning in the comment above unlock_semundo.
-  */
+ static const struct bits icr_bits[] = {
+-	BIT(ICR_START,  "START",	NULL),
+-	BIT(ICR_STOP,   "STOP",		NULL),
+-	BIT(ICR_ACKNAK, "ACKNAK",	NULL),
+-	BIT(ICR_TB,     "TB",		NULL),
+-	BIT(ICR_MA,     "MA",		NULL),
+-	BIT(ICR_SCLE,   "SCLE",		"scle"),
+-	BIT(ICR_IUE,    "IUE",		"iue"),
+-	BIT(ICR_GCD,    "GCD",		NULL),
+-	BIT(ICR_ITEIE,  "ITEIE",	NULL),
+-	BIT(ICR_IRFIE,  "IRFIE",	NULL),
+-	BIT(ICR_BEIE,   "BEIE",		NULL),
+-	BIT(ICR_SSDIE,  "SSDIE",	NULL),
+-	BIT(ICR_ALDIE,  "ALDIE",	NULL),
+-	BIT(ICR_SADIE,  "SADIE",	NULL),
+-	BIT(ICR_UR,     "UR",		"ur"),
++	PXA_BIT(ICR_START,  "START",	NULL),
++	PXA_BIT(ICR_STOP,   "STOP",	NULL),
++	PXA_BIT(ICR_ACKNAK, "ACKNAK",	NULL),
++	PXA_BIT(ICR_TB,     "TB",	NULL),
++	PXA_BIT(ICR_MA,     "MA",	NULL),
++	PXA_BIT(ICR_SCLE,   "SCLE",	"scle"),
++	PXA_BIT(ICR_IUE,    "IUE",	"iue"),
++	PXA_BIT(ICR_GCD,    "GCD",	NULL),
++	PXA_BIT(ICR_ITEIE,  "ITEIE",	NULL),
++	PXA_BIT(ICR_IRFIE,  "IRFIE",	NULL),
++	PXA_BIT(ICR_BEIE,   "BEIE",	NULL),
++	PXA_BIT(ICR_SSDIE,  "SSDIE",	NULL),
++	PXA_BIT(ICR_ALDIE,  "ALDIE",	NULL),
++	PXA_BIT(ICR_SADIE,  "SADIE",	NULL),
++	PXA_BIT(ICR_UR,     "UR",		"ur"),
+ };
  
- int copy_semundo(unsigned long clone_flags, struct task_struct *tsk)
+ static void decode_ICR(unsigned int val)
 _
 
-Patches currently in -mm which might be from pierre.peiffer@bull.net are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
+git-dvb.patch
+v4l-stk11xx-add-a-new-webcam-driver.patch
+v4l-stk11xx-use-array_size-in-another-2-cases.patch
+v4l-stk11xx-use-retval-from-stk11xx_check_device.patch
+v4l-stk11xx-add-static-to-tables.patch
+git-wireless.patch
+dzh-remove-useless-unused-module-junk.patch
+dz-always-check-if-it-is-safe-to-console_putchar.patch
+dz-dont-panic-when-request_irq-fails.patch
+dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
+dz-update-kconfig-description.patch
+dz-rename-the-serial-console-structure.patch
+dz-fix-locking-issues.patch
+dz-handle-special-conditions-on-reception-correctly.patch
+maintainers-add-self-for-the-dz-serial-driver.patch
+remove-asm-bitopsh-includes-reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
