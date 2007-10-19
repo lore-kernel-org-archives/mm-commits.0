@@ -1,67 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - misc-phantom-add-comment-about-openhaptics.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:52:22 -0700
-Message-ID: <200710192252.l9JMqM8J024264@imap1.linux-foundation.org>
+Subject: - fs-eventpollc-use-list_for_each_entry-instead-of-list_for_each.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:51:06 -0700
+Message-ID: <200710192251.l9JMp66n024155@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56182 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60738 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763913AbXJSXFM (ORCPT
+	by vger.kernel.org with ESMTP id S1764081AbXJSXFM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 19 Oct 2007 19:05:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: matthias.kaehlcke@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Misc: phantom, add comment about openhaptics
+     fs/eventpoll.c: use list_for_each_entry() instead of list_for_each()
 has been removed from the -mm tree.  Its filename was
-     misc-phantom-add-comment-about-openhaptics.patch
+     fs-eventpollc-use-list_for_each_entry-instead-of-list_for_each.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Misc: phantom, add comment about openhaptics
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: fs/eventpoll.c: use list_for_each_entry() instead of list_for_each()
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+fs/eventpoll.c: use list_for_each_entry() instead of list_for_each()
+in ep_poll_safewake()
+
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/phantom.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/eventpoll.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/misc/phantom.c~misc-phantom-add-comment-about-openhaptics drivers/misc/phantom.c
---- a/drivers/misc/phantom.c~misc-phantom-add-comment-about-openhaptics
-+++ a/drivers/misc/phantom.c
-@@ -9,6 +9,7 @@
-  *  You need an userspace library to cooperate with this driver. It (and other
-  *  info) may be obtained here:
-  *  http://www.fi.muni.cz/~xslaby/phantom.html
-+ *  or alternatively, you might use OpenHaptics provided by Sensable.
-  */
+diff -puN fs/eventpoll.c~fs-eventpollc-use-list_for_each_entry-instead-of-list_for_each fs/eventpoll.c
+--- a/fs/eventpoll.c~fs-eventpollc-use-list_for_each_entry-instead-of-list_for_each
++++ a/fs/eventpoll.c
+@@ -325,15 +325,14 @@ static void ep_poll_safewake(struct poll
+ 	int wake_nests = 0;
+ 	unsigned long flags;
+ 	struct task_struct *this_task = current;
+-	struct list_head *lsthead = &psw->wake_task_list, *lnk;
++	struct list_head *lsthead = &psw->wake_task_list;
+ 	struct wake_task_node *tncur;
+ 	struct wake_task_node tnode;
  
- #include <linux/kernel.h>
+ 	spin_lock_irqsave(&psw->lock, flags);
+ 
+ 	/* Try to see if the current task is already inside this wakeup call */
+-	list_for_each(lnk, lsthead) {
+-		tncur = list_entry(lnk, struct wake_task_node, llink);
++	list_for_each_entry(tncur, lsthead, llink) {
+ 
+ 		if (tncur->wq == wq ||
+ 		    (tncur->task == this_task && ++wake_nests > EP_MAX_POLLWAKE_NESTS)) {
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
 origin.patch
-git-dvb.patch
-v4l-stk11xx-add-a-new-webcam-driver.patch
-v4l-stk11xx-use-array_size-in-another-2-cases.patch
-v4l-stk11xx-use-retval-from-stk11xx_check_device.patch
-v4l-stk11xx-add-static-to-tables.patch
-git-wireless.patch
-dzh-remove-useless-unused-module-junk.patch
-dz-always-check-if-it-is-safe-to-console_putchar.patch
-dz-dont-panic-when-request_irq-fails.patch
-dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
-dz-update-kconfig-description.patch
-dz-rename-the-serial-console-structure.patch
-dz-fix-locking-issues.patch
-dz-handle-special-conditions-on-reception-correctly.patch
-maintainers-add-self-for-the-dz-serial-driver.patch
-remove-asm-bitopsh-includes-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+generic-ac97-mixer-modem-oss-use-list_for_each_entry.patch
+ftdi-elan-driver-convert-ftdi-u132_lock-to-mutex.patch
