@@ -1,230 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:42:09 -0700
-Message-ID: <200710190342.l9J3g9Y2012879@imap1.linux-foundation.org>
+Subject: - cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:42:04 -0700
+Message-ID: <200710190342.l9J3g40d012873@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47138 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37886 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750979AbXJSECm (ORCPT
+	by vger.kernel.org with ESMTP id S1751004AbXJSECr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 00:02:42 -0400
+	Fri, 19 Oct 2007 00:02:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, ak@suse.de, ashok.raj@intel.com, ego@in.ibm.com, jbeulich@novell.com, nix.or.die@googlemail.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, ak@suse.de, ego@in.ibm.com, hpa@zytor.com, jbeulich@novell.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpu hotplug: intel_cacheinfo: fix cpu hotplug error handling
+     cpu hotplug: msr: fix cpu hotplug error handling
 has been removed from the -mm tree.  Its filename was
-     cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling.patch
+     cpu-hotplug-msr-fix-cpu-hotplug-error-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cpu hotplug: intel_cacheinfo: fix cpu hotplug error handling
+Subject: cpu hotplug: msr: fix cpu hotplug error handling
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-- Fix resource leakage in error case within detect_cache_attributes()
+Do msr_device_create() in CPU_UP_PREPARE instead of CPU_ONLINE.
 
-- Don't register hotcpu notifier when cache_add_dev() returns error
-
-- Introduce cache_dev_map cpumask to track whether cache interface for
-  CPU is successfully added by cache_add_dev() or not.
-
-  cache_add_dev() may fail with out of memory error. In order to
-  avoid cache_remove_dev() with that uninitialized cache interface when
-  CPU_DEAD event is delivered we need to have the cache_dev_map cpumask.
-
-  (We cannot change cache_add_dev() from CPU_ONLINE event handler
-  to CPU_UP_PREPARE event handler. Because cache_add_dev() needs
-  to do cpuid and store the results with its CPU online.)
-
-[nix.or.die@googlemail.com: fix a section mismatch warning]
-Cc: Ashok Raj <ashok.raj@intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: Gautham R Shenoy <ego@in.ibm.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Andi Kleen <ak@suse.de>
 Cc: Jan Beulich <jbeulich@novell.com>
-Signed-off-by: Gabriel Craciunescu <nix.or.die@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/intel_cacheinfo.c |   66 ++++++++++++++++--------
- 1 file changed, 45 insertions(+), 21 deletions(-)
+ arch/x86/kernel/msr.c |   35 ++++++++++++++++++++---------------
+ 1 file changed, 20 insertions(+), 15 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/intel_cacheinfo.c~cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling arch/x86/kernel/cpu/intel_cacheinfo.c
---- a/arch/x86/kernel/cpu/intel_cacheinfo.c~cpu-hotplug-intel_cacheinfo-fix-cpu-hotplug-error-handling
-+++ a/arch/x86/kernel/cpu/intel_cacheinfo.c
-@@ -499,6 +499,11 @@ static void __cpuinit cache_remove_share
- 
- static void free_cache_attributes(unsigned int cpu)
- {
-+	int i;
-+
-+	for (i = 0; i < num_cache_leaves; i++)
-+		cache_remove_shared_cpu_map(cpu, i);
-+
- 	kfree(cpuid4_info[cpu]);
- 	cpuid4_info[cpu] = NULL;
- }
-@@ -506,8 +511,8 @@ static void free_cache_attributes(unsign
- static int __cpuinit detect_cache_attributes(unsigned int cpu)
- {
- 	struct _cpuid4_info	*this_leaf;
--	unsigned long 		j;
--	int 			retval;
-+	unsigned long		j;
-+	int			retval;
- 	cpumask_t		oldmask;
- 
- 	if (num_cache_leaves == 0)
-@@ -524,19 +529,26 @@ static int __cpuinit detect_cache_attrib
- 		goto out;
- 
- 	/* Do cpuid and store the results */
--	retval = 0;
- 	for (j = 0; j < num_cache_leaves; j++) {
- 		this_leaf = CPUID4_INFO_IDX(cpu, j);
- 		retval = cpuid4_cache_lookup(j, this_leaf);
--		if (unlikely(retval < 0))
-+		if (unlikely(retval < 0)) {
-+			int i;
-+
-+			for (i = 0; i < j; i++)
-+				cache_remove_shared_cpu_map(cpu, i);
- 			break;
-+		}
- 		cache_shared_cpu_map_setup(cpu, j);
- 	}
- 	set_cpus_allowed(current, oldmask);
- 
- out:
--	if (retval)
--		free_cache_attributes(cpu);
-+	if (retval) {
-+		kfree(cpuid4_info[cpu]);
-+		cpuid4_info[cpu] = NULL;
-+	}
-+
- 	return retval;
- }
- 
-@@ -669,7 +681,7 @@ static struct kobj_type ktype_percpu_ent
- 	.sysfs_ops	= &sysfs_ops,
+diff -puN arch/x86/kernel/msr.c~cpu-hotplug-msr-fix-cpu-hotplug-error-handling arch/x86/kernel/msr.c
+--- a/arch/x86/kernel/msr.c~cpu-hotplug-msr-fix-cpu-hotplug-error-handling
++++ a/arch/x86/kernel/msr.c
+@@ -133,37 +133,42 @@ static const struct file_operations msr_
+ 	.open = msr_open,
  };
  
--static void cpuid4_cache_sysfs_exit(unsigned int cpu)
-+static void __cpuinit cpuid4_cache_sysfs_exit(unsigned int cpu)
+-static int __cpuinit msr_device_create(int i)
++static int msr_device_create(int cpu)
  {
- 	kfree(cache_kobject[cpu]);
- 	kfree(index_kobject[cpu]);
-@@ -680,13 +692,14 @@ static void cpuid4_cache_sysfs_exit(unsi
+-	int err = 0;
+ 	struct device *dev;
  
- static int __cpuinit cpuid4_cache_sysfs_init(unsigned int cpu)
- {
-+	int err;
- 
- 	if (num_cache_leaves == 0)
- 		return -ENOENT;
- 
--	detect_cache_attributes(cpu);
--	if (cpuid4_info[cpu] == NULL)
--		return -ENOENT;
-+	err = detect_cache_attributes(cpu);
-+	if (err)
-+		return err;
- 
- 	/* Allocate all required memory */
- 	cache_kobject[cpu] = kzalloc(sizeof(struct kobject), GFP_KERNEL);
-@@ -705,13 +718,15 @@ err_out:
- 	return -ENOMEM;
+-	dev = device_create(msr_class, NULL, MKDEV(MSR_MAJOR, i), "msr%d",i);
+-	if (IS_ERR(dev))
+-		err = PTR_ERR(dev);
+-	return err;
++	dev = device_create(msr_class, NULL, MKDEV(MSR_MAJOR, cpu),
++			    "msr%d", cpu);
++	return IS_ERR(dev) ? PTR_ERR(dev) : 0;
++}
++
++static void msr_device_destroy(int cpu)
++{
++	device_destroy(msr_class, MKDEV(MSR_MAJOR, cpu));
  }
  
-+static cpumask_t cache_dev_map = CPU_MASK_NONE;
-+
- /* Add/Remove cache interface for CPU device */
- static int __cpuinit cache_add_dev(struct sys_device * sys_dev)
+ static int __cpuinit msr_class_cpu_callback(struct notifier_block *nfb,
+ 				unsigned long action, void *hcpu)
  {
- 	unsigned int cpu = sys_dev->id;
- 	unsigned long i, j;
- 	struct _index_kobject *this_object;
--	int retval = 0;
-+	int retval;
+ 	unsigned int cpu = (unsigned long)hcpu;
++	int err = 0;
  
- 	retval = cpuid4_cache_sysfs_init(cpu);
- 	if (unlikely(retval < 0))
-@@ -721,6 +736,10 @@ static int __cpuinit cache_add_dev(struc
- 	kobject_set_name(cache_kobject[cpu], "%s", "cache");
- 	cache_kobject[cpu]->ktype = &ktype_percpu_entry;
- 	retval = kobject_register(cache_kobject[cpu]);
-+	if (retval < 0) {
-+		cpuid4_cache_sysfs_exit(cpu);
-+		return retval;
-+	}
- 
- 	for (i = 0; i < num_cache_leaves; i++) {
- 		this_object = INDEX_KOBJECT_PTR(cpu,i);
-@@ -740,6 +759,9 @@ static int __cpuinit cache_add_dev(struc
- 			break;
- 		}
+ 	switch (action) {
+-	case CPU_ONLINE:
+-	case CPU_ONLINE_FROZEN:
+-		msr_device_create(cpu);
++	case CPU_UP_PREPARE:
++	case CPU_UP_PREPARE_FROZEN:
++		err = msr_device_create(cpu);
+ 		break;
++	case CPU_UP_CANCELED:
++	case CPU_UP_CANCELED_FROZEN:
+ 	case CPU_DEAD:
+ 	case CPU_DEAD_FROZEN:
+-		device_destroy(msr_class, MKDEV(MSR_MAJOR, cpu));
++		msr_device_destroy(cpu);
+ 		break;
  	}
-+	if (!retval)
-+		cpu_set(cpu, cache_dev_map);
-+
- 	return retval;
+-	return NOTIFY_OK;
++	return err ? NOTIFY_BAD : NOTIFY_OK;
  }
  
-@@ -750,13 +772,14 @@ static void __cpuinit cache_remove_dev(s
- 
- 	if (cpuid4_info[cpu] == NULL)
- 		return;
--	for (i = 0; i < num_cache_leaves; i++) {
--		cache_remove_shared_cpu_map(cpu, i);
-+	if (!cpu_isset(cpu, cache_dev_map))
-+		return;
-+	cpu_clear(cpu, cache_dev_map);
-+
-+	for (i = 0; i < num_cache_leaves; i++)
- 		kobject_unregister(&(INDEX_KOBJECT_PTR(cpu,i)->kobj));
--	}
- 	kobject_unregister(cache_kobject[cpu]);
- 	cpuid4_cache_sysfs_exit(cpu);
--	return;
- }
- 
- static int __cpuinit cacheinfo_cpu_callback(struct notifier_block *nfb,
-@@ -781,7 +804,7 @@ static int __cpuinit cacheinfo_cpu_callb
- 
- static struct notifier_block __cpuinitdata cacheinfo_cpu_notifier =
- {
--    .notifier_call = cacheinfo_cpu_callback,
-+	.notifier_call = cacheinfo_cpu_callback,
+-static struct notifier_block __cpuinitdata msr_class_cpu_notifier =
+-{
++static struct notifier_block __cpuinitdata msr_class_cpu_notifier = {
+ 	.notifier_call = msr_class_cpu_callback,
  };
  
- static int __cpuinit cache_sysfs_init(void)
-@@ -791,14 +814,15 @@ static int __cpuinit cache_sysfs_init(vo
- 	if (num_cache_leaves == 0)
- 		return 0;
- 
--	register_hotcpu_notifier(&cacheinfo_cpu_notifier);
--
- 	for_each_online_cpu(i) {
--		struct sys_device *sys_dev = get_cpu_sysdev((unsigned int)i);
-+		int err;
-+		struct sys_device *sys_dev = get_cpu_sysdev(i);
- 
--		cache_add_dev(sys_dev);
-+		err = cache_add_dev(sys_dev);
-+		if (err)
-+			return err;
- 	}
--
-+	register_hotcpu_notifier(&cacheinfo_cpu_notifier);
- 	return 0;
- }
- 
+@@ -196,7 +201,7 @@ static int __init msr_init(void)
+ out_class:
+ 	i = 0;
+ 	for_each_online_cpu(i)
+-		device_destroy(msr_class, MKDEV(MSR_MAJOR, i));
++		msr_device_destroy(i);
+ 	class_destroy(msr_class);
+ out_chrdev:
+ 	unregister_chrdev(MSR_MAJOR, "cpu/msr");
+@@ -208,7 +213,7 @@ static void __exit msr_exit(void)
+ {
+ 	int cpu = 0;
+ 	for_each_online_cpu(cpu)
+-		device_destroy(msr_class, MKDEV(MSR_MAJOR, cpu));
++		msr_device_destroy(cpu);
+ 	class_destroy(msr_class);
+ 	unregister_chrdev(MSR_MAJOR, "cpu/msr");
+ 	unregister_hotcpu_notifier(&msr_class_cpu_notifier);
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
