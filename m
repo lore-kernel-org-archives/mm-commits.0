@@ -1,166 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-x86_64-remove-unnecessary-binary-paths.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:42:44 -0700
-Message-ID: <200710190342.l9J3gi1b012926@imap1.linux-foundation.org>
+Subject: - char-rocket-remove-potential-leak-in-module_init.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:44:41 -0700
+Message-ID: <200710190344.l9J3ifLt013164@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57035 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33623 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966465AbXJSD4u (ORCPT
+	by vger.kernel.org with ESMTP id S934517AbXJSDzl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:56:50 -0400
+	Thu, 18 Oct 2007 23:55:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, adobriyan@sw.ru, ak@suse.de, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: x86_64 remove unnecessary binary paths
+     Char: rocket, remove potential leak in module_init
 has been removed from the -mm tree.  Its filename was
-     sysctl-x86_64-remove-unnecessary-binary-paths.patch
+     char-rocket-remove-potential-leak-in-module_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: x86_64 remove unnecessary binary paths
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: Char: rocket, remove potential leak in module_init
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Andi Kleen <ak@suse.de>
+if (controller && !request_region) then we leaked a tty driver struct, fix it
+by adding function deinit tail with goto-ing into it (and from other fail
+paths too)
+
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/ia32/ia32_binfmt.c   |    1 -
- arch/x86/kernel/vsyscall_64.c |   10 +---------
- 2 files changed, 1 insertion(+), 10 deletions(-)
+ drivers/char/rocket.c |   34 ++++++++++++++++++++--------------
+ 1 file changed, 20 insertions(+), 14 deletions(-)
 
-diff -puN arch/x86/ia32/ia32_binfmt.c~sysctl-x86_64-remove-unnecessary-binary-paths arch/x86/ia32/ia32_binfmt.c
---- a/arch/x86/ia32/ia32_binfmt.c~sysctl-x86_64-remove-unnecessary-binary-paths
-+++ a/arch/x86/ia32/ia32_binfmt.c
-@@ -289,7 +289,6 @@ static void elf32_init(struct pt_regs *r
+diff -puN drivers/char/rocket.c~char-rocket-remove-potential-leak-in-module_init drivers/char/rocket.c
+--- a/drivers/char/rocket.c~char-rocket-remove-potential-leak-in-module_init
++++ a/drivers/char/rocket.c
+@@ -2359,14 +2359,14 @@ static const struct tty_operations rocke
+  */
+ static int __init rp_init(void)
+ {
+-	int retval, pci_boards_found, isa_boards_found, i;
++	int ret = -ENOMEM, pci_boards_found, isa_boards_found, i;
  
- static ctl_table abi_table2[] = {
- 	{
--		.ctl_name	= 99,
- 		.procname	= "vsyscall32",
- 		.data		= &sysctl_vsyscall32,
- 		.maxlen		= sizeof(int),
-diff -puN arch/x86/kernel/vsyscall_64.c~sysctl-x86_64-remove-unnecessary-binary-paths arch/x86/kernel/vsyscall_64.c
---- a/arch/x86/kernel/vsyscall_64.c~sysctl-x86_64-remove-unnecessary-binary-paths
-+++ a/arch/x86/kernel/vsyscall_64.c
-@@ -266,18 +266,10 @@ out:
- 	return ret;
+ 	printk(KERN_INFO "RocketPort device driver module, version %s, %s\n",
+ 	       ROCKET_VERSION, ROCKET_DATE);
+ 
+ 	rocket_driver = alloc_tty_driver(MAX_RP_PORTS);
+ 	if (!rocket_driver)
+-		return -ENOMEM;
++		goto err;
+ 
+ 	/*
+ 	 *  If board 1 is non-zero, there is at least one ISA configured.  If controller is 
+@@ -2381,8 +2381,11 @@ static int __init rp_init(void)
+ 
+ 	/*  If an ISA card is configured, reserve the 4 byte IO space for the Mudbac controller */
+ 	if (controller && (!request_region(controller, 4, "Comtrol RocketPort"))) {
+-		printk(KERN_INFO "Unable to reserve IO region for first configured ISA RocketPort controller 0x%lx.  Driver exiting \n", controller);
+-		return -EBUSY;
++		printk(KERN_ERR "Unable to reserve IO region for first "
++			"configured ISA RocketPort controller 0x%lx.  "
++			"Driver exiting\n", controller);
++		ret = -EBUSY;
++		goto err_tty;
+ 	}
+ 
+ 	/*  Store ISA variable retrieved from command line or .conf file. */
+@@ -2423,11 +2426,10 @@ static int __init rp_init(void)
+ #endif
+ 	tty_set_operations(rocket_driver, &rocket_ops);
+ 
+-	retval = tty_register_driver(rocket_driver);
+-	if (retval < 0) {
+-		printk(KERN_INFO "Couldn't install tty RocketPort driver (error %d)\n", -retval);
+-		put_tty_driver(rocket_driver);
+-		return -1;
++	ret = tty_register_driver(rocket_driver);
++	if (ret < 0) {
++		printk(KERN_ERR "Couldn't install tty RocketPort driver\n");
++		goto err_tty;
+ 	}
+ 
+ #ifdef ROCKET_DEBUG_OPEN
+@@ -2454,14 +2456,18 @@ static int __init rp_init(void)
+ 	max_board = pci_boards_found + isa_boards_found;
+ 
+ 	if (max_board == 0) {
+-		printk(KERN_INFO "No rocketport ports found; unloading driver.\n");
+-		del_timer_sync(&rocket_timer);
+-		tty_unregister_driver(rocket_driver);
+-		put_tty_driver(rocket_driver);
+-		return -ENXIO;
++		printk(KERN_ERR "No rocketport ports found; unloading driver\n");
++		ret = -ENXIO;
++		goto err_ttyu;
+ 	}
+ 
+ 	return 0;
++err_ttyu:
++	tty_unregister_driver(rocket_driver);
++err_tty:
++	put_tty_driver(rocket_driver);
++err:
++	return ret;
  }
  
--static int vsyscall_sysctl_nostrat(ctl_table *t, int __user *name, int nlen,
--				void __user *oldval, size_t __user *oldlenp,
--				void __user *newval, size_t newlen)
--{
--	return -ENOSYS;
--}
--
- static ctl_table kernel_table2[] = {
--	{ .ctl_name = 99, .procname = "vsyscall64",
-+	{ .procname = "vsyscall64",
- 	  .data = &vsyscall_gtod_data.sysctl_enabled, .maxlen = sizeof(int),
- 	  .mode = 0644,
--	  .strategy = vsyscall_sysctl_nostrat,
- 	  .proc_handler = vsyscall_sysctl_change },
- 	{}
- };
+ 
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-update-boot-spec-to-207.patch
-i386-paravirt-boot-sequence.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-task-containersv11-basic-task-container-framework.patch
-task-containersv11-add-tasks-file-interface.patch
-task-containersv11-add-fork-exit-hooks.patch
-task-containersv11-add-container_clone-interface.patch
-task-containersv11-add-procfs-interface.patch
-task-containersv11-shared-container-subsystem-group-arrays.patch
-task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups.patch
-task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers.patch
-task-containersv11-make-cpusets-a-client-of-containers.patch
-task-containersv11-example-cpu-accounting-subsystem.patch
-task-containersv11-simple-task-container-debug-info-subsystem.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-make-access-to-tasks-nsproxy-lighter.patch
-make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
-make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-uninline-find_task_by_xxx-set-of-functions.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
-uninline-find_pid-etc-set-of-functions.patch
-uninline-the-task_xid_nr_ns-calls.patch
-fix-cpusets-update_cpumask.patch
-fix-cpusets-update_cpumask-checkpatch-fixes.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
-virtualization-of-sysv-msg-queues-is-incomplete.patch
-extended-crashkernel-command-line.patch
-use-extended-crashkernel-command-line-on-i386.patch
-use-extended-crashkernel-command-line-on-x86_64.patch
-use-extended-crashkernel-command-line-on-ia64.patch
-use-extended-crashkernel-command-line-on-ia64-fix.patch
-use-extended-crashkernel-command-line-on-ppc64.patch
-use-extended-crashkernel-command-line-on-sh.patch
-add-documentation-for-extended-crashkernel-syntax.patch
-kexec-add-bss-to-resource-tree.patch
-kexec-introduce-bootmem_exclusive.patch
-kexec-use-bootmem_exclusive-on-x86.patch
+git-dvb.patch
+v4l-stk11xx-add-a-new-webcam-driver.patch
+v4l-stk11xx-use-array_size-in-another-2-cases.patch
+v4l-stk11xx-use-retval-from-stk11xx_check_device.patch
+v4l-stk11xx-add-static-to-tables.patch
+git-wireless.patch
+misc-phantom-synchronize_irq-on-suspend.patch
+misc-phantom-add-comment-about-openhaptics.patch
+misc-phantom-improved-data-passing.patch
+fs-select-remove-unused-macros.patch
+remove-asm-bitopsh-includes.patch
+forbid-asm-bitopsh-direct-inclusion.patch
+cyber2000fb-rename-bit-macro.patch
+i2c-pxa-rename-bit-macro-to-pxa_bit.patch
+s2io-rename-bit-macro.patch
+amba-pl011-rename-bit-macro.patch
+define-first-set-of-bit-macros.patch
+get-rid-of-input-bit-duplicate-defines.patch
+define-global-bit-macro.patch
+flashpoint-use-bit-instead-of-bitw.patch
+remove-bits_to_type-macro.patch
+remove-bits_to_type-macro-fix.patch
+remove-asm-bitopsh-includes-reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
