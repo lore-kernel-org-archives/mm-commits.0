@@ -1,86 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - char-moxa-remove-sleep_on.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:44:30 -0700
-Message-ID: <200710190344.l9J3iUTp013149@imap1.linux-foundation.org>
+Subject: - char-rocket-fix-signed-unsigned-warning.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:44:43 -0700
+Message-ID: <200710190344.l9J3ihhP013167@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45078 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47453 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934301AbXJSDze (ORCPT
+	by vger.kernel.org with ESMTP id S1763985AbXJSDzc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:55:34 -0400
+	Thu, 18 Oct 2007 23:55:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: moxa, remove sleep_on
+     Char: rocket, fix signed/unsigned warning
 has been removed from the -mm tree.  Its filename was
-     char-moxa-remove-sleep_on.patch
+     char-rocket-fix-signed-unsigned-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: moxa, remove sleep_on
+Subject: Char: rocket, fix signed/unsigned warning
 From: Jiri Slaby <jirislaby@gmail.com>
-
-interruptible_sleep_on is deprecated, use completion instead
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/moxa.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/char/rocket.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/moxa.c~char-moxa-remove-sleep_on drivers/char/moxa.c
---- a/drivers/char/moxa.c~char-moxa-remove-sleep_on
-+++ a/drivers/char/moxa.c
-@@ -41,6 +41,7 @@
- #include <linux/pci.h>
- #include <linux/init.h>
- #include <linux/bitops.h>
-+#include <linux/completion.h>
- 
- #include <asm/system.h>
- #include <asm/io.h>
-@@ -142,7 +143,7 @@ struct moxa_port {
- 	struct tty_struct *tty;
- 	int cflag;
- 	wait_queue_head_t open_wait;
--	wait_queue_head_t close_wait;
-+	struct completion close_wait;
- 
- 	struct timer_list emptyTimer;
- 
-@@ -374,7 +375,7 @@ static int __init moxa_init(void)
- 		ch->closing_wait = 30 * HZ;
- 		ch->cflag = B9600 | CS8 | CREAD | CLOCAL | HUPCL;
- 		init_waitqueue_head(&ch->open_wait);
--		init_waitqueue_head(&ch->close_wait);
-+		init_completion(&ch->close_wait);
- 
- 		setup_timer(&ch->emptyTimer, moxa_check_xmit_empty,
- 				(unsigned long)ch);
-@@ -577,7 +578,7 @@ static void moxa_close(struct tty_struct
- 		wake_up_interruptible(&ch->open_wait);
- 	}
- 	ch->asyncflags &= ~(ASYNC_NORMAL_ACTIVE | ASYNC_CLOSING);
--	wake_up_interruptible(&ch->close_wait);
-+	complete_all(&ch->close_wait);
- }
- 
- static int moxa_write(struct tty_struct *tty,
-@@ -941,7 +942,7 @@ static int moxa_block_till_ready(struct 
- 	 */
- 	if (tty_hung_up_p(filp) || (ch->asyncflags & ASYNC_CLOSING)) {
- 		if (ch->asyncflags & ASYNC_CLOSING)
--			interruptible_sleep_on(&ch->close_wait);
-+			wait_for_completion_interruptible(&ch->close_wait);
- #ifdef SERIAL_DO_RESTART
- 		if (ch->asyncflags & ASYNC_HUP_NOTIFY)
- 			return (-EAGAIN);
+diff -puN drivers/char/rocket.c~char-rocket-fix-signed-unsigned-warning drivers/char/rocket.c
+--- a/drivers/char/rocket.c~char-rocket-fix-signed-unsigned-warning
++++ a/drivers/char/rocket.c
+@@ -549,8 +549,8 @@ static void rp_handle_port(struct r_port
+ static void rp_do_poll(unsigned long dummy)
+ {
+ 	CONTROLLER_t *ctlp;
+-	int ctrl, aiop, ch, line, i;
+-	unsigned int xmitmask;
++	int ctrl, aiop, ch, line;
++	unsigned int xmitmask, i;
+ 	unsigned int CtlMask;
+ 	unsigned char AiopMask;
+ 	Word_t bit;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
