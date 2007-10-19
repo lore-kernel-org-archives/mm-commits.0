@@ -1,729 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - char-cyclades-make-the-isr-code-readable.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:44:17 -0700
-Message-ID: <200710190344.l9J3iHK2013131@imap1.linux-foundation.org>
+Subject: - char-mxser_new-upgrade-to-110.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:43:20 -0700
+Message-ID: <200710190343.l9J3hKUc013044@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45176 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40602 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966250AbXJSDzq (ORCPT
+	by vger.kernel.org with ESMTP id S934495AbXJSDzl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:55:46 -0400
+	Thu, 18 Oct 2007 23:55:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: cyclades, make the isr code readable
+     Char: mxser_new, upgrade to 1.10
 has been removed from the -mm tree.  Its filename was
-     char-cyclades-make-the-isr-code-readable.patch
+     char-mxser_new-upgrade-to-110.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: cyclades, make the isr code readable
+Subject: Char: mxser_new, upgrade to 1.10
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Due to large indent the code was wrapped and unreadable.  Create 3 function
-instead of one and reorder the code, so it is readable now.
+mxser_new, upgrade to 1.10
+
+This adds support for new (5 cards) hardware.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |  623 +++++++++++++++++---------------------
- 1 file changed, 295 insertions(+), 328 deletions(-)
+ drivers/char/mxser_new.c |   32 ++++++++++++++++++++++++--------
+ 1 file changed, 24 insertions(+), 8 deletions(-)
 
-diff -puN drivers/char/cyclades.c~char-cyclades-make-the-isr-code-readable drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-cyclades-make-the-isr-code-readable
-+++ a/drivers/char/cyclades.c
-@@ -980,378 +980,342 @@ static unsigned detect_isa_irq(void __io
- }
- #endif				/* CONFIG_ISA */
+diff -puN drivers/char/mxser_new.c~char-mxser_new-upgrade-to-110 drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~char-mxser_new-upgrade-to-110
++++ a/drivers/char/mxser_new.c
+@@ -2,7 +2,7 @@
+  *          mxser.c  -- MOXA Smartio/Industio family multiport serial driver.
+  *
+  *      Copyright (C) 1999-2006  Moxa Technologies (support@moxa.com.tw).
+- *	Copyright (C) 2006       Jiri Slaby <jirislaby@gmail.com>
++ *	Copyright (C) 2006-2007  Jiri Slaby <jirislaby@gmail.com>
+  *
+  *      This code is loosely based on the 1.8 moxa driver which is based on
+  *	Linux serial driver, written by Linus Torvalds, Theodore T'so and
+@@ -48,7 +48,7 @@
  
--static void cyy_intr_chip(struct cyclades_card *cinfo, int chip,
--			void __iomem * base_addr, int status, int index)
-+static void cyy_chip_rx(struct cyclades_card *cinfo, int chip,
-+		void __iomem *base_addr)
- {
- 	struct cyclades_port *info;
- 	struct tty_struct *tty;
- 	int char_count;
--	int j, len, mdm_change, mdm_status, outch;
-+	int j, len, index = cinfo->bus_index;
- 	int save_xir, channel, save_car;
- 	char data;
+ #include "mxser_new.h"
  
--	if (status & CySRReceive) {	/* reception interrupt */
- #ifdef CY_DEBUG_INTERRUPTS
--		printk(KERN_DEBUG "cyy_interrupt: rcvd intr, chip %d\n", chip);
-+	printk(KERN_DEBUG "cyy_interrupt: rcvd intr, chip %d\n", chip);
- #endif
--		/* determine the channel & change to that context */
--		spin_lock(&cinfo->card_lock);
--		save_xir = (u_char) readb(base_addr + (CyRIR << index));
--		channel = (u_short) (save_xir & CyIRChannel);
--		info = &cinfo->ports[channel + chip * 4];
--		save_car = readb(base_addr + (CyCAR << index));
--		cy_writeb(base_addr + (CyCAR << index), save_xir);
--
--		/* if there is nowhere to put the data, discard it */
--		if (info->tty == NULL) {
--			j = (readb(base_addr + (CyRIVR << index)) &
--				CyIVRMask);
--			if (j == CyIVRRxEx) {	/* exception */
--				data = readb(base_addr + (CyRDSR << index));
--			} else {	/* normal character reception */
--				char_count = readb(base_addr +
--						(CyRDCR << index));
--				while (char_count--) {
--					data = readb(base_addr +
--						(CyRDSR << index));
--				}
--			}
--		} else {	/* there is an open port for this data */
--			tty = info->tty;
--			j = (readb(base_addr + (CyRIVR << index)) &
--					CyIVRMask);
--			if (j == CyIVRRxEx) {	/* exception */
-+	/* determine the channel & change to that context */
-+	spin_lock(&cinfo->card_lock);
-+	save_xir = (u_char) readb(base_addr + (CyRIR << index));
-+	channel = (u_short) (save_xir & CyIRChannel);
-+	info = &cinfo->ports[channel + chip * 4];
-+	save_car = readb(base_addr + (CyCAR << index));
-+	cy_writeb(base_addr + (CyCAR << index), save_xir);
+-#define	MXSER_VERSION	"2.0.1"		/* 1.9.15 */
++#define	MXSER_VERSION	"2.0.2"		/* 1.10 */
+ #define	MXSERMAJOR	 174
+ #define	MXSERCUMAJOR	 175
+ 
+@@ -72,6 +72,12 @@
+ #define UART_MCR_AFE		0x20
+ #define UART_LSR_SPECIAL	0x1E
+ 
++#define PCI_DEVICE_ID_CB108	0x1080
++#define PCI_DEVICE_ID_CB114	0x1142
++#define PCI_DEVICE_ID_CB134I	0x1341
++#define PCI_DEVICE_ID_CP138U	0x1380
++#define PCI_DEVICE_ID_POS104UL	0x1044
 +
-+	/* if there is nowhere to put the data, discard it */
-+	if (info->tty == NULL) {
-+		j = (readb(base_addr + (CyRIVR << index)) & CyIVRMask);
-+		if (j == CyIVRRxEx) {	/* exception */
-+			data = readb(base_addr + (CyRDSR << index));
-+		} else {	/* normal character reception */
-+			char_count = readb(base_addr + (CyRDCR << index));
-+			while (char_count--)
- 				data = readb(base_addr + (CyRDSR << index));
-+		}
-+		goto end;
-+	}
-+	/* there is an open port for this data */
-+	tty = info->tty;
-+	j = readb(base_addr + (CyRIVR << index)) & CyIVRMask;
-+	if (j == CyIVRRxEx) {	/* exception */
-+		data = readb(base_addr + (CyRDSR << index));
-+
-+		/* For statistics only */
-+		if (data & CyBREAK)
-+			info->icount.brk++;
-+		else if (data & CyFRAME)
-+			info->icount.frame++;
-+		else if (data & CyPARITY)
-+			info->icount.parity++;
-+		else if (data & CyOVERRUN)
-+			info->icount.overrun++;
  
--				/* For statistics only */
--				if (data & CyBREAK)
--					info->icount.brk++;
--				else if (data & CyFRAME)
--					info->icount.frame++;
--				else if (data & CyPARITY)
--					info->icount.parity++;
--				else if (data & CyOVERRUN)
--					info->icount.overrun++;
--
--				if (data & info->ignore_status_mask) {
-+		if (data & info->ignore_status_mask) {
-+			info->icount.rx++;
-+			spin_unlock(&cinfo->card_lock);
-+			return;
-+		}
-+		if (tty_buffer_request_room(tty, 1)) {
-+			if (data & info->read_status_mask) {
-+				if (data & CyBREAK) {
-+					tty_insert_flip_char(tty,
-+						readb(base_addr + (CyRDSR <<
-+							index)), TTY_BREAK);
-+					info->icount.rx++;
-+					if (info->flags & ASYNC_SAK)
-+						do_SAK(tty);
-+				} else if (data & CyFRAME) {
-+					tty_insert_flip_char( tty,
-+						readb(base_addr + (CyRDSR <<
-+							index)), TTY_FRAME);
-+					info->icount.rx++;
-+					info->idle_stats.frame_errs++;
-+				} else if (data & CyPARITY) {
-+					/* Pieces of seven... */
-+					tty_insert_flip_char(tty,
-+						readb(base_addr + (CyRDSR <<
-+							index)), TTY_PARITY);
-+					info->icount.rx++;
-+					info->idle_stats.parity_errs++;
-+				} else if (data & CyOVERRUN) {
-+					tty_insert_flip_char(tty, 0,
-+							TTY_OVERRUN);
-+					info->icount.rx++;
-+					/* If the flip buffer itself is
-+					   overflowing, we still lose
-+					   the next incoming character.
-+					 */
-+					tty_insert_flip_char(tty,
-+						readb(base_addr + (CyRDSR <<
-+							index)), TTY_FRAME);
- 					info->icount.rx++;
--					spin_unlock(&cinfo->card_lock);
--					return;
--				}
--				if (tty_buffer_request_room(tty, 1)) {
--					if (data & info->read_status_mask) {
--						if (data & CyBREAK) {
--							tty_insert_flip_char(
--								tty,
--								readb(
--								base_addr +
--								(CyRDSR <<
--									index)),
--								TTY_BREAK);
--							info->icount.rx++;
--							if (info->flags &
--							    ASYNC_SAK) {
--								do_SAK(tty);
--							}
--						} else if (data & CyFRAME) {
--							tty_insert_flip_char(
--								tty,
--								readb(
--								base_addr +
--								(CyRDSR <<
--									index)),
--								TTY_FRAME);
--							info->icount.rx++;
--							info->idle_stats.
--								frame_errs++;
--						} else if (data & CyPARITY) {
--							/* Pieces of seven... */
--							tty_insert_flip_char(
--								tty,
--								readb(
--								base_addr +
--								(CyRDSR <<
--									index)),
--								TTY_PARITY);
--							info->icount.rx++;
--							info->idle_stats.
--								parity_errs++;
--						} else if (data & CyOVERRUN) {
--							tty_insert_flip_char(
--								tty, 0,
--								TTY_OVERRUN);
--							info->icount.rx++;
--						/* If the flip buffer itself is
--						   overflowing, we still lose
--						   the next incoming character.
--						 */
--							tty_insert_flip_char(
--								tty,
--								readb(
--								base_addr +
--								(CyRDSR <<
--									index)),
--								TTY_FRAME);
--							info->icount.rx++;
--							info->idle_stats.
--								overruns++;
--					/* These two conditions may imply */
--					/* a normal read should be done. */
--					/* }else if(data & CyTIMEOUT){ */
--					/* }else if(data & CySPECHAR){ */
--						} else {
--							tty_insert_flip_char(
--								tty, 0,
--								TTY_NORMAL);
--							info->icount.rx++;
--						}
--					} else {
--						tty_insert_flip_char(tty, 0,
--								TTY_NORMAL);
--						info->icount.rx++;
--					}
--				} else {
--					/* there was a software buffer
--					   overrun and nothing could be
--					   done about it!!! */
--					info->icount.buf_overrun++;
- 					info->idle_stats.overruns++;
-+				/* These two conditions may imply */
-+				/* a normal read should be done. */
-+				/* } else if(data & CyTIMEOUT) { */
-+				/* } else if(data & CySPECHAR) { */
-+				} else {
-+					tty_insert_flip_char(tty, 0,
-+							TTY_NORMAL);
-+					info->icount.rx++;
- 				}
--			} else {	/* normal character reception */
--				/* load # chars available from the chip */
--				char_count = readb(base_addr +
--						(CyRDCR << index));
-+			} else {
-+				tty_insert_flip_char(tty, 0, TTY_NORMAL);
-+				info->icount.rx++;
-+			}
-+		} else {
-+			/* there was a software buffer overrun and nothing
-+			 * could be done about it!!! */
-+			info->icount.buf_overrun++;
-+			info->idle_stats.overruns++;
-+		}
-+	} else {	/* normal character reception */
-+		/* load # chars available from the chip */
-+		char_count = readb(base_addr + (CyRDCR << index));
+ #define C168_ASIC_ID    1
+ #define C104_ASIC_ID    2
+@@ -107,30 +113,35 @@ struct mxser_cardinfo {
+ };
  
- #ifdef CY_ENABLE_MONITORING
--				++info->mon.int_count;
--				info->mon.char_count += char_count;
--				if (char_count > info->mon.char_max)
--					info->mon.char_max = char_count;
--				info->mon.char_last = char_count;
--#endif
--				len = tty_buffer_request_room(tty, char_count);
--				while (len--) {
--					data = readb(base_addr +
--							(CyRDSR << index));
--					tty_insert_flip_char(tty, data,
--							TTY_NORMAL);
--					info->idle_stats.recv_bytes++;
--					info->icount.rx++;
-+		++info->mon.int_count;
-+		info->mon.char_count += char_count;
-+		if (char_count > info->mon.char_max)
-+			info->mon.char_max = char_count;
-+		info->mon.char_last = char_count;
-+#endif
-+		len = tty_buffer_request_room(tty, char_count);
-+		while (len--) {
-+			data = readb(base_addr + (CyRDSR << index));
-+			tty_insert_flip_char(tty, data, TTY_NORMAL);
-+			info->idle_stats.recv_bytes++;
-+			info->icount.rx++;
- #ifdef CY_16Y_HACK
--					udelay(10L);
-+			udelay(10L);
- #endif
--				}
--				info->idle_stats.recv_idle = jiffies;
--			}
--			tty_schedule_flip(tty);
- 		}
--		/* end of service */
--		cy_writeb(base_addr + (CyRIR << index), (save_xir & 0x3f));
--		cy_writeb(base_addr + (CyCAR << index), (save_car));
--		spin_unlock(&cinfo->card_lock);
-+		info->idle_stats.recv_idle = jiffies;
- 	}
-+	tty_schedule_flip(tty);
-+end:
-+	/* end of service */
-+	cy_writeb(base_addr + (CyRIR << index), save_xir & 0x3f);
-+	cy_writeb(base_addr + (CyCAR << index), save_car);
-+	spin_unlock(&cinfo->card_lock);
-+}
-+
-+static void cyy_chip_tx(struct cyclades_card *cinfo, int chip,
-+		void __iomem *base_addr)
-+{
-+	struct cyclades_port *info;
-+	int char_count;
-+	int outch;
-+	int save_xir, channel, save_car, index = cinfo->bus_index;
+ static const struct mxser_cardinfo mxser_cards[] = {
+-	{ 8, "C168 series", },			/* C168-ISA */
++/* 0*/	{ 8, "C168 series", },			/* C168-ISA */
+ 	{ 4, "C104 series", },			/* C104-ISA */
+ 	{ 4, "CI-104J series", },		/* CI104J */
+ 	{ 8, "C168H/PCI series", },		/* C168-PCI */
+ 	{ 4, "C104H/PCI series", },		/* C104-PCI */
+-	{ 4, "C102 series", MXSER_HAS2 },	/* C102-ISA */
++/* 5*/	{ 4, "C102 series", MXSER_HAS2 },	/* C102-ISA */
+ 	{ 4, "CI-132 series", MXSER_HAS2 },	/* CI132 */
+ 	{ 4, "CI-134 series", },		/* CI134 */
+ 	{ 2, "CP-132 series", },		/* CP132 */
+ 	{ 4, "CP-114 series", },		/* CP114 */
+-	{ 4, "CT-114 series", },		/* CT114 */
++/*10*/	{ 4, "CT-114 series", },		/* CT114 */
+ 	{ 2, "CP-102 series", MXSER_HIGHBAUD },	/* CP102 */
+ 	{ 4, "CP-104U series", },		/* CP104U */
+ 	{ 8, "CP-168U series", },		/* CP168U */
+ 	{ 2, "CP-132U series", },		/* CP132U */
+-	{ 4, "CP-134U series", },		/* CP134U */
++/*15*/	{ 4, "CP-134U series", },		/* CP134U */
+ 	{ 4, "CP-104JU series", },		/* CP104JU */
+ 	{ 8, "Moxa UC7000 Serial", },		/* RC7000 */
+ 	{ 8, "CP-118U series", },		/* CP118U */
+ 	{ 2, "CP-102UL series", },		/* CP102UL */
+-	{ 2, "CP-102U series", },		/* CP102U */
++/*20*/	{ 2, "CP-102U series", },		/* CP102U */
+ 	{ 8, "CP-118EL series", },		/* CP118EL */
+ 	{ 8, "CP-168EL series", },		/* CP168EL */
+-	{ 4, "CP-104EL series", }		/* CP104EL */
++	{ 4, "CP-104EL series", },
++	{ 8, "CB-108 series", },
++/*25*/	{ 4, "CB-114 series", },
++	{ 4, "CB-134I series", },
++	{ 8, "CP-138U series", },
++	{ 4, "POS-104UL series", }
+ };
  
--	if (status & CySRTransmit) {	/* transmission interrupt */
--		/* Since we only get here when the transmit buffer
--		   is empty, we know we can always stuff a dozen
--		   characters. */
-+	/* Since we only get here when the transmit buffer
-+	   is empty, we know we can always stuff a dozen
-+	   characters. */
- #ifdef CY_DEBUG_INTERRUPTS
--		printk(KERN_DEBUG "cyy_interrupt: xmit intr, chip %d\n", chip);
-+	printk(KERN_DEBUG "cyy_interrupt: xmit intr, chip %d\n", chip);
- #endif
- 
--		/* determine the channel & change to that context */
--		spin_lock(&cinfo->card_lock);
--		save_xir = (u_char) readb(base_addr + (CyTIR << index));
--		channel = (u_short) (save_xir & CyIRChannel);
--		save_car = readb(base_addr + (CyCAR << index));
--		cy_writeb(base_addr + (CyCAR << index), save_xir);
-+	/* determine the channel & change to that context */
-+	spin_lock(&cinfo->card_lock);
-+	save_xir = (u_char) readb(base_addr + (CyTIR << index));
-+	channel = (u_short) (save_xir & CyIRChannel);
-+	save_car = readb(base_addr + (CyCAR << index));
-+	cy_writeb(base_addr + (CyCAR << index), save_xir);
- 
--		/* validate the port# (as configured and open) */
--		if (channel + chip * 4 >= cinfo->nports) {
--			cy_writeb(base_addr + (CySRER << index),
--				  readb(base_addr + (CySRER << index)) &
--				  ~CyTxRdy);
--			goto txend;
--		}
--		info = &cinfo->ports[channel + chip * 4];
--		if (info->tty == NULL) {
--			cy_writeb(base_addr + (CySRER << index),
--				  readb(base_addr + (CySRER << index)) &
--				  ~CyTxRdy);
--			goto txend;
--		}
-+	/* validate the port# (as configured and open) */
-+	if (channel + chip * 4 >= cinfo->nports) {
-+		cy_writeb(base_addr + (CySRER << index),
-+			  readb(base_addr + (CySRER << index)) & ~CyTxRdy);
-+		goto end;
-+	}
-+	info = &cinfo->ports[channel + chip * 4];
-+	if (info->tty == NULL) {
-+		cy_writeb(base_addr + (CySRER << index),
-+			  readb(base_addr + (CySRER << index)) & ~CyTxRdy);
-+		goto end;
-+	}
- 
--		/* load the on-chip space for outbound data */
--		char_count = info->xmit_fifo_size;
-+	/* load the on-chip space for outbound data */
-+	char_count = info->xmit_fifo_size;
- 
--		if (info->x_char) {	/* send special char */
--			outch = info->x_char;
--			cy_writeb(base_addr + (CyTDR << index), outch);
--			char_count--;
--			info->icount.tx++;
--			info->x_char = 0;
--		}
-+	if (info->x_char) {	/* send special char */
-+		outch = info->x_char;
-+		cy_writeb(base_addr + (CyTDR << index), outch);
-+		char_count--;
-+		info->icount.tx++;
-+		info->x_char = 0;
-+	}
- 
--		if (info->breakon || info->breakoff) {
--			if (info->breakon) {
--				cy_writeb(base_addr + (CyTDR << index), 0);
--				cy_writeb(base_addr + (CyTDR << index), 0x81);
--				info->breakon = 0;
--				char_count -= 2;
--			}
--			if (info->breakoff) {
--				cy_writeb(base_addr + (CyTDR << index), 0);
--				cy_writeb(base_addr + (CyTDR << index), 0x83);
--				info->breakoff = 0;
--				char_count -= 2;
--			}
-+	if (info->breakon || info->breakoff) {
-+		if (info->breakon) {
-+			cy_writeb(base_addr + (CyTDR << index), 0);
-+			cy_writeb(base_addr + (CyTDR << index), 0x81);
-+			info->breakon = 0;
-+			char_count -= 2;
- 		}
-+		if (info->breakoff) {
-+			cy_writeb(base_addr + (CyTDR << index), 0);
-+			cy_writeb(base_addr + (CyTDR << index), 0x83);
-+			info->breakoff = 0;
-+			char_count -= 2;
-+		}
-+	}
- 
--		while (char_count-- > 0) {
--			if (!info->xmit_cnt) {
--				if (readb(base_addr + (CySRER << index)) &
--						CyTxMpty) {
--					cy_writeb(base_addr + (CySRER << index),
--						readb(base_addr +
--							(CySRER << index)) &
-+	while (char_count-- > 0) {
-+		if (!info->xmit_cnt) {
-+			if (readb(base_addr + (CySRER << index)) & CyTxMpty) {
-+				cy_writeb(base_addr + (CySRER << index),
-+					readb(base_addr + (CySRER << index)) &
- 						~CyTxMpty);
--				} else {
--					cy_writeb(base_addr + (CySRER << index),
--						(readb(base_addr +
--						  	(CySRER << index)) &
-+			} else {
-+				cy_writeb(base_addr + (CySRER << index),
-+					(readb(base_addr + (CySRER << index)) &
- 						~CyTxRdy) | CyTxMpty);
--				}
--				goto txdone;
- 			}
--			if (info->xmit_buf == NULL) {
--				cy_writeb(base_addr + (CySRER << index),
--					readb(base_addr + (CySRER << index)) &
-+			goto done;
-+		}
-+		if (info->xmit_buf == NULL) {
-+			cy_writeb(base_addr + (CySRER << index),
-+				readb(base_addr + (CySRER << index)) &
- 					~CyTxRdy);
--				goto txdone;
--			}
--			if (info->tty->stopped || info->tty->hw_stopped) {
--				cy_writeb(base_addr + (CySRER << index),
--					readb(base_addr + (CySRER << index)) &
-+			goto done;
-+		}
-+		if (info->tty->stopped || info->tty->hw_stopped) {
-+			cy_writeb(base_addr + (CySRER << index),
-+				readb(base_addr + (CySRER << index)) &
- 					~CyTxRdy);
--				goto txdone;
--			}
--			/* Because the Embedded Transmit Commands have
--			   been enabled, we must check to see if the
--			   escape character, NULL, is being sent.  If it
--			   is, we must ensure that there is room for it
--			   to be doubled in the output stream.  Therefore
--			   we no longer advance the pointer when the
--			   character is fetched, but rather wait until
--			   after the check for a NULL output character.
--			   This is necessary because there may not be
--			   room for the two chars needed to send a NULL.)
--			 */
--			outch = info->xmit_buf[info->xmit_tail];
--			if (outch) {
-+			goto done;
-+		}
-+		/* Because the Embedded Transmit Commands have been enabled,
-+		 * we must check to see if the escape character, NULL, is being
-+		 * sent. If it is, we must ensure that there is room for it to
-+		 * be doubled in the output stream.  Therefore we no longer
-+		 * advance the pointer when the character is fetched, but
-+		 * rather wait until after the check for a NULL output
-+		 * character. This is necessary because there may not be room
-+		 * for the two chars needed to send a NULL.)
-+		 */
-+		outch = info->xmit_buf[info->xmit_tail];
-+		if (outch) {
-+			info->xmit_cnt--;
-+			info->xmit_tail = (info->xmit_tail + 1) &
-+					(SERIAL_XMIT_SIZE - 1);
-+			cy_writeb(base_addr + (CyTDR << index), outch);
-+			info->icount.tx++;
-+		} else {
-+			if (char_count > 1) {
- 				info->xmit_cnt--;
- 				info->xmit_tail = (info->xmit_tail + 1) &
--						(SERIAL_XMIT_SIZE - 1);
-+					(SERIAL_XMIT_SIZE - 1);
- 				cy_writeb(base_addr + (CyTDR << index), outch);
-+				cy_writeb(base_addr + (CyTDR << index), 0);
- 				info->icount.tx++;
--			} else {
--				if (char_count > 1) {
--					info->xmit_cnt--;
--					info->xmit_tail = (info->xmit_tail + 1)&
--						(SERIAL_XMIT_SIZE - 1);
--					cy_writeb(base_addr + (CyTDR << index),
--						outch);
--					cy_writeb(base_addr + (CyTDR << index),
--						0);
--					info->icount.tx++;
--					char_count--;
--				}
-+				char_count--;
- 			}
- 		}
-+	}
- 
--txdone:
--		tty_wakeup(info->tty);
--txend:
--		/* end of service */
--		cy_writeb(base_addr + (CyTIR << index), (save_xir & 0x3f));
--		cy_writeb(base_addr + (CyCAR << index), (save_car));
--		spin_unlock(&cinfo->card_lock);
--	}
--
--	if (status & CySRModem) {	/* modem interrupt */
--
--		/* determine the channel & change to that context */
--		spin_lock(&cinfo->card_lock);
--		save_xir = (u_char) readb(base_addr + (CyMIR << index));
--		channel = (u_short) (save_xir & CyIRChannel);
--		info = &cinfo->ports[channel + chip * 4];
--		save_car = readb(base_addr + (CyCAR << index));
--		cy_writeb(base_addr + (CyCAR << index), save_xir);
-+done:
-+	tty_wakeup(info->tty);
-+end:
-+	/* end of service */
-+	cy_writeb(base_addr + (CyTIR << index), save_xir & 0x3f);
-+	cy_writeb(base_addr + (CyCAR << index), save_car);
-+	spin_unlock(&cinfo->card_lock);
-+}
- 
--		mdm_change = readb(base_addr + (CyMISR << index));
--		mdm_status = readb(base_addr + (CyMSVR1 << index));
-+static void cyy_chip_modem(struct cyclades_card *cinfo, int chip,
-+		void __iomem *base_addr)
-+{
-+	struct cyclades_port *info;
-+	int mdm_change, mdm_status;
-+	int save_xir, channel, save_car, index = cinfo->bus_index;
- 
--		if (info->tty) {
--			if (mdm_change & CyANY_DELTA) {
--				/* For statistics only */
--				if (mdm_change & CyDCD)
--					info->icount.dcd++;
--				if (mdm_change & CyCTS)
--					info->icount.cts++;
--				if (mdm_change & CyDSR)
--					info->icount.dsr++;
--				if (mdm_change & CyRI)
--					info->icount.rng++;
--
--				wake_up_interruptible(&info->delta_msr_wait);
--			}
--
--			if ((mdm_change & CyDCD) &&
--					(info->flags & ASYNC_CHECK_CD)) {
--				if (!(mdm_status & CyDCD)) {
--					tty_hangup(info->tty);
--					info->flags &= ~ASYNC_NORMAL_ACTIVE;
--				}
--				wake_up_interruptible(&info->open_wait);
--			}
--			if ((mdm_change & CyCTS) &&
--					(info->flags & ASYNC_CTS_FLOW)) {
--				if (info->tty->hw_stopped) {
--					if (mdm_status & CyCTS) {
--						/* cy_start isn't used
--						   because... !!! */
--						info->tty->hw_stopped = 0;
--						cy_writeb(base_addr +
--							(CySRER << index),
--							readb(base_addr +
--								(CySRER <<
--									index))|
--							CyTxRdy);
--						tty_wakeup(info->tty);
--					}
--				} else {
--					if (!(mdm_status & CyCTS)) {
--						/* cy_stop isn't used
--						   because ... !!! */
--						info->tty->hw_stopped = 1;
--						cy_writeb(base_addr +
--							(CySRER << index),
--							readb(base_addr +
--								(CySRER <<
--								index)) &
--							~CyTxRdy);
--					}
--				}
-+	/* determine the channel & change to that context */
-+	spin_lock(&cinfo->card_lock);
-+	save_xir = (u_char) readb(base_addr + (CyMIR << index));
-+	channel = (u_short) (save_xir & CyIRChannel);
-+	info = &cinfo->ports[channel + chip * 4];
-+	save_car = readb(base_addr + (CyCAR << index));
-+	cy_writeb(base_addr + (CyCAR << index), save_xir);
-+
-+	mdm_change = readb(base_addr + (CyMISR << index));
-+	mdm_status = readb(base_addr + (CyMSVR1 << index));
-+
-+	if (!info->tty)
-+		goto end;
-+
-+	if (mdm_change & CyANY_DELTA) {
-+		/* For statistics only */
-+		if (mdm_change & CyDCD)
-+			info->icount.dcd++;
-+		if (mdm_change & CyCTS)
-+			info->icount.cts++;
-+		if (mdm_change & CyDSR)
-+			info->icount.dsr++;
-+		if (mdm_change & CyRI)
-+			info->icount.rng++;
-+
-+		wake_up_interruptible(&info->delta_msr_wait);
-+	}
-+
-+	if ((mdm_change & CyDCD) && (info->flags & ASYNC_CHECK_CD)) {
-+		if (!(mdm_status & CyDCD)) {
-+			tty_hangup(info->tty);
-+			info->flags &= ~ASYNC_NORMAL_ACTIVE;
-+		}
-+		wake_up_interruptible(&info->open_wait);
-+	}
-+	if ((mdm_change & CyCTS) && (info->flags & ASYNC_CTS_FLOW)) {
-+		if (info->tty->hw_stopped) {
-+			if (mdm_status & CyCTS) {
-+				/* cy_start isn't used
-+				   because... !!! */
-+				info->tty->hw_stopped = 0;
-+				cy_writeb(base_addr + (CySRER << index),
-+					readb(base_addr + (CySRER << index)) |
-+						CyTxRdy);
-+				tty_wakeup(info->tty);
- 			}
--/*			if (mdm_change & CyDSR) {
-+		} else {
-+			if (!(mdm_status & CyCTS)) {
-+				/* cy_stop isn't used
-+				   because ... !!! */
-+				info->tty->hw_stopped = 1;
-+				cy_writeb(base_addr + (CySRER << index),
-+					readb(base_addr + (CySRER << index)) &
-+						~CyTxRdy);
- 			}
--			if (mdm_change & CyRI) {
--			}*/
- 		}
--		/* end of service */
--		cy_writeb(base_addr + (CyMIR << index), (save_xir & 0x3f));
--		cy_writeb(base_addr + (CyCAR << index), save_car);
--		spin_unlock(&cinfo->card_lock);
- 	}
-+/*	if (mdm_change & CyDSR) {
-+	}
-+	if (mdm_change & CyRI) {
-+	}*/
-+end:
-+	/* end of service */
-+	cy_writeb(base_addr + (CyMIR << index), save_xir & 0x3f);
-+	cy_writeb(base_addr + (CyCAR << index), save_car);
-+	spin_unlock(&cinfo->card_lock);
- }
- 
- /* The real interrupt service routine is called
-@@ -1401,11 +1365,14 @@ static irqreturn_t cyy_interrupt(int irq
- 			   chips to be checked in a round-robin fashion (after
- 			   draining each of a bunch (1000) of characters).
- 			 */
--				if (1000 < too_many++) {
-+				if (1000 < too_many++)
- 					break;
--				}
--				cyy_intr_chip(cinfo, chip, base_addr, status,
--						index);
-+				if (status & CySRReceive) /* rx intr */
-+					cyy_chip_rx(cinfo, chip, base_addr);
-+				if (status & CySRTransmit) /* tx intr */
-+					cyy_chip_tx(cinfo, chip, base_addr);
-+				if (status & CySRModem) /* modem intr */
-+					cyy_chip_modem(cinfo, chip, base_addr);
- 			}
- 		}
- 	} while (had_work);
+ /* driver_data correspond to the lines in the structure above
+@@ -172,6 +183,11 @@ static struct pci_device_id mxser_pcibrd
+ 		.driver_data = 22 },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_MOXA, PCI_DEVICE_ID_MOXA_CP104EL),
+ 		.driver_data = 23 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_CB108),	.driver_data = 24 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_CB114),	.driver_data = 25 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_CB134I),	.driver_data = 26 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_CP138U),	.driver_data = 27 },
++	{ PCI_VDEVICE(MOXA, PCI_DEVICE_ID_POS104UL),	.driver_data = 28 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(pci, mxser_pcibrds);
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
