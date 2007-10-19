@@ -1,49 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - procfs-detect-duplicate-names-fix.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:55:20 -0700
-Message-ID: <200710190355.l9J3tKKh013782@imap1.linux-foundation.org>
+Subject: - procfs-detect-duplicate-names-fix-fix-2.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:55:23 -0700
+Message-ID: <200710190355.l9J3tNYm013785@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56020 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47179 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763046AbXJSDzX (ORCPT
+	by vger.kernel.org with ESMTP id S1764092AbXJSDz0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:55:23 -0400
+	Thu, 18 Oct 2007 23:55:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, rui.zhang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     procfs-detect-duplicate-names-fix
+     procfs-detect-duplicate-names-fix-fix-2
 has been removed from the -mm tree.  Its filename was
-     procfs-detect-duplicate-names-fix.patch
+     procfs-detect-duplicate-names-fix-fix-2.patch
 
 This patch was dropped because it was folded into procfs-detect-duplicate-names.patch
 
 ------------------------------------------------------
-Subject: procfs-detect-duplicate-names-fix
+Subject: procfs-detect-duplicate-names-fix-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/generic.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/proc/generic.c~procfs-detect-duplicate-names-fix fs/proc/generic.c
---- a/fs/proc/generic.c~procfs-detect-duplicate-names-fix
+diff -puN fs/proc/generic.c~procfs-detect-duplicate-names-fix-fix-2 fs/proc/generic.c
+--- a/fs/proc/generic.c~procfs-detect-duplicate-names-fix-fix-2
 +++ a/fs/proc/generic.c
 @@ -523,7 +523,7 @@ static const struct inode_operations pro
  
  static int proc_register(struct proc_dir_entry * dir, struct proc_dir_entry * dp)
  {
--	struct proc_dir_entry *tmp = NULL;
-+	struct proc_dir_entry *tmp;
+-	struct proc_dir_entry *tmp;
++	struct proc_dir_entry *de;
  	unsigned int i;
  	
  	i = get_inode_number();
+@@ -549,8 +549,8 @@ static int proc_register(struct proc_dir
+ 
+ 	spin_lock(&proc_subdir_lock);
+ 
+-	for (tmp = dir->subdir, i = 0; tmp && !i; tmp = tmp->next)
+-		if (!strcmp(dp->name, tmp->name))
++	for (de = dir->subdir, i = 0; de && !i; de = de->next)
++		if (!strcmp(dp->name, de->name))
+ 			i = 1;
+ 
+ 	dp->next = dir->subdir;
+@@ -559,8 +559,8 @@ static int proc_register(struct proc_dir
+ 	spin_unlock(&proc_subdir_lock);
+ 
+ 	if (i) {
+-		printk(KERN_WARNING
+-			"Duplicate file names \"%s\" detected.", dp->name);
++		printk(KERN_WARNING "Duplicate file names \"%s\" detected.",
++				dp->name);
+ 		dump_stack();
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -53,7 +75,6 @@ console-keyboard-events-and-accessibility.patch
 add-kernel-notifierc.patch
 console-events-and-accessibility.patch
 procfs-detect-duplicate-names.patch
-procfs-detect-duplicate-names-fix.patch
 procfs-detect-duplicate-names-fix-fix-2.patch
 kernel-printkc-concerns-about-the-console-handover.patch
 ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes.patch
