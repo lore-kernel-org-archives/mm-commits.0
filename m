@@ -1,221 +1,261 @@
 From: akpm@linux-foundation.org
-Subject: - s2ram-kill-old-debugging-junk.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:41:17 -0700
-Message-ID: <200710190341.l9J3fH54012807@imap1.linux-foundation.org>
+Subject: - char-moxa-cleanup-prints.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:44:26 -0700
+Message-ID: <200710190344.l9J3iQru013143@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39015 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42224 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934407AbXJSD4e (ORCPT
+	by vger.kernel.org with ESMTP id S1764000AbXJSDzm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:56:34 -0400
+	Thu, 18 Oct 2007 23:55:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pavel@ucw.cz, ak@suse.de, pavel@suse.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s2ram: kill old debugging junk
+     Char: moxa, cleanup prints
 has been removed from the -mm tree.  Its filename was
-     s2ram-kill-old-debugging-junk.patch
+     char-moxa-cleanup-prints.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: s2ram: kill old debugging junk
-From: Pavel Machek <pavel@ucw.cz>
+Subject: Char: moxa, cleanup prints
+From: Jiri Slaby <jirislaby@gmail.com>
 
-This removes old debugging stuff, that should be no longer neccessary.  It
-accessed VGA hardware (which may not be ready at this point), and used LEDs
-at port 80 for debugging.
+- use dev_* where pdev is available (probe function)
+- add some printks on fail paths
+- add KERN_ macros otherwise
+- remove useless verbose variable
+- wrap lines to 80 cols at most
 
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/acpi/wakeup_32.S |   12 ----------
- arch/x86/kernel/acpi/wakeup_64.S |   32 -----------------------------
- 2 files changed, 1 insertion(+), 43 deletions(-)
+ drivers/char/moxa.c |   73 +++++++++++++++++-------------------------
+ 1 file changed, 31 insertions(+), 42 deletions(-)
 
-diff -puN arch/x86/kernel/acpi/wakeup_32.S~s2ram-kill-old-debugging-junk arch/x86/kernel/acpi/wakeup_32.S
---- a/arch/x86/kernel/acpi/wakeup_32.S~s2ram-kill-old-debugging-junk
-+++ a/arch/x86/kernel/acpi/wakeup_32.S
-@@ -11,7 +11,7 @@
- #
- # If physical address of wakeup_code is 0x12345, BIOS should call us with
- # cs = 0x1234, eip = 0x05
--# 
-+#
+diff -puN drivers/char/moxa.c~char-moxa-cleanup-prints drivers/char/moxa.c
+--- a/drivers/char/moxa.c~char-moxa-cleanup-prints
++++ a/drivers/char/moxa.c
+@@ -166,7 +166,6 @@ struct moxa_port {
  
- #define BEEP \
- 	inb	$97, %al; 	\
-@@ -52,7 +52,6 @@ wakeup_code:
- 	BEEP
- 1:
- 	mov	$(wakeup_stack - wakeup_code), %sp		# Private stack is needed for ASUS board
--	movw	$0x0e00 + 'S', %fs:(0x12)
+ #define WAKEUP_CHARS		256
  
- 	pushl	$0						# Kill any dangerous flags
- 	popfl
-@@ -90,9 +89,6 @@ wakeup_code:
- 	# make sure %cr4 is set correctly (features, etc)
- 	movl	real_save_cr4 - wakeup_code, %eax
- 	movl	%eax, %cr4
--	movw	$0xb800, %ax
--	movw	%ax,%fs
--	movw	$0x0e00 + 'i', %fs:(0x12)
- 	
- 	# need a gdt -- use lgdtl to force 32-bit operands, in case
- 	# the GDT is located past 16 megabytes.
-@@ -102,8 +98,6 @@ wakeup_code:
- 	movl	%eax, %cr0
- 	jmp 1f
- 1:
--	movw	$0x0e00 + 'n', %fs:(0x14)
+-static int verbose = 0;
+ static int ttymajor = MOXAMAJOR;
+ /* Variables for insmod */
+ #ifdef MODULE
+@@ -184,7 +183,6 @@ module_param_array(baseaddr, int, NULL, 
+ module_param_array(numports, int, NULL, 0);
+ #endif
+ module_param(ttymajor, int, 0);
+-module_param(verbose, bool, 0644);
+ 
+ /*
+  * static functions:
+@@ -283,8 +281,10 @@ static int __devinit moxa_pci_probe(stru
+ 	int retval;
+ 
+ 	retval = pci_enable_device(pdev);
+-	if (retval)
++	if (retval) {
++		dev_err(&pdev->dev, "can't enable pci device\n");
+ 		goto err;
++	}
+ 
+ 	for (i = 0; i < MAX_BOARDS; i++)
+ 		if (moxa_boards[i].basemem == NULL)
+@@ -292,16 +292,17 @@ static int __devinit moxa_pci_probe(stru
+ 
+ 	retval = -ENODEV;
+ 	if (i >= MAX_BOARDS) {
+-		if (verbose)
+-			printk("More than %d MOXA Intellio family boards "
++		dev_warn(&pdev->dev, "more than %u MOXA Intellio family boards "
+ 				"found. Board is ignored.\n", MAX_BOARDS);
+ 		goto err;
+ 	}
+ 
+ 	board = &moxa_boards[i];
+ 	board->basemem = pci_iomap(pdev, 2, 0x4000);
+-	if (board->basemem == NULL)
++	if (board->basemem == NULL) {
++		dev_err(&pdev->dev, "can't remap io space 2\n");
+ 		goto err;
++	}
+ 
+ 	board->boardType = board_type;
+ 	switch (board_type) {
+@@ -347,7 +348,8 @@ static int __init moxa_init(void)
+ 	int i, numBoards, retval = 0;
+ 	struct moxa_port *ch;
+ 
+-	printk(KERN_INFO "MOXA Intellio family driver version %s\n", MOXA_VERSION);
++	printk(KERN_INFO "MOXA Intellio family driver version %s\n",
++			MOXA_VERSION);
+ 	moxaDriver = alloc_tty_driver(MAX_PORTS + 1);
+ 	if (!moxaDriver)
+ 		return -ENOMEM;
+@@ -378,7 +380,7 @@ static int __init moxa_init(void)
+ 				(unsigned long)ch);
+ 	}
+ 
+-	printk("Tty devices major number = %d\n", ttymajor);
++	pr_debug("Moxa tty devices major number = %d\n", ttymajor);
+ 
+ 	if (tty_register_driver(moxaDriver)) {
+ 		printk(KERN_ERR "Couldn't install MOXA Smartio family driver !\n");
+@@ -400,11 +402,10 @@ static int __init moxa_init(void)
+ 				moxa_boards[numBoards].numPorts = moxa_isa_boards[i].numPorts;
+ 			moxa_boards[numBoards].busType = MOXA_BUS_TYPE_ISA;
+ 			moxa_boards[numBoards].baseAddr = moxa_isa_boards[i].baseAddr;
+-			if (verbose)
+-				printk("Board %2d: %s board(baseAddr=%lx)\n",
+-				       numBoards + 1,
+-				       moxa_brdname[moxa_boards[numBoards].boardType - 1],
+-				       moxa_boards[numBoards].baseAddr);
++			pr_debug("Moxa board %2d: %s board(baseAddr=%lx)\n",
++			       numBoards + 1,
++			       moxa_brdname[moxa_boards[numBoards].boardType-1],
++			       moxa_boards[numBoards].baseAddr);
+ 			numBoards++;
+ 		}
+ 	}
+@@ -413,14 +414,13 @@ static int __init moxa_init(void)
+ 	for (i = 0; i < MAX_BOARDS; i++) {
+ 		if ((type[i] == MOXA_BOARD_C218_ISA) ||
+ 		    (type[i] == MOXA_BOARD_C320_ISA)) {
+-			if (verbose)
+-				printk("Board %2d: %s board(baseAddr=%lx)\n",
+-				       numBoards + 1,
+-				       moxa_brdname[type[i] - 1],
+-				       (unsigned long) baseaddr[i]);
++			pr_debug("Moxa board %2d: %s board(baseAddr=%lx)\n",
++			       numBoards + 1, moxa_brdname[type[i] - 1],
++			       (unsigned long)baseaddr[i]);
+ 			if (numBoards >= MAX_BOARDS) {
+-				if (verbose)
+-					printk("More than %d MOXA Intellio family boards found. Board is ignored.", MAX_BOARDS);
++				printk(KERN_WARNING "More than %d MOXA "
++					"Intellio family boards found. Board "
++					"is ignored.\n", MAX_BOARDS);
+ 				continue;
+ 			}
+ 			moxa_boards[numBoards].boardType = type[i];
+@@ -456,16 +456,14 @@ static void __exit moxa_exit(void)
+ {
+ 	int i;
+ 
+-	if (verbose)
+-		printk("Unloading module moxa ...\n");
 -
- 	movl	real_magic - wakeup_code, %eax
- 	cmpl	$0x12345678, %eax
- 	jne	bogus_real_magic
-@@ -122,13 +116,11 @@ real_save_cr4:	.long 0
- real_magic:	.long 0
- video_mode:	.long 0
- realmode_flags:	.long 0
--beep_flags:	.long 0
- real_efer_save_restore:	.long 0
- real_save_efer_edx: 	.long 0
- real_save_efer_eax: 	.long 0
+ 	del_timer_sync(&moxaTimer);
  
- bogus_real_magic:
--	movw	$0x0e00 + 'B', %fs:(0x12)
- 	jmp bogus_real_magic
+ 	for (i = 0; i < MAX_PORTS; i++)
+ 		del_timer_sync(&moxa_ports[i].emptyTimer);
  
- /* This code uses an extended set of video mode numbers. These include:
-@@ -194,7 +186,6 @@ wakeup_pmode_return:
- 	movw	%ax, %es
- 	movw	%ax, %fs
- 	movw	%ax, %gs
--	movw	$0x0e00 + 'u', 0xb8016
+ 	if (tty_unregister_driver(moxaDriver))
+-		printk("Couldn't unregister MOXA Intellio family serial driver\n");
++		printk(KERN_ERR "Couldn't unregister MOXA Intellio family "
++				"serial driver\n");
+ 	put_tty_driver(moxaDriver);
  
- 	# reload the gdt, as we need the full 32 bit address
- 	lgdt	saved_gdt
-@@ -218,7 +209,6 @@ wakeup_pmode_return:
- 	jmp	*%eax
- 
- bogus_magic:
--	movw	$0x0e00 + 'B', 0xb8018
- 	jmp	bogus_magic
- 
- 
-diff -puN arch/x86/kernel/acpi/wakeup_64.S~s2ram-kill-old-debugging-junk arch/x86/kernel/acpi/wakeup_64.S
---- a/arch/x86/kernel/acpi/wakeup_64.S~s2ram-kill-old-debugging-junk
-+++ a/arch/x86/kernel/acpi/wakeup_64.S
-@@ -41,7 +41,6 @@ wakeup_code:
- 
- # Running in *copy* of this code, somewhere in low 1MB.
- 
--	movb	$0xa1, %al	;  outb %al, $0x80
- 	cli
- 	cld
- 	# setup data segment
-@@ -65,11 +64,6 @@ wakeup_code:
- 	cmpl	$0x12345678, %eax
- 	jne	bogus_real_magic
- 
--  	call	verify_cpu			# Verify the cpu supports long
--						# mode
--	testl	%eax, %eax
--	jnz	no_longmode
+ #ifdef CONFIG_PCI
+@@ -475,9 +473,6 @@ static void __exit moxa_exit(void)
+ 	for (i = 0; i < MAX_BOARDS; i++)
+ 		if (moxa_boards[i].basemem)
+ 			iounmap(moxa_boards[i].basemem);
 -
- 	testl	$1, realmode_flags - wakeup_code
- 	jz	1f
- 	lcall   $0xc000,$3
-@@ -84,12 +78,6 @@ wakeup_code:
- 	call	mode_set
- 1:
+-	if (verbose)
+-		printk("Done\n");
+ }
  
-- 	movw	$0xb800, %ax
--	movw	%ax,%fs
--	movw	$0x0e00 + 'L', %fs:(0x10)
--
--	movb	$0xa2, %al	;  outb %al, $0x80
--	
- 	mov	%ds, %ax			# Find 32bit wakeup_code addr
- 	movzx   %ax, %esi			# (Convert %ds:gdt to a liner ptr)
- 	shll    $4, %esi
-@@ -117,14 +105,10 @@ wakeup_32_vector:
- 	.code32
- wakeup_32:
- # Running in this code, but at low address; paging is not yet turned on.
--	movb	$0xa5, %al	;  outb %al, $0x80
+ module_init(moxa_init);
+@@ -532,9 +527,7 @@ static void moxa_close(struct tty_struct
+ 		return;
+ 	}
+ 	if (!MoxaPortIsValid(port)) {
+-#ifdef SERIAL_DEBUG_CLOSE
+-		printk("Invalid portno in moxa_close\n");
+-#endif
++		pr_debug("Invalid portno in moxa_close\n");
+ 		tty->driver_data = NULL;
+ 		return;
+ 	}
+@@ -547,13 +540,13 @@ static void moxa_close(struct tty_struct
+ 	ch = (struct moxa_port *) tty->driver_data;
  
- 	movl	$__KERNEL_DS, %eax
- 	movl	%eax, %ds
- 
--	movw	$0x0e00 + 'i', %ds:(0xb8012)
--	movb	$0xa8, %al	;  outb %al, $0x80;
--
- 	/*
- 	 * Prepare for entering 64bits mode
+ 	if ((tty->count == 1) && (ch->count != 1)) {
+-		printk("moxa_close: bad serial port count; tty->count is 1, "
+-		       "ch->count is %d\n", ch->count);
++		printk(KERN_WARNING "moxa_close: bad serial port count; "
++			"tty->count is 1, ch->count is %d\n", ch->count);
+ 		ch->count = 1;
+ 	}
+ 	if (--ch->count < 0) {
+-		printk("moxa_close: bad serial port count, device=%s\n",
+-		       tty->name);
++		printk(KERN_WARNING "moxa_close: bad serial port count, "
++			"device=%s\n", tty->name);
+ 		ch->count = 0;
+ 	}
+ 	if (ch->count) {
+@@ -971,10 +964,8 @@ static int block_till_ready(struct tty_s
  	 */
-@@ -200,16 +184,11 @@ wakeup_long64:
- 	 */
- 	lgdt	cpu_gdt_descr
- 
--	movw	$0x0e00 + 'n', %ds:(0xb8014)
--	movb	$0xa9, %al	;  outb %al, $0x80
--
- 	movq    saved_magic, %rax
- 	movq    $0x123456789abcdef0, %rdx
- 	cmpq    %rdx, %rax
- 	jne     bogus_64_magic
- 
--	movw	$0x0e00 + 'u', %ds:(0xb8016)
--	
- 	nop
- 	nop
- 	movw	$__KERNEL_DS, %ax
-@@ -220,13 +199,11 @@ wakeup_long64:
- 	movw	%ax, %gs
- 	movq	saved_rsp, %rsp
- 
--	movw	$0x0e00 + 'x', %ds:(0xb8018)
- 	movq	saved_rbx, %rbx
- 	movq	saved_rdi, %rdi
- 	movq	saved_rsi, %rsi
- 	movq	saved_rbp, %rbp
- 
--	movw	$0x0e00 + '!', %ds:(0xb801a)
- 	movq	saved_rip, %rax
- 	jmp	*%rax
- 
-@@ -256,21 +233,12 @@ realmode_flags:	.quad 0
- 
- .code16
- bogus_real_magic:
--	movb	$0xba,%al	;  outb %al,$0x80
- 	jmp bogus_real_magic
- 
- .code64
- bogus_64_magic:
--	movb	$0xb3,%al	;  outb %al,$0x80
- 	jmp bogus_64_magic
- 
--.code16
--no_longmode:
--	movb    $0xbc,%al       ;  outb %al,$0x80
--	jmp no_longmode
--
--#include "../verify_cpu_64.S"
--	
- /* This code uses an extended set of video mode numbers. These include:
-  * Aliases for standard modes
-  *	NORMAL_VGA (-1)
+ 	retval = 0;
+ 	add_wait_queue(&ch->open_wait, &wait);
+-#ifdef SERIAL_DEBUG_OPEN
+-	printk("block_til_ready before block: ttys%d, count = %d\n",
+-	       ch->line, ch->count);
+-#endif
++	pr_debug("block_til_ready before block: ttys%d, count = %d\n",
++		ch->port, ch->count);
+ 	spin_lock_irqsave(&moxa_lock, flags);
+ 	if (!tty_hung_up_p(filp))
+ 		ch->count--;
+@@ -1013,10 +1004,8 @@ static int block_till_ready(struct tty_s
+ 		ch->count++;
+ 	ch->blocked_open--;
+ 	spin_unlock_irqrestore(&moxa_lock, flags);
+-#ifdef SERIAL_DEBUG_OPEN
+-	printk("block_til_ready after blocking: ttys%d, count = %d\n",
+-	       ch->line, ch->count);
+-#endif
++	pr_debug("block_til_ready after blocking: ttys%d, count = %d\n",
++		ch->port, ch->count);
+ 	if (retval)
+ 		return (retval);
+ 	/* FIXME: review to see if we need to use set_bit on these */
 _
 
-Patches currently in -mm which might be from pavel@ucw.cz are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-git-acpi.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-dvb.patch
+v4l-stk11xx-add-a-new-webcam-driver.patch
+v4l-stk11xx-use-array_size-in-another-2-cases.patch
+v4l-stk11xx-use-retval-from-stk11xx_check_device.patch
+v4l-stk11xx-add-static-to-tables.patch
+git-wireless.patch
+misc-phantom-synchronize_irq-on-suspend.patch
+misc-phantom-add-comment-about-openhaptics.patch
+misc-phantom-improved-data-passing.patch
+fs-select-remove-unused-macros.patch
+remove-asm-bitopsh-includes.patch
+forbid-asm-bitopsh-direct-inclusion.patch
+cyber2000fb-rename-bit-macro.patch
+i2c-pxa-rename-bit-macro-to-pxa_bit.patch
+s2io-rename-bit-macro.patch
+amba-pl011-rename-bit-macro.patch
+define-first-set-of-bit-macros.patch
+get-rid-of-input-bit-duplicate-defines.patch
+define-global-bit-macro.patch
+flashpoint-use-bit-instead-of-bitw.patch
+remove-bits_to_type-macro.patch
+remove-bits_to_type-macro-fix.patch
+remove-asm-bitopsh-includes-reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
