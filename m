@@ -1,80 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - task-containersv11-automatic-userspace-notification-of-idle-containers-fix.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 21:12:59 -0700
-Message-ID: <200710190412.l9J4CxbV014411@imap1.linux-foundation.org>
+Subject: - add-containerstats-v3-fix.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 21:13:42 -0700
+Message-ID: <200710190413.l9J4DgJD014440@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43747 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33614 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751496AbXJSENG (ORCPT
+	by vger.kernel.org with ESMTP id S1751257AbXJSENw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 00:13:06 -0400
+	Fri, 19 Oct 2007 00:13:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pj@sgi.com, menage@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, jlan@engr.sgi.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     task containersv11 automatic userspace notification of idle containers fix
+     add-cgroupstats-v3-fix
 has been removed from the -mm tree.  Its filename was
-     task-containersv11-automatic-userspace-notification-of-idle-containers-fix.patch
+     add-containerstats-v3-fix.patch
 
-This patch was dropped because it was folded into task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+This patch was dropped because it was folded into add-containerstats-v3.patch
 
 ------------------------------------------------------
-Subject: task containersv11 automatic userspace notification of idle containers fix
-From: Paul Jackson <pj@sgi.com>
+Subject: add-cgroupstats-v3-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Need to include kmod.h to define UMH_WAIT_EXEC, at least
-for my configuration (sn2_defconfig).
+kernel/taskstats.c: In function 'cgroupstats_user_cmd':
+kernel/taskstats.c:414: error: dereferencing pointer to incomplete type
 
-Signed-off-by: Paul Jackson <pj@sgi.com>
-Acked-by: Paul Menage <menage@google.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Jay Lan <jlan@engr.sgi.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    1 +
+ kernel/taskstats.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN kernel/cgroup.c~task-containersv11-automatic-userspace-notification-of-idle-containers-fix kernel/cgroup.c
---- a/kernel/cgroup.c~task-containersv11-automatic-userspace-notification-of-idle-containers-fix
-+++ a/kernel/cgroup.c
-@@ -43,6 +43,7 @@
- #include <linux/spinlock.h>
- #include <linux/string.h>
- #include <linux/sort.h>
-+#include <linux/kmod.h>
+diff -puN kernel/taskstats.c~add-cgroupstats-v3-fix kernel/taskstats.c
+--- a/kernel/taskstats.c~add-cgroupstats-v3-fix
++++ a/kernel/taskstats.c
+@@ -24,6 +24,7 @@
+ #include <linux/percpu.h>
+ #include <linux/cgroupstats.h>
+ #include <linux/cgroup.h>
++#include <linux/fs.h>
+ #include <linux/file.h>
+ #include <net/genetlink.h>
  #include <asm/atomic.h>
- 
- static DEFINE_MUTEX(cgroup_mutex);
 _
 
-Patches currently in -mm which might be from pj@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-task-containersv11-basic-task-container-framework.patch
-task-containersv11-add-tasks-file-interface.patch
-task-containersv11-add-fork-exit-hooks.patch
-task-containersv11-add-container_clone-interface.patch
-task-containersv11-add-procfs-interface.patch
+console-keyboard-events-and-accessibility.patch
+add-kernel-notifierc.patch
+console-events-and-accessibility.patch
+fix-random-hard-freeze-with-avm-cards-using-b1dma.patch
+jbd-config_jbd_debug-cannot-create-proc-entry.patch
 task-containersv11-shared-container-subsystem-group-arrays.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers-fix.patch
-task-containersv11-make-cpusets-a-client-of-containers.patch
-task-containersv11-example-cpu-accounting-subsystem.patch
-task-containersv11-simple-task-container-debug-info-subsystem.patch
-task-containers-enable-containers-by-default-in-some-configs.patch
-cpuset-sched_load_balance-flag.patch
+add-containerstats-v3.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
 cpuset-sched_load_balance-flag-fix.patch
-cpuset-sched_load_balance-kmalloc-fix.patch
-cpuset-sched_load_balance-flag-sched-domain-confusion-fix.patch
-cpusets-decrustify-cpuset-mask-update-code.patch
 cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
-fix-cpusets-update_cpumask.patch
 fix-cpusets-update_cpumask-checkpatch-fixes.patch
-control-groups-replace-cont-with-cgrp-and-other-misc.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
 hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-whitespace-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
