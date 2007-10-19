@@ -1,78 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - freezer-document-relationship-with-memory-shrinking.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:40:55 -0700
-Message-ID: <200710190340.l9J3et7j012748@imap1.linux-foundation.org>
+Subject: - whitespace-fixes-relayfs.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:43:36 -0700
+Message-ID: <200710190343.l9J3ha7r013075@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44683 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43322 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966272AbXJSD4O (ORCPT
+	by vger.kernel.org with ESMTP id S966520AbXJSD4A (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:56:14 -0400
+	Thu, 18 Oct 2007 23:56:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, nigel@nigel.suspend2.net, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: dwalker@mvista.com, zanussi@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     freezer: document relationship with memory shrinking
+     whitespace fixes: relayfs
 has been removed from the -mm tree.  Its filename was
-     freezer-document-relationship-with-memory-shrinking.patch
+     whitespace-fixes-relayfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: freezer: document relationship with memory shrinking
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: whitespace fixes: relayfs
+From: Daniel Walker <dwalker@mvista.com>
 
-One important reason to freeze tasks, which is that we don't want them to
-allocate memory after freeing it for the hibernation image, has not been
-documented.  Fix it.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Acked-by: Nigel Cunningham <nigel@nigel.suspend2.net>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Cc: Tom Zanussi <zanussi@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/power/freezing-of-tasks.txt |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ kernel/relay.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/power/freezing-of-tasks.txt~freezer-document-relationship-with-memory-shrinking Documentation/power/freezing-of-tasks.txt
---- a/Documentation/power/freezing-of-tasks.txt~freezer-document-relationship-with-memory-shrinking
-+++ a/Documentation/power/freezing-of-tasks.txt
-@@ -81,7 +81,16 @@ hibernation image has been created and b
- The majority of these are user space processes, but if any of the kernel threads
- may cause something like this to happen, they have to be freezable.
+diff -puN kernel/relay.c~whitespace-fixes-relayfs kernel/relay.c
+--- a/kernel/relay.c~whitespace-fixes-relayfs
++++ a/kernel/relay.c
+@@ -370,7 +370,7 @@ void relay_reset(struct rchan *chan)
+ 	if (!chan)
+ 		return;
  
--2. The second reason is to prevent user space processes and some kernel threads
-+2. Next, to create the hibernation image we need to free a sufficient amount of
-+memory (approximately 50% of available RAM) and we need to do that before
-+devices are deactivated, because we generally need them for swapping out.  Then,
-+after the memory for the image has been freed, we don't want tasks to allocate
-+additional memory and we prevent them from doing that by freezing them earlier.
-+[Of course, this also means that device drivers should not allocate substantial
-+amounts of memory from their .suspend() callbacks before hibernation, but this
-+is e separate issue.]
+- 	if (chan->is_global && chan->buf[0]) {
++	if (chan->is_global && chan->buf[0]) {
+ 		__relay_reset(chan->buf[0], 0);
+ 		return;
+ 	}
+@@ -850,13 +850,13 @@ static int relay_file_read_avail(struct 
+ 		buf->subbufs_consumed = consumed;
+ 		buf->bytes_consumed = 0;
+ 	}
+-	
 +
-+3. The third reason is to prevent user space processes and some kernel threads
- from interfering with the suspending and resuming of devices.  A user space
- process running on a second CPU while we are suspending devices may, for
- example, be troublesome and without the freezing of tasks we would need some
-@@ -111,7 +120,7 @@ frozen before the driver's .suspend() ca
- thawed after the driver's .resume() callback has run, so it won't be accessing
- the device while it's suspended.
+ 	produced = (produced % n_subbufs) * subbuf_size + buf->offset;
+ 	consumed = (consumed % n_subbufs) * subbuf_size + buf->bytes_consumed;
  
--3. Another reason for freezing tasks is to prevent user space processes from
-+4. Another reason for freezing tasks is to prevent user space processes from
- realizing that hibernation (or suspend) operation takes place.  Ideally, user
- space processes should not notice that such a system-wide operation has occurred
- and should continue running without any problems after the restore (or resume
+ 	if (consumed > produced)
+ 		produced += n_subbufs * subbuf_size;
+-	
++
+ 	if (consumed == produced)
+ 		return 0;
+ 
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
 origin.patch
-git-acpi.patch
-revert-x86_64-mm-cpa-einval.patch
-shrink_slab-handle-bad-shrinkers.patch
+whitespace-fixes-task-exit-handling.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
