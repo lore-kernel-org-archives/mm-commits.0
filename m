@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-edac-i3000-replace-macros-with-functions.patch added to -mm tree
-Date: Fri, 19 Oct 2007 14:18:14 -0700
-Message-ID: <200710192118.l9JLIEwS020599@imap1.linux-foundation.org>
+Subject: + drivers-edac-i3000-code-tidying.patch added to -mm tree
+Date: Fri, 19 Oct 2007 14:18:11 -0700
+Message-ID: <200710192118.l9JLIBbU020596@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43591 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58057 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966688AbXJSVS0 (ORCPT
+	by vger.kernel.org with ESMTP id S966615AbXJSVSY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 17:18:26 -0400
+	Fri, 19 Oct 2007 17:18:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: juhlenko@akamai.com, alan@lxorguk.ukuu.org.uk, dougthompson@xmission.com
 
 
 The patch titled
-     drivers-edac: i3000 replace macros with functions
+     drivers-edac: i3000 code tidying
 has been added to the -mm tree.  Its filename is
-     drivers-edac-i3000-replace-macros-with-functions.patch
+     drivers-edac-i3000-code-tidying.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,10 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers-edac: i3000 replace macros with functions
+Subject: drivers-edac: i3000 code tidying
 From: Jason Uhlenkott <juhlenko@akamai.com>
 
-Replace function-like macros with functions.
+Style cleanup, mostly just 80-column fixes.
 
 Signed-off-by: Jason Uhlenkott <juhlenko@akamai.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk
@@ -37,97 +37,300 @@ Signed-off-by: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/i3000_edac.c |   50 +++++++++++++++++++++++++-----------
- 1 file changed, 35 insertions(+), 15 deletions(-)
+ drivers/edac/i3000_edac.c |  207 +++++++++++++++++++-----------------
+ 1 file changed, 110 insertions(+), 97 deletions(-)
 
-diff -puN drivers/edac/i3000_edac.c~drivers-edac-i3000-replace-macros-with-functions drivers/edac/i3000_edac.c
---- a/drivers/edac/i3000_edac.c~drivers-edac-i3000-replace-macros-with-functions
+diff -puN drivers/edac/i3000_edac.c~drivers-edac-i3000-code-tidying drivers/edac/i3000_edac.c
+--- a/drivers/edac/i3000_edac.c~drivers-edac-i3000-code-tidying
 +++ a/drivers/edac/i3000_edac.c
-@@ -42,11 +42,23 @@
- 				 * 0     Error channel 0/1
- 				 */
- #define I3000_DEAP_GRAIN 		(1 << 7)
--#define I3000_DEAP_PFN(edeap, deap)	((((edeap) & 1) << (32 - PAGE_SHIFT)) \
--					| ((deap) >> PAGE_SHIFT))
--#define I3000_DEAP_OFFSET(deap)		((deap) & ~(I3000_DEAP_GRAIN-1) & \
--					~PAGE_MASK)
--#define I3000_DEAP_CHANNEL(deap)	((deap) & 1)
-+
-+static inline unsigned long deap_pfn(u8 edeap, u32 deap)
-+{
-+	deap >>= PAGE_SHIFT;
-+	deap |= (edeap & 1) << (32 - PAGE_SHIFT);
-+	return deap;
-+}
-+
-+static inline unsigned long deap_offset(u32 deap)
-+{
-+	return deap & ~(I3000_DEAP_GRAIN - 1) & ~PAGE_MASK;
-+}
-+
-+static inline int deap_channel(u32 deap)
-+{
-+	return deap & 1;
-+}
+@@ -30,105 +30,112 @@
+ #define I3000_MCHBAR_MASK	0xffffc000
+ #define I3000_MMR_WINDOW_SIZE	16384
  
- #define I3000_DERRSYN	0x5c	/* DRAM Error Syndrome (8b)
- 				 *
-@@ -116,8 +128,16 @@
- 				 *     Others: reserved
- 				 */
- #define I3000_C1DRA	0x188	/* Channel 1 DRAM Rank Attribute (8b x 2) */
--#define ODD_RANK_ATTRIB(dra)	(((dra) & 0x70) >> 4)
--#define EVEN_RANK_ATTRIB(dra)	((dra) & 0x07)
+-#define I3000_EDEAP		0x70	/* Extended DRAM Error Address Pointer (8b)
+-					 *
+-					 * 7:1   reserved
+-					 * 0     bit 32 of address
+-					 */
+-#define I3000_DEAP		0x58	/* DRAM Error Address Pointer (32b)
+-					 *
+-					 * 31:7  address
+-					 * 6:1   reserved
+-					 * 0     Error channel 0/1
+-					 */
+-#define I3000_DEAP_GRAIN	(1 << 7)
+-#define I3000_DEAP_PFN(edeap, deap)	((((edeap) & 1) << (32 - PAGE_SHIFT)) | \
+-					((deap) >> PAGE_SHIFT))
+-#define I3000_DEAP_OFFSET(deap)		((deap) & ~(I3000_DEAP_GRAIN-1) & ~PAGE_MASK)
++#define I3000_EDEAP	0x70	/* Extended DRAM Error Address Pointer (8b)
++				 *
++				 * 7:1   reserved
++				 * 0     bit 32 of address
++				 */
++#define I3000_DEAP	0x58	/* DRAM Error Address Pointer (32b)
++				 *
++				 * 31:7  address
++				 * 6:1   reserved
++				 * 0     Error channel 0/1
++				 */
++#define I3000_DEAP_GRAIN 		(1 << 7)
++#define I3000_DEAP_PFN(edeap, deap)	((((edeap) & 1) << (32 - PAGE_SHIFT)) \
++					| ((deap) >> PAGE_SHIFT))
++#define I3000_DEAP_OFFSET(deap)		((deap) & ~(I3000_DEAP_GRAIN-1) & \
++					~PAGE_MASK)
+ #define I3000_DEAP_CHANNEL(deap)	((deap) & 1)
+ 
+-#define I3000_DERRSYN		0x5c	/* DRAM Error Syndrome (8b)
+-					 *
+-					 *  7:0  DRAM ECC Syndrome
+-					 */
+-
+-#define I3000_ERRSTS		0xc8	/* Error Status Register (16b)
+-					 *
+-					 * 15:12 reserved
+-					 * 11    MCH Thermal Sensor Event for SMI/SCI/SERR
+-					 * 10    reserved
+-					 *  9    LOCK to non-DRAM Memory Flag (LCKF)
+-					 *  8    Received Refresh Timeout Flag (RRTOF)
+-					 *  7:2  reserved
+-					 *  1    Multiple-bit DRAM ECC Error Flag (DMERR)
+-					 *  0    Single-bit DRAM ECC Error Flag (DSERR)
+-					 */
++#define I3000_DERRSYN	0x5c	/* DRAM Error Syndrome (8b)
++				 *
++				 *  7:0  DRAM ECC Syndrome
++				 */
 +
-+static inline unsigned char odd_rank_attrib(unsigned char dra)
-+{
-+	return (dra & 0x70) >> 4;
-+}
++#define I3000_ERRSTS	0xc8	/* Error Status Register (16b)
++				 *
++				 * 15:12 reserved
++				 * 11    MCH Thermal Sensor Event
++				 *         for SMI/SCI/SERR
++				 * 10    reserved
++				 *  9    LOCK to non-DRAM Memory Flag (LCKF)
++				 *  8    Received Refresh Timeout Flag (RRTOF)
++				 *  7:2  reserved
++				 *  1    Multi-bit DRAM ECC Error Flag (DMERR)
++				 *  0    Single-bit DRAM ECC Error Flag (DSERR)
++				 */
+ #define I3000_ERRSTS_BITS	0x0b03	/* bits which indicate errors */
+ #define I3000_ERRSTS_UE		0x0002
+ #define I3000_ERRSTS_CE		0x0001
+ 
+-#define I3000_ERRCMD		0xca	/* Error Command (16b)
+-					 *
+-					 * 15:12 reserved
+-					 * 11    SERR on MCH Thermal Sensor Event (TSESERR)
+-					 * 10    reserved
+-					 *  9    SERR on LOCK to non-DRAM Memory (LCKERR)
+-					 *  8    SERR on DRAM Refresh Timeout (DRTOERR)
+-					 *  7:2  reserved
+-					 *  1    SERR Multiple-Bit DRAM ECC Error (DMERR)
+-					 *  0    SERR on Single-Bit ECC Error (DSERR)
+-					 */
++#define I3000_ERRCMD	0xca	/* Error Command (16b)
++				 *
++				 * 15:12 reserved
++				 * 11    SERR on MCH Thermal Sensor Event
++				 *         (TSESERR)
++				 * 10    reserved
++				 *  9    SERR on LOCK to non-DRAM Memory
++				 *         (LCKERR)
++				 *  8    SERR on DRAM Refresh Timeout
++				 *         (DRTOERR)
++				 *  7:2  reserved
++				 *  1    SERR Multi-Bit DRAM ECC Error
++				 *         (DMERR)
++				 *  0    SERR on Single-Bit ECC Error
++				 *         (DSERR)
++				 */
+ 
+ /* Intel  MMIO register space - device 0 function 0 - MMR space */
+ 
+ #define I3000_DRB_SHIFT 25	/* 32MiB grain */
+ 
+-#define I3000_C0DRB		0x100	/* Channel 0 DRAM Rank Boundary (8b x 4)
+-					 *
+-					 * 7:0   Channel 0 DRAM Rank Boundary Address
+-					 */
+-#define I3000_C1DRB		0x180	/* Channel 1 DRAM Rank Boundary (8b x 4)
+-					 *
+-					 * 7:0   Channel 1 DRAM Rank Boundary Address
+-					 */
+-
+-#define I3000_C0DRA		0x108	/* Channel 0 DRAM Rank Attribute (8b x 2)
+-					 *
+-					 * 7     reserved
+-					 * 6:4   DRAM odd Rank Attribute
+-					 * 3     reserved
+-					 * 2:0   DRAM even Rank Attribute
+-					 *
+-					 * Each attribute defines the page
+-					 * size of the corresponding rank:
+-					 *     000: unpopulated
+-					 *     001: reserved
+-					 *     010: 4 KB
+-					 *     011: 8 KB
+-					 *     100: 16 KB
+-					 *     Others: reserved
+-					 */
+-#define I3000_C1DRA		0x188	/* Channel 1 DRAM Rank Attribute (8b x 2) */
+-#define ODD_RANK_ATTRIB(dra) (((dra) & 0x70) >> 4)
+-#define EVEN_RANK_ATTRIB(dra) ((dra) & 0x07)
+-
+-#define I3000_C0DRC0		0x120	/* DRAM Controller Mode 0 (32b)
+-					 *
+-					 * 31:30 reserved
+-					 * 29    Initialization Complete (IC)
+-					 * 28:11 reserved
+-					 * 10:8  Refresh Mode Select (RMS)
+-					 * 7     reserved
+-					 * 6:4   Mode Select (SMS)
+-					 * 3:2   reserved
+-					 * 1:0   DRAM Type (DT)
+-					 */
+-
+-#define I3000_C0DRC1		0x124	/* DRAM Controller Mode 1 (32b)
+-					 *
+-					 * 31    Enhanced Addressing Enable (ENHADE)
+-					 * 30:0  reserved
+-					 */
++#define I3000_C0DRB	0x100	/* Channel 0 DRAM Rank Boundary (8b x 4)
++				 *
++				 * 7:0   Channel 0 DRAM Rank Boundary Address
++				 */
++#define I3000_C1DRB	0x180	/* Channel 1 DRAM Rank Boundary (8b x 4)
++				 *
++				 * 7:0   Channel 1 DRAM Rank Boundary Address
++				 */
 +
-+static inline unsigned char even_rank_attrib(unsigned char dra)
-+{
-+	return dra & 0x07;
-+}
++#define I3000_C0DRA	0x108	/* Channel 0 DRAM Rank Attribute (8b x 2)
++				 *
++				 * 7     reserved
++				 * 6:4   DRAM odd Rank Attribute
++				 * 3     reserved
++				 * 2:0   DRAM even Rank Attribute
++				 *
++				 * Each attribute defines the page
++				 * size of the corresponding rank:
++				 *     000: unpopulated
++				 *     001: reserved
++				 *     010: 4 KB
++				 *     011: 8 KB
++				 *     100: 16 KB
++				 *     Others: reserved
++				 */
++#define I3000_C1DRA	0x188	/* Channel 1 DRAM Rank Attribute (8b x 2) */
++#define ODD_RANK_ATTRIB(dra)	(((dra) & 0x70) >> 4)
++#define EVEN_RANK_ATTRIB(dra)	((dra) & 0x07)
++
++#define I3000_C0DRC0	0x120	/* DRAM Controller Mode 0 (32b)
++				 *
++				 * 31:30 reserved
++				 * 29    Initialization Complete (IC)
++				 * 28:11 reserved
++				 * 10:8  Refresh Mode Select (RMS)
++				 * 7     reserved
++				 * 6:4   Mode Select (SMS)
++				 * 3:2   reserved
++				 * 1:0   DRAM Type (DT)
++				 */
++
++#define I3000_C0DRC1	0x124	/* DRAM Controller Mode 1 (32b)
++				 *
++				 * 31    Enhanced Addressing Enable (ENHADE)
++				 * 30:0  reserved
++				 */
  
- #define I3000_C0DRC0	0x120	/* DRAM Controller Mode 0 (32b)
- 				 *
-@@ -206,8 +226,8 @@ static int i3000_process_error_info(stru
- 				struct i3000_error_info *info,
- 				int handle_errors)
- {
--	int row, multi_chan;
--	int pfn, offset, channel;
-+	int row, multi_chan, channel;
-+	unsigned long pfn, offset;
- 
- 	multi_chan = mci->csrows[0].nr_channels - 1;
- 
-@@ -222,9 +242,9 @@ static int i3000_process_error_info(stru
- 		info->errsts = info->errsts2;
+ enum i3000p_chips {
+ 	I3000 = 0,
+@@ -187,7 +194,8 @@ static void i3000_get_error_info(struct 
+ 		pci_read_config_byte(pdev, I3000_DERRSYN, &info->derrsyn);
  	}
  
--	pfn = I3000_DEAP_PFN(info->edeap, info->deap);
--	offset = I3000_DEAP_OFFSET(info->deap);
--	channel = I3000_DEAP_CHANNEL(info->deap);
-+	pfn = deap_pfn(info->edeap, info->deap);
-+	offset = deap_offset(info->deap);
-+	channel = deap_channel(info->deap);
+-	/* Clear any error bits.
++	/*
++	 * Clear any error bits.
+ 	 * (Yes, we really clear bits by writing 1 to them.)
+ 	 */
+ 	pci_write_bits16(pdev, I3000_ERRSTS, I3000_ERRSTS_BITS,
+@@ -245,7 +253,8 @@ static int i3000_is_interleaved(const un
+ {
+ 	int i;
  
- 	row = edac_mc_find_csrow_by_page(mci, pfn);
- 
-@@ -258,9 +278,9 @@ static int i3000_is_interleaved(const un
+-	/* If the channels aren't populated identically then
++	/*
++	 * If the channels aren't populated identically then
  	 * we're not interleaved.
  	 */
  	for (i = 0; i < I3000_RANKS_PER_CHANNEL / 2; i++)
--		if (ODD_RANK_ATTRIB(c0dra[i]) != ODD_RANK_ATTRIB(c1dra[i]) ||
--			EVEN_RANK_ATTRIB(c0dra[i]) !=
--						EVEN_RANK_ATTRIB(c1dra[i]))
-+		if (odd_rank_attrib(c0dra[i]) != odd_rank_attrib(c1dra[i]) ||
-+			even_rank_attrib(c0dra[i]) !=
-+						even_rank_attrib(c1dra[i]))
+@@ -254,7 +263,8 @@ static int i3000_is_interleaved(const un
+ 						EVEN_RANK_ATTRIB(c1dra[i]))
  			return 0;
  
- 	/*
+-	/* If the rank boundaries for the two channels are different
++	/*
++	 * If the rank boundaries for the two channels are different
+ 	 * then we're not interleaved.
+ 	 */
+ 	for (i = 0; i < I3000_RANKS_PER_CHANNEL; i++)
+@@ -300,7 +310,8 @@ static int i3000_probe1(struct pci_dev *
+ 
+ 	iounmap(window);
+ 
+-	/* Figure out how many channels we have.
++	/*
++	 * Figure out how many channels we have.
+ 	 *
+ 	 * If we have what the datasheet calls "asymmetric channels"
+ 	 * (essentially the same as what was called "virtual single
+@@ -363,7 +374,8 @@ static int i3000_probe1(struct pci_dev *
+ 		csrow->edac_mode = EDAC_UNKNOWN;
+ 	}
+ 
+-	/* Clear any error bits.
++	/*
++	 * Clear any error bits.
+ 	 * (Yes, we really clear bits by writing 1 to them.)
+ 	 */
+ 	pci_write_bits16(pdev, I3000_ERRSTS, I3000_ERRSTS_BITS,
+@@ -390,7 +402,7 @@ static int i3000_probe1(struct pci_dev *
+ 	debugf3("MC: %s(): success\n", __func__);
+ 	return 0;
+ 
+-      fail:
++fail:
+ 	if (mci)
+ 		edac_mc_free(mci);
+ 
+@@ -409,7 +421,7 @@ static int __devinit i3000_init_one(stru
+ 		return -EIO;
+ 
+ 	rc = i3000_probe1(pdev, ent->driver_data);
+-	if (mci_pdev == NULL)
++	if (!mci_pdev)
+ 		mci_pdev = pci_dev_get(pdev);
+ 
+ 	return rc;
+@@ -424,7 +436,8 @@ static void __devexit i3000_remove_one(s
+ 	if (i3000_pci)
+ 		edac_pci_release_generic_ctl(i3000_pci);
+ 
+-	if ((mci = edac_mc_del_mc(&pdev->dev)) == NULL)
++	mci = edac_mc_del_mc(&pdev->dev);
++	if (!mci)
+ 		return;
+ 
+ 	edac_mc_free(mci);
+@@ -457,7 +470,7 @@ static int __init i3000_init(void)
+ 	if (pci_rc < 0)
+ 		goto fail0;
+ 
+-	if (mci_pdev == NULL) {
++	if (!mci_pdev) {
+ 		i3000_registered = 0;
+ 		mci_pdev = pci_get_device(PCI_VENDOR_ID_INTEL,
+ 					PCI_DEVICE_ID_INTEL_3000_HB, NULL);
 _
 
 Patches currently in -mm which might be from juhlenko@akamai.com are
