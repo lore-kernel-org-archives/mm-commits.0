@@ -1,82 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:42:02 -0700
-Message-ID: <200710190342.l9J3g2LH012870@imap1.linux-foundation.org>
+Subject: - fix-random-hard-freeze-with-avm-cards-using-b1dma-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 21:08:05 -0700
+Message-ID: <200710190408.l9J485Op014205@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43601 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57631 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751004AbXJSEDH (ORCPT
+	by vger.kernel.org with ESMTP id S1751102AbXJSEIK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 00:03:07 -0400
+	Fri, 19 Oct 2007 00:08:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, ak@suse.de, dmitriyz@google.com, ego@in.ibm.com, jbeulich@novell.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpu hotplug: thermal_throttle: fix cpu hotplug error handling
+     fix-random-hard-freeze-with-avm-cards-using-b1dma-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling.patch
+     fix-random-hard-freeze-with-avm-cards-using-b1dma-checkpatch-fixes.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into fix-random-hard-freeze-with-avm-cards-using-b1dma.patch
 
 ------------------------------------------------------
-Subject: cpu hotplug: thermal_throttle: fix cpu hotplug error handling
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: fix-random-hard-freeze-with-avm-cards-using-b1dma-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Do thermal_throttle_add_dev() in CPU_UP_PREPARE instead of CPU_ONLINE.
+ERROR: use tabs not spaces
+#88: FILE: drivers/isdn/hardware/avm/b1dma.c:842:
++ ^I^Iunsigned long flags;$
 
-Cc: Dmitriy Zavin <dmitriyz@google.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Jan Beulich <jbeulich@novell.com>
+total: 1 errors, 0 warnings, 76 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/mcheck/therm_throt.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/isdn/hardware/avm/b1dma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/cpu/mcheck/therm_throt.c~cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling arch/x86/kernel/cpu/mcheck/therm_throt.c
---- a/arch/x86/kernel/cpu/mcheck/therm_throt.c~cpu-hotplug-thermal_throttle-fix-cpu-hotplug-error-handling
-+++ a/arch/x86/kernel/cpu/mcheck/therm_throt.c
-@@ -131,17 +131,19 @@ static __cpuinit int thermal_throttle_cp
- {
- 	unsigned int cpu = (unsigned long)hcpu;
- 	struct sys_device *sys_dev;
--	int err;
-+	int err = 0;
+diff -puN drivers/isdn/hardware/avm/b1dma.c~fix-random-hard-freeze-with-avm-cards-using-b1dma-checkpatch-fixes drivers/isdn/hardware/avm/b1dma.c
+--- a/drivers/isdn/hardware/avm/b1dma.c~fix-random-hard-freeze-with-avm-cards-using-b1dma-checkpatch-fixes
++++ a/drivers/isdn/hardware/avm/b1dma.c
+@@ -839,7 +839,7 @@ u16 b1dma_send_message(struct capi_ctr *
+ 	u16 retval = CAPI_NOERROR;
  
- 	sys_dev = get_cpu_sysdev(cpu);
- 	switch (action) {
--	case CPU_ONLINE:
--	case CPU_ONLINE_FROZEN:
-+	case CPU_UP_PREPARE:
-+	case CPU_UP_PREPARE_FROZEN:
- 		mutex_lock(&therm_cpu_lock);
- 		err = thermal_throttle_add_dev(sys_dev);
- 		mutex_unlock(&therm_cpu_lock);
- 		WARN_ON(err);
- 		break;
-+	case CPU_UP_CANCELED:
-+	case CPU_UP_CANCELED_FROZEN:
- 	case CPU_DEAD:
- 	case CPU_DEAD_FROZEN:
- 		mutex_lock(&therm_cpu_lock);
-@@ -149,7 +151,7 @@ static __cpuinit int thermal_throttle_cp
- 		mutex_unlock(&therm_cpu_lock);
- 		break;
- 	}
--	return NOTIFY_OK;
-+	return err ? NOTIFY_BAD : NOTIFY_OK;
- }
- 
- static struct notifier_block thermal_throttle_cpu_notifier __cpuinitdata =
+  	if (CAPIMSG_CMD(skb->data) == CAPI_DATA_B3_REQ) {
+- 		unsigned long flags;
++		unsigned long flags;
+ 		spin_lock_irqsave(&card->lock, flags);
+ 		retval = capilib_data_b3_req(&cinfo->ncci_head,
+ 					     CAPIMSG_APPID(skb->data),
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-git-x86.patch
+console-keyboard-events-and-accessibility.patch
+add-kernel-notifierc.patch
+console-events-and-accessibility.patch
+fix-random-hard-freeze-with-avm-cards-using-b1dma.patch
+fix-random-hard-freeze-with-avm-cards-using-b1dma-checkpatch-fixes.patch
+jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
+task-containersv11-basic-task-container-framework-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
+task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
+add-containerstats-v3-fix.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+cpuset-sched_load_balance-flag-fix.patch
+cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+fix-cpusets-update_cpumask-checkpatch-fixes.patch
+remove-bits_to_type-macro-fix.patch
+use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
+hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
+cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
+use-extended-crashkernel-command-line-on-i386.patch
+hook-up-group-scheduler-with-control-groups-fix.patch
+linux-kernel-markers-checkpatch-fixes.patch
+linux-kernel-markers-samples-checkpatch-fixes.patch
+uninline-forkc-exitc-checkpatch-fixes.patch
