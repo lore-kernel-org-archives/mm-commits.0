@@ -1,129 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: - alpha-lock-bitops.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:45:19 -0700
-Message-ID: <200710190345.l9J3jJF6013207@imap1.linux-foundation.org>
+Subject: - fuse-add-helper-for-asynchronous-writes.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:46:01 -0700
+Message-ID: <200710190346.l9J3k1qw013269@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56280 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36606 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966479AbXJSDzx (ORCPT
+	by vger.kernel.org with ESMTP id S1763307AbXJSDzS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:55:53 -0400
+	Thu, 18 Oct 2007 23:55:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, bunk@kernel.org, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: lock bitops
+     fuse: add helper for asynchronous writes
 has been removed from the -mm tree.  Its filename was
-     alpha-lock-bitops.patch
+     fuse-add-helper-for-asynchronous-writes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: alpha: lock bitops
-From: Nick Piggin <npiggin@suse.de>
+Subject: fuse: add helper for asynchronous writes
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Alpha can avoid one mb when acquiring a lock with test_and_set_bit_lock.
+This patch adds a new helper function fuse_write_fill() which makes it
+possible to send WRITE requests asynchronously.
 
-[bunk@kernel.org: alpha bitops.h must #include <asm/barrier.h>]
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+A new flag for WRITE requests is also added which indicates that this a write
+from the page cache, and not a "normal" file write.
+
+This patch is in preparation for writable mmap support.
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/bitops.h |   43 ++++++++++++++++++++++++++++++++++-
- 1 file changed, 42 insertions(+), 1 deletion(-)
+ fs/fuse/file.c       |   37 ++++++++++++++++++++++---------------
+ fs/fuse/fuse_i.h     |    4 ++++
+ include/linux/fuse.h |    7 +++++++
+ 3 files changed, 33 insertions(+), 15 deletions(-)
 
-diff -puN include/asm-alpha/bitops.h~alpha-lock-bitops include/asm-alpha/bitops.h
---- a/include/asm-alpha/bitops.h~alpha-lock-bitops
-+++ a/include/asm-alpha/bitops.h
-@@ -2,6 +2,7 @@
- #define _ALPHA_BITOPS_H
- 
- #include <asm/compiler.h>
-+#include <asm/barrier.h>
- 
- /*
-  * Copyright 1994, Linus Torvalds.
-@@ -69,6 +70,13 @@ clear_bit(unsigned long nr, volatile voi
- 	:"Ir" (1UL << (nr & 31)), "m" (*m));
+diff -puN fs/fuse/file.c~fuse-add-helper-for-asynchronous-writes fs/fuse/file.c
+--- a/fs/fuse/file.c~fuse-add-helper-for-asynchronous-writes
++++ a/fs/fuse/file.c
+@@ -443,30 +443,37 @@ out:
+ 	return err;
  }
  
-+static inline void
-+clear_bit_unlock(unsigned long nr, volatile void * addr)
+-static size_t fuse_send_write(struct fuse_req *req, struct file *file,
+-			      struct inode *inode, loff_t pos, size_t count)
+-{
+-	struct fuse_conn *fc = get_fuse_conn(inode);
+-	struct fuse_file *ff = file->private_data;
+-	struct fuse_write_in inarg;
+-	struct fuse_write_out outarg;
+-
+-	memset(&inarg, 0, sizeof(struct fuse_write_in));
+-	inarg.fh = ff->fh;
+-	inarg.offset = pos;
+-	inarg.size = count;
++static void fuse_write_fill(struct fuse_req *req, struct fuse_file *ff,
++			    struct inode *inode, loff_t pos, size_t count,
++			    int writepage)
 +{
-+	smp_mb();
-+	clear_bit(nr, addr);
++	struct fuse_write_in *inarg = &req->misc.write.in;
++	struct fuse_write_out *outarg = &req->misc.write.out;
++
++	memset(inarg, 0, sizeof(struct fuse_write_in));
++	inarg->fh = ff->fh;
++	inarg->offset = pos;
++	inarg->size = count;
++	inarg->write_flags = writepage ? FUSE_WRITE_CACHE : 0;
+ 	req->in.h.opcode = FUSE_WRITE;
+ 	req->in.h.nodeid = get_node_id(inode);
+ 	req->in.argpages = 1;
+ 	req->in.numargs = 2;
+ 	req->in.args[0].size = sizeof(struct fuse_write_in);
+-	req->in.args[0].value = &inarg;
++	req->in.args[0].value = inarg;
+ 	req->in.args[1].size = count;
+ 	req->out.numargs = 1;
+ 	req->out.args[0].size = sizeof(struct fuse_write_out);
+-	req->out.args[0].value = &outarg;
++	req->out.args[0].value = outarg;
 +}
 +
- /*
-  * WARNING: non atomic version.
++static size_t fuse_send_write(struct fuse_req *req, struct file *file,
++			      struct inode *inode, loff_t pos, size_t count)
++{
++	struct fuse_conn *fc = get_fuse_conn(inode);
++	fuse_write_fill(req, file->private_data, inode, pos, count, 0);
+ 	request_send(fc, req);
+-	return outarg.size;
++	return req->misc.write.out.size;
+ }
+ 
+ static int fuse_write_begin(struct file *file, struct address_space *mapping,
+diff -puN fs/fuse/fuse_i.h~fuse-add-helper-for-asynchronous-writes fs/fuse/fuse_i.h
+--- a/fs/fuse/fuse_i.h~fuse-add-helper-for-asynchronous-writes
++++ a/fs/fuse/fuse_i.h
+@@ -219,6 +219,10 @@ struct fuse_req {
+ 		struct fuse_init_in init_in;
+ 		struct fuse_init_out init_out;
+ 		struct fuse_read_in read_in;
++		struct {
++			struct fuse_write_in in;
++			struct fuse_write_out out;
++		} write;
+ 		struct fuse_lk_in lk_in;
+ 	} misc;
+ 
+diff -puN include/linux/fuse.h~fuse-add-helper-for-asynchronous-writes include/linux/fuse.h
+--- a/include/linux/fuse.h~fuse-add-helper-for-asynchronous-writes
++++ a/include/linux/fuse.h
+@@ -119,6 +119,13 @@ struct fuse_file_lock {
   */
-@@ -81,6 +89,13 @@ __clear_bit(unsigned long nr, volatile v
- }
+ #define FUSE_LK_FLOCK		(1 << 0)
  
- static inline void
-+__clear_bit_unlock(unsigned long nr, volatile void * addr)
-+{
-+	smp_mb();
-+	__clear_bit(nr, addr);
-+}
++/**
++ * WRITE flags
++ *
++ * FUSE_WRITE_CACHE: delayed write from page cache, file handle is guessed
++ */
++#define FUSE_WRITE_CACHE	(1 << 0)
 +
-+static inline void
- change_bit(unsigned long nr, volatile void * addr)
- {
- 	unsigned long temp;
-@@ -139,6 +154,33 @@ test_and_set_bit(unsigned long nr, volat
- 	return oldbit != 0;
- }
- 
-+static inline int
-+test_and_set_bit_lock(unsigned long nr, volatile void *addr)
-+{
-+	unsigned long oldbit;
-+	unsigned long temp;
-+	int *m = ((int *) addr) + (nr >> 5);
-+
-+	__asm__ __volatile__(
-+	"1:	ldl_l %0,%4\n"
-+	"	and %0,%3,%2\n"
-+	"	bne %2,2f\n"
-+	"	xor %0,%3,%0\n"
-+	"	stl_c %0,%1\n"
-+	"	beq %0,3f\n"
-+	"2:\n"
-+#ifdef CONFIG_SMP
-+	"	mb\n"
-+#endif
-+	".subsection 2\n"
-+	"3:	br 1b\n"
-+	".previous"
-+	:"=&r" (temp), "=m" (*m), "=&r" (oldbit)
-+	:"Ir" (1UL << (nr & 31)), "m" (*m) : "memory");
-+
-+	return oldbit != 0;
-+}
-+
- /*
-  * WARNING: non atomic version.
-  */
-@@ -376,7 +418,6 @@ static inline unsigned int hweight8(unsi
- #else
- #include <asm-generic/bitops/hweight.h>
- #endif
--#include <asm-generic/bitops/lock.h>
- 
- #endif /* __KERNEL__ */
- 
+ enum fuse_opcode {
+ 	FUSE_LOOKUP	   = 1,
+ 	FUSE_FORGET	   = 2,  /* no reply */
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-put-declaration-of-put_filesystem-in-fsh.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-mounts-fix-subtype-handling.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent-fix-for-git-audit.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
 fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
-reiser4-fix-for-new-aops-patches.patch
