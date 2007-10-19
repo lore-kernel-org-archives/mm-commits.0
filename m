@@ -1,53 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 21:29:43 -0700
-Message-ID: <200710190429.l9J4ThGB015126@imap1.linux-foundation.org>
+Subject: - ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 21:29:46 -0700
+Message-ID: <200710190429.l9J4Tk8b015133@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59348 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36285 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966388AbXJSEaS (ORCPT
+	by vger.kernel.org with ESMTP id S966444AbXJSEaU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 00:30:18 -0400
+	Fri, 19 Oct 2007 00:30:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, Nadia.Derbey@bull.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipc-integrate-ipc_checkid-into-ipc_lock-fix
+     ipc-integrate-ipc_checkid-into-ipc_lock-fix-2
 has been removed from the -mm tree.  Its filename was
-     ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
+     ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
 
 This patch was dropped because it was folded into ipc-integrate-ipc_checkid-into-ipc_lock.patch
 
 ------------------------------------------------------
-Subject: ipc-integrate-ipc_checkid-into-ipc_lock-fix
+Subject: ipc-integrate-ipc_checkid-into-ipc_lock-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
-
-ipc/util.h: In function 'ipc_lock_check':
-ipc/util.h:157: error: implicit declaration of function 'IS_ERR'
-ipc/util.h:162: error: implicit declaration of function 'ERR_PTR'
-ipc/util.h:162: warning: return makes pointer from integer without a cast
 
 Cc: Nadia Derbey <Nadia.Derbey@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.h |    1 +
- 1 file changed, 1 insertion(+)
+ ipc/util.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN ipc/util.h~ipc-integrate-ipc_checkid-into-ipc_lock-fix ipc/util.h
---- a/ipc/util.h~ipc-integrate-ipc_checkid-into-ipc_lock-fix
-+++ a/ipc/util.h
-@@ -11,6 +11,7 @@
- #define _IPC_UTIL_H
+diff -puN ipc/util.c~ipc-integrate-ipc_checkid-into-ipc_lock-fix-2 ipc/util.c
+--- a/ipc/util.c~ipc-integrate-ipc_checkid-into-ipc_lock-fix-2
++++ a/ipc/util.c
+@@ -295,7 +295,6 @@ int ipc_addid(struct ipc_ids* ids, struc
  
- #include <linux/idr.h>
-+#include <linux/err.h>
+ 	spin_lock_init(&new->lock);
+ 	new->deleted = 0;
+-	rcu_read_lock();
+ 	spin_lock(&new->lock);
+ 	return id;
+ }
+@@ -691,7 +690,7 @@ struct kern_ipc_perm *ipc_lock(struct ip
+ 		rcu_read_unlock();
+ 		return ERR_PTR(-EINVAL);
+ 	}
+-
++	rcu_read_unlock();
+ 	return out;
+ }
  
- #define USHRT_MAX 0xffff
- #define SEQ_MULTIPLIER	(IPCMNI)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,7 +78,6 @@ use-helpers-to-obtain-task-pid-in-printks.patch
 hotplug-cpu-migrate-a-task-within-its-cpuset.patch
 cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified.patch
 ipc-integrate-ipc_checkid-into-ipc_lock.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
 ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
 use-extended-crashkernel-command-line-on-i386.patch
 hook-up-group-scheduler-with-control-groups-fix.patch
