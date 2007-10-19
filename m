@@ -1,93 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: - jbd-ext3-cleanups-convert-to-kzalloc.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:49:32 -0700
-Message-ID: <200710192249.l9JMnWCv023976@imap1.linux-foundation.org>
+Subject: - fix-random-hard-freeze-with-avm-t1-cards.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:49:28 -0700
+Message-ID: <200710192249.l9JMnSbe023968@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39452 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55058 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757497AbXJSWtf (ORCPT
+	by vger.kernel.org with ESMTP id S1757497AbXJSWtc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 18:49:35 -0400
+	Fri, 19 Oct 2007 18:49:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cmm@us.ibm.com, mm-commits@vger.kernel.org
+To: kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     JBD/ext3 cleanups: convert to kzalloc
+     isdn: fix random hard freeze with AVM T1 cards
 has been removed from the -mm tree.  Its filename was
-     jbd-ext3-cleanups-convert-to-kzalloc.patch
+     fix-random-hard-freeze-with-avm-t1-cards.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: JBD/ext3 cleanups: convert to kzalloc
-From: Mingming Cao <cmm@us.ibm.com>
+Subject: isdn: fix random hard freeze with AVM T1 cards
+From: Karsten Keil <kkeil@suse.de>
 
-Convert kmalloc to kzalloc() and get rid of the memset().
+This fixes the hard freeze debugged for AVM C4 cards for the AVM T1 cards.
 
-Signed-off-by: Mingming Cao <cmm@us.ibm.com>
+Signed-off-by: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/xattr.c      |    3 +--
- fs/jbd/journal.c     |    3 +--
- fs/jbd/transaction.c |    3 +--
- 3 files changed, 3 insertions(+), 6 deletions(-)
+ drivers/isdn/hardware/avm/t1isa.c |   28 ++++++++++++----------------
+ 1 file changed, 12 insertions(+), 16 deletions(-)
 
-diff -puN fs/ext3/xattr.c~jbd-ext3-cleanups-convert-to-kzalloc fs/ext3/xattr.c
---- a/fs/ext3/xattr.c~jbd-ext3-cleanups-convert-to-kzalloc
-+++ a/fs/ext3/xattr.c
-@@ -741,12 +741,11 @@ ext3_xattr_block_set(handle_t *handle, s
- 		}
+diff -puN drivers/isdn/hardware/avm/t1isa.c~fix-random-hard-freeze-with-avm-t1-cards drivers/isdn/hardware/avm/t1isa.c
+--- a/drivers/isdn/hardware/avm/t1isa.c~fix-random-hard-freeze-with-avm-t1-cards
++++ a/drivers/isdn/hardware/avm/t1isa.c
+@@ -180,8 +180,8 @@ static irqreturn_t t1isa_interrupt(int i
+ 
+ 			ApplId = (unsigned) b1_get_word(card->port);
+ 			MsgLen = t1_get_slice(card->port, card->msgbuf);
+-			spin_unlock_irqrestore(&card->lock, flags);
+ 			if (!(skb = alloc_skb(MsgLen, GFP_ATOMIC))) {
++				spin_unlock_irqrestore(&card->lock, flags);
+ 				printk(KERN_ERR "%s: incoming packet dropped\n",
+ 						card->name);
+ 			} else {
+@@ -190,7 +190,7 @@ static irqreturn_t t1isa_interrupt(int i
+ 					capilib_data_b3_conf(&cinfo->ncci_head, ApplId,
+ 							     CAPIMSG_NCCI(skb->data),
+ 							     CAPIMSG_MSGID(skb->data));
+-
++				spin_unlock_irqrestore(&card->lock, flags);
+ 				capi_ctr_handle_message(ctrl, ApplId, skb);
+ 			}
+ 			break;
+@@ -200,21 +200,17 @@ static irqreturn_t t1isa_interrupt(int i
+ 			ApplId = b1_get_word(card->port);
+ 			NCCI = b1_get_word(card->port);
+ 			WindowSize = b1_get_word(card->port);
+-			spin_unlock_irqrestore(&card->lock, flags);
+-
+ 			capilib_new_ncci(&cinfo->ncci_head, ApplId, NCCI, WindowSize);
+-
++			spin_unlock_irqrestore(&card->lock, flags);
+ 			break;
+ 
+ 		case RECEIVE_FREE_NCCI:
+ 
+ 			ApplId = b1_get_word(card->port);
+ 			NCCI = b1_get_word(card->port);
+-			spin_unlock_irqrestore(&card->lock, flags);
+-
+ 			if (NCCI != 0xffffffff)
+ 				capilib_free_ncci(&cinfo->ncci_head, ApplId, NCCI);
+-
++			spin_unlock_irqrestore(&card->lock, flags);
+ 			break;
+ 
+ 		case RECEIVE_START:
+@@ -333,13 +329,16 @@ static void t1isa_reset_ctr(struct capi_
+ 	avmctrl_info *cinfo = (avmctrl_info *)(ctrl->driverdata);
+ 	avmcard *card = cinfo->card;
+ 	unsigned int port = card->port;
++	unsigned long flags;
+ 
+ 	t1_disable_irq(port);
+ 	b1_reset(port);
+ 	b1_reset(port);
+ 
+ 	memset(cinfo->version, 0, sizeof(cinfo->version));
++	spin_lock_irqsave(&card->lock, flags);
+ 	capilib_release(&cinfo->ncci_head);
++	spin_unlock_irqrestore(&card->lock, flags);
+ 	capi_ctr_reseted(ctrl);
+ }
+ 
+@@ -466,29 +465,26 @@ static u16 t1isa_send_message(struct cap
+ 	u8 subcmd = CAPIMSG_SUBCOMMAND(skb->data);
+ 	u16 dlen, retval;
+ 
++	spin_lock_irqsave(&card->lock, flags);
+ 	if (CAPICMD(cmd, subcmd) == CAPI_DATA_B3_REQ) {
+ 		retval = capilib_data_b3_req(&cinfo->ncci_head,
+ 					     CAPIMSG_APPID(skb->data),
+ 					     CAPIMSG_NCCI(skb->data),
+ 					     CAPIMSG_MSGID(skb->data));
+-		if (retval != CAPI_NOERROR) 
++		if (retval != CAPI_NOERROR) {
++			spin_unlock_irqrestore(&card->lock, flags);
+ 			return retval;
+-
++		}
+ 		dlen = CAPIMSG_DATALEN(skb->data);
+ 
+-		spin_lock_irqsave(&card->lock, flags);
+ 		b1_put_byte(port, SEND_DATA_B3_REQ);
+ 		t1_put_slice(port, skb->data, len);
+ 		t1_put_slice(port, skb->data + len, dlen);
+-		spin_unlock_irqrestore(&card->lock, flags);
  	} else {
- 		/* Allocate a buffer where we construct the new block. */
--		s->base = kmalloc(sb->s_blocksize, GFP_KERNEL);
-+		s->base = kzalloc(sb->s_blocksize, GFP_KERNEL);
- 		/* assert(header == s->base) */
- 		error = -ENOMEM;
- 		if (s->base == NULL)
- 			goto cleanup;
--		memset(s->base, 0, sb->s_blocksize);
- 		header(s->base)->h_magic = cpu_to_le32(EXT3_XATTR_MAGIC);
- 		header(s->base)->h_blocks = cpu_to_le32(1);
- 		header(s->base)->h_refcount = cpu_to_le32(1);
-diff -puN fs/jbd/journal.c~jbd-ext3-cleanups-convert-to-kzalloc fs/jbd/journal.c
---- a/fs/jbd/journal.c~jbd-ext3-cleanups-convert-to-kzalloc
-+++ a/fs/jbd/journal.c
-@@ -654,10 +654,9 @@ static journal_t * journal_init_common (
- 	journal_t *journal;
- 	int err;
- 
--	journal = kmalloc(sizeof(*journal), GFP_KERNEL);
-+	journal = kzalloc(sizeof(*journal), GFP_KERNEL);
- 	if (!journal)
- 		goto fail;
--	memset(journal, 0, sizeof(*journal));
- 
- 	init_waitqueue_head(&journal->j_wait_transaction_locked);
- 	init_waitqueue_head(&journal->j_wait_logspace);
-diff -puN fs/jbd/transaction.c~jbd-ext3-cleanups-convert-to-kzalloc fs/jbd/transaction.c
---- a/fs/jbd/transaction.c~jbd-ext3-cleanups-convert-to-kzalloc
-+++ a/fs/jbd/transaction.c
-@@ -96,13 +96,12 @@ static int start_this_handle(journal_t *
- 
- alloc_transaction:
- 	if (!journal->j_running_transaction) {
--		new_transaction = kmalloc(sizeof(*new_transaction),
-+		new_transaction = kzalloc(sizeof(*new_transaction),
- 						GFP_NOFS|__GFP_NOFAIL);
- 		if (!new_transaction) {
- 			ret = -ENOMEM;
- 			goto out;
- 		}
--		memset(new_transaction, 0, sizeof(*new_transaction));
+-
+-		spin_lock_irqsave(&card->lock, flags);
+ 		b1_put_byte(port, SEND_MESSAGE);
+ 		t1_put_slice(port, skb->data, len);
+-		spin_unlock_irqrestore(&card->lock, flags);
  	}
- 
- 	jbd_debug(3, "New handle %p going live.\n", handle);
+-
++	spin_unlock_irqrestore(&card->lock, flags);
+ 	dev_kfree_skb_any(skb);
+ 	return CAPI_NOERROR;
+ }
 _
 
-Patches currently in -mm which might be from cmm@us.ibm.com are
+Patches currently in -mm which might be from kkeil@suse.de are
 
 origin.patch
