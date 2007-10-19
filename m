@@ -1,85 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - char-rocket-dont-re-set-statics-to-0.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:44:37 -0700
-Message-ID: <200710190344.l9J3ibQW013158@imap1.linux-foundation.org>
+Subject: - powerpc-lock-bitops.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:45:27 -0700
+Message-ID: <200710190345.l9J3jRhm013223@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41231 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48761 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966071AbXJSDzb (ORCPT
+	by vger.kernel.org with ESMTP id S933839AbXJSDze (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:55:31 -0400
+	Thu, 18 Oct 2007 23:55:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: rocket, don't re-set statics to 0
+     powerpc: lock bitops
 has been removed from the -mm tree.  Its filename was
-     char-rocket-dont-re-set-statics-to-0.patch
+     powerpc-lock-bitops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: rocket, don't re-set statics to 0
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: powerpc: lock bitops
+From: Nick Piggin <npiggin@suse.de>
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Add non-trivial lock bitops implementation for powerpc.
+
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rocket.c |   12 ------------
- 1 file changed, 12 deletions(-)
+ include/asm-powerpc/bitops.h |   46 ++++++++++++++++++++++++++++++++-
+ 1 file changed, 45 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/rocket.c~char-rocket-dont-re-set-statics-to-0 drivers/char/rocket.c
---- a/drivers/char/rocket.c~char-rocket-dont-re-set-statics-to-0
-+++ a/drivers/char/rocket.c
-@@ -2376,18 +2376,6 @@ static int __init rp_init(void)
- 		return -ENOMEM;
+diff -puN include/asm-powerpc/bitops.h~powerpc-lock-bitops include/asm-powerpc/bitops.h
+--- a/include/asm-powerpc/bitops.h~powerpc-lock-bitops
++++ a/include/asm-powerpc/bitops.h
+@@ -86,6 +86,24 @@ static __inline__ void clear_bit(int nr,
+ 	: "cc" );
+ }
  
- 	/*
--	 * Initialize the array of pointers to our own internal state
--	 * structures.
--	 */
--	memset(rp_table, 0, sizeof (rp_table));
--	memset(xmit_flags, 0, sizeof (xmit_flags));
--
--	for (i = 0; i < MAX_RP_PORTS; i++)
--		lineNumbers[i] = 0;
--	nextLineNumber = 0;
--	memset(rocketModel, 0, sizeof (rocketModel));
--
--	/*
- 	 *  If board 1 is non-zero, there is at least one ISA configured.  If controller is 
- 	 *  zero, use the default controller IO address of board1 + 0x40.
- 	 */
++static __inline__ void clear_bit_unlock(int nr, volatile unsigned long *addr)
++{
++	unsigned long old;
++	unsigned long mask = BITOP_MASK(nr);
++	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
++
++	__asm__ __volatile__(
++	LWSYNC_ON_SMP
++"1:"	PPC_LLARX "%0,0,%3	# clear_bit_unlock\n"
++	"andc	%0,%0,%2\n"
++	PPC405_ERR77(0,%3)
++	PPC_STLCX "%0,0,%3\n"
++	"bne-	1b"
++	: "=&r" (old), "+m" (*p)
++	: "r" (mask), "r" (p)
++	: "cc", "memory");
++}
++
+ static __inline__ void change_bit(int nr, volatile unsigned long *addr)
+ {
+ 	unsigned long old;
+@@ -125,6 +143,27 @@ static __inline__ int test_and_set_bit(u
+ 	return (old & mask) != 0;
+ }
+ 
++static __inline__ int test_and_set_bit_lock(unsigned long nr,
++				       volatile unsigned long *addr)
++{
++	unsigned long old, t;
++	unsigned long mask = BITOP_MASK(nr);
++	unsigned long *p = ((unsigned long *)addr) + BITOP_WORD(nr);
++
++	__asm__ __volatile__(
++"1:"	PPC_LLARX "%0,0,%3		# test_and_set_bit_lock\n"
++	"or	%1,%0,%2 \n"
++	PPC405_ERR77(0,%3)
++	PPC_STLCX "%1,0,%3 \n"
++	"bne-	1b"
++	ISYNC_ON_SMP
++	: "=&r" (old), "=&r" (t)
++	: "r" (mask), "r" (p)
++	: "cc", "memory");
++
++	return (old & mask) != 0;
++}
++
+ static __inline__ int test_and_clear_bit(unsigned long nr,
+ 					 volatile unsigned long *addr)
+ {
+@@ -185,6 +224,12 @@ static __inline__ void set_bits(unsigned
+ 
+ #include <asm-generic/bitops/non-atomic.h>
+ 
++static __inline__ void __clear_bit_unlock(int nr, volatile unsigned long *addr)
++{
++	__asm__ __volatile__(LWSYNC_ON_SMP "" ::: "memory");
++	__clear_bit(nr, addr);
++}
++
+ /*
+  * Return the zero-based bit position (LE, not IBM bit numbering) of
+  * the most significant 1-bit in a double word.
+@@ -266,7 +311,6 @@ static __inline__ int fls(unsigned int x
+ #include <asm-generic/bitops/fls64.h>
+ 
+ #include <asm-generic/bitops/hweight.h>
+-#include <asm-generic/bitops/lock.h>
+ 
+ #define find_first_zero_bit(addr, size) find_next_zero_bit((addr), (size), 0)
+ unsigned long find_next_zero_bit(const unsigned long *addr,
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-git-dvb.patch
-v4l-stk11xx-add-a-new-webcam-driver.patch
-v4l-stk11xx-use-array_size-in-another-2-cases.patch
-v4l-stk11xx-use-retval-from-stk11xx_check_device.patch
-v4l-stk11xx-add-static-to-tables.patch
-git-wireless.patch
-misc-phantom-synchronize_irq-on-suspend.patch
-misc-phantom-add-comment-about-openhaptics.patch
-misc-phantom-improved-data-passing.patch
-fs-select-remove-unused-macros.patch
-remove-asm-bitopsh-includes.patch
-forbid-asm-bitopsh-direct-inclusion.patch
-cyber2000fb-rename-bit-macro.patch
-i2c-pxa-rename-bit-macro-to-pxa_bit.patch
-s2io-rename-bit-macro.patch
-amba-pl011-rename-bit-macro.patch
-define-first-set-of-bit-macros.patch
-get-rid-of-input-bit-duplicate-defines.patch
-define-global-bit-macro.patch
-flashpoint-use-bit-instead-of-bitw.patch
-remove-bits_to_type-macro.patch
-remove-bits_to_type-macro-fix.patch
-remove-asm-bitopsh-includes-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+reiser4-fix-for-new-aops-patches.patch
