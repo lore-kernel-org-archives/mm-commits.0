@@ -1,170 +1,347 @@
 From: akpm@linux-foundation.org
-Subject: - stop-using-dma_xxbit_mask.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:41:41 -0700
-Message-ID: <200710190341.l9J3fffL012840@imap1.linux-foundation.org>
+Subject: - i-oat-tighten-descriptor-setup-performance.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:46:35 -0700
+Message-ID: <200710190346.l9J3kZ6F013344@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43090 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57404 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764072AbXJSDzY (ORCPT
+	by vger.kernel.org with ESMTP id S1762259AbXJSDzZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:55:24 -0400
+	Thu, 18 Oct 2007 23:55:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jeremy@goop.org, mm-commits@vger.kernel.org
+To: shannon.nelson@intel.com, dan.j.williams@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     stop using DMA_xxBIT_MASK
+     I/OAT: Tighten descriptor setup performance
 has been removed from the -mm tree.  Its filename was
-     stop-using-dma_xxbit_mask.patch
+     i-oat-tighten-descriptor-setup-performance.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: stop using DMA_xxBIT_MASK
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: I/OAT: Tighten descriptor setup performance
+From: Shannon Nelson <shannon.nelson@intel.com>
 
-Now that we have DMA_BIT_MASK(), these macros are pointless.
+The change to the async_tx interface cost this driver some performance by
+spreading the descriptor setup across several functions, including multiple
+passes over the new descriptor chain.  Here we bring the work back into one
+primary function and only do one pass.
 
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+[akpm@linux-foundation.org: cleanups, uninline]
+Signed-off-by: Shannon Nelson <shannon.nelson@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dma-mapping.h |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ drivers/dma/ioat_dma.c |  173 ++++++++++++++++++++-------------------
+ drivers/dma/ioatdma.h  |    6 -
+ 2 files changed, 95 insertions(+), 84 deletions(-)
 
-diff -puN include/linux/dma-mapping.h~stop-using-dma_xxbit_mask include/linux/dma-mapping.h
---- a/include/linux/dma-mapping.h~stop-using-dma_xxbit_mask
-+++ a/include/linux/dma-mapping.h
-@@ -13,9 +13,15 @@ enum dma_data_direction {
- 	DMA_NONE = 3,
+diff -puN drivers/dma/ioat_dma.c~i-oat-tighten-descriptor-setup-performance drivers/dma/ioat_dma.c
+--- a/drivers/dma/ioat_dma.c~i-oat-tighten-descriptor-setup-performance
++++ a/drivers/dma/ioat_dma.c
+@@ -46,9 +46,12 @@
+ /* internal functions */
+ static void ioat_dma_start_null_desc(struct ioat_dma_chan *ioat_chan);
+ static void ioat_dma_memcpy_cleanup(struct ioat_dma_chan *ioat_chan);
++static struct ioat_desc_sw *
++ioat_dma_get_next_descriptor(struct ioat_dma_chan *ioat_chan);
+ 
+-static struct ioat_dma_chan *ioat_lookup_chan_by_index(struct ioatdma_device *device,
+-						       int index)
++static inline struct ioat_dma_chan *ioat_lookup_chan_by_index(
++						struct ioatdma_device *device,
++						int index)
+ {
+ 	return device->idx[index];
+ }
+@@ -148,57 +151,90 @@ static void ioat_set_src(dma_addr_t addr
+ 			 struct dma_async_tx_descriptor *tx,
+ 			 int index)
+ {
+-	struct ioat_desc_sw *iter, *desc = tx_to_ioat_desc(tx);
+-	struct ioat_dma_chan *ioat_chan = to_ioat_chan(tx->chan);
+-
+-	pci_unmap_addr_set(desc, src, addr);
+-
+-	list_for_each_entry(iter, &desc->async_tx.tx_list, node) {
+-		iter->hw->src_addr = addr;
+-		addr += ioat_chan->xfercap;
+-	}
+-
++	tx_to_ioat_desc(tx)->src = addr;
+ }
+ 
+ static void ioat_set_dest(dma_addr_t addr,
+ 			  struct dma_async_tx_descriptor *tx,
+ 			  int index)
+ {
+-	struct ioat_desc_sw *iter, *desc = tx_to_ioat_desc(tx);
+-	struct ioat_dma_chan *ioat_chan = to_ioat_chan(tx->chan);
+-
+-	pci_unmap_addr_set(desc, dst, addr);
+-
+-	list_for_each_entry(iter, &desc->async_tx.tx_list, node) {
+-		iter->hw->dst_addr = addr;
+-		addr += ioat_chan->xfercap;
+-	}
++	tx_to_ioat_desc(tx)->dst = addr;
+ }
+ 
+ static dma_cookie_t ioat_tx_submit(struct dma_async_tx_descriptor *tx)
+ {
+ 	struct ioat_dma_chan *ioat_chan = to_ioat_chan(tx->chan);
+-	struct ioat_desc_sw *desc = tx_to_ioat_desc(tx);
++	struct ioat_desc_sw *first = tx_to_ioat_desc(tx);
++	struct ioat_desc_sw *prev, *new;
++	struct ioat_dma_descriptor *hw;
+ 	int append = 0;
+ 	dma_cookie_t cookie;
+-	struct ioat_desc_sw *group_start;
++	LIST_HEAD(new_chain);
++	u32 copy;
++	size_t len;
++	dma_addr_t src, dst;
++	int orig_ack;
++	unsigned int desc_count = 0;
++
++	/* src and dest and len are stored in the initial descriptor */
++	len = first->len;
++	src = first->src;
++	dst = first->dst;
++	orig_ack = first->async_tx.ack;
++	new = first;
+ 
+-	group_start = list_entry(desc->async_tx.tx_list.next,
+-				 struct ioat_desc_sw, node);
+ 	spin_lock_bh(&ioat_chan->desc_lock);
++	prev = to_ioat_desc(ioat_chan->used_desc.prev);
++	prefetch(prev->hw);
++	do {
++		copy = min((u32) len, ioat_chan->xfercap);
++
++		new->async_tx.ack = 1;
++
++		hw = new->hw;
++		hw->size = copy;
++		hw->ctl = 0;
++		hw->src_addr = src;
++		hw->dst_addr = dst;
++		hw->next = 0;
++
++		/* chain together the physical address list for the HW */
++		wmb();
++		prev->hw->next = (u64) new->async_tx.phys;
++
++		len -= copy;
++		dst += copy;
++		src += copy;
++
++		list_add_tail(&new->node, &new_chain);
++		desc_count++;
++		prev = new;
++	} while (len && (new = ioat_dma_get_next_descriptor(ioat_chan)));
++
++	hw->ctl = IOAT_DMA_DESCRIPTOR_CTL_CP_STS;
++	new->tx_cnt = desc_count;
++	new->async_tx.ack = orig_ack; /* client is in control of this ack */
++
++	/* store the original values for use in later cleanup */
++	if (new != first) {
++		new->src = first->src;
++		new->dst = first->dst;
++		new->len = first->len;
++	}
++
+ 	/* cookie incr and addition to used_list must be atomic */
+ 	cookie = ioat_chan->common.cookie;
+ 	cookie++;
+ 	if (cookie < 0)
+ 		cookie = 1;
+-	ioat_chan->common.cookie = desc->async_tx.cookie = cookie;
++	ioat_chan->common.cookie = new->async_tx.cookie = cookie;
+ 
+ 	/* write address into NextDescriptor field of last desc in chain */
+ 	to_ioat_desc(ioat_chan->used_desc.prev)->hw->next =
+-						group_start->async_tx.phys;
+-	list_splice_init(&desc->async_tx.tx_list, ioat_chan->used_desc.prev);
++							first->async_tx.phys;
++	__list_splice(&new_chain, ioat_chan->used_desc.prev);
+ 
+-	ioat_chan->pending += desc->tx_cnt;
++	ioat_chan->pending += desc_count;
+ 	if (ioat_chan->pending >= 4) {
+ 		append = 1;
+ 		ioat_chan->pending = 0;
+@@ -348,6 +384,7 @@ static void ioat_dma_free_chan_resources
+ 	ioat_chan->last_completion = ioat_chan->completion_addr = 0;
+ 	ioat_chan->pending = 0;
+ }
++
+ /**
+  * ioat_dma_get_next_descriptor - return the next available descriptor
+  * @ioat_chan: IOAT DMA channel handle
+@@ -356,8 +393,8 @@ static void ioat_dma_free_chan_resources
+  * channel's desc_lock held.  Allocates more descriptors if the channel
+  * has run out.
+  */
+-static struct ioat_desc_sw *ioat_dma_get_next_descriptor(
+-						struct ioat_dma_chan *ioat_chan)
++static struct ioat_desc_sw *
++ioat_dma_get_next_descriptor(struct ioat_dma_chan *ioat_chan)
+ {
+ 	struct ioat_desc_sw *new = NULL;
+ 
+@@ -382,51 +419,11 @@ static struct dma_async_tx_descriptor *i
+ 						int int_en)
+ {
+ 	struct ioat_dma_chan *ioat_chan = to_ioat_chan(chan);
+-	struct ioat_desc_sw *first, *prev, *new;
+-	LIST_HEAD(new_chain);
+-	u32 copy;
+-	size_t orig_len;
+-	int desc_count = 0;
+-
+-	if (!len)
+-		return NULL;
+-
+-	orig_len = len;
+-
+-	first = NULL;
+-	prev = NULL;
++	struct ioat_desc_sw *new;
+ 
+ 	spin_lock_bh(&ioat_chan->desc_lock);
+-	while (len) {
+-		new = ioat_dma_get_next_descriptor(ioat_chan);
+-		copy = min((u32) len, ioat_chan->xfercap);
+-
+-		new->hw->size = copy;
+-		new->hw->ctl = 0;
+-		new->async_tx.cookie = 0;
+-		new->async_tx.ack = 1;
+-
+-		/* chain together the physical address list for the HW */
+-		if (!first)
+-			first = new;
+-		else
+-			prev->hw->next = (u64) new->async_tx.phys;
+-
+-		prev = new;
+-		len  -= copy;
+-		list_add_tail(&new->node, &new_chain);
+-		desc_count++;
+-	}
+-
+-	list_splice(&new_chain, &new->async_tx.tx_list);
+-
+-	new->hw->ctl = IOAT_DMA_DESCRIPTOR_CTL_CP_STS;
+-	new->hw->next = 0;
+-	new->tx_cnt = desc_count;
+-	new->async_tx.ack = 0; /* client is in control of this ack */
+-	new->async_tx.cookie = -EBUSY;
+-
+-	pci_unmap_len_set(new, len, orig_len);
++	new = ioat_dma_get_next_descriptor(ioat_chan);
++	new->len = len;
+ 	spin_unlock_bh(&ioat_chan->desc_lock);
+ 
+ 	return new ? &new->async_tx : NULL;
+@@ -464,7 +461,7 @@ static void ioat_dma_memcpy_cleanup(stru
+ 
+ 	prefetch(ioat_chan->completion_virt);
+ 
+-	if (!spin_trylock(&ioat_chan->cleanup_lock))
++	if (!spin_trylock_bh(&ioat_chan->cleanup_lock))
+ 		return;
+ 
+ 	/* The completion writeback can happen at any time,
+@@ -474,12 +471,15 @@ static void ioat_dma_memcpy_cleanup(stru
+ 
+ #if (BITS_PER_LONG == 64)
+ 	phys_complete =
+-	ioat_chan->completion_virt->full & IOAT_CHANSTS_COMPLETED_DESCRIPTOR_ADDR;
++		ioat_chan->completion_virt->full
++		& IOAT_CHANSTS_COMPLETED_DESCRIPTOR_ADDR;
+ #else
+-	phys_complete = ioat_chan->completion_virt->low & IOAT_LOW_COMPLETION_MASK;
++	phys_complete =
++		ioat_chan->completion_virt->low & IOAT_LOW_COMPLETION_MASK;
+ #endif
+ 
+-	if ((ioat_chan->completion_virt->full & IOAT_CHANSTS_DMA_TRANSFER_STATUS) ==
++	if ((ioat_chan->completion_virt->full
++		& IOAT_CHANSTS_DMA_TRANSFER_STATUS) ==
+ 				IOAT_CHANSTS_DMA_TRANSFER_STATUS_HALTED) {
+ 		dev_err(&ioat_chan->device->pdev->dev,
+ 			"Channel halted, chanerr = %x\n",
+@@ -489,7 +489,7 @@ static void ioat_dma_memcpy_cleanup(stru
+ 	}
+ 
+ 	if (phys_complete == ioat_chan->last_completion) {
+-		spin_unlock(&ioat_chan->cleanup_lock);
++		spin_unlock_bh(&ioat_chan->cleanup_lock);
+ 		return;
+ 	}
+ 
+@@ -548,7 +548,7 @@ static void ioat_dma_memcpy_cleanup(stru
+ 	if (cookie != 0)
+ 		ioat_chan->completed_cookie = cookie;
+ 
+-	spin_unlock(&ioat_chan->cleanup_lock);
++	spin_unlock_bh(&ioat_chan->cleanup_lock);
+ }
+ 
+ static void ioat_dma_dependency_added(struct dma_chan *chan)
+@@ -613,8 +613,13 @@ static void ioat_dma_start_null_desc(str
+ 	spin_lock_bh(&ioat_chan->desc_lock);
+ 
+ 	desc = ioat_dma_get_next_descriptor(ioat_chan);
+-	desc->hw->ctl = IOAT_DMA_DESCRIPTOR_NUL;
++	desc->hw->ctl = IOAT_DMA_DESCRIPTOR_NUL
++				| IOAT_DMA_DESCRIPTOR_CTL_INT_GN
++				| IOAT_DMA_DESCRIPTOR_CTL_CP_STS;
+ 	desc->hw->next = 0;
++	desc->hw->size = 0;
++	desc->hw->src_addr = 0;
++	desc->hw->dst_addr = 0;
+ 	desc->async_tx.ack = 1;
+ 
+ 	list_add_tail(&desc->node, &ioat_chan->used_desc);
+@@ -688,6 +693,12 @@ static int ioat_dma_self_test(struct ioa
+ 			DMA_FROM_DEVICE);
+ 	ioat_set_dest(addr, tx, 0);
+ 	cookie = ioat_tx_submit(tx);
++	if (cookie < 0) {
++		dev_err(&device->pdev->dev,
++			"Self-test setup failed, disabling\n");
++		err = -ENODEV;
++		goto free_resources;
++	}
+ 	ioat_dma_memcpy_issue_pending(dma_chan);
+ 	msleep(1);
+ 
+diff -puN drivers/dma/ioatdma.h~i-oat-tighten-descriptor-setup-performance drivers/dma/ioatdma.h
+--- a/drivers/dma/ioatdma.h~i-oat-tighten-descriptor-setup-performance
++++ a/drivers/dma/ioatdma.h
+@@ -124,9 +124,9 @@ struct ioat_desc_sw {
+ 	struct ioat_dma_descriptor *hw;
+ 	struct list_head node;
+ 	int tx_cnt;
+-	DECLARE_PCI_UNMAP_LEN(len)
+-	DECLARE_PCI_UNMAP_ADDR(src)
+-	DECLARE_PCI_UNMAP_ADDR(dst)
++	size_t len;
++	dma_addr_t src;
++	dma_addr_t dst;
+ 	struct dma_async_tx_descriptor async_tx;
  };
  
--#define DMA_BIT_MASK(n)	((1ULL<<(n))-1)
-+#define DMA_BIT_MASK(n)	(((n) == 64) ? ~0ULL : ((1ULL<<(n))-1))
- 
--#define DMA_64BIT_MASK	(~0ULL)
-+/*
-+ * NOTE: do not use the below macros in new code and do not add new definitions
-+ * here.
-+ *
-+ * Instead, just open-code DMA_BIT_MASK(n) within your driver
-+ */
-+#define DMA_64BIT_MASK	DMA_BIT_MASK(64)
- #define DMA_48BIT_MASK	DMA_BIT_MASK(48)
- #define DMA_47BIT_MASK	DMA_BIT_MASK(47)
- #define DMA_40BIT_MASK	DMA_BIT_MASK(40)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from shannon.nelson@intel.com are
 
 origin.patch
-console-keyboard-events-and-accessibility.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-add-reboot-mechanism.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-cifs.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-ide-arm-hack.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd-fixup.patch
-git-parisc.patch
-fix-build-breakage-if-sysfs-fix.patch
-git-scsi-misc.patch
-advansys-depends-on-virt_to_bus.patch
-git-unionfs.patch
-security-convert-lsm-into-a-static-interface-fix-unionfs.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
-git-nfs-vs-git-unionfs.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-x86.patch
-revert-x86_64-mm-cpa-einval.patch
-fix-x86_64-mm-sched-clock-share.patch
-git-xfs.patch
-memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-checkpatch-fixes.patch
-memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-pm-qos-infrastructure-and-interface-fix.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-add-kernel-notifierc.patch
-console-events-and-accessibility-fix.patch
-procfs-detect-duplicate-names-fix.patch
-procfs-detect-duplicate-names-fix-fix-2.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes.patch
-sync_sb_inodes-propagate-errors.patch
-fix-random-hard-freeze-with-avm-cards-using-b1dma-checkpatch-fixes.patch
-intel-iommu-pci-generic-helper-function.patch
-intel-iommu-iova-allocation-and-management-routines.patch
-intel-iommu-intel-iommu-driver.patch
-intel-iommu-iommu-floppy-workaround.patch
-jbd-config_jbd_debug-cannot-create-proc-entry-fix.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-reiserfs-ignore-on-disk-s_bmap_nr-value-checkpatch-fixes-2.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-task-containersv11-basic-task-container-framework-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
-task-containersv11-shared-container-subsystem-group-arrays-include-fix.patch
-add-containerstats-v3-fix.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-2.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-use-find_task_by_pid_ns-in-places-that-operate-with-virtual-fix-3.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-cpuset-sched_load_balance-flag-fix.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
-fix-cpusets-update_cpumask-checkpatch-fixes.patch
-memory-controller-memory-accounting-v7-fix.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
-remove-bits_to_type-macro-fix.patch
-use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified-checkpatch-fixes.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-2.patch
-use-extended-crashkernel-command-line-on-i386.patch
-kexec-add-bss-to-resource-tree-checkpatch-fixes.patch
-kexec-introduce-bootmem_exclusive-checkpatch-fixes.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
-linux-kernel-markers-samples-checkpatch-fixes.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-git-block-vs-reiser4.patch
-git-nfsd-broke-reiser4.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
