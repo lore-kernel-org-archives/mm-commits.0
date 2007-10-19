@@ -1,124 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:41:26 -0700
-Message-ID: <200710190341.l9J3fQwM012819@imap1.linux-foundation.org>
+Subject: - whitespace-fixes-system-auditing.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:43:55 -0700
+Message-ID: <200710190343.l9J3htEi013104@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58356 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36897 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934331AbXJSD4P (ORCPT
+	by vger.kernel.org with ESMTP id S966524AbXJSD4F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:56:15 -0400
+	Thu, 18 Oct 2007 23:56:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, ak@suse.de, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: dwalker@mvista.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Hibernation: Use temporary page tables for kernel text mapping on x86_64
+     whitespace fixes: system auditing
 has been removed from the -mm tree.  Its filename was
-     hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64.patch
+     whitespace-fixes-system-auditing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Hibernation: Use temporary page tables for kernel text mapping on x86_64
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: whitespace fixes: system auditing
+From: Daniel Walker <dwalker@mvista.com>
 
-Use temporary page tables for the kernel text mapping during hibernation
-restore on x86_64.
+Just removing white space at the end of lines.
 
-Without the patch, the original boot kernel's page tables that represent the
-kernel text mapping are used while the core of the image kernel is being
-restored.  However, in principle, if the boot kernel is not identical to the
-image kernel, the location of these page tables in the image kernel need not
-be the same, so we should create a safe copy of the kernel text mapping prior
-to restoring the core of the image kernel.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/suspend_64.c |   39 +++++++++++++++++++++++++++------
- 1 file changed, 33 insertions(+), 6 deletions(-)
+ kernel/audit.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN arch/x86/kernel/suspend_64.c~hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64 arch/x86/kernel/suspend_64.c
---- a/arch/x86/kernel/suspend_64.c~hibernation-use-temporary-page-tables-for-kernel-text-mapping-on-x86_64
-+++ a/arch/x86/kernel/suspend_64.c
-@@ -197,25 +197,42 @@ static int res_phys_pud_init(pud_t *pud,
- 	return 0;
+diff -puN kernel/audit.c~whitespace-fixes-system-auditing kernel/audit.c
+--- a/kernel/audit.c~whitespace-fixes-system-auditing
++++ a/kernel/audit.c
+@@ -664,11 +664,11 @@ static int audit_receive_msg(struct sk_b
+ 				if (sid) {
+ 					if (selinux_sid_to_string(
+ 							sid, &ctx, &len)) {
+-						audit_log_format(ab, 
++						audit_log_format(ab,
+ 							" ssid=%u", sid);
+ 						/* Maybe call audit_panic? */
+ 					} else
+-						audit_log_format(ab, 
++						audit_log_format(ab,
+ 							" subj=%s", ctx);
+ 					kfree(ctx);
+ 				}
+@@ -769,7 +769,7 @@ static int audit_receive_msg(struct sk_b
+ 		sig_data->pid = audit_sig_pid;
+ 		memcpy(sig_data->ctx, ctx, len);
+ 		kfree(ctx);
+-		audit_send_reply(NETLINK_CB(skb).pid, seq, AUDIT_SIGNAL_INFO, 
++		audit_send_reply(NETLINK_CB(skb).pid, seq, AUDIT_SIGNAL_INFO,
+ 				0, 0, sig_data, sizeof(*sig_data) + len);
+ 		kfree(sig_data);
+ 		break;
+@@ -1005,7 +1005,7 @@ unsigned int audit_serial(void)
+ 	return ret;
  }
  
-+static int res_kernel_text_pud_init(pud_t *pud, unsigned long start)
-+{
-+	pmd_t *pmd;
-+	unsigned long paddr;
-+
-+	pmd = (pmd_t *)get_safe_page(GFP_ATOMIC);
-+	if (!pmd)
-+		return -ENOMEM;
-+	set_pud(pud + pud_index(start), __pud(__pa(pmd) | _KERNPG_TABLE));
-+	for (paddr = 0; paddr < KERNEL_TEXT_SIZE; pmd++, paddr += PMD_SIZE) {
-+		unsigned long pe;
-+
-+		pe = __PAGE_KERNEL_LARGE_EXEC | _PAGE_GLOBAL | paddr;
-+		pe &= __supported_pte_mask;
-+		set_pmd(pmd, __pmd(pe));
-+	}
-+
-+	return 0;
-+}
-+
- static int set_up_temporary_mappings(void)
+-static inline void audit_get_stamp(struct audit_context *ctx, 
++static inline void audit_get_stamp(struct audit_context *ctx,
+ 				   struct timespec *t, unsigned int *serial)
  {
- 	unsigned long start, end, next;
-+	pud_t *pud;
- 	int error;
+ 	if (ctx)
+@@ -1056,7 +1056,7 @@ struct audit_buffer *audit_log_start(str
+ 	if (gfp_mask & __GFP_WAIT)
+ 		reserve = 0;
+ 	else
+-		reserve = 5; /* Allow atomic callers to go up to five 
++		reserve = 5; /* Allow atomic callers to go up to five
+ 				entries over the normal backlog limit */
  
- 	temp_level4_pgt = (pgd_t *)get_safe_page(GFP_ATOMIC);
- 	if (!temp_level4_pgt)
- 		return -ENOMEM;
- 
--	/* It is safe to reuse the original kernel mapping */
--	set_pgd(temp_level4_pgt + pgd_index(__START_KERNEL_map),
--		init_level4_pgt[pgd_index(__START_KERNEL_map)]);
--
- 	/* Set up the direct mapping from scratch */
- 	start = (unsigned long)pfn_to_kaddr(0);
- 	end = (unsigned long)pfn_to_kaddr(end_pfn);
- 
- 	for (; start < end; start = next) {
--		pud_t *pud = (pud_t *)get_safe_page(GFP_ATOMIC);
-+		pud = (pud_t *)get_safe_page(GFP_ATOMIC);
- 		if (!pud)
- 			return -ENOMEM;
- 		next = start + PGDIR_SIZE;
-@@ -226,7 +243,17 @@ static int set_up_temporary_mappings(voi
- 		set_pgd(temp_level4_pgt + pgd_index(start),
- 			mk_kernel_pgd(__pa(pud)));
- 	}
--	return 0;
-+
-+	/* Set up the kernel text mapping from scratch */
-+	pud = (pud_t *)get_safe_page(GFP_ATOMIC);
-+	if (!pud)
-+		return -ENOMEM;
-+	error = res_kernel_text_pud_init(pud, __START_KERNEL_map);
-+	if (!error)
-+		set_pgd(temp_level4_pgt + pgd_index(__START_KERNEL_map),
-+			__pgd(__pa(pud) | _PAGE_TABLE));
-+
-+	return error;
+ 	while (audit_backlog_limit
+@@ -1319,7 +1319,7 @@ void audit_log_d_path(struct audit_buffe
+ 	if (IS_ERR(p)) { /* Should never happen since we send PATH_MAX */
+ 		/* FIXME: can we save some information here? */
+ 		audit_log_format(ab, "<too long>");
+-	} else 
++	} else
+ 		audit_log_untrustedstring(ab, p);
+ 	kfree(path);
  }
- 
- int swsusp_arch_resume(void)
+@@ -1365,7 +1365,7 @@ void audit_log_end(struct audit_buffer *
+  * audit_log_vformat, and audit_log_end.  It may be called
+  * in any context.
+  */
+-void audit_log(struct audit_context *ctx, gfp_t gfp_mask, int type, 
++void audit_log(struct audit_context *ctx, gfp_t gfp_mask, int type,
+ 	       const char *fmt, ...)
+ {
+ 	struct audit_buffer *ab;
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
 origin.patch
-git-acpi.patch
-revert-x86_64-mm-cpa-einval.patch
-shrink_slab-handle-bad-shrinkers.patch
+whitespace-fixes-task-exit-handling.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
