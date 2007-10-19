@@ -1,102 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - ipc-integrate-ipc_checkid-into-ipc_lock-fix-3.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 21:29:48 -0700
-Message-ID: <200710190429.l9J4Tm0c015142@imap1.linux-foundation.org>
+Subject: - extended-crashkernel-command-line-update.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 21:30:51 -0700
+Message-ID: <200710190430.l9J4Uq9H015170@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42548 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44547 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966533AbXJSEaV (ORCPT
+	by vger.kernel.org with ESMTP id S966574AbXJSEa4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 00:30:21 -0400
+	Fri, 19 Oct 2007 00:30:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Nadia.Derbey@bull.net, mm-commits@vger.kernel.org
+To: bwalle@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IPC: sleeping function called ...
+     Extended crashkernel command line (update)
 has been removed from the -mm tree.  Its filename was
-     ipc-integrate-ipc_checkid-into-ipc_lock-fix-3.patch
+     extended-crashkernel-command-line-update.patch
 
-This patch was dropped because it was folded into ipc-integrate-ipc_checkid-into-ipc_lock.patch
+This patch was dropped because it was folded into extended-crashkernel-command-line.patch
 
 ------------------------------------------------------
-Subject: IPC: sleeping function called ...
-From: Nadia Derbey <Nadia.Derbey@bull.net>
+Subject: Extended crashkernel command line (update)
+From: Bernhard Walle <bwalle@suse.de>
 
-This patch fixes the missing rcu_read_(un)lock in the ipc code
+This is the generic part of the patch. It adds a parse_crashkernel() function
+in kernel/kexec.c that is called by the architecture specific code that
+actually reserves the memory. That function takes the whole command line and
+looks itself for "crashkernel=" in it.
 
-Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
+If there are multiple occurrences, then the last one is taken.  The advantage
+is that if you have a bootloader like lilo or elilo which allows you to append
+a command line parameter but not to remove one (like in GRUB), then you can add
+another crashkernel value for testing at the boot command line and this one
+overwrites the command line in the configuration then.
+
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |    3 ++-
- ipc/util.h |    4 +++-
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ include/linux/kexec.h |    1 +
+ kernel/kexec.c        |    7 ++++---
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN ipc/util.c~ipc-integrate-ipc_checkid-into-ipc_lock-fix-3 ipc/util.c
---- a/ipc/util.c~ipc-integrate-ipc_checkid-into-ipc_lock-fix-3
-+++ a/ipc/util.c
-@@ -295,6 +295,7 @@ int ipc_addid(struct ipc_ids* ids, struc
- 
- 	spin_lock_init(&new->lock);
- 	new->deleted = 0;
-+	rcu_read_lock();
- 	spin_lock(&new->lock);
- 	return id;
- }
-@@ -690,7 +691,7 @@ struct kern_ipc_perm *ipc_lock(struct ip
- 		rcu_read_unlock();
- 		return ERR_PTR(-EINVAL);
- 	}
--	rcu_read_unlock();
+diff -puN include/linux/kexec.h~extended-crashkernel-command-line-update include/linux/kexec.h
+--- a/include/linux/kexec.h~extended-crashkernel-command-line-update
++++ a/include/linux/kexec.h
+@@ -186,6 +186,7 @@ extern note_buf_t *crash_notes;
+ extern u32 vmcoreinfo_note[VMCOREINFO_NOTE_SIZE/4];
+ extern size_t vmcoreinfo_size;
+ extern size_t vmcoreinfo_max_size;
 +
- 	return out;
- }
+ int __init parse_crashkernel(char *cmdline, unsigned long long system_ram,
+ 		unsigned long long *crash_size, unsigned long long *crash_base);
  
-diff -puN ipc/util.h~ipc-integrate-ipc_checkid-into-ipc_lock-fix-3 ipc/util.h
---- a/ipc/util.h~ipc-integrate-ipc_checkid-into-ipc_lock-fix-3
-+++ a/ipc/util.h
-@@ -135,12 +135,14 @@ static inline int ipc_checkid(struct ipc
- 
- static inline void ipc_lock_by_ptr(struct kern_ipc_perm *perm)
+diff -puN kernel/kexec.c~extended-crashkernel-command-line-update kernel/kexec.c
+--- a/kernel/kexec.c~extended-crashkernel-command-line-update
++++ a/kernel/kexec.c
+@@ -1162,9 +1162,9 @@ module_init(crash_notes_memory_init)
+  * The function returns 0 on success and -EINVAL on failure.
+  */
+ static int __init parse_crashkernel_mem(char 			*cmdline,
+-					unsigned long 		system_ram,
+-					unsigned long long 	*crash_size,
+-					unsigned long long 	*crash_base)
++					unsigned long long	system_ram,
++					unsigned long long	*crash_size,
++					unsigned long long	*crash_base)
  {
-+	rcu_read_lock();
- 	spin_lock(&perm->lock);
- }
+ 	char *cur = cmdline;
  
- static inline void ipc_unlock(struct kern_ipc_perm *perm)
- {
- 	spin_unlock(&perm->lock);
-+	rcu_read_unlock();
- }
+@@ -1254,6 +1254,7 @@ int __init parse_crashkernel(char 		 *cm
+ 	char 	*p = cmdline, *ck_cmdline = NULL;
+ 	char	*first_colon, *first_space;
  
- static inline struct kern_ipc_perm *ipc_lock_check(struct ipc_ids *ids,
-@@ -153,7 +155,7 @@ static inline struct kern_ipc_perm *ipc_
- 		return out;
- 
- 	if (ipc_checkid(ids, out, id)) {
--		spin_unlock(&out->lock);
-+		ipc_unlock(out);
- 		return ERR_PTR(-EIDRM);
- 	}
++	BUG_ON(!crash_size || !crash_base);
+ 	*crash_size = 0;
+ 	*crash_base = 0;
  
 _
 
-Patches currently in -mm which might be from Nadia.Derbey@bull.net are
+Patches currently in -mm which might be from bwalle@suse.de are
 
-ipc-store-ipcs-into-idrs.patch
-ipc-unify-the-syscalls-code.patch
-ipc-remove-the-ipc_get-routine.patch
-ipc-integrate-ipc_checkid-into-ipc_lock.patch
-ipc-integrate-ipc_checkid-into-ipc_lock-fix-3.patch
-storing-ipcs-into-idrs.patch
-ipc-introduce-the-ipcid_to_idx-macro.patch
-ipc-inline-ipc_buildid.patch
-ipc_fix_wrong_comments.patch
-fix-idr_find-locking.patch
-ipc-remove-unneeded-parameters.patch
-ipc-cleanup-some-code-and-wrong-comments-about-semundo.patch
-virtualization-of-sysv-msg-queues-is-incomplete.patch
-ipc-fix-error-case-when-idr-cache-is-empty-in-ipcget.patch
+origin.patch
+extended-crashkernel-command-line.patch
+extended-crashkernel-command-line-update.patch
+extended-crashkernel-command-line-comment-fix.patch
+extended-crashkernel-command-line-improve-error-handling-in-parse_crashkernel_mem.patch
+use-extended-crashkernel-command-line-on-i386.patch
+use-extended-crashkernel-command-line-on-i386-update.patch
+use-extended-crashkernel-command-line-on-x86_64.patch
+use-extended-crashkernel-command-line-on-x86_64-update.patch
+use-extended-crashkernel-command-line-on-ia64.patch
+use-extended-crashkernel-command-line-on-ia64-fix.patch
+use-extended-crashkernel-command-line-on-ia64-update.patch
+use-extended-crashkernel-command-line-on-ppc64.patch
+use-extended-crashkernel-command-line-on-ppc64-update.patch
+use-extended-crashkernel-command-line-on-sh.patch
+use-extended-crashkernel-command-line-on-sh-update.patch
+add-documentation-for-extended-crashkernel-syntax.patch
+add-documentation-for-extended-crashkernel-syntax-add-extended-crashkernel-syntax-to-kernel-parameterstxt.patch
