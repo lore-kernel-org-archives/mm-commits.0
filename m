@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - ipc-inline-ipc_buildid.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:53:45 -0700
-Message-ID: <200710192253.l9JMrjcR024451@imap1.linux-foundation.org>
+Subject: - ipc-introduce-the-ipcid_to_idx-macro.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:53:43 -0700
+Message-ID: <200710192253.l9JMrhi7024448@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39565 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56910 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764343AbXJSXFo (ORCPT
+	by vger.kernel.org with ESMTP id S1763865AbXJSXFo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 19 Oct 2007 19:05:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,65 +15,60 @@ To: Nadia.Derbey@bull.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipc: inline ipc_buildid()
+     ipc: introduce the ipcid_to_idx macro
 has been removed from the -mm tree.  Its filename was
-     ipc-inline-ipc_buildid.patch
+     ipc-introduce-the-ipcid_to_idx-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ipc: inline ipc_buildid()
+Subject: ipc: introduce the ipcid_to_idx macro
 From: Nadia Derbey <Nadia.Derbey@bull.net>
 
-This is a trivial patch that changes the ipc_buildid() routine into a static
-inline.
+This is a trivial patch that changes all the (id % SEQ_MULTIPLIER) into a call
+to the ipcid_to_idx(id) macro.
 
 Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |    5 -----
- ipc/util.h |    6 +++++-
- 2 files changed, 5 insertions(+), 6 deletions(-)
+ ipc/util.c |    4 ++--
+ ipc/util.h |    2 ++
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN ipc/util.c~ipc-inline-ipc_buildid ipc/util.c
---- a/ipc/util.c~ipc-inline-ipc_buildid
+diff -puN ipc/util.c~ipc-introduce-the-ipcid_to_idx-macro ipc/util.c
+--- a/ipc/util.c~ipc-introduce-the-ipcid_to_idx-macro
 +++ a/ipc/util.c
-@@ -695,11 +695,6 @@ struct kern_ipc_perm *ipc_lock(struct ip
- 	return out;
- }
- 
--int ipc_buildid(struct ipc_ids* ids, int id, int seq)
--{
--	return SEQ_MULTIPLIER*seq + id;
--}
--
- #ifdef __ARCH_WANT_IPC_PARSE_VERSION
- 
- 
-diff -puN ipc/util.h~ipc-inline-ipc_buildid ipc/util.h
---- a/ipc/util.h~ipc-inline-ipc_buildid
-+++ a/ipc/util.h
-@@ -107,7 +107,6 @@ void ipc_rcu_getref(void *ptr);
- void ipc_rcu_putref(void *ptr);
- 
- struct kern_ipc_perm *ipc_lock(struct ipc_ids *, int);
--int ipc_buildid(struct ipc_ids* ids, int id, int seq);
- 
- void kernel_to_ipc64_perm(struct kern_ipc_perm *in, struct ipc64_perm *out);
- void ipc64_perm_to_ipc_perm(struct ipc64_perm *in, struct ipc_perm *out);
-@@ -127,6 +126,11 @@ extern int ipcget_new(struct ipc_namespa
- extern int ipcget_public(struct ipc_namespace *, struct ipc_ids *,
- 			struct ipc_ops *, struct ipc_params *);
- 
-+static inline int ipc_buildid(struct ipc_ids *ids, int id, int seq)
-+{
-+	return SEQ_MULTIPLIER * seq + id;
-+}
-+
- static inline int ipc_checkid(struct ipc_ids *ids, struct kern_ipc_perm *ipcp,
- 				int uid)
+@@ -413,7 +413,7 @@ int ipcget_public(struct ipc_namespace *
+  
+ void ipc_rmid(struct ipc_ids *ids, struct kern_ipc_perm *ipcp)
  {
+-	int lid = ipcp->id % SEQ_MULTIPLIER;
++	int lid = ipcid_to_idx(ipcp->id);
+ 
+ 	idr_remove(&ids->ipcs_idr, lid);
+ 
+@@ -672,7 +672,7 @@ void ipc64_perm_to_ipc_perm (struct ipc6
+ struct kern_ipc_perm *ipc_lock(struct ipc_ids *ids, int id)
+ {
+ 	struct kern_ipc_perm *out;
+-	int lid = id % SEQ_MULTIPLIER;
++	int lid = ipcid_to_idx(id);
+ 
+ 	rcu_read_lock();
+ 	out = idr_find(&ids->ipcs_idr, lid);
+diff -puN ipc/util.h~ipc-introduce-the-ipcid_to_idx-macro ipc/util.h
+--- a/ipc/util.h~ipc-introduce-the-ipcid_to_idx-macro
++++ a/ipc/util.h
+@@ -79,6 +79,8 @@ void __init ipc_init_proc_interface(cons
+ #define IPC_MSG_IDS	1
+ #define IPC_SHM_IDS	2
+ 
++#define ipcid_to_idx(id) ((id) % SEQ_MULTIPLIER)
++
+ /* must be called with ids->mutex acquired.*/
+ int ipc_addid(struct ipc_ids *, struct kern_ipc_perm *, int);
+ int ipc_get_maxid(struct ipc_ids *);
 _
 
 Patches currently in -mm which might be from Nadia.Derbey@bull.net are
