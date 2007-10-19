@@ -1,110 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - char-rocket-fix-dynamic_dev-tty.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:44:34 -0700
-Message-ID: <200710190344.l9J3iYQi013155@imap1.linux-foundation.org>
+Subject: - freezer-do-not-sync-filesystems-from-freeze_processes.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:40:57 -0700
+Message-ID: <200710190340.l9J3evH9012751@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46766 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44029 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966517AbXJSD4A (ORCPT
+	by vger.kernel.org with ESMTP id S965759AbXJSD4P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:56:00 -0400
+	Thu, 18 Oct 2007 23:56:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, wferi@niif.hu, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, nigel@nigel.suspend2.net, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: rocket, fix dynamic_dev tty
+     freezer: do not sync filesystems from freeze_processes
 has been removed from the -mm tree.  Its filename was
-     char-rocket-fix-dynamic_dev-tty.patch
+     freezer-do-not-sync-filesystems-from-freeze_processes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Char: rocket, fix dynamic_dev tty
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: freezer: do not sync filesystems from freeze_processes
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-- register_device unconditionally (non-pci dependent) to have also isa
-  devices in /dev
-- unregister devices on module removal
-- don't set TTY_DRIVER_DYNAMIC_DEV twice (removed the one dependent on some
-  macro)
+The syncing of filesystems from within the freezer is generally not needed. 
+Also, if there's an ext3 filesystem loopback-mounted from a FUSE one, the
+syncing results in writes to it and deadlocks.  Similarly, it will deadlock if
+FUSE implements sync.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Ferenc Wagner <wferi@niif.hu>
+Change freeze_processes() so that it doesn't execute sys_sync() and make the
+suspend and hibernation code path sync filesystems independently of the
+freezer.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rocket.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ kernel/power/disk.c    |    4 ++++
+ kernel/power/main.c    |    6 ++++++
+ kernel/power/process.c |    1 -
+ kernel/power/user.c    |    4 ++++
+ 4 files changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/rocket.c~char-rocket-fix-dynamic_dev-tty drivers/char/rocket.c
---- a/drivers/char/rocket.c~char-rocket-fix-dynamic_dev-tty
-+++ a/drivers/char/rocket.c
-@@ -700,8 +700,8 @@ static void init_r_port(int board, int a
- 	spin_lock_init(&info->slock);
- 	mutex_init(&info->write_mtx);
- 	rp_table[line] = info;
--	if (pci_dev)
--		tty_register_device(rocket_driver, line, &pci_dev->dev);
-+	tty_register_device(rocket_driver, line, pci_dev ? &pci_dev->dev :
-+			NULL);
- }
+diff -puN kernel/power/disk.c~freezer-do-not-sync-filesystems-from-freeze_processes kernel/power/disk.c
+--- a/kernel/power/disk.c~freezer-do-not-sync-filesystems-from-freeze_processes
++++ a/kernel/power/disk.c
+@@ -313,6 +313,10 @@ int hibernate(void)
+ 	if (error)
+ 		goto Exit;
  
- /*
-@@ -2438,7 +2438,7 @@ static int __init rp_init(void)
- 	rocket_driver->init_termios.c_ispeed = 9600;
- 	rocket_driver->init_termios.c_ospeed = 9600;
- #ifdef ROCKET_SOFT_FLOW
--	rocket_driver->flags |= TTY_DRIVER_REAL_RAW | TTY_DRIVER_DYNAMIC_DEV;
-+	rocket_driver->flags |= TTY_DRIVER_REAL_RAW;
- #endif
- 	tty_set_operations(rocket_driver, &rocket_ops);
- 
-@@ -2495,10 +2495,14 @@ static void rp_cleanup_module(void)
- 	if (retval)
- 		printk(KERN_INFO "Error %d while trying to unregister "
- 		       "rocketport driver\n", -retval);
--	put_tty_driver(rocket_driver);
- 
- 	for (i = 0; i < MAX_RP_PORTS; i++)
--		kfree(rp_table[i]);
-+		if (rp_table[i]) {
-+			tty_unregister_device(rocket_driver, i);
-+			kfree(rp_table[i]);
-+		}
++	printk("Syncing filesystems ... ");
++	sys_sync();
++	printk("done.\n");
 +
-+	put_tty_driver(rocket_driver);
+ 	error = prepare_processes();
+ 	if (error)
+ 		goto Finish;
+diff -puN kernel/power/main.c~freezer-do-not-sync-filesystems-from-freeze_processes kernel/power/main.c
+--- a/kernel/power/main.c~freezer-do-not-sync-filesystems-from-freeze_processes
++++ a/kernel/power/main.c
+@@ -20,6 +20,7 @@
+ #include <linux/resume-trace.h>
+ #include <linux/freezer.h>
+ #include <linux/vmstat.h>
++#include <linux/syscalls.h>
  
- 	for (i = 0; i < NUM_BOARDS; i++) {
- 		if (rcktpt_io_addr[i] <= 0 || is_PCI[i])
+ #include "power.h"
+ 
+@@ -230,9 +231,14 @@ static int enter_state(suspend_state_t s
+ 
+ 	if (!valid_state(state))
+ 		return -ENODEV;
++
+ 	if (!mutex_trylock(&pm_mutex))
+ 		return -EBUSY;
+ 
++	printk("Syncing filesystems ... ");
++	sys_sync();
++	printk("done.\n");
++
+ 	pr_debug("PM: Preparing system for %s sleep\n", pm_states[state]);
+ 	if ((error = suspend_prepare()))
+ 		goto Unlock;
+diff -puN kernel/power/process.c~freezer-do-not-sync-filesystems-from-freeze_processes kernel/power/process.c
+--- a/kernel/power/process.c~freezer-do-not-sync-filesystems-from-freeze_processes
++++ a/kernel/power/process.c
+@@ -191,7 +191,6 @@ int freeze_processes(void)
+ 	if (error)
+ 		return error;
+ 
+-	sys_sync();
+ 	error = try_to_freeze_tasks(FREEZER_KERNEL_THREADS);
+ 	if (error)
+ 		return error;
+diff -puN kernel/power/user.c~freezer-do-not-sync-filesystems-from-freeze_processes kernel/power/user.c
+--- a/kernel/power/user.c~freezer-do-not-sync-filesystems-from-freeze_processes
++++ a/kernel/power/user.c
+@@ -153,6 +153,10 @@ static int snapshot_ioctl(struct inode *
+ 		mutex_lock(&pm_mutex);
+ 		error = pm_notifier_call_chain(PM_HIBERNATION_PREPARE);
+ 		if (!error) {
++			printk("Syncing filesystems ... ");
++			sys_sync();
++			printk("done.\n");
++
+ 			error = freeze_processes();
+ 			if (error)
+ 				thaw_processes();
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-git-dvb.patch
-v4l-stk11xx-add-a-new-webcam-driver.patch
-v4l-stk11xx-use-array_size-in-another-2-cases.patch
-v4l-stk11xx-use-retval-from-stk11xx_check_device.patch
-v4l-stk11xx-add-static-to-tables.patch
-git-wireless.patch
-misc-phantom-synchronize_irq-on-suspend.patch
-misc-phantom-add-comment-about-openhaptics.patch
-misc-phantom-improved-data-passing.patch
-fs-select-remove-unused-macros.patch
-remove-asm-bitopsh-includes.patch
-forbid-asm-bitopsh-direct-inclusion.patch
-cyber2000fb-rename-bit-macro.patch
-i2c-pxa-rename-bit-macro-to-pxa_bit.patch
-s2io-rename-bit-macro.patch
-amba-pl011-rename-bit-macro.patch
-define-first-set-of-bit-macros.patch
-get-rid-of-input-bit-duplicate-defines.patch
-define-global-bit-macro.patch
-flashpoint-use-bit-instead-of-bitw.patch
-remove-bits_to_type-macro.patch
-remove-bits_to_type-macro-fix.patch
-remove-asm-bitopsh-includes-reiser4.patch
+git-acpi.patch
+revert-x86_64-mm-cpa-einval.patch
 shrink_slab-handle-bad-shrinkers.patch
