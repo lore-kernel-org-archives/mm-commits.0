@@ -1,72 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - ipmi-dont-init-irq-until-ready.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:46:12 -0700
-Message-ID: <200710190346.l9J3kCqf013290@imap1.linux-foundation.org>
+Subject: - knfsd-only-set-attr_kill_sid-if-attr_mode-isnt-being-explicitly-set.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:42:16 -0700
+Message-ID: <200710190342.l9J3gGcR012885@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37465 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36688 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934306AbXJSDzf (ORCPT
+	by vger.kernel.org with ESMTP id S966492AbXJSD4u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:55:35 -0400
+	Thu, 18 Oct 2007 23:56:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cminyard@mvista.com, Patrick.Schoeller@hp.com, mm-commits@vger.kernel.org
+To: jlayton@redhat.com, bfields@fieldses.org, hch@lst.de, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IPMI: don't init irq until ready
+     knfsd: only set ATTR_KILL_S*ID if ATTR_MODE isn't being explicitly set
 has been removed from the -mm tree.  Its filename was
-     ipmi-dont-init-irq-until-ready.patch
+     knfsd-only-set-attr_kill_sid-if-attr_mode-isnt-being-explicitly-set.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: IPMI: don't init irq until ready
-From: Corey Minyard <cminyard@mvista.com>
+Subject: knfsd: only set ATTR_KILL_S*ID if ATTR_MODE isn't being explicitly set
+From: Jeff Layton <jlayton@redhat.com>
 
-Patrick found a race at startup.  Interrupts were being enabled for the IPMI
-interface before the driver was really ready to handle them.  This could
-result in an oops if something was pending on the interface at startup and
-interrupt were already enabled (technically shouldn't happen, but need to
-cover for this in real life).  So move the IRQ setup to the code that starts
-the actual IPMI processing.
+It's theoretically possible for a single SETATTR call to come in that sets the
+mode and the uid/gid.  In that case, don't set the ATTR_KILL_S*ID bits since
+that would trip the BUG() in notify_change.  Just fix up the mode to have the
+same effect.
 
-Signed-off-by: Corey Minyard <cminyard@mvista.com>
-Cc: Patrick Schoeller <Patrick.Schoeller@hp.com>
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_si_intf.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/nfsd/vfs.c |   21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-dont-init-irq-until-ready drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-dont-init-irq-until-ready
-+++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -1006,6 +1006,10 @@ static int smi_start_processing(void    
+diff -puN fs/nfsd/vfs.c~knfsd-only-set-attr_kill_sid-if-attr_mode-isnt-being-explicitly-set fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~knfsd-only-set-attr_kill_sid-if-attr_mode-isnt-being-explicitly-set
++++ a/fs/nfsd/vfs.c
+@@ -364,14 +364,23 @@ nfsd_setattr(struct svc_rqst *rqstp, str
+ 	if (iap->ia_valid & ATTR_MODE) {
+ 		iap->ia_mode &= S_IALLUGO;
+ 		imode = iap->ia_mode |= (imode & ~S_IALLUGO);
++		/* if changing uid/gid revoke setuid/setgid in mode */
++		if ((iap->ia_valid & ATTR_UID) && iap->ia_uid != inode->i_uid) {
++			iap->ia_valid |= ATTR_KILL_PRIV;
++			iap->ia_mode &= ~S_ISUID;
++		}
++		if ((iap->ia_valid & ATTR_GID) && iap->ia_gid != inode->i_gid)
++			iap->ia_mode &= ~S_ISGID;
++	} else {
++		/*
++		 * Revoke setuid/setgid bit on chown/chgrp
++		 */
++		if ((iap->ia_valid & ATTR_UID) && iap->ia_uid != inode->i_uid)
++			iap->ia_valid |= ATTR_KILL_SUID | ATTR_KILL_PRIV;
++		if ((iap->ia_valid & ATTR_GID) && iap->ia_gid != inode->i_gid)
++			iap->ia_valid |= ATTR_KILL_SGID;
+ 	}
  
- 	new_smi->intf = intf;
- 
-+	/* Try to claim any interrupts. */
-+	if (new_smi->irq_setup)
-+		new_smi->irq_setup(new_smi);
-+
- 	/* Set up the timer that drives the interface. */
- 	setup_timer(&new_smi->si_timer, smi_timeout, (long)new_smi);
- 	new_smi->last_timeout_jiffies = jiffies;
-@@ -2765,10 +2769,6 @@ static int try_smi_init(struct smi_info 
- 	setup_oem_data_handler(new_smi);
- 	setup_xaction_handlers(new_smi);
- 
--	/* Try to claim any interrupts. */
--	if (new_smi->irq_setup)
--		new_smi->irq_setup(new_smi);
+-	/* Revoke setuid/setgid bit on chown/chgrp */
+-	if ((iap->ia_valid & ATTR_UID) && iap->ia_uid != inode->i_uid)
+-		iap->ia_valid |= ATTR_KILL_SUID | ATTR_KILL_PRIV;
+-	if ((iap->ia_valid & ATTR_GID) && iap->ia_gid != inode->i_gid)
+-		iap->ia_valid |= ATTR_KILL_SGID;
 -
- 	INIT_LIST_HEAD(&(new_smi->xmit_msgs));
- 	INIT_LIST_HEAD(&(new_smi->hp_xmit_msgs));
- 	new_smi->curr_msg = NULL;
+ 	/* Change the attributes. */
+ 
+ 	iap->ia_valid |= ATTR_CTIME;
 _
 
-Patches currently in -mm which might be from cminyard@mvista.com are
+Patches currently in -mm which might be from jlayton@redhat.com are
 
 origin.patch
+git-cifs.patch
+unionfs-fix-unionfs_setattr-to-handle-attr_kill_sid.patch
