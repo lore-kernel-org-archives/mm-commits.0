@@ -1,54 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 21:25:00 -0700
-Message-ID: <200710190425.l9J4P06x014938@imap1.linux-foundation.org>
+Subject: - fix-cpusets-update_cpumask-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 21:25:27 -0700
+Message-ID: <200710190425.l9J4PRWU014948@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40526 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39882 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751937AbXJSEZV (ORCPT
+	by vger.kernel.org with ESMTP id S1751974AbXJSEZt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 00:25:21 -0400
+	Fri, 19 Oct 2007 00:25:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, pj@sgi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, balbir@in.ibm.com, clg@fr.ibm.com, ebiederm@xmission.com, menage@google.com, nickpiggin@yahoo.com.au, pj@sgi.com, rientjes@google.co
 
 
 The patch titled
-     cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes
+     fix-cpusets-update_cpumask-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+     fix-cpusets-update_cpumask-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into cpusets-decrustify-cpuset-mask-update-code.patch
+This patch was dropped because it was folded into fix-cpusets-update_cpumask.patch
 
 ------------------------------------------------------
-Subject: cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes
+Subject: fix-cpusets-update_cpumask-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: use tabs not spaces
-#30: FILE: kernel/cpuset.c:494:
-+^I    ^I$
+ERROR: inline keyword should sit between storage class and type
+#114: FILE: kernel/cpuset.c:690:
++static int inline started_after_time(struct task_struct *t1,
 
-Cc: Ingo Molnar <mingo@elte.hu>
+ERROR: inline keyword should sit between storage class and type
+#137: FILE: kernel/cpuset.c:713:
++static int inline started_after(void *p1, void *p2)
+
+total: 2 errors, 0 warnings, 292 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Cc: Paul Jackson <pj@sgi.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/cpuset.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/cpuset.c~cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes kernel/cpuset.c
---- a/kernel/cpuset.c~cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes
+diff -puN kernel/cpuset.c~fix-cpusets-update_cpumask-checkpatch-fixes kernel/cpuset.c
+--- a/kernel/cpuset.c~fix-cpusets-update_cpumask-checkpatch-fixes
 +++ a/kernel/cpuset.c
-@@ -491,7 +491,7 @@ static int validate_change(const struct 
- 	/* Cpusets with tasks can't have empty cpus_allowed or mems_allowed */
- 	if (cgroup_task_count(cur->css.cgroup)) {
- 		if (cpus_empty(trial->cpus_allowed) ||
--	    	    nodes_empty(trial->mems_allowed)) {
-+		    nodes_empty(trial->mems_allowed)) {
- 			return -ENOSPC;
- 		}
+@@ -687,7 +687,7 @@ done:
+ 	/* Don't kfree(doms) -- partition_sched_domains() does that. */
+ }
+ 
+-static int inline started_after_time(struct task_struct *t1,
++static inline int started_after_time(struct task_struct *t1,
+ 				     struct timespec *time,
+ 				     struct task_struct *t2)
+ {
+@@ -710,7 +710,7 @@ static int inline started_after_time(str
  	}
+ }
+ 
+-static int inline started_after(void *p1, void *p2)
++static inline int started_after(void *p1, void *p2)
+ {
+ 	struct task_struct *t1 = p1;
+ 	struct task_struct *t2 = p2;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,7 +94,7 @@ pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
 pid-namespaces-changes-to-show-virtual-ids-to-user.patch
 cpuset-sched_load_balance-flag.patch
 cpusets-decrustify-cpuset-mask-update-code.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
+fix-cpusets-update_cpumask.patch
 fix-cpusets-update_cpumask-checkpatch-fixes.patch
 remove-bits_to_type-macro-fix.patch
 use-helpers-to-obtain-task-pid-in-printks-drm-fix.patch
