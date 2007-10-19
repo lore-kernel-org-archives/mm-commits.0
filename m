@@ -1,191 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: - pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:51:25 -0700
-Message-ID: <200710192251.l9JMpPgo024182@imap1.linux-foundation.org>
+Subject: - use-extended-crashkernel-command-line-on-x86_64.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:54:05 -0700
+Message-ID: <200710192254.l9JMs5Ia024495@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44640 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42027 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966932AbXJSXGt (ORCPT
+	by vger.kernel.org with ESMTP id S966993AbXJSXGu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 19:06:49 -0400
+	Fri, 19 Oct 2007 19:06:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, ebiederm@xmission.com, menage@google.com, oleg@tv-sign.ru, sukadev@us.ibm.com, mm-commits@vger.kernel.org
+To: bwalle@suse.de, ak@suse.de, ebiederm@xmission.com, mingo@elte.hu, tglx@linutronix.de, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pid namespaces: prepare proc_flust_task() to flush entries from multiple proc trees
+     Use extended crashkernel command line on x86_64
 has been removed from the -mm tree.  Its filename was
-     pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+     use-extended-crashkernel-command-line-on-x86_64.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pid namespaces: prepare proc_flust_task() to flush entries from multiple proc trees
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: Use extended crashkernel command line on x86_64
+From: Bernhard Walle <bwalle@suse.de>
 
-The first part is trivial - we just make the proc_flush_task() to operate on
-arbitrary vfsmount with arbitrary ids and pass the pid and global proc_mnt to
-it.
+This patch removes the crashkernel parsing from
+arch/x86_64/kernel/machine_kexec.c and calls the generic function, introduced
+in the last patch, in setup_bootmem_allocator().
 
-The other change is more tricky: I moved the proc_flush_task() call in
-release_task() higher to address the following problem.
+This is necessary because the amount of System RAM must be known in this
+function now because of the new syntax.
 
-When flushing task from many proc trees we need to know the set of ids (not
-just one pid) to find the dentries' names to flush.  Thus we need to pass the
-task's pid to proc_flush_task() as struct pid is the only object that can
-provide all the pid numbers.  But after __exit_signal() task has detached all
-his pids and this information is lost.
-
-This creates a tiny gap for proc_pid_lookup() to bring some dentries back to
-tree and keep them in hash (since pids are still alive before __exit_signal())
-till the next shrink, but since proc_flush_task() does not provide a 100%
-guarantee that the dentries will be flushed, this is OK to do so.
-
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Cc: Paul Menage <menage@google.com>
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c          |   27 ++++++++++++++++++++-------
- include/linux/proc_fs.h |    4 +++-
- kernel/exit.c           |    2 +-
- 3 files changed, 24 insertions(+), 9 deletions(-)
+ arch/x86/kernel/e820_64.c          |    3 +-
+ arch/x86/kernel/machine_kexec_64.c |   27 ------------------
+ arch/x86/kernel/setup_64.c         |   39 ++++++++++++++++++++++-----
+ 3 files changed, 34 insertions(+), 35 deletions(-)
 
-diff -puN fs/proc/base.c~pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees fs/proc/base.c
---- a/fs/proc/base.c~pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees
-+++ a/fs/proc/base.c
-@@ -74,6 +74,7 @@
- #include <linux/nsproxy.h>
- #include <linux/oom.h>
- #include <linux/elf.h>
-+#include <linux/pid_namespace.h>
- #include "internal.h"
- 
- /* NOTE:
-@@ -2204,27 +2205,27 @@ static const struct inode_operations pro
-  *       that no dcache entries will exist at process exit time it
-  *       just makes it very unlikely that any will persist.
-  */
--void proc_flush_task(struct task_struct *task)
-+static void proc_flush_task_mnt(struct vfsmount *mnt, pid_t pid, pid_t tgid)
- {
- 	struct dentry *dentry, *leader, *dir;
- 	char buf[PROC_NUMBUF];
- 	struct qstr name;
- 
- 	name.name = buf;
--	name.len = snprintf(buf, sizeof(buf), "%d", task->pid);
--	dentry = d_hash_and_lookup(proc_mnt->mnt_root, &name);
-+	name.len = snprintf(buf, sizeof(buf), "%d", pid);
-+	dentry = d_hash_and_lookup(mnt->mnt_root, &name);
- 	if (dentry) {
- 		shrink_dcache_parent(dentry);
- 		d_drop(dentry);
- 		dput(dentry);
+diff -puN arch/x86/kernel/e820_64.c~use-extended-crashkernel-command-line-on-x86_64 arch/x86/kernel/e820_64.c
+--- a/arch/x86/kernel/e820_64.c~use-extended-crashkernel-command-line-on-x86_64
++++ a/arch/x86/kernel/e820_64.c
+@@ -226,7 +226,8 @@ void __init e820_reserve_resources(void)
+ 			request_resource(res, &code_resource);
+ 			request_resource(res, &data_resource);
+ #ifdef CONFIG_KEXEC
+-			request_resource(res, &crashk_res);
++			if (crashk_res.start != crashk_res.end)
++				request_resource(res, &crashk_res);
+ #endif
+ 		}
  	}
- 
--	if (thread_group_leader(task))
-+	if (tgid == 0)
- 		goto out;
- 
- 	name.name = buf;
--	name.len = snprintf(buf, sizeof(buf), "%d", task->tgid);
--	leader = d_hash_and_lookup(proc_mnt->mnt_root, &name);
-+	name.len = snprintf(buf, sizeof(buf), "%d", tgid);
-+	leader = d_hash_and_lookup(mnt->mnt_root, &name);
- 	if (!leader)
- 		goto out;
- 
-@@ -2235,7 +2236,7 @@ void proc_flush_task(struct task_struct 
- 		goto out_put_leader;
- 
- 	name.name = buf;
--	name.len = snprintf(buf, sizeof(buf), "%d", task->pid);
-+	name.len = snprintf(buf, sizeof(buf), "%d", pid);
- 	dentry = d_hash_and_lookup(dir, &name);
- 	if (dentry) {
- 		shrink_dcache_parent(dentry);
-@@ -2250,6 +2251,18 @@ out:
- 	return;
+diff -puN arch/x86/kernel/machine_kexec_64.c~use-extended-crashkernel-command-line-on-x86_64 arch/x86/kernel/machine_kexec_64.c
+--- a/arch/x86/kernel/machine_kexec_64.c~use-extended-crashkernel-command-line-on-x86_64
++++ a/arch/x86/kernel/machine_kexec_64.c
+@@ -231,33 +231,6 @@ NORET_TYPE void machine_kexec(struct kim
+ 			image->start);
  }
  
-+/*
-+ * when flushing dentries from proc one need to flush them from global
-+ * proc (proc_mnt) and from all the namespaces' procs this task was seen
-+ * in. this call is supposed to make all this job.
-+ */
-+
-+void proc_flush_task(struct task_struct *task)
-+{
-+	proc_flush_task_mnt(proc_mnt, task->pid,
-+			thread_group_leader(task) ? 0 : task->tgid);
-+}
-+
- static struct dentry *proc_pid_instantiate(struct inode *dir,
- 					   struct dentry * dentry,
- 					   struct task_struct *task, const void *ptr)
-diff -puN include/linux/proc_fs.h~pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees include/linux/proc_fs.h
---- a/include/linux/proc_fs.h~pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees
-+++ a/include/linux/proc_fs.h
-@@ -207,7 +207,9 @@ extern void proc_net_remove(struct net *
- #define proc_net_create(net, name, mode, info)	({ (void)(mode), NULL; })
- static inline void proc_net_remove(struct net *net, const char *name) {}
+-/* crashkernel=size@addr specifies the location to reserve for
+- * a crash kernel.  By reserving this memory we guarantee
+- * that linux never set's it up as a DMA target.
+- * Useful for holding code to do something appropriate
+- * after a kernel panic.
+- */
+-static int __init setup_crashkernel(char *arg)
+-{
+-	unsigned long size, base;
+-	char *p;
+-	if (!arg)
+-		return -EINVAL;
+-	size = memparse(arg, &p);
+-	if (arg == p)
+-		return -EINVAL;
+-	if (*p == '@') {
+-		base = memparse(p+1, &p);
+-		/* FIXME: Do I want a sanity check to validate the
+-		 * memory range?  Yes you do, but it's too early for
+-		 * e820 -AK */
+-		crashk_res.start = base;
+-		crashk_res.end   = base + size - 1;
+-	}
+-	return 0;
+-}
+-early_param("crashkernel", setup_crashkernel);
+-
+ void arch_crash_save_vmcoreinfo(void)
+ {
+ #ifdef CONFIG_ARCH_DISCONTIGMEM_ENABLE
+diff -puN arch/x86/kernel/setup_64.c~use-extended-crashkernel-command-line-on-x86_64 arch/x86/kernel/setup_64.c
+--- a/arch/x86/kernel/setup_64.c~use-extended-crashkernel-command-line-on-x86_64
++++ a/arch/x86/kernel/setup_64.c
+@@ -191,6 +191,37 @@ static inline void copy_edd(void)
+ }
+ #endif
  
--static inline void proc_flush_task(struct task_struct *task) { }
-+static inline void proc_flush_task(struct task_struct *task)
++#ifdef CONFIG_KEXEC
++static void __init reserve_crashkernel(void)
 +{
++	unsigned long long free_mem;
++	unsigned long long crash_size, crash_base;
++	int ret;
++
++	free_mem = ((unsigned long long)max_low_pfn - min_low_pfn) << PAGE_SHIFT;
++
++	ret = parse_crashkernel(boot_command_line, free_mem,
++			&crash_size, &crash_base);
++	if (ret == 0 && crash_size) {
++		if (crash_base > 0) {
++			printk(KERN_INFO "Reserving %ldMB of memory at %ldMB "
++					"for crashkernel (System RAM: %ldMB)\n",
++					(unsigned long)(crash_size >> 20),
++					(unsigned long)(crash_base >> 20),
++					(unsigned long)(free_mem >> 20));
++			crashk_res.start = crash_base;
++			crashk_res.end   = crash_base + crash_size - 1;
++			reserve_bootmem(crash_base, crash_size);
++		} else
++			printk(KERN_INFO "crashkernel reservation failed - "
++					"you have to specify a base address\n");
++	}
 +}
++#else
++static inline void __init reserve_crashkernel(void)
++{}
++#endif
++
+ #define EBDA_ADDR_POINTER 0x40E
  
- static inline struct proc_dir_entry *create_proc_entry(const char *name,
- 	mode_t mode, struct proc_dir_entry *parent) { return NULL; }
-diff -puN kernel/exit.c~pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees kernel/exit.c
---- a/kernel/exit.c~pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees
-+++ a/kernel/exit.c
-@@ -148,6 +148,7 @@ void release_task(struct task_struct * p
- 	int zap_leader;
- repeat:
- 	atomic_dec(&p->user->processes);
-+	proc_flush_task(p);
- 	write_lock_irq(&tasklist_lock);
- 	ptrace_unlink(p);
- 	BUG_ON(!list_empty(&p->ptrace_list) || !list_empty(&p->ptrace_children));
-@@ -175,7 +176,6 @@ repeat:
+ unsigned __initdata ebda_addr;
+@@ -357,13 +388,7 @@ void __init setup_arch(char **cmdline_p)
+ 		}
  	}
+ #endif
+-#ifdef CONFIG_KEXEC
+-	if (crashk_res.start != crashk_res.end) {
+-		reserve_bootmem_generic(crashk_res.start,
+-			crashk_res.end - crashk_res.start + 1);
+-	}
+-#endif
+-
++	reserve_crashkernel();
+ 	paging_init();
  
- 	write_unlock_irq(&tasklist_lock);
--	proc_flush_task(p);
- 	release_thread(p);
- 	call_rcu(&p->rcu, delayed_put_task_struct);
- 
+ #ifdef CONFIG_PCI
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from bwalle@suse.de are
 
 origin.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-resource-counters-v7-fix.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
+kexec-add-bss-to-resource-tree.patch
+kexec-add-bss-to-resource-tree-checkpatch-fixes.patch
+kexec-introduce-bootmem_exclusive.patch
+kexec-introduce-bootmem_exclusive-checkpatch-fixes.patch
+kexec-use-bootmem_exclusive-on-x86.patch
