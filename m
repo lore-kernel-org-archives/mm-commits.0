@@ -1,388 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: - cpu-hotplug-slab-cleanup-cpuup_callback.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:41:49 -0700
-Message-ID: <200710190341.l9J3fnDH012849@imap1.linux-foundation.org>
+Subject: - sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:42:48 -0700
+Message-ID: <200710190342.l9J3gmEu012932@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45664 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36961 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966414AbXJSD4q (ORCPT
+	by vger.kernel.org with ESMTP id S966456AbXJSD4s (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:56:46 -0400
+	Thu, 18 Oct 2007 23:56:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, clameter@sgi.com, ego@in.ibm.com, oleg@tv-sign.ru, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: ebiederm@xmission.com, adobriyan@sw.ru, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpu hotplug: slab: cleanup cpuup_callback()
+     sysctl: ipv4 remove binary sysctl paths where they are broken
 has been removed from the -mm tree.  Its filename was
-     cpu-hotplug-slab-cleanup-cpuup_callback.patch
+     sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cpu hotplug: slab: cleanup cpuup_callback()
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: sysctl: ipv4 remove binary sysctl paths where they are broken
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-cpuup_callback() is too long.  This patch factors out CPU_UP_CANCELLED and
-CPU_UP_PREPARE handlings from cpuup_callback().
+Currently tcp_available_congestion_control does not even attempt being read
+from sys_sysctl, and ipfrag_max_dist while it works allows setting of invalid
+values using sys_sysctl.
 
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+So just kill the binary sys_sysctl support for these sysctls.  If the support
+is not important enough to test and get right it probably isn't important
+enough to keep.
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |  301 +++++++++++++++++++++++++++-------------------------
- 1 file changed, 159 insertions(+), 142 deletions(-)
+ net/ipv4/sysctl_net_ipv4.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/slab.c~cpu-hotplug-slab-cleanup-cpuup_callback mm/slab.c
---- a/mm/slab.c~cpu-hotplug-slab-cleanup-cpuup_callback
-+++ a/mm/slab.c
-@@ -1156,105 +1156,181 @@ static inline int cache_free_alien(struc
- }
- #endif
- 
--static int __cpuinit cpuup_callback(struct notifier_block *nfb,
--				    unsigned long action, void *hcpu)
-+static void __cpuinit cpuup_canceled(long cpu)
-+{
-+	struct kmem_cache *cachep;
-+	struct kmem_list3 *l3 = NULL;
-+	int node = cpu_to_node(cpu);
-+
-+	list_for_each_entry(cachep, &cache_chain, next) {
-+		struct array_cache *nc;
-+		struct array_cache *shared;
-+		struct array_cache **alien;
-+		cpumask_t mask;
-+
-+		mask = node_to_cpumask(node);
-+		/* cpu is dead; no one can alloc from it. */
-+		nc = cachep->array[cpu];
-+		cachep->array[cpu] = NULL;
-+		l3 = cachep->nodelists[node];
-+
-+		if (!l3)
-+			goto free_array_cache;
-+
-+		spin_lock_irq(&l3->list_lock);
-+
-+		/* Free limit for this kmem_list3 */
-+		l3->free_limit -= cachep->batchcount;
-+		if (nc)
-+			free_block(cachep, nc->entry, nc->avail, node);
-+
-+		if (!cpus_empty(mask)) {
-+			spin_unlock_irq(&l3->list_lock);
-+			goto free_array_cache;
-+		}
-+
-+		shared = l3->shared;
-+		if (shared) {
-+			free_block(cachep, shared->entry,
-+				   shared->avail, node);
-+			l3->shared = NULL;
-+		}
-+
-+		alien = l3->alien;
-+		l3->alien = NULL;
-+
-+		spin_unlock_irq(&l3->list_lock);
-+
-+		kfree(shared);
-+		if (alien) {
-+			drain_alien_cache(cachep, alien);
-+			free_alien_cache(alien);
-+		}
-+free_array_cache:
-+		kfree(nc);
-+	}
-+	/*
-+	 * In the previous loop, all the objects were freed to
-+	 * the respective cache's slabs,  now we can go ahead and
-+	 * shrink each nodelist to its limit.
-+	 */
-+	list_for_each_entry(cachep, &cache_chain, next) {
-+		l3 = cachep->nodelists[node];
-+		if (!l3)
-+			continue;
-+		drain_freelist(cachep, l3, l3->free_objects);
-+	}
-+}
-+
-+static int __cpuinit cpuup_prepare(long cpu)
- {
--	long cpu = (long)hcpu;
- 	struct kmem_cache *cachep;
- 	struct kmem_list3 *l3 = NULL;
- 	int node = cpu_to_node(cpu);
- 	const int memsize = sizeof(struct kmem_list3);
- 
--	switch (action) {
--	case CPU_LOCK_ACQUIRE:
--		mutex_lock(&cache_chain_mutex);
--		break;
--	case CPU_UP_PREPARE:
--	case CPU_UP_PREPARE_FROZEN:
-+	/*
-+	 * We need to do this right in the beginning since
-+	 * alloc_arraycache's are going to use this list.
-+	 * kmalloc_node allows us to add the slab to the right
-+	 * kmem_list3 and not this cpu's kmem_list3
-+	 */
-+
-+	list_for_each_entry(cachep, &cache_chain, next) {
- 		/*
--		 * We need to do this right in the beginning since
--		 * alloc_arraycache's are going to use this list.
--		 * kmalloc_node allows us to add the slab to the right
--		 * kmem_list3 and not this cpu's kmem_list3
-+		 * Set up the size64 kmemlist for cpu before we can
-+		 * begin anything. Make sure some other cpu on this
-+		 * node has not already allocated this
- 		 */
-+		if (!cachep->nodelists[node]) {
-+			l3 = kmalloc_node(memsize, GFP_KERNEL, node);
-+			if (!l3)
-+				goto bad;
-+			kmem_list3_init(l3);
-+			l3->next_reap = jiffies + REAPTIMEOUT_LIST3 +
-+			    ((unsigned long)cachep) % REAPTIMEOUT_LIST3;
- 
--		list_for_each_entry(cachep, &cache_chain, next) {
- 			/*
--			 * Set up the size64 kmemlist for cpu before we can
--			 * begin anything. Make sure some other cpu on this
--			 * node has not already allocated this
-+			 * The l3s don't come and go as CPUs come and
-+			 * go.  cache_chain_mutex is sufficient
-+			 * protection here.
- 			 */
--			if (!cachep->nodelists[node]) {
--				l3 = kmalloc_node(memsize, GFP_KERNEL, node);
--				if (!l3)
--					goto bad;
--				kmem_list3_init(l3);
--				l3->next_reap = jiffies + REAPTIMEOUT_LIST3 +
--				    ((unsigned long)cachep) % REAPTIMEOUT_LIST3;
--
--				/*
--				 * The l3s don't come and go as CPUs come and
--				 * go.  cache_chain_mutex is sufficient
--				 * protection here.
--				 */
--				cachep->nodelists[node] = l3;
--			}
--
--			spin_lock_irq(&cachep->nodelists[node]->list_lock);
--			cachep->nodelists[node]->free_limit =
--				(1 + nr_cpus_node(node)) *
--				cachep->batchcount + cachep->num;
--			spin_unlock_irq(&cachep->nodelists[node]->list_lock);
-+			cachep->nodelists[node] = l3;
- 		}
- 
--		/*
--		 * Now we can go ahead with allocating the shared arrays and
--		 * array caches
--		 */
--		list_for_each_entry(cachep, &cache_chain, next) {
--			struct array_cache *nc;
--			struct array_cache *shared = NULL;
--			struct array_cache **alien = NULL;
-+		spin_lock_irq(&cachep->nodelists[node]->list_lock);
-+		cachep->nodelists[node]->free_limit =
-+			(1 + nr_cpus_node(node)) *
-+			cachep->batchcount + cachep->num;
-+		spin_unlock_irq(&cachep->nodelists[node]->list_lock);
-+	}
- 
--			nc = alloc_arraycache(node, cachep->limit,
--						cachep->batchcount);
--			if (!nc)
-+	/*
-+	 * Now we can go ahead with allocating the shared arrays and
-+	 * array caches
-+	 */
-+	list_for_each_entry(cachep, &cache_chain, next) {
-+		struct array_cache *nc;
-+		struct array_cache *shared = NULL;
-+		struct array_cache **alien = NULL;
-+
-+		nc = alloc_arraycache(node, cachep->limit,
-+					cachep->batchcount);
-+		if (!nc)
-+			goto bad;
-+		if (cachep->shared) {
-+			shared = alloc_arraycache(node,
-+				cachep->shared * cachep->batchcount,
-+				0xbaadf00d);
-+			if (!shared)
- 				goto bad;
--			if (cachep->shared) {
--				shared = alloc_arraycache(node,
--					cachep->shared * cachep->batchcount,
--					0xbaadf00d);
--				if (!shared)
--					goto bad;
--			}
--			if (use_alien_caches) {
--                                alien = alloc_alien_cache(node, cachep->limit);
--                                if (!alien)
--                                        goto bad;
--                        }
--			cachep->array[cpu] = nc;
--			l3 = cachep->nodelists[node];
--			BUG_ON(!l3);
-+		}
-+		if (use_alien_caches) {
-+			alien = alloc_alien_cache(node, cachep->limit);
-+			if (!alien)
-+				goto bad;
-+		}
-+		cachep->array[cpu] = nc;
-+		l3 = cachep->nodelists[node];
-+		BUG_ON(!l3);
- 
--			spin_lock_irq(&l3->list_lock);
--			if (!l3->shared) {
--				/*
--				 * We are serialised from CPU_DEAD or
--				 * CPU_UP_CANCELLED by the cpucontrol lock
--				 */
--				l3->shared = shared;
--				shared = NULL;
--			}
-+		spin_lock_irq(&l3->list_lock);
-+		if (!l3->shared) {
-+			/*
-+			 * We are serialised from CPU_DEAD or
-+			 * CPU_UP_CANCELLED by the cpucontrol lock
-+			 */
-+			l3->shared = shared;
-+			shared = NULL;
-+		}
- #ifdef CONFIG_NUMA
--			if (!l3->alien) {
--				l3->alien = alien;
--				alien = NULL;
--			}
--#endif
--			spin_unlock_irq(&l3->list_lock);
--			kfree(shared);
--			free_alien_cache(alien);
-+		if (!l3->alien) {
-+			l3->alien = alien;
-+			alien = NULL;
- 		}
-+#endif
-+		spin_unlock_irq(&l3->list_lock);
-+		kfree(shared);
-+		free_alien_cache(alien);
-+	}
-+	return 0;
-+bad:
-+	return -ENOMEM;
-+}
-+
-+static int __cpuinit cpuup_callback(struct notifier_block *nfb,
-+				    unsigned long action, void *hcpu)
-+{
-+	long cpu = (long)hcpu;
-+	int err = 0;
-+
-+	switch (action) {
-+	case CPU_LOCK_ACQUIRE:
-+		mutex_lock(&cache_chain_mutex);
-+		break;
-+	case CPU_UP_PREPARE:
-+	case CPU_UP_PREPARE_FROZEN:
-+		err = cpuup_prepare(cpu);
- 		break;
- 	case CPU_ONLINE:
- 	case CPU_ONLINE_FROZEN:
-@@ -1291,72 +1367,13 @@ static int __cpuinit cpuup_callback(stru
- #endif
- 	case CPU_UP_CANCELED:
- 	case CPU_UP_CANCELED_FROZEN:
--		list_for_each_entry(cachep, &cache_chain, next) {
--			struct array_cache *nc;
--			struct array_cache *shared;
--			struct array_cache **alien;
--			cpumask_t mask;
--
--			mask = node_to_cpumask(node);
--			/* cpu is dead; no one can alloc from it. */
--			nc = cachep->array[cpu];
--			cachep->array[cpu] = NULL;
--			l3 = cachep->nodelists[node];
--
--			if (!l3)
--				goto free_array_cache;
--
--			spin_lock_irq(&l3->list_lock);
--
--			/* Free limit for this kmem_list3 */
--			l3->free_limit -= cachep->batchcount;
--			if (nc)
--				free_block(cachep, nc->entry, nc->avail, node);
--
--			if (!cpus_empty(mask)) {
--				spin_unlock_irq(&l3->list_lock);
--				goto free_array_cache;
--			}
--
--			shared = l3->shared;
--			if (shared) {
--				free_block(cachep, shared->entry,
--					   shared->avail, node);
--				l3->shared = NULL;
--			}
--
--			alien = l3->alien;
--			l3->alien = NULL;
--
--			spin_unlock_irq(&l3->list_lock);
--
--			kfree(shared);
--			if (alien) {
--				drain_alien_cache(cachep, alien);
--				free_alien_cache(alien);
--			}
--free_array_cache:
--			kfree(nc);
--		}
--		/*
--		 * In the previous loop, all the objects were freed to
--		 * the respective cache's slabs,  now we can go ahead and
--		 * shrink each nodelist to its limit.
--		 */
--		list_for_each_entry(cachep, &cache_chain, next) {
--			l3 = cachep->nodelists[node];
--			if (!l3)
--				continue;
--			drain_freelist(cachep, l3, l3->free_objects);
--		}
-+		cpuup_canceled(cpu);
- 		break;
- 	case CPU_LOCK_RELEASE:
- 		mutex_unlock(&cache_chain_mutex);
- 		break;
- 	}
--	return NOTIFY_OK;
--bad:
--	return NOTIFY_BAD;
-+	return err ? NOTIFY_BAD : NOTIFY_OK;
- }
- 
- static struct notifier_block __cpuinitdata cpucache_notifier = {
+diff -puN net/ipv4/sysctl_net_ipv4.c~sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken net/ipv4/sysctl_net_ipv4.c
+--- a/net/ipv4/sysctl_net_ipv4.c~sysctl-ipv4-remove-binary-sysctl-paths-where-they-are-broken
++++ a/net/ipv4/sysctl_net_ipv4.c
+@@ -740,7 +740,6 @@ ctl_table ipv4_table[] = {
+ 		.strategy	= &sysctl_jiffies
+ 	},
+ 	{
+-		.ctl_name	= NET_IPV4_IPFRAG_MAX_DIST,
+ 		.procname	= "ipfrag_max_dist",
+ 		.data		= &sysctl_ipfrag_max_dist,
+ 		.maxlen		= sizeof(int),
+@@ -865,7 +864,6 @@ ctl_table ipv4_table[] = {
+ 	},
+ #endif /* CONFIG_NETLABEL */
+ 	{
+-		.ctl_name	= NET_TCP_AVAIL_CONG_CONTROL,
+ 		.procname	= "tcp_available_congestion_control",
+ 		.maxlen		= TCP_CA_BUF_MAX,
+ 		.mode		= 0444,
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
 origin.patch
-git-x86.patch
+update-boot-spec-to-207.patch
+i386-paravirt-boot-sequence.patch
+cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
+task-containersv11-basic-task-container-framework.patch
+task-containersv11-add-tasks-file-interface.patch
+task-containersv11-add-fork-exit-hooks.patch
+task-containersv11-add-container_clone-interface.patch
+task-containersv11-add-procfs-interface.patch
+task-containersv11-shared-container-subsystem-group-arrays.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups.patch
+task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
+task-containersv11-automatic-userspace-notification-of-idle-containers.patch
+task-containersv11-make-cpusets-a-client-of-containers.patch
+task-containersv11-example-cpu-accounting-subsystem.patch
+task-containersv11-simple-task-container-debug-info-subsystem.patch
+pid-namespaces-round-up-the-api.patch
+pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
+pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
+pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
+pid-namespaces-rename-child_reaper-function.patch
+pid-namespaces-use-task_pid-to-find-leaders-pid.patch
+pid-namespaces-define-is_global_init-and-is_container_init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
+pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
+pid-namespaces-move-alloc_pid-to-copy_process.patch
+make-access-to-tasks-nsproxy-lighter.patch
+make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
+make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
+pid-namespaces-rework-forget_original_parent.patch
+pid-namespaces-move-exit_task_namespaces.patch
+pid-namespaces-introduce-ms_kernmount-flag.patch
+pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
+pid-namespaces-introduce-struct-upid.patch
+pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
+pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
+pid-namespaces-helpers-to-obtain-pid-numbers.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
+pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
+pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
+pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
+pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
+pid-namespaces-allow-cloning-of-new-namespace.patch
+pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
+pid-namespaces-initialize-the-namespaces-proc_mnt.patch
+pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
+pid-namespaces-allow-signalling-container-init.patch
+pid-namespaces-destroy-pid-namespace-on-inits-death.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user.patch
+uninline-find_task_by_xxx-set-of-functions.patch
+pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
+pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
+isolate-some-explicit-usage-of-task-tgid.patch
+uninline-find_pid-etc-set-of-functions.patch
+uninline-the-task_xid_nr_ns-calls.patch
+fix-cpusets-update_cpumask.patch
+fix-cpusets-update_cpumask-checkpatch-fixes.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+isolate-the-explicit-usage-of-signal-pgrp.patch
+virtualization-of-sysv-msg-queues-is-incomplete.patch
+extended-crashkernel-command-line.patch
+use-extended-crashkernel-command-line-on-i386.patch
+use-extended-crashkernel-command-line-on-x86_64.patch
+use-extended-crashkernel-command-line-on-ia64.patch
+use-extended-crashkernel-command-line-on-ia64-fix.patch
+use-extended-crashkernel-command-line-on-ppc64.patch
+use-extended-crashkernel-command-line-on-sh.patch
+add-documentation-for-extended-crashkernel-syntax.patch
+kexec-add-bss-to-resource-tree.patch
+kexec-introduce-bootmem_exclusive.patch
+kexec-use-bootmem_exclusive-on-x86.patch
