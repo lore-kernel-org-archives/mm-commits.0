@@ -1,126 +1,208 @@
 From: akpm@linux-foundation.org
-Subject: - pid-namespaces-introduce-ms_kernmount-flag.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:51:23 -0700
-Message-ID: <200710192251.l9JMpNcd024179@imap1.linux-foundation.org>
+Subject: - use-extended-crashkernel-command-line-on-ia64.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:54:07 -0700
+Message-ID: <200710192254.l9JMs7cM024498@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40915 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50978 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934918AbXJSXGg (ORCPT
+	by vger.kernel.org with ESMTP id S967033AbXJSXG6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 19:06:36 -0400
+	Fri, 19 Oct 2007 19:06:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, ebiederm@xmission.com, menage@google.com, oleg@tv-sign.ru, sukadev@us.ibm.com, mm-commits@vger.kernel.org
+To: bwalle@suse.de, ebiederm@xmission.com, kamalesh@linux.vnet.ibm.com, tony.luck@intel.com, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pid namespaces: introduce MS_KERNMOUNT flag
+     Use extended crashkernel command line on ia64
 has been removed from the -mm tree.  Its filename was
-     pid-namespaces-introduce-ms_kernmount-flag.patch
+     use-extended-crashkernel-command-line-on-ia64.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: pid namespaces: introduce MS_KERNMOUNT flag
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: Use extended crashkernel command line on ia64
+From: Bernhard Walle <bwalle@suse.de>
 
-This flag tells the .get_sb callback that this is a kern_mount() call so that
-it can trust *data pointer to be valid in-kernel one.  If this flag is passed
-from the user process, it is cleared since the *data pointer is not a valid
-kernel object.
+This patch adapts IA64 to use the generic parse_crashkernel() function instead
+of its own parsing for the crashkernel command line.
 
-Running a few steps forward - this will be needed for proc to create the
-superblock and store a valid pid namespace on it during the namespace
-creation.  The reason, why the namespace cannot live without proc mount is
-described in the appropriate patch.
+Because the total amount of System RAM must be known when calling this
+function, efi_memmap_init() is modified to return its accumulated total_memory
+variable.
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Cc: Paul Menage <menage@google.com>
+Also, the crashkernel handling is moved in an own function in
+arch/ia64/kernel/setup.c to make the code more readable.
+
+[kamalesh@linux.vnet.ibm.com: build fix]
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c     |    2 +-
- fs/super.c         |    6 +++---
- include/linux/fs.h |    4 +++-
- 3 files changed, 7 insertions(+), 5 deletions(-)
+ arch/ia64/kernel/efi.c     |    4 +
+ arch/ia64/kernel/setup.c   |   88 ++++++++++++++++++-----------------
+ include/asm-ia64/meminit.h |    2 
+ 3 files changed, 50 insertions(+), 44 deletions(-)
 
-diff -puN fs/namespace.c~pid-namespaces-introduce-ms_kernmount-flag fs/namespace.c
---- a/fs/namespace.c~pid-namespaces-introduce-ms_kernmount-flag
-+++ a/fs/namespace.c
-@@ -1411,7 +1411,7 @@ long do_mount(char *dev_name, char *dir_
- 		mnt_flags |= MNT_RELATIME;
- 
- 	flags &= ~(MS_NOSUID | MS_NOEXEC | MS_NODEV | MS_ACTIVE |
--		   MS_NOATIME | MS_NODIRATIME | MS_RELATIME);
-+		   MS_NOATIME | MS_NODIRATIME | MS_RELATIME| MS_KERNMOUNT);
- 
- 	/* ... and get the mountpoint */
- 	retval = path_lookup(dir_name, LOOKUP_FOLLOW, &nd);
-diff -puN fs/super.c~pid-namespaces-introduce-ms_kernmount-flag fs/super.c
---- a/fs/super.c~pid-namespaces-introduce-ms_kernmount-flag
-+++ a/fs/super.c
-@@ -944,9 +944,9 @@ do_kern_mount(const char *fstype, int fl
- 	return mnt;
- }
- 
--struct vfsmount *kern_mount(struct file_system_type *type)
-+struct vfsmount *kern_mount_data(struct file_system_type *type, void *data)
+diff -puN arch/ia64/kernel/efi.c~use-extended-crashkernel-command-line-on-ia64 arch/ia64/kernel/efi.c
+--- a/arch/ia64/kernel/efi.c~use-extended-crashkernel-command-line-on-ia64
++++ a/arch/ia64/kernel/efi.c
+@@ -967,7 +967,7 @@ find_memmap_space (void)
+  * to use.  We can allocate partial granules only if the unavailable
+  * parts exist, and are WB.
+  */
+-void
++unsigned long
+ efi_memmap_init(unsigned long *s, unsigned long *e)
  {
--	return vfs_kern_mount(type, 0, type->name, NULL);
-+	return vfs_kern_mount(type, MS_KERNMOUNT, type->name, data);
+ 	struct kern_memdesc *k, *prev = NULL;
+@@ -1084,6 +1084,8 @@ efi_memmap_init(unsigned long *s, unsign
+ 	/* reserve the memory we are using for kern_memmap */
+ 	*s = (u64)kern_memmap;
+ 	*e = (u64)++k;
++
++	return total_mem;
  }
  
--EXPORT_SYMBOL(kern_mount);
-+EXPORT_SYMBOL_GPL(kern_mount_data);
-diff -puN include/linux/fs.h~pid-namespaces-introduce-ms_kernmount-flag include/linux/fs.h
---- a/include/linux/fs.h~pid-namespaces-introduce-ms_kernmount-flag
-+++ a/include/linux/fs.h
-@@ -123,6 +123,7 @@ extern int dir_notify_enable;
- #define MS_SLAVE	(1<<19)	/* change to slave */
- #define MS_SHARED	(1<<20)	/* change to shared */
- #define MS_RELATIME	(1<<21)	/* Update atime relative to mtime/ctime. */
-+#define MS_KERNMOUNT	(1<<22) /* this is a kern_mount call */
- #define MS_ACTIVE	(1<<30)
- #define MS_NOUSER	(1<<31)
+ void
+diff -puN arch/ia64/kernel/setup.c~use-extended-crashkernel-command-line-on-ia64 arch/ia64/kernel/setup.c
+--- a/arch/ia64/kernel/setup.c~use-extended-crashkernel-command-line-on-ia64
++++ a/arch/ia64/kernel/setup.c
+@@ -208,6 +208,48 @@ static int __init register_memory(void)
  
-@@ -1459,7 +1460,8 @@ void unnamed_dev_init(void);
+ __initcall(register_memory);
  
- extern int register_filesystem(struct file_system_type *);
- extern int unregister_filesystem(struct file_system_type *);
--extern struct vfsmount *kern_mount(struct file_system_type *);
-+extern struct vfsmount *kern_mount_data(struct file_system_type *, void *data);
-+#define kern_mount(type) kern_mount_data(type, NULL)
- extern int may_umount_tree(struct vfsmount *);
- extern int may_umount(struct vfsmount *);
- extern void umount_tree(struct vfsmount *, int, struct list_head *);
++
++#ifdef CONFIG_KEXEC
++static void __init setup_crashkernel(unsigned long total, int *n)
++{
++	unsigned long long base = 0, size = 0;
++	int ret;
++
++	ret = parse_crashkernel(boot_command_line, total,
++			&size, &base);
++	if (ret == 0 && size > 0) {
++		if (!base) {
++			sort_regions(rsvd_region, *n);
++			base = kdump_find_rsvd_region(size,
++					rsvd_region, *n);
++		}
++		if (base != ~0UL) {
++			printk(KERN_INFO "Reserving %ldMB of memory at %ldMB "
++					"for crashkernel (System RAM: %ldMB)\n",
++					(unsigned long)(size >> 20),
++					(unsigned long)(base >> 20),
++					(unsigned long)(total >> 20));
++			rsvd_region[*n].start =
++				(unsigned long)__va(base);
++			rsvd_region[*n].end =
++				(unsigned long)__va(base + size);
++			(*n)++;
++			crashk_res.start = base;
++			crashk_res.end = base + size - 1;
++		}
++	}
++	efi_memmap_res.start = ia64_boot_param->efi_memmap;
++	efi_memmap_res.end = efi_memmap_res.start +
++		ia64_boot_param->efi_memmap_size;
++	boot_param_res.start = __pa(ia64_boot_param);
++	boot_param_res.end = boot_param_res.start +
++		sizeof(*ia64_boot_param);
++}
++#else
++static inline void __init setup_crashkernel(unsigned long total, int *n)
++{}
++#endif
++
+ /**
+  * reserve_memory - setup reserved memory areas
+  *
+@@ -219,6 +261,7 @@ void __init
+ reserve_memory (void)
+ {
+ 	int n = 0;
++	unsigned long total_memory;
+ 
+ 	/*
+ 	 * none of the entries in this table overlap
+@@ -254,50 +297,11 @@ reserve_memory (void)
+ 		n++;
+ #endif
+ 
+-	efi_memmap_init(&rsvd_region[n].start, &rsvd_region[n].end);
++	total_memory = efi_memmap_init(&rsvd_region[n].start, &rsvd_region[n].end);
+ 	n++;
+ 
+-#ifdef CONFIG_KEXEC
+-	/* crashkernel=size@offset specifies the size to reserve for a crash
+-	 * kernel. If offset is 0, then it is determined automatically.
+-	 * By reserving this memory we guarantee that linux never set's it
+-	 * up as a DMA target.Useful for holding code to do something
+-	 * appropriate after a kernel panic.
+-	 */
+-	{
+-		char *from = strstr(boot_command_line, "crashkernel=");
+-		unsigned long base, size;
+-		if (from) {
+-			size = memparse(from + 12, &from);
+-			if (*from == '@')
+-				base = memparse(from+1, &from);
+-			else
+-				base = 0;
+-			if (size) {
+-				if (!base) {
+-					sort_regions(rsvd_region, n);
+-					base = kdump_find_rsvd_region(size,
+-							      	rsvd_region, n);
+-					}
+-				if (base != ~0UL) {
+-					rsvd_region[n].start =
+-						(unsigned long)__va(base);
+-					rsvd_region[n].end =
+-						(unsigned long)__va(base + size);
+-					n++;
+-					crashk_res.start = base;
+-					crashk_res.end = base + size - 1;
+-				}
+-			}
+-		}
+-		efi_memmap_res.start = ia64_boot_param->efi_memmap;
+-                efi_memmap_res.end = efi_memmap_res.start +
+-                        ia64_boot_param->efi_memmap_size;
+-                boot_param_res.start = __pa(ia64_boot_param);
+-                boot_param_res.end = boot_param_res.start +
+-                        sizeof(*ia64_boot_param);
+-	}
+-#endif
++	setup_crashkernel(total_memory, &n);
++
+ 	/* end of memory marker */
+ 	rsvd_region[n].start = ~0UL;
+ 	rsvd_region[n].end   = ~0UL;
+diff -puN include/asm-ia64/meminit.h~use-extended-crashkernel-command-line-on-ia64 include/asm-ia64/meminit.h
+--- a/include/asm-ia64/meminit.h~use-extended-crashkernel-command-line-on-ia64
++++ a/include/asm-ia64/meminit.h
+@@ -35,7 +35,7 @@ extern void find_memory (void);
+ extern void reserve_memory (void);
+ extern void find_initrd (void);
+ extern int filter_rsvd_memory (unsigned long start, unsigned long end, void *arg);
+-extern void efi_memmap_init(unsigned long *, unsigned long *);
++extern unsigned long efi_memmap_init(unsigned long *s, unsigned long *e);
+ extern int find_max_min_low_pfn (unsigned long , unsigned long, void *);
+ 
+ extern unsigned long vmcore_find_descriptor_size(unsigned long address);
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from bwalle@suse.de are
 
 origin.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-resource-counters-v7-fix.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-reiser4-use-helpers-to-obtain-task-pid-in-printks.patch
+kexec-add-bss-to-resource-tree.patch
+kexec-add-bss-to-resource-tree-checkpatch-fixes.patch
+kexec-introduce-bootmem_exclusive.patch
+kexec-introduce-bootmem_exclusive-checkpatch-fixes.patch
+kexec-use-bootmem_exclusive-on-x86.patch
