@@ -1,62 +1,229 @@
 From: akpm@linux-foundation.org
-Subject: - nfs-if-attr_kill_sid-bits-are-set-then-skip-mode-change.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:42:24 -0700
-Message-ID: <200710190342.l9J3gO9X012894@imap1.linux-foundation.org>
+Subject: - serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:41:13 -0700
+Message-ID: <200710190341.l9J3fDVc012784@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42692 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57027 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966520AbXJSD5A (ORCPT
+	by vger.kernel.org with ESMTP id S966378AbXJSD5Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:57:00 -0400
+	Thu, 18 Oct 2007 23:57:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jlayton@redhat.com, bfields@fieldses.org, hch@lst.de, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: dilinger@debian.org, nigel@suspend2.net, pavel@ucw.cz, rjw@sisk.pl, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NFS: if ATTR_KILL_S*ID bits are set, then skip mode change
+     serial: turn serial console suspend a boot rather than compile time option
 has been removed from the -mm tree.  Its filename was
-     nfs-if-attr_kill_sid-bits-are-set-then-skip-mode-change.patch
+     serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: NFS: if ATTR_KILL_S*ID bits are set, then skip mode change
-From: Jeff Layton <jlayton@redhat.com>
+Subject: serial: turn serial console suspend a boot rather than compile time option
+From: Andres Salomon <dilinger@debian.org>
 
-If the ATTR_KILL_S*ID bits are set then any mode change is only for clearing
-the setuid/setgid bits.  For NFS, skip the mode change and let the server
-handle it.
+Currently, there's a CONFIG_DISABLE_CONSOLE_SUSPEND that allows one to stop
+the serial console from being suspended when the rest of the machine goes
+to sleep.  This is incredibly useful for debugging power management-related
+things; however, having it as a compile-time option has proved to be
+incredibly inconvenient for us (OLPC).  There are plenty of times that we
+want serial console to not suspend, but for the most part we'd like serial
+console to be suspended.
 
-Signed-off-by: Jeff Layton <jlayton@redhat.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Christoph Hellwig <hch@lst.de>
+This drops CONFIG_DISABLE_CONSOLE_SUSPEND, and replaces it with a kernel
+boot parameter (no_console_suspend).  By default, the serial console will
+be suspended along with the rest of the system; by passing
+'no_console_suspend' to the kernel during boot, serial console will remain
+alive during suspend.
+
+For now, this is pretty serial console specific; further fixes could be
+applied to make this work for things like netconsole.
+
+Signed-off-by: Andres Salomon <dilinger@debian.org>
+Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Nigel Cunningham <nigel@suspend2.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/inode.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ Documentation/kernel-parameters.txt        |   10 ++++++++++
+ Documentation/power/basic-pm-debugging.txt |    4 ++--
+ arch/powerpc/configs/pmac32_defconfig      |    1 -
+ drivers/serial/serial_core.c               |   10 ++++------
+ include/linux/console.h                    |    7 ++-----
+ kernel/power/Kconfig                       |   11 -----------
+ kernel/printk.c                            |   16 ++++++++++++++--
+ 7 files changed, 32 insertions(+), 27 deletions(-)
 
-diff -puN fs/nfs/inode.c~nfs-if-attr_kill_sid-bits-are-set-then-skip-mode-change fs/nfs/inode.c
---- a/fs/nfs/inode.c~nfs-if-attr_kill_sid-bits-are-set-then-skip-mode-change
-+++ a/fs/nfs/inode.c
-@@ -357,6 +357,10 @@ nfs_setattr(struct dentry *dentry, struc
+diff -puN Documentation/kernel-parameters.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
++++ a/Documentation/kernel-parameters.txt
+@@ -479,6 +479,16 @@ and is between 256 and 4096 characters. 
+ 			UART at the specified I/O port or MMIO address.
+ 			The options are the same as for ttyS, above.
  
- 	nfs_inc_stats(inode, NFSIOS_VFSSETATTR);
- 
-+	/* skip mode change if it's just for clearing setuid/setgid */
-+	if (attr->ia_valid & (ATTR_KILL_SUID | ATTR_KILL_SGID))
-+		attr->ia_valid &= ~ATTR_MODE;
++	no_console_suspend
++			[HW] Never suspend the console
++			Disable suspending of consoles during suspend and
++			hibernate operations.  Once disabled, debugging
++			messages can reach various consoles while the rest
++			of the system is being put to sleep (ie, while
++			debugging driver suspend/resume hooks).  This may
++			not work reliably with all consoles, but is known
++			to work with serial and VGA consoles.
 +
- 	if (attr->ia_valid & ATTR_SIZE) {
- 		if (!S_ISREG(inode->i_mode) || attr->ia_size == i_size_read(inode))
- 			attr->ia_valid &= ~ATTR_SIZE;
+ 	cpcihp_generic=	[HW,PCI] Generic port I/O CompactPCI driver
+ 			Format:
+ 			<first_slot>,<last_slot>,<port>,<enum_bit>[,<debug>]
+diff -puN Documentation/power/basic-pm-debugging.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option Documentation/power/basic-pm-debugging.txt
+--- a/Documentation/power/basic-pm-debugging.txt~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
++++ a/Documentation/power/basic-pm-debugging.txt
+@@ -78,8 +78,8 @@ c) Advanced debugging
+ In case the STD does not work on your system even in the minimal configuration
+ and compiling more drivers as modules is not practical or some modules cannot
+ be unloaded, you can use one of the more advanced debugging techniques to find
+-the problem.  First, if there is a serial port in your box, you can set the
+-CONFIG_DISABLE_CONSOLE_SUSPEND kernel configuration option and try to log kernel
++the problem.  First, if there is a serial port in your box, you can boot the
++kernel with the 'no_console_suspend' parameter and try to log kernel
+ messages using the serial console.  This may provide you with some information
+ about the reasons of the suspend (resume) failure.  Alternatively, it may be
+ possible to use a FireWire port for debugging with firescope
+diff -puN arch/powerpc/configs/pmac32_defconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option arch/powerpc/configs/pmac32_defconfig
+--- a/arch/powerpc/configs/pmac32_defconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
++++ a/arch/powerpc/configs/pmac32_defconfig
+@@ -209,7 +209,6 @@ CONFIG_PM=y
+ # CONFIG_PM_LEGACY is not set
+ CONFIG_PM_DEBUG=y
+ # CONFIG_PM_VERBOSE is not set
+-# CONFIG_DISABLE_CONSOLE_SUSPEND is not set
+ CONFIG_PM_SLEEP=y
+ CONFIG_SUSPEND=y
+ CONFIG_HIBERNATION=y
+diff -puN drivers/serial/serial_core.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
++++ a/drivers/serial/serial_core.c
+@@ -1959,12 +1959,11 @@ int uart_suspend_port(struct uart_driver
+ 
+ 	mutex_lock(&state->mutex);
+ 
+-#ifdef CONFIG_DISABLE_CONSOLE_SUSPEND
+-	if (uart_console(port)) {
++	if (!console_suspend_enabled && uart_console(port)) {
++		/* we're going to avoid suspending serial console */
+ 		mutex_unlock(&state->mutex);
+ 		return 0;
+ 	}
+-#endif
+ 
+ 	tty_dev = device_find_child(port->dev, &match, serial_match_port);
+ 	if (device_may_wakeup(tty_dev)) {
+@@ -2016,12 +2015,11 @@ int uart_resume_port(struct uart_driver 
+ 
+ 	mutex_lock(&state->mutex);
+ 
+-#ifdef CONFIG_DISABLE_CONSOLE_SUSPEND
+-	if (uart_console(port)) {
++	if (!console_suspend_enabled && uart_console(port)) {
++		/* no need to resume serial console, it wasn't suspended */
+ 		mutex_unlock(&state->mutex);
+ 		return 0;
+ 	}
+-#endif
+ 
+ 	if (!port->suspended) {
+ 		disable_irq_wake(port->irq);
+diff -puN include/linux/console.h~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option include/linux/console.h
+--- a/include/linux/console.h~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
++++ a/include/linux/console.h
+@@ -122,14 +122,11 @@ extern void console_stop(struct console 
+ extern void console_start(struct console *);
+ extern int is_console_locked(void);
+ 
+-#ifndef CONFIG_DISABLE_CONSOLE_SUSPEND
++extern int console_suspend_enabled;
++
+ /* Suspend and resume console messages over PM events */
+ extern void suspend_console(void);
+ extern void resume_console(void);
+-#else
+-static inline void suspend_console(void) {}
+-static inline void resume_console(void) {}
+-#endif /* CONFIG_DISABLE_CONSOLE_SUSPEND */
+ 
+ int mda_console_init(void);
+ void prom_con_init(void);
+diff -puN kernel/power/Kconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option kernel/power/Kconfig
+--- a/kernel/power/Kconfig~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
++++ a/kernel/power/Kconfig
+@@ -44,17 +44,6 @@ config PM_VERBOSE
+ 	---help---
+ 	This option enables verbose messages from the Power Management code.
+ 
+-config DISABLE_CONSOLE_SUSPEND
+-	bool "Keep console(s) enabled during suspend/resume (DANGEROUS)"
+-	depends on PM_DEBUG && PM_SLEEP
+-	default n
+-	---help---
+-	This option turns off the console suspend mechanism that prevents
+-	debug messages from reaching the console during the suspend/resume
+-	operations.  This may be helpful when debugging device drivers'
+-	suspend/resume routines, but may itself lead to problems, for example
+-	if netconsole is used.
+-
+ config PM_TRACE
+ 	bool "Suspend/resume event tracing"
+ 	depends on PM_DEBUG && X86 && PM_SLEEP && EXPERIMENTAL
+diff -puN kernel/printk.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option kernel/printk.c
+--- a/kernel/printk.c~serial-turn-serial-console-suspend-a-boot-rather-than-compile-time-option
++++ a/kernel/printk.c
+@@ -862,7 +862,16 @@ int update_console_cmdline(char *name, i
+ 	return -1;
+ }
+ 
+-#ifndef CONFIG_DISABLE_CONSOLE_SUSPEND
++int console_suspend_enabled = 1;
++EXPORT_SYMBOL(console_suspend_enabled);
++
++static int __init console_suspend_disable(char *str)
++{
++	console_suspend_enabled = 0;
++	return 1;
++}
++__setup("no_console_suspend", console_suspend_disable);
++
+ /**
+  * suspend_console - suspend the console subsystem
+  *
+@@ -870,6 +879,8 @@ int update_console_cmdline(char *name, i
+  */
+ void suspend_console(void)
+ {
++	if (!console_suspend_enabled)
++		return;
+ 	printk("Suspending console(s)\n");
+ 	acquire_console_sem();
+ 	console_suspended = 1;
+@@ -877,10 +888,11 @@ void suspend_console(void)
+ 
+ void resume_console(void)
+ {
++	if (!console_suspend_enabled)
++		return;
+ 	console_suspended = 0;
+ 	release_console_sem();
+ }
+-#endif /* CONFIG_DISABLE_CONSOLE_SUSPEND */
+ 
+ /**
+  * acquire_console_sem - lock the console system for exclusive use.
 _
 
-Patches currently in -mm which might be from jlayton@redhat.com are
+Patches currently in -mm which might be from dilinger@debian.org are
 
 origin.patch
-git-cifs.patch
-unionfs-fix-unionfs_setattr-to-handle-attr_kill_sid.patch
+git-x86.patch
