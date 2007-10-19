@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-fixup.patch added to -mm tree
-Date: Fri, 19 Oct 2007 00:14:17 -0700
-Message-ID: <200710190714.l9J7EHIA021934@imap1.linux-foundation.org>
+Subject: + nf_ct_alloc_hashtable-use-__gfp_nowarn.patch added to -mm tree
+Date: Fri, 19 Oct 2007 01:54:45 -0700
+Message-ID: <200710190854.l9J8sjju025432@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52641 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41300 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751481AbXJSHOT (ORCPT
+	by vger.kernel.org with ESMTP id S1756303AbXJSIz1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 03:14:19 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9J7EHkl011297
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 19 Oct 2007 00:14:18 -0700
+	Fri, 19 Oct 2007 04:55:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, davem@davemloft.net, kaber@trash.net, tucksonjack@gmail.com
 
 
 The patch titled
-     git-x86-fixup
+     nf_ct_alloc_hashtable(): use __GFP_NOWARN
 has been added to the -mm tree.  Its filename is
-     git-x86-fixup.patch
+     nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,86 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-x86-fixup
+Subject: nf_ct_alloc_hashtable(): use __GFP_NOWARN
 From: Andrew Morton <akpm@linux-foundation.org>
 
+This allocation is expected to fail and we handle it by fallback to vmalloc().
+
+So don't scare people with nasty messages like
+http://bugzilla.kernel.org/show_bug.cgi?id=9190
+
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: <tucksonjack@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/process_32.c |   48 ++++++++++++++++++++++-----------
- 1 file changed, 33 insertions(+), 15 deletions(-)
+ net/netfilter/nf_conntrack_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/process_32.c~git-x86-fixup arch/x86/kernel/process_32.c
---- a/arch/x86/kernel/process_32.c~git-x86-fixup
-+++ a/arch/x86/kernel/process_32.c
-@@ -295,34 +295,52 @@ static int __init idle_setup(char *str)
- }
- early_param("idle", idle_setup);
+diff -puN net/netfilter/nf_conntrack_core.c~nf_ct_alloc_hashtable-use-__gfp_nowarn net/netfilter/nf_conntrack_core.c
+--- a/net/netfilter/nf_conntrack_core.c~nf_ct_alloc_hashtable-use-__gfp_nowarn
++++ a/net/netfilter/nf_conntrack_core.c
+@@ -999,7 +999,7 @@ struct hlist_head *nf_ct_alloc_hashtable
+ 	*vmalloced = 0;
  
--void show_regs(struct pt_regs * regs)
-+void __show_registers(struct pt_regs *regs, int all)
- {
- 	unsigned long cr0 = 0L, cr2 = 0L, cr3 = 0L, cr4 = 0L;
- 	unsigned long d0, d1, d2, d3, d6, d7;
-+	unsigned long esp;
-+	unsigned short ss, gs;
-+
-+	if (user_mode_vm(regs)) {
-+		esp = regs->esp;
-+		ss = regs->xss & 0xffff;
-+		savesegment(gs, gs);
-+	} else {
-+		esp = (unsigned long) (&regs->esp);
-+		savesegment(ss, ss);
-+		savesegment(gs, gs);
-+	}
- 
- 	printk("\n");
--	printk("Pid: %d, comm: %20s\n", task_pid_nr(current), current->comm);
--	printk("EIP: %04x:[<%08lx>] CPU: %d\n",0xffff & regs->xcs,regs->eip, smp_processor_id());
-+	printk("Pid: %d, comm: %.*s %s (%s %.*s)\n",
-+			task_pid_nr(current), TASK_COMM_LEN, current->comm,
-+			print_tainted(), init_utsname()->release,
-+			(int)strcspn(init_utsname()->version, " "),
-+			init_utsname()->version);
-+
-+	printk("EIP: %04x:[<%08lx>] EFLAGS: %08lx CPU: %d\n",
-+			0xffff & regs->xcs, regs->eip, regs->eflags,
-+			smp_processor_id());
- 	print_symbol("EIP is at %s\n", regs->eip);
- 
--	if (user_mode_vm(regs))
--		printk(" ESP: %04x:%08lx",0xffff & regs->xss,regs->esp);
--	printk(" EFLAGS: %08lx    %s  (%s %.*s)\n",
--	       regs->eflags, print_tainted(), init_utsname()->release,
--	       (int)strcspn(init_utsname()->version, " "),
--	       init_utsname()->version);
- 	printk("EAX: %08lx EBX: %08lx ECX: %08lx EDX: %08lx\n",
--		regs->eax,regs->ebx,regs->ecx,regs->edx);
--	printk("ESI: %08lx EDI: %08lx EBP: %08lx",
--		regs->esi, regs->edi, regs->ebp);
--	printk(" DS: %04x ES: %04x FS: %04x\n",
--	       0xffff & regs->xds,0xffff & regs->xes, 0xffff & regs->xfs);
-+		regs->eax, regs->ebx, regs->ecx, regs->edx);
-+	printk("ESI: %08lx EDI: %08lx EBP: %08lx ESP: %08lx\n",
-+		regs->esi, regs->edi, regs->ebp, esp);
-+	printk(" DS: %04x ES: %04x FS: %04x GS: %04x SS: %04x\n",
-+	       regs->xds & 0xffff, regs->xes & 0xffff,
-+	       regs->xfs & 0xffff, gs, ss);
-+
-+	if (!all)
-+		return;
- 
- 	cr0 = read_cr0();
- 	cr2 = read_cr2();
- 	cr3 = read_cr3();
- 	cr4 = read_cr4_safe();
--	printk("CR0: %08lx CR2: %08lx CR3: %08lx CR4: %08lx\n", cr0, cr2, cr3, cr4);
-+	printk("CR0: %08lx CR2: %08lx CR3: %08lx CR4: %08lx\n",
-+			cr0, cr2, cr3, cr4);
- 
- 	get_debugreg(d0, 0);
- 	get_debugreg(d1, 1);
+ 	size = *sizep = roundup(*sizep, PAGE_SIZE / sizeof(struct hlist_head));
+-	hash = (void*)__get_free_pages(GFP_KERNEL,
++	hash = (void*)__get_free_pages(GFP_KERNEL|__GFP_NOWARN,
+ 				       get_order(sizeof(struct hlist_head)
+ 						 * size));
+ 	if (!hash) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -152,6 +97,7 @@ git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
 ide-arm-hack.patch
+nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
 ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-nfsd-fixup.patch
