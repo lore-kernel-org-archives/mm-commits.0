@@ -1,54 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - fix-random-hard-freeze-with-avm-c4-card-part-2.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:49:24 -0700
-Message-ID: <200710192249.l9JMnOK3023961@imap1.linux-foundation.org>
+Subject: - jbd-ext3-cleanups-convert-to-kzalloc.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:49:32 -0700
+Message-ID: <200710192249.l9JMnWCv023976@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33041 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39452 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757159AbXJSWt2 (ORCPT
+	by vger.kernel.org with ESMTP id S1757497AbXJSWtf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 18:49:28 -0400
+	Fri, 19 Oct 2007 18:49:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kkeil@suse.de, mm-commits@vger.kernel.org
+To: cmm@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isdn: fix random hard freeze with AVM c4 card part 2
+     JBD/ext3 cleanups: convert to kzalloc
 has been removed from the -mm tree.  Its filename was
-     fix-random-hard-freeze-with-avm-c4-card-part-2.patch
+     jbd-ext3-cleanups-convert-to-kzalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: isdn: fix random hard freeze with AVM c4 card part 2
-From: Karsten Keil <kkeil@suse.de>
+Subject: JBD/ext3 cleanups: convert to kzalloc
+From: Mingming Cao <cmm@us.ibm.com>
 
-One call was missing in the previous patch.
+Convert kmalloc to kzalloc() and get rid of the memset().
 
-Signed-off-by: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Mingming Cao <cmm@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hardware/avm/c4.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/ext3/xattr.c      |    3 +--
+ fs/jbd/journal.c     |    3 +--
+ fs/jbd/transaction.c |    3 +--
+ 3 files changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN drivers/isdn/hardware/avm/c4.c~fix-random-hard-freeze-with-avm-c4-card-part-2 drivers/isdn/hardware/avm/c4.c
---- a/drivers/isdn/hardware/avm/c4.c~fix-random-hard-freeze-with-avm-c4-card-part-2
-+++ a/drivers/isdn/hardware/avm/c4.c
-@@ -678,7 +678,9 @@ static irqreturn_t c4_handle_interrupt(a
-                 for (i=0; i < card->nr_controllers; i++) {
- 			avmctrl_info *cinfo = &card->ctrlinfo[i];
- 			memset(cinfo->version, 0, sizeof(cinfo->version));
-+			spin_lock_irqsave(&card->lock, flags);
- 			capilib_release(&cinfo->ncci_head);
-+			spin_unlock_irqrestore(&card->lock, flags);
- 			capi_ctr_reseted(&cinfo->capi_ctrl);
+diff -puN fs/ext3/xattr.c~jbd-ext3-cleanups-convert-to-kzalloc fs/ext3/xattr.c
+--- a/fs/ext3/xattr.c~jbd-ext3-cleanups-convert-to-kzalloc
++++ a/fs/ext3/xattr.c
+@@ -741,12 +741,11 @@ ext3_xattr_block_set(handle_t *handle, s
  		}
- 		card->nlogcontr = 0;
+ 	} else {
+ 		/* Allocate a buffer where we construct the new block. */
+-		s->base = kmalloc(sb->s_blocksize, GFP_KERNEL);
++		s->base = kzalloc(sb->s_blocksize, GFP_KERNEL);
+ 		/* assert(header == s->base) */
+ 		error = -ENOMEM;
+ 		if (s->base == NULL)
+ 			goto cleanup;
+-		memset(s->base, 0, sb->s_blocksize);
+ 		header(s->base)->h_magic = cpu_to_le32(EXT3_XATTR_MAGIC);
+ 		header(s->base)->h_blocks = cpu_to_le32(1);
+ 		header(s->base)->h_refcount = cpu_to_le32(1);
+diff -puN fs/jbd/journal.c~jbd-ext3-cleanups-convert-to-kzalloc fs/jbd/journal.c
+--- a/fs/jbd/journal.c~jbd-ext3-cleanups-convert-to-kzalloc
++++ a/fs/jbd/journal.c
+@@ -654,10 +654,9 @@ static journal_t * journal_init_common (
+ 	journal_t *journal;
+ 	int err;
+ 
+-	journal = kmalloc(sizeof(*journal), GFP_KERNEL);
++	journal = kzalloc(sizeof(*journal), GFP_KERNEL);
+ 	if (!journal)
+ 		goto fail;
+-	memset(journal, 0, sizeof(*journal));
+ 
+ 	init_waitqueue_head(&journal->j_wait_transaction_locked);
+ 	init_waitqueue_head(&journal->j_wait_logspace);
+diff -puN fs/jbd/transaction.c~jbd-ext3-cleanups-convert-to-kzalloc fs/jbd/transaction.c
+--- a/fs/jbd/transaction.c~jbd-ext3-cleanups-convert-to-kzalloc
++++ a/fs/jbd/transaction.c
+@@ -96,13 +96,12 @@ static int start_this_handle(journal_t *
+ 
+ alloc_transaction:
+ 	if (!journal->j_running_transaction) {
+-		new_transaction = kmalloc(sizeof(*new_transaction),
++		new_transaction = kzalloc(sizeof(*new_transaction),
+ 						GFP_NOFS|__GFP_NOFAIL);
+ 		if (!new_transaction) {
+ 			ret = -ENOMEM;
+ 			goto out;
+ 		}
+-		memset(new_transaction, 0, sizeof(*new_transaction));
+ 	}
+ 
+ 	jbd_debug(3, "New handle %p going live.\n", handle);
 _
 
-Patches currently in -mm which might be from kkeil@suse.de are
+Patches currently in -mm which might be from cmm@us.ibm.com are
 
 origin.patch
