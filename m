@@ -1,86 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 16:27:14 -0700
-Message-ID: <200710192327.l9JNRE8q025675@imap1.linux-foundation.org>
+Subject: - ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 16:29:12 -0700
+Message-ID: <200710192329.l9JNTCXi025800@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49574 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36591 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755160AbXJSX1U (ORCPT
+	by vger.kernel.org with ESMTP id S932973AbXJSX3R (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 19:27:20 -0400
+	Fri, 19 Oct 2007 19:29:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jack@suse.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix
+     ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix.patch
+     ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic.patch
+This patch was dropped because it was folded into ext2-avoid-rec_len-overflow-with-64kb-block-size.patch
 
 ------------------------------------------------------
-Subject: memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix
+Subject: ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+ERROR: "(foo*)" should be "(foo *)"
+#58: FILE: fs/ext2/dir.c:225:
++       return (ext2_dirent *)((char*)p +
+
+ERROR: "(foo*)" should be "(foo *)"
+#115: FILE: fs/ext2/dir.c:572:
++       unsigned to = ((char*)dir - kaddr) +
+
+total: 2 errors, 0 warnings, 123 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Cc: <linux-ext4@vger.kernel.org>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ fs/ext2/dir.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/slub.c~memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix mm/slub.c
---- a/mm/slub.c~memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix
-+++ a/mm/slub.c
-@@ -2749,6 +2749,7 @@ static int slab_mem_going_online_callbac
- 	struct kmem_cache *s;
- 	struct memory_notify *marg = arg;
- 	int nid = marg->status_change_nid;
-+	int ret = 0;
- 
- 	/*
- 	 * If the node's memory is already available, then kmem_cache_node is
-@@ -2770,14 +2771,16 @@ static int slab_mem_going_online_callbac
- 		 *      is brought up.
- 		 */
- 		n = kmem_cache_alloc(kmalloc_caches, GFP_KERNEL);
--		if (!n)
--			return -ENOMEM;
-+		if (!n) {
-+			ret = -ENOMEM;
-+			goto out;
-+		}
- 		init_kmem_cache_node(n);
- 		s->node[nid] = n;
- 	}
-+out:
- 	up_read(&slub_lock);
--
--	return 0;
-+	return ret;
+diff -puN fs/ext2/dir.c~ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes fs/ext2/dir.c
+--- a/fs/ext2/dir.c~ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes
++++ a/fs/ext2/dir.c
+@@ -222,7 +222,7 @@ static inline int ext2_match (int len, c
+  */
+ static inline ext2_dirent *ext2_next_entry(ext2_dirent *p)
+ {
+-	return (ext2_dirent *)((char*)p +
++	return (ext2_dirent *)((char *)p +
+ 			ext2_rec_len_from_disk(p->rec_len));
  }
  
- static int slab_memory_callback(struct notifier_block *self,
+@@ -569,7 +569,7 @@ int ext2_delete_entry (struct ext2_dir_e
+ 	struct inode *inode = mapping->host;
+ 	char *kaddr = page_address(page);
+ 	unsigned from = ((char*)dir - kaddr) & ~(ext2_chunk_size(inode)-1);
+-	unsigned to = ((char*)dir - kaddr) +
++	unsigned to = ((char *)dir - kaddr) +
+ 				ext2_rec_len_from_disk(dir->rec_len);
+ 	loff_t pos;
+ 	ext2_dirent * pde = NULL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic.patch
-memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-pm-qos-infrastructure-and-interface-fix.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi.patch
-pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
+capabilities-clean-up-file-capability-reading.patch
+ext2-avoid-rec_len-overflow-with-64kb-block-size.patch
 ext2-avoid-rec_len-overflow-with-64kb-block-size-checkpatch-fixes.patch
 sync_sb_inodes-propagate-errors.patch
 intel-iommu-pci-generic-helper-function.patch
