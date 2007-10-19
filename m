@@ -1,304 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:43:13 -0700
-Message-ID: <200710190343.l9J3hDMX013037@imap1.linux-foundation.org>
+Subject: - whitespace-fixes-audit-filtering.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:43:38 -0700
+Message-ID: <200710190343.l9J3hcVY013078@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49684 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52984 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934553AbXJSD4D (ORCPT
+	by vger.kernel.org with ESMTP id S932841AbXJSD4D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 18 Oct 2007 23:56:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: dwalker@mvista.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: deprecate sys_sysctl in a user space visible fashion.
+     whitespace fixes: audit filtering
 has been removed from the -mm tree.  Its filename was
-     sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion.patch
+     whitespace-fixes-audit-filtering.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sysctl: deprecate sys_sysctl in a user space visible fashion.
-From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: whitespace fixes: audit filtering
+From: Daniel Walker <dwalker@mvista.com>
 
-After adding checking to register_sysctl_table and finding a whole new set
-of bugs.  Missed by countless code reviews and testers I have finally lost
-patience with the binary sysctl interface.
-
-The binary sysctl interface has been sort of deprecated for years and
-finding a user space program that uses the syscall is more difficult then
-finding a needle in a haystack.  Problems continue to crop up, with the in
-kernel implementation.  So since supporting something that no one uses is
-silly, deprecate sys_sysctl with a sufficient grace period and notice that
-the handful of user space applications that care can be fixed or replaced.
-
-The /proc/sys sysctl interface that people use will continue to be
-supported indefinitely.
-
-This patch moves the tested warning about sysctls from the path where
-sys_sysctl to a separate path called from both implementations of
-sys_sysctl, and it adds a proper entry into
-Documentation/feature-removal-schedule.
-
-Allowing us to revisit this in a couple years time and actually kill
-sys_sysctl.
-
-[lethal@linux-sh.org: sysctl: Fix syscall disabled build]
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |   35 ++++++++++
- kernel/sysctl.c                            |   64 ++++++++++++-------
- 2 files changed, 76 insertions(+), 23 deletions(-)
+ kernel/auditfilter.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -82,6 +82,41 @@ Who:	Dominik Brodowski <linux@brodo.de>
- 
- ---------------------------
- 
-+What:	sys_sysctl
-+When:	September 2010
-+Option: CONFIG_SYSCTL_SYSCALL
-+Why:	The same information is available in a more convenient from
-+	/proc/sys, and none of the sysctl variables appear to be
-+	important performance wise.
+diff -puN kernel/auditfilter.c~whitespace-fixes-audit-filtering kernel/auditfilter.c
+--- a/kernel/auditfilter.c~whitespace-fixes-audit-filtering
++++ a/kernel/auditfilter.c
+@@ -1498,7 +1498,7 @@ int audit_receive_filter(int type, int p
+ 		 * auditctl to read from it... which isn't ever going to
+ 		 * happen if we're actually running in the context of auditctl
+ 		 * trying to _send_ the stuff */
+-		 
 +
-+	Binary sysctls are a long standing source of subtle kernel
-+	bugs and security issues.
-+
-+	When I looked several months ago all I could find after
-+	searching several distributions were 5 user space programs and
-+	glibc (which falls back to /proc/sys) using this syscall.
-+
-+	The man page for sysctl(2) documents it as unusable for user
-+	space programs.
-+
-+	sysctl(2) is not generally ABI compatible to a 32bit user
-+	space application on a 64bit and a 32bit kernel.
-+
-+	For the last several months the policy has been no new binary
-+	sysctls and no one has put forward an argument to use them.
-+
-+	Binary sysctls issues seem to keep happening appearing so
-+	properly deprecating them (with a warning to user space) and a
-+	2 year grace warning period will mean eventually we can kill
-+	them and end the pain.
-+
-+	In the mean time individual binary sysctls can be dealt with
-+	in a piecewise fashion.
-+
-+Who:	Eric Biederman <ebiederm@xmission.com>
-+
-+---------------------------
-+
- What:  a.out interpreter support for ELF executables
- When:  2.6.25
- Files: fs/binfmt_elf.c
-diff -puN kernel/sysctl.c~sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-deprecate-sys_sysctl-in-a-user-space-visible-fashion
-+++ a/kernel/sysctl.c
-@@ -55,6 +55,8 @@
- #include <asm/stacktrace.h>
- #endif
- 
-+static int deprecated_sysctl_warning(struct __sysctl_args *args);
-+
- #if defined(CONFIG_SYSCTL)
- 
- /* External variables not in a header file. */
-@@ -1347,10 +1349,15 @@ asmlinkage long sys_sysctl(struct __sysc
- 	if (copy_from_user(&tmp, args, sizeof(tmp)))
- 		return -EFAULT;
- 
-+	error = deprecated_sysctl_warning(&tmp);
-+	if (error)
-+		goto out;
-+
- 	lock_kernel();
- 	error = do_sysctl(tmp.name, tmp.nlen, tmp.oldval, tmp.oldlenp,
- 			  tmp.newval, tmp.newlen);
- 	unlock_kernel();
-+out:
- 	return error;
- }
- #endif /* CONFIG_SYSCTL_SYSCALL */
-@@ -2540,35 +2547,19 @@ int sysctl_ms_jiffies(struct ctl_table *
- 
- asmlinkage long sys_sysctl(struct __sysctl_args __user *args)
+ 		dest = kmalloc(sizeof(struct audit_netlink_list), GFP_KERNEL);
+ 		if (!dest)
+ 			return -ENOMEM;
+@@ -1678,7 +1678,7 @@ int audit_filter_type(int type)
  {
--	static int msg_count;
- 	struct __sysctl_args tmp;
--	int name[CTL_MAXNAME];
--	int i;
-+	int error;
- 
--	/* Read in the sysctl name for better debug message logging */
- 	if (copy_from_user(&tmp, args, sizeof(tmp)))
- 		return -EFAULT;
--	if (tmp.nlen <= 0 || tmp.nlen >= CTL_MAXNAME)
--		return -ENOTDIR;
--	for (i = 0; i < tmp.nlen; i++)
--		if (get_user(name[i], tmp.name + i))
--			return -EFAULT;
- 
--	/* Ignore accesses to kernel.version */
--	if ((tmp.nlen == 2) && (name[0] == CTL_KERN) && (name[1] == KERN_VERSION))
--		goto out;
-+	error = deprecated_sysctl_warning(&tmp);
- 
--	if (msg_count < 5) {
--		msg_count++;
--		printk(KERN_INFO
--			"warning: process `%s' used the removed sysctl "
--			"system call with ", current->comm);
--		for (i = 0; i < tmp.nlen; i++)
--			printk("%d.", name[i]);
--		printk("\n");
--	}
--out:
--	return -ENOSYS;
-+	/* If no error reading the parameters then just -ENOSYS ... */
-+	if (!error)
-+		error = -ENOSYS;
+ 	struct audit_entry *e;
+ 	int result = 0;
+-	
 +
-+	return error;
- }
- 
- int sysctl_data(struct ctl_table *table, int __user *name, int nlen,
-@@ -2608,6 +2599,33 @@ int sysctl_ms_jiffies(struct ctl_table *
- 
- #endif /* CONFIG_SYSCTL_SYSCALL */
- 
-+static int deprecated_sysctl_warning(struct __sysctl_args *args)
-+{
-+	static int msg_count;
-+	int name[CTL_MAXNAME];
-+	int i;
-+
-+	/* Read in the sysctl name for better debug message logging */
-+	for (i = 0; i < args->nlen; i++)
-+		if (get_user(name[i], args->name + i))
-+			return -EFAULT;
-+
-+	/* Ignore accesses to kernel.version */
-+	if ((args->nlen == 2) && (name[0] == CTL_KERN) && (name[1] == KERN_VERSION))
-+		return 0;
-+
-+	if (msg_count < 5) {
-+		msg_count++;
-+		printk(KERN_INFO
-+			"warning: process `%s' used the deprecated sysctl "
-+			"system call with ", current->comm);
-+		for (i = 0; i < args->nlen; i++)
-+			printk("%d.", name[i]);
-+		printk("\n");
-+	}
-+	return 0;
-+}
-+
- /*
-  * No sense putting this after each symbol definition, twice,
-  * exception granted :-)
+ 	rcu_read_lock();
+ 	if (list_empty(&audit_filter_list[AUDIT_FILTER_TYPE]))
+ 		goto unlock_and_return;
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
 origin.patch
-update-boot-spec-to-207.patch
-i386-paravirt-boot-sequence.patch
-cpuset-zero-malloc-revert-the-old-cpuset-fix.patch
-task-containersv11-basic-task-container-framework.patch
-task-containersv11-add-tasks-file-interface.patch
-task-containersv11-add-fork-exit-hooks.patch
-task-containersv11-add-container_clone-interface.patch
-task-containersv11-add-procfs-interface.patch
-task-containersv11-shared-container-subsystem-group-arrays.patch
-task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups.patch
-task-containersv11-shared-container-subsystem-group-arrays-simplify-proc-cgroups-fix.patch
-task-containersv11-automatic-userspace-notification-of-idle-containers.patch
-task-containersv11-make-cpusets-a-client-of-containers.patch
-task-containersv11-example-cpu-accounting-subsystem.patch
-task-containersv11-simple-task-container-debug-info-subsystem.patch
-pid-namespaces-round-up-the-api.patch
-pid-namespaces-make-get_pid_ns-return-the-namespace-itself.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces-fix.patch
-pid-namespaces-define-and-use-task_active_pid_ns-wrapper.patch
-pid-namespaces-rename-child_reaper-function.patch
-pid-namespaces-use-task_pid-to-find-leaders-pid.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-fix-capabilityc-to-work-with-threaded-init.patch
-pid-namespaces-define-is_global_init-and-is_container_init-versus-x86_64-mm-i386-show-unhandled-signals-v3.patch
-pid-namespaces-move-alloc_pid-to-copy_process.patch
-make-access-to-tasks-nsproxy-lighter.patch
-make-access-to-tasks-nsproxy-lighterpatch-breaks-unshare.patch
-make-access-to-tasks-nsproxy-lighter-update-get_net_ns_by_pid.patch
-pid-namespaces-rework-forget_original_parent.patch
-pid-namespaces-move-exit_task_namespaces.patch
-pid-namespaces-introduce-ms_kernmount-flag.patch
-pid-namespaces-prepare-proc_flust_task-to-flush-entries-from-multiple-proc-trees.patch
-pid-namespaces-introduce-struct-upid.patch
-pid-namespaces-add-support-for-pid-namespaces-hierarchy.patch
-pid-namespaces-make-alloc_pid-free_pid-and-put_pid-work-with-struct-upid.patch
-pid-namespaces-helpers-to-obtain-pid-numbers.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids-fix.patch
-pid-namespaces-move-alloc_pid-lower-in-copy_process.patch
-pid-namespaces-make-proc-have-multiple-superblocks-one-for-each-namespace.patch
-pid-namespaces-miscelaneous-preparations-for-pid-namespaces.patch
-pid-namespaces-allow-cloning-of-new-namespace.patch
-pid-namespaces-make-proc_flush_task-actually-from-entries-from-multiple-namespaces.patch
-pid-namespaces-initialize-the-namespaces-proc_mnt.patch
-pid-namespaces-create-a-slab-cache-for-struct-pid_namespace.patch
-pid-namespaces-allow-signalling-container-init.patch
-pid-namespaces-destroy-pid-namespace-on-inits-death.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-uninline-find_task_by_xxx-set-of-functions.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user-fix.patch
-pid-namespaces-remove-the-struct-pid-unneeded-fields.patch
-isolate-some-explicit-usage-of-task-tgid.patch
-uninline-find_pid-etc-set-of-functions.patch
-uninline-the-task_xid_nr_ns-calls.patch
-fix-cpusets-update_cpumask.patch
-fix-cpusets-update_cpumask-checkpatch-fixes.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-isolate-the-explicit-usage-of-signal-pgrp.patch
-virtualization-of-sysv-msg-queues-is-incomplete.patch
-extended-crashkernel-command-line.patch
-use-extended-crashkernel-command-line-on-i386.patch
-use-extended-crashkernel-command-line-on-x86_64.patch
-use-extended-crashkernel-command-line-on-ia64.patch
-use-extended-crashkernel-command-line-on-ia64-fix.patch
-use-extended-crashkernel-command-line-on-ppc64.patch
-use-extended-crashkernel-command-line-on-sh.patch
-add-documentation-for-extended-crashkernel-syntax.patch
-kexec-add-bss-to-resource-tree.patch
-kexec-introduce-bootmem_exclusive.patch
-kexec-use-bootmem_exclusive-on-x86.patch
+whitespace-fixes-task-exit-handling.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
