@@ -1,90 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - whitespace-fixes-time-syscalls.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:43:30 -0700
-Message-ID: <200710190343.l9J3hUGq013066@imap1.linux-foundation.org>
+Subject: - freezer-measure-freezing-time.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:41:11 -0700
+Message-ID: <200710190341.l9J3fBUo012781@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55034 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51893 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966261AbXJSD4c (ORCPT
+	by vger.kernel.org with ESMTP id S966484AbXJSDzx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:56:32 -0400
+	Thu, 18 Oct 2007 23:55:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     whitespace fixes: time syscalls
+     freezer: measure freezing time
 has been removed from the -mm tree.  Its filename was
-     whitespace-fixes-time-syscalls.patch
+     freezer-measure-freezing-time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: whitespace fixes: time syscalls
-From: Daniel Walker <dwalker@mvista.com>
+Subject: freezer: measure freezing time
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Measure the time of the freezing of tasks, even if it doesn't fail.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ kernel/power/process.c |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN kernel/time.c~whitespace-fixes-time-syscalls kernel/time.c
---- a/kernel/time.c~whitespace-fixes-time-syscalls
-+++ a/kernel/time.c
-@@ -9,9 +9,9 @@
-  */
- /*
-  * Modification history kernel/time.c
-- * 
-+ *
-  * 1993-09-02    Philip Gladstone
-- *      Created file with time related functions from sched.c and adjtimex() 
-+ *      Created file with time related functions from sched.c and adjtimex()
-  * 1993-10-08    Torsten Duwe
-  *      adjtime interface update and CMOS clock write code
-  * 1995-08-13    Torsten Duwe
-@@ -39,7 +39,7 @@
- #include <asm/uaccess.h>
- #include <asm/unistd.h>
- 
--/* 
-+/*
-  * The timezone where the local system is located.  Used as a default by some
-  * programs who obtain this value by using gettimeofday.
-  */
-@@ -72,7 +72,7 @@ asmlinkage long sys_time(time_t __user *
-  * why not move it into the appropriate arch directory (for those
-  * architectures that need it).
-  */
-- 
+diff -puN kernel/power/process.c~freezer-measure-freezing-time kernel/power/process.c
+--- a/kernel/power/process.c~freezer-measure-freezing-time
++++ a/kernel/power/process.c
+@@ -168,6 +168,11 @@ static int try_to_freeze_tasks(int freez
+ 	struct task_struct *g, *p;
+ 	unsigned long end_time;
+ 	unsigned int todo;
++	struct timeval start, end;
++	s64 elapsed_csecs64;
++	unsigned int elapsed_csecs;
 +
- asmlinkage long sys_stime(time_t __user *tptr)
- {
- 	struct timespec tv;
-@@ -111,10 +111,10 @@ asmlinkage long sys_gettimeofday(struct 
- /*
-  * Adjust the time obtained from the CMOS to be UTC time instead of
-  * local time.
-- * 
-+ *
-  * This is ugly, but preferable to the alternatives.  Otherwise we
-  * would either need to write a program to do it in /etc/rc (and risk
-- * confusion if the program gets run more than once; it would also be 
-+ * confusion if the program gets run more than once; it would also be
-  * hard to make the program warp the clock precisely n hours)  or
-  * compile in the timezone information into the kernel.  Bad, bad....
-  *
++	do_gettimeofday(&start);
+ 
+ 	end_time = jiffies + TIMEOUT;
+ 	do {
+@@ -194,6 +199,11 @@ static int try_to_freeze_tasks(int freez
+ 			break;
+ 	} while (todo);
+ 
++	do_gettimeofday(&end);
++	elapsed_csecs64 = timeval_to_ns(&end) - timeval_to_ns(&start);
++	do_div(elapsed_csecs64, NSEC_PER_SEC / 100);
++	elapsed_csecs = elapsed_csecs64;
++
+ 	if (todo) {
+ 		/* This does not unfreeze processes that are already frozen
+ 		 * (we have slightly ugly calling convention in that respect,
+@@ -201,10 +211,9 @@ static int try_to_freeze_tasks(int freez
+ 		 * but it cleans up leftover PF_FREEZE requests.
+ 		 */
+ 		printk("\n");
+-		printk(KERN_ERR "Freezing of %s timed out after %d seconds "
++		printk(KERN_ERR "Freezing of tasks failed after %d.%02d seconds "
+ 				"(%d tasks refusing to freeze):\n",
+-				freeze_user_space ? "user space " : "tasks ",
+-				TIMEOUT / HZ, todo);
++				elapsed_csecs / 100, elapsed_csecs % 100, todo);
+ 		show_state();
+ 		read_lock(&tasklist_lock);
+ 		do_each_thread(g, p) {
+@@ -215,6 +224,9 @@ static int try_to_freeze_tasks(int freez
+ 			task_unlock(p);
+ 		} while_each_thread(g, p);
+ 		read_unlock(&tasklist_lock);
++	} else {
++		printk("(elapsed %d.%02d seconds) ", elapsed_csecs / 100,
++			elapsed_csecs % 100);
+ 	}
+ 
+ 	return todo ? -EBUSY : 0;
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-whitespace-fixes-task-exit-handling.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
+git-acpi.patch
+revert-x86_64-mm-cpa-einval.patch
+shrink_slab-handle-bad-shrinkers.patch
