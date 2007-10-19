@@ -1,287 +1,247 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-ignore-on-disk-s_bmap_nr-value.patch removed from -mm tree
-Date: Fri, 19 Oct 2007 15:49:51 -0700
-Message-ID: <200710192249.l9JMnp3s024017@imap1.linux-foundation.org>
+Subject: - linux-kernel-markers-samples.patch removed from -mm tree
+Date: Fri, 19 Oct 2007 15:54:28 -0700
+Message-ID: <200710192254.l9JMsSgw024536@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43736 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33754 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966168AbXJSXFY (ORCPT
+	by vger.kernel.org with ESMTP id S966889AbXJSXF2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 19:05:24 -0400
+	Fri, 19 Oct 2007 19:05:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeffm@suse.com, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs: ignore on disk s_bmap_nr value
+     Linux Kernel Markers - Samples
 has been removed from the -mm tree.  Its filename was
-     reiserfs-ignore-on-disk-s_bmap_nr-value.patch
+     linux-kernel-markers-samples.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: reiserfs: ignore on disk s_bmap_nr value
-From: Jeff Mahoney <jeffm@suse.com>
+Subject: Linux Kernel Markers - Samples
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Implement support for file systems larger than 8 TiB.
+Module example showing how to use the Linux Kernel Markers.
 
-The reiserfs superblock contains a 16 bit value for counting the number of
-bitmap blocks.  The rest of the disk format supports file systems up to 2^32
-blocks, but the bitmap block limitation artificially limits this to 8 TiB with
-a 4KiB block size.
-
-Rather than trust the superblock's 16-bit bitmap block count, we calculate it
-dynamically based on the number of blocks in the file system.  When an
-incorrect value is observed in the superblock, it is zeroed out, ensuring that
-older kernels will not be able to mount the file system.
-
-Userspace support has already been implemented and shipped in reiserfsprogs
-3.6.20.
-
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/bitmap.c        |   39 +++++++++++++++++++---------------
- fs/reiserfs/journal.c       |    6 ++---
- fs/reiserfs/resize.c        |    7 +++---
- fs/reiserfs/super.c         |   15 +++++++++++++
- include/linux/reiserfs_fs.h |   12 ++++++++++
- 5 files changed, 56 insertions(+), 23 deletions(-)
+ include/linux/marker.h           |    1 
+ samples/Kconfig                  |    5 +
+ samples/Makefile                 |    3 
+ samples/markers/Makefile         |    4 +
+ samples/markers/marker-example.c |   54 +++++++++++++++
+ samples/markers/probe-example.c  |   98 +++++++++++++++++++++++++++++
+ 6 files changed, 164 insertions(+), 1 deletion(-)
 
-diff -puN fs/reiserfs/bitmap.c~reiserfs-ignore-on-disk-s_bmap_nr-value fs/reiserfs/bitmap.c
---- a/fs/reiserfs/bitmap.c~reiserfs-ignore-on-disk-s_bmap_nr-value
-+++ a/fs/reiserfs/bitmap.c
-@@ -61,6 +61,7 @@ static inline void get_bit_address(struc
- int is_reusable(struct super_block *s, b_blocknr_t block, int bit_value)
- {
- 	unsigned int bmap, offset;
-+	unsigned int bmap_count = reiserfs_bmap_count(s);
+diff -puN include/linux/marker.h~linux-kernel-markers-samples include/linux/marker.h
+--- a/include/linux/marker.h~linux-kernel-markers-samples
++++ a/include/linux/marker.h
+@@ -61,7 +61,6 @@ struct marker {
+ 		__attribute__((section("__markers"), aligned(8))) =	\
+ 		{ __mstrtab_name_##name, __mstrtab_format_##name,	\
+ 		0, __mark_empty_function, NULL };			\
+-		asm volatile("" : : "i" (&__mark_##name));		\
+ 		__mark_check_format(format, ## args);			\
+ 		if (unlikely(__mark_##name.state)) {			\
+ 			preempt_disable();				\
+diff -puN samples/Kconfig~linux-kernel-markers-samples samples/Kconfig
+--- a/samples/Kconfig~linux-kernel-markers-samples
++++ a/samples/Kconfig
+@@ -7,5 +7,10 @@ menuconfig SAMPLES
  
- 	if (block == 0 || block >= SB_BLOCK_COUNT(s)) {
- 		reiserfs_warning(s,
-@@ -76,25 +77,26 @@ int is_reusable(struct super_block *s, b
- 	if (unlikely(test_bit(REISERFS_OLD_FORMAT,
- 			      &(REISERFS_SB(s)->s_properties)))) {
- 		b_blocknr_t bmap1 = REISERFS_SB(s)->s_sbh->b_blocknr + 1;
--		if (block >= bmap1 && block <= bmap1 + SB_BMAP_NR(s)) {
-+		if (block >= bmap1 &&
-+		    block <= bmap1 + bmap_count) {
- 			reiserfs_warning(s, "vs: 4019: is_reusable: "
- 					 "bitmap block %lu(%u) can't be freed or reused",
--					 block, SB_BMAP_NR(s));
-+					 block, bmap_count);
- 			return 0;
- 		}
- 	} else {
- 		if (offset == 0) {
- 			reiserfs_warning(s, "vs: 4020: is_reusable: "
- 					 "bitmap block %lu(%u) can't be freed or reused",
--					 block, SB_BMAP_NR(s));
-+					 block, bmap_count);
- 			return 0;
- 		}
- 	}
+ if SAMPLES
  
--	if (bmap >= SB_BMAP_NR(s)) {
-+	if (bmap >= bmap_count) {
- 		reiserfs_warning(s,
- 				 "vs-4030: is_reusable: there is no so many bitmap blocks: "
--				 "block=%lu, bitmap_nr=%d", block, bmap);
-+				 "block=%lu, bitmap_nr=%u", block, bmap);
- 		return 0;
- 	}
++config SAMPLE_MARKERS
++	tristate "Build markers examples -- loadable modules only"
++	depends on MARKERS && m
++	help
++	  This build markers example modules.
  
-@@ -143,8 +145,8 @@ static int scan_bitmap_block(struct reis
- 
- 	BUG_ON(!th->t_trans_id);
- 
--	RFALSE(bmap_n >= SB_BMAP_NR(s), "Bitmap %d is out of range (0..%d)",
--	       bmap_n, SB_BMAP_NR(s) - 1);
-+	RFALSE(bmap_n >= reiserfs_bmap_count(s), "Bitmap %u is out of "
-+	       "range (0..%u)", bmap_n, reiserfs_bmap_count(s) - 1);
- 	PROC_INFO_INC(s, scan_bitmap.bmap);
- /* this is unclear and lacks comments, explain how journal bitmaps
-    work here for the reader.  Convey a sense of the design here. What
-@@ -249,12 +251,12 @@ static int bmap_hash_id(struct super_blo
- 	} else {
- 		hash_in = (char *)(&id);
- 		hash = keyed_hash(hash_in, 4);
--		bm = hash % SB_BMAP_NR(s);
-+		bm = hash % reiserfs_bmap_count(s);
- 		if (!bm)
- 			bm = 1;
- 	}
- 	/* this can only be true when SB_BMAP_NR = 1 */
--	if (bm >= SB_BMAP_NR(s))
-+	if (bm >= reiserfs_bmap_count(s))
- 		bm = 0;
- 	return bm;
- }
-@@ -328,10 +330,10 @@ static int scan_bitmap(struct reiserfs_t
- 
- 	get_bit_address(s, *start, &bm, &off);
- 	get_bit_address(s, finish, &end_bm, &end_off);
--	if (bm > SB_BMAP_NR(s))
-+	if (bm > reiserfs_bmap_count(s))
- 		return 0;
--	if (end_bm > SB_BMAP_NR(s))
--		end_bm = SB_BMAP_NR(s);
-+	if (end_bm > reiserfs_bmap_count(s))
-+		end_bm = reiserfs_bmap_count(s);
- 
- 	/* When the bitmap is more than 10% free, anyone can allocate.
- 	 * When it's less than 10% free, only files that already use the
-@@ -397,10 +399,12 @@ static void _reiserfs_free_block(struct 
- 
- 	get_bit_address(s, block, &nr, &offset);
- 
--	if (nr >= sb_bmap_nr(rs)) {
-+	if (nr >= reiserfs_bmap_count(s)) {
- 		reiserfs_warning(s, "vs-4075: reiserfs_free_block: "
--				 "block %lu is out of range on %s",
--				 block, reiserfs_bdevname(s));
-+				 "block %lu is out of range on %s "
-+				 "(nr=%u,max=%u)", block,
-+				 reiserfs_bdevname(s), nr,
-+				 reiserfs_bmap_count(s));
- 		return;
- 	}
- 
-@@ -1269,12 +1273,13 @@ struct buffer_head *reiserfs_read_bitmap
- int reiserfs_init_bitmap_cache(struct super_block *sb)
- {
- 	struct reiserfs_bitmap_info *bitmap;
-+	unsigned int bmap_nr = reiserfs_bmap_count(sb);
- 
--	bitmap = vmalloc(sizeof (*bitmap) * SB_BMAP_NR(sb));
-+	bitmap = vmalloc(sizeof(*bitmap) * bmap_nr);
- 	if (bitmap == NULL)
- 		return -ENOMEM;
- 
--	memset(bitmap, 0xff, sizeof(*bitmap) * SB_BMAP_NR(sb));
-+	memset(bitmap, 0xff, sizeof(*bitmap) * bmap_nr);
- 
- 	SB_AP_BITMAP(sb) = bitmap;
- 
-diff -puN fs/reiserfs/journal.c~reiserfs-ignore-on-disk-s_bmap_nr-value fs/reiserfs/journal.c
---- a/fs/reiserfs/journal.c~reiserfs-ignore-on-disk-s_bmap_nr-value
-+++ a/fs/reiserfs/journal.c
-@@ -240,7 +240,7 @@ static void cleanup_bitmap_list(struct s
- 	if (jb->bitmaps == NULL)
- 		return;
- 
--	for (i = 0; i < SB_BMAP_NR(p_s_sb); i++) {
-+	for (i = 0; i < reiserfs_bmap_count(p_s_sb); i++) {
- 		if (jb->bitmaps[i]) {
- 			free_bitmap_node(p_s_sb, jb->bitmaps[i]);
- 			jb->bitmaps[i] = NULL;
-@@ -2734,7 +2734,7 @@ int journal_init(struct super_block *p_s
- 	journal->j_persistent_trans = 0;
- 	if (reiserfs_allocate_list_bitmaps(p_s_sb,
- 					   journal->j_list_bitmap,
--					   SB_BMAP_NR(p_s_sb)))
-+					   reiserfs_bmap_count(p_s_sb)))
- 		goto free_and_return;
- 	allocate_bitmap_nodes(p_s_sb);
- 
-@@ -2742,7 +2742,7 @@ int journal_init(struct super_block *p_s
- 	SB_JOURNAL_1st_RESERVED_BLOCK(p_s_sb) = (old_format ?
- 						 REISERFS_OLD_DISK_OFFSET_IN_BYTES
- 						 / p_s_sb->s_blocksize +
--						 SB_BMAP_NR(p_s_sb) +
-+						 reiserfs_bmap_count(p_s_sb) +
- 						 1 :
- 						 REISERFS_DISK_OFFSET_IN_BYTES /
- 						 p_s_sb->s_blocksize + 2);
-diff -puN fs/reiserfs/resize.c~reiserfs-ignore-on-disk-s_bmap_nr-value fs/reiserfs/resize.c
---- a/fs/reiserfs/resize.c~reiserfs-ignore-on-disk-s_bmap_nr-value
-+++ a/fs/reiserfs/resize.c
-@@ -61,7 +61,8 @@ int reiserfs_resize(struct super_block *
- 	}
- 
- 	/* count used bits in last bitmap block */
--	block_r = SB_BLOCK_COUNT(s) - (SB_BMAP_NR(s) - 1) * s->s_blocksize * 8;
-+	block_r = SB_BLOCK_COUNT(s) -
-+			(reiserfs_bmap_count(s) - 1) * s->s_blocksize * 8;
- 
- 	/* count bitmap blocks in new fs */
- 	bmap_nr_new = block_count_new / (s->s_blocksize * 8);
-@@ -73,7 +74,7 @@ int reiserfs_resize(struct super_block *
- 
- 	/* save old values */
- 	block_count = SB_BLOCK_COUNT(s);
--	bmap_nr = SB_BMAP_NR(s);
-+	bmap_nr = reiserfs_bmap_count(s);
- 
- 	/* resizing of reiserfs bitmaps (journal and real), if needed */
- 	if (bmap_nr_new > bmap_nr) {
-@@ -200,7 +201,7 @@ int reiserfs_resize(struct super_block *
- 			   free_blocks + (block_count_new - block_count -
- 					  (bmap_nr_new - bmap_nr)));
- 	PUT_SB_BLOCK_COUNT(s, block_count_new);
--	PUT_SB_BMAP_NR(s, bmap_nr_new);
-+	PUT_SB_BMAP_NR(s, bmap_would_wrap(bmap_nr_new) ? : bmap_nr_new);
- 	s->s_dirt = 1;
- 
- 	journal_mark_dirty(&th, s, SB_BUFFER_WITH_SB(s));
-diff -puN fs/reiserfs/super.c~reiserfs-ignore-on-disk-s_bmap_nr-value fs/reiserfs/super.c
---- a/fs/reiserfs/super.c~reiserfs-ignore-on-disk-s_bmap_nr-value
-+++ a/fs/reiserfs/super.c
-@@ -1725,6 +1725,21 @@ static int reiserfs_fill_super(struct su
- 		set_sb_umount_state(rs, REISERFS_ERROR_FS);
- 		set_sb_fs_state(rs, 0);
- 
-+		/* Clear out s_bmap_nr if it would wrap. We can handle this
-+		 * case, but older revisions can't. This will cause the
-+		 * file system to fail mount on those older implementations,
-+		 * avoiding corruption. -jeffm */
-+		if (bmap_would_wrap(reiserfs_bmap_count(s)) &&
-+		    sb_bmap_nr(rs) != 0) {
-+			reiserfs_warning(s, "super-2030: This file system "
-+					"claims to use %u bitmap blocks in "
-+					"its super block, but requires %u. "
-+					"Clearing to zero.", sb_bmap_nr(rs),
-+					reiserfs_bmap_count(s));
+ endif # SAMPLES
+diff -puN /dev/null samples/Makefile
+--- /dev/null
++++ a/samples/Makefile
+@@ -0,0 +1,3 @@
++# Makefile for Linux samples code
 +
-+			set_sb_bmap_nr(rs, 0);
-+		}
++obj-$(CONFIG_SAMPLES)	+= markers/
+diff -puN /dev/null samples/markers/Makefile
+--- /dev/null
++++ a/samples/markers/Makefile
+@@ -0,0 +1,4 @@
++# builds the kprobes example kernel modules;
++# then to use one (as root):  insmod <module_name.ko>
 +
- 		if (old_format_only(s)) {
- 			/* filesystem of format 3.5 either with standard or non-standard
- 			   journal */
-diff -puN include/linux/reiserfs_fs.h~reiserfs-ignore-on-disk-s_bmap_nr-value include/linux/reiserfs_fs.h
---- a/include/linux/reiserfs_fs.h~reiserfs-ignore-on-disk-s_bmap_nr-value
-+++ a/include/linux/reiserfs_fs.h
-@@ -283,6 +283,18 @@ static inline struct reiserfs_sb_info *R
- 	return sb->s_fs_info;
- }
- 
-+/* Don't trust REISERFS_SB(sb)->s_bmap_nr, it's a u16
-+ * which overflows on large file systems. */
-+static inline u32 reiserfs_bmap_count(struct super_block *sb)
++obj-$(CONFIG_SAMPLE_MARKERS) += probe-example.o marker-example.o
+diff -puN /dev/null samples/markers/marker-example.c
+--- /dev/null
++++ a/samples/markers/marker-example.c
+@@ -0,0 +1,54 @@
++/* marker-example.c
++ *
++ * Executes a marker when /proc/marker-example is opened.
++ *
++ * (C) Copyright 2007 Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
++ *
++ * This file is released under the GPLv2.
++ * See the file COPYING for more details.
++ */
++
++#include <linux/module.h>
++#include <linux/marker.h>
++#include <linux/sched.h>
++#include <linux/proc_fs.h>
++
++struct proc_dir_entry *pentry_example;
++
++static int my_open(struct inode *inode, struct file *file)
 +{
-+	return (SB_BLOCK_COUNT(sb) - 1) / (sb->s_blocksize * 8) + 1;
++	int i;
++
++	trace_mark(subsystem_event, "%d %s", 123, "example string");
++	for (i = 0; i < 10; i++)
++		trace_mark(subsystem_eventb, MARK_NOARGS);
++	return -EPERM;
 +}
 +
-+static inline int bmap_would_wrap(unsigned bmap_nr)
++static struct file_operations mark_ops = {
++	.open = my_open,
++};
++
++static int example_init(void)
 +{
-+	return bmap_nr > ((1LL << 16) - 1);
++	printk(KERN_ALERT "example init\n");
++	pentry_example = create_proc_entry("marker-example", 0444, NULL);
++	if (pentry_example)
++		pentry_example->proc_fops = &mark_ops;
++	else
++		return -EPERM;
++	return 0;
 +}
 +
- /** this says about version of key of all items (but stat data) the
-     object consists of */
- #define get_inode_item_key_version( inode )                                    \
++static void example_exit(void)
++{
++	printk(KERN_ALERT "example exit\n");
++	remove_proc_entry("marker-example", NULL);
++}
++
++module_init(example_init)
++module_exit(example_exit)
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Mathieu Desnoyers");
++MODULE_DESCRIPTION("Marker example");
+diff -puN /dev/null samples/markers/probe-example.c
+--- /dev/null
++++ a/samples/markers/probe-example.c
+@@ -0,0 +1,98 @@
++/* probe-example.c
++ *
++ * Connects two functions to marker call sites.
++ *
++ * (C) Copyright 2007 Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
++ *
++ * This file is released under the GPLv2.
++ * See the file COPYING for more details.
++ */
++
++#include <linux/sched.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/marker.h>
++#include <asm/atomic.h>
++
++struct probe_data {
++	const char *name;
++	const char *format;
++	marker_probe_func *probe_func;
++};
++
++void probe_subsystem_event(const struct marker *mdata, void *private,
++	const char *format, ...)
++{
++	va_list ap;
++	/* Declare args */
++	unsigned int value;
++	const char *mystr;
++
++	/* Assign args */
++	va_start(ap, format);
++	value = va_arg(ap, typeof(value));
++	mystr = va_arg(ap, typeof(mystr));
++
++	/* Call printk */
++	printk(KERN_DEBUG "Value %u, string %s\n", value, mystr);
++
++	/* or count, check rights, serialize data in a buffer */
++
++	va_end(ap);
++}
++
++atomic_t eventb_count = ATOMIC_INIT(0);
++
++void probe_subsystem_eventb(const struct marker *mdata, void *private,
++	const char *format, ...)
++{
++	/* Increment counter */
++	atomic_inc(&eventb_count);
++}
++
++static struct probe_data probe_array[] =
++{
++	{	.name = "subsystem_event",
++		.format = "%d %s",
++		.probe_func = probe_subsystem_event },
++	{	.name = "subsystem_eventb",
++		.format = MARK_NOARGS,
++		.probe_func = probe_subsystem_eventb },
++};
++
++static int __init probe_init(void)
++{
++	int result;
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(probe_array); i++) {
++		result = marker_probe_register(probe_array[i].name,
++				probe_array[i].format,
++				probe_array[i].probe_func, &probe_array[i]);
++		if (result)
++			printk(KERN_INFO "Unable to register probe %s\n",
++				probe_array[i].name);
++		result = marker_arm(probe_array[i].name);
++		if (result)
++			printk(KERN_INFO "Unable to arm probe %s\n",
++				probe_array[i].name);
++	}
++	return 0;
++}
++
++static void __exit probe_fini(void)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(probe_array); i++)
++		marker_probe_unregister(probe_array[i].name);
++	printk(KERN_INFO "Number of event b : %u\n",
++			atomic_read(&eventb_count));
++}
++
++module_init(probe_init);
++module_exit(probe_fini);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Mathieu Desnoyers");
++MODULE_DESCRIPTION("SUBSYSTEM Probe");
 _
 
-Patches currently in -mm which might be from jeffm@suse.com are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
-exportfs-add-fid-type.patch
-exportfs-add-new-methods.patch
-reiserfs-new-export-ops.patch
-exportfs-remove-old-methods.patch
-exportfs-make-struct-export_operations-const.patch
-exportfs-update-documentation.patch
