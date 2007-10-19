@@ -1,111 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - net-dccp-fix-link-error-with-config_sysctl.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 20:40:00 -0700
-Message-ID: <200710190340.l9J3e0lw012652@imap1.linux-foundation.org>
+Subject: - videopix-frame-grabber-convert-device_lock_sem-to-mutex.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 20:40:14 -0700
+Message-ID: <200710190340.l9J3eELD012691@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43057 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41390 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965575AbXJSDkZ (ORCPT
+	by vger.kernel.org with ESMTP id S965577AbXJSDkw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Oct 2007 23:40:25 -0400
+	Thu, 18 Oct 2007 23:40:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, acme@ghostprotocols.net, davem@davemloft.net, ian.mcdonald@jandi.co.nz, mm-commits@vger.kernel.org
+To: matthias.kaehlcke@gmail.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net/DCCP: fix link error with !CONFIG_SYSCTL
+     Videopix Frame Grabber: convert device_lock_sem to mutex
 has been removed from the -mm tree.  Its filename was
-     net-dccp-fix-link-error-with-config_sysctl.patch
+     videopix-frame-grabber-convert-device_lock_sem-to-mutex.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: net/DCCP: fix link error with !CONFIG_SYSCTL
-From: Ingo Molnar <mingo@elte.hu>
+Subject: Videopix Frame Grabber: convert device_lock_sem to mutex
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-Do not define the sysctl_dccp_sync_ratelimit sysctl variable in the
-CONFIG_SYSCTL dependent sysctl.c module - move it to input.c instead.
+Videopix Frame Grabber: Convert the semaphore device_lock_sem to the mutex
+API
 
-This fixes the following build bug:
-
- net/built-in.o: In function `dccp_check_seqno':
- input.c:(.text+0xbd859): undefined reference to `sysctl_dccp_sync_ratelimit'
- distcc[29953] ERROR: compile (null) on localhost failed
- make: *** [vmlinux] Error 1
-
-Found via 'make randconfig' build testing.
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Acked-by: Ian McDonald <ian.mcdonald@jandi.co.nz>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/dccp/input.c  |    3 +++
- net/dccp/sysctl.c |    3 ---
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/sbus/char/vfc.h     |    2 +-
+ drivers/sbus/char/vfc_dev.c |    5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN net/dccp/input.c~net-dccp-fix-link-error-with-config_sysctl net/dccp/input.c
---- a/net/dccp/input.c~net-dccp-fix-link-error-with-config_sysctl
-+++ a/net/dccp/input.c
-@@ -19,6 +19,9 @@
- #include "ccid.h"
- #include "dccp.h"
+diff -puN drivers/sbus/char/vfc.h~videopix-frame-grabber-convert-device_lock_sem-to-mutex drivers/sbus/char/vfc.h
+--- a/drivers/sbus/char/vfc.h~videopix-frame-grabber-convert-device_lock_sem-to-mutex
++++ a/drivers/sbus/char/vfc.h
+@@ -126,7 +126,7 @@ struct vfc_dev {
+ 	volatile struct vfc_regs __iomem *regs;
+ 	struct vfc_regs *phys_regs;
+ 	unsigned int control_reg;
+-	struct semaphore device_lock_sem;
++	struct mutex device_lock_mtx;
+ 	int instance;
+ 	int busy;
+ 	unsigned long which_io;
+diff -puN drivers/sbus/char/vfc_dev.c~videopix-frame-grabber-convert-device_lock_sem-to-mutex drivers/sbus/char/vfc_dev.c
+--- a/drivers/sbus/char/vfc_dev.c~videopix-frame-grabber-convert-device_lock_sem-to-mutex
++++ a/drivers/sbus/char/vfc_dev.c
+@@ -22,6 +22,7 @@
+ #include <linux/fs.h>
+ #include <linux/delay.h>
+ #include <linux/spinlock.h>
++#include <linux/mutex.h>
+ #include <linux/mm.h>
  
-+/* rate-limit for syncs in reply to sequence-invalid packets; RFC 4340, 7.5.4 */
-+int sysctl_dccp_sync_ratelimit	__read_mostly = HZ / 8;
-+
- static void dccp_fin(struct sock *sk, struct sk_buff *skb)
+ #include <asm/openprom.h>
+@@ -54,12 +55,12 @@ static unsigned char saa9051_init_array[
+ 
+ void vfc_lock_device(struct vfc_dev *dev)
  {
- 	sk->sk_shutdown |= RCV_SHUTDOWN;
-diff -puN net/dccp/sysctl.c~net-dccp-fix-link-error-with-config_sysctl net/dccp/sysctl.c
---- a/net/dccp/sysctl.c~net-dccp-fix-link-error-with-config_sysctl
-+++ a/net/dccp/sysctl.c
-@@ -18,9 +18,6 @@
- #error This file should not be compiled without CONFIG_SYSCTL defined
- #endif
+-	down(&dev->device_lock_sem);
++	mutex_lock(&dev->device_lock_mtx);
+ }
  
--/* rate-limit for syncs in reply to sequence-invalid packets; RFC 4340, 7.5.4 */
--int sysctl_dccp_sync_ratelimit	__read_mostly = HZ / 8;
--
- static struct ctl_table dccp_default_table[] = {
- 	{
- 		.procname	= "seq_window",
+ void vfc_unlock_device(struct vfc_dev *dev)
+ {
+-	up(&dev->device_lock_sem);
++	mutex_unlock(&dev->device_lock_mtx);
+ }
+ 
+ 
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
 origin.patch
-git-acpi.patch
-git-kvm.patch
-fix-build-breakage-if-sysfs-fix.patch
-git-x86.patch
-i386-paravirt-boot-sequence.patch
-workqueue-debug-flushing-deadlocks-with-lockdep.patch
-workqueue-debug-work-related-deadlocks-with-lockdep.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-uninline-find_task_by_xxx-set-of-functions.patch
-cpuset-sched_load_balance-flag.patch
-cpuset-sched_load_balance-flag-fix.patch
-cpuset-sched_load_balance-kmalloc-fix.patch
-cpuset-sched_load_balance-flag-sched-domain-confusion-fix.patch
-cpusets-decrustify-cpuset-mask-update-code.patch
-cpusets-decrustify-cpuset-mask-update-code-checkpatch-fixes.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-whitespace-fix.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset-doc.patch
-kexec-add-bss-to-resource-tree.patch
-kexec-introduce-bootmem_exclusive.patch
-kexec-use-bootmem_exclusive-on-x86.patch
-hook-up-group-scheduler-with-control-groups.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-uninline-forkc-exitc.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-lockdep-show-held-locks-when-showing-a-stackdump.patch
-kmap_atomic-debugging.patch
+generic-ac97-mixer-modem-oss-use-list_for_each_entry.patch
+ftdi-elan-driver-convert-ftdi-u132_lock-to-mutex.patch
+fs-file_tablec-use-list_for_each_entry-instead-of-list_for_each.patch
+fs-eventpollc-use-list_for_each_entry-instead-of-list_for_each.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each.patch
+fs-superc-use-list_for_each_entry-instead-of-list_for_each-fix.patch
+kernel-exitc-use-list_for_each_entry_safe-instead-of-list_for_each_safe.patch
+kernel-time-clocksourcec-use-list_for_each_entry-instead-of-list_for_each.patch
+mm-oom_killc-use-list_for_each_entry-instead-of-list_for_each.patch
