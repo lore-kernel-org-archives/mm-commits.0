@@ -1,82 +1,200 @@
 From: akpm@linux-foundation.org
-Subject: - hook-up-group-scheduler-with-control-groups-fix.patch removed from -mm tree
-Date: Thu, 18 Oct 2007 21:34:29 -0700
-Message-ID: <200710190434.l9J4YTo4015358@imap1.linux-foundation.org>
+Subject: - linux-kernel-markers-coding-style-fixes.patch removed from -mm tree
+Date: Thu, 18 Oct 2007 21:35:24 -0700
+Message-ID: <200710190435.l9J4ZOBu015382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47129 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49043 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752555AbXJSEfD (ORCPT
+	by vger.kernel.org with ESMTP id S1751762AbXJSEfl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Oct 2007 00:35:03 -0400
+	Fri, 19 Oct 2007 00:35:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbir@in.ibm.com, dhaval@linux.vnet.ibm.com, menage@google.com, mingo@elte.hu, randy.dunlap@oracle.com, vatsa@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hook-up-group-scheduler-with-control-groups-fix
+     Linux Kernel Markers - Coding Style Fixes
 has been removed from the -mm tree.  Its filename was
-     hook-up-group-scheduler-with-control-groups-fix.patch
+     linux-kernel-markers-coding-style-fixes.patch
 
-This patch was dropped because it was folded into hook-up-group-scheduler-with-control-groups.patch
+This patch was dropped because it was folded into linux-kernel-markers.patch
 
 ------------------------------------------------------
-Subject: hook-up-group-scheduler-with-control-groups-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Linux Kernel Markers - Coding Style Fixes
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Paul Menage <menage@google.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Srivatsa Vaddagiri <vatsa@linux.vnet.ibm.com>
+- Use struct marker instead of struct __mark_marker.
+- Change a "private_data" parameter name for "private".
+- DEFINE_MUTEX(markers_mutex) is made static.
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/marker.h |   18 +++++++++---------
+ include/linux/module.h |    2 +-
+ kernel/marker.c        |   22 ++++++++++------------
+ 3 files changed, 20 insertions(+), 22 deletions(-)
 
-diff -puN kernel/sched.c~hook-up-group-scheduler-with-control-groups-fix kernel/sched.c
---- a/kernel/sched.c~hook-up-group-scheduler-with-control-groups-fix
-+++ a/kernel/sched.c
-@@ -204,7 +204,7 @@ static inline struct task_group *task_gr
+diff -puN include/linux/marker.h~linux-kernel-markers-coding-style-fixes include/linux/marker.h
+--- a/include/linux/marker.h~linux-kernel-markers-coding-style-fixes
++++ a/include/linux/marker.h
+@@ -15,11 +15,11 @@
+ #include <linux/types.h>
  
- #ifdef CONFIG_FAIR_USER_SCHED
- 	tg = p->user->tg;
--#elif CONFIG_FAIR_CGROUP_SCHED
-+#elif defined(CONFIG_FAIR_CGROUP_SCHED)
- 	tg = container_of(task_subsys_state(p, cpu_cgroup_subsys_id),
- 				struct task_group, css);
- #else
+ struct module;
+-struct __mark_marker;
++struct marker;
+ 
+ /**
+  * marker_probe_func - Type of a marker probe function
+- * @mdata: pointer of type struct __mark_marker
++ * @mdata: pointer of type struct marker
+  * @private_data: caller site private data
+  * @fmt: format string
+  * @...: variable argument list
+@@ -27,10 +27,10 @@ struct __mark_marker;
+  * Type of marker probe functions. They receive the mdata and need to parse the
+  * format string to recover the variable argument list.
+  */
+-typedef void marker_probe_func(const struct __mark_marker *mdata,
++typedef void marker_probe_func(const struct marker *mdata,
+ 	void *private_data, const char *fmt, ...);
+ 
+-struct __mark_marker {
++struct marker {
+ 	const char *name;	/* Marker name */
+ 	const char *format;	/* Marker format string, describing the
+ 				 * variable argument list.
+@@ -57,7 +57,7 @@ struct __mark_marker {
+ 		static const char __mstrtab_format_##name[]		\
+ 		__attribute__((section("__markers_strings")))		\
+ 		= format;						\
+-		static struct __mark_marker __mark_##name		\
++		static struct marker __mark_##name			\
+ 		__attribute__((section("__markers"))) =			\
+ 		{ __mstrtab_name_##name, __mstrtab_format_##name,	\
+ 		0, __mark_empty_function, NULL };			\
+@@ -72,13 +72,13 @@ struct __mark_marker {
+ 		}							\
+ 	} while (0)
+ 
+-extern void marker_update_probe_range(struct __mark_marker *begin,
+-	struct __mark_marker *end, struct module *probe_module, int *refcount);
++extern void marker_update_probe_range(struct marker *begin,
++	struct marker *end, struct module *probe_module, int *refcount);
+ #else /* !CONFIG_MARKERS */
+ #define __trace_mark(name, call_data, format, args...) \
+ 		__mark_check_format(format, ## args)
+-static inline void marker_update_probe_range(struct __mark_marker *begin,
+-	struct __mark_marker *end, struct module *probe_module, int *refcount)
++static inline void marker_update_probe_range(struct marker *begin,
++	struct marker *end, struct module *probe_module, int *refcount)
+ { }
+ #endif /* CONFIG_MARKERS */
+ 
+diff -puN include/linux/module.h~linux-kernel-markers-coding-style-fixes include/linux/module.h
+--- a/include/linux/module.h~linux-kernel-markers-coding-style-fixes
++++ a/include/linux/module.h
+@@ -356,7 +356,7 @@ struct module
+ 	   keeping pointers to this stuff */
+ 	char *args;
+ #ifdef CONFIG_MARKERS
+-	struct __mark_marker *markers;
++	struct marker *markers;
+ 	unsigned int num_markers;
+ #endif
+ };
+diff -puN kernel/marker.c~linux-kernel-markers-coding-style-fixes kernel/marker.c
+--- a/kernel/marker.c~linux-kernel-markers-coding-style-fixes
++++ a/kernel/marker.c
+@@ -24,14 +24,14 @@
+ #include <linux/marker.h>
+ #include <linux/err.h>
+ 
+-extern struct __mark_marker __start___markers[];
+-extern struct __mark_marker __stop___markers[];
++extern struct marker __start___markers[];
++extern struct marker __stop___markers[];
+ 
+ /*
+  * module_mutex nests inside markers_mutex. Markers mutex protects the builtin
+  * and module markers, the hash table and deferred_sync.
+  */
+-DEFINE_MUTEX(markers_mutex);
++static DEFINE_MUTEX(markers_mutex);
+ 
+ /*
+  * Marker deferred synchronization.
+@@ -63,7 +63,7 @@ static struct hlist_head marker_table[MA
+ 
+ /**
+  * __mark_empty_function - Empty probe callback
+- * @mdata: pointer of type const struct __mark_marker
++ * @mdata: pointer of type const struct marker
+  * @fmt: format string
+  * @...: variable argument list
+  *
+@@ -72,8 +72,7 @@ static struct hlist_head marker_table[MA
+  * though the function pointer change and the marker enabling are two distinct
+  * operations that modifies the execution flow of preemptible code.
+  */
+-void __mark_empty_function(const struct __mark_marker *mdata,
+-	void *private_data,
++void __mark_empty_function(const struct marker *mdata, void *private,
+ 	const char *fmt, ...)
+ {
+ }
+@@ -207,8 +206,7 @@ static int marker_set_format(struct mark
+ /*
+  * Sets the probe callback corresponding to one marker.
+  */
+-static int set_marker(struct marker_entry **entry,
+-			struct __mark_marker *elem)
++static int set_marker(struct marker_entry **entry, struct marker *elem)
+ {
+ 	int ret;
+ 	WARN_ON(strcmp((*entry)->name, elem->name) != 0);
+@@ -240,7 +238,7 @@ static int set_marker(struct marker_entr
+  * empty function insures that the original callback is not used anymore. This
+  * insured by preemption disabling around the call site.
+  */
+-static void disable_marker(struct __mark_marker *elem)
++static void disable_marker(struct marker *elem)
+ {
+ 	elem->state = 0;
+ 	elem->call = __mark_empty_function;
+@@ -261,11 +259,11 @@ static void disable_marker(struct __mark
+  * Updates the probe callback corresponding to a range of markers.
+  * Must be called with markers_mutex held.
+  */
+-void marker_update_probe_range(struct __mark_marker *begin,
+-	struct __mark_marker *end, struct module *probe_module,
++void marker_update_probe_range(struct marker *begin,
++	struct marker *end, struct module *probe_module,
+ 	int *refcount)
+ {
+-	struct __mark_marker *iter;
++	struct marker *iter;
+ 	struct marker_entry *mark_entry;
+ 
+ 	for (iter = begin; iter < end; iter++) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
-console-keyboard-events-and-accessibility.patch
-add-kernel-notifierc.patch
-console-events-and-accessibility.patch
-fix-random-hard-freeze-with-avm-cards-using-b1dma.patch
-jbd-config_jbd_debug-cannot-create-proc-entry.patch
-task-containersv11-shared-container-subsystem-group-arrays.patch
-add-containerstats-v3.patch
-pid-namespaces-dynamic-kmem-cache-allocator-for-pid-namespaces.patch
-pid-namespaces-define-is_global_init-and-is_container_init.patch
-lockdep-fix-mismatched-lockdep_depth-curr_chain_hash-checkpatch-fixes.patch
-fs-superc-use-list_for_each_entry-instead-of-list_for_each.patch
-pid-namespaces-helpers-to-find-the-task-by-its-numerical-ids.patch
-pid-namespaces-changes-to-show-virtual-ids-to-user.patch
-cpuset-sched_load_balance-flag.patch
-cpusets-decrustify-cpuset-mask-update-code.patch
-fix-cpusets-update_cpumask.patch
-remove-bits_to_type-macro.patch
-use-helpers-to-obtain-task-pid-in-printks.patch
-hotplug-cpu-migrate-a-task-within-its-cpuset.patch
-cpu-hotplug-avoid-hotadd-when-proper-possible_map-isnt-specified.patch
-ipc-integrate-ipc_checkid-into-ipc_lock.patch
-hook-up-group-scheduler-with-control-groups.patch
-hook-up-group-scheduler-with-control-groups-fix.patch
-linux-kernel-markers-checkpatch-fixes.patch
+change-struct-marker-users.patch
+combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
+linux-kernel-markers.patch
+linux-kernel-markers-coding-style-fixes.patch
+linux-kernel-markers-alignment-fix.patch
+add-samples-subdir.patch
+linux-kernel-markers-samples.patch
 linux-kernel-markers-samples-checkpatch-fixes.patch
-uninline-forkc-exitc-checkpatch-fixes.patch
+linux-kernel-markers-samples-coding-style-fix.patch
+linux-kernel-markers-samples-remove-asm.patch
+linux-kernel-markers-documentation.patch
