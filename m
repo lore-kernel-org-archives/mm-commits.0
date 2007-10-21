@@ -1,60 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch removed from -mm tree
-Date: Sun, 21 Oct 2007 16:48:51 -0700
-Message-ID: <200710212348.l9LNmp7T000740@imap1.linux-foundation.org>
+Subject: - memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch removed from -mm tree
+Date: Sun, 21 Oct 2007 16:49:03 -0700
+Message-ID: <200710212349.l9LNn3jQ000762@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54459 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42018 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752633AbXJUXzz (ORCPT
+	by vger.kernel.org with ESMTP id S1752633AbXJUXz6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 21 Oct 2007 19:55:55 -0400
+	Sun, 21 Oct 2007 19:55:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rient
 
 
 The patch titled
-     memory-controller-add-per-cgroup-lru-and-reclaim-v7-fix
+     memory-controller-oom-handling-v7-vs-oom-killer-stuff
 has been removed from the -mm tree.  Its filename was
-     memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+     memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
 
-This patch was dropped because it was folded into memory-controller-add-per-container-lru-and-reclaim-v7.patch
+This patch was dropped because it was folded into memory-controller-oom-handling-v7.patch
 
 ------------------------------------------------------
-Subject: memory-controller-add-per-cgroup-lru-and-reclaim-v7-fix
+Subject: memory-controller-oom-handling-v7-vs-oom-killer-stuff
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/memcontrol.c: In function 'mem_cgroup_charge':
-mm/memcontrol.c:337: error: implicit declaration of function 'congestion_wait'
-
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Paul Menage <menage@google.com>
 Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Paul Menage <menage@google.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/memcontrol.h |    2 +-
+ mm/oom_kill.c              |    5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~memory-controller-add-per-cgroup-lru-and-reclaim-v7-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memory-controller-add-per-cgroup-lru-and-reclaim-v7-fix
-+++ a/mm/memcontrol.c
-@@ -22,6 +22,7 @@
- #include <linux/cgroup.h>
- #include <linux/mm.h>
- #include <linux/page-flags.h>
-+#include <linux/backing-dev.h>
- #include <linux/bit_spinlock.h>
- #include <linux/rcupdate.h>
- #include <linux/swap.h>
+diff -puN include/linux/memcontrol.h~memory-controller-oom-handling-v7-vs-oom-killer-stuff include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memory-controller-oom-handling-v7-vs-oom-killer-stuff
++++ a/include/linux/memcontrol.h
+@@ -39,7 +39,7 @@ extern unsigned long mem_cgroup_isolate_
+ 					int mode, struct zone *z,
+ 					struct mem_cgroup *mem_cont,
+ 					int active);
+-extern void mem_cgroup_out_of_memory(struct mem_cgroup *mem);
++extern void mem_cgroup_out_of_memory(struct mem_cgroup *mem, gfp_t gfp_mask);
+ 
+ static inline void mem_cgroup_uncharge_page(struct page *page)
+ {
+diff -puN mm/oom_kill.c~memory-controller-oom-handling-v7-vs-oom-killer-stuff mm/oom_kill.c
+--- a/mm/oom_kill.c~memory-controller-oom-handling-v7-vs-oom-killer-stuff
++++ a/mm/oom_kill.c
+@@ -380,7 +380,7 @@ static int oom_kill_process(struct task_
+ }
+ 
+ #ifdef CONFIG_CGROUP_MEM_CONT
+-void mem_cgroup_out_of_memory(struct mem_cgroup *mem)
++void mem_cgroup_out_of_memory(struct mem_cgroup *mem, gfp_t gfp_mask)
+ {
+ 	unsigned long points = 0;
+ 	struct task_struct *p;
+@@ -395,7 +395,8 @@ retry:
+ 	if (!p)
+ 		p = current;
+ 
+-	if (oom_kill_process(p, points, "Memory cgroup out of memory"))
++	if (oom_kill_process(p, gfp_mask, 0, points,
++				"Memory cgroup out of memory"))
+ 		goto retry;
+ out:
+ 	rcu_read_unlock();
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -107,7 +128,7 @@ revoke-wire-up-i386-system-calls.patch
 revoke-vs-git-block.patch
 memory-controller-memory-accounting-v7.patch
 memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7-fix.patch
+memory-controller-oom-handling-v7.patch
 memory-controller-oom-handling-v7-vs-oom-killer-stuff.patch
 memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7-fix-2.patch
 memcontrol-move-oom-task-exclusion-to-tasklist-fix.patch
