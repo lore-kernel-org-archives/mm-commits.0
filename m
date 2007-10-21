@@ -1,69 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - zd1201-avoid-null-ptr-access-of-skb-dev.patch removed from -mm tree
-Date: Sun, 21 Oct 2007 15:07:44 -0700
-Message-ID: <200710212207.l9LM7iJp029737@imap1.linux-foundation.org>
+Subject: - drivers-net-wireless-b43-mainc-fix-an-uninitialized.patch removed from -mm tree
+Date: Sun, 21 Oct 2007 15:07:52 -0700
+Message-ID: <200710212207.l9LM7qD5029740@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57075 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43974 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750807AbXJUWIr (ORCPT
+	by vger.kernel.org with ESMTP id S1750839AbXJUWJZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 21 Oct 2007 18:08:47 -0400
+	Sun, 21 Oct 2007 18:09:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linville@tuxdriver.com, acme@ghostprotocols.net, davem@davemloft.net, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, Larry.Finger@lwfinger.net, bunk@kernel.org, linville@tuxdriver.com, mb@bu3sch.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     zd1201: avoid null ptr access of skb->dev
+     drivers/net/wireless/b43/main.c: fix an uninitialized variable
 has been removed from the -mm tree.  Its filename was
-     zd1201-avoid-null-ptr-access-of-skb-dev.patch
+     drivers-net-wireless-b43-mainc-fix-an-uninitialized.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: zd1201: avoid null ptr access of skb->dev
-From: "John W. Linville" <linville@tuxdriver.com>
+Subject: drivers/net/wireless/b43/main.c: fix an uninitialized variable
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-skb->dev is not set until eth_type_trans is called...
+Fix an uninitialized variable in drivers/net/wireless/b43/main.c::b43_start().
 
-Signed-off-by: John W. Linville <linville@tuxdriver.com>
-Cc: Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: Larry Finger <Larry.Finger@lwfinger.net>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/zd1201.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/wireless/b43/main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/zd1201.c~zd1201-avoid-null-ptr-access-of-skb-dev drivers/net/wireless/zd1201.c
---- a/drivers/net/wireless/zd1201.c~zd1201-avoid-null-ptr-access-of-skb-dev
-+++ a/drivers/net/wireless/zd1201.c
-@@ -327,8 +327,8 @@ static void zd1201_usbrx(struct urb *urb
- 			memcpy(skb_put(skb, 6), &data[datalen-8], 6);
- 			memcpy(skb_put(skb, 2), &data[datalen-24], 2);
- 			memcpy(skb_put(skb, len), data, len);
--			skb->dev->last_rx = jiffies;
- 			skb->protocol = eth_type_trans(skb, zd->dev);
-+			skb->dev->last_rx = jiffies;
- 			zd->stats.rx_packets++;
- 			zd->stats.rx_bytes += skb->len;
- 			netif_rx(skb);
-@@ -384,8 +384,8 @@ static void zd1201_usbrx(struct urb *urb
- 			memcpy(skb_put(skb, 2), &data[6], 2);
- 			memcpy(skb_put(skb, len), data+8, len);
- 		}
--		skb->dev->last_rx = jiffies;
- 		skb->protocol = eth_type_trans(skb, zd->dev);
-+		skb->dev->last_rx = jiffies;
- 		zd->stats.rx_packets++;
- 		zd->stats.rx_bytes += skb->len;
- 		netif_rx(skb);
+diff -puN drivers/net/wireless/b43/main.c~drivers-net-wireless-b43-mainc-fix-an-uninitialized drivers/net/wireless/b43/main.c
+--- a/drivers/net/wireless/b43/main.c~drivers-net-wireless-b43-mainc-fix-an-uninitialized
++++ a/drivers/net/wireless/b43/main.c
+@@ -3495,7 +3495,7 @@ static int b43_start(struct ieee80211_hw
+ 	struct b43_wl *wl = hw_to_b43_wl(hw);
+ 	struct b43_wldev *dev = wl->current_dev;
+ 	int did_init = 0;
+-	int err;
++	int err = 0;
+ 
+ 	mutex_lock(&wl->mutex);
+ 
 _
 
-Patches currently in -mm which might be from linville@tuxdriver.com are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
 origin.patch
-git-wireless.patch
-pm-qos-infrastructure-and-interface.patch
-latencyc-use-qos-infrastructure.patch
