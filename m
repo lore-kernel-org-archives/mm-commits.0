@@ -1,87 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - reiser4-fix-for-new-aops-patches.patch removed from -mm tree
-Date: Sun, 21 Oct 2007 16:47:09 -0700
-Message-ID: <200710212347.l9LNl9vH000643@imap1.linux-foundation.org>
+Subject: - reiser4-fix-readpage_unix_file.patch removed from -mm tree
+Date: Sun, 21 Oct 2007 16:47:07 -0700
+Message-ID: <200710212347.l9LNl7K4000640@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48198 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41453 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751182AbXJUXrv (ORCPT
+	by vger.kernel.org with ESMTP id S1751203AbXJUXrp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 21 Oct 2007 19:47:51 -0400
+	Sun, 21 Oct 2007 19:47:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, edward@namesys.com, vs@namesys.com, mm-commits@vger.kernel.org
+To: edward@namesys.com, vs@namesys.com, zlynx@acm.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiser4: fix for new aops patches
+     reiser4: fix readpage_unix_file
 has been removed from the -mm tree.  Its filename was
-     reiser4-fix-for-new-aops-patches.patch
+     reiser4-fix-readpage_unix_file.patch
 
 This patch was dropped because it was folded into reiser4.patch
 
 ------------------------------------------------------
-Subject: reiser4: fix for new aops patches
-From: Nick Piggin <npiggin@suse.de>
+Subject: reiser4: fix readpage_unix_file
+From: Edward Shishkin <edward@namesys.com>
 
-Cc: Vladimir Saveliev <vs@namesys.com>
-Cc: Edward Shishkin <edward@namesys.com>
+. If nominated (by VFS) page is out of file size, then fill it
+  by zeros instead of returning -EINVAL (this prevents returning
+  an unexpected error (-EINVAL) by some apps that don't check
+  file size).
+
+. Check if the page became uptodate while it was being unlocked.
+
+Signed-off-by: Edward Shishkin <edward@namesys.com>
+Cc: Zan Lynx <zlynx@acm.org>
+Cc: "Vladimir V. Saveliev" <vs@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/plugin/item/extent_file_ops.c |   26 ++++++++++++++++++++-
- 1 files changed, 25 insertions(+), 1 deletion(-)
+ fs/reiser4/plugin/file/file.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN fs/reiser4/plugin/item/extent_file_ops.c~reiser4-fix-for-new-aops-patches fs/reiser4/plugin/item/extent_file_ops.c
---- a/fs/reiser4/plugin/item/extent_file_ops.c~reiser4-fix-for-new-aops-patches
-+++ a/fs/reiser4/plugin/item/extent_file_ops.c
-@@ -7,7 +7,6 @@
+diff -puN fs/reiser4/plugin/file/file.c~reiser4-fix-readpage_unix_file fs/reiser4/plugin/file/file.c
+--- a/fs/reiser4/plugin/file/file.c~reiser4-fix-readpage_unix_file
++++ a/fs/reiser4/plugin/file/file.c
+@@ -1436,9 +1436,11 @@ int readpage_unix_file(struct file *file
+ 	assert("vs-1061", page->mapping && page->mapping->host);
  
- #include <linux/quotaops.h>
- #include <linux/swap.h>
--#include "../../../../mm/filemap.h"
+ 	if (page->mapping->host->i_size <= page_offset(page)) {
+-		/* page is out of file already */
++		/* page is out of file */
++		zero_user_page(page, 0, PAGE_CACHE_SIZE, KM_USER0);
++		SetPageUptodate(page);
+ 		unlock_page(page);
+-		return -EINVAL;
++		return 0;
+ 	}
  
- static inline reiser4_extent *ext_by_offset(const znode *node, int offset)
- {
-@@ -937,6 +936,31 @@ static int write_extent_reserve_space(st
- 	return reiser4_grab_space(count, 0 /* flags */);
- }
- 
-+/*
-+ * filemap_copy_from_user no longer exists in generic code, because it
-+ * is deadlocky (copying from user while holding the page lock is bad).
-+ * As a temporary fix for reiser4, just define it here.
-+ */
-+static inline size_t
-+filemap_copy_from_user(struct page *page, unsigned long offset,
-+			const char __user *buf, unsigned bytes)
-+{
-+	char *kaddr;
-+	int left;
-+
-+	kaddr = kmap_atomic(page, KM_USER0);
-+	left = __copy_from_user_inatomic_nocache(kaddr + offset, buf, bytes);
-+	kunmap_atomic(kaddr, KM_USER0);
-+
-+	if (left != 0) {
-+		/* Do it the slow way */
-+		kaddr = kmap(page);
-+		left = __copy_from_user_nocache(kaddr + offset, buf, bytes);
-+		kunmap(page);
-+	}
-+	return bytes - left;
-+}
-+
- /**
-  * reiser4_write_extent - write method of extent item plugin
-  * @file: file to write to
+ 	inode = page->mapping->host;
+@@ -1625,6 +1627,8 @@ static int uf_readpages_filler(void * da
+ 		if (unlikely(ret))
+ 			goto exit;
+ 		lock_page(page);
++		if (PageUptodate(page))
++			goto unlock;
+ 		cbk_done = 1;
+ 	}
+ 	ret = zload(rc->coord.node);
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from edward@namesys.com are
 
 origin.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
 reiser4.patch
+reiser4-fix-readpage_unix_file.patch
 reiser4-fix-for-new-aops-patches.patch
+reiser4-do-not-allocate-struct-file-on-stack.patch
+git-block-vs-reiser4.patch
+reiser4-cryptcompress-misc-fixups.patch
+reiser4-cryptcompress-misc-fixups-2.patch
+reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
+reiser4-change-error-code-base.patch
+reiser4-use-lzo-library-functions.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
+reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
+fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
+git-nfsd-broke-reiser4.patch
