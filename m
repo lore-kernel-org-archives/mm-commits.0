@@ -1,38 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch removed from -mm tree
-Date: Sun, 21 Oct 2007 16:50:26 -0700
-Message-ID: <200710212350.l9LNoQav000867@imap1.linux-foundation.org>
+Subject: - pm-qos-infrastructure-and-interface-vs-git-acpi.patch removed from -mm tree
+Date: Sun, 21 Oct 2007 16:50:24 -0700
+Message-ID: <200710212350.l9LNoOSl000864@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39146 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41155 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751301AbXJUXvW (ORCPT
+	by vger.kernel.org with ESMTP id S1751188AbXJUXvV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 21 Oct 2007 19:51:22 -0400
+	Sun, 21 Oct 2007 19:51:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, abelay@novell.com, arjan@infradead.org, lenb@kernel.org, mgross@linux.intel.com, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm-qos-infrastructure-and-interface-vs-git-acpi-2
+     pm-qos-infrastructure-and-interface-vs-git-acpi
 has been removed from the -mm tree.  Its filename was
-     pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
+     pm-qos-infrastructure-and-interface-vs-git-acpi.patch
 
 This patch was dropped because it was folded into pm-qos-infrastructure-and-interface.patch
 
 ------------------------------------------------------
-Subject: pm-qos-infrastructure-and-interface-vs-git-acpi-2
+Subject: pm-qos-infrastructure-and-interface-vs-git-acpi
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/cpuidle/governors/menu.c:11:27: error: linux/latency.h: No such file or directory
-drivers/cpuidle/governors/menu.c: In function 'menu_select':
-drivers/cpuidle/governors/menu.c:51: error: implicit declaration of function 'system_latency_constraint'
-drivers/cpuidle/governors/ladder.c:17:27: error: linux/latency.h: No such file or directory
-make[3]: *** [drivers/cpuidle/governors/menu.o] Error 1
-make[3]: *** Waiting for unfinished jobs....
-drivers/cpuidle/governors/ladder.c: In function 'ladder_select_state':
-drivers/cpuidle/governors/ladder.c:84: error: implicit declaration of function 'system_latency_constraint'
+drivers/cpuidle/cpuidle.c:15:27: error: linux/latency.h: No such file or directory
+drivers/cpuidle/cpuidle.c: In function 'cpuidle_init':
+drivers/cpuidle/cpuidle.c:290: error: implicit declaration of function 'register_latency_notifier'
 
 Cc: mark gross <mgross@linux.intel.com>
 Cc: Len Brown <lenb@kernel.org>
@@ -42,53 +37,48 @@ Cc: Adam Belay <abelay@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/governors/ladder.c |    5 +++--
- drivers/cpuidle/governors/menu.c   |    4 ++--
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/cpuidle/cpuidle.c     |    7 +++++--
+ include/linux/pm_qos_params.h |    3 ++-
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN drivers/cpuidle/governors/menu.c~pm-qos-infrastructure-and-interface-vs-git-acpi-2 drivers/cpuidle/governors/menu.c
---- a/drivers/cpuidle/governors/menu.c~pm-qos-infrastructure-and-interface-vs-git-acpi-2
-+++ a/drivers/cpuidle/governors/menu.c
-@@ -8,7 +8,7 @@
- 
- #include <linux/kernel.h>
- #include <linux/cpuidle.h>
+diff -puN drivers/cpuidle/cpuidle.c~pm-qos-infrastructure-and-interface-vs-git-acpi drivers/cpuidle/cpuidle.c
+--- a/drivers/cpuidle/cpuidle.c~pm-qos-infrastructure-and-interface-vs-git-acpi
++++ a/drivers/cpuidle/cpuidle.c
+@@ -12,7 +12,7 @@
+ #include <linux/mutex.h>
+ #include <linux/sched.h>
+ #include <linux/notifier.h>
 -#include <linux/latency.h>
 +#include <linux/pm_qos_params.h>
- #include <linux/time.h>
- #include <linux/ktime.h>
- #include <linux/hrtimer.h>
-@@ -48,7 +48,7 @@ static int menu_select(struct cpuidle_de
- 			break;
- 		if (s->target_residency > data->predicted_us)
- 			break;
--		if (s->exit_latency > system_latency_constraint())
-+		if (s->exit_latency > pm_qos_requirement(PM_QOS_CPUIDLE))
- 			break;
- 	}
- 
-diff -puN drivers/cpuidle/governors/ladder.c~pm-qos-infrastructure-and-interface-vs-git-acpi-2 drivers/cpuidle/governors/ladder.c
---- a/drivers/cpuidle/governors/ladder.c~pm-qos-infrastructure-and-interface-vs-git-acpi-2
-+++ a/drivers/cpuidle/governors/ladder.c
-@@ -14,7 +14,7 @@
- 
- #include <linux/kernel.h>
+ #include <linux/cpu.h>
  #include <linux/cpuidle.h>
--#include <linux/latency.h>
-+#include <linux/pm_qos_params.h>
- #include <linux/moduleparam.h>
- #include <linux/jiffies.h>
  
-@@ -81,7 +81,8 @@ static int ladder_select_state(struct cp
- 	/* consider promotion */
- 	if (last_idx < dev->state_count - 1 &&
- 	    last_residency > last_state->threshold.promotion_time &&
--	    dev->states[last_idx + 1].exit_latency <= system_latency_constraint()) {
-+	    dev->states[last_idx + 1].exit_latency <=
-+			pm_qos_requirement(PM_QOS_CPUIDLE)) {
- 		last_state->stats.promotion_count++;
- 		last_state->stats.demotion_count = 0;
- 		if (last_state->stats.promotion_count >= last_state->threshold.promotion_count) {
+@@ -266,7 +266,10 @@ static struct notifier_block cpuidle_lat
+ 	.notifier_call = cpuidle_latency_notify,
+ };
+ 
+-#define latency_notifier_init(x) do { register_latency_notifier(x); } while (0)
++static inline void latency_notifier_init(struct notifier_block *n)
++{
++        pm_qos_add_notifier(PM_QOS_CPUIDLE, n);
++}
+ 
+ #else /* CONFIG_SMP */
+ 
+diff -puN include/linux/pm_qos_params.h~pm-qos-infrastructure-and-interface-vs-git-acpi include/linux/pm_qos_params.h
+--- a/include/linux/pm_qos_params.h~pm-qos-infrastructure-and-interface-vs-git-acpi
++++ a/include/linux/pm_qos_params.h
+@@ -20,8 +20,9 @@ struct requirement_list {
+ #define PM_QOS_CPU_DMA_LATENCY 1
+ #define PM_QOS_NETWORK_LATENCY 2
+ #define PM_QOS_NETWORK_THROUGHPUT 3
++#define PM_QOS_CPUIDLE 4
+ 
+-#define PM_QOS_NUM_CLASSES 4
++#define PM_QOS_NUM_CLASSES 5
+ #define PM_QOS_DEFAULT_VALUE -1
+ 
+ int pm_qos_add_requirement(int qos, char *name, s32 value);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -126,6 +116,7 @@ fix-x86_64-mm-sched-clock-share.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-vs-git-acpi.patch
 pm-qos-infrastructure-and-interface-vs-git-acpi-2.patch
 pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers-checkpatch-fixes.patch
 deprecate-smbfs-in-favour-of-cifs.patch
