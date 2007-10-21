@@ -1,29 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: - reiser4-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
-Date: Sun, 21 Oct 2007 16:47:37 -0700
-Message-ID: <200710212347.l9LNlbjM000670@imap1.linux-foundation.org>
+Subject: - fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch removed from -mm tree
+Date: Sun, 21 Oct 2007 16:47:30 -0700
+Message-ID: <200710212347.l9LNlUaQ000667@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43567 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48140 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751272AbXJUXsS (ORCPT
+	by vger.kernel.org with ESMTP id S1751291AbXJUXsT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 21 Oct 2007 19:48:18 -0400
+	Sun, 21 Oct 2007 19:48:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: m.kozlowski@tuxland.pl, edward@namesys.com, vs@namesys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiser4: kmalloc + memset conversion to kzalloc
+     fs/reiser4/plugin/file/cryptcompress.c: kmalloc + memset conversion to kzalloc
 has been removed from the -mm tree.  Its filename was
-     reiser4-kmalloc-memset-conversion-to-kzalloc.patch
+     fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
 
 This patch was dropped because it was folded into reiser4.patch
 
 ------------------------------------------------------
-Subject: reiser4: kmalloc + memset conversion to kzalloc
+Subject: fs/reiser4/plugin/file/cryptcompress.c: kmalloc + memset conversion to kzalloc
 From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+
+ fs/reiser4/plugin/file/cryptcompress.c | 101386 -> 101352 (-34 bytes)
+ fs/reiser4/plugin/file/cryptcompress.o | 456784 -> 456644 (-140 bytes)
 
 Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Cc: Edward Shishkin <edward@namesys.com>
@@ -31,31 +34,36 @@ Cc: "Vladimir V. Saveliev" <vs@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/plugin/file/cryptcompress.h |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ fs/reiser4/plugin/file/cryptcompress.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/reiser4/plugin/file/cryptcompress.h~reiser4-kmalloc-memset-conversion-to-kzalloc fs/reiser4/plugin/file/cryptcompress.h
---- a/fs/reiser4/plugin/file/cryptcompress.h~reiser4-kmalloc-memset-conversion-to-kzalloc
-+++ a/fs/reiser4/plugin/file/cryptcompress.h
-@@ -98,10 +98,9 @@ static inline int alloc_ts(struct tfm_st
- 	assert("edward-931", stm);
- 	assert("edward-932", *stm == NULL);
+diff -puN fs/reiser4/plugin/file/cryptcompress.c~fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc fs/reiser4/plugin/file/cryptcompress.c
+--- a/fs/reiser4/plugin/file/cryptcompress.c~fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc
++++ a/fs/reiser4/plugin/file/cryptcompress.c
+@@ -96,13 +96,13 @@ static void set_inode_crypto_info (struc
+ /* allocate a cipher key info */
+ struct reiser4_crypto_info * reiser4_alloc_crypto_info (struct inode * inode)
+ {
+-	struct reiser4_crypto_info * info;
++	struct reiser4_crypto_info *info;
+ 	int fipsize;
  
--	*stm = kmalloc(sizeof **stm, reiser4_ctx_gfp_mask_get());
--	if (*stm == NULL)
-+	*stm = kzalloc(sizeof(**stm), reiser4_ctx_gfp_mask_get());
-+	if (!*stm)
- 		return -ENOMEM;
--	memset(*stm, 0, sizeof **stm);
- 	return 0;
- }
- 
+-	info = kmalloc(sizeof(*info), reiser4_ctx_gfp_mask_get());
++	info = kzalloc(sizeof(*info), reiser4_ctx_gfp_mask_get());
+ 	if (!info)
+ 		return ERR_PTR(-ENOMEM);
+-	memset(info, 0, sizeof (*info));
++
+ 	fipsize = inode_digest_plugin(inode)->fipsize;
+ 	info->keyid = kmalloc(fipsize, reiser4_ctx_gfp_mask_get());
+ 	if (!info->keyid) {
 _
 
 Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
 origin.patch
 reiser4.patch
+fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
 reiser4-kmalloc-memset-conversion-to-kzalloc.patch
 fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
 fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
