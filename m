@@ -1,65 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix.patch added to -mm tree
-Date: Sun, 21 Oct 2007 15:42:14 -0700
-Message-ID: <200710212248.l9LMmhHZ031051@imap1.linux-foundation.org>
+Subject: - kexec-introduce-bootmem_exclusive-fix.patch removed from -mm tree
+Date: Sun, 21 Oct 2007 16:08:42 -0700
+Message-ID: <200710212315.l9LNFBoW031933@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46291 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41274 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750757AbXJUWsu (ORCPT
+	by vger.kernel.org with ESMTP id S1751046AbXJUXPS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 21 Oct 2007 18:48:50 -0400
+	Sun, 21 Oct 2007 19:15:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, y-goto@jp.fujitsu.com
+To: akpm@linux-foundation.org, bwalle@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix
-has been added to the -mm tree.  Its filename is
-     memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix.patch
+     kexec-introduce-bootmem_exclusive-fix
+has been removed from the -mm tree.  Its filename was
+     kexec-introduce-bootmem_exclusive-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix
+Subject: kexec-introduce-bootmem_exclusive-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/slub.c: In function 'kmem_cache_init':
-mm/slub.c:2835: error: 'slab_memory_callback' undeclared (first use in this function)
-mm/slub.c:2835: error: (Each undeclared identifier is reported only once
-mm/slub.c:2835: error: for each function it appears in.)
-
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Bernhard Walle <bwalle@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/x86/mm/init_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix mm/slub.c
-diff -puN include/linux/memory.h~memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix include/linux/memory.h
---- a/include/linux/memory.h~memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic-fix
-+++ a/include/linux/memory.h
-@@ -83,10 +83,14 @@ extern int memory_notify(unsigned long v
- 
- #endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
- 
-+#ifdef CONFIG_MEMORY_HOTPLUG
- #define hotplug_memory_notifier(fn, pri) {			\
- 	static struct notifier_block fn##_mem_nb =		\
- 		{ .notifier_call = fn, .priority = pri };	\
- 	register_memory_notifier(&fn##_mem_nb);			\
- }
-+#else
-+#define hotplug_memory_notifier(fn, pri) do { } while (0)
-+#endif
- 
- #endif /* _LINUX_MEMORY_H_ */
+diff -puN arch/x86/kernel/mpparse_32.c~kexec-introduce-bootmem_exclusive-fix arch/x86/kernel/mpparse_32.c
+diff -puN arch/x86/kernel/setup_32.c~kexec-introduce-bootmem_exclusive-fix arch/x86/kernel/setup_32.c
+diff -puN arch/x86/kernel/setup_64.c~kexec-introduce-bootmem_exclusive-fix arch/x86/kernel/setup_64.c
+diff -puN include/linux/bootmem.h~kexec-introduce-bootmem_exclusive-fix include/linux/bootmem.h
+diff -puN mm/bootmem.c~kexec-introduce-bootmem_exclusive-fix mm/bootmem.c
+diff -puN arch/x86/mm/init_64.c~kexec-introduce-bootmem_exclusive-fix arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~kexec-introduce-bootmem_exclusive-fix
++++ a/arch/x86/mm/init_64.c
+@@ -652,7 +652,7 @@ void __init reserve_bootmem_generic(unsi
+ #ifdef CONFIG_NUMA
+   	reserve_bootmem_node(NODE_DATA(nid), phys, len);
+ #else       		
+-	reserve_bootmem(phys, len);    
++	reserve_bootmem(phys, len, BOOTMEM_DEFAULT);
+ #endif
+ 	if (phys+len <= MAX_DMA_PFN*PAGE_SIZE) {
+ 		dma_reserve += len / PAGE_SIZE;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,5 +63,4 @@ intel-iommu-iova-allocation-and-management-routines.patch
 intel-iommu-intel-iommu-driver.patch
 intel-iommu-iommu-floppy-workaround.patch
 kexec-add-bss-to-resource-tree.patch
-kexec-introduce-bootmem_exclusive.patch
 kexec-introduce-bootmem_exclusive-fix.patch
