@@ -1,96 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - reiser4-fix-extent2tail.patch removed from -mm tree
-Date: Sun, 21 Oct 2007 16:47:01 -0700
-Message-ID: <200710212347.l9LNl1IE000625@imap1.linux-foundation.org>
+Subject: - mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch removed from -mm tree
+Date: Sun, 21 Oct 2007 16:46:56 -0700
+Message-ID: <200710212346.l9LNkubv000619@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59140 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46756 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751104AbXJUXrj (ORCPT
+	by vger.kernel.org with ESMTP id S1751062AbXJUXrj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sun, 21 Oct 2007 19:47:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: edward@namesys.com, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, edward@namesys.com, vs@namesys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiser4: fix extent2tail
+     mm: clean up and kernelify shrinker registration
 has been removed from the -mm tree.  Its filename was
-     reiser4-fix-extent2tail.patch
+     mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
 
 This patch was dropped because it was folded into reiser4.patch
 
 ------------------------------------------------------
-Subject: reiser4: fix extent2tail
-From: Edward Shishkin <edward@namesys.com>
+Subject: mm: clean up and kernelify shrinker registration
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Fixed bug in extent2tail conversion.
+I can never remember what the function to register to receive VM pressure
+is called.  I have to trace down from __alloc_pages() to find it.
 
-Bug description:
-when converting partially converted file
-(with flag REISER4_PART_MIXED installed)
-reiser4_cut_tree() starts to cut old metatada
-from wrong offset. Result is data corruption.
+It's called "set_shrinker()", and it needs Your Help.
 
-Signed-off-by: Edward Shishkin <edward@namesys.com>
+1) Don't hide struct shrinker.  It contains no magic.
+2) Don't allocate "struct shrinker".  It's not helpful.
+3) Call them "register_shrinker" and "unregister_shrinker".
+4) Call the function "shrink" not "shrinker".
+5) Reduce the 17 lines of waffly comments to 13, but document it properly.
+
+The comment in reiser4 makes me a little queasy.
+
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Vladimir Saveliev <vs@namesys.com>
+Cc: Edward Shishkin <edward@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/plugin/file/file.c            |    7 -------
- fs/reiser4/plugin/file/tail_conversion.c |    2 +-
- 2 files changed, 1 insertion(+), 8 deletions(-)
+ fs/reiser4/fsdata.c |   32 ++++++++++++++------------------
+ 1 file changed, 14 insertions(+), 18 deletions(-)
 
-diff -puN fs/reiser4/plugin/file/file.c~reiser4-fix-extent2tail fs/reiser4/plugin/file/file.c
---- a/fs/reiser4/plugin/file/file.c~reiser4-fix-extent2tail
-+++ a/fs/reiser4/plugin/file/file.c
-@@ -194,13 +194,6 @@ static void set_file_state(struct unix_f
- 	assert("vs-1164", level == LEAF_LEVEL || level == TWIG_LEVEL);
+diff -puN fs/reiser4/fsdata.c~mm-clean-up-and-kernelify-shrinker-registration-reiser4 fs/reiser4/fsdata.c
+--- a/fs/reiser4/fsdata.c~mm-clean-up-and-kernelify-shrinker-registration-reiser4
++++ a/fs/reiser4/fsdata.c
+@@ -7,7 +7,6 @@
  
- 	if (uf_info->container == UF_CONTAINER_UNKNOWN) {
--		/*
--		 * container is unknown, therefore conversion can not be in
--		 * progress
--		 */
--		assert("",
--		       !reiser4_inode_get_flag(unix_file_info_to_inode(uf_info),
--					       REISER4_PART_IN_CONV));
- 		if (cbk_result == CBK_COORD_NOTFOUND)
- 			uf_info->container = UF_CONTAINER_EMPTY;
- 		else if (level == LEAF_LEVEL)
-diff -puN fs/reiser4/plugin/file/tail_conversion.c~reiser4-fix-extent2tail fs/reiser4/plugin/file/tail_conversion.c
---- a/fs/reiser4/plugin/file/tail_conversion.c~reiser4-fix-extent2tail
-+++ a/fs/reiser4/plugin/file/tail_conversion.c
-@@ -620,7 +620,7 @@ int extent2tail(struct unix_file_info *u
- 		}
+ /* cache or dir_cursors */
+ static struct kmem_cache *d_cursor_cache;
+-static struct shrinker *d_cursor_shrinker;
  
- 		/* cut part of file we have read */
--		start_byte = (__u64) (i << PAGE_CACHE_SHIFT);
-+		start_byte = (__u64) ((i + start_page) << PAGE_CACHE_SHIFT);
- 		set_key_offset(&from, start_byte);
- 		set_key_offset(&to, start_byte + PAGE_CACHE_SIZE - 1);
- 		/*
+ /* list of unused cursors */
+ static LIST_HEAD(cursor_cache);
+@@ -53,6 +52,18 @@ static int d_cursor_shrink(int nr, gfp_t
+ 	return d_cursor_unused;
+ }
+ 
++/*
++ * actually, d_cursors are "priceless", because there is no way to
++ * recover information stored in them. On the other hand, we don't
++ * want to consume all kernel memory by them. As a compromise, just
++ * assign higher "seeks" value to d_cursor cache, so that it will be
++ * shrunk only if system is really tight on memory.
++ */
++static struct shrinker d_cursor_shrinker = {
++	.shrink = d_cursor_shrink,
++	.seeks = DEFAULT_SEEKS << 3,
++};
++
+ /**
+  * reiser4_init_d_cursor - create d_cursor cache
+  *
+@@ -66,20 +77,7 @@ int reiser4_init_d_cursor(void)
+ 	if (d_cursor_cache == NULL)
+ 		return RETERR(-ENOMEM);
+ 
+-	/*
+-	 * actually, d_cursors are "priceless", because there is no way to
+-	 * recover information stored in them. On the other hand, we don't
+-	 * want to consume all kernel memory by them. As a compromise, just
+-	 * assign higher "seeks" value to d_cursor cache, so that it will be
+-	 * shrunk only if system is really tight on memory.
+-	 */
+-	d_cursor_shrinker = set_shrinker(DEFAULT_SEEKS << 3,
+-					 d_cursor_shrink);
+-	if (d_cursor_shrinker == NULL) {
+-		destroy_reiser4_cache(&d_cursor_cache);
+-		d_cursor_cache = NULL;
+-		return RETERR(-ENOMEM);
+-	}
++	register_shrinker(&d_cursor_shrinker);
+ 	return 0;
+ }
+ 
+@@ -90,9 +88,7 @@ int reiser4_init_d_cursor(void)
+  */
+ void reiser4_done_d_cursor(void)
+ {
+-	BUG_ON(d_cursor_shrinker == NULL);
+-	remove_shrinker(d_cursor_shrinker);
+-	d_cursor_shrinker = NULL;
++	unregister_shrinker(&d_cursor_shrinker);
+ 
+ 	destroy_reiser4_cache(&d_cursor_cache);
+ }
 _
 
-Patches currently in -mm which might be from edward@namesys.com are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
 origin.patch
+update-boot-spec-to-207.patch
+add-weak-for-creating-weak-asm-labels.patch
+i386-paravirt-boot-sequence.patch
+git-kvm.patch
 reiser4.patch
-reiser4-fix-extent2tail.patch
-reiser4-fix-read_tail.patch
-reiser4-fix-unix-file-readpages-filler.patch
-reiser4-fix-readpage_unix_file.patch
-reiser4-fix-for-new-aops-patches.patch
-reiser4-do-not-allocate-struct-file-on-stack.patch
-git-block-vs-reiser4.patch
-reiser4-cryptcompress-misc-fixups.patch
-reiser4-cryptcompress-misc-fixups-2.patch
-reiser4-cryptcompress-misc-fixups-make-3-functions-static.patch
-reiser4-change-error-code-base.patch
-reiser4-use-lzo-library-functions.patch
-fs-reiser4-plugin-file-cryptcompressc-kmalloc-memset-conversion-to-kzalloc.patch
-reiser4-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-init_superc-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-plugin-inode_ops_renamec-kmalloc-memset-conversion-to-kzalloc.patch
-fs-reiser4-ktxnmgrdc-kmalloc-memset-conversion-to-kzalloc.patch
-git-nfsd-broke-reiser4.patch
+mm-clean-up-and-kernelify-shrinker-registration-reiser4.patch
