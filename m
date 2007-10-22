@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-watchdog-src-watchdog-simplec-improve-this-code.patch added to -mm tree
-Date: Mon, 22 Oct 2007 15:02:46 -0700
-Message-ID: <200710222202.l9MM2kGw017190@imap1.linux-foundation.org>
+Subject: + documentation-watchdog-src-watchdog-simplec-improve-this-code-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 22 Oct 2007 15:05:21 -0700
+Message-ID: <200710222205.l9MM5LkK017362@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39753 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48963 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750855AbXJVWCy (ORCPT
+	by vger.kernel.org with ESMTP id S1750876AbXJVWF3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Oct 2007 18:02:54 -0400
+	Mon, 22 Oct 2007 18:05:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com, wim@iguana.be
+Cc: akpm@linux-foundation.org, wim@iguana.be, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     Documentation/watchdog/src/watchdog-simple.c: improve this code
+     documentation-watchdog-src-watchdog-simplec-improve-this-code-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     documentation-watchdog-src-watchdog-simplec-improve-this-code.patch
+     documentation-watchdog-src-watchdog-simplec-improve-this-code-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,54 +26,106 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Documentation/watchdog/src/watchdog-simple.c: improve this code
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: documentation-watchdog-src-watchdog-simplec-improve-this-code-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Make some improvements for Documentation/watchdog/src/watchdog-simple.c.
+ERROR: open brace '{' following function declarations go on the next line
+#21: FILE: Documentation/watchdog/src/watchdog-simple.c:6:
++int main(void) {
 
+total: 1 errors, 0 warnings, 28 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Cc: Wim Van Sebroeck <wim@iguana.be>
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/watchdog/src/watchdog-simple.c |   17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+ Documentation/watchdog/src/watchdog-simple.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/watchdog/src/watchdog-simple.c~documentation-watchdog-src-watchdog-simplec-improve-this-code Documentation/watchdog/src/watchdog-simple.c
---- a/Documentation/watchdog/src/watchdog-simple.c~documentation-watchdog-src-watchdog-simplec-improve-this-code
+diff -puN Documentation/watchdog/src/watchdog-simple.c~documentation-watchdog-src-watchdog-simplec-improve-this-code-checkpatch-fixes Documentation/watchdog/src/watchdog-simple.c
+--- a/Documentation/watchdog/src/watchdog-simple.c~documentation-watchdog-src-watchdog-simplec-improve-this-code-checkpatch-fixes
 +++ a/Documentation/watchdog/src/watchdog-simple.c
-@@ -3,15 +3,24 @@
+@@ -3,7 +3,8 @@
  #include <unistd.h>
  #include <fcntl.h>
  
--int main(int argc, const char *argv[]) {
-+int main(void) {
+-int main(void) {
++int main(void)
++{
  	int fd = open("/dev/watchdog", O_WRONLY);
-+	int ret = 0;
+ 	int ret = 0;
  	if (fd == -1) {
- 		perror("watchdog");
--		exit(1);
-+		exit(EXIT_FAILURE);
- 	}
- 	while (1) {
--		write(fd, "\0", 1);
--		fsync(fd);
-+		ret = write(fd, "\0", 1);
-+		if (ret != 1) {
-+			ret = -1;
-+			break;
-+		}
-+		ret = fsync(fd);
-+		if (ret)
-+			break;
- 		sleep(10);
- 	}
-+	close(fd);
-+	return ret;
- }
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-documentation-watchdog-src-watchdog-simplec-improve-this-code.patch
+memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic.patch
+capabilities-clean-up-file-capability-reading.patch
+ext2-avoid-rec_len-overflow-with-64kb-block-size.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-iommu-floppy-workaround.patch
+kexec-add-bss-to-resource-tree.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-arm-hack.patch
+nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd-fixup.patch
+fix-build-breakage-if-sysfs-fix.patch
+git-scsi-misc.patch
+git-unionfs.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+documentation-watchdog-src-watchdog-simplec-improve-this-code-checkpatch-fixes.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-x86.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+sync_sb_inodes-propagate-errors.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
