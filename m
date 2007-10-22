@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vmalloc-add-const-to-void-parameters.patch added to -mm tree
-Date: Mon, 22 Oct 2007 14:32:19 -0700
-Message-ID: <200710222132.l9MLWJRO016032@imap1.linux-foundation.org>
+Subject: + move-vmalloc_to_page-to-mm-vmalloc.patch added to -mm tree
+Date: Mon, 22 Oct 2007 14:32:16 -0700
+Message-ID: <200710222132.l9MLWGug016029@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58332 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40713 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751178AbXJVVcX (ORCPT
+	by vger.kernel.org with ESMTP id S1750968AbXJVVcU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Oct 2007 17:32:23 -0400
+	Mon, 22 Oct 2007 17:32:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     vmalloc: add const to void* parameters
+     Move vmalloc_to_page() to mm/vmalloc.
 has been added to the -mm tree.  Its filename is
-     vmalloc-add-const-to-void-parameters.patch
+     move-vmalloc_to_page-to-mm-vmalloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,136 +26,147 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vmalloc: add const to void* parameters
+Subject: Move vmalloc_to_page() to mm/vmalloc.
 From: Christoph Lameter <clameter@sgi.com>
 
-Make vmalloc functions work the same way as kfree() and friends that
-take a const void * argument.
+We already have page table manipulation for vmalloc in vmalloc.c. Move the
+vmalloc_to_page() function there as well.
+
+Move the definitions for vmalloc related functions in mm.h to a newly created
+section. A better place would be vmalloc.h but mm.h is basic and may depend
+on these functions. An alternative would be to include vmalloc.h in mm.h (like done
+for vmstat.h).
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h      |    4 ++--
- include/linux/vmalloc.h |    6 +++---
- mm/vmalloc.c            |   16 ++++++++--------
- 3 files changed, 13 insertions(+), 13 deletions(-)
+ include/linux/mm.h |    6 ++++--
+ mm/memory.c        |   40 ----------------------------------------
+ mm/vmalloc.c       |   38 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 42 insertions(+), 42 deletions(-)
 
-diff -puN include/linux/mm.h~vmalloc-add-const-to-void-parameters include/linux/mm.h
---- a/include/linux/mm.h~vmalloc-add-const-to-void-parameters
+diff -puN include/linux/mm.h~move-vmalloc_to_page-to-mm-vmalloc include/linux/mm.h
+--- a/include/linux/mm.h~move-vmalloc_to_page-to-mm-vmalloc
 +++ a/include/linux/mm.h
-@@ -231,8 +231,8 @@ static inline int get_page_unless_zero(s
+@@ -230,6 +230,10 @@ static inline int get_page_unless_zero(s
+ 	return atomic_inc_not_zero(&page->_count);
  }
  
- /* Support for virtually mapped pages */
--struct page *vmalloc_to_page(void *addr);
--unsigned long vmalloc_to_pfn(void *addr);
-+struct page *vmalloc_to_page(const void *addr);
-+unsigned long vmalloc_to_pfn(const void *addr);
- 
++/* Support for virtually mapped pages */
++struct page *vmalloc_to_page(void *addr);
++unsigned long vmalloc_to_pfn(void *addr);
++
  static inline struct page *compound_head(struct page *page)
  {
-diff -puN include/linux/vmalloc.h~vmalloc-add-const-to-void-parameters include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~vmalloc-add-const-to-void-parameters
-+++ a/include/linux/vmalloc.h
-@@ -45,11 +45,11 @@ extern void *vmalloc_32_user(unsigned lo
- extern void *__vmalloc(unsigned long size, gfp_t gfp_mask, pgprot_t prot);
- extern void *__vmalloc_area(struct vm_struct *area, gfp_t gfp_mask,
- 				pgprot_t prot);
--extern void vfree(void *addr);
-+extern void vfree(const void *addr);
+ 	if (unlikely(PageTail(page)))
+@@ -1073,8 +1077,6 @@ static inline unsigned long vma_pages(st
  
- extern void *vmap(struct page **pages, unsigned int count,
- 			unsigned long flags, pgprot_t prot);
--extern void vunmap(void *addr);
-+extern void vunmap(const void *addr);
+ pgprot_t vm_get_page_prot(unsigned long vm_flags);
+ struct vm_area_struct *find_extend_vma(struct mm_struct *, unsigned long addr);
+-struct page *vmalloc_to_page(void *addr);
+-unsigned long vmalloc_to_pfn(void *addr);
+ int remap_pfn_range(struct vm_area_struct *, unsigned long addr,
+ 			unsigned long pfn, unsigned long size, pgprot_t);
+ int vm_insert_page(struct vm_area_struct *, unsigned long addr, struct page *);
+diff -puN mm/memory.c~move-vmalloc_to_page-to-mm-vmalloc mm/memory.c
+--- a/mm/memory.c~move-vmalloc_to_page-to-mm-vmalloc
++++ a/mm/memory.c
+@@ -2612,46 +2612,6 @@ int make_pages_present(unsigned long add
+ 	return ret == len ? 0 : -1;
+ }
  
- extern int remap_vmalloc_range(struct vm_area_struct *vma, void *addr,
- 							unsigned long pgoff);
-@@ -71,7 +71,7 @@ extern struct vm_struct *__get_vm_area(u
- extern struct vm_struct *get_vm_area_node(unsigned long size,
- 					  unsigned long flags, int node,
- 					  gfp_t gfp_mask);
--extern struct vm_struct *remove_vm_area(void *addr);
-+extern struct vm_struct *remove_vm_area(const void *addr);
+-/* 
+- * Map a vmalloc()-space virtual address to the physical page.
+- */
+-struct page * vmalloc_to_page(void * vmalloc_addr)
+-{
+-	unsigned long addr = (unsigned long) vmalloc_addr;
+-	struct page *page = NULL;
+-	pgd_t *pgd = pgd_offset_k(addr);
+-	pud_t *pud;
+-	pmd_t *pmd;
+-	pte_t *ptep, pte;
+-  
+-	if (!pgd_none(*pgd)) {
+-		pud = pud_offset(pgd, addr);
+-		if (!pud_none(*pud)) {
+-			pmd = pmd_offset(pud, addr);
+-			if (!pmd_none(*pmd)) {
+-				ptep = pte_offset_map(pmd, addr);
+-				pte = *ptep;
+-				if (pte_present(pte))
+-					page = pte_page(pte);
+-				pte_unmap(ptep);
+-			}
+-		}
+-	}
+-	return page;
+-}
+-
+-EXPORT_SYMBOL(vmalloc_to_page);
+-
+-/*
+- * Map a vmalloc()-space virtual address to the physical page frame number.
+- */
+-unsigned long vmalloc_to_pfn(void * vmalloc_addr)
+-{
+-	return page_to_pfn(vmalloc_to_page(vmalloc_addr));
+-}
+-
+-EXPORT_SYMBOL(vmalloc_to_pfn);
+-
+ #if !defined(__HAVE_ARCH_GATE_AREA)
  
- extern int map_vm_area(struct vm_struct *area, pgprot_t prot,
- 			struct page ***pages);
-diff -puN mm/vmalloc.c~vmalloc-add-const-to-void-parameters mm/vmalloc.c
---- a/mm/vmalloc.c~vmalloc-add-const-to-void-parameters
+ #if defined(AT_SYSINFO_EHDR)
+diff -puN mm/vmalloc.c~move-vmalloc_to_page-to-mm-vmalloc mm/vmalloc.c
+--- a/mm/vmalloc.c~move-vmalloc_to_page-to-mm-vmalloc
 +++ a/mm/vmalloc.c
-@@ -169,7 +169,7 @@ EXPORT_SYMBOL_GPL(map_vm_area);
- /*
-  * Map a vmalloc()-space virtual address to the physical page.
-  */
--struct page *vmalloc_to_page(void *vmalloc_addr)
-+struct page *vmalloc_to_page(const void *vmalloc_addr)
- {
- 	unsigned long addr = (unsigned long) vmalloc_addr;
- 	struct page *page = NULL;
-@@ -198,7 +198,7 @@ EXPORT_SYMBOL(vmalloc_to_page);
- /*
-  * Map a vmalloc()-space virtual address to the physical page frame number.
-  */
--unsigned long vmalloc_to_pfn(void *vmalloc_addr)
-+unsigned long vmalloc_to_pfn(const void *vmalloc_addr)
- {
- 	return page_to_pfn(vmalloc_to_page(vmalloc_addr));
+@@ -166,6 +166,44 @@ int map_vm_area(struct vm_struct *area, 
  }
-@@ -306,7 +306,7 @@ struct vm_struct *get_vm_area_node(unsig
- }
+ EXPORT_SYMBOL_GPL(map_vm_area);
  
- /* Caller must hold vmlist_lock */
--static struct vm_struct *__find_vm_area(void *addr)
-+static struct vm_struct *__find_vm_area(const void *addr)
- {
- 	struct vm_struct *tmp;
- 
-@@ -319,7 +319,7 @@ static struct vm_struct *__find_vm_area(
- }
- 
- /* Caller must hold vmlist_lock */
--static struct vm_struct *__remove_vm_area(void *addr)
-+static struct vm_struct *__remove_vm_area(const void *addr)
- {
- 	struct vm_struct **p, *tmp;
- 
-@@ -348,7 +348,7 @@ found:
-  *	This function returns the found VM area, but using it is NOT safe
-  *	on SMP machines, except for its size or flags.
-  */
--struct vm_struct *remove_vm_area(void *addr)
-+struct vm_struct *remove_vm_area(const void *addr)
- {
- 	struct vm_struct *v;
- 	write_lock(&vmlist_lock);
-@@ -357,7 +357,7 @@ struct vm_struct *remove_vm_area(void *a
- 	return v;
- }
- 
--static void __vunmap(void *addr, int deallocate_pages)
-+static void __vunmap(const void *addr, int deallocate_pages)
- {
- 	struct vm_struct *area;
- 
-@@ -408,7 +408,7 @@ static void __vunmap(void *addr, int dea
-  *
-  *	Must not be called in interrupt context.
-  */
--void vfree(void *addr)
-+void vfree(const void *addr)
- {
- 	BUG_ON(in_interrupt());
- 	__vunmap(addr, 1);
-@@ -424,7 +424,7 @@ EXPORT_SYMBOL(vfree);
-  *
-  *	Must not be called in interrupt context.
-  */
--void vunmap(void *addr)
-+void vunmap(const void *addr)
- {
- 	BUG_ON(in_interrupt());
- 	__vunmap(addr, 0);
++/*
++ * Map a vmalloc()-space virtual address to the physical page.
++ */
++struct page *vmalloc_to_page(void *vmalloc_addr)
++{
++	unsigned long addr = (unsigned long) vmalloc_addr;
++	struct page *page = NULL;
++	pgd_t *pgd = pgd_offset_k(addr);
++	pud_t *pud;
++	pmd_t *pmd;
++	pte_t *ptep, pte;
++
++	if (!pgd_none(*pgd)) {
++		pud = pud_offset(pgd, addr);
++		if (!pud_none(*pud)) {
++			pmd = pmd_offset(pud, addr);
++			if (!pmd_none(*pmd)) {
++				ptep = pte_offset_map(pmd, addr);
++				pte = *ptep;
++				if (pte_present(pte))
++					page = pte_page(pte);
++				pte_unmap(ptep);
++			}
++		}
++	}
++	return page;
++}
++EXPORT_SYMBOL(vmalloc_to_page);
++
++/*
++ * Map a vmalloc()-space virtual address to the physical page frame number.
++ */
++unsigned long vmalloc_to_pfn(void *vmalloc_addr)
++{
++	return page_to_pfn(vmalloc_to_page(vmalloc_addr));
++}
++EXPORT_SYMBOL(vmalloc_to_pfn);
++
+ static struct vm_struct *__get_vm_area_node(unsigned long size, unsigned long flags,
+ 					    unsigned long start, unsigned long end,
+ 					    int node, gfp_t gfp_mask)
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
