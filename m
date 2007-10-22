@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch added to -mm tree
-Date: Mon, 22 Oct 2007 14:33:55 -0700
-Message-ID: <200710222133.l9MLXtgi016074@imap1.linux-foundation.org>
+Subject: + dentries-extract-common-code-to-remove-dentry-from-lru.patch added to -mm tree
+Date: Mon, 22 Oct 2007 14:34:03 -0700
+Message-ID: <200710222134.l9MLY36Z016111@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40442 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41436 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751339AbXJVVd7 (ORCPT
+	by vger.kernel.org with ESMTP id S1751339AbXJVVeH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Oct 2007 17:33:59 -0400
+	Mon, 22 Oct 2007 17:34:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     SLUB: Consolidate add_partial() and add_partial_tail() to one function
+     dentries: Extract common code to remove dentry from lru
 has been added to the -mm tree.  Its filename is
-     slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
+     dentries-extract-common-code-to-remove-dentry-from-lru.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,131 +26,118 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: Consolidate add_partial() and add_partial_tail() to one function
+Subject: dentries: Extract common code to remove dentry from lru
 From: Christoph Lameter <clameter@sgi.com>
 
-Add a parameter to add_partial instead of having separate functions.  The
-parameter allows a more detailed control of where the slab pages is placed in
-the partial queues.
+Extract the common code to remove a dentry from the lru into a new function
+dentry_lru_remove().
 
-If we put slabs back to the front then they are likely immediately used for
-allocations.  If they are put at the end then we can maximize the time that
-the partial slabs spent without being subject to allocations.
+Two call sites used list_del() instead of list_del_init().  AFAIK the
+performance of both is the same.  dentry_lru_remove() does a list_del_init().
 
-When deactivating slab we can put the slabs that had remote objects freed (we
-can see that because objects were put on the freelist that requires locks) to
-them at the end of the list so that the cachelines of remote processors can
-cool down.  Slabs that had objects from the local cpu freed to them (objects
-exist in the lockless freelist) are put in the front of the list to be reused
-ASAP in order to exploit the cache hot state of the local cpu.
+As a result dentry->d_lru is now always empty when a dentry is freed.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   31 +++++++++++++++----------------
- 1 file changed, 15 insertions(+), 16 deletions(-)
+ fs/dcache.c |   42 ++++++++++++++----------------------------
+ 1 file changed, 14 insertions(+), 28 deletions(-)
 
-diff -puN mm/slub.c~slub-consolidate-add_partial-and-add_partial_tail-to-one-function mm/slub.c
---- a/mm/slub.c~slub-consolidate-add_partial-and-add_partial_tail-to-one-function
-+++ a/mm/slub.c
-@@ -1210,19 +1210,15 @@ static __always_inline int slab_trylock(
- /*
-  * Management of partially allocated slabs
-  */
--static void add_partial_tail(struct kmem_cache_node *n, struct page *page)
-+static void add_partial(struct kmem_cache_node *n,
-+				struct page *page, int tail)
- {
- 	spin_lock(&n->list_lock);
- 	n->nr_partial++;
--	list_add_tail(&page->lru, &n->partial);
--	spin_unlock(&n->list_lock);
--}
--
--static void add_partial(struct kmem_cache_node *n, struct page *page)
--{
--	spin_lock(&n->list_lock);
--	n->nr_partial++;
--	list_add(&page->lru, &n->partial);
-+	if (tail)
-+		list_add_tail(&page->lru, &n->partial);
-+	else
-+		list_add(&page->lru, &n->partial);
- 	spin_unlock(&n->list_lock);
+diff -puN fs/dcache.c~dentries-extract-common-code-to-remove-dentry-from-lru fs/dcache.c
+--- a/fs/dcache.c~dentries-extract-common-code-to-remove-dentry-from-lru
++++ a/fs/dcache.c
+@@ -95,6 +95,14 @@ static void d_free(struct dentry *dentry
+ 		call_rcu(&dentry->d_u.d_rcu, d_callback);
  }
  
-@@ -1351,7 +1347,7 @@ static struct page *get_partial(struct k
-  *
-  * On exit the slab lock will have been dropped.
-  */
--static void unfreeze_slab(struct kmem_cache *s, struct page *page)
-+static void unfreeze_slab(struct kmem_cache *s, struct page *page, int tail)
- {
- 	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
- 
-@@ -1359,7 +1355,7 @@ static void unfreeze_slab(struct kmem_ca
- 	if (page->inuse) {
- 
- 		if (page->freelist)
--			add_partial(n, page);
-+			add_partial(n, page, tail);
- 		else if (SlabDebug(page) && (s->flags & SLAB_STORE_USER))
- 			add_full(n, page);
- 		slab_unlock(page);
-@@ -1374,7 +1370,7 @@ static void unfreeze_slab(struct kmem_ca
- 			 * partial list stays small. kmem_cache_shrink can
- 			 * reclaim empty slabs from the partial list.
- 			 */
--			add_partial_tail(n, page);
-+			add_partial(n, page, 1);
- 			slab_unlock(page);
- 		} else {
- 			slab_unlock(page);
-@@ -1389,6 +1385,7 @@ static void unfreeze_slab(struct kmem_ca
- static void deactivate_slab(struct kmem_cache *s, struct kmem_cache_cpu *c)
- {
- 	struct page *page = c->page;
-+	int tail = 1;
- 	/*
- 	 * Merge cpu freelist into freelist. Typically we get here
- 	 * because both freelists are empty. So this is unlikely
-@@ -1397,6 +1394,8 @@ static void deactivate_slab(struct kmem_
- 	while (unlikely(c->freelist)) {
- 		void **object;
- 
-+		tail = 0;	/* Hot objects. Put the slab first */
++static void dentry_lru_remove(struct dentry *dentry)
++{
++	if (!list_empty(&dentry->d_lru)) {
++		list_del_init(&dentry->d_lru);
++		dentry_stat.nr_unused--;
++	}
++}
 +
- 		/* Retrieve object from cpu_freelist */
- 		object = c->freelist;
- 		c->freelist = c->freelist[c->offset];
-@@ -1407,7 +1406,7 @@ static void deactivate_slab(struct kmem_
- 		page->inuse--;
- 	}
- 	c->page = NULL;
--	unfreeze_slab(s, page);
-+	unfreeze_slab(s, page, tail);
+ /*
+  * Release the dentry's inode, using the filesystem
+  * d_iput() operation if defined.
+@@ -211,13 +219,7 @@ repeat:
+ unhash_it:
+ 	__d_drop(dentry);
+ kill_it:
+-	/* If dentry was on d_lru list
+-	 * delete it from there
+-	 */
+-	if (!list_empty(&dentry->d_lru)) {
+-		list_del(&dentry->d_lru);
+-		dentry_stat.nr_unused--;
+-	}
++	dentry_lru_remove(dentry);
+ 	dentry = d_kill(dentry);
+ 	if (dentry)
+ 		goto repeat;
+@@ -285,10 +287,7 @@ int d_invalidate(struct dentry * dentry)
+ static inline struct dentry * __dget_locked(struct dentry *dentry)
+ {
+ 	atomic_inc(&dentry->d_count);
+-	if (!list_empty(&dentry->d_lru)) {
+-		dentry_stat.nr_unused--;
+-		list_del_init(&dentry->d_lru);
+-	}
++	dentry_lru_remove(dentry);
+ 	return dentry;
  }
  
- static inline void flush_slab(struct kmem_cache *s, struct kmem_cache_cpu *c)
-@@ -1647,7 +1646,7 @@ checks_ok:
- 	 * then add it.
- 	 */
- 	if (unlikely(!prior))
--		add_partial(get_node(s, page_to_nid(page)), page);
-+		add_partial(get_node(s, page_to_nid(page)), page, 0);
+@@ -404,10 +403,7 @@ static void prune_one_dentry(struct dent
  
- out_unlock:
- 	slab_unlock(page);
-@@ -2055,7 +2054,7 @@ static struct kmem_cache_node *early_kme
- #endif
- 	init_kmem_cache_node(n);
- 	atomic_long_inc(&n->nr_slabs);
--	add_partial(n, page);
-+	add_partial(n, page, 0);
- 	return n;
- }
+ 		if (dentry->d_op && dentry->d_op->d_delete)
+ 			dentry->d_op->d_delete(dentry);
+-		if (!list_empty(&dentry->d_lru)) {
+-			list_del(&dentry->d_lru);
+-			dentry_stat.nr_unused--;
+-		}
++		dentry_lru_remove(dentry);
+ 		__d_drop(dentry);
+ 		dentry = d_kill(dentry);
+ 		spin_lock(&dcache_lock);
+@@ -596,10 +592,7 @@ static void shrink_dcache_for_umount_sub
  
+ 	/* detach this root from the system */
+ 	spin_lock(&dcache_lock);
+-	if (!list_empty(&dentry->d_lru)) {
+-		dentry_stat.nr_unused--;
+-		list_del_init(&dentry->d_lru);
+-	}
++	dentry_lru_remove(dentry);
+ 	__d_drop(dentry);
+ 	spin_unlock(&dcache_lock);
+ 
+@@ -613,11 +606,7 @@ static void shrink_dcache_for_umount_sub
+ 			spin_lock(&dcache_lock);
+ 			list_for_each_entry(loop, &dentry->d_subdirs,
+ 					    d_u.d_child) {
+-				if (!list_empty(&loop->d_lru)) {
+-					dentry_stat.nr_unused--;
+-					list_del_init(&loop->d_lru);
+-				}
+-
++				dentry_lru_remove(dentry);
+ 				__d_drop(loop);
+ 				cond_resched_lock(&dcache_lock);
+ 			}
+@@ -799,10 +788,7 @@ resume:
+ 		struct dentry *dentry = list_entry(tmp, struct dentry, d_u.d_child);
+ 		next = tmp->next;
+ 
+-		if (!list_empty(&dentry->d_lru)) {
+-			dentry_stat.nr_unused--;
+-			list_del_init(&dentry->d_lru);
+-		}
++		dentry_lru_remove(dentry);
+ 		/* 
+ 		 * move only zero ref count dentries to the end 
+ 		 * of the unused list for prune_dcache
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
