@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vm-allow-get_page_unless_zero-on-compound-pages.patch added to -mm tree
-Date: Mon, 22 Oct 2007 14:33:58 -0700
-Message-ID: <200710222134.l9MLY1mN016077@imap1.linux-foundation.org>
+Subject: + bufferhead-revert-constructor-removal-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 22 Oct 2007 14:34:47 -0700
+Message-ID: <200710222134.l9MLYl4Z016131@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37242 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48487 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751328AbXJVVeE (ORCPT
+	by vger.kernel.org with ESMTP id S1751271AbXJVVew (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Oct 2007 17:34:04 -0400
+	Mon, 22 Oct 2007 17:34:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: akpm@linux-foundation.org, clameter@sgi.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     VM: Allow get_page_unless_zero on compound pages
+     bufferhead-revert-constructor-removal-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     vm-allow-get_page_unless_zero-on-compound-pages.patch
+     bufferhead-revert-constructor-removal-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,68 +26,106 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: VM: Allow get_page_unless_zero on compound pages
-From: Christoph Lameter <clameter@sgi.com>
+Subject: bufferhead-revert-constructor-removal-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Both slab defrag and the large blocksize patches need to ability to take
-refcounts on compound pages.  May be useful in other places as well.
+ERROR: "foo * bar" should be "foo *bar"
+#34: FILE: fs/buffer.c:3203:
++	struct buffer_head * bh = (struct buffer_head *)data;
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+total: 1 errors, 0 warnings, 34 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+(also, remove unneeded cast-of-void*)
+
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
+ fs/buffer.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~vm-allow-get_page_unless_zero-on-compound-pages include/linux/mm.h
---- a/include/linux/mm.h~vm-allow-get_page_unless_zero-on-compound-pages
-+++ a/include/linux/mm.h
-@@ -226,7 +226,7 @@ static inline int put_page_testzero(stru
-  */
- static inline int get_page_unless_zero(struct page *page)
+diff -puN fs/buffer.c~bufferhead-revert-constructor-removal-checkpatch-fixes fs/buffer.c
+--- a/fs/buffer.c~bufferhead-revert-constructor-removal-checkpatch-fixes
++++ a/fs/buffer.c
+@@ -3200,7 +3200,7 @@ static int buffer_cpu_notify(struct noti
+ static void
+ init_buffer_head(struct kmem_cache *cachep, void *data)
  {
--	VM_BUG_ON(PageCompound(page));
-+	VM_BUG_ON(PageTail(page));
- 	return atomic_inc_not_zero(&page->_count);
- }
+-	struct buffer_head * bh = (struct buffer_head *)data;
++	struct buffer_head *bh = data;
  
+ 	memset(bh, 0, sizeof(*bh));
+ 	INIT_LIST_HEAD(&bh->b_assoc_buffers);
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-intel-iommu-dmar-detection-and-parsing-logic.patch
+memory-hotplug-make-kmem_cache_node-for-slub-on-memory-online-avoid-panic.patch
+capabilities-clean-up-file-capability-reading.patch
+ext2-avoid-rec_len-overflow-with-64kb-block-size.patch
 intel-iommu-pci-generic-helper-function.patch
-intel-iommu-clflush_cache_range-now-takes-size-param.patch
 intel-iommu-iova-allocation-and-management-routines.patch
 intel-iommu-intel-iommu-driver.patch
-intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
-intel-iommu-intel-iommu-cmdline-option-forcedac.patch
-intel-iommu-dmar-fault-handling-support.patch
-intel-iommu-iommu-gfx-workaround.patch
 intel-iommu-iommu-floppy-workaround.patch
-mem-policy-fix-mempolicy-usage-in-pci-driver.patch
+kexec-add-bss-to-resource-tree.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-arm-hack.patch
+nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd-fixup.patch
+fix-build-breakage-if-sysfs-fix.patch
+git-scsi-misc.patch
+git-unionfs.patch
+security-convert-lsm-into-a-static-interface-fix-unionfs.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+git-wireless.patch
+git-wireless-fixup.patch
 git-x86.patch
-slub-avoid-atomic-operation-for-slab_unlock.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
-move-vmalloc_to_page-to-mm-vmalloc.patch
-vmalloc-add-const-to-void-parameters.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
 i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
-vmalloc-clean-up-page-array-indexing.patch
-vunmap-return-page-array-passed-on-vmap.patch
-slub-move-count_partial.patch
-slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
-slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
-vm-allow-get_page_unless_zero-on-compound-pages.patch
-dentries-extract-common-code-to-remove-dentry-from-lru.patch
-bufferhead-revert-constructor-removal.patch
-revoke-core-code.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+sync_sb_inodes-propagate-errors.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
 memcontrol-move-oom-task-exclusion-to-tasklist.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
 page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
