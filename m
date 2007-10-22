@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-path_release_on_umount.patch added to -mm tree
-Date: Mon, 22 Oct 2007 15:49:46 -0700
-Message-ID: <200710222249.l9MMnkCM019838@imap1.linux-foundation.org>
+Subject: + dont-touch-fs_struct-in-usermodehelper.patch added to -mm tree
+Date: Mon, 22 Oct 2007 15:49:44 -0700
+Message-ID: <200710222249.l9MMniHN019835@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53577 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41489 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751156AbXJVWuD (ORCPT
+	by vger.kernel.org with ESMTP id S1750944AbXJVWt7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Oct 2007 18:50:03 -0400
+	Mon, 22 Oct 2007 18:49:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jblunck@suse.de, bharata@linux.vnet.ibm.com, hch@lst.de
+Cc: jblunck@suse.de, agruen@suse.de, bharata@linux.vnet.ibm.com, hch@lst.de
 
 
 The patch titled
-     Remove path_release_on_umount()
+     Don't touch fs_struct in usermodehelper
 has been added to the -mm tree.  Its filename is
-     remove-path_release_on_umount.patch
+     dont-touch-fs_struct-in-usermodehelper.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,68 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remove path_release_on_umount()
+Subject: Don't touch fs_struct in usermodehelper
 From: Jan Blunck <jblunck@suse.de>
 
-path_release_on_umount() should only be called from sys_umount().  I merged
-the function into sys_umount() instead of having in in namei.c.
+This test seems to be unnecessary since we always have rootfs mounted before
+calling a usermodehelper.
 
+Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
 Signed-off-by: Jan Blunck <jblunck@suse.de>
 Signed-off-by: Bharata B Rao <bharata@linux.vnet.ibm.com>
 Acked-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c            |   10 ----------
- fs/namespace.c        |    4 +++-
- include/linux/namei.h |    1 -
- 3 files changed, 3 insertions(+), 12 deletions(-)
+ kernel/kmod.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN fs/namei.c~remove-path_release_on_umount fs/namei.c
---- a/fs/namei.c~remove-path_release_on_umount
-+++ a/fs/namei.c
-@@ -368,16 +368,6 @@ void path_release(struct nameidata *nd)
- 	mntput(nd->mnt);
- }
+diff -puN kernel/kmod.c~dont-touch-fs_struct-in-usermodehelper kernel/kmod.c
+--- a/kernel/kmod.c~dont-touch-fs_struct-in-usermodehelper
++++ a/kernel/kmod.c
+@@ -173,10 +173,7 @@ static int ____call_usermodehelper(void 
+ 	 */
+ 	set_user_nice(current, 0);
  
--/*
-- * umount() mustn't call path_release()/mntput() as that would clear
-- * mnt_expiry_mark
-- */
--void path_release_on_umount(struct nameidata *nd)
--{
--	dput(nd->dentry);
--	mntput_no_expire(nd->mnt);
--}
--
- /**
-  * release_open_intent - free up open intent resources
-  * @nd: pointer to nameidata
-diff -puN fs/namespace.c~remove-path_release_on_umount fs/namespace.c
---- a/fs/namespace.c~remove-path_release_on_umount
-+++ a/fs/namespace.c
-@@ -991,7 +991,9 @@ asmlinkage long sys_umount(char __user *
+-	retval = -EPERM;
+-	if (current->fs->root)
+-		retval = kernel_execve(sub_info->path,
+-				sub_info->argv, sub_info->envp);
++	retval = kernel_execve(sub_info->path, sub_info->argv, sub_info->envp);
  
- 	retval = do_umount(nd.mnt, flags);
- dput_and_out:
--	path_release_on_umount(&nd);
-+	/* we mustn't call path_put() as that would clear mnt_expiry_mark */
-+	dput(nd.dentry);
-+	mntput_no_expire(nd.mnt);
- out:
- 	return retval;
- }
-diff -puN include/linux/namei.h~remove-path_release_on_umount include/linux/namei.h
---- a/include/linux/namei.h~remove-path_release_on_umount
-+++ a/include/linux/namei.h
-@@ -73,7 +73,6 @@ extern int FASTCALL(path_lookup(const ch
- extern int vfs_path_lookup(struct dentry *, struct vfsmount *,
- 			   const char *, unsigned int, struct nameidata *);
- extern void path_release(struct nameidata *);
--extern void path_release_on_umount(struct nameidata *);
- 
- extern int __user_path_lookup_open(const char __user *, unsigned lookup_flags, struct nameidata *nd, int open_flags);
- extern int path_lookup_open(int dfd, const char *name, unsigned lookup_flags, struct nameidata *, int open_flags);
+ 	/* Exec failed? */
+ 	sub_info->retval = retval;
 _
 
 Patches currently in -mm which might be from jblunck@suse.de are
