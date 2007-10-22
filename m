@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-mprotect-vma_wants_writenotify-prot.patch added to -mm tree
-Date: Mon, 22 Oct 2007 11:59:01 -0700
-Message-ID: <200710221859.l9MIx1di008454@imap1.linux-foundation.org>
+Subject: + appletalk-fix-sysctl-warnings.patch added to -mm tree
+Date: Mon, 22 Oct 2007 12:11:25 -0700
+Message-ID: <200710221911.l9MJBPQD009015@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39524 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58383 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753014AbXJVS7K (ORCPT
+	by vger.kernel.org with ESMTP id S1752481AbXJVTLa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Oct 2007 14:59:10 -0400
+	Mon, 22 Oct 2007 15:11:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, coyli@suse.de, tony.luck@intel.com
+Cc: ebiederm@xmission.com, davem@davemloft.net, nix.or.die@googlemail.com
 
 
 The patch titled
-     fix mprotect vma_wants_writenotify prot
+     appletalk: fix sysctl warnings
 has been added to the -mm tree.  Its filename is
-     fix-mprotect-vma_wants_writenotify-prot.patch
+     appletalk-fix-sysctl-warnings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,62 +26,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix mprotect vma_wants_writenotify prot
-From: Hugh Dickins <hugh@veritas.com>
+Subject: appletalk: fix sysctl warnings
+From: "Eric W. Biederman" <ebiederm@xmission.com>
 
-Fix mprotect bug in recent commit 3ed75eb8f1cd89565966599c4f77d2edb086d5b0
-(setup vma->vm_page_prot by vm_get_page_prot()): the vma_wants_writenotify
-case was setting the same prot as when not.
+modprobing appletalk on current git gives a warning in dmesg =:
 
-Nothing wrong with the use of protection_map[] in mmap_region(),
-but use vm_get_page_prot() there too in the same ~VM_SHARED way.
+sysctl table check failed: /net/appletalk .3.7 procname does not match binary path procname
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Coly Li <coyli@suse.de>
-Cc: Tony Luck <tony.luck@intel.com>
+It appears I made a mistake when creating my table to check up on sysctl
+values.
+
+Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Gabriel C <nix.or.die@googlemail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c     |    3 +--
- mm/mprotect.c |    2 +-
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ kernel/sysctl_check.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mmap.c~fix-mprotect-vma_wants_writenotify-prot mm/mmap.c
---- a/mm/mmap.c~fix-mprotect-vma_wants_writenotify-prot
-+++ a/mm/mmap.c
-@@ -1171,8 +1171,7 @@ munmap_back:
- 	vm_flags = vma->vm_flags;
- 
- 	if (vma_wants_writenotify(vma))
--		vma->vm_page_prot =
--			protection_map[vm_flags & (VM_READ|VM_WRITE|VM_EXEC)];
-+		vma->vm_page_prot = vm_get_page_prot(vm_flags & ~VM_SHARED);
- 
- 	if (!file || !vma_merge(mm, prev, addr, vma->vm_end,
- 			vma->vm_flags, NULL, file, pgoff, vma_policy(vma))) {
-diff -puN mm/mprotect.c~fix-mprotect-vma_wants_writenotify-prot mm/mprotect.c
---- a/mm/mprotect.c~fix-mprotect-vma_wants_writenotify-prot
-+++ a/mm/mprotect.c
-@@ -194,7 +194,7 @@ success:
- 	vma->vm_flags = newflags;
- 	vma->vm_page_prot = vm_get_page_prot(newflags);
- 	if (vma_wants_writenotify(vma)) {
--		vma->vm_page_prot = vm_get_page_prot(newflags);
-+		vma->vm_page_prot = vm_get_page_prot(newflags & ~VM_SHARED);
- 		dirty_accountable = 1;
- 	}
- 
+diff -puN kernel/sysctl_check.c~appletalk-fix-sysctl-warnings kernel/sysctl_check.c
+--- a/kernel/sysctl_check.c~appletalk-fix-sysctl-warnings
++++ a/kernel/sysctl_check.c
+@@ -731,7 +731,7 @@ static struct trans_ctl_table trans_net_
+ 	{ NET_UNIX,		"unix",		trans_net_unix_table },
+ 	{ NET_IPV4,		"ipv4",		trans_net_ipv4_table },
+ 	{ NET_IPX,		"ipx",		trans_net_ipx_table },
+-	{ NET_ATALK,		"atalk",	trans_net_atalk_table },
++	{ NET_ATALK,		"appletalk",	trans_net_atalk_table },
+ 	{ NET_NETROM,		"netrom",	trans_net_netrom_table },
+ 	{ NET_AX25,		"ax25",		trans_net_ax25_table },
+ 	{ NET_BRIDGE,		"bridge",	trans_net_bridge_table },
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
 origin.patch
-exportfs-add-fid-type.patch
-exportfs-add-new-methods.patch
-shmem-new-export-ops.patch
-exportfs-remove-old-methods.patch
-exportfs-make-struct-export_operations-const.patch
-exportfs-update-documentation.patch
-fix-mprotect-vma_wants_writenotify-prot.patch
+update-boot-spec-to-207.patch
+i386-paravirt-boot-sequence.patch
+kexec-add-bss-to-resource-tree.patch
+appletalk-fix-sysctl-warnings.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
 memory-controller-memory-accounting-v7.patch
-prio_tree-debugging-patch.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
