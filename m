@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + swapin_readahead-excise-numa-bogosity.patch added to -mm tree
-Date: Mon, 22 Oct 2007 15:13:34 -0700
-Message-ID: <200710222213.l9MMDYKh017634@imap1.linux-foundation.org>
+Subject: + shmem-sgp_quick-and-sgp_fault-redundant.patch added to -mm tree
+Date: Mon, 22 Oct 2007 15:13:43 -0700
+Message-ID: <200710222213.l9MMDhmc017643@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60502 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34723 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751029AbXJVWO2 (ORCPT
+	by vger.kernel.org with ESMTP id S1751402AbXJVWOb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Oct 2007 18:14:28 -0400
+	Mon, 22 Oct 2007 18:14:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, ak@suse.de, clameter@sgi.com, riel@redhat.com
+Cc: hugh@veritas.com, riel@redhat.com
 
 
 The patch titled
-     swapin_readahead: excise NUMA bogosity
+     shmem: SGP_QUICK and SGP_FAULT redundant
 has been added to the -mm tree.  Its filename is
-     swapin_readahead-excise-numa-bogosity.patch
+     shmem-sgp_quick-and-sgp_fault-redundant.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,186 +26,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: swapin_readahead: excise NUMA bogosity
+Subject: shmem: SGP_QUICK and SGP_FAULT redundant
 From: Hugh Dickins <hugh@veritas.com>
 
-For three years swapin_readahead has been cluttered with fanciful CONFIG_NUMA
-code, advancing addr, and stepping on to the next vma at the boundary, to line
-up the mempolicy for each page allocation.
-
-It _might_ be a good idea to allocate swap more according to vma layout; but
-the fact is, that's not how we do it at all, 2.6 even less than 2.4: swap is
-allocated as needed for pages as they sink to the bottom of the inactive LRUs.
- Sometimes that may match vma layout, but not so often that it's worth going
-to these misleading vma->vm_next lengths: rip all that out.
-
-Originally I intended to retain the incrementation of addr, but correct its
-initial value: valid_swaphandles generally supplies an offset below the target
-addr (this is readaround rather than readahead), but addr has not been
-adjusted accordingly, so in the interleave case it has usually been allocating
-the target page from the "wrong" node (though that may not matter very much).
-
-But look at the equivalent shmem_swapin code: either by oversight or by
-design, though it has all the apparatus for choosing a new mempolicy per page,
-it uses the same idx throughout, choosing the same mempolicy and interleave
-node for each page of the cluster.
-
-Which is actually a much better strategy: each node has its own LRUs and its
-own kswapd, so if you're betting on any particular relationship between swap
-and node, the best bet is that nearby swap entries belong to pages from the
-same node - even when the mempolicy of the target page is to interleave.  And
-examining a map of nodes corresponding to swap entries on a numa=fake system
-bears this out.  (We could later tweak swap allocation to make it even more
-likely, but this patch is merely about removing cruft.)
-
-So, neither adjust nor increment addr in swapin_readahead, and then
-shmem_swapin can use it too; the pseudo-vma to pass policy need only be set up
-once per cluster, and so few fields of pvma are used, let's skip the memset -
-from shmem_alloc_page also.
+Remove SGP_QUICK from the sgp_type enum: it was for shmem_populate and has no
+users now.  Remove SGP_FAULT from the enum: SGP_CACHE does just as well (and
+shmem_getpage is about to return with page always locked).
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   47 ++++++++++++++---------------------------------
- mm/shmem.c  |   43 ++++++++++++-------------------------------
- 2 files changed, 26 insertions(+), 64 deletions(-)
+ mm/shmem.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN mm/memory.c~swapin_readahead-excise-numa-bogosity mm/memory.c
---- a/mm/memory.c~swapin_readahead-excise-numa-bogosity
-+++ a/mm/memory.c
-@@ -1995,45 +1995,26 @@ int vmtruncate_range(struct inode *inode
-  */
- void swapin_readahead(swp_entry_t entry, unsigned long addr,struct vm_area_struct *vma)
- {
--#ifdef CONFIG_NUMA
--	struct vm_area_struct *next_vma = vma ? vma->vm_next : NULL;
--#endif
--	int i, num;
--	struct page *new_page;
-+	int nr_pages;
-+	struct page *page;
- 	unsigned long offset;
-+	unsigned long end_offset;
- 
- 	/*
--	 * Get the number of handles we should do readahead io to.
-+	 * Get starting offset for readaround, and number of pages to read.
-+	 * Adjust starting address by readbehind (for NUMA interleave case)?
-+	 * No, it's very unlikely that swap layout would follow vma layout,
-+	 * more likely that neighbouring swap pages came from the same node:
-+	 * so use the same "addr" to choose the same node for each swap read.
- 	 */
--	num = valid_swaphandles(entry, &offset);
--	for (i = 0; i < num; offset++, i++) {
-+	nr_pages = valid_swaphandles(entry, &offset);
-+	for (end_offset = offset + nr_pages; offset < end_offset; offset++) {
- 		/* Ok, do the async read-ahead now */
--		new_page = read_swap_cache_async(swp_entry(swp_type(entry),
--							   offset), vma, addr);
--		if (!new_page)
-+		page = read_swap_cache_async(swp_entry(swp_type(entry), offset),
-+						vma, addr);
-+		if (!page)
- 			break;
--		page_cache_release(new_page);
--#ifdef CONFIG_NUMA
--		/*
--		 * Find the next applicable VMA for the NUMA policy.
--		 */
--		addr += PAGE_SIZE;
--		if (addr == 0)
--			vma = NULL;
--		if (vma) {
--			if (addr >= vma->vm_end) {
--				vma = next_vma;
--				next_vma = vma ? vma->vm_next : NULL;
--			}
--			if (vma && addr < vma->vm_start)
--				vma = NULL;
--		} else {
--			if (next_vma && addr >= next_vma->vm_start) {
--				vma = next_vma;
--				next_vma = vma->vm_next;
--			}
--		}
--#endif
-+		page_cache_release(page);
- 	}
- 	lru_add_drain();	/* Push any new pages onto the LRU now */
- }
-diff -puN mm/shmem.c~swapin_readahead-excise-numa-bogosity mm/shmem.c
---- a/mm/shmem.c~swapin_readahead-excise-numa-bogosity
+diff -puN mm/shmem.c~shmem-sgp_quick-and-sgp_fault-redundant mm/shmem.c
+--- a/mm/shmem.c~shmem-sgp_quick-and-sgp_fault-redundant
 +++ a/mm/shmem.c
-@@ -1010,53 +1010,34 @@ out:
- 	return err;
- }
+@@ -78,11 +78,9 @@
  
--static struct page *shmem_swapin_async(struct shared_policy *p,
-+static struct page *shmem_swapin(struct shmem_inode_info *info,
- 				       swp_entry_t entry, unsigned long idx)
- {
--	struct page *page;
- 	struct vm_area_struct pvma;
-+	struct page *page;
+ /* Flag allocation requirements to shmem_getpage and shmem_swp_alloc */
+ enum sgp_type {
+-	SGP_QUICK,	/* don't try more than file page cache lookup */
+ 	SGP_READ,	/* don't exceed i_size, don't allocate page */
+ 	SGP_CACHE,	/* don't exceed i_size, may allocate page */
+ 	SGP_WRITE,	/* may exceed i_size, may allocate page */
+-	SGP_FAULT,	/* same as SGP_CACHE, return with page locked */
+ };
  
- 	/* Create a pseudo vma that just contains the policy */
--	memset(&pvma, 0, sizeof(struct vm_area_struct));
--	pvma.vm_end = PAGE_SIZE;
-+	pvma.vm_start = 0;
- 	pvma.vm_pgoff = idx;
--	pvma.vm_policy = mpol_shared_policy_lookup(p, idx);
-+	pvma.vm_ops = NULL;
-+	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, idx);
-+	swapin_readahead(entry, 0, &pvma);
- 	page = read_swap_cache_async(entry, &pvma, 0);
- 	mpol_free(pvma.vm_policy);
- 	return page;
- }
+ static int shmem_getpage(struct inode *inode, unsigned long idx,
+@@ -1101,8 +1099,6 @@ repeat:
+ 	if (filepage && PageUptodate(filepage))
+ 		goto done;
+ 	error = 0;
+-	if (sgp == SGP_QUICK)
+-		goto failed;
+ 	gfp = mapping_gfp_mask(mapping);
  
--static struct page *shmem_swapin(struct shmem_inode_info *info,
--				 swp_entry_t entry, unsigned long idx)
--{
--	struct shared_policy *p = &info->policy;
--	int i, num;
--	struct page *page;
--	unsigned long offset;
--
--	num = valid_swaphandles(entry, &offset);
--	for (i = 0; i < num; offset++, i++) {
--		page = shmem_swapin_async(p,
--				swp_entry(swp_type(entry), offset), idx);
--		if (!page)
--			break;
--		page_cache_release(page);
--	}
--	lru_add_drain();	/* Push any new pages onto the LRU now */
--	return shmem_swapin_async(p, entry, idx);
--}
--
--static struct page *
--shmem_alloc_page(gfp_t gfp, struct shmem_inode_info *info,
--		 unsigned long idx)
-+static struct page *shmem_alloc_page(gfp_t gfp, struct shmem_inode_info *info,
-+					unsigned long idx)
- {
- 	struct vm_area_struct pvma;
- 	struct page *page;
+ 	spin_lock(&info->lock);
+@@ -1276,7 +1272,7 @@ repeat:
+ done:
+ 	if (*pagep != filepage) {
+ 		*pagep = filepage;
+-		if (sgp != SGP_FAULT)
++		if (sgp != SGP_CACHE)
+ 			unlock_page(filepage);
  
--	memset(&pvma, 0, sizeof(struct vm_area_struct));
--	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, idx);
-+	/* Create a pseudo vma that just contains the policy */
-+	pvma.vm_start = 0;
- 	pvma.vm_pgoff = idx;
--	pvma.vm_end = PAGE_SIZE;
-+	pvma.vm_ops = NULL;
-+	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, idx);
- 	page = alloc_page_vma(gfp | __GFP_ZERO, &pvma, 0);
- 	mpol_free(pvma.vm_policy);
- 	return page;
+ 	}
+@@ -1299,7 +1295,7 @@ static int shmem_fault(struct vm_area_st
+ 	if (((loff_t)vmf->pgoff << PAGE_CACHE_SHIFT) >= i_size_read(inode))
+ 		return VM_FAULT_SIGBUS;
+ 
+-	error = shmem_getpage(inode, vmf->pgoff, &vmf->page, SGP_FAULT, &ret);
++	error = shmem_getpage(inode, vmf->pgoff, &vmf->page, SGP_CACHE, &ret);
+ 	if (error)
+ 		return ((error == -ENOMEM) ? VM_FAULT_OOM : VM_FAULT_SIGBUS);
+ 
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
