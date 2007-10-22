@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + swapin_readahead-move-and-rearrange-args.patch added to -mm tree
-Date: Mon, 22 Oct 2007 15:13:37 -0700
-Message-ID: <200710222213.l9MMDbIx017637@imap1.linux-foundation.org>
+Subject: + swapin_readahead-excise-numa-bogosity.patch added to -mm tree
+Date: Mon, 22 Oct 2007 15:13:34 -0700
+Message-ID: <200710222213.l9MMDYKh017634@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47264 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60502 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751146AbXJVWOX (ORCPT
+	by vger.kernel.org with ESMTP id S1751029AbXJVWO2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Oct 2007 18:14:23 -0400
+	Mon, 22 Oct 2007 18:14:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, riel@redhat.com
+Cc: hugh@veritas.com, ak@suse.de, clameter@sgi.com, riel@redhat.com
 
 
 The patch titled
-     swapin_readahead: move and rearrange args
+     swapin_readahead: excise NUMA bogosity
 has been added to the -mm tree.  Its filename is
-     swapin_readahead-move-and-rearrange-args.patch
+     swapin_readahead-excise-numa-bogosity.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,223 +26,186 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: swapin_readahead: move and rearrange args
+Subject: swapin_readahead: excise NUMA bogosity
 From: Hugh Dickins <hugh@veritas.com>
 
-swapin_readahead has never sat well in mm/memory.c: move it to mm/swap_state.c
-beside its kindred read_swap_cache_async.  Why were its args in a different
-order?  rearrange them.  And since it was always followed by a
-read_swap_cache_async of the target page, fold that in and return struct
-page*.  Then CONFIG_SWAP=n no longer needs valid_swaphandles and
-read_swap_cache_async stubs.
+For three years swapin_readahead has been cluttered with fanciful CONFIG_NUMA
+code, advancing addr, and stepping on to the next vma at the boundary, to line
+up the mempolicy for each page allocation.
+
+It _might_ be a good idea to allocate swap more according to vma layout; but
+the fact is, that's not how we do it at all, 2.6 even less than 2.4: swap is
+allocated as needed for pages as they sink to the bottom of the inactive LRUs.
+ Sometimes that may match vma layout, but not so often that it's worth going
+to these misleading vma->vm_next lengths: rip all that out.
+
+Originally I intended to retain the incrementation of addr, but correct its
+initial value: valid_swaphandles generally supplies an offset below the target
+addr (this is readaround rather than readahead), but addr has not been
+adjusted accordingly, so in the interleave case it has usually been allocating
+the target page from the "wrong" node (though that may not matter very much).
+
+But look at the equivalent shmem_swapin code: either by oversight or by
+design, though it has all the apparatus for choosing a new mempolicy per page,
+it uses the same idx throughout, choosing the same mempolicy and interleave
+node for each page of the cluster.
+
+Which is actually a much better strategy: each node has its own LRUs and its
+own kswapd, so if you're betting on any particular relationship between swap
+and node, the best bet is that nearby swap entries belong to pages from the
+same node - even when the mempolicy of the target page is to interleave.  And
+examining a map of nodes corresponding to swap entries on a numa=fake system
+bears this out.  (We could later tweak swap allocation to make it even more
+likely, but this patch is merely about removing cruft.)
+
+So, neither adjust nor increment addr in swapin_readahead, and then
+shmem_swapin can use it too; the pseudo-vma to pass policy need only be set up
+once per cluster, and so few fields of pvma are used, let's skip the memset -
+from shmem_alloc_page also.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   19 ++++++----------
- mm/memory.c          |   45 ---------------------------------------
- mm/shmem.c           |    6 +----
- mm/swap_state.c      |   47 +++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 57 insertions(+), 60 deletions(-)
+ mm/memory.c |   47 ++++++++++++++---------------------------------
+ mm/shmem.c  |   43 ++++++++++++-------------------------------
+ 2 files changed, 26 insertions(+), 64 deletions(-)
 
-diff -puN include/linux/swap.h~swapin_readahead-move-and-rearrange-args include/linux/swap.h
---- a/include/linux/swap.h~swapin_readahead-move-and-rearrange-args
-+++ a/include/linux/swap.h
-@@ -158,9 +158,6 @@ struct swap_list_t {
- /* Swap 50% full? Release swapcache more aggressively.. */
- #define vm_swap_full() (nr_swap_pages*2 < total_swap_pages)
- 
--/* linux/mm/memory.c */
--extern void swapin_readahead(swp_entry_t, unsigned long, struct vm_area_struct *);
--
- /* linux/mm/page_alloc.c */
- extern unsigned long totalram_pages;
- extern unsigned long totalreserve_pages;
-@@ -230,9 +227,12 @@ extern int move_from_swap_cache(struct p
- 		struct address_space *);
- extern void free_page_and_swap_cache(struct page *);
- extern void free_pages_and_swap_cache(struct page **, int);
--extern struct page * lookup_swap_cache(swp_entry_t);
--extern struct page * read_swap_cache_async(swp_entry_t, struct vm_area_struct *vma,
--					   unsigned long addr);
-+extern struct page *lookup_swap_cache(swp_entry_t);
-+extern struct page *read_swap_cache_async(swp_entry_t,
-+			struct vm_area_struct *vma, unsigned long addr);
-+extern struct page *swapin_readahead(swp_entry_t,
-+			struct vm_area_struct *vma, unsigned long addr);
-+
- /* linux/mm/swapfile.c */
- extern long total_swap_pages;
- extern unsigned int nr_swapfiles;
-@@ -306,7 +306,7 @@ static inline void swap_free(swp_entry_t
- {
- }
- 
--static inline struct page *read_swap_cache_async(swp_entry_t swp,
-+static inline struct page *swapin_readahead(swp_entry_t swp,
- 			struct vm_area_struct *vma, unsigned long addr)
- {
- 	return NULL;
-@@ -317,11 +317,6 @@ static inline struct page *lookup_swap_c
- 	return NULL;
- }
- 
--static inline int valid_swaphandles(swp_entry_t entry, unsigned long *offset)
--{
--	return 0;
--}
--
- #define can_share_swap_page(p)			(page_mapcount(p) == 1)
- 
- static inline int move_to_swap_cache(struct page *page, swp_entry_t entry)
-diff -puN mm/memory.c~swapin_readahead-move-and-rearrange-args mm/memory.c
---- a/mm/memory.c~swapin_readahead-move-and-rearrange-args
+diff -puN mm/memory.c~swapin_readahead-excise-numa-bogosity mm/memory.c
+--- a/mm/memory.c~swapin_readahead-excise-numa-bogosity
 +++ a/mm/memory.c
-@@ -1977,48 +1977,6 @@ int vmtruncate_range(struct inode *inode
- 	return 0;
- }
- 
--/**
-- * swapin_readahead - swap in pages in hope we need them soon
-- * @entry: swap entry of this memory
-- * @addr: address to start
-- * @vma: user vma this addresses belong to
-- *
-- * Primitive swap readahead code. We simply read an aligned block of
-- * (1 << page_cluster) entries in the swap area. This method is chosen
-- * because it doesn't cost us any seek time.  We also make sure to queue
-- * the 'original' request together with the readahead ones...
-- *
-- * This has been extended to use the NUMA policies from the mm triggering
-- * the readahead.
-- *
-- * Caller must hold down_read on the vma->vm_mm if vma is not NULL.
-- */
--void swapin_readahead(swp_entry_t entry, unsigned long addr,struct vm_area_struct *vma)
--{
--	int nr_pages;
--	struct page *page;
--	unsigned long offset;
--	unsigned long end_offset;
--
--	/*
--	 * Get starting offset for readaround, and number of pages to read.
--	 * Adjust starting address by readbehind (for NUMA interleave case)?
--	 * No, it's very unlikely that swap layout would follow vma layout,
--	 * more likely that neighbouring swap pages came from the same node:
--	 * so use the same "addr" to choose the same node for each swap read.
--	 */
--	nr_pages = valid_swaphandles(entry, &offset);
--	for (end_offset = offset + nr_pages; offset < end_offset; offset++) {
--		/* Ok, do the async read-ahead now */
--		page = read_swap_cache_async(swp_entry(swp_type(entry), offset),
--						vma, addr);
--		if (!page)
--			break;
--		page_cache_release(page);
--	}
--	lru_add_drain();	/* Push any new pages onto the LRU now */
--}
--
- /*
-  * We enter with non-exclusive mmap_sem (to exclude vma changes,
-  * but allow concurrent faults), and pte mapped but not yet locked.
-@@ -2046,8 +2004,7 @@ static int do_swap_page(struct mm_struct
- 	page = lookup_swap_cache(entry);
- 	if (!page) {
- 		grab_swap_token(); /* Contend for token _before_ read-in */
-- 		swapin_readahead(entry, address, vma);
-- 		page = read_swap_cache_async(entry, vma, address);
-+		page = swapin_readahead(entry, vma, address);
- 		if (!page) {
- 			/*
- 			 * Back out if somebody else faulted in this pte
-diff -puN mm/shmem.c~swapin_readahead-move-and-rearrange-args mm/shmem.c
---- a/mm/shmem.c~swapin_readahead-move-and-rearrange-args
-+++ a/mm/shmem.c
-@@ -1021,8 +1021,7 @@ static struct page *shmem_swapin(struct 
- 	pvma.vm_pgoff = idx;
- 	pvma.vm_ops = NULL;
- 	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, idx);
--	swapin_readahead(entry, 0, &pvma);
--	page = read_swap_cache_async(entry, &pvma, 0);
-+	page = swapin_readahead(entry, &pvma, 0);
- 	mpol_free(pvma.vm_policy);
- 	return page;
- }
-@@ -1052,8 +1051,7 @@ static inline int shmem_parse_mpol(char 
- static inline struct page *
- shmem_swapin(struct shmem_inode_info *info,swp_entry_t entry,unsigned long idx)
+@@ -1995,45 +1995,26 @@ int vmtruncate_range(struct inode *inode
+  */
+ void swapin_readahead(swp_entry_t entry, unsigned long addr,struct vm_area_struct *vma)
  {
--	swapin_readahead(entry, 0, NULL);
--	return read_swap_cache_async(entry, NULL, 0);
-+	return swapin_readahead(entry, NULL, 0);
- }
- 
- static inline struct page *
-diff -puN mm/swap_state.c~swapin_readahead-move-and-rearrange-args mm/swap_state.c
---- a/mm/swap_state.c~swapin_readahead-move-and-rearrange-args
-+++ a/mm/swap_state.c
-@@ -10,6 +10,7 @@
- #include <linux/mm.h>
- #include <linux/kernel_stat.h>
- #include <linux/swap.h>
-+#include <linux/swapops.h>
- #include <linux/init.h>
- #include <linux/pagemap.h>
- #include <linux/buffer_head.h>
-@@ -368,3 +369,49 @@ struct page *read_swap_cache_async(swp_e
- 		page_cache_release(new_page);
- 	return found_page;
- }
-+
-+/**
-+ * swapin_readahead - swap in pages in hope we need them soon
-+ * @entry: swap entry of this memory
-+ * @vma: user vma this address belongs to
-+ * @addr: target address for mempolicy
-+ *
-+ * Returns the struct page for entry and addr, after queueing swapin.
-+ *
-+ * Primitive swap readahead code. We simply read an aligned block of
-+ * (1 << page_cluster) entries in the swap area. This method is chosen
-+ * because it doesn't cost us any seek time.  We also make sure to queue
-+ * the 'original' request together with the readahead ones...
-+ *
-+ * This has been extended to use the NUMA policies from the mm triggering
-+ * the readahead.
-+ *
-+ * Caller must hold down_read on the vma->vm_mm if vma is not NULL.
-+ */
-+struct page *swapin_readahead(swp_entry_t entry,
-+			struct vm_area_struct *vma, unsigned long addr)
-+{
+-#ifdef CONFIG_NUMA
+-	struct vm_area_struct *next_vma = vma ? vma->vm_next : NULL;
+-#endif
+-	int i, num;
+-	struct page *new_page;
 +	int nr_pages;
 +	struct page *page;
-+	unsigned long offset;
+ 	unsigned long offset;
 +	unsigned long end_offset;
-+
-+	/*
+ 
+ 	/*
+-	 * Get the number of handles we should do readahead io to.
 +	 * Get starting offset for readaround, and number of pages to read.
 +	 * Adjust starting address by readbehind (for NUMA interleave case)?
 +	 * No, it's very unlikely that swap layout would follow vma layout,
 +	 * more likely that neighbouring swap pages came from the same node:
 +	 * so use the same "addr" to choose the same node for each swap read.
-+	 */
+ 	 */
+-	num = valid_swaphandles(entry, &offset);
+-	for (i = 0; i < num; offset++, i++) {
 +	nr_pages = valid_swaphandles(entry, &offset);
 +	for (end_offset = offset + nr_pages; offset < end_offset; offset++) {
-+		/* Ok, do the async read-ahead now */
+ 		/* Ok, do the async read-ahead now */
+-		new_page = read_swap_cache_async(swp_entry(swp_type(entry),
+-							   offset), vma, addr);
+-		if (!new_page)
 +		page = read_swap_cache_async(swp_entry(swp_type(entry), offset),
 +						vma, addr);
 +		if (!page)
-+			break;
+ 			break;
+-		page_cache_release(new_page);
+-#ifdef CONFIG_NUMA
+-		/*
+-		 * Find the next applicable VMA for the NUMA policy.
+-		 */
+-		addr += PAGE_SIZE;
+-		if (addr == 0)
+-			vma = NULL;
+-		if (vma) {
+-			if (addr >= vma->vm_end) {
+-				vma = next_vma;
+-				next_vma = vma ? vma->vm_next : NULL;
+-			}
+-			if (vma && addr < vma->vm_start)
+-				vma = NULL;
+-		} else {
+-			if (next_vma && addr >= next_vma->vm_start) {
+-				vma = next_vma;
+-				next_vma = vma->vm_next;
+-			}
+-		}
+-#endif
 +		page_cache_release(page);
-+	}
-+	lru_add_drain();	/* Push any new pages onto the LRU now */
-+	return read_swap_cache_async(entry, vma, addr);
-+}
+ 	}
+ 	lru_add_drain();	/* Push any new pages onto the LRU now */
+ }
+diff -puN mm/shmem.c~swapin_readahead-excise-numa-bogosity mm/shmem.c
+--- a/mm/shmem.c~swapin_readahead-excise-numa-bogosity
++++ a/mm/shmem.c
+@@ -1010,53 +1010,34 @@ out:
+ 	return err;
+ }
+ 
+-static struct page *shmem_swapin_async(struct shared_policy *p,
++static struct page *shmem_swapin(struct shmem_inode_info *info,
+ 				       swp_entry_t entry, unsigned long idx)
+ {
+-	struct page *page;
+ 	struct vm_area_struct pvma;
++	struct page *page;
+ 
+ 	/* Create a pseudo vma that just contains the policy */
+-	memset(&pvma, 0, sizeof(struct vm_area_struct));
+-	pvma.vm_end = PAGE_SIZE;
++	pvma.vm_start = 0;
+ 	pvma.vm_pgoff = idx;
+-	pvma.vm_policy = mpol_shared_policy_lookup(p, idx);
++	pvma.vm_ops = NULL;
++	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, idx);
++	swapin_readahead(entry, 0, &pvma);
+ 	page = read_swap_cache_async(entry, &pvma, 0);
+ 	mpol_free(pvma.vm_policy);
+ 	return page;
+ }
+ 
+-static struct page *shmem_swapin(struct shmem_inode_info *info,
+-				 swp_entry_t entry, unsigned long idx)
+-{
+-	struct shared_policy *p = &info->policy;
+-	int i, num;
+-	struct page *page;
+-	unsigned long offset;
+-
+-	num = valid_swaphandles(entry, &offset);
+-	for (i = 0; i < num; offset++, i++) {
+-		page = shmem_swapin_async(p,
+-				swp_entry(swp_type(entry), offset), idx);
+-		if (!page)
+-			break;
+-		page_cache_release(page);
+-	}
+-	lru_add_drain();	/* Push any new pages onto the LRU now */
+-	return shmem_swapin_async(p, entry, idx);
+-}
+-
+-static struct page *
+-shmem_alloc_page(gfp_t gfp, struct shmem_inode_info *info,
+-		 unsigned long idx)
++static struct page *shmem_alloc_page(gfp_t gfp, struct shmem_inode_info *info,
++					unsigned long idx)
+ {
+ 	struct vm_area_struct pvma;
+ 	struct page *page;
+ 
+-	memset(&pvma, 0, sizeof(struct vm_area_struct));
+-	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, idx);
++	/* Create a pseudo vma that just contains the policy */
++	pvma.vm_start = 0;
+ 	pvma.vm_pgoff = idx;
+-	pvma.vm_end = PAGE_SIZE;
++	pvma.vm_ops = NULL;
++	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, idx);
+ 	page = alloc_page_vma(gfp | __GFP_ZERO, &pvma, 0);
+ 	mpol_free(pvma.vm_policy);
+ 	return page;
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
