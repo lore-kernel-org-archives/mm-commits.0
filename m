@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + char-cyclades-fix-potential-null-dereference.patch added to -mm tree
-Date: Mon, 22 Oct 2007 12:12:17 -0700
-Message-ID: <200710221912.l9MJCHJ8009041@imap1.linux-foundation.org>
+Subject: + vmalloc-add-const-to-void-parameters.patch added to -mm tree
+Date: Mon, 22 Oct 2007 14:32:19 -0700
+Message-ID: <200710222132.l9MLWJRO016032@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58297 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58332 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755915AbXJVTMh (ORCPT
+	by vger.kernel.org with ESMTP id S1751178AbXJVVcX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Oct 2007 15:12:37 -0400
+	Mon, 22 Oct 2007 17:32:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, bunk@kernel.org
+Cc: clameter@sgi.com
 
 
 The patch titled
-     Char: cyclades, fix potential NULL dereference
+     vmalloc: add const to void* parameters
 has been added to the -mm tree.  Its filename is
-     char-cyclades-fix-potential-null-dereference.patch
+     vmalloc-add-const-to-void-parameters.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,58 +26,172 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: cyclades, fix potential NULL dereference
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: vmalloc: add const to void* parameters
+From: Christoph Lameter <clameter@sgi.com>
 
-t=To ztxdone is jumped even if tty is NULL and tty_wakeup placed after this
-label doesn't expect NULLed parameter, so this will cause an oops in some
-situations (why they scheduled a wakeup there before remove bottom half
-processing patch?).  wakeup only in the case when we have non-null tty
-struct.
+Make vmalloc functions work the same way as kfree() and friends that
+take a const void * argument.
 
-Spotted by Adrian Bunk.
-
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm.h      |    4 ++--
+ include/linux/vmalloc.h |    6 +++---
+ mm/vmalloc.c            |   16 ++++++++--------
+ 3 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN drivers/char/cyclades.c~char-cyclades-fix-potential-null-dereference drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-cyclades-fix-potential-null-dereference
-+++ a/drivers/char/cyclades.c
-@@ -1602,8 +1602,8 @@ static void cyz_handle_tx(struct cyclade
- 			info->icount.tx++;
- 		}
- #endif
--ztxdone:
- 		tty_wakeup(tty);
-+ztxdone:
- 		/* Update tx_put */
- 		cy_writel(&buf_ctrl->tx_put, tx_put);
- 	}
+diff -puN include/linux/mm.h~vmalloc-add-const-to-void-parameters include/linux/mm.h
+--- a/include/linux/mm.h~vmalloc-add-const-to-void-parameters
++++ a/include/linux/mm.h
+@@ -231,8 +231,8 @@ static inline int get_page_unless_zero(s
+ }
+ 
+ /* Support for virtually mapped pages */
+-struct page *vmalloc_to_page(void *addr);
+-unsigned long vmalloc_to_pfn(void *addr);
++struct page *vmalloc_to_page(const void *addr);
++unsigned long vmalloc_to_pfn(const void *addr);
+ 
+ static inline struct page *compound_head(struct page *page)
+ {
+diff -puN include/linux/vmalloc.h~vmalloc-add-const-to-void-parameters include/linux/vmalloc.h
+--- a/include/linux/vmalloc.h~vmalloc-add-const-to-void-parameters
++++ a/include/linux/vmalloc.h
+@@ -45,11 +45,11 @@ extern void *vmalloc_32_user(unsigned lo
+ extern void *__vmalloc(unsigned long size, gfp_t gfp_mask, pgprot_t prot);
+ extern void *__vmalloc_area(struct vm_struct *area, gfp_t gfp_mask,
+ 				pgprot_t prot);
+-extern void vfree(void *addr);
++extern void vfree(const void *addr);
+ 
+ extern void *vmap(struct page **pages, unsigned int count,
+ 			unsigned long flags, pgprot_t prot);
+-extern void vunmap(void *addr);
++extern void vunmap(const void *addr);
+ 
+ extern int remap_vmalloc_range(struct vm_area_struct *vma, void *addr,
+ 							unsigned long pgoff);
+@@ -71,7 +71,7 @@ extern struct vm_struct *__get_vm_area(u
+ extern struct vm_struct *get_vm_area_node(unsigned long size,
+ 					  unsigned long flags, int node,
+ 					  gfp_t gfp_mask);
+-extern struct vm_struct *remove_vm_area(void *addr);
++extern struct vm_struct *remove_vm_area(const void *addr);
+ 
+ extern int map_vm_area(struct vm_struct *area, pgprot_t prot,
+ 			struct page ***pages);
+diff -puN mm/vmalloc.c~vmalloc-add-const-to-void-parameters mm/vmalloc.c
+--- a/mm/vmalloc.c~vmalloc-add-const-to-void-parameters
++++ a/mm/vmalloc.c
+@@ -169,7 +169,7 @@ EXPORT_SYMBOL_GPL(map_vm_area);
+ /*
+  * Map a vmalloc()-space virtual address to the physical page.
+  */
+-struct page *vmalloc_to_page(void *vmalloc_addr)
++struct page *vmalloc_to_page(const void *vmalloc_addr)
+ {
+ 	unsigned long addr = (unsigned long) vmalloc_addr;
+ 	struct page *page = NULL;
+@@ -198,7 +198,7 @@ EXPORT_SYMBOL(vmalloc_to_page);
+ /*
+  * Map a vmalloc()-space virtual address to the physical page frame number.
+  */
+-unsigned long vmalloc_to_pfn(void *vmalloc_addr)
++unsigned long vmalloc_to_pfn(const void *vmalloc_addr)
+ {
+ 	return page_to_pfn(vmalloc_to_page(vmalloc_addr));
+ }
+@@ -306,7 +306,7 @@ struct vm_struct *get_vm_area_node(unsig
+ }
+ 
+ /* Caller must hold vmlist_lock */
+-static struct vm_struct *__find_vm_area(void *addr)
++static struct vm_struct *__find_vm_area(const void *addr)
+ {
+ 	struct vm_struct *tmp;
+ 
+@@ -319,7 +319,7 @@ static struct vm_struct *__find_vm_area(
+ }
+ 
+ /* Caller must hold vmlist_lock */
+-static struct vm_struct *__remove_vm_area(void *addr)
++static struct vm_struct *__remove_vm_area(const void *addr)
+ {
+ 	struct vm_struct **p, *tmp;
+ 
+@@ -348,7 +348,7 @@ found:
+  *	This function returns the found VM area, but using it is NOT safe
+  *	on SMP machines, except for its size or flags.
+  */
+-struct vm_struct *remove_vm_area(void *addr)
++struct vm_struct *remove_vm_area(const void *addr)
+ {
+ 	struct vm_struct *v;
+ 	write_lock(&vmlist_lock);
+@@ -357,7 +357,7 @@ struct vm_struct *remove_vm_area(void *a
+ 	return v;
+ }
+ 
+-static void __vunmap(void *addr, int deallocate_pages)
++static void __vunmap(const void *addr, int deallocate_pages)
+ {
+ 	struct vm_struct *area;
+ 
+@@ -408,7 +408,7 @@ static void __vunmap(void *addr, int dea
+  *
+  *	Must not be called in interrupt context.
+  */
+-void vfree(void *addr)
++void vfree(const void *addr)
+ {
+ 	BUG_ON(in_interrupt());
+ 	__vunmap(addr, 1);
+@@ -424,7 +424,7 @@ EXPORT_SYMBOL(vfree);
+  *
+  *	Must not be called in interrupt context.
+  */
+-void vunmap(void *addr)
++void vunmap(const void *addr)
+ {
+ 	BUG_ON(in_interrupt());
+ 	__vunmap(addr, 0);
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-char-cyclades-fix-potential-null-dereference.patch
-git-dvb.patch
-v4l-stk11xx-add-a-new-webcam-driver.patch
-v4l-stk11xx-use-array_size-in-another-2-cases.patch
-v4l-stk11xx-use-retval-from-stk11xx_check_device.patch
-v4l-stk11xx-add-static-to-tables.patch
-git-wireless.patch
-dzh-remove-useless-unused-module-junk.patch
-dz-always-check-if-it-is-safe-to-console_putchar.patch
-dz-dont-panic-when-request_irq-fails.patch
-dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
-dz-update-kconfig-description.patch
-dz-rename-the-serial-console-structure.patch
-dz-fix-locking-issues.patch
-dz-handle-special-conditions-on-reception-correctly.patch
-maintainers-add-self-for-the-dz-serial-driver.patch
+intel-iommu-dmar-detection-and-parsing-logic.patch
+intel-iommu-pci-generic-helper-function.patch
+intel-iommu-clflush_cache_range-now-takes-size-param.patch
+intel-iommu-iova-allocation-and-management-routines.patch
+intel-iommu-intel-iommu-driver.patch
+intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+intel-iommu-intel-iommu-cmdline-option-forcedac.patch
+intel-iommu-dmar-fault-handling-support.patch
+intel-iommu-iommu-gfx-workaround.patch
+intel-iommu-iommu-floppy-workaround.patch
+mem-policy-fix-mempolicy-usage-in-pci-driver.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
+git-x86.patch
+slub-avoid-atomic-operation-for-slab_unlock.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
+move-vmalloc_to_page-to-mm-vmalloc.patch
+vmalloc-add-const-to-void-parameters.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
+is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
+vmalloc-clean-up-page-array-indexing.patch
+vunmap-return-page-array-passed-on-vmap.patch
+slub-move-count_partial.patch
+slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
+slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
+vm-allow-get_page_unless_zero-on-compound-pages.patch
+dentries-extract-common-code-to-remove-dentry-from-lru.patch
+bufferhead-revert-constructor-removal.patch
+revoke-core-code.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
 reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
