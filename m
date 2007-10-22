@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + appletalk-fix-sysctl-warnings.patch added to -mm tree
-Date: Mon, 22 Oct 2007 12:11:25 -0700
-Message-ID: <200710221911.l9MJBPQD009015@imap1.linux-foundation.org>
+Subject: + char-cyclades-fix-potential-null-dereference.patch added to -mm tree
+Date: Mon, 22 Oct 2007 12:12:17 -0700
+Message-ID: <200710221912.l9MJCHJ8009041@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58383 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58297 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752481AbXJVTLa (ORCPT
+	by vger.kernel.org with ESMTP id S1755915AbXJVTMh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Oct 2007 15:11:30 -0400
+	Mon, 22 Oct 2007 15:12:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ebiederm@xmission.com, davem@davemloft.net, nix.or.die@googlemail.com
+Cc: jirislaby@gmail.com, bunk@kernel.org
 
 
 The patch titled
-     appletalk: fix sysctl warnings
+     Char: cyclades, fix potential NULL dereference
 has been added to the -mm tree.  Its filename is
-     appletalk-fix-sysctl-warnings.patch
+     char-cyclades-fix-potential-null-dereference.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,60 +26,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: appletalk: fix sysctl warnings
-From: "Eric W. Biederman" <ebiederm@xmission.com>
+Subject: Char: cyclades, fix potential NULL dereference
+From: Jiri Slaby <jirislaby@gmail.com>
 
-modprobing appletalk on current git gives a warning in dmesg =:
+t=To ztxdone is jumped even if tty is NULL and tty_wakeup placed after this
+label doesn't expect NULLed parameter, so this will cause an oops in some
+situations (why they scheduled a wakeup there before remove bottom half
+processing patch?).  wakeup only in the case when we have non-null tty
+struct.
 
-sysctl table check failed: /net/appletalk .3.7 procname does not match binary path procname
+Spotted by Adrian Bunk.
 
-It appears I made a mistake when creating my table to check up on sysctl
-values.
-
-Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Gabriel C <nix.or.die@googlemail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl_check.c |    2 +-
+ drivers/char/cyclades.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sysctl_check.c~appletalk-fix-sysctl-warnings kernel/sysctl_check.c
---- a/kernel/sysctl_check.c~appletalk-fix-sysctl-warnings
-+++ a/kernel/sysctl_check.c
-@@ -731,7 +731,7 @@ static struct trans_ctl_table trans_net_
- 	{ NET_UNIX,		"unix",		trans_net_unix_table },
- 	{ NET_IPV4,		"ipv4",		trans_net_ipv4_table },
- 	{ NET_IPX,		"ipx",		trans_net_ipx_table },
--	{ NET_ATALK,		"atalk",	trans_net_atalk_table },
-+	{ NET_ATALK,		"appletalk",	trans_net_atalk_table },
- 	{ NET_NETROM,		"netrom",	trans_net_netrom_table },
- 	{ NET_AX25,		"ax25",		trans_net_ax25_table },
- 	{ NET_BRIDGE,		"bridge",	trans_net_bridge_table },
+diff -puN drivers/char/cyclades.c~char-cyclades-fix-potential-null-dereference drivers/char/cyclades.c
+--- a/drivers/char/cyclades.c~char-cyclades-fix-potential-null-dereference
++++ a/drivers/char/cyclades.c
+@@ -1602,8 +1602,8 @@ static void cyz_handle_tx(struct cyclade
+ 			info->icount.tx++;
+ 		}
+ #endif
+-ztxdone:
+ 		tty_wakeup(tty);
++ztxdone:
+ 		/* Update tx_put */
+ 		cy_writel(&buf_ctrl->tx_put, tx_put);
+ 	}
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-update-boot-spec-to-207.patch
-i386-paravirt-boot-sequence.patch
-kexec-add-bss-to-resource-tree.patch
-appletalk-fix-sysctl-warnings.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+char-cyclades-fix-potential-null-dereference.patch
+git-dvb.patch
+v4l-stk11xx-add-a-new-webcam-driver.patch
+v4l-stk11xx-use-array_size-in-another-2-cases.patch
+v4l-stk11xx-use-retval-from-stk11xx_check_device.patch
+v4l-stk11xx-add-static-to-tables.patch
+git-wireless.patch
+dzh-remove-useless-unused-module-junk.patch
+dz-always-check-if-it-is-safe-to-console_putchar.patch
+dz-dont-panic-when-request_irq-fails.patch
+dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
+dz-update-kconfig-description.patch
+dz-rename-the-serial-console-structure.patch
+dz-fix-locking-issues.patch
+dz-handle-special-conditions-on-reception-correctly.patch
+maintainers-add-self-for-the-dz-serial-driver.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
