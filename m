@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dentries-extract-common-code-to-remove-dentry-from-lru.patch added to -mm tree
-Date: Mon, 22 Oct 2007 14:34:03 -0700
-Message-ID: <200710222134.l9MLY36Z016111@imap1.linux-foundation.org>
+Subject: + bufferhead-revert-constructor-removal.patch added to -mm tree
+Date: Mon, 22 Oct 2007 14:34:05 -0700
+Message-ID: <200710222134.l9MLY532016114@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41436 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53501 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751339AbXJVVeH (ORCPT
+	by vger.kernel.org with ESMTP id S1751388AbXJVVeJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Oct 2007 17:34:07 -0400
+	Mon, 22 Oct 2007 17:34:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: clameter@sgi.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     dentries: Extract common code to remove dentry from lru
+     bufferhead: Revert constructor removal
 has been added to the -mm tree.  Its filename is
-     dentries-extract-common-code-to-remove-dentry-from-lru.patch
+     bufferhead-revert-constructor-removal.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,118 +26,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dentries: Extract common code to remove dentry from lru
+Subject: bufferhead: Revert constructor removal
 From: Christoph Lameter <clameter@sgi.com>
 
-Extract the common code to remove a dentry from the lru into a new function
-dentry_lru_remove().
-
-Two call sites used list_del() instead of list_del_init().  AFAIK the
-performance of both is the same.  dentry_lru_remove() does a list_del_init().
-
-As a result dentry->d_lru is now always empty when a dentry is freed.
+The constructor for buffer_head slabs was removed recently.  We need the
+constructor back in slab defrag in order to insure that slab objects always
+have a definite state even before we allocated them.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c |   42 ++++++++++++++----------------------------
- 1 file changed, 14 insertions(+), 28 deletions(-)
+ fs/buffer.c |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN fs/dcache.c~dentries-extract-common-code-to-remove-dentry-from-lru fs/dcache.c
---- a/fs/dcache.c~dentries-extract-common-code-to-remove-dentry-from-lru
-+++ a/fs/dcache.c
-@@ -95,6 +95,14 @@ static void d_free(struct dentry *dentry
- 		call_rcu(&dentry->d_u.d_rcu, d_callback);
+diff -puN fs/buffer.c~bufferhead-revert-constructor-removal fs/buffer.c
+--- a/fs/buffer.c~bufferhead-revert-constructor-removal
++++ a/fs/buffer.c
+@@ -3153,7 +3153,7 @@ static void recalc_bh_state(void)
+ 	
+ struct buffer_head *alloc_buffer_head(gfp_t gfp_flags)
+ {
+-	struct buffer_head *ret = kmem_cache_zalloc(bh_cachep,
++	struct buffer_head *ret = kmem_cache_alloc(bh_cachep,
+ 				set_migrateflags(gfp_flags, __GFP_RECLAIMABLE));
+ 	if (ret) {
+ 		INIT_LIST_HEAD(&ret->b_assoc_buffers);
+@@ -3197,12 +3197,24 @@ static int buffer_cpu_notify(struct noti
+ 	return NOTIFY_OK;
  }
  
-+static void dentry_lru_remove(struct dentry *dentry)
++static void
++init_buffer_head(struct kmem_cache *cachep, void *data)
 +{
-+	if (!list_empty(&dentry->d_lru)) {
-+		list_del_init(&dentry->d_lru);
-+		dentry_stat.nr_unused--;
-+	}
++	struct buffer_head * bh = (struct buffer_head *)data;
++
++	memset(bh, 0, sizeof(*bh));
++	INIT_LIST_HEAD(&bh->b_assoc_buffers);
 +}
 +
- /*
-  * Release the dentry's inode, using the filesystem
-  * d_iput() operation if defined.
-@@ -211,13 +219,7 @@ repeat:
- unhash_it:
- 	__d_drop(dentry);
- kill_it:
--	/* If dentry was on d_lru list
--	 * delete it from there
--	 */
--	if (!list_empty(&dentry->d_lru)) {
--		list_del(&dentry->d_lru);
--		dentry_stat.nr_unused--;
--	}
-+	dentry_lru_remove(dentry);
- 	dentry = d_kill(dentry);
- 	if (dentry)
- 		goto repeat;
-@@ -285,10 +287,7 @@ int d_invalidate(struct dentry * dentry)
- static inline struct dentry * __dget_locked(struct dentry *dentry)
+ void __init buffer_init(void)
  {
- 	atomic_inc(&dentry->d_count);
--	if (!list_empty(&dentry->d_lru)) {
--		dentry_stat.nr_unused--;
--		list_del_init(&dentry->d_lru);
--	}
-+	dentry_lru_remove(dentry);
- 	return dentry;
- }
+ 	int nrpages;
  
-@@ -404,10 +403,7 @@ static void prune_one_dentry(struct dent
+-	bh_cachep = KMEM_CACHE(buffer_head,
+-			SLAB_RECLAIM_ACCOUNT|SLAB_PANIC|SLAB_MEM_SPREAD);
++	bh_cachep = kmem_cache_create("buffer_head",
++			sizeof(struct buffer_head), 0,
++				(SLAB_RECLAIM_ACCOUNT|SLAB_PANIC|
++				SLAB_MEM_SPREAD),
++				init_buffer_head);
  
- 		if (dentry->d_op && dentry->d_op->d_delete)
- 			dentry->d_op->d_delete(dentry);
--		if (!list_empty(&dentry->d_lru)) {
--			list_del(&dentry->d_lru);
--			dentry_stat.nr_unused--;
--		}
-+		dentry_lru_remove(dentry);
- 		__d_drop(dentry);
- 		dentry = d_kill(dentry);
- 		spin_lock(&dcache_lock);
-@@ -596,10 +592,7 @@ static void shrink_dcache_for_umount_sub
- 
- 	/* detach this root from the system */
- 	spin_lock(&dcache_lock);
--	if (!list_empty(&dentry->d_lru)) {
--		dentry_stat.nr_unused--;
--		list_del_init(&dentry->d_lru);
--	}
-+	dentry_lru_remove(dentry);
- 	__d_drop(dentry);
- 	spin_unlock(&dcache_lock);
- 
-@@ -613,11 +606,7 @@ static void shrink_dcache_for_umount_sub
- 			spin_lock(&dcache_lock);
- 			list_for_each_entry(loop, &dentry->d_subdirs,
- 					    d_u.d_child) {
--				if (!list_empty(&loop->d_lru)) {
--					dentry_stat.nr_unused--;
--					list_del_init(&loop->d_lru);
--				}
--
-+				dentry_lru_remove(dentry);
- 				__d_drop(loop);
- 				cond_resched_lock(&dcache_lock);
- 			}
-@@ -799,10 +788,7 @@ resume:
- 		struct dentry *dentry = list_entry(tmp, struct dentry, d_u.d_child);
- 		next = tmp->next;
- 
--		if (!list_empty(&dentry->d_lru)) {
--			dentry_stat.nr_unused--;
--			list_del_init(&dentry->d_lru);
--		}
-+		dentry_lru_remove(dentry);
- 		/* 
- 		 * move only zero ref count dentries to the end 
- 		 * of the unused list for prune_dcache
+ 	/*
+ 	 * Limit the bh occupancy to 10% of ZONE_NORMAL
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
