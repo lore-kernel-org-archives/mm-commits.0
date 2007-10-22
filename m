@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch added to -mm tree
-Date: Mon, 22 Oct 2007 14:33:42 -0700
-Message-ID: <200710222133.l9MLXgo3016056@imap1.linux-foundation.org>
+Subject: + vmalloc-clean-up-page-array-indexing.patch added to -mm tree
+Date: Mon, 22 Oct 2007 14:33:45 -0700
+Message-ID: <200710222133.l9MLXjLP016059@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46575 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52811 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751222AbXJVVdp (ORCPT
+	by vger.kernel.org with ESMTP id S1751258AbXJVVdr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Oct 2007 17:33:45 -0400
+	Mon, 22 Oct 2007 17:33:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     is_vmalloc_addr(): Check if an address is within the vmalloc boundaries
+     vmalloc: Clean up page array indexing
 has been added to the -mm tree.  Its filename is
-     is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
+     vmalloc-clean-up-page-array-indexing.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,135 +26,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: is_vmalloc_addr(): Check if an address is within the vmalloc boundaries
+Subject: vmalloc: Clean up page array indexing
 From: Christoph Lameter <clameter@sgi.com>
 
-Checking if an address is a vmalloc address is done in a couple of places. 
-Define a common version in mm.h and replace the other checks.
-
-Again the include structures suck.  The definition of VMALLOC_START and
-VMALLOC_END is not available in vmalloc.h since highmem.c cannot be included
-there.
+The page array is repeatedly indexed both in vunmap and vmalloc_area_node(). 
+Add a temporary variable to make it easier to read (and easier to patch
+later).
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/cxgb3/cxgb3_offload.c |    4 +---
- fs/ntfs/malloc.h                  |    3 +--
- fs/proc/kcore.c                   |    2 +-
- fs/xfs/linux-2.6/kmem.c           |    3 +--
- fs/xfs/linux-2.6/xfs_buf.c        |    3 +--
- include/linux/mm.h                |    8 ++++++++
- mm/sparse.c                       |   10 +---------
- 7 files changed, 14 insertions(+), 19 deletions(-)
+ mm/vmalloc.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/cxgb3/cxgb3_offload.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries drivers/net/cxgb3/cxgb3_offload.c
---- a/drivers/net/cxgb3/cxgb3_offload.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries
-+++ a/drivers/net/cxgb3/cxgb3_offload.c
-@@ -1060,9 +1060,7 @@ void *cxgb_alloc_mem(unsigned long size)
-  */
- void cxgb_free_mem(void *addr)
- {
--	unsigned long p = (unsigned long)addr;
--
--	if (p >= VMALLOC_START && p < VMALLOC_END)
-+	if (is_vmalloc_addr(addr))
- 		vfree(addr);
- 	else
- 		kfree(addr);
-diff -puN fs/ntfs/malloc.h~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries fs/ntfs/malloc.h
---- a/fs/ntfs/malloc.h~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries
-+++ a/fs/ntfs/malloc.h
-@@ -85,8 +85,7 @@ static inline void *ntfs_malloc_nofs_nof
+diff -puN mm/vmalloc.c~vmalloc-clean-up-page-array-indexing mm/vmalloc.c
+--- a/mm/vmalloc.c~vmalloc-clean-up-page-array-indexing
++++ a/mm/vmalloc.c
+@@ -384,8 +384,10 @@ static void __vunmap(const void *addr, i
+ 		int i;
  
- static inline void ntfs_free(void *addr)
- {
--	if (likely(((unsigned long)addr < VMALLOC_START) ||
--			((unsigned long)addr >= VMALLOC_END ))) {
-+	if (!is_vmalloc_addr(addr)) {
- 		kfree(addr);
- 		/* free_page((unsigned long)addr); */
- 		return;
-diff -puN fs/proc/kcore.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries fs/proc/kcore.c
---- a/fs/proc/kcore.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries
-+++ a/fs/proc/kcore.c
-@@ -325,7 +325,7 @@ read_kcore(struct file *file, char __use
- 		if (m == NULL) {
- 			if (clear_user(buffer, tsz))
- 				return -EFAULT;
--		} else if ((start >= VMALLOC_START) && (start < VMALLOC_END)) {
-+		} else if (is_vmalloc_addr((void *)start)) {
- 			char * elf_buf;
- 			struct vm_struct *m;
- 			unsigned long curstart = start;
-diff -puN fs/xfs/linux-2.6/kmem.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries fs/xfs/linux-2.6/kmem.c
---- a/fs/xfs/linux-2.6/kmem.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries
-+++ a/fs/xfs/linux-2.6/kmem.c
-@@ -92,8 +92,7 @@ kmem_zalloc_greedy(size_t *size, size_t 
- void
- kmem_free(void *ptr, size_t size)
- {
--	if (((unsigned long)ptr < VMALLOC_START) ||
--	    ((unsigned long)ptr >= VMALLOC_END)) {
-+	if (!is_vmalloc_addr(ptr)) {
- 		kfree(ptr);
- 	} else {
- 		vfree(ptr);
-diff -puN fs/xfs/linux-2.6/xfs_buf.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries fs/xfs/linux-2.6/xfs_buf.c
---- a/fs/xfs/linux-2.6/xfs_buf.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries
-+++ a/fs/xfs/linux-2.6/xfs_buf.c
-@@ -702,8 +702,7 @@ static inline struct page *
- mem_to_page(
- 	void			*addr)
- {
--	if (((unsigned long)addr < VMALLOC_START) ||
--	    ((unsigned long)addr >= VMALLOC_END)) {
-+	if ((!is_vmalloc_addr(addr))) {
- 		return virt_to_page(addr);
- 	} else {
- 		return vmalloc_to_page(addr);
-diff -puN include/linux/mm.h~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries include/linux/mm.h
---- a/include/linux/mm.h~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries
-+++ a/include/linux/mm.h
-@@ -234,6 +234,14 @@ static inline int get_page_unless_zero(s
- struct page *vmalloc_to_page(const void *addr);
- unsigned long vmalloc_to_pfn(const void *addr);
- 
-+/* Determine if an address is within the vmalloc range */
-+static inline int is_vmalloc_addr(const void *x)
-+{
-+	unsigned long addr = (unsigned long)x;
+ 		for (i = 0; i < area->nr_pages; i++) {
+-			BUG_ON(!area->pages[i]);
+-			__free_page(area->pages[i]);
++			struct page *page = area->pages[i];
 +
-+	return addr >= VMALLOC_START && addr < VMALLOC_END;
-+}
-+
- static inline struct page *compound_head(struct page *page)
- {
- 	if (unlikely(PageTail(page)))
-diff -puN mm/sparse.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries mm/sparse.c
---- a/mm/sparse.c~is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries
-+++ a/mm/sparse.c
-@@ -362,17 +362,9 @@ static inline struct page *kmalloc_secti
- 	return __kmalloc_section_memmap(nr_pages);
- }
++			BUG_ON(!page);
++			__free_page(page);
+ 		}
  
--static int vaddr_in_vmalloc_area(void *addr)
--{
--	if (addr >= (void *)VMALLOC_START &&
--	    addr < (void *)VMALLOC_END)
--		return 1;
--	return 0;
--}
--
- static void __kfree_section_memmap(struct page *memmap, unsigned long nr_pages)
- {
--	if (vaddr_in_vmalloc_area(memmap))
-+	if (is_vmalloc_addr(memmap))
- 		vfree(memmap);
- 	else
- 		free_pages((unsigned long)memmap,
+ 		if (area->flags & VM_VPAGES)
+@@ -489,15 +491,19 @@ void *__vmalloc_area_node(struct vm_stru
+ 	}
+ 
+ 	for (i = 0; i < area->nr_pages; i++) {
++		struct page *page;
++
+ 		if (node < 0)
+-			area->pages[i] = alloc_page(gfp_mask);
++			page = alloc_page(gfp_mask);
+ 		else
+-			area->pages[i] = alloc_pages_node(node, gfp_mask, 0);
+-		if (unlikely(!area->pages[i])) {
++			page = alloc_pages_node(node, gfp_mask, 0);
++
++		if (unlikely(!page)) {
+ 			/* Successfully allocated i pages, free them in __vunmap() */
+ 			area->nr_pages = i;
+ 			goto fail;
+ 		}
++		area->pages[i] = page;
+ 	}
+ 
+ 	if (map_vm_area(area, prot, &pages))
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
