@@ -1,62 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: + net-fix-xfrm-build-missing-scatterlisth-include.patch added to -mm tree
-Date: Mon, 22 Oct 2007 23:52:21 -0700
-Message-ID: <200710230652.l9N6qLK6004502@imap1.linux-foundation.org>
+Subject: - slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch removed from -mm tree
+Date: Mon, 22 Oct 2007 23:48:11 -0700
+Message-ID: <200710230648.l9N6mBlx004347@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34532 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37966 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751749AbXJWGxG (ORCPT
+	by vger.kernel.org with ESMTP id S1752176AbXJWGzo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Oct 2007 02:53:06 -0400
+	Tue, 23 Oct 2007 02:55:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: heiko.carstens@de.ibm.com, davem@davemloft.net, jens.axboe@oracle.com
+To: akpm@linux-foundation.org, clameter@sgi.com, jsipek@cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net: fix xfrm build - missing scatterlist.h include
-has been added to the -mm tree.  Its filename is
-     net-fix-xfrm-build-missing-scatterlisth-include.patch
+     slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs
+has been removed from the -mm tree.  Its filename was
+     slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: net: fix xfrm build - missing scatterlist.h include
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs
+From: Andrew Morton <akpm@linux-foundation.org>
 
-net/xfrm/xfrm_algo.c: In function 'skb_icv_walk':
-net/xfrm/xfrm_algo.c:555: error: implicit declaration of function 'sg_set_page'
-make[2]: *** [net/xfrm/xfrm_algo.o] Error 1
+fs/unionfs/super.c: In function 'unionfs_init_inode_cache':
+fs/unionfs/super.c:874: warning: passing argument 5 of 'kmem_cache_create' from incompatible pointer type
 
-Cc: David Miller <davem@davemloft.net>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/xfrm/xfrm_algo.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/unionfs/super.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/xfrm/xfrm_algo.c~net-fix-xfrm-build-missing-scatterlisth-include net/xfrm/xfrm_algo.c
---- a/net/xfrm/xfrm_algo.c~net-fix-xfrm-build-missing-scatterlisth-include
-+++ a/net/xfrm/xfrm_algo.c
-@@ -13,6 +13,7 @@
- #include <linux/kernel.h>
- #include <linux/pfkeyv2.h>
- #include <linux/crypto.h>
-+#include <linux/scatterlist.h>
- #include <net/xfrm.h>
- #if defined(CONFIG_INET_AH) || defined(CONFIG_INET_AH_MODULE) || defined(CONFIG_INET6_AH) || defined(CONFIG_INET6_AH_MODULE)
- #include <net/ah.h>
+diff -puN fs/unionfs/super.c~slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs fs/unionfs/super.c
+--- a/fs/unionfs/super.c~slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-unionfs
++++ a/fs/unionfs/super.c
+@@ -863,9 +863,9 @@ static void unionfs_destroy_inode(struct
+ }
+ 
+ /* unionfs inode cache constructor */
+-static void init_once(void *v, struct kmem_cache *cachep, unsigned long flags)
++static void init_once(struct kmem_cache *cachep, void *obj)
+ {
+-	struct unionfs_inode_info *i = v;
++	struct unionfs_inode_info *i = obj;
+ 
+ 	inode_init_once(&i->vfs_inode);
+ }
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-fix-ll_rw_blkc-build-on-s390.patch
-net-fix-xfrm-build-missing-scatterlisth-include.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-arm-hack.patch
+nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd-fixup.patch
+fix-build-breakage-if-sysfs-fix.patch
+git-scsi-misc.patch
+git-unionfs.patch
+documentation-watchdog-src-watchdog-simplec-improve-this-code-checkpatch-fixes.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-x86.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+sync_sb_inodes-propagate-errors.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
