@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + doc-add-uio-document-to-docbook-compilation-target.patch added to -mm tree
-Date: Tue, 23 Oct 2007 12:23:50 -0700
-Message-ID: <200710231923.l9NJNoFZ002513@imap1.linux-foundation.org>
+Subject: + oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters.patch added to -mm tree
+Date: Tue, 23 Oct 2007 12:28:01 -0700
+Message-ID: <200710231928.l9NJS1Se002708@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41705 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49365 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753836AbXJWTX4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751968AbXJWT2k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Oct 2007 15:23:56 -0400
+	Tue, 23 Oct 2007 15:28:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: takeuchi_satoru@jp.fujitsu.com, greg@kroah.com, rdunlap@xenotime.net
+Cc: barry.kasindorf@amd.com, mingo@elte.hu, robert.richter@amd.com, tglx@linutronix.de
 
 
 The patch titled
-     doc: add uio document to docbook compilation target
+     oProfile: op_model_athalon.c support for AMD Family10h (Barcelona) Performance Counters
 has been added to the -mm tree.  Its filename is
-     doc-add-uio-document-to-docbook-compilation-target.patch
+     oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,88 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: doc: add uio document to docbook compilation target
-From: Satoru Takeuchi <takeuchi_satoru@jp.fujitsu.com>
+Subject: oProfile: op_model_athalon.c support for AMD Family10h (Barcelona) Performance Counters
+From: "Barry Kasindorf" <barry.kasindorf@amd.com>
 
-`make *docs' doesn't generate "The Userspace I/O HOWTO", the user space
-I/O document written in DocBook.
+This patch is for controlling the upper 32bits of the event ctrl msrs. 
+This includes the upper 4 bits of the event select and the Guest Only and
+Host Only bits
 
-Signed-off-by: Satoru Takeuchi <takeuchi_satoru@jp.fujitsu.com>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: Greg KH <greg@kroah.com>
+This patch is necessary to make Event Based Profiling work reliably on a
+Family 10h processor
+
+Signed-off-by: Barry Kasindorf <barry.kasindorf@amd.com>
+Signed-off-by: Robert Richter <robert.richter@amd.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/oprofile/op_model_athlon.c |   22 ++++++++++++++++------
+ 1 file changed, 16 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/DocBook/Makefile~doc-add-uio-document-to-docbook-compilation-target Documentation/DocBook/Makefile
---- a/Documentation/DocBook/Makefile~doc-add-uio-document-to-docbook-compilation-target
-+++ a/Documentation/DocBook/Makefile
-@@ -11,7 +11,7 @@ DOCBOOKS := wanbook.xml z8530book.xml mc
- 	    procfs-guide.xml writing_usb_driver.xml \
- 	    kernel-api.xml filesystems.xml lsm.xml usb.xml \
- 	    gadget.xml libata.xml mtdnand.xml librs.xml rapidio.xml \
--	    genericirq.xml s390-drivers.xml
-+	    genericirq.xml s390-drivers.xml uio-howto.xml
+diff -puN arch/x86/oprofile/op_model_athlon.c~oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters arch/x86/oprofile/op_model_athlon.c
+--- a/arch/x86/oprofile/op_model_athlon.c~oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters
++++ a/arch/x86/oprofile/op_model_athlon.c
+@@ -1,6 +1,6 @@
+ /**
+  * @file op_model_athlon.h
+- * athlon / K7 model-specific MSR operations
++ * athlon / K7 / K8 / Family 10h model-specific MSR operations
+  *
+  * @remark Copyright 2002 OProfile authors
+  * @remark Read the file COPYING
+@@ -31,12 +31,16 @@
+ #define CTRL_WRITE(l,h,msrs,c) do {wrmsr(msrs->controls[(c)].addr, (l), (h));} while (0)
+ #define CTRL_SET_ACTIVE(n) (n |= (1<<22))
+ #define CTRL_SET_INACTIVE(n) (n &= ~(1<<22))
+-#define CTRL_CLEAR(x) (x &= (1<<21))
++#define CTRL_CLEAR_LO(x) (x &= (1<<21))
++#define CTRL_CLEAR_HI(x) ( x &= 0xfffffcf0 )
+ #define CTRL_SET_ENABLE(val) (val |= 1<<20)
+ #define CTRL_SET_USR(val,u) (val |= ((u & 1) << 16))
+ #define CTRL_SET_KERN(val,k) (val |= ((k & 1) << 17))
+ #define CTRL_SET_UM(val, m) (val |= (m << 8))
+-#define CTRL_SET_EVENT(val, e) (val |= e)
++#define CTRL_SET_EVENT_LOW(val, e) (val |= (e & 0xff))
++#define CTRL_SET_EVENT_HIGH(val,e) (val |= ((e >> 8) & 0xf))
++#define CTRL_SET_HOST_ONLY(val, h) (val |= ((h & 1) << 9))
++#define CTRL_SET_GUEST_ONLY(val, h) (val |= ((h & 1) << 8))
  
- ###
- # The build process is as follows (targets):
+ static unsigned long reset_value[NUM_COUNTERS];
+  
+@@ -70,7 +74,8 @@ static void athlon_setup_ctrs(struct op_
+ 		if (unlikely(!CTRL_IS_RESERVED(msrs,i)))
+ 			continue;
+ 		CTRL_READ(low, high, msrs, i);
+-		CTRL_CLEAR(low);
++		CTRL_CLEAR_LO(low);
++		CTRL_CLEAR_HI(high);
+ 		CTRL_WRITE(low, high, msrs, i);
+ 	}
+ 
+@@ -89,12 +94,17 @@ static void athlon_setup_ctrs(struct op_
+ 			CTR_WRITE(counter_config[i].count, msrs, i);
+ 
+ 			CTRL_READ(low, high, msrs, i);
+-			CTRL_CLEAR(low);
++			CTRL_CLEAR_LO(low);
++			CTRL_CLEAR_HI(high);
+ 			CTRL_SET_ENABLE(low);
+ 			CTRL_SET_USR(low, counter_config[i].user);
+ 			CTRL_SET_KERN(low, counter_config[i].kernel);
+ 			CTRL_SET_UM(low, counter_config[i].unit_mask);
+-			CTRL_SET_EVENT(low, counter_config[i].event);
++			CTRL_SET_EVENT_LOW(low, counter_config[i].event);
++			CTRL_SET_EVENT_HIGH(high, counter_config[i].event);
++			CTRL_SET_HOST_ONLY(high, 0);
++			CTRL_SET_GUEST_ONLY(high, 0);
++
+ 			CTRL_WRITE(low, high, msrs, i);
+ 		} else {
+ 			reset_value[i] = 0;
 _
 
-Patches currently in -mm which might be from takeuchi_satoru@jp.fujitsu.com are
+Patches currently in -mm which might be from barry.kasindorf@amd.com are
 
-doc-add-uio-document-to-docbook-compilation-target.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters.patch
