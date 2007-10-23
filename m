@@ -1,280 +1,417 @@
 From: akpm@linux-foundation.org
-Subject: - kexec-add-bss-to-resource-tree.patch removed from -mm tree
-Date: Mon, 22 Oct 2007 23:47:15 -0700
-Message-ID: <200710230647.l9N6lFY7004272@imap1.linux-foundation.org>
+Subject: - exportfs-add-new-methods.patch removed from -mm tree
+Date: Mon, 22 Oct 2007 23:47:23 -0700
+Message-ID: <200710230647.l9N6lNLM004278@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32857 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45445 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751932AbXJWHCo (ORCPT
+	by vger.kernel.org with ESMTP id S1752262AbXJWHDi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Oct 2007 03:02:44 -0400
+	Tue, 23 Oct 2007 03:03:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bwalle@suse.de, ebiederm@xmission.com, linux-arch@vger.kernel.org, mingo@elte.hu, tglx@linutronix.de, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
+To: hch@lst.de, aia21@cantab.net, bfields@fieldses.org, dgc@sgi.com, hirofumi@mail.parknet.co.jp, hugh@veritas.com, jeffm@suse.com, linux-ext4@vger.kernel.org, mark.fasheh@oracle.com, maso
 
 
 The patch titled
-     kexec: add BSS to resource tree
+     exportfs: add new methods
 has been removed from the -mm tree.  Its filename was
-     kexec-add-bss-to-resource-tree.patch
+     exportfs-add-new-methods.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kexec: add BSS to resource tree
-From: Bernhard Walle <bwalle@suse.de>
+Subject: exportfs: add new methods
+From: Christoph Hellwig <hch@lst.de>
 
-Add the BSS to the resource tree just as kernel text and kernel data are in
-the resource tree.  The main reason behind this is to avoid crashkernel
-reservation in that area.
+Add the guts for the new filesystem API to exportfs.
 
-While it's not strictly necessary to have the BSS in the resource tree (the
-actual collision detection is done in the reserve_bootmem() function before),
-the usage of the BSS resource should be presented to the user in /proc/iomem
-just as Kernel data and Kernel code.
+There's now a fh_to_dentry method that returns a dentry for the object looked
+for given a filehandle fragment, and a fh_to_parent operation that returns the
+dentry for the encoded parent directory in case the file handle contains it.
 
-Note: The patch currently is only implemented for x86 and ia64 (because
-efi_initialize_iomem_resources() has the same signature on i386 and ia64).
+There are default implementations for these methods that only take a callback
+for an nfs-enhanced iget variant and implement the rest of the semantics.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Bernhard Walle <bwalle@suse.de>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
-Cc: <linux-arch@vger.kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Neil Brown <neilb@suse.de>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: <linux-ext4@vger.kernel.org>
+Cc: Dave Kleikamp <shaggy@austin.ibm.com>
+Cc: Anton Altaparmakov <aia21@cantab.net>
+Cc: David Chinner <dgc@sgi.com>
+Cc: Timothy Shimmin <tes@sgi.com>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Chris Mason <mason@suse.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
+Cc: "Vladimir V. Saveliev" <vs@namesys.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/efi.c     |    4 +++-
- arch/ia64/kernel/setup.c   |   14 +++++++++++---
- arch/x86/kernel/e820_32.c  |   18 +++++++++++++++---
- arch/x86/kernel/e820_64.c  |    3 ++-
- arch/x86/kernel/efi_32.c   |    4 +++-
- arch/x86/kernel/setup_32.c |    4 ++++
- arch/x86/kernel/setup_64.c |    9 +++++++++
- include/linux/efi.h        |    2 +-
- 8 files changed, 48 insertions(+), 10 deletions(-)
+ fs/exportfs/expfs.c      |  136 +++++++++++++++++++++++++++++++++++--
+ fs/libfs.c               |   88 +++++++++++++++++++++++
+ include/linux/exportfs.h |   30 ++++++++
+ 3 files changed, 248 insertions(+), 6 deletions(-)
 
-diff -puN arch/ia64/kernel/efi.c~kexec-add-bss-to-resource-tree arch/ia64/kernel/efi.c
---- a/arch/ia64/kernel/efi.c~kexec-add-bss-to-resource-tree
-+++ a/arch/ia64/kernel/efi.c
-@@ -1090,7 +1090,8 @@ efi_memmap_init(unsigned long *s, unsign
- 
- void
- efi_initialize_iomem_resources(struct resource *code_resource,
--			       struct resource *data_resource)
-+			       struct resource *data_resource,
-+			       struct resource *bss_resource)
+diff -puN fs/exportfs/expfs.c~exportfs-add-new-methods fs/exportfs/expfs.c
+--- a/fs/exportfs/expfs.c~exportfs-add-new-methods
++++ a/fs/exportfs/expfs.c
+@@ -514,17 +514,141 @@ struct dentry *exportfs_decode_fh(struct
+ 		int (*acceptable)(void *, struct dentry *), void *context)
  {
- 	struct resource *res;
- 	void *efi_map_start, *efi_map_end, *p;
-@@ -1171,6 +1172,7 @@ efi_initialize_iomem_resources(struct re
- 			 */
- 			insert_resource(res, code_resource);
- 			insert_resource(res, data_resource);
-+			insert_resource(res, bss_resource);
- #ifdef CONFIG_KEXEC
-                         insert_resource(res, &efi_memmap_res);
-                         insert_resource(res, &boot_param_res);
-diff -puN arch/ia64/kernel/setup.c~kexec-add-bss-to-resource-tree arch/ia64/kernel/setup.c
---- a/arch/ia64/kernel/setup.c~kexec-add-bss-to-resource-tree
-+++ a/arch/ia64/kernel/setup.c
-@@ -90,7 +90,12 @@ static struct resource code_resource = {
- 	.name	= "Kernel code",
- 	.flags	= IORESOURCE_BUSY | IORESOURCE_MEM
- };
--extern char _text[], _end[], _etext[];
+ 	struct export_operations *nop = mnt->mnt_sb->s_export_op;
+-	struct dentry *result;
++	struct dentry *result, *alias;
++	int err;
+ 
+-	if (nop->decode_fh) {
+-		result = nop->decode_fh(mnt->mnt_sb, fid->raw, fh_len,
++	/*
++	 * Old way of doing things.  Will go away soon.
++	 */
++	if (!nop->fh_to_dentry) {
++		if (nop->decode_fh) {
++			return nop->decode_fh(mnt->mnt_sb, fid->raw, fh_len,
+ 					fileid_type, acceptable, context);
++		} else {
++			return export_decode_fh(mnt->mnt_sb, fid->raw, fh_len,
++					fileid_type, acceptable, context);
++		}
++	}
 +
-+static struct resource bss_resource = {
-+	.name	= "Kernel bss",
-+	.flags	= IORESOURCE_BUSY | IORESOURCE_MEM
-+};
-+extern char _text[], _end[], _etext[], _edata[], _bss[];
++	/*
++	 * Try to get any dentry for the given file handle from the filesystem.
++	 */
++	result = nop->fh_to_dentry(mnt->mnt_sb, fid, fh_len, fileid_type);
++	if (!result)
++		result = ERR_PTR(-ESTALE);
++	if (IS_ERR(result))
++		return result;
++
++	if (S_ISDIR(result->d_inode->i_mode)) {
++		/*
++		 * This request is for a directory.
++		 *
++		 * On the positive side there is only one dentry for each
++		 * directory inode.  On the negative side this implies that we
++		 * to ensure our dentry is connected all the way up to the
++		 * filesystem root.
++		 */
++		if (result->d_flags & DCACHE_DISCONNECTED) {
++			err = reconnect_path(mnt->mnt_sb, result);
++			if (err)
++				goto err_result;
++		}
++
++		if (!acceptable(context, result)) {
++			err = -EACCES;
++			goto err_result;
++		}
++
++		return result;
+ 	} else {
+-		result = export_decode_fh(mnt->mnt_sb, fid->raw, fh_len,
+-					  fileid_type, acceptable, context);
++		/*
++		 * It's not a directory.  Life is a little more complicated.
++		 */
++		struct dentry *target_dir, *nresult;
++		char nbuf[NAME_MAX+1];
++
++		/*
++		 * See if either the dentry we just got from the filesystem
++		 * or any alias for it is acceptable.  This is always true
++		 * if this filesystem is exported without the subtreecheck
++		 * option.  If the filesystem is exported with the subtree
++		 * check option there's a fair chance we need to look at
++		 * the parent directory in the file handle and make sure
++		 * it's connected to the filesystem root.
++		 */
++		alias = find_acceptable_alias(result, acceptable, context);
++		if (alias)
++			return alias;
++
++		/*
++		 * Try to extract a dentry for the parent directory from the
++		 * file handle.  If this fails we'll have to give up.
++		 */
++		err = -ESTALE;
++		if (!nop->fh_to_parent)
++			goto err_result;
++
++		target_dir = nop->fh_to_parent(mnt->mnt_sb, fid,
++				fh_len, fileid_type);
++		if (!target_dir)
++			goto err_result;
++		err = PTR_ERR(target_dir);
++		if (IS_ERR(target_dir))
++			goto err_result;
++
++		/*
++		 * And as usual we need to make sure the parent directory is
++		 * connected to the filesystem root.  The VFS really doesn't
++		 * like disconnected directories..
++		 */
++		err = reconnect_path(mnt->mnt_sb, target_dir);
++		if (err) {
++			dput(target_dir);
++			goto err_result;
++		}
++
++		/*
++		 * Now that we've got both a well-connected parent and a
++		 * dentry for the inode we're after, make sure that our
++		 * inode is actually connected to the parent.
++		 */
++		err = exportfs_get_name(target_dir, nbuf, result);
++		if (!err) {
++			mutex_lock(&target_dir->d_inode->i_mutex);
++			nresult = lookup_one_len(nbuf, target_dir,
++						 strlen(nbuf));
++			mutex_unlock(&target_dir->d_inode->i_mutex);
++			if (!IS_ERR(nresult)) {
++				if (nresult->d_inode) {
++					dput(result);
++					result = nresult;
++				} else
++					dput(nresult);
++			}
++		}
++
++		/*
++		 * At this point we are done with the parent, but it's pinned
++		 * by the child dentry anyway.
++		 */
++		dput(target_dir);
++
++		/*
++		 * And finally make sure the dentry is actually acceptable
++		 * to NFSD.
++		 */
++		alias = find_acceptable_alias(result, acceptable, context);
++		if (!alias) {
++			err = -EACCES;
++			goto err_result;
++		}
++
++		return alias;
+ 	}
  
- unsigned long ia64_max_cacheline_size;
- 
-@@ -200,8 +205,11 @@ static int __init register_memory(void)
- 	code_resource.start = ia64_tpa(_text);
- 	code_resource.end   = ia64_tpa(_etext) - 1;
- 	data_resource.start = ia64_tpa(_etext);
--	data_resource.end   = ia64_tpa(_end) - 1;
--	efi_initialize_iomem_resources(&code_resource, &data_resource);
-+	data_resource.end   = ia64_tpa(_edata) - 1;
-+	bss_resource.start  = ia64_tpa(_bss);
-+	bss_resource.end    = ia64_tpa(_end) - 1;
-+	efi_initialize_iomem_resources(&code_resource, &data_resource,
-+			&bss_resource);
- 
- 	return 0;
+-	return result;
++ err_result:
++	dput(result);
++	return ERR_PTR(err);
  }
-diff -puN arch/x86/kernel/e820_32.c~kexec-add-bss-to-resource-tree arch/x86/kernel/e820_32.c
---- a/arch/x86/kernel/e820_32.c~kexec-add-bss-to-resource-tree
-+++ a/arch/x86/kernel/e820_32.c
-@@ -51,6 +51,13 @@ struct resource code_resource = {
- 	.flags	= IORESOURCE_BUSY | IORESOURCE_MEM
- };
+ EXPORT_SYMBOL_GPL(exportfs_decode_fh);
  
-+struct resource bss_resource = {
-+	.name	= "Kernel bss",
-+	.start	= 0,
-+	.end	= 0,
-+	.flags	= IORESOURCE_BUSY | IORESOURCE_MEM
-+};
+diff -puN fs/libfs.c~exportfs-add-new-methods fs/libfs.c
+--- a/fs/libfs.c~exportfs-add-new-methods
++++ a/fs/libfs.c
+@@ -8,6 +8,7 @@
+ #include <linux/mount.h>
+ #include <linux/vfs.h>
+ #include <linux/mutex.h>
++#include <linux/exportfs.h>
+ 
+ #include <asm/uaccess.h>
+ 
+@@ -678,6 +679,93 @@ out:
+ 	return ret;
+ }
+ 
++/*
++ * This is what d_alloc_anon should have been.  Once the exportfs
++ * argument transition has been finished I will update d_alloc_anon
++ * to this prototype and this wrapper will go away.   --hch
++ */
++static struct dentry *exportfs_d_alloc(struct inode *inode)
++{
++	struct dentry *dentry;
 +
- static struct resource system_rom_resource = {
- 	.name	= "System ROM",
- 	.start	= 0xf0000,
-@@ -254,7 +261,9 @@ static void __init probe_roms(void)
-  * and also for regions reported as reserved by the e820.
-  */
- static void __init
--legacy_init_iomem_resources(struct resource *code_resource, struct resource *data_resource)
-+legacy_init_iomem_resources(struct resource *code_resource,
-+			    struct resource *data_resource,
-+			    struct resource *bss_resource)
- {
- 	int i;
++	if (!inode)
++		return NULL;
++	if (IS_ERR(inode))
++		return ERR_PTR(PTR_ERR(inode));
++
++	dentry = d_alloc_anon(inode);
++	if (!dentry) {
++		iput(inode);
++		dentry = ERR_PTR(-ENOMEM);
++	}
++	return dentry;
++}
++
++/**
++ * generic_fh_to_dentry - generic helper for the fh_to_dentry export operation
++ * @sb:		filesystem to do the file handle conversion on
++ * @fid:	file handle to convert
++ * @fh_len:	length of the file handle in bytes
++ * @fh_type:	type of file handle
++ * @get_inode:	filesystem callback to retrieve inode
++ *
++ * This function decodes @fid as long as it has one of the well-known
++ * Linux filehandle types and calls @get_inode on it to retrieve the
++ * inode for the object specified in the file handle.
++ */
++struct dentry *generic_fh_to_dentry(struct super_block *sb, struct fid *fid,
++		int fh_len, int fh_type, struct inode *(*get_inode)
++			(struct super_block *sb, u64 ino, u32 gen))
++{
++	struct inode *inode = NULL;
++
++	if (fh_len < 2)
++		return NULL;
++
++	switch (fh_type) {
++	case FILEID_INO32_GEN:
++	case FILEID_INO32_GEN_PARENT:
++		inode = get_inode(sb, fid->i32.ino, fid->i32.gen);
++		break;
++	}
++
++	return exportfs_d_alloc(inode);
++}
++EXPORT_SYMBOL_GPL(generic_fh_to_dentry);
++
++/**
++ * generic_fh_to_dentry - generic helper for the fh_to_parent export operation
++ * @sb:		filesystem to do the file handle conversion on
++ * @fid:	file handle to convert
++ * @fh_len:	length of the file handle in bytes
++ * @fh_type:	type of file handle
++ * @get_inode:	filesystem callback to retrieve inode
++ *
++ * This function decodes @fid as long as it has one of the well-known
++ * Linux filehandle types and calls @get_inode on it to retrieve the
++ * inode for the _parent_ object specified in the file handle if it
++ * is specified in the file handle, or NULL otherwise.
++ */
++struct dentry *generic_fh_to_parent(struct super_block *sb, struct fid *fid,
++		int fh_len, int fh_type, struct inode *(*get_inode)
++			(struct super_block *sb, u64 ino, u32 gen))
++{
++	struct inode *inode = NULL;
++
++	if (fh_len <= 2)
++		return NULL;
++
++	switch (fh_type) {
++	case FILEID_INO32_GEN_PARENT:
++		inode = get_inode(sb, fid->i32.parent_ino,
++				  (fh_len > 3 ? fid->i32.parent_gen : 0));
++		break;
++	}
++
++	return exportfs_d_alloc(inode);
++}
++EXPORT_SYMBOL_GPL(generic_fh_to_parent);
++
+ EXPORT_SYMBOL(dcache_dir_close);
+ EXPORT_SYMBOL(dcache_dir_lseek);
+ EXPORT_SYMBOL(dcache_dir_open);
+diff -puN include/linux/exportfs.h~exportfs-add-new-methods include/linux/exportfs.h
+--- a/include/linux/exportfs.h~exportfs-add-new-methods
++++ a/include/linux/exportfs.h
+@@ -4,6 +4,7 @@
+ #include <linux/types.h>
  
-@@ -287,6 +296,7 @@ legacy_init_iomem_resources(struct resou
- 			 */
- 			request_resource(res, code_resource);
- 			request_resource(res, data_resource);
-+			request_resource(res, bss_resource);
- #ifdef CONFIG_KEXEC
- 			if (crashk_res.start != crashk_res.end)
- 				request_resource(res, &crashk_res);
-@@ -307,9 +317,11 @@ static int __init request_standard_resou
+ struct dentry;
++struct inode;
+ struct super_block;
+ struct vfsmount;
  
- 	printk("Setting up standard PCI resources\n");
- 	if (efi_enabled)
--		efi_initialize_iomem_resources(&code_resource, &data_resource);
-+		efi_initialize_iomem_resources(&code_resource,
-+				&data_resource, &bss_resource);
- 	else
--		legacy_init_iomem_resources(&code_resource, &data_resource);
-+		legacy_init_iomem_resources(&code_resource,
-+				&data_resource, &bss_resource);
+@@ -101,6 +102,21 @@ struct fid {
+  *    the filehandle fragment.  encode_fh() should return the number of bytes
+  *    stored or a negative error code such as %-ENOSPC
+  *
++ * fh_to_dentry:
++ *    @fh_to_dentry is given a &struct super_block (@sb) and a file handle
++ *    fragment (@fh, @fh_len). It should return a &struct dentry which refers
++ *    to the same file that the file handle fragment refers to.  If it cannot,
++ *    it should return a %NULL pointer if the file was found but no acceptable
++ *    &dentries were available, or an %ERR_PTR error code indicating why it
++ *    couldn't be found (e.g. %ENOENT or %ENOMEM).  Any suitable dentry can be
++ *    returned including, if necessary, a new dentry created with d_alloc_root.
++ *    The caller can then find any other extant dentries by following the
++ *    d_alias links.
++ *
++ * fh_to_parent:
++ *    Same as @fh_to_dentry, except that it returns a pointer to the parent
++ *    dentry if it was encoded into the filehandle fragment by @encode_fh.
++ *
+  * get_name:
+  *    @get_name should find a name for the given @child in the given @parent
+  *    directory.  The name should be stored in the @name (with the
+@@ -139,6 +155,10 @@ struct export_operations {
+ 			void *context);
+ 	int (*encode_fh)(struct dentry *de, __u32 *fh, int *max_len,
+ 			int connectable);
++	struct dentry * (*fh_to_dentry)(struct super_block *sb, struct fid *fid,
++			int fh_len, int fh_type);
++	struct dentry * (*fh_to_parent)(struct super_block *sb, struct fid *fid,
++			int fh_len, int fh_type);
+ 	int (*get_name)(struct dentry *parent, char *name,
+ 			struct dentry *child);
+ 	struct dentry * (*get_parent)(struct dentry *child);
+@@ -161,4 +181,14 @@ extern struct dentry *exportfs_decode_fh
+ 	int fh_len, int fileid_type, int (*acceptable)(void *, struct dentry *),
+ 	void *context);
  
- 	/* EFI systems may still have VGA */
- 	request_resource(&iomem_resource, &video_ram_resource);
-diff -puN arch/x86/kernel/e820_64.c~kexec-add-bss-to-resource-tree arch/x86/kernel/e820_64.c
---- a/arch/x86/kernel/e820_64.c~kexec-add-bss-to-resource-tree
-+++ a/arch/x86/kernel/e820_64.c
-@@ -47,7 +47,7 @@ unsigned long end_pfn_map; 
-  */
- static unsigned long __initdata end_user_pfn = MAXMEM>>PAGE_SHIFT;
- 
--extern struct resource code_resource, data_resource;
-+extern struct resource code_resource, data_resource, bss_resource;
- 
- /* Check for some hardcoded bad areas that early boot is not allowed to touch */ 
- static inline int bad_addr(unsigned long *addrp, unsigned long size)
-@@ -225,6 +225,7 @@ void __init e820_reserve_resources(void)
- 			 */
- 			request_resource(res, &code_resource);
- 			request_resource(res, &data_resource);
-+			request_resource(res, &bss_resource);
- #ifdef CONFIG_KEXEC
- 			if (crashk_res.start != crashk_res.end)
- 				request_resource(res, &crashk_res);
-diff -puN arch/x86/kernel/efi_32.c~kexec-add-bss-to-resource-tree arch/x86/kernel/efi_32.c
---- a/arch/x86/kernel/efi_32.c~kexec-add-bss-to-resource-tree
-+++ a/arch/x86/kernel/efi_32.c
-@@ -603,7 +603,8 @@ void __init efi_enter_virtual_mode(void)
- 
- void __init
- efi_initialize_iomem_resources(struct resource *code_resource,
--			       struct resource *data_resource)
-+			       struct resource *data_resource,
-+			       struct resource *bss_resource)
- {
- 	struct resource *res;
- 	efi_memory_desc_t *md;
-@@ -675,6 +676,7 @@ efi_initialize_iomem_resources(struct re
- 		if (md->type == EFI_CONVENTIONAL_MEMORY) {
- 			request_resource(res, code_resource);
- 			request_resource(res, data_resource);
-+			request_resource(res, bss_resource);
- #ifdef CONFIG_KEXEC
- 			request_resource(res, &crashk_res);
- #endif
-diff -puN arch/x86/kernel/setup_32.c~kexec-add-bss-to-resource-tree arch/x86/kernel/setup_32.c
---- a/arch/x86/kernel/setup_32.c~kexec-add-bss-to-resource-tree
-+++ a/arch/x86/kernel/setup_32.c
-@@ -60,6 +60,7 @@
- #include <asm/vmi.h>
- #include <setup_arch.h>
- #include <bios_ebda.h>
-+#include <asm/cacheflush.h>
- 
- /* This value is set up by the early boot code to point to the value
-    immediately after the boot time page tables.  It contains a *physical*
-@@ -73,6 +74,7 @@ int disable_pse __devinitdata = 0;
-  */
- extern struct resource code_resource;
- extern struct resource data_resource;
-+extern struct resource bss_resource;
- 
- /* cpu data as detected by the assembly code in head.S */
- struct cpuinfo_x86 new_cpu_data __cpuinitdata = { 0, 0, 0, 0, -1, 1, 0, 0, -1 };
-@@ -600,6 +602,8 @@ void __init setup_arch(char **cmdline_p)
- 	code_resource.end = virt_to_phys(_etext)-1;
- 	data_resource.start = virt_to_phys(_etext);
- 	data_resource.end = virt_to_phys(_edata)-1;
-+	bss_resource.start = virt_to_phys(&__bss_start);
-+	bss_resource.end = virt_to_phys(&__bss_stop)-1;
- 
- 	parse_early_param();
- 
-diff -puN arch/x86/kernel/setup_64.c~kexec-add-bss-to-resource-tree arch/x86/kernel/setup_64.c
---- a/arch/x86/kernel/setup_64.c~kexec-add-bss-to-resource-tree
-+++ a/arch/x86/kernel/setup_64.c
-@@ -58,6 +58,7 @@
- #include <asm/numa.h>
- #include <asm/sections.h>
- #include <asm/dmi.h>
-+#include <asm/cacheflush.h>
- 
- /*
-  * Machine setup..
-@@ -133,6 +134,12 @@ struct resource code_resource = {
- 	.end = 0,
- 	.flags = IORESOURCE_RAM,
- };
-+struct resource bss_resource = {
-+	.name = "Kernel bss",
-+	.start = 0,
-+	.end = 0,
-+	.flags = IORESOURCE_RAM,
-+};
- 
- #ifdef CONFIG_PROC_VMCORE
- /* elfcorehdr= specifies the location of elf core header
-@@ -276,6 +283,8 @@ void __init setup_arch(char **cmdline_p)
- 	code_resource.end = virt_to_phys(&_etext)-1;
- 	data_resource.start = virt_to_phys(&_etext);
- 	data_resource.end = virt_to_phys(&_edata)-1;
-+	bss_resource.start = virt_to_phys(&__bss_start);
-+	bss_resource.end = virt_to_phys(&__bss_stop)-1;
- 
- 	early_identify_cpu(&boot_cpu_data);
- 
-diff -puN include/linux/efi.h~kexec-add-bss-to-resource-tree include/linux/efi.h
---- a/include/linux/efi.h~kexec-add-bss-to-resource-tree
-+++ a/include/linux/efi.h
-@@ -298,7 +298,7 @@ extern int efi_mem_attribute_range (unsi
- 				    u64 attr);
- extern int __init efi_uart_console_only (void);
- extern void efi_initialize_iomem_resources(struct resource *code_resource,
--					struct resource *data_resource);
-+		struct resource *data_resource, struct resource *bss_resource);
- extern unsigned long efi_get_time(void);
- extern int efi_set_rtc_mmss(unsigned long nowtime);
- extern int is_available_memory(efi_memory_desc_t * md);
++/*
++ * Generic helpers for filesystems.
++ */
++extern struct dentry *generic_fh_to_dentry(struct super_block *sb,
++	struct fid *fid, int fh_len, int fh_type,
++	struct inode *(*get_inode) (struct super_block *sb, u64 ino, u32 gen));
++extern struct dentry *generic_fh_to_parent(struct super_block *sb,
++	struct fid *fid, int fh_len, int fh_type,
++	struct inode *(*get_inode) (struct super_block *sb, u64 ino, u32 gen));
++
+ #endif /* LINUX_EXPORTFS_H */
 _
 
-Patches currently in -mm which might be from bwalle@suse.de are
+Patches currently in -mm which might be from hch@lst.de are
 
 origin.patch
+git-unionfs.patch
+git-xfs.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+r-o-bind-mounts-stub-functions.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
+revoke-special-mmap-handling.patch
+revoke-core-code.patch
+revoke-support-for-ext2-and-ext3.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
+dont-touch-fs_struct-in-drivers.patch
+dont-touch-fs_struct-in-usermodehelper.patch
+remove-path_release_on_umount.patch
+move-struct-path-into-its-own-header.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+introduce-path_put.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+introduce-path_get.patch
+use-struct-path-in-fs_struct.patch
+make-set_fs_rootpwd-take-a-struct-path.patch
+make-__d_path-to-take-a-struct-path-argument.patch
+use-struct-path-argument-in-proc_get_link.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
+introduce-path_put-unionfs.patch
+introduce-path_get-unionfs.patch
