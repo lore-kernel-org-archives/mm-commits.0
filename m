@@ -1,103 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: - shmem-new-export-ops.patch removed from -mm tree
-Date: Mon, 22 Oct 2007 23:47:47 -0700
-Message-ID: <200710230647.l9N6llnU004311@imap1.linux-foundation.org>
+Subject: - jfs-new-export-ops.patch removed from -mm tree
+Date: Mon, 22 Oct 2007 23:47:36 -0700
+Message-ID: <200710230647.l9N6laEB004296@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45853 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42313 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751840AbXJWHB6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752181AbXJWHCA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Oct 2007 03:01:58 -0400
+	Tue, 23 Oct 2007 03:02:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, bfields@fieldses.org, hugh@veritas.com, neilb@suse.de, mm-commits@vger.kernel.org
+To: hch@lst.de, bfields@fieldses.org, neilb@suse.de, shaggy@austin.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     shmem: new export ops
+     jfs: new export ops
 has been removed from the -mm tree.  Its filename was
-     shmem-new-export-ops.patch
+     jfs-new-export-ops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: shmem: new export ops
+Subject: jfs: new export ops
 From: Christoph Hellwig <hch@lst.de>
 
-I'm not sure what people were thinking when adding support to export tmpfs,
-but here's the conversion anyway:
+Trivial switch over to the new generic helpers.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Neil Brown <neilb@suse.de>
 Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Dave Kleikamp <shaggy@austin.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   35 +++++++++++++----------------------
- 1 file changed, 13 insertions(+), 22 deletions(-)
+ fs/jfs/jfs_inode.h |    7 ++++++-
+ fs/jfs/namei.c     |   35 +++++++++++++++++++----------------
+ fs/jfs/super.c     |    3 ++-
+ 3 files changed, 27 insertions(+), 18 deletions(-)
 
-diff -puN mm/shmem.c~shmem-new-export-ops mm/shmem.c
---- a/mm/shmem.c~shmem-new-export-ops
-+++ a/mm/shmem.c
-@@ -2020,33 +2020,25 @@ static int shmem_match(struct inode *ino
- 	return ino->i_ino == inum && fh[0] == ino->i_generation;
+diff -puN fs/jfs/jfs_inode.h~jfs-new-export-ops fs/jfs/jfs_inode.h
+--- a/fs/jfs/jfs_inode.h~jfs-new-export-ops
++++ a/fs/jfs/jfs_inode.h
+@@ -18,6 +18,8 @@
+ #ifndef	_H_JFS_INODE
+ #define _H_JFS_INODE
+ 
++struct fid;
++
+ extern struct inode *ialloc(struct inode *, umode_t);
+ extern int jfs_fsync(struct file *, struct dentry *, int);
+ extern int jfs_ioctl(struct inode *, struct file *,
+@@ -32,7 +34,10 @@ extern void jfs_truncate_nolock(struct i
+ extern void jfs_free_zero_link(struct inode *);
+ extern struct dentry *jfs_get_parent(struct dentry *dentry);
+ extern void jfs_get_inode_flags(struct jfs_inode_info *);
+-extern struct dentry *jfs_get_dentry(struct super_block *sb, void *vobjp);
++extern struct dentry *jfs_fh_to_dentry(struct super_block *sb, struct fid *fid,
++	int fh_len, int fh_type);
++extern struct dentry *jfs_fh_to_parent(struct super_block *sb, struct fid *fid,
++	int fh_len, int fh_type);
+ extern void jfs_set_inode_flags(struct inode *);
+ extern int jfs_get_block(struct inode *, sector_t, struct buffer_head *, int);
+ 
+diff -puN fs/jfs/namei.c~jfs-new-export-ops fs/jfs/namei.c
+--- a/fs/jfs/namei.c~jfs-new-export-ops
++++ a/fs/jfs/namei.c
+@@ -20,6 +20,7 @@
+ #include <linux/fs.h>
+ #include <linux/ctype.h>
+ #include <linux/quotaops.h>
++#include <linux/exportfs.h>
+ #include "jfs_incore.h"
+ #include "jfs_superblock.h"
+ #include "jfs_inode.h"
+@@ -1477,13 +1478,10 @@ static struct dentry *jfs_lookup(struct 
+ 	return dentry;
  }
  
--static struct dentry *shmem_get_dentry(struct super_block *sb, void *vfh)
-+static struct dentry *shmem_fh_to_dentry(struct super_block *sb,
-+		struct fid *fid, int fh_len, int fh_type)
+-struct dentry *jfs_get_dentry(struct super_block *sb, void *vobjp)
++static struct inode *jfs_nfs_get_inode(struct super_block *sb,
++		u64 ino, u32 generation)
  {
--	struct dentry *de = NULL;
+-	__u32 *objp = vobjp;
+-	unsigned long ino = objp[0];
+-	__u32 generation = objp[1];
  	struct inode *inode;
--	__u32 *fh = vfh;
--	__u64 inum = fh[2];
--	inum = (inum << 32) | fh[1];
-+	struct dentry *dentry = NULL;
-+	u64 inum = fid->raw[2];
-+	inum = (inum << 32) | fid->raw[1];
+-	struct dentry *result;
  
--	inode = ilookup5(sb, (unsigned long)(inum+fh[0]), shmem_match, vfh);
-+	if (fh_len < 3)
-+		return NULL;
-+
-+	inode = ilookup5(sb, (unsigned long)(inum + fid->raw[0]),
-+			shmem_match, fid->raw);
- 	if (inode) {
--		de = d_find_alias(inode);
-+		dentry = d_find_alias(inode);
- 		iput(inode);
+ 	if (ino == 0)
+ 		return ERR_PTR(-ESTALE);
+@@ -1493,20 +1491,25 @@ struct dentry *jfs_get_dentry(struct sup
+ 
+ 	if (is_bad_inode(inode) ||
+ 	    (generation && inode->i_generation != generation)) {
+-	    	result = ERR_PTR(-ESTALE);
+-		goto out_iput;
++		iput(inode);
++		return ERR_PTR(-ESTALE);
  	}
  
--	return de? de: ERR_PTR(-ESTALE);
--}
--
--static struct dentry *shmem_decode_fh(struct super_block *sb, __u32 *fh,
--		int len, int type,
--		int (*acceptable)(void *context, struct dentry *de),
--		void *context)
--{
--	if (len < 3)
--		return ERR_PTR(-ESTALE);
--
--	return sb->s_export_op->find_exported_dentry(sb, fh, NULL, acceptable,
--							context);
-+	return dentry;
+-	result = d_alloc_anon(inode);
+-	if (!result) {
+-		result = ERR_PTR(-ENOMEM);
+-		goto out_iput;
+-	}
+-	return result;
++	return inode;
++}
+ 
+- out_iput:
+-	iput(inode);
+-	return result;
++struct dentry *jfs_fh_to_dentry(struct super_block *sb, struct fid *fid,
++		int fh_len, int fh_type)
++{
++	return generic_fh_to_dentry(sb, fid, fh_len, fh_type,
++				    jfs_nfs_get_inode);
++}
++
++struct dentry *jfs_fh_to_parent(struct super_block *sb, struct fid *fid,
++		int fh_len, int fh_type)
++{
++	return generic_fh_to_parent(sb, fid, fh_len, fh_type,
++				    jfs_nfs_get_inode);
  }
  
- static int shmem_encode_fh(struct dentry *dentry, __u32 *fh, int *len,
-@@ -2081,9 +2073,8 @@ static int shmem_encode_fh(struct dentry
- 
- static struct export_operations shmem_export_ops = {
- 	.get_parent     = shmem_get_parent,
--	.get_dentry     = shmem_get_dentry,
- 	.encode_fh      = shmem_encode_fh,
--	.decode_fh      = shmem_decode_fh,
-+	.fh_to_dentry	= shmem_fh_to_dentry,
+ struct dentry *jfs_get_parent(struct dentry *dentry)
+diff -puN fs/jfs/super.c~jfs-new-export-ops fs/jfs/super.c
+--- a/fs/jfs/super.c~jfs-new-export-ops
++++ a/fs/jfs/super.c
+@@ -738,7 +738,8 @@ static const struct super_operations jfs
  };
  
- static int shmem_parse_options(char *options, int *mode, uid_t *uid,
+ static struct export_operations jfs_export_operations = {
+-	.get_dentry	= jfs_get_dentry,
++	.fh_to_dentry	= jfs_fh_to_dentry,
++	.fh_to_parent	= jfs_fh_to_parent,
+ 	.get_parent	= jfs_get_parent,
+ };
+ 
 _
 
 Patches currently in -mm which might be from hch@lst.de are
