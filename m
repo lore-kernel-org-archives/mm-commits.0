@@ -1,169 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: - update-boot-spec-to-207.patch removed from -mm tree
-Date: Mon, 22 Oct 2007 23:46:18 -0700
-Message-ID: <200710230646.l9N6kIbT004200@imap1.linux-foundation.org>
+Subject: - intel-iommu-pci-generic-helper-function.patch removed from -mm tree
+Date: Mon, 22 Oct 2007 23:46:40 -0700
+Message-ID: <200710230646.l9N6kehs004227@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43289 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40358 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751491AbXJWGq6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751862AbXJWGrH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Oct 2007 02:46:58 -0400
+	Tue, 23 Oct 2007 02:47:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rusty@rustcorp.com.au, ebiederm@xmission.com, hpa@zytor.com, jeremy@xensource.com, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
+To: anil.s.keshavamurthy@intel.com, a.p.zijlstra@chello.nl, ak@suse.de, arjan@infradead.org, ashok.raj@intel.com, clameter@sgi.com, davem@davemloft.net, greg@kroah.com, muli@il.ibm.coms
 
 
 The patch titled
-     update boot spec to 2.07
+     Intel IOMMU: PCI generic helper function
 has been removed from the -mm tree.  Its filename was
-     update-boot-spec-to-207.patch
+     intel-iommu-pci-generic-helper-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: update boot spec to 2.07
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Intel IOMMU: PCI generic helper function
+From: "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
 
-Updates for version 2.07 of the boot protocol.  This includes:
+When devices are under a p2p bridge, upstream transactions get replaced by the
+device id of the bridge as it owns the PCIE transaction.  Hence its necessary
+to setup translations on behalf of the bridge as well.  Due to this limitation
+all devices under a p2p share the same domain in a DMAR.
 
-load_flags.KEEP_SEGMENTS- flag to request/inhibit segment reloads
-hardware_subarch	- what subarchitecture we're booting under
-hardware_subarch_data	- per-architecture data
+We just cache the type of device, if its a native PCIe device
+or not for later use.
 
-The intention of these changes is to make booting a paravirtualized
-kernel work via the normal Linux boot protocol.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Acked-by: H. Peter Anvin <hpa@zytor.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Vivek Goyal <vgoyal@in.ibm.com>
+[akpm@linux-foundation.org: BUG_ON -> WARN_ON+recover]
+Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Ashok Raj <ashok.raj@intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/i386/boot.txt      |   34 ++++++++++++++++++++++++++++-
- arch/x86/kernel/asm-offsets_32.c |    7 +++++
- include/asm-x86/bootparam.h      |    9 +++++--
- 3 files changed, 47 insertions(+), 3 deletions(-)
+ drivers/pci/pci.h    |    1 +
+ drivers/pci/probe.c  |   14 ++++++++++++++
+ drivers/pci/search.c |   34 ++++++++++++++++++++++++++++++++++
+ include/linux/pci.h  |    2 ++
+ 4 files changed, 51 insertions(+)
 
-diff -puN Documentation/i386/boot.txt~update-boot-spec-to-207 Documentation/i386/boot.txt
---- a/Documentation/i386/boot.txt~update-boot-spec-to-207
-+++ a/Documentation/i386/boot.txt
-@@ -168,6 +168,8 @@ Offset	Proto	Name		Meaning
- 0234/1	2.05+	relocatable_kernel Whether kernel is relocatable or not
- 0235/3	N/A	pad2		Unused
- 0238/4	2.06+	cmdline_size	Maximum size of the kernel command line
-+023C/4	2.07+	hardware_subarch Hardware subarchitecture
-+0240/8	2.07+	hardware_subarch_data Subarchitecture-specific data
- 
- (1) For backwards compatibility, if the setup_sects field contains 0, the
-     real value is 4.
-@@ -204,7 +206,7 @@ boot loaders can ignore those fields.
- 
- The byte order of all fields is littleendian (this is x86, after all.)
- 
--Field name:	setup_secs
-+Field name:	setup_sects
- Type:		read
- Offset/size:	0x1f1/1
- Protocol:	ALL
-@@ -356,6 +358,13 @@ Protocol:	2.00+
- 	- If 0, the protected-mode code is loaded at 0x10000.
- 	- If 1, the protected-mode code is loaded at 0x100000.
- 
-+  Bit 6 (write): KEEP_SEGMENTS
-+	Protocol: 2.07+
-+	- if 0, reload the segment registers in the 32bit entry point.
-+	- if 1, do not reload the segment registers in the 32bit entry point.
-+		Assume that %cs %ds %ss %es are all set to flat segments with
-+		a base of 0 (or the equivalent for their environment).
-+
-   Bit 7 (write): CAN_USE_HEAP
- 	Set this bit to 1 to indicate that the value entered in the
- 	heap_end_ptr is valid.  If this field is clear, some setup code
-@@ -480,6 +489,29 @@ Protocol:	2.06+
-   cmdline_size characters. With protocol version 2.05 and earlier, the
-   maximum size was 255.
- 
-+Field name:	hardware_subarch
-+Type:		write
-+Offset/size:	0x23c/4
-+Protocol:	2.07+
-+
-+  In a paravirtualized environment the hardware low level architectural
-+  pieces such as interrupt handling, page table handling, and
-+  accessing process control registers needs to be done differently.
-+
-+  This field allows the bootloader to inform the kernel we are in one
-+  one of those environments.
-+
-+  0x00000000	The default x86/PC environment
-+  0x00000001	lguest
-+  0x00000002	Xen
-+
-+Field name:	hardware_subarch_data
-+Type:		write
-+Offset/size:	0x240/8
-+Protocol:	2.07+
-+
-+  A pointer to data that is specific to hardware subarch
-+
- 
- **** THE KERNEL COMMAND LINE
- 
-diff -puN arch/x86/kernel/asm-offsets_32.c~update-boot-spec-to-207 arch/x86/kernel/asm-offsets_32.c
---- a/arch/x86/kernel/asm-offsets_32.c~update-boot-spec-to-207
-+++ a/arch/x86/kernel/asm-offsets_32.c
-@@ -15,6 +15,7 @@
- #include <asm/fixmap.h>
- #include <asm/processor.h>
- #include <asm/thread_info.h>
-+#include <asm/bootparam.h>
- #include <asm/elf.h>
- 
- #include <xen/interface/xen.h>
-@@ -146,4 +147,10 @@ void foo(void)
- 	OFFSET(LGUEST_PAGES_regs_errcode, lguest_pages, regs.errcode);
- 	OFFSET(LGUEST_PAGES_regs, lguest_pages, regs);
- #endif
-+
-+	BLANK();
-+	OFFSET(BP_scratch, boot_params, scratch);
-+	OFFSET(BP_loadflags, boot_params, hdr.loadflags);
-+	OFFSET(BP_hardware_subarch, boot_params, hdr.hardware_subarch);
-+	OFFSET(BP_version, boot_params, hdr.version);
+diff -puN drivers/pci/pci.h~intel-iommu-pci-generic-helper-function drivers/pci/pci.h
+--- a/drivers/pci/pci.h~intel-iommu-pci-generic-helper-function
++++ a/drivers/pci/pci.h
+@@ -90,3 +90,4 @@ pci_match_one_device(const struct pci_de
+ 	return NULL;
  }
-diff -puN include/asm-x86/bootparam.h~update-boot-spec-to-207 include/asm-x86/bootparam.h
---- a/include/asm-x86/bootparam.h~update-boot-spec-to-207
-+++ a/include/asm-x86/bootparam.h
-@@ -28,8 +28,9 @@ struct setup_header {
- 	u16	kernel_version;
- 	u8	type_of_loader;
- 	u8	loadflags;
--#define LOADED_HIGH	0x01
--#define CAN_USE_HEAP	0x80
-+#define LOADED_HIGH	(1<<0)
-+#define KEEP_SEGMENTS	(1<<6)
-+#define CAN_USE_HEAP	(1<<7)
- 	u16	setup_move_size;
- 	u32	code32_start;
- 	u32	ramdisk_image;
-@@ -41,6 +42,10 @@ struct setup_header {
- 	u32	initrd_addr_max;
- 	u32	kernel_alignment;
- 	u8	relocatable_kernel;
-+	u8	_pad2[3];
-+	u32	cmdline_size;
-+	u32	hardware_subarch;
-+	u64	hardware_subarch_data;
- } __attribute__((packed));
  
- struct sys_desc_table {
++struct pci_dev *pci_find_upstream_pcie_bridge(struct pci_dev *pdev);
+diff -puN drivers/pci/probe.c~intel-iommu-pci-generic-helper-function drivers/pci/probe.c
+--- a/drivers/pci/probe.c~intel-iommu-pci-generic-helper-function
++++ a/drivers/pci/probe.c
+@@ -837,6 +837,19 @@ static void pci_release_dev(struct devic
+ 	kfree(pci_dev);
+ }
+ 
++static void set_pcie_port_type(struct pci_dev *pdev)
++{
++	int pos;
++	u16 reg16;
++
++	pos = pci_find_capability(pdev, PCI_CAP_ID_EXP);
++	if (!pos)
++		return;
++	pdev->is_pcie = 1;
++	pci_read_config_word(pdev, pos + PCI_EXP_FLAGS, &reg16);
++	pdev->pcie_type = (reg16 & PCI_EXP_FLAGS_TYPE) >> 4;
++}
++
+ /**
+  * pci_cfg_space_size - get the configuration space size of the PCI device.
+  * @dev: PCI device
+@@ -951,6 +964,7 @@ pci_scan_device(struct pci_bus *bus, int
+ 	dev->device = (l >> 16) & 0xffff;
+ 	dev->cfg_size = pci_cfg_space_size(dev);
+ 	dev->error_state = pci_channel_io_normal;
++	set_pcie_port_type(dev);
+ 
+ 	/* Assume 32-bit PCI; let 64-bit PCI cards (which are far rarer)
+ 	   set this higher, assuming the system even supports it.  */
+diff -puN drivers/pci/search.c~intel-iommu-pci-generic-helper-function drivers/pci/search.c
+--- a/drivers/pci/search.c~intel-iommu-pci-generic-helper-function
++++ a/drivers/pci/search.c
+@@ -14,6 +14,40 @@
+ #include "pci.h"
+ 
+ DECLARE_RWSEM(pci_bus_sem);
++/*
++ * find the upstream PCIE-to-PCI bridge of a PCI device
++ * if the device is PCIE, return NULL
++ * if the device isn't connected to a PCIE bridge (that is its parent is a
++ * legacy PCI bridge and the bridge is directly connected to bus 0), return its
++ * parent
++ */
++struct pci_dev *
++pci_find_upstream_pcie_bridge(struct pci_dev *pdev)
++{
++	struct pci_dev *tmp = NULL;
++
++	if (pdev->is_pcie)
++		return NULL;
++	while (1) {
++		if (!pdev->bus->self)
++			break;
++		pdev = pdev->bus->self;
++		/* a p2p bridge */
++		if (!pdev->is_pcie) {
++			tmp = pdev;
++			continue;
++		}
++		/* PCI device should connect to a PCIE bridge */
++		if (pdev->pcie_type != PCI_EXP_TYPE_PCI_BRIDGE) {
++			/* Busted hardware? */
++			WARN_ON_ONCE(1);
++			return NULL;
++		}
++		return pdev;
++	}
++
++	return tmp;
++}
+ 
+ static struct pci_bus *pci_do_find_bus(struct pci_bus *bus, unsigned char busnr)
+ {
+diff -puN include/linux/pci.h~intel-iommu-pci-generic-helper-function include/linux/pci.h
+--- a/include/linux/pci.h~intel-iommu-pci-generic-helper-function
++++ a/include/linux/pci.h
+@@ -141,6 +141,7 @@ struct pci_dev {
+ 	unsigned int	class;		/* 3 bytes: (base,sub,prog-if) */
+ 	u8		revision;	/* PCI revision, low byte of class word */
+ 	u8		hdr_type;	/* PCI header type (`multi' flag masked out) */
++	u8		pcie_type;	/* PCI-E device/port type */
+ 	u8		rom_base_reg;	/* which config register controls the ROM */
+ 	u8		pin;  		/* which interrupt pin this device uses */
+ 
+@@ -183,6 +184,7 @@ struct pci_dev {
+ 	unsigned int 	msi_enabled:1;
+ 	unsigned int	msix_enabled:1;
+ 	unsigned int	is_managed:1;
++	unsigned int	is_pcie:1;
+ 	atomic_t	enable_cnt;	/* pci_enable_device has been called */
+ 
+ 	u32		saved_config_space[16]; /* config space saved at suspend time */
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from anil.s.keshavamurthy@intel.com are
 
 origin.patch
-git-kvm.patch
-reiser4.patch
