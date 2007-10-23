@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - isofs-new-export-ops.patch removed from -mm tree
-Date: Mon, 22 Oct 2007 23:47:44 -0700
-Message-ID: <200710230647.l9N6liJ5004308@imap1.linux-foundation.org>
+Subject: - efs-new-export-ops.patch removed from -mm tree
+Date: Mon, 22 Oct 2007 23:47:32 -0700
+Message-ID: <200710230647.l9N6lWdV004290@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53715 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51369 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752164AbXJWG6v (ORCPT
+	by vger.kernel.org with ESMTP id S1751992AbXJWG7X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Oct 2007 02:58:51 -0400
+	Tue, 23 Oct 2007 02:59:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hch@lst.de, bfields@fieldses.org, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isofs: new export ops
+     efs: new export ops
 has been removed from the -mm tree.  Its filename was
-     isofs-new-export-ops.patch
+     efs-new-export-ops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: isofs: new export ops
+Subject: efs: new export ops
 From: Christoph Hellwig <hch@lst.de>
 
-Nice little cleanup by consolidating things a little and using a structure for
-the special file handle format.
+Trivial switch over to the new generic helpers.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Neil Brown <neilb@suse.de>
@@ -34,102 +33,112 @@ Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/isofs/export.c |   67 +++++++++++++++++++-------------------------
- 1 file changed, 29 insertions(+), 38 deletions(-)
+ fs/efs/namei.c         |   36 ++++++++++++++++++++----------------
+ fs/efs/super.c         |    3 ++-
+ include/linux/efs_fs.h |    6 +++++-
+ 3 files changed, 27 insertions(+), 18 deletions(-)
 
-diff -puN fs/isofs/export.c~isofs-new-export-ops fs/isofs/export.c
---- a/fs/isofs/export.c~isofs-new-export-ops
-+++ a/fs/isofs/export.c
-@@ -42,16 +42,6 @@ isofs_export_iget(struct super_block *sb
- 	return result;
+diff -puN fs/efs/namei.c~efs-new-export-ops fs/efs/namei.c
+--- a/fs/efs/namei.c~efs-new-export-ops
++++ a/fs/efs/namei.c
+@@ -10,6 +10,8 @@
+ #include <linux/string.h>
+ #include <linux/efs_fs.h>
+ #include <linux/smp_lock.h>
++#include <linux/exportfs.h>
++
+ 
+ static efs_ino_t efs_find_entry(struct inode *inode, const char *name, int len) {
+ 	struct buffer_head *bh;
+@@ -75,13 +77,10 @@ struct dentry *efs_lookup(struct inode *
+ 	return NULL;
  }
  
--static struct dentry *
--isofs_export_get_dentry(struct super_block *sb, void *vobjp)
--{
--	__u32 *objp = vobjp;
--	unsigned long block = objp[0];
--	unsigned long offset = objp[1];
--	__u32 generation = objp[2];
--	return isofs_export_iget(sb, block, offset, generation);
--}
--
- /* This function is surprisingly simple.  The trick is understanding
-  * that "child" is always a directory. So, to find its parent, you
-  * simply need to find its ".." entry, normalize its block and offset,
-@@ -182,43 +172,44 @@ isofs_export_encode_fh(struct dentry *de
- 	return type;
- }
- 
-+struct isofs_fid {
-+	u32 block;
-+	u16 offset;
-+	u16 parent_offset;
-+	u32 generation;
-+	u32 parent_block;
-+	u32 parent_generation;
-+};
- 
--static struct dentry *
--isofs_export_decode_fh(struct super_block *sb,
--		       __u32 *fh32,
--		       int fh_len,
--		       int fileid_type,
--		       int (*acceptable)(void *context, struct dentry *de),
--		       void *context)
-+static struct dentry *isofs_fh_to_dentry(struct super_block *sb,
-+	struct fid *fid, int fh_len, int fh_type)
+-struct dentry *efs_get_dentry(struct super_block *sb, void *vobjp)
++static struct inode *efs_nfs_get_inode(struct super_block *sb, u64 ino,
++		u32 generation)
  {
--	__u16 *fh16 = (__u16*)fh32;
--	__u32 child[3];   /* The child is what triggered all this. */
--	__u32 parent[3];  /* The parent is just along for the ride. */
-+	struct isofs_fid *ifid = (struct isofs_fid *)fid;
+-	__u32 *objp = vobjp;
+-	unsigned long ino = objp[0];
+-	__u32 generation = objp[1];
+ 	struct inode *inode;
+-	struct dentry *result;
  
--	if (fh_len < 3 || fileid_type > 2)
-+	if (fh_len < 3 || fh_type > 2)
- 		return NULL;
+ 	if (ino == 0)
+ 		return ERR_PTR(-ESTALE);
+@@ -91,20 +90,25 @@ struct dentry *efs_get_dentry(struct sup
  
--	child[0] = fh32[0];
--	child[1] = fh16[2];  /* fh16 [sic] */
--	child[2] = fh32[2];
--
--	parent[0] = 0;
--	parent[1] = 0;
--	parent[2] = 0;
--	if (fileid_type == 2) {
--		if (fh_len > 2) parent[0] = fh32[3];
--		parent[1] = fh16[3];  /* fh16 [sic] */
--		if (fh_len > 4) parent[2] = fh32[4];
+ 	if (is_bad_inode(inode) ||
+ 	    (generation && inode->i_generation != generation)) {
+-	    	result = ERR_PTR(-ESTALE);
+-		goto out_iput;
++		iput(inode);
++		return ERR_PTR(-ESTALE);
+ 	}
+ 
+-	result = d_alloc_anon(inode);
+-	if (!result) {
+-		result = ERR_PTR(-ENOMEM);
+-		goto out_iput;
 -	}
--
--	return sb->s_export_op->find_exported_dentry(sb, child, parent,
--						     acceptable, context);
-+	return isofs_export_iget(sb, ifid->block, ifid->offset,
-+			ifid->generation);
- }
- 
-+static struct dentry *isofs_fh_to_parent(struct super_block *sb,
-+		struct fid *fid, int fh_len, int fh_type)
-+{
-+	struct isofs_fid *ifid = (struct isofs_fid *)fid;
-+
-+	if (fh_type != 2)
-+		return NULL;
-+
-+	return isofs_export_iget(sb,
-+			fh_len > 2 ? ifid->parent_block : 0,
-+			ifid->parent_offset,
-+			fh_len > 4 ? ifid->parent_generation : 0);
+-	return result;
++	return inode;
 +}
  
- struct export_operations isofs_export_ops = {
--	.decode_fh	= isofs_export_decode_fh,
- 	.encode_fh	= isofs_export_encode_fh,
--	.get_dentry	= isofs_export_get_dentry,
-+	.fh_to_dentry	= isofs_fh_to_dentry,
-+	.fh_to_parent	= isofs_fh_to_parent,
- 	.get_parent     = isofs_export_get_parent,
+- out_iput:
+-	iput(inode);
+-	return result;
++struct dentry *efs_fh_to_dentry(struct super_block *sb, struct fid *fid,
++		int fh_len, int fh_type)
++{
++	return generic_fh_to_dentry(sb, fid, fh_len, fh_type,
++				    efs_nfs_get_inode);
++}
++
++struct dentry *efs_fh_to_parent(struct super_block *sb, struct fid *fid,
++		int fh_len, int fh_type)
++{
++	return generic_fh_to_parent(sb, fid, fh_len, fh_type,
++				    efs_nfs_get_inode);
+ }
+ 
+ struct dentry *efs_get_parent(struct dentry *child)
+diff -puN fs/efs/super.c~efs-new-export-ops fs/efs/super.c
+--- a/fs/efs/super.c~efs-new-export-ops
++++ a/fs/efs/super.c
+@@ -114,7 +114,8 @@ static const struct super_operations efs
  };
+ 
+ static struct export_operations efs_export_ops = {
+-	.get_dentry	= efs_get_dentry,
++	.fh_to_dentry	= efs_fh_to_dentry,
++	.fh_to_parent	= efs_fh_to_parent,
+ 	.get_parent	= efs_get_parent,
+ };
+ 
+diff -puN include/linux/efs_fs.h~efs-new-export-ops include/linux/efs_fs.h
+--- a/include/linux/efs_fs.h~efs-new-export-ops
++++ a/include/linux/efs_fs.h
+@@ -35,6 +35,7 @@ static inline struct efs_sb_info *SUPER_
+ }
+ 
+ struct statfs;
++struct fid;
+ 
+ extern const struct inode_operations efs_dir_inode_operations;
+ extern const struct file_operations efs_dir_operations;
+@@ -45,7 +46,10 @@ extern efs_block_t efs_map_block(struct 
+ extern int efs_get_block(struct inode *, sector_t, struct buffer_head *, int);
+ 
+ extern struct dentry *efs_lookup(struct inode *, struct dentry *, struct nameidata *);
+-extern struct dentry *efs_get_dentry(struct super_block *sb, void *vobjp);
++extern struct dentry *efs_fh_to_dentry(struct super_block *sb, struct fid *fid,
++		int fh_len, int fh_type);
++extern struct dentry *efs_fh_to_parent(struct super_block *sb, struct fid *fid,
++		int fh_len, int fh_type);
+ extern struct dentry *efs_get_parent(struct dentry *);
+ extern int efs_bmap(struct inode *, int);
+ 
 _
 
 Patches currently in -mm which might be from hch@lst.de are
