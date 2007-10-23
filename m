@@ -1,39 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: - intel-iommu-pci-generic-helper-function.patch removed from -mm tree
-Date: Mon, 22 Oct 2007 23:46:40 -0700
-Message-ID: <200710230646.l9N6kehs004227@imap1.linux-foundation.org>
+Subject: - intel-iommu-iova-allocation-and-management-routines.patch removed from -mm tree
+Date: Mon, 22 Oct 2007 23:46:47 -0700
+Message-ID: <200710230646.l9N6klfD004234@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40358 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57266 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751862AbXJWGrH (ORCPT
+	by vger.kernel.org with ESMTP id S1751827AbXJWGrI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Oct 2007 02:47:07 -0400
+	Tue, 23 Oct 2007 02:47:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: anil.s.keshavamurthy@intel.com, a.p.zijlstra@chello.nl, ak@suse.de, arjan@infradead.org, ashok.raj@intel.com, clameter@sgi.com, davem@davemloft.net, greg@kroah.com, muli@il.ibm.coms
 
 
 The patch titled
-     Intel IOMMU: PCI generic helper function
+     Intel IOMMU: IOVA allocation and management routines
 has been removed from the -mm tree.  Its filename was
-     intel-iommu-pci-generic-helper-function.patch
+     intel-iommu-iova-allocation-and-management-routines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Intel IOMMU: PCI generic helper function
+Subject: Intel IOMMU: IOVA allocation and management routines
 From: "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
 
-When devices are under a p2p bridge, upstream transactions get replaced by the
-device id of the bridge as it owns the PCIE transaction.  Hence its necessary
-to setup translations on behalf of the bridge as well.  Due to this limitation
-all devices under a p2p share the same domain in a DMAR.
+This code implements a generic IOVA allocation and management.  As per Dave's
+suggestion we are now allocating IO virtual address from Higher DMA limit
+address rather than lower end address and this eliminated the need to preserve
+the IO virtual address for multiple devices sharing the same domain virtual
+address.
 
-We just cache the type of device, if its a native PCIe device
-or not for later use.
+Also this code uses red black trees to store the allocated and reserved iova
+nodes.  This showed a good performance improvements over previous linear
+linked list.
 
-[akpm@linux-foundation.org: BUG_ON -> WARN_ON+recover]
+[akpm@linux-foundation.org: remove inlines]
+[akpm@linux-foundation.org: coding style fixes]
 Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
 Cc: Andi Kleen <ak@suse.de>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
@@ -47,114 +50,437 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci.h    |    1 +
- drivers/pci/probe.c  |   14 ++++++++++++++
- drivers/pci/search.c |   34 ++++++++++++++++++++++++++++++++++
- include/linux/pci.h  |    2 ++
- 4 files changed, 51 insertions(+)
+ drivers/pci/iova.c |  357 +++++++++++++++++++++++++++++++++++++++++++
+ drivers/pci/iova.h |   62 +++++++
+ 2 files changed, 419 insertions(+)
 
-diff -puN drivers/pci/pci.h~intel-iommu-pci-generic-helper-function drivers/pci/pci.h
---- a/drivers/pci/pci.h~intel-iommu-pci-generic-helper-function
-+++ a/drivers/pci/pci.h
-@@ -90,3 +90,4 @@ pci_match_one_device(const struct pci_de
- 	return NULL;
- }
- 
-+struct pci_dev *pci_find_upstream_pcie_bridge(struct pci_dev *pdev);
-diff -puN drivers/pci/probe.c~intel-iommu-pci-generic-helper-function drivers/pci/probe.c
---- a/drivers/pci/probe.c~intel-iommu-pci-generic-helper-function
-+++ a/drivers/pci/probe.c
-@@ -837,6 +837,19 @@ static void pci_release_dev(struct devic
- 	kfree(pci_dev);
- }
- 
-+static void set_pcie_port_type(struct pci_dev *pdev)
-+{
-+	int pos;
-+	u16 reg16;
+diff -puN /dev/null drivers/pci/iova.c
+--- /dev/null
++++ a/drivers/pci/iova.c
+@@ -0,0 +1,357 @@
++/*
++ * Copyright (c) 2006, Intel Corporation.
++ *
++ * This file is released under the GPLv2.
++ *
++ * Copyright (C) 2006 Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
++ */
 +
-+	pos = pci_find_capability(pdev, PCI_CAP_ID_EXP);
-+	if (!pos)
-+		return;
-+	pdev->is_pcie = 1;
-+	pci_read_config_word(pdev, pos + PCI_EXP_FLAGS, &reg16);
-+	pdev->pcie_type = (reg16 & PCI_EXP_FLAGS_TYPE) >> 4;
++#include "iova.h"
++
++void
++init_iova_domain(struct iova_domain *iovad)
++{
++	spin_lock_init(&iovad->iova_alloc_lock);
++	spin_lock_init(&iovad->iova_rbtree_lock);
++	iovad->rbroot = RB_ROOT;
++	iovad->cached32_node = NULL;
++
 +}
 +
- /**
-  * pci_cfg_space_size - get the configuration space size of the PCI device.
-  * @dev: PCI device
-@@ -951,6 +964,7 @@ pci_scan_device(struct pci_bus *bus, int
- 	dev->device = (l >> 16) & 0xffff;
- 	dev->cfg_size = pci_cfg_space_size(dev);
- 	dev->error_state = pci_channel_io_normal;
-+	set_pcie_port_type(dev);
- 
- 	/* Assume 32-bit PCI; let 64-bit PCI cards (which are far rarer)
- 	   set this higher, assuming the system even supports it.  */
-diff -puN drivers/pci/search.c~intel-iommu-pci-generic-helper-function drivers/pci/search.c
---- a/drivers/pci/search.c~intel-iommu-pci-generic-helper-function
-+++ a/drivers/pci/search.c
-@@ -14,6 +14,40 @@
- #include "pci.h"
- 
- DECLARE_RWSEM(pci_bus_sem);
-+/*
-+ * find the upstream PCIE-to-PCI bridge of a PCI device
-+ * if the device is PCIE, return NULL
-+ * if the device isn't connected to a PCIE bridge (that is its parent is a
-+ * legacy PCI bridge and the bridge is directly connected to bus 0), return its
-+ * parent
-+ */
-+struct pci_dev *
-+pci_find_upstream_pcie_bridge(struct pci_dev *pdev)
++static struct rb_node *
++__get_cached_rbnode(struct iova_domain *iovad, unsigned long *limit_pfn)
 +{
-+	struct pci_dev *tmp = NULL;
++	if ((*limit_pfn != DMA_32BIT_PFN) ||
++		(iovad->cached32_node == NULL))
++		return rb_last(&iovad->rbroot);
++	else {
++		struct rb_node *prev_node = rb_prev(iovad->cached32_node);
++		struct iova *curr_iova =
++			container_of(iovad->cached32_node, struct iova, node);
++		*limit_pfn = curr_iova->pfn_lo - 1;
++		return prev_node;
++	}
++}
 +
-+	if (pdev->is_pcie)
-+		return NULL;
-+	while (1) {
-+		if (!pdev->bus->self)
-+			break;
-+		pdev = pdev->bus->self;
-+		/* a p2p bridge */
-+		if (!pdev->is_pcie) {
-+			tmp = pdev;
-+			continue;
-+		}
-+		/* PCI device should connect to a PCIE bridge */
-+		if (pdev->pcie_type != PCI_EXP_TYPE_PCI_BRIDGE) {
-+			/* Busted hardware? */
-+			WARN_ON_ONCE(1);
-+			return NULL;
-+		}
-+		return pdev;
++static void
++__cached_rbnode_insert_update(struct iova_domain *iovad,
++	unsigned long limit_pfn, struct iova *new)
++{
++	if (limit_pfn != DMA_32BIT_PFN)
++		return;
++	iovad->cached32_node = &new->node;
++}
++
++static void
++__cached_rbnode_delete_update(struct iova_domain *iovad, struct iova *free)
++{
++	struct iova *cached_iova;
++	struct rb_node *curr;
++
++	if (!iovad->cached32_node)
++		return;
++	curr = iovad->cached32_node;
++	cached_iova = container_of(curr, struct iova, node);
++
++	if (free->pfn_lo >= cached_iova->pfn_lo)
++		iovad->cached32_node = rb_next(&free->node);
++}
++
++static int __alloc_iova_range(struct iova_domain *iovad,
++	unsigned long size, unsigned long limit_pfn, struct iova *new)
++{
++	struct rb_node *curr = NULL;
++	unsigned long flags;
++	unsigned long saved_pfn;
++
++	/* Walk the tree backwards */
++	spin_lock_irqsave(&iovad->iova_rbtree_lock, flags);
++	saved_pfn = limit_pfn;
++	curr = __get_cached_rbnode(iovad, &limit_pfn);
++	while (curr) {
++		struct iova *curr_iova = container_of(curr, struct iova, node);
++		if (limit_pfn < curr_iova->pfn_lo)
++			goto move_left;
++		if (limit_pfn < curr_iova->pfn_hi)
++			goto adjust_limit_pfn;
++		if ((curr_iova->pfn_hi + size) <= limit_pfn)
++			break;	/* found a free slot */
++adjust_limit_pfn:
++		limit_pfn = curr_iova->pfn_lo - 1;
++move_left:
++		curr = rb_prev(curr);
 +	}
 +
-+	return tmp;
++	if ((!curr) && !(IOVA_START_PFN + size <= limit_pfn)) {
++		spin_unlock_irqrestore(&iovad->iova_rbtree_lock, flags);
++		return -ENOMEM;
++	}
++	new->pfn_hi = limit_pfn;
++	new->pfn_lo = limit_pfn - size + 1;
++
++	spin_unlock_irqrestore(&iovad->iova_rbtree_lock, flags);
++	return 0;
 +}
- 
- static struct pci_bus *pci_do_find_bus(struct pci_bus *bus, unsigned char busnr)
- {
-diff -puN include/linux/pci.h~intel-iommu-pci-generic-helper-function include/linux/pci.h
---- a/include/linux/pci.h~intel-iommu-pci-generic-helper-function
-+++ a/include/linux/pci.h
-@@ -141,6 +141,7 @@ struct pci_dev {
- 	unsigned int	class;		/* 3 bytes: (base,sub,prog-if) */
- 	u8		revision;	/* PCI revision, low byte of class word */
- 	u8		hdr_type;	/* PCI header type (`multi' flag masked out) */
-+	u8		pcie_type;	/* PCI-E device/port type */
- 	u8		rom_base_reg;	/* which config register controls the ROM */
- 	u8		pin;  		/* which interrupt pin this device uses */
- 
-@@ -183,6 +184,7 @@ struct pci_dev {
- 	unsigned int 	msi_enabled:1;
- 	unsigned int	msix_enabled:1;
- 	unsigned int	is_managed:1;
-+	unsigned int	is_pcie:1;
- 	atomic_t	enable_cnt;	/* pci_enable_device has been called */
- 
- 	u32		saved_config_space[16]; /* config space saved at suspend time */
++
++static void
++iova_insert_rbtree(struct rb_root *root, struct iova *iova)
++{
++	struct rb_node **new = &(root->rb_node), *parent = NULL;
++	/* Figure out where to put new node */
++	while (*new) {
++		struct iova *this = container_of(*new, struct iova, node);
++		parent = *new;
++
++		if (iova->pfn_lo < this->pfn_lo)
++			new = &((*new)->rb_left);
++		else if (iova->pfn_lo > this->pfn_lo)
++			new = &((*new)->rb_right);
++		else
++			BUG(); /* this should not happen */
++	}
++	/* Add new node and rebalance tree. */
++	rb_link_node(&iova->node, parent, new);
++	rb_insert_color(&iova->node, root);
++}
++
++/**
++ * alloc_iova - allocates an iova
++ * @iovad - iova domain in question
++ * @size - size of page frames to allocate
++ * @limit_pfn - max limit address
++ * This function allocates an iova in the range limit_pfn to IOVA_START_PFN
++ * looking from limit_pfn instead from IOVA_START_PFN.
++ */
++struct iova *
++alloc_iova(struct iova_domain *iovad, unsigned long size,
++	unsigned long limit_pfn)
++{
++	unsigned long flags;
++	struct iova *new_iova;
++	int ret;
++
++	new_iova = alloc_iova_mem();
++	if (!new_iova)
++		return NULL;
++
++	spin_lock_irqsave(&iovad->iova_alloc_lock, flags);
++	ret = __alloc_iova_range(iovad, size, limit_pfn, new_iova);
++
++	if (ret) {
++		spin_unlock_irqrestore(&iovad->iova_alloc_lock, flags);
++		free_iova_mem(new_iova);
++		return NULL;
++	}
++
++	/* Insert the new_iova into domain rbtree by holding writer lock */
++	spin_lock(&iovad->iova_rbtree_lock);
++	iova_insert_rbtree(&iovad->rbroot, new_iova);
++	__cached_rbnode_insert_update(iovad, limit_pfn, new_iova);
++	spin_unlock(&iovad->iova_rbtree_lock);
++
++	spin_unlock_irqrestore(&iovad->iova_alloc_lock, flags);
++
++	return new_iova;
++}
++
++/**
++ * find_iova - find's an iova for a given pfn
++ * @iovad - iova domain in question.
++ * pfn - page frame number
++ * This function finds and returns an iova belonging to the
++ * given doamin which matches the given pfn.
++ */
++struct iova *find_iova(struct iova_domain *iovad, unsigned long pfn)
++{
++	unsigned long flags;
++	struct rb_node *node;
++
++	/* Take the lock so that no other thread is manipulating the rbtree */
++	spin_lock_irqsave(&iovad->iova_rbtree_lock, flags);
++	node = iovad->rbroot.rb_node;
++	while (node) {
++		struct iova *iova = container_of(node, struct iova, node);
++
++		/* If pfn falls within iova's range, return iova */
++		if ((pfn >= iova->pfn_lo) && (pfn <= iova->pfn_hi)) {
++			spin_unlock_irqrestore(&iovad->iova_rbtree_lock, flags);
++			/* We are not holding the lock while this iova
++			 * is referenced by the caller as the same thread
++			 * which called this function also calls __free_iova()
++			 * and it is by desing that only one thread can possibly
++			 * reference a particular iova and hence no conflict.
++			 */
++			return iova;
++		}
++
++		if (pfn < iova->pfn_lo)
++			node = node->rb_left;
++		else if (pfn > iova->pfn_lo)
++			node = node->rb_right;
++	}
++
++	spin_unlock_irqrestore(&iovad->iova_rbtree_lock, flags);
++	return NULL;
++}
++
++/**
++ * __free_iova - frees the given iova
++ * @iovad: iova domain in question.
++ * @iova: iova in question.
++ * Frees the given iova belonging to the giving domain
++ */
++void
++__free_iova(struct iova_domain *iovad, struct iova *iova)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&iovad->iova_rbtree_lock, flags);
++	__cached_rbnode_delete_update(iovad, iova);
++	rb_erase(&iova->node, &iovad->rbroot);
++	spin_unlock_irqrestore(&iovad->iova_rbtree_lock, flags);
++	free_iova_mem(iova);
++}
++
++/**
++ * free_iova - finds and frees the iova for a given pfn
++ * @iovad: - iova domain in question.
++ * @pfn: - pfn that is allocated previously
++ * This functions finds an iova for a given pfn and then
++ * frees the iova from that domain.
++ */
++void
++free_iova(struct iova_domain *iovad, unsigned long pfn)
++{
++	struct iova *iova = find_iova(iovad, pfn);
++	if (iova)
++		__free_iova(iovad, iova);
++
++}
++
++/**
++ * put_iova_domain - destroys the iova doamin
++ * @iovad: - iova domain in question.
++ * All the iova's in that domain are destroyed.
++ */
++void put_iova_domain(struct iova_domain *iovad)
++{
++	struct rb_node *node;
++	unsigned long flags;
++
++	spin_lock_irqsave(&iovad->iova_rbtree_lock, flags);
++	node = rb_first(&iovad->rbroot);
++	while (node) {
++		struct iova *iova = container_of(node, struct iova, node);
++		rb_erase(node, &iovad->rbroot);
++		free_iova_mem(iova);
++		node = rb_first(&iovad->rbroot);
++	}
++	spin_unlock_irqrestore(&iovad->iova_rbtree_lock, flags);
++}
++
++static int
++__is_range_overlap(struct rb_node *node,
++	unsigned long pfn_lo, unsigned long pfn_hi)
++{
++	struct iova *iova = container_of(node, struct iova, node);
++
++	if ((pfn_lo <= iova->pfn_hi) && (pfn_hi >= iova->pfn_lo))
++		return 1;
++	return 0;
++}
++
++static struct iova *
++__insert_new_range(struct iova_domain *iovad,
++	unsigned long pfn_lo, unsigned long pfn_hi)
++{
++	struct iova *iova;
++
++	iova = alloc_iova_mem();
++	if (!iova)
++		return iova;
++
++	iova->pfn_hi = pfn_hi;
++	iova->pfn_lo = pfn_lo;
++	iova_insert_rbtree(&iovad->rbroot, iova);
++	return iova;
++}
++
++static void
++__adjust_overlap_range(struct iova *iova,
++	unsigned long *pfn_lo, unsigned long *pfn_hi)
++{
++	if (*pfn_lo < iova->pfn_lo)
++		iova->pfn_lo = *pfn_lo;
++	if (*pfn_hi > iova->pfn_hi)
++		*pfn_lo = iova->pfn_hi + 1;
++}
++
++/**
++ * reserve_iova - reserves an iova in the given range
++ * @iovad: - iova domain pointer
++ * @pfn_lo: - lower page frame address
++ * @pfn_hi:- higher pfn adderss
++ * This function allocates reserves the address range from pfn_lo to pfn_hi so
++ * that this address is not dished out as part of alloc_iova.
++ */
++struct iova *
++reserve_iova(struct iova_domain *iovad,
++	unsigned long pfn_lo, unsigned long pfn_hi)
++{
++	struct rb_node *node;
++	unsigned long flags;
++	struct iova *iova;
++	unsigned int overlap = 0;
++
++	spin_lock_irqsave(&iovad->iova_alloc_lock, flags);
++	spin_lock(&iovad->iova_rbtree_lock);
++	for (node = rb_first(&iovad->rbroot); node; node = rb_next(node)) {
++		if (__is_range_overlap(node, pfn_lo, pfn_hi)) {
++			iova = container_of(node, struct iova, node);
++			__adjust_overlap_range(iova, &pfn_lo, &pfn_hi);
++			if ((pfn_lo >= iova->pfn_lo) &&
++				(pfn_hi <= iova->pfn_hi))
++				goto finish;
++			overlap = 1;
++
++		} else if (overlap)
++				break;
++	}
++
++	/* We are here either becasue this is the first reserver node
++	 * or need to insert remaining non overlap addr range
++	 */
++	iova = __insert_new_range(iovad, pfn_lo, pfn_hi);
++finish:
++
++	spin_unlock(&iovad->iova_rbtree_lock);
++	spin_unlock_irqrestore(&iovad->iova_alloc_lock, flags);
++	return iova;
++}
++
++/**
++ * copy_reserved_iova - copies the reserved between domains
++ * @from: - source doamin from where to copy
++ * @to: - destination domin where to copy
++ * This function copies reserved iova's from one doamin to
++ * other.
++ */
++void
++copy_reserved_iova(struct iova_domain *from, struct iova_domain *to)
++{
++	unsigned long flags;
++	struct rb_node *node;
++
++	spin_lock_irqsave(&from->iova_alloc_lock, flags);
++	spin_lock(&from->iova_rbtree_lock);
++	for (node = rb_first(&from->rbroot); node; node = rb_next(node)) {
++		struct iova *iova = container_of(node, struct iova, node);
++		struct iova *new_iova;
++		new_iova = reserve_iova(to, iova->pfn_lo, iova->pfn_hi);
++		if (!new_iova)
++			printk(KERN_ERR "Reserve iova range %lx@%lx failed\n",
++				iova->pfn_lo, iova->pfn_lo);
++	}
++	spin_unlock(&from->iova_rbtree_lock);
++	spin_unlock_irqrestore(&from->iova_alloc_lock, flags);
++}
+diff -puN /dev/null drivers/pci/iova.h
+--- /dev/null
++++ a/drivers/pci/iova.h
+@@ -0,0 +1,62 @@
++/*
++ * Copyright (c) 2006, Intel Corporation.
++ *
++ * This file is released under the GPLv2.
++ *
++ * Copyright (C) 2006 Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
++ *
++ */
++
++#ifndef _IOVA_H_
++#define _IOVA_H_
++
++#include <linux/types.h>
++#include <linux/kernel.h>
++#include <linux/rbtree.h>
++#include <linux/dma-mapping.h>
++
++/*
++ * We need a fixed PAGE_SIZE of 4K irrespective of
++ * arch PAGE_SIZE for IOMMU page tables.
++ */
++#define PAGE_SHIFT_4K		(12)
++#define PAGE_SIZE_4K		(1UL << PAGE_SHIFT_4K)
++#define PAGE_MASK_4K		(((u64)-1) << PAGE_SHIFT_4K)
++#define PAGE_ALIGN_4K(addr)	(((addr) + PAGE_SIZE_4K - 1) & PAGE_MASK_4K)
++
++/* IO virtual address start page frame number */
++#define IOVA_START_PFN		(1)
++
++#define IOVA_PFN(addr)		((addr) >> PAGE_SHIFT_4K)
++#define DMA_32BIT_PFN	IOVA_PFN(DMA_32BIT_MASK)
++#define DMA_64BIT_PFN	IOVA_PFN(DMA_64BIT_MASK)
++
++/* iova structure */
++struct iova {
++	struct rb_node	node;
++	unsigned long	pfn_hi; /* IOMMU dish out addr hi */
++	unsigned long	pfn_lo; /* IOMMU dish out addr lo */
++};
++
++/* holds all the iova translations for a domain */
++struct iova_domain {
++	spinlock_t	iova_alloc_lock;/* Lock to protect iova  allocation */
++	spinlock_t	iova_rbtree_lock; /* Lock to protect update of rbtree */
++	struct rb_root	rbroot;		/* iova domain rbtree root */
++	struct rb_node	*cached32_node; /* Save last alloced node */
++};
++
++struct iova *alloc_iova_mem(void);
++void free_iova_mem(struct iova *iova);
++void free_iova(struct iova_domain *iovad, unsigned long pfn);
++void __free_iova(struct iova_domain *iovad, struct iova *iova);
++struct iova *alloc_iova(struct iova_domain *iovad, unsigned long size,
++	unsigned long limit_pfn);
++struct iova *reserve_iova(struct iova_domain *iovad, unsigned long pfn_lo,
++	unsigned long pfn_hi);
++void copy_reserved_iova(struct iova_domain *from, struct iova_domain *to);
++void init_iova_domain(struct iova_domain *iovad);
++struct iova *find_iova(struct iova_domain *iovad, unsigned long pfn);
++void put_iova_domain(struct iova_domain *iovad);
++
++#endif
 _
 
 Patches currently in -mm which might be from anil.s.keshavamurthy@intel.com are
