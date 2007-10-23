@@ -1,228 +1,280 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-new-export-ops.patch removed from -mm tree
-Date: Mon, 22 Oct 2007 23:47:49 -0700
-Message-ID: <200710230647.l9N6lngv004314@imap1.linux-foundation.org>
+Subject: - kexec-add-bss-to-resource-tree.patch removed from -mm tree
+Date: Mon, 22 Oct 2007 23:47:15 -0700
+Message-ID: <200710230647.l9N6lFY7004272@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47060 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32857 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752230AbXJWHCQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751932AbXJWHCo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Oct 2007 03:02:16 -0400
+	Tue, 23 Oct 2007 03:02:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, bfields@fieldses.org, jeffm@suse.com, mason@suse.com, neilb@suse.de, vs@namesys.com, mm-commits@vger.kernel.org
+To: bwalle@suse.de, ebiederm@xmission.com, linux-arch@vger.kernel.org, mingo@elte.hu, tglx@linutronix.de, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs: new export ops
+     kexec: add BSS to resource tree
 has been removed from the -mm tree.  Its filename was
-     reiserfs-new-export-ops.patch
+     kexec-add-bss-to-resource-tree.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: reiserfs: new export ops
-From: Christoph Hellwig <hch@lst.de>
+Subject: kexec: add BSS to resource tree
+From: Bernhard Walle <bwalle@suse.de>
 
-Another nice little cleanup by using the new methods.
+Add the BSS to the resource tree just as kernel text and kernel data are in
+the resource tree.  The main reason behind this is to avoid crashkernel
+reservation in that area.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Neil Brown <neilb@suse.de>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Chris Mason <mason@suse.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: "Vladimir V. Saveliev" <vs@namesys.com>
+While it's not strictly necessary to have the BSS in the resource tree (the
+actual collision detection is done in the reserve_bootmem() function before),
+the usage of the BSS resource should be presented to the user in /proc/iomem
+just as Kernel data and Kernel code.
+
+Note: The patch currently is only implemented for x86 and ia64 (because
+efi_initialize_iomem_resources() has the same signature on i386 and ia64).
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: <linux-arch@vger.kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/inode.c         |   62 ++++++++++++++--------------------
- fs/reiserfs/super.c         |    4 +-
- include/linux/reiserfs_fs.h |   12 +++---
- 3 files changed, 35 insertions(+), 43 deletions(-)
+ arch/ia64/kernel/efi.c     |    4 +++-
+ arch/ia64/kernel/setup.c   |   14 +++++++++++---
+ arch/x86/kernel/e820_32.c  |   18 +++++++++++++++---
+ arch/x86/kernel/e820_64.c  |    3 ++-
+ arch/x86/kernel/efi_32.c   |    4 +++-
+ arch/x86/kernel/setup_32.c |    4 ++++
+ arch/x86/kernel/setup_64.c |    9 +++++++++
+ include/linux/efi.h        |    2 +-
+ 8 files changed, 48 insertions(+), 10 deletions(-)
 
-diff -puN fs/reiserfs/inode.c~reiserfs-new-export-ops fs/reiserfs/inode.c
---- a/fs/reiserfs/inode.c~reiserfs-new-export-ops
-+++ a/fs/reiserfs/inode.c
-@@ -1515,19 +1515,20 @@ struct inode *reiserfs_iget(struct super
- 	return inode;
- }
+diff -puN arch/ia64/kernel/efi.c~kexec-add-bss-to-resource-tree arch/ia64/kernel/efi.c
+--- a/arch/ia64/kernel/efi.c~kexec-add-bss-to-resource-tree
++++ a/arch/ia64/kernel/efi.c
+@@ -1090,7 +1090,8 @@ efi_memmap_init(unsigned long *s, unsign
  
--struct dentry *reiserfs_get_dentry(struct super_block *sb, void *vobjp)
-+static struct dentry *reiserfs_get_dentry(struct super_block *sb,
-+	u32 objectid, u32 dir_id, u32 generation)
-+
+ void
+ efi_initialize_iomem_resources(struct resource *code_resource,
+-			       struct resource *data_resource)
++			       struct resource *data_resource,
++			       struct resource *bss_resource)
  {
--	__u32 *data = vobjp;
- 	struct cpu_key key;
- 	struct dentry *result;
- 	struct inode *inode;
- 
--	key.on_disk_key.k_objectid = data[0];
--	key.on_disk_key.k_dir_id = data[1];
-+	key.on_disk_key.k_objectid = objectid;
-+	key.on_disk_key.k_dir_id = dir_id;
- 	reiserfs_write_lock(sb);
- 	inode = reiserfs_iget(sb, &key);
--	if (inode && !IS_ERR(inode) && data[2] != 0 &&
--	    data[2] != inode->i_generation) {
-+	if (inode && !IS_ERR(inode) && generation != 0 &&
-+	    generation != inode->i_generation) {
- 		iput(inode);
- 		inode = NULL;
- 	}
-@@ -1544,14 +1545,9 @@ struct dentry *reiserfs_get_dentry(struc
- 	return result;
- }
- 
--struct dentry *reiserfs_decode_fh(struct super_block *sb, __u32 * data,
--				  int len, int fhtype,
--				  int (*acceptable) (void *contect,
--						     struct dentry * de),
--				  void *context)
-+struct dentry *reiserfs_fh_to_dentry(struct super_block *sb, struct fid *fid,
-+		int fh_len, int fh_type)
- {
--	__u32 obj[3], parent[3];
--
- 	/* fhtype happens to reflect the number of u32s encoded.
- 	 * due to a bug in earlier code, fhtype might indicate there
- 	 * are more u32s then actually fitted.
-@@ -1564,32 +1560,28 @@ struct dentry *reiserfs_decode_fh(struct
- 	 *   6 - as above plus generation of directory
- 	 * 6 does not fit in NFSv2 handles
- 	 */
--	if (fhtype > len) {
--		if (fhtype != 6 || len != 5)
-+	if (fh_type > fh_len) {
-+		if (fh_type != 6 || fh_len != 5)
- 			reiserfs_warning(sb,
--					 "nfsd/reiserfs, fhtype=%d, len=%d - odd",
--					 fhtype, len);
--		fhtype = 5;
-+				"nfsd/reiserfs, fhtype=%d, len=%d - odd",
-+				fh_type, fh_len);
-+		fh_type = 5;
- 	}
- 
--	obj[0] = data[0];
--	obj[1] = data[1];
--	if (fhtype == 3 || fhtype >= 5)
--		obj[2] = data[2];
--	else
--		obj[2] = 0;	/* generation number */
-+	return reiserfs_get_dentry(sb, fid->raw[0], fid->raw[1],
-+		(fh_type == 3 || fh_type >= 5) ? fid->raw[2] : 0);
-+}
- 
--	if (fhtype >= 4) {
--		parent[0] = data[fhtype >= 5 ? 3 : 2];
--		parent[1] = data[fhtype >= 5 ? 4 : 3];
--		if (fhtype == 6)
--			parent[2] = data[5];
--		else
--			parent[2] = 0;
--	}
--	return sb->s_export_op->find_exported_dentry(sb, obj,
--						     fhtype < 4 ? NULL : parent,
--						     acceptable, context);
-+struct dentry *reiserfs_fh_to_parent(struct super_block *sb, struct fid *fid,
-+		int fh_len, int fh_type)
-+{
-+	if (fh_type < 4)
-+		return NULL;
+ 	struct resource *res;
+ 	void *efi_map_start, *efi_map_end, *p;
+@@ -1171,6 +1172,7 @@ efi_initialize_iomem_resources(struct re
+ 			 */
+ 			insert_resource(res, code_resource);
+ 			insert_resource(res, data_resource);
++			insert_resource(res, bss_resource);
+ #ifdef CONFIG_KEXEC
+                         insert_resource(res, &efi_memmap_res);
+                         insert_resource(res, &boot_param_res);
+diff -puN arch/ia64/kernel/setup.c~kexec-add-bss-to-resource-tree arch/ia64/kernel/setup.c
+--- a/arch/ia64/kernel/setup.c~kexec-add-bss-to-resource-tree
++++ a/arch/ia64/kernel/setup.c
+@@ -90,7 +90,12 @@ static struct resource code_resource = {
+ 	.name	= "Kernel code",
+ 	.flags	= IORESOURCE_BUSY | IORESOURCE_MEM
+ };
+-extern char _text[], _end[], _etext[];
 +
-+	return reiserfs_get_dentry(sb,
-+		(fh_type >= 5) ? fid->raw[3] : fid->raw[2],
-+		(fh_type >= 5) ? fid->raw[4] : fid->raw[3],
-+		(fh_type == 6) ? fid->raw[5] : 0);
++static struct resource bss_resource = {
++	.name	= "Kernel bss",
++	.flags	= IORESOURCE_BUSY | IORESOURCE_MEM
++};
++extern char _text[], _end[], _etext[], _edata[], _bss[];
+ 
+ unsigned long ia64_max_cacheline_size;
+ 
+@@ -200,8 +205,11 @@ static int __init register_memory(void)
+ 	code_resource.start = ia64_tpa(_text);
+ 	code_resource.end   = ia64_tpa(_etext) - 1;
+ 	data_resource.start = ia64_tpa(_etext);
+-	data_resource.end   = ia64_tpa(_end) - 1;
+-	efi_initialize_iomem_resources(&code_resource, &data_resource);
++	data_resource.end   = ia64_tpa(_edata) - 1;
++	bss_resource.start  = ia64_tpa(_bss);
++	bss_resource.end    = ia64_tpa(_end) - 1;
++	efi_initialize_iomem_resources(&code_resource, &data_resource,
++			&bss_resource);
+ 
+ 	return 0;
  }
- 
- int reiserfs_encode_fh(struct dentry *dentry, __u32 * data, int *lenp,
-diff -puN fs/reiserfs/super.c~reiserfs-new-export-ops fs/reiserfs/super.c
---- a/fs/reiserfs/super.c~reiserfs-new-export-ops
-+++ a/fs/reiserfs/super.c
-@@ -663,9 +663,9 @@ static struct quotactl_ops reiserfs_qctl
- 
- static struct export_operations reiserfs_export_ops = {
- 	.encode_fh = reiserfs_encode_fh,
--	.decode_fh = reiserfs_decode_fh,
-+	.fh_to_dentry = reiserfs_fh_to_dentry,
-+	.fh_to_parent = reiserfs_fh_to_parent,
- 	.get_parent = reiserfs_get_parent,
--	.get_dentry = reiserfs_get_dentry,
+diff -puN arch/x86/kernel/e820_32.c~kexec-add-bss-to-resource-tree arch/x86/kernel/e820_32.c
+--- a/arch/x86/kernel/e820_32.c~kexec-add-bss-to-resource-tree
++++ a/arch/x86/kernel/e820_32.c
+@@ -51,6 +51,13 @@ struct resource code_resource = {
+ 	.flags	= IORESOURCE_BUSY | IORESOURCE_MEM
  };
  
- /* this struct is used in reiserfs_getopt () for containing the value for those
-diff -puN include/linux/reiserfs_fs.h~reiserfs-new-export-ops include/linux/reiserfs_fs.h
---- a/include/linux/reiserfs_fs.h~reiserfs-new-export-ops
-+++ a/include/linux/reiserfs_fs.h
-@@ -28,6 +28,8 @@
- #include <linux/reiserfs_fs_sb.h>
- #endif
- 
-+struct fid;
++struct resource bss_resource = {
++	.name	= "Kernel bss",
++	.start	= 0,
++	.end	= 0,
++	.flags	= IORESOURCE_BUSY | IORESOURCE_MEM
++};
 +
- /*
-  *  include/linux/reiser_fs.h
-  *
-@@ -1877,12 +1879,10 @@ void reiserfs_delete_inode(struct inode 
- int reiserfs_write_inode(struct inode *inode, int);
- int reiserfs_get_block(struct inode *inode, sector_t block,
- 		       struct buffer_head *bh_result, int create);
--struct dentry *reiserfs_get_dentry(struct super_block *, void *);
--struct dentry *reiserfs_decode_fh(struct super_block *sb, __u32 * data,
--				  int len, int fhtype,
--				  int (*acceptable) (void *contect,
--						     struct dentry * de),
--				  void *context);
-+struct dentry *reiserfs_fh_to_dentry(struct super_block *sb, struct fid *fid,
-+				     int fh_len, int fh_type);
-+struct dentry *reiserfs_fh_to_parent(struct super_block *sb, struct fid *fid,
-+				     int fh_len, int fh_type);
- int reiserfs_encode_fh(struct dentry *dentry, __u32 * data, int *lenp,
- 		       int connectable);
+ static struct resource system_rom_resource = {
+ 	.name	= "System ROM",
+ 	.start	= 0xf0000,
+@@ -254,7 +261,9 @@ static void __init probe_roms(void)
+  * and also for regions reported as reserved by the e820.
+  */
+ static void __init
+-legacy_init_iomem_resources(struct resource *code_resource, struct resource *data_resource)
++legacy_init_iomem_resources(struct resource *code_resource,
++			    struct resource *data_resource,
++			    struct resource *bss_resource)
+ {
+ 	int i;
  
+@@ -287,6 +296,7 @@ legacy_init_iomem_resources(struct resou
+ 			 */
+ 			request_resource(res, code_resource);
+ 			request_resource(res, data_resource);
++			request_resource(res, bss_resource);
+ #ifdef CONFIG_KEXEC
+ 			if (crashk_res.start != crashk_res.end)
+ 				request_resource(res, &crashk_res);
+@@ -307,9 +317,11 @@ static int __init request_standard_resou
+ 
+ 	printk("Setting up standard PCI resources\n");
+ 	if (efi_enabled)
+-		efi_initialize_iomem_resources(&code_resource, &data_resource);
++		efi_initialize_iomem_resources(&code_resource,
++				&data_resource, &bss_resource);
+ 	else
+-		legacy_init_iomem_resources(&code_resource, &data_resource);
++		legacy_init_iomem_resources(&code_resource,
++				&data_resource, &bss_resource);
+ 
+ 	/* EFI systems may still have VGA */
+ 	request_resource(&iomem_resource, &video_ram_resource);
+diff -puN arch/x86/kernel/e820_64.c~kexec-add-bss-to-resource-tree arch/x86/kernel/e820_64.c
+--- a/arch/x86/kernel/e820_64.c~kexec-add-bss-to-resource-tree
++++ a/arch/x86/kernel/e820_64.c
+@@ -47,7 +47,7 @@ unsigned long end_pfn_map; 
+  */
+ static unsigned long __initdata end_user_pfn = MAXMEM>>PAGE_SHIFT;
+ 
+-extern struct resource code_resource, data_resource;
++extern struct resource code_resource, data_resource, bss_resource;
+ 
+ /* Check for some hardcoded bad areas that early boot is not allowed to touch */ 
+ static inline int bad_addr(unsigned long *addrp, unsigned long size)
+@@ -225,6 +225,7 @@ void __init e820_reserve_resources(void)
+ 			 */
+ 			request_resource(res, &code_resource);
+ 			request_resource(res, &data_resource);
++			request_resource(res, &bss_resource);
+ #ifdef CONFIG_KEXEC
+ 			if (crashk_res.start != crashk_res.end)
+ 				request_resource(res, &crashk_res);
+diff -puN arch/x86/kernel/efi_32.c~kexec-add-bss-to-resource-tree arch/x86/kernel/efi_32.c
+--- a/arch/x86/kernel/efi_32.c~kexec-add-bss-to-resource-tree
++++ a/arch/x86/kernel/efi_32.c
+@@ -603,7 +603,8 @@ void __init efi_enter_virtual_mode(void)
+ 
+ void __init
+ efi_initialize_iomem_resources(struct resource *code_resource,
+-			       struct resource *data_resource)
++			       struct resource *data_resource,
++			       struct resource *bss_resource)
+ {
+ 	struct resource *res;
+ 	efi_memory_desc_t *md;
+@@ -675,6 +676,7 @@ efi_initialize_iomem_resources(struct re
+ 		if (md->type == EFI_CONVENTIONAL_MEMORY) {
+ 			request_resource(res, code_resource);
+ 			request_resource(res, data_resource);
++			request_resource(res, bss_resource);
+ #ifdef CONFIG_KEXEC
+ 			request_resource(res, &crashk_res);
+ #endif
+diff -puN arch/x86/kernel/setup_32.c~kexec-add-bss-to-resource-tree arch/x86/kernel/setup_32.c
+--- a/arch/x86/kernel/setup_32.c~kexec-add-bss-to-resource-tree
++++ a/arch/x86/kernel/setup_32.c
+@@ -60,6 +60,7 @@
+ #include <asm/vmi.h>
+ #include <setup_arch.h>
+ #include <bios_ebda.h>
++#include <asm/cacheflush.h>
+ 
+ /* This value is set up by the early boot code to point to the value
+    immediately after the boot time page tables.  It contains a *physical*
+@@ -73,6 +74,7 @@ int disable_pse __devinitdata = 0;
+  */
+ extern struct resource code_resource;
+ extern struct resource data_resource;
++extern struct resource bss_resource;
+ 
+ /* cpu data as detected by the assembly code in head.S */
+ struct cpuinfo_x86 new_cpu_data __cpuinitdata = { 0, 0, 0, 0, -1, 1, 0, 0, -1 };
+@@ -600,6 +602,8 @@ void __init setup_arch(char **cmdline_p)
+ 	code_resource.end = virt_to_phys(_etext)-1;
+ 	data_resource.start = virt_to_phys(_etext);
+ 	data_resource.end = virt_to_phys(_edata)-1;
++	bss_resource.start = virt_to_phys(&__bss_start);
++	bss_resource.end = virt_to_phys(&__bss_stop)-1;
+ 
+ 	parse_early_param();
+ 
+diff -puN arch/x86/kernel/setup_64.c~kexec-add-bss-to-resource-tree arch/x86/kernel/setup_64.c
+--- a/arch/x86/kernel/setup_64.c~kexec-add-bss-to-resource-tree
++++ a/arch/x86/kernel/setup_64.c
+@@ -58,6 +58,7 @@
+ #include <asm/numa.h>
+ #include <asm/sections.h>
+ #include <asm/dmi.h>
++#include <asm/cacheflush.h>
+ 
+ /*
+  * Machine setup..
+@@ -133,6 +134,12 @@ struct resource code_resource = {
+ 	.end = 0,
+ 	.flags = IORESOURCE_RAM,
+ };
++struct resource bss_resource = {
++	.name = "Kernel bss",
++	.start = 0,
++	.end = 0,
++	.flags = IORESOURCE_RAM,
++};
+ 
+ #ifdef CONFIG_PROC_VMCORE
+ /* elfcorehdr= specifies the location of elf core header
+@@ -276,6 +283,8 @@ void __init setup_arch(char **cmdline_p)
+ 	code_resource.end = virt_to_phys(&_etext)-1;
+ 	data_resource.start = virt_to_phys(&_etext);
+ 	data_resource.end = virt_to_phys(&_edata)-1;
++	bss_resource.start = virt_to_phys(&__bss_start);
++	bss_resource.end = virt_to_phys(&__bss_stop)-1;
+ 
+ 	early_identify_cpu(&boot_cpu_data);
+ 
+diff -puN include/linux/efi.h~kexec-add-bss-to-resource-tree include/linux/efi.h
+--- a/include/linux/efi.h~kexec-add-bss-to-resource-tree
++++ a/include/linux/efi.h
+@@ -298,7 +298,7 @@ extern int efi_mem_attribute_range (unsi
+ 				    u64 attr);
+ extern int __init efi_uart_console_only (void);
+ extern void efi_initialize_iomem_resources(struct resource *code_resource,
+-					struct resource *data_resource);
++		struct resource *data_resource, struct resource *bss_resource);
+ extern unsigned long efi_get_time(void);
+ extern int efi_set_rtc_mmss(unsigned long nowtime);
+ extern int is_available_memory(efi_memory_desc_t * md);
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from bwalle@suse.de are
 
 origin.patch
-git-unionfs.patch
-git-xfs.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-add-no-submounts-flag.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
-revoke-special-mmap-handling.patch
-revoke-core-code.patch
-revoke-support-for-ext2-and-ext3.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
-dont-touch-fs_struct-in-drivers.patch
-dont-touch-fs_struct-in-usermodehelper.patch
-remove-path_release_on_umount.patch
-move-struct-path-into-its-own-header.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-introduce-path_put.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-introduce-path_get.patch
-use-struct-path-in-fs_struct.patch
-make-set_fs_rootpwd-take-a-struct-path.patch
-make-__d_path-to-take-a-struct-path-argument.patch
-use-struct-path-argument-in-proc_get_link.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
-introduce-path_put-unionfs.patch
-introduce-path_get-unionfs.patch
