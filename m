@@ -1,144 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-new-export-ops.patch removed from -mm tree
-Date: Mon, 22 Oct 2007 23:47:28 -0700
-Message-ID: <200710230647.l9N6lSeB004284@imap1.linux-foundation.org>
+Subject: - intel-iommu-fix-for-iommu-early-crash-2.patch removed from -mm tree
+Date: Mon, 22 Oct 2007 23:47:11 -0700
+Message-ID: <200710230647.l9N6lBRc004266@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60814 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35804 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752398AbXJWHAu (ORCPT
+	by vger.kernel.org with ESMTP id S1751627AbXJWHBr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Oct 2007 03:00:50 -0400
+	Tue, 23 Oct 2007 03:01:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, bfields@fieldses.org, linux-ext4@vger.kernel.org, neilb@suse.de, mm-commits@vger.kernel.org
+To: anil.s.keshavamurthy@intel.com, benh@kernel.crashing.org, greg@kroah.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: new export ops
+     intel-iommu: fix for IOMMU early crash
 has been removed from the -mm tree.  Its filename was
-     ext3-new-export-ops.patch
+     intel-iommu-fix-for-iommu-early-crash-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ext3: new export ops
-From: Christoph Hellwig <hch@lst.de>
+Subject: intel-iommu: fix for IOMMU early crash
+From: "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
 
-Trivial switch over to the new generic helpers.
+pci_dev's->sysdata is highly overloaded and currently IOMMU is broken due
+to IOMMU code depending on this field.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Neil Brown <neilb@suse.de>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: <linux-ext4@vger.kernel.org>
+This patch introduces new field in pci_dev's dev.archdata struct to hold
+IOMMU specific per device IOMMU private data.
+
+Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/super.c |   35 ++++++++++++++++++++---------------
- 1 file changed, 20 insertions(+), 15 deletions(-)
+ drivers/pci/intel-iommu.c |   22 +++++++++++-----------
+ include/asm-x86/device.h  |    3 +++
+ 2 files changed, 14 insertions(+), 11 deletions(-)
 
-diff -puN fs/ext3/super.c~ext3-new-export-ops fs/ext3/super.c
---- a/fs/ext3/super.c~ext3-new-export-ops
-+++ a/fs/ext3/super.c
-@@ -631,13 +631,10 @@ static int ext3_show_options(struct seq_
- }
+diff -puN drivers/pci/intel-iommu.c~intel-iommu-fix-for-iommu-early-crash-2 drivers/pci/intel-iommu.c
+--- a/drivers/pci/intel-iommu.c~intel-iommu-fix-for-iommu-early-crash-2
++++ a/drivers/pci/intel-iommu.c
+@@ -1348,7 +1348,7 @@ static void domain_remove_dev_info(struc
+ 		list_del(&info->link);
+ 		list_del(&info->global);
+ 		if (info->dev)
+-			info->dev->sysdata = NULL;
++			info->dev->dev.archdata.iommu = NULL;
+ 		spin_unlock_irqrestore(&device_domain_lock, flags);
  
+ 		detach_domain_for_dev(info->domain, info->bus, info->devfn);
+@@ -1361,7 +1361,7 @@ static void domain_remove_dev_info(struc
  
--static struct dentry *ext3_get_dentry(struct super_block *sb, void *vobjp)
-+static struct inode *ext3_nfs_get_inode(struct super_block *sb,
-+		u64 ino, u32 generation)
- {
--	__u32 *objp = vobjp;
--	unsigned long ino = objp[0];
--	__u32 generation = objp[1];
- 	struct inode *inode;
--	struct dentry *result;
+ /*
+  * find_domain
+- * Note: we use struct pci_dev->sysdata stores the info
++ * Note: we use struct pci_dev->dev.archdata.iommu stores the info
+  */
+ struct dmar_domain *
+ find_domain(struct pci_dev *pdev)
+@@ -1369,7 +1369,7 @@ find_domain(struct pci_dev *pdev)
+ 	struct device_domain_info *info;
  
- 	if (ino < EXT3_FIRST_INO(sb) && ino != EXT3_ROOT_INO)
- 		return ERR_PTR(-ESTALE);
-@@ -660,15 +657,22 @@ static struct dentry *ext3_get_dentry(st
- 		iput(inode);
- 		return ERR_PTR(-ESTALE);
+ 	/* No lock here, assumes no domain exit in normal case */
+-	info = pdev->sysdata;
++	info = pdev->dev.archdata.iommu;
+ 	if (info)
+ 		return info->domain;
+ 	return NULL;
+@@ -1519,7 +1519,7 @@ found_domain:
  	}
--	/* now to find a dentry.
--	 * If possible, get a well-connected one
--	 */
--	result = d_alloc_anon(inode);
--	if (!result) {
--		iput(inode);
--		return ERR_PTR(-ENOMEM);
--	}
--	return result;
-+
-+	return inode;
-+}
-+
-+static struct dentry *ext3_fh_to_dentry(struct super_block *sb, struct fid *fid,
-+		int fh_len, int fh_type)
-+{
-+	return generic_fh_to_dentry(sb, fid, fh_len, fh_type,
-+				    ext3_nfs_get_inode);
-+}
-+
-+static struct dentry *ext3_fh_to_parent(struct super_block *sb, struct fid *fid,
-+		int fh_len, int fh_type)
-+{
-+	return generic_fh_to_parent(sb, fid, fh_len, fh_type,
-+				    ext3_nfs_get_inode);
+ 	list_add(&info->link, &domain->devices);
+ 	list_add(&info->global, &device_domain_list);
+-	pdev->sysdata = info;
++	pdev->dev.archdata.iommu = info;
+ 	spin_unlock_irqrestore(&device_domain_lock, flags);
+ 	return domain;
+ error:
+@@ -1579,7 +1579,7 @@ error:
+ static inline int iommu_prepare_rmrr_dev(struct dmar_rmrr_unit *rmrr,
+ 	struct pci_dev *pdev)
+ {
+-	if (pdev->sysdata == DUMMY_DEVICE_DOMAIN_INFO)
++	if (pdev->dev.archdata.iommu == DUMMY_DEVICE_DOMAIN_INFO)
+ 		return 0;
+ 	return iommu_prepare_identity_map(pdev, rmrr->base_address,
+ 		rmrr->end_address + 1);
+@@ -1595,7 +1595,7 @@ static void __init iommu_prepare_gfx_map
+ 	int ret;
+ 
+ 	for_each_pci_dev(pdev) {
+-		if (pdev->sysdata == DUMMY_DEVICE_DOMAIN_INFO ||
++		if (pdev->dev.archdata.iommu == DUMMY_DEVICE_DOMAIN_INFO ||
+ 				!IS_GFX_DEVICE(pdev))
+ 			continue;
+ 		printk(KERN_INFO "IOMMU: gfx device %s 1-1 mapping\n",
+@@ -1836,7 +1836,7 @@ static dma_addr_t intel_map_single(struc
+ 	int prot = 0;
+ 
+ 	BUG_ON(dir == DMA_NONE);
+-	if (pdev->sysdata == DUMMY_DEVICE_DOMAIN_INFO)
++	if (pdev->dev.archdata.iommu == DUMMY_DEVICE_DOMAIN_INFO)
+ 		return virt_to_bus(addr);
+ 
+ 	domain = get_valid_domain_for_dev(pdev);
+@@ -1900,7 +1900,7 @@ static void intel_unmap_single(struct de
+ 	unsigned long start_addr;
+ 	struct iova *iova;
+ 
+-	if (pdev->sysdata == DUMMY_DEVICE_DOMAIN_INFO)
++	if (pdev->dev.archdata.iommu == DUMMY_DEVICE_DOMAIN_INFO)
+ 		return;
+ 	domain = find_domain(pdev);
+ 	BUG_ON(!domain);
+@@ -1974,7 +1974,7 @@ static void intel_unmap_sg(struct device
+ 	size_t size = 0;
+ 	void *addr;
+ 
+-	if (pdev->sysdata == DUMMY_DEVICE_DOMAIN_INFO)
++	if (pdev->dev.archdata.iommu == DUMMY_DEVICE_DOMAIN_INFO)
+ 		return;
+ 
+ 	domain = find_domain(pdev);
+@@ -2032,7 +2032,7 @@ static int intel_map_sg(struct device *h
+ 	unsigned long start_addr;
+ 
+ 	BUG_ON(dir == DMA_NONE);
+-	if (pdev->sysdata == DUMMY_DEVICE_DOMAIN_INFO)
++	if (pdev->dev.archdata.iommu == DUMMY_DEVICE_DOMAIN_INFO)
+ 		return intel_nontranslate_map_sg(hwdev, sg, nelems, dir);
+ 
+ 	domain = get_valid_domain_for_dev(pdev);
+@@ -2234,7 +2234,7 @@ static void __init init_no_remapping_dev
+ 		for (i = 0; i < drhd->devices_cnt; i++) {
+ 			if (!drhd->devices[i])
+ 				continue;
+-			drhd->devices[i]->sysdata = DUMMY_DEVICE_DOMAIN_INFO;
++			drhd->devices[i]->dev.archdata.iommu = DUMMY_DEVICE_DOMAIN_INFO;
+ 		}
+ 	}
  }
- 
- #ifdef CONFIG_QUOTA
-@@ -738,8 +742,9 @@ static const struct super_operations ext
+diff -puN include/asm-x86/device.h~intel-iommu-fix-for-iommu-early-crash-2 include/asm-x86/device.h
+--- a/include/asm-x86/device.h~intel-iommu-fix-for-iommu-early-crash-2
++++ a/include/asm-x86/device.h
+@@ -5,6 +5,9 @@ struct dev_archdata {
+ #ifdef CONFIG_ACPI
+ 	void	*acpi_handle;
+ #endif
++#ifdef CONFIG_DMAR
++	void *iommu; /* hook for IOMMU specific extension */
++#endif
  };
  
- static struct export_operations ext3_export_ops = {
-+	.fh_to_dentry = ext3_fh_to_dentry,
-+	.fh_to_parent = ext3_fh_to_parent,
- 	.get_parent = ext3_get_parent,
--	.get_dentry = ext3_get_dentry,
- };
- 
- enum {
+ #endif /* _ASM_X86_DEVICE_H */
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from anil.s.keshavamurthy@intel.com are
 
 origin.patch
-git-unionfs.patch
-git-xfs.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-add-no-submounts-flag.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
-revoke-special-mmap-handling.patch
-revoke-core-code.patch
-revoke-support-for-ext2-and-ext3.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
-dont-touch-fs_struct-in-drivers.patch
-dont-touch-fs_struct-in-usermodehelper.patch
-remove-path_release_on_umount.patch
-move-struct-path-into-its-own-header.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-introduce-path_put.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-introduce-path_get.patch
-use-struct-path-in-fs_struct.patch
-make-set_fs_rootpwd-take-a-struct-path.patch
-make-__d_path-to-take-a-struct-path-argument.patch
-use-struct-path-argument-in-proc_get_link.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
-introduce-path_put-unionfs.patch
-introduce-path_get-unionfs.patch
