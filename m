@@ -1,104 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - slub-avoid-atomic-operation-for-slab_unlock.patch removed from -mm tree
-Date: Tue, 23 Oct 2007 12:30:03 -0700
-Message-ID: <200710231930.l9NJU3lS002795@imap1.linux-foundation.org>
+Subject: + slub-use-non-atomic-bit-unlock.patch added to -mm tree
+Date: Tue, 23 Oct 2007 12:31:25 -0700
+Message-ID: <200710231931.l9NJVPoe002887@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59945 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43684 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752178AbXJWTaH (ORCPT
+	by vger.kernel.org with ESMTP id S1751848AbXJWTbc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Oct 2007 15:30:07 -0400
+	Tue, 23 Oct 2007 15:31:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: nickpiggin@yahoo.com.au, clameter@sgi.com, npiggin@suse.de
 
 
 The patch titled
-     SLUB: avoid atomic operation for slab_unlock
-has been removed from the -mm tree.  Its filename was
-     slub-avoid-atomic-operation-for-slab_unlock.patch
+     slub: use non-atomic bit unlock
+has been added to the -mm tree.  Its filename is
+     slub-use-non-atomic-bit-unlock.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: avoid atomic operation for slab_unlock
-From: Christoph Lameter <clameter@sgi.com>
+Subject: slub: use non-atomic bit unlock
+From: Nick Piggin <nickpiggin@yahoo.com.au>
 
-Currently page flags are only modified in SLUB under page lock.  This means
-that we do not need an atomic operation to release the lock since there is
-nothing we can race against that is modifying page flags.  We can simply
-clear the bit without the use of an atomic operation and make sure that
-this change becomes visible after the other changes to slab metadata
-through a memory barrier.
+Slub can use the non-atomic version to unlock because other flags will not
+get modified with the lock held.
 
-The performance of slab_free() increases 10-15% (SMP configuration doing
-a long series of remote frees).
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ mm/slub.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-avoid-atomic-operation-for-slab_unlock mm/slub.c
---- a/mm/slub.c~slub-avoid-atomic-operation-for-slab_unlock
+diff -puN mm/slub.c~slub-use-non-atomic-bit-unlock mm/slub.c
+--- a/mm/slub.c~slub-use-non-atomic-bit-unlock
 +++ a/mm/slub.c
-@@ -1181,9 +1181,22 @@ static __always_inline void slab_lock(st
- 	bit_spin_lock(PG_locked, &page->flags);
- }
+@@ -1183,7 +1183,7 @@ static __always_inline void slab_lock(st
  
-+/*
-+ * Slab unlock version that avoids having to use atomic operations
-+ * (echos some of the code of bit_spin_unlock!)
-+ */
  static __always_inline void slab_unlock(struct page *page)
  {
 -	bit_spin_unlock(PG_locked, &page->flags);
-+#ifdef CONFIG_SMP
-+	unsigned long flags;
-+
-+	flags = page->flags & ~(1 << PG_locked);
-+
-+	smp_wmb();
-+	page->flags = flags;
-+#endif
-+	preempt_enable();
-+	__release(bitlock);
++	__bit_spin_unlock(PG_locked, &page->flags);
  }
  
  static __always_inline int slab_trylock(struct page *page)
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from nickpiggin@yahoo.com.au are
 
 origin.patch
-mem-policy-fix-mempolicy-usage-in-pci-driver.patch
-git-unionfs.patch
-git-x86.patch
-slub-avoid-atomic-operation-for-slab_unlock.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
-move-vmalloc_to_page-to-mm-vmalloc.patch
-vmalloc-add-const-to-void-parameters.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+git-mtd.patch
 is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
 vmalloc-clean-up-page-array-indexing.patch
 vunmap-return-page-array-passed-on-vmap.patch
-slub-move-count_partial.patch
-slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
-slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
-vm-allow-get_page_unless_zero-on-compound-pages.patch
-dentries-extract-common-code-to-remove-dentry-from-lru.patch
+slub-use-non-atomic-bit-unlock.patch
 bufferhead-revert-constructor-removal.patch
 bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-swapin_readahead-excise-numa-bogosity.patch
-revoke-core-code.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+shmem_getpage-return-page-locked.patch
+shmem_file_write-is-redundant.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
