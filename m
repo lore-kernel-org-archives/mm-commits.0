@@ -1,134 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - capabilities-clean-up-file-capability-reading.patch removed from -mm tree
-Date: Mon, 22 Oct 2007 23:46:30 -0700
-Message-ID: <200710230646.l9N6kUvY004215@imap1.linux-foundation.org>
+Subject: - intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch removed from -mm tree
+Date: Mon, 22 Oct 2007 23:46:54 -0700
+Message-ID: <200710230646.l9N6kspN004242@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47167 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59246 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751878AbXJWGrH (ORCPT
+	by vger.kernel.org with ESMTP id S1751917AbXJWGrL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Oct 2007 02:47:07 -0400
+	Tue, 23 Oct 2007 02:47:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: serue@us.ibm.com, chrisw@sous-sol.org, morgan@kernel.org, mm-commits@vger.kernel.org
+To: anil.s.keshavamurthy@intel.com, a.p.zijlstra@chello.nl, ak@suse.de, arjan@infradead.org, ashok.raj@intel.com, clameter@sgi.com, davem@davemloft.net, greg@kroah.com, muli@il.ibm.coms
 
 
 The patch titled
-     capabilities: clean up file capability reading
+     Intel IOMMU: Avoid memory allocation failures in dma map api calls
 has been removed from the -mm tree.  Its filename was
-     capabilities-clean-up-file-capability-reading.patch
+     intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: capabilities: clean up file capability reading
-From: "Serge E. Hallyn" <serue@us.ibm.com>
+Subject: Intel IOMMU: Avoid memory allocation failures in dma map api calls
+From: "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
 
-Simplify the vfs_cap_data structure.
+Intel IOMMU driver needs memory during DMA map calls to setup its internal
+page tables and for other data structures.  As we all know that these DMA map
+calls are mostly called in the interrupt context or with the spinlock held by
+the upper level drivers(network/storage drivers), so in order to avoid any
+memory allocation failure due to low memory issues, this patch makes memory
+allocation by temporarily setting PF_MEMALLOC flags for the current task
+before making memory allocation calls.
 
-Also fix get_file_caps which was declaring
-__le32 v1caps[XATTR_CAPS_SZ] on the stack, but
-XATTR_CAPS_SZ is already * sizeof(__le32).
+We evaluated mempools as a backup when kmem_cache_alloc() fails
+and found that mempools are really not useful here because
+ 1) We don't know for sure how much to reserve in advance
+ 2) And mempools are not useful for GFP_ATOMIC case (as we call
+    memory alloc functions with GFP_ATOMIC)
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Andrew Morgan <morgan@kernel.org>
-Cc: Chris Wright <chrisw@sous-sol.org>
+(akpm: point 2 is wrong...)
+
+With PF_MEMALLOC flag set in the current->flags, the VM subsystem avoids any
+watermark checks before allocating memory thus guarantee'ing the memory till
+the last free page.  Further, looking at the code in mm/page_alloc.c in
+__alloc_pages() function, looks like this flag is useful only in the
+non-interrupt context.
+
+If we are in the interrupt context and memory allocation in IOMMU driver fails
+for some reason, then the DMA map api's will return failure and it is up to
+the higher level drivers to retry.  Suppose, if upper level driver programs
+the controller with the buggy DMA virtual address, the IOMMU will block that
+DMA transaction when that happens thus preventing any corruption to main
+memory.
+
+So far in our test scenario, we were unable to create any memory allocation
+failure inside dma map api calls.
+
+Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Ashok Raj <ashok.raj@intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/capability.h |    6 ++----
- security/commoncap.c       |   23 +++++++++++++++--------
- 2 files changed, 17 insertions(+), 12 deletions(-)
+ drivers/pci/intel-iommu.c |   30 ++++++++++++++++++++++++++----
+ 1 file changed, 26 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/capability.h~capabilities-clean-up-file-capability-reading include/linux/capability.h
---- a/include/linux/capability.h~capabilities-clean-up-file-capability-reading
-+++ a/include/linux/capability.h
-@@ -56,10 +56,8 @@ typedef struct __user_cap_data_struct {
+diff -puN drivers/pci/intel-iommu.c~intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls drivers/pci/intel-iommu.c
+--- a/drivers/pci/intel-iommu.c~intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls
++++ a/drivers/pci/intel-iommu.c
+@@ -85,9 +85,31 @@ static struct kmem_cache *iommu_domain_c
+ static struct kmem_cache *iommu_devinfo_cache;
+ static struct kmem_cache *iommu_iova_cache;
  
- struct vfs_cap_data {
- 	__u32 magic_etc;  /* Little endian */
--	struct {
--		__u32 permitted;    /* Little endian */
--		__u32 inheritable;  /* Little endian */
--	} data[1];
-+	__u32 permitted;    /* Little endian */
-+	__u32 inheritable;  /* Little endian */
- };
- 
- #ifdef __KERNEL__
-diff -puN security/commoncap.c~capabilities-clean-up-file-capability-reading security/commoncap.c
---- a/security/commoncap.c~capabilities-clean-up-file-capability-reading
-+++ a/security/commoncap.c
-@@ -190,7 +190,8 @@ int cap_inode_killpriv(struct dentry *de
- 	return inode->i_op->removexattr(dentry, XATTR_NAME_CAPS);
++static inline void *iommu_kmem_cache_alloc(struct kmem_cache *cachep)
++{
++	unsigned int flags;
++	void *vaddr;
++
++	/* trying to avoid low memory issues */
++	flags = current->flags & PF_MEMALLOC;
++	current->flags |= PF_MEMALLOC;
++	vaddr = kmem_cache_alloc(cachep, GFP_ATOMIC);
++	current->flags &= (~PF_MEMALLOC | flags);
++	return vaddr;
++}
++
++
+ static inline void *alloc_pgtable_page(void)
+ {
+-	return (void *)get_zeroed_page(GFP_ATOMIC);
++	unsigned int flags;
++	void *vaddr;
++
++	/* trying to avoid low memory issues */
++	flags = current->flags & PF_MEMALLOC;
++	current->flags |= PF_MEMALLOC;
++	vaddr = (void *)get_zeroed_page(GFP_ATOMIC);
++	current->flags &= (~PF_MEMALLOC | flags);
++	return vaddr;
  }
  
--static inline int cap_from_disk(__le32 *caps, struct linux_binprm *bprm,
-+static inline int cap_from_disk(struct vfs_cap_data *caps,
-+				struct linux_binprm *bprm,
- 				int size)
+ static inline void free_pgtable_page(void *vaddr)
+@@ -97,7 +119,7 @@ static inline void free_pgtable_page(voi
+ 
+ static inline void *alloc_domain_mem(void)
  {
- 	__u32 magic_etc;
-@@ -198,7 +199,7 @@ static inline int cap_from_disk(__le32 *
- 	if (size != XATTR_CAPS_SZ)
- 		return -EINVAL;
+-	return kmem_cache_alloc(iommu_domain_cache, GFP_ATOMIC);
++	return iommu_kmem_cache_alloc(iommu_domain_cache);
+ }
  
--	magic_etc = le32_to_cpu(caps[0]);
-+	magic_etc = le32_to_cpu(caps->magic_etc);
+ static inline void free_domain_mem(void *vaddr)
+@@ -107,7 +129,7 @@ static inline void free_domain_mem(void 
  
- 	switch ((magic_etc & VFS_CAP_REVISION_MASK)) {
- 	case VFS_CAP_REVISION:
-@@ -206,8 +207,8 @@ static inline int cap_from_disk(__le32 *
- 			bprm->cap_effective = true;
- 		else
- 			bprm->cap_effective = false;
--		bprm->cap_permitted = to_cap_t( le32_to_cpu(caps[1]) );
--		bprm->cap_inheritable = to_cap_t( le32_to_cpu(caps[2]) );
-+		bprm->cap_permitted = to_cap_t(le32_to_cpu(caps->permitted));
-+		bprm->cap_inheritable = to_cap_t(le32_to_cpu(caps->inheritable));
- 		return 0;
- 	default:
- 		return -EINVAL;
-@@ -219,7 +220,7 @@ static int get_file_caps(struct linux_bi
+ static inline void * alloc_devinfo_mem(void)
  {
- 	struct dentry *dentry;
- 	int rc = 0;
--	__le32 v1caps[XATTR_CAPS_SZ];
-+	struct vfs_cap_data incaps;
- 	struct inode *inode;
+-	return kmem_cache_alloc(iommu_devinfo_cache, GFP_ATOMIC);
++	return iommu_kmem_cache_alloc(iommu_devinfo_cache);
+ }
  
- 	if (bprm->file->f_vfsmnt->mnt_flags & MNT_NOSUID) {
-@@ -232,8 +233,14 @@ static int get_file_caps(struct linux_bi
- 	if (!inode->i_op || !inode->i_op->getxattr)
- 		goto out;
+ static inline void free_devinfo_mem(void *vaddr)
+@@ -117,7 +139,7 @@ static inline void free_devinfo_mem(void
  
--	rc = inode->i_op->getxattr(dentry, XATTR_NAME_CAPS, &v1caps,
--							XATTR_CAPS_SZ);
-+	rc = inode->i_op->getxattr(dentry, XATTR_NAME_CAPS, NULL, 0);
-+	if (rc > 0) {
-+		if (rc == XATTR_CAPS_SZ)
-+			rc = inode->i_op->getxattr(dentry, XATTR_NAME_CAPS,
-+						&incaps, XATTR_CAPS_SZ);
-+		else
-+			rc = -EINVAL;
-+	}
- 	if (rc == -ENODATA || rc == -EOPNOTSUPP) {
- 		/* no data, that's ok */
- 		rc = 0;
-@@ -242,7 +249,7 @@ static int get_file_caps(struct linux_bi
- 	if (rc < 0)
- 		goto out;
+ struct iova *alloc_iova_mem(void)
+ {
+-	return kmem_cache_alloc(iommu_iova_cache, GFP_ATOMIC);
++	return iommu_kmem_cache_alloc(iommu_iova_cache);
+ }
  
--	rc = cap_from_disk(v1caps, bprm, rc);
-+	rc = cap_from_disk(&incaps, bprm, rc);
- 	if (rc)
- 		printk(KERN_NOTICE "%s: cap_from_disk returned %d for %s\n",
- 			__FUNCTION__, rc, bprm->filename);
+ void free_iova_mem(struct iova *iova)
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from anil.s.keshavamurthy@intel.com are
 
 origin.patch
-git-unionfs.patch
