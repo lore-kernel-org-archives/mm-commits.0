@@ -1,123 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: - security-convert-lsm-into-a-static-interface-fix-unionfs.patch removed from -mm tree
-Date: Mon, 22 Oct 2007 23:48:08 -0700
-Message-ID: <200710230648.l9N6m8ME004344@imap1.linux-foundation.org>
+Subject: - ocfs2-new-export-ops.patch removed from -mm tree
+Date: Mon, 22 Oct 2007 23:47:53 -0700
+Message-ID: <200710230647.l9N6lrL2004320@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56888 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37948 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752230AbXJWHCI (ORCPT
+	by vger.kernel.org with ESMTP id S1752205AbXJWHCG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Oct 2007 03:02:08 -0400
+	Tue, 23 Oct 2007 03:02:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arjan@infradead.org, chrisw@sous-sol.org, jmorris@namei.org, jsipek@cs.sunysb.edu, sds@tycho.nsa.gov, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: hch@lst.de, bfields@fieldses.org, mark.fasheh@oracle.com, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     security-convert-lsm-into-a-static-interface :fix unionfs
+     ocfs2: new export ops
 has been removed from the -mm tree.  Its filename was
-     security-convert-lsm-into-a-static-interface-fix-unionfs.patch
+     ocfs2-new-export-ops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: security-convert-lsm-into-a-static-interface :fix unionfs
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ocfs2: new export ops
+From: Christoph Hellwig <hch@lst.de>
 
-ERROR: "security_inode_permission" [fs/unionfs/unionfs.ko] undefined!
-ERROR: "security_file_ioctl" [fs/unionfs/unionfs.ko] undefined!
+OCFS2 has it's own 64bit-firendly filehandle format so we can't use the
+generic helpers here.  I'll add a struct for the types later.
 
-Need these back.
-
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: James Morris <jmorris@namei.org>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Neil Brown <neilb@suse.de>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/security.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/ocfs2/export.c |   65 ++++++++++++++++----------------------------
+ 1 file changed, 24 insertions(+), 41 deletions(-)
 
-diff -puN security/security.c~security-convert-lsm-into-a-static-interface-fix-unionfs security/security.c
---- a/security/security.c~security-convert-lsm-into-a-static-interface-fix-unionfs
-+++ a/security/security.c
-@@ -409,6 +409,7 @@ int security_inode_permission(struct ino
- 		return 0;
- 	return security_ops->inode_permission(inode, mask, nd);
- }
-+EXPORT_SYMBOL(security_inode_permission);
+diff -puN fs/ocfs2/export.c~ocfs2-new-export-ops fs/ocfs2/export.c
+--- a/fs/ocfs2/export.c~ocfs2-new-export-ops
++++ a/fs/ocfs2/export.c
+@@ -45,9 +45,9 @@ struct ocfs2_inode_handle
+ 	u32 ih_generation;
+ };
  
- int security_inode_setattr(struct dentry *dentry, struct iattr *attr)
+-static struct dentry *ocfs2_get_dentry(struct super_block *sb, void *vobjp)
++static struct dentry *ocfs2_get_dentry(struct super_block *sb,
++		struct ocfs2_inode_handle *handle)
  {
-@@ -518,6 +519,7 @@ int security_file_ioctl(struct file *fil
- {
- 	return security_ops->file_ioctl(file, cmd, arg);
- }
-+EXPORT_SYMBOL(security_file_ioctl);
+-	struct ocfs2_inode_handle *handle = vobjp;
+ 	struct inode *inode;
+ 	struct dentry *result;
  
- int security_file_mmap(struct file *file, unsigned long reqprot,
- 			unsigned long prot, unsigned long flags,
+@@ -194,54 +194,37 @@ bail:
+ 	return type;
+ }
+ 
+-static struct dentry *ocfs2_decode_fh(struct super_block *sb, u32 *fh_in,
+-				      int fh_len, int fileid_type,
+-				      int (*acceptable)(void *context,
+-						        struct dentry *de),
+-				      void *context)
++static struct dentry *ocfs2_fh_to_dentry(struct super_block *sb,
++		struct fid *fid, int fh_len, int fh_type)
+ {
+-	struct ocfs2_inode_handle handle, parent;
+-	struct dentry *ret = NULL;
+-	__le32 *fh = (__force __le32 *) fh_in;
+-
+-	mlog_entry("(0x%p, 0x%p, %d, %d, 0x%p, 0x%p)\n",
+-		   sb, fh, fh_len, fileid_type, acceptable, context);
++	struct ocfs2_inode_handle handle;
+ 
+-	if (fh_len < 3 || fileid_type > 2)
+-		goto bail;
++	if (fh_len < 3 || fh_type > 2)
++		return NULL;
+ 
+-	if (fileid_type == 2) {
+-		if (fh_len < 6)
+-			goto bail;
+-
+-		parent.ih_blkno = (u64)le32_to_cpu(fh[3]) << 32;
+-		parent.ih_blkno |= (u64)le32_to_cpu(fh[4]);
+-		parent.ih_generation = le32_to_cpu(fh[5]);
+-
+-		mlog(0, "Decoding parent: blkno: %llu, generation: %u\n",
+-		     (unsigned long long)parent.ih_blkno,
+-		     parent.ih_generation);
+-	}
+-
+-	handle.ih_blkno = (u64)le32_to_cpu(fh[0]) << 32;
+-	handle.ih_blkno |= (u64)le32_to_cpu(fh[1]);
+-	handle.ih_generation = le32_to_cpu(fh[2]);
++	handle.ih_blkno = (u64)le32_to_cpu(fid->raw[0]) << 32;
++	handle.ih_blkno |= (u64)le32_to_cpu(fid->raw[1]);
++	handle.ih_generation = le32_to_cpu(fid->raw[2]);
++	return ocfs2_get_dentry(sb, &handle);
++}
+ 
+-	mlog(0, "Encoding fh: blkno: %llu, generation: %u\n",
+-	     (unsigned long long)handle.ih_blkno, handle.ih_generation);
++static struct dentry *ocfs2_fh_to_parent(struct super_block *sb,
++		struct fid *fid, int fh_len, int fh_type)
++{
++	struct ocfs2_inode_handle parent;
+ 
+-	ret = ocfs2_export_ops.find_exported_dentry(sb, &handle, &parent,
+-						    acceptable, context);
++	if (fh_type != 2 || fh_len < 6)
++		return NULL;
+ 
+-bail:
+-	mlog_exit_ptr(ret);
+-	return ret;
++	parent.ih_blkno = (u64)le32_to_cpu(fid->raw[3]) << 32;
++	parent.ih_blkno |= (u64)le32_to_cpu(fid->raw[4]);
++	parent.ih_generation = le32_to_cpu(fid->raw[5]);
++	return ocfs2_get_dentry(sb, &parent);
+ }
+ 
+ struct export_operations ocfs2_export_ops = {
+-	.decode_fh	= ocfs2_decode_fh,
+ 	.encode_fh	= ocfs2_encode_fh,
+-
++	.fh_to_dentry	= ocfs2_fh_to_dentry,
++	.fh_to_parent	= ocfs2_fh_to_parent,
+ 	.get_parent	= ocfs2_get_parent,
+-	.get_dentry	= ocfs2_get_dentry,
+ };
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hch@lst.de are
 
 origin.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-ide-arm-hack.patch
-nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd-fixup.patch
-fix-build-breakage-if-sysfs-fix.patch
-git-scsi-misc.patch
 git-unionfs.patch
-documentation-watchdog-src-watchdog-simplec-improve-this-code-checkpatch-fixes.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-x86.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-sync_sb_inodes-propagate-errors.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
+git-xfs.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+r-o-bind-mounts-stub-functions.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
+revoke-special-mmap-handling.patch
+revoke-core-code.patch
+revoke-support-for-ext2-and-ext3.patch
+revoke-add-documentation.patch
 revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
+dont-touch-fs_struct-in-drivers.patch
+dont-touch-fs_struct-in-usermodehelper.patch
+remove-path_release_on_umount.patch
+move-struct-path-into-its-own-header.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+introduce-path_put.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+introduce-path_get.patch
+use-struct-path-in-fs_struct.patch
+make-set_fs_rootpwd-take-a-struct-path.patch
+make-__d_path-to-take-a-struct-path-argument.patch
+use-struct-path-argument-in-proc_get_link.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
+introduce-path_put-unionfs.patch
+introduce-path_get-unionfs.patch
