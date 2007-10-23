@@ -1,134 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: - ocfs2-new-export-ops.patch removed from -mm tree
-Date: Mon, 22 Oct 2007 23:47:53 -0700
-Message-ID: <200710230647.l9N6lrL2004320@imap1.linux-foundation.org>
+Subject: - ntfs-new-export-ops.patch removed from -mm tree
+Date: Mon, 22 Oct 2007 23:47:38 -0700
+Message-ID: <200710230647.l9N6lc2q004299@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37948 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34860 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752205AbXJWHCG (ORCPT
+	by vger.kernel.org with ESMTP id S1751734AbXJWHCC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Oct 2007 03:02:06 -0400
+	Tue, 23 Oct 2007 03:02:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, bfields@fieldses.org, mark.fasheh@oracle.com, neilb@suse.de, mm-commits@vger.kernel.org
+To: hch@lst.de, aia21@cantab.net, bfields@fieldses.org, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ocfs2: new export ops
+     ntfs: new export ops
 has been removed from the -mm tree.  Its filename was
-     ocfs2-new-export-ops.patch
+     ntfs-new-export-ops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ocfs2: new export ops
+Subject: ntfs: new export ops
 From: Christoph Hellwig <hch@lst.de>
 
-OCFS2 has it's own 64bit-firendly filehandle format so we can't use the
-generic helpers here.  I'll add a struct for the types later.
+Trivial switch over to the new generic helpers.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Neil Brown <neilb@suse.de>
 Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
+Cc: Anton Altaparmakov <aia21@cantab.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/export.c |   65 ++++++++++++++++----------------------------
- 1 file changed, 24 insertions(+), 41 deletions(-)
+ fs/ntfs/namei.c |   77 +++++++++++++++++-----------------------------
+ 1 file changed, 29 insertions(+), 48 deletions(-)
 
-diff -puN fs/ocfs2/export.c~ocfs2-new-export-ops fs/ocfs2/export.c
---- a/fs/ocfs2/export.c~ocfs2-new-export-ops
-+++ a/fs/ocfs2/export.c
-@@ -45,9 +45,9 @@ struct ocfs2_inode_handle
- 	u32 ih_generation;
- };
- 
--static struct dentry *ocfs2_get_dentry(struct super_block *sb, void *vobjp)
-+static struct dentry *ocfs2_get_dentry(struct super_block *sb,
-+		struct ocfs2_inode_handle *handle)
- {
--	struct ocfs2_inode_handle *handle = vobjp;
- 	struct inode *inode;
- 	struct dentry *result;
- 
-@@ -194,54 +194,37 @@ bail:
- 	return type;
+diff -puN fs/ntfs/namei.c~ntfs-new-export-ops fs/ntfs/namei.c
+--- a/fs/ntfs/namei.c~ntfs-new-export-ops
++++ a/fs/ntfs/namei.c
+@@ -450,58 +450,40 @@ try_next:
+ 	return parent_dent;
  }
  
--static struct dentry *ocfs2_decode_fh(struct super_block *sb, u32 *fh_in,
--				      int fh_len, int fileid_type,
--				      int (*acceptable)(void *context,
--						        struct dentry *de),
--				      void *context)
-+static struct dentry *ocfs2_fh_to_dentry(struct super_block *sb,
-+		struct fid *fid, int fh_len, int fh_type)
+-/**
+- * ntfs_get_dentry - find a dentry for the inode from a file handle sub-fragment
+- * @sb:		super block identifying the mounted ntfs volume
+- * @fh:		the file handle sub-fragment
+- *
+- * Find a dentry for the inode given a file handle sub-fragment.  This function
+- * is called from fs/exportfs/expfs.c::find_exported_dentry() which in turn is
+- * called from the default ->decode_fh() which is export_decode_fh() in the
+- * same file.  The code is closely based on the default ->get_dentry() helper
+- * fs/exportfs/expfs.c::get_object().
+- *
+- * The @fh contains two 32-bit unsigned values, the first one is the inode
+- * number and the second one is the inode generation.
+- *
+- * Return the dentry on success or the error code on error (IS_ERR() is true).
+- */
+-static struct dentry *ntfs_get_dentry(struct super_block *sb, void *fh)
++static struct inode *ntfs_nfs_get_inode(struct super_block *sb,
++		u64 ino, u32 generation)
  {
--	struct ocfs2_inode_handle handle, parent;
--	struct dentry *ret = NULL;
--	__le32 *fh = (__force __le32 *) fh_in;
+-	struct inode *vi;
+-	struct dentry *dent;
+-	unsigned long ino = ((u32 *)fh)[0];
+-	u32 gen = ((u32 *)fh)[1];
 -
--	mlog_entry("(0x%p, 0x%p, %d, %d, 0x%p, 0x%p)\n",
--		   sb, fh, fh_len, fileid_type, acceptable, context);
-+	struct ocfs2_inode_handle handle;
- 
--	if (fh_len < 3 || fileid_type > 2)
--		goto bail;
-+	if (fh_len < 3 || fh_type > 2)
-+		return NULL;
- 
--	if (fileid_type == 2) {
--		if (fh_len < 6)
--			goto bail;
--
--		parent.ih_blkno = (u64)le32_to_cpu(fh[3]) << 32;
--		parent.ih_blkno |= (u64)le32_to_cpu(fh[4]);
--		parent.ih_generation = le32_to_cpu(fh[5]);
--
--		mlog(0, "Decoding parent: blkno: %llu, generation: %u\n",
--		     (unsigned long long)parent.ih_blkno,
--		     parent.ih_generation);
+-	ntfs_debug("Entering for inode 0x%lx, generation 0x%x.", ino, gen);
+-	vi = ntfs_iget(sb, ino);
+-	if (IS_ERR(vi)) {
+-		ntfs_error(sb, "Failed to get inode 0x%lx.", ino);
+-		return (struct dentry *)vi;
 -	}
--
--	handle.ih_blkno = (u64)le32_to_cpu(fh[0]) << 32;
--	handle.ih_blkno |= (u64)le32_to_cpu(fh[1]);
--	handle.ih_generation = le32_to_cpu(fh[2]);
-+	handle.ih_blkno = (u64)le32_to_cpu(fid->raw[0]) << 32;
-+	handle.ih_blkno |= (u64)le32_to_cpu(fid->raw[1]);
-+	handle.ih_generation = le32_to_cpu(fid->raw[2]);
-+	return ocfs2_get_dentry(sb, &handle);
+-	if (unlikely(is_bad_inode(vi) || vi->i_generation != gen)) {
+-		/* We didn't find the right inode. */
+-		ntfs_error(sb, "Inode 0x%lx, bad count: %d %d or version 0x%x "
+-				"0x%x.", vi->i_ino, vi->i_nlink,
+-				atomic_read(&vi->i_count), vi->i_generation,
+-				gen);
+-		iput(vi);
+-		return ERR_PTR(-ESTALE);
+-	}
+-	/* Now find a dentry.  If possible, get a well-connected one. */
+-	dent = d_alloc_anon(vi);
+-	if (unlikely(!dent)) {
+-		iput(vi);
+-		return ERR_PTR(-ENOMEM);
++	struct inode *inode;
++
++	inode = ntfs_iget(sb, ino);
++	if (!IS_ERR(inode)) {
++		if (is_bad_inode(inode) || inode->i_generation != generation) {
++			iput(inode);
++			inode = ERR_PTR(-ESTALE);
++		}
+ 	}
+-	ntfs_debug("Done for inode 0x%lx, generation 0x%x.", ino, gen);
+-	return dent;
++
++	return inode;
 +}
- 
--	mlog(0, "Encoding fh: blkno: %llu, generation: %u\n",
--	     (unsigned long long)handle.ih_blkno, handle.ih_generation);
-+static struct dentry *ocfs2_fh_to_parent(struct super_block *sb,
-+		struct fid *fid, int fh_len, int fh_type)
++
++static struct dentry *ntfs_fh_to_dentry(struct super_block *sb, struct fid *fid,
++		int fh_len, int fh_type)
 +{
-+	struct ocfs2_inode_handle parent;
- 
--	ret = ocfs2_export_ops.find_exported_dentry(sb, &handle, &parent,
--						    acceptable, context);
-+	if (fh_type != 2 || fh_len < 6)
-+		return NULL;
- 
--bail:
--	mlog_exit_ptr(ret);
--	return ret;
-+	parent.ih_blkno = (u64)le32_to_cpu(fid->raw[3]) << 32;
-+	parent.ih_blkno |= (u64)le32_to_cpu(fid->raw[4]);
-+	parent.ih_generation = le32_to_cpu(fid->raw[5]);
-+	return ocfs2_get_dentry(sb, &parent);
++	return generic_fh_to_dentry(sb, fid, fh_len, fh_type,
++				    ntfs_nfs_get_inode);
++}
++
++static struct dentry *ntfs_fh_to_parent(struct super_block *sb, struct fid *fid,
++		int fh_len, int fh_type)
++{
++	return generic_fh_to_parent(sb, fid, fh_len, fh_type,
++				    ntfs_nfs_get_inode);
  }
  
- struct export_operations ocfs2_export_ops = {
--	.decode_fh	= ocfs2_decode_fh,
- 	.encode_fh	= ocfs2_encode_fh,
--
-+	.fh_to_dentry	= ocfs2_fh_to_dentry,
-+	.fh_to_parent	= ocfs2_fh_to_parent,
- 	.get_parent	= ocfs2_get_parent,
--	.get_dentry	= ocfs2_get_dentry,
+ /**
+  * Export operations allowing NFS exporting of mounted NTFS partitions.
+  *
+- * We use the default ->decode_fh() and ->encode_fh() for now.  Note that they
++ * We use the default ->encode_fh() for now.  Note that they
+  * use 32 bits to store the inode number which is an unsigned long so on 64-bit
+  * architectures is usually 64 bits so it would all fail horribly on huge
+  * volumes.  I guess we need to define our own encode and decode fh functions
+@@ -520,7 +502,6 @@ static struct dentry *ntfs_get_dentry(st
+ struct export_operations ntfs_export_ops = {
+ 	.get_parent	= ntfs_get_parent,	/* Find the parent of a given
+ 						   directory. */
+-	.get_dentry	= ntfs_get_dentry,	/* Find a dentry for the inode
+-						   given a file handle
+-						   sub-fragment. */
++	.fh_to_dentry	= ntfs_fh_to_dentry,
++	.fh_to_parent	= ntfs_fh_to_parent,
  };
 _
 
