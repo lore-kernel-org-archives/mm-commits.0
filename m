@@ -1,61 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch removed from -mm tree
-Date: Mon, 22 Oct 2007 23:46:54 -0700
-Message-ID: <200710230646.l9N6kspN004242@imap1.linux-foundation.org>
+Subject: - intel-iommu-intel-iommu-cmdline-option-forcedac.patch removed from -mm tree
+Date: Mon, 22 Oct 2007 23:46:57 -0700
+Message-ID: <200710230646.l9N6kv6w004245@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59246 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54918 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751917AbXJWGrL (ORCPT
+	by vger.kernel.org with ESMTP id S1751893AbXJWGrT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Oct 2007 02:47:11 -0400
+	Tue, 23 Oct 2007 02:47:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: anil.s.keshavamurthy@intel.com, a.p.zijlstra@chello.nl, ak@suse.de, arjan@infradead.org, ashok.raj@intel.com, clameter@sgi.com, davem@davemloft.net, greg@kroah.com, muli@il.ibm.coms
 
 
 The patch titled
-     Intel IOMMU: Avoid memory allocation failures in dma map api calls
+     Intel IOMMU: Intel iommu cmdline option - forcedac
 has been removed from the -mm tree.  Its filename was
-     intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls.patch
+     intel-iommu-intel-iommu-cmdline-option-forcedac.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Intel IOMMU: Avoid memory allocation failures in dma map api calls
+Subject: Intel IOMMU: Intel iommu cmdline option - forcedac
 From: "Keshavamurthy, Anil S" <anil.s.keshavamurthy@intel.com>
 
-Intel IOMMU driver needs memory during DMA map calls to setup its internal
-page tables and for other data structures.  As we all know that these DMA map
-calls are mostly called in the interrupt context or with the spinlock held by
-the upper level drivers(network/storage drivers), so in order to avoid any
-memory allocation failure due to low memory issues, this patch makes memory
-allocation by temporarily setting PF_MEMALLOC flags for the current task
-before making memory allocation calls.
-
-We evaluated mempools as a backup when kmem_cache_alloc() fails
-and found that mempools are really not useful here because
- 1) We don't know for sure how much to reserve in advance
- 2) And mempools are not useful for GFP_ATOMIC case (as we call
-    memory alloc functions with GFP_ATOMIC)
-
-(akpm: point 2 is wrong...)
-
-With PF_MEMALLOC flag set in the current->flags, the VM subsystem avoids any
-watermark checks before allocating memory thus guarantee'ing the memory till
-the last free page.  Further, looking at the code in mm/page_alloc.c in
-__alloc_pages() function, looks like this flag is useful only in the
-non-interrupt context.
-
-If we are in the interrupt context and memory allocation in IOMMU driver fails
-for some reason, then the DMA map api's will return failure and it is up to
-the higher level drivers to retry.  Suppose, if upper level driver programs
-the controller with the buggy DMA virtual address, the IOMMU will block that
-DMA transaction when that happens thus preventing any corruption to main
-memory.
-
-So far in our test scenario, we were unable to create any memory allocation
-failure inside dma map api calls.
+Introduce intel_iommu=forcedac commandline option.  This option is helpful to
+verify the pci device capability of handling physical dma'able address greater
+than 4G.
 
 Signed-off-by: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
 Cc: Andi Kleen <ak@suse.de>
@@ -70,72 +42,58 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/intel-iommu.c |   30 ++++++++++++++++++++++++++----
- 1 file changed, 26 insertions(+), 4 deletions(-)
+ Documentation/kernel-parameters.txt |    7 +++++++
+ drivers/pci/intel-iommu.c           |    7 ++++++-
+ 2 files changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pci/intel-iommu.c~intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls drivers/pci/intel-iommu.c
---- a/drivers/pci/intel-iommu.c~intel-iommu-avoid-memory-allocation-failures-in-dma-map-api-calls
+diff -puN Documentation/kernel-parameters.txt~intel-iommu-intel-iommu-cmdline-option-forcedac Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~intel-iommu-intel-iommu-cmdline-option-forcedac
++++ a/Documentation/kernel-parameters.txt
+@@ -781,6 +781,13 @@ and is between 256 and 4096 characters. 
+ 			bypassed by not enabling DMAR with this option. In
+ 			this case, gfx device will use physical address for
+ 			DMA.
++		forcedac [x86_64]
++			With this option iommu will not optimize to look
++			for io virtual address below 32 bit forcing dual
++			address cycle on pci bus for cards supporting greater
++			than 32 bit addressing. The default is to look
++			for translation below 32 bit and if not available
++			then look in the higher range.
+ 
+ 	io7=		[HW] IO7 for Marvel based alpha systems
+ 			See comment before marvel_specify_io7 in
+diff -puN drivers/pci/intel-iommu.c~intel-iommu-intel-iommu-cmdline-option-forcedac drivers/pci/intel-iommu.c
+--- a/drivers/pci/intel-iommu.c~intel-iommu-intel-iommu-cmdline-option-forcedac
 +++ a/drivers/pci/intel-iommu.c
-@@ -85,9 +85,31 @@ static struct kmem_cache *iommu_domain_c
- static struct kmem_cache *iommu_devinfo_cache;
- static struct kmem_cache *iommu_iova_cache;
+@@ -54,6 +54,7 @@ static void domain_remove_dev_info(struc
  
-+static inline void *iommu_kmem_cache_alloc(struct kmem_cache *cachep)
-+{
-+	unsigned int flags;
-+	void *vaddr;
-+
-+	/* trying to avoid low memory issues */
-+	flags = current->flags & PF_MEMALLOC;
-+	current->flags |= PF_MEMALLOC;
-+	vaddr = kmem_cache_alloc(cachep, GFP_ATOMIC);
-+	current->flags &= (~PF_MEMALLOC | flags);
-+	return vaddr;
-+}
-+
-+
- static inline void *alloc_pgtable_page(void)
- {
--	return (void *)get_zeroed_page(GFP_ATOMIC);
-+	unsigned int flags;
-+	void *vaddr;
-+
-+	/* trying to avoid low memory issues */
-+	flags = current->flags & PF_MEMALLOC;
-+	current->flags |= PF_MEMALLOC;
-+	vaddr = (void *)get_zeroed_page(GFP_ATOMIC);
-+	current->flags &= (~PF_MEMALLOC | flags);
-+	return vaddr;
- }
+ static int dmar_disabled;
+ static int __initdata dmar_map_gfx = 1;
++static int dmar_forcedac;
  
- static inline void free_pgtable_page(void *vaddr)
-@@ -97,7 +119,7 @@ static inline void free_pgtable_page(voi
+ #define DUMMY_DEVICE_DOMAIN_INFO ((struct device_domain_info *)(-1))
+ static DEFINE_SPINLOCK(device_domain_lock);
+@@ -71,6 +72,10 @@ static int __init intel_iommu_setup(char
+ 			dmar_map_gfx = 0;
+ 			printk(KERN_INFO
+ 				"Intel-IOMMU: disable GFX device mapping\n");
++		} else if (!strncmp(str, "forcedac", 8)) {
++			printk (KERN_INFO
++				"Intel-IOMMU: Forcing DAC for PCI devices\n");
++			dmar_forcedac = 1;
+ 		}
  
- static inline void *alloc_domain_mem(void)
- {
--	return kmem_cache_alloc(iommu_domain_cache, GFP_ATOMIC);
-+	return iommu_kmem_cache_alloc(iommu_domain_cache);
- }
+ 		str += strcspn(str, ",");
+@@ -1558,7 +1563,7 @@ static dma_addr_t __intel_map_single(str
  
- static inline void free_domain_mem(void *vaddr)
-@@ -107,7 +129,7 @@ static inline void free_domain_mem(void 
+ 	start_addr = IOVA_START_ADDR;
  
- static inline void * alloc_devinfo_mem(void)
- {
--	return kmem_cache_alloc(iommu_devinfo_cache, GFP_ATOMIC);
-+	return iommu_kmem_cache_alloc(iommu_devinfo_cache);
- }
- 
- static inline void free_devinfo_mem(void *vaddr)
-@@ -117,7 +139,7 @@ static inline void free_devinfo_mem(void
- 
- struct iova *alloc_iova_mem(void)
- {
--	return kmem_cache_alloc(iommu_iova_cache, GFP_ATOMIC);
-+	return iommu_kmem_cache_alloc(iommu_iova_cache);
- }
- 
- void free_iova_mem(struct iova *iova)
+-	if (pdev->dma_mask <= DMA_32BIT_MASK) {
++	if ((pdev->dma_mask <= DMA_32BIT_MASK) || (dmar_forcedac)) {
+ 		iova = iommu_alloc_iova(domain, addr, size, start_addr,
+ 			pdev->dma_mask);
+ 	} else  {
 _
 
 Patches currently in -mm which might be from anil.s.keshavamurthy@intel.com are
