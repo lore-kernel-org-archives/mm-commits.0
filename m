@@ -1,64 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: - dcache-dont-expose-uninitialized-memory-in.patch removed from -mm tree
-Date: Mon, 22 Oct 2007 23:46:32 -0700
-Message-ID: <200710230646.l9N6kWt4004218@imap1.linux-foundation.org>
+Subject: - update-boot-spec-to-207.patch removed from -mm tree
+Date: Mon, 22 Oct 2007 23:46:18 -0700
+Message-ID: <200710230646.l9N6kIbT004200@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56713 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43289 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751652AbXJWGqp (ORCPT
+	by vger.kernel.org with ESMTP id S1751491AbXJWGq6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Oct 2007 02:46:45 -0400
+	Tue, 23 Oct 2007 02:46:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bfields@citi.umich.edu, hch@lst.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, ebiederm@xmission.com, hpa@zytor.com, jeremy@xensource.com, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dcache: don't expose uninitialized memory in /proc/<pid>/fd/<fd>
+     update boot spec to 2.07
 has been removed from the -mm tree.  Its filename was
-     dcache-dont-expose-uninitialized-memory-in.patch
+     update-boot-spec-to-207.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dcache: don't expose uninitialized memory in /proc/<pid>/fd/<fd>
-From: J. Bruce Fields <bfields@citi.umich.edu>
+Subject: update boot spec to 2.07
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Well, it's not especially important that target->d_iname get the contents
-of dentry->d_iname, but it's important that it get initialized with
-*something*, otherwise we're just exposing some random piece of memory to
-anyone who reads the link at /proc/<pid>/fd/<fd> for the deleted file, when
-it's still held open by someone.
+Updates for version 2.07 of the boot protocol.  This includes:
 
-I've run a test program that copies a short (<36 character) name ontop of a
-long (>=36 character) name and see that the first time I run it, without
-this patch, I get unpredicatable results out of /proc/<pid>/fd/<fd>.
+load_flags.KEEP_SEGMENTS- flag to request/inhibit segment reloads
+hardware_subarch	- what subarchitecture we're booting under
+hardware_subarch_data	- per-architecture data
 
-Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+The intention of these changes is to make booting a paravirtualized
+kernel work via the normal Linux boot protocol.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Acked-by: H. Peter Anvin <hpa@zytor.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/i386/boot.txt      |   34 ++++++++++++++++++++++++++++-
+ arch/x86/kernel/asm-offsets_32.c |    7 +++++
+ include/asm-x86/bootparam.h      |    9 +++++--
+ 3 files changed, 47 insertions(+), 3 deletions(-)
 
-diff -puN fs/dcache.c~dcache-dont-expose-uninitialized-memory-in fs/dcache.c
---- a/fs/dcache.c~dcache-dont-expose-uninitialized-memory-in
-+++ a/fs/dcache.c
-@@ -1479,6 +1479,8 @@ static void switch_names(struct dentry *
- 			 * dentry:internal, target:external.  Steal target's
- 			 * storage and make target internal.
- 			 */
-+			memcpy(target->d_iname, dentry->d_name.name,
-+					dentry->d_name.len + 1);
- 			dentry->d_name.name = target->d_name.name;
- 			target->d_name.name = target->d_iname;
- 		}
+diff -puN Documentation/i386/boot.txt~update-boot-spec-to-207 Documentation/i386/boot.txt
+--- a/Documentation/i386/boot.txt~update-boot-spec-to-207
++++ a/Documentation/i386/boot.txt
+@@ -168,6 +168,8 @@ Offset	Proto	Name		Meaning
+ 0234/1	2.05+	relocatable_kernel Whether kernel is relocatable or not
+ 0235/3	N/A	pad2		Unused
+ 0238/4	2.06+	cmdline_size	Maximum size of the kernel command line
++023C/4	2.07+	hardware_subarch Hardware subarchitecture
++0240/8	2.07+	hardware_subarch_data Subarchitecture-specific data
+ 
+ (1) For backwards compatibility, if the setup_sects field contains 0, the
+     real value is 4.
+@@ -204,7 +206,7 @@ boot loaders can ignore those fields.
+ 
+ The byte order of all fields is littleendian (this is x86, after all.)
+ 
+-Field name:	setup_secs
++Field name:	setup_sects
+ Type:		read
+ Offset/size:	0x1f1/1
+ Protocol:	ALL
+@@ -356,6 +358,13 @@ Protocol:	2.00+
+ 	- If 0, the protected-mode code is loaded at 0x10000.
+ 	- If 1, the protected-mode code is loaded at 0x100000.
+ 
++  Bit 6 (write): KEEP_SEGMENTS
++	Protocol: 2.07+
++	- if 0, reload the segment registers in the 32bit entry point.
++	- if 1, do not reload the segment registers in the 32bit entry point.
++		Assume that %cs %ds %ss %es are all set to flat segments with
++		a base of 0 (or the equivalent for their environment).
++
+   Bit 7 (write): CAN_USE_HEAP
+ 	Set this bit to 1 to indicate that the value entered in the
+ 	heap_end_ptr is valid.  If this field is clear, some setup code
+@@ -480,6 +489,29 @@ Protocol:	2.06+
+   cmdline_size characters. With protocol version 2.05 and earlier, the
+   maximum size was 255.
+ 
++Field name:	hardware_subarch
++Type:		write
++Offset/size:	0x23c/4
++Protocol:	2.07+
++
++  In a paravirtualized environment the hardware low level architectural
++  pieces such as interrupt handling, page table handling, and
++  accessing process control registers needs to be done differently.
++
++  This field allows the bootloader to inform the kernel we are in one
++  one of those environments.
++
++  0x00000000	The default x86/PC environment
++  0x00000001	lguest
++  0x00000002	Xen
++
++Field name:	hardware_subarch_data
++Type:		write
++Offset/size:	0x240/8
++Protocol:	2.07+
++
++  A pointer to data that is specific to hardware subarch
++
+ 
+ **** THE KERNEL COMMAND LINE
+ 
+diff -puN arch/x86/kernel/asm-offsets_32.c~update-boot-spec-to-207 arch/x86/kernel/asm-offsets_32.c
+--- a/arch/x86/kernel/asm-offsets_32.c~update-boot-spec-to-207
++++ a/arch/x86/kernel/asm-offsets_32.c
+@@ -15,6 +15,7 @@
+ #include <asm/fixmap.h>
+ #include <asm/processor.h>
+ #include <asm/thread_info.h>
++#include <asm/bootparam.h>
+ #include <asm/elf.h>
+ 
+ #include <xen/interface/xen.h>
+@@ -146,4 +147,10 @@ void foo(void)
+ 	OFFSET(LGUEST_PAGES_regs_errcode, lguest_pages, regs.errcode);
+ 	OFFSET(LGUEST_PAGES_regs, lguest_pages, regs);
+ #endif
++
++	BLANK();
++	OFFSET(BP_scratch, boot_params, scratch);
++	OFFSET(BP_loadflags, boot_params, hdr.loadflags);
++	OFFSET(BP_hardware_subarch, boot_params, hdr.hardware_subarch);
++	OFFSET(BP_version, boot_params, hdr.version);
+ }
+diff -puN include/asm-x86/bootparam.h~update-boot-spec-to-207 include/asm-x86/bootparam.h
+--- a/include/asm-x86/bootparam.h~update-boot-spec-to-207
++++ a/include/asm-x86/bootparam.h
+@@ -28,8 +28,9 @@ struct setup_header {
+ 	u16	kernel_version;
+ 	u8	type_of_loader;
+ 	u8	loadflags;
+-#define LOADED_HIGH	0x01
+-#define CAN_USE_HEAP	0x80
++#define LOADED_HIGH	(1<<0)
++#define KEEP_SEGMENTS	(1<<6)
++#define CAN_USE_HEAP	(1<<7)
+ 	u16	setup_move_size;
+ 	u32	code32_start;
+ 	u32	ramdisk_image;
+@@ -41,6 +42,10 @@ struct setup_header {
+ 	u32	initrd_addr_max;
+ 	u32	kernel_alignment;
+ 	u8	relocatable_kernel;
++	u8	_pad2[3];
++	u32	cmdline_size;
++	u32	hardware_subarch;
++	u64	hardware_subarch_data;
+ } __attribute__((packed));
+ 
+ struct sys_desc_table {
 _
 
-Patches currently in -mm which might be from bfields@citi.umich.edu are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
 origin.patch
+git-kvm.patch
 reiser4.patch
