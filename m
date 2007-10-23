@@ -1,115 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-switch-to-generic-warn_on-bug_on.patch added to -mm tree
-Date: Mon, 22 Oct 2007 15:59:48 -0700
-Message-ID: <200710222259.l9MMxmIh020274@imap1.linux-foundation.org>
+Subject: - memory-hotplug-make-description-of-memory-hotplug-notifier-in-document.patch removed from -mm tree
+Date: Mon, 22 Oct 2007 23:46:24 -0700
+Message-ID: <200710230646.l9N6kOjK004206@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49175 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56365 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751647AbXJVW74 (ORCPT
+	by vger.kernel.org with ESMTP id S1751148AbXJWGq2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Oct 2007 18:59:56 -0400
+	Tue, 23 Oct 2007 02:46:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: olof@lixom.net, benh@kernel.crashing.org, linux-arch@vger.kernel.org, paulus@samba.org, scottwood@freescale.com
+To: y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: switch to generic WARN_ON()/BUG_ON()
-has been added to the -mm tree.  Its filename is
-     powerpc-switch-to-generic-warn_on-bug_on.patch
+     memory hotplug: document the memory hotplug notifier
+has been removed from the -mm tree.  Its filename was
+     memory-hotplug-make-description-of-memory-hotplug-notifier-in-document.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: powerpc: switch to generic WARN_ON()/BUG_ON()
-From: Olof Johansson <olof@lixom.net>
+Subject: memory hotplug: document the memory hotplug notifier
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-Not using the ppc-specific WARN_ON/BUG_ON constructs actually saves about
-4K text on a ppc64_defconfig.  The main reason seems to be that prepping
-the arguments to the conditional trap instructions is more work than just
-doing a compare and branch.
+Add description about event notification callback routine to the document
 
-Signed-off-by: Olof Johansson <olof@lixom.net>
-Cc: <linux-arch@vger.kernel.org>
-Cc: Scott Wood <scottwood@freescale.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>, 
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-powerpc/bug.h |   37 ------------------------------------
- 1 file changed, 37 deletions(-)
+ Documentation/memory-hotplug.txt |   58 +++++++++++++++++++++++++++--
+ 1 file changed, 55 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-powerpc/bug.h~powerpc-switch-to-generic-warn_on-bug_on include/asm-powerpc/bug.h
---- a/include/asm-powerpc/bug.h~powerpc-switch-to-generic-warn_on-bug_on
-+++ a/include/asm-powerpc/bug.h
-@@ -54,12 +54,6 @@
- 	".previous\n"
- #endif
+diff -puN Documentation/memory-hotplug.txt~memory-hotplug-make-description-of-memory-hotplug-notifier-in-document Documentation/memory-hotplug.txt
+--- a/Documentation/memory-hotplug.txt~memory-hotplug-make-description-of-memory-hotplug-notifier-in-document
++++ a/Documentation/memory-hotplug.txt
+@@ -2,7 +2,8 @@
+ Memory Hotplug
+ ==============
  
--/*
-- * BUG_ON() and WARN_ON() do their best to cooperate with compile-time
-- * optimisations. However depending on the complexity of the condition
-- * some compiler versions may not produce optimal results.
-- */
--
- #define BUG() do {						\
- 	__asm__ __volatile__(					\
- 		"1:	twi 31,0,0\n"				\
-@@ -69,20 +63,6 @@
- 	for(;;) ;						\
- } while (0)
+-Last Updated: Jul 28 2007
++Created:					Jul 28 2007
++Add description of notifier of memory hotplug	Oct 11 2007
  
--#define BUG_ON(x) do {						\
--	if (__builtin_constant_p(x)) {				\
--		if (x)						\
--			BUG();					\
--	} else {						\
--		__asm__ __volatile__(				\
--		"1:	"PPC_TLNEI"	%4,0\n"			\
--		_EMIT_BUG_ENTRY					\
--		: : "i" (__FILE__), "i" (__LINE__), "i" (0),	\
--		  "i" (sizeof(struct bug_entry)),		\
--		  "r" ((__force long)(x)));			\
--	}							\
--} while (0)
--
- #define __WARN() do {						\
- 	__asm__ __volatile__(					\
- 		"1:	twi 31,0,0\n"				\
-@@ -92,23 +72,6 @@
- 		  "i" (sizeof(struct bug_entry)));		\
- } while (0)
+ This document is about memory hotplug including how-to-use and current status.
+ Because Memory Hotplug is still under development, contents of this text will
+@@ -24,7 +25,8 @@ be changed often.
+   6.1 Memory offline and ZONE_MOVABLE
+   6.2. How to offline memory
+ 7. Physical memory remove
+-8. Future Work List
++8. Memory hotplug event notifier
++9. Future Work List
  
--#define WARN_ON(x) ({						\
--	int __ret_warn_on = !!(x);				\
--	if (__builtin_constant_p(__ret_warn_on)) {		\
--		if (__ret_warn_on)				\
--			__WARN();				\
--	} else {						\
--		__asm__ __volatile__(				\
--		"1:	"PPC_TLNEI"	%4,0\n"			\
--		_EMIT_BUG_ENTRY					\
--		: : "i" (__FILE__), "i" (__LINE__),		\
--		  "i" (BUGFLAG_WARNING),			\
--		  "i" (sizeof(struct bug_entry)),		\
--		  "r" (__ret_warn_on));				\
--	}							\
--	unlikely(__ret_warn_on);				\
--})
--
- #endif /* __ASSEMBLY __ */
- #endif /* CONFIG_BUG */
+ Note(1): x86_64's has special implementation for memory hotplug.
+          This text does not describe it.
+@@ -307,8 +309,58 @@ Need more implementation yet....
+  - Notification completion of remove works by OS to firmware.
+  - Guard from remove if not yet.
  
++--------------------------------
++8. Memory hotplug event notifier
++--------------------------------
++Memory hotplug has event notifer. There are 6 types of notification.
++
++MEMORY_GOING_ONLINE
++  Generated before new memory becomes available in order to be able to
++  prepare subsystems to handle memory. The page allocator is still unable
++  to allocate from the new memory.
++
++MEMORY_CANCEL_ONLINE
++  Generated if MEMORY_GOING_ONLINE fails.
++
++MEMORY_ONLINE
++  Generated when memory has succesfully brought online. The callback may
++  allocate pages from the new memory.
++
++MEMORY_GOING_OFFLINE
++  Generated to begin the process of offlining memory. Allocations are no
++  longer possible from the memory but some of the memory to be offlined
++  is still in use. The callback can be used to free memory known to a
++  subsystem from the indicated memory section.
++
++MEMORY_CANCEL_OFFLINE
++  Generated if MEMORY_GOING_OFFLINE fails. Memory is available again from
++  the section that we attempted to offline.
++
++MEMORY_OFFLINE
++  Generated after offlining memory is complete.
++
++A callback routine can be registered by
++  hotplug_memory_notifier(callback_func, priority)
++
++The second argument of callback function (action) is event types of above.
++The third argument is passed by pointer of struct memory_notify.
++
++struct memory_notify {
++       unsigned long start_pfn;
++       unsigned long nr_pages;
++       int status_cahnge_nid;
++}
++
++start_pfn is start_pfn of online/offline memory.
++nr_pages is # of pages of online/offline memory.
++status_change_nid is set node id when N_HIGH_MEMORY of nodemask is (will be)
++set/clear. It means a new(memoryless) node gets new memory by online and a
++node loses all memory. If this is -1, then nodemask status is not changed.
++If status_changed_nid >= 0, callback should create/discard structures for the
++node if necessary.
++
+ --------------
+-8. Future Work
++9. Future Work
+ --------------
+   - allowing memory hot-add to ZONE_MOVABLE. maybe we need some switch like
+     sysctl or new control file.
 _
 
-Patches currently in -mm which might be from olof@lixom.net are
+Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
 
 origin.patch
-bugh-remove-have_arch_bug--have_arch_warn.patch
-powerpc-switch-to-generic-warn_on-bug_on.patch
