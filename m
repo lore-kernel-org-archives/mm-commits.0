@@ -1,185 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - jfs-new-export-ops.patch removed from -mm tree
-Date: Mon, 22 Oct 2007 23:47:36 -0700
-Message-ID: <200710230647.l9N6laEB004296@imap1.linux-foundation.org>
+Subject: - security-convert-lsm-into-a-static-interface-fix-unionfs.patch removed from -mm tree
+Date: Mon, 22 Oct 2007 23:48:08 -0700
+Message-ID: <200710230648.l9N6m8ME004344@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42313 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56888 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752181AbXJWHCA (ORCPT
+	by vger.kernel.org with ESMTP id S1752230AbXJWHCI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Oct 2007 03:02:00 -0400
+	Tue, 23 Oct 2007 03:02:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, bfields@fieldses.org, neilb@suse.de, shaggy@austin.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, arjan@infradead.org, chrisw@sous-sol.org, jmorris@namei.org, jsipek@cs.sunysb.edu, sds@tycho.nsa.gov, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jfs: new export ops
+     security-convert-lsm-into-a-static-interface :fix unionfs
 has been removed from the -mm tree.  Its filename was
-     jfs-new-export-ops.patch
+     security-convert-lsm-into-a-static-interface-fix-unionfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: jfs: new export ops
-From: Christoph Hellwig <hch@lst.de>
+Subject: security-convert-lsm-into-a-static-interface :fix unionfs
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Trivial switch over to the new generic helpers.
+ERROR: "security_inode_permission" [fs/unionfs/unionfs.ko] undefined!
+ERROR: "security_file_ioctl" [fs/unionfs/unionfs.ko] undefined!
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Neil Brown <neilb@suse.de>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>
+Need these back.
+
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: James Morris <jmorris@namei.org>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: Josef 'Jeff' Sipek <jsipek@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jfs/jfs_inode.h |    7 ++++++-
- fs/jfs/namei.c     |   35 +++++++++++++++++++----------------
- fs/jfs/super.c     |    3 ++-
- 3 files changed, 27 insertions(+), 18 deletions(-)
+ security/security.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/jfs/jfs_inode.h~jfs-new-export-ops fs/jfs/jfs_inode.h
---- a/fs/jfs/jfs_inode.h~jfs-new-export-ops
-+++ a/fs/jfs/jfs_inode.h
-@@ -18,6 +18,8 @@
- #ifndef	_H_JFS_INODE
- #define _H_JFS_INODE
- 
-+struct fid;
-+
- extern struct inode *ialloc(struct inode *, umode_t);
- extern int jfs_fsync(struct file *, struct dentry *, int);
- extern int jfs_ioctl(struct inode *, struct file *,
-@@ -32,7 +34,10 @@ extern void jfs_truncate_nolock(struct i
- extern void jfs_free_zero_link(struct inode *);
- extern struct dentry *jfs_get_parent(struct dentry *dentry);
- extern void jfs_get_inode_flags(struct jfs_inode_info *);
--extern struct dentry *jfs_get_dentry(struct super_block *sb, void *vobjp);
-+extern struct dentry *jfs_fh_to_dentry(struct super_block *sb, struct fid *fid,
-+	int fh_len, int fh_type);
-+extern struct dentry *jfs_fh_to_parent(struct super_block *sb, struct fid *fid,
-+	int fh_len, int fh_type);
- extern void jfs_set_inode_flags(struct inode *);
- extern int jfs_get_block(struct inode *, sector_t, struct buffer_head *, int);
- 
-diff -puN fs/jfs/namei.c~jfs-new-export-ops fs/jfs/namei.c
---- a/fs/jfs/namei.c~jfs-new-export-ops
-+++ a/fs/jfs/namei.c
-@@ -20,6 +20,7 @@
- #include <linux/fs.h>
- #include <linux/ctype.h>
- #include <linux/quotaops.h>
-+#include <linux/exportfs.h>
- #include "jfs_incore.h"
- #include "jfs_superblock.h"
- #include "jfs_inode.h"
-@@ -1477,13 +1478,10 @@ static struct dentry *jfs_lookup(struct 
- 	return dentry;
+diff -puN security/security.c~security-convert-lsm-into-a-static-interface-fix-unionfs security/security.c
+--- a/security/security.c~security-convert-lsm-into-a-static-interface-fix-unionfs
++++ a/security/security.c
+@@ -409,6 +409,7 @@ int security_inode_permission(struct ino
+ 		return 0;
+ 	return security_ops->inode_permission(inode, mask, nd);
  }
++EXPORT_SYMBOL(security_inode_permission);
  
--struct dentry *jfs_get_dentry(struct super_block *sb, void *vobjp)
-+static struct inode *jfs_nfs_get_inode(struct super_block *sb,
-+		u64 ino, u32 generation)
+ int security_inode_setattr(struct dentry *dentry, struct iattr *attr)
  {
--	__u32 *objp = vobjp;
--	unsigned long ino = objp[0];
--	__u32 generation = objp[1];
- 	struct inode *inode;
--	struct dentry *result;
- 
- 	if (ino == 0)
- 		return ERR_PTR(-ESTALE);
-@@ -1493,20 +1491,25 @@ struct dentry *jfs_get_dentry(struct sup
- 
- 	if (is_bad_inode(inode) ||
- 	    (generation && inode->i_generation != generation)) {
--	    	result = ERR_PTR(-ESTALE);
--		goto out_iput;
-+		iput(inode);
-+		return ERR_PTR(-ESTALE);
- 	}
- 
--	result = d_alloc_anon(inode);
--	if (!result) {
--		result = ERR_PTR(-ENOMEM);
--		goto out_iput;
--	}
--	return result;
-+	return inode;
-+}
- 
-- out_iput:
--	iput(inode);
--	return result;
-+struct dentry *jfs_fh_to_dentry(struct super_block *sb, struct fid *fid,
-+		int fh_len, int fh_type)
-+{
-+	return generic_fh_to_dentry(sb, fid, fh_len, fh_type,
-+				    jfs_nfs_get_inode);
-+}
-+
-+struct dentry *jfs_fh_to_parent(struct super_block *sb, struct fid *fid,
-+		int fh_len, int fh_type)
-+{
-+	return generic_fh_to_parent(sb, fid, fh_len, fh_type,
-+				    jfs_nfs_get_inode);
+@@ -518,6 +519,7 @@ int security_file_ioctl(struct file *fil
+ {
+ 	return security_ops->file_ioctl(file, cmd, arg);
  }
++EXPORT_SYMBOL(security_file_ioctl);
  
- struct dentry *jfs_get_parent(struct dentry *dentry)
-diff -puN fs/jfs/super.c~jfs-new-export-ops fs/jfs/super.c
---- a/fs/jfs/super.c~jfs-new-export-ops
-+++ a/fs/jfs/super.c
-@@ -738,7 +738,8 @@ static const struct super_operations jfs
- };
- 
- static struct export_operations jfs_export_operations = {
--	.get_dentry	= jfs_get_dentry,
-+	.fh_to_dentry	= jfs_fh_to_dentry,
-+	.fh_to_parent	= jfs_fh_to_parent,
- 	.get_parent	= jfs_get_parent,
- };
- 
+ int security_file_mmap(struct file *file, unsigned long reqprot,
+ 			unsigned long prot, unsigned long flags,
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-arm-hack.patch
+nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd-fixup.patch
+fix-build-breakage-if-sysfs-fix.patch
+git-scsi-misc.patch
 git-unionfs.patch
-git-xfs.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-add-no-submounts-flag.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+documentation-watchdog-src-watchdog-simplec-improve-this-code-checkpatch-fixes.patch
+git-wireless.patch
+git-wireless-fixup.patch
+git-x86.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+sync_sb_inodes-propagate-errors.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
-revoke-special-mmap-handling.patch
-revoke-core-code.patch
-revoke-support-for-ext2-and-ext3.patch
-revoke-add-documentation.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
 revoke-wire-up-i386-system-calls.patch
-dont-touch-fs_struct-in-drivers.patch
-dont-touch-fs_struct-in-usermodehelper.patch
-remove-path_release_on_umount.patch
-move-struct-path-into-its-own-header.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
+revoke-vs-git-block.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-introduce-path_put.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-introduce-path_get.patch
-use-struct-path-in-fs_struct.patch
-make-set_fs_rootpwd-take-a-struct-path.patch
-make-__d_path-to-take-a-struct-path-argument.patch
-use-struct-path-argument-in-proc_get_link.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
-introduce-path_put-unionfs.patch
-introduce-path_get-unionfs.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
