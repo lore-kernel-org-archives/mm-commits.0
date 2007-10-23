@@ -1,152 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: - gfs2-new-export-ops.patch removed from -mm tree
-Date: Mon, 22 Oct 2007 23:47:51 -0700
-Message-ID: <200710230647.l9N6lpEA004317@imap1.linux-foundation.org>
+Subject: - reiserfs-new-export-ops.patch removed from -mm tree
+Date: Mon, 22 Oct 2007 23:47:49 -0700
+Message-ID: <200710230647.l9N6lngv004314@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50344 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47060 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752230AbXJWHCL (ORCPT
+	by vger.kernel.org with ESMTP id S1752230AbXJWHCQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Oct 2007 03:02:11 -0400
+	Tue, 23 Oct 2007 03:02:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, bfields@fieldses.org, neilb@suse.de, swhiteho@redhat.com, mm-commits@vger.kernel.org
+To: hch@lst.de, bfields@fieldses.org, jeffm@suse.com, mason@suse.com, neilb@suse.de, vs@namesys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gfs2: new export ops
+     reiserfs: new export ops
 has been removed from the -mm tree.  Its filename was
-     gfs2-new-export-ops.patch
+     reiserfs-new-export-ops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: gfs2: new export ops
+Subject: reiserfs: new export ops
 From: Christoph Hellwig <hch@lst.de>
 
-Convert gfs2 to the new ops.  Uses a similar structure to the generic helpers,
-but gfs2 has it's own file handle formats.
+Another nice little cleanup by using the new methods.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Neil Brown <neilb@suse.de>
 Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Chris Mason <mason@suse.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
+Cc: "Vladimir V. Saveliev" <vs@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/ops_export.c |   81 +++++++++++++++++++++--------------------
- 1 file changed, 43 insertions(+), 38 deletions(-)
+ fs/reiserfs/inode.c         |   62 ++++++++++++++--------------------
+ fs/reiserfs/super.c         |    4 +-
+ include/linux/reiserfs_fs.h |   12 +++---
+ 3 files changed, 35 insertions(+), 43 deletions(-)
 
-diff -puN fs/gfs2/ops_export.c~gfs2-new-export-ops fs/gfs2/ops_export.c
---- a/fs/gfs2/ops_export.c~gfs2-new-export-ops
-+++ a/fs/gfs2/ops_export.c
-@@ -31,40 +31,6 @@
- #define GFS2_LARGE_FH_SIZE 8
- #define GFS2_OLD_FH_SIZE 10
- 
--static struct dentry *gfs2_decode_fh(struct super_block *sb,
--				     __u32 *p,
--				     int fh_len,
--				     int fh_type,
--				     int (*acceptable)(void *context,
--						       struct dentry *dentry),
--				     void *context)
--{
--	__be32 *fh = (__force __be32 *)p;
--	struct gfs2_inum_host inum, parent;
--
--	memset(&parent, 0, sizeof(struct gfs2_inum));
--
--	switch (fh_len) {
--	case GFS2_LARGE_FH_SIZE:
--	case GFS2_OLD_FH_SIZE:
--		parent.no_formal_ino = ((u64)be32_to_cpu(fh[4])) << 32;
--		parent.no_formal_ino |= be32_to_cpu(fh[5]);
--		parent.no_addr = ((u64)be32_to_cpu(fh[6])) << 32;
--		parent.no_addr |= be32_to_cpu(fh[7]);
--	case GFS2_SMALL_FH_SIZE:
--		inum.no_formal_ino = ((u64)be32_to_cpu(fh[0])) << 32;
--		inum.no_formal_ino |= be32_to_cpu(fh[1]);
--		inum.no_addr = ((u64)be32_to_cpu(fh[2])) << 32;
--		inum.no_addr |= be32_to_cpu(fh[3]);
--		break;
--	default:
--		return NULL;
--	}
--
--	return gfs2_export_ops.find_exported_dentry(sb, &inum, &parent,
--						    acceptable, context);
--}
--
- static int gfs2_encode_fh(struct dentry *dentry, __u32 *p, int *len,
- 			  int connectable)
- {
-@@ -189,10 +155,10 @@ static struct dentry *gfs2_get_parent(st
- 	return dentry;
+diff -puN fs/reiserfs/inode.c~reiserfs-new-export-ops fs/reiserfs/inode.c
+--- a/fs/reiserfs/inode.c~reiserfs-new-export-ops
++++ a/fs/reiserfs/inode.c
+@@ -1515,19 +1515,20 @@ struct inode *reiserfs_iget(struct super
+ 	return inode;
  }
  
--static struct dentry *gfs2_get_dentry(struct super_block *sb, void *inum_obj)
-+static struct dentry *gfs2_get_dentry(struct super_block *sb,
-+		struct gfs2_inum_host *inum)
+-struct dentry *reiserfs_get_dentry(struct super_block *sb, void *vobjp)
++static struct dentry *reiserfs_get_dentry(struct super_block *sb,
++	u32 objectid, u32 dir_id, u32 generation)
++
  {
- 	struct gfs2_sbd *sdp = sb->s_fs_info;
--	struct gfs2_inum_host *inum = inum_obj;
- 	struct gfs2_holder i_gh, ri_gh, rgd_gh;
- 	struct gfs2_rgrpd *rgd;
+-	__u32 *data = vobjp;
+ 	struct cpu_key key;
+ 	struct dentry *result;
  	struct inode *inode;
-@@ -289,11 +255,50 @@ fail:
- 	return ERR_PTR(error);
+ 
+-	key.on_disk_key.k_objectid = data[0];
+-	key.on_disk_key.k_dir_id = data[1];
++	key.on_disk_key.k_objectid = objectid;
++	key.on_disk_key.k_dir_id = dir_id;
+ 	reiserfs_write_lock(sb);
+ 	inode = reiserfs_iget(sb, &key);
+-	if (inode && !IS_ERR(inode) && data[2] != 0 &&
+-	    data[2] != inode->i_generation) {
++	if (inode && !IS_ERR(inode) && generation != 0 &&
++	    generation != inode->i_generation) {
+ 		iput(inode);
+ 		inode = NULL;
+ 	}
+@@ -1544,14 +1545,9 @@ struct dentry *reiserfs_get_dentry(struc
+ 	return result;
  }
  
-+static struct dentry *gfs2_fh_to_dentry(struct super_block *sb, struct fid *fid,
+-struct dentry *reiserfs_decode_fh(struct super_block *sb, __u32 * data,
+-				  int len, int fhtype,
+-				  int (*acceptable) (void *contect,
+-						     struct dentry * de),
+-				  void *context)
++struct dentry *reiserfs_fh_to_dentry(struct super_block *sb, struct fid *fid,
++		int fh_len, int fh_type)
+ {
+-	__u32 obj[3], parent[3];
+-
+ 	/* fhtype happens to reflect the number of u32s encoded.
+ 	 * due to a bug in earlier code, fhtype might indicate there
+ 	 * are more u32s then actually fitted.
+@@ -1564,32 +1560,28 @@ struct dentry *reiserfs_decode_fh(struct
+ 	 *   6 - as above plus generation of directory
+ 	 * 6 does not fit in NFSv2 handles
+ 	 */
+-	if (fhtype > len) {
+-		if (fhtype != 6 || len != 5)
++	if (fh_type > fh_len) {
++		if (fh_type != 6 || fh_len != 5)
+ 			reiserfs_warning(sb,
+-					 "nfsd/reiserfs, fhtype=%d, len=%d - odd",
+-					 fhtype, len);
+-		fhtype = 5;
++				"nfsd/reiserfs, fhtype=%d, len=%d - odd",
++				fh_type, fh_len);
++		fh_type = 5;
+ 	}
+ 
+-	obj[0] = data[0];
+-	obj[1] = data[1];
+-	if (fhtype == 3 || fhtype >= 5)
+-		obj[2] = data[2];
+-	else
+-		obj[2] = 0;	/* generation number */
++	return reiserfs_get_dentry(sb, fid->raw[0], fid->raw[1],
++		(fh_type == 3 || fh_type >= 5) ? fid->raw[2] : 0);
++}
+ 
+-	if (fhtype >= 4) {
+-		parent[0] = data[fhtype >= 5 ? 3 : 2];
+-		parent[1] = data[fhtype >= 5 ? 4 : 3];
+-		if (fhtype == 6)
+-			parent[2] = data[5];
+-		else
+-			parent[2] = 0;
+-	}
+-	return sb->s_export_op->find_exported_dentry(sb, obj,
+-						     fhtype < 4 ? NULL : parent,
+-						     acceptable, context);
++struct dentry *reiserfs_fh_to_parent(struct super_block *sb, struct fid *fid,
 +		int fh_len, int fh_type)
 +{
-+	struct gfs2_inum_host this;
-+	__be32 *fh = (__force __be32 *)fid->raw;
-+
-+	switch (fh_type) {
-+	case GFS2_SMALL_FH_SIZE:
-+	case GFS2_LARGE_FH_SIZE:
-+	case GFS2_OLD_FH_SIZE:
-+		this.no_formal_ino = ((u64)be32_to_cpu(fh[0])) << 32;
-+		this.no_formal_ino |= be32_to_cpu(fh[1]);
-+		this.no_addr = ((u64)be32_to_cpu(fh[2])) << 32;
-+		this.no_addr |= be32_to_cpu(fh[3]);
-+		return gfs2_get_dentry(sb, &this);
-+	default:
++	if (fh_type < 4)
 +		return NULL;
-+	}
-+}
 +
-+static struct dentry *gfs2_fh_to_parent(struct super_block *sb, struct fid *fid,
-+		int fh_len, int fh_type)
-+{
-+	struct gfs2_inum_host parent;
-+	__be32 *fh = (__force __be32 *)fid->raw;
-+
-+	switch (fh_type) {
-+	case GFS2_LARGE_FH_SIZE:
-+	case GFS2_OLD_FH_SIZE:
-+		parent.no_formal_ino = ((u64)be32_to_cpu(fh[4])) << 32;
-+		parent.no_formal_ino |= be32_to_cpu(fh[5]);
-+		parent.no_addr = ((u64)be32_to_cpu(fh[6])) << 32;
-+		parent.no_addr |= be32_to_cpu(fh[7]);
-+		return gfs2_get_dentry(sb, &parent);
-+	default:
-+		return NULL;
-+	}
-+}
-+
- struct export_operations gfs2_export_ops = {
--	.decode_fh = gfs2_decode_fh,
- 	.encode_fh = gfs2_encode_fh,
-+	.fh_to_dentry = gfs2_fh_to_dentry,
-+	.fh_to_parent = gfs2_fh_to_parent,
- 	.get_name = gfs2_get_name,
- 	.get_parent = gfs2_get_parent,
--	.get_dentry = gfs2_get_dentry,
++	return reiserfs_get_dentry(sb,
++		(fh_type >= 5) ? fid->raw[3] : fid->raw[2],
++		(fh_type >= 5) ? fid->raw[4] : fid->raw[3],
++		(fh_type == 6) ? fid->raw[5] : 0);
+ }
+ 
+ int reiserfs_encode_fh(struct dentry *dentry, __u32 * data, int *lenp,
+diff -puN fs/reiserfs/super.c~reiserfs-new-export-ops fs/reiserfs/super.c
+--- a/fs/reiserfs/super.c~reiserfs-new-export-ops
++++ a/fs/reiserfs/super.c
+@@ -663,9 +663,9 @@ static struct quotactl_ops reiserfs_qctl
+ 
+ static struct export_operations reiserfs_export_ops = {
+ 	.encode_fh = reiserfs_encode_fh,
+-	.decode_fh = reiserfs_decode_fh,
++	.fh_to_dentry = reiserfs_fh_to_dentry,
++	.fh_to_parent = reiserfs_fh_to_parent,
+ 	.get_parent = reiserfs_get_parent,
+-	.get_dentry = reiserfs_get_dentry,
  };
+ 
+ /* this struct is used in reiserfs_getopt () for containing the value for those
+diff -puN include/linux/reiserfs_fs.h~reiserfs-new-export-ops include/linux/reiserfs_fs.h
+--- a/include/linux/reiserfs_fs.h~reiserfs-new-export-ops
++++ a/include/linux/reiserfs_fs.h
+@@ -28,6 +28,8 @@
+ #include <linux/reiserfs_fs_sb.h>
+ #endif
+ 
++struct fid;
++
+ /*
+  *  include/linux/reiser_fs.h
+  *
+@@ -1877,12 +1879,10 @@ void reiserfs_delete_inode(struct inode 
+ int reiserfs_write_inode(struct inode *inode, int);
+ int reiserfs_get_block(struct inode *inode, sector_t block,
+ 		       struct buffer_head *bh_result, int create);
+-struct dentry *reiserfs_get_dentry(struct super_block *, void *);
+-struct dentry *reiserfs_decode_fh(struct super_block *sb, __u32 * data,
+-				  int len, int fhtype,
+-				  int (*acceptable) (void *contect,
+-						     struct dentry * de),
+-				  void *context);
++struct dentry *reiserfs_fh_to_dentry(struct super_block *sb, struct fid *fid,
++				     int fh_len, int fh_type);
++struct dentry *reiserfs_fh_to_parent(struct super_block *sb, struct fid *fid,
++				     int fh_len, int fh_type);
+ int reiserfs_encode_fh(struct dentry *dentry, __u32 * data, int *lenp,
+ 		       int connectable);
  
 _
 
