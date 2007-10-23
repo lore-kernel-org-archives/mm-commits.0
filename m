@@ -1,88 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - fat-new-export-ops.patch removed from -mm tree
-Date: Mon, 22 Oct 2007 23:47:42 -0700
-Message-ID: <200710230647.l9N6lgxV004305@imap1.linux-foundation.org>
+Subject: - ext3-new-export-ops.patch removed from -mm tree
+Date: Mon, 22 Oct 2007 23:47:28 -0700
+Message-ID: <200710230647.l9N6lSeB004284@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47749 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60814 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751823AbXJWG7x (ORCPT
+	by vger.kernel.org with ESMTP id S1752398AbXJWHAu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Oct 2007 02:59:53 -0400
+	Tue, 23 Oct 2007 03:00:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, bfields@fieldses.org, hirofumi@mail.parknet.co.jp, neilb@suse.de, mm-commits@vger.kernel.org
+To: hch@lst.de, bfields@fieldses.org, linux-ext4@vger.kernel.org, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fat: new export ops
+     ext3: new export ops
 has been removed from the -mm tree.  Its filename was
-     fat-new-export-ops.patch
+     ext3-new-export-ops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fat: new export ops
+Subject: ext3: new export ops
 From: Christoph Hellwig <hch@lst.de>
 
-Very little changes here, fat had a mostly no op decode_fh before and does not
-store any parent information.
+Trivial switch over to the new generic helpers.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Neil Brown <neilb@suse.de>
 Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/inode.c |   24 +++++++-----------------
- 1 file changed, 7 insertions(+), 17 deletions(-)
+ fs/ext3/super.c |   35 ++++++++++++++++++++---------------
+ 1 file changed, 20 insertions(+), 15 deletions(-)
 
-diff -puN fs/fat/inode.c~fat-new-export-ops fs/fat/inode.c
---- a/fs/fat/inode.c~fat-new-export-ops
-+++ a/fs/fat/inode.c
-@@ -653,24 +653,15 @@ static const struct super_operations fat
-  * of i_logstart is used to store the directory entry offset.
-  */
- 
--static struct dentry *
--fat_decode_fh(struct super_block *sb, __u32 *fh, int len, int fhtype,
--	      int (*acceptable)(void *context, struct dentry *de),
--	      void *context)
--{
--	if (fhtype != 3)
--		return ERR_PTR(-ESTALE);
--	if (len < 5)
--		return ERR_PTR(-ESTALE);
--
--	return sb->s_export_op->find_exported_dentry(sb, fh, NULL, acceptable, context);
--}
--
--static struct dentry *fat_get_dentry(struct super_block *sb, void *inump)
-+static struct dentry *fat_fh_to_dentry(struct super_block *sb,
-+		struct fid *fid, int fh_len, int fh_type)
- {
- 	struct inode *inode = NULL;
- 	struct dentry *result;
--	__u32 *fh = inump;
-+	u32 *fh = fid->raw;
-+
-+	if (fh_len < 5 || fh_type != 3)
-+		return NULL;
- 
- 	inode = iget(sb, fh[0]);
- 	if (!inode || is_bad_inode(inode) || inode->i_generation != fh[1]) {
-@@ -784,9 +775,8 @@ out:
+diff -puN fs/ext3/super.c~ext3-new-export-ops fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-new-export-ops
++++ a/fs/ext3/super.c
+@@ -631,13 +631,10 @@ static int ext3_show_options(struct seq_
  }
  
- static struct export_operations fat_export_ops = {
--	.decode_fh	= fat_decode_fh,
- 	.encode_fh	= fat_encode_fh,
--	.get_dentry	= fat_get_dentry,
-+	.fh_to_dentry	= fat_fh_to_dentry,
- 	.get_parent	= fat_get_parent,
+ 
+-static struct dentry *ext3_get_dentry(struct super_block *sb, void *vobjp)
++static struct inode *ext3_nfs_get_inode(struct super_block *sb,
++		u64 ino, u32 generation)
+ {
+-	__u32 *objp = vobjp;
+-	unsigned long ino = objp[0];
+-	__u32 generation = objp[1];
+ 	struct inode *inode;
+-	struct dentry *result;
+ 
+ 	if (ino < EXT3_FIRST_INO(sb) && ino != EXT3_ROOT_INO)
+ 		return ERR_PTR(-ESTALE);
+@@ -660,15 +657,22 @@ static struct dentry *ext3_get_dentry(st
+ 		iput(inode);
+ 		return ERR_PTR(-ESTALE);
+ 	}
+-	/* now to find a dentry.
+-	 * If possible, get a well-connected one
+-	 */
+-	result = d_alloc_anon(inode);
+-	if (!result) {
+-		iput(inode);
+-		return ERR_PTR(-ENOMEM);
+-	}
+-	return result;
++
++	return inode;
++}
++
++static struct dentry *ext3_fh_to_dentry(struct super_block *sb, struct fid *fid,
++		int fh_len, int fh_type)
++{
++	return generic_fh_to_dentry(sb, fid, fh_len, fh_type,
++				    ext3_nfs_get_inode);
++}
++
++static struct dentry *ext3_fh_to_parent(struct super_block *sb, struct fid *fid,
++		int fh_len, int fh_type)
++{
++	return generic_fh_to_parent(sb, fid, fh_len, fh_type,
++				    ext3_nfs_get_inode);
+ }
+ 
+ #ifdef CONFIG_QUOTA
+@@ -738,8 +742,9 @@ static const struct super_operations ext
  };
  
+ static struct export_operations ext3_export_ops = {
++	.fh_to_dentry = ext3_fh_to_dentry,
++	.fh_to_parent = ext3_fh_to_parent,
+ 	.get_parent = ext3_get_parent,
+-	.get_dentry = ext3_get_dentry,
+ };
+ 
+ enum {
 _
 
 Patches currently in -mm which might be from hch@lst.de are
