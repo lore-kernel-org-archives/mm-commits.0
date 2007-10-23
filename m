@@ -1,116 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: + git-watchdog-fixup.patch added to -mm tree
-Date: Mon, 22 Oct 2007 23:57:08 -0700
-Message-ID: <200710230657.l9N6v8xx004677@imap1.linux-foundation.org>
+Subject: - ext2-new-export-ops.patch removed from -mm tree
+Date: Mon, 22 Oct 2007 23:47:26 -0700
+Message-ID: <200710230647.l9N6lQ85004281@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47423 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36246 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751809AbXJWG5i (ORCPT
+	by vger.kernel.org with ESMTP id S1752173AbXJWG6V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Oct 2007 02:57:38 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9N6v8Jx009109
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 22 Oct 2007 23:57:09 -0700
+	Tue, 23 Oct 2007 02:58:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: hch@lst.de, bfields@fieldses.org, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-watchdog-fixup
-has been added to the -mm tree.  Its filename is
-     git-watchdog-fixup.patch
+     ext2: new export ops
+has been removed from the -mm tree.  Its filename was
+     ext2-new-export-ops.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-watchdog-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ext2: new export ops
+From: Christoph Hellwig <hch@lst.de>
 
+Trivial switch over to the new generic helpers.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Neil Brown <neilb@suse.de>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/Kconfig |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/ext2/super.c |   34 +++++++++++++++++++---------------
+ 1 file changed, 19 insertions(+), 15 deletions(-)
 
-diff -puN drivers/Kconfig~git-watchdog-fixup drivers/Kconfig
---- a/drivers/Kconfig~git-watchdog-fixup
-+++ a/drivers/Kconfig
-@@ -60,11 +60,8 @@ source "drivers/hwmon/Kconfig"
+diff -puN fs/ext2/super.c~ext2-new-export-ops fs/ext2/super.c
+--- a/fs/ext2/super.c~ext2-new-export-ops
++++ a/fs/ext2/super.c
+@@ -311,13 +311,10 @@ static const struct super_operations ext
+ #endif
+ };
  
- source "drivers/watchdog/Kconfig"
+-static struct dentry *ext2_get_dentry(struct super_block *sb, void *vobjp)
++static struct inode *ext2_nfs_get_inode(struct super_block *sb,
++		u64 ino, u32 generation)
+ {
+-	__u32 *objp = vobjp;
+-	unsigned long ino = objp[0];
+-	__u32 generation = objp[1];
+ 	struct inode *inode;
+-	struct dentry *result;
  
--<<<<<<< HEAD:drivers/Kconfig
- source "drivers/ssb/Kconfig"
+ 	if (ino < EXT2_FIRST_INO(sb) && ino != EXT2_ROOT_INO)
+ 		return ERR_PTR(-ESTALE);
+@@ -338,15 +335,21 @@ static struct dentry *ext2_get_dentry(st
+ 		iput(inode);
+ 		return ERR_PTR(-ESTALE);
+ 	}
+-	/* now to find a dentry.
+-	 * If possible, get a well-connected one
+-	 */
+-	result = d_alloc_anon(inode);
+-	if (!result) {
+-		iput(inode);
+-		return ERR_PTR(-ENOMEM);
+-	}
+-	return result;
++	return inode;
++}
++
++static struct dentry *ext2_fh_to_dentry(struct super_block *sb, struct fid *fid,
++		int fh_len, int fh_type)
++{
++	return generic_fh_to_dentry(sb, fid, fh_len, fh_type,
++				    ext2_nfs_get_inode);
++}
++
++static struct dentry *ext2_fh_to_parent(struct super_block *sb, struct fid *fid,
++		int fh_len, int fh_type)
++{
++	return generic_fh_to_parent(sb, fid, fh_len, fh_type,
++				    ext2_nfs_get_inode);
+ }
  
--=======
-->>>>>>> FETCH_HEAD:drivers/Kconfig
- source "drivers/mfd/Kconfig"
+ /* Yes, most of these are left as NULL!!
+@@ -355,8 +358,9 @@ static struct dentry *ext2_get_dentry(st
+  * Currently only get_parent is required.
+  */
+ static struct export_operations ext2_export_ops = {
++	.fh_to_dentry = ext2_fh_to_dentry,
++	.fh_to_parent = ext2_fh_to_parent,
+ 	.get_parent = ext2_get_parent,
+-	.get_dentry = ext2_get_dentry,
+ };
  
- source "drivers/media/Kconfig"
+ static unsigned long get_sb_block(void **data)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hch@lst.de are
 
 origin.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-ide-arm-hack.patch
-nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd-fixup.patch
-fix-build-breakage-if-sysfs-fix.patch
-git-scsi-misc.patch
 git-unionfs.patch
-git-watchdog-fixup.patch
-documentation-watchdog-src-watchdog-simplec-improve-this-code-checkpatch-fixes.patch
-git-wireless.patch
-git-wireless-fixup.patch
-git-x86.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-sync_sb_inodes-propagate-errors.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
+git-xfs.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+r-o-bind-mounts-stub-functions.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
+revoke-special-mmap-handling.patch
+revoke-core-code.patch
+revoke-support-for-ext2-and-ext3.patch
+revoke-add-documentation.patch
 revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-ftd_sio-clean-ups-and-updates-for-new-termios-work-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
+dont-touch-fs_struct-in-drivers.patch
+dont-touch-fs_struct-in-usermodehelper.patch
+remove-path_release_on_umount.patch
+move-struct-path-into-its-own-header.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+introduce-path_put.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+introduce-path_get.patch
+use-struct-path-in-fs_struct.patch
+make-set_fs_rootpwd-take-a-struct-path.patch
+make-__d_path-to-take-a-struct-path-argument.patch
+use-struct-path-argument-in-proc_get_link.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
+introduce-path_put-unionfs.patch
+introduce-path_get-unionfs.patch
