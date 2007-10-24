@@ -1,68 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - kconfiginstrumentation-sourcing-missing-on-i386-and-x86_64.patch removed from -mm tree
-Date: Wed, 24 Oct 2007 14:41:11 -0700
-Message-ID: <200710242141.l9OLfBYV013930@imap1.linux-foundation.org>
+Subject: - md-raid5-fix-clearing-of-biofill-operations.patch removed from -mm tree
+Date: Wed, 24 Oct 2007 14:41:04 -0700
+Message-ID: <200710242141.l9OLf4hZ013911@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41966 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58182 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757901AbXJXVlm (ORCPT
+	by vger.kernel.org with ESMTP id S1760496AbXJXVl6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 17:41:42 -0400
+	Wed, 24 Oct 2007 17:41:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, joel.bertrand@systella.fr, neilb@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Kconfig.instrumentation sourcing missing on i386 and x86_64
+     md: raid5: fix clearing of biofill operations
 has been removed from the -mm tree.  Its filename was
-     kconfiginstrumentation-sourcing-missing-on-i386-and-x86_64.patch
+     md-raid5-fix-clearing-of-biofill-operations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Kconfig.instrumentation sourcing missing on i386 and x86_64
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: md: raid5: fix clearing of biofill operations
+From: Dan Williams <dan.j.williams@intel.com>
 
-The same happened on i386 and x86_64. I guess some bits from the
-combine-instrumentation-menus-in-kernel-kconfiginstrumentation.patch
-were lost during the mainline merge.
+ops_complete_biofill() runs outside of spin_lock(&sh->lock) and clears the
+'pending' and 'ack' bits.  Since the test_and_ack_op() macro only checks
+against 'complete' it can get an inconsistent snapshot of pending work.
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Move the clearing of these bits to handle_stripe5(), under the lock.
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Tested-by: Joel Bertrand <joel.bertrand@systella.fr>
+Signed-off-by: Neil Brown <neilb@suse.de>
+Cc: Stable <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/Kconfig   |    2 ++
- arch/x86_64/Kconfig |    2 ++
- 2 files changed, 4 insertions(+)
+ drivers/md/raid5.c |   17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
-diff -puN arch/i386/Kconfig~kconfiginstrumentation-sourcing-missing-on-i386-and-x86_64 arch/i386/Kconfig
---- a/arch/i386/Kconfig~kconfiginstrumentation-sourcing-missing-on-i386-and-x86_64
-+++ a/arch/i386/Kconfig
-@@ -1258,6 +1258,8 @@ source "drivers/Kconfig"
+diff -puN drivers/md/raid5.c~md-raid5-fix-clearing-of-biofill-operations drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-raid5-fix-clearing-of-biofill-operations
++++ a/drivers/md/raid5.c
+@@ -376,7 +376,12 @@ static unsigned long get_stripe_work(str
+ 		ack++;
  
- source "fs/Kconfig"
+ 	sh->ops.count -= ack;
+-	BUG_ON(sh->ops.count < 0);
++	if (unlikely(sh->ops.count < 0)) {
++		printk(KERN_ERR "pending: %#lx ops.pending: %#lx ops.ack: %#lx "
++			"ops.complete: %#lx\n", pending, sh->ops.pending,
++			sh->ops.ack, sh->ops.complete);
++		BUG();
++	}
  
-+source "kernel/Kconfig.instrumentation"
+ 	return pending;
+ }
+@@ -550,8 +555,7 @@ static void ops_complete_biofill(void *s
+ 			}
+ 		}
+ 	}
+-	clear_bit(STRIPE_OP_BIOFILL, &sh->ops.ack);
+-	clear_bit(STRIPE_OP_BIOFILL, &sh->ops.pending);
++	set_bit(STRIPE_OP_BIOFILL, &sh->ops.complete);
+ 
+ 	return_io(return_bi);
+ 
+@@ -2893,6 +2897,13 @@ static void handle_stripe6(struct stripe
+ 	s.expanded = test_bit(STRIPE_EXPAND_READY, &sh->state);
+ 	/* Now to look around and see what can be done */
+ 
++	/* clean-up completed biofill operations */
++	if (test_bit(STRIPE_OP_BIOFILL, &sh->ops.complete)) {
++		clear_bit(STRIPE_OP_BIOFILL, &sh->ops.pending);
++		clear_bit(STRIPE_OP_BIOFILL, &sh->ops.ack);
++		clear_bit(STRIPE_OP_BIOFILL, &sh->ops.complete);
++	}
 +
- source "arch/i386/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/x86_64/Kconfig~kconfiginstrumentation-sourcing-missing-on-i386-and-x86_64 arch/x86_64/Kconfig
---- a/arch/x86_64/Kconfig~kconfiginstrumentation-sourcing-missing-on-i386-and-x86_64
-+++ a/arch/x86_64/Kconfig
-@@ -833,6 +833,8 @@ source "drivers/firmware/Kconfig"
- 
- source fs/Kconfig
- 
-+source "kernel/Kconfig.instrumentation"
-+
- source "arch/x86_64/Kconfig.debug"
- 
- source "security/Kconfig"
+ 	rcu_read_lock();
+ 	for (i=disks; i--; ) {
+ 		mdk_rdev_t *rdev;
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
+
+git-md-accel.patch
+i-oat-add-support-for-version-2-of-ioatdma-device.patch
