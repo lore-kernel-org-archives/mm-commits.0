@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file.patch added to -mm tree
-Date: Wed, 24 Oct 2007 15:43:47 -0700
-Message-ID: <200710242243.l9OMhlxP016346@imap1.linux-foundation.org>
+Subject: + add-missing-section-ids-to-genericirqtmpl-updated.patch added to -mm tree
+Date: Wed, 24 Oct 2007 15:50:39 -0700
+Message-ID: <200710242250.l9OModFb016573@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37873 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50668 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754716AbXJXWor (ORCPT
+	by vger.kernel.org with ESMTP id S1756900AbXJXWuw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 18:44:47 -0400
+	Wed, 24 Oct 2007 18:50:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wfg@mail.ustc.edu.cn, chris.mason@oracle.com, jeffm@suse.com, maximlevitsky@gmail.com, peterz@infradead.org
+Cc: rob@landley.net, rdunlap@xenotime.net
 
 
 The patch titled
-     reiserfs: don't drop PG_dirty when releasing sub-page-sized dirty file
+     Add missing section IDs to genericirq.tmpl (updated)
 has been added to the -mm tree.  Its filename is
-     reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file.patch
+     add-missing-section-ids-to-genericirqtmpl-updated.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,111 +26,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reiserfs: don't drop PG_dirty when releasing sub-page-sized dirty file
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: Add missing section IDs to genericirq.tmpl (updated)
+From: Rob Landley <rob@landley.net>
 
-This is not a new problem in 2.6.23-git17.  2.6.22/2.6.23 is buggy in the
-same way.
+Add missing section IDs to genericirq.tmpl
 
-Reiserfs could accumulate dirty sub-page-size files until umount time. 
-They cannot be synced to disk by pdflush routines or explicit `sync'
-commands.  Only `umount' can do the trick.
-
-The direct cause is: the dirty page's PG_dirty is wrongly _cleared_.
-Call trace:
-	 [<ffffffff8027e920>] cancel_dirty_page+0xd0/0xf0
-	 [<ffffffff8816d470>] :reiserfs:reiserfs_cut_from_item+0x660/0x710
-	 [<ffffffff8816d791>] :reiserfs:reiserfs_do_truncate+0x271/0x530
-	 [<ffffffff8815872d>] :reiserfs:reiserfs_truncate_file+0xfd/0x3b0
-	 [<ffffffff8815d3d0>] :reiserfs:reiserfs_file_release+0x1e0/0x340
-	 [<ffffffff802a187c>] __fput+0xcc/0x1b0
-	 [<ffffffff802a1ba6>] fput+0x16/0x20
-	 [<ffffffff8029e676>] filp_close+0x56/0x90
-	 [<ffffffff8029fe0d>] sys_close+0xad/0x110
-	 [<ffffffff8020c41e>] system_call+0x7e/0x83
-
-Fix the bug by removing the cancel_dirty_page() call. Tests show that
-it causes no bad behaviors on various write sizes.
-
-=== for the patient ===
-Here are more detailed demonstrations of the problem.
-
-1) the page has both PG_dirty(D)/PAGECACHE_TAG_DIRTY(d) after being written to;
-   and then only PAGECACHE_TAG_DIRTY(d) remains after the file is closed.
-
------------------------------- screen 0 ------------------------------
-[T0] root /home/wfg# cat > /test/tiny
-[T1] hi
-[T2] root /home/wfg#
-
------------------------------- screen 1 ------------------------------
-[T1] root /home/wfg# echo /test/tiny > /proc/filecache
-[T1] root /home/wfg# cat /proc/filecache
-     # file /test/tiny
-     # flags R:referenced A:active M:mmap U:uptodate D:dirty W:writeback O:owner B:buffer d:dirty w:writeback
-     # idx   len     state   refcnt
-     0       1       ___UD__Bd_      2
-[T2] root /home/wfg# cat /proc/filecache
-     # file /test/tiny
-     # flags R:referenced A:active M:mmap U:uptodate D:dirty W:writeback O:owner B:buffer d:dirty w:writeback
-     # idx   len     state   refcnt
-     0       1       ___U___Bd_      2
-
-2) note the non-zero 'cancelled_write_bytes' after /tmp/hi is copied.
-
------------------------------- screen 0 ------------------------------
-[T0] root /home/wfg# echo hi > /tmp/hi
-[T1] root /home/wfg# cp /tmp/hi /dev/stdin /test
-[T2] hi
-[T3] root /home/wfg#
-
------------------------------- screen 1 ------------------------------
-[T1] root /proc/4397# cd /proc/`pidof cp`
-[T1] root /proc/4713# cat io
-     rchar: 8396
-     wchar: 3
-     syscr: 20
-     syscw: 1
-     read_bytes: 0
-     write_bytes: 20480
-     cancelled_write_bytes: 4096
-[T2] root /proc/4713# cat io
-     rchar: 8399
-     wchar: 6
-     syscr: 21
-     syscw: 2
-     read_bytes: 0
-     write_bytes: 24576
-     cancelled_write_bytes: 4096
-
-//Question: the 'write_bytes' is a bit more than expected ;-)
-
-Tested-by: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-Sort-of-acked-by: Chris Mason <chris.mason@oracle.com>
+Signed-off-by: Rob Landley <rob@landley.net>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/stree.c |    3 ---
- 1 file changed, 3 deletions(-)
+ Documentation/DocBook/genericirq.tmpl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/reiserfs/stree.c~reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file fs/reiserfs/stree.c
---- a/fs/reiserfs/stree.c~reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file
-+++ a/fs/reiserfs/stree.c
-@@ -1458,9 +1458,6 @@ static void unmap_buffers(struct page *p
- 				}
- 				bh = next;
- 			} while (bh != head);
--			if (PAGE_SIZE == bh->b_size) {
--				cancel_dirty_page(page, PAGE_CACHE_SIZE);
--			}
- 		}
- 	}
- }
+diff -puN Documentation/DocBook/genericirq.tmpl~add-missing-section-ids-to-genericirqtmpl-updated Documentation/DocBook/genericirq.tmpl
+--- a/Documentation/DocBook/genericirq.tmpl~add-missing-section-ids-to-genericirqtmpl-updated
++++ a/Documentation/DocBook/genericirq.tmpl
+@@ -269,7 +269,7 @@ noop(irq)
+ 	</sect2>
+ 	<sect2 id="Default_flow_handler_implementations">
+ 	<title>Default flow handler implementations</title>
+-	    <sect3>
++	    <sect3 id="Default_Level_IRQ_flow_handler">
+ 	 	<title>Default Level IRQ flow handler</title>
+ 		<para>
+ 		handle_level_irq provides a generic implementation
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from rob@landley.net are
 
-reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file.patch
+add-missing-section-ids-to-genericirqtmpl.patch
+add-missing-section-ids-to-genericirqtmpl-updated.patch
+add-missing-section-id-to-lsmtmpl.patch
+add-section-ids-to-mtdnandtmpl.patch
+add-missing-ids-to-procfs-guidetmpl.patch
+add-section-ids-to-rapidiotmpl.patch
+add-table-ids-to-videobooktmpl.patch
+add-chapter-ids-to-z8530booktmpl.patch
