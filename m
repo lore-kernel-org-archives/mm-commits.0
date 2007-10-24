@@ -1,54 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - net-fix-xfrm-build-missing-scatterlisth-include.patch removed from -mm tree
-Date: Wed, 24 Oct 2007 14:41:34 -0700
-Message-ID: <200710242141.l9OLfYi8013966@imap1.linux-foundation.org>
+Subject: - pci-error-recovery-symbios-scsi-first-failure.patch removed from -mm tree
+Date: Wed, 24 Oct 2007 14:41:21 -0700
+Message-ID: <200710242141.l9OLfL4R013947@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41325 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33505 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757746AbXJXVmL (ORCPT
+	by vger.kernel.org with ESMTP id S1757449AbXJXVmM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 17:42:11 -0400
+	Wed, 24 Oct 2007 17:42:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, davem@davemloft.net, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: linas@austin.ibm.com, willy@debian.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net: fix xfrm build - missing scatterlist.h include
+     PCI Error Recovery: Symbios SCSI First Failure
 has been removed from the -mm tree.  Its filename was
-     net-fix-xfrm-build-missing-scatterlisth-include.patch
+     pci-error-recovery-symbios-scsi-first-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: net: fix xfrm build - missing scatterlist.h include
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: PCI Error Recovery: Symbios SCSI First Failure
+From: Linas Vepstas <linas@austin.ibm.com>
 
-net/xfrm/xfrm_algo.c: In function 'skb_icv_walk':
-net/xfrm/xfrm_algo.c:555: error: implicit declaration of function 'sg_set_page'
-make[2]: *** [net/xfrm/xfrm_algo.o] Error 1
+Implement the so-called "first failure data capture" (FFDC) for the symbios
+PCI error recovery.  After a PCI error event is reported, the driver
+requests that MMIO be enabled.  Once enabled, it then reads and dumps
+assorted status registers, and concludes by requesting the usual reset
+sequence.
 
-Cc: David Miller <davem@davemloft.net>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+(includes a whitespace fix for bad indentation).
+
+Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
+Cc: Matthew Wilcox <willy@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/xfrm/xfrm_algo.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/scsi/sym53c8xx_2/sym_glue.c |   15 +++++++++++++++
+ drivers/scsi/sym53c8xx_2/sym_glue.h |    1 +
+ drivers/scsi/sym53c8xx_2/sym_hipd.c |   18 ++++++++++++++----
+ 3 files changed, 30 insertions(+), 4 deletions(-)
 
-diff -puN net/xfrm/xfrm_algo.c~net-fix-xfrm-build-missing-scatterlisth-include net/xfrm/xfrm_algo.c
---- a/net/xfrm/xfrm_algo.c~net-fix-xfrm-build-missing-scatterlisth-include
-+++ a/net/xfrm/xfrm_algo.c
-@@ -13,6 +13,7 @@
- #include <linux/kernel.h>
- #include <linux/pfkeyv2.h>
- #include <linux/crypto.h>
-+#include <linux/scatterlist.h>
- #include <net/xfrm.h>
- #if defined(CONFIG_INET_AH) || defined(CONFIG_INET_AH_MODULE) || defined(CONFIG_INET6_AH) || defined(CONFIG_INET6_AH_MODULE)
- #include <net/ah.h>
+diff -puN drivers/scsi/sym53c8xx_2/sym_glue.c~pci-error-recovery-symbios-scsi-first-failure drivers/scsi/sym53c8xx_2/sym_glue.c
+--- a/drivers/scsi/sym53c8xx_2/sym_glue.c~pci-error-recovery-symbios-scsi-first-failure
++++ a/drivers/scsi/sym53c8xx_2/sym_glue.c
+@@ -1927,6 +1927,20 @@ static pci_ers_result_t sym2_io_error_de
+ 	disable_irq(pdev->irq);
+ 	pci_disable_device(pdev);
+ 
++	/* Request that MMIO be enabled, so register dump can be taken. */
++	return PCI_ERS_RESULT_CAN_RECOVER;
++}
++
++/**
++ * sym2_io_slot_dump -- Enable MMIO and dump debug registers
++ * @pdev: pointer to PCI device
++ */
++static pci_ers_result_t sym2_io_slot_dump(struct pci_dev *pdev)
++{
++	struct sym_hcb *np = pci_get_drvdata(pdev);
++
++	sym_dump_registers(np);
++
+ 	/* Request a slot reset. */
+ 	return PCI_ERS_RESULT_NEED_RESET;
+ }
+@@ -2181,6 +2195,7 @@ MODULE_DEVICE_TABLE(pci, sym2_id_table);
+ 
+ static struct pci_error_handlers sym2_err_handler = {
+ 	.error_detected = sym2_io_error_detected,
++	.mmio_enabled = sym2_io_slot_dump,
+ 	.slot_reset = sym2_io_slot_reset,
+ 	.resume = sym2_io_resume,
+ };
+diff -puN drivers/scsi/sym53c8xx_2/sym_glue.h~pci-error-recovery-symbios-scsi-first-failure drivers/scsi/sym53c8xx_2/sym_glue.h
+--- a/drivers/scsi/sym53c8xx_2/sym_glue.h~pci-error-recovery-symbios-scsi-first-failure
++++ a/drivers/scsi/sym53c8xx_2/sym_glue.h
+@@ -270,5 +270,6 @@ void sym_xpt_async_bus_reset(struct sym_
+ void sym_xpt_async_sent_bdr(struct sym_hcb *np, int target);
+ int  sym_setup_data_and_start (struct sym_hcb *np, struct scsi_cmnd *csio, struct sym_ccb *cp);
+ void sym_log_bus_error(struct sym_hcb *np);
++void sym_dump_registers(struct sym_hcb *np);
+ 
+ #endif /* SYM_GLUE_H */
+diff -puN drivers/scsi/sym53c8xx_2/sym_hipd.c~pci-error-recovery-symbios-scsi-first-failure drivers/scsi/sym53c8xx_2/sym_hipd.c
+--- a/drivers/scsi/sym53c8xx_2/sym_hipd.c~pci-error-recovery-symbios-scsi-first-failure
++++ a/drivers/scsi/sym53c8xx_2/sym_hipd.c
+@@ -1180,10 +1180,10 @@ static void sym_log_hard_error(struct sy
+ 			scr_to_cpu((int) *(u32 *)(script_base + script_ofs)));
+ 	}
+ 
+-        printf ("%s: regdump:", sym_name(np));
+-        for (i=0; i<24;i++)
+-            printf (" %02x", (unsigned)INB_OFF(np, i));
+-        printf (".\n");
++	printf("%s: regdump:", sym_name(np));
++	for (i = 0; i < 24; i++)
++		printf(" %02x", (unsigned)INB_OFF(np, i));
++	printf(".\n");
+ 
+ 	/*
+ 	 *  PCI BUS error.
+@@ -1192,6 +1192,16 @@ static void sym_log_hard_error(struct sy
+ 		sym_log_bus_error(np);
+ }
+ 
++void sym_dump_registers(struct sym_hcb *np)
++{
++	u_short sist;
++	u_char dstat;
++
++	sist = INW(np, nc_sist);
++	dstat = INB(np, nc_dstat);
++	sym_log_hard_error(np, sist, dstat);
++}
++
+ static struct sym_chip sym_dev_table[] = {
+  {PCI_DEVICE_ID_NCR_53C810, 0x0f, "810", 4, 8, 4, 64,
+  FE_ERL}
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from linas@austin.ibm.com are
