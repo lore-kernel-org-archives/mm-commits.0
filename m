@@ -1,107 +1,260 @@
 From: akpm@linux-foundation.org
-Subject: - digi_acceleport-fix-termios-and-also-readability-a-bit.patch removed from -mm tree
-Date: Wed, 24 Oct 2007 14:41:45 -0700
-Message-ID: <200710242141.l9OLfjNb013981@imap1.linux-foundation.org>
+Subject: - pci-error-recovery-symbios-scsi-base-support.patch removed from -mm tree
+Date: Wed, 24 Oct 2007 14:41:19 -0700
+Message-ID: <200710242141.l9OLfJ57013944@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56083 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56859 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756431AbXJXVqF (ORCPT
+	by vger.kernel.org with ESMTP id S1753489AbXJXVwT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 17:46:05 -0400
+	Wed, 24 Oct 2007 17:52:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: linas@austin.ibm.com, willy@debian.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     digi_acceleport: fix termios and also readability a bit
+     PCI Error Recovery: Symbios SCSI base support
 has been removed from the -mm tree.  Its filename was
-     digi_acceleport-fix-termios-and-also-readability-a-bit.patch
+     pci-error-recovery-symbios-scsi-base-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: digi_acceleport: fix termios and also readability a bit
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: PCI Error Recovery: Symbios SCSI base support
+From: Linas Vepstas <linas@austin.ibm.com>
 
-- Expand some x&y to x & y so I could read it when checking
-- Clear CMSPAR bit in the termios (as the driver does not support it)
-- Encode the speed using the new tty_encode_baud_rate facility
+Various PCI bus errors can be signaled by newer PCI controllers.  This
+patch adds the PCI error recovery callbacks to the Symbios SCSI device
+driver.  The patch has been tested, and appears to work well.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
+Cc: Matthew Wilcox <willy@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ drivers/scsi/sym53c8xx_2/sym_glue.c |  136 ++++++++++++++++++++++++++
+ drivers/scsi/sym53c8xx_2/sym_glue.h |    4 
+ drivers/scsi/sym53c8xx_2/sym_hipd.c |    6 +
+ 3 files changed, 146 insertions(+)
 
-diff -puN drivers/usb/serial/digi_acceleport.c~digi_acceleport-fix-termios-and-also-readability-a-bit drivers/usb/serial/digi_acceleport.c
---- a/drivers/usb/serial/digi_acceleport.c~digi_acceleport-fix-termios-and-also-readability-a-bit
-+++ a/drivers/usb/serial/digi_acceleport.c
-@@ -973,6 +973,8 @@ static void digi_set_termios(struct usb_
- 		}
- 	}
- 	/* set parity */
-+	tty->termios->c_cflag &= ~CMSPAR;
+diff -puN drivers/scsi/sym53c8xx_2/sym_glue.c~pci-error-recovery-symbios-scsi-base-support drivers/scsi/sym53c8xx_2/sym_glue.c
+--- a/drivers/scsi/sym53c8xx_2/sym_glue.c~pci-error-recovery-symbios-scsi-base-support
++++ a/drivers/scsi/sym53c8xx_2/sym_glue.c
+@@ -596,6 +596,10 @@ static irqreturn_t sym53c8xx_intr(int ir
+ 	unsigned long flags;
+ 	struct sym_hcb *np = (struct sym_hcb *)dev_id;
+ 
++	/* Avoid spinloop trying to handle interrupts on frozen device */
++	if (pci_channel_offline(np->s.device))
++		return IRQ_HANDLED;
 +
- 	if ((cflag&(PARENB|PARODD)) != (old_cflag&(PARENB|PARODD))) {
- 		if (cflag&PARENB) {
- 			if (cflag&PARODD)
-@@ -1054,15 +1056,15 @@ static void digi_set_termios(struct usb_
- 	}
+ 	if (DEBUG_FLAGS & DEBUG_TINY) printf_debug ("[");
  
- 	/* set output flow control */
--	if ((iflag&IXON) != (old_iflag&IXON)
--	    || (cflag&CRTSCTS) != (old_cflag&CRTSCTS)) {
-+	if ((iflag & IXON) != (old_iflag & IXON)
-+	    || (cflag & CRTSCTS) != (old_cflag & CRTSCTS)) {
- 		arg = 0;
--		if (iflag&IXON)
-+		if (iflag & IXON)
- 			arg |= DIGI_OUTPUT_FLOW_CONTROL_XON_XOFF;
- 		else
- 			arg &= ~DIGI_OUTPUT_FLOW_CONTROL_XON_XOFF;
+ 	spin_lock_irqsave(np->s.host->host_lock, flags);
+@@ -665,6 +669,20 @@ static int sym_eh_handler(int op, char *
  
--		if (cflag&CRTSCTS) {
-+		if (cflag & CRTSCTS) {
- 			arg |= DIGI_OUTPUT_FLOW_CONTROL_CTS;
- 		} else {
- 			arg &= ~DIGI_OUTPUT_FLOW_CONTROL_CTS;
-@@ -1076,8 +1078,8 @@ static void digi_set_termios(struct usb_
- 	}
+ 	dev_warn(&cmd->device->sdev_gendev, "%s operation started.\n", opname);
  
- 	/* set receive enable/disable */
--	if ((cflag&CREAD) != (old_cflag&CREAD)) {
--		if (cflag&CREAD)
-+	if ((cflag & CREAD) != (old_cflag & CREAD)) {
-+		if (cflag & CREAD)
- 			arg = DIGI_ENABLE;
- 		else
- 			arg = DIGI_DISABLE;
-@@ -1089,7 +1091,7 @@ static void digi_set_termios(struct usb_
- 	}
- 	if ((ret = digi_write_oob_command(port, buf, i, 1)) != 0)
- 		dbg("digi_set_termios: write oob failed, ret=%d", ret);
--
-+	tty_encode_baud_rate(tty, baud, baud);
++	/* We may be in an error condition because the PCI bus
++	 * went down. In this case, we need to wait until the
++	 * PCI bus is reset, the card is reset, and only then
++	 * proceed with the scsi error recovery.  There's no
++	 * point in hurrying; take a leisurely wait.
++	 */
++#define WAIT_FOR_PCI_RECOVERY	35
++	if (pci_channel_offline(np->s.device)) {
++		int finished_reset = wait_for_completion_timeout(
++			&np->s.io_reset_wait, WAIT_FOR_PCI_RECOVERY*HZ);
++		if (!finished_reset)
++			return SCSI_FAILED;
++	}
++
+ 	spin_lock_irq(host->host_lock);
+ 	/* This one is queued in some place -> to wait for completion */
+ 	FOR_EACH_QUEUED_ELEMENT(&np->busy_ccbq, qp) {
+@@ -1449,6 +1467,7 @@ static struct Scsi_Host * __devinit sym_
+ 	np->maxoffs	= dev->chip.offset_max;
+ 	np->maxburst	= dev->chip.burst_max;
+ 	np->myaddr	= dev->host_id;
++	init_completion(&np->s.io_reset_wait);
+ 
+ 	/*
+ 	 *  Edit its name.
+@@ -1888,6 +1907,116 @@ static void __devexit sym2_remove(struct
+ 	attach_count--;
  }
  
++/**
++ * sym2_io_error_detected() -- called when PCI error is detected
++ * @pdev: pointer to PCI device
++ * @state: current state of the PCI slot
++ */
++static pci_ers_result_t sym2_io_error_detected(struct pci_dev *pdev,
++                                         enum pci_channel_state state)
++{
++	struct sym_hcb *np = pci_get_drvdata(pdev);
++
++	/* If slot is permanently frozen, turn everything off */
++	if (state == pci_channel_io_perm_failure) {
++		sym2_remove(pdev);
++		return PCI_ERS_RESULT_DISCONNECT;
++	}
++
++	init_completion(&np->s.io_reset_wait);
++	disable_irq(pdev->irq);
++	pci_disable_device(pdev);
++
++	/* Request a slot reset. */
++	return PCI_ERS_RESULT_NEED_RESET;
++}
++
++/**
++ * sym2_reset_workarounds -- hardware-specific work-arounds
++ *
++ * This routine is similar to sym_set_workarounds(), except
++ * that, at this point, we already know that the device was
++ * succesfully intialized at least once before, and so most
++ * of the steps taken there are un-needed here.
++ */
++static void sym2_reset_workarounds(struct pci_dev *pdev)
++{
++	u_char revision;
++	u_short status_reg;
++	struct sym_chip *chip;
++
++	pci_read_config_byte(pdev, PCI_CLASS_REVISION, &revision);
++	chip = sym_lookup_chip_table(pdev->device, revision);
++
++	/* Work around for errant bit in 895A, in a fashion
++	 * similar to what is done in sym_set_workarounds().
++	 */
++	pci_read_config_word(pdev, PCI_STATUS, &status_reg);
++	if (!(chip->features & FE_66MHZ) && (status_reg & PCI_STATUS_66MHZ)) {
++	 	status_reg = PCI_STATUS_66MHZ;
++		pci_write_config_word(pdev, PCI_STATUS, status_reg);
++		pci_read_config_word(pdev, PCI_STATUS, &status_reg);
++	}
++}
++
++/**
++ * sym2_io_slot_reset() -- called when the pci bus has been reset.
++ * @pdev: pointer to PCI device
++ *
++ * Restart the card from scratch.
++ */
++static pci_ers_result_t sym2_io_slot_reset(struct pci_dev *pdev)
++{
++	struct sym_hcb *np = pci_get_drvdata(pdev);
++
++	printk(KERN_INFO "%s: recovering from a PCI slot reset\n",
++	          sym_name(np));
++
++	if (pci_enable_device(pdev)) {
++		printk(KERN_ERR "%s: Unable to enable afer PCI reset\n",
++		        sym_name(np));
++		return PCI_ERS_RESULT_DISCONNECT;
++	}
++
++	pci_set_master(pdev);
++	enable_irq(pdev->irq);
++
++	/* If the chip can do Memory Write Invalidate, enable it */
++	if (np->features & FE_WRIE) {
++		if (pci_set_mwi(pdev))
++				return PCI_ERS_RESULT_DISCONNECT;
++	}
++
++	/* Perform work-arounds, analogous to sym_set_workarounds() */
++	sym2_reset_workarounds(pdev);
++
++	/* Perform host reset only on one instance of the card */
++	if (PCI_FUNC (pdev->devfn) == 0) {
++		if (sym_reset_scsi_bus(np, 0)) {
++			printk(KERN_ERR "%s: Unable to reset scsi host\n",
++			        sym_name(np));
++			return PCI_ERS_RESULT_DISCONNECT;
++		}
++		sym_start_up(np, 1);
++	}
++
++	return PCI_ERS_RESULT_RECOVERED;
++}
++
++/**
++ * sym2_io_resume() -- resume normal ops after PCI reset
++ * @pdev: pointer to PCI device
++ *
++ * Called when the error recovery driver tells us that its
++ * OK to resume normal operation. Use completion to allow
++ * halted scsi ops to resume.
++ */
++static void sym2_io_resume(struct pci_dev *pdev)
++{
++	struct sym_hcb *np = pci_get_drvdata(pdev);
++	complete_all(&np->s.io_reset_wait);
++}
++
+ static void sym2_get_signalling(struct Scsi_Host *shost)
+ {
+ 	struct sym_hcb *np = sym_get_hcb(shost);
+@@ -2050,11 +2179,18 @@ static struct pci_device_id sym2_id_tabl
  
+ MODULE_DEVICE_TABLE(pci, sym2_id_table);
+ 
++static struct pci_error_handlers sym2_err_handler = {
++	.error_detected = sym2_io_error_detected,
++	.slot_reset = sym2_io_slot_reset,
++	.resume = sym2_io_resume,
++};
++
+ static struct pci_driver sym2_driver = {
+ 	.name		= NAME53C8XX,
+ 	.id_table	= sym2_id_table,
+ 	.probe		= sym2_probe,
+ 	.remove		= __devexit_p(sym2_remove),
++	.err_handler 	= &sym2_err_handler,
+ };
+ 
+ static int __init sym2_init(void)
+diff -puN drivers/scsi/sym53c8xx_2/sym_glue.h~pci-error-recovery-symbios-scsi-base-support drivers/scsi/sym53c8xx_2/sym_glue.h
+--- a/drivers/scsi/sym53c8xx_2/sym_glue.h~pci-error-recovery-symbios-scsi-base-support
++++ a/drivers/scsi/sym53c8xx_2/sym_glue.h
+@@ -40,6 +40,7 @@
+ #ifndef SYM_GLUE_H
+ #define SYM_GLUE_H
+ 
++#include <linux/completion.h>
+ #include <linux/delay.h>
+ #include <linux/ioport.h>
+ #include <linux/pci.h>
+@@ -179,6 +180,9 @@ struct sym_shcb {
+ 	char		chip_name[8];
+ 	struct pci_dev	*device;
+ 
++	/* Waiter for clearing of frozen PCI bus */
++	struct completion io_reset_wait;
++
+ 	struct Scsi_Host *host;
+ 
+ 	void __iomem *	ioaddr;		/* MMIO kernel io address	*/
+diff -puN drivers/scsi/sym53c8xx_2/sym_hipd.c~pci-error-recovery-symbios-scsi-base-support drivers/scsi/sym53c8xx_2/sym_hipd.c
+--- a/drivers/scsi/sym53c8xx_2/sym_hipd.c~pci-error-recovery-symbios-scsi-base-support
++++ a/drivers/scsi/sym53c8xx_2/sym_hipd.c
+@@ -2809,6 +2809,12 @@ void sym_interrupt (struct sym_hcb *np)
+ 			dstat |= INB(np, nc_dstat);
+ 		istatc = INB(np, nc_istat);
+ 		istat |= istatc;
++
++		/* Prevent deadlock waiting on a condition that may never clear. */
++		if (unlikely(sist == 0xffff && dstat == 0xff)) {
++			if (pci_channel_offline(np->s.device))
++				return;
++		}
+ 	} while (istatc & (SIP|DIP));
+ 
+ 	if (DEBUG_FLAGS & DEBUG_TINY)
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
-
-git-libata-all.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-initio-fix-conflict-when-loading-driver.patch
-geode-lists-are-subscriber-only.patch
-tty-kill-tty_flipbuf_size.patch
-drivers-edac-turnon-edac-device-error-logging.patch
-drivers-edac-use-round_jiffies_relative.patch
-drivers-edac-add-cell-xdr-memory-types.patch
-drivers-edac-add-cell-mc-driver.patch
-drivers-edac-i3000-code-tidying.patch
-drivers-edac-i3000-replace-macros-with-functions.patch
-drivers-edac-add-freescale-mpc85xx-driver.patch
-drivers-edac-add-marvell-mv64x60-driver.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
+Patches currently in -mm which might be from linas@austin.ibm.com are
