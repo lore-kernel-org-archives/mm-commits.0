@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dz-clean-up-and-improve-the-setup-of-termios-settings.patch added to -mm tree
-Date: Wed, 24 Oct 2007 15:55:56 -0700
-Message-ID: <200710242255.l9OMtuqi016775@imap1.linux-foundation.org>
+Subject: + fujitsu-application-panel-driver.patch added to -mm tree
+Date: Wed, 24 Oct 2007 16:03:08 -0700
+Message-ID: <200710242303.l9ON380n017080@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43139 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40921 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755324AbXJXW4W (ORCPT
+	by vger.kernel.org with ESMTP id S1754736AbXJXXDg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 18:56:22 -0400
+	Wed, 24 Oct 2007 19:03:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: macro@linux-mips.org, alan@lxorguk.ukuu.org.uk, ralf@linux-mips.org
+Cc: shemminger@linux-foundation.org, dtor@mail.ru, jkosina@suse.cz, rpurdie@rpsys.net
 
 
 The patch titled
-     dz: clean up and improve the setup of termios settings
+     Fujitsu application panel driver
 has been added to the -mm tree.  Its filename is
-     dz-clean-up-and-improve-the-setup-of-termios-settings.patch
+     fujitsu-application-panel-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,194 +26,482 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dz: clean up and improve the setup of termios settings
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
+Subject: Fujitsu application panel driver
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-A set of changes to the way termios settings are propagated to the serial
-port hardware.  The DZ11 only supports a selection of fixed baud settings,
-so some requests may not be fulfilled.  Keep the old setting in such a case
-and failing that resort to 9600bps.  Also add a missing update of the
-transmit timeout.  And remove the explicit encoding of the line selected
-from writes to the Line Parameters Register as it has been preencoded by
-the ->set_termios() call already.  Finally, remove a duplicate macro for
-the Receiver Enable bit.
+This driver supports the application buttons on some Fujitsu Lifebook
+laptops.  It is based on the earlier apanel driver done by Jochen Eisenger,
+but with many changes.  The original driver used ioctl's and a separate
+user space program (see http://apanel.sourceforge.net).  This driver hooks
+into the input subsystem so that the normal keys act as expected without a
+daemon.  In addition to buttons, the Mail Led is handled via LEDs class
+device.
 
-Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+The driver now supports redefinable keymaps and no longer has to have a DMI
+table for all Fujitsu laptops.
+
+I thought about mixing this driver should be integrated into the Fujitsu
+laptop extras driver that handles backlight, but rejected the idea because
+it wasn't clear if all the Fujitsu laptops supported both.
+
+Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/dz.c |  103 ++++++++++++++++++++++--------------------
- drivers/serial/dz.h |    4 -
- 2 files changed, 56 insertions(+), 51 deletions(-)
+ drivers/input/misc/Kconfig  |   14 +
+ drivers/input/misc/Makefile |    1 
+ drivers/input/misc/apanel.c |  407 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 422 insertions(+)
 
-diff -puN drivers/serial/dz.c~dz-clean-up-and-improve-the-setup-of-termios-settings drivers/serial/dz.c
---- a/drivers/serial/dz.c~dz-clean-up-and-improve-the-setup-of-termios-settings
-+++ a/drivers/serial/dz.c
-@@ -133,8 +133,8 @@ static void dz_stop_rx(struct uart_port 
- 	unsigned long flags;
+diff -puN drivers/input/misc/Kconfig~fujitsu-application-panel-driver drivers/input/misc/Kconfig
+--- a/drivers/input/misc/Kconfig~fujitsu-application-panel-driver
++++ a/drivers/input/misc/Kconfig
+@@ -40,6 +40,20 @@ config INPUT_M68K_BEEP
+ 	tristate "M68k Beeper support"
+ 	depends on M68K
  
- 	spin_lock_irqsave(&dport->port.lock, flags);
--	dport->cflag &= ~DZ_CREAD;
--	dz_out(dport, DZ_LPR, dport->cflag | dport->port.line);
-+	dport->cflag &= ~DZ_RXENAB;
-+	dz_out(dport, DZ_LPR, dport->cflag);
- 	spin_unlock_irqrestore(&dport->port.lock, flags);
- }
- 
-@@ -460,12 +460,51 @@ static void dz_break_ctl(struct uart_por
- 	spin_unlock_irqrestore(&uport->lock, flags);
- }
- 
-+static int dz_encode_baud_rate(unsigned int baud)
++config INPUT_APANEL
++	tristate "Fujitsu Lifebook Application Panel buttons"
++	depends on X86
++	select I2C_I801
++	select INPUT_POLLDEV
++	select CHECK_SIGNATURE
++	help
++	 Say Y here for support of the Application Panel buttons, used on
++	 Fujitsu Lifebook. These are attached to the mainboard through
++	 an SMBus interface managed by the I2C Intel ICH (i801) driver.
++
++	 To compile this driver as a module, choose M here: the module will
++	 be called apanel.
++
+ config INPUT_IXP4XX_BEEPER
+ 	tristate "IXP4XX Beeper support"
+ 	depends on ARCH_IXP4XX
+diff -puN drivers/input/misc/Makefile~fujitsu-application-panel-driver drivers/input/misc/Makefile
+--- a/drivers/input/misc/Makefile~fujitsu-application-panel-driver
++++ a/drivers/input/misc/Makefile
+@@ -18,3 +18,4 @@ obj-$(CONFIG_INPUT_POWERMATE)		+= powerm
+ obj-$(CONFIG_INPUT_YEALINK)		+= yealink.o
+ obj-$(CONFIG_HP_SDC_RTC)		+= hp_sdc_rtc.o
+ obj-$(CONFIG_INPUT_UINPUT)		+= uinput.o
++obj-$(CONFIG_INPUT_APANEL)		+= apanel.o
+diff -puN /dev/null drivers/input/misc/apanel.c
+--- /dev/null
++++ a/drivers/input/misc/apanel.c
+@@ -0,0 +1,407 @@
++/*
++ *  Fujitsu Lifebook Application Panel button drive
++ *
++ *  Copyright (C) 2007 Stephen Hemminger <shemminger@linux-foundation.org>
++ *  Copyright (C) 2001-2003 Jochen Eisinger <jochen@penguin-breeder.org>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * Many Fujitsu Lifebook laptops have a small panel of buttons that are
++ * accessible via the i2c/smbus interface. This driver polls those
++ * buttons and generates input events.
++ *
++ * For more details see:
++ * 	http://apanel.sourceforge.net/tech.php
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/ioport.h>
++#include <linux/io.h>
++#include <linux/module.h>
++#include <linux/input-polldev.h>
++#include <linux/i2c.h>
++#include <linux/workqueue.h>
++#include <linux/leds.h>
++
++#define APANEL_NAME	"Fujitsu Application Panel"
++#define APANEL_VERSION	"1.3"
++#define APANEL		"apanel"
++
++/* How often we poll keys - msecs */
++#define POLL_INTERVAL_DEFAULT	1000
++
++/* Magic constants in BIOS that tell about buttons */
++enum apanel_devid {
++	APANEL_DEV_NONE	  = 0,
++	APANEL_DEV_APPBTN = 1,
++	APANEL_DEV_CDBTN  = 2,
++	APANEL_DEV_LCD	  = 3,
++	APANEL_DEV_LED	  = 4,
++	APANEL_DEV_MAX,
++};
++
++enum apanel_chip {
++	CHIP_NONE    = 0,
++	CHIP_OZ992C  = 1,
++	CHIP_OZ163T  = 2,
++	CHIP_OZ711M3 = 4,
++};
++
++/* Result of BIOS snooping/probing -- what features are supported */
++static enum apanel_chip device_chip[APANEL_DEV_MAX];
++
++/* names for APANEL_XXX */
++static const char *device_names[APANEL_DEV_MAX] __initdata = {
++	[APANEL_DEV_APPBTN] = "Application Buttons",
++	[APANEL_DEV_LCD]    = "LCD",
++	[APANEL_DEV_LED]    = "LED",
++	[APANEL_DEV_CDBTN]  = "CD Buttons",
++};
++
++#define MAX_PANEL_KEYS	12
++
++struct apanel {
++	struct input_polled_dev *ipdev;
++	struct i2c_client client;
++	unsigned keymap[MAX_PANEL_KEYS];
++	u16    nkeys;
++	u16    led_bits;
++	struct work_struct led_work;
++	struct led_classdev mail_led;
++};
++
++
++static int apanel_probe(struct i2c_adapter *, int, int);
++
++/* for now, we only support one address */
++static unsigned short normal_i2c[] = {0, I2C_CLIENT_END};
++static unsigned short ignore = I2C_CLIENT_END;
++static struct i2c_client_address_data addr_data = {
++	.normal_i2c	= normal_i2c,
++	.probe		= &ignore,
++	.ignore		= &ignore,
++};
++
++static void report_key(struct input_dev *input, unsigned keycode)
 +{
-+	switch (baud) {
-+	case 50:
-+		return DZ_B50;
-+	case 75:
-+		return DZ_B75;
-+	case 110:
-+		return DZ_B110;
-+	case 134:
-+		return DZ_B134;
-+	case 150:
-+		return DZ_B150;
-+	case 300:
-+		return DZ_B300;
-+	case 600:
-+		return DZ_B600;
-+	case 1200:
-+		return DZ_B1200;
-+	case 1800:
-+		return DZ_B1800;
-+	case 2000:
-+		return DZ_B2000;
-+	case 2400:
-+		return DZ_B2400;
-+	case 3600:
-+		return DZ_B3600;
-+	case 4800:
-+		return DZ_B4800;
-+	case 7200:
-+		return DZ_B7200;
-+	case 9600:
-+		return DZ_B9600;
-+	default:
-+		return -1;
-+	}
++	pr_debug(APANEL ": report key %#x\n", keycode);
++	input_report_key(input, keycode, 1);
++	input_sync(input);
++
++	input_report_key(input, keycode, 0);
++	input_sync(input);
 +}
 +
- static void dz_set_termios(struct uart_port *uport, struct ktermios *termios,
- 			   struct ktermios *old_termios)
- {
- 	struct dz_port *dport = (struct dz_port *)uport;
- 	unsigned long flags;
- 	unsigned int cflag, baud;
-+	int bflag;
- 
- 	cflag = dport->port.line;
- 
-@@ -492,60 +531,26 @@ static void dz_set_termios(struct uart_p
- 		cflag |= DZ_PARODD;
- 
- 	baud = uart_get_baud_rate(uport, termios, old_termios, 50, 9600);
--	switch (baud) {
--	case 50:
--		cflag |= DZ_B50;
--		break;
--	case 75:
--		cflag |= DZ_B75;
--		break;
--	case 110:
--		cflag |= DZ_B110;
--		break;
--	case 134:
--		cflag |= DZ_B134;
--		break;
--	case 150:
--		cflag |= DZ_B150;
--		break;
--	case 300:
--		cflag |= DZ_B300;
--		break;
--	case 600:
--		cflag |= DZ_B600;
--		break;
--	case 1200:
--		cflag |= DZ_B1200;
--		break;
--	case 1800:
--		cflag |= DZ_B1800;
--		break;
--	case 2000:
--		cflag |= DZ_B2000;
--		break;
--	case 2400:
--		cflag |= DZ_B2400;
--		break;
--	case 3600:
--		cflag |= DZ_B3600;
--		break;
--	case 4800:
--		cflag |= DZ_B4800;
--		break;
--	case 7200:
--		cflag |= DZ_B7200;
--		break;
--	case 9600:
--	default:
--		cflag |= DZ_B9600;
-+	bflag = dz_encode_baud_rate(baud);
-+	if (bflag < 0)	{			/* Try to keep unchanged.  */
-+		baud = uart_get_baud_rate(uport, old_termios, NULL, 50, 9600);
-+		bflag = dz_encode_baud_rate(baud);
-+		if (bflag < 0)	{		/* Resort to 9600.  */
-+			baud = 9600;
-+			bflag = DZ_B9600;
++/* Poll for key changes
++ *
++ * Read Application keys via SMI
++ *  A (0x4), B (0x8), Internet (0x2), Email (0x1).
++ *
++ * CD keys:
++ * Forward (0x100), Rewind (0x200), Stop (0x400), Pause (0x800)
++ */
++static void apanel_poll(struct input_polled_dev *ipdev)
++{
++	struct apanel *ap = ipdev->private;
++	struct input_dev *idev = ipdev->input;
++	u8 cmd = device_chip[APANEL_DEV_APPBTN] == CHIP_OZ992C ? 0 : 8;
++	s32 data;
++	int i;
++
++	data = i2c_smbus_read_word_data(&ap->client, cmd);
++	if (data < 0)
++		return;	/* ignore errors (due to ACPI??) */
++
++	/* write back to clear latch */
++	i2c_smbus_write_word_data(&ap->client, cmd, 0);
++
++	if (!data)
++		return;
++
++	dev_dbg(&ipdev->input->dev, APANEL ": data %#x\n", data);
++	for (i = 0; i < ipdev->input->keycodemax; i++)
++		if (1ul << i & data)
++			report_key(idev, ap->keymap[i]);
++}
++
++static int apanel_getkeycode(struct input_dev *idev, int scancode, int *keycode)
++{
++	struct apanel *ap = idev->private;
++
++	if (scancode < 0 || scancode >= MAX_PANEL_KEYS)
++		return -EINVAL;
++
++	*keycode = ap->keymap[scancode];
++	return 0;
++}
++
++static int apanel_setkeycode(struct input_dev *idev, int scancode, int keycode)
++{
++	struct apanel *ap = idev->private;
++
++	if (keycode < 0 || keycode > KEY_MAX)
++		return -EINVAL;
++
++	if (scancode < 0 || scancode >= MAX_PANEL_KEYS)
++		return -EINVAL;
++
++	clear_bit(ap->keymap[scancode], idev->keybit);
++	ap->keymap[scancode] = keycode;
++	set_bit(keycode, idev->keybit);
++	return 0;
++}
++
++/* Track state changes of LED */
++static void led_update(struct work_struct *work)
++{
++	struct apanel *ap = container_of(work, struct apanel, led_work);
++
++	i2c_smbus_write_word_data(&ap->client, 0x10, ap->led_bits);
++}
++
++static void mail_led_set(struct led_classdev *led,
++			 enum led_brightness value)
++{
++	struct apanel *ap = container_of(led, struct apanel, mail_led);
++	if (value)
++		ap->led_bits |= 0x8000;
++	else
++		ap->led_bits &= ~0x8000;
++	ap->led_bits = value;
++	schedule_work(&ap->led_work);
++}
++
++static int apanel_detach_client(struct i2c_client *client)
++{
++	struct apanel *ap = i2c_get_clientdata(client);
++
++	if (device_chip[APANEL_DEV_LED] != CHIP_NONE)
++		led_classdev_unregister(&ap->mail_led);
++
++	input_unregister_polled_device(ap->ipdev);
++	i2c_detach_client(&ap->client);
++
++	return 0;
++}
++
++/* Function is invoked for every i2c adapter. */
++static int apanel_attach_adapter(struct i2c_adapter *adap)
++{
++	dev_dbg(&adap->dev, APANEL ": attach adapter id=%d\n", adap->id);
++
++	/* Our device is connected only to i801 on laptop */
++	if (adap->id != I2C_HW_SMBUS_I801)
++		return -ENODEV;
++
++	return i2c_probe(adap, &addr_data, apanel_probe);
++}
++
++static struct i2c_driver apanel_driver = {
++	.driver = {
++		.name = APANEL,
++	},
++	.attach_adapter = &apanel_attach_adapter,
++	.detach_client  = &apanel_detach_client,
++};
++
++static struct apanel apanel = {
++	.client = {
++		.driver = &apanel_driver,
++		.name   = APANEL,
++	},
++	.keymap = {
++		[0] = KEY_MAIL,
++		[1] = KEY_WWW,
++		[2] = KEY_PROG2,
++		[3] = KEY_PROG1,
++
++		[8] = KEY_FORWARD,
++		[9] = KEY_REWIND,
++		[10] = KEY_STOPCD,
++		[11] = KEY_PLAYPAUSE,
++
++	},
++	.mail_led = {
++		.name = APANEL ":mail",
++		.brightness_set = mail_led_set,
++	},
++};
++
++/* NB: Only one panel on the i2c. */
++static int apanel_probe(struct i2c_adapter *bus, int address, int kind)
++{
++	struct apanel *ap;
++	struct input_polled_dev *ipdev;
++	struct input_dev *idev;
++	u8 cmd = device_chip[APANEL_DEV_APPBTN] == CHIP_OZ992C ? 0 : 8;
++	int i, err = -ENOMEM;
++
++	dev_dbg(&bus->dev, APANEL ": probe adapter %p addr %d kind %d\n",
++		bus, address, kind);
++
++	ap = &apanel;
++
++	ipdev = input_allocate_polled_device();
++	if (!ipdev)
++		goto out1;
++
++	ap->ipdev = ipdev;
++	ap->client.adapter = bus;
++	ap->client.addr = address;
++
++	i2c_set_clientdata(&ap->client, ap);
++
++	err = i2c_attach_client(&ap->client);
++	if (err)
++		goto out2;
++
++	err = i2c_smbus_write_word_data(&ap->client, cmd, 0);
++	if (err) {
++		dev_warn(&ap->client.dev, APANEL ": smbus write error %d\n",
++			 err);
++		goto out3;
++	}
++
++	ipdev->poll = apanel_poll;
++	ipdev->poll_interval = POLL_INTERVAL_DEFAULT;
++	ipdev->private = ap;
++
++	idev = ipdev->input;
++	idev->name = APANEL_NAME " buttons";
++	idev->phys = "apanel/input0";
++	idev->id.bustype = BUS_HOST;
++	idev->dev.parent = &ap->client.dev;
++	idev->getkeycode = apanel_getkeycode;
++	idev->setkeycode = apanel_setkeycode;
++
++	set_bit(EV_KEY, idev->evbit);
++
++	idev->keycodemax = (device_chip[APANEL_DEV_CDBTN] != CHIP_NONE) ? 12 : 4;
++
++	for (i = 0; i < idev->keycodemax; i++)
++		if (ap->keymap[i])
++			set_bit(ap->keymap[i], idev->keybit);
++
++	err = input_register_polled_device(ipdev);
++	if (err)
++		goto out3;
++
++	INIT_WORK(&ap->led_work, led_update);
++	if (device_chip[APANEL_DEV_LED] != CHIP_NONE) {
++		err = led_classdev_register(&ap->client.dev, &ap->mail_led);
++		if (err)
++			goto out4;
++	}
++
++	return 0;
++out4:
++	input_unregister_polled_device(ipdev);
++out3:
++	i2c_detach_client(&ap->client);
++out2:
++	input_free_polled_device(ipdev);
++out1:
++	return err;
++}
++
++/* Scan the system ROM for the signature "FJKEYINF" */
++static __init const void __iomem *bios_signature(const void __iomem *bios)
++{
++	ssize_t offset;
++	const unsigned char signature[] = "FJKEYINF";
++
++	for (offset = 0; offset < 0x10000; offset += 0x10) {
++		if (check_signature(bios + offset, signature,
++				    sizeof(signature)-1))
++			return bios + offset;
++	}
++	pr_notice(APANEL ": Fujitsu BIOS signature '%s' not found...\n",
++		  signature);
++	return NULL;
++}
++
++static int __init apanel_init(void)
++{
++	void __iomem *bios;
++	const void __iomem *p;
++	u8 devno;
++	int found = 0;
++
++	bios = ioremap(0xF0000, 0x10000); /* Can't fail */
++
++	p = bios_signature(bios);
++	if (!p) {
++		iounmap(bios);
++		return -ENODEV;
++	}
++
++	/* just use the first address */
++	p += 8;
++	normal_i2c[0] = readb(p+3) >> 1;
++
++	for ( ; (devno = readb(p)) & 0x7f; p += 4) {
++		unsigned char method, slave, chip;
++
++		method = readb(p + 1);
++		chip = readb(p + 2);
++		slave = readb(p + 3) >> 1;
++
++		if (slave != normal_i2c[0]) {
++			pr_notice(APANEL ": only one SMBus slave "
++				  "address supported, skiping device...\n");
++			continue;
 +		}
-+		tty_termios_encode_baud_rate(termios, baud, baud);
- 	}
-+	cflag |= bflag;
- 
- 	if (termios->c_cflag & CREAD)
- 		cflag |= DZ_RXENAB;
- 
- 	spin_lock_irqsave(&dport->port.lock, flags);
- 
--	dz_out(dport, DZ_LPR, cflag | dport->port.line);
-+	uart_update_timeout(uport, termios->c_cflag, baud);
 +
-+	dz_out(dport, DZ_LPR, cflag);
- 	dport->cflag = cflag;
- 
- 	/* setup accept flag */
-diff -puN drivers/serial/dz.h~dz-clean-up-and-improve-the-setup-of-termios-settings drivers/serial/dz.h
---- a/drivers/serial/dz.h~dz-clean-up-and-improve-the-setup-of-termios-settings
-+++ a/drivers/serial/dz.h
-@@ -107,8 +107,8 @@
- #define DZ_B7200         0x0D00
- #define DZ_B9600         0x0E00
- 
--#define DZ_CREAD         0x1000               /* Enable receiver */
--#define DZ_RXENAB        0x1000               /* enable receive char */
-+#define DZ_RXENAB        0x1000               /* Receiver Enable */
++		/* translate alternative device numbers */
++		switch (devno) {
++		case 6:
++			devno = APANEL_DEV_APPBTN;
++			break;
++		case 7:
++			devno = APANEL_DEV_LED;
++			break;
++		}
 +
- /*
-  * Addresses for the DZ registers
-  */
++		if (devno >= APANEL_DEV_MAX)
++			pr_notice(APANEL ": unknown device %d found\n", devno);
++		else if (device_chip[devno] != CHIP_NONE)
++			pr_warning(APANEL ": duplicate entry for %s\n",
++				   device_names[devno]);
++
++		else if (method != 1 && method != 2 && method != 4) {
++			pr_notice(APANEL ": unknown  method %u for %s\n",
++				  method, device_names[devno]);
++		} else {
++			pr_debug(APANEL ": %s found.\n", device_names[devno]);
++
++			device_chip[devno] = (enum apanel_chip) chip;
++			++found;
++		}
++	}
++	iounmap(bios);
++
++	if (found == 0) {
++		pr_info(APANEL ": no input devices reported by BIOS\n");
++		return -EIO;
++	}
++
++	return i2c_add_driver(&apanel_driver);
++}
++module_init(apanel_init);
++
++static void __exit apanel_cleanup(void)
++{
++	i2c_del_driver(&apanel_driver);
++}
++module_exit(apanel_cleanup);
++
++MODULE_AUTHOR("Stephen Hemminger <shemminger@linux-foundation.org>");
++MODULE_DESCRIPTION(APANEL_NAME " driver");
++MODULE_LICENSE("GPL");
++MODULE_VERSION(APANEL_VERSION);
++
++MODULE_ALIAS("dmi:*:svnFUJITSU:pnLifeBook*:pvr*:rvnFUJITSU:*");
++MODULE_ALIAS("dmi:*:svnFUJITSU:pnLifebook*:pvr*:rvnFUJITSU:*");
 _
 
-Patches currently in -mm which might be from macro@linux-mips.org are
+Patches currently in -mm which might be from shemminger@linux-foundation.org are
 
-kernel-printkc-concerns-about-the-console-handover.patch
-dz-clean-up-and-improve-the-setup-of-termios-settings.patch
-dzh-remove-useless-unused-module-junk.patch
-dz-always-check-if-it-is-safe-to-console_putchar.patch
-dz-dont-panic-when-request_irq-fails.patch
-dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
-dz-update-kconfig-description.patch
-dz-rename-the-serial-console-structure.patch
-dz-fix-locking-issues.patch
-dz-handle-special-conditions-on-reception-correctly.patch
-maintainers-add-self-for-the-dz-serial-driver.patch
+fujitsu-application-panel-driver.patch
+git-wireless.patch
