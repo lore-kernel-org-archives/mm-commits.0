@@ -1,90 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - md-raid5-fix-clearing-of-biofill-operations.patch removed from -mm tree
-Date: Wed, 24 Oct 2007 14:41:04 -0700
-Message-ID: <200710242141.l9OLf4hZ013911@imap1.linux-foundation.org>
+Subject: - usb_serial-stop-passing-null-to-functions-that-expect-data.patch removed from -mm tree
+Date: Wed, 24 Oct 2007 14:41:36 -0700
+Message-ID: <200710242141.l9OLfaeR013969@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58182 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46017 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760496AbXJXVl6 (ORCPT
+	by vger.kernel.org with ESMTP id S1757002AbXJXVl5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 17:41:58 -0400
+	Wed, 24 Oct 2007 17:41:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, joel.bertrand@systella.fr, neilb@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     md: raid5: fix clearing of biofill operations
+     usb_serial: stop passing NULL to functions that expect data
 has been removed from the -mm tree.  Its filename was
-     md-raid5-fix-clearing-of-biofill-operations.patch
+     usb_serial-stop-passing-null-to-functions-that-expect-data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: md: raid5: fix clearing of biofill operations
-From: Dan Williams <dan.j.williams@intel.com>
+Subject: usb_serial: stop passing NULL to functions that expect data
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-ops_complete_biofill() runs outside of spin_lock(&sh->lock) and clears the
-'pending' and 'ack' bits.  Since the test_and_ack_op() macro only checks
-against 'complete' it can get an inconsistent snapshot of pending work.
+Earlier patches have removed the checking for old v new differences from the
+USB drivers so we can now pass in a valid blank old termios so that we don't
+to fill the drivers with magic hacks for console support
 
-Move the clearing of these bits to handle_stripe5(), under the lock.
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Tested-by: Joel Bertrand <joel.bertrand@systella.fr>
-Signed-off-by: Neil Brown <neilb@suse.de>
-Cc: Stable <stable@kernel.org>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid5.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ drivers/serial/serial_core.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/md/raid5.c~md-raid5-fix-clearing-of-biofill-operations drivers/md/raid5.c
---- a/drivers/md/raid5.c~md-raid5-fix-clearing-of-biofill-operations
-+++ a/drivers/md/raid5.c
-@@ -376,7 +376,12 @@ static unsigned long get_stripe_work(str
- 		ack++;
+diff -puN drivers/serial/serial_core.c~usb_serial-stop-passing-null-to-functions-that-expect-data drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~usb_serial-stop-passing-null-to-functions-that-expect-data
++++ a/drivers/serial/serial_core.c
+@@ -1875,6 +1875,7 @@ uart_set_options(struct uart_port *port,
+ 		 int baud, int parity, int bits, int flow)
+ {
+ 	struct ktermios termios;
++	static struct ktermios dummy;
+ 	int i;
  
- 	sh->ops.count -= ack;
--	BUG_ON(sh->ops.count < 0);
-+	if (unlikely(sh->ops.count < 0)) {
-+		printk(KERN_ERR "pending: %#lx ops.pending: %#lx ops.ack: %#lx "
-+			"ops.complete: %#lx\n", pending, sh->ops.pending,
-+			sh->ops.ack, sh->ops.complete);
-+		BUG();
-+	}
+ 	/*
+@@ -1920,7 +1921,7 @@ uart_set_options(struct uart_port *port,
+ 	 */
+ 	port->mctrl |= TIOCM_DTR;
  
- 	return pending;
- }
-@@ -550,8 +555,7 @@ static void ops_complete_biofill(void *s
- 			}
- 		}
- 	}
--	clear_bit(STRIPE_OP_BIOFILL, &sh->ops.ack);
--	clear_bit(STRIPE_OP_BIOFILL, &sh->ops.pending);
-+	set_bit(STRIPE_OP_BIOFILL, &sh->ops.complete);
+-	port->ops->set_termios(port, &termios, NULL);
++	port->ops->set_termios(port, &termios, &dummy);
+ 	co->cflag = termios.c_cflag;
  
- 	return_io(return_bi);
- 
-@@ -2893,6 +2897,13 @@ static void handle_stripe6(struct stripe
- 	s.expanded = test_bit(STRIPE_EXPAND_READY, &sh->state);
- 	/* Now to look around and see what can be done */
- 
-+	/* clean-up completed biofill operations */
-+	if (test_bit(STRIPE_OP_BIOFILL, &sh->ops.complete)) {
-+		clear_bit(STRIPE_OP_BIOFILL, &sh->ops.pending);
-+		clear_bit(STRIPE_OP_BIOFILL, &sh->ops.ack);
-+		clear_bit(STRIPE_OP_BIOFILL, &sh->ops.complete);
-+	}
-+
- 	rcu_read_lock();
- 	for (i=disks; i--; ) {
- 		mdk_rdev_t *rdev;
+ 	return 0;
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-git-md-accel.patch
-i-oat-add-support-for-version-2-of-ioatdma-device.patch
+git-libata-all.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+initio-fix-conflict-when-loading-driver.patch
+geode-lists-are-subscriber-only.patch
+tty-kill-tty_flipbuf_size.patch
+drivers-edac-turnon-edac-device-error-logging.patch
+drivers-edac-use-round_jiffies_relative.patch
+drivers-edac-add-cell-xdr-memory-types.patch
+drivers-edac-add-cell-mc-driver.patch
+drivers-edac-i3000-code-tidying.patch
+drivers-edac-i3000-replace-macros-with-functions.patch
+drivers-edac-add-freescale-mpc85xx-driver.patch
+drivers-edac-add-marvell-mv64x60-driver.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
