@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file.patch added to -mm tree
-Date: Wed, 24 Oct 2007 16:07:37 -0700
-Message-ID: <200710242307.l9ON7btk017173@imap1.linux-foundation.org>
+Subject: + forcedeth-new-device-ids.patch added to -mm tree
+Date: Wed, 24 Oct 2007 16:09:49 -0700
+Message-ID: <200710242309.l9ON9nYq017288@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44492 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37471 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754238AbXJXXI6 (ORCPT
+	by vger.kernel.org with ESMTP id S1755159AbXJXXJw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 19:08:58 -0400
+	Wed, 24 Oct 2007 19:09:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wfg@mail.ustc.edu.cn, chris.mason@oracle.com, jeffm@suse.com, maximlevitsky@gmail.com, peterz@infradead.org, stable@kernel.org
+Cc: aabdulla@nvidia.com
 
 
 The patch titled
-     reiserfs: don't drop PG_dirty when releasing sub-page-sized dirty file
+     forcedeth: new device ids
 has been added to the -mm tree.  Its filename is
-     reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file.patch
+     forcedeth-new-device-ids.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,112 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: reiserfs: don't drop PG_dirty when releasing sub-page-sized dirty file
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: forcedeth: new device ids
+From: Ayaz Abdulla <aabdulla@nvidia.com>
 
-This is not a new problem in 2.6.23-git17.  2.6.22/2.6.23 is buggy in the
-same way.
+Add new device ids for mcp77 devices.
 
-Reiserfs could accumulate dirty sub-page-size files until umount time. 
-They cannot be synced to disk by pdflush routines or explicit `sync'
-commands.  Only `umount' can do the trick.
-
-The direct cause is: the dirty page's PG_dirty is wrongly _cleared_.
-Call trace:
-	 [<ffffffff8027e920>] cancel_dirty_page+0xd0/0xf0
-	 [<ffffffff8816d470>] :reiserfs:reiserfs_cut_from_item+0x660/0x710
-	 [<ffffffff8816d791>] :reiserfs:reiserfs_do_truncate+0x271/0x530
-	 [<ffffffff8815872d>] :reiserfs:reiserfs_truncate_file+0xfd/0x3b0
-	 [<ffffffff8815d3d0>] :reiserfs:reiserfs_file_release+0x1e0/0x340
-	 [<ffffffff802a187c>] __fput+0xcc/0x1b0
-	 [<ffffffff802a1ba6>] fput+0x16/0x20
-	 [<ffffffff8029e676>] filp_close+0x56/0x90
-	 [<ffffffff8029fe0d>] sys_close+0xad/0x110
-	 [<ffffffff8020c41e>] system_call+0x7e/0x83
-
-Fix the bug by removing the cancel_dirty_page() call. Tests show that
-it causes no bad behaviors on various write sizes.
-
-=== for the patient ===
-Here are more detailed demonstrations of the problem.
-
-1) the page has both PG_dirty(D)/PAGECACHE_TAG_DIRTY(d) after being written to;
-   and then only PAGECACHE_TAG_DIRTY(d) remains after the file is closed.
-
------------------------------- screen 0 ------------------------------
-[T0] root /home/wfg# cat > /test/tiny
-[T1] hi
-[T2] root /home/wfg#
-
------------------------------- screen 1 ------------------------------
-[T1] root /home/wfg# echo /test/tiny > /proc/filecache
-[T1] root /home/wfg# cat /proc/filecache
-     # file /test/tiny
-     # flags R:referenced A:active M:mmap U:uptodate D:dirty W:writeback O:owner B:buffer d:dirty w:writeback
-     # idx   len     state   refcnt
-     0       1       ___UD__Bd_      2
-[T2] root /home/wfg# cat /proc/filecache
-     # file /test/tiny
-     # flags R:referenced A:active M:mmap U:uptodate D:dirty W:writeback O:owner B:buffer d:dirty w:writeback
-     # idx   len     state   refcnt
-     0       1       ___U___Bd_      2
-
-2) note the non-zero 'cancelled_write_bytes' after /tmp/hi is copied.
-
------------------------------- screen 0 ------------------------------
-[T0] root /home/wfg# echo hi > /tmp/hi
-[T1] root /home/wfg# cp /tmp/hi /dev/stdin /test
-[T2] hi
-[T3] root /home/wfg#
-
------------------------------- screen 1 ------------------------------
-[T1] root /proc/4397# cd /proc/`pidof cp`
-[T1] root /proc/4713# cat io
-     rchar: 8396
-     wchar: 3
-     syscr: 20
-     syscw: 1
-     read_bytes: 0
-     write_bytes: 20480
-     cancelled_write_bytes: 4096
-[T2] root /proc/4713# cat io
-     rchar: 8399
-     wchar: 6
-     syscr: 21
-     syscw: 2
-     read_bytes: 0
-     write_bytes: 24576
-     cancelled_write_bytes: 4096
-
-//Question: the 'write_bytes' is a bit more than expected ;-)
-
-Tested-by: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-Sort-of-acked-by: Chris Mason <chris.mason@oracle.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/stree.c |    3 ---
- 1 file changed, 3 deletions(-)
+ include/linux/pci_ids.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN fs/reiserfs/stree.c~reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file fs/reiserfs/stree.c
---- a/fs/reiserfs/stree.c~reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file
-+++ a/fs/reiserfs/stree.c
-@@ -1458,9 +1458,6 @@ static void unmap_buffers(struct page *p
- 				}
- 				bh = next;
- 			} while (bh != head);
--			if (PAGE_SIZE == bh->b_size) {
--				cancel_dirty_page(page, PAGE_CACHE_SIZE);
--			}
- 		}
- 	}
- }
+diff -puN include/linux/pci_ids.h~forcedeth-new-device-ids include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~forcedeth-new-device-ids
++++ a/include/linux/pci_ids.h
+@@ -1236,6 +1236,10 @@
+ #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP67_IDE       0x0560
+ #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP73_IDE       0x056C
+ #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP77_IDE       0x0759
++#define PCI_DEVICE_ID_NVIDIA_NVENET_32              0x0760
++#define PCI_DEVICE_ID_NVIDIA_NVENET_33              0x0761
++#define PCI_DEVICE_ID_NVIDIA_NVENET_34              0x0762
++#define PCI_DEVICE_ID_NVIDIA_NVENET_35              0x0763
+ 
+ #define PCI_VENDOR_ID_IMS		0x10e0
+ #define PCI_DEVICE_ID_IMS_TT128		0x9128
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from aabdulla@nvidia.com are
 
-reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+forcedeth-new-device-ids.patch
+a.patch
