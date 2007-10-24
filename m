@@ -1,29 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-perfmon-kill-dead-code-clean-irq-handling.patch added to -mm tree
-Date: Wed, 24 Oct 2007 16:26:05 -0700
-Message-ID: <200710242326.l9ONQ6k9017851@imap1.linux-foundation.org>
+Subject: - ia64-perfmon-kill-dead-code-clean-irq-handling.patch removed from -mm tree
+Date: Wed, 24 Oct 2007 16:27:31 -0700
+Message-ID: <200710242327.l9ONRWHO017869@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41855 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51145 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753551AbXJXX0l (ORCPT
+	by vger.kernel.org with ESMTP id S1754156AbXJXX2G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 19:26:41 -0400
+	Wed, 24 Oct 2007 19:28:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jeff@garzik.org, eranian@hpl.hp.com, jgarzik@redhat.com, tony.luck@intel.com
+To: jeff@garzik.org, eranian@hpl.hp.com, jgarzik@redhat.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      IA64/perfmon: kill dead code, clean irq handling
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      ia64-perfmon-kill-dead-code-clean-irq-handling.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 Subject: IA64/perfmon: kill dead code, clean irq handling
@@ -230,8 +226,8 @@ _
 Patches currently in -mm which might be from jeff@garzik.org are
 
 acpi-sbs-fix-retval-warning.patch
-ia64-perfmon-kill-dead-code-clean-irq-handling.patch
 git-jg-misc.patch
+ia64-perfmon-kill-dead-code-clean-irq-handling.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
 scsi-expose-an-support-to-user-space.patch
