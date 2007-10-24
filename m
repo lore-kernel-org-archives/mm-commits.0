@@ -1,29 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + x86-boot-document-for-32-bit-boot-protocol.patch added to -mm tree
-Date: Tue, 23 Oct 2007 18:58:55 -0700
-Message-ID: <200710240158.l9O1wtaj017056@imap1.linux-foundation.org>
+Subject: - x86-boot-document-for-32-bit-boot-protocol.patch removed from -mm tree
+Date: Tue, 23 Oct 2007 19:10:31 -0700
+Message-ID: <200710240210.l9O2AVXQ017558@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34060 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41700 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753388AbXJXB7B (ORCPT
+	by vger.kernel.org with ESMTP id S1752663AbXJXCKf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Oct 2007 21:59:01 -0400
+	Tue, 23 Oct 2007 22:10:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: ying.huang@intel.com, hpa@zytor.com
+To: ying.huang@intel.com, hpa@zytor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      x86 boot: document for 32 bit boot protocol
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      x86-boot-document-for-32-bit-boot-protocol.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 Subject: x86 boot: document for 32 bit boot protocol
