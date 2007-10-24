@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cris-array_size-cleanup.patch added to -mm tree
-Date: Wed, 24 Oct 2007 15:27:02 -0700
-Message-ID: <200710242227.l9OMR2M8015781@imap1.linux-foundation.org>
+Subject: + ext2-fix-the-max-file-size-for-ext2-file-system.patch added to -mm tree
+Date: Wed, 24 Oct 2007 15:24:20 -0700
+Message-ID: <200710242224.l9OMOKut015648@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42474 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40734 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753391AbXJXW1N (ORCPT
+	by vger.kernel.org with ESMTP id S1754526AbXJXWaN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 18:27:13 -0400
+	Wed, 24 Oct 2007 18:30:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alex@flawedcode.org, starvik@axis.com
+Cc: aneesh.kumar@linux.vnet.ibm.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     cris: ARRAY_SIZE() cleanup
+     ext2: fix the max file size for ext2 file system
 has been added to the -mm tree.  Its filename is
-     cris-array_size-cleanup.patch
+     ext2-fix-the-max-file-size-for-ext2-file-system.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,104 +26,74 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cris: ARRAY_SIZE() cleanup
-From: Alex Unleashed <alex@flawedcode.org>
+Subject: ext2: fix the max file size for ext2 file system
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 
-I'm converting most array size calculations under arch/ to use
-ARRAY_SIZE().  This is the patch for CRIS.
+The max file size for ext2 file system is now calculated with hardcoded 4K
+block size.  The patch fixes it to be calculated with the right block size.
 
-Signed-off-by: Alejandro Martinez Ruiz <alex@flawedcode.org>
-Cc: Mikael Starvik <starvik@axis.com>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/kernel/io_interface_mux.c |    2 +-
- arch/cris/arch-v10/kernel/setup.c            |    4 ++--
- arch/cris/arch-v32/drivers/sync_serial.c     |    2 +-
- arch/cris/arch-v32/kernel/io.c               |    2 +-
- arch/cris/arch-v32/kernel/setup.c            |    6 ++----
- 5 files changed, 7 insertions(+), 9 deletions(-)
+ fs/ext2/super.c |   32 ++++++++++++++++++++++++++++----
+ 1 file changed, 28 insertions(+), 4 deletions(-)
 
-diff -puN arch/cris/arch-v10/kernel/io_interface_mux.c~cris-array_size-cleanup arch/cris/arch-v10/kernel/io_interface_mux.c
---- a/arch/cris/arch-v10/kernel/io_interface_mux.c~cris-array_size-cleanup
-+++ a/arch/cris/arch-v10/kernel/io_interface_mux.c
-@@ -304,7 +304,7 @@ static unsigned char clear_group_from_se
- static struct if_group *get_group(const unsigned char groups)
+diff -puN fs/ext2/super.c~ext2-fix-the-max-file-size-for-ext2-file-system fs/ext2/super.c
+--- a/fs/ext2/super.c~ext2-fix-the-max-file-size-for-ext2-file-system
++++ a/fs/ext2/super.c
+@@ -680,11 +680,31 @@ static int ext2_check_descriptors (struc
+ static loff_t ext2_max_size(int bits)
  {
- 	int i;
--	for (i = 0; i < sizeof(if_groups)/sizeof(struct if_group); i++) {
-+	for (i = 0; i < ARRAY_SIZE(if_groups); i++) {
- 		if (groups & if_groups[i].group) {
- 			return &if_groups[i];
- 		}
-diff -puN arch/cris/arch-v10/kernel/setup.c~cris-array_size-cleanup arch/cris/arch-v10/kernel/setup.c
---- a/arch/cris/arch-v10/kernel/setup.c~cris-array_size-cleanup
-+++ a/arch/cris/arch-v10/kernel/setup.c
-@@ -56,8 +56,8 @@ int show_cpuinfo(struct seq_file *m, voi
+ 	loff_t res = EXT2_NDIR_BLOCKS;
+-	/* This constant is calculated to be the largest file size for a
+-	 * dense, 4k-blocksize file such that the total number of
++	int meta_blocks;
++	loff_t upper_limit;
++
++	/* This is calculated to be the largest file size for a
++	 * dense, file such that the total number of
+ 	 * sectors in the file, including data and all indirect blocks,
+-	 * does not exceed 2^32. */
+-	const loff_t upper_limit = 0x1ff7fffd000LL;
++	 * does not exceed 2^32 -1
++	 * __u32 i_blocks representing the total number of
++	 * 512 bytes blocks of the file
++	 */
++	upper_limit = (1LL << 32) - 1;
++
++	/* total blocks in file system block size */
++	upper_limit >>= (bits - 9);
++
++
++	/* indirect blocks */
++	meta_blocks = 1;
++	/* double indirect blocks */
++	meta_blocks += 1 + (1LL << (bits-2));
++	/* tripple indirect blocks */
++	meta_blocks += 1 + (1LL << (bits-2)) + (1LL << (2*(bits-2)));
++
++	upper_limit -= meta_blocks;
++	upper_limit <<= bits;
  
- 	revision = rdvr();
+ 	res += 1LL << (bits-2);
+ 	res += 1LL << (2*(bits-2));
+@@ -692,6 +712,10 @@ static loff_t ext2_max_size(int bits)
+ 	res <<= bits;
+ 	if (res > upper_limit)
+ 		res = upper_limit;
++
++	if (res > MAX_LFS_FILESIZE)
++		res = MAX_LFS_FILESIZE;
++
+ 	return res;
+ }
  
--	if (revision >= sizeof cpu_info/sizeof *cpu_info)
--		info = &cpu_info[sizeof cpu_info/sizeof *cpu_info - 1];
-+	if (revision >= ARRAY_SIZE(cpu_info))
-+		info = &cpu_info[ARRAY_SIZE(cpu_info) - 1];
- 	else
- 		info = &cpu_info[revision];
- 
-diff -puN arch/cris/arch-v32/drivers/sync_serial.c~cris-array_size-cleanup arch/cris/arch-v32/drivers/sync_serial.c
---- a/arch/cris/arch-v32/drivers/sync_serial.c~cris-array_size-cleanup
-+++ a/arch/cris/arch-v32/drivers/sync_serial.c
-@@ -185,7 +185,7 @@ static struct sync_port ports[]=
- 	}
- };
- 
--#define NUMBER_OF_PORTS (sizeof(ports)/sizeof(sync_port))
-+#define NUMBER_OF_PORTS ARRAY_SIZE(ports)
- 
- static const struct file_operations sync_serial_fops = {
- 	.owner   = THIS_MODULE,
-diff -puN arch/cris/arch-v32/kernel/io.c~cris-array_size-cleanup arch/cris/arch-v32/kernel/io.c
---- a/arch/cris/arch-v32/kernel/io.c~cris-array_size-cleanup
-+++ a/arch/cris/arch-v32/kernel/io.c
-@@ -49,7 +49,7 @@ struct crisv32_ioport crisv32_ioports[] 
- 	}
- };
- 
--#define NBR_OF_PORTS sizeof(crisv32_ioports)/sizeof(struct crisv32_ioport)
-+#define NBR_OF_PORTS ARRAY_SIZE(crisv32_ioports)
- 
- struct crisv32_iopin crisv32_led1_green;
- struct crisv32_iopin crisv32_led1_red;
-diff -puN arch/cris/arch-v32/kernel/setup.c~cris-array_size-cleanup arch/cris/arch-v32/kernel/setup.c
---- a/arch/cris/arch-v32/kernel/setup.c~cris-array_size-cleanup
-+++ a/arch/cris/arch-v32/kernel/setup.c
-@@ -54,12 +54,10 @@ show_cpuinfo(struct seq_file *m, void *v
- {
- 	int i;
- 	int cpu = (int)v - 1;
--	int entries;
- 	unsigned long revision;
- 	struct cpu_info *info;
- 
--	entries = sizeof cpinfo / sizeof(struct cpu_info);
--	info = &cpinfo[entries - 1];
-+	info = &cpinfo[ARRAY_SIZE(cpinfo) - 1];
- 
- #ifdef CONFIG_SMP
- 	if (!cpu_online(cpu))
-@@ -68,7 +66,7 @@ show_cpuinfo(struct seq_file *m, void *v
- 
- 	revision = rdvr();
- 
--	for (i = 0; i < entries; i++) {
-+	for (i = 0; i < ARRAY_SIZE(cpinfo); i++) {
- 		if (cpinfo[i].rev == revision) {
- 			info = &cpinfo[i];
- 			break;
 _
 
-Patches currently in -mm which might be from alex@flawedcode.org are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
-git-avr32.patch
-git-sh.patch
-cris-array_size-cleanup.patch
+ext2-fix-the-max-file-size-for-ext2-file-system.patch
+ext3-fix-the-max-file-size-for-ext3-file-system.patch
+ext4-return-after-ext4_error-in-case-of-failures.patch
