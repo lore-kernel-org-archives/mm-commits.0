@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + a-potential-bug-in-inotify_userc.patch added to -mm tree
-Date: Wed, 24 Oct 2007 15:19:50 -0700
-Message-ID: <200710242219.l9OMJo0K015460@imap1.linux-foundation.org>
+Subject: + rtc-pcf8583-dont-abuse-i2c_m_nostart.patch added to -mm tree
+Date: Wed, 24 Oct 2007 15:21:57 -0700
+Message-ID: <200710242221.l9OMLvHf015582@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52386 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48999 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755634AbXJXWUb (ORCPT
+	by vger.kernel.org with ESMTP id S1754782AbXJXWXG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 18:20:31 -0400
+	Wed, 24 Oct 2007 18:23:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yanzheng@21cn.com, rlove@rlove.org, ttb@tentacle.dhs.org
+Cc: khali@linux-fr.org, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     A potential bug in inotify_user.c
+     rtc-pcf8583: Don't abuse I2C_M_NOSTART
 has been added to the -mm tree.  Its filename is
-     a-potential-bug-in-inotify_userc.patch
+     rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,59 +26,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: A potential bug in inotify_user.c
-From: "Yan Zheng" <yanzheng@21cn.com>
+Subject: rtc-pcf8583: Don't abuse I2C_M_NOSTART
+From: Jean Delvare <khali@linux-fr.org>
 
-Following comment is at fs/inotify_user.c:287
-/* coalescing: drop this event if it is a dupe of the previous */
+The rtc-pcf8583 driver is using the I2C_M_NOSTART flag but shouldn't.  This
+flag is only meant for broken chips and the PCF8583 RTC chip is not one of
+these.
 
-I think the previous event in the comment should be the last event in the
-link list.  But inotify_dev_get_event return the first event in the list. 
-In addition, it doesn't check whether the list is empty
-
-Signed-off-by: Yan Zheng<yanzheng@21cn.com>
-Acked-by: Robert Love <rlove@rlove.org>
-Cc: John McCutchan <ttb@tentacle.dhs.org>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inotify_user.c |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-pcf8583.c |   24 +++++++-----------------
+ 1 file changed, 7 insertions(+), 17 deletions(-)
 
-diff -puN fs/inotify_user.c~a-potential-bug-in-inotify_userc fs/inotify_user.c
---- a/fs/inotify_user.c~a-potential-bug-in-inotify_userc
-+++ a/fs/inotify_user.c
-@@ -248,6 +248,19 @@ inotify_dev_get_event(struct inotify_dev
+diff -puN drivers/rtc/rtc-pcf8583.c~rtc-pcf8583-dont-abuse-i2c_m_nostart drivers/rtc/rtc-pcf8583.c
+--- a/drivers/rtc/rtc-pcf8583.c~rtc-pcf8583-dont-abuse-i2c_m_nostart
++++ a/drivers/rtc/rtc-pcf8583.c
+@@ -163,27 +163,17 @@ static int pcf8583_read_mem(struct i2c_c
+ 
+ static int pcf8583_write_mem(struct i2c_client *client, struct rtc_mem *mem)
+ {
+-	unsigned char addr[1];
+-	struct i2c_msg msgs[2] = {
+-		{
+-			.addr = client->addr,
+-			.flags = 0,
+-			.len = 1,
+-			.buf = addr,
+-		}, {
+-			.addr = client->addr,
+-			.flags = I2C_M_NOSTART,
+-			.len = mem->nr,
+-			.buf = mem->data,
+-		}
+-	};
++	unsigned char buf[9];
++	int ret;
+ 
+-	if (mem->loc < 8)
++	if (mem->loc < 8 || mem->nr > 8)
+ 		return -EINVAL;
+ 
+-	addr[0] = mem->loc;
++	buf[0] = mem->loc;
++	memcpy(buf + 1, mem->data, mem->nr);
+ 
+-	return i2c_transfer(client->adapter, msgs, 2) == 2 ? 0 : -EIO;
++	ret = i2c_master_send(client, buf, mem->nr + 1);
++	return ret == mem->nr + 1 ? 0 : -EIO;
  }
  
- /*
-+ * inotify_dev_get_last_event - return the last event in the given dev's queue
-+ *
-+ * Caller must hold dev->ev_mutex.
-+ */
-+static inline struct inotify_kernel_event *
-+inotify_dev_get_last_event(struct inotify_device *dev)
-+{
-+	if (list_empty(&dev->events))
-+		return NULL;
-+	return list_entry(dev->events.prev, struct inotify_kernel_event, list);
-+}
-+
-+/*
-  * inotify_dev_queue_event - event handler registered with core inotify, adds
-  * a new event to the given device
-  *
-@@ -273,7 +286,7 @@ static void inotify_dev_queue_event(stru
- 		put_inotify_watch(w); /* final put */
- 
- 	/* coalescing: drop this event if it is a dupe of the previous */
--	last = inotify_dev_get_event(dev);
-+	last = inotify_dev_get_last_event(dev);
- 	if (last && last->event.mask == mask && last->event.wd == wd &&
- 			last->event.cookie == cookie) {
- 		const char *lastname = last->name;
+ static int pcf8583_rtc_read_time(struct device *dev, struct rtc_time *tm)
 _
 
-Patches currently in -mm which might be from yanzheng@21cn.com are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
-a-potential-bug-in-inotify_userc.patch
+i2c-add-support-for-the-pcf8575-chip.patch
+git-hwmon.patch
+rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
