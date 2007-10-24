@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kconfig-use-getopt-in-confc-for-handling-command-line.patch added to -mm tree
-Date: Wed, 24 Oct 2007 15:26:08 -0700
-Message-ID: <200710242226.l9OMQ8hp015702@imap1.linux-foundation.org>
+Subject: + cris-array_size-cleanup.patch added to -mm tree
+Date: Wed, 24 Oct 2007 15:27:02 -0700
+Message-ID: <200710242227.l9OMR2M8015781@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37238 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42474 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754908AbXJXW0x (ORCPT
+	by vger.kernel.org with ESMTP id S1753391AbXJXW1N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 18:26:53 -0400
+	Wed, 24 Oct 2007 18:27:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@queued.net, dilinger@debian.org, sam@ravnborg.org, zippel@linux-m68k.org
+Cc: alex@flawedcode.org, starvik@axis.com
 
 
 The patch titled
-     kconfig: use getopt() in conf.c for handling command line arguments
+     cris: ARRAY_SIZE() cleanup
 has been added to the -mm tree.  Its filename is
-     kconfig-use-getopt-in-confc-for-handling-command-line.patch
+     cris-array_size-cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,99 +26,104 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kconfig: use getopt() in conf.c for handling command line arguments
-From: Andres Salomon <dilinger@queued.net>
+Subject: cris: ARRAY_SIZE() cleanup
+From: Alex Unleashed <alex@flawedcode.org>
 
-First, rename ac/av to argc/argv; those are pretty conventional names.
+I'm converting most array size calculations under arch/ to use
+ARRAY_SIZE().  This is the patch for CRIS.
 
-Second, switch from doing our own parsing of command line arguments to
-using getopt(3) to do it.  Aside from simplifying things, this allows us to
-specify multiple arguments; the old code could only accept two arguments
-(input_mode and kconfig name).
-
-Note some subtle changes:
- - The argument '-?' is no longer supported.
- - '-h' is not treated as an error, so output goes to stdout, and we
-   exit with '0'.
- - There is no compatibility checking amongst arguments; the last option
-   will simply override earlier options.  For example, 'conf -n -y foo'
-   is perfectly valid now (input_mode will be set_yes).  Previously, that
-   would have been an error ("can't find file -y").
-
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Alejandro Martinez Ruiz <alex@flawedcode.org>
+Cc: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/conf.c |   28 +++++++++++++---------------
- 1 file changed, 13 insertions(+), 15 deletions(-)
+ arch/cris/arch-v10/kernel/io_interface_mux.c |    2 +-
+ arch/cris/arch-v10/kernel/setup.c            |    4 ++--
+ arch/cris/arch-v32/drivers/sync_serial.c     |    2 +-
+ arch/cris/arch-v32/kernel/io.c               |    2 +-
+ arch/cris/arch-v32/kernel/setup.c            |    6 ++----
+ 5 files changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN scripts/kconfig/conf.c~kconfig-use-getopt-in-confc-for-handling-command-line scripts/kconfig/conf.c
---- a/scripts/kconfig/conf.c~kconfig-use-getopt-in-confc-for-handling-command-line
-+++ a/scripts/kconfig/conf.c
-@@ -492,14 +492,14 @@ static void check_conf(struct menu *menu
- 		check_conf(child);
- }
- 
--int main(int ac, char **av)
-+int main(int argc, char **argv)
+diff -puN arch/cris/arch-v10/kernel/io_interface_mux.c~cris-array_size-cleanup arch/cris/arch-v10/kernel/io_interface_mux.c
+--- a/arch/cris/arch-v10/kernel/io_interface_mux.c~cris-array_size-cleanup
++++ a/arch/cris/arch-v10/kernel/io_interface_mux.c
+@@ -304,7 +304,7 @@ static unsigned char clear_group_from_se
+ static struct if_group *get_group(const unsigned char groups)
  {
--	int i = 1;
-+	int opt;
- 	const char *name;
- 	struct stat tmpstat;
- 
--	if (ac > i && av[i][0] == '-') {
--		switch (av[i++][1]) {
-+	while ((opt = getopt(argc, argv, "osdD:nmyrh")) != -1) {
-+		switch (opt) {
- 		case 'o':
- 			input_mode = ask_new;
- 			break;
-@@ -512,12 +512,7 @@ int main(int ac, char **av)
- 			break;
- 		case 'D':
- 			input_mode = set_default;
--			defconfig_file = av[i++];
--			if (!defconfig_file) {
--				printf(_("%s: No default config file specified\n"),
--					av[0]);
--				exit(1);
--			}
-+			defconfig_file = optarg;
- 			break;
- 		case 'n':
- 			input_mode = set_no;
-@@ -533,16 +528,19 @@ int main(int ac, char **av)
- 			srandom(time(NULL));
- 			break;
- 		case 'h':
--		case '?':
--			fprintf(stderr, "See README for usage info\n");
-+			printf("See README for usage info\n");
- 			exit(0);
-+			break;
-+		default:
-+			fprintf(stderr, "See README for usage info\n");
-+			exit(1);
+ 	int i;
+-	for (i = 0; i < sizeof(if_groups)/sizeof(struct if_group); i++) {
++	for (i = 0; i < ARRAY_SIZE(if_groups); i++) {
+ 		if (groups & if_groups[i].group) {
+ 			return &if_groups[i];
  		}
+diff -puN arch/cris/arch-v10/kernel/setup.c~cris-array_size-cleanup arch/cris/arch-v10/kernel/setup.c
+--- a/arch/cris/arch-v10/kernel/setup.c~cris-array_size-cleanup
++++ a/arch/cris/arch-v10/kernel/setup.c
+@@ -56,8 +56,8 @@ int show_cpuinfo(struct seq_file *m, voi
+ 
+ 	revision = rdvr();
+ 
+-	if (revision >= sizeof cpu_info/sizeof *cpu_info)
+-		info = &cpu_info[sizeof cpu_info/sizeof *cpu_info - 1];
++	if (revision >= ARRAY_SIZE(cpu_info))
++		info = &cpu_info[ARRAY_SIZE(cpu_info) - 1];
+ 	else
+ 		info = &cpu_info[revision];
+ 
+diff -puN arch/cris/arch-v32/drivers/sync_serial.c~cris-array_size-cleanup arch/cris/arch-v32/drivers/sync_serial.c
+--- a/arch/cris/arch-v32/drivers/sync_serial.c~cris-array_size-cleanup
++++ a/arch/cris/arch-v32/drivers/sync_serial.c
+@@ -185,7 +185,7 @@ static struct sync_port ports[]=
  	}
--  	name = av[i];
--	if (!name) {
--		printf(_("%s: Kconfig file missing\n"), av[0]);
-+	if (argc == optind) {
-+		printf(_("%s: Kconfig file missing\n"), argv[0]);
- 		exit(1);
+ };
+ 
+-#define NUMBER_OF_PORTS (sizeof(ports)/sizeof(sync_port))
++#define NUMBER_OF_PORTS ARRAY_SIZE(ports)
+ 
+ static const struct file_operations sync_serial_fops = {
+ 	.owner   = THIS_MODULE,
+diff -puN arch/cris/arch-v32/kernel/io.c~cris-array_size-cleanup arch/cris/arch-v32/kernel/io.c
+--- a/arch/cris/arch-v32/kernel/io.c~cris-array_size-cleanup
++++ a/arch/cris/arch-v32/kernel/io.c
+@@ -49,7 +49,7 @@ struct crisv32_ioport crisv32_ioports[] 
  	}
-+	name = argv[optind];
- 	conf_parse(name);
- 	//zconfdump(stdout);
- 	switch (input_mode) {
+ };
+ 
+-#define NBR_OF_PORTS sizeof(crisv32_ioports)/sizeof(struct crisv32_ioport)
++#define NBR_OF_PORTS ARRAY_SIZE(crisv32_ioports)
+ 
+ struct crisv32_iopin crisv32_led1_green;
+ struct crisv32_iopin crisv32_led1_red;
+diff -puN arch/cris/arch-v32/kernel/setup.c~cris-array_size-cleanup arch/cris/arch-v32/kernel/setup.c
+--- a/arch/cris/arch-v32/kernel/setup.c~cris-array_size-cleanup
++++ a/arch/cris/arch-v32/kernel/setup.c
+@@ -54,12 +54,10 @@ show_cpuinfo(struct seq_file *m, void *v
+ {
+ 	int i;
+ 	int cpu = (int)v - 1;
+-	int entries;
+ 	unsigned long revision;
+ 	struct cpu_info *info;
+ 
+-	entries = sizeof cpinfo / sizeof(struct cpu_info);
+-	info = &cpinfo[entries - 1];
++	info = &cpinfo[ARRAY_SIZE(cpinfo) - 1];
+ 
+ #ifdef CONFIG_SMP
+ 	if (!cpu_online(cpu))
+@@ -68,7 +66,7 @@ show_cpuinfo(struct seq_file *m, void *v
+ 
+ 	revision = rdvr();
+ 
+-	for (i = 0; i < entries; i++) {
++	for (i = 0; i < ARRAY_SIZE(cpinfo); i++) {
+ 		if (cpinfo[i].rev == revision) {
+ 			info = &cpinfo[i];
+ 			break;
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from alex@flawedcode.org are
 
-kconfig-use-getopt-in-confc-for-handling-command-line.patch
-git-x86.patch
-kernel-printkc-concerns-about-the-console-handover.patch
+git-avr32.patch
+git-sh.patch
+cris-array_size-cleanup.patch
