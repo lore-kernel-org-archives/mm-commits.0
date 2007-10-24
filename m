@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-simplify-pnp_activate_dev-and-pnp_disable_dev-return-values.patch added to -mm tree
-Date: Wed, 24 Oct 2007 16:04:14 -0700
-Message-ID: <200710242304.l9ON4Edh017090@imap1.linux-foundation.org>
+Subject: + rtc-fallback-to-requesting-only-the-ports-we-actually-use.patch added to -mm tree
+Date: Wed, 24 Oct 2007 16:07:00 -0700
+Message-ID: <200710242307.l9ON709A017163@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51935 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46938 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753995AbXJXXEX (ORCPT
+	by vger.kernel.org with ESMTP id S1754021AbXJXXH1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 19:04:23 -0400
+	Wed, 24 Oct 2007 19:07:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, ambx1@neo.rr.com
+Cc: bjorn.helgaas@hp.com, a.zummo@towertech.it, david-b@pacbell.net, ralf@linux-mips.org
 
 
 The patch titled
-     simplify pnp_activate_dev() and pnp_disable_dev() return values
+     rtc: fall back to requesting only the ports we actually use
 has been added to the -mm tree.  Its filename is
-     pnp-simplify-pnp_activate_dev-and-pnp_disable_dev-return-values.patch
+     rtc-fallback-to-requesting-only-the-ports-we-actually-use.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,73 +26,118 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: simplify pnp_activate_dev() and pnp_disable_dev() return values
+Subject: rtc: fall back to requesting only the ports we actually use
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Make pnp_activate_dev() and pnp_disable_dev() return only 0 (success) or a
-negative error value, as pci_enable_device() and pci_disable_device() do.
+Firmware like PNPBIOS or ACPI can report the address space consumed by the
+RTC.  The actual space consumed may be less than the size (RTC_IO_EXTENT)
+assumed by the RTC driver.
 
-Previously they returned:
+The PNP core doesn't request resources yet, but I'd like to make it do so. 
+If/when it does, the RTC_IO_EXTENT request may fail, which prevents the RTC
+driver from loading.
 
-    0:	device was already active (or disabled)
-    1:	we just activated (or disabled) device
-    <0:	-EBUSY or error from pnp_start_dev() (or pnp_stop_dev())
+Since we only use the RTC index and data registers at RTC_PORT(0) and
+RTC_PORT(1), we can fall back to requesting just enough space for those.
 
-Now we return only 0 (device is active or disabled) or <0 (error).
+If the PNP core requests resources, this results in typical I/O port usage
+like this:
 
-All in-tree callers either ignore the return values or check only for
-errors (negative values).
+    0070-0073 : 00:06		<-- PNP device 00:06 responds to 70-73
+      0070-0071 : rtc		<-- RTC driver uses only 70-71
+
+instead of the current:
+
+    0070-0077 : rtc		<-- RTC_IO_EXTENT == 8
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/manager.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/char/rtc.c          |   36 ++++++++++++++++++++++++++++------
+ include/linux/mc146818rtc.h |    3 ++
+ 2 files changed, 33 insertions(+), 6 deletions(-)
 
-diff -puN drivers/pnp/manager.c~pnp-simplify-pnp_activate_dev-and-pnp_disable_dev-return-values drivers/pnp/manager.c
---- a/drivers/pnp/manager.c~pnp-simplify-pnp_activate_dev-and-pnp_disable_dev-return-values
-+++ a/drivers/pnp/manager.c
-@@ -513,7 +513,7 @@ int pnp_activate_dev(struct pnp_dev *dev
- 	int error;
+diff -puN drivers/char/rtc.c~rtc-fallback-to-requesting-only-the-ports-we-actually-use drivers/char/rtc.c
+--- a/drivers/char/rtc.c~rtc-fallback-to-requesting-only-the-ports-we-actually-use
++++ a/drivers/char/rtc.c
+@@ -919,12 +919,29 @@ static const struct file_operations rtc_
+ };
+ #endif
  
- 	if (dev->active)
--		return 0;	/* the device is already active */
-+		return 0;
- 
- 	/* ensure resources are allocated */
- 	if (pnp_auto_config_dev(dev))
-@@ -524,7 +524,7 @@ int pnp_activate_dev(struct pnp_dev *dev
- 		return error;
- 
- 	dev->active = 1;
--	return 1;
-+	return 0;
++static resource_size_t rtc_size;
++
++static struct resource * __init rtc_request_region(resource_size_t size)
++{
++	struct resource *r;
++
++	if (RTC_IOMAPPED)
++		r = request_region(RTC_PORT(0), size, "rtc");
++	else
++		r = request_mem_region(RTC_PORT(0), size, "rtc");
++
++	if (r)
++		rtc_size = size;
++
++	return r;
++}
++
+ static void rtc_release_region(void)
+ {
+ 	if (RTC_IOMAPPED)
+-		release_region(RTC_PORT(0), RTC_IO_EXTENT);
++		release_region(RTC_PORT(0), rtc_size);
+ 	else
+-		release_mem_region(RTC_PORT(0), RTC_IO_EXTENT);
++		release_mem_region(RTC_PORT(0), rtc_size);
  }
  
- /**
-@@ -538,7 +538,7 @@ int pnp_disable_dev(struct pnp_dev *dev)
- 	int error;
+ static int __init rtc_init(void)
+@@ -977,10 +994,17 @@ found:
+ 	}
+ no_irq:
+ #else
+-	if (RTC_IOMAPPED)
+-		r = request_region(RTC_PORT(0), RTC_IO_EXTENT, "rtc");
+-	else
+-		r = request_mem_region(RTC_PORT(0), RTC_IO_EXTENT, "rtc");
++	r = rtc_request_region(RTC_IO_EXTENT);
++
++	/*
++	 * If we've already requested a smaller range (for example, because
++	 * PNPBIOS or ACPI told us how the device is configured), the request
++	 * above might fail because it's too big.
++	 *
++	 * If so, request just the range we actually use.
++	 */
++	if (!r)
++		r = rtc_request_region(RTC_IO_EXTENT_USED);
+ 	if (!r) {
+ #ifdef RTC_IRQ
+ 		rtc_has_irq = 0;
+diff -puN include/linux/mc146818rtc.h~rtc-fallback-to-requesting-only-the-ports-we-actually-use include/linux/mc146818rtc.h
+--- a/include/linux/mc146818rtc.h~rtc-fallback-to-requesting-only-the-ports-we-actually-use
++++ a/include/linux/mc146818rtc.h
+@@ -109,8 +109,11 @@ struct cmos_rtc_board_info {
+ #ifndef ARCH_RTC_LOCATION	/* Override by <asm/mc146818rtc.h>? */
  
- 	if (!dev->active)
--		return 0;	/* the device is already disabled */
-+		return 0;
+ #define RTC_IO_EXTENT	0x8
++#define RTC_IO_EXTENT_USED	0x2
+ #define RTC_IOMAPPED	1	/* Default to I/O mapping. */
  
- 	error = pnp_stop_dev(dev);
- 	if (error)
-@@ -551,7 +551,7 @@ int pnp_disable_dev(struct pnp_dev *dev)
- 	pnp_clean_resource_table(&dev->res);
- 	up(&pnp_res_mutex);
++#else
++#define RTC_IO_EXTENT_USED      RTC_IO_EXTENT
+ #endif /* ARCH_RTC_LOCATION */
  
--	return 1;
-+	return 0;
- }
- 
- /**
+ #endif /* _MC146818RTC_H */
 _
 
 Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
 serial-keep-the-dtr-setting-for-serial-console.patch
+rtc-release-correct-region-in-error-path.patch
+rtc-fallback-to-requesting-only-the-ports-we-actually-use.patch
 pnp-simplify-pnp_activate_dev-and-pnp_disable_dev-return-values.patch
