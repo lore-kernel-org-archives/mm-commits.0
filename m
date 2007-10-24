@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-v9fs-fixup.patch added to -mm tree
-Date: Wed, 24 Oct 2007 14:36:58 -0700
-Message-ID: <200710242136.l9OLawrJ013677@imap1.linux-foundation.org>
+Subject: + git-x86-fixup.patch added to -mm tree
+Date: Wed, 24 Oct 2007 14:37:57 -0700
+Message-ID: <200710242137.l9OLbvpZ013706@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42944 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36835 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752711AbXJXVhD (ORCPT
+	by vger.kernel.org with ESMTP id S1760330AbXJXViT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 17:37:03 -0400
+	Wed, 24 Oct 2007 17:38:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ericvh@gmail.com
+Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     git-v9fs-fixup
+     git-x86-fixup
 has been added to the -mm tree.  Its filename is
-     git-v9fs-fixup.patch
+     git-x86-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,78 +26,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-v9fs-fixup
+Subject: git-x86-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix git conflicts in git-v9fs.
+Fix rejects in git-x86.    Don't know what I'm doing, might be wrong.
 
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/9p/v9fs.c    |    3 ---
- net/9p/Kconfig  |    3 ---
- net/9p/Makefile |    7 +------
- 3 files changed, 1 insertion(+), 12 deletions(-)
+ arch/x86/kernel/tsc_32.c |   27 ---------------------------
+ 1 file changed, 27 deletions(-)
 
-diff -puN fs/9p/v9fs.c~git-v9fs-fixup fs/9p/v9fs.c
---- a/fs/9p/v9fs.c~git-v9fs-fixup
-+++ a/fs/9p/v9fs.c
-@@ -162,10 +162,7 @@ static void v9fs_parse_options(struct v9
- 				if (*e != '\0')
- 					v9ses->uid = ~0;
- 			}
--<<<<<<< HEAD:fs/9p/v9fs.c
- 			kfree(s);
+diff -puN arch/x86/kernel/tsc_32.c~git-x86-fixup arch/x86/kernel/tsc_32.c
+--- a/arch/x86/kernel/tsc_32.c~git-x86-fixup
++++ a/arch/x86/kernel/tsc_32.c
+@@ -143,8 +143,6 @@ unsigned long native_calculate_cpu_khz(v
+ 		rdtscll(start);
+ 		mach_countup(&count);
+ 		rdtscll(end);
+-<<<<<<< HEAD:arch/x86/kernel/tsc_32.c
 -=======
-->>>>>>> FETCH_HEAD:fs/9p/v9fs.c
- 			break;
+ 		delta64 = min(delta64, (end - start));
+ 	}
+ 	/*
+@@ -155,33 +153,8 @@ unsigned long native_calculate_cpu_khz(v
+ 	 */
+ 	if (count <= 1)
+ 		goto err;
+->>>>>>> FETCH_HEAD:arch/x86/kernel/tsc_32.c
  
- 		default:
-diff -puN net/9p/Kconfig~git-v9fs-fixup net/9p/Kconfig
---- a/net/9p/Kconfig~git-v9fs-fixup
-+++ a/net/9p/Kconfig
-@@ -23,7 +23,6 @@ config NET_9P_FD
- 	  file descriptors.  TCP/IP is the default transport for 9p,
- 	  so if you are going to use 9p, you'll likely want this.
- 
--<<<<<<< HEAD:net/9p/Kconfig
- config NET_9P_VIRTIO
- 	depends on NET_9P && EXPERIMENTAL && VIRTIO
- 	tristate "9P Virtio Transport (Experimental)"
-@@ -31,8 +30,6 @@ config NET_9P_VIRTIO
- 	  This builds support for a transports between
- 	  guest partitions and a host partition.
- 
+-<<<<<<< HEAD:arch/x86/kernel/tsc_32.c
+-		/*
+-		 * Error: ECTCNEVERSET
+-		 * The CTC wasn't reliable: we got a hit on the very first read,
+-		 * or the CPU was so fast/slow that the quotient wouldn't fit in
+-		 * 32 bits..
+-		 */
+-		if (count <= 1)
+-			continue;
+-
+-		/* cpu freq too slow: */
+-		if ((end - start) <= CALIBRATE_TIME_MSEC)
+-			continue;
+-
+-		/*
+-		 * We want the minimum time of all runs in case one of them
+-		 * is inaccurate due to SMI or other delay
+-		 */
+-		delta64 = min(delta64, (end - start));
+-	}
+-
+-	/* cpu freq too fast (or every run was bad): */
 -=======
-->>>>>>> FETCH_HEAD:net/9p/Kconfig
- config NET_9P_DEBUG
- 	bool "Debug information"
- 	depends on NET_9P
-diff -puN net/9p/Makefile~git-v9fs-fixup net/9p/Makefile
---- a/net/9p/Makefile~git-v9fs-fixup
-+++ a/net/9p/Makefile
-@@ -1,9 +1,6 @@
- obj-$(CONFIG_NET_9P) := 9pnet.o
- obj-$(CONFIG_NET_9P_FD) += 9pnet_fd.o
--<<<<<<< HEAD:net/9p/Makefile
- obj-$(CONFIG_NET_9P_VIRTIO) += 9pnet_virtio.o
--=======
-->>>>>>> FETCH_HEAD:net/9p/Makefile
+ 	/* cpu freq too fast: */
+->>>>>>> FETCH_HEAD:arch/x86/kernel/tsc_32.c
+ 	if (delta64 > (1ULL<<32))
+ 		goto err;
  
- 9pnet-objs := \
- 	mod.o \
-@@ -16,9 +13,7 @@ obj-$(CONFIG_NET_9P_VIRTIO) += 9pnet_vir
- 
- 9pnet_fd-objs := \
- 	trans_fd.o \
--<<<<<<< HEAD:net/9p/Makefile
- 
- 9pnet_virtio-objs := \
- 	trans_virtio.o \
--=======
-->>>>>>> FETCH_HEAD:net/9p/Makefile
-+
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
