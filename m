@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: - ir_usb-termios-handling.patch removed from -mm tree
-Date: Wed, 24 Oct 2007 14:41:49 -0700
-Message-ID: <200710242141.l9OLfnWK013989@imap1.linux-foundation.org>
+Subject: - empeg-clean-up-and-handle-speeds.patch removed from -mm tree
+Date: Wed, 24 Oct 2007 14:41:47 -0700
+Message-ID: <200710242141.l9OLflJl013986@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48424 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52339 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759577AbXJXVpv (ORCPT
+	by vger.kernel.org with ESMTP id S1755446AbXJXVqI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 17:45:51 -0400
+	Wed, 24 Oct 2007 17:46:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ir_usb: termios handling
+     empeg: clean up and handle speeds
 has been removed from the -mm tree.  Its filename was
-     ir_usb-termios-handling.patch
+     empeg-clean-up-and-handle-speeds.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ir_usb: termios handling
+Subject: empeg: clean up and handle speeds
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-- Clean up paranoia checks
-- Propogate back a correct fixed termios
+The empeg is pretty fixed. Tidy up the long foo->bar->baz stuff and
+encode the fixed speed properly.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Greg KH <greg@kroah.com>
@@ -34,11 +34,15 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/usb/serial/ir-usb.c~ir_usb-termios-handling drivers/usb/serial/ir-usb.c
---- a/drivers/usb/serial/ir-usb.c~ir_usb-termios-handling
-+++ a/drivers/usb/serial/ir-usb.c
-@@ -504,11 +504,6 @@ static void ir_set_termios (struct usb_s
+diff -puN drivers/usb/serial/empeg.c~empeg-clean-up-and-handle-speeds drivers/usb/serial/empeg.c
+--- a/drivers/usb/serial/empeg.c~empeg-clean-up-and-handle-speeds
++++ a/drivers/usb/serial/empeg.c
+@@ -449,14 +449,9 @@ static int empeg_ioctl (struct usb_seria
  
+ static void empeg_set_termios (struct usb_serial_port *port, struct ktermios *old_termios)
+ {
+-
++	struct ktermios *termios = port->tty->termios;
  	dbg("%s - port %d", __FUNCTION__, port->number);
  
 -	if ((!port->tty) || (!port->tty->termios)) {
@@ -46,26 +50,55 @@ diff -puN drivers/usb/serial/ir-usb.c~ir_usb-termios-handling drivers/usb/serial
 -		return;
 -	}
 -
- 	baud = tty_get_baud_rate(port->tty);
+ 	/*
+          * The empeg-car player wants these particular tty settings.
+          * You could, for example, change the baud rate, however the
+@@ -466,7 +461,7 @@ static void empeg_set_termios (struct us
+          *
+          * The default requirements for this device are:
+          */
+-	port->tty->termios->c_iflag
++	termios->c_iflag
+ 		&= ~(IGNBRK	/* disable ignore break */
+ 		| BRKINT	/* disable break causes interrupt */
+ 		| PARMRK	/* disable mark parity errors */
+@@ -476,24 +471,23 @@ static void empeg_set_termios (struct us
+ 		| ICRNL		/* disable translate CR to NL */
+ 		| IXON);	/* disable enable XON/XOFF flow control */
+ 
+-	port->tty->termios->c_oflag
++	termios->c_oflag
+ 		&= ~OPOST;	/* disable postprocess output characters */
+ 
+-	port->tty->termios->c_lflag
++	termios->c_lflag
+ 		&= ~(ECHO	/* disable echo input characters */
+ 		| ECHONL	/* disable echo new line */
+ 		| ICANON	/* disable erase, kill, werase, and rprnt special characters */
+ 		| ISIG		/* disable interrupt, quit, and suspend special characters */
+ 		| IEXTEN);	/* disable non-POSIX special characters */
+ 
+-	port->tty->termios->c_cflag
++	termios->c_cflag
+ 		&= ~(CSIZE	/* no size */
+ 		| PARENB	/* disable parity bit */
+ 		| CBAUD);	/* clear current baud rate */
+ 
+-	port->tty->termios->c_cflag
+-		|= (CS8		/* character size 8 bits */
+-		| B115200);	/* baud rate 115200 */
++	termios->c_cflag
++		|= CS8;		/* character size 8 bits */
  
  	/*
-@@ -531,8 +526,6 @@ static void ir_set_termios (struct usb_s
- 		default:
- 			ir_baud = SPEED_9600;
- 			baud = 9600;
--			/* And once the new tty stuff is all done we need to
--			   call back to correct the baud bits */
- 	}
- 
- 	if (xbof == -1)
-@@ -562,6 +555,10 @@ static void ir_set_termios (struct usb_s
- 	result = usb_submit_urb (port->write_urb, GFP_KERNEL);
- 	if (result)
- 		dev_err(&port->dev, "%s - failed submitting write urb, error %d\n", __FUNCTION__, result);
-+
-+	/* Only speed changes are supported */
-+	tty_termios_copy_hw(port->tty->termios, old_termios);
-+	tty_encode_baud_rate(port->tty, baud, baud);
+ 	 * Force low_latency on; otherwise the pushes are scheduled;
+@@ -501,8 +495,7 @@ static void empeg_set_termios (struct us
+ 	 * on the floor.  We don't want to drop bytes on the floor. :)
+ 	 */
+ 	port->tty->low_latency = 1;
+-
+-	return;
++	tty_encode_baud_rate(port->tty, 115200, 115200);
  }
  
  
