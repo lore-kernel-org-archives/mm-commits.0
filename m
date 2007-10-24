@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext2-fix-the-max-file-size-for-ext2-file-system.patch added to -mm tree
-Date: Wed, 24 Oct 2007 15:24:20 -0700
-Message-ID: <200710242224.l9OMOKut015648@imap1.linux-foundation.org>
+Subject: + cfs-cgroup-report-usage.patch added to -mm tree
+Date: Wed, 24 Oct 2007 15:33:38 -0700
+Message-ID: <200710242233.l9OMXcH6015993@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40734 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48578 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754526AbXJXWaN (ORCPT
+	by vger.kernel.org with ESMTP id S1756721AbXJXWd4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 18:30:13 -0400
+	Wed, 24 Oct 2007 18:33:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aneesh.kumar@linux.vnet.ibm.com, linux-ext4@vger.kernel.org
+Cc: menage@google.com, mingo@elte.hu, vatsa@in.ibm.com
 
 
 The patch titled
-     ext2: fix the max file size for ext2 file system
+     CFS CGroup: Report usage
 has been added to the -mm tree.  Its filename is
-     ext2-fix-the-max-file-size-for-ext2-file-system.patch
+     cfs-cgroup-report-usage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,74 +26,93 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext2: fix the max file size for ext2 file system
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: CFS CGroup: Report usage
+From: Paul Menage <menage@google.com>
 
-The max file size for ext2 file system is now calculated with hardcoded 4K
-block size.  The patch fixes it to be calculated with the right block size.
+Report CPU usage in CFS Cgroup directories
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: <linux-ext4@vger.kernel.org>
+Adds a cpu.usage file to the CFS cgroup that reports CPU usage in
+milliseconds for that cgroup's tasks
+
+This replaces the "example CPU Accounting CGroup subsystem" that
+was merged into mainline last week.
+
+Signed-off-by: Paul Menage <menage@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/super.c |   32 ++++++++++++++++++++++++++++----
- 1 file changed, 28 insertions(+), 4 deletions(-)
+ kernel/sched.c |   32 +++++++++++++++++++++++++++-----
+ 1 file changed, 27 insertions(+), 5 deletions(-)
 
-diff -puN fs/ext2/super.c~ext2-fix-the-max-file-size-for-ext2-file-system fs/ext2/super.c
---- a/fs/ext2/super.c~ext2-fix-the-max-file-size-for-ext2-file-system
-+++ a/fs/ext2/super.c
-@@ -680,11 +680,31 @@ static int ext2_check_descriptors (struc
- static loff_t ext2_max_size(int bits)
- {
- 	loff_t res = EXT2_NDIR_BLOCKS;
--	/* This constant is calculated to be the largest file size for a
--	 * dense, 4k-blocksize file such that the total number of
-+	int meta_blocks;
-+	loff_t upper_limit;
-+
-+	/* This is calculated to be the largest file size for a
-+	 * dense, file such that the total number of
- 	 * sectors in the file, including data and all indirect blocks,
--	 * does not exceed 2^32. */
--	const loff_t upper_limit = 0x1ff7fffd000LL;
-+	 * does not exceed 2^32 -1
-+	 * __u32 i_blocks representing the total number of
-+	 * 512 bytes blocks of the file
-+	 */
-+	upper_limit = (1LL << 32) - 1;
-+
-+	/* total blocks in file system block size */
-+	upper_limit >>= (bits - 9);
-+
-+
-+	/* indirect blocks */
-+	meta_blocks = 1;
-+	/* double indirect blocks */
-+	meta_blocks += 1 + (1LL << (bits-2));
-+	/* tripple indirect blocks */
-+	meta_blocks += 1 + (1LL << (bits-2)) + (1LL << (2*(bits-2)));
-+
-+	upper_limit -= meta_blocks;
-+	upper_limit <<= bits;
- 
- 	res += 1LL << (bits-2);
- 	res += 1LL << (2*(bits-2));
-@@ -692,6 +712,10 @@ static loff_t ext2_max_size(int bits)
- 	res <<= bits;
- 	if (res > upper_limit)
- 		res = upper_limit;
-+
-+	if (res > MAX_LFS_FILESIZE)
-+		res = MAX_LFS_FILESIZE;
-+
- 	return res;
+diff -puN kernel/sched.c~cfs-cgroup-report-usage kernel/sched.c
+--- a/kernel/sched.c~cfs-cgroup-report-usage
++++ a/kernel/sched.c
+@@ -7185,15 +7185,37 @@ static u64 cpu_shares_read_uint(struct c
+ 	return (u64) tg->shares;
  }
  
+-static struct cftype cpu_shares = {
+-	.name = "shares",
+-	.read_uint = cpu_shares_read_uint,
+-	.write = cpu_shares_write,
++static u64 cpu_usage_read(struct cgroup *cgrp, struct cftype *cft)
++{
++	struct task_group *tg = cgroup_tg(cgrp);
++	int i;
++	u64 res = 0;
++	for_each_possible_cpu(i) {
++		unsigned long flags;
++		spin_lock_irqsave(&tg->cfs_rq[i]->rq->lock, flags);
++		res += tg->se[i]->sum_exec_runtime;
++		spin_unlock_irqrestore(&tg->cfs_rq[i]->rq->lock, flags);
++	}
++	/* Convert from ns to ms */
++	do_div(res, 1000000);
++	return res;
++}
++
++static struct cftype cpu_files[] = {
++	{
++		.name = "shares",
++		.read_uint = cpu_shares_read_uint,
++		.write_uint = cpu_shares_write_uint,
++	},
++	{
++		.name = "usage",
++		.read_uint = cpu_usage_read,
++	},
+ };
+ 
+ static int cpu_cgroup_populate(struct cgroup_subsys *ss, struct cgroup *cont)
+ {
+-	return cgroup_add_file(cont, ss, &cpu_shares);
++	return cgroup_add_files(cont, ss, cpu_files, ARRAY_SIZE(cpu_files));
+ }
+ 
+ struct cgroup_subsys cpu_cgroup_subsys = {
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from menage@google.com are
 
-ext2-fix-the-max-file-size-for-ext2-file-system.patch
-ext3-fix-the-max-file-size-for-ext3-file-system.patch
-ext4-return-after-ext4_error-in-case-of-failures.patch
+cfs-cgroup-code-cleanup.patch
+cfs-cgroup-report-usage.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+add-a-refcount-check-in-dput.patch
