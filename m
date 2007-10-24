@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - empeg-clean-up-and-handle-speeds.patch removed from -mm tree
-Date: Wed, 24 Oct 2007 14:41:47 -0700
-Message-ID: <200710242141.l9OLflJl013986@imap1.linux-foundation.org>
+Subject: - digi_acceleport-fix-termios-and-also-readability-a-bit.patch removed from -mm tree
+Date: Wed, 24 Oct 2007 14:41:45 -0700
+Message-ID: <200710242141.l9OLfjNb013981@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52339 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56083 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755446AbXJXVqI (ORCPT
+	by vger.kernel.org with ESMTP id S1756431AbXJXVqF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 17:46:08 -0400
+	Wed, 24 Oct 2007 17:46:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     empeg: clean up and handle speeds
+     digi_acceleport: fix termios and also readability a bit
 has been removed from the -mm tree.  Its filename was
-     empeg-clean-up-and-handle-speeds.patch
+     digi_acceleport-fix-termios-and-also-readability-a-bit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: empeg: clean up and handle speeds
+Subject: digi_acceleport: fix termios and also readability a bit
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-The empeg is pretty fixed. Tidy up the long foo->bar->baz stuff and
-encode the fixed speed properly.
+- Expand some x&y to x & y so I could read it when checking
+- Clear CMSPAR bit in the termios (as the driver does not support it)
+- Encode the speed using the new tty_encode_baud_rate facility
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Greg KH <greg@kroah.com>
@@ -34,71 +35,55 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/usb/serial/empeg.c~empeg-clean-up-and-handle-speeds drivers/usb/serial/empeg.c
---- a/drivers/usb/serial/empeg.c~empeg-clean-up-and-handle-speeds
-+++ a/drivers/usb/serial/empeg.c
-@@ -449,14 +449,9 @@ static int empeg_ioctl (struct usb_seria
+diff -puN drivers/usb/serial/digi_acceleport.c~digi_acceleport-fix-termios-and-also-readability-a-bit drivers/usb/serial/digi_acceleport.c
+--- a/drivers/usb/serial/digi_acceleport.c~digi_acceleport-fix-termios-and-also-readability-a-bit
++++ a/drivers/usb/serial/digi_acceleport.c
+@@ -973,6 +973,8 @@ static void digi_set_termios(struct usb_
+ 		}
+ 	}
+ 	/* set parity */
++	tty->termios->c_cflag &= ~CMSPAR;
++
+ 	if ((cflag&(PARENB|PARODD)) != (old_cflag&(PARENB|PARODD))) {
+ 		if (cflag&PARENB) {
+ 			if (cflag&PARODD)
+@@ -1054,15 +1056,15 @@ static void digi_set_termios(struct usb_
+ 	}
  
- static void empeg_set_termios (struct usb_serial_port *port, struct ktermios *old_termios)
- {
+ 	/* set output flow control */
+-	if ((iflag&IXON) != (old_iflag&IXON)
+-	    || (cflag&CRTSCTS) != (old_cflag&CRTSCTS)) {
++	if ((iflag & IXON) != (old_iflag & IXON)
++	    || (cflag & CRTSCTS) != (old_cflag & CRTSCTS)) {
+ 		arg = 0;
+-		if (iflag&IXON)
++		if (iflag & IXON)
+ 			arg |= DIGI_OUTPUT_FLOW_CONTROL_XON_XOFF;
+ 		else
+ 			arg &= ~DIGI_OUTPUT_FLOW_CONTROL_XON_XOFF;
+ 
+-		if (cflag&CRTSCTS) {
++		if (cflag & CRTSCTS) {
+ 			arg |= DIGI_OUTPUT_FLOW_CONTROL_CTS;
+ 		} else {
+ 			arg &= ~DIGI_OUTPUT_FLOW_CONTROL_CTS;
+@@ -1076,8 +1078,8 @@ static void digi_set_termios(struct usb_
+ 	}
+ 
+ 	/* set receive enable/disable */
+-	if ((cflag&CREAD) != (old_cflag&CREAD)) {
+-		if (cflag&CREAD)
++	if ((cflag & CREAD) != (old_cflag & CREAD)) {
++		if (cflag & CREAD)
+ 			arg = DIGI_ENABLE;
+ 		else
+ 			arg = DIGI_DISABLE;
+@@ -1089,7 +1091,7 @@ static void digi_set_termios(struct usb_
+ 	}
+ 	if ((ret = digi_write_oob_command(port, buf, i, 1)) != 0)
+ 		dbg("digi_set_termios: write oob failed, ret=%d", ret);
 -
-+	struct ktermios *termios = port->tty->termios;
- 	dbg("%s - port %d", __FUNCTION__, port->number);
- 
--	if ((!port->tty) || (!port->tty->termios)) {
--		dbg("%s - no tty structures", __FUNCTION__);
--		return;
--	}
--
- 	/*
-          * The empeg-car player wants these particular tty settings.
-          * You could, for example, change the baud rate, however the
-@@ -466,7 +461,7 @@ static void empeg_set_termios (struct us
-          *
-          * The default requirements for this device are:
-          */
--	port->tty->termios->c_iflag
-+	termios->c_iflag
- 		&= ~(IGNBRK	/* disable ignore break */
- 		| BRKINT	/* disable break causes interrupt */
- 		| PARMRK	/* disable mark parity errors */
-@@ -476,24 +471,23 @@ static void empeg_set_termios (struct us
- 		| ICRNL		/* disable translate CR to NL */
- 		| IXON);	/* disable enable XON/XOFF flow control */
- 
--	port->tty->termios->c_oflag
-+	termios->c_oflag
- 		&= ~OPOST;	/* disable postprocess output characters */
- 
--	port->tty->termios->c_lflag
-+	termios->c_lflag
- 		&= ~(ECHO	/* disable echo input characters */
- 		| ECHONL	/* disable echo new line */
- 		| ICANON	/* disable erase, kill, werase, and rprnt special characters */
- 		| ISIG		/* disable interrupt, quit, and suspend special characters */
- 		| IEXTEN);	/* disable non-POSIX special characters */
- 
--	port->tty->termios->c_cflag
-+	termios->c_cflag
- 		&= ~(CSIZE	/* no size */
- 		| PARENB	/* disable parity bit */
- 		| CBAUD);	/* clear current baud rate */
- 
--	port->tty->termios->c_cflag
--		|= (CS8		/* character size 8 bits */
--		| B115200);	/* baud rate 115200 */
-+	termios->c_cflag
-+		|= CS8;		/* character size 8 bits */
- 
- 	/*
- 	 * Force low_latency on; otherwise the pushes are scheduled;
-@@ -501,8 +495,7 @@ static void empeg_set_termios (struct us
- 	 * on the floor.  We don't want to drop bytes on the floor. :)
- 	 */
- 	port->tty->low_latency = 1;
--
--	return;
-+	tty_encode_baud_rate(port->tty, 115200, 115200);
++	tty_encode_baud_rate(tty, baud, baud);
  }
  
  
