@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-sbs-fix-retval-warning.patch added to -mm tree
-Date: Wed, 24 Oct 2007 16:23:22 -0700
-Message-ID: <200710242323.l9ONNNmG017765@imap1.linux-foundation.org>
+Subject: + isdn-sc-fix-longstanding-warning.patch added to -mm tree
+Date: Wed, 24 Oct 2007 16:23:27 -0700
+Message-ID: <200710242323.l9ONNRkd017771@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58578 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42824 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752003AbXJXXXo (ORCPT
+	by vger.kernel.org with ESMTP id S1753384AbXJXXXs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 19:23:44 -0400
+	Wed, 24 Oct 2007 19:23:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeff@garzik.org, jgarzik@redhat.com
+Cc: jeff@garzik.org, jgarzik@redhat.com, kkeil@suse.de
 
 
 The patch titled
-     ACPI sbs: fix retval warning
+     ISDN/sc: fix longstanding warning
 has been added to the -mm tree.  Its filename is
-     acpi-sbs-fix-retval-warning.patch
+     isdn-sc-fix-longstanding-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,73 +26,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ACPI sbs: fix retval warning
+Subject: ISDN/sc: fix longstanding warning
 From: Jeff Garzik <jeff@garzik.org>
 
-drivers/acpi/sbs.c: In function `acpi_battery_add':
-drivers/acpi/sbs.c:811: warning: ignoring return value of `device_create_file', declared with attribute warn_unused_result
+drivers/isdn/sc/shmem.c: In function `memcpy_toshmem':
+drivers/isdn/sc/shmem.c:54: warning: passing argument 1 of `memcpy_toio' makes pointer from integer without a cast
 
-Additional cleanups:
-* use struct acpi_battery in acpi_battery_remove() to clean up function
-calls, just like acpi_battery_add() already does.
-
-* un-indent unregister call, as it mistakenly gives the impression that
-it belongs inside the 'if' test
-
-* remove unneeded braces
+Also, remove some unneeded braces, and add some useful whitespace.
 
 Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
+Acked-by: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/sbs.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ drivers/isdn/sc/shmem.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/acpi/sbs.c~acpi-sbs-fix-retval-warning drivers/acpi/sbs.c
---- a/drivers/acpi/sbs.c~acpi-sbs-fix-retval-warning
-+++ a/drivers/acpi/sbs.c
-@@ -113,6 +113,7 @@ struct acpi_battery {
- 	u16 spec;
- 	u8 id;
- 	u8 present:1;
-+	u8 have_sysfs:1;
- };
- 
- #define to_acpi_battery(x) container_of(x, struct acpi_battery, bat);
-@@ -808,7 +809,8 @@ static int acpi_battery_add(struct acpi_
- 	}
- 	battery->bat.get_property = acpi_sbs_battery_get_property;
- 	result = power_supply_register(&sbs->device->dev, &battery->bat);
--	device_create_file(battery->bat.dev, &alarm_attr);
-+	if (device_create_file(battery->bat.dev, &alarm_attr) == 0)
-+		battery->have_sysfs = 1;
- 	printk(KERN_INFO PREFIX "%s [%s]: Battery Slot [%s] (battery %s)\n",
- 	       ACPI_SBS_DEVICE_NAME, acpi_device_bid(sbs->device),
- 	       battery->name, sbs->battery->present ? "present" : "absent");
-@@ -817,14 +819,16 @@ static int acpi_battery_add(struct acpi_
- 
- static void acpi_battery_remove(struct acpi_sbs *sbs, int id)
+diff -puN drivers/isdn/sc/shmem.c~isdn-sc-fix-longstanding-warning drivers/isdn/sc/shmem.c
+--- a/drivers/isdn/sc/shmem.c~isdn-sc-fix-longstanding-warning
++++ a/drivers/isdn/sc/shmem.c
+@@ -28,15 +28,15 @@ void memcpy_toshmem(int card, void *dest
  {
--	if (sbs->battery[id].bat.dev)
--		device_remove_file(sbs->battery[id].bat.dev, &alarm_attr);
--		power_supply_unregister(&sbs->battery[id].bat);
-+	struct acpi_battery *battery = &sbs->battery[id];
-+
-+	if (battery->have_sysfs)
-+		device_remove_file(battery->bat.dev, &alarm_attr);
-+
-+	power_supply_unregister(&battery->bat);
-+
- #ifdef CONFIG_ACPI_PROCFS
--	if (sbs->battery[id].proc_entry) {
--		acpi_sbs_remove_fs(&(sbs->battery[id].proc_entry),
--				   acpi_battery_dir);
--	}
-+	if (sbs->battery[id].proc_entry)
-+		acpi_sbs_remove_fs(&battery->proc_entry, acpi_battery_dir);
- #endif
- }
+ 	unsigned long flags;
+ 	unsigned char ch;
++	unsigned long dest_rem = ((unsigned long) dest) % 0x4000;
  
+-	if(!IS_VALID_CARD(card)) {
++	if (!IS_VALID_CARD(card)) {
+ 		pr_debug("Invalid param: %d is not a valid card id\n", card);
+ 		return;
+ 	}
+ 
+-	if(n > SRAM_PAGESIZE) {
++	if (n > SRAM_PAGESIZE)
+ 		return;
+-	}
+ 
+ 	/*
+ 	 * determine the page to load from the address
+@@ -50,8 +50,7 @@ void memcpy_toshmem(int card, void *dest
+ 
+ 	outb(((sc_adapter[card]->shmem_magic + ch * SRAM_PAGESIZE) >> 14) | 0x80,
+ 		sc_adapter[card]->ioport[sc_adapter[card]->shmem_pgport]);
+-	memcpy_toio(sc_adapter[card]->rambase +
+-		((unsigned long) dest % 0x4000), src, n);
++	memcpy_toio(sc_adapter[card]->rambase + dest_rem, src, n);
+ 	spin_unlock_irqrestore(&sc_adapter[card]->lock, flags);
+ 	pr_debug("%s: set page to %#x\n",sc_adapter[card]->devicename,
+ 		((sc_adapter[card]->shmem_magic + ch * SRAM_PAGESIZE)>>14)|0x80);
 _
 
 Patches currently in -mm which might be from jeff@garzik.org are
