@@ -1,33 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: - keyspan-termios-tidy.patch removed from -mm tree
-Date: Wed, 24 Oct 2007 14:41:51 -0700
-Message-ID: <200710242141.l9OLfpNd013992@imap1.linux-foundation.org>
+Subject: - usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch removed from -mm tree
+Date: Wed, 24 Oct 2007 14:41:41 -0700
+Message-ID: <200710242141.l9OLffhO013975@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60540 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56362 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759532AbXJXVpv (ORCPT
+	by vger.kernel.org with ESMTP id S1759258AbXJXVps (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 17:45:51 -0400
+	Wed, 24 Oct 2007 17:45:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     keyspan termios tidy
+     usb serial: kill another case we pass NULL and shouldn't
 has been removed from the -mm tree.  Its filename was
-     keyspan-termios-tidy.patch
+     usb-serial-kill-another-case-we-pass-null-and-shouldnt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: keyspan termios tidy
+Subject: usb serial: kill another case we pass NULL and shouldn't
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-
-- Clear unsupported CMSPAR bit
-- Clean up long chains of a->b-> a bit
-- Encode baud rate back into tty structure properly
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Greg KH <greg@kroah.com>
@@ -35,50 +31,32 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
-diff -puN drivers/usb/serial/keyspan.c~keyspan-termios-tidy drivers/usb/serial/keyspan.c
---- a/drivers/usb/serial/keyspan.c~keyspan-termios-tidy
-+++ a/drivers/usb/serial/keyspan.c
-@@ -278,29 +278,35 @@ static void keyspan_set_termios (struct 
- 	struct keyspan_port_private 	*p_priv;
- 	const struct keyspan_device_details	*d_details;
- 	unsigned int 			cflag;
-+	struct tty_struct		*tty = port->tty;
+diff -puN drivers/usb/serial/console.c~usb-serial-kill-another-case-we-pass-null-and-shouldnt drivers/usb/serial/console.c
+--- a/drivers/usb/serial/console.c~usb-serial-kill-another-case-we-pass-null-and-shouldnt
++++ a/drivers/usb/serial/console.c
+@@ -164,6 +164,7 @@ static int usb_console_setup(struct cons
+ 	}
  
- 	dbg("%s", __FUNCTION__); 
+ 	if (serial->type->set_termios) {
++		struct ktermios dummy;
+ 		/* build up a fake tty structure so that the open call has something
+ 		 * to look at to get the cflag value */
+ 		tty = kzalloc(sizeof(*tty), GFP_KERNEL);
+@@ -177,12 +178,13 @@ static int usb_console_setup(struct cons
+ 			kfree (tty);
+ 			return -ENOMEM;
+ 		}
++		memset(&dummy, 0, sizeof(struct ktermios));
+ 		termios->c_cflag = cflag;
+ 		tty->termios = termios;
+ 		port->tty = tty;
  
- 	p_priv = usb_get_serial_port_data(port);
- 	d_details = p_priv->device_details;
--	cflag = port->tty->termios->c_cflag;
-+	cflag = tty->termios->c_cflag;
- 	device_port = port->number - port->serial->minor;
- 
- 	/* Baud rate calculation takes baud rate as an integer
- 	   so other rates can be generated if desired. */
--	baud_rate = tty_get_baud_rate(port->tty);
-+	baud_rate = tty_get_baud_rate(tty);
- 	/* If no match or invalid, don't change */		
--	if (baud_rate >= 0
--	    && d_details->calculate_baud_rate(baud_rate, d_details->baudclk,
-+	if (d_details->calculate_baud_rate(baud_rate, d_details->baudclk,
- 				NULL, NULL, NULL, device_port) == KEYSPAN_BAUD_RATE_OK) {
- 		/* FIXME - more to do here to ensure rate changes cleanly */
-+		/* FIXME - calcuate exact rate from divisor ? */
- 		p_priv->baud = baud_rate;
--	}
-+	} else
-+		baud_rate = tty_termios_baud_rate(old_termios);
- 
-+	tty_encode_baud_rate(tty, baud_rate, baud_rate);
- 	/* set CTS/RTS handshake etc. */
- 	p_priv->cflag = cflag;
- 	p_priv->flow_control = (cflag & CRTSCTS)? flow_cts: flow_none;
- 
-+	/* Mark/Space not supported */
-+	tty->termios->c_cflag &= ~CMSPAR;
-+
- 	keyspan_send_setup(port, 0);
- }
- 
+ 		/* set up the initial termios settings */
+-		serial->type->set_termios(port, NULL);
++		serial->type->set_termios(port, &dummy);
+ 		port->tty = NULL;
+ 		kfree (termios);
+ 		kfree (tty);
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
