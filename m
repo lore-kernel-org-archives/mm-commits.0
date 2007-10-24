@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-hcd-avoid-duplicate-local_irq_disable.patch added to -mm tree
-Date: Wed, 24 Oct 2007 15:36:10 -0700
-Message-ID: <200710242236.l9OMaAxS016063@imap1.linux-foundation.org>
+Subject: + fix-warning-in-mm-slubc.patch added to -mm tree
+Date: Wed, 24 Oct 2007 15:37:14 -0700
+Message-ID: <200710242237.l9OMbEiE016078@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46753 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40184 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753970AbXJXWgV (ORCPT
+	by vger.kernel.org with ESMTP id S1756340AbXJXWhy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 18:36:21 -0400
+	Wed, 24 Oct 2007 18:37:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stern@rowland.harvard.edu, arnd@arndb.de, greg@kroah.com
+Cc: olof@lixom.net, clameter@sgi.com, penberg@cs.helsinki.fi, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     USB HCD: avoid duplicate local_irq_disable()
+     Fix warning in mm/slub.c
 has been added to the -mm tree.  Its filename is
-     usb-hcd-avoid-duplicate-local_irq_disable.patch
+     fix-warning-in-mm-slubc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,53 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: USB HCD: avoid duplicate local_irq_disable()
-From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Fix warning in mm/slub.c
+From: Olof Johansson <olof@lixom.net>
 
-Arnd Bergmann wrote:
+"Make kmem_cache_node for SLUB on memory online to avoid panic" introduced
+the following:
 
-usb_hcd_flush_endpoint() has a retry loop that starts with a spin_lock_irq(),
-but only gives up the spinlock, not the irq_disable before jumping to the
-rescan label.
+mm/slub.c:2737: warning: passing argument 1 of 'atomic_read' from
+incompatible pointer type
 
-Alan Stern:
-
-I agree with your sentiment, but it would be better to solve this
-problem without using local_irq_disable().
-
-Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Olof Johansson <olof@lixom.net>
+Acked-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/core/hcd.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/slub.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/core/hcd.c~usb-hcd-avoid-duplicate-local_irq_disable drivers/usb/core/hcd.c
---- a/drivers/usb/core/hcd.c~usb-hcd-avoid-duplicate-local_irq_disable
-+++ a/drivers/usb/core/hcd.c
-@@ -1312,8 +1312,8 @@ void usb_hcd_flush_endpoint(struct usb_d
- 	hcd = bus_to_hcd(udev->bus);
+diff -puN mm/slub.c~fix-warning-in-mm-slubc mm/slub.c
+--- a/mm/slub.c~fix-warning-in-mm-slubc
++++ a/mm/slub.c
+@@ -2734,7 +2734,7 @@ static void slab_mem_offline_callback(vo
+ 			 * and offline_pages() function shoudn't call this
+ 			 * callback. So, we must fail.
+ 			 */
+-			BUG_ON(atomic_read(&n->nr_slabs));
++			BUG_ON(atomic_long_read(&n->nr_slabs));
  
- 	/* No more submits can occur */
--rescan:
- 	spin_lock_irq(&hcd_urb_list_lock);
-+rescan:
- 	list_for_each_entry (urb, &ep->urb_list, urb_list) {
- 		int	is_in;
- 
-@@ -1346,6 +1346,7 @@ rescan:
- 		usb_put_urb (urb);
- 
- 		/* list contents may have changed */
-+		spin_lock(&hcd_urb_list_lock);
- 		goto rescan;
- 	}
- 	spin_unlock_irq(&hcd_urb_list_lock);
+ 			s->node[offline_node] = NULL;
+ 			kmem_cache_free(kmalloc_caches, n);
 _
 
-Patches currently in -mm which might be from stern@rowland.harvard.edu are
+Patches currently in -mm which might be from olof@lixom.net are
 
-scsi-early-detection-of-medium-not-present-updated.patch
-usb-hcd-avoid-duplicate-local_irq_disable.patch
+fix-warning-in-mm-slubc.patch
+bugh-remove-have_arch_bug--have_arch_warn.patch
+powerpc-switch-to-generic-warn_on-bug_on.patch
