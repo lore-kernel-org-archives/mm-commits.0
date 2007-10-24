@@ -1,66 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: - whiteheat-clean-up-cant-happen-checks-and-encode-baud.patch removed from -mm tree
-Date: Wed, 24 Oct 2007 14:42:01 -0700
-Message-ID: <200710242142.l9OLg1rU014007@imap1.linux-foundation.org>
+Subject: - cp2101-convert-to-new-termios.patch removed from -mm tree
+Date: Wed, 24 Oct 2007 14:42:03 -0700
+Message-ID: <200710242142.l9OLg3AK014016@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42766 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51398 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754501AbXJXVp3 (ORCPT
+	by vger.kernel.org with ESMTP id S1755446AbXJXVpf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 17:45:29 -0400
+	Wed, 24 Oct 2007 17:45:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     whiteheat: clean up can't happen checks and encode baud rate
+     cp2101: convert to new termios
 has been removed from the -mm tree.  Its filename was
-     whiteheat-clean-up-cant-happen-checks-and-encode-baud.patch
+     cp2101-convert-to-new-termios.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: whiteheat: clean up can't happen checks and encode baud rate
+Subject: cp2101: convert to new termios
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+
+- Convert to new baud rate functions
+- Add baud rate reporting
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/whiteheat.c |   11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ drivers/usb/serial/cp2101.c |   48 +++++++---------------------------
+ 1 file changed, 11 insertions(+), 37 deletions(-)
 
-diff -puN drivers/usb/serial/whiteheat.c~whiteheat-clean-up-cant-happen-checks-and-encode-baud drivers/usb/serial/whiteheat.c
---- a/drivers/usb/serial/whiteheat.c~whiteheat-clean-up-cant-happen-checks-and-encode-baud
-+++ a/drivers/usb/serial/whiteheat.c
-@@ -885,16 +885,7 @@ static int whiteheat_ioctl (struct usb_s
- static void whiteheat_set_termios(struct usb_serial_port *port, struct ktermios *old_termios)
- {
- 	dbg("%s -port %d", __FUNCTION__, port->number);
--
--	if ((!port->tty) || (!port->tty->termios)) {
--		dbg("%s - no tty structures", __FUNCTION__);
--		goto exit;
+diff -puN drivers/usb/serial/cp2101.c~cp2101-convert-to-new-termios drivers/usb/serial/cp2101.c
+--- a/drivers/usb/serial/cp2101.c~cp2101-convert-to-new-termios
++++ a/drivers/usb/serial/cp2101.c
+@@ -361,7 +361,6 @@ static void cp2101_get_termios (struct u
+ 		dbg("%s - no tty structures", __FUNCTION__);
+ 		return;
+ 	}
+-	cflag = port->tty->termios->c_cflag;
+ 
+ 	cp2101_get_config(port, CP2101_BAUDRATE, &baud, 2);
+ 	/* Convert to baudrate */
+@@ -369,40 +368,9 @@ static void cp2101_get_termios (struct u
+ 		baud = BAUD_RATE_GEN_FREQ / baud;
+ 
+ 	dbg("%s - baud rate = %d", __FUNCTION__, baud);
+-	cflag &= ~CBAUD;
+-	switch (baud) {
+-		/*
+-		 * The baud rates which are commented out below
+-		 * appear to be supported by the device
+-		 * but are non-standard
+-		 */
+-		case 600:	cflag |= B600;		break;
+-		case 1200:	cflag |= B1200;		break;
+-		case 1800:	cflag |= B1800;		break;
+-		case 2400:	cflag |= B2400;		break;
+-		case 4800:	cflag |= B4800;		break;
+-		/*case 7200:	cflag |= B7200;		break;*/
+-		case 9600:	cflag |= B9600;		break;
+-		/*case 14400:	cflag |= B14400;	break;*/
+-		case 19200:	cflag |= B19200;	break;
+-		/*case 28800:	cflag |= B28800;	break;*/
+-		case 38400:	cflag |= B38400;	break;
+-		/*case 55854:	cflag |= B55054;	break;*/
+-		case 57600:	cflag |= B57600;	break;
+-		case 115200:	cflag |= B115200;	break;
+-		/*case 127117:	cflag |= B127117;	break;*/
+-		case 230400:	cflag |= B230400;	break;
+-		case 460800:	cflag |= B460800;	break;
+-		case 921600:	cflag |= B921600;	break;
+-		/*case 3686400:	cflag |= B3686400;	break;*/
+-		default:
+-			dbg("%s - Baud rate is not supported, "
+-					"using 9600 baud", __FUNCTION__);
+-			cflag |= B9600;
+-			cp2101_set_config_single(port, CP2101_BAUDRATE,
+-					(BAUD_RATE_GEN_FREQ/9600));
+-			break;
 -	}
--	
- 	firm_setup_port(port);
--
--exit:
--	return;
- }
++
++	tty_encode_baud_rate(port->tty, baud, baud);
++	cflag = port->tty->termios->c_cflag;
  
+ 	cp2101_get_config(port, CP2101_BITS, &bits, 2);
+ 	cflag &= ~CSIZE;
+@@ -516,7 +484,7 @@ static void cp2101_get_termios (struct u
+ static void cp2101_set_termios (struct usb_serial_port *port,
+ 		struct ktermios *old_termios)
+ {
+-	unsigned int cflag, old_cflag=0;
++	unsigned int cflag, old_cflag;
+ 	int baud=0, bits;
+ 	unsigned int modem_ctl[4];
  
-@@ -1244,6 +1235,8 @@ static int firm_setup_port(struct usb_se
- 	port_settings.baud = tty_get_baud_rate(port->tty);
- 	dbg("%s - baud rate = %d", __FUNCTION__, port_settings.baud);
+@@ -526,6 +494,8 @@ static void cp2101_set_termios (struct u
+ 		dbg("%s - no tty structures", __FUNCTION__);
+ 		return;
+ 	}
++	port->tty->termios->c_cflag &= ~CMSPAR;
++
+ 	cflag = port->tty->termios->c_cflag;
+ 	old_cflag = old_termios->c_cflag;
+ 	baud = tty_get_baud_rate(port->tty);
+@@ -563,11 +533,15 @@ static void cp2101_set_termios (struct u
+ 			dbg("%s - Setting baud rate to %d baud", __FUNCTION__,
+ 					baud);
+ 			if (cp2101_set_config_single(port, CP2101_BAUDRATE,
+-						(BAUD_RATE_GEN_FREQ / baud)))
++						(BAUD_RATE_GEN_FREQ / baud))) {
+ 				dev_err(&port->dev, "Baud rate requested not "
+ 						"supported by device\n");
++				baud = tty_termios_baud_rate(old_termios);
++			}
+ 		}
+ 	}
++	/* Report back the resulting baud rate */
++	tty_encode_baud_rate(port->tty, baud, baud);
  
-+	/* fixme: should set validated settings */
-+	tty_encode_baud_rate(port->tty, port_settings.baud, port_settings.baud);
- 	/* handle any settings that aren't specified in the tty structure */
- 	port_settings.lloop = 0;
- 	
+ 	/* If the number of data bits is to be updated */
+ 	if ((cflag & CSIZE) != (old_cflag & CSIZE)) {
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
