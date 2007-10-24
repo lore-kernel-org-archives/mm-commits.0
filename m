@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-warning-in-mm-slubc.patch added to -mm tree
-Date: Wed, 24 Oct 2007 15:37:14 -0700
-Message-ID: <200710242237.l9OMbEiE016078@imap1.linux-foundation.org>
+Subject: + radeonfb-remove-warning-with-config_pm=n.patch added to -mm tree
+Date: Wed, 24 Oct 2007 15:41:47 -0700
+Message-ID: <200710242241.l9OMflCY016259@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40184 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58748 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756340AbXJXWhy (ORCPT
+	by vger.kernel.org with ESMTP id S1753567AbXJXWm1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 18:37:54 -0400
+	Wed, 24 Oct 2007 18:42:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: olof@lixom.net, clameter@sgi.com, penberg@cs.helsinki.fi, y-goto@jp.fujitsu.com
+Cc: olof@lixom.net, adaplas@pol.net, benh@kernel.crashing.org
 
 
 The patch titled
-     Fix warning in mm/slub.c
+     radeonfb: remove warning with CONFIG_PM=n
 has been added to the -mm tree.  Its filename is
-     fix-warning-in-mm-slubc.patch
+     radeonfb-remove-warning-with-config_pm=n.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,41 +26,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix warning in mm/slub.c
+Subject: radeonfb: remove warning with CONFIG_PM=n
 From: Olof Johansson <olof@lixom.net>
 
-"Make kmem_cache_node for SLUB on memory online to avoid panic" introduced
-the following:
+Remove warning from powerpc ppc64_defconfig builds:
 
-mm/slub.c:2737: warning: passing argument 1 of 'atomic_read' from
-incompatible pointer type
+drivers/video/aty/radeon_pm.c:30: warning: 'radeon_reinitialize_M10' declared 'static' but never defined
+
+It's used only under CONFIG_PM, and only with CONFIG_X86 before it is
+defined, so the forward declaration can be moved under the ifdef.
 
 Signed-off-by: Olof Johansson <olof@lixom.net>
-Acked-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Acked-by: Christoph Lameter <clameter@sgi.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/aty/radeon_pm.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/slub.c~fix-warning-in-mm-slubc mm/slub.c
---- a/mm/slub.c~fix-warning-in-mm-slubc
-+++ a/mm/slub.c
-@@ -2734,7 +2734,7 @@ static void slab_mem_offline_callback(vo
- 			 * and offline_pages() function shoudn't call this
- 			 * callback. So, we must fail.
- 			 */
--			BUG_ON(atomic_read(&n->nr_slabs));
-+			BUG_ON(atomic_long_read(&n->nr_slabs));
+diff -puN drivers/video/aty/radeon_pm.c~radeonfb-remove-warning-with-config_pm=n drivers/video/aty/radeon_pm.c
+--- a/drivers/video/aty/radeon_pm.c~radeonfb-remove-warning-with-config_pm=n
++++ a/drivers/video/aty/radeon_pm.c
+@@ -27,8 +27,6 @@
  
- 			s->node[offline_node] = NULL;
- 			kmem_cache_free(kmalloc_caches, n);
+ #include "ati_ids.h"
+ 
+-static void radeon_reinitialize_M10(struct radeonfb_info *rinfo);
+-
+ /*
+  * Workarounds for bugs in PC laptops:
+  * - enable D2 sleep in some IBM Thinkpads
+@@ -39,6 +37,8 @@ static void radeon_reinitialize_M10(stru
+  */
+ 
+ #if defined(CONFIG_PM) && defined(CONFIG_X86)
++static void radeon_reinitialize_M10(struct radeonfb_info *rinfo);
++
+ struct radeon_device_id {
+         const char *ident;                     /* (arbitrary) Name */
+         const unsigned short subsystem_vendor; /* Subsystem Vendor ID */
 _
 
 Patches currently in -mm which might be from olof@lixom.net are
 
 fix-warning-in-mm-slubc.patch
+radeonfb-remove-warning-with-config_pm=n.patch
 bugh-remove-have_arch_bug--have_arch_warn.patch
 powerpc-switch-to-generic-warn_on-bug_on.patch
