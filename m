@@ -1,55 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - git-watchdog-fixup.patch removed from -mm tree
-Date: Wed, 24 Oct 2007 14:31:26 -0700
-Message-ID: <200710242131.l9OLVQGV013508@imap1.linux-foundation.org>
+Subject: + git-v9fs-fixup.patch added to -mm tree
+Date: Wed, 24 Oct 2007 14:36:58 -0700
+Message-ID: <200710242136.l9OLawrJ013677@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47027 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42944 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754842AbXJXVb2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752711AbXJXVhD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 17:31:28 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9OLVQGT015704
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 24 Oct 2007 14:31:28 -0700
+	Wed, 24 Oct 2007 17:37:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, ericvh@gmail.com
 
 
 The patch titled
-     git-watchdog-fixup
-has been removed from the -mm tree.  Its filename was
-     git-watchdog-fixup.patch
+     git-v9fs-fixup
+has been added to the -mm tree.  Its filename is
+     git-v9fs-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-watchdog-fixup
+Subject: git-v9fs-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Fix git conflicts in git-v9fs.
+
+Cc: Eric Van Hensbergen <ericvh@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/Kconfig |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/9p/v9fs.c    |    3 ---
+ net/9p/Kconfig  |    3 ---
+ net/9p/Makefile |    7 +------
+ 3 files changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN drivers/Kconfig~git-watchdog-fixup drivers/Kconfig
---- a/drivers/Kconfig~git-watchdog-fixup
-+++ a/drivers/Kconfig
-@@ -60,11 +60,8 @@ source "drivers/hwmon/Kconfig"
+diff -puN fs/9p/v9fs.c~git-v9fs-fixup fs/9p/v9fs.c
+--- a/fs/9p/v9fs.c~git-v9fs-fixup
++++ a/fs/9p/v9fs.c
+@@ -162,10 +162,7 @@ static void v9fs_parse_options(struct v9
+ 				if (*e != '\0')
+ 					v9ses->uid = ~0;
+ 			}
+-<<<<<<< HEAD:fs/9p/v9fs.c
+ 			kfree(s);
+-=======
+->>>>>>> FETCH_HEAD:fs/9p/v9fs.c
+ 			break;
  
- source "drivers/watchdog/Kconfig"
+ 		default:
+diff -puN net/9p/Kconfig~git-v9fs-fixup net/9p/Kconfig
+--- a/net/9p/Kconfig~git-v9fs-fixup
++++ a/net/9p/Kconfig
+@@ -23,7 +23,6 @@ config NET_9P_FD
+ 	  file descriptors.  TCP/IP is the default transport for 9p,
+ 	  so if you are going to use 9p, you'll likely want this.
  
--<<<<<<< HEAD:drivers/Kconfig
- source "drivers/ssb/Kconfig"
+-<<<<<<< HEAD:net/9p/Kconfig
+ config NET_9P_VIRTIO
+ 	depends on NET_9P && EXPERIMENTAL && VIRTIO
+ 	tristate "9P Virtio Transport (Experimental)"
+@@ -31,8 +30,6 @@ config NET_9P_VIRTIO
+ 	  This builds support for a transports between
+ 	  guest partitions and a host partition.
  
 -=======
-->>>>>>> FETCH_HEAD:drivers/Kconfig
- source "drivers/mfd/Kconfig"
+->>>>>>> FETCH_HEAD:net/9p/Kconfig
+ config NET_9P_DEBUG
+ 	bool "Debug information"
+ 	depends on NET_9P
+diff -puN net/9p/Makefile~git-v9fs-fixup net/9p/Makefile
+--- a/net/9p/Makefile~git-v9fs-fixup
++++ a/net/9p/Makefile
+@@ -1,9 +1,6 @@
+ obj-$(CONFIG_NET_9P) := 9pnet.o
+ obj-$(CONFIG_NET_9P_FD) += 9pnet_fd.o
+-<<<<<<< HEAD:net/9p/Makefile
+ obj-$(CONFIG_NET_9P_VIRTIO) += 9pnet_virtio.o
+-=======
+->>>>>>> FETCH_HEAD:net/9p/Makefile
  
- source "drivers/media/Kconfig"
+ 9pnet-objs := \
+ 	mod.o \
+@@ -16,9 +13,7 @@ obj-$(CONFIG_NET_9P_VIRTIO) += 9pnet_vir
+ 
+ 9pnet_fd-objs := \
+ 	trans_fd.o \
+-<<<<<<< HEAD:net/9p/Makefile
+ 
+ 9pnet_virtio-objs := \
+ 	trans_virtio.o \
+-=======
+->>>>>>> FETCH_HEAD:net/9p/Makefile
++
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,14 +118,14 @@ update-smc91x-driver-with-arm-versatile-board-info.patch
 git-nfsd-fixup.patch
 fix-build-breakage-if-sysfs-fix.patch
 git-unionfs.patch
+git-v9fs-fixup.patch
 git-watchdog.patch
-git-watchdog-fixup.patch
-documentation-watchdog-src-watchdog-simplec-improve-this-code-checkpatch-fixes.patch
 watchdog-add-nano-7240-driver-checkpatch-fixes.patch
 git-wireless.patch
 git-wireless-fixup.patch
 jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
 git-x86.patch
+git-x86-fixup.patch
 oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
 i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
 bufferhead-revert-constructor-removal-checkpatch-fixes.patch
