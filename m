@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ata-ahci-enable-enclosure-management-via-led-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 24 Oct 2007 16:42:35 -0700
-Message-ID: <200710242342.l9ONgaGu018466@imap1.linux-foundation.org>
+Subject: + i386-and-x86_64-randomize-brk.patch added to -mm tree
+Date: Wed, 24 Oct 2007 16:44:46 -0700
+Message-ID: <200710242344.l9ONikn9018587@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46556 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51660 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752564AbXJXXmk (ORCPT
+	by vger.kernel.org with ESMTP id S1754917AbXJXXpl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 19:42:40 -0400
+	Wed, 24 Oct 2007 19:45:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kristen.c.accardi@intel.com
+Cc: jkosina@suse.cz, arjan@infradead.org, jakub@redhat.com, mingo@elte.hu, roland@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     ata-ahci-enable-enclosure-management-via-led-checkpatch-fixes
+     i386 and x86_64: randomize brk()
 has been added to the -mm tree.  Its filename is
-     ata-ahci-enable-enclosure-management-via-led-checkpatch-fixes.patch
+     i386-and-x86_64-randomize-brk.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,211 +26,121 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ata-ahci-enable-enclosure-management-via-led-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: i386 and x86_64: randomize brk()
+From: Jiri Kosina <jkosina@suse.cz>
 
-WARNING: line over 80 characters
-#77: FILE: drivers/ata/ahci.c:536:
-+MODULE_PARM_DESC(ahci_em_messages, "Set AHCI Enclosure Management Message type (0 = disabled, 1 = LED, 2 = SAF-TE, 3 = SES-2, 4 = SGPIO)");
+Randomize the location of the heap (brk) for i386 and x86_64.  The range is
+randomized in the range starting at current brk location up to 0x02000000
+offset for both architectures.  This, together with
+pie-executable-randomization.patch and
+pie-executable-randomization-fix.patch, should make the address space
+randomization on i386 and x86_64 complete.
 
-ERROR: need space after that ',' (ctx:VxV)
-#106: FILE: drivers/ata/ahci.c:939:
-+	u32 message[] = {0,0};
- 	                  ^
+Arjan says:
 
-ERROR: use tabs not spaces
-#109: FILE: drivers/ata/ahci.c:942:
-+ ^I * if we are still busy transmitting a previous message,$
+This is known to break older versions of some emacs variants, whose dumper
+code assumed that the last variable declared in the program is equal to the
+start of the dynamically allocated memory region.
 
-ERROR: use tabs not spaces
-#110: FILE: drivers/ata/ahci.c:943:
-+ ^I * do not allow$
+(The dumper is the code where emacs effectively dumps core at the end of it's
+compilation stage; this coredump is then loaded as the main program during
+normal use)
 
-ERROR: use tabs not spaces
-#111: FILE: drivers/ata/ahci.c:944:
-+ ^I */$
+iirc this was 5 years or so; we found this way back when I was at RH and we
+first did the security stuff there (including this brk randomization).  It
+wasn't all variants of emacs, and it got fixed as a result (I vaguely remember
+that emacs already had code to deal with it for other archs/oses, just
+ifdeffed wrongly).
 
-ERROR: use tabs not spaces
-#117: FILE: drivers/ata/ahci.c:950:
-+ ^I * create message header - this is all zero except for$
+It's a rare and wrong assumption as a general thing, just on x86 it mostly
+happened to be true (but to be honest, it'll break too if gcc does
+something fancy or if the linker does a non-standard order).  Still its
+something we should at least document.
 
-ERROR: use tabs not spaces
-#118: FILE: drivers/ata/ahci.c:951:
-+ ^I * the message size, which is 4 bytes.$
+Note 2: afaik it only broke the emacs *build*.  I'm not 100% sure about that
+(it IS 5 years ago) though.
 
-ERROR: use tabs not spaces
-#119: FILE: drivers/ata/ahci.c:952:
-+ ^I */$
-
-ERROR: use tabs not spaces
-#125: FILE: drivers/ata/ahci.c:958:
-+ ^I * create the actual message$
-
-ERROR: use tabs not spaces
-#126: FILE: drivers/ata/ahci.c:959:
-+ ^I * XXX will need Port Multiplier support$
-
-ERROR: use tabs not spaces
-#127: FILE: drivers/ata/ahci.c:960:
-+ ^I */$
-
-ERROR: use tabs not spaces
-#141: FILE: drivers/ata/ahci.c:974:
-+ ^I * tell hardware to transmit the message$
-
-ERROR: use tabs not spaces
-#142: FILE: drivers/ata/ahci.c:975:
-+ ^I */$
-
-ERROR: "foo * bar" should be "foo *bar"
-#295: FILE: include/linux/libata.h:883:
-+struct ata_device * ata_scsi_find_dev(struct ata_port *ap,
-
-total: 13 errors, 1 warnings, 259 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc:  Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Jakub Jelinek <jakub@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/ahci.c     |   21 ++++++++++-----------
- include/linux/libata.h |    2 +-
- 2 files changed, 11 insertions(+), 12 deletions(-)
+ arch/x86/kernel/process_32.c |    7 +++++++
+ arch/x86/kernel/process_64.c |    7 +++++++
+ fs/binfmt_elf.c              |    6 ++++++
+ include/asm-x86/elf.h        |    3 +++
+ 4 files changed, 23 insertions(+)
 
-diff -puN drivers/ata/ahci.c~ata-ahci-enable-enclosure-management-via-led-checkpatch-fixes drivers/ata/ahci.c
---- a/drivers/ata/ahci.c~ata-ahci-enable-enclosure-management-via-led-checkpatch-fixes
-+++ a/drivers/ata/ahci.c
-@@ -936,28 +936,27 @@ static int ahci_transmit_led_message(str
- 	void __iomem *mmio = ap->host->iomap[AHCI_PCI_BAR];
- 	struct ahci_port_priv *pp = ap->private_data;
- 	u32 em_ctl;
--	u32 message[] = {0,0};
-+	u32 message[] = {0, 0};
- 
- 	/*
-- 	 * if we are still busy transmitting a previous message,
-- 	 * do not allow
-- 	 */
-+	 * if we are still busy transmitting a previous message, do not allow
-+	 */
- 	em_ctl = readl(mmio + HOST_EM_CTL);
- 	if (em_ctl & EM_CTL_TM)
- 		return -EINVAL;
- 
- 	/*
-- 	 * create message header - this is all zero except for
-- 	 * the message size, which is 4 bytes.
-- 	 */
-+	 * create message header - this is all zero except for
-+	 * the message size, which is 4 bytes.
-+	 */
- 	message[0] |= (4 << 8);
- 
- 	pp->led_state &= ~(9 << (3*led_num));
- 
- 	/*
-- 	 * create the actual message
-- 	 * XXX will need Port Multiplier support
-- 	 */
-+	 * create the actual message
-+	 * XXX will need Port Multiplier support
-+	 */
- 	message[1] = (ap->port_no | (pp->led_state << 16));
- 
- 	/* LED bit locations are determined by the led_num */
-@@ -972,7 +971,7 @@ static int ahci_transmit_led_message(str
- 
- 	/*
-  	 * tell hardware to transmit the message
-- 	 */
-+	 */
- 	writel(em_ctl | EM_CTL_TM, mmio + HOST_EM_CTL);
- 	return 0;
+diff -puN arch/x86/kernel/process_32.c~i386-and-x86_64-randomize-brk arch/x86/kernel/process_32.c
+--- a/arch/x86/kernel/process_32.c~i386-and-x86_64-randomize-brk
++++ a/arch/x86/kernel/process_32.c
+@@ -971,3 +971,10 @@ unsigned long arch_align_stack(unsigned 
+ 		sp -= get_random_int() % 8192;
+ 	return sp & ~0xf;
  }
-diff -puN include/linux/libata.h~ata-ahci-enable-enclosure-management-via-led-checkpatch-fixes include/linux/libata.h
---- a/include/linux/libata.h~ata-ahci-enable-enclosure-management-via-led-checkpatch-fixes
-+++ a/include/linux/libata.h
-@@ -880,7 +880,7 @@ extern int ata_scsi_slave_config(struct 
- extern void ata_scsi_slave_destroy(struct scsi_device *sdev);
- extern int ata_scsi_change_queue_depth(struct scsi_device *sdev,
- 				       int queue_depth);
--struct ata_device * ata_scsi_find_dev(struct ata_port *ap,
-+struct ata_device *ata_scsi_find_dev(struct ata_port *ap,
- 					    const struct scsi_device *scsidev);
- extern struct ata_device *ata_dev_pair(struct ata_device *adev);
- extern int ata_do_set_mode(struct ata_link *link, struct ata_device **r_failed_dev);
++
++unsigned long arch_randomize_brk(struct mm_struct *mm)
++{
++	unsigned long range_end = mm->brk + 0x02000000;
++	return randomize_range(mm->brk, range_end, 0) ? : mm->brk;
++}
++
+diff -puN arch/x86/kernel/process_64.c~i386-and-x86_64-randomize-brk arch/x86/kernel/process_64.c
+--- a/arch/x86/kernel/process_64.c~i386-and-x86_64-randomize-brk
++++ a/arch/x86/kernel/process_64.c
+@@ -903,3 +903,10 @@ unsigned long arch_align_stack(unsigned 
+ 		sp -= get_random_int() % 8192;
+ 	return sp & ~0xf;
+ }
++
++unsigned long arch_randomize_brk(struct mm_struct *mm)
++{
++	unsigned long range_end = mm->brk + 0x02000000;
++	return randomize_range(mm->brk, range_end, 0) ? : mm->brk;
++}
++
+diff -puN fs/binfmt_elf.c~i386-and-x86_64-randomize-brk fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~i386-and-x86_64-randomize-brk
++++ a/fs/binfmt_elf.c
+@@ -1021,6 +1021,12 @@ static int load_elf_binary(struct linux_
+ 	current->mm->end_data = end_data;
+ 	current->mm->start_stack = bprm->p;
+ 
++#ifdef ARCH_HAS_RANDOMIZE_BRK
++	if (current->flags & PF_RANDOMIZE)
++		current->mm->brk = current->mm->start_brk =
++			arch_randomize_brk(current->mm);
++#endif
++
+ 	if (current->personality & MMAP_PAGE_ZERO) {
+ 		/* Why this, you ask???  Well SVr4 maps page 0 as read-only,
+ 		   and some applications "depend" upon this behavior.
+diff -puN include/asm-x86/elf.h~i386-and-x86_64-randomize-brk include/asm-x86/elf.h
+--- a/include/asm-x86/elf.h~i386-and-x86_64-randomize-brk
++++ a/include/asm-x86/elf.h
+@@ -285,6 +285,9 @@ struct linux_binprm;
+ extern int arch_setup_additional_pages(struct linux_binprm *bprm,
+ 				       int executable_stack);
+ 
++#define ARCH_HAS_RANDOMIZE_BRK
++extern unsigned long arch_randomize_brk(struct mm_struct *mm);
++
+ #endif /* __KERNEL__ */
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
-sunrpc-fix-rpc-debugging-checkpatch-fixes.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+git-hid.patch
+make-wistron-btns-recognize-special-keys-on-medion-wim2160-notebooks.patch
 first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-ata-ahci-enable-enclosure-management-via-led-checkpatch-fixes.patch
-ide-arm-hack.patch
-nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd-fixup.patch
-fix-build-breakage-if-sysfs-fix.patch
-git-unionfs.patch
-git-v9fs-fixup.patch
-git-watchdog.patch
-watchdog-add-nano-7240-driver-checkpatch-fixes.patch
-git-wireless.patch
-git-wireless-fixup.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-x86-fix-config_smp-warning-in-processorc-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+fujitsu-application-panel-driver.patch
+git-ipwireless_cs.patch
+i386-and-x86_64-randomize-brk.patch
 pie-executable-randomization.patch
 pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-sync_sb_inodes-propagate-errors.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
