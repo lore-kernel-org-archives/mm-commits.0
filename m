@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-release-correct-region-in-error-path.patch added to -mm tree
-Date: Wed, 24 Oct 2007 16:06:58 -0700
-Message-ID: <200710242306.l9ON6wk8017160@imap1.linux-foundation.org>
+Subject: + reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file.patch added to -mm tree
+Date: Wed, 24 Oct 2007 16:07:37 -0700
+Message-ID: <200710242307.l9ON7btk017173@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55923 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44492 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755171AbXJXXH3 (ORCPT
+	by vger.kernel.org with ESMTP id S1754238AbXJXXI6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 19:07:29 -0400
+	Wed, 24 Oct 2007 19:08:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, a.zummo@towertech.it, david-b@pacbell.net, ralf@linux-mips.org
+Cc: wfg@mail.ustc.edu.cn, chris.mason@oracle.com, jeffm@suse.com, maximlevitsky@gmail.com, peterz@infradead.org, stable@kernel.org
 
 
 The patch titled
-     rtc: release correct region in error path
+     reiserfs: don't drop PG_dirty when releasing sub-page-sized dirty file
 has been added to the -mm tree.  Its filename is
-     rtc-release-correct-region-in-error-path.patch
+     reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,79 +26,112 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc: release correct region in error path
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: reiserfs: don't drop PG_dirty when releasing sub-page-sized dirty file
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-The misc_register() error path always released an I/O port region,
-even if the region was memory-mapped (only mips uses memory-mapped RTC,
-as far as I can see).
+This is not a new problem in 2.6.23-git17.  2.6.22/2.6.23 is buggy in the
+same way.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Reiserfs could accumulate dirty sub-page-size files until umount time. 
+They cannot be synced to disk by pdflush routines or explicit `sync'
+commands.  Only `umount' can do the trick.
+
+The direct cause is: the dirty page's PG_dirty is wrongly _cleared_.
+Call trace:
+	 [<ffffffff8027e920>] cancel_dirty_page+0xd0/0xf0
+	 [<ffffffff8816d470>] :reiserfs:reiserfs_cut_from_item+0x660/0x710
+	 [<ffffffff8816d791>] :reiserfs:reiserfs_do_truncate+0x271/0x530
+	 [<ffffffff8815872d>] :reiserfs:reiserfs_truncate_file+0xfd/0x3b0
+	 [<ffffffff8815d3d0>] :reiserfs:reiserfs_file_release+0x1e0/0x340
+	 [<ffffffff802a187c>] __fput+0xcc/0x1b0
+	 [<ffffffff802a1ba6>] fput+0x16/0x20
+	 [<ffffffff8029e676>] filp_close+0x56/0x90
+	 [<ffffffff8029fe0d>] sys_close+0xad/0x110
+	 [<ffffffff8020c41e>] system_call+0x7e/0x83
+
+Fix the bug by removing the cancel_dirty_page() call. Tests show that
+it causes no bad behaviors on various write sizes.
+
+=== for the patient ===
+Here are more detailed demonstrations of the problem.
+
+1) the page has both PG_dirty(D)/PAGECACHE_TAG_DIRTY(d) after being written to;
+   and then only PAGECACHE_TAG_DIRTY(d) remains after the file is closed.
+
+------------------------------ screen 0 ------------------------------
+[T0] root /home/wfg# cat > /test/tiny
+[T1] hi
+[T2] root /home/wfg#
+
+------------------------------ screen 1 ------------------------------
+[T1] root /home/wfg# echo /test/tiny > /proc/filecache
+[T1] root /home/wfg# cat /proc/filecache
+     # file /test/tiny
+     # flags R:referenced A:active M:mmap U:uptodate D:dirty W:writeback O:owner B:buffer d:dirty w:writeback
+     # idx   len     state   refcnt
+     0       1       ___UD__Bd_      2
+[T2] root /home/wfg# cat /proc/filecache
+     # file /test/tiny
+     # flags R:referenced A:active M:mmap U:uptodate D:dirty W:writeback O:owner B:buffer d:dirty w:writeback
+     # idx   len     state   refcnt
+     0       1       ___U___Bd_      2
+
+2) note the non-zero 'cancelled_write_bytes' after /tmp/hi is copied.
+
+------------------------------ screen 0 ------------------------------
+[T0] root /home/wfg# echo hi > /tmp/hi
+[T1] root /home/wfg# cp /tmp/hi /dev/stdin /test
+[T2] hi
+[T3] root /home/wfg#
+
+------------------------------ screen 1 ------------------------------
+[T1] root /proc/4397# cd /proc/`pidof cp`
+[T1] root /proc/4713# cat io
+     rchar: 8396
+     wchar: 3
+     syscr: 20
+     syscw: 1
+     read_bytes: 0
+     write_bytes: 20480
+     cancelled_write_bytes: 4096
+[T2] root /proc/4713# cat io
+     rchar: 8399
+     wchar: 6
+     syscr: 21
+     syscw: 2
+     read_bytes: 0
+     write_bytes: 24576
+     cancelled_write_bytes: 4096
+
+//Question: the 'write_bytes' is a bit more than expected ;-)
+
+Tested-by: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Jeff Mahoney <jeffm@suse.com>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Sort-of-acked-by: Chris Mason <chris.mason@oracle.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rtc.c |   20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ fs/reiserfs/stree.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/char/rtc.c~rtc-release-correct-region-in-error-path drivers/char/rtc.c
---- a/drivers/char/rtc.c~rtc-release-correct-region-in-error-path
-+++ a/drivers/char/rtc.c
-@@ -919,6 +919,14 @@ static const struct file_operations rtc_
- };
- #endif
- 
-+static void rtc_release_region(void)
-+{
-+	if (RTC_IOMAPPED)
-+		release_region(RTC_PORT(0), RTC_IO_EXTENT);
-+	else
-+		release_mem_region(RTC_PORT(0), RTC_IO_EXTENT);
-+}
-+
- static int __init rtc_init(void)
- {
- #ifdef CONFIG_PROC_FS
-@@ -993,10 +1001,7 @@ no_irq:
- 		/* Yeah right, seeing as irq 8 doesn't even hit the bus. */
- 		rtc_has_irq = 0;
- 		printk(KERN_ERR "rtc: IRQ %d is not free.\n", RTC_IRQ);
--		if (RTC_IOMAPPED)
--			release_region(RTC_PORT(0), RTC_IO_EXTENT);
--		else
--			release_mem_region(RTC_PORT(0), RTC_IO_EXTENT);
-+		rtc_release_region();
- 		return -EIO;
+diff -puN fs/reiserfs/stree.c~reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file fs/reiserfs/stree.c
+--- a/fs/reiserfs/stree.c~reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file
++++ a/fs/reiserfs/stree.c
+@@ -1458,9 +1458,6 @@ static void unmap_buffers(struct page *p
+ 				}
+ 				bh = next;
+ 			} while (bh != head);
+-			if (PAGE_SIZE == bh->b_size) {
+-				cancel_dirty_page(page, PAGE_CACHE_SIZE);
+-			}
+ 		}
  	}
- 	hpet_rtc_timer_init();
-@@ -1010,7 +1015,7 @@ no_irq:
- 		free_irq(RTC_IRQ, NULL);
- 		rtc_has_irq = 0;
- #endif
--		release_region(RTC_PORT(0), RTC_IO_EXTENT);
-+		rtc_release_region();
- 		return -ENODEV;
- 	}
- 
-@@ -1092,10 +1097,7 @@ static void __exit rtc_exit (void)
- 	if (rtc_has_irq)
- 		free_irq (rtc_irq, &rtc_port);
- #else
--	if (RTC_IOMAPPED)
--		release_region(RTC_PORT(0), RTC_IO_EXTENT);
--	else
--		release_mem_region(RTC_PORT(0), RTC_IO_EXTENT);
-+	rtc_release_region();
- #ifdef RTC_IRQ
- 	if (rtc_has_irq)
- 		free_irq (RTC_IRQ, NULL);
+ }
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
-serial-keep-the-dtr-setting-for-serial-console.patch
-rtc-release-correct-region-in-error-path.patch
-rtc-fallback-to-requesting-only-the-ports-we-actually-use.patch
-pnp-simplify-pnp_activate_dev-and-pnp_disable_dev-return-values.patch
+reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file.patch
