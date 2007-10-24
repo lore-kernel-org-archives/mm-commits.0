@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-pcf8583-dont-abuse-i2c_m_nostart.patch added to -mm tree
-Date: Wed, 24 Oct 2007 15:21:57 -0700
-Message-ID: <200710242221.l9OMLvHf015582@imap1.linux-foundation.org>
+Subject: + clocksource-make-clocksource_mask-bullet-proof.patch added to -mm tree
+Date: Wed, 24 Oct 2007 15:22:48 -0700
+Message-ID: <200710242222.l9OMMmJR015594@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48999 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43524 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754782AbXJXWXG (ORCPT
+	by vger.kernel.org with ESMTP id S1755020AbXJXWXp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 18:23:06 -0400
+	Wed, 24 Oct 2007 18:23:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khali@linux-fr.org, a.zummo@towertech.it, david-b@pacbell.net
+Cc: anemo@mba.ocn.ne.jp, johnstul@us.ibm.com, tglx@linutronix.de
 
 
 The patch titled
-     rtc-pcf8583: Don't abuse I2C_M_NOSTART
+     clocksource: Make CLOCKSOURCE_MASK bullet-proof
 has been added to the -mm tree.  Its filename is
-     rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
+     clocksource-make-clocksource_mask-bullet-proof.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,64 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc-pcf8583: Don't abuse I2C_M_NOSTART
-From: Jean Delvare <khali@linux-fr.org>
+Subject: clocksource: Make CLOCKSOURCE_MASK bullet-proof
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-The rtc-pcf8583 driver is using the I2C_M_NOSTART flag but shouldn't.  This
-flag is only meant for broken chips and the PCF8583 RTC chip is not one of
-these.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8583.c |   24 +++++++-----------------
- 1 file changed, 7 insertions(+), 17 deletions(-)
+ include/linux/clocksource.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-pcf8583.c~rtc-pcf8583-dont-abuse-i2c_m_nostart drivers/rtc/rtc-pcf8583.c
---- a/drivers/rtc/rtc-pcf8583.c~rtc-pcf8583-dont-abuse-i2c_m_nostart
-+++ a/drivers/rtc/rtc-pcf8583.c
-@@ -163,27 +163,17 @@ static int pcf8583_read_mem(struct i2c_c
+diff -puN include/linux/clocksource.h~clocksource-make-clocksource_mask-bullet-proof include/linux/clocksource.h
+--- a/include/linux/clocksource.h~clocksource-make-clocksource_mask-bullet-proof
++++ a/include/linux/clocksource.h
+@@ -103,7 +103,7 @@ struct clocksource {
+ #define CLOCK_SOURCE_VALID_FOR_HRES		0x20
  
- static int pcf8583_write_mem(struct i2c_client *client, struct rtc_mem *mem)
- {
--	unsigned char addr[1];
--	struct i2c_msg msgs[2] = {
--		{
--			.addr = client->addr,
--			.flags = 0,
--			.len = 1,
--			.buf = addr,
--		}, {
--			.addr = client->addr,
--			.flags = I2C_M_NOSTART,
--			.len = mem->nr,
--			.buf = mem->data,
--		}
--	};
-+	unsigned char buf[9];
-+	int ret;
+ /* simplify initialization of mask field */
+-#define CLOCKSOURCE_MASK(bits) (cycle_t)(bits<64 ? ((1ULL<<bits)-1) : -1)
++#define CLOCKSOURCE_MASK(bits) (cycle_t)((bits) < 64 ? ((1ULL<<(bits))-1) : -1)
  
--	if (mem->loc < 8)
-+	if (mem->loc < 8 || mem->nr > 8)
- 		return -EINVAL;
- 
--	addr[0] = mem->loc;
-+	buf[0] = mem->loc;
-+	memcpy(buf + 1, mem->data, mem->nr);
- 
--	return i2c_transfer(client->adapter, msgs, 2) == 2 ? 0 : -EIO;
-+	ret = i2c_master_send(client, buf, mem->nr + 1);
-+	return ret == mem->nr + 1 ? 0 : -EIO;
- }
- 
- static int pcf8583_rtc_read_time(struct device *dev, struct rtc_time *tm)
+ /**
+  * clocksource_khz2mult - calculates mult from khz and shift
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
-i2c-add-support-for-the-pcf8575-chip.patch
-git-hwmon.patch
-rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
+clocksource-make-clocksource_mask-bullet-proof.patch
