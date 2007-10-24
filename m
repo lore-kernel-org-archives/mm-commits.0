@@ -1,125 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - pci-error-recovery-symbios-scsi-first-failure.patch removed from -mm tree
-Date: Wed, 24 Oct 2007 14:41:21 -0700
-Message-ID: <200710242141.l9OLfL4R013947@imap1.linux-foundation.org>
+Subject: - fix-ll_rw_blkc-build-on-s390.patch removed from -mm tree
+Date: Wed, 24 Oct 2007 14:41:31 -0700
+Message-ID: <200710242141.l9OLfVH2013962@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33505 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49694 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757449AbXJXVmM (ORCPT
+	by vger.kernel.org with ESMTP id S1757727AbXJXVmN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 17:42:12 -0400
+	Wed, 24 Oct 2007 17:42:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linas@austin.ibm.com, willy@debian.org, mm-commits@vger.kernel.org
+To: heiko.carstens@de.ibm.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PCI Error Recovery: Symbios SCSI First Failure
+     fix ll_rw_blk.c build on s390
 has been removed from the -mm tree.  Its filename was
-     pci-error-recovery-symbios-scsi-first-failure.patch
+     fix-ll_rw_blkc-build-on-s390.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: PCI Error Recovery: Symbios SCSI First Failure
-From: Linas Vepstas <linas@austin.ibm.com>
+Subject: fix ll_rw_blk.c build on s390
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
 
-Implement the so-called "first failure data capture" (FFDC) for the symbios
-PCI error recovery.  After a PCI error event is reported, the driver
-requests that MMIO be enabled.  Once enabled, it then reads and dumps
-assorted status registers, and concludes by requesting the usual reset
-sequence.
+  CC      block/ll_rw_blk.o
+block/ll_rw_blk.c: In function 'blk_rq_map_sg':
+block/ll_rw_blk.c:1357: error: implicit declaration of function 'sg_dma_len'
+block/ll_rw_blk.c:1357: error: lvalue required as left operand of assignment
+block/ll_rw_blk.c:1358: error: implicit declaration of function 'sg_dma_address'
+block/ll_rw_blk.c:1358: error: lvalue required as left operand of assignment
+make[1]: *** [block/ll_rw_blk.o] Error 1
+make: *** [block] Error 2
 
-(includes a whitespace fix for bad indentation).
-
-Signed-off-by: Linas Vepstas <linas@austin.ibm.com>
-Cc: Matthew Wilcox <willy@debian.org>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sym53c8xx_2/sym_glue.c |   15 +++++++++++++++
- drivers/scsi/sym53c8xx_2/sym_glue.h |    1 +
- drivers/scsi/sym53c8xx_2/sym_hipd.c |   18 ++++++++++++++----
- 3 files changed, 30 insertions(+), 4 deletions(-)
+ block/ll_rw_blk.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/scsi/sym53c8xx_2/sym_glue.c~pci-error-recovery-symbios-scsi-first-failure drivers/scsi/sym53c8xx_2/sym_glue.c
---- a/drivers/scsi/sym53c8xx_2/sym_glue.c~pci-error-recovery-symbios-scsi-first-failure
-+++ a/drivers/scsi/sym53c8xx_2/sym_glue.c
-@@ -1927,6 +1927,20 @@ static pci_ers_result_t sym2_io_error_de
- 	disable_irq(pdev->irq);
- 	pci_disable_device(pdev);
+diff -puN block/ll_rw_blk.c~fix-ll_rw_blkc-build-on-s390 block/ll_rw_blk.c
+--- a/block/ll_rw_blk.c~fix-ll_rw_blkc-build-on-s390
++++ a/block/ll_rw_blk.c
+@@ -1354,8 +1354,6 @@ new_segment:
+ 			else
+ 				sg = sg_next(sg);
  
-+	/* Request that MMIO be enabled, so register dump can be taken. */
-+	return PCI_ERS_RESULT_CAN_RECOVER;
-+}
-+
-+/**
-+ * sym2_io_slot_dump -- Enable MMIO and dump debug registers
-+ * @pdev: pointer to PCI device
-+ */
-+static pci_ers_result_t sym2_io_slot_dump(struct pci_dev *pdev)
-+{
-+	struct sym_hcb *np = pci_get_drvdata(pdev);
-+
-+	sym_dump_registers(np);
-+
- 	/* Request a slot reset. */
- 	return PCI_ERS_RESULT_NEED_RESET;
- }
-@@ -2181,6 +2195,7 @@ MODULE_DEVICE_TABLE(pci, sym2_id_table);
- 
- static struct pci_error_handlers sym2_err_handler = {
- 	.error_detected = sym2_io_error_detected,
-+	.mmio_enabled = sym2_io_slot_dump,
- 	.slot_reset = sym2_io_slot_reset,
- 	.resume = sym2_io_resume,
- };
-diff -puN drivers/scsi/sym53c8xx_2/sym_glue.h~pci-error-recovery-symbios-scsi-first-failure drivers/scsi/sym53c8xx_2/sym_glue.h
---- a/drivers/scsi/sym53c8xx_2/sym_glue.h~pci-error-recovery-symbios-scsi-first-failure
-+++ a/drivers/scsi/sym53c8xx_2/sym_glue.h
-@@ -270,5 +270,6 @@ void sym_xpt_async_bus_reset(struct sym_
- void sym_xpt_async_sent_bdr(struct sym_hcb *np, int target);
- int  sym_setup_data_and_start (struct sym_hcb *np, struct scsi_cmnd *csio, struct sym_ccb *cp);
- void sym_log_bus_error(struct sym_hcb *np);
-+void sym_dump_registers(struct sym_hcb *np);
- 
- #endif /* SYM_GLUE_H */
-diff -puN drivers/scsi/sym53c8xx_2/sym_hipd.c~pci-error-recovery-symbios-scsi-first-failure drivers/scsi/sym53c8xx_2/sym_hipd.c
---- a/drivers/scsi/sym53c8xx_2/sym_hipd.c~pci-error-recovery-symbios-scsi-first-failure
-+++ a/drivers/scsi/sym53c8xx_2/sym_hipd.c
-@@ -1180,10 +1180,10 @@ static void sym_log_hard_error(struct sy
- 			scr_to_cpu((int) *(u32 *)(script_base + script_ofs)));
- 	}
- 
--        printf ("%s: regdump:", sym_name(np));
--        for (i=0; i<24;i++)
--            printf (" %02x", (unsigned)INB_OFF(np, i));
--        printf (".\n");
-+	printf("%s: regdump:", sym_name(np));
-+	for (i = 0; i < 24; i++)
-+		printf(" %02x", (unsigned)INB_OFF(np, i));
-+	printf(".\n");
- 
- 	/*
- 	 *  PCI BUS error.
-@@ -1192,6 +1192,16 @@ static void sym_log_hard_error(struct sy
- 		sym_log_bus_error(np);
- }
- 
-+void sym_dump_registers(struct sym_hcb *np)
-+{
-+	u_short sist;
-+	u_char dstat;
-+
-+	sist = INW(np, nc_sist);
-+	dstat = INB(np, nc_dstat);
-+	sym_log_hard_error(np, sist, dstat);
-+}
-+
- static struct sym_chip sym_dev_table[] = {
-  {PCI_DEVICE_ID_NCR_53C810, 0x0f, "810", 4, 8, 4, 64,
-  FE_ERL}
+-			sg_dma_len(sg) = 0;
+-			sg_dma_address(sg) = 0;
+ 			sg_set_page(sg, bvec->bv_page);
+ 			sg->length = nbytes;
+ 			sg->offset = bvec->bv_offset;
 _
 
-Patches currently in -mm which might be from linas@austin.ibm.com are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
