@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ata-sata_nv-mcp61-using-generic-instead-of-swncq.patch added to -mm tree
-Date: Tue, 23 Oct 2007 23:43:47 -0700
-Message-ID: <200710240643.l9O6hliR026953@imap1.linux-foundation.org>
+Subject: + bogus-kern_alert-on-oops.patch added to -mm tree
+Date: Wed, 24 Oct 2007 00:09:20 -0700
+Message-ID: <200710240709.l9O79K3s027941@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32958 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40564 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753003AbXJXGoU (ORCPT
+	by vger.kernel.org with ESMTP id S1750854AbXJXHKU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 02:44:20 -0400
+	Wed, 24 Oct 2007 03:10:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kluo@nvidia.com
+Cc: adobriyan@sw.ru, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     ata: sata_nv MCP61 using GENERIC instead of SWNCQ
+     Bogus KERN_ALERT on oops
 has been added to the -mm tree.  Its filename is
-     ata-sata_nv-mcp61-using-generic-instead-of-swncq.patch
+     bogus-kern_alert-on-oops.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,37 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ata: sata_nv MCP61 using GENERIC instead of SWNCQ
-From: "Kuan Luo" <kluo@nvidia.com>
+Subject: Bogus KERN_ALERT on oops
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-The mcp61 has bug with ncq.  The patch only changes SWNCQ to GENERIC on MCP61
-in nv_pci_tbl structure.  
-
+printing eip: f881b9f3 *pdpt = 0000000000003001 <1>*pde = 000000000480a067 *pte = 0000000000000000
+						^^^
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_nv.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/x86/mm/fault_32.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/sata_nv.c~ata-sata_nv-mcp61-using-generic-instead-of-swncq drivers/ata/sata_nv.c
---- a/drivers/ata/sata_nv.c~ata-sata_nv-mcp61-using-generic-instead-of-swncq
-+++ a/drivers/ata/sata_nv.c
-@@ -365,9 +365,9 @@ static const struct pci_device_id nv_pci
- 	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP51_SATA2), SWNCQ },
- 	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP55_SATA), SWNCQ },
- 	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP55_SATA2), SWNCQ },
--	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP61_SATA), SWNCQ },
--	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP61_SATA2), SWNCQ },
--	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP61_SATA3), SWNCQ },
-+	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP61_SATA), GENERIC },
-+	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP61_SATA2), GENERIC },
-+	{ PCI_VDEVICE(NVIDIA, PCI_DEVICE_ID_NVIDIA_NFORCE_MCP61_SATA3), GENERIC },
- 
- 	{ } /* terminate list */
- };
+diff -puN arch/x86/mm/fault_32.c~bogus-kern_alert-on-oops arch/x86/mm/fault_32.c
+--- a/arch/x86/mm/fault_32.c~bogus-kern_alert-on-oops
++++ a/arch/x86/mm/fault_32.c
+@@ -550,7 +550,7 @@ no_context:
+ 			page &= PAGE_MASK;
+ 			page = ((__typeof__(page) *) __va(page))[(address >> PMD_SHIFT)
+ 			                                         & (PTRS_PER_PMD - 1)];
+-			printk(KERN_ALERT "*pde = %016Lx ", page);
++			printk("*pde = %016Lx ", page);
+ 			page &= ~_PAGE_NX;
+ 		}
+ #else
 _
 
-Patches currently in -mm which might be from kluo@nvidia.com are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
 origin.patch
-ata-sata_nv-mcp61-using-generic-instead-of-swncq.patch
+bogus-kern_alert-on-oops.patch
+single_open-seq_release-leak-diagnostics.patch
