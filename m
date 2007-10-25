@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + check-for-acpi-resource-conflicts-in-hwmon-drivers.patch added to -mm tree
-Date: Wed, 24 Oct 2007 20:54:09 -0700
-Message-ID: <200710250354.l9P3s9uu030495@imap1.linux-foundation.org>
+Subject: + check-for-acpi-resource-conflicts-in-i2c-bus-drivers.patch added to -mm tree
+Date: Wed, 24 Oct 2007 20:55:01 -0700
+Message-ID: <200710250355.l9P3t1XT030548@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56077 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59544 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761116AbXJYDy3 (ORCPT
+	by vger.kernel.org with ESMTP id S1757653AbXJYDzT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 23:54:29 -0400
+	Wed, 24 Oct 2007 23:55:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jdelvare@suse.de, lenb@kernel.org, mhoffman@lightlink.com, trenn@suse.de
 
 
 The patch titled
-     Check for ACPI resource conflicts in hwmon drivers
+     Check for ACPI resource conflicts in i2c bus drivers
 has been added to the -mm tree.  Its filename is
-     check-for-acpi-resource-conflicts-in-hwmon-drivers.patch
+     check-for-acpi-resource-conflicts-in-i2c-bus-drivers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,21 +26,16 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Check for ACPI resource conflicts in hwmon drivers
+Subject: Check for ACPI resource conflicts in i2c bus drivers
 From: Jean Delvare <jdelvare@suse.de>
 
-Check for ACPI resource conflicts in hwmon drivers. I've included
-all Super-I/O and PCI drivers.
+Check for ACPI resource conflicts in i2c bus drivers. I've included
+all recent SMBus master drivers for PC hardware.
 
 I've voluntarily left out:
-* Laptop specific and vendor-specific drivers: if they conflicted
-  on any system, this would pretty much mean that they conflict on all
-  systems, and we would know by now.
-* Legacy ISA drivers (lm78 and w83781d): they only support chips found
-  on old designs were ACPI either wasn't supported or didn't deal with
-  thermal management.
-* Drivers accessing the I/O resources indirectly (e.g. through SMBus):
-  the check will be added where it belongs, i.e. in the bus drivers.
+* Drivers that don't run on PCs: they can't conflict with ACPI.
+* Bit-banged bus device drivers: it's very unlikely that ACPI would
+  deal with such buses.
 
 Signed-off-by: Jean Delvare <jdelvare@suse.de>
 Signed-off-by: Thomas Renninger <trenn@suse.de>
@@ -49,336 +44,292 @@ Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/dme1737.c    |    5 +++++
- drivers/hwmon/f71805f.c    |    5 +++++
- drivers/hwmon/f71882fg.c   |    5 +++++
- drivers/hwmon/it87.c       |    5 +++++
- drivers/hwmon/pc87360.c    |    6 ++++++
- drivers/hwmon/pc87427.c    |    5 +++++
- drivers/hwmon/sis5595.c    |    5 +++++
- drivers/hwmon/smsc47b397.c |    5 +++++
- drivers/hwmon/smsc47m1.c   |    5 +++++
- drivers/hwmon/via686a.c    |    5 +++++
- drivers/hwmon/vt1211.c     |    5 +++++
- drivers/hwmon/vt8231.c     |    5 +++++
- drivers/hwmon/w83627ehf.c  |    6 ++++++
- drivers/hwmon/w83627hf.c   |    5 +++++
- 14 files changed, 72 insertions(+)
+ drivers/i2c/busses/i2c-ali1535.c |    6 ++++++
+ drivers/i2c/busses/i2c-ali1563.c |    5 +++++
+ drivers/i2c/busses/i2c-ali15x3.c |    5 +++++
+ drivers/i2c/busses/i2c-amd756.c  |    6 ++++++
+ drivers/i2c/busses/i2c-amd8111.c |    5 +++++
+ drivers/i2c/busses/i2c-i801.c    |    5 +++++
+ drivers/i2c/busses/i2c-nforce2.c |    6 ++++++
+ drivers/i2c/busses/i2c-piix4.c   |    4 ++++
+ drivers/i2c/busses/i2c-sis5595.c |    6 ++++++
+ drivers/i2c/busses/i2c-sis630.c  |    6 ++++++
+ drivers/i2c/busses/i2c-sis96x.c  |    5 +++++
+ drivers/i2c/busses/i2c-viapro.c  |    5 +++++
+ 12 files changed, 64 insertions(+)
 
-diff -puN drivers/hwmon/dme1737.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/dme1737.c
---- a/drivers/hwmon/dme1737.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
-+++ a/drivers/hwmon/dme1737.c
-@@ -34,6 +34,7 @@
- #include <linux/hwmon-vid.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- /* ISA device, if found */
-@@ -2227,6 +2228,10 @@ static int __init dme1737_isa_device_add
- 	};
- 	int err;
- 
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
-+		goto exit;
-+
- 	if (!(pdev = platform_device_alloc("dme1737", addr))) {
- 		printk(KERN_ERR "dme1737: Failed to allocate device.\n");
- 		err = -ENOMEM;
-diff -puN drivers/hwmon/f71805f.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/f71805f.c
---- a/drivers/hwmon/f71805f.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
-+++ a/drivers/hwmon/f71805f.c
-@@ -39,6 +39,7 @@
- #include <linux/mutex.h>
- #include <linux/sysfs.h>
+diff -puN drivers/i2c/busses/i2c-ali1535.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-ali1535.c
+--- a/drivers/i2c/busses/i2c-ali1535.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
++++ a/drivers/i2c/busses/i2c-ali1535.c
+@@ -61,6 +61,7 @@
  #include <linux/ioport.h>
+ #include <linux/i2c.h>
+ #include <linux/init.h>
 +#include <linux/acpi.h>
  #include <asm/io.h>
  
- static struct platform_device *pdev;
-@@ -1451,6 +1452,10 @@ static int __init f71805f_device_add(uns
+ 
+@@ -159,6 +160,11 @@ static int ali1535_setup(struct pci_dev 
+ 		goto exit;
  	}
  
- 	res.name = pdev->name;
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
-+		goto exit_device_put;
-+
- 	err = platform_device_add_resources(pdev, &res, 1);
- 	if (err) {
- 		printk(KERN_ERR DRVNAME ": Device resource addition failed "
-diff -puN drivers/hwmon/f71882fg.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/f71882fg.c
---- a/drivers/hwmon/f71882fg.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
-+++ a/drivers/hwmon/f71882fg.c
-@@ -27,6 +27,7 @@
- #include <linux/hwmon-sysfs.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- #define DRVNAME "f71882fg"
-@@ -894,6 +895,10 @@ static int __init f71882fg_device_add(un
- 		return -ENOMEM;
- 
- 	res.name = f71882fg_pdev->name;
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
-+		return err;
-+
- 	err = platform_device_add_resources(f71882fg_pdev, &res, 1);
- 	if (err) {
- 		printk(KERN_ERR DRVNAME ": Device resource addition failed\n");
-diff -puN drivers/hwmon/it87.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/it87.c
---- a/drivers/hwmon/it87.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
-+++ a/drivers/hwmon/it87.c
-@@ -38,6 +38,7 @@
- #include <linux/err.h>
- #include <linux/mutex.h>
- #include <linux/sysfs.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- #define DRVNAME "it87"
-@@ -1409,6 +1410,10 @@ static int __init it87_device_add(unsign
- 	};
- 	int err;
- 
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
++	retval = acpi_check_region(ali1535_smba, ALI1535_SMB_IOSIZE,
++				   ali1535_driver.name);
++	if (retval)
 +		goto exit;
 +
- 	pdev = platform_device_alloc(DRVNAME, address);
- 	if (!pdev) {
- 		err = -ENOMEM;
-diff -puN drivers/hwmon/pc87360.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/pc87360.c
---- a/drivers/hwmon/pc87360.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
-+++ a/drivers/hwmon/pc87360.c
-@@ -43,6 +43,7 @@
- #include <linux/hwmon-vid.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- static u8 devid;
-@@ -1421,6 +1422,11 @@ static int __init pc87360_device_add(uns
- 			continue;
- 		res.start = extra_isa[i];
- 		res.end = extra_isa[i] + PC87360_EXTENT - 1;
-+
-+		err = acpi_check_resource_conflict(&res);
-+		if (err)
-+			goto exit_device_put;
-+
- 		err = platform_device_add_resources(pdev, &res, 1);
- 		if (err) {
- 			printk(KERN_ERR "pc87360: Device resource[%d] "
-diff -puN drivers/hwmon/pc87427.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/pc87427.c
---- a/drivers/hwmon/pc87427.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
-+++ a/drivers/hwmon/pc87427.c
-@@ -32,6 +32,7 @@
- #include <linux/mutex.h>
- #include <linux/sysfs.h>
- #include <linux/ioport.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- static struct platform_device *pdev;
-@@ -520,6 +521,10 @@ static int __init pc87427_device_add(uns
- 	};
- 	int err;
- 
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
-+		goto exit;
-+
- 	pdev = platform_device_alloc(DRVNAME, address);
- 	if (!pdev) {
- 		err = -ENOMEM;
-diff -puN drivers/hwmon/sis5595.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/sis5595.c
---- a/drivers/hwmon/sis5595.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
-+++ a/drivers/hwmon/sis5595.c
-@@ -62,6 +62,7 @@
- #include <linux/jiffies.h>
- #include <linux/mutex.h>
- #include <linux/sysfs.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- 
-@@ -727,6 +728,10 @@ static int __devinit sis5595_device_add(
- 	};
- 	int err;
- 
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
-+		goto exit;
-+
- 	pdev = platform_device_alloc("sis5595", address);
- 	if (!pdev) {
- 		err = -ENOMEM;
-diff -puN drivers/hwmon/smsc47b397.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/smsc47b397.c
---- a/drivers/hwmon/smsc47b397.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
-+++ a/drivers/hwmon/smsc47b397.c
-@@ -36,6 +36,7 @@
- #include <linux/err.h>
+ 	if (!request_region(ali1535_smba, ALI1535_SMB_IOSIZE,
+ 			    ali1535_driver.name)) {
+ 		dev_err(&dev->dev, "ALI1535_smb region 0x%x already in use!\n",
+diff -puN drivers/i2c/busses/i2c-ali1563.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-ali1563.c
+--- a/drivers/i2c/busses/i2c-ali1563.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
++++ a/drivers/i2c/busses/i2c-ali1563.c
+@@ -21,6 +21,7 @@
+ #include <linux/i2c.h>
+ #include <linux/pci.h>
  #include <linux/init.h>
- #include <linux/mutex.h>
 +#include <linux/acpi.h>
- #include <asm/io.h>
  
- static struct platform_device *pdev;
-@@ -299,6 +300,10 @@ static int __init smsc47b397_device_add(
- 	};
- 	int err;
- 
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
-+		goto exit;
-+
- 	pdev = platform_device_alloc(DRVNAME, address);
- 	if (!pdev) {
- 		err = -ENOMEM;
-diff -puN drivers/hwmon/smsc47m1.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/smsc47m1.c
---- a/drivers/hwmon/smsc47m1.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
-+++ a/drivers/hwmon/smsc47m1.c
-@@ -37,6 +37,7 @@
- #include <linux/init.h>
- #include <linux/mutex.h>
- #include <linux/sysfs.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- static struct platform_device *pdev;
-@@ -682,6 +683,10 @@ static int __init smsc47m1_device_add(un
- 	};
- 	int err;
- 
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
-+		goto exit;
-+
- 	pdev = platform_device_alloc(DRVNAME, address);
- 	if (!pdev) {
- 		err = -ENOMEM;
-diff -puN drivers/hwmon/via686a.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/via686a.c
---- a/drivers/hwmon/via686a.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
-+++ a/drivers/hwmon/via686a.c
-@@ -41,6 +41,7 @@
- #include <linux/init.h>
- #include <linux/mutex.h>
- #include <linux/sysfs.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- 
-@@ -755,6 +756,10 @@ static int __devinit via686a_device_add(
- 	};
- 	int err;
- 
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
-+		goto exit;
-+
- 	pdev = platform_device_alloc("via686a", address);
- 	if (!pdev) {
- 		err = -ENOMEM;
-diff -puN drivers/hwmon/vt1211.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/vt1211.c
---- a/drivers/hwmon/vt1211.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
-+++ a/drivers/hwmon/vt1211.c
-@@ -32,6 +32,7 @@
- #include <linux/err.h>
- #include <linux/mutex.h>
- #include <linux/ioport.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- static int uch_config = -1;
-@@ -1255,6 +1256,10 @@ static int __init vt1211_device_add(unsi
+ #define ALI1563_MAX_TIMEOUT	500
+ #define	ALI1563_SMBBA		0x80
+@@ -345,6 +346,10 @@ static int __devinit ali1563_setup(struc
+ 		}
  	}
  
- 	res.name = pdev->name;
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
-+		goto EXIT;
++	if (acpi_check_region(ali1563_smba, ALI1563_SMB_IOSIZE,
++			      ali1563_pci_driver.name))
++		goto Err;
 +
- 	err = platform_device_add_resources(pdev, &res, 1);
- 	if (err) {
- 		printk(KERN_ERR DRVNAME ": Device resource addition failed "
-diff -puN drivers/hwmon/vt8231.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/vt8231.c
---- a/drivers/hwmon/vt8231.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
-+++ a/drivers/hwmon/vt8231.c
-@@ -35,6 +35,7 @@
- #include <linux/hwmon-vid.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
+ 	if (!request_region(ali1563_smba, ALI1563_SMB_IOSIZE,
+ 			    ali1563_pci_driver.name)) {
+ 		dev_err(&dev->dev, "Could not allocate I/O space at 0x%04x\n",
+diff -puN drivers/i2c/busses/i2c-ali15x3.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-ali15x3.c
+--- a/drivers/i2c/busses/i2c-ali15x3.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
++++ a/drivers/i2c/busses/i2c-ali15x3.c
+@@ -68,6 +68,7 @@
+ #include <linux/delay.h>
+ #include <linux/i2c.h>
+ #include <linux/init.h>
 +#include <linux/acpi.h>
  #include <asm/io.h>
  
- static int force_addr;
-@@ -858,6 +859,10 @@ static int __devinit vt8231_device_add(u
- 	};
- 	int err;
+ /* ALI15X3 SMBus address offsets */
+@@ -166,6 +167,10 @@ static int ali15x3_setup(struct pci_dev 
+ 	if(force_addr)
+ 		ali15x3_smba = force_addr & ~(ALI15X3_SMB_IOSIZE - 1);
  
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
-+		goto exit;
++	if (acpi_check_region(ali15x3_smba, ALI15X3_SMB_IOSIZE,
++			      ali15x3_driver.name))
++		return -EBUSY;
 +
- 	pdev = platform_device_alloc("vt8231", address);
- 	if (!pdev) {
- 		err = -ENOMEM;
-diff -puN drivers/hwmon/w83627ehf.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/w83627ehf.c
---- a/drivers/hwmon/w83627ehf.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
-+++ a/drivers/hwmon/w83627ehf.c
-@@ -48,6 +48,7 @@
- #include <linux/hwmon-vid.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
+ 	if (!request_region(ali15x3_smba, ALI15X3_SMB_IOSIZE,
+ 			    ali15x3_driver.name)) {
+ 		dev_err(&ALI15X3_dev->dev,
+diff -puN drivers/i2c/busses/i2c-amd756.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-amd756.c
+--- a/drivers/i2c/busses/i2c-amd756.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
++++ a/drivers/i2c/busses/i2c-amd756.c
+@@ -45,6 +45,7 @@
+ #include <linux/ioport.h>
+ #include <linux/i2c.h>
+ #include <linux/init.h>
 +#include <linux/acpi.h>
  #include <asm/io.h>
- #include "lm75.h"
  
-@@ -1531,6 +1532,11 @@ static int __init sensors_w83627ehf_init
- 	res.start = address + IOREGION_OFFSET;
- 	res.end = address + IOREGION_OFFSET + IOREGION_LENGTH - 1;
- 	res.flags = IORESOURCE_IO;
+ /* AMD756 SMBus address offsets */
+@@ -364,6 +365,11 @@ static int __devinit amd756_probe(struct
+ 		amd756_ioport += SMB_ADDR_OFFSET;
+ 	}
+ 
++	error = acpi_check_region(amd756_ioport, SMB_IOSIZE,
++				  amd756_driver.name);
++	if (error)
++		return error;
 +
-+	err = acpi_check_resource_conflict(&res);
+ 	if (!request_region(amd756_ioport, SMB_IOSIZE, amd756_driver.name)) {
+ 		dev_err(&pdev->dev, "SMB region 0x%x already in use!\n",
+ 			amd756_ioport);
+diff -puN drivers/i2c/busses/i2c-amd8111.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-amd8111.c
+--- a/drivers/i2c/busses/i2c-amd8111.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
++++ a/drivers/i2c/busses/i2c-amd8111.c
+@@ -16,6 +16,7 @@
+ #include <linux/init.h>
+ #include <linux/i2c.h>
+ #include <linux/delay.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+ 
+ MODULE_LICENSE("GPL");
+@@ -359,6 +360,10 @@ static int __devinit amd8111_probe(struc
+ 	smbus->base = pci_resource_start(dev, 0);
+ 	smbus->size = pci_resource_len(dev, 0);
+ 
++	error = acpi_check_resource_conflict(&dev->resource[0]);
++	if (error)
++		goto out_kfree;
++
+ 	if (!request_region(smbus->base, smbus->size, amd8111_driver.name)) {
+ 		error = -EBUSY;
+ 		goto out_kfree;
+diff -puN drivers/i2c/busses/i2c-i801.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-i801.c
+--- a/drivers/i2c/busses/i2c-i801.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
++++ a/drivers/i2c/busses/i2c-i801.c
+@@ -52,6 +52,7 @@
+ #include <linux/ioport.h>
+ #include <linux/init.h>
+ #include <linux/i2c.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+ 
+ /* I801 SMBus address offsets */
+@@ -588,6 +589,10 @@ static int __devinit i801_probe(struct p
+ 		goto exit;
+ 	}
+ 
++	err = acpi_check_resource_conflict(&dev->resource[SMBBAR]);
 +	if (err)
 +		goto exit;
 +
- 	err = platform_device_add_resources(pdev, &res, 1);
+ 	err = pci_request_region(dev, SMBBAR, i801_driver.name);
  	if (err) {
- 		printk(KERN_ERR DRVNAME ": Device resource addition failed "
-diff -puN drivers/hwmon/w83627hf.c~check-for-acpi-resource-conflicts-in-hwmon-drivers drivers/hwmon/w83627hf.c
---- a/drivers/hwmon/w83627hf.c~check-for-acpi-resource-conflicts-in-hwmon-drivers
-+++ a/drivers/hwmon/w83627hf.c
+ 		dev_err(&dev->dev, "Failed to request SMBus region "
+diff -puN drivers/i2c/busses/i2c-nforce2.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-nforce2.c
+--- a/drivers/i2c/busses/i2c-nforce2.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
++++ a/drivers/i2c/busses/i2c-nforce2.c
 @@ -50,6 +50,7 @@
- #include <linux/err.h>
- #include <linux/mutex.h>
- #include <linux/ioport.h>
+ #include <linux/init.h>
+ #include <linux/i2c.h>
+ #include <linux/delay.h>
 +#include <linux/acpi.h>
  #include <asm/io.h>
- #include "lm75.h"
  
-@@ -1627,6 +1628,10 @@ static int __init w83627hf_device_add(un
- 	};
- 	int err;
+ MODULE_LICENSE("GPL");
+@@ -315,6 +316,11 @@ static int __devinit nforce2_probe_smb (
+ 		smbus->size = 64;
+ 	}
  
-+	err = acpi_check_resource_conflict(&res);
-+	if (err)
++	error = acpi_check_region(smbus->base, smbus->size,
++				  nforce2_driver.name);
++	if (error)
++		return -1;
++
+ 	if (!request_region(smbus->base, smbus->size, nforce2_driver.name)) {
+ 		dev_err(&smbus->adapter.dev, "Error requesting region %02x .. %02X for %s\n",
+ 			smbus->base, smbus->base+smbus->size-1, name);
+diff -puN drivers/i2c/busses/i2c-piix4.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-piix4.c
+--- a/drivers/i2c/busses/i2c-piix4.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
++++ a/drivers/i2c/busses/i2c-piix4.c
+@@ -40,6 +40,7 @@
+ #include <linux/init.h>
+ #include <linux/apm_bios.h>
+ #include <linux/dmi.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+ 
+ 
+@@ -151,6 +152,9 @@ static int __devinit piix4_setup(struct 
+ 		}
+ 	}
+ 
++	if (acpi_check_region(piix4_smba, SMBIOSIZE, piix4_driver.name))
++		return -EBUSY;
++
+ 	if (!request_region(piix4_smba, SMBIOSIZE, piix4_driver.name)) {
+ 		dev_err(&PIIX4_dev->dev, "SMB region 0x%x already in use!\n",
+ 			piix4_smba);
+diff -puN drivers/i2c/busses/i2c-sis5595.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-sis5595.c
+--- a/drivers/i2c/busses/i2c-sis5595.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
++++ a/drivers/i2c/busses/i2c-sis5595.c
+@@ -62,6 +62,7 @@
+ #include <linux/ioport.h>
+ #include <linux/init.h>
+ #include <linux/i2c.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+ 
+ static int blacklist[] = {
+@@ -174,6 +175,11 @@ static int sis5595_setup(struct pci_dev 
+ 
+ 	/* NB: We grab just the two SMBus registers here, but this may still
+ 	 * interfere with ACPI :-(  */
++	retval = acpi_check_region(sis5595_base + SMB_INDEX, 2,
++				   sis5595_driver.name);
++	if (retval)
++		return retval;
++
+ 	if (!request_region(sis5595_base + SMB_INDEX, 2,
+ 			    sis5595_driver.name)) {
+ 		dev_err(&SIS5595_dev->dev, "SMBus registers 0x%04x-0x%04x already in use!\n",
+diff -puN drivers/i2c/busses/i2c-sis630.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-sis630.c
+--- a/drivers/i2c/busses/i2c-sis630.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
++++ a/drivers/i2c/busses/i2c-sis630.c
+@@ -55,6 +55,7 @@
+ #include <linux/ioport.h>
+ #include <linux/init.h>
+ #include <linux/i2c.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+ 
+ /* SIS630 SMBus registers */
+@@ -433,6 +434,11 @@ static int sis630_setup(struct pci_dev *
+ 
+ 	dev_dbg(&sis630_dev->dev, "ACPI base at 0x%04x\n", acpi_base);
+ 
++	retval = acpi_check_region(acpi_base + SMB_STS, SIS630_SMB_IOREGION,
++				   sis630_driver.name);
++	if (retval)
 +		goto exit;
 +
- 	pdev = platform_device_alloc(DRVNAME, address);
- 	if (!pdev) {
- 		err = -ENOMEM;
+ 	/* Everything is happy, let's grab the memory and set things up. */
+ 	if (!request_region(acpi_base + SMB_STS, SIS630_SMB_IOREGION,
+ 			    sis630_driver.name)) {
+diff -puN drivers/i2c/busses/i2c-sis96x.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-sis96x.c
+--- a/drivers/i2c/busses/i2c-sis96x.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
++++ a/drivers/i2c/busses/i2c-sis96x.c
+@@ -40,6 +40,7 @@
+ #include <linux/ioport.h>
+ #include <linux/i2c.h>
+ #include <linux/init.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+ 
+ /* base address register in PCI config space */
+@@ -286,6 +287,10 @@ static int __devinit sis96x_probe(struct
+ 	dev_info(&dev->dev, "SiS96x SMBus base address: 0x%04x\n",
+ 			sis96x_smbus_base);
+ 
++	retval = acpi_check_resource_conflict(&dev->resource[SIS96x_BAR]);
++	if (retval)
++		return retval;
++
+ 	/* Everything is happy, let's grab the memory and set things up. */
+ 	if (!request_region(sis96x_smbus_base, SMB_IOSIZE,
+ 			    sis96x_driver.name)) {
+diff -puN drivers/i2c/busses/i2c-viapro.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-viapro.c
+--- a/drivers/i2c/busses/i2c-viapro.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
++++ a/drivers/i2c/busses/i2c-viapro.c
+@@ -49,6 +49,7 @@
+ #include <linux/ioport.h>
+ #include <linux/i2c.h>
+ #include <linux/init.h>
++#include <linux/acpi.h>
+ #include <asm/io.h>
+ 
+ static struct pci_dev *vt596_pdev;
+@@ -349,6 +350,10 @@ static int __devinit vt596_probe(struct 
+ 	}
+ 
+ found:
++	error = acpi_check_region(vt596_smba, 8, vt596_driver.name);
++	if (error)
++		return error;
++
+ 	if (!request_region(vt596_smba, 8, vt596_driver.name)) {
+ 		dev_err(&pdev->dev, "SMBus region 0x%x already in use!\n",
+ 			vt596_smba);
 _
 
 Patches currently in -mm which might be from jdelvare@suse.de are
 
 export-acpi_check_resource_conflict.patch
-check-for-acpi-resource-conflicts-in-hwmon-drivers.patch
 check-for-acpi-resource-conflicts-in-i2c-bus-drivers.patch
+check-for-acpi-resource-conflicts-in-hwmon-drivers.patch
