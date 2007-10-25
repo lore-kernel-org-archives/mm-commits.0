@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ips-handle-scsi_add_host-failure-and-other-err-cleanups.patch added to -mm tree
-Date: Wed, 24 Oct 2007 21:28:18 -0700
-Message-ID: <200710250428.l9P4SI37031750@imap1.linux-foundation.org>
+Subject: + sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch added to -mm tree
+Date: Wed, 24 Oct 2007 21:29:28 -0700
+Message-ID: <200710250429.l9P4TSR0031861@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42704 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44651 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754501AbXJYE2h (ORCPT
+	by vger.kernel.org with ESMTP id S1754382AbXJYE3r (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Oct 2007 00:28:37 -0400
+	Thu, 25 Oct 2007 00:29:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeff@garzik.org, James.Bottomley@steeleye.com, jgarzik@redhat.com
+Cc: jeff@garzik.org, jgarzik@redhat.com
 
 
 The patch titled
-     ips: handle scsi_add_host() failure, and other err cleanups
+     sound/oss/pss: set_io_base() always returns success, mark it void
 has been added to the -mm tree.  Its filename is
-     ips-handle-scsi_add_host-failure-and-other-err-cleanups.patch
+     sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,58 +26,79 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ips: handle scsi_add_host() failure, and other err cleanups
+Subject: sound/oss/pss: set_io_base() always returns success, mark it void
 From: Jeff Garzik <jeff@garzik.org>
 
 Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ips.c |   18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ sound/oss/pss.c |   25 ++++++-------------------
+ 1 file changed, 6 insertions(+), 19 deletions(-)
 
-diff -puN drivers/scsi/ips.c~ips-handle-scsi_add_host-failure-and-other-err-cleanups drivers/scsi/ips.c
---- a/drivers/scsi/ips.c~ips-handle-scsi_add_host-failure-and-other-err-cleanups
-+++ a/drivers/scsi/ips.c
-@@ -6837,13 +6837,10 @@ ips_register_scsi(int index)
- 	if (request_irq(ha->pcidev->irq, do_ipsintr, IRQF_SHARED, ips_name, ha)) {
- 		IPS_PRINTK(KERN_WARNING, ha->pcidev,
- 			   "Unable to install interrupt handler\n");
--		scsi_host_put(sh);
--		return -1;
-+		goto err_out_sh;
- 	}
- 
- 	kfree(oldha);
--	ips_sh[index] = sh;
--	ips_ha[index] = ha;
- 
- 	/* Store away needed values for later use */
- 	sh->unique_id = (ha->io_addr) ? ha->io_addr : ha->mem_addr;
-@@ -6859,10 +6856,21 @@ ips_register_scsi(int index)
- 	sh->max_channel = ha->nbus - 1;
- 	sh->can_queue = ha->max_cmds - 1;
- 
--	scsi_add_host(sh, NULL);
-+	if (scsi_add_host(sh, &ha->pcidev->dev))
-+		goto err_out;
-+
-+	ips_sh[index] = sh;
-+	ips_ha[index] = ha;
-+
- 	scsi_scan_host(sh);
- 
- 	return 0;
-+
-+err_out:
-+	free_irq(ha->pcidev->irq, ha);
-+err_out_sh:
-+	scsi_host_put(sh);
-+	return -1;
+diff -puN sound/oss/pss.c~sound-oss-pss-set_io_base-always-returns-success-mark-it-void sound/oss/pss.c
+--- a/sound/oss/pss.c~sound-oss-pss-set_io_base-always-returns-success-mark-it-void
++++ a/sound/oss/pss.c
+@@ -232,14 +232,12 @@ static int set_irq(pss_confdata * devc, 
+ 	return 1;
  }
  
- /*---------------------------------------------------------------------------*/
+-static int set_io_base(pss_confdata * devc, int dev, int base)
++static void set_io_base(pss_confdata * devc, int dev, int base)
+ {
+ 	unsigned short  tmp = inw(REG(dev)) & 0x003f;
+ 	unsigned short  bits = (base & 0x0ffc) << 4;
+ 
+ 	outw(bits | tmp, REG(dev));
+-
+-	return 1;
+ }
+ 
+ static int set_dma(pss_confdata * devc, int dev, int dma)
+@@ -677,16 +675,11 @@ static void configure_nonsound_component
+ 	{
+ 		printk(KERN_INFO "PSS: CDROM port not enabled.\n");
+ 	}
+-	else if(check_region(pss_cdrom_port, 2))
+-	{
++	else if(check_region(pss_cdrom_port, 2)) {
+ 		printk(KERN_ERR "PSS: CDROM I/O port conflict.\n");
+ 	}
+-	else if(!set_io_base(devc, CONF_CDROM, pss_cdrom_port))
+-	{
+-		printk(KERN_ERR "PSS: CDROM I/O port could not be set.\n");
+-	}
+-	else					/* CDROM port successfully configured */
+-	{
++	else {
++		set_io_base(devc, CONF_CDROM, pss_cdrom_port);
+ 		printk(KERN_INFO "PSS: CDROM I/O port set to 0x%x.\n", pss_cdrom_port);
+ 	}
+ }
+@@ -758,10 +751,7 @@ static int __init probe_pss_mpu(struct a
+ 		printk(KERN_ERR "PSS: MPU I/O port conflict\n");
+ 		return 0;
+ 	}
+-	if (!set_io_base(devc, CONF_MIDI, hw_config->io_base)) {
+-		printk(KERN_ERR "PSS: MIDI base could not be set.\n");
+-		goto fail;
+-	}
++	set_io_base(devc, CONF_MIDI, hw_config->io_base);
+ 	if (!set_irq(devc, CONF_MIDI, hw_config->irq)) {
+ 		printk(KERN_ERR "PSS: MIDI IRQ allocation error.\n");
+ 		goto fail;
+@@ -1057,10 +1047,7 @@ static int __init probe_pss_mss(struct a
+ 		release_region(hw_config->io_base, 4);
+ 		return 0;
+ 	}
+-	if (!set_io_base(devc, CONF_WSS, hw_config->io_base)) {
+-		printk("PSS: WSS base not settable.\n");
+-		goto fail;
+-	}
++	set_io_base(devc, CONF_WSS, hw_config->io_base);
+ 	if (!set_irq(devc, CONF_WSS, hw_config->irq)) {
+ 		printk("PSS: WSS IRQ allocation error.\n");
+ 		goto fail;
 _
 
 Patches currently in -mm which might be from jeff@garzik.org are
@@ -113,4 +134,5 @@ fix-versus-precedence-in-various-places.patch
 fix-versus-precedence-in-various-places-checkpatch-fixes.patch
 riscom8-fix-smp-brokenness.patch
 riscom8-fix-smp-brokenness-fix.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
 isdn-sc-fix-longstanding-warning.patch
