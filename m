@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-macros-instead-of-task_-flags-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 24 Oct 2007 20:32:03 -0700
-Message-ID: <200710250332.l9P3W31B029656@imap1.linux-foundation.org>
+Subject: + add-task_wakekill.patch added to -mm tree
+Date: Wed, 24 Oct 2007 20:32:21 -0700
+Message-ID: <200710250332.l9P3WLpZ029663@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49009 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55645 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756686AbXJYDcG (ORCPT
+	by vger.kernel.org with ESMTP id S1756742AbXJYDca (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 23:32:06 -0400
+	Wed, 24 Oct 2007 23:32:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, matthew@wil.cx, willy@linux.intel.com
+Cc: matthew@wil.cx, oleg@tv-sign.ru, willy@linux.intel.com
 
 
 The patch titled
-     use-macros-instead-of-task_-flags-checkpatch-fixes
+     Add TASK_WAKEKILL
 has been added to the -mm tree.  Its filename is
-     use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+     add-task_wakekill.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,116 +26,103 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: use-macros-instead-of-task_-flags-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Add TASK_WAKEKILL
+From: Matthew Wilcox <matthew@wil.cx>
 
-WARNING: line over 80 characters
-#120: FILE: include/linux/wait.h:163:
-+#define wake_up_interruptible_sync(x)	__wake_up_sync((x), TASK_INTERRUPTIBLE, 1)
+Set TASK_WAKEKILL for TASK_STOPPED and TASK_TRACED, add TASK_KILLABLE and
+use TASK_WAKEKILL in signal_wake_up()
 
-ERROR: use tabs not spaces
-#399: FILE: kernel/signal.c:1444:
-+ ^IBUG_ON(is_task_stopped_or_traced(tsk));$
-
-total: 1 errors, 1 warnings, 340 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Matthew Wilcox <willy@linux.intel.com>
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/sched.h |   22 ++++++++++++++--------
+ kernel/signal.c       |    8 ++++----
+ 2 files changed, 18 insertions(+), 12 deletions(-)
 
-diff -puN kernel/signal.c~use-macros-instead-of-task_-flags-checkpatch-fixes kernel/signal.c
---- a/kernel/signal.c~use-macros-instead-of-task_-flags-checkpatch-fixes
+diff -puN include/linux/sched.h~add-task_wakekill include/linux/sched.h
+--- a/include/linux/sched.h~add-task_wakekill
++++ a/include/linux/sched.h
+@@ -170,27 +170,33 @@ print_cfs_rq(struct seq_file *m, int cpu
+ #define TASK_RUNNING		0
+ #define TASK_INTERRUPTIBLE	1
+ #define TASK_UNINTERRUPTIBLE	2
+-#define TASK_STOPPED		4
+-#define TASK_TRACED		8
++#define __TASK_STOPPED		4
++#define __TASK_TRACED		8
+ /* in tsk->exit_state */
+ #define EXIT_ZOMBIE		16
+ #define EXIT_DEAD		32
+ /* in tsk->state again */
+ #define TASK_DEAD		64
++#define TASK_WAKEKILL		128
++
++/* Convenience macros for the sake of set_task_state */
++#define TASK_KILLABLE		(TASK_WAKEKILL | TASK_UNINTERRUPTIBLE)
++#define TASK_STOPPED		(TASK_WAKEKILL | __TASK_STOPPED)
++#define TASK_TRACED		(TASK_WAKEKILL | __TASK_TRACED)
+ 
+ /* Convenience macros for the sake of wake_up */
+ #define TASK_NORMAL		(TASK_INTERRUPTIBLE | TASK_UNINTERRUPTIBLE)
+-#define TASK_ALL		(TASK_NORMAL | TASK_STOPPED | TASK_TRACED)
++#define TASK_ALL		(TASK_NORMAL | __TASK_STOPPED | __TASK_TRACED)
+ 
+ /* get_task_state() */
+ #define TASK_REPORT		(TASK_RUNNING | TASK_INTERRUPTIBLE | \
+-				 TASK_UNINTERRUPTIBLE | TASK_STOPPED | \
+-				 TASK_TRACED)
++				 TASK_UNINTERRUPTIBLE | __TASK_STOPPED | \
++				 __TASK_TRACED)
+ 
+-#define is_task_traced(task)	((task->state & TASK_TRACED) != 0)
+-#define is_task_stopped(task)	((task->state & TASK_STOPPED) != 0)
++#define is_task_traced(task)	((task->state & __TASK_TRACED) != 0)
++#define is_task_stopped(task)	((task->state & __TASK_STOPPED) != 0)
+ #define is_task_stopped_or_traced(task)	\
+-			((task->state & (TASK_STOPPED | TASK_TRACED)) != 0)
++			((task->state & (__TASK_STOPPED | __TASK_TRACED)) != 0)
+ #define is_task_loadavg(task)	((task->state & TASK_UNINTERRUPTIBLE) != 0)
+ 
+ #define __set_task_state(tsk, state_value)		\
+diff -puN kernel/signal.c~add-task_wakekill kernel/signal.c
+--- a/kernel/signal.c~add-task_wakekill
 +++ a/kernel/signal.c
-@@ -1441,7 +1441,7 @@ void do_notify_parent(struct task_struct
- 	BUG_ON(sig == -1);
+@@ -456,15 +456,15 @@ void signal_wake_up(struct task_struct *
+ 	set_tsk_thread_flag(t, TIF_SIGPENDING);
  
-  	/* do_notify_parent_cldstop should have been called instead.  */
-- 	BUG_ON(is_task_stopped_or_traced(tsk));
-+	BUG_ON(is_task_stopped_or_traced(tsk));
- 
- 	BUG_ON(!tsk->ptrace &&
- 	       (tsk->group_leader != tsk || !thread_group_empty(tsk)));
+ 	/*
+-	 * For SIGKILL, we want to wake it up in the stopped/traced case.
+-	 * We don't check t->state here because there is a race with it
++	 * For SIGKILL, we want to wake it up in the stopped/traced/killable
++	 * case. We don't check t->state here because there is a race with it
+ 	 * executing another processor and just now entering stopped state.
+ 	 * By using wake_up_state, we ensure the process will wake up and
+ 	 * handle its death signal.
+ 	 */
+ 	mask = TASK_INTERRUPTIBLE;
+ 	if (resume)
+-		mask |= TASK_STOPPED | TASK_TRACED;
++		mask |= TASK_WAKEKILL;
+ 	if (!wake_up_state(t, mask))
+ 		kick_process(t);
+ }
+@@ -620,7 +620,7 @@ static void handle_stop_signal(int sig, 
+ 			 * Wake up the stopped thread _after_ setting
+ 			 * TIF_SIGPENDING
+ 			 */
+-			state = TASK_STOPPED;
++			state = __TASK_STOPPED;
+ 			if (sig_user_defined(t, SIGCONT) && !sigismember(&t->blocked, SIGCONT)) {
+ 				set_tsk_thread_flag(t, TIF_SIGPENDING);
+ 				state |= TASK_INTERRUPTIBLE;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from matthew@wil.cx are
 
-sunrpc-fix-rpc-debugging-checkpatch-fixes.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-ata-ahci-enable-enclosure-management-via-led-checkpatch-fixes.patch
-ide-arm-hack.patch
-nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd-fixup.patch
-fix-build-breakage-if-sysfs-fix.patch
-git-unionfs.patch
-git-v9fs-fixup.patch
-git-watchdog.patch
-watchdog-add-nano-7240-driver-checkpatch-fixes.patch
-git-wireless.patch
-git-wireless-fixup.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-x86-fix-config_smp-warning-in-processorc-fix.patch
-i386-and-x86_64-randomize-brk-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
+use-wake_up_locked-in-eventpoll.patch
+use-macros-instead-of-task_-flags.patch
 use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sync_sb_inodes-propagate-errors.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+add-task_wakekill.patch
+make-sure-nobodys-leaking-resources.patch
