@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ips-trim-trailing-whitespace-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 24 Oct 2007 21:27:53 -0700
-Message-ID: <200710250427.l9P4Rrda031736@imap1.linux-foundation.org>
+Subject: + ips-pci-api-cleanups.patch added to -mm tree
+Date: Wed, 24 Oct 2007 21:28:15 -0700
+Message-ID: <200710250428.l9P4SF6n031747@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47744 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59284 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753979AbXJYE2O (ORCPT
+	by vger.kernel.org with ESMTP id S1754183AbXJYE2e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Oct 2007 00:28:14 -0400
+	Thu, 25 Oct 2007 00:28:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com, jeff@garzik.org, jgarzik@redhat.com
+Cc: jeff@garzik.org, James.Bottomley@steeleye.com, jgarzik@redhat.com
 
 
 The patch titled
-     ips-trim-trailing-whitespace-checkpatch-fixes
+     ips: PCI API cleanups
 has been added to the -mm tree.  Its filename is
-     ips-trim-trailing-whitespace-checkpatch-fixes.patch
+     ips-pci-api-cleanups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,175 +26,207 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ips-trim-trailing-whitespace-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ips: PCI API cleanups
+From: Jeff Garzik <jeff@garzik.org>
 
-ERROR: use tabs not spaces
-#50: FILE: drivers/scsi/ips.c:2084:
-+        if (ha->nvram->bios_low[3] == 0) {$
+* pass Scsi_Host to ips_remove_device() via pci_set_drvdata(),
+  allowing us to eliminate the ips_ha[] search loop and call
+  ips_release() directly.
 
-ERROR: use tabs not spaces
-#60: FILE: drivers/scsi/ips.c:2785:
-+        if ((scb->scsi_cmd->cmnd[0] == WRITE_BUFFER) && (scb->data_len == 0))$
+* call pci_{request,release}_regions() and eliminate individual
+  request/release_[mem_]region() calls
 
-ERROR: use tabs not spaces
-#61: FILE: drivers/scsi/ips.c:2786:
-+            scb->dcdb.cmd_attribute = 0;$
+* call pci_disable_device(), paired with pci_enable_device()
 
-ERROR: use tabs not spaces
-#116: FILE: drivers/scsi/ips.c:4723:
-+^I           done = ips_poll_for_flush_complete(ha);$
+* s/0/NULL/ in a few places
 
-ERROR: no space before that close parenthesis ')'
-#135: FILE: drivers/scsi/ips.c:4760:
-+	    if (cstatus.fields.command_id == IPS_MAX_CMDS )
+* check ioremap() return value
 
-WARNING: do not add new typedefs
-#195: FILE: drivers/scsi/ips.h:555:
-+typedef struct
-
-WARNING: do not add new typedefs
-#213: FILE: drivers/scsi/ips.h:793:
-+typedef struct
-
-total: 5 errors, 2 warnings, 181 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
+Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
 Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Jeff Garzik <jgarzik@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ips.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ drivers/scsi/ips.c |   72 ++++++++++++++++++-------------------------
+ 1 file changed, 31 insertions(+), 41 deletions(-)
 
-diff -puN drivers/scsi/ips.c~ips-trim-trailing-whitespace-checkpatch-fixes drivers/scsi/ips.c
---- a/drivers/scsi/ips.c~ips-trim-trailing-whitespace-checkpatch-fixes
+diff -puN drivers/scsi/ips.c~ips-pci-api-cleanups drivers/scsi/ips.c
+--- a/drivers/scsi/ips.c~ips-pci-api-cleanups
 +++ a/drivers/scsi/ips.c
-@@ -2081,7 +2081,7 @@ ips_host_info(ips_ha_t * ha, char *ptr, 
-     /* That keeps everything happy for "text" operations on the proc file.                    */
+@@ -702,10 +702,6 @@ ips_release(struct Scsi_Host *sh)
+ 	/* free extra memory */
+ 	ips_free(ha);
  
- 	if (le32_to_cpu(ha->nvram->signature) == IPS_NVRAM_P5_SIG) {
--        if (ha->nvram->bios_low[3] == 0) {
-+	if (ha->nvram->bios_low[3] == 0) {
-             copy_info(&info,
- 			          "\tBIOS Version                      : %c%c%c%c%c%c%c\n",
- 			          ha->nvram->bios_high[0], ha->nvram->bios_high[1],
-@@ -2780,10 +2780,11 @@ ips_next(ips_ha_t * ha, int intr)
- 		scb->dcdb.cmd_attribute =
- 		    ips_command_direction[scb->scsi_cmd->cmnd[0]];
+-	/* Free I/O Region */
+-	if (ha->io_addr)
+-		release_region(ha->io_addr, ha->io_len);
+-
+ 	/* free IRQ */
+ 	free_irq(ha->pcidev->irq, ha);
  
--        /* Allow a WRITE BUFFER Command to Have no Data */
--        /* This is Used by Tape Flash Utilites          */
--        if ((scb->scsi_cmd->cmnd[0] == WRITE_BUFFER) && (scb->data_len == 0))
--            scb->dcdb.cmd_attribute = 0;
-+	        /* Allow a WRITE BUFFER Command to Have no Data */
-+		/* This is Used by Tape Flash Utilites          */
-+		if ((scb->scsi_cmd->cmnd[0] == WRITE_BUFFER) &&
-+				(scb->data_len == 0))
-+			scb->dcdb.cmd_attribute = 0;
+@@ -4394,8 +4390,6 @@ ips_free(ips_ha_t * ha)
+ 			ha->mem_ptr = NULL;
+ 		}
  
- 		if (!(scb->dcdb.cmd_attribute & 0x3))
- 			scb->dcdb.transfer_length = 0;
-@@ -4720,7 +4721,7 @@ ips_flush_and_reset(ips_ha_t *ha)
- 	        done = 0;
+-		if (ha->mem_addr)
+-			release_mem_region(ha->mem_addr, ha->mem_len);
+ 		ha->mem_addr = 0;
  
- 	        while ((time > 0) && (!done)) {
--	           done = ips_poll_for_flush_complete(ha);
-+		   done = ips_poll_for_flush_complete(ha);
- 	           /* This may look evil, but it's only done during extremely rare start-up conditions ! */
- 	           udelay(1000);
- 	           time--;
-@@ -4757,7 +4758,7 @@ ips_poll_for_flush_complete(ips_ha_t * h
+ 	}
+@@ -6880,20 +6874,14 @@ ips_register_scsi(int index)
+ static void __devexit
+ ips_remove_device(struct pci_dev *pci_dev)
+ {
+-	int i;
+-	struct Scsi_Host *sh;
+-	ips_ha_t *ha;
++	struct Scsi_Host *sh = pci_get_drvdata(pci_dev);
+ 
+-	for (i = 0; i < IPS_MAX_ADAPTERS; i++) {
+-		ha = ips_ha[i];
+-		if (ha) {
+-			if ((pci_dev->bus->number == ha->pcidev->bus->number) &&
+-			    (pci_dev->devfn == ha->pcidev->devfn)) {
+-				sh = ips_sh[i];
+-				ips_release(sh);
+-			}
+-		}
+-	}
++	pci_set_drvdata(pci_dev, NULL);
++
++	ips_release(sh);
++
++	pci_release_regions(pci_dev);
++	pci_disable_device(pci_dev);
+ }
+ 
+ /****************************************************************************/
+@@ -6947,12 +6935,17 @@ module_exit(ips_module_exit);
+ static int __devinit
+ ips_insert_device(struct pci_dev *pci_dev, const struct pci_device_id *ent)
+ {
+-	int uninitialized_var(index);
++	int index = -1;
+ 	int rc;
+ 
+ 	METHOD_TRACE("ips_insert_device", 1);
+-	if (pci_enable_device(pci_dev))
+-		return -1;
++	rc = pci_enable_device(pci_dev);
++	if (rc)
++		return rc;
++
++	rc = pci_request_regions(pci_dev, "ips");
++	if (rc)
++		goto err_out;
+ 
+ 	rc = ips_init_phase1(pci_dev, &index);
+ 	if (rc == SUCCESS)
+@@ -6968,6 +6961,19 @@ ips_insert_device(struct pci_dev *pci_de
+ 		ips_num_controllers++;
+ 
+ 	ips_next_controller = ips_num_controllers;
++
++	if (rc < 0) {
++		rc = -ENODEV;
++		goto err_out_regions;
++	}
++
++	pci_set_drvdata(pci_dev, ips_sh[index]);
++	return 0;
++
++err_out_regions:
++	pci_release_regions(pci_dev);
++err_out:
++	pci_disable_device(pci_dev);
+ 	return rc;
+ }
+ 
+@@ -7000,7 +7006,7 @@ ips_init_phase1(struct pci_dev *pci_dev,
+ 	METHOD_TRACE("ips_init_phase1", 1);
+ 	index = IPS_MAX_ADAPTERS;
+ 	for (j = 0; j < IPS_MAX_ADAPTERS; j++) {
+-		if (ips_ha[j] == 0) {
++		if (ips_ha[j] == NULL) {
+ 			index = j;
  			break;
+ 		}
+@@ -7037,32 +7043,17 @@ ips_init_phase1(struct pci_dev *pci_dev,
+ 		uint32_t base;
+ 		uint32_t offs;
  
- 	    /* Success is when we see the Flush Command ID */
--	    if (cstatus.fields.command_id == IPS_MAX_CMDS )
-+	    if (cstatus.fields.command_id == IPS_MAX_CMDS)
- 	        return 1;
- 	 }
+-		if (!request_mem_region(mem_addr, mem_len, "ips")) {
+-			IPS_PRINTK(KERN_WARNING, pci_dev,
+-				   "Couldn't allocate IO Memory space %x len %d.\n",
+-				   mem_addr, mem_len);
+-			return -1;
+-		}
+-
+ 		base = mem_addr & PAGE_MASK;
+ 		offs = mem_addr - base;
+ 		ioremap_ptr = ioremap(base, PAGE_SIZE);
++		if (!ioremap_ptr)
++			return -1;
+ 		mem_ptr = ioremap_ptr + offs;
+ 	} else {
+ 		ioremap_ptr = NULL;
+ 		mem_ptr = NULL;
+ 	}
  
+-	/* setup I/O mapped area (if applicable) */
+-	if (io_addr) {
+-		if (!request_region(io_addr, io_len, "ips")) {
+-			IPS_PRINTK(KERN_WARNING, pci_dev,
+-				   "Couldn't allocate IO space %x len %d.\n",
+-				   io_addr, io_len);
+-			return -1;
+-		}
+-	}
+-
+ 	/* found a controller */
+ 	ha = kzalloc(sizeof (ips_ha_t), GFP_KERNEL);
+ 	if (ha == NULL) {
+@@ -7071,7 +7062,6 @@ ips_init_phase1(struct pci_dev *pci_dev,
+ 		return -1;
+ 	}
+ 
+-
+ 	ips_sh[index] = NULL;
+ 	ips_ha[index] = ha;
+ 	ha->active = 1;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jeff@garzik.org are
 
-sunrpc-fix-rpc-debugging-checkpatch-fixes.patch
-acpi-add-reboot-mechanism.patch
-provide-acpi_check_mem_region-checkpatch-fixes.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-git-kvm.patch
+lguest-build-fix.patch
+remove-bogus-default-y-for-dmar-and-net_dma.patch
+acpi-sbs-fix-retval-warning.patch
+git-jg-misc.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
-ata-ahci-enable-enclosure-management-via-led-checkpatch-fixes.patch
-ide-arm-hack.patch
+scsi-expose-an-support-to-user-space.patch
+libata-expose-an-to-user-space.patch
+ide-add-helper-__ide_setup_pci_device.patch
+drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop.patch
 drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
+drivers-ide-pci-sc1200c-fix-suspend-resume-buglets-and-warnings.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
 ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd-fixup.patch
-fix-build-breakage-if-sysfs-fix.patch
+scsi-use-notifier-chain-for-asynchronous-event.patch
+hptiop-fix-type-mismatch-warning.patch
+ips-remove-ips_ha-members-that-duplicate-struct-pci_dev-members.patch
+ips-trim-trailing-whitespace.patch
 ips-trim-trailing-whitespace-checkpatch-fixes.patch
-git-unionfs.patch
-git-v9fs-fixup.patch
-git-watchdog.patch
-watchdog-add-nano-7240-driver-checkpatch-fixes.patch
+ips-pci-api-cleanups.patch
+ips-handle-scsi_add_host-failure-and-other-err-cleanups.patch
 git-wireless.patch
-git-wireless-fixup.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+mac80211-fix-warning-created-by-bit.patch
+x86-fix-config_smp-warning-in-processorc.patch
 x86-fix-config_smp-warning-in-processorc-fix.patch
-i386-and-x86_64-randomize-brk-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places.patch
 fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness.patch
 riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sync_sb_inodes-propagate-errors.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+isdn-sc-fix-longstanding-warning.patch
