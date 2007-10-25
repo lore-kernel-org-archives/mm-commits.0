@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mbcs-convert-algolock-to-mutex.patch added to -mm tree
-Date: Wed, 24 Oct 2007 21:11:57 -0700
-Message-ID: <200710250411.l9P4BvlW031146@imap1.linux-foundation.org>
+Subject: + mm-sparse-vmemmapc-make-sure-init_mm-is-included.patch added to -mm tree
+Date: Wed, 24 Oct 2007 21:13:16 -0700
+Message-ID: <200710250413.l9P4DGIl031188@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39582 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42701 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761801AbXJYEMB (ORCPT
+	by vger.kernel.org with ESMTP id S1754747AbXJYENb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Oct 2007 00:12:01 -0400
+	Thu, 25 Oct 2007 00:13:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthias.kaehlcke@gmail.com
+Cc: gcosta@redhat.com
 
 
 The patch titled
-     MBCS: convert algolock to mutex
+     mm/sparse-vmemmap.c: make sure init_mm is included
 has been added to the -mm tree.  Its filename is
-     mbcs-convert-algolock-to-mutex.patch
+     mm-sparse-vmemmapc-make-sure-init_mm-is-included.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,74 +26,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: MBCS: convert algolock to mutex
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: mm/sparse-vmemmap.c: make sure init_mm is included
+From: Glauber de Oliveira Costa <gcosta@redhat.com>
 
-MBCS: Convert the semaphore algolock to the mutex API
+mm/sparse-vmemmap.c uses init_mm in some places.  However, it is not
+present in any of the headers currently included in the file.
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+init_mm is defined as extern in sched.h, so we add it to the headers list
+
+Up to now, this problem was masked by the fact that functions like
+set_pte_at() and pmd_populate_kernel() are usually macros that expand to
+simpler variants that does not use the first parameter at all.
+
+Signed-off-by: Glauber de Oliveira Costa <gcosta@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mbcs.c |    7 ++++---
- drivers/char/mbcs.h |    2 +-
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ mm/sparse-vmemmap.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/mbcs.c~mbcs-convert-algolock-to-mutex drivers/char/mbcs.c
---- a/drivers/char/mbcs.c~mbcs-convert-algolock-to-mutex
-+++ a/drivers/char/mbcs.c
-@@ -23,6 +23,7 @@
- #include <linux/device.h>
- #include <linux/mm.h>
- #include <linux/uio.h>
-+#include <linux/mutex.h>
- #include <asm/io.h>
- #include <asm/uaccess.h>
- #include <asm/system.h>
-@@ -281,7 +282,7 @@ static inline int mbcs_algo_start(struct
- 	void *mmr_base = soft->mmr_base;
- 	union cm_control cm_control;
- 
--	if (down_interruptible(&soft->algolock))
-+	if (mutex_lock_interruptible(&soft->algolock))
- 		return -ERESTARTSYS;
- 
- 	atomic_set(&soft->algo_done, 0);
-@@ -298,7 +299,7 @@ static inline int mbcs_algo_start(struct
- 	cm_control.alg_go = 1;
- 	MBCS_MMR_SET(mmr_base, MBCS_CM_CONTROL, cm_control.cm_control_reg);
- 
--	up(&soft->algolock);
-+	mutex_unlock(&soft->algolock);
- 
- 	return 0;
- }
-@@ -764,7 +765,7 @@ static int mbcs_probe(struct cx_dev *dev
- 
- 	init_MUTEX(&soft->dmawritelock);
- 	init_MUTEX(&soft->dmareadlock);
--	init_MUTEX(&soft->algolock);
-+	mutex_init(&soft->algolock);
- 
- 	mbcs_getdma_init(&soft->getdma);
- 	mbcs_putdma_init(&soft->putdma);
-diff -puN drivers/char/mbcs.h~mbcs-convert-algolock-to-mutex drivers/char/mbcs.h
---- a/drivers/char/mbcs.h~mbcs-convert-algolock-to-mutex
-+++ a/drivers/char/mbcs.h
-@@ -539,7 +539,7 @@ struct mbcs_soft {
- 	atomic_t algo_done;
- 	struct semaphore dmawritelock;
- 	struct semaphore dmareadlock;
--	struct semaphore algolock;
-+	struct mutex algolock;
- };
- 
- static int mbcs_open(struct inode *ip, struct file *fp);
+diff -puN mm/sparse-vmemmap.c~mm-sparse-vmemmapc-make-sure-init_mm-is-included mm/sparse-vmemmap.c
+--- a/mm/sparse-vmemmap.c~mm-sparse-vmemmapc-make-sure-init_mm-is-included
++++ a/mm/sparse-vmemmap.c
+@@ -24,6 +24,7 @@
+ #include <linux/module.h>
+ #include <linux/spinlock.h>
+ #include <linux/vmalloc.h>
++#include <linux/sched.h>
+ #include <asm/dma.h>
+ #include <asm/pgalloc.h>
+ #include <asm/pgtable.h>
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from gcosta@redhat.com are
 
-generic-ac97-mixer-modem-oss-use-list_for_each_entry.patch
-mbcs-convert-algolock-to-mutex.patch
-mbcs-convert-dmawritelock-to-mutex.patch
-mbcs-convert-dmareadlock-to-mutex.patch
+mm-sparse-vmemmapc-make-sure-init_mm-is-included.patch
+git-kvm.patch
