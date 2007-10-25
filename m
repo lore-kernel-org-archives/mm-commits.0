@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + napi-use-non-interruptible-sleep-in-napi_disable.patch added to -mm tree
-Date: Thu, 25 Oct 2007 14:27:57 -0700
-Message-ID: <200710252127.l9PLRvOp024873@imap1.linux-foundation.org>
+Subject: + ext3-return-after-ext3_error-in-case-of-failures.patch added to -mm tree
+Date: Thu, 25 Oct 2007 14:29:15 -0700
+Message-ID: <200710252129.l9PLTIjB024917@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40299 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45667 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753053AbXJYV2I (ORCPT
+	by vger.kernel.org with ESMTP id S1752835AbXJYV3h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Oct 2007 17:28:08 -0400
+	Thu, 25 Oct 2007 17:29:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: benh@kernel.crashing.org, davem@davemloft.net, jeff@garzik.org
+Cc: aneesh.kumar@linux.vnet.ibm.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     napi: use non-interruptible sleep in napi_disable
+     ext3: return after ext3_error in case of failures
 has been added to the -mm tree.  Its filename is
-     napi-use-non-interruptible-sleep-in-napi_disable.patch
+     ext3-return-after-ext3_error-in-case-of-failures.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,45 +26,74 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: napi: use non-interruptible sleep in napi_disable
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: ext3: return after ext3_error in case of failures
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 
-The current napi_disable() uses msleep_interruptible() but doesn't (and
-can't) exit in case there's a signal, thus ending up doing a hot spin
-without a cpu_relax.  Use uninterruptible sleep instead.
+This fixes some instances where we were continuing after calling
+ext3_error.  ext3_error calls panic only if errors=panic mount option is
+set.  So we need to make sure we return correctly after ext3_error call
 
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Acked-by: Jeff Garzik <jeff@garzik.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/netdevice.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext3/balloc.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/netdevice.h~napi-use-non-interruptible-sleep-in-napi_disable include/linux/netdevice.h
---- a/include/linux/netdevice.h~napi-use-non-interruptible-sleep-in-napi_disable
-+++ a/include/linux/netdevice.h
-@@ -390,7 +390,7 @@ static inline void napi_complete(struct 
- static inline void napi_disable(struct napi_struct *n)
- {
- 	while (test_and_set_bit(NAPI_STATE_SCHED, &n->state))
--		msleep_interruptible(1);
-+		msleep(1);
- }
+diff -puN fs/ext3/balloc.c~ext3-return-after-ext3_error-in-case-of-failures fs/ext3/balloc.c
+--- a/fs/ext3/balloc.c~ext3-return-after-ext3_error-in-case-of-failures
++++ a/fs/ext3/balloc.c
+@@ -111,11 +111,13 @@ read_block_bitmap(struct super_block *sb
+ 		return NULL;
+ 	bitmap_blk = le32_to_cpu(desc->bg_block_bitmap);
+ 	bh = sb_bread(sb, bitmap_blk);
+-	if (!bh)
++	if (!bh) {
+ 		ext3_error (sb, __FUNCTION__,
+ 			    "Cannot read block bitmap - "
+ 			    "block_group = %d, block_bitmap = %u",
+ 			    block_group, le32_to_cpu(desc->bg_block_bitmap));
++		return NULL;
++	}
  
- /**
+ 	/* check whether block bitmap block number is set */
+ 	if (!block_in_use(bitmap_blk, sb, bh->b_data)) {
+@@ -507,11 +509,13 @@ do_more:
+ 	    in_range (block, le32_to_cpu(desc->bg_inode_table),
+ 		      sbi->s_itb_per_group) ||
+ 	    in_range (block + count - 1, le32_to_cpu(desc->bg_inode_table),
+-		      sbi->s_itb_per_group))
++		      sbi->s_itb_per_group)) {
+ 		ext3_error (sb, "ext3_free_blocks",
+ 			    "Freeing blocks in system zones - "
+ 			    "Block = "E3FSBLK", count = %lu",
+ 			    block, count);
++		goto error_return;
++	}
+ 
+ 	/*
+ 	 * We are about to start releasing blocks in the bitmap,
+@@ -1614,11 +1618,13 @@ allocated:
+ 	    in_range(ret_block, le32_to_cpu(gdp->bg_inode_table),
+ 		      EXT3_SB(sb)->s_itb_per_group) ||
+ 	    in_range(ret_block + num - 1, le32_to_cpu(gdp->bg_inode_table),
+-		      EXT3_SB(sb)->s_itb_per_group))
++		      EXT3_SB(sb)->s_itb_per_group)) {
+ 		ext3_error(sb, "ext3_new_block",
+ 			    "Allocating block in system zone - "
+ 			    "blocks from "E3FSBLK", length %lu",
+ 			     ret_block, num);
++		goto out;
++	}
+ 
+ 	performed_allocation = 1;
+ 
 _
 
-Patches currently in -mm which might be from benh@kernel.crashing.org are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
-radeonfb-remove-warning-with-config_pm=n.patch
-fix-appletouch-geyser-1-breakage.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-napi-use-non-interruptible-sleep-in-napi_disable.patch
-powerpc-switch-to-generic-warn_on-bug_on.patch
-taskstats-scaled-time-cleanup.patch
-drivers-edac-add-cell-xdr-memory-types.patch
-drivers-edac-add-cell-mc-driver.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+ext4-return-after-ext4_error-in-case-of-failures.patch
+ext3-return-after-ext3_error-in-case-of-failures.patch
+ext2-fix-the-max-file-size-for-ext2-file-system.patch
+ext3-fix-the-max-file-size-for-ext3-file-system.patch
