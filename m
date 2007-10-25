@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-tmpfs-bug-and-aop_writepage_activate.patch added to -mm tree
-Date: Wed, 24 Oct 2007 21:14:15 -0700
-Message-ID: <200710250414.l9P4EFXR031279@imap1.linux-foundation.org>
+Subject: + spi-at25-driver-is-for-eeprom-not-flash.patch added to -mm tree
+Date: Wed, 24 Oct 2007 21:15:10 -0700
+Message-ID: <200710250415.l9P4FAGf031327@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35220 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39670 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752484AbXJYEOj (ORCPT
+	by vger.kernel.org with ESMTP id S1761652AbXJYEP1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Oct 2007 00:14:39 -0400
+	Thu, 25 Oct 2007 00:15:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, ezk@cs.sunysb.edu, stable@kernel.org
+Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     fix tmpfs BUG and AOP_WRITEPAGE_ACTIVATE
+     spi: at25 driver is for EEPROM not FLASH
 has been added to the -mm tree.  Its filename is
-     fix-tmpfs-bug-and-aop_writepage_activate.patch
+     spi-at25-driver-is-for-eeprom-not-flash.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,73 +26,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix tmpfs BUG and AOP_WRITEPAGE_ACTIVATE
-From: Hugh Dickins <hugh@veritas.com>
+Subject: spi: at25 driver is for EEPROM not FLASH
+From: David Brownell <david-b@pacbell.net>
 
-It's possible to provoke unionfs (not yet in mainline, though in mm and
-some distros) to hit shmem_writepage's BUG_ON(page_mapped(page)).  I expect
-it's possible to provoke the 2.6.23 ecryptfs in the same way (but the
-2.6.24 ecryptfs no longer calls lower level's ->writepage).
+Add comment to at25 driver that it's for EEPROM chips, not FLASH
+chips ... the AT25 series has both types of chip, and sometimes
+they're even pin-compatible.  The command sets are different, as
+is the treatment of erasure.  (FLASH needs explicit erasure, but
+with EEPROM it's implicit.)  Note that all vendors seem to have
+this same confusion in their *25* series SPI memory parts.
 
-This came to light with the recent find that AOP_WRITEPAGE_ACTIVATE could
-leak from tmpfs via write_cache_pages and unionfs to userspace.  There's
-already a fix (e423003028183df54f039dfda8b58c49e78c89d7 - writeback: don't
-propagate AOP_WRITEPAGE_ACTIVATE) in the tree for that, and it's okay so
-far as it goes; but insufficient because it doesn't address the underlying
-issue, that shmem_writepage expects to be called only by vmscan (relying on
-backing_dev_info capabilities to prevent the normal writeback path from
-ever approaching it).
-
-That's an increasingly fragile assumption, and ramdisk_writepage (the other
-source of AOP_WRITEPAGE_ACTIVATEs) is already careful to check
-wbc->for_reclaim before returning it.  Make the same check in
-shmem_writepage, thereby sidestepping the page_mapped BUG also.
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Erez Zadok <ezk@cs.sunysb.edu>
-Cc: <stable@kernel.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ drivers/spi/at25.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/shmem.c~fix-tmpfs-bug-and-aop_writepage_activate mm/shmem.c
---- a/mm/shmem.c~fix-tmpfs-bug-and-aop_writepage_activate
-+++ a/mm/shmem.c
-@@ -915,6 +915,21 @@ static int shmem_writepage(struct page *
- 	struct inode *inode;
+diff -puN drivers/spi/at25.c~spi-at25-driver-is-for-eeprom-not-flash drivers/spi/at25.c
+--- a/drivers/spi/at25.c~spi-at25-driver-is-for-eeprom-not-flash
++++ a/drivers/spi/at25.c
+@@ -21,6 +21,13 @@
+ #include <linux/spi/eeprom.h>
  
- 	BUG_ON(!PageLocked(page));
-+	/*
-+	 * shmem_backing_dev_info's capabilities prevent regular writeback or
-+	 * sync from ever calling shmem_writepage; but a stacking filesystem
-+	 * may use the ->writepage of its underlying filesystem, in which case
-+	 * we want to do nothing when that underlying filesystem is tmpfs
-+	 * (writing out to swap is useful as a response to memory pressure, but
-+	 * of no use to stabilize the data) - just redirty the page, unlock it
-+	 * and claim success in this case.  AOP_WRITEPAGE_ACTIVATE, and the
-+	 * page_mapped check below, must be avoided unless we're in reclaim.
-+	 */
-+	if (!wbc->for_reclaim) {
-+		set_page_dirty(page);
-+		unlock_page(page);
-+		return 0;
-+	}
- 	BUG_ON(page_mapped(page));
  
- 	mapping = page->mapping;
++/*
++ * NOTE: this is an *EEPROM* driver.  The vagaries of product naming
++ * mean that some AT25 products are EEPROMs, and others are FLASH.
++ * Handle FLASH chips with the drivers/mtd/devices/m25p80.c driver,
++ * not this one!
++ */
++
+ struct at25_data {
+ 	struct spi_device	*spi;
+ 	struct mutex		lock;
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-fix-tmpfs-bug-and-aop_writepage_activate.patch
-swapin_readahead-excise-numa-bogosity.patch
-swapin_readahead-move-and-rearrange-args.patch
-swapin-needs-gfp_mask-for-loop-on-tmpfs.patch
-shmem-sgp_quick-and-sgp_fault-redundant.patch
-shmem_getpage-return-page-locked.patch
-shmem_file_write-is-redundant.patch
-swapin-fix-valid_swaphandles-defect.patch
-memory-controller-memory-accounting-v7.patch
-prio_tree-debugging-patch.patch
+acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc.patch
+rtc-release-correct-region-in-error-path.patch
+rtc-fallback-to-requesting-only-the-ports-we-actually-use.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+spi-at25-driver-is-for-eeprom-not-flash.patch
+cosmetic-fixes-to-rtc-subsystems-kconfig.patch
+rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
