@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-wait_on_retry_sync_kiocb-killable.patch added to -mm tree
-Date: Wed, 24 Oct 2007 20:44:02 -0700
-Message-ID: <200710250344.l9P3i2nV030102@imap1.linux-foundation.org>
+Subject: + hash-add-explicit-u32-and-u64-versions-of-hash.patch added to -mm tree
+Date: Wed, 24 Oct 2007 20:45:26 -0700
+Message-ID: <200710250345.l9P3jQHc030166@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47646 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58364 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759763AbXJYDoa (ORCPT
+	by vger.kernel.org with ESMTP id S1755942AbXJYDpd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 23:44:30 -0400
+	Wed, 24 Oct 2007 23:45:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthew@wil.cx, nickpiggin@yahoo.com.au, pbadari@us.ibm.com, willy@linux.intel.com, zach.brown@oracle.com
+Cc: matthew@wil.cx, willy@linux.intel.com, wli@holomorphy.com
 
 
 The patch titled
-     Make wait_on_retry_sync_kiocb killable
+     hash: add explicit u32 and u64 versions of hash
 has been added to the -mm tree.  Its filename is
-     make-wait_on_retry_sync_kiocb-killable.patch
+     hash-add-explicit-u32-and-u64-versions-of-hash.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,76 +26,99 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Make wait_on_retry_sync_kiocb killable
+Subject: hash: add explicit u32 and u64 versions of hash
 From: Matthew Wilcox <matthew@wil.cx>
 
-Use TASK_KILLABLE to allow wait_on_retry_sync_kiocb to return -EINTR.
-All callers then check the return value and break out of their loops.
+The 32-bit version is more efficient (and apparently gives better hash
+results than the 64-bit version), so users who are only hashing a 32-bit
+quantity can now opt to use the 32-bit version explicitly, rather than
+promoting to a long.
 
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Zach Brown <zach.brown@oracle.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: William Lee Irwin III <wli@holomorphy.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/read_write.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ include/linux/hash.h |   42 ++++++++++++++++++++++++++---------------
+ 1 file changed, 27 insertions(+), 15 deletions(-)
 
-diff -puN fs/read_write.c~make-wait_on_retry_sync_kiocb-killable fs/read_write.c
---- a/fs/read_write.c~make-wait_on_retry_sync_kiocb-killable
-+++ a/fs/read_write.c
-@@ -218,14 +218,15 @@ Einval:
- 	return -EINVAL;
- }
+diff -puN include/linux/hash.h~hash-add-explicit-u32-and-u64-versions-of-hash include/linux/hash.h
+--- a/include/linux/hash.h~hash-add-explicit-u32-and-u64-versions-of-hash
++++ a/include/linux/hash.h
+@@ -1,6 +1,6 @@
+ #ifndef _LINUX_HASH_H
+ #define _LINUX_HASH_H
+-/* Fast hashing routine for a long.
++/* Fast hashing routine for ints,  longs and pointers.
+    (C) 2002 William Lee Irwin III, IBM */
  
--static void wait_on_retry_sync_kiocb(struct kiocb *iocb)
-+static int wait_on_retry_sync_kiocb(struct kiocb *iocb)
+ /*
+@@ -13,23 +13,30 @@
+  * them can use shifts and additions instead of multiplications for
+  * machines where multiplications are slow.
+  */
+-#if BITS_PER_LONG == 32
++
++#include <asm/types.h>
++
+ /* 2^31 + 2^29 - 2^25 + 2^22 - 2^19 - 2^16 + 1 */
+-#define GOLDEN_RATIO_PRIME 0x9e370001UL
+-#elif BITS_PER_LONG == 64
++#define GOLDEN_RATIO_PRIME_32 0x9e370001UL
+ /*  2^63 + 2^61 - 2^57 + 2^54 - 2^51 - 2^18 + 1 */
+-#define GOLDEN_RATIO_PRIME 0x9e37fffffffc0001UL
++#define GOLDEN_RATIO_PRIME_64 0x9e37fffffffc0001UL
++
++#if BITS_PER_LONG == 32
++#define GOLDEN_RATIO_PRIME GOLDEN_RATIO_PRIME_32
++#define hash_long(val, bits) hash_32(val, bits)
++#elif BITS_PER_LONG == 64
++#define hash_long(val, bits) hash_64(val, bits)
++#define GOLDEN_RATIO_PRIME GOLDEN_RATIO_PRIME_64
+ #else
+-#error Define GOLDEN_RATIO_PRIME for your wordsize.
++#error Wordsize not 32 or 64
+ #endif
+ 
+-static inline unsigned long hash_long(unsigned long val, unsigned int bits)
++static inline u64 hash_64(u64 val, unsigned int bits)
  {
--	set_current_state(TASK_UNINTERRUPTIBLE);
-+	set_current_state(TASK_KILLABLE);
- 	if (!kiocbIsKicked(iocb))
- 		schedule();
- 	else
- 		kiocbClearKicked(iocb);
- 	__set_current_state(TASK_RUNNING);
-+	return fatal_signal_pending(current) ? -EINTR : 0;
+-	unsigned long hash = val;
++	u64 hash = val;
+ 
+-#if BITS_PER_LONG == 64
+ 	/*  Sigh, gcc can't optimise this alone like it does for 32 bits. */
+-	unsigned long n = hash;
++	u64 n = hash;
+ 	n <<= 18;
+ 	hash -= n;
+ 	n <<= 33;
+@@ -42,15 +49,20 @@ static inline unsigned long hash_long(un
+ 	hash += n;
+ 	n <<= 2;
+ 	hash += n;
+-#else
++
++	/* High bits are more random, so use them. */
++	return hash >> (64 - bits);
++}
++
++static inline u32 hash_32(u32 val, unsigned int bits)
++{
+ 	/* On some cpus multiply is faster, on others gcc will do shifts */
+-	hash *= GOLDEN_RATIO_PRIME;
+-#endif
++	u32 hash = val * GOLDEN_RATIO_PRIME_32;
+ 
+ 	/* High bits are more random, so use them. */
+-	return hash >> (BITS_PER_LONG - bits);
++	return hash >> (32 - bits);
  }
- 
- ssize_t do_sync_read(struct file *filp, char __user *buf, size_t len, loff_t *ppos)
-@@ -242,7 +243,9 @@ ssize_t do_sync_read(struct file *filp, 
- 		ret = filp->f_op->aio_read(&kiocb, &iov, 1, kiocb.ki_pos);
- 		if (ret != -EIOCBRETRY)
- 			break;
--		wait_on_retry_sync_kiocb(&kiocb);
-+		ret = wait_on_retry_sync_kiocb(&kiocb);
-+		if (ret)
-+			break;
- 	}
- 
- 	if (-EIOCBQUEUED == ret)
-@@ -300,7 +303,9 @@ ssize_t do_sync_write(struct file *filp,
- 		ret = filp->f_op->aio_write(&kiocb, &iov, 1, kiocb.ki_pos);
- 		if (ret != -EIOCBRETRY)
- 			break;
--		wait_on_retry_sync_kiocb(&kiocb);
-+		ret = wait_on_retry_sync_kiocb(&kiocb);
-+		if (ret)
-+			break;
- 	}
- 
- 	if (-EIOCBQUEUED == ret)
-@@ -466,7 +471,9 @@ ssize_t do_sync_readv_writev(struct file
- 		ret = fn(&kiocb, iov, nr_segs, kiocb.ki_pos);
- 		if (ret != -EIOCBRETRY)
- 			break;
--		wait_on_retry_sync_kiocb(&kiocb);
-+		ret = wait_on_retry_sync_kiocb(&kiocb);
-+		if (ret)
-+			break;
- 	}
- 
- 	if (ret == -EIOCBQUEUED)
+-	
++
+ static inline unsigned long hash_ptr(void *ptr, unsigned int bits)
+ {
+ 	return hash_long((unsigned long)ptr, bits);
 _
 
 Patches currently in -mm which might be from matthew@wil.cx are
@@ -106,4 +129,5 @@ use-macros-instead-of-task_-flags-checkpatch-fixes.patch
 add-task_wakekill.patch
 add-lock_page_killable.patch
 make-wait_on_retry_sync_kiocb-killable.patch
+hash-add-explicit-u32-and-u64-versions-of-hash.patch
 make-sure-nobodys-leaking-resources.patch
