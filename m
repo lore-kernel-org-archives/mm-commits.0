@@ -1,106 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - make-wait_on_retry_sync_kiocb-killable.patch removed from -mm tree
-Date: Thu, 25 Oct 2007 13:51:41 -0700
-Message-ID: <200710252051.l9PKpgdx023639@imap1.linux-foundation.org>
+Subject: + add-generic-gpio-support-to-x86.patch added to -mm tree
+Date: Thu, 25 Oct 2007 14:23:41 -0700
+Message-ID: <200710252123.l9PLNf4k024709@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50046 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44967 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751848AbXJYUwL (ORCPT
+	by vger.kernel.org with ESMTP id S1752308AbXJYVYU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Oct 2007 16:52:11 -0400
+	Thu, 25 Oct 2007 17:24:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthew@wil.cx, nickpiggin@yahoo.com.au, pbadari@us.ibm.com, willy@linux.intel.com, zach.brown@oracle.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: florian.fainelli@telecomint.eu, david-b@pacbell.net, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     Make wait_on_retry_sync_kiocb killable
-has been removed from the -mm tree.  Its filename was
-     make-wait_on_retry_sync_kiocb-killable.patch
+     x86: add generic GPIO support
+has been added to the -mm tree.  Its filename is
+     add-generic-gpio-support-to-x86.patch
 
-This patch was dropped because it was nacked
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: Make wait_on_retry_sync_kiocb killable
-From: Matthew Wilcox <matthew@wil.cx>
+Subject: x86: add generic GPIO support
+From: Florian Fainelli <florian.fainelli@telecomint.eu>
 
-Use TASK_KILLABLE to allow wait_on_retry_sync_kiocb to return -EINTR.
-All callers then check the return value and break out of their loops.
+Add generic GPIO support to the x86 architecture.  We do the same as for MIPS,
+we let the machine override the gpio callbacks and provide defaults one in
+mach-generic.
 
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Zach Brown <zach.brown@oracle.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Signed-off-by: Florian Fainelli <florian.fainelli@telecomint.eu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/read_write.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ arch/i386/Kconfig                   |    4 ++++
+ include/asm-x86/gpio.h              |    6 ++++++
+ include/asm-x86/mach-generic/gpio.h |   15 +++++++++++++++
+ 3 files changed, 25 insertions(+)
 
-diff -puN fs/read_write.c~make-wait_on_retry_sync_kiocb-killable fs/read_write.c
---- a/fs/read_write.c~make-wait_on_retry_sync_kiocb-killable
-+++ a/fs/read_write.c
-@@ -218,14 +218,15 @@ Einval:
- 	return -EINVAL;
- }
+diff -puN arch/i386/Kconfig~add-generic-gpio-support-to-x86 arch/i386/Kconfig
+--- a/arch/i386/Kconfig~add-generic-gpio-support-to-x86
++++ a/arch/i386/Kconfig
+@@ -79,6 +79,10 @@ config GENERIC_BUG
+ 	default y
+ 	depends on BUG
  
--static void wait_on_retry_sync_kiocb(struct kiocb *iocb)
-+static int wait_on_retry_sync_kiocb(struct kiocb *iocb)
- {
--	set_current_state(TASK_UNINTERRUPTIBLE);
-+	set_current_state(TASK_KILLABLE);
- 	if (!kiocbIsKicked(iocb))
- 		schedule();
- 	else
- 		kiocbClearKicked(iocb);
- 	__set_current_state(TASK_RUNNING);
-+	return fatal_signal_pending(current) ? -EINTR : 0;
- }
- 
- ssize_t do_sync_read(struct file *filp, char __user *buf, size_t len, loff_t *ppos)
-@@ -242,7 +243,9 @@ ssize_t do_sync_read(struct file *filp, 
- 		ret = filp->f_op->aio_read(&kiocb, &iov, 1, kiocb.ki_pos);
- 		if (ret != -EIOCBRETRY)
- 			break;
--		wait_on_retry_sync_kiocb(&kiocb);
-+		ret = wait_on_retry_sync_kiocb(&kiocb);
-+		if (ret)
-+			break;
- 	}
- 
- 	if (-EIOCBQUEUED == ret)
-@@ -300,7 +303,9 @@ ssize_t do_sync_write(struct file *filp,
- 		ret = filp->f_op->aio_write(&kiocb, &iov, 1, kiocb.ki_pos);
- 		if (ret != -EIOCBRETRY)
- 			break;
--		wait_on_retry_sync_kiocb(&kiocb);
-+		ret = wait_on_retry_sync_kiocb(&kiocb);
-+		if (ret)
-+			break;
- 	}
- 
- 	if (-EIOCBQUEUED == ret)
-@@ -466,7 +471,9 @@ ssize_t do_sync_readv_writev(struct file
- 		ret = fn(&kiocb, iov, nr_segs, kiocb.ki_pos);
- 		if (ret != -EIOCBRETRY)
- 			break;
--		wait_on_retry_sync_kiocb(&kiocb);
-+		ret = wait_on_retry_sync_kiocb(&kiocb);
-+		if (ret)
-+			break;
- 	}
- 
- 	if (ret == -EIOCBQUEUED)
++config GENERIC_GPIO
++	bool
++	default n
++
+ config GENERIC_HWEIGHT
+ 	bool
+ 	default y
+diff -puN /dev/null include/asm-x86/gpio.h
+--- /dev/null
++++ a/include/asm-x86/gpio.h
+@@ -0,0 +1,6 @@
++#ifndef _ASM_I386_GPIO_H
++#define _ASM_I386_GPIO_H
++
++#include <gpio.h>
++
++#endif /* _ASM_I386_GPIO_H */
+diff -puN /dev/null include/asm-x86/mach-generic/gpio.h
+--- /dev/null
++++ a/include/asm-x86/mach-generic/gpio.h
+@@ -0,0 +1,15 @@
++#ifndef __ASM_MACH_GENERIC_GPIO_H
++#define __ASM_MACH_GENERIC_GPIO_H
++
++int gpio_request(unsigned gpio, const char *label);
++void gpio_free(unsigned gpio);
++int gpio_direction_input(unsigned gpio);
++int gpio_direction_output(unsigned gpio, int value);
++int gpio_get_value(unsigned gpio);
++void gpio_set_value(unsigned gpio, int value);
++int gpio_to_irq(unsigned gpio);
++int irq_to_gpio(unsigned irq);
++
++#include <asm-generic/gpio.h>           /* cansleep wrappers */
++
++#endif /* __ASM_MACH_GENERIC_GPIO_H */
 _
 
-Patches currently in -mm which might be from matthew@wil.cx are
+Patches currently in -mm which might be from florian.fainelli@telecomint.eu are
 
-use-wake_up_locked-in-eventpoll.patch
-use-macros-instead-of-task_-flags.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-add-task_wakekill.patch
-add-lock_page_killable.patch
-make-wait_on_retry_sync_kiocb-killable.patch
-hash-add-explicit-u32-and-u64-versions-of-hash.patch
-make-sure-nobodys-leaking-resources.patch
+add-generic-gpio-support-to-x86.patch
+pcih-add-pci-identifiers-for-the-rdc-devices.patch
+add-support-for-the-rdc-r-321x-soc.patch
+add-the-rdc-machine-specific-reboot-fixup.patch
