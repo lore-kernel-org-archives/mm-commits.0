@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-fix-coding-style-violations-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 24 Oct 2007 20:19:59 -0700
-Message-ID: <200710250319.l9P3JxFI029233@imap1.linux-foundation.org>
+Subject: + fuse-fix-reading-past-eof.patch added to -mm tree
+Date: Wed, 24 Oct 2007 20:22:23 -0700
+Message-ID: <200710250322.l9P3MNAI029292@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58739 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58812 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752192AbXJYDUb (ORCPT
+	by vger.kernel.org with ESMTP id S1753851AbXJYDXC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 23:20:31 -0400
+	Wed, 24 Oct 2007 23:23:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com, penberg@cs.helsinki.fi
+Cc: mszeredi@suse.cz
 
 
 The patch titled
-     slub-fix-coding-style-violations-checkpatch-fixes
+     fuse: fix reading past EOF
 has been added to the -mm tree.  Its filename is
-     slub-fix-coding-style-violations-checkpatch-fixes.patch
+     fuse-fix-reading-past-eof.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,110 +26,170 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub-fix-coding-style-violations-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fuse: fix reading past EOF
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-ERROR: use tabs not spaces
-#67: FILE: mm/slub.c:695:
-+^I^I^I ^Ip + s->objsize - 1, POISON_END, 1)))$
+Currently reading a fuse file will stop at cached i_size and return
+EOF, even though the file might have grown since the attributes were
+last updated.
 
-total: 1 errors, 0 warnings, 166 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+So detect if trying to read past EOF, and refresh the attributes
+before continuing with the read.
 
-Please run checkpatch prior to sending patches
+Thanks to mpb for the report.
 
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/fuse/dir.c    |   48 +++++++++++++++++++++++++++------------------
+ fs/fuse/file.c   |   21 ++++++++++++++++++-
+ fs/fuse/fuse_i.h |    3 ++
+ 3 files changed, 52 insertions(+), 20 deletions(-)
 
-diff -puN mm/slub.c~slub-fix-coding-style-violations-checkpatch-fixes mm/slub.c
---- a/mm/slub.c~slub-fix-coding-style-violations-checkpatch-fixes
-+++ a/mm/slub.c
-@@ -692,7 +692,7 @@ static int check_object(struct kmem_cach
- 			(!check_bytes_and_report(s, page, p, "Poison", p,
- 					POISON_FREE, s->objsize - 1) ||
- 			 !check_bytes_and_report(s, page, p, "Poison",
--			 	p + s->objsize - 1, POISON_END, 1)))
-+					p + s->objsize - 1, POISON_END, 1)))
- 			return 0;
- 		/*
- 		 * check_pad_bytes cleans up on its own.
+diff -puN fs/fuse/dir.c~fuse-fix-reading-past-eof fs/fuse/dir.c
+--- a/fs/fuse/dir.c~fuse-fix-reading-past-eof
++++ a/fs/fuse/dir.c
+@@ -775,6 +775,31 @@ static int fuse_do_getattr(struct inode 
+ 	return err;
+ }
+ 
++int fuse_update_attributes(struct inode *inode, struct kstat *stat,
++			   struct file *file, bool *refreshed)
++{
++	struct fuse_inode *fi = get_fuse_inode(inode);
++	int err;
++	bool r;
++
++	if (fi->i_time < get_jiffies_64()) {
++		r = true;
++		err = fuse_do_getattr(inode, stat, file);
++	} else {
++		r = false;
++		err = 0;
++		if (stat) {
++			generic_fillattr(inode, stat);
++			stat->mode = fi->orig_i_mode;
++		}
++	}
++
++	if (refreshed != NULL)
++		*refreshed = r;
++
++	return err;
++}
++
+ /*
+  * Calling into a user-controlled filesystem gives the filesystem
+  * daemon ptrace-like capabilities over the requester process.  This
+@@ -862,14 +887,9 @@ static int fuse_permission(struct inode 
+ 	 */
+ 	if ((fc->flags & FUSE_DEFAULT_PERMISSIONS) ||
+ 	    ((mask & MAY_EXEC) && S_ISREG(inode->i_mode))) {
+-		struct fuse_inode *fi = get_fuse_inode(inode);
+-		if (fi->i_time < get_jiffies_64()) {
+-			err = fuse_do_getattr(inode, NULL, NULL);
+-			if (err)
+-				return err;
+-
+-			refreshed = true;
+-		}
++		err = fuse_update_attributes(inode, NULL, NULL, &refreshed);
++		if (err)
++			return err;
+ 	}
+ 
+ 	if (fc->flags & FUSE_DEFAULT_PERMISSIONS) {
+@@ -1173,22 +1193,12 @@ static int fuse_getattr(struct vfsmount 
+ 			struct kstat *stat)
+ {
+ 	struct inode *inode = entry->d_inode;
+-	struct fuse_inode *fi = get_fuse_inode(inode);
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+-	int err;
+ 
+ 	if (!fuse_allow_task(fc, current))
+ 		return -EACCES;
+ 
+-	if (fi->i_time < get_jiffies_64())
+-		err = fuse_do_getattr(inode, stat, NULL);
+-	else {
+-		err = 0;
+-		generic_fillattr(inode, stat);
+-		stat->mode = fi->orig_i_mode;
+-	}
+-
+-	return err;
++	return fuse_update_attributes(inode, stat, NULL, NULL);
+ }
+ 
+ static int fuse_setxattr(struct dentry *entry, const char *name,
+diff -puN fs/fuse/file.c~fuse-fix-reading-past-eof fs/fuse/file.c
+--- a/fs/fuse/file.c~fuse-fix-reading-past-eof
++++ a/fs/fuse/file.c
+@@ -453,6 +453,25 @@ out:
+ 	return err;
+ }
+ 
++static ssize_t fuse_file_aio_read(struct kiocb *iocb, const struct iovec *iov,
++				  unsigned long nr_segs, loff_t pos)
++{
++	struct inode *inode = iocb->ki_filp->f_mapping->host;
++
++	if (pos + iov_length(iov, nr_segs) > i_size_read(inode)) {
++		int err;
++		/*
++		 * If trying to read past EOF, make sure the i_size
++		 * attribute is up-to-date.
++		 */
++		err = fuse_update_attributes(inode, NULL, iocb->ki_filp, NULL);
++		if (err)
++			return err;
++	}
++
++	return generic_file_aio_read(iocb, iov, nr_segs, pos);
++}
++
+ static void fuse_write_fill(struct fuse_req *req, struct fuse_file *ff,
+ 			    struct inode *inode, loff_t pos, size_t count,
+ 			    int writepage)
+@@ -887,7 +906,7 @@ static sector_t fuse_bmap(struct address
+ static const struct file_operations fuse_file_operations = {
+ 	.llseek		= generic_file_llseek,
+ 	.read		= do_sync_read,
+-	.aio_read	= generic_file_aio_read,
++	.aio_read	= fuse_file_aio_read,
+ 	.write		= do_sync_write,
+ 	.aio_write	= generic_file_aio_write,
+ 	.mmap		= fuse_file_mmap,
+diff -puN fs/fuse/fuse_i.h~fuse-fix-reading-past-eof fs/fuse/fuse_i.h
+--- a/fs/fuse/fuse_i.h~fuse-fix-reading-past-eof
++++ a/fs/fuse/fuse_i.h
+@@ -593,3 +593,6 @@ int fuse_valid_type(int m);
+ int fuse_allow_task(struct fuse_conn *fc, struct task_struct *task);
+ 
+ u64 fuse_lock_owner_id(struct fuse_conn *fc, fl_owner_t id);
++
++int fuse_update_attributes(struct inode *inode, struct kstat *stat,
++			   struct file *file, bool *refreshed);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
-sunrpc-fix-rpc-debugging-checkpatch-fixes.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-ata-ahci-enable-enclosure-management-via-led-checkpatch-fixes.patch
-ide-arm-hack.patch
-nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd-fixup.patch
-fix-build-breakage-if-sysfs-fix.patch
-git-unionfs.patch
-git-v9fs-fixup.patch
-git-watchdog.patch
-watchdog-add-nano-7240-driver-checkpatch-fixes.patch
-git-wireless.patch
-git-wireless-fixup.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-x86-fix-config_smp-warning-in-processorc-fix.patch
-i386-and-x86_64-randomize-brk-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-sync_sb_inodes-propagate-errors.patch
-peterz-vs-ext4-mballoc-core.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+fuse-fuse_file_alloc-fix-null-dereferences.patch
+fuse-fix-reading-past-eof.patch
+fuse-cleanup-add-fuse_get_attr_version.patch
+fuse-pass-open-flags-to-read-and-write.patch
+fuse-fix-fuse_file_ops-sending.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
