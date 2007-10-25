@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-pointer-mismatches-in-proc_sysctlc.patch added to -mm tree
-Date: Thu, 25 Oct 2007 13:28:21 -0700
-Message-ID: <200710252028.l9PKSL7r021982@imap1.linux-foundation.org>
+Subject: + fs-fix-to-correct-the-mbcache-entries-counter.patch added to -mm tree
+Date: Thu, 25 Oct 2007 13:33:46 -0700
+Message-ID: <200710252033.l9PKXkNK022524@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56543 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57594 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753590AbXJYU2k (ORCPT
+	by vger.kernel.org with ESMTP id S1751650AbXJYUdx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Oct 2007 16:28:40 -0400
+	Thu, 25 Oct 2007 16:33:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, ebiederm@xmission.com
+Cc: ram.gupta5@gmail.com, agruen@suse.de
 
 
 The patch titled
-     Fix pointer mismatches in proc_sysctl.c
+     fs: fix to correct the mbcache entries counter
 has been added to the -mm tree.  Its filename is
-     fix-pointer-mismatches-in-proc_sysctlc.patch
+     fs-fix-to-correct-the-mbcache-entries-counter.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,51 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix pointer mismatches in proc_sysctl.c
-From: David Howells <dhowells@redhat.com>
+Subject: fs: fix to correct the mbcache entries counter
+From: "Ram Gupta" <ram.gupta5@gmail.com>
 
-Fix pointer mismatches in proc_sysctl.c.  The proc_handler() method returns
-a size_t through an arg pointer, but is given a pointer to a ssize_t to
-return into.
+This patch fixes the c_entry_count counter of the mbcache.  Currently it
+increments the counter first & allocate the cache entry later.  In case of
+failure to allocate the entry due to insufficient memory this counter is
+still left incremented.  This patch fixes this anomaly.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Ram Gupta <ram.gupta5@gmail.com>
+Cc: Andreas Gruenbacher <agruen@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_sysctl.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/mbcache.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/proc_sysctl.c~fix-pointer-mismatches-in-proc_sysctlc fs/proc/proc_sysctl.c
---- a/fs/proc/proc_sysctl.c~fix-pointer-mismatches-in-proc_sysctlc
-+++ a/fs/proc/proc_sysctl.c
-@@ -171,7 +171,8 @@ static ssize_t proc_sys_read(struct file
- 	struct dentry *dentry = filp->f_dentry;
- 	struct ctl_table_header *head;
- 	struct ctl_table *table;
--	ssize_t error, res;
-+	ssize_t error;
-+	size_t res;
+diff -puN fs/mbcache.c~fs-fix-to-correct-the-mbcache-entries-counter fs/mbcache.c
+--- a/fs/mbcache.c~fs-fix-to-correct-the-mbcache-entries-counter
++++ a/fs/mbcache.c
+@@ -403,9 +403,9 @@ mb_cache_entry_alloc(struct mb_cache *ca
+ {
+ 	struct mb_cache_entry *ce;
  
- 	table = do_proc_sys_lookup(dentry->d_parent, &dentry->d_name, &head);
- 	/* Has the sysctl entry disappeared on us? */
-@@ -209,7 +210,8 @@ static ssize_t proc_sys_write(struct fil
- 	struct dentry *dentry = filp->f_dentry;
- 	struct ctl_table_header *head;
- 	struct ctl_table *table;
--	ssize_t error, res;
-+	ssize_t error;
-+	size_t res;
- 
- 	table = do_proc_sys_lookup(dentry->d_parent, &dentry->d_name, &head);
- 	/* Has the sysctl entry disappeared on us? */
+-	atomic_inc(&cache->c_entry_count);
+ 	ce = kmem_cache_alloc(cache->c_entry_cache, GFP_KERNEL);
+ 	if (ce) {
++		atomic_inc(&cache->c_entry_count);
+ 		INIT_LIST_HEAD(&ce->e_lru_list);
+ 		INIT_LIST_HEAD(&ce->e_block_list);
+ 		ce->e_cache = cache;
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from ram.gupta5@gmail.com are
 
-fix-pointer-mismatches-in-proc_sysctlc.patch
-64-bit-i_version-afs-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-mutex-subsystem-synchro-test-module.patch
+fs-fix-to-correct-the-mbcache-entries-counter.patch
