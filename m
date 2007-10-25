@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hash-add-explicit-u32-and-u64-versions-of-hash.patch added to -mm tree
-Date: Wed, 24 Oct 2007 20:45:26 -0700
-Message-ID: <200710250345.l9P3jQHc030166@imap1.linux-foundation.org>
+Subject: + small-acpica-extension-to-be-able-to-store-the-name-of.patch added to -mm tree
+Date: Wed, 24 Oct 2007 20:50:29 -0700
+Message-ID: <200710250350.l9P3oT4N030365@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58364 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46300 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755942AbXJYDpd (ORCPT
+	by vger.kernel.org with ESMTP id S1757086AbXJYDvD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 23:45:33 -0400
+	Wed, 24 Oct 2007 23:51:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthew@wil.cx, willy@linux.intel.com, wli@holomorphy.com
+Cc: trenn@suse.de, khali@linux-fr.org, lenb@kernel.org, mhoffman@lightlink.com
 
 
 The patch titled
-     hash: add explicit u32 and u64 versions of hash
+     Small ACPICA extension to be able to store the name of operation regions in osl.c later
 has been added to the -mm tree.  Its filename is
-     hash-add-explicit-u32-and-u64-versions-of-hash.patch
+     small-acpica-extension-to-be-able-to-store-the-name-of.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,108 +26,86 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hash: add explicit u32 and u64 versions of hash
-From: Matthew Wilcox <matthew@wil.cx>
+Subject: Small ACPICA extension to be able to store the name of operation regions in osl.c later
+From: Thomas Renninger <trenn@suse.de>
 
-The 32-bit version is more efficient (and apparently gives better hash
-results than the 64-bit version), so users who are only hashing a 32-bit
-quantity can now opt to use the 32-bit version explicitly, rather than
-promoting to a long.
+In ACPI, AML can define accesses to IO ports and System Memory by Operation
+Regions.  Those are not registered as done by PNPACPI using resource templates
+(and _CRS/_SRS methods).
 
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: William Lee Irwin III <wli@holomorphy.com>
+The IO ports and System Memory regions may get accessed by arbitrary AML code.
+ When native drivers are accessing the same resources bad things can happen
+(e.g.  a critical shutdown temperature of 3000 C every 2 months or so).
+
+It is not really possible to register the operation regions via
+request_resource, as they often overlap with pnp or other resources (e.g. 
+statically setup IO resources below 0x100).
+
+This approach stores all Operation Region declarations (IO and System Memory
+only) at ACPI table parse time.  It offers a similar functionality like
+request_region and let drivers which are known to possibly use the same IO
+ports and Memory which are also often used by ACPI (hwmon and i2c) check for
+ACPI interference.
+
+A boot parameter acpi_enforce_resources=strict/lax/no is provided, which
+is default set to lax:
+  - strict: let conflicting drivers fail to load with an error message
+  - lax:    let conflicting driver work normal with a warning message
+  - no:     no functional change at all
+Depending on the feedback and the kind of interferences we see, this
+should be set to strict at later time.
+
+Goal of this patch set is:
+  - Identify ACPI interferences in bug reports (very hard to reproduce
+    and to identify)
+  - Find BIOSes for that an ACPI driver should exist for specific HW
+    instead of a native one.
+  - stability in general
+
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hash.h |   42 ++++++++++++++++++++++++++---------------
- 1 file changed, 27 insertions(+), 15 deletions(-)
+ drivers/acpi/dispatcher/dsopcode.c |    4 +++-
+ include/acpi/acpiosxf.h            |    4 ++--
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/hash.h~hash-add-explicit-u32-and-u64-versions-of-hash include/linux/hash.h
---- a/include/linux/hash.h~hash-add-explicit-u32-and-u64-versions-of-hash
-+++ a/include/linux/hash.h
-@@ -1,6 +1,6 @@
- #ifndef _LINUX_HASH_H
- #define _LINUX_HASH_H
--/* Fast hashing routine for a long.
-+/* Fast hashing routine for ints,  longs and pointers.
-    (C) 2002 William Lee Irwin III, IBM */
+diff -puN drivers/acpi/dispatcher/dsopcode.c~small-acpica-extension-to-be-able-to-store-the-name-of drivers/acpi/dispatcher/dsopcode.c
+--- a/drivers/acpi/dispatcher/dsopcode.c~small-acpica-extension-to-be-able-to-store-the-name-of
++++ a/drivers/acpi/dispatcher/dsopcode.c
+@@ -359,7 +359,9 @@ acpi_status acpi_ds_get_region_arguments
  
- /*
-@@ -13,23 +13,30 @@
-  * them can use shifts and additions instead of multiplications for
-  * machines where multiplications are slow.
-  */
--#if BITS_PER_LONG == 32
+ 	status = acpi_os_validate_address(obj_desc->region.space_id,
+ 					  obj_desc->region.address,
+-					  (acpi_size) obj_desc->region.length);
++					  (acpi_size) obj_desc->region.length,
++					  acpi_ut_get_node_name(node));
 +
-+#include <asm/types.h>
-+
- /* 2^31 + 2^29 - 2^25 + 2^22 - 2^19 - 2^16 + 1 */
--#define GOLDEN_RATIO_PRIME 0x9e370001UL
--#elif BITS_PER_LONG == 64
-+#define GOLDEN_RATIO_PRIME_32 0x9e370001UL
- /*  2^63 + 2^61 - 2^57 + 2^54 - 2^51 - 2^18 + 1 */
--#define GOLDEN_RATIO_PRIME 0x9e37fffffffc0001UL
-+#define GOLDEN_RATIO_PRIME_64 0x9e37fffffffc0001UL
-+
-+#if BITS_PER_LONG == 32
-+#define GOLDEN_RATIO_PRIME GOLDEN_RATIO_PRIME_32
-+#define hash_long(val, bits) hash_32(val, bits)
-+#elif BITS_PER_LONG == 64
-+#define hash_long(val, bits) hash_64(val, bits)
-+#define GOLDEN_RATIO_PRIME GOLDEN_RATIO_PRIME_64
- #else
--#error Define GOLDEN_RATIO_PRIME for your wordsize.
-+#error Wordsize not 32 or 64
- #endif
+ 	if (ACPI_FAILURE(status)) {
+ 		/*
+ 		 * Invalid address/length. We will emit an error message and mark
+diff -puN include/acpi/acpiosxf.h~small-acpica-extension-to-be-able-to-store-the-name-of include/acpi/acpiosxf.h
+--- a/include/acpi/acpiosxf.h~small-acpica-extension-to-be-able-to-store-the-name-of
++++ a/include/acpi/acpiosxf.h
+@@ -239,8 +239,8 @@ acpi_status acpi_os_validate_interface(c
+ acpi_status acpi_osi_invalidate(char* interface);
  
--static inline unsigned long hash_long(unsigned long val, unsigned int bits)
-+static inline u64 hash_64(u64 val, unsigned int bits)
- {
--	unsigned long hash = val;
-+	u64 hash = val;
+ acpi_status
+-acpi_os_validate_address(u8 space_id,
+-			 acpi_physical_address address, acpi_size length);
++acpi_os_validate_address(u8 space_id, acpi_physical_address address,
++			 acpi_size length, char *name);
  
--#if BITS_PER_LONG == 64
- 	/*  Sigh, gcc can't optimise this alone like it does for 32 bits. */
--	unsigned long n = hash;
-+	u64 n = hash;
- 	n <<= 18;
- 	hash -= n;
- 	n <<= 33;
-@@ -42,15 +49,20 @@ static inline unsigned long hash_long(un
- 	hash += n;
- 	n <<= 2;
- 	hash += n;
--#else
-+
-+	/* High bits are more random, so use them. */
-+	return hash >> (64 - bits);
-+}
-+
-+static inline u32 hash_32(u32 val, unsigned int bits)
-+{
- 	/* On some cpus multiply is faster, on others gcc will do shifts */
--	hash *= GOLDEN_RATIO_PRIME;
--#endif
-+	u32 hash = val * GOLDEN_RATIO_PRIME_32;
+ u64 acpi_os_get_timer(void);
  
- 	/* High bits are more random, so use them. */
--	return hash >> (BITS_PER_LONG - bits);
-+	return hash >> (32 - bits);
- }
--	
-+
- static inline unsigned long hash_ptr(void *ptr, unsigned int bits)
- {
- 	return hash_long((unsigned long)ptr, bits);
 _
 
-Patches currently in -mm which might be from matthew@wil.cx are
+Patches currently in -mm which might be from trenn@suse.de are
 
-use-wake_up_locked-in-eventpoll.patch
-use-macros-instead-of-task_-flags.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-add-task_wakekill.patch
-add-lock_page_killable.patch
-make-wait_on_retry_sync_kiocb-killable.patch
-hash-add-explicit-u32-and-u64-versions-of-hash.patch
-make-sure-nobodys-leaking-resources.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+provide-acpi_check_mem_region.patch
+export-acpi_check_resource_conflict.patch
+check-for-acpi-resource-conflicts-in-hwmon-drivers.patch
+check-for-acpi-resource-conflicts-in-i2c-bus-drivers.patch
