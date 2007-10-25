@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-the-rdc-machine-specific-reboot-fixup.patch added to -mm tree
-Date: Thu, 25 Oct 2007 14:26:21 -0700
-Message-ID: <200710252126.l9PLQLq7024855@imap1.linux-foundation.org>
+Subject: + napi-use-non-interruptible-sleep-in-napi_disable.patch added to -mm tree
+Date: Thu, 25 Oct 2007 14:27:57 -0700
+Message-ID: <200710252127.l9PLRvOp024873@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47774 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40299 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753056AbXJYV1D (ORCPT
+	by vger.kernel.org with ESMTP id S1753053AbXJYV2I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Oct 2007 17:27:03 -0400
+	Thu, 25 Oct 2007 17:28:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: florian.fainelli@telecomint.eu, david-b@pacbell.net, mingo@elte.hu, tglx@linutronix.de
+Cc: benh@kernel.crashing.org, davem@davemloft.net, jeff@garzik.org
 
 
 The patch titled
-     x86: add the RDC machine specific reboot fixup
+     napi: use non-interruptible sleep in napi_disable
 has been added to the -mm tree.  Its filename is
-     add-the-rdc-machine-specific-reboot-fixup.patch
+     napi-use-non-interruptible-sleep-in-napi_disable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,58 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86: add the RDC machine specific reboot fixup
-From: Florian Fainelli <florian.fainelli@telecomint.eu>
+Subject: napi: use non-interruptible sleep in napi_disable
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-The RDC R-321x SoC needs a reboot fixup which uses its internal hardware
-watchdog set to reset the CPU on next tick.
+The current napi_disable() uses msleep_interruptible() but doesn't (and
+can't) exit in case there's a signal, thus ending up doing a hot spin
+without a cpu_relax.  Use uninterruptible sleep instead.
 
-Signed-off-by: Florian Fainelli <florian.fainelli@telecomint.eu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Acked-by: Jeff Garzik <jeff@garzik.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/reboot_fixups_32.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ include/linux/netdevice.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/reboot_fixups_32.c~add-the-rdc-machine-specific-reboot-fixup arch/x86/kernel/reboot_fixups_32.c
---- a/arch/x86/kernel/reboot_fixups_32.c~add-the-rdc-machine-specific-reboot-fixup
-+++ a/arch/x86/kernel/reboot_fixups_32.c
-@@ -30,6 +30,19 @@ static void cs5536_warm_reset(struct pci
- 	udelay(50); /* shouldn't get here but be safe and spin a while */
+diff -puN include/linux/netdevice.h~napi-use-non-interruptible-sleep-in-napi_disable include/linux/netdevice.h
+--- a/include/linux/netdevice.h~napi-use-non-interruptible-sleep-in-napi_disable
++++ a/include/linux/netdevice.h
+@@ -390,7 +390,7 @@ static inline void napi_complete(struct 
+ static inline void napi_disable(struct napi_struct *n)
+ {
+ 	while (test_and_set_bit(NAPI_STATE_SCHED, &n->state))
+-		msleep_interruptible(1);
++		msleep(1);
  }
  
-+static void rdc321x_reset(struct pci_dev *dev)
-+{
-+	unsigned i;
-+	/* Voluntary reset the watchdog timer */
-+	outl(0x80003840, 0xCF8);
-+	/* Generate a CPU reset on next tick */
-+	i = inl(0xCFC);
-+	/* Use the minimum timer resolution */
-+	i |= 0x1600;
-+	outl(i, 0xCFC);
-+	outb(1, 0x92);
-+}
-+
- struct device_fixup {
- 	unsigned int vendor;
- 	unsigned int device;
-@@ -39,6 +52,7 @@ struct device_fixup {
- static struct device_fixup fixups_table[] = {
- { PCI_VENDOR_ID_CYRIX, PCI_DEVICE_ID_CYRIX_5530_LEGACY, cs5530a_warm_reset },
- { PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA, cs5536_warm_reset },
-+{ PCI_VENDOR_ID_RDC, PCI_DEVICE_ID_RDC_R6030, rdc321x_reset },
- };
- 
- /*
+ /**
 _
 
-Patches currently in -mm which might be from florian.fainelli@telecomint.eu are
+Patches currently in -mm which might be from benh@kernel.crashing.org are
 
-add-generic-gpio-support-to-x86.patch
-pci-add-pci-identifiers-for-the-rdc-devices.patch
-x86-add-support-for-the-rdc-r-321x-soc.patch
-add-the-rdc-machine-specific-reboot-fixup.patch
+radeonfb-remove-warning-with-config_pm=n.patch
+fix-appletouch-geyser-1-breakage.patch
+fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
+napi-use-non-interruptible-sleep-in-napi_disable.patch
+powerpc-switch-to-generic-warn_on-bug_on.patch
+taskstats-scaled-time-cleanup.patch
+drivers-edac-add-cell-xdr-memory-types.patch
+drivers-edac-add-cell-mc-driver.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
