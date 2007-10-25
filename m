@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isdn-capidrv-fix-casting-warning.patch added to -mm tree
-Date: Thu, 25 Oct 2007 01:14:39 -0700
-Message-ID: <200710250814.l9P8EdQJ014769@imap1.linux-foundation.org>
+Subject: + remove-warnings-for-longstanding-conditions.patch added to -mm tree
+Date: Thu, 25 Oct 2007 01:13:56 -0700
+Message-ID: <200710250813.l9P8Duwx014660@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50985 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45829 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754380AbXJYITv (ORCPT
+	by vger.kernel.org with ESMTP id S1754662AbXJYIT5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Oct 2007 04:19:51 -0400
+	Thu, 25 Oct 2007 04:19:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeff@garzik.org, jgarzik@redhat.com, kkeil@suse.de
+Cc: jeff@garzik.org, James.Bottomley@steeleye.com, jgarzik@redhat.com, kkeil@suse.de, willy@debian.org
 
 
 The patch titled
-     ISDN/capidrv: fix casting warning
+     Remove #warnings for longstanding conditions
 has been added to the -mm tree.  Its filename is
-     isdn-capidrv-fix-casting-warning.patch
+     remove-warnings-for-longstanding-conditions.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,38 +26,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ISDN/capidrv: fix casting warning
+Subject: Remove #warnings for longstanding conditions
 From: Jeff Garzik <jeff@garzik.org>
 
-drivers/isdn/capi/capidrv.c: In function 'if_sendbuf':
-drivers/isdn/capi/capidrv.c:1865: warning: cast from pointer to integer
-of different size
+These two warnings...
 
-We are passing a kernel pointer, skb->data, but the interface itself is
-limited to 32 bits.  A future changeset may want to mark this code 32-bit
-only, if it turns out cmsg->Data value truncation on 64-bit platforms is
-problematic in practice.
+drivers/isdn/capi/capidrv.c:2126:3: warning: #warning FIXME: maybe a
+race condition the card should be removed here from global list /kkeil
+
+drivers/scsi/advansys.c:71:2: warning: #warning this driver is still
+not properly converted to the DMA API
+
+...represent conditions that have existed for years, and are duly noted
+in FIXMEs.  There does not seem to be much need to warn on every kernel
+build for a driver bug or handicap that has existed for years.
 
 Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
 Cc: Karsten Keil <kkeil@suse.de>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Matthew Wilcox <willy@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/capi/capidrv.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/isdn/capi/capidrv.c |    3 ++-
+ drivers/scsi/advansys.c     |    1 -
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/isdn/capi/capidrv.c~isdn-capidrv-fix-casting-warning drivers/isdn/capi/capidrv.c
---- a/drivers/isdn/capi/capidrv.c~isdn-capidrv-fix-casting-warning
+diff -puN drivers/isdn/capi/capidrv.c~remove-warnings-for-longstanding-conditions drivers/isdn/capi/capidrv.c
+--- a/drivers/isdn/capi/capidrv.c~remove-warnings-for-longstanding-conditions
 +++ a/drivers/isdn/capi/capidrv.c
-@@ -1862,7 +1862,7 @@ static int if_sendbuf(int id, int channe
- 	datahandle = nccip->datahandle;
- 	capi_fill_DATA_B3_REQ(&sendcmsg, global.ap.applid, card->msgid++,
- 			      nccip->ncci,	/* adr */
--			      (u32) skb->data,	/* Data */
-+			      (unsigned long) skb->data, /* Data */
- 			      skb->len,		/* DataLength */
- 			      datahandle,	/* DataHandle */
- 			      0	/* Flags */
+@@ -2123,7 +2123,8 @@ static int capidrv_delcontr(u16 contr)
+ 		printk(KERN_ERR "capidrv: delcontr: no contr %u\n", contr);
+ 		return -1;
+ 	}
+-	#warning FIXME: maybe a race condition the card should be removed here from global list /kkeil
++
++	/* FIXME: maybe a race condition the card should be removed here from global list /kkeil */
+ 	spin_unlock_irqrestore(&global_lock, flags);
+ 
+ 	del_timer(&card->listentimer);
+diff -puN drivers/scsi/advansys.c~remove-warnings-for-longstanding-conditions drivers/scsi/advansys.c
+--- a/drivers/scsi/advansys.c~remove-warnings-for-longstanding-conditions
++++ a/drivers/scsi/advansys.c
+@@ -68,7 +68,6 @@
+  *  7. advansys_info is not safe against multiple simultaneous callers
+  *  8. Add module_param to override ISA/VLB ioport array
+  */
+-#warning this driver is still not properly converted to the DMA API
+ 
+ /* Enable driver /proc statistics. */
+ #define ADVANSYS_STATS
 _
 
 Patches currently in -mm which might be from jeff@garzik.org are
@@ -98,6 +116,5 @@ sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.p
 sound-oss-sb_commonc-fix-casting-warning.patch
 permit-silencing-of-__deprecated-warnings.patch
 remove-warnings-for-longstanding-conditions.patch
-remove-warnings-for-longstanding-conditions-checkpatch-fixes.patch
 isdn-capidrv-fix-casting-warning.patch
 isdn-sc-fix-longstanding-warning.patch
