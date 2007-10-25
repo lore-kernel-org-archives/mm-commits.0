@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-build-bug.patch added to -mm tree
-Date: Thu, 25 Oct 2007 13:26:16 -0700
-Message-ID: <200710252026.l9PKQGKU021817@imap1.linux-foundation.org>
+Subject: + dzc-use-a-helper-to-cast-from-struct-uart_port.patch added to -mm tree
+Date: Thu, 25 Oct 2007 13:27:37 -0700
+Message-ID: <200710252027.l9PKRbHd021920@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50437 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57054 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753134AbXJYU0l (ORCPT
+	by vger.kernel.org with ESMTP id S1753393AbXJYU1v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Oct 2007 16:26:41 -0400
+	Thu, 25 Oct 2007 16:27:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ralf@linux-mips.org, bzolnier@gmail.com, macro@linux-mips.org, sam@ravnborg.org
+Cc: macro@linux-mips.org, ralf@linux-mips.org
 
 
 The patch titled
-     ide: fix build bug
+     dz.c: Use a helper to cast from "struct uart_port *"
 has been added to the -mm tree.  Its filename is
-     fix-build-bug.patch
+     dzc-use-a-helper-to-cast-from-struct-uart_port.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,51 +26,152 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ide: fix build bug
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: dz.c: Use a helper to cast from "struct uart_port *"
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
-  CC      drivers/ide/pci/generic.o
-drivers/ide/pci/generic.c:52: error: __setup_str_ide_generic_all_on causes a
-+section type conflict
+Replace all casts from "struct uart_port *" to "struct dz_port *" with a
+construct based on container_of().  This makes the conversion work
+irrespective of where the former struct is located within the latter.
 
-This sort of build error is becoming a regular issue.  Either all or non
-of the elements that go into a particular section of a compilation unit
-need to be const.  Or an error may result such as in this case if
-CONFIG_HOTPLUG is unset.
+By popular request I have implemented it as an inline function rather than
+a macro this time.
 
-Maybe worth a check in checkpatch.pl - but certainly gcc's interolerance
-is also being less than helpful here.
-
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
+Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/pci/generic.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/dz.c |   27 ++++++++++++++++-----------
+ 1 file changed, 16 insertions(+), 11 deletions(-)
 
-diff -puN drivers/ide/pci/generic.c~fix-build-bug drivers/ide/pci/generic.c
---- a/drivers/ide/pci/generic.c~fix-build-bug
-+++ a/drivers/ide/pci/generic.c
-@@ -67,7 +67,7 @@ MODULE_PARM_DESC(all_generic_ide, "IDE g
- 		.udma_mask	= ATA_UDMA6, \
- 	}
+diff -puN drivers/serial/dz.c~dzc-use-a-helper-to-cast-from-struct-uart_port drivers/serial/dz.c
+--- a/drivers/serial/dz.c~dzc-use-a-helper-to-cast-from-struct-uart_port
++++ a/drivers/serial/dz.c
+@@ -68,6 +68,11 @@ struct dz_port {
  
--static const struct ide_port_info generic_chipsets[] __devinitdata = {
-+static struct ide_port_info generic_chipsets[] __devinitdata = {
- 	/*  0 */ DECLARE_GENERIC_PCI_DEV("Unknown",	0),
+ static struct dz_port dz_ports[DZ_NB_PORT];
  
- 	{	/* 1 */
++static inline struct dz_port *to_dport(struct uart_port *uport)
++{
++	return container_of(uport, struct dz_port, port);
++}
++
+ /*
+  * ------------------------------------------------------------
+  * dz_in () and dz_out ()
+@@ -106,7 +111,7 @@ static inline void dz_out(struct dz_port
+ 
+ static void dz_stop_tx(struct uart_port *uport)
+ {
+-	struct dz_port *dport = (struct dz_port *)uport;
++	struct dz_port *dport = to_dport(uport);
+ 	unsigned short tmp, mask = 1 << dport->port.line;
+ 
+ 	tmp = dz_in(dport, DZ_TCR);	/* read the TX flag */
+@@ -116,7 +121,7 @@ static void dz_stop_tx(struct uart_port 
+ 
+ static void dz_start_tx(struct uart_port *uport)
+ {
+-	struct dz_port *dport = (struct dz_port *)uport;
++	struct dz_port *dport = to_dport(uport);
+ 	unsigned short tmp, mask = 1 << dport->port.line;
+ 
+ 	tmp = dz_in(dport, DZ_TCR);	/* read the TX flag */
+@@ -126,7 +131,7 @@ static void dz_start_tx(struct uart_port
+ 
+ static void dz_stop_rx(struct uart_port *uport)
+ {
+-	struct dz_port *dport = (struct dz_port *)uport;
++	struct dz_port *dport = to_dport(uport);
+ 
+ 	dport->cflag &= ~DZ_RXENAB;
+ 	dz_out(dport, DZ_LPR, dport->cflag);
+@@ -349,7 +354,7 @@ static unsigned int dz_get_mctrl(struct 
+ 	/*
+ 	 * FIXME: Handle the 3100/5000 as appropriate. --macro
+ 	 */
+-	struct dz_port *dport = (struct dz_port *)uport;
++	struct dz_port *dport = to_dport(uport);
+ 	unsigned int mctrl = TIOCM_CAR | TIOCM_DSR | TIOCM_CTS;
+ 
+ 	if (dport->port.line == DZ_MODEM) {
+@@ -365,7 +370,7 @@ static void dz_set_mctrl(struct uart_por
+ 	/*
+ 	 * FIXME: Handle the 3100/5000 as appropriate. --macro
+ 	 */
+-	struct dz_port *dport = (struct dz_port *)uport;
++	struct dz_port *dport = to_dport(uport);
+ 	unsigned short tmp;
+ 
+ 	if (dport->port.line == DZ_MODEM) {
+@@ -387,7 +392,7 @@ static void dz_set_mctrl(struct uart_por
+  */
+ static int dz_startup(struct uart_port *uport)
+ {
+-	struct dz_port *dport = (struct dz_port *)uport;
++	struct dz_port *dport = to_dport(uport);
+ 	unsigned long flags;
+ 	unsigned short tmp;
+ 
+@@ -413,7 +418,7 @@ static int dz_startup(struct uart_port *
+  */
+ static void dz_shutdown(struct uart_port *uport)
+ {
+-	struct dz_port *dport = (struct dz_port *)uport;
++	struct dz_port *dport = to_dport(uport);
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&dport->port.lock, flags);
+@@ -435,7 +440,7 @@ static void dz_shutdown(struct uart_port
+  */
+ static unsigned int dz_tx_empty(struct uart_port *uport)
+ {
+-	struct dz_port *dport = (struct dz_port *)uport;
++	struct dz_port *dport = to_dport(uport);
+ 	unsigned short tmp, mask = 1 << dport->port.line;
+ 
+ 	tmp = dz_in(dport, DZ_TCR);
+@@ -450,7 +455,7 @@ static void dz_break_ctl(struct uart_por
+ 	 * FIXME: Can't access BREAK bits in TDR easily;
+ 	 * reuse the code for polled TX. --macro
+ 	 */
+-	struct dz_port *dport = (struct dz_port *)uport;
++	struct dz_port *dport = to_dport(uport);
+ 	unsigned long flags;
+ 	unsigned short tmp, mask = 1 << dport->port.line;
+ 
+@@ -505,7 +510,7 @@ static int dz_encode_baud_rate(unsigned 
+ static void dz_set_termios(struct uart_port *uport, struct ktermios *termios,
+ 			   struct ktermios *old_termios)
+ {
+-	struct dz_port *dport = (struct dz_port *)uport;
++	struct dz_port *dport = to_dport(uport);
+ 	unsigned long flags;
+ 	unsigned int cflag, baud;
+ 	int bflag;
+@@ -685,7 +690,7 @@ static void dz_reset(struct dz_port *dpo
+  */
+ static void dz_console_putchar(struct uart_port *uport, int ch)
+ {
+-	struct dz_port *dport = (struct dz_port *)uport;
++	struct dz_port *dport = to_dport(uport);
+ 	unsigned long flags;
+ 	unsigned short csr, tcr, trdy, mask;
+ 	int loops = 10000;
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from macro@linux-mips.org are
 
 fix-build-bug.patch
-rtc-release-correct-region-in-error-path.patch
-rtc-fallback-to-requesting-only-the-ports-we-actually-use.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-remove-inclusions-of-linux-autoconfh.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+dzh-remove-useless-unused-module-junk.patch
+dz-always-check-if-it-is-safe-to-console_putchar.patch
+dz-dont-panic-when-request_irq-fails.patch
+dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
+dz-update-kconfig-description.patch
+dz-rename-the-serial-console-structure.patch
+dz-fix-locking-issues.patch
+dz-handle-special-conditions-on-reception-correctly.patch
+maintainers-add-self-for-the-dz-serial-driver.patch
 dz-clean-up-and-improve-the-setup-of-termios-settings.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+dzc-use-a-helper-to-cast-from-struct-uart_port.patch
