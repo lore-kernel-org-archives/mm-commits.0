@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dzc-use-a-helper-to-cast-from-struct-uart_port.patch added to -mm tree
-Date: Thu, 25 Oct 2007 13:27:37 -0700
-Message-ID: <200710252027.l9PKRbHd021920@imap1.linux-foundation.org>
+Subject: + fix-pointer-mismatches-in-proc_sysctlc.patch added to -mm tree
+Date: Thu, 25 Oct 2007 13:28:21 -0700
+Message-ID: <200710252028.l9PKSL7r021982@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57054 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56543 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753393AbXJYU1v (ORCPT
+	by vger.kernel.org with ESMTP id S1753590AbXJYU2k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Oct 2007 16:27:51 -0400
+	Thu, 25 Oct 2007 16:28:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: macro@linux-mips.org, ralf@linux-mips.org
+Cc: dhowells@redhat.com, ebiederm@xmission.com
 
 
 The patch titled
-     dz.c: Use a helper to cast from "struct uart_port *"
+     Fix pointer mismatches in proc_sysctl.c
 has been added to the -mm tree.  Its filename is
-     dzc-use-a-helper-to-cast-from-struct-uart_port.patch
+     fix-pointer-mismatches-in-proc_sysctlc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,152 +26,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dz.c: Use a helper to cast from "struct uart_port *"
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
+Subject: Fix pointer mismatches in proc_sysctl.c
+From: David Howells <dhowells@redhat.com>
 
-Replace all casts from "struct uart_port *" to "struct dz_port *" with a
-construct based on container_of().  This makes the conversion work
-irrespective of where the former struct is located within the latter.
+Fix pointer mismatches in proc_sysctl.c.  The proc_handler() method returns
+a size_t through an arg pointer, but is given a pointer to a ssize_t to
+return into.
 
-By popular request I have implemented it as an inline function rather than
-a macro this time.
-
-Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/dz.c |   27 ++++++++++++++++-----------
- 1 file changed, 16 insertions(+), 11 deletions(-)
+ fs/proc/proc_sysctl.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/serial/dz.c~dzc-use-a-helper-to-cast-from-struct-uart_port drivers/serial/dz.c
---- a/drivers/serial/dz.c~dzc-use-a-helper-to-cast-from-struct-uart_port
-+++ a/drivers/serial/dz.c
-@@ -68,6 +68,11 @@ struct dz_port {
+diff -puN fs/proc/proc_sysctl.c~fix-pointer-mismatches-in-proc_sysctlc fs/proc/proc_sysctl.c
+--- a/fs/proc/proc_sysctl.c~fix-pointer-mismatches-in-proc_sysctlc
++++ a/fs/proc/proc_sysctl.c
+@@ -171,7 +171,8 @@ static ssize_t proc_sys_read(struct file
+ 	struct dentry *dentry = filp->f_dentry;
+ 	struct ctl_table_header *head;
+ 	struct ctl_table *table;
+-	ssize_t error, res;
++	ssize_t error;
++	size_t res;
  
- static struct dz_port dz_ports[DZ_NB_PORT];
+ 	table = do_proc_sys_lookup(dentry->d_parent, &dentry->d_name, &head);
+ 	/* Has the sysctl entry disappeared on us? */
+@@ -209,7 +210,8 @@ static ssize_t proc_sys_write(struct fil
+ 	struct dentry *dentry = filp->f_dentry;
+ 	struct ctl_table_header *head;
+ 	struct ctl_table *table;
+-	ssize_t error, res;
++	ssize_t error;
++	size_t res;
  
-+static inline struct dz_port *to_dport(struct uart_port *uport)
-+{
-+	return container_of(uport, struct dz_port, port);
-+}
-+
- /*
-  * ------------------------------------------------------------
-  * dz_in () and dz_out ()
-@@ -106,7 +111,7 @@ static inline void dz_out(struct dz_port
- 
- static void dz_stop_tx(struct uart_port *uport)
- {
--	struct dz_port *dport = (struct dz_port *)uport;
-+	struct dz_port *dport = to_dport(uport);
- 	unsigned short tmp, mask = 1 << dport->port.line;
- 
- 	tmp = dz_in(dport, DZ_TCR);	/* read the TX flag */
-@@ -116,7 +121,7 @@ static void dz_stop_tx(struct uart_port 
- 
- static void dz_start_tx(struct uart_port *uport)
- {
--	struct dz_port *dport = (struct dz_port *)uport;
-+	struct dz_port *dport = to_dport(uport);
- 	unsigned short tmp, mask = 1 << dport->port.line;
- 
- 	tmp = dz_in(dport, DZ_TCR);	/* read the TX flag */
-@@ -126,7 +131,7 @@ static void dz_start_tx(struct uart_port
- 
- static void dz_stop_rx(struct uart_port *uport)
- {
--	struct dz_port *dport = (struct dz_port *)uport;
-+	struct dz_port *dport = to_dport(uport);
- 
- 	dport->cflag &= ~DZ_RXENAB;
- 	dz_out(dport, DZ_LPR, dport->cflag);
-@@ -349,7 +354,7 @@ static unsigned int dz_get_mctrl(struct 
- 	/*
- 	 * FIXME: Handle the 3100/5000 as appropriate. --macro
- 	 */
--	struct dz_port *dport = (struct dz_port *)uport;
-+	struct dz_port *dport = to_dport(uport);
- 	unsigned int mctrl = TIOCM_CAR | TIOCM_DSR | TIOCM_CTS;
- 
- 	if (dport->port.line == DZ_MODEM) {
-@@ -365,7 +370,7 @@ static void dz_set_mctrl(struct uart_por
- 	/*
- 	 * FIXME: Handle the 3100/5000 as appropriate. --macro
- 	 */
--	struct dz_port *dport = (struct dz_port *)uport;
-+	struct dz_port *dport = to_dport(uport);
- 	unsigned short tmp;
- 
- 	if (dport->port.line == DZ_MODEM) {
-@@ -387,7 +392,7 @@ static void dz_set_mctrl(struct uart_por
-  */
- static int dz_startup(struct uart_port *uport)
- {
--	struct dz_port *dport = (struct dz_port *)uport;
-+	struct dz_port *dport = to_dport(uport);
- 	unsigned long flags;
- 	unsigned short tmp;
- 
-@@ -413,7 +418,7 @@ static int dz_startup(struct uart_port *
-  */
- static void dz_shutdown(struct uart_port *uport)
- {
--	struct dz_port *dport = (struct dz_port *)uport;
-+	struct dz_port *dport = to_dport(uport);
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&dport->port.lock, flags);
-@@ -435,7 +440,7 @@ static void dz_shutdown(struct uart_port
-  */
- static unsigned int dz_tx_empty(struct uart_port *uport)
- {
--	struct dz_port *dport = (struct dz_port *)uport;
-+	struct dz_port *dport = to_dport(uport);
- 	unsigned short tmp, mask = 1 << dport->port.line;
- 
- 	tmp = dz_in(dport, DZ_TCR);
-@@ -450,7 +455,7 @@ static void dz_break_ctl(struct uart_por
- 	 * FIXME: Can't access BREAK bits in TDR easily;
- 	 * reuse the code for polled TX. --macro
- 	 */
--	struct dz_port *dport = (struct dz_port *)uport;
-+	struct dz_port *dport = to_dport(uport);
- 	unsigned long flags;
- 	unsigned short tmp, mask = 1 << dport->port.line;
- 
-@@ -505,7 +510,7 @@ static int dz_encode_baud_rate(unsigned 
- static void dz_set_termios(struct uart_port *uport, struct ktermios *termios,
- 			   struct ktermios *old_termios)
- {
--	struct dz_port *dport = (struct dz_port *)uport;
-+	struct dz_port *dport = to_dport(uport);
- 	unsigned long flags;
- 	unsigned int cflag, baud;
- 	int bflag;
-@@ -685,7 +690,7 @@ static void dz_reset(struct dz_port *dpo
-  */
- static void dz_console_putchar(struct uart_port *uport, int ch)
- {
--	struct dz_port *dport = (struct dz_port *)uport;
-+	struct dz_port *dport = to_dport(uport);
- 	unsigned long flags;
- 	unsigned short csr, tcr, trdy, mask;
- 	int loops = 10000;
+ 	table = do_proc_sys_lookup(dentry->d_parent, &dentry->d_name, &head);
+ 	/* Has the sysctl entry disappeared on us? */
 _
 
-Patches currently in -mm which might be from macro@linux-mips.org are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-fix-build-bug.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-dzh-remove-useless-unused-module-junk.patch
-dz-always-check-if-it-is-safe-to-console_putchar.patch
-dz-dont-panic-when-request_irq-fails.patch
-dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
-dz-update-kconfig-description.patch
-dz-rename-the-serial-console-structure.patch
-dz-fix-locking-issues.patch
-dz-handle-special-conditions-on-reception-correctly.patch
-maintainers-add-self-for-the-dz-serial-driver.patch
-dz-clean-up-and-improve-the-setup-of-termios-settings.patch
-dzc-use-a-helper-to-cast-from-struct-uart_port.patch
+fix-pointer-mismatches-in-proc_sysctlc.patch
+64-bit-i_version-afs-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+mutex-subsystem-synchro-test-module.patch
