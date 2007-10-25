@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + check-for-acpi-resource-conflicts-in-i2c-bus-drivers.patch added to -mm tree
-Date: Wed, 24 Oct 2007 20:55:01 -0700
-Message-ID: <200710250355.l9P3t1XT030548@imap1.linux-foundation.org>
+Subject: + remove-inclusions-of-linux-autoconfh.patch added to -mm tree
+Date: Wed, 24 Oct 2007 20:58:17 -0700
+Message-ID: <200710250358.l9P3wHgf030617@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59544 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47146 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757653AbXJYDzT (ORCPT
+	by vger.kernel.org with ESMTP id S1758530AbXJYD6d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 23:55:19 -0400
+	Wed, 24 Oct 2007 23:58:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdelvare@suse.de, lenb@kernel.org, mhoffman@lightlink.com, trenn@suse.de
+Cc: ralf@linux-mips.org, vapier.adi@gmail.com
 
 
 The patch titled
-     Check for ACPI resource conflicts in i2c bus drivers
+     Remove inclusions of <linux/autoconf.h>
 has been added to the -mm tree.  Its filename is
-     check-for-acpi-resource-conflicts-in-i2c-bus-drivers.patch
+     remove-inclusions-of-linux-autoconfh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,310 +26,169 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Check for ACPI resource conflicts in i2c bus drivers
-From: Jean Delvare <jdelvare@suse.de>
+Subject: Remove inclusions of <linux/autoconf.h>
+From: Ralf Baechle <ralf@linux-mips.org>
 
-Check for ACPI resource conflicts in i2c bus drivers. I've included
-all recent SMBus master drivers for PC hardware.
+Nothing should ever include this file.
 
-I've voluntarily left out:
-* Drivers that don't run on PCs: they can't conflict with ACPI.
-* Bit-banged bus device drivers: it's very unlikely that ACPI would
-  deal with such buses.
-
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
-Signed-off-by: Thomas Renninger <trenn@suse.de>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Acked-by: "Mike Frysinger" <vapier.adi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-ali1535.c |    6 ++++++
- drivers/i2c/busses/i2c-ali1563.c |    5 +++++
- drivers/i2c/busses/i2c-ali15x3.c |    5 +++++
- drivers/i2c/busses/i2c-amd756.c  |    6 ++++++
- drivers/i2c/busses/i2c-amd8111.c |    5 +++++
- drivers/i2c/busses/i2c-i801.c    |    5 +++++
- drivers/i2c/busses/i2c-nforce2.c |    6 ++++++
- drivers/i2c/busses/i2c-piix4.c   |    4 ++++
- drivers/i2c/busses/i2c-sis5595.c |    6 ++++++
- drivers/i2c/busses/i2c-sis630.c  |    6 ++++++
- drivers/i2c/busses/i2c-sis96x.c  |    5 +++++
- drivers/i2c/busses/i2c-viapro.c  |    5 +++++
- 12 files changed, 64 insertions(+)
+ arch/blackfin/mach-common/interrupt.S |    1 -
+ arch/blackfin/mm/blackfin_sram.c      |    1 -
+ arch/m68knommu/lib/memcpy.c           |    1 -
+ arch/mips/au1000/common/gpio.c        |    1 -
+ drivers/char/mxser.c                  |    1 -
+ drivers/char/mxser_new.c              |    1 -
+ drivers/firmware/dmi-id.c             |    1 -
+ drivers/ide/pci/delkin_cb.c           |    1 -
+ drivers/misc/asus-laptop.c            |    1 -
+ drivers/misc/fujitsu-laptop.c         |    1 -
+ drivers/misc/msi-laptop.c             |    1 -
+ drivers/spi/spi.c                     |    1 -
+ 12 files changed, 12 deletions(-)
 
-diff -puN drivers/i2c/busses/i2c-ali1535.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-ali1535.c
---- a/drivers/i2c/busses/i2c-ali1535.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
-+++ a/drivers/i2c/busses/i2c-ali1535.c
-@@ -61,6 +61,7 @@
- #include <linux/ioport.h>
- #include <linux/i2c.h>
+diff -puN arch/blackfin/mach-common/interrupt.S~remove-inclusions-of-linux-autoconfh arch/blackfin/mach-common/interrupt.S
+--- a/arch/blackfin/mach-common/interrupt.S~remove-inclusions-of-linux-autoconfh
++++ a/arch/blackfin/mach-common/interrupt.S
+@@ -30,7 +30,6 @@
+ 
+ #include <asm/blackfin.h>
+ #include <asm/mach/irq.h>
+-#include <linux/autoconf.h>
+ #include <linux/linkage.h>
+ #include <asm/entry.h>
+ #include <asm/asm-offsets.h>
+diff -puN arch/blackfin/mm/blackfin_sram.c~remove-inclusions-of-linux-autoconfh arch/blackfin/mm/blackfin_sram.c
+--- a/arch/blackfin/mm/blackfin_sram.c~remove-inclusions-of-linux-autoconfh
++++ a/arch/blackfin/mm/blackfin_sram.c
+@@ -27,7 +27,6 @@
+  * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+  */
+ 
+-#include <linux/autoconf.h>
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/types.h>
+diff -puN arch/m68knommu/lib/memcpy.c~remove-inclusions-of-linux-autoconfh arch/m68knommu/lib/memcpy.c
+--- a/arch/m68knommu/lib/memcpy.c~remove-inclusions-of-linux-autoconfh
++++ a/arch/m68knommu/lib/memcpy.c
+@@ -1,6 +1,5 @@
+ 
+ #include <linux/types.h>
+-#include <linux/autoconf.h>
+ 
+ void * memcpy(void * to, const void * from, size_t n)
+ {
+diff -puN arch/mips/au1000/common/gpio.c~remove-inclusions-of-linux-autoconfh arch/mips/au1000/common/gpio.c
+--- a/arch/mips/au1000/common/gpio.c~remove-inclusions-of-linux-autoconfh
++++ a/arch/mips/au1000/common/gpio.c
+@@ -27,7 +27,6 @@
+  * 	others have a second one : GPIO2
+  */
+ 
+-#include <linux/autoconf.h>
  #include <linux/init.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
+ #include <linux/io.h>
+ #include <linux/types.h>
+diff -puN drivers/char/mxser.c~remove-inclusions-of-linux-autoconfh drivers/char/mxser.c
+--- a/drivers/char/mxser.c~remove-inclusions-of-linux-autoconfh
++++ a/drivers/char/mxser.c
+@@ -37,7 +37,6 @@
  
  
-@@ -159,6 +160,11 @@ static int ali1535_setup(struct pci_dev 
- 		goto exit;
- 	}
+ #include <linux/module.h>
+-#include <linux/autoconf.h>
+ #include <linux/errno.h>
+ #include <linux/signal.h>
+ #include <linux/sched.h>
+diff -puN drivers/char/mxser_new.c~remove-inclusions-of-linux-autoconfh drivers/char/mxser_new.c
+--- a/drivers/char/mxser_new.c~remove-inclusions-of-linux-autoconfh
++++ a/drivers/char/mxser_new.c
+@@ -20,7 +20,6 @@
+  */
  
-+	retval = acpi_check_region(ali1535_smba, ALI1535_SMB_IOSIZE,
-+				   ali1535_driver.name);
-+	if (retval)
-+		goto exit;
-+
- 	if (!request_region(ali1535_smba, ALI1535_SMB_IOSIZE,
- 			    ali1535_driver.name)) {
- 		dev_err(&dev->dev, "ALI1535_smb region 0x%x already in use!\n",
-diff -puN drivers/i2c/busses/i2c-ali1563.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-ali1563.c
---- a/drivers/i2c/busses/i2c-ali1563.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
-+++ a/drivers/i2c/busses/i2c-ali1563.c
-@@ -21,6 +21,7 @@
- #include <linux/i2c.h>
- #include <linux/pci.h>
+ #include <linux/module.h>
+-#include <linux/autoconf.h>
+ #include <linux/errno.h>
+ #include <linux/signal.h>
+ #include <linux/sched.h>
+diff -puN drivers/firmware/dmi-id.c~remove-inclusions-of-linux-autoconfh drivers/firmware/dmi-id.c
+--- a/drivers/firmware/dmi-id.c~remove-inclusions-of-linux-autoconfh
++++ a/drivers/firmware/dmi-id.c
+@@ -11,7 +11,6 @@
  #include <linux/init.h>
-+#include <linux/acpi.h>
- 
- #define ALI1563_MAX_TIMEOUT	500
- #define	ALI1563_SMBBA		0x80
-@@ -345,6 +346,10 @@ static int __devinit ali1563_setup(struc
- 		}
- 	}
- 
-+	if (acpi_check_region(ali1563_smba, ALI1563_SMB_IOSIZE,
-+			      ali1563_pci_driver.name))
-+		goto Err;
-+
- 	if (!request_region(ali1563_smba, ALI1563_SMB_IOSIZE,
- 			    ali1563_pci_driver.name)) {
- 		dev_err(&dev->dev, "Could not allocate I/O space at 0x%04x\n",
-diff -puN drivers/i2c/busses/i2c-ali15x3.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-ali15x3.c
---- a/drivers/i2c/busses/i2c-ali15x3.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
-+++ a/drivers/i2c/busses/i2c-ali15x3.c
-@@ -68,6 +68,7 @@
- #include <linux/delay.h>
- #include <linux/i2c.h>
- #include <linux/init.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- /* ALI15X3 SMBus address offsets */
-@@ -166,6 +167,10 @@ static int ali15x3_setup(struct pci_dev 
- 	if(force_addr)
- 		ali15x3_smba = force_addr & ~(ALI15X3_SMB_IOSIZE - 1);
- 
-+	if (acpi_check_region(ali15x3_smba, ALI15X3_SMB_IOSIZE,
-+			      ali15x3_driver.name))
-+		return -EBUSY;
-+
- 	if (!request_region(ali15x3_smba, ALI15X3_SMB_IOSIZE,
- 			    ali15x3_driver.name)) {
- 		dev_err(&ALI15X3_dev->dev,
-diff -puN drivers/i2c/busses/i2c-amd756.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-amd756.c
---- a/drivers/i2c/busses/i2c-amd756.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
-+++ a/drivers/i2c/busses/i2c-amd756.c
-@@ -45,6 +45,7 @@
- #include <linux/ioport.h>
- #include <linux/i2c.h>
- #include <linux/init.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- /* AMD756 SMBus address offsets */
-@@ -364,6 +365,11 @@ static int __devinit amd756_probe(struct
- 		amd756_ioport += SMB_ADDR_OFFSET;
- 	}
- 
-+	error = acpi_check_region(amd756_ioport, SMB_IOSIZE,
-+				  amd756_driver.name);
-+	if (error)
-+		return error;
-+
- 	if (!request_region(amd756_ioport, SMB_IOSIZE, amd756_driver.name)) {
- 		dev_err(&pdev->dev, "SMB region 0x%x already in use!\n",
- 			amd756_ioport);
-diff -puN drivers/i2c/busses/i2c-amd8111.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-amd8111.c
---- a/drivers/i2c/busses/i2c-amd8111.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
-+++ a/drivers/i2c/busses/i2c-amd8111.c
-@@ -16,6 +16,7 @@
- #include <linux/init.h>
- #include <linux/i2c.h>
- #include <linux/delay.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- MODULE_LICENSE("GPL");
-@@ -359,6 +360,10 @@ static int __devinit amd8111_probe(struc
- 	smbus->base = pci_resource_start(dev, 0);
- 	smbus->size = pci_resource_len(dev, 0);
- 
-+	error = acpi_check_resource_conflict(&dev->resource[0]);
-+	if (error)
-+		goto out_kfree;
-+
- 	if (!request_region(smbus->base, smbus->size, amd8111_driver.name)) {
- 		error = -EBUSY;
- 		goto out_kfree;
-diff -puN drivers/i2c/busses/i2c-i801.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-i801.c
---- a/drivers/i2c/busses/i2c-i801.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
-+++ a/drivers/i2c/busses/i2c-i801.c
-@@ -52,6 +52,7 @@
- #include <linux/ioport.h>
- #include <linux/init.h>
- #include <linux/i2c.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- /* I801 SMBus address offsets */
-@@ -588,6 +589,10 @@ static int __devinit i801_probe(struct p
- 		goto exit;
- 	}
- 
-+	err = acpi_check_resource_conflict(&dev->resource[SMBBAR]);
-+	if (err)
-+		goto exit;
-+
- 	err = pci_request_region(dev, SMBBAR, i801_driver.name);
- 	if (err) {
- 		dev_err(&dev->dev, "Failed to request SMBus region "
-diff -puN drivers/i2c/busses/i2c-nforce2.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-nforce2.c
---- a/drivers/i2c/busses/i2c-nforce2.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
-+++ a/drivers/i2c/busses/i2c-nforce2.c
-@@ -50,6 +50,7 @@
- #include <linux/init.h>
- #include <linux/i2c.h>
- #include <linux/delay.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- MODULE_LICENSE("GPL");
-@@ -315,6 +316,11 @@ static int __devinit nforce2_probe_smb (
- 		smbus->size = 64;
- 	}
- 
-+	error = acpi_check_region(smbus->base, smbus->size,
-+				  nforce2_driver.name);
-+	if (error)
-+		return -1;
-+
- 	if (!request_region(smbus->base, smbus->size, nforce2_driver.name)) {
- 		dev_err(&smbus->adapter.dev, "Error requesting region %02x .. %02X for %s\n",
- 			smbus->base, smbus->base+smbus->size-1, name);
-diff -puN drivers/i2c/busses/i2c-piix4.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-piix4.c
---- a/drivers/i2c/busses/i2c-piix4.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
-+++ a/drivers/i2c/busses/i2c-piix4.c
-@@ -40,6 +40,7 @@
- #include <linux/init.h>
- #include <linux/apm_bios.h>
  #include <linux/dmi.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
+ #include <linux/device.h>
+-#include <linux/autoconf.h>
  
+ struct dmi_device_attribute{
+ 	struct device_attribute dev_attr;
+diff -puN drivers/ide/pci/delkin_cb.c~remove-inclusions-of-linux-autoconfh drivers/ide/pci/delkin_cb.c
+--- a/drivers/ide/pci/delkin_cb.c~remove-inclusions-of-linux-autoconfh
++++ a/drivers/ide/pci/delkin_cb.c
+@@ -18,7 +18,6 @@
+  *  License.  See the file COPYING in the main directory of this archive for
+  *  more details.
+  */
+-#include <linux/autoconf.h>
+ #include <linux/types.h>
+ #include <linux/module.h>
+ #include <linux/mm.h>
+diff -puN drivers/misc/asus-laptop.c~remove-inclusions-of-linux-autoconfh drivers/misc/asus-laptop.c
+--- a/drivers/misc/asus-laptop.c~remove-inclusions-of-linux-autoconfh
++++ a/drivers/misc/asus-laptop.c
+@@ -33,7 +33,6 @@
+  *  Sam Lin        - GPS support
+  */
  
-@@ -151,6 +152,9 @@ static int __devinit piix4_setup(struct 
- 		}
- 	}
- 
-+	if (acpi_check_region(piix4_smba, SMBIOSIZE, piix4_driver.name))
-+		return -EBUSY;
-+
- 	if (!request_region(piix4_smba, SMBIOSIZE, piix4_driver.name)) {
- 		dev_err(&PIIX4_dev->dev, "SMB region 0x%x already in use!\n",
- 			piix4_smba);
-diff -puN drivers/i2c/busses/i2c-sis5595.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-sis5595.c
---- a/drivers/i2c/busses/i2c-sis5595.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
-+++ a/drivers/i2c/busses/i2c-sis5595.c
-@@ -62,6 +62,7 @@
- #include <linux/ioport.h>
+-#include <linux/autoconf.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
  #include <linux/init.h>
- #include <linux/i2c.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
+diff -puN drivers/misc/fujitsu-laptop.c~remove-inclusions-of-linux-autoconfh drivers/misc/fujitsu-laptop.c
+--- a/drivers/misc/fujitsu-laptop.c~remove-inclusions-of-linux-autoconfh
++++ a/drivers/misc/fujitsu-laptop.c
+@@ -50,7 +50,6 @@
+ #include <linux/dmi.h>
+ #include <linux/backlight.h>
+ #include <linux/platform_device.h>
+-#include <linux/autoconf.h>
  
- static int blacklist[] = {
-@@ -174,6 +175,11 @@ static int sis5595_setup(struct pci_dev 
+ #define FUJITSU_DRIVER_VERSION "0.3"
  
- 	/* NB: We grab just the two SMBus registers here, but this may still
- 	 * interfere with ACPI :-(  */
-+	retval = acpi_check_region(sis5595_base + SMB_INDEX, 2,
-+				   sis5595_driver.name);
-+	if (retval)
-+		return retval;
-+
- 	if (!request_region(sis5595_base + SMB_INDEX, 2,
- 			    sis5595_driver.name)) {
- 		dev_err(&SIS5595_dev->dev, "SMBus registers 0x%04x-0x%04x already in use!\n",
-diff -puN drivers/i2c/busses/i2c-sis630.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-sis630.c
---- a/drivers/i2c/busses/i2c-sis630.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
-+++ a/drivers/i2c/busses/i2c-sis630.c
-@@ -55,6 +55,7 @@
- #include <linux/ioport.h>
+diff -puN drivers/misc/msi-laptop.c~remove-inclusions-of-linux-autoconfh drivers/misc/msi-laptop.c
+--- a/drivers/misc/msi-laptop.c~remove-inclusions-of-linux-autoconfh
++++ a/drivers/misc/msi-laptop.c
+@@ -58,7 +58,6 @@
+ #include <linux/dmi.h>
+ #include <linux/backlight.h>
+ #include <linux/platform_device.h>
+-#include <linux/autoconf.h>
+ 
+ #define MSI_DRIVER_VERSION "0.5"
+ 
+diff -puN drivers/spi/spi.c~remove-inclusions-of-linux-autoconfh drivers/spi/spi.c
+--- a/drivers/spi/spi.c~remove-inclusions-of-linux-autoconfh
++++ a/drivers/spi/spi.c
+@@ -18,7 +18,6 @@
+  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include <linux/autoconf.h>
+ #include <linux/kernel.h>
+ #include <linux/device.h>
  #include <linux/init.h>
- #include <linux/i2c.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- /* SIS630 SMBus registers */
-@@ -433,6 +434,11 @@ static int sis630_setup(struct pci_dev *
- 
- 	dev_dbg(&sis630_dev->dev, "ACPI base at 0x%04x\n", acpi_base);
- 
-+	retval = acpi_check_region(acpi_base + SMB_STS, SIS630_SMB_IOREGION,
-+				   sis630_driver.name);
-+	if (retval)
-+		goto exit;
-+
- 	/* Everything is happy, let's grab the memory and set things up. */
- 	if (!request_region(acpi_base + SMB_STS, SIS630_SMB_IOREGION,
- 			    sis630_driver.name)) {
-diff -puN drivers/i2c/busses/i2c-sis96x.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-sis96x.c
---- a/drivers/i2c/busses/i2c-sis96x.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
-+++ a/drivers/i2c/busses/i2c-sis96x.c
-@@ -40,6 +40,7 @@
- #include <linux/ioport.h>
- #include <linux/i2c.h>
- #include <linux/init.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- /* base address register in PCI config space */
-@@ -286,6 +287,10 @@ static int __devinit sis96x_probe(struct
- 	dev_info(&dev->dev, "SiS96x SMBus base address: 0x%04x\n",
- 			sis96x_smbus_base);
- 
-+	retval = acpi_check_resource_conflict(&dev->resource[SIS96x_BAR]);
-+	if (retval)
-+		return retval;
-+
- 	/* Everything is happy, let's grab the memory and set things up. */
- 	if (!request_region(sis96x_smbus_base, SMB_IOSIZE,
- 			    sis96x_driver.name)) {
-diff -puN drivers/i2c/busses/i2c-viapro.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers drivers/i2c/busses/i2c-viapro.c
---- a/drivers/i2c/busses/i2c-viapro.c~check-for-acpi-resource-conflicts-in-i2c-bus-drivers
-+++ a/drivers/i2c/busses/i2c-viapro.c
-@@ -49,6 +49,7 @@
- #include <linux/ioport.h>
- #include <linux/i2c.h>
- #include <linux/init.h>
-+#include <linux/acpi.h>
- #include <asm/io.h>
- 
- static struct pci_dev *vt596_pdev;
-@@ -349,6 +350,10 @@ static int __devinit vt596_probe(struct 
- 	}
- 
- found:
-+	error = acpi_check_region(vt596_smba, 8, vt596_driver.name);
-+	if (error)
-+		return error;
-+
- 	if (!request_region(vt596_smba, 8, vt596_driver.name)) {
- 		dev_err(&pdev->dev, "SMBus region 0x%x already in use!\n",
- 			vt596_smba);
 _
 
-Patches currently in -mm which might be from jdelvare@suse.de are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
-export-acpi_check_resource_conflict.patch
-check-for-acpi-resource-conflicts-in-i2c-bus-drivers.patch
-check-for-acpi-resource-conflicts-in-hwmon-drivers.patch
+rtc-release-correct-region-in-error-path.patch
+rtc-fallback-to-requesting-only-the-ports-we-actually-use.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+remove-inclusions-of-linux-autoconfh.patch
+dz-clean-up-and-improve-the-setup-of-termios-settings.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
