@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ide-add-helper-__ide_setup_pci_device.patch added to -mm tree
-Date: Wed, 24 Oct 2007 21:21:45 -0700
-Message-ID: <200710250421.l9P4LjPX031548@imap1.linux-foundation.org>
+Subject: + drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop.patch added to -mm tree
+Date: Wed, 24 Oct 2007 21:21:53 -0700
+Message-ID: <200710250421.l9P4Lrhm031551@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39855 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50371 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753620AbXJYEWK (ORCPT
+	by vger.kernel.org with ESMTP id S1754113AbXJYEWR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Oct 2007 00:22:10 -0400
+	Thu, 25 Oct 2007 00:22:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jeff@garzik.org, bzolnier@gmail.com, jgarzik@redhat.com
 
 
 The patch titled
-     IDE: add helper __ide_setup_pci_device()
+     drivers/ide/pci/sc1200.c: remove pointless hwif lookup loop
 has been added to the -mm tree.  Its filename is
-     ide-add-helper-__ide_setup_pci_device.patch
+     drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,67 +26,165 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: IDE: add helper __ide_setup_pci_device()
+Subject: drivers/ide/pci/sc1200.c: remove pointless hwif lookup loop
 From: Jeff Garzik <jeff@garzik.org>
 
-Like ide_setup_pci_device(), except with additional array argument 'u8
-*idx' that permits low-level driver to become aware of its assigned hwifs.
+Store our hwif indices at probe time, in order to eliminate a needless and
+ugly loop across all hwifs, searching for our pci device.
 
 Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
 Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/setup-pci.c |   17 ++++++++++++-----
- include/linux/ide.h     |    1 +
- 2 files changed, 13 insertions(+), 5 deletions(-)
+ drivers/ide/pci/sc1200.c |   76 ++++++++++++++++++++++++-------------
+ 1 file changed, 51 insertions(+), 25 deletions(-)
 
-diff -puN drivers/ide/setup-pci.c~ide-add-helper-__ide_setup_pci_device drivers/ide/setup-pci.c
---- a/drivers/ide/setup-pci.c~ide-add-helper-__ide_setup_pci_device
-+++ a/drivers/ide/setup-pci.c
-@@ -666,12 +666,10 @@ out:
- 	return ret;
- }
+diff -puN drivers/ide/pci/sc1200.c~drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop drivers/ide/pci/sc1200.c
+--- a/drivers/ide/pci/sc1200.c~drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop
++++ a/drivers/ide/pci/sc1200.c
+@@ -41,6 +41,8 @@
+ #define PCI_CLK_66	0x02
+ #define PCI_CLK_33A	0x03
  
--int ide_setup_pci_device(struct pci_dev *dev, const struct ide_port_info *d)
-+int __ide_setup_pci_device(struct pci_dev *dev, const struct ide_port_info *d,
-+			   u8 *idx)
++#define SC1200_IFS	4
++
+ static unsigned short sc1200_get_pci_clock (void)
  {
--	u8 idx[4] = { 0xff, 0xff, 0xff, 0xff };
--	int ret;
--
--	ret = do_ide_setup_pci_device(dev, d, &idx[0], 1);
-+	int ret = do_ide_setup_pci_device(dev, d, idx, 1);
- 
- 	if (ret >= 0)
- 		ide_device_add(idx);
-@@ -679,6 +677,15 @@ int ide_setup_pci_device(struct pci_dev 
- 	return ret;
+ 	unsigned char chip_id, silicon_revision;
+@@ -261,31 +263,32 @@ static void sc1200_set_pio_mode(ide_driv
  }
  
-+EXPORT_SYMBOL_GPL(__ide_setup_pci_device);
-+
-+int ide_setup_pci_device(struct pci_dev *dev, const struct ide_port_info *d)
+ #ifdef CONFIG_PM
+-static ide_hwif_t *lookup_pci_dev (ide_hwif_t *prev, struct pci_dev *dev)
+-{
+-	int	h;
+-
+-	for (h = 0; h < MAX_HWIFS; h++) {
+-		ide_hwif_t *hwif = &ide_hwifs[h];
+-		if (prev) {
+-			if (hwif == prev)
+-				prev = NULL;	// found previous, now look for next match
+-		} else {
+-			if (hwif && hwif->pci_dev == dev)
+-				return hwif;	// found next match
+-		}
+-	}
+-	return NULL;	// not found
+-}
+-
+ typedef struct sc1200_saved_state_s {
+ 	__u32		regs[4];
+ } sc1200_saved_state_t;
+ 
++static unsigned int pack_hwif_idx(u8 *idx)
 +{
-+	u8 idx[4] = { 0xff, 0xff, 0xff, 0xff };
-+
-+	return __ide_setup_pci_device(dev, d, &idx[0]);
++	return	(((unsigned int) idx[0]) << 0) |
++		(((unsigned int) idx[1]) << 8) |
++		(((unsigned int) idx[2]) << 16) |
++		(((unsigned int) idx[3]) << 24);
 +}
 +
- EXPORT_SYMBOL_GPL(ide_setup_pci_device);
++static ide_hwif_t *sc1200_hwif(struct pci_dev *pdev, unsigned int iface)
++{
++	unsigned int packed_hwifs, idx;
++
++	packed_hwifs = (unsigned long) pci_get_drvdata(pdev);
++	idx = (packed_hwifs >> (iface * 8)) & 0xff;
++
++	return (idx == 0xff) ? NULL : &ide_hwifs[idx];
++}
  
- int ide_setup_pci_devices(struct pci_dev *dev1, struct pci_dev *dev2,
-diff -puN include/linux/ide.h~ide-add-helper-__ide_setup_pci_device include/linux/ide.h
---- a/include/linux/ide.h~ide-add-helper-__ide_setup_pci_device
-+++ a/include/linux/ide.h
-@@ -1291,6 +1291,7 @@ struct ide_port_info {
- 	u8			udma_mask;
- };
+ static int sc1200_suspend (struct pci_dev *dev, pm_message_t state)
+ {
+-	ide_hwif_t		*hwif = NULL;
++	ide_hwif_t		*hwif;
++	int			i;
  
-+int __ide_setup_pci_device(struct pci_dev *, const struct ide_port_info *, u8 *);
- int ide_setup_pci_device(struct pci_dev *, const struct ide_port_info *);
- int ide_setup_pci_devices(struct pci_dev *, struct pci_dev *, const struct ide_port_info *);
+ 	printk("SC1200: suspend(%u)\n", state.event);
  
+@@ -295,9 +298,14 @@ static int sc1200_suspend (struct pci_de
+ 		//
+ 		// Loop over all interfaces that are part of this PCI device:
+ 		//
+-		while ((hwif = lookup_pci_dev(hwif, dev)) != NULL) {
++		for (i = 0; i < SC1200_IFS; i++) {
+ 			sc1200_saved_state_t	*ss;
+ 			unsigned int		basereg, r;
++
++			hwif = sc1200_hwif(dev, i);
++			if (!hwif)
++				continue;
++
+ 			//
+ 			// allocate a permanent save area, if not already allocated
+ 			//
+@@ -310,7 +318,7 @@ static int sc1200_suspend (struct pci_de
+ 			}
+ 			ss = (sc1200_saved_state_t *)hwif->config_data;
+ 			//
+-			// Save timing registers:  this may be unnecessary if 
++			// Save timing registers:  this may be unnecessary if
+ 			// BIOS also does it
+ 			//
+ 			basereg = hwif->channel ? 0x50 : 0x40;
+@@ -320,7 +328,7 @@ static int sc1200_suspend (struct pci_de
+ 		}
+ 	}
+ 
+-	/* You don't need to iterate over disks -- sysfs should have done that for you already */ 
++	/* You don't need to iterate over disks -- sysfs should have done that for you already */
+ 
+ 	pci_disable_device(dev);
+ 	pci_set_power_state(dev, pci_choose_state(dev, state));
+@@ -330,7 +338,8 @@ static int sc1200_suspend (struct pci_de
+ 
+ static int sc1200_resume (struct pci_dev *dev)
+ {
+-	ide_hwif_t	*hwif = NULL;
++	ide_hwif_t		*hwif;
++	int			i;
+ 
+ 	pci_set_power_state(dev, PCI_D0);	// bring chip back from sleep state
+ 	dev->current_state = PM_EVENT_ON;
+@@ -338,9 +347,15 @@ static int sc1200_resume (struct pci_dev
+ 	//
+ 	// loop over all interfaces that are part of this pci device:
+ 	//
+-	while ((hwif = lookup_pci_dev(hwif, dev)) != NULL) {
++	for (i = 0; i < SC1200_IFS; i++) {
+ 		unsigned int		basereg, r;
+-		sc1200_saved_state_t	*ss = (sc1200_saved_state_t *)hwif->config_data;
++		sc1200_saved_state_t	*ss;
++
++		hwif = sc1200_hwif(dev, i);
++		if (!hwif)
++			continue;
++
++		ss = (sc1200_saved_state_t *)hwif->config_data;
+ 
+ 		//
+ 		// Restore timing registers:  this may be unnecessary if BIOS also does it
+@@ -386,7 +401,18 @@ static const struct ide_port_info sc1200
+ 
+ static int __devinit sc1200_init_one(struct pci_dev *dev, const struct pci_device_id *id)
+ {
+-	return ide_setup_pci_device(dev, &sc1200_chipset);
++	unsigned int packed_hwifs;
++	int rc;
++	u8 idx[4] = { 0xff, 0xff, 0xff, 0xff };
++
++	rc = __ide_setup_pci_device(dev, &sc1200_chipset, &idx[0]);
++	if (rc)
++		return rc;
++
++	packed_hwifs = pack_hwif_idx(&idx[0]);
++
++	pci_set_drvdata(dev, (void *)(unsigned long) packed_hwifs);
++	return 0;
+ }
+ 
+ static const struct pci_device_id sc1200_pci_tbl[] = {
 _
 
 Patches currently in -mm which might be from jeff@garzik.org are
