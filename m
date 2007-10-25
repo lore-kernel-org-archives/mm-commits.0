@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + sound-oss-sb_commonc-fix-casting-warning.patch added to -mm tree
-Date: Thu, 25 Oct 2007 01:13:51 -0700
-Message-ID: <200710250813.l9P8DpET014654@imap1.linux-foundation.org>
+Subject: + permit-silencing-of-__deprecated-warnings.patch added to -mm tree
+Date: Thu, 25 Oct 2007 01:13:54 -0700
+Message-ID: <200710250813.l9P8DsqN014657@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47526 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54972 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754427AbXJYITO (ORCPT
+	by vger.kernel.org with ESMTP id S1756785AbXJYITP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Oct 2007 04:19:14 -0400
+	Thu, 25 Oct 2007 04:19:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jeff@garzik.org, jgarzik@redhat.com
 
 
 The patch titled
-     sound/oss/sb_common.c: fix casting warning
+     Permit silencing of __deprecated warnings
 has been added to the -mm tree.  Its filename is
-     sound-oss-sb_commonc-fix-casting-warning.patch
+     permit-silencing-of-__deprecated-warnings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sound/oss/sb_common.c: fix casting warning
+Subject: Permit silencing of __deprecated warnings
 From: Jeff Garzik <jeff@garzik.org>
 
-sound/oss/sb_common.c: In function 'probe_sbmpu':
-sound/oss/sb_common.c:1231: warning: cast to pointer from integer of different size
+The __deprecated marker is quite useful in highlighting the remnants of
+old APIs that want removing.
+
+However, it is quite normal for one or more years to pass, before the
+(usually ancient, bitrotten) code in question is either updated or
+deleted.
+
+Thus, like __must_check, add a Kconfig option that permits the silencing
+of this compiler warning.
+
+This change mimics the ifdef-ery and Kconfig defaults of MUST_CHECK as
+closely as possible.
 
 Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/oss/sb_common.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/compiler.h |    6 ++++++
+ lib/Kconfig.debug        |    8 ++++++++
+ 2 files changed, 14 insertions(+)
 
-diff -puN sound/oss/sb_common.c~sound-oss-sb_commonc-fix-casting-warning sound/oss/sb_common.c
---- a/sound/oss/sb_common.c~sound-oss-sb_commonc-fix-casting-warning
-+++ a/sound/oss/sb_common.c
-@@ -1228,7 +1228,8 @@ int probe_sbmpu(struct address_info *hw_
- 		}
- 		attach_mpu401(hw_config, owner);
- 		if (last_sb->irq == -hw_config->irq)
--			last_sb->midi_irq_cookie=(void *)hw_config->slots[1];
-+			last_sb->midi_irq_cookie =
-+				(void *)(long) hw_config->slots[1];
- 		return 1;
- 	}
+diff -puN include/linux/compiler.h~permit-silencing-of-__deprecated-warnings include/linux/compiler.h
+--- a/include/linux/compiler.h~permit-silencing-of-__deprecated-warnings
++++ a/include/linux/compiler.h
+@@ -101,6 +101,12 @@ extern void __chk_io_ptr(const volatile 
+ #undef __must_check
+ #define __must_check
  #endif
++#ifndef CONFIG_ENABLE_WARN_DEPRECATED
++#undef __deprecated
++#undef __deprecated_for_modules
++#define __deprecated
++#define __deprecated_for_modules
++#endif
+ 
+ /*
+  * Allow us to avoid 'defined but not used' warnings on functions and data,
+diff -puN lib/Kconfig.debug~permit-silencing-of-__deprecated-warnings lib/Kconfig.debug
+--- a/lib/Kconfig.debug~permit-silencing-of-__deprecated-warnings
++++ a/lib/Kconfig.debug
+@@ -9,6 +9,14 @@ config PRINTK_TIME
+ 	  operations.  This is useful for identifying long delays
+ 	  in kernel startup.
+ 
++config ENABLE_WARN_DEPRECATED
++	bool "Enable __deprecated logic"
++	default y
++	help
++	  Enable the __deprecated logic in the kernel build.
++	  Disable this to suppress the "warning: 'foo' is deprecated
++	  (declared at kernel/power/somefile.c:1234)" messages.
++
+ config ENABLE_MUST_CHECK
+ 	bool "Enable __must_check logic"
+ 	default y
 _
 
 Patches currently in -mm which might be from jeff@garzik.org are
