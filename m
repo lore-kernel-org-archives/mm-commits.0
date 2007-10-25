@@ -1,73 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - fix-build-bug.patch removed from -mm tree
-Date: Thu, 25 Oct 2007 14:54:08 -0700
-Message-ID: <200710252154.l9PLs86l025859@imap1.linux-foundation.org>
+Subject: + i5000_edac-no-need-to-__stringify-kbuild_basename.patch added to -mm tree
+Date: Thu, 25 Oct 2007 16:20:15 -0700
+Message-ID: <200710252320.l9PNKFe2029181@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56586 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38166 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753425AbXJYVyb (ORCPT
+	by vger.kernel.org with ESMTP id S1755116AbXJYXUV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Oct 2007 17:54:31 -0400
+	Thu, 25 Oct 2007 19:20:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ralf@linux-mips.org, bzolnier@gmail.com, macro@linux-mips.org, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: djwong@us.ibm.com, norsk5@yahoo.com
 
 
 The patch titled
-     ide: fix build bug
-has been removed from the -mm tree.  Its filename was
-     fix-build-bug.patch
+     i5000_edac: no need to __stringify() KBUILD_BASENAME
+has been added to the -mm tree.  Its filename is
+     i5000_edac-no-need-to-__stringify-kbuild_basename.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: ide: fix build bug
-From: Ralf Baechle <ralf@linux-mips.org>
+Subject: i5000_edac: no need to __stringify() KBUILD_BASENAME
+From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-  CC      drivers/ide/pci/generic.o
-drivers/ide/pci/generic.c:52: error: __setup_str_ide_generic_all_on causes a
-+section type conflict
+The i5000_edac driver's PCI registration structure has the name
+""i5000_edac"" (with extra set of double-quotes) which is probably not
+intentional.  Get rid of __stringify.
 
-This sort of build error is becoming a regular issue.  Either all or non
-of the elements that go into a particular section of a compilation unit
-need to be const.  Or an error may result such as in this case if
-CONFIG_HOTPLUG is unset.
-
-Maybe worth a check in checkpatch.pl - but certainly gcc's interolerance
-is also being less than helpful here.
-
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Cc: Doug Thompson <norsk5@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/pci/generic.c |    2 +-
+ drivers/edac/i5000_edac.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ide/pci/generic.c~fix-build-bug drivers/ide/pci/generic.c
---- a/drivers/ide/pci/generic.c~fix-build-bug
-+++ a/drivers/ide/pci/generic.c
-@@ -67,7 +67,7 @@ MODULE_PARM_DESC(all_generic_ide, "IDE g
- 		.udma_mask	= ATA_UDMA6, \
- 	}
- 
--static const struct ide_port_info generic_chipsets[] __devinitdata = {
-+static struct ide_port_info generic_chipsets[] __devinitdata = {
- 	/*  0 */ DECLARE_GENERIC_PCI_DEV("Unknown",	0),
- 
- 	{	/* 1 */
+diff -puN drivers/edac/i5000_edac.c~i5000_edac-no-need-to-__stringify-kbuild_basename drivers/edac/i5000_edac.c
+--- a/drivers/edac/i5000_edac.c~i5000_edac-no-need-to-__stringify-kbuild_basename
++++ a/drivers/edac/i5000_edac.c
+@@ -1462,7 +1462,7 @@ MODULE_DEVICE_TABLE(pci, i5000_pci_tbl);
+  *
+  */
+ static struct pci_driver i5000_driver = {
+-	.name = __stringify(KBUILD_BASENAME),
++	.name = KBUILD_BASENAME,
+ 	.probe = i5000_init_one,
+ 	.remove = __devexit_p(i5000_remove_one),
+ 	.id_table = i5000_pci_tbl,
 _
 
-Patches currently in -mm which might be from ralf@linux-mips.org are
+Patches currently in -mm which might be from djwong@us.ibm.com are
 
-fix-build-bug.patch
-rtc-release-correct-region-in-error-path.patch
-rtc-fallback-to-requesting-only-the-ports-we-actually-use.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-remove-inclusions-of-linux-autoconfh.patch
-dz-clean-up-and-improve-the-setup-of-termios-settings.patch
-dzc-use-a-helper-to-cast-from-struct-uart_port.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+git-hwmon.patch
+mptbase-reset-ioc-initiator-during-pci-resume.patch
+i5000_edac-no-need-to-__stringify-kbuild_basename.patch
