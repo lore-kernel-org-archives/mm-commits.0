@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + add-generic-gpio-support-to-x86.patch added to -mm tree
-Date: Thu, 25 Oct 2007 14:23:41 -0700
-Message-ID: <200710252123.l9PLNf4k024709@imap1.linux-foundation.org>
+Subject: + pci-add-pci-identifiers-for-the-rdc-devices.patch added to -mm tree
+Date: Thu, 25 Oct 2007 14:23:50 -0700
+Message-ID: <200710252123.l9PLNo9d024712@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44967 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51236 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752308AbXJYVYU (ORCPT
+	by vger.kernel.org with ESMTP id S1752324AbXJYVYU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 25 Oct 2007 17:24:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: florian.fainelli@telecomint.eu, david-b@pacbell.net, mingo@elte.hu, tglx@lin
 
 
 The patch titled
-     x86: add generic GPIO support
+     pci: add PCI identifiers for the RDC devices
 has been added to the -mm tree.  Its filename is
-     add-generic-gpio-support-to-x86.patch
+     pci-add-pci-identifiers-for-the-rdc-devices.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,12 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86: add generic GPIO support
+Subject: pci: add PCI identifiers for the RDC devices
 From: Florian Fainelli <florian.fainelli@telecomint.eu>
 
-Add generic GPIO support to the x86 architecture.  We do the same as for MIPS,
-we let the machine override the gpio callbacks and provide defaults one in
-mach-generic.
+Define the PCI identifiers found in the RDC R-321x System-on-Chip.
 
 Signed-off-by: Florian Fainelli <florian.fainelli@telecomint.eu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -40,59 +38,31 @@ Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/i386/Kconfig                   |    4 ++++
- include/asm-x86/gpio.h              |    6 ++++++
- include/asm-x86/mach-generic/gpio.h |   15 +++++++++++++++
- 3 files changed, 25 insertions(+)
+ include/linux/pci_ids.h |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN arch/i386/Kconfig~add-generic-gpio-support-to-x86 arch/i386/Kconfig
---- a/arch/i386/Kconfig~add-generic-gpio-support-to-x86
-+++ a/arch/i386/Kconfig
-@@ -79,6 +79,10 @@ config GENERIC_BUG
- 	default y
- 	depends on BUG
+diff -puN include/linux/pci_ids.h~pci-add-pci-identifiers-for-the-rdc-devices include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~pci-add-pci-identifiers-for-the-rdc-devices
++++ a/include/linux/pci_ids.h
+@@ -2105,6 +2105,13 @@
+ #define PCI_DEVICE_ID_HERC_WIN		0x5732
+ #define PCI_DEVICE_ID_HERC_UNI		0x5832
  
-+config GENERIC_GPIO
-+	bool
-+	default n
++#define PCI_VENDOR_ID_RDC		0x17f3
++#define PCI_DEVICE_ID_RDC_R6020		0x6020
++#define PCI_DEVICE_ID_RDC_R6030		0x6030
++#define PCI_DEVICE_ID_RDC_R6040		0x6040
++#define PCI_DEVICE_ID_RDC_R6060		0x6060
++#define PCI_DEVICE_ID_RDC_R6061		0x6061
 +
- config GENERIC_HWEIGHT
- 	bool
- 	default y
-diff -puN /dev/null include/asm-x86/gpio.h
---- /dev/null
-+++ a/include/asm-x86/gpio.h
-@@ -0,0 +1,6 @@
-+#ifndef _ASM_I386_GPIO_H
-+#define _ASM_I386_GPIO_H
-+
-+#include <gpio.h>
-+
-+#endif /* _ASM_I386_GPIO_H */
-diff -puN /dev/null include/asm-x86/mach-generic/gpio.h
---- /dev/null
-+++ a/include/asm-x86/mach-generic/gpio.h
-@@ -0,0 +1,15 @@
-+#ifndef __ASM_MACH_GENERIC_GPIO_H
-+#define __ASM_MACH_GENERIC_GPIO_H
-+
-+int gpio_request(unsigned gpio, const char *label);
-+void gpio_free(unsigned gpio);
-+int gpio_direction_input(unsigned gpio);
-+int gpio_direction_output(unsigned gpio, int value);
-+int gpio_get_value(unsigned gpio);
-+void gpio_set_value(unsigned gpio, int value);
-+int gpio_to_irq(unsigned gpio);
-+int irq_to_gpio(unsigned irq);
-+
-+#include <asm-generic/gpio.h>           /* cansleep wrappers */
-+
-+#endif /* __ASM_MACH_GENERIC_GPIO_H */
+ #define PCI_VENDOR_ID_SITECOM		0x182d
+ #define PCI_DEVICE_ID_SITECOM_DC105V2	0x3069
+ 
 _
 
 Patches currently in -mm which might be from florian.fainelli@telecomint.eu are
 
 add-generic-gpio-support-to-x86.patch
-pcih-add-pci-identifiers-for-the-rdc-devices.patch
+pci-add-pci-identifiers-for-the-rdc-devices.patch
 add-support-for-the-rdc-r-321x-soc.patch
 add-the-rdc-machine-specific-reboot-fixup.patch
