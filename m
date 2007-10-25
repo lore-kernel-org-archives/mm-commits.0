@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fuse-fuse_file_alloc-fix-null-dereferences.patch added to -mm tree
-Date: Wed, 24 Oct 2007 20:22:20 -0700
-Message-ID: <200710250322.l9P3MKA1029289@imap1.linux-foundation.org>
+Subject: + fix-appletouch-geyser-1-breakage.patch added to -mm tree
+Date: Wed, 24 Oct 2007 20:24:28 -0700
+Message-ID: <200710250324.l9P3OSPu029418@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56115 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55020 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755510AbXJYDXK (ORCPT
+	by vger.kernel.org with ESMTP id S1755090AbXJYDZX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 23:23:10 -0400
+	Wed, 24 Oct 2007 23:25:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, mszeredi@suse.cz
+Cc: johannes@sipsolutions.net, benh@kernel.crashing.org, dtor@mail.ru, valderman@gmail.com
 
 
 The patch titled
-     fuse: fuse_file_alloc(): fix NULL dereferences
+     fix appletouch geyser 1 breakage
 has been added to the -mm tree.  Its filename is
-     fuse-fuse_file_alloc-fix-null-dereferences.patch
+     fix-appletouch-geyser-1-breakage.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,47 +26,80 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fuse: fuse_file_alloc(): fix NULL dereferences
-From: Adrian Bunk <bunk@kernel.org>
+Subject: fix appletouch geyser 1 breakage
+From: Johannes Berg <johannes@sipsolutions.net>
 
-This patch fixes obvious NULL dereferences spotted by the Coverity
-checker.
+The patch 46249ea60fbb61a72ee6929b831b1f3e6865f024 was obviously done
+without testing on a Geyser 1, and I'm a very annoyed that it was applied. 
+It causes appletouch to continuously printk:
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+drivers/input/mouse/appletouch.c: Could not do mode read request from device (Geyser 3 mode)
+
+because the Geyser 1 doesn't respond to that. The patch description also
+states:
+
+> if we see 10 empty packets the touchpad needs to be reset; good
+> touchpads should not send empty packets anyway.
+
+which is *TOTALLY* bogus since Geyser 1 touchpads have no notion of empty
+packets, the simply continuously send measurements.  One look at the
+specification would have confirmed that.
+
+This reverts the clueless commit.
+
+Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
+Cc: Anton Ekblad <valderman@gmail.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/file.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/input/mouse/appletouch.c |   25 ++++++++++++++-----------
+ 1 file changed, 14 insertions(+), 11 deletions(-)
 
-diff -puN fs/fuse/file.c~fuse-fuse_file_alloc-fix-null-dereferences fs/fuse/file.c
---- a/fs/fuse/file.c~fuse-fuse_file_alloc-fix-null-dereferences
-+++ a/fs/fuse/file.c
-@@ -55,9 +55,10 @@ struct fuse_file *fuse_file_alloc(void)
- 		if (!ff->reserved_req) {
- 			kfree(ff);
- 			ff = NULL;
-+		} else {
-+			INIT_LIST_HEAD(&ff->write_entry);
-+			atomic_set(&ff->count, 0);
- 		}
--		INIT_LIST_HEAD(&ff->write_entry);
--		atomic_set(&ff->count, 0);
+diff -puN drivers/input/mouse/appletouch.c~fix-appletouch-geyser-1-breakage drivers/input/mouse/appletouch.c
+--- a/drivers/input/mouse/appletouch.c~fix-appletouch-geyser-1-breakage
++++ a/drivers/input/mouse/appletouch.c
+@@ -504,22 +504,25 @@ static void atp_complete(struct urb* urb
+ 		memset(dev->xy_acc, 0, sizeof(dev->xy_acc));
  	}
- 	return ff;
- }
+ 
+-	input_report_key(dev->input, BTN_LEFT, key);
+-	input_sync(dev->input);
+-
+-	/* Many Geysers will continue to send packets continually after
++	/* Geyser 3 will continue to send packets continually after
+ 	   the first touch unless reinitialised. Do so if it's been
+ 	   idle for a while in order to avoid waking the kernel up
+ 	   several hundred times a second */
+ 
+-	if (!x && !y && !key) {
+-		dev->idlecount++;
+-		if (dev->idlecount == 10) {
+-			dev->valid = 0;
+-			schedule_work(&dev->work);
++	if (atp_is_geyser_3(dev)) {
++		if (!x && !y && !key) {
++			dev->idlecount++;
++			if (dev->idlecount == 10) {
++				dev->valid = 0;
++				schedule_work(&dev->work);
++			}
+ 		}
+-	} else
+-		dev->idlecount = 0;
++		else
++			dev->idlecount = 0;
++	}
++
++	input_report_key(dev->input, BTN_LEFT, key);
++	input_sync(dev->input);
+ 
+ exit:
+ 	retval = usb_submit_urb(dev->urb, GFP_ATOMIC);
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from johannes@sipsolutions.net are
 
-ipmi-fix-comparison-in-demangle_device_id.patch
-git-dvb.patch
-git-hwmon.patch
-git-nfs-make-nfs_wb_page_priority-static.patch
-git-sh64.patch
-fuse-fuse_file_alloc-fix-null-dereferences.patch
-ext4-return-after-ext4_error-in-case-of-failures.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-reiser4.patch
+fix-appletouch-geyser-1-breakage.patch
+git-wireless.patch
