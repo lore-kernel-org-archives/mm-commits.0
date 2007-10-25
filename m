@@ -1,117 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: + fujitsu-application-panel-driver-space-savings.patch added to -mm tree
-Date: Thu, 25 Oct 2007 14:40:33 -0700
-Message-ID: <200710252140.l9PLeXek025440@imap1.linux-foundation.org>
+Subject: - fix-build-bug.patch removed from -mm tree
+Date: Thu, 25 Oct 2007 14:54:08 -0700
+Message-ID: <200710252154.l9PLs86l025859@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42682 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56586 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758124AbXJYVk4 (ORCPT
+	by vger.kernel.org with ESMTP id S1753425AbXJYVyb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Oct 2007 17:40:56 -0400
+	Thu, 25 Oct 2007 17:54:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: shemminger@linux-foundation.org, dtor@mail.ru, jkosina@suse.cz, rpurdie@rpsys.net
+To: ralf@linux-mips.org, bzolnier@gmail.com, macro@linux-mips.org, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     apanel: space savings
-has been added to the -mm tree.  Its filename is
-     fujitsu-application-panel-driver-space-savings.patch
+     ide: fix build bug
+has been removed from the -mm tree.  Its filename was
+     fix-build-bug.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: apanel: space savings
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: ide: fix build bug
+From: Ralf Baechle <ralf@linux-mips.org>
 
-Eliminate the device_names they are only used for debug messages.  Add
-paren's for one expression.
+  CC      drivers/ide/pci/generic.o
+drivers/ide/pci/generic.c:52: error: __setup_str_ide_generic_all_on causes a
++section type conflict
 
-Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+This sort of build error is becoming a regular issue.  Either all or non
+of the elements that go into a particular section of a compilation unit
+need to be const.  Or an error may result such as in this case if
+CONFIG_HOTPLUG is unset.
+
+Maybe worth a check in checkpatch.pl - but certainly gcc's interolerance
+is also being less than helpful here.
+
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/misc/apanel.c |   24 +++++++-----------------
- 1 file changed, 7 insertions(+), 17 deletions(-)
+ drivers/ide/pci/generic.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/input/misc/apanel.c~fujitsu-application-panel-driver-space-savings drivers/input/misc/apanel.c
---- a/drivers/input/misc/apanel.c~fujitsu-application-panel-driver-space-savings
-+++ a/drivers/input/misc/apanel.c
-@@ -27,7 +27,7 @@
- #include <linux/leds.h>
+diff -puN drivers/ide/pci/generic.c~fix-build-bug drivers/ide/pci/generic.c
+--- a/drivers/ide/pci/generic.c~fix-build-bug
++++ a/drivers/ide/pci/generic.c
+@@ -67,7 +67,7 @@ MODULE_PARM_DESC(all_generic_ide, "IDE g
+ 		.udma_mask	= ATA_UDMA6, \
+ 	}
  
- #define APANEL_NAME	"Fujitsu Application Panel"
--#define APANEL_VERSION	"1.3"
-+#define APANEL_VERSION	"1.3.1"
- #define APANEL		"apanel"
+-static const struct ide_port_info generic_chipsets[] __devinitdata = {
++static struct ide_port_info generic_chipsets[] __devinitdata = {
+ 	/*  0 */ DECLARE_GENERIC_PCI_DEV("Unknown",	0),
  
- /* How often we poll keys - msecs */
-@@ -40,6 +40,7 @@ enum apanel_devid {
- 	APANEL_DEV_CDBTN  = 2,
- 	APANEL_DEV_LCD	  = 3,
- 	APANEL_DEV_LED	  = 4,
-+
- 	APANEL_DEV_MAX,
- };
- 
-@@ -53,14 +54,6 @@ enum apanel_chip {
- /* Result of BIOS snooping/probing -- what features are supported */
- static enum apanel_chip device_chip[APANEL_DEV_MAX];
- 
--/* names for APANEL_XXX */
--static const char *device_names[APANEL_DEV_MAX] __initdata = {
--	[APANEL_DEV_APPBTN] = "Application Buttons",
--	[APANEL_DEV_LCD]    = "LCD",
--	[APANEL_DEV_LED]    = "LED",
--	[APANEL_DEV_CDBTN]  = "CD Buttons",
--};
--
- #define MAX_PANEL_KEYS	12
- 
- struct apanel {
-@@ -123,7 +116,7 @@ static void apanel_poll(struct input_pol
- 
- 	dev_dbg(&ipdev->input->dev, APANEL ": data %#x\n", data);
- 	for (i = 0; i < ipdev->input->keycodemax; i++)
--		if (1ul << i & data)
-+		if ((1u << i) & data)
- 			report_key(idev, ap->keymap[i]);
- }
- 
-@@ -366,17 +359,14 @@ static int __init apanel_init(void)
- 		}
- 
- 		if (devno >= APANEL_DEV_MAX)
--			pr_notice(APANEL ": unknown device %d found\n", devno);
-+			pr_notice(APANEL ": unknown device %u found\n", devno);
- 		else if (device_chip[devno] != CHIP_NONE)
--			pr_warning(APANEL ": duplicate entry for %s\n",
--				   device_names[devno]);
-+			pr_warning(APANEL ": duplicate entry for devno %u\n", devno);
- 
- 		else if (method != 1 && method != 2 && method != 4) {
--			pr_notice(APANEL ": unknown  method %u for %s\n",
--				  method, device_names[devno]);
-+			pr_notice(APANEL ": unknown method %u for devno %u\n",
-+				  method, devno);
- 		} else {
--			pr_debug(APANEL ": %s found.\n", device_names[devno]);
--
- 			device_chip[devno] = (enum apanel_chip) chip;
- 			++found;
- 		}
+ 	{	/* 1 */
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
-fujitsu-application-panel-driver.patch
-fujitsu-application-panel-driver-space-savings.patch
-git-wireless.patch
+fix-build-bug.patch
+rtc-release-correct-region-in-error-path.patch
+rtc-fallback-to-requesting-only-the-ports-we-actually-use.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+remove-inclusions-of-linux-autoconfh.patch
+dz-clean-up-and-improve-the-setup-of-termios-settings.patch
+dzc-use-a-helper-to-cast-from-struct-uart_port.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
