@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-sparse-vmemmapc-make-sure-init_mm-is-included.patch added to -mm tree
-Date: Wed, 24 Oct 2007 21:13:16 -0700
-Message-ID: <200710250413.l9P4DGIl031188@imap1.linux-foundation.org>
+Subject: + fix-tmpfs-bug-and-aop_writepage_activate.patch added to -mm tree
+Date: Wed, 24 Oct 2007 21:14:15 -0700
+Message-ID: <200710250414.l9P4EFXR031279@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42701 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35220 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754747AbXJYENb (ORCPT
+	by vger.kernel.org with ESMTP id S1752484AbXJYEOj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Oct 2007 00:13:31 -0400
+	Thu, 25 Oct 2007 00:14:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gcosta@redhat.com
+Cc: hugh@veritas.com, ezk@cs.sunysb.edu, stable@kernel.org
 
 
 The patch titled
-     mm/sparse-vmemmap.c: make sure init_mm is included
+     fix tmpfs BUG and AOP_WRITEPAGE_ACTIVATE
 has been added to the -mm tree.  Its filename is
-     mm-sparse-vmemmapc-make-sure-init_mm-is-included.patch
+     fix-tmpfs-bug-and-aop_writepage_activate.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,73 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm/sparse-vmemmap.c: make sure init_mm is included
-From: Glauber de Oliveira Costa <gcosta@redhat.com>
+Subject: fix tmpfs BUG and AOP_WRITEPAGE_ACTIVATE
+From: Hugh Dickins <hugh@veritas.com>
 
-mm/sparse-vmemmap.c uses init_mm in some places.  However, it is not
-present in any of the headers currently included in the file.
+It's possible to provoke unionfs (not yet in mainline, though in mm and
+some distros) to hit shmem_writepage's BUG_ON(page_mapped(page)).  I expect
+it's possible to provoke the 2.6.23 ecryptfs in the same way (but the
+2.6.24 ecryptfs no longer calls lower level's ->writepage).
 
-init_mm is defined as extern in sched.h, so we add it to the headers list
+This came to light with the recent find that AOP_WRITEPAGE_ACTIVATE could
+leak from tmpfs via write_cache_pages and unionfs to userspace.  There's
+already a fix (e423003028183df54f039dfda8b58c49e78c89d7 - writeback: don't
+propagate AOP_WRITEPAGE_ACTIVATE) in the tree for that, and it's okay so
+far as it goes; but insufficient because it doesn't address the underlying
+issue, that shmem_writepage expects to be called only by vmscan (relying on
+backing_dev_info capabilities to prevent the normal writeback path from
+ever approaching it).
 
-Up to now, this problem was masked by the fact that functions like
-set_pte_at() and pmd_populate_kernel() are usually macros that expand to
-simpler variants that does not use the first parameter at all.
+That's an increasingly fragile assumption, and ramdisk_writepage (the other
+source of AOP_WRITEPAGE_ACTIVATEs) is already careful to check
+wbc->for_reclaim before returning it.  Make the same check in
+shmem_writepage, thereby sidestepping the page_mapped BUG also.
 
-Signed-off-by: Glauber de Oliveira Costa <gcosta@redhat.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse-vmemmap.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/shmem.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN mm/sparse-vmemmap.c~mm-sparse-vmemmapc-make-sure-init_mm-is-included mm/sparse-vmemmap.c
---- a/mm/sparse-vmemmap.c~mm-sparse-vmemmapc-make-sure-init_mm-is-included
-+++ a/mm/sparse-vmemmap.c
-@@ -24,6 +24,7 @@
- #include <linux/module.h>
- #include <linux/spinlock.h>
- #include <linux/vmalloc.h>
-+#include <linux/sched.h>
- #include <asm/dma.h>
- #include <asm/pgalloc.h>
- #include <asm/pgtable.h>
+diff -puN mm/shmem.c~fix-tmpfs-bug-and-aop_writepage_activate mm/shmem.c
+--- a/mm/shmem.c~fix-tmpfs-bug-and-aop_writepage_activate
++++ a/mm/shmem.c
+@@ -915,6 +915,21 @@ static int shmem_writepage(struct page *
+ 	struct inode *inode;
+ 
+ 	BUG_ON(!PageLocked(page));
++	/*
++	 * shmem_backing_dev_info's capabilities prevent regular writeback or
++	 * sync from ever calling shmem_writepage; but a stacking filesystem
++	 * may use the ->writepage of its underlying filesystem, in which case
++	 * we want to do nothing when that underlying filesystem is tmpfs
++	 * (writing out to swap is useful as a response to memory pressure, but
++	 * of no use to stabilize the data) - just redirty the page, unlock it
++	 * and claim success in this case.  AOP_WRITEPAGE_ACTIVATE, and the
++	 * page_mapped check below, must be avoided unless we're in reclaim.
++	 */
++	if (!wbc->for_reclaim) {
++		set_page_dirty(page);
++		unlock_page(page);
++		return 0;
++	}
+ 	BUG_ON(page_mapped(page));
+ 
+ 	mapping = page->mapping;
 _
 
-Patches currently in -mm which might be from gcosta@redhat.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-mm-sparse-vmemmapc-make-sure-init_mm-is-included.patch
-git-kvm.patch
+fix-tmpfs-bug-and-aop_writepage_activate.patch
+swapin_readahead-excise-numa-bogosity.patch
+swapin_readahead-move-and-rearrange-args.patch
+swapin-needs-gfp_mask-for-loop-on-tmpfs.patch
+shmem-sgp_quick-and-sgp_fault-redundant.patch
+shmem_getpage-return-page-locked.patch
+shmem_file_write-is-redundant.patch
+swapin-fix-valid_swaphandles-defect.patch
+memory-controller-memory-accounting-v7.patch
+prio_tree-debugging-patch.patch
