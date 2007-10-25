@@ -1,65 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: + libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 25 Oct 2007 13:11:40 -0700
-Message-ID: <200710252011.l9PKBe7e020336@imap1.linux-foundation.org>
+Subject: - provide-acpi_check_mem_region-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 25 Oct 2007 13:17:09 -0700
+Message-ID: <200710252017.l9PKH9NQ020858@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57979 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54888 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752302AbXJYUL5 (ORCPT
+	by vger.kernel.org with ESMTP id S1750710AbXJYURg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Oct 2007 16:11:57 -0400
+	Thu, 25 Oct 2007 16:17:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, alan@redhat.com
+To: akpm@linux-foundation.org, khali@linux-fr.org, lenb@kernel.org, mhoffman@lightlink.com, trenn@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
+     provide-acpi_check_mem_region-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     provide-acpi_check_mem_region-checkpatch-fixes.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes
+Subject: provide-acpi_check_mem_region-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: use tabs not spaces
-#81: FILE: drivers/ata/libata-core.c:2132:
-+                if (print_info) {$
+WARNING: printk() should include KERN_ facility level
+#133: FILE: drivers/acpi/osl.c:1133:
++			printk("%sACPI: %s resource %s [0x%llx-0x%llx]"
 
-total: 1 errors, 0 warnings, 105 lines checked
+total: 0 errors, 1 warnings, 224 lines checked
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Alan Cox <alan@redhat.com>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Thomas Renninger <trenn@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/osl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/libata-core.c~libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes
-+++ a/drivers/ata/libata-core.c
-@@ -2129,7 +2129,7 @@ int ata_dev_configure(struct ata_device 
- 		   with buggy firmware may want to avoid reporting false device
- 		   bugs */
+diff -puN drivers/acpi/osl.c~provide-acpi_check_mem_region-checkpatch-fixes drivers/acpi/osl.c
+--- a/drivers/acpi/osl.c~provide-acpi_check_mem_region-checkpatch-fixes
++++ a/drivers/acpi/osl.c
+@@ -1130,8 +1130,8 @@ static int acpi_check_resource_conflict(
  
--                if (print_info) {
-+		if (print_info) {
- 			ata_dev_printk(dev, KERN_WARNING,
- "Drive reports diagnostics failure. This may indicate a drive\n");
- 			ata_dev_printk(dev, KERN_WARNING,
+ 	if (clash) {
+ 		if (acpi_enforce_resources != ENFORCE_RESOURCES_NO) {
+-			printk("%sACPI: %s resource %s [0x%llx-0x%llx]"
+-			       " conflicts with ACPI region %s"
++			printk(KERN_WARNING "%sACPI: %s resource %s"
++			       " [0x%llx-0x%llx] conflicts with ACPI region %s"
+ 			       " [0x%llx-0x%llx]\n",
+ 			       acpi_enforce_resources == ENFORCE_RESOURCES_LAX
+ 			       ? KERN_WARNING : KERN_ERR,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
