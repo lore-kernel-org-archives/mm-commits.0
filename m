@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + permit-silencing-of-__deprecated-warnings.patch added to -mm tree
-Date: Thu, 25 Oct 2007 01:13:54 -0700
-Message-ID: <200710250813.l9P8DsqN014657@imap1.linux-foundation.org>
+Subject: + isdn-capidrv-fix-casting-warning.patch added to -mm tree
+Date: Thu, 25 Oct 2007 01:14:39 -0700
+Message-ID: <200710250814.l9P8EdQJ014769@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54972 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50985 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756785AbXJYITP (ORCPT
+	by vger.kernel.org with ESMTP id S1754380AbXJYITv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Oct 2007 04:19:15 -0400
+	Thu, 25 Oct 2007 04:19:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeff@garzik.org, jgarzik@redhat.com
+Cc: jeff@garzik.org, jgarzik@redhat.com, kkeil@suse.de
 
 
 The patch titled
-     Permit silencing of __deprecated warnings
+     ISDN/capidrv: fix casting warning
 has been added to the -mm tree.  Its filename is
-     permit-silencing-of-__deprecated-warnings.patch
+     isdn-capidrv-fix-casting-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,64 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Permit silencing of __deprecated warnings
+Subject: ISDN/capidrv: fix casting warning
 From: Jeff Garzik <jeff@garzik.org>
 
-The __deprecated marker is quite useful in highlighting the remnants of
-old APIs that want removing.
+drivers/isdn/capi/capidrv.c: In function 'if_sendbuf':
+drivers/isdn/capi/capidrv.c:1865: warning: cast from pointer to integer
+of different size
 
-However, it is quite normal for one or more years to pass, before the
-(usually ancient, bitrotten) code in question is either updated or
-deleted.
-
-Thus, like __must_check, add a Kconfig option that permits the silencing
-of this compiler warning.
-
-This change mimics the ifdef-ery and Kconfig defaults of MUST_CHECK as
-closely as possible.
+We are passing a kernel pointer, skb->data, but the interface itself is
+limited to 32 bits.  A future changeset may want to mark this code 32-bit
+only, if it turns out cmsg->Data value truncation on 64-bit platforms is
+problematic in practice.
 
 Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler.h |    6 ++++++
- lib/Kconfig.debug        |    8 ++++++++
- 2 files changed, 14 insertions(+)
+ drivers/isdn/capi/capidrv.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/compiler.h~permit-silencing-of-__deprecated-warnings include/linux/compiler.h
---- a/include/linux/compiler.h~permit-silencing-of-__deprecated-warnings
-+++ a/include/linux/compiler.h
-@@ -101,6 +101,12 @@ extern void __chk_io_ptr(const volatile 
- #undef __must_check
- #define __must_check
- #endif
-+#ifndef CONFIG_ENABLE_WARN_DEPRECATED
-+#undef __deprecated
-+#undef __deprecated_for_modules
-+#define __deprecated
-+#define __deprecated_for_modules
-+#endif
- 
- /*
-  * Allow us to avoid 'defined but not used' warnings on functions and data,
-diff -puN lib/Kconfig.debug~permit-silencing-of-__deprecated-warnings lib/Kconfig.debug
---- a/lib/Kconfig.debug~permit-silencing-of-__deprecated-warnings
-+++ a/lib/Kconfig.debug
-@@ -9,6 +9,14 @@ config PRINTK_TIME
- 	  operations.  This is useful for identifying long delays
- 	  in kernel startup.
- 
-+config ENABLE_WARN_DEPRECATED
-+	bool "Enable __deprecated logic"
-+	default y
-+	help
-+	  Enable the __deprecated logic in the kernel build.
-+	  Disable this to suppress the "warning: 'foo' is deprecated
-+	  (declared at kernel/power/somefile.c:1234)" messages.
-+
- config ENABLE_MUST_CHECK
- 	bool "Enable __must_check logic"
- 	default y
+diff -puN drivers/isdn/capi/capidrv.c~isdn-capidrv-fix-casting-warning drivers/isdn/capi/capidrv.c
+--- a/drivers/isdn/capi/capidrv.c~isdn-capidrv-fix-casting-warning
++++ a/drivers/isdn/capi/capidrv.c
+@@ -1862,7 +1862,7 @@ static int if_sendbuf(int id, int channe
+ 	datahandle = nccip->datahandle;
+ 	capi_fill_DATA_B3_REQ(&sendcmsg, global.ap.applid, card->msgid++,
+ 			      nccip->ncci,	/* adr */
+-			      (u32) skb->data,	/* Data */
++			      (unsigned long) skb->data, /* Data */
+ 			      skb->len,		/* DataLength */
+ 			      datahandle,	/* DataHandle */
+ 			      0	/* Flags */
 _
 
 Patches currently in -mm which might be from jeff@garzik.org are
@@ -124,5 +98,6 @@ sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.p
 sound-oss-sb_commonc-fix-casting-warning.patch
 permit-silencing-of-__deprecated-warnings.patch
 remove-warnings-for-longstanding-conditions.patch
+remove-warnings-for-longstanding-conditions-checkpatch-fixes.patch
 isdn-capidrv-fix-casting-warning.patch
 isdn-sc-fix-longstanding-warning.patch
