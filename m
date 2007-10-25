@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-fix-oops-with-jbd-stats-through-procfs-and-external.patch added to -mm tree
-Date: Thu, 25 Oct 2007 14:38:54 -0700
-Message-ID: <200710252138.l9PLcsbV025293@imap1.linux-foundation.org>
+Subject: + fujitsu-application-panel-driver-space-savings.patch added to -mm tree
+Date: Thu, 25 Oct 2007 14:40:33 -0700
+Message-ID: <200710252140.l9PLeXek025440@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53411 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42682 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752644AbXJYVjJ (ORCPT
+	by vger.kernel.org with ESMTP id S1758124AbXJYVk4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Oct 2007 17:39:09 -0400
+	Thu, 25 Oct 2007 17:40:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sandeen@redhat.com
+Cc: shemminger@linux-foundation.org, dtor@mail.ru, jkosina@suse.cz, rpurdie@rpsys.net
 
 
 The patch titled
-     ext4: Fix oops with jbd-stats-through-procfs and external journal
+     apanel: space savings
 has been added to the -mm tree.  Its filename is
-     ext4-fix-oops-with-jbd-stats-through-procfs-and-external.patch
+     fujitsu-application-panel-driver-space-savings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,41 +26,92 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext4: Fix oops with jbd-stats-through-procfs and external journal
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: apanel: space savings
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-When using an external device for the journal, jbd2_stats_proc_init() wants
-to use journal->j_dev in its call to bdevname() but it's not assigned yet,
-resulting in an oops.
+Eliminate the device_names they are only used for debug messages.  Add
+paren's for one expression.
 
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
+Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd2/journal.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/input/misc/apanel.c |   24 +++++++-----------------
+ 1 file changed, 7 insertions(+), 17 deletions(-)
 
-diff -puN fs/jbd2/journal.c~ext4-fix-oops-with-jbd-stats-through-procfs-and-external fs/jbd2/journal.c
---- a/fs/jbd2/journal.c~ext4-fix-oops-with-jbd-stats-through-procfs-and-external
-+++ a/fs/jbd2/journal.c
-@@ -1035,11 +1035,11 @@ journal_t * jbd2_journal_init_dev(struct
- 		journal = NULL;
- 		goto out;
- 	}
--	jbd2_stats_proc_init(journal);
- 	journal->j_dev = bdev;
- 	journal->j_fs_dev = fs_dev;
- 	journal->j_blk_offset = start;
- 	journal->j_maxlen = len;
-+	jbd2_stats_proc_init(journal);
+diff -puN drivers/input/misc/apanel.c~fujitsu-application-panel-driver-space-savings drivers/input/misc/apanel.c
+--- a/drivers/input/misc/apanel.c~fujitsu-application-panel-driver-space-savings
++++ a/drivers/input/misc/apanel.c
+@@ -27,7 +27,7 @@
+ #include <linux/leds.h>
  
- 	bh = __getblk(journal->j_dev, start, journal->j_blocksize);
- 	J_ASSERT(bh != NULL);
+ #define APANEL_NAME	"Fujitsu Application Panel"
+-#define APANEL_VERSION	"1.3"
++#define APANEL_VERSION	"1.3.1"
+ #define APANEL		"apanel"
+ 
+ /* How often we poll keys - msecs */
+@@ -40,6 +40,7 @@ enum apanel_devid {
+ 	APANEL_DEV_CDBTN  = 2,
+ 	APANEL_DEV_LCD	  = 3,
+ 	APANEL_DEV_LED	  = 4,
++
+ 	APANEL_DEV_MAX,
+ };
+ 
+@@ -53,14 +54,6 @@ enum apanel_chip {
+ /* Result of BIOS snooping/probing -- what features are supported */
+ static enum apanel_chip device_chip[APANEL_DEV_MAX];
+ 
+-/* names for APANEL_XXX */
+-static const char *device_names[APANEL_DEV_MAX] __initdata = {
+-	[APANEL_DEV_APPBTN] = "Application Buttons",
+-	[APANEL_DEV_LCD]    = "LCD",
+-	[APANEL_DEV_LED]    = "LED",
+-	[APANEL_DEV_CDBTN]  = "CD Buttons",
+-};
+-
+ #define MAX_PANEL_KEYS	12
+ 
+ struct apanel {
+@@ -123,7 +116,7 @@ static void apanel_poll(struct input_pol
+ 
+ 	dev_dbg(&ipdev->input->dev, APANEL ": data %#x\n", data);
+ 	for (i = 0; i < ipdev->input->keycodemax; i++)
+-		if (1ul << i & data)
++		if ((1u << i) & data)
+ 			report_key(idev, ap->keymap[i]);
+ }
+ 
+@@ -366,17 +359,14 @@ static int __init apanel_init(void)
+ 		}
+ 
+ 		if (devno >= APANEL_DEV_MAX)
+-			pr_notice(APANEL ": unknown device %d found\n", devno);
++			pr_notice(APANEL ": unknown device %u found\n", devno);
+ 		else if (device_chip[devno] != CHIP_NONE)
+-			pr_warning(APANEL ": duplicate entry for %s\n",
+-				   device_names[devno]);
++			pr_warning(APANEL ": duplicate entry for devno %u\n", devno);
+ 
+ 		else if (method != 1 && method != 2 && method != 4) {
+-			pr_notice(APANEL ": unknown  method %u for %s\n",
+-				  method, device_names[devno]);
++			pr_notice(APANEL ": unknown method %u for devno %u\n",
++				  method, devno);
+ 		} else {
+-			pr_debug(APANEL ": %s found.\n", device_names[devno]);
+-
+ 			device_chip[devno] = (enum apanel_chip) chip;
+ 			++found;
+ 		}
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from shemminger@linux-foundation.org are
 
-ext2-change-the-default-behaviour-on-error.patch
-ext4-fix-freespace-accounting-with-mballoc-on-32bit-machines.patch
-ext4-fix-oops-with-jbd-stats-through-procfs-and-external.patch
-ext3-change-the-default-behaviour-on-error.patch
+fujitsu-application-panel-driver.patch
+fujitsu-application-panel-driver-space-savings.patch
+git-wireless.patch
