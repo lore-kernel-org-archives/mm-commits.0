@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-fix-freespace-accounting-with-mballoc-on-32bit-machines.patch added to -mm tree
-Date: Thu, 25 Oct 2007 14:37:55 -0700
-Message-ID: <200710252137.l9PLbt58025275@imap1.linux-foundation.org>
+Subject: + ext4-fix-oops-with-jbd-stats-through-procfs-and-external.patch added to -mm tree
+Date: Thu, 25 Oct 2007 14:38:54 -0700
+Message-ID: <200710252138.l9PLcsbV025293@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59964 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53411 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750710AbXJYViI (ORCPT
+	by vger.kernel.org with ESMTP id S1752644AbXJYVjJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Oct 2007 17:38:08 -0400
+	Thu, 25 Oct 2007 17:39:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sandeen@redhat.com, linux-ext4@vger.kernel.org
+Cc: sandeen@redhat.com
 
 
 The patch titled
-     ext4: fix freespace accounting with mballoc on 32bit machines
+     ext4: Fix oops with jbd-stats-through-procfs and external journal
 has been added to the -mm tree.  Its filename is
-     ext4-fix-freespace-accounting-with-mballoc-on-32bit-machines.patch
+     ext4-fix-oops-with-jbd-stats-through-procfs-and-external.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ext4: fix freespace accounting with mballoc on 32bit machines
+Subject: ext4: Fix oops with jbd-stats-through-procfs and external journal
 From: Eric Sandeen <sandeen@redhat.com>
 
-On a 32bit machine, passing the negative unsigned long fe_len
-into percpu_counter_add (which expects s64) messes up the counters:
-
-[root@bear-05 linux-2.6.23-rc7]# df -h
-
-Filesystem            Size  Used Avail Use% Mounted on
-/dev/sdb7              97G -149P  149P   -  /mnt/test
-
-Patch below fixes this.
+When using an external device for the journal, jbd2_stats_proc_init() wants
+to use journal->j_dev in its call to bdevname() but it's not assigned yet,
+resulting in an oops.
 
 Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/mballoc.c |    2 +-
+ fs/jbd2/journal.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext4/mballoc.c~ext4-fix-freespace-accounting-with-mballoc-on-32bit-machines fs/ext4/mballoc.c
---- a/fs/ext4/mballoc.c~ext4-fix-freespace-accounting-with-mballoc-on-32bit-machines
-+++ a/fs/ext4/mballoc.c
-@@ -3036,7 +3036,7 @@ static int ext4_mb_mark_diskspace_used(s
- 				- ac->ac_b_ex.fe_len);
- 	gdp->bg_checksum = ext4_group_desc_csum(sbi, ac->ac_b_ex.fe_group, gdp);
- 	spin_unlock(sb_bgl_lock(sbi, ac->ac_b_ex.fe_group));
--	percpu_counter_add(&sbi->s_freeblocks_counter, - ac->ac_b_ex.fe_len);
-+	percpu_counter_sub(&sbi->s_freeblocks_counter, ac->ac_b_ex.fe_len);
+diff -puN fs/jbd2/journal.c~ext4-fix-oops-with-jbd-stats-through-procfs-and-external fs/jbd2/journal.c
+--- a/fs/jbd2/journal.c~ext4-fix-oops-with-jbd-stats-through-procfs-and-external
++++ a/fs/jbd2/journal.c
+@@ -1035,11 +1035,11 @@ journal_t * jbd2_journal_init_dev(struct
+ 		journal = NULL;
+ 		goto out;
+ 	}
+-	jbd2_stats_proc_init(journal);
+ 	journal->j_dev = bdev;
+ 	journal->j_fs_dev = fs_dev;
+ 	journal->j_blk_offset = start;
+ 	journal->j_maxlen = len;
++	jbd2_stats_proc_init(journal);
  
- 	err = ext4_journal_dirty_metadata(handle, bitmap_bh);
- 	if (err)
+ 	bh = __getblk(journal->j_dev, start, journal->j_blocksize);
+ 	J_ASSERT(bh != NULL);
 _
 
 Patches currently in -mm which might be from sandeen@redhat.com are
 
 ext2-change-the-default-behaviour-on-error.patch
 ext4-fix-freespace-accounting-with-mballoc-on-32bit-machines.patch
+ext4-fix-oops-with-jbd-stats-through-procfs-and-external.patch
 ext3-change-the-default-behaviour-on-error.patch
