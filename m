@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
 Subject: + small-acpica-extension-to-be-able-to-store-the-name-of.patch added to -mm tree
-Date: Wed, 24 Oct 2007 20:50:29 -0700
-Message-ID: <200710250350.l9P3oT4N030365@imap1.linux-foundation.org>
+Date: Wed, 24 Oct 2007 20:50:25 -0700
+Message-ID: <200710250350.l9P3oP90030362@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46300 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35284 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757086AbXJYDvD (ORCPT
+	by vger.kernel.org with ESMTP id S1754743AbXJYDvD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 24 Oct 2007 23:51:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
