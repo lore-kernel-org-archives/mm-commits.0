@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fuse-cleanup-add-fuse_get_attr_version.patch added to -mm tree
-Date: Wed, 24 Oct 2007 20:22:25 -0700
-Message-ID: <200710250322.l9P3MPOu029295@imap1.linux-foundation.org>
+Subject: + fuse-fix-fuse_file_ops-sending.patch added to -mm tree
+Date: Wed, 24 Oct 2007 20:22:29 -0700
+Message-ID: <200710250322.l9P3MTZ7029301@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55174 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41580 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754712AbXJYDXE (ORCPT
+	by vger.kernel.org with ESMTP id S1755519AbXJYDXG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Oct 2007 23:23:04 -0400
+	Wed, 24 Oct 2007 23:23:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mszeredi@suse.cz
 
 
 The patch titled
-     fuse: cleanup: add fuse_get_attr_version()
+     fuse: fix FUSE_FILE_OPS sending
 has been added to the -mm tree.  Its filename is
-     fuse-cleanup-add-fuse_get_attr_version.patch
+     fuse-fix-fuse_file_ops-sending.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,76 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fuse: cleanup: add fuse_get_attr_version()
+Subject: fuse: fix FUSE_FILE_OPS sending
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Extract repeated code into helper function, as suggested by Akpm.
+FUSE_FILE_OPS is meant to signal, that the kernel will send the open
+file to to the userspace filesystem for operations on open files, so
+that sillyrenaming unlinked files becomes unnecessary.
+
+However this needs VFS changes, which won't make it into 2.6.24.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/dir.c |   27 ++++++++++++++++++---------
- 1 file changed, 18 insertions(+), 9 deletions(-)
+ fs/fuse/inode.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/fuse/dir.c~fuse-cleanup-add-fuse_get_attr_version fs/fuse/dir.c
---- a/fs/fuse/dir.c~fuse-cleanup-add-fuse_get_attr_version
-+++ a/fs/fuse/dir.c
-@@ -132,6 +132,21 @@ static void fuse_lookup_init(struct fuse
- 	req->out.args[0].value = outarg;
- }
- 
-+static u64 fuse_get_attr_version(struct fuse_conn *fc)
-+{
-+	u64 curr_version;
-+
-+	/*
-+	 * The spin lock isn't actually needed on 64bit archs, but we
-+	 * don't yet care too much about such optimizations.
-+	 */
-+	spin_lock(&fc->lock);
-+	curr_version = fc->attr_version;
-+	spin_unlock(&fc->lock);
-+
-+	return curr_version;
-+}
-+
- /*
-  * Check whether the dentry is still valid
-  *
-@@ -171,9 +186,7 @@ static int fuse_dentry_revalidate(struct
- 			return 0;
- 		}
- 
--		spin_lock(&fc->lock);
--		attr_version = fc->attr_version;
--		spin_unlock(&fc->lock);
-+		attr_version = fuse_get_attr_version(fc);
- 
- 		parent = dget_parent(entry);
- 		fuse_lookup_init(req, parent->d_inode, entry, &outarg);
-@@ -264,9 +277,7 @@ static struct dentry *fuse_lookup(struct
- 		return ERR_PTR(PTR_ERR(forget_req));
- 	}
- 
--	spin_lock(&fc->lock);
--	attr_version = fc->attr_version;
--	spin_unlock(&fc->lock);
-+	attr_version = fuse_get_attr_version(fc);
- 
- 	fuse_lookup_init(req, dir, entry, &outarg);
- 	request_send(fc, req);
-@@ -733,9 +744,7 @@ static int fuse_do_getattr(struct inode 
- 	if (IS_ERR(req))
- 		return PTR_ERR(req);
- 
--	spin_lock(&fc->lock);
--	attr_version = fc->attr_version;
--	spin_unlock(&fc->lock);
-+	attr_version = fuse_get_attr_version(fc);
- 
- 	memset(&inarg, 0, sizeof(inarg));
- 	memset(&outarg, 0, sizeof(outarg));
+diff -puN fs/fuse/inode.c~fuse-fix-fuse_file_ops-sending fs/fuse/inode.c
+--- a/fs/fuse/inode.c~fuse-fix-fuse_file_ops-sending
++++ a/fs/fuse/inode.c
+@@ -562,8 +562,7 @@ static void fuse_send_init(struct fuse_c
+ 	arg->major = FUSE_KERNEL_VERSION;
+ 	arg->minor = FUSE_KERNEL_MINOR_VERSION;
+ 	arg->max_readahead = fc->bdi.ra_pages * PAGE_CACHE_SIZE;
+-	arg->flags |= FUSE_ASYNC_READ | FUSE_POSIX_LOCKS | FUSE_FILE_OPS |
+-		FUSE_ATOMIC_O_TRUNC;
++	arg->flags |= FUSE_ASYNC_READ | FUSE_POSIX_LOCKS | FUSE_ATOMIC_O_TRUNC;
+ 	req->in.h.opcode = FUSE_INIT;
+ 	req->in.numargs = 1;
+ 	req->in.args[0].size = sizeof(*arg);
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
