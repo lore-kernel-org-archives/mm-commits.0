@@ -1,217 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - cfs-cgroup-code-cleanup-report-cpu-usage-in-cfs-cgroup-directories.patch removed from -mm tree
-Date: Fri, 26 Oct 2007 11:48:29 -0700
-Message-ID: <200710261848.l9QImTmG009141@imap1.linux-foundation.org>
+Subject: - isdn-sc-fix-longstanding-warning.patch removed from -mm tree
+Date: Fri, 26 Oct 2007 11:48:44 -0700
+Message-ID: <200710261848.l9QImift009165@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46144 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44155 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762415AbXJZSs5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752186AbXJZStE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Oct 2007 14:48:57 -0400
+	Fri, 26 Oct 2007 14:49:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, mingo@elte.hu, vatsa@in.ibm.com, mm-commits@vger.kernel.org
+To: jeff@garzik.org, jgarzik@redhat.com, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CFS CGroup: Code cleanup, report CPU usage in CFS Cgroup directories
+     ISDN/sc: fix longstanding warning
 has been removed from the -mm tree.  Its filename was
-     cfs-cgroup-code-cleanup-report-cpu-usage-in-cfs-cgroup-directories.patch
+     isdn-sc-fix-longstanding-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: CFS CGroup: Code cleanup, report CPU usage in CFS Cgroup directories
-From: Paul Menage <menage@google.com>
+Subject: ISDN/sc: fix longstanding warning
+From: Jeff Garzik <jeff@garzik.org>
 
-Clean up some CFS CGroup code:
+drivers/isdn/sc/shmem.c: In function `memcpy_toshmem':
+drivers/isdn/sc/shmem.c:54: warning: passing argument 1 of `memcpy_toio' makes pointer from integer without a cast
 
-- replace "cont" with "cgrp" in a few places in the CFS cgroup code,
-- use write_uint rather than write for cpu.shares write function
+Also, remove some unneeded braces, and add some useful whitespace.
 
-Adds a cpu.usage file to the CFS cgroup that reports CPU usage in
-milliseconds for that cgroup's tasks
-
-This replaces the "example CPU Accounting CGroup subsystem" that
-was merged into mainline last week.
-
-Signed-off-by: Paul Menage <menage@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
+Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
+Acked-by: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   83 ++++++++++++++++++++++++-----------------------
- 1 file changed, 44 insertions(+), 39 deletions(-)
+ drivers/isdn/sc/shmem.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN kernel/sched.c~cfs-cgroup-code-cleanup-report-cpu-usage-in-cfs-cgroup-directories kernel/sched.c
---- a/kernel/sched.c~cfs-cgroup-code-cleanup-report-cpu-usage-in-cfs-cgroup-directories
-+++ a/kernel/sched.c
-@@ -7116,25 +7116,25 @@ unsigned long sched_group_shares(struct 
- #ifdef CONFIG_FAIR_CGROUP_SCHED
- 
- /* return corresponding task_group object of a cgroup */
--static inline struct task_group *cgroup_tg(struct cgroup *cont)
-+static inline struct task_group *cgroup_tg(struct cgroup *cgrp)
+diff -puN drivers/isdn/sc/shmem.c~isdn-sc-fix-longstanding-warning drivers/isdn/sc/shmem.c
+--- a/drivers/isdn/sc/shmem.c~isdn-sc-fix-longstanding-warning
++++ a/drivers/isdn/sc/shmem.c
+@@ -28,15 +28,15 @@ void memcpy_toshmem(int card, void *dest
  {
--	return container_of(cgroup_subsys_state(cont, cpu_cgroup_subsys_id),
--					 struct task_group, css);
-+	return container_of(cgroup_subsys_state(cgrp, cpu_cgroup_subsys_id),
-+			    struct task_group, css);
- }
+ 	unsigned long flags;
+ 	unsigned char ch;
++	unsigned long dest_rem = ((unsigned long) dest) % 0x4000;
  
- static struct cgroup_subsys_state *
--cpu_cgroup_create(struct cgroup_subsys *ss, struct cgroup *cont)
-+cpu_cgroup_create(struct cgroup_subsys *ss, struct cgroup *cgrp)
- {
- 	struct task_group *tg;
- 
--	if (!cont->parent) {
-+	if (!cgrp->parent) {
- 		/* This is early initialization for the top cgroup */
--		init_task_group.css.cgroup = cont;
-+		init_task_group.css.cgroup = cgrp;
- 		return &init_task_group.css;
+-	if(!IS_VALID_CARD(card)) {
++	if (!IS_VALID_CARD(card)) {
+ 		pr_debug("Invalid param: %d is not a valid card id\n", card);
+ 		return;
  	}
  
- 	/* we support only 1-level deep hierarchical scheduler atm */
--	if (cont->parent->parent)
-+	if (cgrp->parent->parent)
- 		return ERR_PTR(-EINVAL);
+-	if(n > SRAM_PAGESIZE) {
++	if (n > SRAM_PAGESIZE)
+ 		return;
+-	}
  
- 	tg = sched_create_group();
-@@ -7142,21 +7142,21 @@ cpu_cgroup_create(struct cgroup_subsys *
- 		return ERR_PTR(-ENOMEM);
+ 	/*
+ 	 * determine the page to load from the address
+@@ -50,8 +50,7 @@ void memcpy_toshmem(int card, void *dest
  
- 	/* Bind the cgroup to task_group object we just created */
--	tg->css.cgroup = cont;
-+	tg->css.cgroup = cgrp;
- 
- 	return &tg->css;
- }
- 
- static void cpu_cgroup_destroy(struct cgroup_subsys *ss,
--					struct cgroup *cont)
-+			       struct cgroup *cgrp)
- {
--	struct task_group *tg = cgroup_tg(cont);
-+	struct task_group *tg = cgroup_tg(cgrp);
- 
- 	sched_destroy_group(tg);
- }
- 
- static int cpu_cgroup_can_attach(struct cgroup_subsys *ss,
--			     struct cgroup *cont, struct task_struct *tsk)
-+			     struct cgroup *cgrp, struct task_struct *tsk)
- {
- 	/* We don't support RT-tasks being in separate groups */
- 	if (tsk->sched_class != &fair_sched_class)
-@@ -7166,51 +7166,56 @@ static int cpu_cgroup_can_attach(struct 
- }
- 
- static void
--cpu_cgroup_attach(struct cgroup_subsys *ss, struct cgroup *cont,
-+cpu_cgroup_attach(struct cgroup_subsys *ss, struct cgroup *cgrp,
- 			struct cgroup *old_cont, struct task_struct *tsk)
- {
- 	sched_move_task(tsk);
- }
- 
--static ssize_t cpu_shares_write(struct cgroup *cont, struct cftype *cftype,
--				struct file *file, const char __user *userbuf,
--				size_t nbytes, loff_t *ppos)
-+static int cpu_shares_write_uint(struct cgroup *cgrp, struct cftype *cftype,
-+				u64 shareval)
- {
--	unsigned long shareval;
--	struct task_group *tg = cgroup_tg(cont);
--	char buffer[2*sizeof(unsigned long) + 1];
--	int rc;
--
--	if (nbytes > 2*sizeof(unsigned long))	/* safety check */
--		return -E2BIG;
--
--	if (copy_from_user(buffer, userbuf, nbytes))
--		return -EFAULT;
--
--	buffer[nbytes] = 0;	/* nul-terminate */
--	shareval = simple_strtoul(buffer, NULL, 10);
--
--	rc = sched_group_set_shares(tg, shareval);
--
--	return (rc < 0 ? rc : nbytes);
-+	return sched_group_set_shares(cgroup_tg(cgrp), shareval);
- }
- 
--static u64 cpu_shares_read_uint(struct cgroup *cont, struct cftype *cft)
-+static u64 cpu_shares_read_uint(struct cgroup *cgrp, struct cftype *cft)
- {
--	struct task_group *tg = cgroup_tg(cont);
-+	struct task_group *tg = cgroup_tg(cgrp);
- 
- 	return (u64) tg->shares;
- }
- 
--static struct cftype cpu_shares = {
--	.name = "shares",
--	.read_uint = cpu_shares_read_uint,
--	.write = cpu_shares_write,
-+static u64 cpu_usage_read(struct cgroup *cgrp, struct cftype *cft)
-+{
-+	struct task_group *tg = cgroup_tg(cgrp);
-+	int i;
-+	u64 res = 0;
-+	for_each_possible_cpu(i) {
-+		unsigned long flags;
-+		spin_lock_irqsave(&tg->cfs_rq[i]->rq->lock, flags);
-+		res += tg->se[i]->sum_exec_runtime;
-+		spin_unlock_irqrestore(&tg->cfs_rq[i]->rq->lock, flags);
-+	}
-+	/* Convert from ns to ms */
-+	do_div(res, 1000000);
-+	return res;
-+}
-+
-+static struct cftype cpu_files[] = {
-+	{
-+		.name = "shares",
-+		.read_uint = cpu_shares_read_uint,
-+		.write_uint = cpu_shares_write_uint,
-+	},
-+	{
-+		.name = "usage",
-+		.read_uint = cpu_usage_read,
-+	},
- };
- 
- static int cpu_cgroup_populate(struct cgroup_subsys *ss, struct cgroup *cont)
- {
--	return cgroup_add_file(cont, ss, &cpu_shares);
-+	return cgroup_add_files(cont, ss, cpu_files, ARRAY_SIZE(cpu_files));
- }
- 
- struct cgroup_subsys cpu_cgroup_subsys = {
+ 	outb(((sc_adapter[card]->shmem_magic + ch * SRAM_PAGESIZE) >> 14) | 0x80,
+ 		sc_adapter[card]->ioport[sc_adapter[card]->shmem_pgport]);
+-	memcpy_toio(sc_adapter[card]->rambase +
+-		((unsigned long) dest % 0x4000), src, n);
++	memcpy_toio(sc_adapter[card]->rambase + dest_rem, src, n);
+ 	spin_unlock_irqrestore(&sc_adapter[card]->lock, flags);
+ 	pr_debug("%s: set page to %#x\n",sc_adapter[card]->devicename,
+ 		((sc_adapter[card]->shmem_magic + ch * SRAM_PAGESIZE)>>14)|0x80);
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from jeff@garzik.org are
 
 origin.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-improve-user-interface.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-add-a-refcount-check-in-dput.patch
+remove-bogus-default-y-for-dmar-and-net_dma.patch
+acpi-sbs-fix-retval-warning.patch
+git-jg-misc.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-add-helper-__ide_setup_pci_device.patch
+drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop.patch
+drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
+git-netdev-all.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+hptiop-fix-type-mismatch-warning.patch
+ips-remove-ips_ha-members-that-duplicate-struct-pci_dev-members.patch
+ips-trim-trailing-whitespace.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+ips-pci-api-cleanups.patch
+ips-handle-scsi_add_host-failure-and-other-err-cleanups.patch
+git-wireless.patch
+x86-fix-config_smp-warning-in-processorc.patch
+x86-fix-config_smp-warning-in-processorc-fix.patch
+fix-versus-precedence-in-various-places.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness.patch
+riscom8-fix-smp-brokenness-fix.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+sound-oss-sb_commonc-fix-casting-warning.patch
+remove-warnings-for-longstanding-conditions.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+remove-warnings-for-longstanding-conditions-checkpatch-fixes.patch
