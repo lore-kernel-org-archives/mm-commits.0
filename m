@@ -1,145 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: + git-perfmon-fill-in-i386-syscall-table.patch added to -mm tree
-Date: Fri, 26 Oct 2007 11:55:48 -0700
-Message-ID: <200710261855.l9QItmLQ009483@imap1.linux-foundation.org>
+Subject: - dont-touch-fs_struct-in-drivers.patch removed from -mm tree
+Date: Fri, 26 Oct 2007 11:58:14 -0700
+Message-ID: <200710261858.l9QIwFVJ009515@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37626 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46642 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751291AbXJZS4M (ORCPT
+	by vger.kernel.org with ESMTP id S1751953AbXJZS6f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Oct 2007 14:56:12 -0400
+	Fri, 26 Oct 2007 14:58:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, eranian@hpl.hp.com, penberg@cs.helsinki.fi
+To: jblunck@suse.de, bharata@linux.vnet.ibm.com, hch@lst.de, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-perfmon: fill in i386 syscall table
-has been added to the -mm tree.  Its filename is
-     git-perfmon-fill-in-i386-syscall-table.patch
+     Don't touch fs_struct in drivers
+has been removed from the -mm tree.  Its filename was
+     dont-touch-fs_struct-in-drivers.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: git-perfmon: fill in i386 syscall table
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Don't touch fs_struct in drivers
+From: Jan Blunck <jblunck@suse.de>
 
-They're defined in include/asm-x86/unistd_32.h so they shold occupy table
-slots in arch/x86/kernel/syscall_table_32.S.
+The sound drivers and the pnpbios core test for current->root != NULL.  This
+test seems to be unnecessary since we always have rootfs mounted before
+initializing the drivers.
 
-Because I'm about to renumber the revoke() sycalls..
-
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Stephane Eranian <eranian@hpl.hp.com>
+Signed-off-by: Jan Blunck <jblunck@suse.de>
+Signed-off-by: Bharata B Rao <bharata@linux.vnet.ibm.com>
+Acked-by: Christoph Hellwig <hch@lst.de>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/syscall_table_32.S |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/pnp/pnpbios/core.c     |    2 --
+ sound/core/seq/seq_clientmgr.c |    4 ++--
+ sound/core/seq/seq_device.c    |    3 ---
+ sound/core/sound.c             |    4 ----
+ sound/core/timer.c             |    2 --
+ sound/ppc/daca.c               |    5 ++---
+ sound/ppc/tumbler.c            |    5 ++---
+ 7 files changed, 6 insertions(+), 19 deletions(-)
 
-diff -puN arch/x86/kernel/syscall_table_32.S~git-perfmon-fill-in-i386-syscall-table arch/x86/kernel/syscall_table_32.S
---- a/arch/x86/kernel/syscall_table_32.S~git-perfmon-fill-in-i386-syscall-table
-+++ a/arch/x86/kernel/syscall_table_32.S
-@@ -324,3 +324,16 @@ ENTRY(sys_call_table)
- 	.long sys_timerfd
- 	.long sys_eventfd
- 	.long sys_fallocate
-+	.long sys_ni_syscall		/* pfm_create_context */ /* 325 */
-+	.long sys_ni_syscall		/* pfm_write_pmcs */
-+	.long sys_ni_syscall		/* pfm_write_pmds */
-+	.long sys_ni_syscall		/* pfm_read_pmds */
-+	.long sys_ni_syscall		/* pfm_load_context */
-+	.long sys_ni_syscall		/* pfm_start */		/* 330 */
-+	.long sys_ni_syscall		/* pfm_stop */
-+	.long sys_ni_syscall		/* pfm_restart */
-+	.long sys_ni_syscall		/* pfm_create_evtsets */
-+	.long sys_ni_syscall		/* pfm_getinfo_evtsets */
-+	.long sys_ni_syscall		/* pfm_delete_evtsets */ /* 335 */
-+	.long sys_ni_syscall		/* pfm_unload_context */
-+
+diff -puN drivers/pnp/pnpbios/core.c~dont-touch-fs_struct-in-drivers drivers/pnp/pnpbios/core.c
+--- a/drivers/pnp/pnpbios/core.c~dont-touch-fs_struct-in-drivers
++++ a/drivers/pnp/pnpbios/core.c
+@@ -105,8 +105,6 @@ static int pnp_dock_event(int dock, stru
+ 	char *argv[3], **envp, *buf, *scratch;
+ 	int i = 0, value;
+ 
+-	if (!current->fs->root)
+-		return -EAGAIN;
+ 	if (!(envp = kcalloc(20, sizeof(char *), GFP_KERNEL)))
+ 		return -ENOMEM;
+ 	if (!(buf = kzalloc(256, GFP_KERNEL))) {
+diff -puN sound/core/seq/seq_clientmgr.c~dont-touch-fs_struct-in-drivers sound/core/seq/seq_clientmgr.c
+--- a/sound/core/seq/seq_clientmgr.c~dont-touch-fs_struct-in-drivers
++++ a/sound/core/seq/seq_clientmgr.c
+@@ -152,13 +152,13 @@ struct snd_seq_client *snd_seq_client_us
+ 	}
+ 	spin_unlock_irqrestore(&clients_lock, flags);
+ #ifdef CONFIG_KMOD
+-	if (!in_interrupt() && current->fs->root) {
++	if (!in_interrupt()) {
+ 		static char client_requested[SNDRV_SEQ_GLOBAL_CLIENTS];
+ 		static char card_requested[SNDRV_CARDS];
+ 		if (clientid < SNDRV_SEQ_GLOBAL_CLIENTS) {
+ 			int idx;
+ 			
+-			if (! client_requested[clientid] && current->fs->root) {
++			if (!client_requested[clientid]) {
+ 				client_requested[clientid] = 1;
+ 				for (idx = 0; idx < 15; idx++) {
+ 					if (seq_client_load[idx] < 0)
+diff -puN sound/core/seq/seq_device.c~dont-touch-fs_struct-in-drivers sound/core/seq/seq_device.c
+--- a/sound/core/seq/seq_device.c~dont-touch-fs_struct-in-drivers
++++ a/sound/core/seq/seq_device.c
+@@ -150,9 +150,6 @@ void snd_seq_device_load_drivers(void)
+ 	if (snd_seq_in_init)
+ 		return;
+ 
+-	if (! current->fs->root)
+-		return;
+-
+ 	mutex_lock(&ops_mutex);
+ 	list_for_each_entry(ops, &opslist, list) {
+ 		if (! (ops->driver & DRIVER_LOADED) &&
+diff -puN sound/core/sound.c~dont-touch-fs_struct-in-drivers sound/core/sound.c
+--- a/sound/core/sound.c~dont-touch-fs_struct-in-drivers
++++ a/sound/core/sound.c
+@@ -72,8 +72,6 @@ static DEFINE_MUTEX(sound_mutex);
+  */
+ void snd_request_card(int card)
+ {
+-	if (! current->fs->root)
+-		return;
+ 	if (snd_card_locked(card))
+ 		return;
+ 	if (card < 0 || card >= cards_limit)
+@@ -87,8 +85,6 @@ static void snd_request_other(int minor)
+ {
+ 	char *str;
+ 
+-	if (! current->fs->root)
+-		return;
+ 	switch (minor) {
+ 	case SNDRV_MINOR_SEQUENCER:	str = "snd-seq";	break;
+ 	case SNDRV_MINOR_TIMER:		str = "snd-timer";	break;
+diff -puN sound/core/timer.c~dont-touch-fs_struct-in-drivers sound/core/timer.c
+--- a/sound/core/timer.c~dont-touch-fs_struct-in-drivers
++++ a/sound/core/timer.c
+@@ -148,8 +148,6 @@ static struct snd_timer *snd_timer_find(
+ 
+ static void snd_timer_request(struct snd_timer_id *tid)
+ {
+-	if (! current->fs->root)
+-		return;
+ 	switch (tid->dev_class) {
+ 	case SNDRV_TIMER_CLASS_GLOBAL:
+ 		if (tid->device < timer_limit)
+diff -puN sound/ppc/daca.c~dont-touch-fs_struct-in-drivers sound/ppc/daca.c
+--- a/sound/ppc/daca.c~dont-touch-fs_struct-in-drivers
++++ a/sound/ppc/daca.c
+@@ -246,9 +246,8 @@ int __init snd_pmac_daca_init(struct snd
+ 	struct pmac_daca *mix;
+ 
+ #ifdef CONFIG_KMOD
+-	if (current->fs->root)
+-		request_module("i2c-powermac");
+-#endif /* CONFIG_KMOD */	
++	request_module("i2c-powermac");
++#endif /* CONFIG_KMOD */
+ 
+ 	mix = kzalloc(sizeof(*mix), GFP_KERNEL);
+ 	if (! mix)
+diff -puN sound/ppc/tumbler.c~dont-touch-fs_struct-in-drivers sound/ppc/tumbler.c
+--- a/sound/ppc/tumbler.c~dont-touch-fs_struct-in-drivers
++++ a/sound/ppc/tumbler.c
+@@ -1327,9 +1327,8 @@ int __init snd_pmac_tumbler_init(struct 
+ 	char *chipname;
+ 
+ #ifdef CONFIG_KMOD
+-	if (current->fs->root)
+-		request_module("i2c-powermac");
+-#endif /* CONFIG_KMOD */	
++	request_module("i2c-powermac");
++#endif /* CONFIG_KMOD */
+ 
+ 	mix = kzalloc(sizeof(*mix), GFP_KERNEL);
+ 	if (! mix)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jblunck@suse.de are
 
-origin.patch
-sunrpc-fix-rpc-debugging-checkpatch-fixes.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
-ide-arm-hack.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd-fixup.patch
-fix-build-breakage-if-sysfs-fix.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-git-unionfs.patch
-git-watchdog.patch
-watchdog-add-nano-7240-driver-checkpatch-fixes.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-x86-fix-config_smp-warning-in-processorc-fix.patch
-i386-and-x86_64-randomize-brk-fix.patch
-git-perfmon-fill-in-i386-syscall-table.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-remove-warnings-for-longstanding-conditions-checkpatch-fixes.patch
-sync_sb_inodes-propagate-errors.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
+r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime-fix.patch
+r-o-bind-mounts-track-number-of-mount-writers-fix.patch
+dont-touch-fs_struct-in-drivers.patch
+dont-touch-fs_struct-in-usermodehelper.patch
+remove-path_release_on_umount.patch
+move-struct-path-into-its-own-header.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+introduce-path_put.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+introduce-path_get.patch
+use-struct-path-in-fs_struct.patch
+make-set_fs_rootpwd-take-a-struct-path.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
+introduce-path_put-unionfs.patch
+introduce-path_get-unionfs.patch
