@@ -1,109 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - isdn-sc-fix-longstanding-warning.patch removed from -mm tree
-Date: Fri, 26 Oct 2007 11:48:44 -0700
-Message-ID: <200710261848.l9QImift009165@imap1.linux-foundation.org>
+Subject: - ext4-return-after-ext4_error-in-case-of-failures.patch removed from -mm tree
+Date: Fri, 26 Oct 2007 11:48:49 -0700
+Message-ID: <200710261848.l9QImnGi009171@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44155 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46816 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752186AbXJZStE (ORCPT
+	by vger.kernel.org with ESMTP id S1752614AbXJZStO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Oct 2007 14:49:04 -0400
+	Fri, 26 Oct 2007 14:49:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff@garzik.org, jgarzik@redhat.com, kkeil@suse.de, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, bunk@kernel.org, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ISDN/sc: fix longstanding warning
+     ext4: return after ext4_error in case of failures
 has been removed from the -mm tree.  Its filename was
-     isdn-sc-fix-longstanding-warning.patch
+     ext4-return-after-ext4_error-in-case-of-failures.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ISDN/sc: fix longstanding warning
-From: Jeff Garzik <jeff@garzik.org>
+Subject: ext4: return after ext4_error in case of failures
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 
-drivers/isdn/sc/shmem.c: In function `memcpy_toshmem':
-drivers/isdn/sc/shmem.c:54: warning: passing argument 1 of `memcpy_toio' makes pointer from integer without a cast
+This fix some instances where we were continuing after calling ext4_error. 
+ext4_error call panic only if errors=panic mount option is set.  So we need to
+make sure we return correctly after ext4_error call
 
-Also, remove some unneeded braces, and add some useful whitespace.
-
-Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
-Acked-by: Karsten Keil <kkeil@suse.de>
+Reported-by: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/sc/shmem.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ fs/ext4/balloc.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN drivers/isdn/sc/shmem.c~isdn-sc-fix-longstanding-warning drivers/isdn/sc/shmem.c
---- a/drivers/isdn/sc/shmem.c~isdn-sc-fix-longstanding-warning
-+++ a/drivers/isdn/sc/shmem.c
-@@ -28,15 +28,15 @@ void memcpy_toshmem(int card, void *dest
- {
- 	unsigned long flags;
- 	unsigned char ch;
-+	unsigned long dest_rem = ((unsigned long) dest) % 0x4000;
- 
--	if(!IS_VALID_CARD(card)) {
-+	if (!IS_VALID_CARD(card)) {
- 		pr_debug("Invalid param: %d is not a valid card id\n", card);
- 		return;
+diff -puN fs/ext4/balloc.c~ext4-return-after-ext4_error-in-case-of-failures fs/ext4/balloc.c
+--- a/fs/ext4/balloc.c~ext4-return-after-ext4_error-in-case-of-failures
++++ a/fs/ext4/balloc.c
+@@ -234,11 +234,13 @@ read_block_bitmap(struct super_block *sb
+ 	} else {
+ 		bh = sb_bread(sb, bitmap_blk);
  	}
+-	if (!bh)
++	if (!bh) {
+ 		ext4_error (sb, __FUNCTION__,
+ 			    "Cannot read block bitmap - "
+ 			    "block_group = %d, block_bitmap = %llu",
+ 			    block_group, bitmap_blk);
++		return NULL;
++	}
  
--	if(n > SRAM_PAGESIZE) {
-+	if (n > SRAM_PAGESIZE)
- 		return;
--	}
+ 	/* check whether block bitmap block number is set */
+ 	if (!block_in_use(bitmap_blk, sb, bh->b_data)) {
+@@ -630,11 +632,13 @@ do_more:
+ 	    in_range(ext4_inode_bitmap(sb, desc), block, count) ||
+ 	    in_range(block, ext4_inode_table(sb, desc), sbi->s_itb_per_group) ||
+ 	    in_range(block + count - 1, ext4_inode_table(sb, desc),
+-		     sbi->s_itb_per_group))
++		     sbi->s_itb_per_group)) {
+ 		ext4_error (sb, "ext4_free_blocks",
+ 			    "Freeing blocks in system zones - "
+ 			    "Block = %llu, count = %lu",
+ 			    block, count);
++		goto error_return;
++	}
  
  	/*
- 	 * determine the page to load from the address
-@@ -50,8 +50,7 @@ void memcpy_toshmem(int card, void *dest
+ 	 * We are about to start releasing blocks in the bitmap,
+@@ -1745,11 +1749,13 @@ allocated:
+ 	    in_range(ret_block, ext4_inode_table(sb, gdp),
+ 		     EXT4_SB(sb)->s_itb_per_group) ||
+ 	    in_range(ret_block + num - 1, ext4_inode_table(sb, gdp),
+-		     EXT4_SB(sb)->s_itb_per_group))
++		     EXT4_SB(sb)->s_itb_per_group)) {
+ 		ext4_error(sb, "ext4_new_block",
+ 			    "Allocating block in system zone - "
+ 			    "blocks from %llu, length %lu",
+ 			     ret_block, num);
++		goto out;
++	}
  
- 	outb(((sc_adapter[card]->shmem_magic + ch * SRAM_PAGESIZE) >> 14) | 0x80,
- 		sc_adapter[card]->ioport[sc_adapter[card]->shmem_pgport]);
--	memcpy_toio(sc_adapter[card]->rambase +
--		((unsigned long) dest % 0x4000), src, n);
-+	memcpy_toio(sc_adapter[card]->rambase + dest_rem, src, n);
- 	spin_unlock_irqrestore(&sc_adapter[card]->lock, flags);
- 	pr_debug("%s: set page to %#x\n",sc_adapter[card]->devicename,
- 		((sc_adapter[card]->shmem_magic + ch * SRAM_PAGESIZE)>>14)|0x80);
+ 	performed_allocation = 1;
+ 
 _
 
-Patches currently in -mm which might be from jeff@garzik.org are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
-origin.patch
-remove-bogus-default-y-for-dmar-and-net_dma.patch
-acpi-sbs-fix-retval-warning.patch
-git-jg-misc.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-ide-add-helper-__ide_setup_pci_device.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-git-netdev-all.patch
-forcedeth-power-down-phy-when-interface-is-down.patch
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-hptiop-fix-type-mismatch-warning.patch
-ips-remove-ips_ha-members-that-duplicate-struct-pci_dev-members.patch
-ips-trim-trailing-whitespace.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-ips-pci-api-cleanups.patch
-ips-handle-scsi_add_host-failure-and-other-err-cleanups.patch
-git-wireless.patch
-x86-fix-config_smp-warning-in-processorc.patch
-x86-fix-config_smp-warning-in-processorc-fix.patch
-fix-versus-precedence-in-various-places.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness.patch
-riscom8-fix-smp-brokenness-fix.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-sound-oss-sb_commonc-fix-casting-warning.patch
-remove-warnings-for-longstanding-conditions.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-remove-warnings-for-longstanding-conditions-checkpatch-fixes.patch
+ext2-return-after-ext2_error-in-case-of-failures.patch
+ext2-change-the-default-behaviour-on-error.patch
+ext3-return-after-ext3_error-in-case-of-failures.patch
+ext3-change-the-default-behaviour-on-error.patch
