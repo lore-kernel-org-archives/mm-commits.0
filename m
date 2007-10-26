@@ -1,96 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-fix-the-max-file-size-for-ext3-file-system.patch removed from -mm tree
-Date: Fri, 26 Oct 2007 11:48:53 -0700
-Message-ID: <200710261848.l9QImrVp009177__2801.33263809166$1193424950$gmane$org@imap1.linux-foundation.org>
+Subject: + git-perfmon-fill-in-i386-syscall-table.patch added to -mm tree
+Date: Fri, 26 Oct 2007 11:55:48 -0700
+Message-ID: <200710261855.l9QItmLQ009483@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58403 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37626 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751936AbXJZSzN (ORCPT
+	by vger.kernel.org with ESMTP id S1751291AbXJZS4M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Oct 2007 14:55:13 -0400
+	Fri, 26 Oct 2007 14:56:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, eranian@hpl.hp.com, penberg@cs.helsinki.fi
 
 
 The patch titled
-     ext3: fix the max file size for ext3 file system
-has been removed from the -mm tree.  Its filename was
-     ext3-fix-the-max-file-size-for-ext3-file-system.patch
+     git-perfmon: fill in i386 syscall table
+has been added to the -mm tree.  Its filename is
+     git-perfmon-fill-in-i386-syscall-table.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: ext3: fix the max file size for ext3 file system
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: git-perfmon: fill in i386 syscall table
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The max file size for ext3 file system is now calculated with hardcoded 4K
-block size.  The patch fixes it to be calculated with the right block size.
+They're defined in include/asm-x86/unistd_32.h so they shold occupy table
+slots in arch/x86/kernel/syscall_table_32.S.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: <linux-ext4@vger.kernel.org>
+Because I'm about to renumber the revoke() sycalls..
+
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Stephane Eranian <eranian@hpl.hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/super.c |   32 ++++++++++++++++++++++++++++----
- 1 file changed, 28 insertions(+), 4 deletions(-)
+ arch/x86/kernel/syscall_table_32.S |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN fs/ext3/super.c~ext3-fix-the-max-file-size-for-ext3-file-system fs/ext3/super.c
---- a/fs/ext3/super.c~ext3-fix-the-max-file-size-for-ext3-file-system
-+++ a/fs/ext3/super.c
-@@ -1436,11 +1436,31 @@ static void ext3_orphan_cleanup (struct 
- static loff_t ext3_max_size(int bits)
- {
- 	loff_t res = EXT3_NDIR_BLOCKS;
--	/* This constant is calculated to be the largest file size for a
--	 * dense, 4k-blocksize file such that the total number of
-+	int meta_blocks;
-+	loff_t upper_limit;
+diff -puN arch/x86/kernel/syscall_table_32.S~git-perfmon-fill-in-i386-syscall-table arch/x86/kernel/syscall_table_32.S
+--- a/arch/x86/kernel/syscall_table_32.S~git-perfmon-fill-in-i386-syscall-table
++++ a/arch/x86/kernel/syscall_table_32.S
+@@ -324,3 +324,16 @@ ENTRY(sys_call_table)
+ 	.long sys_timerfd
+ 	.long sys_eventfd
+ 	.long sys_fallocate
++	.long sys_ni_syscall		/* pfm_create_context */ /* 325 */
++	.long sys_ni_syscall		/* pfm_write_pmcs */
++	.long sys_ni_syscall		/* pfm_write_pmds */
++	.long sys_ni_syscall		/* pfm_read_pmds */
++	.long sys_ni_syscall		/* pfm_load_context */
++	.long sys_ni_syscall		/* pfm_start */		/* 330 */
++	.long sys_ni_syscall		/* pfm_stop */
++	.long sys_ni_syscall		/* pfm_restart */
++	.long sys_ni_syscall		/* pfm_create_evtsets */
++	.long sys_ni_syscall		/* pfm_getinfo_evtsets */
++	.long sys_ni_syscall		/* pfm_delete_evtsets */ /* 335 */
++	.long sys_ni_syscall		/* pfm_unload_context */
 +
-+	/* This is calculated to be the largest file size for a
-+	 * dense, file such that the total number of
- 	 * sectors in the file, including data and all indirect blocks,
--	 * does not exceed 2^32. */
--	const loff_t upper_limit = 0x1ff7fffd000LL;
-+	 * does not exceed 2^32 -1
-+	 * __u32 i_blocks representing the total number of
-+	 * 512 bytes blocks of the file
-+	 */
-+	upper_limit = (1LL << 32) - 1;
-+
-+	/* total blocks in file system block size */
-+	upper_limit >>= (bits - 9);
-+
-+
-+	/* indirect blocks */
-+	meta_blocks = 1;
-+	/* double indirect blocks */
-+	meta_blocks += 1 + (1LL << (bits-2));
-+	/* tripple indirect blocks */
-+	meta_blocks += 1 + (1LL << (bits-2)) + (1LL << (2*(bits-2)));
-+
-+	upper_limit -= meta_blocks;
-+	upper_limit <<= bits;
- 
- 	res += 1LL << (bits-2);
- 	res += 1LL << (2*(bits-2));
-@@ -1448,6 +1468,10 @@ static loff_t ext3_max_size(int bits)
- 	res <<= bits;
- 	if (res > upper_limit)
- 		res = upper_limit;
-+
-+	if (res > MAX_LFS_FILESIZE)
-+		res = MAX_LFS_FILESIZE;
-+
- 	return res;
- }
- 
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ext2-return-after-ext2_error-in-case-of-failures.patch
-ext2-change-the-default-behaviour-on-error.patch
-ext3-return-after-ext3_error-in-case-of-failures.patch
-ext3-change-the-default-behaviour-on-error.patch
+origin.patch
+sunrpc-fix-rpc-debugging-checkpatch-fixes.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+revert-gregkh-driver-block-device.patch
+git-hwmon.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
+ide-arm-hack.patch
+drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
+nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd-fixup.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+git-unionfs.patch
+git-watchdog.patch
+watchdog-add-nano-7240-driver-checkpatch-fixes.patch
+git-wireless.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-x86.patch
+git-x86-fixup.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+x86-fix-config_smp-warning-in-processorc-fix.patch
+i386-and-x86_64-randomize-brk-fix.patch
+git-perfmon-fill-in-i386-syscall-table.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+remove-warnings-for-longstanding-conditions-checkpatch-fixes.patch
+sync_sb_inodes-propagate-errors.patch
+64-bit-i_version-afs-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
