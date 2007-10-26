@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-path_get.patch removed from -mm tree
-Date: Fri, 26 Oct 2007 11:58:46 -0700
-Message-ID: <200710261858.l9QIwktx009545@imap1.linux-foundation.org>
+Subject: - introduce-path_get-unionfs.patch removed from -mm tree
+Date: Fri, 26 Oct 2007 11:59:00 -0700
+Message-ID: <200710261859.l9QIx0pj009566@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60352 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57758 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753560AbXJZTEF (ORCPT
+	by vger.kernel.org with ESMTP id S1753560AbXJZTE3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Oct 2007 15:04:05 -0400
+	Fri, 26 Oct 2007 15:04:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jblunck@suse.de, agruen@suse.de, bharata@linux.vnet.ibm.com, hch@lst.de, mm-commits@vger.kernel.org
+To: jblunck@suse.de, agruen@suse.de, bharata@linux.vnet.ibm.com, ezk@cs.sunysb.edu, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
      Introduce path_get()
 has been removed from the -mm tree.  Its filename was
-     introduce-path_get.patch
+     introduce-path_get-unionfs.patch
 
 This patch was dropped because an updated version will be merged
 
@@ -32,82 +32,29 @@ Signed-off-by: Jan Blunck <jblunck@suse.de>
 Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
 Signed-off-by: Bharata B Rao <bharata@linux.vnet.ibm.com>
 Acked-by: Christoph Hellwig <hch@lst.de>
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c            |   17 +++++++++++++++--
- include/linux/namei.h |    6 ------
- include/linux/path.h  |    1 +
- 3 files changed, 16 insertions(+), 8 deletions(-)
+ fs/unionfs/super.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/namei.c~introduce-path_get fs/namei.c
---- a/fs/namei.c~introduce-path_get
-+++ a/fs/namei.c
-@@ -363,6 +363,19 @@ int deny_write_access(struct file * file
- }
+diff -puN fs/unionfs/super.c~introduce-path_get-unionfs fs/unionfs/super.c
+--- a/fs/unionfs/super.c~introduce-path_get-unionfs
++++ a/fs/unionfs/super.c
+@@ -544,7 +544,7 @@ static int unionfs_remount_fs(struct sup
+ 	memcpy(tmp_lower_paths, UNIONFS_D(sb->s_root)->lower_paths,
+ 	       cur_branches * sizeof(struct path));
+ 	for (i = 0; i < cur_branches; i++)
+-		pathget(&tmp_lower_paths[i]); /* drop refs at end of fxn */
++		path_get(&tmp_lower_paths[i]); /* drop refs at end of fxn */
  
- /**
-+ * path_get - get a reference to a path
-+ * @path: path to get the reference to
-+ *
-+ * Given a path increment the reference count to the dentry and the vfsmount.
-+ */
-+void path_get(struct path *path)
-+{
-+	mntget(path->mnt);
-+	dget(path->dentry);
-+}
-+EXPORT_SYMBOL(path_get);
-+
-+/**
-  * path_put - put a reference to a path
-  * @path: path to put the reference to
-  *
-@@ -1161,8 +1174,8 @@ static int fastcall do_path_lookup(int d
- 		if (retval)
- 			goto fput_fail;
- 
--		nd->path.mnt = mntget(file->f_path.mnt);
--		nd->path.dentry = dget(dentry);
-+		nd->path = file->f_path;
-+		path_get(&file->f_path);
- 
- 		fput_light(file, fput_needed);
- 	}
-diff -puN include/linux/namei.h~introduce-path_get include/linux/namei.h
---- a/include/linux/namei.h~introduce-path_get
-+++ a/include/linux/namei.h
-@@ -94,10 +94,4 @@ static inline char *nd_get_link(struct n
- 	return nd->saved_names[nd->depth];
- }
- 
--static inline void pathget(struct path *path)
--{
--	mntget(path->mnt);
--	dget(path->dentry);
--}
--
- #endif /* _LINUX_NAMEI_H */
-diff -puN include/linux/path.h~introduce-path_get include/linux/path.h
---- a/include/linux/path.h~introduce-path_get
-+++ a/include/linux/path.h
-@@ -9,6 +9,7 @@ struct path {
- 	struct dentry *dentry;
- };
- 
-+extern void path_get(struct path *);
- extern void path_put(struct path *);
- 
- #endif  /* _LINUX_PATH_H */
+ 	/*******************************************************************
+ 	 * For each branch command, do path_lookup on the requested branch,
 _
 
 Patches currently in -mm which might be from jblunck@suse.de are
 
 r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime-fix.patch
 r-o-bind-mounts-track-number-of-mount-writers-fix.patch
-introduce-path_get.patch
-use-struct-path-in-fs_struct.patch
-make-set_fs_rootpwd-take-a-struct-path.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
-introduce-path_put-unionfs.patch
 introduce-path_get-unionfs.patch
