@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fallback-to-no-irq-hack-for-case-of-no-pnp_irq-allocated-for-8250_pnp.patch added to -mm tree
-Date: Thu, 25 Oct 2007 16:27:00 -0700
-Message-ID: <200710252327.l9PNR0p2029380@imap1.linux-foundation.org>
+Subject: + powerpc-move-_rtc_time-routines-under-config_adb_cuda.patch added to -mm tree
+Date: Thu, 25 Oct 2007 20:49:30 -0700
+Message-ID: <200710260349.l9Q3nU1P006155@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47412 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57753 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751221AbXJYX1v (ORCPT
+	by vger.kernel.org with ESMTP id S1750759AbXJZDuK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 25 Oct 2007 19:27:51 -0400
+	Thu, 25 Oct 2007 23:50:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: luming.yu@gmail.com, alan@lxorguk.ukuu.org.uk, bjorn.helgaas@hp.com, luming.yu@intel.com, matthew@wil.cx, rmk@arm.linux.org.uk
+Cc: pbadari@us.ibm.com
 
 
 The patch titled
-     fallback to "no irq" hack for case of no pnp_irq allocated for 8250_pnp
+     powerpc: move _rtc_time() routines under CONFIG_ADB_CUDA
 has been added to the -mm tree.  Its filename is
-     fallback-to-no-irq-hack-for-case-of-no-pnp_irq-allocated-for-8250_pnp.patch
+     powerpc-move-_rtc_time-routines-under-config_adb_cuda.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,47 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fallback to "no irq" hack for case of no pnp_irq allocated for 8250_pnp
-From: "Luming Yu" <luming.yu@gmail.com>
+Subject: powerpc: move _rtc_time() routines under CONFIG_ADB_CUDA
+From: Badari Pulavarty <pbadari@us.ibm.com>
 
-There is a "ttyS1 irq is -1" problem observed on tiger4 which cause
-the serial port broken.
+to_rtc_time() and from_rtc_time() seems to be used only if CONFIG_ADB_CUDA
+defined. Moving them under that ifdef.
 
-It is because that there is __no__ ACPI IRQ resource assigned for the
-serial port.  So the value of the IRQ for the port is never changed since
-it got initialized to -1.  The attached patch falls back to the "no irq"
-hack for this case.  It works for me.
+arch/powerpc/platforms/powermac/time.c:88: warning: `to_rtc_time' defined but not used
+arch/powerpc/platforms/powermac/time.c:95: warning: `from_rtc_time' defined but not used
 
-Alan sayeth: "Should really fix pnp_irq() to use zero to mean none as the
-kernel intends.  If that causes other complications then this hack will do for
-now I guess."
-
-Signed-off-by: Yu Luming <luming.yu@intel.com>
-Seems-reasonable-to: Matthew Wilcox <matthew@wil.cx>
-Sort-of-acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Might-be-the-fault-of: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pnp.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/powerpc/platforms/powermac/time.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/8250_pnp.c~fallback-to-no-irq-hack-for-case-of-no-pnp_irq-allocated-for-8250_pnp drivers/serial/8250_pnp.c
---- a/drivers/serial/8250_pnp.c~fallback-to-no-irq-hack-for-case-of-no-pnp_irq-allocated-for-8250_pnp
-+++ a/drivers/serial/8250_pnp.c
-@@ -433,6 +433,9 @@ serial_pnp_probe(struct pnp_dev *dev, co
+diff -puN arch/powerpc/platforms/powermac/time.c~powerpc-move-_rtc_time-routines-under-config_adb_cuda arch/powerpc/platforms/powermac/time.c
+--- a/arch/powerpc/platforms/powermac/time.c~powerpc-move-_rtc_time-routines-under-config_adb_cuda
++++ a/arch/powerpc/platforms/powermac/time.c
+@@ -84,6 +84,7 @@ long __init pmac_time_init(void)
+ 	return delta;
+ }
  
- 	memset(&port, 0, sizeof(struct uart_port));
- 	port.irq = pnp_irq(dev, 0);
-+	/* No irq is assigned for the port, fallback to "no irq" hack */
-+	if (port.irq == -1)
-+		port.irq = 0;
- 	if (pnp_port_valid(dev, 0)) {
- 		port.iobase = pnp_port_start(dev, 0);
- 		port.iotype = UPIO_PORT;
++#ifdef CONFIG_ADB_CUDA
+ static void to_rtc_time(unsigned long now, struct rtc_time *tm)
+ {
+ 	to_tm(now, tm);
+@@ -97,7 +98,6 @@ static unsigned long from_rtc_time(struc
+ 		      tm->tm_hour, tm->tm_min, tm->tm_sec);
+ }
+ 
+-#ifdef CONFIG_ADB_CUDA
+ static unsigned long cuda_get_time(void)
+ {
+ 	struct adb_request req;
 _
 
-Patches currently in -mm which might be from luming.yu@gmail.com are
+Patches currently in -mm which might be from pbadari@us.ibm.com are
 
-fallback-to-no-irq-hack-for-case-of-no-pnp_irq-allocated-for-8250_pnp.patch
+powerpc-move-_rtc_time-routines-under-config_adb_cuda.patch
+hugetlb-allow-sticky-directory-mount-option.patch
+mem-controller-gfp-mask-fix.patch
