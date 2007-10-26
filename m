@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fuse_file_alloc-fix-null-dereferences.patch added to -mm tree
-Date: Fri, 26 Oct 2007 15:05:12 -0700
-Message-ID: <200710262205.l9QM5CWt016955@imap1.linux-foundation.org>
+Subject: + eccbuf-is-statically-defined-and-always-evaluate-to-true.patch added to -mm tree
+Date: Fri, 26 Oct 2007 15:09:59 -0700
+Message-ID: <200710262209.l9QM9xUs017048@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58056 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52571 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755516AbXJZWG1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753598AbXJZWL3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Oct 2007 18:06:27 -0400
+	Fri, 26 Oct 2007 18:11:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, miklos@szeredi.hu
+Cc: sam@rfc1149.net, dwmw2@infradead.org, joern@logfs.org
 
 
 The patch titled
-     fuse_file_alloc(): fix NULL dereferences
+     mtd: eccbuf is statically defined and always evaluate to true
 has been added to the -mm tree.  Its filename is
-     fuse_file_alloc-fix-null-dereferences.patch
+     eccbuf-is-statically-defined-and-always-evaluate-to-true.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,52 +26,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fuse_file_alloc(): fix NULL dereferences
-From: Adrian Bunk <bunk@kernel.org>
+Subject: mtd: eccbuf is statically defined and always evaluate to true
+From: Samuel Tardieu <sam@rfc1149.net>
 
-Fix obvious NULL dereferences spotted by the Coverity checker.
-
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Miklos Szeredi <miklos@szeredi.hu>
+Signed-off-by: Samuel Tardieu <sam@rfc1149.net>
+Acked-by: Joern Engel <joern@logfs.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/file.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/mtd/devices/doc2000.c     |    4 ++--
+ drivers/mtd/devices/doc2001plus.c |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/fuse/file.c~fuse_file_alloc-fix-null-dereferences fs/fuse/file.c
---- a/fs/fuse/file.c~fuse_file_alloc-fix-null-dereferences
-+++ a/fs/fuse/file.c
-@@ -55,9 +55,10 @@ struct fuse_file *fuse_file_alloc(void)
- 		if (!ff->reserved_req) {
- 			kfree(ff);
- 			ff = NULL;
-+		} else {
-+			INIT_LIST_HEAD(&ff->write_entry);
-+			atomic_set(&ff->count, 0);
- 		}
--		INIT_LIST_HEAD(&ff->write_entry);
--		atomic_set(&ff->count, 0);
- 	}
- 	return ff;
- }
+diff -puN drivers/mtd/devices/doc2000.c~eccbuf-is-statically-defined-and-always-evaluate-to-true drivers/mtd/devices/doc2000.c
+--- a/drivers/mtd/devices/doc2000.c~eccbuf-is-statically-defined-and-always-evaluate-to-true
++++ a/drivers/mtd/devices/doc2000.c
+@@ -632,7 +632,7 @@ static int doc_read(struct mtd_info *mtd
+ 			len = ((from | 0x1ff) + 1) - from;
+ 
+ 		/* The ECC will not be calculated correctly if less than 512 is read */
+-		if (len != 0x200 && eccbuf)
++		if (len != 0x200)
+ 			printk(KERN_WARNING
+ 			       "ECC needs a full sector read (adr: %lx size %lx)\n",
+ 			       (long) from, (long) len);
+@@ -896,7 +896,7 @@ static int doc_write(struct mtd_info *mt
+ 		/* Let the caller know we completed it */
+ 		*retlen += len;
+ 
+-		if (eccbuf) {
++		{
+ 			unsigned char x[8];
+ 			size_t dummy;
+ 			int ret;
+diff -puN drivers/mtd/devices/doc2001plus.c~eccbuf-is-statically-defined-and-always-evaluate-to-true drivers/mtd/devices/doc2001plus.c
+--- a/drivers/mtd/devices/doc2001plus.c~eccbuf-is-statically-defined-and-always-evaluate-to-true
++++ a/drivers/mtd/devices/doc2001plus.c
+@@ -748,7 +748,7 @@ static int doc_write(struct mtd_info *mt
+ 	WriteDOC(DoC_GetDataOffset(mtd, &fto), docptr, Mplus_FlashCmd);
+ 
+ 	/* On interleaved devices the flags for 2nd half 512 are before data */
+-	if (eccbuf && before)
++	if (before)
+ 		fto -= 2;
+ 
+ 	/* issue the Serial Data In command to initial the Page Program process */
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from sam@rfc1149.net are
 
-origin.patch
-ipmi-fix-comparison-in-demangle_device_id.patch
-git-acpi.patch
-git-dvb.patch
-git-hwmon.patch
-git-nfs-make-nfs_wb_page_priority-static.patch
-git-ocfs2.patch
-git-sh64.patch
-sunrpc-xprtrdma-transportc-fix-use-after-free.patch
-fix-mm-utilckrealloc.patch
-fuse_file_alloc-fix-null-dereferences.patch
-fuse-fuse_file_alloc-fix-null-dereferences.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-reiser4.patch
+eccbuf-is-statically-defined-and-always-evaluate-to-true.patch
