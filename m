@@ -1,166 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - dont-touch-fs_struct-in-drivers.patch removed from -mm tree
-Date: Fri, 26 Oct 2007 11:58:14 -0700
-Message-ID: <200710261858.l9QIwFVJ009515@imap1.linux-foundation.org>
+Subject: - remove-path_release_on_umount.patch removed from -mm tree
+Date: Fri, 26 Oct 2007 11:58:20 -0700
+Message-ID: <200710261858.l9QIwKpi009524@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46642 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45697 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751953AbXJZS6f (ORCPT
+	by vger.kernel.org with ESMTP id S1752124AbXJZS66 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Oct 2007 14:58:35 -0400
+	Fri, 26 Oct 2007 14:58:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jblunck@suse.de, bharata@linux.vnet.ibm.com, hch@lst.de, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: jblunck@suse.de, bharata@linux.vnet.ibm.com, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Don't touch fs_struct in drivers
+     Remove path_release_on_umount()
 has been removed from the -mm tree.  Its filename was
-     dont-touch-fs_struct-in-drivers.patch
+     remove-path_release_on_umount.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Don't touch fs_struct in drivers
+Subject: Remove path_release_on_umount()
 From: Jan Blunck <jblunck@suse.de>
 
-The sound drivers and the pnpbios core test for current->root != NULL.  This
-test seems to be unnecessary since we always have rootfs mounted before
-initializing the drivers.
+path_release_on_umount() should only be called from sys_umount().  I merged
+the function into sys_umount() instead of having in in namei.c.
 
 Signed-off-by: Jan Blunck <jblunck@suse.de>
 Signed-off-by: Bharata B Rao <bharata@linux.vnet.ibm.com>
 Acked-by: Christoph Hellwig <hch@lst.de>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/pnpbios/core.c     |    2 --
- sound/core/seq/seq_clientmgr.c |    4 ++--
- sound/core/seq/seq_device.c    |    3 ---
- sound/core/sound.c             |    4 ----
- sound/core/timer.c             |    2 --
- sound/ppc/daca.c               |    5 ++---
- sound/ppc/tumbler.c            |    5 ++---
- 7 files changed, 6 insertions(+), 19 deletions(-)
+ fs/namei.c            |   10 ----------
+ fs/namespace.c        |    4 +++-
+ include/linux/namei.h |    1 -
+ 3 files changed, 3 insertions(+), 12 deletions(-)
 
-diff -puN drivers/pnp/pnpbios/core.c~dont-touch-fs_struct-in-drivers drivers/pnp/pnpbios/core.c
---- a/drivers/pnp/pnpbios/core.c~dont-touch-fs_struct-in-drivers
-+++ a/drivers/pnp/pnpbios/core.c
-@@ -105,8 +105,6 @@ static int pnp_dock_event(int dock, stru
- 	char *argv[3], **envp, *buf, *scratch;
- 	int i = 0, value;
+diff -puN fs/namei.c~remove-path_release_on_umount fs/namei.c
+--- a/fs/namei.c~remove-path_release_on_umount
++++ a/fs/namei.c
+@@ -368,16 +368,6 @@ void path_release(struct nameidata *nd)
+ 	mntput(nd->mnt);
+ }
  
--	if (!current->fs->root)
--		return -EAGAIN;
- 	if (!(envp = kcalloc(20, sizeof(char *), GFP_KERNEL)))
- 		return -ENOMEM;
- 	if (!(buf = kzalloc(256, GFP_KERNEL))) {
-diff -puN sound/core/seq/seq_clientmgr.c~dont-touch-fs_struct-in-drivers sound/core/seq/seq_clientmgr.c
---- a/sound/core/seq/seq_clientmgr.c~dont-touch-fs_struct-in-drivers
-+++ a/sound/core/seq/seq_clientmgr.c
-@@ -152,13 +152,13 @@ struct snd_seq_client *snd_seq_client_us
- 	}
- 	spin_unlock_irqrestore(&clients_lock, flags);
- #ifdef CONFIG_KMOD
--	if (!in_interrupt() && current->fs->root) {
-+	if (!in_interrupt()) {
- 		static char client_requested[SNDRV_SEQ_GLOBAL_CLIENTS];
- 		static char card_requested[SNDRV_CARDS];
- 		if (clientid < SNDRV_SEQ_GLOBAL_CLIENTS) {
- 			int idx;
- 			
--			if (! client_requested[clientid] && current->fs->root) {
-+			if (!client_requested[clientid]) {
- 				client_requested[clientid] = 1;
- 				for (idx = 0; idx < 15; idx++) {
- 					if (seq_client_load[idx] < 0)
-diff -puN sound/core/seq/seq_device.c~dont-touch-fs_struct-in-drivers sound/core/seq/seq_device.c
---- a/sound/core/seq/seq_device.c~dont-touch-fs_struct-in-drivers
-+++ a/sound/core/seq/seq_device.c
-@@ -150,9 +150,6 @@ void snd_seq_device_load_drivers(void)
- 	if (snd_seq_in_init)
- 		return;
- 
--	if (! current->fs->root)
--		return;
+-/*
+- * umount() mustn't call path_release()/mntput() as that would clear
+- * mnt_expiry_mark
+- */
+-void path_release_on_umount(struct nameidata *nd)
+-{
+-	dput(nd->dentry);
+-	mntput_no_expire(nd->mnt);
+-}
 -
- 	mutex_lock(&ops_mutex);
- 	list_for_each_entry(ops, &opslist, list) {
- 		if (! (ops->driver & DRIVER_LOADED) &&
-diff -puN sound/core/sound.c~dont-touch-fs_struct-in-drivers sound/core/sound.c
---- a/sound/core/sound.c~dont-touch-fs_struct-in-drivers
-+++ a/sound/core/sound.c
-@@ -72,8 +72,6 @@ static DEFINE_MUTEX(sound_mutex);
-  */
- void snd_request_card(int card)
- {
--	if (! current->fs->root)
--		return;
- 	if (snd_card_locked(card))
- 		return;
- 	if (card < 0 || card >= cards_limit)
-@@ -87,8 +85,6 @@ static void snd_request_other(int minor)
- {
- 	char *str;
+ /**
+  * release_open_intent - free up open intent resources
+  * @nd: pointer to nameidata
+diff -puN fs/namespace.c~remove-path_release_on_umount fs/namespace.c
+--- a/fs/namespace.c~remove-path_release_on_umount
++++ a/fs/namespace.c
+@@ -991,7 +991,9 @@ asmlinkage long sys_umount(char __user *
  
--	if (! current->fs->root)
--		return;
- 	switch (minor) {
- 	case SNDRV_MINOR_SEQUENCER:	str = "snd-seq";	break;
- 	case SNDRV_MINOR_TIMER:		str = "snd-timer";	break;
-diff -puN sound/core/timer.c~dont-touch-fs_struct-in-drivers sound/core/timer.c
---- a/sound/core/timer.c~dont-touch-fs_struct-in-drivers
-+++ a/sound/core/timer.c
-@@ -148,8 +148,6 @@ static struct snd_timer *snd_timer_find(
+ 	retval = do_umount(nd.mnt, flags);
+ dput_and_out:
+-	path_release_on_umount(&nd);
++	/* we mustn't call path_put() as that would clear mnt_expiry_mark */
++	dput(nd.dentry);
++	mntput_no_expire(nd.mnt);
+ out:
+ 	return retval;
+ }
+diff -puN include/linux/namei.h~remove-path_release_on_umount include/linux/namei.h
+--- a/include/linux/namei.h~remove-path_release_on_umount
++++ a/include/linux/namei.h
+@@ -73,7 +73,6 @@ extern int FASTCALL(path_lookup(const ch
+ extern int vfs_path_lookup(struct dentry *, struct vfsmount *,
+ 			   const char *, unsigned int, struct nameidata *);
+ extern void path_release(struct nameidata *);
+-extern void path_release_on_umount(struct nameidata *);
  
- static void snd_timer_request(struct snd_timer_id *tid)
- {
--	if (! current->fs->root)
--		return;
- 	switch (tid->dev_class) {
- 	case SNDRV_TIMER_CLASS_GLOBAL:
- 		if (tid->device < timer_limit)
-diff -puN sound/ppc/daca.c~dont-touch-fs_struct-in-drivers sound/ppc/daca.c
---- a/sound/ppc/daca.c~dont-touch-fs_struct-in-drivers
-+++ a/sound/ppc/daca.c
-@@ -246,9 +246,8 @@ int __init snd_pmac_daca_init(struct snd
- 	struct pmac_daca *mix;
- 
- #ifdef CONFIG_KMOD
--	if (current->fs->root)
--		request_module("i2c-powermac");
--#endif /* CONFIG_KMOD */	
-+	request_module("i2c-powermac");
-+#endif /* CONFIG_KMOD */
- 
- 	mix = kzalloc(sizeof(*mix), GFP_KERNEL);
- 	if (! mix)
-diff -puN sound/ppc/tumbler.c~dont-touch-fs_struct-in-drivers sound/ppc/tumbler.c
---- a/sound/ppc/tumbler.c~dont-touch-fs_struct-in-drivers
-+++ a/sound/ppc/tumbler.c
-@@ -1327,9 +1327,8 @@ int __init snd_pmac_tumbler_init(struct 
- 	char *chipname;
- 
- #ifdef CONFIG_KMOD
--	if (current->fs->root)
--		request_module("i2c-powermac");
--#endif /* CONFIG_KMOD */	
-+	request_module("i2c-powermac");
-+#endif /* CONFIG_KMOD */
- 
- 	mix = kzalloc(sizeof(*mix), GFP_KERNEL);
- 	if (! mix)
+ extern int __user_path_lookup_open(const char __user *, unsigned lookup_flags, struct nameidata *nd, int open_flags);
+ extern int path_lookup_open(int dfd, const char *name, unsigned lookup_flags, struct nameidata *, int open_flags);
 _
 
 Patches currently in -mm which might be from jblunck@suse.de are
 
 r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime-fix.patch
 r-o-bind-mounts-track-number-of-mount-writers-fix.patch
-dont-touch-fs_struct-in-drivers.patch
-dont-touch-fs_struct-in-usermodehelper.patch
 remove-path_release_on_umount.patch
 move-struct-path-into-its-own-header.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
