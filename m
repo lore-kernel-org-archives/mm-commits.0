@@ -1,154 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - fix-sched_domain-sysctl-registration-again.patch removed from -mm tree
-Date: Fri, 26 Oct 2007 11:48:26 -0700
-Message-ID: <200710261848.l9QImQPC009138@imap1.linux-foundation.org>
+Subject: - permit-silencing-of-__deprecated-warnings.patch removed from -mm tree
+Date: Fri, 26 Oct 2007 11:48:42 -0700
+Message-ID: <200710261848.l9QImgcU009160@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50444 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36441 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763210AbXJZSsw (ORCPT
+	by vger.kernel.org with ESMTP id S1763622AbXJZStA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Oct 2007 14:48:52 -0400
+	Fri, 26 Oct 2007 14:49:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: miltonm@bga.com, mingo@elte.hu, nickpiggin@yahoo.com.au, pj@sgi.com, mm-commits@vger.kernel.org
+To: jeff@garzik.org, jgarzik@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: fix sched_domain sysctl registration again
+     Permit silencing of __deprecated warnings
 has been removed from the -mm tree.  Its filename was
-     fix-sched_domain-sysctl-registration-again.patch
+     permit-silencing-of-__deprecated-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sched: fix sched_domain sysctl registration again
-From: Milton Miller <miltonm@bga.com>
+Subject: Permit silencing of __deprecated warnings
+From: Jeff Garzik <jeff@garzik.org>
 
-commit 029190c515f15f512ac85de8fc686d4dbd0ae731 (cpuset sched_load_balance
-flag) was not tested SCHED_DEBUG enabled as committed as it dereferences
-NULL when used and it reordered the sysctl registration to cause it to
-never show any domains or their tunables.
+The __deprecated marker is quite useful in highlighting the remnants of
+old APIs that want removing.
 
-Fixes:
+However, it is quite normal for one or more years to pass, before the
+(usually ancient, bitrotten) code in question is either updated or
+deleted.
 
-1) restore arch_init_sched_domains ordering
-	we can't walk the domains before we build them
+Thus, like __must_check, add a Kconfig option that permits the silencing
+of this compiler warning.
 
-	presently we register cpus with empty directories (no domain
-	directories or files).
+This change mimics the ifdef-ery and Kconfig defaults of MUST_CHECK as
+closely as possible.
 
-2) make unregister_sched_domain_sysctl do nothing when already unregistered
-	detach_destroy_domains is now called one set of cpus at a time
-	unregister_syctl dereferences NULL if called with a null.
-
-	While the the function would always dereference null if called
-	twice, in the previous code it was always called once and then
-	was followed a register.  So only the hidden bug of the
-	sysctl_root_table not being allocated followed by an attempt to
-	free it would have shown the error.
-
-3) always call unregister and register in partition_sched_domains
-	The code is "smart" about unregistering only needed domains.
-	Since we aren't guaranteed any calls to unregister, always
-	unregister.   Without calling register on the way out we
-	will not have a table or any sysctl tree.
-
-4) warn if register is called without unregistering
-	The previous table memory is lost, leaving pointers to the
-	later freed memory in sysctl and leaking the memory of the
-	tables.
-
-Signed-off-by: Milton Miller <miltonm@bga.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   25 ++++++++++++++++++++-----
- 1 file changed, 20 insertions(+), 5 deletions(-)
+ include/linux/compiler.h |    6 ++++++
+ lib/Kconfig.debug        |    8 ++++++++
+ 2 files changed, 14 insertions(+)
 
-diff -puN kernel/sched.c~fix-sched_domain-sysctl-registration-again kernel/sched.c
---- a/kernel/sched.c~fix-sched_domain-sysctl-registration-again
-+++ a/kernel/sched.c
-@@ -5461,11 +5461,12 @@ static void register_sched_domain_sysctl
- 	struct ctl_table *entry = sd_alloc_ctl_entry(cpu_num + 1);
- 	char buf[32];
+diff -puN include/linux/compiler.h~permit-silencing-of-__deprecated-warnings include/linux/compiler.h
+--- a/include/linux/compiler.h~permit-silencing-of-__deprecated-warnings
++++ a/include/linux/compiler.h
+@@ -101,6 +101,12 @@ extern void __chk_io_ptr(const volatile 
+ #undef __must_check
+ #define __must_check
+ #endif
++#ifndef CONFIG_ENABLE_WARN_DEPRECATED
++#undef __deprecated
++#undef __deprecated_for_modules
++#define __deprecated
++#define __deprecated_for_modules
++#endif
  
-+	WARN_ON(sd_ctl_dir[0].child);
-+	sd_ctl_dir[0].child = entry;
-+
- 	if (entry == NULL)
- 		return;
+ /*
+  * Allow us to avoid 'defined but not used' warnings on functions and data,
+diff -puN lib/Kconfig.debug~permit-silencing-of-__deprecated-warnings lib/Kconfig.debug
+--- a/lib/Kconfig.debug~permit-silencing-of-__deprecated-warnings
++++ a/lib/Kconfig.debug
+@@ -9,6 +9,14 @@ config PRINTK_TIME
+ 	  operations.  This is useful for identifying long delays
+ 	  in kernel startup.
  
--	sd_ctl_dir[0].child = entry;
--
- 	for_each_online_cpu(i) {
- 		snprintf(buf, 32, "cpu%d", i);
- 		entry->procname = kstrdup(buf, GFP_KERNEL);
-@@ -5473,14 +5474,19 @@ static void register_sched_domain_sysctl
- 		entry->child = sd_alloc_ctl_cpu_table(i);
- 		entry++;
- 	}
++config ENABLE_WARN_DEPRECATED
++	bool "Enable __deprecated logic"
++	default y
++	help
++	  Enable the __deprecated logic in the kernel build.
++	  Disable this to suppress the "warning: 'foo' is deprecated
++	  (declared at kernel/power/somefile.c:1234)" messages.
 +
-+	WARN_ON(sd_sysctl_header);
- 	sd_sysctl_header = register_sysctl_table(sd_ctl_root);
- }
- 
-+/* may be called multiple times per register */
- static void unregister_sched_domain_sysctl(void)
- {
--	unregister_sysctl_table(sd_sysctl_header);
-+	if (sd_sysctl_header)
-+		unregister_sysctl_table(sd_sysctl_header);
- 	sd_sysctl_header = NULL;
--	sd_free_ctl_entry(&sd_ctl_dir[0].child);
-+	if (sd_ctl_dir[0].child)
-+		sd_free_ctl_entry(&sd_ctl_dir[0].child);
- }
- #else
- static void register_sched_domain_sysctl(void)
-@@ -6424,13 +6430,17 @@ static cpumask_t fallback_doms;
-  */
- static int arch_init_sched_domains(const cpumask_t *cpu_map)
- {
-+	int err;
-+
- 	ndoms_cur = 1;
- 	doms_cur = kmalloc(sizeof(cpumask_t), GFP_KERNEL);
- 	if (!doms_cur)
- 		doms_cur = &fallback_doms;
- 	cpus_andnot(*doms_cur, *cpu_map, cpu_isolated_map);
-+	err = build_sched_domains(doms_cur);
- 	register_sched_domain_sysctl();
--	return build_sched_domains(doms_cur);
-+
-+	return err;
- }
- 
- static void arch_destroy_sched_domains(const cpumask_t *cpu_map)
-@@ -6479,6 +6489,9 @@ void partition_sched_domains(int ndoms_n
- {
- 	int i, j;
- 
-+	/* always unregister in case we don't destroy any domains */
-+	unregister_sched_domain_sysctl();
-+
- 	if (doms_new == NULL) {
- 		ndoms_new = 1;
- 		doms_new = &fallback_doms;
-@@ -6514,6 +6527,8 @@ match2:
- 		kfree(doms_cur);
- 	doms_cur = doms_new;
- 	ndoms_cur = ndoms_new;
-+
-+	register_sched_domain_sysctl();
- }
- 
- #if defined(CONFIG_SCHED_MC) || defined(CONFIG_SCHED_SMT)
+ config ENABLE_MUST_CHECK
+ 	bool "Enable __must_check logic"
+ 	default y
 _
 
-Patches currently in -mm which might be from miltonm@bga.com are
+Patches currently in -mm which might be from jeff@garzik.org are
 
 origin.patch
+remove-bogus-default-y-for-dmar-and-net_dma.patch
+acpi-sbs-fix-retval-warning.patch
+git-jg-misc.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-add-helper-__ide_setup_pci_device.patch
+drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop.patch
+drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
+git-netdev-all.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+hptiop-fix-type-mismatch-warning.patch
+ips-remove-ips_ha-members-that-duplicate-struct-pci_dev-members.patch
+ips-trim-trailing-whitespace.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+ips-pci-api-cleanups.patch
+ips-handle-scsi_add_host-failure-and-other-err-cleanups.patch
+git-wireless.patch
+x86-fix-config_smp-warning-in-processorc.patch
+x86-fix-config_smp-warning-in-processorc-fix.patch
+fix-versus-precedence-in-various-places.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness.patch
+riscom8-fix-smp-brokenness-fix.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+sound-oss-sb_commonc-fix-casting-warning.patch
+remove-warnings-for-longstanding-conditions.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+remove-warnings-for-longstanding-conditions-checkpatch-fixes.patch
