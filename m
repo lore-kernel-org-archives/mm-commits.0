@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-only-use-pnp-irq-if-its-valid.patch added to -mm tree
-Date: Fri, 26 Oct 2007 12:38:07 -0700
-Message-ID: <200710261938.l9QJc7en011052@imap1.linux-foundation.org>
+Subject: + sigio-driven-i-o-with-inotify-queues.patch added to -mm tree
+Date: Fri, 26 Oct 2007 13:29:03 -0700
+Message-ID: <200710262029.l9QKT3ZO012935@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48367 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33741 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751001AbXJZTii (ORCPT
+	by vger.kernel.org with ESMTP id S1753891AbXJZU3k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Oct 2007 15:38:38 -0400
+	Fri, 26 Oct 2007 16:29:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, alan@lxorguk.ukuu.org.uk, luming.yu@gmail.com, luming.yu@intel.com, matthew@wil.cx, rmk@arm.linux.org.uk
+Cc: antipov@dev.rtsoft.ru, mtk-manpages@gmx.net, rlove@google.com, ttb@tentacle.dhs.org
 
 
 The patch titled
-     serial: only use PNP IRQ if it's valid
+     SIGIO-driven I/O with inotify queues
 has been added to the -mm tree.  Its filename is
-     serial-only-use-pnp-irq-if-its-valid.patch
+     sigio-driven-i-o-with-inotify-queues.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,83 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: serial: only use PNP IRQ if it's valid
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: SIGIO-driven I/O with inotify queues
+From: Dmitry Antipov <antipov@dev.rtsoft.ru>
 
-"Luming Yu" <luming.yu@gmail.com> says:
+Add SIGIO-driven I/O for descriptors returned by inotify_init().  The thing
+may be enabled by convenient fcntl (fd, F_SETFL, O_ASYNC) call.
 
-  There is a "ttyS1 irq is -1" problem observed on tiger4 which cause the
-  serial port broken.
-
-  It is because that there is __no__ ACPI IRQ resource assigned for the
-  serial port.  So the value of the IRQ for the port is never changed since it
-  got initialized to -1.
-
-If PNP supplies a valid IRQ, use it.  Otherwise, leave port.irq == 0, which
-means "no IRQ" to the serial core.
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Yu Luming <luming.yu@intel.com>
-Acked-by: Matthew Wilcox <matthew@wil.cx>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Dmitry Antipov <antipov@dev.rtsoft.ru>
+Cc: Robert Love <rlove@google.com>
+Cc: John McCutchan <ttb@tentacle.dhs.org>
+Cc: Michael Kerrisk <mtk-manpages@gmx.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pnp.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/inotify_user.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff -puN drivers/serial/8250_pnp.c~serial-only-use-pnp-irq-if-its-valid drivers/serial/8250_pnp.c
---- a/drivers/serial/8250_pnp.c~serial-only-use-pnp-irq-if-its-valid
-+++ a/drivers/serial/8250_pnp.c
-@@ -432,7 +432,8 @@ serial_pnp_probe(struct pnp_dev *dev, co
- 	}
+diff -puN fs/inotify_user.c~sigio-driven-i-o-with-inotify-queues fs/inotify_user.c
+--- a/fs/inotify_user.c~sigio-driven-i-o-with-inotify-queues
++++ a/fs/inotify_user.c
+@@ -79,6 +79,7 @@ struct inotify_device {
+ 	atomic_t		count;		/* reference count */
+ 	struct user_struct	*user;		/* user who opened this dev */
+ 	struct inotify_handle	*ih;		/* inotify handle */
++	struct fasync_struct    *fa;            /* async notification */
+ 	unsigned int		queue_size;	/* size of the queue (bytes) */
+ 	unsigned int		event_count;	/* number of pending events */
+ 	unsigned int		max_events;	/* maximum number of events */
+@@ -315,6 +316,7 @@ static void inotify_dev_queue_event(stru
+ 	dev->queue_size += sizeof(struct inotify_event) + kevent->event.len;
+ 	list_add_tail(&kevent->list, &dev->events);
+ 	wake_up_interruptible(&dev->wq);
++	kill_fasync(&dev->fa, SIGIO, POLL_IN);
  
- 	memset(&port, 0, sizeof(struct uart_port));
--	port.irq = pnp_irq(dev, 0);
-+	if (pnp_irq_valid(dev, 0))
-+		port.irq = pnp_irq(dev, 0);
- 	if (pnp_port_valid(dev, 0)) {
- 		port.iobase = pnp_port_start(dev, 0);
- 		port.iotype = UPIO_PORT;
+ out:
+ 	mutex_unlock(&dev->ev_mutex);
+@@ -503,6 +505,13 @@ static ssize_t inotify_read(struct file 
+ 	return ret;
+ }
+ 
++static int inotify_fasync(int fd, struct file *file, int on)
++{
++	struct inotify_device *dev = file->private_data;
++
++	return fasync_helper(fd, file, on, &dev->fa) >= 0 ? 0 : -EIO;
++}
++
+ static int inotify_release(struct inode *ignored, struct file *file)
+ {
+ 	struct inotify_device *dev = file->private_data;
+@@ -515,6 +524,9 @@ static int inotify_release(struct inode 
+ 		inotify_dev_event_dequeue(dev);
+ 	mutex_unlock(&dev->ev_mutex);
+ 
++	if (file->f_flags & FASYNC)
++		inotify_fasync(-1, file, 0);
++
+ 	/* free this device: the put matching the get in inotify_init() */
+ 	put_inotify_dev(dev);
+ 
+@@ -543,6 +555,7 @@ static long inotify_ioctl(struct file *f
+ static const struct file_operations inotify_fops = {
+ 	.poll           = inotify_poll,
+ 	.read           = inotify_read,
++	.fasync         = inotify_fasync,
+ 	.release        = inotify_release,
+ 	.unlocked_ioctl = inotify_ioctl,
+ 	.compat_ioctl	= inotify_ioctl,
+@@ -590,6 +603,7 @@ asmlinkage long sys_inotify_init(void)
+ 		goto out_free_dev;
+ 	}
+ 	dev->ih = ih;
++	dev->fa = NULL;
+ 
+ 	filp->f_op = &inotify_fops;
+ 	filp->f_path.mnt = mntget(inotify_mnt);
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from antipov@dev.rtsoft.ru are
 
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-provide-acpi_check_mem_region.patch
-export-acpi_check_resource_conflict.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-rtc-release-correct-region-in-error-path.patch
-rtc-fallback-to-requesting-only-the-ports-we-actually-use.patch
-serial-only-use-pnp-irq-if-its-valid.patch
-pnp-simplify-pnp_activate_dev-and-pnp_disable_dev-return-values.patch
+sigio-driven-i-o-with-inotify-queues.patch
