@@ -1,114 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - use-path_put-in-a-few-places-instead-of-mntdput.patch removed from -mm tree
-Date: Fri, 26 Oct 2007 11:58:44 -0700
-Message-ID: <200710261858.l9QIwit4009542@imap1.linux-foundation.org>
+Subject: - introduce-path_get.patch removed from -mm tree
+Date: Fri, 26 Oct 2007 11:58:46 -0700
+Message-ID: <200710261858.l9QIwktx009545@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50161 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60352 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752819AbXJZS7k (ORCPT
+	by vger.kernel.org with ESMTP id S1753560AbXJZTEF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Oct 2007 14:59:40 -0400
+	Fri, 26 Oct 2007 15:04:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jblunck@suse.de, agruen@suse.de, bharata@linux.vnet.ibm.com, dhowells@redhat.com, hch@lst.de, mm-commits@vger.kernel.org
+To: jblunck@suse.de, agruen@suse.de, bharata@linux.vnet.ibm.com, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use path_put() in a few places instead of {mnt,d}put()
+     Introduce path_get()
 has been removed from the -mm tree.  Its filename was
-     use-path_put-in-a-few-places-instead-of-mntdput.patch
+     introduce-path_get.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Use path_put() in a few places instead of {mnt,d}put()
+Subject: Introduce path_get()
 From: Jan Blunck <jblunck@suse.de>
 
-Use path_put() in a few places instead of {mnt,d}put()
+This introduces the symmetric function to path_put() for getting a reference
+to the dentry and vfsmount of a struct path in the right order.
 
 Signed-off-by: Jan Blunck <jblunck@suse.de>
 Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
 Signed-off-by: Bharata B Rao <bharata@linux.vnet.ibm.com>
 Acked-by: Christoph Hellwig <hch@lst.de>
-Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/mntpt.c |    3 +--
- fs/namei.c     |   15 +++++----------
- 2 files changed, 6 insertions(+), 12 deletions(-)
+ fs/namei.c            |   17 +++++++++++++++--
+ include/linux/namei.h |    6 ------
+ include/linux/path.h  |    1 +
+ 3 files changed, 16 insertions(+), 8 deletions(-)
 
-diff -puN fs/afs/mntpt.c~use-path_put-in-a-few-places-instead-of-mntdput fs/afs/mntpt.c
---- a/fs/afs/mntpt.c~use-path_put-in-a-few-places-instead-of-mntdput
-+++ a/fs/afs/mntpt.c
-@@ -235,8 +235,7 @@ static void *afs_mntpt_follow_link(struc
- 	err = do_add_mount(newmnt, nd, MNT_SHRINKABLE, &afs_vfsmounts);
- 	switch (err) {
- 	case 0:
--		dput(nd->path.dentry);
--		mntput(nd->path.mnt);
-+		path_put(&nd->path);
- 		nd->path.mnt = newmnt;
- 		nd->path.dentry = dget(newmnt->mnt_root);
- 		schedule_delayed_work(&afs_mntpt_expiry_timer,
-diff -puN fs/namei.c~use-path_put-in-a-few-places-instead-of-mntdput fs/namei.c
---- a/fs/namei.c~use-path_put-in-a-few-places-instead-of-mntdput
+diff -puN fs/namei.c~introduce-path_get fs/namei.c
+--- a/fs/namei.c~introduce-path_get
 +++ a/fs/namei.c
-@@ -626,8 +626,7 @@ static __always_inline int __do_follow_l
- 		if (dentry->d_inode->i_op->put_link)
- 			dentry->d_inode->i_op->put_link(dentry, nd, cookie);
- 	}
--	dput(dentry);
--	mntput(path->mnt);
-+	path_put(path);
- 
- 	return error;
+@@ -363,6 +363,19 @@ int deny_write_access(struct file * file
  }
-@@ -1034,8 +1033,7 @@ static int fastcall link_path_walk(const
- 		result = __link_path_walk(name, nd);
+ 
+ /**
++ * path_get - get a reference to a path
++ * @path: path to get the reference to
++ *
++ * Given a path increment the reference count to the dentry and the vfsmount.
++ */
++void path_get(struct path *path)
++{
++	mntget(path->mnt);
++	dget(path->dentry);
++}
++EXPORT_SYMBOL(path_get);
++
++/**
+  * path_put - put a reference to a path
+  * @path: path to put the reference to
+  *
+@@ -1161,8 +1174,8 @@ static int fastcall do_path_lookup(int d
+ 		if (retval)
+ 			goto fput_fail;
+ 
+-		nd->path.mnt = mntget(file->f_path.mnt);
+-		nd->path.dentry = dget(dentry);
++		nd->path = file->f_path;
++		path_get(&file->f_path);
+ 
+ 		fput_light(file, fput_needed);
  	}
- 
--	dput(save.path.dentry);
--	mntput(save.path.mnt);
-+	path_put(&save.path);
- 
- 	return result;
+diff -puN include/linux/namei.h~introduce-path_get include/linux/namei.h
+--- a/include/linux/namei.h~introduce-path_get
++++ a/include/linux/namei.h
+@@ -94,10 +94,4 @@ static inline char *nd_get_link(struct n
+ 	return nd->saved_names[nd->depth];
  }
-@@ -1057,8 +1055,7 @@ static int __emul_lookup_dentry(const ch
  
- 	if (!nd->path.dentry->d_inode ||
- 	    S_ISDIR(nd->path.dentry->d_inode->i_mode)) {
--		struct dentry *old_dentry = nd->path.dentry;
--		struct vfsmount *old_mnt = nd->path.mnt;
-+		struct path old_path = nd->path;
- 		struct qstr last = nd->last;
- 		int last_type = nd->last_type;
- 		struct fs_struct *fs = current->fs;
-@@ -1074,14 +1071,12 @@ static int __emul_lookup_dentry(const ch
- 		read_unlock(&fs->lock);
- 		if (path_walk(name, nd) == 0) {
- 			if (nd->path.dentry->d_inode) {
--				dput(old_dentry);
--				mntput(old_mnt);
-+				path_put(&old_path);
- 				return 1;
- 			}
- 			path_put(&nd->path);
- 		}
--		nd->path.dentry = old_dentry;
--		nd->path.mnt = old_mnt;
-+		nd->path = old_path;
- 		nd->last = last;
- 		nd->last_type = last_type;
- 	}
+-static inline void pathget(struct path *path)
+-{
+-	mntget(path->mnt);
+-	dget(path->dentry);
+-}
+-
+ #endif /* _LINUX_NAMEI_H */
+diff -puN include/linux/path.h~introduce-path_get include/linux/path.h
+--- a/include/linux/path.h~introduce-path_get
++++ a/include/linux/path.h
+@@ -9,6 +9,7 @@ struct path {
+ 	struct dentry *dentry;
+ };
+ 
++extern void path_get(struct path *);
+ extern void path_put(struct path *);
+ 
+ #endif  /* _LINUX_PATH_H */
 _
 
 Patches currently in -mm which might be from jblunck@suse.de are
 
 r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime-fix.patch
 r-o-bind-mounts-track-number-of-mount-writers-fix.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
 introduce-path_get.patch
 use-struct-path-in-fs_struct.patch
 make-set_fs_rootpwd-take-a-struct-path.patch
