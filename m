@@ -1,99 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: - git-v9fs-fixup.patch removed from -mm tree
-Date: Fri, 26 Oct 2007 11:36:58 -0700
-Message-ID: <200710261836.l9QIawYS008679@imap1.linux-foundation.org>
+Subject: - git-wireless-fixup.patch removed from -mm tree
+Date: Fri, 26 Oct 2007 11:37:11 -0700
+Message-ID: <200710261837.l9QIbBf0008688@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53993 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44682 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756441AbXJZShC (ORCPT
+	by vger.kernel.org with ESMTP id S1756846AbXJZShS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Oct 2007 14:37:02 -0400
+	Fri, 26 Oct 2007 14:37:18 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9QIbBdk027376
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 26 Oct 2007 11:37:17 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ericvh@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-v9fs-fixup
+     git-wireless-fixup
 has been removed from the -mm tree.  Its filename was
-     git-v9fs-fixup.patch
+     git-wireless-fixup.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-v9fs-fixup
+Subject: git-wireless-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix git conflicts in git-v9fs.
-
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/9p/v9fs.c    |    3 ---
- net/9p/Kconfig  |    3 ---
- net/9p/Makefile |    7 +------
- 3 files changed, 1 insertion(+), 12 deletions(-)
+ drivers/net/wireless/Kconfig  |   24 ------------------------
+ drivers/net/wireless/Makefile |    3 ---
+ 2 files changed, 27 deletions(-)
 
-diff -puN fs/9p/v9fs.c~git-v9fs-fixup fs/9p/v9fs.c
---- a/fs/9p/v9fs.c~git-v9fs-fixup
-+++ a/fs/9p/v9fs.c
-@@ -162,10 +162,7 @@ static void v9fs_parse_options(struct v9
- 				if (*e != '\0')
- 					v9ses->uid = ~0;
- 			}
--<<<<<<< HEAD:fs/9p/v9fs.c
- 			kfree(s);
+diff -puN drivers/net/wireless/Kconfig~git-wireless-fixup drivers/net/wireless/Kconfig
+--- a/drivers/net/wireless/Kconfig~git-wireless-fixup
++++ a/drivers/net/wireless/Kconfig
+@@ -387,8 +387,6 @@ config PCI_HERMES
+ 	  common.  Some of the built-in wireless adaptors in laptops are of
+ 	  this variety.
+ 
+-<<<<<<< HEAD:drivers/net/wireless/Kconfig
 -=======
-->>>>>>> FETCH_HEAD:fs/9p/v9fs.c
- 			break;
+ config ATMEL
+       tristate "Atmel at76c50x chipset  802.11b support"
+       depends on (PCI || PCMCIA) && WLAN_80211
+@@ -421,7 +419,6 @@ config USB_ATMEL
+ 	  Enable support for USB Wireless devices using Atmel at76c503,
+ 	  at76c505 or at76c505a chips.
  
- 		default:
-diff -puN net/9p/Kconfig~git-v9fs-fixup net/9p/Kconfig
---- a/net/9p/Kconfig~git-v9fs-fixup
-+++ a/net/9p/Kconfig
-@@ -23,7 +23,6 @@ config NET_9P_FD
- 	  file descriptors.  TCP/IP is the default transport for 9p,
- 	  so if you are going to use 9p, you'll likely want this.
+->>>>>>> FETCH_HEAD:drivers/net/wireless/Kconfig
+ config PCMCIA_HERMES
+ 	tristate "Hermes PCMCIA card support"
+ 	depends on PCMCIA && HERMES
+@@ -591,28 +588,20 @@ config RTL8187
  
--<<<<<<< HEAD:net/9p/Kconfig
- config NET_9P_VIRTIO
- 	depends on NET_9P && EXPERIMENTAL && VIRTIO
- 	tristate "9P Virtio Transport (Experimental)"
-@@ -31,8 +30,6 @@ config NET_9P_VIRTIO
- 	  This builds support for a transports between
- 	  guest partitions and a host partition.
+ 	  Thanks to Realtek for their support!
  
+-<<<<<<< HEAD:drivers/net/wireless/Kconfig
+ config ADM8211
+ 	tristate "ADMtek ADM8211 support"
+ 	depends on MAC80211 && PCI && WLAN_80211 && EXPERIMENTAL
+ 	select CRC32
+ 	select EEPROM_93CX6
 -=======
-->>>>>>> FETCH_HEAD:net/9p/Kconfig
- config NET_9P_DEBUG
- 	bool "Debug information"
- 	depends on NET_9P
-diff -puN net/9p/Makefile~git-v9fs-fixup net/9p/Makefile
---- a/net/9p/Makefile~git-v9fs-fixup
-+++ a/net/9p/Makefile
-@@ -1,9 +1,6 @@
- obj-$(CONFIG_NET_9P) := 9pnet.o
- obj-$(CONFIG_NET_9P_FD) += 9pnet_fd.o
--<<<<<<< HEAD:net/9p/Makefile
- obj-$(CONFIG_NET_9P_VIRTIO) += 9pnet_virtio.o
+ config ATH5K
+ 	tristate "Atheros 5xxx wireless cards support"
+ 	depends on PCI && MAC80211 && WLAN_80211 && EXPERIMENTAL
+ 	default m
+->>>>>>> FETCH_HEAD:drivers/net/wireless/Kconfig
+ 	---help---
+-<<<<<<< HEAD:drivers/net/wireless/Kconfig
+ 	  This driver is for ADM8211A, ADM8211B, and ADM8211C based cards.
+ 	  These are PCI/mini-PCI/Cardbus 802.11b chips found in cards such as:
 -=======
-->>>>>>> FETCH_HEAD:net/9p/Makefile
- 
- 9pnet-objs := \
- 	mod.o \
-@@ -16,9 +13,7 @@ obj-$(CONFIG_NET_9P_VIRTIO) += 9pnet_vir
- 
- 9pnet_fd-objs := \
- 	trans_fd.o \
--<<<<<<< HEAD:net/9p/Makefile
- 
- 9pnet_virtio-objs := \
- 	trans_virtio.o \
+ 	  This module adds support for atheros 5xxx (e.g. 5212) wireless
+ 	  cards. If you have this card in your PC, select this to be build.
+->>>>>>> FETCH_HEAD:drivers/net/wireless/Kconfig
+-
+-<<<<<<< HEAD:drivers/net/wireless/Kconfig
+ 	  Xterasys Cardbus XN-2411b
+ 	  Blitz NetWave Point PC
+ 	  TrendNet 221pc
+@@ -624,20 +613,12 @@ config ATH5K
+ 	  Corega WLPCIB-11
+ 	  SMC 2602W V2 EU
+ 	  D-Link DWL-520 Revision C
 -=======
-->>>>>>> FETCH_HEAD:net/9p/Makefile
-+
+ 	  This driver uses the kernel's mac80211 subsystem.
+->>>>>>> FETCH_HEAD:drivers/net/wireless/Kconfig
+-
+-<<<<<<< HEAD:drivers/net/wireless/Kconfig
+ 	  However, some of these cards have been replaced with other chips
+ 	  like the RTL8180L (Xterasys Cardbus XN-2411b, Belkin F5D6001) or
+ 	  the Ralink RT2400 (SMC2635W) without a model number change.
+-=======
+ 	  If you choose to build a module, it'll be called ath5k. Say M if
+ 	  unsure.
+->>>>>>> FETCH_HEAD:drivers/net/wireless/Kconfig
+-
+-<<<<<<< HEAD:drivers/net/wireless/Kconfig
+ 	  Thanks to Infineon-ADMtek for their support of this driver.
+ 
+ config P54_COMMON
+@@ -654,17 +635,12 @@ config P54_PCI
+ 	depends on P54_COMMON && PCI
+ 
+ source "drivers/net/wireless/iwlwifi/Kconfig"
+-=======
+->>>>>>> FETCH_HEAD:drivers/net/wireless/Kconfig
+ source "drivers/net/wireless/hostap/Kconfig"
+ source "drivers/net/wireless/bcm43xx/Kconfig"
+ source "drivers/net/wireless/b43/Kconfig"
+ source "drivers/net/wireless/b43legacy/Kconfig"
+ source "drivers/net/wireless/zd1211rw/Kconfig"
+-<<<<<<< HEAD:drivers/net/wireless/Kconfig
+ source "drivers/net/wireless/rt2x00/Kconfig"
+-=======
+ source "drivers/net/wireless/zd1211rw-mac80211/Kconfig"
+->>>>>>> FETCH_HEAD:drivers/net/wireless/Kconfig
+ 
+ endmenu
+diff -puN drivers/net/wireless/Makefile~git-wireless-fixup drivers/net/wireless/Makefile
+--- a/drivers/net/wireless/Makefile~git-wireless-fixup
++++ a/drivers/net/wireless/Makefile
+@@ -53,7 +53,6 @@ obj-$(CONFIG_LIBERTAS)		+= libertas/
+ rtl8187-objs		:= rtl8187_dev.o rtl8187_rtl8225.o
+ obj-$(CONFIG_RTL8187)	+= rtl8187.o
+ 
+-<<<<<<< HEAD:drivers/net/wireless/Makefile
+ obj-$(CONFIG_ADM8211)	+= adm8211.o
+ 
+ obj-$(CONFIG_IWLWIFI)	+= iwlwifi/
+@@ -62,6 +61,4 @@ obj-$(CONFIG_RT2X00)	+= rt2x00/
+ obj-$(CONFIG_P54_COMMON)	+= p54common.o
+ obj-$(CONFIG_P54_USB)		+= p54usb.o
+ obj-$(CONFIG_P54_PCI)		+= p54pci.o
+-=======
+ obj-$(CONFIG_ATH5K)	+= ath5k/
+->>>>>>> FETCH_HEAD:drivers/net/wireless/Makefile
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,7 +170,6 @@ git-nfsd-fixup.patch
 fix-build-breakage-if-sysfs-fix.patch
 ips-trim-trailing-whitespace-checkpatch-fixes.patch
 git-unionfs.patch
-git-v9fs-fixup.patch
 git-watchdog.patch
 watchdog-add-nano-7240-driver-checkpatch-fixes.patch
 git-wireless.patch
