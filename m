@@ -1,96 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: - ext4-return-after-ext4_error-in-case-of-failures.patch removed from -mm tree
-Date: Fri, 26 Oct 2007 11:48:49 -0700
-Message-ID: <200710261848.l9QImnGi009171@imap1.linux-foundation.org>
+Subject: - acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc.patch removed from -mm tree
+Date: Fri, 26 Oct 2007 11:48:36 -0700
+Message-ID: <200710261848.l9QIma0B009153@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46816 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49562 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752614AbXJZStO (ORCPT
+	by vger.kernel.org with ESMTP id S1752451AbXJZStN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Oct 2007 14:49:14 -0400
+	Fri, 26 Oct 2007 14:49:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, bunk@kernel.org, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: torvalds@linux-foundation.org, borntraeger@de.ibm.com, david-b@pacbell.net, lenb@kernel.org, lkml@rtr.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext4: return after ext4_error in case of failures
+     acpi: fix BCD handling in drivers/acpi/sleep/proc.c
 has been removed from the -mm tree.  Its filename was
-     ext4-return-after-ext4_error-in-case-of-failures.patch
+     acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ext4: return after ext4_error in case of failures
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: acpi: fix BCD handling in drivers/acpi/sleep/proc.c
+From: Linus Torvalds <torvalds@linux-foundation.org>
 
-This fix some instances where we were continuing after calling ext4_error. 
-ext4_error call panic only if errors=panic mount option is set.  So we need to
-make sure we return correctly after ext4_error call
+That code is doing all the arithmetic in non-BCD mode, but the "adjust"
+case doesn't do a BCD_TO_BIN() on that arithmetic.
 
-Reported-by: Adrian Bunk <bunk@kernel.org>
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: <linux-ext4@vger.kernel.org>
+In other words, the logic you removed was certainly total crap, but there's
+more crap remaining inside the "if (adjust)" logic.  I just suspect you
+never tested that part (ie using a string that starts with '+').
+
+In fact, for the non-broken case, the old broken code *should* have been a
+no-op, since it did BIN_TO_BCD() followed by BCD_TO_BIN().  It then totally
+stupidly seemed to expect that the "adjust" case would do a BCD addition! 
+So I don't even see why your patch should have mattered or worked!
+
+So how about this cleanup instead? Does this work for you?
+
+NOTE! I wanted to switch "acpi_system_alarm_seq_show()" over to this too,
+but that code has a strange rule:
+
+        if (acpi_gbl_FADT.day_alarm)
+                /* ACPI spec: only low 6 its should be cared */
+                day = CMOS_READ(acpi_gbl_FADT.day_alarm) & 0x3F;
+        else
+                day = CMOS_READ(RTC_DAY_OF_MONTH);
+
+and note the "& 0x3f" which is done in BCD mode. Strange. But we always
+write zero (which may or may not be correct). So I'd have to add a mask to
+the interface, and I decided it wasn't worth it until somebody talks about
+how that thing actually works..
+
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Mark Lord <lkml@rtr.ca>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: <borntraeger@de.ibm.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/balloc.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ drivers/acpi/sleep/proc.c |   66 +++++++++++++++---------------------
+ 1 file changed, 29 insertions(+), 37 deletions(-)
 
-diff -puN fs/ext4/balloc.c~ext4-return-after-ext4_error-in-case-of-failures fs/ext4/balloc.c
---- a/fs/ext4/balloc.c~ext4-return-after-ext4_error-in-case-of-failures
-+++ a/fs/ext4/balloc.c
-@@ -234,11 +234,13 @@ read_block_bitmap(struct super_block *sb
- 	} else {
- 		bh = sb_bread(sb, bitmap_blk);
- 	}
--	if (!bh)
-+	if (!bh) {
- 		ext4_error (sb, __FUNCTION__,
- 			    "Cannot read block bitmap - "
- 			    "block_group = %d, block_bitmap = %llu",
- 			    block_group, bitmap_blk);
-+		return NULL;
-+	}
+diff -puN drivers/acpi/sleep/proc.c~acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc drivers/acpi/sleep/proc.c
+--- a/drivers/acpi/sleep/proc.c~acpi-fix-bdc-handling-in-drivers-acpi-sleep-procc
++++ a/drivers/acpi/sleep/proc.c
+@@ -194,6 +194,23 @@ static int get_date_field(char **p, u32 
+ 	return result;
+ }
  
- 	/* check whether block bitmap block number is set */
- 	if (!block_in_use(bitmap_blk, sb, bh->b_data)) {
-@@ -630,11 +632,13 @@ do_more:
- 	    in_range(ext4_inode_bitmap(sb, desc), block, count) ||
- 	    in_range(block, ext4_inode_table(sb, desc), sbi->s_itb_per_group) ||
- 	    in_range(block + count - 1, ext4_inode_table(sb, desc),
--		     sbi->s_itb_per_group))
-+		     sbi->s_itb_per_group)) {
- 		ext4_error (sb, "ext4_free_blocks",
- 			    "Freeing blocks in system zones - "
- 			    "Block = %llu, count = %lu",
- 			    block, count);
-+		goto error_return;
-+	}
++/* Read a possibly BCD register, always return binary */
++static u32 cmos_bcd_read(int offset, int rtc_control)
++{
++	u32 val = CMOS_READ(offset);
++	if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
++		BCD_TO_BIN(val);
++	return val;
++}
++
++/* Write binary value into possibly BCD register */
++static void cmos_bcd_write(u32 val, int offset, int rtc_control)
++{
++	if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
++		BIN_TO_BCD(val);
++	CMOS_WRITE(val, offset);
++}
++
+ static ssize_t
+ acpi_system_write_alarm(struct file *file,
+ 			const char __user * buffer, size_t count, loff_t * ppos)
+@@ -258,35 +275,18 @@ acpi_system_write_alarm(struct file *fil
+ 	spin_lock_irq(&rtc_lock);
+ 
+ 	rtc_control = CMOS_READ(RTC_CONTROL);
+-	if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
+-		BIN_TO_BCD(yr);
+-		BIN_TO_BCD(mo);
+-		BIN_TO_BCD(day);
+-		BIN_TO_BCD(hr);
+-		BIN_TO_BCD(min);
+-		BIN_TO_BCD(sec);
+-	}
+ 
+ 	if (adjust) {
+-		yr += CMOS_READ(RTC_YEAR);
+-		mo += CMOS_READ(RTC_MONTH);
+-		day += CMOS_READ(RTC_DAY_OF_MONTH);
+-		hr += CMOS_READ(RTC_HOURS);
+-		min += CMOS_READ(RTC_MINUTES);
+-		sec += CMOS_READ(RTC_SECONDS);
++		yr += cmos_bcd_read(RTC_YEAR, rtc_control);
++		mo += cmos_bcd_read(RTC_MONTH, rtc_control);
++		day += cmos_bcd_read(RTC_DAY_OF_MONTH, rtc_control);
++		hr += cmos_bcd_read(RTC_HOURS, rtc_control);
++		min += cmos_bcd_read(RTC_MINUTES, rtc_control);
++		sec += cmos_bcd_read(RTC_SECONDS, rtc_control);
+ 	}
+ 
+ 	spin_unlock_irq(&rtc_lock);
+ 
+-	if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
+-		BCD_TO_BIN(yr);
+-		BCD_TO_BIN(mo);
+-		BCD_TO_BIN(day);
+-		BCD_TO_BIN(hr);
+-		BCD_TO_BIN(min);
+-		BCD_TO_BIN(sec);
+-	}
+-
+ 	if (sec > 59) {
+ 		min++;
+ 		sec -= 60;
+@@ -307,14 +307,6 @@ acpi_system_write_alarm(struct file *fil
+ 		yr++;
+ 		mo -= 12;
+ 	}
+-	if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
+-		BIN_TO_BCD(yr);
+-		BIN_TO_BCD(mo);
+-		BIN_TO_BCD(day);
+-		BIN_TO_BCD(hr);
+-		BIN_TO_BCD(min);
+-		BIN_TO_BCD(sec);
+-	}
+ 
+ 	spin_lock_irq(&rtc_lock);
+ 	/*
+@@ -326,9 +318,9 @@ acpi_system_write_alarm(struct file *fil
+ 	CMOS_READ(RTC_INTR_FLAGS);
+ 
+ 	/* write the fields the rtc knows about */
+-	CMOS_WRITE(hr, RTC_HOURS_ALARM);
+-	CMOS_WRITE(min, RTC_MINUTES_ALARM);
+-	CMOS_WRITE(sec, RTC_SECONDS_ALARM);
++	cmos_bcd_write(hr, RTC_HOURS_ALARM, rtc_control);
++	cmos_bcd_write(min, RTC_MINUTES_ALARM, rtc_control);
++	cmos_bcd_write(sec, RTC_SECONDS_ALARM, rtc_control);
  
  	/*
- 	 * We are about to start releasing blocks in the bitmap,
-@@ -1745,11 +1749,13 @@ allocated:
- 	    in_range(ret_block, ext4_inode_table(sb, gdp),
- 		     EXT4_SB(sb)->s_itb_per_group) ||
- 	    in_range(ret_block + num - 1, ext4_inode_table(sb, gdp),
--		     EXT4_SB(sb)->s_itb_per_group))
-+		     EXT4_SB(sb)->s_itb_per_group)) {
- 		ext4_error(sb, "ext4_new_block",
- 			    "Allocating block in system zone - "
- 			    "blocks from %llu, length %lu",
- 			     ret_block, num);
-+		goto out;
-+	}
- 
- 	performed_allocation = 1;
- 
+ 	 * If the system supports an enhanced alarm it will have non-zero
+@@ -336,11 +328,11 @@ acpi_system_write_alarm(struct file *fil
+ 	 * to the RTC area of memory.
+ 	 */
+ 	if (acpi_gbl_FADT.day_alarm)
+-		CMOS_WRITE(day, acpi_gbl_FADT.day_alarm);
++		cmos_bcd_write(day, acpi_gbl_FADT.day_alarm, rtc_control);
+ 	if (acpi_gbl_FADT.month_alarm)
+-		CMOS_WRITE(mo, acpi_gbl_FADT.month_alarm);
++		cmos_bcd_write(mo, acpi_gbl_FADT.month_alarm, rtc_control);
+ 	if (acpi_gbl_FADT.century)
+-		CMOS_WRITE(yr / 100, acpi_gbl_FADT.century);
++		cmos_bcd_write(yr / 100, acpi_gbl_FADT.century, rtc_control);
+ 	/* enable the rtc alarm interrupt */
+ 	rtc_control |= RTC_AIE;
+ 	CMOS_WRITE(rtc_control, RTC_CONTROL);
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from torvalds@linux-foundation.org are
 
-ext2-return-after-ext2_error-in-case-of-failures.patch
-ext2-change-the-default-behaviour-on-error.patch
-ext3-return-after-ext3_error-in-case-of-failures.patch
-ext3-change-the-default-behaviour-on-error.patch
+origin.patch
+git-x86.patch
+workaround-for-a-pci-restoring-bug.patch
