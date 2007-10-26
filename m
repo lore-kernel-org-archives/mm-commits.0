@@ -1,137 +1,217 @@
 From: akpm@linux-foundation.org
-Subject: - peterz-vs-ext4-mballoc-core.patch removed from -mm tree
-Date: Fri, 26 Oct 2007 11:48:46 -0700
-Message-ID: <200710261848.l9QImkb1009168@imap1.linux-foundation.org>
+Subject: - cfs-cgroup-code-cleanup-report-cpu-usage-in-cfs-cgroup-directories.patch removed from -mm tree
+Date: Fri, 26 Oct 2007 11:48:29 -0700
+Message-ID: <200710261848.l9QImTmG009141@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48371 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46144 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762415AbXJZSsv (ORCPT
+	by vger.kernel.org with ESMTP id S1762415AbXJZSs5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Oct 2007 14:48:51 -0400
+	Fri, 26 Oct 2007 14:48:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
+To: menage@google.com, mingo@elte.hu, vatsa@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     peterz-vs-ext4-mballoc-core
+     CFS CGroup: Code cleanup, report CPU usage in CFS Cgroup directories
 has been removed from the -mm tree.  Its filename was
-     peterz-vs-ext4-mballoc-core.patch
+     cfs-cgroup-code-cleanup-report-cpu-usage-in-cfs-cgroup-directories.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: peterz-vs-ext4-mballoc-core
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: CFS CGroup: Code cleanup, report CPU usage in CFS Cgroup directories
+From: Paul Menage <menage@google.com>
 
-argh at gratuitous unrelated code churn :(
+Clean up some CFS CGroup code:
 
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+- replace "cont" with "cgrp" in a few places in the CFS cgroup code,
+- use write_uint rather than write for cpu.shares write function
+
+Adds a cpu.usage file to the CFS cgroup that reports CPU usage in
+milliseconds for that cgroup's tasks
+
+This replaces the "example CPU Accounting CGroup subsystem" that
+was merged into mainline last week.
+
+Signed-off-by: Paul Menage <menage@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/mballoc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/sched.c |   83 ++++++++++++++++++++++++-----------------------
+ 1 file changed, 44 insertions(+), 39 deletions(-)
 
-diff -puN fs/ext4/mballoc.c~peterz-vs-ext4-mballoc-core fs/ext4/mballoc.c
---- a/fs/ext4/mballoc.c~peterz-vs-ext4-mballoc-core
-+++ a/fs/ext4/mballoc.c
-@@ -3036,7 +3036,7 @@ static int ext4_mb_mark_diskspace_used(s
- 				- ac->ac_b_ex.fe_len);
- 	gdp->bg_checksum = ext4_group_desc_csum(sbi, ac->ac_b_ex.fe_group, gdp);
- 	spin_unlock(sb_bgl_lock(sbi, ac->ac_b_ex.fe_group));
--	percpu_counter_mod(&sbi->s_freeblocks_counter, - ac->ac_b_ex.fe_len);
-+	percpu_counter_add(&sbi->s_freeblocks_counter, - ac->ac_b_ex.fe_len);
+diff -puN kernel/sched.c~cfs-cgroup-code-cleanup-report-cpu-usage-in-cfs-cgroup-directories kernel/sched.c
+--- a/kernel/sched.c~cfs-cgroup-code-cleanup-report-cpu-usage-in-cfs-cgroup-directories
++++ a/kernel/sched.c
+@@ -7116,25 +7116,25 @@ unsigned long sched_group_shares(struct 
+ #ifdef CONFIG_FAIR_CGROUP_SCHED
  
- 	err = ext4_journal_dirty_metadata(handle, bitmap_bh);
- 	if (err)
-@@ -4468,7 +4468,7 @@ do_more:
- 		cpu_to_le16(le16_to_cpu(gdp->bg_free_blocks_count) + count);
- 	gdp->bg_checksum = ext4_group_desc_csum(sbi, block_group, gdp);
- 	spin_unlock(sb_bgl_lock(sbi, block_group));
--	percpu_counter_mod(&sbi->s_freeblocks_counter, count);
-+	percpu_counter_add(&sbi->s_freeblocks_counter, count);
+ /* return corresponding task_group object of a cgroup */
+-static inline struct task_group *cgroup_tg(struct cgroup *cont)
++static inline struct task_group *cgroup_tg(struct cgroup *cgrp)
+ {
+-	return container_of(cgroup_subsys_state(cont, cpu_cgroup_subsys_id),
+-					 struct task_group, css);
++	return container_of(cgroup_subsys_state(cgrp, cpu_cgroup_subsys_id),
++			    struct task_group, css);
+ }
  
- 	ext4_mb_release_desc(&e4b);
+ static struct cgroup_subsys_state *
+-cpu_cgroup_create(struct cgroup_subsys *ss, struct cgroup *cont)
++cpu_cgroup_create(struct cgroup_subsys *ss, struct cgroup *cgrp)
+ {
+ 	struct task_group *tg;
  
+-	if (!cont->parent) {
++	if (!cgrp->parent) {
+ 		/* This is early initialization for the top cgroup */
+-		init_task_group.css.cgroup = cont;
++		init_task_group.css.cgroup = cgrp;
+ 		return &init_task_group.css;
+ 	}
+ 
+ 	/* we support only 1-level deep hierarchical scheduler atm */
+-	if (cont->parent->parent)
++	if (cgrp->parent->parent)
+ 		return ERR_PTR(-EINVAL);
+ 
+ 	tg = sched_create_group();
+@@ -7142,21 +7142,21 @@ cpu_cgroup_create(struct cgroup_subsys *
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	/* Bind the cgroup to task_group object we just created */
+-	tg->css.cgroup = cont;
++	tg->css.cgroup = cgrp;
+ 
+ 	return &tg->css;
+ }
+ 
+ static void cpu_cgroup_destroy(struct cgroup_subsys *ss,
+-					struct cgroup *cont)
++			       struct cgroup *cgrp)
+ {
+-	struct task_group *tg = cgroup_tg(cont);
++	struct task_group *tg = cgroup_tg(cgrp);
+ 
+ 	sched_destroy_group(tg);
+ }
+ 
+ static int cpu_cgroup_can_attach(struct cgroup_subsys *ss,
+-			     struct cgroup *cont, struct task_struct *tsk)
++			     struct cgroup *cgrp, struct task_struct *tsk)
+ {
+ 	/* We don't support RT-tasks being in separate groups */
+ 	if (tsk->sched_class != &fair_sched_class)
+@@ -7166,51 +7166,56 @@ static int cpu_cgroup_can_attach(struct 
+ }
+ 
+ static void
+-cpu_cgroup_attach(struct cgroup_subsys *ss, struct cgroup *cont,
++cpu_cgroup_attach(struct cgroup_subsys *ss, struct cgroup *cgrp,
+ 			struct cgroup *old_cont, struct task_struct *tsk)
+ {
+ 	sched_move_task(tsk);
+ }
+ 
+-static ssize_t cpu_shares_write(struct cgroup *cont, struct cftype *cftype,
+-				struct file *file, const char __user *userbuf,
+-				size_t nbytes, loff_t *ppos)
++static int cpu_shares_write_uint(struct cgroup *cgrp, struct cftype *cftype,
++				u64 shareval)
+ {
+-	unsigned long shareval;
+-	struct task_group *tg = cgroup_tg(cont);
+-	char buffer[2*sizeof(unsigned long) + 1];
+-	int rc;
+-
+-	if (nbytes > 2*sizeof(unsigned long))	/* safety check */
+-		return -E2BIG;
+-
+-	if (copy_from_user(buffer, userbuf, nbytes))
+-		return -EFAULT;
+-
+-	buffer[nbytes] = 0;	/* nul-terminate */
+-	shareval = simple_strtoul(buffer, NULL, 10);
+-
+-	rc = sched_group_set_shares(tg, shareval);
+-
+-	return (rc < 0 ? rc : nbytes);
++	return sched_group_set_shares(cgroup_tg(cgrp), shareval);
+ }
+ 
+-static u64 cpu_shares_read_uint(struct cgroup *cont, struct cftype *cft)
++static u64 cpu_shares_read_uint(struct cgroup *cgrp, struct cftype *cft)
+ {
+-	struct task_group *tg = cgroup_tg(cont);
++	struct task_group *tg = cgroup_tg(cgrp);
+ 
+ 	return (u64) tg->shares;
+ }
+ 
+-static struct cftype cpu_shares = {
+-	.name = "shares",
+-	.read_uint = cpu_shares_read_uint,
+-	.write = cpu_shares_write,
++static u64 cpu_usage_read(struct cgroup *cgrp, struct cftype *cft)
++{
++	struct task_group *tg = cgroup_tg(cgrp);
++	int i;
++	u64 res = 0;
++	for_each_possible_cpu(i) {
++		unsigned long flags;
++		spin_lock_irqsave(&tg->cfs_rq[i]->rq->lock, flags);
++		res += tg->se[i]->sum_exec_runtime;
++		spin_unlock_irqrestore(&tg->cfs_rq[i]->rq->lock, flags);
++	}
++	/* Convert from ns to ms */
++	do_div(res, 1000000);
++	return res;
++}
++
++static struct cftype cpu_files[] = {
++	{
++		.name = "shares",
++		.read_uint = cpu_shares_read_uint,
++		.write_uint = cpu_shares_write_uint,
++	},
++	{
++		.name = "usage",
++		.read_uint = cpu_usage_read,
++	},
+ };
+ 
+ static int cpu_cgroup_populate(struct cgroup_subsys *ss, struct cgroup *cont)
+ {
+-	return cgroup_add_file(cont, ss, &cpu_shares);
++	return cgroup_add_files(cont, ss, cpu_files, ARRAY_SIZE(cpu_files));
+ }
+ 
+ struct cgroup_subsys cpu_cgroup_subsys = {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from menage@google.com are
 
 origin.patch
-sunrpc-fix-rpc-debugging-checkpatch-fixes.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
-ide-arm-hack.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd-fixup.patch
-fix-build-breakage-if-sysfs-fix.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-git-unionfs.patch
-git-watchdog.patch
-watchdog-add-nano-7240-driver-checkpatch-fixes.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-x86-fix-config_smp-warning-in-processorc-fix.patch
-i386-and-x86_64-randomize-brk-fix.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-remove-warnings-for-longstanding-conditions-checkpatch-fixes.patch
-sync_sb_inodes-propagate-errors.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
 memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
 memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-improve-user-interface.patch
 memory-controller-oom-handling-v7.patch
 memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+add-a-refcount-check-in-dput.patch
