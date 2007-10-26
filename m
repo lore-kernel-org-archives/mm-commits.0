@@ -1,66 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - napi-use-non-interruptible-sleep-in-napi_disable.patch removed from -mm tree
-Date: Fri, 26 Oct 2007 11:48:19 -0700
-Message-ID: <200710261848.l9QImJdO009129@imap1.linux-foundation.org>
+Subject: - forcedeth-new-device-ids.patch removed from -mm tree
+Date: Fri, 26 Oct 2007 11:48:22 -0700
+Message-ID: <200710261848.l9QImM9I009132@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34687 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59259 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751933AbXJZSs0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751863AbXJZSsY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Oct 2007 14:48:26 -0400
+	Fri, 26 Oct 2007 14:48:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, davem@davemloft.net, jeff@garzik.org, mm-commits@vger.kernel.org
+To: aabdulla@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     napi: use non-interruptible sleep in napi_disable
+     forcedeth: new device ids
 has been removed from the -mm tree.  Its filename was
-     napi-use-non-interruptible-sleep-in-napi_disable.patch
+     forcedeth-new-device-ids.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: napi: use non-interruptible sleep in napi_disable
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: forcedeth: new device ids
+From: Ayaz Abdulla <aabdulla@nvidia.com>
 
-The current napi_disable() uses msleep_interruptible() but doesn't (and
-can't) exit in case there's a signal, thus ending up doing a hot spin
-without a cpu_relax.  Use uninterruptible sleep instead.
+Add new device ids for mcp77 devices.
 
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Acked-by: Jeff Garzik <jeff@garzik.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/netdevice.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/pci_ids.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN include/linux/netdevice.h~napi-use-non-interruptible-sleep-in-napi_disable include/linux/netdevice.h
---- a/include/linux/netdevice.h~napi-use-non-interruptible-sleep-in-napi_disable
-+++ a/include/linux/netdevice.h
-@@ -390,7 +390,7 @@ static inline void napi_complete(struct 
- static inline void napi_disable(struct napi_struct *n)
- {
- 	while (test_and_set_bit(NAPI_STATE_SCHED, &n->state))
--		msleep_interruptible(1);
-+		msleep(1);
- }
+diff -puN include/linux/pci_ids.h~forcedeth-new-device-ids include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~forcedeth-new-device-ids
++++ a/include/linux/pci_ids.h
+@@ -1236,6 +1236,10 @@
+ #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP67_IDE       0x0560
+ #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP73_IDE       0x056C
+ #define PCI_DEVICE_ID_NVIDIA_NFORCE_MCP77_IDE       0x0759
++#define PCI_DEVICE_ID_NVIDIA_NVENET_32              0x0760
++#define PCI_DEVICE_ID_NVIDIA_NVENET_33              0x0761
++#define PCI_DEVICE_ID_NVIDIA_NVENET_34              0x0762
++#define PCI_DEVICE_ID_NVIDIA_NVENET_35              0x0763
  
- /**
+ #define PCI_VENDOR_ID_IMS		0x10e0
+ #define PCI_DEVICE_ID_IMS_TT128		0x9128
 _
 
-Patches currently in -mm which might be from benh@kernel.crashing.org are
+Patches currently in -mm which might be from aabdulla@nvidia.com are
 
 origin.patch
-radeonfb-remove-warning-with-config_pm=n.patch
-fix-appletouch-geyser-1-breakage.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-powerpc-switch-to-generic-warn_on-bug_on.patch
-taskstats-scaled-time-cleanup.patch
-drivers-edac-add-cell-xdr-memory-types.patch
-drivers-edac-add-cell-mc-driver.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
