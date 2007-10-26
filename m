@@ -1,362 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-use-notifier-chain-for-asynchronous-event.patch removed from -mm tree
-Date: Fri, 26 Oct 2007 11:36:22 -0700
-Message-ID: <200710261836.l9QIaMhY008676@imap1.linux-foundation.org>
+Subject: - git-v9fs-fixup.patch removed from -mm tree
+Date: Fri, 26 Oct 2007 11:36:58 -0700
+Message-ID: <200710261836.l9QIawYS008679@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42979 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53993 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754858AbXJZSga (ORCPT
+	by vger.kernel.org with ESMTP id S1756441AbXJZShC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Oct 2007 14:36:30 -0400
+	Fri, 26 Oct 2007 14:37:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kristen.c.accardi@intel.com, James.Bottomley@steeleye.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ericvh@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: use notifier chain for Asynchronous Event Notification
+     git-v9fs-fixup
 has been removed from the -mm tree.  Its filename was
-     scsi-use-notifier-chain-for-asynchronous-event.patch
+     git-v9fs-fixup.patch
 
-This patch was dropped because of rejects
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: scsi: use notifier chain for Asynchronous Event Notification
-From: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Subject: git-v9fs-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add a notifier chain for SCSI asynchronous events.  Add a notifier block
-for events which should be sent to user space, and add support for the
-MEDIA_CHANGE event, which would be used by a driver when new media has been
-inserted.
+Fix git conflicts in git-v9fs.
 
-Signed-off-by: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Eric Van Hensbergen <ericvh@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/Makefile    |    2 
- drivers/scsi/scsi.c      |    2 
- drivers/scsi/scsi_aen.c  |  168 +++++++++++++++++++++++++++++++++++++
- drivers/scsi/scsi_lib.c  |   83 ------------------
- drivers/scsi/scsi_priv.h |    4 
- 5 files changed, 175 insertions(+), 84 deletions(-)
+ fs/9p/v9fs.c    |    3 ---
+ net/9p/Kconfig  |    3 ---
+ net/9p/Makefile |    7 +------
+ 3 files changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN drivers/scsi/Makefile~scsi-use-notifier-chain-for-asynchronous-event drivers/scsi/Makefile
---- a/drivers/scsi/Makefile~scsi-use-notifier-chain-for-asynchronous-event
-+++ a/drivers/scsi/Makefile
-@@ -150,7 +150,7 @@ obj-$(CONFIG_SCSI_DEBUG)	+= scsi_debug.o
- obj-$(CONFIG_SCSI_WAIT_SCAN)	+= scsi_wait_scan.o
+diff -puN fs/9p/v9fs.c~git-v9fs-fixup fs/9p/v9fs.c
+--- a/fs/9p/v9fs.c~git-v9fs-fixup
++++ a/fs/9p/v9fs.c
+@@ -162,10 +162,7 @@ static void v9fs_parse_options(struct v9
+ 				if (*e != '\0')
+ 					v9ses->uid = ~0;
+ 			}
+-<<<<<<< HEAD:fs/9p/v9fs.c
+ 			kfree(s);
+-=======
+->>>>>>> FETCH_HEAD:fs/9p/v9fs.c
+ 			break;
  
- scsi_mod-y			+= scsi.o hosts.o scsi_ioctl.o constants.o \
--				   scsicam.o scsi_error.o scsi_lib.o
-+				   scsicam.o scsi_error.o scsi_lib.o scsi_aen.o
- scsi_mod-$(CONFIG_SCSI_DMA)	+= scsi_lib_dma.o
- scsi_mod-y			+= scsi_scan.o scsi_sysfs.o scsi_devinfo.o
- scsi_mod-$(CONFIG_SCSI_NETLINK)	+= scsi_netlink.o
-diff -puN drivers/scsi/scsi.c~scsi-use-notifier-chain-for-asynchronous-event drivers/scsi/scsi.c
---- a/drivers/scsi/scsi.c~scsi-use-notifier-chain-for-asynchronous-event
-+++ a/drivers/scsi/scsi.c
-@@ -1055,6 +1055,8 @@ static int __init init_scsi(void)
- 	if (error)
- 		goto cleanup_sysctl;
+ 		default:
+diff -puN net/9p/Kconfig~git-v9fs-fixup net/9p/Kconfig
+--- a/net/9p/Kconfig~git-v9fs-fixup
++++ a/net/9p/Kconfig
+@@ -23,7 +23,6 @@ config NET_9P_FD
+ 	  file descriptors.  TCP/IP is the default transport for 9p,
+ 	  so if you are going to use 9p, you'll likely want this.
  
-+	scsi_aen_init();
-+
- 	scsi_netlink_init();
+-<<<<<<< HEAD:net/9p/Kconfig
+ config NET_9P_VIRTIO
+ 	depends on NET_9P && EXPERIMENTAL && VIRTIO
+ 	tristate "9P Virtio Transport (Experimental)"
+@@ -31,8 +30,6 @@ config NET_9P_VIRTIO
+ 	  This builds support for a transports between
+ 	  guest partitions and a host partition.
  
- 	printk(KERN_NOTICE "SCSI subsystem initialized\n");
-diff -puN /dev/null drivers/scsi/scsi_aen.c
---- /dev/null
-+++ a/drivers/scsi/scsi_aen.c
-@@ -0,0 +1,168 @@
-+/*
-+ *  SCSI Asynchronous Event Notification
-+ *
-+ *  Copyright (c) 2007, Intel Corporation
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ *  Send Feedback to:  Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-+ */
-+#include <linux/notifier.h>
-+
-+#include <scsi/scsi.h>
-+#include <scsi/scsi_cmnd.h>
-+#include <scsi/scsi_dbg.h>
-+#include <scsi/scsi_device.h>
-+#include <scsi/scsi_driver.h>
-+#include <scsi/scsi_eh.h>
-+#include <scsi/scsi_host.h>
-+
-+static int scsi_aen_uevent_notifier(struct notifier_block *nb,
-+				    unsigned long action, void *sdev);
-+
-+BLOCKING_NOTIFIER_HEAD(scsi_aen_chain);
-+
-+static struct notifier_block scsi_aen_nb = {
-+	.notifier_call = scsi_aen_uevent_notifier,
-+};
-+
-+/* must match scsi_device_event enum in scsi_device.h */
-+static char * scsi_device_event_strings[] = {
-+	"MEDIA_CHANGE=1",
-+};
-+
-+/**	scsi_aen_notifier_register - register to receive aen events
-+ * 	@nb: callers notifier_block
-+ *
-+ * 	Add a callers notifier_block to the AEN notify chain.
-+ */
-+int scsi_aen_notifier_register(struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_register(&scsi_aen_chain, nb);
-+}
-+EXPORT_SYMBOL_GPL(scsi_aen_notifier_register);
-+
-+/**	scsi_aen_notifier_register - register to receive aen events
-+ * 	@nb: callers notifier_block
-+ *
-+ * 	remove a callers notifier_block from the AEN notify chain.
-+ */
-+int scsi_aen_notifier_unregister(struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_unregister(&scsi_aen_chain, nb);
-+}
-+EXPORT_SYMBOL_GPL(scsi_aen_notifier_unregister);
-+
-+/**
-+ * 	scsi_device_set_event - Add a new Async event to the event list
-+ *	@sdev: scsi_device event occurred on
-+ *	@event: the scsi device event
-+ *
-+ * 	Add a new scsi_device_event_info struct to the scsi_device_event_list
-+ * 	queue.  This may be called from interrupt context.
-+ *
-+ * 	Returns 0 if successful, -ENOMEM otherwise.
-+ */
-+static int
-+scsi_device_set_event(struct scsi_device *sdev, enum scsi_device_event event)
-+{
-+	struct scsi_device_event_info *scsi_event;
-+	unsigned long flags;
-+
-+	scsi_event = kzalloc(sizeof(*scsi_event), GFP_ATOMIC);
-+	if (!scsi_event)
-+		return -ENOMEM;
-+	INIT_LIST_HEAD(&scsi_event->link);
-+	scsi_event->event = event;
-+	spin_lock_irqsave(&sdev->list_lock, flags);
-+	list_add_tail(&scsi_event->link, &sdev->sdev_event_list);
-+	spin_unlock_irqrestore(&sdev->list_lock, flags);
-+	return 0;
-+}
-+
-+/**
-+ * 	scsi_device_event_notify_thread - send a uevent for each scsi event
-+ *	@work: work struct for scsi_device
-+ *
-+ * 	Traverse the queue of scsi device events, dequeue each event and
-+ * 	send a uevent.  Frees event.  May not be called from interrupt.
-+ */
-+static void scsi_event_notify_thread(struct work_struct *work)
-+{
-+	struct scsi_device *sdev;
-+	struct list_head *tmp;
-+	struct list_head *next;
-+	struct scsi_device_event_info *sdev_event;
-+	unsigned long flags;
-+
-+	sdev = container_of(work, struct scsi_device, ew.work);
-+	list_for_each_safe(tmp, next, &sdev->sdev_event_list) {
-+		sdev_event = list_entry(tmp, struct scsi_device_event_info,
-+					link);
-+		spin_lock_irqsave(&sdev->list_lock, flags);
-+		list_del(&sdev_event->link);
-+		spin_unlock_irqrestore(&sdev->list_lock, flags);
-+		/* ignore return code for now */
-+		blocking_notifier_call_chain(&scsi_aen_chain,
-+			sdev_event->event, sdev);
-+		kfree(sdev_event);
-+	}
-+}
-+
-+static int scsi_aen_uevent_notifier(struct notifier_block *nb,
-+				    unsigned long action, void *data)
-+{
-+	struct scsi_device *sdev = data;
-+	char *envp[] = { NULL, NULL };
-+
-+	if (action == SDEV_MEDIA_CHANGE) {
-+		envp[0] = scsi_device_event_strings[action-1];
-+		kobject_uevent_env(&sdev->sdev_gendev.kobj, KOBJ_CHANGE, envp);
-+	}
-+	return NOTIFY_OK;
-+}
-+
-+/**
-+ * 	scsi_device_event_notify - store event info and send an event
-+ *	@sdev: scsi_device event occurred on
-+ *	@event: the scsi device event
-+ *
-+ * 	Store the event information and then switch process context
-+ * 	so that the event may be sent to user space.
-+ * 	This may be called from interrupt context.
-+ *
-+ * 	Returns 0 if successful, -ENOMEM otherwise.
-+ */
-+int scsi_device_event_notify(struct scsi_device *sdev, enum scsi_device_event event)
-+{
-+	int rc;
-+
-+	rc = scsi_device_set_event(sdev, event);
-+	if (!rc)
-+		execute_in_process_context(scsi_event_notify_thread, &sdev->ew);
-+	return rc;
-+}
-+EXPORT_SYMBOL_GPL(scsi_device_event_notify);
-+
-+__init int scsi_aen_init(void)
-+{
-+	return scsi_aen_notifier_register(&scsi_aen_nb);
-+}
-+
-+void scsi_aen_exit(void)
-+{
-+	scsi_aen_notifier_unregister(&scsi_aen_nb);
-+}
-+
-diff -puN drivers/scsi/scsi_lib.c~scsi-use-notifier-chain-for-asynchronous-event drivers/scsi/scsi_lib.c
---- a/drivers/scsi/scsi_lib.c~scsi-use-notifier-chain-for-asynchronous-event
-+++ a/drivers/scsi/scsi_lib.c
-@@ -64,11 +64,6 @@ static struct scsi_host_sg_pool scsi_sg_
- };
- #undef SP
+-=======
+->>>>>>> FETCH_HEAD:net/9p/Kconfig
+ config NET_9P_DEBUG
+ 	bool "Debug information"
+ 	depends on NET_9P
+diff -puN net/9p/Makefile~git-v9fs-fixup net/9p/Makefile
+--- a/net/9p/Makefile~git-v9fs-fixup
++++ a/net/9p/Makefile
+@@ -1,9 +1,6 @@
+ obj-$(CONFIG_NET_9P) := 9pnet.o
+ obj-$(CONFIG_NET_9P_FD) += 9pnet_fd.o
+-<<<<<<< HEAD:net/9p/Makefile
+ obj-$(CONFIG_NET_9P_VIRTIO) += 9pnet_virtio.o
+-=======
+->>>>>>> FETCH_HEAD:net/9p/Makefile
  
--/* must match scsi_device_event enum in scsi_device.h */
--static char * scsi_device_event_strings[] = {
--	"MEDIA_CHANGE=1",
--};
--
- static void scsi_run_queue(struct request_queue *q);
+ 9pnet-objs := \
+ 	mod.o \
+@@ -16,9 +13,7 @@ obj-$(CONFIG_NET_9P_VIRTIO) += 9pnet_vir
  
- /*
-@@ -2129,84 +2124,6 @@ scsi_device_set_state(struct scsi_device
- EXPORT_SYMBOL(scsi_device_set_state);
+ 9pnet_fd-objs := \
+ 	trans_fd.o \
+-<<<<<<< HEAD:net/9p/Makefile
  
- /**
-- * 	scsi_device_set_event - Add a new Async event to the event list
-- *	@sdev: scsi_device event occurred on
-- *	@event: the scsi device event
-- *
-- * 	Add a new scsi_device_event_info struct to the scsi_device_event_list
-- * 	queue.  This may be called from interrupt context.
-- *
-- * 	Returns 0 if successful, -ENOMEM otherwise.
-- */
--static int
--scsi_device_set_event(struct scsi_device *sdev, enum scsi_device_event event)
--{
--	struct scsi_device_event_info *scsi_event;
--	unsigned long flags;
--
--	scsi_event = kzalloc(sizeof(*scsi_event), GFP_ATOMIC);
--	if (!scsi_event)
--		return -ENOMEM;
--	INIT_LIST_HEAD(&scsi_event->link);
--	scsi_event->event = event;
--	spin_lock_irqsave(&sdev->list_lock, flags);
--	list_add_tail(&scsi_event->link, &sdev->sdev_event_list);
--	spin_unlock_irqrestore(&sdev->list_lock, flags);
--	return 0;
--}
--
--/**
-- * 	scsi_device_event_notify_thread - send a uevent for each scsi event
-- *	@work: work struct for scsi_device
-- *
-- * 	Traverse the queue of scsi device events, dequeue each event and
-- * 	send a uevent.  Frees event.  May not be called from interrupt.
-- */
--static void scsi_event_notify_thread(struct work_struct *work)
--{
--	struct scsi_device *sdev;
--	char *envp[] = { NULL, NULL };
--	struct list_head *tmp;
--	struct list_head *next;
--	struct scsi_device_event_info *sdev_event;
--	unsigned long flags;
--
--	sdev = container_of(work, struct scsi_device, ew.work);
--	list_for_each_safe(tmp, next, &sdev->sdev_event_list) {
--		sdev_event = list_entry(tmp, struct scsi_device_event_info,
--					link);
--		spin_lock_irqsave(&sdev->list_lock, flags);
--		list_del(&sdev_event->link);
--		spin_unlock_irqrestore(&sdev->list_lock, flags);
--		envp[0] = scsi_device_event_strings[sdev_event->event-1];
--		kobject_uevent_env(&sdev->sdev_gendev.kobj, KOBJ_CHANGE, envp);
--		kfree(sdev_event);
--	}
--}
--
--/**
-- * 	scsi_device_event_notify - store event info and send an event
-- *	@sdev: scsi_device event occurred on
-- *	@event: the scsi device event
-- *
-- * 	Store the event information and then switch process context
-- * 	so that the event may be sent to user space.
-- * 	This may be called from interrupt context.
-- *
-- * 	Returns 0 if successful, -ENOMEM otherwise.
-- */
--int scsi_device_event_notify(struct scsi_device *sdev, enum scsi_device_event event)
--{
--	int rc;
--
--	rc = scsi_device_set_event(sdev, event);
--	if (!rc)
--		execute_in_process_context(scsi_event_notify_thread, &sdev->ew);
--	return rc;
--}
--EXPORT_SYMBOL_GPL(scsi_device_event_notify);
--
--/**
-  *	scsi_device_quiesce - Block user issued commands.
-  *	@sdev:	scsi device to quiesce.
-  *
-diff -puN drivers/scsi/scsi_priv.h~scsi-use-notifier-chain-for-asynchronous-event drivers/scsi/scsi_priv.h
---- a/drivers/scsi/scsi_priv.h~scsi-use-notifier-chain-for-asynchronous-event
-+++ a/drivers/scsi/scsi_priv.h
-@@ -129,6 +129,10 @@ static inline void scsi_netlink_init(voi
- static inline void scsi_netlink_exit(void) {}
- #endif
- 
-+/* scsi_aen.c */
-+extern int scsi_aen_init(void);
-+extern void scsi_aen_exit(void);
+ 9pnet_virtio-objs := \
+ 	trans_virtio.o \
+-=======
+->>>>>>> FETCH_HEAD:net/9p/Makefile
 +
- /* 
-  * internal scsi timeout functions: for use by mid-layer and transport
-  * classes.
 _
 
-Patches currently in -mm which might be from kristen.c.accardi@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+sunrpc-fix-rpc-debugging-checkpatch-fixes.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+revert-gregkh-driver-block-device.patch
+git-hwmon.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
+git-kvm.patch
 git-libata-all.patch
-scsi-send-media-state-change-modification-events.patch
-scsi-use-notifier-chain-for-asynchronous-event.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
+ide-arm-hack.patch
+drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
+nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd-fixup.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+git-unionfs.patch
+git-v9fs-fixup.patch
+git-watchdog.patch
+watchdog-add-nano-7240-driver-checkpatch-fixes.patch
+git-wireless.patch
+git-wireless-fixup.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-x86.patch
+git-x86-fixup.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+x86-fix-config_smp-warning-in-processorc-fix.patch
+i386-and-x86_64-randomize-brk-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+remove-warnings-for-longstanding-conditions-checkpatch-fixes.patch
+sync_sb_inodes-propagate-errors.patch
+peterz-vs-ext4-mballoc-core.patch
+64-bit-i_version-afs-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
