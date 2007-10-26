@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sigio-driven-i-o-with-inotify-queues.patch added to -mm tree
-Date: Fri, 26 Oct 2007 13:29:03 -0700
-Message-ID: <200710262029.l9QKT3ZO012935@imap1.linux-foundation.org>
+Subject: + sunrpc-xprtrdma-transportc-fix-use-after-free.patch added to -mm tree
+Date: Fri, 26 Oct 2007 13:31:12 -0700
+Message-ID: <200710262031.l9QKVCf3013075@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33741 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56111 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753891AbXJZU3k (ORCPT
+	by vger.kernel.org with ESMTP id S1750933AbXJZUcJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Oct 2007 16:29:40 -0400
+	Fri, 26 Oct 2007 16:32:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: antipov@dev.rtsoft.ru, mtk-manpages@gmx.net, rlove@google.com, ttb@tentacle.dhs.org
+Cc: bunk@kernel.org, bfields@fieldses.org, davem@davemloft.net, neilb@suse.de, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     SIGIO-driven I/O with inotify queues
+     sunrpc/xprtrdma/transport.c: fix use-after-free
 has been added to the -mm tree.  Its filename is
-     sigio-driven-i-o-with-inotify-queues.patch
+     sunrpc-xprtrdma-transportc-fix-use-after-free.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,83 +26,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SIGIO-driven I/O with inotify queues
-From: Dmitry Antipov <antipov@dev.rtsoft.ru>
+Subject: sunrpc/xprtrdma/transport.c: fix use-after-free
+From: Adrian Bunk <bunk@kernel.org>
 
-Add SIGIO-driven I/O for descriptors returned by inotify_init().  The thing
-may be enabled by convenient fcntl (fd, F_SETFL, O_ASYNC) call.
+Fix an obvious use-after-free spotted by the Coverity checker.
 
-Signed-off-by: Dmitry Antipov <antipov@dev.rtsoft.ru>
-Cc: Robert Love <rlove@google.com>
-Cc: John McCutchan <ttb@tentacle.dhs.org>
-Cc: Michael Kerrisk <mtk-manpages@gmx.net>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Neil Brown <neilb@suse.de>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inotify_user.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ net/sunrpc/xprtrdma/transport.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/inotify_user.c~sigio-driven-i-o-with-inotify-queues fs/inotify_user.c
---- a/fs/inotify_user.c~sigio-driven-i-o-with-inotify-queues
-+++ a/fs/inotify_user.c
-@@ -79,6 +79,7 @@ struct inotify_device {
- 	atomic_t		count;		/* reference count */
- 	struct user_struct	*user;		/* user who opened this dev */
- 	struct inotify_handle	*ih;		/* inotify handle */
-+	struct fasync_struct    *fa;            /* async notification */
- 	unsigned int		queue_size;	/* size of the queue (bytes) */
- 	unsigned int		event_count;	/* number of pending events */
- 	unsigned int		max_events;	/* maximum number of events */
-@@ -315,6 +316,7 @@ static void inotify_dev_queue_event(stru
- 	dev->queue_size += sizeof(struct inotify_event) + kevent->event.len;
- 	list_add_tail(&kevent->list, &dev->events);
- 	wake_up_interruptible(&dev->wq);
-+	kill_fasync(&dev->fa, SIGIO, POLL_IN);
- 
- out:
- 	mutex_unlock(&dev->ev_mutex);
-@@ -503,6 +505,13 @@ static ssize_t inotify_read(struct file 
- 	return ret;
- }
- 
-+static int inotify_fasync(int fd, struct file *file, int on)
-+{
-+	struct inotify_device *dev = file->private_data;
-+
-+	return fasync_helper(fd, file, on, &dev->fa) >= 0 ? 0 : -EIO;
-+}
-+
- static int inotify_release(struct inode *ignored, struct file *file)
- {
- 	struct inotify_device *dev = file->private_data;
-@@ -515,6 +524,9 @@ static int inotify_release(struct inode 
- 		inotify_dev_event_dequeue(dev);
- 	mutex_unlock(&dev->ev_mutex);
- 
-+	if (file->f_flags & FASYNC)
-+		inotify_fasync(-1, file, 0);
-+
- 	/* free this device: the put matching the get in inotify_init() */
- 	put_inotify_dev(dev);
- 
-@@ -543,6 +555,7 @@ static long inotify_ioctl(struct file *f
- static const struct file_operations inotify_fops = {
- 	.poll           = inotify_poll,
- 	.read           = inotify_read,
-+	.fasync         = inotify_fasync,
- 	.release        = inotify_release,
- 	.unlocked_ioctl = inotify_ioctl,
- 	.compat_ioctl	= inotify_ioctl,
-@@ -590,6 +603,7 @@ asmlinkage long sys_inotify_init(void)
- 		goto out_free_dev;
+diff -puN net/sunrpc/xprtrdma/transport.c~sunrpc-xprtrdma-transportc-fix-use-after-free net/sunrpc/xprtrdma/transport.c
+--- a/net/sunrpc/xprtrdma/transport.c~sunrpc-xprtrdma-transportc-fix-use-after-free
++++ a/net/sunrpc/xprtrdma/transport.c
+@@ -320,9 +320,9 @@ xprt_setup_rdma(struct xprt_create *args
+ 	xprt->slot = kcalloc(xprt->max_reqs,
+ 				sizeof(struct rpc_rqst), GFP_KERNEL);
+ 	if (xprt->slot == NULL) {
+-		kfree(xprt);
+ 		dprintk("RPC:       %s: couldn't allocate %d slots\n",
+ 			__func__, xprt->max_reqs);
++		kfree(xprt);
+ 		return ERR_PTR(-ENOMEM);
  	}
- 	dev->ih = ih;
-+	dev->fa = NULL;
  
- 	filp->f_op = &inotify_fops;
- 	filp->f_path.mnt = mntget(inotify_mnt);
 _
 
-Patches currently in -mm which might be from antipov@dev.rtsoft.ru are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-sigio-driven-i-o-with-inotify-queues.patch
+origin.patch
+ipmi-fix-comparison-in-demangle_device_id.patch
+git-acpi.patch
+git-dvb.patch
+git-hwmon.patch
+git-nfs-make-nfs_wb_page_priority-static.patch
+git-ocfs2.patch
+git-sh64.patch
+sunrpc-xprtrdma-transportc-fix-use-after-free.patch
+fuse-fuse_file_alloc-fix-null-dereferences.patch
+make-jbd-journalc__journal_abort_hard-static.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+reiser4.patch
