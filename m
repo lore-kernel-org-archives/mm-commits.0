@@ -1,119 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: - permit-silencing-of-__deprecated-warnings.patch removed from -mm tree
-Date: Fri, 26 Oct 2007 11:48:42 -0700
-Message-ID: <200710261848.l9QImgcU009160@imap1.linux-foundation.org>
+Subject: - peterz-vs-ext4-mballoc-core.patch removed from -mm tree
+Date: Fri, 26 Oct 2007 11:48:46 -0700
+Message-ID: <200710261848.l9QImkb1009168@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36441 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48371 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763622AbXJZStA (ORCPT
+	by vger.kernel.org with ESMTP id S1762415AbXJZSsv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Oct 2007 14:49:00 -0400
+	Fri, 26 Oct 2007 14:48:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff@garzik.org, jgarzik@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Permit silencing of __deprecated warnings
+     peterz-vs-ext4-mballoc-core
 has been removed from the -mm tree.  Its filename was
-     permit-silencing-of-__deprecated-warnings.patch
+     peterz-vs-ext4-mballoc-core.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Permit silencing of __deprecated warnings
-From: Jeff Garzik <jeff@garzik.org>
+Subject: peterz-vs-ext4-mballoc-core
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The __deprecated marker is quite useful in highlighting the remnants of
-old APIs that want removing.
+argh at gratuitous unrelated code churn :(
 
-However, it is quite normal for one or more years to pass, before the
-(usually ancient, bitrotten) code in question is either updated or
-deleted.
-
-Thus, like __must_check, add a Kconfig option that permits the silencing
-of this compiler warning.
-
-This change mimics the ifdef-ery and Kconfig defaults of MUST_CHECK as
-closely as possible.
-
-Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler.h |    6 ++++++
- lib/Kconfig.debug        |    8 ++++++++
- 2 files changed, 14 insertions(+)
+ fs/ext4/mballoc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/compiler.h~permit-silencing-of-__deprecated-warnings include/linux/compiler.h
---- a/include/linux/compiler.h~permit-silencing-of-__deprecated-warnings
-+++ a/include/linux/compiler.h
-@@ -101,6 +101,12 @@ extern void __chk_io_ptr(const volatile 
- #undef __must_check
- #define __must_check
- #endif
-+#ifndef CONFIG_ENABLE_WARN_DEPRECATED
-+#undef __deprecated
-+#undef __deprecated_for_modules
-+#define __deprecated
-+#define __deprecated_for_modules
-+#endif
+diff -puN fs/ext4/mballoc.c~peterz-vs-ext4-mballoc-core fs/ext4/mballoc.c
+--- a/fs/ext4/mballoc.c~peterz-vs-ext4-mballoc-core
++++ a/fs/ext4/mballoc.c
+@@ -3036,7 +3036,7 @@ static int ext4_mb_mark_diskspace_used(s
+ 				- ac->ac_b_ex.fe_len);
+ 	gdp->bg_checksum = ext4_group_desc_csum(sbi, ac->ac_b_ex.fe_group, gdp);
+ 	spin_unlock(sb_bgl_lock(sbi, ac->ac_b_ex.fe_group));
+-	percpu_counter_mod(&sbi->s_freeblocks_counter, - ac->ac_b_ex.fe_len);
++	percpu_counter_add(&sbi->s_freeblocks_counter, - ac->ac_b_ex.fe_len);
  
- /*
-  * Allow us to avoid 'defined but not used' warnings on functions and data,
-diff -puN lib/Kconfig.debug~permit-silencing-of-__deprecated-warnings lib/Kconfig.debug
---- a/lib/Kconfig.debug~permit-silencing-of-__deprecated-warnings
-+++ a/lib/Kconfig.debug
-@@ -9,6 +9,14 @@ config PRINTK_TIME
- 	  operations.  This is useful for identifying long delays
- 	  in kernel startup.
+ 	err = ext4_journal_dirty_metadata(handle, bitmap_bh);
+ 	if (err)
+@@ -4468,7 +4468,7 @@ do_more:
+ 		cpu_to_le16(le16_to_cpu(gdp->bg_free_blocks_count) + count);
+ 	gdp->bg_checksum = ext4_group_desc_csum(sbi, block_group, gdp);
+ 	spin_unlock(sb_bgl_lock(sbi, block_group));
+-	percpu_counter_mod(&sbi->s_freeblocks_counter, count);
++	percpu_counter_add(&sbi->s_freeblocks_counter, count);
  
-+config ENABLE_WARN_DEPRECATED
-+	bool "Enable __deprecated logic"
-+	default y
-+	help
-+	  Enable the __deprecated logic in the kernel build.
-+	  Disable this to suppress the "warning: 'foo' is deprecated
-+	  (declared at kernel/power/somefile.c:1234)" messages.
-+
- config ENABLE_MUST_CHECK
- 	bool "Enable __must_check logic"
- 	default y
+ 	ext4_mb_release_desc(&e4b);
+ 
 _
 
-Patches currently in -mm which might be from jeff@garzik.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-remove-bogus-default-y-for-dmar-and-net_dma.patch
-acpi-sbs-fix-retval-warning.patch
-git-jg-misc.patch
+sunrpc-fix-rpc-debugging-checkpatch-fixes.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+revert-gregkh-driver-block-device.patch
+git-hwmon.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
+git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
-ide-add-helper-__ide_setup_pci_device.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop.patch
+libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
+ide-arm-hack.patch
 drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-git-netdev-all.patch
-forcedeth-power-down-phy-when-interface-is-down.patch
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
 ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
-hptiop-fix-type-mismatch-warning.patch
-ips-remove-ips_ha-members-that-duplicate-struct-pci_dev-members.patch
-ips-trim-trailing-whitespace.patch
+git-nfsd-fixup.patch
+fix-build-breakage-if-sysfs-fix.patch
 ips-trim-trailing-whitespace-checkpatch-fixes.patch
-ips-pci-api-cleanups.patch
-ips-handle-scsi_add_host-failure-and-other-err-cleanups.patch
+git-unionfs.patch
+git-watchdog.patch
+watchdog-add-nano-7240-driver-checkpatch-fixes.patch
 git-wireless.patch
-x86-fix-config_smp-warning-in-processorc.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-x86.patch
+git-x86-fixup.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
 x86-fix-config_smp-warning-in-processorc-fix.patch
-fix-versus-precedence-in-various-places.patch
+i386-and-x86_64-randomize-brk-fix.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
 fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness.patch
+pie-executable-randomization.patch
+pie-executable-randomization-checkpatch-fixes.patch
 riscom8-fix-smp-brokenness-fix.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
 sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-sound-oss-sb_commonc-fix-casting-warning.patch
-remove-warnings-for-longstanding-conditions.patch
 remove-warnings-for-longstanding-conditions-fix.patch
 remove-warnings-for-longstanding-conditions-checkpatch-fixes.patch
+sync_sb_inodes-propagate-errors.patch
+64-bit-i_version-afs-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
