@@ -1,123 +1,195 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-path_put-unionfs.patch removed from -mm tree
-Date: Fri, 26 Oct 2007 11:58:58 -0700
-Message-ID: <200710261858.l9QIwwhj009563@imap1.linux-foundation.org>
+Subject: - make-set_fs_rootpwd-take-a-struct-path.patch removed from -mm tree
+Date: Fri, 26 Oct 2007 11:58:50 -0700
+Message-ID: <200710261858.l9QIwovf009551@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52937 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36289 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751596AbXJZS7a (ORCPT
+	by vger.kernel.org with ESMTP id S1752860AbXJZS7m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Oct 2007 14:59:30 -0400
+	Fri, 26 Oct 2007 14:59:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jblunck@suse.de, agruen@suse.de, bharata@linux.vnet.ibm.com, ezk@cs.sunysb.edu, hch@lst.de, mm-commits@vger.kernel.org
+To: jblunck@suse.de, agruen@suse.de, bharata@linux.vnet.ibm.com, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Introduce path_put()
+     Make set_fs_{root,pwd} take a struct path
 has been removed from the -mm tree.  Its filename was
-     introduce-path_put-unionfs.patch
+     make-set_fs_rootpwd-take-a-struct-path.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Introduce path_put()
+Subject: Make set_fs_{root,pwd} take a struct path
 From: Jan Blunck <jblunck@suse.de>
 
-* Add path_put() functions for releasing a reference to the dentry and
-  vfsmount of a struct path in the right order
-
-* Switch from path_release(nd) to path_put(&nd->path)
-
-* Rename dput_path() to path_put_conditional()
+In nearly all cases the set_fs_{root,pwd}() calls work on a struct path. 
+Change the function to reflect this and use path_get() here.
 
 Signed-off-by: Jan Blunck <jblunck@suse.de>
 Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
 Signed-off-by: Bharata B Rao <bharata@linux.vnet.ibm.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Erez Zadok <ezk@cs.sunysb.edu>
+Acked-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/unionfs/main.c  |    2 +-
- fs/unionfs/super.c |   12 ++++++------
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ fs/namespace.c            |   28 ++++++++++++++--------------
+ fs/open.c                 |   12 ++++--------
+ include/linux/fs_struct.h |    4 ++--
+ 3 files changed, 20 insertions(+), 24 deletions(-)
 
-diff -puN fs/unionfs/main.c~introduce-path_put-unionfs fs/unionfs/main.c
---- a/fs/unionfs/main.c~introduce-path_put-unionfs
-+++ a/fs/unionfs/main.c
-@@ -368,7 +368,7 @@ static int parse_dirs_option(struct supe
- 		if (err) {
- 			printk(KERN_ERR "unionfs: lower directory "
- 			       "'%s' is not a valid branch\n", name);
--			path_release(&nd);
-+			path_put(&nd.path);
- 			goto out;
- 		}
+diff -puN fs/namespace.c~make-set_fs_rootpwd-take-a-struct-path fs/namespace.c
+--- a/fs/namespace.c~make-set_fs_rootpwd-take-a-struct-path
++++ a/fs/namespace.c
+@@ -2042,15 +2042,14 @@ out1:
+  * Replace the fs->{rootmnt,root} with {mnt,dentry}. Put the old values.
+  * It can block. Requires the big lock held.
+  */
+-void set_fs_root(struct fs_struct *fs, struct vfsmount *mnt,
+-		 struct dentry *dentry)
++void set_fs_root(struct fs_struct *fs, struct path *path)
+ {
+ 	struct path old_root;
  
-diff -puN fs/unionfs/super.c~introduce-path_put-unionfs fs/unionfs/super.c
---- a/fs/unionfs/super.c~introduce-path_put-unionfs
-+++ a/fs/unionfs/super.c
-@@ -205,7 +205,7 @@ static noinline int do_remount_mode_opti
- 		if (nd.path.mnt == new_lower_paths[idx].mnt &&
- 		    nd.path.dentry == new_lower_paths[idx].dentry)
- 			break;
--	path_release(&nd);	/* no longer needed */
-+	path_put(&nd.path);	/* no longer needed */
- 	if (idx == cur_branches) {
- 		err = -ENOENT;	/* err may have been reset above */
- 		printk(KERN_ERR "unionfs: branch \"%s\" "
-@@ -248,7 +248,7 @@ static noinline int do_remount_del_optio
- 		if (nd.path.mnt == new_lower_paths[idx].mnt &&
- 		    nd.path.dentry == new_lower_paths[idx].dentry)
- 			break;
--	path_release(&nd);	/* no longer needed */
-+	path_put(&nd.path);	/* no longer needed */
- 	if (idx == cur_branches) {
- 		printk(KERN_ERR "unionfs: branch \"%s\" "
- 		       "not found\n", optarg);
-@@ -267,7 +267,7 @@ static noinline int do_remount_del_optio
- 	 * new_data and new_lower_paths one to the left.  Finally, adjust
- 	 * cur_branches.
- 	 */
--	pathput(&new_lower_paths[idx]);
-+	path_put(&new_lower_paths[idx]);
+ 	write_lock(&fs->lock);
+ 	old_root = fs->root;
+-	fs->root.mnt = mntget(mnt);
+-	fs->root.dentry = dget(dentry);
++	fs->root = *path;
++	path_get(path);
+ 	write_unlock(&fs->lock);
+ 	if (old_root.dentry)
+ 		path_put(&old_root);
+@@ -2060,15 +2059,14 @@ void set_fs_root(struct fs_struct *fs, s
+  * Replace the fs->{pwdmnt,pwd} with {mnt,dentry}. Put the old values.
+  * It can block. Requires the big lock held.
+  */
+-void set_fs_pwd(struct fs_struct *fs, struct vfsmount *mnt,
+-		struct dentry *dentry)
++void set_fs_pwd(struct fs_struct *fs, struct path *path)
+ {
+ 	struct path old_pwd;
  
- 	if (idx < cur_branches - 1) {
- 		/* if idx==cur_branches-1, we delete last branch: easy */
-@@ -332,7 +332,7 @@ static noinline int do_remount_add_optio
- 		if (nd.path.mnt == new_lower_paths[idx].mnt &&
- 		    nd.path.dentry == new_lower_paths[idx].dentry)
- 			break;
--	path_release(&nd);	/* no longer needed */
-+	path_put(&nd.path);	/* no longer needed */
- 	if (idx == cur_branches) {
- 		printk(KERN_ERR "unionfs: branch \"%s\" "
- 		       "not found\n", optarg);
-@@ -375,7 +375,7 @@ found_insertion_point:
- 	if (err) {
- 		printk(KERN_ERR "unionfs: lower directory "
- 		       "\"%s\" is not a valid branch\n", optarg);
--		path_release(&nd);
-+		path_put(&nd.path);
+ 	write_lock(&fs->lock);
+ 	old_pwd = fs->pwd;
+-	fs->pwd.mnt = mntget(mnt);
+-	fs->pwd.dentry = dget(dentry);
++	fs->pwd = *path;
++	path_get(path);
+ 	write_unlock(&fs->lock);
+ 
+ 	if (old_pwd.dentry)
+@@ -2089,12 +2087,10 @@ static void chroot_fs_refs(struct nameid
+ 			task_unlock(p);
+ 			if (fs->root.dentry == old_nd->path.dentry
+ 			    && fs->root.mnt == old_nd->path.mnt)
+-				set_fs_root(fs, new_nd->path.mnt,
+-					    new_nd->path.dentry);
++				set_fs_root(fs, &new_nd->path);
+ 			if (fs->pwd.dentry == old_nd->path.dentry
+ 			    && fs->pwd.mnt == old_nd->path.mnt)
+-				set_fs_pwd(fs, new_nd->path.mnt,
+-					   new_nd->path.dentry);
++				set_fs_pwd(fs, &new_nd->path);
+ 			put_fs_struct(fs);
+ 		} else
+ 			task_unlock(p);
+@@ -2237,6 +2233,7 @@ static void __init init_mount_tree(void)
+ {
+ 	struct vfsmount *mnt;
+ 	struct mnt_namespace *ns;
++	struct path root;
+ 
+ 	mnt = do_kern_mount("rootfs", 0, "rootfs", NULL);
+ 	if (IS_ERR(mnt))
+@@ -2255,8 +2252,11 @@ static void __init init_mount_tree(void)
+ 	init_task.nsproxy->mnt_ns = ns;
+ 	get_mnt_ns(ns);
+ 
+-	set_fs_pwd(current->fs, ns->root, ns->root->mnt_root);
+-	set_fs_root(current->fs, ns->root, ns->root->mnt_root);
++	root.mnt = ns->root;
++	root.dentry = ns->root->mnt_root;
++
++	set_fs_pwd(current->fs, &root);
++	set_fs_root(current->fs, &root);
+ }
+ 
+ void __init mnt_init(void)
+diff -puN fs/open.c~make-set_fs_rootpwd-take-a-struct-path fs/open.c
+--- a/fs/open.c~make-set_fs_rootpwd-take-a-struct-path
++++ a/fs/open.c
+@@ -501,7 +501,7 @@ asmlinkage long sys_chdir(const char __u
+ 	if (error)
+ 		goto dput_and_out;
+ 
+-	set_fs_pwd(current->fs, nd.path.mnt, nd.path.dentry);
++	set_fs_pwd(current->fs, &nd.path);
+ 
+ dput_and_out:
+ 	path_put(&nd.path);
+@@ -512,9 +512,7 @@ out:
+ asmlinkage long sys_fchdir(unsigned int fd)
+ {
+ 	struct file *file;
+-	struct dentry *dentry;
+ 	struct inode *inode;
+-	struct vfsmount *mnt;
+ 	int error;
+ 
+ 	error = -EBADF;
+@@ -522,9 +520,7 @@ asmlinkage long sys_fchdir(unsigned int 
+ 	if (!file)
  		goto out;
- 	}
  
-@@ -789,7 +789,7 @@ out_release:
- 	/* no need to cleanup/release anything in tmp_data */
- 	if (tmp_lower_paths)
- 		for (i = 0; i < new_branches; i++)
--			pathput(&tmp_lower_paths[i]);
-+			path_put(&tmp_lower_paths[i]);
- out_free:
- 	kfree(tmp_lower_paths);
- 	kfree(tmp_data);
+-	dentry = file->f_path.dentry;
+-	mnt = file->f_path.mnt;
+-	inode = dentry->d_inode;
++	inode = file->f_path.dentry->d_inode;
+ 
+ 	error = -ENOTDIR;
+ 	if (!S_ISDIR(inode->i_mode))
+@@ -532,7 +528,7 @@ asmlinkage long sys_fchdir(unsigned int 
+ 
+ 	error = file_permission(file, MAY_EXEC);
+ 	if (!error)
+-		set_fs_pwd(current->fs, mnt, dentry);
++		set_fs_pwd(current->fs, &file->f_path);
+ out_putf:
+ 	fput(file);
+ out:
+@@ -556,7 +552,7 @@ asmlinkage long sys_chroot(const char __
+ 	if (!capable(CAP_SYS_CHROOT))
+ 		goto dput_and_out;
+ 
+-	set_fs_root(current->fs, nd.path.mnt, nd.path.dentry);
++	set_fs_root(current->fs, &nd.path);
+ 	set_fs_altroot();
+ 	error = 0;
+ dput_and_out:
+diff -puN include/linux/fs_struct.h~make-set_fs_rootpwd-take-a-struct-path include/linux/fs_struct.h
+--- a/include/linux/fs_struct.h~make-set_fs_rootpwd-take-a-struct-path
++++ a/include/linux/fs_struct.h
+@@ -20,8 +20,8 @@ extern struct kmem_cache *fs_cachep;
+ 
+ extern void exit_fs(struct task_struct *);
+ extern void set_fs_altroot(void);
+-extern void set_fs_root(struct fs_struct *, struct vfsmount *, struct dentry *);
+-extern void set_fs_pwd(struct fs_struct *, struct vfsmount *, struct dentry *);
++extern void set_fs_root(struct fs_struct *, struct path *);
++extern void set_fs_pwd(struct fs_struct *, struct path *);
+ extern struct fs_struct *copy_fs_struct(struct fs_struct *);
+ extern void put_fs_struct(struct fs_struct *);
+ 
 _
 
 Patches currently in -mm which might be from jblunck@suse.de are
 
 r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime-fix.patch
 r-o-bind-mounts-track-number-of-mount-writers-fix.patch
+make-set_fs_rootpwd-take-a-struct-path.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
 introduce-path_put-unionfs.patch
 introduce-path_get-unionfs.patch
