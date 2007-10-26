@@ -1,69 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - forcedeth-add-new-device-ids-and-features-for-mcp77-devices.patch removed from -mm tree
-Date: Fri, 26 Oct 2007 11:48:24 -0700
-Message-ID: <200710261848.l9QImOJG009135@imap1.linux-foundation.org>
+Subject: - fs-fix-to-correct-the-mbcache-entries-counter.patch removed from -mm tree
+Date: Fri, 26 Oct 2007 11:48:40 -0700
+Message-ID: <200710261848.l9QImeJo009157@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58566 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44260 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751910AbXJZSs1 (ORCPT
+	by vger.kernel.org with ESMTP id S1760993AbXJZSso (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 26 Oct 2007 14:48:27 -0400
+	Fri, 26 Oct 2007 14:48:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aabdulla@nvidia.com, mm-commits@vger.kernel.org
+To: ram.gupta5@gmail.com, agruen@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     forcedeth: add new device ids and features for mcp77 devices
+     fs: fix to correct the mbcache entries counter
 has been removed from the -mm tree.  Its filename was
-     forcedeth-add-new-device-ids-and-features-for-mcp77-devices.patch
+     fs-fix-to-correct-the-mbcache-entries-counter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: forcedeth: add new device ids and features for mcp77 devices
-From: Ayaz Abdulla <aabdulla@nvidia.com>
+Subject: fs: fix to correct the mbcache entries counter
+From: "Ram Gupta" <ram.gupta5@gmail.com>
 
-Add new device ids and features for mcp77 devices into the forcedeth driver.
+This patch fixes the c_entry_count counter of the mbcache.  Currently it
+increments the counter first & allocate the cache entry later.  In case of
+failure to allocate the entry due to insufficient memory this counter is
+still left incremented.  This patch fixes this anomaly.
 
-Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
+Signed-off-by: Ram Gupta <ram.gupta5@gmail.com>
+Cc: Andreas Gruenbacher <agruen@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/forcedeth.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ fs/mbcache.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-add-new-device-ids-and-features-for-mcp77-devices drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-add-new-device-ids-and-features-for-mcp77-devices
-+++ a/drivers/net/forcedeth.c
-@@ -5605,6 +5605,22 @@ static struct pci_device_id pci_tbl[] = 
- 		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_31),
- 		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_HIGH_DMA|DEV_HAS_POWER_CNTRL|DEV_HAS_MSI|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT|DEV_HAS_CORRECT_MACADDR,
- 	},
-+	{	/* MCP77 Ethernet Controller */
-+		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_32),
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_MSI|DEV_HAS_POWER_CNTRL|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
-+	},
-+	{	/* MCP77 Ethernet Controller */
-+		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_33),
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_MSI|DEV_HAS_POWER_CNTRL|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
-+	},
-+	{	/* MCP77 Ethernet Controller */
-+		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_34),
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_MSI|DEV_HAS_POWER_CNTRL|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
-+	},
-+	{	/* MCP77 Ethernet Controller */
-+		PCI_DEVICE(PCI_VENDOR_ID_NVIDIA, PCI_DEVICE_ID_NVIDIA_NVENET_35),
-+		.driver_data = DEV_NEED_TIMERIRQ|DEV_NEED_LINKTIMER|DEV_HAS_CHECKSUM|DEV_HAS_HIGH_DMA|DEV_HAS_MSI|DEV_HAS_POWER_CNTRL|DEV_HAS_PAUSEFRAME_TX|DEV_HAS_STATISTICS_V2|DEV_HAS_TEST_EXTENDED|DEV_HAS_MGMT_UNIT,
-+	},
- 	{0,},
- };
+diff -puN fs/mbcache.c~fs-fix-to-correct-the-mbcache-entries-counter fs/mbcache.c
+--- a/fs/mbcache.c~fs-fix-to-correct-the-mbcache-entries-counter
++++ a/fs/mbcache.c
+@@ -403,9 +403,9 @@ mb_cache_entry_alloc(struct mb_cache *ca
+ {
+ 	struct mb_cache_entry *ce;
  
+-	atomic_inc(&cache->c_entry_count);
+ 	ce = kmem_cache_alloc(cache->c_entry_cache, GFP_KERNEL);
+ 	if (ce) {
++		atomic_inc(&cache->c_entry_count);
+ 		INIT_LIST_HEAD(&ce->e_lru_list);
+ 		INIT_LIST_HEAD(&ce->e_block_list);
+ 		ce->e_cache = cache;
 _
 
-Patches currently in -mm which might be from aabdulla@nvidia.com are
+Patches currently in -mm which might be from ram.gupta5@gmail.com are
 
 origin.patch
-forcedeth-power-down-phy-when-interface-is-down.patch
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
