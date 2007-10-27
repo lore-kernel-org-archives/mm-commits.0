@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch added to -mm tree
-Date: Sat, 27 Oct 2007 00:52:27 -0700
-Message-ID: <200710270752.l9R7qRIZ003630@imap1.linux-foundation.org>
+Subject: + cgroup-brace-coding-style-fix.patch added to -mm tree
+Date: Sat, 27 Oct 2007 01:02:55 -0700
+Message-ID: <200710270802.l9R82tVv003968@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57615 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38300 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752820AbXJ0Hwn (ORCPT
+	by vger.kernel.org with ESMTP id S1751413AbXJ0IDC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Oct 2007 03:52:43 -0400
+	Sat, 27 Oct 2007 04:03:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dhowells@redhat.com, jdike@addtoit.com
+Cc: pj@sgi.com, menage@google.com
 
 
 The patch titled
-     iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes
+     cgroup brace coding style fix
 has been added to the -mm tree.  Its filename is
-     iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+     cgroup-brace-coding-style-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,129 +26,82 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cgroup brace coding style fix
+From: Paul Jackson <pj@sgi.com>
 
-ERROR: need a space before the open brace '{'
-#150: FILE: fs/hostfs/hostfs_kern.c:995:
-+	if (err){
+Coding style fix - one line conditionals don't get braces.
 
-total: 1 errors, 0 warnings, 117 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: David Howells <dhowells@redhat.com>
-Cc: Jeff Dike <jdike@addtoit.com>
+Signed-off-by: Paul Jackson <pj@sgi.com>
+Acked-by: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hostfs/hostfs_kern.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/cgroup.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN fs/hostfs/hostfs_kern.c~iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes fs/hostfs/hostfs_kern.c
---- a/fs/hostfs/hostfs_kern.c~iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes
-+++ a/fs/hostfs/hostfs_kern.c
-@@ -992,7 +992,7 @@ static int hostfs_fill_sb_common(struct 
- 		goto out_put;
+diff -puN kernel/cgroup.c~cgroup-brace-coding-style-fix kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-brace-coding-style-fix
++++ a/kernel/cgroup.c
+@@ -1183,9 +1183,8 @@ static int attach_task(struct cgroup *cg
+ 	for_each_subsys(root, ss) {
+ 		if (ss->can_attach) {
+ 			retval = ss->can_attach(ss, cgrp, tsk);
+-			if (retval) {
++			if (retval)
+ 				return retval;
+-			}
+ 		}
+ 	}
  
- 	err = hostfs_read_inode(root_inode);
--	if (err){
-+	if (err) {
- 		/* No iput in this case because the dput does that for us */
- 		dput(sb->s_root);
- 		sb->s_root = NULL;
+@@ -1194,9 +1193,8 @@ static int attach_task(struct cgroup *cg
+ 	 * based on its final set of cgroups
+ 	 */
+ 	newcg = find_css_set(cg, cgrp);
+-	if (!newcg) {
++	if (!newcg)
+ 		return -ENOMEM;
+-	}
+ 
+ 	task_lock(tsk);
+ 	if (tsk->flags & PF_EXITING) {
+@@ -1216,9 +1214,8 @@ static int attach_task(struct cgroup *cg
+ 	write_unlock(&css_set_lock);
+ 
+ 	for_each_subsys(root, ss) {
+-		if (ss->attach) {
++		if (ss->attach)
+ 			ss->attach(ss, cgrp, oldcgrp, tsk);
+-		}
+ 	}
+ 	set_bit(CGRP_RELEASABLE, &oldcgrp->flags);
+ 	synchronize_rcu();
+@@ -1354,9 +1351,8 @@ static ssize_t cgroup_common_file_write(
+ 	{
+ 		struct cgroupfs_root *root = cgrp->root;
+ 		/* Strip trailing newline */
+-		if (nbytes && (buffer[nbytes-1] == '\n')) {
++		if (nbytes && (buffer[nbytes-1] == '\n'))
+ 			buffer[nbytes-1] = 0;
+-		}
+ 
+ 		/* We never write anything other than '\0'
+ 		 * into the last char of release_agent_path,
+@@ -2126,9 +2122,8 @@ static inline int cgroup_has_css_refs(st
+ 		 * matter, since it can only happen if the cgroup
+ 		 * has been deleted and hence no longer needs the
+ 		 * release agent to be called anyway. */
+-		if (css && atomic_read(&css->refcnt)) {
++		if (css && atomic_read(&css->refcnt))
+ 			return 1;
+-		}
+ 	}
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from pj@sgi.com are
 
-origin.patch
-sunrpc-fix-rpc-debugging-checkpatch-fixes.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
-ide-arm-hack.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd-fixup.patch
-fix-build-breakage-if-sysfs-fix.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-git-unionfs.patch
-git-watchdog.patch
-watchdog-add-nano-7240-driver-checkpatch-fixes.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-x86-fix-config_smp-warning-in-processorc-fix.patch
-i386-and-x86_64-randomize-brk-fix.patch
-git-perfmon-fill-in-i386-syscall-table.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-remove-warnings-for-longstanding-conditions-checkpatch-fixes.patch
-sync_sb_inodes-propagate-errors.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+kernel-cgroupc-remove-dead-code.patch
+cgroup-brace-coding-style-fix.patch
+cgroup-simplify-space-stripping.patch
+cgroup-simplify-space-stripping-fix.patch
