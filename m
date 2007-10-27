@@ -1,29 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + bug-fix-for-the-s390-dcssblk-driver.patch added to -mm tree
-Date: Sat, 27 Oct 2007 10:11:37 -0700
-Message-ID: <200710271711.l9RHBbQA022231@imap1.linux-foundation.org>
+Subject: - bug-fix-for-the-s390-dcssblk-driver.patch removed from -mm tree
+Date: Sat, 27 Oct 2007 10:14:46 -0700
+Message-ID: <200710271714.l9RHEk8T022261@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59344 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47195 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755452AbXJ0RLn (ORCPT
+	by vger.kernel.org with ESMTP id S1755455AbXJ0RO4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Oct 2007 13:11:43 -0400
+	Sat, 27 Oct 2007 13:14:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: emistz@gmail.com, cohuck@de.ibm.com, cotte@de.ibm.com, geraldsc@de.ibm.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
+To: emistz@gmail.com, cohuck@de.ibm.com, cotte@de.ibm.com, geraldsc@de.ibm.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      Bug fix for the s390 dcssblk driver
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      bug-fix-for-the-s390-dcssblk-driver.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 Subject: Bug fix for the s390 dcssblk driver
