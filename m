@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + iget-stop-affs-from-using-iget-and-read_inode-try.patch added to -mm tree
-Date: Sat, 27 Oct 2007 00:43:28 -0700
-Message-ID: <200710270743.l9R7hSuk003254@imap1.linux-foundation.org>
+Subject: + iget-stop-autofs-from-using-iget-and-read_inode.patch added to -mm tree
+Date: Sat, 27 Oct 2007 00:44:37 -0700
+Message-ID: <200710270744.l9R7ibvM003269@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36783 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36291 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751398AbXJ0Hnw (ORCPT
+	by vger.kernel.org with ESMTP id S1751422AbXJ0Ho5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Oct 2007 03:43:52 -0400
+	Sat, 27 Oct 2007 03:44:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, zippel@linux-m68k.org
+Cc: dhowells@redhat.com, raven@themaw.net
 
 
 The patch titled
-     iget: stop AFFS from using iget() and read_inode()
+     iget: stop autofs from using iget() and read_inode()
 has been added to the -mm tree.  Its filename is
-     iget-stop-affs-from-using-iget-and-read_inode-try.patch
+     iget-stop-autofs-from-using-iget-and-read_inode.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,184 +26,168 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: iget: stop AFFS from using iget() and read_inode()
+Subject: iget: stop autofs from using iget() and read_inode()
 From: David Howells <dhowells@redhat.com>
 
-Stop the AFFS filesystem from using iget() and read_inode().  Replace
-affs_read_inode() with affs_iget(), and call that instead of iget(). 
-affs_iget() then uses iget_locked() directly and returns a proper error code
+Stop the autofs filesystem from using iget() and read_inode().  Replace
+autofs_read_inode() with autofs_iget(), and call that instead of iget(). 
+autofs_iget() then uses iget_locked() directly and returns a proper error code
 instead of an inode in the event of an error.
 
-affs_fill_super() returns any error incurred when getting the root inode
-instead of EINVAL.
-
 Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/affs.h     |    2 +-
- fs/affs/amigaffs.c |    6 ++++--
- fs/affs/inode.c    |   20 +++++++++++++-------
- fs/affs/namei.c    |   10 ++++------
- fs/affs/super.c    |   12 +++++++++---
- 5 files changed, 31 insertions(+), 19 deletions(-)
+ fs/autofs/autofs_i.h |    1 +
+ fs/autofs/inode.c    |   27 ++++++++++++++++++---------
+ fs/autofs/root.c     |   22 ++++++++++++++++++----
+ 3 files changed, 37 insertions(+), 13 deletions(-)
 
-diff -puN fs/affs/affs.h~iget-stop-affs-from-using-iget-and-read_inode-try fs/affs/affs.h
---- a/fs/affs/affs.h~iget-stop-affs-from-using-iget-and-read_inode-try
-+++ a/fs/affs/affs.h
-@@ -174,7 +174,7 @@ extern void			 affs_put_inode(struct ino
- extern void			 affs_drop_inode(struct inode *inode);
- extern void			 affs_delete_inode(struct inode *inode);
- extern void			 affs_clear_inode(struct inode *inode);
--extern void			 affs_read_inode(struct inode *inode);
-+extern struct inode		*affs_iget(struct super_block *sb, unsigned long ino);
- extern int			 affs_write_inode(struct inode *inode, int);
- extern int			 affs_add_entry(struct inode *dir, struct inode *inode, struct dentry *dentry, s32 type);
+diff -puN fs/autofs/autofs_i.h~iget-stop-autofs-from-using-iget-and-read_inode fs/autofs/autofs_i.h
+--- a/fs/autofs/autofs_i.h~iget-stop-autofs-from-using-iget-and-read_inode
++++ a/fs/autofs/autofs_i.h
+@@ -150,6 +150,7 @@ extern const struct file_operations auto
  
-diff -puN fs/affs/amigaffs.c~iget-stop-affs-from-using-iget-and-read_inode-try fs/affs/amigaffs.c
---- a/fs/affs/amigaffs.c~iget-stop-affs-from-using-iget-and-read_inode-try
-+++ a/fs/affs/amigaffs.c
-@@ -170,9 +170,11 @@ affs_remove_link(struct dentry *dentry)
- 		if (!link_bh)
- 			goto done;
+ int autofs_fill_super(struct super_block *, void *, int);
+ void autofs_kill_sb(struct super_block *sb);
++struct inode *autofs_iget(struct super_block *, unsigned long);
  
--		dir = iget(sb, be32_to_cpu(AFFS_TAIL(sb, link_bh)->parent));
--		if (!dir)
-+		dir = affs_iget(sb, be32_to_cpu(AFFS_TAIL(sb, link_bh)->parent));
-+		if (IS_ERR(dir)) {
-+			retval = PTR_ERR(dir);
- 			goto done;
-+		}
+ /* Queue management functions */
  
- 		affs_lock_dir(dir);
- 		affs_fix_dcache(dentry, link_ino);
-diff -puN fs/affs/inode.c~iget-stop-affs-from-using-iget-and-read_inode-try fs/affs/inode.c
---- a/fs/affs/inode.c~iget-stop-affs-from-using-iget-and-read_inode-try
-+++ a/fs/affs/inode.c
-@@ -15,20 +15,25 @@
- extern const struct inode_operations affs_symlink_inode_operations;
- extern struct timezone sys_tz;
+diff -puN fs/autofs/inode.c~iget-stop-autofs-from-using-iget-and-read_inode fs/autofs/inode.c
+--- a/fs/autofs/inode.c~iget-stop-autofs-from-using-iget-and-read_inode
++++ a/fs/autofs/inode.c
+@@ -52,10 +52,7 @@ out_kill_sb:
+ 	kill_anon_super(sb);
+ }
  
--void
--affs_read_inode(struct inode *inode)
-+struct inode *affs_iget(struct super_block *sb, unsigned long ino)
+-static void autofs_read_inode(struct inode *inode);
+-
+ static const struct super_operations autofs_sops = {
+-	.read_inode	= autofs_read_inode,
+ 	.statfs		= simple_statfs,
+ };
+ 
+@@ -164,7 +161,9 @@ int autofs_fill_super(struct super_block
+ 	s->s_time_gran = 1;
+ 	sbi->sb = s;
+ 
+-	root_inode = iget(s, AUTOFS_ROOT_INO);
++	root_inode = autofs_iget(s, AUTOFS_ROOT_INO);
++	if (IS_ERR(root_inode))
++		goto fail_free;
+ 	root = d_alloc_root(root_inode);
+ 	pipe = NULL;
+ 
+@@ -230,11 +229,17 @@ fail_unlock:
+ 	return -EINVAL;
+ }
+ 
+-static void autofs_read_inode(struct inode *inode)
++struct inode *autofs_iget(struct super_block *sb, unsigned long ino)
  {
--	struct super_block	*sb = inode->i_sb;
- 	struct affs_sb_info	*sbi = AFFS_SB(sb);
- 	struct buffer_head	*bh;
- 	struct affs_head	*head;
- 	struct affs_tail	*tail;
-+	struct inode		*inode;
- 	u32			 block;
- 	u32			 size;
- 	u32			 prot;
- 	u16			 id;
- 
--	pr_debug("AFFS: read_inode(%lu)\n",inode->i_ino);
+-	ino_t ino = inode->i_ino;
+ 	unsigned int n;
+-	struct autofs_sb_info *sbi = autofs_sbi(inode->i_sb);
++	struct autofs_sb_info *sbi = autofs_sbi(sb);
++	struct inode *inode;
++
 +	inode = iget_locked(sb, ino);
 +	if (!inode)
 +		return ERR_PTR(-ENOMEM);
 +	if (!(inode->i_state & I_NEW))
 +		return inode;
-+
-+	pr_debug("AFFS: affs_iget(%lu)\n",inode->i_ino);
  
- 	block = inode->i_ino;
- 	bh = affs_bread(sb, block);
-@@ -154,12 +159,13 @@ affs_read_inode(struct inode *inode)
- 			 sys_tz.tz_minuteswest * 60;
- 	inode->i_mtime.tv_nsec = inode->i_ctime.tv_nsec = inode->i_atime.tv_nsec = 0;
- 	affs_brelse(bh);
--	return;
+ 	/* Initialize to the default case (stub directory) */
+ 
+@@ -250,7 +255,7 @@ static void autofs_read_inode(struct ino
+ 		inode->i_op = &autofs_root_inode_operations;
+ 		inode->i_fop = &autofs_root_operations;
+ 		inode->i_uid = inode->i_gid = 0; /* Changed in read_super */
+-		return;
++		goto done;
+ 	} 
+ 	
+ 	inode->i_uid = inode->i_sb->s_root->d_inode->i_uid;
+@@ -263,7 +268,7 @@ static void autofs_read_inode(struct ino
+ 		n = ino - AUTOFS_FIRST_SYMLINK;
+ 		if (n >= AUTOFS_MAX_SYMLINKS || !test_bit(n,sbi->symlink_bitmap)) {
+ 			printk("autofs: Looking for bad symlink inode %u\n", (unsigned int) ino);
+-			return;
++			goto done;
+ 		}
+ 		
+ 		inode->i_op = &autofs_symlink_inode_operations;
+@@ -275,4 +280,8 @@ static void autofs_read_inode(struct ino
+ 		inode->i_size = sl->len;
+ 		inode->i_nlink = 1;
+ 	}
++
++done:
 +	unlock_new_inode(inode);
 +	return inode;
- 
- bad_inode:
--	make_bad_inode(inode);
- 	affs_brelse(bh);
--	return;
-+	iget_failed(inode);
-+	return ERR_PTR(-EIO);
  }
- 
- int
-diff -puN fs/affs/namei.c~iget-stop-affs-from-using-iget-and-read_inode-try fs/affs/namei.c
---- a/fs/affs/namei.c~iget-stop-affs-from-using-iget-and-read_inode-try
-+++ a/fs/affs/namei.c
-@@ -208,9 +208,8 @@ affs_lookup(struct inode *dir, struct de
- 	affs_lock_dir(dir);
- 	bh = affs_find_entry(dir, dentry);
- 	affs_unlock_dir(dir);
--	if (IS_ERR(bh)) {
-+	if (IS_ERR(bh))
- 		return ERR_CAST(bh);
--	}
- 	if (bh) {
- 		u32 ino = bh->b_blocknr;
- 
-@@ -223,10 +222,9 @@ affs_lookup(struct inode *dir, struct de
- 			ino = be32_to_cpu(AFFS_TAIL(sb, bh)->original);
- 		}
- 		affs_brelse(bh);
--		inode = iget(sb, ino);
+diff -puN fs/autofs/root.c~iget-stop-autofs-from-using-iget-and-read_inode fs/autofs/root.c
+--- a/fs/autofs/root.c~iget-stop-autofs-from-using-iget-and-read_inode
++++ a/fs/autofs/root.c
+@@ -114,8 +114,8 @@ static int try_to_fill_dentry(struct den
+ 	dentry->d_time = (unsigned long) ent;
+ 	
+ 	if (!dentry->d_inode) {
+-		inode = iget(sb, ent->ino);
 -		if (!inode) {
--			return ERR_PTR(-EACCES);
--		}
-+		inode = affs_iget(sb, ino);
-+		if (IS_ERR(inode))
-+			return ERR_PTR(PTR_ERR(inode));
- 	}
- 	dentry->d_op = AFFS_SB(sb)->s_flags & SF_INTL ? &affs_intl_dentry_operations : &affs_dentry_operations;
- 	d_add(dentry, inode);
-diff -puN fs/affs/super.c~iget-stop-affs-from-using-iget-and-read_inode-try fs/affs/super.c
---- a/fs/affs/super.c~iget-stop-affs-from-using-iget-and-read_inode-try
-+++ a/fs/affs/super.c
-@@ -113,7 +113,6 @@ static void destroy_inodecache(void)
- static const struct super_operations affs_sops = {
- 	.alloc_inode	= affs_alloc_inode,
- 	.destroy_inode	= affs_destroy_inode,
--	.read_inode	= affs_read_inode,
- 	.write_inode	= affs_write_inode,
- 	.put_inode	= affs_put_inode,
- 	.drop_inode	= affs_drop_inode,
-@@ -271,6 +270,7 @@ static int affs_fill_super(struct super_
- 	unsigned long		 mount_flags;
- 	int			 tmp_flags;	/* fix remount prototype... */
- 	u8			 sig[4];
-+	int			 ret = -EINVAL;
++		inode = autofs_iget(sb, ent->ino);
++		if (IS_ERR(inode)) {
+ 			/* Failed, but leave pending for next time */
+ 			return 1;
+ 		}
+@@ -274,6 +274,7 @@ static int autofs_root_symlink(struct in
+ 	unsigned int n;
+ 	int slsize;
+ 	struct autofs_symlink *sl;
++	struct inode *inode;
  
- 	pr_debug("AFFS: read_super(%s)\n",data ? (const char *)data : "no options");
+ 	DPRINTK(("autofs_root_symlink: %s <- ", symname));
+ 	autofs_say(dentry->d_name.name,dentry->d_name.len);
+@@ -331,7 +332,12 @@ static int autofs_root_symlink(struct in
+ 	ent->dentry = NULL;	/* We don't keep the dentry for symlinks */
  
-@@ -444,7 +444,12 @@ got_root:
+ 	autofs_hash_insert(dh,ent);
+-	d_instantiate(dentry, iget(dir->i_sb,ent->ino));
++
++	inode = autofs_iget(dir->i_sb, ent->ino);
++	if (IS_ERR(inode))
++		return PTR_ERR(inode);
++
++	d_instantiate(dentry, inode);
+ 	unlock_kernel();
+ 	return 0;
+ }
+@@ -428,6 +434,7 @@ static int autofs_root_mkdir(struct inod
+ 	struct autofs_sb_info *sbi = autofs_sbi(dir->i_sb);
+ 	struct autofs_dirhash *dh = &sbi->dirhash;
+ 	struct autofs_dir_ent *ent;
++	struct inode *inode;
+ 	ino_t ino;
  
- 	/* set up enough so that it can read an inode */
+ 	lock_kernel();
+@@ -469,7 +476,14 @@ static int autofs_root_mkdir(struct inod
+ 	autofs_hash_insert(dh,ent);
  
--	root_inode = iget(sb, root_block);
-+	root_inode = affs_iget(sb, root_block);
-+	if (IS_ERR(root_inode)) {
-+		ret = PTR_ERR(root_inode);
-+		goto out_error_noinode;
+ 	inc_nlink(dir);
+-	d_instantiate(dentry, iget(dir->i_sb,ino));
++
++	inode = autofs_iget(dir->i_sb, ino);
++	if (IS_ERR(inode)) {
++		drop_nlink(dir);
++		return PTR_ERR(inode);
 +	}
 +
- 	sb->s_root = d_alloc_root(root_inode);
- 	if (!sb->s_root) {
- 		printk(KERN_ERR "AFFS: Get root inode failed\n");
-@@ -461,12 +466,13 @@ got_root:
- out_error:
- 	if (root_inode)
- 		iput(root_inode);
-+out_error_noinode:
- 	kfree(sbi->s_bitmap);
- 	affs_brelse(root_bh);
- 	kfree(sbi->s_prefix);
- 	kfree(sbi);
- 	sb->s_fs_info = NULL;
--	return -EINVAL;
-+	return ret;
- }
++	d_instantiate(dentry, inode);
+ 	unlock_kernel();
  
- static int
+ 	return 0;
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
@@ -216,6 +200,7 @@ iget-introduce-a-function-to-register-iget-failure.patch
 iget-use-iget_failed-in-afs.patch
 iget-use-iget_failed-in-gfs2.patch
 iget-stop-affs-from-using-iget-and-read_inode-try.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 iget-stop-autofs-from-using-iget-and-read_inode.patch
 iget-stop-befs-from-using-iget-and-read_inode-try.patch
 iget-stop-bfs-from-using-iget-and-read_inode-try.patch
