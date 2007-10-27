@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + iget-stop-the-sysv-filesystem-from-using-iget-and.patch added to -mm tree
-Date: Sat, 27 Oct 2007 00:51:15 -0700
-Message-ID: <200710270751.l9R7pFsN003582@imap1.linux-foundation.org>
+Subject: + iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch added to -mm tree
+Date: Sat, 27 Oct 2007 00:51:13 -0700
+Message-ID: <200710270751.l9R7pDPx003579@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35847 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59484 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754093AbXJ0Hvi (ORCPT
+	by vger.kernel.org with ESMTP id S1752054AbXJ0HvX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Oct 2007 03:51:38 -0400
+	Sat, 27 Oct 2007 03:51:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, hch@lst.de
+Cc: akpm@linux-foundation.org, dhowells@redhat.com
 
 
 The patch titled
-     iget: stop the SYSV filesystem from using iget() and read_inode()
+     iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     iget-stop-the-sysv-filesystem-from-using-iget-and.patch
+     iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,170 +26,126 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: iget: stop the SYSV filesystem from using iget() and read_inode()
-From: David Howells <dhowells@redhat.com>
+Subject: iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Stop the SYSV filesystem from using iget() and read_inode().  Replace
-sysv_read_inode() with sysv_iget(), and call that instead of iget(). 
-sysv_iget() then uses iget_locked() directly and returns a proper error code
-instead of an inode in the event of an error.
+WARNING: printk() should include KERN_ facility level
+#116: FILE: fs/romfs/inode.c:508:
++			printk("romfs: read error for inode 0x%lx\n", ino);
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
+total: 0 errors, 1 warnings, 109 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysv/inode.c |   25 ++++++++++++++++---------
- fs/sysv/namei.c |    6 +++---
- fs/sysv/super.c |    4 ++--
- fs/sysv/sysv.h  |    1 +
- 4 files changed, 22 insertions(+), 14 deletions(-)
+ fs/romfs/inode.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/sysv/inode.c~iget-stop-the-sysv-filesystem-from-using-iget-and fs/sysv/inode.c
---- a/fs/sysv/inode.c~iget-stop-the-sysv-filesystem-from-using-iget-and
-+++ a/fs/sysv/inode.c
-@@ -169,20 +169,27 @@ void sysv_set_inode(struct inode *inode,
- 		init_special_inode(inode, inode->i_mode, rdev);
- }
- 
--static void sysv_read_inode(struct inode *inode)
-+struct inode *sysv_iget(struct super_block *sb, unsigned int ino)
- {
--	struct super_block * sb = inode->i_sb;
- 	struct sysv_sb_info * sbi = SYSV_SB(sb);
- 	struct buffer_head * bh;
- 	struct sysv_inode * raw_inode;
- 	struct sysv_inode_info * si;
--	unsigned int block, ino = inode->i_ino;
-+	struct inode *inode;
-+	unsigned int block;
- 
- 	if (!ino || ino > sbi->s_ninodes) {
- 		printk("Bad inode number on dev %s: %d is out of range\n",
--		       inode->i_sb->s_id, ino);
--		goto bad_inode;
-+		       sb->s_id, ino);
-+		return ERR_PTR(-EIO);
- 	}
-+
-+	inode = iget_locked(sb, ino);
-+	if (!inode)
-+		return ERR_PTR(-ENOMEM);
-+	if (!(inode->i_state & I_NEW))
-+		return inode;
-+
- 	raw_inode = sysv_raw_inode(sb, ino, &bh);
- 	if (!raw_inode) {
- 		printk("Major problem: unable to read inode from dev %s\n",
-@@ -214,11 +221,12 @@ static void sysv_read_inode(struct inode
- 			       old_decode_dev(fs32_to_cpu(sbi, si->i_data[0])));
- 	else
- 		sysv_set_inode(inode, 0);
--	return;
-+	unlock_new_inode(inode);
-+	return inode;
- 
- bad_inode:
--	make_bad_inode(inode);
--	return;
-+	iget_failed(inode);
-+	return ERR_PTR(-EIO);
- }
- 
- static struct buffer_head * sysv_update_inode(struct inode * inode)
-@@ -328,7 +336,6 @@ static void init_once(struct kmem_cache 
- const struct super_operations sysv_sops = {
- 	.alloc_inode	= sysv_alloc_inode,
- 	.destroy_inode	= sysv_destroy_inode,
--	.read_inode	= sysv_read_inode,
- 	.write_inode	= sysv_write_inode,
- 	.delete_inode	= sysv_delete_inode,
- 	.put_super	= sysv_put_super,
-diff -puN fs/sysv/namei.c~iget-stop-the-sysv-filesystem-from-using-iget-and fs/sysv/namei.c
---- a/fs/sysv/namei.c~iget-stop-the-sysv-filesystem-from-using-iget-and
-+++ a/fs/sysv/namei.c
-@@ -53,9 +53,9 @@ static struct dentry *sysv_lookup(struct
- 	ino = sysv_inode_by_name(dentry);
- 
- 	if (ino) {
--		inode = iget(dir->i_sb, ino);
--		if (!inode)
--			return ERR_PTR(-EACCES);
-+		inode = sysv_iget(dir->i_sb, ino);
-+		if (IS_ERR(inode))
-+			return ERR_CAST(inode);
- 	}
- 	d_add(dentry, inode);
- 	return NULL;
-diff -puN fs/sysv/super.c~iget-stop-the-sysv-filesystem-from-using-iget-and fs/sysv/super.c
---- a/fs/sysv/super.c~iget-stop-the-sysv-filesystem-from-using-iget-and
-+++ a/fs/sysv/super.c
-@@ -332,8 +332,8 @@ static int complete_read_super(struct su
- 	sb->s_magic = SYSV_MAGIC_BASE + sbi->s_type;
- 	/* set up enough so that it can read an inode */
- 	sb->s_op = &sysv_sops;
--	root_inode = iget(sb,SYSV_ROOT_INO);
--	if (!root_inode || is_bad_inode(root_inode)) {
-+	root_inode = sysv_iget(sb,SYSV_ROOT_INO);
-+	if (IS_ERR(root_inode)) {
- 		printk("SysV FS: get root inode failed\n");
- 		return 0;
- 	}
-diff -puN fs/sysv/sysv.h~iget-stop-the-sysv-filesystem-from-using-iget-and fs/sysv/sysv.h
---- a/fs/sysv/sysv.h~iget-stop-the-sysv-filesystem-from-using-iget-and
-+++ a/fs/sysv/sysv.h
-@@ -141,6 +141,7 @@ extern int __sysv_write_begin(struct fil
- 			struct page **pagep, void **fsdata);
- 
- /* inode.c */
-+extern struct inode *sysv_iget(struct super_block *, unsigned int);
- extern int sysv_write_inode(struct inode *, int);
- extern int sysv_sync_inode(struct inode *);
- extern int sysv_sync_file(struct file *, struct dentry *, int);
+diff -puN fs/romfs/inode.c~iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes fs/romfs/inode.c
+--- a/fs/romfs/inode.c~iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes
++++ a/fs/romfs/inode.c
+@@ -505,7 +505,8 @@ romfs_iget(struct super_block *sb, unsig
+ 	/* Loop for finding the real hard link */
+ 	for(;;) {
+ 		if (romfs_copyfrom(i, &ri, ino, ROMFH_SIZE) <= 0) {
+-			printk("romfs: read error for inode 0x%lx\n", ino);
++			printk(KERN_ERR "romfs: read error for inode 0x%lx\n",
++				ino);
+ 			iget_failed(i);
+ 			return ERR_PTR(-EIO);
+ 		}
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+sunrpc-fix-rpc-debugging-checkpatch-fixes.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+revert-gregkh-driver-block-device.patch
+git-hwmon.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
+ide-arm-hack.patch
+drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
+nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd-fixup.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+git-unionfs.patch
+git-watchdog.patch
+watchdog-add-nano-7240-driver-checkpatch-fixes.patch
+git-wireless.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-x86.patch
+git-x86-fixup.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+x86-fix-config_smp-warning-in-processorc-fix.patch
+i386-and-x86_64-randomize-brk-fix.patch
+git-perfmon-fill-in-i386-syscall-table.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+remove-warnings-for-longstanding-conditions-checkpatch-fixes.patch
+sync_sb_inodes-propagate-errors.patch
 64-bit-i_version-afs-fixes.patch
-add-an-err_cast-function-to-complement-err_ptr-and-co.patch
-convert-err_ptrptr_errp-instances-to-err_castp.patch
-iget-introduce-a-function-to-register-iget-failure.patch
-iget-use-iget_failed-in-afs.patch
-iget-use-iget_failed-in-gfs2.patch
-iget-stop-affs-from-using-iget-and-read_inode-try.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
 iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-autofs-from-using-iget-and-read_inode.patch
-iget-stop-befs-from-using-iget-and-read_inode-try.patch
-iget-stop-bfs-from-using-iget-and-read_inode-try.patch
-iget-stop-cifs-from-using-iget-and-read_inode-try.patch
-iget-stop-efs-from-using-iget-and-read_inode-try.patch
 iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try.patch
 iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try.patch
 iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext4-from-using-iget-and-read_inode-try.patch
-iget-stop-fat-from-using-iget-and-read_inode-try.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode.patch
 iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-fuse-from-using-iget-and-read_inode-try.patch
-iget-stop-hfsplus-from-using-iget-and-read_inode.patch
-iget-stop-isofs-from-using-read_inode.patch
-iget-stop-jffs2-from-using-iget-and-read_inode.patch
-iget-stop-jfs-from-using-iget-and-read_inode-try.patch
-iget-stop-the-minix-filesystem-from-using-iget-and.patch
 iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode.patch
 iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
 iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode.patch
 iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try.patch
-iget-stop-openpromfs-from-using-iget-and.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hppfs-from-using-iget-and-read_inode.patch
-iget-remove-iget-and-the-read_inode-super-op-as.patch
-mutex-subsystem-synchro-test-module.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
