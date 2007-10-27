@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch added to -mm tree
-Date: Sat, 27 Oct 2007 00:51:13 -0700
-Message-ID: <200710270751.l9R7pDPx003579@imap1.linux-foundation.org>
+Subject: + iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch added to -mm tree
+Date: Sat, 27 Oct 2007 00:51:36 -0700
+Message-ID: <200710270751.l9R7paBK003590@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59484 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60733 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752054AbXJ0HvX (ORCPT
+	by vger.kernel.org with ESMTP id S1752566AbXJ0Hvz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Oct 2007 03:51:23 -0400
+	Sat, 27 Oct 2007 03:51:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dhowells@redhat.com
+Cc: akpm@linux-foundation.org, dhowells@redhat.com, hch@lst.de
 
 
 The patch titled
-     iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes
+     iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+     iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,40 +26,41 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes
+Subject: iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: printk() should include KERN_ facility level
-#116: FILE: fs/romfs/inode.c:508:
-+			printk("romfs: read error for inode 0x%lx\n", ino);
+ERROR: need space after that ',' (ctx:VxV)
+#104: FILE: fs/sysv/super.c:335:
++	root_inode = sysv_iget(sb,SYSV_ROOT_INO);
+ 	                         ^
 
-total: 0 errors, 1 warnings, 109 lines checked
+total: 1 errors, 0 warnings, 83 lines checked
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/romfs/inode.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/sysv/super.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/romfs/inode.c~iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes fs/romfs/inode.c
---- a/fs/romfs/inode.c~iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes
-+++ a/fs/romfs/inode.c
-@@ -505,7 +505,8 @@ romfs_iget(struct super_block *sb, unsig
- 	/* Loop for finding the real hard link */
- 	for(;;) {
- 		if (romfs_copyfrom(i, &ri, ino, ROMFH_SIZE) <= 0) {
--			printk("romfs: read error for inode 0x%lx\n", ino);
-+			printk(KERN_ERR "romfs: read error for inode 0x%lx\n",
-+				ino);
- 			iget_failed(i);
- 			return ERR_PTR(-EIO);
- 		}
+diff -puN fs/sysv/super.c~iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes fs/sysv/super.c
+--- a/fs/sysv/super.c~iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes
++++ a/fs/sysv/super.c
+@@ -332,7 +332,7 @@ static int complete_read_super(struct su
+ 	sb->s_magic = SYSV_MAGIC_BASE + sbi->s_type;
+ 	/* set up enough so that it can read an inode */
+ 	sb->s_op = &sysv_sops;
+-	root_inode = sysv_iget(sb,SYSV_ROOT_INO);
++	root_inode = sysv_iget(sb, SYSV_ROOT_INO);
+ 	if (IS_ERR(root_inode)) {
+ 		printk("SysV FS: get root inode failed\n");
+ 		return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -138,6 +139,7 @@ iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
 iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
 iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
 make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
 page-owner-tracking-leak-detector.patch
