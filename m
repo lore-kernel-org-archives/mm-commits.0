@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + iget-stop-isofs-from-using-read_inode.patch added to -mm tree
-Date: Sat, 27 Oct 2007 00:46:40 -0700
-Message-ID: <200710270746.l9R7kefR003386@imap1.linux-foundation.org>
+Subject: + iget-stop-hfsplus-from-using-iget-and-read_inode.patch added to -mm tree
+Date: Sat, 27 Oct 2007 00:46:37 -0700
+Message-ID: <200710270746.l9R7kbD0003382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36727 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42770 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751958AbXJ0Hq6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751926AbXJ0Hq7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Oct 2007 03:46:58 -0400
+	Sat, 27 Oct 2007 03:46:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, jack@ucw.cz
+Cc: dhowells@redhat.com, zippel@linux-m68k.org
 
 
 The patch titled
-     iget: stop ISOFS from using read_inode()
+     iget: stop HFSPLUS from using iget() and read_inode()
 has been added to the -mm tree.  Its filename is
-     iget-stop-isofs-from-using-read_inode.patch
+     iget-stop-hfsplus-from-using-iget-and-read_inode.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,120 +26,193 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: iget: stop ISOFS from using read_inode()
+Subject: iget: stop HFSPLUS from using iget() and read_inode()
 From: David Howells <dhowells@redhat.com>
 
-Stop the ISOFS filesystem from using read_inode().  Make isofs_read_inode()
-return an error code, and make isofs_iget() pass it on.
+Stop the HFSPLUS filesystem from using iget() and read_inode().  Replace
+hfsplus_read_inode() with hfsplus_iget(), and call that instead of iget(). 
+hfsplus_iget() then uses iget_locked() directly and returns a proper error
+code instead of an inode in the event of an error.
+
+hfsplus_fill_super() returns any error incurred when getting the root inode.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Jan Kara <jack@ucw.cz>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/isofs/inode.c |   25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
+ fs/hfsplus/btree.c      |    6 +++-
+ fs/hfsplus/dir.c        |    6 ++--
+ fs/hfsplus/hfsplus_fs.h |    3 ++
+ fs/hfsplus/super.c      |   49 ++++++++++++++++++++++++++------------
+ 4 files changed, 44 insertions(+), 20 deletions(-)
 
-diff -puN fs/isofs/inode.c~iget-stop-isofs-from-using-read_inode fs/isofs/inode.c
---- a/fs/isofs/inode.c~iget-stop-isofs-from-using-read_inode
-+++ a/fs/isofs/inode.c
-@@ -54,7 +54,7 @@ static void isofs_put_super(struct super
- 	return;
- }
+diff -puN fs/hfsplus/btree.c~iget-stop-hfsplus-from-using-iget-and-read_inode fs/hfsplus/btree.c
+--- a/fs/hfsplus/btree.c~iget-stop-hfsplus-from-using-iget-and-read_inode
++++ a/fs/hfsplus/btree.c
+@@ -22,6 +22,7 @@ struct hfs_btree *hfs_btree_open(struct 
+ 	struct hfs_btree *tree;
+ 	struct hfs_btree_header_rec *head;
+ 	struct address_space *mapping;
++	struct inode *inode;
+ 	struct page *page;
+ 	unsigned int size;
  
--static void isofs_read_inode(struct inode *);
-+static int isofs_read_inode(struct inode *);
- static int isofs_statfs (struct dentry *, struct kstatfs *);
+@@ -33,9 +34,10 @@ struct hfs_btree *hfs_btree_open(struct 
+ 	spin_lock_init(&tree->hash_lock);
+ 	tree->sb = sb;
+ 	tree->cnid = id;
+-	tree->inode = iget(sb, id);
+-	if (!tree->inode)
++	inode = hfsplus_iget(sb, id);
++	if (IS_ERR(inode))
+ 		goto free_tree;
++	tree->inode = inode;
  
- static struct kmem_cache *isofs_inode_cachep;
-@@ -107,7 +107,6 @@ static int isofs_remount(struct super_bl
- static const struct super_operations isofs_sops = {
- 	.alloc_inode	= isofs_alloc_inode,
- 	.destroy_inode	= isofs_destroy_inode,
--	.read_inode	= isofs_read_inode,
- 	.put_super	= isofs_put_super,
- 	.statfs		= isofs_statfs,
- 	.remount_fs	= isofs_remount,
-@@ -1186,7 +1185,7 @@ out_toomany:
- 	goto out;
- }
- 
--static void isofs_read_inode(struct inode *inode)
-+static int isofs_read_inode(struct inode *inode)
- {
- 	struct super_block *sb = inode->i_sb;
- 	struct isofs_sb_info *sbi = ISOFS_SB(sb);
-@@ -1199,6 +1198,7 @@ static void isofs_read_inode(struct inod
- 	unsigned int de_len;
- 	unsigned long offset;
- 	struct iso_inode_info *ei = ISOFS_I(inode);
-+	int ret = -EIO;
- 
- 	block = ei->i_iget5_block;
- 	bh = sb_bread(inode->i_sb, block);
-@@ -1216,6 +1216,7 @@ static void isofs_read_inode(struct inod
- 		tmpde = kmalloc(de_len, GFP_KERNEL);
- 		if (tmpde == NULL) {
- 			printk(KERN_INFO "%s: out of memory\n", __func__);
-+			ret = -ENOMEM;
- 			goto fail;
- 		}
- 		memcpy(tmpde, bh->b_data + offset, frag1);
-@@ -1259,8 +1260,10 @@ static void isofs_read_inode(struct inod
- 
- 	ei->i_section_size = isonum_733(de->size);
- 	if (de->flags[-high_sierra] & 0x80) {
--		if(isofs_read_level3_size(inode))
-+		ret = isofs_read_level3_size(inode);
-+		if (ret < 0)
- 			goto fail;
-+		ret = -EIO;
- 	} else {
- 		ei->i_next_section_block = 0;
- 		ei->i_next_section_offset = 0;
-@@ -1346,16 +1349,16 @@ static void isofs_read_inode(struct inod
- 		/* XXX - parse_rock_ridge_inode() had already set i_rdev. */
- 		init_special_inode(inode, inode->i_mode, inode->i_rdev);
- 
-+	ret = 0;
+ 	mapping = tree->inode->i_mapping;
+ 	page = read_mapping_page(mapping, 0, NULL);
+diff -puN fs/hfsplus/dir.c~iget-stop-hfsplus-from-using-iget-and-read_inode fs/hfsplus/dir.c
+--- a/fs/hfsplus/dir.c~iget-stop-hfsplus-from-using-iget-and-read_inode
++++ a/fs/hfsplus/dir.c
+@@ -97,9 +97,9 @@ again:
+ 		goto fail;
+ 	}
+ 	hfs_find_exit(&fd);
+-	inode = iget(dir->i_sb, cnid);
+-	if (!inode)
+-		return ERR_PTR(-EACCES);
++	inode = hfsplus_iget(dir->i_sb, cnid);
++	if (IS_ERR(inode))
++		return ERR_CAST(inode);
+ 	if (S_ISREG(inode->i_mode))
+ 		HFSPLUS_I(inode).dev = linkid;
  out:
- 	kfree(tmpde);
- 	if (bh)
- 		brelse(bh);
--	return;
-+	return ret;
+diff -puN fs/hfsplus/hfsplus_fs.h~iget-stop-hfsplus-from-using-iget-and-read_inode fs/hfsplus/hfsplus_fs.h
+--- a/fs/hfsplus/hfsplus_fs.h~iget-stop-hfsplus-from-using-iget-and-read_inode
++++ a/fs/hfsplus/hfsplus_fs.h
+@@ -345,6 +345,9 @@ int hfsplus_parse_options(char *, struct
+ void hfsplus_fill_defaults(struct hfsplus_sb_info *);
+ int hfsplus_show_options(struct seq_file *, struct vfsmount *);
  
- out_badread:
- 	printk(KERN_WARNING "ISOFS: unable to read i-node block\n");
- fail:
--	make_bad_inode(inode);
- 	goto out;
- }
++/* super.c */
++struct inode *hfsplus_iget(struct super_block *, unsigned long);
++
+ /* tables.c */
+ extern u16 hfsplus_case_fold_table[];
+ extern u16 hfsplus_decompose_table[];
+diff -puN fs/hfsplus/super.c~iget-stop-hfsplus-from-using-iget-and-read_inode fs/hfsplus/super.c
+--- a/fs/hfsplus/super.c~iget-stop-hfsplus-from-using-iget-and-read_inode
++++ a/fs/hfsplus/super.c
+@@ -20,11 +20,18 @@ static void hfsplus_destroy_inode(struct
  
-@@ -1394,6 +1397,7 @@ struct inode *isofs_iget(struct super_bl
- 	unsigned long hashval;
- 	struct inode *inode;
- 	struct isofs_iget5_callback_data data;
-+	long ret;
+ #include "hfsplus_fs.h"
  
- 	if (offset >= 1ul << sb->s_blocksize_bits)
- 		return NULL;
-@@ -1407,8 +1411,13 @@ struct inode *isofs_iget(struct super_bl
- 				&isofs_iget5_set, &data);
+-static void hfsplus_read_inode(struct inode *inode)
++struct inode *hfsplus_iget(struct super_block *sb, unsigned long ino)
+ {
+ 	struct hfs_find_data fd;
+ 	struct hfsplus_vh *vhdr;
+-	int err;
++	struct inode *inode;
++	long err = -EIO;
++
++	inode = iget_locked(sb, ino);
++	if (!inode)
++		return ERR_PTR(-ENOMEM);
++	if (!(inode->i_state & I_NEW))
++		return inode;
  
- 	if (inode && (inode->i_state & I_NEW)) {
--		sb->s_op->read_inode(inode);
--		unlock_new_inode(inode);
-+		ret = isofs_read_inode(inode);
-+		if (ret < 0) {
-+			iget_failed(inode);
-+			inode = ERR_PTR(ret);
-+		} else {
-+			unlock_new_inode(inode);
-+		}
+ 	INIT_LIST_HEAD(&HFSPLUS_I(inode).open_dir_list);
+ 	init_MUTEX(&HFSPLUS_I(inode).extents_lock);
+@@ -41,7 +48,7 @@ static void hfsplus_read_inode(struct in
+ 		hfs_find_exit(&fd);
+ 		if (err)
+ 			goto bad_inode;
+-		return;
++		goto done;
+ 	}
+ 	vhdr = HFSPLUS_SB(inode->i_sb).s_vhdr;
+ 	switch(inode->i_ino) {
+@@ -70,10 +77,13 @@ static void hfsplus_read_inode(struct in
+ 		goto bad_inode;
  	}
  
- 	return inode;
+-	return;
+-
+- bad_inode:
+-	make_bad_inode(inode);
++done:
++	unlock_new_inode(inode);
++	return inode;
++
++bad_inode:
++	iget_failed(inode);
++	return ERR_PTR(err);
+ }
+ 
+ static int hfsplus_write_inode(struct inode *inode, int unused)
+@@ -262,7 +272,6 @@ static int hfsplus_remount(struct super_
+ static const struct super_operations hfsplus_sops = {
+ 	.alloc_inode	= hfsplus_alloc_inode,
+ 	.destroy_inode	= hfsplus_destroy_inode,
+-	.read_inode	= hfsplus_read_inode,
+ 	.write_inode	= hfsplus_write_inode,
+ 	.clear_inode	= hfsplus_clear_inode,
+ 	.put_super	= hfsplus_put_super,
+@@ -278,7 +287,7 @@ static int hfsplus_fill_super(struct sup
+ 	struct hfsplus_sb_info *sbi;
+ 	hfsplus_cat_entry entry;
+ 	struct hfs_find_data fd;
+-	struct inode *root;
++	struct inode *root, *inode;
+ 	struct qstr str;
+ 	struct nls_table *nls = NULL;
+ 	int err = -EINVAL;
+@@ -366,18 +375,25 @@ static int hfsplus_fill_super(struct sup
+ 		goto cleanup;
+ 	}
+ 
+-	HFSPLUS_SB(sb).alloc_file = iget(sb, HFSPLUS_ALLOC_CNID);
+-	if (!HFSPLUS_SB(sb).alloc_file) {
++	inode = hfsplus_iget(sb, HFSPLUS_ALLOC_CNID);
++	if (IS_ERR(inode)) {
+ 		printk(KERN_ERR "hfs: failed to load allocation file\n");
++		err = PTR_ERR(inode);
+ 		goto cleanup;
+ 	}
++	HFSPLUS_SB(sb).alloc_file = inode;
+ 
+ 	/* Load the root directory */
+-	root = iget(sb, HFSPLUS_ROOT_CNID);
++	root = hfsplus_iget(sb, HFSPLUS_ROOT_CNID);
++	if (IS_ERR(root)) {
++		printk(KERN_ERR "hfs: failed to load root directory\n");
++		err = PTR_ERR(root);
++		goto cleanup;
++	}
+ 	sb->s_root = d_alloc_root(root);
+ 	if (!sb->s_root) {
+-		printk(KERN_ERR "hfs: failed to load root directory\n");
+ 		iput(root);
++		err = -ENOMEM;
+ 		goto cleanup;
+ 	}
+ 	sb->s_root->d_op = &hfsplus_dentry_operations;
+@@ -390,9 +406,12 @@ static int hfsplus_fill_super(struct sup
+ 		hfs_find_exit(&fd);
+ 		if (entry.type != cpu_to_be16(HFSPLUS_FOLDER))
+ 			goto cleanup;
+-		HFSPLUS_SB(sb).hidden_dir = iget(sb, be32_to_cpu(entry.folder.id));
+-		if (!HFSPLUS_SB(sb).hidden_dir)
++		inode = hfsplus_iget(sb, be32_to_cpu(entry.folder.id));
++		if (IS_ERR(inode)) {
++			err = PTR_ERR(inode);
+ 			goto cleanup;
++		}
++		HFSPLUS_SB(sb).hidden_dir = inode;
+ 	} else
+ 		hfs_find_exit(&fd);
+ 
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
