@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + iget-stop-qnx4-from-using-iget-and-read_inode-try.patch added to -mm tree
-Date: Sat, 27 Oct 2007 00:48:49 -0700
-Message-ID: <200710270748.l9R7mnFC003500@imap1.linux-foundation.org>
+Subject: + iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch added to -mm tree
+Date: Sat, 27 Oct 2007 00:48:47 -0700
+Message-ID: <200710270748.l9R7mlv5003497@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40812 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33403 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752087AbXJ0HtK (ORCPT
+	by vger.kernel.org with ESMTP id S1751398AbXJ0HtB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Oct 2007 03:49:10 -0400
+	Sat, 27 Oct 2007 03:49:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, al@alarsen.net
+Cc: akpm@linux-foundation.org, dhowells@redhat.com, ebiederm@xmission.com
 
 
 The patch titled
-     iget: stop QNX4 from using iget() and read_inode()
+     iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
+     iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,216 +26,136 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: iget: stop QNX4 from using iget() and read_inode()
-From: David Howells <dhowells@redhat.com>
+Subject: iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Stop the QNX4 filesystem from using iget() and read_inode().  Replace
-qnx4_read_inode() with qnx4_iget(), and call that instead of iget(). 
-qnx4_iget() then uses iget_locked() directly and returns a proper error code
-instead of an inode in the event of an error.
+WARNING: line over 80 characters
+#88: FILE: fs/proc/inode.c:427:
++							&proc_reg_file_ops_no_compat;
 
-qnx4_fill_super() returns any error incurred when getting the root inode
-instead of EINVAL.
+WARNING: line over 80 characters
+#92: FILE: fs/proc/inode.c:430:
++						inode->i_fop = &proc_reg_file_ops;
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Anders Larsen <al@alarsen.net>
+ERROR: else should follow close brace '}'
+#94: FILE: fs/proc/inode.c:432:
++				}
++				else
+
+total: 1 errors, 2 warnings, 85 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/qnx4/inode.c         |   45 +++++++++++++++++++++++++-------------
- fs/qnx4/namei.c         |    8 ++++--
- include/linux/qnx4_fs.h |    1 
- 3 files changed, 36 insertions(+), 18 deletions(-)
+ fs/proc/inode.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/qnx4/inode.c~iget-stop-qnx4-from-using-iget-and-read_inode-try fs/qnx4/inode.c
---- a/fs/qnx4/inode.c~iget-stop-qnx4-from-using-iget-and-read_inode-try
-+++ a/fs/qnx4/inode.c
-@@ -125,7 +125,6 @@ static int qnx4_write_inode(struct inode
- static void qnx4_put_super(struct super_block *sb);
- static struct inode *qnx4_alloc_inode(struct super_block *sb);
- static void qnx4_destroy_inode(struct inode *inode);
--static void qnx4_read_inode(struct inode *);
- static int qnx4_remount(struct super_block *sb, int *flags, char *data);
- static int qnx4_statfs(struct dentry *, struct kstatfs *);
- 
-@@ -133,7 +132,6 @@ static const struct super_operations qnx
- {
- 	.alloc_inode	= qnx4_alloc_inode,
- 	.destroy_inode	= qnx4_destroy_inode,
--	.read_inode	= qnx4_read_inode,
- 	.put_super	= qnx4_put_super,
- 	.statfs		= qnx4_statfs,
- 	.remount_fs	= qnx4_remount,
-@@ -357,6 +355,7 @@ static int qnx4_fill_super(struct super_
- 	struct inode *root;
- 	const char *errmsg;
- 	struct qnx4_sb_info *qs;
-+	int ret = -EINVAL;
- 
- 	qs = kzalloc(sizeof(struct qnx4_sb_info), GFP_KERNEL);
- 	if (!qs)
-@@ -396,12 +395,14 @@ static int qnx4_fill_super(struct super_
- 	}
- 
-  	/* does root not have inode number QNX4_ROOT_INO ?? */
-- 	root = iget(s, QNX4_ROOT_INO * QNX4_INODES_PER_BLOCK);
-- 	if (!root) {
-+ 	root = qnx4_iget(s, QNX4_ROOT_INO * QNX4_INODES_PER_BLOCK);
-+ 	if (IS_ERR(root)) {
-  		printk("qnx4: get inode failed\n");
-+		ret = PTR_ERR(root);
-  		goto out;
-  	}
- 
-+	ret = -ENOMEM;
-  	s->s_root = d_alloc_root(root);
-  	if (s->s_root == NULL)
-  		goto outi;
-@@ -417,7 +418,7 @@ static int qnx4_fill_super(struct super_
-       outnobh:
- 	kfree(qs);
- 	s->s_fs_info = NULL;
--	return -EINVAL;
-+	return ret;
- }
- 
- static void qnx4_put_super(struct super_block *sb)
-@@ -462,29 +463,37 @@ static const struct address_space_operat
- 	.bmap		= qnx4_bmap
- };
- 
--static void qnx4_read_inode(struct inode *inode)
-+struct inode *qnx4_iget(struct super_block *sb, unsigned long ino)
- {
- 	struct buffer_head *bh;
- 	struct qnx4_inode_entry *raw_inode;
--	int block, ino;
--	struct super_block *sb = inode->i_sb;
--	struct qnx4_inode_entry *qnx4_inode = qnx4_raw_inode(inode);
-+	int block;
-+	struct qnx4_inode_entry *qnx4_inode;
-+	struct inode *inode;
-+
-+	inode = iget_locked(sb, ino);
-+	if (!inode)
-+		return ERR_PTR(-ENOMEM);
-+	if (!(inode->i_state & I_NEW))
-+		return inode;
- 
--	ino = inode->i_ino;
-+	qnx4_inode = qnx4_raw_inode(inode);
- 	inode->i_mode = 0;
- 
- 	QNX4DEBUG(("Reading inode : [%d]\n", ino));
- 	if (!ino) {
--		printk("qnx4: bad inode number on dev %s: %d is out of range\n",
-+		printk("qnx4: bad inode number on dev %s: %lu is out of range\n",
- 		       sb->s_id, ino);
--		return;
-+		iget_failed(inode);
-+		return ERR_PTR(-EIO);
- 	}
- 	block = ino / QNX4_INODES_PER_BLOCK;
- 
- 	if (!(bh = sb_bread(sb, block))) {
- 		printk("qnx4: major problem: unable to read inode from dev "
- 		       "%s\n", sb->s_id);
--		return;
-+		iget_failed(inode);
-+		return ERR_PTR(-EIO);
- 	}
- 	raw_inode = ((struct qnx4_inode_entry *) bh->b_data) +
- 	    (ino % QNX4_INODES_PER_BLOCK);
-@@ -515,9 +524,15 @@ static void qnx4_read_inode(struct inode
- 		inode->i_op = &page_symlink_inode_operations;
- 		inode->i_mapping->a_ops = &qnx4_aops;
- 		qnx4_i(inode)->mmu_private = inode->i_size;
--	} else
--		printk("qnx4: bad inode %d on dev %s\n",ino,sb->s_id);
-+	} else {
-+		printk("qnx4: bad inode %lu on dev %s\n",ino,sb->s_id);
-+		iget_failed(inode);
-+		brelse(bh);
-+		return ERR_PTR(-EIO);
-+	}
- 	brelse(bh);
-+	unlock_new_inode(inode);
-+	return inode;
- }
- 
- static struct kmem_cache *qnx4_inode_cachep;
-diff -puN fs/qnx4/namei.c~iget-stop-qnx4-from-using-iget-and-read_inode-try fs/qnx4/namei.c
---- a/fs/qnx4/namei.c~iget-stop-qnx4-from-using-iget-and-read_inode-try
-+++ a/fs/qnx4/namei.c
-@@ -128,10 +128,12 @@ struct dentry * qnx4_lookup(struct inode
- 	}
- 	brelse(bh);
- 
--	if ((foundinode = iget(dir->i_sb, ino)) == NULL) {
-+	foundinode = qnx4_iget(dir->i_sb, ino);
-+	if (IS_ERR(foundinode)) {
- 		unlock_kernel();
--		QNX4DEBUG(("qnx4: lookup->iget -> NULL\n"));
--		return ERR_PTR(-EACCES);
-+		QNX4DEBUG(("qnx4: lookup->iget -> error %ld\n",
-+			   PTR_ERR(foundinode)));
-+		return ERR_CAST(foundinode);
- 	}
- out:
- 	unlock_kernel();
-diff -puN include/linux/qnx4_fs.h~iget-stop-qnx4-from-using-iget-and-read_inode-try include/linux/qnx4_fs.h
---- a/include/linux/qnx4_fs.h~iget-stop-qnx4-from-using-iget-and-read_inode-try
-+++ a/include/linux/qnx4_fs.h
-@@ -110,6 +110,7 @@ struct qnx4_inode_info {
- 	struct inode vfs_inode;
- };
- 
-+extern struct inode *qnx4_iget(struct super_block *, unsigned long);
- extern struct dentry *qnx4_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *nd);
- extern unsigned long qnx4_count_free_blocks(struct super_block *sb);
- extern unsigned long qnx4_block_map(struct inode *inode, long iblock);
+diff -puN fs/proc/inode.c~iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes fs/proc/inode.c
+--- a/fs/proc/inode.c~iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes
++++ a/fs/proc/inode.c
+@@ -428,9 +428,9 @@ struct inode *proc_get_inode(struct supe
+ 					else
+ #endif
+ 						inode->i_fop = &proc_reg_file_ops;
+-				}
+-				else
++				} else {
+ 					inode->i_fop = de->proc_fops;
++				}
+ 			}
+ 		}
+ 		unlock_new_inode(inode);
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+sunrpc-fix-rpc-debugging-checkpatch-fixes.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+revert-gregkh-driver-block-device.patch
+git-hwmon.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
+ide-arm-hack.patch
+drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
+nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd-fixup.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+git-unionfs.patch
+git-watchdog.patch
+watchdog-add-nano-7240-driver-checkpatch-fixes.patch
+git-wireless.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-x86.patch
+git-x86-fixup.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+x86-fix-config_smp-warning-in-processorc-fix.patch
+i386-and-x86_64-randomize-brk-fix.patch
+git-perfmon-fill-in-i386-syscall-table.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+remove-warnings-for-longstanding-conditions-checkpatch-fixes.patch
+sync_sb_inodes-propagate-errors.patch
 64-bit-i_version-afs-fixes.patch
-add-an-err_cast-function-to-complement-err_ptr-and-co.patch
-convert-err_ptrptr_errp-instances-to-err_castp.patch
-iget-introduce-a-function-to-register-iget-failure.patch
-iget-use-iget_failed-in-afs.patch
-iget-use-iget_failed-in-gfs2.patch
-iget-stop-affs-from-using-iget-and-read_inode-try.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
 iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-autofs-from-using-iget-and-read_inode.patch
-iget-stop-befs-from-using-iget-and-read_inode-try.patch
-iget-stop-bfs-from-using-iget-and-read_inode-try.patch
-iget-stop-cifs-from-using-iget-and-read_inode-try.patch
-iget-stop-efs-from-using-iget-and-read_inode-try.patch
 iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try.patch
 iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try.patch
 iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext4-from-using-iget-and-read_inode-try.patch
-iget-stop-fat-from-using-iget-and-read_inode-try.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode.patch
 iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-fuse-from-using-iget-and-read_inode-try.patch
-iget-stop-hfsplus-from-using-iget-and-read_inode.patch
-iget-stop-isofs-from-using-read_inode.patch
-iget-stop-jffs2-from-using-iget-and-read_inode.patch
-iget-stop-jfs-from-using-iget-and-read_inode-try.patch
-iget-stop-the-minix-filesystem-from-using-iget-and.patch
 iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode.patch
 iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
-iget-stop-romfs-from-using-iget-and-read_inode.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try.patch
-iget-stop-openpromfs-from-using-iget-and.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hppfs-from-using-iget-and-read_inode.patch
-iget-remove-iget-and-the-read_inode-super-op-as.patch
-mutex-subsystem-synchro-test-module.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
