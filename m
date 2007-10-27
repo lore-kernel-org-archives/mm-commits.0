@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-always-true-tests-in-irq-handlers.patch added to -mm tree
-Date: Sat, 27 Oct 2007 10:02:22 -0700
-Message-ID: <200710271702.l9RH2Muw021910@imap1.linux-foundation.org>
+Subject: + arm-misc-minor-interrupt-handler-cleanups.patch added to -mm tree
+Date: Sat, 27 Oct 2007 10:02:53 -0700
+Message-ID: <200710271702.l9RH2rvD021916@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55137 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53724 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754835AbXJ0RD1 (ORCPT
+	by vger.kernel.org with ESMTP id S1755186AbXJ0RDn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Oct 2007 13:03:27 -0400
+	Sat, 27 Oct 2007 13:03:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeff@garzik.org, jgarzik@redhat.com, ralf@linux-mips.org, tony.luck@intel.com
+Cc: jeff@garzik.org, jgarzik@redhat.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     Remove always-true tests in irq handlers
+     ARM: Misc minor interrupt handler cleanups
 has been added to the -mm tree.  Its filename is
-     remove-always-true-tests-in-irq-handlers.patch
+     arm-misc-minor-interrupt-handler-cleanups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,121 +26,136 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Remove always-true tests in irq handlers
+Subject: ARM: Misc minor interrupt handler cleanups
 From: Jeff Garzik <jeff@garzik.org>
 
-In these drivers, dev_id is always non-NULL.
+mach-integrator/pci_v3.c: no need to reference 'irq' arg, its constant
+
+mach-omap1/pm.c: remove extra whitespace
+
+arch/arm/mach-sa1100/ssp.c: remove braces around single C stmt
+
+arch/arm/plat-omap/mcbsp.c:
+	- remove pointless casts from void*
+	- make longer lines more readable
 
 Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/hp/sim/simeth.c                   |    5 -----
- arch/mips/pmc-sierra/msp71xx/msp_hwbutton.c |    5 +----
- drivers/net/cpmac.c                         |    3 ---
- drivers/net/ucc_geth.c                      |    3 ---
- drivers/net/wan/farsync.c                   |   11 +++--------
- 5 files changed, 4 insertions(+), 23 deletions(-)
+ arch/arm/mach-integrator/pci_v3.c |    8 +++++---
+ arch/arm/mach-omap1/pm.c          |    2 +-
+ arch/arm/mach-sa1100/ssp.c        |    3 +--
+ arch/arm/plat-omap/mcbsp.c        |   20 ++++++++++++--------
+ 4 files changed, 19 insertions(+), 14 deletions(-)
 
-diff -puN arch/ia64/hp/sim/simeth.c~remove-always-true-tests-in-irq-handlers arch/ia64/hp/sim/simeth.c
---- a/arch/ia64/hp/sim/simeth.c~remove-always-true-tests-in-irq-handlers
-+++ a/arch/ia64/hp/sim/simeth.c
-@@ -497,11 +497,6 @@ simeth_interrupt(int irq, void *dev_id)
- {
- 	struct net_device *dev = dev_id;
- 
--	if ( dev == NULL ) {
--		printk(KERN_WARNING "simeth: irq %d for unknown device\n", irq);
--		return IRQ_NONE;
--	}
--
- 	/*
- 	 * very simple loop because we get interrupts only when receiving
- 	 */
-diff -puN arch/mips/pmc-sierra/msp71xx/msp_hwbutton.c~remove-always-true-tests-in-irq-handlers arch/mips/pmc-sierra/msp71xx/msp_hwbutton.c
---- a/arch/mips/pmc-sierra/msp71xx/msp_hwbutton.c~remove-always-true-tests-in-irq-handlers
-+++ a/arch/mips/pmc-sierra/msp71xx/msp_hwbutton.c
-@@ -126,9 +126,6 @@ static irqreturn_t hwbutton_handler(int 
- 	struct hwbutton_interrupt *hirq = data;
- 	unsigned long cic_ext = *CIC_EXT_CFG_REG;
- 
--	if (irq != hirq->irq)
--		return IRQ_NONE;
--
- 	if (CIC_EXT_IS_ACTIVE_HI(cic_ext, hirq->eirq)) {
- 		/* Interrupt: pin is now HI */
- 		CIC_EXT_SET_ACTIVE_LO(cic_ext, hirq->eirq);
-@@ -164,7 +161,7 @@ static int msp_hwbutton_register(struct 
- 	*CIC_EXT_CFG_REG = cic_ext;
- 
- 	return request_irq(hirq->irq, hwbutton_handler, IRQF_DISABLED,
--				hirq->name, (void *)hirq);
-+			   hirq->name, hirq);
+diff -puN arch/arm/mach-integrator/pci_v3.c~arm-misc-minor-interrupt-handler-cleanups arch/arm/mach-integrator/pci_v3.c
+--- a/arch/arm/mach-integrator/pci_v3.c~arm-misc-minor-interrupt-handler-cleanups
++++ a/arch/arm/mach-integrator/pci_v3.c
+@@ -440,7 +440,7 @@ v3_pci_fault(unsigned long addr, unsigne
+ 	return 1;
  }
  
- static int __init msp_hwbutton_setup(void)
-diff -puN drivers/net/cpmac.c~remove-always-true-tests-in-irq-handlers drivers/net/cpmac.c
---- a/drivers/net/cpmac.c~remove-always-true-tests-in-irq-handlers
-+++ a/drivers/net/cpmac.c
-@@ -661,9 +661,6 @@ static irqreturn_t cpmac_irq(int irq, vo
- 	int queue;
- 	u32 status;
- 
--	if (!dev)
--		return IRQ_NONE;
--
- 	priv = netdev_priv(dev);
- 
- 	status = cpmac_read(priv->regs, CPMAC_MAC_INT_VECTOR);
-diff -puN drivers/net/ucc_geth.c~remove-always-true-tests-in-irq-handlers drivers/net/ucc_geth.c
---- a/drivers/net/ucc_geth.c~remove-always-true-tests-in-irq-handlers
-+++ a/drivers/net/ucc_geth.c
-@@ -3619,9 +3619,6 @@ static irqreturn_t ucc_geth_irq_handler(
- 
- 	ugeth_vdbg("%s: IN", __FUNCTION__);
- 
--	if (!ugeth)
--		return IRQ_NONE;
--
- 	uccf = ugeth->uccf;
- 	ug_info = ugeth->ug_info;
- 
-diff -puN drivers/net/wan/farsync.c~remove-always-true-tests-in-irq-handlers drivers/net/wan/farsync.c
---- a/drivers/net/wan/farsync.c~remove-always-true-tests-in-irq-handlers
-+++ a/drivers/net/wan/farsync.c
-@@ -1498,9 +1498,9 @@ do_bottom_half_rx(struct fst_card_info *
-  *      Dev_id is our fst_card_info pointer
-  */
- static irqreturn_t
--fst_intr(int irq, void *dev_id)
-+fst_intr(int dummy, void *dev_id)
+-static irqreturn_t v3_irq(int irq, void *devid)
++static irqreturn_t v3_irq(int dummy, void *devid)
  {
--	struct fst_card_info *card;
-+	struct fst_card_info *card = dev_id;
- 	struct fst_port_info *port;
- 	int rdidx;		/* Event buffer indices */
- 	int wridx;
-@@ -1509,17 +1509,12 @@ fst_intr(int irq, void *dev_id)
- 	unsigned int do_card_interrupt;
- 	unsigned int int_retry_count;
+ #ifdef CONFIG_DEBUG_LL
+ 	struct pt_regs *regs = get_irq_regs();
+@@ -448,8 +448,10 @@ static irqreturn_t v3_irq(int irq, void 
+ 	unsigned long instr = *(unsigned long *)pc;
+ 	char buf[128];
  
--	if ((card = dev_id) == NULL) {
--		dbg(DBG_INTR, "intr: spurious %d\n", irq);
--		return IRQ_NONE;
+-	sprintf(buf, "V3 int %d: pc=0x%08lx [%08lx] LBFADDR=%08x LBFCODE=%02x ISTAT=%02x\n", irq,
+-		pc, instr, __raw_readl(SC_LBFADDR), __raw_readl(SC_LBFCODE) & 255,
++	sprintf(buf, "V3 int %d: pc=0x%08lx [%08lx] LBFADDR=%08x LBFCODE=%02x "
++		"ISTAT=%02x\n", IRQ_AP_V3INT, pc, instr,
++		__raw_readl(SC_LBFADDR),
++		__raw_readl(SC_LBFCODE) & 255,
+ 		v3_readb(V3_LB_ISTAT));
+ 	printascii(buf);
+ #endif
+diff -puN arch/arm/mach-omap1/pm.c~arm-misc-minor-interrupt-handler-cleanups arch/arm/mach-omap1/pm.c
+--- a/arch/arm/mach-omap1/pm.c~arm-misc-minor-interrupt-handler-cleanups
++++ a/arch/arm/mach-omap1/pm.c
+@@ -646,7 +646,7 @@ static void omap_pm_finish(void)
+ }
+ 
+ 
+-static irqreturn_t  omap_wakeup_interrupt(int irq, void *dev)
++static irqreturn_t omap_wakeup_interrupt(int irq, void *dev)
+ {
+ 	return IRQ_HANDLED;
+ }
+diff -puN arch/arm/mach-sa1100/ssp.c~arm-misc-minor-interrupt-handler-cleanups arch/arm/mach-sa1100/ssp.c
+--- a/arch/arm/mach-sa1100/ssp.c~arm-misc-minor-interrupt-handler-cleanups
++++ a/arch/arm/mach-sa1100/ssp.c
+@@ -29,9 +29,8 @@ static irqreturn_t ssp_interrupt(int irq
+ {
+ 	unsigned int status = Ser4SSSR;
+ 
+-	if (status & SSSR_ROR) {
++	if (status & SSSR_ROR)
+ 		printk(KERN_WARNING "SSP: receiver overrun\n");
 -	}
--
- 	/*
- 	 * Check to see if the interrupt was for this card
- 	 * return if not
- 	 * Note that the call to clear the interrupt is important
- 	 */
--	dbg(DBG_INTR, "intr: %d %p\n", irq, card);
-+	dbg(DBG_INTR, "intr: %d %p\n", card->irq, card);
- 	if (card->state != FST_RUNNING) {
- 		printk_err
- 		    ("Interrupt received for card %d in a non running state (%d)\n",
+ 
+ 	Ser4SSSR = SSSR_ROR;
+ 
+diff -puN arch/arm/plat-omap/mcbsp.c~arm-misc-minor-interrupt-handler-cleanups arch/arm/plat-omap/mcbsp.c
+--- a/arch/arm/plat-omap/mcbsp.c~arm-misc-minor-interrupt-handler-cleanups
++++ a/arch/arm/plat-omap/mcbsp.c
+@@ -98,9 +98,10 @@ static void omap_mcbsp_dump_reg(u8 id)
+ 
+ static irqreturn_t omap_mcbsp_tx_irq_handler(int irq, void *dev_id)
+ {
+-	struct omap_mcbsp * mcbsp_tx = (struct omap_mcbsp *)(dev_id);
++	struct omap_mcbsp *mcbsp_tx = dev_id;
+ 
+-	DBG("TX IRQ callback : 0x%x\n", OMAP_MCBSP_READ(mcbsp_tx->io_base, SPCR2));
++	DBG("TX IRQ callback : 0x%x\n",
++	    OMAP_MCBSP_READ(mcbsp_tx->io_base, SPCR2));
+ 
+ 	complete(&mcbsp_tx->tx_irq_completion);
+ 	return IRQ_HANDLED;
+@@ -108,9 +109,10 @@ static irqreturn_t omap_mcbsp_tx_irq_han
+ 
+ static irqreturn_t omap_mcbsp_rx_irq_handler(int irq, void *dev_id)
+ {
+-	struct omap_mcbsp * mcbsp_rx = (struct omap_mcbsp *)(dev_id);
++	struct omap_mcbsp *mcbsp_rx = dev_id;
+ 
+-	DBG("RX IRQ callback : 0x%x\n", OMAP_MCBSP_READ(mcbsp_rx->io_base, SPCR2));
++	DBG("RX IRQ callback : 0x%x\n",
++	    OMAP_MCBSP_READ(mcbsp_rx->io_base, SPCR2));
+ 
+ 	complete(&mcbsp_rx->rx_irq_completion);
+ 	return IRQ_HANDLED;
+@@ -118,9 +120,10 @@ static irqreturn_t omap_mcbsp_rx_irq_han
+ 
+ static void omap_mcbsp_tx_dma_callback(int lch, u16 ch_status, void *data)
+ {
+-	struct omap_mcbsp * mcbsp_dma_tx = (struct omap_mcbsp *)(data);
++	struct omap_mcbsp *mcbsp_dma_tx = data;
+ 
+-	DBG("TX DMA callback : 0x%x\n", OMAP_MCBSP_READ(mcbsp_dma_tx->io_base, SPCR2));
++	DBG("TX DMA callback : 0x%x\n",
++	    OMAP_MCBSP_READ(mcbsp_dma_tx->io_base, SPCR2));
+ 
+ 	/* We can free the channels */
+ 	omap_free_dma(mcbsp_dma_tx->dma_tx_lch);
+@@ -131,9 +134,10 @@ static void omap_mcbsp_tx_dma_callback(i
+ 
+ static void omap_mcbsp_rx_dma_callback(int lch, u16 ch_status, void *data)
+ {
+-	struct omap_mcbsp * mcbsp_dma_rx = (struct omap_mcbsp *)(data);
++	struct omap_mcbsp *mcbsp_dma_rx = data;
+ 
+-	DBG("RX DMA callback : 0x%x\n", OMAP_MCBSP_READ(mcbsp_dma_rx->io_base, SPCR2));
++	DBG("RX DMA callback : 0x%x\n",
++	    OMAP_MCBSP_READ(mcbsp_dma_rx->io_base, SPCR2));
+ 
+ 	/* We can free the channels */
+ 	omap_free_dma(mcbsp_dma_rx->dma_rx_lch);
 _
 
 Patches currently in -mm which might be from jeff@garzik.org are
@@ -148,6 +163,7 @@ Patches currently in -mm which might be from jeff@garzik.org are
 origin.patch
 remove-bogus-default-y-for-dmar-and-net_dma.patch
 acpi-sbs-fix-retval-warning.patch
+arm-misc-minor-interrupt-handler-cleanups.patch
 git-jg-misc.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
