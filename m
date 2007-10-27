@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch added to -mm tree
-Date: Sat, 27 Oct 2007 00:44:35 -0700
-Message-ID: <200710270744.l9R7iZrF003266@imap1.linux-foundation.org>
+Subject: + iget-stop-efs-from-using-iget-and-read_inode-try.patch added to -mm tree
+Date: Sat, 27 Oct 2007 00:44:45 -0700
+Message-ID: <200710270744.l9R7ijwM003281@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43275 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46976 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751365AbXJ0Ho5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751558AbXJ0Ho7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Oct 2007 03:44:57 -0400
+	Sat, 27 Oct 2007 03:44:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dhowells@redhat.com, zippel@linux-m68k.org
+Cc: dhowells@redhat.com
 
 
 The patch titled
-     iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes
+     iget: stop EFS from using iget() and read_inode()
 has been added to the -mm tree.  Its filename is
-     iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+     iget-stop-efs-from-using-iget-and-read_inode-try.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,141 +26,237 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: iget: stop EFS from using iget() and read_inode()
+From: David Howells <dhowells@redhat.com>
 
-WARNING: line over 80 characters
-#31: FILE: fs/affs/affs.h:177:
-+extern struct inode		*affs_iget(struct super_block *sb, unsigned long ino);
+Stop the EFS filesystem from using iget() and read_inode().  Replace
+efs_read_inode() with efs_iget(), and call that instead of iget().  efs_iget()
+then uses iget_locked() directly and returns a proper error code instead of an
+inode in the event of an error.
 
-WARNING: line over 80 characters
-#44: FILE: fs/affs/amigaffs.c:173:
-+		dir = affs_iget(sb, be32_to_cpu(AFFS_TAIL(sb, link_bh)->parent));
+efs_fill_super() returns any error incurred when getting the root inode
+instead of EACCES.
 
-ERROR: need space after that ',' (ctx:VxV)
-#81: FILE: fs/affs/inode.c:36:
-+	pr_debug("AFFS: affs_iget(%lu)\n",inode->i_ino);
- 	                                 ^
-
-total: 1 errors, 2 warnings, 130 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: David Howells <dhowells@redhat.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/affs.h  |    3 ++-
- fs/affs/inode.c |    2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ fs/efs/inode.c         |   25 +++++++++++++++++--------
+ fs/efs/namei.c         |   25 +++++++++++++------------
+ fs/efs/super.c         |   16 +++++++++++-----
+ include/linux/efs_fs.h |    2 +-
+ 4 files changed, 42 insertions(+), 26 deletions(-)
 
-diff -puN fs/affs/affs.h~iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes fs/affs/affs.h
---- a/fs/affs/affs.h~iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes
-+++ a/fs/affs/affs.h
-@@ -174,7 +174,8 @@ extern void			 affs_put_inode(struct ino
- extern void			 affs_drop_inode(struct inode *inode);
- extern void			 affs_delete_inode(struct inode *inode);
- extern void			 affs_clear_inode(struct inode *inode);
--extern struct inode		*affs_iget(struct super_block *sb, unsigned long ino);
-+extern struct inode		*affs_iget(struct super_block *sb,
-+					unsigned long ino);
- extern int			 affs_write_inode(struct inode *inode, int);
- extern int			 affs_add_entry(struct inode *dir, struct inode *inode, struct dentry *dentry, s32 type);
+diff -puN fs/efs/inode.c~iget-stop-efs-from-using-iget-and-read_inode-try fs/efs/inode.c
+--- a/fs/efs/inode.c~iget-stop-efs-from-using-iget-and-read_inode-try
++++ a/fs/efs/inode.c
+@@ -45,17 +45,26 @@ static inline void extent_copy(efs_exten
+ 	return;
+ }
  
-diff -puN fs/affs/inode.c~iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes fs/affs/inode.c
---- a/fs/affs/inode.c~iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes
-+++ a/fs/affs/inode.c
-@@ -33,7 +33,7 @@ struct inode *affs_iget(struct super_blo
- 	if (!(inode->i_state & I_NEW))
- 		return inode;
+-void efs_read_inode(struct inode *inode)
++struct inode *efs_iget(struct super_block *super, unsigned long ino)
+ {
+ 	int i, inode_index;
+ 	dev_t device;
+ 	u32 rdev;
+ 	struct buffer_head *bh;
+-	struct efs_sb_info    *sb = SUPER_INFO(inode->i_sb);
+-	struct efs_inode_info *in = INODE_INFO(inode);
++	struct efs_sb_info    *sb = SUPER_INFO(super);
++	struct efs_inode_info *in;
+ 	efs_block_t block, offset;
+ 	struct efs_dinode *efs_inode;
+-  
++	struct inode *inode;
++
++	inode = iget_locked(super, ino);
++	if (IS_ERR(inode))
++		return ERR_PTR(-ENOMEM);
++	if (!(inode->i_state & I_NEW))
++		return inode;
++
++	in = INODE_INFO(inode);
++
+ 	/*
+ 	** EFS layout:
+ 	**
+@@ -159,13 +168,13 @@ void efs_read_inode(struct inode *inode)
+ 			break;
+ 	}
  
--	pr_debug("AFFS: affs_iget(%lu)\n",inode->i_ino);
-+	pr_debug("AFFS: affs_iget(%lu)\n", inode->i_ino);
+-	return;
++	unlock_new_inode(inode);
++	return inode;
+         
+ read_inode_error:
+ 	printk(KERN_WARNING "EFS: failed to read inode %lu\n", inode->i_ino);
+-	make_bad_inode(inode);
+-
+-	return;
++	iget_failed(inode);
++	return ERR_PTR(-EIO);
+ }
  
- 	block = inode->i_ino;
- 	bh = affs_bread(sb, block);
+ static inline efs_block_t
+diff -puN fs/efs/namei.c~iget-stop-efs-from-using-iget-and-read_inode-try fs/efs/namei.c
+--- a/fs/efs/namei.c~iget-stop-efs-from-using-iget-and-read_inode-try
++++ a/fs/efs/namei.c
+@@ -66,9 +66,10 @@ struct dentry *efs_lookup(struct inode *
+ 	lock_kernel();
+ 	inodenum = efs_find_entry(dir, dentry->d_name.name, dentry->d_name.len);
+ 	if (inodenum) {
+-		if (!(inode = iget(dir->i_sb, inodenum))) {
++		inode = efs_iget(dir->i_sb, inodenum);
++		if (IS_ERR(inode)) {
+ 			unlock_kernel();
+-			return ERR_PTR(-EACCES);
++			return ERR_CAST(inode);
+ 		}
+ 	}
+ 	unlock_kernel();
+@@ -84,14 +85,13 @@ static struct inode *efs_nfs_get_inode(s
+ 
+ 	if (ino == 0)
+ 		return ERR_PTR(-ESTALE);
+-	inode = iget(sb, ino);
+-	if (inode == NULL)
+-		return ERR_PTR(-ENOMEM);
++	inode = efs_iget(sb, ino);
++	if (IS_ERR(inode))
++		return ERR_CAST(inode);
+ 
+-	if (is_bad_inode(inode) ||
+-	    (generation && inode->i_generation != generation)) {
++	if (generation && inode->i_generation != generation) {
+ 		iput(inode);
+-		return ERR_PTR(-ESTALE);
++	    	return ERR_PTR(-ESTALE);
+ 	}
+ 
+ 	return inode;
+@@ -116,7 +116,7 @@ struct dentry *efs_get_parent(struct den
+ 	struct dentry *parent;
+ 	struct inode *inode;
+ 	efs_ino_t ino;
+-	int error;
++	long error;
+ 
+ 	lock_kernel();
+ 
+@@ -125,10 +125,11 @@ struct dentry *efs_get_parent(struct den
+ 	if (!ino)
+ 		goto fail;
+ 
+-	error = -EACCES;
+-	inode = iget(child->d_inode->i_sb, ino);
+-	if (!inode)
++	inode = efs_iget(child->d_inode->i_sb, ino);
++	if (IS_ERR(inode)) {
++		error = PTR_ERR(inode);
+ 		goto fail;
++	}
+ 
+ 	error = -ENOMEM;
+ 	parent = d_alloc_anon(inode);
+diff -puN fs/efs/super.c~iget-stop-efs-from-using-iget-and-read_inode-try fs/efs/super.c
+--- a/fs/efs/super.c~iget-stop-efs-from-using-iget-and-read_inode-try
++++ a/fs/efs/super.c
+@@ -107,7 +107,6 @@ static int efs_remount(struct super_bloc
+ static const struct super_operations efs_superblock_operations = {
+ 	.alloc_inode	= efs_alloc_inode,
+ 	.destroy_inode	= efs_destroy_inode,
+-	.read_inode	= efs_read_inode,
+ 	.put_super	= efs_put_super,
+ 	.statfs		= efs_statfs,
+ 	.remount_fs	= efs_remount,
+@@ -247,6 +246,7 @@ static int efs_fill_super(struct super_b
+ 	struct efs_sb_info *sb;
+ 	struct buffer_head *bh;
+ 	struct inode *root;
++	int ret = -EINVAL;
+ 
+  	sb = kzalloc(sizeof(struct efs_sb_info), GFP_KERNEL);
+ 	if (!sb)
+@@ -303,12 +303,18 @@ static int efs_fill_super(struct super_b
+ 	}
+ 	s->s_op   = &efs_superblock_operations;
+ 	s->s_export_op = &efs_export_ops;
+-	root = iget(s, EFS_ROOTINODE);
++	root = efs_iget(s, EFS_ROOTINODE);
++	if (IS_ERR(root)) {
++		printk(KERN_ERR "EFS: get root inode failed\n");
++		ret = PTR_ERR(root);
++		goto out_no_fs;
++	}
++
+ 	s->s_root = d_alloc_root(root);
+- 
+ 	if (!(s->s_root)) {
+-		printk(KERN_ERR "EFS: get root inode failed\n");
++		printk(KERN_ERR "EFS: get root dentry failed\n");
+ 		iput(root);
++		ret = -ENOMEM;
+ 		goto out_no_fs;
+ 	}
+ 
+@@ -318,7 +324,7 @@ out_no_fs_ul:
+ out_no_fs:
+ 	s->s_fs_info = NULL;
+ 	kfree(sb);
+-	return -EINVAL;
++	return ret;
+ }
+ 
+ static int efs_statfs(struct dentry *dentry, struct kstatfs *buf) {
+diff -puN include/linux/efs_fs.h~iget-stop-efs-from-using-iget-and-read_inode-try include/linux/efs_fs.h
+--- a/include/linux/efs_fs.h~iget-stop-efs-from-using-iget-and-read_inode-try
++++ a/include/linux/efs_fs.h
+@@ -41,7 +41,7 @@ extern const struct inode_operations efs
+ extern const struct file_operations efs_dir_operations;
+ extern const struct address_space_operations efs_symlink_aops;
+ 
+-extern void efs_read_inode(struct inode *);
++extern struct inode *efs_iget(struct super_block *, unsigned long);
+ extern efs_block_t efs_map_block(struct inode *, efs_block_t);
+ extern int efs_get_block(struct inode *, sector_t, struct buffer_head *, int);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-sunrpc-fix-rpc-debugging-checkpatch-fixes.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
-ide-arm-hack.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd-fixup.patch
-fix-build-breakage-if-sysfs-fix.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-git-unionfs.patch
-git-watchdog.patch
-watchdog-add-nano-7240-driver-checkpatch-fixes.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-x86-fix-config_smp-warning-in-processorc-fix.patch
-i386-and-x86_64-randomize-brk-fix.patch
-git-perfmon-fill-in-i386-syscall-table.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-remove-warnings-for-longstanding-conditions-checkpatch-fixes.patch
-sync_sb_inodes-propagate-errors.patch
 64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+add-an-err_cast-function-to-complement-err_ptr-and-co.patch
+convert-err_ptrptr_errp-instances-to-err_castp.patch
+iget-introduce-a-function-to-register-iget-failure.patch
+iget-use-iget_failed-in-afs.patch
+iget-use-iget_failed-in-gfs2.patch
+iget-stop-affs-from-using-iget-and-read_inode-try.patch
 iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+iget-stop-autofs-from-using-iget-and-read_inode.patch
+iget-stop-befs-from-using-iget-and-read_inode-try.patch
+iget-stop-bfs-from-using-iget-and-read_inode-try.patch
+iget-stop-cifs-from-using-iget-and-read_inode-try.patch
+iget-stop-efs-from-using-iget-and-read_inode-try.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try.patch
+iget-stop-ext4-from-using-iget-and-read_inode-try.patch
+iget-stop-fat-from-using-iget-and-read_inode-try.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode.patch
+iget-stop-fuse-from-using-iget-and-read_inode-try.patch
+iget-stop-hfsplus-from-using-iget-and-read_inode.patch
+iget-stop-isofs-from-using-read_inode.patch
+iget-stop-jffs2-from-using-iget-and-read_inode.patch
+iget-stop-jfs-from-using-iget-and-read_inode-try.patch
+iget-stop-the-minix-filesystem-from-using-iget-and.patch
+iget-stop-procfs-from-using-iget-and-read_inode.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
+iget-stop-romfs-from-using-iget-and-read_inode.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try.patch
+iget-stop-openpromfs-from-using-iget-and.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hppfs-from-using-iget-and-read_inode.patch
+iget-remove-iget-and-the-read_inode-super-op-as.patch
+mutex-subsystem-synchro-test-module.patch
