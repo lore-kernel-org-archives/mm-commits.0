@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + revert-ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch added to -mm tree
-Date: Sat, 27 Oct 2007 02:44:56 -0700
-Message-ID: <200710270944.l9R9iuAx007212@imap1.linux-foundation.org>
+Subject: + remove-always-true-tests-in-irq-handlers.patch added to -mm tree
+Date: Sat, 27 Oct 2007 10:02:22 -0700
+Message-ID: <200710271702.l9RH2Muw021910@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48741 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55137 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752259AbXJ0JpG (ORCPT
+	by vger.kernel.org with ESMTP id S1754835AbXJ0RD1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Oct 2007 05:45:06 -0400
+	Sat, 27 Oct 2007 13:03:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dushistov@mail.ru, satyam.sharma@gmail.com
+Cc: jeff@garzik.org, jgarzik@redhat.com, ralf@linux-mips.org, tony.luck@intel.com
 
 
 The patch titled
-     revert "ufs: Fix mount check in ufs_fill_super()"
+     Remove always-true tests in irq handlers
 has been added to the -mm tree.  Its filename is
-     revert-ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
+     remove-always-true-tests-in-irq-handlers.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,152 +26,157 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert "ufs: Fix mount check in ufs_fill_super()"
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Remove always-true tests in irq handlers
+From: Jeff Garzik <jeff@garzik.org>
 
-Evgeniy said:
+In these drivers, dev_id is always non-NULL.
 
-  I wonder on what type of UFS do you test this patch?  NetBSD and FreeBSD
-  do not use "fs_state", they use "fs_clean" flag, only Solaris does check
-  like this: fs_state + fs_time == FSOK.
-
-  That's why parentheses was like that.
-
-  At now with linux-2.6.24-rc1-git1, I get: fs need fsck, but NetBSD's fsck
-  says that's all ok.
-
-  I suggest revert this patch.
-
-Cc: Evgeniy Dushistov <dushistov@mail.ru>
-Cc: Satyam Sharma <satyam.sharma@gmail.com>
+Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Acked-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/super.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ arch/ia64/hp/sim/simeth.c                   |    5 -----
+ arch/mips/pmc-sierra/msp71xx/msp_hwbutton.c |    5 +----
+ drivers/net/cpmac.c                         |    3 ---
+ drivers/net/ucc_geth.c                      |    3 ---
+ drivers/net/wan/farsync.c                   |   11 +++--------
+ 5 files changed, 4 insertions(+), 23 deletions(-)
 
-diff -puN fs/ufs/super.c~revert-ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super fs/ufs/super.c
---- a/fs/ufs/super.c~revert-ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super
-+++ a/fs/ufs/super.c
-@@ -933,20 +933,19 @@ magic_found:
- 		goto again;
- 	}
+diff -puN arch/ia64/hp/sim/simeth.c~remove-always-true-tests-in-irq-handlers arch/ia64/hp/sim/simeth.c
+--- a/arch/ia64/hp/sim/simeth.c~remove-always-true-tests-in-irq-handlers
++++ a/arch/ia64/hp/sim/simeth.c
+@@ -497,11 +497,6 @@ simeth_interrupt(int irq, void *dev_id)
+ {
+ 	struct net_device *dev = dev_id;
  
--	/* Set sbi->s_flags here, used by ufs_get_fs_state() below */
--	sbi->s_flags = flags;
-+	sbi->s_flags = flags;/*after that line some functions use s_flags*/
- 	ufs_print_super_stuff(sb, usb1, usb2, usb3);
- 
+-	if ( dev == NULL ) {
+-		printk(KERN_WARNING "simeth: irq %d for unknown device\n", irq);
+-		return IRQ_NONE;
+-	}
+-
  	/*
- 	 * Check, if file system was correctly unmounted.
- 	 * If not, make it read only.
+ 	 * very simple loop because we get interrupts only when receiving
  	 */
--	if ((((flags & UFS_ST_MASK) == UFS_ST_44BSD)	||
--	     ((flags & UFS_ST_MASK) == UFS_ST_OLD)	||
--	     ((flags & UFS_ST_MASK) == UFS_ST_SUN)	||
--	     ((flags & UFS_ST_MASK) == UFS_ST_SUNOS)	||
--	     ((flags & UFS_ST_MASK) == UFS_ST_SUNx86))	&&
--	    (ufs_get_fs_state(sb, usb1, usb3) == (UFS_FSOK - fs32_to_cpu(sb, usb1->fs_time)))) {
-+	if (((flags & UFS_ST_MASK) == UFS_ST_44BSD) ||
-+	  ((flags & UFS_ST_MASK) == UFS_ST_OLD) ||
-+	  (((flags & UFS_ST_MASK) == UFS_ST_SUN ||
-+	    (flags & UFS_ST_MASK) == UFS_ST_SUNOS ||
-+	  (flags & UFS_ST_MASK) == UFS_ST_SUNx86) &&
-+	  (ufs_get_fs_state(sb, usb1, usb3) == (UFS_FSOK - fs32_to_cpu(sb, usb1->fs_time))))) {
- 		switch(usb1->fs_clean) {
- 		case UFS_FSCLEAN:
- 			UFSD("fs is clean\n");
+diff -puN arch/mips/pmc-sierra/msp71xx/msp_hwbutton.c~remove-always-true-tests-in-irq-handlers arch/mips/pmc-sierra/msp71xx/msp_hwbutton.c
+--- a/arch/mips/pmc-sierra/msp71xx/msp_hwbutton.c~remove-always-true-tests-in-irq-handlers
++++ a/arch/mips/pmc-sierra/msp71xx/msp_hwbutton.c
+@@ -126,9 +126,6 @@ static irqreturn_t hwbutton_handler(int 
+ 	struct hwbutton_interrupt *hirq = data;
+ 	unsigned long cic_ext = *CIC_EXT_CFG_REG;
+ 
+-	if (irq != hirq->irq)
+-		return IRQ_NONE;
+-
+ 	if (CIC_EXT_IS_ACTIVE_HI(cic_ext, hirq->eirq)) {
+ 		/* Interrupt: pin is now HI */
+ 		CIC_EXT_SET_ACTIVE_LO(cic_ext, hirq->eirq);
+@@ -164,7 +161,7 @@ static int msp_hwbutton_register(struct 
+ 	*CIC_EXT_CFG_REG = cic_ext;
+ 
+ 	return request_irq(hirq->irq, hwbutton_handler, IRQF_DISABLED,
+-				hirq->name, (void *)hirq);
++			   hirq->name, hirq);
+ }
+ 
+ static int __init msp_hwbutton_setup(void)
+diff -puN drivers/net/cpmac.c~remove-always-true-tests-in-irq-handlers drivers/net/cpmac.c
+--- a/drivers/net/cpmac.c~remove-always-true-tests-in-irq-handlers
++++ a/drivers/net/cpmac.c
+@@ -661,9 +661,6 @@ static irqreturn_t cpmac_irq(int irq, vo
+ 	int queue;
+ 	u32 status;
+ 
+-	if (!dev)
+-		return IRQ_NONE;
+-
+ 	priv = netdev_priv(dev);
+ 
+ 	status = cpmac_read(priv->regs, CPMAC_MAC_INT_VECTOR);
+diff -puN drivers/net/ucc_geth.c~remove-always-true-tests-in-irq-handlers drivers/net/ucc_geth.c
+--- a/drivers/net/ucc_geth.c~remove-always-true-tests-in-irq-handlers
++++ a/drivers/net/ucc_geth.c
+@@ -3619,9 +3619,6 @@ static irqreturn_t ucc_geth_irq_handler(
+ 
+ 	ugeth_vdbg("%s: IN", __FUNCTION__);
+ 
+-	if (!ugeth)
+-		return IRQ_NONE;
+-
+ 	uccf = ugeth->uccf;
+ 	ug_info = ugeth->ug_info;
+ 
+diff -puN drivers/net/wan/farsync.c~remove-always-true-tests-in-irq-handlers drivers/net/wan/farsync.c
+--- a/drivers/net/wan/farsync.c~remove-always-true-tests-in-irq-handlers
++++ a/drivers/net/wan/farsync.c
+@@ -1498,9 +1498,9 @@ do_bottom_half_rx(struct fst_card_info *
+  *      Dev_id is our fst_card_info pointer
+  */
+ static irqreturn_t
+-fst_intr(int irq, void *dev_id)
++fst_intr(int dummy, void *dev_id)
+ {
+-	struct fst_card_info *card;
++	struct fst_card_info *card = dev_id;
+ 	struct fst_port_info *port;
+ 	int rdidx;		/* Event buffer indices */
+ 	int wridx;
+@@ -1509,17 +1509,12 @@ fst_intr(int irq, void *dev_id)
+ 	unsigned int do_card_interrupt;
+ 	unsigned int int_retry_count;
+ 
+-	if ((card = dev_id) == NULL) {
+-		dbg(DBG_INTR, "intr: spurious %d\n", irq);
+-		return IRQ_NONE;
+-	}
+-
+ 	/*
+ 	 * Check to see if the interrupt was for this card
+ 	 * return if not
+ 	 * Note that the call to clear the interrupt is important
+ 	 */
+-	dbg(DBG_INTR, "intr: %d %p\n", irq, card);
++	dbg(DBG_INTR, "intr: %d %p\n", card->irq, card);
+ 	if (card->state != FST_RUNNING) {
+ 		printk_err
+ 		    ("Interrupt received for card %d in a non running state (%d)\n",
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jeff@garzik.org are
 
 origin.patch
-sunrpc-fix-rpc-debugging-checkpatch-fixes.patch
-revert-ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-git-kvm.patch
+remove-bogus-default-y-for-dmar-and-net_dma.patch
+acpi-sbs-fix-retval-warning.patch
+git-jg-misc.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
-libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
-ide-arm-hack.patch
+ide-add-helper-__ide_setup_pci_device.patch
+drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop.patch
 drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
+git-netdev-all.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
 ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd-fixup.patch
-fix-build-breakage-if-sysfs-fix.patch
+hptiop-fix-type-mismatch-warning.patch
+ips-remove-ips_ha-members-that-duplicate-struct-pci_dev-members.patch
+ips-trim-trailing-whitespace.patch
 ips-trim-trailing-whitespace-checkpatch-fixes.patch
-git-unionfs.patch
-git-watchdog.patch
-watchdog-add-nano-7240-driver-checkpatch-fixes.patch
+ips-pci-api-cleanups.patch
+ips-handle-scsi_add_host-failure-and-other-err-cleanups.patch
 git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+x86-fix-config_smp-warning-in-processorc.patch
 x86-fix-config_smp-warning-in-processorc-fix.patch
-i386-and-x86_64-randomize-brk-fix.patch
-git-perfmon-fill-in-i386-syscall-table.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places.patch
 fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness.patch
 riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
 sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+sound-oss-sb_commonc-fix-casting-warning.patch
+remove-warnings-for-longstanding-conditions.patch
 remove-warnings-for-longstanding-conditions-fix.patch
 remove-warnings-for-longstanding-conditions-checkpatch-fixes.patch
-sync_sb_inodes-propagate-errors.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+remove-pointless-casts-from-void-pointers.patch
+remove-always-true-tests-in-irq-handlers.patch
