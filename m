@@ -1,74 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - fuse-fuse_file_alloc-fix-null-dereferences.patch removed from -mm tree
-Date: Sat, 27 Oct 2007 00:30:18 -0700
-Message-ID: <200710270730.l9R7UKB8002828@imap1.linux-foundation.org>
+Subject: + add-an-err_cast-function-to-complement-err_ptr-and-co.patch added to -mm tree
+Date: Sat, 27 Oct 2007 00:43:13 -0700
+Message-ID: <200710270743.l9R7hDdf003239@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43157 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42653 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751241AbXJ0Haq (ORCPT
+	by vger.kernel.org with ESMTP id S1751241AbXJ0Hn2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Oct 2007 03:30:46 -0400
+	Sat, 27 Oct 2007 03:43:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mszeredi@suse.cz, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dhowells@redhat.com
 
 
 The patch titled
-     fuse: fuse_file_alloc(): fix NULL dereferences
-has been removed from the -mm tree.  Its filename was
-     fuse-fuse_file_alloc-fix-null-dereferences.patch
+     Add an ERR_CAST() function to complement ERR_PTR and co.
+has been added to the -mm tree.  Its filename is
+     add-an-err_cast-function-to-complement-err_ptr-and-co.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: fuse: fuse_file_alloc(): fix NULL dereferences
-From: Adrian Bunk <bunk@kernel.org>
+Subject: Add an ERR_CAST() function to complement ERR_PTR and co.
+From: David Howells <dhowells@redhat.com>
 
-This patch fixes obvious NULL dereferences spotted by the Coverity
-checker.
+Add an ERR_CAST() function to complement ERR_PTR and co.  for the purposes
+of casting an error entyped as one pointer type to an error of another
+pointer type whilst making it explicit as to what is going on.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+This provides a replacement for the ERR_PTR(PTR_ERR(p)) construct.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/file.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/err.h |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN fs/fuse/file.c~fuse-fuse_file_alloc-fix-null-dereferences fs/fuse/file.c
---- a/fs/fuse/file.c~fuse-fuse_file_alloc-fix-null-dereferences
-+++ a/fs/fuse/file.c
-@@ -55,9 +55,10 @@ struct fuse_file *fuse_file_alloc(void)
- 		if (!ff->reserved_req) {
- 			kfree(ff);
- 			ff = NULL;
-+		} else {
-+			INIT_LIST_HEAD(&ff->write_entry);
-+			atomic_set(&ff->count, 0);
- 		}
--		INIT_LIST_HEAD(&ff->write_entry);
--		atomic_set(&ff->count, 0);
- 	}
- 	return ff;
+diff -puN include/linux/err.h~add-an-err_cast-function-to-complement-err_ptr-and-co include/linux/err.h
+--- a/include/linux/err.h~add-an-err_cast-function-to-complement-err_ptr-and-co
++++ a/include/linux/err.h
+@@ -34,6 +34,19 @@ static inline long IS_ERR(const void *pt
+ 	return IS_ERR_VALUE((unsigned long)ptr);
  }
+ 
++/**
++ * ERR_CAST - Explicitly cast an error-valued pointer to another pointer type
++ * @ptr: The pointer to cast.
++ *
++ * Explicitly cast an error-valued pointer to another pointer type in such a
++ * way as to make it clear that's what's going on.
++ */
++static inline void *ERR_CAST(const void *ptr)
++{
++	/* cast away the const */
++	return (void *) ptr;
++}
++
+ #endif
+ 
+ #endif /* _LINUX_ERR_H */
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-ipmi-fix-comparison-in-demangle_device_id.patch
-git-acpi.patch
-git-dvb.patch
-git-hwmon.patch
-git-nfs-make-nfs_wb_page_priority-static.patch
-git-ocfs2.patch
-git-sh64.patch
-sunrpc-xprtrdma-transportc-fix-use-after-free.patch
-fix-mm-utilckrealloc.patch
-fuse_file_alloc-fix-null-dereferences.patch
-fuse-fuse_file_alloc-fix-null-dereferences.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-reiser4.patch
+64-bit-i_version-afs-fixes.patch
+add-an-err_cast-function-to-complement-err_ptr-and-co.patch
+convert-err_ptrptr_errp-instances-to-err_castp.patch
+iget-introduce-a-function-to-register-iget-failure.patch
+iget-use-iget_failed-in-afs.patch
+iget-use-iget_failed-in-gfs2.patch
+iget-stop-affs-from-using-iget-and-read_inode-try.patch
+iget-stop-autofs-from-using-iget-and-read_inode.patch
+iget-stop-befs-from-using-iget-and-read_inode-try.patch
+iget-stop-bfs-from-using-iget-and-read_inode-try.patch
+iget-stop-cifs-from-using-iget-and-read_inode-try.patch
+iget-stop-efs-from-using-iget-and-read_inode-try.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try.patch
+iget-stop-ext4-from-using-iget-and-read_inode-try.patch
+iget-stop-fat-from-using-iget-and-read_inode-try.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode.patch
+iget-stop-fuse-from-using-iget-and-read_inode-try.patch
+iget-stop-hfsplus-from-using-iget-and-read_inode.patch
+iget-stop-isofs-from-using-read_inode.patch
+iget-stop-jffs2-from-using-iget-and-read_inode.patch
+iget-stop-jfs-from-using-iget-and-read_inode-try.patch
+iget-stop-the-minix-filesystem-from-using-iget-and.patch
+iget-stop-procfs-from-using-iget-and-read_inode.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
+iget-stop-romfs-from-using-iget-and-read_inode.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try.patch
+iget-stop-openpromfs-from-using-iget-and.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hppfs-from-using-iget-and-read_inode.patch
+iget-remove-iget-and-the-read_inode-super-op-as.patch
+mutex-subsystem-synchro-test-module.patch
