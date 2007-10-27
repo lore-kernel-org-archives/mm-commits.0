@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + iget-stop-hfsplus-from-using-iget-and-read_inode.patch added to -mm tree
-Date: Sat, 27 Oct 2007 00:46:37 -0700
-Message-ID: <200710270746.l9R7kbD0003382@imap1.linux-foundation.org>
+Subject: + iget-stop-jffs2-from-using-iget-and-read_inode.patch added to -mm tree
+Date: Sat, 27 Oct 2007 00:46:42 -0700
+Message-ID: <200710270746.l9R7kgDs003389@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42770 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46246 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751926AbXJ0Hq7 (ORCPT
+	by vger.kernel.org with ESMTP id S1751976AbXJ0HrD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Oct 2007 03:46:59 -0400
+	Sat, 27 Oct 2007 03:47:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, zippel@linux-m68k.org
+Cc: dhowells@redhat.com, dwmw2@infradead.org
 
 
 The patch titled
-     iget: stop HFSPLUS from using iget() and read_inode()
+     iget: stop JFFS2 from using iget() and read_inode()
 has been added to the -mm tree.  Its filename is
-     iget-stop-hfsplus-from-using-iget-and-read_inode.patch
+     iget-stop-jffs2-from-using-iget-and-read_inode.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,95 +26,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: iget: stop HFSPLUS from using iget() and read_inode()
+Subject: iget: stop JFFS2 from using iget() and read_inode()
 From: David Howells <dhowells@redhat.com>
 
-Stop the HFSPLUS filesystem from using iget() and read_inode().  Replace
-hfsplus_read_inode() with hfsplus_iget(), and call that instead of iget(). 
-hfsplus_iget() then uses iget_locked() directly and returns a proper error
-code instead of an inode in the event of an error.
+Stop the JFFS2 filesystem from using iget() and read_inode().  Replace
+jffs2_read_inode() with jffs2_iget(), and call that instead of iget(). 
+jffs2_iget() then uses iget_locked() directly and returns a proper error code
+instead of an inode in the event of an error.
 
-hfsplus_fill_super() returns any error incurred when getting the root inode.
+jffs2_do_fill_super() returns any error incurred when getting the root inode
+instead of EINVAL.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/btree.c      |    6 +++-
- fs/hfsplus/dir.c        |    6 ++--
- fs/hfsplus/hfsplus_fs.h |    3 ++
- fs/hfsplus/super.c      |   49 ++++++++++++++++++++++++++------------
- 4 files changed, 44 insertions(+), 20 deletions(-)
+ fs/jffs2/dir.c      |    6 ++--
+ fs/jffs2/fs.c       |   56 ++++++++++++++++++++++++++----------------
+ fs/jffs2/os-linux.h |    2 -
+ fs/jffs2/super.c    |    1 
+ 4 files changed, 39 insertions(+), 26 deletions(-)
 
-diff -puN fs/hfsplus/btree.c~iget-stop-hfsplus-from-using-iget-and-read_inode fs/hfsplus/btree.c
---- a/fs/hfsplus/btree.c~iget-stop-hfsplus-from-using-iget-and-read_inode
-+++ a/fs/hfsplus/btree.c
-@@ -22,6 +22,7 @@ struct hfs_btree *hfs_btree_open(struct 
- 	struct hfs_btree *tree;
- 	struct hfs_btree_header_rec *head;
- 	struct address_space *mapping;
-+	struct inode *inode;
- 	struct page *page;
- 	unsigned int size;
- 
-@@ -33,9 +34,10 @@ struct hfs_btree *hfs_btree_open(struct 
- 	spin_lock_init(&tree->hash_lock);
- 	tree->sb = sb;
- 	tree->cnid = id;
--	tree->inode = iget(sb, id);
--	if (!tree->inode)
-+	inode = hfsplus_iget(sb, id);
-+	if (IS_ERR(inode))
- 		goto free_tree;
-+	tree->inode = inode;
- 
- 	mapping = tree->inode->i_mapping;
- 	page = read_mapping_page(mapping, 0, NULL);
-diff -puN fs/hfsplus/dir.c~iget-stop-hfsplus-from-using-iget-and-read_inode fs/hfsplus/dir.c
---- a/fs/hfsplus/dir.c~iget-stop-hfsplus-from-using-iget-and-read_inode
-+++ a/fs/hfsplus/dir.c
-@@ -97,9 +97,9 @@ again:
- 		goto fail;
+diff -puN fs/jffs2/dir.c~iget-stop-jffs2-from-using-iget-and-read_inode fs/jffs2/dir.c
+--- a/fs/jffs2/dir.c~iget-stop-jffs2-from-using-iget-and-read_inode
++++ a/fs/jffs2/dir.c
+@@ -100,10 +100,10 @@ static struct dentry *jffs2_lookup(struc
+ 		ino = fd->ino;
+ 	up(&dir_f->sem);
+ 	if (ino) {
+-		inode = iget(dir_i->i_sb, ino);
+-		if (!inode) {
++		inode = jffs2_iget(dir_i->i_sb, ino);
++		if (IS_ERR(inode)) {
+ 			printk(KERN_WARNING "iget() failed for ino #%u\n", ino);
+-			return (ERR_PTR(-EIO));
++			return ERR_CAST(inode);
+ 		}
  	}
- 	hfs_find_exit(&fd);
--	inode = iget(dir->i_sb, cnid);
--	if (!inode)
--		return ERR_PTR(-EACCES);
-+	inode = hfsplus_iget(dir->i_sb, cnid);
-+	if (IS_ERR(inode))
-+		return ERR_CAST(inode);
- 	if (S_ISREG(inode->i_mode))
- 		HFSPLUS_I(inode).dev = linkid;
- out:
-diff -puN fs/hfsplus/hfsplus_fs.h~iget-stop-hfsplus-from-using-iget-and-read_inode fs/hfsplus/hfsplus_fs.h
---- a/fs/hfsplus/hfsplus_fs.h~iget-stop-hfsplus-from-using-iget-and-read_inode
-+++ a/fs/hfsplus/hfsplus_fs.h
-@@ -345,6 +345,9 @@ int hfsplus_parse_options(char *, struct
- void hfsplus_fill_defaults(struct hfsplus_sb_info *);
- int hfsplus_show_options(struct seq_file *, struct vfsmount *);
  
-+/* super.c */
-+struct inode *hfsplus_iget(struct super_block *, unsigned long);
-+
- /* tables.c */
- extern u16 hfsplus_case_fold_table[];
- extern u16 hfsplus_decompose_table[];
-diff -puN fs/hfsplus/super.c~iget-stop-hfsplus-from-using-iget-and-read_inode fs/hfsplus/super.c
---- a/fs/hfsplus/super.c~iget-stop-hfsplus-from-using-iget-and-read_inode
-+++ a/fs/hfsplus/super.c
-@@ -20,11 +20,18 @@ static void hfsplus_destroy_inode(struct
+diff -puN fs/jffs2/fs.c~iget-stop-jffs2-from-using-iget-and-read_inode fs/jffs2/fs.c
+--- a/fs/jffs2/fs.c~iget-stop-jffs2-from-using-iget-and-read_inode
++++ a/fs/jffs2/fs.c
+@@ -230,16 +230,23 @@ void jffs2_clear_inode (struct inode *in
+ 	jffs2_do_clear_inode(c, f);
+ }
  
- #include "hfsplus_fs.h"
- 
--static void hfsplus_read_inode(struct inode *inode)
-+struct inode *hfsplus_iget(struct super_block *sb, unsigned long ino)
+-void jffs2_read_inode (struct inode *inode)
++struct inode *jffs2_iget(struct super_block *sb, unsigned long ino)
  {
- 	struct hfs_find_data fd;
- 	struct hfsplus_vh *vhdr;
--	int err;
+ 	struct jffs2_inode_info *f;
+ 	struct jffs2_sb_info *c;
+ 	struct jffs2_raw_inode latest_node;
+ 	union jffs2_device_node jdev;
 +	struct inode *inode;
-+	long err = -EIO;
+ 	dev_t rdev = 0;
+ 	int ret;
+ 
+-	D1(printk(KERN_DEBUG "jffs2_read_inode(): inode->i_ino == %lu\n", inode->i_ino));
++	D1(printk(KERN_DEBUG "jffs2_iget(): ino == %lu\n", ino));
 +
 +	inode = iget_locked(sb, ino);
 +	if (!inode)
@@ -122,97 +92,127 @@ diff -puN fs/hfsplus/super.c~iget-stop-hfsplus-from-using-iget-and-read_inode fs
 +	if (!(inode->i_state & I_NEW))
 +		return inode;
  
- 	INIT_LIST_HEAD(&HFSPLUS_I(inode).open_dir_list);
- 	init_MUTEX(&HFSPLUS_I(inode).extents_lock);
-@@ -41,7 +48,7 @@ static void hfsplus_read_inode(struct in
- 		hfs_find_exit(&fd);
- 		if (err)
- 			goto bad_inode;
--		return;
-+		goto done;
- 	}
- 	vhdr = HFSPLUS_SB(inode->i_sb).s_vhdr;
- 	switch(inode->i_ino) {
-@@ -70,10 +77,13 @@ static void hfsplus_read_inode(struct in
- 		goto bad_inode;
- 	}
+ 	f = JFFS2_INODE_INFO(inode);
+ 	c = JFFS2_SB_INFO(inode->i_sb);
+@@ -250,9 +257,9 @@ void jffs2_read_inode (struct inode *ino
+ 	ret = jffs2_do_read_inode(c, f, inode->i_ino, &latest_node);
  
--	return;
--
-- bad_inode:
--	make_bad_inode(inode);
-+done:
+ 	if (ret) {
+-		make_bad_inode(inode);
+ 		up(&f->sem);
+-		return;
++		iget_failed(inode);
++		return ERR_PTR(ret);
+ 	}
+ 	inode->i_mode = jemode_to_cpu(latest_node.mode);
+ 	inode->i_uid = je16_to_cpu(latest_node.uid);
+@@ -303,19 +310,14 @@ void jffs2_read_inode (struct inode *ino
+ 		if (f->metadata->size != sizeof(jdev.old) &&
+ 		    f->metadata->size != sizeof(jdev.new)) {
+ 			printk(KERN_NOTICE "Device node has strange size %d\n", f->metadata->size);
+-			up(&f->sem);
+-			jffs2_do_clear_inode(c, f);
+-			make_bad_inode(inode);
+-			return;
++			goto error_io;
+ 		}
+ 		D1(printk(KERN_DEBUG "Reading device numbers from flash\n"));
+-		if (jffs2_read_dnode(c, f, f->metadata, (char *)&jdev, 0, f->metadata->size) < 0) {
++		ret = jffs2_read_dnode(c, f, f->metadata, (char *)&jdev, 0, f->metadata->size);
++		if (ret < 0) {
+ 			/* Eep */
+ 			printk(KERN_NOTICE "Read device numbers for inode %lu failed\n", (unsigned long)inode->i_ino);
+-			up(&f->sem);
+-			jffs2_do_clear_inode(c, f);
+-			make_bad_inode(inode);
+-			return;
++			goto error;
+ 		}
+ 		if (f->metadata->size == sizeof(jdev.old))
+ 			rdev = old_decode_dev(je16_to_cpu(jdev.old));
+@@ -335,6 +337,16 @@ void jffs2_read_inode (struct inode *ino
+ 	up(&f->sem);
+ 
+ 	D1(printk(KERN_DEBUG "jffs2_read_inode() returning\n"));
 +	unlock_new_inode(inode);
 +	return inode;
 +
-+bad_inode:
++error_io:
++	ret = -EIO;
++error:
++	up(&f->sem);
++	jffs2_do_clear_inode(c, f);
 +	iget_failed(inode);
-+	return ERR_PTR(err);
++	return ERR_PTR(ret);
  }
  
- static int hfsplus_write_inode(struct inode *inode, int unused)
-@@ -262,7 +272,6 @@ static int hfsplus_remount(struct super_
- static const struct super_operations hfsplus_sops = {
- 	.alloc_inode	= hfsplus_alloc_inode,
- 	.destroy_inode	= hfsplus_destroy_inode,
--	.read_inode	= hfsplus_read_inode,
- 	.write_inode	= hfsplus_write_inode,
- 	.clear_inode	= hfsplus_clear_inode,
- 	.put_super	= hfsplus_put_super,
-@@ -278,7 +287,7 @@ static int hfsplus_fill_super(struct sup
- 	struct hfsplus_sb_info *sbi;
- 	hfsplus_cat_entry entry;
- 	struct hfs_find_data fd;
--	struct inode *root;
-+	struct inode *root, *inode;
- 	struct qstr str;
- 	struct nls_table *nls = NULL;
- 	int err = -EINVAL;
-@@ -366,18 +375,25 @@ static int hfsplus_fill_super(struct sup
- 		goto cleanup;
+ void jffs2_dirty_inode(struct inode *inode)
+@@ -522,15 +534,16 @@ int jffs2_do_fill_super(struct super_blo
+ 	if ((ret = jffs2_do_mount_fs(c)))
+ 		goto out_inohash;
+ 
+-	ret = -EINVAL;
+-
+ 	D1(printk(KERN_DEBUG "jffs2_do_fill_super(): Getting root inode\n"));
+-	root_i = iget(sb, 1);
+-	if (is_bad_inode(root_i)) {
++	root_i = jffs2_iget(sb, 1);
++	if (IS_ERR(root_i)) {
+ 		D1(printk(KERN_WARNING "get root inode failed\n"));
+-		goto out_root_i;
++		ret = PTR_ERR(root_i);
++		goto out_root;
  	}
  
--	HFSPLUS_SB(sb).alloc_file = iget(sb, HFSPLUS_ALLOC_CNID);
--	if (!HFSPLUS_SB(sb).alloc_file) {
-+	inode = hfsplus_iget(sb, HFSPLUS_ALLOC_CNID);
-+	if (IS_ERR(inode)) {
- 		printk(KERN_ERR "hfs: failed to load allocation file\n");
-+		err = PTR_ERR(inode);
- 		goto cleanup;
- 	}
-+	HFSPLUS_SB(sb).alloc_file = inode;
++	ret = -ENOMEM;
++
+ 	D1(printk(KERN_DEBUG "jffs2_do_fill_super(): d_alloc_root()\n"));
+ 	sb->s_root = d_alloc_root(root_i);
+ 	if (!sb->s_root)
+@@ -546,6 +559,7 @@ int jffs2_do_fill_super(struct super_blo
  
- 	/* Load the root directory */
--	root = iget(sb, HFSPLUS_ROOT_CNID);
-+	root = hfsplus_iget(sb, HFSPLUS_ROOT_CNID);
-+	if (IS_ERR(root)) {
-+		printk(KERN_ERR "hfs: failed to load root directory\n");
-+		err = PTR_ERR(root);
-+		goto cleanup;
-+	}
- 	sb->s_root = d_alloc_root(root);
- 	if (!sb->s_root) {
--		printk(KERN_ERR "hfs: failed to load root directory\n");
- 		iput(root);
-+		err = -ENOMEM;
- 		goto cleanup;
+  out_root_i:
+ 	iput(root_i);
++out_root:
+ 	jffs2_free_ino_caches(c);
+ 	jffs2_free_raw_node_refs(c);
+ 	if (jffs2_blocks_use_vmalloc(c))
+@@ -615,9 +629,9 @@ struct jffs2_inode_info *jffs2_gc_fetch_
+ 		   jffs2_do_unlink() would need the alloc_sem and we have it.
+ 		   Just iget() it, and if read_inode() is necessary that's OK.
+ 		*/
+-		inode = iget(OFNI_BS_2SFFJ(c), inum);
+-		if (!inode)
+-			return ERR_PTR(-ENOMEM);
++		inode = jffs2_iget(OFNI_BS_2SFFJ(c), inum);
++		if (IS_ERR(inode))
++			return ERR_CAST(inode);
  	}
- 	sb->s_root->d_op = &hfsplus_dentry_operations;
-@@ -390,9 +406,12 @@ static int hfsplus_fill_super(struct sup
- 		hfs_find_exit(&fd);
- 		if (entry.type != cpu_to_be16(HFSPLUS_FOLDER))
- 			goto cleanup;
--		HFSPLUS_SB(sb).hidden_dir = iget(sb, be32_to_cpu(entry.folder.id));
--		if (!HFSPLUS_SB(sb).hidden_dir)
-+		inode = hfsplus_iget(sb, be32_to_cpu(entry.folder.id));
-+		if (IS_ERR(inode)) {
-+			err = PTR_ERR(inode);
- 			goto cleanup;
-+		}
-+		HFSPLUS_SB(sb).hidden_dir = inode;
- 	} else
- 		hfs_find_exit(&fd);
- 
+ 	if (is_bad_inode(inode)) {
+ 		printk(KERN_NOTICE "Eep. read_inode() failed for ino #%u. nlink %d\n",
+diff -puN fs/jffs2/os-linux.h~iget-stop-jffs2-from-using-iget-and-read_inode fs/jffs2/os-linux.h
+--- a/fs/jffs2/os-linux.h~iget-stop-jffs2-from-using-iget-and-read_inode
++++ a/fs/jffs2/os-linux.h
+@@ -172,7 +172,7 @@ extern const struct inode_operations jff
+ /* fs.c */
+ int jffs2_setattr (struct dentry *, struct iattr *);
+ int jffs2_do_setattr (struct inode *, struct iattr *);
+-void jffs2_read_inode (struct inode *);
++struct inode *jffs2_iget(struct super_block *, unsigned long);
+ void jffs2_clear_inode (struct inode *);
+ void jffs2_dirty_inode(struct inode *inode);
+ struct inode *jffs2_new_inode (struct inode *dir_i, int mode,
+diff -puN fs/jffs2/super.c~iget-stop-jffs2-from-using-iget-and-read_inode fs/jffs2/super.c
+--- a/fs/jffs2/super.c~iget-stop-jffs2-from-using-iget-and-read_inode
++++ a/fs/jffs2/super.c
+@@ -65,7 +65,6 @@ static const struct super_operations jff
+ {
+ 	.alloc_inode =	jffs2_alloc_inode,
+ 	.destroy_inode =jffs2_destroy_inode,
+-	.read_inode =	jffs2_read_inode,
+ 	.put_super =	jffs2_put_super,
+ 	.write_super =	jffs2_write_super,
+ 	.statfs =	jffs2_statfs,
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
