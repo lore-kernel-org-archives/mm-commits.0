@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch added to -mm tree
-Date: Sat, 27 Oct 2007 00:48:47 -0700
-Message-ID: <200710270748.l9R7mlv5003497@imap1.linux-foundation.org>
+Subject: + iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch added to -mm tree
+Date: Sat, 27 Oct 2007 00:50:12 -0700
+Message-ID: <200710270750.l9R7oCH4003559@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33403 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55215 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751398AbXJ0HtB (ORCPT
+	by vger.kernel.org with ESMTP id S1751241AbXJ0Hu2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Oct 2007 03:49:01 -0400
+	Sat, 27 Oct 2007 03:50:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dhowells@redhat.com, ebiederm@xmission.com
+Cc: akpm@linux-foundation.org, al@alarsen.net, dhowells@redhat.com
 
 
 The patch titled
-     iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes
+     iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+     iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,52 +26,87 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes
+Subject: iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#88: FILE: fs/proc/inode.c:427:
-+							&proc_reg_file_ops_no_compat;
+ERROR: use tabs not spaces
+#54: FILE: fs/qnx4/inode.c:398:
++ ^Iroot = qnx4_iget(s, QNX4_ROOT_INO * QNX4_INODES_PER_BLOCK);$
+
+ERROR: use tabs not spaces
+#55: FILE: fs/qnx4/inode.c:399:
++ ^Iif (IS_ERR(root)) {$
 
 WARNING: line over 80 characters
-#92: FILE: fs/proc/inode.c:430:
-+						inode->i_fop = &proc_reg_file_ops;
+#103: FILE: fs/qnx4/inode.c:485:
++		printk("qnx4: bad inode number on dev %s: %lu is out of range\n",
 
-ERROR: else should follow close brace '}'
-#94: FILE: fs/proc/inode.c:432:
-+				}
-+				else
+WARNING: printk() should include KERN_ facility level
+#103: FILE: fs/qnx4/inode.c:485:
++		printk("qnx4: bad inode number on dev %s: %lu is out of range\n",
 
-total: 1 errors, 2 warnings, 85 lines checked
+WARNING: printk() should include KERN_ facility level
+#127: FILE: fs/qnx4/inode.c:528:
++		printk("qnx4: bad inode %lu on dev %s\n",ino,sb->s_id);
+
+ERROR: need space after that ',' (ctx:VxV)
+#127: FILE: fs/qnx4/inode.c:528:
++		printk("qnx4: bad inode %lu on dev %s\n",ino,sb->s_id);
+ 		                                        ^
+
+ERROR: need space after that ',' (ctx:VxV)
+#127: FILE: fs/qnx4/inode.c:528:
++		printk("qnx4: bad inode %lu on dev %s\n",ino,sb->s_id);
+ 		                                            ^
+
+total: 4 errors, 3 warnings, 129 lines checked
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Anders Larsen <al@alarsen.net>
 Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/qnx4/inode.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/inode.c~iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes fs/proc/inode.c
---- a/fs/proc/inode.c~iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes
-+++ a/fs/proc/inode.c
-@@ -428,9 +428,9 @@ struct inode *proc_get_inode(struct supe
- 					else
- #endif
- 						inode->i_fop = &proc_reg_file_ops;
--				}
--				else
-+				} else {
- 					inode->i_fop = de->proc_fops;
-+				}
- 			}
- 		}
- 		unlock_new_inode(inode);
+diff -puN fs/qnx4/inode.c~iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes fs/qnx4/inode.c
+--- a/fs/qnx4/inode.c~iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes
++++ a/fs/qnx4/inode.c
+@@ -395,8 +395,8 @@ static int qnx4_fill_super(struct super_
+ 	}
+ 
+  	/* does root not have inode number QNX4_ROOT_INO ?? */
+- 	root = qnx4_iget(s, QNX4_ROOT_INO * QNX4_INODES_PER_BLOCK);
+- 	if (IS_ERR(root)) {
++	root = qnx4_iget(s, QNX4_ROOT_INO * QNX4_INODES_PER_BLOCK);
++	if (IS_ERR(root)) {
+  		printk("qnx4: get inode failed\n");
+ 		ret = PTR_ERR(root);
+  		goto out;
+@@ -482,7 +482,8 @@ struct inode *qnx4_iget(struct super_blo
+ 
+ 	QNX4DEBUG(("Reading inode : [%d]\n", ino));
+ 	if (!ino) {
+-		printk("qnx4: bad inode number on dev %s: %lu is out of range\n",
++		printk(KERN_ERR "qnx4: bad inode number on dev %s: %lu is "
++				"out of range\n",
+ 		       sb->s_id, ino);
+ 		iget_failed(inode);
+ 		return ERR_PTR(-EIO);
+@@ -525,7 +526,7 @@ struct inode *qnx4_iget(struct super_blo
+ 		inode->i_mapping->a_ops = &qnx4_aops;
+ 		qnx4_i(inode)->mmu_private = inode->i_size;
+ 	} else {
+-		printk("qnx4: bad inode %lu on dev %s\n",ino,sb->s_id);
++		printk("qnx4: bad inode %lu on dev %s\n", ino, sb->s_id);
+ 		iget_failed(inode);
+ 		brelse(bh);
+ 		return ERR_PTR(-EIO);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -148,6 +183,7 @@ iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
 iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
 iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
 page-owner-tracking-leak-detector.patch
