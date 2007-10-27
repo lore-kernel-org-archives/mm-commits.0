@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + iget-stop-openpromfs-from-using-iget-and.patch added to -mm tree
-Date: Sat, 27 Oct 2007 00:52:07 -0700
-Message-ID: <200710270752.l9R7q7is003612@imap1.linux-foundation.org>
+Subject: + iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch added to -mm tree
+Date: Sat, 27 Oct 2007 00:52:05 -0700
+Message-ID: <200710270752.l9R7q5gv003609@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57912 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52084 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752586AbXJ0HwV (ORCPT
+	by vger.kernel.org with ESMTP id S1752895AbXJ0HwY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 27 Oct 2007 03:52:21 -0400
+	Sat, 27 Oct 2007 03:52:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, davem@davemloft.net
+Cc: akpm@linux-foundation.org, dhowells@redhat.com, dushistov@mail.ru
 
 
 The patch titled
-     iget: stop OPENPROMFS from using iget() and read_inode()
+     iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     iget-stop-openpromfs-from-using-iget-and.patch
+     iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,176 +26,136 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: iget: stop OPENPROMFS from using iget() and read_inode()
-From: David Howells <dhowells@redhat.com>
+Subject: iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Stop the OPENPROMFS filesystem from using iget() and read_inode().  Replace
-openpromfs_read_inode() with openpromfs_iget(), and call that instead of
-iget().  openpromfs_iget() then uses iget_locked() directly and returns a
-proper error code instead of an inode in the event of an error.
+WARNING: no space between function name and open parenthesis '('
+#30: FILE: fs/ufs/inode.c:717:
++struct inode *ufs_iget (struct super_block *sb, unsigned long ino)
 
-openpromfs_fill_super() returns any error incurred when getting the root inode
-instead of ENOMEM (not that it currently incurs any other error).
+ERROR: "foo * bar" should be "foo *bar"
+#36: FILE: fs/ufs/inode.c:720:
++	struct ufs_sb_private_info * uspi = UFS_SB(sb)->s_uspi;
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+total: 1 errors, 1 warnings, 118 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: David Howells <dhowells@redhat.com>
+Cc: Evgeniy Dushistov <dushistov@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/openpromfs/inode.c |   45 ++++++++++++++++++++++++++--------------
- 1 file changed, 30 insertions(+), 15 deletions(-)
+ fs/ufs/inode.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/openpromfs/inode.c~iget-stop-openpromfs-from-using-iget-and fs/openpromfs/inode.c
---- a/fs/openpromfs/inode.c~iget-stop-openpromfs-from-using-iget-and
-+++ a/fs/openpromfs/inode.c
-@@ -38,6 +38,8 @@ struct op_inode_info {
- 	union op_inode_data	u;
- };
- 
-+static struct inode *openprom_iget(struct super_block *sb, ino_t ino);
-+
- static inline struct op_inode_info *OP_I(struct inode *inode)
- {
- 	return container_of(inode, struct op_inode_info, vfs_inode);
-@@ -226,10 +228,10 @@ static struct dentry *openpromfs_lookup(
- 	return ERR_PTR(-ENOENT);
- 
- found:
--	inode = iget(dir->i_sb, ino);
-+	inode = openprom_iget(dir->i_sb, ino);
- 	mutex_unlock(&op_mutex);
--	if (!inode)
--		return ERR_PTR(-EINVAL);
-+	if (IS_ERR(inode))
-+		return ERR_CAST(inode);
- 	ent_oi = OP_I(inode);
- 	ent_oi->type = ent_type;
- 	ent_oi->u = ent_data;
-@@ -348,14 +350,23 @@ static void openprom_destroy_inode(struc
- 	kmem_cache_free(op_inode_cachep, OP_I(inode));
- }
- 
--static void openprom_read_inode(struct inode * inode)
-+static struct inode *openprom_iget(struct super_block *sb, ino_t ino)
- {
--	inode->i_mtime = inode->i_atime = inode->i_ctime = CURRENT_TIME;
--	if (inode->i_ino == OPENPROM_ROOT_INO) {
--		inode->i_op = &openprom_inode_operations;
--		inode->i_fop = &openprom_operations;
--		inode->i_mode = S_IFDIR | S_IRUGO | S_IXUGO;
-+	struct inode *inode;
-+
-+	inode = iget_locked(sb, ino);
-+	if (!inode)
-+		return ERR_PTR(-ENOMEM);
-+	if (inode->i_state & I_NEW) {
-+		inode->i_mtime = inode->i_atime = inode->i_ctime = CURRENT_TIME;
-+		if (inode->i_ino == OPENPROM_ROOT_INO) {
-+			inode->i_op = &openprom_inode_operations;
-+			inode->i_fop = &openprom_operations;
-+			inode->i_mode = S_IFDIR | S_IRUGO | S_IXUGO;
-+		}
-+		unlock_new_inode(inode);
- 	}
-+	return inode;
- }
- 
- static int openprom_remount(struct super_block *sb, int *flags, char *data)
-@@ -367,7 +378,6 @@ static int openprom_remount(struct super
- static const struct super_operations openprom_sops = {
- 	.alloc_inode	= openprom_alloc_inode,
- 	.destroy_inode	= openprom_destroy_inode,
--	.read_inode	= openprom_read_inode,
- 	.statfs		= simple_statfs,
- 	.remount_fs	= openprom_remount,
- };
-@@ -376,6 +386,7 @@ static int openprom_fill_super(struct su
- {
- 	struct inode *root_inode;
- 	struct op_inode_info *oi;
-+	int ret;
- 
- 	s->s_flags |= MS_NOATIME;
- 	s->s_blocksize = 1024;
-@@ -383,9 +394,11 @@ static int openprom_fill_super(struct su
- 	s->s_magic = OPENPROM_SUPER_MAGIC;
- 	s->s_op = &openprom_sops;
- 	s->s_time_gran = 1;
--	root_inode = iget(s, OPENPROM_ROOT_INO);
--	if (!root_inode)
-+	root_inode = openprom_iget(s, OPENPROM_ROOT_INO);
-+	if (IS_ERR(root_inode)) {
-+		ret = PTR_ERR(root_inode);
- 		goto out_no_root;
-+	}
- 
- 	oi = OP_I(root_inode);
- 	oi->type = op_inode_node;
-@@ -393,13 +406,15 @@ static int openprom_fill_super(struct su
- 
- 	s->s_root = d_alloc_root(root_inode);
- 	if (!s->s_root)
--		goto out_no_root;
-+		goto out_no_root_dentry;
+diff -puN fs/ufs/inode.c~iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes fs/ufs/inode.c
+--- a/fs/ufs/inode.c~iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes
++++ a/fs/ufs/inode.c
+@@ -714,10 +714,10 @@ static int ufs2_read_inode(struct inode 
  	return 0;
- 
-+out_no_root_dentry:
-+	iput(root_inode);
-+	ret = -ENOMEM;
- out_no_root:
- 	printk("openprom_fill_super: get root inode failed\n");
--	iput(root_inode);
--	return -ENOMEM;
-+	return ret;
  }
  
- static int openprom_get_sb(struct file_system_type *fs_type,
+-struct inode *ufs_iget (struct super_block *sb, unsigned long ino)
++struct inode *ufs_iget(struct super_block *sb, unsigned long ino)
+ {
+ 	struct ufs_inode_info *ufsi;
+-	struct ufs_sb_private_info * uspi = UFS_SB(sb)->s_uspi;
++	struct ufs_sb_private_info *uspi = UFS_SB(sb)->s_uspi;
+ 	struct buffer_head * bh;
+ 	struct inode *inode;
+ 	int err;
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+sunrpc-fix-rpc-debugging-checkpatch-fixes.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+revert-gregkh-driver-block-device.patch
+git-hwmon.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
+ide-arm-hack.patch
+drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
+nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd-fixup.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+git-unionfs.patch
+git-watchdog.patch
+watchdog-add-nano-7240-driver-checkpatch-fixes.patch
+git-wireless.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-x86.patch
+git-x86-fixup.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+x86-fix-config_smp-warning-in-processorc-fix.patch
+i386-and-x86_64-randomize-brk-fix.patch
+git-perfmon-fill-in-i386-syscall-table.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+remove-warnings-for-longstanding-conditions-checkpatch-fixes.patch
+sync_sb_inodes-propagate-errors.patch
 64-bit-i_version-afs-fixes.patch
-add-an-err_cast-function-to-complement-err_ptr-and-co.patch
-convert-err_ptrptr_errp-instances-to-err_castp.patch
-iget-introduce-a-function-to-register-iget-failure.patch
-iget-use-iget_failed-in-afs.patch
-iget-use-iget_failed-in-gfs2.patch
-iget-stop-affs-from-using-iget-and-read_inode-try.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
 iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-autofs-from-using-iget-and-read_inode.patch
-iget-stop-befs-from-using-iget-and-read_inode-try.patch
-iget-stop-bfs-from-using-iget-and-read_inode-try.patch
-iget-stop-cifs-from-using-iget-and-read_inode-try.patch
-iget-stop-efs-from-using-iget-and-read_inode-try.patch
 iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try.patch
 iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try.patch
 iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext4-from-using-iget-and-read_inode-try.patch
-iget-stop-fat-from-using-iget-and-read_inode-try.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode.patch
 iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-fuse-from-using-iget-and-read_inode-try.patch
-iget-stop-hfsplus-from-using-iget-and-read_inode.patch
-iget-stop-isofs-from-using-read_inode.patch
-iget-stop-jffs2-from-using-iget-and-read_inode.patch
-iget-stop-jfs-from-using-iget-and-read_inode-try.patch
-iget-stop-the-minix-filesystem-from-using-iget-and.patch
 iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode.patch
 iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
 iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode.patch
 iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and.patch
 iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try.patch
 iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-openpromfs-from-using-iget-and.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hppfs-from-using-iget-and-read_inode.patch
-iget-remove-iget-and-the-read_inode-super-op-as.patch
-mutex-subsystem-synchro-test-module.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
