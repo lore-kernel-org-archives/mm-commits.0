@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cris-gpio-undo-locks-before-returning.patch added to -mm tree
-Date: Mon, 29 Oct 2007 14:08:39 -0700
-Message-ID: <200710292108.l9TL8dsD023326@imap1.linux-foundation.org>
+Subject: + arch-ia64-sn-kernel-mcac-undo-lock-when-sn_oemdata-cant-be-extended.patch added to -mm tree
+Date: Mon, 29 Oct 2007 14:12:20 -0700
+Message-ID: <200710292112.l9TLCKDV023472@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37364 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60054 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752197AbXJ2VJQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752066AbXJ2VNG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 17:09:16 -0400
+	Mon, 29 Oct 2007 17:13:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: 12o3l@tiscali.nl, starvik@axis.com
+Cc: 12o3l@tiscali.nl, jes@trained-monkey.org, tony.luck@intel.com
 
 
 The patch titled
-     cris gpio: undo locks before returning
+     arch/ia64/sn/kernel/mca.c: undo lock when sn_oemdata can't be extended
 has been added to the -mm tree.  Its filename is
-     cris-gpio-undo-locks-before-returning.patch
+     arch-ia64-sn-kernel-mcac-undo-lock-when-sn_oemdata-cant-be-extended.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,73 +26,29 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cris gpio: undo locks before returning
+Subject: arch/ia64/sn/kernel/mca.c: undo lock when sn_oemdata can't be extended
 From: Roel Kluin <12o3l@tiscali.nl>
 
 Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
-Cc: Mikael Starvik <starvik@axis.com>
+Cc: Jes Sorensen <jes@trained-monkey.org>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/drivers/gpio.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ arch/ia64/sn/kernel/mca.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/cris/arch-v10/drivers/gpio.c~cris-gpio-undo-locks-before-returning arch/cris/arch-v10/drivers/gpio.c
---- a/arch/cris/arch-v10/drivers/gpio.c~cris-gpio-undo-locks-before-returning
-+++ a/arch/cris/arch-v10/drivers/gpio.c
-@@ -297,8 +297,10 @@ gpio_poll(struct file *file,
- 		data = *R_PORT_PB_DATA;
- 	else if (priv->minor == GPIO_MINOR_G)
- 		data = *R_PORT_G_DATA;
--	else
-+	else {
-+		spin_unlock(&gpio_lock);
- 		return 0;
-+	}
- 	
- 	if ((data & priv->highalarm) ||
- 	    (~data & priv->lowalarm)) {
-@@ -381,18 +383,21 @@ static ssize_t gpio_write(struct file * 
- 
- 	ssize_t retval = count;
- 	if (priv->minor !=GPIO_MINOR_A && priv->minor != GPIO_MINOR_B) {
--		return -EFAULT;
-+		retval = -EFAULT;
-+		goto out;
- 	}
-     
- 	if (!access_ok(VERIFY_READ, buf, count)) {
--		return -EFAULT;
-+		retval = -EFAULT;
-+		goto out;
- 	}
- 	clk_mask = priv->clk_mask;
- 	data_mask = priv->data_mask;
- 	/* It must have been configured using the IO_CFG_WRITE_MODE */
- 	/* Perhaps a better error code? */
- 	if (clk_mask == 0 || data_mask == 0) {
--		return -EPERM;
-+		retval = -EPERM;
-+		goto out;
- 	}
- 	write_msb = priv->write_msb;
- 	D(printk("gpio_write: %lu to data 0x%02X clk 0x%02X msb: %i\n",count, data_mask, clk_mask, write_msb));
-@@ -425,6 +430,7 @@ static ssize_t gpio_write(struct file * 
- 			}
- 		}
- 	}
-+out:
- 	spin_unlock(&gpio_lock);
- 	return retval;
- }
-@@ -506,6 +512,7 @@ gpio_release(struct inode *inode, struct
- 	while (p) {
- 		if (p->highalarm | p->lowalarm) {
- 			gpio_some_alarms = 1;
-+			spin_unlock(&gpio_lock);
- 			return 0;
- 		}
- 		p = p->next;
+diff -puN arch/ia64/sn/kernel/mca.c~arch-ia64-sn-kernel-mcac-undo-lock-when-sn_oemdata-cant-be-extended arch/ia64/sn/kernel/mca.c
+--- a/arch/ia64/sn/kernel/mca.c~arch-ia64-sn-kernel-mcac-undo-lock-when-sn_oemdata-cant-be-extended
++++ a/arch/ia64/sn/kernel/mca.c
+@@ -98,6 +98,7 @@ sn_platform_plat_specific_err_print(cons
+ 	while (*sn_oemdata_size > sn_oemdata_bufsize) {
+ 		u8 *newbuf = vmalloc(*sn_oemdata_size);
+ 		if (!newbuf) {
++			mutex_unlock(&sn_oemdata_mutex);
+ 			printk(KERN_ERR "%s: unable to extend sn_oemdata\n",
+ 			       __FUNCTION__);
+ 			return 1;
 _
 
 Patches currently in -mm which might be from 12o3l@tiscali.nl are
@@ -107,4 +63,5 @@ git-ocfs2.patch
 git-s390.patch
 itco_wdt_start-undo-locking-when-reboot-is-disabled.patch
 cris-gpio-undo-locks-before-returning.patch
+arch-ia64-sn-kernel-mcac-undo-lock-when-sn_oemdata-cant-be-extended.patch
 i4l-errors-with-assignments-in-if.patch
