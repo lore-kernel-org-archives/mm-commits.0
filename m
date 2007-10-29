@@ -1,79 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: + git-scsi-misc-vs-git-libata-all.patch added to -mm tree
-Date: Mon, 29 Oct 2007 13:14:18 -0700
-Message-ID: <200710292014.l9TKEIVO021175@imap1.linux-foundation.org>
+Subject: - git-perfmon-fill-in-i386-syscall-table.patch removed from -mm tree
+Date: Mon, 29 Oct 2007 13:24:58 -0700
+Message-ID: <200710292024.l9TKOwZE021583@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37928 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56388 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751150AbXJ2UO3 (ORCPT
+	by vger.kernel.org with ESMTP id S1752783AbXJ2UZY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 16:14:29 -0400
+	Mon, 29 Oct 2007 16:25:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com, jeff@garzik.org
+To: akpm@linux-foundation.org, eranian@hpl.hp.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-scsi-misc-vs-git-libata-all
-has been added to the -mm tree.  Its filename is
-     git-scsi-misc-vs-git-libata-all.patch
+     git-perfmon: fill in i386 syscall table
+has been removed from the -mm tree.  Its filename was
+     git-perfmon-fill-in-i386-syscall-table.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-scsi-misc-vs-git-libata-all
+Subject: git-perfmon: fill in i386 syscall table
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix conflicts between git-scsi-misc and git-libata-all.
+They're defined in include/asm-x86/unistd_32.h so they shold occupy table
+slots in arch/x86/kernel/syscall_table_32.S.
 
-Sigh.  I get to carry this mess for two months.  Can we do scsi patches via the
-scsi tree please?
+Because I'm about to renumber the revoke() sycalls..
 
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Stephane Eranian <eranian@hpl.hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_sysfs.c  |    1 +
- include/scsi/scsi_device.h |    3 +++
- 2 files changed, 4 insertions(+)
+ arch/x86/kernel/syscall_table_32.S |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN drivers/scsi/scsi_sysfs.c~git-scsi-misc-vs-git-libata-all drivers/scsi/scsi_sysfs.c
---- a/drivers/scsi/scsi_sysfs.c~git-scsi-misc-vs-git-libata-all
-+++ a/drivers/scsi/scsi_sysfs.c
-@@ -662,6 +662,7 @@ static struct attribute *scsi_sdev_attrs
- 	&dev_attr_iodone_cnt.attr,
- 	&dev_attr_ioerr_cnt.attr,
- 	&dev_attr_modalias.attr,
-+	&dev_attr_media_change_notify.attr,
- 	REF_EVT(media_change),
- 	NULL
- };
-diff -puN include/scsi/scsi_device.h~git-scsi-misc-vs-git-libata-all include/scsi/scsi_device.h
---- a/include/scsi/scsi_device.h~git-scsi-misc-vs-git-libata-all
-+++ a/include/scsi/scsi_device.h
-@@ -143,6 +143,7 @@ struct scsi_device {
- 	unsigned fix_capacity:1;	/* READ_CAPACITY is too high by 1 */
- 	unsigned guess_capacity:1;	/* READ_CAPACITY might be too high by 1 */
- 	unsigned retry_hwerror:1;	/* Retry HARDWARE_ERROR */
-+	unsigned media_change_notify:1; /* dev supports async media notify */
- 
- 	DECLARE_BITMAP(supported_events, SDEV_EVT_MAXBITS); /* supported events */
- 	DECLARE_BITMAP(event_mask, SDEV_EVT_MAXBITS); /* asserted events */
-@@ -297,6 +298,8 @@ extern int scsi_test_unit_ready(struct s
- 				int retries);
- extern int scsi_device_set_state(struct scsi_device *sdev,
- 				 enum scsi_device_state state);
-+extern int scsi_device_event_notify(struct scsi_device *sdev,
-+				enum scsi_device_event event);
- extern void sdev_evt_notify(struct scsi_device *sdev, const unsigned long *map);
- extern int scsi_device_quiesce(struct scsi_device *sdev);
- extern void scsi_device_resume(struct scsi_device *sdev);
+diff -puN arch/x86/kernel/syscall_table_32.S~git-perfmon-fill-in-i386-syscall-table arch/x86/kernel/syscall_table_32.S
+--- a/arch/x86/kernel/syscall_table_32.S~git-perfmon-fill-in-i386-syscall-table
++++ a/arch/x86/kernel/syscall_table_32.S
+@@ -324,3 +324,16 @@ ENTRY(sys_call_table)
+ 	.long sys_timerfd
+ 	.long sys_eventfd
+ 	.long sys_fallocate
++	.long sys_ni_syscall		/* pfm_create_context */ /* 325 */
++	.long sys_ni_syscall		/* pfm_write_pmcs */
++	.long sys_ni_syscall		/* pfm_write_pmds */
++	.long sys_ni_syscall		/* pfm_read_pmds */
++	.long sys_ni_syscall		/* pfm_load_context */
++	.long sys_ni_syscall		/* pfm_start */		/* 330 */
++	.long sys_ni_syscall		/* pfm_stop */
++	.long sys_ni_syscall		/* pfm_restart */
++	.long sys_ni_syscall		/* pfm_create_evtsets */
++	.long sys_ni_syscall		/* pfm_getinfo_evtsets */
++	.long sys_ni_syscall		/* pfm_delete_evtsets */ /* 335 */
++	.long sys_ni_syscall		/* pfm_unload_context */
++
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -112,7 +96,6 @@ jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
 git-x86.patch
 git-x86-fixup.patch
 oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-x86-fix-config_smp-warning-in-processorc-fix.patch
 i386-and-x86_64-randomize-brk-fix.patch
 git-perfmon-fill-in-i386-syscall-table.patch
 i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
