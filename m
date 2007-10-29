@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + itco_wdt_start-undo-locking-when-reboot-is-disabled.patch added to -mm tree
-Date: Mon, 29 Oct 2007 14:01:41 -0700
-Message-ID: <200710292101.l9TL1fL5023023@imap1.linux-foundation.org>
+Subject: + ia64-fix-typo-in-per_cpu_offset.patch added to -mm tree
+Date: Mon, 29 Oct 2007 14:03:05 -0700
+Message-ID: <200710292103.l9TL35iN023137@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35781 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52857 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751923AbXJ2VBy (ORCPT
+	by vger.kernel.org with ESMTP id S1751935AbXJ2VDI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 17:01:54 -0400
+	Mon, 29 Oct 2007 17:03:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: 12o3l@tiscali.nl, wim@iguana.be
+Cc: luming.yu@gmail.com, luming.yu@intel.com, tony.luck@intel.com
 
 
 The patch titled
-     iTCO_wdt_start: undo locking when reboot is disabled
+     ia64: fix typo in per_cpu_offset
 has been added to the -mm tree.  Its filename is
-     itco_wdt_start-undo-locking-when-reboot-is-disabled.patch
+     ia64-fix-typo-in-per_cpu_offset.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,38 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: iTCO_wdt_start: undo locking when reboot is disabled
-From: Roel Kluin <12o3l@tiscali.nl>
+Subject: ia64: fix typo in per_cpu_offset
+From: "Luming Yu" <luming.yu@gmail.com>
 
-Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Signed-off-by: Yu Luming <luming.yu@intel.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/iTCO_wdt.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/asm-ia64/percpu.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/watchdog/iTCO_wdt.c~itco_wdt_start-undo-locking-when-reboot-is-disabled drivers/watchdog/iTCO_wdt.c
---- a/drivers/watchdog/iTCO_wdt.c~itco_wdt_start-undo-locking-when-reboot-is-disabled
-+++ a/drivers/watchdog/iTCO_wdt.c
-@@ -316,6 +316,7 @@ static int iTCO_wdt_start(struct watchdo
+diff -puN include/asm-ia64/percpu.h~ia64-fix-typo-in-per_cpu_offset include/asm-ia64/percpu.h
+--- a/include/asm-ia64/percpu.h~ia64-fix-typo-in-per_cpu_offset
++++ a/include/asm-ia64/percpu.h
+@@ -46,7 +46,7 @@
+ #ifdef CONFIG_SMP
  
- 	/* disable chipset's NO_REBOOT bit */
- 	if (iTCO_wdt_unset_NO_REBOOT_bit()) {
-+		spin_unlock(&iTCO_wdt_private.io_lock);
- 		printk(KERN_ERR PFX "failed to reset NO_REBOOT flag, reboot disabled by hardware\n");
- 		return -EIO;
- 	}
+ extern unsigned long __per_cpu_offset[NR_CPUS];
+-#define per_cpu_offset(x) (__per_cpu_offset(x))
++#define per_cpu_offset(x) (__per_cpu_offset[x])
+ 
+ /* Equal to __per_cpu_offset[smp_processor_id()], but faster to access: */
+ DECLARE_PER_CPU(unsigned long, local_per_cpu_offset);
 _
 
-Patches currently in -mm which might be from 12o3l@tiscali.nl are
+Patches currently in -mm which might be from luming.yu@gmail.com are
 
-origin.patch
-git-arm-master.patch
-dvb-dont-return-with-locks-held.patch
-lmc_ioctl-dont-return-with-locks-held.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-git-ocfs2.patch
-git-s390.patch
-itco_wdt_start-undo-locking-when-reboot-is-disabled.patch
-i4l-errors-with-assignments-in-if.patch
+serial-only-use-pnp-irq-if-its-valid.patch
+ia64-fix-typo-in-per_cpu_offset.patch
