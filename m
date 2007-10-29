@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-doc-use-no-doc-option.patch removed from -mm tree
-Date: Mon, 29 Oct 2007 13:31:42 -0700
-Message-ID: <200710292031.l9TKVgxX021872@imap1.linux-foundation.org>
+Subject: - kernel-doc-fix-xml-output-mode.patch removed from -mm tree
+Date: Mon, 29 Oct 2007 13:31:34 -0700
+Message-ID: <200710292031.l9TKVYNa021860@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50878 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54267 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756902AbXJ2UhK (ORCPT
+	by vger.kernel.org with ESMTP id S1753068AbXJ2Uis (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 16:37:10 -0400
+	Mon, 29 Oct 2007 16:38:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: johannes@sipsolutions.net, randy.dunlap@oracle.com, rpjday@mindspring.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel-doc: use no-doc option
+     kernel-doc: fix xml output mode
 has been removed from the -mm tree.  Its filename was
-     kernel-doc-use-no-doc-option.patch
+     kernel-doc-fix-xml-output-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kernel-doc: use no-doc option
+Subject: kernel-doc: fix xml output mode
 From: Johannes Berg <johannes@sipsolutions.net>
 
-When asked by a template to include all functions from a file, it will also
-include DOC: sections wreaking havoc in the generated docbook file.  This
-patch makes it use the new -no-doc-sections flag for kernel-doc to avoid this.
+After Randy's patch fixing the HTML output in DOC: sections
+(6b5b55f6c404fa730a09a8254eb19f5a038afcc2) the same bug remained in XML mode,
+this fixes it.
 
 Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
@@ -36,36 +36,34 @@ Cc: "Robert P. J. Day" <rpjday@mindspring.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/basic/docproc.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ scripts/kernel-doc |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN scripts/basic/docproc.c~kernel-doc-use-no-doc-option scripts/basic/docproc.c
---- a/scripts/basic/docproc.c~kernel-doc-use-no-doc-option
-+++ a/scripts/basic/docproc.c
-@@ -65,6 +65,7 @@ FILELINE * entity_system;
- #define DOCBOOK       "-docbook"
- #define FUNCTION      "-function"
- #define NOFUNCTION    "-nofunction"
-+#define NODOCSECTIONS "-no-doc-sections"
+diff -puN scripts/kernel-doc~kernel-doc-fix-xml-output-mode scripts/kernel-doc
+--- a/scripts/kernel-doc~kernel-doc-fix-xml-output-mode
++++ a/scripts/kernel-doc
+@@ -182,10 +182,10 @@ my $blankline_html = $local_lt . "p" . $
+ my %highlights_xml = ( "([^=])\\\"([^\\\"<]+)\\\"", "\$1<quote>\$2</quote>",
+ 			$type_constant, "<constant>\$1</constant>",
+ 			$type_func, "<function>\$1</function>",
+-			$type_struct, "<structname>\$1</structname>",
++			$type_struct_xml, "<structname>\$1</structname>",
+ 			$type_env, "<envar>\$1</envar>",
+ 			$type_param, "<parameter>\$1</parameter>" );
+-my $blankline_xml = "</para><para>\n";
++my $blankline_xml = $local_lt . "/para" . $local_gt . $local_lt . "para" . $local_gt . "\n";
  
- char *srctree;
+ # gnome, docbook format
+ my %highlights_gnome = ( $type_constant, "<replaceable class=\"option\">\$1</replaceable>",
+@@ -394,7 +394,7 @@ sub output_highlight {
+ #	confess "output_highlight got called with no args?\n";
+ #   }
  
-@@ -231,13 +232,14 @@ void docfunctions(char * filename, char 
- 
- 	for (i=0; i <= symfilecnt; i++)
- 		symcnt += symfilelist[i].symbolcnt;
--	vec = malloc((2 + 2 * symcnt + 2) * sizeof(char*));
-+	vec = malloc((2 + 2 * symcnt + 3) * sizeof(char*));
- 	if (vec == NULL) {
- 		perror("docproc: ");
- 		exit(1);
- 	}
- 	vec[idx++] = KERNELDOC;
- 	vec[idx++] = DOCBOOK;
-+	vec[idx++] = NODOCSECTIONS;
- 	for (i=0; i < symfilecnt; i++) {
- 		struct symfile * sym = &symfilelist[i];
- 		for (j=0; j < sym->symbolcnt; j++) {
+-    if ($output_mode eq "html") {
++    if ($output_mode eq "html" || $output_mode eq "xml") {
+ 	$contents = local_unescape($contents);
+ 	# convert data read & converted thru xml_escape() into &xyz; format:
+ 	$contents =~ s/\\\\\\/&/g;
 _
 
 Patches currently in -mm which might be from johannes@sipsolutions.net are
