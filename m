@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + media-video-planb-fix-obvious-interrupt-handling-bugs.patch added to -mm tree
-Date: Mon, 29 Oct 2007 14:41:50 -0700
-Message-ID: <200710292141.l9TLfooS024701@imap1.linux-foundation.org>
+Subject: + scsi-gdth-kill-unneeded-irq-argument.patch added to -mm tree
+Date: Mon, 29 Oct 2007 14:43:35 -0700
+Message-ID: <200710292143.l9TLhb56024809@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52487 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47494 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751812AbXJ2VmQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751925AbXJ2VoS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 17:42:16 -0400
+	Mon, 29 Oct 2007 17:44:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeff@garzik.org, jgarzik@redhat.com, mchehab@infradead.org
+Cc: jeff@garzik.org, James.Bottomley@steeleye.com, bharrosh@panasas.com, jgarzik@redhat.com
 
 
 The patch titled
-     media/video/planb: fix obvious interrupt handling bugs
+     SCSI/gdth: kill unneeded 'irq' argument
 has been added to the -mm tree.  Its filename is
-     media-video-planb-fix-obvious-interrupt-handling-bugs.patch
+     scsi-gdth-kill-unneeded-irq-argument.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,67 +26,106 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: media/video/planb: fix obvious interrupt handling bugs
+Subject: SCSI/gdth: kill unneeded 'irq' argument
 From: Jeff Garzik <jeff@garzik.org>
 
-irq handlers have returned a return value for years now... catch up with
-the times.
-
-Also, ditch unneeded prototype.
+Neither gdth_get_status() nor __gdth_interrupt() need their 'irq' argument,
+so remove it.
 
 Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Acked-by: Boaz Harrosh <bharrosh@panasas.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/planb.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/scsi/gdth.c |   21 +++++++++------------
+ 1 file changed, 9 insertions(+), 12 deletions(-)
 
-diff -puN drivers/media/video/planb.c~media-video-planb-fix-obvious-interrupt-handling-bugs drivers/media/video/planb.c
---- a/drivers/media/video/planb.c~media-video-planb-fix-obvious-interrupt-handling-bugs
-+++ a/drivers/media/video/planb.c
-@@ -91,7 +91,6 @@ static void planb_close(struct video_dev
- static int planb_ioctl(struct video_device *, unsigned int, void *);
- static int planb_init_done(struct video_device *);
- static int planb_mmap(struct video_device *, const char *, unsigned long);
--static void planb_irq(int, void *);
- static void release_planb(void);
- int init_planbs(struct video_init *);
+diff -puN drivers/scsi/gdth.c~scsi-gdth-kill-unneeded-irq-argument drivers/scsi/gdth.c
+--- a/drivers/scsi/gdth.c~scsi-gdth-kill-unneeded-irq-argument
++++ a/drivers/scsi/gdth.c
+@@ -141,7 +141,7 @@
+ static void gdth_delay(int milliseconds);
+ static void gdth_eval_mapping(ulong32 size, ulong32 *cyls, int *heads, int *secs);
+ static irqreturn_t gdth_interrupt(int irq, void *dev_id);
+-static irqreturn_t __gdth_interrupt(gdth_ha_str *ha, int irq,
++static irqreturn_t __gdth_interrupt(gdth_ha_str *ha,
+                                     int gdth_from_wait, int* pIndex);
+ static int gdth_sync_event(gdth_ha_str *ha, int service, unchar index,
+                                                                Scsi_Cmnd *scp);
+@@ -165,7 +165,6 @@ static int gdth_internal_cache_cmd(gdth_
+ static int gdth_fill_cache_cmd(gdth_ha_str *ha, Scsi_Cmnd *scp, ushort hdrive);
  
-@@ -1315,7 +1314,7 @@ cmd_tab_data_end:
- 	return c1;
+ static void gdth_enable_int(gdth_ha_str *ha);
+-static unchar gdth_get_status(gdth_ha_str *ha, int irq);
+ static int gdth_test_busy(gdth_ha_str *ha);
+ static int gdth_get_cmd_index(gdth_ha_str *ha);
+ static void gdth_release_event(gdth_ha_str *ha);
+@@ -1334,14 +1333,12 @@ static void __init gdth_enable_int(gdth_
  }
  
--static void planb_irq(int irq, void *dev_id)
-+static irqreturn_t planb_irq(int irq, void *dev_id)
+ /* return IStatus if interrupt was from this card else 0 */
+-static unchar gdth_get_status(gdth_ha_str *ha, int irq)
++static unchar gdth_get_status(gdth_ha_str *ha)
  {
- 	unsigned int stat, astat;
- 	struct planb *pb = (struct planb *)dev_id;
-@@ -1358,13 +1357,14 @@ static void planb_irq(int irq, void *dev
- 		pb->frame_stat[fr] = GBUFFER_DONE;
- 		pb->grabbing--;
- 		wake_up_interruptible(&pb->capq);
--		return;
-+		return IRQ_HANDLED;
- 	}
- 	/* incorrect interrupts? */
- 	pb->intr_mask = PLANB_CLR_IRQ;
- 	out_le32(&pb->planb_base->intr_stat, PLANB_CLR_IRQ);
- 	printk(KERN_ERR "PlanB: IRQ lockup, cleared intrrupts"
- 							" unconditionally\n");
-+	return IRQ_HANDLED;
+     unchar IStatus = 0;
+ 
+-    TRACE(("gdth_get_status() irq %d ctr_count %d\n", irq, gdth_ctr_count));
++    TRACE(("gdth_get_status() irq %d ctr_count %d\n", ha->irq, gdth_ctr_count));
+ 
+-        if (ha->irq != (unchar)irq)             /* check IRQ */
+-            return false;
+         if (ha->type == GDT_EISA)
+             IStatus = inb((ushort)ha->bmic + EDOORREG);
+         else if (ha->type == GDT_ISA)
+@@ -1523,7 +1520,7 @@ static int gdth_wait(gdth_ha_str *ha, in
+         return 1;                               /* no wait required */
+ 
+     do {
+-        __gdth_interrupt(ha, (int)ha->irq, true, &wait_index);
++        __gdth_interrupt(ha, true, &wait_index);
+         if (wait_index == index) {
+             answer_found = TRUE;
+             break;
+@@ -3036,7 +3033,7 @@ static void gdth_clear_events(void)
+ 
+ /* SCSI interface functions */
+ 
+-static irqreturn_t __gdth_interrupt(gdth_ha_str *ha, int irq,
++static irqreturn_t __gdth_interrupt(gdth_ha_str *ha,
+                                     int gdth_from_wait, int* pIndex)
+ {
+     gdt6m_dpram_str __iomem *dp6m_ptr = NULL;
+@@ -3054,7 +3051,7 @@ static irqreturn_t __gdth_interrupt(gdth
+     int act_int_coal = 0;       
+ #endif
+ 
+-    TRACE(("gdth_interrupt() IRQ %d\n",irq));
++    TRACE(("gdth_interrupt() IRQ %d\n", ha->irq));
+ 
+     /* if polling and not from gdth_wait() -> return */
+     if (gdth_polling) {
+@@ -3067,7 +3064,7 @@ static irqreturn_t __gdth_interrupt(gdth
+         spin_lock_irqsave(&ha->smp_lock, flags);
+ 
+     /* search controller */
+-    if (0 == (IStatus = gdth_get_status(ha, irq))) {
++    if (0 == (IStatus = gdth_get_status(ha))) {
+         /* spurious interrupt */
+         if (!gdth_polling)
+             spin_unlock_irqrestore(&ha->smp_lock, flags);
+@@ -3294,9 +3291,9 @@ static irqreturn_t __gdth_interrupt(gdth
+ 
+ static irqreturn_t gdth_interrupt(int irq, void *dev_id)
+ {
+-	gdth_ha_str *ha = (gdth_ha_str *)dev_id;
++	gdth_ha_str *ha = dev_id;
+ 
+-	return __gdth_interrupt(ha, irq, false, NULL);
++	return __gdth_interrupt(ha, false, NULL);
  }
  
- /*******************************
-@@ -2090,7 +2090,7 @@ static int init_planb(struct planb *pb)
- 	/* clear interrupt mask */
- 	pb->intr_mask = PLANB_CLR_IRQ;
- 
--	result = request_irq(pb->irq, planb_irq, 0, "PlanB", (void *)pb);
-+	result = request_irq(pb->irq, planb_irq, 0, "PlanB", pb);
- 	if (result < 0) {
- 		if (result==-EINVAL)
- 			printk(KERN_ERR "PlanB: Bad irq number (%d) "
+ static int gdth_sync_event(gdth_ha_str *ha, int service, unchar index,
 _
 
 Patches currently in -mm which might be from jeff@garzik.org are
@@ -114,6 +153,7 @@ ips-trim-trailing-whitespace.patch
 ips-trim-trailing-whitespace-checkpatch-fixes.patch
 ips-pci-api-cleanups.patch
 ips-handle-scsi_add_host-failure-and-other-err-cleanups.patch
+scsi-gdth-kill-unneeded-irq-argument.patch
 git-wireless.patch
 fix-versus-precedence-in-various-places.patch
 fix-versus-precedence-in-various-places-checkpatch-fixes.patch
