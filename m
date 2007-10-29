@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 29 Oct 2007 15:14:44 -0700
-Message-ID: <200710292214.l9TMEiei028492@imap1.linux-foundation.org>
+Subject: + remove-support-for-un-needed-_extratext-section.patch added to -mm tree
+Date: Mon, 29 Oct 2007 15:22:33 -0700
+Message-ID: <200710292222.l9TMMX0M028843@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34666 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58106 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751572AbXJ2WOv (ORCPT
+	by vger.kernel.org with ESMTP id S1753263AbXJ2WX0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 18:14:51 -0400
+	Mon, 29 Oct 2007 18:23:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, matthias.kaehlcke@gmail.com
+Cc: rgetz@blackfin.uclinux.org, benh@kernel.crashing.org, dwmw2@infradead.org, jdl@freescale.com, paulus@samba.org, sam@ravnborg.org
 
 
 The patch titled
-     parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes
+     remove support for un-needed _extratext section
 has been added to the -mm tree.  Its filename is
-     parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+     remove-support-for-un-needed-_extratext-section.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,185 +26,145 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: remove support for un-needed _extratext section
+From: Robin Getz <rgetz@blackfin.uclinux.org>
 
-WARNING: no space between function name and open parenthesis '('
-#21: FILE: drivers/char/lp.c:315:
-+	if (mutex_lock_interruptible (&lp_table[minor].port_mutex))
+When passing a zero address to kallsyms_lookup(), the kernel thought it was
+a valid kernel address, even if it is not.  This is because is_ksym_addr()
+called is_kernel_extratext() and checked against labels that don't exist on
+many archs (which default as zero).  Since PPC was the only kernel which
+defines _extra_text, (in 2005), and no longer needs it, this patch removes
+_extra_text support.
 
-WARNING: no space between function name and open parenthesis '('
-#30: FILE: drivers/char/lp.c:402:
-+	mutex_unlock (&lp_table[minor].port_mutex);
+For some history (provided by Jon):
+ http://ozlabs.org/pipermail/linuxppc-dev/2005-September/019734.html
+ http://ozlabs.org/pipermail/linuxppc-dev/2005-September/019736.html
+ http://ozlabs.org/pipermail/linuxppc-dev/2005-September/019751.html
 
-WARNING: no space between function name and open parenthesis '('
-#39: FILE: drivers/char/lp.c:424:
-+	if (mutex_lock_interruptible (&lp_table[minor].port_mutex))
-
-WARNING: no space between function name and open parenthesis '('
-#48: FILE: drivers/char/lp.c:482:
-+	mutex_unlock (&lp_table[minor].port_mutex);
-
-WARNING: no space between function name and open parenthesis '('
-#57: FILE: drivers/char/lp.c:891:
-+		mutex_init (&lp_table[i].port_mutex);
-
-total: 0 errors, 5 warnings, 56 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Signed-off-by: Robin Getz <rgetz@blackfin.uclinux.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Jon Loeliger <jdl@freescale.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/lp.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/ppc/kernel/vmlinux.lds.S  |    5 -----
+ include/asm-generic/sections.h |    2 --
+ kernel/kallsyms.c              |   11 +----------
+ scripts/kallsyms.c             |   24 ++++++++++--------------
+ 4 files changed, 11 insertions(+), 31 deletions(-)
 
-diff -puN drivers/char/lp.c~parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes drivers/char/lp.c
---- a/drivers/char/lp.c~parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes
-+++ a/drivers/char/lp.c
-@@ -312,7 +312,7 @@ static ssize_t lp_write(struct file * fi
- 	if (copy_size > LP_BUFFER_SIZE)
- 		copy_size = LP_BUFFER_SIZE;
+diff -puN arch/ppc/kernel/vmlinux.lds.S~remove-support-for-un-needed-_extratext-section arch/ppc/kernel/vmlinux.lds.S
+--- a/arch/ppc/kernel/vmlinux.lds.S~remove-support-for-un-needed-_extratext-section
++++ a/arch/ppc/kernel/vmlinux.lds.S
+@@ -143,11 +143,6 @@ SECTIONS
  
--	if (mutex_lock_interruptible (&lp_table[minor].port_mutex))
-+	if (mutex_lock_interruptible(&lp_table[minor].port_mutex))
- 		return -EINTR;
- 
- 	if (copy_from_user (kbuf, buf, copy_size)) {
-@@ -399,7 +399,7 @@ static ssize_t lp_write(struct file * fi
- 		lp_release_parport (&lp_table[minor]);
- 	}
- out_unlock:
--	mutex_unlock (&lp_table[minor].port_mutex);
-+	mutex_unlock(&lp_table[minor].port_mutex);
- 
-  	return retv;
+   . = ALIGN(4096);
+   __init_end = .;
+-
+-  . = ALIGN(4096);
+-  _sextratext = .;
+-  _eextratext = .;
+-
+   __bss_start = .;
+   .bss       :
+   {
+diff -puN include/asm-generic/sections.h~remove-support-for-un-needed-_extratext-section include/asm-generic/sections.h
+--- a/include/asm-generic/sections.h~remove-support-for-un-needed-_extratext-section
++++ a/include/asm-generic/sections.h
+@@ -8,8 +8,6 @@ extern char _data[], _sdata[], _edata[];
+ extern char __bss_start[], __bss_stop[];
+ extern char __init_begin[], __init_end[];
+ extern char _sinittext[], _einittext[];
+-extern char _sextratext[] __attribute__((weak));
+-extern char _eextratext[] __attribute__((weak));
+ extern char _end[];
+ extern char __per_cpu_start[], __per_cpu_end[];
+ extern char __kprobes_text_start[], __kprobes_text_end[];
+diff -puN kernel/kallsyms.c~remove-support-for-un-needed-_extratext-section kernel/kallsyms.c
+--- a/kernel/kallsyms.c~remove-support-for-un-needed-_extratext-section
++++ a/kernel/kallsyms.c
+@@ -48,14 +48,6 @@ static inline int is_kernel_inittext(uns
+ 	return 0;
  }
-@@ -421,7 +421,7 @@ static ssize_t lp_read(struct file * fil
- 	if (count > LP_BUFFER_SIZE)
- 		count = LP_BUFFER_SIZE;
  
--	if (mutex_lock_interruptible (&lp_table[minor].port_mutex))
-+	if (mutex_lock_interruptible(&lp_table[minor].port_mutex))
- 		return -EINTR;
+-static inline int is_kernel_extratext(unsigned long addr)
+-{
+-	if (addr >= (unsigned long)_sextratext
+-	    && addr <= (unsigned long)_eextratext)
+-		return 1;
+-	return 0;
+-}
+-
+ static inline int is_kernel_text(unsigned long addr)
+ {
+ 	if (addr >= (unsigned long)_stext && addr <= (unsigned long)_etext)
+@@ -75,8 +67,7 @@ static int is_ksym_addr(unsigned long ad
+ 	if (all_var)
+ 		return is_kernel(addr);
  
- 	lp_claim_parport_or_block (&lp_table[minor]);
-@@ -479,7 +479,7 @@ static ssize_t lp_read(struct file * fil
- 	if (retval > 0 && copy_to_user (buf, kbuf, retval))
- 		retval = -EFAULT;
- 
--	mutex_unlock (&lp_table[minor].port_mutex);
-+	mutex_unlock(&lp_table[minor].port_mutex);
- 
- 	return retval;
+-	return is_kernel_text(addr) || is_kernel_inittext(addr) ||
+-		is_kernel_extratext(addr);
++	return is_kernel_text(addr) || is_kernel_inittext(addr);
  }
-@@ -888,7 +888,7 @@ static int __init lp_init (void)
- 		lp_table[i].last_error = 0;
- 		init_waitqueue_head (&lp_table[i].waitq);
- 		init_waitqueue_head (&lp_table[i].dataq);
--		mutex_init (&lp_table[i].port_mutex);
-+		mutex_init(&lp_table[i].port_mutex);
- 		lp_table[i].timeout = 10 * HZ;
+ 
+ /* expand a compressed symbol data into the resulting uncompressed string,
+diff -puN scripts/kallsyms.c~remove-support-for-un-needed-_extratext-section scripts/kallsyms.c
+--- a/scripts/kallsyms.c~remove-support-for-un-needed-_extratext-section
++++ a/scripts/kallsyms.c
+@@ -41,7 +41,7 @@ struct sym_entry {
+ 
+ static struct sym_entry *table;
+ static unsigned int table_size, table_cnt;
+-static unsigned long long _text, _stext, _etext, _sinittext, _einittext, _sextratext, _eextratext;
++static unsigned long long _text, _stext, _etext, _sinittext, _einittext;
+ static int all_symbols = 0;
+ static char symbol_prefix_char = '\0';
+ 
+@@ -99,10 +99,6 @@ static int read_symbol(FILE *in, struct 
+ 		_sinittext = s->addr;
+ 	else if (strcmp(sym, "_einittext") == 0)
+ 		_einittext = s->addr;
+-	else if (strcmp(sym, "_sextratext") == 0)
+-		_sextratext = s->addr;
+-	else if (strcmp(sym, "_eextratext") == 0)
+-		_eextratext = s->addr;
+ 	else if (toupper(stype) == 'A')
+ 	{
+ 		/* Keep these useful absolute symbols */
+@@ -165,18 +161,18 @@ static int symbol_valid(struct sym_entry
+ 	 * and inittext sections are discarded */
+ 	if (!all_symbols) {
+ 		if ((s->addr < _stext || s->addr > _etext)
+-		    && (s->addr < _sinittext || s->addr > _einittext)
+-		    && (s->addr < _sextratext || s->addr > _eextratext))
++		    && (s->addr < _sinittext || s->addr > _einittext))
+ 			return 0;
+ 		/* Corner case.  Discard any symbols with the same value as
+-		 * _etext _einittext or _eextratext; they can move between pass
+-		 * 1 and 2 when the kallsyms data are added.  If these symbols
+-		 * move then they may get dropped in pass 2, which breaks the
+-		 * kallsyms rules.
++		 * _etext _einittext; they can move between pass 1 and 2 when
++		 * the kallsyms data are added.  If these symbols move then
++		 * they may get dropped in pass 2, which breaks the kallsyms
++		 * rules.
+ 		 */
+-		if ((s->addr == _etext && strcmp((char*)s->sym + offset, "_etext")) ||
+-		    (s->addr == _einittext && strcmp((char*)s->sym + offset, "_einittext")) ||
+-		    (s->addr == _eextratext && strcmp((char*)s->sym + offset, "_eextratext")))
++		if ((s->addr == _etext &&
++				strcmp((char*)s->sym + offset, "_etext")) ||
++		    (s->addr == _einittext &&
++				strcmp((char*)s->sym + offset, "_einittext")))
+ 			return 0;
  	}
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rgetz@blackfin.uclinux.org are
 
-origin.patch
-sunrpc-fix-rpc-debugging.patch
-revert-ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
-ide-arm-hack.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd-fixup.patch
-fix-build-breakage-if-sysfs-fix.patch
-git-scsi-misc-vs-git-libata-all.patch
-git-scsi-rc-fixes.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-git-unionfs.patch
-git-watchdog.patch
-watchdog-add-nano-7240-driver-checkpatch-fixes.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
 kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-sync_sb_inodes-propagate-errors.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+remove-support-for-un-needed-_extratext-section.patch
