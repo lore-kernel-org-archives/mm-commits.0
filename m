@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nfs-fix-the-ustat-regression.patch added to -mm tree
-Date: Mon, 29 Oct 2007 14:40:46 -0700
-Message-ID: <200710292140.l9TLelql024686@imap1.linux-foundation.org>
+Subject: + media-video-planb-fix-obvious-interrupt-handling-bugs.patch added to -mm tree
+Date: Mon, 29 Oct 2007 14:41:50 -0700
+Message-ID: <200710292141.l9TLfooS024701@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41458 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52487 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751574AbXJ2Vla (ORCPT
+	by vger.kernel.org with ESMTP id S1751812AbXJ2VmQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 17:41:30 -0400
+	Mon, 29 Oct 2007 17:42:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Trond.Myklebust@netapp.com
+Cc: jeff@garzik.org, jgarzik@redhat.com, mchehab@infradead.org
 
 
 The patch titled
-     NFS: Fix the ustat() regression
+     media/video/planb: fix obvious interrupt handling bugs
 has been added to the -mm tree.  Its filename is
-     nfs-fix-the-ustat-regression.patch
+     media-video-planb-fix-obvious-interrupt-handling-bugs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,144 +26,102 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: NFS: Fix the ustat() regression
-From: Trond Myklebust <Trond.Myklebust@netapp.com>
+Subject: media/video/planb: fix obvious interrupt handling bugs
+From: Jeff Garzik <jeff@garzik.org>
 
-Since 2.6.18, the superblock sb->s_root has been a dummy dentry with a
-dummy inode.  This breaks ustat(), which actually uses sb->s_root in a
-vfstat() call.
+irq handlers have returned a return value for years now... catch up with
+the times.
 
-Fix this by making the s_root a dummy alias to the directory inode that was
-used when creating the superblock.
+Also, ditch unneeded prototype.
 
-Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/getroot.c |   81 +++++++++++++++------------------------------
- 1 file changed, 27 insertions(+), 54 deletions(-)
+ drivers/media/video/planb.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/nfs/getroot.c~nfs-fix-the-ustat-regression fs/nfs/getroot.c
---- a/fs/nfs/getroot.c~nfs-fix-the-ustat-regression
-+++ a/fs/nfs/getroot.c
-@@ -43,6 +43,25 @@
- #define NFSDBG_FACILITY		NFSDBG_CLIENT
+diff -puN drivers/media/video/planb.c~media-video-planb-fix-obvious-interrupt-handling-bugs drivers/media/video/planb.c
+--- a/drivers/media/video/planb.c~media-video-planb-fix-obvious-interrupt-handling-bugs
++++ a/drivers/media/video/planb.c
+@@ -91,7 +91,6 @@ static void planb_close(struct video_dev
+ static int planb_ioctl(struct video_device *, unsigned int, void *);
+ static int planb_init_done(struct video_device *);
+ static int planb_mmap(struct video_device *, const char *, unsigned long);
+-static void planb_irq(int, void *);
+ static void release_planb(void);
+ int init_planbs(struct video_init *);
  
- /*
-+ * Set the superblock root dentry.
-+ * Note that this function frees the inode in case of error.
-+ */
-+static int nfs_superblock_set_dummy_root(struct super_block *sb, struct inode *inode)
-+{
-+	/* The mntroot acts as the dummy root dentry for this superblock */
-+	if (sb->s_root == NULL) {
-+		sb->s_root = d_alloc_root(inode);
-+		if (sb->s_root == NULL) {
-+			iput(inode);
-+			return -ENOMEM;
-+		}
-+		/* Circumvent igrab(): we know the inode is not being freed */
-+		atomic_inc(&inode->i_count);
-+	}
-+	return 0;
-+}
-+
-+/*
-  * get an NFS2/NFS3 root dentry from the root filehandle
-  */
- struct dentry *nfs_get_root(struct super_block *sb, struct nfs_fh *mntfh)
-@@ -54,33 +73,6 @@ struct dentry *nfs_get_root(struct super
- 	struct inode *inode;
- 	int error;
+@@ -1315,7 +1314,7 @@ cmd_tab_data_end:
+ 	return c1;
+ }
  
--	/* create a dummy root dentry with dummy inode for this superblock */
--	if (!sb->s_root) {
--		struct nfs_fh dummyfh;
--		struct dentry *root;
--		struct inode *iroot;
--
--		memset(&dummyfh, 0, sizeof(dummyfh));
--		memset(&fattr, 0, sizeof(fattr));
--		nfs_fattr_init(&fattr);
--		fattr.valid = NFS_ATTR_FATTR;
--		fattr.type = NFDIR;
--		fattr.mode = S_IFDIR | S_IRUSR | S_IWUSR;
--		fattr.nlink = 2;
--
--		iroot = nfs_fhget(sb, &dummyfh, &fattr);
--		if (IS_ERR(iroot))
--			return ERR_PTR(PTR_ERR(iroot));
--
--		root = d_alloc_root(iroot);
--		if (!root) {
--			iput(iroot);
--			return ERR_PTR(-ENOMEM);
--		}
--
--		sb->s_root = root;
--	}
--
- 	/* get the actual root for this mount */
- 	fsinfo.fattr = &fattr;
- 
-@@ -96,6 +88,10 @@ struct dentry *nfs_get_root(struct super
- 		return ERR_PTR(PTR_ERR(inode));
+-static void planb_irq(int irq, void *dev_id)
++static irqreturn_t planb_irq(int irq, void *dev_id)
+ {
+ 	unsigned int stat, astat;
+ 	struct planb *pb = (struct planb *)dev_id;
+@@ -1358,13 +1357,14 @@ static void planb_irq(int irq, void *dev
+ 		pb->frame_stat[fr] = GBUFFER_DONE;
+ 		pb->grabbing--;
+ 		wake_up_interruptible(&pb->capq);
+-		return;
++		return IRQ_HANDLED;
  	}
+ 	/* incorrect interrupts? */
+ 	pb->intr_mask = PLANB_CLR_IRQ;
+ 	out_le32(&pb->planb_base->intr_stat, PLANB_CLR_IRQ);
+ 	printk(KERN_ERR "PlanB: IRQ lockup, cleared intrrupts"
+ 							" unconditionally\n");
++	return IRQ_HANDLED;
+ }
  
-+	error = nfs_superblock_set_dummy_root(sb, inode);
-+	if (error != 0)
-+		return ERR_PTR(error);
-+
- 	/* root dentries normally start off anonymous and get spliced in later
- 	 * if the dentry tree reaches them; however if the dentry already
- 	 * exists, we'll pick it up at this point and use it as the root
-@@ -241,33 +237,6 @@ struct dentry *nfs4_get_root(struct supe
+ /*******************************
+@@ -2090,7 +2090,7 @@ static int init_planb(struct planb *pb)
+ 	/* clear interrupt mask */
+ 	pb->intr_mask = PLANB_CLR_IRQ;
  
- 	dprintk("--> nfs4_get_root()\n");
- 
--	/* create a dummy root dentry with dummy inode for this superblock */
--	if (!sb->s_root) {
--		struct nfs_fh dummyfh;
--		struct dentry *root;
--		struct inode *iroot;
--
--		memset(&dummyfh, 0, sizeof(dummyfh));
--		memset(&fattr, 0, sizeof(fattr));
--		nfs_fattr_init(&fattr);
--		fattr.valid = NFS_ATTR_FATTR;
--		fattr.type = NFDIR;
--		fattr.mode = S_IFDIR | S_IRUSR | S_IWUSR;
--		fattr.nlink = 2;
--
--		iroot = nfs_fhget(sb, &dummyfh, &fattr);
--		if (IS_ERR(iroot))
--			return ERR_PTR(PTR_ERR(iroot));
--
--		root = d_alloc_root(iroot);
--		if (!root) {
--			iput(iroot);
--			return ERR_PTR(-ENOMEM);
--		}
--
--		sb->s_root = root;
--	}
--
- 	/* get the info about the server and filesystem */
- 	error = nfs4_server_capabilities(server, mntfh);
- 	if (error < 0) {
-@@ -289,6 +258,10 @@ struct dentry *nfs4_get_root(struct supe
- 		return ERR_PTR(PTR_ERR(inode));
- 	}
- 
-+	error = nfs_superblock_set_dummy_root(sb, inode);
-+	if (error != 0)
-+		return ERR_PTR(error);
-+
- 	/* root dentries normally start off anonymous and get spliced in later
- 	 * if the dentry tree reaches them; however if the dentry already
- 	 * exists, we'll pick it up at this point and use it as the root
+-	result = request_irq(pb->irq, planb_irq, 0, "PlanB", (void *)pb);
++	result = request_irq(pb->irq, planb_irq, 0, "PlanB", pb);
+ 	if (result < 0) {
+ 		if (result==-EINVAL)
+ 			printk(KERN_ERR "PlanB: Bad irq number (%d) "
 _
 
-Patches currently in -mm which might be from Trond.Myklebust@netapp.com are
+Patches currently in -mm which might be from jeff@garzik.org are
 
-nfs-fix-the-ustat-regression.patch
+origin.patch
+remove-bogus-default-y-for-dmar-and-net_dma.patch
+acpi-sbs-fix-retval-warning.patch
+git-arm.patch
+media-video-planb-fix-obvious-interrupt-handling-bugs.patch
+git-jg-misc.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-add-helper-__ide_setup_pci_device.patch
+drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop.patch
+drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
+git-netdev-all.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-scsi-misc-vs-git-libata-all.patch
+hptiop-fix-type-mismatch-warning.patch
+ips-remove-ips_ha-members-that-duplicate-struct-pci_dev-members.patch
+ips-trim-trailing-whitespace.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+ips-pci-api-cleanups.patch
+ips-handle-scsi_add_host-failure-and-other-err-cleanups.patch
+git-wireless.patch
+fix-versus-precedence-in-various-places.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness.patch
+riscom8-fix-smp-brokenness-fix.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+sound-oss-sb_commonc-fix-casting-warning.patch
+remove-warnings-for-longstanding-conditions.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+remove-pointless-casts-from-void-pointers.patch
