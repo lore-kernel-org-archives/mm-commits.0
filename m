@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maps4-simplify-interdependence-of-maps-and-smaps.patch added to -mm tree
-Date: Mon, 29 Oct 2007 14:57:35 -0700
-Message-ID: <200710292157.l9TLvZlm025357@imap1.linux-foundation.org>
+Subject: + maps4-rework-task_size-macros.patch added to -mm tree
+Date: Mon, 29 Oct 2007 14:59:06 -0700
+Message-ID: <200710292159.l9TLx6O0025404@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35812 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38121 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752446AbXJ2WDd (ORCPT
+	by vger.kernel.org with ESMTP id S1752916AbXJ2WEz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 18:03:33 -0400
+	Mon, 29 Oct 2007 18:04:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mpm@selenic.com, haveblue@us.ibm.com, jeremy@goop.org, rientjes@google.com
+Cc: haveblue@us.ibm.com, mpm@selenic.com, ralf@linux-mips.org, rientjes@google.com
 
 
 The patch titled
-     maps4: simplify interdependence of maps and smaps
+     maps4: rework TASK_SIZE macros
 has been added to the -mm tree.  Its filename is
-     maps4-simplify-interdependence-of-maps-and-smaps.patch
+     maps4-rework-task_size-macros.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,115 +26,144 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: maps4: simplify interdependence of maps and smaps
-From: Matt Mackall <mpm@selenic.com>
+Subject: maps4: rework TASK_SIZE macros
+From: Dave Hansen <haveblue@us.ibm.com>
 
-This pulls the shared map display code out of show_map and puts it in
-show_smap where it belongs.
+The following replaces the earlier patches sent.  It should address
+David Rientjes's comments, and has been compile tested on all the
+architectures that it touches, save for parisc.
 
+For the /proc/<pid>/pagemap code[1], we need to able to query how
+much virtual address space a particular task has.  The trick is
+that we do it through /proc and can't use TASK_SIZE since it
+references "current" on some arches.  The process opening the
+/proc file might be a 32-bit process opening a 64-bit process's
+pagemap file.
+
+x86_64 already has a TASK_SIZE_OF() macro:
+
+#define TASK_SIZE_OF(child)     ((test_tsk_thread_flag(child, TIF_IA32)) ? IA32_PAGE_OFFSET : TASK_SIZE64)
+
+I'd like to have that for other architectures.  So, add it
+for all the architectures that actually use "current" in
+their TASK_SIZE.  For the others, just add a quick #define
+in sched.h to use plain old TASK_SIZE.
+
+1. http://www.linuxworld.com/news/2007/042407-kernel.html
+
+- MIPS portion from Ralf Baechle <ralf@linux-mips.org>
+
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Matt Mackall <mpm@selenic.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Acked-by: David Rientjes <rientjes@google.com>
 Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   52 +++++++++++++++++++++----------------------
- 1 file changed, 26 insertions(+), 26 deletions(-)
+ include/asm-ia64/processor.h    |    3 ++-
+ include/asm-mips/processor.h    |    4 ++++
+ include/asm-parisc/processor.h  |    3 ++-
+ include/asm-powerpc/processor.h |    3 ++-
+ include/asm-s390/processor.h    |    3 ++-
+ include/linux/sched.h           |    4 ++++
+ 6 files changed, 16 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~maps4-simplify-interdependence-of-maps-and-smaps fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~maps4-simplify-interdependence-of-maps-and-smaps
-+++ a/fs/proc/task_mmu.c
-@@ -145,7 +145,7 @@ struct mem_size_stats
- 	u64 pss;
- };
+diff -puN include/asm-ia64/processor.h~maps4-rework-task_size-macros include/asm-ia64/processor.h
+--- a/include/asm-ia64/processor.h~maps4-rework-task_size-macros
++++ a/include/asm-ia64/processor.h
+@@ -31,7 +31,8 @@
+  * each (assuming 8KB page size), for a total of 8TB of user virtual
+  * address space.
+  */
+-#define TASK_SIZE		(current->thread.task_size)
++#define TASK_SIZE_OF(tsk)	((tsk)->thread.task_size)
++#define TASK_SIZE       	TASK_SIZE_OF(current)
  
--static int show_map_internal(struct seq_file *m, void *v, struct mem_size_stats *mss)
-+static int show_map(struct seq_file *m, void *v)
- {
- 	struct proc_maps_private *priv = m->private;
- 	struct task_struct *task = priv->task;
-@@ -205,35 +205,11 @@ static int show_map_internal(struct seq_
- 	}
- 	seq_putc(m, '\n');
+ /*
+  * This decides where the kernel will search for a free chunk of vm
+diff -puN include/asm-mips/processor.h~maps4-rework-task_size-macros include/asm-mips/processor.h
+--- a/include/asm-mips/processor.h~maps4-rework-task_size-macros
++++ a/include/asm-mips/processor.h
+@@ -45,6 +45,8 @@ extern unsigned int vced_count, vcei_cou
+  * space during mmap's.
+  */
+ #define TASK_UNMAPPED_BASE	(PAGE_ALIGN(TASK_SIZE / 3))
++#define TASK_SIZE_OF(tsk)						\
++	(test_tsk_thread_flag(tsk, TIF_32BIT_ADDR) ? TASK_SIZE32 : TASK_SIZE)
+ #endif
  
--	if (mss)
--		seq_printf(m,
--			   "Size:           %8lu kB\n"
--			   "Rss:            %8lu kB\n"
--			   "Pss:            %8lu kB\n"
--			   "Shared_Clean:   %8lu kB\n"
--			   "Shared_Dirty:   %8lu kB\n"
--			   "Private_Clean:  %8lu kB\n"
--			   "Private_Dirty:  %8lu kB\n"
--			   "Referenced:     %8lu kB\n",
--			   (vma->vm_end - vma->vm_start) >> 10,
--			   mss->resident >> 10,
--			   (unsigned long)(mss.pss >> (10 + PSS_SHIFT)),
--			   mss->shared_clean  >> 10,
--			   mss->shared_dirty  >> 10,
--			   mss->private_clean >> 10,
--			   mss->private_dirty >> 10,
--			   mss->referenced >> 10);
--
- 	if (m->count < m->size)  /* vma is copied successfully */
- 		m->version = (vma != get_gate_vma(task))? vma->vm_start: 0;
- 	return 0;
+ #ifdef CONFIG_64BIT
+@@ -65,6 +67,8 @@ extern unsigned int vced_count, vcei_cou
+ #define TASK_UNMAPPED_BASE						\
+ 	(test_thread_flag(TIF_32BIT_ADDR) ?				\
+ 		PAGE_ALIGN(TASK_SIZE32 / 3) : PAGE_ALIGN(TASK_SIZE / 3))
++#define TASK_SIZE_OF(tsk)						\
++	(test_tsk_thread_flag(tsk, TIF_32BIT_ADDR) ? TASK_SIZE32 : TASK_SIZE)
+ #endif
+ 
+ #define NUM_FPU_REGS	32
+diff -puN include/asm-parisc/processor.h~maps4-rework-task_size-macros include/asm-parisc/processor.h
+--- a/include/asm-parisc/processor.h~maps4-rework-task_size-macros
++++ a/include/asm-parisc/processor.h
+@@ -32,7 +32,8 @@
+ #endif
+ #define current_text_addr() ({ void *pc; current_ia(pc); pc; })
+ 
+-#define TASK_SIZE               (current->thread.task_size)
++#define TASK_SIZE_OF(tsk)       ((tsk)->thread.task_size)
++#define TASK_SIZE	        TASK_SIZE_OF(current)
+ #define TASK_UNMAPPED_BASE      (current->thread.map_base)
+ 
+ #define DEFAULT_TASK_SIZE32	(0xFFF00000UL)
+diff -puN include/asm-powerpc/processor.h~maps4-rework-task_size-macros include/asm-powerpc/processor.h
+--- a/include/asm-powerpc/processor.h~maps4-rework-task_size-macros
++++ a/include/asm-powerpc/processor.h
+@@ -99,8 +99,9 @@ extern struct task_struct *last_task_use
+  */
+ #define TASK_SIZE_USER32 (0x0000000100000000UL - (1*PAGE_SIZE))
+ 
+-#define TASK_SIZE (test_thread_flag(TIF_32BIT) ? \
++#define TASK_SIZE_OF(tsk) (test_tsk_thread_flag(tsk, TIF_32BIT) ? \
+ 		TASK_SIZE_USER32 : TASK_SIZE_USER64)
++#define TASK_SIZE	  TASK_SIZE_OF(current)
+ 
+ /* This decides where the kernel will search for a free chunk of vm
+  * space during mmap's.
+diff -puN include/asm-s390/processor.h~maps4-rework-task_size-macros include/asm-s390/processor.h
+--- a/include/asm-s390/processor.h~maps4-rework-task_size-macros
++++ a/include/asm-s390/processor.h
+@@ -73,8 +73,9 @@ extern struct task_struct *last_task_use
+ 
+ #else /* __s390x__ */
+ 
+-# define TASK_SIZE		(test_thread_flag(TIF_31BIT) ? \
++# define TASK_SIZE_OF(tsk)	(test_tsk_thread_flag(tsk, TIF_31BIT) ? \
+ 					(0x80000000UL) : (0x40000000000UL))
++# define TASK_SIZE		TASK_SIZE_OF(current)
+ # define TASK_UNMAPPED_BASE	(TASK_SIZE / 2)
+ # define DEFAULT_TASK_SIZE	(0x40000000000UL)
+ 
+diff -puN include/linux/sched.h~maps4-rework-task_size-macros include/linux/sched.h
+--- a/include/linux/sched.h~maps4-rework-task_size-macros
++++ a/include/linux/sched.h
+@@ -1986,6 +1986,10 @@ static inline void inc_syscw(struct task
  }
+ #endif
  
--static int show_map(struct seq_file *m, void *v)
--{
--	return show_map_internal(m, v, NULL);
--}
--
- static int smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
- 			   void *private)
- {
-@@ -312,13 +288,37 @@ static int show_smap(struct seq_file *m,
- {
- 	struct vm_area_struct *vma = v;
- 	struct mem_size_stats mss;
-+	int ret;
++#ifndef TASK_SIZE_OF
++#define TASK_SIZE_OF(tsk)	TASK_SIZE
++#endif
++
+ #endif /* __KERNEL__ */
  
- 	memset(&mss, 0, sizeof mss);
- 	mss.vma = vma;
- 	if (vma->vm_mm && !is_vm_hugetlb_page(vma))
- 		walk_page_range(vma->vm_mm, vma->vm_start, vma->vm_end,
- 				&smaps_walk, &mss);
--	return show_map_internal(m, v, &mss);
-+
-+	ret = show_map(m, v);
-+	if (ret)
-+		return ret;
-+
-+	seq_printf(m,
-+		   "Size:           %8lu kB\n"
-+		   "Rss:            %8lu kB\n"
-+		   "Pss:            %8lu kB\n"
-+		   "Shared_Clean:   %8lu kB\n"
-+		   "Shared_Dirty:   %8lu kB\n"
-+		   "Private_Clean:  %8lu kB\n"
-+		   "Private_Dirty:  %8lu kB\n"
-+		   "Referenced:     %8lu kB\n",
-+		   (vma->vm_end - vma->vm_start) >> 10,
-+		   mss.resident >> 10,
-+		   (unsigned long)(mss.pss >> (10 + PSS_SHIFT)),
-+		   mss.shared_clean  >> 10,
-+		   mss.shared_dirty  >> 10,
-+		   mss.private_clean >> 10,
-+		   mss.private_dirty >> 10,
-+		   mss.referenced >> 10);
-+
-+	return ret;
- }
- 
- static struct mm_walk clear_refs_walk = { .pmd_entry = clear_refs_pte_range };
+ #endif
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from haveblue@us.ibm.com are
 
 maps4-add-proportional-set-size-accounting-in-smaps.patch
-maps4-from-dave-hansen-haveblue-usibmcom.patch
+maps4-rework-task_size-macros.patch
 maps4-move-is_swap_pte.patch
 maps4-introduce-a-generic-page-walker.patch
 maps4-use-pagewalker-in-clear_refs-and-smaps.patch
@@ -145,3 +174,33 @@ maps4-add-proc-pid-pagemap-interface.patch
 maps4-add-proc-kpagecount-interface.patch
 maps4-add-proc-kpageflags-interface.patch
 maps4-make-page-monitoring-proc-file-optional.patch
+r-o-bind-mounts-stub-functions.patch
+r-o-bind-mounts-elevate-write-count-opend-files.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2.patch
+r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
+r-o-bind-mounts-make-access-use-mnt-check.patch
+r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
+r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
+r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
+r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime.patch
+r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime-fix.patch
+r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
+r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch
+r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
+r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
+r-o-bind-mounts-do_rmdir-elevate-write-count.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
+r-o-bind-mounts-track-number-of-mount-writers-fix.patch
+r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
