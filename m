@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-sym53c416-kill-pointless-irq-handler-loop-and-test.patch added to -mm tree
-Date: Mon, 29 Oct 2007 14:45:48 -0700
-Message-ID: <200710292145.l9TLjmE5024874@imap1.linux-foundation.org>
+Subject: + usb-s3c2410_udc-minor-irq-handler-cleanups.patch added to -mm tree
+Date: Mon, 29 Oct 2007 14:47:24 -0700
+Message-ID: <200710292147.l9TLlOQ2024983@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60741 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33995 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752124AbXJ2Vqi (ORCPT
+	by vger.kernel.org with ESMTP id S1752564AbXJ2Vru (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 17:46:38 -0400
+	Mon, 29 Oct 2007 17:47:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeff@garzik.org, James.Bottomley@steeleye.com, jgarzik@redhat.com, willy@debian.org
+Cc: jeff@garzik.org, david-b@pacbell.net, greg@kroah.com, jgarzik@redhat.com
 
 
 The patch titled
-     SCSI/sym53c416: kill pointless irq handler loop and test
+     USB: s3c2410_udc: minor irq handler cleanups
 has been added to the -mm tree.  Its filename is
-     scsi-sym53c416-kill-pointless-irq-handler-loop-and-test.patch
+     usb-s3c2410_udc-minor-irq-handler-cleanups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SCSI/sym53c416: kill pointless irq handler loop and test
+Subject: USB: s3c2410_udc: minor irq handler cleanups
 From: Jeff Garzik <jeff@garzik.org>
 
-- kill pointless irq handler loop to find base address, it is already
-  passed to irq handler via Scsi_Host.
-
-- kill now-pointless !base test.
+- 'irq' argument is merely used in place of a constant; replace its usage
+  with that constant.
 
 Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Matthew Wilcox <willy@debian.org>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sym53c416.c |   16 +---------------
- 1 file changed, 1 insertion(+), 15 deletions(-)
+ drivers/usb/gadget/s3c2410_udc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/sym53c416.c~scsi-sym53c416-kill-pointless-irq-handler-loop-and-test drivers/scsi/sym53c416.c
---- a/drivers/scsi/sym53c416.c~scsi-sym53c416-kill-pointless-irq-handler-loop-and-test
-+++ a/drivers/scsi/sym53c416.c
-@@ -328,27 +328,13 @@ static __inline__ unsigned int sym53c416
- static irqreturn_t sym53c416_intr_handle(int irq, void *dev_id)
+diff -puN drivers/usb/gadget/s3c2410_udc.c~usb-s3c2410_udc-minor-irq-handler-cleanups drivers/usb/gadget/s3c2410_udc.c
+--- a/drivers/usb/gadget/s3c2410_udc.c~usb-s3c2410_udc-minor-irq-handler-cleanups
++++ a/drivers/usb/gadget/s3c2410_udc.c
+@@ -893,7 +893,7 @@ static void s3c2410_udc_handle_ep(struct
+ /*
+  *	s3c2410_udc_irq - interrupt handler
+  */
+-static irqreturn_t s3c2410_udc_irq(int irq, void *_dev)
++static irqreturn_t s3c2410_udc_irq(int dummy, void *_dev)
  {
- 	struct Scsi_Host *dev = dev_id;
--	int base = 0;
-+	int base = dev->io_port;
- 	int i;
- 	unsigned long flags = 0;
- 	unsigned char status_reg, pio_int_reg, int_reg;
- 	struct scatterlist *sg;
- 	unsigned int tot_trans = 0;
+ 	struct s3c2410_udc *dev = _dev;
+ 	int usb_status;
+@@ -1016,7 +1016,7 @@ static irqreturn_t s3c2410_udc_irq(int i
+ 		}
+ 	}
  
--	/* We search the base address of the host adapter which caused the interrupt */
--	/* FIXME: should pass dev_id sensibly as hosts[i] */
--	for(i = 0; i < host_index && !base; i++)
--		if(irq == hosts[i].irq)
--			base = hosts[i].base;
--	/* If no adapter found, we cannot handle the interrupt. Leave a message */
--	/* and continue. This should never happen...                            */
--	if(!base)
--	{
--		printk(KERN_ERR "sym53c416: No host adapter defined for interrupt %d\n", irq);
--		return IRQ_NONE;
--	}
--	/* Now we have the base address and we can start handling the interrupt */
--
- 	spin_lock_irqsave(dev->host_lock,flags);
- 	status_reg = inb(base + STATUS_REG);
- 	pio_int_reg = inb(base + PIO_INT_REG);
+-	dprintk(DEBUG_VERBOSE, "irq: %d s3c2410_udc_done.\n", irq);
++	dprintk(DEBUG_VERBOSE, "irq: %d s3c2410_udc_done.\n", IRQ_USBD);
+ 
+ 	/* Restore old index */
+ 	udc_write(idx, S3C2410_UDC_INDEX_REG);
 _
 
 Patches currently in -mm which might be from jeff@garzik.org are
@@ -105,6 +92,7 @@ ips-handle-scsi_add_host-failure-and-other-err-cleanups.patch
 scsi-gdth-kill-unneeded-irq-argument.patch
 scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
 scsi-sym53c416-kill-pointless-irq-handler-loop-and-test.patch
+usb-s3c2410_udc-minor-irq-handler-cleanups.patch
 git-wireless.patch
 fix-versus-precedence-in-various-places.patch
 fix-versus-precedence-in-various-places-checkpatch-fixes.patch
