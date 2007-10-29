@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-doc-init-kernel-version.patch removed from -mm tree
-Date: Mon, 29 Oct 2007 13:31:36 -0700
-Message-ID: <200710292031.l9TKVaZa021863@imap1.linux-foundation.org>
+Subject: - kernel-doc-use-no-doc-option.patch removed from -mm tree
+Date: Mon, 29 Oct 2007 13:31:42 -0700
+Message-ID: <200710292031.l9TKVgxX021872@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44938 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50878 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753240AbXJ2Ug5 (ORCPT
+	by vger.kernel.org with ESMTP id S1756902AbXJ2UhK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 16:36:57 -0400
+	Mon, 29 Oct 2007 16:37:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: johannes@sipsolutions.net, randy.dunlap@oracle.com, rpjday@mindspring.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel-doc: init kernel version
+     kernel-doc: use no-doc option
 has been removed from the -mm tree.  Its filename was
-     kernel-doc-init-kernel-version.patch
+     kernel-doc-use-no-doc-option.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kernel-doc: init kernel version
+Subject: kernel-doc: use no-doc option
 From: Johannes Berg <johannes@sipsolutions.net>
 
-The kernel-doc script triggers a perl warning when invoked without
-KERNELVERSION in the environment, rather make it use the string "unknown
-kernel version" instead.
+When asked by a template to include all functions from a file, it will also
+include DOC: sections wreaking havoc in the generated docbook file.  This
+patch makes it use the new -no-doc-sections flag for kernel-doc to avoid this.
 
 Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
@@ -36,21 +36,36 @@ Cc: "Robert P. J. Day" <rpjday@mindspring.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/basic/docproc.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN scripts/kernel-doc~kernel-doc-init-kernel-version scripts/kernel-doc
---- a/scripts/kernel-doc~kernel-doc-init-kernel-version
-+++ a/scripts/kernel-doc
-@@ -334,7 +334,7 @@ while ($ARGV[0] =~ m/^-(.*)/) {
+diff -puN scripts/basic/docproc.c~kernel-doc-use-no-doc-option scripts/basic/docproc.c
+--- a/scripts/basic/docproc.c~kernel-doc-use-no-doc-option
++++ a/scripts/basic/docproc.c
+@@ -65,6 +65,7 @@ FILELINE * entity_system;
+ #define DOCBOOK       "-docbook"
+ #define FUNCTION      "-function"
+ #define NOFUNCTION    "-nofunction"
++#define NODOCSECTIONS "-no-doc-sections"
  
- # get kernel version from env
- sub get_kernel_version() {
--    my $version;
-+    my $version = 'unknown kernel version';
+ char *srctree;
  
-     if (defined($ENV{'KERNELVERSION'})) {
- 	$version = $ENV{'KERNELVERSION'};
+@@ -231,13 +232,14 @@ void docfunctions(char * filename, char 
+ 
+ 	for (i=0; i <= symfilecnt; i++)
+ 		symcnt += symfilelist[i].symbolcnt;
+-	vec = malloc((2 + 2 * symcnt + 2) * sizeof(char*));
++	vec = malloc((2 + 2 * symcnt + 3) * sizeof(char*));
+ 	if (vec == NULL) {
+ 		perror("docproc: ");
+ 		exit(1);
+ 	}
+ 	vec[idx++] = KERNELDOC;
+ 	vec[idx++] = DOCBOOK;
++	vec[idx++] = NODOCSECTIONS;
+ 	for (i=0; i < symfilecnt; i++) {
+ 		struct symfile * sym = &symfilelist[i];
+ 		for (j=0; j < sym->symbolcnt; j++) {
 _
 
 Patches currently in -mm which might be from johannes@sipsolutions.net are
