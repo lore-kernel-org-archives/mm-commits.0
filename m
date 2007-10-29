@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-doc-process-functions-not-doc.patch removed from -mm tree
-Date: Mon, 29 Oct 2007 13:31:40 -0700
-Message-ID: <200710292031.l9TKVeE9021869@imap1.linux-foundation.org>
+Subject: - kernel-doc-init-kernel-version.patch removed from -mm tree
+Date: Mon, 29 Oct 2007 13:31:36 -0700
+Message-ID: <200710292031.l9TKVaZa021863@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34838 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44938 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753604AbXJ2Ue1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753240AbXJ2Ug5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 16:34:27 -0400
+	Mon, 29 Oct 2007 16:36:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: johannes@sipsolutions.net, randy.dunlap@oracle.com, rpjday@mindspring.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel-doc: process functions, not DOC:
+     kernel-doc: init kernel version
 has been removed from the -mm tree.  Its filename was
-     kernel-doc-process-functions-not-doc.patch
+     kernel-doc-init-kernel-version.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: kernel-doc: process functions, not DOC:
+Subject: kernel-doc: init kernel version
 From: Johannes Berg <johannes@sipsolutions.net>
 
-This flag is necessary for the next patch for docproc to output only the
-functions and not DOC: sections when a function list is requested.
+The kernel-doc script triggers a perl warning when invoked without
+KERNELVERSION in the environment, rather make it use the string "unknown
+kernel version" instead.
 
 Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
@@ -35,67 +36,21 @@ Cc: "Robert P. J. Day" <rpjday@mindspring.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ scripts/kernel-doc |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/kernel-doc~kernel-doc-process-functions-not-doc scripts/kernel-doc
---- a/scripts/kernel-doc~kernel-doc-process-functions-not-doc
+diff -puN scripts/kernel-doc~kernel-doc-init-kernel-version scripts/kernel-doc
+--- a/scripts/kernel-doc~kernel-doc-init-kernel-version
 +++ a/scripts/kernel-doc
-@@ -46,13 +46,16 @@ use strict;
- # Note: This only supports 'c'.
+@@ -334,7 +334,7 @@ while ($ARGV[0] =~ m/^-(.*)/) {
  
- # usage:
--# kernel-doc [ -docbook | -html | -text | -man ]
-+# kernel-doc [ -docbook | -html | -text | -man ] [ -no-doc-sections ]
- #           [ -function funcname [ -function funcname ...] ] c file(s)s > outputfile
- # or
- #           [ -nofunction funcname [ -function funcname ...] ] c file(s)s > outputfile
- #
- #  Set output format using one of -docbook -html -text or -man.  Default is man.
- #
-+#  -no-doc-sections
-+#	Do not output DOC: sections
-+#
- #  -function funcname
- #	If set, then only generate documentation for the given function(s) or
- #	DOC: section titles.  All other functions and DOC: sections are ignored.
-@@ -211,7 +214,7 @@ my $blankline_text = "";
+ # get kernel version from env
+ sub get_kernel_version() {
+-    my $version;
++    my $version = 'unknown kernel version';
  
- 
- sub usage {
--    print "Usage: $0 [ -v ] [ -docbook | -html | -text | -man ]\n";
-+    print "Usage: $0 [ -v ] [ -docbook | -html | -text | -man ] [ -no-doc-sections ]\n";
-     print "         [ -function funcname [ -function funcname ...] ]\n";
-     print "         [ -nofunction funcname [ -nofunction funcname ...] ]\n";
-     print "         c source file(s) > outputfile\n";
-@@ -225,6 +228,7 @@ if ($#ARGV==-1) {
- 
- my $verbose = 0;
- my $output_mode = "man";
-+my $no_doc_sections = 0;
- my %highlights = %highlights_man;
- my $blankline = $blankline_man;
- my $modulename = "Kernel API";
-@@ -329,6 +333,8 @@ while ($ARGV[0] =~ m/^-(.*)/) {
- 	usage();
-     } elsif ($cmd eq '-filelist') {
- 	    $filelist = shift @ARGV;
-+    } elsif ($cmd eq '-no-doc-sections') {
-+	    $no_doc_sections = 1;
-     }
- }
- 
-@@ -380,6 +386,10 @@ sub dump_doc_section {
-     my $name = shift;
-     my $contents = join "\n", @_;
- 
-+    if ($no_doc_sections) {
-+	return;
-+    }
-+
-     if (($function_only == 0) ||
- 	( $function_only == 1 && defined($function_table{$name})) ||
- 	( $function_only == 2 && !defined($function_table{$name})))
+     if (defined($ENV{'KERNELVERSION'})) {
+ 	$version = $ENV{'KERNELVERSION'};
 _
 
 Patches currently in -mm which might be from johannes@sipsolutions.net are
