@@ -1,84 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-fix-if-n-if-cases-missing-semicolons-when-false.patch removed from -mm tree
-Date: Mon, 29 Oct 2007 13:31:16 -0700
-Message-ID: <200710292031.l9TKVGr6021839@imap1.linux-foundation.org>
+Subject: - ipg-kconfig-whitepaces-tab-damages.patch removed from -mm tree
+Date: Mon, 29 Oct 2007 13:31:11 -0700
+Message-ID: <200710292031.l9TKVBYr021830@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49446 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33792 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753325AbXJ2UcL (ORCPT
+	by vger.kernel.org with ESMTP id S1752519AbXJ2UcF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 16:32:11 -0400
+	Mon, 29 Oct 2007 16:32:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ilpo.jarvinen@helsinki.fi, James.Bottomley@steeleye.com, osst@riede.org, mm-commits@vger.kernel.org
+To: romieu@fr.zoreil.com, jesse@icplus.com.tw, sorbica@icplus.com.tw, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: fix if (...) \n #if... cases missing semicolons when false
+     ipg: Kconfig whitepaces/tab damages
 has been removed from the -mm tree.  Its filename was
-     scsi-fix-if-n-if-cases-missing-semicolons-when-false.patch
+     ipg-kconfig-whitepaces-tab-damages.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: scsi: fix if (...) \n #if... cases missing semicolons when fal=
-se
-=46rom: Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi>
+Subject: ipg: Kconfig whitepaces/tab damages
+From: Francois Romieu <romieu@fr.zoreil.com>
 
-Signed-off-by: Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi>
-Cc: Willem Riede <osst@riede.org>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
+Cc: Jesse Huang <jesse@icplus.com.tw>
+Cc: Sorbica Shieh <sorbica@icplus.com.tw>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/osst.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/net/Kconfig |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/scsi/osst.c~scsi-fix-if-n-if-cases-missing-semicolons=
--when-false drivers/scsi/osst.c
---- a/drivers/scsi/osst.c~scsi-fix-if-n-if-cases-missing-semicolons-whe=
-n-false
-+++ a/drivers/scsi/osst.c
-@@ -593,10 +593,11 @@ static int osst_verify_frame(struct osst
- 	if (aux->frame_type !=3D OS_FRAME_TYPE_DATA &&
- 	    aux->frame_type !=3D OS_FRAME_TYPE_EOD &&
- 	    aux->frame_type !=3D OS_FRAME_TYPE_MARKER) {
--		if (!quiet)
-+		if (!quiet) {
- #if DEBUG
- 			printk(OSST_DEB_MSG "%s:D: Skipping frame, frame type %x\n", name, =
-aux->frame_type);
- #endif
-+		}
- 		goto err_out;
- 	}
- 	if (aux->frame_type =3D=3D OS_FRAME_TYPE_EOD &&
-@@ -606,11 +607,12 @@ static int osst_verify_frame(struct osst
- 		goto err_out;
- 	}
-         if (frame_seq_number !=3D -1 && ntohl(aux->frame_seq_num) !=3D=
- frame_seq_number) {
--		if (!quiet)
-+		if (!quiet) {
- #if DEBUG
- 			printk(OSST_DEB_MSG "%s:D: Skipping frame, sequence number %u (expe=
-cted %d)\n",=20
- 					    name, ntohl(aux->frame_seq_num), frame_seq_number);
- #endif
-+		}
- 		goto err_out;
- 	}
- 	if (aux->frame_type =3D=3D OS_FRAME_TYPE_MARKER) {
+diff -puN drivers/net/Kconfig~ipg-kconfig-whitepaces-tab-damages drivers/net/Kconfig
+--- a/drivers/net/Kconfig~ipg-kconfig-whitepaces-tab-damages
++++ a/drivers/net/Kconfig
+@@ -166,14 +166,14 @@ config NET_SB1000
+ 	  If you don't have this card, of course say N.
+ 
+ config IP1000
+-       tristate "IP1000 Gigabit Ethernet support"
+-       depends on PCI && EXPERIMENTAL
++	tristate "IP1000 Gigabit Ethernet support"
++	depends on PCI && EXPERIMENTAL
+ 	select MII
+-       ---help---
+-         This driver supports IP1000 gigabit Ethernet cards.
++	---help---
++	  This driver supports IP1000 gigabit Ethernet cards.
+ 
+-         To compile this driver as a module, choose M here: the module
+-         will be called ipg.  This is recommended.
++	  To compile this driver as a module, choose M here: the module
++	  will be called ipg.  This is recommended.
+ 
+ source "drivers/net/arcnet/Kconfig"
+ 
 _
 
-Patches currently in -mm which might be from ilpo.jarvinen@helsinki.fi =
-are
+Patches currently in -mm which might be from romieu@fr.zoreil.com are
 
 origin.patch
-git-scsi-rc-fixes.patch
-git-watchdog.patch
