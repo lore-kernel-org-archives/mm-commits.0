@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maps4-from-dave-hansen-haveblue-usibmcom.patch added to -mm tree
-Date: Mon, 29 Oct 2007 14:57:23 -0700
-Message-ID: <200710292157.l9TLvN8P025325@imap1.linux-foundation.org>
+Subject: + maps4-add-proc-kpageflags-interface.patch added to -mm tree
+Date: Mon, 29 Oct 2007 14:57:46 -0700
+Message-ID: <200710292157.l9TLvkq3025372@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51158 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38291 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753091AbXJ2V6X (ORCPT
+	by vger.kernel.org with ESMTP id S1753582AbXJ2V6g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 17:58:23 -0400
+	Mon, 29 Oct 2007 17:58:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com, mpm@selenic.com, ralf@linux-mips.org, rientjes@google.com
+Cc: mpm@selenic.com, haveblue@us.ibm.com
 
 
 The patch titled
-     maps4: From: Dave Hansen <haveblue@us.ibm.com>
+     maps4: add /proc/kpageflags interface
 has been added to the -mm tree.  Its filename is
-     maps4-from-dave-hansen-haveblue-usibmcom.patch
+     maps4-add-proc-kpageflags-interface.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,141 +26,123 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: maps4: From: Dave Hansen <haveblue@us.ibm.com>
-From: Dave Hansen <haveblue@us.ibm.com>
+Subject: maps4: add /proc/kpageflags interface
+From: Matt Mackall <mpm@selenic.com>
 
-The following replaces the earlier patches sent.  It should address
-David Rientjes's comments, and has been compile tested on all the
-architectures that it touches, save for parisc.
+This makes a subset of physical page flags available to userspace. Together
+with /proc/pid/kpagemap, this allows tracking of a wide variety of VM behaviors.
 
-For the /proc/<pid>/pagemap code[1], we need to able to query how
-much virtual address space a particular task has.  The trick is
-that we do it through /proc and can't use TASK_SIZE since it
-references "current" on some arches.  The process opening the
-/proc file might be a 32-bit process opening a 64-bit process's
-pagemap file.
+Exported flags are decoupled from the kernel's internal flags. This
+allows us to reorder flag bits, and synthesize any bits that get
+redefined in terms of other bits.
 
-x86_64 already has a TASK_SIZE_OF() macro:
-
-#define TASK_SIZE_OF(child)     ((test_tsk_thread_flag(child, TIF_IA32)) ? IA32_PAGE_OFFSET : TASK_SIZE64)
-
-I'd like to have that for other architectures.  So, add it
-for all the architectures that actually use "current" in
-their TASK_SIZE.  For the others, just add a quick #define
-in sched.h to use plain old TASK_SIZE.
-
-1. http://www.linuxworld.com/news/2007/042407-kernel.html
-
-- MIPS portion from Ralf Baechle <ralf@linux-mips.org>
-
-Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Matt Mackall <mpm@selenic.com>
-Acked-by: David Rientjes <rientjes@google.com>
 Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/processor.h    |    3 ++-
- include/asm-mips/processor.h    |    4 ++++
- include/asm-parisc/processor.h  |    3 ++-
- include/asm-powerpc/processor.h |    3 ++-
- include/asm-s390/processor.h    |    3 ++-
- include/linux/sched.h           |    4 ++++
- 6 files changed, 16 insertions(+), 4 deletions(-)
+ fs/proc/proc_misc.c |   79 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 79 insertions(+)
 
-diff -puN include/asm-ia64/processor.h~maps4-from-dave-hansen-haveblue-usibmcom include/asm-ia64/processor.h
---- a/include/asm-ia64/processor.h~maps4-from-dave-hansen-haveblue-usibmcom
-+++ a/include/asm-ia64/processor.h
-@@ -31,7 +31,8 @@
-  * each (assuming 8KB page size), for a total of 8TB of user virtual
-  * address space.
-  */
--#define TASK_SIZE		(current->thread.task_size)
-+#define TASK_SIZE_OF(tsk)	((tsk)->thread.task_size)
-+#define TASK_SIZE       	TASK_SIZE_OF(current)
+diff -puN fs/proc/proc_misc.c~maps4-add-proc-kpageflags-interface fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~maps4-add-proc-kpageflags-interface
++++ a/fs/proc/proc_misc.c
+@@ -727,6 +727,84 @@ static struct file_operations proc_kpage
+ 	.read = kpagecount_read,
+ };
  
- /*
-  * This decides where the kernel will search for a free chunk of vm
-diff -puN include/asm-mips/processor.h~maps4-from-dave-hansen-haveblue-usibmcom include/asm-mips/processor.h
---- a/include/asm-mips/processor.h~maps4-from-dave-hansen-haveblue-usibmcom
-+++ a/include/asm-mips/processor.h
-@@ -45,6 +45,8 @@ extern unsigned int vced_count, vcei_cou
-  * space during mmap's.
-  */
- #define TASK_UNMAPPED_BASE	(PAGE_ALIGN(TASK_SIZE / 3))
-+#define TASK_SIZE_OF(tsk)						\
-+	(test_tsk_thread_flag(tsk, TIF_32BIT_ADDR) ? TASK_SIZE32 : TASK_SIZE)
- #endif
- 
- #ifdef CONFIG_64BIT
-@@ -65,6 +67,8 @@ extern unsigned int vced_count, vcei_cou
- #define TASK_UNMAPPED_BASE						\
- 	(test_thread_flag(TIF_32BIT_ADDR) ?				\
- 		PAGE_ALIGN(TASK_SIZE32 / 3) : PAGE_ALIGN(TASK_SIZE / 3))
-+#define TASK_SIZE_OF(tsk)						\
-+	(test_tsk_thread_flag(tsk, TIF_32BIT_ADDR) ? TASK_SIZE32 : TASK_SIZE)
- #endif
- 
- #define NUM_FPU_REGS	32
-diff -puN include/asm-parisc/processor.h~maps4-from-dave-hansen-haveblue-usibmcom include/asm-parisc/processor.h
---- a/include/asm-parisc/processor.h~maps4-from-dave-hansen-haveblue-usibmcom
-+++ a/include/asm-parisc/processor.h
-@@ -32,7 +32,8 @@
- #endif
- #define current_text_addr() ({ void *pc; current_ia(pc); pc; })
- 
--#define TASK_SIZE               (current->thread.task_size)
-+#define TASK_SIZE_OF(tsk)       ((tsk)->thread.task_size)
-+#define TASK_SIZE	        TASK_SIZE_OF(current)
- #define TASK_UNMAPPED_BASE      (current->thread.map_base)
- 
- #define DEFAULT_TASK_SIZE32	(0xFFF00000UL)
-diff -puN include/asm-powerpc/processor.h~maps4-from-dave-hansen-haveblue-usibmcom include/asm-powerpc/processor.h
---- a/include/asm-powerpc/processor.h~maps4-from-dave-hansen-haveblue-usibmcom
-+++ a/include/asm-powerpc/processor.h
-@@ -99,8 +99,9 @@ extern struct task_struct *last_task_use
-  */
- #define TASK_SIZE_USER32 (0x0000000100000000UL - (1*PAGE_SIZE))
- 
--#define TASK_SIZE (test_thread_flag(TIF_32BIT) ? \
-+#define TASK_SIZE_OF(tsk) (test_tsk_thread_flag(tsk, TIF_32BIT) ? \
- 		TASK_SIZE_USER32 : TASK_SIZE_USER64)
-+#define TASK_SIZE	  TASK_SIZE_OF(current)
- 
- /* This decides where the kernel will search for a free chunk of vm
-  * space during mmap's.
-diff -puN include/asm-s390/processor.h~maps4-from-dave-hansen-haveblue-usibmcom include/asm-s390/processor.h
---- a/include/asm-s390/processor.h~maps4-from-dave-hansen-haveblue-usibmcom
-+++ a/include/asm-s390/processor.h
-@@ -73,8 +73,9 @@ extern struct task_struct *last_task_use
- 
- #else /* __s390x__ */
- 
--# define TASK_SIZE		(test_thread_flag(TIF_31BIT) ? \
-+# define TASK_SIZE_OF(tsk)	(test_tsk_thread_flag(tsk, TIF_31BIT) ? \
- 					(0x80000000UL) : (0x40000000000UL))
-+# define TASK_SIZE		TASK_SIZE_OF(current)
- # define TASK_UNMAPPED_BASE	(TASK_SIZE / 2)
- # define DEFAULT_TASK_SIZE	(0x40000000000UL)
- 
-diff -puN include/linux/sched.h~maps4-from-dave-hansen-haveblue-usibmcom include/linux/sched.h
---- a/include/linux/sched.h~maps4-from-dave-hansen-haveblue-usibmcom
-+++ a/include/linux/sched.h
-@@ -1986,6 +1986,10 @@ static inline void inc_syscw(struct task
- }
- #endif
- 
-+#ifndef TASK_SIZE_OF
-+#define TASK_SIZE_OF(tsk)	TASK_SIZE
-+#endif
++/* /proc/kpageflags - an array exposing page flags
++ *
++ * Each entry is a u64 representing the corresponding
++ * physical page flags.
++ */
 +
- #endif /* __KERNEL__ */
++/* These macros are used to decouple internal flags from exported ones */
++
++#define KPF_LOCKED     0
++#define KPF_ERROR      1
++#define KPF_REFERENCED 2
++#define KPF_UPTODATE   3
++#define KPF_DIRTY      4
++#define KPF_LRU        5
++#define KPF_ACTIVE     6
++#define KPF_SLAB       7
++#define KPF_WRITEBACK  8
++#define KPF_RECLAIM    9
++#define KPF_BUDDY     10
++
++#define kpf_copy_bit(flags, srcpos, dstpos) (((flags >> srcpos) & 1) << dstpos)
++
++static ssize_t kpageflags_read(struct file *file, char __user *buf,
++			     size_t count, loff_t *ppos)
++{
++	u64 __user *out = (u64 __user *)buf;
++	struct page *ppage;
++	unsigned long src = *ppos;
++	unsigned long pfn;
++	ssize_t ret = 0;
++	u64 kflags, uflags;
++
++	if (!access_ok(VERIFY_WRITE, buf, count))
++		return -EFAULT;
++
++	pfn = src / KPMSIZE;
++	count = min_t(unsigned long, count, (max_pfn * KPMSIZE) - src);
++	if (src & KPMMASK || count & KPMMASK)
++		return -EIO;
++
++	while (count > 0) {
++		ppage = pfn_to_page(pfn++);
++		if (!ppage)
++			kflags = 0;
++		else
++			kflags = ppage->flags;
++
++		uflags = kpf_copy_bit(KPF_LOCKED, PG_locked, kflags) |
++			kpf_copy_bit(kflags, KPF_ERROR, PG_error) |
++			kpf_copy_bit(kflags, KPF_REFERENCED, PG_referenced) |
++			kpf_copy_bit(kflags, KPF_UPTODATE, PG_uptodate) |
++			kpf_copy_bit(kflags, KPF_DIRTY, PG_dirty) |
++			kpf_copy_bit(kflags, KPF_LRU, PG_lru) |
++			kpf_copy_bit(kflags, KPF_ACTIVE, PG_active) |
++			kpf_copy_bit(kflags, KPF_SLAB, PG_slab) |
++			kpf_copy_bit(kflags, KPF_WRITEBACK, PG_writeback) |
++			kpf_copy_bit(kflags, KPF_RECLAIM, PG_reclaim) |
++			kpf_copy_bit(kflags, KPF_BUDDY, PG_buddy);
++
++		if (put_user(uflags, out++)) {
++			ret = -EFAULT;
++			break;
++		}
++
++		count -= KPMSIZE;
++	}
++
++	*ppos += (char __user *)out - buf;
++	if (!ret)
++		ret = (char __user *)out - buf;
++	return ret;
++}
++
++static struct file_operations proc_kpageflags_operations = {
++	.llseek = mem_lseek,
++	.read = kpageflags_read,
++};
++
+ struct proc_dir_entry *proc_root_kcore;
  
+ void create_seq_entry(char *name, mode_t mode, const struct file_operations *f)
+@@ -808,6 +886,7 @@ void __init proc_misc_init(void)
+ 	}
  #endif
+ 	create_seq_entry("kpagecount", S_IRUSR, &proc_kpagecount_operations);
++	create_seq_entry("kpageflags", S_IRUSR, &proc_kpageflags_operations);
+ #ifdef CONFIG_PROC_VMCORE
+ 	proc_vmcore = create_proc_entry("vmcore", S_IRUSR, NULL);
+ 	if (proc_vmcore)
 _
 
-Patches currently in -mm which might be from haveblue@us.ibm.com are
+Patches currently in -mm which might be from mpm@selenic.com are
 
 maps4-add-proportional-set-size-accounting-in-smaps.patch
 maps4-from-dave-hansen-haveblue-usibmcom.patch
@@ -174,33 +156,3 @@ maps4-add-proc-pid-pagemap-interface.patch
 maps4-add-proc-kpagecount-interface.patch
 maps4-add-proc-kpageflags-interface.patch
 maps4-make-page-monitoring-proc-file-optional.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-elevate-write-count-opend-files.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
-ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2.patch
-r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
-r-o-bind-mounts-make-access-use-mnt-check.patch
-r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
-r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
-r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
-r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime.patch
-r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime-fix.patch
-r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch
-r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
-r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
-r-o-bind-mounts-do_rmdir-elevate-write-count.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
-r-o-bind-mounts-track-number-of-mount-writers-fix.patch
-r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
