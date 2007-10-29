@@ -1,70 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - jiffies_round-jiffies_round_relative-conversion-b43-b43legacy.patch removed from -mm tree
-Date: Mon, 29 Oct 2007 13:31:26 -0700
-Message-ID: <200710292031.l9TKVQw9021848@imap1.linux-foundation.org>
+Subject: - kernel-doc-process-functions-not-doc.patch removed from -mm tree
+Date: Mon, 29 Oct 2007 13:31:40 -0700
+Message-ID: <200710292031.l9TKVeE9021869@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40709 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34838 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752984AbXJ2UeH (ORCPT
+	by vger.kernel.org with ESMTP id S1753604AbXJ2Ue1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 16:34:07 -0400
+	Mon, 29 Oct 2007 16:34:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anton@samba.org, arjan@linux.intel.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: johannes@sipsolutions.net, randy.dunlap@oracle.com, rpjday@mindspring.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jiffies_round -> jiffies_round_relative conversion - b43/b43legacy
+     kernel-doc: process functions, not DOC:
 has been removed from the -mm tree.  Its filename was
-     jiffies_round-jiffies_round_relative-conversion-b43-b43legacy.patch
+     kernel-doc-process-functions-not-doc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: jiffies_round -> jiffies_round_relative conversion - b43/b43legacy
-From: Anton Blanchard <anton@samba.org>
+Subject: kernel-doc: process functions, not DOC:
+From: Johannes Berg <johannes@sipsolutions.net>
 
-When rounding a relative timeout we need to use round_jiffies_relative().
+This flag is necessary for the next patch for docproc to output only the
+functions and not DOC: sections when a function list is requested.
 
-Signed-off-by: Anton Blanchard <anton@samba.org>
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Acked-by: Arjan van de Ven <arjan@linux.intel.com>
+Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: "Robert P. J. Day" <rpjday@mindspring.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/b43/main.c       |    2 +-
- drivers/net/wireless/b43legacy/main.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ scripts/kernel-doc |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/wireless/b43/main.c~jiffies_round-jiffies_round_relative-conversion-b43-b43legacy drivers/net/wireless/b43/main.c
---- a/drivers/net/wireless/b43/main.c~jiffies_round-jiffies_round_relative-conversion-b43-b43legacy
-+++ a/drivers/net/wireless/b43/main.c
-@@ -2391,7 +2391,7 @@ out_requeue:
- 	if (b43_debug(dev, B43_DBG_PWORK_FAST))
- 		delay = msecs_to_jiffies(50);
- 	else
--		delay = round_jiffies(HZ * 15);
-+		delay = round_jiffies_relative(HZ * 15);
- 	queue_delayed_work(wl->hw->workqueue, &dev->periodic_work, delay);
- out:
- 	mutex_unlock(&wl->mutex);
-diff -puN drivers/net/wireless/b43legacy/main.c~jiffies_round-jiffies_round_relative-conversion-b43-b43legacy drivers/net/wireless/b43legacy/main.c
---- a/drivers/net/wireless/b43legacy/main.c~jiffies_round-jiffies_round_relative-conversion-b43-b43legacy
-+++ a/drivers/net/wireless/b43legacy/main.c
-@@ -2260,7 +2260,7 @@ out_requeue:
- 	if (b43legacy_debug(dev, B43legacy_DBG_PWORK_FAST))
- 		delay = msecs_to_jiffies(50);
- 	else
--		delay = round_jiffies(HZ);
-+		delay = round_jiffies_relative(HZ);
- 	queue_delayed_work(dev->wl->hw->workqueue,
- 			   &dev->periodic_work, delay);
- out:
+diff -puN scripts/kernel-doc~kernel-doc-process-functions-not-doc scripts/kernel-doc
+--- a/scripts/kernel-doc~kernel-doc-process-functions-not-doc
++++ a/scripts/kernel-doc
+@@ -46,13 +46,16 @@ use strict;
+ # Note: This only supports 'c'.
+ 
+ # usage:
+-# kernel-doc [ -docbook | -html | -text | -man ]
++# kernel-doc [ -docbook | -html | -text | -man ] [ -no-doc-sections ]
+ #           [ -function funcname [ -function funcname ...] ] c file(s)s > outputfile
+ # or
+ #           [ -nofunction funcname [ -function funcname ...] ] c file(s)s > outputfile
+ #
+ #  Set output format using one of -docbook -html -text or -man.  Default is man.
+ #
++#  -no-doc-sections
++#	Do not output DOC: sections
++#
+ #  -function funcname
+ #	If set, then only generate documentation for the given function(s) or
+ #	DOC: section titles.  All other functions and DOC: sections are ignored.
+@@ -211,7 +214,7 @@ my $blankline_text = "";
+ 
+ 
+ sub usage {
+-    print "Usage: $0 [ -v ] [ -docbook | -html | -text | -man ]\n";
++    print "Usage: $0 [ -v ] [ -docbook | -html | -text | -man ] [ -no-doc-sections ]\n";
+     print "         [ -function funcname [ -function funcname ...] ]\n";
+     print "         [ -nofunction funcname [ -nofunction funcname ...] ]\n";
+     print "         c source file(s) > outputfile\n";
+@@ -225,6 +228,7 @@ if ($#ARGV==-1) {
+ 
+ my $verbose = 0;
+ my $output_mode = "man";
++my $no_doc_sections = 0;
+ my %highlights = %highlights_man;
+ my $blankline = $blankline_man;
+ my $modulename = "Kernel API";
+@@ -329,6 +333,8 @@ while ($ARGV[0] =~ m/^-(.*)/) {
+ 	usage();
+     } elsif ($cmd eq '-filelist') {
+ 	    $filelist = shift @ARGV;
++    } elsif ($cmd eq '-no-doc-sections') {
++	    $no_doc_sections = 1;
+     }
+ }
+ 
+@@ -380,6 +386,10 @@ sub dump_doc_section {
+     my $name = shift;
+     my $contents = join "\n", @_;
+ 
++    if ($no_doc_sections) {
++	return;
++    }
++
+     if (($function_only == 0) ||
+ 	( $function_only == 1 && defined($function_table{$name})) ||
+ 	( $function_only == 2 && !defined($function_table{$name})))
 _
 
-Patches currently in -mm which might be from anton@samba.org are
+Patches currently in -mm which might be from johannes@sipsolutions.net are
 
 origin.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-drivers-edac-use-round_jiffies_relative.patch
+git-input.patch
+fix-appletouch-geyser-1-breakage.patch
+fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
+git-kbuild.patch
+git-wireless.patch
