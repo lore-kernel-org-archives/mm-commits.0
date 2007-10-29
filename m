@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 29 Oct 2007 15:22:58 -0700
-Message-ID: <200710292222.l9TMMwL5028866@imap1.linux-foundation.org>
+Subject: + dca-convert-struct-class_device-to-struct-device.patch added to -mm tree
+Date: Mon, 29 Oct 2007 15:28:00 -0700
+Message-ID: <200710292228.l9TMS0IA029059@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43979 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52656 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751889AbXJ2WXs (ORCPT
+	by vger.kernel.org with ESMTP id S1750884AbXJ2W2D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 18:23:48 -0400
+	Mon, 29 Oct 2007 18:28:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, dwmw2@infradead.org, jdl@freescale.com, paulus@samba.org, rgetz@blackfin.uclinux.org, sam@ravnborg.org
+Cc: kay.sievers@vrfy.org, dan.j.williams@intel.com, greg@kroah.com, shannon.nelson@intel.com
 
 
 The patch titled
-     remove-support-for-un-needed-_extratext-section-checkpatch-fixes
+     DCA: convert struct class_device to struct device.
 has been added to the -mm tree.  Its filename is
-     remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+     dca-convert-struct-class_device-to-struct-device.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,146 +26,90 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: remove-support-for-un-needed-_extratext-section-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: DCA: convert struct class_device to struct device.
+From: Kay Sievers <kay.sievers@vrfy.org>
 
-ERROR: "(foo*)" should be "(foo *)"
-#130: FILE: scripts/kallsyms.c:173:
-+				strcmp((char*)s->sym + offset, "_etext")) ||
+Thanks to Kay for keeping us honest.
 
-ERROR: "(foo*)" should be "(foo *)"
-#132: FILE: scripts/kallsyms.c:175:
-+				strcmp((char*)s->sym + offset, "_einittext")))
-
-total: 2 errors, 0 warnings, 87 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Jon Loeliger <jdl@freescale.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Robin Getz <rgetz@blackfin.uclinux.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: Shannon Nelson <shannon.nelson@intel.com>
+Cc: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kallsyms.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/dca/dca-sysfs.c |   15 +++++++--------
+ include/linux/dca.h     |    2 +-
+ 2 files changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN scripts/kallsyms.c~remove-support-for-un-needed-_extratext-section-checkpatch-fixes scripts/kallsyms.c
---- a/scripts/kallsyms.c~remove-support-for-un-needed-_extratext-section-checkpatch-fixes
-+++ a/scripts/kallsyms.c
-@@ -170,9 +170,9 @@ static int symbol_valid(struct sym_entry
- 		 * rules.
- 		 */
- 		if ((s->addr == _etext &&
--				strcmp((char*)s->sym + offset, "_etext")) ||
-+				strcmp((char *)s->sym + offset, "_etext")) ||
- 		    (s->addr == _einittext &&
--				strcmp((char*)s->sym + offset, "_einittext")))
-+				strcmp((char *)s->sym + offset, "_einittext")))
- 			return 0;
+diff -puN drivers/dca/dca-sysfs.c~dca-convert-struct-class_device-to-struct-device drivers/dca/dca-sysfs.c
+--- a/drivers/dca/dca-sysfs.c~dca-convert-struct-class_device-to-struct-device
++++ a/drivers/dca/dca-sysfs.c
+@@ -12,10 +12,10 @@ static spinlock_t dca_idr_lock;
+ 
+ int dca_sysfs_add_req(struct dca_provider *dca, struct device *dev, int slot)
+ {
+-	struct class_device *cd;
++	struct device *cd;
+ 
+-	cd = class_device_create(dca_class, dca->cd, MKDEV(0, slot + 1),
+-				 dev, "requester%d", slot);
++	cd = device_create(dca_class, dca->cd, MKDEV(0, slot + 1),
++			   "requester%d", slot);
+ 	if (IS_ERR(cd))
+ 		return PTR_ERR(cd);
+ 	return 0;
+@@ -23,12 +23,12 @@ int dca_sysfs_add_req(struct dca_provide
+ 
+ void dca_sysfs_remove_req(struct dca_provider *dca, int slot)
+ {
+-	class_device_destroy(dca_class, MKDEV(0, slot + 1));
++	device_destroy(dca_class, MKDEV(0, slot + 1));
+ }
+ 
+ int dca_sysfs_add_provider(struct dca_provider *dca, struct device *dev)
+ {
+-	struct class_device *cd;
++	struct device *cd;
+ 	int err = 0;
+ 
+ idr_try_again:
+@@ -46,8 +46,7 @@ idr_try_again:
+ 		return err;
  	}
+ 
+-	cd = class_device_create(dca_class, NULL, MKDEV(0, 0),
+-				 dev, "dca%d", dca->id);
++	cd = device_create(dca_class, dev, MKDEV(0, 0), "dca%d", dca->id);
+ 	if (IS_ERR(cd)) {
+ 		spin_lock(&dca_idr_lock);
+ 		idr_remove(&dca_idr, dca->id);
+@@ -60,7 +59,7 @@ idr_try_again:
+ 
+ void dca_sysfs_remove_provider(struct dca_provider *dca)
+ {
+-	class_device_unregister(dca->cd);
++	device_unregister(dca->cd);
+ 	dca->cd = NULL;
+ 	spin_lock(&dca_idr_lock);
+ 	idr_remove(&dca_idr, dca->id);
+diff -puN include/linux/dca.h~dca-convert-struct-class_device-to-struct-device include/linux/dca.h
+--- a/include/linux/dca.h~dca-convert-struct-class_device-to-struct-device
++++ a/include/linux/dca.h
+@@ -11,7 +11,7 @@ void dca_unregister_notify(struct notifi
+ 
+ struct dca_provider {
+ 	struct dca_ops		*ops;
+-	struct class_device 	*cd;
++	struct device 		*cd;
+ 	int			 id;
+ };
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kay.sievers@vrfy.org are
 
-origin.patch
-sunrpc-fix-rpc-debugging.patch
-revert-ufs-fix-sun-state-fix-mount-check-in-ufs_fill_super.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
-ide-arm-hack.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-nf_ct_alloc_hashtable-use-__gfp_nowarn.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd-fixup.patch
-fix-build-breakage-if-sysfs-fix.patch
-git-scsi-misc-vs-git-libata-all.patch
-git-scsi-rc-fixes.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-git-unionfs.patch
-git-watchdog.patch
-watchdog-add-nano-7240-driver-checkpatch-fixes.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-sync_sb_inodes-propagate-errors.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+fs-partitions-checkc-add-error-handling-for.patch
+git-scsi-misc.patch
+dcdbas-add-dmi-based-module-autloading.patch
+dca-convert-struct-class_device-to-struct-device.patch
