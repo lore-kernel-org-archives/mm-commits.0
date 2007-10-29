@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + voyager-use-struct-instead-of-param.patch added to -mm tree
-Date: Mon, 29 Oct 2007 13:51:30 -0700
-Message-ID: <200710292051.l9TKpUJn022654@imap1.linux-foundation.org>
+Subject: + s3c-rtc-remove-unused-variable.patch added to -mm tree
+Date: Mon, 29 Oct 2007 13:52:16 -0700
+Message-ID: <200710292052.l9TKqGML022736@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43957 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36341 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751730AbXJ2UwY (ORCPT
+	by vger.kernel.org with ESMTP id S1752555AbXJ2UxI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 16:52:24 -0400
+	Mon, 29 Oct 2007 16:53:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, James.Bottomley@steeleye.com, mingo@elte.hu, tglx@linutronix.de
+Cc: krzysztof.h1@wp.pl, ben-linux@fluff.org
 
 
 The patch titled
-     voyager: use struct instead of PARAM
+     s3c-rtc: remove unused variable
 has been added to the -mm tree.  Its filename is
-     voyager-use-struct-instead-of-param.patch
+     s3c-rtc-remove-unused-variable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,49 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: voyager: use struct instead of PARAM
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: s3c-rtc: remove unused variable
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Use struct boot_params instead of PARAM + 0xoffsets.
-Fixes one of many Voyager build problems.
-
-arch/x86/kernel/setup_32.c:543: error: 'PARAM' undeclared (first use in this function)
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Acked-by: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/mach-voyager/setup_arch.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-s3c.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN include/asm-x86/mach-voyager/setup_arch.h~voyager-use-struct-instead-of-param include/asm-x86/mach-voyager/setup_arch.h
---- a/include/asm-x86/mach-voyager/setup_arch.h~voyager-use-struct-instead-of-param
-+++ a/include/asm-x86/mach-voyager/setup_arch.h
-@@ -1,5 +1,7 @@
- #include <asm/voyager.h>
--#define VOYAGER_BIOS_INFO ((struct voyager_bios_info *)(PARAM+0x40))
-+#include <asm/setup_32.h>
-+#define VOYAGER_BIOS_INFO ((struct voyager_bios_info *) \
-+			(&boot_params.apm_bios_info))
+diff -puN drivers/rtc/rtc-s3c.c~s3c-rtc-remove-unused-variable drivers/rtc/rtc-s3c.c
+--- a/drivers/rtc/rtc-s3c.c~s3c-rtc-remove-unused-variable
++++ a/drivers/rtc/rtc-s3c.c
+@@ -542,8 +542,6 @@ static int s3c_rtc_probe(struct platform
  
- /* Hook to call BIOS initialisation function */
+ /* RTC Power management control */
  
+-static struct timespec s3c_rtc_delta;
+-
+ static int ticnt_save;
+ 
+ static int s3c_rtc_suspend(struct platform_device *pdev, pm_message_t state)
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-origin.patch
-fb-menu-fix-fb_omap-dependencies-so-that-menu-is-displayed.patch
-git-kbuild.patch
-git-unionfs.patch
-git-watchdog.patch
-git-ipwireless_cs.patch
-x86-bitops_32h-style-cleanups.patch
-voyager-use-struct-instead-of-param.patch
-move-kprobes-examples-to-samples-resend.patch
-move-kprobes-examples-to-samples-resend-checkpatch-fixes.patch
-fs-menu-small-reorg.patch
-profile-likely-unlikely-macros.patch
+git-alsa.patch
+s3c-rtc-remove-unused-variable.patch
