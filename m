@@ -1,63 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - git-perfmon-fill-in-i386-syscall-table.patch removed from -mm tree
-Date: Mon, 29 Oct 2007 13:24:58 -0700
-Message-ID: <200710292024.l9TKOwZE021583@imap1.linux-foundation.org>
+Subject: - remove-warnings-for-longstanding-conditions-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 29 Oct 2007 13:27:25 -0700
+Message-ID: <200710292027.l9TKRP0L021712@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56388 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53694 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752783AbXJ2UZY (ORCPT
+	by vger.kernel.org with ESMTP id S1752491AbXJ2U2W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 16:25:24 -0400
+	Mon, 29 Oct 2007 16:28:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, eranian@hpl.hp.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@steeleye.com, jeff@garzik.org, jgarzik@redhat.com, kkeil@suse.de, willy@debian.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-perfmon: fill in i386 syscall table
+     remove-warnings-for-longstanding-conditions-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     git-perfmon-fill-in-i386-syscall-table.patch
+     remove-warnings-for-longstanding-conditions-checkpatch-fixes.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-perfmon: fill in i386 syscall table
+Subject: remove-warnings-for-longstanding-conditions-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-They're defined in include/asm-x86/unistd_32.h so they shold occupy table
-slots in arch/x86/kernel/syscall_table_32.S.
+WARNING: line over 80 characters
+#35: FILE: drivers/isdn/capi/capidrv.c:2127:
++	/* FIXME: maybe a race condition the card should be removed here from global list /kkeil */
 
-Because I'm about to renumber the revoke() sycalls..
+total: 0 errors, 1 warnings, 16 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Stephane Eranian <eranian@hpl.hp.com>
+Please run checkpatch prior to sending patches
+
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Jeff Garzik <jgarzik@redhat.com>
+Cc: Karsten Keil <kkeil@suse.de>
+Cc: Matthew Wilcox <willy@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/syscall_table_32.S |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/isdn/capi/capidrv.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/syscall_table_32.S~git-perfmon-fill-in-i386-syscall-table arch/x86/kernel/syscall_table_32.S
---- a/arch/x86/kernel/syscall_table_32.S~git-perfmon-fill-in-i386-syscall-table
-+++ a/arch/x86/kernel/syscall_table_32.S
-@@ -324,3 +324,16 @@ ENTRY(sys_call_table)
- 	.long sys_timerfd
- 	.long sys_eventfd
- 	.long sys_fallocate
-+	.long sys_ni_syscall		/* pfm_create_context */ /* 325 */
-+	.long sys_ni_syscall		/* pfm_write_pmcs */
-+	.long sys_ni_syscall		/* pfm_write_pmds */
-+	.long sys_ni_syscall		/* pfm_read_pmds */
-+	.long sys_ni_syscall		/* pfm_load_context */
-+	.long sys_ni_syscall		/* pfm_start */		/* 330 */
-+	.long sys_ni_syscall		/* pfm_stop */
-+	.long sys_ni_syscall		/* pfm_restart */
-+	.long sys_ni_syscall		/* pfm_create_evtsets */
-+	.long sys_ni_syscall		/* pfm_getinfo_evtsets */
-+	.long sys_ni_syscall		/* pfm_delete_evtsets */ /* 335 */
-+	.long sys_ni_syscall		/* pfm_unload_context */
-+
+diff -puN drivers/isdn/capi/capidrv.c~remove-warnings-for-longstanding-conditions-checkpatch-fixes drivers/isdn/capi/capidrv.c
+--- a/drivers/isdn/capi/capidrv.c~remove-warnings-for-longstanding-conditions-checkpatch-fixes
++++ a/drivers/isdn/capi/capidrv.c
+@@ -2124,7 +2124,10 @@ static int capidrv_delcontr(u16 contr)
+ 		return -1;
+ 	}
+ 
+-	/* FIXME: maybe a race condition the card should be removed here from global list /kkeil */
++	/*
++	 * FIXME: maybe a race condition the card should be removed here from
++	 * global list /kkeil
++	 */
+ 	spin_unlock_irqrestore(&global_lock, flags);
+ 
+ 	del_timer(&card->listentimer);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,7 +101,6 @@ git-x86.patch
 git-x86-fixup.patch
 oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
 i386-and-x86_64-randomize-brk-fix.patch
-git-perfmon-fill-in-i386-syscall-table.patch
 i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
 slub-fix-coding-style-violations-checkpatch-fixes.patch
 bufferhead-revert-constructor-removal-checkpatch-fixes.patch
