@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-use-select-power_supply-for-ac-battery-and-sbs.patch added to -mm tree
-Date: Mon, 29 Oct 2007 00:35:20 -0700
-Message-ID: <200710290735.l9T7ZK4a025610@imap1.linux-foundation.org>
+Subject: + tle62x0-driver-stops-ignoring-read-errors.patch added to -mm tree
+Date: Mon, 29 Oct 2007 00:51:38 -0700
+Message-ID: <200710290751.l9T7pc7G026206@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53283 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49431 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751186AbXJ2Hfk (ORCPT
+	by vger.kernel.org with ESMTP id S1751560AbXJ2HwO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 03:35:40 -0400
+	Mon, 29 Oct 2007 03:52:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: astarikovskiy@suse.de, elendil@planet.nl, lenb@kernel.org
+Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     ACPI: use select POWER_SUPPLY for AC, BATTERY and SBS
+     tle62x0 driver stops ignoring read errors
 has been added to the -mm tree.  Its filename is
-     acpi-use-select-power_supply-for-ac-battery-and-sbs.patch
+     tle62x0-driver-stops-ignoring-read-errors.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,58 +26,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ACPI: use select POWER_SUPPLY for AC, BATTERY and SBS
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: tle62x0 driver stops ignoring read errors
+From: David Brownell <david-b@pacbell.net>
 
-POWER_SUPPLY is needed for AC, battery, and SBS sysfs support.  Use
-'select' instead of 'depends on', as it is will not be selected by anything
-else, leading to confusion.
+The tle62x0 driver was ignoring all read errors.  This patch makes it
+pass such errors up the stack, instead of returning bogus data.
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-Tested-by: Frans Pop <elendil@planet.nl>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/Kconfig |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/spi/tle62x0.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/acpi/Kconfig~acpi-use-select-power_supply-for-ac-battery-and-sbs drivers/acpi/Kconfig
---- a/drivers/acpi/Kconfig~acpi-use-select-power_supply-for-ac-battery-and-sbs
-+++ a/drivers/acpi/Kconfig
-@@ -88,7 +88,8 @@ config ACPI_PROC_EVENT
+diff -puN drivers/spi/tle62x0.c~tle62x0-driver-stops-ignoring-read-errors drivers/spi/tle62x0.c
+--- a/drivers/spi/tle62x0.c~tle62x0-driver-stops-ignoring-read-errors
++++ a/drivers/spi/tle62x0.c
+@@ -107,8 +107,11 @@ static ssize_t tle62x0_status_show(struc
  
- config ACPI_AC
- 	tristate "AC Adapter"
--	depends on X86 && POWER_SUPPLY
-+	depends on X86
-+	select POWER_SUPPLY
- 	default y
- 	help
- 	  This driver adds support for the AC Adapter object, which indicates
-@@ -97,7 +98,8 @@ config ACPI_AC
+ 	mutex_lock(&st->lock);
+ 	ret = tle62x0_read(st);
+-
+ 	dev_dbg(dev, "tle62x0_read() returned %d\n", ret);
++	if (ret < 0) {
++		mutex_unlock(&st->lock);
++		return ret;
++	}
  
- config ACPI_BATTERY
- 	tristate "Battery"
--	depends on X86 && POWER_SUPPLY
-+	depends on X86
-+	select POWER_SUPPLY
- 	default y
- 	help
- 	  This driver adds support for battery information through
-@@ -352,7 +354,7 @@ config ACPI_HOTPLUG_MEMORY
- config ACPI_SBS
- 	tristate "Smart Battery System"
- 	depends on X86
--	depends on POWER_SUPPLY
-+	select POWER_SUPPLY
- 	depends on ACPI_PROC_EVENT
- 	help
- 	  This driver adds support for the Smart Battery System, another
+ 	for (ptr = 0; ptr < (st->nr_gpio * 2)/8; ptr += 1) {
+ 		fault <<= 8;
 _
 
-Patches currently in -mm which might be from astarikovskiy@suse.de are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-git-acpi.patch
-make-smart-battery-system-depend-on-acpi_sbs.patch
-acpi-use-select-power_supply-for-ac-battery-and-sbs.patch
+origin.patch
+add-generic-gpio-support-to-x86.patch
+pci-add-pci-identifiers-for-the-rdc-devices.patch
+x86-add-support-for-the-rdc-r-321x-soc.patch
+add-the-rdc-machine-specific-reboot-fixup.patch
+rtc-release-correct-region-in-error-path.patch
+rtc-fallback-to-requesting-only-the-ports-we-actually-use.patch
+tle62x0-driver-stops-ignoring-read-errors.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+remove-pointless-casts-from-void-pointers.patch
+spi-at25-driver-is-for-eeprom-not-flash.patch
+spi-use-mutex-not-semaphore.patch
+cosmetic-fixes-to-rtc-subsystems-kconfig.patch
+rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
