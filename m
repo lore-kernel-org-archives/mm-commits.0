@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + unlock-when-ssp-tries-to-close-an-invalid-port.patch added to -mm tree
-Date: Mon, 29 Oct 2007 14:06:47 -0700
-Message-ID: <200710292106.l9TL6lXe023197@imap1.linux-foundation.org>
+Subject: + cris-gpio-undo-locks-before-returning.patch added to -mm tree
+Date: Mon, 29 Oct 2007 14:08:39 -0700
+Message-ID: <200710292108.l9TL8dsD023326@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58157 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37364 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751828AbXJ2VH0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752197AbXJ2VJQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 17:07:26 -0400
+	Mon, 29 Oct 2007 17:09:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: 12o3l@tiscali.nl, rmk@arm.linux.org.uk
+Cc: 12o3l@tiscali.nl, starvik@axis.com
 
 
 The patch titled
-     arm ssp: unlock when ssp tries to close an invalid port
+     cris gpio: undo locks before returning
 has been added to the -mm tree.  Its filename is
-     unlock-when-ssp-tries-to-close-an-invalid-port.patch
+     cris-gpio-undo-locks-before-returning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,73 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arm ssp: unlock when ssp tries to close an invalid port
+Subject: cris gpio: undo locks before returning
 From: Roel Kluin <12o3l@tiscali.nl>
 
 Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-pxa/ssp.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/cris/arch-v10/drivers/gpio.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN arch/arm/mach-pxa/ssp.c~unlock-when-ssp-tries-to-close-an-invalid-port arch/arm/mach-pxa/ssp.c
---- a/arch/arm/mach-pxa/ssp.c~unlock-when-ssp-tries-to-close-an-invalid-port
-+++ a/arch/arm/mach-pxa/ssp.c
-@@ -309,6 +309,7 @@ void ssp_exit(struct ssp_dev *dev)
+diff -puN arch/cris/arch-v10/drivers/gpio.c~cris-gpio-undo-locks-before-returning arch/cris/arch-v10/drivers/gpio.c
+--- a/arch/cris/arch-v10/drivers/gpio.c~cris-gpio-undo-locks-before-returning
++++ a/arch/cris/arch-v10/drivers/gpio.c
+@@ -297,8 +297,10 @@ gpio_poll(struct file *file,
+ 		data = *R_PORT_PB_DATA;
+ 	else if (priv->minor == GPIO_MINOR_G)
+ 		data = *R_PORT_G_DATA;
+-	else
++	else {
++		spin_unlock(&gpio_lock);
+ 		return 0;
++	}
+ 	
+ 	if ((data & priv->highalarm) ||
+ 	    (~data & priv->lowalarm)) {
+@@ -381,18 +383,21 @@ static ssize_t gpio_write(struct file * 
  
-     	if (dev->port > PXA_SSP_PORTS || dev->port == 0) {
- 		printk(KERN_WARNING "SSP: tried to close invalid port\n");
-+		mutex_unlock(&mutex);
- 		return;
+ 	ssize_t retval = count;
+ 	if (priv->minor !=GPIO_MINOR_A && priv->minor != GPIO_MINOR_B) {
+-		return -EFAULT;
++		retval = -EFAULT;
++		goto out;
  	}
- 
+     
+ 	if (!access_ok(VERIFY_READ, buf, count)) {
+-		return -EFAULT;
++		retval = -EFAULT;
++		goto out;
+ 	}
+ 	clk_mask = priv->clk_mask;
+ 	data_mask = priv->data_mask;
+ 	/* It must have been configured using the IO_CFG_WRITE_MODE */
+ 	/* Perhaps a better error code? */
+ 	if (clk_mask == 0 || data_mask == 0) {
+-		return -EPERM;
++		retval = -EPERM;
++		goto out;
+ 	}
+ 	write_msb = priv->write_msb;
+ 	D(printk("gpio_write: %lu to data 0x%02X clk 0x%02X msb: %i\n",count, data_mask, clk_mask, write_msb));
+@@ -425,6 +430,7 @@ static ssize_t gpio_write(struct file * 
+ 			}
+ 		}
+ 	}
++out:
+ 	spin_unlock(&gpio_lock);
+ 	return retval;
+ }
+@@ -506,6 +512,7 @@ gpio_release(struct inode *inode, struct
+ 	while (p) {
+ 		if (p->highalarm | p->lowalarm) {
+ 			gpio_some_alarms = 1;
++			spin_unlock(&gpio_lock);
+ 			return 0;
+ 		}
+ 		p = p->next;
 _
 
 Patches currently in -mm which might be from 12o3l@tiscali.nl are
@@ -61,4 +106,5 @@ lmc_ioctl-dont-return-with-locks-held-fix.patch
 git-ocfs2.patch
 git-s390.patch
 itco_wdt_start-undo-locking-when-reboot-is-disabled.patch
+cris-gpio-undo-locks-before-returning.patch
 i4l-errors-with-assignments-in-if.patch
