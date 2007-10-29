@@ -1,171 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-send-media-state-change-modification-events.patch removed from -mm tree
-Date: Mon, 29 Oct 2007 13:31:13 -0700
-Message-ID: <200710292031.l9TKVDhS021833@imap1.linux-foundation.org>
+Subject: - scsi-fix-if-n-if-cases-missing-semicolons-when-false.patch removed from -mm tree
+Date: Mon, 29 Oct 2007 13:31:16 -0700
+Message-ID: <200710292031.l9TKVGr6021839@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37168 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49446 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752488AbXJ2Ubs (ORCPT
+	by vger.kernel.org with ESMTP id S1753325AbXJ2UcL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 16:31:48 -0400
+	Mon, 29 Oct 2007 16:32:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kay.sievers@vrfy.org, James.Bottomley@steeleye.com, greg@kroah.com, kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
+To: ilpo.jarvinen@helsinki.fi, James.Bottomley@steeleye.com, osst@riede.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: send media state change modification events
+     scsi: fix if (...) \n #if... cases missing semicolons when false
 has been removed from the -mm tree.  Its filename was
-     scsi-send-media-state-change-modification-events.patch
+     scsi-fix-if-n-if-cases-missing-semicolons-when-false.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-Subject: scsi: send media state change modification events
-From: Kay Sievers <kay.sievers@vrfy.org>
+Subject: scsi: fix if (...) \n #if... cases missing semicolons when fal=
+se
+=46rom: Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi>
 
-This will send for a card reader slot (remove/add media):
-  UEVENT[1187091572.155884] change   /devices/pci0000:00/0000:00:1d.7/usb5/5-2/5-2:1.0/host7/target7:0:0/7:0:0:0 (scsi)
-  UEVENT[1187091572.162314] remove   /block/sdb/sdb1 (block)
-  UEVENT[1187091572.172464] add      /block/sdb/sdb1 (block)
-  UEVENT[1187091572.175408] change   /devices/pci0000:00/0000:00:1d.7/usb5/5-2/5-2:1.0/host7/target7:0:0/7:0:0:0 (scsi)
-
-and for a DVD drive (add/eject media):
-  UEVENT[1187091590.189159] change   /devices/pci0000:00/0000:00:1f.1/host4/target4:0:0/4:0:0:0 (scsi)
-  UEVENT[1187091590.957124] add      /module/isofs (module)
-  UEVENT[1187091604.468207] change   /devices/pci0000:00/0000:00:1f.1/host4/target4:0:0/4:0:0:0 (scsi)
-
-Userspace gets events, even for unpartitioned media. This unifies
-the event handling for asynchronoous events (AN) and events caused by
-perodical polling the device from userspace.
-
-Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi>
+Cc: Willem Riede <osst@riede.org>
 Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sd.c |   24 +++++++++++++++---------
- drivers/scsi/sr.c |   13 ++++++++++---
- drivers/scsi/sr.h |    1 +
- include/scsi/sd.h |    1 +
- 4 files changed, 27 insertions(+), 12 deletions(-)
+ drivers/scsi/osst.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/sd.c~scsi-send-media-state-change-modification-events drivers/scsi/sd.c
---- a/drivers/scsi/sd.c~scsi-send-media-state-change-modification-events
-+++ a/drivers/scsi/sd.c
-@@ -749,8 +749,11 @@ static int sd_media_changed(struct gendi
- 	 * can deal with it then.  It is only because of unrecoverable errors
- 	 * that we would ever take a device offline in the first place.
- 	 */
--	if (!scsi_device_online(sdp))
--		goto not_present;
-+	if (!scsi_device_online(sdp)) {
-+		set_media_not_present(sdkp);
-+		retval = 1;
-+		goto out;
-+	}
- 
- 	/*
- 	 * Using TEST_UNIT_READY enables differentiation between drive with
-@@ -762,6 +765,7 @@ static int sd_media_changed(struct gendi
- 	 * sd_revalidate() is called.
- 	 */
- 	retval = -ENODEV;
-+
- 	if (scsi_block_when_processing_errors(sdp))
- 		retval = scsi_test_unit_ready(sdp, SD_TIMEOUT, SD_MAX_RETRIES);
- 
-@@ -771,8 +775,11 @@ static int sd_media_changed(struct gendi
- 	 * and we will figure it out later once the drive is
- 	 * available again.
- 	 */
--	if (retval)
--		 goto not_present;
-+	if (retval) {
-+		set_media_not_present(sdkp);
-+		retval = 1;
-+		goto out;
-+	}
- 
- 	/*
- 	 * For removable scsi disk we have to recognise the presence
-@@ -783,12 +790,11 @@ static int sd_media_changed(struct gendi
- 
- 	retval = sdp->changed;
- 	sdp->changed = 0;
--
-+out:
-+	if (retval != sdkp->previous_state)
-+		scsi_device_event_notify(sdp, SDEV_MEDIA_CHANGE);
-+	sdkp->previous_state = retval;
- 	return retval;
--
--not_present:
--	set_media_not_present(sdkp);
--	return 1;
- }
- 
- static int sd_sync_cache(struct scsi_disk *sdkp)
-diff -puN drivers/scsi/sr.c~scsi-send-media-state-change-modification-events drivers/scsi/sr.c
---- a/drivers/scsi/sr.c~scsi-send-media-state-change-modification-events
-+++ a/drivers/scsi/sr.c
-@@ -192,8 +192,9 @@ static int sr_media_change(struct cdrom_
- 		 * and we will figure it out later once the drive is
- 		 * available again.  */
- 		cd->device->changed = 1;
--		return 1;	/* This will force a flush, if called from
--				 * check_disk_change */
-+		/* This will force a flush, if called from check_disk_change */
-+		retval = 1;
-+		goto out;
- 	};
- 
- 	retval = cd->device->changed;
-@@ -203,9 +204,15 @@ static int sr_media_change(struct cdrom_
- 	if (retval) {
- 		/* check multisession offset etc */
- 		sr_cd_check(cdi);
--
- 		get_sectorsize(cd);
+diff -puN drivers/scsi/osst.c~scsi-fix-if-n-if-cases-missing-semicolons=
+-when-false drivers/scsi/osst.c
+--- a/drivers/scsi/osst.c~scsi-fix-if-n-if-cases-missing-semicolons-whe=
+n-false
++++ a/drivers/scsi/osst.c
+@@ -593,10 +593,11 @@ static int osst_verify_frame(struct osst
+ 	if (aux->frame_type !=3D OS_FRAME_TYPE_DATA &&
+ 	    aux->frame_type !=3D OS_FRAME_TYPE_EOD &&
+ 	    aux->frame_type !=3D OS_FRAME_TYPE_MARKER) {
+-		if (!quiet)
++		if (!quiet) {
+ #if DEBUG
+ 			printk(OSST_DEB_MSG "%s:D: Skipping frame, frame type %x\n", name, =
+aux->frame_type);
+ #endif
++		}
+ 		goto err_out;
  	}
-+
-+out:
-+	/* Notify userspace, that media has changed. */
-+	if (retval != cd->previous_state)
-+		scsi_device_event_notify(cd->device, SDEV_MEDIA_CHANGE);
-+	cd->previous_state = retval;
-+
- 	return retval;
- }
-  
-diff -puN drivers/scsi/sr.h~scsi-send-media-state-change-modification-events drivers/scsi/sr.h
---- a/drivers/scsi/sr.h~scsi-send-media-state-change-modification-events
-+++ a/drivers/scsi/sr.h
-@@ -37,6 +37,7 @@ typedef struct scsi_cd {
- 	unsigned xa_flag:1;	/* CD has XA sectors ? */
- 	unsigned readcd_known:1;	/* drive supports READ_CD (0xbe) */
- 	unsigned readcd_cdda:1;	/* reading audio data using READ_CD */
-+	unsigned previous_state:1;	/* media has changed */
- 	struct cdrom_device_info cdi;
- 	/* We hold gendisk and scsi_device references on probe and use
- 	 * the refs on this kref to decide when to release them */
-diff -puN include/scsi/sd.h~scsi-send-media-state-change-modification-events include/scsi/sd.h
---- a/include/scsi/sd.h~scsi-send-media-state-change-modification-events
-+++ a/include/scsi/sd.h
-@@ -41,6 +41,7 @@ struct scsi_disk {
- 	u32		index;
- 	u8		media_present;
- 	u8		write_prot;
-+	unsigned	previous_state : 1;
- 	unsigned	WCE : 1;	/* state of disk WCE bit */
- 	unsigned	RCD : 1;	/* state of disk RCD bit, unused */
- 	unsigned	DPOFUA : 1;	/* state of disk DPOFUA bit */
+ 	if (aux->frame_type =3D=3D OS_FRAME_TYPE_EOD &&
+@@ -606,11 +607,12 @@ static int osst_verify_frame(struct osst
+ 		goto err_out;
+ 	}
+         if (frame_seq_number !=3D -1 && ntohl(aux->frame_seq_num) !=3D=
+ frame_seq_number) {
+-		if (!quiet)
++		if (!quiet) {
+ #if DEBUG
+ 			printk(OSST_DEB_MSG "%s:D: Skipping frame, sequence number %u (expe=
+cted %d)\n",=20
+ 					    name, ntohl(aux->frame_seq_num), frame_seq_number);
+ #endif
++		}
+ 		goto err_out;
+ 	}
+ 	if (aux->frame_type =3D=3D OS_FRAME_TYPE_MARKER) {
 _
 
-Patches currently in -mm which might be from kay.sievers@vrfy.org are
+Patches currently in -mm which might be from ilpo.jarvinen@helsinki.fi =
+are
 
-fs-partitions-checkc-add-error-handling-for.patch
-git-scsi-misc.patch
+origin.patch
+git-scsi-rc-fixes.patch
+git-watchdog.patch
