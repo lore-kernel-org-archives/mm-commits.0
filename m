@@ -1,142 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - remove-always-true-tests-in-irq-handlers.patch removed from -mm tree
-Date: Mon, 29 Oct 2007 13:31:32 -0700
-Message-ID: <200710292031.l9TKVWwN021857@imap1.linux-foundation.org>
+Subject: - x86-fix-config_smp-warning-in-processorc.patch removed from -mm tree
+Date: Mon, 29 Oct 2007 13:31:28 -0700
+Message-ID: <200710292031.l9TKVSLQ021851@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32839 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44122 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752682AbXJ2Uco (ORCPT
+	by vger.kernel.org with ESMTP id S1752303AbXJ2Ucn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 16:32:44 -0400
+	Mon, 29 Oct 2007 16:32:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff@garzik.org, jgarzik@redhat.com, ralf@linux-mips.org, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: jeff@garzik.org, jgarzik@redhat.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove always-true tests in irq handlers
+     X86: fix !CONFIG_SMP warning in processor.c
 has been removed from the -mm tree.  Its filename was
-     remove-always-true-tests-in-irq-handlers.patch
+     x86-fix-config_smp-warning-in-processorc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Remove always-true tests in irq handlers
+Subject: X86: fix !CONFIG_SMP warning in processor.c
 From: Jeff Garzik <jeff@garzik.org>
 
-In these drivers, dev_id is always non-NULL.
+Fix !CONFIG_SMP warning:
+
+arch/x86/kernel/acpi/processor.c: In function `arch_acpi_processor_init_pdc':
+arch/x86/kernel/acpi/processor.c:65: warning: unused variable `cpu'
 
 Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/hp/sim/simeth.c                   |    5 -----
- arch/mips/pmc-sierra/msp71xx/msp_hwbutton.c |    5 +----
- drivers/net/cpmac.c                         |    3 ---
- drivers/net/ucc_geth.c                      |    3 ---
- drivers/net/wan/farsync.c                   |   11 +++--------
- 5 files changed, 4 insertions(+), 23 deletions(-)
+ arch/x86/kernel/acpi/processor.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/ia64/hp/sim/simeth.c~remove-always-true-tests-in-irq-handlers arch/ia64/hp/sim/simeth.c
---- a/arch/ia64/hp/sim/simeth.c~remove-always-true-tests-in-irq-handlers
-+++ a/arch/ia64/hp/sim/simeth.c
-@@ -497,11 +497,6 @@ simeth_interrupt(int irq, void *dev_id)
+diff -puN arch/x86/kernel/acpi/processor.c~x86-fix-config_smp-warning-in-processorc arch/x86/kernel/acpi/processor.c
+--- a/arch/x86/kernel/acpi/processor.c~x86-fix-config_smp-warning-in-processorc
++++ a/arch/x86/kernel/acpi/processor.c
+@@ -62,7 +62,9 @@ static void init_intel_pdc(struct acpi_p
+ /* Initialize _PDC data based on the CPU vendor */
+ void arch_acpi_processor_init_pdc(struct acpi_processor *pr)
  {
- 	struct net_device *dev = dev_id;
++#ifdef CONFIG_SMP
+ 	unsigned int cpu = pr->id;
++#endif
+ 	struct cpuinfo_x86 *c = &cpu_data(cpu);
  
--	if ( dev == NULL ) {
--		printk(KERN_WARNING "simeth: irq %d for unknown device\n", irq);
--		return IRQ_NONE;
--	}
--
- 	/*
- 	 * very simple loop because we get interrupts only when receiving
- 	 */
-diff -puN arch/mips/pmc-sierra/msp71xx/msp_hwbutton.c~remove-always-true-tests-in-irq-handlers arch/mips/pmc-sierra/msp71xx/msp_hwbutton.c
---- a/arch/mips/pmc-sierra/msp71xx/msp_hwbutton.c~remove-always-true-tests-in-irq-handlers
-+++ a/arch/mips/pmc-sierra/msp71xx/msp_hwbutton.c
-@@ -126,9 +126,6 @@ static irqreturn_t hwbutton_handler(int 
- 	struct hwbutton_interrupt *hirq = data;
- 	unsigned long cic_ext = *CIC_EXT_CFG_REG;
- 
--	if (irq != hirq->irq)
--		return IRQ_NONE;
--
- 	if (CIC_EXT_IS_ACTIVE_HI(cic_ext, hirq->eirq)) {
- 		/* Interrupt: pin is now HI */
- 		CIC_EXT_SET_ACTIVE_LO(cic_ext, hirq->eirq);
-@@ -164,7 +161,7 @@ static int msp_hwbutton_register(struct 
- 	*CIC_EXT_CFG_REG = cic_ext;
- 
- 	return request_irq(hirq->irq, hwbutton_handler, IRQF_DISABLED,
--				hirq->name, (void *)hirq);
-+			   hirq->name, hirq);
- }
- 
- static int __init msp_hwbutton_setup(void)
-diff -puN drivers/net/cpmac.c~remove-always-true-tests-in-irq-handlers drivers/net/cpmac.c
---- a/drivers/net/cpmac.c~remove-always-true-tests-in-irq-handlers
-+++ a/drivers/net/cpmac.c
-@@ -661,9 +661,6 @@ static irqreturn_t cpmac_irq(int irq, vo
- 	int queue;
- 	u32 status;
- 
--	if (!dev)
--		return IRQ_NONE;
--
- 	priv = netdev_priv(dev);
- 
- 	status = cpmac_read(priv->regs, CPMAC_MAC_INT_VECTOR);
-diff -puN drivers/net/ucc_geth.c~remove-always-true-tests-in-irq-handlers drivers/net/ucc_geth.c
---- a/drivers/net/ucc_geth.c~remove-always-true-tests-in-irq-handlers
-+++ a/drivers/net/ucc_geth.c
-@@ -3619,9 +3619,6 @@ static irqreturn_t ucc_geth_irq_handler(
- 
- 	ugeth_vdbg("%s: IN", __FUNCTION__);
- 
--	if (!ugeth)
--		return IRQ_NONE;
--
- 	uccf = ugeth->uccf;
- 	ug_info = ugeth->ug_info;
- 
-diff -puN drivers/net/wan/farsync.c~remove-always-true-tests-in-irq-handlers drivers/net/wan/farsync.c
---- a/drivers/net/wan/farsync.c~remove-always-true-tests-in-irq-handlers
-+++ a/drivers/net/wan/farsync.c
-@@ -1498,9 +1498,9 @@ do_bottom_half_rx(struct fst_card_info *
-  *      Dev_id is our fst_card_info pointer
-  */
- static irqreturn_t
--fst_intr(int irq, void *dev_id)
-+fst_intr(int dummy, void *dev_id)
- {
--	struct fst_card_info *card;
-+	struct fst_card_info *card = dev_id;
- 	struct fst_port_info *port;
- 	int rdidx;		/* Event buffer indices */
- 	int wridx;
-@@ -1509,17 +1509,12 @@ fst_intr(int irq, void *dev_id)
- 	unsigned int do_card_interrupt;
- 	unsigned int int_retry_count;
- 
--	if ((card = dev_id) == NULL) {
--		dbg(DBG_INTR, "intr: spurious %d\n", irq);
--		return IRQ_NONE;
--	}
--
- 	/*
- 	 * Check to see if the interrupt was for this card
- 	 * return if not
- 	 * Note that the call to clear the interrupt is important
- 	 */
--	dbg(DBG_INTR, "intr: %d %p\n", irq, card);
-+	dbg(DBG_INTR, "intr: %d %p\n", card->irq, card);
- 	if (card->state != FST_RUNNING) {
- 		printk_err
- 		    ("Interrupt received for card %d in a non running state (%d)\n",
+ 	pr->pdc = NULL;
 _
 
 Patches currently in -mm which might be from jeff@garzik.org are
