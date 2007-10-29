@@ -1,191 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: - arm-misc-minor-interrupt-handler-cleanups.patch removed from -mm tree
-Date: Mon, 29 Oct 2007 13:31:02 -0700
-Message-ID: <200710292031.l9TKV2UJ021822@imap1.linux-foundation.org>
+Subject: - scsi-send-media-state-change-modification-events.patch removed from -mm tree
+Date: Mon, 29 Oct 2007 13:31:13 -0700
+Message-ID: <200710292031.l9TKVDhS021833@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57650 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37168 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752502AbXJ2Ubv (ORCPT
+	by vger.kernel.org with ESMTP id S1752488AbXJ2Ubs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 16:31:51 -0400
+	Mon, 29 Oct 2007 16:31:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff@garzik.org, jgarzik@redhat.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: kay.sievers@vrfy.org, James.Bottomley@steeleye.com, greg@kroah.com, kristen.c.accardi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ARM: Misc minor interrupt handler cleanups
+     scsi: send media state change modification events
 has been removed from the -mm tree.  Its filename was
-     arm-misc-minor-interrupt-handler-cleanups.patch
+     scsi-send-media-state-change-modification-events.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: ARM: Misc minor interrupt handler cleanups
-From: Jeff Garzik <jeff@garzik.org>
+Subject: scsi: send media state change modification events
+From: Kay Sievers <kay.sievers@vrfy.org>
 
-mach-integrator/pci_v3.c: no need to reference 'irq' arg, its constant
+This will send for a card reader slot (remove/add media):
+  UEVENT[1187091572.155884] change   /devices/pci0000:00/0000:00:1d.7/usb5/5-2/5-2:1.0/host7/target7:0:0/7:0:0:0 (scsi)
+  UEVENT[1187091572.162314] remove   /block/sdb/sdb1 (block)
+  UEVENT[1187091572.172464] add      /block/sdb/sdb1 (block)
+  UEVENT[1187091572.175408] change   /devices/pci0000:00/0000:00:1d.7/usb5/5-2/5-2:1.0/host7/target7:0:0/7:0:0:0 (scsi)
 
-mach-omap1/pm.c: remove extra whitespace
+and for a DVD drive (add/eject media):
+  UEVENT[1187091590.189159] change   /devices/pci0000:00/0000:00:1f.1/host4/target4:0:0/4:0:0:0 (scsi)
+  UEVENT[1187091590.957124] add      /module/isofs (module)
+  UEVENT[1187091604.468207] change   /devices/pci0000:00/0000:00:1f.1/host4/target4:0:0/4:0:0:0 (scsi)
 
-arch/arm/mach-sa1100/ssp.c: remove braces around single C stmt
+Userspace gets events, even for unpartitioned media. This unifies
+the event handling for asynchronoous events (AN) and events caused by
+perodical polling the device from userspace.
 
-arch/arm/plat-omap/mcbsp.c:
-	- remove pointless casts from void*
-	- make longer lines more readable
-
-Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-integrator/pci_v3.c |    8 +++++---
- arch/arm/mach-omap1/pm.c          |    2 +-
- arch/arm/mach-sa1100/ssp.c        |    3 +--
- arch/arm/plat-omap/mcbsp.c        |   20 ++++++++++++--------
- 4 files changed, 19 insertions(+), 14 deletions(-)
+ drivers/scsi/sd.c |   24 +++++++++++++++---------
+ drivers/scsi/sr.c |   13 ++++++++++---
+ drivers/scsi/sr.h |    1 +
+ include/scsi/sd.h |    1 +
+ 4 files changed, 27 insertions(+), 12 deletions(-)
 
-diff -puN arch/arm/mach-integrator/pci_v3.c~arm-misc-minor-interrupt-handler-cleanups arch/arm/mach-integrator/pci_v3.c
---- a/arch/arm/mach-integrator/pci_v3.c~arm-misc-minor-interrupt-handler-cleanups
-+++ a/arch/arm/mach-integrator/pci_v3.c
-@@ -440,7 +440,7 @@ v3_pci_fault(unsigned long addr, unsigne
- 	return 1;
+diff -puN drivers/scsi/sd.c~scsi-send-media-state-change-modification-events drivers/scsi/sd.c
+--- a/drivers/scsi/sd.c~scsi-send-media-state-change-modification-events
++++ a/drivers/scsi/sd.c
+@@ -749,8 +749,11 @@ static int sd_media_changed(struct gendi
+ 	 * can deal with it then.  It is only because of unrecoverable errors
+ 	 * that we would ever take a device offline in the first place.
+ 	 */
+-	if (!scsi_device_online(sdp))
+-		goto not_present;
++	if (!scsi_device_online(sdp)) {
++		set_media_not_present(sdkp);
++		retval = 1;
++		goto out;
++	}
+ 
+ 	/*
+ 	 * Using TEST_UNIT_READY enables differentiation between drive with
+@@ -762,6 +765,7 @@ static int sd_media_changed(struct gendi
+ 	 * sd_revalidate() is called.
+ 	 */
+ 	retval = -ENODEV;
++
+ 	if (scsi_block_when_processing_errors(sdp))
+ 		retval = scsi_test_unit_ready(sdp, SD_TIMEOUT, SD_MAX_RETRIES);
+ 
+@@ -771,8 +775,11 @@ static int sd_media_changed(struct gendi
+ 	 * and we will figure it out later once the drive is
+ 	 * available again.
+ 	 */
+-	if (retval)
+-		 goto not_present;
++	if (retval) {
++		set_media_not_present(sdkp);
++		retval = 1;
++		goto out;
++	}
+ 
+ 	/*
+ 	 * For removable scsi disk we have to recognise the presence
+@@ -783,12 +790,11 @@ static int sd_media_changed(struct gendi
+ 
+ 	retval = sdp->changed;
+ 	sdp->changed = 0;
+-
++out:
++	if (retval != sdkp->previous_state)
++		scsi_device_event_notify(sdp, SDEV_MEDIA_CHANGE);
++	sdkp->previous_state = retval;
+ 	return retval;
+-
+-not_present:
+-	set_media_not_present(sdkp);
+-	return 1;
  }
  
--static irqreturn_t v3_irq(int irq, void *devid)
-+static irqreturn_t v3_irq(int dummy, void *devid)
- {
- #ifdef CONFIG_DEBUG_LL
- 	struct pt_regs *regs = get_irq_regs();
-@@ -448,8 +448,10 @@ static irqreturn_t v3_irq(int irq, void 
- 	unsigned long instr = *(unsigned long *)pc;
- 	char buf[128];
+ static int sd_sync_cache(struct scsi_disk *sdkp)
+diff -puN drivers/scsi/sr.c~scsi-send-media-state-change-modification-events drivers/scsi/sr.c
+--- a/drivers/scsi/sr.c~scsi-send-media-state-change-modification-events
++++ a/drivers/scsi/sr.c
+@@ -192,8 +192,9 @@ static int sr_media_change(struct cdrom_
+ 		 * and we will figure it out later once the drive is
+ 		 * available again.  */
+ 		cd->device->changed = 1;
+-		return 1;	/* This will force a flush, if called from
+-				 * check_disk_change */
++		/* This will force a flush, if called from check_disk_change */
++		retval = 1;
++		goto out;
+ 	};
  
--	sprintf(buf, "V3 int %d: pc=0x%08lx [%08lx] LBFADDR=%08x LBFCODE=%02x ISTAT=%02x\n", irq,
--		pc, instr, __raw_readl(SC_LBFADDR), __raw_readl(SC_LBFCODE) & 255,
-+	sprintf(buf, "V3 int %d: pc=0x%08lx [%08lx] LBFADDR=%08x LBFCODE=%02x "
-+		"ISTAT=%02x\n", IRQ_AP_V3INT, pc, instr,
-+		__raw_readl(SC_LBFADDR),
-+		__raw_readl(SC_LBFCODE) & 255,
- 		v3_readb(V3_LB_ISTAT));
- 	printascii(buf);
- #endif
-diff -puN arch/arm/mach-omap1/pm.c~arm-misc-minor-interrupt-handler-cleanups arch/arm/mach-omap1/pm.c
---- a/arch/arm/mach-omap1/pm.c~arm-misc-minor-interrupt-handler-cleanups
-+++ a/arch/arm/mach-omap1/pm.c
-@@ -646,7 +646,7 @@ static void omap_pm_finish(void)
+ 	retval = cd->device->changed;
+@@ -203,9 +204,15 @@ static int sr_media_change(struct cdrom_
+ 	if (retval) {
+ 		/* check multisession offset etc */
+ 		sr_cd_check(cdi);
+-
+ 		get_sectorsize(cd);
+ 	}
++
++out:
++	/* Notify userspace, that media has changed. */
++	if (retval != cd->previous_state)
++		scsi_device_event_notify(cd->device, SDEV_MEDIA_CHANGE);
++	cd->previous_state = retval;
++
+ 	return retval;
  }
- 
- 
--static irqreturn_t  omap_wakeup_interrupt(int irq, void *dev)
-+static irqreturn_t omap_wakeup_interrupt(int irq, void *dev)
- {
- 	return IRQ_HANDLED;
- }
-diff -puN arch/arm/mach-sa1100/ssp.c~arm-misc-minor-interrupt-handler-cleanups arch/arm/mach-sa1100/ssp.c
---- a/arch/arm/mach-sa1100/ssp.c~arm-misc-minor-interrupt-handler-cleanups
-+++ a/arch/arm/mach-sa1100/ssp.c
-@@ -29,9 +29,8 @@ static irqreturn_t ssp_interrupt(int irq
- {
- 	unsigned int status = Ser4SSSR;
- 
--	if (status & SSSR_ROR) {
-+	if (status & SSSR_ROR)
- 		printk(KERN_WARNING "SSP: receiver overrun\n");
--	}
- 
- 	Ser4SSSR = SSSR_ROR;
- 
-diff -puN arch/arm/plat-omap/mcbsp.c~arm-misc-minor-interrupt-handler-cleanups arch/arm/plat-omap/mcbsp.c
---- a/arch/arm/plat-omap/mcbsp.c~arm-misc-minor-interrupt-handler-cleanups
-+++ a/arch/arm/plat-omap/mcbsp.c
-@@ -98,9 +98,10 @@ static void omap_mcbsp_dump_reg(u8 id)
- 
- static irqreturn_t omap_mcbsp_tx_irq_handler(int irq, void *dev_id)
- {
--	struct omap_mcbsp * mcbsp_tx = (struct omap_mcbsp *)(dev_id);
-+	struct omap_mcbsp *mcbsp_tx = dev_id;
- 
--	DBG("TX IRQ callback : 0x%x\n", OMAP_MCBSP_READ(mcbsp_tx->io_base, SPCR2));
-+	DBG("TX IRQ callback : 0x%x\n",
-+	    OMAP_MCBSP_READ(mcbsp_tx->io_base, SPCR2));
- 
- 	complete(&mcbsp_tx->tx_irq_completion);
- 	return IRQ_HANDLED;
-@@ -108,9 +109,10 @@ static irqreturn_t omap_mcbsp_tx_irq_han
- 
- static irqreturn_t omap_mcbsp_rx_irq_handler(int irq, void *dev_id)
- {
--	struct omap_mcbsp * mcbsp_rx = (struct omap_mcbsp *)(dev_id);
-+	struct omap_mcbsp *mcbsp_rx = dev_id;
- 
--	DBG("RX IRQ callback : 0x%x\n", OMAP_MCBSP_READ(mcbsp_rx->io_base, SPCR2));
-+	DBG("RX IRQ callback : 0x%x\n",
-+	    OMAP_MCBSP_READ(mcbsp_rx->io_base, SPCR2));
- 
- 	complete(&mcbsp_rx->rx_irq_completion);
- 	return IRQ_HANDLED;
-@@ -118,9 +120,10 @@ static irqreturn_t omap_mcbsp_rx_irq_han
- 
- static void omap_mcbsp_tx_dma_callback(int lch, u16 ch_status, void *data)
- {
--	struct omap_mcbsp * mcbsp_dma_tx = (struct omap_mcbsp *)(data);
-+	struct omap_mcbsp *mcbsp_dma_tx = data;
- 
--	DBG("TX DMA callback : 0x%x\n", OMAP_MCBSP_READ(mcbsp_dma_tx->io_base, SPCR2));
-+	DBG("TX DMA callback : 0x%x\n",
-+	    OMAP_MCBSP_READ(mcbsp_dma_tx->io_base, SPCR2));
- 
- 	/* We can free the channels */
- 	omap_free_dma(mcbsp_dma_tx->dma_tx_lch);
-@@ -131,9 +134,10 @@ static void omap_mcbsp_tx_dma_callback(i
- 
- static void omap_mcbsp_rx_dma_callback(int lch, u16 ch_status, void *data)
- {
--	struct omap_mcbsp * mcbsp_dma_rx = (struct omap_mcbsp *)(data);
-+	struct omap_mcbsp *mcbsp_dma_rx = data;
- 
--	DBG("RX DMA callback : 0x%x\n", OMAP_MCBSP_READ(mcbsp_dma_rx->io_base, SPCR2));
-+	DBG("RX DMA callback : 0x%x\n",
-+	    OMAP_MCBSP_READ(mcbsp_dma_rx->io_base, SPCR2));
- 
- 	/* We can free the channels */
- 	omap_free_dma(mcbsp_dma_rx->dma_rx_lch);
+  
+diff -puN drivers/scsi/sr.h~scsi-send-media-state-change-modification-events drivers/scsi/sr.h
+--- a/drivers/scsi/sr.h~scsi-send-media-state-change-modification-events
++++ a/drivers/scsi/sr.h
+@@ -37,6 +37,7 @@ typedef struct scsi_cd {
+ 	unsigned xa_flag:1;	/* CD has XA sectors ? */
+ 	unsigned readcd_known:1;	/* drive supports READ_CD (0xbe) */
+ 	unsigned readcd_cdda:1;	/* reading audio data using READ_CD */
++	unsigned previous_state:1;	/* media has changed */
+ 	struct cdrom_device_info cdi;
+ 	/* We hold gendisk and scsi_device references on probe and use
+ 	 * the refs on this kref to decide when to release them */
+diff -puN include/scsi/sd.h~scsi-send-media-state-change-modification-events include/scsi/sd.h
+--- a/include/scsi/sd.h~scsi-send-media-state-change-modification-events
++++ a/include/scsi/sd.h
+@@ -41,6 +41,7 @@ struct scsi_disk {
+ 	u32		index;
+ 	u8		media_present;
+ 	u8		write_prot;
++	unsigned	previous_state : 1;
+ 	unsigned	WCE : 1;	/* state of disk WCE bit */
+ 	unsigned	RCD : 1;	/* state of disk RCD bit, unused */
+ 	unsigned	DPOFUA : 1;	/* state of disk DPOFUA bit */
 _
 
-Patches currently in -mm which might be from jeff@garzik.org are
+Patches currently in -mm which might be from kay.sievers@vrfy.org are
 
-origin.patch
-remove-bogus-default-y-for-dmar-and-net_dma.patch
-acpi-sbs-fix-retval-warning.patch
-git-arm.patch
-git-jg-misc.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-ide-add-helper-__ide_setup_pci_device.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-git-netdev-all.patch
-forcedeth-power-down-phy-when-interface-is-down.patch
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-scsi-misc-vs-git-libata-all.patch
-hptiop-fix-type-mismatch-warning.patch
-ips-remove-ips_ha-members-that-duplicate-struct-pci_dev-members.patch
-ips-trim-trailing-whitespace.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-ips-pci-api-cleanups.patch
-ips-handle-scsi_add_host-failure-and-other-err-cleanups.patch
-git-wireless.patch
-fix-versus-precedence-in-various-places.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness.patch
-riscom8-fix-smp-brokenness-fix.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-sound-oss-sb_commonc-fix-casting-warning.patch
-remove-warnings-for-longstanding-conditions.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-remove-pointless-casts-from-void-pointers.patch
+fs-partitions-checkc-add-error-handling-for.patch
+git-scsi-misc.patch
