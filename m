@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maps4-add-proportional-set-size-accounting-in-smaps.patch added to -mm tree
-Date: Mon, 29 Oct 2007 14:57:17 -0700
-Message-ID: <200710292157.l9TLvH5J025322@imap1.linux-foundation.org>
+Subject: + maps4-make-page-monitoring-proc-file-optional.patch added to -mm tree
+Date: Mon, 29 Oct 2007 14:57:49 -0700
+Message-ID: <200710292157.l9TLvnIQ025375@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36610 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45186 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752530AbXJ2V7A (ORCPT
+	by vger.kernel.org with ESMTP id S1752781AbXJ2V7F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 17:59:00 -0400
+	Mon, 29 Oct 2007 17:59:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wfg@mail.ustc.edu.cn, P@draigBrady.com, balbir@linux.vnet.ibm.com, bernie@codewiz.org, haveblue@us.ibm.com, hugh@veritas.com, jjberthels@gmail.com, mpm@selenic.com, vda.linux@googlemail.com
+Cc: mpm@selenic.com, haveblue@us.ibm.com
 
 
 The patch titled
-     maps4: add proportional set size accounting in smaps
+     maps4: make page monitoring /proc file optional
 has been added to the -mm tree.  Its filename is
-     maps4-add-proportional-set-size-accounting-in-smaps.patch
+     maps4-make-page-monitoring-proc-file-optional.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,124 +26,154 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: maps4: add proportional set size accounting in smaps
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: maps4: make page monitoring /proc file optional
+From: Matt Mackall <mpm@selenic.com>
 
-The "proportional set size" (PSS) of a process is the count of pages it has
-in memory, where each page is divided by the number of processes sharing
-it.  So if a process has 1000 pages all to itself, and 1000 shared with one
-other process, its PSS will be 1500.
+Make /proc/ page monitoring configurable
 
-               - lwn.net: "ELC: How much memory are applications really using?"
+This puts the following files under an embedded config option:
 
-The PSS proposed by Matt Mackall is a very nice metic for measuring an
-process's memory footprint.  So collect and export it via
-/proc/<pid>/smaps.
+/proc/pid/clear_refs
+/proc/pid/smaps
+/proc/pid/pagemap
+/proc/kpagecount
+/proc/kpageflags
 
-Matt Mackall's pagemap/kpagemap and John Berthels's exmap can also do the
-job.  They are comprehensive tools.  But for PSS, let's do it in the simple
-way.
-
-Cc: John Berthels <jjberthels@gmail.com>
-Cc: Bernardo Innocenti <bernie@codewiz.org>
-Cc: Padraig Brady <P@draigBrady.com>
-Cc: Denys Vlasenko <vda.linux@googlemail.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Matt Mackall <mpm@selenic.com>
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-Cc: Hugh Dickins <hugh@veritas.com>
 Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   28 +++++++++++++++++++++++++++-
- 1 file changed, 27 insertions(+), 1 deletion(-)
+ fs/proc/base.c      |    4 ++--
+ fs/proc/proc_misc.c |    4 ++++
+ fs/proc/task_mmu.c  |    2 ++
+ init/Kconfig        |   10 ++++++++++
+ mm/Makefile         |    3 ++-
+ 5 files changed, 20 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~maps4-add-proportional-set-size-accounting-in-smaps fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~maps4-add-proportional-set-size-accounting-in-smaps
-+++ a/fs/proc/task_mmu.c
-@@ -114,6 +114,25 @@ static void pad_len_spaces(struct seq_fi
- 	seq_printf(m, "%*c", len, ' ');
- }
+diff -puN fs/proc/base.c~maps4-make-page-monitoring-proc-file-optional fs/proc/base.c
+--- a/fs/proc/base.c~maps4-make-page-monitoring-proc-file-optional
++++ a/fs/proc/base.c
+@@ -2157,7 +2157,7 @@ static const struct pid_entry tgid_base_
+ 	LNK("exe",        exe),
+ 	REG("mounts",     S_IRUGO, mounts),
+ 	REG("mountstats", S_IRUSR, mountstats),
+-#ifdef CONFIG_MMU
++#ifdef CONFIG_PROC_PAGE_MONITOR
+ 	REG("clear_refs", S_IWUSR, clear_refs),
+ 	REG("smaps",      S_IRUGO, smaps),
+ 	REG("pagemap",    S_IRUSR, pagemap),
+@@ -2481,7 +2481,7 @@ static const struct pid_entry tid_base_s
+ 	LNK("root",      root),
+ 	LNK("exe",       exe),
+ 	REG("mounts",    S_IRUGO, mounts),
+-#ifdef CONFIG_MMU
++#ifdef CONFIG_PROC_PAGE_MONITOR
+ 	REG("clear_refs", S_IWUSR, clear_refs),
+ 	REG("smaps",     S_IRUGO, smaps),
+ 	REG("pagemap",    S_IRUSR, pagemap),
+diff -puN fs/proc/proc_misc.c~maps4-make-page-monitoring-proc-file-optional fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~maps4-make-page-monitoring-proc-file-optional
++++ a/fs/proc/proc_misc.c
+@@ -676,6 +676,7 @@ static const struct file_operations proc
+ };
+ #endif
  
-+/*
-+ * Proportional Set Size(PSS): my share of RSS.
-+ *
-+ * PSS of a process is the count of pages it has in memory, where each
-+ * page is divided by the number of processes sharing it.  So if a
-+ * process has 1000 pages all to itself, and 1000 shared with one other
-+ * process, its PSS will be 1500.
-+ *
-+ * To keep (accumulated) division errors low, we adopt a 64bit
-+ * fixed-point pss counter to minimize division errors. So (pss >>
-+ * PSS_SHIFT) would be the real byte count.
-+ *
-+ * A shift of 12 before division means (assuming 4K page size):
-+ * 	- 1M 3-user-pages add up to 8KB errors;
-+ * 	- supports mapcount up to 2^24, or 16M;
-+ * 	- supports PSS up to 2^52 bytes, or 4PB.
-+ */
-+#define PSS_SHIFT 12
-+
++#ifdef CONFIG_PROC_PAGE_MONITOR
+ #define KPMSIZE sizeof(u64)
+ #define KPMMASK (KPMSIZE - 1)
+ /* /proc/kpagecount - an array exposing page counts
+@@ -804,6 +805,7 @@ static struct file_operations proc_kpage
+ 	.llseek = mem_lseek,
+ 	.read = kpageflags_read,
+ };
++#endif /* CONFIG_PROC_PAGE_MONITOR */
+ 
+ struct proc_dir_entry *proc_root_kcore;
+ 
+@@ -885,8 +887,10 @@ void __init proc_misc_init(void)
+ 				(size_t)high_memory - PAGE_OFFSET + PAGE_SIZE;
+ 	}
+ #endif
++#ifdef CONFIG_PROC_PAGE_MONITOR
+ 	create_seq_entry("kpagecount", S_IRUSR, &proc_kpagecount_operations);
+ 	create_seq_entry("kpageflags", S_IRUSR, &proc_kpageflags_operations);
++#endif
+ #ifdef CONFIG_PROC_VMCORE
+ 	proc_vmcore = create_proc_entry("vmcore", S_IRUSR, NULL);
+ 	if (proc_vmcore)
+diff -puN fs/proc/task_mmu.c~maps4-make-page-monitoring-proc-file-optional fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~maps4-make-page-monitoring-proc-file-optional
++++ a/fs/proc/task_mmu.c
+@@ -338,6 +338,7 @@ const struct file_operations proc_maps_o
+  */
+ #define PSS_SHIFT 12
+ 
++#ifdef CONFIG_PROC_PAGE_MONITOR
  struct mem_size_stats
  {
- 	unsigned long resident;
-@@ -122,6 +141,7 @@ struct mem_size_stats
- 	unsigned long private_clean;
- 	unsigned long private_dirty;
- 	unsigned long referenced;
-+	u64 pss;
+ 	struct vm_area_struct *vma;
+@@ -717,6 +718,7 @@ const struct file_operations proc_pagema
+ 	.llseek		= mem_lseek, /* borrow this */
+ 	.read		= pagemap_read,
  };
++#endif /* CONFIG_PROC_PAGE_MONITOR */
  
- struct pmd_walker {
-@@ -195,6 +215,7 @@ static int show_map_internal(struct seq_
- 		seq_printf(m,
- 			   "Size:           %8lu kB\n"
- 			   "Rss:            %8lu kB\n"
-+			   "Pss:            %8lu kB\n"
- 			   "Shared_Clean:   %8lu kB\n"
- 			   "Shared_Dirty:   %8lu kB\n"
- 			   "Private_Clean:  %8lu kB\n"
-@@ -202,6 +223,7 @@ static int show_map_internal(struct seq_
- 			   "Referenced:     %8lu kB\n",
- 			   (vma->vm_end - vma->vm_start) >> 10,
- 			   mss->resident >> 10,
-+			   (unsigned long)(mss.pss >> (10 + PSS_SHIFT)),
- 			   mss->shared_clean  >> 10,
- 			   mss->shared_dirty  >> 10,
- 			   mss->private_clean >> 10,
-@@ -226,6 +248,7 @@ static void smaps_pte_range(struct vm_ar
- 	pte_t *pte, ptent;
- 	spinlock_t *ptl;
- 	struct page *page;
-+	int mapcount;
+ #ifdef CONFIG_NUMA
+ extern int show_numa_map(struct seq_file *m, void *v);
+diff -puN init/Kconfig~maps4-make-page-monitoring-proc-file-optional init/Kconfig
+--- a/init/Kconfig~maps4-make-page-monitoring-proc-file-optional
++++ a/init/Kconfig
+@@ -644,6 +644,16 @@ config SLOB
  
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
- 	for (; addr != end; pte++, addr += PAGE_SIZE) {
-@@ -242,16 +265,19 @@ static void smaps_pte_range(struct vm_ar
- 		/* Accumulate the size in pages that have been accessed. */
- 		if (pte_young(ptent) || PageReferenced(page))
- 			mss->referenced += PAGE_SIZE;
--		if (page_mapcount(page) >= 2) {
-+		mapcount = page_mapcount(page);
-+		if (mapcount >= 2) {
- 			if (pte_dirty(ptent))
- 				mss->shared_dirty += PAGE_SIZE;
- 			else
- 				mss->shared_clean += PAGE_SIZE;
-+			mss->pss += (PAGE_SIZE << PSS_SHIFT) / mapcount;
- 		} else {
- 			if (pte_dirty(ptent))
- 				mss->private_dirty += PAGE_SIZE;
- 			else
- 				mss->private_clean += PAGE_SIZE;
-+			mss->pss += (PAGE_SIZE << PSS_SHIFT);
- 		}
- 	}
- 	pte_unmap_unlock(pte - 1, ptl);
+ endchoice
+ 
++config PROC_PAGE_MONITOR
++ 	default y
++	depends PROC_FS && MMU
++	bool "Enable /proc page monitoring" if EMBEDDED
++ 	help
++	  Various /proc files exist to monitor process memory utilization:
++	  /proc/pid/smaps, /proc/pid/clear_refs, /proc/pid/pagemap,
++	  /proc/kpagecount, and /proc/kpageflags. Disabling these
++          interfaces will reduce the size of the kernel by approximately 4kb.
++
+ endmenu		# General setup
+ 
+ config RT_MUTEXES
+diff -puN mm/Makefile~maps4-make-page-monitoring-proc-file-optional mm/Makefile
+--- a/mm/Makefile~maps4-make-page-monitoring-proc-file-optional
++++ a/mm/Makefile
+@@ -5,7 +5,7 @@
+ mmu-y			:= nommu.o
+ mmu-$(CONFIG_MMU)	:= fremap.o highmem.o madvise.o memory.o mincore.o \
+ 			   mlock.o mmap.o mprotect.o mremap.o msync.o rmap.o \
+-			   vmalloc.o pagewalk.o
++			   vmalloc.o
+ 
+ obj-y			:= bootmem.o filemap.o mempool.o oom_kill.o fadvise.o \
+ 			   page_alloc.o page-writeback.o pdflush.o \
+@@ -13,6 +13,7 @@ obj-y			:= bootmem.o filemap.o mempool.o
+ 			   prio_tree.o util.o mmzone.o vmstat.o backing-dev.o \
+ 			   page_isolation.o $(mmu-y)
+ 
++obj-$(CONFIG_PROC_PAGE_MONITOR) += pagewalk.o
+ obj-$(CONFIG_BOUNCE)	+= bounce.o
+ obj-$(CONFIG_SWAP)	+= page_io.o swap_state.o swapfile.o thrash.o
+ obj-$(CONFIG_HUGETLBFS)	+= hugetlb.o
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from mpm@selenic.com are
 
-reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file.patch
 maps4-add-proportional-set-size-accounting-in-smaps.patch
+maps4-from-dave-hansen-haveblue-usibmcom.patch
+maps4-move-is_swap_pte.patch
+maps4-introduce-a-generic-page-walker.patch
+maps4-use-pagewalker-in-clear_refs-and-smaps.patch
+maps4-simplify-interdependence-of-maps-and-smaps.patch
+maps4-move-clear_refs-code-to-task_mmuc.patch
+maps4-regroup-task_mmu-by-interface.patch
+maps4-add-proc-pid-pagemap-interface.patch
+maps4-add-proc-kpagecount-interface.patch
+maps4-add-proc-kpageflags-interface.patch
+maps4-make-page-monitoring-proc-file-optional.patch
