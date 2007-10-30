@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch added to -mm tree
-Date: Tue, 30 Oct 2007 11:31:46 -0700
-Message-ID: <200710301831.l9UIVkAl021440@imap1.linux-foundation.org>
+Subject: + slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path.patch added to -mm tree
+Date: Tue, 30 Oct 2007 11:32:13 -0700
+Message-ID: <200710301832.l9UIWDXb021456@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57050 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51919 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753281AbXJ3Sby (ORCPT
+	by vger.kernel.org with ESMTP id S1753679AbXJ3ScT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Oct 2007 14:31:54 -0400
+	Tue, 30 Oct 2007 14:32:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com, penberg@cs.helsinki.fi
 
 
 The patch titled
-     SLUB: move kmem_cache_node determination into add_full and add_partial
+     SLUB: avoid checking for a valid object before zeroing on the fast path
 has been added to the -mm tree.  Its filename is
-     slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch
+     slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,110 +26,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: move kmem_cache_node determination into add_full and add_partial
+Subject: SLUB: avoid checking for a valid object before zeroing on the fast path
 From: Christoph Lameter <clameter@sgi.com>
 
-The kmem_cache_node determination can be moved into add_full() and
-add_partial().  This removes some code from the slab_free() slow path and
-reduces the register overhead that has to be managed in the slow path.
+The fast path always results in a valid object.  Move the check for the NULL
+pointer to the slow branch that calls __slab_alloc.  Only __slab_alloc can
+return NULL if there is no memory available anymore and that case is
+exceedingly rare.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   29 +++++++++++++++++------------
- 1 file changed, 17 insertions(+), 12 deletions(-)
+ mm/slub.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN mm/slub.c~slub-move-kmem_cache_node-determination-into-add_full-and-add_partial mm/slub.c
---- a/mm/slub.c~slub-move-kmem_cache_node-determination-into-add_full-and-add_partial
+diff -puN mm/slub.c~slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path mm/slub.c
+--- a/mm/slub.c~slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path
 +++ a/mm/slub.c
-@@ -800,8 +800,12 @@ static void trace(struct kmem_cache *s, 
- /*
-  * Tracking of fully allocated slabs for debugging purposes.
-  */
--static void add_full(struct kmem_cache_node *n, struct page *page)
-+static void add_full(struct kmem_cache *s, struct page *page)
- {
-+	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
-+
-+	if (!SlabDebug(page) || !(s->flags & SLAB_STORE_USER))
-+		return;
- 	spin_lock(&n->list_lock);
- 	list_add(&page->lru, &n->full);
- 	spin_unlock(&n->list_lock);
-@@ -1024,7 +1028,7 @@ static inline int slab_pad_check(struct 
- 			{ return 1; }
- static inline int check_object(struct kmem_cache *s, struct page *page,
- 			void *object, int active) { return 1; }
--static inline void add_full(struct kmem_cache_node *n, struct page *page) {}
-+static inline void add_full(struct kmem_cache *s, struct page *page) {}
- static inline unsigned long kmem_cache_flags(unsigned long objsize,
- 	unsigned long flags, const char *name,
- 	void (*ctor)(struct kmem_cache *, void *))
-@@ -1197,9 +1201,11 @@ static __always_inline int slab_trylock(
- /*
-  * Management of partially allocated slabs
-  */
--static void add_partial(struct kmem_cache_node *n,
-+static void add_partial(struct kmem_cache *s,
- 				struct page *page, int tail)
- {
-+	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
-+
- 	spin_lock(&n->list_lock);
- 	n->nr_partial++;
- 	if (tail)
-@@ -1336,19 +1342,18 @@ static struct page *get_partial(struct k
-  */
- static void unfreeze_slab(struct kmem_cache *s, struct page *page, int tail)
- {
--	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
+@@ -1573,19 +1573,22 @@ static __always_inline void *slab_alloc(
+ 
+ 	local_irq_save(flags);
+ 	c = get_cpu_slab(s, smp_processor_id());
+-	if (unlikely(!c->freelist || !node_match(c, node)))
++	if (unlikely(!c->freelist || !node_match(c, node))) {
+ 
+ 		object = __slab_alloc(s, gfpflags, node, addr, c);
 -
- 	ClearSlabFrozen(page);
- 	if (page->inuse) {
+-	else {
++		if (unlikely(!object)) {
++			local_irq_restore(flags);
++			goto out;
++		}
++	} else {
+ 		object = c->freelist;
+ 		c->freelist = object[c->offset];
+ 	}
+ 	local_irq_restore(flags);
  
- 		if (page->freelist)
--			add_partial(n, page, tail);
--		else if (SlabDebug(page) && (s->flags & SLAB_STORE_USER))
--			add_full(n, page);
-+			add_partial(s, page, tail);
-+		else
-+			add_full(s, page);
- 		slab_unlock(page);
- 
- 	} else {
--		if (n->nr_partial < MIN_PARTIAL) {
-+		if (get_node(s, page_to_nid(page))->nr_partial
-+							< MIN_PARTIAL) {
- 			/*
- 			 * Adding an empty slab to the partial slabs in order
- 			 * to avoid page allocator overhead. This slab needs
-@@ -1357,7 +1362,7 @@ static void unfreeze_slab(struct kmem_ca
- 			 * partial list stays small. kmem_cache_shrink can
- 			 * reclaim empty slabs from the partial list.
- 			 */
--			add_partial(n, page, 1);
-+			add_partial(s, page, 1);
- 			slab_unlock(page);
- 		} else {
- 			slab_unlock(page);
-@@ -1633,7 +1638,7 @@ checks_ok:
- 	 * then add it.
- 	 */
- 	if (unlikely(!prior))
--		add_partial(get_node(s, page_to_nid(page)), page, 0);
-+		add_partial(s, page, 0);
- 
- out_unlock:
- 	slab_unlock(page);
-@@ -2041,7 +2046,7 @@ static struct kmem_cache_node *early_kme
- #endif
- 	init_kmem_cache_node(n);
- 	atomic_long_inc(&n->nr_slabs);
--	add_partial(n, page, 0);
-+	add_partial(kmalloc_caches, page, 0);
- 	return n;
+-	if (unlikely((gfpflags & __GFP_ZERO) && object))
++	if (unlikely((gfpflags & __GFP_ZERO)))
+ 		memset(object, 0, c->objsize);
+-
++out:
+ 	return object;
  }
  
 _
