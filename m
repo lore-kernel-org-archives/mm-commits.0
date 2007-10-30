@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-convert-mutex-to-bitfield.patch added to -mm tree
-Date: Tue, 30 Oct 2007 12:16:39 -0700
-Message-ID: <200710301916.l9UJGdeV023273@imap1.linux-foundation.org>
+Subject: + coding-style-cleanups-for-drivers-md-mktablesc.patch added to -mm tree
+Date: Tue, 30 Oct 2007 12:19:19 -0700
+Message-ID: <200710301919.l9UJJJq9023344@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34163 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48984 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752160AbXJ3TRu (ORCPT
+	by vger.kernel.org with ESMTP id S1753644AbXJ3TTw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Oct 2007 15:17:50 -0400
+	Tue, 30 Oct 2007 15:19:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jikos@jikos.cz, a.zummo@towertech.it, david-b@pacbell.net, jkosina@suse.cz
+Cc: oliver.pntr@gmail.com, hpa@zytor.com, neilb@suse.de
 
 
 The patch titled
-     RTC: convert mutex to bitfield
+     coding style cleanups for drivers/md/mktables.c
 has been added to the -mm tree.  Its filename is
-     rtc-convert-mutex-to-bitfield.patch
+     coding-style-cleanups-for-drivers-md-mktablesc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,114 +26,213 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: RTC: convert mutex to bitfield
-From: Jiri Kosina <jikos@jikos.cz>
+Subject: coding style cleanups for drivers/md/mktables.c
+From: Oliver Pinter <oliver.pntr@gmail.com>
 
-RTC code is using mutex to assure exclusive access to /dev/rtc.  This is
-however wrong usage, as it leaves the mutex locked when returning into
-userspace, which is unacceptable.
-
-Convert rtc->char_lock into bit operation.
-
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Oliver Pinter <oliver.pntr@gmail.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/interface.c |    4 ++--
- drivers/rtc/rtc-dev.c   |   12 ++++--------
- include/linux/rtc.h     |    5 ++++-
- 3 files changed, 10 insertions(+), 11 deletions(-)
+ drivers/md/mktables.c |  174 ++++++++++++++++++++--------------------
+ 1 file changed, 89 insertions(+), 85 deletions(-)
 
-diff -puN drivers/rtc/interface.c~rtc-convert-mutex-to-bitfield drivers/rtc/interface.c
---- a/drivers/rtc/interface.c~rtc-convert-mutex-to-bitfield
-+++ a/drivers/rtc/interface.c
-@@ -293,7 +293,7 @@ int rtc_irq_register(struct rtc_device *
- 		return -EINVAL;
+diff -puN drivers/md/mktables.c~coding-style-cleanups-for-drivers-md-mktablesc drivers/md/mktables.c
+--- a/drivers/md/mktables.c~coding-style-cleanups-for-drivers-md-mktablesc
++++ a/drivers/md/mktables.c
+@@ -26,100 +26,104 @@
  
- 	/* Cannot register while the char dev is in use */
--	if (!(mutex_trylock(&rtc->char_lock)))
-+	if (test_and_set_bit(RTC_DEV_BUSY, &rtc->flags))
- 		return -EBUSY;
- 
- 	spin_lock_irq(&rtc->irq_task_lock);
-@@ -303,7 +303,7 @@ int rtc_irq_register(struct rtc_device *
- 	}
- 	spin_unlock_irq(&rtc->irq_task_lock);
- 
--	mutex_unlock(&rtc->char_lock);
-+	clear_bit(RTC_DEV_BUSY, &rtc->flags);
- 
- 	return retval;
- }
-diff -puN drivers/rtc/rtc-dev.c~rtc-convert-mutex-to-bitfield drivers/rtc/rtc-dev.c
---- a/drivers/rtc/rtc-dev.c~rtc-convert-mutex-to-bitfield
-+++ a/drivers/rtc/rtc-dev.c
-@@ -26,10 +26,7 @@ static int rtc_dev_open(struct inode *in
- 					struct rtc_device, char_dev);
- 	const struct rtc_class_ops *ops = rtc->ops;
- 
--	/* We keep the lock as long as the device is in use
--	 * and return immediately if busy
--	 */
--	if (!(mutex_trylock(&rtc->char_lock)))
-+	if (test_and_set_bit(RTC_DEV_BUSY, &rtc->flags))
- 		return -EBUSY;
- 
- 	file->private_data = rtc;
-@@ -43,8 +40,8 @@ static int rtc_dev_open(struct inode *in
- 		return 0;
- 	}
- 
--	/* something has gone wrong, release the lock */
--	mutex_unlock(&rtc->char_lock);
-+	/* something has gone wrong */
-+	clear_bit(RTC_DEV_BUSY, &rtc->flags);
- 	return err;
- }
- 
-@@ -405,7 +402,7 @@ static int rtc_dev_release(struct inode 
- 	if (rtc->ops->release)
- 		rtc->ops->release(rtc->dev.parent);
- 
--	mutex_unlock(&rtc->char_lock);
-+	clear_bit(RTC_DEV_BUSY, &rtc->flags);
- 	return 0;
- }
- 
-@@ -440,7 +437,6 @@ void rtc_dev_prepare(struct rtc_device *
- 
- 	rtc->dev.devt = MKDEV(MAJOR(rtc_devt), rtc->id);
- 
--	mutex_init(&rtc->char_lock);
- #ifdef CONFIG_RTC_INTF_DEV_UIE_EMUL
- 	INIT_WORK(&rtc->uie_task, rtc_uie_task);
- 	setup_timer(&rtc->uie_timer, rtc_uie_timer, (unsigned long)rtc);
-diff -puN include/linux/rtc.h~rtc-convert-mutex-to-bitfield include/linux/rtc.h
---- a/include/linux/rtc.h~rtc-convert-mutex-to-bitfield
-+++ a/include/linux/rtc.h
-@@ -133,6 +133,9 @@ struct rtc_class_ops {
- #define RTC_DEVICE_NAME_SIZE 20
- struct rtc_task;
- 
-+/* flags */
-+#define RTC_DEV_BUSY 0
-+
- struct rtc_device
+ static uint8_t gfmul(uint8_t a, uint8_t b)
  {
- 	struct device dev;
-@@ -145,7 +148,7 @@ struct rtc_device
- 	struct mutex ops_lock;
+-  uint8_t v = 0;
++	uint8_t v = 0;
  
- 	struct cdev char_dev;
--	struct mutex char_lock;
-+	unsigned long flags;
+-  while ( b ) {
+-    if ( b & 1 ) v ^= a;
+-    a = (a << 1) ^ (a & 0x80 ? 0x1d : 0);
+-    b >>= 1;
+-  }
+-  return v;
++	while (b) {
++		if (b & 1)
++			v ^= a;
++		a = (a << 1) ^ (a & 0x80 ? 0x1d : 0);
++		b >>= 1;
++	}
++
++	return v;
+ }
  
- 	unsigned long irq_data;
- 	spinlock_t irq_lock;
+ static uint8_t gfpow(uint8_t a, int b)
+ {
+-  uint8_t v = 1;
++	uint8_t v = 1;
++
++	b %= 255;
++	if (b < 0)
++		b += 255;
++
++	while (b) {
++		if (b & 1)
++			v = gfmul(v, a);
++		a = gfmul(a, a);
++		b >>= 1;
++	}
+ 
+-  b %= 255;
+-  if ( b < 0 )
+-    b += 255;
+-
+-  while ( b ) {
+-    if ( b & 1 ) v = gfmul(v,a);
+-    a = gfmul(a,a);
+-    b >>= 1;
+-  }
+-  return v;
++	return v;
+ }
+ 
+ int main(int argc, char *argv[])
+ {
+-  int i, j, k;
+-  uint8_t v;
+-  uint8_t exptbl[256], invtbl[256];
+-
+-  printf("#include \"raid6.h\"\n");
+-
+-  /* Compute multiplication table */
+-  printf("\nconst u8  __attribute__((aligned(256)))\n"
+-	 "raid6_gfmul[256][256] =\n"
+-	 "{\n");
+-  for ( i = 0 ; i < 256 ; i++ ) {
+-    printf("\t{\n");
+-    for ( j = 0 ; j < 256 ; j += 8 ) {
+-      printf("\t\t");
+-      for ( k = 0 ; k < 8 ; k++ ) {
+-	printf("0x%02x, ", gfmul(i,j+k));
+-      }
+-      printf("\n");
+-    }
+-    printf("\t},\n");
+-  }
+-  printf("};\n");
+-
+-  /* Compute power-of-2 table (exponent) */
+-  v = 1;
+-  printf("\nconst u8 __attribute__((aligned(256)))\n"
+-	 "raid6_gfexp[256] =\n"
+-	 "{\n");
+-  for ( i = 0 ; i < 256 ; i += 8 ) {
+-    printf("\t");
+-    for ( j = 0 ; j < 8 ; j++ ) {
+-      exptbl[i+j] = v;
+-      printf("0x%02x, ", v);
+-      v = gfmul(v,2);
+-      if ( v == 1 ) v = 0;	/* For entry 255, not a real entry */
+-    }
+-    printf("\n");
+-  }
+-  printf("};\n");
+-
+-  /* Compute inverse table x^-1 == x^254 */
+-  printf("\nconst u8 __attribute__((aligned(256)))\n"
+-	 "raid6_gfinv[256] =\n"
+-	 "{\n");
+-  for ( i = 0 ; i < 256 ; i += 8 ) {
+-    printf("\t");
+-    for ( j = 0 ; j < 8 ; j++ ) {
+-      invtbl[i+j] = v = gfpow(i+j,254);
+-      printf("0x%02x, ", v);
+-    }
+-    printf("\n");
+-  }
+-  printf("};\n");
+-
+-  /* Compute inv(2^x + 1) (exponent-xor-inverse) table */
+-  printf("\nconst u8 __attribute__((aligned(256)))\n"
+-	 "raid6_gfexi[256] =\n"
+-	 "{\n");
+-  for ( i = 0 ; i < 256 ; i += 8 ) {
+-    printf("\t");
+-    for ( j = 0 ; j < 8 ; j++ ) {
+-      printf("0x%02x, ", invtbl[exptbl[i+j]^1]);
+-    }
+-    printf("\n");
+-  }
+-  printf("};\n\n");
++	int i, j, k;
++	uint8_t v;
++	uint8_t exptbl[256], invtbl[256];
++
++	printf("#include \"raid6.h\"\n");
++
++	/* Compute multiplication table */
++	printf("\nconst u8  __attribute__((aligned(256)))\n"
++		"raid6_gfmul[256][256] =\n"
++		"{\n");
++	for (i = 0; i < 256; i++) {
++		printf("\t{\n");
++		for (j = 0; j < 256; j += 8) {
++			printf("\t\t");
++			for (k = 0; k < 8; k++)
++				printf("0x%02x, ", gfmul(i, j+k));
++			printf("\n");
++		}
++		printf("\t},\n");
++	}
++	printf("};\n");
++
++	/* Compute power-of-2 table (exponent) */
++	v = 1;
++	printf("\nconst u8 __attribute__((aligned(256)))\n"
++		"raid6_gfexp[256] =\n"
++		"{\n");
++	for (i = 0; i < 256; i += 8) {
++		printf("\t");
++		for (j = 0; j < 8; j++) {
++			exptbl[i+j] = v;
++			printf("0x%02x, ", v);
++			v = gfmul(v, 2);
++			if (v == 1)
++				v = 0;	/* For entry 255, not a real entry */
++		}
++		printf("\n");
++	}
++	printf("};\n");
++
++	/* Compute inverse table x^-1 == x^254 */
++	printf("\nconst u8 __attribute__((aligned(256)))\n"
++		"raid6_gfinv[256] =\n"
++		"{\n");
++	for (i = 0; i < 256; i += 8) {
++		printf("\t");
++		for (j = 0; j < 8; j++) {
++			v = gfpow(i+j, 254);
++			invtbl[i+j] = v;
++			printf("0x%02x, ", v);
++		}
++		printf("\n");
++	}
++	printf("};\n");
++
++	/* Compute inv(2^x + 1) (exponent-xor-inverse) table */
++	printf("\nconst u8 __attribute__((aligned(256)))\n"
++		"raid6_gfexi[256] =\n"
++		"{\n");
++	for (i = 0; i < 256; i += 8) {
++		printf("\t");
++		for (j = 0; j < 8; j++)
++			printf("0x%02x, ", invtbl[exptbl[i+j]^1]);
++		printf("\n");
++	}
++	printf("};\n\n");
+ 
+-  return 0;
++	return 0;
+ }
 _
 
-Patches currently in -mm which might be from jikos@jikos.cz are
+Patches currently in -mm which might be from oliver.pntr@gmail.com are
 
-rtc-convert-mutex-to-bitfield.patch
+coding-style-cleanups-for-drivers-md-mktablesc.patch
