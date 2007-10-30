@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 30 Oct 2007 15:24:50 -0700
-Message-ID: <200710302224.l9UMOoTS030993@imap1.linux-foundation.org>
+Subject: + uml-remove-xmm-checking-on-x86.patch added to -mm tree
+Date: Tue, 30 Oct 2007 15:25:23 -0700
+Message-ID: <200710302225.l9UMPNvn031077@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60480 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42379 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752113AbXJ3WZZ (ORCPT
+	by vger.kernel.org with ESMTP id S1752511AbXJ3WZy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Oct 2007 18:25:25 -0400
+	Tue, 30 Oct 2007 18:25:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jesper.nilsson@axis.com, starvik@axis.com
+Cc: magotari@gmail.com, jdike@linux.intel.com
 
 
 The patch titled
-     cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes
+     uml: remove xmm checking on x86
 has been added to the -mm tree.  Its filename is
-     cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
+     uml-remove-xmm-checking-on-x86.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,142 +26,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: uml: remove xmm checking on x86
+From: Karol Swietlicki <magotari@gmail.com>
 
-ERROR: use tabs not spaces
-#42: FILE: arch/cris/kernel/time.c:211:
-+        profile_tick(CPU_PROFILING);$
+This patch removes some code which ran at every boot, but does not seem to do
+anything anymore.  Please test.  It works for me but mistakes can happen.
 
-total: 1 errors, 0 warnings, 25 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Mikael Starvik <starvik@axis.com>
+Signed-off-by: Karol Swietlicki <magotari@gmail.com>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/kernel/time.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/um/sys-i386/bugs.c         |    3 ---
+ include/asm-um/processor-i386.h |    1 -
+ 2 files changed, 4 deletions(-)
 
-diff -puN arch/cris/kernel/time.c~cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes arch/cris/kernel/time.c
---- a/arch/cris/kernel/time.c~cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes
-+++ a/arch/cris/kernel/time.c
-@@ -212,7 +212,7 @@ cris_do_profile(struct pt_regs* regs)
- #endif
+diff -puN arch/um/sys-i386/bugs.c~uml-remove-xmm-checking-on-x86 arch/um/sys-i386/bugs.c
+--- a/arch/um/sys-i386/bugs.c~uml-remove-xmm-checking-on-x86
++++ a/arch/um/sys-i386/bugs.c
+@@ -15,7 +15,6 @@
  
- #if CONFIG_PROFILING
--        profile_tick(CPU_PROFILING, regs);
-+	profile_tick(CPU_PROFILING, regs);
- #endif
+ /* Set during early boot */
+ int host_has_cmov = 1;
+-int host_has_xmm = 0;
+ 
+ static char token(int fd, char *buf, int len, char stop)
+ {
+@@ -163,8 +162,6 @@ void arch_check_bugs(void)
+ 	}
+ 	if (check_cpu_flag("cmov", &have_it))
+ 		host_has_cmov = have_it;
+-	if (check_cpu_flag("xmm", &have_it))
+-		host_has_xmm = have_it;
  }
  
+ int arch_handle_signal(int sig, struct uml_pt_regs *regs)
+diff -puN include/asm-um/processor-i386.h~uml-remove-xmm-checking-on-x86 include/asm-um/processor-i386.h
+--- a/include/asm-um/processor-i386.h~uml-remove-xmm-checking-on-x86
++++ a/include/asm-um/processor-i386.h
+@@ -10,7 +10,6 @@
+ #include "asm/host_ldt.h"
+ #include "asm/segment.h"
+ 
+-extern int host_has_xmm;
+ extern int host_has_cmov;
+ 
+ /* include faultinfo structure */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from magotari@gmail.com are
 
-origin.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
-ide-arm-hack.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd-fixup.patch
-fix-build-breakage-if-sysfs-fix.patch
-git-scsi-rc-fixes.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-git-unionfs.patch
-git-watchdog.patch
-watchdog-add-nano-7240-driver-checkpatch-fixes.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
-sync_sb_inodes-propagate-errors.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+uml-remove-xmm-checking-on-x86.patch
