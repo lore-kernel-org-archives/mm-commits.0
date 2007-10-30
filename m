@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-fix-quota-management-for-private-mappings.patch added to -mm tree
-Date: Tue, 30 Oct 2007 16:22:27 -0700
-Message-ID: <200710302322.l9UNMR9P000785@imap1.linux-foundation.org>
+Subject: + hugetlb-split-alloc_huge_page-into-private-and-shared-components.patch added to -mm tree
+Date: Tue, 30 Oct 2007 16:23:46 -0700
+Message-ID: <200710302323.l9UNNkFO000838@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34337 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54154 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753485AbXJ3XXr (ORCPT
+	by vger.kernel.org with ESMTP id S1752059AbXJ3XYf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Oct 2007 19:23:47 -0400
+	Tue, 30 Oct 2007 19:24:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: agl@us.ibm.com, apw@shadowen.org, haveblue@us.ibm.com, hermes@gibson.dropbea
 
 
 The patch titled
-     hugetlb: fix quota management for private mappings
+     hugetlb: split alloc_huge_page into private and shared components
 has been added to the -mm tree.  Its filename is
-     hugetlb-fix-quota-management-for-private-mappings.patch
+     hugetlb-split-alloc_huge_page-into-private-and-shared-components.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hugetlb: fix quota management for private mappings
+Subject: hugetlb: split alloc_huge_page into private and shared components
 From: Adam Litke <agl@us.ibm.com>
 
-The hugetlbfs quota management system was never taught to handle MAP_PRIVATE
-mappings when that support was added.  Currently, quota is debited at page
-instantiation and credited at file truncation.  This approach works correctly
-for shared pages but is incomplete for private pages.  In addition to
-hugetlb_no_page(), private pages can be instantiated by hugetlb_cow(); but
-this function does not respect quotas.
+Hugetlbfs implements a quota system which can limit the amount of memory that
+can be used by the filesystem.  Before allocating a new huge page for a file,
+the quota is checked and debited.  The quota is then credited when truncating
+the file.  I found a few bugs in the code for both MAP_PRIVATE and MAP_SHARED
+mappings.  Before detailing the problems and my proposed solutions, we should
+agree on a definition of quotas that properly addresses both private and
+shared pages.  Since the purpose of quotas is to limit total memory
+consumption on a per-filesystem basis, I argue that all pages allocated by the
+fs (private and shared) should be charged against quota.
 
-Private huge pages are treated very much like normal, anonymous pages.  They
-are not "backed" by the hugetlbfs file and are not stored in the mapping's
-radix tree.  This means that private pages are invisible to
-truncate_hugepages() so that function will not credit the quota.
+Private Mappings
+================
 
-This patch (based on a prototype provided by Ken Chen) moves quota crediting
-for all pages into free_huge_page().  page->private is used to store a pointer
-to the mapping to which this page belongs.  This is used to credit quota on
-the appropriate hugetlbfs instance.
+The current code will debit quota for private pages sometimes, but will never
+credit it.  At a minimum, this causes a leak in the quota accounting which
+renders the accounting essentially useless as it is.  Shared pages have a one
+to one mapping with a hugetlbfs file and are easy to account by debiting on
+allocation and crediting on truncate.  Private pages are anonymous in nature
+and have a many to one relationship with their hugetlbfs files (due to copy on
+write).  Because private pages are not indexed by the mapping's radix tree,
+thier quota cannot be credited at file truncation time.  Crediting must be
+done when the page is unmapped and freed.
+
+Shared Pages
+============
+
+I discovered an issue concerning the interaction between the MAP_SHARED
+reservation system and quotas.  Since quota is not checked until page
+instantiation, an over-quota mmap/reservation will initially succeed.  When
+instantiating the first over-quota page, the program will receive SIGBUS. 
+This is inconsistent since the reservation is supposed to be a guarantee.  The
+solution is to debit the full amount of quota at reservation time and credit
+the unused portion when the reservation is released.
+
+This patch series brings quotas back in line by making the following
+modifications:
+ * Private pages
+   - Debit quota in alloc_huge_page()
+   - Credit quota in free_huge_page()
+ * Shared pages
+   - Debit quota for entire reservation at mmap time
+   - Credit quota for instantiated pages in free_huge_page()
+   - Credit quota for unused reservation at munmap time
+
+
+
+This patch:
+
+The shared page reservation and dynamic pool resizing features have made the
+allocation of private vs.  shared huge pages quite different.  By splitting
+out the private/shared-specific portions of the process into their own
+functions, readability is greatly improved.  alloc_huge_page now calls the
+proper helper and performs common operations.
 
 Signed-off-by: Adam Litke <agl@us.ibm.com>
-Cc: Ken Chen <kenchen@google.com>
 Cc: Ken Chen <kenchen@google.com>
 Cc: Andy Whitcroft <apw@shadowen.org>
 Cc: Dave Hansen <haveblue@us.ibm.com>
@@ -56,81 +92,75 @@ Cc: William Lee Irwin III <wli@holomorphy.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    1 -
- mm/hugetlb.c         |   13 ++++++++++---
- 2 files changed, 10 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |   46 +++++++++++++++++++++++++++-------------------
+ 1 file changed, 27 insertions(+), 19 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlb-fix-quota-management-for-private-mappings fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlb-fix-quota-management-for-private-mappings
-+++ a/fs/hugetlbfs/inode.c
-@@ -364,7 +364,6 @@ static void truncate_hugepages(struct in
- 			++next;
- 			truncate_huge_page(page);
- 			unlock_page(page);
--			hugetlb_put_quota(mapping);
- 			freed++;
- 		}
- 		huge_pagevec_release(&pvec);
-diff -puN mm/hugetlb.c~hugetlb-fix-quota-management-for-private-mappings mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-fix-quota-management-for-private-mappings
+diff -puN mm/hugetlb.c~hugetlb-split-alloc_huge_page-into-private-and-shared-components mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-split-alloc_huge_page-into-private-and-shared-components
 +++ a/mm/hugetlb.c
-@@ -116,7 +116,9 @@ static void update_and_free_page(struct 
- static void free_huge_page(struct page *page)
- {
- 	int nid = page_to_nid(page);
-+	struct address_space *mapping;
- 
-+	mapping = (struct address_space *) page_private(page);
- 	BUG_ON(page_count(page));
- 	INIT_LIST_HEAD(&page->lru);
- 
-@@ -129,6 +131,9 @@ static void free_huge_page(struct page *
- 		enqueue_huge_page(page);
+@@ -353,35 +353,43 @@ void return_unused_surplus_pages(unsigne
  	}
- 	spin_unlock(&hugetlb_lock);
-+	if (mapping)
-+		hugetlb_put_quota(mapping);
-+	set_page_private(page, 0);
  }
  
- /*
-@@ -388,8 +393,10 @@ static struct page *alloc_huge_page(stru
- 		page = alloc_huge_page_shared(vma, addr);
- 	else
- 		page = alloc_huge_page_private(vma, addr);
--	if (page)
-+	if (page) {
- 		set_page_refcounted(page);
-+		set_page_private(page, (unsigned long) vma->vm_file->f_mapping);
-+	}
+-static struct page *alloc_huge_page(struct vm_area_struct *vma,
+-				    unsigned long addr)
++
++static struct page *alloc_huge_page_shared(struct vm_area_struct *vma,
++			 			unsigned long addr)
+ {
+-	struct page *page = NULL;
+-	int use_reserved_page = vma->vm_flags & VM_MAYSHARE;
++	struct page *page;
+ 
+ 	spin_lock(&hugetlb_lock);
+-	if (!use_reserved_page && (free_huge_pages <= resv_huge_pages))
+-		goto fail;
+-
+ 	page = dequeue_huge_page(vma, addr);
+-	if (!page)
+-		goto fail;
+-
+ 	spin_unlock(&hugetlb_lock);
+-	set_page_refcounted(page);
+ 	return page;
++}
+ 
+-fail:
+-	spin_unlock(&hugetlb_lock);
++static struct page *alloc_huge_page_private(struct vm_area_struct *vma,
++			 			unsigned long addr)
++{
++	struct page *page = NULL;
+ 
+-	/*
+-	 * Private mappings do not use reserved huge pages so the allocation
+-	 * may have failed due to an undersized hugetlb pool.  Try to grab a
+-	 * surplus huge page from the buddy allocator.
+-	 */
+-	if (!use_reserved_page)
++	spin_lock(&hugetlb_lock);
++	if (free_huge_pages > resv_huge_pages)
++		page = dequeue_huge_page(vma, addr);
++	spin_unlock(&hugetlb_lock);
++	if (!page)
+ 		page = alloc_buddy_huge_page(vma, addr);
++	return page;
++}
+ 
++static struct page *alloc_huge_page(struct vm_area_struct *vma,
++				    unsigned long addr)
++{
++	struct page *page;
++
++	if (vma->vm_flags & VM_MAYSHARE)
++		page = alloc_huge_page_shared(vma, addr);
++	else
++		page = alloc_huge_page_private(vma, addr);
++	if (page)
++		set_page_refcounted(page);
  	return page;
  }
  
-@@ -730,6 +737,8 @@ static int hugetlb_cow(struct mm_struct 
- 		set_huge_ptep_writable(vma, address, ptep);
- 		return 0;
- 	}
-+	if (hugetlb_get_quota(vma->vm_file->f_mapping))
-+		return VM_FAULT_SIGBUS;
- 
- 	page_cache_get(old_page);
- 	new_page = alloc_huge_page(vma, address);
-@@ -796,7 +805,6 @@ retry:
- 			err = add_to_page_cache(page, mapping, idx, GFP_KERNEL);
- 			if (err) {
- 				put_page(page);
--				hugetlb_put_quota(mapping);
- 				if (err == -EEXIST)
- 					goto retry;
- 				goto out;
-@@ -830,7 +838,6 @@ out:
- 
- backout:
- 	spin_unlock(&mm->page_table_lock);
--	hugetlb_put_quota(mapping);
- 	unlock_page(page);
- 	put_page(page);
- 	goto out;
 _
 
 Patches currently in -mm which might be from agl@us.ibm.com are
