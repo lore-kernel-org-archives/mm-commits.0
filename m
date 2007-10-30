@@ -1,69 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - bttv-uses-input-functions-should-depend-on-input.patch removed from -mm tree
-Date: Tue, 30 Oct 2007 13:35:51 -0700
-Message-ID: <200710302035.l9UKZp3w026925@imap1.linux-foundation.org>
+Subject: + vmstat-fix-section-mismatch-warning.patch added to -mm tree
+Date: Tue, 30 Oct 2007 13:36:36 -0700
+Message-ID: <200710302036.l9UKaaTk026943@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33037 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59751 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751989AbXJ3Ug5 (ORCPT
+	by vger.kernel.org with ESMTP id S1754528AbXJ3UhI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Oct 2007 16:36:57 -0400
+	Tue, 30 Oct 2007 16:37:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, dtor@mail.ru, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: randy.dunlap@oracle.com, clameter@sgi.com
 
 
 The patch titled
-     bttv: uses input functions, should depend on INPUT
-has been removed from the -mm tree.  Its filename was
-     bttv-uses-input-functions-should-depend-on-input.patch
+     vmstat: fix section mismatch warning
+has been added to the -mm tree.  Its filename is
+     vmstat-fix-section-mismatch-warning.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: bttv: uses input functions, should depend on INPUT
+Subject: vmstat: fix section mismatch warning
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Several media drivers use input_(*) functions so they need to depend on
-the INPUT config symbol.
+Mark start_cpu_timer() as __cpuinit instead of __devinit.
+Fixes this section warning:
 
-drivers/built-in.o: In function `bttv_input_fini':
-linux-2.6.24-rc1-git4/drivers/media/video/bt8xx/bttv-input.c:346: undefined reference to `input_unregister_device'
-drivers/built-in.o: In function `bttv_input_init':
-linux-2.6.24-rc1-git4/drivers/media/video/bt8xx/bttv-input.c:204: undefined reference to `input_allocate_device'
-linux-2.6.24-rc1-git4/drivers/media/video/bt8xx/bttv-input.c:335: undefined reference to `input_free_device'
-linux-2.6.24-rc1-git4/drivers/media/video/bt8xx/bttv-input.c:321: undefined reference to `input_register_device'
-linux-2.6.24-rc1-git4/drivers/media/video/bt8xx/bttv-input.c:335: undefined reference to `input_free_device'
+WARNING: vmlinux.o(.text+0x60e53): Section mismatch: reference to .init.text:start_cpu_timer (between 'vmstat_cpuup_callback' and 'vmstat_show')
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/bt8xx/Kconfig |    2 +-
+ mm/vmstat.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/bt8xx/Kconfig~bttv-uses-input-functions-should-depend-on-input drivers/media/video/bt8xx/Kconfig
---- a/drivers/media/video/bt8xx/Kconfig~bttv-uses-input-functions-should-depend-on-input
-+++ a/drivers/media/video/bt8xx/Kconfig
-@@ -22,7 +22,7 @@ config VIDEO_BT848
+diff -puN mm/vmstat.c~vmstat-fix-section-mismatch-warning mm/vmstat.c
+--- a/mm/vmstat.c~vmstat-fix-section-mismatch-warning
++++ a/mm/vmstat.c
+@@ -803,7 +803,7 @@ static void vmstat_update(struct work_st
+ 		sysctl_stat_interval);
+ }
  
- config VIDEO_BT848_DVB
- 	bool "DVB/ATSC Support for bt878 based TV cards"
--	depends on VIDEO_BT848 && DVB_CORE
-+	depends on VIDEO_BT848 && DVB_CORE && INPUT
- 	select DVB_BT8XX
- 	---help---
- 	  This adds support for DVB/ATSC cards based on the BT878 chip.
+-static void __devinit start_cpu_timer(int cpu)
++static void __cpuinit start_cpu_timer(int cpu)
+ {
+ 	struct delayed_work *vmstat_work = &per_cpu(vmstat_work, cpu);
+ 
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
 git-dvb.patch
-bttv-uses-input-functions-should-depend-on-input.patch
 git-kbuild.patch
 git-unionfs.patch
 git-watchdog.patch
@@ -72,6 +68,7 @@ x86-bitops_32h-style-cleanups.patch
 voyager-use-struct-instead-of-param.patch
 sysctl-fix-token-ring-procname.patch
 gbefb-fix-section-mismatch-warnings.patch
+vmstat-fix-section-mismatch-warning.patch
 register_cpu-__devinit-or-__cpuinit.patch
 move-kprobes-examples-to-samples-resend.patch
 move-kprobes-examples-to-samples-resend-checkpatch-fixes.patch
