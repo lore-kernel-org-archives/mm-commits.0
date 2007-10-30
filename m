@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + coding-style-cleanups-for-drivers-md-mktablesc.patch added to -mm tree
-Date: Tue, 30 Oct 2007 12:19:19 -0700
-Message-ID: <200710301919.l9UJJJq9023344@imap1.linux-foundation.org>
+Subject: + mark-sys_open-sys_read-exports-unused.patch added to -mm tree
+Date: Tue, 30 Oct 2007 12:55:49 -0700
+Message-ID: <200710301955.l9UJtniH025229@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48984 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41669 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753644AbXJ3TTw (ORCPT
+	by vger.kernel.org with ESMTP id S1752990AbXJ3T41 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Oct 2007 15:19:52 -0400
+	Tue, 30 Oct 2007 15:56:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oliver.pntr@gmail.com, hpa@zytor.com, neilb@suse.de
+Cc: arjan@infradead.org, arjan@linux.intel.com
 
 
 The patch titled
-     coding style cleanups for drivers/md/mktables.c
+     mark sys_open/sys_read exports unused
 has been added to the -mm tree.  Its filename is
-     coding-style-cleanups-for-drivers-md-mktablesc.patch
+     mark-sys_open-sys_read-exports-unused.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,213 +26,70 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: coding style cleanups for drivers/md/mktables.c
-From: Oliver Pinter <oliver.pntr@gmail.com>
+Subject: mark sys_open/sys_read exports unused
+From: Arjan van de Ven <arjan@infradead.org>
 
-Signed-off-by: Oliver Pinter <oliver.pntr@gmail.com>
-Cc: Neil Brown <neilb@suse.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+sys_open / sys_read were used in the early 1.2 days to load firmware from
+disk inside drivers.  Since 2.0 or so this was deprecated behavior, but
+several drivers still were using this.  Since a few years we have a
+request_firmware() API that implements this in a nice, consistent way. 
+Only some old ISA sound drivers (pre-ALSA) still straggled along for some
+time....  however with commit c2b1239a9f22f19c53543b460b24507d0e21ea0c the
+last user is now gone.
+
+This is a good thing, since using sys_open / sys_read etc for firmware is a
+very buggy to dangerous thing to do; these operations put an fd in the
+process file descriptor table....  which then can be tampered with from
+other threads for example.  For those who don't want the firmware loader,
+filp_open()/vfs_read are the better APIs to use, without this security
+issue.
+
+The patch below marks sys_open and sys_read unused now that they're
+really not used anymore, and for deletion in the 2.6.25 timeframe.
+
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/mktables.c |  174 ++++++++++++++++++++--------------------
- 1 file changed, 89 insertions(+), 85 deletions(-)
+ fs/open.c       |    2 +-
+ fs/read_write.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/md/mktables.c~coding-style-cleanups-for-drivers-md-mktablesc drivers/md/mktables.c
---- a/drivers/md/mktables.c~coding-style-cleanups-for-drivers-md-mktablesc
-+++ a/drivers/md/mktables.c
-@@ -26,100 +26,104 @@
- 
- static uint8_t gfmul(uint8_t a, uint8_t b)
- {
--  uint8_t v = 0;
-+	uint8_t v = 0;
- 
--  while ( b ) {
--    if ( b & 1 ) v ^= a;
--    a = (a << 1) ^ (a & 0x80 ? 0x1d : 0);
--    b >>= 1;
--  }
--  return v;
-+	while (b) {
-+		if (b & 1)
-+			v ^= a;
-+		a = (a << 1) ^ (a & 0x80 ? 0x1d : 0);
-+		b >>= 1;
-+	}
-+
-+	return v;
+diff -puN fs/open.c~mark-sys_open-sys_read-exports-unused fs/open.c
+--- a/fs/open.c~mark-sys_open-sys_read-exports-unused
++++ a/fs/open.c
+@@ -1061,7 +1061,7 @@ asmlinkage long sys_open(const char __us
+ 	prevent_tail_call(ret);
+ 	return ret;
  }
+-EXPORT_SYMBOL_GPL(sys_open);
++EXPORT_UNUSED_SYMBOL_GPL(sys_open); /* To be deleted for 2.6.25 */
  
- static uint8_t gfpow(uint8_t a, int b)
- {
--  uint8_t v = 1;
-+	uint8_t v = 1;
-+
-+	b %= 255;
-+	if (b < 0)
-+		b += 255;
-+
-+	while (b) {
-+		if (b & 1)
-+			v = gfmul(v, a);
-+		a = gfmul(a, a);
-+		b >>= 1;
-+	}
+ asmlinkage long sys_openat(int dfd, const char __user *filename, int flags,
+ 			   int mode)
+diff -puN fs/read_write.c~mark-sys_open-sys_read-exports-unused fs/read_write.c
+--- a/fs/read_write.c~mark-sys_open-sys_read-exports-unused
++++ a/fs/read_write.c
+@@ -370,7 +370,7 @@ asmlinkage ssize_t sys_read(unsigned int
  
--  b %= 255;
--  if ( b < 0 )
--    b += 255;
--
--  while ( b ) {
--    if ( b & 1 ) v = gfmul(v,a);
--    a = gfmul(a,a);
--    b >>= 1;
--  }
--  return v;
-+	return v;
+ 	return ret;
  }
+-EXPORT_SYMBOL_GPL(sys_read);
++EXPORT_UNUSED_SYMBOL_GPL(sys_read); /* to be deleted for 2.6.25 */
  
- int main(int argc, char *argv[])
+ asmlinkage ssize_t sys_write(unsigned int fd, const char __user * buf, size_t count)
  {
--  int i, j, k;
--  uint8_t v;
--  uint8_t exptbl[256], invtbl[256];
--
--  printf("#include \"raid6.h\"\n");
--
--  /* Compute multiplication table */
--  printf("\nconst u8  __attribute__((aligned(256)))\n"
--	 "raid6_gfmul[256][256] =\n"
--	 "{\n");
--  for ( i = 0 ; i < 256 ; i++ ) {
--    printf("\t{\n");
--    for ( j = 0 ; j < 256 ; j += 8 ) {
--      printf("\t\t");
--      for ( k = 0 ; k < 8 ; k++ ) {
--	printf("0x%02x, ", gfmul(i,j+k));
--      }
--      printf("\n");
--    }
--    printf("\t},\n");
--  }
--  printf("};\n");
--
--  /* Compute power-of-2 table (exponent) */
--  v = 1;
--  printf("\nconst u8 __attribute__((aligned(256)))\n"
--	 "raid6_gfexp[256] =\n"
--	 "{\n");
--  for ( i = 0 ; i < 256 ; i += 8 ) {
--    printf("\t");
--    for ( j = 0 ; j < 8 ; j++ ) {
--      exptbl[i+j] = v;
--      printf("0x%02x, ", v);
--      v = gfmul(v,2);
--      if ( v == 1 ) v = 0;	/* For entry 255, not a real entry */
--    }
--    printf("\n");
--  }
--  printf("};\n");
--
--  /* Compute inverse table x^-1 == x^254 */
--  printf("\nconst u8 __attribute__((aligned(256)))\n"
--	 "raid6_gfinv[256] =\n"
--	 "{\n");
--  for ( i = 0 ; i < 256 ; i += 8 ) {
--    printf("\t");
--    for ( j = 0 ; j < 8 ; j++ ) {
--      invtbl[i+j] = v = gfpow(i+j,254);
--      printf("0x%02x, ", v);
--    }
--    printf("\n");
--  }
--  printf("};\n");
--
--  /* Compute inv(2^x + 1) (exponent-xor-inverse) table */
--  printf("\nconst u8 __attribute__((aligned(256)))\n"
--	 "raid6_gfexi[256] =\n"
--	 "{\n");
--  for ( i = 0 ; i < 256 ; i += 8 ) {
--    printf("\t");
--    for ( j = 0 ; j < 8 ; j++ ) {
--      printf("0x%02x, ", invtbl[exptbl[i+j]^1]);
--    }
--    printf("\n");
--  }
--  printf("};\n\n");
-+	int i, j, k;
-+	uint8_t v;
-+	uint8_t exptbl[256], invtbl[256];
-+
-+	printf("#include \"raid6.h\"\n");
-+
-+	/* Compute multiplication table */
-+	printf("\nconst u8  __attribute__((aligned(256)))\n"
-+		"raid6_gfmul[256][256] =\n"
-+		"{\n");
-+	for (i = 0; i < 256; i++) {
-+		printf("\t{\n");
-+		for (j = 0; j < 256; j += 8) {
-+			printf("\t\t");
-+			for (k = 0; k < 8; k++)
-+				printf("0x%02x, ", gfmul(i, j+k));
-+			printf("\n");
-+		}
-+		printf("\t},\n");
-+	}
-+	printf("};\n");
-+
-+	/* Compute power-of-2 table (exponent) */
-+	v = 1;
-+	printf("\nconst u8 __attribute__((aligned(256)))\n"
-+		"raid6_gfexp[256] =\n"
-+		"{\n");
-+	for (i = 0; i < 256; i += 8) {
-+		printf("\t");
-+		for (j = 0; j < 8; j++) {
-+			exptbl[i+j] = v;
-+			printf("0x%02x, ", v);
-+			v = gfmul(v, 2);
-+			if (v == 1)
-+				v = 0;	/* For entry 255, not a real entry */
-+		}
-+		printf("\n");
-+	}
-+	printf("};\n");
-+
-+	/* Compute inverse table x^-1 == x^254 */
-+	printf("\nconst u8 __attribute__((aligned(256)))\n"
-+		"raid6_gfinv[256] =\n"
-+		"{\n");
-+	for (i = 0; i < 256; i += 8) {
-+		printf("\t");
-+		for (j = 0; j < 8; j++) {
-+			v = gfpow(i+j, 254);
-+			invtbl[i+j] = v;
-+			printf("0x%02x, ", v);
-+		}
-+		printf("\n");
-+	}
-+	printf("};\n");
-+
-+	/* Compute inv(2^x + 1) (exponent-xor-inverse) table */
-+	printf("\nconst u8 __attribute__((aligned(256)))\n"
-+		"raid6_gfexi[256] =\n"
-+		"{\n");
-+	for (i = 0; i < 256; i += 8) {
-+		printf("\t");
-+		for (j = 0; j < 8; j++)
-+			printf("0x%02x, ", invtbl[exptbl[i+j]^1]);
-+		printf("\n");
-+	}
-+	printf("};\n\n");
- 
--  return 0;
-+	return 0;
- }
 _
 
-Patches currently in -mm which might be from oliver.pntr@gmail.com are
+Patches currently in -mm which might be from arjan@infradead.org are
 
-coding-style-cleanups-for-drivers-md-mktablesc.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-unionfs.patch
+i386-and-x86_64-randomize-brk.patch
+i386-and-x86_64-randomize-brk-fix.patch
+mark-sys_open-sys_read-exports-unused.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+latencyc-use-qos-infrastructure.patch
+pie-executable-randomization.patch
+pie-executable-randomization-checkpatch-fixes.patch
