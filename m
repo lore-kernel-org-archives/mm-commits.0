@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch added to -mm tree
-Date: Tue, 30 Oct 2007 13:27:04 -0700
-Message-ID: <200710302027.l9UKR4dt026583@imap1.linux-foundation.org>
+Subject: + frv-permit-the-memory-to-be-located-elsewhere-in-nommu-mode.patch added to -mm tree
+Date: Tue, 30 Oct 2007 13:28:17 -0700
+Message-ID: <200710302028.l9UKSHqQ026618@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41644 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41283 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754074AbXJ3U1r (ORCPT
+	by vger.kernel.org with ESMTP id S1751714AbXJ3U3D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Oct 2007 16:27:47 -0400
+	Tue, 30 Oct 2007 16:29:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dhowells@redhat.com
+Cc: dhowells@redhat.com
 
 
 The patch titled
-     suppress-aout-library-support-in-elf-binfmt-if-fix
+     FRV: Permit the memory to be located elsewhere in NOMMU mode
 has been added to the -mm tree.  Its filename is
-     mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
+     frv-permit-the-memory-to-be-located-elsewhere-in-nommu-mode.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,127 +26,105 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: suppress-aout-library-support-in-elf-binfmt-if-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: FRV: Permit the memory to be located elsewhere in NOMMU mode
+From: David Howells <dhowells@redhat.com>
 
-Cc: David Howells <dhowells@redhat.com>
+Permit the memory to be located somewhere other than address 0xC0000000 in
+NOMMU mode.  The configuration options are already present, it just
+requires wiring up in the linker script.
+
+Note that only a limited set of locations of runtime addresses are available
+because of the way the CPU protection registers work.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/frv/Kconfig              |    9 +++++++++
+ arch/frv/kernel/vmlinux.lds.S |    2 +-
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN fs/binfmt_elf.c~mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix
-+++ a/fs/binfmt_elf.c
-@@ -560,6 +560,10 @@ out:
- 	return elf_entry;
- }
- #else
-+/*
-+ * Declare this here to keep the compiler happy.  It will generate a link-time
-+ * failure if the compiler failed to remove all the calls to it.
-+ */
- extern unsigned long load_aout_interp(struct exec *interp_ex,
- 				      struct file *interpreter);
- #endif
+diff -puN arch/frv/Kconfig~frv-permit-the-memory-to-be-located-elsewhere-in-nommu-mode arch/frv/Kconfig
+--- a/arch/frv/Kconfig~frv-permit-the-memory-to-be-located-elsewhere-in-nommu-mode
++++ a/arch/frv/Kconfig
+@@ -138,6 +138,15 @@ config UCPAGE_OFFSET_C0000000
+ 
+ endchoice
+ 
++config PAGE_OFFSET
++	hex
++	default 0x20000000 if UCPAGE_OFFSET_20000000
++	default 0x40000000 if UCPAGE_OFFSET_40000000
++	default 0x60000000 if UCPAGE_OFFSET_60000000
++	default 0x80000000 if UCPAGE_OFFSET_80000000
++	default 0xA0000000 if UCPAGE_OFFSET_A0000000
++	default 0xC0000000
++
+ config PROTECT_KERNEL
+ 	bool "Protect core kernel against userspace"
+ 	depends on !MMU
+diff -puN arch/frv/kernel/vmlinux.lds.S~frv-permit-the-memory-to-be-located-elsewhere-in-nommu-mode arch/frv/kernel/vmlinux.lds.S
+--- a/arch/frv/kernel/vmlinux.lds.S~frv-permit-the-memory-to-be-located-elsewhere-in-nommu-mode
++++ a/arch/frv/kernel/vmlinux.lds.S
+@@ -13,7 +13,7 @@ ENTRY(_start)
+ 
+ jiffies = jiffies_64 + 4;
+ 
+-__page_offset = 0xc0000000;		/* start of area covered by struct pages */
++__page_offset = CONFIG_PAGE_OFFSET;	/* start of area covered by struct pages */
+ __kernel_image_start = __page_offset;	/* address at which kernel image resides */
+ 
+ SECTIONS
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
-ide-arm-hack.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd-fixup.patch
-fix-build-breakage-if-sysfs-fix.patch
-git-scsi-rc-fixes.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-git-unionfs.patch
-git-watchdog.patch
-watchdog-add-nano-7240-driver-checkpatch-fixes.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+frv-permit-the-memory-to-be-located-elsewhere-in-nommu-mode.patch
+suppress-aout-library-support-in-elf-binfmt-if-config_binfmt_aout.patch
 mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
-sync_sb_inodes-propagate-errors.patch
 64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+add-an-err_cast-function-to-complement-err_ptr-and-co.patch
+convert-err_ptrptr_errp-instances-to-err_castp.patch
+iget-introduce-a-function-to-register-iget-failure.patch
+iget-use-iget_failed-in-afs.patch
+iget-use-iget_failed-in-gfs2.patch
+iget-stop-affs-from-using-iget-and-read_inode-try.patch
 iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-autofs-from-using-iget-and-read_inode.patch
+iget-stop-befs-from-using-iget-and-read_inode-try.patch
+iget-stop-bfs-from-using-iget-and-read_inode-try.patch
+iget-stop-cifs-from-using-iget-and-read_inode-try.patch
+iget-stop-efs-from-using-iget-and-read_inode-try.patch
 iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try.patch
 iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try.patch
 iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext4-from-using-iget-and-read_inode-try.patch
+iget-stop-fat-from-using-iget-and-read_inode-try.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode.patch
 iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-fuse-from-using-iget-and-read_inode-try.patch
+iget-stop-hfsplus-from-using-iget-and-read_inode.patch
+iget-stop-isofs-from-using-read_inode.patch
+iget-stop-jffs2-from-using-iget-and-read_inode.patch
+iget-stop-jfs-from-using-iget-and-read_inode-try.patch
+iget-stop-the-minix-filesystem-from-using-iget-and.patch
 iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode.patch
 iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
 iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode.patch
 iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and.patch
 iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try.patch
 iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-openpromfs-from-using-iget-and.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
 iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+iget-stop-hppfs-from-using-iget-and-read_inode.patch
+iget-remove-iget-and-the-read_inode-super-op-as.patch
+mutex-subsystem-synchro-test-module.patch
