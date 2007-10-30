@@ -1,29 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + bttv-uses-input-functions-should-depend-on-input.patch added to -mm tree
-Date: Tue, 30 Oct 2007 13:34:15 -0700
-Message-ID: <200710302034.l9UKYFmB026826@imap1.linux-foundation.org>
+Subject: - bttv-uses-input-functions-should-depend-on-input.patch removed from -mm tree
+Date: Tue, 30 Oct 2007 13:35:51 -0700
+Message-ID: <200710302035.l9UKZp3w026925@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39219 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33037 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754048AbXJ3UfA (ORCPT
+	by vger.kernel.org with ESMTP id S1751989AbXJ3Ug5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Oct 2007 16:35:00 -0400
+	Tue, 30 Oct 2007 16:36:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, dtor@mail.ru, mchehab@infradead.org
+To: randy.dunlap@oracle.com, dtor@mail.ru, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
      bttv: uses input functions, should depend on INPUT
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      bttv-uses-input-functions-should-depend-on-input.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 Subject: bttv: uses input functions, should depend on INPUT
