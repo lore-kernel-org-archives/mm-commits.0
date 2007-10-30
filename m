@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cris-build-fixes-atomich-needs-compilerh.patch added to -mm tree
-Date: Tue, 30 Oct 2007 15:09:39 -0700
-Message-ID: <200710302209.l9UM9dQs030331@imap1.linux-foundation.org>
+Subject: + cris-build-fixes-hardirqh-include-asm-irqh.patch added to -mm tree
+Date: Tue, 30 Oct 2007 15:09:37 -0700
+Message-ID: <200710302209.l9UM9bbo030328@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60264 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59738 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752416AbXJ3WJm (ORCPT
+	by vger.kernel.org with ESMTP id S1751351AbXJ3WJl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Oct 2007 18:09:42 -0400
+	Tue, 30 Oct 2007 18:09:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jesper.nilsson@axis.com, starvik@axis.com
 
 
 The patch titled
-     cris build fixes: atomic.h needs compiler.h
+     cris build fixes: hardirq.h: include asm/irq.h
 has been added to the -mm tree.  Its filename is
-     cris-build-fixes-atomich-needs-compilerh.patch
+     cris-build-fixes-hardirqh-include-asm-irqh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cris build fixes: atomic.h needs compiler.h
+Subject: cris build fixes: hardirq.h: include asm/irq.h
 From: Jesper Nilsson <jesper.nilsson@axis.com>
 
-Include file linux/compiler.h is needed for 'likely'.
+Include asm/irq.h to avoid undefined value warning.
 
 Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
 Acked-by: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-cris/atomic.h |    1 +
+ include/asm-cris/hardirq.h |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN include/asm-cris/atomic.h~cris-build-fixes-atomich-needs-compilerh include/asm-cris/atomic.h
---- a/include/asm-cris/atomic.h~cris-build-fixes-atomich-needs-compilerh
-+++ a/include/asm-cris/atomic.h
-@@ -5,6 +5,7 @@
+diff -puN include/asm-cris/hardirq.h~cris-build-fixes-hardirqh-include-asm-irqh include/asm-cris/hardirq.h
+--- a/include/asm-cris/hardirq.h~cris-build-fixes-hardirqh-include-asm-irqh
++++ a/include/asm-cris/hardirq.h
+@@ -1,6 +1,7 @@
+ #ifndef __ASM_HARDIRQ_H
+ #define __ASM_HARDIRQ_H
  
- #include <asm/system.h>
- #include <asm/arch/atomic.h>
-+#include <linux/compiler.h>
++#include <asm/irq.h>
+ #include <linux/threads.h>
+ #include <linux/cache.h>
  
- /*
-  * Atomic operations that C can't guarantee us.  Useful for
 _
 
 Patches currently in -mm which might be from jesper.nilsson@axis.com are
