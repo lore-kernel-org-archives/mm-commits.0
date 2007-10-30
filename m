@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch added to -mm tree
-Date: Tue, 30 Oct 2007 15:11:18 -0700
-Message-ID: <200710302211.l9UMBIpD030445@imap1.linux-foundation.org>
+Subject: + cris-build-fixes-corrected-and-improved-nmi-and-irq-handling.patch added to -mm tree
+Date: Tue, 30 Oct 2007 15:12:01 -0700
+Message-ID: <200710302212.l9UMC27K030467@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34033 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39770 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752410AbXJ3WLc (ORCPT
+	by vger.kernel.org with ESMTP id S1752682AbXJ3WMI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Oct 2007 18:11:32 -0400
+	Tue, 30 Oct 2007 18:12:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, 12o3l@tiscali.nl, jeff@garzik.org, jesper.nilsson@axis.com, starvik@axis.com
+Cc: jesper.nilsson@axis.com, starvik@axis.com
 
 
 The patch titled
-     cris-build-fixes-update-eth_v10c-ethernet-driver-fix
+     cris build fixes: corrected and improved NMI and IRQ handling
 has been added to the -mm tree.  Its filename is
-     cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
+     cris-build-fixes-corrected-and-improved-nmi-and-irq-handling.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,159 +26,350 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cris-build-fixes-update-eth_v10c-ethernet-driver-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cris build fixes: corrected and improved NMI and IRQ handling
+From: Jesper Nilsson <jesper.nilsson@axis.com>
 
-Fix locking bug noted by  Roel Kluin <12o3l@tiscali.nl>.
+Corrects compile errors and the following:
 
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Roel Kluin <12o3l@tiscali.nl>
+- Remove oldset parameter from do_signal and do_notify_resume.
+
+- Modified to fit new consolidated IRQ handling code.
+
+- Reverse check order between external nmi and watchdog nmi to avoid false
+  watchdog oops in case of a glitch on the nmi pin.
+
+- Return from an pin-generated NMI the same way as for other interrupts.
+
+- Moved blocking of ethernet rx/tx irq from ethernet interrupt handler to
+  low-level asm interrupt handlers.  Fixed in the multiple interrupt
+  handler also.
+
+- Add space for thread local storage in thread_info struct.
+
+- Add NO_DMA to Kconfig, and include arch specific Kconfig using arch
+  independent path. Include subsystem Kconfigs for pcmcia, usb, i2c,
+  rtc and pci.
+
+Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
+Acked-by: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/cris/eth_v10.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ arch/cris/Kconfig                  |   15 ++++++
+ arch/cris/arch-v10/drivers/Kconfig |    1 
+ arch/cris/arch-v10/kernel/entry.S  |   41 +++++++++---------
+ arch/cris/arch-v10/kernel/irq.c    |   59 ++++++++++++++++++++++++++-
+ arch/cris/kernel/process.c         |    5 ++
+ arch/cris/kernel/ptrace.c          |    6 +-
+ include/asm-cris/thread_info.h     |    9 +++-
+ 7 files changed, 107 insertions(+), 29 deletions(-)
 
-diff -puN drivers/net/cris/eth_v10.c~cris-build-fixes-update-eth_v10c-ethernet-driver-fix drivers/net/cris/eth_v10.c
---- a/drivers/net/cris/eth_v10.c~cris-build-fixes-update-eth_v10c-ethernet-driver-fix
-+++ a/drivers/net/cris/eth_v10.c
-@@ -1088,6 +1088,8 @@ e100_set_duplex(struct net_device* dev, 
- static int
- e100_probe_transceiver(struct net_device* dev)
- {
-+	int ret = 0;
+diff -puN arch/cris/Kconfig~cris-build-fixes-corrected-and-improved-nmi-and-irq-handling arch/cris/Kconfig
+--- a/arch/cris/Kconfig~cris-build-fixes-corrected-and-improved-nmi-and-irq-handling
++++ a/arch/cris/Kconfig
+@@ -13,6 +13,10 @@ config ZONE_DMA
+ 	bool
+ 	default y
+ 
++config NO_DMA
++	bool
++	default y
 +
- #if !defined(CONFIG_ETRAX_NO_PHY)
- 	unsigned int phyid_high;
- 	unsigned int phyid_low;
-@@ -1104,8 +1106,10 @@ e100_probe_transceiver(struct net_device
- 				      np->mii_if.phy_id, MII_BMSR) != 0xffff)
- 			break;
- 	}
--	if (np->mii_if.phy_id == 32)
--		 return -ENODEV;
-+	if (np->mii_if.phy_id == 32) {
-+		ret = -ENODEV;
-+		goto out;
+ config RWSEM_GENERIC_SPINLOCK
+ 	bool
+ 	default y
+@@ -153,7 +157,8 @@ source "net/Kconfig"
+ 
+ # bring in ETRAX built-in drivers
+ menu "Drivers for built-in interfaces"
+-source arch/cris/arch-v10/drivers/Kconfig
++# arch/cris/arch is a symlink to correct arch (arch-v10 or arch-v32)
++source arch/cris/arch/drivers/Kconfig
+ 
+ endmenu
+ 
+@@ -184,6 +189,10 @@ source "drivers/isdn/Kconfig"
+ 
+ source "drivers/telephony/Kconfig"
+ 
++source "drivers/i2c/Kconfig"
++
++source "drivers/rtc/Kconfig"
++
+ #
+ # input before char - char/joystick depends on it. As does USB.
+ #
+@@ -198,6 +207,10 @@ source "fs/Kconfig"
+ 
+ source "sound/Kconfig"
+ 
++source "drivers/pcmcia/Kconfig"
++
++source "drivers/pci/Kconfig"
++
+ source "drivers/usb/Kconfig"
+ 
+ source "kernel/Kconfig.instrumentation"
+diff -puN arch/cris/arch-v10/drivers/Kconfig~cris-build-fixes-corrected-and-improved-nmi-and-irq-handling arch/cris/arch-v10/drivers/Kconfig
+--- a/arch/cris/arch-v10/drivers/Kconfig~cris-build-fixes-corrected-and-improved-nmi-and-irq-handling
++++ a/arch/cris/arch-v10/drivers/Kconfig
+@@ -2,6 +2,7 @@ config ETRAX_ETHERNET
+ 	bool "Ethernet support"
+ 	depends on ETRAX_ARCH_V10
+ 	select NET_ETHERNET
++	select MII
+ 	help
+ 	  This option enables the ETRAX 100LX built-in 10/100Mbit Ethernet
+ 	  controller.
+diff -puN arch/cris/arch-v10/kernel/entry.S~cris-build-fixes-corrected-and-improved-nmi-and-irq-handling arch/cris/arch-v10/kernel/entry.S
+--- a/arch/cris/arch-v10/kernel/entry.S~cris-build-fixes-corrected-and-improved-nmi-and-irq-handling
++++ a/arch/cris/arch-v10/kernel/entry.S
+@@ -500,9 +500,8 @@ _work_notifysig:
+ 	;; deal with pending signals and notify-resume requests
+ 
+ 	move.d	$r9, $r10	; do_notify_resume syscall/irq param
+-	moveq	0, $r11		; oldset param - 0 in this case
+-	move.d	$sp, $r12	; the regs param
+-	move.d  $r1, $r13	; the thread_info_flags parameter
++	move.d	$sp, $r11	; the regs param
++	move.d  $r1, $r12	; the thread_info_flags parameter
+ 	jsr	do_notify_resume
+ 	
+ 	ba _Rexit
+@@ -678,13 +677,19 @@ IRQ1_interrupt:
+ 	push	$r10		; push orig_r10
+ 	clear.d [$sp=$sp-4]	; frametype == 0, normal frame
+ 
++	;; If there is a glitch on the NMI pin shorter than ~100ns
++	;; (i.e. non-active by the time we get here) then the nmi_pin bit
++	;; in R_IRQ_MASK0_RD will already be cleared.  The watchdog_nmi bit
++	;; is cleared by us however (when feeding the watchdog), which is why
++	;; we use that bit to determine what brought us here.
++
+ 	move.d	[R_IRQ_MASK0_RD], $r1 ; External NMI or watchdog?
+-	and.d   0x80000000, $r1
+-	beq	wdog
++	and.d   (1<<30), $r1
++	bne	wdog
+ 	move.d  $sp, $r10
+ 	jsr	handle_nmi
+ 	setf m			; Enable NMI again
+-	retb			; Return from NMI
++	ba	_Rexit		; Return the standard way
+ 	nop
+ wdog:
+ #if defined(CONFIG_ETRAX_WATCHDOG) && !defined(CONFIG_SVINTO_SIM)
+@@ -775,22 +780,9 @@ multiple_interrupt:
+ 	push	$r10		; push orig_r10
+ 	clear.d [$sp=$sp-4]	; frametype == 0, normal frame
+ 	
+-	moveq	2, $r2		; first bit we care about is the timer0 irq
+-	move.d	[R_VECT_MASK_RD], $r0; read the irq bits that triggered the multiple irq
+-	move.d	$r0, [R_VECT_MASK_CLR] ; Block all active IRQs
+-1:	
+-	btst	$r2, $r0	; check for the irq given by bit r2
+-	bpl	2f
+-	move.d  $r2, $r10	; First argument to do_IRQ
+-	move.d  $sp, $r11	; second argument to do_IRQ
+-	jsr	do_IRQ
+-2:
+-	addq	1, $r2		; next vector bit
+-	cmp.b	32, $r2
+-	bne	1b	; process all irq's up to and including number 31
+-	moveq	0, $r9  ; make ret_from_intr realise we came from an ir
++	move.d  $sp, $r10
++	jsr	do_multiple_IRQ
+ 	
+-	move.d	$r0, [R_VECT_MASK_SET] ;  Unblock all the IRQs
+ 	jump    ret_from_intr
+ 
+ do_sigtrap:
+@@ -837,6 +829,13 @@ _ugdb_handle_breakpoint:	
+ 	ba	do_sigtrap		; SIGTRAP the offending process. 
+ 	pop	$dccr			; Restore dccr in delay slot.
+ 	
++	.global kernel_execve
++kernel_execve:
++	move.d __NR_execve, $r9
++	break 13
++	ret
++	nop
++
+ 	.data
+ 
+ hw_bp_trigs:
+diff -puN arch/cris/arch-v10/kernel/irq.c~cris-build-fixes-corrected-and-improved-nmi-and-irq-handling arch/cris/arch-v10/kernel/irq.c
+--- a/arch/cris/arch-v10/kernel/irq.c~cris-build-fixes-corrected-and-improved-nmi-and-irq-handling
++++ a/arch/cris/arch-v10/kernel/irq.c
+@@ -12,10 +12,16 @@
+  */
+ 
+ #include <asm/irq.h>
++#include <asm/current.h>
+ #include <linux/irq.h>
++#include <linux/interrupt.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ 
++/* From kgdb.c. */
++extern void kgdb_init(void);
++extern void breakpoint(void);
++
+ #define mask_irq(irq_nr) (*R_VECT_MASK_CLR = 1 << (irq_nr));
+ #define unmask_irq(irq_nr) (*R_VECT_MASK_SET = 1 << (irq_nr));
+ 
+@@ -75,8 +81,8 @@ BUILD_IRQ(12, 0x1000)
+ BUILD_IRQ(13, 0x2000)
+ void mmu_bus_fault(void);      /* IRQ 14 is the bus fault interrupt */
+ void multiple_interrupt(void); /* IRQ 15 is the multiple IRQ interrupt */
+-BUILD_IRQ(16, 0x10000)
+-BUILD_IRQ(17, 0x20000)
++BUILD_IRQ(16, 0x10000 | 0x20000)  /* ethernet tx interrupt needs to block rx */
++BUILD_IRQ(17, 0x20000 | 0x10000)  /* ...and vice versa */
+ BUILD_IRQ(18, 0x40000)
+ BUILD_IRQ(19, 0x80000)
+ BUILD_IRQ(20, 0x100000)
+@@ -147,6 +153,55 @@ void system_call(void);  /* from entry.S
+ void do_sigtrap(void); /* from entry.S */
+ void gdb_handle_breakpoint(void); /* from entry.S */
+ 
++extern void do_IRQ(int irq, struct pt_regs * regs);
++
++/* Handle multiple IRQs */
++void do_multiple_IRQ(struct pt_regs* regs)
++{
++	int bit;
++	unsigned masked;
++	unsigned mask;
++	unsigned ethmask = 0;
++
++	/* Get interrupts to mask and handle */
++	mask = masked = *R_VECT_MASK_RD;
++
++	/* Never mask timer IRQ */
++	mask &= ~(IO_MASK(R_VECT_MASK_RD, timer0));
++
++	/*
++	 * If either ethernet interrupt (rx or tx) is active then block
++	 * the other one too. Unblock afterwards also.
++	 */
++	if (mask &
++	    (IO_STATE(R_VECT_MASK_RD, dma0, active) |
++	     IO_STATE(R_VECT_MASK_RD, dma1, active))) {
++		ethmask = (IO_MASK(R_VECT_MASK_RD, dma0) |
++			   IO_MASK(R_VECT_MASK_RD, dma1));
 +	}
++
++	/* Block them */
++	*R_VECT_MASK_CLR = (mask | ethmask);
++
++	/* An extra irq_enter here to prevent softIRQs to run after
++	 * each do_IRQ. This will decrease the interrupt latency.
++	 */
++	irq_enter();
++
++	/* Handle all IRQs */
++	for (bit = 2; bit < 32; bit++) {
++		if (masked & (1 << bit)) {
++			do_IRQ(bit, regs);
++		}
++	}
++
++	/* This irq_exit() will trigger the soft IRQs. */
++	irq_exit();
++
++	/* Unblock the IRQs again */
++	*R_VECT_MASK_SET = (masked | ethmask);
++}
++
+ /* init_IRQ() is called by start_kernel and is responsible for fixing IRQ masks and
+    setting the irq vector table.
+ */
+diff -puN arch/cris/kernel/process.c~cris-build-fixes-corrected-and-improved-nmi-and-irq-handling arch/cris/kernel/process.c
+--- a/arch/cris/kernel/process.c~cris-build-fixes-corrected-and-improved-nmi-and-irq-handling
++++ a/arch/cris/kernel/process.c
+@@ -195,6 +195,11 @@ EXPORT_SYMBOL(enable_hlt);
+  */
+ void (*pm_idle)(void);
  
- 	/* Get manufacturer */
- 	phyid_high = e100_get_mdio_reg(dev, np->mii_if.phy_id, MII_PHYSID1);
-@@ -1117,10 +1121,10 @@ e100_probe_transceiver(struct net_device
- 			break;
- 	}
- 	transceiver = ops;
--
-+out:
- 	spin_unlock(&np->transceiver_lock);
- #endif
--	return 0;
-+	return ret;
++extern void default_idle(void);
++
++void (*pm_power_off)(void);
++EXPORT_SYMBOL(pm_power_off);
++
+ /*
+  * The idle thread. There's no useful work to be
+  * done, so just try to conserve power and have a
+diff -puN arch/cris/kernel/ptrace.c~cris-build-fixes-corrected-and-improved-nmi-and-irq-handling arch/cris/kernel/ptrace.c
+--- a/arch/cris/kernel/ptrace.c~cris-build-fixes-corrected-and-improved-nmi-and-irq-handling
++++ a/arch/cris/kernel/ptrace.c
+@@ -81,13 +81,13 @@
+ /* notification of userspace execution resumption
+  * - triggered by current->work.notify_resume
+  */
+-extern int do_signal(int canrestart, sigset_t *oldset, struct pt_regs *regs);
++extern int do_signal(int canrestart, struct pt_regs *regs);
+ 
+ 
+-void do_notify_resume(int canrestart, sigset_t *oldset, struct pt_regs *regs, 
++void do_notify_resume(int canrestart, struct pt_regs *regs,
+ 		      __u32 thread_info_flags  )
+ {
+ 	/* deal with pending signal delivery */
+ 	if (thread_info_flags & _TIF_SIGPENDING)
+-		do_signal(canrestart,oldset,regs);
++		do_signal(canrestart,regs);
  }
+diff -puN include/asm-cris/thread_info.h~cris-build-fixes-corrected-and-improved-nmi-and-irq-handling include/asm-cris/thread_info.h
+--- a/include/asm-cris/thread_info.h~cris-build-fixes-corrected-and-improved-nmi-and-irq-handling
++++ a/include/asm-cris/thread_info.h
+@@ -32,6 +32,7 @@ struct thread_info {
+ 	unsigned long		flags;		/* low level flags */
+ 	__u32			cpu;		/* current CPU */
+ 	int			preempt_count;	/* 0 => preemptable, <0 => BUG */
++	__u32			tls;		/* TLS for this thread */
  
- static int
+ 	mm_segment_t		addr_limit;	/* thread address space:
+ 					 	   0-0xBFFFFFFF for user-thead
+@@ -79,14 +80,18 @@ struct thread_info {
+  * - other flags in MSW
+  */
+ #define TIF_SYSCALL_TRACE	0	/* syscall trace active */
+-#define TIF_SIGPENDING		1	/* signal pending */
+-#define TIF_NEED_RESCHED	2	/* rescheduling necessary */
++#define TIF_NOTIFY_RESUME	1	/* resumption notification requested */
++#define TIF_SIGPENDING		2	/* signal pending */
++#define TIF_NEED_RESCHED	3	/* rescheduling necessary */
++#define TIF_RESTORE_SIGMASK	9	/* restore signal mask in do_signal() */
+ #define TIF_POLLING_NRFLAG	16	/* true if poll_idle() is polling TIF_NEED_RESCHED */
+ #define TIF_MEMDIE		17
+ 
+ #define _TIF_SYSCALL_TRACE	(1<<TIF_SYSCALL_TRACE)
++#define _TIF_NOTIFY_RESUME	(1<<TIF_NOTIFY_RESUME)
+ #define _TIF_SIGPENDING		(1<<TIF_SIGPENDING)
+ #define _TIF_NEED_RESCHED	(1<<TIF_NEED_RESCHED)
++#define _TIF_RESTORE_SIGMASK	(1<<TIF_RESTORE_SIGMASK)
+ #define _TIF_POLLING_NRFLAG	(1<<TIF_POLLING_NRFLAG)
+ 
+ #define _TIF_WORK_MASK		0x0000FFFE	/* work to do on interrupt/exception return */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jesper.nilsson@axis.com are
 
-origin.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
-ide-arm-hack.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd-fixup.patch
-fix-build-breakage-if-sysfs-fix.patch
-git-scsi-rc-fixes.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-git-unionfs.patch
-git-watchdog.patch
-watchdog-add-nano-7240-driver-checkpatch-fixes.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+cris-build-fixes-fix-csum_tcpudp_magic-declaration.patch
+cris-build-fixes-add-missing-syscalls.patch
+cris-build-fixes-hardirqh-include-asm-irqh.patch
+cris-build-fixes-atomich-needs-compilerh.patch
 cris-build-fixes-atomich-needs-compilerh-fix.patch
+cris-build-fixes-irq-fixes.patch
+cris-build-fixes-sys_crisc-needs-fsh.patch
+cris-build-fixes-add-baud-rate-defines.patch
+cris-build-fixes-update-eth_v10c-ethernet-driver.patch
 cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
-sync_sb_inodes-propagate-errors.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+cris-build-fixes-fix-mtdramh.patch
+cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
+cris-build-fixes-corrected-and-improved-nmi-and-irq-handling.patch
+cris-build-fixes-fixes-in-arch-cris-kernel-timec.patch
+cris-build-fixes-setupc-needs-paramh.patch
+cris-build-fixes-fix-crisksymsc.patch
+cris-build-fixes-defconfig-updates.patch
