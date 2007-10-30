@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + sysctl-fix-token-ring-procname.patch added to -mm tree
-Date: Tue, 30 Oct 2007 13:00:16 -0700
-Message-ID: <200710302000.l9UK0G6n025499@imap1.linux-foundation.org>
+Date: Tue, 30 Oct 2007 13:00:28 -0700
+Message-ID: <200710302000.l9UK0StR025502@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35051 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60457 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752760AbXJ3UBq (ORCPT
+	by vger.kernel.org with ESMTP id S1756298AbXJ3UCa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Oct 2007 16:01:46 -0400
+	Tue, 30 Oct 2007 16:02:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -37,7 +37,7 @@ correct.
 
 Reported by: Daniel Exner <dex@dragonslave.de>:
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
+Acked-by: Eric W. Biederman <ebiederm@xmission.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
