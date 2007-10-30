@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spi-spi_bfin-update-handling-of-delay-after-deselect.patch added to -mm tree
-Date: Tue, 30 Oct 2007 15:50:55 -0700
-Message-ID: <200710302250.l9UMot0k032061@imap1.linux-foundation.org>
+Subject: + vfs-apply-coding-standards-to-fs-ioctlc.patch added to -mm tree
+Date: Tue, 30 Oct 2007 15:53:05 -0700
+Message-ID: <200710302253.l9UMrEwn032145@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43207 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35240 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753771AbXJ3WvL (ORCPT
+	by vger.kernel.org with ESMTP id S1751878AbXJ3Wxd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Oct 2007 18:51:11 -0400
+	Tue, 30 Oct 2007 18:53:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bryan.wu@analog.com, cbarfield@cyberdata.net, dbrownell@users.sourceforge.net
+Cc: ezk@cs.sunysb.edu, hch@lst.de
 
 
 The patch titled
-     spi: spi_bfin: update handling of delay-after-deselect
+     VFS: apply coding standards to fs/ioctl.c
 has been added to the -mm tree.  Its filename is
-     spi-spi_bfin-update-handling-of-delay-after-deselect.patch
+     vfs-apply-coding-standards-to-fs-ioctlc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,147 +26,235 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: spi: spi_bfin: update handling of delay-after-deselect
-From: Bryan Wu <bryan.wu@analog.com>
+Subject: VFS: apply coding standards to fs/ioctl.c
+From: Erez Zadok <ezk@cs.sunysb.edu>
 
-Move cs_chg_udelay handling (specific to this driver) to cs_deactive(), fixing
-a bug when some SPI LCD driver needs delay after cs_deactive.
-
-Fix bug reported by Cameron Barfield <cbarfield@cyberdata.net>
-https://blackfin.uclinux.org/gf/project/uclinux-dist/forum/?action=ForumBrowse&forum_id=39&_forum_action=ForumMessageBrowse&thread_id=23630&feedback=Message%20replied.
-
-Cc: Cameron Barfield <cbarfield@cyberdata.net>
-Signed-off-by: Bryan Wu <bryan.wu@analog.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Erez Zadok <ezk@cs.sunysb.edu>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bfin5xx.c          |   24 +++++++++---------------
- include/asm-blackfin/bfin5xx_spi.h |    2 +-
- 2 files changed, 10 insertions(+), 16 deletions(-)
+ fs/ioctl.c |  168 ++++++++++++++++++++++++++-------------------------
+ 1 file changed, 86 insertions(+), 82 deletions(-)
 
-diff -puN drivers/spi/spi_bfin5xx.c~spi-spi_bfin-update-handling-of-delay-after-deselect drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~spi-spi_bfin-update-handling-of-delay-after-deselect
-+++ a/drivers/spi/spi_bfin5xx.c
-@@ -132,7 +132,7 @@ struct chip_data {
- 	u8 enable_dma;
- 	u8 bits_per_word;	/* 8 or 16 */
- 	u8 cs_change_per_word;
--	u8 cs_chg_udelay;
-+	u16 cs_chg_udelay;	/* Some devices require > 255usec delay */
- 	void (*write) (struct driver_data *);
- 	void (*read) (struct driver_data *);
- 	void (*duplex) (struct driver_data *);
-@@ -211,6 +211,10 @@ static void cs_deactive(struct driver_da
- 	flag |= (chip->flag << 8);
+diff -puN fs/ioctl.c~vfs-apply-coding-standards-to-fs-ioctlc fs/ioctl.c
+--- a/fs/ioctl.c~vfs-apply-coding-standards-to-fs-ioctlc
++++ a/fs/ioctl.c
+@@ -12,8 +12,8 @@
+ #include <linux/fs.h>
+ #include <linux/security.h>
+ #include <linux/module.h>
++#include <linux/uaccess.h>
  
- 	write_FLAG(drv_data, flag);
-+
-+	/* Move delay here for consistency */
-+	if (chip->cs_chg_udelay)
-+		udelay(chip->cs_chg_udelay);
- }
+-#include <asm/uaccess.h>
+ #include <asm/ioctls.h>
  
- #define MAX_SPI_SSEL	7
-@@ -307,10 +311,9 @@ static void u8_cs_chg_writer(struct driv
- 		write_TDBR(drv_data, (*(u8 *) (drv_data->tx)));
- 		while (read_STAT(drv_data) & BIT_STAT_TXS)
- 			continue;
-+
- 		cs_deactive(drv_data, chip);
+ static long do_ioctl(struct file *filp, unsigned int cmd,
+@@ -45,31 +45,31 @@ static int file_ioctl(struct file *filp,
+ {
+ 	int error;
+ 	int block;
+-	struct inode * inode = filp->f_path.dentry->d_inode;
++	struct inode *inode = filp->f_path.dentry->d_inode;
+ 	int __user *p = (int __user *)arg;
  
--		if (chip->cs_chg_udelay)
--			udelay(chip->cs_chg_udelay);
- 		++drv_data->tx;
- 	}
- }
-@@ -359,9 +362,6 @@ static void u8_cs_chg_reader(struct driv
- 	while (drv_data->rx < drv_data->rx_end - 1) {
- 		cs_deactive(drv_data, chip);
- 
--		if (chip->cs_chg_udelay)
--			udelay(chip->cs_chg_udelay);
+ 	switch (cmd) {
+-		case FIBMAP:
+-		{
+-			struct address_space *mapping = filp->f_mapping;
+-			int res;
+-			/* do we support this mess? */
+-			if (!mapping->a_ops->bmap)
+-				return -EINVAL;
+-			if (!capable(CAP_SYS_RAWIO))
+-				return -EPERM;
+-			if ((error = get_user(block, p)) != 0)
+-				return error;
 -
- 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
- 			continue;
- 		cs_active(drv_data, chip);
-@@ -412,10 +412,9 @@ static void u8_cs_chg_duplex(struct driv
- 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
- 			continue;
- 		*(u8 *) (drv_data->rx) = read_RDBR(drv_data);
-+
- 		cs_deactive(drv_data, chip);
- 
--		if (chip->cs_chg_udelay)
--			udelay(chip->cs_chg_udelay);
- 		++drv_data->rx;
- 		++drv_data->tx;
+-			lock_kernel();
+-			res = mapping->a_ops->bmap(mapping, block);
+-			unlock_kernel();
+-			return put_user(res, p);
+-		}
+-		case FIGETBSZ:
+-			return put_user(inode->i_sb->s_blocksize, p);
+-		case FIONREAD:
+-			return put_user(i_size_read(inode) - filp->f_pos, p);
++	case FIBMAP:
++	{
++		struct address_space *mapping = filp->f_mapping;
++		int res;
++		/* do we support this mess? */
++		if (!mapping->a_ops->bmap)
++			return -EINVAL;
++		if (!capable(CAP_SYS_RAWIO))
++			return -EPERM;
++		error = get_user(block, p);
++		if (error)
++			return error;
++		lock_kernel();
++		res = mapping->a_ops->bmap(mapping, block);
++		unlock_kernel();
++		return put_user(res, p);
++	}
++	case FIGETBSZ:
++		return put_user(inode->i_sb->s_blocksize, p);
++	case FIONREAD:
++		return put_user(i_size_read(inode) - filp->f_pos, p);
  	}
-@@ -452,10 +451,9 @@ static void u16_cs_chg_writer(struct dri
- 		write_TDBR(drv_data, (*(u16 *) (drv_data->tx)));
- 		while ((read_STAT(drv_data) & BIT_STAT_TXS))
- 			continue;
+ 
+ 	return do_ioctl(filp, cmd, arg);
+@@ -82,81 +82,85 @@ static int file_ioctl(struct file *filp,
+  * vfs_ioctl() is not for drivers and not intended to be EXPORT_SYMBOL()'d.
+  * It's just a simple helper for sys_ioctl and compat_sys_ioctl.
+  */
+-int vfs_ioctl(struct file *filp, unsigned int fd, unsigned int cmd, unsigned long arg)
++int vfs_ioctl(struct file *filp, unsigned int fd, unsigned int cmd,
++	      unsigned long arg)
+ {
+ 	unsigned int flag;
+ 	int on, error = 0;
+ 
+ 	switch (cmd) {
+-		case FIOCLEX:
+-			set_close_on_exec(fd, 1);
++	case FIOCLEX:
++		set_close_on_exec(fd, 1);
++		break;
 +
- 		cs_deactive(drv_data, chip);
- 
--		if (chip->cs_chg_udelay)
--			udelay(chip->cs_chg_udelay);
- 		drv_data->tx += 2;
- 	}
- }
-@@ -504,9 +502,6 @@ static void u16_cs_chg_reader(struct dri
- 	while (drv_data->rx < drv_data->rx_end - 2) {
- 		cs_deactive(drv_data, chip);
- 
--		if (chip->cs_chg_udelay)
--			udelay(chip->cs_chg_udelay);
++	case FIONCLEX:
++		set_close_on_exec(fd, 0);
++		break;
++
++	case FIONBIO:
++		error = get_user(on, (int __user *)arg);
++		if (error)
+ 			break;
 -
- 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
- 			continue;
- 		cs_active(drv_data, chip);
-@@ -557,10 +552,9 @@ static void u16_cs_chg_duplex(struct dri
- 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
- 			continue;
- 		*(u16 *) (drv_data->rx) = read_RDBR(drv_data);
+-		case FIONCLEX:
+-			set_close_on_exec(fd, 0);
+-			break;
+-
+-		case FIONBIO:
+-			if ((error = get_user(on, (int __user *)arg)) != 0)
+-				break;
+-			flag = O_NONBLOCK;
++		flag = O_NONBLOCK;
+ #ifdef __sparc__
+-			/* SunOS compatibility item. */
+-			if(O_NONBLOCK != O_NDELAY)
+-				flag |= O_NDELAY;
++		/* SunOS compatibility item. */
++		if (O_NONBLOCK != O_NDELAY)
++			flag |= O_NDELAY;
+ #endif
+-			if (on)
+-				filp->f_flags |= flag;
+-			else
+-				filp->f_flags &= ~flag;
+-			break;
+-
+-		case FIOASYNC:
+-			if ((error = get_user(on, (int __user *)arg)) != 0)
+-				break;
+-			flag = on ? FASYNC : 0;
+-
+-			/* Did FASYNC state change ? */
+-			if ((flag ^ filp->f_flags) & FASYNC) {
+-				if (filp->f_op && filp->f_op->fasync) {
+-					lock_kernel();
+-					error = filp->f_op->fasync(fd, filp, on);
+-					unlock_kernel();
+-				}
+-				else error = -ENOTTY;
+-			}
+-			if (error != 0)
+-				break;
+-
+-			if (on)
+-				filp->f_flags |= FASYNC;
+-			else
+-				filp->f_flags &= ~FASYNC;
+-			break;
+-
+-		case FIOQSIZE:
+-			if (S_ISDIR(filp->f_path.dentry->d_inode->i_mode) ||
+-			    S_ISREG(filp->f_path.dentry->d_inode->i_mode) ||
+-			    S_ISLNK(filp->f_path.dentry->d_inode->i_mode)) {
+-				loff_t res = inode_get_bytes(filp->f_path.dentry->d_inode);
+-				error = copy_to_user((loff_t __user *)arg, &res, sizeof(res)) ? -EFAULT : 0;
+-			}
+-			else
++		if (on)
++			filp->f_flags |= flag;
++		else
++			filp->f_flags &= ~flag;
++		break;
 +
- 		cs_deactive(drv_data, chip);
- 
--		if (chip->cs_chg_udelay)
--			udelay(chip->cs_chg_udelay);
- 		drv_data->rx += 2;
- 		drv_data->tx += 2;
++	case FIOASYNC:
++		error = get_user(on, (int __user *)arg);
++		if (error)
++			break;
++		flag = on ? FASYNC : 0;
++
++		/* Did FASYNC state change ? */
++		if ((flag ^ filp->f_flags) & FASYNC) {
++			if (filp->f_op && filp->f_op->fasync) {
++				lock_kernel();
++				error = filp->f_op->fasync(fd, filp, on);
++				unlock_kernel();
++			} else
+ 				error = -ENOTTY;
++		}
++		if (error != 0)
+ 			break;
+-		default:
+-			if (S_ISREG(filp->f_path.dentry->d_inode->i_mode))
+-				error = file_ioctl(filp, cmd, arg);
+-			else
+-				error = do_ioctl(filp, cmd, arg);
+-			break;
++
++		if (on)
++			filp->f_flags |= FASYNC;
++		else
++			filp->f_flags &= ~FASYNC;
++		break;
++
++	case FIOQSIZE:
++		if (S_ISDIR(filp->f_path.dentry->d_inode->i_mode) ||
++		    S_ISREG(filp->f_path.dentry->d_inode->i_mode) ||
++		    S_ISLNK(filp->f_path.dentry->d_inode->i_mode)) {
++			loff_t res =
++				inode_get_bytes(filp->f_path.dentry->d_inode);
++			error = copy_to_user((loff_t __user *)arg, &res,
++					     sizeof(res)) ? -EFAULT : 0;
++		} else
++			error = -ENOTTY;
++		break;
++	default:
++		if (S_ISREG(filp->f_path.dentry->d_inode->i_mode))
++			error = file_ioctl(filp, cmd, arg);
++		else
++			error = do_ioctl(filp, cmd, arg);
++		break;
  	}
-diff -puN include/asm-blackfin/bfin5xx_spi.h~spi-spi_bfin-update-handling-of-delay-after-deselect include/asm-blackfin/bfin5xx_spi.h
---- a/include/asm-blackfin/bfin5xx_spi.h~spi-spi_bfin-update-handling-of-delay-after-deselect
-+++ a/include/asm-blackfin/bfin5xx_spi.h
-@@ -162,7 +162,7 @@ struct bfin5xx_spi_chip {
- 	u8 enable_dma;
- 	u8 bits_per_word;
- 	u8 cs_change_per_word;
--	u8 cs_chg_udelay;
-+	u16 cs_chg_udelay; /* Some devices require 16-bit delays */
- };
+ 	return error;
+ }
  
- #endif /* _SPI_CHANNEL_H_ */
+ asmlinkage long sys_ioctl(unsigned int fd, unsigned int cmd, unsigned long arg)
+ {
+-	struct file * filp;
++	struct file *filp;
+ 	int error = -EBADF;
+ 	int fput_needed;
+ 
 _
 
-Patches currently in -mm which might be from bryan.wu@analog.com are
+Patches currently in -mm which might be from ezk@cs.sunysb.edu are
 
 origin.patch
-git-mtd.patch
-blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-spi-initial-bf54x-spi-support.patch
-spi-bfin-spi-uses-portmux-calls.patch
-spi-spi_bfin-cleanups-error-handling.patch
-spi-spi_bfin-handles-spi_transfercs_change.patch
-spi-spi_bfin-dont-bypass-spi-framework.patch
-spi-spi_bfin-uses-platform-device-resources.patch
-spi-spi_bfin-uses-portmux-for-additional-busses.patch
-spi-spi_bfin-rearrange-portmux-calls.patch
-spi-spi_bfin-change-handling-of-communication-parameters.patch
-spi-spi_bfin-relocate-spin-waits.patch
-spi-spi_bfin-handle-multiple-spi_masters.patch
-spi-spi_bfin-bugfix-for-816-bit-word-sizes.patch
-spi-spi_bfin-update-handling-of-delay-after-deselect.patch
-spi-spi_bfin-resequence-dma-start-stop.patch
+vfs-apply-coding-standards-to-fs-ioctlc.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names.patch
+vfs-factor-out-three-helpers-for-fibmap-fionbio-fioasync-file-ioctls.patch
+git-unionfs.patch
