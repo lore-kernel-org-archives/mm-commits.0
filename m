@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-get-rid-of-asmlinkage-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 30 Oct 2007 15:26:26 -0700
-Message-ID: <200710302226.l9UMQQ84031101@imap1.linux-foundation.org>
+Subject: + aacraid-driver-fails-with-dell-poweredge-expandable-raid-controller-3-di.patch added to -mm tree
+Date: Tue, 30 Oct 2007 15:29:12 -0700
+Message-ID: <200710302229.l9UMTDgc031165@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34700 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60123 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752740AbXJ3W07 (ORCPT
+	by vger.kernel.org with ESMTP id S1752234AbXJ3Waa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Oct 2007 18:26:59 -0400
+	Tue, 30 Oct 2007 18:30:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jdike@addtoit.com, jdike@linux.intel.com
+Cc: mark_salyzyn@adaptec.com, James.Bottomley@steeleye.com, Matt_Domsch@dell.com, aacraid@adaptec.com, hawk@pld-linux.org
 
 
 The patch titled
-     uml-get-rid-of-asmlinkage-checkpatch-fixes
+     aacraid driver fails with Dell PowerEdge Expandable RAID Controller 3/Di
 has been added to the -mm tree.  Its filename is
-     uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+     aacraid-driver-fails-with-dell-poweredge-expandable-raid-controller-3-di.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,143 +26,208 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml-get-rid-of-asmlinkage-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: aacraid driver fails with Dell PowerEdge Expandable RAID Controller 3/Di
+From: "Salyzyn, Mark" <mark_salyzyn@adaptec.com>
 
-ERROR: "foo* bar" should be "foo *bar"
-#21: FILE: arch/um/sys-i386/tls.c:228:
-+static int get_tls_entry(struct task_struct* task, struct user_desc *info,
+As reported in http://bugzilla.kernel.org/show_bug.cgi?id=3D9133 it was
+discovered that the PERC line of controllers lacked a key 64 bit
+ScatterGather capable SCSI pass-through function. The adapters are still
+capable of 64 bit ScatterGather I/O commands, but these two can not be
+mixed. This problem was exacerbated by the introduction of the SCSI
+Generic access to the DASD physical devices.
 
-total: 1 errors, 0 warnings, 44 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+The fix for users before this patch is applied is aacraid.dacmode=3D0 on
+the kernel command line to disable 64 bit I/O.
 
-Please run checkpatch prior to sending patches
+The enclosed patch introduces a new adapter quirk and tries to limp
+along by enabling pass-through in situations where memory is 32 bit
+addressable on 64 bit machines, or disable the pass-through functions
+altogether. I expect that the check for 32 bit addressable memory to be
+controversial in that it can be incorrect in non-Dell non-Intel systems
+that PERC would never be installed under, the alternative is to disable
+pass-through in all cases which could be reported as another regression.
 
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Jeff Dike <jdike@linux.intel.com>
+Pass-through is used for SCSI Generic access to the physical devices, or
+for the management applications to properly function.
+
+In systems where this patch has disabled pass-through because it is
+unsupportable in combination with I/O performance, the user can choose
+to enable pass-through by turning off dacmode (aacraid.dacmode=3D0) or
+limiting the discovered kernel memory (mem=3D4G) with an associated loss
+in runtime performance. If we chose instead to turn off 64 bit dacmode
+for the adapters with this quirk, then this would be reported as another
+regression.
+
+Signed-off-by: Mark Salyzyn <aacraid@adaptec.com>
+Cc: Marcin Krol <hawk@pld-linux.org>
+Cc: "Matt Domsch" <Matt_Domsch@dell.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/sys-i386/tls.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/aacraid/aachba.c  |   15 ++++++++++-
+ drivers/scsi/aacraid/aacraid.h |    6 ++++
+ drivers/scsi/aacraid/commsup.c |    6 ++--
+ drivers/scsi/aacraid/linit.c   |   42 +++++++++++++++++--------------
+ 4 files changed, 47 insertions(+), 22 deletions(-)
 
-diff -puN arch/um/sys-i386/tls.c~uml-get-rid-of-asmlinkage-checkpatch-fixes arch/um/sys-i386/tls.c
---- a/arch/um/sys-i386/tls.c~uml-get-rid-of-asmlinkage-checkpatch-fixes
-+++ a/arch/um/sys-i386/tls.c
-@@ -225,7 +225,7 @@ out:
+diff -puN drivers/scsi/aacraid/aachba.c~aacraid-driver-fails-with-dell-poweredge-expandable-raid-controller-3-di drivers/scsi/aacraid/aachba.c
+--- a/drivers/scsi/aacraid/aachba.c~aacraid-driver-fails-with-dell-poweredge-expandable-raid-controller-3-di
++++ a/drivers/scsi/aacraid/aachba.c
+@@ -1190,6 +1190,15 @@ static int aac_scsi_32(struct fib * fib,
+ 				  (fib_callback) aac_srb_callback, (void *) cmd);
  }
  
- /* XXX: use do_get_thread_area to read the host value? I'm not at all sure! */
--static int get_tls_entry(struct task_struct* task, struct user_desc *info,
-+static int get_tls_entry(struct task_struct *task, struct user_desc *info,
- 			 int idx)
++static int aac_scsi_32_64(struct fib * fib, struct scsi_cmnd * cmd)
++{
++	if ((sizeof(dma_addr_t) > 4) &&
++	 (num_physpages > (0xFFFFFFFFULL >> PAGE_SHIFT)) &&
++	 (fib->dev->adapter_info.options & AAC_OPT_SGMAP_HOST64))
++		return FAILED;
++	return aac_scsi_32(fib, cmd);
++}
++
+ int aac_get_adapter_info(struct aac_dev* dev)
  {
- 	struct thread_struct *t = &task->thread;
+ 	struct fib* fibptr;
+@@ -1267,6 +1276,8 @@ int aac_get_adapter_info(struct aac_dev*
+ 			 1, 1,
+ 			 NULL, NULL);
+ 
++	/* reasoned default */
++	dev->maximum_num_physicals = 16;
+ 	if (rcode >= 0 && le32_to_cpu(bus_info->Status) == ST_OK) {
+ 		dev->maximum_num_physicals = le32_to_cpu(bus_info->TargetsPerBus);
+ 		dev->maximum_num_channels = le32_to_cpu(bus_info->BusCount);
+@@ -1376,7 +1387,9 @@ int aac_get_adapter_info(struct aac_dev*
+ 	 * interface.
+ 	 */
+ 	dev->a_ops.adapter_scsi = (dev->dac_support)
+-				? aac_scsi_64
++	  ? ((aac_get_driver_ident(dev->cardtype)->quirks & AAC_QUIRK_SCSI_32)
++				? aac_scsi_32_64
++				: aac_scsi_64)
+ 				: aac_scsi_32;
+ 	if (dev->raw_io_interface) {
+ 		dev->a_ops.adapter_bounds = (dev->raw_io_64)
+diff -puN drivers/scsi/aacraid/aacraid.h~aacraid-driver-fails-with-dell-poweredge-expandable-raid-controller-3-di drivers/scsi/aacraid/aacraid.h
+--- a/drivers/scsi/aacraid/aacraid.h~aacraid-driver-fails-with-dell-poweredge-expandable-raid-controller-3-di
++++ a/drivers/scsi/aacraid/aacraid.h
+@@ -521,6 +521,12 @@ struct aac_driver_ident
+ #define AAC_QUIRK_17SG	0x0010
+ 
+ /*
++ *	Some adapter firmware does not support 64 bit scsi passthrough
++ * commands.
++ */
++#define AAC_QUIRK_SCSI_32	0x0020
++
++/*
+  *	The adapter interface specs all queues to be located in the same
+  *	physically contigous block. The host structure that defines the
+  *	commuication queues will assume they are each a separate physically
+diff -puN drivers/scsi/aacraid/commsup.c~aacraid-driver-fails-with-dell-poweredge-expandable-raid-controller-3-di drivers/scsi/aacraid/commsup.c
+--- a/drivers/scsi/aacraid/commsup.c~aacraid-driver-fails-with-dell-poweredge-expandable-raid-controller-3-di
++++ a/drivers/scsi/aacraid/commsup.c
+@@ -1099,7 +1099,8 @@ static int _aac_reset_adapter(struct aac
+ 	free_irq(aac->pdev->irq, aac);
+ 	kfree(aac->fsa_dev);
+ 	aac->fsa_dev = NULL;
+-	if (aac_get_driver_ident(index)->quirks & AAC_QUIRK_31BIT) {
++	quirks = aac_get_driver_ident(index)->quirks;
++	if (quirks & AAC_QUIRK_31BIT) {
+ 		if (((retval = pci_set_dma_mask(aac->pdev, DMA_31BIT_MASK))) ||
+ 		  ((retval = pci_set_consistent_dma_mask(aac->pdev, DMA_31BIT_MASK))))
+ 			goto out;
+@@ -1110,7 +1111,7 @@ static int _aac_reset_adapter(struct aac
+ 	}
+ 	if ((retval = (*(aac_get_driver_ident(index)->init))(aac)))
+ 		goto out;
+-	if (aac_get_driver_ident(index)->quirks & AAC_QUIRK_31BIT)
++	if (quirks & AAC_QUIRK_31BIT)
+ 		if ((retval = pci_set_dma_mask(aac->pdev, DMA_32BIT_MASK)))
+ 			goto out;
+ 	if (jafo) {
+@@ -1121,7 +1122,6 @@ static int _aac_reset_adapter(struct aac
+ 		}
+ 	}
+ 	(void)aac_get_adapter_info(aac);
+-	quirks = aac_get_driver_ident(index)->quirks;
+ 	if ((quirks & AAC_QUIRK_34SG) && (host->sg_tablesize > 34)) {
+  		host->sg_tablesize = 34;
+  		host->max_sectors = (host->sg_tablesize * 8) + 112;
+diff -puN drivers/scsi/aacraid/linit.c~aacraid-driver-fails-with-dell-poweredge-expandable-raid-controller-3-di drivers/scsi/aacraid/linit.c
+--- a/drivers/scsi/aacraid/linit.c~aacraid-driver-fails-with-dell-poweredge-expandable-raid-controller-3-di
++++ a/drivers/scsi/aacraid/linit.c
+@@ -164,22 +164,22 @@ MODULE_DEVICE_TABLE(pci, aac_pci_tbl);
+  * for the card.  At that time we can remove the channels from here
+  */
+ static struct aac_driver_ident aac_drivers[] = {
+-	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* PERC 2/Si (Iguana/PERC2Si) */
+-	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* PERC 3/Di (Opal/PERC3Di) */
+-	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* PERC 3/Si (SlimFast/PERC3Si */
+-	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* PERC 3/Di (Iguana FlipChip/PERC3DiF */
+-	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* PERC 3/Di (Viper/PERC3DiV) */
+-	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* PERC 3/Di (Lexus/PERC3DiL) */
+-	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 1, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* PERC 3/Di (Jaguar/PERC3DiJ) */
+-	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* PERC 3/Di (Dagger/PERC3DiD) */
+-	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* PERC 3/Di (Boxster/PERC3DiB) */
+-	{ aac_rx_init, "aacraid",  "ADAPTEC ", "catapult        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* catapult */
+-	{ aac_rx_init, "aacraid",  "ADAPTEC ", "tomcat          ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* tomcat */
+-	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 2120S   ", 1, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* Adaptec 2120S (Crusader) */
+-	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 2200S   ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* Adaptec 2200S (Vulcan) */
+-	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 2200S   ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* Adaptec 2200S (Vulcan-2m) */
+-	{ aac_rx_init, "aacraid",  "Legend  ", "Legend S220     ", 1, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* Legend S220 (Legend Crusader) */
+-	{ aac_rx_init, "aacraid",  "Legend  ", "Legend S230     ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* Legend S230 (Legend Vulcan) */
++	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* PERC 2/Si (Iguana/PERC2Si) */
++	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* PERC 3/Di (Opal/PERC3Di) */
++	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* PERC 3/Si (SlimFast/PERC3Si */
++	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* PERC 3/Di (Iguana FlipChip/PERC3DiF */
++	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* PERC 3/Di (Viper/PERC3DiV) */
++	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* PERC 3/Di (Lexus/PERC3DiL) */
++	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 1, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* PERC 3/Di (Jaguar/PERC3DiJ) */
++	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* PERC 3/Di (Dagger/PERC3DiD) */
++	{ aac_rx_init, "percraid", "DELL    ", "PERCRAID        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* PERC 3/Di (Boxster/PERC3DiB) */
++	{ aac_rx_init, "aacraid",  "ADAPTEC ", "catapult        ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* catapult */
++	{ aac_rx_init, "aacraid",  "ADAPTEC ", "tomcat          ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* tomcat */
++	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 2120S   ", 1, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Adaptec 2120S (Crusader) */
++	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 2200S   ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Adaptec 2200S (Vulcan) */
++	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 2200S   ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Adaptec 2200S (Vulcan-2m) */
++	{ aac_rx_init, "aacraid",  "Legend  ", "Legend S220     ", 1, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Legend S220 (Legend Crusader) */
++	{ aac_rx_init, "aacraid",  "Legend  ", "Legend S230     ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Legend S230 (Legend Vulcan) */
+ 
+ 	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 3230S   ", 2 }, /* Adaptec 3230S (Harrier) */
+ 	{ aac_rx_init, "aacraid",  "ADAPTEC ", "Adaptec 3240S   ", 2 }, /* Adaptec 3240S (Tornado) */
+@@ -224,8 +224,8 @@ static struct aac_driver_ident aac_drive
+ 	{ aac_sa_init, "percraid", "DELL    ", "PERCRAID        ", 4, AAC_QUIRK_34SG }, /* Dell PERC2/QC */
+ 	{ aac_sa_init, "hpnraid",  "HP      ", "NetRAID         ", 4, AAC_QUIRK_34SG }, /* HP NetRAID-4M */
+ 
+-	{ aac_rx_init, "aacraid",  "DELL    ", "RAID            ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* Dell Catchall */
+-	{ aac_rx_init, "aacraid",  "Legend  ", "RAID            ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG }, /* Legend Catchall */
++	{ aac_rx_init, "aacraid",  "DELL    ", "RAID            ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Dell Catchall */
++	{ aac_rx_init, "aacraid",  "Legend  ", "RAID            ", 2, AAC_QUIRK_31BIT | AAC_QUIRK_34SG | AAC_QUIRK_SCSI_32 }, /* Legend Catchall */
+ 	{ aac_rx_init, "aacraid",  "ADAPTEC ", "RAID            ", 2 }, /* Adaptec Catch All */
+ 	{ aac_rkt_init, "aacraid", "ADAPTEC ", "RAID            ", 2 }, /* Adaptec Rocket Catch All */
+ 	{ aac_nark_init, "aacraid", "ADAPTEC ", "RAID            ", 2 } /* Adaptec NEMER/ARK Catch All */
+@@ -420,6 +420,12 @@ static int aac_slave_configure(struct sc
+ 		unsigned num_one = 0;
+ 		unsigned depth;
+ 
++		/*
++		 * Firmware has an individual device recovery time typically
++		 * of 35 seconds, give us a margin.
++		 */
++		if (sdev->timeout < (45 * HZ))
++			sdev->timeout = 45 * HZ;
+ 		__shost_for_each_device(dev, host) {
+ 			if (dev->tagged_supported && (dev->type == TYPE_DISK) &&
+ 				(sdev_channel(dev) == CONTAINER_CHANNEL))
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mark_salyzyn@adaptec.com are
 
-origin.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
-ide-arm-hack.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd-fixup.patch
-fix-build-breakage-if-sysfs-fix.patch
-git-scsi-rc-fixes.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-git-unionfs.patch
-git-watchdog.patch
-watchdog-add-nano-7240-driver-checkpatch-fixes.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
-sync_sb_inodes-propagate-errors.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+ips-remove-ips_ha-members-that-duplicate-struct-pci_dev-members.patch
+ips-trim-trailing-whitespace.patch
+ips-pci-api-cleanups.patch
+ips-handle-scsi_add_host-failure-and-other-err-cleanups.patch
+aacraid-driver-fails-with-dell-poweredge-expandable-raid-controller-3-di.patch
