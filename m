@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + slub-provide-unique-end-marker-for-each-slab-fix.patch added to -mm tree
-Date: Tue, 30 Oct 2007 11:35:56 -0700
-Message-ID: <200710301835.l9UIZumU021648@imap1.linux-foundation.org>
+Subject: + slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc.patch added to -mm tree
+Date: Tue, 30 Oct 2007 11:38:53 -0700
+Message-ID: <200710301838.l9UIcrH9021713@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55051 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41040 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754627AbXJ3SgC (ORCPT
+	by vger.kernel.org with ESMTP id S1753104AbXJ3SjB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Oct 2007 14:36:02 -0400
+	Tue, 30 Oct 2007 14:39:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com, penberg@cs.helsinki.fi
+Cc: clameter@sgi.com, penberg@cs.helsinki.fi
 
 
 The patch titled
-     slub-provide-unique-end-marker-for-each-slab-fix
+     SLUB: avoid referencing kmem_cache structure in __slab_alloc
 has been added to the -mm tree.  Its filename is
-     slub-provide-unique-end-marker-for-each-slab-fix.patch
+     slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,122 +26,101 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub-provide-unique-end-marker-for-each-slab-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: SLUB: avoid referencing kmem_cache structure in __slab_alloc
+From: Christoph Lameter <clameter@sgi.com>
 
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+There is the need to use the objects per slab in the first part of
+__slab_alloc() which is still pretty hot.  Copy the number of objects per slab
+into the kmem_cache_cpu structure.  That way we can get the value from a cache
+line that we already need to touch.  This brings the kmem_cache_cpu structure
+up to 4 even words.
+
+There is no increase in the size of kmem_cache_cpu since the size of object
+is rounded to the next word.
+
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/slub_def.h |    1 +
+ mm/slub.c                |    3 ++-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mm_types.h~slub-provide-unique-end-marker-for-each-slab-fix include/linux/mm_types.h
---- a/include/linux/mm_types.h~slub-provide-unique-end-marker-for-each-slab-fix
-+++ a/include/linux/mm_types.h
-@@ -64,7 +64,7 @@ struct page {
- #if NR_CPUS >= CONFIG_SPLIT_PTLOCK_CPUS
- 	    spinlock_t ptl;
- #endif
--		struct {
-+	    struct {
- 		   struct kmem_cache *slab;	/* SLUB: Pointer to slab */
- 		   void *end;			/* SLUB: end marker */
- 	    };
+diff -puN include/linux/slub_def.h~slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc include/linux/slub_def.h
+--- a/include/linux/slub_def.h~slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc
++++ a/include/linux/slub_def.h
+@@ -17,6 +17,7 @@ struct kmem_cache_cpu {
+ 	int node;
+ 	unsigned int offset;
+ 	unsigned int objsize;
++	unsigned int objects;
+ };
+ 
+ struct kmem_cache_node {
+diff -puN mm/slub.c~slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc mm/slub.c
+--- a/mm/slub.c~slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc
++++ a/mm/slub.c
+@@ -1512,7 +1512,7 @@ load_freelist:
+ 
+ 	object = c->page->freelist;
+ 	c->freelist = object[c->offset];
+-	c->page->inuse = s->objects;
++	c->page->inuse = c->objects;
+ 	c->page->freelist = c->page->end;
+ 	c->node = page_to_nid(c->page);
+ unlock_out:
+@@ -1896,6 +1896,7 @@ static void init_kmem_cache_cpu(struct k
+ 	c->node = 0;
+ 	c->offset = s->offset / sizeof(void *);
+ 	c->objsize = s->objsize;
++	c->objects = s->objects;
+ }
+ 
+ static void init_kmem_cache_node(struct kmem_cache_node *n)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-origin.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
+ia64-slim-down-__clear_bit_unlock.patch
 ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
-ide-arm-hack.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd-fixup.patch
-fix-build-breakage-if-sysfs-fix.patch
-git-scsi-rc-fixes.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+mem-policy-fix-mempolicy-usage-in-pci-driver.patch
 git-unionfs.patch
-git-watchdog.patch
-watchdog-add-nano-7240-driver-checkpatch-fixes.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
 git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
+fix-mm-utilckrealloc.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
+move-vmalloc_to_page-to-mm-vmalloc.patch
+vmalloc-add-const-to-void-parameters.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
 i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
+vmalloc-clean-up-page-array-indexing.patch
+vunmap-return-page-array-passed-on-vmap.patch
+slub-move-count_partial.patch
+slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
+slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
+slub-use-non-atomic-bit-unlock.patch
+slub-fix-coding-style-violations.patch
 slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch
+slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch
+slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path.patch
+slub-__slab_alloc-exit-path-consolidation.patch
+slub-provide-unique-end-marker-for-each-slab.patch
 slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc.patch
+slub-optional-fast-path-using-cmpxchg_local.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
+slub-restructure-slab-alloc.patch
+vm-allow-get_page_unless_zero-on-compound-pages.patch
+dentries-extract-common-code-to-remove-dentry-from-lru.patch
+bufferhead-revert-constructor-removal.patch
 bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-sync_sb_inodes-propagate-errors.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+swapin_readahead-excise-numa-bogosity.patch
+revoke-core-code.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
 memcontrol-move-oom-task-exclusion-to-tasklist.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
 reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
 page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
