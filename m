@@ -1,29 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + x86-select-paravirt-when-paravirt_guest-on.patch added to -mm tree
-Date: Mon, 29 Oct 2007 15:37:01 -0700
-Message-ID: <200710292237.l9TMb1Uu029307@imap1.linux-foundation.org>
+Subject: - x86-select-paravirt-when-paravirt_guest-on.patch removed from -mm tree
+Date: Mon, 29 Oct 2007 22:02:25 -0700
+Message-ID: <200710300502.l9U52PUk009964@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35663 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43942 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752614AbXJ2WiU (ORCPT
+	by vger.kernel.org with ESMTP id S1752526AbXJ3FDK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 29 Oct 2007 18:38:20 -0400
+	Tue, 30 Oct 2007 01:03:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: gcosta@redhat.com, jeremy@goop.org, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, zach@vmware.com
+To: gcosta@redhat.com, jeremy@goop.org, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, zach@vmware.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      x86: select PARAVIRT when PARAVIRT_GUEST on
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      x86-select-paravirt-when-paravirt_guest-on.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 Subject: x86: select PARAVIRT when PARAVIRT_GUEST on
