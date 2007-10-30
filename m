@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cris-build-fixes-hardirqh-include-asm-irqh.patch added to -mm tree
-Date: Tue, 30 Oct 2007 15:09:37 -0700
-Message-ID: <200710302209.l9UM9bbo030328@imap1.linux-foundation.org>
+Subject: + cris-build-fixes-fix-csum_tcpudp_magic-declaration.patch added to -mm tree
+Date: Tue, 30 Oct 2007 15:09:33 -0700
+Message-ID: <200710302209.l9UM9Xi3030321@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59738 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53458 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751351AbXJ3WJl (ORCPT
+	by vger.kernel.org with ESMTP id S1750894AbXJ3WJi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Oct 2007 18:09:41 -0400
+	Tue, 30 Oct 2007 18:09:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jesper.nilsson@axis.com, starvik@axis.com
 
 
 The patch titled
-     cris build fixes: hardirq.h: include asm/irq.h
+     cris build fixes: fix csum_tcpudp_magic() declaration
 has been added to the -mm tree.  Its filename is
-     cris-build-fixes-hardirqh-include-asm-irqh.patch
+     cris-build-fixes-fix-csum_tcpudp_magic-declaration.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cris build fixes: hardirq.h: include asm/irq.h
+Subject: cris build fixes: fix csum_tcpudp_magic() declaration
 From: Jesper Nilsson <jesper.nilsson@axis.com>
 
-Include asm/irq.h to avoid undefined value warning.
+Remove int from prototype, no longer needed and causes compile error.
 
 Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
 Acked-by: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-cris/hardirq.h |    1 +
- 1 file changed, 1 insertion(+)
+ include/asm-cris/checksum.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-cris/hardirq.h~cris-build-fixes-hardirqh-include-asm-irqh include/asm-cris/hardirq.h
---- a/include/asm-cris/hardirq.h~cris-build-fixes-hardirqh-include-asm-irqh
-+++ a/include/asm-cris/hardirq.h
-@@ -1,6 +1,7 @@
- #ifndef __ASM_HARDIRQ_H
- #define __ASM_HARDIRQ_H
+diff -puN include/asm-cris/checksum.h~cris-build-fixes-fix-csum_tcpudp_magic-declaration include/asm-cris/checksum.h
+--- a/include/asm-cris/checksum.h~cris-build-fixes-fix-csum_tcpudp_magic-declaration
++++ a/include/asm-cris/checksum.h
+@@ -62,7 +62,7 @@ static inline __sum16 ip_fast_csum(const
+  * returns a 16-bit checksum, already complemented
+  */
  
-+#include <asm/irq.h>
- #include <linux/threads.h>
- #include <linux/cache.h>
- 
+-static inline __sum16 int csum_tcpudp_magic(__be32 saddr, __be32 daddr,
++static inline __sum16 csum_tcpudp_magic(__be32 saddr, __be32 daddr,
+ 						   unsigned short len,
+ 						   unsigned short proto,
+ 						   __wsum sum)
 _
 
 Patches currently in -mm which might be from jesper.nilsson@axis.com are
