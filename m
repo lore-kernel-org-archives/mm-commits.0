@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hibernate-fix-lockdep-report.patch added to -mm tree
-Date: Tue, 30 Oct 2007 15:16:18 -0700
-Message-ID: <200710302216.l9UMGIeQ030675@imap1.linux-foundation.org>
+Subject: + __do_irq-does-not-check-irq_disabled-when-irq_per_cpu-is-set.patch added to -mm tree
+Date: Tue, 30 Oct 2007 15:21:15 -0700
+Message-ID: <200710302221.l9UMLFRc030898@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57257 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59942 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758051AbXJ3WRZ (ORCPT
+	by vger.kernel.org with ESMTP id S1753834AbXJ3WWQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Oct 2007 18:17:25 -0400
+	Tue, 30 Oct 2007 18:22:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: johannes@sipsolutions.net, a.p.zijlstra@chello.nl, pavel@ucw.cz, rjw@sisk.pl, stern@rowland.harvard.edu
+Cc: rja@sgi.com, bjorn.helgaas@hp.com, mingo@elte.hu, tglx@linutronix.de, tony.luck@intel.com
 
 
 The patch titled
-     hibernate: fix lockdep report
+     __do_IRQ does not check IRQ_DISABLED when IRQ_PER_CPU is set
 has been added to the -mm tree.  Its filename is
-     hibernate-fix-lockdep-report.patch
+     __do_irq-does-not-check-irq_disabled-when-irq_per_cpu-is-set.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,61 +26,62 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hibernate: fix lockdep report
-From: Johannes Berg <johannes@sipsolutions.net>
+Subject: __do_IRQ does not check IRQ_DISABLED when IRQ_PER_CPU is set
+From: Russ Anderson <rja@sgi.com>
 
-Lockdep reports a circular locking dependency in the hibernate code
-because
- - during system boot hibernate code (from an initcall) locks pm_mutex
-   and then a sysfs buffer mutex via name_to_dev_t
- - during regular operation hibernate code locks pm_mutex under a
-   sysfs buffer mutex because it's called from sysfs methods.
+In __do_IRQ(), the normal case is that IRQ_DISABLED is checked and if set
+the handler (handle_IRQ_event()) is not called.
 
-The deadlock can never happen because during initcall invocation nothing
-can write to sysfs yet. This removes the lockdep report by marking the
-initcall locking as being in a different class.
+Earlier in __do_IRQ(), if IRQ_PER_CPU is set the code does not check
+IRQ_DISABLED and calls the handler even though IRQ_DISABLED is set.  This
+behavior seems unintentional.
 
-Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Pavel Machek <pavel@ucw.cz>
+One user encountering this behavior is the CPE handler (in
+arch/ia64/kernel/mca.c).  When the CPE handler encounters too many CPEs
+(such as a solid single bit error), it sets up a polling timer and disables
+the CPE interrupt (to avoid excessive overhead logging the stream of single
+bit errors).  disable_irq_nosync() is called which sets IRQ_DISABLED.  The
+IRQ_PER_CPU flag was previously set (in ia64_mca_late_init()).  The net
+result is the CPE handler gets called even though it is marked disabled.
+
+If the behavior of not checking IRQ_DISABLED when IRQ_PER_CPU is set is
+intentional, it would be worthy of a comment describing the intended
+behavior.  disable_irq_nosync() does call chip->disable() to provide a
+chipset specifiec interface for disabling the interrupt, which avoids this
+issue when used.
+
+Signed-off-by: Russ Anderson <rja@sgi.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/disk.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ kernel/irq/handle.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN kernel/power/disk.c~hibernate-fix-lockdep-report kernel/power/disk.c
---- a/kernel/power/disk.c~hibernate-fix-lockdep-report
-+++ a/kernel/power/disk.c
-@@ -456,7 +456,17 @@ static int software_resume(void)
- 	int error;
- 	unsigned int flags;
- 
--	mutex_lock(&pm_mutex);
-+	/*
-+	 * name_to_dev_t() below takes a sysfs buffer mutex when sysfs
-+	 * is configured into the kernel. Since the regular hibernate
-+	 * trigger path is via sysfs which takes a buffer mutex before
-+	 * calling hibernate functions (which take pm_mutex) this can
-+	 * cause lockdep to complain about a possible ABBA deadlock
-+	 * which cannot happen since we're in the boot code here and
-+	 * sysfs can't be invoked yet. Therefore, we use a subclass
-+	 * here to avoid lockdep complaining.
-+	 */
-+	mutex_lock_nested(&pm_mutex, 1);
- 	if (!swsusp_resume_device) {
- 		if (!strlen(resume_file)) {
- 			mutex_unlock(&pm_mutex);
+diff -puN kernel/irq/handle.c~__do_irq-does-not-check-irq_disabled-when-irq_per_cpu-is-set kernel/irq/handle.c
+--- a/kernel/irq/handle.c~__do_irq-does-not-check-irq_disabled-when-irq_per_cpu-is-set
++++ a/kernel/irq/handle.c
+@@ -178,9 +178,11 @@ fastcall unsigned int __do_IRQ(unsigned 
+ 		 */
+ 		if (desc->chip->ack)
+ 			desc->chip->ack(irq);
+-		action_ret = handle_IRQ_event(irq, desc->action);
+-		if (!noirqdebug)
+-			note_interrupt(irq, desc, action_ret);
++		if (likely(!(desc->status & IRQ_DISABLED))) {
++			action_ret = handle_IRQ_event(irq, desc->action);
++			if (!noirqdebug)
++				note_interrupt(irq, desc, action_ret);
++		}
+ 		desc->chip->end(irq);
+ 		return 1;
+ 	}
 _
 
-Patches currently in -mm which might be from johannes@sipsolutions.net are
+Patches currently in -mm which might be from rja@sgi.com are
 
-origin.patch
-git-input.patch
-fix-appletouch-geyser-1-breakage.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-git-kbuild.patch
-git-wireless.patch
-hibernate-fix-lockdep-report.patch
+arch-ia64-sn-kernel-mcac-undo-lock-when-sn_oemdata-cant-be-extended.patch
+__do_irq-does-not-check-irq_disabled-when-irq_per_cpu-is-set.patch
