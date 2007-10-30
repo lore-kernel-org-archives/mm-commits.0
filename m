@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hostap-fix-section-mismatch-warning.patch added to -mm tree
-Date: Tue, 30 Oct 2007 13:54:34 -0700
-Message-ID: <200710302054.l9UKsYWR027606@imap1.linux-foundation.org>
+Subject: + advansys-fix-section-mismatch-warning.patch added to -mm tree
+Date: Tue, 30 Oct 2007 13:55:39 -0700
+Message-ID: <200710302055.l9UKtdho027690@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45477 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52111 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752224AbXJ3U46 (ORCPT
+	by vger.kernel.org with ESMTP id S1753346AbXJ3U5I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Oct 2007 16:56:58 -0400
+	Tue, 30 Oct 2007 16:57:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, linville@tuxdriver.com
+Cc: randy.dunlap@oracle.com, James.Bottomley@steeleye.com, willy@debian.org
 
 
 The patch titled
-     hostap: fix section mismatch warning
+     advansys: fix section mismatch warning
 has been added to the -mm tree.  Its filename is
-     hostap-fix-section-mismatch-warning.patch
+     advansys-fix-section-mismatch-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,49 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hostap: fix section mismatch warning
+Subject: advansys: fix section mismatch warning
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
 Fix section mismatch warning:
 
-WARNING: vmlinux.o(.data+0x36fcc): Section mismatch: reference to .init.data:prism2_pci_id_table (between 'prism2_pci_drv_id' and 'prism2_pci_funcs')
+WARNING: vmlinux.o(.exit.text+0x152a): Section mismatch: reference to .init.data:_asc_def_iop_base (between 'advansys_isa_remove' and 'advansys_exit')
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Matthew Wilcox <willy@debian.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/hostap/hostap_pci.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/scsi/advansys.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/hostap/hostap_pci.c~hostap-fix-section-mismatch-warning drivers/net/wireless/hostap/hostap_pci.c
---- a/drivers/net/wireless/hostap/hostap_pci.c~hostap-fix-section-mismatch-warning
-+++ a/drivers/net/wireless/hostap/hostap_pci.c
-@@ -444,7 +444,7 @@ static int prism2_pci_resume(struct pci_
+diff -puN drivers/scsi/advansys.c~advansys-fix-section-mismatch-warning drivers/scsi/advansys.c
+--- a/drivers/scsi/advansys.c~advansys-fix-section-mismatch-warning
++++ a/drivers/scsi/advansys.c
+@@ -13906,7 +13906,7 @@ static int advansys_release(struct Scsi_
  
- MODULE_DEVICE_TABLE(pci, prism2_pci_id_table);
+ #define ASC_IOADR_TABLE_MAX_IX  11
  
--static struct pci_driver prism2_pci_drv_id = {
-+static struct pci_driver prism2_pci_driver = {
- 	.name		= "hostap_pci",
- 	.id_table	= prism2_pci_id_table,
- 	.probe		= prism2_pci_probe,
-@@ -458,13 +458,13 @@ static struct pci_driver prism2_pci_drv_
- 
- static int __init init_prism2_pci(void)
- {
--	return pci_register_driver(&prism2_pci_drv_id);
-+	return pci_register_driver(&prism2_pci_driver);
- }
- 
- 
- static void __exit exit_prism2_pci(void)
- {
--	pci_unregister_driver(&prism2_pci_drv_id);
-+	pci_unregister_driver(&prism2_pci_driver);
- }
- 
- 
+-static PortAddr _asc_def_iop_base[ASC_IOADR_TABLE_MAX_IX] __devinitdata = {
++static PortAddr _asc_def_iop_base[ASC_IOADR_TABLE_MAX_IX] = {
+ 	0x100, 0x0110, 0x120, 0x0130, 0x140, 0x0150, 0x0190,
+ 	0x0210, 0x0230, 0x0250, 0x0330
+ };
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -76,6 +61,7 @@ Patches currently in -mm which might be from randy.dunlap@oracle.com are
 origin.patch
 git-dvb.patch
 git-kbuild.patch
+advansys-fix-section-mismatch-warning.patch
 git-unionfs.patch
 git-watchdog.patch
 hostap-fix-section-mismatch-warning.patch
