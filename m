@@ -1,96 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - fix-tmpfs-bug-and-aop_writepage_activate.patch removed from -mm tree
-Date: Tue, 30 Oct 2007 11:06:29 -0700
-Message-ID: <200710301806.l9UI6TRh020525@imap1.linux-foundation.org>
+Subject: + slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch added to -mm tree
+Date: Tue, 30 Oct 2007 11:31:17 -0700
+Message-ID: <200710301831.l9UIVH3Z021435@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40843 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35891 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752969AbXJ3SUy (ORCPT
+	by vger.kernel.org with ESMTP id S1753634AbXJ3SbX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Oct 2007 14:20:54 -0400
+	Tue, 30 Oct 2007 14:31:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, ezk@cs.sunysb.edu, penberg@cs.helsinki.fi, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: clameter@sgi.com, penberg@cs.helsinki.fi
 
 
 The patch titled
-     fix tmpfs BUG and AOP_WRITEPAGE_ACTIVATE
-has been removed from the -mm tree.  Its filename was
-     fix-tmpfs-bug-and-aop_writepage_activate.patch
+     SLUB: noinline some functions to avoid them being folded into alloc/free
+has been added to the -mm tree.  Its filename is
+     slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: fix tmpfs BUG and AOP_WRITEPAGE_ACTIVATE
-From: Hugh Dickins <hugh@veritas.com>
+Subject: SLUB: noinline some functions to avoid them being folded into alloc/free
+From: Christoph Lameter <clameter@sgi.com>
 
-It's possible to provoke unionfs (not yet in mainline, though in mm and
-some distros) to hit shmem_writepage's BUG_ON(page_mapped(page)).  I expect
-it's possible to provoke the 2.6.23 ecryptfs in the same way (but the
-2.6.24 ecryptfs no longer calls lower level's ->writepage).
+Some function tend to get folded into __slab_free and __slab_alloc although
+they are rarely called.  They cause register pressure that leads to bad code
+generation.
 
-This came to light with the recent find that AOP_WRITEPAGE_ACTIVATE could
-leak from tmpfs via write_cache_pages and unionfs to userspace.  There's
-already a fix (e423003028183df54f039dfda8b58c49e78c89d7 - writeback: don't
-propagate AOP_WRITEPAGE_ACTIVATE) in the tree for that, and it's okay so
-far as it goes; but insufficient because it doesn't address the underlying
-issue, that shmem_writepage expects to be called only by vmscan (relying on
-backing_dev_info capabilities to prevent the normal writeback path from
-ever approaching it).
-
-That's an increasingly fragile assumption, and ramdisk_writepage (the other
-source of AOP_WRITEPAGE_ACTIVATEs) is already careful to check
-wbc->for_reclaim before returning it.  Make the same check in
-shmem_writepage, thereby sidestepping the page_mapped BUG also.
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: Erez Zadok <ezk@cs.sunysb.edu>
-Cc: <stable@kernel.org>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ mm/slub.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN mm/shmem.c~fix-tmpfs-bug-and-aop_writepage_activate mm/shmem.c
---- a/mm/shmem.c~fix-tmpfs-bug-and-aop_writepage_activate
-+++ a/mm/shmem.c
-@@ -915,6 +915,21 @@ static int shmem_writepage(struct page *
- 	struct inode *inode;
+diff -puN mm/slub.c~slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free mm/slub.c
+--- a/mm/slub.c~slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free
++++ a/mm/slub.c
+@@ -831,8 +831,8 @@ static void setup_object_debug(struct km
+ 	init_tracking(s, object);
+ }
  
- 	BUG_ON(!PageLocked(page));
-+	/*
-+	 * shmem_backing_dev_info's capabilities prevent regular writeback or
-+	 * sync from ever calling shmem_writepage; but a stacking filesystem
-+	 * may use the ->writepage of its underlying filesystem, in which case
-+	 * we want to do nothing when that underlying filesystem is tmpfs
-+	 * (writing out to swap is useful as a response to memory pressure, but
-+	 * of no use to stabilize the data) - just redirty the page, unlock it
-+	 * and claim success in this case.  AOP_WRITEPAGE_ACTIVATE, and the
-+	 * page_mapped check below, must be avoided unless we're in reclaim.
-+	 */
-+	if (!wbc->for_reclaim) {
-+		set_page_dirty(page);
-+		unlock_page(page);
-+		return 0;
-+	}
- 	BUG_ON(page_mapped(page));
+-static int alloc_debug_processing(struct kmem_cache *s, struct page *page,
+-						void *object, void *addr)
++static noinline int alloc_debug_processing(struct kmem_cache *s,
++		struct page *page, void *object, void *addr)
+ {
+ 	if (!check_slab(s, page))
+ 		goto bad;
+@@ -871,8 +871,8 @@ bad:
+ 	return 0;
+ }
  
- 	mapping = page->mapping;
+-static int free_debug_processing(struct kmem_cache *s, struct page *page,
+-						void *object, void *addr)
++static noinline int free_debug_processing(struct kmem_cache *s,
++			struct page *page, void *object, void *addr)
+ {
+ 	if (!check_slab(s, page))
+ 		goto fail;
+@@ -1074,7 +1074,8 @@ static void setup_object(struct kmem_cac
+ 		s->ctor(s, object);
+ }
+ 
+-static struct page *new_slab(struct kmem_cache *s, gfp_t flags, int node)
++static noinline struct page *new_slab(struct kmem_cache *s,
++						gfp_t flags, int node)
+ {
+ 	struct page *page;
+ 	struct kmem_cache_node *n;
+@@ -1208,7 +1209,7 @@ static void add_partial(struct kmem_cach
+ 	spin_unlock(&n->list_lock);
+ }
+ 
+-static void remove_partial(struct kmem_cache *s,
++static noinline void remove_partial(struct kmem_cache *s,
+ 						struct page *page)
+ {
+ 	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-origin.patch
+ia64-slim-down-__clear_bit_unlock.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+mem-policy-fix-mempolicy-usage-in-pci-driver.patch
+git-unionfs.patch
+git-x86.patch
+fix-mm-utilckrealloc.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
+move-vmalloc_to_page-to-mm-vmalloc.patch
+vmalloc-add-const-to-void-parameters.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
+vmalloc-clean-up-page-array-indexing.patch
+vunmap-return-page-array-passed-on-vmap.patch
+slub-move-count_partial.patch
+slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
+slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
+slub-use-non-atomic-bit-unlock.patch
+slub-fix-coding-style-violations.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch
+slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch
+slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path.patch
+slub-__slab_alloc-exit-path-consolidation.patch
+slub-provide-unique-end-marker-for-each-slab.patch
+slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc.patch
+slub-optional-fast-path-using-cmpxchg_local.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
+slub-restructure-slab-alloc.patch
+vm-allow-get_page_unless_zero-on-compound-pages.patch
+dentries-extract-common-code-to-remove-dentry-from-lru.patch
+bufferhead-revert-constructor-removal.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
 swapin_readahead-excise-numa-bogosity.patch
-swapin_readahead-move-and-rearrange-args.patch
-swapin-needs-gfp_mask-for-loop-on-tmpfs.patch
-shmem-sgp_quick-and-sgp_fault-redundant.patch
-shmem_getpage-return-page-locked.patch
-shmem_file_write-is-redundant.patch
-swapin-fix-valid_swaphandles-defect.patch
-maps4-add-proportional-set-size-accounting-in-smaps.patch
-memory-controller-memory-accounting-v7.patch
-prio_tree-debugging-patch.patch
+revoke-core-code.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
