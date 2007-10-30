@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmstat-fix-section-mismatch-warning.patch added to -mm tree
-Date: Tue, 30 Oct 2007 13:36:36 -0700
-Message-ID: <200710302036.l9UKaaTk026943@imap1.linux-foundation.org>
+Subject: + hostap-fix-section-mismatch-warning.patch added to -mm tree
+Date: Tue, 30 Oct 2007 13:54:34 -0700
+Message-ID: <200710302054.l9UKsYWR027606@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59751 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45477 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754528AbXJ3UhI (ORCPT
+	by vger.kernel.org with ESMTP id S1752224AbXJ3U46 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Oct 2007 16:37:08 -0400
+	Tue, 30 Oct 2007 16:56:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, clameter@sgi.com
+Cc: randy.dunlap@oracle.com, linville@tuxdriver.com
 
 
 The patch titled
-     vmstat: fix section mismatch warning
+     hostap: fix section mismatch warning
 has been added to the -mm tree.  Its filename is
-     vmstat-fix-section-mismatch-warning.patch
+     hostap-fix-section-mismatch-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vmstat: fix section mismatch warning
+Subject: hostap: fix section mismatch warning
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Mark start_cpu_timer() as __cpuinit instead of __devinit.
-Fixes this section warning:
+Fix section mismatch warning:
 
-WARNING: vmlinux.o(.text+0x60e53): Section mismatch: reference to .init.text:start_cpu_timer (between 'vmstat_cpuup_callback' and 'vmstat_show')
+WARNING: vmlinux.o(.data+0x36fcc): Section mismatch: reference to .init.data:prism2_pci_id_table (between 'prism2_pci_drv_id' and 'prism2_pci_funcs')
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Christoph Lameter <clameter@sgi.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/wireless/hostap/hostap_pci.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/vmstat.c~vmstat-fix-section-mismatch-warning mm/vmstat.c
---- a/mm/vmstat.c~vmstat-fix-section-mismatch-warning
-+++ a/mm/vmstat.c
-@@ -803,7 +803,7 @@ static void vmstat_update(struct work_st
- 		sysctl_stat_interval);
+diff -puN drivers/net/wireless/hostap/hostap_pci.c~hostap-fix-section-mismatch-warning drivers/net/wireless/hostap/hostap_pci.c
+--- a/drivers/net/wireless/hostap/hostap_pci.c~hostap-fix-section-mismatch-warning
++++ a/drivers/net/wireless/hostap/hostap_pci.c
+@@ -444,7 +444,7 @@ static int prism2_pci_resume(struct pci_
+ 
+ MODULE_DEVICE_TABLE(pci, prism2_pci_id_table);
+ 
+-static struct pci_driver prism2_pci_drv_id = {
++static struct pci_driver prism2_pci_driver = {
+ 	.name		= "hostap_pci",
+ 	.id_table	= prism2_pci_id_table,
+ 	.probe		= prism2_pci_probe,
+@@ -458,13 +458,13 @@ static struct pci_driver prism2_pci_drv_
+ 
+ static int __init init_prism2_pci(void)
+ {
+-	return pci_register_driver(&prism2_pci_drv_id);
++	return pci_register_driver(&prism2_pci_driver);
  }
  
--static void __devinit start_cpu_timer(int cpu)
-+static void __cpuinit start_cpu_timer(int cpu)
+ 
+ static void __exit exit_prism2_pci(void)
  {
- 	struct delayed_work *vmstat_work = &per_cpu(vmstat_work, cpu);
+-	pci_unregister_driver(&prism2_pci_drv_id);
++	pci_unregister_driver(&prism2_pci_driver);
+ }
+ 
  
 _
 
@@ -63,6 +78,7 @@ git-dvb.patch
 git-kbuild.patch
 git-unionfs.patch
 git-watchdog.patch
+hostap-fix-section-mismatch-warning.patch
 git-ipwireless_cs.patch
 x86-bitops_32h-style-cleanups.patch
 voyager-use-struct-instead-of-param.patch
