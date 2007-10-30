@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch added to -mm tree
-Date: Tue, 30 Oct 2007 11:31:17 -0700
-Message-ID: <200710301831.l9UIVH3Z021435@imap1.linux-foundation.org>
+Subject: + slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch added to -mm tree
+Date: Tue, 30 Oct 2007 11:31:46 -0700
+Message-ID: <200710301831.l9UIVkAl021440@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35891 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57050 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753634AbXJ3SbX (ORCPT
+	by vger.kernel.org with ESMTP id S1753281AbXJ3Sby (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Oct 2007 14:31:23 -0400
+	Tue, 30 Oct 2007 14:31:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com, penberg@cs.helsinki.fi
 
 
 The patch titled
-     SLUB: noinline some functions to avoid them being folded into alloc/free
+     SLUB: move kmem_cache_node determination into add_full and add_partial
 has been added to the -mm tree.  Its filename is
-     slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch
+     slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,65 +26,112 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SLUB: noinline some functions to avoid them being folded into alloc/free
+Subject: SLUB: move kmem_cache_node determination into add_full and add_partial
 From: Christoph Lameter <clameter@sgi.com>
 
-Some function tend to get folded into __slab_free and __slab_alloc although
-they are rarely called.  They cause register pressure that leads to bad code
-generation.
+The kmem_cache_node determination can be moved into add_full() and
+add_partial().  This removes some code from the slab_free() slow path and
+reduces the register overhead that has to be managed in the slow path.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ mm/slub.c |   29 +++++++++++++++++------------
+ 1 file changed, 17 insertions(+), 12 deletions(-)
 
-diff -puN mm/slub.c~slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free mm/slub.c
---- a/mm/slub.c~slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free
+diff -puN mm/slub.c~slub-move-kmem_cache_node-determination-into-add_full-and-add_partial mm/slub.c
+--- a/mm/slub.c~slub-move-kmem_cache_node-determination-into-add_full-and-add_partial
 +++ a/mm/slub.c
-@@ -831,8 +831,8 @@ static void setup_object_debug(struct km
- 	init_tracking(s, object);
- }
- 
--static int alloc_debug_processing(struct kmem_cache *s, struct page *page,
--						void *object, void *addr)
-+static noinline int alloc_debug_processing(struct kmem_cache *s,
-+		struct page *page, void *object, void *addr)
+@@ -800,8 +800,12 @@ static void trace(struct kmem_cache *s, 
+ /*
+  * Tracking of fully allocated slabs for debugging purposes.
+  */
+-static void add_full(struct kmem_cache_node *n, struct page *page)
++static void add_full(struct kmem_cache *s, struct page *page)
  {
- 	if (!check_slab(s, page))
- 		goto bad;
-@@ -871,8 +871,8 @@ bad:
- 	return 0;
- }
- 
--static int free_debug_processing(struct kmem_cache *s, struct page *page,
--						void *object, void *addr)
-+static noinline int free_debug_processing(struct kmem_cache *s,
-+			struct page *page, void *object, void *addr)
- {
- 	if (!check_slab(s, page))
- 		goto fail;
-@@ -1074,7 +1074,8 @@ static void setup_object(struct kmem_cac
- 		s->ctor(s, object);
- }
- 
--static struct page *new_slab(struct kmem_cache *s, gfp_t flags, int node)
-+static noinline struct page *new_slab(struct kmem_cache *s,
-+						gfp_t flags, int node)
- {
- 	struct page *page;
- 	struct kmem_cache_node *n;
-@@ -1208,7 +1209,7 @@ static void add_partial(struct kmem_cach
++	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
++
++	if (!SlabDebug(page) || !(s->flags & SLAB_STORE_USER))
++		return;
+ 	spin_lock(&n->list_lock);
+ 	list_add(&page->lru, &n->full);
  	spin_unlock(&n->list_lock);
+@@ -1024,7 +1028,7 @@ static inline int slab_pad_check(struct 
+ 			{ return 1; }
+ static inline int check_object(struct kmem_cache *s, struct page *page,
+ 			void *object, int active) { return 1; }
+-static inline void add_full(struct kmem_cache_node *n, struct page *page) {}
++static inline void add_full(struct kmem_cache *s, struct page *page) {}
+ static inline unsigned long kmem_cache_flags(unsigned long objsize,
+ 	unsigned long flags, const char *name,
+ 	void (*ctor)(struct kmem_cache *, void *))
+@@ -1197,9 +1201,11 @@ static __always_inline int slab_trylock(
+ /*
+  * Management of partially allocated slabs
+  */
+-static void add_partial(struct kmem_cache_node *n,
++static void add_partial(struct kmem_cache *s,
+ 				struct page *page, int tail)
+ {
++	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
++
+ 	spin_lock(&n->list_lock);
+ 	n->nr_partial++;
+ 	if (tail)
+@@ -1336,19 +1342,18 @@ static struct page *get_partial(struct k
+  */
+ static void unfreeze_slab(struct kmem_cache *s, struct page *page, int tail)
+ {
+-	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
+-
+ 	ClearSlabFrozen(page);
+ 	if (page->inuse) {
+ 
+ 		if (page->freelist)
+-			add_partial(n, page, tail);
+-		else if (SlabDebug(page) && (s->flags & SLAB_STORE_USER))
+-			add_full(n, page);
++			add_partial(s, page, tail);
++		else
++			add_full(s, page);
+ 		slab_unlock(page);
+ 
+ 	} else {
+-		if (n->nr_partial < MIN_PARTIAL) {
++		if (get_node(s, page_to_nid(page))->nr_partial
++							< MIN_PARTIAL) {
+ 			/*
+ 			 * Adding an empty slab to the partial slabs in order
+ 			 * to avoid page allocator overhead. This slab needs
+@@ -1357,7 +1362,7 @@ static void unfreeze_slab(struct kmem_ca
+ 			 * partial list stays small. kmem_cache_shrink can
+ 			 * reclaim empty slabs from the partial list.
+ 			 */
+-			add_partial(n, page, 1);
++			add_partial(s, page, 1);
+ 			slab_unlock(page);
+ 		} else {
+ 			slab_unlock(page);
+@@ -1633,7 +1638,7 @@ checks_ok:
+ 	 * then add it.
+ 	 */
+ 	if (unlikely(!prior))
+-		add_partial(get_node(s, page_to_nid(page)), page, 0);
++		add_partial(s, page, 0);
+ 
+ out_unlock:
+ 	slab_unlock(page);
+@@ -2041,7 +2046,7 @@ static struct kmem_cache_node *early_kme
+ #endif
+ 	init_kmem_cache_node(n);
+ 	atomic_long_inc(&n->nr_slabs);
+-	add_partial(n, page, 0);
++	add_partial(kmalloc_caches, page, 0);
+ 	return n;
  }
  
--static void remove_partial(struct kmem_cache *s,
-+static noinline void remove_partial(struct kmem_cache *s,
- 						struct page *page)
- {
- 	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
