@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gbefb-fix-section-mismatch-warnings.patch added to -mm tree
-Date: Tue, 30 Oct 2007 13:32:54 -0700
-Message-ID: <200710302032.l9UKWsNf026800@imap1.linux-foundation.org>
+Subject: + bttv-uses-input-functions-should-depend-on-input.patch added to -mm tree
+Date: Tue, 30 Oct 2007 13:34:15 -0700
+Message-ID: <200710302034.l9UKYFmB026826@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60049 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39219 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752868AbXJ3Udm (ORCPT
+	by vger.kernel.org with ESMTP id S1754048AbXJ3UfA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Oct 2007 16:33:42 -0400
+	Tue, 30 Oct 2007 16:35:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, adaplas@pol.net
+Cc: randy.dunlap@oracle.com, dtor@mail.ru, mchehab@infradead.org
 
 
 The patch titled
-     gbefb: fix section mismatch warnings
+     bttv: uses input functions, should depend on INPUT
 has been added to the -mm tree.  Its filename is
-     gbefb-fix-section-mismatch-warnings.patch
+     bttv-uses-input-functions-should-depend-on-input.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,43 +26,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: gbefb: fix section mismatch warnings
+Subject: bttv: uses input functions, should depend on INPUT
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Make 'default_mode' and 'default_var' be __initdata.
-Fixes these section warnings:
+Several media drivers use input_(*) functions so they need to depend on
+the INPUT config symbol.
 
-WARNING: vmlinux.o(.data+0x128e0): Section mismatch: reference to .init.data:default_mode_CRT (between 'default_mode' and 'default_var')
-WARNING: vmlinux.o(.data+0x128e4): Section mismatch: reference to .init.data:default_var_CRT (between 'default_var' and 'dev_attr_size')
+drivers/built-in.o: In function `bttv_input_fini':
+linux-2.6.24-rc1-git4/drivers/media/video/bt8xx/bttv-input.c:346: undefined reference to `input_unregister_device'
+drivers/built-in.o: In function `bttv_input_init':
+linux-2.6.24-rc1-git4/drivers/media/video/bt8xx/bttv-input.c:204: undefined reference to `input_allocate_device'
+linux-2.6.24-rc1-git4/drivers/media/video/bt8xx/bttv-input.c:335: undefined reference to `input_free_device'
+linux-2.6.24-rc1-git4/drivers/media/video/bt8xx/bttv-input.c:321: undefined reference to `input_register_device'
+linux-2.6.24-rc1-git4/drivers/media/video/bt8xx/bttv-input.c:335: undefined reference to `input_free_device'
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/gbefb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/video/bt8xx/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/gbefb.c~gbefb-fix-section-mismatch-warnings drivers/video/gbefb.c
---- a/drivers/video/gbefb.c~gbefb-fix-section-mismatch-warnings
-+++ a/drivers/video/gbefb.c
-@@ -183,8 +183,8 @@ static struct fb_videomode default_mode_
- 	.vmode		= FB_VMODE_NONINTERLACED,
- };
+diff -puN drivers/media/video/bt8xx/Kconfig~bttv-uses-input-functions-should-depend-on-input drivers/media/video/bt8xx/Kconfig
+--- a/drivers/media/video/bt8xx/Kconfig~bttv-uses-input-functions-should-depend-on-input
++++ a/drivers/media/video/bt8xx/Kconfig
+@@ -22,7 +22,7 @@ config VIDEO_BT848
  
--struct fb_videomode *default_mode = &default_mode_CRT;
--struct fb_var_screeninfo *default_var = &default_var_CRT;
-+struct fb_videomode *default_mode __initdata = &default_mode_CRT;
-+struct fb_var_screeninfo *default_var __initdata = &default_var_CRT;
- 
- static int flat_panel_enabled = 0;
- 
+ config VIDEO_BT848_DVB
+ 	bool "DVB/ATSC Support for bt878 based TV cards"
+-	depends on VIDEO_BT848 && DVB_CORE
++	depends on VIDEO_BT848 && DVB_CORE && INPUT
+ 	select DVB_BT8XX
+ 	---help---
+ 	  This adds support for DVB/ATSC cards based on the BT878 chip.
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
 git-dvb.patch
+bttv-uses-input-functions-should-depend-on-input.patch
 git-kbuild.patch
 git-unionfs.patch
 git-watchdog.patch
