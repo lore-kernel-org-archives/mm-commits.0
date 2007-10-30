@@ -1,128 +1,197 @@
 From: akpm@linux-foundation.org
-Subject: - media-video-planb-fix-obvious-interrupt-handling-bugs.patch removed from -mm tree
-Date: Tue, 30 Oct 2007 11:06:46 -0700
-Message-ID: <200710301806.l9UI6kWl020548@imap1.linux-foundation.org>
+Subject: - libata-pata_it821x-improve-handling-of-poorly-compatible-emulations.patch removed from -mm tree
+Date: Tue, 30 Oct 2007 11:06:48 -0700
+Message-ID: <200710301806.l9UI6mJd020551@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44373 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60770 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753877AbXJ3SHk (ORCPT
+	by vger.kernel.org with ESMTP id S1753653AbXJ3SHf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 30 Oct 2007 14:07:40 -0400
+	Tue, 30 Oct 2007 14:07:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff@garzik.org, jgarzik@redhat.com, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     media/video/planb: fix obvious interrupt handling bugs
+     libata/pata_it821x: improve handling of poorly compatible emulations
 has been removed from the -mm tree.  Its filename was
-     media-video-planb-fix-obvious-interrupt-handling-bugs.patch
+     libata-pata_it821x-improve-handling-of-poorly-compatible-emulations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: media/video/planb: fix obvious interrupt handling bugs
-From: Jeff Garzik <jeff@garzik.org>
+Subject: libata/pata_it821x: improve handling of poorly compatible emulations
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-irq handlers have returned a return value for years now... catch up with
-the times.
+Some it821x RAID firmwares return 0 for the err return off both devices.
+A similar issue occurs with the slave returning 0 not 1 if you plug a
+gigabyte sata ramdisk into a controller that fakes two SATA ports as
+master/slave on an SFF channel.
 
-Also, ditch unneeded prototype.
+The patch does the following
 
-Signed-off-by: Jeff Garzik <jgarzik@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+- Allow the 'failed diagnostics' case on both master and slave
+- Move the HORKAGE_DIAGNOSTIC check after ->dev_config
+
+This second change also allows IT821x to fix up a problem where we report
+drive diagnostic failures when in fact the drive is fine but the
+microcontroller firmware doesn't appear to get it right. IT821x clears
+the flag again to avoid giving the user bogus warnings about their disk.
+
+The other IT821x change is a bit ugly, we slightly abuse the cable type
+hook to fiddle with the identify data for the devices. We could add a new
+hook for this but as we have only one offender and no more seeming likely
+it seems better to keep libata-core clean.
+
+Please let this sit in -mm briefly, just in case the relaxed checking
+breaks some other emulated interface.
+
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/planb.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/ata/libata-core.c |   34 +++++++++++++++++++---------------
+ drivers/ata/pata_it821x.c |   35 +++++++++++++++++++++++++++++++++--
+ 2 files changed, 52 insertions(+), 17 deletions(-)
 
-diff -puN drivers/media/video/planb.c~media-video-planb-fix-obvious-interrupt-handling-bugs drivers/media/video/planb.c
---- a/drivers/media/video/planb.c~media-video-planb-fix-obvious-interrupt-handling-bugs
-+++ a/drivers/media/video/planb.c
-@@ -91,7 +91,6 @@ static void planb_close(struct video_dev
- static int planb_ioctl(struct video_device *, unsigned int, void *);
- static int planb_init_done(struct video_device *);
- static int planb_mmap(struct video_device *, const char *, unsigned long);
--static void planb_irq(int, void *);
- static void release_planb(void);
- int init_planbs(struct video_init *);
+diff -puN drivers/ata/libata-core.c~libata-pata_it821x-improve-handling-of-poorly-compatible-emulations drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-pata_it821x-improve-handling-of-poorly-compatible-emulations
++++ a/drivers/ata/libata-core.c
+@@ -931,8 +931,8 @@ unsigned int ata_dev_try_classify(struct
+ 	if (r_err)
+ 		*r_err = err;
  
-@@ -1315,7 +1314,7 @@ cmd_tab_data_end:
- 	return c1;
- }
- 
--static void planb_irq(int irq, void *dev_id)
-+static irqreturn_t planb_irq(int irq, void *dev_id)
- {
- 	unsigned int stat, astat;
- 	struct planb *pb = (struct planb *)dev_id;
-@@ -1358,13 +1357,14 @@ static void planb_irq(int irq, void *dev
- 		pb->frame_stat[fr] = GBUFFER_DONE;
- 		pb->grabbing--;
- 		wake_up_interruptible(&pb->capq);
--		return;
-+		return IRQ_HANDLED;
+-	/* see if device passed diags: if master then continue and warn later */
+-	if (err == 0 && dev->devno == 0)
++	/* see if device passed diags: continue and warn later */
++	if (err == 0)
+ 		/* diagnostic fail : do nothing _YET_ */
+ 		dev->horkage |= ATA_HORKAGE_DIAGNOSTIC;
+ 	else if (err == 1)
+@@ -2279,19 +2279,8 @@ int ata_dev_configure(struct ata_device 
+ 			dev->flags |= ATA_DFLAG_DIPM;
  	}
- 	/* incorrect interrupts? */
- 	pb->intr_mask = PLANB_CLR_IRQ;
- 	out_le32(&pb->planb_base->intr_stat, PLANB_CLR_IRQ);
- 	printk(KERN_ERR "PlanB: IRQ lockup, cleared intrrupts"
- 							" unconditionally\n");
-+	return IRQ_HANDLED;
+ 
+-	if (dev->horkage & ATA_HORKAGE_DIAGNOSTIC) {
+-		/* Let the user know. We don't want to disallow opens for
+-		   rescue purposes, or in case the vendor is just a blithering
+-		   idiot */
+-		if (print_info) {
+-			ata_dev_printk(dev, KERN_WARNING,
+-"Drive reports diagnostics failure. This may indicate a drive\n");
+-			ata_dev_printk(dev, KERN_WARNING,
+-"fault or invalid emulation. Contact drive vendor for information.\n");
+-		}
+-	}
+-
+-	/* limit bridge transfers to udma5, 200 sectors */
++	/* Limit PATA drive on SATA cable bridge transfers to udma5,
++	   200 sectors */
+ 	if (ata_dev_knobble(dev)) {
+ 		if (ata_msg_drv(ap) && print_info)
+ 			ata_dev_printk(dev, KERN_INFO,
+@@ -2314,6 +2303,21 @@ int ata_dev_configure(struct ata_device 
+ 	if (ap->ops->dev_config)
+ 		ap->ops->dev_config(dev);
+ 
++	if (dev->horkage & ATA_HORKAGE_DIAGNOSTIC) {
++		/* Let the user know. We don't want to disallow opens for
++		   rescue purposes, or in case the vendor is just a blithering
++		   idiot. Do this after the dev_config call as some controllers
++		   with buggy firmware may want to avoid reporting false device
++		   bugs */
++
++                if (print_info) {
++			ata_dev_printk(dev, KERN_WARNING,
++"Drive reports diagnostics failure. This may indicate a drive\n");
++			ata_dev_printk(dev, KERN_WARNING,
++"fault or invalid emulation. Contact drive vendor for information.\n");
++		}
++	}
++
+ 	if (ata_msg_probe(ap))
+ 		ata_dev_printk(dev, KERN_DEBUG, "%s: EXIT, drv_stat = 0x%x\n",
+ 			__FUNCTION__, ata_chk_status(ap));
+diff -puN drivers/ata/pata_it821x.c~libata-pata_it821x-improve-handling-of-poorly-compatible-emulations drivers/ata/pata_it821x.c
+--- a/drivers/ata/pata_it821x.c~libata-pata_it821x-improve-handling-of-poorly-compatible-emulations
++++ a/drivers/ata/pata_it821x.c
+@@ -430,7 +430,7 @@ static unsigned int it821x_smart_qc_issu
+ 			return ata_qc_issue_prot(qc);
+ 	}
+ 	printk(KERN_DEBUG "it821x: can't process command 0x%02X\n", qc->tf.command);
+-	return AC_ERR_INVALID;
++	return AC_ERR_DEV;
  }
  
- /*******************************
-@@ -2090,7 +2090,7 @@ static int init_planb(struct planb *pb)
- 	/* clear interrupt mask */
- 	pb->intr_mask = PLANB_CLR_IRQ;
+ /**
+@@ -516,6 +516,37 @@ static void it821x_dev_config(struct ata
+ 			printk("(%dK stripe)", adev->id[146]);
+ 		printk(".\n");
+ 	}
++	/* This is a controller firmware triggered funny, don't
++	   report the drive faulty! */
++	adev->horkage &= ~ATA_HORKAGE_DIAGNOSTIC;
++}
++
++/**
++ *	it821x_ident_hack	-	Hack identify data up
++ *	@ap: Port
++ *
++ *	Walk the devices on this firmware driven port and slightly
++ *	mash the identify data to stop us and common tools trying to
++ *	use features not firmware supported. The firmware itself does
++ *	some masking (eg SMART) but not enough.
++ *
++ *	This is a bit of an abuse of the cable method, but it is the
++ *	only method called at the right time. We could modify the libata
++ *	core specifically for ident hacking but while we have one offender
++ *	it seems better to keep the fallout localised.
++ */
++
++static int it821x_ident_hack(struct ata_port *ap)
++{
++	struct ata_device *adev;
++	ata_link_for_each_dev(adev, &ap->link) {
++		if (ata_dev_enabled(adev)) {
++			adev->id[84] &= ~(1 << 6);	/* No FUA */
++			adev->id[85] &= ~(1 << 10);	/* No HPA */
++			adev->id[76] = 0;		/* No NCQ/AN etc */
++		}
++	}
++	return ata_cable_unknown(ap);
+ }
  
--	result = request_irq(pb->irq, planb_irq, 0, "PlanB", (void *)pb);
-+	result = request_irq(pb->irq, planb_irq, 0, "PlanB", pb);
- 	if (result < 0) {
- 		if (result==-EINVAL)
- 			printk(KERN_ERR "PlanB: Bad irq number (%d) "
+ 
+@@ -634,7 +665,7 @@ static struct ata_port_operations it821x
+ 	.thaw		= ata_bmdma_thaw,
+ 	.error_handler	= ata_bmdma_error_handler,
+ 	.post_internal_cmd = ata_bmdma_post_internal_cmd,
+-	.cable_detect	= ata_cable_unknown,
++	.cable_detect	= it821x_ident_hack,
+ 
+ 	.bmdma_setup 	= ata_bmdma_setup,
+ 	.bmdma_start 	= ata_bmdma_start,
 _
 
-Patches currently in -mm which might be from jeff@garzik.org are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-acpi-sbs-fix-retval-warning.patch
-git-arm.patch
-git-dvb.patch
-git-jg-misc.patch
 git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-ide-add-helper-__ide_setup_pci_device.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-git-netdev-all.patch
-forcedeth-power-down-phy-when-interface-is-down.patch
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-hptiop-fix-type-mismatch-warning.patch
-ips-remove-ips_ha-members-that-duplicate-struct-pci_dev-members.patch
-ips-trim-trailing-whitespace.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-ips-pci-api-cleanups.patch
-ips-handle-scsi_add_host-failure-and-other-err-cleanups.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-sym53c416-kill-pointless-irq-handler-loop-and-test.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-scsi-ncr5380-minor-irq-handler-cleanups.patch
-usb-s3c2410_udc-minor-irq-handler-cleanups.patch
-git-wireless.patch
-fix-versus-precedence-in-various-places.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness.patch
-riscom8-fix-smp-brokenness-fix.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-sound-oss-sb_commonc-fix-casting-warning.patch
-remove-warnings-for-longstanding-conditions.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-remove-pointless-casts-from-void-pointers.patch
+libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+initio-fix-conflict-when-loading-driver.patch
+serial-only-use-pnp-irq-if-its-valid.patch
+geode-lists-are-subscriber-only.patch
+tty-kill-tty_flipbuf_size.patch
+drivers-edac-turnon-edac-device-error-logging.patch
+drivers-edac-use-round_jiffies_relative.patch
+drivers-edac-add-cell-xdr-memory-types.patch
+drivers-edac-add-cell-mc-driver.patch
+drivers-edac-i3000-code-tidying.patch
+drivers-edac-i3000-replace-macros-with-functions.patch
+drivers-edac-add-freescale-mpc85xx-driver.patch
+drivers-edac-add-marvell-mv64x60-driver.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+dz-clean-up-and-improve-the-setup-of-termios-settings.patch
