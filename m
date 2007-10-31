@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch added to -mm tree
-Date: Wed, 31 Oct 2007 14:15:38 -0700
-Message-ID: <200710312115.l9VLFcX2028445@imap1.linux-foundation.org>
+Subject: + add-cmpxchg64-and-cmpxchg64_local-to-powerpc.patch added to -mm tree
+Date: Wed, 31 Oct 2007 14:15:35 -0700
+Message-ID: <200710312115.l9VLFZsb028439@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48720 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39953 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755956AbXJaVRJ (ORCPT
+	by vger.kernel.org with ESMTP id S1760667AbXJaVQT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Oct 2007 17:17:09 -0400
+	Wed, 31 Oct 2007 17:16:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, ak@muc.de, mingo@elte.hu, tglx@linutronix.de
+Cc: mathieu.desnoyers@polymtl.ca, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     Add cmpxchg64 and cmpxchg64_local to x86_64
+     Add cmpxchg64 and cmpxchg64_local to powerpc
 has been added to the -mm tree.  Its filename is
-     add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
+     add-cmpxchg64-and-cmpxchg64_local-to-powerpc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add cmpxchg64 and cmpxchg64_local to x86_64
+Subject: Add cmpxchg64 and cmpxchg64_local to powerpc
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
 Make sure that at least cmpxchg64_local is available on all architectures to
 use for unsigned long long values.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Andi Kleen <ak@muc.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Acked-by: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/cmpxchg_64.h |    2 ++
- 1 file changed, 2 insertions(+)
+ include/asm-powerpc/system.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN include/asm-x86/cmpxchg_64.h~add-cmpxchg64-and-cmpxchg64_local-to-x86_64 include/asm-x86/cmpxchg_64.h
---- a/include/asm-x86/cmpxchg_64.h~add-cmpxchg64-and-cmpxchg64_local-to-x86_64
-+++ a/include/asm-x86/cmpxchg_64.h
-@@ -127,8 +127,10 @@ static inline unsigned long __cmpxchg_lo
- #define cmpxchg(ptr,o,n)\
- 	((__typeof__(*(ptr)))__cmpxchg((ptr),(unsigned long)(o),\
- 					(unsigned long)(n),sizeof(*(ptr))))
+diff -puN include/asm-powerpc/system.h~add-cmpxchg64-and-cmpxchg64_local-to-powerpc include/asm-powerpc/system.h
+--- a/include/asm-powerpc/system.h~add-cmpxchg64-and-cmpxchg64_local-to-powerpc
++++ a/include/asm-powerpc/system.h
+@@ -490,6 +490,12 @@ __cmpxchg_local(volatile void *ptr, unsi
+  */
+ #define NET_IP_ALIGN	0
+ #define NET_SKB_PAD	L1_CACHE_BYTES
++
 +#define cmpxchg64	cmpxchg
- #define cmpxchg_local(ptr,o,n)\
- 	((__typeof__(*(ptr)))__cmpxchg_local((ptr),(unsigned long)(o),\
- 					(unsigned long)(n),sizeof(*(ptr))))
 +#define cmpxchg64_local	cmpxchg_local
- 
++#else
++#include <asm-generic/cmpxchg-local.h>
++#define cmpxchg64_local(ptr,o,n) __cmpxchg64_local_generic((ptr), (o), (n))
  #endif
+ 
+ #define arch_align_stack(x) (x)
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
