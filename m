@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-cmpxchg_local-to-sparc64.patch added to -mm tree
-Date: Wed, 31 Oct 2007 14:16:35 -0700
-Message-ID: <200710312116.l9VLGZ4v028562@imap1.linux-foundation.org>
+Subject: + add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32.patch added to -mm tree
+Date: Wed, 31 Oct 2007 14:16:28 -0700
+Message-ID: <200710312116.l9VLGSiO028539@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41415 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42129 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753956AbXJaVWj (ORCPT
+	by vger.kernel.org with ESMTP id S1755496AbXJaVXB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Oct 2007 17:22:39 -0400
+	Wed, 31 Oct 2007 17:23:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, davem@davemloft.net
+Cc: mathieu.desnoyers@polymtl.ca, lethal@linux-sh.org
 
 
 The patch titled
-     Add cmpxchg_local to sparc64
+     Add cmpxchg_local to sh, use generic cmpxchg() instead of cmpxchg_u32
 has been added to the -mm tree.  Its filename is
-     add-cmpxchg_local-to-sparc64.patch
+     add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,72 +26,83 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add cmpxchg_local to sparc64
+Subject: Add cmpxchg_local to sh, use generic cmpxchg() instead of cmpxchg_u32
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Use cmpxchg_u32 and cmpxchg_u64 for cmpxchg_local and cmpxchg64_local.  For
-other type sizes, use the new generic cmpxchg_local (disables interrupt).
+Use the new generic cmpxchg_local (disables interrupt). Also use the generic
+cmpxchg as fallback if SMP is not set.
 
-Change:
-Since the header depends on local_irqsave/local_irqrestore, it must be
-included after their declaration.
-
-Actually, being below the
-#include <linux/irqflags.h> should be enough, and on sparc64 it is
-included at the beginning of system.h.
-
-So it makes sense to move it up for sparc64.
+Since cmpxchg_u32 is _exactly_ the cmpxchg_local generic implementation, remove
+it and use the generic version instead.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-sparc64/system.h |   25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ include/asm-sh/system.h |   48 +++++++++-----------------------------
+ 1 file changed, 12 insertions(+), 36 deletions(-)
 
-diff -puN include/asm-sparc64/system.h~add-cmpxchg_local-to-sparc64 include/asm-sparc64/system.h
---- a/include/asm-sparc64/system.h~add-cmpxchg_local-to-sparc64
-+++ a/include/asm-sparc64/system.h
-@@ -8,6 +8,7 @@
- #ifndef __ASSEMBLY__
+diff -puN include/asm-sh/system.h~add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32 include/asm-sh/system.h
+--- a/include/asm-sh/system.h~add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32
++++ a/include/asm-sh/system.h
+@@ -202,44 +202,20 @@ extern void __xchg_called_with_bad_point
+ #define xchg(ptr,x)	\
+ 	((__typeof__(*(ptr)))__xchg((ptr),(unsigned long)(x), sizeof(*(ptr))))
  
- #include <linux/irqflags.h>
+-static inline unsigned long __cmpxchg_u32(volatile int * m, unsigned long old,
+-	unsigned long new)
+-{
+-	__u32 retval;
+-	unsigned long flags;
+-
+-	local_irq_save(flags);
+-	retval = *m;
+-	if (retval == old)
+-		*m = new;
+-	local_irq_restore(flags);       /* implies memory barrier  */
+-	return retval;
+-}
+-
+-/* This function doesn't exist, so you'll get a linker error
+- * if something tries to do an invalid cmpxchg(). */
+-extern void __cmpxchg_called_with_bad_pointer(void);
+-
+-#define __HAVE_ARCH_CMPXCHG 1
 +#include <asm-generic/cmpxchg-local.h>
  
- /*
-  * Sparc (general) CPU types
-@@ -313,6 +314,30 @@ __cmpxchg(volatile void *ptr, unsigned l
- 				    (unsigned long)_n_, sizeof(*(ptr))); \
-   })
- 
+-static inline unsigned long __cmpxchg(volatile void * ptr, unsigned long old,
+-		unsigned long new, int size)
+-{
+-	switch (size) {
+-	case 4:
+-		return __cmpxchg_u32(ptr, old, new);
+-	}
+-	__cmpxchg_called_with_bad_pointer();
+-	return old;
+-}
 +/*
 + * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
 + * them available.
 + */
-+
-+static inline unsigned long __cmpxchg_local(volatile void *ptr,
-+				      unsigned long old,
-+				      unsigned long new, int size)
-+{
-+	switch (size) {
-+	case 4:
-+	case 8:	return __cmpxchg(ptr, old, new, size);
-+	default:
-+		return __cmpxchg_local_generic(ptr, old, new, size);
-+	}
-+
-+	return old;
-+}
-+
-+#define cmpxchg_local(ptr,o,n)					  	\
-+	(__typeof__(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(o),	\
++#define cmpxchg_local(ptr,o,n)					  	    \
++     (__typeof__(*(ptr)))__cmpxchg_local_generic((ptr), (unsigned long)(o), \
 +			   	 (unsigned long)(n), sizeof(*(ptr)))
-+#define cmpxchg64_local(ptr,o,n) cmpxchg_local((ptr), (o), (n))
-+
- #endif /* !(__ASSEMBLY__) */
++#define cmpxchg64_local(ptr,o,n) __cmpxchg64_local_generic((ptr), (o), (n))
  
- #define arch_align_stack(x) (x)
+-#define cmpxchg(ptr,o,n)						 \
+-  ({									 \
+-     __typeof__(*(ptr)) _o_ = (o);					 \
+-     __typeof__(*(ptr)) _n_ = (n);					 \
+-     (__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)_o_,		 \
+-				    (unsigned long)_n_, sizeof(*(ptr))); \
+-  })
++#ifndef CONFIG_SMP
++#include <asm-generic/cmpxchg.h>
++#endif
+ 
+ extern void die(const char *str, struct pt_regs *regs, long err) __attribute__ ((noreturn));
+ 
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
