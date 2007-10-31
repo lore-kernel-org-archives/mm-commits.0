@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-cmpxchg_local-to-h8300.patch added to -mm tree
-Date: Wed, 31 Oct 2007 14:15:54 -0700
-Message-ID: <200710312115.l9VLFtci028482@imap1.linux-foundation.org>
+Subject: + add-cmpxchg_local-to-xtensa.patch added to -mm tree
+Date: Wed, 31 Oct 2007 14:16:40 -0700
+Message-ID: <200710312116.l9VLGe9Q028581@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46873 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56351 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752730AbXJaVVq (ORCPT
+	by vger.kernel.org with ESMTP id S1753662AbXJaVVz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Oct 2007 17:21:46 -0400
+	Wed, 31 Oct 2007 17:21:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, ysato@users.sourceforge.jp
+Cc: mathieu.desnoyers@polymtl.ca, chris@zankel.net
 
 
 The patch titled
-     Add cmpxchg_local to h8300
+     Add cmpxchg_local to xtensa
 has been added to the -mm tree.  Its filename is
-     add-cmpxchg_local-to-h8300.patch
+     add-cmpxchg_local-to-xtensa.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,28 +26,42 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add cmpxchg_local to h8300
+Subject: Add cmpxchg_local to xtensa
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Use the new generic cmpxchg_local (disables interrupt). Also use the generic
-cmpxchg as fallback if SMP is not set.
+Use the architecture specific __cmpxchg_u32 for 32 bits cmpxchg)_local.  Else,
+use the new generic cmpxchg_local (disables interrupt).
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Christian Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-h8300/system.h |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ include/asm-xtensa/system.h |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff -puN include/asm-h8300/system.h~add-cmpxchg_local-to-h8300 include/asm-h8300/system.h
---- a/include/asm-h8300/system.h~add-cmpxchg_local-to-h8300
-+++ a/include/asm-h8300/system.h
-@@ -138,6 +138,21 @@ static inline unsigned long __xchg(unsig
-         asm("jmp @@0");			\
- })
+diff -puN include/asm-xtensa/system.h~add-cmpxchg_local-to-xtensa include/asm-xtensa/system.h
+--- a/include/asm-xtensa/system.h~add-cmpxchg_local-to-xtensa
++++ a/include/asm-xtensa/system.h
+@@ -156,8 +156,30 @@ __cmpxchg(volatile void *ptr, unsigned l
+ 	   			        (unsigned long)_n_, sizeof (*(ptr))); \
+ 	})
  
 +#include <asm-generic/cmpxchg-local.h>
+ 
++static inline unsigned long __cmpxchg_local(volatile void *ptr,
++				      unsigned long old,
++				      unsigned long new, int size)
++{
++	switch (size) {
++	case 4:
++		return __cmpxchg_u32(ptr, old, new);
++	default:
++		return __cmpxchg_local_generic(ptr, old, new, size);
++	}
+ 
++	return old;
++}
 +
 +/*
 + * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
@@ -57,14 +71,9 @@ diff -puN include/asm-h8300/system.h~add-cmpxchg_local-to-h8300 include/asm-h830
 +     (__typeof__(*(ptr)))__cmpxchg_local_generic((ptr), (unsigned long)(o), \
 +			   	 (unsigned long)(n), sizeof(*(ptr)))
 +#define cmpxchg64_local(ptr,o,n) __cmpxchg64_local_generic((ptr), (o), (n))
-+
-+#ifndef CONFIG_SMP
-+#include <asm-generic/cmpxchg.h>
-+#endif
-+
- #define arch_align_stack(x) (x)
  
- #endif /* _H8300_SYSTEM_H */
+ /*
+  * xchg_u32
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
