@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 31 Oct 2007 14:38:07 -0700
-Message-ID: <200710312138.l9VLc7XR030063@imap1.linux-foundation.org>
+Subject: + pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch added to -mm tree
+Date: Wed, 31 Oct 2007 14:37:18 -0700
+Message-ID: <200710312137.l9VLbIC7029956@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32955 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34057 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753244AbXJaVij (ORCPT
+	by vger.kernel.org with ESMTP id S1755173AbXJaVjv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Oct 2007 17:38:39 -0400
+	Wed, 31 Oct 2007 17:39:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, olof@lixom.net
+Cc: olof@lixom.net, alan@lxorguk.ukuu.org.uk, benh@kernel.crashing.org, hch@lst.de, linux@dominikbrodowski.net, linville@tuxdriver.com, marcel@holtmann.org, matthew@wil.cx, takata@linux-m32r.org
 
 
 The patch titled
-     pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes
+     pcmcia: convert some internal-only ioaddr_t to unsigned int
 has been added to the -mm tree.  Its filename is
-     pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes.patch
+     pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,147 +26,195 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pcmcia: convert some internal-only ioaddr_t to unsigned int
+From: Olof Johansson <olof@lixom.net>
 
-WARNING: line over 80 characters
-#42: FILE: drivers/char/pcmcia/cm4000_cs.c:311:
-+static unsigned short io_read_num_rec_bytes(unsigned int iobase, unsigned short *s)
+Convert the io_req_t members to unsigned int, to allow use on machines with
+more than 16 bits worth of IO ports (i.e.  secondary busses on ppc64, etc).
 
-total: 0 errors, 1 warnings, 125 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+There was only a couple of places in drivers where a change was needed.  I
+left printk formats alone (there are lots of %04x-style formats in there),
+mostly to not change the format on the platforms that only have 16-bit io
+addresses, but also because the padding doesn't really add all that much
+value most of the time.
 
-Please run checkpatch prior to sending patches
+I found only one sprintf of an address, and upsized the string accordingly
+(I doubt anyone will have anywhere near INT_MAX as irq value, but at least
+there's room for it now).
 
-Cc: Olof Johansson <olof@lixom.net>
+Signed-off-by: Olof Johansson <olof@lixom.net>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Marcel Holtmann <marcel@holtmann.org>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/pcmcia/cm4000_cs.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/char/pcmcia/cm4000_cs.c    |   16 ++++++++--------
+ drivers/pcmcia/pcmcia_resource.c   |   14 +++++++-------
+ drivers/scsi/pcmcia/fdomain_stub.c |    2 +-
+ include/pcmcia/cs.h                |    8 ++++----
+ 4 files changed, 20 insertions(+), 20 deletions(-)
 
-diff -puN drivers/char/pcmcia/cm4000_cs.c~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes drivers/char/pcmcia/cm4000_cs.c
---- a/drivers/char/pcmcia/cm4000_cs.c~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes
+diff -puN drivers/char/pcmcia/cm4000_cs.c~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int drivers/char/pcmcia/cm4000_cs.c
+--- a/drivers/char/pcmcia/cm4000_cs.c~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int
 +++ a/drivers/char/pcmcia/cm4000_cs.c
-@@ -308,7 +308,8 @@ static unsigned int calc_baudv(unsigned 
+@@ -308,7 +308,7 @@ static unsigned int calc_baudv(unsigned 
  	return (wcrcf / wbrcf);
  }
  
--static unsigned short io_read_num_rec_bytes(unsigned int iobase, unsigned short *s)
-+static unsigned short io_read_num_rec_bytes(unsigned int iobase,
-+					unsigned short *s)
+-static unsigned short io_read_num_rec_bytes(ioaddr_t iobase, unsigned short *s)
++static unsigned short io_read_num_rec_bytes(unsigned int iobase, unsigned short *s)
  {
  	unsigned short tmp;
  
+@@ -426,7 +426,7 @@ static struct card_fixup card_fixups[] =
+ static void set_cardparameter(struct cm4000_dev *dev)
+ {
+ 	int i;
+-	ioaddr_t iobase = dev->p_dev->io.BasePort1;
++	unsigned int iobase = dev->p_dev->io.BasePort1;
+ 	u_int8_t stopbits = 0x02; /* ISO default */
+ 
+ 	DEBUGP(3, dev, "-> set_cardparameter\n");
+@@ -459,7 +459,7 @@ static int set_protocol(struct cm4000_de
+ 	unsigned short num_bytes_read;
+ 	unsigned char pts_reply[4];
+ 	ssize_t rc;
+-	ioaddr_t iobase = dev->p_dev->io.BasePort1;
++	unsigned int iobase = dev->p_dev->io.BasePort1;
+ 
+ 	rc = 0;
+ 
+@@ -610,7 +610,7 @@ exit_setprotocol:
+ 	return rc;
+ }
+ 
+-static int io_detect_cm4000(ioaddr_t iobase, struct cm4000_dev *dev)
++static int io_detect_cm4000(unsigned int iobase, struct cm4000_dev *dev)
+ {
+ 
+ 	/* note: statemachine is assumed to be reset */
+@@ -671,7 +671,7 @@ static void terminate_monitor(struct cm4
+ static void monitor_card(unsigned long p)
+ {
+ 	struct cm4000_dev *dev = (struct cm4000_dev *) p;
+-	ioaddr_t iobase = dev->p_dev->io.BasePort1;
++	unsigned int iobase = dev->p_dev->io.BasePort1;
+ 	unsigned short s;
+ 	struct ptsreq ptsreq;
+ 	int i, atrc;
+@@ -933,7 +933,7 @@ static ssize_t cmm_read(struct file *fil
+ 			loff_t *ppos)
+ {
+ 	struct cm4000_dev *dev = filp->private_data;
+-	ioaddr_t iobase = dev->p_dev->io.BasePort1;
++	unsigned int iobase = dev->p_dev->io.BasePort1;
+ 	ssize_t rc;
+ 	int i, j, k;
+ 
+@@ -1054,7 +1054,7 @@ static ssize_t cmm_write(struct file *fi
+ 			 size_t count, loff_t *ppos)
+ {
+ 	struct cm4000_dev *dev = (struct cm4000_dev *) filp->private_data;
+-	ioaddr_t iobase = dev->p_dev->io.BasePort1;
++	unsigned int iobase = dev->p_dev->io.BasePort1;
+ 	unsigned short s;
+ 	unsigned char tmp;
+ 	unsigned char infolen;
+@@ -1408,7 +1408,7 @@ static int cmm_ioctl(struct inode *inode
+ 		     unsigned long arg)
+ {
+ 	struct cm4000_dev *dev = filp->private_data;
+-	ioaddr_t iobase = dev->p_dev->io.BasePort1;
++	unsigned int iobase = dev->p_dev->io.BasePort1;
+ 	struct pcmcia_device *link;
+ 	int size;
+ 	int rc;
+diff -puN drivers/pcmcia/pcmcia_resource.c~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int drivers/pcmcia/pcmcia_resource.c
+--- a/drivers/pcmcia/pcmcia_resource.c~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int
++++ a/drivers/pcmcia/pcmcia_resource.c
+@@ -65,23 +65,23 @@ extern int ds_pc_debug;
+  * Special stuff for managing IO windows, because they are scarce
+  */
+ 
+-static int alloc_io_space(struct pcmcia_socket *s, u_int attr, ioaddr_t *base,
+-			  ioaddr_t num, u_int lines)
++static int alloc_io_space(struct pcmcia_socket *s, u_int attr,
++			  unsigned int *base, unsigned int num, u_int lines)
+ {
+ 	int i;
+-	kio_addr_t try, align;
++	unsigned int try, align;
+ 
+ 	align = (*base) ? (lines ? 1<<lines : 0) : 1;
+ 	if (align && (align < num)) {
+ 		if (*base) {
+-			ds_dbg(s, 0, "odd IO request: num %#x align %#lx\n",
++			ds_dbg(s, 0, "odd IO request: num %#x align %#x\n",
+ 			       num, align);
+ 			align = 0;
+ 		} else
+ 			while (align && (align < num)) align <<= 1;
+ 	}
+ 	if (*base & ~(align-1)) {
+-		ds_dbg(s, 0, "odd IO request: base %#x align %#lx\n",
++		ds_dbg(s, 0, "odd IO request: base %#x align %#x\n",
+ 		       *base, align);
+ 		align = 0;
+ 	}
+@@ -132,8 +132,8 @@ static int alloc_io_space(struct pcmcia_
+ } /* alloc_io_space */
+ 
+ 
+-static void release_io_space(struct pcmcia_socket *s, ioaddr_t base,
+-			     ioaddr_t num)
++static void release_io_space(struct pcmcia_socket *s, unsigned int base,
++			     unsigned int num)
+ {
+ 	int i;
+ 
+diff -puN drivers/scsi/pcmcia/fdomain_stub.c~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int drivers/scsi/pcmcia/fdomain_stub.c
+--- a/drivers/scsi/pcmcia/fdomain_stub.c~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int
++++ a/drivers/scsi/pcmcia/fdomain_stub.c
+@@ -130,7 +130,7 @@ static int fdomain_config(struct pcmcia_
+     cisparse_t parse;
+     int i, last_ret, last_fn;
+     u_char tuple_data[64];
+-    char str[16];
++    char str[22];
+     struct Scsi_Host *host;
+ 
+     DEBUG(0, "fdomain_config(0x%p)\n", link);
+diff -puN include/pcmcia/cs.h~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int include/pcmcia/cs.h
+--- a/include/pcmcia/cs.h~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int
++++ a/include/pcmcia/cs.h
+@@ -147,11 +147,11 @@ typedef struct config_req_t {
+ 
+ /* For RequestIO and ReleaseIO */
+ typedef struct io_req_t {
+-    ioaddr_t	BasePort1;
+-    ioaddr_t	NumPorts1;
++    u_int	BasePort1;
++    u_int	NumPorts1;
+     u_int	Attributes1;
+-    ioaddr_t	BasePort2;
+-    ioaddr_t	NumPorts2;
++    u_int	BasePort2;
++    u_int	NumPorts2;
+     u_int	Attributes2;
+     u_int	IOAddrLines;
+ } io_req_t;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from olof@lixom.net are
 
 origin.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
-ide-arm-hack.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-git-nfsd-fixup.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes.patch
-fix-build-breakage-if-sysfs-fix.patch
-git-scsi-rc-fixes.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-git-unionfs.patch
-git-watchdog.patch
-watchdog-add-nano-7240-driver-checkpatch-fixes.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
-sync_sb_inodes-propagate-errors.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
+pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
+bugh-remove-have_arch_bug--have_arch_warn.patch
+powerpc-switch-to-generic-warn_on-bug_on.patch
