@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch added to -mm tree
-Date: Wed, 31 Oct 2007 15:14:27 -0700
-Message-ID: <200710312214.l9VMERlf031753@imap1.linux-foundation.org>
+Subject: + memory-cgroup-enhancements-add-memorystat-file.patch added to -mm tree
+Date: Wed, 31 Oct 2007 15:14:33 -0700
+Message-ID: <200710312214.l9VMEXWC031759@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56536 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52455 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752870AbXJaWPZ (ORCPT
+	by vger.kernel.org with ESMTP id S1753576AbXJaWQR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Oct 2007 18:15:25 -0400
+	Wed, 31 Oct 2007 18:16:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org, yamamoto@valinux.co.jp
+Cc: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org, yamamoto@valinux.co.jp
 
 
 The patch titled
-     memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining
+     memory cgroup enhancements: add memory.stat file
 has been added to the -mm tree.  Its filename is
-     memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+     memory-cgroup-enhancements-add-memorystat-file.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,218 +26,124 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memory cgroup enhancements: add memory.stat file
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Show accounted information of memory cgroup by memory.stat file
+
+Signed-off-by: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Paul Menage <menage@google.com>
 Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Paul Menage <menage@google.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   22 +++++++++-------------
- 1 file changed, 9 insertions(+), 13 deletions(-)
+ mm/memcontrol.c |   47 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
-diff -puN mm/memcontrol.c~memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining mm/memcontrol.c
---- a/mm/memcontrol.c~memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining
+diff -puN mm/memcontrol.c~memory-cgroup-enhancements-add-memorystat-file mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-cgroup-enhancements-add-memorystat-file
 +++ a/mm/memcontrol.c
-@@ -59,7 +59,7 @@ struct mem_cgroup_stat {
- /*
-  * modifies value with disabling preempt.
-  */
--static inline void __mem_cgroup_stat_add(struct mem_cgroup_stat *stat,
-+static void __mem_cgroup_stat_add(struct mem_cgroup_stat *stat,
- 					enum mem_cgroup_stat_index idx, int val)
- {
- 	int cpu = get_cpu();
-@@ -71,14 +71,14 @@ static inline void __mem_cgroup_stat_add
- /*
-  * For accounting under irq disable, no need for increment preempt count.
-  */
--static inline void __mem_cgroup_stat_add_safe(struct mem_cgroup_stat *stat,
-+static void __mem_cgroup_stat_add_safe(struct mem_cgroup_stat *stat,
- 		enum mem_cgroup_stat_index idx, int val)
- {
- 	int cpu = smp_processor_id();
- 	stat->cpustat[cpu].count[idx] += val;
+@@ -29,6 +29,7 @@
+ #include <linux/swap.h>
+ #include <linux/spinlock.h>
+ #include <linux/fs.h>
++#include <linux/seq_file.h>
+ 
+ #include <asm/uaccess.h>
+ 
+@@ -808,6 +809,48 @@ static ssize_t mem_force_empty_read(stru
  }
  
--static inline s64 mem_cgroup_read_stat(struct mem_cgroup_stat *stat,
-+static s64 mem_cgroup_read_stat(struct mem_cgroup_stat *stat,
- 		enum mem_cgroup_stat_index idx)
- {
- 	int cpu;
-@@ -162,8 +162,8 @@ enum charge_type {
- /*
-  * Always modified under lru lock. Then, not necessary to preempt_disable()
-  */
--static inline void
--mem_cgroup_charge_statistics(struct mem_cgroup *mem, int flags, bool charge)
-+static void mem_cgroup_charge_statistics(struct mem_cgroup *mem, int flags,
-+					bool charge)
- {
- 	int val = (charge)? 1 : -1;
- 	struct mem_cgroup_stat *stat = &mem->stat;
-@@ -177,9 +177,6 @@ mem_cgroup_charge_statistics(struct mem_
  
- }
++static const struct mem_cgroup_stat_desc {
++	const char *msg;
++	u64 unit;
++} mem_cgroup_stat_desc[] = {
++	[MEM_CGROUP_STAT_CACHE] = { "cache", PAGE_SIZE, },
++	[MEM_CGROUP_STAT_RSS] = { "rss", PAGE_SIZE, },
++};
++
++static int mem_control_stat_show(struct seq_file *m, void *arg)
++{
++	struct cgroup *cont = m->private;
++	struct mem_cgroup *mem_cont = mem_cgroup_from_cont(cont);
++	struct mem_cgroup_stat *stat = &mem_cont->stat;
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(stat->cpustat[0].count); i++) {
++		s64 val;
++
++		val = mem_cgroup_read_stat(stat,i);
++		val *= mem_cgroup_stat_desc[i].unit;
++		seq_printf(m, "%s %lld\n", mem_cgroup_stat_desc[i].msg, val);
++	}
++	return 0;
++}
++
++static const struct file_operations mem_control_stat_file_operations = {
++	.read = seq_read,
++	.llseek = seq_lseek,
++	.release = single_release,
++};
++
++static int mem_control_stat_open(struct inode *unused, struct file *file)
++{
++	/* XXX __d_cont */
++	struct cgroup *cont = file->f_dentry->d_parent->d_fsdata;
++
++	file->f_op = &mem_control_stat_file_operations;
++	return single_open(file, mem_control_stat_show, cont);
++}
++
++
++
+ static struct cftype mem_cgroup_files[] = {
+ 	{
+ 		.name = "usage_in_bytes",
+@@ -835,6 +878,10 @@ static struct cftype mem_cgroup_files[] 
+ 		.write = mem_force_empty_write,
+ 		.read = mem_force_empty_read,
+ 	},
++	{
++		.name = "stat",
++		.open = mem_control_stat_open,
++	},
+ };
  
--
--
--
  static struct mem_cgroup init_mem_cgroup;
- 
- static inline
-@@ -254,8 +251,8 @@ static void __always_inline unlock_page_
-  * This can fail if the page has been tied to a page_cgroup.
-  * If success, returns 0.
-  */
--static inline int
--page_cgroup_assign_new_page_cgroup(struct page *page, struct page_cgroup *pc)
-+static int page_cgroup_assign_new_page_cgroup(struct page *page,
-+						struct page_cgroup *pc)
- {
- 	int ret = 0;
- 
-@@ -277,8 +274,8 @@ page_cgroup_assign_new_page_cgroup(struc
-  *  clear_page_cgroup(page, pc) == pc
-  */
- 
--static inline struct page_cgroup *
--clear_page_cgroup(struct page *page, struct page_cgroup *pc)
-+static struct page_cgroup *clear_page_cgroup(struct page *page,
-+						struct page_cgroup *pc)
- {
- 	struct page_cgroup *ret;
- 	/* lock and clear */
-@@ -290,7 +287,6 @@ clear_page_cgroup(struct page *page, str
- 	return ret;
- }
- 
--
- static void __mem_cgroup_move_lists(struct page_cgroup *pc, bool active)
- {
- 	if (active) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-origin.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
-ide-arm-hack.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-git-nfsd-fixup.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes.patch
-fix-build-breakage-if-sysfs-fix.patch
-git-scsi-rc-fixes.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-git-unionfs.patch
-git-watchdog.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+git-sh.patch
+memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
 pie-executable-randomization.patch
 pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
-sync_sb_inodes-propagate-errors.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-controller-make-charging-gfp-mask-aware-fix.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force-empty-at-rmdir.patch
