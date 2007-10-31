@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-arm-fixup.patch added to -mm tree
-Date: Wed, 31 Oct 2007 16:16:28 -0700
-Message-ID: <200710312316.l9VNGSVZ001695@imap1.linux-foundation.org>
+Subject: + git-block-fixup.patch added to -mm tree
+Date: Wed, 31 Oct 2007 16:19:22 -0700
+Message-ID: <200710312319.l9VNJMPV001842@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38191 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60090 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753059AbXJaXRA (ORCPT
+	by vger.kernel.org with ESMTP id S1753095AbXJaXUr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Oct 2007 19:17:00 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9VNGSrF006933
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 31 Oct 2007 16:16:29 -0700
+	Wed, 31 Oct 2007 19:20:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
 
 
 The patch titled
-     git-arm-fixup
+     git-block-fixup
 has been added to the -mm tree.  Its filename is
-     git-arm-fixup.patch
+     git-block-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,30 +26,112 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-arm-fixup
+Subject: git-block-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
+git conflicts.
+
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/arch-at91/board.h |    3 ---
- 1 file changed, 3 deletions(-)
+ net/core/skbuff.c                     |    5 -----
+ net/ipv4/tcp_ipv4.c                   |    4 ----
+ net/ipv6/tcp_ipv6.c                   |    4 ----
+ net/rxrpc/rxkad.c                     |    4 ----
+ net/sunrpc/auth_gss/gss_krb5_crypto.c |    9 ---------
+ 5 files changed, 26 deletions(-)
 
-diff -puN include/asm-arm/arch-at91/board.h~git-arm-fixup include/asm-arm/arch-at91/board.h
---- a/include/asm-arm/arch-at91/board.h~git-arm-fixup
-+++ a/include/asm-arm/arch-at91/board.h
-@@ -132,11 +132,8 @@ extern u8 at91_leds_cpu;
- extern u8 at91_leds_timer;
- extern void __init at91_init_leds(u8 cpu_led, u8 timer_led);
+diff -puN net/core/skbuff.c~git-block-fixup net/core/skbuff.c
+--- a/net/core/skbuff.c~git-block-fixup
++++ a/net/core/skbuff.c
+@@ -2095,12 +2095,7 @@ int skb_to_sgvec(struct sk_buff *skb, st
+ {
+ 	int nsg = __skb_to_sgvec(skb, sg, offset, len);
  
--<<<<<<< HEAD:include/asm-arm/arch-at91/board.h
- /* FIXME: this needs a better location, but gets stuff building again */
- extern int at91_suspend_entering_slow_clock(void);
+-<<<<<<< HEAD:net/core/skbuff.c
+-	__sg_mark_end(&sg[nsg - 1]);
 -=======
- extern void __init at91_gpio_leds(struct gpio_led *leds, int nr);
-->>>>>>> FETCH_HEAD:include/asm-arm/arch-at91/board.h
+ 	sg_mark_end(&sg[nsg - 1]);
+->>>>>>> FETCH_HEAD:net/core/skbuff.c
+-
+ 	return nsg;
+ }
  
- #endif
+diff -puN net/ipv4/tcp_ipv4.c~git-block-fixup net/ipv4/tcp_ipv4.c
+--- a/net/ipv4/tcp_ipv4.c~git-block-fixup
++++ a/net/ipv4/tcp_ipv4.c
+@@ -1083,11 +1083,7 @@ static int tcp_v4_do_calc_md5_hash(char 
+ 	sg_set_buf(&sg[block++], key->key, key->keylen);
+ 	nbytes += key->keylen;
+ 
+-<<<<<<< HEAD:net/ipv4/tcp_ipv4.c
+-	__sg_mark_end(&sg[block - 1]);
+-=======
+ 	sg_mark_end(&sg[block - 1]);
+->>>>>>> FETCH_HEAD:net/ipv4/tcp_ipv4.c
+ 
+ 	/* Now store the Hash into the packet */
+ 	err = crypto_hash_init(desc);
+diff -puN net/ipv6/tcp_ipv6.c~git-block-fixup net/ipv6/tcp_ipv6.c
+--- a/net/ipv6/tcp_ipv6.c~git-block-fixup
++++ a/net/ipv6/tcp_ipv6.c
+@@ -781,11 +781,7 @@ static int tcp_v6_do_calc_md5_hash(char 
+ 	sg_set_buf(&sg[block++], key->key, key->keylen);
+ 	nbytes += key->keylen;
+ 
+-<<<<<<< HEAD:net/ipv6/tcp_ipv6.c
+-	__sg_mark_end(&sg[block - 1]);
+-=======
+ 	sg_mark_end(&sg[block - 1]);
+->>>>>>> FETCH_HEAD:net/ipv6/tcp_ipv6.c
+ 
+ 	/* Now store the hash into the packet */
+ 	err = crypto_hash_init(desc);
+diff -puN net/rxrpc/rxkad.c~git-block-fixup net/rxrpc/rxkad.c
+--- a/net/rxrpc/rxkad.c~git-block-fixup
++++ a/net/rxrpc/rxkad.c
+@@ -702,11 +702,7 @@ static void rxkad_sg_set_buf2(struct sca
+ 		nsg++;
+ 	}
+ 
+-<<<<<<< HEAD:net/rxrpc/rxkad.c
+-	__sg_mark_end(&sg[nsg - 1]);
+-=======
+ 	sg_mark_end(&sg[nsg - 1]);
+->>>>>>> FETCH_HEAD:net/rxrpc/rxkad.c
+ 
+ 	ASSERTCMP(sg[0].length + sg[1].length, ==, buflen);
+ }
+diff -puN net/sunrpc/auth_gss/gss_krb5_crypto.c~git-block-fixup net/sunrpc/auth_gss/gss_krb5_crypto.c
+--- a/net/sunrpc/auth_gss/gss_krb5_crypto.c~git-block-fixup
++++ a/net/sunrpc/auth_gss/gss_krb5_crypto.c
+@@ -211,13 +211,8 @@ encryptor(struct scatterlist *sg, void *
+ 	if (thislen == 0)
+ 		return 0;
+ 
+-<<<<<<< HEAD:net/sunrpc/auth_gss/gss_krb5_crypto.c
+-	__sg_mark_end(&desc->infrags[desc->fragno - 1]);
+-	__sg_mark_end(&desc->outfrags[desc->fragno - 1]);
+-=======
+ 	sg_mark_end(&desc->infrags[desc->fragno - 1]);
+ 	sg_mark_end(&desc->outfrags[desc->fragno - 1]);
+->>>>>>> FETCH_HEAD:net/sunrpc/auth_gss/gss_krb5_crypto.c
+ 
+ 	ret = crypto_blkcipher_encrypt_iv(&desc->desc, desc->outfrags,
+ 					  desc->infrags, thislen);
+@@ -298,11 +293,7 @@ decryptor(struct scatterlist *sg, void *
+ 	if (thislen == 0)
+ 		return 0;
+ 
+-<<<<<<< HEAD:net/sunrpc/auth_gss/gss_krb5_crypto.c
+-	__sg_mark_end(&desc->frags[desc->fragno - 1]);
+-=======
+ 	sg_mark_end(&desc->frags[desc->fragno - 1]);
+->>>>>>> FETCH_HEAD:net/sunrpc/auth_gss/gss_krb5_crypto.c
+ 
+ 	ret = crypto_blkcipher_decrypt_iv(&desc->desc, desc->frags,
+ 					  desc->frags, thislen);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,6 +165,7 @@ ips-trim-trailing-whitespace-checkpatch-fixes.patch
 scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
 scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
 git-block.patch
+git-block-fixup.patch
 git-block-vs-agk-dm-dm-reorder-struct-io_restrictions.patch
 git-unionfs.patch
 git-watchdog.patch
