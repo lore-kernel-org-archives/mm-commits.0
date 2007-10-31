@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-fixup.patch added to -mm tree
-Date: Wed, 31 Oct 2007 16:19:22 -0700
-Message-ID: <200710312319.l9VNJMPV001842@imap1.linux-foundation.org>
+Subject: + git-unionfs-fixup.patch added to -mm tree
+Date: Wed, 31 Oct 2007 16:20:28 -0700
+Message-ID: <200710312320.l9VNKShc001874@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60090 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42531 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753095AbXJaXUr (ORCPT
+	by vger.kernel.org with ESMTP id S1754843AbXJaXVD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Oct 2007 19:20:47 -0400
+	Wed, 31 Oct 2007 19:21:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
+Cc: akpm@linux-foundation.org, ezk@cs.sunysb.edu
 
 
 The patch titled
-     git-block-fixup
+     git-unionfs-fixup
 has been added to the -mm tree.  Its filename is
-     git-block-fixup.patch
+     git-unionfs-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,112 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-block-fixup
+Subject: git-unionfs-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-git conflicts.
+Fix git conflict
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/skbuff.c                     |    5 -----
- net/ipv4/tcp_ipv4.c                   |    4 ----
- net/ipv6/tcp_ipv6.c                   |    4 ----
- net/rxrpc/rxkad.c                     |    4 ----
- net/sunrpc/auth_gss/gss_krb5_crypto.c |    9 ---------
- 5 files changed, 26 deletions(-)
+ fs/Kconfig |   15 ---------------
+ 1 file changed, 15 deletions(-)
 
-diff -puN net/core/skbuff.c~git-block-fixup net/core/skbuff.c
---- a/net/core/skbuff.c~git-block-fixup
-+++ a/net/core/skbuff.c
-@@ -2095,12 +2095,7 @@ int skb_to_sgvec(struct sk_buff *skb, st
- {
- 	int nsg = __skb_to_sgvec(skb, sg, offset, len);
+diff -puN fs/Kconfig~git-unionfs-fixup fs/Kconfig
+--- a/fs/Kconfig~git-unionfs-fixup
++++ a/fs/Kconfig
+@@ -1125,21 +1125,6 @@ config AFFS_FS
+ 	  To compile this file system support as a module, choose M here: the
+ 	  module will be called affs.  If unsure, say N.
  
--<<<<<<< HEAD:net/core/skbuff.c
--	__sg_mark_end(&sg[nsg - 1]);
--=======
- 	sg_mark_end(&sg[nsg - 1]);
-->>>>>>> FETCH_HEAD:net/core/skbuff.c
+-<<<<<<< HEAD:fs/Kconfig
+-config ECRYPT_FS
+-	tristate "eCrypt filesystem layer support (EXPERIMENTAL)"
+-	depends on EXPERIMENTAL && KEYS && CRYPTO && NET
+-	help
+-	  Encrypted filesystem that operates on the VFS layer.  See
+-	  <file:Documentation/filesystems/ecryptfs.txt> to learn more about
+-	  eCryptfs.  Userspace components are required and can be
+-	  obtained from <http://ecryptfs.sf.net>.
 -
- 	return nsg;
- }
- 
-diff -puN net/ipv4/tcp_ipv4.c~git-block-fixup net/ipv4/tcp_ipv4.c
---- a/net/ipv4/tcp_ipv4.c~git-block-fixup
-+++ a/net/ipv4/tcp_ipv4.c
-@@ -1083,11 +1083,7 @@ static int tcp_v4_do_calc_md5_hash(char 
- 	sg_set_buf(&sg[block++], key->key, key->keylen);
- 	nbytes += key->keylen;
- 
--<<<<<<< HEAD:net/ipv4/tcp_ipv4.c
--	__sg_mark_end(&sg[block - 1]);
+-	  To compile this file system support as a module, choose M here: the
+-	  module will be called ecryptfs.
+-
 -=======
- 	sg_mark_end(&sg[block - 1]);
-->>>>>>> FETCH_HEAD:net/ipv4/tcp_ipv4.c
- 
- 	/* Now store the Hash into the packet */
- 	err = crypto_hash_init(desc);
-diff -puN net/ipv6/tcp_ipv6.c~git-block-fixup net/ipv6/tcp_ipv6.c
---- a/net/ipv6/tcp_ipv6.c~git-block-fixup
-+++ a/net/ipv6/tcp_ipv6.c
-@@ -781,11 +781,7 @@ static int tcp_v6_do_calc_md5_hash(char 
- 	sg_set_buf(&sg[block++], key->key, key->keylen);
- 	nbytes += key->keylen;
- 
--<<<<<<< HEAD:net/ipv6/tcp_ipv6.c
--	__sg_mark_end(&sg[block - 1]);
--=======
- 	sg_mark_end(&sg[block - 1]);
-->>>>>>> FETCH_HEAD:net/ipv6/tcp_ipv6.c
- 
- 	/* Now store the hash into the packet */
- 	err = crypto_hash_init(desc);
-diff -puN net/rxrpc/rxkad.c~git-block-fixup net/rxrpc/rxkad.c
---- a/net/rxrpc/rxkad.c~git-block-fixup
-+++ a/net/rxrpc/rxkad.c
-@@ -702,11 +702,7 @@ static void rxkad_sg_set_buf2(struct sca
- 		nsg++;
- 	}
- 
--<<<<<<< HEAD:net/rxrpc/rxkad.c
--	__sg_mark_end(&sg[nsg - 1]);
--=======
- 	sg_mark_end(&sg[nsg - 1]);
-->>>>>>> FETCH_HEAD:net/rxrpc/rxkad.c
- 
- 	ASSERTCMP(sg[0].length + sg[1].length, ==, buflen);
- }
-diff -puN net/sunrpc/auth_gss/gss_krb5_crypto.c~git-block-fixup net/sunrpc/auth_gss/gss_krb5_crypto.c
---- a/net/sunrpc/auth_gss/gss_krb5_crypto.c~git-block-fixup
-+++ a/net/sunrpc/auth_gss/gss_krb5_crypto.c
-@@ -211,13 +211,8 @@ encryptor(struct scatterlist *sg, void *
- 	if (thislen == 0)
- 		return 0;
- 
--<<<<<<< HEAD:net/sunrpc/auth_gss/gss_krb5_crypto.c
--	__sg_mark_end(&desc->infrags[desc->fragno - 1]);
--	__sg_mark_end(&desc->outfrags[desc->fragno - 1]);
--=======
- 	sg_mark_end(&desc->infrags[desc->fragno - 1]);
- 	sg_mark_end(&desc->outfrags[desc->fragno - 1]);
-->>>>>>> FETCH_HEAD:net/sunrpc/auth_gss/gss_krb5_crypto.c
- 
- 	ret = crypto_blkcipher_encrypt_iv(&desc->desc, desc->outfrags,
- 					  desc->infrags, thislen);
-@@ -298,11 +293,7 @@ decryptor(struct scatterlist *sg, void *
- 	if (thislen == 0)
- 		return 0;
- 
--<<<<<<< HEAD:net/sunrpc/auth_gss/gss_krb5_crypto.c
--	__sg_mark_end(&desc->frags[desc->fragno - 1]);
--=======
- 	sg_mark_end(&desc->frags[desc->fragno - 1]);
-->>>>>>> FETCH_HEAD:net/sunrpc/auth_gss/gss_krb5_crypto.c
- 
- 	ret = crypto_blkcipher_decrypt_iv(&desc->desc, desc->frags,
- 					  desc->frags, thislen);
+->>>>>>> FETCH_HEAD:fs/Kconfig
+ config HFS_FS
+ 	tristate "Apple Macintosh file system support (EXPERIMENTAL)"
+ 	depends on BLOCK && EXPERIMENTAL
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -168,6 +99,7 @@ git-block.patch
 git-block-fixup.patch
 git-block-vs-agk-dm-dm-reorder-struct-io_restrictions.patch
 git-unionfs.patch
+git-unionfs-fixup.patch
 git-watchdog.patch
 git-wireless.patch
 jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
