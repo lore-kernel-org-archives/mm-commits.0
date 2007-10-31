@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-cmpxchg_local-to-sh64.patch added to -mm tree
-Date: Wed, 31 Oct 2007 14:16:30 -0700
-Message-ID: <200710312116.l9VLGUHX028547@imap1.linux-foundation.org>
+Subject: + add-cmpxchg_local-to-h8300.patch added to -mm tree
+Date: Wed, 31 Oct 2007 14:15:54 -0700
+Message-ID: <200710312115.l9VLFtci028482@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49472 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46873 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752641AbXJaVVU (ORCPT
+	by vger.kernel.org with ESMTP id S1752730AbXJaVVq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Oct 2007 17:21:20 -0400
+	Wed, 31 Oct 2007 17:21:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, lethal@linux-sh.org
+Cc: mathieu.desnoyers@polymtl.ca, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Add cmpxchg_local to sh64
+     Add cmpxchg_local to h8300
 has been added to the -mm tree.  Its filename is
-     add-cmpxchg_local-to-sh64.patch
+     add-cmpxchg_local-to-h8300.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,26 +26,26 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add cmpxchg_local to sh64
+Subject: Add cmpxchg_local to h8300
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
 Use the new generic cmpxchg_local (disables interrupt). Also use the generic
 cmpxchg as fallback if SMP is not set.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-sh64/system.h |   15 +++++++++++++++
+ include/asm-h8300/system.h |   15 +++++++++++++++
  1 file changed, 15 insertions(+)
 
-diff -puN include/asm-sh64/system.h~add-cmpxchg_local-to-sh64 include/asm-sh64/system.h
---- a/include/asm-sh64/system.h~add-cmpxchg_local-to-sh64
-+++ a/include/asm-sh64/system.h
-@@ -163,6 +163,21 @@ static __inline__ unsigned long __xchg(u
- 	return x;
- }
+diff -puN include/asm-h8300/system.h~add-cmpxchg_local-to-h8300 include/asm-h8300/system.h
+--- a/include/asm-h8300/system.h~add-cmpxchg_local-to-h8300
++++ a/include/asm-h8300/system.h
+@@ -138,6 +138,21 @@ static inline unsigned long __xchg(unsig
+         asm("jmp @@0");			\
+ })
  
 +#include <asm-generic/cmpxchg-local.h>
 +
@@ -62,9 +62,9 @@ diff -puN include/asm-sh64/system.h~add-cmpxchg_local-to-sh64 include/asm-sh64/s
 +#include <asm-generic/cmpxchg.h>
 +#endif
 +
- /* XXX
-  * disable hlt during certain critical i/o operations
-  */
+ #define arch_align_stack(x) (x)
+ 
+ #endif /* _H8300_SYSTEM_H */
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
