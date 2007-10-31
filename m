@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + new-cmpxchg_local-optimized-for-up-case-for-m32r.patch added to -mm tree
-Date: Wed, 31 Oct 2007 14:16:02 -0700
-Message-ID: <200710312116.l9VLG3R2028498@imap1.linux-foundation.org>
+Subject: + add-cmpxchg64-and-cmpxchg64_local-to-alpha.patch added to -mm tree
+Date: Wed, 31 Oct 2007 14:15:24 -0700
+Message-ID: <200710312115.l9VLFQGl028433@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35639 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33257 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760404AbXJaVRF (ORCPT
+	by vger.kernel.org with ESMTP id S1756415AbXJaVQc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Oct 2007 17:17:05 -0400
+	Wed, 31 Oct 2007 17:16:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, takata@linux-m32r.org
+Cc: mathieu.desnoyers@polymtl.ca, ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     New cmpxchg_local (optimized for UP case) for m32r
+     Add cmpxchg64 and cmpxchg64_local to alpha
 has been added to the -mm tree.  Its filename is
-     new-cmpxchg_local-optimized-for-up-case-for-m32r.patch
+     add-cmpxchg64-and-cmpxchg64_local-to-alpha.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,158 +26,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: New cmpxchg_local (optimized for UP case) for m32r
+Subject: Add cmpxchg64 and cmpxchg64_local to alpha
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Add __xchg_local, xchg_local (define), __cmpxchg_local_u32, __cmpxchg_local,
-cmpxchg_local(macro).
-
-cmpxchg_local and cmpxchg64_local will use the architecture specific
-__cmpxchg_local_u32 for 32 bits arguments, and use the generic
-__cmpxchg_local_generic for 8, 16 and 64 bits arguments.
+Make sure that at least cmpxchg64_local is available on all architectures to
+use for unsigned long long values.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Acked-by: Hirokazu Takata <takata@linux-m32r.org>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-m32r/system.h |  103 +++++++++++++++++++++++++++++++++---
- 1 file changed, 97 insertions(+), 6 deletions(-)
+ include/asm-alpha/system.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/asm-m32r/system.h~new-cmpxchg_local-optimized-for-up-case-for-m32r include/asm-m32r/system.h
---- a/include/asm-m32r/system.h~new-cmpxchg_local-optimized-for-up-case-for-m32r
-+++ a/include/asm-m32r/system.h
-@@ -123,6 +123,9 @@ static inline void local_irq_disable(voi
- 
- #define xchg(ptr,x) \
- 	((__typeof__(*(ptr)))__xchg((unsigned long)(x),(ptr),sizeof(*(ptr))))
-+#define xchg_local(ptr,x) \
-+	((__typeof__(*(ptr)))__xchg_local((unsigned long)(x),(ptr), \
-+			sizeof(*(ptr))))
- 
- #ifdef CONFIG_SMP
- extern void  __xchg_called_with_bad_pointer(void);
-@@ -196,6 +199,42 @@ __xchg(unsigned long x, volatile void * 
- 	return (tmp);
- }
- 
-+static __always_inline unsigned long
-+__xchg_local(unsigned long x, volatile void * ptr, int size)
-+{
-+	unsigned long flags;
-+	unsigned long tmp = 0;
-+
-+	local_irq_save(flags);
-+
-+	switch (size) {
-+	case 1:
-+		__asm__ __volatile__ (
-+			"ldb	%0, @%2 \n\t"
-+			"stb	%1, @%2 \n\t"
-+			: "=&r" (tmp) : "r" (x), "r" (ptr) : "memory");
-+		break;
-+	case 2:
-+		__asm__ __volatile__ (
-+			"ldh	%0, @%2 \n\t"
-+			"sth	%1, @%2 \n\t"
-+			: "=&r" (tmp) : "r" (x), "r" (ptr) : "memory");
-+		break;
-+	case 4:
-+		__asm__ __volatile__ (
-+			"ld	%0, @%2 \n\t"
-+			"st	%1, @%2 \n\t"
-+			: "=&r" (tmp) : "r" (x), "r" (ptr) : "memory");
-+		break;
-+	default:
-+		__xchg_called_with_bad_pointer();
-+	}
-+
-+	local_irq_restore(flags);
-+
-+	return (tmp);
-+}
-+
- #define __HAVE_ARCH_CMPXCHG	1
+diff -puN include/asm-alpha/system.h~add-cmpxchg64-and-cmpxchg64_local-to-alpha include/asm-alpha/system.h
+--- a/include/asm-alpha/system.h~add-cmpxchg64-and-cmpxchg64_local-to-alpha
++++ a/include/asm-alpha/system.h
+@@ -688,6 +688,7 @@ __cmpxchg(volatile void *ptr, unsigned l
+      (__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)_o_,		 \
+ 				    (unsigned long)_n_, sizeof(*(ptr))); \
+   })
++#define cmpxchg64	cmpxchg
  
  static inline unsigned long
-@@ -228,6 +267,37 @@ __cmpxchg_u32(volatile unsigned int *p, 
- 	return retval;
- }
+ __cmpxchg_u8_local(volatile char *m, long old, long new)
+@@ -810,6 +811,7 @@ __cmpxchg_local(volatile void *ptr, unsi
+      (__typeof__(*(ptr))) __cmpxchg_local((ptr), (unsigned long)_o_,	 \
+ 				    (unsigned long)_n_, sizeof(*(ptr))); \
+   })
++#define cmpxchg64_local	cmpxchg_local
  
-+static inline unsigned long
-+__cmpxchg_local_u32(volatile unsigned int *p, unsigned int old,
-+			unsigned int new)
-+{
-+	unsigned long flags;
-+	unsigned int retval;
-+
-+	local_irq_save(flags);
-+	__asm__ __volatile__ (
-+			DCACHE_CLEAR("%0", "r4", "%1")
-+			"ld %0, @%1;		\n"
-+		"	bne	%0, %2, 1f;	\n"
-+			"st %3, @%1;		\n"
-+		"	bra	2f;		\n"
-+                "       .fillinsn		\n"
-+		"1:"
-+			"st %0, @%1;		\n"
-+                "       .fillinsn		\n"
-+		"2:"
-+			: "=&r" (retval)
-+			: "r" (p), "r" (old), "r" (new)
-+			: "cbit", "memory"
-+#ifdef CONFIG_CHIP_M32700_TS1
-+			, "r4"
-+#endif  /* CONFIG_CHIP_M32700_TS1 */
-+		);
-+	local_irq_restore(flags);
-+
-+	return retval;
-+}
-+
- /* This function doesn't exist, so you'll get a linker error
-    if something tries to do an invalid cmpxchg().  */
- extern void __cmpxchg_called_with_bad_pointer(void);
-@@ -248,12 +318,33 @@ __cmpxchg(volatile void *ptr, unsigned l
- }
- 
- #define cmpxchg(ptr,o,n)						 \
--  ({									 \
--     __typeof__(*(ptr)) _o_ = (o);					 \
--     __typeof__(*(ptr)) _n_ = (n);					 \
--     (__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)_o_,		 \
--				    (unsigned long)_n_, sizeof(*(ptr))); \
--  })
-+     (__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)(o),		 \
-+				    (unsigned long)(n), sizeof(*(ptr)))
-+
-+#include <asm-generic/cmpxchg-local.h>
-+
-+static inline unsigned long __cmpxchg_local(volatile void *ptr,
-+				      unsigned long old,
-+				      unsigned long new, int size)
-+{
-+	switch (size) {
-+	case 4:
-+		return __cmpxchg_local_u32(ptr, old, new);
-+	default:
-+		return __cmpxchg_local_generic(ptr, old, new, size);
-+	}
-+
-+	return old;
-+}
-+
-+/*
-+ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
-+ * them available.
-+ */
-+#define cmpxchg_local(ptr,o,n)					  	    \
-+     (__typeof__(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(o),	    \
-+			   	 (unsigned long)(n), sizeof(*(ptr)))
-+#define cmpxchg64_local(ptr,o,n) __cmpxchg64_local_generic((ptr), (o), (n))
- 
- #endif  /* __KERNEL__ */
+ #endif /* __ASSEMBLY__ */
  
 _
 
