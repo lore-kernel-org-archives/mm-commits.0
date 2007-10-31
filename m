@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-vs-agk-dm-dm-reorder-struct-io_restrictions.patch added to -mm tree
-Date: Wed, 31 Oct 2007 16:15:22 -0700
-Message-ID: <200710312315.l9VNFMgc001677@imap1.linux-foundation.org>
+Subject: + git-arm-fixup.patch added to -mm tree
+Date: Wed, 31 Oct 2007 16:16:28 -0700
+Message-ID: <200710312316.l9VNGSVZ001695@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41267 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38191 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752122AbXJaXPz (ORCPT
+	by vger.kernel.org with ESMTP id S1753059AbXJaXRA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Oct 2007 19:15:55 -0400
+	Wed, 31 Oct 2007 19:17:00 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9VNFMQ6006905
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id l9VNGSrF006933
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 31 Oct 2007 16:15:23 -0700
+	for <mm-commits@vger.kernel.org>; Wed, 31 Oct 2007 16:16:29 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-block-vs-agk-dm-dm-reorder-struct-io_restrictions
+     git-arm-fixup
 has been added to the -mm tree.  Its filename is
-     git-block-vs-agk-dm-dm-reorder-struct-io_restrictions.patch
+     git-arm-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,26 +30,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-block-vs-agk-dm-dm-reorder-struct-io_restrictions
+Subject: git-arm-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/device-mapper.h |    1 +
- 1 file changed, 1 insertion(+)
+ include/asm-arm/arch-at91/board.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN include/linux/device-mapper.h~git-block-vs-agk-dm-dm-reorder-struct-io_restrictions include/linux/device-mapper.h
---- a/include/linux/device-mapper.h~git-block-vs-agk-dm-dm-reorder-struct-io_restrictions
-+++ a/include/linux/device-mapper.h
-@@ -116,6 +116,7 @@ struct io_restrictions {
- 	unsigned short hardsect_size;
- 	unsigned short max_hw_segments;
- 	unsigned short max_phys_segments;
-+	unsigned long bounce_pfn;
- 	unsigned char no_cluster; /* inverted so that 0 is default */
- };
+diff -puN include/asm-arm/arch-at91/board.h~git-arm-fixup include/asm-arm/arch-at91/board.h
+--- a/include/asm-arm/arch-at91/board.h~git-arm-fixup
++++ a/include/asm-arm/arch-at91/board.h
+@@ -132,11 +132,8 @@ extern u8 at91_leds_cpu;
+ extern u8 at91_leds_timer;
+ extern void __init at91_init_leds(u8 cpu_led, u8 timer_led);
  
+-<<<<<<< HEAD:include/asm-arm/arch-at91/board.h
+ /* FIXME: this needs a better location, but gets stuff building again */
+ extern int at91_suspend_entering_slow_clock(void);
+-=======
+ extern void __init at91_gpio_leds(struct gpio_led *leds, int nr);
+->>>>>>> FETCH_HEAD:include/asm-arm/arch-at91/board.h
+ 
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -59,6 +63,7 @@ acpi-add-reboot-mechanism.patch
 git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
+git-arm-fixup.patch
 revert-gregkh-driver-block-device.patch
 git-hwmon.patch
 ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
