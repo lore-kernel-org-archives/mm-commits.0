@@ -1,87 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - add-cmpxchg_local-to-parisc.patch removed from -mm tree
-Date: Wed, 31 Oct 2007 15:41:24 -0700
-Message-ID: <20071031224124.53CC0432BF5@localhost>
+Subject: - add-cmpxchg_local-to-avr32.patch removed from -mm tree
+Date: Wed, 31 Oct 2007 15:41:00 -0700
+Message-ID: <20071031224100.8595E432BF5@localhost>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.45.13]:61615 "EHLO
+Received: from smtp-out.google.com ([216.239.45.13]:61539 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760699AbXJaWnD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 31 Oct 2007 18:43:03 -0400
+	with ESMTP id S1759777AbXJaWmi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 31 Oct 2007 18:42:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, grundler@parisc-linux.org, kyle@mcmartin.ca, willy@debian.org, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, hskinnemoen@atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add cmpxchg_local to parisc
+     Add cmpxchg_local to avr32
 has been removed from the -mm tree.  Its filename was
-     add-cmpxchg_local-to-parisc.patch
+     add-cmpxchg_local-to-avr32.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Add cmpxchg_local to parisc
+Subject: Add cmpxchg_local to avr32
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Use the new generic cmpxchg_local (disables interrupt). Also use the generic
-cmpxchg as fallback if SMP is not set.
+Use the new generic cmpxchg_local (disables interrupt) for 8, 16 and 64 bits
+cmpxchg_local. Use the __cmpxchg_u32 primitive for 32 bits cmpxchg_local.
+
+Note that cmpxchg only uses the __cmpxchg_u32 or __cmpxchg_u64 and will cause
+a linker error if called with 8 or 16 bits argument.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Matthew Wilcox <willy@debian.org>
+Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-parisc/atomic.h |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ include/asm-avr32/system.h |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff -puN include/asm-parisc/atomic.h~add-cmpxchg_local-to-parisc include/asm-parisc/atomic.h
---- a/include/asm-parisc/atomic.h~add-cmpxchg_local-to-parisc
-+++ a/include/asm-parisc/atomic.h
-@@ -122,6 +122,35 @@ __cmpxchg(volatile void *ptr, unsigned l
- 				    (unsigned long)_n_, sizeof(*(ptr))); \
-   })
+diff -puN include/asm-avr32/system.h~add-cmpxchg_local-to-avr32 include/asm-avr32/system.h
+--- a/include/asm-avr32/system.h~add-cmpxchg_local-to-avr32
++++ a/include/asm-avr32/system.h
+@@ -145,6 +145,29 @@ static inline unsigned long __cmpxchg(vo
+ 				   (unsigned long)(new),	\
+ 				   sizeof(*(ptr))))
  
 +#include <asm-generic/cmpxchg-local.h>
 +
 +static inline unsigned long __cmpxchg_local(volatile void *ptr,
 +				      unsigned long old,
-+				      unsigned long new_, int size)
++				      unsigned long new, int size)
 +{
 +	switch (size) {
-+#ifdef CONFIG_64BIT
-+	case 8:	return __cmpxchg_u64((unsigned long *)ptr, old, new_);
-+#endif
-+	case 4:	return __cmpxchg_u32(ptr, old, new_);
++	case 4:
++		return __cmpxchg_u32(ptr, old, new);
 +	default:
-+		return __cmpxchg_local_generic(ptr, old, new_, size);
++		return __cmpxchg_local_generic(ptr, old, new, size);
 +	}
++
++	return old;
 +}
 +
-+/*
-+ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
-+ * them available.
-+ */
-+#define cmpxchg_local(ptr,o,n)					  	\
-+     (__typeof__(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(o),	\
-+			   	 (unsigned long)(n), sizeof(*(ptr)))
-+#ifdef CONFIG_64BIT
-+#define cmpxchg64_local(ptr,o,n) cmpxchg_local((ptr), (o), (n))
-+#else
-+#define cmpxchg64_local(ptr,o,n) __cmpxchg64_local_generic((ptr), (o), (n))
-+#endif
++#define cmpxchg_local(ptr, old, new)					\
++	((typeof(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(old),	\
++				   (unsigned long)(new),		\
++				   sizeof(*(ptr))))
 +
- /* Note that we need not lock read accesses - aligned word writes/reads
-  * are atomic, so a reader never sees unconsistent values.
-  *
++#define cmpxchg64_local(ptr,o,n) __cmpxchg64_local_generic((ptr), (o), (n))
++
+ struct pt_regs;
+ void NORET_TYPE die(const char *str, struct pt_regs *regs, long err);
+ void _exception(long signr, struct pt_regs *regs, int code,
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 local_t-documentation-update-2.patch
 markers-fix-warnings.patch
+add-cmpxchg_local-to-avr32.patch
+add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
+add-cmpxchg_local-to-cris.patch
+add-cmpxchg_local-to-frv.patch
+add-cmpxchg_local-to-h8300.patch
+add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
+new-cmpxchg_local-optimized-for-up-case-for-m32r.patch
+fix-m32r-__xchg.patch
+m32r-build-fix-of-arch-m32r-kernel-smpbootc.patch
+local_t-m32r-use-architecture-specific-cmpxchg_local.patch
+add-cmpxchg_local-to-m86k.patch
+add-cmpxchg_local-to-m68knommu.patch
 add-cmpxchg_local-to-parisc.patch
 add-cmpxchg_local-to-ppc.patch
 add-cmpxchg_local-to-s390.patch
