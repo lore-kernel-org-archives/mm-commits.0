@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch added to -mm tree
-Date: Wed, 31 Oct 2007 15:00:40 -0700
-Message-ID: <200710312200.l9VM0eEx031027@imap1.linux-foundation.org>
+Subject: + memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch added to -mm tree
+Date: Wed, 31 Oct 2007 14:59:50 -0700
+Message-ID: <200710312159.l9VLxo6b030936@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42125 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54670 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760923AbXJaWBp (ORCPT
+	by vger.kernel.org with ESMTP id S1760410AbXJaWBZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Oct 2007 18:01:45 -0400
+	Wed, 31 Oct 2007 18:01:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ib
 
 
 The patch titled
-     memory cgroup enhancements: add status accounting function for memory cgroup
+     memory cgroup enhancements: remember "a page is on active list of cgroup or not"
 has been added to the -mm tree.  Its filename is
-     memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+     memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,21 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memory cgroup enhancements: add status accounting function for memory cgroup
+Subject: memory cgroup enhancements: remember "a page is on active list of cgroup or not"
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Add statistics account infrastructure for memory controller.  All account
-information is stored per-cpu and caller will not have to take lock or use
-atomic ops.  This will be used by memory.stat file later.
-
-CACHE includes swapcache now. I'd like to divide it to
-PAGECACHE and SWAPCACHE later.
-
-This patch adds 3 functions for accounting.
- * __mem_cgroup_stat_add() ... for usual routine.
- * __mem_cgroup_stat_add_safe ... for calling under irq_disabled section.
- * mem_cgroup_read_stat() ... for reading stat value.
- * renamed PAGECACHE to CACHE (because it may include swapcache *now*)
+Remember page_cgroup is on active_list or not in page_cgroup->flags.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
@@ -57,136 +46,45 @@ Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   82 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 82 insertions(+)
+ mm/memcontrol.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup mm/memcontrol.c
---- a/mm/memcontrol.c~memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup
+diff -puN mm/memcontrol.c~memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not
 +++ a/mm/memcontrol.c
-@@ -35,6 +35,59 @@ struct cgroup_subsys mem_cgroup_subsys;
- static const int MEM_CGROUP_RECLAIM_RETRIES = 5;
- 
- /*
-+ * Statistics for memory cgroup.
-+ */
-+enum mem_cgroup_stat_index {
-+	/*
-+	 * For MEM_CONTAINER_TYPE_ALL, usage = pagecache + rss.
-+	 */
-+	MEM_CGROUP_STAT_CACHE, 	   /* # of pages charged as cache */
-+	MEM_CGROUP_STAT_RSS,	   /* # of pages charged as rss */
-+
-+	MEM_CGROUP_STAT_NSTATS,
-+};
-+
-+struct mem_cgroup_stat_cpu {
-+	s64 count[MEM_CGROUP_STAT_NSTATS];
-+} ____cacheline_aligned_in_smp;
-+
-+struct mem_cgroup_stat {
-+	struct mem_cgroup_stat_cpu cpustat[NR_CPUS];
-+};
-+
-+/*
-+ * modifies value with disabling preempt.
-+ */
-+static inline void __mem_cgroup_stat_add(struct mem_cgroup_stat *stat,
-+                enum mem_cgroup_stat_index idx, int val)
-+{
-+	int cpu = smp_processor_id();
-+	preempt_disable();
-+	stat->cpustat[cpu].count[idx] += val;
-+	preempt_enable();
-+}
-+
-+/*
-+ * For accounting under irq disable, no need for increment preempt count.
-+ */
-+static inline void __mem_cgroup_stat_add_safe(struct mem_cgroup_stat *stat,
-+		enum mem_cgroup_stat_index idx, int val)
-+{
-+	int cpu = smp_processor_id();
-+	stat->cpustat[cpu].count[idx] += val;
-+}
-+
-+static inline s64 mem_cgroup_read_stat(struct mem_cgroup_stat *stat,
-+		enum mem_cgroup_stat_index idx)
-+{
-+	int cpu;
-+	s64 ret = 0;
-+	for_each_possible_cpu(cpu)
-+		ret += stat->cpustat[cpu].count[idx];
-+	return ret;
-+}
-+
-+/*
-  * The memory controller data structure. The memory controller controls both
-  * page cache and RSS per cgroup. We would eventually like to provide
-  * statistics based on the statistics developed by Rik Van Riel for clock-pro,
-@@ -63,6 +116,10 @@ struct mem_cgroup {
- 	 */
- 	spinlock_t lru_lock;
- 	unsigned long control_type;	/* control RSS or RSS+Pagecache */
-+	/*
-+	 * statistics.
-+	 */
-+	struct mem_cgroup_stat stat;
+@@ -86,6 +86,7 @@ struct page_cgroup {
+ 	int	 flags;
  };
+ #define PAGE_CGROUP_FLAG_CACHE	(0x1)	/* charged as cache */
++#define PAGE_CGROUP_FLAG_ACTIVE (0x2)	/* page is active in this cgroup */
  
- /*
-@@ -101,6 +158,27 @@ enum charge_type {
- 	MEM_CGROUP_CHARGE_TYPE_MAPPED,
- };
+ enum {
+ 	MEM_CGROUP_TYPE_UNSPEC = 0,
+@@ -213,10 +214,13 @@ clear_page_cgroup(struct page *page, str
  
-+/*
-+ * Always modified under lru lock. Then, not necessary to preempt_disable()
-+ */
-+static inline void
-+mem_cgroup_charge_statistics(struct mem_cgroup *mem, int flags, bool charge)
-+{
-+	int val = (charge)? 1 : -1;
-+	struct mem_cgroup_stat *stat = &mem->stat;
-+	VM_BUG_ON(!irqs_disabled());
-+
-+	if (flags & PAGE_CGROUP_FLAG_CACHE)
-+		__mem_cgroup_stat_add_safe(stat,
-+					MEM_CGROUP_STAT_CACHE, val);
-+	else
-+		__mem_cgroup_stat_add_safe(stat, MEM_CGROUP_STAT_RSS, val);
-+
-+}
-+
-+
-+
-+
- static struct mem_cgroup init_mem_cgroup;
+ static void __mem_cgroup_move_lists(struct page_cgroup *pc, bool active)
+ {
+-	if (active)
++	if (active) {
++		pc->flags |= PAGE_CGROUP_FLAG_ACTIVE;
+ 		list_move(&pc->lru, &pc->mem_cgroup->active_list);
+-	else
++	} else {
++		pc->flags &= ~PAGE_CGROUP_FLAG_ACTIVE;
+ 		list_move(&pc->lru, &pc->mem_cgroup->inactive_list);
++	}
+ }
  
- static inline
-@@ -445,6 +523,8 @@ noreclaim:
- 	}
- 
- 	spin_lock_irqsave(&mem->lru_lock, flags);
-+	/* Update statistics vector */
-+	mem_cgroup_charge_statistics(mem, pc->flags, true);
- 	list_add(&pc->lru, &mem->active_list);
- 	spin_unlock_irqrestore(&mem->lru_lock, flags);
- 
-@@ -510,6 +590,7 @@ void mem_cgroup_uncharge(struct page_cgr
- 			res_counter_uncharge(&mem->res, PAGE_SIZE);
- 			spin_lock_irqsave(&mem->lru_lock, flags);
- 			list_del_init(&pc->lru);
-+			mem_cgroup_charge_statistics(mem, pc->flags, false);
- 			spin_unlock_irqrestore(&mem->lru_lock, flags);
- 			kfree(pc);
- 		}
-@@ -586,6 +667,7 @@ retry:
- 			css_put(&mem->css);
- 			res_counter_uncharge(&mem->res, PAGE_SIZE);
- 			list_del_init(&pc->lru);
-+			mem_cgroup_charge_statistics(mem, pc->flags, false);
- 			kfree(pc);
- 		} else 	/* being uncharged ? ...do relax */
- 			break;
+ int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *mem)
+@@ -425,7 +429,7 @@ noreclaim:
+ 	atomic_set(&pc->ref_cnt, 1);
+ 	pc->mem_cgroup = mem;
+ 	pc->page = page;
+-	pc->flags = 0;
++	pc->flags = PAGE_CGROUP_FLAG_ACTIVE;
+ 	if (ctype == MEM_CGROUP_CHARGE_TYPE_CACHE)
+ 		pc->flags |= PAGE_CGROUP_FLAG_CACHE;
+ 	if (page_cgroup_assign_new_page_cgroup(page, pc)) {
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
