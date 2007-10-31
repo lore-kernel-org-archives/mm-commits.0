@@ -1,87 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch removed from -mm tree
-Date: Wed, 31 Oct 2007 15:41:10 -0700
-Message-ID: <20071031224110.76064432BF5@localhost>
+Subject: - add-cmpxchg_local-to-ppc.patch removed from -mm tree
+Date: Wed, 31 Oct 2007 15:41:26 -0700
+Message-ID: <20071031224126.64C0D432BF5@localhost>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.45.13]:61600 "EHLO
+Received: from smtp-out.google.com ([216.239.45.13]:61624 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760673AbXJaWm4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 31 Oct 2007 18:42:56 -0400
+	with ESMTP id S1760262AbXJaWnF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 31 Oct 2007 18:43:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, clameter@sgi.com, kaos@ocs.com.au, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, benh@kernel.crashing.org, gl@denx.de, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add cmpxchg_local, cmpxchg64 and cmpxchg64_local to ia64
+     Add cmpxchg_local to ppc
 has been removed from the -mm tree.  Its filename was
-     add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
+     add-cmpxchg_local-to-ppc.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Add cmpxchg_local, cmpxchg64 and cmpxchg64_local to ia64
+Subject: Add cmpxchg_local to ppc
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Add the primitives cmpxchg_local, cmpxchg64 and cmpxchg64_local to ia64. They
-use cmpxchg_acq as underlying macro, just like the already existing ia64
-cmpxchg().
+Add a local processor version of cmpxchg for ppc.
 
-Changelog:
+Implements __cmpxchg_u32_local and uses it for 32 bits cmpxchg_local.
+It uses the non NMI safe cmpxchg_local_generic for 1, 2 and 8 bytes
+cmpxchg_local.
 
-ia64 cmpxchg_local coding style fix
-Quoting Keith Owens:
-
-As a matter of coding style, I prefer
-
-#define cmpxchg_local   cmpxchg
-#define cmpxchg64_local cmpxchg64
-
-Which makes it absolutely clear that they are the same code.  With your
-patch, humans have to do a string compare of two defines to see if they
-are the same.
-
-Note cmpxchg is *not* a performance win vs interrupt disable / enable on IA64.
-
+Signed-off-by: Gunnar Larisch <gl@denx.de>
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Acked-by: Christoph Lameter <clameter@sgi.com>
-Cc: Keith Owens <kaos@ocs.com.au>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/intrinsics.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/asm-ppc/system.h |   49 ++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 48 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-ia64/intrinsics.h~add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64 include/asm-ia64/intrinsics.h
---- a/include/asm-ia64/intrinsics.h~add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64
-+++ a/include/asm-ia64/intrinsics.h
-@@ -158,6 +158,10 @@ extern long ia64_cmpxchg_called_with_bad
+diff -puN include/asm-ppc/system.h~add-cmpxchg_local-to-ppc include/asm-ppc/system.h
+--- a/include/asm-ppc/system.h~add-cmpxchg_local-to-ppc
++++ a/include/asm-ppc/system.h
+@@ -209,12 +209,34 @@ __cmpxchg_u32(volatile unsigned int *p, 
+ 	return prev;
+ }
  
- /* for compatibility with other platforms: */
- #define cmpxchg(ptr,o,n)	cmpxchg_acq(ptr,o,n)
-+#define cmpxchg64(ptr,o,n)	cmpxchg_acq(ptr,o,n)
++static __inline__ unsigned long
++__cmpxchg_u32_local(volatile unsigned int *p, unsigned int old,
++	unsigned int new)
++{
++	unsigned int prev;
 +
-+#define cmpxchg_local		cmpxchg
-+#define cmpxchg64_local		cmpxchg64
++	__asm__ __volatile__ ("\n\
++1:	lwarx	%0,0,%2 \n\
++	cmpw	0,%0,%3 \n\
++	bne	2f \n"
++	PPC405_ERR77(0,%2)
++"	stwcx.	%4,0,%2 \n\
++	bne-	1b\n"
++"2:"
++	: "=&r" (prev), "=m" (*p)
++	: "r" (p), "r" (old), "r" (new), "m" (*p)
++	: "cc", "memory");
++
++	return prev;
++}
++
+ /* This function doesn't exist, so you'll get a linker error
+    if something tries to do an invalid cmpxchg().  */
+ extern void __cmpxchg_called_with_bad_pointer(void);
  
- #ifdef CONFIG_IA64_DEBUG_CMPXCHG
- # define CMPXCHG_BUGCHECK_DECL	int _cmpxchg_bugcheck_count = 128;
+ static __inline__ unsigned long
+-__cmpxchg(volatile void *ptr, unsigned long old, unsigned long new, int size)
++__cmpxchg(volatile void *ptr, unsigned long old, unsigned long new,
++	unsigned int size)
+ {
+ 	switch (size) {
+ 	case 4:
+@@ -236,6 +258,31 @@ __cmpxchg(volatile void *ptr, unsigned l
+ 				    (unsigned long)_n_, sizeof(*(ptr))); \
+   })
+ 
++#include <asm-generic/cmpxchg-local.h>
++
++static inline unsigned long __cmpxchg_local(volatile void *ptr,
++				      unsigned long old,
++				      unsigned long new, int size)
++{
++	switch (size) {
++	case 4:
++		return __cmpxchg_u32_local(ptr, old, new);
++	default:
++		return __cmpxchg_local_generic(ptr, old, new, size);
++	}
++
++	return old;
++}
++
++/*
++ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
++ * them available.
++ */
++#define cmpxchg_local(ptr,o,n)					  	\
++     (__typeof__(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(o),	\
++			   	 (unsigned long)(n), sizeof(*(ptr)))
++#define cmpxchg64_local(ptr,o,n) __cmpxchg64_local_generic((ptr), (o), (n))
++
+ #define arch_align_stack(x) (x)
+ 
+ #endif /* __KERNEL__ */
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 local_t-documentation-update-2.patch
 markers-fix-warnings.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-new-cmpxchg_local-optimized-for-up-case-for-m32r.patch
-fix-m32r-__xchg.patch
-m32r-build-fix-of-arch-m32r-kernel-smpbootc.patch
-local_t-m32r-use-architecture-specific-cmpxchg_local.patch
-add-cmpxchg_local-to-m86k.patch
-add-cmpxchg_local-to-m68knommu.patch
-add-cmpxchg_local-to-parisc.patch
 add-cmpxchg_local-to-ppc.patch
 add-cmpxchg_local-to-s390.patch
 add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32.patch
