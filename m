@@ -1,86 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - add-cmpxchg64-and-cmpxchg64_local-to-mips.patch removed from -mm tree
-Date: Wed, 31 Oct 2007 15:40:51 -0700
-Message-ID: <20071031224051.4D92E432BF7@localhost>
+Subject: - add-cmpxchg_local-to-m68knommu.patch removed from -mm tree
+Date: Wed, 31 Oct 2007 15:41:22 -0700
+Message-ID: <20071031224122.53EDC432BF5@localhost>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.33.17]:24769 "EHLO
+Received: from smtp-out.google.com ([216.239.33.17]:24502 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760988AbXJaWn4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 31 Oct 2007 18:43:56 -0400
+	with ESMTP id S1760713AbXJaWnN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 31 Oct 2007 18:43:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, gerg@snapgear.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add cmpxchg64 and cmpxchg64_local to mips
+     Add cmpxchg_local to m68knommu
 has been removed from the -mm tree.  Its filename was
-     add-cmpxchg64-and-cmpxchg64_local-to-mips.patch
+     add-cmpxchg_local-to-m68knommu.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Add cmpxchg64 and cmpxchg64_local to mips
+Subject: Add cmpxchg_local to m68knommu
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Make sure that at least cmpxchg64_local is available on all architectures to use
-for unsigned long long values.
+Use the new generic cmpxchg_local (disables interrupt). Also use the generic
+cmpxchg as fallback if SMP is not set.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Greg Ungerer <gerg@snapgear.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-mips/cmpxchg.h |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ include/asm-m68knommu/system.h |   28 +++++++++++-----------------
+ 1 file changed, 11 insertions(+), 17 deletions(-)
 
-diff -puN include/asm-mips/cmpxchg.h~add-cmpxchg64-and-cmpxchg64_local-to-mips include/asm-mips/cmpxchg.h
---- a/include/asm-mips/cmpxchg.h~add-cmpxchg64-and-cmpxchg64_local-to-mips
-+++ a/include/asm-mips/cmpxchg.h
-@@ -104,4 +104,21 @@ extern void __cmpxchg_called_with_bad_po
- #define cmpxchg(ptr, old, new)		__cmpxchg(ptr, old, new, smp_llsc_mb())
- #define cmpxchg_local(ptr, old, new)	__cmpxchg(ptr, old, new, )
+diff -puN include/asm-m68knommu/system.h~add-cmpxchg_local-to-m68knommu include/asm-m68knommu/system.h
+--- a/include/asm-m68knommu/system.h~add-cmpxchg_local-to-m68knommu
++++ a/include/asm-m68knommu/system.h
+@@ -186,26 +186,20 @@ static inline unsigned long __xchg(unsig
+ }
+ #endif
  
-+#define cmpxchg64(ptr,o,n)						\
-+  ({									\
-+  	BUILD_BUG_ON(sizeof(*(ptr)) != 8);				\
-+  	cmpxchg((ptr),(o),(n));						\
-+  })
-+
-+#ifdef CONFIG_64BIT
-+#define cmpxchg64_local(ptr,o,n)					\
-+  ({									\
-+  	BUILD_BUG_ON(sizeof(*(ptr)) != 8);				\
-+  	cmpxchg_local((ptr),(o),(n));					\
-+  })
-+#else
 +#include <asm-generic/cmpxchg-local.h>
-+#define cmpxchg64_local(ptr,o,n)	__cmpxchg64_local_generic((ptr),(o),(n))
-+#endif
 +
- #endif /* __ASM_CMPXCHG_H */
+ /*
+- * Atomic compare and exchange.  Compare OLD with MEM, if identical,
+- * store NEW in MEM.  Return the initial value in MEM.  Success is
+- * indicated by comparing RETURN with OLD.
++ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
++ * them available.
+  */
+-#define __HAVE_ARCH_CMPXCHG	1
+-
+-static __inline__ unsigned long
+-cmpxchg(volatile int *p, int old, int new)
+-{
+-	unsigned long flags;
+-	int prev;
+-
+-	local_irq_save(flags);
+-	if ((prev = *p) == old)
+-		*p = new;
+-	local_irq_restore(flags);
+-	return(prev);
+-}
++#define cmpxchg_local(ptr,o,n)					  	    \
++     (__typeof__(*(ptr)))__cmpxchg_local_generic((ptr), (unsigned long)(o), \
++			   	 (unsigned long)(n), sizeof(*(ptr)))
++#define cmpxchg64_local(ptr,o,n) __cmpxchg64_local_generic((ptr), (o), (n))
+ 
++#ifndef CONFIG_SMP
++#include <asm-generic/cmpxchg.h>
++#endif
+ 
+ #ifdef CONFIG_M68332
+ #define HARD_RESET_NOW() ({		\
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 local_t-documentation-update-2.patch
 markers-fix-warnings.patch
-add-cmpxchg64-and-cmpxchg64_local-to-mips.patch
-add-cmpxchg64-and-cmpxchg64_local-to-powerpc.patch
-add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
-add-cmpxchg_local-to-arm.patch
-add-cmpxchg_local-to-avr32.patch
-add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
-add-cmpxchg_local-to-cris.patch
-add-cmpxchg_local-to-frv.patch
-add-cmpxchg_local-to-h8300.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-new-cmpxchg_local-optimized-for-up-case-for-m32r.patch
-fix-m32r-__xchg.patch
-m32r-build-fix-of-arch-m32r-kernel-smpbootc.patch
-local_t-m32r-use-architecture-specific-cmpxchg_local.patch
-add-cmpxchg_local-to-m86k.patch
 add-cmpxchg_local-to-m68knommu.patch
 add-cmpxchg_local-to-parisc.patch
 add-cmpxchg_local-to-ppc.patch
