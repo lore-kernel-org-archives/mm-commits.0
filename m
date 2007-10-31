@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memory-cgroup-enhancements-implicit-force-empty-at-rmdir.patch added to -mm tree
-Date: Wed, 31 Oct 2007 15:16:13 -0700
-Message-ID: <200710312216.l9VMGD5M031794@imap1.linux-foundation.org>
+Subject: + add-remove_memory-for-ppc64.patch added to -mm tree
+Date: Wed, 31 Oct 2007 15:33:00 -0700
+Message-ID: <200710312233.l9VMX0xl032367@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36917 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53453 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755004AbXJaWWN (ORCPT
+	by vger.kernel.org with ESMTP id S1753450AbXJaWdh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Oct 2007 18:22:13 -0400
+	Wed, 31 Oct 2007 18:33:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org
+Cc: pbadari@us.ibm.com, benh@kernel.crashing.org, galak@gate.crashing.org, haveblue@us.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, paulus@samba.org
 
 
 The patch titled
-     memory cgroup enhancements: implicit force empty at rmdir()
+     Add remove_memory() for ppc64
 has been added to the -mm tree.  Its filename is
-     memory-cgroup-enhancements-implicit-force-empty-at-rmdir.patch
+     add-remove_memory-for-ppc64.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,79 +26,57 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memory cgroup enhancements: implicit force empty at rmdir()
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: Add remove_memory() for ppc64
+From: Badari Pulavarty <pbadari@us.ibm.com>
 
-This patch adds pre_destroy handler for mem_cgroup and try to make mem_cgroup
-empty at rmdir().
+Supply arch specific remove_memory() for PPC64.  There is nothing ppc specific
+code here and its exactly same as ia64 version.  For now, lets keep it arch
+specific - so each arch can add its own special things if needed.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Paul Menage <menage@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ arch/powerpc/mm/mem.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff -puN mm/memcontrol.c~memory-cgroup-enhancements-implicit-force-empty-at-rmdir mm/memcontrol.c
---- a/mm/memcontrol.c~memory-cgroup-enhancements-implicit-force-empty-at-rmdir
-+++ a/mm/memcontrol.c
-@@ -908,6 +908,13 @@ mem_cgroup_create(struct cgroup_subsys *
- 	return &mem->css;
- }
+diff -puN arch/powerpc/mm/mem.c~add-remove_memory-for-ppc64 arch/powerpc/mm/mem.c
+--- a/arch/powerpc/mm/mem.c~add-remove_memory-for-ppc64
++++ a/arch/powerpc/mm/mem.c
+@@ -131,6 +131,20 @@ int __devinit arch_add_memory(int nid, u
  
-+static void mem_cgroup_pre_destroy(struct cgroup_subsys *ss,
-+					struct cgroup *cont)
+ #endif /* CONFIG_MEMORY_HOTPLUG */
+ 
++#ifdef CONFIG_MEMORY_HOTREMOVE
++int remove_memory(u64 start, u64 size)
 +{
-+	struct mem_cgroup *mem = mem_cgroup_from_cont(cont);
-+	mem_cgroup_force_empty(mem);
++	unsigned long start_pfn, end_pfn;
++	unsigned long timeout = 120 * HZ;
++	int ret;
++	start_pfn = start >> PAGE_SHIFT;
++	end_pfn = start_pfn + (size >> PAGE_SHIFT);
++	ret = offline_pages(start_pfn, end_pfn, timeout);
++	return ret;
 +}
++EXPORT_SYMBOL_GPL(remove_memory);
++#endif /* CONFIG_MEMORY_HOTREMOVE */
 +
- static void mem_cgroup_destroy(struct cgroup_subsys *ss,
- 				struct cgroup *cont)
+ void show_mem(void)
  {
-@@ -959,6 +966,7 @@ struct cgroup_subsys mem_cgroup_subsys =
- 	.name = "memory",
- 	.subsys_id = mem_cgroup_subsys_id,
- 	.create = mem_cgroup_create,
-+	.pre_destroy = mem_cgroup_pre_destroy,
- 	.destroy = mem_cgroup_destroy,
- 	.populate = mem_cgroup_populate,
- 	.attach = mem_cgroup_move_task,
+ 	unsigned long total = 0, reserved = 0;
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from pbadari@us.ibm.com are
 
-git-sh.patch
+powerpc-move-_rtc_time-routines-under-config_adb_cuda.patch
+hugetlb-allow-sticky-directory-mount-option.patch
 memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-memory-controller-make-charging-gfp-mask-aware-fix.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
-memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
-memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-pre_destroy-handler.patch
-memory-cgroup-enhancements-implicit-force-empty-at-rmdir.patch
+add-remove_memory-for-ppc64.patch
+enable-hotplug-memory-remove-for-ppc64.patch
+add-arch-specific-walk_memory_remove-for-ppc64.patch
+mem-controller-gfp-mask-fix.patch
