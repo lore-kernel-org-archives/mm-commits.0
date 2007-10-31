@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-fix-build-for-config_printk.patch added to -mm tree
-Date: Wed, 31 Oct 2007 13:36:40 -0700
-Message-ID: <200710312036.l9VKae8q026978@imap1.linux-foundation.org>
+Subject: + i386-and-x86_64-randomize-brk-fix-2.patch added to -mm tree
+Date: Wed, 31 Oct 2007 13:38:02 -0700
+Message-ID: <200710312038.l9VKc2tj027089@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48209 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47303 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754759AbXJaUhO (ORCPT
+	by vger.kernel.org with ESMTP id S1754571AbXJaUi4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Oct 2007 16:37:14 -0400
+	Wed, 31 Oct 2007 16:38:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, jdike@linux.intel.com
+Cc: jkosina@suse.cz, arjan@infradead.org, hugh@veritas.com, jakub@redhat.com, mingo@elte.hu, roland@redhat.com, safari-kernel@safari.iki.fi, tglx@linutronix.de
 
 
 The patch titled
-     uml: fix build for !CONFIG_PRINTK
+     brk randomization: compute RLIMIT_DATA properly
 has been added to the -mm tree.  Its filename is
-     uml-fix-build-for-config_printk.patch
+     i386-and-x86_64-randomize-brk-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,68 +26,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: fix build for !CONFIG_PRINTK
-From: Jeff Dike <jdike@addtoit.com>
+Subject: brk randomization: compute RLIMIT_DATA properly
+From: Jiri Kosina <jkosina@suse.cz>
 
-Handle the case of CONFIG_PRINTK being disabled.  This requires a do-nothing
-stub to be present in arch/um/include/user.h so that we don't get references
-to printk from libc code.
+In cases of heap area placed at randomly-generated offset from mm->end_data
+(arch_randomize_brk()), we need to subtract the value of the offset for
+setrlimit(RLIMIT_DATA) to work properly -- otherwise we count the
+unoccupied memory between mm->end_data and mm->start_brk as occupied.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Tested-by: Sami Farin <safari-kernel@safari.iki.fi>
+Acked-by: Hugh Dickins <hugh@veritas.com>
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Jakub Jelinek <jakub@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/user.h |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ mm/mmap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/um/include/user.h~uml-fix-build-for-config_printk arch/um/include/user.h
---- a/arch/um/include/user.h~uml-fix-build-for-config_printk
-+++ a/arch/um/include/user.h
-@@ -1,11 +1,13 @@
- /* 
-- * Copyright (C) 2000 Jeff Dike (jdike@karaya.com)
-+ * Copyright (C) 2000 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
+diff -puN mm/mmap.c~i386-and-x86_64-randomize-brk-fix-2 mm/mmap.c
+--- a/mm/mmap.c~i386-and-x86_64-randomize-brk-fix-2
++++ a/mm/mmap.c
+@@ -251,7 +251,8 @@ asmlinkage unsigned long sys_brk(unsigne
+ 	 * not page aligned -Ram Gupta
+ 	 */
+ 	rlim = current->signal->rlim[RLIMIT_DATA].rlim_cur;
+-	if (rlim < RLIM_INFINITY && brk - mm->start_data > rlim)
++	if (rlim < RLIM_INFINITY && (brk - mm->start_brk) +
++			(mm->end_data - mm->start_data) > rlim)
+ 		goto out;
  
- #ifndef __USER_H__
- #define __USER_H__
- 
-+#include "uml-config.h"
-+
- /*
-  * The usual definition - copied here because the kernel provides its own,
-  * fancier, type-safe, definition.  Using that one would require
-@@ -23,8 +25,17 @@
- 
- extern void panic(const char *fmt, ...)
- 	__attribute__ ((format (printf, 1, 2)));
-+
-+#ifdef UML_CONFIG_PRINTK
- extern int printk(const char *fmt, ...)
- 	__attribute__ ((format (printf, 1, 2)));
-+#else
-+static inline int printk(const char *fmt, ...)
-+{
-+	return 0;
-+}
-+#endif
-+
- extern void schedule(void);
- extern int in_aton(char *str);
- extern int open_gdb_chan(void);
+ 	newbrk = PAGE_ALIGN(brk);
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
-git-kvm.patch
-arch-um-drivers-ubd_kernc-a-warning-fix.patch
-uml-fix-spurious-irq-testing.patch
-uml-remove-last-include-of-libc-asm-pageh.patch
-uml-fix-build-for-config_tcp.patch
-uml-fix-build-for-config_printk.patch
-uml-implement-get_wchan.patch
-uml-get-rid-of-asmlinkage.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+origin.patch
+git-hid.patch
+make-wistron-btns-recognize-special-keys-on-medion-wim2160-notebooks.patch
+first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
+fujitsu-application-panel-driver.patch
+fujitsu-application-panel-driver-space-savings.patch
+git-ipwireless_cs.patch
+i386-and-x86_64-randomize-brk.patch
+i386-and-x86_64-randomize-brk-fix.patch
+i386-and-x86_64-randomize-brk-fix-2.patch
+rtc-convert-mutex-to-bitfield.patch
+pie-executable-randomization.patch
+pie-executable-randomization-checkpatch-fixes.patch
