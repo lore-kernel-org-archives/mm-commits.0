@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hibernate-fix-lockdep-report-2.patch added to -mm tree
-Date: Wed, 31 Oct 2007 13:08:25 -0700
-Message-ID: <200710312008.l9VK8PBX023933@imap1.linux-foundation.org>
+Subject: + smbfs-fix-debug-builds.patch added to -mm tree
+Date: Wed, 31 Oct 2007 13:13:32 -0700
+Message-ID: <200710312013.l9VKDWT8024560@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56625 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49475 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753985AbXJaUJI (ORCPT
+	by vger.kernel.org with ESMTP id S1754288AbXJaUNq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Oct 2007 16:09:08 -0400
+	Wed, 31 Oct 2007 16:13:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: johannes@sipsolutions.net, a.p.zijlstra@chello.nl, pavel@ucw.cz, rjw@sisk.pl, stern@rowland.harvard.edu
+Cc: jlayton@redhat.com
 
 
 The patch titled
-     hibernate: fix lockdep report
+     smbfs: fix debug builds
 has been added to the -mm tree.  Its filename is
-     hibernate-fix-lockdep-report-2.patch
+     smbfs-fix-debug-builds.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,61 +26,92 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: hibernate: fix lockdep report
-From: Johannes Berg <johannes@sipsolutions.net>
+Subject: smbfs: fix debug builds
+From: Jeff Layton <jlayton@redhat.com>
 
-Lockdep reports a circular locking dependency in the hibernate code
-because
- - during system boot hibernate code (from an initcall) locks pm_mutex
-   and then a sysfs buffer mutex via name_to_dev_t
- - during regular operation hibernate code locks pm_mutex under a
-   sysfs buffer mutex because it's called from sysfs methods.
+Fix some warnings with SMBFS_DEBUG_* builds.  This patch makes it so that
+builds with -Werror don't fail.
 
-The deadlock can never happen because during initcall invocation nothing
-can write to sysfs yet. This removes the lockdep report by marking the
-initcall locking as being in a different class.
-
-Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/disk.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ fs/smbfs/file.c   |    7 ++++---
+ fs/smbfs/inode.c  |    2 +-
+ fs/smbfs/proc.c   |    2 +-
+ fs/smbfs/smbiod.c |    2 +-
+ 4 files changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN kernel/power/disk.c~hibernate-fix-lockdep-report-2 kernel/power/disk.c
---- a/kernel/power/disk.c~hibernate-fix-lockdep-report-2
-+++ a/kernel/power/disk.c
-@@ -456,7 +456,17 @@ static int software_resume(void)
- 	int error;
- 	unsigned int flags;
+diff -puN fs/smbfs/file.c~smbfs-fix-debug-builds fs/smbfs/file.c
+--- a/fs/smbfs/file.c~smbfs-fix-debug-builds
++++ a/fs/smbfs/file.c
+@@ -234,7 +234,7 @@ smb_file_aio_read(struct kiocb *iocb, co
  
--	mutex_lock(&pm_mutex);
-+	/*
-+	 * name_to_dev_t() below takes a sysfs buffer mutex when sysfs
-+	 * is configured into the kernel. Since the regular hibernate
-+	 * trigger path is via sysfs which takes a buffer mutex before
-+	 * calling hibernate functions (which take pm_mutex) this can
-+	 * cause lockdep to complain about a possible ABBA deadlock
-+	 * which cannot happen since we're in the boot code here and
-+	 * sysfs can't be invoked yet. Therefore, we use a subclass
-+	 * here to avoid lockdep complaining.
-+	 */
-+	mutex_lock_nested(&pm_mutex, SINGLE_DEPTH_NESTING);
- 	if (!swsusp_resume_device) {
- 		if (!strlen(resume_file)) {
- 			mutex_unlock(&pm_mutex);
+ 	VERBOSE("before read, size=%ld, flags=%x, atime=%ld\n",
+ 		(long)dentry->d_inode->i_size,
+-		dentry->d_inode->i_flags, dentry->d_inode->i_atime);
++		dentry->d_inode->i_flags, dentry->d_inode->i_atime.tv_sec);
+ 
+ 	status = generic_file_aio_read(iocb, iov, nr_segs, pos);
+ out:
+@@ -269,7 +269,7 @@ smb_file_splice_read(struct file *file, 
+ 	struct dentry *dentry = file->f_path.dentry;
+ 	ssize_t status;
+ 
+-	VERBOSE("file %s/%s, pos=%Ld, count=%d\n",
++	VERBOSE("file %s/%s, pos=%Ld, count=%lu\n",
+ 		DENTRY_PATH(dentry), *ppos, count);
+ 
+ 	status = smb_revalidate_inode(dentry);
+@@ -363,7 +363,8 @@ smb_file_aio_write(struct kiocb *iocb, c
+ 		result = generic_file_aio_write(iocb, iov, nr_segs, pos);
+ 		VERBOSE("pos=%ld, size=%ld, mtime=%ld, atime=%ld\n",
+ 			(long) file->f_pos, (long) dentry->d_inode->i_size,
+-			dentry->d_inode->i_mtime, dentry->d_inode->i_atime);
++			dentry->d_inode->i_mtime.tv_sec,
++			dentry->d_inode->i_atime.tv_sec);
+ 	}
+ out:
+ 	return result;
+diff -puN fs/smbfs/inode.c~smbfs-fix-debug-builds fs/smbfs/inode.c
+--- a/fs/smbfs/inode.c~smbfs-fix-debug-builds
++++ a/fs/smbfs/inode.c
+@@ -536,7 +536,7 @@ static int smb_fill_super(struct super_b
+ 
+ 	/* Allocate the global temp buffer and some superblock helper structs */
+ 	/* FIXME: move these to the smb_sb_info struct */
+-	VERBOSE("alloc chunk = %d\n", sizeof(struct smb_ops) +
++	VERBOSE("alloc chunk = %lu\n", sizeof(struct smb_ops) +
+ 		sizeof(struct smb_mount_data_kernel));
+ 	mem = kmalloc(sizeof(struct smb_ops) +
+ 		      sizeof(struct smb_mount_data_kernel), GFP_KERNEL);
+diff -puN fs/smbfs/proc.c~smbfs-fix-debug-builds fs/smbfs/proc.c
+--- a/fs/smbfs/proc.c~smbfs-fix-debug-builds
++++ a/fs/smbfs/proc.c
+@@ -2593,7 +2593,7 @@ smb_proc_getattr_ff(struct smb_sb_info *
+ 	fattr->f_mtime.tv_sec = date_dos2unix(server, date, time);
+ 	fattr->f_mtime.tv_nsec = 0;
+ 	VERBOSE("name=%s, date=%x, time=%x, mtime=%ld\n",
+-		mask, date, time, fattr->f_mtime);
++		mask, date, time, fattr->f_mtime.tv_sec);
+ 	fattr->f_size = DVAL(req->rq_data, 12);
+ 	/* ULONG allocation size */
+ 	fattr->attr = WVAL(req->rq_data, 20);
+diff -puN fs/smbfs/smbiod.c~smbfs-fix-debug-builds fs/smbfs/smbiod.c
+--- a/fs/smbfs/smbiod.c~smbfs-fix-debug-builds
++++ a/fs/smbfs/smbiod.c
+@@ -227,7 +227,7 @@ int smbiod_retry(struct smb_sb_info *ser
+ 		printk(KERN_ERR "smb_retry: signal failed [%d]\n", result);
+ 		goto out;
+ 	}
+-	VERBOSE("signalled pid %d\n", pid);
++	VERBOSE("signalled pid %d\n", pid_nr(pid));
+ 
+ 	/* FIXME: The retried requests should perhaps get a "time boost". */
+ 
 _
 
-Patches currently in -mm which might be from johannes@sipsolutions.net are
+Patches currently in -mm which might be from jlayton@redhat.com are
 
-origin.patch
-git-input.patch
-fix-appletouch-geyser-1-breakage.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-git-kbuild.patch
-git-wireless.patch
-hibernate-fix-lockdep-report-2.patch
+git-unionfs.patch
+smbfs-fix-debug-builds.patch
