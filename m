@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-cmpxchg_local-to-arm.patch added to -mm tree
-Date: Wed, 31 Oct 2007 14:15:41 -0700
-Message-ID: <200710312115.l9VLFfXg028456@imap1.linux-foundation.org>
+Subject: + add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch added to -mm tree
+Date: Wed, 31 Oct 2007 14:15:46 -0700
+Message-ID: <200710312115.l9VLFk31028468@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34722 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42570 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760639AbXJaVQ1 (ORCPT
+	by vger.kernel.org with ESMTP id S1760749AbXJaVQo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Oct 2007 17:16:27 -0400
+	Wed, 31 Oct 2007 17:16:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, clameter@sgi.com, rmk@arm.linux.org.uk
+Cc: mathieu.desnoyers@polymtl.ca, bryan.wu@analog.com, michael.frysinger@analog.com
 
 
 The patch titled
-     Add cmpxchg_local to arm
+     Add cmpxchg_local to blackfin, replace __cmpxchg by generic cmpxchg
 has been added to the -mm tree.  Its filename is
-     add-cmpxchg_local-to-arm.patch
+     add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,82 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add cmpxchg_local to arm
+Subject: Add cmpxchg_local to blackfin, replace __cmpxchg by generic cmpxchg
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
 Use the new generic cmpxchg_local (disables interrupt). Also use the generic
-cmpxchg as fallback if SMP is not set.
+cmpxchg as fallback if SMP is not set since nobody seems to know why __cmpxchg
+has been implemented in assembly in the first place thather than in plain C.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: <michael.frysinger@analog.com>
+Cc: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/system.h |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ include/asm-blackfin/system.h |   59 ++++++--------------------------
+ 1 file changed, 12 insertions(+), 47 deletions(-)
 
-diff -puN include/asm-arm/system.h~add-cmpxchg_local-to-arm include/asm-arm/system.h
---- a/include/asm-arm/system.h~add-cmpxchg_local-to-arm
-+++ a/include/asm-arm/system.h
-@@ -350,6 +350,21 @@ static inline unsigned long __xchg(unsig
- extern void disable_hlt(void);
- extern void enable_hlt(void);
+diff -puN include/asm-blackfin/system.h~add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg include/asm-blackfin/system.h
+--- a/include/asm-blackfin/system.h~add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg
++++ a/include/asm-blackfin/system.h
+@@ -183,55 +183,20 @@ static inline unsigned long __xchg(unsig
+ 	return tmp;
+ }
  
 +#include <asm-generic/cmpxchg-local.h>
 +
-+/*
+ /*
+- * Atomic compare and exchange.  Compare OLD with MEM, if identical,
+- * store NEW in MEM.  Return the initial value in MEM.  Success is
+- * indicated by comparing RETURN with OLD.
 + * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
 + * them available.
-+ */
+  */
+-static inline unsigned long __cmpxchg(volatile void *ptr, unsigned long old,
+-				      unsigned long new, int size)
+-{
+-	unsigned long tmp = 0;
+-	unsigned long flags = 0;
+-
+-	local_irq_save(flags);
+-
+-	switch (size) {
+-	case 1:
+-		__asm__ __volatile__
+-			("%0 = b%3 (z);\n\t"
+-			 "CC = %1 == %0;\n\t"
+-			 "IF !CC JUMP 1f;\n\t"
+-			 "b%3 = %2;\n\t"
+-			 "1:\n\t"
+-			 : "=&d" (tmp) : "d" (old), "d" (new), "m" (*__xg(ptr)) : "memory");
+-		break;
+-	case 2:
+-		__asm__ __volatile__
+-			("%0 = w%3 (z);\n\t"
+-			 "CC = %1 == %0;\n\t"
+-			 "IF !CC JUMP 1f;\n\t"
+-			 "w%3 = %2;\n\t"
+-			 "1:\n\t"
+-			 : "=&d" (tmp) : "d" (old), "d" (new), "m" (*__xg(ptr)) : "memory");
+-		break;
+-	case 4:
+-		__asm__ __volatile__
+-			("%0 = %3;\n\t"
+-			 "CC = %1 == %0;\n\t"
+-			 "IF !CC JUMP 1f;\n\t"
+-			 "%3 = %2;\n\t"
+-			 "1:\n\t"
+-			 : "=&d" (tmp) : "d" (old), "d" (new), "m" (*__xg(ptr)) : "memory");
+-		break;
+-	}
+-	local_irq_restore(flags);
+-	return tmp;
+-}
+-
+-#define cmpxchg(ptr,o,n)\
+-        ((__typeof__(*(ptr)))__cmpxchg((ptr),(unsigned long)(o),\
+-                                        (unsigned long)(n),sizeof(*(ptr))))
 +#define cmpxchg_local(ptr,o,n)					  	    \
 +     (__typeof__(*(ptr)))__cmpxchg_local_generic((ptr), (unsigned long)(o), \
 +			   	 (unsigned long)(n), sizeof(*(ptr)))
@@ -62,10 +110,9 @@ diff -puN include/asm-arm/system.h~add-cmpxchg_local-to-arm include/asm-arm/syst
 +#ifndef CONFIG_SMP
 +#include <asm-generic/cmpxchg.h>
 +#endif
-+
- #endif /* __ASSEMBLY__ */
  
- #define arch_align_stack(x) (x)
+ #define prepare_to_switch()     do { } while(0)
+ 
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
