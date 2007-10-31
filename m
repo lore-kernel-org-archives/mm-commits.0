@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i386-and-x86_64-randomize-brk-fix-2.patch added to -mm tree
-Date: Wed, 31 Oct 2007 13:38:02 -0700
-Message-ID: <200710312038.l9VKc2tj027089@imap1.linux-foundation.org>
+Subject: + bluetooth-hidp_process_hid_control-remove-unnecessary-parameter-dealing.patch added to -mm tree
+Date: Wed, 31 Oct 2007 13:49:22 -0700
+Message-ID: <200710312049.l9VKnM5X027469@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47303 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47383 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754571AbXJaUi4 (ORCPT
+	by vger.kernel.org with ESMTP id S1753112AbXJaUtZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Oct 2007 16:38:56 -0400
+	Wed, 31 Oct 2007 16:49:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jkosina@suse.cz, arjan@infradead.org, hugh@veritas.com, jakub@redhat.com, mingo@elte.hu, roland@redhat.com, safari-kernel@safari.iki.fi, tglx@linutronix.de
+Cc: hidave.darkstar@gmail.com
 
 
 The patch titled
-     brk randomization: compute RLIMIT_DATA properly
+     bluetooth: hidp_process_hid_control remove unnecessary parameter dealing
 has been added to the -mm tree.  Its filename is
-     i386-and-x86_64-randomize-brk-fix-2.patch
+     bluetooth-hidp_process_hid_control-remove-unnecessary-parameter-dealing.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,67 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: brk randomization: compute RLIMIT_DATA properly
-From: Jiri Kosina <jkosina@suse.cz>
+Subject: bluetooth: hidp_process_hid_control remove unnecessary parameter dealing
+From: Dave Young <hidave.darkstar@gmail.com>
 
-In cases of heap area placed at randomly-generated offset from mm->end_data
-(arch_randomize_brk()), we need to subtract the value of the offset for
-setrlimit(RLIMIT_DATA) to work properly -- otherwise we count the
-unoccupied memory between mm->end_data and mm->start_brk as occupied.
+According to the bluetooth HID spec v1.0 chapter 7.4.2
 
-Tested-by: Sami Farin <safari-kernel@safari.iki.fi>
-Acked-by: Hugh Dickins <hugh@veritas.com>
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Jakub Jelinek <jakub@redhat.com>
+"This code requests a major state change in a BT-HID device.  A HID_CONTROL
+request does not generate a HANDSHAKE response."
+
+"A HID_CONTROL packet with a parameter of VIRTUAL_CABLE_UNPLUG is the only
+HID_CONTROL packet a device can send to a host.  A host will ignore all other
+packets."
+
+So in the hidp_precess_hid_control function, we just need to deal with the
+UNLUG packet.
+
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/bluetooth/hidp/core.c |   19 +------------------
+ 1 file changed, 1 insertion(+), 18 deletions(-)
 
-diff -puN mm/mmap.c~i386-and-x86_64-randomize-brk-fix-2 mm/mmap.c
---- a/mm/mmap.c~i386-and-x86_64-randomize-brk-fix-2
-+++ a/mm/mmap.c
-@@ -251,7 +251,8 @@ asmlinkage unsigned long sys_brk(unsigne
- 	 * not page aligned -Ram Gupta
- 	 */
- 	rlim = current->signal->rlim[RLIMIT_DATA].rlim_cur;
--	if (rlim < RLIM_INFINITY && brk - mm->start_data > rlim)
-+	if (rlim < RLIM_INFINITY && (brk - mm->start_brk) +
-+			(mm->end_data - mm->start_data) > rlim)
- 		goto out;
+diff -puN net/bluetooth/hidp/core.c~bluetooth-hidp_process_hid_control-remove-unnecessary-parameter-dealing net/bluetooth/hidp/core.c
+--- a/net/bluetooth/hidp/core.c~bluetooth-hidp_process_hid_control-remove-unnecessary-parameter-dealing
++++ a/net/bluetooth/hidp/core.c
+@@ -369,30 +369,13 @@ static inline void hidp_process_hid_cont
+ {
+ 	BT_DBG("session %p param 0x%02x", session, param);
  
- 	newbrk = PAGE_ALIGN(brk);
+-	switch (param) {
+-	case HIDP_CTRL_NOP:
+-		break;
+-
+-	case HIDP_CTRL_VIRTUAL_CABLE_UNPLUG:
++	if (param == HIDP_CTRL_VIRTUAL_CABLE_UNPLUG) {
+ 		/* Flush the transmit queues */
+ 		skb_queue_purge(&session->ctrl_transmit);
+ 		skb_queue_purge(&session->intr_transmit);
+ 
+ 		/* Kill session thread */
+ 		atomic_inc(&session->terminate);
+-		break;
+-
+-	case HIDP_CTRL_HARD_RESET:
+-	case HIDP_CTRL_SOFT_RESET:
+-	case HIDP_CTRL_SUSPEND:
+-	case HIDP_CTRL_EXIT_SUSPEND:
+-		/* FIXME: We have to parse these and return no error */
+-		break;
+-
+-	default:
+-		__hidp_send_ctrl_message(session,
+-			HIDP_TRANS_HANDSHAKE | HIDP_HSHK_ERR_INVALID_PARAMETER, NULL, 0);
+-		break;
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from jkosina@suse.cz are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
-origin.patch
-git-hid.patch
-make-wistron-btns-recognize-special-keys-on-medion-wim2160-notebooks.patch
-first-stab-at-elantech-touchpad-driver-for-26226-testers.patch
-fujitsu-application-panel-driver.patch
-fujitsu-application-panel-driver-space-savings.patch
-git-ipwireless_cs.patch
-i386-and-x86_64-randomize-brk.patch
-i386-and-x86_64-randomize-brk-fix.patch
-i386-and-x86_64-randomize-brk-fix-2.patch
-rtc-convert-mutex-to-bitfield.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
+gx-suspmodc-use-boot_cpu_data-instead-of-current_cpu_data.patch
+bluetooth-hidp_process_hid_control-remove-unnecessary-parameter-dealing.patch
+fix-param_sysfs_builtin-name-length-check.patch
