@@ -1,122 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - add-cmpxchg_local-to-ppc.patch removed from -mm tree
-Date: Wed, 31 Oct 2007 15:41:26 -0700
-Message-ID: <20071031224126.64C0D432BF5@localhost>
+Subject: - fix-m32r-__xchg.patch removed from -mm tree
+Date: Wed, 31 Oct 2007 15:41:14 -0700
+Message-ID: <20071031224114.87FD3432BF5@localhost>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.45.13]:61624 "EHLO
+Received: from smtp-out.google.com ([216.239.33.17]:24481 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760262AbXJaWnF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 31 Oct 2007 18:43:05 -0400
+	with ESMTP id S1760219AbXJaWnJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 31 Oct 2007 18:43:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, benh@kernel.crashing.org, gl@denx.de, paulus@samba.org, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, bunk@kernel.org, takata@linux-m32r.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add cmpxchg_local to ppc
+     Fix m32r __xchg
 has been removed from the -mm tree.  Its filename was
-     add-cmpxchg_local-to-ppc.patch
+     fix-m32r-__xchg.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Add cmpxchg_local to ppc
+Subject: Fix m32r __xchg
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Add a local processor version of cmpxchg for ppc.
+the #endif  /* CONFIG_SMP */ should cover the default condition, or it may cause
+bad parameter to be silently missed.
 
-Implements __cmpxchg_u32_local and uses it for 32 bits cmpxchg_local.
-It uses the non NMI safe cmpxchg_local_generic for 1, 2 and 8 bytes
-cmpxchg_local.
+To make it work correctly, we have to remove the ifdef CONFIG SMP surrounding
+__xchg_called_with_bad_pointer declaration. Thanks to Adrian Bunk for detecting
+this.
 
-Signed-off-by: Gunnar Larisch <gl@denx.de>
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Acked-by: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ppc/system.h |   49 ++++++++++++++++++++++++++++++++++++-
- 1 file changed, 48 insertions(+), 1 deletion(-)
+ include/asm-m32r/system.h |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN include/asm-ppc/system.h~add-cmpxchg_local-to-ppc include/asm-ppc/system.h
---- a/include/asm-ppc/system.h~add-cmpxchg_local-to-ppc
-+++ a/include/asm-ppc/system.h
-@@ -209,12 +209,34 @@ __cmpxchg_u32(volatile unsigned int *p, 
- 	return prev;
- }
+diff -puN include/asm-m32r/system.h~fix-m32r-__xchg include/asm-m32r/system.h
+--- a/include/asm-m32r/system.h~fix-m32r-__xchg
++++ a/include/asm-m32r/system.h
+@@ -127,9 +127,7 @@ static inline void local_irq_disable(voi
+ 	((__typeof__(*(ptr)))__xchg_local((unsigned long)(x),(ptr), \
+ 			sizeof(*(ptr))))
  
-+static __inline__ unsigned long
-+__cmpxchg_u32_local(volatile unsigned int *p, unsigned int old,
-+	unsigned int new)
-+{
-+	unsigned int prev;
-+
-+	__asm__ __volatile__ ("\n\
-+1:	lwarx	%0,0,%2 \n\
-+	cmpw	0,%0,%3 \n\
-+	bne	2f \n"
-+	PPC405_ERR77(0,%2)
-+"	stwcx.	%4,0,%2 \n\
-+	bne-	1b\n"
-+"2:"
-+	: "=&r" (prev), "=m" (*p)
-+	: "r" (p), "r" (old), "r" (new), "m" (*p)
-+	: "cc", "memory");
-+
-+	return prev;
-+}
-+
- /* This function doesn't exist, so you'll get a linker error
-    if something tries to do an invalid cmpxchg().  */
- extern void __cmpxchg_called_with_bad_pointer(void);
+-#ifdef CONFIG_SMP
+ extern void  __xchg_called_with_bad_pointer(void);
+-#endif
  
- static __inline__ unsigned long
--__cmpxchg(volatile void *ptr, unsigned long old, unsigned long new, int size)
-+__cmpxchg(volatile void *ptr, unsigned long old, unsigned long new,
-+	unsigned int size)
- {
- 	switch (size) {
- 	case 4:
-@@ -236,6 +258,31 @@ __cmpxchg(volatile void *ptr, unsigned l
- 				    (unsigned long)_n_, sizeof(*(ptr))); \
-   })
+ #ifdef CONFIG_CHIP_M32700_TS1
+ #define DCACHE_CLEAR(reg0, reg1, addr)				\
+@@ -189,9 +187,9 @@ __xchg(unsigned long x, volatile void * 
+ #endif	/* CONFIG_CHIP_M32700_TS1 */
+ 		);
+ 		break;
++#endif  /* CONFIG_SMP */
+ 	default:
+ 		__xchg_called_with_bad_pointer();
+-#endif  /* CONFIG_SMP */
+ 	}
  
-+#include <asm-generic/cmpxchg-local.h>
-+
-+static inline unsigned long __cmpxchg_local(volatile void *ptr,
-+				      unsigned long old,
-+				      unsigned long new, int size)
-+{
-+	switch (size) {
-+	case 4:
-+		return __cmpxchg_u32_local(ptr, old, new);
-+	default:
-+		return __cmpxchg_local_generic(ptr, old, new, size);
-+	}
-+
-+	return old;
-+}
-+
-+/*
-+ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
-+ * them available.
-+ */
-+#define cmpxchg_local(ptr,o,n)					  	\
-+     (__typeof__(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(o),	\
-+			   	 (unsigned long)(n), sizeof(*(ptr)))
-+#define cmpxchg64_local(ptr,o,n) __cmpxchg64_local_generic((ptr), (o), (n))
-+
- #define arch_align_stack(x) (x)
- 
- #endif /* __KERNEL__ */
+ 	local_irq_restore(flags);
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 local_t-documentation-update-2.patch
 markers-fix-warnings.patch
+fix-m32r-__xchg.patch
+m32r-build-fix-of-arch-m32r-kernel-smpbootc.patch
+local_t-m32r-use-architecture-specific-cmpxchg_local.patch
+add-cmpxchg_local-to-m86k.patch
+add-cmpxchg_local-to-m68knommu.patch
+add-cmpxchg_local-to-parisc.patch
 add-cmpxchg_local-to-ppc.patch
 add-cmpxchg_local-to-s390.patch
 add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32.patch
