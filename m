@@ -1,25 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: - hibernate-fix-lockdep-report.patch removed from -mm tree
-Date: Wed, 31 Oct 2007 13:07:45 -0700
-Message-ID: <200710312007.l9VK7j69023798@imap1.linux-foundation.org>
+Subject: + hibernate-fix-lockdep-report-2.patch added to -mm tree
+Date: Wed, 31 Oct 2007 13:08:25 -0700
+Message-ID: <200710312008.l9VK8PBX023933@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39373 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56625 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752336AbXJaUIt (ORCPT
+	by vger.kernel.org with ESMTP id S1753985AbXJaUJI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Oct 2007 16:08:49 -0400
+	Wed, 31 Oct 2007 16:09:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johannes@sipsolutions.net, a.p.zijlstra@chello.nl, pavel@ucw.cz, rjw@sisk.pl, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: johannes@sipsolutions.net, a.p.zijlstra@chello.nl, pavel@ucw.cz, rjw@sisk.pl, stern@rowland.harvard.edu
 
 
 The patch titled
      hibernate: fix lockdep report
-has been removed from the -mm tree.  Its filename was
-     hibernate-fix-lockdep-report.patch
+has been added to the -mm tree.  Its filename is
+     hibernate-fix-lockdep-report-2.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
 Subject: hibernate: fix lockdep report
@@ -39,7 +43,7 @@ initcall locking as being in a different class.
 Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
 Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
@@ -47,8 +51,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  kernel/power/disk.c |   12 +++++++++++-
  1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN kernel/power/disk.c~hibernate-fix-lockdep-report kernel/power/disk.c
---- a/kernel/power/disk.c~hibernate-fix-lockdep-report
+diff -puN kernel/power/disk.c~hibernate-fix-lockdep-report-2 kernel/power/disk.c
+--- a/kernel/power/disk.c~hibernate-fix-lockdep-report-2
 +++ a/kernel/power/disk.c
 @@ -456,7 +456,17 @@ static int software_resume(void)
  	int error;
@@ -65,7 +69,7 @@ diff -puN kernel/power/disk.c~hibernate-fix-lockdep-report kernel/power/disk.c
 +	 * sysfs can't be invoked yet. Therefore, we use a subclass
 +	 * here to avoid lockdep complaining.
 +	 */
-+	mutex_lock_nested(&pm_mutex, 1);
++	mutex_lock_nested(&pm_mutex, SINGLE_DEPTH_NESTING);
  	if (!swsusp_resume_device) {
  		if (!strlen(resume_file)) {
  			mutex_unlock(&pm_mutex);
@@ -79,4 +83,4 @@ fix-appletouch-geyser-1-breakage.patch
 fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
 git-kbuild.patch
 git-wireless.patch
-hibernate-fix-lockdep-report.patch
+hibernate-fix-lockdep-report-2.patch
