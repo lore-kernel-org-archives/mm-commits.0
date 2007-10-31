@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 31 Oct 2007 15:01:30 -0700
-Message-ID: <200710312201.l9VM1Ufg031067@imap1.linux-foundation.org>
+Subject: + maps4-make-page-monitoring-proc-file-optional-fix.patch added to -mm tree
+Date: Wed, 31 Oct 2007 15:06:06 -0700
+Message-ID: <200710312206.l9VM66tO031292@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33898 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53696 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761039AbXJaWDB (ORCPT
+	by vger.kernel.org with ESMTP id S1761871AbXJaWHb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Oct 2007 18:03:01 -0400
+	Wed, 31 Oct 2007 18:07:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org, yamamoto@valinux.co.jp
+Cc: akpm@linux-foundation.org, haveblue@us.ibm.com, mpm@selenic.com
 
 
 The patch titled
-     memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes
+     maps4-make-page-monitoring-proc-file-optional-fix
 has been added to the -mm tree.  Its filename is
-     memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+     maps4-make-page-monitoring-proc-file-optional-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,50 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes
+Subject: maps4-make-page-monitoring-proc-file-optional-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: use tabs not spaces
-#65: FILE: mm/memcontrol.c:62:
-+                enum mem_cgroup_stat_index idx, int val)$
+this isn't supported any more (in Sam's tree, at least)
 
-total: 1 errors, 0 warnings, 118 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Paul Menage <menage@google.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
+ init/Kconfig |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes mm/memcontrol.c
---- a/mm/memcontrol.c~memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes
-+++ a/mm/memcontrol.c
-@@ -59,7 +59,7 @@ struct mem_cgroup_stat {
-  * modifies value with disabling preempt.
-  */
- static inline void __mem_cgroup_stat_add(struct mem_cgroup_stat *stat,
--                enum mem_cgroup_stat_index idx, int val)
-+					enum mem_cgroup_stat_index idx, int val)
- {
- 	int cpu = smp_processor_id();
- 	preempt_disable();
+diff -puN init/Kconfig~maps4-make-page-monitoring-proc-file-optional-fix init/Kconfig
+--- a/init/Kconfig~maps4-make-page-monitoring-proc-file-optional-fix
++++ a/init/Kconfig
+@@ -658,7 +658,7 @@ endchoice
+ 
+ config PROC_PAGE_MONITOR
+  	default y
+-	depends PROC_FS && MMU
++	depends on PROC_FS && MMU
+ 	bool "Enable /proc page monitoring" if EMBEDDED
+  	help
+ 	  Various /proc files exist to monitor process memory utilization:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -118,6 +99,7 @@ slub-provide-unique-end-marker-for-each-slab-fix.patch
 slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
 slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix.patch
 bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
 hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
@@ -155,6 +137,7 @@ memory-controller-oom-handling-v7.patch
 memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
 memcontrol-move-oom-task-exclusion-to-tasklist.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
 drivers-edac-add-marvell-mv64x60-driver-fix.patch
 introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
 iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
