@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch added to -mm tree
-Date: Wed, 31 Oct 2007 14:59:50 -0700
-Message-ID: <200710312159.l9VLxo6b030936@imap1.linux-foundation.org>
+Subject: + memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch added to -mm tree
+Date: Wed, 31 Oct 2007 14:59:41 -0700
+Message-ID: <200710312159.l9VLxfYu030932@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54670 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58201 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760410AbXJaWBZ (ORCPT
+	by vger.kernel.org with ESMTP id S1760617AbXJaWBO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Oct 2007 18:01:25 -0400
+	Wed, 31 Oct 2007 18:01:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ib
 
 
 The patch titled
-     memory cgroup enhancements: remember "a page is on active list of cgroup or not"
+     memory cgroup enhancements: remember "a page is charged as page cache"
 has been added to the -mm tree.  Its filename is
-     memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+     memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,10 +26,15 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memory cgroup enhancements: remember "a page is on active list of cgroup or not"
+Subject: memory cgroup enhancements: remember "a page is charged as page cache"
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Remember page_cgroup is on active_list or not in page_cgroup->flags.
+Add a flag to page_cgroup to remember "this page is
+charged as cache."
+cache here includes page caches and swap cache.
+This is useful for implementing precise accounting in memory cgroup.
+TODO:
+  distinguish page-cache and swap-cache
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
@@ -46,45 +51,79 @@ Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |   24 +++++++++++++++++++++---
+ 1 file changed, 21 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not mm/memcontrol.c
---- a/mm/memcontrol.c~memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not
+diff -puN mm/memcontrol.c~memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache
 +++ a/mm/memcontrol.c
-@@ -86,6 +86,7 @@ struct page_cgroup {
- 	int	 flags;
+@@ -83,7 +83,9 @@ struct page_cgroup {
+ 	struct mem_cgroup *mem_cgroup;
+ 	atomic_t ref_cnt;		/* Helpful when pages move b/w  */
+ 					/* mapped and cached states     */
++	int	 flags;
  };
- #define PAGE_CGROUP_FLAG_CACHE	(0x1)	/* charged as cache */
-+#define PAGE_CGROUP_FLAG_ACTIVE (0x2)	/* page is active in this cgroup */
++#define PAGE_CGROUP_FLAG_CACHE	(0x1)	/* charged as cache */
  
  enum {
  	MEM_CGROUP_TYPE_UNSPEC = 0,
-@@ -213,10 +214,13 @@ clear_page_cgroup(struct page *page, str
+@@ -93,6 +95,11 @@ enum {
+ 	MEM_CGROUP_TYPE_MAX,
+ };
  
- static void __mem_cgroup_move_lists(struct page_cgroup *pc, bool active)
++enum charge_type {
++	MEM_CGROUP_CHARGE_TYPE_CACHE = 0,
++	MEM_CGROUP_CHARGE_TYPE_MAPPED,
++};
++
+ static struct mem_cgroup init_mem_cgroup;
+ 
+ static inline
+@@ -315,8 +322,8 @@ unsigned long mem_cgroup_isolate_pages(u
+  * 0 if the charge was successful
+  * < 0 if the cgroup is over its limit
+  */
+-int mem_cgroup_charge(struct page *page, struct mm_struct *mm,
+-				gfp_t gfp_mask)
++static int mem_cgroup_charge_common(struct page *page, struct mm_struct *mm,
++				gfp_t gfp_mask, enum charge_type ctype)
  {
--	if (active)
-+	if (active) {
-+		pc->flags |= PAGE_CGROUP_FLAG_ACTIVE;
- 		list_move(&pc->lru, &pc->mem_cgroup->active_list);
--	else
-+	} else {
-+		pc->flags &= ~PAGE_CGROUP_FLAG_ACTIVE;
- 		list_move(&pc->lru, &pc->mem_cgroup->inactive_list);
-+	}
- }
- 
- int task_in_mem_cgroup(struct task_struct *task, const struct mem_cgroup *mem)
-@@ -425,7 +429,7 @@ noreclaim:
+ 	struct mem_cgroup *mem;
+ 	struct page_cgroup *pc;
+@@ -418,6 +425,9 @@ noreclaim:
  	atomic_set(&pc->ref_cnt, 1);
  	pc->mem_cgroup = mem;
  	pc->page = page;
--	pc->flags = 0;
-+	pc->flags = PAGE_CGROUP_FLAG_ACTIVE;
- 	if (ctype == MEM_CGROUP_CHARGE_TYPE_CACHE)
- 		pc->flags |= PAGE_CGROUP_FLAG_CACHE;
++	pc->flags = 0;
++	if (ctype == MEM_CGROUP_CHARGE_TYPE_CACHE)
++		pc->flags |= PAGE_CGROUP_FLAG_CACHE;
  	if (page_cgroup_assign_new_page_cgroup(page, pc)) {
+ 		/*
+ 		 * an another charge is added to this page already.
+@@ -442,6 +452,13 @@ err:
+ 	return -ENOMEM;
+ }
+ 
++int mem_cgroup_charge(struct page *page, struct mm_struct *mm,
++			gfp_t gfp_mask)
++{
++	return mem_cgroup_charge_common(page, mm, gfp_mask,
++			MEM_CGROUP_CHARGE_TYPE_MAPPED);
++}
++
+ /*
+  * See if the cached pages should be charged at all?
+  */
+@@ -454,7 +471,8 @@ int mem_cgroup_cache_charge(struct page 
+ 
+ 	mem = rcu_dereference(mm->mem_cgroup);
+ 	if (mem->control_type == MEM_CGROUP_TYPE_ALL)
+-		return mem_cgroup_charge(page, mm, gfp_mask);
++		return mem_cgroup_charge_common(page, mm, gfp_mask,
++				MEM_CGROUP_CHARGE_TYPE_CACHE);
+ 	else
+ 		return 0;
+ }
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
