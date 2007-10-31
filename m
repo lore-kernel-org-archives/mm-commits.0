@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maps4-make-page-monitoring-proc-file-optional-fix.patch added to -mm tree
-Date: Wed, 31 Oct 2007 15:06:06 -0700
-Message-ID: <200710312206.l9VM66tO031292@imap1.linux-foundation.org>
+Subject: + memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch added to -mm tree
+Date: Wed, 31 Oct 2007 15:14:24 -0700
+Message-ID: <200710312214.l9VMEOQ7031750@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53696 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33306 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761871AbXJaWHb (ORCPT
+	by vger.kernel.org with ESMTP id S1752435AbXJaWPU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Oct 2007 18:07:31 -0400
+	Wed, 31 Oct 2007 18:15:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, haveblue@us.ibm.com, mpm@selenic.com
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org, yamamoto@valinux.co.jp
 
 
 The patch titled
-     maps4-make-page-monitoring-proc-file-optional-fix
+     memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1
 has been added to the -mm tree.  Its filename is
-     maps4-make-page-monitoring-proc-file-optional-fix.patch
+     memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,31 +26,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: maps4-make-page-monitoring-proc-file-optional-fix
+Subject: memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1
 From: Andrew Morton <akpm@linux-foundation.org>
 
-this isn't supported any more (in Sam's tree, at least)
-
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Matt Mackall <mpm@selenic.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Paul Menage <menage@google.com>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN init/Kconfig~maps4-make-page-monitoring-proc-file-optional-fix init/Kconfig
---- a/init/Kconfig~maps4-make-page-monitoring-proc-file-optional-fix
-+++ a/init/Kconfig
-@@ -658,7 +658,7 @@ endchoice
+diff -puN mm/memcontrol.c~memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1 mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1
++++ a/mm/memcontrol.c
+@@ -21,6 +21,7 @@
+ #include <linux/memcontrol.h>
+ #include <linux/cgroup.h>
+ #include <linux/mm.h>
++#include <linux/smp.h>
+ #include <linux/page-flags.h>
+ #include <linux/backing-dev.h>
+ #include <linux/bit_spinlock.h>
+@@ -61,10 +62,10 @@ struct mem_cgroup_stat {
+ static inline void __mem_cgroup_stat_add(struct mem_cgroup_stat *stat,
+ 					enum mem_cgroup_stat_index idx, int val)
+ {
+-	int cpu = smp_processor_id();
+-	preempt_disable();
++	int cpu = get_cpu();
++
+ 	stat->cpustat[cpu].count[idx] += val;
+-	preempt_enable();
++	put_cpu();
+ }
  
- config PROC_PAGE_MONITOR
-  	default y
--	depends PROC_FS && MMU
-+	depends on PROC_FS && MMU
- 	bool "Enable /proc page monitoring" if EMBEDDED
-  	help
- 	  Various /proc files exist to monitor process memory utilization:
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -138,6 +159,8 @@ memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
 memcontrol-move-oom-task-exclusion-to-tasklist.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
 drivers-edac-add-marvell-mv64x60-driver-fix.patch
 introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
 iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
