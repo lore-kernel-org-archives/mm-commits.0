@@ -1,87 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - add-cmpxchg_local-to-avr32.patch removed from -mm tree
-Date: Wed, 31 Oct 2007 15:41:00 -0700
-Message-ID: <20071031224100.8595E432BF5@localhost>
+Subject: - add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch removed from -mm tree
+Date: Wed, 31 Oct 2007 15:41:10 -0700
+Message-ID: <20071031224110.76064432BF5@localhost>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.45.13]:61539 "EHLO
+Received: from smtp-out.google.com ([216.239.45.13]:61600 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759777AbXJaWmi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 31 Oct 2007 18:42:38 -0400
+	with ESMTP id S1760673AbXJaWm4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 31 Oct 2007 18:42:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, hskinnemoen@atmel.com, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, clameter@sgi.com, kaos@ocs.com.au, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add cmpxchg_local to avr32
+     Add cmpxchg_local, cmpxchg64 and cmpxchg64_local to ia64
 has been removed from the -mm tree.  Its filename was
-     add-cmpxchg_local-to-avr32.patch
+     add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Add cmpxchg_local to avr32
+Subject: Add cmpxchg_local, cmpxchg64 and cmpxchg64_local to ia64
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Use the new generic cmpxchg_local (disables interrupt) for 8, 16 and 64 bits
-cmpxchg_local. Use the __cmpxchg_u32 primitive for 32 bits cmpxchg_local.
+Add the primitives cmpxchg_local, cmpxchg64 and cmpxchg64_local to ia64. They
+use cmpxchg_acq as underlying macro, just like the already existing ia64
+cmpxchg().
 
-Note that cmpxchg only uses the __cmpxchg_u32 or __cmpxchg_u64 and will cause
-a linker error if called with 8 or 16 bits argument.
+Changelog:
+
+ia64 cmpxchg_local coding style fix
+Quoting Keith Owens:
+
+As a matter of coding style, I prefer
+
+#define cmpxchg_local   cmpxchg
+#define cmpxchg64_local cmpxchg64
+
+Which makes it absolutely clear that they are the same code.  With your
+patch, humans have to do a string compare of two defines to see if they
+are the same.
+
+Note cmpxchg is *not* a performance win vs interrupt disable / enable on IA64.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Acked-by: Christoph Lameter <clameter@sgi.com>
+Cc: Keith Owens <kaos@ocs.com.au>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-avr32/system.h |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ include/asm-ia64/intrinsics.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN include/asm-avr32/system.h~add-cmpxchg_local-to-avr32 include/asm-avr32/system.h
---- a/include/asm-avr32/system.h~add-cmpxchg_local-to-avr32
-+++ a/include/asm-avr32/system.h
-@@ -145,6 +145,29 @@ static inline unsigned long __cmpxchg(vo
- 				   (unsigned long)(new),	\
- 				   sizeof(*(ptr))))
+diff -puN include/asm-ia64/intrinsics.h~add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64 include/asm-ia64/intrinsics.h
+--- a/include/asm-ia64/intrinsics.h~add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64
++++ a/include/asm-ia64/intrinsics.h
+@@ -158,6 +158,10 @@ extern long ia64_cmpxchg_called_with_bad
  
-+#include <asm-generic/cmpxchg-local.h>
+ /* for compatibility with other platforms: */
+ #define cmpxchg(ptr,o,n)	cmpxchg_acq(ptr,o,n)
++#define cmpxchg64(ptr,o,n)	cmpxchg_acq(ptr,o,n)
 +
-+static inline unsigned long __cmpxchg_local(volatile void *ptr,
-+				      unsigned long old,
-+				      unsigned long new, int size)
-+{
-+	switch (size) {
-+	case 4:
-+		return __cmpxchg_u32(ptr, old, new);
-+	default:
-+		return __cmpxchg_local_generic(ptr, old, new, size);
-+	}
-+
-+	return old;
-+}
-+
-+#define cmpxchg_local(ptr, old, new)					\
-+	((typeof(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(old),	\
-+				   (unsigned long)(new),		\
-+				   sizeof(*(ptr))))
-+
-+#define cmpxchg64_local(ptr,o,n) __cmpxchg64_local_generic((ptr), (o), (n))
-+
- struct pt_regs;
- void NORET_TYPE die(const char *str, struct pt_regs *regs, long err);
- void _exception(long signr, struct pt_regs *regs, int code,
++#define cmpxchg_local		cmpxchg
++#define cmpxchg64_local		cmpxchg64
+ 
+ #ifdef CONFIG_IA64_DEBUG_CMPXCHG
+ # define CMPXCHG_BUGCHECK_DECL	int _cmpxchg_bugcheck_count = 128;
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 local_t-documentation-update-2.patch
 markers-fix-warnings.patch
-add-cmpxchg_local-to-avr32.patch
-add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
-add-cmpxchg_local-to-cris.patch
-add-cmpxchg_local-to-frv.patch
-add-cmpxchg_local-to-h8300.patch
 add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
 new-cmpxchg_local-optimized-for-up-case-for-m32r.patch
 fix-m32r-__xchg.patch
