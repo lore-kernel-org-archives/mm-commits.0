@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch added to -mm tree
-Date: Wed, 31 Oct 2007 15:14:24 -0700
-Message-ID: <200710312214.l9VMEOQ7031750@imap1.linux-foundation.org>
+Subject: + memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch added to -mm tree
+Date: Wed, 31 Oct 2007 15:14:27 -0700
+Message-ID: <200710312214.l9VMERlf031753@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33306 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56536 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752435AbXJaWPU (ORCPT
+	by vger.kernel.org with ESMTP id S1752870AbXJaWPZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Oct 2007 18:15:20 -0400
+	Wed, 31 Oct 2007 18:15:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com
 
 
 The patch titled
-     memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1
+     memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining
 has been added to the -mm tree.  Its filename is
-     memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+     memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1
+Subject: memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -44,34 +44,89 @@ Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |   22 +++++++++-------------
+ 1 file changed, 9 insertions(+), 13 deletions(-)
 
-diff -puN mm/memcontrol.c~memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1 mm/memcontrol.c
---- a/mm/memcontrol.c~memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1
+diff -puN mm/memcontrol.c~memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining
 +++ a/mm/memcontrol.c
-@@ -21,6 +21,7 @@
- #include <linux/memcontrol.h>
- #include <linux/cgroup.h>
- #include <linux/mm.h>
-+#include <linux/smp.h>
- #include <linux/page-flags.h>
- #include <linux/backing-dev.h>
- #include <linux/bit_spinlock.h>
-@@ -61,10 +62,10 @@ struct mem_cgroup_stat {
- static inline void __mem_cgroup_stat_add(struct mem_cgroup_stat *stat,
+@@ -59,7 +59,7 @@ struct mem_cgroup_stat {
+ /*
+  * modifies value with disabling preempt.
+  */
+-static inline void __mem_cgroup_stat_add(struct mem_cgroup_stat *stat,
++static void __mem_cgroup_stat_add(struct mem_cgroup_stat *stat,
  					enum mem_cgroup_stat_index idx, int val)
  {
--	int cpu = smp_processor_id();
--	preempt_disable();
-+	int cpu = get_cpu();
-+
+ 	int cpu = get_cpu();
+@@ -71,14 +71,14 @@ static inline void __mem_cgroup_stat_add
+ /*
+  * For accounting under irq disable, no need for increment preempt count.
+  */
+-static inline void __mem_cgroup_stat_add_safe(struct mem_cgroup_stat *stat,
++static void __mem_cgroup_stat_add_safe(struct mem_cgroup_stat *stat,
+ 		enum mem_cgroup_stat_index idx, int val)
+ {
+ 	int cpu = smp_processor_id();
  	stat->cpustat[cpu].count[idx] += val;
--	preempt_enable();
-+	put_cpu();
  }
  
+-static inline s64 mem_cgroup_read_stat(struct mem_cgroup_stat *stat,
++static s64 mem_cgroup_read_stat(struct mem_cgroup_stat *stat,
+ 		enum mem_cgroup_stat_index idx)
+ {
+ 	int cpu;
+@@ -162,8 +162,8 @@ enum charge_type {
  /*
+  * Always modified under lru lock. Then, not necessary to preempt_disable()
+  */
+-static inline void
+-mem_cgroup_charge_statistics(struct mem_cgroup *mem, int flags, bool charge)
++static void mem_cgroup_charge_statistics(struct mem_cgroup *mem, int flags,
++					bool charge)
+ {
+ 	int val = (charge)? 1 : -1;
+ 	struct mem_cgroup_stat *stat = &mem->stat;
+@@ -177,9 +177,6 @@ mem_cgroup_charge_statistics(struct mem_
+ 
+ }
+ 
+-
+-
+-
+ static struct mem_cgroup init_mem_cgroup;
+ 
+ static inline
+@@ -254,8 +251,8 @@ static void __always_inline unlock_page_
+  * This can fail if the page has been tied to a page_cgroup.
+  * If success, returns 0.
+  */
+-static inline int
+-page_cgroup_assign_new_page_cgroup(struct page *page, struct page_cgroup *pc)
++static int page_cgroup_assign_new_page_cgroup(struct page *page,
++						struct page_cgroup *pc)
+ {
+ 	int ret = 0;
+ 
+@@ -277,8 +274,8 @@ page_cgroup_assign_new_page_cgroup(struc
+  *  clear_page_cgroup(page, pc) == pc
+  */
+ 
+-static inline struct page_cgroup *
+-clear_page_cgroup(struct page *page, struct page_cgroup *pc)
++static struct page_cgroup *clear_page_cgroup(struct page *page,
++						struct page_cgroup *pc)
+ {
+ 	struct page_cgroup *ret;
+ 	/* lock and clear */
+@@ -290,7 +287,6 @@ clear_page_cgroup(struct page *page, str
+ 	return ret;
+ }
+ 
+-
+ static void __mem_cgroup_move_lists(struct page_cgroup *pc, bool active)
+ {
+ 	if (active) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
