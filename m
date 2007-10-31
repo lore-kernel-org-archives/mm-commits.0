@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-cmpxchg_local-to-parisc.patch added to -mm tree
-Date: Wed, 31 Oct 2007 14:16:22 -0700
-Message-ID: <200710312116.l9VLGM9r028523@imap1.linux-foundation.org>
+Subject: + acpi-expose-_sun-in-proc-acpi-processor-info.patch added to -mm tree
+Date: Wed, 31 Oct 2007 14:34:28 -0700
+Message-ID: <200710312134.l9VLYSfF029893@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47724 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53982 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753809AbXJaVZR (ORCPT
+	by vger.kernel.org with ESMTP id S1753240AbXJaVec (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 31 Oct 2007 17:25:17 -0400
+	Wed, 31 Oct 2007 17:34:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, grundler@parisc-linux.org, kyle@mcmartin.ca, willy@debian.org
+Cc: achiang@hp.com
 
 
 The patch titled
-     Add cmpxchg_local to parisc
+     acpi: expose _SUN in /proc/acpi/processor/<...>/info
 has been added to the -mm tree.  Its filename is
-     add-cmpxchg_local-to-parisc.patch
+     acpi-expose-_sun-in-proc-acpi-processor-info.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,90 +26,64 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add cmpxchg_local to parisc
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: acpi: expose _SUN in /proc/acpi/processor/<...>/info
+From: Alex Chiang <achiang@hp.com>
 
-Use the new generic cmpxchg_local (disables interrupt). Also use the generic
-cmpxchg as fallback if SMP is not set.
+On platforms that provide _SUN for the processor object, higher
+level software can consume the data to learn physical topology
+information, so let's expose it.
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Matthew Wilcox <willy@debian.org>
+Platforms that do not implement _SUN will see <not supported>.
+
+Signed-off-by: Alex Chiang <achiang@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-parisc/atomic.h |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ drivers/acpi/processor_core.c |   11 +++++++++++
+ include/acpi/processor.h      |    1 +
+ 2 files changed, 12 insertions(+)
 
-diff -puN include/asm-parisc/atomic.h~add-cmpxchg_local-to-parisc include/asm-parisc/atomic.h
---- a/include/asm-parisc/atomic.h~add-cmpxchg_local-to-parisc
-+++ a/include/asm-parisc/atomic.h
-@@ -122,6 +122,35 @@ __cmpxchg(volatile void *ptr, unsigned l
- 				    (unsigned long)_n_, sizeof(*(ptr))); \
-   })
+diff -puN drivers/acpi/processor_core.c~acpi-expose-_sun-in-proc-acpi-processor-info drivers/acpi/processor_core.c
+--- a/drivers/acpi/processor_core.c~acpi-expose-_sun-in-proc-acpi-processor-info
++++ a/drivers/acpi/processor_core.c
+@@ -302,6 +302,11 @@ static int acpi_processor_info_seq_show(
+ 		   pr->flags.throttling ? "yes" : "no",
+ 		   pr->flags.limit ? "yes" : "no");
  
-+#include <asm-generic/cmpxchg-local.h>
++	if (pr->sun == -1)
++		seq_printf(seq, "slot user number:        <not supported>\n");
++	else
++		seq_printf(seq, "slot user number:        %d\n", (int)pr->sun);
 +
-+static inline unsigned long __cmpxchg_local(volatile void *ptr,
-+				      unsigned long old,
-+				      unsigned long new_, int size)
-+{
-+	switch (size) {
-+#ifdef CONFIG_64BIT
-+	case 8:	return __cmpxchg_u64((unsigned long *)ptr, old, new_);
-+#endif
-+	case 4:	return __cmpxchg_u32(ptr, old, new_);
-+	default:
-+		return __cmpxchg_local_generic(ptr, old, new_, size);
-+	}
-+}
+       end:
+ 	return 0;
+ }
+@@ -590,6 +595,12 @@ static int acpi_processor_get_info(struc
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Processor [%d:%d]\n", pr->id,
+ 			  pr->acpi_id));
+ 
++	status = acpi_evaluate_object(pr->handle, "_SUN", NULL, &buffer);
++	if (ACPI_FAILURE(status))
++		object.integer.value = -1;
 +
-+/*
-+ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
-+ * them available.
-+ */
-+#define cmpxchg_local(ptr,o,n)					  	\
-+     (__typeof__(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(o),	\
-+			   	 (unsigned long)(n), sizeof(*(ptr)))
-+#ifdef CONFIG_64BIT
-+#define cmpxchg64_local(ptr,o,n) cmpxchg_local((ptr), (o), (n))
-+#else
-+#define cmpxchg64_local(ptr,o,n) __cmpxchg64_local_generic((ptr), (o), (n))
-+#endif
++	pr->sun = object.integer.value;
 +
- /* Note that we need not lock read accesses - aligned word writes/reads
-  * are atomic, so a reader never sees unconsistent values.
-  *
+ 	if (!object.processor.pblk_address)
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No PBLK (NULL address)\n"));
+ 	else if (object.processor.pblk_length != 6)
+diff -puN include/acpi/processor.h~acpi-expose-_sun-in-proc-acpi-processor-info include/acpi/processor.h
+--- a/include/acpi/processor.h~acpi-expose-_sun-in-proc-acpi-processor-info
++++ a/include/acpi/processor.h
+@@ -210,6 +210,7 @@ struct acpi_processor {
+ 	u32 acpi_id;
+ 	u32 id;
+ 	u32 pblk;
++	acpi_native_int sun;
+ 	int performance_platform_limit;
+ 	int throttling_platform_limit;
+ 	/* 0 - states 0..n-th state available */
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from achiang@hp.com are
 
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-fall-back-on-interrupt-disable-in-cmpxchg8b-on-80386-and-80486.patch
-add-cmpxchg64-and-cmpxchg64_local-to-alpha.patch
-add-cmpxchg64-and-cmpxchg64_local-to-mips.patch
-add-cmpxchg64-and-cmpxchg64_local-to-powerpc.patch
-add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
-add-cmpxchg_local-to-arm.patch
-add-cmpxchg_local-to-avr32.patch
-add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
-add-cmpxchg_local-to-cris.patch
-add-cmpxchg_local-to-frv.patch
-add-cmpxchg_local-to-h8300.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-new-cmpxchg_local-optimized-for-up-case-for-m32r.patch
-fix-m32r-__xchg.patch
-m32r-build-fix-of-arch-m32r-kernel-smpbootc.patch
-local_t-m32r-use-architecture-specific-cmpxchg_local.patch
-add-cmpxchg_local-to-m86k.patch
-add-cmpxchg_local-to-m68knommu.patch
-add-cmpxchg_local-to-parisc.patch
-add-cmpxchg_local-to-ppc.patch
-add-cmpxchg_local-to-s390.patch
-add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32.patch
-add-cmpxchg_local-to-sh64.patch
-add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
-add-cmpxchg_local-to-sparc64.patch
-add-cmpxchg_local-to-v850.patch
-add-cmpxchg_local-to-xtensa.patch
+acpi-expose-_sun-in-proc-acpi-processor-info.patch
