@@ -1,116 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: - eradicate-bashisms-in-scripts-patch-kernel.patch removed from -mm tree
-Date: Thu, 01 Nov 2007 10:44:49 -0700
-Message-ID: <200711011744.lA1Hingo007909@imap1.linux-foundation.org>
+Subject: + forbid-user-to-change-file-flags-on-quota-files.patch added to -mm tree
+Date: Thu, 01 Nov 2007 10:55:26 -0700
+Message-ID: <200711011755.lA1HtQJ4008301@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45435 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42647 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754720AbXKARpC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 13:45:02 -0400
+	by vger.kernel.org with ESMTP id S1752810AbXKAR44 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 13:56:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@lisas.de, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jack@suse.cz, linux-ext4@vger.kernel.org, lioupayphone@gmail.com, reiserfs-dev@namesys.com, shaggy@austin.ibm.com
 
 
 The patch titled
-     eradicate bashisms in scripts/patch-kernel
-has been removed from the -mm tree.  Its filename was
-     eradicate-bashisms-in-scripts-patch-kernel.patch
+     Forbid user to change file flags on quota files
+has been added to the -mm tree.  Its filename is
+     forbid-user-to-change-file-flags-on-quota-files.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: eradicate bashisms in scripts/patch-kernel
-From: Andreas Mohr <andi@lisas.de>
+Subject: Forbid user to change file flags on quota files
+From: Jan Kara <jack@suse.cz>
 
-I was non-mildly horrified to find that the rather widely used patch-kernel
-script seems to rely on bash despite specifying the interpreter as #!/bin/sh,
-since my dash-using Debian install choked on it.
+Forbid user from changing file flags on quota files.  User has no bussiness
+in playing with these flags when quota is on.  Furthermore there is a
+remote possibility of deadlock due to a lock inversion between quota file's
+i_mutex and transaction's start (i_mutex for quota file is locked only when
+trasaction is started in quota operations) in ext3 and ext4.
 
-- replace "==" by "="
-
-- the "source" statement most likely needs the ./ prepended, as can be
-  gathered from e.g. 
-  http://osdir.com/ml/colinux.devel/2005-12/msg00036.html
-
-- the newly replaced sed expression below: is it ok? correct? strict enough?
-
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: LIOU Payphone <lioupayphone@gmail.com>
+Cc: <linux-ext4@vger.kernel.org>
+Cc: Dave Kleikamp <shaggy@austin.ibm.com>
+Cc: <reiserfs-dev@namesys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/patch-kernel |   20 +++++++-------------
- 1 file changed, 7 insertions(+), 13 deletions(-)
+ fs/ext2/ioctl.c     |    5 +++++
+ fs/ext3/ioctl.c     |    5 +++++
+ fs/ext4/ioctl.c     |    5 +++++
+ fs/jfs/ioctl.c      |    3 +++
+ fs/reiserfs/ioctl.c |    3 +++
+ 5 files changed, 21 insertions(+)
 
-diff -puN scripts/patch-kernel~eradicate-bashisms-in-scripts-patch-kernel scripts/patch-kernel
---- a/scripts/patch-kernel~eradicate-bashisms-in-scripts-patch-kernel
-+++ a/scripts/patch-kernel
-@@ -65,7 +65,7 @@ sourcedir=${1-/usr/src/linux}
- patchdir=${2-.}
- stopvers=${3-default}
+diff -puN fs/ext2/ioctl.c~forbid-user-to-change-file-flags-on-quota-files fs/ext2/ioctl.c
+--- a/fs/ext2/ioctl.c~forbid-user-to-change-file-flags-on-quota-files
++++ a/fs/ext2/ioctl.c
+@@ -47,6 +47,11 @@ int ext2_ioctl (struct inode * inode, st
+ 			flags &= ~EXT2_DIRSYNC_FL;
  
--if [ "$1" == -h -o "$1" == --help -o ! -r "$sourcedir/Makefile" ]; then
-+if [ "$1" = "-h" -o "$1" = "--help" -o ! -r "$sourcedir/Makefile" ]; then
- cat << USAGE
- usage: $PNAME [-h] [ sourcedir [ patchdir [ stopversion ] [ -acxx ] ] ]
-   source directory defaults to /usr/src/linux,
-@@ -185,7 +185,7 @@ reversePatch () {
- TMPFILE=`mktemp .tmpver.XXXXXX` || { echo "cannot make temp file" ; exit 1; }
- grep -E "^(VERSION|PATCHLEVEL|SUBLEVEL|EXTRAVERSION)" $sourcedir/Makefile > $TMPFILE
- tr -d [:blank:] < $TMPFILE > $TMPFILE.1
--source $TMPFILE.1
-+. ./$TMPFILE.1
- rm -f $TMPFILE*
- if [ -z "$VERSION" -o -z "$PATCHLEVEL" -o -z "$SUBLEVEL" ]
- then
-@@ -202,13 +202,7 @@ echo "Current kernel version is $VERSION
- EXTRAVER=
- if [ x$EXTRAVERSION != "x" ]
- then
--	if [ ${EXTRAVERSION:0:1} == "." ]; then
--		EXTRAVER=${EXTRAVERSION:1}
--	else
--		EXTRAVER=$EXTRAVERSION
--	fi
--	EXTRAVER=${EXTRAVER%%[[:punct:]]*}
--	#echo "$PNAME: changing EXTRAVERSION from $EXTRAVERSION to $EXTRAVER"
-+	EXTRAVER=`echo $EXTRAVERSION|sed -s 's/^[\.]\?\([^[:punct:]]*\).*/\1/'`
- fi
+ 		mutex_lock(&inode->i_mutex);
++		/* Is it quota file? Don't allow user mess with it */
++		if (IS_NOQUOTA(inode)) {
++			mutex_unlock(&inode->i_mutex);
++			return -EPERM;
++		}
+ 		oldflags = ei->i_flags;
  
- #echo "stopvers=$stopvers"
-@@ -251,16 +245,16 @@ while :				# incrementing SUBLEVEL (s in
- do
-     CURRENTFULLVERSION="$VERSION.$PATCHLEVEL.$SUBLEVEL"
-     EXTRAVER=
--    if [ $stopvers == $CURRENTFULLVERSION ]; then
-+    if [ $stopvers = $CURRENTFULLVERSION ]; then
-         echo "Stopping at $CURRENTFULLVERSION base as requested."
-         break
-     fi
+ 		/*
+diff -puN fs/ext3/ioctl.c~forbid-user-to-change-file-flags-on-quota-files fs/ext3/ioctl.c
+--- a/fs/ext3/ioctl.c~forbid-user-to-change-file-flags-on-quota-files
++++ a/fs/ext3/ioctl.c
+@@ -51,6 +51,11 @@ int ext3_ioctl (struct inode * inode, st
+ 			flags &= ~EXT3_DIRSYNC_FL;
  
--    SUBLEVEL=$((SUBLEVEL + 1))
-+    SUBLEVEL=$(( $SUBLEVEL + 1 ))
-     FULLVERSION="$VERSION.$PATCHLEVEL.$SUBLEVEL"
-     #echo "#___ trying $FULLVERSION ___"
+ 		mutex_lock(&inode->i_mutex);
++		/* Is it quota file? Don't allow user mess with it */
++		if (IS_NOQUOTA(inode)) {
++			mutex_unlock(&inode->i_mutex);
++			return -EPERM;
++		}
+ 		oldflags = ei->i_flags;
  
--    if [ $((SUBLEVEL)) -gt $((STOPSUBLEVEL)) ]; then
-+    if [ $SUBLEVEL -gt $STOPSUBLEVEL ]; then
- 	echo "Stopping since sublevel ($SUBLEVEL) is beyond stop-sublevel ($STOPSUBLEVEL)"
- 	exit 1
-     fi
-@@ -297,7 +291,7 @@ fi
- if [ x$gotac != x ]; then
-   # Out great user wants the -ac patches
- 	# They could have done -ac (get latest) or -acxx where xx=version they want
--	if [ $gotac == "-ac" ]; then
-+	if [ $gotac = "-ac" ]; then
- 	  # They want the latest version
- 		HIGHESTPATCH=0
- 		for PATCHNAMES in $patchdir/patch-${CURRENTFULLVERSION}-ac*\.*
+ 		/* The JOURNAL_DATA flag is modifiable only by root */
+diff -puN fs/ext4/ioctl.c~forbid-user-to-change-file-flags-on-quota-files fs/ext4/ioctl.c
+--- a/fs/ext4/ioctl.c~forbid-user-to-change-file-flags-on-quota-files
++++ a/fs/ext4/ioctl.c
+@@ -51,6 +51,11 @@ int ext4_ioctl (struct inode * inode, st
+ 			flags &= ~EXT4_DIRSYNC_FL;
+ 
+ 		mutex_lock(&inode->i_mutex);
++		/* Is it quota file? Don't allow user mess with it */
++		if (IS_NOQUOTA(inode)) {
++			mutex_unlock(&inode->i_mutex);
++			return -EPERM;
++		}
+ 		oldflags = ei->i_flags;
+ 
+ 		/* The JOURNAL_DATA flag is modifiable only by root */
+diff -puN fs/jfs/ioctl.c~forbid-user-to-change-file-flags-on-quota-files fs/jfs/ioctl.c
+--- a/fs/jfs/ioctl.c~forbid-user-to-change-file-flags-on-quota-files
++++ a/fs/jfs/ioctl.c
+@@ -79,6 +79,9 @@ int jfs_ioctl(struct inode * inode, stru
+ 		if (!S_ISDIR(inode->i_mode))
+ 			flags &= ~JFS_DIRSYNC_FL;
+ 
++		/* Is it quota file? Don't allow user mess with it */
++		if (IS_NOQUOTA(inode))
++			return -EPERM;
+ 		jfs_get_inode_flags(jfs_inode);
+ 		oldflags = jfs_inode->mode2;
+ 
+diff -puN fs/reiserfs/ioctl.c~forbid-user-to-change-file-flags-on-quota-files fs/reiserfs/ioctl.c
+--- a/fs/reiserfs/ioctl.c~forbid-user-to-change-file-flags-on-quota-files
++++ a/fs/reiserfs/ioctl.c
+@@ -57,6 +57,9 @@ int reiserfs_ioctl(struct inode *inode, 
+ 			if (get_user(flags, (int __user *)arg))
+ 				return -EFAULT;
+ 
++			/* Is it quota file? Don't allow user mess with it. */
++			if (IS_NOQUOTA(inode))
++				return -EPERM;
+ 			if (((flags ^ REISERFS_I(inode)->
+ 			      i_attrs) & (REISERFS_IMMUTABLE_FL |
+ 					  REISERFS_APPEND_FL))
 _
 
-Patches currently in -mm which might be from andi@lisas.de are
+Patches currently in -mm which might be from jack@suse.cz are
 
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-eradicate-bashisms-in-scripts-patch-kernel.patch
+forbid-user-to-change-file-flags-on-quota-files.patch
+git-ocfs2.patch
+fix-64kb-blocksize-in-ext3-directories.patch
+fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext4-from-using-iget-and-read_inode-try.patch
