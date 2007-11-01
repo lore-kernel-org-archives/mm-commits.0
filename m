@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + crash-on-shutdown-unmount.patch added to -mm tree
-Date: Thu, 01 Nov 2007 12:30:38 -0700
-Message-ID: <20071101193038.6E154432BDC@localhost>
+Subject: + file-capabilities-allow-sigcont-within-session-v2-file-capabilities-remove-the-non-matching-uid-special-case-for-kill.patch added to -mm tree
+Date: Thu, 01 Nov 2007 12:32:30 -0700
+Message-ID: <20071101193230.74BB2432BDC@localhost>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.45.13]:33757 "EHLO
+Received: from smtp-out.google.com ([216.239.45.13]:34075 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754121AbXKATbb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:31:31 -0400
+	with ESMTP id S1752496AbXKATd3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:33:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jens.axboe@oracle.com
+Cc: serue@us.ibm.com, chrisw@sous-sol.org, jmorris@namei.org, morgan@kernel.org, sds@epoch.ncsc.mil
 
 
 The patch titled
-     crash on shutdown/unmount
+     file capabilities: remove the non-matching uid special case for kill
 has been added to the -mm tree.  Its filename is
-     crash-on-shutdown-unmount.patch
+     file-capabilities-allow-sigcont-within-session-v2-file-capabilities-remove-the-non-matching-uid-special-case-for-kill.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,73 +25,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: crash on shutdown/unmount
-From: Jens Axboe <jens.axboe@oracle.com>
+Subject: file capabilities: remove the non-matching uid special case for kill
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-On Wed, Oct 31 2007, Alistair John Strachan wrote:
-> Hi Jens,
->
-> I guessed from the oops that you might have an idea what's causing this oops
-> on shutdown/unmount. The git version (describe), a screenshot showing the
-> oops, a config, and dmesg for a booted kernel are available from:
->
-> http://devzero.co.uk/~alistair/oops-20071031/
->
-> I went back to -rc1 and it still happens there too. If you need any more
-> information or want me to bisect it, please let me know.
+There I went again having one patch do two (related) things.
 
-Does this work for you?
+Remove the special check I had added to cap_task_kill() for
+non-matching uids.  In fact it turns out the check wouldn't be
+safe even if I'd coded it correctly.  A binary can be setuid
+and owned by a non-root user user1, have file capabilities, and
+be executed by user2.
 
-index 54fd385..75c98d5 100644
-
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Andrew Morgan <morgan@kernel.org>
+Cc: Stephen Smalley <sds@epoch.ncsc.mil>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/ll_rw_blk.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ security/commoncap.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN block/ll_rw_blk.c~crash-on-shutdown-unmount block/ll_rw_blk.c
---- a/block/ll_rw_blk.c~crash-on-shutdown-unmount
-+++ a/block/ll_rw_blk.c
-@@ -3221,6 +3221,7 @@ static inline void __generic_make_reques
- 	sector_t old_sector;
- 	int ret, nr_sectors = bio_sectors(bio);
- 	dev_t old_dev;
-+	int err = -EIO;
+diff -puN security/commoncap.c~file-capabilities-allow-sigcont-within-session-v2-file-capabilities-remove-the-non-matching-uid-special-case-for-kill security/commoncap.c
+--- a/security/commoncap.c~file-capabilities-allow-sigcont-within-session-v2-file-capabilities-remove-the-non-matching-uid-special-case-for-kill
++++ a/security/commoncap.c
+@@ -526,11 +526,6 @@ int cap_task_kill(struct task_struct *p,
+ 	if (info != SEND_SIG_NOINFO && (is_si_special(info) || SI_FROMKERNEL(info)))
+ 		return 0;
  
- 	might_sleep();
- 
-@@ -3248,7 +3249,7 @@ static inline void __generic_make_reques
- 				bdevname(bio->bi_bdev, b),
- 				(long long) bio->bi_sector);
- end_io:
--			bio_endio(bio, -EIO);
-+			bio_endio(bio, err);
- 			break;
- 		}
- 
-@@ -3283,6 +3284,10 @@ end_io:
- 
- 		if (bio_check_eod(bio, nr_sectors))
- 			goto end_io;
-+		if (bio_empty_barrier(bio) && !q->prepare_flush_fn) {
-+			err = -EOPNOTSUPP;
-+			goto end_io;
-+		}
- 
- 		ret = q->make_request_fn(q, bio);
- 	} while (ret);
+-	/* if tasks have same uid, then check_kill_permission did check */
+-	if (current->uid == p->uid || current->euid == p->uid ||
+-		current->uid == p->suid || current->euid == p->suid)
+-		return 0;
+-
+ 	/* sigcont is permitted within same session */
+ 	if (sig == SIGCONT && (task_session_nr(current) == task_session_nr(p)))
+ 		return 0;
 _
 
-Patches currently in -mm which might be from jens.axboe@oracle.com are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
-origin.patch
-scsi-early-detection-of-medium-not-present-updated.patch
-git-block.patch
-git-block-fixup.patch
-crash-on-shutdown-unmount.patch
-arch-um-drivers-ubd_kernc-a-warning-fix.patch
-fix-versus-precedence-in-various-places.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-revoke-vs-git-block.patch
-reiser4.patch
+git-unionfs.patch
+file-capabilities-allow-sigcont-within-session-v2.patch
+file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
+file-capabilities-allow-sigcont-within-session-v2-file-capabilities-remove-the-non-matching-uid-special-case-for-kill.patch
