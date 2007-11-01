@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlbc-make-a-function-static.patch added to -mm tree
-Date: Thu, 01 Nov 2007 00:23:55 -0700
-Message-ID: <200711010723.lA17NtPF018013@imap1.linux-foundation.org>
+Subject: + mm-page-writebackc-make-a-function-static.patch added to -mm tree
+Date: Thu, 01 Nov 2007 00:24:29 -0700
+Message-ID: <200711010724.lA17OTCD018096@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32792 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36677 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753549AbXKAHYP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 03:24:15 -0400
+	by vger.kernel.org with ESMTP id S1753415AbXKAHYm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 03:24:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, agl@us.ibm.com
+Cc: bunk@kernel.org
 
 
 The patch titled
-     mm/hugetlb.c: make a function static
+     mm/page-writeback.c: make a function static
 has been added to the -mm tree.  Its filename is
-     mm-hugetlbc-make-a-function-static.patch
+     mm-page-writebackc-make-a-function-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm/hugetlb.c: make a function static
+Subject: mm/page-writeback.c: make a function static
 From: Adrian Bunk <bunk@kernel.org>
 
-return_unused_surplus_pages() can become static.
+task_dirty_limit() can become static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Adam Litke <agl@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
+ mm/page-writeback.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlbc-make-a-function-static mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlbc-make-a-function-static
-+++ a/mm/hugetlb.c
-@@ -328,7 +328,7 @@ free:
-  * allocated to satisfy the reservation must be explicitly freed if they were
-  * never used.
+diff -puN mm/page-writeback.c~mm-page-writebackc-make-a-function-static mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-page-writebackc-make-a-function-static
++++ a/mm/page-writeback.c
+@@ -219,7 +219,7 @@ static inline void task_dirties_fraction
+  *
+  *   dirty -= (dirty/8) * p_{t}
   */
--void return_unused_surplus_pages(unsigned long unused_resv_pages)
-+static void return_unused_surplus_pages(unsigned long unused_resv_pages)
+-void task_dirty_limit(struct task_struct *tsk, long *pdirty)
++static void task_dirty_limit(struct task_struct *tsk, long *pdirty)
  {
- 	static int nid = -1;
- 	struct page *page;
+ 	long numerator, denominator;
+ 	long dirty = *pdirty;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -69,6 +68,7 @@ fuse_file_alloc-fix-null-dereferences.patch
 pidns-place-under-config_experimental.patch
 pidns-place-under-config_experimental-checkpatch-fixes.patch
 mm-hugetlbc-make-a-function-static.patch
+mm-page-writebackc-make-a-function-static.patch
 kernel-power-diskc-make-code-static.patch
 make-kernel_shutdown_prepare-static.patch
 kill-udffs_dateversion.patch
