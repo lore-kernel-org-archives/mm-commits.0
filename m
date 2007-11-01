@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-cmpxchg_local-to-cris.patch added to -mm tree
-Date: Thu, 01 Nov 2007 12:08:57 -0700
-Message-ID: <20071101190857.8C067432BDE@localhost>
+Subject: + add-cmpxchg64-and-cmpxchg64_local-to-alpha.patch added to -mm tree
+Date: Thu, 01 Nov 2007 12:08:43 -0700
+Message-ID: <20071101190848.9B509432BDE@localhost>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.33.17]:44289 "EHLO
+Received: from smtp-out.google.com ([216.239.45.13]:30199 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754081AbXKATKi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:10:38 -0400
+	with ESMTP id S1754589AbXKATKl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:10:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, starvik@axis.com
+Cc: mathieu.desnoyers@polymtl.ca, ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     Add cmpxchg_local to cris
+     Add cmpxchg64 and cmpxchg64_local to alpha
 has been added to the -mm tree.  Its filename is
-     add-cmpxchg_local-to-cris.patch
+     add-cmpxchg64-and-cmpxchg64_local-to-alpha.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,45 +25,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add cmpxchg_local to cris
+Subject: Add cmpxchg64 and cmpxchg64_local to alpha
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Use the new generic cmpxchg_local (disables interrupt). Also use the generic
-cmpxchg as fallback if SMP is not set.
+Make sure that at least cmpxchg64_local is available on all architectures to use
+for unsigned long long values.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Mikael Starvik <starvik@axis.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-cris/system.h |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ include/asm-alpha/system.h |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-cris/system.h~add-cmpxchg_local-to-cris include/asm-cris/system.h
---- a/include/asm-cris/system.h~add-cmpxchg_local-to-cris
-+++ a/include/asm-cris/system.h
-@@ -66,6 +66,21 @@ static inline unsigned long __xchg(unsig
-   return x;
+diff -puN include/asm-alpha/system.h~add-cmpxchg64-and-cmpxchg64_local-to-alpha include/asm-alpha/system.h
+--- a/include/asm-alpha/system.h~add-cmpxchg64-and-cmpxchg64_local-to-alpha
++++ a/include/asm-alpha/system.h
+@@ -681,13 +681,18 @@ __cmpxchg(volatile void *ptr, unsigned l
+ 	return old;
  }
  
-+#include <asm-generic/cmpxchg-local.h>
-+
-+/*
-+ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
-+ * them available.
-+ */
-+#define cmpxchg_local(ptr, o, n)				 	       \
-+	((__typeof__(*(ptr)))__cmpxchg_local_generic((ptr), (unsigned long)(o),\
-+			(unsigned long)(n), sizeof(*(ptr))))
-+#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
-+
-+#ifndef CONFIG_SMP
-+#include <asm-generic/cmpxchg.h>
-+#endif
-+
- #define arch_align_stack(x) (x)
+-#define cmpxchg(ptr,o,n)						 \
++#define cmpxchg(ptr, o, n)						 \
+   ({									 \
+      __typeof__(*(ptr)) _o_ = (o);					 \
+      __typeof__(*(ptr)) _n_ = (n);					 \
+      (__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)_o_,		 \
+ 				    (unsigned long)_n_, sizeof(*(ptr))); \
+   })
++#define cmpxchg64(ptr, o, n)						 \
++  ({									 \
++	BUILD_BUG_ON(sizeof(*(ptr)) != 8);				 \
++	cmpxchg((ptr), (o), (n));					 \
++  })
  
- void default_idle(void);
+ static inline unsigned long
+ __cmpxchg_u8_local(volatile char *m, long old, long new)
+@@ -803,13 +808,19 @@ __cmpxchg_local(volatile void *ptr, unsi
+ 	return old;
+ }
+ 
+-#define cmpxchg_local(ptr,o,n)						 \
++#define cmpxchg_local(ptr, o, n)					 \
+   ({									 \
+      __typeof__(*(ptr)) _o_ = (o);					 \
+      __typeof__(*(ptr)) _n_ = (n);					 \
+      (__typeof__(*(ptr))) __cmpxchg_local((ptr), (unsigned long)_o_,	 \
+ 				    (unsigned long)_n_, sizeof(*(ptr))); \
+   })
++#define cmpxchg64_local(ptr, o, n)					 \
++  ({									 \
++	BUILD_BUG_ON(sizeof(*(ptr)) != 8);				 \
++	cmpxchg_local((ptr), (o), (n));					 \
++  })
++
+ 
+ #endif /* __ASSEMBLY__ */
+ 
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
