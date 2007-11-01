@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-m48t59-fix-section-mismatch-warning.patch added to -mm tree
-Date: Thu, 01 Nov 2007 16:42:20 -0700
-Message-ID: <200711012342.lA1NgK8f021631@imap1.linux-foundation.org>
+Subject: + virtio-virtcons-fix-section-mismatch-warning.patch added to -mm tree
+Date: Thu, 01 Nov 2007 16:48:12 -0700
+Message-ID: <200711012348.lA1NmCHn021841@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55132 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59098 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754645AbXKAXmq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 19:42:46 -0400
+	by vger.kernel.org with ESMTP id S1753350AbXKAXsW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 19:48:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, a.zummo@towertech.it, david-b@pacbell.net
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     rtc: m48t59 fix section mismatch warning
+     virtio/virtcons: fix section mismatch warning
 has been added to the -mm tree.  Its filename is
-     rtc-m48t59-fix-section-mismatch-warning.patch
+     virtio-virtcons-fix-section-mismatch-warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,56 +25,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc: m48t59 fix section mismatch warning
+Subject: virtio/virtcons: fix section mismatch warning
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Change the name of this data to use a name (suffix) that is whitelisted
-by MODPOST so that the section warning is fixed (not generated).
+Make virtcons_probe() __devinit.
+Fixes this section warning:
 
-WARNING: vmlinux.o(.data+0x1b140): Section mismatch: reference to .init.text:m48t59_rtc_probe (between 'm48t59_rtc_platdrv' and 'm48t59_nvram_attr')
+WARNING: vmlinux.o(.text+0x14c10b): Section mismatch: reference to .init.text:hvc_alloc (between 'virtcons_probe' and 'ac_register_board')
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-m48t59.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/char/virtio_console.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-m48t59.c~rtc-m48t59-fix-section-mismatch-warning drivers/rtc/rtc-m48t59.c
---- a/drivers/rtc/rtc-m48t59.c~rtc-m48t59-fix-section-mismatch-warning
-+++ a/drivers/rtc/rtc-m48t59.c
-@@ -464,7 +464,7 @@ static int __devexit m48t59_rtc_remove(s
- 	return 0;
- }
- 
--static struct platform_driver m48t59_rtc_platdrv = {
-+static struct platform_driver m48t59_rtc_driver = {
- 	.driver		= {
- 		.name	= "rtc-m48t59",
- 		.owner	= THIS_MODULE,
-@@ -475,12 +475,12 @@ static struct platform_driver m48t59_rtc
- 
- static int __init m48t59_rtc_init(void)
+diff -puN drivers/char/virtio_console.c~virtio-virtcons-fix-section-mismatch-warning drivers/char/virtio_console.c
+--- a/drivers/char/virtio_console.c~virtio-virtcons-fix-section-mismatch-warning
++++ a/drivers/char/virtio_console.c
+@@ -141,7 +141,7 @@ int __init virtio_cons_early_init(int (*
+  * never remove the console device we never need this pointer again.
+  *
+  * Finally we put our input buffer in the input queue, ready to receive. */
+-static int virtcons_probe(struct virtio_device *dev)
++static int __devinit virtcons_probe(struct virtio_device *dev)
  {
--	return platform_driver_register(&m48t59_rtc_platdrv);
-+	return platform_driver_register(&m48t59_rtc_driver);
- }
- 
- static void __exit m48t59_rtc_exit(void)
- {
--	platform_driver_unregister(&m48t59_rtc_platdrv);
-+	platform_driver_unregister(&m48t59_rtc_driver);
- }
- 
- module_init(m48t59_rtc_init);
+ 	int err;
+ 	struct hvc_struct *hvc;
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
 rtc-m48t59-fix-section-mismatch-warning.patch
+virtio-virtcons-fix-section-mismatch-warning.patch
 git-dvb.patch
 git-kbuild.patch
 advansys-fix-section-mismatch-warning.patch
