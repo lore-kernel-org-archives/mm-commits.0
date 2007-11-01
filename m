@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-cmpxchg_local-to-v850.patch added to -mm tree
-Date: Thu, 01 Nov 2007 12:09:20 -0700
-Message-ID: <20071101190920.8C99C432BDE@localhost>
+Subject: + add-cmpxchg_local-to-m86k.patch added to -mm tree
+Date: Thu, 01 Nov 2007 12:09:10 -0700
+Message-ID: <20071101190910.8E736432BFE@localhost>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.45.13]:30240 "EHLO
+Received: from smtp-out.google.com ([216.239.45.13]:30224 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754857AbXKATKy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:10:54 -0400
+	with ESMTP id S1754697AbXKATKs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:10:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, miles.bader@necel.com
+Cc: mathieu.desnoyers@polymtl.ca, geert@linux-m68k.org, zippel@linux-m68k.org
 
 
 The patch titled
-     Add cmpxchg_local to v850
+     Add cmpxchg_local to m86k
 has been added to the -mm tree.  Its filename is
-     add-cmpxchg_local-to-v850.patch
+     add-cmpxchg_local-to-m86k.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,28 +25,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add cmpxchg_local to v850
+Subject: Add cmpxchg_local to m86k
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
 Use the new generic cmpxchg_local (disables interrupt). Also use the generic
 cmpxchg as fallback if SMP is not set.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Miles Bader <miles.bader@necel.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-v850/system.h |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ include/asm-m68k/system.h |   27 ++++++++++++++++++++++++---
+ 1 file changed, 24 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-v850/system.h~add-cmpxchg_local-to-v850 include/asm-v850/system.h
---- a/include/asm-v850/system.h~add-cmpxchg_local-to-v850
-+++ a/include/asm-v850/system.h
-@@ -103,6 +103,21 @@ static inline unsigned long __xchg (unsi
- 	return tmp;
+diff -puN include/asm-m68k/system.h~add-cmpxchg_local-to-m86k include/asm-m68k/system.h
+--- a/include/asm-m68k/system.h~add-cmpxchg_local-to-m86k
++++ a/include/asm-m68k/system.h
+@@ -154,6 +154,10 @@ static inline unsigned long __xchg(unsig
  }
+ #endif
  
 +#include <asm-generic/cmpxchg-local.h>
++
++#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
++
+ /*
+  * Atomic compare and exchange.  Compare OLD with MEM, if identical,
+  * store NEW in MEM.  Return the initial value in MEM.  Success is
+@@ -185,9 +189,26 @@ static inline unsigned long __cmpxchg(vo
+ 	return old;
+ }
+ 
+-#define cmpxchg(ptr,o,n)\
+-	((__typeof__(*(ptr)))__cmpxchg((ptr),(unsigned long)(o),\
+-					(unsigned long)(n),sizeof(*(ptr))))
++#define cmpxchg(ptr, o, n)						    \
++	((__typeof__(*(ptr)))__cmpxchg((ptr), (unsigned long)(o),	    \
++			(unsigned long)(n), sizeof(*(ptr))))
++#define cmpxchg_local(ptr, o, n)					    \
++	((__typeof__(*(ptr)))__cmpxchg((ptr), (unsigned long)(o),	    \
++			(unsigned long)(n), sizeof(*(ptr))))
++#else
 +
 +/*
 + * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
@@ -55,15 +76,14 @@ diff -puN include/asm-v850/system.h~add-cmpxchg_local-to-v850 include/asm-v850/s
 +#define cmpxchg_local(ptr, o, n)				  	       \
 +	((__typeof__(*(ptr)))__cmpxchg_local_generic((ptr), (unsigned long)(o),\
 +			(unsigned long)(n), sizeof(*(ptr))))
-+#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
 +
 +#ifndef CONFIG_SMP
 +#include <asm-generic/cmpxchg.h>
 +#endif
 +
- #define arch_align_stack(x) (x)
+ #endif
  
- #endif /* __V850_SYSTEM_H__ */
+ #define arch_align_stack(x) (x)
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
