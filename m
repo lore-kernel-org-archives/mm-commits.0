@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + kernel-power-diskc-make-code-static.patch added to -mm tree
-Date: Thu, 01 Nov 2007 00:22:12 -0700
-Message-ID: <200711010722.lA17MC7N017975@imap1.linux-foundation.org>
+Date: Thu, 01 Nov 2007 00:23:06 -0700
+Message-ID: <200711010723.lA17N6FL018007@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49841 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34450 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753376AbXKAHWq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 03:22:46 -0400
+	by vger.kernel.org with ESMTP id S1753500AbXKAHX0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 03:23:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -32,7 +32,7 @@ resume_file[] and create_image() can become static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Acked-by: Pavel Machek <pavel@ucw.cz>
-Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -92,6 +92,7 @@ fuse_file_alloc-fix-null-dereferences.patch
 pidns-place-under-config_experimental.patch
 pidns-place-under-config_experimental-checkpatch-fixes.patch
 kernel-power-diskc-make-code-static.patch
+make-kernel_shutdown_prepare-static.patch
 kill-udffs_dateversion.patch
 make-ipc-utilcsysvipc_find_ipc-static.patch
 fs-ecryptfs-possible-cleanups.patch
