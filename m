@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + paride-fix-and-typo-in-drivers-block-paride-ptc.patch added to -mm tree
-Date: Thu, 01 Nov 2007 15:34:34 -0700
-Message-ID: <200711012234.lA1MYYBP018922@imap1.linux-foundation.org>
+Subject: + 8250_pnp-add-support-for-lg-c1-express-dual-machines.patch added to -mm tree
+Date: Thu, 01 Nov 2007 15:50:17 -0700
+Message-ID: <200711012250.lA1MoHrC019522@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43768 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54786 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752410AbXKAWfP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 18:35:15 -0400
+	by vger.kernel.org with ESMTP id S1753290AbXKAWuo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 18:50:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: 12o3l@tiscali.nl
+Cc: dnj@Allotrope.com.au, bjorn.helgaas@hp.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     paride: fix 'and' typo in drivers/block/paride/pt.c
+     8250_pnp: add support for "LG C1 EXPRESS DUAL" machines
 has been added to the -mm tree.  Its filename is
-     paride-fix-and-typo-in-drivers-block-paride-ptc.patch
+     8250_pnp-add-support-for-lg-c1-express-dual-machines.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,44 +25,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: paride: fix 'and' typo in drivers/block/paride/pt.c
-From: Roel Kluin <12o3l@tiscali.nl>
+Subject: 8250_pnp: add support for "LG C1 EXPRESS DUAL" machines
+From: "Damian Jurd" <dnj@Allotrope.com.au>
 
-Fix 'and' typo (PT_WRITE_OK is defined 2)
+The following is an extra entry to enable the touch screen on the new LG
+C1 EXPRESS DUAL machine.
 
-Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/paride/pt.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/8250_pnp.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/block/paride/pt.c~paride-fix-and-typo-in-drivers-block-paride-ptc drivers/block/paride/pt.c
---- a/drivers/block/paride/pt.c~paride-fix-and-typo-in-drivers-block-paride-ptc
-+++ a/drivers/block/paride/pt.c
-@@ -664,7 +664,7 @@ static int pt_open(struct inode *inode, 
- 		goto out;
- 
- 	err = -EROFS;
--	if ((!tape->flags & PT_WRITE_OK) && (file->f_mode & 2))
-+	if ((!(tape->flags & PT_WRITE_OK)) && (file->f_mode & 2))
- 		goto out;
- 
- 	if (!(iminor(inode) & 128))
+diff -puN drivers/serial/8250_pnp.c~8250_pnp-add-support-for-lg-c1-express-dual-machines drivers/serial/8250_pnp.c
+--- a/drivers/serial/8250_pnp.c~8250_pnp-add-support-for-lg-c1-express-dual-machines
++++ a/drivers/serial/8250_pnp.c
+@@ -345,6 +345,11 @@ static const struct pnp_device_id pnp_de
+ 	/* Fujitsu Wacom Tablet PC devices */
+ 	{	"FUJ02E5",		0	},
+ 	{	"FUJ02E6",		0	},
++	/*
++	 * LG C1 EXPRESS DUAL (C1-PB11A3) touch screen (actually a FUJ02E6 in
++	 * disguise)
++	 */
++	{	"LTS0001",		0       },
+ 	/* Rockwell's (PORALiNK) 33600 INT PNP */
+ 	{	"WCI0003",		0	},
+ 	/* Unkown PnP modems */
 _
 
-Patches currently in -mm which might be from 12o3l@tiscali.nl are
+Patches currently in -mm which might be from dnj@Allotrope.com.au are
 
-origin.patch
-i4l-errors-with-assignments-in-if.patch
-paride-fix-and-typo-in-drivers-block-paride-ptc.patch
-unlock-when-ssp-tries-to-close-an-invalid-port.patch
-dvb-dont-return-with-locks-held.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-git-ocfs2.patch
-git-s390.patch
-git-watchdog.patch
-cris-gpio-undo-locks-before-returning.patch
-mips-undo-locking-on-error-path-returns.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
+8250_pnp-add-support-for-lg-c1-express-dual-machines.patch
