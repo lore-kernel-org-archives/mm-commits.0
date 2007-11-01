@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch added to -mm tree
-Date: Thu, 01 Nov 2007 12:09:01 -0700
-Message-ID: <20071101190901.C36DF432BDE@localhost>
+Subject: + add-cmpxchg_local-to-parisc.patch added to -mm tree
+Date: Thu, 01 Nov 2007 12:09:12 -0700
+Message-ID: <20071101190912.BEFBA432BDE@localhost>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.33.17]:44374 "EHLO
+Received: from smtp-out.google.com ([216.239.45.13]:30249 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752824AbXKATLF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:11:05 -0400
+	with ESMTP id S1754872AbXKATK5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:10:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, clameter@sgi.com, kaos@ocs.com.au, tony.luck@intel.com
+Cc: mathieu.desnoyers@polymtl.ca, grundler@parisc-linux.org, kyle@mcmartin.ca, willy@debian.org
 
 
 The patch titled
-     Add cmpxchg_local, cmpxchg64 and cmpxchg64_local to ia64
+     Add cmpxchg_local to parisc
 has been added to the -mm tree.  Its filename is
-     add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
+     add-cmpxchg_local-to-parisc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,63 +25,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add cmpxchg_local, cmpxchg64 and cmpxchg64_local to ia64
+Subject: Add cmpxchg_local to parisc
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Add the primitives cmpxchg_local, cmpxchg64 and cmpxchg64_local to ia64. They
-use cmpxchg_acq as underlying macro, just like the already existing ia64
-cmpxchg().
-
-Changelog:
-
-ia64 cmpxchg_local coding style fix
-Quoting Keith Owens:
-
-As a matter of coding style, I prefer
-
-#define cmpxchg_local   cmpxchg
-#define cmpxchg64_local cmpxchg64
-
-Which makes it absolutely clear that they are the same code.  With your
-patch, humans have to do a string compare of two defines to see if they
-are the same.
-
-Note cmpxchg is *not* a performance win vs interrupt disable / enable on IA64.
+Use the new generic cmpxchg_local (disables interrupt). Also use the generic
+cmpxchg as fallback if SMP is not set.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Acked-by: Christoph Lameter <clameter@sgi.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Keith Owens <kaos@ocs.com.au>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Grant Grundler <grundler@parisc-linux.org>
+Cc: Matthew Wilcox <willy@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/intrinsics.h |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ include/asm-parisc/atomic.h |   33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
-diff -puN include/asm-ia64/intrinsics.h~add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64 include/asm-ia64/intrinsics.h
---- a/include/asm-ia64/intrinsics.h~add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64
-+++ a/include/asm-ia64/intrinsics.h
-@@ -153,11 +153,17 @@ extern long ia64_cmpxchg_called_with_bad
- 	(__typeof__(old)) _r_;								\
- })
+diff -puN include/asm-parisc/atomic.h~add-cmpxchg_local-to-parisc include/asm-parisc/atomic.h
+--- a/include/asm-parisc/atomic.h~add-cmpxchg_local-to-parisc
++++ a/include/asm-parisc/atomic.h
+@@ -122,6 +122,39 @@ __cmpxchg(volatile void *ptr, unsigned l
+ 				    (unsigned long)_n_, sizeof(*(ptr))); \
+   })
  
--#define cmpxchg_acq(ptr,o,n)	ia64_cmpxchg(acq, (ptr), (o), (n), sizeof(*(ptr)))
--#define cmpxchg_rel(ptr,o,n)	ia64_cmpxchg(rel, (ptr), (o), (n), sizeof(*(ptr)))
-+#define cmpxchg_acq(ptr, o, n)	\
-+	ia64_cmpxchg(acq, (ptr), (o), (n), sizeof(*(ptr)))
-+#define cmpxchg_rel(ptr, o, n)	\
-+	ia64_cmpxchg(rel, (ptr), (o), (n), sizeof(*(ptr)))
- 
- /* for compatibility with other platforms: */
--#define cmpxchg(ptr,o,n)	cmpxchg_acq(ptr,o,n)
-+#define cmpxchg(ptr, o, n)	cmpxchg_acq((ptr), (o), (n))
-+#define cmpxchg64(ptr, o, n)	cmpxchg_acq((ptr), (o), (n))
++#include <asm-generic/cmpxchg-local.h>
 +
-+#define cmpxchg_local		cmpxchg
-+#define cmpxchg64_local		cmpxchg64
- 
- #ifdef CONFIG_IA64_DEBUG_CMPXCHG
- # define CMPXCHG_BUGCHECK_DECL	int _cmpxchg_bugcheck_count = 128;
++static inline unsigned long __cmpxchg_local(volatile void *ptr,
++				      unsigned long old,
++				      unsigned long new_, int size)
++{
++	switch (size) {
++#ifdef CONFIG_64BIT
++	case 8:	return __cmpxchg_u64((unsigned long *)ptr, old, new_);
++#endif
++	case 4:	return __cmpxchg_u32(ptr, old, new_);
++	default:
++		return __cmpxchg_local_generic(ptr, old, new_, size);
++	}
++}
++
++/*
++ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
++ * them available.
++ */
++#define cmpxchg_local(ptr, o, n)				  	\
++	((__typeof__(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(o),	\
++			(unsigned long)(n), sizeof(*(ptr))))
++#ifdef CONFIG_64BIT
++#define cmpxchg64_local(ptr, o, n)					\
++  ({									\
++	BUILD_BUG_ON(sizeof(*(ptr)) != 8);				\
++	cmpxchg_local((ptr), (o), (n));					\
++  })
++#else
++#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
++#endif
++
+ /* Note that we need not lock read accesses - aligned word writes/reads
+  * are atomic, so a reader never sees unconsistent values.
+  *
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
