@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-fix-uml-init-do_mountsh-build-failure.patch added to -mm tree
-Date: Thu, 01 Nov 2007 13:34:23 -0700
-Message-ID: <200711012034.lA1KYNEf014286@imap1.linux-foundation.org>
+Subject: - x86-fix-uml-init-do_mountsh-build-failure.patch removed from -mm tree
+Date: Thu, 01 Nov 2007 13:36:05 -0700
+Message-ID: <200711012036.lA1Ka6sm014382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59281 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41498 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753160AbXKAUfO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 16:35:14 -0400
+	by vger.kernel.org with ESMTP id S1753293AbXKAUgg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 16:36:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: balbir@linux.vnet.ibm.com, jdike@addtoit.com, mingo@elte.hu, tglx@linutronix.de
+To: balbir@linux.vnet.ibm.com, jdike@addtoit.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
      x86: fix UML init/do_mounts.h build failure
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      x86-fix-uml-init-do_mountsh-build-failure.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because of confusion
 
 ------------------------------------------------------
 Subject: x86: fix UML init/do_mounts.h build failure
