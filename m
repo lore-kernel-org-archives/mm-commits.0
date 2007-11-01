@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch added to -mm tree
-Date: Thu, 01 Nov 2007 11:13:55 -0700
-Message-ID: <200711011813.lA1IDt5K009036@imap1.linux-foundation.org>
+Subject: + add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch added to -mm tree
+Date: Thu, 01 Nov 2007 12:08:38 -0700
+Message-ID: <20071101190839.1C7A8432BDE@localhost>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60856 "EHLO
-	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753610AbXKASPK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 14:15:10 -0400
+Received: from smtp-out.google.com ([216.239.33.17]:44004 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754432AbXKATJD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:09:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, a.zummo@towertech.it, david-b@pacbell.net, ralf@linux-mips.org
+Cc: mathieu.desnoyers@polymtl.ca, clameter@sgi.com, linux-arch@vger.kernel.org
 
 
 The patch titled
-     PNP: request ioport and iomem resources used by active devices
+     Add cmpxchg_local to asm-generic for per cpu atomic operations
 has been added to the -mm tree.  Its filename is
-     pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch
+     add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,290 +25,391 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PNP: request ioport and iomem resources used by active devices
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: Add cmpxchg_local to asm-generic for per cpu atomic operations
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Reserve resources used by active PNP devices to prevent those resources
-from being assigned to other devices.
+Emulates the cmpxchg_local by disabling interrupts around variable modification.
+This is not reentrant wrt NMIs and MCEs. It is only protected against normal
+interrupts, but this is enough for architectures without such interrupt sources
+or if used in a context where the data is not shared with such handlers.
 
-This can be turned off with the "pnp=no_reservations" flag.  If you need to
-use it, please report it, because it indicates a potential problem, like a
-driver that requests more resources than it needs.
+It can be used as a fallback for architectures lacking a real cmpxchg
+instruction.
 
-This is similar to request_standard_resources().  That function requests
-resources for a compiled-in list of standard PC devices such as DMA
-controllers, PICs, timers, and keyboard, and marks them "busy." This patch
-requests resources for devices that are actually present but does not mark
-them "busy."
+For architectures that have a real cmpxchg but does not have NMIs or MCE,
+testing which of the generic vs architecture specific cmpxchg is the fastest
+should be done.
 
-Sometimes the built-in standard resources are larger than what PNP reports,
-or they combine things that PNP reports separately, which makes things look
-a little strange, e.g.,
+asm-generic/cmpxchg.h defines a cmpxchg that uses cmpxchg_local. It is meant to
+be used as a cmpxchg fallback for architectures that do not support SMP.
 
-    0000-001f : dma1		<-- built-in resource includes 2 controllers
-      0000-000f : 00:02		<-- PNP reports only one DMA controller
-    0020-0021 : pic1
-    002e-002f : 00:06
-    0040-0043 : timer0
-    0050-0053 : timer1
-    0060-006f : keyboard	<-- built-in resource groups several things
-      0060-0060 : 00:04		<-- PNP reports 8042 controller data register
-      0061-0061 : 00:03		<-- PNP reports AT-style speaker
-      0064-0064 : 00:04		<-- PNP reports 8042 controller status register
-    0070-0073 : 00:06
-      0070-0071 : rtc
+* Patch series comments
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Using cmpxchg_local shows a performance improvements of the fast path goes from
+a 66% speedup on a Pentium 4 to a 14% speedup on AMD64.
+
+In detail:
+
+Tested-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Measurements on a Pentium4, 3GHz, Hyperthread.
+SLUB Performance testing
+========================
+1. Kmalloc: Repeatedly allocate then free test
+
+* slub HEAD, test 1
+kmalloc(8) = 201 cycles         kfree = 351 cycles
+kmalloc(16) = 198 cycles        kfree = 359 cycles
+kmalloc(32) = 200 cycles        kfree = 381 cycles
+kmalloc(64) = 224 cycles        kfree = 394 cycles
+kmalloc(128) = 285 cycles       kfree = 424 cycles
+kmalloc(256) = 411 cycles       kfree = 546 cycles
+kmalloc(512) = 480 cycles       kfree = 619 cycles
+kmalloc(1024) = 623 cycles      kfree = 750 cycles
+kmalloc(2048) = 686 cycles      kfree = 811 cycles
+kmalloc(4096) = 482 cycles      kfree = 538 cycles
+kmalloc(8192) = 680 cycles      kfree = 734 cycles
+kmalloc(16384) = 713 cycles     kfree = 843 cycles
+
+* Slub HEAD, test 2
+kmalloc(8) = 190 cycles         kfree = 351 cycles
+kmalloc(16) = 195 cycles        kfree = 360 cycles
+kmalloc(32) = 201 cycles        kfree = 370 cycles
+kmalloc(64) = 245 cycles        kfree = 389 cycles
+kmalloc(128) = 283 cycles       kfree = 413 cycles
+kmalloc(256) = 409 cycles       kfree = 547 cycles
+kmalloc(512) = 476 cycles       kfree = 616 cycles
+kmalloc(1024) = 628 cycles      kfree = 753 cycles
+kmalloc(2048) = 684 cycles      kfree = 811 cycles
+kmalloc(4096) = 480 cycles      kfree = 539 cycles
+kmalloc(8192) = 661 cycles      kfree = 746 cycles
+kmalloc(16384) = 741 cycles     kfree = 856 cycles
+
+* cmpxchg_local Slub test
+kmalloc(8) = 83 cycles          kfree = 363 cycles
+kmalloc(16) = 85 cycles         kfree = 372 cycles
+kmalloc(32) = 92 cycles         kfree = 377 cycles
+kmalloc(64) = 115 cycles        kfree = 397 cycles
+kmalloc(128) = 179 cycles       kfree = 438 cycles
+kmalloc(256) = 314 cycles       kfree = 564 cycles
+kmalloc(512) = 398 cycles       kfree = 615 cycles
+kmalloc(1024) = 573 cycles      kfree = 745 cycles
+kmalloc(2048) = 629 cycles      kfree = 816 cycles
+kmalloc(4096) = 473 cycles      kfree = 548 cycles
+kmalloc(8192) = 659 cycles      kfree = 745 cycles
+kmalloc(16384) = 724 cycles     kfree = 843 cycles
+
+2. Kmalloc: alloc/free test
+
+* slub HEAD, test 1
+kmalloc(8)/kfree = 322 cycles
+kmalloc(16)/kfree = 318 cycles
+kmalloc(32)/kfree = 318 cycles
+kmalloc(64)/kfree = 325 cycles
+kmalloc(128)/kfree = 318 cycles
+kmalloc(256)/kfree = 328 cycles
+kmalloc(512)/kfree = 328 cycles
+kmalloc(1024)/kfree = 328 cycles
+kmalloc(2048)/kfree = 328 cycles
+kmalloc(4096)/kfree = 678 cycles
+kmalloc(8192)/kfree = 1013 cycles
+kmalloc(16384)/kfree = 1157 cycles
+
+* Slub HEAD, test 2
+kmalloc(8)/kfree = 323 cycles
+kmalloc(16)/kfree = 318 cycles
+kmalloc(32)/kfree = 318 cycles
+kmalloc(64)/kfree = 318 cycles
+kmalloc(128)/kfree = 318 cycles
+kmalloc(256)/kfree = 328 cycles
+kmalloc(512)/kfree = 328 cycles
+kmalloc(1024)/kfree = 328 cycles
+kmalloc(2048)/kfree = 328 cycles
+kmalloc(4096)/kfree = 648 cycles
+kmalloc(8192)/kfree = 1009 cycles
+kmalloc(16384)/kfree = 1105 cycles
+
+* cmpxchg_local Slub test
+kmalloc(8)/kfree = 112 cycles
+kmalloc(16)/kfree = 103 cycles
+kmalloc(32)/kfree = 103 cycles
+kmalloc(64)/kfree = 103 cycles
+kmalloc(128)/kfree = 112 cycles
+kmalloc(256)/kfree = 111 cycles
+kmalloc(512)/kfree = 111 cycles
+kmalloc(1024)/kfree = 111 cycles
+kmalloc(2048)/kfree = 121 cycles
+kmalloc(4096)/kfree = 650 cycles
+kmalloc(8192)/kfree = 1042 cycles
+kmalloc(16384)/kfree = 1149 cycles
+
+Tested-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Measurements on a AMD64 2.0 GHz dual-core
+
+In this test, we seem to remove 10 cycles from the kmalloc fast path.
+On small allocations, it gives a 14% performance increase. kfree fast
+path also seems to have a 10 cycles improvement.
+
+1. Kmalloc: Repeatedly allocate then free test
+
+* cmpxchg_local slub
+kmalloc(8) = 63 cycles      kfree = 126 cycles
+kmalloc(16) = 66 cycles     kfree = 129 cycles
+kmalloc(32) = 76 cycles     kfree = 138 cycles
+kmalloc(64) = 100 cycles    kfree = 288 cycles
+kmalloc(128) = 128 cycles   kfree = 309 cycles
+kmalloc(256) = 170 cycles   kfree = 315 cycles
+kmalloc(512) = 221 cycles   kfree = 357 cycles
+kmalloc(1024) = 324 cycles  kfree = 393 cycles
+kmalloc(2048) = 354 cycles  kfree = 440 cycles
+kmalloc(4096) = 394 cycles  kfree = 330 cycles
+kmalloc(8192) = 523 cycles  kfree = 481 cycles
+kmalloc(16384) = 643 cycles kfree = 649 cycles
+
+* Base
+kmalloc(8) = 74 cycles      kfree = 113 cycles
+kmalloc(16) = 76 cycles     kfree = 116 cycles
+kmalloc(32) = 85 cycles     kfree = 133 cycles
+kmalloc(64) = 111 cycles    kfree = 279 cycles
+kmalloc(128) = 138 cycles   kfree = 294 cycles
+kmalloc(256) = 181 cycles   kfree = 304 cycles
+kmalloc(512) = 237 cycles   kfree = 327 cycles
+kmalloc(1024) = 340 cycles  kfree = 379 cycles
+kmalloc(2048) = 378 cycles  kfree = 433 cycles
+kmalloc(4096) = 399 cycles  kfree = 329 cycles
+kmalloc(8192) = 528 cycles  kfree = 624 cycles
+kmalloc(16384) = 651 cycles kfree = 737 cycles
+
+2. Kmalloc: alloc/free test
+
+* cmpxchg_local slub
+kmalloc(8)/kfree = 96 cycles
+kmalloc(16)/kfree = 97 cycles
+kmalloc(32)/kfree = 97 cycles
+kmalloc(64)/kfree = 97 cycles
+kmalloc(128)/kfree = 97 cycles
+kmalloc(256)/kfree = 105 cycles
+kmalloc(512)/kfree = 108 cycles
+kmalloc(1024)/kfree = 105 cycles
+kmalloc(2048)/kfree = 107 cycles
+kmalloc(4096)/kfree = 390 cycles
+kmalloc(8192)/kfree = 626 cycles
+kmalloc(16384)/kfree = 662 cycles
+
+* Base
+kmalloc(8)/kfree = 116 cycles
+kmalloc(16)/kfree = 116 cycles
+kmalloc(32)/kfree = 116 cycles
+kmalloc(64)/kfree = 116 cycles
+kmalloc(128)/kfree = 116 cycles
+kmalloc(256)/kfree = 126 cycles
+kmalloc(512)/kfree = 126 cycles
+kmalloc(1024)/kfree = 126 cycles
+kmalloc(2048)/kfree = 126 cycles
+kmalloc(4096)/kfree = 384 cycles
+kmalloc(8192)/kfree = 749 cycles
+kmalloc(16384)/kfree = 786 cycles
+
+Tested-by: Christoph Lameter <clameter@sgi.com>
+I can confirm Mathieus' measurement now:
+
+Athlon64:
+
+regular NUMA/discontig
+
+1. Kmalloc: Repeatedly allocate then free test
+10000 times kmalloc(8) -> 79 cycles kfree -> 92 cycles
+10000 times kmalloc(16) -> 79 cycles kfree -> 93 cycles
+10000 times kmalloc(32) -> 88 cycles kfree -> 95 cycles
+10000 times kmalloc(64) -> 124 cycles kfree -> 132 cycles
+10000 times kmalloc(128) -> 157 cycles kfree -> 247 cycles
+10000 times kmalloc(256) -> 200 cycles kfree -> 257 cycles
+10000 times kmalloc(512) -> 250 cycles kfree -> 277 cycles
+10000 times kmalloc(1024) -> 337 cycles kfree -> 314 cycles
+10000 times kmalloc(2048) -> 365 cycles kfree -> 330 cycles
+10000 times kmalloc(4096) -> 352 cycles kfree -> 240 cycles
+10000 times kmalloc(8192) -> 456 cycles kfree -> 340 cycles
+10000 times kmalloc(16384) -> 646 cycles kfree -> 471 cycles
+2. Kmalloc: alloc/free test
+10000 times kmalloc(8)/kfree -> 124 cycles
+10000 times kmalloc(16)/kfree -> 124 cycles
+10000 times kmalloc(32)/kfree -> 124 cycles
+10000 times kmalloc(64)/kfree -> 124 cycles
+10000 times kmalloc(128)/kfree -> 124 cycles
+10000 times kmalloc(256)/kfree -> 132 cycles
+10000 times kmalloc(512)/kfree -> 132 cycles
+10000 times kmalloc(1024)/kfree -> 132 cycles
+10000 times kmalloc(2048)/kfree -> 132 cycles
+10000 times kmalloc(4096)/kfree -> 319 cycles
+10000 times kmalloc(8192)/kfree -> 486 cycles
+10000 times kmalloc(16384)/kfree -> 539 cycles
+
+cmpxchg_local NUMA/discontig
+
+1. Kmalloc: Repeatedly allocate then free test
+10000 times kmalloc(8) -> 55 cycles kfree -> 90 cycles
+10000 times kmalloc(16) -> 55 cycles kfree -> 92 cycles
+10000 times kmalloc(32) -> 70 cycles kfree -> 91 cycles
+10000 times kmalloc(64) -> 100 cycles kfree -> 141 cycles
+10000 times kmalloc(128) -> 128 cycles kfree -> 233 cycles
+10000 times kmalloc(256) -> 172 cycles kfree -> 251 cycles
+10000 times kmalloc(512) -> 225 cycles kfree -> 275 cycles
+10000 times kmalloc(1024) -> 325 cycles kfree -> 311 cycles
+10000 times kmalloc(2048) -> 346 cycles kfree -> 330 cycles
+10000 times kmalloc(4096) -> 351 cycles kfree -> 238 cycles
+10000 times kmalloc(8192) -> 450 cycles kfree -> 342 cycles
+10000 times kmalloc(16384) -> 630 cycles kfree -> 546 cycles
+2. Kmalloc: alloc/free test
+10000 times kmalloc(8)/kfree -> 81 cycles
+10000 times kmalloc(16)/kfree -> 81 cycles
+10000 times kmalloc(32)/kfree -> 81 cycles
+10000 times kmalloc(64)/kfree -> 81 cycles
+10000 times kmalloc(128)/kfree -> 81 cycles
+10000 times kmalloc(256)/kfree -> 91 cycles
+10000 times kmalloc(512)/kfree -> 90 cycles
+10000 times kmalloc(1024)/kfree -> 91 cycles
+10000 times kmalloc(2048)/kfree -> 90 cycles
+10000 times kmalloc(4096)/kfree -> 318 cycles
+10000 times kmalloc(8192)/kfree -> 483 cycles
+10000 times kmalloc(16384)/kfree -> 536 cycles
+
+Changelog:
+- Ran though checkpatch.
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    8 ++
- drivers/pnp/base.h                  |    2 
- drivers/pnp/core.c                  |    3 
- drivers/pnp/manager.c               |   12 ++-
- drivers/pnp/resource.c              |  103 ++++++++++++++++++++++++++
- 5 files changed, 125 insertions(+), 3 deletions(-)
+ include/asm-generic/cmpxchg-local.h |   65 ++++++++++++++++++++++++++
+ include/asm-generic/cmpxchg.h       |   22 ++++++++
+ 2 files changed, 87 insertions(+)
 
-diff -puN Documentation/kernel-parameters.txt~pnp-request-ioport-and-iomem-resources-used-by-active-devices Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~pnp-request-ioport-and-iomem-resources-used-by-active-devices
-+++ a/Documentation/kernel-parameters.txt
-@@ -1405,6 +1405,14 @@ and is between 256 and 4096 characters. 
- 			Format: { parport<nr> | timid | 0 }
- 			See also Documentation/parport.txt.
- 
-+	pnp=		[PNP] PNP subsystem options:
-+		no_reservations	Don't reserve resources used by PNP devices
-+				This is for working around problems where a
-+				driver uses a PNP device without using the PNP
-+				core.  Typical symptom is that the driver can't
-+				reserve the resources it needs.  Please report
-+				these issues.
+diff -puN /dev/null include/asm-generic/cmpxchg-local.h
+--- /dev/null
++++ a/include/asm-generic/cmpxchg-local.h
+@@ -0,0 +1,65 @@
++#ifndef __ASM_GENERIC_CMPXCHG_LOCAL_H
++#define __ASM_GENERIC_CMPXCHG_LOCAL_H
 +
- 	pnpacpi=	[ACPI]
- 			{ off }
- 
-diff -puN drivers/pnp/base.h~pnp-request-ioport-and-iomem-resources-used-by-active-devices drivers/pnp/base.h
---- a/drivers/pnp/base.h~pnp-request-ioport-and-iomem-resources-used-by-active-devices
-+++ a/drivers/pnp/base.h
-@@ -5,6 +5,8 @@ void pnp_fixup_device(struct pnp_dev *de
- void pnp_free_option(struct pnp_option *option);
- int __pnp_add_device(struct pnp_dev *dev);
- void __pnp_remove_device(struct pnp_dev *dev);
-+int pnp_request_resources(struct pnp_dev *dev);
-+int pnp_release_resources(struct pnp_dev *dev);
- 
- int pnp_check_port(struct pnp_dev * dev, int idx);
- int pnp_check_mem(struct pnp_dev * dev, int idx);
-diff -puN drivers/pnp/core.c~pnp-request-ioport-and-iomem-resources-used-by-active-devices drivers/pnp/core.c
---- a/drivers/pnp/core.c~pnp-request-ioport-and-iomem-resources-used-by-active-devices
-+++ a/drivers/pnp/core.c
-@@ -124,6 +124,9 @@ int __pnp_add_device(struct pnp_dev *dev
- 	list_add_tail(&dev->protocol_list, &dev->protocol->devices);
- 	spin_unlock(&pnp_lock);
- 
-+	if (dev->active)
-+		pnp_request_resources(dev);
++#include <linux/types.h>
 +
- 	ret = device_register(&dev->dev);
- 	if (ret)
- 		return ret;
-diff -puN drivers/pnp/manager.c~pnp-request-ioport-and-iomem-resources-used-by-active-devices drivers/pnp/manager.c
---- a/drivers/pnp/manager.c~pnp-request-ioport-and-iomem-resources-used-by-active-devices
-+++ a/drivers/pnp/manager.c
-@@ -391,9 +391,11 @@ int pnp_manual_config_dev(struct pnp_dev
- 
- 	if (!pnp_can_configure(dev))
- 		return -ENODEV;
++extern unsigned long wrong_size_cmpxchg(volatile void *ptr);
 +
- 	bak = pnp_alloc(sizeof(struct pnp_resource_table));
- 	if (!bak)
- 		return -ENOMEM;
-+
- 	*bak = dev->res;
- 
- 	down(&pnp_res_mutex);
-@@ -463,7 +465,7 @@ int pnp_auto_config_dev(struct pnp_dev *
-  * pnp_start_dev - low-level start of the PnP device
-  * @dev: pointer to the desired device
-  *
-- * assumes that resources have already been allocated
-+ * assumes that resources have already been assigned to the device
-  */
- int pnp_start_dev(struct pnp_dev *dev)
- {
-@@ -472,6 +474,9 @@ int pnp_start_dev(struct pnp_dev *dev)
- 		return -EINVAL;
- 	}
- 
-+	if (pnp_request_resources(dev))
-+		dev_err(&dev->dev, "could not allocate resources\n");
-+
- 	if (dev->protocol->set(dev, &dev->res) < 0) {
- 		dev_err(&dev->dev, "activation failed\n");
- 		return -EIO;
-@@ -484,8 +489,6 @@ int pnp_start_dev(struct pnp_dev *dev)
- /**
-  * pnp_stop_dev - low-level disable of the PnP device
-  * @dev: pointer to the desired device
-- *
-- * does not free resources
-  */
- int pnp_stop_dev(struct pnp_dev *dev)
- {
-@@ -493,11 +496,14 @@ int pnp_stop_dev(struct pnp_dev *dev)
- 		dev_dbg(&dev->dev, "disabling not supported\n");
- 		return -EINVAL;
- 	}
-+
- 	if (dev->protocol->disable(dev) < 0) {
- 		dev_err(&dev->dev, "disable failed\n");
- 		return -EIO;
- 	}
- 
-+	pnp_release_resources(dev);
-+
- 	dev_info(&dev->dev, "disabled\n");
- 	return 0;
- }
-diff -puN drivers/pnp/resource.c~pnp-request-ioport-and-iomem-resources-used-by-active-devices drivers/pnp/resource.c
---- a/drivers/pnp/resource.c~pnp-request-ioport-and-iomem-resources-used-by-active-devices
-+++ a/drivers/pnp/resource.c
-@@ -23,6 +23,7 @@ static int pnp_reserve_irq[16] = {[0 ...
- static int pnp_reserve_dma[8] = {[0 ... 7] = -1 };	/* reserve (don't use) some DMA */
- static int pnp_reserve_io[16] = {[0 ... 15] = -1 };	/* reserve (don't use) some I/O region */
- static int pnp_reserve_mem[16] = {[0 ... 15] = -1 };	/* reserve (don't use) some memory region */
-+static int pnp_no_reservations;
- 
- /*
-  * option registration
-@@ -459,6 +460,98 @@ int pnp_check_dma(struct pnp_dev *dev, i
- #endif
- }
- 
-+int pnp_request_resources(struct pnp_dev *dev)
++/*
++ * Generic version of __cmpxchg_local (disables interrupts). Takes an unsigned
++ * long parameter, supporting various types of architectures.
++ */
++static inline unsigned long __cmpxchg_local_generic(volatile void *ptr,
++		unsigned long old, unsigned long new, int size)
 +{
-+	int i, ret;
-+	struct resource *res;
-+
-+	if (pnp_no_reservations) {
-+		dev_warn(&dev->dev, "not reserving active resources because "
-+			"\"pnp=no_reservations\"\n");
-+		for (i = 0; i < PNP_MAX_PORT; i++) {
-+			if (pnp_port_valid(dev, i)) {
-+				res = &dev->res.port_resource[i];
-+				dev_warn(&dev->dev, "  ports 0x%llx-0x%llx\n",
-+					(unsigned long long) res->start,
-+					(unsigned long long) res->end);
-+			}
-+		}
-+		for (i = 0; i < PNP_MAX_MEM; i++) {
-+			if (pnp_mem_valid(dev, i)) {
-+				res = &dev->res.mem_resource[i];
-+				dev_warn(&dev->dev, "  MMIO 0x%llx-0x%llx\n",
-+					(unsigned long long) res->start,
-+					(unsigned long long) res->end);
-+			}
-+		}
-+		return 0;
-+	}
++	unsigned long flags, prev;
 +
 +	/*
-+	 * We use insert_resource() rather than request_resource() because
-+	 * request_standard_resources() has already requested some standard
-+	 * areas that are described by PNP.
++	 * Sanity checking, compile-time.
 +	 */
-+	for (i = 0; i < PNP_MAX_PORT; i++) {
-+		if (pnp_port_valid(dev, i)) {
-+			res = &dev->res.port_resource[i];
-+			res->name = dev->dev.bus_id;
-+			ret = insert_resource(&ioport_resource, res);
-+			if (ret)
-+				dev_warn(&dev->dev,
-+					"can't allocate I/O ports at 0x%llx\n",
-+					(unsigned long long) res->start);
-+		}
-+	}
++	if (size == 8 && sizeof(unsigned long) != 8)
++		wrong_size_cmpxchg(ptr);
 +
-+	for (i = 0; i < PNP_MAX_MEM; i++) {
-+		if (pnp_mem_valid(dev, i)) {
-+			res = &dev->res.mem_resource[i];
-+			res->name = dev->dev.bus_id;
-+			ret = insert_resource(&iomem_resource, res);
-+			if (ret)
-+				dev_warn(&dev->dev,
-+					"can't allocate MMIO space at 0x%llx\n",
-+					(unsigned long long) res->start);
-+		}
++	local_irq_save(flags);
++	switch (size) {
++	case 1: prev = *(u8 *)ptr;
++		if (prev == old)
++			*(u8 *)ptr = (u8)new;
++		break;
++	case 2: prev = *(u16 *)ptr;
++		if (prev == old)
++			*(u16 *)ptr = (u16)new;
++		break;
++	case 4: prev = *(u32 *)ptr;
++		if (prev == old)
++			*(u32 *)ptr = (u32)new;
++		break;
++	case 8: prev = *(u64 *)ptr;
++		if (prev == old)
++			*(u64 *)ptr = (u64)new;
++		break;
++	default:
++		wrong_size_cmpxchg(ptr);
 +	}
-+
-+	return 0;
++	local_irq_restore(flags);
++	return prev;
 +}
 +
-+int pnp_release_resources(struct pnp_dev *dev)
++/*
++ * Generic version of __cmpxchg64_local. Takes an u64 parameter.
++ */
++static inline u64 __cmpxchg64_local_generic(volatile void *ptr,
++		u64 old, u64 new)
 +{
-+	int i, ret;
-+	struct resource *res;
++	u64 prev;
++	unsigned long flags;
 +
-+	if (pnp_no_reservations)
-+		return 0;
-+
-+	for (i = 0; i < PNP_MAX_PORT; i++) {
-+		if (pnp_port_valid(dev, i)) {
-+			res = &dev->res.port_resource[i];
-+			ret = release_resource(res);
-+			if (ret)
-+				dev_warn(&dev->dev,
-+					"can't release I/O ports at 0x%llx\n",
-+					(unsigned long long) res->start);
-+		}
-+	}
-+
-+	for (i = 0; i < PNP_MAX_MEM; i++) {
-+		if (pnp_mem_valid(dev, i)) {
-+			res = &dev->res.mem_resource[i];
-+			ret = release_resource(res);
-+			if (ret)
-+				dev_warn(&dev->dev,
-+					"can't release MMIO space at 0x%llx\n",
-+					(unsigned long long) res->start);
-+		}
-+	}
-+
-+	return 0;
++	local_irq_save(flags);
++	prev = *(u64 *)ptr;
++	if (prev == old)
++		*(u64 *)ptr = new;
++	local_irq_restore(flags);
++	return prev;
 +}
 +
- /* format is: pnp_reserve_irq=irq1[,irq2] .... */
- static int __init pnp_setup_reserve_irq(char *str)
- {
-@@ -510,3 +603,13 @@ static int __init pnp_setup_reserve_mem(
- }
- 
- __setup("pnp_reserve_mem=", pnp_setup_reserve_mem);
++#endif
+diff -puN /dev/null include/asm-generic/cmpxchg.h
+--- /dev/null
++++ a/include/asm-generic/cmpxchg.h
+@@ -0,0 +1,22 @@
++#ifndef __ASM_GENERIC_CMPXCHG_H
++#define __ASM_GENERIC_CMPXCHG_H
 +
-+static int __init pnp_setup(char *str)
-+{
-+	if (!strcmp(str, "no_reservations"))
-+		pnp_no_reservations = 1;
++/*
++ * Generic cmpxchg
++ *
++ * Uses the local cmpxchg. Does not support SMP.
++ */
++#ifdef CONFIG_SMP
++#error "Cannot use generic cmpxchg on SMP"
++#endif
 +
-+	return 1;
-+}
++/*
++ * Atomic compare and exchange.
++ *
++ * Do not define __HAVE_ARCH_CMPXCHG because we want to use it to check whether
++ * a cmpxchg primitive faster than repeated local irq save/restore exists.
++ */
++#define cmpxchg(ptr, o, n)	cmpxchg_local((ptr), (o), (n))
++#define cmpxchg64(ptr, o, n)	cmpxchg64_local((ptr), (o), (n))
 +
-+__setup("pnp=", pnp_setup);
++#endif
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-provide-acpi_check_mem_region.patch
-export-acpi_check_resource_conflict.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-rtc-release-correct-region-in-error-path.patch
-rtc-fallback-to-requesting-only-the-ports-we-actually-use.patch
-serial-only-use-pnp-irq-if-its-valid.patch
-__do_irq-does-not-check-irq_disabled-when-irq_per_cpu-is-set.patch
-pnp-simplify-pnp_activate_dev-and-pnp_disable_dev-return-values.patch
-pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch
+local_t-documentation-update-2.patch
+markers-fix-warnings.patch
+add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
+fall-back-on-interrupt-disable-in-cmpxchg8b-on-80386-and-80486.patch
+add-cmpxchg64-and-cmpxchg64_local-to-alpha.patch
+add-cmpxchg64-and-cmpxchg64_local-to-mips.patch
+add-cmpxchg64-and-cmpxchg64_local-to-powerpc.patch
+add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
+add-cmpxchg_local-to-arm.patch
+add-cmpxchg_local-to-avr32.patch
+add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
+add-cmpxchg_local-to-cris.patch
+add-cmpxchg_local-to-frv.patch
+add-cmpxchg_local-to-h8300.patch
+add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
+new-cmpxchg_local-optimized-for-up-case-for-m32r.patch
+fix-m32r-__xchg.patch
+m32r-build-fix-of-arch-m32r-kernel-smpbootc.patch
+local_t-m32r-use-architecture-specific-cmpxchg_local.patch
+add-cmpxchg_local-to-m86k.patch
+add-cmpxchg_local-to-m68knommu.patch
+add-cmpxchg_local-to-parisc.patch
+add-cmpxchg_local-to-ppc.patch
+add-cmpxchg_local-to-s390.patch
+add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32.patch
+add-cmpxchg_local-to-sh64.patch
+add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
+add-cmpxchg_local-to-sparc64.patch
+add-cmpxchg_local-to-v850.patch
+add-cmpxchg_local-to-xtensa.patch
