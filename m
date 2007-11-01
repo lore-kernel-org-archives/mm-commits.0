@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-bluetooth-btsdioc-fix-double-free.patch added to -mm tree
-Date: Thu, 01 Nov 2007 00:47:03 -0700
-Message-ID: <200711010747.lA17l3Qc018855@imap1.linux-foundation.org>
+Subject: + xtensa-iss_net_setup-must-be-__init.patch added to -mm tree
+Date: Thu, 01 Nov 2007 00:48:10 -0700
+Message-ID: <200711010748.lA17mA99018894@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55069 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40335 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755049AbXKAHrR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 03:47:17 -0400
+	by vger.kernel.org with ESMTP id S1755243AbXKAHsY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 03:48:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, chris@zankel.net
 
 
 The patch titled
-     drivers/bluetooth/btsdio.c: fix double-free
+     xtensa iss_net_setup() must be __init
 has been added to the -mm tree.  Its filename is
-     drivers-bluetooth-btsdioc-fix-double-free.patch
+     xtensa-iss_net_setup-must-be-__init.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/bluetooth/btsdio.c: fix double-free
+Subject: xtensa iss_net_setup() must be __init
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch fixes a double-free spotted by the Coverity checker.
+WARNING: vmlinux.o(.text+0x395c): Section mismatch: reference to .init.text:__alloc_bootmem (between '__invalidate_dcache_all' and '__simc')
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Christian Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/bluetooth/btsdio.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/xtensa/platform-iss/network.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/bluetooth/btsdio.c~drivers-bluetooth-btsdioc-fix-double-free drivers/bluetooth/btsdio.c
---- a/drivers/bluetooth/btsdio.c~drivers-bluetooth-btsdioc-fix-double-free
-+++ a/drivers/bluetooth/btsdio.c
-@@ -162,10 +162,8 @@ static int btsdio_rx_packet(struct btsdi
- 	bt_cb(skb)->pkt_type = hdr[3];
+diff -puN arch/xtensa/platform-iss/network.c~xtensa-iss_net_setup-must-be-__init arch/xtensa/platform-iss/network.c
+--- a/arch/xtensa/platform-iss/network.c~xtensa-iss_net_setup-must-be-__init
++++ a/arch/xtensa/platform-iss/network.c
+@@ -746,7 +746,7 @@ struct iss_net_init {
  
- 	err = hci_recv_frame(skb);
--	if (err < 0) {
--		kfree(skb);
-+	if (err < 0)
- 		return err;
--	}
+ #define ERR KERN_ERR "iss_net_setup: "
  
- 	sdio_writeb(data->func, 0x00, REG_PC_RRT, NULL);
- 
+-static int iss_net_setup(char *str)
++static int __init iss_net_setup(char *str)
+ {
+ 	struct iss_net_private *device = NULL;
+ 	struct iss_net_init *new;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -68,6 +66,7 @@ git-ocfs2.patch
 git-sh64.patch
 scsi-advansysc-make-3-functions-static.patch
 git-block.patch
+xtensa-iss_net_setup-must-be-__init.patch
 sunrpc-xprtrdma-transportc-fix-use-after-free.patch
 fix-mm-utilckrealloc.patch
 fuse_file_alloc-fix-null-dereferences.patch
