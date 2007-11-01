@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + usbserial-fix-inconsistent-lock-state.patch added to -mm tree
-Date: Thu, 01 Nov 2007 15:54:28 -0700
-Message-ID: <200711012254.lA1MsS0p019667@imap1.linux-foundation.org>
+Subject: + pciserial_resume_one-ignored-return-value-of-pci_enable_device.patch added to -mm tree
+Date: Thu, 01 Nov 2007 16:23:40 -0700
+Message-ID: <200711012323.lA1NNepF020955@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52751 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46739 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753500AbXKAWyd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 18:54:33 -0400
+	by vger.kernel.org with ESMTP id S1752771AbXKAXYI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 19:24:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bbpetkov@yahoo.de, greg@kroah.com, jkosina@suse.cz
+Cc: hohndel@linux.intel.com, alan@redhat.com, jeff@garzik.org
 
 
 The patch titled
-     usbserial: fix inconsistent lock state
+     pciserial_resume_one() ignored return value of pci_enable_device()
 has been added to the -mm tree.  Its filename is
-     usbserial-fix-inconsistent-lock-state.patch
+     pciserial_resume_one-ignored-return-value-of-pci_enable_device.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,52 +25,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: usbserial: fix inconsistent lock state
-From: Borislav Petkov <bbpetkov@yahoo.de>
+Subject: pciserial_resume_one() ignored return value of pci_enable_device()
+From: Dirk Hohndel <hohndel@linux.intel.com>
 
-In commit acd2a847e7fee7df11817f67dba75a2802793e5d usb_serial_generic_write()
-disables interrupts when taking &port->lock which is also taken in
-usb_serial_generic_read_bulk_callback() resulting in an inconsistent lock state
-due to the latter not disabling interrupts on the local cpu. Fix that by
-disabling interrupts in the latter call site also.
-
-Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
-Acked-by: Jiri Kosina <jkosina@suse.cz>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Dirk Hohndel <hohndel@linux.intel.com>
+Acked-by: Alan Cox <alan@redhat.com>
+Acked-by: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/generic.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/serial/8250_pci.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/serial/generic.c~usbserial-fix-inconsistent-lock-state drivers/usb/serial/generic.c
---- a/drivers/usb/serial/generic.c~usbserial-fix-inconsistent-lock-state
-+++ a/drivers/usb/serial/generic.c
-@@ -327,6 +327,7 @@ void usb_serial_generic_read_bulk_callba
- 	struct usb_serial_port *port = (struct usb_serial_port *)urb->context;
- 	unsigned char *data = urb->transfer_buffer;
- 	int status = urb->status;
-+	unsigned long flags;
+diff -puN drivers/serial/8250_pci.c~pciserial_resume_one-ignored-return-value-of-pci_enable_device drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~pciserial_resume_one-ignored-return-value-of-pci_enable_device
++++ a/drivers/serial/8250_pci.c
+@@ -1986,6 +1986,7 @@ static int pciserial_suspend_one(struct 
  
- 	dbg("%s - port %d", __FUNCTION__, port->number);
+ static int pciserial_resume_one(struct pci_dev *dev)
+ {
++	int err;
+ 	struct serial_private *priv = pci_get_drvdata(dev);
  
-@@ -339,11 +340,11 @@ void usb_serial_generic_read_bulk_callba
- 	usb_serial_debug_data(debug, &port->dev, __FUNCTION__, urb->actual_length, data);
+ 	pci_set_power_state(dev, PCI_D0);
+@@ -1995,7 +1996,9 @@ static int pciserial_resume_one(struct p
+ 		/*
+ 		 * The device may have been disabled.  Re-enable it.
+ 		 */
+-		pci_enable_device(dev);
++		err = pci_enable_device(dev);
++		if (err)
++			return err;
  
- 	/* Throttle the device if requested by tty */
--	spin_lock(&port->lock);
-+	spin_lock_irqsave(&port->lock, flags);
- 	if (!(port->throttled = port->throttle_req))
- 		/* Handle data and continue reading from device */
- 		flush_and_resubmit_read_urb(port);
--	spin_unlock(&port->lock);
-+	spin_unlock_irqrestore(&port->lock, flags);
- }
- EXPORT_SYMBOL_GPL(usb_serial_generic_read_bulk_callback);
- 
+ 		pciserial_resume_ports(priv);
+ 	}
 _
 
-Patches currently in -mm which might be from bbpetkov@yahoo.de are
+Patches currently in -mm which might be from hohndel@linux.intel.com are
 
-fs-partitions-checkc-add-error-handling-for.patch
-usbserial-fix-inconsistent-lock-state.patch
+origin.patch
+git-hid.patch
+pciserial_resume_one-ignored-return-value-of-pci_enable_device.patch
