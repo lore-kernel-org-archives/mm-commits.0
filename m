@@ -1,133 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: + forbid-user-to-change-file-flags-on-quota-files.patch added to -mm tree
-Date: Thu, 01 Nov 2007 10:55:26 -0700
-Message-ID: <200711011755.lA1HtQJ4008301@imap1.linux-foundation.org>
+Subject: - x86_64-show-right-output-for-cpuinfo.patch removed from -mm tree
+Date: Thu, 01 Nov 2007 11:11:30 -0700
+Message-ID: <200711011811.lA1IBVdk008982@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42647 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57296 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752810AbXKAR44 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 13:56:56 -0400
+	by vger.kernel.org with ESMTP id S1752271AbXKASMg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 14:12:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz, linux-ext4@vger.kernel.org, lioupayphone@gmail.com, reiserfs-dev@namesys.com, shaggy@austin.ibm.com
+To: gcosta@redhat.com, kiran@scalemp.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Forbid user to change file flags on quota files
-has been added to the -mm tree.  Its filename is
-     forbid-user-to-change-file-flags-on-quota-files.patch
+     x86_64: show right output for cpuinfo
+has been removed from the -mm tree.  Its filename was
+     x86_64-show-right-output-for-cpuinfo.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Forbid user to change file flags on quota files
-From: Jan Kara <jack@suse.cz>
+Subject: x86_64: show right output for cpuinfo
+From: Glauber de Oliveira Costa <gcosta@redhat.com>
 
-Forbid user from changing file flags on quota files.  User has no bussiness
-in playing with these flags when quota is on.  Furthermore there is a
-remote possibility of deadlock due to a lock inversion between quota file's
-i_mutex and transaction's start (i_mutex for quota file is locked only when
-trasaction is started in quota operations) in ext3 and ext4.
+In x86_64 smp systems, a regression was introduced a few days after 2.6.23,
+on its way to 2.6.23.  Bisection leads me to commit
+92cb7612aee39642d109b8d935ad265e602c0563.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: LIOU Payphone <lioupayphone@gmail.com>
-Cc: <linux-ext4@vger.kernel.org>
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>
-Cc: <reiserfs-dev@namesys.com>
+The problem is that the output of 'cat /proc/cpuinfo' shows 0 as the id of
+all cpus of a smp system. As far as I know, this only happens on x86_64
+systems.
+
+This problem was first noticed by Ravikiran. A simple patch follows
+
+Signed-off-by: Glauber de Oliveira Costa <gcosta@redhat.com>
+Cc: Ravikiran Thirumalai <kiran@scalemp.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/ioctl.c     |    5 +++++
- fs/ext3/ioctl.c     |    5 +++++
- fs/ext4/ioctl.c     |    5 +++++
- fs/jfs/ioctl.c      |    3 +++
- fs/reiserfs/ioctl.c |    3 +++
- 5 files changed, 21 insertions(+)
+ arch/x86/kernel/setup_64.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/ext2/ioctl.c~forbid-user-to-change-file-flags-on-quota-files fs/ext2/ioctl.c
---- a/fs/ext2/ioctl.c~forbid-user-to-change-file-flags-on-quota-files
-+++ a/fs/ext2/ioctl.c
-@@ -47,6 +47,11 @@ int ext2_ioctl (struct inode * inode, st
- 			flags &= ~EXT2_DIRSYNC_FL;
+diff -puN arch/x86/kernel/setup_64.c~x86_64-show-right-output-for-cpuinfo arch/x86/kernel/setup_64.c
+--- a/arch/x86/kernel/setup_64.c~x86_64-show-right-output-for-cpuinfo
++++ a/arch/x86/kernel/setup_64.c
+@@ -892,7 +892,6 @@ void __cpuinit early_identify_cpu(struct
  
- 		mutex_lock(&inode->i_mutex);
-+		/* Is it quota file? Don't allow user mess with it */
-+		if (IS_NOQUOTA(inode)) {
-+			mutex_unlock(&inode->i_mutex);
-+			return -EPERM;
-+		}
- 		oldflags = ei->i_flags;
+ #ifdef CONFIG_SMP
+ 	c->phys_proc_id = (cpuid_ebx(1) >> 24) & 0xff;
+-	c->cpu_index = 0;
+ #endif
+ }
  
- 		/*
-diff -puN fs/ext3/ioctl.c~forbid-user-to-change-file-flags-on-quota-files fs/ext3/ioctl.c
---- a/fs/ext3/ioctl.c~forbid-user-to-change-file-flags-on-quota-files
-+++ a/fs/ext3/ioctl.c
-@@ -51,6 +51,11 @@ int ext3_ioctl (struct inode * inode, st
- 			flags &= ~EXT3_DIRSYNC_FL;
- 
- 		mutex_lock(&inode->i_mutex);
-+		/* Is it quota file? Don't allow user mess with it */
-+		if (IS_NOQUOTA(inode)) {
-+			mutex_unlock(&inode->i_mutex);
-+			return -EPERM;
-+		}
- 		oldflags = ei->i_flags;
- 
- 		/* The JOURNAL_DATA flag is modifiable only by root */
-diff -puN fs/ext4/ioctl.c~forbid-user-to-change-file-flags-on-quota-files fs/ext4/ioctl.c
---- a/fs/ext4/ioctl.c~forbid-user-to-change-file-flags-on-quota-files
-+++ a/fs/ext4/ioctl.c
-@@ -51,6 +51,11 @@ int ext4_ioctl (struct inode * inode, st
- 			flags &= ~EXT4_DIRSYNC_FL;
- 
- 		mutex_lock(&inode->i_mutex);
-+		/* Is it quota file? Don't allow user mess with it */
-+		if (IS_NOQUOTA(inode)) {
-+			mutex_unlock(&inode->i_mutex);
-+			return -EPERM;
-+		}
- 		oldflags = ei->i_flags;
- 
- 		/* The JOURNAL_DATA flag is modifiable only by root */
-diff -puN fs/jfs/ioctl.c~forbid-user-to-change-file-flags-on-quota-files fs/jfs/ioctl.c
---- a/fs/jfs/ioctl.c~forbid-user-to-change-file-flags-on-quota-files
-+++ a/fs/jfs/ioctl.c
-@@ -79,6 +79,9 @@ int jfs_ioctl(struct inode * inode, stru
- 		if (!S_ISDIR(inode->i_mode))
- 			flags &= ~JFS_DIRSYNC_FL;
- 
-+		/* Is it quota file? Don't allow user mess with it */
-+		if (IS_NOQUOTA(inode))
-+			return -EPERM;
- 		jfs_get_inode_flags(jfs_inode);
- 		oldflags = jfs_inode->mode2;
- 
-diff -puN fs/reiserfs/ioctl.c~forbid-user-to-change-file-flags-on-quota-files fs/reiserfs/ioctl.c
---- a/fs/reiserfs/ioctl.c~forbid-user-to-change-file-flags-on-quota-files
-+++ a/fs/reiserfs/ioctl.c
-@@ -57,6 +57,9 @@ int reiserfs_ioctl(struct inode *inode, 
- 			if (get_user(flags, (int __user *)arg))
- 				return -EFAULT;
- 
-+			/* Is it quota file? Don't allow user mess with it. */
-+			if (IS_NOQUOTA(inode))
-+				return -EPERM;
- 			if (((flags ^ REISERFS_I(inode)->
- 			      i_attrs) & (REISERFS_IMMUTABLE_FL |
- 					  REISERFS_APPEND_FL))
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from gcosta@redhat.com are
 
-forbid-user-to-change-file-flags-on-quota-files.patch
-git-ocfs2.patch
-fix-64kb-blocksize-in-ext3-directories.patch
-fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext4-from-using-iget-and-read_inode-try.patch
+origin.patch
+git-kvm.patch
+x86_64-show-right-output-for-cpuinfo.patch
