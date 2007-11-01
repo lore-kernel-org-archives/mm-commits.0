@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-fix-incompatible-types-warning-in-previous-sg-fix.patch added to -mm tree
-Date: Thu, 01 Nov 2007 16:35:38 -0700
-Message-ID: <200711012335.lA1NZcnL021349@imap1.linux-foundation.org>
+Subject: + uml-correctly-strip-kernel-defines-from-userspace-cflags.patch added to -mm tree
+Date: Thu, 01 Nov 2007 16:36:27 -0700
+Message-ID: <200711012336.lA1NaRvP021427@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48745 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33729 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752611AbXKAXfu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 19:35:50 -0400
+	by vger.kernel.org with ESMTP id S1754048AbXKAXgw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 19:36:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com, jdike@linux.intel.com, jens.axboe@oracle.com
+Cc: jdike@addtoit.com, jdike@linux.intel.com, sam@ravnborg.org
 
 
 The patch titled
-     uml: fix incompatible types warning in previous SG fix
+     uml: correctly strip kernel defines from userspace CFLAGS
 has been added to the -mm tree.  Its filename is
-     uml-fix-incompatible-types-warning-in-previous-sg-fix.patch
+     uml-correctly-strip-kernel-defines-from-userspace-cflags.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,38 +25,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: fix incompatible types warning in previous SG fix
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: uml: correctly strip kernel defines from userspace CFLAGS
+From: Jeff Dike <jdike@addtoit.com>
 
-Fix an incompatible-pointer warning.
+KERNEL_DEFINES needs whitespace trimmed, otherwise the whitespace crunching
+done by make fools the patsubst which is used to remove KERNEL_DEFINES from
+USER_CFLAGS.
 
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/ubd_kern.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/um/Makefile |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN arch/um/drivers/ubd_kern.c~uml-fix-incompatible-types-warning-in-previous-sg-fix arch/um/drivers/ubd_kern.c
---- a/arch/um/drivers/ubd_kern.c~uml-fix-incompatible-types-warning-in-previous-sg-fix
-+++ a/arch/um/drivers/ubd_kern.c
-@@ -705,7 +705,7 @@ static int ubd_add(int n, char **error_o
- 	ubd_dev->size = ROUND_BLOCK(ubd_dev->size);
+diff -puN arch/um/Makefile~uml-correctly-strip-kernel-defines-from-userspace-cflags arch/um/Makefile
+--- a/arch/um/Makefile~uml-correctly-strip-kernel-defines-from-userspace-cflags
++++ a/arch/um/Makefile
+@@ -70,9 +70,12 @@ include $(srctree)/$(ARCH_DIR)/Makefile-
+ # in KBUILD_CFLAGS.  Otherwise, it would cause ld to complain about the two different
+ # errnos.
+ # These apply to kernelspace only.
++#
++# strip leading and trailing whitespace to make the USER_CFLAGS removal of these
++# defines more robust
  
- 	INIT_LIST_HEAD(&ubd_dev->restart);
--	sg_init_table(&ubd_dev->sg, MAX_SG);
-+	sg_init_table(ubd_dev->sg, MAX_SG);
+-KERNEL_DEFINES = -Derrno=kernel_errno -Dsigprocmask=kernel_sigprocmask \
+-	-Dmktime=kernel_mktime $(ARCH_KERNEL_DEFINES)
++KERNEL_DEFINES = $(strip -Derrno=kernel_errno -Dsigprocmask=kernel_sigprocmask \
++			 -Dmktime=kernel_mktime $(ARCH_KERNEL_DEFINES))
+ KBUILD_CFLAGS += $(KERNEL_DEFINES)
+ KBUILD_CFLAGS += $(call cc-option,-fno-unit-at-a-time,)
  
- 	err = -ENOMEM;
- 	ubd_dev->queue = blk_init_queue(do_ubd_request, &ubd_dev->lock);
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-origin.patch
-uml-fix-incompatible-types-warning-in-previous-sg-fix.patch
-git-watchdog.patch
+uml-correctly-strip-kernel-defines-from-userspace-cflags.patch
+git-kvm.patch
 arch-um-drivers-ubd_kernc-a-warning-fix.patch
-uml-code-tidying-under-arch-um-os-linux.patch
+uml-fix-spurious-irq-testing.patch
+uml-remove-last-include-of-libc-asm-pageh.patch
+uml-fix-build-for-config_tcp.patch
+uml-fix-build-for-config_printk.patch
+uml-implement-get_wchan.patch
+uml-get-rid-of-asmlinkage.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
