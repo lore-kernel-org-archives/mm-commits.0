@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + update-kerneldoc-comments-in-drivers-scsi-scsicamc.patch added to -mm tree
-Date: Thu, 01 Nov 2007 14:36:31 -0700
-Message-ID: <200711012136.lA1LaVTB016658@imap1.linux-foundation.org>
+Subject: + lguest_userc-fix-memory-leak.patch added to -mm tree
+Date: Thu, 01 Nov 2007 14:50:57 -0700
+Message-ID: <200711012150.lA1Lovrc017189@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37219 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51519 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759448AbXKAVgw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 17:36:52 -0400
+	by vger.kernel.org with ESMTP id S1753179AbXKAVvq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 17:51:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rob@landley.net, James.Bottomley@steeleye.com, rdunlap@xenotime.net
+Cc: bunk@kernel.org, rusty@rustcorp.com.au
 
 
 The patch titled
-     Update kerneldoc comments in drivers/scsi/scsicam.c
+     lguest_user.c: fix memory leak
 has been added to the -mm tree.  Its filename is
-     update-kerneldoc-comments-in-drivers-scsi-scsicamc.patch
+     lguest_userc-fix-memory-leak.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,102 +25,73 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Update kerneldoc comments in drivers/scsi/scsicam.c
-From: Rob Landley <rob@landley.net>
+Subject: lguest_user.c: fix memory leak
+From: Adrian Bunk <bunk@kernel.org>
 
-Signed-off-by: Rob Landley <rob@landley.net>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+This patch fixes a memory leak spotted by the Coverity checker.
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsicam.c |   35 ++++++++++++++++++++++++-----------
- 1 file changed, 24 insertions(+), 11 deletions(-)
+ drivers/lguest/lguest_user.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/scsicam.c~update-kerneldoc-comments-in-drivers-scsi-scsicamc drivers/scsi/scsicam.c
---- a/drivers/scsi/scsicam.c~update-kerneldoc-comments-in-drivers-scsi-scsicamc
-+++ a/drivers/scsi/scsicam.c
-@@ -24,6 +24,14 @@
- static int setsize(unsigned long capacity, unsigned int *cyls, unsigned int *hds,
- 		   unsigned int *secs);
- 
-+/**
-+ * scsi_bios_ptable - Read PC partition table out of first sector of device.
-+ * @dev: from this device
-+ *
-+ * Description: Reads the first sector from the device and returns %0x42 bytes
-+ *              starting at offset %0x1be.
-+ * Returns: partition table in kmalloc(GFP_KERNEL) memory, or NULL on error.
-+ */
- unsigned char *scsi_bios_ptable(struct block_device *dev)
- {
- 	unsigned char *res = kmalloc(66, GFP_KERNEL);
-@@ -43,15 +51,17 @@ unsigned char *scsi_bios_ptable(struct b
- }
- EXPORT_SYMBOL(scsi_bios_ptable);
- 
--/*
-- * Function : int scsicam_bios_param (struct block_device *bdev, ector_t capacity, int *ip)
-+/**
-+ * scsicam_bios_param - Determine geometry of a disk in cylinders/heads/sectors.
-+ * @bdev: which device
-+ * @capacity: size of the disk in sectors
-+ * @ip: return value: ip[0]=heads, ip[1]=sectors, ip[2]=cylinders
-  *
-- * Purpose : to determine the BIOS mapping used for a drive in a 
-+ * Description : determine the BIOS mapping/geometry used for a drive in a 
-  *      SCSI-CAM system, storing the results in ip as required
-  *      by the HDIO_GETGEO ioctl().
-  *
-  * Returns : -1 on failure, 0 on success.
-- *
-  */
- 
- int scsicam_bios_param(struct block_device *bdev, sector_t capacity, int *ip)
-@@ -98,15 +108,18 @@ int scsicam_bios_param(struct block_devi
- }
- EXPORT_SYMBOL(scsicam_bios_param);
- 
--/*
-- * Function : static int scsi_partsize(unsigned char *buf, unsigned long 
-- *     capacity,unsigned int *cyls, unsigned int *hds, unsigned int *secs);
-+/**
-+ * scsi_partsize - Parse cylinders/heads/sectors from PC partition table
-+ * @buf: partition table, see scsi_bios_ptable()
-+ * @capacity: size of the disk in sectors
-+ * @cyls: put cylinders here
-+ * @hds: put heads here
-+ * @secs: put sectors here
-  *
-- * Purpose : to determine the BIOS mapping used to create the partition
-+ * Description: determine the BIOS mapping/geometry used to create the partition
-  *      table, storing the results in *cyls, *hds, and *secs 
-  *
-- * Returns : -1 on failure, 0 on success.
-- *
-+ * Returns: -1 on failure, 0 on success.
-  */
- 
- int scsi_partsize(unsigned char *buf, unsigned long capacity,
-@@ -194,7 +207,7 @@ EXPORT_SYMBOL(scsi_partsize);
-  *
-  * WORKING                                                    X3T9.2
-  * DRAFT                                                        792D
-- *
-+ * see http://www.t10.org/ftp/t10/drafts/cam/cam-r12b.pdf
-  *
-  *                                                        Revision 6
-  *                                                         10-MAR-94
+diff -puN drivers/lguest/lguest_user.c~lguest_userc-fix-memory-leak drivers/lguest/lguest_user.c
+--- a/drivers/lguest/lguest_user.c~lguest_userc-fix-memory-leak
++++ a/drivers/lguest/lguest_user.c
+@@ -184,7 +184,7 @@ static int initialize(struct file *file,
+ free_regs:
+ 	free_page(lg->regs_page);
+ release_guest:
+-	memset(lg, 0, sizeof(*lg));
++	kfree(lg);
+ unlock:
+ 	mutex_unlock(&lguest_lock);
+ 	return err;
 _
 
-Patches currently in -mm which might be from rob@landley.net are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-update-kerneldoc-comments-in-drivers-scsi-scsicamc.patch
-add-missing-section-ids-to-genericirqtmpl.patch
-add-missing-section-ids-to-genericirqtmpl-updated.patch
-add-missing-section-id-to-lsmtmpl.patch
-add-section-ids-to-mtdnandtmpl.patch
-add-missing-ids-to-procfs-guidetmpl.patch
-add-section-ids-to-rapidiotmpl.patch
-add-table-ids-to-videobooktmpl.patch
-add-chapter-ids-to-z8530booktmpl.patch
+origin.patch
+lguest_userc-fix-memory-leak.patch
+git-dvb.patch
+git-hwmon.patch
+git-input.patch
+make-jffs2_get_acl-static.patch
+make-sunrpc-xprtsockcxs_setup_udptcp-static.patch
+drivers-bluetooth-bpa10xc-fix-memleak.patch
+drivers-bluetooth-btsdioc-fix-double-free.patch
+git-nfs-make-nfs_wb_page_priority-static.patch
+git-ocfs2.patch
+git-sh64.patch
+scsi-advansysc-make-3-functions-static.patch
+git-block.patch
+xtensa-iss_net_setup-must-be-__init.patch
+sunrpc-xprtrdma-transportc-fix-use-after-free.patch
+fix-mm-utilckrealloc.patch
+fuse_file_alloc-fix-null-dereferences.patch
+pidns-place-under-config_experimental.patch
+pidns-place-under-config_experimental-checkpatch-fixes.patch
+feature-removal-schedule-remove-sa_-flags-entry.patch
+kernel-taskstatsc-fix-bogus-nlmsg_free.patch
+mm-hugetlbc-make-a-function-static.patch
+mm-page-writebackc-make-a-function-static.patch
+kernel-power-diskc-make-code-static.patch
+make-kernel_shutdown_prepare-static.patch
+kill-udffs_dateversion.patch
+make-ipc-utilcsysvipc_find_ipc-static.patch
+scheduled-oss-driver-removal.patch
+cleanup-after-apus-removal.patch
+53c7xx-removal-fallout.patch
+remove-mm_ptovvtop.patch
+fs-ecryptfs-possible-cleanups.patch
+make-video-geode-lxfb_corecgeode_modedb-static.patch
+make-jbd-journalc__journal_abort_hard-static.patch
+kernel-cgroupc-remove-dead-code.patch
+kernel-cgroupc-make-2-functions-static.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+fix-m32r-__xchg.patch
+reiser4.patch
