@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch added to -mm tree
-Date: Thu, 01 Nov 2007 12:09:18 -0700
-Message-ID: <20071101190918.92DF2432BFE@localhost>
+Subject: + add-cmpxchg_local-to-v850.patch added to -mm tree
+Date: Thu, 01 Nov 2007 12:09:20 -0700
+Message-ID: <20071101190920.8C99C432BDE@localhost>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.45.13]:30245 "EHLO
+Received: from smtp-out.google.com ([216.239.45.13]:30240 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754872AbXKATK4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:10:56 -0400
+	with ESMTP id S1754857AbXKATKy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:10:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, davem@davemloft.net, wli@holomorphy.com
+Cc: mathieu.desnoyers@polymtl.ca, miles.bader@necel.com
 
 
 The patch titled
-     Add cmpxchg_local to sparc, move __cmpxchg to system.h
+     Add cmpxchg_local to v850
 has been added to the -mm tree.  Its filename is
-     add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
+     add-cmpxchg_local-to-v850.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,112 +25,27 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add cmpxchg_local to sparc, move __cmpxchg to system.h
+Subject: Add cmpxchg_local to v850
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Move cmpxchg and add cmpxchg_local to system.h.
-Use the new generic cmpxchg_local (disables interrupt).
+Use the new generic cmpxchg_local (disables interrupt). Also use the generic
+cmpxchg as fallback if SMP is not set.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: William Lee Irwin III <wli@holomorphy.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Miles Bader <miles.bader@necel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-sparc/atomic.h |   36 --------------------------
- include/asm-sparc/system.h |   48 +++++++++++++++++++++++++++++++++++
- 2 files changed, 48 insertions(+), 36 deletions(-)
+ include/asm-v850/system.h |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN include/asm-sparc/atomic.h~add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh include/asm-sparc/atomic.h
---- a/include/asm-sparc/atomic.h~add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh
-+++ a/include/asm-sparc/atomic.h
-@@ -17,42 +17,6 @@ typedef struct { volatile int counter; }
- 
- #ifdef __KERNEL__
- 
--/* Emulate cmpxchg() the same way we emulate atomics,
-- * by hashing the object address and indexing into an array
-- * of spinlocks to get a bit of performance...
-- *
-- * See arch/sparc/lib/atomic32.c for implementation.
-- *
-- * Cribbed from <asm-parisc/atomic.h>
-- */
--#define __HAVE_ARCH_CMPXCHG	1
--
--/* bug catcher for when unsupported size is used - won't link */
--extern void __cmpxchg_called_with_bad_pointer(void);
--/* we only need to support cmpxchg of a u32 on sparc */
--extern unsigned long __cmpxchg_u32(volatile u32 *m, u32 old, u32 new_);
--
--/* don't worry...optimizer will get rid of most of this */
--static inline unsigned long
--__cmpxchg(volatile void *ptr, unsigned long old, unsigned long new_, int size)
--{
--	switch(size) {
--	case 4:
--		return __cmpxchg_u32((u32 *)ptr, (u32)old, (u32)new_);
--	default:
--		__cmpxchg_called_with_bad_pointer();
--		break;
--	}
--	return old;
--}
--
--#define cmpxchg(ptr,o,n) ({						\
--	__typeof__(*(ptr)) _o_ = (o);					\
--	__typeof__(*(ptr)) _n_ = (n);					\
--	(__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)_o_,	\
--			(unsigned long)_n_, sizeof(*(ptr)));		\
--})
--
- #define ATOMIC_INIT(i)  { (i) }
- 
- extern int __atomic_add_return(int, atomic_t *);
-diff -puN include/asm-sparc/system.h~add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh include/asm-sparc/system.h
---- a/include/asm-sparc/system.h~add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh
-+++ a/include/asm-sparc/system.h
-@@ -225,6 +225,54 @@ static inline unsigned long __xchg(unsig
- 	return x;
+diff -puN include/asm-v850/system.h~add-cmpxchg_local-to-v850 include/asm-v850/system.h
+--- a/include/asm-v850/system.h~add-cmpxchg_local-to-v850
++++ a/include/asm-v850/system.h
+@@ -103,6 +103,21 @@ static inline unsigned long __xchg (unsi
+ 	return tmp;
  }
  
-+/* Emulate cmpxchg() the same way we emulate atomics,
-+ * by hashing the object address and indexing into an array
-+ * of spinlocks to get a bit of performance...
-+ *
-+ * See arch/sparc/lib/atomic32.c for implementation.
-+ *
-+ * Cribbed from <asm-parisc/atomic.h>
-+ */
-+#define __HAVE_ARCH_CMPXCHG	1
-+
-+/* bug catcher for when unsupported size is used - won't link */
-+extern void __cmpxchg_called_with_bad_pointer(void);
-+/* we only need to support cmpxchg of a u32 on sparc */
-+extern unsigned long __cmpxchg_u32(volatile u32 *m, u32 old, u32 new_);
-+
-+/* don't worry...optimizer will get rid of most of this */
-+static inline unsigned long
-+__cmpxchg(volatile void *ptr, unsigned long old, unsigned long new_, int size)
-+{
-+	switch (size) {
-+	case 4:
-+		return __cmpxchg_u32((u32 *)ptr, (u32)old, (u32)new_);
-+	default:
-+		__cmpxchg_called_with_bad_pointer();
-+		break;
-+	}
-+	return old;
-+}
-+
-+#define cmpxchg(ptr, o, n)						\
-+({									\
-+	__typeof__(*(ptr)) _o_ = (o);					\
-+	__typeof__(*(ptr)) _n_ = (n);					\
-+	(__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)_o_,	\
-+			(unsigned long)_n_, sizeof(*(ptr)));		\
-+})
-+
 +#include <asm-generic/cmpxchg-local.h>
 +
 +/*
@@ -142,9 +57,13 @@ diff -puN include/asm-sparc/system.h~add-cmpxchg_local-to-sparc-move-__cmpxchg-t
 +			(unsigned long)(n), sizeof(*(ptr))))
 +#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
 +
- extern void die_if_kernel(char *str, struct pt_regs *regs) __attribute__ ((noreturn));
++#ifndef CONFIG_SMP
++#include <asm-generic/cmpxchg.h>
++#endif
++
+ #define arch_align_stack(x) (x)
  
- #endif /* __KERNEL__ */
+ #endif /* __V850_SYSTEM_H__ */
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
