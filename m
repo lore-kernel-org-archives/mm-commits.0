@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-security-rework-inode_getsecurity-and-callers-to.patch added to -mm tree
-Date: Thu, 01 Nov 2007 12:35:54 -0700
-Message-ID: <20071101193554.8CDDF432BDC@localhost>
+Subject: + x86-show-cpuinfo-only-for-online-cpus.patch added to -mm tree
+Date: Thu, 01 Nov 2007 12:39:32 -0700
+Message-ID: <20071101193932.8A44D432BDC@localhost>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.33.17]:49114 "EHLO
+Received: from smtp-out.google.com ([216.239.33.17]:49439 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752941AbXKATh6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:37:58 -0400
+	with ESMTP id S1753512AbXKATkB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:40:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dpquigl@tycho.nsa.gov, casey@schaufler-ca.com, chrisw@sous-sol.org, hch@lst.de, jmorris@namei.org, sds@tycho.nsa.gov, serue@us.ibm.com, viro@zeniv.linux.org.uk
+Cc: andreas.herrmann3@amd.com, gcosta@redhat.com, mingo@elte.hu, tglx@linutronix.de, travis@sgi.com
 
 
 The patch titled
-     VFS/Security: Rework inode_getsecurity and callers to return resulting buffer
+     x86: show cpuinfo only for online CPUs
 has been added to the -mm tree.  Its filename is
-     vfs-security-rework-inode_getsecurity-and-callers-to.patch
+     x86-show-cpuinfo-only-for-online-cpus.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,263 +25,109 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: VFS/Security: Rework inode_getsecurity and callers to return resulting buffer
-From: "David P. Quigley" <dpquigl@tycho.nsa.gov>
+Subject: x86: show cpuinfo only for online CPUs
+From: "Andreas Herrmann" <andreas.herrmann3@amd.com>
 
-This patch modifies the interface to inode_getsecurity to have the function
-return a buffer containing the security blob and its length via parameters
-instead of relying on the calling function to give it an appropriately sized
-buffer.
+Fix regressions introduced with 92cb7612aee39642d109b8d935ad265e602c0563.
 
-Security blobs obtained with this function should be freed using the
-release_secctx LSM hook.  This alleviates the problem of the caller having to
-guess a length and preallocate a buffer for this function allowing it to be
-used elsewhere for Labeled NFS.
+It can happen that cpuinfo is displayed for CPUs that are not online or
+even worse for CPUs not present at all. As an example, following was
+shown for a "second" CPU of a single core K8 variant:
 
-The patch also removed the unused err parameter.  The conversion is similar to
-the one performed by Al Viro for the security_getprocattr hook.
+    processor       : 0
+    vendor_id       : unknown
+    cpu family      : 0
+    model           : 0
+    model name      : unknown
+    stepping        : 0
+    cache size      : 0 KB
+    fpu             : yes
+    fpu_exception   : yes
+    cpuid level     : 0
+    wp              : yes
+    flags           :
+    bogomips        : 0.00
+    clflush size    : 0
+    cache_alignment : 0
+    address sizes   : 0 bits physical, 0 bits virtual
+    power management:
 
-Signed-off-by: David P. Quigley <dpquigl@tycho.nsa.gov>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: James Morris <jmorris@namei.org>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Casey Schaufler <casey@schaufler-ca.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+Cc: Glauber de Oliveira Costa <gcosta@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Mike Travis <travis@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xattr.c               |   30 ++++++++++++++++++++++++-
- include/linux/security.h |   21 +++++++-----------
- include/linux/xattr.h    |    1 
- mm/shmem.c               |    3 --
- security/dummy.c         |    2 -
- security/security.c      |    4 +--
- security/selinux/hooks.c |   43 ++++++++++++-------------------------
- 7 files changed, 57 insertions(+), 47 deletions(-)
+ arch/x86/kernel/cpu/proc.c |    8 +++-----
+ arch/x86/kernel/setup_64.c |    8 +++-----
+ 2 files changed, 6 insertions(+), 10 deletions(-)
 
-diff -puN fs/xattr.c~vfs-security-rework-inode_getsecurity-and-callers-to fs/xattr.c
---- a/fs/xattr.c~vfs-security-rework-inode_getsecurity-and-callers-to
-+++ a/fs/xattr.c
-@@ -105,6 +105,33 @@ out:
- EXPORT_SYMBOL_GPL(vfs_setxattr);
+diff -puN arch/x86/kernel/cpu/proc.c~x86-show-cpuinfo-only-for-online-cpus arch/x86/kernel/cpu/proc.c
+--- a/arch/x86/kernel/cpu/proc.c~x86-show-cpuinfo-only-for-online-cpus
++++ a/arch/x86/kernel/cpu/proc.c
+@@ -90,8 +90,6 @@ static int show_cpuinfo(struct seq_file 
  
- ssize_t
-+xattr_getsecurity(struct inode *inode, const char *name, void *value,
-+			size_t size)
-+{
-+	void *buffer = NULL;
-+	ssize_t len;
-+
-+	if (!value || !size) {
-+		len = security_inode_getsecurity(inode, name, &buffer, false);
-+		goto out_noalloc;
-+	}
-+
-+	len = security_inode_getsecurity(inode, name, &buffer, true);
-+	if (len < 0)
-+		return len;
-+	if (size < len) {
-+		len = -ERANGE;
-+		goto out;
-+	}
-+	memcpy(value, buffer, len);
-+out:
-+	security_release_secctx(buffer, len);
-+out_noalloc:
-+	return len;
-+}
-+EXPORT_SYMBOL_GPL(xattr_getsecurity);
-+
-+ssize_t
- vfs_getxattr(struct dentry *dentry, char *name, void *value, size_t size)
+ #ifdef CONFIG_SMP
+ 	n = c->cpu_index;
+-	if (!cpu_online(n))
+-		return 0;
+ #endif
+ 	seq_printf(m, "processor\t: %d\n"
+ 		"vendor_id\t: %s\n"
+@@ -177,14 +175,14 @@ static int show_cpuinfo(struct seq_file 
+ static void *c_start(struct seq_file *m, loff_t *pos)
  {
- 	struct inode *inode = dentry->d_inode;
-@@ -126,8 +153,7 @@ vfs_getxattr(struct dentry *dentry, char
- 	if (!strncmp(name, XATTR_SECURITY_PREFIX,
- 				XATTR_SECURITY_PREFIX_LEN)) {
- 		const char *suffix = name + XATTR_SECURITY_PREFIX_LEN;
--		int ret = security_inode_getsecurity(inode, suffix, value,
--						     size, error);
-+		int ret = xattr_getsecurity(inode, suffix, value, size);
- 		/*
- 		 * Only overwrite the return value if a security module
- 		 * is actually active.
-diff -puN include/linux/security.h~vfs-security-rework-inode_getsecurity-and-callers-to include/linux/security.h
---- a/include/linux/security.h~vfs-security-rework-inode_getsecurity-and-callers-to
-+++ a/include/linux/security.h
-@@ -404,15 +404,12 @@ struct request_sock;
-  * 	identified by @name for @dentry.
-  * 	Return 0 if permission is granted.
-  * @inode_getsecurity:
-- *	Copy the extended attribute representation of the security label 
-- *	associated with @name for @inode into @buffer.  @buffer may be
-- *	NULL to request the size of the buffer required.  @size indicates
-- *	the size of @buffer in bytes.  Note that @name is the remainder
-- *	of the attribute name after the security. prefix has been removed.
-- *	@err is the return value from the preceding fs getxattr call,
-- *	and can be used by the security module to determine whether it
-- *	should try and canonicalize the attribute value.
-- *	Return number of bytes used/required on success.
-+ *	Retrieve a copy of the extended attribute representation of the
-+ *	security label associated with @name for @inode via @buffer.  Note that
-+ *	@name is the remainder of the attribute name after the security prefix
-+ *	has been removed. @alloc is used to specify of the call should return a
-+ *	value via the buffer or just the value length Return size of buffer on
-+ *	success.
-  * @inode_setsecurity:
-  *	Set the security label associated with @name for @inode from the
-  *	extended attribute value @value.  @size indicates the size of the
-@@ -1275,7 +1272,7 @@ struct security_operations {
- 	int (*inode_removexattr) (struct dentry *dentry, char *name);
- 	int (*inode_need_killpriv) (struct dentry *dentry);
- 	int (*inode_killpriv) (struct dentry *dentry);
--  	int (*inode_getsecurity)(const struct inode *inode, const char *name, void *buffer, size_t size, int err);
-+	int (*inode_getsecurity)(const struct inode *inode, const char *name, void **buffer, bool alloc);
-   	int (*inode_setsecurity)(struct inode *inode, const char *name, const void *value, size_t size, int flags);
-   	int (*inode_listsecurity)(struct inode *inode, char *buffer, size_t buffer_size);
- 
-@@ -1529,7 +1526,7 @@ int security_inode_listxattr(struct dent
- int security_inode_removexattr(struct dentry *dentry, char *name);
- int security_inode_need_killpriv(struct dentry *dentry);
- int security_inode_killpriv(struct dentry *dentry);
--int security_inode_getsecurity(const struct inode *inode, const char *name, void *buffer, size_t size, int err);
-+int security_inode_getsecurity(const struct inode *inode, const char *name, void **buffer, bool alloc);
- int security_inode_setsecurity(struct inode *inode, const char *name, const void *value, size_t size, int flags);
- int security_inode_listsecurity(struct inode *inode, char *buffer, size_t buffer_size);
- int security_file_permission(struct file *file, int mask);
-@@ -1933,7 +1930,7 @@ static inline int security_inode_killpri
- 	return cap_inode_killpriv(dentry);
+ 	if (*pos == 0)	/* just in case, cpu 0 is not the first */
+-		*pos = first_cpu(cpu_possible_map);
+-	if ((*pos) < NR_CPUS && cpu_possible(*pos))
++		*pos = first_cpu(cpu_online_map);
++	if ((*pos) < NR_CPUS && cpu_online(*pos))
+ 		return &cpu_data(*pos);
+ 	return NULL;
  }
- 
--static inline int security_inode_getsecurity(const struct inode *inode, const char *name, void *buffer, size_t size, int err)
-+static inline int security_inode_getsecurity(const struct inode *inode, const char *name, void **buffer, bool alloc)
+ static void *c_next(struct seq_file *m, void *v, loff_t *pos)
  {
- 	return -EOPNOTSUPP;
+-	*pos = next_cpu(*pos, cpu_possible_map);
++	*pos = next_cpu(*pos, cpu_online_map);
+ 	return c_start(m, pos);
  }
-diff -puN include/linux/xattr.h~vfs-security-rework-inode_getsecurity-and-callers-to include/linux/xattr.h
---- a/include/linux/xattr.h~vfs-security-rework-inode_getsecurity-and-callers-to
-+++ a/include/linux/xattr.h
-@@ -46,6 +46,7 @@ struct xattr_handler {
- 		   size_t size, int flags);
- };
+ static void c_stop(struct seq_file *m, void *v)
+diff -puN arch/x86/kernel/setup_64.c~x86-show-cpuinfo-only-for-online-cpus arch/x86/kernel/setup_64.c
+--- a/arch/x86/kernel/setup_64.c~x86-show-cpuinfo-only-for-online-cpus
++++ a/arch/x86/kernel/setup_64.c
+@@ -1131,8 +1131,6 @@ static int show_cpuinfo(struct seq_file 
  
-+ssize_t xattr_getsecurity(struct inode *, const char *, void *, size_t);
- ssize_t vfs_getxattr(struct dentry *, char *, void *, size_t);
- ssize_t vfs_listxattr(struct dentry *d, char *list, size_t size);
- int vfs_setxattr(struct dentry *, char *, void *, size_t, int);
-diff -puN mm/shmem.c~vfs-security-rework-inode_getsecurity-and-callers-to mm/shmem.c
---- a/mm/shmem.c~vfs-security-rework-inode_getsecurity-and-callers-to
-+++ a/mm/shmem.c
-@@ -1870,8 +1870,7 @@ static int shmem_xattr_security_get(stru
+ 
+ #ifdef CONFIG_SMP
+-	if (!cpu_online(c->cpu_index))
+-		return 0;
+ 	cpu = c->cpu_index;
+ #endif
+ 
+@@ -1224,15 +1222,15 @@ static int show_cpuinfo(struct seq_file 
+ static void *c_start(struct seq_file *m, loff_t *pos)
  {
- 	if (strcmp(name, "") == 0)
- 		return -EINVAL;
--	return security_inode_getsecurity(inode, name, buffer, size,
--					  -EOPNOTSUPP);
-+	return xattr_getsecurity(inode, name, buffer, size);
+ 	if (*pos == 0)	/* just in case, cpu 0 is not the first */
+-		*pos = first_cpu(cpu_possible_map);
+-	if ((*pos) < NR_CPUS && cpu_possible(*pos))
++		*pos = first_cpu(cpu_online_map);
++	if ((*pos) < NR_CPUS && cpu_online(*pos))
+ 		return &cpu_data(*pos);
+ 	return NULL;
  }
  
- static int shmem_xattr_security_set(struct inode *inode, const char *name,
-diff -puN security/dummy.c~vfs-security-rework-inode_getsecurity-and-callers-to security/dummy.c
---- a/security/dummy.c~vfs-security-rework-inode_getsecurity-and-callers-to
-+++ a/security/dummy.c
-@@ -384,7 +384,7 @@ static int dummy_inode_killpriv(struct d
- 	return 0;
- }
- 
--static int dummy_inode_getsecurity(const struct inode *inode, const char *name, void *buffer, size_t size, int err)
-+static int dummy_inode_getsecurity(const struct inode *inode, const char *name, void **buffer, bool alloc)
+ static void *c_next(struct seq_file *m, void *v, loff_t *pos)
  {
- 	return -EOPNOTSUPP;
- }
-diff -puN security/security.c~vfs-security-rework-inode_getsecurity-and-callers-to security/security.c
---- a/security/security.c~vfs-security-rework-inode_getsecurity-and-callers-to
-+++ a/security/security.c
-@@ -479,11 +479,11 @@ int security_inode_killpriv(struct dentr
- 	return security_ops->inode_killpriv(dentry);
+-	*pos = next_cpu(*pos, cpu_possible_map);
++	*pos = next_cpu(*pos, cpu_online_map);
+ 	return c_start(m, pos);
  }
  
--int security_inode_getsecurity(const struct inode *inode, const char *name, void *buffer, size_t size, int err)
-+int security_inode_getsecurity(const struct inode *inode, const char *name, void **buffer, bool alloc)
- {
- 	if (unlikely(IS_PRIVATE(inode)))
- 		return 0;
--	return security_ops->inode_getsecurity(inode, name, buffer, size, err);
-+	return security_ops->inode_getsecurity(inode, name, buffer, alloc);
- }
- 
- int security_inode_setsecurity(struct inode *inode, const char *name, const void *value, size_t size, int flags)
-diff -puN security/selinux/hooks.c~vfs-security-rework-inode_getsecurity-and-callers-to security/selinux/hooks.c
---- a/security/selinux/hooks.c~vfs-security-rework-inode_getsecurity-and-callers-to
-+++ a/security/selinux/hooks.c
-@@ -127,32 +127,6 @@ static DEFINE_SPINLOCK(sb_security_lock)
- 
- static struct kmem_cache *sel_inode_cache;
- 
--/* Return security context for a given sid or just the context 
--   length if the buffer is null or length is 0 */
--static int selinux_getsecurity(u32 sid, void *buffer, size_t size)
--{
--	char *context;
--	unsigned len;
--	int rc;
--
--	rc = security_sid_to_context(sid, &context, &len);
--	if (rc)
--		return rc;
--
--	if (!buffer || !size)
--		goto getsecurity_exit;
--
--	if (size < len) {
--		len = -ERANGE;
--		goto getsecurity_exit;
--	}
--	memcpy(buffer, context, len);
--
--getsecurity_exit:
--	kfree(context);
--	return len;
--}
--
- /* Allocate and free functions for each kind of security blob. */
- 
- static int task_alloc_security(struct task_struct *task)
-@@ -2416,14 +2390,27 @@ static int selinux_inode_removexattr (st
-  *
-  * Permission check is handled by selinux_inode_getxattr hook.
-  */
--static int selinux_inode_getsecurity(const struct inode *inode, const char *name, void *buffer, size_t size, int err)
-+static int selinux_inode_getsecurity(const struct inode *inode, const char *name, void **buffer, bool alloc)
- {
-+	u32 size;
-+	int error;
-+	char *context = NULL;
- 	struct inode_security_struct *isec = inode->i_security;
- 
- 	if (strcmp(name, XATTR_SELINUX_SUFFIX))
- 		return -EOPNOTSUPP;
- 
--	return selinux_getsecurity(isec->sid, buffer, size);
-+	error = security_sid_to_context(isec->sid, &context, &size);
-+	if (error)
-+		return error;
-+	error = size;
-+	if (alloc) {
-+		*buffer = context;
-+		goto out_nofree;
-+	}
-+	kfree(context);
-+out_nofree:
-+	return error;
- }
- 
- static int selinux_inode_setsecurity(struct inode *inode, const char *name,
 _
 
-Patches currently in -mm which might be from dpquigl@tycho.nsa.gov are
+Patches currently in -mm which might be from andreas.herrmann3@amd.com are
 
-vfs-security-rework-inode_getsecurity-and-callers-to.patch
-vfs-reorder-vfs_getxattr-to-avoid-unnecessary-calls.patch
+git-cpufreq.patch
+x86-show-cpuinfo-only-for-online-cpus.patch
