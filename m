@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lguest_userc-fix-memory-leak.patch added to -mm tree
-Date: Thu, 01 Nov 2007 14:50:57 -0700
-Message-ID: <200711012150.lA1Lovrc017189@imap1.linux-foundation.org>
+Subject: + fs-afs-vlocationc-fix-off-by-one.patch added to -mm tree
+Date: Thu, 01 Nov 2007 15:18:15 -0700
+Message-ID: <200711012218.lA1MIFbE018324@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51519 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52649 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753179AbXKAVvq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 17:51:46 -0400
+	by vger.kernel.org with ESMTP id S1753855AbXKAWSl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 18:18:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, rusty@rustcorp.com.au
+Cc: bunk@kernel.org, dhowells@redhat.com
 
 
 The patch titled
-     lguest_user.c: fix memory leak
+     fs/afs/vlocation.c: fix off-by-one
 has been added to the -mm tree.  Its filename is
-     lguest_userc-fix-memory-leak.patch
+     fs-afs-vlocationc-fix-off-by-one.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,36 +25,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: lguest_user.c: fix memory leak
+Subject: fs/afs/vlocation.c: fix off-by-one
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch fixes a memory leak spotted by the Coverity checker.
+This patch fixes an off-by-one error spotted by the Coverity checker.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/lguest_user.c |    2 +-
+ fs/afs/vlocation.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/lguest/lguest_user.c~lguest_userc-fix-memory-leak drivers/lguest/lguest_user.c
---- a/drivers/lguest/lguest_user.c~lguest_userc-fix-memory-leak
-+++ a/drivers/lguest/lguest_user.c
-@@ -184,7 +184,7 @@ static int initialize(struct file *file,
- free_regs:
- 	free_page(lg->regs_page);
- release_guest:
--	memset(lg, 0, sizeof(*lg));
-+	kfree(lg);
- unlock:
- 	mutex_unlock(&lguest_lock);
- 	return err;
+diff -puN fs/afs/vlocation.c~fs-afs-vlocationc-fix-off-by-one fs/afs/vlocation.c
+--- a/fs/afs/vlocation.c~fs-afs-vlocationc-fix-off-by-one
++++ a/fs/afs/vlocation.c
+@@ -382,7 +382,7 @@ struct afs_vlocation *afs_vlocation_look
+ 	       cell->name, key_serial(key),
+ 	       (int) namesz, (int) namesz, name, namesz);
+ 
+-	if (namesz > sizeof(vl->vldb.name)) {
++	if (namesz >= sizeof(vl->vldb.name)) {
+ 		_leave(" = -ENAMETOOLONG");
+ 		return ERR_PTR(-ENAMETOOLONG);
+ 	}
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
+fs-afs-vlocationc-fix-off-by-one.patch
 lguest_userc-fix-memory-leak.patch
 git-dvb.patch
 git-hwmon.patch
