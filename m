@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-cmpxchg_local-to-frv.patch added to -mm tree
-Date: Thu, 01 Nov 2007 12:08:58 -0700
-Message-ID: <20071101190858.C7457432BDE@localhost>
+Subject: + m32r-build-fix-of-arch-m32r-kernel-smpbootc.patch added to -mm tree
+Date: Thu, 01 Nov 2007 12:09:07 -0700
+Message-ID: <20071101190907.C953F432BDE@localhost>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.45.13]:30228 "EHLO
+Received: from smtp-out.google.com ([216.239.45.13]:30230 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754819AbXKATKt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:10:49 -0400
+	with ESMTP id S1754872AbXKATKv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:10:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, dhowells@redhat.com
+Cc: mathieu.desnoyers@polymtl.ca, takata@linux-m32r.org
 
 
 The patch titled
-     Add cmpxchg_local to frv
+     m32r: build fix of arch/m32r/kernel/smpboot.c
 has been added to the -mm tree.  Its filename is
-     add-cmpxchg_local-to-frv.patch
+     m32r-build-fix-of-arch-m32r-kernel-smpbootc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,54 +25,46 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add cmpxchg_local to frv
+Subject: m32r: build fix of arch/m32r/kernel/smpboot.c
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Use the new generic cmpxchg_local (disables interrupt) for 8, 16 and 64 bits
-arguments. Use the 32 bits cmpxchg available on the architecture for 32 bits
-arguments.
+This patch is for Mathieu Desnoyers's include/asm-m32r/local.h.
+Applying the new include/asm-m32r/local.h, inclusion of linux/sched.h
+is needed to fix a build error of arch/m32r/kernel/smpboot.c.
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: David Howells <dhowells@redhat.com>
+<--  snip  -->
+  ...
+  CC      arch/m32r/kernel/smpboot.o
+/project/m32r-linux/kernel/work/linux-2.6_dev.git/arch/m32r/kernel/smpboot.c: In function 'do_boot_cpu':
+/project/m32r-linux/kernel/work/linux-2.6_dev.git/arch/m32r/kernel/smpboot.c:279: error: implicit declaration of function 'fork_idle'
+/project/m32r-linux/kernel/work/linux-2.6_dev.git/arch/m32r/kernel/smpboot.c:279: warning: assignment makes pointer from integer without a cast
+/project/m32r-linux/kernel/work/linux-2.6_dev.git/arch/m32r/kernel/smpboot.c:283: error: dereferencing pointer to incomplete type
+/project/m32r-linux/kernel/work/linux-2.6_dev.git/arch/m32r/kernel/smpboot.c:289: error: dereferencing pointer to incomplete type
+/project/m32r-linux/kernel/work/linux-2.6_dev.git/arch/m32r/kernel/smpboot.c:290: error: implicit declaration of function 'task_thread_info'
+/project/m32r-linux/kernel/work/linux-2.6_dev.git/arch/m32r/kernel/smpboot.c:290: error: invalid type argument of '->'
+/project/m32r-linux/kernel/work/linux-2.6_dev.git/arch/m32r/kernel/smpboot.c: In function 'start_secondary':
+/project/m32r-linux/kernel/work/linux-2.6_dev.git/arch/m32r/kernel/smpboot.c:429: error: implicit declaration of function 'cpu_init'
+make[2]: *** [arch/m32r/kernel/smpboot.o] Error 1
+<--  snip  -->
+
+Signed-off-by: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-frv/system.h |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ arch/m32r/kernel/smpboot.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/asm-frv/system.h~add-cmpxchg_local-to-frv include/asm-frv/system.h
---- a/include/asm-frv/system.h~add-cmpxchg_local-to-frv
-+++ a/include/asm-frv/system.h
-@@ -268,5 +268,29 @@ extern uint32_t __cmpxchg_32(uint32_t *v
- 
- #endif
- 
-+#include <asm-generic/cmpxchg-local.h>
-+
-+static inline unsigned long __cmpxchg_local(volatile void *ptr,
-+				      unsigned long old,
-+				      unsigned long new, int size)
-+{
-+	switch (size) {
-+	case 4:
-+		return cmpxchg(ptr, old, new);
-+	default:
-+		return __cmpxchg_local_generic(ptr, old, new, size);
-+	}
-+
-+	return old;
-+}
-+
-+/*
-+ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
-+ * them available.
-+ */
-+#define cmpxchg_local(ptr, o, n)				  	\
-+	((__typeof__(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(o),	\
-+			(unsigned long)(n), sizeof(*(ptr))))
-+#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
- 
- #endif /* _ASM_SYSTEM_H */
+diff -puN arch/m32r/kernel/smpboot.c~m32r-build-fix-of-arch-m32r-kernel-smpbootc arch/m32r/kernel/smpboot.c
+--- a/arch/m32r/kernel/smpboot.c~m32r-build-fix-of-arch-m32r-kernel-smpbootc
++++ a/arch/m32r/kernel/smpboot.c
+@@ -43,6 +43,7 @@
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
++#include <linux/sched.h>
+ #include <linux/err.h>
+ #include <linux/irq.h>
+ #include <linux/bootmem.h>
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
