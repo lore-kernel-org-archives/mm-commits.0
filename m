@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sunhme-fix-missing-netif_f_vlan_challenged-on-pci-happy-meals.patch added to -mm tree
-Date: Thu, 01 Nov 2007 12:12:48 -0700
-Message-ID: <20071101191248.4D11B432BDE@localhost>
+Subject: + crash-on-shutdown-unmount.patch added to -mm tree
+Date: Thu, 01 Nov 2007 12:30:38 -0700
+Message-ID: <20071101193038.6E154432BDC@localhost>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.33.17]:44684 "EHLO
+Received: from smtp-out.google.com ([216.239.45.13]:33757 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756484AbXKATNJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:13:09 -0400
+	with ESMTP id S1754121AbXKATbb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:31:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davem@davemloft.net, dev-null@telus.net, jeff@garzik.org
+Cc: jens.axboe@oracle.com
 
 
 The patch titled
-     SUNHME: fix missing NETIF_F_VLAN_CHALLENGED on PCI happy meals
+     crash on shutdown/unmount
 has been added to the -mm tree.  Its filename is
-     sunhme-fix-missing-netif_f_vlan_challenged-on-pci-happy-meals.patch
+     crash-on-shutdown-unmount.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,52 +25,73 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SUNHME: fix missing NETIF_F_VLAN_CHALLENGED on PCI happy meals
-From: David Miller <davem@davemloft.net>
+Subject: crash on shutdown/unmount
+From: Jens Axboe <jens.axboe@oracle.com>
 
-No HME parts can do VLANs correctly.
+On Wed, Oct 31 2007, Alistair John Strachan wrote:
+> Hi Jens,
+>
+> I guessed from the oops that you might have an idea what's causing this oops
+> on shutdown/unmount. The git version (describe), a screenshot showing the
+> oops, a config, and dmesg for a booted kernel are available from:
+>
+> http://devzero.co.uk/~alistair/oops-20071031/
+>
+> I went back to -rc1 and it still happens there too. If you need any more
+> information or want me to bisect it, please let me know.
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=9270
+Does this work for you?
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Cc: Chris Poon <dev-null@telus.net>
-Cc: Jeff Garzik <jeff@garzik.org>
+index 54fd385..75c98d5 100644
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sunhme.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ block/ll_rw_blk.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/sunhme.c~sunhme-fix-missing-netif_f_vlan_challenged-on-pci-happy-meals drivers/net/sunhme.c
---- a/drivers/net/sunhme.c~sunhme-fix-missing-netif_f_vlan_challenged-on-pci-happy-meals
-+++ a/drivers/net/sunhme.c
-@@ -3143,8 +3143,8 @@ static int __devinit happy_meal_pci_prob
- 	dev->irq = pdev->irq;
- 	dev->dma = 0;
+diff -puN block/ll_rw_blk.c~crash-on-shutdown-unmount block/ll_rw_blk.c
+--- a/block/ll_rw_blk.c~crash-on-shutdown-unmount
++++ a/block/ll_rw_blk.c
+@@ -3221,6 +3221,7 @@ static inline void __generic_make_reques
+ 	sector_t old_sector;
+ 	int ret, nr_sectors = bio_sectors(bio);
+ 	dev_t old_dev;
++	int err = -EIO;
  
--	/* Happy Meal can do it all... */
--	dev->features |= NETIF_F_SG | NETIF_F_HW_CSUM;
-+	/* Happy Meal can do it all... except VLAN. */
-+	dev->features |= NETIF_F_SG | NETIF_F_HW_CSUM | NETIF_F_VLAN_CHALLENGED;
+ 	might_sleep();
  
- #if defined(CONFIG_SBUS) && defined(CONFIG_PCI)
- 	/* Hook up PCI register/dma accessors. */
+@@ -3248,7 +3249,7 @@ static inline void __generic_make_reques
+ 				bdevname(bio->bi_bdev, b),
+ 				(long long) bio->bi_sector);
+ end_io:
+-			bio_endio(bio, -EIO);
++			bio_endio(bio, err);
+ 			break;
+ 		}
+ 
+@@ -3283,6 +3284,10 @@ end_io:
+ 
+ 		if (bio_check_eod(bio, nr_sectors))
+ 			goto end_io;
++		if (bio_empty_barrier(bio) && !q->prepare_flush_fn) {
++			err = -EOPNOTSUPP;
++			goto end_io;
++		}
+ 
+ 		ret = q->make_request_fn(q, bio);
+ 	} while (ret);
 _
 
-Patches currently in -mm which might be from davem@davemloft.net are
+Patches currently in -mm which might be from jens.axboe@oracle.com are
 
 origin.patch
-pfkey-sending-an-sadb_get-responds-with-an-sadb_get.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-sunhme-fix-missing-netif_f_vlan_challenged-on-pci-happy-meals.patch
+scsi-early-detection-of-medium-not-present-updated.patch
 git-block.patch
-git-wireless.patch
-sunrpc-xprtrdma-transportc-fix-use-after-free.patch
-sysctl-fix-token-ring-procname.patch
+git-block-fixup.patch
+crash-on-shutdown-unmount.patch
+arch-um-drivers-ubd_kernc-a-warning-fix.patch
 fix-versus-precedence-in-various-places.patch
 fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-genericizing-iova.patch
-iget-stop-openpromfs-from-using-iget-and.patch
-add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
-add-cmpxchg_local-to-sparc64.patch
+revoke-vs-git-block.patch
+reiser4.patch
