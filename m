@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-jffs2_get_acl-static.patch added to -mm tree
-Date: Thu, 01 Nov 2007 00:50:02 -0700
-Message-ID: <200711010750.lA17o21W018995@imap1.linux-foundation.org>
+Subject: + sundance-siocdevprivate-pollution.patch added to -mm tree
+Date: Thu, 01 Nov 2007 00:52:13 -0700
+Message-ID: <200711010752.lA17qDMx019022@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46865 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60789 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753128AbXKAHub (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 03:50:31 -0400
+	by vger.kernel.org with ESMTP id S1753064AbXKAHw4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 03:52:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, dwmw2@infradead.org, kaigai@ak.jp.nec.com
+Cc: romieu@fr.zoreil.com, jeff@garzik.org, jesse@icplus.com.tw, vsauer@dvs.tu-darmstadt.de
 
 
 The patch titled
-     make jffs2_get_acl() static
+     sundance: SIOCDEVPRIVATE pollution
 has been added to the -mm tree.  Its filename is
-     make-jffs2_get_acl-static.patch
+     sundance-siocdevprivate-pollution.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,92 +25,79 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make jffs2_get_acl() static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: sundance: SIOCDEVPRIVATE pollution
+From: Francois Romieu <romieu@fr.zoreil.com>
 
-jffs2_get_acl() can now become static again.
+To quote one of my favorite contemporary author:
+[include/linux/sockios.h]
+ *      THESE IOCTLS ARE _DEPRECATED_ AND WILL DISAPPEAR IN 2.5.X -DaveM
+ */
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: KaiGai Kohei <kaigai@ak.jp.nec.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+#define SIOCDEVPRIVATE  0x89F0  /* to 89FF */
+
+[...]
+
+Gentoo's snmpd trips up over this code when trying to figure if the driver
+supports the non-SIOCDEVPRIVATE API or not.  One can argue over its choice
+of heuristic but there no reason to make ioctl more ugly than needed.
+
+Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
+Cc: Jesse Huang <jesse@icplus.com.tw>
+Tested-by: Volker Sauer <vsauer@dvs.tu-darmstadt.de>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/acl.c |    2 +-
- fs/jffs2/acl.h |    2 --
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ drivers/net/sundance.c |   26 --------------------------
+ 1 file changed, 26 deletions(-)
 
-diff -puN fs/jffs2/acl.c~make-jffs2_get_acl-static fs/jffs2/acl.c
---- a/fs/jffs2/acl.c~make-jffs2_get_acl-static
-+++ a/fs/jffs2/acl.c
-@@ -176,7 +176,7 @@ static void jffs2_iset_acl(struct inode 
- 	spin_unlock(&inode->i_lock);
- }
- 
--struct posix_acl *jffs2_get_acl(struct inode *inode, int type)
-+static struct posix_acl *jffs2_get_acl(struct inode *inode, int type)
+diff -puN drivers/net/sundance.c~sundance-siocdevprivate-pollution drivers/net/sundance.c
+--- a/drivers/net/sundance.c~sundance-siocdevprivate-pollution
++++ a/drivers/net/sundance.c
+@@ -1596,9 +1596,7 @@ static const struct ethtool_ops ethtool_
+ static int netdev_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
  {
- 	struct jffs2_inode_info *f = JFFS2_INODE_INFO(inode);
- 	struct posix_acl *acl;
-diff -puN fs/jffs2/acl.h~make-jffs2_get_acl-static fs/jffs2/acl.h
---- a/fs/jffs2/acl.h~make-jffs2_get_acl-static
-+++ a/fs/jffs2/acl.h
-@@ -28,7 +28,6 @@ struct jffs2_acl_header {
+ 	struct netdev_private *np = netdev_priv(dev);
+-	void __iomem *ioaddr = np->base;
+ 	int rc;
+-	int i;
  
- #define JFFS2_ACL_NOT_CACHED ((void *)-1)
+ 	if (!netif_running(dev))
+ 		return -EINVAL;
+@@ -1606,30 +1604,6 @@ static int netdev_ioctl(struct net_devic
+ 	spin_lock_irq(&np->lock);
+ 	rc = generic_mii_ioctl(&np->mii_if, if_mii(rq), cmd, NULL);
+ 	spin_unlock_irq(&np->lock);
+-	switch (cmd) {
+-		case SIOCDEVPRIVATE:
+-		for (i=0; i<TX_RING_SIZE; i++) {
+-			printk(KERN_DEBUG "%02x %08llx %08x %08x(%02x) %08x %08x\n", i,
+-				(unsigned long long)(np->tx_ring_dma + i*sizeof(*np->tx_ring)),
+-				le32_to_cpu(np->tx_ring[i].next_desc),
+-				le32_to_cpu(np->tx_ring[i].status),
+-				(le32_to_cpu(np->tx_ring[i].status) >> 2)
+-					& 0xff,
+-				le32_to_cpu(np->tx_ring[i].frag[0].addr),
+-				le32_to_cpu(np->tx_ring[i].frag[0].length));
+-		}
+-		printk(KERN_DEBUG "TxListPtr=%08x netif_queue_stopped=%d\n",
+-			ioread32(np->base + TxListPtr),
+-			netif_queue_stopped(dev));
+-		printk(KERN_DEBUG "cur_tx=%d(%02x) dirty_tx=%d(%02x)\n",
+-			np->cur_tx, np->cur_tx % TX_RING_SIZE,
+-			np->dirty_tx, np->dirty_tx % TX_RING_SIZE);
+-		printk(KERN_DEBUG "cur_rx=%d dirty_rx=%d\n", np->cur_rx, np->dirty_rx);
+-		printk(KERN_DEBUG "cur_task=%d\n", np->cur_task);
+-		printk(KERN_DEBUG "TxStatus=%04x\n", ioread16(ioaddr + TxStatus));
+-			return 0;
+-	}
+-
  
--extern struct posix_acl *jffs2_get_acl(struct inode *inode, int type);
- extern int jffs2_permission(struct inode *, int, struct nameidata *);
- extern int jffs2_acl_chmod(struct inode *);
- extern int jffs2_init_acl_pre(struct inode *, struct inode *, int *);
-@@ -40,7 +39,6 @@ extern struct xattr_handler jffs2_acl_de
- 
- #else
- 
--#define jffs2_get_acl(inode, type)		(NULL)
- #define jffs2_permission			(NULL)
- #define jffs2_acl_chmod(inode)			(0)
- #define jffs2_init_acl_pre(dir_i,inode,mode)	(0)
+ 	return rc;
+ }
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from romieu@fr.zoreil.com are
 
 origin.patch
-git-dvb.patch
-git-hwmon.patch
-git-input.patch
-make-jffs2_get_acl-static.patch
-make-sunrpc-xprtsockcxs_setup_udptcp-static.patch
-drivers-bluetooth-bpa10xc-fix-memleak.patch
-drivers-bluetooth-btsdioc-fix-double-free.patch
-git-nfs-make-nfs_wb_page_priority-static.patch
-git-ocfs2.patch
-git-sh64.patch
-scsi-advansysc-make-3-functions-static.patch
-git-block.patch
-xtensa-iss_net_setup-must-be-__init.patch
-sunrpc-xprtrdma-transportc-fix-use-after-free.patch
-fix-mm-utilckrealloc.patch
-fuse_file_alloc-fix-null-dereferences.patch
-pidns-place-under-config_experimental.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-feature-removal-schedule-remove-sa_-flags-entry.patch
-kernel-taskstatsc-fix-bogus-nlmsg_free.patch
-mm-hugetlbc-make-a-function-static.patch
-mm-page-writebackc-make-a-function-static.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-kill-udffs_dateversion.patch
-make-ipc-utilcsysvipc_find_ipc-static.patch
-scheduled-oss-driver-removal.patch
-cleanup-after-apus-removal.patch
-53c7xx-removal-fallout.patch
-remove-mm_ptovvtop.patch
-fs-ecryptfs-possible-cleanups.patch
-make-video-geode-lxfb_corecgeode_modedb-static.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-reiser4.patch
+sundance-siocdevprivate-pollution.patch
