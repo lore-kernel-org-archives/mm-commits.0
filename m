@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-power-diskc-make-code-static.patch added to -mm tree
-Date: Thu, 01 Nov 2007 00:23:06 -0700
-Message-ID: <200711010723.lA17N6FL018007@imap1.linux-foundation.org>
+Subject: + make-kernel_shutdown_prepare-static.patch added to -mm tree
+Date: Thu, 01 Nov 2007 00:23:09 -0700
+Message-ID: <200711010723.lA17N98C018010@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34450 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40630 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753500AbXKAHX0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 03:23:26 -0400
+	by vger.kernel.org with ESMTP id S1753598AbXKAHX2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 03:23:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@kernel.org, pavel@ucw.cz, rjw@sisk.pl
 
 
 The patch titled
-     kernel/power/disk.c: make code static
+     make kernel_shutdown_prepare() static
 has been added to the -mm tree.  Its filename is
-     kernel-power-diskc-make-code-static.patch
+     make-kernel_shutdown_prepare-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,10 +25,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kernel/power/disk.c: make code static
+Subject: make kernel_shutdown_prepare() static
 From: Adrian Bunk <bunk@kernel.org>
 
-resume_file[] and create_image() can become static.
+kernel_shutdown_prepare() can now become static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Acked-by: Pavel Machek <pavel@ucw.cz>
@@ -36,43 +36,34 @@ Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/disk.c |    4 ++--
- kernel/power/swap.c |    2 --
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ include/linux/reboot.h |    2 --
+ kernel/sys.c           |    2 +-
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN kernel/power/disk.c~kernel-power-diskc-make-code-static kernel/power/disk.c
---- a/kernel/power/disk.c~kernel-power-diskc-make-code-static
-+++ a/kernel/power/disk.c
-@@ -26,7 +26,7 @@
- 
- 
- static int noresume = 0;
--char resume_file[256] = CONFIG_PM_STD_PARTITION;
-+static char resume_file[256] = CONFIG_PM_STD_PARTITION;
- dev_t swsusp_resume_device;
- sector_t swsusp_resume_block;
- 
-@@ -145,7 +145,7 @@ static void platform_restore_cleanup(int
-  *	reappears in this routine after a restore.
+diff -puN include/linux/reboot.h~make-kernel_shutdown_prepare-static include/linux/reboot.h
+--- a/include/linux/reboot.h~make-kernel_shutdown_prepare-static
++++ a/include/linux/reboot.h
+@@ -59,8 +59,6 @@ extern void machine_crash_shutdown(struc
+  * Architecture independent implemenations of sys_reboot commands.
   */
  
--int create_image(int platform_mode)
-+static int create_image(int platform_mode)
- {
- 	int error;
- 
-diff -puN kernel/power/swap.c~kernel-power-diskc-make-code-static kernel/power/swap.c
---- a/kernel/power/swap.c~kernel-power-diskc-make-code-static
-+++ a/kernel/power/swap.c
-@@ -28,8 +28,6 @@
- 
- #include "power.h"
- 
--extern char resume_file[];
+-extern void kernel_shutdown_prepare(enum system_states state);
 -
- #define SWSUSP_SIG	"S1SUSPEND"
+ extern void kernel_restart(char *cmd);
+ extern void kernel_halt(void);
+ extern void kernel_power_off(void);
+diff -puN kernel/sys.c~make-kernel_shutdown_prepare-static kernel/sys.c
+--- a/kernel/sys.c~make-kernel_shutdown_prepare-static
++++ a/kernel/sys.c
+@@ -315,7 +315,7 @@ static void kernel_kexec(void)
+ #endif
+ }
  
- struct swsusp_header {
+-void kernel_shutdown_prepare(enum system_states state)
++static void kernel_shutdown_prepare(enum system_states state)
+ {
+ 	blocking_notifier_call_chain(&reboot_notifier_list,
+ 		(state == SYSTEM_HALT)?SYS_HALT:SYS_POWER_OFF, NULL);
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
