@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch added to -mm tree
-Date: Thu, 01 Nov 2007 12:08:51 -0700
-Message-ID: <20071101190851.93DB0432BFE@localhost>
+Subject: + add-cmpxchg_local-to-s390.patch added to -mm tree
+Date: Thu, 01 Nov 2007 12:09:15 -0700
+Message-ID: <20071101190915.8ED01432BFE@localhost>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.45.13]:30311 "EHLO
+Received: from smtp-out.google.com ([216.239.33.17]:44389 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755455AbXKATLR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:11:17 -0400
+	with ESMTP id S1754967AbXKATLJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:11:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, ak@muc.de, mingo@elte.hu, tglx@linutronix.de
+Cc: mathieu.desnoyers@polymtl.ca, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     Add cmpxchg64 and cmpxchg64_local to x86_64
+     Add cmpxchg_local to s390
 has been added to the -mm tree.  Its filename is
-     add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
+     add-cmpxchg_local-to-s390.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,53 +25,82 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add cmpxchg64 and cmpxchg64_local to x86_64
+Subject: Add cmpxchg_local to s390
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Make sure that at least cmpxchg64_local is available on all architectures to use
-for unsigned long long values.
+Use the standard __cmpxchg for every type that can be updated atomically.
+Use the new generic cmpxchg_local (disables interrupt) for other types.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Andi Kleen <ak@muc.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/cmpxchg_64.h |   22 ++++++++++++++++------
- 1 file changed, 16 insertions(+), 6 deletions(-)
+ include/asm-s390/system.h |   44 +++++++++++++++++++++++++++++++++---
+ 1 file changed, 41 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-x86/cmpxchg_64.h~add-cmpxchg64-and-cmpxchg64_local-to-x86_64 include/asm-x86/cmpxchg_64.h
---- a/include/asm-x86/cmpxchg_64.h~add-cmpxchg64-and-cmpxchg64_local-to-x86_64
-+++ a/include/asm-x86/cmpxchg_64.h
-@@ -124,11 +124,21 @@ static inline unsigned long __cmpxchg_lo
- 	return old;
- }
+diff -puN include/asm-s390/system.h~add-cmpxchg_local-to-s390 include/asm-s390/system.h
+--- a/include/asm-s390/system.h~add-cmpxchg_local-to-s390
++++ a/include/asm-s390/system.h
+@@ -201,9 +201,9 @@ static inline unsigned long __xchg(unsig
+ 
+ #define __HAVE_ARCH_CMPXCHG 1
  
 -#define cmpxchg(ptr,o,n)\
 -	((__typeof__(*(ptr)))__cmpxchg((ptr),(unsigned long)(o),\
 -					(unsigned long)(n),sizeof(*(ptr))))
--#define cmpxchg_local(ptr,o,n)\
--	((__typeof__(*(ptr)))__cmpxchg_local((ptr),(unsigned long)(o),\
--					(unsigned long)(n),sizeof(*(ptr))))
 +#define cmpxchg(ptr, o, n)						\
 +	((__typeof__(*(ptr)))__cmpxchg((ptr), (unsigned long)(o),	\
 +					(unsigned long)(n), sizeof(*(ptr))))
-+#define cmpxchg64(ptr, o, n)						\
-+  ({									\
-+	BUILD_BUG_ON(sizeof(*(ptr)) != 8);				\
-+	cmpxchg((ptr), (o), (n));					\
-+  })
+ 
+ extern void __cmpxchg_called_with_bad_pointer(void);
+ 
+@@ -355,6 +355,44 @@ __cmpxchg(volatile void *ptr, unsigned l
+ 
+ #include <linux/irqflags.h>
+ 
++#include <asm-generic/cmpxchg-local.h>
++
++static inline unsigned long __cmpxchg_local(volatile void *ptr,
++				      unsigned long old,
++				      unsigned long new, int size)
++{
++	switch (size) {
++	case 1:
++	case 2:
++	case 4:
++#ifdef __s390x__
++	case 8:
++#endif
++		return __cmpxchg(ptr, old, new, size);
++	default:
++		return __cmpxchg_local_generic(ptr, old, new, size);
++	}
++
++	return old;
++}
++
++/*
++ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
++ * them available.
++ */
 +#define cmpxchg_local(ptr, o, n)					\
 +	((__typeof__(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(o),	\
-+					(unsigned long)(n), sizeof(*(ptr))))
++			(unsigned long)(n), sizeof(*(ptr))))
++#ifdef __s390x__
 +#define cmpxchg64_local(ptr, o, n)					\
 +  ({									\
 +	BUILD_BUG_ON(sizeof(*(ptr)) != 8);				\
 +	cmpxchg_local((ptr), (o), (n));					\
 +  })
- 
- #endif
++#else
++#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
++#endif
++
+ /*
+  * Use to set psw mask except for the first byte which
+  * won't be changed by this function.
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
