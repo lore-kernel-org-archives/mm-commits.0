@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-iss_net_setup-must-be-__init.patch added to -mm tree
-Date: Thu, 01 Nov 2007 00:48:10 -0700
-Message-ID: <200711010748.lA17mA99018894@imap1.linux-foundation.org>
+Subject: + make-jffs2_get_acl-static.patch added to -mm tree
+Date: Thu, 01 Nov 2007 00:50:02 -0700
+Message-ID: <200711010750.lA17o21W018995@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40335 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46865 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755243AbXKAHsY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 03:48:24 -0400
+	by vger.kernel.org with ESMTP id S1753128AbXKAHub (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 03:50:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, chris@zankel.net
+Cc: bunk@kernel.org, dwmw2@infradead.org, kaigai@ak.jp.nec.com
 
 
 The patch titled
-     xtensa iss_net_setup() must be __init
+     make jffs2_get_acl() static
 has been added to the -mm tree.  Its filename is
-     xtensa-iss_net_setup-must-be-__init.patch
+     make-jffs2_get_acl-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: xtensa iss_net_setup() must be __init
+Subject: make jffs2_get_acl() static
 From: Adrian Bunk <bunk@kernel.org>
 
-WARNING: vmlinux.o(.text+0x395c): Section mismatch: reference to .init.text:__alloc_bootmem (between '__invalidate_dcache_all' and '__simc')
+jffs2_get_acl() can now become static again.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Christian Zankel <chris@zankel.net>
+Acked-by: KaiGai Kohei <kaigai@ak.jp.nec.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/platform-iss/network.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/jffs2/acl.c |    2 +-
+ fs/jffs2/acl.h |    2 --
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN arch/xtensa/platform-iss/network.c~xtensa-iss_net_setup-must-be-__init arch/xtensa/platform-iss/network.c
---- a/arch/xtensa/platform-iss/network.c~xtensa-iss_net_setup-must-be-__init
-+++ a/arch/xtensa/platform-iss/network.c
-@@ -746,7 +746,7 @@ struct iss_net_init {
+diff -puN fs/jffs2/acl.c~make-jffs2_get_acl-static fs/jffs2/acl.c
+--- a/fs/jffs2/acl.c~make-jffs2_get_acl-static
++++ a/fs/jffs2/acl.c
+@@ -176,7 +176,7 @@ static void jffs2_iset_acl(struct inode 
+ 	spin_unlock(&inode->i_lock);
+ }
  
- #define ERR KERN_ERR "iss_net_setup: "
- 
--static int iss_net_setup(char *str)
-+static int __init iss_net_setup(char *str)
+-struct posix_acl *jffs2_get_acl(struct inode *inode, int type)
++static struct posix_acl *jffs2_get_acl(struct inode *inode, int type)
  {
- 	struct iss_net_private *device = NULL;
- 	struct iss_net_init *new;
+ 	struct jffs2_inode_info *f = JFFS2_INODE_INFO(inode);
+ 	struct posix_acl *acl;
+diff -puN fs/jffs2/acl.h~make-jffs2_get_acl-static fs/jffs2/acl.h
+--- a/fs/jffs2/acl.h~make-jffs2_get_acl-static
++++ a/fs/jffs2/acl.h
+@@ -28,7 +28,6 @@ struct jffs2_acl_header {
+ 
+ #define JFFS2_ACL_NOT_CACHED ((void *)-1)
+ 
+-extern struct posix_acl *jffs2_get_acl(struct inode *inode, int type);
+ extern int jffs2_permission(struct inode *, int, struct nameidata *);
+ extern int jffs2_acl_chmod(struct inode *);
+ extern int jffs2_init_acl_pre(struct inode *, struct inode *, int *);
+@@ -40,7 +39,6 @@ extern struct xattr_handler jffs2_acl_de
+ 
+ #else
+ 
+-#define jffs2_get_acl(inode, type)		(NULL)
+ #define jffs2_permission			(NULL)
+ #define jffs2_acl_chmod(inode)			(0)
+ #define jffs2_init_acl_pre(dir_i,inode,mode)	(0)
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -58,6 +79,7 @@ origin.patch
 git-dvb.patch
 git-hwmon.patch
 git-input.patch
+make-jffs2_get_acl-static.patch
 make-sunrpc-xprtsockcxs_setup_udptcp-static.patch
 drivers-bluetooth-bpa10xc-fix-memleak.patch
 drivers-bluetooth-btsdioc-fix-double-free.patch
