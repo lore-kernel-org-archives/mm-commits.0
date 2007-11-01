@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pci-get-rid-of-pci_devvendordevice_compatible-fields.patch added to -mm tree
-Date: Thu, 01 Nov 2007 13:22:22 -0700
-Message-ID: <20071101202222.63AB3432BDC@localhost>
+Subject: + x86-fix-uml-init-do_mountsh-build-failure.patch added to -mm tree
+Date: Thu, 01 Nov 2007 13:34:23 -0700
+Message-ID: <200711012034.lA1KYNEf014286@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.45.13]:41984 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754220AbXKAUWs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 16:22:48 -0400
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59281 "EHLO
+	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753160AbXKAUfO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 16:35:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: buytenh@wantstofly.org, greg@kroah.com
+Cc: balbir@linux.vnet.ibm.com, jdike@addtoit.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     pci: get rid of pci_dev::{vendor,device}_compatible fields
+     x86: fix UML init/do_mounts.h build failure
 has been added to the -mm tree.  Its filename is
-     pci-get-rid-of-pci_devvendordevice_compatible-fields.patch
+     x86-fix-uml-init-do_mountsh-build-failure.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,47 +25,98 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pci: get rid of pci_dev::{vendor,device}_compatible fields
-From: Lennert Buytenhek <buytenh@wantstofly.org>
+Subject: x86: fix UML init/do_mounts.h build failure
+From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-The vendor_compatible and device_compatible fields in struct pci_dev aren't
-used anywhere, and are somewhat pointless.  Assuming that these are
-historical artifacts, remove them.
+Fix stat.h to not use __i386__, but use BITS_PER_LONG.  The UML
+architecture in turn includes this file.  This helps resolve one build
+failure in the current UML code
 
-Signed-off-by: Lennert Buytenhek <buytenh@wantstofly.org>
-Cc: Greg KH <greg@kroah.com>
+Before the fix, the failure was
+
+In file included from init/do_mounts.c:19:
+init/do_mounts.h: In function 'bstat':
+init/do_mounts.h:25: error: storage size of 'stat' isn't known
+init/do_mounts.h:25: warning: unused variable 'stat'
+init/do_mounts.h:33: warning: control reaches end of non-void function
+make[1]: *** [init/do_mounts.o] Error 1
+make: *** [init/do_mounts.o] Error 2
+
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pci.h |    5 -----
- 1 file changed, 5 deletions(-)
+ include/asm-x86/stat.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/pci.h~pci-get-rid-of-pci_devvendordevice_compatible-fields include/linux/pci.h
---- a/include/linux/pci.h~pci-get-rid-of-pci_devvendordevice_compatible-fields
-+++ a/include/linux/pci.h
-@@ -66,7 +66,6 @@ enum pci_mmap_state {
- #define PCI_DMA_FROMDEVICE	2
- #define PCI_DMA_NONE		3
+diff -puN include/asm-x86/stat.h~x86-fix-uml-init-do_mountsh-build-failure include/asm-x86/stat.h
+--- a/include/asm-x86/stat.h~x86-fix-uml-init-do_mountsh-build-failure
++++ a/include/asm-x86/stat.h
+@@ -1,9 +1,11 @@
+ #ifndef _ASM_X86_STAT_H
+ #define _ASM_X86_STAT_H
  
--#define DEVICE_COUNT_COMPATIBLE	4
- #define DEVICE_COUNT_RESOURCE	12
++#include <asm/types.h>
++
+ #define STAT_HAVE_NSEC 1
  
- typedef int __bitwise pci_power_t;
-@@ -167,10 +166,6 @@ struct pci_dev {
- 	pci_channel_state_t error_state;	/* current connectivity state */
- 	struct	device	dev;		/* Generic device interface */
+-#ifdef __i386__
++#if BITS_PER_LONG == 32
+ struct stat {
+ 	unsigned long  st_dev;
+ 	unsigned long  st_ino;
+@@ -63,7 +65,7 @@ struct stat64 {
+ 	unsigned long long	st_ino;
+ };
  
--	/* device is compatible with these IDs */
--	unsigned short vendor_compatible[DEVICE_COUNT_COMPATIBLE];
--	unsigned short device_compatible[DEVICE_COUNT_COMPATIBLE];
--
- 	int		cfg_size;	/* Size of configuration space */
+-#else /* __i386__ */
++#else /* BITS_PER_LONG == 32 */
  
- 	/*
+ struct stat {
+ 	unsigned long	st_dev;
 _
 
-Patches currently in -mm which might be from buytenh@wantstofly.org are
+Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
 
-git-arm.patch
-git-hwmon.patch
-pci-get-rid-of-pci_devvendordevice_compatible-fields.patch
+origin.patch
+swap-delay-accounting-include-lock_page-delays.patch
+x86-fix-uml-init-do_mountsh-build-failure.patch
+maps4-add-proportional-set-size-accounting-in-smaps.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
+memory-controller-make-charging-gfp-mask-aware-fix.patch
+memory-controller-bug_on.patch
+memcontrol-move-mm_cgroup-to-header-file.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force-empty-at-rmdir.patch
