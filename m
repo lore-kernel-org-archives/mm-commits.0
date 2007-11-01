@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-cmpxchg_local-to-arm.patch added to -mm tree
-Date: Thu, 01 Nov 2007 12:08:52 -0700
-Message-ID: <20071101190852.B2CE4432BFE@localhost>
+Subject: + add-cmpxchg_local-to-frv.patch added to -mm tree
+Date: Thu, 01 Nov 2007 12:08:58 -0700
+Message-ID: <20071101190858.C7457432BDE@localhost>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.33.17]:44312 "EHLO
+Received: from smtp-out.google.com ([216.239.45.13]:30228 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754589AbXKATKp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:10:45 -0400
+	with ESMTP id S1754819AbXKATKt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:10:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, rmk@arm.linux.org.uk
+Cc: mathieu.desnoyers@polymtl.ca, dhowells@redhat.com
 
 
 The patch titled
-     Add cmpxchg_local to arm
+     Add cmpxchg_local to frv
 has been added to the -mm tree.  Its filename is
-     add-cmpxchg_local-to-arm.patch
+     add-cmpxchg_local-to-frv.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,45 +25,54 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add cmpxchg_local to arm
+Subject: Add cmpxchg_local to frv
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Use the new generic cmpxchg_local (disables interrupt). Also use the generic
-cmpxchg as fallback if SMP is not set.
+Use the new generic cmpxchg_local (disables interrupt) for 8, 16 and 64 bits
+arguments. Use the 32 bits cmpxchg available on the architecture for 32 bits
+arguments.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/system.h |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ include/asm-frv/system.h |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff -puN include/asm-arm/system.h~add-cmpxchg_local-to-arm include/asm-arm/system.h
---- a/include/asm-arm/system.h~add-cmpxchg_local-to-arm
-+++ a/include/asm-arm/system.h
-@@ -350,6 +350,21 @@ static inline unsigned long __xchg(unsig
- extern void disable_hlt(void);
- extern void enable_hlt(void);
+diff -puN include/asm-frv/system.h~add-cmpxchg_local-to-frv include/asm-frv/system.h
+--- a/include/asm-frv/system.h~add-cmpxchg_local-to-frv
++++ a/include/asm-frv/system.h
+@@ -268,5 +268,29 @@ extern uint32_t __cmpxchg_32(uint32_t *v
+ 
+ #endif
  
 +#include <asm-generic/cmpxchg-local.h>
++
++static inline unsigned long __cmpxchg_local(volatile void *ptr,
++				      unsigned long old,
++				      unsigned long new, int size)
++{
++	switch (size) {
++	case 4:
++		return cmpxchg(ptr, old, new);
++	default:
++		return __cmpxchg_local_generic(ptr, old, new, size);
++	}
++
++	return old;
++}
 +
 +/*
 + * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
 + * them available.
 + */
-+#define cmpxchg_local(ptr, o, n)				  	       \
-+	((__typeof__(*(ptr)))__cmpxchg_local_generic((ptr), (unsigned long)(o),\
++#define cmpxchg_local(ptr, o, n)				  	\
++	((__typeof__(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(o),	\
 +			(unsigned long)(n), sizeof(*(ptr))))
 +#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
-+
-+#ifndef CONFIG_SMP
-+#include <asm-generic/cmpxchg.h>
-+#endif
-+
- #endif /* __ASSEMBLY__ */
  
- #define arch_align_stack(x) (x)
+ #endif /* _ASM_SYSTEM_H */
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
