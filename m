@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-kernel_shutdown_prepare-static.patch added to -mm tree
-Date: Thu, 01 Nov 2007 00:23:09 -0700
-Message-ID: <200711010723.lA17N98C018010@imap1.linux-foundation.org>
+Subject: + mm-hugetlbc-make-a-function-static.patch added to -mm tree
+Date: Thu, 01 Nov 2007 00:23:55 -0700
+Message-ID: <200711010723.lA17NtPF018013@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40630 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32792 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753598AbXKAHX2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 03:23:28 -0400
+	by vger.kernel.org with ESMTP id S1753549AbXKAHYP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 03:24:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, pavel@ucw.cz, rjw@sisk.pl
+Cc: bunk@kernel.org, agl@us.ibm.com
 
 
 The patch titled
-     make kernel_shutdown_prepare() static
+     mm/hugetlb.c: make a function static
 has been added to the -mm tree.  Its filename is
-     make-kernel_shutdown_prepare-static.patch
+     mm-hugetlbc-make-a-function-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,45 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make kernel_shutdown_prepare() static
+Subject: mm/hugetlb.c: make a function static
 From: Adrian Bunk <bunk@kernel.org>
 
-kernel_shutdown_prepare() can now become static.
+return_unused_surplus_pages() can become static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Acked-by: Adam Litke <agl@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/reboot.h |    2 --
- kernel/sys.c           |    2 +-
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/reboot.h~make-kernel_shutdown_prepare-static include/linux/reboot.h
---- a/include/linux/reboot.h~make-kernel_shutdown_prepare-static
-+++ a/include/linux/reboot.h
-@@ -59,8 +59,6 @@ extern void machine_crash_shutdown(struc
-  * Architecture independent implemenations of sys_reboot commands.
+diff -puN mm/hugetlb.c~mm-hugetlbc-make-a-function-static mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlbc-make-a-function-static
++++ a/mm/hugetlb.c
+@@ -328,7 +328,7 @@ free:
+  * allocated to satisfy the reservation must be explicitly freed if they were
+  * never used.
   */
- 
--extern void kernel_shutdown_prepare(enum system_states state);
--
- extern void kernel_restart(char *cmd);
- extern void kernel_halt(void);
- extern void kernel_power_off(void);
-diff -puN kernel/sys.c~make-kernel_shutdown_prepare-static kernel/sys.c
---- a/kernel/sys.c~make-kernel_shutdown_prepare-static
-+++ a/kernel/sys.c
-@@ -315,7 +315,7 @@ static void kernel_kexec(void)
- #endif
- }
- 
--void kernel_shutdown_prepare(enum system_states state)
-+static void kernel_shutdown_prepare(enum system_states state)
+-void return_unused_surplus_pages(unsigned long unused_resv_pages)
++static void return_unused_surplus_pages(unsigned long unused_resv_pages)
  {
- 	blocking_notifier_call_chain(&reboot_notifier_list,
- 		(state == SYSTEM_HALT)?SYS_HALT:SYS_POWER_OFF, NULL);
+ 	static int nid = -1;
+ 	struct page *page;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -82,6 +68,7 @@ fix-mm-utilckrealloc.patch
 fuse_file_alloc-fix-null-dereferences.patch
 pidns-place-under-config_experimental.patch
 pidns-place-under-config_experimental-checkpatch-fixes.patch
+mm-hugetlbc-make-a-function-static.patch
 kernel-power-diskc-make-code-static.patch
 make-kernel_shutdown_prepare-static.patch
 kill-udffs_dateversion.patch
