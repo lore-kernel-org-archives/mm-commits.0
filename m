@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-cmpxchg_local-to-m86k.patch added to -mm tree
-Date: Thu, 01 Nov 2007 12:09:10 -0700
-Message-ID: <20071101190910.8E736432BFE@localhost>
+Subject: + fall-back-on-interrupt-disable-in-cmpxchg8b-on-80386-and-80486.patch added to -mm tree
+Date: Thu, 01 Nov 2007 12:08:41 -0700
+Message-ID: <20071101190841.A7011432BFE@localhost>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.45.13]:30224 "EHLO
+Received: from smtp-out.google.com ([216.239.33.17]:44318 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754697AbXKATKs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:10:48 -0400
+	with ESMTP id S1754751AbXKATKr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:10:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, geert@linux-m68k.org, zippel@linux-m68k.org
+Cc: mathieu.desnoyers@polymtl.ca, ak@suse.de, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     Add cmpxchg_local to m86k
+     Fall back on interrupt disable in cmpxchg8b on 80386 and 80486
 has been added to the -mm tree.  Its filename is
-     add-cmpxchg_local-to-m86k.patch
+     fall-back-on-interrupt-disable-in-cmpxchg8b-on-80386-and-80486.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,65 +25,278 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add cmpxchg_local to m86k
+Subject: Fall back on interrupt disable in cmpxchg8b on 80386 and 80486
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Use the new generic cmpxchg_local (disables interrupt). Also use the generic
-cmpxchg as fallback if SMP is not set.
+Actually, on 386, cmpxchg and cmpxchg_local fall back on
+cmpxchg_386_u8/16/32: it disables interruptions around non atomic
+updates to mimic the cmpxchg behavior.
+
+The comment:
+/* Poor man's cmpxchg for 386. Unsuitable for SMP */
+
+already present in cmpxchg_386_u32 tells much about how this cmpxchg
+implementation should not be used in a SMP context. However, the cmpxchg_local
+can perfectly use this fallback, since it only needs to be atomic wrt the local
+cpu.
+
+This patch adds a cmpxchg_486_u64 and uses it as a fallback for cmpxchg64
+and cmpxchg64_local on 80386 and 80486.
+
+Q:
+but why is it called cmpxchg_486 when the other functions are called
+
+A:
+Because the standard cmpxchg is missing only on 386, but cmpxchg8b is
+missing both on 386 and 486.
+
+Citing Intel's Instruction set reference:
+
+cmpxchg:
+This instruction is not supported on Intel processors earlier than the
+Intel486 processors.
+
+cmpxchg8b:
+This instruction encoding is not supported on Intel processors earlier
+than the Pentium processors.
+
+Q:
+What's the reason to have cmpxchg64_local on 32 bit architectures?
+Without that need all this would just be a few simple defines.
+
+A:
+cmpxchg64_local on 32 bits architectures takes unsigned long long
+parameters, but cmpxchg_local only takes longs. Since we have cmpxchg8b
+to execute a 8 byte cmpxchg atomically on pentium and +, it makes sense
+to provide a flavor of cmpxchg and cmpxchg_local using this instruction.
+
+Also, for 32 bits architectures lacking the 64 bits atomic cmpxchg, it
+makes sense _not_ to define cmpxchg64 while cmpxchg could still be
+available.
+
+Moreover, the fallback for cmpxchg8b on i386 for 386 and 486 is a
+
+However, cmpxchg64_local will be emulated by disabling interrupts on all
+architectures where it is not supported atomically.
+
+Therefore, we *could* turn cmpxchg64_local into a cmpxchg_local, but it
+would make the 386/486 fallbacks ugly, make its design different from
+cmpxchg/cmpxchg64 (which really depends on atomic operations and cannot
+be emulated) and require the __cmpxchg_local to be expressed as a macro
+rather than an inline function so the parameters would not be fixed to
+unsigned long long in every case.
+
+So I think cmpxchg64_local makes sense there, but I am open to
+suggestions.
+
+Q:
+Are there any callers?
+
+A:
+I am actually using it in LTTng in my timestamping code. I use it to
+work around CPUs with asynchronous TSCs. I need to update 64 bits
+values atomically on this 32 bits architecture.
+
+Changelog:
+- Ran though checkpatch.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-m68k/system.h |   27 ++++++++++++++++++++++++---
- 1 file changed, 24 insertions(+), 3 deletions(-)
+ arch/x86/kernel/cpu/intel.c  |   17 ++++
+ include/asm-x86/cmpxchg_32.h |  122 +++++++++++++++++++++------------
+ 2 files changed, 96 insertions(+), 43 deletions(-)
 
-diff -puN include/asm-m68k/system.h~add-cmpxchg_local-to-m86k include/asm-m68k/system.h
---- a/include/asm-m68k/system.h~add-cmpxchg_local-to-m86k
-+++ a/include/asm-m68k/system.h
-@@ -154,6 +154,10 @@ static inline unsigned long __xchg(unsig
- }
+diff -puN arch/x86/kernel/cpu/intel.c~fall-back-on-interrupt-disable-in-cmpxchg8b-on-80386-and-80486 arch/x86/kernel/cpu/intel.c
+--- a/arch/x86/kernel/cpu/intel.c~fall-back-on-interrupt-disable-in-cmpxchg8b-on-80386-and-80486
++++ a/arch/x86/kernel/cpu/intel.c
+@@ -342,5 +342,22 @@ unsigned long cmpxchg_386_u32(volatile v
+ EXPORT_SYMBOL(cmpxchg_386_u32);
  #endif
  
-+#include <asm-generic/cmpxchg-local.h>
++#ifndef CONFIG_X86_CMPXCHG64
++unsigned long long cmpxchg_486_u64(volatile void *ptr, u64 old, u64 new)
++{
++	u64 prev;
++	unsigned long flags;
 +
-+#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
++	/* Poor man's cmpxchg8b for 386 and 486. Unsuitable for SMP */
++	local_irq_save(flags);
++	prev = *(u64 *)ptr;
++	if (prev == old)
++		*(u64 *)ptr = new;
++	local_irq_restore(flags);
++	return prev;
++}
++EXPORT_SYMBOL(cmpxchg_486_u64);
++#endif
 +
- /*
-  * Atomic compare and exchange.  Compare OLD with MEM, if identical,
-  * store NEW in MEM.  Return the initial value in MEM.  Success is
-@@ -185,9 +189,26 @@ static inline unsigned long __cmpxchg(vo
- 	return old;
- }
+ // arch_initcall(intel_cpu_init);
  
+diff -puN include/asm-x86/cmpxchg_32.h~fall-back-on-interrupt-disable-in-cmpxchg8b-on-80386-and-80486 include/asm-x86/cmpxchg_32.h
+--- a/include/asm-x86/cmpxchg_32.h~fall-back-on-interrupt-disable-in-cmpxchg8b-on-80386-and-80486
++++ a/include/asm-x86/cmpxchg_32.h
+@@ -105,15 +105,24 @@ static inline unsigned long __xchg(unsig
+ 
+ #ifdef CONFIG_X86_CMPXCHG
+ #define __HAVE_ARCH_CMPXCHG 1
 -#define cmpxchg(ptr,o,n)\
 -	((__typeof__(*(ptr)))__cmpxchg((ptr),(unsigned long)(o),\
 -					(unsigned long)(n),sizeof(*(ptr))))
-+#define cmpxchg(ptr, o, n)						    \
-+	((__typeof__(*(ptr)))__cmpxchg((ptr), (unsigned long)(o),	    \
-+			(unsigned long)(n), sizeof(*(ptr))))
-+#define cmpxchg_local(ptr, o, n)					    \
-+	((__typeof__(*(ptr)))__cmpxchg((ptr), (unsigned long)(o),	    \
-+			(unsigned long)(n), sizeof(*(ptr))))
-+#else
-+
-+/*
-+ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
-+ * them available.
-+ */
-+#define cmpxchg_local(ptr, o, n)				  	       \
-+	((__typeof__(*(ptr)))__cmpxchg_local_generic((ptr), (unsigned long)(o),\
-+			(unsigned long)(n), sizeof(*(ptr))))
-+
-+#ifndef CONFIG_SMP
-+#include <asm-generic/cmpxchg.h>
+-#define sync_cmpxchg(ptr,o,n)\
+-	((__typeof__(*(ptr)))__sync_cmpxchg((ptr),(unsigned long)(o),\
+-					(unsigned long)(n),sizeof(*(ptr))))
+-#define cmpxchg_local(ptr,o,n)\
+-	((__typeof__(*(ptr)))__cmpxchg_local((ptr),(unsigned long)(o),\
+-					(unsigned long)(n),sizeof(*(ptr))))
++#define cmpxchg(ptr, o, n)						     \
++	((__typeof__(*(ptr)))__cmpxchg((ptr), (unsigned long)(o),	     \
++					(unsigned long)(n), sizeof(*(ptr))))
++#define sync_cmpxchg(ptr, o, n)						     \
++	((__typeof__(*(ptr)))__sync_cmpxchg((ptr), (unsigned long)(o),	     \
++					(unsigned long)(n), sizeof(*(ptr))))
++#define cmpxchg_local(ptr, o, n)					     \
++	((__typeof__(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(o),	     \
++					(unsigned long)(n), sizeof(*(ptr))))
 +#endif
 +
++#ifdef CONFIG_X86_CMPXCHG64
++#define cmpxchg64(ptr, o, n)						      \
++	((__typeof__(*(ptr)))__cmpxchg64((ptr), (unsigned long long)(o),      \
++					(unsigned long long)(n)))
++#define cmpxchg64_local(ptr, o, n)					      \
++	((__typeof__(*(ptr)))__cmpxchg64_local((ptr), (unsigned long long)(o),\
++					(unsigned long long)(n)))
  #endif
  
- #define arch_align_stack(x) (x)
+ static inline unsigned long __cmpxchg(volatile void *ptr, unsigned long old,
+@@ -203,6 +212,34 @@ static inline unsigned long __cmpxchg_lo
+ 	return old;
+ }
+ 
++static inline unsigned long long __cmpxchg64(volatile void *ptr,
++			unsigned long long old, unsigned long long new)
++{
++	unsigned long long prev;
++	__asm__ __volatile__(LOCK_PREFIX "cmpxchg8b %3"
++			     : "=A"(prev)
++			     : "b"((unsigned long)new),
++			       "c"((unsigned long)(new >> 32)),
++			       "m"(*__xg(ptr)),
++			       "0"(old)
++			     : "memory");
++	return prev;
++}
++
++static inline unsigned long long __cmpxchg64_local(volatile void *ptr,
++			unsigned long long old, unsigned long long new)
++{
++	unsigned long long prev;
++	__asm__ __volatile__("cmpxchg8b %3"
++			     : "=A"(prev)
++			     : "b"((unsigned long)new),
++			       "c"((unsigned long)(new >> 32)),
++			       "m"(*__xg(ptr)),
++			       "0"(old)
++			     : "memory");
++	return prev;
++}
++
+ #ifndef CONFIG_X86_CMPXCHG
+ /*
+  * Building a kernel capable running on 80386. It may be necessary to
+@@ -228,7 +265,7 @@ static inline unsigned long cmpxchg_386(
+ 	return old;
+ }
+ 
+-#define cmpxchg(ptr,o,n)						\
++#define cmpxchg(ptr, o, n)						\
+ ({									\
+ 	__typeof__(*(ptr)) __ret;					\
+ 	if (likely(boot_cpu_data.x86 > 3))				\
+@@ -239,7 +276,7 @@ static inline unsigned long cmpxchg_386(
+ 					(unsigned long)(n), sizeof(*(ptr))); \
+ 	__ret;								\
+ })
+-#define cmpxchg_local(ptr,o,n)						\
++#define cmpxchg_local(ptr, o, n)					\
+ ({									\
+ 	__typeof__(*(ptr)) __ret;					\
+ 	if (likely(boot_cpu_data.x86 > 3))				\
+@@ -252,38 +289,37 @@ static inline unsigned long cmpxchg_386(
+ })
+ #endif
+ 
+-static inline unsigned long long __cmpxchg64(volatile void *ptr, unsigned long long old,
+-				      unsigned long long new)
+-{
+-	unsigned long long prev;
+-	__asm__ __volatile__(LOCK_PREFIX "cmpxchg8b %3"
+-			     : "=A"(prev)
+-			     : "b"((unsigned long)new),
+-			       "c"((unsigned long)(new >> 32)),
+-			       "m"(*__xg(ptr)),
+-			       "0"(old)
+-			     : "memory");
+-	return prev;
+-}
++#ifndef CONFIG_X86_CMPXCHG64
++/*
++ * Building a kernel capable running on 80386 and 80486. It may be necessary
++ * to simulate the cmpxchg8b on the 80386 and 80486 CPU.
++ */
+ 
+-static inline unsigned long long __cmpxchg64_local(volatile void *ptr,
+-			unsigned long long old, unsigned long long new)
+-{
+-	unsigned long long prev;
+-	__asm__ __volatile__("cmpxchg8b %3"
+-			     : "=A"(prev)
+-			     : "b"((unsigned long)new),
+-			       "c"((unsigned long)(new >> 32)),
+-			       "m"(*__xg(ptr)),
+-			       "0"(old)
+-			     : "memory");
+-	return prev;
+-}
++extern unsigned long long cmpxchg_486_u64(volatile void *, u64, u64);
++
++#define cmpxchg64(ptr, o, n)						\
++({									\
++	__typeof__(*(ptr)) __ret;					\
++	if (likely(boot_cpu_data.x86 > 4))				\
++		__ret = __cmpxchg64((ptr), (unsigned long long)(o),	\
++				(unsigned long long)(n));		\
++	else								\
++		__ret = cmpxchg_486_u64((ptr), (unsigned long long)(o),	\
++				(unsigned long long)(n));		\
++	__ret;								\
++})
++#define cmpxchg64_local(ptr, o, n)					\
++({									\
++	__typeof__(*(ptr)) __ret;					\
++	if (likely(boot_cpu_data.x86 > 4))				\
++		__ret = __cmpxchg64_local((ptr), (unsigned long long)(o), \
++				(unsigned long long)(n));		\
++	else								\
++		__ret = cmpxchg_486_u64((ptr), (unsigned long long)(o),	\
++				(unsigned long long)(n));		\
++	__ret;								\
++})
++
++#endif
+ 
+-#define cmpxchg64(ptr,o,n)\
+-	((__typeof__(*(ptr)))__cmpxchg64((ptr),(unsigned long long)(o),\
+-					(unsigned long long)(n)))
+-#define cmpxchg64_local(ptr,o,n)\
+-	((__typeof__(*(ptr)))__cmpxchg64_local((ptr),(unsigned long long)(o),\
+-					(unsigned long long)(n)))
+ #endif
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
