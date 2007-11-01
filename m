@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-cmpxchg_local-to-sparc64.patch added to -mm tree
-Date: Thu, 01 Nov 2007 12:09:19 -0700
-Message-ID: <20071101190919.A0DF2432BFF@localhost>
+Subject: + add-cmpxchg_local-to-m68knommu.patch added to -mm tree
+Date: Thu, 01 Nov 2007 12:09:11 -0700
+Message-ID: <20071101190911.8AE41432BFF@localhost>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.45.13]:30255 "EHLO
+Received: from smtp-out.google.com ([216.239.33.17]:44416 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754973AbXKATK6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:10:58 -0400
+	with ESMTP id S1755438AbXKATLR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:11:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, davem@davemloft.net
+Cc: mathieu.desnoyers@polymtl.ca, gerg@snapgear.com
 
 
 The patch titled
-     Add cmpxchg_local to sparc64
+     Add cmpxchg_local to m68knommu
 has been added to the -mm tree.  Its filename is
-     add-cmpxchg_local-to-sparc64.patch
+     add-cmpxchg_local-to-m68knommu.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,76 +25,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add cmpxchg_local to sparc64
+Subject: Add cmpxchg_local to m68knommu
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Use cmpxchg_u32 and cmpxchg_u64 for cmpxchg_local and cmpxchg64_local. For other
-type sizes, use the new generic cmpxchg_local (disables interrupt).
-
-Change:
-Since the header depends on local_irqsave/local_irqrestore, it must be
-included after their declaration.
-
-Actually, being below the
-#include <linux/irqflags.h> should be enough, and on sparc64 it is
-included at the beginning of system.h.
-
-So it makes sense to move it up for sparc64.
+Use the new generic cmpxchg_local (disables interrupt). Also use the generic
+cmpxchg as fallback if SMP is not set.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Greg Ungerer <gerg@snapgear.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-sparc64/system.h |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ include/asm-m68knommu/system.h |   28 +++++++++++-----------------
+ 1 file changed, 11 insertions(+), 17 deletions(-)
 
-diff -puN include/asm-sparc64/system.h~add-cmpxchg_local-to-sparc64 include/asm-sparc64/system.h
---- a/include/asm-sparc64/system.h~add-cmpxchg_local-to-sparc64
-+++ a/include/asm-sparc64/system.h
-@@ -8,6 +8,7 @@
- #ifndef __ASSEMBLY__
+diff -puN include/asm-m68knommu/system.h~add-cmpxchg_local-to-m68knommu include/asm-m68knommu/system.h
+--- a/include/asm-m68knommu/system.h~add-cmpxchg_local-to-m68knommu
++++ a/include/asm-m68knommu/system.h
+@@ -186,26 +186,20 @@ static inline unsigned long __xchg(unsig
+ }
+ #endif
  
- #include <linux/irqflags.h>
 +#include <asm-generic/cmpxchg-local.h>
- 
++
  /*
-  * Sparc (general) CPU types
-@@ -313,6 +314,34 @@ __cmpxchg(volatile void *ptr, unsigned l
- 				    (unsigned long)_n_, sizeof(*(ptr))); \
-   })
- 
-+/*
+- * Atomic compare and exchange.  Compare OLD with MEM, if identical,
+- * store NEW in MEM.  Return the initial value in MEM.  Success is
+- * indicated by comparing RETURN with OLD.
 + * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
 + * them available.
-+ */
-+
-+static inline unsigned long __cmpxchg_local(volatile void *ptr,
-+				      unsigned long old,
-+				      unsigned long new, int size)
-+{
-+	switch (size) {
-+	case 4:
-+	case 8:	return __cmpxchg(ptr, old, new, size);
-+	default:
-+		return __cmpxchg_local_generic(ptr, old, new, size);
-+	}
-+
-+	return old;
-+}
-+
-+#define cmpxchg_local(ptr, o, n)				  	\
-+	((__typeof__(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(o),	\
+  */
+-#define __HAVE_ARCH_CMPXCHG	1
+-
+-static __inline__ unsigned long
+-cmpxchg(volatile int *p, int old, int new)
+-{
+-	unsigned long flags;
+-	int prev;
+-
+-	local_irq_save(flags);
+-	if ((prev = *p) == old)
+-		*p = new;
+-	local_irq_restore(flags);
+-	return(prev);
+-}
++#define cmpxchg_local(ptr, o, n)				  	       \
++	((__typeof__(*(ptr)))__cmpxchg_local_generic((ptr), (unsigned long)(o),\
 +			(unsigned long)(n), sizeof(*(ptr))))
-+#define cmpxchg64_local(ptr, o, n)					\
-+  ({									\
-+	BUILD_BUG_ON(sizeof(*(ptr)) != 8);				\
-+	cmpxchg_local((ptr), (o), (n));					\
-+  })
-+
- #endif /* !(__ASSEMBLY__) */
++#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
  
- #define arch_align_stack(x) (x)
++#ifndef CONFIG_SMP
++#include <asm-generic/cmpxchg.h>
++#endif
+ 
+ #ifdef CONFIG_M68332
+ #define HARD_RESET_NOW() ({		\
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
