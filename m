@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + add-cmpxchg_local-to-sh64.patch added to -mm tree
-Date: Thu, 01 Nov 2007 12:09:17 -0700
-Message-ID: <20071101190917.8C095432BDE@localhost>
+Subject: + add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32.patch added to -mm tree
+Date: Thu, 01 Nov 2007 12:09:16 -0700
+Message-ID: <20071101190916.96CFD432BDE@localhost>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.33.17]:44345 "EHLO
+Received: from smtp-out.google.com ([216.239.45.13]:30263 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754950AbXKATK5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:10:57 -0400
+	with ESMTP id S1755349AbXKATK7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:10:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: mathieu.desnoyers@polymtl.ca, lethal@linux-sh.org
 
 
 The patch titled
-     Add cmpxchg_local to sh64
+     Add cmpxchg_local to sh, use generic cmpxchg() instead of cmpxchg_u32
 has been added to the -mm tree.  Its filename is
-     add-cmpxchg_local-to-sh64.patch
+     add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,29 +25,66 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add cmpxchg_local to sh64
+Subject: Add cmpxchg_local to sh, use generic cmpxchg() instead of cmpxchg_u32
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
 Use the new generic cmpxchg_local (disables interrupt). Also use the generic
 cmpxchg as fallback if SMP is not set.
+
+Since cmpxchg_u32 is _exactly_ the cmpxchg_local generic implementation, remove
+it and use the generic version instead.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-sh64/system.h |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ include/asm-sh/system.h |   52 ++++++++++----------------------------
+ 1 file changed, 14 insertions(+), 38 deletions(-)
 
-diff -puN include/asm-sh64/system.h~add-cmpxchg_local-to-sh64 include/asm-sh64/system.h
---- a/include/asm-sh64/system.h~add-cmpxchg_local-to-sh64
-+++ a/include/asm-sh64/system.h
-@@ -163,6 +163,21 @@ static __inline__ unsigned long __xchg(u
- 	return x;
- }
+diff -puN include/asm-sh/system.h~add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32 include/asm-sh/system.h
+--- a/include/asm-sh/system.h~add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32
++++ a/include/asm-sh/system.h
+@@ -199,47 +199,23 @@ extern void __xchg_called_with_bad_point
+ 	__xchg__res;					\
+ })
  
+-#define xchg(ptr,x)	\
+-	((__typeof__(*(ptr)))__xchg((ptr),(unsigned long)(x), sizeof(*(ptr))))
++#define xchg(ptr, x)					\
++	((__typeof__(*(ptr)))__xchg((ptr), (unsigned long)(x), sizeof(*(ptr))))
+ 
+-static inline unsigned long __cmpxchg_u32(volatile int * m, unsigned long old,
+-	unsigned long new)
+-{
+-	__u32 retval;
+-	unsigned long flags;
+-
+-	local_irq_save(flags);
+-	retval = *m;
+-	if (retval == old)
+-		*m = new;
+-	local_irq_restore(flags);       /* implies memory barrier  */
+-	return retval;
+-}
+-
+-/* This function doesn't exist, so you'll get a linker error
+- * if something tries to do an invalid cmpxchg(). */
+-extern void __cmpxchg_called_with_bad_pointer(void);
+-
+-#define __HAVE_ARCH_CMPXCHG 1
 +#include <asm-generic/cmpxchg-local.h>
-+
+ 
+-static inline unsigned long __cmpxchg(volatile void * ptr, unsigned long old,
+-		unsigned long new, int size)
+-{
+-	switch (size) {
+-	case 4:
+-		return __cmpxchg_u32(ptr, old, new);
+-	}
+-	__cmpxchg_called_with_bad_pointer();
+-	return old;
+-}
 +/*
 + * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
 + * them available.
@@ -56,14 +93,20 @@ diff -puN include/asm-sh64/system.h~add-cmpxchg_local-to-sh64 include/asm-sh64/s
 +	((__typeof__(*(ptr)))__cmpxchg_local_generic((ptr), (unsigned long)(o),\
 +			(unsigned long)(n), sizeof(*(ptr))))
 +#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
-+
+ 
+-#define cmpxchg(ptr,o,n)						 \
+-  ({									 \
+-     __typeof__(*(ptr)) _o_ = (o);					 \
+-     __typeof__(*(ptr)) _n_ = (n);					 \
+-     (__typeof__(*(ptr))) __cmpxchg((ptr), (unsigned long)_o_,		 \
+-				    (unsigned long)_n_, sizeof(*(ptr))); \
+-  })
 +#ifndef CONFIG_SMP
 +#include <asm-generic/cmpxchg.h>
 +#endif
-+
- /* XXX
-  * disable hlt during certain critical i/o operations
-  */
+ 
+ extern void die(const char *str, struct pt_regs *regs, long err) __attribute__ ((noreturn));
+ 
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
