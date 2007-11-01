@@ -1,68 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-show-right-output-for-cpuinfo.patch added to -mm tree
-Date: Thu, 01 Nov 2007 10:37:43 -0700
-Message-ID: <200711011737.lA1Hbh6B007656@imap1.linux-foundation.org>
+Subject: - eradicate-bashisms-in-scripts-patch-kernel.patch removed from -mm tree
+Date: Thu, 01 Nov 2007 10:44:49 -0700
+Message-ID: <200711011744.lA1Hingo007909@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38745 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45435 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753858AbXKARjM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 13:39:12 -0400
+	by vger.kernel.org with ESMTP id S1754720AbXKARpC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 13:45:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: gcosta@redhat.com, kiran@scalemp.com, mingo@elte.hu, tglx@linutronix.de
+To: andi@lisas.de, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: show right output for cpuinfo
-has been added to the -mm tree.  Its filename is
-     x86_64-show-right-output-for-cpuinfo.patch
+     eradicate bashisms in scripts/patch-kernel
+has been removed from the -mm tree.  Its filename was
+     eradicate-bashisms-in-scripts-patch-kernel.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: x86_64: show right output for cpuinfo
-From: Glauber de Oliveira Costa <gcosta@redhat.com>
+Subject: eradicate bashisms in scripts/patch-kernel
+From: Andreas Mohr <andi@lisas.de>
 
-In x86_64 smp systems, a regression was introduced a few days after 2.6.23,
-on its way to 2.6.23.  Bisection leads me to commit
-92cb7612aee39642d109b8d935ad265e602c0563.
+I was non-mildly horrified to find that the rather widely used patch-kernel
+script seems to rely on bash despite specifying the interpreter as #!/bin/sh,
+since my dash-using Debian install choked on it.
 
-The problem is that the output of 'cat /proc/cpuinfo' shows 0 as the id of
-all cpus of a smp system. As far as I know, this only happens on x86_64
-systems.
+- replace "==" by "="
 
-This problem was first noticed by Ravikiran. A simple patch follows
+- the "source" statement most likely needs the ./ prepended, as can be
+  gathered from e.g. 
+  http://osdir.com/ml/colinux.devel/2005-12/msg00036.html
 
-Signed-off-by: Glauber de Oliveira Costa <gcosta@redhat.com>
-Cc: Ravikiran Thirumalai <kiran@scalemp.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+- the newly replaced sed expression below: is it ok? correct? strict enough?
+
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup_64.c |    1 -
- 1 file changed, 1 deletion(-)
+ scripts/patch-kernel |   20 +++++++-------------
+ 1 file changed, 7 insertions(+), 13 deletions(-)
 
-diff -puN arch/x86/kernel/setup_64.c~x86_64-show-right-output-for-cpuinfo arch/x86/kernel/setup_64.c
---- a/arch/x86/kernel/setup_64.c~x86_64-show-right-output-for-cpuinfo
-+++ a/arch/x86/kernel/setup_64.c
-@@ -892,7 +892,6 @@ void __cpuinit early_identify_cpu(struct
+diff -puN scripts/patch-kernel~eradicate-bashisms-in-scripts-patch-kernel scripts/patch-kernel
+--- a/scripts/patch-kernel~eradicate-bashisms-in-scripts-patch-kernel
++++ a/scripts/patch-kernel
+@@ -65,7 +65,7 @@ sourcedir=${1-/usr/src/linux}
+ patchdir=${2-.}
+ stopvers=${3-default}
  
- #ifdef CONFIG_SMP
- 	c->phys_proc_id = (cpuid_ebx(1) >> 24) & 0xff;
--	c->cpu_index = 0;
- #endif
- }
+-if [ "$1" == -h -o "$1" == --help -o ! -r "$sourcedir/Makefile" ]; then
++if [ "$1" = "-h" -o "$1" = "--help" -o ! -r "$sourcedir/Makefile" ]; then
+ cat << USAGE
+ usage: $PNAME [-h] [ sourcedir [ patchdir [ stopversion ] [ -acxx ] ] ]
+   source directory defaults to /usr/src/linux,
+@@ -185,7 +185,7 @@ reversePatch () {
+ TMPFILE=`mktemp .tmpver.XXXXXX` || { echo "cannot make temp file" ; exit 1; }
+ grep -E "^(VERSION|PATCHLEVEL|SUBLEVEL|EXTRAVERSION)" $sourcedir/Makefile > $TMPFILE
+ tr -d [:blank:] < $TMPFILE > $TMPFILE.1
+-source $TMPFILE.1
++. ./$TMPFILE.1
+ rm -f $TMPFILE*
+ if [ -z "$VERSION" -o -z "$PATCHLEVEL" -o -z "$SUBLEVEL" ]
+ then
+@@ -202,13 +202,7 @@ echo "Current kernel version is $VERSION
+ EXTRAVER=
+ if [ x$EXTRAVERSION != "x" ]
+ then
+-	if [ ${EXTRAVERSION:0:1} == "." ]; then
+-		EXTRAVER=${EXTRAVERSION:1}
+-	else
+-		EXTRAVER=$EXTRAVERSION
+-	fi
+-	EXTRAVER=${EXTRAVER%%[[:punct:]]*}
+-	#echo "$PNAME: changing EXTRAVERSION from $EXTRAVERSION to $EXTRAVER"
++	EXTRAVER=`echo $EXTRAVERSION|sed -s 's/^[\.]\?\([^[:punct:]]*\).*/\1/'`
+ fi
  
+ #echo "stopvers=$stopvers"
+@@ -251,16 +245,16 @@ while :				# incrementing SUBLEVEL (s in
+ do
+     CURRENTFULLVERSION="$VERSION.$PATCHLEVEL.$SUBLEVEL"
+     EXTRAVER=
+-    if [ $stopvers == $CURRENTFULLVERSION ]; then
++    if [ $stopvers = $CURRENTFULLVERSION ]; then
+         echo "Stopping at $CURRENTFULLVERSION base as requested."
+         break
+     fi
+ 
+-    SUBLEVEL=$((SUBLEVEL + 1))
++    SUBLEVEL=$(( $SUBLEVEL + 1 ))
+     FULLVERSION="$VERSION.$PATCHLEVEL.$SUBLEVEL"
+     #echo "#___ trying $FULLVERSION ___"
+ 
+-    if [ $((SUBLEVEL)) -gt $((STOPSUBLEVEL)) ]; then
++    if [ $SUBLEVEL -gt $STOPSUBLEVEL ]; then
+ 	echo "Stopping since sublevel ($SUBLEVEL) is beyond stop-sublevel ($STOPSUBLEVEL)"
+ 	exit 1
+     fi
+@@ -297,7 +291,7 @@ fi
+ if [ x$gotac != x ]; then
+   # Out great user wants the -ac patches
+ 	# They could have done -ac (get latest) or -acxx where xx=version they want
+-	if [ $gotac == "-ac" ]; then
++	if [ $gotac = "-ac" ]; then
+ 	  # They want the latest version
+ 		HIGHESTPATCH=0
+ 		for PATCHNAMES in $patchdir/patch-${CURRENTFULLVERSION}-ac*\.*
 _
 
-Patches currently in -mm which might be from gcosta@redhat.com are
+Patches currently in -mm which might be from andi@lisas.de are
 
-origin.patch
-x86_64-show-right-output-for-cpuinfo.patch
-git-kvm.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+eradicate-bashisms-in-scripts-patch-kernel.patch
