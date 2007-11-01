@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-cmpxchg_local-to-ppc.patch added to -mm tree
-Date: Thu, 01 Nov 2007 12:09:14 -0700
-Message-ID: <20071101190914.97905432BDE@localhost>
+Subject: + sunhme-fix-missing-netif_f_vlan_challenged-on-pci-happy-meals.patch added to -mm tree
+Date: Thu, 01 Nov 2007 12:12:48 -0700
+Message-ID: <20071101191248.4D11B432BDE@localhost>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.33.17]:44419 "EHLO
+Received: from smtp-out.google.com ([216.239.33.17]:44684 "EHLO
 	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755485AbXKATLT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:11:19 -0400
+	with ESMTP id S1756484AbXKATNJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 15:13:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gl@denx.de, benh@kernel.crashing.org, galak@gate.crashing.org, mathieu.desnoyers@polymtl.ca, paulus@samba.org
+Cc: davem@davemloft.net, dev-null@telus.net, jeff@garzik.org
 
 
 The patch titled
-     Add cmpxchg_local to ppc
+     SUNHME: fix missing NETIF_F_VLAN_CHALLENGED on PCI happy meals
 has been added to the -mm tree.  Its filename is
-     add-cmpxchg_local-to-ppc.patch
+     sunhme-fix-missing-netif_f_vlan_challenged-on-pci-happy-meals.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,108 +25,52 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add cmpxchg_local to ppc
-From: Gunnar Larisch <gl@denx.de>
+Subject: SUNHME: fix missing NETIF_F_VLAN_CHALLENGED on PCI happy meals
+From: David Miller <davem@davemloft.net>
 
-Add a local processor version of cmpxchg for ppc.
+No HME parts can do VLANs correctly.
 
-Implements __cmpxchg_u32_local and uses it for 32 bits cmpxchg_local.
-It uses the non NMI safe cmpxchg_local_generic for 1, 2 and 8 bytes
-cmpxchg_local.
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=9270
 
-Signed-off-by: Gunnar Larisch <gl@denx.de>
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Kumar Gala <galak@gate.crashing.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Cc: Chris Poon <dev-null@telus.net>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ppc/system.h |   51 +++++++++++++++++++++++++++++++++++--
- 1 file changed, 49 insertions(+), 2 deletions(-)
+ drivers/net/sunhme.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-ppc/system.h~add-cmpxchg_local-to-ppc include/asm-ppc/system.h
---- a/include/asm-ppc/system.h~add-cmpxchg_local-to-ppc
-+++ a/include/asm-ppc/system.h
-@@ -209,12 +209,34 @@ __cmpxchg_u32(volatile unsigned int *p, 
- 	return prev;
- }
+diff -puN drivers/net/sunhme.c~sunhme-fix-missing-netif_f_vlan_challenged-on-pci-happy-meals drivers/net/sunhme.c
+--- a/drivers/net/sunhme.c~sunhme-fix-missing-netif_f_vlan_challenged-on-pci-happy-meals
++++ a/drivers/net/sunhme.c
+@@ -3143,8 +3143,8 @@ static int __devinit happy_meal_pci_prob
+ 	dev->irq = pdev->irq;
+ 	dev->dma = 0;
  
-+static inline unsigned long
-+__cmpxchg_u32_local(volatile unsigned int *p, unsigned int old,
-+	unsigned int new)
-+{
-+	unsigned int prev;
-+
-+	__asm__ __volatile__ ("\n\
-+1:	lwarx	%0,0,%2 \n\
-+	cmpw	0,%0,%3 \n\
-+	bne	2f \n"
-+	PPC405_ERR77(0,%2)
-+"	stwcx.	%4,0,%2 \n\
-+	bne-	1b\n"
-+"2:"
-+	: "=&r" (prev), "=m" (*p)
-+	: "r" (p), "r" (old), "r" (new), "m" (*p)
-+	: "cc", "memory");
-+
-+	return prev;
-+}
-+
- /* This function doesn't exist, so you'll get a linker error
-    if something tries to do an invalid cmpxchg().  */
- extern void __cmpxchg_called_with_bad_pointer(void);
+-	/* Happy Meal can do it all... */
+-	dev->features |= NETIF_F_SG | NETIF_F_HW_CSUM;
++	/* Happy Meal can do it all... except VLAN. */
++	dev->features |= NETIF_F_SG | NETIF_F_HW_CSUM | NETIF_F_VLAN_CHALLENGED;
  
- static __inline__ unsigned long
--__cmpxchg(volatile void *ptr, unsigned long old, unsigned long new, int size)
-+__cmpxchg(volatile void *ptr, unsigned long old, unsigned long new,
-+	unsigned int size)
- {
- 	switch (size) {
- 	case 4:
-@@ -228,7 +250,7 @@ __cmpxchg(volatile void *ptr, unsigned l
- 	return old;
- }
- 
--#define cmpxchg(ptr,o,n)						 \
-+#define cmpxchg(ptr, o, n)						 \
-   ({									 \
-      __typeof__(*(ptr)) _o_ = (o);					 \
-      __typeof__(*(ptr)) _n_ = (n);					 \
-@@ -236,6 +258,31 @@ __cmpxchg(volatile void *ptr, unsigned l
- 				    (unsigned long)_n_, sizeof(*(ptr))); \
-   })
- 
-+#include <asm-generic/cmpxchg-local.h>
-+
-+static inline unsigned long __cmpxchg_local(volatile void *ptr,
-+				      unsigned long old,
-+				      unsigned long new, int size)
-+{
-+	switch (size) {
-+	case 4:
-+		return __cmpxchg_u32_local(ptr, old, new);
-+	default:
-+		return __cmpxchg_local_generic(ptr, old, new, size);
-+	}
-+
-+	return old;
-+}
-+
-+/*
-+ * cmpxchg_local and cmpxchg64_local are atomic wrt current CPU. Always make
-+ * them available.
-+ */
-+#define cmpxchg_local(ptr, o, n)				  	\
-+	((__typeof__(*(ptr)))__cmpxchg_local((ptr), (unsigned long)(o),	\
-+			(unsigned long)(n), sizeof(*(ptr))))
-+#define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr), (o), (n))
-+
- #define arch_align_stack(x) (x)
- 
- #endif /* __KERNEL__ */
+ #if defined(CONFIG_SBUS) && defined(CONFIG_PCI)
+ 	/* Hook up PCI register/dma accessors. */
 _
 
-Patches currently in -mm which might be from gl@denx.de are
+Patches currently in -mm which might be from davem@davemloft.net are
 
-add-cmpxchg_local-to-ppc.patch
+origin.patch
+pfkey-sending-an-sadb_get-responds-with-an-sadb_get.patch
+lmc_ioctl-dont-return-with-locks-held-fix.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+sunhme-fix-missing-netif_f_vlan_challenged-on-pci-happy-meals.patch
+git-block.patch
+git-wireless.patch
+sunrpc-xprtrdma-transportc-fix-use-after-free.patch
+sysctl-fix-token-ring-procname.patch
+fix-versus-precedence-in-various-places.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+genericizing-iova.patch
+iget-stop-openpromfs-from-using-iget-and.patch
+add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
+add-cmpxchg_local-to-sparc64.patch
