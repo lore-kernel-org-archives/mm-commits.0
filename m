@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arm26-remove-it-again.patch added to -mm tree
-Date: Thu, 01 Nov 2007 14:05:47 -0700
-Message-ID: <200711012105.lA1L5lor015394@imap1.linux-foundation.org>
+Subject: + lxfb-use-the-correct-msr-number-for-panel-support.patch added to -mm tree
+Date: Thu, 01 Nov 2007 14:07:59 -0700
+Message-ID: <200711012107.lA1L7xfX015517@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37196 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50973 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753477AbXKAVGX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 17:06:23 -0400
+	by vger.kernel.org with ESMTP id S1754054AbXKAVIs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 17:08:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com
+Cc: jordan.crouse@amd.com, adaplas@pol.net, hpa@zytor.com
 
 
 The patch titled
-     arm26: remove it again
+     LXFB: use the correct MSR number for panel support
 has been added to the -mm tree.  Its filename is
-     arm26-remove-it-again.patch
+     lxfb-use-the-correct-msr-number-for-panel-support.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arm26: remove it again
-From: Hugh Dickins <hugh@veritas.com>
+Subject: LXFB: use the correct MSR number for panel support
+From: Jordan Crouse <jordan.crouse@amd.com>
 
-A tiny vestige of arm26 has appeared: remove it again.
+A relatively recent version of the Geode LX datasheet listed the wrong
+address for one of the MSRs that controls TFT panels, resulting in
+breakage.  This patch corrects the MSR address.
 
-(akpm: someone (tm) needs to remove include/asm-arm26/ too)
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Signed-off-by: Jordan Crouse <jordan.crouse@amd.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm26/irq_regs.h |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/video/geode/lxfb.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-arm26/irq_regs.h~arm26-remove-it-again /dev/null
---- a/include/asm-arm26/irq_regs.h
-+++ /dev/null
-@@ -1 +0,0 @@
--#include <asm-generic/irq_regs.h>
+diff -puN drivers/video/geode/lxfb.h~lxfb-use-the-correct-msr-number-for-panel-support drivers/video/geode/lxfb.h
+--- a/drivers/video/geode/lxfb.h~lxfb-use-the-correct-msr-number-for-panel-support
++++ a/drivers/video/geode/lxfb.h
+@@ -33,7 +33,7 @@ void lx_set_palette_reg(struct fb_info *
+ 
+ #define MSR_LX_GLD_CONFIG    0x48002001
+ #define MSR_LX_GLCP_DOTPLL   0x4c000015
+-#define MSR_LX_DF_PADSEL     0x48000011
++#define MSR_LX_DF_PADSEL     0x48002011
+ #define MSR_LX_DC_SPARE      0x80000011
+ #define MSR_LX_DF_GLCONFIG   0x48002001
+ 
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from jordan.crouse@amd.com are
 
-origin.patch
-arm26-remove-it-again.patch
-i386-and-x86_64-randomize-brk-fix-2.patch
-swapin_readahead-excise-numa-bogosity.patch
-swapin_readahead-move-and-rearrange-args.patch
-swapin-needs-gfp_mask-for-loop-on-tmpfs.patch
-shmem-sgp_quick-and-sgp_fault-redundant.patch
-shmem_getpage-return-page-locked.patch
-shmem_file_write-is-redundant.patch
-swapin-fix-valid_swaphandles-defect.patch
-maps4-add-proportional-set-size-accounting-in-smaps.patch
-memory-controller-memory-accounting-v7.patch
-prio_tree-debugging-patch.patch
+lxfb-use-the-correct-msr-number-for-panel-support.patch
+make-video-geode-lxfb_corecgeode_modedb-static.patch
