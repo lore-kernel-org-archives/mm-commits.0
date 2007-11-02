@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + add-configure-support-for-new-coldfire-serial-driver.patch added to -mm tree
-Date: Fri, 02 Nov 2007 14:35:22 -0700
-Message-ID: <200711022135.lA2LZMcM012005@imap1.linux-foundation.org>
+Subject: + m68knommu-platform-setup-for-5206e-coldfire-uarts.patch added to -mm tree
+Date: Fri, 02 Nov 2007 14:35:26 -0700
+Message-ID: <200711022135.lA2LZQhO012011@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41259 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49942 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752289AbXKBVgE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Nov 2007 17:36:04 -0400
+	by vger.kernel.org with ESMTP id S1752549AbXKBVgT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Nov 2007 17:36:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: gerg@snapgear.com, gerg@uclinux.org
 
 
 The patch titled
-     add configure support for new ColdFire serial driver
+     m68knommu: platform setup for 5206e ColdFire UARTs
 has been added to the -mm tree.  Its filename is
-     add-configure-support-for-new-coldfire-serial-driver.patch
+     m68knommu-platform-setup-for-5206e-coldfire-uarts.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,52 +25,113 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: add configure support for new ColdFire serial driver
+Subject: m68knommu: platform setup for 5206e ColdFire UARTs
 From: Greg Ungerer <gerg@snapgear.com>
 
-Add configure support for the new style ColdFire serial driver.
+Switch to platform style configuration for 5206e ColdFire UARTs.
 
 Signed-off-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/Kconfig |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ arch/m68knommu/platform/5206e/config.c |   65 ++++++++++++++++++++++-
+ 1 file changed, 63 insertions(+), 2 deletions(-)
 
-diff -puN drivers/serial/Kconfig~add-configure-support-for-new-coldfire-serial-driver drivers/serial/Kconfig
---- a/drivers/serial/Kconfig~add-configure-support-for-new-coldfire-serial-driver
-+++ a/drivers/serial/Kconfig
-@@ -960,6 +960,30 @@ config SERIAL_COLDFIRE
- 	  This driver supports the built-in serial ports of the Motorola ColdFire
- 	  family of CPUs.
+diff -puN arch/m68knommu/platform/5206e/config.c~m68knommu-platform-setup-for-5206e-coldfire-uarts arch/m68knommu/platform/5206e/config.c
+--- a/arch/m68knommu/platform/5206e/config.c~m68knommu-platform-setup-for-5206e-coldfire-uarts
++++ a/arch/m68knommu/platform/5206e/config.c
+@@ -10,9 +10,11 @@
  
-+config SERIAL_MCF
-+	bool "Coldfire serial support (new style driver)"
-+	depends on COLDFIRE
-+	select SERIAL_CORE
-+	help
-+	  This new serial driver supports the Freescale Coldfire serial ports
-+	  using the new serial driver subsystem.
+ #include <linux/kernel.h>
+ #include <linux/param.h>
++#include <linux/init.h>
+ #include <linux/interrupt.h>
+-#include <asm/dma.h>
+ #include <asm/machdep.h>
++#include <asm/dma.h>
++#include <asm/io.h>
+ #include <asm/coldfire.h>
+ #include <asm/mcfsim.h>
+ #include <asm/mcfdma.h>
+@@ -35,6 +37,54 @@ unsigned int dma_device_address[MAX_M68K
+ 
+ /***************************************************************************/
+ 
++static struct mcf_platform_uart m5206_uart_platform[] = {
++	{
++		.mapbase	= MCF_MBAR + MCFUART_BASE1,
++		.irq		= 73,
++	},
++	{
++		.mapbase 	= MCF_MBAR + MCFUART_BASE2,
++		.irq		= 74,
++	},
++	{ },
++};
 +
-+config SERIAL_MCF_BAUDRATE
-+	int "Default baudrate for Coldfire serial ports"
-+	depends on SERIAL_MCF
-+	default 19200
-+	help
-+	  This setting lets you define what the default baudrate is for the
-+	  ColdFire serial ports. The usual default varies from board to board,
-+	  and this setting is a way of catering for that.
++static struct platform_device m5206_uart = {
++	.name			= "mcfuart",
++	.id			= 0,
++	.dev.platform_data	= m5206_uart_platform,
++};
 +
-+config SERIAL_MCF_CONSOLE
-+	bool "Coldfire serial console support"
-+	depends on SERIAL_MCF
-+	select SERIAL_CORE_CONSOLE
-+	help
-+	  Enable a ColdFire internal serial port to be the system console.
++static struct platform_device *m5206_devices[] __initdata = {
++	&m5206_uart,
++};
 +
- config SERIAL_68360_SMC
- 	bool "68360 SMC uart support"
- 	depends on M68360
++/***************************************************************************/
++
++static void __init m5206_uart_init_line(int line, int irq)
++{
++	if (line == 0) {
++		writel(MCFSIM_ICR_LEVEL6 | MCFSIM_ICR_PRI1, MCF_MBAR + MCFSIM_UART1ICR);
++		writeb(irq, MCFUART_BASE1 + MCFUART_UIVR);
++		mcf_setimr(mcf_getimr() & ~MCFSIM_IMR_UART1);
++	} else if (line == 1) {
++		writel(MCFSIM_ICR_LEVEL6 | MCFSIM_ICR_PRI2, MCF_MBAR + MCFSIM_UART2ICR);
++		writeb(irq, MCFUART_BASE2 + MCFUART_UIVR);
++		mcf_setimr(mcf_getimr() & ~MCFSIM_IMR_UART2);
++	}
++}
++
++static void __init m5206_uarts_init(void)
++{
++	const int nrlines = ARRAY_SIZE(m5206_uart_platform);
++	int line;
++
++	for (line = 0; (line < nrlines); line++)
++		m5206_uart_init_line(line, m5206_uart_platform[line].irq);
++}
++
++/***************************************************************************/
++
+ void mcf_autovector(unsigned int vec)
+ {
+ 	volatile unsigned char  *mbar;
+@@ -85,7 +135,7 @@ int mcf_timerirqpending(int timer)
+ 
+ /***************************************************************************/
+ 
+-void config_BSP(char *commandp, int size)
++void __init config_BSP(char *commandp, int size)
+ {
+ 	mcf_setimr(MCFSIM_IMR_MASKALL);
+ 
+@@ -99,3 +149,14 @@ void config_BSP(char *commandp, int size
+ }
+ 
+ /***************************************************************************/
++
++static int __init init_BSP(void)
++{
++	m5206_uarts_init();
++	platform_add_devices(m5206_devices, ARRAY_SIZE(m5206_devices));
++	return 0;
++}
++
++arch_initcall(init_BSP);
++
++/***************************************************************************/
 _
 
 Patches currently in -mm which might be from gerg@snapgear.com are
