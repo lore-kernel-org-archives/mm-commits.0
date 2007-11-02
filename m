@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 01 Nov 2007 16:52:40 -0700
-Message-ID: <200711012352.lA1NqeEn021993@imap1.linux-foundation.org>
+Subject: + md-fix-misapplied-patch-in-raid5c.patch added to -mm tree
+Date: Fri, 02 Nov 2007 00:39:12 -0700
+Message-ID: <200711020739.lA27dC4Z012003@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59970 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44447 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757392AbXKAXwt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2007 19:52:49 -0400
+	by vger.kernel.org with ESMTP id S1752219AbXKBHjU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Nov 2007 03:39:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, auke-jan.h.kok@intel.com, greg@kroah.com
+Cc: neilb@suse.de, dan.j.williams@intel.com
 
 
 The patch titled
-     quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes
+     md: fix misapplied patch in raid5.c
 has been added to the -mm tree.  Its filename is
-     quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
+     md-fix-misapplied-patch-in-raid5c.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,160 +25,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: md: fix misapplied patch in raid5.c
+From: NeilBrown <neilb@suse.de>
 
-ERROR: trailing whitespace
-#42: FILE: drivers/pci/quirks.c:157:
-+^I^Iif (p->revision < 0x10 || p->revision > 0x12) $
+commit 4ae3f847e49e3787eca91bced31f8fd328d50496 did not get applied
+correctly, presumably due to substantial similarities between
+handle_stripe5 and handle_stripe6.
 
-total: 1 errors, 0 warnings, 27 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+This patch moves the chunk of new code from handle_stripe6 (where it isn't
+needed (yet)) to handle_stripe5.
 
-Please run checkpatch prior to sending patches
-
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Auke Kok <auke-jan.h.kok@intel.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Neil Brown <neilb@suse.de>
+Cc: "Dan Williams" <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/quirks.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/md/raid5.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/pci/quirks.c~quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes
-+++ a/drivers/pci/quirks.c
-@@ -154,7 +154,7 @@ static void quirk_vialatency(struct pci_
- 		if (p==NULL)	/* No problem parts */
- 			goto exit;
- 		/* Check for buggy part revisions */
--		if (p->revision < 0x10 || p->revision > 0x12) 
-+		if (p->revision < 0x10 || p->revision > 0x12)
- 			goto exit;
- 	}
- 	
+diff -puN drivers/md/raid5.c~md-fix-misapplied-patch-in-raid5c drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-fix-misapplied-patch-in-raid5c
++++ a/drivers/md/raid5.c
+@@ -2624,6 +2624,13 @@ static void handle_stripe5(struct stripe
+ 	s.expanded = test_bit(STRIPE_EXPAND_READY, &sh->state);
+ 	/* Now to look around and see what can be done */
+ 
++	/* clean-up completed biofill operations */
++	if (test_bit(STRIPE_OP_BIOFILL, &sh->ops.complete)) {
++		clear_bit(STRIPE_OP_BIOFILL, &sh->ops.pending);
++		clear_bit(STRIPE_OP_BIOFILL, &sh->ops.ack);
++		clear_bit(STRIPE_OP_BIOFILL, &sh->ops.complete);
++	}
++
+ 	rcu_read_lock();
+ 	for (i=disks; i--; ) {
+ 		mdk_rdev_t *rdev;
+@@ -2897,13 +2904,6 @@ static void handle_stripe6(struct stripe
+ 	s.expanded = test_bit(STRIPE_EXPAND_READY, &sh->state);
+ 	/* Now to look around and see what can be done */
+ 
+-	/* clean-up completed biofill operations */
+-	if (test_bit(STRIPE_OP_BIOFILL, &sh->ops.complete)) {
+-		clear_bit(STRIPE_OP_BIOFILL, &sh->ops.pending);
+-		clear_bit(STRIPE_OP_BIOFILL, &sh->ops.ack);
+-		clear_bit(STRIPE_OP_BIOFILL, &sh->ops.complete);
+-	}
+-
+ 	rcu_read_lock();
+ 	for (i=disks; i--; ) {
+ 		mdk_rdev_t *rdev;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from neilb@suse.de are
 
-origin.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-git-arm-fixup.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
-ide-arm-hack.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-git-nfsd-fixup.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-fix-build-breakage-if-sysfs-fix.patch
-git-scsi-rc-fixes.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-git-block.patch
-git-block-fixup.patch
-git-block-vs-agk-dm-dm-reorder-struct-io_restrictions.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-watchdog.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
-file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
-sync_sb_inodes-propagate-errors.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+md-fix-misapplied-patch-in-raid5c.patch
+git-md-accel.patch
+sunrpc-xprtrdma-transportc-fix-use-after-free.patch
+coding-style-cleanups-for-drivers-md-mktablesc.patch
