@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-make-i8259_64-more-_32-like-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 02 Nov 2007 14:42:04 -0700
-Message-ID: <200711022142.lA2Lg4HZ012325@imap1.linux-foundation.org>
+Subject: + time-fix-inconsistent-function-names-in-comments.patch added to -mm tree
+Date: Fri, 02 Nov 2007 14:43:55 -0700
+Message-ID: <200711022143.lA2LhtZ2012369@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60347 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60393 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754354AbXKBVmk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Nov 2007 17:42:40 -0400
+	by vger.kernel.org with ESMTP id S1754061AbXKBVo0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Nov 2007 17:44:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, pj@place.org, tglx@linutronix.de
+Cc: lizf@cn.fujitsu.com, johnstul@us.ibm.com, tglx@linutronix.de
 
 
 The patch titled
-     x86-make-i8259_64-more-_32-like-checkpatch-fixes
+     time: fix inconsistent function names in comments
 has been added to the -mm tree.  Its filename is
-     x86-make-i8259_64-more-_32-like-checkpatch-fixes.patch
+     time-fix-inconsistent-function-names-in-comments.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,244 +25,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86-make-i8259_64-more-_32-like-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: time: fix inconsistent function names in comments
+From: lizf <lizf@cn.fujitsu.com>
 
-ERROR: need space after that ',' (ctx:VxV)
-#91: FILE: arch/x86/kernel/i8259_64.c:198:
-+		outb(0x0B,PIC_MASTER_CMD);	/* ISR register */
- 		         ^
-
-ERROR: need space after that ',' (ctx:VxV)
-#93: FILE: arch/x86/kernel/i8259_64.c:200:
-+		outb(0x0A,PIC_MASTER_CMD);	/* back to the IRR register */
- 		         ^
-
-ERROR: need space after that ',' (ctx:VxV)
-#99: FILE: arch/x86/kernel/i8259_64.c:203:
-+	outb(0x0B,PIC_SLAVE_CMD);	/* ISR register */
- 	         ^
-
-ERROR: need space after that ',' (ctx:VxV)
-#101: FILE: arch/x86/kernel/i8259_64.c:205:
-+	outb(0x0A,PIC_SLAVE_CMD);	/* back to the IRR register */
- 	         ^
-
-ERROR: need space after that ',' (ctx:VxV)
-#115: FILE: arch/x86/kernel/i8259_64.c:244:
-+		outb(0x60+(irq&7),PIC_SLAVE_CMD);/* 'Specific EOI' to slave */
- 		                 ^
-
-WARNING: line over 80 characters
-#116: FILE: arch/x86/kernel/i8259_64.c:245:
-+		outb(0x60+PIC_CASCADE_IR,PIC_MASTER_CMD); /* 'Specific EOI' to master-IRQ2 */
-
-ERROR: need space after that ',' (ctx:VxV)
-#116: FILE: arch/x86/kernel/i8259_64.c:245:
-+		outb(0x60+PIC_CASCADE_IR,PIC_MASTER_CMD); /* 'Specific EOI' to master-IRQ2 */
- 		                        ^
-
-ERROR: need space after that ',' (ctx:VxV)
-#123: FILE: arch/x86/kernel/i8259_64.c:249:
-+		outb(0x60+irq,PIC_MASTER_CMD);	/* 'Specific EOI' to master */
- 		             ^
-
-WARNING: line over 80 characters
-#209: FILE: arch/x86/kernel/i8259_64.c:363:
-+	outb_p(IRQ0_VECTOR, PIC_MASTER_IMR);	/* ICW2: 8259A-1 IR0-7 mapped to 0x30-0x37 */
-
-WARNING: line over 80 characters
-#210: FILE: arch/x86/kernel/i8259_64.c:364:
-+	outb_p(0x04, PIC_MASTER_IMR);	/* 8259A-1 (the master) has a slave on IR2 */
-
-WARNING: line over 80 characters
-#217: FILE: arch/x86/kernel/i8259_64.c:371:
-+	outb_p(IRQ8_VECTOR, PIC_SLAVE_IMR);	/* ICW2: 8259A-2 IR0-7 mapped to 0x38-0x3f */
-
-WARNING: line over 80 characters
-#218: FILE: arch/x86/kernel/i8259_64.c:372:
-+	outb_p(PIC_CASCADE_IR, PIC_SLAVE_IMR);	/* 8259A-2 is a slave on master's IR2 */
-
-WARNING: line over 80 characters
-#219: FILE: arch/x86/kernel/i8259_64.c:373:
-+	outb_p(SLAVE_ICW4_DEFAULT, PIC_SLAVE_IMR); /* (slave's support for AEOI in flat mode is to be investigated) */
-
-total: 7 errors, 6 warnings, 207 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Paul Jimenez <pj@place.org>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/i8259_64.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ kernel/time/tick-broadcast.c |    2 +-
+ kernel/time/tick-sched.c     |    2 +-
+ kernel/timer.c               |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/kernel/i8259_64.c~x86-make-i8259_64-more-_32-like-checkpatch-fixes arch/x86/kernel/i8259_64.c
---- a/arch/x86/kernel/i8259_64.c~x86-make-i8259_64-more-_32-like-checkpatch-fixes
-+++ a/arch/x86/kernel/i8259_64.c
-@@ -195,14 +195,14 @@ static inline int i8259A_irq_real(unsign
- 	int irqmask = 1<<irq;
- 
- 	if (irq < 8) {
--		outb(0x0B,PIC_MASTER_CMD);	/* ISR register */
-+		outb(0x0B, PIC_MASTER_CMD);	/* ISR register */
- 		value = inb(PIC_MASTER_CMD) & irqmask;
--		outb(0x0A,PIC_MASTER_CMD);	/* back to the IRR register */
-+		outb(0x0A, PIC_MASTER_CMD);	/* back to the IRR register */
- 		return value;
- 	}
--	outb(0x0B,PIC_SLAVE_CMD);	/* ISR register */
-+	outb(0x0B, PIC_SLAVE_CMD);	/* ISR register */
- 	value = inb(PIC_SLAVE_CMD) & (irqmask >> 8);
--	outb(0x0A,PIC_SLAVE_CMD);	/* back to the IRR register */
-+	outb(0x0A, PIC_SLAVE_CMD);	/* back to the IRR register */
- 	return value;
+diff -puN kernel/time/tick-broadcast.c~time-fix-inconsistent-function-names-in-comments kernel/time/tick-broadcast.c
+--- a/kernel/time/tick-broadcast.c~time-fix-inconsistent-function-names-in-comments
++++ a/kernel/time/tick-broadcast.c
+@@ -508,7 +508,7 @@ static void tick_broadcast_clear_oneshot
  }
  
-@@ -241,12 +241,12 @@ handle_real_irq:
- 	if (irq & 8) {
- 		inb(PIC_SLAVE_IMR);	/* DUMMY - (do we need this?) */
- 		outb(cached_slave_mask, PIC_SLAVE_IMR);
--		outb(0x60+(irq&7),PIC_SLAVE_CMD);/* 'Specific EOI' to slave */
--		outb(0x60+PIC_CASCADE_IR,PIC_MASTER_CMD); /* 'Specific EOI' to master-IRQ2 */
-+		outb(0x60+(irq&7), PIC_SLAVE_CMD);/* 'Specific EOI' to slave */
-+		outb(0x60+PIC_CASCADE_IR, PIC_MASTER_CMD); /* 'Specific EOI' to master-IRQ2 */
- 	} else {
- 		inb(PIC_MASTER_IMR);	/* DUMMY - (do we need this?) */
- 		outb(cached_master_mask, PIC_MASTER_IMR);
--		outb(0x60+irq,PIC_MASTER_CMD);	/* 'Specific EOI' to master */
-+		outb(0x60+irq, PIC_MASTER_CMD);	/* 'Specific EOI' to master */
- 	}
- 	spin_unlock_irqrestore(&i8259A_lock, flags);
- 	return;
+ /**
+- * tick_broadcast_setup_highres - setup the broadcast device for highres
++ * tick_broadcast_setup_oneshot - setup the broadcast device
+  */
+ void tick_broadcast_setup_oneshot(struct clock_event_device *bc)
+ {
+diff -puN kernel/time/tick-sched.c~time-fix-inconsistent-function-names-in-comments kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~time-fix-inconsistent-function-names-in-comments
++++ a/kernel/time/tick-sched.c
+@@ -321,7 +321,7 @@ ktime_t tick_nohz_get_sleep_length(void)
+ }
+ 
+ /**
+- * nohz_restart_sched_tick - restart the idle tick from the idle task
++ * tick_nohz_restart_sched_tick - restart the idle tick from the idle task
+  *
+  * Restart the idle tick when the CPU is woken up from idle
+  */
+diff -puN kernel/timer.c~time-fix-inconsistent-function-names-in-comments kernel/timer.c
+--- a/kernel/timer.c~time-fix-inconsistent-function-names-in-comments
++++ a/kernel/timer.c
+@@ -790,7 +790,7 @@ static unsigned long cmp_next_hrtimer_ev
+ }
+ 
+ /**
+- * next_timer_interrupt - return the jiffy of the next pending timer
++ * get_next_timer_interrupt - return the jiffy of the next pending timer
+  * @now: current time (in jiffies)
+  */
+ unsigned long get_next_timer_interrupt(unsigned long now)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-origin.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-git-arm-fixup.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
-ide-arm-hack.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-git-nfsd-fixup.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-fix-build-breakage-if-sysfs-fix.patch
-git-scsi-rc-fixes.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-git-block.patch
-git-block-fixup.patch
-git-block-vs-agk-dm-dm-reorder-struct-io_restrictions.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-watchdog.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-x86-make-i8259_64-more-_32-like-checkpatch-fixes.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
-file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
-sync_sb_inodes-propagate-errors.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+time-fix-inconsistent-function-names-in-comments.patch
