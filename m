@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-improve-detection-of-host-cmov-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 02 Nov 2007 11:43:15 -0700
-Message-ID: <200711021843.lA2IhFhn005926@imap1.linux-foundation.org>
+Subject: + uml-further-bugsc-tidying.patch added to -mm tree
+Date: Fri, 02 Nov 2007 11:43:22 -0700
+Message-ID: <200711021843.lA2IhMhQ005932@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52051 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37530 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755303AbXKBSnt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Nov 2007 14:43:49 -0400
+	by vger.kernel.org with ESMTP id S1756786AbXKBSnz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Nov 2007 14:43:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jdike@linux.intel.com, magotari@gmail.com
+Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml-improve-detection-of-host-cmov-checkpatch-fixes
+     uml: further bugs.c tidying
 has been added to the -mm tree.  Its filename is
-     uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+     uml-further-bugsc-tidying.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,170 +25,185 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml-improve-detection-of-host-cmov-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: uml: further bugs.c tidying
+From: Jeff Dike <jdike@addtoit.com>
 
-ERROR: else should follow close brace '}'
-#55: FILE: arch/um/sys-i386/bugs.c:44:
-+	}
-+	else
+bugs.c, for both i386 and x86_64, can undergo further cleaning -
+	The i386 arch_check_bugs only does one thing, so we might as
+well inline the cmov checking.
+	The i386 includes can be trimmed down a bit.
+	arch_init_thread wasn't used, so it is deleted.
+	The panics in arch_handle_signal are turned into printks
+because the process is about to get segfaulted anyway, so something is
+dying no matter what happens here.  Also, the return value was always
+the same, so it contained no information, so it can be void instead.
+The name is changed to arch_examine_signal because it doesn't handle
+anything.
+	The caller of arch_handle_signal, relay_signal, does things in
+a different order.  The kernel-mode signal check is now first, which
+puts everything else together, making things a bit clearer conceptually.
 
-WARNING: printk() should include KERN_ facility level
-#56: FILE: arch/um/sys-i386/bugs.c:45:
-+		printk("No\n");
-
-total: 1 errors, 1 warnings, 58 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jeff Dike <jdike@linux.intel.com>
-Cc: Karol Swietlicki <magotari@gmail.com>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/sys-i386/bugs.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ arch/um/include/arch.h    |    2 -
+ arch/um/kernel/trap.c     |    5 +---
+ arch/um/sys-i386/bugs.c   |   45 +++++++++++++++---------------------
+ arch/um/sys-x86_64/bugs.c |    7 -----
+ 4 files changed, 23 insertions(+), 36 deletions(-)
 
-diff -puN arch/um/sys-i386/bugs.c~uml-improve-detection-of-host-cmov-checkpatch-fixes arch/um/sys-i386/bugs.c
---- a/arch/um/sys-i386/bugs.c~uml-improve-detection-of-host-cmov-checkpatch-fixes
-+++ a/arch/um/sys-i386/bugs.c
-@@ -39,10 +39,9 @@ static void test_for_host_cmov(void)
- 	if (setjmp(cmov_test_return) == 0) {
- 		unsigned long foo = 0;
- 		__asm__ __volatile__("cmovz %0, %1" : "=r" (foo) : "0" (foo));
--		printk("Yes\n");
--	}
--	else
--		printk("No\n");
-+		printk(KERN_CONT "Yes\n");
-+	} else
-+		printk(KERN_CONT "No\n");
+diff -puN arch/um/include/arch.h~uml-further-bugsc-tidying arch/um/include/arch.h
+--- a/arch/um/include/arch.h~uml-further-bugsc-tidying
++++ a/arch/um/include/arch.h
+@@ -10,6 +10,6 @@
  
+ extern void arch_check_bugs(void);
+ extern int arch_fixup(unsigned long address, struct uml_pt_regs *regs);
+-extern int arch_handle_signal(int sig, struct uml_pt_regs *regs);
++extern void arch_examine_signal(int sig, struct uml_pt_regs *regs);
+ 
+ #endif
+diff -puN arch/um/kernel/trap.c~uml-further-bugsc-tidying arch/um/kernel/trap.c
+--- a/arch/um/kernel/trap.c~uml-further-bugsc-tidying
++++ a/arch/um/kernel/trap.c
+@@ -216,9 +216,6 @@ unsigned long segv(struct faultinfo fi, 
+ 
+ void relay_signal(int sig, struct uml_pt_regs *regs)
+ {
+-	if (arch_handle_signal(sig, regs))
+-		return;
+-
+ 	if (!UPT_IS_USER(regs)) {
+ 		if (sig == SIGBUS)
+ 			printk(KERN_ERR "Bus error - the host /dev/shm or /tmp "
+@@ -226,6 +223,8 @@ void relay_signal(int sig, struct uml_pt
+ 		panic("Kernel mode signal %d", sig);
+ 	}
+ 
++	arch_examine_signal(sig, regs);
++
+ 	current->thread.arch.faultinfo = *UPT_FAULTINFO(regs);
+ 	force_sig(sig, current);
+ }
+diff -puN arch/um/sys-i386/bugs.c~uml-further-bugsc-tidying arch/um/sys-i386/bugs.c
+--- a/arch/um/sys-i386/bugs.c~uml-further-bugsc-tidying
++++ a/arch/um/sys-i386/bugs.c
+@@ -3,14 +3,12 @@
+  * Licensed under the GPL
+  */
+ 
+-#include <errno.h>
+ #include <signal.h>
+-#include <string.h>
+ #include "kern_constants.h"
+-#include "os.h"
++#include "longjmp.h"
+ #include "task.h"
+ #include "user.h"
+-#include "sysdep/archsetjmp.h"
++#include "sysdep/ptrace.h"
+ 
+ /* Set during early boot */
+ int host_has_cmov = 1;
+@@ -22,7 +20,7 @@ static void cmov_sigill_test_handler(int
+ 	longjmp(cmov_test_return, 1);
+ }
+ 
+-static void test_for_host_cmov(void)
++void arch_check_bugs(void)
+ {
+ 	struct sigaction old, new;
+ 
+@@ -44,16 +42,7 @@ static void test_for_host_cmov(void)
  	sigaction(SIGILL, &old, &new);
+ }
+ 
+-void arch_init_thread(void)
+-{
+-}
+-
+-void arch_check_bugs(void)
+-{
+-	test_for_host_cmov();
+-}
+-
+-int arch_handle_signal(int sig, struct uml_pt_regs *regs)
++void arch_examine_signal(int sig, struct uml_pt_regs *regs)
+ {
+ 	unsigned char tmp[2];
+ 
+@@ -62,20 +51,24 @@ int arch_handle_signal(int sig, struct u
+ 	 * SIGILL in init.
+ 	 */
+ 	if ((sig != SIGILL) || (TASK_PID(get_current()) != 1))
+-		return 0;
++		return;
++
++	if (copy_from_user_proc(tmp, (void *) UPT_IP(regs), 2)) {
++		printk(UM_KERN_ERR "SIGILL in init, could not read "
++		       "instructions!\n");
++		return;
++	}
+ 
+-	if (copy_from_user_proc(tmp, (void *) UPT_IP(regs), 2))
+-		panic("SIGILL in init, could not read instructions!\n");
+ 	if ((tmp[0] != 0x0f) || ((tmp[1] & 0xf0) != 0x40))
+-		return 0;
++		return;
+ 
+ 	if (host_has_cmov == 0)
+-		panic("SIGILL caused by cmov, which this processor doesn't "
+-		      "implement, boot a filesystem compiled for older "
+-		      "processors");
++		printk(UM_KERN_ERR "SIGILL caused by cmov, which this "
++		       "processor doesn't implement.  Boot a filesystem "
++		       "compiled for older processors");
+ 	else if (host_has_cmov == 1)
+-		panic("SIGILL caused by cmov, which this processor claims to "
+-		      "implement");
+-	else panic("Bad value for host_has_cmov (%d)", host_has_cmov);
+-	return 0;
++		printk(UM_KERN_ERR "SIGILL caused by cmov, which this "
++		       "processor claims to implement");
++	else printk(UM_KERN_ERR "Bad value for host_has_cmov (%d)",
++		    host_has_cmov);
+ }
+diff -puN arch/um/sys-x86_64/bugs.c~uml-further-bugsc-tidying arch/um/sys-x86_64/bugs.c
+--- a/arch/um/sys-x86_64/bugs.c~uml-further-bugsc-tidying
++++ a/arch/um/sys-x86_64/bugs.c
+@@ -6,15 +6,10 @@
+ 
+ #include "sysdep/ptrace.h"
+ 
+-void arch_init_thread(void)
+-{
+-}
+-
+ void arch_check_bugs(void)
+ {
+ }
+ 
+-int arch_handle_signal(int sig, struct uml_pt_regs *regs)
++void arch_examine_signal(int sig, struct uml_pt_regs *regs)
+ {
+-	return 0;
  }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-origin.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-git-arm-fixup.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
+uml-correctly-strip-kernel-defines-from-userspace-cflags.patch
 git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
-ide-arm-hack.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-git-nfsd-fixup.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-fix-build-breakage-if-sysfs-fix.patch
-git-scsi-rc-fixes.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-git-block.patch
-git-block-fixup.patch
-git-block-vs-agk-dm-dm-reorder-struct-io_restrictions.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-watchdog.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
-file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
+uml-fix-spurious-irq-testing.patch
+uml-remove-last-include-of-libc-asm-pageh.patch
+uml-fix-build-for-config_tcp.patch
+uml-fix-build-for-config_printk.patch
+uml-implement-get_wchan.patch
+uml-implement-get_wchan-fix.patch
+uml-get-rid-of-asmlinkage.patch
 uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
-sync_sb_inodes-propagate-errors.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+uml-document-new-ubd-flag.patch
+uml-further-bugsc-tidying.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
 iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
