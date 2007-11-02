@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + m68knommu-use-raw-read-write-for-all-register-access-in-coldfire-timer.patch added to -mm tree
-Date: Fri, 02 Nov 2007 14:35:11 -0700
-Message-ID: <200711022135.lA2LZBcp011984@imap1.linux-foundation.org>
+Subject: + m68knommu-use-container_of-to-access-uart-struct-in-coldfire-serial-driver.patch added to -mm tree
+Date: Fri, 02 Nov 2007 14:35:14 -0700
+Message-ID: <200711022135.lA2LZEPx011993@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41688 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33028 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751925AbXKBVf4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751851AbXKBVf4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Nov 2007 17:35:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: gerg@snapgear.com, gerg@uclinux.org
 
 
 The patch titled
-     m68knommu: use raw read/write for all register access in ColdFire timer
+     m68knommu: use container_of() to access uart struct in Coldfire serial driver
 has been added to the -mm tree.  Its filename is
-     m68knommu-use-raw-read-write-for-all-register-access-in-coldfire-timer.patch
+     m68knommu-use-container_of-to-access-uart-struct-in-coldfire-serial-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,53 +25,94 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: m68knommu: use raw read/write for all register access in ColdFire timer
+Subject: m68knommu: use container_of() to access uart struct in Coldfire serial driver
 From: Greg Ungerer <gerg@snapgear.com>
 
-Use __raw_read/__raw_write to write to all registers (instead of using local
-pointer de-referencing in ColdFirePIT timer code.
+Use container_of() to get at uart struct field in port struct in ColdFire
+serial driver.
 
 Signed-off-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68knommu/platform/5307/pit.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ drivers/serial/mcf.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN arch/m68knommu/platform/5307/pit.c~m68knommu-use-raw-read-write-for-all-register-access-in-coldfire-timer arch/m68knommu/platform/5307/pit.c
---- a/arch/m68knommu/platform/5307/pit.c~m68knommu-use-raw-read-write-for-all-register-access-in-coldfire-timer
-+++ a/arch/m68knommu/platform/5307/pit.c
-@@ -29,6 +29,7 @@
-  *	By default use timer1 as the system clock timer.
-  */
- #define	TA(a)	(MCF_IPSBAR + MCFPIT_BASE1 + (a))
-+#define	INTC0	(MCF_IPSBAR + MCFICM_INTC0)
+diff -puN drivers/serial/mcf.c~m68knommu-use-container_of-to-access-uart-struct-in-coldfire-serial-driver drivers/serial/mcf.c
+--- a/drivers/serial/mcf.c~m68knommu-use-container_of-to-access-uart-struct-in-coldfire-serial-driver
++++ a/drivers/serial/mcf.c
+@@ -69,7 +69,7 @@ static unsigned int mcf_tx_empty(struct 
  
- /***************************************************************************/
- 
-@@ -53,17 +54,14 @@ static struct irqaction coldfire_pit_irq
- 
- void hw_timer_init(void)
+ static unsigned int mcf_get_mctrl(struct uart_port *port)
  {
--	volatile unsigned char *icrp;
--	volatile unsigned long *imrp;
-+	u32 imr;
+-	struct mcf_uart *pp = (struct mcf_uart *) port;
++	struct mcf_uart *pp = container_of(port, struct mcf_uart, port);
+ 	unsigned long flags;
+ 	unsigned int sigs;
  
- 	setup_irq(MCFINT_VECBASE + MCFINT_PIT1, &coldfire_pit_irq);
+@@ -87,7 +87,7 @@ static unsigned int mcf_get_mctrl(struct
  
--	icrp = (volatile unsigned char *) (MCF_IPSBAR + MCFICM_INTC0 +
--		MCFINTC_ICR0 + MCFINT_PIT1);
--	*icrp = ICR_INTRCONF;
--
--	imrp = (volatile unsigned long *) (MCF_IPSBAR + MCFICM_INTC0 + MCFPIT_IMR);
--	*imrp &= ~MCFPIT_IMR_IBIT;
-+	__raw_writeb(ICR_INTRCONF, INTC0 + MCFINTC_ICR0 + MCFINT_PIT1);
-+	imr = __raw_readl(INTC0 + MCFPIT_IMR);
-+	imr &= ~MCFPIT_IMR_IBIT;
-+	__raw_writel(imr, INTC0 + MCFPIT_IMR);
+ static void mcf_set_mctrl(struct uart_port *port, unsigned int sigs)
+ {
+-	struct mcf_uart *pp = (struct mcf_uart *) port;
++	struct mcf_uart *pp = container_of(port, struct mcf_uart, port);
+ 	unsigned long flags;
  
- 	/* Set up PIT timer 1 as poll clock */
- 	__raw_writew(MCFPIT_PCSR_DISABLE, TA(MCFPIT_PCSR));
+ 	spin_lock_irqsave(&port->lock, flags);
+@@ -104,7 +104,7 @@ static void mcf_set_mctrl(struct uart_po
+ 
+ static void mcf_start_tx(struct uart_port *port)
+ {
+-	struct mcf_uart *pp = (struct mcf_uart *) port;
++	struct mcf_uart *pp = container_of(port, struct mcf_uart, port);
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&port->lock, flags);
+@@ -117,7 +117,7 @@ static void mcf_start_tx(struct uart_por
+ 
+ static void mcf_stop_tx(struct uart_port *port)
+ {
+-	struct mcf_uart *pp = (struct mcf_uart *) port;
++	struct mcf_uart *pp = container_of(port, struct mcf_uart, port);
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&port->lock, flags);
+@@ -130,7 +130,7 @@ static void mcf_stop_tx(struct uart_port
+ 
+ static void mcf_stop_rx(struct uart_port *port)
+ {
+-	struct mcf_uart *pp = (struct mcf_uart *) port;
++	struct mcf_uart *pp = container_of(port, struct mcf_uart, port);
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&port->lock, flags);
+@@ -163,7 +163,7 @@ static void mcf_enable_ms(struct uart_po
+ 
+ static int mcf_startup(struct uart_port *port)
+ {
+-	struct mcf_uart *pp = (struct mcf_uart *) port;
++	struct mcf_uart *pp = container_of(port, struct mcf_uart, port);
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&port->lock, flags);
+@@ -189,7 +189,7 @@ static int mcf_startup(struct uart_port 
+ 
+ static void mcf_shutdown(struct uart_port *port)
+ {
+-	struct mcf_uart *pp = (struct mcf_uart *) port;
++	struct mcf_uart *pp = container_of(port, struct mcf_uart, port);
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&port->lock, flags);
+@@ -352,7 +352,7 @@ static void mcf_tx_chars(struct mcf_uart
+ static irqreturn_t mcf_interrupt(int irq, void *data)
+ {
+ 	struct uart_port *port = data;
+-	struct mcf_uart *pp = (struct mcf_uart *) port;
++	struct mcf_uart *pp = container_of(port, struct mcf_uart, port);
+ 	unsigned int isr;
+ 
+ 	isr = readb(port->membase + MCFUART_UISR) & pp->imr;
 _
 
 Patches currently in -mm which might be from gerg@snapgear.com are
