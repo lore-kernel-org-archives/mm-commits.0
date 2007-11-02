@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + m68knommu-fix-pread-pwrite-defines.patch added to -mm tree
-Date: Fri, 02 Nov 2007 14:35:03 -0700
-Message-ID: <200711022135.lA2LZ3KB011978@imap1.linux-foundation.org>
+Subject: + m68knommu-use-array_size-in-coldfire-serial-driver.patch added to -mm tree
+Date: Fri, 02 Nov 2007 14:35:18 -0700
+Message-ID: <200711022135.lA2LZIJc011999@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41329 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54133 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752111AbXKBVf4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752194AbXKBVf4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Nov 2007 17:35:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: gerg@snapgear.com, gerg@uclinux.org
 
 
 The patch titled
-     m68knommu: fix pread/pwrite defines
+     m68knommu: use ARRAY_SIZE in ColdFire serial driver
 has been added to the -mm tree.  Its filename is
-     m68knommu-fix-pread-pwrite-defines.patch
+     m68knommu-use-array_size-in-coldfire-serial-driver.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: m68knommu: fix pread/pwrite defines
+Subject: m68knommu: use ARRAY_SIZE in ColdFire serial driver
 From: Greg Ungerer <gerg@snapgear.com>
 
-Fix system call defines for system call 180 and 181 to match the underlying
-system call table function entries.  System call 180 calls sys_pread64, and
-181 calls sys_pwrite64, so make the definitions match.
+Use ARRAY_SIZE macroto get maximum ports in ColdFire serial driver.
 
 Signed-off-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-m68knommu/unistd.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/serial/mcf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-m68knommu/unistd.h~m68knommu-fix-pread-pwrite-defines include/asm-m68knommu/unistd.h
---- a/include/asm-m68knommu/unistd.h~m68knommu-fix-pread-pwrite-defines
-+++ a/include/asm-m68knommu/unistd.h
-@@ -185,8 +185,8 @@
- #define __NR_rt_sigtimedwait	177
- #define __NR_rt_sigqueueinfo	178
- #define __NR_rt_sigsuspend	179
--#define __NR_pread		180
--#define __NR_pwrite		181
-+#define __NR_pread64		180
-+#define __NR_pwrite64		181
- #define __NR_lchown		182
- #define __NR_getcwd		183
- #define __NR_capget		184
+diff -puN drivers/serial/mcf.c~m68knommu-use-array_size-in-coldfire-serial-driver drivers/serial/mcf.c
+--- a/drivers/serial/mcf.c~m68knommu-use-array_size-in-coldfire-serial-driver
++++ a/drivers/serial/mcf.c
+@@ -434,7 +434,7 @@ static struct uart_ops mcf_uart_ops = {
+ 
+ static struct mcf_uart mcf_ports[3];
+ 
+-#define	MCF_MAXPORTS	(sizeof(mcf_ports) / sizeof(struct mcf_uart))
++#define	MCF_MAXPORTS	ARRAY_SIZE(mcf_ports)
+ 
+ /****************************************************************************/
+ #if defined(CONFIG_SERIAL_MCF_CONSOLE)
 _
 
 Patches currently in -mm which might be from gerg@snapgear.com are
