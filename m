@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotremove-unset-migrate-type-isolate-after-removal.patch added to -mm tree
-Date: Mon, 05 Nov 2007 15:52:23 -0800
-Message-ID: <200711052352.lA5NqNwn026112@imap1.linux-foundation.org>
+Subject: + make-getdelays-cgroupstats-aware.patch added to -mm tree
+Date: Mon, 05 Nov 2007 15:53:59 -0800
+Message-ID: <200711052353.lA5NrxMK026183@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58944 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57385 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754545AbXKEXwv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:52:51 -0500
+	by vger.kernel.org with ESMTP id S1754754AbXKEXyW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:54:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, pbadari@us.ibm.com
+Cc: balbir@linux.vnet.ibm.com
 
 
 The patch titled
-     memory hotremove: unset migrate type "ISOLATE" after removal
+     make getdelays cgroupstats aware
 has been added to the -mm tree.  Its filename is
-     memory-hotremove-unset-migrate-type-isolate-after-removal.patch
+     make-getdelays-cgroupstats-aware.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,84 +25,153 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memory hotremove: unset migrate type "ISOLATE" after removal
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: make getdelays cgroupstats aware
+From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-We should unset migrate type "ISOLATE" when we successfully removed memory.
- But current code has BUG and cannot works well.
-
-This patch also includes bugfix?  to change get_pageblock_flags to
-get_pageblock_migratetype().
-
-Thanks to Badari Pulavarty for finding this.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Badari Pulavarty <pbadari@us.ibm.com>
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    4 ++--
- mm/page_isolation.c |    6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ Documentation/accounting/getdelays.c |   43 ++++++++++++++++++++++++-
+ 1 file changed, 42 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~memory-hotremove-unset-migrate-type-isolate-after-removal mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotremove-unset-migrate-type-isolate-after-removal
-+++ a/mm/memory_hotplug.c
-@@ -574,8 +574,8 @@ repeat:
- 	/* Ok, all of our target is islaoted.
- 	   We cannot do rollback at this point. */
- 	offline_isolated_pages(start_pfn, end_pfn);
--	/* reset pagetype flags */
--	start_isolate_page_range(start_pfn, end_pfn);
-+	/* reset pagetype flags and makes migrate type to be MOVABLE */
-+	undo_isolate_page_range(start_pfn, end_pfn);
- 	/* removal success */
- 	zone->present_pages -= offlined_pages;
- 	zone->zone_pgdat->node_present_pages -= offlined_pages;
-diff -puN mm/page_isolation.c~memory-hotremove-unset-migrate-type-isolate-after-removal mm/page_isolation.c
---- a/mm/page_isolation.c~memory-hotremove-unset-migrate-type-isolate-after-removal
-+++ a/mm/page_isolation.c
-@@ -55,7 +55,7 @@ start_isolate_page_range(unsigned long s
- 	return 0;
- undo:
- 	for (pfn = start_pfn;
--	     pfn <= undo_pfn;
-+	     pfn < undo_pfn;
- 	     pfn += pageblock_nr_pages)
- 		unset_migratetype_isolate(pfn_to_page(pfn));
+diff -puN Documentation/accounting/getdelays.c~make-getdelays-cgroupstats-aware Documentation/accounting/getdelays.c
+--- a/Documentation/accounting/getdelays.c~make-getdelays-cgroupstats-aware
++++ a/Documentation/accounting/getdelays.c
+@@ -25,6 +25,7 @@
  
-@@ -76,7 +76,7 @@ undo_isolate_page_range(unsigned long st
- 	     pfn < end_pfn;
- 	     pfn += pageblock_nr_pages) {
- 		page = __first_valid_page(pfn, pageblock_nr_pages);
--		if (!page || get_pageblock_flags(page) != MIGRATE_ISOLATE)
-+		if (!page || get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
- 			continue;
- 		unset_migratetype_isolate(page);
- 	}
-@@ -126,7 +126,7 @@ int test_pages_isolated(unsigned long st
- 	 */
- 	for (pfn = start_pfn; pfn < end_pfn; pfn += pageblock_nr_pages) {
- 		page = __first_valid_page(pfn, pageblock_nr_pages);
--		if (page && get_pageblock_flags(page) != MIGRATE_ISOLATE)
-+		if (page && get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
+ #include <linux/genetlink.h>
+ #include <linux/taskstats.h>
++#include <linux/cgroupstats.h>
+ 
+ /*
+  * Generic macros for dealing with netlink sockets. Might be duplicated
+@@ -78,6 +79,7 @@ static void usage(void)
+ 	fprintf(stderr, "  -i: print IO accounting (works only with -p)\n");
+ 	fprintf(stderr, "  -l: listen forever\n");
+ 	fprintf(stderr, "  -v: debug on\n");
++	fprintf(stderr, "  -C: container path\n");
+ }
+ 
+ /*
+@@ -212,6 +214,14 @@ void task_context_switch_counts(struct t
+ 	       t->nvcsw, t->nivcsw);
+ }
+ 
++void print_cgroupstats(struct cgroupstats *c)
++{
++	printf("sleeping %llu, blocked %llu, running %llu, stopped %llu, "
++		"uninterruptible %llu\n", c->nr_sleeping, c->nr_io_wait,
++		c->nr_running, c->nr_stopped, c->nr_uninterruptible);
++}
++
++
+ void print_ioacct(struct taskstats *t)
+ {
+ 	printf("%s: read=%llu, write=%llu, cancelled_write=%llu\n",
+@@ -239,11 +249,14 @@ int main(int argc, char *argv[])
+ 	int maskset = 0;
+ 	char *logfile = NULL;
+ 	int loop = 0;
++	int containerset = 0;
++	char containerpath[1024];
++	int cfd = 0;
+ 
+ 	struct msgtemplate msg;
+ 
+ 	while (1) {
+-		c = getopt(argc, argv, "qdiw:r:m:t:p:vl");
++		c = getopt(argc, argv, "qdiw:r:m:t:p:vlC:");
+ 		if (c < 0)
  			break;
+ 
+@@ -260,6 +273,10 @@ int main(int argc, char *argv[])
+ 			printf("printing task/process context switch rates\n");
+ 			print_task_context_switch_counts = 1;
+ 			break;
++		case 'C':
++			containerset = 1;
++			strncpy(containerpath, optarg, strlen(optarg) + 1);
++			break;
+ 		case 'w':
+ 			logfile = strdup(optarg);
+ 			printf("write to file %s\n", logfile);
+@@ -334,6 +351,11 @@ int main(int argc, char *argv[])
+ 		}
  	}
- 	if (pfn < end_pfn)
+ 
++	if (tid && containerset) {
++		fprintf(stderr, "Select either -t or -C, not both\n");
++		goto err;
++	}
++
+ 	if (tid) {
+ 		rc = send_cmd(nl_sd, id, mypid, TASKSTATS_CMD_GET,
+ 			      cmd_type, &tid, sizeof(__u32));
+@@ -344,6 +366,20 @@ int main(int argc, char *argv[])
+ 		}
+ 	}
+ 
++	if (containerset) {
++		cfd = open(containerpath, O_RDONLY);
++		if (cfd < 0) {
++			perror("error opening container file");
++			goto err;
++		}
++		rc = send_cmd(nl_sd, id, mypid, CGROUPSTATS_CMD_GET,
++			      CGROUPSTATS_CMD_ATTR_FD, &cfd, sizeof(__u32));
++		if (rc < 0) {
++			perror("error sending cgroupstats command");
++			goto err;
++		}
++	}
++
+ 	do {
+ 		int i;
+ 
+@@ -422,6 +458,9 @@ int main(int argc, char *argv[])
+ 				}
+ 				break;
+ 
++			case CGROUPSTATS_TYPE_CGROUP_STATS:
++				print_cgroupstats(NLA_DATA(na));
++				break;
+ 			default:
+ 				fprintf(stderr, "Unknown nla_type %d\n",
+ 					na->nla_type);
+@@ -443,5 +482,7 @@ err:
+ 	close(nl_sd);
+ 	if (fd)
+ 		close(fd);
++	if (cfd)
++		close(cfd);
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
 
 origin.patch
-memory-hotremove-unset-migrate-type-isolate-after-removal.patch
-memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
-add-remove_memory-for-ppc64-2.patch
-enable-hotplug-memory-remove-for-ppc64.patch
-add-arch-specific-walk_memory_remove-for-ppc64.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
+make-getdelays-cgroupstats-aware.patch
+swap-delay-accounting-include-lock_page-delays.patch
+maps4-add-proportional-set-size-accounting-in-smaps.patch
+memory-controller-add-documentation.patch
+memory-controller-resource-counters-v7.patch
+memory-controller-containers-setup-v7.patch
+memory-controller-accounting-setup-v7.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-task-migration-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-improve-user-interface.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memory-controller-make-page_referenced-container-aware-v7.patch
+memory-controller-make-charging-gfp-mask-aware.patch
 memory-controller-make-charging-gfp-mask-aware-fix.patch
-bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+memory-controller-bug_on.patch
+memcontrol-move-mm_cgroup-to-header-file.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+oom-add-sysctl-to-enable-task-memory-dump.patch
 bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
 bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
 bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
