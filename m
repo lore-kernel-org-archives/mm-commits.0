@@ -1,65 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-make-access-use-mnt-check.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 15:06:55 -0800
-Message-ID: <200711052306.lA5N6tAp024306@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-elevate-write-count-opend-files.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 15:06:46 -0800
+Message-ID: <200711052306.lA5N6kS8024292@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39308 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57238 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752700AbXKEXHO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:07:14 -0500
+	by vger.kernel.org with ESMTP id S1754476AbXKEXHU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:07:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: haveblue@us.ibm.com, hch@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r/o bind mounts: make access() use mnt check
+     r/o bind mounts: elevate write count open()'d files
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-make-access-use-mnt-check.patch
+     r-o-bind-mounts-elevate-write-count-opend-files.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: r/o bind mounts: make access() use mnt check
+Subject: r/o bind mounts: elevate write count open()'d files
 From: Dave Hansen <haveblue@us.ibm.com>
 
-It is OK to let access() go without using a mnt_want/drop_write() pair because
-it doesn't actually do writes to the filesystem, and it is inherently racy
-anyway.  This is a rare case when it is OK to use __mnt_is_readonly()
-directly.
+This is the first really tricky patch in the series.  It elevates the writer
+count on a mount each time a non-special file is opened for write.
 
-Acked-by: Christoph Hellwig <hch@infradead.org>
+This is not completely apparent in the patch because the two if() conditions
+in may_open() above the mnt_want_write() call are, combined, equivalent to
+special_file().
+
+There is also an elevated count around the vfs_create() call in open_namei(). 
+The count needs to be kept elevated all the way into the may_open() call. 
+Otherwise, when the write is dropped, a ro->rw transisition could occur.  This
+would lead to having rw access on the newly created file, while the vfsmount
+is ro.  That is bad.
+
+Some filesystems forego the use of normal vfs calls to create struct files. 
+Make sure that these users elevate the mnt writer count because they will get
+__fput(), and we need to make sure they're balanced.
+
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ fs/file_table.c |    9 ++++++++-
+ fs/namei.c      |   20 ++++++++++++++++----
+ ipc/mqueue.c    |    3 +++
+ 3 files changed, 27 insertions(+), 5 deletions(-)
 
-diff -puN fs/open.c~r-o-bind-mounts-make-access-use-mnt-check fs/open.c
---- a/fs/open.c~r-o-bind-mounts-make-access-use-mnt-check
-+++ a/fs/open.c
-@@ -457,8 +457,17 @@ asmlinkage long sys_faccessat(int dfd, c
- 	if(res || !(mode & S_IWOTH) ||
- 	   special_file(nd.dentry->d_inode->i_mode))
- 		goto out_path_release;
--
--	if(IS_RDONLY(nd.dentry->d_inode))
-+	/*
-+	 * This is a rare case where using __mnt_is_readonly()
-+	 * is OK without a mnt_want/drop_write() pair.  Since
-+	 * no actual write to the fs is performed here, we do
-+	 * not need to telegraph to that to anyone.
-+	 *
-+	 * By doing this, we accept that this access is
-+	 * inherently racy and know that the fs may change
-+	 * state before we even see this result.
-+	 */
-+	if (__mnt_is_readonly(nd.mnt))
- 		res = -EROFS;
+diff -puN fs/file_table.c~r-o-bind-mounts-elevate-write-count-opend-files fs/file_table.c
+--- a/fs/file_table.c~r-o-bind-mounts-elevate-write-count-opend-files
++++ a/fs/file_table.c
+@@ -193,6 +193,10 @@ int init_file(struct file *file, struct 
+ 	file->f_mapping = dentry->d_inode->i_mapping;
+ 	file->f_mode = mode;
+ 	file->f_op = fop;
++	if (mode & FMODE_WRITE) {
++		error = mnt_want_write(mnt);
++		WARN_ON(error);
++	}
+ 	return error;
+ }
+ EXPORT_SYMBOL(init_file);
+@@ -230,8 +234,11 @@ void fastcall __fput(struct file *file)
+ 	if (unlikely(S_ISCHR(inode->i_mode) && inode->i_cdev != NULL))
+ 		cdev_put(inode->i_cdev);
+ 	fops_put(file->f_op);
+-	if (file->f_mode & FMODE_WRITE)
++	if (file->f_mode & FMODE_WRITE) {
+ 		put_write_access(inode);
++		if (!special_file(inode->i_mode))
++			mnt_drop_write(mnt);
++	}
+ 	put_pid(file->f_owner.pid);
+ 	file_kill(file);
+ 	file->f_path.dentry = NULL;
+diff -puN fs/namei.c~r-o-bind-mounts-elevate-write-count-opend-files fs/namei.c
+--- a/fs/namei.c~r-o-bind-mounts-elevate-write-count-opend-files
++++ a/fs/namei.c
+@@ -1621,8 +1621,15 @@ int may_open(struct nameidata *nd, int a
+ 			return -EACCES;
  
- out_path_release:
+ 		flag &= ~O_TRUNC;
+-	} else if (IS_RDONLY(inode) && (flag & FMODE_WRITE))
+-		return -EROFS;
++	} else if (flag & FMODE_WRITE) {
++		/*
++		 * effectively: !special_file()
++		 * balanced by __fput()
++		 */
++		error = mnt_want_write(nd->mnt);
++		if (error)
++			return error;
++	}
+ 
+ 	error = vfs_permission(nd, acc_mode);
+ 	if (error)
+@@ -1767,14 +1774,17 @@ do_last:
+ 	}
+ 
+ 	if (IS_ERR(nd->intent.open.file)) {
+-		mutex_unlock(&dir->d_inode->i_mutex);
+ 		error = PTR_ERR(nd->intent.open.file);
+-		goto exit_dput;
++		goto exit_mutex_unlock;
+ 	}
+ 
+ 	/* Negative dentry, just create the file */
+ 	if (!path.dentry->d_inode) {
++		error = mnt_want_write(nd->mnt);
++		if (error)
++			goto exit_mutex_unlock;
+ 		error = open_namei_create(nd, &path, flag, mode);
++		mnt_drop_write(nd->mnt);
+ 		if (error)
+ 			goto exit;
+ 		return 0;
+@@ -1812,6 +1822,8 @@ ok:
+ 		goto exit;
+ 	return 0;
+ 
++exit_mutex_unlock:
++	mutex_unlock(&dir->d_inode->i_mutex);
+ exit_dput:
+ 	dput_path(&path, nd);
+ exit:
+diff -puN ipc/mqueue.c~r-o-bind-mounts-elevate-write-count-opend-files ipc/mqueue.c
+--- a/ipc/mqueue.c~r-o-bind-mounts-elevate-write-count-opend-files
++++ a/ipc/mqueue.c
+@@ -682,6 +682,9 @@ asmlinkage long sys_mq_open(const char _
+ 				goto out;
+ 			filp = do_open(dentry, oflag);
+ 		} else {
++			error = mnt_want_write(mqueue_mnt);
++			if (error)
++				goto out;
+ 			filp = do_create(mqueue_mnt->mnt_root, dentry,
+ 						oflag, mode, u_attr);
+ 		}
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
@@ -87,6 +168,10 @@ hugetlb-enforce-quotas-during-reservation-for-shared-mappings.patch
 add-remove_memory-for-ppc64-2.patch
 enable-hotplug-memory-remove-for-ppc64.patch
 add-arch-specific-walk_memory_remove-for-ppc64.patch
+r-o-bind-mounts-elevate-write-count-opend-files.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2.patch
+r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
 r-o-bind-mounts-make-access-use-mnt-check.patch
 r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
