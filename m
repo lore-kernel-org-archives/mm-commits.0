@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 05 Nov 2007 14:28:00 -0800
-Message-ID: <200711052228.lA5MS0xu022805@imap1.linux-foundation.org>
+Subject: + make-proc-acpi-ac_adapter-dependent-on-acpi_procfs.patch added to -mm tree
+Date: Mon, 05 Nov 2007 14:55:21 -0800
+Message-ID: <200711052255.lA5MtLqp023840@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58447 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45224 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754108AbXKEW2H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:28:07 -0500
+	by vger.kernel.org with ESMTP id S1754332AbXKEWzn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:55:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com, penberg@cs.helsinki.fi
+Cc: arvidjaar@mail.ru, astarikovskiy@suse.de, lenb@kernel.org
 
 
 The patch titled
-     slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes
+     make /proc/acpi/ac_adapter dependent on ACPI_PROCFS
 has been added to the -mm tree.  Its filename is
-     slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+     make-proc-acpi-ac_adapter-dependent-on-acpi_procfs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,191 +25,145 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: make /proc/acpi/ac_adapter dependent on ACPI_PROCFS
+From: Andrey Borzenkov <arvidjaar@mail.ru>
 
-ERROR: do not use assignment in if condition
-#627: FILE: mm/slub.c:2827:
-+			if (!page->inuse && (state = slab_trylock(page))) {
+Do not provide /proc/acpi/ac_adapter if ACPI_PROCFS is not defined.  This
+eliminates duplicated power adapters in HAL and makes it consistent with
+battery module
 
-total: 1 errors, 0 warnings, 611 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-
-Seems nicer this way.
-
-Should the `if (page->inuse)' test be marked unlikely()?
-
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
+Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
+ drivers/acpi/ac.c |   23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes mm/slub.c
---- a/mm/slub.c~slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes
-+++ a/mm/slub.c
-@@ -2807,20 +2807,23 @@ int kmem_cache_shrink(struct kmem_cache 
- 		 * list_lock. page->inuse here is the upper limit.
- 		 */
- 		list_for_each_entry_safe(page, t, &n->partial, lru) {
--			if (!page->inuse && (state = slab_trylock(page))) {
--				/*
--				 * Must hold slab lock here because slab_free
--				 * may have freed the last object and be
--				 * waiting to release the slab.
--				 */
--				list_del(&page->lru);
--				n->nr_partial--;
--				slab_unlock(page, state);
--				discard_slab(s, page);
--			} else {
-+			if (page->inuse) {
- 				list_move(&page->lru,
- 				slabs_by_inuse + page->inuse);
-+				continue;
- 			}
-+			state = slab_trylock(page);
-+			if (!state)
-+				continue;
-+			/*
-+			 * Must hold slab lock here because slab_free may have
-+			 * freed the last object and be waiting to release the
-+			 * slab.
-+			 */
-+			list_del(&page->lru);
-+			n->nr_partial--;
-+			slab_unlock(page, state);
-+			discard_slab(s, page);
- 		}
+diff -puN drivers/acpi/ac.c~make-proc-acpi-ac_adapter-dependent-on-acpi_procfs drivers/acpi/ac.c
+--- a/drivers/acpi/ac.c~make-proc-acpi-ac_adapter-dependent-on-acpi_procfs
++++ a/drivers/acpi/ac.c
+@@ -27,8 +27,10 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
++#ifdef CONFIG_ACPI_PROCFS
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
++#endif
+ #include <linux/power_supply.h>
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
+@@ -49,12 +51,14 @@ MODULE_AUTHOR("Paul Diefenbaugh");
+ MODULE_DESCRIPTION("ACPI AC Adapter Driver");
+ MODULE_LICENSE("GPL");
  
- 		/*
++#ifdef CONFIG_ACPI_PROCFS
+ extern struct proc_dir_entry *acpi_lock_ac_dir(void);
+ extern void *acpi_unlock_ac_dir(struct proc_dir_entry *acpi_ac_dir);
++static int acpi_ac_open_fs(struct inode *inode, struct file *file);
++#endif
+ 
+ static int acpi_ac_add(struct acpi_device *device);
+ static int acpi_ac_remove(struct acpi_device *device, int type);
+-static int acpi_ac_open_fs(struct inode *inode, struct file *file);
+ 
+ const static struct acpi_device_id ac_device_ids[] = {
+ 	{"ACPI0003", 0},
+@@ -80,12 +84,15 @@ struct acpi_ac {
+ 
+ #define to_acpi_ac(x) container_of(x, struct acpi_ac, charger);
+ 
++#ifdef CONFIG_ACPI_PROCFS
+ static const struct file_operations acpi_ac_fops = {
+ 	.open = acpi_ac_open_fs,
+ 	.read = seq_read,
+ 	.llseek = seq_lseek,
+ 	.release = single_release,
+ };
++#endif
++
+ static int get_ac_property(struct power_supply *psy,
+ 			   enum power_supply_property psp,
+ 			   union power_supply_propval *val)
+@@ -127,6 +134,7 @@ static int acpi_ac_get_state(struct acpi
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_ACPI_PROCFS
+ /* --------------------------------------------------------------------------
+                               FS Interface (/proc)
+    -------------------------------------------------------------------------- */
+@@ -206,6 +214,7 @@ static int acpi_ac_remove_fs(struct acpi
+ 
+ 	return 0;
+ }
++#endif
+ 
+ /* --------------------------------------------------------------------------
+                                    Driver Model
+@@ -264,7 +273,9 @@ static int acpi_ac_add(struct acpi_devic
+ 	if (result)
+ 		goto end;
+ 
++#ifdef CONFIG_ACPI_PROCFS
+ 	result = acpi_ac_add_fs(device);
++#endif
+ 	if (result)
+ 		goto end;
+ 	ac->charger.name = acpi_device_bid(device);
+@@ -287,7 +298,9 @@ static int acpi_ac_add(struct acpi_devic
+ 
+       end:
+ 	if (result) {
++#ifdef CONFIG_ACPI_PROCFS
+ 		acpi_ac_remove_fs(device);
++#endif
+ 		kfree(ac);
+ 	}
+ 
+@@ -309,7 +322,9 @@ static int acpi_ac_remove(struct acpi_de
+ 					    ACPI_ALL_NOTIFY, acpi_ac_notify);
+ 	if (ac->charger.dev)
+ 		power_supply_unregister(&ac->charger);
++#ifdef CONFIG_ACPI_PROCFS
+ 	acpi_ac_remove_fs(device);
++#endif
+ 
+ 	kfree(ac);
+ 
+@@ -323,13 +338,17 @@ static int __init acpi_ac_init(void)
+ 	if (acpi_disabled)
+ 		return -ENODEV;
+ 
++#ifdef CONFIG_ACPI_PROCFS
+ 	acpi_ac_dir = acpi_lock_ac_dir();
+ 	if (!acpi_ac_dir)
+ 		return -ENODEV;
++#endif
+ 
+ 	result = acpi_bus_register_driver(&acpi_ac_driver);
+ 	if (result < 0) {
++#ifdef CONFIG_ACPI_PROCFS
+ 		acpi_unlock_ac_dir(acpi_ac_dir);
++#endif
+ 		return -ENODEV;
+ 	}
+ 
+@@ -341,7 +360,9 @@ static void __exit acpi_ac_exit(void)
+ 
+ 	acpi_bus_unregister_driver(&acpi_ac_driver);
+ 
++#ifdef CONFIG_ACPI_PROCFS
+ 	acpi_unlock_ac_dir(acpi_ac_dir);
++#endif
+ 
+ 	return;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arvidjaar@mail.ru are
 
 origin.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-git-arm-fixup.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-ide-arm-hack.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-git-nfsd-fixup.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-fix-build-breakage-if-sysfs-fix.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-git-unionfs.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-x86-make-i8259_64-more-_32-like-checkpatch-fixes.patch
-git-perfmon-fixup.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
-file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
-cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
-sync_sb_inodes-propagate-errors.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+make-proc-acpi-ac_adapter-dependent-on-acpi_procfs.patch
