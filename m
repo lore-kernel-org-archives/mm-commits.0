@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kill-do_filp_open.patch added to -mm tree
-Date: Mon, 05 Nov 2007 15:36:43 -0800
-Message-ID: <200711052336.lA5Nahuc025479@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch added to -mm tree
+Date: Mon, 05 Nov 2007 15:37:57 -0800
+Message-ID: <200711052337.lA5NbvRb025542@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34525 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45889 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752782AbXKEXmT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:42:19 -0500
+	by vger.kernel.org with ESMTP id S1750950AbXKEXnm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:43:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com
+Cc: haveblue@us.ibm.com, hch@infradead.org
 
 
 The patch titled
-     kill do_filp_open()
+     r-o-bind-mounts:  elevate mnt writers for callers of vfs_mkdir()
 has been added to the -mm tree.  Its filename is
-     kill-do_filp_open.patch
+     r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,79 +25,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kill do_filp_open()
+Subject: r-o-bind-mounts:  elevate mnt writers for callers of vfs_mkdir()
 From: Dave Hansen <haveblue@us.ibm.com>
 
-This kills off the almost empty do_filp_open().  The indenting change in
-do_sys_open() is because we would have gone over our 80 characters otherwise.
+Pretty self-explanatory.  Fits in with the rest of the series.
 
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c |   39 ++++++++++++++++++---------------------
- 1 file changed, 18 insertions(+), 21 deletions(-)
+ fs/namei.c            |    5 +++++
+ fs/nfsd/nfs4recover.c |    5 +++++
+ 2 files changed, 10 insertions(+)
 
-diff -puN fs/open.c~kill-do_filp_open fs/open.c
---- a/fs/open.c~kill-do_filp_open
-+++ a/fs/open.c
-@@ -800,17 +800,10 @@ cleanup_file:
- 	return ERR_PTR(error);
- }
+diff -puN fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir fs/namei.c
+--- a/fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir
++++ a/fs/namei.c
+@@ -2069,7 +2069,12 @@ asmlinkage long sys_mkdirat(int dfd, con
  
--static struct file *do_filp_open(int dfd, const char *filename, int flags,
--				 int mode)
--{
--	struct nameidata nd;
--
--	return open_namei(dfd, filename, flags, mode, &nd);
--}
--
- struct file *filp_open(const char *filename, int flags, int mode)
- {
--	return do_filp_open(AT_FDCWD, filename, flags, mode);
-+	struct nameidata nd;
-+	return open_namei(AT_FDCWD, filename, flags, mode, &nd);
- }
- EXPORT_SYMBOL(filp_open);
- 
-@@ -1009,20 +1002,24 @@ long do_sys_open(int dfd, const char __u
- 	char *tmp = getname(filename);
- 	int fd = PTR_ERR(tmp);
- 
--	if (!IS_ERR(tmp)) {
--		fd = get_unused_fd_flags(flags);
--		if (fd >= 0) {
--			struct file *f = do_filp_open(dfd, tmp, flags, mode);
--			if (IS_ERR(f)) {
--				put_unused_fd(fd);
--				fd = PTR_ERR(f);
--			} else {
--				fsnotify_open(f->f_path.dentry);
--				fd_install(fd, f);
--			}
-+	if (IS_ERR(tmp))
-+		goto out;
-+
-+	fd = get_unused_fd_flags(flags);
-+	if (fd >= 0) {
-+		struct nameidata nd;
-+		struct file *f = open_namei(dfd, tmp, flags, mode, &nd);
-+
-+		if (IS_ERR(f)) {
-+			put_unused_fd(fd);
-+			fd = PTR_ERR(f);
-+		} else {
-+			fsnotify_open(f->f_path.dentry);
-+			fd_install(fd, f);
- 		}
--		putname(tmp);
+ 	if (!IS_POSIXACL(nd.dentry->d_inode))
+ 		mode &= ~current->fs->umask;
++	error = mnt_want_write(nd.mnt);
++	if (error)
++		goto out_dput;
+ 	error = vfs_mkdir(nd.dentry->d_inode, dentry, mode);
++	mnt_drop_write(nd.mnt);
++out_dput:
+ 	dput(dentry);
+ out_unlock:
+ 	mutex_unlock(&nd.dentry->d_inode->i_mutex);
+diff -puN fs/nfsd/nfs4recover.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir fs/nfsd/nfs4recover.c
+--- a/fs/nfsd/nfs4recover.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir
++++ a/fs/nfsd/nfs4recover.c
+@@ -41,6 +41,7 @@
+ #include <linux/nfsd/xdr4.h>
+ #include <linux/param.h>
+ #include <linux/file.h>
++#include <linux/mount.h>
+ #include <linux/namei.h>
+ #include <asm/uaccess.h>
+ #include <linux/scatterlist.h>
+@@ -154,7 +155,11 @@ nfsd4_create_clid_dir(struct nfs4_client
+ 		dprintk("NFSD: nfsd4_create_clid_dir: DIRECTORY EXISTS\n");
+ 		goto out_put;
  	}
-+	putname(tmp);
-+out:
- 	return fd;
- }
- 
++	status = mnt_want_write(rec_dir.mnt);
++	if (status)
++		goto out_put;
+ 	status = vfs_mkdir(rec_dir.dentry->d_inode, dentry, S_IRWXU);
++	mnt_drop_write(rec_dir.mnt);
+ out_put:
+ 	dput(dentry);
+ out_unlock:
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
@@ -129,6 +109,7 @@ do-namei_flags-calculation-inside-open_namei.patch
 make-open_namei-return-a-filp.patch
 kill-do_filp_open.patch
 kill-filp_open.patch
+kill-filp_open-checkpatch-fixes.patch
 rename-open_namei-to-open_pathname.patch
 r-o-bind-mounts-stub-functions.patch
 r-o-bind-mounts-do_rmdir-elevate-write-count.patch
