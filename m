@@ -1,176 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 15:07:01 -0800
-Message-ID: <200711052307.lA5N71nZ024316@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime-fix.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 15:07:11 -0800
+Message-ID: <200711052307.lA5N7B8m024332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41840 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40690 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754544AbXKEXHb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:07:31 -0500
+	by vger.kernel.org with ESMTP id S1754605AbXKEXHi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:07:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@lst.de, mm-commits@vger.kernel.org
+To: jblunck@suse.de, haveblue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix
+     r/o bind mounts: Dont touch the vfsmount after path_put()
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+     r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: r/o bind mounts: Dont touch the vfsmount after path_put()
+From: Jan Blunck <jblunck@suse.de>
 
-fs/ncpfs/ioctl.c: In function 'ncp_ioctl_need_write':
-fs/ncpfs/ioctl.c:852: error: label at end of compound statement
+mnt_drop_write() is called after releasing the reference to the path with
+path_put().
 
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Jan Blunck <jblunck@suse.de>
+Acked-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/ioctl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/unix/af_unix.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix fs/ncpfs/ioctl.c
---- a/fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix
-+++ a/fs/ncpfs/ioctl.c
-@@ -847,8 +847,8 @@ static int ncp_ioctl_need_write(unsigned
- 	case NCP_IOC_GETROOT:
- 	case NCP_IOC_SETROOT:
- 		return 0;
--	default:
--		/* unkown IOCTL command, assume write */
-+	default:	/* unkown IOCTL command, assume write */
-+		;
- 	}
- 	return 1;
- }
+diff -puN net/unix/af_unix.c~r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime-fix net/unix/af_unix.c
+--- a/net/unix/af_unix.c~r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime-fix
++++ a/net/unix/af_unix.c
+@@ -752,8 +752,8 @@ static struct sock *unix_find_other(stru
+ 		if (u->sk_type == type)
+ 			touch_atime(nd.mnt, nd.dentry);
+ 
+-		path_release(&nd);
+ 		mnt_drop_write(nd.mnt);
++		path_release(&nd);
+ 
+ 		err=-EPROTOTYPE;
+ 		if (u->sk_type != type) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jblunck@suse.de are
 
-origin.patch
-proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-git-arm-fixup.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-ide-arm-hack.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-git-nfsd-fixup.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-fix-build-breakage-if-sysfs-fix.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-git-unionfs.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-x86-make-i8259_64-more-_32-like-checkpatch-fixes.patch
-git-perfmon-fixup.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
-file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
-cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-sync_sb_inodes-propagate-errors.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime-fix.patch
+r-o-bind-mounts-track-number-of-mount-writers-fix.patch
+dont-touch-fs_struct-in-drivers.patch
+dont-touch-fs_struct-in-usermodehelper.patch
+remove-path_release_on_umount.patch
+move-struct-path-into-its-own-header.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+introduce-path_put.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+introduce-path_get.patch
+use-struct-path-in-fs_struct.patch
+make-set_fs_rootpwd-take-a-struct-path.patch
+introduce-path_get-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
+introduce-path_put-unionfs.patch
+one-less-parameter-to-__d_path.patch
 one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-kerneldoc-cleanup.patch
+d_path-use-struct-path-in-struct-avc_audit_data.patch
 d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-proc_get_link-use-a-struct-path-argument.patch
+d_path-make-get_dcookie-use-a-struct-path-argument.patch
 d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export.patch
 use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+use-struct-path-in-struct-svc_expkey.patch
+d_path-make-seq_path-use-a-struct-path-argument.patch
+d_path-make-d_path-use-a-struct-path.patch
