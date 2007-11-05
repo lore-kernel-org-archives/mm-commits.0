@@ -1,74 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: + git-perfmon-fixup.patch added to -mm tree
-Date: Mon, 05 Nov 2007 14:03:49 -0800
-Message-ID: <200711052203.lA5M3neP021893@imap1.linux-foundation.org>
+Subject: - slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 14:06:20 -0800
+Message-ID: <200711052206.lA5M6K0O022005@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41844 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40997 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750741AbXKEWEk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:04:40 -0500
+	by vger.kernel.org with ESMTP id S1753110AbXKEWGy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:06:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, eranian@hpl.hp.com
+To: akpm@linux-foundation.org, clameter@sgi.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-perfmon-fixup
-has been added to the -mm tree.  Its filename is
-     git-perfmon-fixup.patch
+     slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix
+has been removed from the -mm tree.  Its filename was
+     slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because of conflicts
 
 ------------------------------------------------------
-Subject: git-perfmon-fixup
+Subject: slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix git conflicts between git-perfmon and mainline
-
-Cc: Stephane Eranian <eranian@hpl.hp.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/time.c |    6 ------
- 1 file changed, 6 deletions(-)
+ mm/slub.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/mips/kernel/time.c~git-perfmon-fixup arch/mips/kernel/time.c
---- a/arch/mips/kernel/time.c~git-perfmon-fixup
-+++ a/arch/mips/kernel/time.c
-@@ -22,11 +22,8 @@
- #include <linux/smp.h>
- #include <linux/spinlock.h>
- #include <linux/module.h>
--<<<<<<< HEAD:arch/mips/kernel/time.c
--=======
- #include <linux/kallsyms.h>
- #include <linux/perfmon.h>
-->>>>>>> FETCH_HEAD:arch/mips/kernel/time.c
- 
- #include <asm/cpu-features.h>
- #include <asm/div64.h>
-@@ -65,8 +62,6 @@ static cycle_t c0_hpt_read(void)
- 
- int (*mips_timer_state)(void);
- 
--<<<<<<< HEAD:arch/mips/kernel/time.c
--=======
- /*
-  * local_timer_interrupt() does profiling and process accounting
-  * on a per-CPU basis.
-@@ -84,7 +79,6 @@ void local_timer_interrupt(int irq, void
- 	update_process_times(user_mode(get_irq_regs()));
- }
- 
-->>>>>>> FETCH_HEAD:arch/mips/kernel/time.c
- int null_perf_irq(void)
- {
- 	return 0;
+diff -puN mm/slub.c~slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix mm/slub.c
+--- a/mm/slub.c~slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix
++++ a/mm/slub.c
+@@ -2826,7 +2826,7 @@ int kmem_cache_shrink(struct kmem_cache 
+ 		list_for_each_entry_safe(page, t, &n->partial, lru) {
+ 			if (page->inuse) {
+ 				list_move(&page->lru,
+-				slabs_by_inuse + page->inuse);
++					slabs_by_inuse + page->inuse);
+ 				continue;
+ 			}
+ 			state = slab_trylock(page);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -115,7 +90,6 @@ file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
 i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
 slub-fix-coding-style-violations-checkpatch-fixes.patch
 slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
 slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix.patch
 bufferhead-revert-constructor-removal-checkpatch-fixes.patch
 maps4-make-page-monitoring-proc-file-optional-fix.patch
