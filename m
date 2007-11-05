@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch added to -mm tree
-Date: Mon, 05 Nov 2007 15:39:34 -0800
-Message-ID: <200711052339.lA5NdYis025635@imap1.linux-foundation.org>
+Subject: + blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait.patch added to -mm tree
+Date: Mon, 05 Nov 2007 15:49:56 -0800
+Message-ID: <200711052349.lA5Nnuxn025989@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39120 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36126 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754153AbXKEXto (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:49:44 -0500
+	by vger.kernel.org with ESMTP id S1754162AbXKEXuI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:50:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com, hch@infradead.org
+Cc: bryan.wu@analog.com, david-b@pacbell.net
 
 
 The patch titled
-     r-o-bind-mounts: sys_mknodat(): elevate write count for vfs_mknod() create
+     Blackfin SPI driver: use cpu_relax() to replace continue in while busywait
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
+     blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,188 +25,352 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts: sys_mknodat(): elevate write count for vfs_mknod() create
-From: Dave Hansen <haveblue@us.ibm.com>
+Subject: Blackfin SPI driver: use cpu_relax() to replace continue in while busywait
+From: Bryan Wu <bryan.wu@analog.com>
 
-This takes care of all of the direct callers of vfs_mknod().
-Since a few of these cases also handle normal file creation
-as well, this also covers some calls to vfs_create().
-
-So that we don't have to make three mnt_want/drop_write()
-calls inside of the switch statement, we move some of its
-logic outside of the switch and into a helper function
-suggested by Christoph.
-
-This also encapsulates a fix for mknod(S_IFREG) that Miklos
-found.
-
-Acked-by: Christoph Hellwig <hch@infradead.org>
-Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Signed-off-by: Bryan Wu <bryan.wu@analog.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c         |   43 ++++++++++++++++++++++++++++++++-----------
- fs/nfsd/vfs.c      |    4 ++++
- net/unix/af_unix.c |    4 ++++
- 3 files changed, 40 insertions(+), 11 deletions(-)
+ drivers/spi/spi_bfin5xx.c |   78 ++++++++++++++++++------------------
+ 1 file changed, 39 insertions(+), 39 deletions(-)
 
-diff -puN fs/namei.c~r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create fs/namei.c
---- a/fs/namei.c~r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create
-+++ a/fs/namei.c
-@@ -2024,6 +2024,23 @@ int vfs_mknod(struct inode *dir, struct 
- 	return error;
- }
+diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait drivers/spi/spi_bfin5xx.c
+--- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait
++++ a/drivers/spi/spi_bfin5xx.c
+@@ -186,7 +186,7 @@ static int flush(struct driver_data *drv
  
-+static int may_mknod(mode_t mode)
-+{
-+	switch (mode & S_IFMT) {
-+	case S_IFREG:
-+	case S_IFCHR:
-+	case S_IFBLK:
-+	case S_IFIFO:
-+	case S_IFSOCK:
-+	case 0: /* zero mode translates to S_IFREG */
-+		return 0;
-+	case S_IFDIR:
-+		return -EPERM;
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
- asmlinkage long sys_mknodat(int dfd, const char __user *filename, int mode,
- 				unsigned dev)
- {
-@@ -2042,12 +2059,19 @@ asmlinkage long sys_mknodat(int dfd, con
- 	if (error)
- 		goto out;
- 	dentry = lookup_create(&nd, 0);
--	error = PTR_ERR(dentry);
--
-+	if (IS_ERR(dentry)) {
-+		error = PTR_ERR(dentry);
-+		goto out_unlock;
-+	}
- 	if (!IS_POSIXACL(nd.dentry->d_inode))
- 		mode &= ~current->fs->umask;
--	if (!IS_ERR(dentry)) {
--		switch (mode & S_IFMT) {
-+	error = may_mknod(mode);
-+	if (error)
-+		goto out_dput;
-+	error = mnt_want_write(nd.mnt);
-+	if (error)
-+		goto out_dput;
-+	switch (mode & S_IFMT) {
- 		case 0: case S_IFREG:
- 			error = vfs_create(nd.dentry->d_inode,dentry,mode,&nd);
- 			break;
-@@ -2058,14 +2082,11 @@ asmlinkage long sys_mknodat(int dfd, con
- 		case S_IFIFO: case S_IFSOCK:
- 			error = vfs_mknod(nd.dentry->d_inode,dentry,mode,0);
- 			break;
--		case S_IFDIR:
--			error = -EPERM;
--			break;
--		default:
--			error = -EINVAL;
--		}
--		dput(dentry);
+ 	/* wait for stop and clear stat */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF) && limit--)
+-		continue;
++		cpu_relax();
+ 
+ 	write_STAT(drv_data, BIT_STAT_CLR);
+ 
+@@ -262,7 +262,7 @@ static void null_writer(struct driver_da
+ 	while (drv_data->tx < drv_data->tx_end) {
+ 		write_TDBR(drv_data, 0);
+ 		while ((read_STAT(drv_data) & BIT_STAT_TXS))
+-			continue;
++			cpu_relax();
+ 		drv_data->tx += n_bytes;
  	}
-+	mnt_drop_write(nd.mnt);
-+out_dput:
-+	dput(dentry);
-+out_unlock:
- 	mutex_unlock(&nd.dentry->d_inode->i_mutex);
- 	path_release(&nd);
- out:
-diff -puN fs/nfsd/vfs.c~r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create
-+++ a/fs/nfsd/vfs.c
-@@ -1242,7 +1242,11 @@ nfsd_create(struct svc_rqst *rqstp, stru
- 	case S_IFBLK:
- 	case S_IFIFO:
- 	case S_IFSOCK:
-+		host_err = mnt_want_write(fhp->fh_export->ex_mnt);
-+		if (host_err)
-+			break;
- 		host_err = vfs_mknod(dirp, dchild, iap->ia_mode, rdev);
-+		mnt_drop_write(fhp->fh_export->ex_mnt);
- 		break;
- 	default:
- 	        printk("nfsd: bad file type %o in nfsd_create\n", type);
-diff -puN net/unix/af_unix.c~r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create net/unix/af_unix.c
---- a/net/unix/af_unix.c~r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create
-+++ a/net/unix/af_unix.c
-@@ -838,7 +838,11 @@ static int unix_bind(struct socket *sock
- 		 */
- 		mode = S_IFSOCK |
- 		       (SOCK_INODE(sock)->i_mode & ~current->fs->umask);
-+		err = mnt_want_write(nd.mnt);
-+		if (err)
-+			goto out_mknod_dput;
- 		err = vfs_mknod(nd.dentry->d_inode, dentry, mode, 0);
-+		mnt_drop_write(nd.mnt);
- 		if (err)
- 			goto out_mknod_dput;
- 		mutex_unlock(&nd.dentry->d_inode->i_mutex);
+ }
+@@ -274,7 +274,7 @@ static void null_reader(struct driver_da
+ 
+ 	while (drv_data->rx < drv_data->rx_end) {
+ 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-			continue;
++			cpu_relax();
+ 		dummy_read(drv_data);
+ 		drv_data->rx += n_bytes;
+ 	}
+@@ -287,12 +287,12 @@ static void u8_writer(struct driver_data
+ 
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	while (drv_data->tx < drv_data->tx_end) {
+ 		write_TDBR(drv_data, (*(u8 *) (drv_data->tx)));
+ 		while (read_STAT(drv_data) & BIT_STAT_TXS)
+-			continue;
++			cpu_relax();
+ 		++drv_data->tx;
+ 	}
+ }
+@@ -303,14 +303,14 @@ static void u8_cs_chg_writer(struct driv
+ 
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	while (drv_data->tx < drv_data->tx_end) {
+ 		cs_active(drv_data, chip);
+ 
+ 		write_TDBR(drv_data, (*(u8 *) (drv_data->tx)));
+ 		while (read_STAT(drv_data) & BIT_STAT_TXS)
+-			continue;
++			cpu_relax();
+ 
+ 		cs_deactive(drv_data, chip);
+ 
+@@ -325,7 +325,7 @@ static void u8_reader(struct driver_data
+ 
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	/* clear TDBR buffer before read(else it will be shifted out) */
+ 	write_TDBR(drv_data, 0xFFFF);
+@@ -334,13 +334,13 @@ static void u8_reader(struct driver_data
+ 
+ 	while (drv_data->rx < drv_data->rx_end - 1) {
+ 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-			continue;
++			cpu_relax();
+ 		*(u8 *) (drv_data->rx) = read_RDBR(drv_data);
+ 		++drv_data->rx;
+ 	}
+ 
+ 	while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-		continue;
++		cpu_relax();
+ 	*(u8 *) (drv_data->rx) = read_SHAW(drv_data);
+ 	++drv_data->rx;
+ }
+@@ -351,7 +351,7 @@ static void u8_cs_chg_reader(struct driv
+ 
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	/* clear TDBR buffer before read(else it will be shifted out) */
+ 	write_TDBR(drv_data, 0xFFFF);
+@@ -363,7 +363,7 @@ static void u8_cs_chg_reader(struct driv
+ 		cs_deactive(drv_data, chip);
+ 
+ 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-			continue;
++			cpu_relax();
+ 		cs_active(drv_data, chip);
+ 		*(u8 *) (drv_data->rx) = read_RDBR(drv_data);
+ 		++drv_data->rx;
+@@ -371,7 +371,7 @@ static void u8_cs_chg_reader(struct driv
+ 	cs_deactive(drv_data, chip);
+ 
+ 	while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-		continue;
++		cpu_relax();
+ 	*(u8 *) (drv_data->rx) = read_SHAW(drv_data);
+ 	++drv_data->rx;
+ }
+@@ -380,15 +380,15 @@ static void u8_duplex(struct driver_data
+ {
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	/* in duplex mode, clk is triggered by writing of TDBR */
+ 	while (drv_data->rx < drv_data->rx_end) {
+ 		write_TDBR(drv_data, (*(u8 *) (drv_data->tx)));
+ 		while (read_STAT(drv_data) & BIT_STAT_TXS)
+-			continue;
++			cpu_relax();
+ 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-			continue;
++			cpu_relax();
+ 		*(u8 *) (drv_data->rx) = read_RDBR(drv_data);
+ 		++drv_data->rx;
+ 		++drv_data->tx;
+@@ -401,16 +401,16 @@ static void u8_cs_chg_duplex(struct driv
+ 
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	while (drv_data->rx < drv_data->rx_end) {
+ 		cs_active(drv_data, chip);
+ 
+ 		write_TDBR(drv_data, (*(u8 *) (drv_data->tx)));
+ 		while (read_STAT(drv_data) & BIT_STAT_TXS)
+-			continue;
++			cpu_relax();
+ 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-			continue;
++			cpu_relax();
+ 		*(u8 *) (drv_data->rx) = read_RDBR(drv_data);
+ 
+ 		cs_deactive(drv_data, chip);
+@@ -427,12 +427,12 @@ static void u16_writer(struct driver_dat
+ 
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	while (drv_data->tx < drv_data->tx_end) {
+ 		write_TDBR(drv_data, (*(u16 *) (drv_data->tx)));
+ 		while ((read_STAT(drv_data) & BIT_STAT_TXS))
+-			continue;
++			cpu_relax();
+ 		drv_data->tx += 2;
+ 	}
+ }
+@@ -443,14 +443,14 @@ static void u16_cs_chg_writer(struct dri
+ 
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	while (drv_data->tx < drv_data->tx_end) {
+ 		cs_active(drv_data, chip);
+ 
+ 		write_TDBR(drv_data, (*(u16 *) (drv_data->tx)));
+ 		while ((read_STAT(drv_data) & BIT_STAT_TXS))
+-			continue;
++			cpu_relax();
+ 
+ 		cs_deactive(drv_data, chip);
+ 
+@@ -465,7 +465,7 @@ static void u16_reader(struct driver_dat
+ 
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	/* clear TDBR buffer before read(else it will be shifted out) */
+ 	write_TDBR(drv_data, 0xFFFF);
+@@ -474,13 +474,13 @@ static void u16_reader(struct driver_dat
+ 
+ 	while (drv_data->rx < (drv_data->rx_end - 2)) {
+ 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-			continue;
++			cpu_relax();
+ 		*(u16 *) (drv_data->rx) = read_RDBR(drv_data);
+ 		drv_data->rx += 2;
+ 	}
+ 
+ 	while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-		continue;
++		cpu_relax();
+ 	*(u16 *) (drv_data->rx) = read_SHAW(drv_data);
+ 	drv_data->rx += 2;
+ }
+@@ -491,7 +491,7 @@ static void u16_cs_chg_reader(struct dri
+ 
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	/* clear TDBR buffer before read(else it will be shifted out) */
+ 	write_TDBR(drv_data, 0xFFFF);
+@@ -503,7 +503,7 @@ static void u16_cs_chg_reader(struct dri
+ 		cs_deactive(drv_data, chip);
+ 
+ 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-			continue;
++			cpu_relax();
+ 		cs_active(drv_data, chip);
+ 		*(u16 *) (drv_data->rx) = read_RDBR(drv_data);
+ 		drv_data->rx += 2;
+@@ -511,7 +511,7 @@ static void u16_cs_chg_reader(struct dri
+ 	cs_deactive(drv_data, chip);
+ 
+ 	while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-		continue;
++		cpu_relax();
+ 	*(u16 *) (drv_data->rx) = read_SHAW(drv_data);
+ 	drv_data->rx += 2;
+ }
+@@ -520,15 +520,15 @@ static void u16_duplex(struct driver_dat
+ {
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	/* in duplex mode, clk is triggered by writing of TDBR */
+ 	while (drv_data->tx < drv_data->tx_end) {
+ 		write_TDBR(drv_data, (*(u16 *) (drv_data->tx)));
+ 		while (read_STAT(drv_data) & BIT_STAT_TXS)
+-			continue;
++			cpu_relax();
+ 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-			continue;
++			cpu_relax();
+ 		*(u16 *) (drv_data->rx) = read_RDBR(drv_data);
+ 		drv_data->rx += 2;
+ 		drv_data->tx += 2;
+@@ -541,16 +541,16 @@ static void u16_cs_chg_duplex(struct dri
+ 
+ 	/* poll for SPI completion before start */
+ 	while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	while (drv_data->tx < drv_data->tx_end) {
+ 		cs_active(drv_data, chip);
+ 
+ 		write_TDBR(drv_data, (*(u16 *) (drv_data->tx)));
+ 		while (read_STAT(drv_data) & BIT_STAT_TXS)
+-			continue;
++			cpu_relax();
+ 		while (!(read_STAT(drv_data) & BIT_STAT_RXS))
+-			continue;
++			cpu_relax();
+ 		*(u16 *) (drv_data->rx) = read_RDBR(drv_data);
+ 
+ 		cs_deactive(drv_data, chip);
+@@ -624,7 +624,7 @@ static irqreturn_t dma_irq_handler(int i
+ 
+ 	/* Wait for DMA to complete */
+ 	while (get_dma_curr_irqstat(drv_data->dma_channel) & DMA_RUN)
+-		continue;
++		cpu_relax();
+ 
+ 	/*
+ 	 * wait for the last transaction shifted out.  HRM states:
+@@ -635,11 +635,11 @@ static irqreturn_t dma_irq_handler(int i
+ 	if (drv_data->tx != NULL) {
+ 		while ((read_STAT(drv_data) & TXS) ||
+ 		       (read_STAT(drv_data) & TXS))
+-			continue;
++			cpu_relax();
+ 	}
+ 
+ 	while (!(read_STAT(drv_data) & SPIF))
+-		continue;
++		cpu_relax();
+ 
+ 	msg->actual_length += drv_data->len_in_bytes;
+ 
+@@ -783,7 +783,7 @@ static void pump_transfers(unsigned long
+ 
+ 		/* poll for SPI completion before start */
+ 		while (!(read_STAT(drv_data) & BIT_STAT_SPIF))
+-			continue;
++			cpu_relax();
+ 
+ 		/* dirty hack for autobuffer DMA mode */
+ 		if (drv_data->tx_dma == 0xFFFF) {
 _
 
-Patches currently in -mm which might be from haveblue@us.ibm.com are
+Patches currently in -mm which might be from bryan.wu@analog.com are
 
-markers-fix-warnings.patch
-maps4-add-proportional-set-size-accounting-in-smaps.patch
-maps4-rework-task_size-macros.patch
-maps4-move-is_swap_pte.patch
-maps4-introduce-a-generic-page-walker.patch
-maps4-use-pagewalker-in-clear_refs-and-smaps.patch
-maps4-simplify-interdependence-of-maps-and-smaps.patch
-maps4-move-clear_refs-code-to-task_mmuc.patch
-maps4-regroup-task_mmu-by-interface.patch
-maps4-add-proc-pid-pagemap-interface.patch
-maps4-add-proc-kpagecount-interface.patch
-maps4-add-proc-kpageflags-interface.patch
-maps4-make-page-monitoring-proc-file-optional.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-hugetlb-fix-quota-management-for-private-mappings.patch
-hugetlb-debit-quota-in-alloc_huge_page.patch
-hugetlb-allow-bulk-updating-in-hugetlb__quota.patch
-hugetlb-enforce-quotas-during-reservation-for-shared-mappings.patch
-add-remove_memory-for-ppc64-2.patch
-enable-hotplug-memory-remove-for-ppc64.patch
-add-arch-specific-walk_memory_remove-for-ppc64.patch
-do-namei_flags-calculation-inside-open_namei.patch
-make-open_namei-return-a-filp.patch
-kill-do_filp_open.patch
-kill-filp_open.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-do_rmdir-elevate-write-count.patch
-r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
-r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
-r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
-r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files.patch
-r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
-r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
-r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
-r-o-bind-mounts-make-access-use-mnt-check.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
-r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
-keep-track-of-mnt_writer-state-of-struct-file.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
+origin.patch
+git-mtd.patch
+blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+remove-mm_ptovvtop.patch
+spi-initial-bf54x-spi-support.patch
+spi-bfin-spi-uses-portmux-calls.patch
+spi-spi_bfin-cleanups-error-handling.patch
+spi-spi_bfin-handles-spi_transfercs_change.patch
+spi-spi_bfin-dont-bypass-spi-framework.patch
+spi-spi_bfin-uses-platform-device-resources.patch
+spi-spi_bfin-uses-portmux-for-additional-busses.patch
+spi-spi_bfin-rearrange-portmux-calls.patch
+spi-spi_bfin-change-handling-of-communication-parameters.patch
+spi-spi_bfin-relocate-spin-waits.patch
+spi-spi_bfin-handle-multiple-spi_masters.patch
+spi-spi_bfin-bugfix-for-816-bit-word-sizes.patch
+spi-spi_bfin-update-handling-of-delay-after-deselect.patch
+spi-spi_bfin-resequence-dma-start-stop.patch
+blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait.patch
+blackfin-spi-driver-use-void-__iomem-for-regs_base.patch
+blackfin-spi-driver-move-hard-coded-pin_req-to-board-file.patch
+blackfin-spi-driver-reconfigure-speed_hz-and-bits_per_word-in-each-spi-transfer.patch
+sanitize-the-type-of-struct-useru_ar0.patch
+add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
+d_path-make-d_path-use-a-struct-path.patch
