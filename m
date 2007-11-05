@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch added to -mm tree
-Date: Mon, 05 Nov 2007 15:39:39 -0800
-Message-ID: <200711052339.lA5Nddq7025641@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-elevate-write-count-for-file_update_time.patch added to -mm tree
+Date: Mon, 05 Nov 2007 15:38:09 -0800
+Message-ID: <200711052338.lA5Nc9u9025566@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39211 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46096 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754107AbXKEXtX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:49:23 -0500
+	by vger.kernel.org with ESMTP id S1753800AbXKEXt0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:49:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com
+Cc: haveblue@us.ibm.com, hch@infradead.org
 
 
 The patch titled
-     r-o-bind-mounts: track number of mount writers make lockdep happy with r/o bind mounts
+     r-o-bind-mounts: elevate write count for file_update_time
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
+     r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,47 +25,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts: track number of mount writers make lockdep happy with r/o bind mounts
+Subject: r-o-bind-mounts: elevate write count for file_update_time
 From: Dave Hansen <haveblue@us.ibm.com>
 
-With the r/o bind mount patches, we can have as many spinlocks nested as there
-are CPUs on the system.  Lockdep freaks out after 8.
-
-So, create a new lockdep class of locks for the mnt_writer spinlocks, and
-initialize each of the cpu locks to be in a different class.
-
-It should shut up warnings like this, while still allowing some of the lockdep
-goodness to remain:
-
-=============================================
-[ INFO: possible recursive locking detected ]
-
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/inode.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN fs/namespace.c~r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts fs/namespace.c
---- a/fs/namespace.c~r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts
-+++ a/fs/namespace.c
-@@ -115,6 +115,7 @@ struct mnt_writer {
- 	 * must be ordered by cpu number.
- 	 */
- 	spinlock_t lock;
-+	struct lock_class_key lock_class; /* compiles out with !lockdep */
- 	unsigned long count;
- 	struct vfsmount *mnt;
- } ____cacheline_aligned_in_smp;
-@@ -126,6 +127,7 @@ static int __init init_mnt_writers(void)
- 	for_each_possible_cpu(cpu) {
- 		struct mnt_writer *writer = &per_cpu(mnt_writers, cpu);
- 		spin_lock_init(&writer->lock);
-+		lockdep_set_class(&writer->lock, &writer->lock_class);
- 		writer->count = 0;
- 	}
- 	return 0;
+diff -puN fs/inode.c~r-o-bind-mounts-elevate-write-count-for-file_update_time fs/inode.c
+--- a/fs/inode.c~r-o-bind-mounts-elevate-write-count-for-file_update_time
++++ a/fs/inode.c
+@@ -1263,10 +1263,19 @@ void file_update_time(struct file *file)
+ 	struct inode *inode = file->f_path.dentry->d_inode;
+ 	struct timespec now;
+ 	int sync_it = 0;
++	int err = 0;
+ 
+ 	if (IS_NOCMTIME(inode))
+ 		return;
+-	if (IS_RDONLY(inode))
++	/*
++	 * Ideally, we want to guarantee that 'f_vfsmnt'
++	 * is non-NULL here.  But, NFS exports need to
++	 * be fixed up before we can do that.  So, check
++	 * it for now. - Dave Hansen
++	 */
++	if (file->f_vfsmnt)
++		err = mnt_want_write(file->f_vfsmnt);
++	if (err)
+ 		return;
+ 
+ 	now = current_fs_time(inode->i_sb);
+@@ -1282,6 +1291,8 @@ void file_update_time(struct file *file)
+ 
+ 	if (sync_it)
+ 		mark_inode_dirty_sync(inode);
++	if (file->f_vfsmnt)
++		mnt_drop_write(file->f_vfsmnt);
+ }
+ 
+ EXPORT_SYMBOL(file_update_time);
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
@@ -110,7 +113,6 @@ r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
 r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
 r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
 r-o-bind-mounts-elevate-write-count-opened-files.patch
 r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
@@ -118,7 +120,6 @@ r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
 r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
 r-o-bind-mounts-make-access-use-mnt-check.patch
 r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
 r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
 r-o-bind-mounts-track-number-of-mount-writers.patch
 r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
