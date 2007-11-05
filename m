@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-proc-acpi-ac_adapter-dependent-on-acpi_procfs.patch added to -mm tree
-Date: Mon, 05 Nov 2007 14:55:21 -0800
-Message-ID: <200711052255.lA5MtLqp023840@imap1.linux-foundation.org>
+Subject: + remove-__attribute_used__.patch added to -mm tree
+Date: Mon, 05 Nov 2007 14:56:22 -0800
+Message-ID: <200711052256.lA5MuMMg023927@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45224 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58743 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754332AbXKEWzn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:55:43 -0500
+	by vger.kernel.org with ESMTP id S1752045AbXKEW4r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:56:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arvidjaar@mail.ru, astarikovskiy@suse.de, lenb@kernel.org
+Cc: bunk@kernel.org, rientjes@google.com
 
 
 The patch titled
-     make /proc/acpi/ac_adapter dependent on ACPI_PROCFS
+     remove __attribute_used__
 has been added to the -mm tree.  Its filename is
-     make-proc-acpi-ac_adapter-dependent-on-acpi_procfs.patch
+     remove-__attribute_used__.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,145 +25,466 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make /proc/acpi/ac_adapter dependent on ACPI_PROCFS
-From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: remove __attribute_used__
+From: Adrian Bunk <bunk@kernel.org>
 
-Do not provide /proc/acpi/ac_adapter if ACPI_PROCFS is not defined.  This
-eliminates duplicated power adapters in HAL and makes it consistent with
-battery module
+Remove the deprecated __attribute_used__.
 
-Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
-Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/ac.c |   23 ++++++++++++++++++++++-
- 1 file changed, 22 insertions(+), 1 deletion(-)
+ arch/alpha/lib/dec_and_lock.c           |    3 +--
+ arch/powerpc/boot/Makefile              |    2 +-
+ arch/powerpc/kernel/sysfs.c             |    2 +-
+ arch/powerpc/oprofile/op_model_power4.c |    6 +++---
+ arch/sparc64/kernel/unaligned.c         |    2 +-
+ arch/um/include/init.h                  |   18 +++++++++---------
+ drivers/rapidio/rio.h                   |    2 +-
+ fs/compat_ioctl.c                       |    2 +-
+ include/asm-avr32/setup.h               |    2 +-
+ include/asm-ia64/gcc_intrin.h           |    2 +-
+ include/asm-sh/machvec.h                |    2 +-
+ include/asm-sh/thread_info.h            |    2 +-
+ include/asm-x86/thread_info_32.h        |    2 +-
+ include/linux/compiler-gcc3.h           |    2 --
+ include/linux/compiler-gcc4.h           |    1 -
+ include/linux/compiler.h                |    4 ----
+ include/linux/elfnote.h                 |    2 +-
+ include/linux/init.h                    |   12 ++++++------
+ include/linux/module.h                  |    4 ++--
+ include/linux/moduleparam.h             |    4 ++--
+ include/linux/pci.h                     |    2 +-
+ scripts/mod/modpost.c                   |    4 ++--
+ 22 files changed, 37 insertions(+), 45 deletions(-)
 
-diff -puN drivers/acpi/ac.c~make-proc-acpi-ac_adapter-dependent-on-acpi_procfs drivers/acpi/ac.c
---- a/drivers/acpi/ac.c~make-proc-acpi-ac_adapter-dependent-on-acpi_procfs
-+++ a/drivers/acpi/ac.c
-@@ -27,8 +27,10 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/types.h>
-+#ifdef CONFIG_ACPI_PROCFS
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
-+#endif
- #include <linux/power_supply.h>
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
-@@ -49,12 +51,14 @@ MODULE_AUTHOR("Paul Diefenbaugh");
- MODULE_DESCRIPTION("ACPI AC Adapter Driver");
- MODULE_LICENSE("GPL");
+diff -puN arch/alpha/lib/dec_and_lock.c~remove-__attribute_used__ arch/alpha/lib/dec_and_lock.c
+--- a/arch/alpha/lib/dec_and_lock.c~remove-__attribute_used__
++++ a/arch/alpha/lib/dec_and_lock.c
+@@ -30,8 +30,7 @@ _atomic_dec_and_lock:				\n\
+ 	.previous				\n\
+ 	.end _atomic_dec_and_lock");
  
-+#ifdef CONFIG_ACPI_PROCFS
- extern struct proc_dir_entry *acpi_lock_ac_dir(void);
- extern void *acpi_unlock_ac_dir(struct proc_dir_entry *acpi_ac_dir);
-+static int acpi_ac_open_fs(struct inode *inode, struct file *file);
-+#endif
+-static int __attribute_used__
+-atomic_dec_and_lock_1(atomic_t *atomic, spinlock_t *lock)
++static int __used atomic_dec_and_lock_1(atomic_t *atomic, spinlock_t *lock)
+ {
+ 	/* Slow path */
+ 	spin_lock(lock);
+diff -puN arch/powerpc/boot/Makefile~remove-__attribute_used__ arch/powerpc/boot/Makefile
+--- a/arch/powerpc/boot/Makefile~remove-__attribute_used__
++++ a/arch/powerpc/boot/Makefile
+@@ -65,7 +65,7 @@ obj-wlib := $(addsuffix .o, $(basename $
+ obj-plat := $(addsuffix .o, $(basename $(addprefix $(obj)/, $(src-plat))))
  
- static int acpi_ac_add(struct acpi_device *device);
- static int acpi_ac_remove(struct acpi_device *device, int type);
--static int acpi_ac_open_fs(struct inode *inode, struct file *file);
+ quiet_cmd_copy_zlib = COPY    $@
+-      cmd_copy_zlib = sed "s@__attribute_used__@@;s@<linux/\([^>]*\).*@\"\1\"@" $< > $@
++      cmd_copy_zlib = sed "s@__used@@;s@<linux/\([^>]*\).*@\"\1\"@" $< > $@
  
- const static struct acpi_device_id ac_device_ids[] = {
- 	{"ACPI0003", 0},
-@@ -80,12 +84,15 @@ struct acpi_ac {
+ quiet_cmd_copy_zlibheader = COPY    $@
+       cmd_copy_zlibheader = sed "s@<linux/\([^>]*\).*@\"\1\"@" $< > $@
+diff -puN arch/powerpc/kernel/sysfs.c~remove-__attribute_used__ arch/powerpc/kernel/sysfs.c
+--- a/arch/powerpc/kernel/sysfs.c~remove-__attribute_used__
++++ a/arch/powerpc/kernel/sysfs.c
+@@ -158,7 +158,7 @@ static ssize_t show_##NAME(struct sys_de
+ 	unsigned long val = run_on_cpu(cpu->sysdev.id, read_##NAME, 0); \
+ 	return sprintf(buf, "%lx\n", val); \
+ } \
+-static ssize_t __attribute_used__ \
++static ssize_t __used \
+ 	store_##NAME(struct sys_device *dev, const char *buf, size_t count) \
+ { \
+ 	struct cpu *cpu = container_of(dev, struct cpu, sysdev); \
+diff -puN arch/powerpc/oprofile/op_model_power4.c~remove-__attribute_used__ arch/powerpc/oprofile/op_model_power4.c
+--- a/arch/powerpc/oprofile/op_model_power4.c~remove-__attribute_used__
++++ a/arch/powerpc/oprofile/op_model_power4.c
+@@ -172,15 +172,15 @@ static void power4_stop(void)
+ }
  
- #define to_acpi_ac(x) container_of(x, struct acpi_ac, charger);
+ /* Fake functions used by canonicalize_pc */
+-static void __attribute_used__ hypervisor_bucket(void)
++static void __used hypervisor_bucket(void)
+ {
+ }
  
-+#ifdef CONFIG_ACPI_PROCFS
- static const struct file_operations acpi_ac_fops = {
- 	.open = acpi_ac_open_fs,
- 	.read = seq_read,
- 	.llseek = seq_lseek,
- 	.release = single_release,
+-static void __attribute_used__ rtas_bucket(void)
++static void __used rtas_bucket(void)
+ {
+ }
+ 
+-static void __attribute_used__ kernel_unknown_bucket(void)
++static void __used kernel_unknown_bucket(void)
+ {
+ }
+ 
+diff -puN arch/sparc64/kernel/unaligned.c~remove-__attribute_used__ arch/sparc64/kernel/unaligned.c
+--- a/arch/sparc64/kernel/unaligned.c~remove-__attribute_used__
++++ a/arch/sparc64/kernel/unaligned.c
+@@ -175,7 +175,7 @@ unsigned long compute_effective_address(
+ }
+ 
+ /* This is just to make gcc think die_if_kernel does return... */
+-static void __attribute_used__ unaligned_panic(char *str, struct pt_regs *regs)
++static void __used unaligned_panic(char *str, struct pt_regs *regs)
+ {
+ 	die_if_kernel(str, regs);
+ }
+diff -puN arch/um/include/init.h~remove-__attribute_used__ arch/um/include/init.h
+--- a/arch/um/include/init.h~remove-__attribute_used__
++++ a/arch/um/include/init.h
+@@ -45,12 +45,12 @@ typedef void (*exitcall_t)(void);
+ #define __init		__attribute__ ((__section__ (".init.text")))
+ #define __initdata	__attribute__ ((__section__ (".init.data")))
+ #define __exitdata	__attribute__ ((__section__(".exit.data")))
+-#define __exit_call	__attribute_used__ __attribute__ ((__section__ (".exitcall.exit")))
++#define __exit_call	__used __attribute__ ((__section__ (".exitcall.exit")))
+ 
+ #ifdef MODULE
+ #define __exit		__attribute__ ((__section__(".exit.text")))
+ #else
+-#define __exit		__attribute_used__ __attribute__ ((__section__(".exit.text")))
++#define __exit		__used __attribute__ ((__section__(".exit.text")))
+ #endif
+ 
+ #endif
+@@ -103,16 +103,16 @@ extern struct uml_param __uml_setup_star
+  * Mark functions and data as being only used at initialization
+  * or exit time.
+  */
+-#define __uml_init_setup	__attribute_used__ __attribute__ ((__section__ (".uml.setup.init")))
+-#define __uml_setup_help	__attribute_used__ __attribute__ ((__section__ (".uml.help.init")))
+-#define __uml_init_call		__attribute_used__ __attribute__ ((__section__ (".uml.initcall.init")))
+-#define __uml_postsetup_call	__attribute_used__ __attribute__ ((__section__ (".uml.postsetup.init")))
+-#define __uml_exit_call		__attribute_used__ __attribute__ ((__section__ (".uml.exitcall.exit")))
++#define __uml_init_setup	__used __attribute__ ((__section__ (".uml.setup.init")))
++#define __uml_setup_help	__used __attribute__ ((__section__ (".uml.help.init")))
++#define __uml_init_call		__used __attribute__ ((__section__ (".uml.initcall.init")))
++#define __uml_postsetup_call	__used __attribute__ ((__section__ (".uml.postsetup.init")))
++#define __uml_exit_call		__used __attribute__ ((__section__ (".uml.exitcall.exit")))
+ 
+ #ifndef __KERNEL__
+ 
+ #define __define_initcall(level,fn) \
+-	static initcall_t __initcall_##fn __attribute_used__ \
++	static initcall_t __initcall_##fn __used \
+ 	__attribute__((__section__(".initcall" level ".init"))) = fn
+ 
+ /* Userspace initcalls shouldn't depend on anything in the kernel, so we'll
+@@ -122,7 +122,7 @@ extern struct uml_param __uml_setup_star
+ 
+ #define __exitcall(fn) static exitcall_t __exitcall_##fn __exit_call = fn
+ 
+-#define __init_call	__attribute_used__ __attribute__ ((__section__ (".initcall.init")))
++#define __init_call	__used __attribute__ ((__section__ (".initcall.init")))
+ 
+ #endif
+ 
+diff -puN drivers/rapidio/rio.h~remove-__attribute_used__ drivers/rapidio/rio.h
+--- a/drivers/rapidio/rio.h~remove-__attribute_used__
++++ a/drivers/rapidio/rio.h
+@@ -31,7 +31,7 @@ extern struct rio_route_ops __end_rio_ro
+ 
+ /* Helpers internal to the RIO core code */
+ #define DECLARE_RIO_ROUTE_SECTION(section, vid, did, add_hook, get_hook)  \
+-        static struct rio_route_ops __rio_route_ops __attribute_used__   \
++        static struct rio_route_ops __rio_route_ops __used   \
+ 	        __attribute__((__section__(#section))) = { vid, did, add_hook, get_hook };
+ 
+ /**
+diff -puN fs/compat_ioctl.c~remove-__attribute_used__ fs/compat_ioctl.c
+--- a/fs/compat_ioctl.c~remove-__attribute_used__
++++ a/fs/compat_ioctl.c
+@@ -1373,7 +1373,7 @@ static int do_atm_ioctl(unsigned int fd,
+         return -EINVAL;
+ }
+ 
+-static __attribute_used__ int 
++static __used int
+ ret_einval(unsigned int fd, unsigned int cmd, unsigned long arg)
+ {
+ 	return -EINVAL;
+diff -puN include/asm-avr32/setup.h~remove-__attribute_used__ include/asm-avr32/setup.h
+--- a/include/asm-avr32/setup.h~remove-__attribute_used__
++++ a/include/asm-avr32/setup.h
+@@ -110,7 +110,7 @@ struct tagtable {
+ 	int	(*parse)(struct tag *);
  };
-+#endif
-+
- static int get_ac_property(struct power_supply *psy,
- 			   enum power_supply_property psp,
- 			   union power_supply_propval *val)
-@@ -127,6 +134,7 @@ static int acpi_ac_get_state(struct acpi
- 	return 0;
- }
  
-+#ifdef CONFIG_ACPI_PROCFS
- /* --------------------------------------------------------------------------
-                               FS Interface (/proc)
-    -------------------------------------------------------------------------- */
-@@ -206,6 +214,7 @@ static int acpi_ac_remove_fs(struct acpi
+-#define __tag __attribute_used__ __attribute__((__section__(".taglist.init")))
++#define __tag __used __attribute__((__section__(".taglist.init")))
+ #define __tagtable(tag, fn)						\
+ 	static struct tagtable __tagtable_##fn __tag = { tag, fn }
  
- 	return 0;
- }
-+#endif
+diff -puN include/asm-ia64/gcc_intrin.h~remove-__attribute_used__ include/asm-ia64/gcc_intrin.h
+--- a/include/asm-ia64/gcc_intrin.h~remove-__attribute_used__
++++ a/include/asm-ia64/gcc_intrin.h
+@@ -24,7 +24,7 @@
+ extern void ia64_bad_param_for_setreg (void);
+ extern void ia64_bad_param_for_getreg (void);
  
- /* --------------------------------------------------------------------------
-                                    Driver Model
-@@ -264,7 +273,9 @@ static int acpi_ac_add(struct acpi_devic
- 	if (result)
- 		goto end;
+-register unsigned long ia64_r13 asm ("r13") __attribute_used__;
++register unsigned long ia64_r13 asm ("r13") __used;
  
-+#ifdef CONFIG_ACPI_PROCFS
- 	result = acpi_ac_add_fs(device);
-+#endif
- 	if (result)
- 		goto end;
- 	ac->charger.name = acpi_device_bid(device);
-@@ -287,7 +298,9 @@ static int acpi_ac_add(struct acpi_devic
+ #define ia64_setreg(regnum, val)						\
+ ({										\
+diff -puN include/asm-sh/machvec.h~remove-__attribute_used__ include/asm-sh/machvec.h
+--- a/include/asm-sh/machvec.h~remove-__attribute_used__
++++ a/include/asm-sh/machvec.h
+@@ -68,6 +68,6 @@ extern struct sh_machine_vector sh_mv;
+ #define get_system_type()	sh_mv.mv_name
  
-       end:
- 	if (result) {
-+#ifdef CONFIG_ACPI_PROCFS
- 		acpi_ac_remove_fs(device);
-+#endif
- 		kfree(ac);
- 	}
+ #define __initmv \
+-	__attribute_used__ __attribute__((__section__ (".machvec.init")))
++	__used __attribute__((__section__ (".machvec.init")))
  
-@@ -309,7 +322,9 @@ static int acpi_ac_remove(struct acpi_de
- 					    ACPI_ALL_NOTIFY, acpi_ac_notify);
- 	if (ac->charger.dev)
- 		power_supply_unregister(&ac->charger);
-+#ifdef CONFIG_ACPI_PROCFS
- 	acpi_ac_remove_fs(device);
-+#endif
+ #endif /* _ASM_SH_MACHVEC_H */
+diff -puN include/asm-sh/thread_info.h~remove-__attribute_used__ include/asm-sh/thread_info.h
+--- a/include/asm-sh/thread_info.h~remove-__attribute_used__
++++ a/include/asm-sh/thread_info.h
+@@ -68,7 +68,7 @@ struct thread_info {
+ #define init_stack		(init_thread_union.stack)
  
- 	kfree(ac);
+ /* how to get the current stack pointer from C */
+-register unsigned long current_stack_pointer asm("r15") __attribute_used__;
++register unsigned long current_stack_pointer asm("r15") __used;
  
-@@ -323,13 +338,17 @@ static int __init acpi_ac_init(void)
- 	if (acpi_disabled)
- 		return -ENODEV;
+ /* how to get the thread information struct from C */
+ static inline struct thread_info *current_thread_info(void)
+diff -puN include/asm-x86/thread_info_32.h~remove-__attribute_used__ include/asm-x86/thread_info_32.h
+--- a/include/asm-x86/thread_info_32.h~remove-__attribute_used__
++++ a/include/asm-x86/thread_info_32.h
+@@ -85,7 +85,7 @@ struct thread_info {
  
-+#ifdef CONFIG_ACPI_PROCFS
- 	acpi_ac_dir = acpi_lock_ac_dir();
- 	if (!acpi_ac_dir)
- 		return -ENODEV;
-+#endif
  
- 	result = acpi_bus_register_driver(&acpi_ac_driver);
- 	if (result < 0) {
-+#ifdef CONFIG_ACPI_PROCFS
- 		acpi_unlock_ac_dir(acpi_ac_dir);
-+#endif
- 		return -ENODEV;
- 	}
+ /* how to get the current stack pointer from C */
+-register unsigned long current_stack_pointer asm("esp") __attribute_used__;
++register unsigned long current_stack_pointer asm("esp") __used;
  
-@@ -341,7 +360,9 @@ static void __exit acpi_ac_exit(void)
+ /* how to get the thread information struct from C */
+ static inline struct thread_info *current_thread_info(void)
+diff -puN include/linux/compiler-gcc3.h~remove-__attribute_used__ include/linux/compiler-gcc3.h
+--- a/include/linux/compiler-gcc3.h~remove-__attribute_used__
++++ a/include/linux/compiler-gcc3.h
+@@ -7,10 +7,8 @@
  
- 	acpi_bus_unregister_driver(&acpi_ac_driver);
+ #if __GNUC_MINOR__ >= 3
+ # define __used			__attribute__((__used__))
+-# define __attribute_used__	__used				/* deprecated */
+ #else
+ # define __used			__attribute__((__unused__))
+-# define __attribute_used__	__used				/* deprecated */
+ #endif
  
-+#ifdef CONFIG_ACPI_PROCFS
- 	acpi_unlock_ac_dir(acpi_ac_dir);
-+#endif
+ #if __GNUC_MINOR__ >= 4
+diff -puN include/linux/compiler-gcc4.h~remove-__attribute_used__ include/linux/compiler-gcc4.h
+--- a/include/linux/compiler-gcc4.h~remove-__attribute_used__
++++ a/include/linux/compiler-gcc4.h
+@@ -15,7 +15,6 @@
+ #endif
  
- 	return;
- }
+ #define __used			__attribute__((__used__))
+-#define __attribute_used__	__used			/* deprecated */
+ #define __must_check 		__attribute__((warn_unused_result))
+ #define __compiler_offsetof(a,b) __builtin_offsetof(a,b)
+ #define __always_inline		inline __attribute__((always_inline))
+diff -puN include/linux/compiler.h~remove-__attribute_used__ include/linux/compiler.h
+--- a/include/linux/compiler.h~remove-__attribute_used__
++++ a/include/linux/compiler.h
+@@ -126,10 +126,6 @@ extern void __chk_io_ptr(const volatile 
+  * Mark functions that are referenced only in inline assembly as __used so
+  * the code is emitted even though it appears to be unreferenced.
+  */
+-#ifndef __attribute_used__
+-# define __attribute_used__	/* deprecated */
+-#endif
+-
+ #ifndef __used
+ # define __used			/* unimplemented */
+ #endif
+diff -puN include/linux/elfnote.h~remove-__attribute_used__ include/linux/elfnote.h
+--- a/include/linux/elfnote.h~remove-__attribute_used__
++++ a/include/linux/elfnote.h
+@@ -76,7 +76,7 @@
+ 		typeof(desc) _desc					\
+ 			     __attribute__((aligned(sizeof(Elf##size##_Word)))); \
+ 	} _ELFNOTE_PASTE(_note_, unique)				\
+-		__attribute_used__					\
++		__used							\
+ 		__attribute__((section(".note." name),			\
+ 			       aligned(sizeof(Elf##size##_Word)),	\
+ 			       unused)) = {				\
+diff -puN include/linux/init.h~remove-__attribute_used__ include/linux/init.h
+--- a/include/linux/init.h~remove-__attribute_used__
++++ a/include/linux/init.h
+@@ -43,7 +43,7 @@
+ #define __init		__attribute__ ((__section__ (".init.text"))) __cold
+ #define __initdata	__attribute__ ((__section__ (".init.data")))
+ #define __exitdata	__attribute__ ((__section__(".exit.data")))
+-#define __exit_call	__attribute_used__ __attribute__ ((__section__ (".exitcall.exit")))
++#define __exit_call	__used __attribute__ ((__section__ (".exitcall.exit")))
+ 
+ /* modpost check for section mismatches during the kernel build.
+  * A section mismatch happens when there are references from a
+@@ -62,7 +62,7 @@
+ #ifdef MODULE
+ #define __exit		__attribute__ ((__section__(".exit.text"))) __cold
+ #else
+-#define __exit		__attribute_used__ __attribute__ ((__section__(".exit.text"))) __cold
++#define __exit		__used __attribute__ ((__section__(".exit.text"))) __cold
+ #endif
+ 
+ /* For assembly routines */
+@@ -109,7 +109,7 @@ void prepare_namespace(void);
+  */
+ 
+ #define __define_initcall(level,fn,id) \
+-	static initcall_t __initcall_##fn##id __attribute_used__ \
++	static initcall_t __initcall_##fn##id __used \
+ 	__attribute__((__section__(".initcall" level ".init"))) = fn
+ 
+ /*
+@@ -143,11 +143,11 @@ void prepare_namespace(void);
+ 
+ #define console_initcall(fn) \
+ 	static initcall_t __initcall_##fn \
+-	__attribute_used__ __attribute__((__section__(".con_initcall.init")))=fn
++	__used __attribute__((__section__(".con_initcall.init")))=fn
+ 
+ #define security_initcall(fn) \
+ 	static initcall_t __initcall_##fn \
+-	__attribute_used__ __attribute__((__section__(".security_initcall.init"))) = fn
++	__used __attribute__((__section__(".security_initcall.init"))) = fn
+ 
+ struct obs_kernel_param {
+ 	const char *str;
+@@ -164,7 +164,7 @@ struct obs_kernel_param {
+ #define __setup_param(str, unique_id, fn, early)			\
+ 	static char __setup_str_##unique_id[] __initdata __aligned(1) = str; \
+ 	static struct obs_kernel_param __setup_##unique_id	\
+-		__attribute_used__				\
++		__used						\
+ 		__attribute__((__section__(".init.setup")))	\
+ 		__attribute__((aligned((sizeof(long)))))	\
+ 		= { __setup_str_##unique_id, fn, early }
+diff -puN include/linux/module.h~remove-__attribute_used__ include/linux/module.h
+--- a/include/linux/module.h~remove-__attribute_used__
++++ a/include/linux/module.h
+@@ -178,7 +178,7 @@ void *__symbol_get_gpl(const char *symbo
+ #define __CRC_SYMBOL(sym, sec)					\
+ 	extern void *__crc_##sym __attribute__((weak));		\
+ 	static const unsigned long __kcrctab_##sym		\
+-	__attribute_used__					\
++	__used							\
+ 	__attribute__((section("__kcrctab" sec), unused))	\
+ 	= (unsigned long) &__crc_##sym;
+ #else
+@@ -193,7 +193,7 @@ void *__symbol_get_gpl(const char *symbo
+ 	__attribute__((section("__ksymtab_strings")))		\
+ 	= MODULE_SYMBOL_PREFIX #sym;                    	\
+ 	static const struct kernel_symbol __ksymtab_##sym	\
+-	__attribute_used__					\
++	__used							\
+ 	__attribute__((section("__ksymtab" sec), unused))	\
+ 	= { (unsigned long)&sym, __kstrtab_##sym }
+ 
+diff -puN include/linux/moduleparam.h~remove-__attribute_used__ include/linux/moduleparam.h
+--- a/include/linux/moduleparam.h~remove-__attribute_used__
++++ a/include/linux/moduleparam.h
+@@ -18,7 +18,7 @@
+ #define __module_cat(a,b) ___module_cat(a,b)
+ #define __MODULE_INFO(tag, name, info)					  \
+ static const char __module_cat(name,__LINE__)[]				  \
+-  __attribute_used__							  \
++  __used								  \
+   __attribute__((section(".modinfo"),unused)) = __stringify(tag) "=" info
+ #else  /* !MODULE */
+ #define __MODULE_INFO(tag, name, info)
+@@ -72,7 +72,7 @@ struct kparam_array
+ 	BUILD_BUG_ON_ZERO((perm) < 0 || (perm) > 0777 || ((perm) & 2));	\
+ 	static const char __param_str_##name[] = prefix #name;		\
+ 	static struct kernel_param const __param_##name			\
+-	__attribute_used__						\
++	__used								\
+     __attribute__ ((unused,__section__ ("__param"),aligned(sizeof(void *)))) \
+ 	= { __param_str_##name, perm, set, get, { arg } }
+ 
+diff -puN include/linux/pci.h~remove-__attribute_used__ include/linux/pci.h
+--- a/include/linux/pci.h~remove-__attribute_used__
++++ a/include/linux/pci.h
+@@ -859,7 +859,7 @@ enum pci_fixup_pass {
+ 
+ /* Anonymous variables would be nice... */
+ #define DECLARE_PCI_FIXUP_SECTION(section, name, vendor, device, hook)	\
+-	static const struct pci_fixup __pci_fixup_##name __attribute_used__ \
++	static const struct pci_fixup __pci_fixup_##name __used		\
+ 	__attribute__((__section__(#section))) = { vendor, device, hook };
+ #define DECLARE_PCI_FIXUP_EARLY(vendor, device, hook)			\
+ 	DECLARE_PCI_FIXUP_SECTION(.pci_fixup_early,			\
+diff -puN scripts/mod/modpost.c~remove-__attribute_used__ scripts/mod/modpost.c
+--- a/scripts/mod/modpost.c~remove-__attribute_used__
++++ a/scripts/mod/modpost.c
+@@ -1458,7 +1458,7 @@ static int add_versions(struct buffer *b
+ 
+ 	buf_printf(b, "\n");
+ 	buf_printf(b, "static const struct modversion_info ____versions[]\n");
+-	buf_printf(b, "__attribute_used__\n");
++	buf_printf(b, "__used\n");
+ 	buf_printf(b, "__attribute__((section(\"__versions\"))) = {\n");
+ 
+ 	for (s = mod->unres; s; s = s->next) {
+@@ -1491,7 +1491,7 @@ static void add_depends(struct buffer *b
+ 
+ 	buf_printf(b, "\n");
+ 	buf_printf(b, "static const char __module_depends[]\n");
+-	buf_printf(b, "__attribute_used__\n");
++	buf_printf(b, "__used\n");
+ 	buf_printf(b, "__attribute__((section(\".modinfo\"))) =\n");
+ 	buf_printf(b, "\"depends=");
+ 	for (s = mod->unres; s; s = s->next) {
 _
 
-Patches currently in -mm which might be from arvidjaar@mail.ru are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-make-proc-acpi-ac_adapter-dependent-on-acpi_procfs.patch
+fs-afs-vlocationc-fix-off-by-one.patch
+lguest_userc-fix-memory-leak.patch
+video-sis-fix-negative-array-index.patch
+git-dvb.patch
+git-hwmon.patch
+make-jffs2_get_acl-static.patch
+make-sunrpc-xprtsockcxs_setup_udptcp-static.patch
+drivers-bluetooth-bpa10xc-fix-memleak.patch
+drivers-bluetooth-btsdioc-fix-double-free.patch
+git-nfs-make-nfs_wb_page_priority-static.patch
+git-ocfs2.patch
+git-scsi-misc.patch
+scsi-advansysc-make-3-functions-static.patch
+xtensa-iss_net_setup-must-be-__init.patch
+sunrpc-xprtrdma-transportc-fix-use-after-free.patch
+fix-mm-utilckrealloc.patch
+fuse_file_alloc-fix-null-dereferences.patch
+pidns-place-under-config_experimental.patch
+pidns-place-under-config_experimental-checkpatch-fixes.patch
+feature-removal-schedule-remove-sa_-flags-entry.patch
+kernel-taskstatsc-fix-bogus-nlmsg_free.patch
+mm-hugetlbc-make-a-function-static.patch
+mm-page-writebackc-make-a-function-static.patch
+kernel-power-diskc-make-code-static.patch
+make-kernel_shutdown_prepare-static.patch
+kill-udffs_dateversion.patch
+make-ipc-utilcsysvipc_find_ipc-static.patch
+scheduled-oss-driver-removal.patch
+cleanup-after-apus-removal.patch
+remove-mm_ptovvtop.patch
+remove-__attribute_used__.patch
+fs-ecryptfs-possible-cleanups.patch
+make-video-geode-lxfb_corecgeode_modedb-static.patch
+ext4-superc-fix-ifdefs.patch
+make-jbd-journalc__journal_abort_hard-static.patch
+kernel-cgroupc-remove-dead-code.patch
+kernel-cgroupc-make-2-functions-static.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+fix-m32r-__xchg.patch
+reiser4.patch
