@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-efi-boot-support-efi-frame-buffer-v3.patch added to -mm tree
-Date: Mon, 05 Nov 2007 15:46:17 -0800
-Message-ID: <200711052346.lA5NkH2O025914@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch added to -mm tree
+Date: Mon, 05 Nov 2007 15:39:39 -0800
+Message-ID: <200711052339.lA5Nddq7025641@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53725 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39211 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752045AbXKEXrA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:47:00 -0500
+	by vger.kernel.org with ESMTP id S1754107AbXKEXtX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:49:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ying.huang@intel.com, adaplas@pol.net, ak@suse.de, mingo@elte.hu, mouli@linux.intel.com, tglx@linutronix.de
+Cc: haveblue@us.ibm.com
 
 
 The patch titled
-     x86_64-efi-boot-support-efi-frame-buffer v3
+     r-o-bind-mounts: track number of mount writers make lockdep happy with r/o bind mounts
 has been added to the -mm tree.  Its filename is
-     x86_64-efi-boot-support-efi-frame-buffer-v3.patch
+     r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,73 +25,104 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64-efi-boot-support-efi-frame-buffer v3
-From: "Huang, Ying" <ying.huang@intel.com>
+Subject: r-o-bind-mounts: track number of mount writers make lockdep happy with r/o bind mounts
+From: Dave Hansen <haveblue@us.ibm.com>
 
-This patch adds Graphics Output Protocol support to the kernel.
-UEFI2.0 spec deprecates Universal Graphics Adapter (UGA) protocol and
-only Graphics Output Protocol (GOP) is produced. Therefore, the boot
-loader needs to query the UEFI firmware with appropriate Output
-Protocol and pass the video information to the kernel. As a result of
-GOP protocol, an EFI framebuffer driver is needed for displaying
-console messages. The patch adds a EFI framebuffer driver. The EFI
-frame buffer driver in this patch is based on the Intel Mac
-framebuffer driver.
+With the r/o bind mount patches, we can have as many spinlocks nested as there
+are CPUs on the system.  Lockdep freaks out after 8.
 
-The ELILO bootloader takes care of passing the video information as
-appropriate for EFI firmware.
+So, create a new lockdep class of locks for the mnt_writer spinlocks, and
+initialize each of the cpu locks to be in a different class.
 
-The framebuffer driver has been tested in i386 kernel and x86_64
-kernel on EFI platform.
+It should shut up warnings like this, while still allowing some of the lockdep
+goodness to remain:
 
-Signed-off-by: Chandramouli Narayanan <mouli@linux.intel.com>
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+=============================================
+[ INFO: possible recursive locking detected ]
+
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/efifb.c       |    2 +-
- include/linux/screen_info.h |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ fs/namespace.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/video/efifb.c~x86_64-efi-boot-support-efi-frame-buffer-v3 drivers/video/efifb.c
---- a/drivers/video/efifb.c~x86_64-efi-boot-support-efi-frame-buffer-v3
-+++ a/drivers/video/efifb.c
-@@ -1,5 +1,5 @@
- /*
-- * framebuffer driver for EFI/UEFI based system
-+ * Framebuffer driver for EFI/UEFI based system
-  *
-  * (c) 2006 Edgar Hucek <gimli@dark-green.com>
-  * Original efi driver written by Gerd Knorr <kraxel@goldbach.in-berlin.de>
-diff -puN include/linux/screen_info.h~x86_64-efi-boot-support-efi-frame-buffer-v3 include/linux/screen_info.h
---- a/include/linux/screen_info.h~x86_64-efi-boot-support-efi-frame-buffer-v3
-+++ a/include/linux/screen_info.h
-@@ -51,7 +51,6 @@ struct screen_info {
- #define VIDEO_TYPE_EGAC		0x21	/* EGA in Color Mode		*/
- #define VIDEO_TYPE_VGAC		0x22	/* VGA+ in Color Mode		*/
- #define VIDEO_TYPE_VLFB		0x23	/* VESA VGA in graphic mode	*/
--#define VIDEO_TYPE_EFI		0x24	/* EFI graphic mode		*/
- 
- #define VIDEO_TYPE_PICA_S3	0x30	/* ACER PICA-61 local S3 video	*/
- #define VIDEO_TYPE_MIPS_G364	0x31    /* MIPS Magnum 4000 G364 video  */
-@@ -64,6 +63,8 @@ struct screen_info {
- 
- #define VIDEO_TYPE_PMAC		0x60	/* PowerMacintosh frame buffer. */
- 
-+#define VIDEO_TYPE_EFI		0x70	/* EFI graphic mode		*/
-+
- #ifdef __KERNEL__
- extern struct screen_info screen_info;
- 
+diff -puN fs/namespace.c~r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts fs/namespace.c
+--- a/fs/namespace.c~r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts
++++ a/fs/namespace.c
+@@ -115,6 +115,7 @@ struct mnt_writer {
+ 	 * must be ordered by cpu number.
+ 	 */
+ 	spinlock_t lock;
++	struct lock_class_key lock_class; /* compiles out with !lockdep */
+ 	unsigned long count;
+ 	struct vfsmount *mnt;
+ } ____cacheline_aligned_in_smp;
+@@ -126,6 +127,7 @@ static int __init init_mnt_writers(void)
+ 	for_each_possible_cpu(cpu) {
+ 		struct mnt_writer *writer = &per_cpu(mnt_writers, cpu);
+ 		spin_lock_init(&writer->lock);
++		lockdep_set_class(&writer->lock, &writer->lock_class);
+ 		writer->count = 0;
+ 	}
+ 	return 0;
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from haveblue@us.ibm.com are
 
-origin.patch
-x86_64-efi-boot-support-efi-frame-buffer.patch
-x86_64-efi-boot-support-efi-frame-buffer-v3.patch
-x86_64-efi-boot-support-efi-boot-document.patch
+markers-fix-warnings.patch
+maps4-add-proportional-set-size-accounting-in-smaps.patch
+maps4-rework-task_size-macros.patch
+maps4-move-is_swap_pte.patch
+maps4-introduce-a-generic-page-walker.patch
+maps4-use-pagewalker-in-clear_refs-and-smaps.patch
+maps4-simplify-interdependence-of-maps-and-smaps.patch
+maps4-move-clear_refs-code-to-task_mmuc.patch
+maps4-regroup-task_mmu-by-interface.patch
+maps4-add-proc-pid-pagemap-interface.patch
+maps4-add-proc-kpagecount-interface.patch
+maps4-add-proc-kpageflags-interface.patch
+maps4-make-page-monitoring-proc-file-optional.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+hugetlb-split-alloc_huge_page-into-private-and-shared-components.patch
+hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
+hugetlb-fix-quota-management-for-private-mappings.patch
+hugetlb-debit-quota-in-alloc_huge_page.patch
+hugetlb-allow-bulk-updating-in-hugetlb__quota.patch
+hugetlb-enforce-quotas-during-reservation-for-shared-mappings.patch
+add-remove_memory-for-ppc64-2.patch
+enable-hotplug-memory-remove-for-ppc64.patch
+add-arch-specific-walk_memory_remove-for-ppc64.patch
+do-namei_flags-calculation-inside-open_namei.patch
+make-open_namei-return-a-filp.patch
+kill-do_filp_open.patch
+kill-filp_open.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname.patch
+r-o-bind-mounts-stub-functions.patch
+r-o-bind-mounts-do_rmdir-elevate-write-count.patch
+r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
+r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
+r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
+r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-elevate-write-count-opened-files.patch
+r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
+r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
+r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
+r-o-bind-mounts-make-access-use-mnt-check.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
+r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
+keep-track-of-mnt_writer-state-of-struct-file.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
