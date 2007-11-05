@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + use-struct-path-in-struct-svc_export-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 05 Nov 2007 13:11:35 -0800
-Message-ID: <200711052111.lA5LBaaM019958@imap1.linux-foundation.org>
+Subject: + d_path-make-d_path-use-a-struct-path.patch added to -mm tree
+Date: Mon, 05 Nov 2007 13:11:45 -0800
+Message-ID: <200711052111.lA5LBjEP019970@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46933 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33353 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751925AbXKEVLo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 16:11:44 -0500
+	by vger.kernel.org with ESMTP id S1753754AbXKEVMH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 16:12:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bfields@citi.umich.edu, jblunck@suse.de, neilb@suse.de
+Cc: jblunck@suse.de, bfields@fieldses.org, bryan.wu@analog.com, hch@infradead.org, neilb@suse.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     use-struct-path-in-struct-svc_export-checkpatch-fixes
+     d_path: Make d_path() use a struct path
 has been added to the -mm tree.  Its filename is
-     use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+     d_path-make-d_path-use-a-struct-path.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,280 +25,323 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: use-struct-path-in-struct-svc_export-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: d_path: Make d_path() use a struct path
+From: Jan Blunck <jblunck@suse.de>
 
-ERROR: use tabs not spaces
-#81: FILE: fs/nfsd/export.c:630:
-+ ^Ikfree(exp.ex_pathname);$
+d_path() is used on a <dentry,vfsmount> pair.  Lets use a struct path to
+reflect this.
 
-WARNING: kfree(NULL) is safe this check is probabally not required
-#214: FILE: fs/nfsd/export.c:1092:
-+	if (new.ex_pathname)
-+		kfree(new.ex_pathname);
-
-ERROR: no space after that '!' (ctx:WxW)
-#326: FILE: fs/nfsd/nfsfh.c:49:
-+	while (tdentry != exp->ex_path.dentry && ! IS_ROOT(tdentry)) {
- 	                                         ^
-
-WARNING: line over 80 characters
-#370: FILE: fs/nfsd/nfsfh.c:338:
-+	int root_export = (exp->ex_path.dentry == exp->ex_path.dentry->d_sb->s_root);
-
-WARNING: line over 80 characters
-#384: FILE: fs/nfsd/nfsfh.c:384:
-+			if (!(exp->ex_path.dentry->d_inode->i_sb->s_type->fs_flags
-
-WARNING: line over 80 characters
-#411: FILE: fs/nfsd/nfsfh.c:564:
-+		if (fhp->fh_export->ex_path.dentry->d_inode->i_sb->s_type->fs_flags
-
-WARNING: braces {} are not necessary for single statement blocks
-#474: FILE: fs/nfsd/vfs.c:159:
-+		else if (dparent != exp->ex_path.dentry) {
- 			dentry = dget_parent(dparent);
- 		} else  if (!EX_NOHIDE(exp))
-
-WARNING: line over 80 characters
-#492: FILE: fs/nfsd/vfs.c:724:
-+	*filp = dentry_open(dget(dentry), mntget(fhp->fh_export->ex_path.mnt), flags);
-
-WARNING: line over 80 characters
-#545: FILE: fs/nfsd/vfs.c:1880:
-+			if (exp_rdonly(rqstp, exp) || __mnt_is_readonly(exp->ex_path.mnt))
-
-ERROR: "foo * bar" should be "foo *bar"
-#560: FILE: include/linux/nfsd/export.h:88:
-+	char *			ex_pathname;
-
-total: 3 errors, 7 warnings, 459 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: J. Bruce Fields <bfields@citi.umich.edu>
-Cc: Jan Blunck <jblunck@suse.de>
+Signed-off-by: Jan Blunck <jblunck@suse.de>
+Acked-by: Bryan Wu <bryan.wu@analog.com>
+Acked-by: Christoph Hellwig <hch@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/export.c            |    5 ++---
- fs/nfsd/nfsfh.c             |    2 +-
- fs/nfsd/vfs.c               |   10 ++++++----
- include/linux/nfsd/export.h |    2 +-
- 4 files changed, 10 insertions(+), 9 deletions(-)
+ arch/blackfin/kernel/traps.c      |   12 +++++-------
+ drivers/md/bitmap.c               |    8 +-------
+ drivers/usb/gadget/file_storage.c |    8 +++-----
+ fs/compat_ioctl.c                 |    2 +-
+ fs/dcache.c                       |   12 +++++-------
+ fs/dcookies.c                     |    2 +-
+ fs/ecryptfs/super.c               |    5 ++---
+ fs/nfsd/export.c                  |    2 +-
+ fs/proc/base.c                    |    2 +-
+ fs/seq_file.c                     |    3 +--
+ fs/sysfs/file.c                   |    5 ++---
+ fs/unionfs/super.c                |    3 +--
+ include/linux/dcache.h            |    5 +++--
+ kernel/audit.c                    |    2 +-
+ 14 files changed, 28 insertions(+), 43 deletions(-)
 
-diff -puN fs/nfsd/export.c~use-struct-path-in-struct-svc_export-checkpatch-fixes fs/nfsd/export.c
---- a/fs/nfsd/export.c~use-struct-path-in-struct-svc_export-checkpatch-fixes
-+++ a/fs/nfsd/export.c
-@@ -627,7 +627,7 @@ static int svc_export_parse(struct cache
-  out:
- 	nfsd4_fslocs_free(&exp.ex_fslocs);
- 	kfree(exp.ex_uuid);
-- 	kfree(exp.ex_pathname);
-+	kfree(exp.ex_pathname);
- 	if (nd.path.dentry)
- 		path_put(&nd.path);
-  out_no_path:
-@@ -1088,8 +1088,7 @@ exp_export(struct nfsctl_export *nxp)
- 	} else
- 		err = 0;
- finish:
--	if (new.ex_pathname)
--		kfree(new.ex_pathname);
-+	kfree(new.ex_pathname);
- 	if (exp)
- 		exp_put(exp);
- 	if (fsid_key && !IS_ERR(fsid_key))
-diff -puN fs/nfsd/nfsfh.c~use-struct-path-in-struct-svc_export-checkpatch-fixes fs/nfsd/nfsfh.c
---- a/fs/nfsd/nfsfh.c~use-struct-path-in-struct-svc_export-checkpatch-fixes
-+++ a/fs/nfsd/nfsfh.c
-@@ -46,7 +46,7 @@ static int nfsd_acceptable(void *expv, s
- 		return 1;
+diff -puN arch/blackfin/kernel/traps.c~d_path-make-d_path-use-a-struct-path arch/blackfin/kernel/traps.c
+--- a/arch/blackfin/kernel/traps.c~d_path-make-d_path-use-a-struct-path
++++ a/arch/blackfin/kernel/traps.c
+@@ -124,15 +124,13 @@ static void decode_address(char *buf, un
+ 			struct vm_area_struct *vma = vml->vma;
  
- 	tdentry = dget(dentry);
--	while (tdentry != exp->ex_path.dentry && ! IS_ROOT(tdentry)) {
-+	while (tdentry != exp->ex_path.dentry && !IS_ROOT(tdentry)) {
- 		/* make sure parents give x permission to user */
- 		int err;
- 		parent = dget_parent(tdentry);
-diff -puN fs/nfsd/vfs.c~use-struct-path-in-struct-svc_export-checkpatch-fixes fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~use-struct-path-in-struct-svc_export-checkpatch-fixes
-+++ a/fs/nfsd/vfs.c
-@@ -156,9 +156,9 @@ nfsd_lookup_dentry(struct svc_rqst *rqst
- 	if (isdotent(name, len)) {
- 		if (len==1)
- 			dentry = dget(dparent);
--		else if (dparent != exp->ex_path.dentry) {
-+		else if (dparent != exp->ex_path.dentry)
- 			dentry = dget_parent(dparent);
--		} else  if (!EX_NOHIDE(exp))
-+		else if (!EX_NOHIDE(exp))
- 			dentry = dget(dparent); /* .. == . just like at / */
+ 			if (address >= vma->vm_start && address < vma->vm_end) {
++				char _tmpbuf[256];
+ 				char *name = p->comm;
+ 				struct file *file = vma->vm_file;
+-				if (file) {
+-					char _tmpbuf[256];
+-					name = d_path(file->f_dentry,
+-					              file->f_vfsmnt,
+-					              _tmpbuf,
+-					              sizeof(_tmpbuf));
+-				}
++
++				if (file)
++					name = d_path(&file->f_path, _tmpbuf,
++						      sizeof(_tmpbuf));
+ 
+ 				/* FLAT does not have its text aligned to the start of
+ 				 * the map while FDPIC ELF does ...
+diff -puN drivers/md/bitmap.c~d_path-make-d_path-use-a-struct-path drivers/md/bitmap.c
+--- a/drivers/md/bitmap.c~d_path-make-d_path-use-a-struct-path
++++ a/drivers/md/bitmap.c
+@@ -206,16 +206,10 @@ static void bitmap_checkfree(struct bitm
+ /* copy the pathname of a file to a buffer */
+ char *file_path(struct file *file, char *buf, int count)
+ {
+-	struct dentry *d;
+-	struct vfsmount *v;
+-
+ 	if (!buf)
+ 		return NULL;
+ 
+-	d = file->f_path.dentry;
+-	v = file->f_path.mnt;
+-
+-	buf = d_path(d, v, buf, count);
++	buf = d_path(&file->f_path, buf, count);
+ 
+ 	return IS_ERR(buf) ? NULL : buf;
+ }
+diff -puN drivers/usb/gadget/file_storage.c~d_path-make-d_path-use-a-struct-path drivers/usb/gadget/file_storage.c
+--- a/drivers/usb/gadget/file_storage.c~d_path-make-d_path-use-a-struct-path
++++ a/drivers/usb/gadget/file_storage.c
+@@ -3567,8 +3567,7 @@ static ssize_t show_file(struct device *
+ 
+ 	down_read(&fsg->filesem);
+ 	if (backing_file_is_open(curlun)) {	// Get the complete pathname
+-		p = d_path(curlun->filp->f_path.dentry,
+-				curlun->filp->f_path.mnt, buf, PAGE_SIZE - 1);
++		p = d_path(&curlun->filp->f_path, buf, PAGE_SIZE - 1);
+ 		if (IS_ERR(p))
+ 			rc = PTR_ERR(p);
  		else {
- 			/* checking mountpoint crossing is very different when stepping up */
-@@ -721,7 +721,8 @@ nfsd_open(struct svc_rqst *rqstp, struct
- 
- 		DQUOT_INIT(inode);
+@@ -3985,9 +3984,8 @@ static int __init fsg_bind(struct usb_ga
+ 		if (backing_file_is_open(curlun)) {
+ 			p = NULL;
+ 			if (pathbuf) {
+-				p = d_path(curlun->filp->f_path.dentry,
+-					curlun->filp->f_path.mnt,
+-					pathbuf, PATH_MAX);
++				p = d_path(&curlun->filp->f_path,
++					   pathbuf, PATH_MAX);
+ 				if (IS_ERR(p))
+ 					p = NULL;
+ 			}
+diff -puN fs/compat_ioctl.c~d_path-make-d_path-use-a-struct-path fs/compat_ioctl.c
+--- a/fs/compat_ioctl.c~d_path-make-d_path-use-a-struct-path
++++ a/fs/compat_ioctl.c
+@@ -2839,7 +2839,7 @@ static void compat_ioctl_error(struct fi
+ 	/* find the name of the device. */
+ 	path = (char *)__get_free_page(GFP_KERNEL);
+ 	if (path) {
+-		fn = d_path(filp->f_path.dentry, filp->f_path.mnt, path, PAGE_SIZE);
++		fn = d_path(&filp->f_path, path, PAGE_SIZE);
+ 		if (IS_ERR(fn))
+ 			fn = "?";
  	}
--	*filp = dentry_open(dget(dentry), mntget(fhp->fh_export->ex_path.mnt), flags);
-+	*filp = dentry_open(dget(dentry), mntget(fhp->fh_export->ex_path.mnt),
-+				flags);
- 	if (IS_ERR(*filp))
- 		host_err = PTR_ERR(*filp);
- out_nfserr:
-@@ -1877,7 +1878,8 @@ nfsd_permission(struct svc_rqst *rqstp, 
+diff -puN fs/dcache.c~d_path-make-d_path-use-a-struct-path fs/dcache.c
+--- a/fs/dcache.c~d_path-make-d_path-use-a-struct-path
++++ a/fs/dcache.c
+@@ -1848,8 +1848,7 @@ Elong:
+ 
+ /**
+  * d_path - return the path of a dentry
+- * @dentry: dentry to report
+- * @vfsmnt: vfsmnt to which the dentry belongs
++ * @path: path to report
+  * @buf: buffer to return value in
+  * @buflen: buffer length
+  *
+@@ -1860,8 +1859,7 @@ Elong:
+  *
+  * "buflen" should be positive. Caller holds the dcache_lock.
+  */
+-char *d_path(struct dentry *dentry, struct vfsmount *vfsmnt,
+-	     char *buf, int buflen)
++char *d_path(struct path *path, char *buf, int buflen)
+ {
+ 	char *res;
+ 	struct path root;
+@@ -1873,15 +1871,15 @@ char *d_path(struct dentry *dentry, stru
+ 	 * user wants to identify the object in /proc/pid/fd/.  The little hack
+ 	 * below allows us to generate a name for these objects on demand:
  	 */
- 	if (!(acc & MAY_LOCAL_ACCESS))
- 		if (acc & (MAY_WRITE | MAY_SATTR | MAY_TRUNC)) {
--			if (exp_rdonly(rqstp, exp) || __mnt_is_readonly(exp->ex_path.mnt))
-+			if (exp_rdonly(rqstp, exp) ||
-+					__mnt_is_readonly(exp->ex_path.mnt))
- 				return nfserr_rofs;
- 			if (/* (acc & MAY_WRITE) && */ IS_IMMUTABLE(inode))
- 				return nfserr_perm;
-diff -puN include/linux/nfsd/export.h~use-struct-path-in-struct-svc_export-checkpatch-fixes include/linux/nfsd/export.h
---- a/include/linux/nfsd/export.h~use-struct-path-in-struct-svc_export-checkpatch-fixes
-+++ a/include/linux/nfsd/export.h
-@@ -85,7 +85,7 @@ struct svc_export {
- 	struct auth_domain *	ex_client;
- 	int			ex_flags;
- 	struct path		ex_path;
--	char *			ex_pathname;
-+	char			*ex_pathname;
- 	uid_t			ex_anon_uid;
- 	gid_t			ex_anon_gid;
- 	int			ex_fsid;
+-	if (dentry->d_op && dentry->d_op->d_dname)
+-		return dentry->d_op->d_dname(dentry, buf, buflen);
++	if (path->dentry->d_op && path->dentry->d_op->d_dname)
++		return path->dentry->d_op->d_dname(path->dentry, buf, buflen);
+ 
+ 	read_lock(&current->fs->lock);
+ 	root = current->fs->root;
+ 	path_get(&current->fs->root);
+ 	read_unlock(&current->fs->lock);
+ 	spin_lock(&dcache_lock);
+-	res = __d_path(dentry, vfsmnt, &root, buf, buflen);
++	res = __d_path(path->dentry, path->mnt, &root, buf, buflen);
+ 	spin_unlock(&dcache_lock);
+ 	path_put(&root);
+ 	return res;
+diff -puN fs/dcookies.c~d_path-make-d_path-use-a-struct-path fs/dcookies.c
+--- a/fs/dcookies.c~d_path-make-d_path-use-a-struct-path
++++ a/fs/dcookies.c
+@@ -171,7 +171,7 @@ asmlinkage long sys_lookup_dcookie(u64 c
+ 		goto out;
+ 
+ 	/* FIXME: (deleted) ? */
+-	path = d_path(dcs->path.dentry, dcs->path.mnt, kbuf, PAGE_SIZE);
++	path = d_path(&dcs->path, kbuf, PAGE_SIZE);
+ 
+ 	if (IS_ERR(path)) {
+ 		err = PTR_ERR(path);
+diff -puN fs/ecryptfs/super.c~d_path-make-d_path-use-a-struct-path fs/ecryptfs/super.c
+--- a/fs/ecryptfs/super.c~d_path-make-d_path-use-a-struct-path
++++ a/fs/ecryptfs/super.c
+@@ -163,8 +163,7 @@ static void ecryptfs_clear_inode(struct 
+ static int ecryptfs_show_options(struct seq_file *m, struct vfsmount *mnt)
+ {
+ 	struct super_block *sb = mnt->mnt_sb;
+-	struct dentry *lower_root_dentry = ecryptfs_dentry_to_lower(sb->s_root);
+-	struct vfsmount *lower_mnt = ecryptfs_dentry_to_lower_mnt(sb->s_root);
++	struct path *lower_root = &ecryptfs_dentry_to_private(sb->s_root)->lower_path;
+ 	char *tmp_page;
+ 	char *path;
+ 	int rc = 0;
+@@ -174,7 +173,7 @@ static int ecryptfs_show_options(struct 
+ 		rc = -ENOMEM;
+ 		goto out;
+ 	}
+-	path = d_path(lower_root_dentry, lower_mnt, tmp_page, PAGE_SIZE);
++	path = d_path(lower_root, tmp_page, PAGE_SIZE);
+ 	if (IS_ERR(path)) {
+ 		rc = PTR_ERR(path);
+ 		goto out;
+diff -puN fs/nfsd/export.c~d_path-make-d_path-use-a-struct-path fs/nfsd/export.c
+--- a/fs/nfsd/export.c~d_path-make-d_path-use-a-struct-path
++++ a/fs/nfsd/export.c
+@@ -345,7 +345,7 @@ static void svc_export_request(struct ca
+ 	char *pth;
+ 
+ 	qword_add(bpp, blen, exp->ex_client->name);
+-	pth = d_path(exp->ex_path.dentry, exp->ex_path.mnt, *bpp, *blen);
++	pth = d_path(&exp->ex_path, *bpp, *blen);
+ 	if (IS_ERR(pth)) {
+ 		/* is this correct? */
+ 		(*bpp)[0] = '\n';
+diff -puN fs/proc/base.c~d_path-make-d_path-use-a-struct-path fs/proc/base.c
+--- a/fs/proc/base.c~d_path-make-d_path-use-a-struct-path
++++ a/fs/proc/base.c
+@@ -1050,7 +1050,7 @@ static int do_proc_readlink(struct path 
+ 	if (!tmp)
+ 		return -ENOMEM;
+ 
+-	pathname = d_path(path->dentry, path->mnt, tmp, PAGE_SIZE);
++	pathname = d_path(path, tmp, PAGE_SIZE);
+ 	len = PTR_ERR(pathname);
+ 	if (IS_ERR(pathname))
+ 		goto out;
+diff -puN fs/seq_file.c~d_path-make-d_path-use-a-struct-path fs/seq_file.c
+--- a/fs/seq_file.c~d_path-make-d_path-use-a-struct-path
++++ a/fs/seq_file.c
+@@ -346,8 +346,7 @@ int seq_path(struct seq_file *m, struct 
+ {
+ 	if (m->count < m->size) {
+ 		char *s = m->buf + m->count;
+-		char *p = d_path(path->dentry, path->mnt, s,
+-				 m->size - m->count);
++		char *p = d_path(path, s, m->size - m->count);
+ 		if (!IS_ERR(p)) {
+ 			while (s <= p) {
+ 				char c = *p++;
+diff -puN fs/sysfs/file.c~d_path-make-d_path-use-a-struct-path fs/sysfs/file.c
+--- a/fs/sysfs/file.c~d_path-make-d_path-use-a-struct-path
++++ a/fs/sysfs/file.c
+@@ -363,9 +363,8 @@ static int sysfs_open_file(struct inode 
+ 	int error;
+ 	char *p;
+ 
+-	p = d_path(file->f_dentry, sysfs_mount, last_sysfs_file,
+-		   sizeof(last_sysfs_file));
+-	if (p)
++	p = d_path(&file->f_path, last_sysfs_file, sizeof(last_sysfs_file));
++	if (!IS_ERR(p))
+ 		memmove(last_sysfs_file, p, strlen(p) + 1);
+ 
+ 	/* need attr_sd for attr and ops, its parent for kobj */
+diff -puN fs/unionfs/super.c~d_path-make-d_path-use-a-struct-path fs/unionfs/super.c
+--- a/fs/unionfs/super.c~d_path-make-d_path-use-a-struct-path
++++ a/fs/unionfs/super.c
+@@ -974,8 +974,7 @@ static int unionfs_show_options(struct s
+ 
+ 	seq_printf(m, ",dirs=");
+ 	for (bindex = bstart; bindex <= bend; bindex++) {
+-		path = d_path(unionfs_lower_dentry_idx(sb->s_root, bindex),
+-			      unionfs_lower_mnt_idx(sb->s_root, bindex),
++		path = d_path(&UNIONFS_D(sb->s_root)->lower_paths[bindex],
+ 			      tmp_page, PAGE_SIZE);
+ 		if (IS_ERR(path)) {
+ 			ret = PTR_ERR(path);
+diff -puN include/linux/dcache.h~d_path-make-d_path-use-a-struct-path include/linux/dcache.h
+--- a/include/linux/dcache.h~d_path-make-d_path-use-a-struct-path
++++ a/include/linux/dcache.h
+@@ -10,6 +10,7 @@
+ #include <linux/rcupdate.h>
+ 
+ struct nameidata;
++struct path;
+ struct vfsmount;
+ 
+ /*
+@@ -300,8 +301,8 @@ extern int d_validate(struct dentry *, s
+  */
+ extern char *dynamic_dname(struct dentry *, char *, int, const char *, ...);
+ 
+-extern char * d_path(struct dentry *, struct vfsmount *, char *, int);
+-  
++extern char *d_path(struct path *, char *, int);
++
+ /* Allocation counts.. */
+ 
+ /**
+diff -puN kernel/audit.c~d_path-make-d_path-use-a-struct-path kernel/audit.c
+--- a/kernel/audit.c~d_path-make-d_path-use-a-struct-path
++++ a/kernel/audit.c
+@@ -1402,7 +1402,7 @@ void audit_log_d_path(struct audit_buffe
+ 		audit_log_format(ab, "<no memory>");
+ 		return;
+ 	}
+-	p = d_path(path->dentry, path->mnt, pathname, PATH_MAX+11);
++	p = d_path(path, pathname, PATH_MAX+11);
+ 	if (IS_ERR(p)) { /* Should never happen since we send PATH_MAX */
+ 		/* FIXME: can we save some information here? */
+ 		audit_log_format(ab, "<too long>");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jblunck@suse.de are
 
-origin.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-git-arm-fixup.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
-ide-arm-hack.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-git-nfsd-fixup.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-fix-build-breakage-if-sysfs-fix.patch
-git-scsi-rc-fixes.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-git-block.patch
-git-block-fixup.patch
-git-block-vs-agk-dm-dm-reorder-struct-io_restrictions.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-watchdog.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-x86-make-i8259_64-more-_32-like-checkpatch-fixes.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
-file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
-sync_sb_inodes-propagate-errors.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime-fix.patch
+r-o-bind-mounts-track-number-of-mount-writers-fix.patch
+dont-touch-fs_struct-in-drivers.patch
+dont-touch-fs_struct-in-usermodehelper.patch
+remove-path_release_on_umount.patch
+move-struct-path-into-its-own-header.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+introduce-path_put.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+introduce-path_get.patch
+use-struct-path-in-fs_struct.patch
+make-set_fs_rootpwd-take-a-struct-path.patch
+introduce-path_get-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
+one-less-parameter-to-__d_path.patch
 one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-kerneldoc-cleanup.patch
+d_path-use-struct-path-in-struct-avc_audit_data.patch
 d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-proc_get_link-use-a-struct-path-argument.patch
+d_path-make-get_dcookie-use-a-struct-path-argument.patch
 d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export.patch
 use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+use-struct-path-in-struct-svc_expkey.patch
+d_path-make-seq_path-use-a-struct-path-argument.patch
+d_path-make-d_path-use-a-struct-path.patch
