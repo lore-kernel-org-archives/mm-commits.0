@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-getdelays-cgroupstats-aware.patch added to -mm tree
-Date: Mon, 05 Nov 2007 15:53:59 -0800
-Message-ID: <200711052353.lA5NrxMK026183@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 05 Nov 2007 15:39:32 -0800
+Message-ID: <200711052339.lA5NdWJw025632@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57385 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36429 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754754AbXKEXyW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:54:22 -0500
+	by vger.kernel.org with ESMTP id S1754750AbXKEXyZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:54:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: balbir@linux.vnet.ibm.com
+Cc: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@infradead.org
 
 
 The patch titled
-     make getdelays cgroupstats aware
+     r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     make-getdelays-cgroupstats-aware.patch
+     r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,168 +25,167 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make getdelays cgroupstats aware
-From: Balbir Singh <balbir@linux.vnet.ibm.com>
+Subject: r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+WARNING: line over 80 characters
+#53: FILE: fs/nfsd/vfs.c:1876:
++			if (exp_rdonly(rqstp, exp) || __mnt_is_readonly(exp->ex_mnt))
+
+total: 0 errors, 1 warnings, 25 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/getdelays.c |   43 ++++++++++++++++++++++++-
- 1 file changed, 42 insertions(+), 1 deletion(-)
+ fs/nfsd/vfs.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/accounting/getdelays.c~make-getdelays-cgroupstats-aware Documentation/accounting/getdelays.c
---- a/Documentation/accounting/getdelays.c~make-getdelays-cgroupstats-aware
-+++ a/Documentation/accounting/getdelays.c
-@@ -25,6 +25,7 @@
- 
- #include <linux/genetlink.h>
- #include <linux/taskstats.h>
-+#include <linux/cgroupstats.h>
- 
- /*
-  * Generic macros for dealing with netlink sockets. Might be duplicated
-@@ -78,6 +79,7 @@ static void usage(void)
- 	fprintf(stderr, "  -i: print IO accounting (works only with -p)\n");
- 	fprintf(stderr, "  -l: listen forever\n");
- 	fprintf(stderr, "  -v: debug on\n");
-+	fprintf(stderr, "  -C: container path\n");
- }
- 
- /*
-@@ -212,6 +214,14 @@ void task_context_switch_counts(struct t
- 	       t->nvcsw, t->nivcsw);
- }
- 
-+void print_cgroupstats(struct cgroupstats *c)
-+{
-+	printf("sleeping %llu, blocked %llu, running %llu, stopped %llu, "
-+		"uninterruptible %llu\n", c->nr_sleeping, c->nr_io_wait,
-+		c->nr_running, c->nr_stopped, c->nr_uninterruptible);
-+}
-+
-+
- void print_ioacct(struct taskstats *t)
- {
- 	printf("%s: read=%llu, write=%llu, cancelled_write=%llu\n",
-@@ -239,11 +249,14 @@ int main(int argc, char *argv[])
- 	int maskset = 0;
- 	char *logfile = NULL;
- 	int loop = 0;
-+	int containerset = 0;
-+	char containerpath[1024];
-+	int cfd = 0;
- 
- 	struct msgtemplate msg;
- 
- 	while (1) {
--		c = getopt(argc, argv, "qdiw:r:m:t:p:vl");
-+		c = getopt(argc, argv, "qdiw:r:m:t:p:vlC:");
- 		if (c < 0)
- 			break;
- 
-@@ -260,6 +273,10 @@ int main(int argc, char *argv[])
- 			printf("printing task/process context switch rates\n");
- 			print_task_context_switch_counts = 1;
- 			break;
-+		case 'C':
-+			containerset = 1;
-+			strncpy(containerpath, optarg, strlen(optarg) + 1);
-+			break;
- 		case 'w':
- 			logfile = strdup(optarg);
- 			printf("write to file %s\n", logfile);
-@@ -334,6 +351,11 @@ int main(int argc, char *argv[])
- 		}
- 	}
- 
-+	if (tid && containerset) {
-+		fprintf(stderr, "Select either -t or -C, not both\n");
-+		goto err;
-+	}
-+
- 	if (tid) {
- 		rc = send_cmd(nl_sd, id, mypid, TASKSTATS_CMD_GET,
- 			      cmd_type, &tid, sizeof(__u32));
-@@ -344,6 +366,20 @@ int main(int argc, char *argv[])
- 		}
- 	}
- 
-+	if (containerset) {
-+		cfd = open(containerpath, O_RDONLY);
-+		if (cfd < 0) {
-+			perror("error opening container file");
-+			goto err;
-+		}
-+		rc = send_cmd(nl_sd, id, mypid, CGROUPSTATS_CMD_GET,
-+			      CGROUPSTATS_CMD_ATTR_FD, &cfd, sizeof(__u32));
-+		if (rc < 0) {
-+			perror("error sending cgroupstats command");
-+			goto err;
-+		}
-+	}
-+
- 	do {
- 		int i;
- 
-@@ -422,6 +458,9 @@ int main(int argc, char *argv[])
- 				}
- 				break;
- 
-+			case CGROUPSTATS_TYPE_CGROUP_STATS:
-+				print_cgroupstats(NLA_DATA(na));
-+				break;
- 			default:
- 				fprintf(stderr, "Unknown nla_type %d\n",
- 					na->nla_type);
-@@ -443,5 +482,7 @@ err:
- 	close(nl_sd);
- 	if (fd)
- 		close(fd);
-+	if (cfd)
-+		close(cfd);
- 	return 0;
- }
+diff -puN fs/nfsd/vfs.c~r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes
++++ a/fs/nfsd/vfs.c
+@@ -1873,7 +1873,8 @@ nfsd_permission(struct svc_rqst *rqstp, 
+ 	 */
+ 	if (!(acc & MAY_LOCAL_ACCESS))
+ 		if (acc & (MAY_WRITE | MAY_SATTR | MAY_TRUNC)) {
+-			if (exp_rdonly(rqstp, exp) || __mnt_is_readonly(exp->ex_mnt))
++			if (exp_rdonly(rqstp, exp) ||
++					__mnt_is_readonly(exp->ex_mnt))
+ 				return nfserr_rofs;
+ 			if (/* (acc & MAY_WRITE) && */ IS_IMMUTABLE(inode))
+ 				return nfserr_perm;
 _
 
-Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-make-getdelays-cgroupstats-aware.patch
-swap-delay-accounting-include-lock_page-delays.patch
-maps4-add-proportional-set-size-accounting-in-smaps.patch
-memory-controller-add-documentation.patch
-memory-controller-resource-counters-v7.patch
-memory-controller-containers-setup-v7.patch
-memory-controller-accounting-setup-v7.patch
+proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-arm-fixup.patch
+revert-gregkh-driver-block-device.patch
+git-hwmon.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+elantech-touchpad-driver-fix.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-arm-hack.patch
+drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
+lmc_ioctl-dont-return-with-locks-held-fix.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+bluetooth-uninlining.patch
+git-nfsd-fixup.patch
+pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes.patch
+quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
+scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+git-unionfs.patch
+git-wireless.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-x86.patch
+git-x86-fixup.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+i386-and-x86_64-randomize-brk-fix.patch
+x86-make-i8259_64-more-_32-like-checkpatch-fixes.patch
+git-perfmon-fixup.patch
+mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
+pidns-place-under-config_experimental-checkpatch-fixes.patch
+fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
+file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+cris-build-fixes-atomich-needs-compilerh-fix.patch
+cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
+cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
+cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
+cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+sync_sb_inodes-propagate-errors.patch
+64-bit-i_version-afs-fixes.patch
+kill-filp_open-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+cgroup-simplify-space-stripping-fix.patch
 memory-controller-memory-accounting-v7.patch
-memory-controller-task-migration-v7.patch
 memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-improve-user-interface.patch
 memory-controller-oom-handling-v7.patch
 memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memory-controller-make-page_referenced-container-aware-v7.patch
-memory-controller-make-charging-gfp-mask-aware.patch
-memory-controller-make-charging-gfp-mask-aware-fix.patch
-memory-controller-bug_on.patch
-memcontrol-move-mm_cgroup-to-header-file.patch
 memcontrol-move-oom-task-exclusion-to-tasklist.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
-bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
-bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
-bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
-memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
-memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
-memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
-memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file.patch
 memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-pre_destroy-handler.patch
-memory-cgroup-enhancements-implicit-force-empty-at-rmdir.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
