@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-__attribute_used__-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 05 Nov 2007 14:58:26 -0800
-Message-ID: <200711052258.lA5MwQRV023982@imap1.linux-foundation.org>
+Subject: + proper-show_interrupts-prototype.patch added to -mm tree
+Date: Mon, 05 Nov 2007 14:59:00 -0800
+Message-ID: <200711052259.lA5Mx0RS023988@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42651 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38095 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752859AbXKEW6r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:58:47 -0500
+	by vger.kernel.org with ESMTP id S1754203AbXKEW7K (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:59:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bunk@kernel.org, rientjes@google.com
+Cc: bunk@kernel.org
 
 
 The patch titled
-     remove-__attribute_used__-checkpatch-fixes
+     proper show_interrupts() prototype
 has been added to the -mm tree.  Its filename is
-     remove-__attribute_used__-checkpatch-fixes.patch
+     proper-show_interrupts-prototype.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,245 +25,105 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: remove-__attribute_used__-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: proper show_interrupts() prototype
+From: Adrian Bunk <bunk@kernel.org>
 
-WARNING: line over 80 characters
-#132: FILE: arch/um/include/init.h:106:
-+#define __uml_init_setup	__used __attribute__ ((__section__ (".uml.setup.init")))
+Add a proper prototype for show_interrupts() in include/linux/interrupt.h
 
-WARNING: line over 80 characters
-#133: FILE: arch/um/include/init.h:107:
-+#define __uml_setup_help	__used __attribute__ ((__section__ (".uml.help.init")))
-
-WARNING: line over 80 characters
-#134: FILE: arch/um/include/init.h:108:
-+#define __uml_init_call		__used __attribute__ ((__section__ (".uml.initcall.init")))
-
-WARNING: line over 80 characters
-#135: FILE: arch/um/include/init.h:109:
-+#define __uml_postsetup_call	__used __attribute__ ((__section__ (".uml.postsetup.init")))
-
-WARNING: line over 80 characters
-#136: FILE: arch/um/include/init.h:110:
-+#define __uml_exit_call		__used __attribute__ ((__section__ (".uml.exitcall.exit")))
-
-ERROR: use tabs not spaces
-#163: FILE: drivers/rapidio/rio.h:34:
-+        static struct rio_route_ops __rio_route_ops __used   \$
-
-WARNING: no space between function name and open parenthesis '('
-#199: FILE: include/asm-ia64/gcc_intrin.h:27:
-+register unsigned long ia64_r13 asm ("r13") __used;
-
-WARNING: no space between function name and open parenthesis '('
-#211: FILE: include/asm-sh/machvec.h:71:
-+	__used __attribute__((__section__ (".machvec.init")))
-
-WARNING: line over 80 characters
-#306: FILE: include/linux/init.h:65:
-+#define __exit		__used __attribute__ ((__section__(".exit.text"))) __cold
-
-ERROR: need spaces around that '=' (ctx:VxV)
-#324: FILE: include/linux/init.h:146:
-+	__used __attribute__((__section__(".con_initcall.init")))=fn
- 	                                                         ^
-
-total: 2 errors, 8 warnings, 286 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Adrian Bunk <bunk@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.h         |    2 +-
- include/asm-ia64/gcc_intrin.h |    2 +-
- include/asm-sh/machvec.h      |    2 +-
- include/linux/init.h          |    4 ++--
- 4 files changed, 5 insertions(+), 5 deletions(-)
+ arch/h8300/kernel/irq.c   |    1 +
+ fs/proc/proc_misc.c       |    2 +-
+ include/linux/interrupt.h |    2 ++
+ 3 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rapidio/rio.h~remove-__attribute_used__-checkpatch-fixes drivers/rapidio/rio.h
---- a/drivers/rapidio/rio.h~remove-__attribute_used__-checkpatch-fixes
-+++ a/drivers/rapidio/rio.h
-@@ -31,7 +31,7 @@ extern struct rio_route_ops __end_rio_ro
+diff -puN arch/h8300/kernel/irq.c~proper-show_interrupts-prototype arch/h8300/kernel/irq.c
+--- a/arch/h8300/kernel/irq.c~proper-show_interrupts-prototype
++++ a/arch/h8300/kernel/irq.c
+@@ -14,6 +14,7 @@
+ #include <linux/random.h>
+ #include <linux/bootmem.h>
+ #include <linux/irq.h>
++#include <linux/interrupt.h>
  
- /* Helpers internal to the RIO core code */
- #define DECLARE_RIO_ROUTE_SECTION(section, vid, did, add_hook, get_hook)  \
--        static struct rio_route_ops __rio_route_ops __used   \
-+	static struct rio_route_ops __rio_route_ops __used   \
- 	        __attribute__((__section__(#section))) = { vid, did, add_hook, get_hook };
+ #include <asm/system.h>
+ #include <asm/traps.h>
+diff -puN fs/proc/proc_misc.c~proper-show_interrupts-prototype fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~proper-show_interrupts-prototype
++++ a/fs/proc/proc_misc.c
+@@ -29,6 +29,7 @@
+ #include <linux/mm.h>
+ #include <linux/mmzone.h>
+ #include <linux/pagemap.h>
++#include <linux/interrupt.h>
+ #include <linux/swap.h>
+ #include <linux/slab.h>
+ #include <linux/smp.h>
+@@ -599,7 +600,6 @@ static void int_seq_stop(struct seq_file
+ }
  
- /**
-diff -puN include/asm-ia64/gcc_intrin.h~remove-__attribute_used__-checkpatch-fixes include/asm-ia64/gcc_intrin.h
---- a/include/asm-ia64/gcc_intrin.h~remove-__attribute_used__-checkpatch-fixes
-+++ a/include/asm-ia64/gcc_intrin.h
-@@ -24,7 +24,7 @@
- extern void ia64_bad_param_for_setreg (void);
- extern void ia64_bad_param_for_getreg (void);
  
--register unsigned long ia64_r13 asm ("r13") __used;
-+register unsigned long ia64_r13 asm("r13") __used;
- 
- #define ia64_setreg(regnum, val)						\
- ({										\
-diff -puN include/asm-sh/machvec.h~remove-__attribute_used__-checkpatch-fixes include/asm-sh/machvec.h
---- a/include/asm-sh/machvec.h~remove-__attribute_used__-checkpatch-fixes
-+++ a/include/asm-sh/machvec.h
-@@ -68,6 +68,6 @@ extern struct sh_machine_vector sh_mv;
- #define get_system_type()	sh_mv.mv_name
- 
- #define __initmv \
--	__used __attribute__((__section__ (".machvec.init")))
-+	__used __attribute__((__section__(".machvec.init")))
- 
- #endif /* _ASM_SH_MACHVEC_H */
-diff -puN include/linux/init.h~remove-__attribute_used__-checkpatch-fixes include/linux/init.h
---- a/include/linux/init.h~remove-__attribute_used__-checkpatch-fixes
-+++ a/include/linux/init.h
-@@ -62,7 +62,7 @@
- #ifdef MODULE
- #define __exit		__attribute__ ((__section__(".exit.text"))) __cold
- #else
--#define __exit		__used __attribute__ ((__section__(".exit.text"))) __cold
-+#define __exit		__used __attribute__((__section__(".exit.text"))) __cold
+-extern int show_interrupts(struct seq_file *f, void *v); /* In arch code */
+ static struct seq_operations int_seq_ops = {
+ 	.start = int_seq_start,
+ 	.next  = int_seq_next,
+diff -puN include/linux/interrupt.h~proper-show_interrupts-prototype include/linux/interrupt.h
+--- a/include/linux/interrupt.h~proper-show_interrupts-prototype
++++ a/include/linux/interrupt.h
+@@ -443,4 +443,6 @@ static inline void init_irq_proc(void)
+ }
  #endif
  
- /* For assembly routines */
-@@ -143,7 +143,7 @@ void prepare_namespace(void);
- 
- #define console_initcall(fn) \
- 	static initcall_t __initcall_##fn \
--	__used __attribute__((__section__(".con_initcall.init")))=fn
-+	__used __attribute__((__section__(".con_initcall.init"))) = fn
- 
- #define security_initcall(fn) \
- 	static initcall_t __initcall_##fn \
++int show_interrupts(struct seq_file *p, void *v);
++
+ #endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-git-arm-fixup.patch
-revert-gregkh-driver-block-device.patch
+fs-afs-vlocationc-fix-off-by-one.patch
+lguest_userc-fix-memory-leak.patch
+video-sis-fix-negative-array-index.patch
+git-dvb.patch
 git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-ide-arm-hack.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-git-nfsd-fixup.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-fix-build-breakage-if-sysfs-fix.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-git-unionfs.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-x86-make-i8259_64-more-_32-like-checkpatch-fixes.patch
-git-perfmon-fixup.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
+make-jffs2_get_acl-static.patch
+make-sunrpc-xprtsockcxs_setup_udptcp-static.patch
+drivers-bluetooth-bpa10xc-fix-memleak.patch
+drivers-bluetooth-btsdioc-fix-double-free.patch
+git-nfs-make-nfs_wb_page_priority-static.patch
+git-ocfs2.patch
+git-scsi-misc.patch
+scsi-advansysc-make-3-functions-static.patch
+xtensa-iss_net_setup-must-be-__init.patch
+sunrpc-xprtrdma-transportc-fix-use-after-free.patch
+fix-mm-utilckrealloc.patch
+fuse_file_alloc-fix-null-dereferences.patch
+pidns-place-under-config_experimental.patch
 pidns-place-under-config_experimental-checkpatch-fixes.patch
-fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
-file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
-cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
+feature-removal-schedule-remove-sa_-flags-entry.patch
+kernel-taskstatsc-fix-bogus-nlmsg_free.patch
+mm-hugetlbc-make-a-function-static.patch
+mm-page-writebackc-make-a-function-static.patch
+kernel-power-diskc-make-code-static.patch
+make-kernel_shutdown_prepare-static.patch
+kill-udffs_dateversion.patch
+make-ipc-utilcsysvipc_find_ipc-static.patch
+scheduled-oss-driver-removal.patch
+cleanup-after-apus-removal.patch
+remove-mm_ptovvtop.patch
+remove-__attribute_used__.patch
 remove-__attribute_used__-checkpatch-fixes.patch
-sync_sb_inodes-propagate-errors.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
+proper-show_interrupts-prototype.patch
+fs-ecryptfs-possible-cleanups.patch
+make-video-geode-lxfb_corecgeode_modedb-static.patch
+ext4-superc-fix-ifdefs.patch
+make-jbd-journalc__journal_abort_hard-static.patch
+kernel-cgroupc-remove-dead-code.patch
+kernel-cgroupc-make-2-functions-static.patch
 memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
 memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+fix-m32r-__xchg.patch
 reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
