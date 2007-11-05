@@ -1,118 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 15:06:59 -0800
-Message-ID: <200711052306.lA5N6xOS024312@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-elevate-write-count-for-file_update_time.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 15:07:07 -0800
+Message-ID: <200711052307.lA5N77MI024326@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34138 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53928 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751019AbXKEXMk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:12:40 -0500
+	by vger.kernel.org with ESMTP id S1752659AbXKEXMo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:12:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, hch@lst.de, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, hch@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r/o bind mounts: elevate write count during entire ncp_ioctl()
+     r/o bind mounts: elevate write count for file_update_time()
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+     r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate write count during entire ncp_ioctl()
+Subject: r/o bind mounts: elevate write count for file_update_time()
 From: Dave Hansen <haveblue@us.ibm.com>
 
-Some ioctls need write access, but others don't.  Make a helper function to
-decide when write access is needed, and take it.
-
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/ioctl.c |   54 ++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 53 insertions(+), 1 deletion(-)
+ fs/inode.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl fs/ncpfs/ioctl.c
---- a/fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl
-+++ a/fs/ncpfs/ioctl.c
-@@ -14,6 +14,7 @@
- #include <linux/ioctl.h>
- #include <linux/time.h>
- #include <linux/mm.h>
-+#include <linux/mount.h>
- #include <linux/highuid.h>
- #include <linux/smp_lock.h>
- #include <linux/vmalloc.h>
-@@ -261,7 +262,7 @@ ncp_get_charsets(struct ncp_server* serv
- }
- #endif /* CONFIG_NCPFS_NLS */
+diff -puN fs/inode.c~r-o-bind-mounts-elevate-write-count-for-file_update_time fs/inode.c
+--- a/fs/inode.c~r-o-bind-mounts-elevate-write-count-for-file_update_time
++++ a/fs/inode.c
+@@ -1259,10 +1259,19 @@ void file_update_time(struct file *file)
+ 	struct inode *inode = file->f_path.dentry->d_inode;
+ 	struct timespec now;
+ 	int sync_it = 0;
++	int err = 0;
  
--int ncp_ioctl(struct inode *inode, struct file *filp,
-+static int __ncp_ioctl(struct inode *inode, struct file *filp,
- 	      unsigned int cmd, unsigned long arg)
- {
- 	struct ncp_server *server = NCP_SERVER(inode);
-@@ -822,6 +823,57 @@ outrel:			
- 	return -EINVAL;
+ 	if (IS_NOCMTIME(inode))
+ 		return;
+-	if (IS_RDONLY(inode))
++	/*
++	 * Ideally, we want to guarantee that 'f_vfsmnt'
++	 * is non-NULL here.  But, NFS exports need to
++	 * be fixed up before we can do that.  So, check
++	 * it for now. - Dave Hansen
++	 */
++	if (file->f_vfsmnt)
++		err = mnt_want_write(file->f_vfsmnt);
++	if (err)
+ 		return;
+ 
+ 	now = current_fs_time(inode->i_sb);
+@@ -1278,6 +1287,8 @@ void file_update_time(struct file *file)
+ 
+ 	if (sync_it)
+ 		mark_inode_dirty_sync(inode);
++	if (file->f_vfsmnt)
++		mnt_drop_write(file->f_vfsmnt);
  }
  
-+static int ncp_ioctl_need_write(unsigned int cmd)
-+{
-+	switch (cmd) {
-+	case NCP_IOC_GET_FS_INFO:
-+	case NCP_IOC_GET_FS_INFO_V2:
-+	case NCP_IOC_NCPREQUEST:
-+	case NCP_IOC_SETDENTRYTTL:
-+	case NCP_IOC_SIGN_INIT:
-+	case NCP_IOC_LOCKUNLOCK:
-+	case NCP_IOC_SET_SIGN_WANTED:
-+		return 1;
-+	case NCP_IOC_GETOBJECTNAME:
-+	case NCP_IOC_SETOBJECTNAME:
-+	case NCP_IOC_GETPRIVATEDATA:
-+	case NCP_IOC_SETPRIVATEDATA:
-+	case NCP_IOC_SETCHARSETS:
-+	case NCP_IOC_GETCHARSETS:
-+	case NCP_IOC_CONN_LOGGED_IN:
-+	case NCP_IOC_GETDENTRYTTL:
-+	case NCP_IOC_GETMOUNTUID2:
-+	case NCP_IOC_SIGN_WANTED:
-+	case NCP_IOC_GETROOT:
-+	case NCP_IOC_SETROOT:
-+		return 0;
-+	default:
-+		/* unkown IOCTL command, assume write */
-+	}
-+	return 1;
-+}
-+
-+int ncp_ioctl(struct inode *inode, struct file *filp,
-+	      unsigned int cmd, unsigned long arg)
-+{
-+	int ret;
-+
-+	if (ncp_ioctl_need_write(cmd)) {
-+		/*
-+		 * inside the ioctl(), any failures which
-+		 * are because of file_permission() are
-+		 * -EACCESS, so it seems consistent to keep
-+		 *  that here.
-+		 */
-+		if (mnt_want_write(filp->f_vfsmnt))
-+			return -EACCES;
-+	}
-+	ret = __ncp_ioctl(inode, filp, cmd, arg);
-+	if (ncp_ioctl_need_write(cmd))
-+		mnt_drop_write(filp->f_vfsmnt);
-+	return ret;
-+}
-+
- #ifdef CONFIG_COMPAT
- long ncp_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
+ EXPORT_SYMBOL(file_update_time);
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
@@ -140,10 +92,6 @@ hugetlb-enforce-quotas-during-reservation-for-shared-mappings.patch
 add-remove_memory-for-ppc64-2.patch
 enable-hotplug-memory-remove-for-ppc64.patch
 add-arch-specific-walk_memory_remove-for-ppc64.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
-r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
 r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
 r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime.patch
 r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime-fix.patch
