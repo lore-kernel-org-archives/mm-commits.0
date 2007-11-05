@@ -1,188 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 15:07:42 -0800
-Message-ID: <200711052307.lA5N7gPR024383@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 15:07:21 -0800
+Message-ID: <200711052307.lA5N7Lrt024352@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46455 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43399 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754618AbXKEXJi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:09:38 -0500
+	by vger.kernel.org with ESMTP id S1754545AbXKEXJn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:09:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, hch@lst.de, herbert@13thfloor.at, mm-commits@vger.kernel.org
+To: hch@lst.de, Valdis.Kletnieks@vt.edu, balbir@in.ibm.com, haveblue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r/o bind mounts: honor r/w changes at do_remount() time
+     'touch' command causes Oops
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
+     r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: r/o bind mounts: honor r/w changes at do_remount() time
-From: Dave Hansen <haveblue@us.ibm.com>
+Subject: 'touch' command causes Oops
+From: Valdis.Kletnieks@vt.edu
 
-Originally from: Herbert Poetzl <herbert@13thfloor.at>
+"never let a libc developer write your kernel code" - hch
 
-This is the core of the read-only bind mount patch set.
+"nor, apparently, a kernel developer" - akpm
 
-Note that this does _not_ add a "ro" option directly to the bind mount
-operation.  If you require such a mount, you must first do the bind, then
-follow it up with a 'mount -o remount,ro' operation.
-
-Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Cc: Christoph Hellwig <hch@lst.de>
+Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c        |   46 +++++++++++++++++++++++++++++++++-------
- include/linux/mount.h |    1 
- 2 files changed, 40 insertions(+), 7 deletions(-)
+ fs/utimes.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN fs/namespace.c~r-o-bind-mounts-honor-r-w-changes-at-do_remount-time fs/namespace.c
---- a/fs/namespace.c~r-o-bind-mounts-honor-r-w-changes-at-do_remount-time
-+++ a/fs/namespace.c
-@@ -105,7 +105,11 @@ struct vfsmount *alloc_vfsmnt(const char
-  */
- int __mnt_is_readonly(struct vfsmount *mnt)
- {
--	return (mnt->mnt_sb->s_flags & MS_RDONLY);
-+	if (mnt->mnt_flags & MNT_READONLY)
-+		return 1;
-+	if (mnt->mnt_sb->s_flags & MS_RDONLY)
-+		return 1;
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(__mnt_is_readonly);
+diff -puN fs/utimes.c~r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops fs/utimes.c
+--- a/fs/utimes.c~r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops
++++ a/fs/utimes.c
+@@ -59,6 +59,7 @@ long do_utimes(int dfd, char __user *fil
+ 	struct inode *inode;
+ 	struct iattr newattrs;
+ 	struct file *f = NULL;
++	struct vfsmount *mnt;
  
-@@ -283,7 +287,7 @@ void mnt_drop_write(struct vfsmount *mnt
- }
- EXPORT_SYMBOL_GPL(mnt_drop_write);
+ 	error = -EINVAL;
+ 	if (times && (!nsec_valid(times[0].tv_nsec) ||
+@@ -79,17 +80,19 @@ long do_utimes(int dfd, char __user *fil
+ 		if (!f)
+ 			goto out;
+ 		dentry = f->f_path.dentry;
++		mnt = f->f_path.mnt;
+ 	} else {
+ 		error = __user_walk_fd(dfd, filename, (flags & AT_SYMLINK_NOFOLLOW) ? 0 : LOOKUP_FOLLOW, &nd);
+ 		if (error)
+ 			goto out;
  
--int mnt_make_readonly(struct vfsmount *mnt)
-+static int mnt_make_readonly(struct vfsmount *mnt)
- {
- 	int ret = 0;
- 
-@@ -296,15 +300,21 @@ int mnt_make_readonly(struct vfsmount *m
- 		goto out;
+ 		dentry = nd.dentry;
++		mnt = nd.mnt;
  	}
- 	/*
--	 * actually set mount's r/o flag here to make
--	 * __mnt_is_readonly() true, which keeps anyone
--	 * from doing a successful mnt_want_write().
-+	 * nobody can do a successful mnt_want_write() with all
-+	 * of the counts in MNT_DENIED_WRITE and the locks held.
- 	 */
-+	if (!ret)
-+		mnt->mnt_flags |= MNT_READONLY;
- out:
- 	mnt_unlock_cpus();
- 	return ret;
- }
  
-+static void __mnt_unmake_readonly(struct vfsmount *mnt)
-+{
-+	mnt->mnt_flags &= ~MNT_READONLY;
-+}
-+
- int simple_set_mnt(struct vfsmount *mnt, struct super_block *sb)
- {
- 	mnt->mnt_sb = sb;
-@@ -684,7 +694,7 @@ static int show_vfsmnt(struct seq_file *
- 		seq_putc(m, '.');
- 		mangle(m, mnt->mnt_sb->s_subtype);
- 	}
--	seq_puts(m, mnt->mnt_sb->s_flags & MS_RDONLY ? " ro" : " rw");
-+	seq_puts(m, __mnt_is_readonly(mnt) ? " ro" : " rw");
- 	for (fs_infop = fs_info; fs_infop->flag; fs_infop++) {
- 		if (mnt->mnt_sb->s_flags & fs_infop->flag)
- 			seq_puts(m, fs_infop->str);
-@@ -1316,6 +1326,23 @@ out:
- 	return err;
- }
+ 	inode = dentry->d_inode;
  
-+static int change_mount_flags(struct vfsmount *mnt, int ms_flags)
-+{
-+	int error = 0;
-+	int readonly_request = 0;
-+
-+	if (ms_flags & MS_RDONLY)
-+		readonly_request = 1;
-+	if (readonly_request == __mnt_is_readonly(mnt))
-+		return 0;
-+
-+	if (readonly_request)
-+		error = mnt_make_readonly(mnt);
-+	else
-+		__mnt_unmake_readonly(mnt);
-+	return error;
-+}
-+
- /*
-  * change filesystem flags. dir should be a physical root of filesystem.
-  * If you've mounted a non-root directory somewhere and want to do remount
-@@ -1337,7 +1364,10 @@ static int do_remount(struct nameidata *
- 		return -EINVAL;
+-	error = mnt_want_write(nd.mnt);
++	error = mnt_want_write(mnt);
+ 	if (error)
+ 		goto dput_and_out;
  
- 	down_write(&sb->s_umount);
--	err = do_remount_sb(sb, flags, data, 0);
-+	if (flags & MS_BIND)
-+		err = change_mount_flags(nd->mnt, flags);
-+	else
-+		err = do_remount_sb(sb, flags, data, 0);
- 	if (!err) {
- 		clear_mnt_user(nd->mnt);
- 		nd->mnt->mnt_flags = mnt_flags;
-@@ -1837,6 +1867,8 @@ long do_mount(char *dev_name, char *dir_
- 		mnt_flags |= MNT_RELATIME;
- 	if (flags & MS_NOMNT)
- 		mnt_flags |= MNT_NOMNT;
-+	if (flags & MS_RDONLY)
-+		mnt_flags |= MNT_READONLY;
- 
- 	flags &= ~(MS_NOSUID | MS_NOEXEC | MS_NODEV | MS_ACTIVE | MS_NOATIME |
- 			MS_NODIRATIME | MS_RELATIME| MS_KERNMOUNT | MS_NOMNT);
-diff -puN include/linux/mount.h~r-o-bind-mounts-honor-r-w-changes-at-do_remount-time include/linux/mount.h
---- a/include/linux/mount.h~r-o-bind-mounts-honor-r-w-changes-at-do_remount-time
-+++ a/include/linux/mount.h
-@@ -30,6 +30,7 @@ struct mnt_namespace;
- #define MNT_NODIRATIME	0x10
- #define MNT_RELATIME	0x20
- #define MNT_NOMNT	0x40
-+#define MNT_READONLY	0x40	/* does the user want this to be r/o? */
- 
- #define MNT_SHRINKABLE	0x100
- #define MNT_USER	0x200
+@@ -135,7 +138,7 @@ long do_utimes(int dfd, char __user *fil
+ 	error = notify_change(dentry, &newattrs);
+ 	mutex_unlock(&inode->i_mutex);
+ mnt_drop_write_and_out:
+-	mnt_drop_write(nd.mnt);
++	mnt_drop_write(mnt);
+ dput_and_out:
+ 	if (f)
+ 		fput(f);
 _
 
-Patches currently in -mm which might be from haveblue@us.ibm.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-markers-fix-warnings.patch
-maps4-add-proportional-set-size-accounting-in-smaps.patch
-maps4-rework-task_size-macros.patch
-maps4-move-is_swap_pte.patch
-maps4-introduce-a-generic-page-walker.patch
-maps4-use-pagewalker-in-clear_refs-and-smaps.patch
-maps4-simplify-interdependence-of-maps-and-smaps.patch
-maps4-move-clear_refs-code-to-task_mmuc.patch
-maps4-regroup-task_mmu-by-interface.patch
-maps4-add-proc-pid-pagemap-interface.patch
-maps4-add-proc-kpagecount-interface.patch
-maps4-add-proc-kpageflags-interface.patch
-maps4-make-page-monitoring-proc-file-optional.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-hugetlb-fix-quota-management-for-private-mappings.patch
-hugetlb-debit-quota-in-alloc_huge_page.patch
-hugetlb-allow-bulk-updating-in-hugetlb__quota.patch
-hugetlb-enforce-quotas-during-reservation-for-shared-mappings.patch
-add-remove_memory-for-ppc64-2.patch
-enable-hotplug-memory-remove-for-ppc64.patch
-add-arch-specific-walk_memory_remove-for-ppc64.patch
+pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
+pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
+git-unionfs.patch
+vfs-apply-coding-standards-to-fs-ioctlc.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names.patch
+vfs-factor-out-three-helpers-for-fibmap-fionbio-fioasync-file-ioctls.patch
+git-xfs.patch
+clean-up-vmtruncate.patch
+vfs-security-rework-inode_getsecurity-and-callers-to.patch
+vfs-reorder-vfs_getxattr-to-avoid-unnecessary-calls-to-the-lsm.patch
+unprivileged-mounts-add-user-mounts-to-the-kernel.patch
+unprivileged-mounts-allow-unprivileged-umount.patch
+unprivileged-mounts-account-user-mounts.patch
+unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
+unprivileged-mounts-allow-unprivileged-bind-mounts.patch
+unprivileged-mounts-allow-unprivileged-mounts.patch
+unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
+unprivileged-mounts-propagation-inherit-owner-from-parent.patch
+unprivileged-mounts-add-no-submounts-flag.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
 r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
+revoke-special-mmap-handling.patch
+revoke-core-code.patch
+revoke-support-for-ext2-and-ext3.patch
+revoke-add-documentation.patch
+revoke-wire-up-i386-system-calls.patch
+iget-introduce-a-function-to-register-iget-failure.patch
+iget-use-iget_failed-in-afs.patch
+iget-use-iget_failed-in-gfs2.patch
+iget-stop-affs-from-using-iget-and-read_inode-try.patch
+iget-stop-autofs-from-using-iget-and-read_inode.patch
+iget-stop-befs-from-using-iget-and-read_inode-try.patch
+iget-stop-bfs-from-using-iget-and-read_inode-try.patch
+iget-stop-cifs-from-using-iget-and-read_inode-try.patch
+iget-stop-efs-from-using-iget-and-read_inode-try.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try.patch
+iget-stop-ext4-from-using-iget-and-read_inode-try.patch
+iget-stop-fat-from-using-iget-and-read_inode-try.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-fuse-from-using-iget-and-read_inode-try.patch
+iget-stop-hfsplus-from-using-iget-and-read_inode.patch
+iget-stop-isofs-from-using-read_inode.patch
+iget-stop-jffs2-from-using-iget-and-read_inode.patch
+iget-stop-jfs-from-using-iget-and-read_inode-try.patch
+iget-stop-the-minix-filesystem-from-using-iget-and.patch
+iget-stop-procfs-from-using-iget-and-read_inode.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
+iget-stop-romfs-from-using-iget-and-read_inode.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try.patch
+iget-stop-openpromfs-from-using-iget-and.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hppfs-from-using-iget-and-read_inode.patch
+iget-remove-iget-and-the-read_inode-super-op-as.patch
+dont-touch-fs_struct-in-drivers.patch
+dont-touch-fs_struct-in-usermodehelper.patch
+remove-path_release_on_umount.patch
+move-struct-path-into-its-own-header.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
+introduce-path_put.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+introduce-path_get.patch
+use-struct-path-in-fs_struct.patch
+make-set_fs_rootpwd-take-a-struct-path.patch
+introduce-path_get-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
+introduce-path_put-unionfs.patch
+use-struct-path-in-struct-svc_expkey.patch
+d_path-make-seq_path-use-a-struct-path-argument.patch
