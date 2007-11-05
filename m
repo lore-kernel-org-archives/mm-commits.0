@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 14:06:20 -0800
-Message-ID: <200711052206.lA5M6K0O022005@imap1.linux-foundation.org>
+Subject: - slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 14:06:16 -0800
+Message-ID: <200711052206.lA5M6G37022002@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40997 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56368 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753110AbXKEWGy (ORCPT
+	by vger.kernel.org with ESMTP id S1751938AbXKEWGy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:06:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,36 +14,87 @@ To: akpm@linux-foundation.org, clameter@sgi.com, penberg@cs.helsinki.fi, mm-comm
 
 
 The patch titled
-     slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix
+     slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix.patch
+     slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
 
 This patch was dropped because of conflicts
 
 ------------------------------------------------------
-Subject: slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix
+Subject: slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
+
+ERROR: do not use assignment in if condition
+#627: FILE: mm/slub.c:2827:
++			if (!page->inuse && (state = slab_trylock(page))) {
+
+total: 1 errors, 0 warnings, 611 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+
+Seems nicer this way.
+
+Should the `if (page->inuse)' test be marked unlikely()?
 
 Cc: Christoph Lameter <clameter@sgi.com>
 Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |   27 +++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
-diff -puN mm/slub.c~slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix mm/slub.c
---- a/mm/slub.c~slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix
+diff -puN mm/slub.c~slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes mm/slub.c
+--- a/mm/slub.c~slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes
 +++ a/mm/slub.c
-@@ -2826,7 +2826,7 @@ int kmem_cache_shrink(struct kmem_cache 
+@@ -1540,7 +1540,7 @@ static noinline unsigned long get_new_sl
+ 		if (node_match(c, node)) {
+ 			/*
+ 			 * Current cpuslab is acceptable and we
+-			 * want the current one since its cache hot
++			 * want the current one since it is cache hot
+ 			 */
+ 			discard_slab(s, page);
+ 			return slab_lock(c->page);
+@@ -2824,20 +2824,23 @@ int kmem_cache_shrink(struct kmem_cache 
+ 		 * list_lock. page->inuse here is the upper limit.
+ 		 */
  		list_for_each_entry_safe(page, t, &n->partial, lru) {
- 			if (page->inuse) {
+-			if (!page->inuse && (state = slab_trylock(page))) {
+-				/*
+-				 * Must hold slab lock here because slab_free
+-				 * may have freed the last object and be
+-				 * waiting to release the slab.
+-				 */
+-				list_del(&page->lru);
+-				n->nr_partial--;
+-				slab_unlock(page, state);
+-				discard_slab(s, page);
+-			} else {
++			if (page->inuse) {
  				list_move(&page->lru,
--				slabs_by_inuse + page->inuse);
-+					slabs_by_inuse + page->inuse);
- 				continue;
+ 				slabs_by_inuse + page->inuse);
++				continue;
  			}
- 			state = slab_trylock(page);
++			state = slab_trylock(page);
++			if (!state)
++				continue;
++			/*
++			 * Must hold slab lock here because slab_free may have
++			 * freed the last object and be waiting to release the
++			 * slab.
++			 */
++			list_del(&page->lru);
++			n->nr_partial--;
++			slab_unlock(page, state);
++			discard_slab(s, page);
+ 		}
+ 
+ 		/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,6 +141,7 @@ file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
 i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
 slub-fix-coding-style-violations-checkpatch-fixes.patch
 slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
 slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix.patch
 bufferhead-revert-constructor-removal-checkpatch-fixes.patch
 maps4-make-page-monitoring-proc-file-optional-fix.patch
