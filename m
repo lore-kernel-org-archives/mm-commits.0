@@ -1,71 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 15:06:57 -0800
-Message-ID: <200711052306.lA5N6vEq024309@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 15:06:59 -0800
+Message-ID: <200711052306.lA5N6xOS024312@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58574 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34138 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753221AbXKEXMI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:12:08 -0500
+	by vger.kernel.org with ESMTP id S1751019AbXKEXMk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:12:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, hch@infradead.org, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r/o bind mounts: elevate mnt writers for callers of vfs_mkdir()
+     r/o bind mounts: elevate write count during entire ncp_ioctl()
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
+     r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate mnt writers for callers of vfs_mkdir()
+Subject: r/o bind mounts: elevate write count during entire ncp_ioctl()
 From: Dave Hansen <haveblue@us.ibm.com>
 
-Pretty self-explanatory.  Fits in with the rest of the series.
+Some ioctls need write access, but others don't.  Make a helper function to
+decide when write access is needed, and take it.
 
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Acked-by: Christoph Hellwig <hch@infradead.org>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c            |    5 +++++
- fs/nfsd/nfs4recover.c |    4 ++++
- 2 files changed, 9 insertions(+)
+ fs/ncpfs/ioctl.c |   54 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 53 insertions(+), 1 deletion(-)
 
-diff -puN fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir fs/namei.c
---- a/fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir
-+++ a/fs/namei.c
-@@ -2054,7 +2054,12 @@ asmlinkage long sys_mkdirat(int dfd, con
+diff -puN fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl fs/ncpfs/ioctl.c
+--- a/fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl
++++ a/fs/ncpfs/ioctl.c
+@@ -14,6 +14,7 @@
+ #include <linux/ioctl.h>
+ #include <linux/time.h>
+ #include <linux/mm.h>
++#include <linux/mount.h>
+ #include <linux/highuid.h>
+ #include <linux/smp_lock.h>
+ #include <linux/vmalloc.h>
+@@ -261,7 +262,7 @@ ncp_get_charsets(struct ncp_server* serv
+ }
+ #endif /* CONFIG_NCPFS_NLS */
  
- 	if (!IS_POSIXACL(nd.dentry->d_inode))
- 		mode &= ~current->fs->umask;
-+	error = mnt_want_write(nd.mnt);
-+	if (error)
-+		goto out_dput;
- 	error = vfs_mkdir(nd.dentry->d_inode, dentry, mode);
-+	mnt_drop_write(nd.mnt);
-+out_dput:
- 	dput(dentry);
- out_unlock:
- 	mutex_unlock(&nd.dentry->d_inode->i_mutex);
-diff -puN fs/nfsd/nfs4recover.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir fs/nfsd/nfs4recover.c
---- a/fs/nfsd/nfs4recover.c~r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir
-+++ a/fs/nfsd/nfs4recover.c
-@@ -156,7 +156,11 @@ nfsd4_create_clid_dir(struct nfs4_client
- 		dprintk("NFSD: nfsd4_create_clid_dir: DIRECTORY EXISTS\n");
- 		goto out_put;
- 	}
-+	status = mnt_want_write(rec_dir.mnt);
-+	if (status)
-+		goto out_put;
- 	status = vfs_mkdir(rec_dir.dentry->d_inode, dentry, S_IRWXU);
-+	mnt_drop_write(rec_dir.mnt);
- out_put:
- 	dput(dentry);
- out_unlock:
+-int ncp_ioctl(struct inode *inode, struct file *filp,
++static int __ncp_ioctl(struct inode *inode, struct file *filp,
+ 	      unsigned int cmd, unsigned long arg)
+ {
+ 	struct ncp_server *server = NCP_SERVER(inode);
+@@ -822,6 +823,57 @@ outrel:			
+ 	return -EINVAL;
+ }
+ 
++static int ncp_ioctl_need_write(unsigned int cmd)
++{
++	switch (cmd) {
++	case NCP_IOC_GET_FS_INFO:
++	case NCP_IOC_GET_FS_INFO_V2:
++	case NCP_IOC_NCPREQUEST:
++	case NCP_IOC_SETDENTRYTTL:
++	case NCP_IOC_SIGN_INIT:
++	case NCP_IOC_LOCKUNLOCK:
++	case NCP_IOC_SET_SIGN_WANTED:
++		return 1;
++	case NCP_IOC_GETOBJECTNAME:
++	case NCP_IOC_SETOBJECTNAME:
++	case NCP_IOC_GETPRIVATEDATA:
++	case NCP_IOC_SETPRIVATEDATA:
++	case NCP_IOC_SETCHARSETS:
++	case NCP_IOC_GETCHARSETS:
++	case NCP_IOC_CONN_LOGGED_IN:
++	case NCP_IOC_GETDENTRYTTL:
++	case NCP_IOC_GETMOUNTUID2:
++	case NCP_IOC_SIGN_WANTED:
++	case NCP_IOC_GETROOT:
++	case NCP_IOC_SETROOT:
++		return 0;
++	default:
++		/* unkown IOCTL command, assume write */
++	}
++	return 1;
++}
++
++int ncp_ioctl(struct inode *inode, struct file *filp,
++	      unsigned int cmd, unsigned long arg)
++{
++	int ret;
++
++	if (ncp_ioctl_need_write(cmd)) {
++		/*
++		 * inside the ioctl(), any failures which
++		 * are because of file_permission() are
++		 * -EACCESS, so it seems consistent to keep
++		 *  that here.
++		 */
++		if (mnt_want_write(filp->f_vfsmnt))
++			return -EACCES;
++	}
++	ret = __ncp_ioctl(inode, filp, cmd, arg);
++	if (ncp_ioctl_need_write(cmd))
++		mnt_drop_write(filp->f_vfsmnt);
++	return ret;
++}
++
+ #ifdef CONFIG_COMPAT
+ long ncp_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
@@ -93,7 +140,6 @@ hugetlb-enforce-quotas-during-reservation-for-shared-mappings.patch
 add-remove_memory-for-ppc64-2.patch
 enable-hotplug-memory-remove-for-ppc64.patch
 add-arch-specific-walk_memory_remove-for-ppc64.patch
-r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
 r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
