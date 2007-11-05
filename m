@@ -1,64 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 14:00:29 -0800
-Message-ID: <200711052200.lA5M0TMK021749@imap1.linux-foundation.org>
+Subject: - git-unionfs-fixup.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 14:01:05 -0800
+Message-ID: <200711052201.lA5M15D1021764@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40835 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44716 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753715AbXKEWBO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:01:14 -0500
+	by vger.kernel.org with ESMTP id S1753715AbXKEWBU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:01:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, dtor@mail.ru, johannes@sipsolutions.net, valderman@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ezk@cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix-appletouch-geyser-1-breakage-checkpatch-fixes
+     git-unionfs-fixup
 has been removed from the -mm tree.  Its filename was
-     fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
+     git-unionfs-fixup.patch
 
-This patch was dropped because change in mainline broke it
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: fix-appletouch-geyser-1-breakage-checkpatch-fixes
+Subject: git-unionfs-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: else should follow close brace '}'
-#62: FILE: drivers/input/mouse/appletouch.c:520:
- 		}
-+		else
+Fix git conflict
 
-total: 1 errors, 0 warnings, 36 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Anton Ekblad <valderman@gmail.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/mouse/appletouch.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/Kconfig |   15 ---------------
+ 1 file changed, 15 deletions(-)
 
-diff -puN drivers/input/mouse/appletouch.c~fix-appletouch-geyser-1-breakage-checkpatch-fixes drivers/input/mouse/appletouch.c
---- a/drivers/input/mouse/appletouch.c~fix-appletouch-geyser-1-breakage-checkpatch-fixes
-+++ a/drivers/input/mouse/appletouch.c
-@@ -516,8 +516,7 @@ static void atp_complete(struct urb* urb
- 				dev->valid = 0;
- 				schedule_work(&dev->work);
- 			}
--		}
--		else
-+		} else
- 			dev->idlecount = 0;
- 	}
+diff -puN fs/Kconfig~git-unionfs-fixup fs/Kconfig
+--- a/fs/Kconfig~git-unionfs-fixup
++++ a/fs/Kconfig
+@@ -1125,21 +1125,6 @@ config AFFS_FS
+ 	  To compile this file system support as a module, choose M here: the
+ 	  module will be called affs.  If unsure, say N.
  
+-<<<<<<< HEAD:fs/Kconfig
+-config ECRYPT_FS
+-	tristate "eCrypt filesystem layer support (EXPERIMENTAL)"
+-	depends on EXPERIMENTAL && KEYS && CRYPTO && NET
+-	help
+-	  Encrypted filesystem that operates on the VFS layer.  See
+-	  <file:Documentation/filesystems/ecryptfs.txt> to learn more about
+-	  eCryptfs.  Userspace components are required and can be
+-	  obtained from <http://ecryptfs.sf.net>.
+-
+-	  To compile this file system support as a module, choose M here: the
+-	  module will be called ecryptfs.
+-
+-=======
+->>>>>>> FETCH_HEAD:fs/Kconfig
+ config HFS_FS
+ 	tristate "Apple Macintosh file system support (EXPERIMENTAL)"
+ 	depends on BLOCK && EXPERIMENTAL
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,12 +71,10 @@ git-arm-fixup.patch
 revert-gregkh-driver-block-device.patch
 git-hwmon.patch
 ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
 elantech-touchpad-driver-fix.patch
 git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
-libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
 ide-arm-hack.patch
 drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
 lmc_ioctl-dont-return-with-locks-held-fix.patch
@@ -91,8 +88,6 @@ fix-build-breakage-if-sysfs-fix.patch
 ips-trim-trailing-whitespace-checkpatch-fixes.patch
 scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
 scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-git-block-fixup.patch
-git-block-vs-agk-dm-dm-reorder-struct-io_restrictions.patch
 git-unionfs.patch
 git-unionfs-fixup.patch
 git-wireless.patch
