@@ -1,153 +1,181 @@
 From: akpm@linux-foundation.org
-Subject: + migration-find-correct-vma-in-new_vma_page.patch added to -mm tree
-Date: Mon, 05 Nov 2007 15:05:43 -0800
-Message-ID: <200711052305.lA5N5ioA024203@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-stub-functions.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 15:06:42 -0800
+Message-ID: <200711052306.lA5N6gN7024289@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47439 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46823 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752700AbXKEXFw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:05:52 -0500
+	by vger.kernel.org with ESMTP id S1752859AbXKEXHC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:07:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: Lee.Schermerhorn@hp.com, clameter@sgi.com, lee.schermerhorn@hp.com
+To: haveblue@us.ibm.com, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Migration: find correct vma in new_vma_page()
-has been added to the -mm tree.  Its filename is
-     migration-find-correct-vma-in-new_vma_page.patch
+     r/o bind mounts: stub functions
+has been removed from the -mm tree.  Its filename was
+     r-o-bind-mounts-stub-functions.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Migration: find correct vma in new_vma_page()
-From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Subject: r/o bind mounts: stub functions
+From: Dave Hansen <haveblue@us.ibm.com>
 
-We hit the BUG_ON() in mm/rmap.c:vma_address() when trying to migrate via
-mbind(MPOL_MF_MOVE) a non-anon region that spans multiple vmas.  For
-anon-regions, we just fail to migrate any pages beyond the 1st vma in the
-range.
+This patch adds two function mnt_want_write() and mnt_drop_write().  These are
+used like a lock pair around and fs operations that might cause a write to the
+filesystem.
 
-This occurs because do_mbind() collects a list of pages to migrate by
-calling check_range().  check_range() walks the task's mm, spanning vmas as
-necessary, to collect the migratable pages into a list.  Then, do_mbind()
-calls migrate_pages() passing the list of pages, a function to allocate new
-pages based on vma policy [new_vma_page()], and a pointer to the first vma
-of the range.
+Before these can become useful, we must first cover each place in the VFS
+where writes are performed with a want/drop pair.  When that is complete, we
+can actually introduce code that will safely check the counts before allowing
+r/w<->r/o transitions to occur.
 
-For each page in the list, new_vma_page() calls page_address_in_vma()
-passing the page and the vma [first in range] to obtain the address to get
-for alloc_page_vma().  The page address is needed to get interleaving
-policy correct.  If the pages in the list come from multiple vmas,
-eventually, new_page_address() will pass that page to page_address_in_vma()
-with the incorrect vma.  For !PageAnon pages, this will result in a bug
-check in rmap.c:vma_address().  For anon pages, vma_address() will just
-return EFAULT and fail the migration.
-
-This patch modifies new_vma_page() to check the return value from
-page_address_in_vma().  If the return value is EFAULT, new_vma_page()
-searchs forward via vm_next for the vma that maps the page--i.e., that does
-not return EFAULT.  This assumes that the pages in the list handed to
-migrate_pages() is in address order.  This is currently case.  The patch
-documents this assumption in a new comment block for new_vma_page().
-
-If new_vma_page() cannot locate the vma mapping the page in a forward
-search in the mm, it will pass a NULL vma to alloc_page_vma().  This will
-result in the allocation using the task policy, if any, else system default
-policy.  This situation is unlikely, but the patch documents this behavior
-with a comment.
-
-Note, this patch results in restarting from the first vma in a multi-vma
-range each time new_vma_page() is called.  If this is not acceptable, we
-can make the vma argument a pointer, both in new_vma_page() and it's caller
-unmap_and_move() so that the value held by the loop in migrate_pages()
-always passes down the last vma in which a page was found.  This will
-require changes to all new_page_t functions passed to migrate_pages().  Is
-this necessary?
-
-For this patch to work, we can't bug check in vma_address() for pages
-outside the argument vma.  This patch removes the BUG_ON().  All other
-callers [besides new_vma_page()] already check the return status.
-
-Tested on x86_64, 4 node NUMA platform.
-
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Acked-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   21 +++++++++++++++++++--
- mm/rmap.c      |    7 ++++---
- 2 files changed, 23 insertions(+), 5 deletions(-)
+ fs/namespace.c        |   54 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/mount.h |    3 ++
+ 2 files changed, 57 insertions(+)
 
-diff -puN mm/mempolicy.c~migration-find-correct-vma-in-new_vma_page mm/mempolicy.c
---- a/mm/mempolicy.c~migration-find-correct-vma-in-new_vma_page
-+++ a/mm/mempolicy.c
-@@ -722,12 +722,29 @@ out:
- 
+diff -puN fs/namespace.c~r-o-bind-mounts-stub-functions fs/namespace.c
+--- a/fs/namespace.c~r-o-bind-mounts-stub-functions
++++ a/fs/namespace.c
+@@ -80,6 +80,60 @@ struct vfsmount *alloc_vfsmnt(const char
+ 	return mnt;
  }
  
 +/*
-+ * Allocate a new page for page migration based on vma policy.
-+ * Start assuming that page is mapped by vma pointed to by @private.
-+ * Search forward from there, if not.  N.B., this assumes that the
-+ * list of pages handed to migrate_pages()--which is how we get here--
-+ * is in virtual address order.
++ * Most r/o checks on a fs are for operations that take
++ * discrete amounts of time, like a write() or unlink().
++ * We must keep track of when those operations start
++ * (for permission checks) and when they end, so that
++ * we can determine when writes are able to occur to
++ * a filesystem.
 + */
- static struct page *new_vma_page(struct page *page, unsigned long private, int **x)
- {
- 	struct vm_area_struct *vma = (struct vm_area_struct *)private;
-+	unsigned long uninitialized_var(address);
- 
--	return alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma,
--					page_address_in_vma(page, vma));
-+	while (vma) {
-+		address = page_address_in_vma(page, vma);
-+		if (address != -EFAULT)
-+			break;
-+		vma = vma->vm_next;
-+	}
++/**
++ * mnt_want_write - get write access to a mount
++ * @mnt: the mount on which to take a write
++ *
++ * This tells the low-level filesystem that a write is
++ * about to be performed to it, and makes sure that
++ * writes are allowed before returning success.  When
++ * the write operation is finished, mnt_drop_write()
++ * must be called.  This is effectively a refcount.
++ */
++int mnt_want_write(struct vfsmount *mnt)
++{
++	if (__mnt_is_readonly(mnt))
++		return -EROFS;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(mnt_want_write);
 +
-+	/*
-+	 * if !vma, alloc_page_vma() will use task or system default policy
-+	 */
-+	return alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
++/**
++ * mnt_drop_write - give up write access to a mount
++ * @mnt: the mount on which to give up write access
++ *
++ * Tells the low-level filesystem that we are done
++ * performing writes to it.  Must be matched with
++ * mnt_want_write() call above.
++ */
++void mnt_drop_write(struct vfsmount *mnt)
++{
++}
++EXPORT_SYMBOL_GPL(mnt_drop_write);
++
++/*
++ * __mnt_is_readonly: check whether a mount is read-only
++ * @mnt: the mount to check for its write status
++ *
++ * This shouldn't be used directly ouside of the VFS.
++ * It does not guarantee that the filesystem will stay
++ * r/w, just that it is right *now*.  This can not and
++ * should not be used in place of IS_RDONLY(inode).
++ */
++int __mnt_is_readonly(struct vfsmount *mnt)
++{
++	return (mnt->mnt_sb->s_flags & MS_RDONLY);
++}
++EXPORT_SYMBOL_GPL(__mnt_is_readonly);
++
+ int simple_set_mnt(struct vfsmount *mnt, struct super_block *sb)
+ {
+ 	mnt->mnt_sb = sb;
+diff -puN include/linux/mount.h~r-o-bind-mounts-stub-functions include/linux/mount.h
+--- a/include/linux/mount.h~r-o-bind-mounts-stub-functions
++++ a/include/linux/mount.h
+@@ -74,9 +74,12 @@ static inline struct vfsmount *mntget(st
+ 	return mnt;
  }
- #else
  
-diff -puN mm/rmap.c~migration-find-correct-vma-in-new_vma_page mm/rmap.c
---- a/mm/rmap.c~migration-find-correct-vma-in-new_vma_page
-+++ a/mm/rmap.c
-@@ -183,7 +183,9 @@ static void page_unlock_anon_vma(struct 
- }
++extern int mnt_want_write(struct vfsmount *mnt);
++extern void mnt_drop_write(struct vfsmount *mnt);
+ extern void mntput_no_expire(struct vfsmount *mnt);
+ extern void mnt_pin(struct vfsmount *mnt);
+ extern void mnt_unpin(struct vfsmount *mnt);
++extern int __mnt_is_readonly(struct vfsmount *mnt);
  
- /*
-- * At what user virtual address is page expected in vma?
-+ * At what user virtual address is page expected in @vma?
-+ * Returns virtual address or -EFAULT if page's index/offset is not
-+ * within the range mapped the @vma.
-  */
- static inline unsigned long
- vma_address(struct page *page, struct vm_area_struct *vma)
-@@ -193,8 +195,7 @@ vma_address(struct page *page, struct vm
- 
- 	address = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
- 	if (unlikely(address < vma->vm_start || address >= vma->vm_end)) {
--		/* page should be within any vma from prio_tree_next */
--		BUG_ON(!PageAnon(page));
-+		/* page should be within @vma mapping range */
- 		return -EFAULT;
- 	}
- 	return address;
+ static inline void mntput(struct vfsmount *mnt)
+ {
 _
 
-Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
+Patches currently in -mm which might be from haveblue@us.ibm.com are
 
-migration-find-correct-vma-in-new_vma_page.patch
-mem-policy-fix-mempolicy-usage-in-pci-driver.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
+markers-fix-warnings.patch
+maps4-add-proportional-set-size-accounting-in-smaps.patch
+maps4-rework-task_size-macros.patch
+maps4-move-is_swap_pte.patch
+maps4-introduce-a-generic-page-walker.patch
+maps4-use-pagewalker-in-clear_refs-and-smaps.patch
+maps4-simplify-interdependence-of-maps-and-smaps.patch
+maps4-move-clear_refs-code-to-task_mmuc.patch
+maps4-regroup-task_mmu-by-interface.patch
+maps4-add-proc-pid-pagemap-interface.patch
+maps4-add-proc-kpagecount-interface.patch
+maps4-add-proc-kpageflags-interface.patch
+maps4-make-page-monitoring-proc-file-optional.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+hugetlb-split-alloc_huge_page-into-private-and-shared-components.patch
+hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
+hugetlb-fix-quota-management-for-private-mappings.patch
+hugetlb-debit-quota-in-alloc_huge_page.patch
+hugetlb-allow-bulk-updating-in-hugetlb__quota.patch
+hugetlb-enforce-quotas-during-reservation-for-shared-mappings.patch
+add-remove_memory-for-ppc64-2.patch
+enable-hotplug-memory-remove-for-ppc64.patch
+add-arch-specific-walk_memory_remove-for-ppc64.patch
+r-o-bind-mounts-stub-functions.patch
+r-o-bind-mounts-elevate-write-count-opend-files.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2.patch
+r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
+r-o-bind-mounts-make-access-use-mnt-check.patch
+r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
+r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
+r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
+r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime.patch
+r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime-fix.patch
+r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
+r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch
+r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
+r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
+r-o-bind-mounts-do_rmdir-elevate-write-count.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
+r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
+r-o-bind-mounts-track-number-of-mount-writers-fix.patch
+r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
