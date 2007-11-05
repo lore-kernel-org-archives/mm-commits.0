@@ -1,66 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 15:07:03 -0800
-Message-ID: <200711052307.lA5N73sb024320@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-make-access-use-mnt-check.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 15:06:55 -0800
+Message-ID: <200711052306.lA5N6tAp024306@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51659 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39308 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754470AbXKEXHT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:07:19 -0500
+	by vger.kernel.org with ESMTP id S1752700AbXKEXHO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:07:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: haveblue@us.ibm.com, hch@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r/o bind mounts: elevate write count for link and symlink calls
+     r/o bind mounts: make access() use mnt check
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
+     r-o-bind-mounts-make-access-use-mnt-check.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate write count for link and symlink calls
+Subject: r/o bind mounts: make access() use mnt check
 From: Dave Hansen <haveblue@us.ibm.com>
+
+It is OK to let access() go without using a mnt_want/drop_write() pair because
+it doesn't actually do writes to the filesystem, and it is inherently racy
+anyway.  This is a rare case when it is OK to use __mnt_is_readonly()
+directly.
 
 Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ fs/open.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN fs/namei.c~r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls fs/namei.c
---- a/fs/namei.c~r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls
-+++ a/fs/namei.c
-@@ -2327,7 +2327,12 @@ asmlinkage long sys_symlinkat(const char
- 	if (IS_ERR(dentry))
- 		goto out_unlock;
+diff -puN fs/open.c~r-o-bind-mounts-make-access-use-mnt-check fs/open.c
+--- a/fs/open.c~r-o-bind-mounts-make-access-use-mnt-check
++++ a/fs/open.c
+@@ -457,8 +457,17 @@ asmlinkage long sys_faccessat(int dfd, c
+ 	if(res || !(mode & S_IWOTH) ||
+ 	   special_file(nd.dentry->d_inode->i_mode))
+ 		goto out_path_release;
+-
+-	if(IS_RDONLY(nd.dentry->d_inode))
++	/*
++	 * This is a rare case where using __mnt_is_readonly()
++	 * is OK without a mnt_want/drop_write() pair.  Since
++	 * no actual write to the fs is performed here, we do
++	 * not need to telegraph to that to anyone.
++	 *
++	 * By doing this, we accept that this access is
++	 * inherently racy and know that the fs may change
++	 * state before we even see this result.
++	 */
++	if (__mnt_is_readonly(nd.mnt))
+ 		res = -EROFS;
  
-+	error = mnt_want_write(nd.mnt);
-+	if (error)
-+		goto out_dput;
- 	error = vfs_symlink(nd.dentry->d_inode, dentry, from, S_IALLUGO);
-+	mnt_drop_write(nd.mnt);
-+out_dput:
- 	dput(dentry);
- out_unlock:
- 	mutex_unlock(&nd.dentry->d_inode->i_mutex);
-@@ -2422,7 +2427,12 @@ asmlinkage long sys_linkat(int olddfd, c
- 	error = PTR_ERR(new_dentry);
- 	if (IS_ERR(new_dentry))
- 		goto out_unlock;
-+	error = mnt_want_write(nd.mnt);
-+	if (error)
-+		goto out_dput;
- 	error = vfs_link(old_nd.dentry, nd.dentry->d_inode, new_dentry);
-+	mnt_drop_write(nd.mnt);
-+out_dput:
- 	dput(new_dentry);
- out_unlock:
- 	mutex_unlock(&nd.dentry->d_inode->i_mutex);
+ out_path_release:
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
@@ -88,6 +87,10 @@ hugetlb-enforce-quotas-during-reservation-for-shared-mappings.patch
 add-remove_memory-for-ppc64-2.patch
 enable-hotplug-memory-remove-for-ppc64.patch
 add-arch-specific-walk_memory_remove-for-ppc64.patch
+r-o-bind-mounts-make-access-use-mnt-check.patch
+r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
 r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
 r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
 r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
