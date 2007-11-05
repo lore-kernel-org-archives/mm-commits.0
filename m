@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch added to -mm tree
-Date: Mon, 05 Nov 2007 15:37:59 -0800
-Message-ID: <200711052337.lA5NbxAF025545@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-make-access-use-mnt-check.patch added to -mm tree
+Date: Mon, 05 Nov 2007 15:39:03 -0800
+Message-ID: <200711052339.lA5Nd3VK025608@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43311 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60629 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755212AbXKEXiq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:38:46 -0500
+	by vger.kernel.org with ESMTP id S1753221AbXKEXjm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:39:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: haveblue@us.ibm.com, hch@infradead.org
 
 
 The patch titled
-     r-o-bind-mounts: elevate mnt writers for vfs_unlink() callers
+     r-o-bind-mounts: make access() use mnt check
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
+     r-o-bind-mounts-make-access-use-mnt-check.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,49 +25,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts: elevate mnt writers for vfs_unlink() callers
+Subject: r-o-bind-mounts: make access() use mnt check
 From: Dave Hansen <haveblue@us.ibm.com>
+
+It is OK to let access() go without using a mnt_want/drop_write() pair because
+it doesn't actually do writes to the filesystem, and it is inherently racy
+anyway.  This is a rare case when it is OK to use __mnt_is_readonly()
+directly.
 
 Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c   |    4 ++++
- ipc/mqueue.c |    5 ++++-
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ fs/open.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers fs/namei.c
---- a/fs/namei.c~r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers
-+++ a/fs/namei.c
-@@ -2266,7 +2266,11 @@ static long do_unlinkat(int dfd, const c
- 		inode = dentry->d_inode;
- 		if (inode)
- 			atomic_inc(&inode->i_count);
-+		error = mnt_want_write(nd.mnt);
-+		if (error)
-+			goto exit2;
- 		error = vfs_unlink(nd.dentry->d_inode, dentry);
-+		mnt_drop_write(nd.mnt);
- 	exit2:
- 		dput(dentry);
- 	}
-diff -puN ipc/mqueue.c~r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers ipc/mqueue.c
---- a/ipc/mqueue.c~r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers
-+++ a/ipc/mqueue.c
-@@ -743,8 +743,11 @@ asmlinkage long sys_mq_unlink(const char
- 	inode = dentry->d_inode;
- 	if (inode)
- 		atomic_inc(&inode->i_count);
+diff -puN fs/open.c~r-o-bind-mounts-make-access-use-mnt-check fs/open.c
+--- a/fs/open.c~r-o-bind-mounts-make-access-use-mnt-check
++++ a/fs/open.c
+@@ -459,8 +459,17 @@ asmlinkage long sys_faccessat(int dfd, c
+ 	if(res || !(mode & S_IWOTH) ||
+ 	   special_file(nd.dentry->d_inode->i_mode))
+ 		goto out_path_release;
 -
-+	err = mnt_want_write(mqueue_mnt);
-+	if (err)
-+		goto out_err;
- 	err = vfs_unlink(dentry->d_parent->d_inode, dentry);
-+	mnt_drop_write(mqueue_mnt);
- out_err:
- 	dput(dentry);
+-	if(IS_RDONLY(nd.dentry->d_inode))
++	/*
++	 * This is a rare case where using __mnt_is_readonly()
++	 * is OK without a mnt_want/drop_write() pair.  Since
++	 * no actual write to the fs is performed here, we do
++	 * not need to telegraph to that to anyone.
++	 *
++	 * By doing this, we accept that this access is
++	 * inherently racy and know that the fs may change
++	 * state before we even see this result.
++	 */
++	if (__mnt_is_readonly(nd.mnt))
+ 		res = -EROFS;
  
+ out_path_release:
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
@@ -112,6 +108,7 @@ r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
 r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
 r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
 r-o-bind-mounts-elevate-write-count-opened-files.patch
 r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
