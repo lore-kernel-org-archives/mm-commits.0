@@ -1,152 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: - slub-restructure-slab-alloc.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 14:06:30 -0800
-Message-ID: <200711052206.lA5M6Ufh022010@imap1.linux-foundation.org>
+Subject: - at32ap700x_wdt-add-support-for-boot-status-and-add-fix-for-silicon-errata.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 14:07:50 -0800
+Message-ID: <200711052207.lA5M7obY022062@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49798 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53058 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753754AbXKEWHF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:07:05 -0500
+	by vger.kernel.org with ESMTP id S1750741AbXKEWI1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:08:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: hcegtvedt@atmel.com, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SLUB: restructure slab alloc
+     at32ap700x_wdt: add support for boot status and add fix for silicon errata
 has been removed from the -mm tree.  Its filename was
-     slub-restructure-slab-alloc.patch
+     at32ap700x_wdt-add-support-for-boot-status-and-add-fix-for-silicon-errata.patch
 
-This patch was dropped because of conflicts
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: SLUB: restructure slab alloc
-From: Christoph Lameter <clameter@sgi.com>
+Subject: at32ap700x_wdt: add support for boot status and add fix for silicon errata
+From: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
 
-Restructure slab_alloc so that the code flows in the sequence it is usually
-executed.
+This patch enables the watchdog to read out the reset cause after a boot
+and provide this to the user.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+The driver will now also return -EIO if probed when booting from a watchdog
+reset.  This is due to a silicon errata in the AT32AP700x devices.
+
+Detailed description and work-arounds can be found in the errata section of the
+datasheet avilable from
+http://www.atmel.com/dyn/products/datasheets.asp?family_id=682
+
+Signed-off-by: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   40 ++++++++++++++++++++++++----------------
- 1 file changed, 24 insertions(+), 16 deletions(-)
+ drivers/watchdog/at32ap700x_wdt.c |   69 ++++++++++++++++++++++++++--
+ 1 file changed, 65 insertions(+), 4 deletions(-)
 
-diff -puN mm/slub.c~slub-restructure-slab-alloc mm/slub.c
---- a/mm/slub.c~slub-restructure-slab-alloc
-+++ a/mm/slub.c
-@@ -1580,16 +1580,28 @@ static void *__slab_alloc(struct kmem_ca
- 	local_irq_save(flags);
- 	preempt_enable_no_resched();
- #endif
--	if (!c->page)
--		goto new_slab;
-+	if (likely(c->page)) {
-+		state = slab_lock(c->page);
+diff -puN drivers/watchdog/at32ap700x_wdt.c~at32ap700x_wdt-add-support-for-boot-status-and-add-fix-for-silicon-errata drivers/watchdog/at32ap700x_wdt.c
+--- a/drivers/watchdog/at32ap700x_wdt.c~at32ap700x_wdt-add-support-for-boot-status-and-add-fix-for-silicon-errata
++++ a/drivers/watchdog/at32ap700x_wdt.c
+@@ -6,6 +6,19 @@
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
++ *
++ *
++ * Errata: WDT Clear is blocked after WDT Reset
++ *
++ * A watchdog timer event will, after reset, block writes to the WDT_CLEAR
++ * register, preventing the program to clear the next Watchdog Timer Reset.
++ *
++ * If you still want to use the WDT after a WDT reset a small code can be
++ * insterted at the startup checking the AVR32_PM.rcause register for WDT reset
++ * and use a GPIO pin to reset the system. This method requires that one of the
++ * GPIO pins are available and connected externally to the RESET_N pin. After
++ * the GPIO pin has pulled down the reset line the GPIO will be reset and leave
++ * the pin tristated with pullup.
+  */
+ 
+ #include <linux/init.h>
+@@ -44,6 +57,13 @@ MODULE_PARM_DESC(nowayout, "Watchdog can
+ 
+ #define WDT_CLR			0x04
+ 
++#define WDT_RCAUSE		0x10
++#define WDT_RCAUSE_POR		   0
++#define WDT_RCAUSE_EXT		   2
++#define WDT_RCAUSE_WDT		   3
++#define WDT_RCAUSE_JTAG		   4
++#define WDT_RCAUSE_SERP		   5
 +
-+		if (unlikely(node_match(c, node) &&
-+			c->page->freelist != c->page->end))
-+				goto load_freelist;
+ #define WDT_BIT(name)		(1 << WDT_##name)
+ #define WDT_BF(name, value)	((value) << WDT_##name)
+ 
+@@ -56,6 +76,7 @@ struct wdt_at32ap700x {
+ 	void __iomem		*regs;
+ 	spinlock_t		io_lock;
+ 	int			timeout;
++	int			boot_status;
+ 	unsigned long		users;
+ 	struct miscdevice	miscdev;
+ };
+@@ -126,7 +147,7 @@ static int at32_wdt_close(struct inode *
+ 		at32_wdt_stop();
+ 	} else {
+ 		dev_dbg(wdt->miscdev.parent,
+-			"Unexpected close, not stopping watchdog!\n");
++			"unexpected close, not stopping watchdog!\n");
+ 		at32_wdt_pat();
+ 	}
+ 	clear_bit(1, &wdt->users);
+@@ -154,6 +175,33 @@ static int at32_wdt_settimeout(int time)
+ 	return 0;
+ }
+ 
++/*
++ * Get the watchdog status.
++ */
++static int at32_wdt_get_status(void)
++{
++	int rcause;
++	int status = 0;
 +
-+		deactivate_slab(s, c, state);
++	rcause = wdt_readl(wdt, RCAUSE);
++
++	switch (rcause) {
++	case WDT_BIT(RCAUSE_EXT):
++		status = WDIOF_EXTERN1;
++		break;
++	case WDT_BIT(RCAUSE_WDT):
++		status = WDIOF_CARDRESET;
++		break;
++	case WDT_BIT(RCAUSE_POR):  /* fall through */
++	case WDT_BIT(RCAUSE_JTAG): /* fall through */
++	case WDT_BIT(RCAUSE_SERP): /* fall through */
++	default:
++		break;
 +	}
 +
-+another_slab:
-+	state = get_partial(s, c, gfpflags, node);
-+	if (!state)
-+		goto grow_slab;
- 
--	state = slab_lock(c->page);
--	if (unlikely(!node_match(c, node)))
--		goto another_slab;
- load_freelist:
--	object = c->page->freelist;
--	if (unlikely(object == c->page->end))
--		goto another_slab;
-+	/*
-+	 * slabs from the partial list must have at least
-+	 * one free object.
-+	 */
-+	VM_BUG_ON(c->page->freelist == c->page->end);
++	return status;
++}
 +
- 	if (unlikely(state & SLABDEBUG))
- 		goto debug;
- 
-@@ -1607,20 +1619,16 @@ out:
- #endif
- 	return object;
- 
--another_slab:
--	deactivate_slab(s, c, state);
--
--new_slab:
--	state = get_partial(s, c, gfpflags, node);
--	if (state)
--		goto load_freelist;
--
-+/* Extend the slabcache with a new slab */
-+grow_slab:
- 	state = get_new_slab(s, &c, gfpflags, node);
- 	if (state)
- 		goto load_freelist;
- 
- 	object = NULL;
- 	goto out;
+ static struct watchdog_info at32_wdt_info = {
+ 	.identity	= "at32ap700x watchdog",
+ 	.options	= WDIOF_SETTIMEOUT |
+@@ -194,10 +242,12 @@ static int at32_wdt_ioctl(struct inode *
+ 	case WDIOC_GETTIMEOUT:
+ 		ret = put_user(wdt->timeout, p);
+ 		break;
+-	case WDIOC_GETSTATUS: /* fall through */
+-	case WDIOC_GETBOOTSTATUS:
++	case WDIOC_GETSTATUS:
+ 		ret = put_user(0, p);
+ 		break;
++	case WDIOC_GETBOOTSTATUS:
++		ret = put_user(wdt->boot_status, p);
++		break;
+ 	case WDIOC_SETOPTIONS:
+ 		ret = get_user(time, p);
+ 		if (ret)
+@@ -282,8 +332,19 @@ static int __init at32_wdt_probe(struct 
+ 		dev_dbg(&pdev->dev, "could not map I/O memory\n");
+ 		goto err_free;
+ 	}
 +
-+/* Perform debugging */
- debug:
- 	object = c->page->freelist;
- 	if (!alloc_debug_processing(s, c->page, object, addr))
+ 	spin_lock_init(&wdt->io_lock);
+-	wdt->users = 0;
++	wdt->boot_status = at32_wdt_get_status();
++
++	/* Work-around for watchdog silicon errata. */
++	if (wdt->boot_status & WDIOF_CARDRESET) {
++		dev_info(&pdev->dev, "CPU must be reset with external "
++				"reset or POR due to silicon errata.\n");
++		ret = -EIO;
++		goto err_iounmap;
++	} else {
++		wdt->users = 0;
++	}
+ 	wdt->miscdev.minor = WATCHDOG_MINOR;
+ 	wdt->miscdev.name = "watchdog";
+ 	wdt->miscdev.fops = &at32_wdt_fops;
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from hcegtvedt@atmel.com are
 
-origin.patch
-ia64-slim-down-__clear_bit_unlock.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-mem-policy-fix-mempolicy-usage-in-pci-driver.patch
-git-unionfs.patch
-git-x86.patch
-fix-mm-utilckrealloc.patch
-vmstat-fix-section-mismatch-warning.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
-move-vmalloc_to_page-to-mm-vmalloc.patch
-vmalloc-add-const-to-void-parameters.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
-vmalloc-clean-up-page-array-indexing.patch
-vunmap-return-page-array-passed-on-vmap.patch
-slub-move-count_partial.patch
-slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
-slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
-slub-use-non-atomic-bit-unlock.patch
-slub-fix-coding-style-violations.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch
-slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path.patch
-slub-__slab_alloc-exit-path-consolidation.patch
-slub-provide-unique-end-marker-for-each-slab.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc.patch
-slub-optional-fast-path-using-cmpxchg_local.patch
-slub-restructure-slab-alloc.patch
-slub-comment-kmem_cache_cpu-structure.patch
-vm-allow-get_page_unless_zero-on-compound-pages.patch
-bufferhead-revert-constructor-removal.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-swapin_readahead-excise-numa-bogosity.patch
-revoke-core-code.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-dentries-extract-common-code-to-remove-dentry-from-lru.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+git-avr32.patch
+git-mtd.patch
+git-watchdog.patch
