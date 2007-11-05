@@ -1,69 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - cpm_load_patch-declartion-conflict.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 14:07:52 -0800
-Message-ID: <200711052207.lA5M7q0a022065@imap1.linux-foundation.org>
+Subject: - crash-on-shutdown-unmount.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 14:07:44 -0800
+Message-ID: <200711052207.lA5M7iiI022036@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44034 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38412 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750830AbXKEWIj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:08:39 -0500
+	by vger.kernel.org with ESMTP id S1752028AbXKEWIk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:08:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamalesh@linux.vnet.ibm.com, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpm_load_patch() - declartion conflict
+     crash on shutdown/unmount
 has been removed from the -mm tree.  Its filename was
-     cpm_load_patch-declartion-conflict.patch
+     crash-on-shutdown-unmount.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cpm_load_patch() - declartion conflict
-From: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Subject: crash on shutdown/unmount
+From: Jens Axboe <jens.axboe@oracle.com>
 
-The build fails with following error
+On Wed, Oct 31 2007, Alistair John Strachan wrote:
+> Hi Jens,
+>
+> I guessed from the oops that you might have an idea what's causing this oops
+> on shutdown/unmount. The git version (describe), a screenshot showing the
+> oops, a config, and dmesg for a booted kernel are available from:
+>
+> http://devzero.co.uk/~alistair/oops-20071031/
+>
+> I went back to -rc1 and it still happens there too. If you need any more
+> information or want me to bisect it, please let me know.
 
-  CC      arch/powerpc/sysdev/micropatch.o
-arch/powerpc/sysdev/micropatch.c:625: error: conflicting types for `cpm_load_patch'
-include/asm/commproc.h:94: error: previous declaration of `cpm_load_patch' was here
-arch/powerpc/sysdev/micropatch.c: In function `cpm_load_patch':
-arch/powerpc/sysdev/micropatch.c:630: warning: unused variable `smp'
-arch/powerpc/sysdev/micropatch.c:629: warning: unused variable `spp'
-arch/powerpc/sysdev/micropatch.c:628: warning: unused variable `iip'
-make[1]: *** [arch/powerpc/sysdev/micropatch.o] Error 1
-make: *** [arch/powerpc/sysdev] Error 2
+Does this work for you?
 
-The commit f2a0bd3753dad7ea4605ebd5435716b39e9f92bb defines the function
-with void cpm_load_patch(cpm8xx_t *cp) prtotype and is declared as
-extern void cpm_load_patch(volatile immap_t *immr) in the header file.
+index 54fd385..75c98d5 100644
 
-Signed-off-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-powerpc/commproc.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ block/ll_rw_blk.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-powerpc/commproc.h~cpm_load_patch-declartion-conflict include/asm-powerpc/commproc.h
---- a/include/asm-powerpc/commproc.h~cpm_load_patch-declartion-conflict
-+++ a/include/asm-powerpc/commproc.h
-@@ -91,7 +91,7 @@ extern uint m8xx_cpm_hostalloc(uint size
- extern int  m8xx_cpm_hostfree(uint start);
- extern void m8xx_cpm_hostdump(void);
+diff -puN block/ll_rw_blk.c~crash-on-shutdown-unmount block/ll_rw_blk.c
+--- a/block/ll_rw_blk.c~crash-on-shutdown-unmount
++++ a/block/ll_rw_blk.c
+@@ -3221,6 +3221,7 @@ static inline void __generic_make_reques
+ 	sector_t old_sector;
+ 	int ret, nr_sectors = bio_sectors(bio);
+ 	dev_t old_dev;
++	int err = -EIO;
  
--extern void cpm_load_patch(volatile immap_t *immr);
-+extern void cpm_load_patch(cpm8xx_t *cp);
+ 	might_sleep();
  
- /* Buffer descriptors used by many of the CPM protocols.
- */
+@@ -3248,7 +3249,7 @@ static inline void __generic_make_reques
+ 				bdevname(bio->bi_bdev, b),
+ 				(long long) bio->bi_sector);
+ end_io:
+-			bio_endio(bio, -EIO);
++			bio_endio(bio, err);
+ 			break;
+ 		}
+ 
+@@ -3283,6 +3284,10 @@ end_io:
+ 
+ 		if (bio_check_eod(bio, nr_sectors))
+ 			goto end_io;
++		if (bio_empty_barrier(bio) && !q->prepare_flush_fn) {
++			err = -EOPNOTSUPP;
++			goto end_io;
++		}
+ 
+ 		ret = q->make_request_fn(q, bio);
+ 	} while (ret);
 _
 
-Patches currently in -mm which might be from kamalesh@linux.vnet.ibm.com are
+Patches currently in -mm which might be from jens.axboe@oracle.com are
 
 origin.patch
-missing-include-file-in-kallsymsh.patch
+uml-fix-incompatible-types-warning-in-previous-sg-fix.patch
+scsi-early-detection-of-medium-not-present-updated.patch
+fix-versus-precedence-in-various-places.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+revoke-vs-git-block.patch
+reiser4.patch
