@@ -1,96 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-elevate-write-count-for-do_utimes.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 15:07:19 -0800
-Message-ID: <200711052307.lA5N7JTG024349@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 15:07:09 -0800
+Message-ID: <200711052307.lA5N79JY024329@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39125 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51969 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754545AbXKEXHg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:07:36 -0500
+	by vger.kernel.org with ESMTP id S1754608AbXKEXHi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:07:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: haveblue@us.ibm.com, hch@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r/o bind mounts: elevate write count for do_utimes()
+     r/o bind mounts: unix_find_other() elevate write count for touch_atime()
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+     r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate write count for do_utimes()
+Subject: r/o bind mounts: unix_find_other() elevate write count for touch_atime()
 From: Dave Hansen <haveblue@us.ibm.com>
 
-Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/utimes.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ net/unix/af_unix.c |   16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN fs/utimes.c~r-o-bind-mounts-elevate-write-count-for-do_utimes fs/utimes.c
---- a/fs/utimes.c~r-o-bind-mounts-elevate-write-count-for-do_utimes
-+++ a/fs/utimes.c
-@@ -2,6 +2,7 @@
- #include <linux/file.h>
- #include <linux/fs.h>
- #include <linux/linkage.h>
-+#include <linux/mount.h>
- #include <linux/namei.h>
- #include <linux/sched.h>
- #include <linux/stat.h>
-@@ -88,8 +89,8 @@ long do_utimes(int dfd, char __user *fil
+diff -puN net/unix/af_unix.c~r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime net/unix/af_unix.c
+--- a/net/unix/af_unix.c~r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime
++++ a/net/unix/af_unix.c
+@@ -733,21 +733,27 @@ static struct sock *unix_find_other(stru
+ 		err = path_lookup(sunname->sun_path, LOOKUP_FOLLOW, &nd);
+ 		if (err)
+ 			goto fail;
++
++		err = mnt_want_write(nd.mnt);
++		if (err)
++			goto put_path_fail;
++
+ 		err = vfs_permission(&nd, MAY_WRITE);
+ 		if (err)
+-			goto put_fail;
++			goto mnt_drop_write_fail;
  
- 	inode = dentry->d_inode;
+ 		err = -ECONNREFUSED;
+ 		if (!S_ISSOCK(nd.dentry->d_inode->i_mode))
+-			goto put_fail;
++			goto mnt_drop_write_fail;
+ 		u=unix_find_socket_byinode(nd.dentry->d_inode);
+ 		if (!u)
+-			goto put_fail;
++			goto mnt_drop_write_fail;
  
--	error = -EROFS;
--	if (IS_RDONLY(inode))
-+	error = mnt_want_write(nd.mnt);
-+	if (error)
- 		goto dput_and_out;
+ 		if (u->sk_type == type)
+ 			touch_atime(nd.mnt, nd.dentry);
  
- 	/* Don't worry, the checks are done in inode_change_ok() */
-@@ -97,7 +98,7 @@ long do_utimes(int dfd, char __user *fil
- 	if (times) {
- 		error = -EPERM;
-                 if (IS_APPEND(inode) || IS_IMMUTABLE(inode))
--                        goto dput_and_out;
-+			goto mnt_drop_write_and_out;
+ 		path_release(&nd);
++		mnt_drop_write(nd.mnt);
  
- 		if (times[0].tv_nsec == UTIME_OMIT)
- 			newattrs.ia_valid &= ~ATTR_ATIME;
-@@ -117,22 +118,24 @@ long do_utimes(int dfd, char __user *fil
- 	} else {
- 		error = -EACCES;
-                 if (IS_IMMUTABLE(inode))
--                        goto dput_and_out;
-+			goto mnt_drop_write_and_out;
- 
- 		if (!is_owner_or_cap(inode)) {
- 			if (f) {
- 				if (!(f->f_mode & FMODE_WRITE))
--					goto dput_and_out;
-+					goto mnt_drop_write_and_out;
- 			} else {
- 				error = vfs_permission(&nd, MAY_WRITE);
- 				if (error)
--					goto dput_and_out;
-+					goto mnt_drop_write_and_out;
- 			}
- 		}
+ 		err=-EPROTOTYPE;
+ 		if (u->sk_type != type) {
+@@ -767,7 +773,9 @@ static struct sock *unix_find_other(stru
  	}
- 	mutex_lock(&inode->i_mutex);
- 	error = notify_change(dentry, &newattrs);
- 	mutex_unlock(&inode->i_mutex);
-+mnt_drop_write_and_out:
+ 	return u;
+ 
+-put_fail:
++mnt_drop_write_fail:
 +	mnt_drop_write(nd.mnt);
- dput_and_out:
- 	if (f)
- 		fput(f);
++put_path_fail:
+ 	path_release(&nd);
+ fail:
+ 	*error=err;
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
@@ -118,6 +104,11 @@ hugetlb-enforce-quotas-during-reservation-for-shared-mappings.patch
 add-remove_memory-for-ppc64-2.patch
 enable-hotplug-memory-remove-for-ppc64.patch
 add-arch-specific-walk_memory_remove-for-ppc64.patch
+r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime.patch
+r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime-fix.patch
+r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
+r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
 r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
 r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch
 r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
