@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch added to -mm tree
-Date: Mon, 05 Nov 2007 15:38:59 -0800
-Message-ID: <200711052338.lA5Ncx8Z025594@imap1.linux-foundation.org>
+Subject: + x86_64-efi-boot-support-efi-frame-buffer-v3.patch added to -mm tree
+Date: Mon, 05 Nov 2007 15:46:17 -0800
+Message-ID: <200711052346.lA5NkH2O025914@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46629 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53725 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753221AbXKEXo4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:44:56 -0500
+	by vger.kernel.org with ESMTP id S1752045AbXKEXrA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:47:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com, hch@infradead.org
+Cc: ying.huang@intel.com, adaplas@pol.net, ak@suse.de, mingo@elte.hu, mouli@linux.intel.com, tglx@linutronix.de
 
 
 The patch titled
-     r-o-bind-mounts: elevate writer count for chown and friends
+     x86_64-efi-boot-support-efi-frame-buffer v3
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
+     x86_64-efi-boot-support-efi-frame-buffer-v3.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,195 +25,73 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts: elevate writer count for chown and friends
-From: Dave Hansen <haveblue@us.ibm.com>
+Subject: x86_64-efi-boot-support-efi-frame-buffer v3
+From: "Huang, Ying" <ying.huang@intel.com>
 
-chown/chmod,etc...  don't call permission in the same way that the normal
-"open for write" calls do.  They still write to the filesystem, so bump the
-write count during these operations.
+This patch adds Graphics Output Protocol support to the kernel.
+UEFI2.0 spec deprecates Universal Graphics Adapter (UGA) protocol and
+only Graphics Output Protocol (GOP) is produced. Therefore, the boot
+loader needs to query the UEFI firmware with appropriate Output
+Protocol and pass the video information to the kernel. As a result of
+GOP protocol, an EFI framebuffer driver is needed for displaying
+console messages. The patch adds a EFI framebuffer driver. The EFI
+frame buffer driver in this patch is based on the Intel Mac
+framebuffer driver.
 
-Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Acked-by: Christoph Hellwig <hch@infradead.org>
+The ELILO bootloader takes care of passing the video information as
+appropriate for EFI firmware.
+
+The framebuffer driver has been tested in i386 kernel and x86_64
+kernel on EFI platform.
+
+Signed-off-by: Chandramouli Narayanan <mouli@linux.intel.com>
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <ak@suse.de>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c |   39 ++++++++++++++++++++++++++++++---------
- 1 file changed, 30 insertions(+), 9 deletions(-)
+ drivers/video/efifb.c       |    2 +-
+ include/linux/screen_info.h |    3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/open.c~r-o-bind-mounts-elevate-writer-count-for-chown-and-friends fs/open.c
---- a/fs/open.c~r-o-bind-mounts-elevate-writer-count-for-chown-and-friends
-+++ a/fs/open.c
-@@ -571,12 +571,12 @@ asmlinkage long sys_fchmod(unsigned int 
+diff -puN drivers/video/efifb.c~x86_64-efi-boot-support-efi-frame-buffer-v3 drivers/video/efifb.c
+--- a/drivers/video/efifb.c~x86_64-efi-boot-support-efi-frame-buffer-v3
++++ a/drivers/video/efifb.c
+@@ -1,5 +1,5 @@
+ /*
+- * framebuffer driver for EFI/UEFI based system
++ * Framebuffer driver for EFI/UEFI based system
+  *
+  * (c) 2006 Edgar Hucek <gimli@dark-green.com>
+  * Original efi driver written by Gerd Knorr <kraxel@goldbach.in-berlin.de>
+diff -puN include/linux/screen_info.h~x86_64-efi-boot-support-efi-frame-buffer-v3 include/linux/screen_info.h
+--- a/include/linux/screen_info.h~x86_64-efi-boot-support-efi-frame-buffer-v3
++++ a/include/linux/screen_info.h
+@@ -51,7 +51,6 @@ struct screen_info {
+ #define VIDEO_TYPE_EGAC		0x21	/* EGA in Color Mode		*/
+ #define VIDEO_TYPE_VGAC		0x22	/* VGA+ in Color Mode		*/
+ #define VIDEO_TYPE_VLFB		0x23	/* VESA VGA in graphic mode	*/
+-#define VIDEO_TYPE_EFI		0x24	/* EFI graphic mode		*/
  
- 	audit_inode(NULL, dentry);
+ #define VIDEO_TYPE_PICA_S3	0x30	/* ACER PICA-61 local S3 video	*/
+ #define VIDEO_TYPE_MIPS_G364	0x31    /* MIPS Magnum 4000 G364 video  */
+@@ -64,6 +63,8 @@ struct screen_info {
  
--	err = -EROFS;
--	if (IS_RDONLY(inode))
-+	err = mnt_want_write(file->f_vfsmnt);
-+	if (err)
- 		goto out_putf;
- 	err = -EPERM;
- 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
--		goto out_putf;
-+		goto out_drop_write;
- 	mutex_lock(&inode->i_mutex);
- 	if (mode == (mode_t) -1)
- 		mode = inode->i_mode;
-@@ -585,6 +585,8 @@ asmlinkage long sys_fchmod(unsigned int 
- 	err = notify_change(dentry, &newattrs);
- 	mutex_unlock(&inode->i_mutex);
+ #define VIDEO_TYPE_PMAC		0x60	/* PowerMacintosh frame buffer. */
  
-+out_drop_write:
-+	mnt_drop_write(file->f_vfsmnt);
- out_putf:
- 	fput(file);
- out:
-@@ -604,13 +606,13 @@ asmlinkage long sys_fchmodat(int dfd, co
- 		goto out;
- 	inode = nd.dentry->d_inode;
++#define VIDEO_TYPE_EFI		0x70	/* EFI graphic mode		*/
++
+ #ifdef __KERNEL__
+ extern struct screen_info screen_info;
  
--	error = -EROFS;
--	if (IS_RDONLY(inode))
-+	error = mnt_want_write(nd.mnt);
-+	if (error)
- 		goto dput_and_out;
- 
- 	error = -EPERM;
- 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
--		goto dput_and_out;
-+		goto out_drop_write;
- 
- 	mutex_lock(&inode->i_mutex);
- 	if (mode == (mode_t) -1)
-@@ -620,6 +622,8 @@ asmlinkage long sys_fchmodat(int dfd, co
- 	error = notify_change(nd.dentry, &newattrs);
- 	mutex_unlock(&inode->i_mutex);
- 
-+out_drop_write:
-+	mnt_drop_write(nd.mnt);
- dput_and_out:
- 	path_release(&nd);
- out:
-@@ -642,9 +646,6 @@ static int chown_common(struct dentry * 
- 		printk(KERN_ERR "chown_common: NULL inode\n");
- 		goto out;
- 	}
--	error = -EROFS;
--	if (IS_RDONLY(inode))
--		goto out;
- 	error = -EPERM;
- 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
- 		goto out;
-@@ -675,7 +676,12 @@ asmlinkage long sys_chown(const char __u
- 	error = user_path_walk(filename, &nd);
- 	if (error)
- 		goto out;
-+	error = mnt_want_write(nd.mnt);
-+	if (error)
-+		goto out_release;
- 	error = chown_common(nd.dentry, user, group);
-+	mnt_drop_write(nd.mnt);
-+out_release:
- 	path_release(&nd);
- out:
- 	return error;
-@@ -695,7 +701,12 @@ asmlinkage long sys_fchownat(int dfd, co
- 	error = __user_walk_fd(dfd, filename, follow, &nd);
- 	if (error)
- 		goto out;
-+	error = mnt_want_write(nd.mnt);
-+	if (error)
-+		goto out_release;
- 	error = chown_common(nd.dentry, user, group);
-+	mnt_drop_write(nd.mnt);
-+out_release:
- 	path_release(&nd);
- out:
- 	return error;
-@@ -709,7 +720,12 @@ asmlinkage long sys_lchown(const char __
- 	error = user_path_walk_link(filename, &nd);
- 	if (error)
- 		goto out;
-+	error = mnt_want_write(nd.mnt);
-+	if (error)
-+		goto out_release;
- 	error = chown_common(nd.dentry, user, group);
-+	mnt_drop_write(nd.mnt);
-+out_release:
- 	path_release(&nd);
- out:
- 	return error;
-@@ -726,9 +742,14 @@ asmlinkage long sys_fchown(unsigned int 
- 	if (!file)
- 		goto out;
- 
-+	error = mnt_want_write(file->f_vfsmnt);
-+	if (error)
-+		goto out_fput;
- 	dentry = file->f_path.dentry;
- 	audit_inode(NULL, dentry);
- 	error = chown_common(dentry, user, group);
-+	mnt_drop_write(file->f_vfsmnt);
-+out_fput:
- 	fput(file);
- out:
- 	return error;
 _
 
-Patches currently in -mm which might be from haveblue@us.ibm.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-markers-fix-warnings.patch
-maps4-add-proportional-set-size-accounting-in-smaps.patch
-maps4-rework-task_size-macros.patch
-maps4-move-is_swap_pte.patch
-maps4-introduce-a-generic-page-walker.patch
-maps4-use-pagewalker-in-clear_refs-and-smaps.patch
-maps4-simplify-interdependence-of-maps-and-smaps.patch
-maps4-move-clear_refs-code-to-task_mmuc.patch
-maps4-regroup-task_mmu-by-interface.patch
-maps4-add-proc-pid-pagemap-interface.patch
-maps4-add-proc-kpagecount-interface.patch
-maps4-add-proc-kpageflags-interface.patch
-maps4-make-page-monitoring-proc-file-optional.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-hugetlb-fix-quota-management-for-private-mappings.patch
-hugetlb-debit-quota-in-alloc_huge_page.patch
-hugetlb-allow-bulk-updating-in-hugetlb__quota.patch
-hugetlb-enforce-quotas-during-reservation-for-shared-mappings.patch
-add-remove_memory-for-ppc64-2.patch
-enable-hotplug-memory-remove-for-ppc64.patch
-add-arch-specific-walk_memory_remove-for-ppc64.patch
-do-namei_flags-calculation-inside-open_namei.patch
-make-open_namei-return-a-filp.patch
-kill-do_filp_open.patch
-kill-filp_open.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-do_rmdir-elevate-write-count.patch
-r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
-r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
-r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
-r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files.patch
-r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
-r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
-r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
-r-o-bind-mounts-make-access-use-mnt-check.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
-r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
-keep-track-of-mnt_writer-state-of-struct-file.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
+origin.patch
+x86_64-efi-boot-support-efi-frame-buffer.patch
+x86_64-efi-boot-support-efi-frame-buffer-v3.patch
+x86_64-efi-boot-support-efi-boot-document.patch
