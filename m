@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch added to -mm tree
-Date: Mon, 05 Nov 2007 15:38:05 -0800
-Message-ID: <200711052338.lA5Nc5ig025560@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch added to -mm tree
+Date: Mon, 05 Nov 2007 15:38:59 -0800
+Message-ID: <200711052338.lA5Ncx8Z025594@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41669 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46629 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752700AbXKEXoI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:44:08 -0500
+	by vger.kernel.org with ESMTP id S1753221AbXKEXo4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:44:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: haveblue@us.ibm.com, hch@infradead.org
 
 
 The patch titled
-     r-o-bind-mounts: elevate write count for do_sys_utime and touch_atime
+     r-o-bind-mounts: elevate writer count for chown and friends
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
+     r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,72 +25,139 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts: elevate write count for do_sys_utime and touch_atime
+Subject: r-o-bind-mounts: elevate writer count for chown and friends
 From: Dave Hansen <haveblue@us.ibm.com>
 
-Acked-by: Christoph Hellwig <hch@infradead.org>
+chown/chmod,etc...  don't call permission in the same way that the normal
+"open for write" calls do.  They still write to the filesystem, so bump the
+write count during these operations.
+
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ fs/open.c |   39 ++++++++++++++++++++++++++++++---------
+ 1 file changed, 30 insertions(+), 9 deletions(-)
 
-diff -puN fs/inode.c~r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime fs/inode.c
---- a/fs/inode.c~r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime
-+++ a/fs/inode.c
-@@ -1203,22 +1203,23 @@ void touch_atime(struct vfsmount *mnt, s
- 	struct inode *inode = dentry->d_inode;
- 	struct timespec now;
+diff -puN fs/open.c~r-o-bind-mounts-elevate-writer-count-for-chown-and-friends fs/open.c
+--- a/fs/open.c~r-o-bind-mounts-elevate-writer-count-for-chown-and-friends
++++ a/fs/open.c
+@@ -571,12 +571,12 @@ asmlinkage long sys_fchmod(unsigned int 
  
--	if (inode->i_flags & S_NOATIME)
-+	if (mnt && mnt_want_write(mnt))
- 		return;
-+	if (inode->i_flags & S_NOATIME)
-+		goto out;
- 	if (IS_NOATIME(inode))
--		return;
-+		goto out;
- 	if ((inode->i_sb->s_flags & MS_NODIRATIME) && S_ISDIR(inode->i_mode))
--		return;
-+		goto out;
+ 	audit_inode(NULL, dentry);
  
- 	/*
- 	 * We may have a NULL vfsmount when coming from NFSD
- 	 */
- 	if (mnt) {
- 		if (mnt->mnt_flags & MNT_NOATIME)
--			return;
-+			goto out;
- 		if ((mnt->mnt_flags & MNT_NODIRATIME) && S_ISDIR(inode->i_mode))
--			return;
--
-+			goto out;
- 		if (mnt->mnt_flags & MNT_RELATIME) {
- 			/*
- 			 * With relative atime, only update atime if the
-@@ -1229,16 +1230,19 @@ void touch_atime(struct vfsmount *mnt, s
- 						&inode->i_atime) < 0 &&
- 			    timespec_compare(&inode->i_ctime,
- 						&inode->i_atime) < 0)
--				return;
-+				goto out;
- 		}
+-	err = -EROFS;
+-	if (IS_RDONLY(inode))
++	err = mnt_want_write(file->f_vfsmnt);
++	if (err)
+ 		goto out_putf;
+ 	err = -EPERM;
+ 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
+-		goto out_putf;
++		goto out_drop_write;
+ 	mutex_lock(&inode->i_mutex);
+ 	if (mode == (mode_t) -1)
+ 		mode = inode->i_mode;
+@@ -585,6 +585,8 @@ asmlinkage long sys_fchmod(unsigned int 
+ 	err = notify_change(dentry, &newattrs);
+ 	mutex_unlock(&inode->i_mutex);
+ 
++out_drop_write:
++	mnt_drop_write(file->f_vfsmnt);
+ out_putf:
+ 	fput(file);
+ out:
+@@ -604,13 +606,13 @@ asmlinkage long sys_fchmodat(int dfd, co
+ 		goto out;
+ 	inode = nd.dentry->d_inode;
+ 
+-	error = -EROFS;
+-	if (IS_RDONLY(inode))
++	error = mnt_want_write(nd.mnt);
++	if (error)
+ 		goto dput_and_out;
+ 
+ 	error = -EPERM;
+ 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
+-		goto dput_and_out;
++		goto out_drop_write;
+ 
+ 	mutex_lock(&inode->i_mutex);
+ 	if (mode == (mode_t) -1)
+@@ -620,6 +622,8 @@ asmlinkage long sys_fchmodat(int dfd, co
+ 	error = notify_change(nd.dentry, &newattrs);
+ 	mutex_unlock(&inode->i_mutex);
+ 
++out_drop_write:
++	mnt_drop_write(nd.mnt);
+ dput_and_out:
+ 	path_release(&nd);
+ out:
+@@ -642,9 +646,6 @@ static int chown_common(struct dentry * 
+ 		printk(KERN_ERR "chown_common: NULL inode\n");
+ 		goto out;
  	}
+-	error = -EROFS;
+-	if (IS_RDONLY(inode))
+-		goto out;
+ 	error = -EPERM;
+ 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
+ 		goto out;
+@@ -675,7 +676,12 @@ asmlinkage long sys_chown(const char __u
+ 	error = user_path_walk(filename, &nd);
+ 	if (error)
+ 		goto out;
++	error = mnt_want_write(nd.mnt);
++	if (error)
++		goto out_release;
+ 	error = chown_common(nd.dentry, user, group);
++	mnt_drop_write(nd.mnt);
++out_release:
+ 	path_release(&nd);
+ out:
+ 	return error;
+@@ -695,7 +701,12 @@ asmlinkage long sys_fchownat(int dfd, co
+ 	error = __user_walk_fd(dfd, filename, follow, &nd);
+ 	if (error)
+ 		goto out;
++	error = mnt_want_write(nd.mnt);
++	if (error)
++		goto out_release;
+ 	error = chown_common(nd.dentry, user, group);
++	mnt_drop_write(nd.mnt);
++out_release:
+ 	path_release(&nd);
+ out:
+ 	return error;
+@@ -709,7 +720,12 @@ asmlinkage long sys_lchown(const char __
+ 	error = user_path_walk_link(filename, &nd);
+ 	if (error)
+ 		goto out;
++	error = mnt_want_write(nd.mnt);
++	if (error)
++		goto out_release;
+ 	error = chown_common(nd.dentry, user, group);
++	mnt_drop_write(nd.mnt);
++out_release:
+ 	path_release(&nd);
+ out:
+ 	return error;
+@@ -726,9 +742,14 @@ asmlinkage long sys_fchown(unsigned int 
+ 	if (!file)
+ 		goto out;
  
- 	now = current_fs_time(inode->i_sb);
- 	if (timespec_equal(&inode->i_atime, &now))
--		return;
-+		goto out;
- 
- 	inode->i_atime = now;
- 	mark_inode_dirty_sync(inode);
-+out:
-+	if (mnt)
-+		mnt_drop_write(mnt);
- }
- EXPORT_SYMBOL(touch_atime);
- 
++	error = mnt_want_write(file->f_vfsmnt);
++	if (error)
++		goto out_fput;
+ 	dentry = file->f_path.dentry;
+ 	audit_inode(NULL, dentry);
+ 	error = chown_common(dentry, user, group);
++	mnt_drop_write(file->f_vfsmnt);
++out_fput:
+ 	fput(file);
+ out:
+ 	return error;
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
@@ -135,6 +202,7 @@ r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
 r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
 r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
 r-o-bind-mounts-elevate-write-count-opened-files.patch
 r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
