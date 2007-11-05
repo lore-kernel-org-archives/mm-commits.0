@@ -1,83 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 15:06:51 -0800
-Message-ID: <200711052306.lA5N6p9R024300@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 15:07:03 -0800
+Message-ID: <200711052307.lA5N73sb024320@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42920 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51659 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754324AbXKEXHJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:07:09 -0500
+	by vger.kernel.org with ESMTP id S1754470AbXKEXHT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:07:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, hch@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext2 reservations: fix for r/o bind mounts: take-writer-count (v2)
+     r/o bind mounts: elevate write count for link and symlink calls
 has been removed from the -mm tree.  Its filename was
-     ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2.patch
+     r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: ext2 reservations: fix for r/o bind mounts: take-writer-count (v2)
+Subject: r/o bind mounts: elevate write count for link and symlink calls
 From: Dave Hansen <haveblue@us.ibm.com>
 
-This is on top of the ext2-reservations.patch in -mm.
-
-The original r/o bind mount set didn't address the new
-ext2 ioctl: EXT2_IOC_SETRSVSZ, because it doesn't exist
-in mainline.  This fixes that up for -mm.
-
+Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/ioctl.c |   24 +++++++++++++++---------
- 1 files changed, 15 insertions(+), 9 deletions(-)
+ fs/namei.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN fs/ext2/ioctl.c~ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2 fs/ext2/ioctl.c
---- a/fs/ext2/ioctl.c~ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2
-+++ a/fs/ext2/ioctl.c
-@@ -111,14 +111,18 @@ setflags_out:
- 		if (!test_opt(inode->i_sb, RESERVATION) ||!S_ISREG(inode->i_mode))
- 			return -ENOTTY;
+diff -puN fs/namei.c~r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls fs/namei.c
+--- a/fs/namei.c~r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls
++++ a/fs/namei.c
+@@ -2327,7 +2327,12 @@ asmlinkage long sys_symlinkat(const char
+ 	if (IS_ERR(dentry))
+ 		goto out_unlock;
  
--		if (IS_RDONLY(inode))
--			return -EROFS;
--
--		if ((current->fsuid != inode->i_uid) && !capable(CAP_FOWNER))
--			return -EACCES;
--
--		if (get_user(rsv_window_size, (int __user *)arg))
--			return -EFAULT;
-+		ret = mnt_want_write(filp->f_vfsmnt);
-+		if (ret)
-+			return ret;
-+
-+		if ((current->fsuid != inode->i_uid) && !capable(CAP_FOWNER)) {
-+			ret = -EACCES;
-+			goto setrsvsz_out;
-+		}
-+		if (get_user(rsv_window_size, (int __user *)arg)) {
-+			ret = -EFAULT;
-+			goto setrsvsz_out;
-+		}
- 
- 		if (rsv_window_size > EXT2_MAX_RESERVE_BLOCKS)
- 			rsv_window_size = EXT2_MAX_RESERVE_BLOCKS;
-@@ -140,7 +144,9 @@ setflags_out:
- 			rsv->rsv_goal_size = rsv_window_size;
- 		}
- 		mutex_unlock(&ei->truncate_mutex);
--		return 0;
-+	setrsvsz_out:
-+		mnt_drop_write(filp->f_vfsmnt);
-+		return ret;
- 	}
- 	default:
- 		return -ENOTTY;
++	error = mnt_want_write(nd.mnt);
++	if (error)
++		goto out_dput;
+ 	error = vfs_symlink(nd.dentry->d_inode, dentry, from, S_IALLUGO);
++	mnt_drop_write(nd.mnt);
++out_dput:
+ 	dput(dentry);
+ out_unlock:
+ 	mutex_unlock(&nd.dentry->d_inode->i_mutex);
+@@ -2422,7 +2427,12 @@ asmlinkage long sys_linkat(int olddfd, c
+ 	error = PTR_ERR(new_dentry);
+ 	if (IS_ERR(new_dentry))
+ 		goto out_unlock;
++	error = mnt_want_write(nd.mnt);
++	if (error)
++		goto out_dput;
+ 	error = vfs_link(old_nd.dentry, nd.dentry->d_inode, new_dentry);
++	mnt_drop_write(nd.mnt);
++out_dput:
+ 	dput(new_dentry);
+ out_unlock:
+ 	mutex_unlock(&nd.dentry->d_inode->i_mutex);
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
@@ -105,12 +88,6 @@ hugetlb-enforce-quotas-during-reservation-for-shared-mappings.patch
 add-remove_memory-for-ppc64-2.patch
 enable-hotplug-memory-remove-for-ppc64.patch
 add-arch-specific-walk_memory_remove-for-ppc64.patch
-ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2.patch
-r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
-r-o-bind-mounts-make-access-use-mnt-check.patch
-r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
 r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
 r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
 r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
