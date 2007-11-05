@@ -1,49 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - git-block-vs-agk-dm-dm-reorder-struct-io_restrictions.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 14:00:56 -0800
-Message-ID: <200711052200.lA5M0uNS021759@imap1.linux-foundation.org>
+Subject: - fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 14:00:29 -0800
+Message-ID: <200711052200.lA5M0TMK021749@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50412 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40835 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751441AbXKEWA6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:00:58 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lA5M0uhD031486
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 5 Nov 2007 14:00:57 -0800
+	by vger.kernel.org with ESMTP id S1753715AbXKEWBO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:01:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, dtor@mail.ru, johannes@sipsolutions.net, valderman@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-block-vs-agk-dm-dm-reorder-struct-io_restrictions
+     fix-appletouch-geyser-1-breakage-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     git-block-vs-agk-dm-dm-reorder-struct-io_restrictions.patch
+     fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because change in mainline broke it
 
 ------------------------------------------------------
-Subject: git-block-vs-agk-dm-dm-reorder-struct-io_restrictions
+Subject: fix-appletouch-geyser-1-breakage-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
+ERROR: else should follow close brace '}'
+#62: FILE: drivers/input/mouse/appletouch.c:520:
+ 		}
++		else
+
+total: 1 errors, 0 warnings, 36 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Anton Ekblad <valderman@gmail.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/device-mapper.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/input/mouse/appletouch.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/device-mapper.h~git-block-vs-agk-dm-dm-reorder-struct-io_restrictions include/linux/device-mapper.h
---- a/include/linux/device-mapper.h~git-block-vs-agk-dm-dm-reorder-struct-io_restrictions
-+++ a/include/linux/device-mapper.h
-@@ -116,6 +116,7 @@ struct io_restrictions {
- 	unsigned short hardsect_size;
- 	unsigned short max_hw_segments;
- 	unsigned short max_phys_segments;
-+	unsigned long bounce_pfn;
- 	unsigned char no_cluster; /* inverted so that 0 is default */
- };
+diff -puN drivers/input/mouse/appletouch.c~fix-appletouch-geyser-1-breakage-checkpatch-fixes drivers/input/mouse/appletouch.c
+--- a/drivers/input/mouse/appletouch.c~fix-appletouch-geyser-1-breakage-checkpatch-fixes
++++ a/drivers/input/mouse/appletouch.c
+@@ -516,8 +516,7 @@ static void atp_complete(struct urb* urb
+ 				dev->valid = 0;
+ 				schedule_work(&dev->work);
+ 			}
+-		}
+-		else
++		} else
+ 			dev->idlecount = 0;
+ 	}
  
 _
 
@@ -58,10 +72,12 @@ git-arm-fixup.patch
 revert-gregkh-driver-block-device.patch
 git-hwmon.patch
 ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
 elantech-touchpad-driver-fix.patch
 git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
+libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
 ide-arm-hack.patch
 drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
 lmc_ioctl-dont-return-with-locks-held-fix.patch
@@ -75,6 +91,7 @@ fix-build-breakage-if-sysfs-fix.patch
 ips-trim-trailing-whitespace-checkpatch-fixes.patch
 scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
 scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+git-block-fixup.patch
 git-block-vs-agk-dm-dm-reorder-struct-io_restrictions.patch
 git-unionfs.patch
 git-unionfs-fixup.patch
