@@ -1,92 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 15:07:24 -0800
-Message-ID: <200711052307.lA5N7OYK024355@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 15:07:37 -0800
+Message-ID: <200711052307.lA5N7bI8024377@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50906 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46360 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754483AbXKEXJ0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:09:26 -0500
+	by vger.kernel.org with ESMTP id S1752859AbXKEXJc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:09:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, hch@infradead.org, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r/o bind mounts: elevate write count for do_sys_utime() and touch_atime()
+     make lockdep happy with r/o bind mounts
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
+     r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate write count for do_sys_utime() and touch_atime()
+Subject: make lockdep happy with r/o bind mounts
 From: Dave Hansen <haveblue@us.ibm.com>
 
-Acked-by: Christoph Hellwig <hch@infradead.org>
+With the r/o bind mount patches, we can have as many
+spinlocks nested as there are CPUs on the system.
+Lockdep freaks out after 8.
+
+So, create a new lockdep class of locks for the
+mnt_writer spinlocks, and initialize each of the
+cpu locks to be in a different class.
+
+It should shut up warnings like this, while still
+allowing some of the lockdep goodness to remain:
+
+=============================================
+[ INFO: possible recursive locking detected ]
+2.6.23-rc6 #6
+---------------------------------------------
+swapper/1 is trying to acquire lock:
+ (&writer->lock){--..}, at: [<c016c094>] lock_and_coalesce_cpu_mnt_writer_counts+0x29/0x5c
+
+but task is already holding lock:
+ (&writer->lock){--..}, at: [<c016c094>] lock_and_coalesce_cpu_mnt_writer_counts+0x29/0x5c
+
+other info that might help us debug this:
+1 lock held by swapper/1:
+ #0:  (&writer->lock){--..}, at: [<c016c094>] lock_and_coalesce_cpu_mnt_writer_counts+0x29/0x5c
+
+stack backtrace:
+ [<c01034ab>] show_trace_log_lvl+0x19/0x2e
+ [<c01034d2>] show_trace+0x12/0x14
+ [<c01035be>] dump_stack+0x14/0x16
+ [<c0130ab2>] print_deadlock_bug+0xb7/0xc1
+ [<c0130afc>] check_deadlock+0x40/0x54
+ [<c013100a>] validate_chain+0x26e/0x319
+ [<c0132cca>] __lock_acquire+0x6c4/0x731
+ [<c01332da>] lock_acquire+0x7a/0x94
+ [<c031bb01>] _spin_lock+0x38/0x62
+ [<c016c094>] lock_and_coalesce_cpu_mnt_writer_counts+0x29/0x5c
+ [<c016c5f8>] mntput_no_expire+0x38/0xad
+ [<c015fbed>] path_release_on_umount+0x15/0x18
+ [<c016cc76>] sys_umount+0x67/0x6f
+ [<c010058a>] name_to_dev_t+0x22a/0x24c
+ [<c0427207>] prepare_namespace+0x89/0x187
+ [<c0426cdd>] kernel_init+0x9a/0xa3
+ [<c010336f>] kernel_thread_helper+0x7/0x10
+ =======================
+
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ fs/namespace.c |    2 ++
+ 1 files changed, 2 insertions(+)
 
-diff -puN fs/inode.c~r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime fs/inode.c
---- a/fs/inode.c~r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime
-+++ a/fs/inode.c
-@@ -1203,22 +1203,23 @@ void touch_atime(struct vfsmount *mnt, s
- 	struct inode *inode = dentry->d_inode;
- 	struct timespec now;
- 
--	if (inode->i_flags & S_NOATIME)
-+	if (mnt && mnt_want_write(mnt))
- 		return;
-+	if (inode->i_flags & S_NOATIME)
-+		goto out;
- 	if (IS_NOATIME(inode))
--		return;
-+		goto out;
- 	if ((inode->i_sb->s_flags & MS_NODIRATIME) && S_ISDIR(inode->i_mode))
--		return;
-+		goto out;
- 
- 	/*
- 	 * We may have a NULL vfsmount when coming from NFSD
+diff -puN fs/namespace.c~r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts fs/namespace.c
+--- a/fs/namespace.c~r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts
++++ a/fs/namespace.c
+@@ -115,6 +115,7 @@ struct mnt_writer {
+ 	 * must be ordered by cpu number.
  	 */
- 	if (mnt) {
- 		if (mnt->mnt_flags & MNT_NOATIME)
--			return;
-+			goto out;
- 		if ((mnt->mnt_flags & MNT_NODIRATIME) && S_ISDIR(inode->i_mode))
--			return;
--
-+			goto out;
- 		if (mnt->mnt_flags & MNT_RELATIME) {
- 			/*
- 			 * With relative atime, only update atime if the
-@@ -1229,16 +1230,19 @@ void touch_atime(struct vfsmount *mnt, s
- 						&inode->i_atime) < 0 &&
- 			    timespec_compare(&inode->i_ctime,
- 						&inode->i_atime) < 0)
--				return;
-+				goto out;
- 		}
+ 	spinlock_t lock;
++	struct lock_class_key lock_class; /* compiles out with !lockdep */
+ 	unsigned long count;
+ 	struct vfsmount *mnt;
+ } ____cacheline_aligned_in_smp;
+@@ -126,6 +127,7 @@ static int __init init_mnt_writers(void)
+ 	for_each_possible_cpu(cpu) {
+ 		struct mnt_writer *writer = &per_cpu(mnt_writers, cpu);
+ 		spin_lock_init(&writer->lock);
++		lockdep_set_class(&writer->lock, &writer->lock_class);
+ 		writer->count = 0;
  	}
- 
- 	now = current_fs_time(inode->i_sb);
- 	if (timespec_equal(&inode->i_atime, &now))
--		return;
-+		goto out;
- 
- 	inode->i_atime = now;
- 	mark_inode_dirty_sync(inode);
-+out:
-+	if (mnt)
-+		mnt_drop_write(mnt);
- }
- EXPORT_SYMBOL(touch_atime);
- 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
@@ -114,12 +123,6 @@ hugetlb-enforce-quotas-during-reservation-for-shared-mappings.patch
 add-remove_memory-for-ppc64-2.patch
 enable-hotplug-memory-remove-for-ppc64.patch
 add-arch-specific-walk_memory_remove-for-ppc64.patch
-r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
-r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
-r-o-bind-mounts-do_rmdir-elevate-write-count.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
 r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
 r-o-bind-mounts-track-number-of-mount-writers-fix.patch
 r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
