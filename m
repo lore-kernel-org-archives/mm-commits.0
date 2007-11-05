@@ -1,158 +1,394 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 15:07:21 -0800
-Message-ID: <200711052307.lA5N7Lrt024352@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-track-number-of-mount-writers.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 15:07:34 -0800
+Message-ID: <200711052307.lA5N7YFB024374@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43399 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45946 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754545AbXKEXJn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:09:43 -0500
+	by vger.kernel.org with ESMTP id S1755056AbXKEXJv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:09:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, Valdis.Kletnieks@vt.edu, balbir@in.ibm.com, haveblue@us.ibm.com, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     'touch' command causes Oops
+     r/o bind mounts: track number of mount writers
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch
+     r-o-bind-mounts-track-number-of-mount-writers.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: 'touch' command causes Oops
-From: Valdis.Kletnieks@vt.edu
+Subject: r/o bind mounts: track number of mount writers
+From: Dave Hansen <haveblue@us.ibm.com>
 
-"never let a libc developer write your kernel code" - hch
+This is the real meat of the entire series.  It actually implements the
+tracking of the number of writers to a mount.  However, it causes scalability
+problems because there can be hundreds of cpus doing open()/close() on files
+on the same mnt at the same time.  Even an atomic_t in the mnt has massive
+scalaing problems because the cacheline gets so terribly contended.
 
-"nor, apparently, a kernel developer" - akpm
+This uses a statically-allocated percpu variable.  All operations are local to
+a cpu as long that cpu operates on the same mount, and there are no writer
+count imbalances.  Writer count imbalances happen when a write is taken on one
+cpu, and released on another, like when an open/close pair is performed on two
+different cpus because the task moved.
 
+Upon a remount,ro request, all of the data from the percpu variables is
+collected (expensive, but very rare) and we determine if there are any
+outstanding writers to the mount.
+
+I've written a little benchmark to sit in a loop for a couple of seconds in
+several cpus in parallel doing open/write/close loops.
+
+http://sr71.net/~dave/linux/openbench.c
+
+The code in here is a a worst-possible case for this patch.  It does opens on
+a _pair_ of files in two different mounts in parallel.  This should cause my
+code to lose its "operate on the same mount" optimization completely.  This
+worst-case scenario causes a 3% degredation in the benchmark.
+
+I could probably get rid of even this 3%, but it would be more complex than
+what I have here, and I think this is getting into acceptable territory.  In
+practice, I expect writing more than 3 bytes to a file, as well as disk I/O to
+mask any effects that this has.
+
+(To get rid of that 3%, we could have an #defined number of mounts in the
+percpu variable.  So, instead of a CPU getting operate only on percpu data
+when it accesses only one mount, it could stay on percpu data when it only
+accesses N or fewer mounts.)
+
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/utimes.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+ fs/namespace.c        |  205 +++++++++++++++++++++++++++++++++++++---
+ include/linux/mount.h |    8 +
+ 2 files changed, 198 insertions(+), 15 deletions(-)
 
-diff -puN fs/utimes.c~r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops fs/utimes.c
---- a/fs/utimes.c~r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops
-+++ a/fs/utimes.c
-@@ -59,6 +59,7 @@ long do_utimes(int dfd, char __user *fil
- 	struct inode *inode;
- 	struct iattr newattrs;
- 	struct file *f = NULL;
+diff -puN fs/namespace.c~r-o-bind-mounts-track-number-of-mount-writers fs/namespace.c
+--- a/fs/namespace.c~r-o-bind-mounts-track-number-of-mount-writers
++++ a/fs/namespace.c
+@@ -17,6 +17,7 @@
+ #include <linux/quotaops.h>
+ #include <linux/acct.h>
+ #include <linux/capability.h>
++#include <linux/cpumask.h>
+ #include <linux/module.h>
+ #include <linux/sysfs.h>
+ #include <linux/seq_file.h>
+@@ -55,6 +56,8 @@ static inline unsigned long hash(struct 
+ 	return tmp & hash_mask;
+ }
+ 
++#define MNT_WRITER_UNDERFLOW_LIMIT -(1<<16)
++
+ struct vfsmount *alloc_vfsmnt(const char *name)
+ {
+ 	struct vfsmount *mnt = kmem_cache_zalloc(mnt_cache, GFP_KERNEL);
+@@ -68,6 +71,7 @@ struct vfsmount *alloc_vfsmnt(const char
+ 		INIT_LIST_HEAD(&mnt->mnt_share);
+ 		INIT_LIST_HEAD(&mnt->mnt_slave_list);
+ 		INIT_LIST_HEAD(&mnt->mnt_slave);
++		atomic_set(&mnt->__mnt_writers, 0);
+ 		if (name) {
+ 			int size = strlen(name) + 1;
+ 			char *newname = kmalloc(size, GFP_KERNEL);
+@@ -88,6 +92,84 @@ struct vfsmount *alloc_vfsmnt(const char
+  * we can determine when writes are able to occur to
+  * a filesystem.
+  */
++/*
++ * __mnt_is_readonly: check whether a mount is read-only
++ * @mnt: the mount to check for its write status
++ *
++ * This shouldn't be used directly ouside of the VFS.
++ * It does not guarantee that the filesystem will stay
++ * r/w, just that it is right *now*.  This can not and
++ * should not be used in place of IS_RDONLY(inode).
++ * mnt_want/drop_write() will _keep_ the filesystem
++ * r/w.
++ */
++int __mnt_is_readonly(struct vfsmount *mnt)
++{
++	return (mnt->mnt_sb->s_flags & MS_RDONLY);
++}
++EXPORT_SYMBOL_GPL(__mnt_is_readonly);
++
++struct mnt_writer {
++	/*
++	 * If holding multiple instances of this lock, they
++	 * must be ordered by cpu number.
++	 */
++	spinlock_t lock;
++	unsigned long count;
 +	struct vfsmount *mnt;
++} ____cacheline_aligned_in_smp;
++static DEFINE_PER_CPU(struct mnt_writer, mnt_writers);
++
++static int __init init_mnt_writers(void)
++{
++	int cpu;
++	for_each_possible_cpu(cpu) {
++		struct mnt_writer *writer = &per_cpu(mnt_writers, cpu);
++		spin_lock_init(&writer->lock);
++		writer->count = 0;
++	}
++	return 0;
++}
++fs_initcall(init_mnt_writers);
++
++static void mnt_unlock_cpus(void)
++{
++	int cpu;
++	struct mnt_writer *cpu_writer;
++
++	for_each_possible_cpu(cpu) {
++		cpu_writer = &per_cpu(mnt_writers, cpu);
++		spin_unlock(&cpu_writer->lock);
++	}
++}
++
++static inline void __clear_mnt_count(struct mnt_writer *cpu_writer)
++{
++	if (!cpu_writer->mnt)
++		return;
++	atomic_add(cpu_writer->count, &cpu_writer->mnt->__mnt_writers);
++	cpu_writer->count = 0;
++}
++ /*
++ * must hold cpu_writer->lock
++ */
++static inline void use_cpu_writer_for_mount(struct mnt_writer *cpu_writer,
++					  struct vfsmount *mnt)
++{
++	if (cpu_writer->mnt == mnt)
++		return;
++	__clear_mnt_count(cpu_writer);
++	cpu_writer->mnt = mnt;
++}
++
++/*
++ * Most r/o checks on a fs are for operations that take
++ * discrete amounts of time, like a write() or unlink().
++ * We must keep track of when those operations start
++ * (for permission checks) and when they end, so that
++ * we can determine when writes are able to occur to
++ * a filesystem.
++ */
+ /**
+  * mnt_want_write - get write access to a mount
+  * @mnt: the mount on which to take a write
+@@ -100,12 +182,58 @@ struct vfsmount *alloc_vfsmnt(const char
+  */
+ int mnt_want_write(struct vfsmount *mnt)
+ {
+-	if (__mnt_is_readonly(mnt))
+-		return -EROFS;
+-	return 0;
++	int ret = 0;
++	struct mnt_writer *cpu_writer;
++
++	cpu_writer = &get_cpu_var(mnt_writers);
++	spin_lock(&cpu_writer->lock);
++	if (__mnt_is_readonly(mnt)) {
++		ret = -EROFS;
++		goto out;
++	}
++	use_cpu_writer_for_mount(cpu_writer, mnt);
++	cpu_writer->count++;
++out:
++	spin_unlock(&cpu_writer->lock);
++	put_cpu_var(mnt_writers);
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(mnt_want_write);
  
- 	error = -EINVAL;
- 	if (times && (!nsec_valid(times[0].tv_nsec) ||
-@@ -79,17 +80,19 @@ long do_utimes(int dfd, char __user *fil
- 		if (!f)
- 			goto out;
- 		dentry = f->f_path.dentry;
-+		mnt = f->f_path.mnt;
- 	} else {
- 		error = __user_walk_fd(dfd, filename, (flags & AT_SYMLINK_NOFOLLOW) ? 0 : LOOKUP_FOLLOW, &nd);
- 		if (error)
- 			goto out;
++static void lock_and_coalesce_cpu_mnt_writer_counts(void)
++{
++	int cpu;
++	struct mnt_writer *cpu_writer;
++
++	for_each_possible_cpu(cpu) {
++		cpu_writer = &per_cpu(mnt_writers, cpu);
++		spin_lock(&cpu_writer->lock);
++		__clear_mnt_count(cpu_writer);
++		cpu_writer->mnt = NULL;
++	}
++}
++
++/*
++ * These per-cpu write counts are not guaranteed to have
++ * matched increments and decrements on any given cpu.
++ * A file open()ed for write on one cpu and close()d on
++ * another cpu will imbalance this count.  Make sure it
++ * does not get too far out of whack.
++ */
++static void handle_write_count_underflow(struct vfsmount *mnt)
++{
++	while (atomic_read(&mnt->__mnt_writers) <
++		MNT_WRITER_UNDERFLOW_LIMIT) {
++		/*
++		 * It isn't necessary to hold all of the locks
++		 * at the same time, but doing it this way makes
++		 * us share a lot more code.
++		 */
++		lock_and_coalesce_cpu_mnt_writer_counts();
++		mnt_unlock_cpus();
++	}
++}
++
+ /**
+  * mnt_drop_write - give up write access to a mount
+  * @mnt: the mount on which to give up write access
+@@ -116,23 +244,61 @@ EXPORT_SYMBOL_GPL(mnt_want_write);
+  */
+ void mnt_drop_write(struct vfsmount *mnt)
+ {
++	int must_check_underflow = 0;
++	struct mnt_writer *cpu_writer;
++
++	cpu_writer = &get_cpu_var(mnt_writers);
++	spin_lock(&cpu_writer->lock);
++
++	use_cpu_writer_for_mount(cpu_writer, mnt);
++	if (cpu_writer->count > 0) {
++		cpu_writer->count--;
++	} else {
++		must_check_underflow = 1;
++		atomic_dec(&mnt->__mnt_writers);
++	}
++
++	spin_unlock(&cpu_writer->lock);
++	/*
++	 * Logically, we could call this each time,
++	 * but the __mnt_writers cacheline tends to
++	 * be cold, and makes this expensive.
++	 */
++	if (must_check_underflow)
++		handle_write_count_underflow(mnt);
++	/*
++	 * This could be done right after the spinlock
++	 * is taken because the spinlock keeps us on
++	 * the cpu, and disables preemption.  However,
++	 * putting it here bounds the amount that
++	 * __mnt_writers can underflow.  Without it,
++	 * we could theoretically wrap __mnt_writers.
++	 */
++	put_cpu_var(mnt_writers);
+ }
+ EXPORT_SYMBOL_GPL(mnt_drop_write);
  
- 		dentry = nd.dentry;
-+		mnt = nd.mnt;
- 	}
+-/*
+- * __mnt_is_readonly: check whether a mount is read-only
+- * @mnt: the mount to check for its write status
+- *
+- * This shouldn't be used directly ouside of the VFS.
+- * It does not guarantee that the filesystem will stay
+- * r/w, just that it is right *now*.  This can not and
+- * should not be used in place of IS_RDONLY(inode).
+- */
+-int __mnt_is_readonly(struct vfsmount *mnt)
++int mnt_make_readonly(struct vfsmount *mnt)
+ {
+-	return (mnt->mnt_sb->s_flags & MS_RDONLY);
++	int ret = 0;
++
++	lock_and_coalesce_cpu_mnt_writer_counts();
++	/*
++	 * With all the locks held, this value is stable
++	 */
++	if (atomic_read(&mnt->__mnt_writers) > 0) {
++		ret = -EBUSY;
++		goto out;
++	}
++	/*
++	 * actually set mount's r/o flag here to make
++	 * __mnt_is_readonly() true, which keeps anyone
++	 * from doing a successful mnt_want_write().
++	 */
++out:
++	mnt_unlock_cpus();
++	return ret;
+ }
+-EXPORT_SYMBOL_GPL(__mnt_is_readonly);
  
- 	inode = dentry->d_inode;
+ int simple_set_mnt(struct vfsmount *mnt, struct super_block *sb)
+ {
+@@ -397,6 +563,15 @@ static struct vfsmount *clone_mnt(struct
+ static inline void __mntput(struct vfsmount *mnt)
+ {
+ 	struct super_block *sb = mnt->mnt_sb;
++	lock_and_coalesce_cpu_mnt_writer_counts();
++	mnt_unlock_cpus();
++	/*
++	 * This probably indicates that somebody messed
++	 * up a mnt_want/drop_write() pair.  If this
++	 * happens, the filesystem was probably unable
++	 * to make r/w->r/o transitions.
++	 */
++	WARN_ON(atomic_read(&mnt->__mnt_writers));
+ 	dput(mnt->mnt_root);
+ 	clear_mnt_user(mnt);
+ 	free_vfsmnt(mnt);
+diff -puN include/linux/mount.h~r-o-bind-mounts-track-number-of-mount-writers include/linux/mount.h
+--- a/include/linux/mount.h~r-o-bind-mounts-track-number-of-mount-writers
++++ a/include/linux/mount.h
+@@ -14,6 +14,7 @@
  
--	error = mnt_want_write(nd.mnt);
-+	error = mnt_want_write(mnt);
- 	if (error)
- 		goto dput_and_out;
+ #include <linux/types.h>
+ #include <linux/list.h>
++#include <linux/nodemask.h>
+ #include <linux/spinlock.h>
+ #include <asm/atomic.h>
  
-@@ -135,7 +138,7 @@ long do_utimes(int dfd, char __user *fil
- 	error = notify_change(dentry, &newattrs);
- 	mutex_unlock(&inode->i_mutex);
- mnt_drop_write_and_out:
--	mnt_drop_write(nd.mnt);
-+	mnt_drop_write(mnt);
- dput_and_out:
- 	if (f)
- 		fput(f);
+@@ -65,6 +66,13 @@ struct vfsmount {
+ 	int mnt_pinned;
+ 
+ 	uid_t mnt_uid;			/* owner of the mount */
++	/*
++	 * This value is not stable unless all of the
++	 * mnt_writers[] spinlocks are held, and all
++	 * mnt_writer[]s on this mount have 0 as
++	 * their ->count
++	 */
++	atomic_t __mnt_writers;
+ };
+ 
+ static inline struct vfsmount *mntget(struct vfsmount *mnt)
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from haveblue@us.ibm.com are
 
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
-pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
-git-unionfs.patch
-vfs-apply-coding-standards-to-fs-ioctlc.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names.patch
-vfs-factor-out-three-helpers-for-fibmap-fionbio-fioasync-file-ioctls.patch
-git-xfs.patch
-clean-up-vmtruncate.patch
-vfs-security-rework-inode_getsecurity-and-callers-to.patch
-vfs-reorder-vfs_getxattr-to-avoid-unnecessary-calls-to-the-lsm.patch
-unprivileged-mounts-add-user-mounts-to-the-kernel.patch
-unprivileged-mounts-allow-unprivileged-umount.patch
-unprivileged-mounts-account-user-mounts.patch
-unprivileged-mounts-propagate-error-values-from-clone_mnt.patch
-unprivileged-mounts-allow-unprivileged-bind-mounts.patch
-unprivileged-mounts-allow-unprivileged-mounts.patch
-unprivileged-mounts-allow-unprivileged-fuse-mounts.patch
-unprivileged-mounts-propagation-inherit-owner-from-parent.patch
-unprivileged-mounts-add-no-submounts-flag.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes-touch-command-causes-oops.patch
+markers-fix-warnings.patch
+maps4-add-proportional-set-size-accounting-in-smaps.patch
+maps4-rework-task_size-macros.patch
+maps4-move-is_swap_pte.patch
+maps4-introduce-a-generic-page-walker.patch
+maps4-use-pagewalker-in-clear_refs-and-smaps.patch
+maps4-simplify-interdependence-of-maps-and-smaps.patch
+maps4-move-clear_refs-code-to-task_mmuc.patch
+maps4-regroup-task_mmu-by-interface.patch
+maps4-add-proc-pid-pagemap-interface.patch
+maps4-add-proc-kpagecount-interface.patch
+maps4-add-proc-kpageflags-interface.patch
+maps4-make-page-monitoring-proc-file-optional.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+hugetlb-split-alloc_huge_page-into-private-and-shared-components.patch
+hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
+hugetlb-fix-quota-management-for-private-mappings.patch
+hugetlb-debit-quota-in-alloc_huge_page.patch
+hugetlb-allow-bulk-updating-in-hugetlb__quota.patch
+hugetlb-enforce-quotas-during-reservation-for-shared-mappings.patch
+add-remove_memory-for-ppc64-2.patch
+enable-hotplug-memory-remove-for-ppc64.patch
+add-arch-specific-walk_memory_remove-for-ppc64.patch
 r-o-bind-mounts-track-number-of-mount-writers.patch
+r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
+r-o-bind-mounts-track-number-of-mount-writers-fix.patch
 r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
-revoke-special-mmap-handling.patch
-revoke-core-code.patch
-revoke-support-for-ext2-and-ext3.patch
-revoke-add-documentation.patch
-revoke-wire-up-i386-system-calls.patch
-iget-introduce-a-function-to-register-iget-failure.patch
-iget-use-iget_failed-in-afs.patch
-iget-use-iget_failed-in-gfs2.patch
-iget-stop-affs-from-using-iget-and-read_inode-try.patch
-iget-stop-autofs-from-using-iget-and-read_inode.patch
-iget-stop-befs-from-using-iget-and-read_inode-try.patch
-iget-stop-bfs-from-using-iget-and-read_inode-try.patch
-iget-stop-cifs-from-using-iget-and-read_inode-try.patch
-iget-stop-efs-from-using-iget-and-read_inode-try.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try.patch
-iget-stop-ext4-from-using-iget-and-read_inode-try.patch
-iget-stop-fat-from-using-iget-and-read_inode-try.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-fuse-from-using-iget-and-read_inode-try.patch
-iget-stop-hfsplus-from-using-iget-and-read_inode.patch
-iget-stop-isofs-from-using-read_inode.patch
-iget-stop-jffs2-from-using-iget-and-read_inode.patch
-iget-stop-jfs-from-using-iget-and-read_inode-try.patch
-iget-stop-the-minix-filesystem-from-using-iget-and.patch
-iget-stop-procfs-from-using-iget-and-read_inode.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
-iget-stop-romfs-from-using-iget-and-read_inode.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try.patch
-iget-stop-openpromfs-from-using-iget-and.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hppfs-from-using-iget-and-read_inode.patch
-iget-remove-iget-and-the-read_inode-super-op-as.patch
-dont-touch-fs_struct-in-drivers.patch
-dont-touch-fs_struct-in-usermodehelper.patch
-remove-path_release_on_umount.patch
-move-struct-path-into-its-own-header.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
-introduce-path_put.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-introduce-path_get.patch
-use-struct-path-in-fs_struct.patch
-make-set_fs_rootpwd-take-a-struct-path.patch
-introduce-path_get-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
-introduce-path_put-unionfs.patch
-use-struct-path-in-struct-svc_expkey.patch
-d_path-make-seq_path-use-a-struct-path-argument.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
