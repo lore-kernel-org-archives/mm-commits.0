@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-spi-driver-reconfigure-speed_hz-and-bits_per_word-in-each-spi-transfer.patch added to -mm tree
-Date: Mon, 05 Nov 2007 15:50:04 -0800
-Message-ID: <200711052350.lA5No4fA026007@imap1.linux-foundation.org>
+Subject: + memory-hotremove-unset-migrate-type-isolate-after-removal.patch added to -mm tree
+Date: Mon, 05 Nov 2007 15:52:23 -0800
+Message-ID: <200711052352.lA5NqNwn026112@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56056 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58944 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754241AbXKEXu3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:50:29 -0500
+	by vger.kernel.org with ESMTP id S1754545AbXKEXwv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:52:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bryan.wu@analog.com, david-b@pacbell.net
+Cc: kamezawa.hiroyu@jp.fujitsu.com, pbadari@us.ibm.com
 
 
 The patch titled
-     Blackfin SPI driver: reconfigure speed_hz and bits_per_word in each spi transfer
+     memory hotremove: unset migrate type "ISOLATE" after removal
 has been added to the -mm tree.  Its filename is
-     blackfin-spi-driver-reconfigure-speed_hz-and-bits_per_word-in-each-spi-transfer.patch
+     memory-hotremove-unset-migrate-type-isolate-after-removal.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,137 +25,99 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Blackfin SPI driver: reconfigure speed_hz and bits_per_word in each spi transfer
-From: Bryan Wu <bryan.wu@analog.com>
+Subject: memory hotremove: unset migrate type "ISOLATE" after removal
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
- - reconfigure SPI baud from speed_hz of each spi transfer
- - according to spi_transfer.bits_per_word to reprogram register and setup
-   correct SPI operation handlers
+We should unset migrate type "ISOLATE" when we successfully removed memory.
+ But current code has BUG and cannot works well.
 
-Signed-off-by: Bryan Wu <bryan.wu@analog.com>
-Cc: David Brownell <david-b@pacbell.net>
+This patch also includes bugfix?  to change get_pageblock_flags to
+get_pageblock_migratetype().
+
+Thanks to Badari Pulavarty for finding this.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Badari Pulavarty <pbadari@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bfin5xx.c |   52 +++++++++++++++++++++++++++++++-----
- 1 file changed, 45 insertions(+), 7 deletions(-)
+ mm/memory_hotplug.c |    4 ++--
+ mm/page_isolation.c |    6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-reconfigure-speed_hz-and-bits_per_word-in-each-spi-transfer drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~blackfin-spi-driver-reconfigure-speed_hz-and-bits_per_word-in-each-spi-transfer
-+++ a/drivers/spi/spi_bfin5xx.c
-@@ -234,10 +234,8 @@ static int restore_state(struct driver_d
- 	dev_dbg(&drv_data->pdev->dev, "restoring spi ctl state\n");
+diff -puN mm/memory_hotplug.c~memory-hotremove-unset-migrate-type-isolate-after-removal mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotremove-unset-migrate-type-isolate-after-removal
++++ a/mm/memory_hotplug.c
+@@ -574,8 +574,8 @@ repeat:
+ 	/* Ok, all of our target is islaoted.
+ 	   We cannot do rollback at this point. */
+ 	offline_isolated_pages(start_pfn, end_pfn);
+-	/* reset pagetype flags */
+-	start_isolate_page_range(start_pfn, end_pfn);
++	/* reset pagetype flags and makes migrate type to be MOVABLE */
++	undo_isolate_page_range(start_pfn, end_pfn);
+ 	/* removal success */
+ 	zone->present_pages -= offlined_pages;
+ 	zone->zone_pgdat->node_present_pages -= offlined_pages;
+diff -puN mm/page_isolation.c~memory-hotremove-unset-migrate-type-isolate-after-removal mm/page_isolation.c
+--- a/mm/page_isolation.c~memory-hotremove-unset-migrate-type-isolate-after-removal
++++ a/mm/page_isolation.c
+@@ -55,7 +55,7 @@ start_isolate_page_range(unsigned long s
+ 	return 0;
+ undo:
+ 	for (pfn = start_pfn;
+-	     pfn <= undo_pfn;
++	     pfn < undo_pfn;
+ 	     pfn += pageblock_nr_pages)
+ 		unset_migratetype_isolate(pfn_to_page(pfn));
  
- 	/* Load the registers */
--	write_BAUD(drv_data, chip->baud);
--	chip->ctl_reg &= (~BIT_CTL_TIMOD);
--	chip->ctl_reg |= (chip->width << 8);
- 	write_CTRL(drv_data, chip->ctl_reg);
-+	write_BAUD(drv_data, chip->baud);
- 
- 	bfin_spi_enable(drv_data);
- 	cs_active(drv_data, chip);
-@@ -679,6 +677,7 @@ static void pump_transfers(unsigned long
- 	message = drv_data->cur_msg;
- 	transfer = drv_data->cur_transfer;
- 	chip = drv_data->cur_chip;
-+
- 	/*
- 	 * if msg is error or done, report it back using complete() callback
- 	 */
-@@ -736,15 +735,48 @@ static void pump_transfers(unsigned long
- 	drv_data->len_in_bytes = transfer->len;
- 	drv_data->cs_change = transfer->cs_change;
- 
--	width = chip->width;
-+	/* Bits per word setup */
-+	switch (transfer->bits_per_word) {
-+	case 8:
-+		drv_data->n_bytes = 1;
-+		width = CFG_SPI_WORDSIZE8;
-+		drv_data->read = chip->cs_change_per_word ?
-+			u8_cs_chg_reader : u8_reader;
-+		drv_data->write = chip->cs_change_per_word ?
-+			u8_cs_chg_writer : u8_writer;
-+		drv_data->duplex = chip->cs_change_per_word ?
-+			u8_cs_chg_duplex : u8_duplex;
-+		break;
-+
-+	case 16:
-+		drv_data->n_bytes = 2;
-+		width = CFG_SPI_WORDSIZE16;
-+		drv_data->read = chip->cs_change_per_word ?
-+			u16_cs_chg_reader : u16_reader;
-+		drv_data->write = chip->cs_change_per_word ?
-+			u16_cs_chg_writer : u16_writer;
-+		drv_data->duplex = chip->cs_change_per_word ?
-+			u16_cs_chg_duplex : u16_duplex;
-+		break;
-+
-+	default:
-+		/* No change, the same as default setting */
-+		drv_data->n_bytes = chip->n_bytes;
-+		width = chip->width;
-+		drv_data->write = drv_data->tx ? chip->write : null_writer;
-+		drv_data->read = drv_data->rx ? chip->read : null_reader;
-+		drv_data->duplex = chip->duplex ? chip->duplex : null_writer;
-+		break;
-+	}
-+	cr = (read_CTRL(drv_data) & (~BIT_CTL_TIMOD));
-+	cr |= (width << 8);
-+	write_CTRL(drv_data, cr);
-+
- 	if (width == CFG_SPI_WORDSIZE16) {
- 		drv_data->len = (transfer->len) >> 1;
- 	} else {
- 		drv_data->len = transfer->len;
+@@ -76,7 +76,7 @@ undo_isolate_page_range(unsigned long st
+ 	     pfn < end_pfn;
+ 	     pfn += pageblock_nr_pages) {
+ 		page = __first_valid_page(pfn, pageblock_nr_pages);
+-		if (!page || get_pageblock_flags(page) != MIGRATE_ISOLATE)
++		if (!page || get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
+ 			continue;
+ 		unset_migratetype_isolate(page);
  	}
--	drv_data->write = drv_data->tx ? chip->write : null_writer;
--	drv_data->read = drv_data->rx ? chip->read : null_reader;
--	drv_data->duplex = chip->duplex ? chip->duplex : null_writer;
- 	dev_dbg(&drv_data->pdev->dev, "transfer: ",
- 		"drv_data->write is %p, chip->write is %p, null_wr is %p\n",
- 		drv_data->write, chip->write, null_writer);
-@@ -753,6 +785,12 @@ static void pump_transfers(unsigned long
- 	message->state = RUNNING_STATE;
- 	dma_config = 0;
- 
-+	/* Speed setup (surely valid because already checked) */
-+	if (transfer->speed_hz)
-+		write_BAUD(drv_data, hz_to_spi_baud(transfer->speed_hz));
-+	else
-+		write_BAUD(drv_data, chip->baud);
-+
- 	write_STAT(drv_data, BIT_STAT_CLR);
- 	cr = (read_CTRL(drv_data) & (~BIT_CTL_TIMOD));
- 	cs_active(drv_data, chip);
+@@ -126,7 +126,7 @@ int test_pages_isolated(unsigned long st
+ 	 */
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn += pageblock_nr_pages) {
+ 		page = __first_valid_page(pfn, pageblock_nr_pages);
+-		if (page && get_pageblock_flags(page) != MIGRATE_ISOLATE)
++		if (page && get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
+ 			break;
+ 	}
+ 	if (pfn < end_pfn)
 _
 
-Patches currently in -mm which might be from bryan.wu@analog.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-git-mtd.patch
-blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-remove-mm_ptovvtop.patch
-spi-initial-bf54x-spi-support.patch
-spi-bfin-spi-uses-portmux-calls.patch
-spi-spi_bfin-cleanups-error-handling.patch
-spi-spi_bfin-handles-spi_transfercs_change.patch
-spi-spi_bfin-dont-bypass-spi-framework.patch
-spi-spi_bfin-uses-platform-device-resources.patch
-spi-spi_bfin-uses-portmux-for-additional-busses.patch
-spi-spi_bfin-rearrange-portmux-calls.patch
-spi-spi_bfin-change-handling-of-communication-parameters.patch
-spi-spi_bfin-relocate-spin-waits.patch
-spi-spi_bfin-handle-multiple-spi_masters.patch
-spi-spi_bfin-bugfix-for-816-bit-word-sizes.patch
-spi-spi_bfin-update-handling-of-delay-after-deselect.patch
-spi-spi_bfin-resequence-dma-start-stop.patch
-blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait.patch
-blackfin-spi-driver-use-void-__iomem-for-regs_base.patch
-blackfin-spi-driver-move-hard-coded-pin_req-to-board-file.patch
-blackfin-spi-driver-reconfigure-speed_hz-and-bits_per_word-in-each-spi-transfer.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
-d_path-make-d_path-use-a-struct-path.patch
+memory-hotremove-unset-migrate-type-isolate-after-removal.patch
+memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
+add-remove_memory-for-ppc64-2.patch
+enable-hotplug-memory-remove-for-ppc64.patch
+add-arch-specific-walk_memory_remove-for-ppc64.patch
+pie-executable-randomization.patch
+pie-executable-randomization-checkpatch-fixes.patch
+memory-controller-make-charging-gfp-mask-aware-fix.patch
+bugfix-for-memory-cgroup-controller-charge-refcnt-race-fix.patch
+bugfix-for-memory-cgroup-controller-fix-error-handling-path-in-mem_charge_cgroup.patch
+bugfix-for-memory-controller-add-helper-function-for-assigning-cgroup-to-page.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages.patch
+bugfix-for-memory-cgroup-controller-avoid-pagelru-page-in-mem_cgroup_isolate_pages-fix.patch
+bugfix-for-memory-cgroup-controller-migration-under-memory-controller-fix.patch
+memory-cgroup-enhancements-fix-zone-handling-in-try_to_free_mem_cgroup_page.patch
+memory-cgroup-enhancements-force_empty-interface-for-dropping-all-account-in-empty-cgroup.patch
+memory-cgroup-enhancements-remember-a-page-is-charged-as-page-cache.patch
+memory-cgroup-enhancements-remember-a-page-is-on-active-list-of-cgroup-or-not.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-pre_destroy-handler.patch
+memory-cgroup-enhancements-implicit-force-empty-at-rmdir.patch
