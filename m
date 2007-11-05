@@ -1,149 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: + introduce-path_put-unionfs.patch added to -mm tree
-Date: Mon, 05 Nov 2007 13:18:27 -0800
-Message-ID: <200711052118.lA5LISXk020218@imap1.linux-foundation.org>
+Subject: - git-block-vs-agk-dm-dm-reorder-struct-io_restrictions.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 14:00:56 -0800
+Message-ID: <200711052200.lA5M0uNS021759@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60270 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50412 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751019AbXKEVSl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 16:18:41 -0500
+	by vger.kernel.org with ESMTP id S1751441AbXKEWA6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:00:58 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lA5M0uhD031486
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 5 Nov 2007 14:00:57 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jblunck@suse.de, agruen@suse.de, hch@lst.de
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Introduce path_put() (unionfs)
-has been added to the -mm tree.  Its filename is
-     introduce-path_put-unionfs.patch
+     git-block-vs-agk-dm-dm-reorder-struct-io_restrictions
+has been removed from the -mm tree.  Its filename was
+     git-block-vs-agk-dm-dm-reorder-struct-io_restrictions.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: Introduce path_put() (unionfs)
-From: Jan Blunck <jblunck@suse.de>
+Subject: git-block-vs-agk-dm-dm-reorder-struct-io_restrictions
+From: Andrew Morton <akpm@linux-foundation.org>
 
-* Add path_put() functions for releasing a reference to the dentry and
-  vfsmount of a struct path in the right order
-
-* Switch from path_release(nd) to path_put(&nd->path)
-
-* Rename dput_path() to path_put_conditional()
-
-Signed-off-by: Jan Blunck <jblunck@suse.de>
-Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
-Acked-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/unionfs/main.c  |    2 +-
- fs/unionfs/super.c |   12 ++++++------
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ include/linux/device-mapper.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/unionfs/main.c~introduce-path_put-unionfs fs/unionfs/main.c
---- a/fs/unionfs/main.c~introduce-path_put-unionfs
-+++ a/fs/unionfs/main.c
-@@ -368,7 +368,7 @@ static int parse_dirs_option(struct supe
- 		if (err) {
- 			printk(KERN_ERR "unionfs: lower directory "
- 			       "'%s' is not a valid branch\n", name);
--			path_release(&nd);
-+			path_put(&nd.path);
- 			goto out;
- 		}
+diff -puN include/linux/device-mapper.h~git-block-vs-agk-dm-dm-reorder-struct-io_restrictions include/linux/device-mapper.h
+--- a/include/linux/device-mapper.h~git-block-vs-agk-dm-dm-reorder-struct-io_restrictions
++++ a/include/linux/device-mapper.h
+@@ -116,6 +116,7 @@ struct io_restrictions {
+ 	unsigned short hardsect_size;
+ 	unsigned short max_hw_segments;
+ 	unsigned short max_phys_segments;
++	unsigned long bounce_pfn;
+ 	unsigned char no_cluster; /* inverted so that 0 is default */
+ };
  
-diff -puN fs/unionfs/super.c~introduce-path_put-unionfs fs/unionfs/super.c
---- a/fs/unionfs/super.c~introduce-path_put-unionfs
-+++ a/fs/unionfs/super.c
-@@ -205,7 +205,7 @@ static noinline int do_remount_mode_opti
- 		if (nd.path.mnt == new_lower_paths[idx].mnt &&
- 		    nd.path.dentry == new_lower_paths[idx].dentry)
- 			break;
--	path_release(&nd);	/* no longer needed */
-+	path_put(&nd.path);	/* no longer needed */
- 	if (idx == cur_branches) {
- 		err = -ENOENT;	/* err may have been reset above */
- 		printk(KERN_ERR "unionfs: branch \"%s\" "
-@@ -248,7 +248,7 @@ static noinline int do_remount_del_optio
- 		if (nd.path.mnt == new_lower_paths[idx].mnt &&
- 		    nd.path.dentry == new_lower_paths[idx].dentry)
- 			break;
--	path_release(&nd);	/* no longer needed */
-+	path_put(&nd.path);	/* no longer needed */
- 	if (idx == cur_branches) {
- 		printk(KERN_ERR "unionfs: branch \"%s\" "
- 		       "not found\n", optarg);
-@@ -267,7 +267,7 @@ static noinline int do_remount_del_optio
- 	 * new_data and new_lower_paths one to the left.  Finally, adjust
- 	 * cur_branches.
- 	 */
--	pathput(&new_lower_paths[idx]);
-+	path_put(&new_lower_paths[idx]);
- 
- 	if (idx < cur_branches - 1) {
- 		/* if idx==cur_branches-1, we delete last branch: easy */
-@@ -332,7 +332,7 @@ static noinline int do_remount_add_optio
- 		if (nd.path.mnt == new_lower_paths[idx].mnt &&
- 		    nd.path.dentry == new_lower_paths[idx].dentry)
- 			break;
--	path_release(&nd);	/* no longer needed */
-+	path_put(&nd.path);	/* no longer needed */
- 	if (idx == cur_branches) {
- 		printk(KERN_ERR "unionfs: branch \"%s\" "
- 		       "not found\n", optarg);
-@@ -375,7 +375,7 @@ found_insertion_point:
- 	if (err) {
- 		printk(KERN_ERR "unionfs: lower directory "
- 		       "\"%s\" is not a valid branch\n", optarg);
--		path_release(&nd);
-+		path_put(&nd.path);
- 		goto out;
- 	}
- 
-@@ -788,7 +788,7 @@ out_release:
- 	/* no need to cleanup/release anything in tmp_data */
- 	if (tmp_lower_paths)
- 		for (i = 0; i < new_branches; i++)
--			pathput(&tmp_lower_paths[i]);
-+			path_put(&tmp_lower_paths[i]);
- out_free:
- 	kfree(tmp_lower_paths);
- 	kfree(tmp_data);
 _
 
-Patches currently in -mm which might be from jblunck@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime-fix.patch
-r-o-bind-mounts-track-number-of-mount-writers-fix.patch
-dont-touch-fs_struct-in-drivers.patch
-dont-touch-fs_struct-in-usermodehelper.patch
-remove-path_release_on_umount.patch
-move-struct-path-into-its-own-header.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
+origin.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-arm-fixup.patch
+revert-gregkh-driver-block-device.patch
+git-hwmon.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+elantech-touchpad-driver-fix.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-arm-hack.patch
+drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
+lmc_ioctl-dont-return-with-locks-held-fix.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+bluetooth-uninlining.patch
+git-nfsd-fixup.patch
+pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes.patch
+quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
+scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+git-block-vs-agk-dm-dm-reorder-struct-io_restrictions.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-wireless.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-x86.patch
+git-x86-fixup.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+i386-and-x86_64-randomize-brk-fix.patch
+x86-make-i8259_64-more-_32-like-checkpatch-fixes.patch
+mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
+pidns-place-under-config_experimental-checkpatch-fixes.patch
+fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
+file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+cris-build-fixes-atomich-needs-compilerh-fix.patch
+cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
+cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
+cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
+cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
+sync_sb_inodes-propagate-errors.patch
+64-bit-i_version-afs-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-introduce-path_put.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-introduce-path_get.patch
-use-struct-path-in-fs_struct.patch
-make-set_fs_rootpwd-take-a-struct-path.patch
-introduce-path_get-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
-introduce-path_put-unionfs.patch
-one-less-parameter-to-__d_path.patch
 one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-kerneldoc-cleanup.patch
-d_path-use-struct-path-in-struct-avc_audit_data.patch
 d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-proc_get_link-use-a-struct-path-argument.patch
-d_path-make-get_dcookie-use-a-struct-path-argument.patch
 d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export.patch
 use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_expkey.patch
-d_path-make-seq_path-use-a-struct-path-argument.patch
-d_path-make-d_path-use-a-struct-path.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
