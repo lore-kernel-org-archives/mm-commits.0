@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + d_path-make-get_dcookie-use-a-struct-path-argument.patch added to -mm tree
-Date: Mon, 05 Nov 2007 13:07:01 -0800
-Message-ID: <200711052107.lA5L719T019773@imap1.linux-foundation.org>
+Subject: + d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 05 Nov 2007 13:08:00 -0800
+Message-ID: <200711052108.lA5L81O5019808@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56208 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43459 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753110AbXKEVHU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 16:07:20 -0500
+	by vger.kernel.org with ESMTP id S1753891AbXKEVIG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 16:08:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jblunck@suse.de, bfields@fieldses.org, hch@infradead.org, neilb@suse.de, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, jblunck@suse.de
 
 
 The patch titled
-     d_path: Make get_dcookie() use a struct path argument
+     d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     d_path-make-get_dcookie-use-a-struct-path-argument.patch
+     d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,287 +25,182 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: d_path: Make get_dcookie() use a struct path argument
-From: Jan Blunck <jblunck@suse.de>
+Subject: d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-get_dcookie() is always called with a dentry and a vfsmount from a struct
-path.  Make get_dcookie() take it directly as an argument.
+ERROR: "foo * bar" should be "foo *bar"
+#152: FILE: fs/dcookies.c:92:
++static struct dcookie_struct * alloc_dcookie(struct path *path)
 
-Signed-off-by: Jan Blunck <jblunck@suse.de>
-Acked-by: Christoph Hellwig <hch@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Neil Brown <neilb@suse.de>
+ERROR: "foo * bar" should be "foo *bar"
+#176: FILE: fs/dcookies.c:109:
++int get_dcookie(struct path *path, unsigned long * cookie)
+
+total: 2 errors, 0 warnings, 205 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Jan Blunck <jblunck@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/oprofile/cell/spu_task_sync.c |   15 +++------
- drivers/oprofile/buffer_sync.c             |   21 +++++-------
- fs/dcookies.c                              |   31 +++++++------------
- include/linux/dcookies.h                   |   15 ++++-----
- 4 files changed, 35 insertions(+), 47 deletions(-)
+ fs/dcookies.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN arch/powerpc/oprofile/cell/spu_task_sync.c~d_path-make-get_dcookie-use-a-struct-path-argument arch/powerpc/oprofile/cell/spu_task_sync.c
---- a/arch/powerpc/oprofile/cell/spu_task_sync.c~d_path-make-get_dcookie-use-a-struct-path-argument
-+++ a/arch/powerpc/oprofile/cell/spu_task_sync.c
-@@ -198,14 +198,13 @@ out:
-  * dcookie user still being registered (namely, the reader
-  * of the event buffer).
-  */
--static inline unsigned long fast_get_dcookie(struct dentry *dentry,
--					     struct vfsmount *vfsmnt)
-+static inline unsigned long fast_get_dcookie(struct path *path)
- {
- 	unsigned long cookie;
- 
--	if (dentry->d_cookie)
--		return (unsigned long)dentry;
--	get_dcookie(dentry, vfsmnt, &cookie);
-+	if (path->dentry->d_cookie)
-+		return (unsigned long)path->dentry;
-+	get_dcookie(path, &cookie);
- 	return cookie;
- }
- 
-@@ -240,8 +239,7 @@ get_exec_dcookie_and_offset(struct spu *
- 			continue;
- 		if (!(vma->vm_flags & VM_EXECUTABLE))
- 			continue;
--		app_cookie = fast_get_dcookie(vma->vm_file->f_dentry,
--					  vma->vm_file->f_vfsmnt);
-+		app_cookie = fast_get_dcookie(&vma->vm_file->f_path);
- 		pr_debug("got dcookie for %s\n",
- 			 vma->vm_file->f_dentry->d_name.name);
- 		app = vma->vm_file;
-@@ -262,8 +260,7 @@ get_exec_dcookie_and_offset(struct spu *
- 		break;
- 	}
- 
--	*spu_bin_dcookie = fast_get_dcookie(vma->vm_file->f_dentry,
--						 vma->vm_file->f_vfsmnt);
-+	*spu_bin_dcookie = fast_get_dcookie(&vma->vm_file->f_path);
- 	pr_debug("got dcookie for %s\n", vma->vm_file->f_dentry->d_name.name);
- 
- 	up_read(&mm->mmap_sem);
-diff -puN drivers/oprofile/buffer_sync.c~d_path-make-get_dcookie-use-a-struct-path-argument drivers/oprofile/buffer_sync.c
---- a/drivers/oprofile/buffer_sync.c~d_path-make-get_dcookie-use-a-struct-path-argument
-+++ a/drivers/oprofile/buffer_sync.c
-@@ -187,23 +187,22 @@ void sync_stop(void)
- 	end_sync();
- }
- 
-- 
-+
- /* Optimisation. We can manage without taking the dcookie sem
-  * because we cannot reach this code without at least one
-  * dcookie user still being registered (namely, the reader
-  * of the event buffer). */
--static inline unsigned long fast_get_dcookie(struct dentry * dentry,
--	struct vfsmount * vfsmnt)
-+static inline unsigned long fast_get_dcookie(struct path *path)
- {
- 	unsigned long cookie;
-- 
--	if (dentry->d_cookie)
--		return (unsigned long)dentry;
--	get_dcookie(dentry, vfsmnt, &cookie);
-+
-+	if (path->dentry->d_cookie)
-+		return (unsigned long)path->dentry;
-+	get_dcookie(path, &cookie);
- 	return cookie;
- }
- 
-- 
-+
- /* Look up the dcookie for the task's first VM_EXECUTABLE mapping,
-  * which corresponds loosely to "application name". This is
-  * not strictly necessary but allows oprofile to associate
-@@ -222,8 +221,7 @@ static unsigned long get_exec_dcookie(st
- 			continue;
- 		if (!(vma->vm_flags & VM_EXECUTABLE))
- 			continue;
--		cookie = fast_get_dcookie(vma->vm_file->f_path.dentry,
--			vma->vm_file->f_path.mnt);
-+		cookie = fast_get_dcookie(&vma->vm_file->f_path);
- 		break;
- 	}
- 
-@@ -248,8 +246,7 @@ static unsigned long lookup_dcookie(stru
- 			continue;
- 
- 		if (vma->vm_file) {
--			cookie = fast_get_dcookie(vma->vm_file->f_path.dentry,
--				vma->vm_file->f_path.mnt);
-+			cookie = fast_get_dcookie(&vma->vm_file->f_path);
- 			*offset = (vma->vm_pgoff << PAGE_SHIFT) + addr -
- 				vma->vm_start;
- 		} else {
-diff -puN fs/dcookies.c~d_path-make-get_dcookie-use-a-struct-path-argument fs/dcookies.c
---- a/fs/dcookies.c~d_path-make-get_dcookie-use-a-struct-path-argument
+diff -puN fs/dcookies.c~d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes fs/dcookies.c
+--- a/fs/dcookies.c~d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes
 +++ a/fs/dcookies.c
-@@ -24,6 +24,7 @@
- #include <linux/errno.h>
- #include <linux/dcookies.h>
- #include <linux/mutex.h>
-+#include <linux/path.h>
- #include <asm/uaccess.h>
- 
- /* The dcookies are allocated from a kmem_cache and
-@@ -31,8 +32,7 @@
-  * code here is particularly performance critical
-  */
- struct dcookie_struct {
--	struct dentry * dentry;
--	struct vfsmount * vfsmnt;
-+	struct path path;
- 	struct list_head hash_list;
- };
- 
-@@ -51,7 +51,7 @@ static inline int is_live(void)
- /* The dentry is locked, its address will do for the cookie */
- static inline unsigned long dcookie_value(struct dcookie_struct * dcs)
- {
--	return (unsigned long)dcs->dentry;
-+	return (unsigned long)dcs->path.dentry;
+@@ -89,9 +89,10 @@ static void hash_dcookie(struct dcookie_
  }
  
  
-@@ -89,19 +89,16 @@ static void hash_dcookie(struct dcookie_
- }
- 
- 
--static struct dcookie_struct * alloc_dcookie(struct dentry * dentry,
--	struct vfsmount * vfsmnt)
-+static struct dcookie_struct * alloc_dcookie(struct path *path)
+-static struct dcookie_struct * alloc_dcookie(struct path *path)
++static struct dcookie_struct *alloc_dcookie(struct path *path)
  {
- 	struct dcookie_struct * dcs = kmem_cache_alloc(dcookie_cache, GFP_KERNEL);
+-	struct dcookie_struct * dcs = kmem_cache_alloc(dcookie_cache, GFP_KERNEL);
++	struct dcookie_struct *dcs = kmem_cache_alloc(dcookie_cache,
++							GFP_KERNEL);
  	if (!dcs)
  		return NULL;
  
--	dentry->d_cookie = dcs;
--
--	dcs->dentry = dget(dentry);
--	dcs->vfsmnt = mntget(vfsmnt);
-+	path->dentry->d_cookie = dcs;
-+	dcs->path = *path;
-+	path_get(path);
- 	hash_dcookie(dcs);
--
- 	return dcs;
- }
- 
-@@ -109,8 +106,7 @@ static struct dcookie_struct * alloc_dco
+@@ -106,7 +107,7 @@ static struct dcookie_struct * alloc_dco
  /* This is the main kernel-side routine that retrieves the cookie
   * value for a dentry/vfsmnt pair.
   */
--int get_dcookie(struct dentry * dentry, struct vfsmount * vfsmnt,
--	unsigned long * cookie)
-+int get_dcookie(struct path *path, unsigned long * cookie)
+-int get_dcookie(struct path *path, unsigned long * cookie)
++int get_dcookie(struct path *path, unsigned long *cookie)
  {
  	int err = 0;
  	struct dcookie_struct * dcs;
-@@ -122,10 +118,10 @@ int get_dcookie(struct dentry * dentry, 
- 		goto out;
- 	}
- 
--	dcs = dentry->d_cookie;
-+	dcs = path->dentry->d_cookie;
- 
- 	if (!dcs)
--		dcs = alloc_dcookie(dentry, vfsmnt);
-+		dcs = alloc_dcookie(path);
- 
- 	if (!dcs) {
- 		err = -ENOMEM;
-@@ -174,7 +170,7 @@ asmlinkage long sys_lookup_dcookie(u64 c
- 		goto out;
- 
- 	/* FIXME: (deleted) ? */
--	path = d_path(dcs->dentry, dcs->vfsmnt, kbuf, PAGE_SIZE);
-+	path = d_path(dcs->path.dentry, dcs->path.mnt, kbuf, PAGE_SIZE);
- 
- 	if (IS_ERR(path)) {
- 		err = PTR_ERR(path);
-@@ -254,9 +250,8 @@ out_kmem:
- 
- static void free_dcookie(struct dcookie_struct * dcs)
- {
--	dcs->dentry->d_cookie = NULL;
--	dput(dcs->dentry);
--	mntput(dcs->vfsmnt);
-+	dcs->path.dentry->d_cookie = NULL;
-+	path_put(&dcs->path);
- 	kmem_cache_free(dcookie_cache, dcs);
- }
- 
-diff -puN include/linux/dcookies.h~d_path-make-get_dcookie-use-a-struct-path-argument include/linux/dcookies.h
---- a/include/linux/dcookies.h~d_path-make-get_dcookie-use-a-struct-path-argument
-+++ a/include/linux/dcookies.h
-@@ -13,6 +13,7 @@
- #ifdef CONFIG_PROFILING
-  
- #include <linux/dcache.h>
-+#include <linux/path.h>
- #include <linux/types.h>
-  
- struct dcookie_user;
-@@ -43,8 +44,7 @@ void dcookie_unregister(struct dcookie_u
-  *
-  * Returns 0 on success, with *cookie filled in
-  */
--int get_dcookie(struct dentry * dentry, struct vfsmount * vfsmnt,
--	unsigned long * cookie);
-+int get_dcookie(struct path *path, unsigned long *cookie);
- 
- #else
- 
-@@ -57,13 +57,12 @@ static inline void dcookie_unregister(st
- {
- 	return;
- }
-- 
--static inline int get_dcookie(struct dentry * dentry,
--	struct vfsmount * vfsmnt, unsigned long * cookie)
-+
-+static inline int get_dcookie(struct path *path, unsigned long *cookie)
- {
- 	return -ENOSYS;
--} 
-- 
-+}
-+
- #endif /* CONFIG_PROFILING */
-- 
-+
- #endif /* DCOOKIES_H */
 _
 
-Patches currently in -mm which might be from jblunck@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-r-o-bind-mounts-unix_find_other-elevate-write-count-for-touch_atime-fix.patch
-r-o-bind-mounts-track-number-of-mount-writers-fix.patch
-dont-touch-fs_struct-in-drivers.patch
-dont-touch-fs_struct-in-usermodehelper.patch
-remove-path_release_on_umount.patch
-move-struct-path-into-its-own-header.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
+origin.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-arm-fixup.patch
+revert-gregkh-driver-block-device.patch
+git-hwmon.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
+elantech-touchpad-driver-fix.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
+ide-arm-hack.patch
+drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
+lmc_ioctl-dont-return-with-locks-held-fix.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+bluetooth-uninlining.patch
+git-nfsd-fixup.patch
+pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes.patch
+quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
+fix-build-breakage-if-sysfs-fix.patch
+git-scsi-rc-fixes.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
+scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+git-block.patch
+git-block-fixup.patch
+git-block-vs-agk-dm-dm-reorder-struct-io_restrictions.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-watchdog.patch
+git-wireless.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-x86.patch
+git-x86-fixup.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+i386-and-x86_64-randomize-brk-fix.patch
+x86-make-i8259_64-more-_32-like-checkpatch-fixes.patch
+mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
+pidns-place-under-config_experimental-checkpatch-fixes.patch
+fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
+file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+cris-build-fixes-atomich-needs-compilerh-fix.patch
+cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
+cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
+cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
+sync_sb_inodes-propagate-errors.patch
+64-bit-i_version-afs-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-introduce-path_put.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-introduce-path_get.patch
-use-struct-path-in-fs_struct.patch
-make-set_fs_rootpwd-take-a-struct-path.patch
-introduce-path_get-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
-one-less-parameter-to-__d_path.patch
 one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-kerneldoc-cleanup.patch
-d_path-use-struct-path-in-struct-avc_audit_data.patch
 d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-proc_get_link-use-a-struct-path-argument.patch
-d_path-make-get_dcookie-use-a-struct-path-argument.patch
-use-struct-path-in-struct-svc_export.patch
-use-struct-path-in-struct-svc_expkey.patch
-d_path-make-seq_path-use-a-struct-path-argument.patch
-d_path-make-d_path-use-a-struct-path.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
