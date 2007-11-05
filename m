@@ -1,175 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: - at32ap700x_wdt-add-support-for-boot-status-and-add-fix-for-silicon-errata.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 14:07:50 -0800
-Message-ID: <200711052207.lA5M7obY022062@imap1.linux-foundation.org>
+Subject: - libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 14:07:41 -0800
+Message-ID: <200711052207.lA5M7fLZ022033@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53058 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51543 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750741AbXKEWI1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:08:27 -0500
+	by vger.kernel.org with ESMTP id S1751019AbXKEWIb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:08:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hcegtvedt@atmel.com, wim@iguana.be, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     at32ap700x_wdt: add support for boot status and add fix for silicon errata
+     libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     at32ap700x_wdt-add-support-for-boot-status-and-add-fix-for-silicon-errata.patch
+     libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: at32ap700x_wdt: add support for boot status and add fix for silicon errata
-From: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
+Subject: libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch enables the watchdog to read out the reset cause after a boot
-and provide this to the user.
+ERROR: use tabs not spaces
+#81: FILE: drivers/ata/libata-core.c:2132:
++                if (print_info) {$
 
-The driver will now also return -EIO if probed when booting from a watchdog
-reset.  This is due to a silicon errata in the AT32AP700x devices.
+total: 1 errors, 0 warnings, 105 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-Detailed description and work-arounds can be found in the errata section of the
-datasheet avilable from
-http://www.atmel.com/dyn/products/datasheets.asp?family_id=682
+Please run checkpatch prior to sending patches
 
-Signed-off-by: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/at32ap700x_wdt.c |   69 ++++++++++++++++++++++++++--
- 1 file changed, 65 insertions(+), 4 deletions(-)
+ drivers/ata/libata-core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/watchdog/at32ap700x_wdt.c~at32ap700x_wdt-add-support-for-boot-status-and-add-fix-for-silicon-errata drivers/watchdog/at32ap700x_wdt.c
---- a/drivers/watchdog/at32ap700x_wdt.c~at32ap700x_wdt-add-support-for-boot-status-and-add-fix-for-silicon-errata
-+++ a/drivers/watchdog/at32ap700x_wdt.c
-@@ -6,6 +6,19 @@
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-+ *
-+ *
-+ * Errata: WDT Clear is blocked after WDT Reset
-+ *
-+ * A watchdog timer event will, after reset, block writes to the WDT_CLEAR
-+ * register, preventing the program to clear the next Watchdog Timer Reset.
-+ *
-+ * If you still want to use the WDT after a WDT reset a small code can be
-+ * insterted at the startup checking the AVR32_PM.rcause register for WDT reset
-+ * and use a GPIO pin to reset the system. This method requires that one of the
-+ * GPIO pins are available and connected externally to the RESET_N pin. After
-+ * the GPIO pin has pulled down the reset line the GPIO will be reset and leave
-+ * the pin tristated with pullup.
-  */
+diff -puN drivers/ata/libata-core.c~libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-pata_it821x-improve-handling-of-poorly-compatible-emulations-checkpatch-fixes
++++ a/drivers/ata/libata-core.c
+@@ -2129,7 +2129,7 @@ int ata_dev_configure(struct ata_device 
+ 		   with buggy firmware may want to avoid reporting false device
+ 		   bugs */
  
- #include <linux/init.h>
-@@ -44,6 +57,13 @@ MODULE_PARM_DESC(nowayout, "Watchdog can
- 
- #define WDT_CLR			0x04
- 
-+#define WDT_RCAUSE		0x10
-+#define WDT_RCAUSE_POR		   0
-+#define WDT_RCAUSE_EXT		   2
-+#define WDT_RCAUSE_WDT		   3
-+#define WDT_RCAUSE_JTAG		   4
-+#define WDT_RCAUSE_SERP		   5
-+
- #define WDT_BIT(name)		(1 << WDT_##name)
- #define WDT_BF(name, value)	((value) << WDT_##name)
- 
-@@ -56,6 +76,7 @@ struct wdt_at32ap700x {
- 	void __iomem		*regs;
- 	spinlock_t		io_lock;
- 	int			timeout;
-+	int			boot_status;
- 	unsigned long		users;
- 	struct miscdevice	miscdev;
- };
-@@ -126,7 +147,7 @@ static int at32_wdt_close(struct inode *
- 		at32_wdt_stop();
- 	} else {
- 		dev_dbg(wdt->miscdev.parent,
--			"Unexpected close, not stopping watchdog!\n");
-+			"unexpected close, not stopping watchdog!\n");
- 		at32_wdt_pat();
- 	}
- 	clear_bit(1, &wdt->users);
-@@ -154,6 +175,33 @@ static int at32_wdt_settimeout(int time)
- 	return 0;
- }
- 
-+/*
-+ * Get the watchdog status.
-+ */
-+static int at32_wdt_get_status(void)
-+{
-+	int rcause;
-+	int status = 0;
-+
-+	rcause = wdt_readl(wdt, RCAUSE);
-+
-+	switch (rcause) {
-+	case WDT_BIT(RCAUSE_EXT):
-+		status = WDIOF_EXTERN1;
-+		break;
-+	case WDT_BIT(RCAUSE_WDT):
-+		status = WDIOF_CARDRESET;
-+		break;
-+	case WDT_BIT(RCAUSE_POR):  /* fall through */
-+	case WDT_BIT(RCAUSE_JTAG): /* fall through */
-+	case WDT_BIT(RCAUSE_SERP): /* fall through */
-+	default:
-+		break;
-+	}
-+
-+	return status;
-+}
-+
- static struct watchdog_info at32_wdt_info = {
- 	.identity	= "at32ap700x watchdog",
- 	.options	= WDIOF_SETTIMEOUT |
-@@ -194,10 +242,12 @@ static int at32_wdt_ioctl(struct inode *
- 	case WDIOC_GETTIMEOUT:
- 		ret = put_user(wdt->timeout, p);
- 		break;
--	case WDIOC_GETSTATUS: /* fall through */
--	case WDIOC_GETBOOTSTATUS:
-+	case WDIOC_GETSTATUS:
- 		ret = put_user(0, p);
- 		break;
-+	case WDIOC_GETBOOTSTATUS:
-+		ret = put_user(wdt->boot_status, p);
-+		break;
- 	case WDIOC_SETOPTIONS:
- 		ret = get_user(time, p);
- 		if (ret)
-@@ -282,8 +332,19 @@ static int __init at32_wdt_probe(struct 
- 		dev_dbg(&pdev->dev, "could not map I/O memory\n");
- 		goto err_free;
- 	}
-+
- 	spin_lock_init(&wdt->io_lock);
--	wdt->users = 0;
-+	wdt->boot_status = at32_wdt_get_status();
-+
-+	/* Work-around for watchdog silicon errata. */
-+	if (wdt->boot_status & WDIOF_CARDRESET) {
-+		dev_info(&pdev->dev, "CPU must be reset with external "
-+				"reset or POR due to silicon errata.\n");
-+		ret = -EIO;
-+		goto err_iounmap;
-+	} else {
-+		wdt->users = 0;
-+	}
- 	wdt->miscdev.minor = WATCHDOG_MINOR;
- 	wdt->miscdev.name = "watchdog";
- 	wdt->miscdev.fops = &at32_wdt_fops;
+-                if (print_info) {
++		if (print_info) {
+ 			ata_dev_printk(dev, KERN_WARNING,
+ "Drive reports diagnostics failure. This may indicate a drive\n");
+ 			ata_dev_printk(dev, KERN_WARNING,
 _
 
-Patches currently in -mm which might be from hcegtvedt@atmel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-git-avr32.patch
-git-mtd.patch
-git-watchdog.patch
+origin.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-arm-fixup.patch
+revert-gregkh-driver-block-device.patch
+git-hwmon.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+elantech-touchpad-driver-fix.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-arm-hack.patch
+drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
+lmc_ioctl-dont-return-with-locks-held-fix.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+bluetooth-uninlining.patch
+git-nfsd-fixup.patch
+pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes.patch
+quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
+scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+git-unionfs.patch
+git-wireless.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-x86.patch
+git-x86-fixup.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+i386-and-x86_64-randomize-brk-fix.patch
+x86-make-i8259_64-more-_32-like-checkpatch-fixes.patch
+git-perfmon-fixup.patch
+mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
+pidns-place-under-config_experimental-checkpatch-fixes.patch
+fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
+file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+cris-build-fixes-atomich-needs-compilerh-fix.patch
+cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
+cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
+cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
+cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
+sync_sb_inodes-propagate-errors.patch
+64-bit-i_version-afs-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
