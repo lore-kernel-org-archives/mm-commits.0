@@ -1,230 +1,463 @@
 From: akpm@linux-foundation.org
-Subject: - 53c7xx-removal-fallout.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 14:07:54 -0800
-Message-ID: <200711052207.lA5M7s70022068@imap1.linux-foundation.org>
+Subject: - watchdog-spin_lock_init-fixes.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 14:07:46 -0800
+Message-ID: <200711052207.lA5M7knI022039@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37225 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57000 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752028AbXKEWIp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:08:45 -0500
+	by vger.kernel.org with ESMTP id S1752659AbXKEWI6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:08:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, geert@linux-m68k.org, mm-commits@vger.kernel.org
+To: adobriyan@sw.ru, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     53c7xx removal fallout
+     watchdog: spin_lock_init() fixes
 has been removed from the -mm tree.  Its filename was
-     53c7xx-removal-fallout.patch
+     watchdog-spin_lock_init-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: 53c7xx removal fallout
-From: Adrian Bunk <bunk@kernel.org>
+Subject: watchdog: spin_lock_init() fixes
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-This patch does some additional cleanups after the 53c7xx removal.
+Some watchdog drivers initialize global spinlocks in module's init function
+which is tolerable, but some do it in PCI probe function.  So, switch to
+static initialization to fix theoretical bugs and, more importantly, stop
+giving people bad examples.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dontdiff                |    2 
- Documentation/m68k/kernel-options.txt |   60 ------------------------
- Documentation/scsi/00-INDEX           |    2 
- Documentation/scsi/ncr53c7xx.txt      |   40 ----------------
- drivers/scsi/.gitignore               |    2 
- 5 files changed, 106 deletions(-)
+ drivers/watchdog/alim1535_wdt.c   |    4 +---
+ drivers/watchdog/davinci_wdt.c    |    4 +---
+ drivers/watchdog/i6300esb.c       |    4 +---
+ drivers/watchdog/ib700wdt.c       |    4 +---
+ drivers/watchdog/machzwd.c        |    7 ++-----
+ drivers/watchdog/mpc83xx_wdt.c    |    5 +----
+ drivers/watchdog/pc87413_wdt.c    |    4 +---
+ drivers/watchdog/pnx4008_wdt.c    |    4 +---
+ drivers/watchdog/sbc8360.c        |    3 +--
+ drivers/watchdog/sc1200wdt.c      |    3 +--
+ drivers/watchdog/sc520_wdt.c      |    4 +---
+ drivers/watchdog/smsc37b787_wdt.c |    4 +---
+ drivers/watchdog/w83627hf_wdt.c   |    4 +---
+ drivers/watchdog/w83697hf_wdt.c   |    4 +---
+ drivers/watchdog/w83877f_wdt.c    |    4 +---
+ drivers/watchdog/w83977f_wdt.c    |    4 +---
+ drivers/watchdog/wafer5823wdt.c   |    4 +---
+ drivers/watchdog/wdt977.c         |    4 +---
+ drivers/watchdog/wdt_pci.c        |    3 +--
+ 19 files changed, 20 insertions(+), 57 deletions(-)
 
-diff -puN Documentation/dontdiff~53c7xx-removal-fallout Documentation/dontdiff
---- a/Documentation/dontdiff~53c7xx-removal-fallout
-+++ a/Documentation/dontdiff
-@@ -46,8 +46,6 @@
- .mailmap
- .mm
- 53c700_d.h
--53c7xx_d.h
--53c7xx_u.h
- 53c8xx_d.h*
- BitKeeper
- COPYING
-diff -puN Documentation/m68k/kernel-options.txt~53c7xx-removal-fallout Documentation/m68k/kernel-options.txt
---- a/Documentation/m68k/kernel-options.txt~53c7xx-removal-fallout
-+++ a/Documentation/m68k/kernel-options.txt
-@@ -867,66 +867,6 @@ controller and should be autodetected by
- 24 bit region which is specified by a mask of 0x00fffffe.
+diff -puN drivers/watchdog/alim1535_wdt.c~watchdog-spin_lock_init-fixes drivers/watchdog/alim1535_wdt.c
+--- a/drivers/watchdog/alim1535_wdt.c~watchdog-spin_lock_init-fixes
++++ a/drivers/watchdog/alim1535_wdt.c
+@@ -31,7 +31,7 @@ static unsigned long ali_is_open;
+ static char ali_expect_release;
+ static struct pci_dev *ali_pci;
+ static u32 ali_timeout_bits;	/* stores the computed timeout */
+-static spinlock_t ali_lock;	/* Guards the hardware */
++static DEFINE_SPINLOCK(ali_lock);	/* Guards the hardware */
  
+ /* module parameters */
+ static int timeout = WATCHDOG_TIMEOUT;
+@@ -398,8 +398,6 @@ static int __init watchdog_init(void)
+ {
+ 	int ret;
  
--5.5) 53c7xx=
--------------
+-	spin_lock_init(&ali_lock);
 -
--Syntax: 53c7xx=<sub-options...>
+ 	/* Check whether or not the hardware watchdog is there */
+ 	if (ali_find_watchdog() != 0) {
+ 		return -ENODEV;
+diff -puN drivers/watchdog/davinci_wdt.c~watchdog-spin_lock_init-fixes drivers/watchdog/davinci_wdt.c
+--- a/drivers/watchdog/davinci_wdt.c~watchdog-spin_lock_init-fixes
++++ a/drivers/watchdog/davinci_wdt.c
+@@ -61,7 +61,7 @@
+ 
+ static int heartbeat = DEFAULT_HEARTBEAT;
+ 
+-static spinlock_t io_lock;
++static DEFINE_SPINLOCK(io_lock);
+ static unsigned long wdt_status;
+ #define WDT_IN_USE        0
+ #define WDT_OK_TO_CLOSE   1
+@@ -200,8 +200,6 @@ static int davinci_wdt_probe(struct plat
+ 	int ret = 0, size;
+ 	struct resource *res;
+ 
+-	spin_lock_init(&io_lock);
 -
--These options affect the A4000T, A4091, WarpEngine, Blizzard 603e+,
--and GForce 040/060 SCSI controllers on the Amiga, as well as the
--builtin MVME 16x SCSI controller.
+ 	if (heartbeat < 1 || heartbeat > MAX_HEARTBEAT)
+ 		heartbeat = DEFAULT_HEARTBEAT;
+ 
+diff -puN drivers/watchdog/i6300esb.c~watchdog-spin_lock_init-fixes drivers/watchdog/i6300esb.c
+--- a/drivers/watchdog/i6300esb.c~watchdog-spin_lock_init-fixes
++++ a/drivers/watchdog/i6300esb.c
+@@ -77,7 +77,7 @@
+ 
+ /* internal variables */
+ static void __iomem *BASEADDR;
+-static spinlock_t esb_lock; /* Guards the hardware */
++static DEFINE_SPINLOCK(esb_lock); /* Guards the hardware */
+ static unsigned long timer_alive;
+ static struct pci_dev *esb_pci;
+ static unsigned short triggered; /* The status of the watchdog upon boot */
+@@ -456,8 +456,6 @@ static int __init watchdog_init (void)
+ {
+         int ret;
+ 
+-        spin_lock_init(&esb_lock);
 -
--The <sub-options> is a comma-separated list of the sub-options listed
--below.
+         /* Check whether or not the hardware watchdog is there */
+         if (!esb_getdevice () || esb_pci == NULL)
+                 return -ENODEV;
+diff -puN drivers/watchdog/ib700wdt.c~watchdog-spin_lock_init-fixes drivers/watchdog/ib700wdt.c
+--- a/drivers/watchdog/ib700wdt.c~watchdog-spin_lock_init-fixes
++++ a/drivers/watchdog/ib700wdt.c
+@@ -48,7 +48,7 @@
+ 
+ static struct platform_device *ibwdt_platform_device;
+ static unsigned long ibwdt_is_open;
+-static spinlock_t ibwdt_lock;
++static DEFINE_SPINLOCK(ibwdt_lock);
+ static char expect_close;
+ 
+ /* Module information */
+@@ -308,8 +308,6 @@ static int __devinit ibwdt_probe(struct 
+ {
+ 	int res;
+ 
+-	spin_lock_init(&ibwdt_lock);
 -
--5.5.1) nosync
---------------
+ #if WDT_START != WDT_STOP
+ 	if (!request_region(WDT_STOP, 1, "IB700 WDT")) {
+ 		printk (KERN_ERR PFX "STOP method I/O %X is not available.\n", WDT_STOP);
+diff -puN drivers/watchdog/machzwd.c~watchdog-spin_lock_init-fixes drivers/watchdog/machzwd.c
+--- a/drivers/watchdog/machzwd.c~watchdog-spin_lock_init-fixes
++++ a/drivers/watchdog/machzwd.c
+@@ -123,8 +123,8 @@ static void zf_ping(unsigned long data);
+ static int zf_action = GEN_RESET;
+ static unsigned long zf_is_open;
+ static char zf_expect_close;
+-static spinlock_t zf_lock;
+-static spinlock_t zf_port_lock;
++static DEFINE_SPINLOCK(zf_lock);
++static DEFINE_SPINLOCK(zf_port_lock);
+ static DEFINE_TIMER(zf_timer, zf_ping, 0, 0);
+ static unsigned long next_heartbeat = 0;
+ 
+@@ -438,9 +438,6 @@ static int __init zf_init(void)
+ 
+ 	zf_show_action(action);
+ 
+-	spin_lock_init(&zf_lock);
+-	spin_lock_init(&zf_port_lock);
 -
--Syntax: nosync:0
+ 	if(!request_region(ZF_IOBASE, 3, "MachZ ZFL WDT")){
+ 		printk(KERN_ERR "cannot reserve I/O ports at %d\n",
+ 							ZF_IOBASE);
+diff -puN drivers/watchdog/mpc83xx_wdt.c~watchdog-spin_lock_init-fixes drivers/watchdog/mpc83xx_wdt.c
+--- a/drivers/watchdog/mpc83xx_wdt.c~watchdog-spin_lock_init-fixes
++++ a/drivers/watchdog/mpc83xx_wdt.c
+@@ -56,7 +56,7 @@ static int prescale = 1;
+ static unsigned int timeout_sec;
+ 
+ static unsigned long wdt_is_open;
+-static spinlock_t wdt_spinlock;
++static DEFINE_SPINLOCK(wdt_spinlock);
+ 
+ static void mpc83xx_wdt_keepalive(void)
+ {
+@@ -185,9 +185,6 @@ static int __devinit mpc83xx_wdt_probe(s
+ 	printk(KERN_INFO "WDT driver for MPC83xx initialized. "
+ 		"mode:%s timeout=%d (%d seconds)\n",
+ 		reset ? "reset":"interrupt", timeout, timeout_sec);
 -
--  Disables sync negotiation for all devices.  Any value after the
--  colon is acceptable (and has the same effect).
+-	spin_lock_init(&wdt_spinlock);
 -
--5.5.2) noasync
----------------
+ 	return 0;
+ 
+ err_unmap:
+diff -puN drivers/watchdog/pc87413_wdt.c~watchdog-spin_lock_init-fixes drivers/watchdog/pc87413_wdt.c
+--- a/drivers/watchdog/pc87413_wdt.c~watchdog-spin_lock_init-fixes
++++ a/drivers/watchdog/pc87413_wdt.c
+@@ -61,7 +61,7 @@ static unsigned long timer_enabled = 0; 
+ 
+ static char expect_close;                /* is the close expected? */
+ 
+-static spinlock_t io_lock;               /* to guard the watchdog from io races */
++static DEFINE_SPINLOCK(io_lock);/* to guard the watchdog from io races */
+ 
+ static int nowayout = WATCHDOG_NOWAYOUT;
+ 
+@@ -561,8 +561,6 @@ static int __init pc87413_init(void)
+ {
+ 	int ret;
+ 
+-	spin_lock_init(&io_lock);
 -
--[OBSOLETE, REMOVED]
+ 	printk(KERN_INFO PFX "Version " VERSION " at io 0x%X\n", WDT_INDEX_IO_PORT);
+ 
+ 	/* request_region(io, 2, "pc87413"); */
+diff -puN drivers/watchdog/pnx4008_wdt.c~watchdog-spin_lock_init-fixes drivers/watchdog/pnx4008_wdt.c
+--- a/drivers/watchdog/pnx4008_wdt.c~watchdog-spin_lock_init-fixes
++++ a/drivers/watchdog/pnx4008_wdt.c
+@@ -80,7 +80,7 @@
+ static int nowayout = WATCHDOG_NOWAYOUT;
+ static int heartbeat = DEFAULT_HEARTBEAT;
+ 
+-static spinlock_t io_lock;
++static DEFINE_SPINLOCK(io_lock);
+ static unsigned long wdt_status;
+ #define WDT_IN_USE        0
+ #define WDT_OK_TO_CLOSE   1
+@@ -254,8 +254,6 @@ static int pnx4008_wdt_probe(struct plat
+ 	int ret = 0, size;
+ 	struct resource *res;
+ 
+-	spin_lock_init(&io_lock);
 -
--5.5.3) nodisconnect
---------------------
+ 	if (heartbeat < 1 || heartbeat > MAX_HEARTBEAT)
+ 		heartbeat = DEFAULT_HEARTBEAT;
+ 
+diff -puN drivers/watchdog/sbc8360.c~watchdog-spin_lock_init-fixes drivers/watchdog/sbc8360.c
+--- a/drivers/watchdog/sbc8360.c~watchdog-spin_lock_init-fixes
++++ a/drivers/watchdog/sbc8360.c
+@@ -54,7 +54,7 @@
+ #include <asm/system.h>
+ 
+ static unsigned long sbc8360_is_open;
+-static spinlock_t sbc8360_lock;
++static DEFINE_SPINLOCK(sbc8360_lock);
+ static char expect_close;
+ 
+ #define PFX "sbc8360: "
+@@ -359,7 +359,6 @@ static int __init sbc8360_init(void)
+ 		goto out_noreboot;
+ 	}
+ 
+-	spin_lock_init(&sbc8360_lock);
+ 	res = misc_register(&sbc8360_miscdev);
+ 	if (res) {
+ 		printk(KERN_ERR PFX "failed to register misc device\n");
+diff -puN drivers/watchdog/sc1200wdt.c~watchdog-spin_lock_init-fixes drivers/watchdog/sc1200wdt.c
+--- a/drivers/watchdog/sc1200wdt.c~watchdog-spin_lock_init-fixes
++++ a/drivers/watchdog/sc1200wdt.c
+@@ -74,7 +74,7 @@ static int io = -1;
+ static int io_len = 2;		/* for non plug and play */
+ static struct semaphore open_sem;
+ static char expect_close;
+-static spinlock_t sc1200wdt_lock;	/* io port access serialisation */
++static DEFINE_SPINLOCK(sc1200wdt_lock);	/* io port access serialisation */
+ 
+ #if defined CONFIG_PNP
+ static int isapnp = 1;
+@@ -375,7 +375,6 @@ static int __init sc1200wdt_init(void)
+ 
+ 	printk("%s\n", banner);
+ 
+-	spin_lock_init(&sc1200wdt_lock);
+ 	sema_init(&open_sem, 1);
+ 
+ #if defined CONFIG_PNP
+diff -puN drivers/watchdog/sc520_wdt.c~watchdog-spin_lock_init-fixes drivers/watchdog/sc520_wdt.c
+--- a/drivers/watchdog/sc520_wdt.c~watchdog-spin_lock_init-fixes
++++ a/drivers/watchdog/sc520_wdt.c
+@@ -125,7 +125,7 @@ static DEFINE_TIMER(timer, wdt_timer_pin
+ static unsigned long next_heartbeat;
+ static unsigned long wdt_is_open;
+ static char wdt_expect_close;
+-static spinlock_t wdt_spinlock;
++static DEFINE_SPINLOCK(wdt_spinlock);
+ 
+ /*
+  *	Whack the dog
+@@ -383,8 +383,6 @@ static int __init sc520_wdt_init(void)
+ {
+ 	int rc = -EBUSY;
+ 
+-	spin_lock_init(&wdt_spinlock);
 -
--Syntax: nodisconnect:0
+ 	/* Check that the timeout value is within it's range ; if not reset to the default */
+ 	if (wdt_set_heartbeat(timeout)) {
+ 		wdt_set_heartbeat(WATCHDOG_TIMEOUT);
+diff -puN drivers/watchdog/smsc37b787_wdt.c~watchdog-spin_lock_init-fixes drivers/watchdog/smsc37b787_wdt.c
+--- a/drivers/watchdog/smsc37b787_wdt.c~watchdog-spin_lock_init-fixes
++++ a/drivers/watchdog/smsc37b787_wdt.c
+@@ -83,7 +83,7 @@ static unsigned long timer_enabled = 0; 
+ 
+ static char expect_close;       /* is the close expected? */
+ 
+-static spinlock_t io_lock;	/* to guard the watchdog from io races */
++static DEFINE_SPINLOCK(io_lock);/* to guard the watchdog from io races */
+ 
+ static int nowayout = WATCHDOG_NOWAYOUT;
+ 
+@@ -540,8 +540,6 @@ static int __init wb_smsc_wdt_init(void)
+ {
+ 	int ret;
+ 
+-	spin_lock_init(&io_lock);
 -
--  Disables SCSI disconnects.  Any value after the colon is acceptable
--  (and has the same effect).
+ 	printk("SMsC 37B787 watchdog component driver " VERSION " initialising...\n");
+ 
+ 	if (!request_region(IOPORT, IOPORT_SIZE, "SMsC 37B787 watchdog")) {
+diff -puN drivers/watchdog/w83627hf_wdt.c~watchdog-spin_lock_init-fixes drivers/watchdog/w83627hf_wdt.c
+--- a/drivers/watchdog/w83627hf_wdt.c~watchdog-spin_lock_init-fixes
++++ a/drivers/watchdog/w83627hf_wdt.c
+@@ -48,7 +48,7 @@
+ 
+ static unsigned long wdt_is_open;
+ static char expect_close;
+-static spinlock_t io_lock;
++static DEFINE_SPINLOCK(io_lock);
+ 
+ /* You must set this - there is no sane way to probe for this board. */
+ static int wdt_io = 0x2E;
+@@ -328,8 +328,6 @@ wdt_init(void)
+ {
+ 	int ret;
+ 
+-	spin_lock_init(&io_lock);
 -
--5.5.4) validids
-----------------
+ 	printk(KERN_INFO "WDT driver for the Winbond(TM) W83627HF/THF/HG Super I/O chip initialising.\n");
+ 
+ 	if (wdt_set_heartbeat(timeout)) {
+diff -puN drivers/watchdog/w83697hf_wdt.c~watchdog-spin_lock_init-fixes drivers/watchdog/w83697hf_wdt.c
+--- a/drivers/watchdog/w83697hf_wdt.c~watchdog-spin_lock_init-fixes
++++ a/drivers/watchdog/w83697hf_wdt.c
+@@ -47,7 +47,7 @@
+ 
+ static unsigned long wdt_is_open;
+ static char expect_close;
+-static spinlock_t io_lock;
++static DEFINE_SPINLOCK(io_lock);
+ 
+ /* You must set this - there is no sane way to probe for this board. */
+ static int wdt_io = 0x2e;
+@@ -376,8 +376,6 @@ wdt_init(void)
+ {
+ 	int ret, i, found = 0;
+ 
+-	spin_lock_init(&io_lock);
 -
--Syntax: validids:0xNN
+ 	printk (KERN_INFO PFX "WDT driver for W83697HF/HG initializing\n");
+ 
+ 	if (wdt_io == 0) {
+diff -puN drivers/watchdog/w83877f_wdt.c~watchdog-spin_lock_init-fixes drivers/watchdog/w83877f_wdt.c
+--- a/drivers/watchdog/w83877f_wdt.c~watchdog-spin_lock_init-fixes
++++ a/drivers/watchdog/w83877f_wdt.c
+@@ -94,7 +94,7 @@ static DEFINE_TIMER(timer, wdt_timer_pin
+ static unsigned long next_heartbeat;
+ static unsigned long wdt_is_open;
+ static char wdt_expect_close;
+-static spinlock_t wdt_spinlock;
++static DEFINE_SPINLOCK(wdt_spinlock);
+ 
+ /*
+  *	Whack the dog
+@@ -350,8 +350,6 @@ static int __init w83877f_wdt_init(void)
+ {
+ 	int rc = -EBUSY;
+ 
+-	spin_lock_init(&wdt_spinlock);
 -
--  Specify which SCSI ids the driver should pay attention to.  This is
--  a bitmask (i.e. to only pay attention to ID#4, you'd use 0x10).
--  Default is 0x7f (devices 0-6).
+ 	if(timeout < 1 || timeout > 3600) /* arbitrary upper limit */
+ 	{
+ 		timeout = WATCHDOG_TIMEOUT;
+diff -puN drivers/watchdog/w83977f_wdt.c~watchdog-spin_lock_init-fixes drivers/watchdog/w83977f_wdt.c
+--- a/drivers/watchdog/w83977f_wdt.c~watchdog-spin_lock_init-fixes
++++ a/drivers/watchdog/w83977f_wdt.c
+@@ -50,7 +50,7 @@ static	int timeoutW;			/* timeout in wat
+ static	unsigned long timer_alive;
+ static	int testmode;
+ static	char expect_close;
+-static	spinlock_t spinlock;
++static	DEFINE_SPINLOCK(spinlock);
+ 
+ module_param(timeout, int, 0);
+ MODULE_PARM_DESC(timeout,"Watchdog timeout in seconds (15..7635), default=" __MODULE_STRING(DEFAULT_TIMEOUT) ")");
+@@ -476,8 +476,6 @@ static int __init w83977f_wdt_init(void)
+ 
+         printk(KERN_INFO PFX DRIVER_VERSION);
+ 
+-	spin_lock_init(&spinlock);
 -
--5.5.5) opthi
--5.5.6) optlo
--------------
+ 	/*
+ 	 * Check that the timeout value is within it's range ; 
+ 	 * if not reset to the default
+diff -puN drivers/watchdog/wafer5823wdt.c~watchdog-spin_lock_init-fixes drivers/watchdog/wafer5823wdt.c
+--- a/drivers/watchdog/wafer5823wdt.c~watchdog-spin_lock_init-fixes
++++ a/drivers/watchdog/wafer5823wdt.c
+@@ -45,7 +45,7 @@
+ 
+ static unsigned long wafwdt_is_open;
+ static char expect_close;
+-static spinlock_t wafwdt_lock;
++static DEFINE_SPINLOCK(wafwdt_lock);
+ 
+ /*
+  *	You must set these - there is no sane way to probe for this board.
+@@ -252,8 +252,6 @@ static int __init wafwdt_init(void)
+ 
+ 	printk(KERN_INFO "WDT driver for Wafer 5823 single board computer initialising.\n");
+ 
+-	spin_lock_init(&wafwdt_lock);
 -
--Syntax: opthi:M,optlo:N
+ 	if (timeout < 1 || timeout > 255) {
+ 		timeout = WD_TIMO;
+ 		printk (KERN_INFO PFX "timeout value must be 1<=x<=255, using %d\n",
+diff -puN drivers/watchdog/wdt977.c~watchdog-spin_lock_init-fixes drivers/watchdog/wdt977.c
+--- a/drivers/watchdog/wdt977.c~watchdog-spin_lock_init-fixes
++++ a/drivers/watchdog/wdt977.c
+@@ -59,7 +59,7 @@ static	int timeoutM;				/* timeout in mi
+ static	unsigned long timer_alive;
+ static	int testmode;
+ static	char expect_close;
+-static	spinlock_t spinlock;
++static	DEFINE_SPINLOCK(spinlock);
+ 
+ module_param(timeout, int, 0);
+ MODULE_PARM_DESC(timeout,"Watchdog timeout in seconds (60..15300), default=" __MODULE_STRING(DEFAULT_TIMEOUT) ")");
+@@ -448,8 +448,6 @@ static int __init wd977_init(void)
+ 
+ 	printk(KERN_INFO PFX DRIVER_VERSION);
+ 
+-	spin_lock_init(&spinlock);
 -
--  Specify options for "hostdata->options".  The acceptable definitions
--  are listed in drivers/scsi/53c7xx.h; the 32 high bits should be in
--  opthi and the 32 low bits in optlo.  They must be specified in the
--  order opthi=M,optlo=N.
--
--5.5.7) next
-------------
--
--  No argument. Used to separate blocks of keywords when there's more
--  than one 53c7xx host adapter in the system.
--
--
- /* Local Variables: */
- /* mode: text       */
- /* End:             */
-diff -puN Documentation/scsi/00-INDEX~53c7xx-removal-fallout Documentation/scsi/00-INDEX
---- a/Documentation/scsi/00-INDEX~53c7xx-removal-fallout
-+++ a/Documentation/scsi/00-INDEX
-@@ -64,8 +64,6 @@ lpfc.txt
- 	- LPFC driver release notes
- megaraid.txt
- 	- Common Management Module, shared code handling ioctls for LSI drivers
--ncr53c7xx.txt
--	- info on driver for NCR53c7xx based adapters
- ncr53c8xx.txt
- 	- info on driver for NCR53c8xx based adapters
- osst.txt
-diff -puN Documentation/scsi/ncr53c7xx.txt~53c7xx-removal-fallout /dev/null
---- a/Documentation/scsi/ncr53c7xx.txt
-+++ /dev/null
-@@ -1,40 +0,0 @@
--README for WarpEngine/A4000T/A4091 SCSI kernels.
--
--Use the following options to disable options in the SCSI driver.
--
--Using amiboot for example.....
--
--To disable Synchronous Negotiation....
--
--	amiboot -k kernel 53c7xx=nosync:0	
--
--To disable Disconnection....
--	
--	amiboot -k kernel 53c7xx=nodisconnect:0
--
--To disable certain SCSI devices...
--
--	amiboot -k kernel 53c7xx=validids:0x3F
--
--	this allows only device ID's 0,1,2,3,4 and 5 for linux to handle.
--	(this is a bitmasked field - i.e. each bit represents a SCSI ID)
--
--These commands work on a per controller basis and use the option 'next' to
--move to the next controller in the system.
--
--e.g.
--	amiboot -k kernel 53c7xx=nodisconnect:0,next,nosync:0
--
--	this uses No Disconnection on the first controller and Asynchronous
--	SCSI on the second controller.
--
--Known Issues:
--
--Two devices are known not to function with the default settings of using
--synchronous SCSI. These are the Archive Viper 150 Tape Drive and the 
--SyQuest SQ555 removeable hard drive. When using these devices on a controller
--use the 'nosync:0' option.
--
--Please try these options and post any problems/successes to me.
--
--Alan Hourihane <alanh@fairlite.demon.co.uk>
-diff -puN drivers/scsi/.gitignore~53c7xx-removal-fallout drivers/scsi/.gitignore
---- a/drivers/scsi/.gitignore~53c7xx-removal-fallout
-+++ a/drivers/scsi/.gitignore
-@@ -1,3 +1 @@
- 53c700_d.h
--53c7xx_d.h
--53c7xx_u.h
+ 	/* Check that the timeout value is within it's range ; if not reset to the default */
+ 	if (wdt977_set_timeout(timeout))
+ 	{
+diff -puN drivers/watchdog/wdt_pci.c~watchdog-spin_lock_init-fixes drivers/watchdog/wdt_pci.c
+--- a/drivers/watchdog/wdt_pci.c~watchdog-spin_lock_init-fixes
++++ a/drivers/watchdog/wdt_pci.c
+@@ -74,7 +74,7 @@
+ static int dev_count;
+ 
+ static struct semaphore open_sem;
+-static spinlock_t wdtpci_lock;
++static DEFINE_SPINLOCK(wdtpci_lock);
+ static char expect_close;
+ 
+ static int io;
+@@ -607,7 +607,6 @@ static int __devinit wdtpci_init_one (st
+ 	}
+ 
+ 	sema_init(&open_sem, 1);
+-	spin_lock_init(&wdtpci_lock);
+ 
+ 	irq = dev->irq;
+ 	io = pci_resource_start (dev, 2);
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
 origin.patch
-fs-afs-vlocationc-fix-off-by-one.patch
-lguest_userc-fix-memory-leak.patch
-video-sis-fix-negative-array-index.patch
-git-dvb.patch
-git-hwmon.patch
-make-jffs2_get_acl-static.patch
-make-sunrpc-xprtsockcxs_setup_udptcp-static.patch
-drivers-bluetooth-bpa10xc-fix-memleak.patch
-drivers-bluetooth-btsdioc-fix-double-free.patch
-git-nfs-make-nfs_wb_page_priority-static.patch
-git-ocfs2.patch
-git-scsi-misc.patch
-scsi-advansysc-make-3-functions-static.patch
-xtensa-iss_net_setup-must-be-__init.patch
-sunrpc-xprtrdma-transportc-fix-use-after-free.patch
-fix-mm-utilckrealloc.patch
-fuse_file_alloc-fix-null-dereferences.patch
-pidns-place-under-config_experimental.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-feature-removal-schedule-remove-sa_-flags-entry.patch
-kernel-taskstatsc-fix-bogus-nlmsg_free.patch
-mm-hugetlbc-make-a-function-static.patch
-mm-page-writebackc-make-a-function-static.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-kill-udffs_dateversion.patch
-make-ipc-utilcsysvipc_find_ipc-static.patch
-scheduled-oss-driver-removal.patch
-cleanup-after-apus-removal.patch
-remove-mm_ptovvtop.patch
-fs-ecryptfs-possible-cleanups.patch
-make-video-geode-lxfb_corecgeode_modedb-static.patch
-ext4-superc-fix-ifdefs.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-reiser4.patch
+single_open-seq_release-leak-diagnostics.patch
