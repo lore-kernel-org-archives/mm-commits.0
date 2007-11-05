@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + make-open_namei-return-a-filp.patch added to -mm tree
-Date: Mon, 05 Nov 2007 15:34:06 -0800
-Message-ID: <200711052334.lA5NY6v2025377@imap1.linux-foundation.org>
+Subject: + do-namei_flags-calculation-inside-open_namei.patch added to -mm tree
+Date: Mon, 05 Nov 2007 15:34:03 -0800
+Message-ID: <200711052334.lA5NY4px025369@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40082 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59177 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753551AbXKEXe4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:34:56 -0500
+	by vger.kernel.org with ESMTP id S1753715AbXKEXfD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:35:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: haveblue@us.ibm.com
 
 
 The patch titled
-     make open_namei() return a filp
+     do namei_flags calculation inside open_namei()
 has been added to the -mm tree.  Its filename is
-     make-open_namei-return-a-filp.patch
+     do-namei_flags-calculation-inside-open_namei.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,134 +25,143 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make open_namei() return a filp
+Subject: do namei_flags calculation inside open_namei()
 From: Dave Hansen <haveblue@us.ibm.com>
 
-open_namei() will, in the future, need to take mount write counts over its
-creation and truncation (via may_open()) operations.  It needs to keep these
-write counts until any potential filp that is created gets __fput()'d.
+My end goal here is to make sure all users of may_open() return filps.  This
+will ensure that we properly release mount write counts which were taken for
+the filp in may_open().
 
-This gets complicated in the error handling and becomes very murky as to how
-far open_namei() actually got, and whether or not that mount write count was
-taken.
-
-Creating the filps inside of open_namei() lets us shift the write count to be
-taken and released along with the filp.  We can hold a temporary write count
-during those creation and truncation operations, then release them once the
-write for the filp has been established.
-
-Any caller who gets a 'struct file' back must consider that filp instantiated
-and fput() it normally.  The callers no longer have to worry about ever
-manually releasing a mnt write count.
+This patch moves the sys_open flags to namei flags calculation into
+fs/namei.c.  We'll shortly be moving the nameidata_to_filp() calls into
+namei.c, and this gets the sys_open flags to a place where we can get at them
+when we need them.
 
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c         |   16 ++++++++--------
- fs/open.c          |    7 +------
- include/linux/fs.h |    2 +-
- 3 files changed, 10 insertions(+), 15 deletions(-)
+ fs/namei.c |   43 ++++++++++++++++++++++++++++++++++---------
+ fs/open.c  |   22 ++--------------------
+ 2 files changed, 36 insertions(+), 29 deletions(-)
 
-diff -puN fs/namei.c~make-open_namei-return-a-filp fs/namei.c
---- a/fs/namei.c~make-open_namei-return-a-filp
+diff -puN fs/namei.c~do-namei_flags-calculation-inside-open_namei fs/namei.c
+--- a/fs/namei.c~do-namei_flags-calculation-inside-open_namei
 +++ a/fs/namei.c
-@@ -1731,8 +1731,8 @@ static inline int sys_open_flags_to_name
-  * system call.  See sys_open_flags_to_namei_flags().
+@@ -1675,7 +1675,12 @@ int may_open(struct nameidata *nd, int a
+ 	return 0;
+ }
+ 
+-static int open_namei_create(struct nameidata *nd, struct path *path,
++/*
++ * Be careful about ever adding any more callers of this
++ * function.  Its flags must be in the namei format, not
++ * what get passed to sys_open().
++ */
++static int __open_namei_create(struct nameidata *nd, struct path *path,
+ 				int flag, int mode)
+ {
+ 	int error;
+@@ -1694,26 +1699,46 @@ static int open_namei_create(struct name
+ }
+ 
+ /*
++ * Note that while the flag value (low two bits) for sys_open means:
++ *	00 - read-only
++ *	01 - write-only
++ *	10 - read-write
++ *	11 - special
++ * it is changed into
++ *	00 - no permissions needed
++ *	01 - read-permission
++ *	10 - write-permission
++ *	11 - read-write
++ * for the internal routines (ie open_namei()/follow_link() etc)
++ * This is more logical, and also allows the 00 "no perm needed"
++ * to be used for symlinks (where the permissions are checked
++ * later).
++ *
++*/
++static inline int sys_open_flags_to_namei_flags(int flag)
++{
++	if ((flag+1) & O_ACCMODE)
++		flag++;
++	return flag;
++}
++
++/*
+  *	open_namei()
+  *
+  * namei for open - this is in fact almost the whole open-routine.
+  *
+  * Note that the low bits of "flag" aren't the same as in the open
+- * system call - they are 00 - no permissions needed
+- *			  01 - read permission needed
+- *			  10 - write permission needed
+- *			  11 - read/write permissions needed
+- * which is a lot more logical, and also allows the "no perm" needed
+- * for symlinks (where the permissions are checked later).
++ * system call.  See sys_open_flags_to_namei_flags().
   * SMP-safe
   */
--int open_namei(int dfd, const char *pathname, int sys_open_flag,
--		int mode, struct nameidata *nd)
-+struct file *open_namei(int dfd, const char *pathname, int sys_open_flag,
-+			int mode, struct nameidata *nd)
+-int open_namei(int dfd, const char *pathname, int flag,
++int open_namei(int dfd, const char *pathname, int sys_open_flag,
+ 		int mode, struct nameidata *nd)
  {
  	int acc_mode, error;
  	struct path path;
-@@ -1758,7 +1758,7 @@ int open_namei(int dfd, const char *path
- 		error = path_lookup_open(dfd, pathname, lookup_flags(flag),
- 					 nd, flag);
- 		if (error)
--			return error;
-+			return ERR_PTR(error);
- 		goto ok;
- 	}
+ 	struct dentry *dir;
+ 	int count = 0;
++	int flag = sys_open_flags_to_namei_flags(sys_open_flag);
  
-@@ -1767,7 +1767,7 @@ int open_namei(int dfd, const char *path
- 	 */
- 	error = path_lookup_create(dfd,pathname,LOOKUP_PARENT,nd,flag,mode);
- 	if (error)
--		return error;
-+		return ERR_PTR(error);
+ 	acc_mode = ACC_MODE(flag);
  
- 	/*
- 	 * We have the parent and last component. First of all, check
-@@ -1802,7 +1802,7 @@ do_last:
- 		error = __open_namei_create(nd, &path, flag, mode);
+@@ -1774,7 +1799,7 @@ do_last:
+ 
+ 	/* Negative dentry, just create the file */
+ 	if (!path.dentry->d_inode) {
+-		error = open_namei_create(nd, &path, flag, mode);
++		error = __open_namei_create(nd, &path, flag, mode);
  		if (error)
  			goto exit;
--		return 0;
-+		return nameidata_to_filp(nd, sys_open_flag);
- 	}
- 
- 	/*
-@@ -1835,7 +1835,7 @@ ok:
- 	error = may_open(nd, acc_mode, flag);
- 	if (error)
- 		goto exit;
--	return 0;
-+	return nameidata_to_filp(nd, sys_open_flag);
- 
- exit_dput:
- 	dput_path(&path, nd);
-@@ -1843,7 +1843,7 @@ exit:
- 	if (!IS_ERR(nd->intent.open.file))
- 		release_open_intent(nd);
- 	path_release(nd);
--	return error;
-+	return ERR_PTR(error);
- 
- do_link:
- 	error = -ELOOP;
-@@ -1870,7 +1870,7 @@ do_link:
- 		 * with "intent.open".
- 		 */
- 		release_open_intent(nd);
--		return error;
-+		return ERR_PTR(error);
- 	}
- 	nd->flags &= ~LOOKUP_PARENT;
- 	if (nd->last_type == LAST_BIND)
-diff -puN fs/open.c~make-open_namei-return-a-filp fs/open.c
---- a/fs/open.c~make-open_namei-return-a-filp
+ 		return 0;
+diff -puN fs/open.c~do-namei_flags-calculation-inside-open_namei fs/open.c
+--- a/fs/open.c~do-namei_flags-calculation-inside-open_namei
 +++ a/fs/open.c
-@@ -803,14 +803,9 @@ cleanup_file:
+@@ -800,31 +800,13 @@ cleanup_file:
+ 	return ERR_PTR(error);
+ }
+ 
+-/*
+- * Note that while the flag value (low two bits) for sys_open means:
+- *	00 - read-only
+- *	01 - write-only
+- *	10 - read-write
+- *	11 - special
+- * it is changed into
+- *	00 - no permissions needed
+- *	01 - read-permission
+- *	10 - write-permission
+- *	11 - read-write
+- * for the internal routines (ie open_namei()/follow_link() etc). 00 is
+- * used by symlinks.
+- */
  static struct file *do_filp_open(int dfd, const char *filename, int flags,
  				 int mode)
  {
--	int error;
+-	int namei_flags, error;
++	int error;
  	struct nameidata nd;
  
--	error = open_namei(dfd, filename, flags, mode, &nd);
--	if (!error)
--		return nameidata_to_filp(&nd, flags);
+-	namei_flags = flags;
+-	if ((namei_flags+1) & O_ACCMODE)
+-		namei_flags++;
 -
--	return ERR_PTR(error);
-+	return open_namei(dfd, filename, flags, mode, &nd);
- }
+-	error = open_namei(dfd, filename, namei_flags, mode, &nd);
++	error = open_namei(dfd, filename, flags, mode, &nd);
+ 	if (!error)
+ 		return nameidata_to_filp(&nd, flags);
  
- struct file *filp_open(const char *filename, int flags, int mode)
-diff -puN include/linux/fs.h~make-open_namei-return-a-filp include/linux/fs.h
---- a/include/linux/fs.h~make-open_namei-return-a-filp
-+++ a/include/linux/fs.h
-@@ -1719,7 +1719,7 @@ extern struct file *create_read_pipe(str
- extern struct file *create_write_pipe(void);
- extern void free_write_pipe(struct file *);
- 
--extern int open_namei(int dfd, const char *, int, int, struct nameidata *);
-+extern struct file *open_namei(int dfd, const char *, int, int, struct nameidata *);
- extern int may_open(struct nameidata *, int, int);
- 
- extern int kernel_read(struct file *, unsigned long, char *, unsigned long);
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
