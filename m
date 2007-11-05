@@ -1,162 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 15:06:53 -0800
-Message-ID: <200711052306.lA5N6rRg024303@imap1.linux-foundation.org>
+Subject: - ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 15:06:51 -0800
+Message-ID: <200711052306.lA5N6p9R024300@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48596 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42920 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754203AbXKEXHG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:07:06 -0500
+	by vger.kernel.org with ESMTP id S1754324AbXKEXHJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:07:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, hch@infradead.org, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r/o bind mounts: elevate writer count for chown and friends
+     ext2 reservations: fix for r/o bind mounts: take-writer-count (v2)
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
+     ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate writer count for chown and friends
+Subject: ext2 reservations: fix for r/o bind mounts: take-writer-count (v2)
 From: Dave Hansen <haveblue@us.ibm.com>
 
-chown/chmod,etc...  don't call permission in the same way that the normal
-"open for write" calls do.  They still write to the filesystem, so bump the
-write count during these operations.
+This is on top of the ext2-reservations.patch in -mm.
 
-This conflicts with the current (~2.6.23-rc7) audit git tree in -mm. 
-wiggle'ing the patch merges it.
+The original r/o bind mount set didn't address the new
+ext2 ioctl: EXT2_IOC_SETRSVSZ, because it doesn't exist
+in mainline.  This fixes that up for -mm.
 
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c |   39 ++++++++++++++++++++++++++++++---------
- 1 file changed, 30 insertions(+), 9 deletions(-)
+ fs/ext2/ioctl.c |   24 +++++++++++++++---------
+ 1 files changed, 15 insertions(+), 9 deletions(-)
 
-diff -puN fs/open.c~r-o-bind-mounts-elevate-writer-count-for-chown-and-friends fs/open.c
---- a/fs/open.c~r-o-bind-mounts-elevate-writer-count-for-chown-and-friends
-+++ a/fs/open.c
-@@ -571,12 +571,12 @@ asmlinkage long sys_fchmod(unsigned int 
+diff -puN fs/ext2/ioctl.c~ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2 fs/ext2/ioctl.c
+--- a/fs/ext2/ioctl.c~ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2
++++ a/fs/ext2/ioctl.c
+@@ -111,14 +111,18 @@ setflags_out:
+ 		if (!test_opt(inode->i_sb, RESERVATION) ||!S_ISREG(inode->i_mode))
+ 			return -ENOTTY;
  
- 	audit_inode(NULL, dentry);
+-		if (IS_RDONLY(inode))
+-			return -EROFS;
+-
+-		if ((current->fsuid != inode->i_uid) && !capable(CAP_FOWNER))
+-			return -EACCES;
+-
+-		if (get_user(rsv_window_size, (int __user *)arg))
+-			return -EFAULT;
++		ret = mnt_want_write(filp->f_vfsmnt);
++		if (ret)
++			return ret;
++
++		if ((current->fsuid != inode->i_uid) && !capable(CAP_FOWNER)) {
++			ret = -EACCES;
++			goto setrsvsz_out;
++		}
++		if (get_user(rsv_window_size, (int __user *)arg)) {
++			ret = -EFAULT;
++			goto setrsvsz_out;
++		}
  
--	err = -EROFS;
--	if (IS_RDONLY(inode))
-+	err = mnt_want_write(file->f_vfsmnt);
-+	if (err)
- 		goto out_putf;
- 	err = -EPERM;
- 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
--		goto out_putf;
-+		goto out_drop_write;
- 	mutex_lock(&inode->i_mutex);
- 	if (mode == (mode_t) -1)
- 		mode = inode->i_mode;
-@@ -585,6 +585,8 @@ asmlinkage long sys_fchmod(unsigned int 
- 	err = notify_change(dentry, &newattrs);
- 	mutex_unlock(&inode->i_mutex);
- 
-+out_drop_write:
-+	mnt_drop_write(file->f_vfsmnt);
- out_putf:
- 	fput(file);
- out:
-@@ -604,13 +606,13 @@ asmlinkage long sys_fchmodat(int dfd, co
- 		goto out;
- 	inode = nd.dentry->d_inode;
- 
--	error = -EROFS;
--	if (IS_RDONLY(inode))
-+	error = mnt_want_write(nd.mnt);
-+	if (error)
- 		goto dput_and_out;
- 
- 	error = -EPERM;
- 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
--		goto dput_and_out;
-+		goto out_drop_write;
- 
- 	mutex_lock(&inode->i_mutex);
- 	if (mode == (mode_t) -1)
-@@ -620,6 +622,8 @@ asmlinkage long sys_fchmodat(int dfd, co
- 	error = notify_change(nd.dentry, &newattrs);
- 	mutex_unlock(&inode->i_mutex);
- 
-+out_drop_write:
-+	mnt_drop_write(nd.mnt);
- dput_and_out:
- 	path_release(&nd);
- out:
-@@ -642,9 +646,6 @@ static int chown_common(struct dentry * 
- 		printk(KERN_ERR "chown_common: NULL inode\n");
- 		goto out;
+ 		if (rsv_window_size > EXT2_MAX_RESERVE_BLOCKS)
+ 			rsv_window_size = EXT2_MAX_RESERVE_BLOCKS;
+@@ -140,7 +144,9 @@ setflags_out:
+ 			rsv->rsv_goal_size = rsv_window_size;
+ 		}
+ 		mutex_unlock(&ei->truncate_mutex);
+-		return 0;
++	setrsvsz_out:
++		mnt_drop_write(filp->f_vfsmnt);
++		return ret;
  	}
--	error = -EROFS;
--	if (IS_RDONLY(inode))
--		goto out;
- 	error = -EPERM;
- 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
- 		goto out;
-@@ -675,7 +676,12 @@ asmlinkage long sys_chown(const char __u
- 	error = user_path_walk(filename, &nd);
- 	if (error)
- 		goto out;
-+	error = mnt_want_write(nd.mnt);
-+	if (error)
-+		goto out_release;
- 	error = chown_common(nd.dentry, user, group);
-+	mnt_drop_write(nd.mnt);
-+out_release:
- 	path_release(&nd);
- out:
- 	return error;
-@@ -695,7 +701,12 @@ asmlinkage long sys_fchownat(int dfd, co
- 	error = __user_walk_fd(dfd, filename, follow, &nd);
- 	if (error)
- 		goto out;
-+	error = mnt_want_write(nd.mnt);
-+	if (error)
-+		goto out_release;
- 	error = chown_common(nd.dentry, user, group);
-+	mnt_drop_write(nd.mnt);
-+out_release:
- 	path_release(&nd);
- out:
- 	return error;
-@@ -709,7 +720,12 @@ asmlinkage long sys_lchown(const char __
- 	error = user_path_walk_link(filename, &nd);
- 	if (error)
- 		goto out;
-+	error = mnt_want_write(nd.mnt);
-+	if (error)
-+		goto out_release;
- 	error = chown_common(nd.dentry, user, group);
-+	mnt_drop_write(nd.mnt);
-+out_release:
- 	path_release(&nd);
- out:
- 	return error;
-@@ -726,9 +742,14 @@ asmlinkage long sys_fchown(unsigned int 
- 	if (!file)
- 		goto out;
- 
-+	error = mnt_want_write(file->f_vfsmnt);
-+	if (error)
-+		goto out_fput;
- 	dentry = file->f_path.dentry;
- 	audit_inode(NULL, dentry);
- 	error = chown_common(dentry, user, group);
-+	mnt_drop_write(file->f_vfsmnt);
-+out_fput:
- 	fput(file);
- out:
- 	return error;
+ 	default:
+ 		return -ENOTTY;
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
@@ -184,6 +105,7 @@ hugetlb-enforce-quotas-during-reservation-for-shared-mappings.patch
 add-remove_memory-for-ppc64-2.patch
 enable-hotplug-memory-remove-for-ppc64.patch
 add-arch-specific-walk_memory_remove-for-ppc64.patch
+ext2-reservations-fix-for-r-o-bind-mounts-take-writer-count-v2.patch
 r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
 r-o-bind-mounts-make-access-use-mnt-check.patch
 r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
