@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch added to -mm tree
-Date: Mon, 05 Nov 2007 15:39:42 -0800
-Message-ID: <200711052339.lA5NdgvP025644@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch added to -mm tree
+Date: Mon, 05 Nov 2007 15:39:34 -0800
+Message-ID: <200711052339.lA5NdYis025635@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47060 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39120 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753632AbXKEXtf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:49:35 -0500
+	by vger.kernel.org with ESMTP id S1754153AbXKEXto (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:49:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com, hch@lst.de, herbert@13thfloor.at
+Cc: haveblue@us.ibm.com, hch@infradead.org
 
 
 The patch titled
-     r-o-bind-mounts: honor r/w changes at do_remount() time
+     r-o-bind-mounts: sys_mknodat(): elevate write count for vfs_mknod() create
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
+     r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,141 +25,131 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts: honor r/w changes at do_remount() time
+Subject: r-o-bind-mounts: sys_mknodat(): elevate write count for vfs_mknod() create
 From: Dave Hansen <haveblue@us.ibm.com>
 
-Originally from: Herbert Poetzl <herbert@13thfloor.at>
+This takes care of all of the direct callers of vfs_mknod().
+Since a few of these cases also handle normal file creation
+as well, this also covers some calls to vfs_create().
 
-This is the core of the read-only bind mount patch set.
+So that we don't have to make three mnt_want/drop_write()
+calls inside of the switch statement, we move some of its
+logic outside of the switch and into a helper function
+suggested by Christoph.
 
-Note that this does _not_ add a "ro" option directly to the bind mount
-operation.  If you require such a mount, you must first do the bind, then
-follow it up with a 'mount -o remount,ro' operation.
+This also encapsulates a fix for mknod(S_IFREG) that Miklos
+found.
 
+Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c        |   46 +++++++++++++++++++++++++++++++++-------
- include/linux/mount.h |    1 
- 2 files changed, 40 insertions(+), 7 deletions(-)
+ fs/namei.c         |   43 ++++++++++++++++++++++++++++++++-----------
+ fs/nfsd/vfs.c      |    4 ++++
+ net/unix/af_unix.c |    4 ++++
+ 3 files changed, 40 insertions(+), 11 deletions(-)
 
-diff -puN fs/namespace.c~r-o-bind-mounts-honor-r-w-changes-at-do_remount-time fs/namespace.c
---- a/fs/namespace.c~r-o-bind-mounts-honor-r-w-changes-at-do_remount-time
-+++ a/fs/namespace.c
-@@ -105,7 +105,11 @@ struct vfsmount *alloc_vfsmnt(const char
-  */
- int __mnt_is_readonly(struct vfsmount *mnt)
- {
--	return (mnt->mnt_sb->s_flags & MS_RDONLY);
-+	if (mnt->mnt_flags & MNT_READONLY)
-+		return 1;
-+	if (mnt->mnt_sb->s_flags & MS_RDONLY)
-+		return 1;
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(__mnt_is_readonly);
- 
-@@ -280,7 +284,7 @@ void mnt_drop_write(struct vfsmount *mnt
- }
- EXPORT_SYMBOL_GPL(mnt_drop_write);
- 
--int mnt_make_readonly(struct vfsmount *mnt)
-+static int mnt_make_readonly(struct vfsmount *mnt)
- {
- 	int ret = 0;
- 
-@@ -293,15 +297,21 @@ int mnt_make_readonly(struct vfsmount *m
- 		goto out;
- 	}
- 	/*
--	 * actually set mount's r/o flag here to make
--	 * __mnt_is_readonly() true, which keeps anyone
--	 * from doing a successful mnt_want_write().
-+	 * nobody can do a successful mnt_want_write() with all
-+	 * of the counts in MNT_DENIED_WRITE and the locks held.
- 	 */
-+	if (!ret)
-+		mnt->mnt_flags |= MNT_READONLY;
- out:
- 	mnt_unlock_cpus();
- 	return ret;
+diff -puN fs/namei.c~r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create fs/namei.c
+--- a/fs/namei.c~r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create
++++ a/fs/namei.c
+@@ -2024,6 +2024,23 @@ int vfs_mknod(struct inode *dir, struct 
+ 	return error;
  }
  
-+static void __mnt_unmake_readonly(struct vfsmount *mnt)
++static int may_mknod(mode_t mode)
 +{
-+	mnt->mnt_flags &= ~MNT_READONLY;
-+}
-+
- int simple_set_mnt(struct vfsmount *mnt, struct super_block *sb)
- {
- 	mnt->mnt_sb = sb;
-@@ -681,7 +691,7 @@ static int show_vfsmnt(struct seq_file *
- 		seq_putc(m, '.');
- 		mangle(m, mnt->mnt_sb->s_subtype);
- 	}
--	seq_puts(m, mnt->mnt_sb->s_flags & MS_RDONLY ? " ro" : " rw");
-+	seq_puts(m, __mnt_is_readonly(mnt) ? " ro" : " rw");
- 	for (fs_infop = fs_info; fs_infop->flag; fs_infop++) {
- 		if (mnt->mnt_sb->s_flags & fs_infop->flag)
- 			seq_puts(m, fs_infop->str);
-@@ -1313,6 +1323,23 @@ out:
- 	return err;
- }
- 
-+static int change_mount_flags(struct vfsmount *mnt, int ms_flags)
-+{
-+	int error = 0;
-+	int readonly_request = 0;
-+
-+	if (ms_flags & MS_RDONLY)
-+		readonly_request = 1;
-+	if (readonly_request == __mnt_is_readonly(mnt))
++	switch (mode & S_IFMT) {
++	case S_IFREG:
++	case S_IFCHR:
++	case S_IFBLK:
++	case S_IFIFO:
++	case S_IFSOCK:
++	case 0: /* zero mode translates to S_IFREG */
 +		return 0;
-+
-+	if (readonly_request)
-+		error = mnt_make_readonly(mnt);
-+	else
-+		__mnt_unmake_readonly(mnt);
-+	return error;
++	case S_IFDIR:
++		return -EPERM;
++	default:
++		return -EINVAL;
++	}
 +}
 +
- /*
-  * change filesystem flags. dir should be a physical root of filesystem.
-  * If you've mounted a non-root directory somewhere and want to do remount
-@@ -1334,7 +1361,10 @@ static int do_remount(struct nameidata *
- 		return -EINVAL;
- 
- 	down_write(&sb->s_umount);
--	err = do_remount_sb(sb, flags, data, 0);
-+	if (flags & MS_BIND)
-+		err = change_mount_flags(nd->mnt, flags);
-+	else
-+		err = do_remount_sb(sb, flags, data, 0);
- 	if (!err) {
- 		clear_mnt_user(nd->mnt);
- 		nd->mnt->mnt_flags = mnt_flags;
-@@ -1834,6 +1864,8 @@ long do_mount(char *dev_name, char *dir_
- 		mnt_flags |= MNT_RELATIME;
- 	if (flags & MS_NOMNT)
- 		mnt_flags |= MNT_NOMNT;
-+	if (flags & MS_RDONLY)
-+		mnt_flags |= MNT_READONLY;
- 
- 	flags &= ~(MS_NOSUID | MS_NOEXEC | MS_NODEV | MS_ACTIVE | MS_NOATIME |
- 			MS_NODIRATIME | MS_RELATIME| MS_KERNMOUNT | MS_NOMNT);
-diff -puN include/linux/mount.h~r-o-bind-mounts-honor-r-w-changes-at-do_remount-time include/linux/mount.h
---- a/include/linux/mount.h~r-o-bind-mounts-honor-r-w-changes-at-do_remount-time
-+++ a/include/linux/mount.h
-@@ -30,6 +30,7 @@ struct mnt_namespace;
- #define MNT_NODIRATIME	0x10
- #define MNT_RELATIME	0x20
- #define MNT_NOMNT	0x40
-+#define MNT_READONLY	0x80	/* does the user want this to be r/o? */
- 
- #define MNT_SHRINKABLE	0x100
- #define MNT_USER	0x200
+ asmlinkage long sys_mknodat(int dfd, const char __user *filename, int mode,
+ 				unsigned dev)
+ {
+@@ -2042,12 +2059,19 @@ asmlinkage long sys_mknodat(int dfd, con
+ 	if (error)
+ 		goto out;
+ 	dentry = lookup_create(&nd, 0);
+-	error = PTR_ERR(dentry);
+-
++	if (IS_ERR(dentry)) {
++		error = PTR_ERR(dentry);
++		goto out_unlock;
++	}
+ 	if (!IS_POSIXACL(nd.dentry->d_inode))
+ 		mode &= ~current->fs->umask;
+-	if (!IS_ERR(dentry)) {
+-		switch (mode & S_IFMT) {
++	error = may_mknod(mode);
++	if (error)
++		goto out_dput;
++	error = mnt_want_write(nd.mnt);
++	if (error)
++		goto out_dput;
++	switch (mode & S_IFMT) {
+ 		case 0: case S_IFREG:
+ 			error = vfs_create(nd.dentry->d_inode,dentry,mode,&nd);
+ 			break;
+@@ -2058,14 +2082,11 @@ asmlinkage long sys_mknodat(int dfd, con
+ 		case S_IFIFO: case S_IFSOCK:
+ 			error = vfs_mknod(nd.dentry->d_inode,dentry,mode,0);
+ 			break;
+-		case S_IFDIR:
+-			error = -EPERM;
+-			break;
+-		default:
+-			error = -EINVAL;
+-		}
+-		dput(dentry);
+ 	}
++	mnt_drop_write(nd.mnt);
++out_dput:
++	dput(dentry);
++out_unlock:
+ 	mutex_unlock(&nd.dentry->d_inode->i_mutex);
+ 	path_release(&nd);
+ out:
+diff -puN fs/nfsd/vfs.c~r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create
++++ a/fs/nfsd/vfs.c
+@@ -1242,7 +1242,11 @@ nfsd_create(struct svc_rqst *rqstp, stru
+ 	case S_IFBLK:
+ 	case S_IFIFO:
+ 	case S_IFSOCK:
++		host_err = mnt_want_write(fhp->fh_export->ex_mnt);
++		if (host_err)
++			break;
+ 		host_err = vfs_mknod(dirp, dchild, iap->ia_mode, rdev);
++		mnt_drop_write(fhp->fh_export->ex_mnt);
+ 		break;
+ 	default:
+ 	        printk("nfsd: bad file type %o in nfsd_create\n", type);
+diff -puN net/unix/af_unix.c~r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create net/unix/af_unix.c
+--- a/net/unix/af_unix.c~r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create
++++ a/net/unix/af_unix.c
+@@ -838,7 +838,11 @@ static int unix_bind(struct socket *sock
+ 		 */
+ 		mode = S_IFSOCK |
+ 		       (SOCK_INODE(sock)->i_mode & ~current->fs->umask);
++		err = mnt_want_write(nd.mnt);
++		if (err)
++			goto out_mknod_dput;
+ 		err = vfs_mknod(nd.dentry->d_inode, dentry, mode, 0);
++		mnt_drop_write(nd.mnt);
+ 		if (err)
+ 			goto out_mknod_dput;
+ 		mutex_unlock(&nd.dentry->d_inode->i_mutex);
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
