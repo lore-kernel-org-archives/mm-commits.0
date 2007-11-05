@@ -1,104 +1,255 @@
 From: akpm@linux-foundation.org
-Subject: - fix-appletouch-geyser-1-breakage.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 14:00:25 -0800
-Message-ID: <200711052200.lA5M0PMs021744@imap1.linux-foundation.org>
+Subject: - git-block-fixup.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 14:00:46 -0800
+Message-ID: <200711052200.lA5M0kCo021756@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36200 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55968 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752028AbXKEWBK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:01:10 -0500
+	by vger.kernel.org with ESMTP id S1752659AbXKEWBJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:01:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johannes@sipsolutions.net, benh@kernel.crashing.org, dtor@mail.ru, valderman@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix appletouch geyser 1 breakage
+     git-block-fixup
 has been removed from the -mm tree.  Its filename was
-     fix-appletouch-geyser-1-breakage.patch
+     git-block-fixup.patch
 
-This patch was dropped because change in mainline broke it
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: fix appletouch geyser 1 breakage
-From: Johannes Berg <johannes@sipsolutions.net>
+Subject: git-block-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The patch 46249ea60fbb61a72ee6929b831b1f3e6865f024 was obviously done
-without testing on a Geyser 1, and I'm a very annoyed that it was applied. 
-It causes appletouch to continuously printk:
+git conflicts.
 
-drivers/input/mouse/appletouch.c: Could not do mode read request from device (Geyser 3 mode)
-
-because the Geyser 1 doesn't respond to that. The patch description also
-states:
-
-> if we see 10 empty packets the touchpad needs to be reset; good
-> touchpads should not send empty packets anyway.
-
-which is *TOTALLY* bogus since Geyser 1 touchpads have no notion of empty
-packets, the simply continuously send measurements.  One look at the
-specification would have confirmed that.
-
-This reverts the clueless commit.
-
-Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
-Cc: Anton Ekblad <valderman@gmail.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/mouse/appletouch.c |   25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
+ net/core/skbuff.c                     |    5 -----
+ net/ipv4/tcp_ipv4.c                   |    4 ----
+ net/ipv6/tcp_ipv6.c                   |    4 ----
+ net/rxrpc/rxkad.c                     |    4 ----
+ net/sunrpc/auth_gss/gss_krb5_crypto.c |    9 ---------
+ 5 files changed, 26 deletions(-)
 
-diff -puN drivers/input/mouse/appletouch.c~fix-appletouch-geyser-1-breakage drivers/input/mouse/appletouch.c
---- a/drivers/input/mouse/appletouch.c~fix-appletouch-geyser-1-breakage
-+++ a/drivers/input/mouse/appletouch.c
-@@ -504,22 +504,25 @@ static void atp_complete(struct urb* urb
- 		memset(dev->xy_acc, 0, sizeof(dev->xy_acc));
+diff -puN net/core/skbuff.c~git-block-fixup net/core/skbuff.c
+--- a/net/core/skbuff.c~git-block-fixup
++++ a/net/core/skbuff.c
+@@ -2095,12 +2095,7 @@ int skb_to_sgvec(struct sk_buff *skb, st
+ {
+ 	int nsg = __skb_to_sgvec(skb, sg, offset, len);
+ 
+-<<<<<<< HEAD:net/core/skbuff.c
+-	__sg_mark_end(&sg[nsg - 1]);
+-=======
+ 	sg_mark_end(&sg[nsg - 1]);
+->>>>>>> FETCH_HEAD:net/core/skbuff.c
+-
+ 	return nsg;
+ }
+ 
+diff -puN net/ipv4/tcp_ipv4.c~git-block-fixup net/ipv4/tcp_ipv4.c
+--- a/net/ipv4/tcp_ipv4.c~git-block-fixup
++++ a/net/ipv4/tcp_ipv4.c
+@@ -1083,11 +1083,7 @@ static int tcp_v4_do_calc_md5_hash(char 
+ 	sg_set_buf(&sg[block++], key->key, key->keylen);
+ 	nbytes += key->keylen;
+ 
+-<<<<<<< HEAD:net/ipv4/tcp_ipv4.c
+-	__sg_mark_end(&sg[block - 1]);
+-=======
+ 	sg_mark_end(&sg[block - 1]);
+->>>>>>> FETCH_HEAD:net/ipv4/tcp_ipv4.c
+ 
+ 	/* Now store the Hash into the packet */
+ 	err = crypto_hash_init(desc);
+diff -puN net/ipv6/tcp_ipv6.c~git-block-fixup net/ipv6/tcp_ipv6.c
+--- a/net/ipv6/tcp_ipv6.c~git-block-fixup
++++ a/net/ipv6/tcp_ipv6.c
+@@ -781,11 +781,7 @@ static int tcp_v6_do_calc_md5_hash(char 
+ 	sg_set_buf(&sg[block++], key->key, key->keylen);
+ 	nbytes += key->keylen;
+ 
+-<<<<<<< HEAD:net/ipv6/tcp_ipv6.c
+-	__sg_mark_end(&sg[block - 1]);
+-=======
+ 	sg_mark_end(&sg[block - 1]);
+->>>>>>> FETCH_HEAD:net/ipv6/tcp_ipv6.c
+ 
+ 	/* Now store the hash into the packet */
+ 	err = crypto_hash_init(desc);
+diff -puN net/rxrpc/rxkad.c~git-block-fixup net/rxrpc/rxkad.c
+--- a/net/rxrpc/rxkad.c~git-block-fixup
++++ a/net/rxrpc/rxkad.c
+@@ -702,11 +702,7 @@ static void rxkad_sg_set_buf2(struct sca
+ 		nsg++;
  	}
  
--	input_report_key(dev->input, BTN_LEFT, key);
--	input_sync(dev->input);
--
--	/* Many Geysers will continue to send packets continually after
-+	/* Geyser 3 will continue to send packets continually after
- 	   the first touch unless reinitialised. Do so if it's been
- 	   idle for a while in order to avoid waking the kernel up
- 	   several hundred times a second */
+-<<<<<<< HEAD:net/rxrpc/rxkad.c
+-	__sg_mark_end(&sg[nsg - 1]);
+-=======
+ 	sg_mark_end(&sg[nsg - 1]);
+->>>>>>> FETCH_HEAD:net/rxrpc/rxkad.c
  
--	if (!x && !y && !key) {
--		dev->idlecount++;
--		if (dev->idlecount == 10) {
--			dev->valid = 0;
--			schedule_work(&dev->work);
-+	if (atp_is_geyser_3(dev)) {
-+		if (!x && !y && !key) {
-+			dev->idlecount++;
-+			if (dev->idlecount == 10) {
-+				dev->valid = 0;
-+				schedule_work(&dev->work);
-+			}
- 		}
--	} else
--		dev->idlecount = 0;
-+		else
-+			dev->idlecount = 0;
-+	}
-+
-+	input_report_key(dev->input, BTN_LEFT, key);
-+	input_sync(dev->input);
+ 	ASSERTCMP(sg[0].length + sg[1].length, ==, buflen);
+ }
+diff -puN net/sunrpc/auth_gss/gss_krb5_crypto.c~git-block-fixup net/sunrpc/auth_gss/gss_krb5_crypto.c
+--- a/net/sunrpc/auth_gss/gss_krb5_crypto.c~git-block-fixup
++++ a/net/sunrpc/auth_gss/gss_krb5_crypto.c
+@@ -211,13 +211,8 @@ encryptor(struct scatterlist *sg, void *
+ 	if (thislen == 0)
+ 		return 0;
  
- exit:
- 	retval = usb_submit_urb(dev->urb, GFP_ATOMIC);
+-<<<<<<< HEAD:net/sunrpc/auth_gss/gss_krb5_crypto.c
+-	__sg_mark_end(&desc->infrags[desc->fragno - 1]);
+-	__sg_mark_end(&desc->outfrags[desc->fragno - 1]);
+-=======
+ 	sg_mark_end(&desc->infrags[desc->fragno - 1]);
+ 	sg_mark_end(&desc->outfrags[desc->fragno - 1]);
+->>>>>>> FETCH_HEAD:net/sunrpc/auth_gss/gss_krb5_crypto.c
+ 
+ 	ret = crypto_blkcipher_encrypt_iv(&desc->desc, desc->outfrags,
+ 					  desc->infrags, thislen);
+@@ -298,11 +293,7 @@ decryptor(struct scatterlist *sg, void *
+ 	if (thislen == 0)
+ 		return 0;
+ 
+-<<<<<<< HEAD:net/sunrpc/auth_gss/gss_krb5_crypto.c
+-	__sg_mark_end(&desc->frags[desc->fragno - 1]);
+-=======
+ 	sg_mark_end(&desc->frags[desc->fragno - 1]);
+->>>>>>> FETCH_HEAD:net/sunrpc/auth_gss/gss_krb5_crypto.c
+ 
+ 	ret = crypto_blkcipher_decrypt_iv(&desc->desc, desc->frags,
+ 					  desc->frags, thislen);
 _
 
-Patches currently in -mm which might be from johannes@sipsolutions.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-fix-appletouch-geyser-1-breakage.patch
-fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
-git-kbuild.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-arm-fixup.patch
+revert-gregkh-driver-block-device.patch
+git-hwmon.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+elantech-touchpad-driver-fix.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+ide-arm-hack.patch
+drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
+lmc_ioctl-dont-return-with-locks-held-fix.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+bluetooth-uninlining.patch
+git-nfsd-fixup.patch
+pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes.patch
+quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
+scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+git-block-fixup.patch
+git-block-vs-agk-dm-dm-reorder-struct-io_restrictions.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
 git-wireless.patch
-hibernate-fix-lockdep-report-2.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-x86.patch
+git-x86-fixup.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+i386-and-x86_64-randomize-brk-fix.patch
+x86-make-i8259_64-more-_32-like-checkpatch-fixes.patch
+mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
+pidns-place-under-config_experimental-checkpatch-fixes.patch
+fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
+file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+cris-build-fixes-atomich-needs-compilerh-fix.patch
+cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
+cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
+cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
+cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
+sync_sb_inodes-propagate-errors.patch
+64-bit-i_version-afs-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
