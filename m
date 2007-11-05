@@ -1,184 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - git-unionfs-fixup.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 14:01:05 -0800
-Message-ID: <200711052201.lA5M15D1021764@imap1.linux-foundation.org>
+Subject: - fix-appletouch-geyser-1-breakage.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 14:00:25 -0800
+Message-ID: <200711052200.lA5M0PMs021744@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44716 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36200 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753715AbXKEWBU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:01:20 -0500
+	by vger.kernel.org with ESMTP id S1752028AbXKEWBK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 17:01:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ezk@cs.sunysb.edu, mm-commits@vger.kernel.org
+To: johannes@sipsolutions.net, benh@kernel.crashing.org, dtor@mail.ru, valderman@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-unionfs-fixup
+     fix appletouch geyser 1 breakage
 has been removed from the -mm tree.  Its filename was
-     git-unionfs-fixup.patch
+     fix-appletouch-geyser-1-breakage.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because change in mainline broke it
 
 ------------------------------------------------------
-Subject: git-unionfs-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fix appletouch geyser 1 breakage
+From: Johannes Berg <johannes@sipsolutions.net>
 
-Fix git conflict
+The patch 46249ea60fbb61a72ee6929b831b1f3e6865f024 was obviously done
+without testing on a Geyser 1, and I'm a very annoyed that it was applied. 
+It causes appletouch to continuously printk:
 
-Cc: Erez Zadok <ezk@cs.sunysb.edu>
+drivers/input/mouse/appletouch.c: Could not do mode read request from device (Geyser 3 mode)
+
+because the Geyser 1 doesn't respond to that. The patch description also
+states:
+
+> if we see 10 empty packets the touchpad needs to be reset; good
+> touchpads should not send empty packets anyway.
+
+which is *TOTALLY* bogus since Geyser 1 touchpads have no notion of empty
+packets, the simply continuously send measurements.  One look at the
+specification would have confirmed that.
+
+This reverts the clueless commit.
+
+Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
+Cc: Anton Ekblad <valderman@gmail.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |   15 ---------------
- 1 file changed, 15 deletions(-)
+ drivers/input/mouse/appletouch.c |   25 ++++++++++++++-----------
+ 1 file changed, 14 insertions(+), 11 deletions(-)
 
-diff -puN fs/Kconfig~git-unionfs-fixup fs/Kconfig
---- a/fs/Kconfig~git-unionfs-fixup
-+++ a/fs/Kconfig
-@@ -1125,21 +1125,6 @@ config AFFS_FS
- 	  To compile this file system support as a module, choose M here: the
- 	  module will be called affs.  If unsure, say N.
+diff -puN drivers/input/mouse/appletouch.c~fix-appletouch-geyser-1-breakage drivers/input/mouse/appletouch.c
+--- a/drivers/input/mouse/appletouch.c~fix-appletouch-geyser-1-breakage
++++ a/drivers/input/mouse/appletouch.c
+@@ -504,22 +504,25 @@ static void atp_complete(struct urb* urb
+ 		memset(dev->xy_acc, 0, sizeof(dev->xy_acc));
+ 	}
  
--<<<<<<< HEAD:fs/Kconfig
--config ECRYPT_FS
--	tristate "eCrypt filesystem layer support (EXPERIMENTAL)"
--	depends on EXPERIMENTAL && KEYS && CRYPTO && NET
--	help
--	  Encrypted filesystem that operates on the VFS layer.  See
--	  <file:Documentation/filesystems/ecryptfs.txt> to learn more about
--	  eCryptfs.  Userspace components are required and can be
--	  obtained from <http://ecryptfs.sf.net>.
+-	input_report_key(dev->input, BTN_LEFT, key);
+-	input_sync(dev->input);
 -
--	  To compile this file system support as a module, choose M here: the
--	  module will be called ecryptfs.
--
--=======
-->>>>>>> FETCH_HEAD:fs/Kconfig
- config HFS_FS
- 	tristate "Apple Macintosh file system support (EXPERIMENTAL)"
- 	depends on BLOCK && EXPERIMENTAL
+-	/* Many Geysers will continue to send packets continually after
++	/* Geyser 3 will continue to send packets continually after
+ 	   the first touch unless reinitialised. Do so if it's been
+ 	   idle for a while in order to avoid waking the kernel up
+ 	   several hundred times a second */
+ 
+-	if (!x && !y && !key) {
+-		dev->idlecount++;
+-		if (dev->idlecount == 10) {
+-			dev->valid = 0;
+-			schedule_work(&dev->work);
++	if (atp_is_geyser_3(dev)) {
++		if (!x && !y && !key) {
++			dev->idlecount++;
++			if (dev->idlecount == 10) {
++				dev->valid = 0;
++				schedule_work(&dev->work);
++			}
+ 		}
+-	} else
+-		dev->idlecount = 0;
++		else
++			dev->idlecount = 0;
++	}
++
++	input_report_key(dev->input, BTN_LEFT, key);
++	input_sync(dev->input);
+ 
+ exit:
+ 	retval = usb_submit_urb(dev->urb, GFP_ATOMIC);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from johannes@sipsolutions.net are
 
 origin.patch
-acpi-add-reboot-mechanism.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-git-arm-fixup.patch
-revert-gregkh-driver-block-device.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-ide-arm-hack.patch
-drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-git-nfsd-fixup.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-fix-build-breakage-if-sysfs-fix.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
+fix-appletouch-geyser-1-breakage.patch
+fix-appletouch-geyser-1-breakage-checkpatch-fixes.patch
+git-kbuild.patch
 git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-x86-make-i8259_64-more-_32-like-checkpatch-fixes.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
-file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes-fix.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
-cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
-sync_sb_inodes-propagate-errors.patch
-64-bit-i_version-afs-fixes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
+hibernate-fix-lockdep-report-2.patch
