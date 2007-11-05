@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch added to -mm tree
-Date: Mon, 05 Nov 2007 15:38:03 -0800
-Message-ID: <200711052338.lA5Nc34I025552@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-elevate-write-count-for-do_utimes.patch added to -mm tree
+Date: Mon, 05 Nov 2007 15:38:07 -0800
+Message-ID: <200711052338.lA5Nc7Ae025563@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45705 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43145 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754008AbXKEXjQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:39:16 -0500
+	by vger.kernel.org with ESMTP id S1754162AbXKEXjF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:39:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com, hch@lst.de
+Cc: haveblue@us.ibm.com, Valdis.Kletnieks@vt.edu, akpm@linux-foundation.org, balbir@in.ibm.com, hch@infradead.org, hch@lst.de
 
 
 The patch titled
-     r-o-bind-mounts: elevate write count during entire ncp_ioctl
+     r-o-bind-mounts: elevate write count for do_utimes
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
+     r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,105 +25,106 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts: elevate write count during entire ncp_ioctl
+Subject: r-o-bind-mounts: elevate write count for do_utimes
 From: Dave Hansen <haveblue@us.ibm.com>
 
-fs/ncpfs/ioctl.c: In function 'ncp_ioctl_need_write':
-fs/ncpfs/ioctl.c:852: error: label at end of compound statement
+Now includes fix for oops seen by akpm.
 
-Cc: Dave Hansen <haveblue@us.ibm.com>
+"never let a libc developer write your kernel code" - hch
+
+"nor, apparently, a kernel developer" - akpm
+
+Acked-by: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Christoph Hellwig <hch@lst.de>
+Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/ioctl.c |   57 +++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 55 insertions(+), 2 deletions(-)
+ fs/utimes.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-diff -puN fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl fs/ncpfs/ioctl.c
---- a/fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl
-+++ a/fs/ncpfs/ioctl.c
-@@ -14,6 +14,7 @@
- #include <linux/ioctl.h>
- #include <linux/time.h>
- #include <linux/mm.h>
+diff -puN fs/utimes.c~r-o-bind-mounts-elevate-write-count-for-do_utimes fs/utimes.c
+--- a/fs/utimes.c~r-o-bind-mounts-elevate-write-count-for-do_utimes
++++ a/fs/utimes.c
+@@ -2,6 +2,7 @@
+ #include <linux/file.h>
+ #include <linux/fs.h>
+ #include <linux/linkage.h>
 +#include <linux/mount.h>
- #include <linux/highuid.h>
- #include <linux/smp_lock.h>
- #include <linux/vmalloc.h>
-@@ -261,7 +262,7 @@ ncp_get_charsets(struct ncp_server* serv
- }
- #endif /* CONFIG_NCPFS_NLS */
+ #include <linux/namei.h>
+ #include <linux/sched.h>
+ #include <linux/stat.h>
+@@ -58,6 +59,7 @@ long do_utimes(int dfd, char __user *fil
+ 	struct inode *inode;
+ 	struct iattr newattrs;
+ 	struct file *f = NULL;
++	struct vfsmount *mnt;
  
--int ncp_ioctl(struct inode *inode, struct file *filp,
-+static int __ncp_ioctl(struct inode *inode, struct file *filp,
- 	      unsigned int cmd, unsigned long arg)
- {
- 	struct ncp_server *server = NCP_SERVER(inode);
-@@ -817,11 +818,63 @@ outrel:			
- 				return -EFAULT;
- 			return 0;
- 		}
--
-+	default: /* unkown IOCTL command, assume write */
-+		;
+ 	error = -EINVAL;
+ 	if (times && (!nsec_valid(times[0].tv_nsec) ||
+@@ -78,18 +80,20 @@ long do_utimes(int dfd, char __user *fil
+ 		if (!f)
+ 			goto out;
+ 		dentry = f->f_path.dentry;
++		mnt = f->f_path.mnt;
+ 	} else {
+ 		error = __user_walk_fd(dfd, filename, (flags & AT_SYMLINK_NOFOLLOW) ? 0 : LOOKUP_FOLLOW, &nd);
+ 		if (error)
+ 			goto out;
+ 
+ 		dentry = nd.dentry;
++		mnt = nd.mnt;
  	}
- 	return -EINVAL;
- }
  
-+static int ncp_ioctl_need_write(unsigned int cmd)
-+{
-+	switch (cmd) {
-+	case NCP_IOC_GET_FS_INFO:
-+	case NCP_IOC_GET_FS_INFO_V2:
-+	case NCP_IOC_NCPREQUEST:
-+	case NCP_IOC_SETDENTRYTTL:
-+	case NCP_IOC_SIGN_INIT:
-+	case NCP_IOC_LOCKUNLOCK:
-+	case NCP_IOC_SET_SIGN_WANTED:
-+		return 1;
-+	case NCP_IOC_GETOBJECTNAME:
-+	case NCP_IOC_SETOBJECTNAME:
-+	case NCP_IOC_GETPRIVATEDATA:
-+	case NCP_IOC_SETPRIVATEDATA:
-+	case NCP_IOC_SETCHARSETS:
-+	case NCP_IOC_GETCHARSETS:
-+	case NCP_IOC_CONN_LOGGED_IN:
-+	case NCP_IOC_GETDENTRYTTL:
-+	case NCP_IOC_GETMOUNTUID2:
-+	case NCP_IOC_SIGN_WANTED:
-+	case NCP_IOC_GETROOT:
-+	case NCP_IOC_SETROOT:
-+		return 0;
-+	default:
-+		/* unkown IOCTL command, assume write */
-+	}
-+	return 1;
-+}
-+
-+int ncp_ioctl(struct inode *inode, struct file *filp,
-+	      unsigned int cmd, unsigned long arg)
-+{
-+	int ret;
-+
-+	if (ncp_ioctl_need_write(cmd)) {
-+		/*
-+		 * inside the ioctl(), any failures which
-+		 * are because of file_permission() are
-+		 * -EACCESS, so it seems consistent to keep
-+		 *  that here.
-+		 */
-+		if (mnt_want_write(filp->f_vfsmnt))
-+			return -EACCES;
-+	}
-+	ret = __ncp_ioctl(inode, filp, cmd, arg);
-+	if (ncp_ioctl_need_write(cmd))
-+		mnt_drop_write(filp->f_vfsmnt);
-+	return ret;
-+}
-+
- #ifdef CONFIG_COMPAT
- long ncp_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
+ 	inode = dentry->d_inode;
+ 
+-	error = -EROFS;
+-	if (IS_RDONLY(inode))
++	error = mnt_want_write(mnt);
++	if (error)
+ 		goto dput_and_out;
+ 
+ 	/* Don't worry, the checks are done in inode_change_ok() */
+@@ -97,7 +101,7 @@ long do_utimes(int dfd, char __user *fil
+ 	if (times) {
+ 		error = -EPERM;
+                 if (IS_APPEND(inode) || IS_IMMUTABLE(inode))
+-                        goto dput_and_out;
++			goto mnt_drop_write_and_out;
+ 
+ 		if (times[0].tv_nsec == UTIME_OMIT)
+ 			newattrs.ia_valid &= ~ATTR_ATIME;
+@@ -117,22 +121,24 @@ long do_utimes(int dfd, char __user *fil
+ 	} else {
+ 		error = -EACCES;
+                 if (IS_IMMUTABLE(inode))
+-                        goto dput_and_out;
++			goto mnt_drop_write_and_out;
+ 
+ 		if (!is_owner_or_cap(inode)) {
+ 			if (f) {
+ 				if (!(f->f_mode & FMODE_WRITE))
+-					goto dput_and_out;
++					goto mnt_drop_write_and_out;
+ 			} else {
+ 				error = vfs_permission(&nd, MAY_WRITE);
+ 				if (error)
+-					goto dput_and_out;
++					goto mnt_drop_write_and_out;
+ 			}
+ 		}
+ 	}
+ 	mutex_lock(&inode->i_mutex);
+ 	error = notify_change(dentry, &newattrs);
+ 	mutex_unlock(&inode->i_mutex);
++mnt_drop_write_and_out:
++	mnt_drop_write(mnt);
+ dput_and_out:
+ 	if (f)
+ 		fput(f);
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
