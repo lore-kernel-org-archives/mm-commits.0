@@ -1,101 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 15:07:37 -0800
-Message-ID: <200711052307.lA5N7bI8024377@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 15:07:26 -0800
+Message-ID: <200711052307.lA5N7QQP024358@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46360 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50811 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752859AbXKEXJc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:09:32 -0500
+	by vger.kernel.org with ESMTP id S1754544AbXKEXJe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 18:09:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, hch@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make lockdep happy with r/o bind mounts
+     r/o bind mounts: sys_mknodat(): elevate write count for vfs_mknod/create()
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
+     r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: make lockdep happy with r/o bind mounts
+Subject: r/o bind mounts: sys_mknodat(): elevate write count for vfs_mknod/create()
 From: Dave Hansen <haveblue@us.ibm.com>
 
-With the r/o bind mount patches, we can have as many
-spinlocks nested as there are CPUs on the system.
-Lockdep freaks out after 8.
+This takes care of all of the direct callers of vfs_mknod().  Since a few of
+these cases also handle normal file creation as well, this also covers some
+calls to vfs_create().
 
-So, create a new lockdep class of locks for the
-mnt_writer spinlocks, and initialize each of the
-cpu locks to be in a different class.
+So that we don't have to make three mnt_want/drop_write() calls inside of the
+switch statement, we move some of its logic outside of the switch.
 
-It should shut up warnings like this, while still
-allowing some of the lockdep goodness to remain:
-
-=============================================
-[ INFO: possible recursive locking detected ]
-2.6.23-rc6 #6
----------------------------------------------
-swapper/1 is trying to acquire lock:
- (&writer->lock){--..}, at: [<c016c094>] lock_and_coalesce_cpu_mnt_writer_counts+0x29/0x5c
-
-but task is already holding lock:
- (&writer->lock){--..}, at: [<c016c094>] lock_and_coalesce_cpu_mnt_writer_counts+0x29/0x5c
-
-other info that might help us debug this:
-1 lock held by swapper/1:
- #0:  (&writer->lock){--..}, at: [<c016c094>] lock_and_coalesce_cpu_mnt_writer_counts+0x29/0x5c
-
-stack backtrace:
- [<c01034ab>] show_trace_log_lvl+0x19/0x2e
- [<c01034d2>] show_trace+0x12/0x14
- [<c01035be>] dump_stack+0x14/0x16
- [<c0130ab2>] print_deadlock_bug+0xb7/0xc1
- [<c0130afc>] check_deadlock+0x40/0x54
- [<c013100a>] validate_chain+0x26e/0x319
- [<c0132cca>] __lock_acquire+0x6c4/0x731
- [<c01332da>] lock_acquire+0x7a/0x94
- [<c031bb01>] _spin_lock+0x38/0x62
- [<c016c094>] lock_and_coalesce_cpu_mnt_writer_counts+0x29/0x5c
- [<c016c5f8>] mntput_no_expire+0x38/0xad
- [<c015fbed>] path_release_on_umount+0x15/0x18
- [<c016cc76>] sys_umount+0x67/0x6f
- [<c010058a>] name_to_dev_t+0x22a/0x24c
- [<c0427207>] prepare_namespace+0x89/0x187
- [<c0426cdd>] kernel_init+0x9a/0xa3
- [<c010336f>] kernel_thread_helper+0x7/0x10
- =======================
-
+Acked-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |    2 ++
- 1 files changed, 2 insertions(+)
+ fs/namei.c         |   32 +++++++++++++++++++++-----------
+ fs/nfsd/vfs.c      |    4 ++++
+ net/unix/af_unix.c |    4 ++++
+ 3 files changed, 29 insertions(+), 11 deletions(-)
 
-diff -puN fs/namespace.c~r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts fs/namespace.c
---- a/fs/namespace.c~r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts
-+++ a/fs/namespace.c
-@@ -115,6 +115,7 @@ struct mnt_writer {
- 	 * must be ordered by cpu number.
- 	 */
- 	spinlock_t lock;
-+	struct lock_class_key lock_class; /* compiles out with !lockdep */
- 	unsigned long count;
- 	struct vfsmount *mnt;
- } ____cacheline_aligned_in_smp;
-@@ -126,6 +127,7 @@ static int __init init_mnt_writers(void)
- 	for_each_possible_cpu(cpu) {
- 		struct mnt_writer *writer = &per_cpu(mnt_writers, cpu);
- 		spin_lock_init(&writer->lock);
-+		lockdep_set_class(&writer->lock, &writer->lock_class);
- 		writer->count = 0;
+diff -puN fs/namei.c~r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create fs/namei.c
+--- a/fs/namei.c~r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create
++++ a/fs/namei.c
+@@ -1973,12 +1973,25 @@ asmlinkage long sys_mknodat(int dfd, con
+ 	if (error)
+ 		goto out;
+ 	dentry = lookup_create(&nd, 0);
+-	error = PTR_ERR(dentry);
+-
++	if (IS_ERR(dentry)) {
++		error = PTR_ERR(dentry);
++		goto out_unlock;
++	}
+ 	if (!IS_POSIXACL(nd.dentry->d_inode))
+ 		mode &= ~current->fs->umask;
+-	if (!IS_ERR(dentry)) {
+-		switch (mode & S_IFMT) {
++	if (S_ISDIR(mode)) {
++		error = -EPERM;
++		goto out_dput;
++	}
++	if (!S_ISREG(mode)  && !S_ISCHR(mode)  && !S_ISBLK(mode) &&
++	    !S_ISFIFO(mode) && !S_ISSOCK(mode) && mode != 0) {
++		error = -EINVAL;
++		goto out_dput;
++	}
++	error = mnt_want_write(nd.mnt);
++	if (error)
++		goto out_dput;
++	switch (mode & S_IFMT) {
+ 		case 0: case S_IFREG:
+ 			error = vfs_create(nd.dentry->d_inode,dentry,mode,&nd);
+ 			break;
+@@ -1989,14 +2002,11 @@ asmlinkage long sys_mknodat(int dfd, con
+ 		case S_IFIFO: case S_IFSOCK:
+ 			error = vfs_mknod(nd.dentry->d_inode,dentry,mode,0);
+ 			break;
+-		case S_IFDIR:
+-			error = -EPERM;
+-			break;
+-		default:
+-			error = -EINVAL;
+-		}
+-		dput(dentry);
  	}
- 	return 0;
++	mnt_drop_write(nd.mnt);
++out_dput:
++	dput(dentry);
++out_unlock:
+ 	mutex_unlock(&nd.dentry->d_inode->i_mutex);
+ 	path_release(&nd);
+ out:
+diff -puN fs/nfsd/vfs.c~r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create
++++ a/fs/nfsd/vfs.c
+@@ -1242,7 +1242,11 @@ nfsd_create(struct svc_rqst *rqstp, stru
+ 	case S_IFBLK:
+ 	case S_IFIFO:
+ 	case S_IFSOCK:
++		host_err = mnt_want_write(fhp->fh_export->ex_mnt);
++		if (host_err)
++			break;
+ 		host_err = vfs_mknod(dirp, dchild, iap->ia_mode, rdev);
++		mnt_drop_write(fhp->fh_export->ex_mnt);
+ 		break;
+ 	default:
+ 	        printk("nfsd: bad file type %o in nfsd_create\n", type);
+diff -puN net/unix/af_unix.c~r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create net/unix/af_unix.c
+--- a/net/unix/af_unix.c~r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create
++++ a/net/unix/af_unix.c
+@@ -846,7 +846,11 @@ static int unix_bind(struct socket *sock
+ 		 */
+ 		mode = S_IFSOCK |
+ 		       (SOCK_INODE(sock)->i_mode & ~current->fs->umask);
++		err = mnt_want_write(nd.mnt);
++		if (err)
++			goto out_mknod_dput;
+ 		err = vfs_mknod(nd.dentry->d_inode, dentry, mode, 0);
++		mnt_drop_write(nd.mnt);
+ 		if (err)
+ 			goto out_mknod_dput;
+ 		mutex_unlock(&nd.dentry->d_inode->i_mutex);
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
@@ -123,6 +150,11 @@ hugetlb-enforce-quotas-during-reservation-for-shared-mappings.patch
 add-remove_memory-for-ppc64-2.patch
 enable-hotplug-memory-remove-for-ppc64.patch
 add-arch-specific-walk_memory_remove-for-ppc64.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
+r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create-fix.patch
+r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
+r-o-bind-mounts-do_rmdir-elevate-write-count.patch
+r-o-bind-mounts-track-number-of-mount-writers.patch
 r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
 r-o-bind-mounts-track-number-of-mount-writers-fix.patch
 r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
