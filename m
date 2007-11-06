@@ -1,226 +1,193 @@
 From: akpm@linux-foundation.org
-Subject: - suppress-aout-library-support-in-elf-binfmt-if-config_binfmt_aout.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 22:21:45 -0800
-Message-ID: <200711060628.lA66SXqs010185@imap1.linux-foundation.org>
+Subject: - suppress-aout-library-support-in-elf-binfmt-if-config_binfmt_aout-fix.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 22:21:55 -0800
+Message-ID: <200711060628.lA66Siqx010188@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43614 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47865 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754193AbXKFG2r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 01:28:47 -0500
+	by vger.kernel.org with ESMTP id S1754219AbXKFG27 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 01:28:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Suppress AOUT library support in ELF binfmt if !CONFIG_BINFMT_AOUT
+     suppress-aout-library-support-in-elf-binfmt-if-config_binfmt_aout-fix
 has been removed from the -mm tree.  Its filename was
-     suppress-aout-library-support-in-elf-binfmt-if-config_binfmt_aout.patch
+     suppress-aout-library-support-in-elf-binfmt-if-config_binfmt_aout-fix.patch
 
 This patch was dropped because of more allnoconfig breakage
 
 ------------------------------------------------------
-Subject: Suppress AOUT library support in ELF binfmt if !CONFIG_BINFMT_AOUT
-From: David Howells <dhowells@redhat.com>
+Subject: suppress-aout-library-support-in-elf-binfmt-if-config_binfmt_aout-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Suppress AOUT library support in ELF binfmt if CONFIG_BINFMT_AOUT is not
-set.
+arch/x86/kernel/process_32.c: In function 'dump_thread':
+arch/x86/kernel/process_32.c:528: error: 'CMAGIC' undeclared (first use in this function)
+arch/x86/kernel/process_32.c:528: error: (Each undeclared identifier is reported only once
+arch/x86/kernel/process_32.c:528: error: for each function it appears in.)
+make[1]: *** [arch/x86/kernel/process_32.o] Error 1
+make: *** [arch/x86/kernel/process_32.o] Error 2
 
-The MN10300 architecture does not support the AOUT binfmt, so the ELF
-binfmt should not be permitted to go looking for AOUT libraries to load.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c       |   30 ++++++++++++++++++++++--------
- include/linux/a.out.h |    6 ++++++
- 2 files changed, 28 insertions(+), 8 deletions(-)
+ include/linux/a.out.h |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/binfmt_elf.c~suppress-aout-library-support-in-elf-binfmt-if-config_binfmt_aout fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~suppress-aout-library-support-in-elf-binfmt-if-config_binfmt_aout
-+++ a/fs/binfmt_elf.c
-@@ -513,6 +513,7 @@ out:
- 	return error;
- }
- 
-+#ifdef CONFIG_BINFMT_AOUT
- static unsigned long load_aout_interp(struct exec *interp_ex,
- 		struct file *interpreter)
- {
-@@ -558,6 +559,10 @@ static unsigned long load_aout_interp(st
- out:
- 	return elf_entry;
- }
-+#else
-+extern unsigned long load_aout_interp(struct exec *interp_ex,
-+				      struct file *interpreter);
-+#endif
- 
- /*
-  * These are the functions used to load ELF style executables and shared
-@@ -565,9 +570,15 @@ out:
-  */
- 
- #define INTERPRETER_NONE 0
--#define INTERPRETER_AOUT 1
- #define INTERPRETER_ELF 2
- 
-+#ifdef CONFIG_BINFMT_AOUT
-+#define INTERPRETER_AOUT 1
-+#define IS_AOUT_INTERP(x) ((x) == INTERPRETER_AOUT)
-+#else
-+#define IS_AOUT_INTERP(x) (0)
-+#endif
-+
- #ifndef STACK_RND_MASK
- #define STACK_RND_MASK (0x7ff >> (PAGE_SHIFT - 12))	/* 8MB of VA */
- #endif
-@@ -784,6 +795,7 @@ static int load_elf_binary(struct linux_
- 	/* Some simple consistency checks for the interpreter */
- 	if (elf_interpreter) {
- 		static int warn;
-+#ifdef CONFIG_BINFMT_AOUT
- 		interpreter_type = INTERPRETER_ELF | INTERPRETER_AOUT;
- 
- 		/* Now figure out which format our binary is */
-@@ -791,11 +803,13 @@ static int load_elf_binary(struct linux_
- 		    (N_MAGIC(loc->interp_ex) != ZMAGIC) &&
- 		    (N_MAGIC(loc->interp_ex) != QMAGIC))
- 			interpreter_type = INTERPRETER_ELF;
--
-+#else
-+		interpreter_type = INTERPRETER_ELF;
-+#endif
- 		if (memcmp(loc->interp_elf_ex.e_ident, ELFMAG, SELFMAG) != 0)
- 			interpreter_type &= ~INTERPRETER_ELF;
- 
--		if (interpreter_type == INTERPRETER_AOUT && warn < 10) {
-+		if (IS_AOUT_INTERP(interpreter_type) && warn < 10) {
- 			printk(KERN_WARNING "a.out ELF interpreter %s is "
- 				"deprecated and will not be supported "
- 				"after Linux 2.6.25\n", elf_interpreter);
-@@ -824,7 +838,7 @@ static int load_elf_binary(struct linux_
- 
- 	/* OK, we are done with that, now set up the arg stuff,
- 	   and then start this sucker up */
--	if ((!bprm->sh_bang) && (interpreter_type == INTERPRETER_AOUT)) {
-+	if (IS_AOUT_INTERP(interpreter_type) && !bprm->sh_bang) {
- 		char *passed_p = passed_fileno;
- 		sprintf(passed_fileno, "%d", elf_exec_fileno);
- 
-@@ -1013,7 +1027,7 @@ static int load_elf_binary(struct linux_
- 	}
- 
- 	if (elf_interpreter) {
--		if (interpreter_type == INTERPRETER_AOUT) {
-+		if (IS_AOUT_INTERP(interpreter_type)) {
- 			elf_entry = load_aout_interp(&loc->interp_ex,
- 						     interpreter);
- 		} else {
-@@ -1054,7 +1068,7 @@ static int load_elf_binary(struct linux_
- 
- 	kfree(elf_phdata);
- 
--	if (interpreter_type != INTERPRETER_AOUT)
-+	if (!IS_AOUT_INTERP(interpreter_type))
- 		sys_close(elf_exec_fileno);
- 
- 	set_binfmt(&elf_format);
-@@ -1070,14 +1084,14 @@ static int load_elf_binary(struct linux_
- 	compute_creds(bprm);
- 	current->flags &= ~PF_FORKNOEXEC;
- 	retval = create_elf_tables(bprm, &loc->elf_ex,
--			  (interpreter_type == INTERPRETER_AOUT),
-+			  IS_AOUT_INTERP(interpreter_type),
- 			  load_addr, interp_load_addr);
- 	if (retval < 0) {
- 		send_sig(SIGKILL, current, 0);
- 		goto out;
- 	}
- 	/* N.B. passed_fileno might not be initialized? */
--	if (interpreter_type == INTERPRETER_AOUT)
-+	if (IS_AOUT_INTERP(interpreter_type))
- 		current->mm->arg_start += strlen(passed_fileno) + 1;
- 	current->mm->end_code = end_code;
- 	current->mm->start_code = start_code;
-diff -puN include/linux/a.out.h~suppress-aout-library-support-in-elf-binfmt-if-config_binfmt_aout include/linux/a.out.h
---- a/include/linux/a.out.h~suppress-aout-library-support-in-elf-binfmt-if-config_binfmt_aout
+diff -puN include/linux/a.out.h~suppress-aout-library-support-in-elf-binfmt-if-config_binfmt_aout-fix include/linux/a.out.h
+--- a/include/linux/a.out.h~suppress-aout-library-support-in-elf-binfmt-if-config_binfmt_aout-fix
 +++ a/include/linux/a.out.h
-@@ -1,6 +1,8 @@
- #ifndef __A_OUT_GNU_H__
- #define __A_OUT_GNU_H__
+@@ -69,9 +69,6 @@ enum machine_type {
+    The first page is unmapped to help trap NULL pointer references */
+ #define QMAGIC 0314
  
-+#ifdef CONFIG_BINFMT_AOUT
+-/* Code indicating core file.  */
+-#define CMAGIC 0421
+-
+ #if !defined (N_BADMAG)
+ #define N_BADMAG(x)	  (N_MAGIC(x) != OMAGIC		\
+ 			&& N_MAGIC(x) != NMAGIC		\
+@@ -271,4 +268,8 @@ struct relocation_info
+ struct exec {
+ };
+ #endif /* CONFIG_BINFMT_AOUT */
 +
- #define __GNU_EXEC_MACROS__
- 
- #ifndef __STRUCT_EXEC_OVERRIDE__
-@@ -265,4 +267,8 @@ struct relocation_info
- #endif /* no N_RELOCATION_INFO_DECLARED.  */
- 
- 
-+#else /* CONFIG_BINFMT_AOUT */
-+struct exec {
-+};
-+#endif /* CONFIG_BINFMT_AOUT */
++/* Code indicating core file.  */
++#define CMAGIC 0421
++
  #endif /* __A_OUT_GNU_H__ */
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-frv-permit-the-memory-to-be-located-elsewhere-in-nommu-mode.patch
-frv-move-dma-macros-to-scatterlisth-for-consistency.patch
-suppress-aout-library-support-in-elf-binfmt-if-config_binfmt_aout.patch
+proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-arm-fixup.patch
+git-dvb-fixup.patch
+git-hwmon.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+elantech-touchpad-driver-fix.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+ide-arm-hack.patch
+lmc_ioctl-dont-return-with-locks-held-fix.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+bluetooth-uninlining.patch
+git-nfsd-fixup.patch
+pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes.patch
+quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
+scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+git-unionfs.patch
+git-wireless.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-x86.patch
+git-x86-fixup.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+i386-and-x86_64-randomize-brk-fix.patch
+x86-make-i8259_64-more-_32-like-checkpatch-fixes.patch
+git-perfmon-fixup.patch
+mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
+pidns-place-under-config_experimental-checkpatch-fixes.patch
+fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
+file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+cris-build-fixes-atomich-needs-compilerh-fix.patch
+cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
+cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
+cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
+cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
 suppress-aout-library-support-in-elf-binfmt-if-config_binfmt_aout-fix.patch
 mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+sync_sb_inodes-propagate-errors.patch
 64-bit-i_version-afs-fixes.patch
-add-an-err_cast-function-to-complement-err_ptr-and-co.patch
-convert-err_ptrptr_errp-instances-to-err_castp.patch
-iget-introduce-a-function-to-register-iget-failure.patch
-iget-use-iget_failed-in-afs.patch
-iget-use-iget_failed-in-gfs2.patch
-iget-stop-affs-from-using-iget-and-read_inode-try.patch
+kill-filp_open-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
 iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-autofs-from-using-iget-and-read_inode.patch
-iget-stop-befs-from-using-iget-and-read_inode-try.patch
-iget-stop-bfs-from-using-iget-and-read_inode-try.patch
-iget-stop-cifs-from-using-iget-and-read_inode-try.patch
-iget-stop-efs-from-using-iget-and-read_inode-try.patch
 iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try.patch
 iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try.patch
 iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext4-from-using-iget-and-read_inode-try.patch
-iget-stop-fat-from-using-iget-and-read_inode-try.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode.patch
 iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-fuse-from-using-iget-and-read_inode-try.patch
-iget-stop-hfsplus-from-using-iget-and-read_inode.patch
-iget-stop-isofs-from-using-read_inode.patch
-iget-stop-jffs2-from-using-iget-and-read_inode.patch
-iget-stop-jfs-from-using-iget-and-read_inode-try.patch
-iget-stop-the-minix-filesystem-from-using-iget-and.patch
 iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode.patch
 iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
 iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode.patch
 iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and.patch
 iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try.patch
 iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-openpromfs-from-using-iget-and.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
 iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-hppfs-from-using-iget-and-read_inode.patch
-iget-remove-iget-and-the-read_inode-super-op-as.patch
-unexport-asm-pageh.patch
-add-cmpxchg_local-to-frv.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-mutex-subsystem-synchro-test-module.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
