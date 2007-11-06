@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arch-sparc-remove-duplicate-includes.patch added to -mm tree
-Date: Mon, 05 Nov 2007 18:35:56 -0800
-Message-ID: <200711060235.lA62Zuab032036@imap1.linux-foundation.org>
+Subject: + arch-x86-remove-duplicate-includes.patch added to -mm tree
+Date: Mon, 05 Nov 2007 18:36:00 -0800
+Message-ID: <200711060236.lA62a0mW032042@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49375 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34560 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755258AbXKFCgO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 21:36:14 -0500
+	by vger.kernel.org with ESMTP id S1753069AbXKFCic (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 21:38:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: woodzy@gmail.com, davem@davemloft.net
+Cc: woodzy@gmail.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     arch/sparc: remove duplicate includes
+     arch/x86: remove duplicate includes
 has been added to the -mm tree.  Its filename is
-     arch-sparc-remove-duplicate-includes.patch
+     arch-x86-remove-duplicate-includes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,96 +25,65 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arch/sparc: remove duplicate includes
+Subject: arch/x86: remove duplicate includes
 From: Lucas Woods <woodzy@gmail.com>
 
 Signed-off-by: Lucas Woods <woodzy@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/irq.c           |    1 -
- arch/sparc64/kernel/ds.c          |    1 -
- arch/sparc64/kernel/module.c      |    1 -
- arch/sparc64/kernel/sys_sparc32.c |    1 -
- arch/sparc64/kernel/sys_sunos32.c |    1 -
- arch/sparc64/kernel/time.c        |    2 --
- 6 files changed, 7 deletions(-)
+ arch/x86/kernel/hpet.c           |    1 -
+ arch/x86/kernel/pci-calgary_64.c |    1 -
+ arch/x86/kernel/time_64.c        |    1 -
+ arch/x86/vdso/vclock_gettime.c   |    1 -
+ 4 files changed, 4 deletions(-)
 
-diff -puN arch/sparc/kernel/irq.c~arch-sparc-remove-duplicate-includes arch/sparc/kernel/irq.c
---- a/arch/sparc/kernel/irq.c~arch-sparc-remove-duplicate-includes
-+++ a/arch/sparc/kernel/irq.c
-@@ -18,7 +18,6 @@
- #include <linux/linkage.h>
- #include <linux/kernel_stat.h>
- #include <linux/signal.h>
--#include <linux/sched.h>
- #include <linux/interrupt.h>
- #include <linux/slab.h>
- #include <linux/random.h>
-diff -puN arch/sparc64/kernel/ds.c~arch-sparc-remove-duplicate-includes arch/sparc64/kernel/ds.c
---- a/arch/sparc64/kernel/ds.c~arch-sparc-remove-duplicate-includes
-+++ a/arch/sparc64/kernel/ds.c
+diff -puN arch/x86/kernel/hpet.c~arch-x86-remove-duplicate-includes arch/x86/kernel/hpet.c
+--- a/arch/x86/kernel/hpet.c~arch-x86-remove-duplicate-includes
++++ a/arch/x86/kernel/hpet.c
 @@ -6,7 +6,6 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/types.h>
--#include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/sysdev.h>
+ #include <linux/pm.h>
+-#include <linux/delay.h>
+ 
+ #include <asm/fixmap.h>
+ #include <asm/hpet.h>
+diff -puN arch/x86/kernel/pci-calgary_64.c~arch-x86-remove-duplicate-includes arch/x86/kernel/pci-calgary_64.c
+--- a/arch/x86/kernel/pci-calgary_64.c~arch-x86-remove-duplicate-includes
++++ a/arch/x86/kernel/pci-calgary_64.c
+@@ -30,7 +30,6 @@
+ #include <linux/spinlock.h>
  #include <linux/string.h>
- #include <linux/slab.h>
- #include <linux/sched.h>
-diff -puN arch/sparc64/kernel/module.c~arch-sparc-remove-duplicate-includes arch/sparc64/kernel/module.c
---- a/arch/sparc64/kernel/module.c~arch-sparc-remove-duplicate-includes
-+++ a/arch/sparc64/kernel/module.c
-@@ -11,7 +11,6 @@
- #include <linux/fs.h>
- #include <linux/string.h>
- #include <linux/slab.h>
--#include <linux/vmalloc.h>
- #include <linux/mm.h>
- 
- #include <asm/processor.h>
-diff -puN arch/sparc64/kernel/sys_sparc32.c~arch-sparc-remove-duplicate-includes arch/sparc64/kernel/sys_sparc32.c
---- a/arch/sparc64/kernel/sys_sparc32.c~arch-sparc-remove-duplicate-includes
-+++ a/arch/sparc64/kernel/sys_sparc32.c
-@@ -51,7 +51,6 @@
- #include <linux/vfs.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
- #include <linux/ptrace.h>
--#include <linux/highuid.h>
- 
- #include <asm/types.h>
- #include <asm/uaccess.h>
-diff -puN arch/sparc64/kernel/sys_sunos32.c~arch-sparc-remove-duplicate-includes arch/sparc64/kernel/sys_sunos32.c
---- a/arch/sparc64/kernel/sys_sunos32.c~arch-sparc-remove-duplicate-includes
-+++ a/arch/sparc64/kernel/sys_sunos32.c
-@@ -57,7 +57,6 @@
- #include <linux/personality.h>
- 
- /* For SOCKET_I */
--#include <linux/socket.h>
- #include <net/sock.h>
- #include <net/compat.h>
- 
-diff -puN arch/sparc64/kernel/time.c~arch-sparc-remove-duplicate-includes arch/sparc64/kernel/time.c
---- a/arch/sparc64/kernel/time.c~arch-sparc-remove-duplicate-includes
-+++ a/arch/sparc64/kernel/time.c
-@@ -28,7 +28,6 @@
- #include <linux/jiffies.h>
- #include <linux/cpufreq.h>
- #include <linux/percpu.h>
--#include <linux/profile.h>
- #include <linux/miscdevice.h>
- #include <linux/rtc.h>
- #include <linux/kernel_stat.h>
-@@ -47,7 +46,6 @@
+ #include <linux/dma-mapping.h>
+-#include <linux/init.h>
+ #include <linux/bitops.h>
+ #include <linux/pci_ids.h>
+ #include <linux/pci.h>
+diff -puN arch/x86/kernel/time_64.c~arch-x86-remove-duplicate-includes arch/x86/kernel/time_64.c
+--- a/arch/x86/kernel/time_64.c~arch-x86-remove-duplicate-includes
++++ a/arch/x86/kernel/time_64.c
+@@ -41,7 +41,6 @@
  #include <asm/sections.h>
- #include <asm/cpudata.h>
- #include <asm/uaccess.h>
--#include <asm/prom.h>
- #include <asm/irq_regs.h>
+ #include <linux/hpet.h>
+ #include <asm/apic.h>
+-#include <asm/hpet.h>
+ #include <asm/mpspec.h>
+ #include <asm/nmi.h>
+ #include <asm/vgtod.h>
+diff -puN arch/x86/vdso/vclock_gettime.c~arch-x86-remove-duplicate-includes arch/x86/vdso/vclock_gettime.c
+--- a/arch/x86/vdso/vclock_gettime.c~arch-x86-remove-duplicate-includes
++++ a/arch/x86/vdso/vclock_gettime.c
+@@ -19,7 +19,6 @@
+ #include <asm/hpet.h>
+ #include <asm/unistd.h>
+ #include <asm/io.h>
+-#include <asm/vgtod.h>
+ #include "vextern.h"
  
- DEFINE_SPINLOCK(mostek_lock);
+ #define gtod vdso_vsyscall_gtod_data
 _
 
 Patches currently in -mm which might be from woodzy@gmail.com are
