@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fat-optimize-fat_count_free_clusters.patch added to -mm tree
-Date: Mon, 05 Nov 2007 16:50:03 -0800
-Message-ID: <200711060050.lA60o39h028234@imap1.linux-foundation.org>
+Subject: + arm-fix-memset-size-error.patch added to -mm tree
+Date: Mon, 05 Nov 2007 17:11:57 -0800
+Message-ID: <200711060111.lA61Bvq6029287@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57414 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51225 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756139AbXKFAuI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 19:50:08 -0500
+	by vger.kernel.org with ESMTP id S1755923AbXKFBMM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 20:12:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hirofumi@mail.parknet.co.jp
+Cc: lizf@cn.fujitsu.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     fat: optimize fat_count_free_clusters()
+     ARM: fix memset size error
 has been added to the -mm tree.  Its filename is
-     fat-optimize-fat_count_free_clusters.patch
+     arm-fix-memset-size-error.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,97 +25,51 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fat: optimize fat_count_free_clusters()
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: ARM: fix memset size error
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-On large partition, scanning the free clusters is very slow if users
-doesn't use "usefree" option.
+The size passing to memset is wrong.  And here we can replace kmalloc with
+kzalloc.
 
-For optimizing it, this patch uses sb_breadahead() to read of FAT
-sectors. On some user's 15GB partition, this patch improved it very
-much (1min => 600ms).
-
-The following is the result of 2GB partition on my machine.
-
-without patch:
-	root@devron (/)# time df -h > /dev/null
-
-	real    0m1.202s
-	user    0m0.000s
-	sys     0m0.440s
-
-with patch:
-	root@devron (/)# time df -h > /dev/null
-
-	real    0m0.378s
-	user    0m0.012s
-	sys     0m0.168s
-
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Signed-off-by Li Zefan <lizf@cn.fujitsu.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/fatent.c |   28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ arch/arm/common/uengine.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN fs/fat/fatent.c~fat-optimize-fat_count_free_clusters fs/fat/fatent.c
---- a/fs/fat/fatent.c~fat-optimize-fat_count_free_clusters
-+++ a/fs/fat/fatent.c
-@@ -590,21 +590,49 @@ error:
+diff -puN arch/arm/common/uengine.c~arm-fix-memset-size-error arch/arm/common/uengine.c
+--- a/arch/arm/common/uengine.c~arm-fix-memset-size-error
++++ a/arch/arm/common/uengine.c
+@@ -374,8 +374,8 @@ static int set_initial_registers(int uen
+ 	u8 *ucode;
+ 	int i;
  
- EXPORT_SYMBOL_GPL(fat_free_clusters);
+-	gpr_a = kmalloc(128 * sizeof(u32), GFP_KERNEL);
+-	gpr_b = kmalloc(128 * sizeof(u32), GFP_KERNEL);
++	gpr_a = kzalloc(128 * sizeof(u32), GFP_KERNEL);
++	gpr_b = kzalloc(128 * sizeof(u32), GFP_KERNEL);
+ 	ucode = kmalloc(513 * 5, GFP_KERNEL);
+ 	if (gpr_a == NULL || gpr_b == NULL || ucode == NULL) {
+ 		kfree(ucode);
+@@ -388,8 +388,6 @@ static int set_initial_registers(int uen
+ 	if (c->uengine_parameters & IXP2000_UENGINE_4_CONTEXTS)
+ 		per_ctx_regs = 32;
  
-+/* 128kb is the whole sectors for FAT12 and FAT16 */
-+#define FAT_READA_SIZE		(128 * 1024)
-+
-+static void fat_ent_reada(struct super_block *sb, struct fat_entry *fatent,
-+			  unsigned long reada_blocks)
-+{
-+	struct fatent_operations *ops = MSDOS_SB(sb)->fatent_ops;
-+	sector_t blocknr;
-+	int i, offset;
-+
-+	ops->ent_blocknr(sb, fatent->entry, &offset, &blocknr);
-+
-+	for (i = 0; i < reada_blocks; i++)
-+		sb_breadahead(sb, blocknr + i);
-+}
-+
- int fat_count_free_clusters(struct super_block *sb)
- {
- 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
- 	struct fatent_operations *ops = sbi->fatent_ops;
- 	struct fat_entry fatent;
-+	unsigned long reada_blocks, reada_mask, cur_block;
- 	int err = 0, free;
- 
- 	lock_fat(sbi);
- 	if (sbi->free_clusters != -1)
- 		goto out;
- 
-+	reada_blocks = FAT_READA_SIZE >> sb->s_blocksize_bits;
-+	reada_mask = reada_blocks - 1;
-+	cur_block = 0;
-+
- 	free = 0;
- 	fatent_init(&fatent);
- 	fatent_set_entry(&fatent, FAT_START_ENT);
- 	while (fatent.entry < sbi->max_cluster) {
-+		/* readahead of fat blocks */
-+		if ((cur_block & reada_mask) == 0) {
-+			unsigned long rest = sbi->fat_length - cur_block;
-+			fat_ent_reada(sb, &fatent, min(reada_blocks, rest));
-+		}
-+		cur_block++;
-+
- 		err = fat_ent_read_block(sb, &fatent);
- 		if (err)
- 			goto out;
+-	memset(gpr_a, 0, sizeof(gpr_a));
+-	memset(gpr_b, 0, sizeof(gpr_b));
+ 	for (i = 0; i < 256; i++) {
+ 		struct ixp2000_reg_value *r = c->initial_reg_values + i;
+ 		u32 *bank;
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-fs-fat-refine-chmod-checks.patch
-fat-fix-printk-format-strings.patch
-fat-optimize-fat_count_free_clusters.patch
-iget-stop-fat-from-using-iget-and-read_inode-try.patch
+time-fix-inconsistent-function-names-in-comments.patch
+git-drm.patch
+arm-fix-memset-size-error.patch
+ia64-fix-memset-size-error.patch
+powerpc-fix-memset-size-error.patch
+drivers-video-ps3fb-fix-memset-size-error.patch
+w1-fix-memset-size-error.patch
