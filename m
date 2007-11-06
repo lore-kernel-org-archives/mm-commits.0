@@ -1,71 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - memory-cgroup-enhancements-add-pre_destroy-handler-fix.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 23:14:44 -0800
-Message-ID: <200711060721.lA67LWf7012011@imap1.linux-foundation.org>
+Subject: + acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch added to -mm tree
+Date: Mon, 05 Nov 2007 23:17:51 -0800
+Message-ID: <200711060724.lA67Od2F012133@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35690 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54447 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752605AbXKFHXU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 02:23:20 -0500
+	by vger.kernel.org with ESMTP id S1751100AbXKFHZi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 02:25:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, arjan@infradead.org, dag@bakke.com, lenb@kernel.org
 
 
 The patch titled
-     memory-cgroup-enhancements-add-pre_destroy-handler-fix
-has been removed from the -mm tree.  Its filename was
-     memory-cgroup-enhancements-add-pre_destroy-handler-fix.patch
+     acpi-enable-c3-power-state-on-dell-inspiron-8200-fix
+has been added to the -mm tree.  Its filename is
+     acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
 
-This patch was dropped because I can't get it to compile - new version after next -mm, please
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: memory-cgroup-enhancements-add-pre_destroy-handler-fix
+Subject: acpi-enable-c3-power-state-on-dell-inspiron-8200-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/cgroup.c: In function 'cgroup_rmdir':
-kernel/cgroup.c:2168: error: 'ss' undeclared (first use in this function)
-kernel/cgroup.c:2168: error: (Each undeclared identifier is reported only once  kernel/cgroup.c:2168: error: for each function it appears in.)
+drivers/acpi/processor_idle.c:193: warning: initialization from incompatible pointer type
 
-(Paul's cgroups-move-cgroups-destroy-callbacks-to-cgroup_diput.patch removed
-this)
-
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Paul Menage <menage@google.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Dag Bakke <dag@bakke.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/acpi/processor_idle.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/cgroup.h~memory-cgroup-enhancements-add-pre_destroy-handler-fix include/linux/cgroup.h
-diff -puN kernel/cgroup.c~memory-cgroup-enhancements-add-pre_destroy-handler-fix kernel/cgroup.c
---- a/kernel/cgroup.c~memory-cgroup-enhancements-add-pre_destroy-handler-fix
-+++ a/kernel/cgroup.c
-@@ -2145,6 +2145,7 @@ static int cgroup_rmdir(struct inode *un
- 	struct dentry *d;
- 	struct cgroup *parent;
- 	struct super_block *sb;
-+	struct cgroup_subsys *ss;
- 	struct cgroupfs_root *root;
+diff -puN drivers/acpi/processor_idle.c~acpi-enable-c3-power-state-on-dell-inspiron-8200-fix drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~acpi-enable-c3-power-state-on-dell-inspiron-8200-fix
++++ a/drivers/acpi/processor_idle.c
+@@ -119,16 +119,15 @@ static int set_max_cstate(const struct d
+ }
  
- 	/* the vfs holds both inode->i_mutex already */
+ /*
+- * Some (Dell) machines have a too large C3 latency set, but it still works completely.
+- * Dell provides a driver for other operating systems to hack around this bug, so we know
+- * it's safe.
++ * Some (Dell) machines have a too large C3 latency set, but it still works
++ * completely.  Dell provides a driver for other operating systems to hack
++ * around this bug, so we know it's safe.
+  */
+-static int dmi_force_c3(struct dmi_system_id *id)
++static int dmi_force_c3(const struct dmi_system_id *id)
+ {
+ 	forced_c3 = 1;
+-
+-	printk(KERN_NOTICE PREFIX "%s detected - Force enabling C3.", id->ident);
+-
++	printk(KERN_NOTICE PREFIX "%s detected - Force enabling C3.",
++			id->ident);
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
 acpi-add-reboot-mechanism.patch
 small-acpica-extension-to-be-able-to-store-the-name-of-fix.patch
 git-alsa.patch
@@ -161,7 +167,6 @@ memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
 memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-pre_destroy-handler-fix.patch
 drivers-edac-add-marvell-mv64x60-driver-fix.patch
 introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
 iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
