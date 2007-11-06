@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arch-mips-remove-duplicate-includes.patch added to -mm tree
-Date: Mon, 05 Nov 2007 18:35:50 -0800
-Message-ID: <200711060235.lA62ZosS032024@imap1.linux-foundation.org>
+Subject: + arch-um-remove-duplicate-includes.patch added to -mm tree
+Date: Mon, 05 Nov 2007 18:35:58 -0800
+Message-ID: <200711060235.lA62Zwor032039@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42829 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43188 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755613AbXKFCgB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 21:36:01 -0500
+	by vger.kernel.org with ESMTP id S1755617AbXKFCgF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 21:36:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: woodzy@gmail.com, ralf@linux-mips.org
+Cc: woodzy@gmail.com, jdike@addtoit.com
 
 
 The patch titled
-     arch/mips: remove duplicate includes
+     arch/um: remove duplicate includes
 has been added to the -mm tree.  Its filename is
-     arch-mips-remove-duplicate-includes.patch
+     arch-um-remove-duplicate-includes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,40 +25,28 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arch/mips: remove duplicate includes
+Subject: arch/um: remove duplicate includes
 From: Lucas Woods <woodzy@gmail.com>
 
 Signed-off-by: Lucas Woods <woodzy@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/rtlx.c |    1 -
- arch/mips/kernel/vpe.c  |    1 -
- 2 files changed, 2 deletions(-)
+ arch/um/os-Linux/sigio.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/mips/kernel/rtlx.c~arch-mips-remove-duplicate-includes arch/mips/kernel/rtlx.c
---- a/arch/mips/kernel/rtlx.c~arch-mips-remove-duplicate-includes
-+++ a/arch/mips/kernel/rtlx.c
-@@ -40,7 +40,6 @@
- #include <asm/atomic.h>
- #include <asm/cpu.h>
- #include <asm/processor.h>
--#include <asm/mips_mt.h>
- #include <asm/system.h>
- #include <asm/vpe.h>
- #include <asm/rtlx.h>
-diff -puN arch/mips/kernel/vpe.c~arch-mips-remove-duplicate-includes arch/mips/kernel/vpe.c
---- a/arch/mips/kernel/vpe.c~arch-mips-remove-duplicate-includes
-+++ a/arch/mips/kernel/vpe.c
-@@ -53,7 +53,6 @@
- #include <asm/system.h>
- #include <asm/vpe.h>
- #include <asm/kspd.h>
--#include <asm/mips_mt.h>
+diff -puN arch/um/os-Linux/sigio.c~arch-um-remove-duplicate-includes arch/um/os-Linux/sigio.c
+--- a/arch/um/os-Linux/sigio.c~arch-um-remove-duplicate-includes
++++ a/arch/um/os-Linux/sigio.c
+@@ -20,7 +20,6 @@
+ #include "sigio.h"
+ #include "os.h"
+ #include "um_malloc.h"
+-#include "init.h"
  
- typedef void *vpe_handle;
- 
+ /* Protected by sigio_lock(), also used by sigio_cleanup, which is an
+  * exitcall.
 _
 
 Patches currently in -mm which might be from woodzy@gmail.com are
