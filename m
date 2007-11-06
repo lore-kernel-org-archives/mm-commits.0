@@ -1,64 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: + jens-broke-reiser4.patch added to -mm tree
-Date: Tue, 06 Nov 2007 00:30:25 -0800
-Message-ID: <200711060837.lA68bD9x014706@imap1.linux-foundation.org>
+Subject: - pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 06 Nov 2007 00:36:54 -0800
+Message-ID: <200711060843.lA68hgpB014960@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45140 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57497 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751991AbXKFIiR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 03:38:17 -0500
+	by vger.kernel.org with ESMTP id S1752585AbXKFIoP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 03:44:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, edward@namesys.com, jens.axboe@oracle.com, vs@namesys.com
+To: akpm@linux-foundation.org, olof@lixom.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jens-broke-reiser4
-has been added to the -mm tree.  Its filename is
-     jens-broke-reiser4.patch
+     pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: jens-broke-reiser4
+Subject: pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/reiser4/plugin/file/cryptcompress.c: In function 'reiser4_deflate_cluster':
-fs/reiser4/plugin/file/cryptcompress.c:1120: error: 'struct scatterlist' has no member named 'page'
-fs/reiser4/plugin/file/cryptcompress.c:1124: error: 'struct scatterlist' has no member named 'page'
-fs/reiser4/plugin/file/cryptcompress.c: In function 'reiser4_inflate_cluster':
-fs/reiser4/plugin/file/cryptcompress.c:1184: error: 'struct scatterlist' has no member named 'page'
-fs/reiser4/plugin/file/cryptcompress.c:1188: error: 'struct scatterlist' has no member named 'page'
+WARNING: line over 80 characters
+#42: FILE: drivers/char/pcmcia/cm4000_cs.c:311:
++static unsigned short io_read_num_rec_bytes(unsigned int iobase, unsigned short *s)
 
-Please send a fix against next -mm.
+total: 0 errors, 1 warnings, 125 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-Cc: Edward Shishkin <edward@namesys.com>
-Cc: "Vladimir V. Saveliev" <vs@namesys.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Please run checkpatch prior to sending patches
+
+Cc: Olof Johansson <olof@lixom.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/pcmcia/cm4000_cs.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/Kconfig~jens-broke-reiser4 fs/Kconfig
-diff -puN /dev/null /dev/null
-diff -puN fs/reiser4/Kconfig~jens-broke-reiser4 fs/reiser4/Kconfig
---- a/fs/reiser4/Kconfig~jens-broke-reiser4
-+++ a/fs/reiser4/Kconfig
-@@ -1,6 +1,7 @@
- config REISER4_FS
- 	tristate "Reiser4 (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
-+	depends on BROKEN
- 	select ZLIB_INFLATE
- 	select ZLIB_DEFLATE
- 	select LZO_COMPRESS
+diff -puN drivers/char/pcmcia/cm4000_cs.c~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes drivers/char/pcmcia/cm4000_cs.c
+--- a/drivers/char/pcmcia/cm4000_cs.c~pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes
++++ a/drivers/char/pcmcia/cm4000_cs.c
+@@ -308,7 +308,8 @@ static unsigned int calc_baudv(unsigned 
+ 	return (wcrcf / wbrcf);
+ }
+ 
+-static unsigned short io_read_num_rec_bytes(unsigned int iobase, unsigned short *s)
++static unsigned short io_read_num_rec_bytes(unsigned int iobase,
++					unsigned short *s)
+ {
+ 	unsigned short tmp;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
