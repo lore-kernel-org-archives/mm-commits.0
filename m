@@ -1,65 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - suppress-aout-library-support-in-elf-binfmt-if-config_binfmt_aout-fix.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 22:21:55 -0800
-Message-ID: <200711060628.lA66Siqx010188@imap1.linux-foundation.org>
+Subject: - mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 22:22:26 -0800
+Message-ID: <200711060629.lA66TFYc010205@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47865 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44780 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754219AbXKFG27 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 01:28:59 -0500
+	by vger.kernel.org with ESMTP id S1754337AbXKFG32 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 01:29:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     suppress-aout-library-support-in-elf-binfmt-if-config_binfmt_aout-fix
+     suppress-aout-library-support-in-elf-binfmt-if-fix
 has been removed from the -mm tree.  Its filename was
-     suppress-aout-library-support-in-elf-binfmt-if-config_binfmt_aout-fix.patch
+     mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
 
 This patch was dropped because of more allnoconfig breakage
 
 ------------------------------------------------------
-Subject: suppress-aout-library-support-in-elf-binfmt-if-config_binfmt_aout-fix
+Subject: suppress-aout-library-support-in-elf-binfmt-if-fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-arch/x86/kernel/process_32.c: In function 'dump_thread':
-arch/x86/kernel/process_32.c:528: error: 'CMAGIC' undeclared (first use in this function)
-arch/x86/kernel/process_32.c:528: error: (Each undeclared identifier is reported only once
-arch/x86/kernel/process_32.c:528: error: for each function it appears in.)
-make[1]: *** [arch/x86/kernel/process_32.o] Error 1
-make: *** [arch/x86/kernel/process_32.o] Error 2
 
 Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/a.out.h |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/binfmt_elf.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN include/linux/a.out.h~suppress-aout-library-support-in-elf-binfmt-if-config_binfmt_aout-fix include/linux/a.out.h
---- a/include/linux/a.out.h~suppress-aout-library-support-in-elf-binfmt-if-config_binfmt_aout-fix
-+++ a/include/linux/a.out.h
-@@ -69,9 +69,6 @@ enum machine_type {
-    The first page is unmapped to help trap NULL pointer references */
- #define QMAGIC 0314
- 
--/* Code indicating core file.  */
--#define CMAGIC 0421
--
- #if !defined (N_BADMAG)
- #define N_BADMAG(x)	  (N_MAGIC(x) != OMAGIC		\
- 			&& N_MAGIC(x) != NMAGIC		\
-@@ -271,4 +268,8 @@ struct relocation_info
- struct exec {
- };
- #endif /* CONFIG_BINFMT_AOUT */
-+
-+/* Code indicating core file.  */
-+#define CMAGIC 0421
-+
- #endif /* __A_OUT_GNU_H__ */
+diff -puN fs/binfmt_elf.c~mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix
++++ a/fs/binfmt_elf.c
+@@ -560,6 +560,10 @@ out:
+ 	return elf_entry;
+ }
+ #else
++/*
++ * Declare this here to keep the compiler happy.  It will generate a link-time
++ * failure if the compiler failed to remove all the calls to it.
++ */
+ extern unsigned long load_aout_interp(struct exec *interp_ex,
+ 				      struct file *interpreter);
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -137,7 +122,6 @@ remove-warnings-for-longstanding-conditions-fix.patch
 parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
 remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
 allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-suppress-aout-library-support-in-elf-binfmt-if-config_binfmt_aout-fix.patch
 mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
 remove-__attribute_used__-checkpatch-fixes.patch
 sync_sb_inodes-propagate-errors.patch
