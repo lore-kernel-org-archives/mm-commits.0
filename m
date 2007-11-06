@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-arch_register_cpu-section-fix.patch added to -mm tree
-Date: Mon, 05 Nov 2007 22:33:49 -0800
-Message-ID: <200711060640.lA66ebIT010554@imap1.linux-foundation.org>
+Subject: + vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch added to -mm tree
+Date: Mon, 05 Nov 2007 22:45:55 -0800
+Message-ID: <200711060652.lA66qhCS011014@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51536 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54328 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754185AbXKFGnJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 01:43:09 -0500
+	by vger.kernel.org with ESMTP id S1754100AbXKFGxE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 01:53:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, ezk@cs.sunysb.edu, hch@lst.de
 
 
 The patch titled
-     x86: arch_register_cpu() section fix
+     vfs-swap-do_ioctl-and-vfs_ioctl-names-fix
 has been added to the -mm tree.  Its filename is
-     x86-arch_register_cpu-section-fix.patch
+     vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,45 +25,72 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86: arch_register_cpu() section fix
+Subject: vfs-swap-do_ioctl-and-vfs_ioctl-names-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i386 allnoconfig:
+arch/x86/kernel/apm_32.c: At top level:
+arch/x86/kernel/apm_32.c:1477: error: conflicting types for 'do_ioctl'
+include/linux/fs.h:1929: error: previous declaration of 'do_ioctl' was here
 
-WARNING: vmlinux.o(.text+0x6f2e): Section mismatch: reference to .init.text:register_cpu (between 'arch_register_cpu' and 'text_poke')
-
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/topology.c |    5 +++--
- asm-x86/cpu.h              |    0 
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ fs/compat_ioctl.c  |    2 +-
+ fs/ioctl.c         |    6 +++---
+ include/linux/fs.h |    2 +-
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86/kernel/topology.c~x86-arch_register_cpu-section-fix arch/x86/kernel/topology.c
---- a/arch/x86/kernel/topology.c~x86-arch_register_cpu-section-fix
-+++ a/arch/x86/kernel/topology.c
-@@ -33,7 +33,7 @@
+diff -puN fs/compat_ioctl.c~vfs-swap-do_ioctl-and-vfs_ioctl-names-fix fs/compat_ioctl.c
+--- a/fs/compat_ioctl.c~vfs-swap-do_ioctl-and-vfs_ioctl-names-fix
++++ a/fs/compat_ioctl.c
+@@ -2938,7 +2938,7 @@ asmlinkage long compat_sys_ioctl(unsigne
+ 	}
  
- static struct i386_cpu cpu_devices[NR_CPUS];
- 
--int arch_register_cpu(int num)
-+int __cpuinit arch_register_cpu(int num)
+  do_ioctl:
+-	error = do_ioctl(filp, fd, cmd, arg);
++	error = do_vfs_ioctl(filp, fd, cmd, arg);
+  out_fput:
+ 	fput_light(filp, fput_needed);
+  out:
+diff -puN fs/ioctl.c~vfs-swap-do_ioctl-and-vfs_ioctl-names-fix fs/ioctl.c
+--- a/fs/ioctl.c~vfs-swap-do_ioctl-and-vfs_ioctl-names-fix
++++ a/fs/ioctl.c
+@@ -92,10 +92,10 @@ static int file_ioctl(struct file *filp,
+  * When you add any new common ioctls to the switches above and below
+  * please update compat_sys_ioctl() too.
+  *
+- * do_ioctl() is not for drivers and not intended to be EXPORT_SYMBOL()'d.
++ * do_vfs_ioctl() is not for drivers and not intended to be EXPORT_SYMBOL()'d.
+  * It's just a simple helper for sys_ioctl and compat_sys_ioctl.
+  */
+-int do_ioctl(struct file *filp, unsigned int fd, unsigned int cmd,
++int do_vfs_ioctl(struct file *filp, unsigned int fd, unsigned int cmd,
+ 	     unsigned long arg)
  {
- 	/*
- 	 * CPU0 cannot be offlined due to several
-@@ -53,7 +53,8 @@ int arch_register_cpu(int num)
- }
+ 	unsigned int flag;
+@@ -185,7 +185,7 @@ asmlinkage long sys_ioctl(unsigned int f
+ 	if (error)
+ 		goto out_fput;
  
- #ifdef CONFIG_HOTPLUG_CPU
--void arch_unregister_cpu(int num) {
-+void arch_unregister_cpu(int num)
-+{
- 	return unregister_cpu(&cpu_devices[num].cpu);
- }
- EXPORT_SYMBOL(arch_register_cpu);
-diff -puN include/asm-x86/cpu.h~x86-arch_register_cpu-section-fix include/asm-x86/cpu.h
+-	error = do_ioctl(filp, fd, cmd, arg);
++	error = do_vfs_ioctl(filp, fd, cmd, arg);
+  out_fput:
+ 	fput_light(filp, fput_needed);
+  out:
+diff -puN include/linux/fs.h~vfs-swap-do_ioctl-and-vfs_ioctl-names-fix include/linux/fs.h
+--- a/include/linux/fs.h~vfs-swap-do_ioctl-and-vfs_ioctl-names-fix
++++ a/include/linux/fs.h
+@@ -1925,7 +1925,7 @@ extern int vfs_lstat_fd(int dfd, char __
+ extern int vfs_fstat(unsigned int, struct kstat *);
+ 
+ extern long vfs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
+-extern int do_ioctl(struct file *filp, unsigned int fd, unsigned int cmd,
++extern int do_vfs_ioctl(struct file *filp, unsigned int fd, unsigned int cmd,
+ 		    unsigned long arg);
+ 
+ extern void get_filesystem(struct file_system_type *fs);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,6 +124,7 @@ ips-trim-trailing-whitespace-checkpatch-fixes.patch
 scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
 scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
 git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
 git-wireless.patch
 jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
 git-x86.patch
@@ -104,6 +132,7 @@ git-x86-fixup.patch
 oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
 i386-and-x86_64-randomize-brk-fix.patch
 x86-make-i8259_64-more-_32-like-checkpatch-fixes.patch
+x86-arch_register_cpu-section-fix.patch
 git-perfmon-fixup.patch
 mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
 pidns-place-under-config_experimental-checkpatch-fixes.patch
@@ -193,4 +222,3 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 getblk-handle-2tb-devices.patch
 w1-build-fix.patch
-x86-arch_register_cpu-section-fix.patch
