@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + w1-fix-memset-size-error.patch added to -mm tree
-Date: Mon, 05 Nov 2007 17:12:09 -0800
-Message-ID: <200711060112.lA61C98w029308@imap1.linux-foundation.org>
+Subject: + sis-fb-driver-_ioctl32_conversion-functions-do.patch added to -mm tree
+Date: Mon, 05 Nov 2007 18:23:06 -0800
+Message-ID: <200711060223.lA62N6kh031663@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32803 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58222 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756497AbXKFBM0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 20:12:26 -0500
+	by vger.kernel.org with ESMTP id S1754535AbXKFCXP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 21:23:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, johnpol@2ka.mipt.ru
+Cc: fernando@oss.ntt.co.jp, adaplas@pol.net, greg@kroah.com, thomas@winischhofer.net
 
 
 The patch titled
-     W1: fix memset size error
+     sis FB driver: *_ioctl32_conversion functions do not exist in recent kernels
 has been added to the -mm tree.  Its filename is
-     w1-fix-memset-size-error.patch
+     sis-fb-driver-_ioctl32_conversion-functions-do.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,39 +25,81 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: W1: fix memset size error
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: sis FB driver: *_ioctl32_conversion functions do not exist in recent kernels
+From: Fernando Luis =?ISO-8859-1?Q?V=E1zquez?= Cao <fernando@oss.ntt.co.jp>
 
-The size arguments passing to memset is wrong.
+Remove dead code while at it.
 
-Signed-off-by Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Cc: Thomas Winischhofer <thomas@winischhofer.net>
+Cc: Greg KH <greg@kroah.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds2490.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/misc/sisusbvga/sisusb.c |   27 --------------------------
+ drivers/usb/misc/sisusbvga/sisusb.h |    3 --
+ 2 files changed, 30 deletions(-)
 
-diff -puN drivers/w1/masters/ds2490.c~w1-fix-memset-size-error drivers/w1/masters/ds2490.c
---- a/drivers/w1/masters/ds2490.c~w1-fix-memset-size-error
-+++ a/drivers/w1/masters/ds2490.c
-@@ -233,7 +233,7 @@ static int ds_recv_status_nodump(struct 
- {
- 	int count, err;
+diff -puN drivers/usb/misc/sisusbvga/sisusb.c~sis-fb-driver-_ioctl32_conversion-functions-do drivers/usb/misc/sisusbvga/sisusb.c
+--- a/drivers/usb/misc/sisusbvga/sisusb.c~sis-fb-driver-_ioctl32_conversion-functions-do
++++ a/drivers/usb/misc/sisusbvga/sisusb.c
+@@ -3195,20 +3195,6 @@ static int sisusb_probe(struct usb_inter
  
--	memset(st, 0, sizeof(st));
-+	memset(st, 0, sizeof(*st));
+ 	sisusb->present = 1;
  
- 	count = 0;
- 	err = usb_bulk_msg(dev->udev, usb_rcvbulkpipe(dev->udev, dev->ep[EP_STATUS]), buf, size, &count, 100);
+-#ifdef SISUSB_OLD_CONFIG_COMPAT
+-	{
+-	int ret;
+-	/* Our ioctls are all "32/64bit compatible" */
+-	ret =  register_ioctl32_conversion(SISUSB_GET_CONFIG_SIZE, NULL);
+-	ret |= register_ioctl32_conversion(SISUSB_GET_CONFIG,      NULL);
+-	ret |= register_ioctl32_conversion(SISUSB_COMMAND,         NULL);
+-	if (ret)
+-		dev_err(&sisusb->sisusb_dev->dev, "Error registering ioctl32 translations\n");
+-	else
+-		sisusb->ioctl32registered = 1;
+-	}
+-#endif
+-
+ 	if (dev->speed == USB_SPEED_HIGH) {
+ 		int initscreen = 1;
+ #ifdef INCL_SISUSB_CON
+@@ -3271,19 +3257,6 @@ static void sisusb_disconnect(struct usb
+ 
+ 	usb_set_intfdata(intf, NULL);
+ 
+-#ifdef SISUSB_OLD_CONFIG_COMPAT
+-	if (sisusb->ioctl32registered) {
+-		int ret;
+-		sisusb->ioctl32registered = 0;
+-		ret =  unregister_ioctl32_conversion(SISUSB_GET_CONFIG_SIZE);
+-		ret |= unregister_ioctl32_conversion(SISUSB_GET_CONFIG);
+-		ret |= unregister_ioctl32_conversion(SISUSB_COMMAND);
+-		if (ret) {
+-			dev_err(&sisusb->sisusb_dev->dev, "Error unregistering ioctl32 translations\n");
+-		}
+-	}
+-#endif
+-
+ 	sisusb->present = 0;
+ 	sisusb->ready = 0;
+ 
+diff -puN drivers/usb/misc/sisusbvga/sisusb.h~sis-fb-driver-_ioctl32_conversion-functions-do drivers/usb/misc/sisusbvga/sisusb.h
+--- a/drivers/usb/misc/sisusbvga/sisusb.h~sis-fb-driver-_ioctl32_conversion-functions-do
++++ a/drivers/usb/misc/sisusbvga/sisusb.h
+@@ -120,9 +120,6 @@ struct sisusb_usb_data {
+ 	int isopen;		/* !=0 if open */
+ 	int present;		/* !=0 if device is present on the bus */
+ 	int ready;		/* !=0 if device is ready for userland */
+-#ifdef SISUSB_OLD_CONFIG_COMPAT
+-	int ioctl32registered;
+-#endif
+ 	int numobufs;		/* number of obufs = number of out urbs */
+ 	char *obuf[NUMOBUFS], *ibuf;	/* transfer buffers */
+ 	int obufsize, ibufsize;
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
 
-time-fix-inconsistent-function-names-in-comments.patch
-git-drm.patch
-arm-fix-memset-size-error.patch
-ia64-fix-memset-size-error.patch
-powerpc-fix-memset-size-error.patch
-drivers-video-ps3fb-fix-memset-size-error.patch
-w1-fix-memset-size-error.patch
+sis-fb-driver-_ioctl32_conversion-functions-do.patch
