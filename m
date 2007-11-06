@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + small-acpica-extension-to-be-able-to-store-the-name-of-fix.patch added to -mm tree
-Date: Mon, 05 Nov 2007 22:55:28 -0800
-Message-ID: <200711060702.lA672Gj0011403@imap1.linux-foundation.org>
+Subject: + memory-cgroup-enhancements-add-pre_destroy-handler-fix.patch added to -mm tree
+Date: Mon, 05 Nov 2007 23:10:42 -0800
+Message-ID: <200711060717.lA67HUah011911@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46479 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41147 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754454AbXKFHJh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 02:09:37 -0500
+	by vger.kernel.org with ESMTP id S1752201AbXKFHTm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 02:19:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bjorn.helgaas@hp.com, khali@linux-fr.org, lenb@kernel.org, mhoffman@lightlink.com, trenn@suse.de
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     small-acpica-extension-to-be-able-to-store-the-name-of-fix
+     memory-cgroup-enhancements-add-pre_destroy-handler-fix
 has been added to the -mm tree.  Its filename is
-     small-acpica-extension-to-be-able-to-store-the-name-of-fix.patch
+     memory-cgroup-enhancements-add-pre_destroy-handler-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,44 +25,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: small-acpica-extension-to-be-able-to-store-the-name-of-fix
+Subject: memory-cgroup-enhancements-add-pre_destroy-handler-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/acpi/osl.c: In function 'acpi_os_validate_address':
-drivers/acpi/osl.c:1365: warning: format '%llx' expects type 'long long unsigned int', but argument 4 has type 'long unsigned int'
-drivers/acpi/osl.c:1365: warning: format '%s' expects type 'char *', but argument 5 has type 'long unsigned int'
+kernel/cgroup.c: In function 'cgroup_rmdir':
+kernel/cgroup.c:2168: error: 'ss' undeclared (first use in this function)
+kernel/cgroup.c:2168: error: (Each undeclared identifier is reported only once  kernel/cgroup.c:2168: error: for each function it appears in.)
 
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Thomas Renninger <trenn@suse.de>
+(Paul's cgroups-move-cgroups-destroy-callbacks-to-cgroup_diput.patch removed
+this)
+
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Paul Menage <menage@google.com>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/osl.c |    6 +++---
- linux/acpi.h       |    0 
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ kernel/cgroup.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/acpi/dispatcher/dsopcode.c~small-acpica-extension-to-be-able-to-store-the-name-of-fix drivers/acpi/dispatcher/dsopcode.c
-diff -puN include/acpi/acpiosxf.h~small-acpica-extension-to-be-able-to-store-the-name-of-fix include/acpi/acpiosxf.h
-diff -puN drivers/acpi/osl.c~small-acpica-extension-to-be-able-to-store-the-name-of-fix drivers/acpi/osl.c
---- a/drivers/acpi/osl.c~small-acpica-extension-to-be-able-to-store-the-name-of-fix
-+++ a/drivers/acpi/osl.c
-@@ -1360,9 +1360,9 @@ acpi_os_validate_address (
- 		pr_debug("Added %s resource: start: 0x%llx, end: 0x%llx, "
- 			 "name: %s\n", (space_id == ACPI_ADR_SPACE_SYSTEM_IO)
- 			 ? "SystemIO" : "System Memory",
--			 res->start,
--			 (unsigned long)res->end,
--			 (unsigned long)res->name);
-+			 (unsigned long long)res->start,
-+			 (unsigned long long)res->end,
-+			 res->name);
- 		break;
- 	case ACPI_ADR_SPACE_PCI_CONFIG:
- 	case ACPI_ADR_SPACE_EC:
-diff -puN include/linux/acpi.h~small-acpica-extension-to-be-able-to-store-the-name-of-fix include/linux/acpi.h
+diff -puN include/linux/cgroup.h~memory-cgroup-enhancements-add-pre_destroy-handler-fix include/linux/cgroup.h
+diff -puN kernel/cgroup.c~memory-cgroup-enhancements-add-pre_destroy-handler-fix kernel/cgroup.c
+--- a/kernel/cgroup.c~memory-cgroup-enhancements-add-pre_destroy-handler-fix
++++ a/kernel/cgroup.c
+@@ -2145,6 +2145,7 @@ static int cgroup_rmdir(struct inode *un
+ 	struct dentry *d;
+ 	struct cgroup *parent;
+ 	struct super_block *sb;
++	struct cgroup_subsys *ss;
+ 	struct cgroupfs_root *root;
+ 
+ 	/* the vfs holds both inode->i_mutex already */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,7 +107,6 @@ oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-count
 i386-and-x86_64-randomize-brk-fix.patch
 x86-make-i8259_64-more-_32-like-checkpatch-fixes.patch
 x86-arch_register_cpu-section-fix.patch
-git-perfmon-fixup.patch
 mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
 pidns-place-under-config_experimental-checkpatch-fixes.patch
 fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
@@ -165,6 +165,7 @@ memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
 memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-pre_destroy-handler-fix.patch
 drivers-edac-add-marvell-mv64x60-driver-fix.patch
 introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
 iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
