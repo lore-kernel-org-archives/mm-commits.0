@@ -1,142 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - x86-make-i8259_64-more-_32-like-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 06 Nov 2007 01:22:43 -0800
-Message-ID: <200711060929.lA69TVWo016538@imap1.linux-foundation.org>
+Subject: + agk-dm-dm-ioctl-move-compat-code-fix.patch added to -mm tree
+Date: Tue, 06 Nov 2007 01:36:26 -0800
+Message-ID: <200711060943.lA69hE6K017034@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41775 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33844 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751019AbXKFJb3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 04:31:29 -0500
+	by vger.kernel.org with ESMTP id S1751000AbXKFJn6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 04:43:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, pj@place.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, agk@redhat.com
 
 
 The patch titled
-     x86-make-i8259_64-more-_32-like-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     x86-make-i8259_64-more-_32-like-checkpatch-fixes.patch
+     agk-dm-dm-ioctl-move-compat-code fix
+has been added to the -mm tree.  Its filename is
+     agk-dm-dm-ioctl-move-compat-code-fix.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: x86-make-i8259_64-more-_32-like-checkpatch-fixes
+Subject: agk-dm-dm-ioctl-move-compat-code fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: need space after that ',' (ctx:VxV)
-#91: FILE: arch/x86/kernel/i8259_64.c:198:
-+		outb(0x0B,PIC_MASTER_CMD);	/* ISR register */
- 		         ^
+drivers/md/dm-ioctl.c: In function 'dm_compat_ctl_ioctl':
+drivers/md/dm-ioctl.c:1479: warning: passing argument 1 of 'dm_ctl_ioctl' makes pointer from integer without a cast
+drivers/md/dm-ioctl.c:1479: warning: passing argument 2 of 'dm_ctl_ioctl' makes integer from pointer without a cast
+drivers/md/dm-ioctl.c:1479: error: too few arguments to function 'dm_ctl_ioctl'
 
-ERROR: need space after that ',' (ctx:VxV)
-#93: FILE: arch/x86/kernel/i8259_64.c:200:
-+		outb(0x0A,PIC_MASTER_CMD);	/* back to the IRR register */
- 		         ^
+Something like this - I didn't try very hard:
 
-ERROR: need space after that ',' (ctx:VxV)
-#99: FILE: arch/x86/kernel/i8259_64.c:203:
-+	outb(0x0B,PIC_SLAVE_CMD);	/* ISR register */
- 	         ^
-
-ERROR: need space after that ',' (ctx:VxV)
-#101: FILE: arch/x86/kernel/i8259_64.c:205:
-+	outb(0x0A,PIC_SLAVE_CMD);	/* back to the IRR register */
- 	         ^
-
-ERROR: need space after that ',' (ctx:VxV)
-#115: FILE: arch/x86/kernel/i8259_64.c:244:
-+		outb(0x60+(irq&7),PIC_SLAVE_CMD);/* 'Specific EOI' to slave */
- 		                 ^
-
-WARNING: line over 80 characters
-#116: FILE: arch/x86/kernel/i8259_64.c:245:
-+		outb(0x60+PIC_CASCADE_IR,PIC_MASTER_CMD); /* 'Specific EOI' to master-IRQ2 */
-
-ERROR: need space after that ',' (ctx:VxV)
-#116: FILE: arch/x86/kernel/i8259_64.c:245:
-+		outb(0x60+PIC_CASCADE_IR,PIC_MASTER_CMD); /* 'Specific EOI' to master-IRQ2 */
- 		                        ^
-
-ERROR: need space after that ',' (ctx:VxV)
-#123: FILE: arch/x86/kernel/i8259_64.c:249:
-+		outb(0x60+irq,PIC_MASTER_CMD);	/* 'Specific EOI' to master */
- 		             ^
-
-WARNING: line over 80 characters
-#209: FILE: arch/x86/kernel/i8259_64.c:363:
-+	outb_p(IRQ0_VECTOR, PIC_MASTER_IMR);	/* ICW2: 8259A-1 IR0-7 mapped to 0x30-0x37 */
-
-WARNING: line over 80 characters
-#210: FILE: arch/x86/kernel/i8259_64.c:364:
-+	outb_p(0x04, PIC_MASTER_IMR);	/* 8259A-1 (the master) has a slave on IR2 */
-
-WARNING: line over 80 characters
-#217: FILE: arch/x86/kernel/i8259_64.c:371:
-+	outb_p(IRQ8_VECTOR, PIC_SLAVE_IMR);	/* ICW2: 8259A-2 IR0-7 mapped to 0x38-0x3f */
-
-WARNING: line over 80 characters
-#218: FILE: arch/x86/kernel/i8259_64.c:372:
-+	outb_p(PIC_CASCADE_IR, PIC_SLAVE_IMR);	/* 8259A-2 is a slave on master's IR2 */
-
-WARNING: line over 80 characters
-#219: FILE: arch/x86/kernel/i8259_64.c:373:
-+	outb_p(SLAVE_ICW4_DEFAULT, PIC_SLAVE_IMR); /* (slave's support for AEOI in flat mode is to be investigated) */
-
-total: 7 errors, 6 warnings, 207 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Paul Jimenez <pj@place.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/i8259_64.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/md/dm-ioctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/i8259_64.c~x86-make-i8259_64-more-_32-like-checkpatch-fixes arch/x86/kernel/i8259_64.c
---- a/arch/x86/kernel/i8259_64.c~x86-make-i8259_64-more-_32-like-checkpatch-fixes
-+++ a/arch/x86/kernel/i8259_64.c
-@@ -195,14 +195,14 @@ static inline int i8259A_irq_real(unsign
- 	int irqmask = 1<<irq;
- 
- 	if (irq < 8) {
--		outb(0x0B,PIC_MASTER_CMD);	/* ISR register */
-+		outb(0x0B, PIC_MASTER_CMD);	/* ISR register */
- 		value = inb(PIC_MASTER_CMD) & irqmask;
--		outb(0x0A,PIC_MASTER_CMD);	/* back to the IRR register */
-+		outb(0x0A, PIC_MASTER_CMD);	/* back to the IRR register */
- 		return value;
- 	}
--	outb(0x0B,PIC_SLAVE_CMD);	/* ISR register */
-+	outb(0x0B, PIC_SLAVE_CMD);	/* ISR register */
- 	value = inb(PIC_SLAVE_CMD) & (irqmask >> 8);
--	outb(0x0A,PIC_SLAVE_CMD);	/* back to the IRR register */
-+	outb(0x0A, PIC_SLAVE_CMD);	/* back to the IRR register */
- 	return value;
+diff -puN drivers/md/dm-ioctl.c~agk-dm-dm-ioctl-move-compat-code-fix drivers/md/dm-ioctl.c
+--- a/drivers/md/dm-ioctl.c~agk-dm-dm-ioctl-move-compat-code-fix
++++ a/drivers/md/dm-ioctl.c
+@@ -1476,7 +1476,7 @@ static long dm_ctl_ioctl(struct file *fi
+ #ifdef CONFIG_COMPAT
+ static long dm_compat_ctl_ioctl(struct file *file, uint command, ulong u)
+ {
+-	return (long)dm_ctl_ioctl(command, compat_ptr(u));
++	return (long)dm_ctl_ioctl(file, command, u);
  }
- 
-@@ -241,12 +241,12 @@ handle_real_irq:
- 	if (irq & 8) {
- 		inb(PIC_SLAVE_IMR);	/* DUMMY - (do we need this?) */
- 		outb(cached_slave_mask, PIC_SLAVE_IMR);
--		outb(0x60+(irq&7),PIC_SLAVE_CMD);/* 'Specific EOI' to slave */
--		outb(0x60+PIC_CASCADE_IR,PIC_MASTER_CMD); /* 'Specific EOI' to master-IRQ2 */
-+		outb(0x60+(irq&7), PIC_SLAVE_CMD);/* 'Specific EOI' to slave */
-+		outb(0x60+PIC_CASCADE_IR, PIC_MASTER_CMD); /* 'Specific EOI' to master-IRQ2 */
- 	} else {
- 		inb(PIC_MASTER_IMR);	/* DUMMY - (do we need this?) */
- 		outb(cached_master_mask, PIC_MASTER_IMR);
--		outb(0x60+irq,PIC_MASTER_CMD);	/* 'Specific EOI' to master */
-+		outb(0x60+irq, PIC_MASTER_CMD);	/* 'Specific EOI' to master */
- 	}
- 	spin_unlock_irqrestore(&i8259A_lock, flags);
- 	return;
+ #else
+ #define dm_compat_ctl_ioctl NULL
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -150,6 +67,7 @@ git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
 git-arm-fixup.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
 git-hwmon.patch
 ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
 elantech-touchpad-driver-fix.patch
@@ -180,7 +98,6 @@ git-x86.patch
 git-x86-fixup.patch
 oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
 i386-and-x86_64-randomize-brk-fix.patch
-x86-make-i8259_64-more-_32-like-checkpatch-fixes.patch
 x86-arch_register_cpu-section-fix.patch
 mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
 pidns-place-under-config_experimental-checkpatch-fixes.patch
