@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch added to -mm tree
-Date: Tue, 06 Nov 2007 00:14:45 -0800
-Message-ID: <200711060821.lA68LXgF014109@imap1.linux-foundation.org>
+Subject: + dhowells-broke-unionfs.patch added to -mm tree
+Date: Tue, 06 Nov 2007 00:28:19 -0800
+Message-ID: <200711060835.lA68Z7QN014604@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60515 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47274 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752608AbXKFI1z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 03:27:55 -0500
+	by vger.kernel.org with ESMTP id S1752605AbXKFIgB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 03:36:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aia21@cantab.net, bfields@fieldses.org, clameter@sgi.com, dgc@sgi.com, linux-ext4@vger.kernel.org, mark.fasheh@oracle.com, mhalcrow@us.ibm.com, sfrench@us.ibm.com, swhiteho@redhat.com, trond.myklebust@fys.uio.no
+Cc: akpm@linux-foundation.org, dhowells@redhat.com, ezk@cs.sunysb.edu
 
 
 The patch titled
-     pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2
+     dhowells-broke-unionfs
 has been added to the -mm tree.  Its filename is
-     pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+     dhowells-broke-unionfs.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,40 +25,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2
+Subject: dhowells-broke-unionfs
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: <linux-ext4@vger.kernel.org>
-Cc: Anton Altaparmakov <aia21@cantab.net>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: David Chinner <dgc@sgi.com>
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: Steven French <sfrench@us.ibm.com>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+fs/unionfs/main.c: In function 'unionfs_interpose':
+fs/unionfs/main.c:131: error: implicit declaration of function 'iget'
+fs/unionfs/main.c:131: warning: assignment makes pointer from integer without a cast
+
+please send a fix against next -mm.
+
+Cc: David Howells <dhowells@redhat.com>
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs/compress.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/nfs/write.c~pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2 fs/nfs/write.c
-diff -puN fs/ntfs/aops.c~pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2 fs/ntfs/aops.c
-diff -puN net/unix/af_unix.c~pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2 net/unix/af_unix.c
-diff -puN fs/ntfs/compress.c~pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2 fs/ntfs/compress.c
---- a/fs/ntfs/compress.c~pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2
-+++ a/fs/ntfs/compress.c
-@@ -565,7 +565,7 @@ int ntfs_read_compressed_block(struct pa
- 	if (xpage >= max_page) {
- 		kfree(bhs);
- 		kfree(pages);
--		zero_user_page(page, 0, PAGE_CACHE_SIZE, KM_USER0);
-+		zero_user(page, 0, PAGE_CACHE_SIZE);
- 		ntfs_debug("Compressed read outside i_size - truncated?");
- 		SetPageUptodate(page);
- 		unlock_page(page);
+diff -puN fs/Kconfig~dhowells-broke-unionfs fs/Kconfig
+--- a/fs/Kconfig~dhowells-broke-unionfs
++++ a/fs/Kconfig
+@@ -1019,6 +1019,7 @@ config ECRYPT_FS
+ config UNION_FS
+ 	tristate "Union file system (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
++	depends on BROKEN
+ 	help
+ 	  Unionfs is a stackable unification file system, which appears to
+ 	  merge the contents of several directories (branches), while keeping
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,6 +71,7 @@ git-dvb-broke-tda8290.patch
 git-hwmon.patch
 ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
 elantech-touchpad-driver-fix.patch
+git-jg-misc-hisax-fix.patch
 git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
@@ -183,6 +178,7 @@ iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
 iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
 iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
 iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+dhowells-broke-unionfs.patch
 embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
 one-less-parameter-to-__d_path-checkpatch-fixes.patch
 d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
