@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect.patch added to -mm tree
-Date: Mon, 05 Nov 2007 18:43:00 -0800
-Message-ID: <200711060243.lA62h0Vl032340@imap1.linux-foundation.org>
+Subject: + pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 05 Nov 2007 18:43:54 -0800
+Message-ID: <200711060243.lA62hs2t032352@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43310 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56982 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753514AbXKFCnV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 21:43:21 -0500
+	by vger.kernel.org with ESMTP id S1754738AbXKFCoS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 21:44:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     pata_hpt37x: fix outstanding bug reports on the HPT374 and  37x cable detect
+     pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect.patch
+     pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,155 +25,183 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pata_hpt37x: fix outstanding bug reports on the HPT374 and  37x cable detect
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-- Read frequency correctly
-- Correct cable detect handling
-- Fix wrong filter test
+WARNING: line over 80 characters
+#70: FILE: drivers/ata/pata_hpt37x.c:850:
++		struct pci_dev *pdev_0 = pci_get_slot(pdev->bus, pdev->devfn - 1);
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+ERROR: else should follow close brace '}'
+#78: FILE: drivers/ata/pata_hpt37x.c:858:
++	}
++	else
+
+total: 1 errors, 1 warnings, 100 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_hpt37x.c |   49 ++++++++++++++++++++++++++----------
- 1 file changed, 36 insertions(+), 13 deletions(-)
+ drivers/ata/pata_hpt37x.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/pata_hpt37x.c~pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect drivers/ata/pata_hpt37x.c
---- a/drivers/ata/pata_hpt37x.c~pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect
+diff -puN drivers/ata/pata_hpt37x.c~pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes drivers/ata/pata_hpt37x.c
+--- a/drivers/ata/pata_hpt37x.c~pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes
 +++ a/drivers/ata/pata_hpt37x.c
-@@ -295,7 +295,7 @@ static unsigned long hpt370_filter(struc
- 
- static unsigned long hpt370a_filter(struct ata_device *adev, unsigned long mask)
- {
--	if (adev->class != ATA_DEV_ATA) {
-+	if (adev->class == ATA_DEV_ATA) {
- 		if (hpt_dma_blacklisted(adev, "UDMA100", bad_ata100_5))
- 			mask &= ~ (0x1F << ATA_SHIFT_UDMA);
- 	}
-@@ -359,28 +359,25 @@ static int hpt374_pre_reset(struct ata_l
- 		{ 0x50, 1, 0x04, 0x04 },
- 		{ 0x54, 1, 0x04, 0x04 }
- 	};
--	u16 mcr3, mcr6;
-+	u16 mcr3;
- 	u8 ata66;
- 	struct ata_port *ap = link->ap;
- 	struct pci_dev *pdev = to_pci_dev(ap->host->dev);
-+	unsigned int mcrbase = 0x50 + 4 * ap->port_no;
- 
- 	if (!pci_test_config_bits(pdev, &hpt37x_enable_bits[ap->port_no]))
- 		return -ENOENT;
- 
- 	/* Do the extra channel work */
--	pci_read_config_word(pdev, 0x52, &mcr3);
--	pci_read_config_word(pdev, 0x56, &mcr6);
-+	pci_read_config_word(pdev, mcrbase + 2, &mcr3);
- 	/* Set bit 15 of 0x52 to enable TCBLID as input
--	   Set bit 15 of 0x56 to enable FCBLID as input
- 	 */
--	pci_write_config_word(pdev, 0x52, mcr3 | 0x8000);
--	pci_write_config_word(pdev, 0x56, mcr6 | 0x8000);
-+	pci_write_config_word(pdev, mcrbase + 2, mcr3 | 0x8000);
- 	pci_read_config_byte(pdev, 0x5A, &ata66);
- 	/* Reset TCBLID/FCBLID to output */
- 	pci_write_config_word(pdev, 0x52, mcr3);
--	pci_write_config_word(pdev, 0x56, mcr6);
- 
--	if (ata66 & (1 << ap->port_no))
-+	if (ata66 & (2 >> ap->port_no))
- 		ap->cbl = ATA_CBL_PATA40;
- 	else
- 		ap->cbl = ATA_CBL_PATA80;
-@@ -844,6 +841,25 @@ static int hpt37x_calibrate_dpll(struct 
- 	/* Never went stable */
- 	return 0;
- }
+@@ -847,15 +847,16 @@ static u32 hpt374_read_freq(struct pci_d
+ 	u32 freq;
+ 	unsigned long io_base = pci_resource_start(pdev, 4);
+ 	if (PCI_FUNC(pdev->devfn) & 1) {
+-		struct pci_dev *pdev_0 = pci_get_slot(pdev->bus, pdev->devfn - 1);
++		struct pci_dev *pdev_0;
 +
-+static u32 hpt374_read_freq(struct pci_dev *pdev)
-+{
-+	u32 freq;
-+	unsigned long io_base = pci_resource_start(pdev, 4);
-+	if (PCI_FUNC(pdev->devfn) & 1) {
-+		struct pci_dev *pdev_0 = pci_get_slot(pdev->bus, pdev->devfn - 1);
-+		/* Someone hot plugged the controller on us ? */
-+		if (pdev_0 == NULL)
-+			return 0;
-+		io_base = pci_resource_start(pdev_0, 4);
-+		freq = inl(io_base + 0x90);
-+		pci_dev_put(pdev_0);
-+	}
-+	else
-+		freq = inl(io_base + 0x90);
-+	return freq;
-+}
-+
- /**
-  *	hpt37x_init_one		-	Initialise an HPT37X/302
-  *	@dev: PCI device
-@@ -902,7 +918,7 @@ static int hpt37x_init_one(struct pci_de
- 		.flags = ATA_FLAG_SLAVE_POSS,
- 		.pio_mask = 0x1f,
- 		.mwdma_mask = 0x07,
--		.udma_mask = 0x0f,
-+		.udma_mask = ATA_UDMA5,
- 		.port_ops = &hpt370_port_ops
- 	};
- 	/* HPT370A - UDMA100 */
-@@ -911,7 +927,7 @@ static int hpt37x_init_one(struct pci_de
- 		.flags = ATA_FLAG_SLAVE_POSS,
- 		.pio_mask = 0x1f,
- 		.mwdma_mask = 0x07,
--		.udma_mask = 0x0f,
-+		.udma_mask = ATA_UDMA5,
- 		.port_ops = &hpt370a_port_ops
- 	};
- 	/* HPT371, 372 and friends - UDMA133 */
-@@ -1047,9 +1063,16 @@ static int hpt37x_init_one(struct pci_de
- 		outb(0x0e, iobase + 0x9c);
- 
- 	/* Some devices do not let this value be accessed via PCI space
--	   according to the old driver */
-+	   according to the old driver. In addition we must use the value
-+	   from FN 0 on the HPT374 */
-+
-+	if (chip_table == &hpt374) {
-+		freq = hpt374_read_freq(dev);
-+		if (freq == 0)
-+			return -ENODEV;
++		pdev_0 = pci_get_slot(pdev->bus, pdev->devfn - 1);
+ 		/* Someone hot plugged the controller on us ? */
+ 		if (pdev_0 == NULL)
+ 			return 0;
+ 		io_base = pci_resource_start(pdev_0, 4);
+ 		freq = inl(io_base + 0x90);
+ 		pci_dev_put(pdev_0);
+-	}
+-	else
 +	} else
-+		freq = inl(iobase + 0x90);
- 
--	freq = inl(iobase + 0x90);
- 	if ((freq >> 12) != 0xABCDE) {
- 		int i;
- 		u8 sr;
+ 		freq = inl(io_base + 0x90);
+ 	return freq;
+ }
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
+acpi-add-reboot-mechanism.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-arm-fixup.patch
+revert-gregkh-driver-block-device.patch
+git-hwmon.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+elantech-touchpad-driver-fix.patch
+git-kvm.patch
 git-libata-all.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect.patch
-libata-handle-broken-cable-reporting.patch
-piix-add-support-for-ich7-on-acer-5602awlmi.patch
-pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
-pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-quirk_vialatency-omit-reading-pci-revision-id.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+ide-arm-hack.patch
+drivers-ide-pci-sc1200c-remove-pointless-hwif-lookup-loop-checkpatch-fixes.patch
+lmc_ioctl-dont-return-with-locks-held-fix.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+bluetooth-uninlining.patch
+git-nfsd-fixup.patch
+pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes.patch
 quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-initio-fix-conflict-when-loading-driver.patch
-serial-only-use-pnp-irq-if-its-valid.patch
-keyspan-init-termios-properly.patch
-geode-lists-are-subscriber-only.patch
-tty-kill-tty_flipbuf_size.patch
-drivers-edac-turnon-edac-device-error-logging.patch
-drivers-edac-use-round_jiffies_relative.patch
-drivers-edac-add-cell-xdr-memory-types.patch
-drivers-edac-add-cell-mc-driver.patch
-drivers-edac-i3000-code-tidying.patch
-drivers-edac-i3000-replace-macros-with-functions.patch
-drivers-edac-add-freescale-mpc85xx-driver.patch
-drivers-edac-add-marvell-mv64x60-driver.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
+scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+git-unionfs.patch
+git-wireless.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-x86.patch
+git-x86-fixup.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+i386-and-x86_64-randomize-brk-fix.patch
+x86-make-i8259_64-more-_32-like-checkpatch-fixes.patch
+git-perfmon-fixup.patch
+mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
+pidns-place-under-config_experimental-checkpatch-fixes.patch
+fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
+file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+cris-build-fixes-atomich-needs-compilerh-fix.patch
+cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
+cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
+cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
+cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+sync_sb_inodes-propagate-errors.patch
+64-bit-i_version-afs-fixes.patch
+kill-filp_open-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
 drivers-edac-add-marvell-mv64x60-driver-fix.patch
-dz-clean-up-and-improve-the-setup-of-termios-settings.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
