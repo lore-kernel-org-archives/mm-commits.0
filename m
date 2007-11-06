@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + wd7000-broke.patch added to -mm tree
-Date: Tue, 06 Nov 2007 01:04:46 -0800
-Message-ID: <200711060911.lA69BYjr015874@imap1.linux-foundation.org>
+Subject: + rename-open_namei-to-open_pathname-fix.patch added to -mm tree
+Date: Tue, 06 Nov 2007 01:08:00 -0800
+Message-ID: <200711060914.lA69EmrY016023@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51686 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50773 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752410AbXKFJNF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 04:13:05 -0500
+	by vger.kernel.org with ESMTP id S1751079AbXKFJPk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 04:15:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com, jens.axboe@oracle.com
+Cc: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@lst.de
 
 
 The patch titled
-     wd7000-broke
+     rename-open_namei-to-open_pathname-fix
 has been added to the -mm tree.  Its filename is
-     wd7000-broke.patch
+     rename-open_namei-to-open_pathname-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: wd7000-broke
+Subject: rename-open_namei-to-open_pathname-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/scsi/wd7000.c: In function 'wd7000_queuecommand':                       drivers/scsi/wd7000.c:1130: error: 'struct scatterlist' has no member named 'page'
+ERROR: "open_pathname" [sound/sound_firmware.ko] undefined!
+ERROR: "open_pathname" [fs/reiserfs/reiserfs.ko] undefined!
+ERROR: "open_pathname" [drivers/usb/gadget/g_file_storage.ko] undefined!
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/Kconfig |    1 +
+ fs/namei.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/scsi/Kconfig~wd7000-broke drivers/scsi/Kconfig
---- a/drivers/scsi/Kconfig~wd7000-broke
-+++ a/drivers/scsi/Kconfig
-@@ -388,6 +388,7 @@ config SCSI_3W_9XXX
- config SCSI_7000FASST
- 	tristate "7000FASST SCSI support"
- 	depends on ISA && SCSI && ISA_DMA_API
-+	depends on BROKEN
- 	select CHECK_SIGNATURE
- 	help
- 	  This driver supports the Western Digital 7000 SCSI host adapter
+diff -puN fs/namei.c~rename-open_namei-to-open_pathname-fix fs/namei.c
+--- a/fs/namei.c~rename-open_namei-to-open_pathname-fix
++++ a/fs/namei.c
+@@ -1896,6 +1896,7 @@ do_link:
+ 	__putname(nd.last.name);
+ 	goto do_last;
+ }
++EXPORT_SYMBOL(open_pathname);
+ 
+ /**
+  * lookup_create - lookup a dentry, creating it if it doesn't exist
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,6 +81,7 @@ bluetooth-uninlining.patch
 git-nfsd-fixup.patch
 quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
 fix-build-breakage-if-sysfs-fix.patch
+wd7000-broke.patch
 ips-trim-trailing-whitespace-checkpatch-fixes.patch
 scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
 scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
@@ -137,6 +140,7 @@ sync_sb_inodes-propagate-errors.patch
 bas_gigaset-suspend-support-fix.patch
 64-bit-i_version-afs-fixes.patch
 kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
 r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
@@ -188,4 +192,3 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 getblk-handle-2tb-devices.patch
 w1-build-fix.patch
-wd7000-broke.patch
