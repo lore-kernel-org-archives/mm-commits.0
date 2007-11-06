@@ -1,70 +1,56 @@
-From: akpm@linux-foundation.org
-Subject: + md-dm-mpath-hp-sw-depends-on-scsi.patch added to -mm tree
-Date: Mon, 05 Nov 2007 23:48:19 -0800
-Message-ID: <200711060748.lA67mJLd013001@imap1.linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: - memory-cgroup-enhancements-add-pre_destroy-handler.patch
+ removed from -mm tree
+Date: Mon, 5 Nov 2007 23:50:15 -0800
+Message-ID: <20071105235015.eb968ad7.akpm@linux-foundation.org>
+References: <200711060721.lA67LTeo012008@imap1.linux-foundation.org>
+	<20071106164447.98fa9032.kamezawa.hiroyu@jp.fujitsu.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49131 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40487 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751320AbXKFHsZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 02:48:25 -0500
+	by vger.kernel.org with ESMTP id S1751441AbXKFHvY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 02:51:24 -0500
+In-Reply-To: <20071106164447.98fa9032.kamezawa.hiroyu@jp.fujitsu.com>
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: lethal@linux-sh.org, neilb@suse.de
+To: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
+On Tue, 6 Nov 2007 16:44:47 +0900 KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com> wrote:
 
-The patch titled
-     md: dm-mpath-hp-sw depends on scsi
-has been added to the -mm tree.  Its filename is
-     md-dm-mpath-hp-sw-depends-on-scsi.patch
+> On Mon, 05 Nov 2007 23:14:40 -0800
+> akpm@linux-foundation.org wrote:
+> 
+> > 
+> > The patch titled
+> >      memory cgroup enhancements: add pre_destroy handler
+> > has been removed from the -mm tree.  Its filename was
+> >      memory-cgroup-enhancements-add-pre_destroy-handler.patch
+> > 
+> > This patch was dropped because I can't get it to compile - new version after next -mm, please
+> > 
+> 
+> Hmm, ok. I'll reschedule this and next one.
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+Thanks.
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+> But is there objections to pre_destroy handler ?
 
-------------------------------------------------------
-Subject: md: dm-mpath-hp-sw depends on scsi
-From: Paul Mundt <lethal@linux-sh.org>
+Dunno, I haven't been paying much attention.  Has anyone else?  It's a bit
+suspicious that nobody noticed that this would cause obvious build
+errors.
 
-With CONFIG_SCSI=n __scsi_print_sense() is never linked in.
+More reviewing effort please, guys.
 
-drivers/built-in.o: In function `hp_sw_end_io':
-dm-mpath-hp-sw.c:(.text+0x914f8): undefined reference to `__scsi_print_sense'
-
-Caught with a randconfig on current git.
-
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Cc: Neil Brown <neilb@suse.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/md/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff -puN drivers/md/Kconfig~md-dm-mpath-hp-sw-depends-on-scsi drivers/md/Kconfig
---- a/drivers/md/Kconfig~md-dm-mpath-hp-sw-depends-on-scsi
-+++ a/drivers/md/Kconfig
-@@ -269,7 +269,7 @@ config DM_MULTIPATH_RDAC
- 
- config DM_MULTIPATH_HP
-         tristate "HP MSA multipath support (EXPERIMENTAL)"
--        depends on DM_MULTIPATH && BLK_DEV_DM && EXPERIMENTAL
-+        depends on DM_MULTIPATH && BLK_DEV_DM && SCSI && EXPERIMENTAL
-         ---help---
-           Multipath support for HP MSA (Active/Passive) series hardware.
- 
-_
-
-Patches currently in -mm which might be from lethal@linux-sh.org are
-
-origin.patch
-git-sh.patch
-git-sh64.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-md-dm-mpath-hp-sw-depends-on-scsi.patch
-use-bootmem_exclusive-for-kdump.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32.patch
-add-cmpxchg_local-to-sh64.patch
+> If we should deal with reference count of following in another way,
+> ==
+>    page->page_cgroup->memory_cgroup, memory_cgroup contains css.
+>    page_cgroup has ref to css.
+> ==
+> I'll consider something. (for example, add refcnt to memory_cgroup itself.)
+> 
+> Changing above may allow us to guarantee that if no task, css's refcnt is 0.
