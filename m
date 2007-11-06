@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtcs-handle-nvram-better.patch added to -mm tree
-Date: Mon, 05 Nov 2007 16:31:41 -0800
-Message-ID: <200711060031.lA60VfTZ027642@imap1.linux-foundation.org>
+Subject: + rtc-ds1307-exports-nvram.patch added to -mm tree
+Date: Mon, 05 Nov 2007 16:36:15 -0800
+Message-ID: <200711060036.lA60aF13027734@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40267 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36178 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755200AbXKFAcy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 19:32:54 -0500
+	by vger.kernel.org with ESMTP id S1754107AbXKFAhI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 19:37:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, a.zummo@towertech.it, anemo@mba.ocn.ne.jp, dbrownell@users.sourceforge.net, rongkai.zhan@windriver.com, thomas.hommel@gefanuc.com, tr@newtec.dk
+Cc: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     RTCs: handle NVRAM better
+     rtc-ds1307 exports NVRAM
 has been added to the -mm tree.  Its filename is
-     rtcs-handle-nvram-better.patch
+     rtc-ds1307-exports-nvram.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,102 +25,159 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: RTCs: handle NVRAM better
+Subject: rtc-ds1307 exports NVRAM
 From: David Brownell <david-b@pacbell.net>
 
-Several of the RTC drivers are exporting binary "nvram" files in sysfs.  Such
-NVRAM (or on many systems, EEPROM) data is often initialized during system
-manufacture to hold data about identity (serial numbers, Ethernet addresses,
-etc), configuration, calibration, and so forth.
-
-This patch improves integrity and security of those files:
-
-  - Correctly initializes the size in one of the two cases where
-    that was not yet being done.
-
-  - Improves system security/integrity by making this state not
-    be world-writable by default.
-
-Letting arbitrary userspace code mangle such state by default is at least Not
-A Good Thing; and it could sometimes be worse, depending on the particular
-data that might be corrupted.  (I disregard the paranoiac "don't let anyone
-read it either" approach.  Anyone storing passwords in such memory doesn't
-really care about security.)
+Export the NVRAM on DS1307 and DS1338 chips, like several of the
+other drivers do for such combination RTC-and-NVRAM chips.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Torsten Ertbjerg Rasmussen <tr@newtec.dk>
-Cc: Mark Zhan <rongkai.zhan@windriver.com>
-Cc: Thomas Hommel <thomas.hommel@gefanuc.com>
 Acked-by: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1553.c   |    2 +-
- drivers/rtc/rtc-ds1742.c   |    5 ++++-
- drivers/rtc/rtc-m48t59.c   |    3 ++-
- drivers/rtc/rtc-stk17ta8.c |    2 +-
- 4 files changed, 8 insertions(+), 4 deletions(-)
+ drivers/rtc/Kconfig      |    4 -
+ drivers/rtc/rtc-ds1307.c |   93 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 95 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1553.c~rtcs-handle-nvram-better drivers/rtc/rtc-ds1553.c
---- a/drivers/rtc/rtc-ds1553.c~rtcs-handle-nvram-better
-+++ a/drivers/rtc/rtc-ds1553.c
-@@ -291,7 +291,7 @@ static ssize_t ds1553_nvram_write(struct
- static struct bin_attribute ds1553_nvram_attr = {
- 	.attr = {
- 		.name = "nvram",
--		.mode = S_IRUGO | S_IWUGO,
-+		.mode = S_IRUGO | S_IWUSR,
- 	},
- 	.size = RTC_OFFSET,
- 	.read = ds1553_nvram_read,
-diff -puN drivers/rtc/rtc-ds1742.c~rtcs-handle-nvram-better drivers/rtc/rtc-ds1742.c
---- a/drivers/rtc/rtc-ds1742.c~rtcs-handle-nvram-better
-+++ a/drivers/rtc/rtc-ds1742.c
-@@ -160,10 +160,13 @@ static ssize_t ds1742_nvram_write(struct
- static struct bin_attribute ds1742_nvram_attr = {
- 	.attr = {
- 		.name = "nvram",
--		.mode = S_IRUGO | S_IWUGO,
-+		.mode = S_IRUGO | S_IWUSR,
- 	},
- 	.read = ds1742_nvram_read,
- 	.write = ds1742_nvram_write,
-+	/* REVISIT: size in sysfs won't match actual size... if it's
-+	 * not a constant, each RTC should have its own attribute.
-+	 */
+diff -puN drivers/rtc/Kconfig~rtc-ds1307-exports-nvram drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-ds1307-exports-nvram
++++ a/drivers/rtc/Kconfig
+@@ -135,8 +135,8 @@ config RTC_DRV_DS1307
+ 
+ 	  The first seven registers on these chips hold an RTC, and other
+ 	  registers may add features such as NVRAM, a trickle charger for
+-	  the RTC/NVRAM backup power, and alarms.  This driver may not
+-	  expose all those available chip features.
++	  the RTC/NVRAM backup power, and alarms.  NVRAM is visible in
++	  sysfs, but other chip features may not be available.
+ 
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-ds1307.
+diff -puN drivers/rtc/rtc-ds1307.c~rtc-ds1307-exports-nvram drivers/rtc/rtc-ds1307.c
+--- a/drivers/rtc/rtc-ds1307.c~rtc-ds1307-exports-nvram
++++ a/drivers/rtc/rtc-ds1307.c
+@@ -89,6 +89,7 @@ enum ds_type {
+ 
+ struct ds1307 {
+ 	u8			reg_addr;
++	bool			has_nvram;
+ 	u8			regs[8];
+ 	enum ds_type		type;
+ 	struct i2c_msg		msg[2];
+@@ -242,6 +243,87 @@ static const struct rtc_class_ops ds13xx
+ 	.set_time	= ds1307_set_time,
  };
  
- static int __devinit ds1742_rtc_probe(struct platform_device *pdev)
-diff -puN drivers/rtc/rtc-m48t59.c~rtcs-handle-nvram-better drivers/rtc/rtc-m48t59.c
---- a/drivers/rtc/rtc-m48t59.c~rtcs-handle-nvram-better
-+++ a/drivers/rtc/rtc-m48t59.c
-@@ -353,11 +353,12 @@ static ssize_t m48t59_nvram_write(struct
- static struct bin_attribute m48t59_nvram_attr = {
- 	.attr = {
- 		.name = "nvram",
--		.mode = S_IRUGO | S_IWUGO,
-+		.mode = S_IRUGO | S_IWUSR,
- 		.owner = THIS_MODULE,
- 	},
- 	.read = m48t59_nvram_read,
- 	.write = m48t59_nvram_write,
-+	.size = M48T59_NVRAM_SIZE,
- };
++/*----------------------------------------------------------------------*/
++
++#define NVRAM_SIZE	56
++
++static ssize_t
++ds1307_nvram_read(struct kobject *kobj, struct bin_attribute *attr,
++		char *buf, loff_t off, size_t count)
++{
++	struct i2c_client	*client;
++	struct ds1307		*ds1307;
++	struct i2c_msg		msg[2];
++	int			result;
++
++	client = to_i2c_client(container_of(kobj, struct device, kobj));
++	ds1307 = i2c_get_clientdata(client);
++
++	if (unlikely(off >= NVRAM_SIZE))
++		return 0;
++	if ((off + count) > NVRAM_SIZE)
++		count = NVRAM_SIZE - off;
++	if (unlikely(!count))
++		return count;
++
++	msg[0].addr = client->addr;
++	msg[0].flags = 0;
++	msg[0].len = 1;
++	msg[0].buf = buf;
++
++	buf[0] = 8 + off;
++
++	msg[1].addr = client->addr;
++	msg[1].flags = I2C_M_RD;
++	msg[1].len = count;
++	msg[1].buf = buf;
++
++	result = i2c_transfer(to_i2c_adapter(client->dev.parent), msg, 2);
++	if (result != 2) {
++		dev_err(&client->dev, "%s error %d\n", "nvram read", result);
++		return -EIO;
++	}
++	return count;
++}
++
++static ssize_t
++ds1307_nvram_write(struct kobject *kobj, struct bin_attribute *attr,
++		char *buf, loff_t off, size_t count)
++{
++	struct i2c_client	*client;
++	u8			buffer[NVRAM_SIZE + 1];
++	int			ret;
++
++	client = to_i2c_client(container_of(kobj, struct device, kobj));
++
++	if (unlikely(off >= NVRAM_SIZE))
++		return -EFBIG;
++	if ((off + count) > NVRAM_SIZE)
++		count = NVRAM_SIZE - off;
++	if (unlikely(!count))
++		return count;
++
++	buffer[0] = 8 + off;
++	memcpy(buffer + 1, buf, count);
++
++	ret = i2c_master_send(client, buffer, count + 1);
++	return (ret < 0) ? ret : (ret - 1);
++}
++
++static struct bin_attribute nvram = {
++	.attr = {
++		.name	= "nvram",
++		.mode	= S_IRUGO | S_IWUSR,
++		.owner	= THIS_MODULE,
++	},
++
++	.read	= ds1307_nvram_read,
++	.write	= ds1307_nvram_write,
++	.size	= NVRAM_SIZE,
++};
++
++/*----------------------------------------------------------------------*/
++
+ static struct i2c_driver ds1307_driver;
  
- static int __devinit m48t59_rtc_probe(struct platform_device *pdev)
-diff -puN drivers/rtc/rtc-stk17ta8.c~rtcs-handle-nvram-better drivers/rtc/rtc-stk17ta8.c
---- a/drivers/rtc/rtc-stk17ta8.c~rtcs-handle-nvram-better
-+++ a/drivers/rtc/rtc-stk17ta8.c
-@@ -291,7 +291,7 @@ static ssize_t stk17ta8_nvram_write(stru
- static struct bin_attribute stk17ta8_nvram_attr = {
- 	.attr = {
- 		.name = "nvram",
--		.mode = S_IRUGO | S_IWUGO,
-+		.mode = S_IRUGO | S_IWUSR,
- 		.owner = THIS_MODULE,
- 	},
- 	.size = RTC_OFFSET,
+ static int __devinit ds1307_probe(struct i2c_client *client)
+@@ -413,6 +495,14 @@ read_rtc:
+ 		goto exit_free;
+ 	}
+ 
++	if (chip->nvram56) {
++		err = sysfs_create_bin_file(&client->dev.kobj, &nvram);
++		if (err == 0) {
++			ds1307->has_nvram = true;
++			dev_info(&client->dev, "56 bytes nvram\n");
++		}
++	}
++
+ 	return 0;
+ 
+ exit_bad:
+@@ -432,6 +522,9 @@ static int __devexit ds1307_remove(struc
+ {
+ 	struct ds1307	*ds1307 = i2c_get_clientdata(client);
+ 
++	if (ds1307->has_nvram)
++		sysfs_remove_bin_file(&client->dev.kobj, &nvram);
++
+ 	rtc_device_unregister(ds1307->rtc);
+ 	kfree(ds1307);
+ 	return 0;
 _
 
 Patches currently in -mm which might be from david-b@pacbell.net are
