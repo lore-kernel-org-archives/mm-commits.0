@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-jg-misc-hisax-fix.patch added to -mm tree
-Date: Tue, 06 Nov 2007 00:19:42 -0800
-Message-ID: <200711060826.lA68QUL0014292@imap1.linux-foundation.org>
+Subject: + pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch added to -mm tree
+Date: Tue, 06 Nov 2007 00:14:45 -0800
+Message-ID: <200711060821.lA68LXgF014109@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43759 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60515 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750802AbXKFI0k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 03:26:40 -0500
+	by vger.kernel.org with ESMTP id S1752608AbXKFI1z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 03:27:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org
+Cc: akpm@linux-foundation.org, aia21@cantab.net, bfields@fieldses.org, clameter@sgi.com, dgc@sgi.com, linux-ext4@vger.kernel.org, mark.fasheh@oracle.com, mhalcrow@us.ibm.com, sfrench@us.ibm.com, swhiteho@redhat.com, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     git-jg-misc-hisax-fix
+     pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2
 has been added to the -mm tree.  Its filename is
-     git-jg-misc-hisax-fix.patch
+     pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-jg-misc-hisax-fix
+Subject: pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/isdn/hisax/bkm_a4t.c:16:25: error: hisax_proto.h: No such file or directory
-drivers/isdn/hisax/bkm_a4t.c: In function 'a4t_pci_init_one':                   drivers/isdn/hisax/bkm_a4t.c:357: error: 'DEFAULT_PROTO' undeclared (first use in this function)                                                                drivers/isdn/hisax/bkm_a4t.c:357: error: (Each undeclared identifier is reported only once
-drivers/isdn/hisax/bkm_a4t.c:357: error: for each function it appears in.)      
-
-Please tell me when to drop this.
-
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: <linux-ext4@vger.kernel.org>
+Cc: Anton Altaparmakov <aia21@cantab.net>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: David Chinner <dgc@sgi.com>
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Cc: Steven French <sfrench@us.ibm.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hisax/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ntfs/compress.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/isdn/hisax/Kconfig~git-jg-misc-hisax-fix drivers/isdn/hisax/Kconfig
---- a/drivers/isdn/hisax/Kconfig~git-jg-misc-hisax-fix
-+++ a/drivers/isdn/hisax/Kconfig
-@@ -290,6 +290,7 @@ config HISAX_HSTSAPHIR
- config HISAX_BKM_A4T
- 	tristate "Telekom A4T card"
- 	depends on PCI
-+	depends on BROKEN
- 	help
- 	  This enables HiSax support for the Telekom A4T card.
- 
+diff -puN fs/nfs/write.c~pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2 fs/nfs/write.c
+diff -puN fs/ntfs/aops.c~pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2 fs/ntfs/aops.c
+diff -puN net/unix/af_unix.c~pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2 net/unix/af_unix.c
+diff -puN fs/ntfs/compress.c~pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2 fs/ntfs/compress.c
+--- a/fs/ntfs/compress.c~pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2
++++ a/fs/ntfs/compress.c
+@@ -565,7 +565,7 @@ int ntfs_read_compressed_block(struct pa
+ 	if (xpage >= max_page) {
+ 		kfree(bhs);
+ 		kfree(pages);
+-		zero_user_page(page, 0, PAGE_CACHE_SIZE, KM_USER0);
++		zero_user(page, 0, PAGE_CACHE_SIZE);
+ 		ntfs_debug("Compressed read outside i_size - truncated?");
+ 		SetPageUptodate(page);
+ 		unlock_page(page);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,7 +77,6 @@ git-dvb-broke-tda8290.patch
 git-hwmon.patch
 ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
 elantech-touchpad-driver-fix.patch
-git-jg-misc-hisax-fix.patch
 git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
