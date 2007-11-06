@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dhowells-broke-unionfs.patch added to -mm tree
-Date: Tue, 06 Nov 2007 00:28:19 -0800
-Message-ID: <200711060835.lA68Z7QN014604@imap1.linux-foundation.org>
+Subject: + jens-broke-reiser4.patch added to -mm tree
+Date: Tue, 06 Nov 2007 00:30:25 -0800
+Message-ID: <200711060837.lA68bD9x014706@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47274 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45140 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752605AbXKFIgB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 03:36:01 -0500
+	by vger.kernel.org with ESMTP id S1751991AbXKFIiR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 03:38:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dhowells@redhat.com, ezk@cs.sunysb.edu
+Cc: akpm@linux-foundation.org, edward@namesys.com, jens.axboe@oracle.com, vs@namesys.com
 
 
 The patch titled
-     dhowells-broke-unionfs
+     jens-broke-reiser4
 has been added to the -mm tree.  Its filename is
-     dhowells-broke-unionfs.patch
+     jens-broke-reiser4.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,40 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dhowells-broke-unionfs
+Subject: jens-broke-reiser4
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/unionfs/main.c: In function 'unionfs_interpose':
-fs/unionfs/main.c:131: error: implicit declaration of function 'iget'
-fs/unionfs/main.c:131: warning: assignment makes pointer from integer without a cast
+fs/reiser4/plugin/file/cryptcompress.c: In function 'reiser4_deflate_cluster':
+fs/reiser4/plugin/file/cryptcompress.c:1120: error: 'struct scatterlist' has no member named 'page'
+fs/reiser4/plugin/file/cryptcompress.c:1124: error: 'struct scatterlist' has no member named 'page'
+fs/reiser4/plugin/file/cryptcompress.c: In function 'reiser4_inflate_cluster':
+fs/reiser4/plugin/file/cryptcompress.c:1184: error: 'struct scatterlist' has no member named 'page'
+fs/reiser4/plugin/file/cryptcompress.c:1188: error: 'struct scatterlist' has no member named 'page'
 
-please send a fix against next -mm.
+Please send a fix against next -mm.
 
-Cc: David Howells <dhowells@redhat.com>
-Cc: Erez Zadok <ezk@cs.sunysb.edu>
+Cc: Edward Shishkin <edward@namesys.com>
+Cc: "Vladimir V. Saveliev" <vs@namesys.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    1 +
+ fs/reiser4/Kconfig |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN fs/Kconfig~dhowells-broke-unionfs fs/Kconfig
---- a/fs/Kconfig~dhowells-broke-unionfs
-+++ a/fs/Kconfig
-@@ -1019,6 +1019,7 @@ config ECRYPT_FS
- config UNION_FS
- 	tristate "Union file system (EXPERIMENTAL)"
+diff -puN fs/Kconfig~jens-broke-reiser4 fs/Kconfig
+diff -puN /dev/null /dev/null
+diff -puN fs/reiser4/Kconfig~jens-broke-reiser4 fs/reiser4/Kconfig
+--- a/fs/reiser4/Kconfig~jens-broke-reiser4
++++ a/fs/reiser4/Kconfig
+@@ -1,6 +1,7 @@
+ config REISER4_FS
+ 	tristate "Reiser4 (EXPERIMENTAL)"
  	depends on EXPERIMENTAL
 +	depends on BROKEN
- 	help
- 	  Unionfs is a stackable unification file system, which appears to
- 	  merge the contents of several directories (branches), while keeping
+ 	select ZLIB_INFLATE
+ 	select ZLIB_DEFLATE
+ 	select LZO_COMPRESS
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -186,6 +192,7 @@ d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
 use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
 make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
+jens-broke-reiser4.patch
 page-owner-tracking-leak-detector.patch
 nr_blockdev_pages-in_interrupt-warning.patch
 slab-leaks3-default-y.patch
