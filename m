@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + bas_gigaset-suspend-support-fix.patch added to -mm tree
-Date: Mon, 05 Nov 2007 23:28:02 -0800
-Message-ID: <200711060734.lA67YoeC012471@imap1.linux-foundation.org>
+Subject: + git-ipwireless-ipwireless_cs_tty-warning-fix.patch added to -mm tree
+Date: Mon, 05 Nov 2007 23:29:39 -0800
+Message-ID: <200711060736.lA67aRSH012509@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34190 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59488 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751330AbXKFHfY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 02:35:24 -0500
+	by vger.kernel.org with ESMTP id S1753648AbXKFHhF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 02:37:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, tilman@imap.cc
+Cc: akpm@linux-foundation.org, jkosina@suse.cz
 
 
 The patch titled
-     bas_gigaset-suspend-support-fix
+     git-ipwireless-ipwireless_cs_tty-warning-fix
 has been added to the -mm tree.  Its filename is
-     bas_gigaset-suspend-support-fix.patch
+     git-ipwireless-ipwireless_cs_tty-warning-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: bas_gigaset-suspend-support-fix
+Subject: git-ipwireless-ipwireless_cs_tty-warning-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-good testing.
+drivers/char/pcmcia/ipwireless_cs_tty.c: In function 'ipwireless_tty_received':
+drivers/char/pcmcia/ipwireless_cs_tty.c:193: warning: unused variable 'i'
 
-Cc: Tilman Schmidt <tilman@imap.cc>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/gigaset/bas-gigaset.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/pcmcia/ipwireless_cs_tty.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/isdn/gigaset/bas-gigaset.c~bas_gigaset-suspend-support-fix drivers/isdn/gigaset/bas-gigaset.c
---- a/drivers/isdn/gigaset/bas-gigaset.c~bas_gigaset-suspend-support-fix
-+++ a/drivers/isdn/gigaset/bas-gigaset.c
-@@ -1741,7 +1741,7 @@ static void write_command_callback(struc
- 			dev_warn(cs->dev,
- 				 "command write: %s, "
- 				 "won't retry - suspend requested\n",
--				 get_usb_statmsg(status));
-+				 get_usb_statmsg(urb->status));
- 			break;
- 		}
- 		if (cs->cmdbuf == NULL) {
+diff -puN drivers/char/pcmcia/ipwireless_cs_tty.c~git-ipwireless-ipwireless_cs_tty-warning-fix drivers/char/pcmcia/ipwireless_cs_tty.c
+--- a/drivers/char/pcmcia/ipwireless_cs_tty.c~git-ipwireless-ipwireless_cs_tty-warning-fix
++++ a/drivers/char/pcmcia/ipwireless_cs_tty.c
+@@ -190,7 +190,6 @@ void ipwireless_tty_received(struct ipw_
+ 			unsigned int length)
+ {
+ 	struct tty_struct *linux_tty;
+-	int i;
+ 	int work = 0;
+ 
+ 	mutex_lock(&tty->ipw_tty_mutex);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,6 +88,7 @@ git-unionfs.patch
 vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
 git-wireless.patch
 jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-ipwireless-ipwireless_cs_tty-warning-fix.patch
 git-x86.patch
 git-x86-fixup.patch
 oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
