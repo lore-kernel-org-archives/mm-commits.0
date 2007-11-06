@@ -1,53 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - git-jg-misc-hisax-fix.patch removed from -mm tree
-Date: Tue, 06 Nov 2007 00:48:20 -0800
-Message-ID: <200711060855.lA68t88s015337@imap1.linux-foundation.org>
+Subject: + wd7000-broke.patch added to -mm tree
+Date: Tue, 06 Nov 2007 01:04:46 -0800
+Message-ID: <200711060911.lA69BYjr015874@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51596 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51686 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754933AbXKFIzN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 03:55:13 -0500
+	by vger.kernel.org with ESMTP id S1752410AbXKFJNF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 04:13:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com, jens.axboe@oracle.com
 
 
 The patch titled
-     git-jg-misc-hisax-fix
-has been removed from the -mm tree.  Its filename was
-     git-jg-misc-hisax-fix.patch
+     wd7000-broke
+has been added to the -mm tree.  Its filename is
+     wd7000-broke.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-jg-misc-hisax-fix
+Subject: wd7000-broke
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/isdn/hisax/bkm_a4t.c:16:25: error: hisax_proto.h: No such file or directory
-drivers/isdn/hisax/bkm_a4t.c: In function 'a4t_pci_init_one':                   drivers/isdn/hisax/bkm_a4t.c:357: error: 'DEFAULT_PROTO' undeclared (first use in this function)                                                                drivers/isdn/hisax/bkm_a4t.c:357: error: (Each undeclared identifier is reported only once
-drivers/isdn/hisax/bkm_a4t.c:357: error: for each function it appears in.)      
+drivers/scsi/wd7000.c: In function 'wd7000_queuecommand':                       drivers/scsi/wd7000.c:1130: error: 'struct scatterlist' has no member named 'page'
 
-Please tell me when to drop this.
-
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hisax/Kconfig |    1 +
+ drivers/scsi/Kconfig |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/isdn/hisax/Kconfig~git-jg-misc-hisax-fix drivers/isdn/hisax/Kconfig
---- a/drivers/isdn/hisax/Kconfig~git-jg-misc-hisax-fix
-+++ a/drivers/isdn/hisax/Kconfig
-@@ -290,6 +290,7 @@ config HISAX_HSTSAPHIR
- config HISAX_BKM_A4T
- 	tristate "Telekom A4T card"
- 	depends on PCI
+diff -puN drivers/scsi/Kconfig~wd7000-broke drivers/scsi/Kconfig
+--- a/drivers/scsi/Kconfig~wd7000-broke
++++ a/drivers/scsi/Kconfig
+@@ -388,6 +388,7 @@ config SCSI_3W_9XXX
+ config SCSI_7000FASST
+ 	tristate "7000FASST SCSI support"
+ 	depends on ISA && SCSI && ISA_DMA_API
 +	depends on BROKEN
+ 	select CHECK_SIGNATURE
  	help
- 	  This enables HiSax support for the Telekom A4T card.
- 
+ 	  This driver supports the Western Digital 7000 SCSI host adapter
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -61,12 +62,9 @@ git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
 git-arm-fixup.patch
-git-dvb-fixup.patch
-git-dvb-broke-tda8290.patch
 git-hwmon.patch
 ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
 elantech-touchpad-driver-fix.patch
-git-jg-misc-hisax-fix.patch
 git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
@@ -190,3 +188,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 getblk-handle-2tb-devices.patch
 w1-build-fix.patch
+wd7000-broke.patch
