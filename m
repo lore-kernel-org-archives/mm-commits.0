@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc_hctosys-expects-rtcs-in-utc-doc.patch added to -mm tree
-Date: Mon, 05 Nov 2007 16:31:24 -0800
-Message-ID: <200711060031.lA60VOjW027639@imap1.linux-foundation.org>
+Subject: + rtcs-handle-nvram-better.patch added to -mm tree
+Date: Mon, 05 Nov 2007 16:31:41 -0800
+Message-ID: <200711060031.lA60VfTZ027642@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49217 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40267 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755044AbXKFAcB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 19:32:01 -0500
+	by vger.kernel.org with ESMTP id S1755200AbXKFAcy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 19:32:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net
+Cc: david-b@pacbell.net, a.zummo@towertech.it, anemo@mba.ocn.ne.jp, dbrownell@users.sourceforge.net, rongkai.zhan@windriver.com, thomas.hommel@gefanuc.com, tr@newtec.dk
 
 
 The patch titled
-     rtc_hctosys expects RTCs in UTC (doc)
+     RTCs: handle NVRAM better
 has been added to the -mm tree.  Its filename is
-     rtc_hctosys-expects-rtcs-in-utc-doc.patch
+     rtcs-handle-nvram-better.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,53 +25,102 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc_hctosys expects RTCs in UTC (doc)
+Subject: RTCs: handle NVRAM better
 From: David Brownell <david-b@pacbell.net>
 
-The RTC "hctosys" mechanism expects that RTC clock will use UTC, not local
-time (e.g.  PST).  Say so in Kconfig and in the kernel message.
+Several of the RTC drivers are exporting binary "nvram" files in sysfs.  Such
+NVRAM (or on many systems, EEPROM) data is often initialized during system
+manufacture to hold data about identity (serial numbers, Ethernet addresses,
+etc), configuration, calibration, and so forth.
 
-(Strictly speaking, the RTC clock should be tracking the POSIX epoch.  That's
-not worth going into here.  Goofing timezones means clocks are wrong by many
-hours; the POSIX-v-UTC differences just cost seconds.)
+This patch improves integrity and security of those files:
+
+  - Correctly initializes the size in one of the two cases where
+    that was not yet being done.
+
+  - Improves system security/integrity by making this state not
+    be world-writable by default.
+
+Letting arbitrary userspace code mangle such state by default is at least Not
+A Good Thing; and it could sometimes be worse, depending on the particular
+data that might be corrupted.  (I disregard the paranoiac "don't let anyone
+read it either" approach.  Anyone storing passwords in such memory doesn't
+really care about security.)
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Torsten Ertbjerg Rasmussen <tr@newtec.dk>
+Cc: Mark Zhan <rongkai.zhan@windriver.com>
+Cc: Thomas Hommel <thomas.hommel@gefanuc.com>
 Acked-by: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig   |    4 +++-
- drivers/rtc/hctosys.c |    4 ++--
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-ds1553.c   |    2 +-
+ drivers/rtc/rtc-ds1742.c   |    5 ++++-
+ drivers/rtc/rtc-m48t59.c   |    3 ++-
+ drivers/rtc/rtc-stk17ta8.c |    2 +-
+ 4 files changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc_hctosys-expects-rtcs-in-utc-doc drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc_hctosys-expects-rtcs-in-utc-doc
-+++ a/drivers/rtc/Kconfig
-@@ -36,7 +36,9 @@ config RTC_HCTOSYS_DEVICE
- 	help
- 	  The RTC device that will be used to (re)initialize the system
- 	  clock, usually rtc0.  Initialization is done when the system
--	  starts up, and when it resumes from a low power state.
-+	  starts up, and when it resumes from a low power state.  This
-+	  device should record time in UTC, since the kernel won't do
-+	  timezone correction.
+diff -puN drivers/rtc/rtc-ds1553.c~rtcs-handle-nvram-better drivers/rtc/rtc-ds1553.c
+--- a/drivers/rtc/rtc-ds1553.c~rtcs-handle-nvram-better
++++ a/drivers/rtc/rtc-ds1553.c
+@@ -291,7 +291,7 @@ static ssize_t ds1553_nvram_write(struct
+ static struct bin_attribute ds1553_nvram_attr = {
+ 	.attr = {
+ 		.name = "nvram",
+-		.mode = S_IRUGO | S_IWUGO,
++		.mode = S_IRUGO | S_IWUSR,
+ 	},
+ 	.size = RTC_OFFSET,
+ 	.read = ds1553_nvram_read,
+diff -puN drivers/rtc/rtc-ds1742.c~rtcs-handle-nvram-better drivers/rtc/rtc-ds1742.c
+--- a/drivers/rtc/rtc-ds1742.c~rtcs-handle-nvram-better
++++ a/drivers/rtc/rtc-ds1742.c
+@@ -160,10 +160,13 @@ static ssize_t ds1742_nvram_write(struct
+ static struct bin_attribute ds1742_nvram_attr = {
+ 	.attr = {
+ 		.name = "nvram",
+-		.mode = S_IRUGO | S_IWUGO,
++		.mode = S_IRUGO | S_IWUSR,
+ 	},
+ 	.read = ds1742_nvram_read,
+ 	.write = ds1742_nvram_write,
++	/* REVISIT: size in sysfs won't match actual size... if it's
++	 * not a constant, each RTC should have its own attribute.
++	 */
+ };
  
- 	  The driver for this RTC device must be loaded before late_initcall
- 	  functions run, so it must usually be statically linked.
-diff -puN drivers/rtc/hctosys.c~rtc_hctosys-expects-rtcs-in-utc-doc drivers/rtc/hctosys.c
---- a/drivers/rtc/hctosys.c~rtc_hctosys-expects-rtcs-in-utc-doc
-+++ a/drivers/rtc/hctosys.c
-@@ -47,8 +47,8 @@ static int __init rtc_hctosys(void)
- 			do_settimeofday(&tv);
+ static int __devinit ds1742_rtc_probe(struct platform_device *pdev)
+diff -puN drivers/rtc/rtc-m48t59.c~rtcs-handle-nvram-better drivers/rtc/rtc-m48t59.c
+--- a/drivers/rtc/rtc-m48t59.c~rtcs-handle-nvram-better
++++ a/drivers/rtc/rtc-m48t59.c
+@@ -353,11 +353,12 @@ static ssize_t m48t59_nvram_write(struct
+ static struct bin_attribute m48t59_nvram_attr = {
+ 	.attr = {
+ 		.name = "nvram",
+-		.mode = S_IRUGO | S_IWUGO,
++		.mode = S_IRUGO | S_IWUSR,
+ 		.owner = THIS_MODULE,
+ 	},
+ 	.read = m48t59_nvram_read,
+ 	.write = m48t59_nvram_write,
++	.size = M48T59_NVRAM_SIZE,
+ };
  
- 			dev_info(rtc->dev.parent,
--				"setting the system clock to "
--				"%d-%02d-%02d %02d:%02d:%02d (%u)\n",
-+				"setting system clock to "
-+				"%d-%02d-%02d %02d:%02d:%02d UTC (%u)\n",
- 				tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
- 				tm.tm_hour, tm.tm_min, tm.tm_sec,
- 				(unsigned int) tv.tv_sec);
+ static int __devinit m48t59_rtc_probe(struct platform_device *pdev)
+diff -puN drivers/rtc/rtc-stk17ta8.c~rtcs-handle-nvram-better drivers/rtc/rtc-stk17ta8.c
+--- a/drivers/rtc/rtc-stk17ta8.c~rtcs-handle-nvram-better
++++ a/drivers/rtc/rtc-stk17ta8.c
+@@ -291,7 +291,7 @@ static ssize_t stk17ta8_nvram_write(stru
+ static struct bin_attribute stk17ta8_nvram_attr = {
+ 	.attr = {
+ 		.name = "nvram",
+-		.mode = S_IRUGO | S_IWUGO,
++		.mode = S_IRUGO | S_IWUSR,
+ 		.owner = THIS_MODULE,
+ 	},
+ 	.size = RTC_OFFSET,
 _
 
 Patches currently in -mm which might be from david-b@pacbell.net are
