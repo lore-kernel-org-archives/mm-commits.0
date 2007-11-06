@@ -1,768 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: - v4l-stk11xx-add-static-to-tables.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 23:33:55 -0800
-Message-ID: <200711060740.lA67ehh3012698@imap1.linux-foundation.org>
+Subject: + git-dvb-broke-tda8290.patch added to -mm tree
+Date: Mon, 05 Nov 2007 23:37:19 -0800
+Message-ID: <200711060744.lA67i7VP012854@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50279 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36300 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754779AbXKFHkx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 02:40:53 -0500
+	by vger.kernel.org with ESMTP id S1751112AbXKFHoQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 02:44:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, mchehab@infradead.org
 
 
 The patch titled
-     V4L: stk11xx, add static to tables
-has been removed from the -mm tree.  Its filename was
-     v4l-stk11xx-add-static-to-tables.patch
+     git-dvb-broke-tda8290
+has been added to the -mm tree.  Its filename is
+     git-dvb-broke-tda8290.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: V4L: stk11xx, add static to tables
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: git-dvb-broke-tda8290
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Ensure that the compiler will put all the tables in static storage
+drivers/media/video/tda8290.c:27:21: error: tda827x.h: No such file or directory
+drivers/media/video/tda8290.c:28:22: error: tda18271.h: No such file or directory
+drivers/media/video/tda8290.c:52: error: field 'cfg' has incomplete type
+drivers/media/video/tda8290.c: In function 'tda829x_find_tuner':
+drivers/media/video/tda8290.c:590: error: implicit declaration of function 'tda18271_attach'
+drivers/media/video/tda8290.c:598: error: implicit declaration of function 'tda827x_attach'
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Please tell me when I can drop this patch again.
+
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/stk1125.c  |   58 +++++++++++++-------------
- drivers/media/video/stk1135.c  |   54 ++++++++++++------------
- drivers/media/video/stkdcnew.c |   68 +++++++++++++++----------------
- 3 files changed, 90 insertions(+), 90 deletions(-)
+ drivers/media/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/stk1125.c~v4l-stk11xx-add-static-to-tables drivers/media/video/stk1125.c
---- a/drivers/media/video/stk1125.c~v4l-stk11xx-add-static-to-tables
-+++ a/drivers/media/video/stk1125.c
-@@ -26,7 +26,7 @@ static int stk1125_load_microcode(struct
- 	int retok;
- 
- 	/* From 80x60 to 640x480 */
--	const u8 values_1_204[] = {
-+	static const u8 values_1_204[] = {
- 		0x12, 0x11, 0x3b, 0x6a, 0x13, 0x10, 0x00, 0x01, 0x02, 0x13,
- 		0x39, 0x38, 0x37, 0x35, 0x0e, 0x12, 0x04, 0x0c, 0x0d, 0x17,
- 		0x18, 0x32, 0x19, 0x1a, 0x03, 0x1b, 0x16, 0x33, 0x34, 0x41,
-@@ -34,7 +34,7 @@ static int stk1125_load_microcode(struct
- 		0x95, 0x40, 0x29, 0x0f, 0xa5, 0x1e, 0xa9, 0xaa, 0xab, 0x90,
- 		0x91, 0x9f, 0xa0, 0x24, 0x25, 0x26, 0x14, 0x2a, 0x2b
- 	};
--	const u8 values_1_205[] = {
-+	static const u8 values_1_205[] = {
- 		0x45, 0x80, 0x01, 0x7d, 0x80, 0x00, 0x00, 0x80, 0x80, 0x80,
- 		0x50, 0x93, 0x00, 0x81, 0x20, 0x45, 0x00, 0x00, 0x00, 0x24,
- 		0xc4, 0xb6, 0x00, 0x3c, 0x36, 0x00, 0x07, 0xe2, 0xbf, 0x00,
-@@ -44,7 +44,7 @@ static int stk1125_load_microcode(struct
- 	};
- 
- 	/* From 800x600 to 1280x1024 */
--	const u8 values_2_204[] = {
-+	static const u8 values_2_204[] = {
- 		0x12, 0x11, 0x3b, 0x6a, 0x13, 0x10, 0x00, 0x01, 0x02, 0x13,
- 		0x39, 0x38, 0x37, 0x35, 0x0e, 0x12, 0x04, 0x0c, 0x0d, 0x17,
- 		0x18, 0x32, 0x19, 0x1a, 0x03, 0x1b, 0x16, 0x33, 0x34, 0x41,
-@@ -52,7 +52,7 @@ static int stk1125_load_microcode(struct
- 		0x95, 0x40, 0x29, 0x0f, 0xa5, 0x1e, 0xa9, 0xaa, 0xab, 0x90,
- 		0x91, 0x9f, 0xa0, 0x24, 0x25, 0x26, 0x14, 0x2a, 0x2b
- 	};
--	const u8 values_2_205[] = {
-+	static const u8 values_2_205[] = {
- 		0x05, 0x80, 0x01, 0x7d, 0x80, 0x00, 0x00, 0x80, 0x80, 0x80,
- 		0x50, 0x93, 0x00, 0x81, 0x20, 0x05, 0x00, 0x00, 0x00, 0x1b,
- 		0xbb, 0xa4, 0x01, 0x81, 0x12, 0x00, 0x07, 0xe2, 0xbf, 0x00,
-@@ -119,43 +119,43 @@ static int stk1125_dev_configure(struct 
- 	/*      0,    1,    2,    3,    4,    5,    6,    7,    8,    9,
- 		10,   11 */
- 
--	const u8 vals_001B[] = {
-+	static const u8 vals_001B[] = {
- 		0x0e, 0x03, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e,
- 		0x0e, 0x0e
- 	};
--	const u8 vals_001C[] = {
-+	static const u8 vals_001C[] = {
- 		0x06, 0x02, 0x46, 0x46, 0x46, 0x46, 0x46, 0x46, 0x46, 0x46,
- 		0x46, 0x0e
- 	};
--	const u8 vals_0202[] = {
-+	static const u8 vals_0202[] = {
- 		0x1e, 0x0a, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e,
- 		0x1e, 0x1e
- 	};
--	const u8 vals_0110[] = {
-+	static const u8 vals_0110[] = {
- 		0x07, 0x00, 0x00, 0x00, 0x00, 0x3e, 0x3e, 0x00, 0x00, 0x00,
- 		0x00, 0x00
- 	};
--	const u8 vals_0112[] = {
-+	static const u8 vals_0112[] = {
- 		0x07, 0x00, 0x00, 0x00, 0x00, 0x09, 0x09, 0x00, 0x00, 0x00,
- 		0x00, 0x00
- 	};
--	const u8 vals_0114[] = {
-+	static const u8 vals_0114[] = {
- 		0x87, 0x80, 0x80, 0x80, 0x80, 0xbe, 0xbe, 0x80, 0x80, 0x80,
- 		0x80, 0x00
- 	};
--	const u8 vals_0115[] = {
-+	static const u8 vals_0115[] = {
- 		0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
- 		0x02, 0x05
- 	};
--	const u8 vals_0116[] = {
-+	static const u8 vals_0116[] = {
- 		0xe7, 0xe0, 0xe0, 0xe0, 0xe0, 0xe9, 0xe9, 0xe0, 0xe0, 0xe0,
- 		0xe0, 0x00
- 	};
--	const u8 vals_0117[] = {
-+	static const u8 vals_0117[] = {
- 		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
- 		0x01, 0x04
- 	};
--	const u8 vals_0100[] = {
-+	static const u8 vals_0100[] = {
- 		0x20, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21,
- 		0x21, 0x21
- 	};
-@@ -190,7 +190,7 @@ static int stk1125_dev_configure(struct 
- 
- 	switch (step) {
- 	case 0: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x40, 2 }, { 0x0204, 0x41, 2 },
- 			{ 0x0205, 0x01, 2 }, { 0x0204, 0x1c, 2 },
- 			{ 0x0205, 0x02, 2 }, { 0x0200, 0x05, 2 }, { }
-@@ -200,7 +200,7 @@ static int stk1125_dev_configure(struct 
- 		break;
- 	}
- 	case 1: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x22, 2 }, { 0x0204, 0x27, 2 },
- 			{ 0x0205, 0xa5, 2 }, { 0x0200, 0x05, 2 }, { }
- 		};
-@@ -209,7 +209,7 @@ static int stk1125_dev_configure(struct 
- 		break;
- 	}
- 	case 2: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
- 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
- 			{ 0x0205, 0xbf, 2 }, { 0x0200, 0x05, 2 }, { }
-@@ -219,7 +219,7 @@ static int stk1125_dev_configure(struct 
- 		break;
- 	}
- 	case 3: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x42, 2 }, { 0x0204, 0x12, 2 },
- 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x24, 2 },
- 			{ 0x0205, 0xa5, 2 }, { 0x0200, 0x05, 2 }, { }
-@@ -229,7 +229,7 @@ static int stk1125_dev_configure(struct 
- 		break;
- 	}
- 	case 4: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x42, 2 }, { 0x0204, 0x12, 2 },
- 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
- 			{ 0x0205, 0xe0, 2 }, { 0x0204, 0x24, 2 },
-@@ -240,7 +240,7 @@ static int stk1125_dev_configure(struct 
- 		break;
- 	}
- 	case 5: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
- 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
- 			{ 0x0205, 0xff, 2 }, { 0x0200, 0x05, 2 }, { }
-@@ -250,7 +250,7 @@ static int stk1125_dev_configure(struct 
- 		break;
- 	}
- 	case 6: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
- 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
- 			{ 0x0205, 0xff, 2 }, { 0x0200, 0x05, 2 }, { }
-@@ -260,7 +260,7 @@ static int stk1125_dev_configure(struct 
- 		break;
- 	}
- 	case 7: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
- 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
- 			{ 0x0205, 0xb7, 2 }, { 0x0200, 0x05, 2 }, { }
-@@ -294,7 +294,7 @@ static int stk1125_dev_configure(struct 
- 
- 	case 10:
- 	case 11: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0106, 0x00, 2 }, { 0x02ff, 0x00, 1 },
- 			{ 0x02ff, 0x00, 2 }, { 0x0204, 0x2a, 2 },
- 			{ 0x0205, 0x00, 2 }, { 0x0200, 0x01, 2 },
-@@ -322,7 +322,7 @@ err:
- 
- static int stk1125_cam_asleep(struct stk11xx *dev)
- {
--	const struct stk11xx_table table[] = {
-+	static const struct stk11xx_table table[] = {
- 		{ 0x0104, 0x00, 1 }, { 0x0105, 0x00, 1 }, { 0x0106, 0x00, 1 },
- 		{ 0x0100, 0x21, 2 }, { 0x0116, 0x00, 2 }, { 0x0117, 0x00, 2 },
- 		{ 0x0018, 0x00, 2 }, { 0x0000, 0x00, 1 }, { 0x0000, 0x4c, 2 },
-@@ -412,7 +412,7 @@ static int stk1125_cam_init(struct stk11
- {
- 	int ret;
- 
--	const struct stk11xx_table table[] = {
-+	static const struct stk11xx_table table[] = {
- 		{ 0x02ff, 0x00, 1 }, { 0x02ff, 0x00, 2 }, { 0x0204, 0x2a, 2 },
- 		{ 0x0205, 0x00, 2 }, { 0x0200, 0x01, 2 }, {    500, 0x00, 3 },
- 		{ 0x02ff, 0x00, 2 }, { 0x02ff, 0x00, 1 }, { 0x02ff, 0x00, 2 },
-@@ -500,7 +500,7 @@ static int stk1125_dev_init(struct stk11
- 	int ret;
- 	u8 value;
- 
--	const struct stk11xx_table table_1[] = {
-+	static const struct stk11xx_table table_1[] = {
- 		{ 0x0000, 0x24, 2 }, { 0x0002, 0x68, 2 }, { 0x0003, 0x80, 2 },
- 		{ 0x0002, 0x6f, 2 }, { 0x0000, 0x24, 2 }, { 0x0000, 0x24, 2 },
- 		{ 0x0000, 0x26, 2 }, { 0x0000, 0x27, 2 }, { 0x0000, 0x26, 2 },
-@@ -515,7 +515,7 @@ static int stk1125_dev_init(struct stk11
- 		{ 0x0000, 0x24, 2 },
- 		{ }
- 	};
--	const struct stk11xx_table table_2[] = {
-+	static const struct stk11xx_table table_2[] = {
- 		{ 0x0000, 0x25, 2 }, { 0x0000, 0x20, 2 }, { 0x0002, 0x6f, 2 },
- 		{ 0x0000, 0x24, 2 }, { 0x0000, 0x24, 2 }, { 0x0000, 0x26, 2 },
- 		{ 0x0000, 0x27, 2 }, { 0x0000, 0x26, 2 }, { 0x0000, 0x26, 2 },
-@@ -531,7 +531,7 @@ static int stk1125_dev_init(struct stk11
- 		{ 0x0000, 0x25, 2 }, { 0x0002, 0x6d, 2 }, { 0x0000, 0x24, 2 },
- 		{ }
- 	};
--	const struct stk11xx_table table_3[] = {
-+	static const struct stk11xx_table table_3[] = {
- 		{ 0x0000, 0x25, 2 }, { 0x0000, 0x20, 2 }, { 0x0002, 0x6f, 2 },
- 		{ 0x0000, 0x24, 2 }, { 0x0000, 0x24, 2 }, { 0x0000, 0x26, 2 },
- 		{ 0x0000, 0x27, 2 }, { 0x0000, 0x26, 2 }, { 0x0000, 0x26, 2 },
-@@ -549,7 +549,7 @@ static int stk1125_dev_init(struct stk11
- 		{ 0x0000, 0x25, 2 }, { 0x0002, 0x6d, 2 }, { 0x0000, 0x24, 2 },
- 		{ }
- 	};
--	const struct stk11xx_table table_4[] = {
-+	static const struct stk11xx_table table_4[] = {
- 		{ 0x0000, 0x25, 2 }, { 0x0000, 0x20, 2 }, { 0x0002, 0x6f, 2 },
- 		{ 0x0000, 0x24, 2 }, { 0x0000, 0x20, 2 }, { 0x0117, 0x00, 2 },
- 		{ 0x0103, 0x00, 1 }, { 0x0103, 0x01, 2 }, { 0x0103, 0x00, 1 },
-diff -puN drivers/media/video/stk1135.c~v4l-stk11xx-add-static-to-tables drivers/media/video/stk1135.c
---- a/drivers/media/video/stk1135.c~v4l-stk11xx-add-static-to-tables
-+++ a/drivers/media/video/stk1135.c
-@@ -24,7 +24,7 @@ static int stk1135_load_microcode(struct
- 	unsigned int i;
- 	int retok;
- 
--	const u8 values_204[] = {
-+	static const u8 values_204[] = {
- 		0x17, 0x19, 0xb4, 0xa6, 0x12, 0x13, 0x1e, 0x21, 0x24, 0x32,
- 		0x36, 0x39, 0x4d, 0x53, 0x5d, 0x5f, 0x60, 0x61, 0x62, 0x63,
- 		0x64, 0x65, 0x66, 0x82, 0x83, 0x85, 0x86, 0x89, 0x97, 0x98,
-@@ -38,7 +38,7 @@ static int stk1135_load_microcode(struct
- 		0x4e, 0x4f, 0x49, 0x4a, 0x4b, 0x4c, 0x46, 0x06, 0x07, 0xb9,
- 		0xba, 0xbb, 0xbc, 0x61, 0x62, 0x65, 0x66
- 	};
--	const u8 values_205[] = {
-+	static const u8 values_205[] = {
- 		0x41, 0x41, 0x03, 0x06, 0x06, 0x08, 0x06, 0x00, 0x02, 0x69,
- 		0x35, 0x60, 0xfe, 0x1c, 0x04, 0x08, 0x08, 0x08, 0x08, 0x00,
- 		0x00, 0x10, 0x14, 0x01, 0x80, 0x0c, 0xb6, 0x00, 0x25, 0x25,
-@@ -87,35 +87,35 @@ static int stk1135_dev_configure(struct 
- 	/*      0,    1,    2,    3,    4,    5,    6,    7,    8,    9,
- 		10,   11,   12,   13 */
- 
--	const u8 vals_001B[] = {
-+	static const u8 vals_001B[] = {
- 		0x0e, 0x03, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x07,
- 		0x07, 0x07, 0x07, 0x07
- 	};
--	const u8 vals_001C[] = {
-+	static const u8 vals_001C[] = {
- 		0x06, 0x02, 0x46, 0x46, 0x46, 0x46, 0x46, 0x46, 0x06, 0x06,
- 		0x06, 0x06, 0x06, 0x06
- 	};
--	const u8 vals_0202[] = {
-+	static const u8 vals_0202[] = {
- 		0x1e, 0x0a, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e,
- 		0x1e, 0x1e, 0x1e, 0x1e
- 	};
--	const u8 vals_0110[] = {
-+	static const u8 vals_0110[] = {
- 		0x07, 0x00, 0x00, 0x00, 0x00, 0x3e, 0x3e, 0x00, 0x04, 0x00,
- 		0x00, 0x00, 0x00, 0x00
- 	};
--	const u8 vals_0112[] = {
-+	static const u8 vals_0112[] = {
- 		0x07, 0x00, 0x00, 0x00, 0x00, 0x09, 0x09, 0x00, 0x04, 0x00,
- 		0x00, 0x00, 0x00, 0x00
- 	};
--	const u8 vals_0114[] = {
-+	static const u8 vals_0114[] = {
- 		0x87, 0x80, 0x80, 0x80, 0x80, 0xbe, 0xbe, 0x80, 0x84, 0x80,
- 		0x80, 0x80, 0x80, 0x80
- 	};
--	const u8 vals_0116[] = {
-+	static const u8 vals_0116[] = {
- 		0xe7, 0xe0, 0xe0, 0xe0, 0xe0, 0xe9, 0xe9, 0xe0, 0xe4, 0xe0,
- 		0xe0, 0xe0, 0xe0, 0xe0
- 	};
--	const u8 vals_0100[] = {
-+	static const u8 vals_0100[] = {
- 		0x20, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x23, 0x20,
- 		0x20, 0x20, 0x20, 0x20
- 	};
-@@ -149,7 +149,7 @@ static int stk1135_dev_configure(struct 
- 
- 	switch (step) {
- 	case 0: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x40, 2 }, { 0x0204, 0x41, 2 },
- 			{ 0x0205, 0x01, 2 }, { 0x0204, 0x1c, 2 },
- 			{ 0x0205, 0x02, 2 }, { 0x0200, 0x05, 2 }, { }
-@@ -159,7 +159,7 @@ static int stk1135_dev_configure(struct 
- 		break;
- 	}
- 	case 1: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x22, 2 }, { 0x0204, 0x27, 2 },
- 			{ 0x0205, 0xa5, 2 }, { 0x0200, 0x05, 2 }, { }
- 		};
-@@ -168,7 +168,7 @@ static int stk1135_dev_configure(struct 
- 		break;
- 	}
- 	case 2: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
- 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
- 			{ 0x0205, 0xbf, 2 }, { 0x0200, 0x05, 2 }, { }
-@@ -178,7 +178,7 @@ static int stk1135_dev_configure(struct 
- 		break;
- 	}
- 	case 3: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x42, 2 }, { 0x0204, 0x12, 2 },
- 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x24, 2 },
- 			{ 0x0205, 0xa5, 2 }, { 0x0200, 0x05, 2 }, { }
-@@ -188,7 +188,7 @@ static int stk1135_dev_configure(struct 
- 		break;
- 	}
- 	case 4: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x42, 2 }, { 0x0204, 0x12, 2 },
- 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
- 			{ 0x0205, 0xe0, 2 }, { 0x0204, 0x24, 2 },
-@@ -199,7 +199,7 @@ static int stk1135_dev_configure(struct 
- 		break;
- 	}
- 	case 5: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
- 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
- 			{ 0x0205, 0xff, 2 }, { 0x0200, 0x05, 2 }, { }
-@@ -209,7 +209,7 @@ static int stk1135_dev_configure(struct 
- 		break;
- 	}
- 	case 6: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
- 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
- 			{ 0x0205, 0xff, 2 }, { 0x0200, 0x05, 2 }, { }
-@@ -219,7 +219,7 @@ static int stk1135_dev_configure(struct 
- 		break;
- 	}
- 	case 7: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
- 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
- 			{ 0x0205, 0xb7, 2 }, { 0x0200, 0x05, 2 }, { }
-@@ -229,7 +229,7 @@ static int stk1135_dev_configure(struct 
- 		break;
- 	}
- 	case 8: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x80, 2 }, { 0x0204, 0x12, 2 },
- 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x0a, 2 },
- 			{ 0x0205, 0xff, 2 }, { 0x0200, 0x05, 2 }, { }
-@@ -239,7 +239,7 @@ static int stk1135_dev_configure(struct 
- 		break;
- 	}
- 	case 9: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0xdc, 2 }, { 0x0204, 0x15, 2 },
- 			{ 0x0205, 0x80, 2 }, { 0x0200, 0x05, 2 },
- 			{    500, 0x00, 3 }, { 0x02ff, 0x00, 1 },
-@@ -304,7 +304,7 @@ err:
- 
- static int stk1135_cam_asleep(struct stk11xx *dev)
- {
--	const struct stk11xx_table table[] = {
-+	static const struct stk11xx_table table[] = {
- 		{ 0x0104, 0x00, 1 }, { 0x0105, 0x00, 1 }, { 0x0106, 0x00, 1 },
- 		{ 0x0100, 0x21, 2 }, { 0x0116, 0x00, 2 }, { 0x0117, 0x00, 2 },
- 		{ 0x0018, 0x00, 2 }, { 0x0000, 0x00, 1 }, { 0x0000, 0x49, 2 },
-@@ -318,11 +318,11 @@ static int stk1135_cam_setting(struct st
- {
- 	unsigned int i;
- 
--	const u8 values_204[] = {
-+	static const u8 values_204[] = {
- 		0xb3, 0x73, 0x46, 0x06, 0x07, 0xb9, 0xba, 0xbb, 0xbc, 0x61,
- 		0x62, 0x65, 0x66
- 	};
--	const u8 values_205[] = {
-+	static const u8 values_205[] = {
- 		0x76, 0x76, 0x20, 0x01, 0xf3, 0x04, 0xe4, 0x09, 0xc8, 0x08,
- 		0x08, 0x10, 0x14
- 	};
-@@ -415,7 +415,7 @@ static int stk1135_dev_init(struct stk11
- 	int ret;
- 	u8 value;
- 
--	const struct stk11xx_table table_1[] = {
-+	static const struct stk11xx_table table_1[] = {
- 		{ 0x0000, 0x24, 2 }, { 0x0002, 0x68, 2 }, { 0x0003, 0x80, 2 },
- 		{ 0x0002, 0x6f, 2 }, { 0x0000, 0x24, 2 }, { 0x0000, 0x24, 2 },
- 		{ 0x0000, 0x26, 2 }, { 0x0000, 0x27, 2 }, { 0x0000, 0x26, 2 },
-@@ -430,7 +430,7 @@ static int stk1135_dev_init(struct stk11
- 		{ 0x0000, 0x24, 2 },
- 		{ }
- 	};
--	const struct stk11xx_table table_2[] = {
-+	static const struct stk11xx_table table_2[] = {
- 		{ 0x0000, 0x25, 2 }, { 0x0000, 0x20, 2 }, { 0x0002, 0x6f, 2 },
- 		{ 0x0000, 0x24, 2 }, { 0x0000, 0x24, 2 }, { 0x0000, 0x26, 2 },
- 		{ 0x0000, 0x27, 2 }, { 0x0000, 0x26, 2 }, { 0x0000, 0x26, 2 },
-@@ -446,7 +446,7 @@ static int stk1135_dev_init(struct stk11
- 		{ 0x0000, 0x25, 2 }, { 0x0002, 0x6d, 2 }, { 0x0000, 0x24, 2 },
- 		{ }
- 	};
--	const struct stk11xx_table table_3[] = {
-+	static const struct stk11xx_table table_3[] = {
- 		{ 0x0000, 0x25, 2 }, { 0x0000, 0x20, 2 }, { 0x0002, 0x6f, 2 },
- 		{ 0x0000, 0x24, 2 }, { 0x0000, 0x24, 2 }, { 0x0000, 0x26, 2 },
- 		{ 0x0000, 0x27, 2 }, { 0x0000, 0x26, 2 }, { 0x0000, 0x26, 2 },
-@@ -464,7 +464,7 @@ static int stk1135_dev_init(struct stk11
- 		{ 0x0000, 0x25, 2 }, { 0x0002, 0x6d, 2 }, { 0x0000, 0x24, 2 },
- 		{ }
- 	};
--	const struct stk11xx_table table_4[] = {
-+	static const struct stk11xx_table table_4[] = {
- 		{ 0x0000, 0x25, 2 }, { 0x0000, 0x20, 2 }, { 0x0002, 0x6f, 2 },
- 		{ 0x0000, 0x24, 2 }, { 0x0000, 0x20, 2 }, { 0x0117, 0x00, 2 },
- 		{ 0x0103, 0x00, 1 }, { 0x0103, 0x01, 2 }, { 0x0103, 0x00, 1 },
-diff -puN drivers/media/video/stkdcnew.c~v4l-stk11xx-add-static-to-tables drivers/media/video/stkdcnew.c
---- a/drivers/media/video/stkdcnew.c~v4l-stk11xx-add-static-to-tables
-+++ a/drivers/media/video/stkdcnew.c
-@@ -27,7 +27,7 @@ static int stkdcnew_load_microcode(struc
- 	unsigned int i;
- 	int retok;
- 
--	const u8 values_204[] = {
-+	static const u8 values_204[] = {
- 		0xf0, 0xf1, 0x0d, 0xf1, 0x0d, 0xf1, 0xf0, 0xf1, 0x35, 0xf1,
- 		0xf0, 0xf1, 0x06, 0xf1, 0xf0, 0xf1, 0xdd, 0xf1, 0xf0, 0xf1,
- 		0x1f, 0xf1, 0x20, 0xf1, 0x21, 0xf1, 0x22, 0xf1, 0x23, 0xf1,
-@@ -58,7 +58,7 @@ static int stkdcnew_load_microcode(struc
- 		0x64, 0xf1, 0xf0, 0xf1, 0x5b, 0xf1, 0xf0, 0xf1, 0x36, 0xf1,
- 		0x37, 0xf1, 0xf0, 0xf1, 0x08, 0xf1
- 	};
--	const u8 values_205[] = {
-+	static const u8 values_205[] = {
- 		0x00, 0x00, 0x00, 0x0b, 0x00, 0x08, 0x00, 0x00, 0x00, 0x22,
- 		0x00, 0x01, 0x70, 0x0e, 0x00, 0x02, 0x18, 0xe0, 0x00, 0x02,
- 		0x01, 0x80, 0xc8, 0x14, 0x80, 0x80, 0xa0, 0x78, 0xa0, 0x78,
-@@ -124,43 +124,43 @@ static int stkdcnew_dev_configure(struct
- 
- 	/*      0,    1,    2,    3,    4,    5,    6,    7,    8,    9,
- 		10,   11,   12,   13,   14,   15,   16 */
--	const u8 vals_001B[] = {
-+	static const u8 vals_001B[] = {
- 		0x03, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x0e, 0x07,
- 		0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07
- 	};
--	const u8 vals_001C[] = {
-+	static const u8 vals_001C[] = {
- 		0x02, 0x46, 0x46, 0x46, 0x46, 0x46, 0x46, 0x46, 0x46, 0x06,
- 		0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06
- 	};
--	const u8 vals_0202[] = {
-+	static const u8 vals_0202[] = {
- 		0x0a, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e,
- 		0x1e, 0x0a, 0x1e, 0x1f, 0x1f, 0x1f, 0x1f
- 	};
--	const u8 vals_0110[] = {
-+	static const u8 vals_0110[] = {
- 		0x00, 0x00, 0x00, 0x00, 0x00, 0x3e, 0x00, 0x00, 0x00, 0x00,
- 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
- 	};
--	const u8 vals_0112[] = {
-+	static const u8 vals_0112[] = {
- 		0x00, 0x00, 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x00,
- 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
- 	};
--	const u8 vals_0114[] = {
-+	static const u8 vals_0114[] = {
- 		0x80, 0x80, 0x80, 0x80, 0x00, 0xbe, 0x80, 0x80, 0x00, 0x80,
- 		0x80, 0x80, 0x00, 0x80, 0x80, 0x80, 0x80
- 	};
--	const u8 vals_0115[] = {
-+	static const u8 vals_0115[] = {
- 		0x02, 0x02, 0x02, 0x02, 0x05, 0x02, 0x02, 0x02, 0x00, 0x02,
- 		0x02, 0x02, 0x05, 0x02, 0x02, 0x02, 0x02
- 	};
--	const u8 vals_0116[] = {
-+	static const u8 vals_0116[] = {
- 		0xe0, 0xe0, 0xe0, 0xe0, 0xe0, 0xe9, 0xe0, 0xe0, 0x00, 0xe0,
- 		0xe0, 0xe0, 0xe0, 0xe0, 0xe0, 0xe0, 0xe0
- 	};
--	const u8 vals_0117[] = {
-+	static const u8 vals_0117[] = {
- 		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x00, 0x01,
- 		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01
- 	};
--	const u8 vals_0100[] = {
-+	static const u8 vals_0100[] = {
- 		0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x20,
- 		0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20
- 	};
-@@ -190,7 +190,7 @@ static int stkdcnew_dev_configure(struct
- 
- 	switch (step) {
- 	case 0: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x22, 2 }, { 0x0204, 0x27, 2 },
- 			{ 0x0205, 0xa5, 2 }, { 0x0200, 0x05, 2 }, { }
- 		};
-@@ -199,7 +199,7 @@ static int stkdcnew_dev_configure(struct
- 		break;
- 	}
- 	case 1: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
- 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
- 			{ 0x0205, 0xbf, 2 }, { 0x0200, 0x05, 2 }, { }
-@@ -209,7 +209,7 @@ static int stkdcnew_dev_configure(struct
- 		break;
- 	}
- 	case 2: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x42, 2 }, { 0x0204, 0x12, 2 },
- 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x24, 2 },
- 			{ 0x0205, 0xa5, 2 }, { 0x0200, 0x05, 2 }, { }
-@@ -219,7 +219,7 @@ static int stkdcnew_dev_configure(struct
- 		break;
- 	}
- 	case 3: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x42, 2 }, { 0x0204, 0x12, 2 },
- 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
- 			{ 0x0205, 0xe0, 2 }, { 0x0204, 0x24, 2 },
-@@ -230,7 +230,7 @@ static int stkdcnew_dev_configure(struct
- 		break;
- 	}
- 	case 4: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x42, 2 }, { 0x0204, 0x12, 2 },
- 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
- 			{ 0x0205, 0xbf, 2 }, { 0x0200, 0x05, 2 }, { }
-@@ -240,7 +240,7 @@ static int stkdcnew_dev_configure(struct
- 		break;
- 	}
- 	case 5: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
- 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
- 			{ 0x0205, 0xff, 2 }, { 0x0200, 0x05, 2 }, { }
-@@ -250,7 +250,7 @@ static int stkdcnew_dev_configure(struct
- 		break;
- 	}
- 	case 6: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
- 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
- 			{ 0x0205, 0xB7, 2 }, { 0x0200, 0x05, 2 }, { }
-@@ -259,7 +259,7 @@ static int stkdcnew_dev_configure(struct
- 		break;
- 	}
- 	case 7: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x60, 2 }, { 0x0204, 0x12, 2 },
- 			{ 0x0205, 0x80, 2 }, { 0x0204, 0x13, 2 },
- 			{ 0x0205, 0xb7, 2 }, { 0x0200, 0x05, 2 }, { }
-@@ -269,7 +269,7 @@ static int stkdcnew_dev_configure(struct
- 		break;
- 	}
- 	case 8: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0x60, 2 }, { 0x02ff, 0x00, 1 },
- 			{ 0x02ff, 0x00, 2 }, { 0x0203, 0x60, 2 },
- 			{ 0x0204, 0xff, 2 }, { 0x0205, 0x01, 2 },
-@@ -298,7 +298,7 @@ static int stkdcnew_dev_configure(struct
- 		break;
- 	}
- 	case 9: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0xdc, 2 }, { 0x0204, 0x15, 2 },
- 			{ 0x0205, 0x80, 2 }, { 0x0200, 0x05, 2 }, { }
- 		};
-@@ -307,7 +307,7 @@ static int stkdcnew_dev_configure(struct
- 		break;
- 	}
- 	case 10: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0xec, 2 }, { 0x0204, 0x15, 2 },
- 			{ 0x0205, 0x80, 2 }, { 0x0200, 0x05, 2 }, { }
- 		};
-@@ -316,7 +316,7 @@ static int stkdcnew_dev_configure(struct
- 		break;
- 	}
- 	case 11: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0xba, 2 }, { 0x0208, 0x00, 2 },
- 			{ 0x0200, 0x20, 2 }, {    500, 0x00, 3 },
- 			{ 0x0209, 0x00, 1 }, { 0x02ff, 0x00, 2 }, { }
-@@ -326,7 +326,7 @@ static int stkdcnew_dev_configure(struct
- 		break;
- 	}
- 	case 12: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0xba, 2 }, { 0x0204, 0xf0, 2 },
- 			{ 0x0205, 0x00, 2 }, { 0x0200, 0x05, 2 },
- 			{    500, 0x00, 3 }, { 0x0204, 0xf1, 2 },
-@@ -346,7 +346,7 @@ static int stkdcnew_dev_configure(struct
- 		break;
- 	}
- 	case 13: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0xba, 2 }, { 0x02ff, 0x00, 1 },
- 			{ 0x02ff, 0x00, 2 }, { 0x0203, 0xba, 2 },
- 			{ 0x0208, 0x00, 2 }, { 0x0200, 0x20, 2 },
-@@ -362,7 +362,7 @@ static int stkdcnew_dev_configure(struct
- 		break;
- 	}
- 	case 14: {
--		const struct stk11xx_table table[] = {
-+		static const struct stk11xx_table table[] = {
- 			{ 0x0203, 0xba, 2 }, { 0x0204, 0x01, 2 },
- 			{ 0x0205, 0x00, 2 }, { 0x0200, 0x05, 2 },
- 			{    500, 0x00, 3 }, { 0x0204, 0xf1, 2 },
-@@ -409,7 +409,7 @@ end:
- 
- static int stkdcnew_cam_asleep(struct stk11xx *dev)
- {
--	const struct stk11xx_table table[] = {
-+	static const struct stk11xx_table table[] = {
- 		{ 0x0104, 0x00, 1 }, { 0x0105, 0x00, 1 }, { 0x0106, 0x00, 1 },
- 		{ 0x0100, 0x21, 2 }, { 0x0116, 0x00, 2 }, { 0x0117, 0x00, 2 },
- 		{ 0x0018, 0x00, 2 }, { 0x0000, 0x00, 1 }, { 0x0000, 0x49, 2 },
-@@ -451,11 +451,11 @@ static int stkdcnew_cam_setting(struct s
- 	unsigned int i;
- 	int ret;
- 
--	const u8 values_204[] = {
-+	static const u8 values_204[] = {
- 		0xf0, 0xf1, 0x2e, 0xf1, 0xf0, 0xf1, 0x5b, 0xf1, 0xf0, 0xf1,
- 		0x36, 0xf1, 0x37, 0xf1, 0xf0, 0xf1, 0x08, 0xf1
- 	};
--	const u8 values_205[] = {
-+	static const u8 values_205[] = {
- 		0x00, 0x02, 0x0c, 0x3c, 0x00, 0x02, 0x00, 0x03, 0x00, 0x02,
- 		0x78, 0x10, 0x83, 0x04, 0x00, 0x00, 0x00, 0x21
- 	};
-@@ -534,7 +534,7 @@ static int stkdcnew_dev_init(struct stk1
- 	int value;*/
- 	int ret;
- 
--/*	const struct stk11xx_table table_1[] = {
-+/*	static const struct stk11xx_table table_1[] = {
- 		{ 0x0000, 0x24, 2 }, { 0x0002, 0x78, 2 }, { 0x0003, 0x80, 2 },
- 		{ 0x0002, 0x7f, 2 }, { 0x0000, 0x24, 2 }, { 0x0000, 0x24, 2 },
- 		{ 0x0000, 0x26, 2 }, { 0x0000, 0x27, 2 }, { 0x0000, 0x26, 2 },
-@@ -549,7 +549,7 @@ static int stkdcnew_dev_init(struct stk1
- 		{ 0x0000, 0x24, 2 },
- 		{ }
- 	};
--	const struct stk11xx_table table_2[] = {
-+	static const struct stk11xx_table table_2[] = {
- 		{ 0x0000, 0x25, 2 }, { 0x0000, 0x20, 2 }, { 0x0002, 0x7f, 2 },
- 		{ 0x0000, 0x24, 2 }, { 0x0000, 0x24, 2 }, { 0x0000, 0x26, 2 },
- 		{ 0x0000, 0x27, 2 }, { 0x0000, 0x26, 2 }, { 0x0000, 0x26, 2 },
-@@ -565,7 +565,7 @@ static int stkdcnew_dev_init(struct stk1
- 		{ 0x0000, 0x25, 2 }, { 0x0002, 0x7d, 2 }, { 0x0000, 0x24, 2 },
- 		{ }
- 	};
--	const struct stk11xx_table table_3[] = {
-+	static const struct stk11xx_table table_3[] = {
- 		{ 0x0000, 0x25, 2 }, { 0x0000, 0x20, 2 }, { 0x0002, 0x7f, 2 },
- 		{ 0x0000, 0x24, 2 }, { 0x0000, 0x24, 2 }, { 0x0000, 0x26, 2 },
- 		{ 0x0000, 0x27, 2 }, { 0x0000, 0x26, 2 }, { 0x0000, 0x26, 2 },
-@@ -583,7 +583,7 @@ static int stkdcnew_dev_init(struct stk1
- 		{ 0x0000, 0x25, 2 }, { 0x0002, 0x7d, 2 }, { 0x0000, 0x24, 2 },
- 		{ }
- 	};*/
--	const struct stk11xx_table table_4[] = {
-+	static const struct stk11xx_table table_4[] = {
- /*		{ 0x0000, 0x25, 2 }, { 0x0000, 0x20, 2 }, { 0x0002, 0x7f, 2 },
- 		{ 0x0000, 0x24, 2 }, { 0x0000, 0x20, 2 }, { 0x0117, 0x00, 2 },
- 		{ 0x0103, 0x00, 1 }, { 0x0103, 0x01, 2 }, { 0x0103, 0x00, 1 },
+diff -puN drivers/media/Kconfig~git-dvb-broke-tda8290 drivers/media/Kconfig
+--- a/drivers/media/Kconfig~git-dvb-broke-tda8290
++++ a/drivers/media/Kconfig
+@@ -71,7 +71,6 @@ config VIDEO_TUNER
+ 	depends on I2C
+ 	select TUNER_XC2028 if !VIDEO_TUNER_CUSTOMIZE
+ 	select TUNER_MT20XX if !VIDEO_TUNER_CUSTOMIZE
+-	select TUNER_TDA8290 if !VIDEO_TUNER_CUSTOMIZE
+ 	select TUNER_TEA5761 if !VIDEO_TUNER_CUSTOMIZE
+ 	select TUNER_TEA5767 if !VIDEO_TUNER_CUSTOMIZE
+ 	select TUNER_SIMPLE if !VIDEO_TUNER_CUSTOMIZE
+@@ -108,6 +107,7 @@ config TUNER_MT20XX
+ config TUNER_TDA8290
+ 	tristate "TDA 8290/8295 + 8275(a)/18271 tuner combo"
+ 	depends on I2C
++	depends on BROKEN
+ 	select DVB_TDA827X
+ 	select DVB_TDA18271
+ 	default m if VIDEO_TUNER_CUSTOMIZE
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-v4l-stk11xx-add-a-new-webcam-driver.patch
-v4l-stk11xx-add-static-to-tables.patch
+origin.patch
+proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of-fix.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-arm-fixup.patch
+git-dvb-fixup.patch
+git-dvb-broke-tda8290.patch
+git-hwmon.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+elantech-touchpad-driver-fix.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+ide-arm-hack.patch
+git-mtd-fix.patch
+lmc_ioctl-dont-return-with-locks-held-fix.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+bluetooth-uninlining.patch
+git-nfsd-fixup.patch
+pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int-checkpatch-fixes.patch
+quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
+scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
 git-wireless.patch
-crisv10-serial-driver-rewrite-take-three.patch
-dzh-remove-useless-unused-module-junk.patch
-dz-always-check-if-it-is-safe-to-console_putchar.patch
-dz-dont-panic-when-request_irq-fails.patch
-dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
-dz-update-kconfig-description.patch
-dz-rename-the-serial-console-structure.patch
-dz-fix-locking-issues.patch
-dz-handle-special-conditions-on-reception-correctly.patch
-maintainers-add-self-for-the-dz-serial-driver.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-ipwireless-ipwireless_cs_tty-warning-fix.patch
+git-x86.patch
+git-x86-fixup.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+i386-and-x86_64-randomize-brk-fix.patch
+x86-make-i8259_64-more-_32-like-checkpatch-fixes.patch
+x86-arch_register_cpu-section-fix.patch
+mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
+pidns-place-under-config_experimental-checkpatch-fixes.patch
+fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
+file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+cris-build-fixes-atomich-needs-compilerh-fix.patch
+cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
+cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
+cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
+cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+sync_sb_inodes-propagate-errors.patch
+bas_gigaset-suspend-support-fix.patch
+64-bit-i_version-afs-fixes.patch
+kill-filp_open-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
