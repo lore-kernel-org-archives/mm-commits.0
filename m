@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-mtd-fix.patch added to -mm tree
-Date: Mon, 05 Nov 2007 23:26:18 -0800
-Message-ID: <200711060733.lA67X6J4012442@imap1.linux-foundation.org>
+Subject: + bas_gigaset-suspend-support-fix.patch added to -mm tree
+Date: Mon, 05 Nov 2007 23:28:02 -0800
+Message-ID: <200711060734.lA67YoeC012471@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50478 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34190 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751000AbXKFHdo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 02:33:44 -0500
+	by vger.kernel.org with ESMTP id S1751330AbXKFHfY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 02:35:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwmw2@infradead.org
+Cc: akpm@linux-foundation.org, tilman@imap.cc
 
 
 The patch titled
-     git-mtd-fix
+     bas_gigaset-suspend-support-fix
 has been added to the -mm tree.  Its filename is
-     git-mtd-fix.patch
+     bas_gigaset-suspend-support-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-mtd-fix
+Subject: bas_gigaset-suspend-support-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/jffs2/write.c: In function 'jffs2_do_unlink':
-fs/jffs2/write.c:609: error: 'prev' undeclared (first use in this function)
-fs/jffs2/write.c:609: error: (Each undeclared identifier is reported only once
-fs/jffs2/write.c:609: error: for each function it appears in.)
+good testing.
 
-nfi, wtf.
-
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Tilman Schmidt <tilman@imap.cc>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/write.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/isdn/gigaset/bas-gigaset.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/jffs2/write.c~git-mtd-fix fs/jffs2/write.c
---- a/fs/jffs2/write.c~git-mtd-fix
-+++ a/fs/jffs2/write.c
-@@ -606,7 +606,6 @@ int jffs2_do_unlink(struct jffs2_sb_info
- 				fd->ino = 0;
- 				break;
- 			}
--			prev = &((*prev)->next);
+diff -puN drivers/isdn/gigaset/bas-gigaset.c~bas_gigaset-suspend-support-fix drivers/isdn/gigaset/bas-gigaset.c
+--- a/drivers/isdn/gigaset/bas-gigaset.c~bas_gigaset-suspend-support-fix
++++ a/drivers/isdn/gigaset/bas-gigaset.c
+@@ -1741,7 +1741,7 @@ static void write_command_callback(struc
+ 			dev_warn(cs->dev,
+ 				 "command write: %s, "
+ 				 "won't retry - suspend requested\n",
+-				 get_usb_statmsg(status));
++				 get_usb_statmsg(urb->status));
+ 			break;
  		}
- 		up(&dir_f->sem);
- 	}
+ 		if (cs->cmdbuf == NULL) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -136,6 +132,7 @@ remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
 allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
 remove-__attribute_used__-checkpatch-fixes.patch
 sync_sb_inodes-propagate-errors.patch
+bas_gigaset-suspend-support-fix.patch
 64-bit-i_version-afs-fixes.patch
 kill-filp_open-checkpatch-fixes.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
