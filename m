@@ -1,38 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - memory-cgroup-enhancements-add-pre_destroy-handler.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 23:14:40 -0800
-Message-ID: <200711060721.lA67LTeo012008@imap1.linux-foundation.org>
+Subject: - memory-cgroup-enhancements-implicit-force-empty-at-rmdir.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 23:14:54 -0800
+Message-ID: <200711060721.lA67LhmR012014@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48132 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36012 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754008AbXKFHXE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 02:23:04 -0500
+	by vger.kernel.org with ESMTP id S1754307AbXKFHXN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 02:23:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kamezawa.hiroyu@jp.fujitsu.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, menage@google.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     memory cgroup enhancements: add pre_destroy handler
+     memory cgroup enhancements: implicit force empty at rmdir()
 has been removed from the -mm tree.  Its filename was
-     memory-cgroup-enhancements-add-pre_destroy-handler.patch
+     memory-cgroup-enhancements-implicit-force-empty-at-rmdir.patch
 
 This patch was dropped because I can't get it to compile - new version after next -mm, please
 
 ------------------------------------------------------
-Subject: memory cgroup enhancements: add pre_destroy handler
+Subject: memory cgroup enhancements: implicit force empty at rmdir()
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-My main purpose of this patch is for memory controller..
-
-This patch adds a handler "pre_destroy" to cgroup_subsys.
-It is called before cgroup_rmdir() checks all subsys's refcnt.
-
-I think this is useful for subsys which have some extra refs even if there are
-no tasks in cgroup.  By adding pre_destroy(), the kernel keeps the rule
-"destroy() against subsystem is called only when refcnt=0." and allows css ref
-to be used by other objects than tasks.
+This patch adds pre_destroy handler for mem_cgroup and try to make mem_cgroup
+empty at rmdir().
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
@@ -48,38 +41,34 @@ Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |    1 +
- kernel/cgroup.c        |    7 +++++++
- 2 files changed, 8 insertions(+)
+ mm/memcontrol.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN include/linux/cgroup.h~memory-cgroup-enhancements-add-pre_destroy-handler include/linux/cgroup.h
---- a/include/linux/cgroup.h~memory-cgroup-enhancements-add-pre_destroy-handler
-+++ a/include/linux/cgroup.h
-@@ -233,6 +233,7 @@ int cgroup_is_descendant(const struct cg
- struct cgroup_subsys {
- 	struct cgroup_subsys_state *(*create)(struct cgroup_subsys *ss,
- 						  struct cgroup *cont);
-+	void (*pre_destroy)(struct cgroup_subsys *ss, struct cgroup *cont);
- 	void (*destroy)(struct cgroup_subsys *ss, struct cgroup *cont);
- 	int (*can_attach)(struct cgroup_subsys *ss,
- 			  struct cgroup *cont, struct task_struct *tsk);
-diff -puN kernel/cgroup.c~memory-cgroup-enhancements-add-pre_destroy-handler kernel/cgroup.c
---- a/kernel/cgroup.c~memory-cgroup-enhancements-add-pre_destroy-handler
-+++ a/kernel/cgroup.c
-@@ -2162,6 +2162,13 @@ static int cgroup_rmdir(struct inode *un
- 	parent = cgrp->parent;
- 	root = cgrp->root;
- 	sb = root->sb;
-+	/*
-+	 * Notify subsyses that rmdir() request comes.
-+	 */
-+	for_each_subsys(root, ss) {
-+		if ((cont->subsys[ss->subsys_id]) && ss->pre_destroy)
-+			ss->pre_destroy(ss, cont);
-+	}
+diff -puN mm/memcontrol.c~memory-cgroup-enhancements-implicit-force-empty-at-rmdir mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-cgroup-enhancements-implicit-force-empty-at-rmdir
++++ a/mm/memcontrol.c
+@@ -908,6 +908,13 @@ mem_cgroup_create(struct cgroup_subsys *
+ 	return &mem->css;
+ }
  
- 	if (cgroup_has_css_refs(cgrp)) {
- 		mutex_unlock(&cgroup_mutex);
++static void mem_cgroup_pre_destroy(struct cgroup_subsys *ss,
++					struct cgroup *cont)
++{
++	struct mem_cgroup *mem = mem_cgroup_from_cont(cont);
++	mem_cgroup_force_empty(mem);
++}
++
+ static void mem_cgroup_destroy(struct cgroup_subsys *ss,
+ 				struct cgroup *cont)
+ {
+@@ -959,6 +966,7 @@ struct cgroup_subsys mem_cgroup_subsys =
+ 	.name = "memory",
+ 	.subsys_id = mem_cgroup_subsys_id,
+ 	.create = mem_cgroup_create,
++	.pre_destroy = mem_cgroup_pre_destroy,
+ 	.destroy = mem_cgroup_destroy,
+ 	.populate = mem_cgroup_populate,
+ 	.attach = mem_cgroup_move_task,
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
@@ -110,6 +99,4 @@ memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-unin
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
 memory-cgroup-enhancements-add-memorystat-file.patch
 memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-pre_destroy-handler.patch
-memory-cgroup-enhancements-add-pre_destroy-handler-fix.patch
 memory-cgroup-enhancements-implicit-force-empty-at-rmdir.patch
