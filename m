@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cfq-fix-ioprio_class_idle-accounting.patch added to -mm tree
-Date: Mon, 05 Nov 2007 16:37:35 -0800
-Message-ID: <200711060037.lA60bZH8027827@imap1.linux-foundation.org>
+Subject: + 82596-free-nonexistent-resource-fix.patch added to -mm tree
+Date: Mon, 05 Nov 2007 16:39:27 -0800
+Message-ID: <200711060039.lA60dRYA027886@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43976 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56698 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755474AbXKFAiT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 19:38:19 -0500
+	by vger.kernel.org with ESMTP id S1751327AbXKFAkC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 19:40:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, gentuu@gmail.com
+Cc: dushistov@mail.ru
 
 
 The patch titled
-     cfq: fix IOPRIO_CLASS_IDLE accounting
+     82596: free nonexistent resource fix
 has been added to the -mm tree.  Its filename is
-     cfq-fix-ioprio_class_idle-accounting.patch
+     82596-free-nonexistent-resource-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,42 +25,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cfq: fix IOPRIO_CLASS_IDLE accounting
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: 82596: free nonexistent resource fix
+From: Evgeniy Dushistov <dushistov@mail.ru>
 
-Spotted by Nick <gentuu@gmail.com>, hopefully can explain the second trace
-in http://bugzilla.kernel.org/show_bug.cgi?id=9180.
+During booting of last vanilla kernel I got:
+Trying to free nonexistent resource...
 
-If ->async_idle_cfqq != NULL cfq_put_async_queues() puts it IOPRIO_BE_NR
-times in a loop.  Fix this.
+This because of if "ENABLE_APRICOT" is on we do:
+request_region(ioaddr,...)
+if (checksum test failed)
+  goto out1;
+dev->base_addr = ioaddr;//<-here mistake
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+out1:
+release_region(dev->base_addr,...)
+
+Here patch which fixes this bug for me.
+
+Signed-off-by: Evgeniy Dushistov <dushistov@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/cfq-iosched.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/net/82596.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN block/cfq-iosched.c~cfq-fix-ioprio_class_idle-accounting block/cfq-iosched.c
---- a/block/cfq-iosched.c~cfq-fix-ioprio_class_idle-accounting
-+++ a/block/cfq-iosched.c
-@@ -2068,9 +2068,10 @@ static void cfq_put_async_queues(struct 
- 			cfq_put_queue(cfqd->async_cfqq[0][i]);
- 		if (cfqd->async_cfqq[1][i])
- 			cfq_put_queue(cfqd->async_cfqq[1][i]);
--		if (cfqd->async_idle_cfqq)
--			cfq_put_queue(cfqd->async_idle_cfqq);
- 	}
-+
-+	if (cfqd->async_idle_cfqq)
-+		cfq_put_queue(cfqd->async_idle_cfqq);
- }
+diff -puN drivers/net/82596.c~82596-free-nonexistent-resource-fix drivers/net/82596.c
+--- a/drivers/net/82596.c~82596-free-nonexistent-resource-fix
++++ a/drivers/net/82596.c
+@@ -1192,6 +1192,8 @@ struct net_device * __init i82596_probe(
+ 			goto out;
+ 		}
  
- static void cfq_exit_queue(elevator_t *e)
++		dev->base_addr = ioaddr;
++
+ 		for (i = 0; i < 8; i++) {
+ 			eth_addr[i] = inb(ioaddr + 8 + i);
+ 			checksum += eth_addr[i];
+@@ -1209,7 +1211,6 @@ struct net_device * __init i82596_probe(
+ 			goto out1;
+ 		}
+ 
+-		dev->base_addr = ioaddr;
+ 		dev->irq = 10;
+ 	}
+ #endif
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from dushistov@mail.ru are
 
 origin.patch
-cfq-fix-ioprio_class_idle-accounting.patch
-add-task_wakekill.patch
+82596-free-nonexistent-resource-fix.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
