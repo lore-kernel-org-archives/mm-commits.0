@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch added to -mm tree
-Date: Mon, 05 Nov 2007 23:17:51 -0800
-Message-ID: <200711060724.lA67Od2F012133@imap1.linux-foundation.org>
+Subject: + r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch added to -mm tree
+Date: Mon, 05 Nov 2007 23:24:11 -0800
+Message-ID: <200711060730.lA67Ux39012315@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54447 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39693 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751100AbXKFHZi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 02:25:38 -0500
+	by vger.kernel.org with ESMTP id S1751925AbXKFHbr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 02:31:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, arjan@infradead.org, dag@bakke.com, lenb@kernel.org
+Cc: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@lst.de
 
 
 The patch titled
-     acpi-enable-c3-power-state-on-dell-inspiron-8200-fix
+     r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix
 has been added to the -mm tree.  Its filename is
-     acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
+     r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,46 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: acpi-enable-c3-power-state-on-dell-inspiron-8200-fix
+Subject: r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/acpi/processor_idle.c:193: warning: initialization from incompatible pointer type
+fs/ncpfs/ioctl.c: In function 'ncp_ioctl_need_write':
+fs/ncpfs/ioctl.c:853: error: label at end of compound statement
 
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Dag Bakke <dag@bakke.com>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ fs/ncpfs/ioctl.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/acpi/processor_idle.c~acpi-enable-c3-power-state-on-dell-inspiron-8200-fix drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-enable-c3-power-state-on-dell-inspiron-8200-fix
-+++ a/drivers/acpi/processor_idle.c
-@@ -119,16 +119,15 @@ static int set_max_cstate(const struct d
- }
- 
- /*
-- * Some (Dell) machines have a too large C3 latency set, but it still works completely.
-- * Dell provides a driver for other operating systems to hack around this bug, so we know
-- * it's safe.
-+ * Some (Dell) machines have a too large C3 latency set, but it still works
-+ * completely.  Dell provides a driver for other operating systems to hack
-+ * around this bug, so we know it's safe.
-  */
--static int dmi_force_c3(struct dmi_system_id *id)
-+static int dmi_force_c3(const struct dmi_system_id *id)
- {
- 	forced_c3 = 1;
--
--	printk(KERN_NOTICE PREFIX "%s detected - Force enabling C3.", id->ident);
--
-+	printk(KERN_NOTICE PREFIX "%s detected - Force enabling C3.",
-+			id->ident);
- 	return 0;
- }
- 
+diff -puN fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix fs/ncpfs/ioctl.c
+--- a/fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix
++++ a/fs/ncpfs/ioctl.c
+@@ -849,6 +849,7 @@ static int ncp_ioctl_need_write(unsigned
+ 	case NCP_IOC_SETROOT:
+ 		return 0;
+ 	default:
++		break;
+ 		/* unkown IOCTL command, assume write */
+ 	}
+ 	return 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -149,6 +134,7 @@ remove-__attribute_used__-checkpatch-fixes.patch
 sync_sb_inodes-propagate-errors.patch
 64-bit-i_version-afs-fixes.patch
 kill-filp_open-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
 r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
