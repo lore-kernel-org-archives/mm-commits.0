@@ -1,187 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: - bas_gigaset-suspend-support-fix.patch removed from -mm tree
-Date: Tue, 06 Nov 2007 13:22:20 -0800
-Message-ID: <200711062022.lA6KMEja007844@imap1.linux-foundation.org>
+Subject: - usb_gigaset-suspend-support.patch removed from -mm tree
+Date: Tue, 06 Nov 2007 13:22:10 -0800
+Message-ID: <200711062022.lA6KM8w2007838@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44520 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55689 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755488AbXKFUWV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 15:22:21 -0500
+	by vger.kernel.org with ESMTP id S1754045AbXKFUWT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 15:22:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, tilman@imap.cc, mm-commits@vger.kernel.org
+To: tilman@imap.cc, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bas_gigaset-suspend-support-fix
+     usb_gigaset: suspend support
 has been removed from the -mm tree.  Its filename was
-     bas_gigaset-suspend-support-fix.patch
+     usb_gigaset-suspend-support.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: bas_gigaset-suspend-support-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: usb_gigaset: suspend support
+From: Tilman Schmidt <tilman@imap.cc>
 
-good testing.
+The following two patches add minimal suspend/resume support to the USB based
+Gigaset ISDN drivers, bas_gigaset and usb_gigaset.  Only the USB aspects are
+handled so far; the ISDN subsystem is not notified in any way, for lack of
+information about how to do that.
 
-Cc: Tilman Schmidt <tilman@imap.cc>
+The base driver (bas_gigaset) will not close an open ISDN connection, but
+refuse to suspend if a connection is active.  The M105 driver (usb_gigaset)
+ignores active connections, so as the device is powered from USB, any
+connection will drop when the USB port is powered down.  These are policy
+decisions and as such open to discussion.
+
+This code survives a "test mode" STD without any ill effects.  I could not
+test a "real" suspend/resume cycle yet because so far I do not have any test
+machine with working suspend.
+
+
+
+This patch:
+
+Add basic suspend/resume support to the usb_gigaset driver.
+
+Signed-off-by: Tilman Schmidt <tilman@imap.cc>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/gigaset/bas-gigaset.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/isdn/gigaset/usb-gigaset.c |   78 ++++++++++++++++++++++++++-
+ 1 file changed, 77 insertions(+), 1 deletion(-)
 
-diff -puN drivers/isdn/gigaset/bas-gigaset.c~bas_gigaset-suspend-support-fix drivers/isdn/gigaset/bas-gigaset.c
---- a/drivers/isdn/gigaset/bas-gigaset.c~bas_gigaset-suspend-support-fix
-+++ a/drivers/isdn/gigaset/bas-gigaset.c
-@@ -1741,7 +1741,7 @@ static void write_command_callback(struc
- 			dev_warn(cs->dev,
- 				 "command write: %s, "
- 				 "won't retry - suspend requested\n",
--				 get_usb_statmsg(status));
-+				 get_usb_statmsg(urb->status));
- 			break;
- 		}
- 		if (cs->cmdbuf == NULL) {
+diff -puN drivers/isdn/gigaset/usb-gigaset.c~usb_gigaset-suspend-support drivers/isdn/gigaset/usb-gigaset.c
+--- a/drivers/isdn/gigaset/usb-gigaset.c~usb_gigaset-suspend-support
++++ a/drivers/isdn/gigaset/usb-gigaset.c
+@@ -104,10 +104,16 @@ MODULE_DEVICE_TABLE(usb, gigaset_table);
+  * flags per packet.
+  */
+ 
++/* functions called if a device of this driver is connected/disconnected */
+ static int gigaset_probe(struct usb_interface *interface,
+ 			 const struct usb_device_id *id);
+ static void gigaset_disconnect(struct usb_interface *interface);
+ 
++/* functions called before/after suspend */
++static int gigaset_suspend(struct usb_interface *intf, pm_message_t message);
++static int gigaset_resume(struct usb_interface *intf);
++static int gigaset_pre_reset(struct usb_interface *intf);
++
+ static struct gigaset_driver *driver = NULL;
+ static struct cardstate *cardstate = NULL;
+ 
+@@ -117,6 +123,11 @@ static struct usb_driver gigaset_usb_dri
+ 	.probe =	gigaset_probe,
+ 	.disconnect =	gigaset_disconnect,
+ 	.id_table =	gigaset_table,
++	.suspend =	gigaset_suspend,
++	.resume =	gigaset_resume,
++	.reset_resume =	gigaset_resume,
++	.pre_reset =	gigaset_pre_reset,
++	.post_reset =	gigaset_resume,
+ };
+ 
+ struct usb_cardstate {
+@@ -831,7 +842,7 @@ static void gigaset_disconnect(struct us
+ 	usb_set_intfdata(interface, NULL);
+ 	tasklet_kill(&cs->write_tasklet);
+ 
+-	usb_kill_urb(ucs->bulk_out_urb);	/* FIXME: only if active? */
++	usb_kill_urb(ucs->bulk_out_urb);
+ 
+ 	kfree(ucs->bulk_out_buffer);
+ 	usb_free_urb(ucs->bulk_out_urb);
+@@ -847,6 +858,71 @@ static void gigaset_disconnect(struct us
+ 	gigaset_unassign(cs);
+ }
+ 
++/* gigaset_suspend
++ * This function is called before the USB connection is suspended or reset.
++ */
++static int gigaset_suspend(struct usb_interface *intf, pm_message_t message)
++{
++	struct cardstate *cs;
++	struct usb_cardstate *ucs;
++
++	if ((cs = usb_get_intfdata(intf)) == NULL ||
++	    (ucs = cs->hw.usb) == NULL) {
++		err("%s: no cardstate", __func__);
++		return -EFAULT;
++	}
++
++	//FIXME stop common module activities? ISDN_STAT_STOP? block open()?
++
++	/* stop submitting bulk URBs */
++	tasklet_disable(&cs->write_tasklet);
++
++	/* kill pending read URB */
++	usb_kill_urb(ucs->read_urb);
++
++	gig_dbg(DEBUG_INIT, "suspend complete");
++	return 0;
++}
++
++/* gigaset_resume
++ * This function is called after the USB connection has been resumed or reset.
++ */
++static int gigaset_resume(struct usb_interface *intf)
++{
++	struct cardstate *cs;
++	struct usb_cardstate *ucs;
++	int rc;
++
++	if ((cs = usb_get_intfdata(intf)) == NULL ||
++	    (ucs = cs->hw.usb) == NULL) {
++		err("%s: no cardstate", __func__);
++		return -EFAULT;
++	}
++
++	/* resubmit interrupt URB */
++	if ((rc = usb_submit_urb(ucs->read_urb, GFP_KERNEL)) != 0) {
++		dev_err(cs->dev, "Could not submit URB (error %d)\n", -rc);
++		return rc;
++	}
++
++	/* restart submission of bulk URBs */
++	tasklet_enable(&cs->write_tasklet);
++
++	//FIXME restart common m. activities? ISDN_STAT_START? unblock open()?
++
++	gig_dbg(DEBUG_INIT, "resume complete");
++	return 0;
++}
++
++/* gigaset_pre_reset
++ * This function is called before the USB connection is reset.
++ */
++static int gigaset_pre_reset(struct usb_interface *intf)
++{
++	/* same as suspend */
++	return gigaset_suspend(intf, PMSG_ON);
++}
++
+ static const struct gigaset_ops ops = {
+ 	gigaset_write_cmd,
+ 	gigaset_write_room,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tilman@imap.cc are
 
-origin.patch
-proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of-fix.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-git-arm-fixup.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-ide-arm-hack.patch
-git-mtd-fix.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-git-nfsd-fixup.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-fix-build-breakage-if-sysfs-fix.patch
-wd7000-broke.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-ipwireless-ipwireless_cs_tty-warning-fix.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-x86-arch_register_cpu-section-fix.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
-file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
-cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-sync_sb_inodes-propagate-errors.patch
+usb_gigaset-suspend-support.patch
+bas_gigaset-suspend-support.patch
 bas_gigaset-suspend-support-fix.patch
-64-bit-i_version-afs-fixes.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-dhowells-broke-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
