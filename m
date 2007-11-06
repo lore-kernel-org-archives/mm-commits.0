@@ -1,84 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - time-fix-inconsistent-function-names-in-comments.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 21:52:46 -0800
-Message-ID: <200711060552.lA65qk7r007363@imap1.linux-foundation.org>
+Subject: - uml-correctly-strip-kernel-defines-from-userspace-cflags.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 21:52:17 -0800
+Message-ID: <200711060552.lA65qH05007279@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37282 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47537 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753983AbXKFF43 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 00:56:29 -0500
+	by vger.kernel.org with ESMTP id S1753986AbXKFF5I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 00:57:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, johnstul@us.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     time: fix inconsistent function names in comments
+     uml: correctly strip kernel defines from userspace CFLAGS
 has been removed from the -mm tree.  Its filename was
-     time-fix-inconsistent-function-names-in-comments.patch
+     uml-correctly-strip-kernel-defines-from-userspace-cflags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: time: fix inconsistent function names in comments
-From: lizf <lizf@cn.fujitsu.com>
+Subject: uml: correctly strip kernel defines from userspace CFLAGS
+From: Jeff Dike <jdike@addtoit.com>
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
+KERNEL_DEFINES needs whitespace trimmed, otherwise the whitespace crunching
+done by make fools the patsubst which is used to remove KERNEL_DEFINES from
+USER_CFLAGS.
+
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/tick-broadcast.c |    2 +-
- kernel/time/tick-sched.c     |    2 +-
- kernel/timer.c               |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ arch/um/Makefile |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN kernel/time/tick-broadcast.c~time-fix-inconsistent-function-names-in-comments kernel/time/tick-broadcast.c
---- a/kernel/time/tick-broadcast.c~time-fix-inconsistent-function-names-in-comments
-+++ a/kernel/time/tick-broadcast.c
-@@ -508,7 +508,7 @@ static void tick_broadcast_clear_oneshot
- }
+diff -puN arch/um/Makefile~uml-correctly-strip-kernel-defines-from-userspace-cflags arch/um/Makefile
+--- a/arch/um/Makefile~uml-correctly-strip-kernel-defines-from-userspace-cflags
++++ a/arch/um/Makefile
+@@ -70,9 +70,12 @@ include $(srctree)/$(ARCH_DIR)/Makefile-
+ # in KBUILD_CFLAGS.  Otherwise, it would cause ld to complain about the two different
+ # errnos.
+ # These apply to kernelspace only.
++#
++# strip leading and trailing whitespace to make the USER_CFLAGS removal of these
++# defines more robust
  
- /**
-- * tick_broadcast_setup_highres - setup the broadcast device for highres
-+ * tick_broadcast_setup_oneshot - setup the broadcast device
-  */
- void tick_broadcast_setup_oneshot(struct clock_event_device *bc)
- {
-diff -puN kernel/time/tick-sched.c~time-fix-inconsistent-function-names-in-comments kernel/time/tick-sched.c
---- a/kernel/time/tick-sched.c~time-fix-inconsistent-function-names-in-comments
-+++ a/kernel/time/tick-sched.c
-@@ -321,7 +321,7 @@ ktime_t tick_nohz_get_sleep_length(void)
- }
+-KERNEL_DEFINES = -Derrno=kernel_errno -Dsigprocmask=kernel_sigprocmask \
+-	-Dmktime=kernel_mktime $(ARCH_KERNEL_DEFINES)
++KERNEL_DEFINES = $(strip -Derrno=kernel_errno -Dsigprocmask=kernel_sigprocmask \
++			 -Dmktime=kernel_mktime $(ARCH_KERNEL_DEFINES))
+ KBUILD_CFLAGS += $(KERNEL_DEFINES)
+ KBUILD_CFLAGS += $(call cc-option,-fno-unit-at-a-time,)
  
- /**
-- * nohz_restart_sched_tick - restart the idle tick from the idle task
-+ * tick_nohz_restart_sched_tick - restart the idle tick from the idle task
-  *
-  * Restart the idle tick when the CPU is woken up from idle
-  */
-diff -puN kernel/timer.c~time-fix-inconsistent-function-names-in-comments kernel/timer.c
---- a/kernel/timer.c~time-fix-inconsistent-function-names-in-comments
-+++ a/kernel/timer.c
-@@ -790,7 +790,7 @@ static unsigned long cmp_next_hrtimer_ev
- }
- 
- /**
-- * next_timer_interrupt - return the jiffy of the next pending timer
-+ * get_next_timer_interrupt - return the jiffy of the next pending timer
-  * @now: current time (in jiffies)
-  */
- unsigned long get_next_timer_interrupt(unsigned long now)
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-drivers-video-ps3fb-fix-memset-size-error.patch
-w1-fix-memset-size-error.patch
-arm-fix-memset-size-error.patch
-powerpc-fix-memset-size-error.patch
-git-drm.patch
-ia64-fix-memset-size-error.patch
+git-kvm.patch
+uml-fix-spurious-irq-testing.patch
+uml-remove-last-include-of-libc-asm-pageh.patch
+uml-fix-build-for-config_tcp.patch
+uml-fix-build-for-config_printk.patch
+uml-implement-get_wchan.patch
+uml-implement-get_wchan-fix.patch
+uml-get-rid-of-asmlinkage.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-document-new-ubd-flag.patch
+uml-further-bugsc-tidying.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+uml-smp-needs-to-depend-on-broken-for-now.patch
+uml-console-driver-cleanups.patch
+uml-clonec-tidying.patch
+uml-borrow-consth-techniques.patch
+arch-um-remove-duplicate-includes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
