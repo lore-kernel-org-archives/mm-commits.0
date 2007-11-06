@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + sis-fb-driver-_ioctl32_conversion-functions-do.patch added to -mm tree
-Date: Mon, 05 Nov 2007 18:23:06 -0800
-Message-ID: <200711060223.lA62N6kh031663@imap1.linux-foundation.org>
+Subject: + sis-fb-driver-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels.patch added to -mm tree
+Date: Mon, 05 Nov 2007 18:24:00 -0800
+Message-ID: <200711060224.lA62O0pB031666@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58222 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56292 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754535AbXKFCXP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 21:23:15 -0500
+	by vger.kernel.org with ESMTP id S1751938AbXKFCYE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 21:24:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,7 +17,7 @@ Cc: fernando@oss.ntt.co.jp, adaplas@pol.net, greg@kroah.com, thomas@winischhofer
 The patch titled
      sis FB driver: *_ioctl32_conversion functions do not exist in recent kernels
 has been added to the -mm tree.  Its filename is
-     sis-fb-driver-_ioctl32_conversion-functions-do.patch
+     sis-fb-driver-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ out what to do about this
 
 ------------------------------------------------------
 Subject: sis FB driver: *_ioctl32_conversion functions do not exist in recent kernels
-From: Fernando Luis =?ISO-8859-1?Q?V=E1zquez?= Cao <fernando@oss.ntt.co.jp>
+From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
 
 Remove dead code while at it.
 
@@ -41,8 +41,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/usb/misc/sisusbvga/sisusb.h |    3 --
  2 files changed, 30 deletions(-)
 
-diff -puN drivers/usb/misc/sisusbvga/sisusb.c~sis-fb-driver-_ioctl32_conversion-functions-do drivers/usb/misc/sisusbvga/sisusb.c
---- a/drivers/usb/misc/sisusbvga/sisusb.c~sis-fb-driver-_ioctl32_conversion-functions-do
+diff -puN drivers/usb/misc/sisusbvga/sisusb.c~sis-fb-driver-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels drivers/usb/misc/sisusbvga/sisusb.c
+--- a/drivers/usb/misc/sisusbvga/sisusb.c~sis-fb-driver-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels
 +++ a/drivers/usb/misc/sisusbvga/sisusb.c
 @@ -3195,20 +3195,6 @@ static int sisusb_probe(struct usb_inter
  
@@ -85,8 +85,8 @@ diff -puN drivers/usb/misc/sisusbvga/sisusb.c~sis-fb-driver-_ioctl32_conversion-
  	sisusb->present = 0;
  	sisusb->ready = 0;
  
-diff -puN drivers/usb/misc/sisusbvga/sisusb.h~sis-fb-driver-_ioctl32_conversion-functions-do drivers/usb/misc/sisusbvga/sisusb.h
---- a/drivers/usb/misc/sisusbvga/sisusb.h~sis-fb-driver-_ioctl32_conversion-functions-do
+diff -puN drivers/usb/misc/sisusbvga/sisusb.h~sis-fb-driver-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels drivers/usb/misc/sisusbvga/sisusb.h
+--- a/drivers/usb/misc/sisusbvga/sisusb.h~sis-fb-driver-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels
 +++ a/drivers/usb/misc/sisusbvga/sisusb.h
 @@ -120,9 +120,6 @@ struct sisusb_usb_data {
  	int isopen;		/* !=0 if open */
@@ -102,4 +102,5 @@ _
 
 Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
 
-sis-fb-driver-_ioctl32_conversion-functions-do.patch
+sis-fb-driver-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels.patch
+sisusb-_ioctl32_conversion-functions-do-not.patch
