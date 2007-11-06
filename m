@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch added to -mm tree
-Date: Mon, 05 Nov 2007 23:24:11 -0800
-Message-ID: <200711060730.lA67Ux39012315@imap1.linux-foundation.org>
+Subject: + git-mtd-fix.patch added to -mm tree
+Date: Mon, 05 Nov 2007 23:26:18 -0800
+Message-ID: <200711060733.lA67X6J4012442@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39693 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50478 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751925AbXKFHbr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 02:31:47 -0500
+	by vger.kernel.org with ESMTP id S1751000AbXKFHdo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 02:33:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@lst.de
+Cc: akpm@linux-foundation.org, dwmw2@infradead.org
 
 
 The patch titled
-     r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix
+     git-mtd-fix
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+     git-mtd-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix
+Subject: git-mtd-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/ncpfs/ioctl.c: In function 'ncp_ioctl_need_write':
-fs/ncpfs/ioctl.c:853: error: label at end of compound statement
+fs/jffs2/write.c: In function 'jffs2_do_unlink':
+fs/jffs2/write.c:609: error: 'prev' undeclared (first use in this function)
+fs/jffs2/write.c:609: error: (Each undeclared identifier is reported only once
+fs/jffs2/write.c:609: error: for each function it appears in.)
 
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Hansen <haveblue@us.ibm.com>
+nfi, wtf.
+
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/ioctl.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/jffs2/write.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix fs/ncpfs/ioctl.c
---- a/fs/ncpfs/ioctl.c~r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix
-+++ a/fs/ncpfs/ioctl.c
-@@ -849,6 +849,7 @@ static int ncp_ioctl_need_write(unsigned
- 	case NCP_IOC_SETROOT:
- 		return 0;
- 	default:
-+		break;
- 		/* unkown IOCTL command, assume write */
+diff -puN fs/jffs2/write.c~git-mtd-fix fs/jffs2/write.c
+--- a/fs/jffs2/write.c~git-mtd-fix
++++ a/fs/jffs2/write.c
+@@ -606,7 +606,6 @@ int jffs2_do_unlink(struct jffs2_sb_info
+ 				fd->ino = 0;
+ 				break;
+ 			}
+-			prev = &((*prev)->next);
+ 		}
+ 		up(&dir_f->sem);
  	}
- 	return 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,6 +75,7 @@ git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
 pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
 ide-arm-hack.patch
+git-mtd-fix.patch
 lmc_ioctl-dont-return-with-locks-held-fix.patch
 git-netdev-all.patch
 ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
