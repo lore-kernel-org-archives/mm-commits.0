@@ -1,50 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 22:22:26 -0800
-Message-ID: <200711060629.lA66TFYc010205@imap1.linux-foundation.org>
+Subject: + x86-arch_register_cpu-section-fix.patch added to -mm tree
+Date: Mon, 05 Nov 2007 22:33:49 -0800
+Message-ID: <200711060640.lA66ebIT010554@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44780 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51536 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754337AbXKFG32 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 01:29:28 -0500
+	by vger.kernel.org with ESMTP id S1754185AbXKFGnJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 01:43:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     suppress-aout-library-support-in-elf-binfmt-if-fix
-has been removed from the -mm tree.  Its filename was
-     mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
+     x86: arch_register_cpu() section fix
+has been added to the -mm tree.  Its filename is
+     x86-arch_register_cpu-section-fix.patch
 
-This patch was dropped because of more allnoconfig breakage
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: suppress-aout-library-support-in-elf-binfmt-if-fix
+Subject: x86: arch_register_cpu() section fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: David Howells <dhowells@redhat.com>
+i386 allnoconfig:
+
+WARNING: vmlinux.o(.text+0x6f2e): Section mismatch: reference to .init.text:register_cpu (between 'arch_register_cpu' and 'text_poke')
+
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/x86/kernel/topology.c |    5 +++--
+ asm-x86/cpu.h              |    0 
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/binfmt_elf.c~mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix
-+++ a/fs/binfmt_elf.c
-@@ -560,6 +560,10 @@ out:
- 	return elf_entry;
+diff -puN arch/x86/kernel/topology.c~x86-arch_register_cpu-section-fix arch/x86/kernel/topology.c
+--- a/arch/x86/kernel/topology.c~x86-arch_register_cpu-section-fix
++++ a/arch/x86/kernel/topology.c
+@@ -33,7 +33,7 @@
+ 
+ static struct i386_cpu cpu_devices[NR_CPUS];
+ 
+-int arch_register_cpu(int num)
++int __cpuinit arch_register_cpu(int num)
+ {
+ 	/*
+ 	 * CPU0 cannot be offlined due to several
+@@ -53,7 +53,8 @@ int arch_register_cpu(int num)
  }
- #else
-+/*
-+ * Declare this here to keep the compiler happy.  It will generate a link-time
-+ * failure if the compiler failed to remove all the calls to it.
-+ */
- extern unsigned long load_aout_interp(struct exec *interp_ex,
- 				      struct file *interpreter);
- #endif
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
+-void arch_unregister_cpu(int num) {
++void arch_unregister_cpu(int num)
++{
+ 	return unregister_cpu(&cpu_devices[num].cpu);
+ }
+ EXPORT_SYMBOL(arch_register_cpu);
+diff -puN include/asm-x86/cpu.h~x86-arch_register_cpu-section-fix include/asm-x86/cpu.h
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,7 +141,6 @@ remove-warnings-for-longstanding-conditions-fix.patch
 parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
 remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
 allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-mn10300-suppress-aout-library-support-in-elf-binfmt-if-fix.patch
 remove-__attribute_used__-checkpatch-fixes.patch
 sync_sb_inodes-propagate-errors.patch
 64-bit-i_version-afs-fixes.patch
@@ -175,3 +193,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 getblk-handle-2tb-devices.patch
 w1-build-fix.patch
+x86-arch_register_cpu-section-fix.patch
