@@ -1,99 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - sundance-siocdevprivate-pollution.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 21:53:35 -0800
-Message-ID: <200711060553.lA65rZLf007507@imap1.linux-foundation.org>
+Subject: - time-fix-inconsistent-function-names-in-comments.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 21:52:46 -0800
+Message-ID: <200711060552.lA65qk7r007363@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43046 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37282 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753958AbXKFF4T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 00:56:19 -0500
+	by vger.kernel.org with ESMTP id S1753983AbXKFF43 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 00:56:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: romieu@fr.zoreil.com, jeff@garzik.org, jesse@icplus.com.tw, vsauer@dvs.tu-darmstadt.de, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, johnstul@us.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sundance: SIOCDEVPRIVATE pollution
+     time: fix inconsistent function names in comments
 has been removed from the -mm tree.  Its filename was
-     sundance-siocdevprivate-pollution.patch
+     time-fix-inconsistent-function-names-in-comments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sundance: SIOCDEVPRIVATE pollution
-From: Francois Romieu <romieu@fr.zoreil.com>
+Subject: time: fix inconsistent function names in comments
+From: lizf <lizf@cn.fujitsu.com>
 
-To quote one of my favorite contemporary author:
-[include/linux/sockios.h]
- *      THESE IOCTLS ARE _DEPRECATED_ AND WILL DISAPPEAR IN 2.5.X -DaveM
- */
-
-#define SIOCDEVPRIVATE  0x89F0  /* to 89FF */
-
-[...]
-
-Gentoo's snmpd trips up over this code when trying to figure if the driver
-supports the non-SIOCDEVPRIVATE API or not.  One can argue over its choice
-of heuristic but there no reason to make ioctl more ugly than needed.
-
-Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
-Cc: Jesse Huang <jesse@icplus.com.tw>
-Tested-by: Volker Sauer <vsauer@dvs.tu-darmstadt.de>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sundance.c |   26 --------------------------
- 1 file changed, 26 deletions(-)
+ kernel/time/tick-broadcast.c |    2 +-
+ kernel/time/tick-sched.c     |    2 +-
+ kernel/timer.c               |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/sundance.c~sundance-siocdevprivate-pollution drivers/net/sundance.c
---- a/drivers/net/sundance.c~sundance-siocdevprivate-pollution
-+++ a/drivers/net/sundance.c
-@@ -1596,9 +1596,7 @@ static const struct ethtool_ops ethtool_
- static int netdev_ioctl(struct net_device *dev, struct ifreq *rq, int cmd)
- {
- 	struct netdev_private *np = netdev_priv(dev);
--	void __iomem *ioaddr = np->base;
- 	int rc;
--	int i;
- 
- 	if (!netif_running(dev))
- 		return -EINVAL;
-@@ -1606,30 +1604,6 @@ static int netdev_ioctl(struct net_devic
- 	spin_lock_irq(&np->lock);
- 	rc = generic_mii_ioctl(&np->mii_if, if_mii(rq), cmd, NULL);
- 	spin_unlock_irq(&np->lock);
--	switch (cmd) {
--		case SIOCDEVPRIVATE:
--		for (i=0; i<TX_RING_SIZE; i++) {
--			printk(KERN_DEBUG "%02x %08llx %08x %08x(%02x) %08x %08x\n", i,
--				(unsigned long long)(np->tx_ring_dma + i*sizeof(*np->tx_ring)),
--				le32_to_cpu(np->tx_ring[i].next_desc),
--				le32_to_cpu(np->tx_ring[i].status),
--				(le32_to_cpu(np->tx_ring[i].status) >> 2)
--					& 0xff,
--				le32_to_cpu(np->tx_ring[i].frag[0].addr),
--				le32_to_cpu(np->tx_ring[i].frag[0].length));
--		}
--		printk(KERN_DEBUG "TxListPtr=%08x netif_queue_stopped=%d\n",
--			ioread32(np->base + TxListPtr),
--			netif_queue_stopped(dev));
--		printk(KERN_DEBUG "cur_tx=%d(%02x) dirty_tx=%d(%02x)\n",
--			np->cur_tx, np->cur_tx % TX_RING_SIZE,
--			np->dirty_tx, np->dirty_tx % TX_RING_SIZE);
--		printk(KERN_DEBUG "cur_rx=%d dirty_rx=%d\n", np->cur_rx, np->dirty_rx);
--		printk(KERN_DEBUG "cur_task=%d\n", np->cur_task);
--		printk(KERN_DEBUG "TxStatus=%04x\n", ioread16(ioaddr + TxStatus));
--			return 0;
--	}
--
- 
- 	return rc;
+diff -puN kernel/time/tick-broadcast.c~time-fix-inconsistent-function-names-in-comments kernel/time/tick-broadcast.c
+--- a/kernel/time/tick-broadcast.c~time-fix-inconsistent-function-names-in-comments
++++ a/kernel/time/tick-broadcast.c
+@@ -508,7 +508,7 @@ static void tick_broadcast_clear_oneshot
  }
+ 
+ /**
+- * tick_broadcast_setup_highres - setup the broadcast device for highres
++ * tick_broadcast_setup_oneshot - setup the broadcast device
+  */
+ void tick_broadcast_setup_oneshot(struct clock_event_device *bc)
+ {
+diff -puN kernel/time/tick-sched.c~time-fix-inconsistent-function-names-in-comments kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~time-fix-inconsistent-function-names-in-comments
++++ a/kernel/time/tick-sched.c
+@@ -321,7 +321,7 @@ ktime_t tick_nohz_get_sleep_length(void)
+ }
+ 
+ /**
+- * nohz_restart_sched_tick - restart the idle tick from the idle task
++ * tick_nohz_restart_sched_tick - restart the idle tick from the idle task
+  *
+  * Restart the idle tick when the CPU is woken up from idle
+  */
+diff -puN kernel/timer.c~time-fix-inconsistent-function-names-in-comments kernel/timer.c
+--- a/kernel/timer.c~time-fix-inconsistent-function-names-in-comments
++++ a/kernel/timer.c
+@@ -790,7 +790,7 @@ static unsigned long cmp_next_hrtimer_ev
+ }
+ 
+ /**
+- * next_timer_interrupt - return the jiffy of the next pending timer
++ * get_next_timer_interrupt - return the jiffy of the next pending timer
+  * @now: current time (in jiffies)
+  */
+ unsigned long get_next_timer_interrupt(unsigned long now)
 _
 
-Patches currently in -mm which might be from romieu@fr.zoreil.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 origin.patch
-git-netdev-all.patch
+drivers-video-ps3fb-fix-memset-size-error.patch
+w1-fix-memset-size-error.patch
+arm-fix-memset-size-error.patch
+powerpc-fix-memset-size-error.patch
+git-drm.patch
+ia64-fix-memset-size-error.patch
