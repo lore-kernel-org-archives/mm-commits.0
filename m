@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch added to -mm tree
-Date: Mon, 05 Nov 2007 23:49:42 -0800
-Message-ID: <200711060756.lA67uU7i013214__13685.4714983658$1194335954$gmane$org@imap1.linux-foundation.org>
+Subject: + scheduled-oss-driver-removal-fix.patch added to -mm tree
+Date: Mon, 05 Nov 2007 23:53:40 -0800
+Message-ID: <200711060800.lA680SsZ013378@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38889 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41238 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753069AbXKFH6r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 02:58:47 -0500
+	by vger.kernel.org with ESMTP id S1754521AbXKFIAh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 03:00:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aia21@cantab.net, bfields@fieldses.org, clameter@sgi.com, dgc@sgi.com, linux-ext4@vger.kernel.org, mark.fasheh@oracle.com, mhalcrow@us.ibm.com, sfrench@us.ibm.com, swhiteho@redhat.com, trond.myklebust@fys.uio.no
+Cc: akpm@linux-foundation.org, bunk@kernel.org
 
 
 The patch titled
-     pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix
+     scheduled-oss-driver-removal-fix
 has been added to the -mm tree.  Its filename is
-     pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+     scheduled-oss-driver-removal-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,50 +25,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix
+Subject: scheduled-oss-driver-removal-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: <linux-ext4@vger.kernel.org>
-Cc: Anton Altaparmakov <aia21@cantab.net>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: David Chinner <dgc@sgi.com>
-Cc: Mark Fasheh <mark.fasheh@oracle.com>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: Steven French <sfrench@us.ibm.com>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+i686-unknown-linux-gnu-gcc: sound/oss/ac97_codec.c: No such file or directory
+
+it doesn't look like this will work.
+
+Cc: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/write.c |    2 +-
- fs/ntfs/aops.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ sound/oss/Makefile |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/nfs/write.c~pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix fs/nfs/write.c
---- a/fs/nfs/write.c~pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix
-+++ a/fs/nfs/write.c
-@@ -667,7 +667,7 @@ zero_page:
- 	 * then we need to zero any uninitalised data. */
- 	if (req->wb_pgbase == 0 && req->wb_bytes != PAGE_CACHE_SIZE
- 			&& !PageUptodate(req->wb_page))
--		zero_user_page(req->wb_page, req->wb_bytes, PAGE_CACHE_SIZE);
-+		zero_user(req->wb_page, req->wb_bytes);
- 	return req;
- }
+diff -puN sound/oss/Makefile~scheduled-oss-driver-removal-fix sound/oss/Makefile
+--- a/sound/oss/Makefile~scheduled-oss-driver-removal-fix
++++ a/sound/oss/Makefile
+@@ -28,8 +28,8 @@ obj-$(CONFIG_SOUND_WAVEARTIST)	+= wavear
+ obj-$(CONFIG_SOUND_MSNDCLAS)	+= msnd.o msnd_classic.o
+ obj-$(CONFIG_SOUND_MSNDPIN)	+= msnd.o msnd_pinnacle.o
+ obj-$(CONFIG_SOUND_VWSND)	+= vwsnd.o
+-obj-$(CONFIG_SOUND_AU1550_AC97)	+= au1550_ac97.o ac97_codec.o
+-obj-$(CONFIG_SOUND_TRIDENT)	+= trident.o ac97_codec.o
++obj-$(CONFIG_SOUND_AU1550_AC97)	+= au1550_ac97.o
++obj-$(CONFIG_SOUND_TRIDENT)	+= trident.o
+ obj-$(CONFIG_SOUND_BCM_CS4297A)	+= swarm_cs4297a.o
  
-diff -puN fs/ntfs/aops.c~pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix fs/ntfs/aops.c
---- a/fs/ntfs/aops.c~pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix
-+++ a/fs/ntfs/aops.c
-@@ -414,7 +414,7 @@ retry_readpage:
- 	/* Is the page fully outside i_size? (truncate in progress) */
- 	if (unlikely(page->index >= (i_size + PAGE_CACHE_SIZE - 1) >>
- 			PAGE_CACHE_SHIFT)) {
--		zero_user_page(page, 0, PAGE_CACHE_SIZE, KM_USER0);
-+		zero_user(page, 0, PAGE_CACHE_SIZE);
- 		ntfs_debug("Read outside i_size - truncated?");
- 		goto done;
- 	}
+ obj-$(CONFIG_SOUND_WM97XX)	+= ac97_plugin_wm97xx.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -153,6 +137,7 @@ remove-warnings-for-longstanding-conditions-fix.patch
 parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
 remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
 allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+scheduled-oss-driver-removal-fix.patch
 remove-__attribute_used__-checkpatch-fixes.patch
 sync_sb_inodes-propagate-errors.patch
 bas_gigaset-suspend-support-fix.patch
