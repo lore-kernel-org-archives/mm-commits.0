@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sisusb-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels.patch added to -mm tree
-Date: Mon, 05 Nov 2007 18:24:47 -0800
-Message-ID: <200711060224.lA62Olu7031686@imap1.linux-foundation.org>
+Subject: + prism54-convert-mgmt_sem-to-the-mutex-api.patch added to -mm tree
+Date: Mon, 05 Nov 2007 18:25:54 -0800
+Message-ID: <200711060225.lA62Psjc031706@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59476 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33608 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755066AbXKFCYx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 21:24:53 -0500
+	by vger.kernel.org with ESMTP id S1753891AbXKFC06 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 21:26:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fernando@oss.ntt.co.jp, adaplas@pol.net, thomas@winischhofer.net
+Cc: matthias.kaehlcke@gmail.com, linville@tuxdriver.com, mb@bu3sch.de
 
 
 The patch titled
-     sisusb: *_ioctl32_conversion functions do not exist in recent kernels
+     Prism54: convert mgmt_sem to the mutex API
 has been added to the -mm tree.  Its filename is
-     sisusb-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels.patch
+     prism54-convert-mgmt_sem-to-the-mutex-api.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,122 +25,85 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sisusb: *_ioctl32_conversion functions do not exist in recent kernels
-From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Subject: Prism54: convert mgmt_sem to the mutex API
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-Remove dead code while at it.
-
-Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
-Cc: Thomas Winischhofer <thomas@winischhofer.net>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/sis/sis.h      |    8 -----
- drivers/video/sis/sis_main.c |   48 ---------------------------------
- 2 files changed, 56 deletions(-)
+ drivers/net/wireless/prism54/islpci_dev.c |    2 +-
+ drivers/net/wireless/prism54/islpci_dev.h |    3 ++-
+ drivers/net/wireless/prism54/islpci_mgt.c |    4 ++--
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/sis/sis.h~sisusb-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels drivers/video/sis/sis.h
---- a/drivers/video/sis/sis.h~sisusb-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels
-+++ a/drivers/video/sis/sis.h
-@@ -39,12 +39,7 @@
- #include <linux/spinlock.h>
+diff -puN drivers/net/wireless/prism54/islpci_dev.c~prism54-convert-mgmt_sem-to-the-mutex-api drivers/net/wireless/prism54/islpci_dev.c
+--- a/drivers/net/wireless/prism54/islpci_dev.c~prism54-convert-mgmt_sem-to-the-mutex-api
++++ a/drivers/net/wireless/prism54/islpci_dev.c
+@@ -861,7 +861,7 @@ islpci_setup(struct pci_dev *pdev)
+ 	init_waitqueue_head(&priv->reset_done);
  
- #ifdef CONFIG_COMPAT
--#if LINUX_VERSION_CODE <= KERNEL_VERSION(2,6,10)
--#include <linux/ioctl32.h>
--#define SIS_OLD_CONFIG_COMPAT
--#else
- #define SIS_NEW_CONFIG_COMPAT
--#endif
- #endif	/* CONFIG_COMPAT */
+ 	/* init the queue read locks, process wait counter */
+-	sema_init(&priv->mgmt_sem, 1);
++	mutex_init(&priv->mgmt_lock);
+ 	priv->mgmt_received = NULL;
+ 	init_waitqueue_head(&priv->mgmt_wqueue);
+ 	sema_init(&priv->stats_sem, 1);
+diff -puN drivers/net/wireless/prism54/islpci_dev.h~prism54-convert-mgmt_sem-to-the-mutex-api drivers/net/wireless/prism54/islpci_dev.h
+--- a/drivers/net/wireless/prism54/islpci_dev.h~prism54-convert-mgmt_sem-to-the-mutex-api
++++ a/drivers/net/wireless/prism54/islpci_dev.h
+@@ -26,6 +26,7 @@
+ #include <linux/wireless.h>
+ #include <net/iw_handler.h>
+ #include <linux/list.h>
++#include <linux/mutex.h>
  
- #if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,8)
-@@ -607,9 +602,6 @@ struct sis_video_info {
- 	int		haveXGIROM;
- 	int		registered;
- 	int		warncount;
--#ifdef SIS_OLD_CONFIG_COMPAT
--	int		ioctl32registered;
--#endif
+ #include "isl_38xx.h"
+ #include "isl_oid.h"
+@@ -164,7 +165,7 @@ typedef struct {
+ 	wait_queue_head_t reset_done;
  
- 	int		sisvga_engine;
- 	int		hwcursor_size;
-diff -puN drivers/video/sis/sis_main.c~sisusb-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels drivers/video/sis/sis_main.c
---- a/drivers/video/sis/sis_main.c~sisusb-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels
-+++ a/drivers/video/sis/sis_main.c
-@@ -5805,9 +5805,6 @@ sisfb_probe(struct pci_dev *pdev, const 
- 	ivideo->pcifunc = PCI_FUNC(pdev->devfn);
- 	ivideo->subsysvendor = pdev->subsystem_vendor;
- 	ivideo->subsysdevice = pdev->subsystem_device;
--#ifdef SIS_OLD_CONFIG_COMPAT
--	ivideo->ioctl32registered = 0;
--#endif
+ 	/* used by islpci_mgt_transaction */
+-	struct semaphore mgmt_sem; /* serialize access to mailbox and wqueue */
++	struct mutex mgmt_lock; /* serialize access to mailbox and wqueue */
+ 	struct islpci_mgmtframe *mgmt_received;	  /* mbox for incoming frame */
+ 	wait_queue_head_t mgmt_wqueue;            /* waitqueue for mbox */
  
- #ifndef MODULE
- 	if(sisfb_mode_idx == -1) {
-@@ -6420,30 +6417,6 @@ error_3:	vfree(ivideo->bios_abase);
- 		ivideo->next = card_list;
- 		card_list = ivideo;
+diff -puN drivers/net/wireless/prism54/islpci_mgt.c~prism54-convert-mgmt_sem-to-the-mutex-api drivers/net/wireless/prism54/islpci_mgt.c
+--- a/drivers/net/wireless/prism54/islpci_mgt.c~prism54-convert-mgmt_sem-to-the-mutex-api
++++ a/drivers/net/wireless/prism54/islpci_mgt.c
+@@ -460,7 +460,7 @@ islpci_mgt_transaction(struct net_device
  
--#ifdef SIS_OLD_CONFIG_COMPAT
--		{
--		int ret;
--		/* Our ioctls are all "32/64bit compatible" */
--		ret =  register_ioctl32_conversion(FBIO_ALLOC,             NULL);
--		ret |= register_ioctl32_conversion(FBIO_FREE,              NULL);
--		ret |= register_ioctl32_conversion(FBIOGET_VBLANK,         NULL);
--		ret |= register_ioctl32_conversion(SISFB_GET_INFO_SIZE,    NULL);
--		ret |= register_ioctl32_conversion(SISFB_GET_INFO,         NULL);
--		ret |= register_ioctl32_conversion(SISFB_GET_TVPOSOFFSET,  NULL);
--		ret |= register_ioctl32_conversion(SISFB_SET_TVPOSOFFSET,  NULL);
--		ret |= register_ioctl32_conversion(SISFB_SET_LOCK,         NULL);
--		ret |= register_ioctl32_conversion(SISFB_GET_VBRSTATUS,    NULL);
--		ret |= register_ioctl32_conversion(SISFB_GET_AUTOMAXIMIZE, NULL);
--		ret |= register_ioctl32_conversion(SISFB_SET_AUTOMAXIMIZE, NULL);
--		ret |= register_ioctl32_conversion(SISFB_COMMAND,          NULL);
--		if(ret)
--			printk(KERN_ERR
--				"sisfb: Error registering ioctl32 translations\n");
--		else
--			ivideo->ioctl32registered = 1;
--		}
--#endif
--
- 		printk(KERN_INFO "sisfb: 2D acceleration is %s, y-panning %s\n",
- 			ivideo->sisfb_accel ? "enabled" : "disabled",
- 			ivideo->sisfb_ypan  ?
-@@ -6473,27 +6446,6 @@ static void __devexit sisfb_remove(struc
- 	int			registered = ivideo->registered;
- 	int			modechanged = ivideo->modechanged;
+ 	*recvframe = NULL;
  
--#ifdef SIS_OLD_CONFIG_COMPAT
--	if(ivideo->ioctl32registered) {
--		int ret;
--		ret =  unregister_ioctl32_conversion(FBIO_ALLOC);
--		ret |= unregister_ioctl32_conversion(FBIO_FREE);
--		ret |= unregister_ioctl32_conversion(FBIOGET_VBLANK);
--		ret |= unregister_ioctl32_conversion(SISFB_GET_INFO_SIZE);
--		ret |= unregister_ioctl32_conversion(SISFB_GET_INFO);
--		ret |= unregister_ioctl32_conversion(SISFB_GET_TVPOSOFFSET);
--		ret |= unregister_ioctl32_conversion(SISFB_SET_TVPOSOFFSET);
--		ret |= unregister_ioctl32_conversion(SISFB_SET_LOCK);
--		ret |= unregister_ioctl32_conversion(SISFB_GET_VBRSTATUS);
--		ret |= unregister_ioctl32_conversion(SISFB_GET_AUTOMAXIMIZE);
--		ret |= unregister_ioctl32_conversion(SISFB_SET_AUTOMAXIMIZE);
--		ret |= unregister_ioctl32_conversion(SISFB_COMMAND);
--		if(ret)
--			printk(KERN_ERR
--			     "sisfb: Error unregistering ioctl32 translations\n");
--	}
--#endif
--
- 	/* Unmap */
- 	iounmap(ivideo->mmio_vbase);
- 	iounmap(ivideo->video_vbase);
+-	if (down_interruptible(&priv->mgmt_sem))
++	if (mutex_lock_interruptible(&priv->mgmt_lock))
+ 		return -ERESTARTSYS;
+ 
+ 	prepare_to_wait(&priv->mgmt_wqueue, &wait, TASK_UNINTERRUPTIBLE);
+@@ -504,7 +504,7 @@ islpci_mgt_transaction(struct net_device
+ 	/* TODO: we should reset the device here */
+  out:
+ 	finish_wait(&priv->mgmt_wqueue, &wait);
+-	up(&priv->mgmt_sem);
++	mutex_unlock(&priv->mgmt_lock);
+ 	return err;
+ }
+ 
 _
 
-Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
-sis-fb-driver-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels.patch
-sisusb-_ioctl32_conversion-functions-do-not-exist-in-recent-kernels.patch
+origin.patch
+generic-ac97-mixer-modem-oss-use-list_for_each_entry.patch
+git-dvb.patch
+git-hwmon.patch
+megaraid-sas-convert-aen_mutex-to-the-mutex-api.patch
+prism54-convert-mgmt_sem-to-the-mutex-api.patch
+parallel-port-convert-port_mutex-to-the-mutex-api.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+mbcs-convert-algolock-to-mutex.patch
+mbcs-convert-dmawritelock-to-mutex.patch
+mbcs-convert-dmareadlock-to-mutex.patch
