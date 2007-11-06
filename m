@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scheduled-oss-driver-removal-fix.patch added to -mm tree
-Date: Mon, 05 Nov 2007 23:53:40 -0800
-Message-ID: <200711060800.lA680SsZ013378@imap1.linux-foundation.org>
+Subject: + git-jg-misc-hisax-fix.patch added to -mm tree
+Date: Tue, 06 Nov 2007 00:19:42 -0800
+Message-ID: <200711060826.lA68QUL0014292@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41238 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43759 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754521AbXKFIAh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 03:00:37 -0500
+	by vger.kernel.org with ESMTP id S1750802AbXKFI0k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 03:26:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bunk@kernel.org
+Cc: akpm@linux-foundation.org, jeff@garzik.org
 
 
 The patch titled
-     scheduled-oss-driver-removal-fix
+     git-jg-misc-hisax-fix
 has been added to the -mm tree.  Its filename is
-     scheduled-oss-driver-removal-fix.patch
+     git-jg-misc-hisax-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,34 +25,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: scheduled-oss-driver-removal-fix
+Subject: git-jg-misc-hisax-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i686-unknown-linux-gnu-gcc: sound/oss/ac97_codec.c: No such file or directory
+drivers/isdn/hisax/bkm_a4t.c:16:25: error: hisax_proto.h: No such file or directory
+drivers/isdn/hisax/bkm_a4t.c: In function 'a4t_pci_init_one':                   drivers/isdn/hisax/bkm_a4t.c:357: error: 'DEFAULT_PROTO' undeclared (first use in this function)                                                                drivers/isdn/hisax/bkm_a4t.c:357: error: (Each undeclared identifier is reported only once
+drivers/isdn/hisax/bkm_a4t.c:357: error: for each function it appears in.)      
 
-it doesn't look like this will work.
+Please tell me when to drop this.
 
-Cc: Adrian Bunk <bunk@kernel.org>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/oss/Makefile |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/isdn/hisax/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN sound/oss/Makefile~scheduled-oss-driver-removal-fix sound/oss/Makefile
---- a/sound/oss/Makefile~scheduled-oss-driver-removal-fix
-+++ a/sound/oss/Makefile
-@@ -28,8 +28,8 @@ obj-$(CONFIG_SOUND_WAVEARTIST)	+= wavear
- obj-$(CONFIG_SOUND_MSNDCLAS)	+= msnd.o msnd_classic.o
- obj-$(CONFIG_SOUND_MSNDPIN)	+= msnd.o msnd_pinnacle.o
- obj-$(CONFIG_SOUND_VWSND)	+= vwsnd.o
--obj-$(CONFIG_SOUND_AU1550_AC97)	+= au1550_ac97.o ac97_codec.o
--obj-$(CONFIG_SOUND_TRIDENT)	+= trident.o ac97_codec.o
-+obj-$(CONFIG_SOUND_AU1550_AC97)	+= au1550_ac97.o
-+obj-$(CONFIG_SOUND_TRIDENT)	+= trident.o
- obj-$(CONFIG_SOUND_BCM_CS4297A)	+= swarm_cs4297a.o
+diff -puN drivers/isdn/hisax/Kconfig~git-jg-misc-hisax-fix drivers/isdn/hisax/Kconfig
+--- a/drivers/isdn/hisax/Kconfig~git-jg-misc-hisax-fix
++++ a/drivers/isdn/hisax/Kconfig
+@@ -290,6 +290,7 @@ config HISAX_HSTSAPHIR
+ config HISAX_BKM_A4T
+ 	tristate "Telekom A4T card"
+ 	depends on PCI
++	depends on BROKEN
+ 	help
+ 	  This enables HiSax support for the Telekom A4T card.
  
- obj-$(CONFIG_SOUND_WM97XX)	+= ac97_plugin_wm97xx.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,6 +70,7 @@ git-dvb-broke-tda8290.patch
 git-hwmon.patch
 ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
 elantech-touchpad-driver-fix.patch
+git-jg-misc-hisax-fix.patch
 git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
@@ -105,6 +105,7 @@ pidns-place-under-config_experimental-checkpatch-fixes.patch
 fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
 file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
 i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
 slub-fix-coding-style-violations-checkpatch-fixes.patch
 slub-provide-unique-end-marker-for-each-slab-fix.patch
