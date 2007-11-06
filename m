@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arch-xtensa-remove-duplicate-includes.patch added to -mm tree
-Date: Mon, 05 Nov 2007 18:36:04 -0800
-Message-ID: <200711060236.lA62a4xx032051@imap1.linux-foundation.org>
+Subject: + arch-sparc-remove-duplicate-includes.patch added to -mm tree
+Date: Mon, 05 Nov 2007 18:35:56 -0800
+Message-ID: <200711060235.lA62Zuab032036@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42529 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49375 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755779AbXKFCgH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 21:36:07 -0500
+	by vger.kernel.org with ESMTP id S1755258AbXKFCgO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2007 21:36:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: woodzy@gmail.com, chris@zankel.net
+Cc: woodzy@gmail.com, davem@davemloft.net
 
 
 The patch titled
-     arch/xtensa: remove duplicate includes
+     arch/sparc: remove duplicate includes
 has been added to the -mm tree.  Its filename is
-     arch-xtensa-remove-duplicate-includes.patch
+     arch-sparc-remove-duplicate-includes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,64 +25,96 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arch/xtensa: remove duplicate includes
+Subject: arch/sparc: remove duplicate includes
 From: Lucas Woods <woodzy@gmail.com>
 
 Signed-off-by: Lucas Woods <woodzy@gmail.com>
-Cc: Christian Zankel <chris@zankel.net>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/asm-offsets.c   |    1 -
- arch/xtensa/kernel/syscall.c       |    1 -
- arch/xtensa/mm/cache.c             |    1 -
- arch/xtensa/platform-iss/network.c |    1 -
- 4 files changed, 4 deletions(-)
+ arch/sparc/kernel/irq.c           |    1 -
+ arch/sparc64/kernel/ds.c          |    1 -
+ arch/sparc64/kernel/module.c      |    1 -
+ arch/sparc64/kernel/sys_sparc32.c |    1 -
+ arch/sparc64/kernel/sys_sunos32.c |    1 -
+ arch/sparc64/kernel/time.c        |    2 --
+ 6 files changed, 7 deletions(-)
 
-diff -puN arch/xtensa/kernel/asm-offsets.c~arch-xtensa-remove-duplicate-includes arch/xtensa/kernel/asm-offsets.c
---- a/arch/xtensa/kernel/asm-offsets.c~arch-xtensa-remove-duplicate-includes
-+++ a/arch/xtensa/kernel/asm-offsets.c
-@@ -21,7 +21,6 @@
+diff -puN arch/sparc/kernel/irq.c~arch-sparc-remove-duplicate-includes arch/sparc/kernel/irq.c
+--- a/arch/sparc/kernel/irq.c~arch-sparc-remove-duplicate-includes
++++ a/arch/sparc/kernel/irq.c
+@@ -18,7 +18,6 @@
+ #include <linux/linkage.h>
+ #include <linux/kernel_stat.h>
+ #include <linux/signal.h>
+-#include <linux/sched.h>
+ #include <linux/interrupt.h>
+ #include <linux/slab.h>
+ #include <linux/random.h>
+diff -puN arch/sparc64/kernel/ds.c~arch-sparc-remove-duplicate-includes arch/sparc64/kernel/ds.c
+--- a/arch/sparc64/kernel/ds.c~arch-sparc-remove-duplicate-includes
++++ a/arch/sparc64/kernel/ds.c
+@@ -6,7 +6,6 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/types.h>
+-#include <linux/module.h>
+ #include <linux/string.h>
+ #include <linux/slab.h>
+ #include <linux/sched.h>
+diff -puN arch/sparc64/kernel/module.c~arch-sparc-remove-duplicate-includes arch/sparc64/kernel/module.c
+--- a/arch/sparc64/kernel/module.c~arch-sparc-remove-duplicate-includes
++++ a/arch/sparc64/kernel/module.c
+@@ -11,7 +11,6 @@
+ #include <linux/fs.h>
+ #include <linux/string.h>
+ #include <linux/slab.h>
+-#include <linux/vmalloc.h>
  #include <linux/mm.h>
  
- #include <asm/ptrace.h>
--#include <asm/processor.h>
+ #include <asm/processor.h>
+diff -puN arch/sparc64/kernel/sys_sparc32.c~arch-sparc-remove-duplicate-includes arch/sparc64/kernel/sys_sparc32.c
+--- a/arch/sparc64/kernel/sys_sparc32.c~arch-sparc-remove-duplicate-includes
++++ a/arch/sparc64/kernel/sys_sparc32.c
+@@ -51,7 +51,6 @@
+ #include <linux/vfs.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/ptrace.h>
+-#include <linux/highuid.h>
+ 
+ #include <asm/types.h>
  #include <asm/uaccess.h>
+diff -puN arch/sparc64/kernel/sys_sunos32.c~arch-sparc-remove-duplicate-includes arch/sparc64/kernel/sys_sunos32.c
+--- a/arch/sparc64/kernel/sys_sunos32.c~arch-sparc-remove-duplicate-includes
++++ a/arch/sparc64/kernel/sys_sunos32.c
+@@ -57,7 +57,6 @@
+ #include <linux/personality.h>
  
- #define DEFINE(sym, val) asm volatile("\n->" #sym " %0 " #val : : "i" (val))
-diff -puN arch/xtensa/kernel/syscall.c~arch-xtensa-remove-duplicate-includes arch/xtensa/kernel/syscall.c
---- a/arch/xtensa/kernel/syscall.c~arch-xtensa-remove-duplicate-includes
-+++ a/arch/xtensa/kernel/syscall.c
-@@ -36,7 +36,6 @@ syscall_t sys_call_table[__NR_syscall_co
- #define __SYSCALL(nr,symbol,nargs) [ nr ] = (syscall_t)symbol,
- #undef _XTENSA_UNISTD_H
- #undef  __KERNEL_SYSCALLS__
--#include <asm/unistd.h>
- };
+ /* For SOCKET_I */
+-#include <linux/socket.h>
+ #include <net/sock.h>
+ #include <net/compat.h>
  
- /*
-diff -puN arch/xtensa/mm/cache.c~arch-xtensa-remove-duplicate-includes arch/xtensa/mm/cache.c
---- a/arch/xtensa/mm/cache.c~arch-xtensa-remove-duplicate-includes
-+++ a/arch/xtensa/mm/cache.c
-@@ -25,7 +25,6 @@
- #include <linux/swap.h>
- #include <linux/pagemap.h>
+diff -puN arch/sparc64/kernel/time.c~arch-sparc-remove-duplicate-includes arch/sparc64/kernel/time.c
+--- a/arch/sparc64/kernel/time.c~arch-sparc-remove-duplicate-includes
++++ a/arch/sparc64/kernel/time.c
+@@ -28,7 +28,6 @@
+ #include <linux/jiffies.h>
+ #include <linux/cpufreq.h>
+ #include <linux/percpu.h>
+-#include <linux/profile.h>
+ #include <linux/miscdevice.h>
+ #include <linux/rtc.h>
+ #include <linux/kernel_stat.h>
+@@ -47,7 +46,6 @@
+ #include <asm/sections.h>
+ #include <asm/cpudata.h>
+ #include <asm/uaccess.h>
+-#include <asm/prom.h>
+ #include <asm/irq_regs.h>
  
--#include <asm/pgtable.h>
- #include <asm/bootparam.h>
- #include <asm/mmu_context.h>
- #include <asm/tlb.h>
-diff -puN arch/xtensa/platform-iss/network.c~arch-xtensa-remove-duplicate-includes arch/xtensa/platform-iss/network.c
---- a/arch/xtensa/platform-iss/network.c~arch-xtensa-remove-duplicate-includes
-+++ a/arch/xtensa/platform-iss/network.c
-@@ -31,7 +31,6 @@
- #include <linux/bootmem.h>
- #include <linux/ethtool.h>
- #include <linux/rtnetlink.h>
--#include <linux/timer.h>
- #include <linux/platform_device.h>
- 
- #include <asm/platform/simcall.h>
+ DEFINE_SPINLOCK(mostek_lock);
 _
 
 Patches currently in -mm which might be from woodzy@gmail.com are
