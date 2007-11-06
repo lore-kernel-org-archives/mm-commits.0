@@ -1,68 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-increment-extent_offset-once-per-loop-interation.patch removed from -mm tree
-Date: Mon, 05 Nov 2007 21:52:35 -0800
-Message-ID: <200711060552.lA65qZwp007333@imap1.linux-foundation.org>
+Subject: - m68knommu-fix-pread-pwrite-defines.patch removed from -mm tree
+Date: Mon, 05 Nov 2007 21:52:41 -0800
+Message-ID: <200711060552.lA65qfOm007352@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54037 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39624 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753769AbXKFFxN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 00:53:13 -0500
+	by vger.kernel.org with ESMTP id S1754804AbXKFFyD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 00:54:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: gerg@snapgear.com, gerg@uclinux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eCryptfs: increment extent_offset once per loop interation
+     m68knommu: fix pread/pwrite defines
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-increment-extent_offset-once-per-loop-interation.patch
+     m68knommu-fix-pread-pwrite-defines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: eCryptfs: increment extent_offset once per loop interation
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: m68knommu: fix pread/pwrite defines
+From: Greg Ungerer <gerg@snapgear.com>
 
-The extent_offset is getting incremented twice per loop iteration through any
-given page.  It should only be getting incremented once.  This bug should only
-impact hosts with >4K page sizes.
+Fix system call defines for system call 180 and 181 to match the underlying
+system call table function entries.  System call 180 calls sys_pread64, and
+181 calls sys_pwrite64, so make the definitions match.
 
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Signed-off-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/crypto.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/asm-m68knommu/unistd.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ecryptfs/crypto.c~ecryptfs-increment-extent_offset-once-per-loop-interation fs/ecryptfs/crypto.c
---- a/fs/ecryptfs/crypto.c~ecryptfs-increment-extent_offset-once-per-loop-interation
-+++ a/fs/ecryptfs/crypto.c
-@@ -504,7 +504,6 @@ int ecryptfs_encrypt_page(struct page *p
- 					"\n", rc);
- 			goto out;
- 		}
--		extent_offset++;
- 	}
- out:
- 	kfree(enc_extent_virt);
-@@ -640,7 +639,6 @@ int ecryptfs_decrypt_page(struct page *p
- 			       "rc = [%d]\n", __FUNCTION__, rc);
- 			goto out;
- 		}
--		extent_offset++;
- 	}
- out:
- 	kfree(enc_extent_virt);
+diff -puN include/asm-m68knommu/unistd.h~m68knommu-fix-pread-pwrite-defines include/asm-m68knommu/unistd.h
+--- a/include/asm-m68knommu/unistd.h~m68knommu-fix-pread-pwrite-defines
++++ a/include/asm-m68knommu/unistd.h
+@@ -185,8 +185,8 @@
+ #define __NR_rt_sigtimedwait	177
+ #define __NR_rt_sigqueueinfo	178
+ #define __NR_rt_sigsuspend	179
+-#define __NR_pread		180
+-#define __NR_pwrite		181
++#define __NR_pread64		180
++#define __NR_pwrite64		181
+ #define __NR_lchown		182
+ #define __NR_getcwd		183
+ #define __NR_capget		184
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from gerg@snapgear.com are
 
 origin.patch
-ecryptfs-cast-page-index-to-loff_t-instead-of-off_t.patch
-git-unionfs.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
-fs-ecryptfs-possible-cleanups.patch
-ecryptfs-track-header-bytes-rather-than-extents.patch
-ecryptfs-set-inode-key-only-once-per-crypto-operation.patch
-d_path-make-d_path-use-a-struct-path.patch
+m68knommu-use-raw-read-write-for-all-register-access-in-coldfire-timer.patch
+m68knommu-use-container_of-to-access-uart-struct-in-coldfire-serial-driver.patch
+m68knommu-cleanup-port-field-access-from-uart-struct-in-coldfire-serial-driver.patch
+m68knommu-use-array_size-in-coldfire-serial-driver.patch
+add-build-support-for-new-coldfire-serial-driver.patch
+add-configure-support-for-new-coldfire-serial-driver.patch
+m68knommu-platform-setup-for-5206-coldfire-uarts.patch
+m68knommu-platform-setup-for-5206e-coldfire-uarts.patch
+m68knommu-platform-setup-for-520x-coldfire-uarts.patch
+m68knommu-platform-setup-for-5249-coldfire-uarts.patch
+m68knommu-platform-setup-for-5272-coldfire-uarts.patch
+m68knommu-remove-vestiges-of-non-existent-disktel.patch
+add-cmpxchg_local-to-m68knommu.patch
