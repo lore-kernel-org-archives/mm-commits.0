@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + agk-dm-dm-ioctl-move-compat-code-fix.patch added to -mm tree
-Date: Tue, 06 Nov 2007 01:36:26 -0800
-Message-ID: <200711060943.lA69hE6K017034@imap1.linux-foundation.org>
+Subject: + wd7000-broke.patch added to -mm tree
+Date: Tue, 06 Nov 2007 01:57:49 -0800
+Message-ID: <200711061004.lA6A4b05017741@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33844 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55836 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751000AbXKFJn6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 04:43:58 -0500
+	by vger.kernel.org with ESMTP id S1751320AbXKFKFY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2007 05:05:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, agk@redhat.com
+Cc: akpm@linux-foundation.org, James.Bottomley@steeleye.com, jens.axboe@oracle.com
 
 
 The patch titled
-     agk-dm-dm-ioctl-move-compat-code fix
+     wd7000-broke
 has been added to the -mm tree.  Its filename is
-     agk-dm-dm-ioctl-move-compat-code-fix.patch
+     wd7000-broke.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,35 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: agk-dm-dm-ioctl-move-compat-code fix
+Subject: wd7000-broke
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/md/dm-ioctl.c: In function 'dm_compat_ctl_ioctl':
-drivers/md/dm-ioctl.c:1479: warning: passing argument 1 of 'dm_ctl_ioctl' makes pointer from integer without a cast
-drivers/md/dm-ioctl.c:1479: warning: passing argument 2 of 'dm_ctl_ioctl' makes integer from pointer without a cast
-drivers/md/dm-ioctl.c:1479: error: too few arguments to function 'dm_ctl_ioctl'
+drivers/scsi/wd7000.c: In function 'wd7000_queuecommand':                       drivers/scsi/wd7000.c:1130: error: 'struct scatterlist' has no member named 'page'
 
-Something like this - I didn't try very hard:
-
-Cc: Alasdair G Kergon <agk@redhat.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-ioctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/wd7000.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/md/dm-ioctl.c~agk-dm-dm-ioctl-move-compat-code-fix drivers/md/dm-ioctl.c
---- a/drivers/md/dm-ioctl.c~agk-dm-dm-ioctl-move-compat-code-fix
-+++ a/drivers/md/dm-ioctl.c
-@@ -1476,7 +1476,7 @@ static long dm_ctl_ioctl(struct file *fi
- #ifdef CONFIG_COMPAT
- static long dm_compat_ctl_ioctl(struct file *file, uint command, ulong u)
- {
--	return (long)dm_ctl_ioctl(command, compat_ptr(u));
-+	return (long)dm_ctl_ioctl(file, command, u);
- }
- #else
- #define dm_compat_ctl_ioctl NULL
+diff -puN drivers/scsi/wd7000.c~wd7000-broke drivers/scsi/wd7000.c
+--- a/drivers/scsi/wd7000.c~wd7000-broke
++++ a/drivers/scsi/wd7000.c
+@@ -1127,7 +1127,8 @@ static int wd7000_queuecommand(struct sc
+ 		scb->op = 0;
+ 		if (nseg) {
+ 			struct scatterlist *sg = scsi_sglist(SCpnt);
+-			any2scsi(scb->dataptr, isa_page_to_bus(sg->page) + sg->offset);
++			any2scsi(scb->dataptr,
++				isa_page_to_bus(sg_page(sg)) + sg->offset);
+ 		}
+ 		any2scsi(scb->maxlen, scsi_bufflen(SCpnt));
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -184,7 +181,7 @@ d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
 use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
 make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
-jens-broke-reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
 page-owner-tracking-leak-detector.patch
 nr_blockdev_pages-in_interrupt-warning.patch
 slab-leaks3-default-y.patch
