@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch added to -mm tree
-Date: Wed, 07 Nov 2007 11:07:07 -0800
-Message-ID: <200711071907.lA7J78Ag023391@imap1.linux-foundation.org>
+Subject: + uml-allow-lflags-on-command-line.patch added to -mm tree
+Date: Wed, 07 Nov 2007 11:10:10 -0800
+Message-ID: <200711071910.lA7JACwO023526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55438 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56352 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753021AbXKGTHO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Nov 2007 14:07:14 -0500
+	by vger.kernel.org with ESMTP id S1751267AbXKGTKS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Nov 2007 14:10:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     dcache: use the correct variable.
+     uml: allow LFLAGS on command line
 has been added to the -mm tree.  Its filename is
-     dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
+     uml-allow-lflags-on-command-line.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,83 +25,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dcache: use the correct variable.
-From: Christoph Lameter <clameter@sgi.com>
+Subject: uml: allow LFLAGS on command line
+From: Jeff Dike <jdike@addtoit.com>
 
-We need to use "loop" instead of "dentry"
+Allow LFLAGS to be given to make and have the expected effect.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/um/Makefile |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/dcache.c~dentries-extract-common-code-to-remove-dentry-from-lru-fix fs/dcache.c
---- a/fs/dcache.c~dentries-extract-common-code-to-remove-dentry-from-lru-fix
-+++ a/fs/dcache.c
-@@ -606,7 +606,7 @@ static void shrink_dcache_for_umount_sub
- 			spin_lock(&dcache_lock);
- 			list_for_each_entry(loop, &dentry->d_subdirs,
- 					    d_u.d_child) {
--				dentry_lru_remove(dentry);
-+				dentry_lru_remove(loop);
- 				__d_drop(loop);
- 				cond_resched_lock(&dcache_lock);
- 			}
+diff -puN arch/um/Makefile~uml-allow-lflags-on-command-line arch/um/Makefile
+--- a/arch/um/Makefile~uml-allow-lflags-on-command-line
++++ a/arch/um/Makefile
+@@ -130,7 +130,9 @@ CPPFLAGS_vmlinux.lds = -U$(SUBARCH) -DST
+ # The wrappers will select whether using "malloc" or the kernel allocator.
+ LINK_WRAPS = -Wl,--wrap,malloc -Wl,--wrap,free -Wl,--wrap,calloc
+ 
+-CFLAGS_vmlinux := $(LINK-y) $(LINK_WRAPS)
++LD_FLAGS_CMDLINE = $(foreach opt,$(LFLAGS),-Wl,$(opt))
++
++CFLAGS_vmlinux := $(LINK-y) $(LINK_WRAPS) $(LD_FLAGS_CMDLINE)
+ define cmd_vmlinux__
+ 	$(CC) $(CFLAGS_vmlinux) -o $@ \
+ 	-Wl,-T,$(vmlinux-lds) $(vmlinux-init) \
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
 origin.patch
-migration-find-correct-vma-in-new_vma_page.patch
-ia64-slim-down-__clear_bit_unlock.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-mem-policy-fix-mempolicy-usage-in-pci-driver.patch
-git-unionfs.patch
-git-x86.patch
-fix-mm-utilckrealloc.patch
-vmstat-fix-section-mismatch-warning.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-move-vmalloc_to_page-to-mm-vmalloc.patch
-vmalloc-add-const-to-void-parameters.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
-vmalloc-clean-up-page-array-indexing.patch
-vunmap-return-page-array-passed-on-vmap.patch
-slub-move-count_partial.patch
-slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
-slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
-slub-use-non-atomic-bit-unlock.patch
-slub-fix-coding-style-violations.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch
-slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path.patch
-slub-__slab_alloc-exit-path-consolidation.patch
-slub-provide-unique-end-marker-for-each-slab.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc.patch
-slub-optional-fast-path-using-cmpxchg_local.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-restructure-slab-alloc.patch
-slub-comment-kmem_cache_cpu-structure.patch
-vm-allow-get_page_unless_zero-on-compound-pages.patch
-bufferhead-revert-constructor-removal.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-swapin_readahead-excise-numa-bogosity.patch
-revoke-core-code.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-dentries-extract-common-code-to-remove-dentry-from-lru.patch
-dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+git-kvm.patch
+uml-fix-spurious-irq-testing.patch
+uml-remove-last-include-of-libc-asm-pageh.patch
+uml-fix-build-for-config_tcp.patch
+uml-fix-build-for-config_printk.patch
+uml-implement-get_wchan.patch
+uml-implement-get_wchan-fix.patch
+uml-get-rid-of-asmlinkage.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-document-new-ubd-flag.patch
+uml-further-bugsc-tidying.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+uml-smp-needs-to-depend-on-broken-for-now.patch
+uml-console-driver-cleanups.patch
+uml-clonec-tidying.patch
+uml-borrow-consth-techniques.patch
+uml-delete-some-unused-headers.patch
+uml-allow-lflags-on-command-line.patch
+uml-tidy-kern_utilh.patch
+uml-tidy-pgtableh.patch
+uml-reconst-a-parameter.patch
+arch-um-remove-duplicate-includes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
