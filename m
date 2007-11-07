@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + x86-disable-preemption-in-delay_tsc.patch added to -mm tree
-Date: Wed, 07 Nov 2007 15:34:34 -0800
-Message-ID: <200711072334.lA7NYae6001211@imap1.linux-foundation.org>
+Date: Wed, 07 Nov 2007 15:38:51 -0800
+Message-ID: <200711072338.lA7Ncrj8001371@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56075 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57489 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753463AbXKGXgj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Nov 2007 18:36:39 -0500
+	by vger.kernel.org with ESMTP id S1752460AbXKGXk3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Nov 2007 18:40:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -43,7 +43,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  arch/x86/lib/delay_32.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/x86/lib/delay_64.c |   11 +++++++----
+ 2 files changed, 10 insertions(+), 4 deletions(-)
 
 diff -puN arch/x86/lib/delay_32.c~x86-disable-preemption-in-delay_tsc arch/x86/lib/delay_32.c
 --- a/arch/x86/lib/delay_32.c~x86-disable-preemption-in-delay_tsc
@@ -70,6 +71,39 @@ diff -puN arch/x86/lib/delay_32.c~x86-disable-preemption-in-delay_tsc arch/x86/l
  }
  
  /*
+diff -puN arch/x86/lib/delay_64.c~x86-disable-preemption-in-delay_tsc arch/x86/lib/delay_64.c
+--- a/arch/x86/lib/delay_64.c~x86-disable-preemption-in-delay_tsc
++++ a/arch/x86/lib/delay_64.c
+@@ -10,7 +10,9 @@
+ 
+ #include <linux/module.h>
+ #include <linux/sched.h>
++#include <linux/preempt.h>
+ #include <linux/delay.h>
++
+ #include <asm/delay.h>
+ #include <asm/msr.h>
+ 
+@@ -27,14 +29,15 @@ int read_current_timer(unsigned long *ti
+ void __delay(unsigned long loops)
+ {
+ 	unsigned bclock, now;
+-	
++
++	preempt_disable();		/* TSC's are pre-cpu */
+ 	rdtscl(bclock);
+-	do
+-	{
++	do {
+ 		rep_nop(); 
+ 		rdtscl(now);
+ 	}
+-	while((now-bclock) < loops);
++	while ((now-bclock) < loops);
++	preempt_enable();
+ }
+ EXPORT_SYMBOL(__delay);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
