@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-disable-preemption-in-delay_tsc.patch added to -mm tree
-Date: Wed, 07 Nov 2007 15:38:51 -0800
-Message-ID: <200711072338.lA7Ncrj8001371@imap1.linux-foundation.org>
+Subject: + read_current_time-cleanups.patch added to -mm tree
+Date: Wed, 07 Nov 2007 15:56:17 -0800
+Message-ID: <200711072356.lA7NuJZk002032@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57489 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51021 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752460AbXKGXk3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Nov 2007 18:40:29 -0500
+	by vger.kernel.org with ESMTP id S1751107AbXKGX5Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Nov 2007 18:57:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, mingo@elte.hu, mitov@issp.bas.bg, stable@kernel.org, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, ak@suse.de, davem@davemloft.net, hskinnemoen@atmel.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     x86: disable preemption in delay_tsc()
+     read_current_time() cleanups
 has been added to the -mm tree.  Its filename is
-     x86-disable-preemption-in-delay_tsc.patch
+     read_current_time-cleanups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,85 +25,182 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86: disable preemption in delay_tsc()
+Subject: read_current_time() cleanups
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Marin Mitov points out that delay_tsc() can misbehave if it is preempted and
-rescheduled on a different CPU which has a skewed TSC.  Fix it by disabling
-preemption.
+- All implementations can be __devinit
 
-(I assume that the worst-case behaviour here is a stall of 2^32 cycles)
+- The function prototypes were in asm/timex.h but they all must be the same,
+  so create a single declaration in linux/times.h.
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: Marin Mitov <mitov@issp.bas.bg>
+- uninline the sparc64 version to match the other architectures
+
+- Don't bother #defining ARCH_HAS_READ_CURRENT_TIMER to a particular value.
+
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: <stable@kernel.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/lib/delay_32.c |    3 +++
- arch/x86/lib/delay_64.c |   11 +++++++----
- 2 files changed, 10 insertions(+), 4 deletions(-)
+ arch/avr32/lib/delay.c      |    4 +++-
+ arch/sparc64/kernel/time.c  |    5 +++++
+ arch/x86/lib/delay_32.c     |    4 +++-
+ arch/x86/lib/delay_64.c     |    4 +++-
+ include/asm-avr32/timex.h   |    3 +--
+ include/asm-sparc64/timex.h |    6 +-----
+ include/asm-x86/timex.h     |    3 +--
+ include/linux/timex.h       |    2 ++
+ init/calibrate.c            |    3 +--
+ 9 files changed, 20 insertions(+), 14 deletions(-)
 
-diff -puN arch/x86/lib/delay_32.c~x86-disable-preemption-in-delay_tsc arch/x86/lib/delay_32.c
---- a/arch/x86/lib/delay_32.c~x86-disable-preemption-in-delay_tsc
-+++ a/arch/x86/lib/delay_32.c
-@@ -12,6 +12,7 @@
+diff -puN arch/avr32/lib/delay.c~read_current_time-cleanups arch/avr32/lib/delay.c
+--- a/arch/avr32/lib/delay.c~read_current_time-cleanups
++++ a/arch/avr32/lib/delay.c
+@@ -12,13 +12,15 @@
  
- #include <linux/module.h>
- #include <linux/sched.h>
-+#include <linux/preempt.h>
  #include <linux/delay.h>
+ #include <linux/module.h>
++#include <linux/timex.h>
+ #include <linux/param.h>
+ #include <linux/types.h>
++#include <linux/init.h>
  
  #include <asm/processor.h>
-@@ -42,11 +43,13 @@ static void delay_tsc(unsigned long loop
- {
- 	unsigned long bclock, now;
+ #include <asm/sysreg.h>
  
-+	preempt_disable();		/* TSC's are per-cpu */
- 	rdtscl(bclock);
- 	do {
- 		rep_nop();
- 		rdtscl(now);
- 	} while ((now-bclock) < loops);
-+	preempt_enable();
+-int read_current_timer(unsigned long *timer_value)
++int __devinit read_current_timer(unsigned long *timer_value)
+ {
+ 	*timer_value = sysreg_read(COUNT);
+ 	return 0;
+diff -puN arch/sparc64/kernel/time.c~read_current_time-cleanups arch/sparc64/kernel/time.c
+--- a/arch/sparc64/kernel/time.c~read_current_time-cleanups
++++ a/arch/sparc64/kernel/time.c
+@@ -1707,6 +1707,11 @@ static void __exit rtc_mini_exit(void)
+ 	misc_deregister(&rtc_mini_dev);
  }
  
- /*
-diff -puN arch/x86/lib/delay_64.c~x86-disable-preemption-in-delay_tsc arch/x86/lib/delay_64.c
---- a/arch/x86/lib/delay_64.c~x86-disable-preemption-in-delay_tsc
-+++ a/arch/x86/lib/delay_64.c
-@@ -10,7 +10,9 @@
++int __devinit read_current_timer(unsigned long *timer_val)
++{
++	*timer_val = tick_ops->get_tick();
++	return 0;
++}
+ 
+ module_init(rtc_mini_init);
+ module_exit(rtc_mini_exit);
+diff -puN arch/x86/lib/delay_32.c~read_current_time-cleanups arch/x86/lib/delay_32.c
+--- a/arch/x86/lib/delay_32.c~read_current_time-cleanups
++++ a/arch/x86/lib/delay_32.c
+@@ -12,8 +12,10 @@
  
  #include <linux/module.h>
  #include <linux/sched.h>
-+#include <linux/preempt.h>
++#include <linux/timex.h>
+ #include <linux/preempt.h>
  #include <linux/delay.h>
-+
++#include <linux/init.h>
+ 
+ #include <asm/processor.h>
+ #include <asm/delay.h>
+@@ -63,7 +65,7 @@ void use_tsc_delay(void)
+ 	delay_fn = delay_tsc;
+ }
+ 
+-int read_current_timer(unsigned long *timer_val)
++int __devinit read_current_timer(unsigned long *timer_val)
+ {
+ 	if (delay_fn == delay_tsc) {
+ 		rdtscl(*timer_val);
+diff -puN arch/x86/lib/delay_64.c~read_current_time-cleanups arch/x86/lib/delay_64.c
+--- a/arch/x86/lib/delay_64.c~read_current_time-cleanups
++++ a/arch/x86/lib/delay_64.c
+@@ -10,8 +10,10 @@
+ 
+ #include <linux/module.h>
+ #include <linux/sched.h>
++#include <linux/timex.h>
+ #include <linux/preempt.h>
+ #include <linux/delay.h>
++#include <linux/init.h>
+ 
  #include <asm/delay.h>
  #include <asm/msr.h>
+@@ -20,7 +22,7 @@
+ #include <asm/smp.h>
+ #endif
  
-@@ -27,14 +29,15 @@ int read_current_timer(unsigned long *ti
- void __delay(unsigned long loops)
+-int read_current_timer(unsigned long *timer_value)
++int __devinit read_current_timer(unsigned long *timer_value)
  {
- 	unsigned bclock, now;
--	
-+
-+	preempt_disable();		/* TSC's are pre-cpu */
- 	rdtscl(bclock);
--	do
--	{
-+	do {
- 		rep_nop(); 
- 		rdtscl(now);
- 	}
--	while((now-bclock) < loops);
-+	while ((now-bclock) < loops);
-+	preempt_enable();
+ 	rdtscll(*timer_value);
+ 	return 0;
+diff -puN include/asm-avr32/timex.h~read_current_time-cleanups include/asm-avr32/timex.h
+--- a/include/asm-avr32/timex.h~read_current_time-cleanups
++++ a/include/asm-avr32/timex.h
+@@ -34,7 +34,6 @@ static inline cycles_t get_cycles (void)
+ 	return 0;
  }
- EXPORT_SYMBOL(__delay);
  
+-extern int read_current_timer(unsigned long *timer_value);
+-#define ARCH_HAS_READ_CURRENT_TIMER	1
++#define ARCH_HAS_READ_CURRENT_TIMER
+ 
+ #endif /* __ASM_AVR32_TIMEX_H */
+diff -puN include/asm-sparc64/timex.h~read_current_time-cleanups include/asm-sparc64/timex.h
+--- a/include/asm-sparc64/timex.h~read_current_time-cleanups
++++ a/include/asm-sparc64/timex.h
+@@ -14,10 +14,6 @@
+ typedef unsigned long cycles_t;
+ #define get_cycles()	tick_ops->get_tick()
+ 
+-#define ARCH_HAS_READ_CURRENT_TIMER	1
+-#define read_current_timer(timer_val_p) 	\
+-({	*timer_val_p = tick_ops->get_tick();	\
+-	0;					\
+-})
++#define ARCH_HAS_READ_CURRENT_TIMER
+ 
+ #endif
+diff -puN include/asm-x86/timex.h~read_current_time-cleanups include/asm-x86/timex.h
+--- a/include/asm-x86/timex.h~read_current_time-cleanups
++++ a/include/asm-x86/timex.h
+@@ -14,7 +14,6 @@
+ #endif
+ #define CLOCK_TICK_RATE	PIT_TICK_RATE
+ 
+-extern int read_current_timer(unsigned long *timer_value);
+-#define ARCH_HAS_READ_CURRENT_TIMER	1
++#define ARCH_HAS_READ_CURRENT_TIMER
+ 
+ #endif
+diff -puN include/linux/timex.h~read_current_time-cleanups include/linux/timex.h
+--- a/include/linux/timex.h~read_current_time-cleanups
++++ a/include/linux/timex.h
+@@ -243,6 +243,8 @@ extern int do_adjtimex(struct timex *);
+ /* Don't use! Compatibility define for existing users. */
+ #define tickadj	(500/HZ ? : 1)
+ 
++int __devinit read_current_timer(unsigned long *timer_val);
++
+ #endif /* KERNEL */
+ 
+ #endif /* LINUX_TIMEX_H */
+diff -puN init/calibrate.c~read_current_time-cleanups init/calibrate.c
+--- a/init/calibrate.c~read_current_time-cleanups
++++ a/init/calibrate.c
+@@ -7,8 +7,7 @@
+ #include <linux/jiffies.h>
+ #include <linux/delay.h>
+ #include <linux/init.h>
+-
+-#include <asm/timex.h>
++#include <linux/timex.h>
+ 
+ unsigned long preset_lpj;
+ static int __init lpj_setup(char *str)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -190,6 +287,7 @@ parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
 remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
 allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
 remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
 sync_sb_inodes-propagate-errors.patch
 64-bit-i_version-afs-fixes.patch
 kill-filp_open-checkpatch-fixes.patch
