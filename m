@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + aacraid-fix-endianness-warnings-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 08 Nov 2007 10:33:18 -0800
-Message-ID: <200711081833.lA8IXIva008548@imap1.linux-foundation.org>
+Subject: + oprofile-revert-i386-make-callgraph-use-dump_trace-on-i386-x86_64.patch added to -mm tree
+Date: Thu, 08 Nov 2007 10:54:31 -0800
+Message-ID: <200711081854.lA8IsVTR009306@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41889 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44500 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761867AbXKHSdo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 13:33:44 -0500
+	by vger.kernel.org with ESMTP id S1762631AbXKHS4F (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 13:56:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hch@infradead.org, hch@lst.de, mark_salyzyn@adaptec.com, sfr@canb.auug.org.au
+Cc: akpm@linux-foundation.org, ak@suse.de, jbeulich@novell.com, mingo@elte.hu, phil.el@wanadoo.fr, robfitz@273k.net, tglx@linutronix.de
 
 
 The patch titled
-     aacraid-fix-endianness-warnings-checkpatch-fixes
+     oprofile: revert "i386: make callgraph use dump_trace() on i386/x86_64"
 has been added to the -mm tree.  Its filename is
-     aacraid-fix-endianness-warnings-checkpatch-fixes.patch
+     oprofile-revert-i386-make-callgraph-use-dump_trace-on-i386-x86_64.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,74 +25,151 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: aacraid-fix-endianness-warnings-checkpatch-fixes
+Subject: oprofile: revert "i386: make callgraph use dump_trace() on i386/x86_64"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#144: FILE: drivers/scsi/aacraid/commsup.c:930:
-+		    (((__le32 *)aifcmd->data)[6] == ((__le32 *)aifcmd->data)[5] ||
+Revert 574a60421c8ea5383a54ebee1f37fa871d00e1b9 - Robert Fitzsimons is
+reporting oopses.
 
-WARNING: line over 80 characters
-#145: FILE: drivers/scsi/aacraid/commsup.c:931:
-+		     ((__le32 *)aifcmd->data)[4] == cpu_to_le32(AifJobStsSuccess))) {
-
-WARNING: line over 80 characters
-#158: FILE: drivers/scsi/aacraid/commsup.c:948:
-+		    ((__le32 *)aifcmd->data)[4] == cpu_to_le32(AifJobStsRunning)) {
-
-ERROR: use tabs not spaces
-#170: FILE: drivers/scsi/aacraid/commsup.c:1342:
-+^I^I ^Iaif->data[0] = AifEnExpEvent;$
-
-ERROR: use tabs not spaces
-#172: FILE: drivers/scsi/aacraid/commsup.c:1344:
-+^I^I ^Iaif->data[2] = AifHighPriority;$
-
-ERROR: "foo * bar" should be "foo *bar"
-#210: FILE: drivers/scsi/aacraid/dpcsup.c:232:
-+unsigned int aac_intr_normal(struct aac_dev * dev, u32 index)
-
-total: 3 errors, 3 warnings, 201 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Salyzyn, Mark" <mark_salyzyn@adaptec.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Robert Fitzsimons <robfitz@273k.net>
+Cc: Jan Beulich <jbeulich@novell.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Philippe Elie <phil.el@wanadoo.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aacraid/commsup.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/x86/oprofile/backtrace.c |   97 ++++++++++++++++++++------------
+ 1 file changed, 61 insertions(+), 36 deletions(-)
 
-diff -puN drivers/scsi/aacraid/commsup.c~aacraid-fix-endianness-warnings-checkpatch-fixes drivers/scsi/aacraid/commsup.c
---- a/drivers/scsi/aacraid/commsup.c~aacraid-fix-endianness-warnings-checkpatch-fixes
-+++ a/drivers/scsi/aacraid/commsup.c
-@@ -228,7 +228,7 @@ void aac_fib_init(struct fib *fibptr)
-  *	caller.
-  */
-  
--static void fib_dealloc(struct fib * fibptr)
-+static void fib_dealloc(struct fib *fibptr)
- {
- 	struct hw_fib *hw_fib = fibptr->hw_fib_va;
- 	BUG_ON(hw_fib->header.StructType != FIB_MAGIC);
-@@ -1339,9 +1339,9 @@ int aac_check_health(struct aac_dev * aa
- 			aif = (struct aac_aifcmd *)hw_fib->data;
- 			aif->command = cpu_to_le32(AifCmdEventNotify);
- 		 	aif->seqnum = cpu_to_le32(0xFFFFFFFF);
--		 	aif->data[0] = AifEnExpEvent;
-+			aif->data[0] = AifEnExpEvent;
- 			aif->data[1] = AifExeFirmwarePanic;
--		 	aif->data[2] = AifHighPriority;
-+			aif->data[2] = AifHighPriority;
- 			aif->data[3] = BlinkLED;
+diff -puN arch/x86/oprofile/backtrace.c~oprofile-revert-i386-make-callgraph-use-dump_trace-on-i386-x86_64 arch/x86/oprofile/backtrace.c
+--- a/arch/x86/oprofile/backtrace.c~oprofile-revert-i386-make-callgraph-use-dump_trace-on-i386-x86_64
++++ a/arch/x86/oprofile/backtrace.c
+@@ -13,45 +13,25 @@
+ #include <linux/mm.h>
+ #include <asm/ptrace.h>
+ #include <asm/uaccess.h>
+-#include <asm/stacktrace.h>
  
- 			/*
+-static void backtrace_warning_symbol(void *data, char *msg,
+-				     unsigned long symbol)
+-{
+-	/* Ignore warnings */
+-}
+-
+-static void backtrace_warning(void *data, char *msg)
+-{
+-	/* Ignore warnings */
+-}
++struct frame_head {
++	struct frame_head * ebp;
++	unsigned long ret;
++} __attribute__((packed));
+ 
+-static int backtrace_stack(void *data, char *name)
++static struct frame_head *
++dump_kernel_backtrace(struct frame_head * head)
+ {
+-	/* Yes, we want all stacks */
+-	return 0;
+-}
++	oprofile_add_trace(head->ret);
+ 
+-static void backtrace_address(void *data, unsigned long addr)
+-{
+-	unsigned int *depth = data;
++	/* frame pointers should strictly progress back up the stack
++	 * (towards higher addresses) */
++	if (head >= head->ebp)
++		return NULL;
+ 
+-	if ((*depth)--)
+-		oprofile_add_trace(addr);
++	return head->ebp;
+ }
+ 
+-static struct stacktrace_ops backtrace_ops = {
+-	.warning = backtrace_warning,
+-	.warning_symbol = backtrace_warning_symbol,
+-	.stack = backtrace_stack,
+-	.address = backtrace_address,
+-};
+-
+-struct frame_head {
+-	struct frame_head *ebp;
+-	unsigned long ret;
+-} __attribute__((packed));
+-
+ static struct frame_head *
+ dump_user_backtrace(struct frame_head * head)
+ {
+@@ -73,16 +53,61 @@ dump_user_backtrace(struct frame_head * 
+ 	return bufhead[0].ebp;
+ }
+ 
++/*
++ * |             | /\ Higher addresses
++ * |             |
++ * --------------- stack base (address of current_thread_info)
++ * | thread info |
++ * .             .
++ * |    stack    |
++ * --------------- saved regs->ebp value if valid (frame_head address)
++ * .             .
++ * --------------- saved regs->rsp value if x86_64
++ * |             |
++ * --------------- struct pt_regs * stored on stack if 32-bit
++ * |             |
++ * .             .
++ * |             |
++ * --------------- %esp
++ * |             |
++ * |             | \/ Lower addresses
++ *
++ * Thus, regs (or regs->rsp for x86_64) <-> stack base restricts the
++ * valid(ish) ebp values. Note: (1) for x86_64, NMI and several other
++ * exceptions use special stacks, maintained by the interrupt stack table
++ * (IST). These stacks are set up in trap_init() in
++ * arch/x86_64/kernel/traps.c. Thus, for x86_64, regs now does not point
++ * to the kernel stack; instead, it points to some location on the NMI
++ * stack. On the other hand, regs->rsp is the stack pointer saved when the
++ * NMI occurred. (2) For 32-bit, regs->esp is not valid because the
++ * processor does not save %esp on the kernel stack when interrupts occur
++ * in the kernel mode.
++ */
++#ifdef CONFIG_FRAME_POINTER
++static int valid_kernel_stack(struct frame_head *head, struct pt_regs *regs)
++{
++	unsigned long headaddr = (unsigned long)head;
++	unsigned long stack = stack_pointer(regs);
++	unsigned long stack_base = (stack & ~(THREAD_SIZE - 1)) + THREAD_SIZE;
++
++	return headaddr > stack && headaddr < stack_base;
++}
++#else
++/* without fp, it's just junk */
++static int valid_kernel_stack(struct frame_head *head, struct pt_regs *regs)
++{
++	return 0;
++}
++#endif
++
+ void
+ x86_backtrace(struct pt_regs * const regs, unsigned int depth)
+ {
+ 	struct frame_head *head = (struct frame_head *)frame_pointer(regs);
+-	unsigned long stack = stack_pointer(regs);
+ 
+ 	if (!user_mode_vm(regs)) {
+-		if (depth)
+-			dump_trace(NULL, regs, (unsigned long *)stack,
+-				   &backtrace_ops, &depth);
++		while (depth-- && valid_kernel_stack(head, regs))
++			head = dump_kernel_backtrace(head);
+ 		return;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -100,6 +177,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
 acpi-make-acpi_procfs-default-to-y.patch
+oprofile-revert-i386-make-callgraph-use-dump_trace-on-i386-x86_64.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
 acpi-add-reboot-mechanism.patch
 small-acpica-extension-to-be-able-to-store-the-name-of-fix.patch
