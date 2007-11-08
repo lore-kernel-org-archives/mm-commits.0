@@ -1,94 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: + libata-dont-fail-ata-device-revalidation-for-bad-_gtf-methods.patch added to -mm tree
-Date: Thu, 08 Nov 2007 11:04:40 -0800
-Message-ID: <200711081904.lA8J4ew6009781@imap1.linux-foundation.org>
+Subject: - blackfin-remove-dead-config-symbol-from-blackfin-code.patch removed from -mm tree
+Date: Thu, 08 Nov 2007 11:09:59 -0800
+Message-ID: <200711081910.lA8J9xmP009949@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44301 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56618 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761481AbXKHTEr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 14:04:47 -0500
+	by vger.kernel.org with ESMTP id S1758714AbXKHTKJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 14:10:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mjg59@srcf.ucam.org
+To: olsajiri@gmail.com, bryan.wu@analog.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: don't fail ata device revalidation for bad _GTF methods
-has been added to the -mm tree.  Its filename is
-     libata-dont-fail-ata-device-revalidation-for-bad-_gtf-methods.patch
+     blackfin: remove dead config symbol from BLACKFIN code
+has been removed from the -mm tree.  Its filename was
+     blackfin-remove-dead-config-symbol-from-blackfin-code.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-Subject: libata: don't fail ata device revalidation for bad _GTF methods
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: blackfin: remove dead config symbol from BLACKFIN code
+From: Jiri Olsa <olsajiri@gmail.com>
 
-Experience suggests that the _GTF method may be bad.  We currently fail
-device revalidation in that case, which seems excessive.
+Remove dead config symbols from BLACKFIN code.
 
-Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
+Signed-off-by: Jiri Olsa <olsajiri@gmail.com>
+Cc: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-acpi.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ include/asm-blackfin/mach-bf527/mem_init.h |    9 +--------
+ include/asm-blackfin/mach-bf537/mem_init.h |    9 +--------
+ 2 files changed, 2 insertions(+), 16 deletions(-)
 
-diff -puN drivers/ata/libata-acpi.c~libata-dont-fail-ata-device-revalidation-for-bad-_gtf-methods drivers/ata/libata-acpi.c
---- a/drivers/ata/libata-acpi.c~libata-dont-fail-ata-device-revalidation-for-bad-_gtf-methods
-+++ a/drivers/ata/libata-acpi.c
-@@ -312,7 +312,7 @@ EXPORT_SYMBOL_GPL(ata_acpi_stm);
-  *
-  * RETURNS:
-  * Number of taskfiles on success, 0 if _GTF doesn't exist or doesn't
-- * contain valid data.  -errno on other errors.
-+ * contain valid data.
+diff -puN include/asm-blackfin/mach-bf527/mem_init.h~blackfin-remove-dead-config-symbol-from-blackfin-code include/asm-blackfin/mach-bf527/mem_init.h
+--- a/include/asm-blackfin/mach-bf527/mem_init.h~blackfin-remove-dead-config-symbol-from-blackfin-code
++++ a/include/asm-blackfin/mach-bf527/mem_init.h
+@@ -29,7 +29,7 @@
+  * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
   */
- static int ata_dev_get_GTF(struct ata_device *dev, struct ata_acpi_gtf **gtf,
- 			   void **ptr_to_free)
-@@ -339,7 +339,6 @@ static int ata_dev_get_GTF(struct ata_de
- 			ata_dev_printk(dev, KERN_WARNING,
- 				       "_GTF evaluation failed (AE 0x%x)\n",
- 				       status);
--			rc = -EIO;
- 		}
- 		goto out_free;
- 	}
-@@ -359,7 +358,6 @@ static int ata_dev_get_GTF(struct ata_de
- 		ata_dev_printk(dev, KERN_WARNING,
- 			       "_GTF unexpected object type 0x%x\n",
- 			       out_obj->type);
--		rc = -EINVAL;
- 		goto out_free;
- 	}
  
-@@ -367,7 +365,6 @@ static int ata_dev_get_GTF(struct ata_de
- 		ata_dev_printk(dev, KERN_WARNING,
- 			       "unexpected _GTF length (%d)\n",
- 			       out_obj->buffer.length);
--		rc = -EINVAL;
- 		goto out_free;
- 	}
+-#if (CONFIG_MEM_MT48LC16M16A2TG_75 || CONFIG_MEM_MT48LC64M4A2FB_7E || CONFIG_MEM_MT48LC16M8A2TG_75 || CONFIG_MEM_GENERIC_BOARD || CONFIG_MEM_MT48LC32M8A2_75 || CONFIG_MEM_MT48LC32M16A2TG_75)
++#if (CONFIG_MEM_MT48LC16M16A2TG_75 || CONFIG_MEM_MT48LC64M4A2FB_7E || CONFIG_MEM_GENERIC_BOARD || CONFIG_MEM_MT48LC32M8A2_75 || CONFIG_MEM_MT48LC32M16A2TG_75)
+ #if (CONFIG_SCLK_HZ > 119402985)
+ #define SDRAM_tRP       TRP_2
+ #define SDRAM_tRP_num   2
+@@ -111,13 +111,6 @@
+ #define SDRAM_CL    CL_3
+ #endif
  
-@@ -511,10 +508,7 @@ static int ata_acpi_exec_tfs(struct ata_
- 	int gtf_count, i, rc;
+-#if (CONFIG_MEM_MT48LC16M8A2TG_75)
+-  /*SDRAM INFORMATION: */
+-#define SDRAM_Tref  64		/* Refresh period in milliseconds   */
+-#define SDRAM_NRA   4096	/* Number of row addresses in SDRAM */
+-#define SDRAM_CL    CL_3
+-#endif
+-
+ #if (CONFIG_MEM_MT48LC32M8A2_75)
+   /*SDRAM INFORMATION: */
+ #define SDRAM_Tref  64		/* Refresh period in milliseconds   */
+diff -puN include/asm-blackfin/mach-bf537/mem_init.h~blackfin-remove-dead-config-symbol-from-blackfin-code include/asm-blackfin/mach-bf537/mem_init.h
+--- a/include/asm-blackfin/mach-bf537/mem_init.h~blackfin-remove-dead-config-symbol-from-blackfin-code
++++ a/include/asm-blackfin/mach-bf537/mem_init.h
+@@ -29,7 +29,7 @@
+  * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+  */
  
- 	/* get taskfiles */
--	rc = ata_dev_get_GTF(dev, &gtf, &ptr_to_free);
--	if (rc < 0)
--		return rc;
--	gtf_count = rc;
-+	gtf_count = ata_dev_get_GTF(dev, &gtf, &ptr_to_free);
+-#if (CONFIG_MEM_MT48LC16M16A2TG_75 || CONFIG_MEM_MT48LC64M4A2FB_7E || CONFIG_MEM_MT48LC16M8A2TG_75 || CONFIG_MEM_GENERIC_BOARD || CONFIG_MEM_MT48LC32M8A2_75)
++#if (CONFIG_MEM_MT48LC16M16A2TG_75 || CONFIG_MEM_MT48LC64M4A2FB_7E || CONFIG_MEM_GENERIC_BOARD || CONFIG_MEM_MT48LC32M8A2_75)
+ #if (CONFIG_SCLK_HZ > 119402985)
+ #define SDRAM_tRP       TRP_2
+ #define SDRAM_tRP_num   2
+@@ -111,13 +111,6 @@
+ #define SDRAM_CL    CL_3
+ #endif
  
- 	/* execute them */
- 	for (i = 0, rc = 0; i < gtf_count; i++) {
+-#if (CONFIG_MEM_MT48LC16M8A2TG_75)
+-  /*SDRAM INFORMATION: */
+-#define SDRAM_Tref  64		/* Refresh period in milliseconds   */
+-#define SDRAM_NRA   4096	/* Number of row addresses in SDRAM */
+-#define SDRAM_CL    CL_3
+-#endif
+-
+ #if (CONFIG_MEM_MT48LC32M8A2_75)
+   /*SDRAM INFORMATION: */
+ #define SDRAM_Tref  64		/* Refresh period in milliseconds   */
 _
 
-Patches currently in -mm which might be from mjg59@srcf.ucam.org are
+Patches currently in -mm which might be from olsajiri@gmail.com are
 
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-libata-dont-fail-ata-device-revalidation-for-bad-_gtf-methods.patch
+drivers-serial-s3c2410c-remove-dead-config-symbols.patch
+sh-remove-dead-config-symbol-from-sh-code.patch
+frv-remove-dead-config-symbol-from-frv-code.patch
+blackfin-remove-dead-config-symbol-from-blackfin-code.patch
