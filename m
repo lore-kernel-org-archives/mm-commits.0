@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-battery-remove-cycle-from-battery-removal.patch added to -mm tree
-Date: Thu, 08 Nov 2007 10:24:39 -0800
-Message-ID: <200711081824.lA8IOfup008229@imap1.linux-foundation.org>
+Subject: - acpi-battery-remove-cycle-from-battery-removal.patch removed from -mm tree
+Date: Thu, 08 Nov 2007 10:29:31 -0800
+Message-ID: <200711081829.lA8ITV6r008391@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44546 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35988 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760662AbXKHSZQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 13:25:16 -0500
+	by vger.kernel.org with ESMTP id S1760783AbXKHS37 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 13:29:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: astarikovskiy@suse.de, eike-kernel@sf-tec.de, hannes-kernel@saeurebad.de, lenb@kernel.org, rjw@sisk.pl
+To: astarikovskiy@suse.de, eike-kernel@sf-tec.de, hannes-kernel@saeurebad.de, lenb@kernel.org, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
      ACPI: Battery: remove cycle from battery removal
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      acpi-battery-remove-cycle-from-battery-removal.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 Subject: ACPI: Battery: remove cycle from battery removal
