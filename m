@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + get_task_comm-return-the-result.patch added to -mm tree
-Date: Thu, 08 Nov 2007 13:31:17 -0800
-Message-ID: <200711082131.lA8LVIMI015127@imap1.linux-foundation.org>
+Subject: + clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch added to -mm tree
+Date: Thu, 08 Nov 2007 13:56:23 -0800
+Message-ID: <200711082156.lA8LuN4F016271@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42685 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60368 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761176AbXKHVcZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 16:32:25 -0500
+	by vger.kernel.org with ESMTP id S1753433AbXKHV4y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 16:56:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, drepper@redhat.com, mingo@elte.hu, roland@redhat.
 
 
 The patch titled
-     get_task_comm(): return the result
+     clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix
 has been added to the -mm tree.  Its filename is
-     get_task_comm-return-the-result.patch
+     clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,52 +25,37 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: get_task_comm(): return the result
+Subject: clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-It was dumb to make get_task_comm() return void.  Change it to return a
-pointer to the resulting output for caller convenience.
+reduce logspamming ability.
 
-Cc: Ulrich Drepper <drepper@redhat.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Roland McGrath <roland@redhat.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c             |    3 ++-
- include/linux/sched.h |    2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ kernel/fork.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/sched.h~get_task_comm-return-the-result include/linux/sched.h
---- a/include/linux/sched.h~get_task_comm-return-the-result
-+++ a/include/linux/sched.h
-@@ -1692,7 +1692,7 @@ extern long do_fork(unsigned long, unsig
- struct task_struct *fork_idle(int);
+diff -puN kernel/fork.c~clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix kernel/fork.c
+--- a/kernel/fork.c~clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix
++++ a/kernel/fork.c
+@@ -1424,9 +1424,12 @@ long do_fork(unsigned long clone_flags,
+ 	 * We hope to recycle these flags after 2.6.26
+ 	 */
+ 	if (unlikely(clone_flags & (CLONE_DETACHED|CLONE_STOPPED))) {
+-		if (printk_ratelimit()) {
++		static int __read_mostly count = 100;
++
++		if (count && printk_ratelimit()) {
+ 			char comm[TASK_COMM_LEN];
  
- extern void set_task_comm(struct task_struct *tsk, char *from);
--extern void get_task_comm(char *to, struct task_struct *tsk);
-+extern char *get_task_comm(char *to, struct task_struct *tsk);
- 
- #ifdef CONFIG_SMP
- extern void wait_task_inactive(struct task_struct * p);
-diff -puN fs/exec.c~get_task_comm-return-the-result fs/exec.c
---- a/fs/exec.c~get_task_comm-return-the-result
-+++ a/fs/exec.c
-@@ -947,12 +947,13 @@ static void flush_old_files(struct files
- 	spin_unlock(&files->file_lock);
- }
- 
--void get_task_comm(char *buf, struct task_struct *tsk)
-+char *get_task_comm(char *buf, struct task_struct *tsk)
- {
- 	/* buf must be at least sizeof(tsk->comm) in size */
- 	task_lock(tsk);
- 	strncpy(buf, tsk->comm, sizeof(tsk->comm));
- 	task_unlock(tsk);
-+	return buf;
- }
- 
- void set_task_comm(struct task_struct *tsk, char *buf)
++			count--;
+ 			printk(KERN_INFO "fork(): process `%s' used deprecated "
+ 					"clone flags 0x%lx\n",
+ 				get_task_comm(comm, current),
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,6 +66,7 @@ acpi-make-acpi_procfs-default-to-y.patch
 oprofile-revert-i386-make-callgraph-use-dump_trace-on-i386-x86_64.patch
 get_task_comm-return-the-result.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
 acpi-add-reboot-mechanism.patch
 small-acpica-extension-to-be-able-to-store-the-name-of-fix.patch
