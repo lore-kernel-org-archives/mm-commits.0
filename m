@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + read_current_time-cleanups.patch added to -mm tree
-Date: Wed, 07 Nov 2007 15:56:17 -0800
-Message-ID: <200711072356.lA7NuJZk002032@imap1.linux-foundation.org>
+Subject: + sys_times-fix-return-values.patch added to -mm tree
+Date: Wed, 07 Nov 2007 16:19:06 -0800
+Message-ID: <200711080019.lA80J80s002814@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51021 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33176 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751107AbXKGX5Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Nov 2007 18:57:25 -0500
+	by vger.kernel.org with ESMTP id S1759713AbXKHAUG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Nov 2007 19:20:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, davem@davemloft.net, hskinnemoen@atmel.com, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, drepper@redhat.com, lkml@davidb.org, mtk-manpages@gmx.net
 
 
 The patch titled
-     read_current_time() cleanups
+     sys_times() fix return values
 has been added to the -mm tree.  Its filename is
-     read_current_time-cleanups.patch
+     sys_times-fix-return-values.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,182 +25,83 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: read_current_time() cleanups
+Subject: sys_times() fix return values
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- All implementations can be __devinit
+David Brown points out that compat_sys_times() (and sys_times()) can return
+arbitrary 32-bit (or 64-bit values).  If these happen to be negative (jiffy
+wrap, or before INITIAL_JIFFIES) then libc will interpret this as an error and
+will return -1 to the libc user and will set errno.
 
-- The function prototypes were in asm/timex.h but they all must be the same,
-  so create a single declaration in linux/times.h.
+The manpage for times(2) says:
 
-- uninline the sparc64 version to match the other architectures
+       times()  returns  the  number of clock ticks that have elapsed since an
+       arbitrary point in the past.  For Linux 2.4 and earlier this  point  is
+       the  moment  the  system  was  booted.   Since Linux 2.6, this point is
+       (2^32/HZ) - 300 (i.e., about 429 million) seconds  before  system  boot
+       time.   The  return  value  may  overflow  the  possible  range of type
+       clock_t.  On error, (clock_t) -1 is returned, and errno is  set  appro-
+       priately.
 
-- Don't bother #defining ARCH_HAS_READ_CURRENT_TIMER to a particular value.
+We can fix this by masking the return value down to a 31-bit (63-bit) value.
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <ak@suse.de>
+Also, let's correct for INTIAL_JIFFIES - this isn't a detail which should be
+exposed to userspace.
+
+Unfortunately this change can break userspace.  If a program was (correctly)
+doing:
+
+	unsigned long start = times(...);
+	...
+	unsigned long end = times(...);
+	unsigned long delta = end - start;
+
+then `delta' can be grossly wrong if we wrapped in the interval.  Instead
+userspace will need to mask `delta' by 0x7fffffff (0x7fffffffffffffff) to get
+the correct number.
+
+But userspace was already busted in the presence of wraparound, due to glibc's
+convert-to-negative-one behaviour.
+
+Given all this stuff, the return value from sys_times() doesn't seem a
+particularly useful or reliable kernel interface.
+
+Cc: David Brown <lkml@davidb.org>
+Cc: Ulrich Drepper <drepper@redhat.com>
+Cc: Michael Kerrisk <mtk-manpages@gmx.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/lib/delay.c      |    4 +++-
- arch/sparc64/kernel/time.c  |    5 +++++
- arch/x86/lib/delay_32.c     |    4 +++-
- arch/x86/lib/delay_64.c     |    4 +++-
- include/asm-avr32/timex.h   |    3 +--
- include/asm-sparc64/timex.h |    6 +-----
- include/asm-x86/timex.h     |    3 +--
- include/linux/timex.h       |    2 ++
- init/calibrate.c            |    3 +--
- 9 files changed, 20 insertions(+), 14 deletions(-)
+ kernel/compat.c |    3 ++-
+ kernel/sys.c    |    3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/avr32/lib/delay.c~read_current_time-cleanups arch/avr32/lib/delay.c
---- a/arch/avr32/lib/delay.c~read_current_time-cleanups
-+++ a/arch/avr32/lib/delay.c
-@@ -12,13 +12,15 @@
- 
- #include <linux/delay.h>
- #include <linux/module.h>
-+#include <linux/timex.h>
- #include <linux/param.h>
- #include <linux/types.h>
-+#include <linux/init.h>
- 
- #include <asm/processor.h>
- #include <asm/sysreg.h>
- 
--int read_current_timer(unsigned long *timer_value)
-+int __devinit read_current_timer(unsigned long *timer_value)
- {
- 	*timer_value = sysreg_read(COUNT);
- 	return 0;
-diff -puN arch/sparc64/kernel/time.c~read_current_time-cleanups arch/sparc64/kernel/time.c
---- a/arch/sparc64/kernel/time.c~read_current_time-cleanups
-+++ a/arch/sparc64/kernel/time.c
-@@ -1707,6 +1707,11 @@ static void __exit rtc_mini_exit(void)
- 	misc_deregister(&rtc_mini_dev);
+diff -puN kernel/sys.c~sys_times-fix-return-values kernel/sys.c
+--- a/kernel/sys.c~sys_times-fix-return-values
++++ a/kernel/sys.c
+@@ -897,7 +897,8 @@ asmlinkage long sys_times(struct tms __u
+ 		if (copy_to_user(tbuf, &tmp, sizeof(struct tms)))
+ 			return -EFAULT;
+ 	}
+-	return (long) jiffies_64_to_clock_t(get_jiffies_64());
++	return jiffies_64_to_clock_t((get_jiffies_64() + INITIAL_JIFFIES) &
++						LONG_MAX);
  }
  
-+int __devinit read_current_timer(unsigned long *timer_val)
-+{
-+	*timer_val = tick_ops->get_tick();
-+	return 0;
-+}
- 
- module_init(rtc_mini_init);
- module_exit(rtc_mini_exit);
-diff -puN arch/x86/lib/delay_32.c~read_current_time-cleanups arch/x86/lib/delay_32.c
---- a/arch/x86/lib/delay_32.c~read_current_time-cleanups
-+++ a/arch/x86/lib/delay_32.c
-@@ -12,8 +12,10 @@
- 
- #include <linux/module.h>
- #include <linux/sched.h>
-+#include <linux/timex.h>
- #include <linux/preempt.h>
- #include <linux/delay.h>
-+#include <linux/init.h>
- 
- #include <asm/processor.h>
- #include <asm/delay.h>
-@@ -63,7 +65,7 @@ void use_tsc_delay(void)
- 	delay_fn = delay_tsc;
+ /*
+diff -puN kernel/compat.c~sys_times-fix-return-values kernel/compat.c
+--- a/kernel/compat.c~sys_times-fix-return-values
++++ a/kernel/compat.c
+@@ -162,7 +162,8 @@ asmlinkage long compat_sys_times(struct 
+ 		if (copy_to_user(tbuf, &tmp, sizeof(tmp)))
+ 			return -EFAULT;
+ 	}
+-	return compat_jiffies_to_clock_t(jiffies);
++	return compat_jiffies_to_clock_t((jiffies + INITIAL_JIFFIES) &
++						LONG_MAX);
  }
  
--int read_current_timer(unsigned long *timer_val)
-+int __devinit read_current_timer(unsigned long *timer_val)
- {
- 	if (delay_fn == delay_tsc) {
- 		rdtscl(*timer_val);
-diff -puN arch/x86/lib/delay_64.c~read_current_time-cleanups arch/x86/lib/delay_64.c
---- a/arch/x86/lib/delay_64.c~read_current_time-cleanups
-+++ a/arch/x86/lib/delay_64.c
-@@ -10,8 +10,10 @@
- 
- #include <linux/module.h>
- #include <linux/sched.h>
-+#include <linux/timex.h>
- #include <linux/preempt.h>
- #include <linux/delay.h>
-+#include <linux/init.h>
- 
- #include <asm/delay.h>
- #include <asm/msr.h>
-@@ -20,7 +22,7 @@
- #include <asm/smp.h>
- #endif
- 
--int read_current_timer(unsigned long *timer_value)
-+int __devinit read_current_timer(unsigned long *timer_value)
- {
- 	rdtscll(*timer_value);
- 	return 0;
-diff -puN include/asm-avr32/timex.h~read_current_time-cleanups include/asm-avr32/timex.h
---- a/include/asm-avr32/timex.h~read_current_time-cleanups
-+++ a/include/asm-avr32/timex.h
-@@ -34,7 +34,6 @@ static inline cycles_t get_cycles (void)
- 	return 0;
- }
- 
--extern int read_current_timer(unsigned long *timer_value);
--#define ARCH_HAS_READ_CURRENT_TIMER	1
-+#define ARCH_HAS_READ_CURRENT_TIMER
- 
- #endif /* __ASM_AVR32_TIMEX_H */
-diff -puN include/asm-sparc64/timex.h~read_current_time-cleanups include/asm-sparc64/timex.h
---- a/include/asm-sparc64/timex.h~read_current_time-cleanups
-+++ a/include/asm-sparc64/timex.h
-@@ -14,10 +14,6 @@
- typedef unsigned long cycles_t;
- #define get_cycles()	tick_ops->get_tick()
- 
--#define ARCH_HAS_READ_CURRENT_TIMER	1
--#define read_current_timer(timer_val_p) 	\
--({	*timer_val_p = tick_ops->get_tick();	\
--	0;					\
--})
-+#define ARCH_HAS_READ_CURRENT_TIMER
- 
- #endif
-diff -puN include/asm-x86/timex.h~read_current_time-cleanups include/asm-x86/timex.h
---- a/include/asm-x86/timex.h~read_current_time-cleanups
-+++ a/include/asm-x86/timex.h
-@@ -14,7 +14,6 @@
- #endif
- #define CLOCK_TICK_RATE	PIT_TICK_RATE
- 
--extern int read_current_timer(unsigned long *timer_value);
--#define ARCH_HAS_READ_CURRENT_TIMER	1
-+#define ARCH_HAS_READ_CURRENT_TIMER
- 
- #endif
-diff -puN include/linux/timex.h~read_current_time-cleanups include/linux/timex.h
---- a/include/linux/timex.h~read_current_time-cleanups
-+++ a/include/linux/timex.h
-@@ -243,6 +243,8 @@ extern int do_adjtimex(struct timex *);
- /* Don't use! Compatibility define for existing users. */
- #define tickadj	(500/HZ ? : 1)
- 
-+int __devinit read_current_timer(unsigned long *timer_val);
-+
- #endif /* KERNEL */
- 
- #endif /* LINUX_TIMEX_H */
-diff -puN init/calibrate.c~read_current_time-cleanups init/calibrate.c
---- a/init/calibrate.c~read_current_time-cleanups
-+++ a/init/calibrate.c
-@@ -7,8 +7,7 @@
- #include <linux/jiffies.h>
- #include <linux/delay.h>
- #include <linux/init.h>
--
--#include <asm/timex.h>
-+#include <linux/timex.h>
- 
- unsigned long preset_lpj;
- static int __init lpj_setup(char *str)
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -343,3 +244,4 @@ kmap_atomic-debugging.patch
 shrink_slab-handle-bad-shrinkers.patch
 getblk-handle-2tb-devices.patch
 w1-build-fix.patch
+sys_times-fix-return-values.patch
