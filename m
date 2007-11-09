@@ -1,61 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - arch-ia64-remove-duplicate-includes.patch removed from -mm tree
-Date: Fri, 09 Nov 2007 11:13:09 -0800
-Message-ID: <200711091913.lA9JD93w027986@imap1.linux-foundation.org>
+Subject: - dvb-usb-vp702xc-cleanups.patch removed from -mm tree
+Date: Fri, 09 Nov 2007 11:12:54 -0800
+Message-ID: <200711091912.lA9JCsx8027959@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50622 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50357 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754841AbXKITNT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:13:19 -0500
+	by vger.kernel.org with ESMTP id S1754740AbXKITNS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:13:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: woodzy@gmail.com, horms@verge.net.au, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/ia64: remove duplicate includes
+     dvb-usb/vp702x.c: cleanups
 has been removed from the -mm tree.  Its filename was
-     arch-ia64-remove-duplicate-includes.patch
+     dvb-usb-vp702xc-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: arch/ia64: remove duplicate includes
-From: Lucas Woods <woodzy@gmail.com>
+Subject: dvb-usb/vp702x.c: cleanups
+From: Adrian Bunk <bunk@kernel.org>
 
-Signed-off-by: Lucas Woods <woodzy@gmail.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Acked-by: Simon Horman <horms@verge.net.au>
+This patch contains the following cleanups:
+- make the needlessly global vp702x_usb_out_op() static
+- #if 0 the unused vp702x_power_ctrl()
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/ia32/ia32priv.h |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/media/dvb/dvb-usb/vp702x.c |    4 +++-
+ drivers/media/dvb/dvb-usb/vp702x.h |    2 --
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/ia64/ia32/ia32priv.h~arch-ia64-remove-duplicate-includes arch/ia64/ia32/ia32priv.h
---- a/arch/ia64/ia32/ia32priv.h~arch-ia64-remove-duplicate-includes
-+++ a/arch/ia64/ia32/ia32priv.h
-@@ -290,7 +290,6 @@ struct old_linux32_dirent {
- #define _ASM_IA64_ELF_H		/* Don't include elf.h */
+diff -puN drivers/media/dvb/dvb-usb/vp702x.c~dvb-usb-vp702xc-cleanups drivers/media/dvb/dvb-usb/vp702x.c
+--- a/drivers/media/dvb/dvb-usb/vp702x.c~dvb-usb-vp702xc-cleanups
++++ a/drivers/media/dvb/dvb-usb/vp702x.c
+@@ -56,7 +56,7 @@ int vp702x_usb_in_op(struct dvb_usb_devi
+ 	return ret;
+ }
  
- #include <linux/sched.h>
--#include <asm/processor.h>
+-int vp702x_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
++static int vp702x_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
+ 			     u16 index, u8 *b, int blen)
+ {
+ 	int ret;
+@@ -204,6 +204,7 @@ static int vp702x_rc_query(struct dvb_us
+ 	return 0;
+ }
  
- /*
-  * This is used to ensure we don't load something for the wrong architecture.
++#if 0
+ int vp702x_power_ctrl(struct dvb_usb_device *d, int onoff)
+ {
+ 	struct vp702x_device_state *st = d->priv;
+@@ -217,6 +218,7 @@ int vp702x_power_ctrl(struct dvb_usb_dev
+ 
+ 	return 0;
+ }
++#endif  /*  0  */
+ 
+ static int vp702x_read_mac_addr(struct dvb_usb_device *d,u8 mac[6])
+ {
+diff -puN drivers/media/dvb/dvb-usb/vp702x.h~dvb-usb-vp702xc-cleanups drivers/media/dvb/dvb-usb/vp702x.h
+--- a/drivers/media/dvb/dvb-usb/vp702x.h~dvb-usb-vp702xc-cleanups
++++ a/drivers/media/dvb/dvb-usb/vp702x.h
+@@ -102,7 +102,5 @@ extern struct dvb_frontend * vp702x_fe_a
+ 
+ extern int vp702x_usb_inout_op(struct dvb_usb_device *d, u8 *o, int olen, u8 *i, int ilen, int msec);
+ extern int vp702x_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen);
+-extern int vp702x_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen);
+-extern int vp702x_power_ctrl(struct dvb_usb_device *d, int onoff);
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from woodzy@gmail.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-arch-arm-removed-duplicate-includes.patch
-arch-powerpc-remove-duplicate-includes.patch
-arch-ppc-remove-duplicate-includes.patch
-git-ia64.patch
-git-mips.patch
-arch-parisc-remove-duplicate-includes.patch
-git-sparc64.patch
-arch-x86-remove-duplicate-includes.patch
-arch-xtensa-remove-duplicate-includes.patch
-arch-alpha-removed-duplicate-includes.patch
-arch-um-remove-duplicate-includes.patch
+lguest_userc-fix-memory-leak.patch
+video-sis-fix-negative-array-index.patch
+git-avr32.patch
+git-dvb.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-mtd.patch
+git-net.patch
+make-sunrpc-xprtsockcxs_setup_udptcp-static.patch
+git-netdev-all.patch
+drivers-net-chelsio-if-0-unused-functions.patch
+drivers-bluetooth-bpa10xc-fix-memleak.patch
+drivers-bluetooth-btsdioc-fix-double-free.patch
+git-nfs-make-nfs_wb_page_priority-static.patch
+fs-nfs-dirc-should-include-internalh.patch
+git-ocfs2.patch
+proper-prototype-for-kernel-schedcmigration_init.patch
+git-scsi-misc.patch
+scsi-advansysc-make-3-functions-static.patch
+scsi-qla2xxx-possible-cleanups.patch
+usb-mon-mon_binc-cleanups.patch
+xtensa-iss_net_setup-must-be-__init.patch
+xtensa-kernel-setupc-remove-dead-code.patch
+sunrpc-xprtrdma-transportc-fix-use-after-free.patch
+fix-mm-utilckrealloc.patch
+fuse_file_alloc-fix-null-dereferences.patch
+pidns-place-under-config_experimental.patch
+pidns-place-under-config_experimental-checkpatch-fixes.patch
+feature-removal-schedule-remove-sa_-flags-entry.patch
+kernel-taskstatsc-fix-bogus-nlmsg_free.patch
+mm-hugetlbc-make-a-function-static.patch
+mm-page-writebackc-make-a-function-static.patch
+make-__vmalloc_area_node-static.patch
+blackfin-remove-dump_thread.patch
+kernel-power-diskc-make-code-static.patch
+make-kernel_shutdown_prepare-static.patch
+kernel-power-move-function-prototypes-to-header.patch
+kill-udffs_dateversion.patch
+make-ipc-utilcsysvipc_find_ipc-static.patch
+cleanup-after-apus-removal.patch
+remove-mm_ptovvtop.patch
+remove-__attribute_used__.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+proper-show_interrupts-prototype.patch
+scheduled-oss-driver-removal.patch
+linux-inith-simplify-__meminitexit-dependencies.patch
+proper-prototype-for-signals_init.patch
+kernel-ptracec-should-include-linux-syscallsh.patch
+make-srcu_readers_active-static.patch
+kernel-notifierc-should-include-linux-rebooth.patch
+proper-prototype-for-get_filesystem_list.patch
+fs-utimesc-should-include-linux-syscallsh.patch
+fs-signalfdc-should-include-linux-syscallsh.patch
+fs-eventfdc-should-include-linux-syscallsh.patch
+proper-prototype-for-vty_init.patch
+drivers-misc-lkdtmc-cleanups.patch
+power_supply_ledssysfsc-should-include-power_supplyh.patch
+fs-ecryptfs-possible-cleanups.patch
+make-video-geode-lxfb_corecgeode_modedb-static.patch
+video-hpfbc-section-fix.patch
+ext4-superc-fix-ifdefs.patch
+make-jbd-journalc__journal_abort_hard-static.patch
+move-edactxt-two-levels-up.patch
+remove-documentation-smptxt.patch
+kernel-cgroupc-remove-dead-code.patch
+kernel-cgroupc-make-2-functions-static.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+fix-m32r-__xchg.patch
+reiser4.patch
