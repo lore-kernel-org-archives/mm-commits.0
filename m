@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + oprofile-fix-oops-on-x86-32-bit.patch added to -mm tree
-Date: Fri, 09 Nov 2007 13:50:48 -0800
-Message-ID: <200711092150.lA9LomQH001097@imap1.linux-foundation.org>
+Subject: + x86-32-bit-ptrace-emulation-mishandles-6th-arg.patch added to -mm tree
+Date: Fri, 09 Nov 2007 13:52:38 -0800
+Message-ID: <200711092152.lA9Lqcip001123@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43045 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60736 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754123AbXKIVwN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 16:52:13 -0500
+	by vger.kernel.org with ESMTP id S1752392AbXKIVxQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 16:53:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jblunck@suse.de, ak@suse.de, mingo@elte.hu, phil.el@wanadoo.fr, robfitz@273k.net, tglx@linutronix.de
+Cc: 76306.1226@compuserve.com, jdike@linux.intel.com, mingo@elte.hu, roland@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     oprofile: fix oops on x86 32-bit
+     x86: 32-bit ptrace emulation mishandles 6th arg
 has been added to the -mm tree.  Its filename is
-     oprofile-fix-oops-on-x86-32-bit.patch
+     x86-32-bit-ptrace-emulation-mishandles-6th-arg.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,65 +25,93 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: oprofile: fix oops on x86 32-bit
-From: Jan Blunck <jblunck@suse.de>
+Subject: x86: 32-bit ptrace emulation mishandles 6th arg
+From: Chuck Ebbert <76306.1226@compuserve.com>
 
-x86 32-bit isn't saving the stack pointer to pt_regs->esp when an
-interrupt occures.
+[ jdike - Pushing Chuck's patch - see
+http://lkml.org/lkml/2005/9/16/261 for some history and a test
+program.  UML is also broken without this patch - its processes get
+SIGBUS from the corrupt 6th argument to mmap being interpretted as a
+file offset ]
 
-Signed-off-by: Jan Blunck <jblunck@suse.de>
-Cc: Robert Fitzsimons <robfitz@273k.net>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+When the 32-bit vDSO is used to make a system call, the %ebp register for
+the 6th syscall arg has to be loaded from the user stack (where it's pushed
+by the vDSO user code).  The native i386 kernel always does this before
+stopping for syscall tracing, so %ebp can be seen and modified via ptrace
+to access the 6th syscall argument.  The x86-64 kernel fails to do this,
+presenting the stack address to ptrace instead.  This makes the %rbp value
+seen by 64-bit ptrace of a 32-bit process, and the %ebp value seen by a
+32-bit caller of ptrace, both differ from the native i386 behavior.
+
+This patch fixes the problem by putting the word loaded from the user stack
+into %rbp before calling syscall_trace_enter, and reloading the 6th syscall
+argument from there afterwards (so ptrace can change it).  This makes the
+behavior match that of i386 kernels.
+
+Signed-off-by: Chuck Ebbert <76306.1226@compuserve.com>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Original-Patch-By: Roland McGrath <roland@redhat.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Philippe Elie <phil.el@wanadoo.fr>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/ptrace.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/ia32/ia32entry.S |   19 ++++++-------------
+ 1 file changed, 6 insertions(+), 13 deletions(-)
 
-diff -puN include/asm-x86/ptrace.h~oprofile-fix-oops-on-x86-32-bit include/asm-x86/ptrace.h
---- a/include/asm-x86/ptrace.h~oprofile-fix-oops-on-x86-32-bit
-+++ a/include/asm-x86/ptrace.h
-@@ -60,7 +60,7 @@ static inline int v8086_mode(struct pt_r
+diff -puN arch/x86/ia32/ia32entry.S~x86-32-bit-ptrace-emulation-mishandles-6th-arg arch/x86/ia32/ia32entry.S
+--- a/arch/x86/ia32/ia32entry.S~x86-32-bit-ptrace-emulation-mishandles-6th-arg
++++ a/arch/x86/ia32/ia32entry.S
+@@ -159,20 +159,16 @@ sysenter_do_call:	
  
- #define instruction_pointer(regs) ((regs)->eip)
- #define frame_pointer(regs) ((regs)->ebp)
--#define stack_pointer(regs) ((regs)->esp)
-+#define stack_pointer(regs) ((unsigned long)(regs))
- #define regs_return_value(regs) ((regs)->eax)
- 
- extern unsigned long profile_pc(struct pt_regs *regs);
+ sysenter_tracesys:
+ 	CFI_RESTORE_STATE
++	xchgl	%r9d,%ebp
+ 	SAVE_REST
+ 	CLEAR_RREGS
++	movq	%r9,R9(%rsp)
+ 	movq	$-ENOSYS,RAX(%rsp)	/* really needed? */
+ 	movq	%rsp,%rdi        /* &pt_regs -> arg1 */
+ 	call	syscall_trace_enter
+ 	LOAD_ARGS32 ARGOFFSET  /* reload args from stack in case ptrace changed it */
+ 	RESTORE_REST
+-	movl	%ebp, %ebp
+-	/* no need to do an access_ok check here because rbp has been
+-	   32bit zero extended */ 
+-1:	movl	(%rbp),%r9d
+-	.section __ex_table,"a"
+-	.quad 1b,ia32_badarg
+-	.previous
++	xchgl	%ebp,%r9d
+ 	jmp	sysenter_do_call
+ 	CFI_ENDPROC
+ ENDPROC(ia32_sysenter_target)
+@@ -262,20 +258,17 @@ cstar_do_call:	
+ 	
+ cstar_tracesys:	
+ 	CFI_RESTORE_STATE
++	xchgl %r9d,%ebp
+ 	SAVE_REST
+ 	CLEAR_RREGS
++	movq %r9,R9(%rsp)
+ 	movq $-ENOSYS,RAX(%rsp)	/* really needed? */
+ 	movq %rsp,%rdi        /* &pt_regs -> arg1 */
+ 	call syscall_trace_enter
+ 	LOAD_ARGS32 ARGOFFSET  /* reload args from stack in case ptrace changed it */
+ 	RESTORE_REST
++	xchgl %ebp,%r9d
+ 	movl RSP-ARGOFFSET(%rsp), %r8d
+-	/* no need to do an access_ok check here because r8 has been
+-	   32bit zero extended */ 
+-1:	movl	(%r8),%r9d
+-	.section __ex_table,"a"
+-	.quad 1b,ia32_badarg
+-	.previous
+ 	jmp cstar_do_call
+ END(ia32_cstar_target)
+ 				
 _
 
-Patches currently in -mm which might be from jblunck@suse.de are
+Patches currently in -mm which might be from 76306.1226@compuserve.com are
 
-oprofile-fix-oops-on-x86-32-bit.patch
-dont-touch-fs_struct-in-drivers.patch
-dont-touch-fs_struct-in-usermodehelper.patch
-remove-path_release_on_umount.patch
-move-struct-path-into-its-own-header.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-introduce-path_put.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-introduce-path_get.patch
-use-struct-path-in-fs_struct.patch
-make-set_fs_rootpwd-take-a-struct-path.patch
-introduce-path_get-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
-introduce-path_put-unionfs.patch
-one-less-parameter-to-__d_path.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-kerneldoc-cleanup.patch
-d_path-use-struct-path-in-struct-avc_audit_data.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-proc_get_link-use-a-struct-path-argument.patch
-d_path-make-get_dcookie-use-a-struct-path-argument.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_expkey.patch
-d_path-make-seq_path-use-a-struct-path-argument.patch
-d_path-make-d_path-use-a-struct-path.patch
+x86-32-bit-ptrace-emulation-mishandles-6th-arg.patch
