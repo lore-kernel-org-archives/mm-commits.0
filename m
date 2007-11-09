@@ -1,79 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: + add-dma-engine-driver-for-freescale-mpc85xx-processors-fix.patch added to -mm tree
-Date: Fri, 09 Nov 2007 00:26:34 -0800
-Message-ID: <200711090826.lA98QZM9004530@imap1.linux-foundation.org>
+Subject: - rpadlpar_sysfsc-unbork.patch removed from -mm tree
+Date: Fri, 09 Nov 2007 10:45:51 -0800
+Message-ID: <200711091845.lA9Ijs59026954@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48864 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55294 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751314AbXKII0w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 03:26:52 -0500
+	by vger.kernel.org with ESMTP id S1755177AbXKISq6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 13:46:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kamalesh@linux.vnet.ibm.com, benh@kernel.crashing.org, dan.j.williams@intel.com, ebony.zhu@freescale.com, galak@gate.crashing.org, paulus@samba.org, shannon.nelson@intel.com, wei.zhang@freescale.com
+To: kamalesh@linux.vnet.ibm.com, greg@kroah.com, pbadari@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-dma-engine-driver-for-freescale-mpc85xx-processors fix
-has been added to the -mm tree.  Its filename is
-     add-dma-engine-driver-for-freescale-mpc85xx-processors-fix.patch
+     rpadlpar_sysfs.c: unbork
+has been removed from the -mm tree.  Its filename was
+     rpadlpar_sysfsc-unbork.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: add-dma-engine-driver-for-freescale-mpc85xx-processors fix
+Subject: rpadlpar_sysfs.c: unbork
 From: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 
-  CC      net/9p/error.o
-drivers/dma/fsldma.h:152: error: conflicting types for `in_be64'
-include/asm/io.h:136: error: previous definition of `in_be64' was here
-drivers/dma/fsldma.h:157: error: conflicting types for `out_be64'
-include/asm/io.h:135: error: previous definition of `out_be64' was here
-drivers/dma/fsldma.h:164: error: conflicting types for `in_le64'
-include/asm/io.h:140: error: previous definition of `in_le64' was here
-drivers/dma/fsldma.h:169: error: conflicting types for `out_le64'
-include/asm/io.h:145: error: previous definition of `out_le64' was here
-drivers/dma/fsldma.c:504: error: implicit declaration of function `bus_to_virt'
+On Tue, Nov 06, 2007 at 10:19:28AM -0800, Badari Pulavarty wrote:
+> On Tue, 2007-11-06 at 21:04 +0530, Kamalesh Babulal wrote:
+> > Hi Andrew,
+> >
+> > The build fails with following error
+> >
+> >   CC      drivers/pci/hotplug/rpadlpar_sysfs.o
+> > drivers/pci/hotplug/rpadlpar_sysfs.c:133: error: initializer element is not constant
+> > drivers/pci/hotplug/rpadlpar_sysfs.c:133: error: (near initialization for `dlpar_io_kset.kobj.parent')
+> > drivers/pci/hotplug/rpadlpar_sysfs.c:133: error: initializer element is not constant
+> > drivers/pci/hotplug/rpadlpar_sysfs.c:133: error: (near initialization for `dlpar_io_kset.kobj')
+> > drivers/pci/hotplug/rpadlpar_sysfs.c:134: error: unknown field `ktype' specified in initializer
+> > drivers/pci/hotplug/rpadlpar_sysfs.c:134: warning: initialization from incompatible pointer type
+> > make[3]: *** [drivers/pci/hotplug/rpadlpar_sysfs.o] Error 1
+> > make[2]: *** [drivers/pci/hotplug] Error 2
+> > make[1]: *** [drivers/pci] Error 2
+> > make: *** [drivers] Error 2
+> >
+> > The patch, gregkh-driver-kset-convert-pci-hotplug-to-use-kset_create_and_register.patch
+> > is causing the build failure.
+>
+> Here is the fix (against 24-rc1 mm-brokenout). Can you try it ?
+>
+> Thanks,
+> Badari
 
-The following patch solves the conflict types error, but the bus_to_virt
-is under the CONFIG_PPC32 ifdef and we had a discuss on the same for the
-availability of the function for ppc64 at http://lkml.org/lkml/2007/10/17/524
+Hi Badari,
 
-Signed-off-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
-Cc: Zhang Wei <wei.zhang@freescale.com>
-c: Ebony Zhu <ebony.zhu@freescale.com>
-Cc: "Williams, Dan J" <dan.j.williams@intel.com>
-Cc: Shannon Nelson <shannon.nelson@intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Kumar Gala <galak@gate.crashing.org>
+This patch fixes the buidl failure.
+
+Tested-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/fsldma.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/hotplug/rpadlpar_sysfs.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/dma/fsldma.h~add-dma-engine-driver-for-freescale-mpc85xx-processors-fix drivers/dma/fsldma.h
---- a/drivers/dma/fsldma.h~add-dma-engine-driver-for-freescale-mpc85xx-processors-fix
-+++ a/drivers/dma/fsldma.h
-@@ -147,7 +147,7 @@ struct fsl_dma_chan {
- #define to_fsl_desc(lh) container_of(lh, struct fsl_desc_sw, node)
- #define tx_to_fsl_desc(tx) container_of(tx, struct fsl_desc_sw, async_tx)
+diff -puN drivers/pci/hotplug/rpadlpar_sysfs.c~rpadlpar_sysfsc-unbork drivers/pci/hotplug/rpadlpar_sysfs.c
+--- a/drivers/pci/hotplug/rpadlpar_sysfs.c~rpadlpar_sysfsc-unbork
++++ a/drivers/pci/hotplug/rpadlpar_sysfs.c
+@@ -129,14 +129,13 @@ struct kobj_type ktype_dlpar_io = {
+ };
  
--#ifndef __powerpc64
-+#ifndef __powerpc64__
- static u64 in_be64(const u64 __iomem *addr)
+ struct kset dlpar_io_kset = {
+-	.kobj = {.ktype = &ktype_dlpar_io,
+-		 .parent = &pci_hotplug_slots_kset->kobj},
+-	.ktype = &ktype_dlpar_io,
++	.kobj = {.ktype = &ktype_dlpar_io},
+ };
+ 
+ int dlpar_sysfs_init(void)
  {
- 	return ((u64)in_be32((u32 *)addr) << 32) | (in_be32((u32 *)addr + 1));
+ 	kobject_set_name(&dlpar_io_kset.kobj, DLPAR_KOBJ_NAME);
++	dlpar_io_kset.kobj.parent = &pci_hotplug_slots_kset->kobj;
+ 	if (kset_register(&dlpar_io_kset)) {
+ 		printk(KERN_ERR "rpadlpar_io: cannot register kset for %s\n",
+ 				kobject_name(&dlpar_io_kset.kobj));
 _
 
 Patches currently in -mm which might be from kamalesh@linux.vnet.ibm.com are
 
-origin.patch
 rpadlpar_sysfsc-unbork.patch
 sclp_cpi_sysc-unbork.patch
 add-dma-engine-driver-for-freescale-mpc85xx-processors-fix.patch
