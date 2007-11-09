@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-fix-typo-ifdef-ifndef.patch added to -mm tree
-Date: Thu, 08 Nov 2007 20:05:30 -0800
-Message-ID: <200711090405.lA945Vpb028562@imap1.linux-foundation.org>
+Subject: + rpadlpar_sysfsc-unbork.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:09:50 -0800
+Message-ID: <200711090409.lA949pQ7028701@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55493 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49311 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753511AbXKIEFq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:05:46 -0500
+	by vger.kernel.org with ESMTP id S1753688AbXKIEKx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:10:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jochen@scram.de, benh@kernel.crashing.org, jeff@garzik.org, paulus@samba.org
+Cc: kamalesh@linux.vnet.ibm.com, greg@kroah.com, pbadari@us.ibm.com
 
 
 The patch titled
-     powerpc: fix typo #ifdef -> #ifndef
+     rpadlpar_sysfs.c: unbork
 has been added to the -mm tree.  Its filename is
-     powerpc-fix-typo-ifdef-ifndef.patch
+     rpadlpar_sysfsc-unbork.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,38 +25,73 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: powerpc: fix typo #ifdef -> #ifndef
-From: Jochen Friedrich <jochen@scram.de>
+Subject: rpadlpar_sysfs.c: unbork
+From: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 
-fpi->cp_command should be overwritten only if CONFIG_PPC_CPM_NEW_BINDING
-is NOT set. Otherwise it is already set from the device tree.
+On Tue, Nov 06, 2007 at 10:19:28AM -0800, Badari Pulavarty wrote:
+> On Tue, 2007-11-06 at 21:04 +0530, Kamalesh Babulal wrote:
+> > Hi Andrew,
+> >
+> > The build fails with following error
+> >
+> >   CC      drivers/pci/hotplug/rpadlpar_sysfs.o
+> > drivers/pci/hotplug/rpadlpar_sysfs.c:133: error: initializer element is not constant
+> > drivers/pci/hotplug/rpadlpar_sysfs.c:133: error: (near initialization for `dlpar_io_kset.kobj.parent')
+> > drivers/pci/hotplug/rpadlpar_sysfs.c:133: error: initializer element is not constant
+> > drivers/pci/hotplug/rpadlpar_sysfs.c:133: error: (near initialization for `dlpar_io_kset.kobj')
+> > drivers/pci/hotplug/rpadlpar_sysfs.c:134: error: unknown field `ktype' specified in initializer
+> > drivers/pci/hotplug/rpadlpar_sysfs.c:134: warning: initialization from incompatible pointer type
+> > make[3]: *** [drivers/pci/hotplug/rpadlpar_sysfs.o] Error 1
+> > make[2]: *** [drivers/pci/hotplug] Error 2
+> > make[1]: *** [drivers/pci] Error 2
+> > make: *** [drivers] Error 2
+> >
+> > The patch, gregkh-driver-kset-convert-pci-hotplug-to-use-kset_create_and_register.patch
+> > is causing the build failure.
+>
+> Here is the fix (against 24-rc1 mm-brokenout). Can you try it ?
+>
+> Thanks,
+> Badari
 
-Signed-off-by: Jochen Friedrich <jochen@scram.de>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+Hi Badari,
+
+This patch fixes the buidl failure.
+
+Tested-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/fs_enet/mac-scc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/hotplug/rpadlpar_sysfs.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/fs_enet/mac-scc.c~powerpc-fix-typo-ifdef-ifndef drivers/net/fs_enet/mac-scc.c
---- a/drivers/net/fs_enet/mac-scc.c~powerpc-fix-typo-ifdef-ifndef
-+++ a/drivers/net/fs_enet/mac-scc.c
-@@ -158,7 +158,7 @@ static int setup_data(struct net_device 
+diff -puN drivers/pci/hotplug/rpadlpar_sysfs.c~rpadlpar_sysfsc-unbork drivers/pci/hotplug/rpadlpar_sysfs.c
+--- a/drivers/pci/hotplug/rpadlpar_sysfs.c~rpadlpar_sysfsc-unbork
++++ a/drivers/pci/hotplug/rpadlpar_sysfs.c
+@@ -129,14 +129,13 @@ struct kobj_type ktype_dlpar_io = {
+ };
+ 
+ struct kset dlpar_io_kset = {
+-	.kobj = {.ktype = &ktype_dlpar_io,
+-		 .parent = &pci_hotplug_slots_kset->kobj},
+-	.ktype = &ktype_dlpar_io,
++	.kobj = {.ktype = &ktype_dlpar_io},
+ };
+ 
+ int dlpar_sysfs_init(void)
  {
- 	struct fs_enet_private *fep = netdev_priv(dev);
- 
--#ifdef CONFIG_PPC_CPM_NEW_BINDING
-+#ifndef CONFIG_PPC_CPM_NEW_BINDING
- 	struct fs_platform_info *fpi = fep->fpi;
- 
- 	fep->scc.idx = fs_get_scc_index(fpi->fs_no);
+ 	kobject_set_name(&dlpar_io_kset.kobj, DLPAR_KOBJ_NAME);
++	dlpar_io_kset.kobj.parent = &pci_hotplug_slots_kset->kobj;
+ 	if (kset_register(&dlpar_io_kset)) {
+ 		printk(KERN_ERR "rpadlpar_io: cannot register kset for %s\n",
+ 				kobject_name(&dlpar_io_kset.kobj));
 _
 
-Patches currently in -mm which might be from jochen@scram.de are
+Patches currently in -mm which might be from kamalesh@linux.vnet.ibm.com are
 
-powerpc-kill-non-existent-symbols-from-ksyms-and-commproch.patch
-powerpc-fs_enet-select-phylib-as-the-driver-needs-it.patch
-powerpc-fix-typo-ifdef-ifndef.patch
+origin.patch
+rpadlpar_sysfsc-unbork.patch
+sclp_cpi_sysc-unbork.patch
+add-dma-engine-driver-for-freescale-mpc85xx-processors-fix.patch
