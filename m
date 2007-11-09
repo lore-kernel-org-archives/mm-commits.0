@@ -1,69 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - dvb-usb-gp8pskc-if-0-gp8psk_bcm4500_reload.patch removed from -mm tree
-Date: Fri, 09 Nov 2007 11:12:52 -0800
-Message-ID: <200711091912.lA9JCqBx027956@imap1.linux-foundation.org>
+Subject: - media-common-ir-functionsc-make-a-function-static.patch removed from -mm tree
+Date: Fri, 09 Nov 2007 11:12:58 -0800
+Message-ID: <200711091912.lA9JCwu1027965@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55427 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46691 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751617AbXKITNN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:13:13 -0500
+	by vger.kernel.org with ESMTP id S1754742AbXKITNT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:13:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@kernel.org, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dvb-usb/gp8psk.c: #if 0 gp8psk_bcm4500_reload()
+     media/common/ir-functions.c: make a function static
 has been removed from the -mm tree.  Its filename was
-     dvb-usb-gp8pskc-if-0-gp8psk_bcm4500_reload.patch
+     media-common-ir-functionsc-make-a-function-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dvb-usb/gp8psk.c: #if 0 gp8psk_bcm4500_reload()
+Subject: media/common/ir-functions.c: make a function static
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch #if 0's the unused gp8psk_bcm4500_reload()
+ir_rc5_decode() can become static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/dvb-usb/gp8psk.c |    2 ++
- drivers/media/dvb/dvb-usb/gp8psk.h |    1 -
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/common/ir-functions.c |    3 +--
+ include/media/ir-common.h           |    1 -
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/media/dvb/dvb-usb/gp8psk.c~dvb-usb-gp8pskc-if-0-gp8psk_bcm4500_reload drivers/media/dvb/dvb-usb/gp8psk.c
---- a/drivers/media/dvb/dvb-usb/gp8psk.c~dvb-usb-gp8pskc-if-0-gp8psk_bcm4500_reload
-+++ a/drivers/media/dvb/dvb-usb/gp8psk.c
-@@ -171,6 +171,7 @@ static int gp8psk_power_ctrl(struct dvb_
- 	return 0;
- }
+diff -puN drivers/media/common/ir-functions.c~media-common-ir-functionsc-make-a-function-static drivers/media/common/ir-functions.c
+--- a/drivers/media/common/ir-functions.c~media-common-ir-functionsc-make-a-function-static
++++ a/drivers/media/common/ir-functions.c
+@@ -258,7 +258,7 @@ int ir_decode_biphase(u32 *samples, int 
+  * saa7134 */
  
-+#if 0
- int gp8psk_bcm4500_reload(struct dvb_usb_device *d)
+ /* decode raw bit pattern to RC5 code */
+-u32 ir_rc5_decode(unsigned int code)
++static u32 ir_rc5_decode(unsigned int code)
  {
- 	u8 buf;
-@@ -187,6 +188,7 @@ int gp8psk_bcm4500_reload(struct dvb_usb
- 			return EINVAL;
- 	return 0;
- }
-+#endif  /*  0  */
+ 	unsigned int org_code = code;
+ 	unsigned int pair;
+@@ -371,7 +371,6 @@ EXPORT_SYMBOL_GPL(ir_dump_samples);
+ EXPORT_SYMBOL_GPL(ir_decode_biphase);
+ EXPORT_SYMBOL_GPL(ir_decode_pulsedistance);
  
- static int gp8psk_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
- {
-diff -puN drivers/media/dvb/dvb-usb/gp8psk.h~dvb-usb-gp8pskc-if-0-gp8psk_bcm4500_reload drivers/media/dvb/dvb-usb/gp8psk.h
---- a/drivers/media/dvb/dvb-usb/gp8psk.h~dvb-usb-gp8pskc-if-0-gp8psk_bcm4500_reload
-+++ a/drivers/media/dvb/dvb-usb/gp8psk.h
-@@ -92,6 +92,5 @@ extern struct dvb_frontend * gp8psk_fe_a
- extern int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen);
- extern int gp8psk_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
- 			     u16 index, u8 *b, int blen);
--extern int gp8psk_bcm4500_reload(struct dvb_usb_device *d);
+-EXPORT_SYMBOL_GPL(ir_rc5_decode);
+ EXPORT_SYMBOL_GPL(ir_rc5_timer_end);
+ EXPORT_SYMBOL_GPL(ir_rc5_timer_keyup);
  
- #endif
+diff -puN include/media/ir-common.h~media-common-ir-functionsc-make-a-function-static include/media/ir-common.h
+--- a/include/media/ir-common.h~media-common-ir-functionsc-make-a-function-static
++++ a/include/media/ir-common.h
+@@ -97,7 +97,6 @@ int  ir_dump_samples(u32 *samples, int c
+ int  ir_decode_biphase(u32 *samples, int count, int low, int high);
+ int  ir_decode_pulsedistance(u32 *samples, int count, int low, int high);
+ 
+-u32 ir_rc5_decode(unsigned int code);
+ void ir_rc5_timer_end(unsigned long data);
+ void ir_rc5_timer_keyup(unsigned long data);
+ 
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
