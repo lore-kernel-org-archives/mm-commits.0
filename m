@@ -1,310 +1,254 @@
 From: akpm@linux-foundation.org
-Subject: - aacraid-fix-endianness-warnings.patch removed from -mm tree
-Date: Fri, 09 Nov 2007 10:49:36 -0800
-Message-ID: <200711091849.lA9InaXp027133@imap1.linux-foundation.org>
+Subject: - git-x86-fixup.patch removed from -mm tree
+Date: Fri, 09 Nov 2007 10:50:11 -0800
+Message-ID: <200711091850.lA9IoBUs027148@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38149 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53715 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750842AbXKISue (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 13:50:34 -0500
+	by vger.kernel.org with ESMTP id S1754804AbXKISvF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 13:51:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@infradead.org, hch@lst.de, mark_salyzyn@adaptec.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     aacraid: fix endianness warnings
+     git-x86-fixup
 has been removed from the -mm tree.  Its filename was
-     aacraid-fix-endianness-warnings.patch
+     git-x86-fixup.patch
 
-This patch was dropped because of rejects
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: aacraid: fix endianness warnings
-From: Christoph Hellwig <hch@infradead.org>
+Subject: git-x86-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-There are a lot of endianess warnings, fortunately most of them harmless. 
-The patch below fixes all of them up (including the ones in the patch I
-replied to), except for aac_init_adapter which is really odd and I don't
-know what to do.
+Fix rejects in git-x86.    Don't know what I'm doing, might be wrong.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: "Salyzyn, Mark" <mark_salyzyn@adaptec.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aacraid/aachba.c  |    8 ++---
- drivers/scsi/aacraid/commsup.c |   48 +++++++++++++++----------------
- drivers/scsi/aacraid/dpcsup.c  |    8 +----
- drivers/scsi/aacraid/linit.c   |    4 +-
- drivers/scsi/aacraid/rx.c      |    2 -
- 5 files changed, 34 insertions(+), 36 deletions(-)
+ arch/x86/kernel/early-quirks.c |   13 -------------
+ arch/x86/kernel/tsc_32.c       |   27 ---------------------------
+ 2 files changed, 40 deletions(-)
 
-diff -puN drivers/scsi/aacraid/aachba.c~aacraid-fix-endianness-warnings drivers/scsi/aacraid/aachba.c
---- a/drivers/scsi/aacraid/aachba.c~aacraid-fix-endianness-warnings
-+++ a/drivers/scsi/aacraid/aachba.c
-@@ -981,7 +981,7 @@ static int aac_read_block(struct fib * f
- 	aac_fib_init(fib);
- 	readcmd = (struct aac_read *) fib_data(fib);
- 	readcmd->command = cpu_to_le32(VM_CtBlockRead);
--	readcmd->cid = cpu_to_le16(scmd_id(cmd));
-+	readcmd->cid = cpu_to_le32(scmd_id(cmd));
- 	readcmd->block = cpu_to_le32((u32)(lba&0xffffffff));
- 	readcmd->count = cpu_to_le32(count * 512);
- 
-@@ -1072,7 +1072,7 @@ static int aac_write_block(struct fib * 
- 	aac_fib_init(fib);
- 	writecmd = (struct aac_write *) fib_data(fib);
- 	writecmd->command = cpu_to_le32(VM_CtBlockWrite);
--	writecmd->cid = cpu_to_le16(scmd_id(cmd));
-+	writecmd->cid = cpu_to_le32(scmd_id(cmd));
- 	writecmd->block = cpu_to_le32((u32)(lba&0xffffffff));
- 	writecmd->count = cpu_to_le32(count * 512);
- 	writecmd->sg.count = cpu_to_le32(1);
-@@ -1317,8 +1317,8 @@ int aac_get_adapter_info(struct aac_dev*
- 			  dev->supplement_adapter_info.VpdInfo.Tsid);
- 		}
- 		if (!aac_check_reset ||
--		  (dev->supplement_adapter_info.SupportedOptions2 &
--		  le32_to_cpu(AAC_OPTION_IGNORE_RESET))) {
-+		    (dev->supplement_adapter_info.SupportedOptions2 &
-+		     cpu_to_le32(AAC_OPTION_IGNORE_RESET))) {
- 			printk(KERN_INFO "%s%d: Reset Adapter Ignored\n",
- 			  dev->name, dev->id);
- 		}
-diff -puN drivers/scsi/aacraid/commsup.c~aacraid-fix-endianness-warnings drivers/scsi/aacraid/commsup.c
---- a/drivers/scsi/aacraid/commsup.c~aacraid-fix-endianness-warnings
-+++ a/drivers/scsi/aacraid/commsup.c
-@@ -796,13 +796,13 @@ static void aac_handle_aif(struct aac_de
+diff -puN arch/x86/kernel/tsc_32.c~git-x86-fixup arch/x86/kernel/tsc_32.c
+--- a/arch/x86/kernel/tsc_32.c~git-x86-fixup
++++ a/arch/x86/kernel/tsc_32.c
+@@ -143,8 +143,6 @@ unsigned long native_calculate_cpu_khz(v
+ 		rdtscll(start);
+ 		mach_countup(&count);
+ 		rdtscll(end);
+-<<<<<<< HEAD:arch/x86/kernel/tsc_32.c
+-=======
+ 		delta64 = min(delta64, (end - start));
+ 	}
+ 	/*
+@@ -155,33 +153,8 @@ unsigned long native_calculate_cpu_khz(v
  	 */
- 	switch (le32_to_cpu(aifcmd->command)) {
- 	case AifCmdDriverNotify:
--		switch (le32_to_cpu(((u32 *)aifcmd->data)[0])) {
-+		switch (le32_to_cpu(((__le32 *)aifcmd->data)[0])) {
- 		/*
- 		 *	Morph or Expand complete
- 		 */
- 		case AifDenMorphComplete:
- 		case AifDenVolumeExtendComplete:
--			container = le32_to_cpu(((u32 *)aifcmd->data)[1]);
-+			container = le32_to_cpu(((__le32 *)aifcmd->data)[1]);
- 			if (container >= dev->maximum_num_containers)
- 				break;
+ 	if (count <= 1)
+ 		goto err;
+->>>>>>> FETCH_HEAD:arch/x86/kernel/tsc_32.c
  
-@@ -835,25 +835,25 @@ static void aac_handle_aif(struct aac_de
- 			if (container >= dev->maximum_num_containers)
- 				break;
- 			if ((dev->fsa_dev[container].config_waiting_on ==
--			    le32_to_cpu(*(u32 *)aifcmd->data)) &&
-+			    le32_to_cpu(*(__le32 *)aifcmd->data)) &&
- 			 time_before(jiffies, dev->fsa_dev[container].config_waiting_stamp + AIF_SNIFF_TIMEOUT))
- 				dev->fsa_dev[container].config_waiting_on = 0;
- 		} else for (container = 0;
- 		    container < dev->maximum_num_containers; ++container) {
- 			if ((dev->fsa_dev[container].config_waiting_on ==
--			    le32_to_cpu(*(u32 *)aifcmd->data)) &&
-+			    le32_to_cpu(*(__le32 *)aifcmd->data)) &&
- 			 time_before(jiffies, dev->fsa_dev[container].config_waiting_stamp + AIF_SNIFF_TIMEOUT))
- 				dev->fsa_dev[container].config_waiting_on = 0;
- 		}
- 		break;
- 
- 	case AifCmdEventNotify:
--		switch (le32_to_cpu(((u32 *)aifcmd->data)[0])) {
-+		switch (le32_to_cpu(((__le32 *)aifcmd->data)[0])) {
- 		/*
- 		 *	Add an Array.
- 		 */
- 		case AifEnAddContainer:
--			container = le32_to_cpu(((u32 *)aifcmd->data)[1]);
-+			container = le32_to_cpu(((__le32 *)aifcmd->data)[1]);
- 			if (container >= dev->maximum_num_containers)
- 				break;
- 			dev->fsa_dev[container].config_needed = ADD;
-@@ -866,7 +866,7 @@ static void aac_handle_aif(struct aac_de
- 		 *	Delete an Array.
- 		 */
- 		case AifEnDeleteContainer:
--			container = le32_to_cpu(((u32 *)aifcmd->data)[1]);
-+			container = le32_to_cpu(((__le32 *)aifcmd->data)[1]);
- 			if (container >= dev->maximum_num_containers)
- 				break;
- 			dev->fsa_dev[container].config_needed = DELETE;
-@@ -880,7 +880,7 @@ static void aac_handle_aif(struct aac_de
- 		 * waiting on something else, setup to wait on a Config Change.
- 		 */
- 		case AifEnContainerChange:
--			container = le32_to_cpu(((u32 *)aifcmd->data)[1]);
-+			container = le32_to_cpu(((__le32 *)aifcmd->data)[1]);
- 			if (container >= dev->maximum_num_containers)
- 				break;
- 			if (dev->fsa_dev[container].config_waiting_on &&
-@@ -905,13 +905,13 @@ static void aac_handle_aif(struct aac_de
- 			if (container >= dev->maximum_num_containers)
- 				break;
- 			if ((dev->fsa_dev[container].config_waiting_on ==
--			    le32_to_cpu(*(u32 *)aifcmd->data)) &&
-+			    le32_to_cpu(*(__le32 *)aifcmd->data)) &&
- 			 time_before(jiffies, dev->fsa_dev[container].config_waiting_stamp + AIF_SNIFF_TIMEOUT))
- 				dev->fsa_dev[container].config_waiting_on = 0;
- 		} else for (container = 0;
- 		    container < dev->maximum_num_containers; ++container) {
- 			if ((dev->fsa_dev[container].config_waiting_on ==
--			    le32_to_cpu(*(u32 *)aifcmd->data)) &&
-+			    le32_to_cpu(*(__le32 *)aifcmd->data)) &&
- 			 time_before(jiffies, dev->fsa_dev[container].config_waiting_stamp + AIF_SNIFF_TIMEOUT))
- 				dev->fsa_dev[container].config_waiting_on = 0;
- 		}
-@@ -926,9 +926,9 @@ static void aac_handle_aif(struct aac_de
- 		 * wait for a container change.
- 		 */
- 
--		if ((((u32 *)aifcmd->data)[1] == cpu_to_le32(AifJobCtrZero))
--		 && ((((u32 *)aifcmd->data)[6] == ((u32 *)aifcmd->data)[5])
--		  || (((u32 *)aifcmd->data)[4] == cpu_to_le32(AifJobStsSuccess)))) {
-+		if (((__le32 *)aifcmd->data)[1] == cpu_to_le32(AifJobCtrZero) &&
-+		    (((__le32 *)aifcmd->data)[6] == ((__le32 *)aifcmd->data)[5] ||
-+		     ((__le32 *)aifcmd->data)[4] == cpu_to_le32(AifJobStsSuccess))) {
- 			for (container = 0;
- 			    container < dev->maximum_num_containers;
- 			    ++container) {
-@@ -943,9 +943,9 @@ static void aac_handle_aif(struct aac_de
- 					jiffies;
- 			}
- 		}
--		if ((((u32 *)aifcmd->data)[1] == cpu_to_le32(AifJobCtrZero))
--		 && (((u32 *)aifcmd->data)[6] == 0)
--		 && (((u32 *)aifcmd->data)[4] == cpu_to_le32(AifJobStsRunning))) {
-+		if (((__le32 *)aifcmd->data)[1] == cpu_to_le32(AifJobCtrZero) &&
-+		    ((__le32 *)aifcmd->data)[6] == 0 &&
-+		    ((__le32 *)aifcmd->data)[4] == cpu_to_le32(AifJobStsRunning)) {
- 			for (container = 0;
- 			    container < dev->maximum_num_containers;
- 			    ++container) {
-@@ -1339,10 +1339,10 @@ int aac_check_health(struct aac_dev * aa
- 			aif = (struct aac_aifcmd *)hw_fib->data;
- 			aif->command = cpu_to_le32(AifCmdEventNotify);
- 		 	aif->seqnum = cpu_to_le32(0xFFFFFFFF);
--		 	aif->data[0] = cpu_to_le32(AifEnExpEvent);
--			aif->data[1] = cpu_to_le32(AifExeFirmwarePanic);
--		 	aif->data[2] = cpu_to_le32(AifHighPriority);
--			aif->data[3] = cpu_to_le32(BlinkLED);
-+		 	aif->data[0] = AifEnExpEvent;
-+			aif->data[1] = AifExeFirmwarePanic;
-+		 	aif->data[2] = AifHighPriority;
-+			aif->data[3] = BlinkLED;
- 
- 			/*
- 			 * Put the FIB onto the
-@@ -1373,8 +1373,8 @@ int aac_check_health(struct aac_dev * aa
- 	printk(KERN_ERR "%s: Host adapter BLINK LED 0x%x\n", aac->name, BlinkLED);
- 
- 	if (!aac_check_reset ||
--		(aac->supplement_adapter_info.SupportedOptions2 &
--			le32_to_cpu(AAC_OPTION_IGNORE_RESET)))
-+	    (aac->supplement_adapter_info.SupportedOptions2 &
-+	     cpu_to_le32(AAC_OPTION_IGNORE_RESET)))
- 		goto out;
- 	host = aac->scsi_host_ptr;
- 	if (aac->thread->pid != current->pid)
-@@ -1655,11 +1655,11 @@ int aac_command_thread(void *data)
- 				struct fib *fibptr;
- 
- 				if ((fibptr = aac_fib_alloc(dev))) {
--					u32 * info;
-+					__le32 *info;
- 
- 					aac_fib_init(fibptr);
- 
--					info = (u32 *) fib_data(fibptr);
-+					info = (__le32 *) fib_data(fibptr);
- 					if (now.tv_usec > 500000)
- 						++now.tv_sec;
- 
-diff -puN drivers/scsi/aacraid/dpcsup.c~aacraid-fix-endianness-warnings drivers/scsi/aacraid/dpcsup.c
---- a/drivers/scsi/aacraid/dpcsup.c~aacraid-fix-endianness-warnings
-+++ a/drivers/scsi/aacraid/dpcsup.c
-@@ -229,11 +229,9 @@ unsigned int aac_command_normal(struct a
-  *	all QE there are and wake up all the waiters before exiting.
-  */
- 
--unsigned int aac_intr_normal(struct aac_dev * dev, u32 Index)
-+unsigned int aac_intr_normal(struct aac_dev * dev, u32 index)
- {
--	u32 index = le32_to_cpu(Index);
+-<<<<<<< HEAD:arch/x86/kernel/tsc_32.c
+-		/*
+-		 * Error: ECTCNEVERSET
+-		 * The CTC wasn't reliable: we got a hit on the very first read,
+-		 * or the CPU was so fast/slow that the quotient wouldn't fit in
+-		 * 32 bits..
+-		 */
+-		if (count <= 1)
+-			continue;
 -
--	dprintk((KERN_INFO "aac_intr_normal(%p,%x)\n", dev, Index));
-+	dprintk((KERN_INFO "aac_intr_normal(%p,%x)\n", dev, index));
- 	if ((index & 0x00000002L)) {
- 		struct hw_fib * hw_fib;
- 		struct fib * fib;
-@@ -301,7 +299,7 @@ unsigned int aac_intr_normal(struct aac_
+-		/* cpu freq too slow: */
+-		if ((end - start) <= CALIBRATE_TIME_MSEC)
+-			continue;
+-
+-		/*
+-		 * We want the minimum time of all runs in case one of them
+-		 * is inaccurate due to SMI or other delay
+-		 */
+-		delta64 = min(delta64, (end - start));
+-	}
+-
+-	/* cpu freq too fast (or every run was bad): */
+-=======
+ 	/* cpu freq too fast: */
+->>>>>>> FETCH_HEAD:arch/x86/kernel/tsc_32.c
+ 	if (delta64 > (1ULL<<32))
+ 		goto err;
  
- 		if (hwfib->header.Command == cpu_to_le16(NuFileSystem))
- 		{
--			u32 *pstatus = (u32 *)hwfib->data;
-+			__le32 *pstatus = (__le32 *)hwfib->data;
- 			if (*pstatus & cpu_to_le32(0xffff0000))
- 				*pstatus = cpu_to_le32(ST_OK);
- 		}
-diff -puN drivers/scsi/aacraid/linit.c~aacraid-fix-endianness-warnings drivers/scsi/aacraid/linit.c
---- a/drivers/scsi/aacraid/linit.c~aacraid-fix-endianness-warnings
-+++ a/drivers/scsi/aacraid/linit.c
-@@ -590,8 +590,8 @@ static int aac_eh_reset(struct scsi_cmnd
- 	 * support a register, instead of a commanded, reset.
- 	 */
- 	if ((aac->supplement_adapter_info.SupportedOptions2 &
--	  le32_to_cpu(AAC_OPTION_MU_RESET|AAC_OPTION_IGNORE_RESET)) ==
--	  le32_to_cpu(AAC_OPTION_MU_RESET))
-+	     cpu_to_le32(AAC_OPTION_MU_RESET|AAC_OPTION_IGNORE_RESET)) ==
-+	     cpu_to_le32(AAC_OPTION_MU_RESET))
- 		aac_reset_adapter(aac, 2); /* Bypass wait for command quiesce */
- 	return SUCCESS; /* Cause an immediate retry of the command with a ten second delay after successful tur */
+diff -puN arch/x86/kernel/early-quirks.c~git-x86-fixup arch/x86/kernel/early-quirks.c
+--- a/arch/x86/kernel/early-quirks.c~git-x86-fixup
++++ a/arch/x86/kernel/early-quirks.c
+@@ -34,19 +34,6 @@ static void __init via_bugs(void)
+ #endif
  }
-diff -puN drivers/scsi/aacraid/rx.c~aacraid-fix-endianness-warnings drivers/scsi/aacraid/rx.c
---- a/drivers/scsi/aacraid/rx.c~aacraid-fix-endianness-warnings
-+++ a/drivers/scsi/aacraid/rx.c
-@@ -465,7 +465,7 @@ static int aac_rx_restart_adapter(struct
- 	u32 var;
  
- 	if (!(dev->supplement_adapter_info.SupportedOptions2 &
--	  le32_to_cpu(AAC_OPTION_MU_RESET)) || (bled >= 0) || (bled == -2)) {
-+	    cpu_to_le32(AAC_OPTION_MU_RESET)) || (bled >= 0) || (bled == -2)) {
- 		if (bled)
- 			printk(KERN_ERR "%s%d: adapter kernel panic'd %x.\n",
- 				dev->name, dev->id, bled);
+-<<<<<<< HEAD:arch/x86/kernel/early-quirks.c
+-#ifdef CONFIG_ACPI
+-#ifdef CONFIG_X86_IO_APIC
+-
+-static int __init nvidia_hpet_check(struct acpi_table_header *header)
+-{
+-	return 0;
+-}
+-#endif /* CONFIG_X86_IO_APIC */
+-#endif /* CONFIG_ACPI */
+-
+-=======
+->>>>>>> FETCH_HEAD:arch/x86/kernel/early-quirks.c
+ static void __init nvidia_bugs(void)
+ {
+ #ifdef CONFIG_ACPI
 _
 
-Patches currently in -mm which might be from hch@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-git-gfs2-nmw.patch
-git-scsi-misc.patch
-aacraid-fix-endianness-warnings.patch
-aacraid-fix-endianness-warnings-checkpatch-fixes.patch
-git-xfs.patch
-r-o-bind-mounts-do_rmdir-elevate-write-count.patch
-r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
-r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
-r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
-r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
+proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
+acpi-make-acpi_procfs-default-to-y.patch
+oprofile-revert-i386-make-callgraph-use-dump_trace-on-i386-x86_64.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of-fix.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-arm-fixup.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
+git-dvb.patch
+git-hwmon.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+elantech-touchpad-driver-fix.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+ide-arm-hack.patch
+git-mtd.patch
+lmc_ioctl-dont-return-with-locks-held-fix.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+bluetooth-uninlining.patch
+git-nfsd-fixup.patch
+quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
+scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+git-wireless.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-fixup.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+i386-and-x86_64-randomize-brk-fix.patch
+x86-arch_register_cpu-section-fix.patch
+mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
+pidns-place-under-config_experimental-checkpatch-fixes.patch
+fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
+file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
+x86-disable-preemption-in-delay_tsc.patch
+tty-fix-network-driver-interactions-with-tcget-set-checkpatch-fixes.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+cris-build-fixes-atomich-needs-compilerh-fix.patch
+cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
+cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
+cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
+cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+sync_sb_inodes-propagate-errors.patch
+64-bit-i_version-afs-fixes.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
 r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
-r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
-r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
-r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
-r-o-bind-mounts-make-access-use-mnt-check.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
 r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
-one-less-parameter-to-__d_path.patch
-d_path-kerneldoc-cleanup.patch
-d_path-use-struct-path-in-struct-avc_audit_data.patch
-d_path-make-proc_get_link-use-a-struct-path-argument.patch
-d_path-make-get_dcookie-use-a-struct-path-argument.patch
-use-struct-path-in-struct-svc_export.patch
-d_path-make-d_path-use-a-struct-path.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+dhowells-broke-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
