@@ -1,70 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: + getblk-handle-2tb-devices-fix.patch added to -mm tree
-Date: Fri, 09 Nov 2007 11:42:54 -0800
-Message-ID: <200711091942.lA9Jgskf028964@imap1.linux-foundation.org>
+Subject: + export-acpi_check_resource_conflict-fix.patch added to -mm tree
+Date: Fri, 09 Nov 2007 11:45:37 -0800
+Message-ID: <200711091945.lA9JjbXs029080@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36382 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44582 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751220AbXKITnG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:43:06 -0500
+	by vger.kernel.org with ESMTP id S1752326AbXKITrD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:47:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: deweerdt@free.fr, frederik.deweerdt@gmail.com
+Cc: jdelvare@suse.de, bjorn.helgaas@hp.com, kamalesh@linux.vnet.ibm.com, khali@linux-fr.org, lenb@kernel.org, mhoffman@lightlink.com
 
 
 The patch titled
-     fix getblk_slow "integer constant is too large" warning
+     export-acpi_check_resource_conflict-fix
 has been added to the -mm tree.  Its filename is
-     getblk-handle-2tb-devices-fix.patch
+     export-acpi_check_resource_conflict-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fix getblk_slow "integer constant is too large" warning
-From: Frederik Deweerdt <deweerdt@free.fr>
+Subject: export-acpi_check_resource_conflict-fix
+=46rom: Jean Delvare <jdelvare@suse.de>
 
-On Tue, Nov 06, 2007 at 02:33:53AM -0800, akpm@linux-foundation.org wrote:
-> The mm snapshot broken-out-2007-11-06-02-32.tar.gz has been uploaded to
+Le mardi 06 novembre 2007, Kamalesh Babulal a =C3=A9crit=C2=A0:
+> Hi Andrew,
 >
->    ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/mm/broken-out-2007-11-06-02-32.tar.gz
+> The kernel build fails, on powerpc while compiling the kernel with al=
+lyesconfig option
 >
-> It contains the following patches against 2.6.24-rc1:
->
-[...]
-> getblk-handle-2tb-devices.patch
-[...]
-0xffffffff00000000 is unsigned long long on 32 bits
-fs/buffer.c: In function '__getblk_slow':
-fs/buffer.c:1126: warning: integer constant is too large for 'unsigned long' type
+> drivers/hwmon/w83627hf.c:1631: error: implicit declaration of functio=
+n `acpi_check_resource_conflict'
+> make[2]: *** [drivers/hwmon/w83627hf.o] Error 1
+> make[1]: *** [drivers/hwmon] Error 2
+> make: *** [drivers] Error 2
+>   CC      fs/xfs/xfs_error.o
+> drivers/hwmon/w83627hf.c:1631: error: implicit declaration of functio=
+n `acpi_check_resource_conflict'
+> make[2]: *** [drivers/hwmon/w83627hf.o] Error 1
+> make[1]: *** [drivers/hwmon] Error 2
+> make: *** [drivers] Error 2
+> drivers/i2c/busses/i2c-ali1535.c:163: error: implicit declaration of =
+function `acpi_check_region'
+> make[3]: *** [drivers/i2c/busses/i2c-ali1535.o] Error 1
+> make[2]: *** [drivers/i2c/busses] Error 2
+> make[1]: *** [drivers/i2c] Error 2
+> drivers/hwmon/dme1737.c:2231: error: implicit declaration of function=
+ `acpi_check_resource_conflict'
+> make[2]: *** [drivers/hwmon/dme1737.o] Error 1
+> make[1]: *** [drivers/hwmon] Error 2
+> make: *** [drivers] Error 2
 
-Signed-off-by: Frederik Deweerdt <frederik.deweerdt@gmail.com>
+Odd. Thanks for reporting.
+
+> The patches check-for-acpi-resource-conflicts-in-hwmon-drivers and
+> check-for-acpi-resource-conflicts-in-i2c-bus-drivers.patch, causes th=
+is build failure.
+> The declaration of the functions are under ifdef CONFIG_ACPI.
+
+There's an #else after that, and the functions are defined as inlines
+doing nothing in the non-ACPI case. The code looks OK to me, but I can
+reproduce the problem on x86_64 with CONFIG_ACPI=3Dn.
+
+Aha, I see it now, there are nested #ifdef CONFIG_ACPI in acpi.h,
+so the inner one is a no-op (and its #else counterpart is never
+evaluated.) That's pretty confusing, I'll send a patch fixing this.
+
+In the meantime, here's a quick fix so that you can go on testing
+the mm snapshot. Apply this at the top of the series:
+
+=46ix the <linux/acpi.h> breakage for CONFIG_ACPI=3Dn.
+
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/acpi.h |   23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
-diff -puN fs/buffer.c~getblk-handle-2tb-devices-fix fs/buffer.c
---- a/fs/buffer.c~getblk-handle-2tb-devices-fix
-+++ a/fs/buffer.c
-@@ -1123,7 +1123,7 @@ __getblk_slow(struct block_device *bdev,
- 
- #if (BITS_PER_LONG == 32) && defined(CONFIG_LBD)
- 	if ((block >> (PAGE_CACHE_SHIFT - bdev->bd_inode->i_blkbits)) &
--			0xffffffff00000000UL) {
-+			0xffffffff00000000ULL) {
- 		/*
- 		 * We'll fail because the block is outside the range
- 		 * which a 32-bit pagecache index can address
+diff -puN include/linux/acpi.h~export-acpi_check_resource_conflict-fix =
+include/linux/acpi.h
+--- a/include/linux/acpi.h~export-acpi_check_resource_conflict-fix
++++ a/include/linux/acpi.h
+@@ -26,6 +26,7 @@
+ #define _LINUX_ACPI_H
+=20
+=20
++#include <linux/ioport.h>
+ #ifdef	CONFIG_ACPI
+=20
+ #ifndef _LINUX
+@@ -134,17 +135,6 @@ int acpi_check_mem_region(resource_size_
+=20
+ #define acpi_mp_config	0
+=20
+-static inline int acpi_check_resource_conflict(struct resource *res)
+-{ return 0; }
+-
+-static inline int acpi_check_region(resource_size_t start, resource_si=
+ze_t n,
+-				    const char *name)
+-{ return 0; }
+-
+-static inline int acpi_check_mem_region(resource_size_t start,
+-					resource_size_t n, const char *name)
+-{ return 0; }
+-
+ #endif 	/* !CONFIG_ACPI */
+=20
+ int acpi_register_gsi (u32 gsi, int triggering, int polarity);
+@@ -239,5 +229,16 @@ static inline int acpi_boot_table_init(v
+ 	return 0;
+ }
+=20
++static inline int acpi_check_resource_conflict(struct resource *res)
++{ return 0; }
++
++static inline int acpi_check_region(resource_size_t start, resource_si=
+ze_t n,
++				    const char *name)
++{ return 0; }
++
++static inline int acpi_check_mem_region(resource_size_t start,
++					resource_size_t n, const char *name)
++{ return 0; }
++
+ #endif	/* CONFIG_ACPI */
+ #endif	/*_LINUX_ACPI_H*/
 _
 
-Patches currently in -mm which might be from deweerdt@free.fr are
+Patches currently in -mm which might be from jdelvare@suse.de are
 
-revoke-core-code.patch
-reiser4-sb_sync_inodes.patch
-getblk-handle-2tb-devices-fix.patch
+export-acpi_check_resource_conflict.patch
+export-acpi_check_resource_conflict-fix.patch
+check-for-acpi-resource-conflicts-in-i2c-bus-drivers.patch
+check-for-acpi-resource-conflicts-in-hwmon-drivers.patch
