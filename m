@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sysfs-fix-off-by-one-error-in-fill_read_buffer.patch added to -mm tree
-Date: Fri, 09 Nov 2007 15:40:18 -0800
-Message-ID: <200711092340.lA9NeIMD005239@imap1.linux-foundation.org>
+Subject: + m32r-remove-dead-config-symbols-from-m32r-code.patch added to -mm tree
+Date: Fri, 09 Nov 2007 15:41:51 -0800
+Message-ID: <200711092341.lA9NfpKx005283@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45258 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43232 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763673AbXKIXkY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 18:40:24 -0500
+	by vger.kernel.org with ESMTP id S1759770AbXKIXmL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 18:42:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: miaox@cn.fujitsu.com
+Cc: olsajiri@gmail.com, takata@linux-m32r.org
 
 
 The patch titled
-     sysfs: fix off-by-one error in fill_read_buffer()
+     m32r: remove dead config symbols from M32R code
 has been added to the -mm tree.  Its filename is
-     sysfs-fix-off-by-one-error-in-fill_read_buffer.patch
+     m32r-remove-dead-config-symbols-from-m32r-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,52 +25,75 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sysfs: fix off-by-one error in fill_read_buffer()
-From: Miao Xie <miaox@cn.fujitsu.com>
+Subject: m32r: remove dead config symbols from M32R code
+From: Jiri Olsa <olsajiri@gmail.com>
 
-I found that there is a off-by-one problem in the following code.
+remove dead config symbols from M32R code
 
-Version:	2.6.24-rc2
-File:		fs/sysfs/file.c:118-122
-Function:	fill_read_buffer
---------------------------------------------------------------------
-	count = ops->show(kobj, attr_sd->s_attr.attr, buffer->page);
-
-	sysfs_put_active_two(attr_sd);
-
-	BUG_ON(count > (ssize_t)PAGE_SIZE);
---------------------------------------------------------------------
-
-Because according to the specification of the sysfs and the implement of
-the show methods, the show methods return the number of bytes which would
-be generated for the given input, excluding the trailing null.So if the
-return value of the show methods equals PAGE_SIZE - 1, the buffer is full
-in fact.  And if the return value equals PAGE_SIZE, the resulting string
-was already truncated,or buffer overflow occurred.
-
-This patch fixes an off-by-one error in fill_read_buffer.
-
-Signed-off-by: Miao Xie <miaox@cn.fujitsu.com>
+Signed-off-by: Jiri Olsa <olsajiri@gmail.com>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/file.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/m32r/boot/compressed/m32r_sio.c     |    4 ++--
+ include/asm-m32r/irq.h                   |    2 +-
+ include/asm-m32r/m32700ut/m32700ut_pld.h |    4 +---
+ 3 files changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN fs/sysfs/file.c~sysfs-fix-off-by-one-error-in-fill_read_buffer fs/sysfs/file.c
---- a/fs/sysfs/file.c~sysfs-fix-off-by-one-error-in-fill_read_buffer
-+++ a/fs/sysfs/file.c
-@@ -90,7 +90,7 @@ static int fill_read_buffer(struct dentr
+diff -puN arch/m32r/boot/compressed/m32r_sio.c~m32r-remove-dead-config-symbols-from-m32r-code arch/m32r/boot/compressed/m32r_sio.c
+--- a/arch/m32r/boot/compressed/m32r_sio.c~m32r-remove-dead-config-symbols-from-m32r-code
++++ a/arch/m32r/boot/compressed/m32r_sio.c
+@@ -17,7 +17,7 @@ static int puts(const char *s)
+ 	return 0;
+ }
  
- 	sysfs_put_active_two(attr_sd);
+-#if defined(CONFIG_PLAT_M32700UT_Alpha) || defined(CONFIG_PLAT_M32700UT) || defined(CONFIG_PLAT_OPSPUT)
++#if defined(CONFIG_PLAT_M32700UT) || defined(CONFIG_PLAT_OPSPUT)
+ #include <asm/m32r.h>
+ #include <asm/io.h>
  
--	BUG_ON(count > (ssize_t)PAGE_SIZE);
-+	BUG_ON(count >= (ssize_t)PAGE_SIZE);
- 	if (count >= 0) {
- 		buffer->needs_read_fill = 0;
- 		buffer->count = count;
+@@ -52,7 +52,7 @@ static void putc(char c)
+ 	}
+ 	*BOOT_SIO0TXB = c;
+ }
+-#else /* !(CONFIG_PLAT_M32700UT_Alpha) && !(CONFIG_PLAT_M32700UT) */
++#else /* !(CONFIG_PLAT_M32700UT) */
+ #if defined(CONFIG_PLAT_MAPPI2)
+ #define SIO0STS	(volatile unsigned short *)(0xa0efd000 + 14)
+ #define SIO0TXB	(volatile unsigned short *)(0xa0efd000 + 30)
+diff -puN include/asm-m32r/irq.h~m32r-remove-dead-config-symbols-from-m32r-code include/asm-m32r/irq.h
+--- a/include/asm-m32r/irq.h~m32r-remove-dead-config-symbols-from-m32r-code
++++ a/include/asm-m32r/irq.h
+@@ -3,7 +3,7 @@
+ #define _ASM_M32R_IRQ_H
+ 
+ 
+-#if defined(CONFIG_PLAT_M32700UT_Alpha) || defined(CONFIG_PLAT_USRV)
++#if defined(CONFIG_PLAT_USRV)
+ /*
+  * IRQ definitions for M32700UT
+  *  M32700 Chip: 64 interrupts
+diff -puN include/asm-m32r/m32700ut/m32700ut_pld.h~m32r-remove-dead-config-symbols-from-m32r-code include/asm-m32r/m32700ut/m32700ut_pld.h
+--- a/include/asm-m32r/m32700ut/m32700ut_pld.h~m32r-remove-dead-config-symbols-from-m32r-code
++++ a/include/asm-m32r/m32700ut/m32700ut_pld.h
+@@ -13,9 +13,7 @@
+  * this archive for more details.
+  */
+ 
+-#if defined(CONFIG_PLAT_M32700UT_Alpha)
+-#define PLD_PLAT_BASE		0x08c00000
+-#elif defined(CONFIG_PLAT_M32700UT) || defined(CONFIG_PLAT_USRV)
++#if defined(CONFIG_PLAT_M32700UT) || defined(CONFIG_PLAT_USRV)
+ #define PLD_PLAT_BASE		0x04c00000
+ #else
+ #error "no platform configuration"
 _
 
-Patches currently in -mm which might be from miaox@cn.fujitsu.com are
+Patches currently in -mm which might be from olsajiri@gmail.com are
 
-sysfs-fix-off-by-one-error-in-fill_read_buffer.patch
+arm-remove-dead-config-symbols-from-arm-code.patch
+m32r-remove-dead-config-symbols-from-m32r-code.patch
+git-net.patch
+drivers-serial-s3c2410c-remove-dead-config-symbols.patch
+git-sh.patch
+frv-remove-dead-config-symbol-from-frv-code.patch
