@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-misc-move-misplaced-pci_dev_puts.patch added to -mm tree
-Date: Thu, 08 Nov 2007 20:02:59 -0800
-Message-ID: <200711090403.lA9430th028431@imap1.linux-foundation.org>
+Subject: + acpi4asus-add-support-for-f3sa.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:03:36 -0800
+Message-ID: <200711090403.lA943bu8028460@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33964 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40816 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758614AbXKIEDM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:03:12 -0500
+	by vger.kernel.org with ESMTP id S1758721AbXKIEEU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:04:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk
+Cc: kronos.it@gmail.com, corentincj@iksaif.net, lenb@kernel.org, sziwan@users.sourceforge.net
 
 
 The patch titled
-     drivers/misc: Move misplaced pci_dev_put's
+     acpi4asus: add support for F3Sa
 has been added to the -mm tree.  Its filename is
-     drivers-misc-move-misplaced-pci_dev_puts.patch
+     acpi4asus-add-support-for-f3sa.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,65 +25,121 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: drivers/misc: Move misplaced pci_dev_put's
-From: Julia Lawall <julia@diku.dk>
+Subject: acpi4asus: add support for F3Sa
+From: Luca Tettamanti <kronos.it@gmail.com>
 
-Move pci_dev_put outside the loops in which it occurs.  Within the loop,
-pci_dev_put is done implicitly by pci_get_device.
+Add support for ASUS F3Sa notebook. Features:
+- LCD on/off
+- Brightness
+- Wifi kill
+- Bluetooth kill
 
-The problem was detected using the following semantic patch, and corrected
-by hand.
-
-@@
-expression dev;
-expression E;
-@@
-
-- pci_dev_put(dev)
-   ... when != dev = E
-- pci_get_device(...,dev)
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
+Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
+Cc: Corentin Chary <corentincj@iksaif.net>
+Cc: Karol Kozimor <sziwan@users.sourceforge.net>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/ioc4.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/acpi/asus_acpi.c |   55 ++++++++++++++++++++++++++++++-------
+ 1 file changed, 45 insertions(+), 10 deletions(-)
 
-diff -puN drivers/misc/ioc4.c~drivers-misc-move-misplaced-pci_dev_puts drivers/misc/ioc4.c
---- a/drivers/misc/ioc4.c~drivers-misc-move-misplaced-pci_dev_puts
-+++ a/drivers/misc/ioc4.c
-@@ -244,10 +244,11 @@ ioc4_variant(struct ioc4_driver_data *id
- 		    idd->idd_pdev->bus->number == pdev->bus->number &&
- 		    3 == PCI_SLOT(pdev->devfn))
- 			found = 1;
--		pci_dev_put(pdev);
- 	} while (pdev && !found);
--	if (NULL != pdev)
-+	if (NULL != pdev) {
-+		pci_dev_put(pdev);
- 		return IOC4_VARIANT_IO9;
-+	}
+diff -puN drivers/acpi/asus_acpi.c~acpi4asus-add-support-for-f3sa drivers/acpi/asus_acpi.c
+--- a/drivers/acpi/asus_acpi.c~acpi4asus-add-support-for-f3sa
++++ a/drivers/acpi/asus_acpi.c
+@@ -142,6 +142,7 @@ struct asus_hotk {
+ 		xxN,		//M2400N, M3700N, M5200N, M6800N, S1300N, S5200N
+ 		A4S,            //Z81sp
+ 		//(Centrino)
++		F3Sa,
+ 		END_MODEL
+ 	} model;		//Models currently supported
+ 	u16 event_count[128];	//count for each event TODO make this better
+@@ -405,7 +406,20 @@ static struct model_data model_conf[END_
+ 		.brightness_get    = "GPLV",
+ 		.mt_bt_switch      = "BLED",
+ 		.mt_wled           = "WLED"
+-	}
++	},
++
++	{
++		.name		= "F3Sa",
++		.mt_bt_switch	= "BLED",
++		.mt_wled	= "WLED",
++		.mt_mled	= "MLED",
++		.brightness_get	= "GPLV",
++		.brightness_set	= "SPLV",
++		.mt_lcd_switch	= "\\_SB.PCI0.SBRG.EC0._Q10",
++		.lcd_status	= "\\_SB.PCI0.SBRG.EC0.RPIN",
++		.display_get	= "\\ADVG",
++		.display_set	= "SDSP",
++	},
  
- 	/* IO10: Look for a Vitesse VSC 7174 at the same bus and slot 3. */
- 	pdev = NULL;
-@@ -258,10 +259,11 @@ ioc4_variant(struct ioc4_driver_data *id
- 		    idd->idd_pdev->bus->number == pdev->bus->number &&
- 		    3 == PCI_SLOT(pdev->devfn))
- 			found = 1;
--		pci_dev_put(pdev);
- 	} while (pdev && !found);
--	if (NULL != pdev)
-+	if (NULL != pdev) {
-+		pci_dev_put(pdev);
- 		return IOC4_VARIANT_IO10;
-+	}
+ };
  
- 	/* PCI-RT: No SCSI/SATA controller will be present */
- 	return IOC4_VARIANT_PCI_RT;
+@@ -710,15 +724,8 @@ static int get_lcd_state(void)
+ {
+ 	int lcd = 0;
+ 
+-	if (hotk->model != L3H) {
+-		/* We don't have to check anything if we are here */
+-		if (!read_acpi_int(NULL, hotk->methods->lcd_status, &lcd))
+-			printk(KERN_WARNING
+-			       "Asus ACPI: Error reading LCD status\n");
+-
+-		if (hotk->model == L2D)
+-			lcd = ~lcd;
+-	} else {		/* L3H and the like have to be handled differently */
++	if (hotk->model == L3H) {
++		/* L3H and the like have to be handled differently */
+ 		acpi_status status = 0;
+ 		struct acpi_object_list input;
+ 		union acpi_object mt_params[2];
+@@ -745,6 +752,32 @@ static int get_lcd_state(void)
+ 		if (out_obj.type == ACPI_TYPE_INTEGER)
+ 			/* That's what the AML code does */
+ 			lcd = out_obj.integer.value >> 8;
++	} else if (hotk->model == F3Sa) {
++		unsigned long tmp;
++		union acpi_object param;
++		struct acpi_object_list input;
++		acpi_status status;
++
++		/* Read pin 11 */
++		param.type = ACPI_TYPE_INTEGER;
++		param.integer.value = 0x11;
++		input.count = 1;
++		input.pointer = &param;
++
++		status = acpi_evaluate_integer(NULL, hotk->methods->lcd_status,
++						&input, &tmp);
++		if (status != AE_OK)
++			return -1;
++
++		lcd = tmp;
++	} else {
++		/* We don't have to check anything if we are here */
++		if (!read_acpi_int(NULL, hotk->methods->lcd_status, &lcd))
++			printk(KERN_WARNING
++			       "Asus ACPI: Error reading LCD status\n");
++
++		if (hotk->model == L2D)
++			lcd = ~lcd;
+ 	}
+ 
+ 	return (lcd & 1);
+@@ -1134,6 +1167,8 @@ static int asus_model_match(char *model)
+ 		return W5A;
+ 	else if (strncmp(model, "A4S", 3) == 0)
+ 		return A4S;
++	else if (strncmp(model, "F3Sa", 4) == 0)
++		return F3Sa;
+ 	else
+ 		return END_MODEL;
+ }
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from kronos.it@gmail.com are
 
-drivers-misc-move-misplaced-pci_dev_puts.patch
-arch-ppc-remove-an-unnecessary-pci_dev_put.patch
+acpi4asus-add-support-for-f3sa.patch
+git-kvm.patch
