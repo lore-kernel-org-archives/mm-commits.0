@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + fs-signalfdc-should-include-linux-syscallsh.patch added to -mm tree
-Date: Thu, 08 Nov 2007 20:52:35 -0800
-Message-ID: <200711090452.lA94qaZu030198@imap1.linux-foundation.org>
+Subject: + fs-eventfdc-should-include-linux-syscallsh.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:52:40 -0800
+Message-ID: <200711090452.lA94qfjt030205@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48182 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41072 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760375AbXKIEws (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:52:48 -0500
+	by vger.kernel.org with ESMTP id S1760472AbXKIEw6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:52:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@kernel.org, davidel@xmailserver.org
 
 
 The patch titled
-     fs/signalfd.c should #include <linux/syscalls.h>
+     fs/eventfd.c should #include <linux/syscalls.h>
 has been added to the -mm tree.  Its filename is
-     fs-signalfdc-should-include-linux-syscallsh.patch
+     fs-eventfdc-should-include-linux-syscallsh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs/signalfd.c should #include <linux/syscalls.h>
+Subject: fs/eventfd.c should #include <linux/syscalls.h>
 From: Adrian Bunk <bunk@kernel.org>
 
 Every file should include the headers containing the prototypes for its global
-functions (in this case sys_signalfd()).
+functions (in this case sys_eventfd()).
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/signalfd.c |    1 +
+ fs/eventfd.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN fs/signalfd.c~fs-signalfdc-should-include-linux-syscallsh fs/signalfd.c
---- a/fs/signalfd.c~fs-signalfdc-should-include-linux-syscallsh
-+++ a/fs/signalfd.c
-@@ -27,6 +27,7 @@
- #include <linux/list.h>
+diff -puN fs/eventfd.c~fs-eventfdc-should-include-linux-syscallsh fs/eventfd.c
+--- a/fs/eventfd.c~fs-eventfdc-should-include-linux-syscallsh
++++ a/fs/eventfd.c
+@@ -15,6 +15,7 @@
+ #include <linux/spinlock.h>
  #include <linux/anon_inodes.h>
- #include <linux/signalfd.h>
+ #include <linux/eventfd.h>
 +#include <linux/syscalls.h>
  
- struct signalfd_ctx {
- 	sigset_t sigmask;
+ struct eventfd_ctx {
+ 	wait_queue_head_t wqh;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
