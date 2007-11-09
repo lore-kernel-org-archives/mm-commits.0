@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-blkdev-size-calculation-in-generic_write_checks.patch added to -mm tree
-Date: Thu, 08 Nov 2007 20:51:23 -0800
-Message-ID: <200711090451.lA94pOCe030151@imap1.linux-foundation.org>
+Subject: + smbfs-fix-calculation-of-kernel_recvmsg-size-parameter-in-smb_receive.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:51:32 -0800
+Message-ID: <200711090451.lA94pX4V030154@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55804 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49795 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759432AbXKIEvo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:51:44 -0500
+	by vger.kernel.org with ESMTP id S1759998AbXKIEvu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:51:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dmonakhov@openvz.org, hch@lst.de, viro@zeniv.linux.org.uk
+Cc: jlayton@redhat.com
 
 
 The patch titled
-     mm: fix blkdev size calculation in generic_write_checks
+     smbfs: fix calculation of kernel_recvmsg size parameter in smb_receive()
 has been added to the -mm tree.  Its filename is
-     mm-fix-blkdev-size-calculation-in-generic_write_checks.patch
+     smbfs-fix-calculation-of-kernel_recvmsg-size-parameter-in-smb_receive.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,73 +25,60 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm: fix blkdev size calculation in generic_write_checks
-From: Dmitry Monakhov <dmonakhov@openvz.org>
+Subject: smbfs: fix calculation of kernel_recvmsg size parameter in smb_receive()
+From: Jeff Layton <jlayton@redhat.com>
 
-Currently block device size calculated regardless its bd_block_size.  This
-may result attempt to write outside block device if i_size not aligned to
-bdev->bd_block_size and result in EIO.
+smb_receive calls kernel_recvmsg with a size that's the minimum of the
+amount of buffer space in the kvec passed in or req->rq_rlen (which
+represents the length of the response).  This does not take into account
+any data that was read in a request earlier pass through smb_receive.
 
-#### TEST_CASE_BEGIN
-# fdisk -l /dev/sdc
-Disk /dev/sdc: 36.7 GB, 36703918080 bytes
-255 heads, 63 sectors/track, 4462 cylinders
-Units = cylinders of 16065 * 512 = 8225280 bytes
+If the first pass through smb_receive receives some but not all of the
+response, then the next pass can call kernel_recvmsg with a size field
+that's too big.  kernel_recvmsg can overrun into the next response,
+throwing off the alignment and making it unrecognizable.
 
-   Device Boot      Start         End      Blocks   Id  System
-/dev/sdc1   *           1         254     2040223+  83  Ldinux
-/dev/sdc2             255         379     1004062+  83  Linux
-####
-#### /dev/sdc2 size not aligned to 4K
+This causes messages like this to pop up in the ring buffer:
 
-#### at this time bd_block_size == 512 so generic_write_check
-#### performed correctly
-# dd if=/dev/zero of=/dev/sdc2 bs=1k count=7 seek=1004058
-dd: writing `/dev/sdc2': No space left on device
-5+0 records in
-4+0 records out
+smb_get_length: Invalid NBT packet, code=69
 
-#### this bdev contain ext4fs with blksize = 4K
-# mount /dev/sdc2 /mnt/
-#### after we mounted this bdev bd_block_size == fsblksize == 4K
+as well as other errors indicating that the response is unrecognizable.
+Typically this is seen on a smbfs mount under heavy I/O.
 
-#### the same write operation failed with EIO
-# dd if=/dev/zero of=/dev/sdc2 bs=1k count=7 seek=1004058
-dd: writing `/dev/sdc2': Input/output error
-3+0 records in
-2+0 records out
-#### Attempt to write whole fsblock result write access outside
-#### blkdevice and cause -EIO (returned by blkdev_get_block)
-#### TEST_CASE_END
+This patch changes the code to use (req->rq_rlen - req->rq_bytes_recvd)
+instead instead of just req->rq_rlen, since that should represent the
+amount of unread data in the response.
 
-Signed-off-by: Dmitry Monakhov <dmonakhov@openvz.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+I think this is correct, but an ACK or NACK from someone more familiar
+with this code would be appreciated...
+
+Signed-off-by: Jeff Layton <jlayton@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/smbfs/sock.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/filemap.c~mm-fix-blkdev-size-calculation-in-generic_write_checks mm/filemap.c
---- a/mm/filemap.c~mm-fix-blkdev-size-calculation-in-generic_write_checks
-+++ a/mm/filemap.c
-@@ -1856,9 +1856,11 @@ inline int generic_write_checks(struct f
- 	} else {
- #ifdef CONFIG_BLOCK
- 		loff_t isize;
-+		unsigned int blksize;
- 		if (bdev_read_only(I_BDEV(inode)))
- 			return -EPERM;
--		isize = i_size_read(inode);
-+		blksize = block_size(I_BDEV(inode));
-+		isize = i_size_read(inode) & ~(blksize - 1);
- 		if (*pos >= isize) {
- 			if (*count || *pos > isize)
- 				return -ENOSPC;
+diff -puN fs/smbfs/sock.c~smbfs-fix-calculation-of-kernel_recvmsg-size-parameter-in-smb_receive fs/smbfs/sock.c
+--- a/fs/smbfs/sock.c~smbfs-fix-calculation-of-kernel_recvmsg-size-parameter-in-smb_receive
++++ a/fs/smbfs/sock.c
+@@ -329,9 +329,8 @@ smb_receive(struct smb_sb_info *server, 
+ 	msg.msg_control = NULL;
+ 
+ 	/* Dont repeat bytes and count available bufferspace */
+-	rlen = smb_move_iov(&p, &num, iov, req->rq_bytes_recvd);
+-	if (req->rq_rlen < rlen)
+-		rlen = req->rq_rlen;
++	rlen = min_t(int, smb_move_iov(&p, &num, iov, req->rq_bytes_recvd),
++			(req->rq_rlen - req->rq_bytes_recvd));
+ 
+ 	result = kernel_recvmsg(sock, &msg, p, num, rlen, flags);
+ 
 _
 
-Patches currently in -mm which might be from dmonakhov@openvz.org are
+Patches currently in -mm which might be from jlayton@redhat.com are
 
-git-md-accel.patch
-mm-fix-blkdev-size-calculation-in-generic_write_checks.patch
+git-cifs.patch
+git-unionfs.patch
+smbfs-fix-debug-builds.patch
+smbfs-fix-calculation-of-kernel_recvmsg-size-parameter-in-smb_receive.patch
