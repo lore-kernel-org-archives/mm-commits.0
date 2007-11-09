@@ -1,200 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: - git-mtd-fix.patch removed from -mm tree
-Date: Fri, 09 Nov 2007 11:13:13 -0800
-Message-ID: <200711091913.lA9JDD2Y027992@imap1.linux-foundation.org>
+Subject: - cx88-mpegc-make-4-functions-static.patch removed from -mm tree
+Date: Fri, 09 Nov 2007 11:13:00 -0800
+Message-ID: <200711091913.lA9JD0BU027968@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37271 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55930 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755192AbXKITNX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:13:23 -0500
+	by vger.kernel.org with ESMTP id S1755177AbXKITNZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:13:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: bunk@kernel.org, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-mtd-fix
+     cx88-mpeg.c: make 4 functions static
 has been removed from the -mm tree.  Its filename was
-     git-mtd-fix.patch
+     cx88-mpegc-make-4-functions-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-mtd-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cx88-mpeg.c: make 4 functions static
+From: Adrian Bunk <bunk@kernel.org>
 
-fs/jffs2/write.c: In function 'jffs2_do_unlink':
-fs/jffs2/write.c:609: error: 'prev' undeclared (first use in this function)
-fs/jffs2/write.c:609: error: (Each undeclared identifier is reported only once
-fs/jffs2/write.c:609: error: for each function it appears in.)
+Make the following needlessly global functions static:
 
-nfi, wtf.
+- cx8802_init_common()
+- cx8802_fini_common()
+- cx8802_suspend_common()
+- cx8802_resume_common()
 
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/write.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/media/video/cx88/cx88-mpeg.c |   14 ++++----------
+ drivers/media/video/cx88/cx88.h      |    6 ------
+ 2 files changed, 4 insertions(+), 16 deletions(-)
 
-diff -puN fs/jffs2/write.c~git-mtd-fix fs/jffs2/write.c
---- a/fs/jffs2/write.c~git-mtd-fix
-+++ a/fs/jffs2/write.c
-@@ -606,7 +606,6 @@ int jffs2_do_unlink(struct jffs2_sb_info
- 				fd->ino = 0;
- 				break;
- 			}
--			prev = &((*prev)->next);
- 		}
- 		up(&dir_f->sem);
- 	}
+diff -puN drivers/media/video/cx88/cx88-mpeg.c~cx88-mpegc-make-4-functions-static drivers/media/video/cx88/cx88-mpeg.c
+--- a/drivers/media/video/cx88/cx88-mpeg.c~cx88-mpegc-make-4-functions-static
++++ a/drivers/media/video/cx88/cx88-mpeg.c
+@@ -437,10 +437,7 @@ static irqreturn_t cx8802_irq(int irq, v
+ 	return IRQ_RETVAL(handled);
+ }
+ 
+-/* ----------------------------------------------------------- */
+-/* exported stuff                                              */
+-
+-int cx8802_init_common(struct cx8802_dev *dev)
++static int cx8802_init_common(struct cx8802_dev *dev)
+ {
+ 	struct cx88_core *core = dev->core;
+ 	int err;
+@@ -488,7 +485,7 @@ int cx8802_init_common(struct cx8802_dev
+ 	return 0;
+ }
+ 
+-void cx8802_fini_common(struct cx8802_dev *dev)
++static void cx8802_fini_common(struct cx8802_dev *dev)
+ {
+ 	dprintk( 2, "cx8802_fini_common\n" );
+ 	cx8802_stop_dma(dev);
+@@ -504,7 +501,7 @@ void cx8802_fini_common(struct cx8802_de
+ 
+ /* ----------------------------------------------------------- */
+ 
+-int cx8802_suspend_common(struct pci_dev *pci_dev, pm_message_t state)
++static int cx8802_suspend_common(struct pci_dev *pci_dev, pm_message_t state)
+ {
+ 	struct cx8802_dev *dev = pci_get_drvdata(pci_dev);
+ 	struct cx88_core *core = dev->core;
+@@ -530,7 +527,7 @@ int cx8802_suspend_common(struct pci_dev
+ 	return 0;
+ }
+ 
+-int cx8802_resume_common(struct pci_dev *pci_dev)
++static int cx8802_resume_common(struct pci_dev *pci_dev)
+ {
+ 	struct cx8802_dev *dev = pci_get_drvdata(pci_dev);
+ 	struct cx88_core *core = dev->core;
+@@ -874,9 +871,6 @@ EXPORT_SYMBOL(cx8802_buf_prepare);
+ EXPORT_SYMBOL(cx8802_buf_queue);
+ EXPORT_SYMBOL(cx8802_cancel_buffers);
+ 
+-EXPORT_SYMBOL(cx8802_init_common);
+-EXPORT_SYMBOL(cx8802_fini_common);
+-
+ EXPORT_SYMBOL(cx8802_register_driver);
+ EXPORT_SYMBOL(cx8802_unregister_driver);
+ EXPORT_SYMBOL(cx8802_get_driver);
+diff -puN drivers/media/video/cx88/cx88.h~cx88-mpegc-make-4-functions-static drivers/media/video/cx88/cx88.h
+--- a/drivers/media/video/cx88/cx88.h~cx88-mpegc-make-4-functions-static
++++ a/drivers/media/video/cx88/cx88.h
+@@ -633,12 +633,6 @@ int cx8802_buf_prepare(struct videobuf_q
+ void cx8802_buf_queue(struct cx8802_dev *dev, struct cx88_buffer *buf);
+ void cx8802_cancel_buffers(struct cx8802_dev *dev);
+ 
+-int cx8802_init_common(struct cx8802_dev *dev);
+-void cx8802_fini_common(struct cx8802_dev *dev);
+-
+-int cx8802_suspend_common(struct pci_dev *pci_dev, pm_message_t state);
+-int cx8802_resume_common(struct pci_dev *pci_dev);
+-
+ /* ----------------------------------------------------------- */
+ /* cx88-video.c*/
+ extern const u32 cx88_user_ctrls[];
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
-acpi-make-acpi_procfs-default-to-y.patch
-oprofile-revert-i386-make-callgraph-use-dump_trace-on-i386-x86_64.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of-fix.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-git-arm-fixup.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
+lguest_userc-fix-memory-leak.patch
+video-sis-fix-negative-array-index.patch
+git-avr32.patch
 git-dvb.patch
 git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-ide-arm-hack.patch
+git-gfs2-nmw.patch
 git-mtd.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
+git-net.patch
+make-sunrpc-xprtsockcxs_setup_udptcp-static.patch
 git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-git-nfsd-fixup.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-fix-build-breakage-if-sysfs-fix.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-fix-up.patch
-git-x86-inlining-borkage.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-x86-arch_register_cpu-section-fix.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
+drivers-net-chelsio-if-0-unused-functions.patch
+drivers-bluetooth-bpa10xc-fix-memleak.patch
+drivers-bluetooth-btsdioc-fix-double-free.patch
+git-nfs-make-nfs_wb_page_priority-static.patch
+fs-nfs-dirc-should-include-internalh.patch
+git-ocfs2.patch
+proper-prototype-for-kernel-schedcmigration_init.patch
+git-scsi-misc.patch
+scsi-advansysc-make-3-functions-static.patch
+scsi-qla2xxx-possible-cleanups.patch
+usb-mon-mon_binc-cleanups.patch
+xtensa-iss_net_setup-must-be-__init.patch
+xtensa-kernel-setupc-remove-dead-code.patch
+sunrpc-xprtrdma-transportc-fix-use-after-free.patch
+fix-mm-utilckrealloc.patch
+fuse_file_alloc-fix-null-dereferences.patch
+pidns-place-under-config_experimental.patch
 pidns-place-under-config_experimental-checkpatch-fixes.patch
-fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
-file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
-x86-disable-preemption-in-delay_tsc.patch
-tty-fix-network-driver-interactions-with-tcget-set-checkpatch-fixes.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
-cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+feature-removal-schedule-remove-sa_-flags-entry.patch
+kernel-taskstatsc-fix-bogus-nlmsg_free.patch
+mm-hugetlbc-make-a-function-static.patch
+mm-page-writebackc-make-a-function-static.patch
+make-__vmalloc_area_node-static.patch
+blackfin-remove-dump_thread.patch
+kernel-power-diskc-make-code-static.patch
+make-kernel_shutdown_prepare-static.patch
+kernel-power-move-function-prototypes-to-header.patch
+kill-udffs_dateversion.patch
+make-ipc-utilcsysvipc_find_ipc-static.patch
+cleanup-after-apus-removal.patch
+remove-mm_ptovvtop.patch
+remove-__attribute_used__.patch
 remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-sync_sb_inodes-propagate-errors.patch
-64-bit-i_version-afs-fixes.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
+proper-show_interrupts-prototype.patch
+scheduled-oss-driver-removal.patch
+linux-inith-simplify-__meminitexit-dependencies.patch
+proper-prototype-for-signals_init.patch
+kernel-ptracec-should-include-linux-syscallsh.patch
+make-srcu_readers_active-static.patch
+kernel-notifierc-should-include-linux-rebooth.patch
+proper-prototype-for-get_filesystem_list.patch
+fs-utimesc-should-include-linux-syscallsh.patch
+fs-signalfdc-should-include-linux-syscallsh.patch
+fs-eventfdc-should-include-linux-syscallsh.patch
+proper-prototype-for-vty_init.patch
+drivers-misc-lkdtmc-cleanups.patch
+power_supply_ledssysfsc-should-include-power_supplyh.patch
+fs-ecryptfs-possible-cleanups.patch
+make-video-geode-lxfb_corecgeode_modedb-static.patch
+video-hpfbc-section-fix.patch
+ext4-superc-fix-ifdefs.patch
+make-jbd-journalc__journal_abort_hard-static.patch
+move-edactxt-two-levels-up.patch
+remove-documentation-smptxt.patch
+kernel-cgroupc-remove-dead-code.patch
+kernel-cgroupc-make-2-functions-static.patch
 memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
 memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-dhowells-broke-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+fix-m32r-__xchg.patch
 reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-w1-build-fix.patch
