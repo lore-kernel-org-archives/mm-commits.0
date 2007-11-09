@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + revert-capabilities-clean-up-file-capability-reading.patch added to -mm tree
-Date: Fri, 09 Nov 2007 14:43:55 -0800
-Message-ID: <200711092243.lA9MhttX003027@imap1.linux-foundation.org>
+Subject: + revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 09 Nov 2007 14:44:34 -0800
+Message-ID: <200711092244.lA9MiYCH003041@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56389 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37210 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756142AbXKIWow (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 17:44:52 -0500
+	by vger.kernel.org with ESMTP id S1755388AbXKIWpl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 17:45:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, casey@schaufler-ca.com, chrisw@sous-sol.org, jmor
 
 
 The patch titled
-     revert "capabilities: clean up file capability reading"
+     revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     revert-capabilities-clean-up-file-capability-reading.patch
+     revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,109 +25,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: revert "capabilities: clean up file capability reading"
+Subject: revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Revert b68680e4731abbd78863063aaa0dca2a6d8cc723 to make way for "capabilities:
-clean up file capability reading".
+ERROR: no space after that open parenthesis '('
+#63: FILE: security/commoncap.c:209:
++		bprm->cap_permitted = to_cap_t( le32_to_cpu(caps[1]) );
 
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: Serge Hallyn <serue@us.ibm.com>
+ERROR: no space before that close parenthesis ')'
+#63: FILE: security/commoncap.c:209:
++		bprm->cap_permitted = to_cap_t( le32_to_cpu(caps[1]) );
+
+ERROR: no space after that open parenthesis '('
+#64: FILE: security/commoncap.c:210:
++		bprm->cap_inheritable = to_cap_t( le32_to_cpu(caps[2]) );
+
+ERROR: no space before that close parenthesis ')'
+#64: FILE: security/commoncap.c:210:
++		bprm->cap_inheritable = to_cap_t( le32_to_cpu(caps[2]) );
+
+total: 4 errors, 0 warnings, 71 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Andrew Morgan <morgan@kernel.org>
+Cc: Casey Schaufler <casey@schaufler-ca.com>
 Cc: Chris Wright <chrisw@sous-sol.org>
 Cc: James Morris <jmorris@namei.org>
-Cc: Casey Schaufler <casey@schaufler-ca.com>
-Cc: Andrew Morgan <morgan@kernel.org>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/capability.h |    6 ++++--
- security/commoncap.c       |   23 ++++++++---------------
- 2 files changed, 12 insertions(+), 17 deletions(-)
+ security/commoncap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/capability.h~revert-capabilities-clean-up-file-capability-reading include/linux/capability.h
---- a/include/linux/capability.h~revert-capabilities-clean-up-file-capability-reading
-+++ a/include/linux/capability.h
-@@ -56,8 +56,10 @@ typedef struct __user_cap_data_struct {
- 
- struct vfs_cap_data {
- 	__u32 magic_etc;  /* Little endian */
--	__u32 permitted;    /* Little endian */
--	__u32 inheritable;  /* Little endian */
-+	struct {
-+		__u32 permitted;    /* Little endian */
-+		__u32 inheritable;  /* Little endian */
-+	} data[1];
- };
- 
- #ifdef __KERNEL__
-diff -puN security/commoncap.c~revert-capabilities-clean-up-file-capability-reading security/commoncap.c
---- a/security/commoncap.c~revert-capabilities-clean-up-file-capability-reading
+diff -puN security/commoncap.c~revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes security/commoncap.c
+--- a/security/commoncap.c~revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes
 +++ a/security/commoncap.c
-@@ -190,8 +190,7 @@ int cap_inode_killpriv(struct dentry *de
- 	return inode->i_op->removexattr(dentry, XATTR_NAME_CAPS);
- }
- 
--static inline int cap_from_disk(struct vfs_cap_data *caps,
--				struct linux_binprm *bprm,
-+static inline int cap_from_disk(__le32 *caps, struct linux_binprm *bprm,
- 				int size)
- {
- 	__u32 magic_etc;
-@@ -199,7 +198,7 @@ static inline int cap_from_disk(struct v
- 	if (size != XATTR_CAPS_SZ)
- 		return -EINVAL;
- 
--	magic_etc = le32_to_cpu(caps->magic_etc);
-+	magic_etc = le32_to_cpu(caps[0]);
- 
- 	switch ((magic_etc & VFS_CAP_REVISION_MASK)) {
- 	case VFS_CAP_REVISION:
-@@ -207,8 +206,8 @@ static inline int cap_from_disk(struct v
+@@ -206,8 +206,8 @@ static inline int cap_from_disk(__le32 *
  			bprm->cap_effective = true;
  		else
  			bprm->cap_effective = false;
--		bprm->cap_permitted = to_cap_t(le32_to_cpu(caps->permitted));
--		bprm->cap_inheritable = to_cap_t(le32_to_cpu(caps->inheritable));
-+		bprm->cap_permitted = to_cap_t( le32_to_cpu(caps[1]) );
-+		bprm->cap_inheritable = to_cap_t( le32_to_cpu(caps[2]) );
+-		bprm->cap_permitted = to_cap_t( le32_to_cpu(caps[1]) );
+-		bprm->cap_inheritable = to_cap_t( le32_to_cpu(caps[2]) );
++		bprm->cap_permitted = to_cap_t(le32_to_cpu(caps[1]));
++		bprm->cap_inheritable = to_cap_t( le32_to_cpu(caps[2]));
  		return 0;
  	default:
  		return -EINVAL;
-@@ -220,7 +219,7 @@ static int get_file_caps(struct linux_bi
- {
- 	struct dentry *dentry;
- 	int rc = 0;
--	struct vfs_cap_data incaps;
-+	__le32 v1caps[XATTR_CAPS_SZ];
- 	struct inode *inode;
- 
- 	if (bprm->file->f_vfsmnt->mnt_flags & MNT_NOSUID) {
-@@ -233,14 +232,8 @@ static int get_file_caps(struct linux_bi
- 	if (!inode->i_op || !inode->i_op->getxattr)
- 		goto out;
- 
--	rc = inode->i_op->getxattr(dentry, XATTR_NAME_CAPS, NULL, 0);
--	if (rc > 0) {
--		if (rc == XATTR_CAPS_SZ)
--			rc = inode->i_op->getxattr(dentry, XATTR_NAME_CAPS,
--						&incaps, XATTR_CAPS_SZ);
--		else
--			rc = -EINVAL;
--	}
-+	rc = inode->i_op->getxattr(dentry, XATTR_NAME_CAPS, &v1caps,
-+							XATTR_CAPS_SZ);
- 	if (rc == -ENODATA || rc == -EOPNOTSUPP) {
- 		/* no data, that's ok */
- 		rc = 0;
-@@ -249,7 +242,7 @@ static int get_file_caps(struct linux_bi
- 	if (rc < 0)
- 		goto out;
- 
--	rc = cap_from_disk(&incaps, bprm, rc);
-+	rc = cap_from_disk(v1caps, bprm, rc);
- 	if (rc)
- 		printk(KERN_NOTICE "%s: cap_from_disk returned %d for %s\n",
- 			__FUNCTION__, rc, bprm->filename);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -196,6 +145,7 @@ hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixe
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
 pm-qos-infrastructure-and-interface.patch
 pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
 cris-build-fixes-atomich-needs-compilerh-fix.patch
