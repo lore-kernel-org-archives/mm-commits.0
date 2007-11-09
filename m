@@ -1,147 +1,211 @@
 From: akpm@linux-foundation.org
-Subject: - export-acpi_check_resource_conflict-fix.patch removed from -mm tree
-Date: Fri, 09 Nov 2007 13:30:40 -0800
-Message-ID: <200711092130.lA9LUe6f032703@imap1.linux-foundation.org>
+Subject: - small-acpica-extension-to-be-able-to-store-the-name-of-fix.patch removed from -mm tree
+Date: Fri, 09 Nov 2007 13:30:31 -0800
+Message-ID: <200711092130.lA9LUVqX032697@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46243 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41932 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757644AbXKIVbZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 16:31:25 -0500
+	by vger.kernel.org with ESMTP id S1758803AbXKIVbT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 16:31:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdelvare@suse.de, bjorn.helgaas@hp.com, kamalesh@linux.vnet.ibm.com, khali@linux-fr.org, lenb@kernel.org, mhoffman@lightlink.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bjorn.helgaas@hp.com, khali@linux-fr.org, lenb@kernel.org, mhoffman@lightlink.com, trenn@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     export-acpi_check_resource_conflict-fix
+     small-acpica-extension-to-be-able-to-store-the-name-of-fix
 has been removed from the -mm tree.  Its filename was
-     export-acpi_check_resource_conflict-fix.patch
+     small-acpica-extension-to-be-able-to-store-the-name-of-fix.patch
 
-This patch was dropped because it was folded into export-acpi_check_res=
-ource_conflict.patch
+This patch was dropped because it was folded into small-acpica-extension-to-be-able-to-store-the-name-of.patch
 
 ------------------------------------------------------
-Subject: export-acpi_check_resource_conflict-fix
-=46rom: Jean Delvare <jdelvare@suse.de>
+Subject: small-acpica-extension-to-be-able-to-store-the-name-of-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Le mardi 06 novembre 2007, Kamalesh Babulal a =C3=A9crit=C2=A0:
-> Hi Andrew,
->
-> The kernel build fails, on powerpc while compiling the kernel with al=
-lyesconfig option
->
-> drivers/hwmon/w83627hf.c:1631: error: implicit declaration of functio=
-n `acpi_check_resource_conflict'
-> make[2]: *** [drivers/hwmon/w83627hf.o] Error 1
-> make[1]: *** [drivers/hwmon] Error 2
-> make: *** [drivers] Error 2
->   CC      fs/xfs/xfs_error.o
-> drivers/hwmon/w83627hf.c:1631: error: implicit declaration of functio=
-n `acpi_check_resource_conflict'
-> make[2]: *** [drivers/hwmon/w83627hf.o] Error 1
-> make[1]: *** [drivers/hwmon] Error 2
-> make: *** [drivers] Error 2
-> drivers/i2c/busses/i2c-ali1535.c:163: error: implicit declaration of =
-function `acpi_check_region'
-> make[3]: *** [drivers/i2c/busses/i2c-ali1535.o] Error 1
-> make[2]: *** [drivers/i2c/busses] Error 2
-> make[1]: *** [drivers/i2c] Error 2
-> drivers/hwmon/dme1737.c:2231: error: implicit declaration of function=
- `acpi_check_resource_conflict'
-> make[2]: *** [drivers/hwmon/dme1737.o] Error 1
-> make[1]: *** [drivers/hwmon] Error 2
-> make: *** [drivers] Error 2
+drivers/acpi/osl.c: In function 'acpi_os_validate_address':
+drivers/acpi/osl.c:1365: warning: format '%llx' expects type 'long long unsigned int', but argument 4 has type 'long unsigned int'
+drivers/acpi/osl.c:1365: warning: format '%s' expects type 'char *', but argument 5 has type 'long unsigned int'
 
-Odd. Thanks for reporting.
-
-> The patches check-for-acpi-resource-conflicts-in-hwmon-drivers and
-> check-for-acpi-resource-conflicts-in-i2c-bus-drivers.patch, causes th=
-is build failure.
-> The declaration of the functions are under ifdef CONFIG_ACPI.
-
-There's an #else after that, and the functions are defined as inlines
-doing nothing in the non-ACPI case. The code looks OK to me, but I can
-reproduce the problem on x86_64 with CONFIG_ACPI=3Dn.
-
-Aha, I see it now, there are nested #ifdef CONFIG_ACPI in acpi.h,
-so the inner one is a no-op (and its #else counterpart is never
-evaluated.) That's pretty confusing, I'll send a patch fixing this.
-
-In the meantime, here's a quick fix so that you can go on testing
-the mm snapshot. Apply this at the top of the series:
-
-=46ix the <linux/acpi.h> breakage for CONFIG_ACPI=3Dn.
-
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
 Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: Jean Delvare <khali@linux-fr.org>
 Cc: Len Brown <lenb@kernel.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Cc: Thomas Renninger <trenn@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/acpi.h |   23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+ drivers/acpi/osl.c |    6 +++---
+ linux/acpi.h       |    0 
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/acpi.h~export-acpi_check_resource_conflict-fix =
-include/linux/acpi.h
---- a/include/linux/acpi.h~export-acpi_check_resource_conflict-fix
-+++ a/include/linux/acpi.h
-@@ -26,6 +26,7 @@
- #define _LINUX_ACPI_H
-=20
-=20
-+#include <linux/ioport.h>
- #ifdef	CONFIG_ACPI
-=20
- #ifndef _LINUX
-@@ -134,17 +135,6 @@ int acpi_check_mem_region(resource_size_
-=20
- #define acpi_mp_config	0
-=20
--static inline int acpi_check_resource_conflict(struct resource *res)
--{ return 0; }
--
--static inline int acpi_check_region(resource_size_t start, resource_si=
-ze_t n,
--				    const char *name)
--{ return 0; }
--
--static inline int acpi_check_mem_region(resource_size_t start,
--					resource_size_t n, const char *name)
--{ return 0; }
--
- #endif 	/* !CONFIG_ACPI */
-=20
- int acpi_register_gsi (u32 gsi, int triggering, int polarity);
-@@ -239,5 +229,16 @@ static inline int acpi_boot_table_init(v
- 	return 0;
- }
-=20
-+static inline int acpi_check_resource_conflict(struct resource *res)
-+{ return 0; }
-+
-+static inline int acpi_check_region(resource_size_t start, resource_si=
-ze_t n,
-+				    const char *name)
-+{ return 0; }
-+
-+static inline int acpi_check_mem_region(resource_size_t start,
-+					resource_size_t n, const char *name)
-+{ return 0; }
-+
- #endif	/* CONFIG_ACPI */
- #endif	/*_LINUX_ACPI_H*/
+diff -puN drivers/acpi/dispatcher/dsopcode.c~small-acpica-extension-to-be-able-to-store-the-name-of-fix drivers/acpi/dispatcher/dsopcode.c
+diff -puN include/acpi/acpiosxf.h~small-acpica-extension-to-be-able-to-store-the-name-of-fix include/acpi/acpiosxf.h
+diff -puN drivers/acpi/osl.c~small-acpica-extension-to-be-able-to-store-the-name-of-fix drivers/acpi/osl.c
+--- a/drivers/acpi/osl.c~small-acpica-extension-to-be-able-to-store-the-name-of-fix
++++ a/drivers/acpi/osl.c
+@@ -1360,9 +1360,9 @@ acpi_os_validate_address (
+ 		pr_debug("Added %s resource: start: 0x%llx, end: 0x%llx, "
+ 			 "name: %s\n", (space_id == ACPI_ADR_SPACE_SYSTEM_IO)
+ 			 ? "SystemIO" : "System Memory",
+-			 res->start,
+-			 (unsigned long)res->end,
+-			 (unsigned long)res->name);
++			 (unsigned long long)res->start,
++			 (unsigned long long)res->end,
++			 res->name);
+ 		break;
+ 	case ACPI_ADR_SPACE_PCI_CONFIG:
+ 	case ACPI_ADR_SPACE_EC:
+diff -puN include/linux/acpi.h~small-acpica-extension-to-be-able-to-store-the-name-of-fix include/linux/acpi.h
 _
 
-Patches currently in -mm which might be from jdelvare@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-export-acpi_check_resource_conflict.patch
-export-acpi_check_resource_conflict-fix.patch
-check-for-acpi-resource-conflicts-in-i2c-bus-drivers.patch
-check-for-acpi-resource-conflicts-in-hwmon-drivers.patch
+proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
+acpi-make-acpi_procfs-default-to-y.patch
+oprofile-revert-i386-make-callgraph-use-dump_trace-on-i386-x86_64.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+small-acpica-extension-to-be-able-to-store-the-name-of-fix.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-arm-fixup.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
+git-dvb.patch
+git-hwmon.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+elantech-touchpad-driver-fix.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+ide-arm-hack.patch
+git-mtd.patch
+lmc_ioctl-dont-return-with-locks-held-fix.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+bluetooth-uninlining.patch
+git-nfsd-fixup.patch
+quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
+scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+git-wireless.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-fix-up.patch
+git-x86-inlining-borkage.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+i386-and-x86_64-randomize-brk-fix.patch
+x86-arch_register_cpu-section-fix.patch
+mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
+pidns-place-under-config_experimental-checkpatch-fixes.patch
+fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
+file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
+x86-disable-preemption-in-delay_tsc.patch
+tty-fix-network-driver-interactions-with-tcget-set-checkpatch-fixes.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+cris-build-fixes-atomich-needs-compilerh-fix.patch
+cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
+cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
+cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+sync_sb_inodes-propagate-errors.patch
+64-bit-i_version-afs-fixes.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+w1-build-fix.patch
