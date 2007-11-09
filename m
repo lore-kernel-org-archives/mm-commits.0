@@ -1,307 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - tty-fix-network-driver-interactions-with-tcget-set-calls.patch removed from -mm tree
-Date: Fri, 09 Nov 2007 11:13:36 -0800
-Message-ID: <200711091913.lA9JDaK9028042@imap1.linux-foundation.org>
+Subject: - add-the-rdc-machine-specific-reboot-fixup.patch removed from -mm tree
+Date: Fri, 09 Nov 2007 11:13:34 -0800
+Message-ID: <200711091913.lA9JDYMH028039@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52611 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37700 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755313AbXKITRb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:17:31 -0500
+	by vger.kernel.org with ESMTP id S1750869AbXKITRo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:17:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, davem@davemloft.net, jeff@garzik.org, mm-commits@vger.kernel.org
+To: florian.fainelli@telecomint.eu, david-b@pacbell.net, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty: fix network driver interactions with TCGET/SET calls
+     x86: add the RDC machine specific reboot fixup
 has been removed from the -mm tree.  Its filename was
-     tty-fix-network-driver-interactions-with-tcget-set-calls.patch
+     add-the-rdc-machine-specific-reboot-fixup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: tty: fix network driver interactions with TCGET/SET calls
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: x86: add the RDC machine specific reboot fixup
+From: Florian Fainelli <florian.fainelli@telecomint.eu>
 
-Dave Miller noted various cases where line disciplines for things like ppp go
-poking around in termios themselves in ways that broke with the new termios
-code.  Rather than have them all learning about termios internals provide
-proper methods for this
+The RDC R-321x SoC needs a reboot fixup which uses its internal hardware
+watchdog set to reset the CPU on next tick.
 
-- tty_mode_ioctl()
-
-  This handles all the terminal mode handling for speed/carrier etc and none
-  of the methods are ldisc dependant so they can be called by any user
-
-- tty_perform_flush()
-
-  This extracts the flush functionality and enables pppd the ppp layer to
-  share it cleanly.
-
-The existing n_tty_ioctl code is refactored in this patch to provide the new
-functions and to call them itself appropriately.  This patch has no (intended)
-behaviour changes and simply prepares for the other fixes.
-
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Florian Fainelli <florian.fainelli@telecomint.eu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_ioctl.c |  170 ++++++++++++++++++++++---------------
- include/linux/tty.h      |    4 
- 2 files changed, 107 insertions(+), 67 deletions(-)
+ arch/x86/kernel/reboot_fixups_32.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff -puN drivers/char/tty_ioctl.c~tty-fix-network-driver-interactions-with-tcget-set-calls drivers/char/tty_ioctl.c
---- a/drivers/char/tty_ioctl.c~tty-fix-network-driver-interactions-with-tcget-set-calls
-+++ a/drivers/char/tty_ioctl.c
-@@ -730,13 +730,23 @@ static int send_prio_char(struct tty_str
- 	return 0;
+diff -puN arch/x86/kernel/reboot_fixups_32.c~add-the-rdc-machine-specific-reboot-fixup arch/x86/kernel/reboot_fixups_32.c
+--- a/arch/x86/kernel/reboot_fixups_32.c~add-the-rdc-machine-specific-reboot-fixup
++++ a/arch/x86/kernel/reboot_fixups_32.c
+@@ -30,6 +30,19 @@ static void cs5536_warm_reset(struct pci
+ 	udelay(50); /* shouldn't get here but be safe and spin a while */
  }
  
--int n_tty_ioctl(struct tty_struct * tty, struct file * file,
--		       unsigned int cmd, unsigned long arg)
-+/**
-+ *	tty_mode_ioctl		-	mode related ioctls
-+ *	@tty: tty for the ioctl
-+ *	@file: file pointer for the tty
-+ *	@cmd: command
-+ *	@arg: ioctl argument
-+ *
-+ *	Perform non line discipline specific mode control ioctls. This
-+ *	is designed to be called by line disciplines to ensure they provide
-+ *	consistent mode setting.
-+ */
-+
-+int tty_mode_ioctl(struct tty_struct * tty, struct file *file,
-+			unsigned int cmd, unsigned long arg)
- {
- 	struct tty_struct * real_tty;
- 	void __user *p = (void __user *)arg;
--	int retval;
--	struct tty_ldisc *ld;
- 
- 	if (tty->driver->type == TTY_DRIVER_TYPE_PTY &&
- 	    tty->driver->subtype == PTY_TYPE_MASTER)
-@@ -799,6 +809,93 @@ int n_tty_ioctl(struct tty_struct * tty,
- 			return set_termios(real_tty, p, TERMIOS_WAIT | TERMIOS_TERMIO);
- 		case TCSETA:
- 			return set_termios(real_tty, p, TERMIOS_TERMIO);
-+#ifndef TCGETS2
-+		case TIOCGLCKTRMIOS:
-+			if (kernel_termios_to_user_termios((struct termios __user *)arg, real_tty->termios_locked))
-+				return -EFAULT;
-+			return 0;
-+
-+		case TIOCSLCKTRMIOS:
-+			if (!capable(CAP_SYS_ADMIN))
-+				return -EPERM;
-+			if (user_termios_to_kernel_termios(real_tty->termios_locked, (struct termios __user *) arg))
-+				return -EFAULT;
-+			return 0;
-+#else
-+		case TIOCGLCKTRMIOS:
-+			if (kernel_termios_to_user_termios_1((struct termios __user *)arg, real_tty->termios_locked))
-+				return -EFAULT;
-+			return 0;
-+
-+		case TIOCSLCKTRMIOS:
-+			if (!capable(CAP_SYS_ADMIN))
-+				return -EPERM;
-+			if (user_termios_to_kernel_termios_1(real_tty->termios_locked, (struct termios __user *) arg))
-+				return -EFAULT;
-+			return 0;
-+#endif
-+		case TIOCGSOFTCAR:
-+			return put_user(C_CLOCAL(tty) ? 1 : 0, (int __user *)arg);
-+		case TIOCSSOFTCAR:
-+			if (get_user(arg, (unsigned int __user *) arg))
-+				return -EFAULT;
-+			mutex_lock(&tty->termios_mutex);
-+			tty->termios->c_cflag =
-+				((tty->termios->c_cflag & ~CLOCAL) |
-+				 (arg ? CLOCAL : 0));
-+			mutex_unlock(&tty->termios_mutex);
-+			return 0;
-+		default:
-+			return -ENOIOCTLCMD;
-+	}
++static void rdc321x_reset(struct pci_dev *dev)
++{
++	unsigned i;
++	/* Voluntary reset the watchdog timer */
++	outl(0x80003840, 0xCF8);
++	/* Generate a CPU reset on next tick */
++	i = inl(0xCFC);
++	/* Use the minimum timer resolution */
++	i |= 0x1600;
++	outl(i, 0xCFC);
++	outb(1, 0x92);
 +}
 +
-+EXPORT_SYMBOL_GPL(tty_mode_ioctl);
-+
-+int tty_perform_flush(struct tty_struct *tty, unsigned long arg)
-+{
-+	struct tty_ldisc *ld;
-+	int retval = tty_check_change(tty);
-+	if (retval)
-+		return retval;
-+
-+	ld = tty_ldisc_ref(tty);
-+	switch (arg) {
-+	case TCIFLUSH:
-+		if (ld && ld->flush_buffer)
-+			ld->flush_buffer(tty);
-+		break;
-+	case TCIOFLUSH:
-+		if (ld && ld->flush_buffer)
-+			ld->flush_buffer(tty);
-+		/* fall through */
-+	case TCOFLUSH:
-+		if (tty->driver->flush_buffer)
-+			tty->driver->flush_buffer(tty);
-+		break;
-+	default:
-+		tty_ldisc_deref(ld);
-+		return -EINVAL;
-+	}
-+	tty_ldisc_deref(ld);
-+	return 0;
-+}
-+
-+EXPORT_SYMBOL_GPL(tty_perform_flush);
-+
-+int n_tty_ioctl(struct tty_struct * tty, struct file * file,
-+		       unsigned int cmd, unsigned long arg)
-+{
-+	struct tty_struct * real_tty;
-+	int retval;
-+
-+	if (tty->driver->type == TTY_DRIVER_TYPE_PTY &&
-+	    tty->driver->subtype == PTY_TYPE_MASTER)
-+		real_tty = tty->link;
-+	else
-+		real_tty = tty;
-+
-+	switch (cmd) {
- 		case TCXONC:
- 			retval = tty_check_change(tty);
- 			if (retval)
-@@ -829,30 +926,7 @@ int n_tty_ioctl(struct tty_struct * tty,
- 			}
- 			return 0;
- 		case TCFLSH:
--			retval = tty_check_change(tty);
--			if (retval)
--				return retval;
--				
--			ld = tty_ldisc_ref(tty);
--			switch (arg) {
--			case TCIFLUSH:
--				if (ld && ld->flush_buffer)
--					ld->flush_buffer(tty);
--				break;
--			case TCIOFLUSH:
--				if (ld && ld->flush_buffer)
--					ld->flush_buffer(tty);
--				/* fall through */
--			case TCOFLUSH:
--				if (tty->driver->flush_buffer)
--					tty->driver->flush_buffer(tty);
--				break;
--			default:
--				tty_ldisc_deref(ld);
--				return -EINVAL;
--			}
--			tty_ldisc_deref(ld);
--			return 0;
-+			return tty_perform_flush(tty, arg);
- 		case TIOCOUTQ:
- 			return put_user(tty->driver->chars_in_buffer ?
- 					tty->driver->chars_in_buffer(tty) : 0,
-@@ -862,32 +936,6 @@ int n_tty_ioctl(struct tty_struct * tty,
- 			if (L_ICANON(tty))
- 				retval = inq_canon(tty);
- 			return put_user(retval, (unsigned int __user *) arg);
--#ifndef TCGETS2
--		case TIOCGLCKTRMIOS:
--			if (kernel_termios_to_user_termios((struct termios __user *)arg, real_tty->termios_locked))
--				return -EFAULT;
--			return 0;
--
--		case TIOCSLCKTRMIOS:
--			if (!capable(CAP_SYS_ADMIN))
--				return -EPERM;
--			if (user_termios_to_kernel_termios(real_tty->termios_locked, (struct termios __user *) arg))
--				return -EFAULT;
--			return 0;
--#else
--		case TIOCGLCKTRMIOS:
--			if (kernel_termios_to_user_termios_1((struct termios __user *)arg, real_tty->termios_locked))
--				return -EFAULT;
--			return 0;
--
--		case TIOCSLCKTRMIOS:
--			if (!capable(CAP_SYS_ADMIN))
--				return -EPERM;
--			if (user_termios_to_kernel_termios_1(real_tty->termios_locked, (struct termios __user *) arg))
--				return -EFAULT;
--			return 0;
--#endif
--
- 		case TIOCPKT:
- 		{
- 			int pktmode;
-@@ -906,19 +954,9 @@ int n_tty_ioctl(struct tty_struct * tty,
- 				tty->packet = 0;
- 			return 0;
- 		}
--		case TIOCGSOFTCAR:
--			return put_user(C_CLOCAL(tty) ? 1 : 0, (int __user *)arg);
--		case TIOCSSOFTCAR:
--			if (get_user(arg, (unsigned int __user *) arg))
--				return -EFAULT;
--			mutex_lock(&tty->termios_mutex);
--			tty->termios->c_cflag =
--				((tty->termios->c_cflag & ~CLOCAL) |
--				 (arg ? CLOCAL : 0));
--			mutex_unlock(&tty->termios_mutex);
--			return 0;
- 		default:
--			return -ENOIOCTLCMD;
-+			/* Try the mode commands */
-+			return tty_mode_ioctl(tty, file, cmd, arg);
- 		}
- }
+ struct device_fixup {
+ 	unsigned int vendor;
+ 	unsigned int device;
+@@ -39,6 +52,7 @@ struct device_fixup {
+ static struct device_fixup fixups_table[] = {
+ { PCI_VENDOR_ID_CYRIX, PCI_DEVICE_ID_CYRIX_5530_LEGACY, cs5530a_warm_reset },
+ { PCI_VENDOR_ID_AMD, PCI_DEVICE_ID_AMD_CS5536_ISA, cs5536_warm_reset },
++{ PCI_VENDOR_ID_RDC, PCI_DEVICE_ID_RDC_R6030, rdc321x_reset },
+ };
  
-diff -puN include/linux/tty.h~tty-fix-network-driver-interactions-with-tcget-set-calls include/linux/tty.h
---- a/include/linux/tty.h~tty-fix-network-driver-interactions-with-tcget-set-calls
-+++ a/include/linux/tty.h
-@@ -332,7 +332,9 @@ extern void tty_ldisc_flush(struct tty_s
- 
- extern int tty_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
- 		     unsigned long arg);
--
-+extern int tty_mode_ioctl(struct tty_struct *tty, struct file *file,
-+			unsigned int cmd, unsigned long arg);
-+extern int tty_perform_flush(struct tty_struct *tty, unsigned long arg);
- extern dev_t tty_devnum(struct tty_struct *tty);
- extern void proc_clear_tty(struct task_struct *p);
- extern struct tty_struct *get_current_tty(void);
+ /*
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from florian.fainelli@telecomint.eu are
 
-frv-remove-bogus-no_irq-=-1-define.patch
-git-libata-all.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-serial-keep-the-dtr-setting-for-serial-console.patch
-quirk_vialatency-omit-reading-pci-revision-id.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-initio-fix-conflict-when-loading-driver.patch
-serial-only-use-pnp-irq-if-its-valid.patch
-keyspan-init-termios-properly.patch
-tty-fix-network-driver-interactions-with-tcget-set-checkpatch-fixes.patch
-geode-lists-are-subscriber-only.patch
-tty-kill-tty_flipbuf_size.patch
-drivers-edac-turnon-edac-device-error-logging.patch
-drivers-edac-use-round_jiffies_relative.patch
-drivers-edac-add-cell-xdr-memory-types.patch
-drivers-edac-add-cell-mc-driver.patch
-drivers-edac-i3000-code-tidying.patch
-drivers-edac-i3000-replace-macros-with-functions.patch
-drivers-edac-add-freescale-mpc85xx-driver.patch
-drivers-edac-add-marvell-mv64x60-driver.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-dz-clean-up-and-improve-the-setup-of-termios-settings.patch
+git-x86.patch
