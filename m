@@ -1,109 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - git-x86-fixup.patch removed from -mm tree
-Date: Fri, 09 Nov 2007 10:50:11 -0800
-Message-ID: <200711091850.lA9IoBUs027148@imap1.linux-foundation.org>
+Subject: + git-x86-inlining-borkage.patch added to -mm tree
+Date: Fri, 09 Nov 2007 10:59:22 -0800
+Message-ID: <200711091859.lA9IxMjj027489@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53715 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34864 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754804AbXKISvF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 13:51:05 -0500
+	by vger.kernel.org with ESMTP id S1751435AbXKIS7z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 13:59:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     git-x86-fixup
-has been removed from the -mm tree.  Its filename was
-     git-x86-fixup.patch
+     git-x86-inlining-borkage
+has been added to the -mm tree.  Its filename is
+     git-x86-inlining-borkage.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-x86-fixup
+Subject: git-x86-inlining-borkage
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix rejects in git-x86.    Don't know what I'm doing, might be wrong.
+arch/x86/kernel/kprobes_64.c: In function 'set_current_kprobe':
+arch/x86/kernel/kprobes_64.c:152: sorry, unimplemented: inlining failed in call to 'is_IF_modifier': recursive inlining
+arch/x86/kernel/kprobes_64.c:166: sorry, unimplemented: called from here
+
+wtf?
 
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/early-quirks.c |   13 -------------
- arch/x86/kernel/tsc_32.c       |   27 ---------------------------
- 2 files changed, 40 deletions(-)
+ arch/x86/kernel/kprobes_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/tsc_32.c~git-x86-fixup arch/x86/kernel/tsc_32.c
---- a/arch/x86/kernel/tsc_32.c~git-x86-fixup
-+++ a/arch/x86/kernel/tsc_32.c
-@@ -143,8 +143,6 @@ unsigned long native_calculate_cpu_khz(v
- 		rdtscll(start);
- 		mach_countup(&count);
- 		rdtscll(end);
--<<<<<<< HEAD:arch/x86/kernel/tsc_32.c
--=======
- 		delta64 = min(delta64, (end - start));
- 	}
- 	/*
-@@ -155,33 +153,8 @@ unsigned long native_calculate_cpu_khz(v
- 	 */
- 	if (count <= 1)
- 		goto err;
-->>>>>>> FETCH_HEAD:arch/x86/kernel/tsc_32.c
- 
--<<<<<<< HEAD:arch/x86/kernel/tsc_32.c
--		/*
--		 * Error: ECTCNEVERSET
--		 * The CTC wasn't reliable: we got a hit on the very first read,
--		 * or the CPU was so fast/slow that the quotient wouldn't fit in
--		 * 32 bits..
--		 */
--		if (count <= 1)
--			continue;
--
--		/* cpu freq too slow: */
--		if ((end - start) <= CALIBRATE_TIME_MSEC)
--			continue;
--
--		/*
--		 * We want the minimum time of all runs in case one of them
--		 * is inaccurate due to SMI or other delay
--		 */
--		delta64 = min(delta64, (end - start));
--	}
--
--	/* cpu freq too fast (or every run was bad): */
--=======
- 	/* cpu freq too fast: */
-->>>>>>> FETCH_HEAD:arch/x86/kernel/tsc_32.c
- 	if (delta64 > (1ULL<<32))
- 		goto err;
- 
-diff -puN arch/x86/kernel/early-quirks.c~git-x86-fixup arch/x86/kernel/early-quirks.c
---- a/arch/x86/kernel/early-quirks.c~git-x86-fixup
-+++ a/arch/x86/kernel/early-quirks.c
-@@ -34,19 +34,6 @@ static void __init via_bugs(void)
- #endif
- }
- 
--<<<<<<< HEAD:arch/x86/kernel/early-quirks.c
--#ifdef CONFIG_ACPI
--#ifdef CONFIG_X86_IO_APIC
--
--static int __init nvidia_hpet_check(struct acpi_table_header *header)
--{
--	return 0;
--}
--#endif /* CONFIG_X86_IO_APIC */
--#endif /* CONFIG_ACPI */
--
--=======
-->>>>>>> FETCH_HEAD:arch/x86/kernel/early-quirks.c
- static void __init nvidia_bugs(void)
+diff -puN arch/x86/kernel/kprobes_64.c~git-x86-inlining-borkage arch/x86/kernel/kprobes_64.c
+--- a/arch/x86/kernel/kprobes_64.c~git-x86-inlining-borkage
++++ a/arch/x86/kernel/kprobes_64.c
+@@ -148,7 +148,7 @@ const int kretprobe_blacklist_size = ARR
+ /*
+  * returns non-zero if opcode modifies the interrupt flag.
+  */
+-static __always_inline int is_IF_modifier(kprobe_opcode_t *insn)
++static int is_IF_modifier(kprobe_opcode_t *insn)
  {
- #ifdef CONFIG_ACPI
+ 	switch (*insn) {
+ 	case 0xfa:		/* cli */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -150,7 +100,8 @@ git-wireless.patch
 jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
 git-ipwireless_cs.patch
 git-x86.patch
-git-x86-fixup.patch
+git-x86-fix-up.patch
+git-x86-inlining-borkage.patch
 oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
 i386-and-x86_64-randomize-brk-fix.patch
 x86-arch_register_cpu-section-fix.patch
