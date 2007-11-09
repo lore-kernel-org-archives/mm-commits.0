@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + linux-inith-simplify-__meminitexit-dependencies.patch added to -mm tree
-Date: Thu, 08 Nov 2007 20:51:38 -0800
-Message-ID: <200711090451.lA94pdbg030157@imap1.linux-foundation.org>
+Subject: + proper-prototype-for-signals_init.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:51:47 -0800
+Message-ID: <200711090451.lA94pmLZ030168@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53187 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49984 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760080AbXKIEvz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:51:55 -0500
+	by vger.kernel.org with ESMTP id S1760099AbXKIEwE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:52:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@kernel.org
 
 
 The patch titled
-     linux/init.h: simplify __mem{init,exit}* dependencies
+     proper prototype for signals_init()
 has been added to the -mm tree.  Its filename is
-     linux-inith-simplify-__meminitexit-dependencies.patch
+     proper-prototype-for-signals_init.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,50 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: linux/init.h: simplify __mem{init,exit}* dependencies
+Subject: proper prototype for signals_init()
 From: Adrian Bunk <bunk@kernel.org>
 
-Simplify the dependencies on __mem{init,exit}* (ACPI_HOTPLUG_MEMORY requires
-MEMORY_HOTPLUG).
+Add a proper prototype for signals_init() in include/linux/signal.h
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/signal.h |    2 ++
+ init/main.c            |    2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/init.h~linux-inith-simplify-__meminitexit-dependencies include/linux/init.h
---- a/include/linux/init.h~linux-inith-simplify-__meminitexit-dependencies
-+++ a/include/linux/init.h
-@@ -279,8 +279,7 @@ void __init parse_early_param(void);
- #define __cpuexitdata	__exitdata
- #endif
+diff -puN include/linux/signal.h~proper-prototype-for-signals_init include/linux/signal.h
+--- a/include/linux/signal.h~proper-prototype-for-signals_init
++++ a/include/linux/signal.h
+@@ -371,6 +371,8 @@ int unhandled_signal(struct task_struct 
+ 	(!siginmask(signr, SIG_KERNEL_IGNORE_MASK|SIG_KERNEL_STOP_MASK) && \
+ 	 (t)->sighand->action[(signr)-1].sa.sa_handler == SIG_DFL)
  
--#if defined(CONFIG_MEMORY_HOTPLUG) || defined(CONFIG_ACPI_HOTPLUG_MEMORY) \
--	|| defined(CONFIG_ACPI_HOTPLUG_MEMORY_MODULE)
-+#if defined(CONFIG_MEMORY_HOTPLUG)
- #define __meminit
- #define __meminitdata
- #define __memexit
++void signals_init(void);
++
+ #endif /* __KERNEL__ */
+ 
+ #endif /* _LINUX_SIGNAL_H */
+diff -puN init/main.c~proper-prototype-for-signals_init init/main.c
+--- a/init/main.c~proper-prototype-for-signals_init
++++ a/init/main.c
+@@ -57,6 +57,7 @@
+ #include <linux/device.h>
+ #include <linux/kthread.h>
+ #include <linux/sched.h>
++#include <linux/signal.h>
+ 
+ #include <asm/io.h>
+ #include <asm/bugs.h>
+@@ -83,7 +84,6 @@ extern void init_IRQ(void);
+ extern void fork_init(unsigned long);
+ extern void mca_init(void);
+ extern void sbus_init(void);
+-extern void signals_init(void);
+ extern void pidhash_init(void);
+ extern void pidmap_init(void);
+ extern void prio_tree_init(void);
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
