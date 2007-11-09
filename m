@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + media-common-ir-functionsc-make-a-function-static.patch added to -mm tree
-Date: Thu, 08 Nov 2007 20:18:14 -0800
-Message-ID: <200711090418.lA94IEAA028911@imap1.linux-foundation.org>
+Subject: + cx88-mpegc-make-4-functions-static.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:18:22 -0800
+Message-ID: <200711090418.lA94INsC028934@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49548 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35973 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758226AbXKIESc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:18:32 -0500
+	by vger.kernel.org with ESMTP id S1751778AbXKIESr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:18:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@kernel.org, mchehab@infradead.org
 
 
 The patch titled
-     media/common/ir-functions.c: make a function static
+     cx88-mpeg.c: make 4 functions static
 has been added to the -mm tree.  Its filename is
-     media-common-ir-functionsc-make-a-function-static.patch
+     cx88-mpegc-make-4-functions-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,51 +25,93 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: media/common/ir-functions.c: make a function static
+Subject: cx88-mpeg.c: make 4 functions static
 From: Adrian Bunk <bunk@kernel.org>
 
-ir_rc5_decode() can become static.
+Make the following needlessly global functions static:
+
+- cx8802_init_common()
+- cx8802_fini_common()
+- cx8802_suspend_common()
+- cx8802_resume_common()
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/common/ir-functions.c |    3 +--
- include/media/ir-common.h           |    1 -
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ drivers/media/video/cx88/cx88-mpeg.c |   14 ++++----------
+ drivers/media/video/cx88/cx88.h      |    6 ------
+ 2 files changed, 4 insertions(+), 16 deletions(-)
 
-diff -puN drivers/media/common/ir-functions.c~media-common-ir-functionsc-make-a-function-static drivers/media/common/ir-functions.c
---- a/drivers/media/common/ir-functions.c~media-common-ir-functionsc-make-a-function-static
-+++ a/drivers/media/common/ir-functions.c
-@@ -258,7 +258,7 @@ int ir_decode_biphase(u32 *samples, int 
-  * saa7134 */
+diff -puN drivers/media/video/cx88/cx88-mpeg.c~cx88-mpegc-make-4-functions-static drivers/media/video/cx88/cx88-mpeg.c
+--- a/drivers/media/video/cx88/cx88-mpeg.c~cx88-mpegc-make-4-functions-static
++++ a/drivers/media/video/cx88/cx88-mpeg.c
+@@ -437,10 +437,7 @@ static irqreturn_t cx8802_irq(int irq, v
+ 	return IRQ_RETVAL(handled);
+ }
  
- /* decode raw bit pattern to RC5 code */
--u32 ir_rc5_decode(unsigned int code)
-+static u32 ir_rc5_decode(unsigned int code)
+-/* ----------------------------------------------------------- */
+-/* exported stuff                                              */
+-
+-int cx8802_init_common(struct cx8802_dev *dev)
++static int cx8802_init_common(struct cx8802_dev *dev)
  {
- 	unsigned int org_code = code;
- 	unsigned int pair;
-@@ -371,7 +371,6 @@ EXPORT_SYMBOL_GPL(ir_dump_samples);
- EXPORT_SYMBOL_GPL(ir_decode_biphase);
- EXPORT_SYMBOL_GPL(ir_decode_pulsedistance);
+ 	struct cx88_core *core = dev->core;
+ 	int err;
+@@ -488,7 +485,7 @@ int cx8802_init_common(struct cx8802_dev
+ 	return 0;
+ }
  
--EXPORT_SYMBOL_GPL(ir_rc5_decode);
- EXPORT_SYMBOL_GPL(ir_rc5_timer_end);
- EXPORT_SYMBOL_GPL(ir_rc5_timer_keyup);
+-void cx8802_fini_common(struct cx8802_dev *dev)
++static void cx8802_fini_common(struct cx8802_dev *dev)
+ {
+ 	dprintk( 2, "cx8802_fini_common\n" );
+ 	cx8802_stop_dma(dev);
+@@ -504,7 +501,7 @@ void cx8802_fini_common(struct cx8802_de
  
-diff -puN include/media/ir-common.h~media-common-ir-functionsc-make-a-function-static include/media/ir-common.h
---- a/include/media/ir-common.h~media-common-ir-functionsc-make-a-function-static
-+++ a/include/media/ir-common.h
-@@ -97,7 +97,6 @@ int  ir_dump_samples(u32 *samples, int c
- int  ir_decode_biphase(u32 *samples, int count, int low, int high);
- int  ir_decode_pulsedistance(u32 *samples, int count, int low, int high);
+ /* ----------------------------------------------------------- */
  
--u32 ir_rc5_decode(unsigned int code);
- void ir_rc5_timer_end(unsigned long data);
- void ir_rc5_timer_keyup(unsigned long data);
+-int cx8802_suspend_common(struct pci_dev *pci_dev, pm_message_t state)
++static int cx8802_suspend_common(struct pci_dev *pci_dev, pm_message_t state)
+ {
+ 	struct cx8802_dev *dev = pci_get_drvdata(pci_dev);
+ 	struct cx88_core *core = dev->core;
+@@ -530,7 +527,7 @@ int cx8802_suspend_common(struct pci_dev
+ 	return 0;
+ }
  
+-int cx8802_resume_common(struct pci_dev *pci_dev)
++static int cx8802_resume_common(struct pci_dev *pci_dev)
+ {
+ 	struct cx8802_dev *dev = pci_get_drvdata(pci_dev);
+ 	struct cx88_core *core = dev->core;
+@@ -874,9 +871,6 @@ EXPORT_SYMBOL(cx8802_buf_prepare);
+ EXPORT_SYMBOL(cx8802_buf_queue);
+ EXPORT_SYMBOL(cx8802_cancel_buffers);
+ 
+-EXPORT_SYMBOL(cx8802_init_common);
+-EXPORT_SYMBOL(cx8802_fini_common);
+-
+ EXPORT_SYMBOL(cx8802_register_driver);
+ EXPORT_SYMBOL(cx8802_unregister_driver);
+ EXPORT_SYMBOL(cx8802_get_driver);
+diff -puN drivers/media/video/cx88/cx88.h~cx88-mpegc-make-4-functions-static drivers/media/video/cx88/cx88.h
+--- a/drivers/media/video/cx88/cx88.h~cx88-mpegc-make-4-functions-static
++++ a/drivers/media/video/cx88/cx88.h
+@@ -633,12 +633,6 @@ int cx8802_buf_prepare(struct videobuf_q
+ void cx8802_buf_queue(struct cx8802_dev *dev, struct cx88_buffer *buf);
+ void cx8802_cancel_buffers(struct cx8802_dev *dev);
+ 
+-int cx8802_init_common(struct cx8802_dev *dev);
+-void cx8802_fini_common(struct cx8802_dev *dev);
+-
+-int cx8802_suspend_common(struct pci_dev *pci_dev, pm_message_t state);
+-int cx8802_resume_common(struct pci_dev *pci_dev);
+-
+ /* ----------------------------------------------------------- */
+ /* cx88-video.c*/
+ extern const u32 cx88_user_ctrls[];
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
