@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-fix-symlink-loops.patch added to -mm tree
-Date: Fri, 09 Nov 2007 12:48:27 -0800
-Message-ID: <200711092048.lA9KmRee031262@imap1.linux-foundation.org>
+Subject: + rd-use-is_power_of_2-in-drivers-block-rdc.patch added to -mm tree
+Date: Fri, 09 Nov 2007 12:51:32 -0800
+Message-ID: <200711092051.lA9KpWhx031297@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44026 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56978 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751537AbXKIUst (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 15:48:49 -0500
+	by vger.kernel.org with ESMTP id S1751360AbXKIUvj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 15:51:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, jdike@linux.intel.com, sam@ravnborg.org
+Cc: rpjday@crashcourse.ca
 
 
 The patch titled
-     uml: fix symlink loops
+     rd: use is_power_of_2() in drivers/block/rd.c.
 has been added to the -mm tree.  Its filename is
-     uml-fix-symlink-loops.patch
+     rd-use-is_power_of_2-in-drivers-block-rdc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,77 +25,48 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: fix symlink loops
-From: Jeff Dike <jdike@addtoit.com>
+Subject: rd: use is_power_of_2() in drivers/block/rd.c.
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-symlinks to directories in the non-O= case were lacking -n, which meant
-that, when the link already existed, a new link pointing at itself was
-created in the target directory.
-
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/Makefile |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/block/rd.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/um/Makefile~uml-fix-symlink-loops arch/um/Makefile
---- a/arch/um/Makefile~uml-fix-symlink-loops
-+++ a/arch/um/Makefile
-@@ -168,7 +168,7 @@ ifneq ($(KBUILD_SRC),)
- 	$(Q)mkdir -p $(objtree)/include/asm-um
- 	$(Q)ln -fsn $(srctree)/include/asm-$(HEADER_ARCH) include/asm-um/arch
- else
--	$(Q)cd $(TOPDIR)/include/asm-um && ln -sf ../asm-$(HEADER_ARCH) arch
-+	$(Q)cd $(TOPDIR)/include/asm-um && ln -fsn ../asm-$(SUBARCH) arch
- endif
+diff -puN drivers/block/rd.c~rd-use-is_power_of_2-in-drivers-block-rdc drivers/block/rd.c
+--- a/drivers/block/rd.c~rd-use-is_power_of_2-in-drivers-block-rdc
++++ a/drivers/block/rd.c
+@@ -56,6 +56,7 @@
+ #include <linux/backing-dev.h>
+ #include <linux/blkpg.h>
+ #include <linux/writeback.h>
++#include <linux/log2.h>
  
- $(objtree)/$(ARCH_DIR)/include:
-@@ -180,7 +180,7 @@ $(ARCH_DIR)/include/sysdep: $(objtree)/$
- ifneq ($(KBUILD_SRC),)
- 	$(Q)ln -fsn $(srctree)/$(ARCH_DIR)/include/sysdep-$(SUBARCH) $(ARCH_DIR)/include/sysdep
- else
--	$(Q)cd $(ARCH_DIR)/include && ln -sf sysdep-$(SUBARCH) sysdep
-+	$(Q)cd $(ARCH_DIR)/include && ln -fsn sysdep-$(SUBARCH) sysdep
- endif
+ #include <asm/uaccess.h>
  
- $(ARCH_DIR)/os:
-@@ -188,7 +188,7 @@ $(ARCH_DIR)/os:
- ifneq ($(KBUILD_SRC),)
- 	$(Q)ln -fsn $(srctree)/$(ARCH_DIR)/os-$(OS) $(ARCH_DIR)/os
- else
--	$(Q)cd $(ARCH_DIR) && ln -sf os-$(OS) os
-+	$(Q)cd $(ARCH_DIR) && ln -fsn os-$(OS) os
- endif
+@@ -437,7 +438,7 @@ static int __init rd_init(void)
+ 	err = -ENOMEM;
  
- # Generated files
+ 	if (rd_blocksize > PAGE_SIZE || rd_blocksize < 512 ||
+-			(rd_blocksize & (rd_blocksize-1))) {
++			!is_power_of_2(rd_blocksize)) {
+ 		printk("RAMDISK: wrong blocksize %d, reverting to defaults\n",
+ 		       rd_blocksize);
+ 		rd_blocksize = BLOCK_SIZE;
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
-uml-fix-symlink-loops.patch
-git-kvm.patch
-uml-fix-spurious-irq-testing.patch
-uml-remove-last-include-of-libc-asm-pageh.patch
-uml-fix-build-for-config_tcp.patch
-uml-fix-build-for-config_printk.patch
-uml-implement-get_wchan.patch
-uml-implement-get_wchan-fix.patch
-uml-get-rid-of-asmlinkage.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-document-new-ubd-flag.patch
-uml-further-bugsc-tidying.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-uml-smp-needs-to-depend-on-broken-for-now.patch
-uml-console-driver-cleanups.patch
-uml-clonec-tidying.patch
-uml-borrow-consth-techniques.patch
+arm-remove-reference-to-non-existent-mtd_obsolete_chips.patch
+hwmon-replace-power-of-two-test-in-drivers-hwmon-adt7470c.patch
+git-mips.patch
+pcmcia-net-use-roundup_pow_of_two-macro-instead-of-grotesque-loop.patch
+blackfin-typo-config_rtc_bfin_module.patch
+git-sparc64.patch
+frv-move-dma-macros-to-scatterlisth-for-consistency.patch
+m68knommu-remove-vestiges-of-non-existent-disktel.patch
 uml-delete-some-unused-headers.patch
-uml-allow-lflags-on-command-line.patch
-uml-tidy-kern_utilh.patch
-uml-tidy-pgtableh.patch
-uml-reconst-a-parameter.patch
-arch-um-remove-duplicate-includes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+rd-use-is_power_of_2-in-drivers-block-rdc.patch
+rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
