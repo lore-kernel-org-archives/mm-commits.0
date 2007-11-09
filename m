@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sclp_cpi_sysc-unbork.patch added to -mm tree
-Date: Thu, 08 Nov 2007 20:28:20 -0800
-Message-ID: <200711090428.lA94SKBB029267@imap1.linux-foundation.org>
+Subject: + proper-prototype-for-kernel-schedcmigration_init.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:28:50 -0800
+Message-ID: <200711090428.lA94Spiu029273@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44001 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41674 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751778AbXKIE26 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:28:58 -0500
+	by vger.kernel.org with ESMTP id S1758177AbXKIE3Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:29:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamalesh@linux.vnet.ibm.com, cornelia.huck@de.ibm.com, greg@kroah.com
+Cc: bunk@kernel.org, mingo@elte.hu
 
 
 The patch titled
-     sclp_cpi_sys.c: unbork
+     proper prototype for kernel/sched.c:migration_init()
 has been added to the -mm tree.  Its filename is
-     sclp_cpi_sysc-unbork.patch
+     proper-prototype-for-kernel-schedcmigration_init.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,187 +25,162 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: sclp_cpi_sys.c: unbork
-From: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Subject: proper prototype for kernel/sched.c:migration_init()
+From: Adrian Bunk <bunk@kernel.org>
 
-On Tue, Nov 06, 2007 at 05:42:08PM +0100, Cornelia Huck wrote:
-> On Tue, 6 Nov 2007 16:29:39 +0100,
-> Cornelia Huck <cornelia.huck@de.ibm.com> wrote:
->
-> > That's a clash between git-s390 and the recent kset cleanup.
-> >
-> > sclp_cpi_sys.c needs to be converted from firmware_register() to the
-> > new dynamic kset allocation (kset_create_and_register()) and the
-> > subsys_attributes to kobj_attributes (I may look at it later if I find
-> > some time).
->
-> Adapt sclp_cpi_sys.c to the dynamic kset changes.
+This patch adds a proper prototype for migration_init() in
+include/linux/sched.h
 
-Hi Cornelia,
+Since there's no point in always returning 0 to a caller that doesn't check
+the return value it also changes the function to return void.
 
-Thanks, the patch fixes the build failure.
-
-Tested-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
-Signed-off-by: Cornelia Huck <cornelia.huck@de.ibm.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/char/sclp_cpi_sys.c |   58 ++++++++++++++++-------------
- 1 file changed, 33 insertions(+), 25 deletions(-)
+ include/linux/sched.h |    8 ++++++++
+ init/main.c           |    4 +---
+ kernel/sched.c        |    4 +---
+ 3 files changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN drivers/s390/char/sclp_cpi_sys.c~sclp_cpi_sysc-unbork drivers/s390/char/sclp_cpi_sys.c
---- a/drivers/s390/char/sclp_cpi_sys.c~sclp_cpi_sysc-unbork
-+++ a/drivers/s390/char/sclp_cpi_sys.c
-@@ -220,13 +220,15 @@ static void set_string(char *attr, const
- 	}
+diff -puN include/linux/sched.h~proper-prototype-for-kernel-schedcmigration_init include/linux/sched.h
+--- a/include/linux/sched.h~proper-prototype-for-kernel-schedcmigration_init
++++ a/include/linux/sched.h
+@@ -1978,6 +1978,14 @@ static inline void inc_syscw(struct task
  }
+ #endif
  
--static ssize_t system_name_show(struct kset *kset, char *page)
-+static ssize_t system_name_show(struct kobject *kobj,
-+				struct kobj_attribute *attr, char *page)
++#ifdef CONFIG_SMP
++void migration_init(void);
++#else
++static inline void migration_init(void)
++{
++}
++#endif
++
+ #endif /* __KERNEL__ */
+ 
+ #endif
+diff -puN init/main.c~proper-prototype-for-kernel-schedcmigration_init init/main.c
+--- a/init/main.c~proper-prototype-for-kernel-schedcmigration_init
++++ a/init/main.c
+@@ -56,6 +56,7 @@
+ #include <linux/pid_namespace.h>
+ #include <linux/device.h>
+ #include <linux/kthread.h>
++#include <linux/sched.h>
+ 
+ #include <asm/io.h>
+ #include <asm/bugs.h>
+@@ -747,11 +748,8 @@ __setup("nosoftlockup", nosoftlockup_set
+ static void __init do_pre_smp_initcalls(void)
  {
- 	return snprintf(page, PAGE_SIZE, "%s\n", system_name);
- }
+ 	extern int spawn_ksoftirqd(void);
+-#ifdef CONFIG_SMP
+-	extern int migration_init(void);
  
--static ssize_t system_name_store(struct kset *kset, const char *buf,
--	size_t len)
-+static ssize_t system_name_store(struct kobject *kobj,
-+				 struct kobj_attribute *attr, const char *buf,
-+				 size_t len)
- {
- 	int rc;
- 
-@@ -239,16 +241,18 @@ static ssize_t system_name_store(struct 
- 	return len;
- }
- 
--static struct subsys_attribute system_name_attr =
-+static struct kobj_attribute system_name_attr =
- 	__ATTR(system_name, 0644, system_name_show, system_name_store);
- 
--static ssize_t sysplex_name_show(struct kset *kset, char *page)
-+static ssize_t sysplex_name_show(struct kobject *kobj,
-+				 struct kobj_attribute *attr, char *page)
- {
- 	return snprintf(page, PAGE_SIZE, "%s\n", sysplex_name);
- }
- 
--static ssize_t sysplex_name_store(struct kset *kset, const char *buf,
--	size_t len)
-+static ssize_t sysplex_name_store(struct kobject *kobj,
-+				  struct kobj_attribute *attr, const char *buf,
-+				  size_t len)
- {
- 	int rc;
- 
-@@ -261,17 +265,19 @@ static ssize_t sysplex_name_store(struct
- 	return len;
- }
- 
--static struct subsys_attribute sysplex_name_attr =
-+static struct kobj_attribute sysplex_name_attr =
- 	__ATTR(sysplex_name, 0644, sysplex_name_show,
- 	sysplex_name_store);
- 
--static ssize_t system_type_show(struct kset *kset, char *page)
-+static ssize_t system_type_show(struct kobject *kobj,
-+				struct kobj_attribute *attr, char *page)
- {
- 	return snprintf(page, PAGE_SIZE, "%s\n", system_type);
- }
- 
--static ssize_t system_type_store(struct kset *kset, const char *buf,
--	size_t len)
-+static ssize_t system_type_store(struct kobject *kobj,
-+				 struct kobj_attribute *attr, const char *buf,
-+				 size_t len)
- {
- 	int rc;
- 
-@@ -284,18 +290,20 @@ static ssize_t system_type_store(struct 
- 	return len;
- }
- 
--static struct subsys_attribute system_type_attr =
-+static struct kobj_attribute system_type_attr =
- 	__ATTR(system_type, 0644, system_type_show, system_type_store);
- 
--static ssize_t system_level_show(struct kset *kset, char *page)
-+static ssize_t system_level_show(struct kobject *kobj,
-+				 struct kobj_attribute *attr, char *page)
- {
- 	unsigned long long level = system_level;
- 
- 	return snprintf(page, PAGE_SIZE, "%#018llx\n", level);
- }
- 
--static ssize_t system_level_store(struct kset *kset, const char *buf,
--	size_t len)
-+static ssize_t system_level_store(struct kobject *kobj,
-+				  struct kobj_attribute *attr, const char *buf,
-+				  size_t len)
- {
- 	unsigned long long level;
- 	char *endp;
-@@ -314,12 +322,12 @@ static ssize_t system_level_store(struct
- 	return len;
- }
- 
--static struct subsys_attribute system_level_attr =
-+static struct kobj_attribute system_level_attr =
- 	__ATTR(system_level, 0644, system_level_show,
- 	system_level_store);
- 
--static ssize_t set_store(struct kset *kset, const char *buf,
--	size_t len)
-+static ssize_t set_store(struct kobject *kobj, struct kobj_attribute *attr,
-+			 const char *buf, size_t len)
- {
- 	int rc;
- 
-@@ -330,7 +338,7 @@ static ssize_t set_store(struct kset *ks
- 	return len;
- }
- 
--static struct subsys_attribute set_attr =
-+static struct kobj_attribute set_attr =
- 	__ATTR(set, 0200, NULL, set_store);
- 
- static struct attribute *cpi_attrs[] = {
-@@ -346,7 +354,7 @@ static struct attribute_group cpi_attr_g
- 	.attrs = cpi_attrs,
+ 	migration_init();
+-#endif
+ 	spawn_ksoftirqd();
+ 	if (!nosoftlockup)
+ 		spawn_softlockup_task();
+diff -puN kernel/sched.c~proper-prototype-for-kernel-schedcmigration_init kernel/sched.c
+--- a/kernel/sched.c~proper-prototype-for-kernel-schedcmigration_init
++++ a/kernel/sched.c
+@@ -5621,7 +5621,7 @@ static struct notifier_block __cpuinitda
+ 	.priority = 10
  };
  
--static decl_subsys(cpi, NULL, NULL);
-+static struct kset *cpi_kset;
- 
- int sclp_cpi_set_data(const char *system, const char *sysplex, const char *type,
- 		      const u64 level)
-@@ -376,13 +384,13 @@ static int __init cpi_init(void)
+-int __init migration_init(void)
++void __init migration_init(void)
  {
- 	int rc;
- 
--	rc = firmware_register(&cpi_subsys);
--	if (rc)
--		return rc;
-+	cpi_kset = kset_create_and_register("cpi", NULL, NULL, firmware_kset);
-+	if (IS_ERR(cpi_kset))
-+		return PTR_ERR(cpi_kset);
- 
--	rc = sysfs_create_group(&cpi_subsys.kobj, &cpi_attr_group);
-+	rc = sysfs_create_group(&cpi_kset->kobj, &cpi_attr_group);
- 	if (rc)
--		firmware_unregister(&cpi_subsys);
-+		kset_unregister(cpi_kset);
- 
- 	return rc;
+ 	void *cpu = (void *)(long)smp_processor_id();
+ 	int err;
+@@ -5631,8 +5631,6 @@ int __init migration_init(void)
+ 	BUG_ON(err == NOTIFY_BAD);
+ 	migration_call(&migration_notifier, CPU_ONLINE, cpu);
+ 	register_cpu_notifier(&migration_notifier);
+-
+-	return 0;
  }
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from kamalesh@linux.vnet.ibm.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-rpadlpar_sysfsc-unbork.patch
-sclp_cpi_sysc-unbork.patch
-add-dma-engine-driver-for-freescale-mpc85xx-processors-fix.patch
+lguest_userc-fix-memory-leak.patch
+video-sis-fix-negative-array-index.patch
+dvb-bt8xx-dstc-make-code-static.patch
+dvb-usb-gp8pskc-if-0-gp8psk_bcm4500_reload.patch
+dvb-usb-vp702xc-cleanups.patch
+dvb-usb-make-some-debug-vars-static.patch
+media-common-ir-functionsc-make-a-function-static.patch
+cx88-mpegc-make-4-functions-static.patch
+media-video-et61x251-make-5-functions-static.patch
+git-hwmon.patch
+fs-dlm-proper-prototypes.patch
+make-jffs2_get_acl-static.patch
+make-sunrpc-xprtsockcxs_setup_udptcp-static.patch
+git-netdev-all.patch
+drivers-net-chelsio-if-0-unused-functions.patch
+drivers-bluetooth-bpa10xc-fix-memleak.patch
+drivers-bluetooth-btsdioc-fix-double-free.patch
+git-nfs-make-nfs_wb_page_priority-static.patch
+fs-nfs-dirc-should-include-internalh.patch
+proper-prototype-for-kernel-schedcmigration_init.patch
+git-scsi-misc.patch
+scsi-advansysc-make-3-functions-static.patch
+scsi-qla2xxx-possible-cleanups.patch
+usb-mon-mon_binc-cleanups.patch
+xtensa-iss_net_setup-must-be-__init.patch
+xtensa-kernel-setupc-remove-dead-code.patch
+sunrpc-xprtrdma-transportc-fix-use-after-free.patch
+fix-mm-utilckrealloc.patch
+fuse_file_alloc-fix-null-dereferences.patch
+pidns-place-under-config_experimental.patch
+pidns-place-under-config_experimental-checkpatch-fixes.patch
+feature-removal-schedule-remove-sa_-flags-entry.patch
+kernel-taskstatsc-fix-bogus-nlmsg_free.patch
+mm-hugetlbc-make-a-function-static.patch
+mm-page-writebackc-make-a-function-static.patch
+make-__vmalloc_area_node-static.patch
+blackfin-remove-dump_thread.patch
+kernel-power-diskc-make-code-static.patch
+make-kernel_shutdown_prepare-static.patch
+kernel-power-move-function-prototypes-to-header.patch
+kill-udffs_dateversion.patch
+make-ipc-utilcsysvipc_find_ipc-static.patch
+cleanup-after-apus-removal.patch
+remove-mm_ptovvtop.patch
+remove-__attribute_used__.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+proper-show_interrupts-prototype.patch
+scheduled-oss-driver-removal.patch
+linux-inith-simplify-__meminitexit-dependencies.patch
+proper-prototype-for-signals_init.patch
+kernel-ptracec-should-include-linux-syscallsh.patch
+make-srcu_readers_active-static.patch
+kernel-notifierc-should-include-linux-rebooth.patch
+proper-prototype-for-get_filesystem_list.patch
+fs-utimesc-should-include-linux-syscallsh.patch
+fs-signalfdc-should-include-linux-syscallsh.patch
+fs-eventfdc-should-include-linux-syscallsh.patch
+proper-prototype-for-vty_init.patch
+drivers-misc-lkdtmc-cleanups.patch
+power_supply_ledssysfsc-should-include-power_supplyh.patch
+fs-ecryptfs-possible-cleanups.patch
+make-video-geode-lxfb_corecgeode_modedb-static.patch
+video-hpfbc-section-fix.patch
+ext4-superc-fix-ifdefs.patch
+make-jbd-journalc__journal_abort_hard-static.patch
+move-edactxt-two-levels-up.patch
+remove-documentation-smptxt.patch
+kernel-cgroupc-remove-dead-code.patch
+kernel-cgroupc-make-2-functions-static.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+fix-m32r-__xchg.patch
+reiser4.patch
