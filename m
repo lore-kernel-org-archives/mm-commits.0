@@ -1,150 +1,201 @@
 From: akpm@linux-foundation.org
-Subject: + futex-fix-address-computation-in-compat-code.patch added to -mm tree
-Date: Fri, 09 Nov 2007 12:22:14 -0800
-Message-ID: <200711092022.lA9KMEpW030337@imap1.linux-foundation.org>
+Subject: - dhowells-broke-unionfs.patch removed from -mm tree
+Date: Fri, 09 Nov 2007 12:22:36 -0800
+Message-ID: <200711092022.lA9KMaPT030344@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42658 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45573 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751420AbXKIUWh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 15:22:37 -0500
+	by vger.kernel.org with ESMTP id S1751490AbXKIUW5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 15:22:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: davem@davemloft.net, arnd@arndb.de, stable@kernel.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, ezk@cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     futex: fix address computation in compat code
-has been added to the -mm tree.  Its filename is
-     futex-fix-address-computation-in-compat-code.patch
+     dhowells-broke-unionfs
+has been removed from the -mm tree.  Its filename was
+     dhowells-broke-unionfs.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: futex: fix address computation in compat code
-From: David Miller <davem@davemloft.net>
+Subject: dhowells-broke-unionfs
+From: Andrew Morton <akpm@linux-foundation.org>
 
-compat_exit_robust_list() computes a pointer to the futex entry in
-userspace as follows:
+fs/unionfs/main.c: In function 'unionfs_interpose':
+fs/unionfs/main.c:131: error: implicit declaration of function 'iget'
+fs/unionfs/main.c:131: warning: assignment makes pointer from integer without a cast
 
-	(void __user *)entry + futex_offset
+please send a fix against next -mm.
 
-'entry' is a 'struct robust_list __user *', and
-'futex_offset' is a 'compat_long_t' (typically a 's32').
-
-Things explode if the 32-bit sign bit is set in futex_offset.
-
-Type promotion sign extends futex_offset to a 64-bit value before adding it
-to 'entry'.
-
-This triggered a problem on sparc64 running 32-bit applications which would
-lock up a cpu looping forever in the fault handling for the userspace load
-in handle_futex_death().
-
-Compat userspace runs with address masking (wherein the cpu zeros out the
-top 32-bits of every effective address given to a memory operation
-instruction) so the sparc64 fault handler accounts for this by zero'ing out
-the top 32-bits of the fault address too.
-
-Since the kernel properly uses the compat_uptr interfaces, kernel side
-accesses to compat userspace work too since they will only use addresses
-with the top 32-bit clear.
-
-Because of this compat futex layer bug we get into the following loop
-when executing the get_user() load near the top of handle_futex_death():
-
-1) load from address '0xfffffffff7f16bd8', FAULT
-2) fault handler clears upper 32-bits, processes fault
-   for address '0xf7f16bd8' which succeeds
-3) goto #1
-
-I want to thank Bernd Zeimetz, Josip Rodin, and Fabio Massimo Di Nitto
-for their tireless efforts helping me track down this bug.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Cc: <stable@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex_compat.c |   27 ++++++++++++++++++++-------
- 1 file changed, 20 insertions(+), 7 deletions(-)
+ fs/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/futex_compat.c~futex-fix-address-computation-in-compat-code kernel/futex_compat.c
---- a/kernel/futex_compat.c~futex-fix-address-computation-in-compat-code
-+++ a/kernel/futex_compat.c
-@@ -30,6 +30,15 @@ fetch_robust_entry(compat_uptr_t *uentry
- 	return 0;
- }
- 
-+static void __user *futex_uaddr(struct robust_list *entry,
-+				compat_long_t futex_offset)
-+{
-+	compat_uptr_t base = ptr_to_compat(entry);
-+	void __user *uaddr = compat_ptr(base + futex_offset);
-+
-+	return uaddr;
-+}
-+
- /*
-  * Walk curr->robust_list (very carefully, it's a userspace list!)
-  * and mark any locks found there dead, and notify any waiters.
-@@ -76,11 +85,13 @@ void compat_exit_robust_list(struct task
- 		 * A pending lock might already be on the list, so
- 		 * dont process it twice:
- 		 */
--		if (entry != pending)
--			if (handle_futex_death((void __user *)entry + futex_offset,
--						curr, pi))
--				return;
-+		if (entry != pending) {
-+			void __user *uaddr = futex_uaddr(entry,
-+							 futex_offset);
- 
-+			if (handle_futex_death(uaddr, curr, pi))
-+				return;
-+		}
- 		if (rc)
- 			return;
- 		uentry = next_uentry;
-@@ -94,9 +105,11 @@ void compat_exit_robust_list(struct task
- 
- 		cond_resched();
- 	}
--	if (pending)
--		handle_futex_death((void __user *)pending + futex_offset,
--				   curr, pip);
-+	if (pending) {
-+		void __user *uaddr = futex_uaddr(pending, futex_offset);
-+
-+		handle_futex_death(uaddr, curr, pip);
-+	}
- }
- 
- asmlinkage long
+diff -puN fs/Kconfig~dhowells-broke-unionfs fs/Kconfig
+--- a/fs/Kconfig~dhowells-broke-unionfs
++++ a/fs/Kconfig
+@@ -1019,6 +1019,7 @@ config ECRYPT_FS
+ config UNION_FS
+ 	tristate "Union file system (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
++	depends on BROKEN
+ 	help
+ 	  Unionfs is a stackable unification file system, which appears to
+ 	  merge the contents of several directories (branches), while keeping
 _
 
-Patches currently in -mm which might be from davem@davemloft.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-futex-fix-address-computation-in-compat-code.patch
-git-net.patch
-pfkey-sending-an-sadb_get-responds-with-an-sadb_get.patch
+proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
+acpi-make-acpi_procfs-default-to-y.patch
+oprofile-revert-i386-make-callgraph-use-dump_trace-on-i386-x86_64.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of-fix.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-arm-fixup.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
+git-dvb.patch
+git-hwmon.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+elantech-touchpad-driver-fix.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+ide-arm-hack.patch
+git-mtd.patch
 lmc_ioctl-dont-return-with-locks-held-fix.patch
+git-netdev-all.patch
 ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-git-sparc64.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+bluetooth-uninlining.patch
+git-nfsd-fixup.patch
+quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
+scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
 git-wireless.patch
-sunrpc-xprtrdma-transportc-fix-use-after-free.patch
-sysctl-fix-token-ring-procname.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-fix-up.patch
+git-x86-inlining-borkage.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+i386-and-x86_64-randomize-brk-fix.patch
+x86-arch_register_cpu-section-fix.patch
+mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
+pidns-place-under-config_experimental-checkpatch-fixes.patch
+fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
+file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
+x86-disable-preemption-in-delay_tsc.patch
 tty-fix-network-driver-interactions-with-tcget-set-checkpatch-fixes.patch
-tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls-x86-fix.patch
-fix-versus-precedence-in-various-places.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+cris-build-fixes-atomich-needs-compilerh-fix.patch
+cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
+cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
+cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
 fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-genericizing-iova.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
 read_current_time-cleanups.patch
-iget-stop-openpromfs-from-using-iget-and.patch
-add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
-add-cmpxchg_local-to-sparc64.patch
+sync_sb_inodes-propagate-errors.patch
+64-bit-i_version-afs-fixes.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+dhowells-broke-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+w1-build-fix.patch
