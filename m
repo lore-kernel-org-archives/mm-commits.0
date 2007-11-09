@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-dlm-proper-prototypes.patch added to -mm tree
-Date: Thu, 08 Nov 2007 20:19:48 -0800
-Message-ID: <200711090419.lA94JnSe029020@imap1.linux-foundation.org>
+Subject: + drivers-net-chelsio-if-0-unused-functions.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:23:41 -0800
+Message-ID: <200711090423.lA94NgK3029106@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41576 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55803 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754652AbXKIEUU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:20:20 -0500
+	by vger.kernel.org with ESMTP id S1751778AbXKIEYD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:24:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, swhiteho@redhat.com, teigland@redhat.com
+Cc: bunk@kernel.org, jeff@garzik.org
 
 
 The patch titled
-     fs/dlm/: proper prototypes
+     drivers/net/chelsio/: #if 0 unused functions
 has been added to the -mm tree.  Its filename is
-     fs-dlm-proper-prototypes.patch
+     drivers-net-chelsio-if-0-unused-functions.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,97 +25,88 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs/dlm/: proper prototypes
+Subject: drivers/net/chelsio/: #if 0 unused functions
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch adds a proper prototype for some functions in fs/dlm/dlm_internal.h
+This patch #if 0's the following unused functions:
+- espi.c:t1_espi_set_misc_ctrl()
+- sge.c:t1_sched_set_max_avail_bytes()
+- sge.c:t1_sched_set_drain_bits_per_us()
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: David Teigland <teigland@redhat.com>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dlm/dlm_internal.h |   16 ++++++++++++++++
- fs/dlm/lock.c         |    1 -
- fs/dlm/lockspace.c    |    8 --------
- fs/dlm/main.c         |   10 ----------
- 4 files changed, 16 insertions(+), 19 deletions(-)
+ drivers/net/chelsio/espi.c |    2 ++
+ drivers/net/chelsio/espi.h |    1 -
+ drivers/net/chelsio/sge.c  |    4 ++++
+ drivers/net/chelsio/sge.h  |    2 --
+ 4 files changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN fs/dlm/dlm_internal.h~fs-dlm-proper-prototypes fs/dlm/dlm_internal.h
---- a/fs/dlm/dlm_internal.h~fs-dlm-proper-prototypes
-+++ a/fs/dlm/dlm_internal.h
-@@ -570,5 +570,21 @@ static inline int dlm_no_directory(struc
- 	return (ls->ls_exflags & DLM_LSFL_NODIR) ? 1 : 0;
+diff -puN drivers/net/chelsio/espi.c~drivers-net-chelsio-if-0-unused-functions drivers/net/chelsio/espi.c
+--- a/drivers/net/chelsio/espi.c~drivers-net-chelsio-if-0-unused-functions
++++ a/drivers/net/chelsio/espi.c
+@@ -297,6 +297,7 @@ struct peespi *t1_espi_create(adapter_t 
+ 	return espi;
  }
  
-+int dlm_netlink_init(void);
-+void dlm_netlink_exit(void);
-+void dlm_timeout_warn(struct dlm_lkb *lkb);
-+
-+#ifdef CONFIG_DLM_DEBUG
-+int dlm_register_debugfs(void);
-+void dlm_unregister_debugfs(void);
-+int dlm_create_debug_file(struct dlm_ls *ls);
-+void dlm_delete_debug_file(struct dlm_ls *ls);
-+#else
-+static inline int dlm_register_debugfs(void) { return 0; }
-+static inline void dlm_unregister_debugfs(void) { }
-+static inline int dlm_create_debug_file(struct dlm_ls *ls) { return 0; }
-+static inline void dlm_delete_debug_file(struct dlm_ls *ls) { }
-+#endif
-+
- #endif				/* __DLM_INTERNAL_DOT_H__ */
++#if 0
+ void t1_espi_set_misc_ctrl(adapter_t *adapter, u32 val)
+ {
+ 	struct peespi *espi = adapter->espi;
+@@ -309,6 +310,7 @@ void t1_espi_set_misc_ctrl(adapter_t *ad
+ 	writel(espi->misc_ctrl, adapter->regs + A_ESPI_MISC_CONTROL);
+ 	spin_unlock(&espi->lock);
+ }
++#endif  /*  0  */
  
-diff -puN fs/dlm/lock.c~fs-dlm-proper-prototypes fs/dlm/lock.c
---- a/fs/dlm/lock.c~fs-dlm-proper-prototypes
-+++ a/fs/dlm/lock.c
-@@ -88,7 +88,6 @@ static void __receive_convert_reply(stru
- static int receive_extralen(struct dlm_message *ms);
- static void do_purge(struct dlm_ls *ls, int nodeid, int pid);
- static void del_timeout(struct dlm_lkb *lkb);
--void dlm_timeout_warn(struct dlm_lkb *lkb);
+ u32 t1_espi_get_mon(adapter_t *adapter, u32 addr, u8 wait)
+ {
+diff -puN drivers/net/chelsio/espi.h~drivers-net-chelsio-if-0-unused-functions drivers/net/chelsio/espi.h
+--- a/drivers/net/chelsio/espi.h~drivers-net-chelsio-if-0-unused-functions
++++ a/drivers/net/chelsio/espi.h
+@@ -62,7 +62,6 @@ void t1_espi_intr_disable(struct peespi 
+ int t1_espi_intr_handler(struct peespi *);
+ const struct espi_intr_counts *t1_espi_get_intr_counts(struct peespi *espi);
+ 
+-void t1_espi_set_misc_ctrl(adapter_t *adapter, u32 val);
+ u32 t1_espi_get_mon(adapter_t *adapter, u32 addr, u8 wait);
+ int t1_espi_get_mon_t204(adapter_t *, u32 *, u8);
+ 
+diff -puN drivers/net/chelsio/sge.c~drivers-net-chelsio-if-0-unused-functions drivers/net/chelsio/sge.c
+--- a/drivers/net/chelsio/sge.c~drivers-net-chelsio-if-0-unused-functions
++++ a/drivers/net/chelsio/sge.c
+@@ -330,6 +330,8 @@ unsigned int t1_sched_update_parms(struc
+ 	return max_avail_segs * (p->mtu - 40);
+ }
+ 
++#if 0
++
+ /*
+  * t1_sched_max_avail_bytes() tells the scheduler the maximum amount of
+  * data that can be pushed per port.
+@@ -357,6 +359,8 @@ void t1_sched_set_drain_bits_per_us(stru
+ 	t1_sched_update_parms(sge, port, 0, 0);
+ }
+ 
++#endif  /*  0  */
++
  
  /*
-  * Lock compatibilty matrix - thanks Steve
-diff -puN fs/dlm/lockspace.c~fs-dlm-proper-prototypes fs/dlm/lockspace.c
---- a/fs/dlm/lockspace.c~fs-dlm-proper-prototypes
-+++ a/fs/dlm/lockspace.c
-@@ -24,14 +24,6 @@
- #include "recover.h"
- #include "requestqueue.h"
+  * get_clock() implements a ns clock (see ktime_get)
+diff -puN drivers/net/chelsio/sge.h~drivers-net-chelsio-if-0-unused-functions drivers/net/chelsio/sge.h
+--- a/drivers/net/chelsio/sge.h~drivers-net-chelsio-if-0-unused-functions
++++ a/drivers/net/chelsio/sge.h
+@@ -89,8 +89,6 @@ void t1_sge_intr_disable(struct sge *);
+ void t1_sge_intr_clear(struct sge *);
+ const struct sge_intr_counts *t1_sge_get_intr_counts(const struct sge *sge);
+ void t1_sge_get_port_stats(const struct sge *sge, int port, struct sge_port_stats *);
+-void t1_sched_set_max_avail_bytes(struct sge *, unsigned int);
+-void t1_sched_set_drain_bits_per_us(struct sge *, unsigned int, unsigned int);
+ unsigned int t1_sched_update_parms(struct sge *, unsigned int, unsigned int,
+ 			   unsigned int);
  
--#ifdef CONFIG_DLM_DEBUG
--int dlm_create_debug_file(struct dlm_ls *ls);
--void dlm_delete_debug_file(struct dlm_ls *ls);
--#else
--static inline int dlm_create_debug_file(struct dlm_ls *ls) { return 0; }
--static inline void dlm_delete_debug_file(struct dlm_ls *ls) { }
--#endif
--
- static int			ls_count;
- static struct mutex		ls_lock;
- static struct list_head		lslist;
-diff -puN fs/dlm/main.c~fs-dlm-proper-prototypes fs/dlm/main.c
---- a/fs/dlm/main.c~fs-dlm-proper-prototypes
-+++ a/fs/dlm/main.c
-@@ -18,16 +18,6 @@
- #include "memory.h"
- #include "config.h"
- 
--#ifdef CONFIG_DLM_DEBUG
--int dlm_register_debugfs(void);
--void dlm_unregister_debugfs(void);
--#else
--static inline int dlm_register_debugfs(void) { return 0; }
--static inline void dlm_unregister_debugfs(void) { }
--#endif
--int dlm_netlink_init(void);
--void dlm_netlink_exit(void);
--
- static int __init init_dlm(void)
- {
- 	int error;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
