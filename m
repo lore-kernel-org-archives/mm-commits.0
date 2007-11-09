@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls-x86-fix.patch added to -mm tree
-Date: Thu, 08 Nov 2007 20:35:39 -0800
-Message-ID: <200711090435.lA94ZdBX029577@imap1.linux-foundation.org>
+Subject: + tty-fix-network-driver-interactions-with-tcget-set-calls.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:35:18 -0800
+Message-ID: <200711090435.lA94ZIu5029568@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49830 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51177 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761658AbXKIEgB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:36:01 -0500
+	by vger.kernel.org with ESMTP id S1761696AbXKIEf7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:35:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davem@davemloft.net, alan@redhat.com, jeff@garzik.org
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, davem@davemloft.net, jeff@garzik.org
 
 
 The patch titled
-     tty: fix tty network driver interactions with TCGET/TCSET calls (x86 fix)
+     tty: fix network driver interactions with TCGET/SET calls
 has been added to the -mm tree.  Its filename is
-     tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls-x86-fix.patch
+     tty-fix-network-driver-interactions-with-tcget-set-calls.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,11 +25,27 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: tty: fix tty network driver interactions with TCGET/TCSET calls (x86 fix)
-From: Dave Miller <davem@davemloft.net>
+Subject: tty: fix network driver interactions with TCGET/SET calls
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-And to go with it Dave's type checking x86 termios headers.  I've updated
-these as the original sent by Dave had some wrong types in it.
+Dave Miller noted various cases where line disciplines for things like ppp go
+poking around in termios themselves in ways that broke with the new termios
+code.  Rather than have them all learning about termios internals provide
+proper methods for this
+
+- tty_mode_ioctl()
+
+  This handles all the terminal mode handling for speed/carrier etc and none
+  of the methods are ldisc dependant so they can be called by any user
+
+- tty_perform_flush()
+
+  This extracts the flush functionality and enables pppd the ppp layer to
+  share it cleanly.
+
+The existing n_tty_ioctl code is refactored in this patch to provide the new
+functions and to call them itself appropriately.  This patch has no (intended)
+behaviour changes and simply prepares for the other fixes.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: "David S. Miller" <davem@davemloft.net>
@@ -37,123 +53,262 @@ Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/termios.h |   68 ++++++++++++++++++++++--------------
- 1 file changed, 42 insertions(+), 26 deletions(-)
+ drivers/char/tty_ioctl.c |  170 ++++++++++++++++++++++---------------
+ include/linux/tty.h      |    4 
+ 2 files changed, 107 insertions(+), 67 deletions(-)
 
-diff -puN include/asm-x86/termios.h~tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls-x86-fix include/asm-x86/termios.h
---- a/include/asm-x86/termios.h~tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls-x86-fix
-+++ a/include/asm-x86/termios.h
-@@ -41,6 +41,8 @@ struct termio {
- 
- #ifdef __KERNEL__
- 
-+#include <asm/uaccess.h>
-+
- /*	intr=^C		quit=^\		erase=del	kill=^U
- 	eof=^D		vtime=\0	vmin=\1		sxtc=\0
- 	start=^Q	stop=^S		susp=^Z		eol=\0
-@@ -58,39 +60,53 @@ struct termio {
- 	*(unsigned short *) &(termios)->x = __tmp; \
+diff -puN drivers/char/tty_ioctl.c~tty-fix-network-driver-interactions-with-tcget-set-calls drivers/char/tty_ioctl.c
+--- a/drivers/char/tty_ioctl.c~tty-fix-network-driver-interactions-with-tcget-set-calls
++++ a/drivers/char/tty_ioctl.c
+@@ -730,13 +730,23 @@ static int send_prio_char(struct tty_str
+ 	return 0;
  }
  
--#define user_termio_to_kernel_termios(termios, termio) \
--({ \
--	SET_LOW_TERMIOS_BITS(termios, termio, c_iflag); \
--	SET_LOW_TERMIOS_BITS(termios, termio, c_oflag); \
--	SET_LOW_TERMIOS_BITS(termios, termio, c_cflag); \
--	SET_LOW_TERMIOS_BITS(termios, termio, c_lflag); \
--	copy_from_user((termios)->c_cc, (termio)->c_cc, NCC); \
--})
-+static inline int user_termio_to_kernel_termios(struct ktermios *termios,
-+						struct termio __user *termio)
-+{
-+	SET_LOW_TERMIOS_BITS(termios, termio, c_iflag);
-+	SET_LOW_TERMIOS_BITS(termios, termio, c_oflag);
-+	SET_LOW_TERMIOS_BITS(termios, termio, c_cflag);
-+	SET_LOW_TERMIOS_BITS(termios, termio, c_lflag);
-+	return copy_from_user(termios->c_cc, termio->c_cc, NCC);
-+}
+-int n_tty_ioctl(struct tty_struct * tty, struct file * file,
+-		       unsigned int cmd, unsigned long arg)
++/**
++ *	tty_mode_ioctl		-	mode related ioctls
++ *	@tty: tty for the ioctl
++ *	@file: file pointer for the tty
++ *	@cmd: command
++ *	@arg: ioctl argument
++ *
++ *	Perform non line discipline specific mode control ioctls. This
++ *	is designed to be called by line disciplines to ensure they provide
++ *	consistent mode setting.
++ */
++
++int tty_mode_ioctl(struct tty_struct * tty, struct file *file,
++			unsigned int cmd, unsigned long arg)
+ {
+ 	struct tty_struct * real_tty;
+ 	void __user *p = (void __user *)arg;
+-	int retval;
+-	struct tty_ldisc *ld;
  
- /*
-  * Translate a "termios" structure into a "termio". Ugh.
-  */
--#define kernel_termios_to_user_termio(termio, termios) \
--({ \
--	put_user((termios)->c_iflag, &(termio)->c_iflag); \
--	put_user((termios)->c_oflag, &(termio)->c_oflag); \
--	put_user((termios)->c_cflag, &(termio)->c_cflag); \
--	put_user((termios)->c_lflag, &(termio)->c_lflag); \
--	put_user((termios)->c_line,  &(termio)->c_line); \
--	copy_to_user((termio)->c_cc, (termios)->c_cc, NCC); \
--})
--
--#define user_termios_to_kernel_termios(k, u) \
--	copy_from_user(k, u, sizeof(struct termios2))
-+static inline int kernel_termios_to_user_termio(struct termio __user *termio,
-+					    struct ktermios *termios)
-+{
-+	put_user((termios)->c_iflag, &(termio)->c_iflag);
-+	put_user((termios)->c_oflag, &(termio)->c_oflag);
-+	put_user((termios)->c_cflag, &(termio)->c_cflag);
-+	put_user((termios)->c_lflag, &(termio)->c_lflag);
-+	put_user((termios)->c_line,  &(termio)->c_line);
-+	return copy_to_user((termio)->c_cc, (termios)->c_cc, NCC);
+ 	if (tty->driver->type == TTY_DRIVER_TYPE_PTY &&
+ 	    tty->driver->subtype == PTY_TYPE_MASTER)
+@@ -799,6 +809,93 @@ int n_tty_ioctl(struct tty_struct * tty,
+ 			return set_termios(real_tty, p, TERMIOS_WAIT | TERMIOS_TERMIO);
+ 		case TCSETA:
+ 			return set_termios(real_tty, p, TERMIOS_TERMIO);
++#ifndef TCGETS2
++		case TIOCGLCKTRMIOS:
++			if (kernel_termios_to_user_termios((struct termios __user *)arg, real_tty->termios_locked))
++				return -EFAULT;
++			return 0;
++
++		case TIOCSLCKTRMIOS:
++			if (!capable(CAP_SYS_ADMIN))
++				return -EPERM;
++			if (user_termios_to_kernel_termios(real_tty->termios_locked, (struct termios __user *) arg))
++				return -EFAULT;
++			return 0;
++#else
++		case TIOCGLCKTRMIOS:
++			if (kernel_termios_to_user_termios_1((struct termios __user *)arg, real_tty->termios_locked))
++				return -EFAULT;
++			return 0;
++
++		case TIOCSLCKTRMIOS:
++			if (!capable(CAP_SYS_ADMIN))
++				return -EPERM;
++			if (user_termios_to_kernel_termios_1(real_tty->termios_locked, (struct termios __user *) arg))
++				return -EFAULT;
++			return 0;
++#endif
++		case TIOCGSOFTCAR:
++			return put_user(C_CLOCAL(tty) ? 1 : 0, (int __user *)arg);
++		case TIOCSSOFTCAR:
++			if (get_user(arg, (unsigned int __user *) arg))
++				return -EFAULT;
++			mutex_lock(&tty->termios_mutex);
++			tty->termios->c_cflag =
++				((tty->termios->c_cflag & ~CLOCAL) |
++				 (arg ? CLOCAL : 0));
++			mutex_unlock(&tty->termios_mutex);
++			return 0;
++		default:
++			return -ENOIOCTLCMD;
++	}
 +}
 +
-+static inline int user_termios_to_kernel_termios(struct ktermios *k,
-+						 struct termios2 __user *u)
++EXPORT_SYMBOL_GPL(tty_mode_ioctl);
++
++int tty_perform_flush(struct tty_struct *tty, unsigned long arg)
 +{
-+	return copy_from_user(k, u, sizeof(struct termios2));
++	struct tty_ldisc *ld;
++	int retval = tty_check_change(tty);
++	if (retval)
++		return retval;
++
++	ld = tty_ldisc_ref(tty);
++	switch (arg) {
++	case TCIFLUSH:
++		if (ld && ld->flush_buffer)
++			ld->flush_buffer(tty);
++		break;
++	case TCIOFLUSH:
++		if (ld && ld->flush_buffer)
++			ld->flush_buffer(tty);
++		/* fall through */
++	case TCOFLUSH:
++		if (tty->driver->flush_buffer)
++			tty->driver->flush_buffer(tty);
++		break;
++	default:
++		tty_ldisc_deref(ld);
++		return -EINVAL;
++	}
++	tty_ldisc_deref(ld);
++	return 0;
 +}
- 
--#define kernel_termios_to_user_termios(u, k) \
--	copy_to_user(u, k, sizeof(struct termios2))
-+static inline int kernel_termios_to_user_termios(struct termios2 __user *u,
-+						 struct ktermios *k)
++
++EXPORT_SYMBOL_GPL(tty_perform_flush);
++
++int n_tty_ioctl(struct tty_struct * tty, struct file * file,
++		       unsigned int cmd, unsigned long arg)
 +{
-+	return copy_to_user(u, k, sizeof(struct termios2));
-+}
++	struct tty_struct * real_tty;
++	int retval;
++
++	if (tty->driver->type == TTY_DRIVER_TYPE_PTY &&
++	    tty->driver->subtype == PTY_TYPE_MASTER)
++		real_tty = tty->link;
++	else
++		real_tty = tty;
++
++	switch (cmd) {
+ 		case TCXONC:
+ 			retval = tty_check_change(tty);
+ 			if (retval)
+@@ -829,30 +926,7 @@ int n_tty_ioctl(struct tty_struct * tty,
+ 			}
+ 			return 0;
+ 		case TCFLSH:
+-			retval = tty_check_change(tty);
+-			if (retval)
+-				return retval;
+-				
+-			ld = tty_ldisc_ref(tty);
+-			switch (arg) {
+-			case TCIFLUSH:
+-				if (ld && ld->flush_buffer)
+-					ld->flush_buffer(tty);
+-				break;
+-			case TCIOFLUSH:
+-				if (ld && ld->flush_buffer)
+-					ld->flush_buffer(tty);
+-				/* fall through */
+-			case TCOFLUSH:
+-				if (tty->driver->flush_buffer)
+-					tty->driver->flush_buffer(tty);
+-				break;
+-			default:
+-				tty_ldisc_deref(ld);
+-				return -EINVAL;
+-			}
+-			tty_ldisc_deref(ld);
+-			return 0;
++			return tty_perform_flush(tty, arg);
+ 		case TIOCOUTQ:
+ 			return put_user(tty->driver->chars_in_buffer ?
+ 					tty->driver->chars_in_buffer(tty) : 0,
+@@ -862,32 +936,6 @@ int n_tty_ioctl(struct tty_struct * tty,
+ 			if (L_ICANON(tty))
+ 				retval = inq_canon(tty);
+ 			return put_user(retval, (unsigned int __user *) arg);
+-#ifndef TCGETS2
+-		case TIOCGLCKTRMIOS:
+-			if (kernel_termios_to_user_termios((struct termios __user *)arg, real_tty->termios_locked))
+-				return -EFAULT;
+-			return 0;
+-
+-		case TIOCSLCKTRMIOS:
+-			if (!capable(CAP_SYS_ADMIN))
+-				return -EPERM;
+-			if (user_termios_to_kernel_termios(real_tty->termios_locked, (struct termios __user *) arg))
+-				return -EFAULT;
+-			return 0;
+-#else
+-		case TIOCGLCKTRMIOS:
+-			if (kernel_termios_to_user_termios_1((struct termios __user *)arg, real_tty->termios_locked))
+-				return -EFAULT;
+-			return 0;
+-
+-		case TIOCSLCKTRMIOS:
+-			if (!capable(CAP_SYS_ADMIN))
+-				return -EPERM;
+-			if (user_termios_to_kernel_termios_1(real_tty->termios_locked, (struct termios __user *) arg))
+-				return -EFAULT;
+-			return 0;
+-#endif
+-
+ 		case TIOCPKT:
+ 		{
+ 			int pktmode;
+@@ -906,19 +954,9 @@ int n_tty_ioctl(struct tty_struct * tty,
+ 				tty->packet = 0;
+ 			return 0;
+ 		}
+-		case TIOCGSOFTCAR:
+-			return put_user(C_CLOCAL(tty) ? 1 : 0, (int __user *)arg);
+-		case TIOCSSOFTCAR:
+-			if (get_user(arg, (unsigned int __user *) arg))
+-				return -EFAULT;
+-			mutex_lock(&tty->termios_mutex);
+-			tty->termios->c_cflag =
+-				((tty->termios->c_cflag & ~CLOCAL) |
+-				 (arg ? CLOCAL : 0));
+-			mutex_unlock(&tty->termios_mutex);
+-			return 0;
+ 		default:
+-			return -ENOIOCTLCMD;
++			/* Try the mode commands */
++			return tty_mode_ioctl(tty, file, cmd, arg);
+ 		}
+ }
  
--#define user_termios_to_kernel_termios_1(k, u) \
--	copy_from_user(k, u, sizeof(struct termios))
-+static inline int user_termios_to_kernel_termios_1(struct ktermios *k,
-+						   struct termios __user *u)
-+{
-+	return copy_from_user(k, u, sizeof(struct termios));
-+}
+diff -puN include/linux/tty.h~tty-fix-network-driver-interactions-with-tcget-set-calls include/linux/tty.h
+--- a/include/linux/tty.h~tty-fix-network-driver-interactions-with-tcget-set-calls
++++ a/include/linux/tty.h
+@@ -332,7 +332,9 @@ extern void tty_ldisc_flush(struct tty_s
  
--#define kernel_termios_to_user_termios_1(u, k) \
--	copy_to_user(u, k, sizeof(struct termios))
-+static inline int kernel_termios_to_user_termios_1(struct termios __user *u,
-+						   struct ktermios *k)
-+{
-+	return copy_to_user(u, k, sizeof(struct termios));
-+}
- 
- #endif	/* __KERNEL__ */
- 
+ extern int tty_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
+ 		     unsigned long arg);
+-
++extern int tty_mode_ioctl(struct tty_struct *tty, struct file *file,
++			unsigned int cmd, unsigned long arg);
++extern int tty_perform_flush(struct tty_struct *tty, unsigned long arg);
+ extern dev_t tty_devnum(struct tty_struct *tty);
+ extern void proc_clear_tty(struct task_struct *p);
+ extern struct tty_struct *get_current_tty(void);
 _
 
-Patches currently in -mm which might be from davem@davemloft.net are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-git-net.patch
-pfkey-sending-an-sadb_get-responds-with-an-sadb_get.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-git-sparc64.patch
-git-wireless.patch
-sunrpc-xprtrdma-transportc-fix-use-after-free.patch
-sysctl-fix-token-ring-procname.patch
+frv-remove-bogus-no_irq-=-1-define.patch
+git-libata-all.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+quirk_vialatency-omit-reading-pci-revision-id.patch
+quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
+initio-fix-conflict-when-loading-driver.patch
+serial-only-use-pnp-irq-if-its-valid.patch
+keyspan-init-termios-properly.patch
 tty-fix-network-driver-interactions-with-tcget-set-calls.patch
 tty-fix-network-driver-interactions-with-tcget-set-checkpatch-fixes.patch
 tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls.patch
-tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls-x86-fix.patch
-fix-versus-precedence-in-various-places.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-genericizing-iova.patch
-read_current_time-cleanups.patch
-iget-stop-openpromfs-from-using-iget-and.patch
-add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
-add-cmpxchg_local-to-sparc64.patch
+geode-lists-are-subscriber-only.patch
+tty-kill-tty_flipbuf_size.patch
+drivers-edac-turnon-edac-device-error-logging.patch
+drivers-edac-use-round_jiffies_relative.patch
+drivers-edac-add-cell-xdr-memory-types.patch
+drivers-edac-add-cell-mc-driver.patch
+drivers-edac-i3000-code-tidying.patch
+drivers-edac-i3000-replace-macros-with-functions.patch
+drivers-edac-add-freescale-mpc85xx-driver.patch
+drivers-edac-add-marvell-mv64x60-driver.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+dz-clean-up-and-improve-the-setup-of-termios-settings.patch
