@@ -1,113 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - cx88-mpegc-make-4-functions-static.patch removed from -mm tree
-Date: Fri, 09 Nov 2007 11:13:00 -0800
-Message-ID: <200711091913.lA9JD0BU027968@imap1.linux-foundation.org>
+Subject: - make-jffs2_get_acl-static.patch removed from -mm tree
+Date: Fri, 09 Nov 2007 11:13:15 -0800
+Message-ID: <200711091913.lA9JDFlw027995@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55930 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50527 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755177AbXKITNZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:13:25 -0500
+	by vger.kernel.org with ESMTP id S1755331AbXKITNj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:13:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: bunk@kernel.org, dwmw2@infradead.org, kaigai@ak.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cx88-mpeg.c: make 4 functions static
+     make jffs2_get_acl() static
 has been removed from the -mm tree.  Its filename was
-     cx88-mpegc-make-4-functions-static.patch
+     make-jffs2_get_acl-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cx88-mpeg.c: make 4 functions static
+Subject: make jffs2_get_acl() static
 From: Adrian Bunk <bunk@kernel.org>
 
-Make the following needlessly global functions static:
-
-- cx8802_init_common()
-- cx8802_fini_common()
-- cx8802_suspend_common()
-- cx8802_resume_common()
+jffs2_get_acl() can now become static again.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Acked-by: KaiGai Kohei <kaigai@ak.jp.nec.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/cx88/cx88-mpeg.c |   14 ++++----------
- drivers/media/video/cx88/cx88.h      |    6 ------
- 2 files changed, 4 insertions(+), 16 deletions(-)
+ fs/jffs2/acl.c |    2 +-
+ fs/jffs2/acl.h |    2 --
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/media/video/cx88/cx88-mpeg.c~cx88-mpegc-make-4-functions-static drivers/media/video/cx88/cx88-mpeg.c
---- a/drivers/media/video/cx88/cx88-mpeg.c~cx88-mpegc-make-4-functions-static
-+++ a/drivers/media/video/cx88/cx88-mpeg.c
-@@ -437,10 +437,7 @@ static irqreturn_t cx8802_irq(int irq, v
- 	return IRQ_RETVAL(handled);
+diff -puN fs/jffs2/acl.c~make-jffs2_get_acl-static fs/jffs2/acl.c
+--- a/fs/jffs2/acl.c~make-jffs2_get_acl-static
++++ a/fs/jffs2/acl.c
+@@ -176,7 +176,7 @@ static void jffs2_iset_acl(struct inode 
+ 	spin_unlock(&inode->i_lock);
  }
  
--/* ----------------------------------------------------------- */
--/* exported stuff                                              */
--
--int cx8802_init_common(struct cx8802_dev *dev)
-+static int cx8802_init_common(struct cx8802_dev *dev)
+-struct posix_acl *jffs2_get_acl(struct inode *inode, int type)
++static struct posix_acl *jffs2_get_acl(struct inode *inode, int type)
  {
- 	struct cx88_core *core = dev->core;
- 	int err;
-@@ -488,7 +485,7 @@ int cx8802_init_common(struct cx8802_dev
- 	return 0;
- }
+ 	struct jffs2_inode_info *f = JFFS2_INODE_INFO(inode);
+ 	struct posix_acl *acl;
+diff -puN fs/jffs2/acl.h~make-jffs2_get_acl-static fs/jffs2/acl.h
+--- a/fs/jffs2/acl.h~make-jffs2_get_acl-static
++++ a/fs/jffs2/acl.h
+@@ -28,7 +28,6 @@ struct jffs2_acl_header {
  
--void cx8802_fini_common(struct cx8802_dev *dev)
-+static void cx8802_fini_common(struct cx8802_dev *dev)
- {
- 	dprintk( 2, "cx8802_fini_common\n" );
- 	cx8802_stop_dma(dev);
-@@ -504,7 +501,7 @@ void cx8802_fini_common(struct cx8802_de
+ #define JFFS2_ACL_NOT_CACHED ((void *)-1)
  
- /* ----------------------------------------------------------- */
+-extern struct posix_acl *jffs2_get_acl(struct inode *inode, int type);
+ extern int jffs2_permission(struct inode *, int, struct nameidata *);
+ extern int jffs2_acl_chmod(struct inode *);
+ extern int jffs2_init_acl_pre(struct inode *, struct inode *, int *);
+@@ -40,7 +39,6 @@ extern struct xattr_handler jffs2_acl_de
  
--int cx8802_suspend_common(struct pci_dev *pci_dev, pm_message_t state)
-+static int cx8802_suspend_common(struct pci_dev *pci_dev, pm_message_t state)
- {
- 	struct cx8802_dev *dev = pci_get_drvdata(pci_dev);
- 	struct cx88_core *core = dev->core;
-@@ -530,7 +527,7 @@ int cx8802_suspend_common(struct pci_dev
- 	return 0;
- }
+ #else
  
--int cx8802_resume_common(struct pci_dev *pci_dev)
-+static int cx8802_resume_common(struct pci_dev *pci_dev)
- {
- 	struct cx8802_dev *dev = pci_get_drvdata(pci_dev);
- 	struct cx88_core *core = dev->core;
-@@ -874,9 +871,6 @@ EXPORT_SYMBOL(cx8802_buf_prepare);
- EXPORT_SYMBOL(cx8802_buf_queue);
- EXPORT_SYMBOL(cx8802_cancel_buffers);
- 
--EXPORT_SYMBOL(cx8802_init_common);
--EXPORT_SYMBOL(cx8802_fini_common);
--
- EXPORT_SYMBOL(cx8802_register_driver);
- EXPORT_SYMBOL(cx8802_unregister_driver);
- EXPORT_SYMBOL(cx8802_get_driver);
-diff -puN drivers/media/video/cx88/cx88.h~cx88-mpegc-make-4-functions-static drivers/media/video/cx88/cx88.h
---- a/drivers/media/video/cx88/cx88.h~cx88-mpegc-make-4-functions-static
-+++ a/drivers/media/video/cx88/cx88.h
-@@ -633,12 +633,6 @@ int cx8802_buf_prepare(struct videobuf_q
- void cx8802_buf_queue(struct cx8802_dev *dev, struct cx88_buffer *buf);
- void cx8802_cancel_buffers(struct cx8802_dev *dev);
- 
--int cx8802_init_common(struct cx8802_dev *dev);
--void cx8802_fini_common(struct cx8802_dev *dev);
--
--int cx8802_suspend_common(struct pci_dev *pci_dev, pm_message_t state);
--int cx8802_resume_common(struct pci_dev *pci_dev);
--
- /* ----------------------------------------------------------- */
- /* cx88-video.c*/
- extern const u32 cx88_user_ctrls[];
+-#define jffs2_get_acl(inode, type)		(NULL)
+ #define jffs2_permission			(NULL)
+ #define jffs2_acl_chmod(inode)			(0)
+ #define jffs2_init_acl_pre(dir_i,inode,mode)	(0)
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
