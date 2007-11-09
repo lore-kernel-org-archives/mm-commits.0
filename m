@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + smbfs-fix-calculation-of-kernel_recvmsg-size-parameter-in-smb_receive.patch added to -mm tree
-Date: Thu, 08 Nov 2007 20:51:32 -0800
-Message-ID: <200711090451.lA94pX4V030154@imap1.linux-foundation.org>
+Subject: + linux-inith-simplify-__meminitexit-dependencies.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:51:38 -0800
+Message-ID: <200711090451.lA94pdbg030157@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49795 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53187 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759998AbXKIEvu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:51:50 -0500
+	by vger.kernel.org with ESMTP id S1760080AbXKIEvz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:51:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jlayton@redhat.com
+Cc: bunk@kernel.org
 
 
 The patch titled
-     smbfs: fix calculation of kernel_recvmsg size parameter in smb_receive()
+     linux/init.h: simplify __mem{init,exit}* dependencies
 has been added to the -mm tree.  Its filename is
-     smbfs-fix-calculation-of-kernel_recvmsg-size-parameter-in-smb_receive.patch
+     linux-inith-simplify-__meminitexit-dependencies.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,60 +25,107 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: smbfs: fix calculation of kernel_recvmsg size parameter in smb_receive()
-From: Jeff Layton <jlayton@redhat.com>
+Subject: linux/init.h: simplify __mem{init,exit}* dependencies
+From: Adrian Bunk <bunk@kernel.org>
 
-smb_receive calls kernel_recvmsg with a size that's the minimum of the
-amount of buffer space in the kvec passed in or req->rq_rlen (which
-represents the length of the response).  This does not take into account
-any data that was read in a request earlier pass through smb_receive.
+Simplify the dependencies on __mem{init,exit}* (ACPI_HOTPLUG_MEMORY requires
+MEMORY_HOTPLUG).
 
-If the first pass through smb_receive receives some but not all of the
-response, then the next pass can call kernel_recvmsg with a size field
-that's too big.  kernel_recvmsg can overrun into the next response,
-throwing off the alignment and making it unrecognizable.
-
-This causes messages like this to pop up in the ring buffer:
-
-smb_get_length: Invalid NBT packet, code=69
-
-as well as other errors indicating that the response is unrecognizable.
-Typically this is seen on a smbfs mount under heavy I/O.
-
-This patch changes the code to use (req->rq_rlen - req->rq_bytes_recvd)
-instead instead of just req->rq_rlen, since that should represent the
-amount of unread data in the response.
-
-I think this is correct, but an ACK or NACK from someone more familiar
-with this code would be appreciated...
-
-Signed-off-by: Jeff Layton <jlayton@redhat.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/smbfs/sock.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/linux/init.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/smbfs/sock.c~smbfs-fix-calculation-of-kernel_recvmsg-size-parameter-in-smb_receive fs/smbfs/sock.c
---- a/fs/smbfs/sock.c~smbfs-fix-calculation-of-kernel_recvmsg-size-parameter-in-smb_receive
-+++ a/fs/smbfs/sock.c
-@@ -329,9 +329,8 @@ smb_receive(struct smb_sb_info *server, 
- 	msg.msg_control = NULL;
+diff -puN include/linux/init.h~linux-inith-simplify-__meminitexit-dependencies include/linux/init.h
+--- a/include/linux/init.h~linux-inith-simplify-__meminitexit-dependencies
++++ a/include/linux/init.h
+@@ -279,8 +279,7 @@ void __init parse_early_param(void);
+ #define __cpuexitdata	__exitdata
+ #endif
  
- 	/* Dont repeat bytes and count available bufferspace */
--	rlen = smb_move_iov(&p, &num, iov, req->rq_bytes_recvd);
--	if (req->rq_rlen < rlen)
--		rlen = req->rq_rlen;
-+	rlen = min_t(int, smb_move_iov(&p, &num, iov, req->rq_bytes_recvd),
-+			(req->rq_rlen - req->rq_bytes_recvd));
- 
- 	result = kernel_recvmsg(sock, &msg, p, num, rlen, flags);
- 
+-#if defined(CONFIG_MEMORY_HOTPLUG) || defined(CONFIG_ACPI_HOTPLUG_MEMORY) \
+-	|| defined(CONFIG_ACPI_HOTPLUG_MEMORY_MODULE)
++#if defined(CONFIG_MEMORY_HOTPLUG)
+ #define __meminit
+ #define __meminitdata
+ #define __memexit
 _
 
-Patches currently in -mm which might be from jlayton@redhat.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-git-cifs.patch
-git-unionfs.patch
-smbfs-fix-debug-builds.patch
-smbfs-fix-calculation-of-kernel_recvmsg-size-parameter-in-smb_receive.patch
+origin.patch
+lguest_userc-fix-memory-leak.patch
+video-sis-fix-negative-array-index.patch
+dvb-bt8xx-dstc-make-code-static.patch
+dvb-usb-gp8pskc-if-0-gp8psk_bcm4500_reload.patch
+dvb-usb-vp702xc-cleanups.patch
+dvb-usb-make-some-debug-vars-static.patch
+media-common-ir-functionsc-make-a-function-static.patch
+cx88-mpegc-make-4-functions-static.patch
+media-video-et61x251-make-5-functions-static.patch
+git-hwmon.patch
+fs-dlm-proper-prototypes.patch
+make-jffs2_get_acl-static.patch
+make-sunrpc-xprtsockcxs_setup_udptcp-static.patch
+git-netdev-all.patch
+drivers-net-chelsio-if-0-unused-functions.patch
+drivers-bluetooth-bpa10xc-fix-memleak.patch
+drivers-bluetooth-btsdioc-fix-double-free.patch
+git-nfs-make-nfs_wb_page_priority-static.patch
+fs-nfs-dirc-should-include-internalh.patch
+proper-prototype-for-kernel-schedcmigration_init.patch
+git-scsi-misc.patch
+scsi-advansysc-make-3-functions-static.patch
+scsi-qla2xxx-possible-cleanups.patch
+usb-mon-mon_binc-cleanups.patch
+xtensa-iss_net_setup-must-be-__init.patch
+xtensa-kernel-setupc-remove-dead-code.patch
+sunrpc-xprtrdma-transportc-fix-use-after-free.patch
+fix-mm-utilckrealloc.patch
+fuse_file_alloc-fix-null-dereferences.patch
+pidns-place-under-config_experimental.patch
+pidns-place-under-config_experimental-checkpatch-fixes.patch
+feature-removal-schedule-remove-sa_-flags-entry.patch
+kernel-taskstatsc-fix-bogus-nlmsg_free.patch
+mm-hugetlbc-make-a-function-static.patch
+mm-page-writebackc-make-a-function-static.patch
+make-__vmalloc_area_node-static.patch
+blackfin-remove-dump_thread.patch
+kernel-power-diskc-make-code-static.patch
+make-kernel_shutdown_prepare-static.patch
+kernel-power-move-function-prototypes-to-header.patch
+kill-udffs_dateversion.patch
+make-ipc-utilcsysvipc_find_ipc-static.patch
+cleanup-after-apus-removal.patch
+remove-mm_ptovvtop.patch
+remove-__attribute_used__.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+proper-show_interrupts-prototype.patch
+scheduled-oss-driver-removal.patch
+linux-inith-simplify-__meminitexit-dependencies.patch
+proper-prototype-for-signals_init.patch
+kernel-ptracec-should-include-linux-syscallsh.patch
+make-srcu_readers_active-static.patch
+kernel-notifierc-should-include-linux-rebooth.patch
+proper-prototype-for-get_filesystem_list.patch
+fs-utimesc-should-include-linux-syscallsh.patch
+fs-signalfdc-should-include-linux-syscallsh.patch
+fs-eventfdc-should-include-linux-syscallsh.patch
+proper-prototype-for-vty_init.patch
+drivers-misc-lkdtmc-cleanups.patch
+power_supply_ledssysfsc-should-include-power_supplyh.patch
+fs-ecryptfs-possible-cleanups.patch
+make-video-geode-lxfb_corecgeode_modedb-static.patch
+video-hpfbc-section-fix.patch
+ext4-superc-fix-ifdefs.patch
+make-jbd-journalc__journal_abort_hard-static.patch
+move-edactxt-two-levels-up.patch
+remove-documentation-smptxt.patch
+kernel-cgroupc-remove-dead-code.patch
+kernel-cgroupc-make-2-functions-static.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+fix-m32r-__xchg.patch
+reiser4.patch
