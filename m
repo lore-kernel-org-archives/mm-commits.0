@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch added to -mm tree
-Date: Thu, 08 Nov 2007 20:17:20 -0800
-Message-ID: <200711090417.lA94HKqw028884@imap1.linux-foundation.org>
+Subject: + dvb-bt8xx-dstc-make-code-static.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:17:42 -0800
+Message-ID: <200711090417.lA94HhhU028893@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44562 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50238 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754652AbXKIERd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:17:33 -0500
+	by vger.kernel.org with ESMTP id S1756202AbXKIESI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:18:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, pbadari@gmail.com
+Cc: bunk@kernel.org, mchehab@infradead.org
 
 
 The patch titled
-     unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix
+     dvb/bt8xx/dst.c: make code static
 has been added to the -mm tree.  Its filename is
-     unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
+     dvb-bt8xx-dstc-make-code-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,203 +25,219 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dvb/bt8xx/dst.c: make code static
+From: Adrian Bunk <bunk@kernel.org>
 
-no no no no.
+This patch makes the following needlessly global code static:
+- dst_gpio_outb()
+- dst_gpio_inb()
+- rdc_8820_reset()
+- dst_pio_enable()
+- dst_command()
+- struct tuner_list[]
 
-Please add checkpatch.pl to your workflow.
-
-Cc: Badari Pulavarty <pbadari@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/vio.c |    2 --
- drivers/base/base.h       |    2 --
- include/linux/device.h    |    1 +
- 3 files changed, 1 insertion(+), 4 deletions(-)
+ drivers/media/dvb/bt8xx/dst.c        |   19 ++++++++-----------
+ drivers/media/dvb/bt8xx/dst_common.h |    5 -----
+ 2 files changed, 8 insertions(+), 16 deletions(-)
 
-diff -puN arch/powerpc/kernel/vio.c~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix arch/powerpc/kernel/vio.c
---- a/arch/powerpc/kernel/vio.c~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix
-+++ a/arch/powerpc/kernel/vio.c
-@@ -37,8 +37,6 @@
- #include <asm/iseries/hv_call_xm.h>
- #include <asm/iseries/iommu.h>
+diff -puN drivers/media/dvb/bt8xx/dst.c~dvb-bt8xx-dstc-make-code-static drivers/media/dvb/bt8xx/dst.c
+--- a/drivers/media/dvb/bt8xx/dst.c~dvb-bt8xx-dstc-make-code-static
++++ a/drivers/media/dvb/bt8xx/dst.c
+@@ -71,6 +71,7 @@ MODULE_PARM_DESC(dst_algo, "tuning algo:
+ 	}								\
+ } while(0)
  
--extern struct kset *devices_kset;  /* needed for vio_find_name() */
++static int dst_command(struct dst_state *state, u8 *data, u8 len);
+ 
+ static void dst_packsize(struct dst_state *state, int psize)
+ {
+@@ -80,7 +81,8 @@ static void dst_packsize(struct dst_stat
+ 	bt878_device_control(state->bt, DST_IG_TS, &bits);
+ }
+ 
+-int dst_gpio_outb(struct dst_state *state, u32 mask, u32 enbb, u32 outhigh, int delay)
++static int dst_gpio_outb(struct dst_state *state, u32 mask, u32 enbb,
++			 u32 outhigh, int delay)
+ {
+ 	union dst_gpio_packet enb;
+ 	union dst_gpio_packet bits;
+@@ -109,9 +111,8 @@ int dst_gpio_outb(struct dst_state *stat
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL(dst_gpio_outb);
+ 
+-int dst_gpio_inb(struct dst_state *state, u8 *result)
++static int dst_gpio_inb(struct dst_state *state, u8 *result)
+ {
+ 	union dst_gpio_packet rd_packet;
+ 	int err;
+@@ -125,7 +126,6 @@ int dst_gpio_inb(struct dst_state *state
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL(dst_gpio_inb);
+ 
+ int rdc_reset_state(struct dst_state *state)
+ {
+@@ -145,7 +145,7 @@ int rdc_reset_state(struct dst_state *st
+ }
+ EXPORT_SYMBOL(rdc_reset_state);
+ 
+-int rdc_8820_reset(struct dst_state *state)
++static int rdc_8820_reset(struct dst_state *state)
+ {
+ 	dprintk(verbose, DST_DEBUG, 1, "Resetting DST");
+ 	if (dst_gpio_outb(state, RDC_8820_RESET, RDC_8820_RESET, 0, NO_DELAY) < 0) {
+@@ -160,9 +160,8 @@ int rdc_8820_reset(struct dst_state *sta
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL(rdc_8820_reset);
+ 
+-int dst_pio_enable(struct dst_state *state)
++static int dst_pio_enable(struct dst_state *state)
+ {
+ 	if (dst_gpio_outb(state, ~0, RDC_8820_PIO_0_ENABLE, 0, NO_DELAY) < 0) {
+ 		dprintk(verbose, DST_ERROR, 1, "dst_gpio_outb ERROR !");
+@@ -172,7 +171,6 @@ int dst_pio_enable(struct dst_state *sta
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL(dst_pio_enable);
+ 
+ int dst_pio_disable(struct dst_state *state)
+ {
+@@ -611,7 +609,7 @@ static int dst_type_print(struct dst_sta
+ 	return 0;
+ }
+ 
+-struct tuner_types tuner_list[] = {
++static struct tuner_types tuner_list[] = {
+ 	{
+ 		.tuner_type = TUNER_TYPE_L64724,
+ 		.tuner_name = "L 64724",
+@@ -1224,7 +1222,7 @@ static int dst_probe(struct dst_state *s
+ 	return 0;
+ }
+ 
+-int dst_command(struct dst_state *state, u8 *data, u8 len)
++static int dst_command(struct dst_state *state, u8 *data, u8 len)
+ {
+ 	u8 reply;
+ 
+@@ -1287,7 +1285,6 @@ error:
+ 	return -EIO;
+ 
+ }
+-EXPORT_SYMBOL(dst_command);
+ 
+ static int dst_get_signal(struct dst_state *state)
+ {
+diff -puN drivers/media/dvb/bt8xx/dst_common.h~dvb-bt8xx-dstc-make-code-static drivers/media/dvb/bt8xx/dst_common.h
+--- a/drivers/media/dvb/bt8xx/dst_common.h~dvb-bt8xx-dstc-make-code-static
++++ a/drivers/media/dvb/bt8xx/dst_common.h
+@@ -165,10 +165,8 @@ struct dst_config
+ };
+ 
+ int rdc_reset_state(struct dst_state *state);
+-int rdc_8820_reset(struct dst_state *state);
+ 
+ int dst_wait_dst_ready(struct dst_state *state, u8 delay_mode);
+-int dst_pio_enable(struct dst_state *state);
+ int dst_pio_disable(struct dst_state *state);
+ int dst_error_recovery(struct dst_state* state);
+ int dst_error_bailout(struct dst_state *state);
+@@ -177,9 +175,6 @@ int dst_comm_init(struct dst_state* stat
+ int write_dst(struct dst_state *state, u8 * data, u8 len);
+ int read_dst(struct dst_state *state, u8 * ret, u8 len);
+ u8 dst_check_sum(u8 * buf, u32 len);
+-int dst_gpio_outb(struct dst_state* state, u32 mask, u32 enbb, u32 outhigh, int delay);
 -
- static struct bus_type vio_bus_type;
- 
- static struct vio_dev vio_bus_device  = { /* fake "parent" device */
-diff -puN drivers/base/base.h~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix drivers/base/base.h
---- a/drivers/base/base.h~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix
-+++ a/drivers/base/base.h
-@@ -71,5 +71,3 @@ struct class_device_attribute *to_class_
- extern char *make_class_name(const char *name, struct kobject *kobj);
- 
- extern int devres_release_all(struct device *dev);
--
--extern struct kset *devices_kset;
-diff -puN include/linux/device.h~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix include/linux/device.h
---- a/include/linux/device.h~unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix
-+++ a/include/linux/device.h
-@@ -109,6 +109,7 @@ extern int bus_unregister_notifier(struc
- #define BUS_NOTIFY_UNBIND_DRIVER	0x00000004 /* driver about to be
- 						      unbound */
- 
-+extern struct kset *devices_kset;
- extern struct kset *bus_get_kset(struct bus_type *bus);
- extern struct klist *bus_get_device_klist(struct bus_type *bus);
+-int dst_command(struct dst_state* state, u8 * data, u8 len);
+ struct dst_state* dst_attach(struct dst_state* state, struct dvb_adapter *dvb_adapter);
+ struct dvb_device *dst_ca_attach(struct dst_state *state, struct dvb_adapter *dvb_adapter);
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
-acpi-make-acpi_procfs-default-to-y.patch
-oprofile-revert-i386-make-callgraph-use-dump_trace-on-i386-x86_64.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of-fix.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-git-arm-fixup.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
+lguest_userc-fix-memory-leak.patch
+video-sis-fix-negative-array-index.patch
+dvb-bt8xx-dstc-make-code-static.patch
+dvb-usb-gp8pskc-if-0-gp8psk_bcm4500_reload.patch
+dvb-usb-vp702xc-cleanups.patch
+dvb-usb-make-some-debug-vars-static.patch
+media-common-ir-functionsc-make-a-function-static.patch
+cx88-mpegc-make-4-functions-static.patch
+media-video-et61x251-make-5-functions-static.patch
 git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-ide-arm-hack.patch
-git-mtd-fix.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
+fs-dlm-proper-prototypes.patch
+make-jffs2_get_acl-static.patch
+make-sunrpc-xprtsockcxs_setup_udptcp-static.patch
 git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-git-nfsd-fixup.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-fix-build-breakage-if-sysfs-fix.patch
-wd7000-broke.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-aacraid-fix-endianness-warnings-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-ipwireless-ipwireless_cs_tty-warning-fix.patch
-git-x86.patch
-git-x86-fixup.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-x86-arch_register_cpu-section-fix.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
+drivers-net-chelsio-if-0-unused-functions.patch
+drivers-bluetooth-bpa10xc-fix-memleak.patch
+drivers-bluetooth-btsdioc-fix-double-free.patch
+git-nfs-make-nfs_wb_page_priority-static.patch
+fs-nfs-dirc-should-include-internalh.patch
+proper-prototype-for-kernel-schedcmigration_init.patch
+git-scsi-misc.patch
+scsi-advansysc-make-3-functions-static.patch
+scsi-qla2xxx-possible-cleanups.patch
+usb-mon-mon_binc-cleanups.patch
+xtensa-iss_net_setup-must-be-__init.patch
+xtensa-kernel-setupc-remove-dead-code.patch
+sunrpc-xprtrdma-transportc-fix-use-after-free.patch
+fix-mm-utilckrealloc.patch
+fuse_file_alloc-fix-null-dereferences.patch
+pidns-place-under-config_experimental.patch
 pidns-place-under-config_experimental-checkpatch-fixes.patch
-fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
-file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
-x86-disable-preemption-in-delay_tsc.patch
-tty-fix-network-driver-interactions-with-tcget-set-checkpatch-fixes.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
-cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+feature-removal-schedule-remove-sa_-flags-entry.patch
+kernel-taskstatsc-fix-bogus-nlmsg_free.patch
+mm-hugetlbc-make-a-function-static.patch
+mm-page-writebackc-make-a-function-static.patch
+make-__vmalloc_area_node-static.patch
+blackfin-remove-dump_thread.patch
+kernel-power-diskc-make-code-static.patch
+make-kernel_shutdown_prepare-static.patch
+kernel-power-move-function-prototypes-to-header.patch
+kill-udffs_dateversion.patch
+make-ipc-utilcsysvipc_find_ipc-static.patch
+cleanup-after-apus-removal.patch
+remove-mm_ptovvtop.patch
+remove-__attribute_used__.patch
 remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-sync_sb_inodes-propagate-errors.patch
-64-bit-i_version-afs-fixes.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
+proper-show_interrupts-prototype.patch
+scheduled-oss-driver-removal.patch
+linux-inith-simplify-__meminitexit-dependencies.patch
+proper-prototype-for-signals_init.patch
+kernel-ptracec-should-include-linux-syscallsh.patch
+make-srcu_readers_active-static.patch
+kernel-notifierc-should-include-linux-rebooth.patch
+proper-prototype-for-get_filesystem_list.patch
+fs-utimesc-should-include-linux-syscallsh.patch
+fs-signalfdc-should-include-linux-syscallsh.patch
+fs-eventfdc-should-include-linux-syscallsh.patch
+proper-prototype-for-vty_init.patch
+drivers-misc-lkdtmc-cleanups.patch
+power_supply_ledssysfsc-should-include-power_supplyh.patch
+fs-ecryptfs-possible-cleanups.patch
+make-video-geode-lxfb_corecgeode_modedb-static.patch
+video-hpfbc-section-fix.patch
+ext4-superc-fix-ifdefs.patch
+make-jbd-journalc__journal_abort_hard-static.patch
+move-edactxt-two-levels-up.patch
+remove-documentation-smptxt.patch
+kernel-cgroupc-remove-dead-code.patch
+kernel-cgroupc-make-2-functions-static.patch
 memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
 memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-dhowells-broke-unionfs.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+fix-m32r-__xchg.patch
 reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-w1-build-fix.patch
