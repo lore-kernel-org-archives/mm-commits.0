@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + power_supply_ledssysfsc-should-include-power_supplyh.patch added to -mm tree
-Date: Thu, 08 Nov 2007 20:53:03 -0800
-Message-ID: <200711090453.lA94r4q7030223@imap1.linux-foundation.org>
+Subject: + drivers-misc-lkdtmc-cleanups.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:52:55 -0800
+Message-ID: <200711090452.lA94qtst030211@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58780 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60537 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759821AbXKIExT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:53:19 -0500
+	by vger.kernel.org with ESMTP id S1759958AbXKIExb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:53:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, ankita@in.ibm.com
 
 
 The patch titled
-     patch] power_supply_{leds,sysfs}.c should #include "power_supply.h"
+     drivers/misc/lkdtm.c: cleanups
 has been added to the -mm tree.  Its filename is
-     power_supply_ledssysfsc-should-include-power_supplyh.patch
+     drivers-misc-lkdtmc-cleanups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,44 +25,104 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: patch] power_supply_{leds,sysfs}.c should #include "power_supply.h"
+Subject: drivers/misc/lkdtm.c: cleanups
 From: Adrian Bunk <bunk@kernel.org>
 
-Every file should include the headers containing the prototypes for its global
-functions.
+- make needlessly global functions static
+- make lkdtm_module_{init,exit}() as __{init,exit}
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Ankita Garg <ankita@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/power_supply_leds.c  |    2 ++
- drivers/power/power_supply_sysfs.c |    2 ++
- 2 files changed, 4 insertions(+)
+ drivers/misc/lkdtm.c |   24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
-diff -puN drivers/power/power_supply_leds.c~power_supply_ledssysfsc-should-include-power_supplyh drivers/power/power_supply_leds.c
---- a/drivers/power/power_supply_leds.c~power_supply_ledssysfsc-should-include-power_supplyh
-+++ a/drivers/power/power_supply_leds.c
-@@ -12,6 +12,8 @@
+diff -puN drivers/misc/lkdtm.c~drivers-misc-lkdtmc-cleanups drivers/misc/lkdtm.c
+--- a/drivers/misc/lkdtm.c~drivers-misc-lkdtmc-cleanups
++++ a/drivers/misc/lkdtm.c
+@@ -129,27 +129,28 @@ module_param(cpoint_count, int, 0644);
+ MODULE_PARM_DESC(cpoint_count, " Crash Point Count, number of times the "\
+ 				"crash point is to be hit to trigger action");
  
- #include <linux/power_supply.h>
+-unsigned int jp_do_irq(unsigned int irq)
++static unsigned int jp_do_irq(unsigned int irq)
+ {
+ 	lkdtm_handler();
+ 	jprobe_return();
+ 	return 0;
+ }
  
-+#include "power_supply.h"
-+
- /* Battery specific LEDs triggers. */
+-irqreturn_t jp_handle_irq_event(unsigned int irq, struct irqaction *action)
++static irqreturn_t jp_handle_irq_event(unsigned int irq,
++				       struct irqaction *action)
+ {
+ 	lkdtm_handler();
+ 	jprobe_return();
+ 	return 0;
+ }
  
- static void power_supply_update_bat_leds(struct power_supply *psy)
-diff -puN drivers/power/power_supply_sysfs.c~power_supply_ledssysfsc-should-include-power_supplyh drivers/power/power_supply_sysfs.c
---- a/drivers/power/power_supply_sysfs.c~power_supply_ledssysfsc-should-include-power_supplyh
-+++ a/drivers/power/power_supply_sysfs.c
-@@ -14,6 +14,8 @@
- #include <linux/ctype.h>
- #include <linux/power_supply.h>
+-void jp_tasklet_action(struct softirq_action *a)
++static void jp_tasklet_action(struct softirq_action *a)
+ {
+ 	lkdtm_handler();
+ 	jprobe_return();
+ }
  
-+#include "power_supply.h"
-+
- /*
-  * This is because the name "current" breaks the device attr macro.
-  * The "current" word resolves to "(get_current())" so instead of
+-void jp_ll_rw_block(int rw, int nr, struct buffer_head *bhs[])
++static void jp_ll_rw_block(int rw, int nr, struct buffer_head *bhs[])
+ {
+ 	lkdtm_handler();
+ 	jprobe_return();
+@@ -157,23 +158,24 @@ void jp_ll_rw_block(int rw, int nr, stru
+ 
+ struct scan_control;
+ 
+-unsigned long jp_shrink_inactive_list(unsigned long max_scan,
+-				struct zone *zone, struct scan_control *sc)
++static unsigned long jp_shrink_inactive_list(unsigned long max_scan,
++					     struct zone *zone,
++					     struct scan_control *sc)
+ {
+ 	lkdtm_handler();
+ 	jprobe_return();
+ 	return 0;
+ }
+ 
+-int jp_hrtimer_start(struct hrtimer *timer, ktime_t tim,
+-				const enum hrtimer_mode mode)
++static int jp_hrtimer_start(struct hrtimer *timer, ktime_t tim,
++			    const enum hrtimer_mode mode)
+ {
+ 	lkdtm_handler();
+ 	jprobe_return();
+ 	return 0;
+ }
+ 
+-int jp_scsi_dispatch_cmd(struct scsi_cmnd *cmd)
++static int jp_scsi_dispatch_cmd(struct scsi_cmnd *cmd)
+ {
+ 	lkdtm_handler();
+ 	jprobe_return();
+@@ -270,7 +272,7 @@ void lkdtm_handler(void)
+ 	}
+ }
+ 
+-int lkdtm_module_init(void)
++static int __init lkdtm_module_init(void)
+ {
+ 	int ret;
+ 
+@@ -331,7 +333,7 @@ int lkdtm_module_init(void)
+ 	return 0;
+ }
+ 
+-void lkdtm_module_exit(void)
++static void __exit lkdtm_module_exit(void)
+ {
+         unregister_jprobe(&lkdtm);
+         printk(KERN_INFO "lkdtm : Crash point unregistered\n");
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
