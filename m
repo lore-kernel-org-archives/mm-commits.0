@@ -1,78 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - lvm-use-rounddown_pow_of_two-macro-for-simplicity.patch removed from -mm tree
-Date: Fri, 09 Nov 2007 11:12:44 -0800
-Message-ID: <200711091912.lA9JCiKx027947@imap1.linux-foundation.org>
+Subject: - dvb-dont-return-with-locks-held.patch removed from -mm tree
+Date: Fri, 09 Nov 2007 11:12:47 -0800
+Message-ID: <200711091912.lA9JClD4027950@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54207 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52500 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754603AbXKITND (ORCPT
+	by vger.kernel.org with ESMTP id S1754638AbXKITND (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:13:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@crashcourse.ca, agk@redhat.com, mm-commits@vger.kernel.org
+To: 12o3l@tiscali.nl, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     LVM: Use rounddown_pow_of_two() macro for simplicity.
+     dvb: don't return with locks held
 has been removed from the -mm tree.  Its filename was
-     lvm-use-rounddown_pow_of_two-macro-for-simplicity.patch
+     dvb-dont-return-with-locks-held.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: LVM: Use rounddown_pow_of_two() macro for simplicity.
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: dvb: don't return with locks held
+From: Roel Kluin <12o3l@tiscali.nl>
 
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Cc: Alasdair G Kergon <agk@redhat.com>
+Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-snap.c |   13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+ drivers/media/dvb/dvb-usb/au6610.c |    6 +++---
+ drivers/media/dvb/dvb-usb/gl861.c  |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/md/dm-snap.c~lvm-use-rounddown_pow_of_two-macro-for-simplicity drivers/md/dm-snap.c
---- a/drivers/md/dm-snap.c~lvm-use-rounddown_pow_of_two-macro-for-simplicity
-+++ a/drivers/md/dm-snap.c
-@@ -334,16 +334,6 @@ static int calc_max_buckets(void)
- }
+diff -puN drivers/media/dvb/dvb-usb/au6610.c~dvb-dont-return-with-locks-held drivers/media/dvb/dvb-usb/au6610.c
+--- a/drivers/media/dvb/dvb-usb/au6610.c~dvb-dont-return-with-locks-held
++++ a/drivers/media/dvb/dvb-usb/au6610.c
+@@ -79,12 +79,12 @@ static int au6610_i2c_xfer(struct i2c_ad
+ 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
+ 	int i;
  
- /*
-- * Rounds a number down to a power of 2.
-- */
--static uint32_t round_down(uint32_t n)
--{
--	while (n & (n - 1))
--		n &= (n - 1);
--	return n;
--}
+-	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
+-		return -EAGAIN;
 -
--/*
-  * Allocate room for a suitable hash table.
-  */
- static int init_hash_tables(struct dm_snapshot *s)
-@@ -361,8 +351,7 @@ static int init_hash_tables(struct dm_sn
- 	hash_size = min(origin_dev_size, cow_dev_size) >> s->chunk_shift;
- 	hash_size = min(hash_size, max_buckets);
+ 	if (num > 2)
+ 		return -EINVAL;
  
--	/* Round it down to a power of 2 */
--	hash_size = round_down(hash_size);
-+	hash_size = rounddown_pow_of_two(hash_size);
- 	if (init_exception_table(&s->complete, hash_size))
- 		return -ENOMEM;
++	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
++		return -EAGAIN;
++
+ 	for (i = 0; i < num; i++) {
+ 		/* write/read request */
+ 		if (i+1 < num && (msg[i+1].flags & I2C_M_RD)) {
+diff -puN drivers/media/dvb/dvb-usb/gl861.c~dvb-dont-return-with-locks-held drivers/media/dvb/dvb-usb/gl861.c
+--- a/drivers/media/dvb/dvb-usb/gl861.c~dvb-dont-return-with-locks-held
++++ a/drivers/media/dvb/dvb-usb/gl861.c
+@@ -56,12 +56,12 @@ static int gl861_i2c_xfer(struct i2c_ada
+ 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
+ 	int i;
  
+-	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
+-		return -EAGAIN;
+-
+ 	if (num > 2)
+ 		return -EINVAL;
+ 
++	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
++		return -EAGAIN;
++
+ 	for (i = 0; i < num; i++) {
+ 		/* write/read request */
+ 		if (i+1 < num && (msg[i+1].flags & I2C_M_RD)) {
 _
 
-Patches currently in -mm which might be from rpjday@crashcourse.ca are
+Patches currently in -mm which might be from 12o3l@tiscali.nl are
 
-arm-remove-reference-to-non-existent-mtd_obsolete_chips.patch
-hwmon-replace-power-of-two-test-in-drivers-hwmon-adt7470c.patch
+unlock-when-ssp-tries-to-close-an-invalid-port.patch
+git-dvb.patch
+git-ia64.patch
 git-mips.patch
-pcmcia-net-use-roundup_pow_of_two-macro-instead-of-grotesque-loop.patch
-blackfin-typo-config_rtc_bfin_module.patch
-git-sparc64.patch
-frv-move-dma-macros-to-scatterlisth-for-consistency.patch
-m68knommu-remove-vestiges-of-non-existent-disktel.patch
-uml-delete-some-unused-headers.patch
-rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
+lmc_ioctl-dont-return-with-locks-held-fix.patch
+git-netdev-all.patch
+git-ocfs2.patch
+cris-gpio-undo-locks-before-returning.patch
+mips-undo-locking-on-error-path-returns.patch
+mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
+cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
