@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-notifierc-should-include-linux-rebooth.patch added to -mm tree
-Date: Thu, 08 Nov 2007 20:52:10 -0800
-Message-ID: <200711090452.lA94qBhf030189@imap1.linux-foundation.org>
+Subject: + proper-prototype-for-get_filesystem_list.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:52:19 -0800
+Message-ID: <200711090452.lA94qK2k030192@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47403 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43327 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760107AbXKIEw3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:52:29 -0500
+	by vger.kernel.org with ESMTP id S1760279AbXKIEwg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:52:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@kernel.org
 
 
 The patch titled
-     kernel/notifier.c should #include <linux/reboot.h>
+     proper prototype for get_filesystem_list()
 has been added to the -mm tree.  Its filename is
-     kernel-notifierc-should-include-linux-rebooth.patch
+     proper-prototype-for-get_filesystem_list.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,62 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kernel/notifier.c should #include <linux/reboot.h>
+Subject: proper prototype for get_filesystem_list()
 From: Adrian Bunk <bunk@kernel.org>
 
-Every file should include the headers containing the prototypes for its global
-functions (in this case {,un}register_reboot_notifier()).
+Ad a proper prototype for migration_init() in include/linux/fs.h
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/notifier.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/proc_misc.c |    1 -
+ include/linux/fs.h  |    1 +
+ init/do_mounts.c    |    3 +--
+ 3 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN kernel/notifier.c~kernel-notifierc-should-include-linux-rebooth kernel/notifier.c
---- a/kernel/notifier.c~kernel-notifierc-should-include-linux-rebooth
-+++ a/kernel/notifier.c
-@@ -4,6 +4,7 @@
- #include <linux/notifier.h>
- #include <linux/rcupdate.h>
- #include <linux/vmalloc.h>
-+#include <linux/reboot.h>
+diff -puN fs/proc/proc_misc.c~proper-prototype-for-get_filesystem_list fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~proper-prototype-for-get_filesystem_list
++++ a/fs/proc/proc_misc.c
+@@ -65,7 +65,6 @@
+  */
+ extern int get_hardware_list(char *);
+ extern int get_stram_list(char *);
+-extern int get_filesystem_list(char *);
+ extern int get_exec_domain_list(char *);
+ extern int get_dma_list(char *);
  
- /*
-  *	Notifier list for kernel code which wants to be called
+diff -puN include/linux/fs.h~proper-prototype-for-get_filesystem_list include/linux/fs.h
+--- a/include/linux/fs.h~proper-prototype-for-get_filesystem_list
++++ a/include/linux/fs.h
+@@ -2097,6 +2097,7 @@ struct ctl_table;
+ int proc_nr_files(struct ctl_table *table, int write, struct file *filp,
+ 		  void __user *buffer, size_t *lenp, loff_t *ppos);
+ 
++int get_filesystem_list(char * buf);
+ 
+ #endif /* __KERNEL__ */
+ #endif /* _LINUX_FS_H */
+diff -puN init/do_mounts.c~proper-prototype-for-get_filesystem_list init/do_mounts.c
+--- a/init/do_mounts.c~proper-prototype-for-get_filesystem_list
++++ a/init/do_mounts.c
+@@ -11,6 +11,7 @@
+ #include <linux/mount.h>
+ #include <linux/device.h>
+ #include <linux/init.h>
++#include <linux/fs.h>
+ 
+ #include <linux/nfs_fs.h>
+ #include <linux/nfs_fs_sb.h>
+@@ -18,8 +19,6 @@
+ 
+ #include "do_mounts.h"
+ 
+-extern int get_filesystem_list(char * buf);
+-
+ int __initdata rd_doload;	/* 1 = load RAM disk, 0 = don't load */
+ 
+ int root_mountflags = MS_RDONLY | MS_SILENT;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
