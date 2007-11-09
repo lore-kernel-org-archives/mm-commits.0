@@ -1,81 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: - dvb-usb-vp702xc-cleanups.patch removed from -mm tree
-Date: Fri, 09 Nov 2007 11:12:54 -0800
-Message-ID: <200711091912.lA9JCsx8027959@imap1.linux-foundation.org>
+Subject: - dvb-bt8xx-dstc-make-code-static.patch removed from -mm tree
+Date: Fri, 09 Nov 2007 11:12:50 -0800
+Message-ID: <200711091912.lA9JCoZD027953@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50357 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50076 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754740AbXKITNS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:13:18 -0500
+	by vger.kernel.org with ESMTP id S1754724AbXKITNL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:13:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@kernel.org, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dvb-usb/vp702x.c: cleanups
+     dvb/bt8xx/dst.c: make code static
 has been removed from the -mm tree.  Its filename was
-     dvb-usb-vp702xc-cleanups.patch
+     dvb-bt8xx-dstc-make-code-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dvb-usb/vp702x.c: cleanups
+Subject: dvb/bt8xx/dst.c: make code static
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch contains the following cleanups:
-- make the needlessly global vp702x_usb_out_op() static
-- #if 0 the unused vp702x_power_ctrl()
+This patch makes the following needlessly global code static:
+- dst_gpio_outb()
+- dst_gpio_inb()
+- rdc_8820_reset()
+- dst_pio_enable()
+- dst_command()
+- struct tuner_list[]
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/dvb-usb/vp702x.c |    4 +++-
- drivers/media/dvb/dvb-usb/vp702x.h |    2 --
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/dvb/bt8xx/dst.c        |   19 ++++++++-----------
+ drivers/media/dvb/bt8xx/dst_common.h |    6 ------
+ 2 files changed, 8 insertions(+), 17 deletions(-)
 
-diff -puN drivers/media/dvb/dvb-usb/vp702x.c~dvb-usb-vp702xc-cleanups drivers/media/dvb/dvb-usb/vp702x.c
---- a/drivers/media/dvb/dvb-usb/vp702x.c~dvb-usb-vp702xc-cleanups
-+++ a/drivers/media/dvb/dvb-usb/vp702x.c
-@@ -56,7 +56,7 @@ int vp702x_usb_in_op(struct dvb_usb_devi
- 	return ret;
+diff -puN drivers/media/dvb/bt8xx/dst.c~dvb-bt8xx-dstc-make-code-static drivers/media/dvb/bt8xx/dst.c
+--- a/drivers/media/dvb/bt8xx/dst.c~dvb-bt8xx-dstc-make-code-static
++++ a/drivers/media/dvb/bt8xx/dst.c
+@@ -71,6 +71,7 @@ MODULE_PARM_DESC(dst_algo, "tuning algo:
+ 	}								\
+ } while(0)
+ 
++static int dst_command(struct dst_state *state, u8 *data, u8 len);
+ 
+ static void dst_packsize(struct dst_state *state, int psize)
+ {
+@@ -80,7 +81,8 @@ static void dst_packsize(struct dst_stat
+ 	bt878_device_control(state->bt, DST_IG_TS, &bits);
  }
  
--int vp702x_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
-+static int vp702x_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
- 			     u16 index, u8 *b, int blen)
+-int dst_gpio_outb(struct dst_state *state, u32 mask, u32 enbb, u32 outhigh, int delay)
++static int dst_gpio_outb(struct dst_state *state, u32 mask, u32 enbb,
++			 u32 outhigh, int delay)
  {
- 	int ret;
-@@ -204,6 +204,7 @@ static int vp702x_rc_query(struct dvb_us
+ 	union dst_gpio_packet enb;
+ 	union dst_gpio_packet bits;
+@@ -109,9 +111,8 @@ int dst_gpio_outb(struct dst_state *stat
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL(dst_gpio_outb);
+ 
+-int dst_gpio_inb(struct dst_state *state, u8 *result)
++static int dst_gpio_inb(struct dst_state *state, u8 *result)
+ {
+ 	union dst_gpio_packet rd_packet;
+ 	int err;
+@@ -125,7 +126,6 @@ int dst_gpio_inb(struct dst_state *state
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL(dst_gpio_inb);
+ 
+ int rdc_reset_state(struct dst_state *state)
+ {
+@@ -145,7 +145,7 @@ int rdc_reset_state(struct dst_state *st
+ }
+ EXPORT_SYMBOL(rdc_reset_state);
+ 
+-int rdc_8820_reset(struct dst_state *state)
++static int rdc_8820_reset(struct dst_state *state)
+ {
+ 	dprintk(verbose, DST_DEBUG, 1, "Resetting DST");
+ 	if (dst_gpio_outb(state, RDC_8820_RESET, RDC_8820_RESET, 0, NO_DELAY) < 0) {
+@@ -160,9 +160,8 @@ int rdc_8820_reset(struct dst_state *sta
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL(rdc_8820_reset);
+ 
+-int dst_pio_enable(struct dst_state *state)
++static int dst_pio_enable(struct dst_state *state)
+ {
+ 	if (dst_gpio_outb(state, ~0, RDC_8820_PIO_0_ENABLE, 0, NO_DELAY) < 0) {
+ 		dprintk(verbose, DST_ERROR, 1, "dst_gpio_outb ERROR !");
+@@ -172,7 +171,6 @@ int dst_pio_enable(struct dst_state *sta
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL(dst_pio_enable);
+ 
+ int dst_pio_disable(struct dst_state *state)
+ {
+@@ -611,7 +609,7 @@ static int dst_type_print(struct dst_sta
  	return 0;
  }
  
-+#if 0
- int vp702x_power_ctrl(struct dvb_usb_device *d, int onoff)
- {
- 	struct vp702x_device_state *st = d->priv;
-@@ -217,6 +218,7 @@ int vp702x_power_ctrl(struct dvb_usb_dev
- 
+-struct tuner_types tuner_list[] = {
++static struct tuner_types tuner_list[] = {
+ 	{
+ 		.tuner_type = TUNER_TYPE_L64724,
+ 		.tuner_name = "L 64724",
+@@ -1224,7 +1222,7 @@ static int dst_probe(struct dst_state *s
  	return 0;
  }
-+#endif  /*  0  */
  
- static int vp702x_read_mac_addr(struct dvb_usb_device *d,u8 mac[6])
+-int dst_command(struct dst_state *state, u8 *data, u8 len)
++static int dst_command(struct dst_state *state, u8 *data, u8 len)
  {
-diff -puN drivers/media/dvb/dvb-usb/vp702x.h~dvb-usb-vp702xc-cleanups drivers/media/dvb/dvb-usb/vp702x.h
---- a/drivers/media/dvb/dvb-usb/vp702x.h~dvb-usb-vp702xc-cleanups
-+++ a/drivers/media/dvb/dvb-usb/vp702x.h
-@@ -102,7 +102,5 @@ extern struct dvb_frontend * vp702x_fe_a
+ 	u8 reply;
  
- extern int vp702x_usb_inout_op(struct dvb_usb_device *d, u8 *o, int olen, u8 *i, int ilen, int msec);
- extern int vp702x_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen);
--extern int vp702x_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen);
--extern int vp702x_power_ctrl(struct dvb_usb_device *d, int onoff);
+@@ -1287,7 +1285,6 @@ error:
+ 	return -EIO;
  
- #endif
+ }
+-EXPORT_SYMBOL(dst_command);
+ 
+ static int dst_get_signal(struct dst_state *state)
+ {
+diff -puN drivers/media/dvb/bt8xx/dst_common.h~dvb-bt8xx-dstc-make-code-static drivers/media/dvb/bt8xx/dst_common.h
+--- a/drivers/media/dvb/bt8xx/dst_common.h~dvb-bt8xx-dstc-make-code-static
++++ a/drivers/media/dvb/bt8xx/dst_common.h
+@@ -165,10 +165,8 @@ struct dst_config
+ };
+ 
+ int rdc_reset_state(struct dst_state *state);
+-int rdc_8820_reset(struct dst_state *state);
+ 
+ int dst_wait_dst_ready(struct dst_state *state, u8 delay_mode);
+-int dst_pio_enable(struct dst_state *state);
+ int dst_pio_disable(struct dst_state *state);
+ int dst_error_recovery(struct dst_state* state);
+ int dst_error_bailout(struct dst_state *state);
+@@ -179,9 +177,5 @@ int read_dst(struct dst_state *state, u8
+ u8 dst_check_sum(u8 * buf, u32 len);
+ struct dst_state* dst_attach(struct dst_state* state, struct dvb_adapter *dvb_adapter);
+ struct dvb_device *dst_ca_attach(struct dst_state *state, struct dvb_adapter *dvb_adapter);
+-int dst_gpio_outb(struct dst_state* state, u32 mask, u32 enbb, u32 outhigh, int delay);
+-
+-int dst_command(struct dst_state* state, u8 * data, u8 len);
+-
+ 
+ #endif // DST_COMMON_H
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
