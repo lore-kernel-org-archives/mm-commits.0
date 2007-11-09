@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lvm-use-rounddown_pow_of_two-macro-for-simplicity.patch added to -mm tree
-Date: Thu, 08 Nov 2007 20:04:55 -0800
-Message-ID: <200711090404.lA944uTo028541@imap1.linux-foundation.org>
+Subject: + powerpc-fs_enet-select-phylib-as-the-driver-needs-it.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:05:23 -0800
+Message-ID: <200711090405.lA945Nti028559@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34620 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45032 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758721AbXKIEFf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:05:35 -0500
+	by vger.kernel.org with ESMTP id S1758361AbXKIEFj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:05:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@crashcourse.ca, agk@redhat.com
+Cc: jochen@scram.de, benh@kernel.crashing.org, jeff@garzik.org, paulus@samba.org
 
 
 The patch titled
-     LVM: Use rounddown_pow_of_two() macro for simplicity.
+     powerpc: fs_enet: select PHYLIB as the driver needs it.
 has been added to the -mm tree.  Its filename is
-     lvm-use-rounddown_pow_of_two-macro-for-simplicity.patch
+     powerpc-fs_enet-select-phylib-as-the-driver-needs-it.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,58 +25,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: LVM: Use rounddown_pow_of_two() macro for simplicity.
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: powerpc: fs_enet: select PHYLIB as the driver needs it.
+From: Jochen Friedrich <jochen@scram.de>
 
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Cc: Alasdair G Kergon <agk@redhat.com>
+Add a select PHYLIB to config FS_ENET as the driver uses functions of
+libphy.
+
+LD      .tmp_vmlinux1
+drivers/built-in.o: In function `fs_ioctl':
+drivers/net/fs_enet/fs_enet-main.c:952: undefined reference to `phy_mii_ioctl'
+[...]
+make: *** [.tmp_vmlinux1] Error 1
+
+Signed-off-by: Jochen Friedrich <jochen@scram.de>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-snap.c |   13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+ drivers/net/fs_enet/Kconfig |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/md/dm-snap.c~lvm-use-rounddown_pow_of_two-macro-for-simplicity drivers/md/dm-snap.c
---- a/drivers/md/dm-snap.c~lvm-use-rounddown_pow_of_two-macro-for-simplicity
-+++ a/drivers/md/dm-snap.c
-@@ -334,16 +334,6 @@ static int calc_max_buckets(void)
- }
+diff -puN drivers/net/fs_enet/Kconfig~powerpc-fs_enet-select-phylib-as-the-driver-needs-it drivers/net/fs_enet/Kconfig
+--- a/drivers/net/fs_enet/Kconfig~powerpc-fs_enet-select-phylib-as-the-driver-needs-it
++++ a/drivers/net/fs_enet/Kconfig
+@@ -1,7 +1,8 @@
+ config FS_ENET
+-       tristate "Freescale Ethernet Driver"
+-       depends on CPM1 || CPM2
+-       select MII
++	tristate "Freescale Ethernet Driver"
++	depends on CPM1 || CPM2
++	select MII
++	select PHYLIB
  
- /*
-- * Rounds a number down to a power of 2.
-- */
--static uint32_t round_down(uint32_t n)
--{
--	while (n & (n - 1))
--		n &= (n - 1);
--	return n;
--}
--
--/*
-  * Allocate room for a suitable hash table.
-  */
- static int init_hash_tables(struct dm_snapshot *s)
-@@ -361,8 +351,7 @@ static int init_hash_tables(struct dm_sn
- 	hash_size = min(origin_dev_size, cow_dev_size) >> s->chunk_shift;
- 	hash_size = min(hash_size, max_buckets);
- 
--	/* Round it down to a power of 2 */
--	hash_size = round_down(hash_size);
-+	hash_size = rounddown_pow_of_two(hash_size);
- 	if (init_exception_table(&s->complete, hash_size))
- 		return -ENOMEM;
- 
+ config FS_ENET_HAS_SCC
+ 	bool "Chip has an SCC usable for ethernet"
 _
 
-Patches currently in -mm which might be from rpjday@crashcourse.ca are
+Patches currently in -mm which might be from jochen@scram.de are
 
-origin.patch
-arm-remove-reference-to-non-existent-mtd_obsolete_chips.patch
-lvm-use-rounddown_pow_of_two-macro-for-simplicity.patch
-hwmon-replace-power-of-two-test-in-drivers-hwmon-adt7470c.patch
-pcmcia-net-use-roundup_pow_of_two-macro-instead-of-grotesque-loop.patch
-blackfin-typo-config_rtc_bfin_module.patch
-frv-move-dma-macros-to-scatterlisth-for-consistency.patch
-m68knommu-remove-vestiges-of-non-existent-disktel.patch
-uml-delete-some-unused-headers.patch
-rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
+powerpc-kill-non-existent-symbols-from-ksyms-and-commproch.patch
+powerpc-fs_enet-select-phylib-as-the-driver-needs-it.patch
+powerpc-fix-typo-ifdef-ifndef.patch
