@@ -1,59 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - frv-fix-the-extern-declaration-of-kallsyms_num_syms.patch removed from -mm tree
-Date: Fri, 09 Nov 2007 11:52:22 -0800
-Message-ID: <200711091952.lA9JqNg8029276@imap1.linux-foundation.org>
+Subject: + frv-remove-the-section-annotation-on-free_initmem.patch added to -mm tree
+Date: Fri, 09 Nov 2007 11:52:44 -0800
+Message-ID: <200711091952.lA9JqiDX029283@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48458 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45717 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751151AbXKITwi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:52:38 -0500
+	by vger.kernel.org with ESMTP id S1757066AbXKITw6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:52:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dhowells@redhat.com
 
 
 The patch titled
-     frv: fix the extern declaration of kallsyms_num_syms
-has been removed from the -mm tree.  Its filename was
-     frv-fix-the-extern-declaration-of-kallsyms_num_syms.patch
+     frv: remove the section annotation on free_initmem()
+has been added to the -mm tree.  Its filename is
+     frv-remove-the-section-annotation-on-free_initmem.patch
 
-This patch was dropped because it had testing failures
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: frv: fix the extern declaration of kallsyms_num_syms
+Subject: frv: remove the section annotation on free_initmem()
 From: David Howells <dhowells@redhat.com>
 
-Fix the extern declaration of kallsyms_num_syms to indicate that the symbol
-does not reside in the small-data storage space, and so may not be accessed
-relative to the small data base register.
+Remove the section annotation on FRV's free_initmem().  It can't be marked
+__init, lest it free itself.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kallsyms.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/frv/mm/init.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/kallsyms.c~frv-fix-the-extern-declaration-of-kallsyms_num_syms kernel/kallsyms.c
---- a/kernel/kallsyms.c~frv-fix-the-extern-declaration-of-kallsyms_num_syms
-+++ a/kernel/kallsyms.c
-@@ -32,7 +32,8 @@
- 
- /* These will be re-linked against their real values during the second link stage */
- extern const unsigned long kallsyms_addresses[] __attribute__((weak));
--extern const unsigned long kallsyms_num_syms __attribute__((weak));
-+extern const unsigned long kallsyms_num_syms
-+__nongpreldata __attribute__((weak));
- extern const u8 kallsyms_names[] __attribute__((weak));
- 
- extern const u8 kallsyms_token_table[] __attribute__((weak));
+diff -puN arch/frv/mm/init.c~frv-remove-the-section-annotation-on-free_initmem arch/frv/mm/init.c
+--- a/arch/frv/mm/init.c~frv-remove-the-section-annotation-on-free_initmem
++++ a/arch/frv/mm/init.c
+@@ -197,7 +197,7 @@ void __init mem_init(void)
+ /*
+  * free the memory that was only required for initialisation
+  */
+-void __init free_initmem(void)
++void free_initmem(void)
+ {
+ #if defined(CONFIG_RAMKERNEL) && !defined(CONFIG_PROTECT_KERNEL)
+ 	unsigned long start, end, addr;
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
 
 frv-remove-bogus-no_irq-=-1-define.patch
-frv-fix-the-extern-declaration-of-kallsyms_num_syms.patch
 frv-remove-the-section-annotation-on-free_initmem.patch
 frv-permit-the-memory-to-be-located-elsewhere-in-nommu-mode.patch
 frv-move-dma-macros-to-scatterlisth-for-consistency.patch
