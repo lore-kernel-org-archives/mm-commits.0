@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + dvb-usb-vp702xc-cleanups.patch added to -mm tree
-Date: Thu, 08 Nov 2007 20:17:58 -0800
-Message-ID: <200711090418.lA94HxeY028899@imap1.linux-foundation.org>
+Subject: + dvb-usb-make-some-debug-vars-static.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:18:07 -0800
+Message-ID: <200711090418.lA94I7Do028908@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48606 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38570 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758177AbXKIESX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:18:23 -0500
+	by vger.kernel.org with ESMTP id S1758224AbXKIESa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:18:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@kernel.org, mchehab@infradead.org
 
 
 The patch titled
-     dvb-usb/vp702x.c: cleanups
+     dvb-usb: make some debug vars static
 has been added to the -mm tree.  Its filename is
-     dvb-usb-vp702xc-cleanups.patch
+     dvb-usb-make-some-debug-vars-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,61 +25,156 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dvb-usb/vp702x.c: cleanups
+Subject: dvb-usb: make some debug vars static
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch contains the following cleanups:
-- make the needlessly global vp702x_usb_out_op() static
-- #if 0 the unused vp702x_power_ctrl()
+This patch makes some needlessly global debug variables static.
+
+opera1.h became so small that I removed it.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/dvb-usb/vp702x.c |    4 +++-
- drivers/media/dvb/dvb-usb/vp702x.h |    2 --
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/dvb/dvb-usb/cxusb.c  |    5 ++++-
+ drivers/media/dvb/dvb-usb/cxusb.h  |    5 -----
+ drivers/media/dvb/dvb-usb/digitv.c |    3 ++-
+ drivers/media/dvb/dvb-usb/digitv.h |    3 ---
+ drivers/media/dvb/dvb-usb/opera1.c |    6 ++++--
+ drivers/media/dvb/dvb-usb/opera1.h |    9 ---------
+ drivers/media/dvb/dvb-usb/vp7045.c |    5 ++++-
+ drivers/media/dvb/dvb-usb/vp7045.h |    5 -----
+ 8 files changed, 14 insertions(+), 27 deletions(-)
 
-diff -puN drivers/media/dvb/dvb-usb/vp702x.c~dvb-usb-vp702xc-cleanups drivers/media/dvb/dvb-usb/vp702x.c
---- a/drivers/media/dvb/dvb-usb/vp702x.c~dvb-usb-vp702xc-cleanups
-+++ a/drivers/media/dvb/dvb-usb/vp702x.c
-@@ -56,7 +56,7 @@ int vp702x_usb_in_op(struct dvb_usb_devi
- 	return ret;
- }
+diff -puN drivers/media/dvb/dvb-usb/cxusb.c~dvb-usb-make-some-debug-vars-static drivers/media/dvb/dvb-usb/cxusb.c
+--- a/drivers/media/dvb/dvb-usb/cxusb.c~dvb-usb-make-some-debug-vars-static
++++ a/drivers/media/dvb/dvb-usb/cxusb.c
+@@ -32,9 +32,12 @@
+ #include "zl10353.h"
  
--int vp702x_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
-+static int vp702x_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
- 			     u16 index, u8 *b, int blen)
+ /* debug */
+-int dvb_usb_cxusb_debug;
++static int dvb_usb_cxusb_debug;
+ module_param_named(debug, dvb_usb_cxusb_debug, int, 0644);
+ MODULE_PARM_DESC(debug, "set debugging level (1=rc (or-able))." DVB_USB_DEBUG_STATUS);
++#define deb_info(args...)   dprintk(dvb_usb_cxusb_debug,0x01,args)
++#define deb_i2c(args...)    if (d->udev->descriptor.idVendor == USB_VID_MEDION) \
++				dprintk(dvb_usb_cxusb_debug,0x01,args)
+ 
+ static int cxusb_ctrl_msg(struct dvb_usb_device *d,
+ 			  u8 cmd, u8 *wbuf, int wlen, u8 *rbuf, int rlen)
+diff -puN drivers/media/dvb/dvb-usb/cxusb.h~dvb-usb-make-some-debug-vars-static drivers/media/dvb/dvb-usb/cxusb.h
+--- a/drivers/media/dvb/dvb-usb/cxusb.h~dvb-usb-make-some-debug-vars-static
++++ a/drivers/media/dvb/dvb-usb/cxusb.h
+@@ -4,11 +4,6 @@
+ #define DVB_USB_LOG_PREFIX "cxusb"
+ #include "dvb-usb.h"
+ 
+-extern int dvb_usb_cxusb_debug;
+-#define deb_info(args...)   dprintk(dvb_usb_cxusb_debug,0x01,args)
+-#define deb_i2c(args...)    if (d->udev->descriptor.idVendor == USB_VID_MEDION) \
+-				dprintk(dvb_usb_cxusb_debug,0x01,args)
+-
+ /* usb commands - some of it are guesses, don't have a reference yet */
+ #define CMD_I2C_WRITE     0x08
+ #define CMD_I2C_READ      0x09
+diff -puN drivers/media/dvb/dvb-usb/digitv.c~dvb-usb-make-some-debug-vars-static drivers/media/dvb/dvb-usb/digitv.c
+--- a/drivers/media/dvb/dvb-usb/digitv.c~dvb-usb-make-some-debug-vars-static
++++ a/drivers/media/dvb/dvb-usb/digitv.c
+@@ -17,9 +17,10 @@
+ #include "nxt6000.h"
+ 
+ /* debug */
+-int dvb_usb_digitv_debug;
++static int dvb_usb_digitv_debug;
+ module_param_named(debug,dvb_usb_digitv_debug, int, 0644);
+ MODULE_PARM_DESC(debug, "set debugging level (1=rc (or-able))." DVB_USB_DEBUG_STATUS);
++#define deb_rc(args...)   dprintk(dvb_usb_digitv_debug,0x01,args)
+ 
+ static int digitv_ctrl_msg(struct dvb_usb_device *d,
+ 		u8 cmd, u8 vv, u8 *wbuf, int wlen, u8 *rbuf, int rlen)
+diff -puN drivers/media/dvb/dvb-usb/digitv.h~dvb-usb-make-some-debug-vars-static drivers/media/dvb/dvb-usb/digitv.h
+--- a/drivers/media/dvb/dvb-usb/digitv.h~dvb-usb-make-some-debug-vars-static
++++ a/drivers/media/dvb/dvb-usb/digitv.h
+@@ -8,9 +8,6 @@ struct digitv_state {
+     int is_nxt6000;
+ };
+ 
+-extern int dvb_usb_digitv_debug;
+-#define deb_rc(args...)   dprintk(dvb_usb_digitv_debug,0x01,args)
+-
+ /* protocol (from usblogging and the SDK:
+  *
+  * Always 7 bytes bulk message(s) for controlling
+diff -puN drivers/media/dvb/dvb-usb/opera1.c~dvb-usb-make-some-debug-vars-static drivers/media/dvb/dvb-usb/opera1.c
+--- a/drivers/media/dvb/dvb-usb/opera1.c~dvb-usb-make-some-debug-vars-static
++++ a/drivers/media/dvb/dvb-usb/opera1.c
+@@ -10,7 +10,9 @@
+ * see Documentation/dvb/README.dvb-usb for more information
+ */
+ 
+-#include "opera1.h"
++#define DVB_USB_LOG_PREFIX "opera"
++
++#include "dvb-usb.h"
+ #include "stv0299.h"
+ 
+ #define OPERA_READ_MSG 0
+@@ -38,7 +40,7 @@ struct opera_rc_keys {
+ 	u32 event;
+ };
+ 
+-int dvb_usb_opera1_debug;
++static int dvb_usb_opera1_debug;
+ module_param_named(debug, dvb_usb_opera1_debug, int, 0644);
+ MODULE_PARM_DESC(debug,
+ 		 "set debugging level (1=info,xfer=2,pll=4,ts=8,err=16,rc=32,fw=64 (or-able))."
+diff -puN drivers/media/dvb/dvb-usb/opera1.h~dvb-usb-make-some-debug-vars-static /dev/null
+--- a/drivers/media/dvb/dvb-usb/opera1.h
++++ /dev/null
+@@ -1,9 +0,0 @@
+-#ifndef _OPERA1_H_
+-#define _OPERA1_H_
+-
+-#define DVB_USB_LOG_PREFIX "opera"
+-#include "dvb-usb.h"
+-
+-extern int dvb_usb_opera1_debug;
+-#define deb_xfer(args...) dprintk(dvb_usb_opera1_debug,0x02,args)
+-#endif
+diff -puN drivers/media/dvb/dvb-usb/vp7045.c~dvb-usb-make-some-debug-vars-static drivers/media/dvb/dvb-usb/vp7045.c
+--- a/drivers/media/dvb/dvb-usb/vp7045.c~dvb-usb-make-some-debug-vars-static
++++ a/drivers/media/dvb/dvb-usb/vp7045.c
+@@ -15,9 +15,12 @@
+ #include "vp7045.h"
+ 
+ /* debug */
+-int dvb_usb_vp7045_debug;
++static int dvb_usb_vp7045_debug;
+ module_param_named(debug,dvb_usb_vp7045_debug, int, 0644);
+ MODULE_PARM_DESC(debug, "set debugging level (1=info,xfer=2,rc=4 (or-able))." DVB_USB_DEBUG_STATUS);
++#define deb_info(args...) dprintk(dvb_usb_vp7045_debug,0x01,args)
++#define deb_xfer(args...) dprintk(dvb_usb_vp7045_debug,0x02,args)
++#define deb_rc(args...)   dprintk(dvb_usb_vp7045_debug,0x04,args)
+ 
+ int vp7045_usb_op(struct dvb_usb_device *d, u8 cmd, u8 *out, int outlen, u8 *in, int inlen, int msec)
  {
- 	int ret;
-@@ -204,6 +204,7 @@ static int vp702x_rc_query(struct dvb_us
- 	return 0;
- }
+diff -puN drivers/media/dvb/dvb-usb/vp7045.h~dvb-usb-make-some-debug-vars-static drivers/media/dvb/dvb-usb/vp7045.h
+--- a/drivers/media/dvb/dvb-usb/vp7045.h~dvb-usb-make-some-debug-vars-static
++++ a/drivers/media/dvb/dvb-usb/vp7045.h
+@@ -17,11 +17,6 @@
+ #define DVB_USB_LOG_PREFIX "vp7045"
+ #include "dvb-usb.h"
  
-+#if 0
- int vp702x_power_ctrl(struct dvb_usb_device *d, int onoff)
- {
- 	struct vp702x_device_state *st = d->priv;
-@@ -217,6 +218,7 @@ int vp702x_power_ctrl(struct dvb_usb_dev
+-extern int dvb_usb_vp7045_debug;
+-#define deb_info(args...) dprintk(dvb_usb_vp7045_debug,0x01,args)
+-#define deb_xfer(args...) dprintk(dvb_usb_vp7045_debug,0x02,args)
+-#define deb_rc(args...)   dprintk(dvb_usb_vp7045_debug,0x04,args)
+-
+ /* vp7045 commands */
  
- 	return 0;
- }
-+#endif  /*  0  */
- 
- static int vp702x_read_mac_addr(struct dvb_usb_device *d,u8 mac[6])
- {
-diff -puN drivers/media/dvb/dvb-usb/vp702x.h~dvb-usb-vp702xc-cleanups drivers/media/dvb/dvb-usb/vp702x.h
---- a/drivers/media/dvb/dvb-usb/vp702x.h~dvb-usb-vp702xc-cleanups
-+++ a/drivers/media/dvb/dvb-usb/vp702x.h
-@@ -102,7 +102,5 @@ extern struct dvb_frontend * vp702x_fe_a
- 
- extern int vp702x_usb_inout_op(struct dvb_usb_device *d, u8 *o, int olen, u8 *i, int ilen, int msec);
- extern int vp702x_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen);
--extern int vp702x_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen);
--extern int vp702x_power_ctrl(struct dvb_usb_device *d, int onoff);
- 
- #endif
+ /* Twinhan Vendor requests */
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
