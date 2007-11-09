@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + omap-register-the-l4-io-bus-to-boot-omap2.patch added to -mm tree
-Date: Fri, 09 Nov 2007 11:56:33 -0800
-Message-ID: <200711091956.lA9JuXUd029455@imap1.linux-foundation.org>
+Subject: + x86_64-ia32-ptrace-thread_area-fix.patch added to -mm tree
+Date: Fri, 09 Nov 2007 11:58:11 -0800
+Message-ID: <200711091958.lA9JwBHK029557@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54125 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32895 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753668AbXKIT5J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:57:09 -0500
+	by vger.kernel.org with ESMTP id S1751874AbXKIT6x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:58:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kyungmin.park@samsung.com, rmk@arm.linux.org.uk, tony@atomide.com
+Cc: roland@redhat.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     omap: register the L4 io bus to boot OMAP2
+     x86_64: ia32 ptrace THREAD_AREA fix
 has been added to the -mm tree.  Its filename is
-     omap-register-the-l4-io-bus-to-boot-omap2.patch
+     x86_64-ia32-ptrace-thread_area-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,40 +25,72 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: omap: register the L4 io bus to boot OMAP2
-From: Kyungmin Park <kyungmin.park@samsung.com>
+Subject: x86_64: ia32 ptrace THREAD_AREA fix
+From: Roland McGrath <roland@redhat.com>
 
-This patch enables the OMAP2 boot
+The addr argument to PTRACE_GET_THREAD_AREA and PTRACE_SET_THREAD_AREA is
+not a magic constant.  It's derived from the segment register values being
+used, which are computed originally from the index used with
+set_thread_area.  The value does not need to match what a native i386
+kernel would accept.  It needs to match the segment selectors that can
+actually be in use in this 32-bit process.  The 64-bit ptrace support for
+PTRACE_GET_THREAD_AREA (normally used only on 32-bit processes) is correct,
+but the 32-bit emulation of ptrace is broken.
 
-It is already fixed in OMAP tree. It syncs the mainline tree too.
-
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-omap2/io.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/x86/ia32/ptrace32.c |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN arch/arm/mach-omap2/io.c~omap-register-the-l4-io-bus-to-boot-omap2 arch/arm/mach-omap2/io.c
---- a/arch/arm/mach-omap2/io.c~omap-register-the-l4-io-bus-to-boot-omap2
-+++ a/arch/arm/mach-omap2/io.c
-@@ -42,6 +42,12 @@ static struct map_desc omap2_io_desc[] _
- 		.length		= L3_24XX_SIZE,
- 		.type		= MT_DEVICE
- 	},
-+	{
-+		.virtual        = L4_24XX_VIRT,
-+		.pfn            = __phys_to_pfn(L4_24XX_PHYS),
-+		.length         = L4_24XX_SIZE,
-+		.type           = MT_DEVICE
-+	},
- #ifdef CONFIG_ARCH_OMAP2430
- 	{
- 		.virtual	= L4_WK_243X_VIRT,
+diff -puN arch/x86/ia32/ptrace32.c~x86_64-ia32-ptrace-thread_area-fix arch/x86/ia32/ptrace32.c
+--- a/arch/x86/ia32/ptrace32.c~x86_64-ia32-ptrace-thread_area-fix
++++ a/arch/x86/ia32/ptrace32.c
+@@ -243,8 +243,6 @@ static long ptrace32_siginfo(unsigned re
+ 	return ret;
+ }
+ 
+-#define COMPAT_GDT_ENTRY_TLS_MIN 6
+-
+ asmlinkage long sys32_ptrace(long request, u32 pid, u32 addr, u32 data)
+ {
+ 	struct task_struct *child;
+@@ -263,6 +261,8 @@ asmlinkage long sys32_ptrace(long reques
+ 	case PTRACE_SYSCALL:
+ 	case PTRACE_OLDSETOPTIONS:
+ 	case PTRACE_SETOPTIONS:
++	case PTRACE_SET_THREAD_AREA:
++	case PTRACE_GET_THREAD_AREA:
+ 		return sys_ptrace(request, pid, addr, data);
+ 
+ 	default:
+@@ -286,12 +286,6 @@ asmlinkage long sys32_ptrace(long reques
+ 	case PTRACE_SETSIGINFO:
+ 	case PTRACE_GETSIGINFO:
+ 		return ptrace32_siginfo(request, pid, addr, data);
+-
+-	case PTRACE_SET_THREAD_AREA:
+-	case PTRACE_GET_THREAD_AREA:
+-		return sys_ptrace(request, pid,
+-			addr + GDT_ENTRY_TLS_MIN - COMPAT_GDT_ENTRY_TLS_MIN,
+-			data);
+ 	}
+ 
+ 	child = ptrace_get_task_struct(pid);
 _
 
-Patches currently in -mm which might be from kyungmin.park@samsung.com are
+Patches currently in -mm which might be from roland@redhat.com are
 
-omap-register-the-l4-io-bus-to-boot-omap2.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+i386-and-x86_64-randomize-brk.patch
+i386-and-x86_64-randomize-brk-fix.patch
+i386-and-x86_64-randomize-brk-fix-2.patch
+x86_64-ia32-ptrace-thread_area-fix.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
