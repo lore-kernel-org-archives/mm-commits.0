@@ -1,60 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - pci-add-pci-identifiers-for-the-rdc-devices.patch removed from -mm tree
-Date: Fri, 09 Nov 2007 11:13:27 -0800
-Message-ID: <200711091913.lA9JDR6T028033@imap1.linux-foundation.org>
+Subject: + getblk-handle-2tb-devices-fix.patch added to -mm tree
+Date: Fri, 09 Nov 2007 11:42:54 -0800
+Message-ID: <200711091942.lA9Jgskf028964@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35989 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36382 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751439AbXKITSA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:18:00 -0500
+	by vger.kernel.org with ESMTP id S1751220AbXKITnG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:43:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: florian.fainelli@telecomint.eu, david-b@pacbell.net, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: deweerdt@free.fr, frederik.deweerdt@gmail.com
 
 
 The patch titled
-     pci: add PCI identifiers for the RDC devices
-has been removed from the -mm tree.  Its filename was
-     pci-add-pci-identifiers-for-the-rdc-devices.patch
+     fix getblk_slow "integer constant is too large" warning
+has been added to the -mm tree.  Its filename is
+     getblk-handle-2tb-devices-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: pci: add PCI identifiers for the RDC devices
-From: Florian Fainelli <florian.fainelli@telecomint.eu>
+Subject: fix getblk_slow "integer constant is too large" warning
+From: Frederik Deweerdt <deweerdt@free.fr>
 
-Define the PCI identifiers found in the RDC R-321x System-on-Chip.
+On Tue, Nov 06, 2007 at 02:33:53AM -0800, akpm@linux-foundation.org wrote:
+> The mm snapshot broken-out-2007-11-06-02-32.tar.gz has been uploaded to
+>
+>    ftp://ftp.kernel.org/pub/linux/kernel/people/akpm/mm/broken-out-2007-11-06-02-32.tar.gz
+>
+> It contains the following patches against 2.6.24-rc1:
+>
+[...]
+> getblk-handle-2tb-devices.patch
+[...]
+0xffffffff00000000 is unsigned long long on 32 bits
+fs/buffer.c: In function '__getblk_slow':
+fs/buffer.c:1126: warning: integer constant is too large for 'unsigned long' type
 
-Signed-off-by: Florian Fainelli <florian.fainelli@telecomint.eu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Frederik Deweerdt <frederik.deweerdt@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pci_ids.h |    7 +++++++
- 1 file changed, 7 insertions(+)
+ fs/buffer.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/pci_ids.h~pci-add-pci-identifiers-for-the-rdc-devices include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~pci-add-pci-identifiers-for-the-rdc-devices
-+++ a/include/linux/pci_ids.h
-@@ -2105,6 +2105,13 @@
- #define PCI_DEVICE_ID_HERC_WIN		0x5732
- #define PCI_DEVICE_ID_HERC_UNI		0x5832
+diff -puN fs/buffer.c~getblk-handle-2tb-devices-fix fs/buffer.c
+--- a/fs/buffer.c~getblk-handle-2tb-devices-fix
++++ a/fs/buffer.c
+@@ -1123,7 +1123,7 @@ __getblk_slow(struct block_device *bdev,
  
-+#define PCI_VENDOR_ID_RDC		0x17f3
-+#define PCI_DEVICE_ID_RDC_R6020		0x6020
-+#define PCI_DEVICE_ID_RDC_R6030		0x6030
-+#define PCI_DEVICE_ID_RDC_R6040		0x6040
-+#define PCI_DEVICE_ID_RDC_R6060		0x6060
-+#define PCI_DEVICE_ID_RDC_R6061		0x6061
-+
- #define PCI_VENDOR_ID_SITECOM		0x182d
- #define PCI_DEVICE_ID_SITECOM_DC105V2	0x3069
- 
+ #if (BITS_PER_LONG == 32) && defined(CONFIG_LBD)
+ 	if ((block >> (PAGE_CACHE_SHIFT - bdev->bd_inode->i_blkbits)) &
+-			0xffffffff00000000UL) {
++			0xffffffff00000000ULL) {
+ 		/*
+ 		 * We'll fail because the block is outside the range
+ 		 * which a 32-bit pagecache index can address
 _
 
-Patches currently in -mm which might be from florian.fainelli@telecomint.eu are
+Patches currently in -mm which might be from deweerdt@free.fr are
 
-git-x86.patch
+revoke-core-code.patch
+reiser4-sb_sync_inodes.patch
+getblk-handle-2tb-devices-fix.patch
