@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + paride-pf-driver-fixes.patch added to -mm tree
-Date: Thu, 08 Nov 2007 15:12:20 -0800
-Message-ID: <200711082312.lA8NCMeJ018870@imap1.linux-foundation.org>
+Subject: + lib-move-bitmapo-from-lib-y-to-obj-y.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:02:07 -0800
+Message-ID: <200711090402.lA942BQS028421@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42388 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39834 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762445AbXKHXd3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 18:33:29 -0500
+	by vger.kernel.org with ESMTP id S1758344AbXKIEDA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:03:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linux@rainbow-software.org
+Cc: lethal@linux-sh.org, linville@tuxdriver.com
 
 
 The patch titled
-     paride: pf driver fixes
+     lib: move bitmap.o from lib-y to obj-y.
 has been added to the -mm tree.  Its filename is
-     paride-pf-driver-fixes.patch
+     lib-move-bitmapo-from-lib-y-to-obj-y.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,93 +25,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: paride: pf driver fixes
-From: Ondrej Zary <linux@rainbow-software.org>
+Subject: lib: move bitmap.o from lib-y to obj-y.
+From: Paul Mundt <lethal@linux-sh.org>
 
-The pf driver for parallel port floppy drives seems to be broken.  At least
-with Imation SuperDisk with EPAT chip, the driver calls pi_connect() and
-pi_disconnect after each transferred sector.  At least with EPAT, this
-operation is very expensive - causes drive recalibration.  Thus, transferring
-even a single byte (dd if=/dev/pf0 of=/dev/null bs=1 count=1) takes 20
-seconds, making the driver useless.
+mac80211 has a reference to __bitmap_empty() via bitmap_empty().  In
+lib/bitmap.c this is flagged with an EXPORT_SYMBOL(), but this is
+ultimately ineffective due to bitmap.o being linked in lib-y, resulting in:
 
-The pf_next_buf() function seems to be broken as it returns 1 always (except
-when pf_run is non-zero), causing the loop in do_pf_read_drq (and
-do_pf_write_drq) to be executed only once.
+ERROR: "__bitmap_empty" [net/mac80211/mac80211.ko] undefined!
 
-The following patch fixes this problem.  It also fixes swapped descriptions in
-pf_lock() function and removes DBMSG macro, which seems useless.
+Moving bitmap.o to obj-y fixes this up.
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/paride/pf.c |   25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
+ lib/Makefile |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/paride/pf.c~paride-pf-driver-fixes drivers/block/paride/pf.c
---- a/drivers/block/paride/pf.c~paride-pf-driver-fixes
-+++ a/drivers/block/paride/pf.c
-@@ -488,13 +488,11 @@ static int pf_atapi(struct pf_unit *pf, 
- 	return r;
- }
+diff -puN lib/Makefile~lib-move-bitmapo-from-lib-y-to-obj-y lib/Makefile
+--- a/lib/Makefile~lib-move-bitmapo-from-lib-y-to-obj-y
++++ a/lib/Makefile
+@@ -4,7 +4,7 @@
  
--#define DBMSG(msg)      ((verbose>1)?(msg):NULL)
--
- static void pf_lock(struct pf_unit *pf, int func)
- {
- 	char lo_cmd[12] = { ATAPI_LOCK, pf->lun << 5, 0, 0, func, 0, 0, 0, 0, 0, 0, 0 };
+ lib-y := ctype.o string.o vsprintf.o cmdline.o \
+ 	 rbtree.o radix-tree.o dump_stack.o \
+-	 idr.o int_sqrt.o bitmap.o extable.o prio_tree.o \
++	 idr.o int_sqrt.o extable.o prio_tree.o \
+ 	 sha1.o irq_regs.o reciprocal_div.o argv_split.o \
+ 	 proportions.o prio_heap.o
  
--	pf_atapi(pf, lo_cmd, 0, pf_scratch, func ? "unlock" : "lock");
-+	pf_atapi(pf, lo_cmd, 0, pf_scratch, func ? "lock" : "unlock");
- }
+@@ -14,7 +14,7 @@ lib-$(CONFIG_SMP) += cpumask.o
+ lib-y	+= kobject.o kref.o klist.o
  
- static void pf_eject(struct pf_unit *pf)
-@@ -555,7 +553,7 @@ static void pf_mode_sense(struct pf_unit
- 	    { ATAPI_MODE_SENSE, pf->lun << 5, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0 };
- 	char buf[8];
+ obj-y += div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
+-	 bust_spinlocks.o hexdump.o kasprintf.o
++	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o
  
--	pf_atapi(pf, ms_cmd, 8, buf, DBMSG("mode sense"));
-+	pf_atapi(pf, ms_cmd, 8, buf, "mode sense");
- 	pf->media_status = PF_RW;
- 	if (buf[3] & 0x80)
- 		pf->media_status = PF_RO;
-@@ -591,7 +589,7 @@ static void pf_get_capacity(struct pf_un
- 	char buf[8];
- 	int bs;
- 
--	if (pf_atapi(pf, rc_cmd, 8, buf, DBMSG("get capacity"))) {
-+	if (pf_atapi(pf, rc_cmd, 8, buf, "get capacity")) {
- 		pf->media_status = PF_NM;
- 		return;
- 	}
-@@ -804,13 +802,18 @@ static int pf_next_buf(void)
- 	pf_buf += 512;
- 	pf_block++;
- 	if (!pf_run)
--		return 0;
--	if (!pf_count)
- 		return 1;
--	spin_lock_irqsave(&pf_spin_lock, saved_flags);
--	pf_end_request(1);
--	spin_unlock_irqrestore(&pf_spin_lock, saved_flags);
--	return 1;
-+	if (!pf_count) {
-+		spin_lock_irqsave(&pf_spin_lock, saved_flags);
-+		pf_end_request(1);
-+		pf_req = elv_next_request(pf_queue);
-+		spin_unlock_irqrestore(&pf_spin_lock, saved_flags);
-+		if (!pf_req)
-+			return 1;
-+		pf_count = pf_req->current_nr_sectors;
-+		pf_buf = pf_req->buffer;
-+	}
-+	return 0;
- }
- 
- static inline void next_request(int success)
+ ifeq ($(CONFIG_DEBUG_KOBJECT),y)
+ CFLAGS_kobject.o += -DDEBUG
 _
 
-Patches currently in -mm which might be from linux@rainbow-software.org are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
-paride-pf-driver-fixes.patch
+origin.patch
+lib-move-bitmapo-from-lib-y-to-obj-y.patch
+git-sh.patch
+sh-remove-dead-config-symbol-from-sh-code.patch
+git-sh64.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+md-dm-mpath-hp-sw-depends-on-scsi.patch
+use-bootmem_exclusive-for-kdump.patch
+sanitize-the-type-of-struct-useru_ar0.patch
+add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32.patch
+add-cmpxchg_local-to-sh64.patch
