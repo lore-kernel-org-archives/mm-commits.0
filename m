@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-srcu_readers_active-static.patch added to -mm tree
-Date: Thu, 08 Nov 2007 20:52:03 -0800
-Message-ID: <200711090452.lA94q4Xo030180@imap1.linux-foundation.org>
+Subject: + kernel-notifierc-should-include-linux-rebooth.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:52:10 -0800
+Message-ID: <200711090452.lA94qBhf030189@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45586 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47403 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759854AbXKIEwZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:52:25 -0500
+	by vger.kernel.org with ESMTP id S1760107AbXKIEw3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:52:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, paulmck@us.ibm.com
+Cc: bunk@kernel.org
 
 
 The patch titled
-     make srcu_readers_active() static
+     kernel/notifier.c should #include <linux/reboot.h>
 has been added to the -mm tree.  Its filename is
-     make-srcu_readers_active-static.patch
+     kernel-notifierc-should-include-linux-rebooth.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,36 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make srcu_readers_active() static
+Subject: kernel/notifier.c should #include <linux/reboot.h>
 From: Adrian Bunk <bunk@kernel.org>
 
-Make the needlessly global srcu_readers_active() static.
+Every file should include the headers containing the prototypes for its global
+functions (in this case {,un}register_reboot_notifier()).
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/srcu.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/notifier.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/srcu.c~make-srcu_readers_active-static kernel/srcu.c
---- a/kernel/srcu.c~make-srcu_readers_active-static
-+++ a/kernel/srcu.c
-@@ -74,7 +74,7 @@ static int srcu_readers_active_idx(struc
-  * severe errors when invoked on an active srcu_struct.  That said, it
-  * can be useful as an error check at cleanup time.
-  */
--int srcu_readers_active(struct srcu_struct *sp)
-+static int srcu_readers_active(struct srcu_struct *sp)
- {
- 	return srcu_readers_active_idx(sp, 0) + srcu_readers_active_idx(sp, 1);
- }
-@@ -255,4 +255,3 @@ EXPORT_SYMBOL_GPL(srcu_read_lock);
- EXPORT_SYMBOL_GPL(srcu_read_unlock);
- EXPORT_SYMBOL_GPL(synchronize_srcu);
- EXPORT_SYMBOL_GPL(srcu_batches_completed);
--EXPORT_SYMBOL_GPL(srcu_readers_active);
+diff -puN kernel/notifier.c~kernel-notifierc-should-include-linux-rebooth kernel/notifier.c
+--- a/kernel/notifier.c~kernel-notifierc-should-include-linux-rebooth
++++ a/kernel/notifier.c
+@@ -4,6 +4,7 @@
+ #include <linux/notifier.h>
+ #include <linux/rcupdate.h>
+ #include <linux/vmalloc.h>
++#include <linux/reboot.h>
+ 
+ /*
+  *	Notifier list for kernel code which wants to be called
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
