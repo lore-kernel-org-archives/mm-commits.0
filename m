@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-kill-non-existent-symbols-from-ksyms-and-commproch.patch added to -mm tree
-Date: Thu, 08 Nov 2007 20:05:16 -0800
-Message-ID: <200711090405.lA945G3i028556@imap1.linux-foundation.org>
+Subject: + lvm-use-rounddown_pow_of_two-macro-for-simplicity.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:04:55 -0800
+Message-ID: <200711090404.lA944uTo028541@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58061 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34620 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753688AbXKIEFZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:05:25 -0500
+	by vger.kernel.org with ESMTP id S1758721AbXKIEFf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:05:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jochen@scram.de
+Cc: rpjday@crashcourse.ca, agk@redhat.com
 
 
 The patch titled
-     powerpc: kill non-existent symbols from ksyms and commproc.h
+     LVM: Use rounddown_pow_of_two() macro for simplicity.
 has been added to the -mm tree.  Its filename is
-     powerpc-kill-non-existent-symbols-from-ksyms-and-commproch.patch
+     lvm-use-rounddown_pow_of_two-macro-for-simplicity.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,78 +25,58 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: powerpc: kill non-existent symbols from ksyms and commproc.h
-From: Jochen Friedrich <jochen@scram.de>
+Subject: LVM: Use rounddown_pow_of_two() macro for simplicity.
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-Remove exports of __res and cpm_install_handler/cpm_free_handler.  Remove
-cpm_install_handler/cpm_free_handler from the commproc.h as well.  Both
-were used for ARCH=ppc and aren't defined for ARCH=powerpc.
-
-CC      arch/powerpc/kernel/ppc_ksyms.o
-arch/powerpc/kernel/ppc_ksyms.c:180: error: '__res' undeclared here (not in a function)
-arch/powerpc/kernel/ppc_ksyms.c:180: warning: type defaults to 'int' in declaration of '__res'
-make[1]: *** [arch/powerpc/kernel/ppc_ksyms.o] Error 1
-make: *** [arch/powerpc/kernel] Error 2
-
-LD      .tmp_vmlinux1
-arch/powerpc/kernel/built-in.o:(__ksymtab+0x198): undefined reference to `cpm_free_handler'
-arch/powerpc/kernel/built-in.o:(__ksymtab+0x1a0): undefined reference to `cpm_install_handler'
-make: *** [.tmp_vmlinux1] Error 1
-
-Signed-off-by: Jochen Friedrich <jochen@scram.de>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Cc: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/ppc_ksyms.c |   12 ------------
- include/asm-powerpc/commproc.h  |    3 ---
- 2 files changed, 15 deletions(-)
+ drivers/md/dm-snap.c |   13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN arch/powerpc/kernel/ppc_ksyms.c~powerpc-kill-non-existent-symbols-from-ksyms-and-commproch arch/powerpc/kernel/ppc_ksyms.c
---- a/arch/powerpc/kernel/ppc_ksyms.c~powerpc-kill-non-existent-symbols-from-ksyms-and-commproch
-+++ a/arch/powerpc/kernel/ppc_ksyms.c
-@@ -45,10 +45,6 @@
- #include <asm/signal.h>
- #include <asm/dcr.h>
+diff -puN drivers/md/dm-snap.c~lvm-use-rounddown_pow_of_two-macro-for-simplicity drivers/md/dm-snap.c
+--- a/drivers/md/dm-snap.c~lvm-use-rounddown_pow_of_two-macro-for-simplicity
++++ a/drivers/md/dm-snap.c
+@@ -334,16 +334,6 @@ static int calc_max_buckets(void)
+ }
  
--#ifdef  CONFIG_8xx
--#include <asm/commproc.h>
--#endif
+ /*
+- * Rounds a number down to a power of 2.
+- */
+-static uint32_t round_down(uint32_t n)
+-{
+-	while (n & (n - 1))
+-		n &= (n - 1);
+-	return n;
+-}
 -
- #ifdef CONFIG_PPC64
- EXPORT_SYMBOL(local_irq_restore);
- #endif
-@@ -172,14 +168,6 @@ EXPORT_SYMBOL(console_drivers);
- EXPORT_SYMBOL(cacheable_memcpy);
- #endif
+-/*
+  * Allocate room for a suitable hash table.
+  */
+ static int init_hash_tables(struct dm_snapshot *s)
+@@ -361,8 +351,7 @@ static int init_hash_tables(struct dm_sn
+ 	hash_size = min(origin_dev_size, cow_dev_size) >> s->chunk_shift;
+ 	hash_size = min(hash_size, max_buckets);
  
--#ifdef  CONFIG_8xx
--EXPORT_SYMBOL(cpm_install_handler);
--EXPORT_SYMBOL(cpm_free_handler);
--#endif /* CONFIG_8xx */
--#if defined(CONFIG_8xx)
--EXPORT_SYMBOL(__res);
--#endif
--
- #ifdef CONFIG_PPC32
- EXPORT_SYMBOL(next_mmu_context);
- EXPORT_SYMBOL(set_context);
-diff -puN include/asm-powerpc/commproc.h~powerpc-kill-non-existent-symbols-from-ksyms-and-commproch include/asm-powerpc/commproc.h
---- a/include/asm-powerpc/commproc.h~powerpc-kill-non-existent-symbols-from-ksyms-and-commproch
-+++ a/include/asm-powerpc/commproc.h
-@@ -698,9 +698,6 @@ typedef struct risc_timer_pram {
- #define CICR_IEN		((uint)0x00000080)	/* Int. enable */
- #define CICR_SPS		((uint)0x00000001)	/* SCC Spread */
+-	/* Round it down to a power of 2 */
+-	hash_size = round_down(hash_size);
++	hash_size = rounddown_pow_of_two(hash_size);
+ 	if (init_exception_table(&s->complete, hash_size))
+ 		return -ENOMEM;
  
--extern void cpm_install_handler(int vec, void (*handler)(void *), void *dev_id);
--extern void cpm_free_handler(int vec);
--
- #define IMAP_ADDR		(get_immrbase())
- 
- #define CPM_PIN_INPUT     0
 _
 
-Patches currently in -mm which might be from jochen@scram.de are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
-powerpc-kill-non-existent-symbols-from-ksyms-and-commproch.patch
-powerpc-fs_enet-select-phylib-as-the-driver-needs-it.patch
-powerpc-fix-typo-ifdef-ifndef.patch
+origin.patch
+arm-remove-reference-to-non-existent-mtd_obsolete_chips.patch
+lvm-use-rounddown_pow_of_two-macro-for-simplicity.patch
+hwmon-replace-power-of-two-test-in-drivers-hwmon-adt7470c.patch
+pcmcia-net-use-roundup_pow_of_two-macro-instead-of-grotesque-loop.patch
+blackfin-typo-config_rtc_bfin_module.patch
+frv-move-dma-macros-to-scatterlisth-for-consistency.patch
+m68knommu-remove-vestiges-of-non-existent-disktel.patch
+uml-delete-some-unused-headers.patch
+rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
