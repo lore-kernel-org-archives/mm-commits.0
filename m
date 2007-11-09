@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + dvb-bt8xx-dstc-make-code-static.patch added to -mm tree
-Date: Thu, 08 Nov 2007 20:17:42 -0800
-Message-ID: <200711090417.lA94HhhU028893@imap1.linux-foundation.org>
+Subject: + dvb-usb-gp8pskc-if-0-gp8psk_bcm4500_reload.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:17:49 -0800
+Message-ID: <200711090417.lA94HoLQ028896@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50238 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47102 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756202AbXKIESI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:18:08 -0500
+	by vger.kernel.org with ESMTP id S1756375AbXKIESO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:18:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@kernel.org, mchehab@infradead.org
 
 
 The patch titled
-     dvb/bt8xx/dst.c: make code static
+     dvb-usb/gp8psk.c: #if 0 gp8psk_bcm4500_reload()
 has been added to the -mm tree.  Its filename is
-     dvb-bt8xx-dstc-make-code-static.patch
+     dvb-usb-gp8pskc-if-0-gp8psk_bcm4500_reload.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,144 +25,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dvb/bt8xx/dst.c: make code static
+Subject: dvb-usb/gp8psk.c: #if 0 gp8psk_bcm4500_reload()
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch makes the following needlessly global code static:
-- dst_gpio_outb()
-- dst_gpio_inb()
-- rdc_8820_reset()
-- dst_pio_enable()
-- dst_command()
-- struct tuner_list[]
+This patch #if 0's the unused gp8psk_bcm4500_reload()
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/bt8xx/dst.c        |   19 ++++++++-----------
- drivers/media/dvb/bt8xx/dst_common.h |    5 -----
- 2 files changed, 8 insertions(+), 16 deletions(-)
+ drivers/media/dvb/dvb-usb/gp8psk.c |    2 ++
+ drivers/media/dvb/dvb-usb/gp8psk.h |    1 -
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/media/dvb/bt8xx/dst.c~dvb-bt8xx-dstc-make-code-static drivers/media/dvb/bt8xx/dst.c
---- a/drivers/media/dvb/bt8xx/dst.c~dvb-bt8xx-dstc-make-code-static
-+++ a/drivers/media/dvb/bt8xx/dst.c
-@@ -71,6 +71,7 @@ MODULE_PARM_DESC(dst_algo, "tuning algo:
- 	}								\
- } while(0)
- 
-+static int dst_command(struct dst_state *state, u8 *data, u8 len);
- 
- static void dst_packsize(struct dst_state *state, int psize)
- {
-@@ -80,7 +81,8 @@ static void dst_packsize(struct dst_stat
- 	bt878_device_control(state->bt, DST_IG_TS, &bits);
- }
- 
--int dst_gpio_outb(struct dst_state *state, u32 mask, u32 enbb, u32 outhigh, int delay)
-+static int dst_gpio_outb(struct dst_state *state, u32 mask, u32 enbb,
-+			 u32 outhigh, int delay)
- {
- 	union dst_gpio_packet enb;
- 	union dst_gpio_packet bits;
-@@ -109,9 +111,8 @@ int dst_gpio_outb(struct dst_state *stat
- 
- 	return 0;
- }
--EXPORT_SYMBOL(dst_gpio_outb);
- 
--int dst_gpio_inb(struct dst_state *state, u8 *result)
-+static int dst_gpio_inb(struct dst_state *state, u8 *result)
- {
- 	union dst_gpio_packet rd_packet;
- 	int err;
-@@ -125,7 +126,6 @@ int dst_gpio_inb(struct dst_state *state
- 
- 	return 0;
- }
--EXPORT_SYMBOL(dst_gpio_inb);
- 
- int rdc_reset_state(struct dst_state *state)
- {
-@@ -145,7 +145,7 @@ int rdc_reset_state(struct dst_state *st
- }
- EXPORT_SYMBOL(rdc_reset_state);
- 
--int rdc_8820_reset(struct dst_state *state)
-+static int rdc_8820_reset(struct dst_state *state)
- {
- 	dprintk(verbose, DST_DEBUG, 1, "Resetting DST");
- 	if (dst_gpio_outb(state, RDC_8820_RESET, RDC_8820_RESET, 0, NO_DELAY) < 0) {
-@@ -160,9 +160,8 @@ int rdc_8820_reset(struct dst_state *sta
- 
- 	return 0;
- }
--EXPORT_SYMBOL(rdc_8820_reset);
- 
--int dst_pio_enable(struct dst_state *state)
-+static int dst_pio_enable(struct dst_state *state)
- {
- 	if (dst_gpio_outb(state, ~0, RDC_8820_PIO_0_ENABLE, 0, NO_DELAY) < 0) {
- 		dprintk(verbose, DST_ERROR, 1, "dst_gpio_outb ERROR !");
-@@ -172,7 +171,6 @@ int dst_pio_enable(struct dst_state *sta
- 
- 	return 0;
- }
--EXPORT_SYMBOL(dst_pio_enable);
- 
- int dst_pio_disable(struct dst_state *state)
- {
-@@ -611,7 +609,7 @@ static int dst_type_print(struct dst_sta
+diff -puN drivers/media/dvb/dvb-usb/gp8psk.c~dvb-usb-gp8pskc-if-0-gp8psk_bcm4500_reload drivers/media/dvb/dvb-usb/gp8psk.c
+--- a/drivers/media/dvb/dvb-usb/gp8psk.c~dvb-usb-gp8pskc-if-0-gp8psk_bcm4500_reload
++++ a/drivers/media/dvb/dvb-usb/gp8psk.c
+@@ -171,6 +171,7 @@ static int gp8psk_power_ctrl(struct dvb_
  	return 0;
  }
  
--struct tuner_types tuner_list[] = {
-+static struct tuner_types tuner_list[] = {
- 	{
- 		.tuner_type = TUNER_TYPE_L64724,
- 		.tuner_name = "L 64724",
-@@ -1224,7 +1222,7 @@ static int dst_probe(struct dst_state *s
++#if 0
+ int gp8psk_bcm4500_reload(struct dvb_usb_device *d)
+ {
+ 	u8 buf;
+@@ -187,6 +188,7 @@ int gp8psk_bcm4500_reload(struct dvb_usb
+ 			return EINVAL;
  	return 0;
  }
++#endif  /*  0  */
  
--int dst_command(struct dst_state *state, u8 *data, u8 len)
-+static int dst_command(struct dst_state *state, u8 *data, u8 len)
+ static int gp8psk_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
  {
- 	u8 reply;
+diff -puN drivers/media/dvb/dvb-usb/gp8psk.h~dvb-usb-gp8pskc-if-0-gp8psk_bcm4500_reload drivers/media/dvb/dvb-usb/gp8psk.h
+--- a/drivers/media/dvb/dvb-usb/gp8psk.h~dvb-usb-gp8pskc-if-0-gp8psk_bcm4500_reload
++++ a/drivers/media/dvb/dvb-usb/gp8psk.h
+@@ -92,6 +92,5 @@ extern struct dvb_frontend * gp8psk_fe_a
+ extern int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen);
+ extern int gp8psk_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
+ 			     u16 index, u8 *b, int blen);
+-extern int gp8psk_bcm4500_reload(struct dvb_usb_device *d);
  
-@@ -1287,7 +1285,6 @@ error:
- 	return -EIO;
- 
- }
--EXPORT_SYMBOL(dst_command);
- 
- static int dst_get_signal(struct dst_state *state)
- {
-diff -puN drivers/media/dvb/bt8xx/dst_common.h~dvb-bt8xx-dstc-make-code-static drivers/media/dvb/bt8xx/dst_common.h
---- a/drivers/media/dvb/bt8xx/dst_common.h~dvb-bt8xx-dstc-make-code-static
-+++ a/drivers/media/dvb/bt8xx/dst_common.h
-@@ -165,10 +165,8 @@ struct dst_config
- };
- 
- int rdc_reset_state(struct dst_state *state);
--int rdc_8820_reset(struct dst_state *state);
- 
- int dst_wait_dst_ready(struct dst_state *state, u8 delay_mode);
--int dst_pio_enable(struct dst_state *state);
- int dst_pio_disable(struct dst_state *state);
- int dst_error_recovery(struct dst_state* state);
- int dst_error_bailout(struct dst_state *state);
-@@ -177,9 +175,6 @@ int dst_comm_init(struct dst_state* stat
- int write_dst(struct dst_state *state, u8 * data, u8 len);
- int read_dst(struct dst_state *state, u8 * ret, u8 len);
- u8 dst_check_sum(u8 * buf, u32 len);
--int dst_gpio_outb(struct dst_state* state, u32 mask, u32 enbb, u32 outhigh, int delay);
--
--int dst_command(struct dst_state* state, u8 * data, u8 len);
- struct dst_state* dst_attach(struct dst_state* state, struct dvb_adapter *dvb_adapter);
- struct dvb_device *dst_ca_attach(struct dst_state *state, struct dvb_adapter *dvb_adapter);
- 
+ #endif
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
