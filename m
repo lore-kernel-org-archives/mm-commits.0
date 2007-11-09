@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-ptracec-should-include-linux-syscallsh.patch added to -mm tree
-Date: Thu, 08 Nov 2007 20:51:53 -0800
-Message-ID: <200711090451.lA94psAq030171@imap1.linux-foundation.org>
+Subject: + make-srcu_readers_active-static.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:52:03 -0800
+Message-ID: <200711090452.lA94q4Xo030180@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57849 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45586 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754652AbXKIEwM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:52:12 -0500
+	by vger.kernel.org with ESMTP id S1759854AbXKIEwZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:52:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, paulmck@us.ibm.com
 
 
 The patch titled
-     kernel/ptrace.c should #include <linux/syscalls.h>
+     make srcu_readers_active() static
 has been added to the -mm tree.  Its filename is
-     kernel-ptracec-should-include-linux-syscallsh.patch
+     make-srcu_readers_active-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: kernel/ptrace.c should #include <linux/syscalls.h>
+Subject: make srcu_readers_active() static
 From: Adrian Bunk <bunk@kernel.org>
 
-Every file should include the headers containing the prototypes for its global
-functions (in this case sys_ptrace()).
+Make the needlessly global srcu_readers_active() static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/srcu.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/ptrace.c~kernel-ptracec-should-include-linux-syscallsh kernel/ptrace.c
---- a/kernel/ptrace.c~kernel-ptracec-should-include-linux-syscallsh
-+++ a/kernel/ptrace.c
-@@ -20,6 +20,7 @@
- #include <linux/signal.h>
- #include <linux/audit.h>
- #include <linux/pid_namespace.h>
-+#include <linux/syscalls.h>
- 
- #include <asm/pgtable.h>
- #include <asm/uaccess.h>
+diff -puN kernel/srcu.c~make-srcu_readers_active-static kernel/srcu.c
+--- a/kernel/srcu.c~make-srcu_readers_active-static
++++ a/kernel/srcu.c
+@@ -74,7 +74,7 @@ static int srcu_readers_active_idx(struc
+  * severe errors when invoked on an active srcu_struct.  That said, it
+  * can be useful as an error check at cleanup time.
+  */
+-int srcu_readers_active(struct srcu_struct *sp)
++static int srcu_readers_active(struct srcu_struct *sp)
+ {
+ 	return srcu_readers_active_idx(sp, 0) + srcu_readers_active_idx(sp, 1);
+ }
+@@ -255,4 +255,3 @@ EXPORT_SYMBOL_GPL(srcu_read_lock);
+ EXPORT_SYMBOL_GPL(srcu_read_unlock);
+ EXPORT_SYMBOL_GPL(synchronize_srcu);
+ EXPORT_SYMBOL_GPL(srcu_batches_completed);
+-EXPORT_SYMBOL_GPL(srcu_readers_active);
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
