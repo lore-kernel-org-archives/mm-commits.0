@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + frv-fix-the-extern-declaration-of-kallsyms_num_syms.patch added to -mm tree
-Date: Fri, 09 Nov 2007 11:46:55 -0800
-Message-ID: <200711091946.lA9JktX2029100@imap1.linux-foundation.org>
+Subject: - frv-fix-the-extern-declaration-of-kallsyms_num_syms.patch removed from -mm tree
+Date: Fri, 09 Nov 2007 11:52:22 -0800
+Message-ID: <200711091952.lA9JqNg8029276@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34271 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48458 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752125AbXKITrL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:47:11 -0500
+	by vger.kernel.org with ESMTP id S1751151AbXKITwi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:52:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com
+To: dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      frv: fix the extern declaration of kallsyms_num_syms
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      frv-fix-the-extern-declaration-of-kallsyms_num_syms.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
 Subject: frv: fix the extern declaration of kallsyms_num_syms
