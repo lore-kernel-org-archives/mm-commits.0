@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + crisv10-fix-timer-interrupt-parameters.patch added to -mm tree
-Date: Fri, 09 Nov 2007 12:54:55 -0800
-Message-ID: <200711092054.lA9Kstq6031444@imap1.linux-foundation.org>
+Subject: + create-sys-power-when-config_pm-is-set.patch added to -mm tree
+Date: Fri, 09 Nov 2007 13:06:07 -0800
+Message-ID: <200711092106.lA9L67Q3031801@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59505 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:47303 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756969AbXKIUzA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 15:55:00 -0500
+	by vger.kernel.org with ESMTP id S1757182AbXKIVGf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 16:06:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.nilsson@axis.com, mikael.starvik@axis.com
+Cc: dsd@gentoo.org, greg@kroah.com, kay.sievers@vrfy.org, rjw@sisk.pl, stable@kernel.org, stern@rowland.harvard.edu
 
 
 The patch titled
-     CRISv10: fix timer interrupt parameters
+     create /sys/.../power when CONFIG_PM is set
 has been added to the -mm tree.  Its filename is
-     crisv10-fix-timer-interrupt-parameters.patch
+     create-sys-power-when-config_pm-is-set.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,89 +25,162 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: CRISv10: fix timer interrupt parameters
-From: Jesper Nilsson <jesper.nilsson@axis.com>
+Subject: create /sys/.../power when CONFIG_PM is set
+From: Daniel Drake <dsd@gentoo.org>
 
-Fix timer interrupt parameters for CRIS v10.
+The CONFIG_SUSPEND changes in 2.6.23 caused a regression under certain
+configuration conditions (SUSPEND=n, USB_AUTOSUSPEND=y) where all USB
+device attributes in sysfs (idVendor, idProduct, ...) silently disappeared,
+causing udev breakage and more.
 
-- irq_handler_t only takes two arguments, use get_irq_regs to get
-  regs for profiling.
-- Call update_process_times.
-- Remove CVS tag.
+The cause of this is that the /sys/.../power subdirectory is now only
+created when CONFIG_PM_SLEEP is set, however, it should be created whenever
+CONFIG_PM is set to handle the above situation.  The following patch fixes
+the regression.
 
-Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Mikael Starvik <mikael.starvik@axis.com>
+Signed-off-by: Daniel Drake <dsd@gentoo.org>
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/kernel/time.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ drivers/base/core.c         |    4 ++-
+ drivers/base/power/Makefile |    3 +-
+ drivers/base/power/main.c   |    8 ------
+ drivers/base/power/power.h  |   40 ++++++++++++++++++++++------------
+ 4 files changed, 33 insertions(+), 22 deletions(-)
 
-diff -puN arch/cris/arch-v10/kernel/time.c~crisv10-fix-timer-interrupt-parameters arch/cris/arch-v10/kernel/time.c
---- a/arch/cris/arch-v10/kernel/time.c~crisv10-fix-timer-interrupt-parameters
-+++ a/arch/cris/arch-v10/kernel/time.c
-@@ -1,5 +1,4 @@
--/* $Id: time.c,v 1.5 2004/09/29 06:12:46 starvik Exp $
-- *
-+/*
-  *  linux/arch/cris/arch-v10/kernel/time.c
-  *
-  *  Copyright (C) 1991, 1992, 1995  Linus Torvalds
-@@ -20,6 +19,7 @@
- #include <asm/io.h>
- #include <asm/delay.h>
- #include <asm/rtc.h>
-+#include <asm/irq_regs.h>
+diff -puN drivers/base/core.c~create-sys-power-when-config_pm-is-set drivers/base/core.c
+--- a/drivers/base/core.c~create-sys-power-when-config_pm-is-set
++++ a/drivers/base/core.c
+@@ -785,9 +785,10 @@ int device_add(struct device *dev)
+ 	error = device_add_attrs(dev);
+ 	if (error)
+ 		goto AttrsError;
+-	error = device_pm_add(dev);
++	error = dpm_sysfs_add(dev);
+ 	if (error)
+ 		goto PMError;
++	device_pm_add(dev);
+ 	error = bus_add_device(dev);
+ 	if (error)
+ 		goto BusError;
+@@ -813,6 +814,7 @@ int device_add(struct device *dev)
+ 	return error;
+  BusError:
+ 	device_pm_remove(dev);
++	dpm_sysfs_remove(dev);
+  PMError:
+ 	if (dev->bus)
+ 		blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
+diff -puN drivers/base/power/Makefile~create-sys-power-when-config_pm-is-set drivers/base/power/Makefile
+--- a/drivers/base/power/Makefile~create-sys-power-when-config_pm-is-set
++++ a/drivers/base/power/Makefile
+@@ -1,5 +1,6 @@
+ obj-y			:= shutdown.o
+-obj-$(CONFIG_PM_SLEEP)	+= main.o sysfs.o
++obj-$(CONFIG_PM)	+= sysfs.o
++obj-$(CONFIG_PM_SLEEP)	+= main.o
+ obj-$(CONFIG_PM_TRACE)	+= trace.o
  
- /* define this if you need to use print_timestamp */
- /* it will make jiffies at 96 hz instead of 100 hz though */
-@@ -201,8 +201,9 @@ static long last_rtc_update = 0;
- extern void cris_do_profile(struct pt_regs *regs);
+ ifeq ($(CONFIG_DEBUG_DRIVER),y)
+diff -puN drivers/base/power/main.c~create-sys-power-when-config_pm-is-set drivers/base/power/main.c
+--- a/drivers/base/power/main.c~create-sys-power-when-config_pm-is-set
++++ a/drivers/base/power/main.c
+@@ -59,20 +59,14 @@ static DECLARE_RWSEM(pm_sleep_rwsem);
+ int (*platform_enable_wakeup)(struct device *dev, int is_on);
  
- static inline irqreturn_t
--timer_interrupt(int irq, void *dev_id, struct pt_regs *regs)
-+timer_interrupt(int irq, void *dev_id)
+ 
+-int device_pm_add(struct device *dev)
++void device_pm_add(struct device *dev)
  {
-+	struct pt_regs *regs = get_irq_regs();
- 	/* acknowledge the timer irq */
- 
- #ifdef USE_CASCADE_TIMERS
-@@ -221,9 +222,11 @@ timer_interrupt(int irq, void *dev_id, s
- #endif
- 
- 	/* reset watchdog otherwise it resets us! */
+-	int error;
 -
- 	reset_watchdog();
- 	
-+	/* Update statistics. */
-+	update_process_times(user_mode(regs));
-+
- 	/* call the real timer interrupt handler */
+ 	pr_debug("PM: Adding info for %s:%s\n",
+ 		 dev->bus ? dev->bus->name : "No Bus",
+ 		 kobject_name(&dev->kobj));
+ 	mutex_lock(&dpm_list_mtx);
+ 	list_add_tail(&dev->power.entry, &dpm_active);
+-	error = dpm_sysfs_add(dev);
+-	if (error)
+-		list_del(&dev->power.entry);
+ 	mutex_unlock(&dpm_list_mtx);
+-	return error;
+ }
  
- 	do_timer(1);
+ void device_pm_remove(struct device *dev)
+diff -puN drivers/base/power/power.h~create-sys-power-when-config_pm-is-set drivers/base/power/power.h
+--- a/drivers/base/power/power.h~create-sys-power-when-config_pm-is-set
++++ a/drivers/base/power/power.h
+@@ -13,31 +13,23 @@ extern void device_shutdown(void);
+ 
+ extern struct list_head dpm_active;	/* The active device list */
+ 
+-static inline struct device * to_device(struct list_head * entry)
++static inline struct device *to_device(struct list_head *entry)
+ {
+ 	return container_of(entry, struct device, power.entry);
+ }
+ 
+-extern int device_pm_add(struct device *);
++extern void device_pm_add(struct device *);
+ extern void device_pm_remove(struct device *);
+ extern int pm_sleep_lock(void);
+ extern void pm_sleep_unlock(void);
+ 
+-/*
+- * sysfs.c
+- */
+-
+-extern int dpm_sysfs_add(struct device *);
+-extern void dpm_sysfs_remove(struct device *);
+-
+ #else /* CONFIG_PM_SLEEP */
+ 
+-
+-static inline int device_pm_add(struct device * dev)
++static inline void device_pm_add(struct device *dev)
+ {
+-	return 0;
+ }
+-static inline void device_pm_remove(struct device * dev)
++
++static inline void device_pm_remove(struct device *dev)
+ {
+ }
+ 
+@@ -51,3 +43,25 @@ static inline void pm_sleep_unlock(void)
+ }
+ 
+ #endif
++
++#ifdef CONFIG_PM
++
++/*
++ * sysfs.c
++ */
++
++extern int dpm_sysfs_add(struct device *);
++extern void dpm_sysfs_remove(struct device *);
++
++#else /* CONFIG_PM */
++
++static inline int dpm_sysfs_add(struct device *dev)
++{
++	return 0;
++}
++
++static inline void dpm_sysfs_remove(struct device *dev)
++{
++}
++
++#endif
 _
 
-Patches currently in -mm which might be from jesper.nilsson@axis.com are
+Patches currently in -mm which might be from dsd@gentoo.org are
 
-git-mtd.patch
-cris-build-fixes-fix-csum_tcpudp_magic-declaration.patch
-cris-build-fixes-add-missing-syscalls.patch
-cris-build-fixes-hardirqh-include-asm-irqh.patch
-cris-build-fixes-atomich-needs-compilerh.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-irq-fixes.patch
-cris-build-fixes-sys_crisc-needs-fsh.patch
-cris-build-fixes-add-baud-rate-defines.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-corrected-and-improved-nmi-and-irq-handling.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec.patch
-cris-build-fixes-setupc-needs-paramh.patch
-cris-build-fixes-fix-crisksymsc.patch
-cris-build-fixes-defconfig-updates.patch
-cris-dont-include-bitopsh-in-posix_typesh.patch
-crisv10-serial-driver-rewrite-take-three.patch
-cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two.patch
-cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
-crisv10-fix-timer-interrupt-parameters.patch
+create-sys-power-when-config_pm-is-set.patch
+git-wireless.patch
