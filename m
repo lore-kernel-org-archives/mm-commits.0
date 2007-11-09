@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + dvb-usb-gp8pskc-if-0-gp8psk_bcm4500_reload.patch added to -mm tree
-Date: Thu, 08 Nov 2007 20:17:49 -0800
-Message-ID: <200711090417.lA94HoLQ028896@imap1.linux-foundation.org>
+Subject: + dvb-usb-vp702xc-cleanups.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:17:58 -0800
+Message-ID: <200711090418.lA94HxeY028899@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47102 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48606 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756375AbXKIESO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:18:14 -0500
+	by vger.kernel.org with ESMTP id S1758177AbXKIESX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:18:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@kernel.org, mchehab@infradead.org
 
 
 The patch titled
-     dvb-usb/gp8psk.c: #if 0 gp8psk_bcm4500_reload()
+     dvb-usb/vp702x.c: cleanups
 has been added to the -mm tree.  Its filename is
-     dvb-usb-gp8pskc-if-0-gp8psk_bcm4500_reload.patch
+     dvb-usb-vp702xc-cleanups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,47 +25,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dvb-usb/gp8psk.c: #if 0 gp8psk_bcm4500_reload()
+Subject: dvb-usb/vp702x.c: cleanups
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch #if 0's the unused gp8psk_bcm4500_reload()
+This patch contains the following cleanups:
+- make the needlessly global vp702x_usb_out_op() static
+- #if 0 the unused vp702x_power_ctrl()
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/dvb-usb/gp8psk.c |    2 ++
- drivers/media/dvb/dvb-usb/gp8psk.h |    1 -
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/dvb/dvb-usb/vp702x.c |    4 +++-
+ drivers/media/dvb/dvb-usb/vp702x.h |    2 --
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/media/dvb/dvb-usb/gp8psk.c~dvb-usb-gp8pskc-if-0-gp8psk_bcm4500_reload drivers/media/dvb/dvb-usb/gp8psk.c
---- a/drivers/media/dvb/dvb-usb/gp8psk.c~dvb-usb-gp8pskc-if-0-gp8psk_bcm4500_reload
-+++ a/drivers/media/dvb/dvb-usb/gp8psk.c
-@@ -171,6 +171,7 @@ static int gp8psk_power_ctrl(struct dvb_
+diff -puN drivers/media/dvb/dvb-usb/vp702x.c~dvb-usb-vp702xc-cleanups drivers/media/dvb/dvb-usb/vp702x.c
+--- a/drivers/media/dvb/dvb-usb/vp702x.c~dvb-usb-vp702xc-cleanups
++++ a/drivers/media/dvb/dvb-usb/vp702x.c
+@@ -56,7 +56,7 @@ int vp702x_usb_in_op(struct dvb_usb_devi
+ 	return ret;
+ }
+ 
+-int vp702x_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
++static int vp702x_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
+ 			     u16 index, u8 *b, int blen)
+ {
+ 	int ret;
+@@ -204,6 +204,7 @@ static int vp702x_rc_query(struct dvb_us
  	return 0;
  }
  
 +#if 0
- int gp8psk_bcm4500_reload(struct dvb_usb_device *d)
+ int vp702x_power_ctrl(struct dvb_usb_device *d, int onoff)
  {
- 	u8 buf;
-@@ -187,6 +188,7 @@ int gp8psk_bcm4500_reload(struct dvb_usb
- 			return EINVAL;
+ 	struct vp702x_device_state *st = d->priv;
+@@ -217,6 +218,7 @@ int vp702x_power_ctrl(struct dvb_usb_dev
+ 
  	return 0;
  }
 +#endif  /*  0  */
  
- static int gp8psk_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ static int vp702x_read_mac_addr(struct dvb_usb_device *d,u8 mac[6])
  {
-diff -puN drivers/media/dvb/dvb-usb/gp8psk.h~dvb-usb-gp8pskc-if-0-gp8psk_bcm4500_reload drivers/media/dvb/dvb-usb/gp8psk.h
---- a/drivers/media/dvb/dvb-usb/gp8psk.h~dvb-usb-gp8pskc-if-0-gp8psk_bcm4500_reload
-+++ a/drivers/media/dvb/dvb-usb/gp8psk.h
-@@ -92,6 +92,5 @@ extern struct dvb_frontend * gp8psk_fe_a
- extern int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen);
- extern int gp8psk_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
- 			     u16 index, u8 *b, int blen);
--extern int gp8psk_bcm4500_reload(struct dvb_usb_device *d);
+diff -puN drivers/media/dvb/dvb-usb/vp702x.h~dvb-usb-vp702xc-cleanups drivers/media/dvb/dvb-usb/vp702x.h
+--- a/drivers/media/dvb/dvb-usb/vp702x.h~dvb-usb-vp702xc-cleanups
++++ a/drivers/media/dvb/dvb-usb/vp702x.h
+@@ -102,7 +102,5 @@ extern struct dvb_frontend * vp702x_fe_a
+ 
+ extern int vp702x_usb_inout_op(struct dvb_usb_device *d, u8 *o, int olen, u8 *i, int ilen, int msec);
+ extern int vp702x_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen);
+-extern int vp702x_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen);
+-extern int vp702x_power_ctrl(struct dvb_usb_device *d, int onoff);
  
  #endif
 _
