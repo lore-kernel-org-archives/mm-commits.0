@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-avoid-atomic-allocations-for-preloaded-insertions.patch added to -mm tree
-Date: Fri, 09 Nov 2007 14:15:52 -0800
-Message-ID: <200711092215.lA9MFq2H001977@imap1.linux-foundation.org>
+Subject: + nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch added to -mm tree
+Date: Fri, 09 Nov 2007 14:17:13 -0800
+Message-ID: <200711092217.lA9MHDrc002018@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34445 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49625 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755091AbXKIWP6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 17:15:58 -0500
+	by vger.kernel.org with ESMTP id S1751054AbXKIWRm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 17:17:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, davem@davemloft.net
+Cc: npiggin@suse.de, bfields@fieldses.org, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     radix-tree: avoid atomic allocations for preloaded insertions
+     nfs: use GFP_NOFS preloads for radix-tree insertion
 has been added to the -mm tree.  Its filename is
-     radix-tree-avoid-atomic-allocations-for-preloaded-insertions.patch
+     nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,122 +25,107 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: radix-tree: avoid atomic allocations for preloaded insertions
+Subject: nfs: use GFP_NOFS preloads for radix-tree insertion
 From: Nick Piggin <npiggin@suse.de>
 
-Most pagecache (and some other) radix tree insertions have the great
-opportunity to preallocate a few nodes with relaxed gfp flags.  But the
-preallocation is squandered when it comes time to allocate a node, we
-default to first attempting a GFP_ATOMIC allocation -- that doesn't
-normally fail, but it can eat into atomic memory reserves that we don't
-need to be using.
-
-Another upshot of this is that it removes the sometimes highly contended
-zone->lock from underneath tree_lock.  Pagecache insertions are always
-performed with a radix tree preload, and after this change, such a
-situation will never fall back to kmem_cache_alloc within
-radix_tree_node_alloc.
-
-David Miller reports seeing this allocation fail on a highly threaded
-sparc64 system:
-
-[527319.459981] dd: page allocation failure. order:0, mode:0x20
-[527319.460403] Call Trace:
-[527319.460568]  [00000000004b71e0] __slab_alloc+0x1b0/0x6a8
-[527319.460636]  [00000000004b7bbc] kmem_cache_alloc+0x4c/0xa8
-[527319.460698]  [000000000055309c] radix_tree_node_alloc+0x20/0x90
-[527319.460763]  [0000000000553238] radix_tree_insert+0x12c/0x260
-[527319.460830]  [0000000000495cd0] add_to_page_cache+0x38/0xb0
-[527319.460893]  [00000000004e4794] mpage_readpages+0x6c/0x134
-[527319.460955]  [000000000049c7fc] __do_page_cache_readahead+0x170/0x280
-[527319.461028]  [000000000049cc88] ondemand_readahead+0x208/0x214
-[527319.461094]  [0000000000496018] do_generic_mapping_read+0xe8/0x428
-[527319.461152]  [0000000000497948] generic_file_aio_read+0x108/0x170
-[527319.461217]  [00000000004badac] do_sync_read+0x88/0xd0
-[527319.461292]  [00000000004bb5cc] vfs_read+0x78/0x10c
-[527319.461361]  [00000000004bb920] sys_read+0x34/0x60
-[527319.461424]  [0000000000406294] linux_sparc_syscall32+0x3c/0x40
-
-The calltrace is significant: __do_page_cache_readahead allocates a number
-of pages with GFP_KERNEL, and hence it should have reclaimed sufficient
-memory to satisfy GFP_ATOMIC allocations.  However after the list of pages
-goes to mpage_readpages, there can be significant intervals (including disk
-IO) before all the pages are inserted into the radix-tree.  So the reserves
-can easily be depleted at that point.  The patch is confirmed to fix the
-problem.
+NFS should use GFP_NOFS mode radix tree preloads rather than GFP_ATOMIC
+allocations at radix-tree insertion-time.  This is important to reduce the
+atomic memory requirement.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |   15 +++++++++++----
- mm/filemap.c     |    1 -
- mm/rmap.c        |    1 -
- 3 files changed, 11 insertions(+), 6 deletions(-)
+ fs/nfs/write.c |   31 +++++++++++++++++--------------
+ 1 file changed, 17 insertions(+), 14 deletions(-)
 
-diff -puN lib/radix-tree.c~radix-tree-avoid-atomic-allocations-for-preloaded-insertions lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-avoid-atomic-allocations-for-preloaded-insertions
-+++ a/lib/radix-tree.c
-@@ -95,14 +95,17 @@ static inline gfp_t root_gfp_mask(struct
- static struct radix_tree_node *
- radix_tree_node_alloc(struct radix_tree_root *root)
- {
--	struct radix_tree_node *ret;
-+	struct radix_tree_node *ret = NULL;
- 	gfp_t gfp_mask = root_gfp_mask(root);
- 
--	ret = kmem_cache_alloc(radix_tree_node_cachep,
--				set_migrateflags(gfp_mask, __GFP_RECLAIMABLE));
--	if (ret == NULL && !(gfp_mask & __GFP_WAIT)) {
-+	if (!(gfp_mask & __GFP_WAIT)) {
- 		struct radix_tree_preload *rtp;
- 
-+		/*
-+		 * Provided the caller has preloaded here, we will always
-+		 * succeed in getting a node here (and never reach
-+		 * kmem_cache_alloc)
-+		 */
- 		rtp = &__get_cpu_var(radix_tree_preloads);
- 		if (rtp->nr) {
- 			ret = rtp->nodes[rtp->nr - 1];
-@@ -110,6 +113,10 @@ radix_tree_node_alloc(struct radix_tree_
- 			rtp->nr--;
- 		}
- 	}
-+	if (ret == NULL)
-+		ret = kmem_cache_alloc(radix_tree_node_cachep,
-+				set_migrateflags(gfp_mask, __GFP_RECLAIMABLE));
-+
- 	BUG_ON(radix_tree_is_indirect_ptr(ret));
- 	return ret;
- }
-diff -puN mm/filemap.c~radix-tree-avoid-atomic-allocations-for-preloaded-insertions mm/filemap.c
---- a/mm/filemap.c~radix-tree-avoid-atomic-allocations-for-preloaded-insertions
-+++ a/mm/filemap.c
-@@ -65,7 +65,6 @@ generic_file_direct_IO(int rw, struct ki
-  *    ->private_lock		(__free_pte->__set_page_dirty_buffers)
-  *      ->swap_lock		(exclusive_swap_page, others)
-  *        ->mapping->tree_lock
-- *          ->zone.lock
-  *
-  *  ->i_mutex
-  *    ->i_mmap_lock		(truncate->unmap_mapping_range)
-diff -puN mm/rmap.c~radix-tree-avoid-atomic-allocations-for-preloaded-insertions mm/rmap.c
---- a/mm/rmap.c~radix-tree-avoid-atomic-allocations-for-preloaded-insertions
-+++ a/mm/rmap.c
-@@ -36,7 +36,6 @@
-  *                 mapping->tree_lock (widely used, in set_page_dirty,
-  *                           in arch-dependent flush_dcache_mmap_lock,
-  *                           within inode_lock in __sync_single_inode)
-- *                   zone->lock (within radix tree node alloc)
+diff -puN fs/nfs/write.c~nfs-use-gfp_nofs-preloads-for-radix-tree-insertion fs/nfs/write.c
+--- a/fs/nfs/write.c~nfs-use-gfp_nofs-preloads-for-radix-tree-insertion
++++ a/fs/nfs/write.c
+@@ -363,15 +363,13 @@ int nfs_writepages(struct address_space 
+ /*
+  * Insert a write request into an inode
   */
+-static int nfs_inode_add_request(struct inode *inode, struct nfs_page *req)
++static void nfs_inode_add_request(struct inode *inode, struct nfs_page *req)
+ {
+ 	struct nfs_inode *nfsi = NFS_I(inode);
+ 	int error;
  
- #include <linux/mm.h>
+ 	error = radix_tree_insert(&nfsi->nfs_page_tree, req->wb_index, req);
+-	BUG_ON(error == -EEXIST);
+-	if (error)
+-		return error;
++	BUG_ON(error);
+ 	if (!nfsi->npages) {
+ 		igrab(inode);
+ 		if (nfs_have_delegation(inode, FMODE_WRITE))
+@@ -381,7 +379,6 @@ static int nfs_inode_add_request(struct 
+ 	set_page_private(req->wb_page, (unsigned long)req);
+ 	nfsi->npages++;
+ 	kref_get(&req->wb_kref);
+-	return 0;
+ }
+ 
+ /*
+@@ -593,6 +590,13 @@ static struct nfs_page * nfs_update_requ
+ 		/* Loop over all inode entries and see if we find
+ 		 * A request for the page we wish to update
+ 		 */
++		if (new) {
++			if (radix_tree_preload(GFP_NOFS)) {
++				nfs_release_request(new);
++				return ERR_PTR(-ENOMEM);
++			}
++		}
++
+ 		spin_lock(&inode->i_lock);
+ 		req = nfs_page_find_request_locked(page);
+ 		if (req) {
+@@ -603,28 +607,27 @@ static struct nfs_page * nfs_update_requ
+ 				error = nfs_wait_on_request(req);
+ 				nfs_release_request(req);
+ 				if (error < 0) {
+-					if (new)
++					if (new) {
++						radix_tree_preload_end();
+ 						nfs_release_request(new);
++					}
+ 					return ERR_PTR(error);
+ 				}
+ 				continue;
+ 			}
+ 			spin_unlock(&inode->i_lock);
+-			if (new)
++			if (new) {
++				radix_tree_preload_end();
+ 				nfs_release_request(new);
++			}
+ 			break;
+ 		}
+ 
+ 		if (new) {
+-			int error;
+ 			nfs_lock_request_dontget(new);
+-			error = nfs_inode_add_request(inode, new);
+-			if (error) {
+-				spin_unlock(&inode->i_lock);
+-				nfs_unlock_request(new);
+-				return ERR_PTR(error);
+-			}
++			nfs_inode_add_request(inode, new);
+ 			spin_unlock(&inode->i_lock);
++			radix_tree_preload_end();
+ 			req = new;
+ 			goto zero_page;
+ 		}
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
 
+nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
 rd-fix-data-corruption-on-memory-pressure.patch
 slub-use-non-atomic-bit-unlock.patch
 radix-tree-avoid-atomic-allocations-for-preloaded-insertions.patch
