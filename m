@@ -1,191 +1,200 @@
 From: akpm@linux-foundation.org
-Subject: - media-video-et61x251-make-5-functions-static.patch removed from -mm tree
-Date: Fri, 09 Nov 2007 11:13:02 -0800
-Message-ID: <200711091913.lA9JD2P9027977@imap1.linux-foundation.org>
+Subject: - git-mtd-fix.patch removed from -mm tree
+Date: Fri, 09 Nov 2007 11:13:13 -0800
+Message-ID: <200711091913.lA9JDD2Y027992@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45896 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37271 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755229AbXKITN0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:13:26 -0500
+	by vger.kernel.org with ESMTP id S1755192AbXKITNX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:13:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     media/video/et61x251/: make 5 functions static
+     git-mtd-fix
 has been removed from the -mm tree.  Its filename was
-     media-video-et61x251-make-5-functions-static.patch
+     git-mtd-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: media/video/et61x251/: make 5 functions static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: git-mtd-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Make the following needlessly global functions in et61x251_core.c static:
+fs/jffs2/write.c: In function 'jffs2_do_unlink':
+fs/jffs2/write.c:609: error: 'prev' undeclared (first use in this function)
+fs/jffs2/write.c:609: error: (Each undeclared identifier is reported only once
+fs/jffs2/write.c:609: error: for each function it appears in.)
 
-- et61x251_read_reg()
-- et61x251_i2c_try_read()
-- et61x251_i2c_try_write()
-- et61x251_i2c_read()
-- et61x251_i2c_write()
+nfi, wtf.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/et61x251/et61x251_core.c   |   20 +++++++--------
- drivers/media/video/et61x251/et61x251_sensor.h |    8 ------
- 2 files changed, 10 insertions(+), 18 deletions(-)
+ fs/jffs2/write.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/media/video/et61x251/et61x251_core.c~media-video-et61x251-make-5-functions-static drivers/media/video/et61x251/et61x251_core.c
---- a/drivers/media/video/et61x251/et61x251_core.c~media-video-et61x251-make-5-functions-static
-+++ a/drivers/media/video/et61x251/et61x251_core.c
-@@ -227,7 +227,7 @@ int et61x251_write_reg(struct et61x251_d
- }
- 
- 
--int et61x251_read_reg(struct et61x251_device* cam, u16 index)
-+static int et61x251_read_reg(struct et61x251_device* cam, u16 index)
- {
- 	struct usb_device* udev = cam->usbdev;
- 	u8* buff = cam->control_buffer;
-@@ -268,9 +268,9 @@ et61x251_i2c_wait(struct et61x251_device
- }
- 
- 
--int
--et61x251_i2c_try_read(struct et61x251_device* cam,
--		      const struct et61x251_sensor* sensor, u8 address)
-+static int et61x251_i2c_try_read(struct et61x251_device* cam,
-+				 const struct et61x251_sensor* sensor,
-+				 u8 address)
- {
- 	struct usb_device* udev = cam->usbdev;
- 	u8* data = cam->control_buffer;
-@@ -301,10 +301,9 @@ et61x251_i2c_try_read(struct et61x251_de
- }
- 
- 
--int
--et61x251_i2c_try_write(struct et61x251_device* cam,
--		       const struct et61x251_sensor* sensor, u8 address,
--		       u8 value)
-+static int et61x251_i2c_try_write(struct et61x251_device* cam,
-+				  const struct et61x251_sensor* sensor,
-+				  u8 address, u8 value)
- {
- 	struct usb_device* udev = cam->usbdev;
- 	u8* data = cam->control_buffer;
-@@ -387,13 +386,14 @@ et61x251_i2c_raw_write(struct et61x251_d
- }
- 
- 
--int et61x251_i2c_read(struct et61x251_device* cam, u8 address)
-+static int et61x251_i2c_read(struct et61x251_device* cam, u8 address)
- {
- 	return et61x251_i2c_try_read(cam, &cam->sensor, address);
- }
- 
- 
--int et61x251_i2c_write(struct et61x251_device* cam, u8 address, u8 value)
-+static int et61x251_i2c_write(struct et61x251_device* cam,
-+			      u8 address, u8 value)
- {
- 	return et61x251_i2c_try_write(cam, &cam->sensor, address, value);
- }
-diff -puN drivers/media/video/et61x251/et61x251_sensor.h~media-video-et61x251-make-5-functions-static drivers/media/video/et61x251/et61x251_sensor.h
---- a/drivers/media/video/et61x251/et61x251_sensor.h~media-video-et61x251-make-5-functions-static
-+++ a/drivers/media/video/et61x251/et61x251_sensor.h
-@@ -52,14 +52,6 @@ et61x251_attach_sensor(struct et61x251_d
- /*****************************************************************************/
- 
- extern int et61x251_write_reg(struct et61x251_device*, u8 value, u16 index);
--extern int et61x251_read_reg(struct et61x251_device*, u16 index);
--extern int et61x251_i2c_write(struct et61x251_device*, u8 address, u8 value);
--extern int et61x251_i2c_read(struct et61x251_device*, u8 address);
--extern int et61x251_i2c_try_write(struct et61x251_device*,
--				  const struct et61x251_sensor*, u8 address,
--				  u8 value);
--extern int et61x251_i2c_try_read(struct et61x251_device*,
--				 const struct et61x251_sensor*, u8 address);
- extern int et61x251_i2c_raw_write(struct et61x251_device*, u8 n, u8 data1,
- 				  u8 data2, u8 data3, u8 data4, u8 data5,
- 				  u8 data6, u8 data7, u8 data8, u8 address);
+diff -puN fs/jffs2/write.c~git-mtd-fix fs/jffs2/write.c
+--- a/fs/jffs2/write.c~git-mtd-fix
++++ a/fs/jffs2/write.c
+@@ -606,7 +606,6 @@ int jffs2_do_unlink(struct jffs2_sb_info
+ 				fd->ino = 0;
+ 				break;
+ 			}
+-			prev = &((*prev)->next);
+ 		}
+ 		up(&dir_f->sem);
+ 	}
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lguest_userc-fix-memory-leak.patch
-video-sis-fix-negative-array-index.patch
-git-avr32.patch
+proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
+acpi-make-acpi_procfs-default-to-y.patch
+oprofile-revert-i386-make-callgraph-use-dump_trace-on-i386-x86_64.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of-fix.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-arm-fixup.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
 git-dvb.patch
 git-hwmon.patch
-git-gfs2-nmw.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+elantech-touchpad-driver-fix.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+ide-arm-hack.patch
 git-mtd.patch
-git-net.patch
-make-sunrpc-xprtsockcxs_setup_udptcp-static.patch
+lmc_ioctl-dont-return-with-locks-held-fix.patch
 git-netdev-all.patch
-drivers-net-chelsio-if-0-unused-functions.patch
-drivers-bluetooth-bpa10xc-fix-memleak.patch
-drivers-bluetooth-btsdioc-fix-double-free.patch
-git-nfs-make-nfs_wb_page_priority-static.patch
-fs-nfs-dirc-should-include-internalh.patch
-git-ocfs2.patch
-proper-prototype-for-kernel-schedcmigration_init.patch
-git-scsi-misc.patch
-scsi-advansysc-make-3-functions-static.patch
-scsi-qla2xxx-possible-cleanups.patch
-usb-mon-mon_binc-cleanups.patch
-xtensa-iss_net_setup-must-be-__init.patch
-xtensa-kernel-setupc-remove-dead-code.patch
-sunrpc-xprtrdma-transportc-fix-use-after-free.patch
-fix-mm-utilckrealloc.patch
-fuse_file_alloc-fix-null-dereferences.patch
-pidns-place-under-config_experimental.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+bluetooth-uninlining.patch
+git-nfsd-fixup.patch
+quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
+scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+git-wireless.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-fix-up.patch
+git-x86-inlining-borkage.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+i386-and-x86_64-randomize-brk-fix.patch
+x86-arch_register_cpu-section-fix.patch
+mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
 pidns-place-under-config_experimental-checkpatch-fixes.patch
-feature-removal-schedule-remove-sa_-flags-entry.patch
-kernel-taskstatsc-fix-bogus-nlmsg_free.patch
-mm-hugetlbc-make-a-function-static.patch
-mm-page-writebackc-make-a-function-static.patch
-make-__vmalloc_area_node-static.patch
-blackfin-remove-dump_thread.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-kernel-power-move-function-prototypes-to-header.patch
-kill-udffs_dateversion.patch
-make-ipc-utilcsysvipc_find_ipc-static.patch
-cleanup-after-apus-removal.patch
-remove-mm_ptovvtop.patch
-remove-__attribute_used__.patch
+fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
+file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
+x86-disable-preemption-in-delay_tsc.patch
+tty-fix-network-driver-interactions-with-tcget-set-checkpatch-fixes.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+cris-build-fixes-atomich-needs-compilerh-fix.patch
+cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
+cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
+cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
 remove-__attribute_used__-checkpatch-fixes.patch
-proper-show_interrupts-prototype.patch
-scheduled-oss-driver-removal.patch
-linux-inith-simplify-__meminitexit-dependencies.patch
-proper-prototype-for-signals_init.patch
-kernel-ptracec-should-include-linux-syscallsh.patch
-make-srcu_readers_active-static.patch
-kernel-notifierc-should-include-linux-rebooth.patch
-proper-prototype-for-get_filesystem_list.patch
-fs-utimesc-should-include-linux-syscallsh.patch
-fs-signalfdc-should-include-linux-syscallsh.patch
-fs-eventfdc-should-include-linux-syscallsh.patch
-proper-prototype-for-vty_init.patch
-drivers-misc-lkdtmc-cleanups.patch
-power_supply_ledssysfsc-should-include-power_supplyh.patch
-fs-ecryptfs-possible-cleanups.patch
-make-video-geode-lxfb_corecgeode_modedb-static.patch
-video-hpfbc-section-fix.patch
-ext4-superc-fix-ifdefs.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-move-edactxt-two-levels-up.patch
-remove-documentation-smptxt.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
+read_current_time-cleanups.patch
+sync_sb_inodes-propagate-errors.patch
+64-bit-i_version-afs-fixes.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
 memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
 memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+dhowells-broke-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+w1-build-fix.patch
