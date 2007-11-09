@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-fix-cpu-hotplug-regression.patch added to -mm tree
-Date: Fri, 09 Nov 2007 12:18:42 -0800
-Message-ID: <200711092018.lA9KIgRr030245@imap1.linux-foundation.org>
+Subject: + futex-fix-address-computation-in-compat-code.patch added to -mm tree
+Date: Fri, 09 Nov 2007 12:22:14 -0800
+Message-ID: <200711092022.lA9KMEpW030337@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53488 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42658 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751355AbXKIUTQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 15:19:16 -0500
+	by vger.kernel.org with ESMTP id S1751420AbXKIUWh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 15:22:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, ak@suse.de, andreas.herrmann3@amd.com, mingo@elte.hu, tglx@linutronix.de
+Cc: davem@davemloft.net, arnd@arndb.de, stable@kernel.org
 
 
 The patch titled
-     x86_64: fix cpu-hotplug regression
+     futex: fix address computation in compat code
 has been added to the -mm tree.  Its filename is
-     x86_64-fix-cpu-hotplug-regression.patch
+     futex-fix-address-computation-in-compat-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,104 +25,126 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: fix cpu-hotplug regression
-From: "Akinobu Mita" <akinobu.mita@gmail.com>
+Subject: futex: fix address computation in compat code
+From: David Miller <davem@davemloft.net>
 
-> [PATCH] x86: fix cpu hotplug regression (don't call mce_create_device on CPU_UP_PREPARE)
->
-> Fix regression introduced with d435d862baca3e25e5eec236762a43251b1e7ffc
-> ("cpu hotplug: mce: fix cpu hotplug error handling").
->
-> For CPUs not brought up during boot (using maxcpus and additional_cpus
-> parameters) we don't know whether mce is supported or not at "CPU_UP_PREPARE"-time.
-> Thus mce_cpu_callback should be called after the CPU is online.
+compat_exit_robust_list() computes a pointer to the futex entry in
+userspace as follows:
 
-Thank you for finding and fixing the problem.
-I added two fixes to your patch:
+	(void __user *)entry + futex_offset
 
-- Avoid mce_remove_device() for the CPU that is not correctly initialized
-  by mce_create_device() failure.
+'entry' is a 'struct robust_list __user *', and
+'futex_offset' is a 'compat_long_t' (typically a 's32').
 
-- make CPU_ONLINE callback always return NOTIFY_OK.
-  Because CPU_ONLINE callback return value is always ignored.
+Things explode if the 32-bit sign bit is set in futex_offset.
 
-[akinobu.mita@gmail.com: make CPU_ONLINE callback always return NOTIFY_OK]
-[akinobu.mita@gmail.com: avoid mce_remove_device() for not initialized device]
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <ak@suse.de>
+Type promotion sign extends futex_offset to a 64-bit value before adding it
+to 'entry'.
+
+This triggered a problem on sparc64 running 32-bit applications which would
+lock up a cpu looping forever in the fault handling for the userspace load
+in handle_futex_death().
+
+Compat userspace runs with address masking (wherein the cpu zeros out the
+top 32-bits of every effective address given to a memory operation
+instruction) so the sparc64 fault handler accounts for this by zero'ing out
+the top 32-bits of the fault address too.
+
+Since the kernel properly uses the compat_uptr interfaces, kernel side
+accesses to compat userspace work too since they will only use addresses
+with the top 32-bit clear.
+
+Because of this compat futex layer bug we get into the following loop
+when executing the get_user() load near the top of handle_futex_death():
+
+1) load from address '0xfffffffff7f16bd8', FAULT
+2) fault handler clears upper 32-bits, processes fault
+   for address '0xf7f16bd8' which succeeds
+3) goto #1
+
+I want to thank Bernd Zeimetz, Josip Rodin, and Fabio Massimo Di Nitto
+for their tireless efforts helping me track down this bug.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Cc: <stable@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/mcheck/mce_64.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ kernel/futex_compat.c |   27 ++++++++++++++++++++-------
+ 1 file changed, 20 insertions(+), 7 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/mcheck/mce_64.c~x86_64-fix-cpu-hotplug-regression arch/x86/kernel/cpu/mcheck/mce_64.c
---- a/arch/x86/kernel/cpu/mcheck/mce_64.c~x86_64-fix-cpu-hotplug-regression
-+++ a/arch/x86/kernel/cpu/mcheck/mce_64.c
-@@ -802,6 +802,8 @@ static struct sysdev_attribute *mce_attr
- 	NULL
- };
- 
-+static cpumask_t mce_device_initialized = CPU_MASK_NONE;
-+
- /* Per cpu sysdev init.  All of the cpus still share the same ctl bank */
- static __cpuinit int mce_create_device(unsigned int cpu)
- {
-@@ -825,6 +827,7 @@ static __cpuinit int mce_create_device(u
- 		if (err)
- 			goto error;
- 	}
-+	cpu_set(cpu, mce_device_initialized);
- 
+diff -puN kernel/futex_compat.c~futex-fix-address-computation-in-compat-code kernel/futex_compat.c
+--- a/kernel/futex_compat.c~futex-fix-address-computation-in-compat-code
++++ a/kernel/futex_compat.c
+@@ -30,6 +30,15 @@ fetch_robust_entry(compat_uptr_t *uentry
  	return 0;
- error:
-@@ -841,10 +844,14 @@ static void mce_remove_device(unsigned i
- {
- 	int i;
+ }
  
-+	if (!cpu_isset(cpu, mce_device_initialized))
-+		return;
++static void __user *futex_uaddr(struct robust_list *entry,
++				compat_long_t futex_offset)
++{
++	compat_uptr_t base = ptr_to_compat(entry);
++	void __user *uaddr = compat_ptr(base + futex_offset);
 +
- 	for (i = 0; mce_attributes[i]; i++)
- 		sysdev_remove_file(&per_cpu(device_mce,cpu),
- 			mce_attributes[i]);
- 	sysdev_unregister(&per_cpu(device_mce,cpu));
-+	cpu_clear(cpu, mce_device_initialized);
- }
++	return uaddr;
++}
++
+ /*
+  * Walk curr->robust_list (very carefully, it's a userspace list!)
+  * and mark any locks found there dead, and notify any waiters.
+@@ -76,11 +85,13 @@ void compat_exit_robust_list(struct task
+ 		 * A pending lock might already be on the list, so
+ 		 * dont process it twice:
+ 		 */
+-		if (entry != pending)
+-			if (handle_futex_death((void __user *)entry + futex_offset,
+-						curr, pi))
+-				return;
++		if (entry != pending) {
++			void __user *uaddr = futex_uaddr(entry,
++							 futex_offset);
  
- /* Get notified when a cpu comes on/off. Be hotplug friendly. */
-@@ -852,21 +859,18 @@ static int
- mce_cpu_callback(struct notifier_block *nfb, unsigned long action, void *hcpu)
- {
- 	unsigned int cpu = (unsigned long)hcpu;
--	int err = 0;
++			if (handle_futex_death(uaddr, curr, pi))
++				return;
++		}
+ 		if (rc)
+ 			return;
+ 		uentry = next_uentry;
+@@ -94,9 +105,11 @@ void compat_exit_robust_list(struct task
  
- 	switch (action) {
--	case CPU_UP_PREPARE:
--	case CPU_UP_PREPARE_FROZEN:
--		err = mce_create_device(cpu);
-+	case CPU_ONLINE:
-+	case CPU_ONLINE_FROZEN:
-+		mce_create_device(cpu);
- 		break;
--	case CPU_UP_CANCELED:
--	case CPU_UP_CANCELED_FROZEN:
- 	case CPU_DEAD:
- 	case CPU_DEAD_FROZEN:
- 		mce_remove_device(cpu);
- 		break;
+ 		cond_resched();
  	}
--	return err ? NOTIFY_BAD : NOTIFY_OK;
-+	return NOTIFY_OK;
+-	if (pending)
+-		handle_futex_death((void __user *)pending + futex_offset,
+-				   curr, pip);
++	if (pending) {
++		void __user *uaddr = futex_uaddr(pending, futex_offset);
++
++		handle_futex_death(uaddr, curr, pip);
++	}
  }
  
- static struct notifier_block mce_cpu_notifier = {
+ asmlinkage long
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from davem@davemloft.net are
 
-slab-fix-typo-in-allocation-failure-handling.patch
-x86_64-fix-cpu-hotplug-regression.patch
+futex-fix-address-computation-in-compat-code.patch
+git-net.patch
+pfkey-sending-an-sadb_get-responds-with-an-sadb_get.patch
+lmc_ioctl-dont-return-with-locks-held-fix.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+git-sparc64.patch
+git-wireless.patch
+sunrpc-xprtrdma-transportc-fix-use-after-free.patch
+sysctl-fix-token-ring-procname.patch
+tty-fix-network-driver-interactions-with-tcget-set-checkpatch-fixes.patch
+tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls-x86-fix.patch
+fix-versus-precedence-in-various-places.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+genericizing-iova.patch
+read_current_time-cleanups.patch
+iget-stop-openpromfs-from-using-iget-and.patch
+add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
+add-cmpxchg_local-to-sparc64.patch
