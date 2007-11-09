@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-bidi-support.patch added to -mm tree
-Date: Fri, 09 Nov 2007 15:53:19 -0800
-Message-ID: <200711092353.lA9NrKPq005838@imap1.linux-foundation.org>
+Subject: + bidi-support-tgt-use-scsi_init_io-instead-of-scsi_alloc_sgtable.patch added to -mm tree
+Date: Fri, 09 Nov 2007 15:53:14 -0800
+Message-ID: <200711092353.lA9NrEs3005828@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51876 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58674 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752005AbXKIXxq (ORCPT
+	by vger.kernel.org with ESMTP id S1754980AbXKIXxq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 18:53:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bharrosh@panasas.com
+Cc: bharrosh@panasas.com, fujita.tomonori@lab.ntt.co.jp
 
 
 The patch titled
-     SCSI: bidi support
+     bidi support: tgt: Use scsi_init_io instead of scsi_alloc_sgtable
 has been added to the -mm tree.  Its filename is
-     scsi-bidi-support.patch
+     bidi-support-tgt-use-scsi_init_io-instead-of-scsi_alloc_sgtable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,358 +25,191 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: SCSI: bidi support
+Subject: bidi support: tgt: Use scsi_init_io instead of scsi_alloc_sgtable
 From: Boaz Harrosh <bharrosh@panasas.com>
 
-At the block level bidi request uses req->next_rq pointer for a second
-bidi_read request.  At Scsi-midlayer a second scsi_data_buffer structure is
-used for the bidi_read part.  This bidi scsi_data_buffer is put on
-request->next_rq->special.  Struct scsi_cmnd is not changed.
-
-- Define scsi_bidi_cmnd() to return true if it is a bidi request and a
-  second sgtable was allocated.
-
-- Define scsi_in()/scsi_out() to return the in or out scsi_data_buffer
-  from this command This API is to isolate users from the mechanics of
-  bidi.
-
-- Define scsi_end_bidi_request() to do what scsi_end_request() does but
-  for a bidi request. This is necessary because bidi commands are a bit
-  tricky here. (See comments in body)
-
-- scsi_release_buffers() will also release the bidi_read scsi_data_buffer
-
-- scsi_io_completion() on bidi commands will now call
-  scsi_end_bidi_request() and return.
-
-- The previous work done in scsi_init_io() is now done in a new
-  scsi_init_sgtable() (which is 99% identical to old scsi_init_io())
-  The new scsi_init_io() will call the above twice if needed also for
-  the bidi_read command. Only at this point is a command bidi.
-
-- In scsi_error.c at scsi_eh_prep/restore_cmnd() make sure bidi-lld is not
-  confused by a get-sense command that looks like bidi. This is done
-  by puting NULL at request->next_rq, and restoring.
+If we export scsi_init_io()/scsi_release_buffers() instead of
+scsi_{alloc,free}_sgtable() from scsi_lib than tgt code is much more insulated
+from scsi_lib changes.  As a bonus it will also gain bidi capability when it
+comes.
 
 Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
+Acked-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_error.c |    3 
- drivers/scsi/scsi_lib.c   |  154 ++++++++++++++++++++++++++++--------
- include/scsi/scsi_cmnd.h  |   23 +++++
- include/scsi/scsi_eh.h    |    1 
- 4 files changed, 149 insertions(+), 32 deletions(-)
+ drivers/scsi/scsi_lib.c     |   21 ++++++++++-----------
+ drivers/scsi/scsi_tgt_lib.c |   34 +++++-----------------------------
+ include/scsi/scsi_cmnd.h    |    4 ++--
+ 3 files changed, 17 insertions(+), 42 deletions(-)
 
-diff -puN drivers/scsi/scsi_error.c~scsi-bidi-support drivers/scsi/scsi_error.c
---- a/drivers/scsi/scsi_error.c~scsi-bidi-support
-+++ a/drivers/scsi/scsi_error.c
-@@ -618,9 +618,11 @@ void scsi_eh_prep_cmnd(struct scsi_cmnd 
- 	memcpy(ses->cmnd, scmd->cmnd, sizeof(scmd->cmnd));
- 	ses->data_direction = scmd->sc_data_direction;
- 	ses->sdb = scmd->sdb;
-+	ses->next_rq = scmd->request->next_rq;
- 	ses->result = scmd->result;
- 
- 	memset(&scmd->sdb, 0, sizeof(scmd->sdb));
-+	scmd->request->next_rq = NULL;
- 
- 	if (sense_bytes) {
- 		scmd->sdb.length = min_t(unsigned,
-@@ -673,6 +675,7 @@ void scsi_eh_restore_cmnd(struct scsi_cm
- 	memcpy(scmd->cmnd, ses->cmnd, sizeof(scmd->cmnd));
- 	scmd->sc_data_direction = ses->data_direction;
- 	scmd->sdb = ses->sdb;
-+	scmd->request->next_rq = ses->next_rq;
- 	scmd->result = ses->result;
- }
- EXPORT_SYMBOL(scsi_eh_restore_cmnd);
-diff -puN drivers/scsi/scsi_lib.c~scsi-bidi-support drivers/scsi/scsi_lib.c
---- a/drivers/scsi/scsi_lib.c~scsi-bidi-support
+diff -puN drivers/scsi/scsi_lib.c~bidi-support-tgt-use-scsi_init_io-instead-of-scsi_alloc_sgtable drivers/scsi/scsi_lib.c
+--- a/drivers/scsi/scsi_lib.c~bidi-support-tgt-use-scsi_init_io-instead-of-scsi_alloc_sgtable
 +++ a/drivers/scsi/scsi_lib.c
-@@ -64,6 +64,8 @@ static struct scsi_host_sg_pool scsi_sg_
- };
- #undef SP
- 
-+static struct kmem_cache *scsi_bidi_sdb_cache;
-+
- static void scsi_run_queue(struct request_queue *q);
- 
- /*
-@@ -625,6 +627,28 @@ void scsi_run_host_queues(struct Scsi_Ho
- 		scsi_run_queue(sdev->request_queue);
+@@ -737,7 +737,8 @@ static inline unsigned int scsi_sgtable_
+ 	return index;
  }
  
-+static void scsi_finalize_request(struct scsi_cmnd *cmd, int uptodate)
-+{
-+	struct request_queue *q = cmd->device->request_queue;
-+	struct request *req = cmd->request;
-+	unsigned long flags;
-+
-+	add_disk_randomness(req->rq_disk);
-+
-+	spin_lock_irqsave(q->queue_lock, flags);
-+	if (blk_rq_tagged(req))
-+		blk_queue_end_tag(q, req);
-+
-+	end_that_request_last(req, uptodate);
-+	spin_unlock_irqrestore(q->queue_lock, flags);
-+
-+	/*
-+	 * This will goose the queue request function at the end, so we don't
-+	 * need to worry about launching another command.
-+	 */
-+	scsi_next_command(cmd);
-+}
-+
- /*
-  * Function:    scsi_end_request()
-  *
-@@ -652,7 +676,6 @@ static struct scsi_cmnd *scsi_end_reques
+-struct scatterlist *scsi_alloc_sgtable(struct scsi_cmnd *cmd, gfp_t gfp_mask)
++static struct scatterlist *scsi_alloc_sgtable(struct scsi_cmnd *cmd,
++								gfp_t gfp_mask)
  {
- 	struct request_queue *q = cmd->device->request_queue;
- 	struct request *req = cmd->request;
--	unsigned long flags;
- 
- 	/*
- 	 * If there are blocks left over at the end, set up the command
-@@ -681,19 +704,7 @@ static struct scsi_cmnd *scsi_end_reques
- 		}
- 	}
- 
--	add_disk_randomness(req->rq_disk);
--
--	spin_lock_irqsave(q->queue_lock, flags);
--	if (blk_rq_tagged(req))
--		blk_queue_end_tag(q, req);
--	end_that_request_last(req, uptodate);
--	spin_unlock_irqrestore(q->queue_lock, flags);
--
--	/*
--	 * This will goose the queue request function at the end, so we don't
--	 * need to worry about launching another command.
--	 */
--	scsi_next_command(cmd);
-+	scsi_finalize_request(cmd, uptodate);
+ 	struct scsi_host_sg_pool *sgp;
+ 	struct scatterlist *sgl, *prev, *ret;
+@@ -823,9 +824,7 @@ enomem:
  	return NULL;
  }
  
-@@ -892,10 +903,47 @@ void scsi_release_buffers(struct scsi_cm
- 		scsi_free_sgtable(&cmd->sdb);
- 
- 	memset(&cmd->sdb, 0, sizeof(cmd->sdb));
-+
-+	if (scsi_bidi_cmnd(cmd)) {
-+		struct scsi_data_buffer *bidi_sdb =
-+			cmd->request->next_rq->special;
-+		scsi_free_sgtable(bidi_sdb);
-+		kmem_cache_free(scsi_bidi_sdb_cache, bidi_sdb);
-+		cmd->request->next_rq->special = NULL;
-+	}
+-EXPORT_SYMBOL(scsi_alloc_sgtable);
+-
+-void scsi_free_sgtable(struct scsi_cmnd *cmd)
++static void scsi_free_sgtable(struct scsi_cmnd *cmd)
+ {
+ 	struct scatterlist *sgl = cmd->request_buffer;
+ 	struct scsi_host_sg_pool *sgp;
+@@ -871,8 +870,6 @@ void scsi_free_sgtable(struct scsi_cmnd 
+ 	mempool_free(sgl, sgp->pool);
  }
- EXPORT_SYMBOL(scsi_release_buffers);
+ 
+-EXPORT_SYMBOL(scsi_free_sgtable);
+-
+ /*
+  * Function:    scsi_release_buffers()
+  *
+@@ -890,7 +887,7 @@ EXPORT_SYMBOL(scsi_free_sgtable);
+  *		the scatter-gather table, and potentially any bounce
+  *		buffers.
+  */
+-static void scsi_release_buffers(struct scsi_cmnd *cmd)
++void scsi_release_buffers(struct scsi_cmnd *cmd)
+ {
+ 	if (cmd->use_sg)
+ 		scsi_free_sgtable(cmd);
+@@ -902,6 +899,7 @@ static void scsi_release_buffers(struct 
+ 	cmd->request_buffer = NULL;
+ 	cmd->request_bufflen = 0;
+ }
++EXPORT_SYMBOL(scsi_release_buffers);
  
  /*
-+ * Bidi commands Must be complete as a whole, both sides at once.
-+ * If part of the bytes were written and lld returned
-+ * scsi_in()->resid and/or scsi_out()->resid this information will be left
-+ * in req->data_len and req->next_rq->data_len. The upper-layer driver can
-+ * decide what to do with this information.
-+ */
-+void scsi_end_bidi_request(struct scsi_cmnd *cmd)
-+{
-+	struct request *req = cmd->request;
-+
-+	end_that_request_chunk(req, 1, req->data_len);
-+	req->data_len = scsi_out(cmd)->resid;
-+
-+	end_that_request_chunk(req->next_rq, 1, req->next_rq->data_len);
-+	req->next_rq->data_len = scsi_in(cmd)->resid;
-+
-+	scsi_release_buffers(cmd);
-+
-+	/*
-+	 *FIXME: If ll_rw_blk.c is changed to also put_request(req->next_rq)
-+	 *       in end_that_request_last() then this WARN_ON must be removed.
-+	 *       for now, upper-driver must have registered an end_io.
-+	 */
-+	WARN_ON(!req->end_io);
-+
-+	scsi_finalize_request(cmd, 1);
-+}
-+
-+/*
   * Function:    scsi_io_completion()
-  *
-  * Purpose:     Completion processing for block device I/O requests.
-@@ -956,9 +1004,15 @@ void scsi_io_completion(struct scsi_cmnd
- 				req->sense_len = len;
- 			}
- 		}
-+		if (scsi_bidi_cmnd(cmd)) {
-+			/* will also release_buffers */
-+			scsi_end_bidi_request(cmd);
-+			return;
-+		}
- 		req->data_len = scsi_get_resid(cmd);
- 	}
- 
-+	BUG_ON(blk_bidi_rq(req)); /* bidi not support for !blk_pc_request yet */
- 	scsi_release_buffers(cmd);
- 
- 	/*
-@@ -1084,25 +1138,12 @@ void scsi_io_completion(struct scsi_cmnd
- 	scsi_end_request(cmd, 0, this_count, !result);
- }
- 
--/*
-- * Function:    scsi_init_io()
-- *
-- * Purpose:     SCSI I/O initialize function.
-- *
-- * Arguments:   cmd   - Command descriptor we wish to initialize
-- *
-- * Returns:     0 on success
-- *		BLKPREP_DEFER if the failure is retryable
-- *		BLKPREP_KILL if the failure is fatal
-- */
--int scsi_init_io(struct scsi_cmnd *cmd, gfp_t gfp_mask)
-+static int scsi_init_sgtable(struct request *req, struct scsi_data_buffer *sdb,
-+								 gfp_t gfp_mask)
+@@ -1104,7 +1102,7 @@ void scsi_io_completion(struct scsi_cmnd
+  *		BLKPREP_DEFER if the failure is retryable
+  *		BLKPREP_KILL if the failure is fatal
+  */
+-static int scsi_init_io(struct scsi_cmnd *cmd)
++int scsi_init_io(struct scsi_cmnd *cmd, gfp_t gfp_mask)
  {
--	struct request     *req = cmd->request;
--	int		   count;
--	struct scsi_data_buffer *sdb = &cmd->sdb;
-+	int count;
- 
- 	if (scsi_alloc_sgtable(sdb, req->nr_phys_segments, gfp_mask)) {
--		scsi_unprep_request(req);
+ 	struct request     *req = cmd->request;
+ 	int		   count;
+@@ -1119,7 +1117,7 @@ static int scsi_init_io(struct scsi_cmnd
+ 	/*
+ 	 * If sg table allocation fails, requeue request later.
+ 	 */
+-	cmd->request_buffer = scsi_alloc_sgtable(cmd, GFP_ATOMIC);
++	cmd->request_buffer = scsi_alloc_sgtable(cmd, gfp_mask);
+ 	if (unlikely(!cmd->request_buffer)) {
+ 		scsi_unprep_request(req);
  		return BLKPREP_DEFER;
- 	}
+@@ -1148,6 +1146,7 @@ static int scsi_init_io(struct scsi_cmnd
  
-@@ -1126,9 +1167,52 @@ int scsi_init_io(struct scsi_cmnd *cmd, 
- 	printk(KERN_ERR "counted %d, received %d\n", count, sdb->sg_count);
- 	printk(KERN_ERR "req nr_sec %lu, cur_nr_sec %u\n", req->nr_sectors,
- 			req->current_nr_sectors);
--
  	return BLKPREP_KILL;
  }
-+
-+/*
-+ * Function:    scsi_init_io()
-+ *
-+ * Purpose:     SCSI I/O initialize function.
-+ *
-+ * Arguments:   cmd   - Command descriptor we wish to initialize
-+ *
-+ * Returns:     0 on success
-+ *		BLKPREP_DEFER if the failure is retryable
-+ *		BLKPREP_KILL if the failure is fatal
-+ */
-+int scsi_init_io(struct scsi_cmnd *cmd, gfp_t gfp_mask)
-+{
-+	int error = scsi_init_sgtable(cmd->request, &cmd->sdb, gfp_mask);
-+	if (error)
-+		goto err_exit;
-+
-+	if (blk_bidi_rq(cmd->request)) {
-+		struct scsi_data_buffer *bidi_sdb = kmem_cache_zalloc(
-+			scsi_bidi_sdb_cache, GFP_ATOMIC);
-+		if (!bidi_sdb) {
-+			error = BLKPREP_DEFER;
-+			goto err_exit;
-+		}
-+
-+		cmd->request->next_rq->special = bidi_sdb;
-+		error = scsi_init_sgtable(cmd->request->next_rq, bidi_sdb,
-+								    GFP_ATOMIC);
-+		if (error)
-+			goto err_exit;
-+	}
-+
-+	return BLKPREP_OK ;
-+
-+err_exit:
-+	scsi_release_buffers(cmd);
-+	if (error == BLKPREP_KILL)
-+		scsi_put_command(cmd);
-+	else /* BLKPREP_DEFER */
-+		scsi_unprep_request(cmd->request);
-+
-+	return error;
-+}
- EXPORT_SYMBOL(scsi_init_io);
++EXPORT_SYMBOL(scsi_init_io);
  
  static struct scsi_cmnd *scsi_get_cmd_from_req(struct scsi_device *sdev,
-@@ -1738,6 +1822,14 @@ int __init scsi_init_queue(void)
- 		return -ENOMEM;
+ 		struct request *req)
+@@ -1193,7 +1192,7 @@ int scsi_setup_blk_pc_cmnd(struct scsi_d
+ 
+ 		BUG_ON(!req->nr_phys_segments);
+ 
+-		ret = scsi_init_io(cmd);
++		ret = scsi_init_io(cmd, GFP_ATOMIC);
+ 		if (unlikely(ret))
+ 			return ret;
+ 	} else {
+@@ -1244,7 +1243,7 @@ int scsi_setup_fs_cmnd(struct scsi_devic
+ 	if (unlikely(!cmd))
+ 		return BLKPREP_DEFER;
+ 
+-	return scsi_init_io(cmd);
++	return scsi_init_io(cmd, GFP_ATOMIC);
+ }
+ EXPORT_SYMBOL(scsi_setup_fs_cmnd);
+ 
+diff -puN drivers/scsi/scsi_tgt_lib.c~bidi-support-tgt-use-scsi_init_io-instead-of-scsi_alloc_sgtable drivers/scsi/scsi_tgt_lib.c
+--- a/drivers/scsi/scsi_tgt_lib.c~bidi-support-tgt-use-scsi_init_io-instead-of-scsi_alloc_sgtable
++++ a/drivers/scsi/scsi_tgt_lib.c
+@@ -331,8 +331,7 @@ static void scsi_tgt_cmd_done(struct scs
+ 
+ 	scsi_tgt_uspace_send_status(cmd, tcmd->itn_id, tcmd->tag);
+ 
+-	if (scsi_sglist(cmd))
+-		scsi_free_sgtable(cmd);
++	scsi_release_buffers(cmd);
+ 
+ 	queue_work(scsi_tgtd, &tcmd->work);
+ }
+@@ -353,31 +352,6 @@ static int scsi_tgt_transfer_response(st
+ 	return 0;
+ }
+ 
+-static int scsi_tgt_init_cmd(struct scsi_cmnd *cmd, gfp_t gfp_mask)
+-{
+-	struct request *rq = cmd->request;
+-	int count;
+-
+-	cmd->use_sg = rq->nr_phys_segments;
+-	cmd->request_buffer = scsi_alloc_sgtable(cmd, gfp_mask);
+-	if (!cmd->request_buffer)
+-		return -ENOMEM;
+-
+-	cmd->request_bufflen = rq->data_len;
+-
+-	dprintk("cmd %p cnt %d %lu\n", cmd, scsi_sg_count(cmd),
+-		rq_data_dir(rq));
+-	count = blk_rq_map_sg(rq->q, rq, scsi_sglist(cmd));
+-	if (likely(count <= scsi_sg_count(cmd))) {
+-		cmd->use_sg = count;
+-		return 0;
+-	}
+-
+-	eprintk("cmd %p cnt %d\n", cmd, scsi_sg_count(cmd));
+-	scsi_free_sgtable(cmd);
+-	return -EINVAL;
+-}
+-
+ /* TODO: test this crap and replace bio_map_user with new interface maybe */
+ static int scsi_map_user_pages(struct scsi_tgt_cmd *tcmd, struct scsi_cmnd *cmd,
+ 			       unsigned long uaddr, unsigned int len, int rw)
+@@ -403,9 +377,11 @@ static int scsi_map_user_pages(struct sc
  	}
  
-+	scsi_bidi_sdb_cache = kmem_cache_create("scsi_bidi_sdb",
-+					sizeof(struct scsi_data_buffer),
-+					0, 0, NULL);
-+	if (!scsi_bidi_sdb_cache) {
-+		printk(KERN_ERR "SCSI: can't init scsi bidi sdb cache\n");
-+		return -ENOMEM;
+ 	tcmd->bio = rq->bio;
+-	err = scsi_tgt_init_cmd(cmd, GFP_KERNEL);
+-	if (err)
++	err = scsi_init_io(cmd, GFP_KERNEL);
++	if (err) {
++		scsi_release_buffers(cmd);
+ 		goto unmap_rq;
 +	}
-+
- 	for (i = 0; i < SG_MEMPOOL_NR; i++) {
- 		struct scsi_host_sg_pool *sgp = scsi_sg_pools + i;
- 		int size = sgp->size * sizeof(struct scatterlist);
-diff -puN include/scsi/scsi_cmnd.h~scsi-bidi-support include/scsi/scsi_cmnd.h
---- a/include/scsi/scsi_cmnd.h~scsi-bidi-support
+ 
+ 	return 0;
+ 
+diff -puN include/scsi/scsi_cmnd.h~bidi-support-tgt-use-scsi_init_io-instead-of-scsi_alloc_sgtable include/scsi/scsi_cmnd.h
+--- a/include/scsi/scsi_cmnd.h~bidi-support-tgt-use-scsi_init_io-instead-of-scsi_alloc_sgtable
 +++ a/include/scsi/scsi_cmnd.h
-@@ -2,12 +2,12 @@
- #define _SCSI_SCSI_CMND_H
+@@ -128,8 +128,8 @@ extern void *scsi_kmap_atomic_sg(struct 
+ 				 size_t *offset, size_t *len);
+ extern void scsi_kunmap_atomic_sg(void *virt);
  
- #include <linux/dma-mapping.h>
-+#include <linux/blkdev.h>
- #include <linux/list.h>
- #include <linux/types.h>
- #include <linux/timer.h>
- #include <linux/scatterlist.h>
+-extern struct scatterlist *scsi_alloc_sgtable(struct scsi_cmnd *, gfp_t);
+-extern void scsi_free_sgtable(struct scsi_cmnd *);
++extern int scsi_init_io(struct scsi_cmnd *cmd, gfp_t gfp_mask);
++extern void scsi_release_buffers(struct scsi_cmnd *cmd);
  
--struct request;
- struct scatterlist;
- struct Scsi_Host;
- struct scsi_device;
-@@ -162,4 +162,25 @@ static inline int scsi_get_resid(struct 
- #define scsi_for_each_sg(cmd, sg, nseg, __i)			\
- 	for_each_sg(scsi_sglist(cmd), sg, nseg, __i)
- 
-+static inline int scsi_bidi_cmnd(struct scsi_cmnd *cmd)
-+{
-+	return blk_bidi_rq(cmd->request) &&
-+		(cmd->request->next_rq->special != NULL);
-+}
-+
-+static inline struct scsi_data_buffer *scsi_in(struct scsi_cmnd *cmd)
-+{
-+	WARN_ON((cmd->sc_data_direction != DMA_FROM_DEVICE) &&
-+							!scsi_bidi_cmnd(cmd));
-+	return scsi_bidi_cmnd(cmd) ?
-+		cmd->request->next_rq->special : &cmd->sdb;
-+}
-+
-+static inline struct scsi_data_buffer *scsi_out(struct scsi_cmnd *cmd)
-+{
-+	WARN_ON((cmd->sc_data_direction != DMA_TO_DEVICE) &&
-+							!scsi_bidi_cmnd(cmd));
-+	return &cmd->sdb;
-+}
-+
- #endif /* _SCSI_SCSI_CMND_H */
-diff -puN include/scsi/scsi_eh.h~scsi-bidi-support include/scsi/scsi_eh.h
---- a/include/scsi/scsi_eh.h~scsi-bidi-support
-+++ a/include/scsi/scsi_eh.h
-@@ -74,6 +74,7 @@ struct scsi_eh_save {
- 	unsigned char cmd_len;
- 	unsigned char cmnd[MAX_COMMAND_SIZE];
- 	struct scsi_data_buffer sdb;
-+	struct request *next_rq;
- 
- 	/* new command support */
- 	struct scatterlist sense_sgl;
+ extern int scsi_dma_map(struct scsi_cmnd *cmd);
+ extern void scsi_dma_unmap(struct scsi_cmnd *cmd);
 _
 
 Patches currently in -mm which might be from bharrosh@panasas.com are
