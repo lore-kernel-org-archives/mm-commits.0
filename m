@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + proper-prototype-for-vty_init.patch added to -mm tree
-Date: Thu, 08 Nov 2007 20:52:48 -0800
-Message-ID: <200711090452.lA94qnIL030208@imap1.linux-foundation.org>
+Subject: + power_supply_ledssysfsc-should-include-power_supplyh.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:53:03 -0800
+Message-ID: <200711090453.lA94r4q7030223@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39667 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58780 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760493AbXKIExG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:53:06 -0500
+	by vger.kernel.org with ESMTP id S1759821AbXKIExT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:53:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@kernel.org
 
 
 The patch titled
-     proper prototype for vty_init()
+     patch] power_supply_{leds,sysfs}.c should #include "power_supply.h"
 has been added to the -mm tree.  Its filename is
-     proper-prototype-for-vty_init.patch
+     power_supply_ledssysfsc-should-include-power_supplyh.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,44 +25,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: proper prototype for vty_init()
+Subject: patch] power_supply_{leds,sysfs}.c should #include "power_supply.h"
 From: Adrian Bunk <bunk@kernel.org>
 
-Add a proper prototype for vty_init() in include/linux/vt_kern.h
+Every file should include the headers containing the prototypes for its global
+functions.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c   |    4 ----
- include/linux/vt_kern.h |    1 +
- 2 files changed, 1 insertion(+), 4 deletions(-)
+ drivers/power/power_supply_leds.c  |    2 ++
+ drivers/power/power_supply_sysfs.c |    2 ++
+ 2 files changed, 4 insertions(+)
 
-diff -puN drivers/char/tty_io.c~proper-prototype-for-vty_init drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~proper-prototype-for-vty_init
-+++ a/drivers/char/tty_io.c
-@@ -4048,10 +4048,6 @@ void __init console_init(void)
- 	}
- }
+diff -puN drivers/power/power_supply_leds.c~power_supply_ledssysfsc-should-include-power_supplyh drivers/power/power_supply_leds.c
+--- a/drivers/power/power_supply_leds.c~power_supply_ledssysfsc-should-include-power_supplyh
++++ a/drivers/power/power_supply_leds.c
+@@ -12,6 +12,8 @@
  
--#ifdef CONFIG_VT
--extern int vty_init(void);
--#endif
--
- static int __init tty_class_init(void)
- {
- 	tty_class = class_create(THIS_MODULE, "tty");
-diff -puN include/linux/vt_kern.h~proper-prototype-for-vty_init include/linux/vt_kern.h
---- a/include/linux/vt_kern.h~proper-prototype-for-vty_init
-+++ a/include/linux/vt_kern.h
-@@ -77,6 +77,7 @@ void change_console(struct vc_data *new_
- void reset_vc(struct vc_data *vc);
- extern int unbind_con_driver(const struct consw *csw, int first, int last,
- 			     int deflt);
-+int vty_init(void);
+ #include <linux/power_supply.h>
  
++#include "power_supply.h"
++
+ /* Battery specific LEDs triggers. */
+ 
+ static void power_supply_update_bat_leds(struct power_supply *psy)
+diff -puN drivers/power/power_supply_sysfs.c~power_supply_ledssysfsc-should-include-power_supplyh drivers/power/power_supply_sysfs.c
+--- a/drivers/power/power_supply_sysfs.c~power_supply_ledssysfsc-should-include-power_supplyh
++++ a/drivers/power/power_supply_sysfs.c
+@@ -14,6 +14,8 @@
+ #include <linux/ctype.h>
+ #include <linux/power_supply.h>
+ 
++#include "power_supply.h"
++
  /*
-  * vc_screen.c shares this temporary buffer with the console write code so that
+  * This is because the name "current" breaks the device attr macro.
+  * The "current" word resolves to "(get_current())" so instead of
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
