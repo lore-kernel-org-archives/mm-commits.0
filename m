@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch added to -mm tree
-Date: Fri, 09 Nov 2007 00:24:41 -0800
-Message-ID: <200711090824.lA98Og3v004497@imap1.linux-foundation.org>
+Subject: + remove-documentation-smptxt.patch added to -mm tree
+Date: Fri, 09 Nov 2007 00:25:05 -0800
+Message-ID: <200711090825.lA98P60L004515@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45896 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33770 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751081AbXKIIZP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 03:25:15 -0500
+	by vger.kernel.org with ESMTP id S1751200AbXKIIZh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 03:25:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haveblue@us.ibm.com, ezk@cs.sunysb.edu, hch@lst.de, hugh@veritas.com
+Cc: bunk@kernel.org, alan@redhat.com
 
 
 The patch titled
-     r/o bind mounts: fix buggy loop
+     remove Documentation/smp.txt
 has been added to the -mm tree.  Its filename is
-     r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
+     remove-documentation-smptxt.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,150 +25,135 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: r/o bind mounts: fix buggy loop
-From: Dave Hansen <haveblue@us.ibm.com>
+Subject: remove Documentation/smp.txt
+From: Adrian Bunk <bunk@kernel.org>
 
-The mnt->__mnt_writers can go negative for a time if a pair of
-mnt_want_write()/mnt_drop_write() calls is done on a different cpu, but for
-the same mount.  This part is expected.
+After seeing the filename I'd have expected something about the
+implementation of SMP in the Linux kernel - not some notes on kernel
+configuration and building trivialities noone would search at this place.
 
-The lock_and_coalesce..() function should make that count positive (or at
-least 0).  Hugh Dickins had found a bug in the unionfs code which caused a
-permanent imbalance in this code, and eventually underflowed the atomic_t
-mnt->__mnt_writers.
-
-It also locked up the while() loop that expects the count to go up after it
-is coalesced.
-
-The following patch won't fix such a unionfs bug, but it will keep the loop
-from locking up.  It will also warn a lot earlier that something funky is
-going on.
-
-Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Cc: Erez Zadok <ezk@cs.sunysb.edu>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c        |   31 ++++++++++++++++++++++---------
- include/linux/mount.h |    1 +
- 2 files changed, 23 insertions(+), 9 deletions(-)
+ Documentation/00-INDEX |    2 --
+ Documentation/smp.txt  |   22 ----------------------
+ 2 files changed, 24 deletions(-)
 
-diff -puN fs/namespace.c~r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop fs/namespace.c
---- a/fs/namespace.c~r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop
-+++ a/fs/namespace.c
-@@ -224,16 +224,29 @@ static void lock_and_coalesce_cpu_mnt_wr
-  */
- static void handle_write_count_underflow(struct vfsmount *mnt)
- {
--	while (atomic_read(&mnt->__mnt_writers) <
--		MNT_WRITER_UNDERFLOW_LIMIT) {
--		/*
--		 * It isn't necessary to hold all of the locks
--		 * at the same time, but doing it this way makes
--		 * us share a lot more code.
--		 */
--		lock_and_coalesce_cpu_mnt_writer_counts();
--		mnt_unlock_cpus();
-+	if (atomic_read(&mnt->__mnt_writers) >=
-+	    MNT_WRITER_UNDERFLOW_LIMIT)
-+		return;
-+	/*
-+	 * It isn't necessary to hold all of the locks
-+	 * at the same time, but doing it this way makes
-+	 * us share a lot more code.
-+	 */
-+	lock_and_coalesce_cpu_mnt_writer_counts();
-+	/*
-+	 * If coalescing the per-cpu writer counts did not
-+	 * get us back to a positive writer count, we have
-+	 * a bug.
-+	 */
-+	if ((atomic_read(&mnt->__mnt_writers) < 0) &&
-+	    !(mnt->mnt_flags & MNT_IMBALANCED_WRITE_COUNT)) {
-+		printk("leak detected on mount(%p) writers count: %d\n",
-+			mnt, atomic_read(&mnt->__mnt_writers));
-+		WARN_ON(1);
-+		/* use the flag to keep the dmesg spam down */
-+		mnt->mnt_flags |= MNT_IMBALANCED_WRITE_COUNT;
- 	}
-+	mnt_unlock_cpus();
- }
- 
- /**
-diff -puN include/linux/mount.h~r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop include/linux/mount.h
---- a/include/linux/mount.h~r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop
-+++ a/include/linux/mount.h
-@@ -33,6 +33,7 @@ struct mnt_namespace;
- 
- #define MNT_SHRINKABLE	0x100
- #define MNT_USER	0x200
-+#define MNT_IMBALANCED_WRITE_COUNT	0x400 /* just for debugging */
- 
- #define MNT_SHARED	0x1000	/* if the vfsmount is a shared mount */
- #define MNT_UNBINDABLE	0x2000	/* if the vfsmount is a unbindable mount */
+diff -puN Documentation/00-INDEX~remove-documentation-smptxt Documentation/00-INDEX
+--- a/Documentation/00-INDEX~remove-documentation-smptxt
++++ a/Documentation/00-INDEX
+@@ -362,8 +362,6 @@ sharedsubtree.txt
+ 	- a description of shared subtrees for namespaces.
+ smart-config.txt
+ 	- description of the Smart Config makefile feature.
+-smp.txt
+-	- a few notes on symmetric multi-processing.
+ sony-laptop.txt
+ 	- Sony Notebook Control Driver (SNC) Readme.
+ sonypi.txt
+diff -puN Documentation/smp.txt~remove-documentation-smptxt /dev/null
+--- a/Documentation/smp.txt
++++ /dev/null
+@@ -1,22 +0,0 @@
+-To set up SMP
+-
+-Configure the kernel and answer Y to CONFIG_SMP.
+-
+-If you are using LILO, it is handy to have both SMP and non-SMP
+-kernel images on hand. Edit /etc/lilo.conf to create an entry
+-for another kernel image called "linux-smp" or something.
+-
+-The next time you compile the kernel, when running a SMP kernel,
+-edit linux/Makefile and change "MAKE=make" to "MAKE=make -jN"
+-(where N = number of CPU + 1, or if you have tons of memory/swap
+- you can just use "-j" without a number). Feel free to experiment
+-with this one.
+-
+-Of course you should time how long each build takes :-)
+-Example:
+-   make config
+-   time -v sh -c 'make clean install modules modules_install'
+-
+-If you are using some Compaq MP compliant machines you will need to set
+-the operating system in the BIOS settings to "Unixware" - don't ask me
+-why Compaqs don't work otherwise.
 _
 
-Patches currently in -mm which might be from haveblue@us.ibm.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-markers-fix-warnings.patch
-maps4-add-proportional-set-size-accounting-in-smaps.patch
-maps4-rework-task_size-macros.patch
-maps4-move-is_swap_pte.patch
-maps4-introduce-a-generic-page-walker.patch
-maps4-use-pagewalker-in-clear_refs-and-smaps.patch
-maps4-simplify-interdependence-of-maps-and-smaps.patch
-maps4-move-clear_refs-code-to-task_mmuc.patch
-maps4-regroup-task_mmu-by-interface.patch
-maps4-add-proc-pid-pagemap-interface.patch
-maps4-add-proc-kpagecount-interface.patch
-maps4-add-proc-kpageflags-interface.patch
-maps4-make-page-monitoring-proc-file-optional.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-hugetlb-fix-quota-management-for-private-mappings.patch
-hugetlb-debit-quota-in-alloc_huge_page.patch
-hugetlb-allow-bulk-updating-in-hugetlb__quota.patch
-hugetlb-enforce-quotas-during-reservation-for-shared-mappings.patch
-add-remove_memory-for-ppc64-2.patch
-enable-hotplug-memory-remove-for-ppc64.patch
-add-arch-specific-walk_memory_remove-for-ppc64.patch
-do-namei_flags-calculation-inside-open_namei.patch
-make-open_namei-return-a-filp.patch
-kill-do_filp_open.patch
-kill-filp_open.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-do_rmdir-elevate-write-count.patch
-r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
-r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
-r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
-r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files.patch
-r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
-r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
-r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
-r-o-bind-mounts-make-access-use-mnt-check.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
-keep-track-of-mnt_writer-state-of-struct-file.patch
+origin.patch
+lguest_userc-fix-memory-leak.patch
+video-sis-fix-negative-array-index.patch
+dvb-bt8xx-dstc-make-code-static.patch
+dvb-usb-gp8pskc-if-0-gp8psk_bcm4500_reload.patch
+dvb-usb-vp702xc-cleanups.patch
+dvb-usb-make-some-debug-vars-static.patch
+media-common-ir-functionsc-make-a-function-static.patch
+cx88-mpegc-make-4-functions-static.patch
+media-video-et61x251-make-5-functions-static.patch
+git-hwmon.patch
+fs-dlm-proper-prototypes.patch
+make-jffs2_get_acl-static.patch
+make-sunrpc-xprtsockcxs_setup_udptcp-static.patch
+git-netdev-all.patch
+drivers-net-chelsio-if-0-unused-functions.patch
+drivers-bluetooth-bpa10xc-fix-memleak.patch
+drivers-bluetooth-btsdioc-fix-double-free.patch
+git-nfs-make-nfs_wb_page_priority-static.patch
+fs-nfs-dirc-should-include-internalh.patch
+proper-prototype-for-kernel-schedcmigration_init.patch
+git-scsi-misc.patch
+scsi-advansysc-make-3-functions-static.patch
+scsi-qla2xxx-possible-cleanups.patch
+usb-mon-mon_binc-cleanups.patch
+xtensa-iss_net_setup-must-be-__init.patch
+xtensa-kernel-setupc-remove-dead-code.patch
+sunrpc-xprtrdma-transportc-fix-use-after-free.patch
+fix-mm-utilckrealloc.patch
+fuse_file_alloc-fix-null-dereferences.patch
+pidns-place-under-config_experimental.patch
+pidns-place-under-config_experimental-checkpatch-fixes.patch
+feature-removal-schedule-remove-sa_-flags-entry.patch
+kernel-taskstatsc-fix-bogus-nlmsg_free.patch
+mm-hugetlbc-make-a-function-static.patch
+mm-page-writebackc-make-a-function-static.patch
+make-__vmalloc_area_node-static.patch
+blackfin-remove-dump_thread.patch
+kernel-power-diskc-make-code-static.patch
+make-kernel_shutdown_prepare-static.patch
+kernel-power-move-function-prototypes-to-header.patch
+kill-udffs_dateversion.patch
+make-ipc-utilcsysvipc_find_ipc-static.patch
+cleanup-after-apus-removal.patch
+remove-mm_ptovvtop.patch
+remove-__attribute_used__.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+proper-show_interrupts-prototype.patch
+scheduled-oss-driver-removal.patch
+linux-inith-simplify-__meminitexit-dependencies.patch
+proper-prototype-for-signals_init.patch
+kernel-ptracec-should-include-linux-syscallsh.patch
+make-srcu_readers_active-static.patch
+kernel-notifierc-should-include-linux-rebooth.patch
+proper-prototype-for-get_filesystem_list.patch
+fs-utimesc-should-include-linux-syscallsh.patch
+fs-signalfdc-should-include-linux-syscallsh.patch
+fs-eventfdc-should-include-linux-syscallsh.patch
+proper-prototype-for-vty_init.patch
+drivers-misc-lkdtmc-cleanups.patch
+power_supply_ledssysfsc-should-include-power_supplyh.patch
+fs-ecryptfs-possible-cleanups.patch
+make-video-geode-lxfb_corecgeode_modedb-static.patch
+video-hpfbc-section-fix.patch
+ext4-superc-fix-ifdefs.patch
+make-jbd-journalc__journal_abort_hard-static.patch
+move-edactxt-two-levels-up.patch
+remove-documentation-smptxt.patch
+kernel-cgroupc-remove-dead-code.patch
+kernel-cgroupc-make-2-functions-static.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+fix-m32r-__xchg.patch
 reiser4.patch
-page-owner-tracking-leak-detector.patch
