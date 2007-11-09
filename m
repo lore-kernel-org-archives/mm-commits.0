@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-remove-dead-config-symbols-from-m32r-code.patch added to -mm tree
-Date: Fri, 09 Nov 2007 15:41:51 -0800
-Message-ID: <200711092341.lA9NfpKx005283@imap1.linux-foundation.org>
+Subject: + m68knomu-remove-dead-config-symbols-from-m68knomu-code.patch added to -mm tree
+Date: Fri, 09 Nov 2007 15:42:47 -0800
+Message-ID: <200711092342.lA9NglWM005322@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43232 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58203 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759770AbXKIXmL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 18:42:11 -0500
+	by vger.kernel.org with ESMTP id S1757462AbXKIXnM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 18:43:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: olsajiri@gmail.com, takata@linux-m32r.org
+Cc: olsajiri@gmail.com, gerg@snapgear.com
 
 
 The patch titled
-     m32r: remove dead config symbols from M32R code
+     m68knomu: remove dead config symbols from m68knomu code
 has been added to the -mm tree.  Its filename is
-     m32r-remove-dead-config-symbols-from-m32r-code.patch
+     m68knomu-remove-dead-config-symbols-from-m68knomu-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,68 +25,155 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: m32r: remove dead config symbols from M32R code
+Subject: m68knomu: remove dead config symbols from m68knomu code
 From: Jiri Olsa <olsajiri@gmail.com>
 
-remove dead config symbols from M32R code
+remove dead config symbols from m68knommu code
 
 Signed-off-by: Jiri Olsa <olsajiri@gmail.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Greg Ungerer <gerg@snapgear.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/boot/compressed/m32r_sio.c     |    4 ++--
- include/asm-m32r/irq.h                   |    2 +-
- include/asm-m32r/m32700ut/m32700ut_pld.h |    4 +---
- 3 files changed, 4 insertions(+), 6 deletions(-)
+ arch/m68knommu/kernel/setup.c    |    3 ---
+ include/asm-m68knommu/mcfne.h    |   27 ---------------------------
+ include/asm-m68knommu/mcfsim.h   |    4 +---
+ include/asm-m68knommu/mcftimer.h |    2 +-
+ include/asm-m68knommu/mcfuart.h  |    2 +-
+ include/asm-m68knommu/system.h   |   17 -----------------
+ 6 files changed, 3 insertions(+), 52 deletions(-)
 
-diff -puN arch/m32r/boot/compressed/m32r_sio.c~m32r-remove-dead-config-symbols-from-m32r-code arch/m32r/boot/compressed/m32r_sio.c
---- a/arch/m32r/boot/compressed/m32r_sio.c~m32r-remove-dead-config-symbols-from-m32r-code
-+++ a/arch/m32r/boot/compressed/m32r_sio.c
-@@ -17,7 +17,7 @@ static int puts(const char *s)
- 	return 0;
- }
+diff -puN arch/m68knommu/kernel/setup.c~m68knomu-remove-dead-config-symbols-from-m68knomu-code arch/m68knommu/kernel/setup.c
+--- a/arch/m68knommu/kernel/setup.c~m68knomu-remove-dead-config-symbols-from-m68knomu-code
++++ a/arch/m68knommu/kernel/setup.c
+@@ -64,9 +64,6 @@ void (*mach_power_off)(void);
+ #ifdef CONFIG_M68VZ328
+ 	#define CPU "MC68VZ328"
+ #endif
+-#ifdef CONFIG_M68332
+-	#define CPU "MC68332"
+-#endif
+ #ifdef CONFIG_M68360
+ 	#define CPU "MC68360"
+ #endif
+diff -puN include/asm-m68knommu/mcfne.h~m68knomu-remove-dead-config-symbols-from-m68knomu-code include/asm-m68knommu/mcfne.h
+--- a/include/asm-m68knommu/mcfne.h~m68knomu-remove-dead-config-symbols-from-m68knomu-code
++++ a/include/asm-m68knommu/mcfne.h
+@@ -60,17 +60,6 @@
+ #define	NE2000_BYTE		volatile unsigned char
+ #endif
  
--#if defined(CONFIG_PLAT_M32700UT_Alpha) || defined(CONFIG_PLAT_M32700UT) || defined(CONFIG_PLAT_OPSPUT)
-+#if defined(CONFIG_PLAT_M32700UT) || defined(CONFIG_PLAT_OPSPUT)
- #include <asm/m32r.h>
- #include <asm/io.h>
- 
-@@ -52,7 +52,7 @@ static void putc(char c)
- 	}
- 	*BOOT_SIO0TXB = c;
- }
--#else /* !(CONFIG_PLAT_M32700UT_Alpha) && !(CONFIG_PLAT_M32700UT) */
-+#else /* !(CONFIG_PLAT_M32700UT) */
- #if defined(CONFIG_PLAT_MAPPI2)
- #define SIO0STS	(volatile unsigned short *)(0xa0efd000 + 14)
- #define SIO0TXB	(volatile unsigned short *)(0xa0efd000 + 30)
-diff -puN include/asm-m32r/irq.h~m32r-remove-dead-config-symbols-from-m32r-code include/asm-m32r/irq.h
---- a/include/asm-m32r/irq.h~m32r-remove-dead-config-symbols-from-m32r-code
-+++ a/include/asm-m32r/irq.h
-@@ -3,7 +3,7 @@
- #define _ASM_M32R_IRQ_H
- 
- 
--#if defined(CONFIG_PLAT_M32700UT_Alpha) || defined(CONFIG_PLAT_USRV)
-+#if defined(CONFIG_PLAT_USRV)
- /*
-  * IRQ definitions for M32700UT
-  *  M32700 Chip: 64 interrupts
-diff -puN include/asm-m32r/m32700ut/m32700ut_pld.h~m32r-remove-dead-config-symbols-from-m32r-code include/asm-m32r/m32700ut/m32700ut_pld.h
---- a/include/asm-m32r/m32700ut/m32700ut_pld.h~m32r-remove-dead-config-symbols-from-m32r-code
-+++ a/include/asm-m32r/m32700ut/m32700ut_pld.h
-@@ -13,9 +13,7 @@
-  * this archive for more details.
+-#if defined(CONFIG_CFV240)
+-#define NE2000_ADDR             0x40010000
+-#define NE2000_ADDR1            0x40010001
+-#define NE2000_ODDOFFSET        0x00000000
+-#define NE2000_IRQ              1
+-#define NE2000_IRQ_VECTOR       0x19
+-#define NE2000_IRQ_PRIORITY     2
+-#define NE2000_IRQ_LEVEL        1
+-#define	NE2000_BYTE		volatile unsigned char
+-#endif
+-
+ #if defined(CONFIG_M5307C3)
+ #define NE2000_ADDR		0x40000300
+ #define NE2000_ODDOFFSET	0x00010000
+@@ -173,13 +162,8 @@ void ne2000_outsw(unsigned int addr, voi
+  *	On most NE2000 implementations on ColdFire boards the chip is
+  *	mapped in kinda funny, due to its ISA heritage.
   */
+-#ifdef CONFIG_CFV240
+-#define NE2000_PTR(addr)	(NE2000_ADDR + ((addr & 0x3f) << 1) + 1)
+-#define NE2000_DATA_PTR(addr)	(NE2000_ADDR + ((addr & 0x3f) << 1))
+-#else
+ #define	NE2000_PTR(addr)	((addr&0x1)?(NE2000_ODDOFFSET+addr-1):(addr))
+ #define	NE2000_DATA_PTR(addr)	(addr)
+-#endif
  
--#if defined(CONFIG_PLAT_M32700UT_Alpha)
--#define PLD_PLAT_BASE		0x08c00000
--#elif defined(CONFIG_PLAT_M32700UT) || defined(CONFIG_PLAT_USRV)
-+#if defined(CONFIG_PLAT_M32700UT) || defined(CONFIG_PLAT_USRV)
- #define PLD_PLAT_BASE		0x04c00000
- #else
- #error "no platform configuration"
+ 
+ void ne2000_outb(unsigned int val, unsigned int addr)
+@@ -285,17 +269,6 @@ void ne2000_irqsetup(int irq)
+ }
+ #endif
+ 
+-#if defined(CONFIG_CFV240)
+-void ne2000_irqsetup(int irq)
+-{
+-	volatile unsigned char  *icrp;
+-
+-	icrp = (volatile unsigned char *) (MCF_MBAR + MCFSIM_ICR1);
+-	*icrp = MCFSIM_ICR_LEVEL1 | MCFSIM_ICR_PRI2 | MCFSIM_ICR_AUTOVEC;
+-	mcf_setimr(mcf_getimr() & ~MCFSIM_IMR_EINT1);
+-}
+-#endif
+-
+ #if defined(CONFIG_M5206e) && defined(CONFIG_NETtel)
+ void ne2000_irqsetup(int irq)
+ {
+diff -puN include/asm-m68knommu/mcfsim.h~m68knomu-remove-dead-config-symbols-from-m68knomu-code include/asm-m68knommu/mcfsim.h
+--- a/include/asm-m68knommu/mcfsim.h~m68knomu-remove-dead-config-symbols-from-m68knomu-code
++++ a/include/asm-m68knommu/mcfsim.h
+@@ -17,9 +17,7 @@
+  *	Include 5204, 5206/e, 5235, 5249, 5270/5271, 5272, 5280/5282,
+  *	5307 or 5407 specific addresses.
+  */
+-#if defined(CONFIG_M5204)
+-#include <asm/m5204sim.h>
+-#elif defined(CONFIG_M5206) || defined(CONFIG_M5206e)
++#if defined(CONFIG_M5206) || defined(CONFIG_M5206e)
+ #include <asm/m5206sim.h>
+ #elif defined(CONFIG_M520x)
+ #include <asm/m520xsim.h>
+diff -puN include/asm-m68knommu/mcftimer.h~m68knomu-remove-dead-config-symbols-from-m68knomu-code include/asm-m68knommu/mcftimer.h
+--- a/include/asm-m68knommu/mcftimer.h~m68knomu-remove-dead-config-symbols-from-m68knomu-code
++++ a/include/asm-m68knommu/mcftimer.h
+@@ -16,7 +16,7 @@
+ /*
+  *	Get address specific defines for this ColdFire member.
+  */
+-#if defined(CONFIG_M5204) || defined(CONFIG_M5206) || defined(CONFIG_M5206e)
++#if defined(CONFIG_M5206) || defined(CONFIG_M5206e)
+ #define	MCFTIMER_BASE1		0x100		/* Base address of TIMER1 */
+ #define	MCFTIMER_BASE2		0x120		/* Base address of TIMER2 */
+ #elif defined(CONFIG_M5272)
+diff -puN include/asm-m68knommu/mcfuart.h~m68knomu-remove-dead-config-symbols-from-m68knomu-code include/asm-m68knommu/mcfuart.h
+--- a/include/asm-m68knommu/mcfuart.h~m68knomu-remove-dead-config-symbols-from-m68knomu-code
++++ a/include/asm-m68knommu/mcfuart.h
+@@ -20,7 +20,7 @@
+ #if defined(CONFIG_M5272)
+ #define	MCFUART_BASE1		0x100		/* Base address of UART1 */
+ #define	MCFUART_BASE2		0x140		/* Base address of UART2 */
+-#elif defined(CONFIG_M5204) || defined(CONFIG_M5206) || defined(CONFIG_M5206e)
++#elif defined(CONFIG_M5206) || defined(CONFIG_M5206e)
+ #if defined(CONFIG_NETtel)
+ #define	MCFUART_BASE1		0x180		/* Base address of UART1 */
+ #define	MCFUART_BASE2		0x140		/* Base address of UART2 */
+diff -puN include/asm-m68knommu/system.h~m68knomu-remove-dead-config-symbols-from-m68knomu-code include/asm-m68knommu/system.h
+--- a/include/asm-m68knommu/system.h~m68knomu-remove-dead-config-symbols-from-m68knomu-code
++++ a/include/asm-m68knommu/system.h
+@@ -207,23 +207,6 @@ cmpxchg(volatile int *p, int old, int ne
+ }
+ 
+ 
+-#ifdef CONFIG_M68332
+-#define HARD_RESET_NOW() ({		\
+-        local_irq_disable();		\
+-        asm("				\
+-	movew   #0x0000, 0xfffa6a;	\
+-        reset;				\
+-        /*movew #0x1557, 0xfffa44;*/	\
+-        /*movew #0x0155, 0xfffa46;*/	\
+-        moveal #0, %a0;			\
+-        movec %a0, %vbr;		\
+-        moveal 0, %sp;			\
+-        moveal 4, %a0;			\
+-        jmp (%a0);			\
+-        ");				\
+-})
+-#endif
+-
+ #if defined( CONFIG_M68328 ) || defined( CONFIG_M68EZ328 ) || \
+ 	defined (CONFIG_M68360) || defined( CONFIG_M68VZ328 )
+ #define HARD_RESET_NOW() ({		\
 _
 
 Patches currently in -mm which might be from olsajiri@gmail.com are
@@ -97,3 +184,4 @@ git-net.patch
 drivers-serial-s3c2410c-remove-dead-config-symbols.patch
 git-sh.patch
 frv-remove-dead-config-symbol-from-frv-code.patch
+m68knomu-remove-dead-config-symbols-from-m68knomu-code.patch
