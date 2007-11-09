@@ -1,152 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: + export-acpi_check_resource_conflict-fix.patch added to -mm tree
-Date: Fri, 09 Nov 2007 11:45:37 -0800
-Message-ID: <200711091945.lA9JjbXs029080@imap1.linux-foundation.org>
+Subject: + frv-fix-the-extern-declaration-of-kallsyms_num_syms.patch added to -mm tree
+Date: Fri, 09 Nov 2007 11:46:55 -0800
+Message-ID: <200711091946.lA9JktX2029100@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44582 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34271 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752326AbXKITrD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:47:03 -0500
+	by vger.kernel.org with ESMTP id S1752125AbXKITrL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:47:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdelvare@suse.de, bjorn.helgaas@hp.com, kamalesh@linux.vnet.ibm.com, khali@linux-fr.org, lenb@kernel.org, mhoffman@lightlink.com
+Cc: dhowells@redhat.com
 
 
 The patch titled
-     export-acpi_check_resource_conflict-fix
+     frv: fix the extern declaration of kallsyms_num_syms
 has been added to the -mm tree.  Its filename is
-     export-acpi_check_resource_conflict-fix.patch
+     frv-fix-the-extern-declaration-of-kallsyms_num_syms.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: export-acpi_check_resource_conflict-fix
-=46rom: Jean Delvare <jdelvare@suse.de>
+Subject: frv: fix the extern declaration of kallsyms_num_syms
+From: David Howells <dhowells@redhat.com>
 
-Le mardi 06 novembre 2007, Kamalesh Babulal a =C3=A9crit=C2=A0:
-> Hi Andrew,
->
-> The kernel build fails, on powerpc while compiling the kernel with al=
-lyesconfig option
->
-> drivers/hwmon/w83627hf.c:1631: error: implicit declaration of functio=
-n `acpi_check_resource_conflict'
-> make[2]: *** [drivers/hwmon/w83627hf.o] Error 1
-> make[1]: *** [drivers/hwmon] Error 2
-> make: *** [drivers] Error 2
->   CC      fs/xfs/xfs_error.o
-> drivers/hwmon/w83627hf.c:1631: error: implicit declaration of functio=
-n `acpi_check_resource_conflict'
-> make[2]: *** [drivers/hwmon/w83627hf.o] Error 1
-> make[1]: *** [drivers/hwmon] Error 2
-> make: *** [drivers] Error 2
-> drivers/i2c/busses/i2c-ali1535.c:163: error: implicit declaration of =
-function `acpi_check_region'
-> make[3]: *** [drivers/i2c/busses/i2c-ali1535.o] Error 1
-> make[2]: *** [drivers/i2c/busses] Error 2
-> make[1]: *** [drivers/i2c] Error 2
-> drivers/hwmon/dme1737.c:2231: error: implicit declaration of function=
- `acpi_check_resource_conflict'
-> make[2]: *** [drivers/hwmon/dme1737.o] Error 1
-> make[1]: *** [drivers/hwmon] Error 2
-> make: *** [drivers] Error 2
+Fix the extern declaration of kallsyms_num_syms to indicate that the symbol
+does not reside in the small-data storage space, and so may not be accessed
+relative to the small data base register.
 
-Odd. Thanks for reporting.
-
-> The patches check-for-acpi-resource-conflicts-in-hwmon-drivers and
-> check-for-acpi-resource-conflicts-in-i2c-bus-drivers.patch, causes th=
-is build failure.
-> The declaration of the functions are under ifdef CONFIG_ACPI.
-
-There's an #else after that, and the functions are defined as inlines
-doing nothing in the non-ACPI case. The code looks OK to me, but I can
-reproduce the problem on x86_64 with CONFIG_ACPI=3Dn.
-
-Aha, I see it now, there are nested #ifdef CONFIG_ACPI in acpi.h,
-so the inner one is a no-op (and its #else counterpart is never
-evaluated.) That's pretty confusing, I'll send a patch fixing this.
-
-In the meantime, here's a quick fix so that you can go on testing
-the mm snapshot. Apply this at the top of the series:
-
-=46ix the <linux/acpi.h> breakage for CONFIG_ACPI=3Dn.
-
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/acpi.h |   23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+ kernel/kallsyms.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/acpi.h~export-acpi_check_resource_conflict-fix =
-include/linux/acpi.h
---- a/include/linux/acpi.h~export-acpi_check_resource_conflict-fix
-+++ a/include/linux/acpi.h
-@@ -26,6 +26,7 @@
- #define _LINUX_ACPI_H
-=20
-=20
-+#include <linux/ioport.h>
- #ifdef	CONFIG_ACPI
-=20
- #ifndef _LINUX
-@@ -134,17 +135,6 @@ int acpi_check_mem_region(resource_size_
-=20
- #define acpi_mp_config	0
-=20
--static inline int acpi_check_resource_conflict(struct resource *res)
--{ return 0; }
--
--static inline int acpi_check_region(resource_size_t start, resource_si=
-ze_t n,
--				    const char *name)
--{ return 0; }
--
--static inline int acpi_check_mem_region(resource_size_t start,
--					resource_size_t n, const char *name)
--{ return 0; }
--
- #endif 	/* !CONFIG_ACPI */
-=20
- int acpi_register_gsi (u32 gsi, int triggering, int polarity);
-@@ -239,5 +229,16 @@ static inline int acpi_boot_table_init(v
- 	return 0;
- }
-=20
-+static inline int acpi_check_resource_conflict(struct resource *res)
-+{ return 0; }
-+
-+static inline int acpi_check_region(resource_size_t start, resource_si=
-ze_t n,
-+				    const char *name)
-+{ return 0; }
-+
-+static inline int acpi_check_mem_region(resource_size_t start,
-+					resource_size_t n, const char *name)
-+{ return 0; }
-+
- #endif	/* CONFIG_ACPI */
- #endif	/*_LINUX_ACPI_H*/
+diff -puN kernel/kallsyms.c~frv-fix-the-extern-declaration-of-kallsyms_num_syms kernel/kallsyms.c
+--- a/kernel/kallsyms.c~frv-fix-the-extern-declaration-of-kallsyms_num_syms
++++ a/kernel/kallsyms.c
+@@ -32,7 +32,8 @@
+ 
+ /* These will be re-linked against their real values during the second link stage */
+ extern const unsigned long kallsyms_addresses[] __attribute__((weak));
+-extern const unsigned long kallsyms_num_syms __attribute__((weak));
++extern const unsigned long kallsyms_num_syms
++__nongpreldata __attribute__((weak));
+ extern const u8 kallsyms_names[] __attribute__((weak));
+ 
+ extern const u8 kallsyms_token_table[] __attribute__((weak));
 _
 
-Patches currently in -mm which might be from jdelvare@suse.de are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-export-acpi_check_resource_conflict.patch
-export-acpi_check_resource_conflict-fix.patch
-check-for-acpi-resource-conflicts-in-i2c-bus-drivers.patch
-check-for-acpi-resource-conflicts-in-hwmon-drivers.patch
+frv-remove-bogus-no_irq-=-1-define.patch
+frv-fix-the-extern-declaration-of-kallsyms_num_syms.patch
+frv-remove-the-section-annotation-on-free_initmem.patch
+frv-permit-the-memory-to-be-located-elsewhere-in-nommu-mode.patch
+frv-move-dma-macros-to-scatterlisth-for-consistency.patch
+frv-remove-dead-config-symbol-from-frv-code.patch
+64-bit-i_version-afs-fixes.patch
+add-an-err_cast-function-to-complement-err_ptr-and-co.patch
+convert-err_ptrptr_errp-instances-to-err_castp.patch
+iget-introduce-a-function-to-register-iget-failure.patch
+iget-use-iget_failed-in-afs.patch
+iget-use-iget_failed-in-gfs2.patch
+iget-stop-affs-from-using-iget-and-read_inode-try.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-autofs-from-using-iget-and-read_inode.patch
+iget-stop-befs-from-using-iget-and-read_inode-try.patch
+iget-stop-bfs-from-using-iget-and-read_inode-try.patch
+iget-stop-cifs-from-using-iget-and-read_inode-try.patch
+iget-stop-efs-from-using-iget-and-read_inode-try.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext4-from-using-iget-and-read_inode-try.patch
+iget-stop-fat-from-using-iget-and-read_inode-try.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-fix.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-fuse-from-using-iget-and-read_inode-try.patch
+iget-stop-hfsplus-from-using-iget-and-read_inode.patch
+iget-stop-isofs-from-using-read_inode.patch
+iget-stop-jffs2-from-using-iget-and-read_inode.patch
+iget-stop-jfs-from-using-iget-and-read_inode-try.patch
+iget-stop-the-minix-filesystem-from-using-iget-and.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-openpromfs-from-using-iget-and.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-hppfs-from-using-iget-and-read_inode.patch
+iget-remove-iget-and-the-read_inode-super-op-as.patch
+iget-stop-unionfs-from-using-iget-and-read_inode.patch
+dhowells-broke-unionfs.patch
+add-cmpxchg_local-to-frv.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+mutex-subsystem-synchro-test-module.patch
