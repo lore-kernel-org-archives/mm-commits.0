@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-fix-up.patch added to -mm tree
-Date: Fri, 09 Nov 2007 10:59:17 -0800
-Message-ID: <200711091859.lA9IxHZA027478@imap1.linux-foundation.org>
+Subject: + pie-executable-randomization-uninlining.patch added to -mm tree
+Date: Fri, 09 Nov 2007 11:06:54 -0800
+Message-ID: <200711091906.lA9J6sDe027698@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39352 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41953 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754363AbXKITAh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:00:37 -0500
+	by vger.kernel.org with ESMTP id S1751625AbXKITHy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:07:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, arjan@infradead.org, jakub@redhat.com, jkosina@suse.cz, kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, roland@redhat.com, tglx@linutronix.de, tony.luck@intel.com
 
 
 The patch titled
-     git-x86-fixup
+     pie-executable-randomization-uninlining
 has been added to the -mm tree.  Its filename is
-     git-x86-fix-up.patch
+     pie-executable-randomization-uninlining.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,66 +25,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-x86-fixup
+Subject: pie-executable-randomization-uninlining
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix git conflicts.  Hopefully.
+the compiler does that
 
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jakub Jelinek <jakub@redhat.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/kprobes_32.c |    6 +-----
- arch/x86/kernel/kprobes_64.c |    6 +-----
- 2 files changed, 2 insertions(+), 10 deletions(-)
+ arch/x86/mm/mmap_64.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/kernel/kprobes_32.c~git-x86-fix-up arch/x86/kernel/kprobes_32.c
---- a/arch/x86/kernel/kprobes_32.c~git-x86-fix-up
-+++ a/arch/x86/kernel/kprobes_32.c
-@@ -628,18 +628,14 @@ static int __kprobes post_kprobe_handler
- 	}
+diff -puN arch/x86/mm/mmap_64.c~pie-executable-randomization-uninlining arch/x86/mm/mmap_64.c
+--- a/arch/x86/mm/mmap_64.c~pie-executable-randomization-uninlining
++++ a/arch/x86/mm/mmap_64.c
+@@ -42,7 +42,7 @@
+ #define MIN_GAP (128*1024*1024)
+ #define MAX_GAP (TASK_SIZE/6*5)
  
- 	resume_execution(cur, regs, kcb);
--<<<<<<< HEAD:arch/x86/kernel/kprobes_32.c
--	regs->eflags |= kcb->kprobe_saved_eflags;
--	trace_hardirqs_fixup_flags(regs->eflags);
--=======
- 	regs->eflags |= kcb->kprobe_saved_flags;
-+	trace_hardirqs_fixup_flags(regs->eflags);
- #ifdef CONFIG_TRACE_IRQFLAGS_SUPPORT
- 	if (raw_irqs_disabled_flags(regs->eflags))
- 		trace_hardirqs_off();
- 	else
- 		trace_hardirqs_on();
- #endif
-->>>>>>> FETCH_HEAD:arch/x86/kernel/kprobes_32.c
+-static inline unsigned long mmap_base(void)
++static unsigned long mmap_base(void)
+ {
+ 	unsigned long gap = current->signal->rlim[RLIMIT_STACK].rlim_cur;
  
- 	/* Restore back the original saved kprobes variables and continue. */
- 	if (kcb->kprobe_status == KPROBE_REENTER) {
-diff -puN arch/x86/kernel/kprobes_64.c~git-x86-fix-up arch/x86/kernel/kprobes_64.c
---- a/arch/x86/kernel/kprobes_64.c~git-x86-fix-up
-+++ a/arch/x86/kernel/kprobes_64.c
-@@ -596,18 +596,14 @@ int __kprobes post_kprobe_handler(struct
- 	}
+@@ -54,7 +54,7 @@ static inline unsigned long mmap_base(vo
+ 	return TASK_SIZE - (gap & PAGE_MASK);
+ }
  
- 	resume_execution(cur, regs, kcb);
--<<<<<<< HEAD:arch/x86/kernel/kprobes_64.c
--	regs->eflags |= kcb->kprobe_saved_rflags;
--	trace_hardirqs_fixup_flags(regs->eflags);
--=======
- 	regs->eflags |= kcb->kprobe_saved_flags;
-+	trace_hardirqs_fixup_flags(regs->eflags);
- #ifdef CONFIG_TRACE_IRQFLAGS_SUPPORT
- 	if (raw_irqs_disabled_flags(regs->eflags))
- 		trace_hardirqs_off();
- 	else
- 		trace_hardirqs_on();
- #endif
-->>>>>>> FETCH_HEAD:arch/x86/kernel/kprobes_64.c
+-static inline int mmap_is_32(void)
++static int mmap_is_32(void)
+ {
+ #ifdef CONFIG_IA32_EMULATION
+ 	if (test_thread_flag(TIF_IA32))
+@@ -63,7 +63,7 @@ static inline int mmap_is_32(void)
+ 	return 0;
+ }
  
- 	/* Restore the original saved kprobes variables and continue. */
- 	if (kcb->kprobe_status == KPROBE_REENTER) {
+-static inline int mmap_is_legacy(void)
++static int mmap_is_legacy(void)
+ {
+ 	if (current->personality & ADDR_COMPAT_LAYOUT)
+ 		return 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -157,7 +146,6 @@ pm-qos-infrastructure-and-interface.patch
 pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
 cris-build-fixes-atomich-needs-compilerh-fix.patch
 cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-fix-mtdramh-checkpatch-fixes.patch
 cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
 cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
 uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
@@ -168,6 +156,7 @@ procfs-detect-duplicate-names.patch
 kernel-printkc-concerns-about-the-console-handover.patch
 fix-versus-precedence-in-various-places-checkpatch-fixes.patch
 pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
 pie-executable-randomization-checkpatch-fixes.patch
 riscom8-fix-smp-brokenness-fix.patch
 use-macros-instead-of-task_-flags-checkpatch-fixes.patch
