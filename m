@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dmaengine-fix-broken-device-refcounting.patch added to -mm tree
-Date: Fri, 09 Nov 2007 13:54:27 -0800
-Message-ID: <200711092154.lA9LsRT7001242@imap1.linux-foundation.org>
+Subject: + atmel_serial-build-warnings-begone.patch added to -mm tree
+Date: Fri, 09 Nov 2007 13:56:07 -0800
+Message-ID: <200711092156.lA9Lu7qS001264@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34483 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49038 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754740AbXKIVyp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 16:54:45 -0500
+	by vger.kernel.org with ESMTP id S1750923AbXKIV4k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 16:56:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hskinnemoen@atmel.com, dan.j.williams@intel.com, shannon.nelson@intel.com, stable@kernel.org
+Cc: david-b@pacbell.net, andrew@sanpeople.com, dbrownell@users.sourceforge.net, hskinnemoen@atmel.com
 
 
 The patch titled
-     dmaengine: fix broken device refcounting
+     atmel_serial build warnings begone
 has been added to the -mm tree.  Its filename is
-     dmaengine-fix-broken-device-refcounting.patch
+     atmel_serial-build-warnings-begone.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,87 +25,95 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: dmaengine: fix broken device refcounting
-From: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Subject: atmel_serial build warnings begone
+From: David Brownell <david-b@pacbell.net>
 
-When a DMA device is unregistered, its reference count is decremented twice
-for each channel: Once dma_class_dev_release() and once in
-dma_chan_cleanup().  This may result in the DMA device driver's remove()
-function completing before all channels have been cleaned up, causing lots
-of use-after-free fun.
+Remove annoying build warnings about unused variables in atmel_serial,
+which afflict both AT91 and AVR32 builds.
 
-Fix it by incrementing the device's reference count twice for each
-channel during registration.
-
-[dan.j.williams@intel.com: kill unnecessary client refcounting]
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Shannon Nelson <shannon.nelson@intel.com>
-Cc: <stable@kernel.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Andrew Victor <andrew@sanpeople.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/dmaengine.c |   17 ++++++-----------
- 1 file changed, 6 insertions(+), 11 deletions(-)
+ drivers/serial/atmel_serial.c |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff -puN drivers/dma/dmaengine.c~dmaengine-fix-broken-device-refcounting drivers/dma/dmaengine.c
---- a/drivers/dma/dmaengine.c~dmaengine-fix-broken-device-refcounting
-+++ a/drivers/dma/dmaengine.c
-@@ -183,10 +183,9 @@ static void dma_client_chan_alloc(struct
- 				/* we are done once this client rejects
- 				 * an available resource
- 				 */
--				if (ack == DMA_ACK) {
-+				if (ack == DMA_ACK)
- 					dma_chan_get(chan);
--					kref_get(&device->refcount);
--				} else if (ack == DMA_NAK)
-+				else if (ack == DMA_NAK)
- 					return;
- 			}
- 		}
-@@ -273,11 +272,8 @@ static void dma_clients_notify_removed(s
- 		/* client was holding resources for this channel so
- 		 * free it
- 		 */
--		if (ack == DMA_ACK) {
-+		if (ack == DMA_ACK)
- 			dma_chan_put(chan);
--			kref_put(&chan->device->refcount,
--				dma_async_device_cleanup);
--		}
- 	}
+diff -puN drivers/serial/atmel_serial.c~atmel_serial-build-warnings-begone drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~atmel_serial-build-warnings-begone
++++ a/drivers/serial/atmel_serial.c
+@@ -204,8 +204,6 @@ static u_int atmel_get_mctrl(struct uart
+  */
+ static void atmel_stop_tx(struct uart_port *port)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
+-
+ 	UART_PUT_IDR(port, ATMEL_US_TXRDY);
+ }
  
- 	mutex_unlock(&dma_list_mutex);
-@@ -317,11 +313,8 @@ void dma_async_client_unregister(struct 
- 			ack = client->event_callback(client, chan,
- 				DMA_RESOURCE_REMOVED);
+@@ -214,8 +212,6 @@ static void atmel_stop_tx(struct uart_po
+  */
+ static void atmel_start_tx(struct uart_port *port)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
+-
+ 	UART_PUT_IER(port, ATMEL_US_TXRDY);
+ }
  
--			if (ack == DMA_ACK) {
-+			if (ack == DMA_ACK)
- 				dma_chan_put(chan);
--				kref_put(&chan->device->refcount,
--					dma_async_device_cleanup);
--			}
- 		}
+@@ -224,8 +220,6 @@ static void atmel_start_tx(struct uart_p
+  */
+ static void atmel_stop_rx(struct uart_port *port)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
+-
+ 	UART_PUT_IDR(port, ATMEL_US_RXRDY);
+ }
  
- 	list_del(&client->global_node);
-@@ -398,6 +391,8 @@ int dma_async_device_register(struct dma
- 			goto err_out;
- 		}
+@@ -409,7 +403,6 @@ static irqreturn_t atmel_interrupt(int i
+  */
+ static int atmel_startup(struct uart_port *port)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
+ 	int retval;
  
-+		/* One for the channel, one of the class device */
-+		kref_get(&device->refcount);
- 		kref_get(&device->refcount);
- 		kref_init(&chan->refcount);
- 		chan->slow_ref = 0;
+ 	/*
+@@ -456,8 +449,6 @@ static int atmel_startup(struct uart_por
+  */
+ static void atmel_shutdown(struct uart_port *port)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
+-
+ 	/*
+ 	 * Disable all interrupts, port and break condition.
+ 	 */
 _
 
-Patches currently in -mm which might be from hskinnemoen@atmel.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-dmaengine-fix-broken-device-refcounting.patch
-git-avr32.patch
-git-mtd.patch
-read_current_time-cleanups.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg_local-to-avr32.patch
+rtc_hctosys-expects-rtcs-in-utc-doc.patch
+rtcs-handle-nvram-better.patch
+rtc-ds1307-exports-nvram.patch
+rtc-tweak-driver-documentation-for-rtc-periodic.patch
+spi-fix-double-free-on-spi_unregister_master.patch
+spi-fix-error-paths-on-txx9spi_probe.patch
+atmel_serial-build-warnings-begone.patch
+rtc-dont-write-rtc-century-when-setting-a-wake-alarm.patch
+git-arm-master.patch
+usb-s3c2410_udc-minor-irq-handler-cleanups.patch
+rtc-release-correct-region-in-error-path.patch
+rtc-fallback-to-requesting-only-the-ports-we-actually-use.patch
+tle62x0-driver-stops-ignoring-read-errors.patch
+rtc-convert-mutex-to-bitfield.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+remove-pointless-casts-from-void-pointers.patch
+spi-at25-driver-is-for-eeprom-not-flash.patch
+spi-use-mutex-not-semaphore.patch
+blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait.patch
+blackfin-spi-driver-use-void-__iomem-for-regs_base.patch
+blackfin-spi-driver-move-hard-coded-pin_req-to-board-file.patch
+blackfin-spi-driver-reconfigure-speed_hz-and-bits_per_word-in-each-spi-transfer.patch
+cosmetic-fixes-to-rtc-subsystems-kconfig.patch
+rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
+rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
+pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch
