@@ -1,33 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: - tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls.patch removed from -mm tree
-Date: Fri, 09 Nov 2007 11:13:39 -0800
-Message-ID: <200711091913.lA9JDdhX028045@imap1.linux-foundation.org>
+Subject: - tty-fix-network-driver-interactions-with-tcget-set-calls.patch removed from -mm tree
+Date: Fri, 09 Nov 2007 11:13:36 -0800
+Message-ID: <200711091913.lA9JDaK9028042@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51617 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52611 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755359AbXKITRf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:17:35 -0500
+	by vger.kernel.org with ESMTP id S1755313AbXKITRb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:17:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, davem@davemloft.net, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty: fix tty network driver interactions with TCGET/TCSET calls
+     tty: fix network driver interactions with TCGET/SET calls
 has been removed from the -mm tree.  Its filename was
-     tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls.patch
+     tty-fix-network-driver-interactions-with-tcget-set-calls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: tty: fix tty network driver interactions with TCGET/TCSET calls
+Subject: tty: fix network driver interactions with TCGET/SET calls
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-We consciously make a change here - we permit mode and speed setting to be
-done in things like SLIP mode.  There isn't actually a technical reason to
-disallow this.  It's usually a silly thing to do but we can do it and soemone
-might wish to do so.
+Dave Miller noted various cases where line disciplines for things like ppp go
+poking around in termios themselves in ways that broke with the new termios
+code.  Rather than have them all learning about termios internals provide
+proper methods for this
+
+- tty_mode_ioctl()
+
+  This handles all the terminal mode handling for speed/carrier etc and none
+  of the methods are ldisc dependant so they can be called by any user
+
+- tty_perform_flush()
+
+  This extracts the flush functionality and enables pppd the ppp layer to
+  share it cleanly.
+
+The existing n_tty_ioctl code is refactored in this patch to provide the new
+functions and to call them itself appropriately.  This patch has no (intended)
+behaviour changes and simply prepares for the other fixes.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: "David S. Miller" <davem@davemloft.net>
@@ -35,198 +49,236 @@ Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/hamradio/6pack.c |   26 ++++++++++----------------
- drivers/net/irda/irtty-sir.c |    7 +------
- drivers/net/ppp_async.c      |   10 +++-------
- drivers/net/ppp_synctty.c    |   10 +++-------
- drivers/net/slip.c           |    8 +-------
- drivers/net/wan/x25_asy.c    |    6 +-----
- drivers/net/wireless/strip.c |   10 +---------
- 7 files changed, 20 insertions(+), 57 deletions(-)
+ drivers/char/tty_ioctl.c |  170 ++++++++++++++++++++++---------------
+ include/linux/tty.h      |    4 
+ 2 files changed, 107 insertions(+), 67 deletions(-)
 
-diff -puN drivers/net/hamradio/6pack.c~tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls drivers/net/hamradio/6pack.c
---- a/drivers/net/hamradio/6pack.c~tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls
-+++ a/drivers/net/hamradio/6pack.c
-@@ -762,26 +762,20 @@ static int sixpack_ioctl(struct tty_stru
- 
- 		if (copy_from_user(&addr,
- 		                   (void __user *) arg, AX25_ADDR_LEN)) {
--			err = -EFAULT;
--			break;
--		}
-+				err = -EFAULT;
-+				break;
-+			}
- 
--		netif_tx_lock_bh(dev);
--		memcpy(dev->dev_addr, &addr, AX25_ADDR_LEN);
--		netif_tx_unlock_bh(dev);
-+			netif_tx_lock_bh(dev);
-+			memcpy(dev->dev_addr, &addr, AX25_ADDR_LEN);
-+			netif_tx_unlock_bh(dev);
- 
--		err = 0;
--		break;
--	}
--
--	/* Allow stty to read, but not set, the serial port */
--	case TCGETS:
--	case TCGETA:
--		err = n_tty_ioctl(tty, (struct file *) file, cmd, arg);
--		break;
-+			err = 0;
-+			break;
-+		}
- 
- 	default:
--		err = -ENOIOCTLCMD;
-+		err = tty_mode_ioctl(tty, file, cmd, arg);
- 	}
- 
- 	sp_put(sp);
-diff -puN drivers/net/irda/irtty-sir.c~tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls drivers/net/irda/irtty-sir.c
---- a/drivers/net/irda/irtty-sir.c~tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls
-+++ a/drivers/net/irda/irtty-sir.c
-@@ -434,11 +434,6 @@ static int irtty_ioctl(struct tty_struct
- 	IRDA_ASSERT(dev != NULL, return -1;);
- 
- 	switch (cmd) {
--	case TCGETS:
--	case TCGETA:
--		err = n_tty_ioctl(tty, file, cmd, arg);
--		break;
--
- 	case IRTTY_IOCTDONGLE:
- 		/* this call blocks for completion */
- 		err = sirdev_set_dongle(dev, (IRDA_DONGLE) arg);
-@@ -454,7 +449,7 @@ static int irtty_ioctl(struct tty_struct
- 			err = -EFAULT;
- 		break;
- 	default:
--		err = -ENOIOCTLCMD;
-+		err = tty_mode_ioctl(tty, file, cmd, arg);
- 		break;
- 	}
- 	return err;
-diff -puN drivers/net/ppp_async.c~tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls drivers/net/ppp_async.c
---- a/drivers/net/ppp_async.c~tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls
-+++ a/drivers/net/ppp_async.c
-@@ -309,16 +309,11 @@ ppp_asynctty_ioctl(struct tty_struct *tt
- 		err = 0;
- 		break;
- 
--	case TCGETS:
--	case TCGETA:
--		err = n_tty_ioctl(tty, file, cmd, arg);
--		break;
--
- 	case TCFLSH:
- 		/* flush our buffers and the serial port's buffer */
- 		if (arg == TCIOFLUSH || arg == TCOFLUSH)
- 			ppp_async_flush_output(ap);
--		err = n_tty_ioctl(tty, file, cmd, arg);
-+		err = tty_perform_flush(tty, arg);
- 		break;
- 
- 	case FIONREAD:
-@@ -329,7 +324,8 @@ ppp_asynctty_ioctl(struct tty_struct *tt
- 		break;
- 
- 	default:
--		err = -ENOIOCTLCMD;
-+		/* Try the various mode ioctls */
-+		err = tty_mode_ioctl(tty, file, cmd, arg);
- 	}
- 
- 	ap_put(ap);
-diff -puN drivers/net/ppp_synctty.c~tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls drivers/net/ppp_synctty.c
---- a/drivers/net/ppp_synctty.c~tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls
-+++ a/drivers/net/ppp_synctty.c
-@@ -349,16 +349,11 @@ ppp_synctty_ioctl(struct tty_struct *tty
- 		err = 0;
- 		break;
- 
--	case TCGETS:
--	case TCGETA:
--		err = n_tty_ioctl(tty, file, cmd, arg);
--		break;
--
- 	case TCFLSH:
- 		/* flush our buffers and the serial port's buffer */
- 		if (arg == TCIOFLUSH || arg == TCOFLUSH)
- 			ppp_sync_flush_output(ap);
--		err = n_tty_ioctl(tty, file, cmd, arg);
-+		err = tty_perform_flush(tty, arg);
- 		break;
- 
- 	case FIONREAD:
-@@ -369,7 +364,8 @@ ppp_synctty_ioctl(struct tty_struct *tty
- 		break;
- 
- 	default:
--		err = -ENOIOCTLCMD;
-+		err = tty_mode_ioctl(tty, file, cmd, arg);
-+		break;
- 	}
- 
- 	sp_put(ap);
-diff -puN drivers/net/slip.c~tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls drivers/net/slip.c
---- a/drivers/net/slip.c~tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls
-+++ a/drivers/net/slip.c
-@@ -1218,14 +1218,8 @@ static int slip_ioctl(struct tty_struct 
- 		return 0;
- 	/* VSV changes end */
- #endif
--
--	/* Allow stty to read, but not set, the serial port */
--	case TCGETS:
--	case TCGETA:
--		return n_tty_ioctl(tty, file, cmd, arg);
--
- 	default:
--		return -ENOIOCTLCMD;
-+		return tty_mode_ioctl(tty, file, cmd, arg);
- 	}
- }
- 
-diff -puN drivers/net/wan/x25_asy.c~tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls drivers/net/wan/x25_asy.c
---- a/drivers/net/wan/x25_asy.c~tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls
-+++ a/drivers/net/wan/x25_asy.c
-@@ -719,12 +719,8 @@ static int x25_asy_ioctl(struct tty_stru
- 		return 0;
- 	case SIOCSIFHWADDR:
- 		return -EINVAL;
--	/* Allow stty to read, but not set, the serial port */
--	case TCGETS:
--	case TCGETA:
--		return n_tty_ioctl(tty, file, cmd, arg);
- 	default:
--		return -ENOIOCTLCMD;
-+		return tty_mode_ioctl(tty, file, cmd, arg);
- 	}
- }
- 
-diff -puN drivers/net/wireless/strip.c~tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls drivers/net/wireless/strip.c
---- a/drivers/net/wireless/strip.c~tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls
-+++ a/drivers/net/wireless/strip.c
-@@ -2735,16 +2735,8 @@ static int strip_ioctl(struct tty_struct
- 			return -EFAULT;
- 		return set_mac_address(strip_info, &addr);
- 	}
--	/*
--	 * Allow stty to read, but not set, the serial port
--	 */
--
--	case TCGETS:
--	case TCGETA:
--		return n_tty_ioctl(tty, file, cmd, arg);
--		break;
- 	default:
--		return -ENOIOCTLCMD;
-+		return tty_mode_ioctl(tty, file, cmd, arg);
- 		break;
- 	}
+diff -puN drivers/char/tty_ioctl.c~tty-fix-network-driver-interactions-with-tcget-set-calls drivers/char/tty_ioctl.c
+--- a/drivers/char/tty_ioctl.c~tty-fix-network-driver-interactions-with-tcget-set-calls
++++ a/drivers/char/tty_ioctl.c
+@@ -730,13 +730,23 @@ static int send_prio_char(struct tty_str
  	return 0;
+ }
+ 
+-int n_tty_ioctl(struct tty_struct * tty, struct file * file,
+-		       unsigned int cmd, unsigned long arg)
++/**
++ *	tty_mode_ioctl		-	mode related ioctls
++ *	@tty: tty for the ioctl
++ *	@file: file pointer for the tty
++ *	@cmd: command
++ *	@arg: ioctl argument
++ *
++ *	Perform non line discipline specific mode control ioctls. This
++ *	is designed to be called by line disciplines to ensure they provide
++ *	consistent mode setting.
++ */
++
++int tty_mode_ioctl(struct tty_struct * tty, struct file *file,
++			unsigned int cmd, unsigned long arg)
+ {
+ 	struct tty_struct * real_tty;
+ 	void __user *p = (void __user *)arg;
+-	int retval;
+-	struct tty_ldisc *ld;
+ 
+ 	if (tty->driver->type == TTY_DRIVER_TYPE_PTY &&
+ 	    tty->driver->subtype == PTY_TYPE_MASTER)
+@@ -799,6 +809,93 @@ int n_tty_ioctl(struct tty_struct * tty,
+ 			return set_termios(real_tty, p, TERMIOS_WAIT | TERMIOS_TERMIO);
+ 		case TCSETA:
+ 			return set_termios(real_tty, p, TERMIOS_TERMIO);
++#ifndef TCGETS2
++		case TIOCGLCKTRMIOS:
++			if (kernel_termios_to_user_termios((struct termios __user *)arg, real_tty->termios_locked))
++				return -EFAULT;
++			return 0;
++
++		case TIOCSLCKTRMIOS:
++			if (!capable(CAP_SYS_ADMIN))
++				return -EPERM;
++			if (user_termios_to_kernel_termios(real_tty->termios_locked, (struct termios __user *) arg))
++				return -EFAULT;
++			return 0;
++#else
++		case TIOCGLCKTRMIOS:
++			if (kernel_termios_to_user_termios_1((struct termios __user *)arg, real_tty->termios_locked))
++				return -EFAULT;
++			return 0;
++
++		case TIOCSLCKTRMIOS:
++			if (!capable(CAP_SYS_ADMIN))
++				return -EPERM;
++			if (user_termios_to_kernel_termios_1(real_tty->termios_locked, (struct termios __user *) arg))
++				return -EFAULT;
++			return 0;
++#endif
++		case TIOCGSOFTCAR:
++			return put_user(C_CLOCAL(tty) ? 1 : 0, (int __user *)arg);
++		case TIOCSSOFTCAR:
++			if (get_user(arg, (unsigned int __user *) arg))
++				return -EFAULT;
++			mutex_lock(&tty->termios_mutex);
++			tty->termios->c_cflag =
++				((tty->termios->c_cflag & ~CLOCAL) |
++				 (arg ? CLOCAL : 0));
++			mutex_unlock(&tty->termios_mutex);
++			return 0;
++		default:
++			return -ENOIOCTLCMD;
++	}
++}
++
++EXPORT_SYMBOL_GPL(tty_mode_ioctl);
++
++int tty_perform_flush(struct tty_struct *tty, unsigned long arg)
++{
++	struct tty_ldisc *ld;
++	int retval = tty_check_change(tty);
++	if (retval)
++		return retval;
++
++	ld = tty_ldisc_ref(tty);
++	switch (arg) {
++	case TCIFLUSH:
++		if (ld && ld->flush_buffer)
++			ld->flush_buffer(tty);
++		break;
++	case TCIOFLUSH:
++		if (ld && ld->flush_buffer)
++			ld->flush_buffer(tty);
++		/* fall through */
++	case TCOFLUSH:
++		if (tty->driver->flush_buffer)
++			tty->driver->flush_buffer(tty);
++		break;
++	default:
++		tty_ldisc_deref(ld);
++		return -EINVAL;
++	}
++	tty_ldisc_deref(ld);
++	return 0;
++}
++
++EXPORT_SYMBOL_GPL(tty_perform_flush);
++
++int n_tty_ioctl(struct tty_struct * tty, struct file * file,
++		       unsigned int cmd, unsigned long arg)
++{
++	struct tty_struct * real_tty;
++	int retval;
++
++	if (tty->driver->type == TTY_DRIVER_TYPE_PTY &&
++	    tty->driver->subtype == PTY_TYPE_MASTER)
++		real_tty = tty->link;
++	else
++		real_tty = tty;
++
++	switch (cmd) {
+ 		case TCXONC:
+ 			retval = tty_check_change(tty);
+ 			if (retval)
+@@ -829,30 +926,7 @@ int n_tty_ioctl(struct tty_struct * tty,
+ 			}
+ 			return 0;
+ 		case TCFLSH:
+-			retval = tty_check_change(tty);
+-			if (retval)
+-				return retval;
+-				
+-			ld = tty_ldisc_ref(tty);
+-			switch (arg) {
+-			case TCIFLUSH:
+-				if (ld && ld->flush_buffer)
+-					ld->flush_buffer(tty);
+-				break;
+-			case TCIOFLUSH:
+-				if (ld && ld->flush_buffer)
+-					ld->flush_buffer(tty);
+-				/* fall through */
+-			case TCOFLUSH:
+-				if (tty->driver->flush_buffer)
+-					tty->driver->flush_buffer(tty);
+-				break;
+-			default:
+-				tty_ldisc_deref(ld);
+-				return -EINVAL;
+-			}
+-			tty_ldisc_deref(ld);
+-			return 0;
++			return tty_perform_flush(tty, arg);
+ 		case TIOCOUTQ:
+ 			return put_user(tty->driver->chars_in_buffer ?
+ 					tty->driver->chars_in_buffer(tty) : 0,
+@@ -862,32 +936,6 @@ int n_tty_ioctl(struct tty_struct * tty,
+ 			if (L_ICANON(tty))
+ 				retval = inq_canon(tty);
+ 			return put_user(retval, (unsigned int __user *) arg);
+-#ifndef TCGETS2
+-		case TIOCGLCKTRMIOS:
+-			if (kernel_termios_to_user_termios((struct termios __user *)arg, real_tty->termios_locked))
+-				return -EFAULT;
+-			return 0;
+-
+-		case TIOCSLCKTRMIOS:
+-			if (!capable(CAP_SYS_ADMIN))
+-				return -EPERM;
+-			if (user_termios_to_kernel_termios(real_tty->termios_locked, (struct termios __user *) arg))
+-				return -EFAULT;
+-			return 0;
+-#else
+-		case TIOCGLCKTRMIOS:
+-			if (kernel_termios_to_user_termios_1((struct termios __user *)arg, real_tty->termios_locked))
+-				return -EFAULT;
+-			return 0;
+-
+-		case TIOCSLCKTRMIOS:
+-			if (!capable(CAP_SYS_ADMIN))
+-				return -EPERM;
+-			if (user_termios_to_kernel_termios_1(real_tty->termios_locked, (struct termios __user *) arg))
+-				return -EFAULT;
+-			return 0;
+-#endif
+-
+ 		case TIOCPKT:
+ 		{
+ 			int pktmode;
+@@ -906,19 +954,9 @@ int n_tty_ioctl(struct tty_struct * tty,
+ 				tty->packet = 0;
+ 			return 0;
+ 		}
+-		case TIOCGSOFTCAR:
+-			return put_user(C_CLOCAL(tty) ? 1 : 0, (int __user *)arg);
+-		case TIOCSSOFTCAR:
+-			if (get_user(arg, (unsigned int __user *) arg))
+-				return -EFAULT;
+-			mutex_lock(&tty->termios_mutex);
+-			tty->termios->c_cflag =
+-				((tty->termios->c_cflag & ~CLOCAL) |
+-				 (arg ? CLOCAL : 0));
+-			mutex_unlock(&tty->termios_mutex);
+-			return 0;
+ 		default:
+-			return -ENOIOCTLCMD;
++			/* Try the mode commands */
++			return tty_mode_ioctl(tty, file, cmd, arg);
+ 		}
+ }
+ 
+diff -puN include/linux/tty.h~tty-fix-network-driver-interactions-with-tcget-set-calls include/linux/tty.h
+--- a/include/linux/tty.h~tty-fix-network-driver-interactions-with-tcget-set-calls
++++ a/include/linux/tty.h
+@@ -332,7 +332,9 @@ extern void tty_ldisc_flush(struct tty_s
+ 
+ extern int tty_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
+ 		     unsigned long arg);
+-
++extern int tty_mode_ioctl(struct tty_struct *tty, struct file *file,
++			unsigned int cmd, unsigned long arg);
++extern int tty_perform_flush(struct tty_struct *tty, unsigned long arg);
+ extern dev_t tty_devnum(struct tty_struct *tty);
+ extern void proc_clear_tty(struct task_struct *p);
+ extern struct tty_struct *get_current_tty(void);
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
