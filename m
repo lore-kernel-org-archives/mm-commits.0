@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-__vmalloc_area_node-static.patch added to -mm tree
-Date: Thu, 08 Nov 2007 20:43:30 -0800
-Message-ID: <200711090443.lA94hWX7029860@imap1.linux-foundation.org>
+Subject: + blackfin-remove-dump_thread.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:44:20 -0800
+Message-ID: <200711090444.lA94iL6B029941@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45052 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41216 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758344AbXKIEnv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:43:51 -0500
+	by vger.kernel.org with ESMTP id S1758728AbXKIEom (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:44:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, bryan.wu@analog.com
 
 
 The patch titled
-     make __vmalloc_area_node() static
+     blackfin: remove dump_thread()
 has been added to the -mm tree.  Its filename is
-     make-__vmalloc_area_node-static.patch
+     blackfin-remove-dump_thread.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,32 +25,98 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: make __vmalloc_area_node() static
+Subject: blackfin: remove dump_thread()
 From: Adrian Bunk <bunk@kernel.org>
 
-__vmalloc_area_node() can become static.
+Remove the unused dump_thread().
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/blackfin/kernel/bfin_ksyms.c  |    1 
+ arch/blackfin/kernel/process.c     |   45 ---------------------------
+ include/asm-blackfin/bfin-global.h |    1 
+ 3 files changed, 47 deletions(-)
 
-diff -puN mm/vmalloc.c~make-__vmalloc_area_node-static mm/vmalloc.c
---- a/mm/vmalloc.c~make-__vmalloc_area_node-static
-+++ a/mm/vmalloc.c
-@@ -476,8 +476,8 @@ void *vmap(struct page **pages, unsigned
- }
- EXPORT_SYMBOL(vmap);
+diff -puN arch/blackfin/kernel/bfin_ksyms.c~blackfin-remove-dump_thread arch/blackfin/kernel/bfin_ksyms.c
+--- a/arch/blackfin/kernel/bfin_ksyms.c~blackfin-remove-dump_thread
++++ a/arch/blackfin/kernel/bfin_ksyms.c
+@@ -39,7 +39,6 @@
+ EXPORT_SYMBOL(__ioremap);
+ EXPORT_SYMBOL(strcmp);
+ EXPORT_SYMBOL(strncmp);
+-EXPORT_SYMBOL(dump_thread);
  
--void *__vmalloc_area_node(struct vm_struct *area, gfp_t gfp_mask,
--				pgprot_t prot, int node)
-+static void *__vmalloc_area_node(struct vm_struct *area, gfp_t gfp_mask,
-+				 pgprot_t prot, int node)
- {
- 	struct page **pages;
- 	unsigned int nr_pages, array_size, i;
+ EXPORT_SYMBOL(ip_fast_csum);
+ 
+diff -puN arch/blackfin/kernel/process.c~blackfin-remove-dump_thread arch/blackfin/kernel/process.c
+--- a/arch/blackfin/kernel/process.c~blackfin-remove-dump_thread
++++ a/arch/blackfin/kernel/process.c
+@@ -239,51 +239,6 @@ copy_thread(int nr, unsigned long clone_
+ }
+ 
+ /*
+- * fill in the user structure for a core dump..
+- */
+-void dump_thread(struct pt_regs *regs, struct user *dump)
+-{
+-	dump->magic = CMAGIC;
+-	dump->start_code = 0;
+-	dump->start_stack = rdusp() & ~(PAGE_SIZE - 1);
+-	dump->u_tsize = ((unsigned long)current->mm->end_code) >> PAGE_SHIFT;
+-	dump->u_dsize = ((unsigned long)(current->mm->brk +
+-					 (PAGE_SIZE - 1))) >> PAGE_SHIFT;
+-	dump->u_dsize -= dump->u_tsize;
+-	dump->u_ssize = 0;
+-
+-	if (dump->start_stack < TASK_SIZE)
+-		dump->u_ssize =
+-		    ((unsigned long)(TASK_SIZE -
+-				     dump->start_stack)) >> PAGE_SHIFT;
+-
+-	dump->u_ar0 = (struct user_regs_struct *)((int)&dump->regs - (int)dump);
+-
+-	dump->regs.r0 = regs->r0;
+-	dump->regs.r1 = regs->r1;
+-	dump->regs.r2 = regs->r2;
+-	dump->regs.r3 = regs->r3;
+-	dump->regs.r4 = regs->r4;
+-	dump->regs.r5 = regs->r5;
+-	dump->regs.r6 = regs->r6;
+-	dump->regs.r7 = regs->r7;
+-	dump->regs.p0 = regs->p0;
+-	dump->regs.p1 = regs->p1;
+-	dump->regs.p2 = regs->p2;
+-	dump->regs.p3 = regs->p3;
+-	dump->regs.p4 = regs->p4;
+-	dump->regs.p5 = regs->p5;
+-	dump->regs.orig_p0 = regs->orig_p0;
+-	dump->regs.a0w = regs->a0w;
+-	dump->regs.a1w = regs->a1w;
+-	dump->regs.a0x = regs->a0x;
+-	dump->regs.a1x = regs->a1x;
+-	dump->regs.rets = regs->rets;
+-	dump->regs.astat = regs->astat;
+-	dump->regs.pc = regs->pc;
+-}
+-
+-/*
+  * sys_execve() executes a new program.
+  */
+ 
+diff -puN include/asm-blackfin/bfin-global.h~blackfin-remove-dump_thread include/asm-blackfin/bfin-global.h
+--- a/include/asm-blackfin/bfin-global.h~blackfin-remove-dump_thread
++++ a/include/asm-blackfin/bfin-global.h
+@@ -50,7 +50,6 @@ extern unsigned long get_sclk(void);
+ extern unsigned long sclk_to_usecs(unsigned long sclk);
+ extern unsigned long usecs_to_sclk(unsigned long usecs);
+ 
+-extern void dump_thread(struct pt_regs *regs, struct user *dump);
+ extern void dump_bfin_regs(struct pt_regs *fp, void *retaddr);
+ extern void dump_bfin_trace_buffer(void);
+ 
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
