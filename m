@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-eventfdc-should-include-linux-syscallsh.patch added to -mm tree
-Date: Thu, 08 Nov 2007 20:52:40 -0800
-Message-ID: <200711090452.lA94qfjt030205@imap1.linux-foundation.org>
+Subject: + proper-prototype-for-vty_init.patch added to -mm tree
+Date: Thu, 08 Nov 2007 20:52:48 -0800
+Message-ID: <200711090452.lA94qnIL030208@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41072 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39667 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760472AbXKIEw6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:52:58 -0500
+	by vger.kernel.org with ESMTP id S1760493AbXKIExG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2007 23:53:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, davidel@xmailserver.org
+Cc: bunk@kernel.org
 
 
 The patch titled
-     fs/eventfd.c should #include <linux/syscalls.h>
+     proper prototype for vty_init()
 has been added to the -mm tree.  Its filename is
-     fs-eventfdc-should-include-linux-syscallsh.patch
+     proper-prototype-for-vty_init.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,31 +25,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fs/eventfd.c should #include <linux/syscalls.h>
+Subject: proper prototype for vty_init()
 From: Adrian Bunk <bunk@kernel.org>
 
-Every file should include the headers containing the prototypes for its global
-functions (in this case sys_eventfd()).
+Add a proper prototype for vty_init() in include/linux/vt_kern.h
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventfd.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/tty_io.c   |    4 ----
+ include/linux/vt_kern.h |    1 +
+ 2 files changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN fs/eventfd.c~fs-eventfdc-should-include-linux-syscallsh fs/eventfd.c
---- a/fs/eventfd.c~fs-eventfdc-should-include-linux-syscallsh
-+++ a/fs/eventfd.c
-@@ -15,6 +15,7 @@
- #include <linux/spinlock.h>
- #include <linux/anon_inodes.h>
- #include <linux/eventfd.h>
-+#include <linux/syscalls.h>
+diff -puN drivers/char/tty_io.c~proper-prototype-for-vty_init drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~proper-prototype-for-vty_init
++++ a/drivers/char/tty_io.c
+@@ -4048,10 +4048,6 @@ void __init console_init(void)
+ 	}
+ }
  
- struct eventfd_ctx {
- 	wait_queue_head_t wqh;
+-#ifdef CONFIG_VT
+-extern int vty_init(void);
+-#endif
+-
+ static int __init tty_class_init(void)
+ {
+ 	tty_class = class_create(THIS_MODULE, "tty");
+diff -puN include/linux/vt_kern.h~proper-prototype-for-vty_init include/linux/vt_kern.h
+--- a/include/linux/vt_kern.h~proper-prototype-for-vty_init
++++ a/include/linux/vt_kern.h
+@@ -77,6 +77,7 @@ void change_console(struct vc_data *new_
+ void reset_vc(struct vc_data *vc);
+ extern int unbind_con_driver(const struct consw *csw, int first, int last,
+ 			     int deflt);
++int vty_init(void);
+ 
+ /*
+  * vc_screen.c shares this temporary buffer with the console write code so that
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
