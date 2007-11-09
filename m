@@ -1,164 +1,176 @@
 From: akpm@linux-foundation.org
-Subject: - dvb-bt8xx-dstc-make-code-static.patch removed from -mm tree
-Date: Fri, 09 Nov 2007 11:12:50 -0800
-Message-ID: <200711091912.lA9JCoZD027953@imap1.linux-foundation.org>
+Subject: - dvb-usb-make-some-debug-vars-static.patch removed from -mm tree
+Date: Fri, 09 Nov 2007 11:12:56 -0800
+Message-ID: <200711091912.lA9JCuCe027962@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50076 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32872 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754724AbXKITNL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:13:11 -0500
+	by vger.kernel.org with ESMTP id S1754839AbXKITNU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 14:13:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@kernel.org, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dvb/bt8xx/dst.c: make code static
+     dvb-usb: make some debug vars static
 has been removed from the -mm tree.  Its filename was
-     dvb-bt8xx-dstc-make-code-static.patch
+     dvb-usb-make-some-debug-vars-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dvb/bt8xx/dst.c: make code static
+Subject: dvb-usb: make some debug vars static
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch makes the following needlessly global code static:
-- dst_gpio_outb()
-- dst_gpio_inb()
-- rdc_8820_reset()
-- dst_pio_enable()
-- dst_command()
-- struct tuner_list[]
+This patch makes some needlessly global debug variables static.
+
+opera1.h became so small that I removed it.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/bt8xx/dst.c        |   19 ++++++++-----------
- drivers/media/dvb/bt8xx/dst_common.h |    6 ------
- 2 files changed, 8 insertions(+), 17 deletions(-)
+ drivers/media/dvb/dvb-usb/cxusb.c  |    5 ++++-
+ drivers/media/dvb/dvb-usb/cxusb.h  |    5 -----
+ drivers/media/dvb/dvb-usb/digitv.c |    3 ++-
+ drivers/media/dvb/dvb-usb/digitv.h |    3 ---
+ drivers/media/dvb/dvb-usb/opera1.c |    6 ++++--
+ drivers/media/dvb/dvb-usb/opera1.h |    9 ---------
+ drivers/media/dvb/dvb-usb/vp7045.c |    5 ++++-
+ drivers/media/dvb/dvb-usb/vp7045.h |    5 -----
+ 8 files changed, 14 insertions(+), 27 deletions(-)
 
-diff -puN drivers/media/dvb/bt8xx/dst.c~dvb-bt8xx-dstc-make-code-static drivers/media/dvb/bt8xx/dst.c
---- a/drivers/media/dvb/bt8xx/dst.c~dvb-bt8xx-dstc-make-code-static
-+++ a/drivers/media/dvb/bt8xx/dst.c
-@@ -71,6 +71,7 @@ MODULE_PARM_DESC(dst_algo, "tuning algo:
- 	}								\
- } while(0)
+diff -puN drivers/media/dvb/dvb-usb/cxusb.c~dvb-usb-make-some-debug-vars-static drivers/media/dvb/dvb-usb/cxusb.c
+--- a/drivers/media/dvb/dvb-usb/cxusb.c~dvb-usb-make-some-debug-vars-static
++++ a/drivers/media/dvb/dvb-usb/cxusb.c
+@@ -32,9 +32,12 @@
+ #include "zl10353.h"
  
-+static int dst_command(struct dst_state *state, u8 *data, u8 len);
+ /* debug */
+-int dvb_usb_cxusb_debug;
++static int dvb_usb_cxusb_debug;
+ module_param_named(debug, dvb_usb_cxusb_debug, int, 0644);
+ MODULE_PARM_DESC(debug, "set debugging level (1=rc (or-able))." DVB_USB_DEBUG_STATUS);
++#define deb_info(args...)   dprintk(dvb_usb_cxusb_debug,0x01,args)
++#define deb_i2c(args...)    if (d->udev->descriptor.idVendor == USB_VID_MEDION) \
++				dprintk(dvb_usb_cxusb_debug,0x01,args)
  
- static void dst_packsize(struct dst_state *state, int psize)
- {
-@@ -80,7 +81,8 @@ static void dst_packsize(struct dst_stat
- 	bt878_device_control(state->bt, DST_IG_TS, &bits);
- }
+ static int cxusb_ctrl_msg(struct dvb_usb_device *d,
+ 			  u8 cmd, u8 *wbuf, int wlen, u8 *rbuf, int rlen)
+diff -puN drivers/media/dvb/dvb-usb/cxusb.h~dvb-usb-make-some-debug-vars-static drivers/media/dvb/dvb-usb/cxusb.h
+--- a/drivers/media/dvb/dvb-usb/cxusb.h~dvb-usb-make-some-debug-vars-static
++++ a/drivers/media/dvb/dvb-usb/cxusb.h
+@@ -4,11 +4,6 @@
+ #define DVB_USB_LOG_PREFIX "cxusb"
+ #include "dvb-usb.h"
  
--int dst_gpio_outb(struct dst_state *state, u32 mask, u32 enbb, u32 outhigh, int delay)
-+static int dst_gpio_outb(struct dst_state *state, u32 mask, u32 enbb,
-+			 u32 outhigh, int delay)
- {
- 	union dst_gpio_packet enb;
- 	union dst_gpio_packet bits;
-@@ -109,9 +111,8 @@ int dst_gpio_outb(struct dst_state *stat
+-extern int dvb_usb_cxusb_debug;
+-#define deb_info(args...)   dprintk(dvb_usb_cxusb_debug,0x01,args)
+-#define deb_i2c(args...)    if (d->udev->descriptor.idVendor == USB_VID_MEDION) \
+-				dprintk(dvb_usb_cxusb_debug,0x01,args)
+-
+ /* usb commands - some of it are guesses, don't have a reference yet */
+ #define CMD_I2C_WRITE     0x08
+ #define CMD_I2C_READ      0x09
+diff -puN drivers/media/dvb/dvb-usb/digitv.c~dvb-usb-make-some-debug-vars-static drivers/media/dvb/dvb-usb/digitv.c
+--- a/drivers/media/dvb/dvb-usb/digitv.c~dvb-usb-make-some-debug-vars-static
++++ a/drivers/media/dvb/dvb-usb/digitv.c
+@@ -17,9 +17,10 @@
+ #include "nxt6000.h"
  
- 	return 0;
- }
--EXPORT_SYMBOL(dst_gpio_outb);
+ /* debug */
+-int dvb_usb_digitv_debug;
++static int dvb_usb_digitv_debug;
+ module_param_named(debug,dvb_usb_digitv_debug, int, 0644);
+ MODULE_PARM_DESC(debug, "set debugging level (1=rc (or-able))." DVB_USB_DEBUG_STATUS);
++#define deb_rc(args...)   dprintk(dvb_usb_digitv_debug,0x01,args)
  
--int dst_gpio_inb(struct dst_state *state, u8 *result)
-+static int dst_gpio_inb(struct dst_state *state, u8 *result)
- {
- 	union dst_gpio_packet rd_packet;
- 	int err;
-@@ -125,7 +126,6 @@ int dst_gpio_inb(struct dst_state *state
- 
- 	return 0;
- }
--EXPORT_SYMBOL(dst_gpio_inb);
- 
- int rdc_reset_state(struct dst_state *state)
- {
-@@ -145,7 +145,7 @@ int rdc_reset_state(struct dst_state *st
- }
- EXPORT_SYMBOL(rdc_reset_state);
- 
--int rdc_8820_reset(struct dst_state *state)
-+static int rdc_8820_reset(struct dst_state *state)
- {
- 	dprintk(verbose, DST_DEBUG, 1, "Resetting DST");
- 	if (dst_gpio_outb(state, RDC_8820_RESET, RDC_8820_RESET, 0, NO_DELAY) < 0) {
-@@ -160,9 +160,8 @@ int rdc_8820_reset(struct dst_state *sta
- 
- 	return 0;
- }
--EXPORT_SYMBOL(rdc_8820_reset);
- 
--int dst_pio_enable(struct dst_state *state)
-+static int dst_pio_enable(struct dst_state *state)
- {
- 	if (dst_gpio_outb(state, ~0, RDC_8820_PIO_0_ENABLE, 0, NO_DELAY) < 0) {
- 		dprintk(verbose, DST_ERROR, 1, "dst_gpio_outb ERROR !");
-@@ -172,7 +171,6 @@ int dst_pio_enable(struct dst_state *sta
- 
- 	return 0;
- }
--EXPORT_SYMBOL(dst_pio_enable);
- 
- int dst_pio_disable(struct dst_state *state)
- {
-@@ -611,7 +609,7 @@ static int dst_type_print(struct dst_sta
- 	return 0;
- }
- 
--struct tuner_types tuner_list[] = {
-+static struct tuner_types tuner_list[] = {
- 	{
- 		.tuner_type = TUNER_TYPE_L64724,
- 		.tuner_name = "L 64724",
-@@ -1224,7 +1222,7 @@ static int dst_probe(struct dst_state *s
- 	return 0;
- }
- 
--int dst_command(struct dst_state *state, u8 *data, u8 len)
-+static int dst_command(struct dst_state *state, u8 *data, u8 len)
- {
- 	u8 reply;
- 
-@@ -1287,7 +1285,6 @@ error:
- 	return -EIO;
- 
- }
--EXPORT_SYMBOL(dst_command);
- 
- static int dst_get_signal(struct dst_state *state)
- {
-diff -puN drivers/media/dvb/bt8xx/dst_common.h~dvb-bt8xx-dstc-make-code-static drivers/media/dvb/bt8xx/dst_common.h
---- a/drivers/media/dvb/bt8xx/dst_common.h~dvb-bt8xx-dstc-make-code-static
-+++ a/drivers/media/dvb/bt8xx/dst_common.h
-@@ -165,10 +165,8 @@ struct dst_config
+ static int digitv_ctrl_msg(struct dvb_usb_device *d,
+ 		u8 cmd, u8 vv, u8 *wbuf, int wlen, u8 *rbuf, int rlen)
+diff -puN drivers/media/dvb/dvb-usb/digitv.h~dvb-usb-make-some-debug-vars-static drivers/media/dvb/dvb-usb/digitv.h
+--- a/drivers/media/dvb/dvb-usb/digitv.h~dvb-usb-make-some-debug-vars-static
++++ a/drivers/media/dvb/dvb-usb/digitv.h
+@@ -8,9 +8,6 @@ struct digitv_state {
+     int is_nxt6000;
  };
  
- int rdc_reset_state(struct dst_state *state);
--int rdc_8820_reset(struct dst_state *state);
- 
- int dst_wait_dst_ready(struct dst_state *state, u8 delay_mode);
--int dst_pio_enable(struct dst_state *state);
- int dst_pio_disable(struct dst_state *state);
- int dst_error_recovery(struct dst_state* state);
- int dst_error_bailout(struct dst_state *state);
-@@ -179,9 +177,5 @@ int read_dst(struct dst_state *state, u8
- u8 dst_check_sum(u8 * buf, u32 len);
- struct dst_state* dst_attach(struct dst_state* state, struct dvb_adapter *dvb_adapter);
- struct dvb_device *dst_ca_attach(struct dst_state *state, struct dvb_adapter *dvb_adapter);
--int dst_gpio_outb(struct dst_state* state, u32 mask, u32 enbb, u32 outhigh, int delay);
+-extern int dvb_usb_digitv_debug;
+-#define deb_rc(args...)   dprintk(dvb_usb_digitv_debug,0x01,args)
 -
--int dst_command(struct dst_state* state, u8 * data, u8 len);
--
+ /* protocol (from usblogging and the SDK:
+  *
+  * Always 7 bytes bulk message(s) for controlling
+diff -puN drivers/media/dvb/dvb-usb/opera1.c~dvb-usb-make-some-debug-vars-static drivers/media/dvb/dvb-usb/opera1.c
+--- a/drivers/media/dvb/dvb-usb/opera1.c~dvb-usb-make-some-debug-vars-static
++++ a/drivers/media/dvb/dvb-usb/opera1.c
+@@ -10,7 +10,9 @@
+ * see Documentation/dvb/README.dvb-usb for more information
+ */
  
- #endif // DST_COMMON_H
+-#include "opera1.h"
++#define DVB_USB_LOG_PREFIX "opera"
++
++#include "dvb-usb.h"
+ #include "stv0299.h"
+ 
+ #define OPERA_READ_MSG 0
+@@ -38,7 +40,7 @@ struct opera_rc_keys {
+ 	u32 event;
+ };
+ 
+-int dvb_usb_opera1_debug;
++static int dvb_usb_opera1_debug;
+ module_param_named(debug, dvb_usb_opera1_debug, int, 0644);
+ MODULE_PARM_DESC(debug,
+ 		 "set debugging level (1=info,xfer=2,pll=4,ts=8,err=16,rc=32,fw=64 (or-able))."
+diff -puN drivers/media/dvb/dvb-usb/opera1.h~dvb-usb-make-some-debug-vars-static /dev/null
+--- a/drivers/media/dvb/dvb-usb/opera1.h
++++ /dev/null
+@@ -1,9 +0,0 @@
+-#ifndef _OPERA1_H_
+-#define _OPERA1_H_
+-
+-#define DVB_USB_LOG_PREFIX "opera"
+-#include "dvb-usb.h"
+-
+-extern int dvb_usb_opera1_debug;
+-#define deb_xfer(args...) dprintk(dvb_usb_opera1_debug,0x02,args)
+-#endif
+diff -puN drivers/media/dvb/dvb-usb/vp7045.c~dvb-usb-make-some-debug-vars-static drivers/media/dvb/dvb-usb/vp7045.c
+--- a/drivers/media/dvb/dvb-usb/vp7045.c~dvb-usb-make-some-debug-vars-static
++++ a/drivers/media/dvb/dvb-usb/vp7045.c
+@@ -15,9 +15,12 @@
+ #include "vp7045.h"
+ 
+ /* debug */
+-int dvb_usb_vp7045_debug;
++static int dvb_usb_vp7045_debug;
+ module_param_named(debug,dvb_usb_vp7045_debug, int, 0644);
+ MODULE_PARM_DESC(debug, "set debugging level (1=info,xfer=2,rc=4 (or-able))." DVB_USB_DEBUG_STATUS);
++#define deb_info(args...) dprintk(dvb_usb_vp7045_debug,0x01,args)
++#define deb_xfer(args...) dprintk(dvb_usb_vp7045_debug,0x02,args)
++#define deb_rc(args...)   dprintk(dvb_usb_vp7045_debug,0x04,args)
+ 
+ int vp7045_usb_op(struct dvb_usb_device *d, u8 cmd, u8 *out, int outlen, u8 *in, int inlen, int msec)
+ {
+diff -puN drivers/media/dvb/dvb-usb/vp7045.h~dvb-usb-make-some-debug-vars-static drivers/media/dvb/dvb-usb/vp7045.h
+--- a/drivers/media/dvb/dvb-usb/vp7045.h~dvb-usb-make-some-debug-vars-static
++++ a/drivers/media/dvb/dvb-usb/vp7045.h
+@@ -17,11 +17,6 @@
+ #define DVB_USB_LOG_PREFIX "vp7045"
+ #include "dvb-usb.h"
+ 
+-extern int dvb_usb_vp7045_debug;
+-#define deb_info(args...) dprintk(dvb_usb_vp7045_debug,0x01,args)
+-#define deb_xfer(args...) dprintk(dvb_usb_vp7045_debug,0x02,args)
+-#define deb_rc(args...)   dprintk(dvb_usb_vp7045_debug,0x04,args)
+-
+ /* vp7045 commands */
+ 
+ /* Twinhan Vendor requests */
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
