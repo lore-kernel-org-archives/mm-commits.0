@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memcgroup-revert-swap_state-mods.patch added to -mm tree
-Date: Fri, 09 Nov 2007 17:10:30 -0800
-Message-ID: <200711100110.lAA1AVnO008502@imap1.linux-foundation.org>
+Subject: + memcgroup-reinstate-swapoff-mod.patch added to -mm tree
+Date: Fri, 09 Nov 2007 17:10:23 -0800
+Message-ID: <200711100110.lAA1ANiO008496@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42992 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46358 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755845AbXKJBLc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 20:11:32 -0500
+	by vger.kernel.org with ESMTP id S1759461AbXKJBLf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 20:11:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: hugh@veritas.com, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.
 
 
 The patch titled
-     memcgroup: revert swap_state mods
+     memcgroup: reinstate swapoff mod
 has been added to the -mm tree.  Its filename is
-     memcgroup-revert-swap_state-mods.patch
+     memcgroup-reinstate-swapoff-mod.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,33 +25,13 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memcgroup: revert swap_state mods
+Subject: memcgroup: reinstate swapoff mod
 From: Hugh Dickins <hugh@veritas.com>
 
-If we're charging rss and we're charging cache, it seems obvious that we
-should be charging swapcache - as has been done.  But in practice that
-doesn't work out so well: both swapin readahead and swapoff leave the
-majority of pages charged to the wrong cgroup (the cgroup that happened to
-read them in, rather than the cgroup to which they belong).
-
-(Which is why unuse_pte's GFP_KERNEL while holding pte lock never showed up
-as a problem: no allocation was ever done there, every page read being
-already charged to the cgroup which initiated the swapoff.)
-
-It all works rather better if we leave the charging to do_swap_page and
-unuse_pte, and do nothing for swapcache itself: revert mm/swap_state.c to
-what it was before the memory-controller patches.  This also speeds up
-significantly a contained process working at its limit: because it no
-longer needs to keep waiting for swap writeback to complete.
-
-Is it unfair that swap pages become uncharged once they're unmapped, even
-though they're still clearly private to particular cgroups?  For a short
-while, yes; but PageReclaim arranges for those pages to go to the end of
-the inactive list and be reclaimed soon if necessary.
-
-shmem/tmpfs pages are a distinct case: their charging also benefits from
-this change, but their second life on the lists as swapcache pages may
-prove more unfair - that I need to check next.
+This patch reinstates the "swapoff: scan ptes preemptibly" mod we started
+with: in due course it should be rendered down into the earlier patches,
+leaving us with a more straightforward mem_cgroup_charge mod to unuse_pte,
+allocating with GFP_KERNEL while holding no spinlock and no atomic kmap.
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Cc: Pavel Emelianov <xemul@openvz.org>
@@ -67,57 +47,88 @@ Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |   15 ++-------------
- 1 file changed, 2 insertions(+), 13 deletions(-)
+ mm/swapfile.c |   42 ++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 34 insertions(+), 8 deletions(-)
 
-diff -puN mm/swap_state.c~memcgroup-revert-swap_state-mods mm/swap_state.c
---- a/mm/swap_state.c~memcgroup-revert-swap_state-mods
-+++ a/mm/swap_state.c
-@@ -17,7 +17,6 @@
- #include <linux/backing-dev.h>
- #include <linux/pagevec.h>
- #include <linux/migrate.h>
--#include <linux/memcontrol.h>
- 
- #include <asm/pgtable.h>
- 
-@@ -79,11 +78,6 @@ static int __add_to_swap_cache(struct pa
- 	BUG_ON(!PageLocked(page));
- 	BUG_ON(PageSwapCache(page));
- 	BUG_ON(PagePrivate(page));
--
--	error = mem_cgroup_cache_charge(page, current->mm, gfp_mask);
--	if (error)
--		goto out;
--
- 	error = radix_tree_preload(gfp_mask);
- 	if (!error) {
- 		write_lock_irq(&swapper_space.tree_lock);
-@@ -95,14 +89,10 @@ static int __add_to_swap_cache(struct pa
- 			set_page_private(page, entry.val);
- 			total_swapcache_pages++;
- 			__inc_zone_page_state(page, NR_FILE_PAGES);
--		} else
--			mem_cgroup_uncharge_page(page);
--
-+		}
- 		write_unlock_irq(&swapper_space.tree_lock);
- 		radix_tree_preload_end();
--	} else
--		mem_cgroup_uncharge_page(page);
--out:
+diff -puN mm/swapfile.c~memcgroup-reinstate-swapoff-mod mm/swapfile.c
+--- a/mm/swapfile.c~memcgroup-reinstate-swapoff-mod
++++ a/mm/swapfile.c
+@@ -507,11 +507,23 @@ unsigned int count_swap_pages(int type, 
+  * just let do_wp_page work it out if a write is requested later - to
+  * force COW, vm_page_prot omits write permission from any private vma.
+  */
+-static int unuse_pte(struct vm_area_struct *vma, pte_t *pte,
++static int unuse_pte(struct vm_area_struct *vma, pmd_t *pmd,
+ 		unsigned long addr, swp_entry_t entry, struct page *page)
+ {
++	spinlock_t *ptl;
++	pte_t *pte;
++	int ret = 1;
++
+ 	if (mem_cgroup_charge(page, vma->vm_mm, GFP_KERNEL))
+-		return -ENOMEM;
++		ret = -ENOMEM;
++
++	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
++	if (unlikely(!pte_same(*pte, swp_entry_to_pte(entry)))) {
++		if (ret > 0)
++			mem_cgroup_uncharge_page(page);
++		ret = 0;
++		goto out;
 +	}
- 	return error;
+ 
+ 	inc_mm_counter(vma->vm_mm, anon_rss);
+ 	get_page(page);
+@@ -524,7 +536,9 @@ static int unuse_pte(struct vm_area_stru
+ 	 * immediately swapped out again after swapon.
+ 	 */
+ 	activate_page(page);
+-	return 1;
++out:
++	pte_unmap_unlock(pte, ptl);
++	return ret;
  }
  
-@@ -143,7 +133,6 @@ void __delete_from_swap_cache(struct pag
- 	BUG_ON(PageWriteback(page));
- 	BUG_ON(PagePrivate(page));
+ static int unuse_pte_range(struct vm_area_struct *vma, pmd_t *pmd,
+@@ -533,21 +547,33 @@ static int unuse_pte_range(struct vm_are
+ {
+ 	pte_t swp_pte = swp_entry_to_pte(entry);
+ 	pte_t *pte;
+-	spinlock_t *ptl;
+ 	int ret = 0;
  
--	mem_cgroup_uncharge_page(page);
- 	radix_tree_delete(&swapper_space.page_tree, page_private(page));
- 	set_page_private(page, 0);
- 	ClearPageSwapCache(page);
+-	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
++	/*
++	 * We don't actually need pte lock while scanning for swp_pte: since
++	 * we hold page lock and mmap_sem, swp_pte cannot be inserted into the
++	 * page table while we're scanning; though it could get zapped, and on
++	 * some architectures (e.g. x86_32 with PAE) we might catch a glimpse
++	 * of unmatched parts which look like swp_pte, so unuse_pte must
++	 * recheck under pte lock.  Scanning without pte lock lets it be
++	 * preemptible whenever CONFIG_PREEMPT but not CONFIG_HIGHPTE.
++	 */
++	pte = pte_offset_map(pmd, addr);
+ 	do {
+ 		/*
+ 		 * swapoff spends a _lot_ of time in this loop!
+ 		 * Test inline before going to call unuse_pte.
+ 		 */
+ 		if (unlikely(pte_same(*pte, swp_pte))) {
+-			ret = unuse_pte(vma, pte++, addr, entry, page);
+-			break;
++			pte_unmap(pte);
++			ret = unuse_pte(vma, pmd, addr, entry, page);
++			if (ret)
++				goto out;
++			pte = pte_offset_map(pmd, addr);
+ 		}
+ 	} while (pte++, addr += PAGE_SIZE, addr != end);
+-	pte_unmap_unlock(pte - 1, ptl);
++	pte_unmap(pte - 1);
++out:
+ 	return ret;
+ }
+ 
 _
 
 Patches currently in -mm which might be from hugh@veritas.com are
