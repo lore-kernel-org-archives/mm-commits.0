@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-ds1wm-driver-to-check-ds1wm_platform_data-pointer-against-null.patch added to -mm tree
-Date: Fri, 09 Nov 2007 17:02:44 -0800
-Message-ID: <200711100102.lAA12imR008173@imap1.linux-foundation.org>
+Subject: + swapoff-scan-ptes-preemptibly.patch added to -mm tree
+Date: Fri, 09 Nov 2007 17:04:17 -0800
+Message-ID: <200711100104.lAA14H0k008295@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55483 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38246 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761675AbXKJBDy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 20:03:54 -0500
+	by vger.kernel.org with ESMTP id S1763285AbXKJBEd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 20:04:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eric.y.miao@gmail.com, eric.miao@marvell.com, johnpol@2ka.mipt.ru, szabolcs.gyurko@tlt.hu
+Cc: hugh@veritas.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     w1: make ds1wm driver to check ds1wm_platform_data pointer against NULL
+     swapoff: scan ptes preemptibly
 has been added to the -mm tree.  Its filename is
-     make-ds1wm-driver-to-check-ds1wm_platform_data-pointer-against-null.patch
+     swapoff-scan-ptes-preemptibly.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,38 +25,118 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: w1: make ds1wm driver to check ds1wm_platform_data pointer against NULL
-From: "eric miao" <eric.y.miao@gmail.com>
+Subject: swapoff: scan ptes preemptibly
+From: Hugh Dickins <hugh@veritas.com>
 
-Do a sanity check for the "struct ds1wm_platform_data" pointer passed in by
-the platform_device, and so to enforce each platform to provide a valid
-structure.
+Provided that CONFIG_HIGHPTE is not set, unuse_pte_range can reduce latency
+in swapoff by scanning the page table preemptibly: so long as unuse_pte is
+careful to recheck that entry under pte lock.
 
-Signed-off-by: eric miao <eric.miao@marvell.com>
-Cc: "Szabolcs Gyurko" <szabolcs.gyurko@tlt.hu>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+(To tell the truth, this patch was not inspired by any cries for lower
+latency here: rather, this restructuring permits a future memory controller
+patch to allocate with GFP_KERNEL in unuse_pte, where before it could not. 
+But it would be wrong to tuck this change away inside a memcgroup patch.)
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds1wm.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/swapfile.c |   38 +++++++++++++++++++++++++++++++-------
+ 1 file changed, 31 insertions(+), 7 deletions(-)
 
-diff -puN drivers/w1/masters/ds1wm.c~make-ds1wm-driver-to-check-ds1wm_platform_data-pointer-against-null drivers/w1/masters/ds1wm.c
---- a/drivers/w1/masters/ds1wm.c~make-ds1wm-driver-to-check-ds1wm_platform_data-pointer-against-null
-+++ a/drivers/w1/masters/ds1wm.c
-@@ -351,6 +351,10 @@ static int ds1wm_probe(struct platform_d
- 		goto err0;
- 	}
- 	plat = pdev->dev.platform_data;
-+	if (!plat) {
-+		ret = -ENXIO;
-+		goto err0;
+diff -puN mm/swapfile.c~swapoff-scan-ptes-preemptibly mm/swapfile.c
+--- a/mm/swapfile.c~swapoff-scan-ptes-preemptibly
++++ a/mm/swapfile.c
+@@ -506,9 +506,19 @@ unsigned int count_swap_pages(int type, 
+  * just let do_wp_page work it out if a write is requested later - to
+  * force COW, vm_page_prot omits write permission from any private vma.
+  */
+-static void unuse_pte(struct vm_area_struct *vma, pte_t *pte,
++static int unuse_pte(struct vm_area_struct *vma, pmd_t *pmd,
+ 		unsigned long addr, swp_entry_t entry, struct page *page)
+ {
++	spinlock_t *ptl;
++	pte_t *pte;
++	int found = 1;
++
++	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
++	if (unlikely(!pte_same(*pte, swp_entry_to_pte(entry)))) {
++		found = 0;
++		goto out;
 +	}
- 	ds1wm_data->bus_shift = plat->bus_shift;
- 	ds1wm_data->pdev = pdev;
- 	ds1wm_data->pdata = plat;
++
+ 	inc_mm_counter(vma->vm_mm, anon_rss);
+ 	get_page(page);
+ 	set_pte_at(vma->vm_mm, addr, pte,
+@@ -520,6 +530,9 @@ static void unuse_pte(struct vm_area_str
+ 	 * immediately swapped out again after swapon.
+ 	 */
+ 	activate_page(page);
++out:
++	pte_unmap_unlock(pte, ptl);
++	return found;
+ }
+ 
+ static int unuse_pte_range(struct vm_area_struct *vma, pmd_t *pmd,
+@@ -528,22 +541,33 @@ static int unuse_pte_range(struct vm_are
+ {
+ 	pte_t swp_pte = swp_entry_to_pte(entry);
+ 	pte_t *pte;
+-	spinlock_t *ptl;
+ 	int found = 0;
+ 
+-	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
++	/*
++	 * We don't actually need pte lock while scanning for swp_pte: since
++	 * we hold page lock and mmap_sem, swp_pte cannot be inserted into the
++	 * page table while we're scanning; though it could get zapped, and on
++	 * some architectures (e.g. x86_32 with PAE) we might catch a glimpse
++	 * of unmatched parts which look like swp_pte, so unuse_pte must
++	 * recheck under pte lock.  Scanning without pte lock lets it be
++	 * preemptible whenever CONFIG_PREEMPT but not CONFIG_HIGHPTE.
++	 */
++	pte = pte_offset_map(pmd, addr);
+ 	do {
+ 		/*
+ 		 * swapoff spends a _lot_ of time in this loop!
+ 		 * Test inline before going to call unuse_pte.
+ 		 */
+ 		if (unlikely(pte_same(*pte, swp_pte))) {
+-			unuse_pte(vma, pte++, addr, entry, page);
+-			found = 1;
+-			break;
++			pte_unmap(pte);
++			found = unuse_pte(vma, pmd, addr, entry, page);
++			if (found)
++				goto out;
++			pte = pte_offset_map(pmd, addr);
+ 		}
+ 	} while (pte++, addr += PAGE_SIZE, addr != end);
+-	pte_unmap_unlock(pte - 1, ptl);
++	pte_unmap(pte - 1);
++out:
+ 	return found;
+ }
+ 
 _
 
-Patches currently in -mm which might be from eric.y.miao@gmail.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
-make-ds1wm-driver-to-check-ds1wm_platform_data-pointer-against-null.patch
+git-unionfs.patch
+i386-and-x86_64-randomize-brk-fix-2.patch
+swapin_readahead-excise-numa-bogosity.patch
+swapin_readahead-move-and-rearrange-args.patch
+swapin-needs-gfp_mask-for-loop-on-tmpfs.patch
+shmem-sgp_quick-and-sgp_fault-redundant.patch
+shmem_getpage-return-page-locked.patch
+shmem_file_write-is-redundant.patch
+swapin-fix-valid_swaphandles-defect.patch
+swapoff-scan-ptes-preemptibly.patch
+maps4-add-proportional-set-size-accounting-in-smaps.patch
+tmpfs-fix-mounts-when-size-is-less-than-the-page-size.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+memory-controller-memory-accounting-v7.patch
+prio_tree-debugging-patch.patch
