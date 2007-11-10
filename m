@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + always-export-pci_scan_single_device.patch added to -mm tree
-Date: Fri, 09 Nov 2007 16:58:46 -0800
-Message-ID: <200711100058.lAA0wktN008061@imap1.linux-foundation.org>
+Subject: + remove-additional-pci_scan_child_bus-prototype.patch added to -mm tree
+Date: Fri, 09 Nov 2007 16:58:50 -0800
+Message-ID: <200711100058.lAA0wovs008067@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43445 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41567 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751526AbXKJA7D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 19:59:03 -0500
+	by vger.kernel.org with ESMTP id S1756291AbXKJA7K (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 19:59:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@kernel.org, greg@kroah.com
 
 
 The patch titled
-     always export pci_scan_single_device
+     remove additional pci_scan_child_bus() prototype
 has been added to the -mm tree.  Its filename is
-     always-export-pci_scan_single_device.patch
+     remove-additional-pci_scan_child_bus-prototype.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,41 +25,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: always export pci_scan_single_device
+Subject: remove additional pci_scan_child_bus() prototype
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch fixes the following build error with CONFIG_HOTPLUG=n:
-
-  MODPOST 2137 modules
-ERROR: "pci_scan_single_device" [drivers/edac/i82875p_edac.ko] undefined!
+There's already a prototype for pci_scan_child_bus() at the correct place in
+pci.h, so there's no reason for an additional one.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/probe.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pci/probe.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/pci/probe.c~always-export-pci_scan_single_device drivers/pci/probe.c
---- a/drivers/pci/probe.c~always-export-pci_scan_single_device
+diff -puN drivers/pci/probe.c~remove-additional-pci_scan_child_bus-prototype drivers/pci/probe.c
+--- a/drivers/pci/probe.c~remove-additional-pci_scan_child_bus-prototype
 +++ a/drivers/pci/probe.c
-@@ -1012,6 +1012,7 @@ struct pci_dev *pci_scan_single_device(s
- 
- 	return dev;
+@@ -477,8 +477,6 @@ static void pci_fixup_parent_subordinate
+ 	}
  }
-+EXPORT_SYMBOL(pci_scan_single_device);
  
- /**
-  * pci_scan_slot - scan a PCI slot on a bus for devices.
-@@ -1194,7 +1195,6 @@ EXPORT_SYMBOL(pci_add_new_bus);
- EXPORT_SYMBOL(pci_do_scan_bus);
- EXPORT_SYMBOL(pci_scan_slot);
- EXPORT_SYMBOL(pci_scan_bridge);
--EXPORT_SYMBOL(pci_scan_single_device);
- EXPORT_SYMBOL_GPL(pci_scan_child_bus);
- #endif
- 
+-unsigned int pci_scan_child_bus(struct pci_bus *bus);
+-
+ /*
+  * If it's a bridge, configure it and scan the bus behind it.
+  * For CardBus bridges, we don't scan behind as the devices will
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
