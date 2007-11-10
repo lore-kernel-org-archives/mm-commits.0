@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-pci-calgary_64c-make-a-variable-static.patch added to -mm tree
-Date: Fri, 09 Nov 2007 16:59:02 -0800
-Message-ID: <200711100059.lAA0x2ia008094@imap1.linux-foundation.org>
+Subject: + x86_64-remove-acpi_pci_link_exit.patch added to -mm tree
+Date: Fri, 09 Nov 2007 16:58:54 -0800
+Message-ID: <200711100058.lAA0wsjs008076@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36449 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57018 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756947AbXKJA7n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 19:59:43 -0500
+	by vger.kernel.org with ESMTP id S1756814AbXKJA7j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 19:59:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, mingo@elte.hu, mulix@mulix.org, tglx@linutronix.de
+Cc: bunk@kernel.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     x86 pci-calgary_64.c: make a variable static
+     x86_64: remove acpi_pci_link_exit()
 has been added to the -mm tree.  Its filename is
-     x86-pci-calgary_64c-make-a-variable-static.patch
+     x86_64-remove-acpi_pci_link_exit.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,46 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86 pci-calgary_64.c: make a variable static
+Subject: x86_64: remove acpi_pci_link_exit()
 From: Adrian Bunk <bunk@kernel.org>
 
-"debugging" is a horrible name for a global variable - thankfully it can
-become static.
-
-Also put it out of __read_mostly so that gcc no longer has to emit it
-at all.
+acpi_pci_link_exit() is both unused and empty.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Muli Ben-Yehuda <mulix@mulix.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/pci-calgary_64.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/kernel/acpi/sleep_64.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN arch/x86/kernel/pci-calgary_64.c~x86-pci-calgary_64c-make-a-variable-static arch/x86/kernel/pci-calgary_64.c
---- a/arch/x86/kernel/pci-calgary_64.c~x86-pci-calgary_64c-make-a-variable-static
-+++ a/arch/x86/kernel/pci-calgary_64.c
-@@ -182,7 +182,7 @@ static struct calgary_bus_info bus_info[
+diff -puN arch/x86/kernel/acpi/sleep_64.c~x86_64-remove-acpi_pci_link_exit arch/x86/kernel/acpi/sleep_64.c
+--- a/arch/x86/kernel/acpi/sleep_64.c~x86_64-remove-acpi_pci_link_exit
++++ a/arch/x86/kernel/acpi/sleep_64.c
+@@ -115,6 +115,3 @@ static int __init acpi_sleep_setup(char 
  
- /* enable this to stress test the chip's TCE cache */
- #ifdef CONFIG_IOMMU_DEBUG
--int debugging __read_mostly = 1;
-+static int debugging = 1;
+ __setup("acpi_sleep=", acpi_sleep_setup);
  
- static inline unsigned long verify_bit_range(unsigned long* bitmap,
- 	int expected, unsigned long start, unsigned long end)
-@@ -201,7 +201,7 @@ static inline unsigned long verify_bit_r
- 	return ~0UL;
- }
- #else /* debugging is disabled */
--int debugging __read_mostly = 0;
-+static int debugging = 0;
- 
- static inline unsigned long verify_bit_range(unsigned long* bitmap,
- 	int expected, unsigned long start, unsigned long end)
+-void acpi_pci_link_exit(void)
+-{
+-}
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
