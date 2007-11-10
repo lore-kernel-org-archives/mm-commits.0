@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mn10300-add-mtd-flash-support-for-the-asb2303-board-try-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 09 Nov 2007 19:54:23 -0800
-Message-ID: <200711100354.lAA3sNoF017479@imap1.linux-foundation.org>
+Subject: + mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch added to -mm tree
+Date: Fri, 09 Nov 2007 19:56:19 -0800
+Message-ID: <200711100356.lAA3uJNl017571@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60663 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52115 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759779AbXKJDyz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 22:54:55 -0500
+	by vger.kernel.org with ESMTP id S1753568AbXKJD5C (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 22:57:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dhowells@redhat.com, dwmw2@infradead.org
+Cc: akpm@linux-foundation.org, dhowells@redhat.com, urade.masakazu@jp.panasonic.com, yasutake.koichi@jp.panasonic.com
 
 
 The patch titled
-     mn10300-add-mtd-flash-support-for-the-asb2303-board-try-checkpatch-fixes
+     mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix
 has been added to the -mm tree.  Its filename is
-     mn10300-add-mtd-flash-support-for-the-asb2303-board-try-checkpatch-fixes.patch
+     mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,82 +25,30 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mn10300-add-mtd-flash-support-for-the-asb2303-board-try-checkpatch-fixes
+Subject: mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: braces {} are not necessary for single statement blocks
-#172: FILE: drivers/mtd/maps/asb2303-flash.c:124:
-+		if (!mymtds[i]) {
-+			printk(KERN_WARNING
-+			       "%s is absent. Skipping\n",
-+			       asb2303_maps[i].name);
-+		}
-
-ERROR: else should follow close brace '}'
-#177: FILE: drivers/mtd/maps/asb2303-flash.c:129:
-+		}
-+		else if (nr_parsed_parts[i]) {
-
-WARNING: braces {} are not necessary for single statement blocks
-#177: FILE: drivers/mtd/maps/asb2303-flash.c:129:
-+		else if (nr_parsed_parts[i]) {
-+			add_mtd_partitions(mymtds[i],
-+					   parsed_parts[i],
-+					   nr_parsed_parts[i]);
-+		}
-
-ERROR: else should follow close brace '}'
-#182: FILE: drivers/mtd/maps/asb2303-flash.c:134:
-+		}
-+		else if (!i) {
-
-ERROR: else should follow close brace '}'
-#189: FILE: drivers/mtd/maps/asb2303-flash.c:141:
-+		}
-+		else {
-
-total: 3 errors, 2 warnings, 217 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+OK?
 
 Cc: David Howells <dhowells@redhat.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
+Cc: Masakazu Urade <urade.masakazu@jp.panasonic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/maps/asb2303-flash.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ arch/mn10300/boot/tools/build.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/mtd/maps/asb2303-flash.c~mn10300-add-mtd-flash-support-for-the-asb2303-board-try-checkpatch-fixes drivers/mtd/maps/asb2303-flash.c
---- a/drivers/mtd/maps/asb2303-flash.c~mn10300-add-mtd-flash-support-for-the-asb2303-board-try-checkpatch-fixes
-+++ a/drivers/mtd/maps/asb2303-flash.c
-@@ -125,20 +125,17 @@ static int __init init_asb2303(void)
- 			printk(KERN_WARNING
- 			       "%s is absent. Skipping\n",
- 			       asb2303_maps[i].name);
--		}
--		else if (nr_parsed_parts[i]) {
-+		} else if (nr_parsed_parts[i]) {
- 			add_mtd_partitions(mymtds[i],
- 					   parsed_parts[i],
- 					   nr_parsed_parts[i]);
--		}
--		else if (!i) {
-+		} else if (!i) {
- 			printk(KERN_INFO
- 			       "Using static partitions on %s\n",
- 			       asb2303_maps[i].name);
- 			add_mtd_partitions(mymtds[i], asb2303_partitions,
- 					   ARRAY_SIZE(asb2303_partitions));
--		}
--		else {
-+		} else {
- 			printk(KERN_INFO
- 			       "Registering %s as whole device\n",
- 			       asb2303_maps[i].name);
+diff -puN arch/mn10300/boot/tools/build.c~mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix arch/mn10300/boot/tools/build.c
+--- a/arch/mn10300/boot/tools/build.c~mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix
++++ a/arch/mn10300/boot/tools/build.c
+@@ -1,6 +1,4 @@
+ /*
+- *  $Id: build.c,v 1.1.2.1 2002/11/12 13:25:46 dhowells Exp $
+- *
+  *  Copyright (C) 1991, 1992  Linus Torvalds
+  *  Copyright (C) 1997 Martin Mares
+  */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -184,6 +132,7 @@ uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
 uml-further-bugsc-tidying-checkpatch-fixes.patch
 suppress-aout-library-support-if-config_binfmt_aout-checkpatch-fixes.patch
 usb-net2280-cant-have-a-function-called-checkpatch-fixes.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
 mn10300-add-mtd-flash-support-for-the-asb2303-board-try-checkpatch-fixes.patch
 deprecate-smbfs-in-favour-of-cifs.patch
 procfs-detect-duplicate-names.patch
