@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-configure-stack-size.patch added to -mm tree
-Date: Fri, 09 Nov 2007 16:32:47 -0800
-Message-ID: <200711100032.lAA0Wlq2007078@imap1.linux-foundation.org>
+Subject: + printk-trivial-optimizations.patch added to -mm tree
+Date: Fri, 09 Nov 2007 16:41:59 -0800
+Message-ID: <200711100041.lAA0fxgV007422@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54907 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42179 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751133AbXKJAeJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 19:34:09 -0500
+	by vger.kernel.org with ESMTP id S1751442AbXKJAm3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 19:42:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, travis@sgi.com
+Cc: vda.linux@googlemail.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     x86_64: configure stack size
+     printk: trivial optimizations
 has been added to the -mm tree.  Its filename is
-     x86_64-configure-stack-size.patch
+     printk-trivial-optimizations.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,125 +25,245 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: configure stack size
-From: clameter@sgi.com
+Subject: printk: trivial optimizations
+From: Denys Vlasenko <vda.linux@googlemail.com>
 
-Make the stack size configurable necessary.  SGI NUMA configurations may need
-more stack because cpumasks and nodemasks are at times kept on the stack. 
-This patch allows to run with 16k or 32k kernel stacks.
+In arch/x86/boot/printf.c gets rid of unused tail of digits: const char
+*digits = "0123456789abcdefghijklmnopqrstuvwxyz"; (we are using 0-9a-f
+only)
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Uses smaller/faster lowercasing (by ORing with 0x20)
+if we know that we work on numbers/digits. Makes
+strtoul smaller, and also we are getting rid of
+
+  static const char small_digits[] = "0123456789abcdefx";
+  static const char large_digits[] = "0123456789ABCDEFX";
+
+since this works equally well:
+
+  static const char digits[16] = "0123456789ABCDEF";
+
+Size savings:
+
+$ size vmlinux.org vmlinux
+   text    data     bss     dec     hex filename
+ 877320  112252   90112 1079684  107984 vmlinux.org
+ 877048  112252   90112 1079412  107874 vmlinux
+
+It may be also a tiny bit faster because code has less
+branches now, but I doubt it is measurable.
+
+Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Andi Kleen <ak@suse.de>
-Cc: Mike Travis <travis@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig.x86_64          |    6 ++++++
- include/asm-x86/page_64.h        |    3 +--
- include/asm-x86/thread_info_64.h |    4 ++--
- 3 files changed, 9 insertions(+), 4 deletions(-)
+ arch/x86/boot/printf.c |   24 +++++++++++--------
+ lib/vsprintf.c         |   48 +++++++++++++++++++++------------------
+ 2 files changed, 40 insertions(+), 32 deletions(-)
 
-diff -puN arch/x86/Kconfig.x86_64~x86_64-configure-stack-size arch/x86/Kconfig.x86_64
---- a/arch/x86/Kconfig.x86_64~x86_64-configure-stack-size
-+++ a/arch/x86/Kconfig.x86_64
-@@ -370,6 +370,12 @@ config NODES_SHIFT
- 	default "6"
- 	depends on NEED_MULTIPLE_NODES
+diff -puN arch/x86/boot/printf.c~printk-trivial-optimizations arch/x86/boot/printf.c
+--- a/arch/x86/boot/printf.c~printk-trivial-optimizations
++++ a/arch/x86/boot/printf.c
+@@ -33,8 +33,8 @@ static int skip_atoi(const char **s)
+ #define PLUS	4		/* show plus */
+ #define SPACE	8		/* space if plus */
+ #define LEFT	16		/* left justified */
+-#define SPECIAL	32		/* 0x */
+-#define LARGE	64		/* use 'ABCDEF' instead of 'abcdef' */
++#define SMALL	32		/* Must be 32 == 0x20 */
++#define SPECIAL	64		/* 0x */
  
-+config THREAD_ORDER
-+	int "Kernel stack size (in page order)"
-+	default "1"
-+	help
-+	  Page order for the thread stack.
+ #define do_div(n,base) ({ \
+ int __res; \
+@@ -45,12 +45,16 @@ __res; })
+ static char *number(char *str, long num, int base, int size, int precision,
+ 		    int type)
+ {
+-	char c, sign, tmp[66];
+-	const char *digits = "0123456789abcdefghijklmnopqrstuvwxyz";
++	/* we are called with base 8, 10 or 16, only, thus don't need "G..."  */
++	static const char digits[16] = "0123456789ABCDEF"; /* "GHIJKLMNOPQRSTUVWXYZ"; */
 +
- # Dummy CONFIG option to select ACPI_NUMA from drivers/acpi/Kconfig.
++	char tmp[66];
++	char c, sign, locase;
+ 	int i;
  
- config X86_64_ACPI_NUMA
-diff -puN include/asm-x86/page_64.h~x86_64-configure-stack-size include/asm-x86/page_64.h
---- a/include/asm-x86/page_64.h~x86_64-configure-stack-size
-+++ a/include/asm-x86/page_64.h
-@@ -9,8 +9,7 @@
- #define PAGE_MASK	(~(PAGE_SIZE-1))
- #define PHYSICAL_PAGE_MASK	(~(PAGE_SIZE-1) & __PHYSICAL_MASK)
+-	if (type & LARGE)
+-		digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
++	/* locase = 0 or 0x20. ORing digits or letters with 'locase'
++	 * produces same digits or (maybe lowercased) letters */
++	locase = (type & SMALL);
+ 	if (type & LEFT)
+ 		type &= ~ZEROPAD;
+ 	if (base < 2 || base > 36)
+@@ -81,7 +85,7 @@ static char *number(char *str, long num,
+ 		tmp[i++] = '0';
+ 	else
+ 		while (num != 0)
+-			tmp[i++] = digits[do_div(num, base)];
++			tmp[i++] = (digits[do_div(num, base)] | locase);
+ 	if (i > precision)
+ 		precision = i;
+ 	size -= precision;
+@@ -95,7 +99,7 @@ static char *number(char *str, long num,
+ 			*str++ = '0';
+ 		else if (base == 16) {
+ 			*str++ = '0';
+-			*str++ = digits[33];
++			*str++ = ('X' | locase);
+ 		}
+ 	}
+ 	if (!(type & LEFT))
+@@ -244,9 +248,9 @@ int vsprintf(char *buf, const char *fmt,
+ 			base = 8;
+ 			break;
  
--#define THREAD_ORDER 1 
--#define THREAD_SIZE  (PAGE_SIZE << THREAD_ORDER)
-+#define THREAD_SIZE  (PAGE_SIZE << CONFIG_THREAD_ORDER)
- #define CURRENT_MASK (~(THREAD_SIZE-1))
+-		case 'X':
+-			flags |= LARGE;
+ 		case 'x':
++			flags |= SMALL;
++		case 'X':
+ 			base = 16;
+ 			break;
  
- #define EXCEPTION_STACK_ORDER 0
-diff -puN include/asm-x86/thread_info_64.h~x86_64-configure-stack-size include/asm-x86/thread_info_64.h
---- a/include/asm-x86/thread_info_64.h~x86_64-configure-stack-size
-+++ a/include/asm-x86/thread_info_64.h
-@@ -80,9 +80,9 @@ static inline struct thread_info *stack_
- #endif
+diff -puN lib/vsprintf.c~printk-trivial-optimizations lib/vsprintf.c
+--- a/lib/vsprintf.c~printk-trivial-optimizations
++++ a/lib/vsprintf.c
+@@ -26,6 +26,9 @@
+ #include <asm/page.h>		/* for PAGE_SIZE */
+ #include <asm/div64.h>
  
- #define alloc_thread_info(tsk) \
--	((struct thread_info *) __get_free_pages(THREAD_FLAGS, THREAD_ORDER))
-+	((struct thread_info *) __get_free_pages(THREAD_FLAGS, CONFIG_THREAD_ORDER))
++/* Works only for digits and letters, but small and fast */
++#define TOLOWER(x) ((x) | 0x20)
++
+ /**
+  * simple_strtoul - convert a string to an unsigned long
+  * @cp: The start of the string
+@@ -41,17 +44,17 @@ unsigned long simple_strtoul(const char 
+ 		if (*cp == '0') {
+ 			base = 8;
+ 			cp++;
+-			if ((toupper(*cp) == 'X') && isxdigit(cp[1])) {
++			if ((TOLOWER(*cp) == 'x') && isxdigit(cp[1])) {
+ 				cp++;
+ 				base = 16;
+ 			}
+ 		}
+ 	} else if (base == 16) {
+-		if (cp[0] == '0' && toupper(cp[1]) == 'X')
++		if (cp[0] == '0' && TOLOWER(cp[1]) == 'x')
+ 			cp += 2;
+ 	}
+ 	while (isxdigit(*cp) &&
+-	       (value = isdigit(*cp) ? *cp-'0' : toupper(*cp)-'A'+10) < base) {
++	       (value = isdigit(*cp) ? *cp-'0' : TOLOWER(*cp)-'a'+10) < base) {
+ 		result = result*base + value;
+ 		cp++;
+ 	}
+@@ -92,17 +95,17 @@ unsigned long long simple_strtoull(const
+ 		if (*cp == '0') {
+ 			base = 8;
+ 			cp++;
+-			if ((toupper(*cp) == 'X') && isxdigit(cp[1])) {
++			if ((TOLOWER(*cp) == 'x') && isxdigit(cp[1])) {
+ 				cp++;
+ 				base = 16;
+ 			}
+ 		}
+ 	} else if (base == 16) {
+-		if (cp[0] == '0' && toupper(cp[1]) == 'X')
++		if (cp[0] == '0' && TOLOWER(cp[1]) == 'x')
+ 			cp += 2;
+ 	}
+-	while (isxdigit(*cp) && (value = isdigit(*cp) ? *cp-'0' : (islower(*cp)
+-	    ? toupper(*cp) : *cp)-'A'+10) < base) {
++	while (isxdigit(*cp)
++	 && (value = isdigit(*cp) ? *cp-'0' : TOLOWER(*cp)-'a'+10) < base) {
+ 		result = result*base + value;
+ 		cp++;
+ 	}
+@@ -237,24 +240,25 @@ static noinline char* put_dec(char *buf,
+ #define PLUS	4		/* show plus */
+ #define SPACE	8		/* space if plus */
+ #define LEFT	16		/* left justified */
+-#define SPECIAL	32		/* 0x */
+-#define LARGE	64		/* use 'ABCDEF' instead of 'abcdef' */
++#define SMALL	32		/* Must be 32 == 0x20 */
++#define SPECIAL	64		/* 0x */
  
--#define free_thread_info(ti) free_pages((unsigned long) (ti), THREAD_ORDER)
-+#define free_thread_info(ti) free_pages((unsigned long) (ti), CONFIG_THREAD_ORDER)
+ static char *number(char *buf, char *end, unsigned long long num, int base, int size, int precision, int type)
+ {
+-	char sign,tmp[66];
+-	const char *digits;
+-	/* we are called with base 8, 10 or 16, only, thus don't need "g..."  */
+-	static const char small_digits[] = "0123456789abcdefx"; /* "ghijklmnopqrstuvwxyz"; */
+-	static const char large_digits[] = "0123456789ABCDEFX"; /* "GHIJKLMNOPQRSTUVWXYZ"; */
++	/* we are called with base 8, 10 or 16, only, thus don't need "G..."  */
++	static const char digits[16] = "0123456789ABCDEF"; /* "GHIJKLMNOPQRSTUVWXYZ"; */
++
++	char tmp[66];
++	char sign;
++	char locase;
+ 	int need_pfx = ((type & SPECIAL) && base != 10);
+ 	int i;
  
- #else /* !__ASSEMBLY__ */
+-	digits = (type & LARGE) ? large_digits : small_digits;
++	/* locase = 0 or 0x20. ORing digits or letters with 'locase'
++	 * produces same digits or (maybe lowercased) letters */
++	locase = (type & SMALL);
+ 	if (type & LEFT)
+ 		type &= ~ZEROPAD;
+-	if (base < 2 || base > 36)
+-		return NULL;
+ 	sign = 0;
+ 	if (type & SIGN) {
+ 		if ((signed long long) num < 0) {
+@@ -281,7 +285,7 @@ static char *number(char *buf, char *end
+ 		tmp[i++] = '0';
+ 	/* Generic code, for any base:
+ 	else do {
+-		tmp[i++] = digits[do_div(num,base)];
++		tmp[i++] = (digits[do_div(num,base)] | locase);
+ 	} while (num != 0);
+ 	*/
+ 	else if (base != 10) { /* 8 or 16 */
+@@ -289,7 +293,7 @@ static char *number(char *buf, char *end
+ 		int shift = 3;
+ 		if (base == 16) shift = 4;
+ 		do {
+-			tmp[i++] = digits[((unsigned char)num) & mask];
++			tmp[i++] = (digits[((unsigned char)num) & mask] | locase);
+ 			num >>= shift;
+ 		} while (num);
+ 	} else { /* base 10 */
+@@ -321,7 +325,7 @@ static char *number(char *buf, char *end
+ 		++buf;
+ 		if (base == 16) {
+ 			if (buf < end)
+-				*buf = digits[16]; /* for arbitrary base: digits[33]; */
++				*buf = ('X' | locase);
+ 			++buf;
+ 		}
+ 	}
+@@ -557,9 +561,9 @@ int vsnprintf(char *buf, size_t size, co
+ 				base = 8;
+ 				break;
+ 
+-			case 'X':
+-				flags |= LARGE;
+ 			case 'x':
++				flags |= SMALL;
++			case 'X':
+ 				base = 16;
+ 				break;
  
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from vda.linux@googlemail.com are
 
-slab-fix-typo-in-allocation-failure-handling.patch
-migration-find-correct-vma-in-new_vma_page.patch
-ia64-slim-down-__clear_bit_unlock.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-mem-policy-fix-mempolicy-usage-in-pci-driver.patch
-git-unionfs.patch
-git-x86.patch
-x86_64-clean-up-stack-allocation-and-free.patch
-x86_64-configure-stack-size.patch
-fix-mm-utilckrealloc.patch
-vmstat-fix-section-mismatch-warning.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-move-vmalloc_to_page-to-mm-vmalloc.patch
-vmalloc-add-const-to-void-parameters.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
-vmalloc-clean-up-page-array-indexing.patch
-vunmap-return-page-array-passed-on-vmap.patch
-slub-move-count_partial.patch
-slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
-slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
-slub-use-non-atomic-bit-unlock.patch
-slub-fix-coding-style-violations.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch
-slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path.patch
-slub-__slab_alloc-exit-path-consolidation.patch
-slub-provide-unique-end-marker-for-each-slab.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc.patch
-slub-optional-fast-path-using-cmpxchg_local.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-restructure-slab-alloc.patch
-slub-comment-kmem_cache_cpu-structure.patch
-vm-allow-get_page_unless_zero-on-compound-pages.patch
-bufferhead-revert-constructor-removal.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-swapin_readahead-excise-numa-bogosity.patch
-revoke-core-code.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-dentries-extract-common-code-to-remove-dentry-from-lru.patch
-dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+git-cryptodev.patch
+maps4-add-proportional-set-size-accounting-in-smaps.patch
+printk-trivial-optimizations.patch
