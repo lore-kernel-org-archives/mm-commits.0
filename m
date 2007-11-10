@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + blk_dev_idecd-help-remove-outdated-note.patch added to -mm tree
-Date: Fri, 09 Nov 2007 16:58:44 -0800
-Message-ID: <200711100058.lAA0wi6o008058@imap1.linux-foundation.org>
+Subject: + x86-e820_64c-make-2-functions-static.patch added to -mm tree
+Date: Fri, 09 Nov 2007 16:58:58 -0800
+Message-ID: <200711100058.lAA0wwdf008082@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33004 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54814 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758200AbXKJBAJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 20:00:09 -0500
+	by vger.kernel.org with ESMTP id S1757823AbXKJBAF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 20:00:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, bzolnier@gmail.com, jens.axboe@oracle.com
+Cc: bunk@kernel.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     BLK_DEV_IDECD help: remove outdated note
+     x86 e820_64.c: make 2 functions static
 has been added to the -mm tree.  Its filename is
-     blk_dev_idecd-help-remove-outdated-note.patch
+     x86-e820_64c-make-2-functions-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,35 +25,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: BLK_DEV_IDECD help: remove outdated note
+Subject: x86 e820_64.c: make 2 functions static
 From: Adrian Bunk <bunk@kernel.org>
 
-LILO version 16 was released on 26-02-1995 (sic), so telling people to not use
-older versions no longer has any value.
+Make the following needlessly global functions static:
+
+- e820_print_map()
+- early_panic()
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/Kconfig |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/x86/kernel/e820_64.c |    4 ++--
+ include/asm-x86/e820_64.h |    1 -
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ide/Kconfig~blk_dev_idecd-help-remove-outdated-note drivers/ide/Kconfig
---- a/drivers/ide/Kconfig~blk_dev_idecd-help-remove-outdated-note
-+++ a/drivers/ide/Kconfig
-@@ -203,10 +203,6 @@ config BLK_DEV_IDECD
- 	  CD-ROM drive, you can say N to all other CD-ROM options, but be sure
- 	  to say Y or M to "ISO 9660 CD-ROM file system support".
+diff -puN arch/x86/kernel/e820_64.c~x86-e820_64c-make-2-functions-static arch/x86/kernel/e820_64.c
+--- a/arch/x86/kernel/e820_64.c~x86-e820_64c-make-2-functions-static
++++ a/arch/x86/kernel/e820_64.c
+@@ -372,7 +372,7 @@ unsigned long __init e820_hole_size(unsi
+ 	return end - start - (ram << PAGE_SHIFT);
+ }
  
--	  Note that older versions of LILO (LInux LOader) cannot properly deal
--	  with IDE/ATAPI CD-ROMs, so install LILO 16 or higher, available from
--	  <http://lilo.go.dyndns.org/>.
--
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called ide-cd.
+-void __init e820_print_map(char *who)
++static void __init e820_print_map(char *who)
+ {
+ 	int i;
  
+@@ -632,7 +632,7 @@ static int __init copy_e820_map(struct e
+ 	return 0;
+ }
+ 
+-void early_panic(char *msg)
++static void early_panic(char *msg)
+ {
+ 	early_printk(msg);
+ 	panic(msg);
+diff -puN include/asm-x86/e820_64.h~x86-e820_64c-make-2-functions-static include/asm-x86/e820_64.h
+--- a/include/asm-x86/e820_64.h~x86-e820_64c-make-2-functions-static
++++ a/include/asm-x86/e820_64.h
+@@ -24,7 +24,6 @@ extern unsigned long e820_end_of_ram(voi
+ extern void e820_reserve_resources(struct resource *code_resource,
+ 		struct resource *data_resource, struct resource *bss_resource);
+ extern void e820_mark_nosave_regions(void);
+-extern void e820_print_map(char *who);
+ extern int e820_any_mapped(unsigned long start, unsigned long end, unsigned type);
+ extern int e820_all_mapped(unsigned long start, unsigned long end, unsigned type);
+ extern unsigned long e820_hole_size(unsigned long start, unsigned long end);
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
