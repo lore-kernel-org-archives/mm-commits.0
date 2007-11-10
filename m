@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-cmos-exports-nvram-in-sysfs.patch added to -mm tree
-Date: Fri, 09 Nov 2007 17:28:45 -0800
-Message-ID: <200711100128.lAA1Sje6009149@imap1.linux-foundation.org>
+Subject: + sound-remove-dead-config-symbol-from-sound-code.patch added to -mm tree
+Date: Fri, 09 Nov 2007 17:30:13 -0800
+Message-ID: <200711100130.lAA1UDCC009189@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60624 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42411 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753623AbXKJB3H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 20:29:07 -0500
+	by vger.kernel.org with ESMTP id S1754747AbXKJBaa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 20:30:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, a.zummo@towertech.it, bjorn.helgaas@hp.com, dbrownell@users.sourceforge.net
+Cc: olsajiri@gmail.com, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     rtc-cmos: export nvram in sysfs
+     sound: remove dead config symbol from sound code
 has been added to the -mm tree.  Its filename is
-     rtc-cmos-exports-nvram-in-sysfs.patch
+     sound-remove-dead-config-symbol-from-sound-code.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,262 +25,175 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc-cmos: export nvram in sysfs
-From: David Brownell <david-b@pacbell.net>
+Subject: sound: remove dead config symbol from sound code
+From: Jiri Olsa <olsajiri@gmail.com>
 
-This makes rtc-cmos export its NVRAM, like several other RTC drivers.
+remove dead config symbols from sound code
 
-It still works within the limits of the current CMOS_READ/CMOS_WRITE calls,
-which don't understand how to access multiple register banks.  The primary
-impact of that limitation is that Linux can't access the uppermost 128
-bytes of NVRAM on many systems.
-
-Note that this isn't aiming to be a drop-in replacement for the legacy
-/dev/nvram support.  (Presumably that has real users, and isn't just
-getting carried forward automatically?) Userspace handles more work:
-
- - When userspace code updates NVRAM, that will need to include
-   updating any platform-specific checksums that may apply.
-
- - No /proc/driver/nvram file will parse and display NVRAM data
-   according to whichever boot firmware your board expects.
-
-Also minor pnp-related updates: update a comment, remove dead code.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Jiri Olsa <olsajiri@gmail.com>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |  129 +++++++++++++++++++++++++++++++++++----
- 1 file changed, 117 insertions(+), 12 deletions(-)
+ include/sound/cs46xx.h        |    3 
+ include/sound/driver.h        |    4 -
+ sound/pci/cs46xx/cs46xx_lib.c |   99 --------------------------------
+ 3 files changed, 106 deletions(-)
 
-diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-exports-nvram-in-sysfs drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~rtc-cmos-exports-nvram-in-sysfs
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -393,6 +393,80 @@ static const struct rtc_class_ops cmos_r
+diff -puN include/sound/cs46xx.h~sound-remove-dead-config-symbol-from-sound-code include/sound/cs46xx.h
+--- a/include/sound/cs46xx.h~sound-remove-dead-config-symbol-from-sound-code
++++ a/include/sound/cs46xx.h
+@@ -1708,9 +1708,6 @@ struct snd_cs46xx {
  
- /*----------------------------------------------------------------*/
+ 	struct gameport *gameport;
  
-+/*
-+ * All these chips have at least 64 bytes of address space, shared by
-+ * RTC registers and NVRAM.  Most of those bytes of NVRAM are used
-+ * by boot firmware.  Modern chips have 128 or 256 bytes.
-+ */
-+
-+#define NVRAM_OFFSET	(RTC_REG_D + 1)
-+
-+static ssize_t
-+cmos_nvram_read(struct kobject *kobj, struct bin_attribute *attr,
-+		char *buf, loff_t off, size_t count)
-+{
-+	int	retval;
-+
-+	if (unlikely(off >= attr->size))
-+		return 0;
-+	if ((off + count) > attr->size)
-+		count = attr->size - off;
-+
-+	spin_lock_irq(&rtc_lock);
-+	for (retval = 0, off += NVRAM_OFFSET; count--; retval++, off++)
-+		*buf++ = CMOS_READ(off);
-+	spin_unlock_irq(&rtc_lock);
-+
-+	return retval;
-+}
-+
-+static ssize_t
-+cmos_nvram_write(struct kobject *kobj, struct bin_attribute *attr,
-+		char *buf, loff_t off, size_t count)
-+{
-+	struct cmos_rtc	*cmos;
-+	int		retval;
-+
-+	cmos = dev_get_drvdata(container_of(kobj, struct device, kobj));
-+	if (unlikely(off >= attr->size))
-+		return -EFBIG;
-+	if ((off + count) > attr->size)
-+		count = attr->size - off;
-+
-+	/* NOTE:  on at least PCs and Ataris, the boot firmware uses a
-+	 * checksum on part of the NVRAM data.  That's currently ignored
-+	 * here.  If userspace is smart enough to know what fields of
-+	 * NVRAM to update, updating checksums is also part of its job.
-+	 */
-+	spin_lock_irq(&rtc_lock);
-+	for (retval = 0, off += NVRAM_OFFSET; count--; retval++, off++) {
-+		/* don't trash RTC registers */
-+		if (off == cmos->day_alrm
-+				|| off == cmos->mon_alrm
-+				|| off == cmos->century)
-+			buf++;
-+		else
-+			CMOS_WRITE(*buf++, off);
-+	}
-+	spin_unlock_irq(&rtc_lock);
-+
-+	return retval;
-+}
-+
-+static struct bin_attribute nvram = {
-+	.attr = {
-+		.name	= "nvram",
-+		.mode	= S_IRUGO | S_IWUSR,
-+		.owner	= THIS_MODULE,
-+	},
-+
-+	.read	= cmos_nvram_read,
-+	.write	= cmos_nvram_write,
-+	/* size gets set up later */
-+};
-+
-+/*----------------------------------------------------------------*/
-+
- static struct cmos_rtc	cmos_rtc;
+-#ifdef CONFIG_SND_CS46XX_DEBUG_GPIO
+-	int current_gpio;
+-#endif
+ #ifdef CONFIG_SND_CS46XX_NEW_DSP
+ 	struct mutex spos_mutex;
  
- static irqreturn_t cmos_interrupt(int irq, void *p)
-@@ -412,11 +486,9 @@ static irqreturn_t cmos_interrupt(int ir
- }
- 
- #ifdef	CONFIG_PNP
--#define	is_pnp()	1
- #define	INITSECTION
- 
- #else
--#define	is_pnp()	0
- #define	INITSECTION	__init
+diff -puN include/sound/driver.h~sound-remove-dead-config-symbol-from-sound-code include/sound/driver.h
+--- a/include/sound/driver.h~sound-remove-dead-config-symbol-from-sound-code
++++ a/include/sound/driver.h
+@@ -38,10 +38,6 @@
+ #define CONFIG_SND_MAJOR	116
  #endif
  
-@@ -426,6 +498,7 @@ cmos_do_probe(struct device *dev, struct
- 	struct cmos_rtc_board_info	*info = dev->platform_data;
- 	int				retval = 0;
- 	unsigned char			rtc_control;
-+	unsigned			address_space;
+-#ifndef CONFIG_SND_DEBUG
+-#undef CONFIG_SND_DEBUG_MEMORY
+-#endif
+-
+ #ifdef ALSA_BUILD
+ #include "adriver.h"
+ #endif
+diff -puN sound/pci/cs46xx/cs46xx_lib.c~sound-remove-dead-config-symbol-from-sound-code sound/pci/cs46xx/cs46xx_lib.c
+--- a/sound/pci/cs46xx/cs46xx_lib.c~sound-remove-dead-config-symbol-from-sound-code
++++ a/sound/pci/cs46xx/cs46xx_lib.c
+@@ -2084,71 +2084,6 @@ static int snd_cs46xx_spdif_stream_put(s
+ #endif /* CONFIG_SND_CS46XX_NEW_DSP */
  
- 	/* there can be only one ... */
- 	if (cmos_rtc.dev)
-@@ -450,15 +523,36 @@ cmos_do_probe(struct device *dev, struct
- 	cmos_rtc.irq = rtc_irq;
- 	cmos_rtc.iomem = ports;
  
-+	/* Heuristic to deduce NVRAM size ... do what the legacy NVRAM
-+	 * driver did, but don't reject unknown configs.   Old hardware
-+	 * won't address 128 bytes, and for now we ignore the way newer
-+	 * chips can address 256 bytes (using two more i/o ports).
-+	 */
-+#if	defined(CONFIG_ATARI)
-+	address_space = 64;
-+#elif defined(__i386__) || defined(__x86_64__) || defined(__arm__)
-+	address_space = 128;
-+#else
-+#warning Assuming 128 bytes of RTC+NVRAM address space, not 64 bytes.
-+	address_space = 128;
-+#endif
-+
- 	/* For ACPI systems extension info comes from the FADT.  On others,
- 	 * board specific setup provides it as appropriate.  Systems where
- 	 * the alarm IRQ isn't automatically a wakeup IRQ (like ACPI, and
- 	 * some almost-clones) can provide hooks to make that behave.
-+	 *
-+	 * Note that ACPI doesn't preclude putting these registers into
-+	 * "extended" areas of the chip, including some that we won't yet
-+	 * expect CMOS_READ and friends to handle.
- 	 */
- 	if (info) {
--		cmos_rtc.day_alrm = info->rtc_day_alarm;
--		cmos_rtc.mon_alrm = info->rtc_mon_alarm;
--		cmos_rtc.century = info->rtc_century;
-+		if (info->rtc_day_alarm && info->rtc_day_alarm < 128)
-+			cmos_rtc.day_alrm = info->rtc_day_alarm;
-+		if (info->rtc_mon_alarm && info->rtc_mon_alarm < 128)
-+			cmos_rtc.mon_alrm = info->rtc_mon_alarm;
-+		if (info->rtc_century && info->rtc_century < 128)
-+			cmos_rtc.century = info->rtc_century;
+-#ifdef CONFIG_SND_CS46XX_DEBUG_GPIO
+-static int snd_cs46xx_egpio_select_info(struct snd_kcontrol *kcontrol, 
+-                                        struct snd_ctl_elem_info *uinfo)
+-{
+-	uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
+-	uinfo->count = 1;
+-	uinfo->value.integer.min = 0;
+-	uinfo->value.integer.max = 8;
+-	return 0;
+-}
+-
+-static int snd_cs46xx_egpio_select_get(struct snd_kcontrol *kcontrol, 
+-                                       struct snd_ctl_elem_value *ucontrol)
+-{
+-	struct snd_cs46xx *chip = snd_kcontrol_chip(kcontrol);
+-	ucontrol->value.integer.value[0] = chip->current_gpio;
+-
+-	return 0;
+-}
+-
+-static int snd_cs46xx_egpio_select_put(struct snd_kcontrol *kcontrol, 
+-                                       struct snd_ctl_elem_value *ucontrol)
+-{
+-	struct snd_cs46xx *chip = snd_kcontrol_chip(kcontrol);
+-	int change = (chip->current_gpio != ucontrol->value.integer.value[0]);
+-	chip->current_gpio = ucontrol->value.integer.value[0];
+-
+-	return change;
+-}
+-
+-
+-static int snd_cs46xx_egpio_get(struct snd_kcontrol *kcontrol, 
+-                                       struct snd_ctl_elem_value *ucontrol)
+-{
+-	struct snd_cs46xx *chip = snd_kcontrol_chip(kcontrol);
+-	int reg = kcontrol->private_value;
+-
+-	snd_printdd ("put: reg = %04x, gpio %02x\n",reg,chip->current_gpio);
+-	ucontrol->value.integer.value[0] = 
+-		(snd_cs46xx_peekBA0(chip, reg) & (1 << chip->current_gpio)) ? 1 : 0;
+-  
+-	return 0;
+-}
+-
+-static int snd_cs46xx_egpio_put(struct snd_kcontrol *kcontrol, 
+-                                       struct snd_ctl_elem_value *ucontrol)
+-{
+-	struct snd_cs46xx *chip = snd_kcontrol_chip(kcontrol);
+-	int reg = kcontrol->private_value;
+-	int val = snd_cs46xx_peekBA0(chip, reg);
+-	int oldval = val;
+-	snd_printdd ("put: reg = %04x, gpio %02x\n",reg,chip->current_gpio);
+-
+-	if (ucontrol->value.integer.value[0])
+-		val |= (1 << chip->current_gpio);
+-	else
+-		val &= ~(1 << chip->current_gpio);
+-
+-	snd_cs46xx_pokeBA0(chip, reg,val);
+-	snd_printdd ("put: val %08x oldval %08x\n",val,oldval);
+-
+-	return (oldval != val);
+-}
+-#endif /* CONFIG_SND_CS46XX_DEBUG_GPIO */
+-
+ static struct snd_kcontrol_new snd_cs46xx_controls[] __devinitdata = {
+ {
+ 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+@@ -2241,40 +2176,6 @@ static struct snd_kcontrol_new snd_cs46x
+ },
  
- 		if (info->wake_on && info->wake_off) {
- 			cmos_rtc.wake_on = info->wake_on;
-@@ -518,10 +612,13 @@ cmos_do_probe(struct device *dev, struct
- 		goto cleanup1;
- 	}
+ #endif
+-#ifdef CONFIG_SND_CS46XX_DEBUG_GPIO
+-{
+-	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+-	.name = "EGPIO select",
+-	.info = snd_cs46xx_egpio_select_info,
+-	.get = snd_cs46xx_egpio_select_get,
+-	.put = snd_cs46xx_egpio_select_put,
+-	.private_value = 0,
+-},
+-{
+-	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+-	.name = "EGPIO Input/Output",
+-	.info = snd_mixer_boolean_info,
+-	.get = snd_cs46xx_egpio_get,
+-	.put = snd_cs46xx_egpio_put,
+-	.private_value = BA0_EGPIODR,
+-},
+-{
+-	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+-	.name = "EGPIO CMOS/Open drain",
+-	.info = snd_mixer_boolean_info,
+-	.get = snd_cs46xx_egpio_get,
+-	.put = snd_cs46xx_egpio_put,
+-	.private_value = BA0_EGPIOPTR,
+-},
+-{
+-	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+-	.name = "EGPIO On/Off",
+-	.info = snd_mixer_boolean_info,
+-	.get = snd_cs46xx_egpio_get,
+-	.put = snd_cs46xx_egpio_put,
+-	.private_value = BA0_EGPIOSR,
+-},
+-#endif
+ };
  
--	/* REVISIT optionally make 50 or 114 bytes NVRAM available,
--	 * like rtc-ds1553, rtc-ds1742 ... this will often include
--	 * registers for century, and day/month alarm.
--	 */
-+	/* export at least the first block of NVRAM */
-+	nvram.size = address_space - NVRAM_OFFSET;
-+	retval = sysfs_create_bin_file(&dev->kobj, &nvram);
-+	if (retval < 0) {
-+		dev_dbg(dev, "can't create nvram file? %d\n", retval);
-+		goto cleanup2;
-+	}
- 
- 	pr_info("%s: alarms up to one %s%s\n",
- 			cmos_rtc.rtc->dev.bus_id,
-@@ -536,6 +633,9 @@ cmos_do_probe(struct device *dev, struct
- 
- 	return 0;
- 
-+cleanup2:
-+	if (is_valid_irq(rtc_irq))
-+		free_irq(rtc_irq, cmos_rtc.rtc);
- cleanup1:
- 	cmos_rtc.dev = NULL;
- 	rtc_device_unregister(cmos_rtc.rtc);
-@@ -563,6 +663,8 @@ static void __exit cmos_do_remove(struct
- 
- 	cmos_do_shutdown();
- 
-+	sysfs_remove_bin_file(&dev->kobj, &nvram);
-+
- 	if (is_valid_irq(cmos->irq))
- 		free_irq(cmos->irq, cmos->rtc);
- 
-@@ -659,9 +761,12 @@ static int cmos_resume(struct device *de
- 
- /*----------------------------------------------------------------*/
- 
--/* The "CMOS" RTC normally lives on the platform_bus.  On ACPI systems,
-- * the device node will always be created as a PNPACPI device.  Plus
-- * pre-ACPI PCs probably list it in the PNPBIOS tables.
-+/* On non-x86 systems, a "CMOS" RTC lives most naturally on platform_bus.
-+ * ACPI systems always list these as PNPACPI devices, and pre-ACPI PCs
-+ * probably list them in similar PNPBIOS tables; so PNP is more common.
-+ *
-+ * We don't use legacy "poke at the hardware" probing.  Ancient PCs that
-+ * predate even PNPBIOS should set up platform_bus devices.
-  */
- 
- #ifdef	CONFIG_PNP
+ #ifdef CONFIG_SND_CS46XX_NEW_DSP
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from olsajiri@gmail.com are
 
-rtc_hctosys-expects-rtcs-in-utc-doc.patch
-rtcs-handle-nvram-better.patch
-rtc-ds1307-exports-nvram.patch
-rtc-tweak-driver-documentation-for-rtc-periodic.patch
-spi-fix-double-free-on-spi_unregister_master.patch
-spi-fix-error-paths-on-txx9spi_probe.patch
-atmel_serial-build-warnings-begone.patch
-rtc-dont-write-rtc-century-when-setting-a-wake-alarm.patch
-git-arm-master.patch
-usb-s3c2410_udc-minor-irq-handler-cleanups.patch
-rtc-release-correct-region-in-error-path.patch
-rtc-fallback-to-requesting-only-the-ports-we-actually-use.patch
-tle62x0-driver-stops-ignoring-read-errors.patch
-rtc-convert-mutex-to-bitfield.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-remove-pointless-casts-from-void-pointers.patch
-spi-at25-driver-is-for-eeprom-not-flash.patch
-spi-use-mutex-not-semaphore.patch
-blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait.patch
-blackfin-spi-driver-use-void-__iomem-for-regs_base.patch
-blackfin-spi-driver-move-hard-coded-pin_req-to-board-file.patch
-blackfin-spi-driver-reconfigure-speed_hz-and-bits_per_word-in-each-spi-transfer.patch
-cosmetic-fixes-to-rtc-subsystems-kconfig.patch
-rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
-rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
-rtc-cmos-exports-nvram-in-sysfs.patch
-pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch
+sound-remove-dead-config-symbol-from-sound-code.patch
+arm-remove-dead-config-symbols-from-arm-code.patch
+m32r-remove-dead-config-symbols-from-m32r-code.patch
+mips-remove-dead-config-symbols-from-mips-code.patch
+git-net.patch
+drivers-serial-s3c2410c-remove-dead-config-symbols.patch
+git-sh.patch
+frv-remove-dead-config-symbol-from-frv-code.patch
+m68knomu-remove-dead-config-symbols-from-m68knomu-code.patch
