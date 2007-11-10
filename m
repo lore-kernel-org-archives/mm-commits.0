@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-remove-acpi_pci_link_exit.patch added to -mm tree
-Date: Fri, 09 Nov 2007 16:58:54 -0800
-Message-ID: <200711100058.lAA0wsjs008076@imap1.linux-foundation.org>
+Subject: + blk_dev_idecd-help-remove-outdated-note.patch added to -mm tree
+Date: Fri, 09 Nov 2007 16:58:44 -0800
+Message-ID: <200711100058.lAA0wi6o008058@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57018 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33004 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756814AbXKJA7j (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 19:59:39 -0500
+	by vger.kernel.org with ESMTP id S1758200AbXKJBAJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 20:00:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, mingo@elte.hu, tglx@linutronix.de
+Cc: bunk@kernel.org, bzolnier@gmail.com, jens.axboe@oracle.com
 
 
 The patch titled
-     x86_64: remove acpi_pci_link_exit()
+     BLK_DEV_IDECD help: remove outdated note
 has been added to the -mm tree.  Its filename is
-     x86_64-remove-acpi_pci_link_exit.patch
+     blk_dev_idecd-help-remove-outdated-note.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,30 +25,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: remove acpi_pci_link_exit()
+Subject: BLK_DEV_IDECD help: remove outdated note
 From: Adrian Bunk <bunk@kernel.org>
 
-acpi_pci_link_exit() is both unused and empty.
+LILO version 16 was released on 26-02-1995 (sic), so telling people to not use
+older versions no longer has any value.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/acpi/sleep_64.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/ide/Kconfig |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN arch/x86/kernel/acpi/sleep_64.c~x86_64-remove-acpi_pci_link_exit arch/x86/kernel/acpi/sleep_64.c
---- a/arch/x86/kernel/acpi/sleep_64.c~x86_64-remove-acpi_pci_link_exit
-+++ a/arch/x86/kernel/acpi/sleep_64.c
-@@ -115,6 +115,3 @@ static int __init acpi_sleep_setup(char 
+diff -puN drivers/ide/Kconfig~blk_dev_idecd-help-remove-outdated-note drivers/ide/Kconfig
+--- a/drivers/ide/Kconfig~blk_dev_idecd-help-remove-outdated-note
++++ a/drivers/ide/Kconfig
+@@ -203,10 +203,6 @@ config BLK_DEV_IDECD
+ 	  CD-ROM drive, you can say N to all other CD-ROM options, but be sure
+ 	  to say Y or M to "ISO 9660 CD-ROM file system support".
  
- __setup("acpi_sleep=", acpi_sleep_setup);
+-	  Note that older versions of LILO (LInux LOader) cannot properly deal
+-	  with IDE/ATAPI CD-ROMs, so install LILO 16 or higher, available from
+-	  <http://lilo.go.dyndns.org/>.
+-
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called ide-cd.
  
--void acpi_pci_link_exit(void)
--{
--}
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
