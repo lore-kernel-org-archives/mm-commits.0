@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + x86-mce_64c-make-struct-mcelog-static.patch added to -mm tree
-Date: Fri, 09 Nov 2007 16:58:56 -0800
-Message-ID: <200711100058.lAA0wuuA008079@imap1.linux-foundation.org>
+Subject: + x86-nmi_64c-make-code-static.patch added to -mm tree
+Date: Fri, 09 Nov 2007 16:59:00 -0800
+Message-ID: <200711100059.lAA0x0Y2008085@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44761 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58279 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756884AbXKJA7l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 19:59:41 -0500
+	by vger.kernel.org with ESMTP id S1756967AbXKJA7n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 19:59:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@kernel.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     x86 mce_64.c: make struct mcelog static
+     x86: nmi_64.c: make code static
 has been added to the -mm tree.  Its filename is
-     x86-mce_64c-make-struct-mcelog-static.patch
+     x86-nmi_64c-make-code-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,10 +25,13 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86 mce_64.c: make struct mcelog static
+Subject: x86: nmi_64.c: make code static
 From: Adrian Bunk <bunk@kernel.org>
 
-Make the needlessly global struct mcelog static.
+Make the following needlessly global code static:
+
+- panic_on_timeout
+- setup_nmi_watchdog()
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -36,21 +39,50 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/mcheck/mce_64.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/nmi_64.c |    4 ++--
+ include/asm-x86/nmi_64.h |    2 --
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/mcheck/mce_64.c~x86-mce_64c-make-struct-mcelog-static arch/x86/kernel/cpu/mcheck/mce_64.c
---- a/arch/x86/kernel/cpu/mcheck/mce_64.c~x86-mce_64c-make-struct-mcelog-static
-+++ a/arch/x86/kernel/cpu/mcheck/mce_64.c
-@@ -63,7 +63,7 @@ static DECLARE_WAIT_QUEUE_HEAD(mce_wait)
-  * separate MCEs from kernel messages to avoid bogus bug reports.
+diff -puN arch/x86/kernel/nmi_64.c~x86-nmi_64c-make-code-static arch/x86/kernel/nmi_64.c
+--- a/arch/x86/kernel/nmi_64.c~x86-nmi_64c-make-code-static
++++ a/arch/x86/kernel/nmi_64.c
+@@ -39,7 +39,7 @@ static cpumask_t backtrace_mask = CPU_MA
+  *  0: the lapic NMI watchdog is disabled, but can be enabled
   */
+ atomic_t nmi_active = ATOMIC_INIT(0);		/* oprofile uses this */
+-int panic_on_timeout;
++static int panic_on_timeout;
  
--struct mce_log mcelog = {
-+static struct mce_log mcelog = {
- 	MCE_LOG_SIGNATURE,
- 	MCE_LOG_LEN,
- };
+ unsigned int nmi_watchdog = NMI_DEFAULT;
+ static unsigned int nmi_hz = HZ;
+@@ -135,7 +135,7 @@ int __init check_nmi_watchdog (void)
+ 	return 0;
+ }
+ 
+-int __init setup_nmi_watchdog(char *str)
++static int __init setup_nmi_watchdog(char *str)
+ {
+ 	int nmi;
+ 
+diff -puN include/asm-x86/nmi_64.h~x86-nmi_64c-make-code-static include/asm-x86/nmi_64.h
+--- a/include/asm-x86/nmi_64.h~x86-nmi_64c-make-code-static
++++ a/include/asm-x86/nmi_64.h
+@@ -38,7 +38,6 @@ extern void die_nmi(char *str, struct pt
+ 
+ #define get_nmi_reason() inb(0x61)
+ 
+-extern int panic_on_timeout;
+ extern int unknown_nmi_panic;
+ extern int nmi_watchdog_enabled;
+ 
+@@ -57,7 +56,6 @@ extern void enable_timer_nmi_watchdog(vo
+ extern int nmi_watchdog_tick (struct pt_regs * regs, unsigned reason);
+ 
+ extern void nmi_watchdog_default(void);
+-extern int setup_nmi_watchdog(char *);
+ 
+ extern atomic_t nmi_active;
+ extern unsigned int nmi_watchdog;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
