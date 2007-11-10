@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-e820_64c-make-2-functions-static.patch added to -mm tree
-Date: Fri, 09 Nov 2007 16:58:58 -0800
-Message-ID: <200711100058.lAA0wwdf008082@imap1.linux-foundation.org>
+Subject: + make-ds1wm-driver-to-check-ds1wm_platform_data-pointer-against-null.patch added to -mm tree
+Date: Fri, 09 Nov 2007 17:02:44 -0800
+Message-ID: <200711100102.lAA12imR008173@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54814 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55483 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757823AbXKJBAF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 20:00:05 -0500
+	by vger.kernel.org with ESMTP id S1761675AbXKJBDy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 20:03:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, mingo@elte.hu, tglx@linutronix.de
+Cc: eric.y.miao@gmail.com, eric.miao@marvell.com, johnpol@2ka.mipt.ru, szabolcs.gyurko@tlt.hu
 
 
 The patch titled
-     x86 e820_64.c: make 2 functions static
+     w1: make ds1wm driver to check ds1wm_platform_data pointer against NULL
 has been added to the -mm tree.  Its filename is
-     x86-e820_64c-make-2-functions-static.patch
+     make-ds1wm-driver-to-check-ds1wm_platform_data-pointer-against-null.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,139 +25,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86 e820_64.c: make 2 functions static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: w1: make ds1wm driver to check ds1wm_platform_data pointer against NULL
+From: "eric miao" <eric.y.miao@gmail.com>
 
-Make the following needlessly global functions static:
+Do a sanity check for the "struct ds1wm_platform_data" pointer passed in by
+the platform_device, and so to enforce each platform to provide a valid
+structure.
 
-- e820_print_map()
-- early_panic()
-
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: eric miao <eric.miao@marvell.com>
+Cc: "Szabolcs Gyurko" <szabolcs.gyurko@tlt.hu>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/e820_64.c |    4 ++--
- include/asm-x86/e820_64.h |    1 -
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/w1/masters/ds1wm.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN arch/x86/kernel/e820_64.c~x86-e820_64c-make-2-functions-static arch/x86/kernel/e820_64.c
---- a/arch/x86/kernel/e820_64.c~x86-e820_64c-make-2-functions-static
-+++ a/arch/x86/kernel/e820_64.c
-@@ -372,7 +372,7 @@ unsigned long __init e820_hole_size(unsi
- 	return end - start - (ram << PAGE_SHIFT);
- }
- 
--void __init e820_print_map(char *who)
-+static void __init e820_print_map(char *who)
- {
- 	int i;
- 
-@@ -632,7 +632,7 @@ static int __init copy_e820_map(struct e
- 	return 0;
- }
- 
--void early_panic(char *msg)
-+static void early_panic(char *msg)
- {
- 	early_printk(msg);
- 	panic(msg);
-diff -puN include/asm-x86/e820_64.h~x86-e820_64c-make-2-functions-static include/asm-x86/e820_64.h
---- a/include/asm-x86/e820_64.h~x86-e820_64c-make-2-functions-static
-+++ a/include/asm-x86/e820_64.h
-@@ -24,7 +24,6 @@ extern unsigned long e820_end_of_ram(voi
- extern void e820_reserve_resources(struct resource *code_resource,
- 		struct resource *data_resource, struct resource *bss_resource);
- extern void e820_mark_nosave_regions(void);
--extern void e820_print_map(char *who);
- extern int e820_any_mapped(unsigned long start, unsigned long end, unsigned type);
- extern int e820_all_mapped(unsigned long start, unsigned long end, unsigned type);
- extern unsigned long e820_hole_size(unsigned long start, unsigned long end);
+diff -puN drivers/w1/masters/ds1wm.c~make-ds1wm-driver-to-check-ds1wm_platform_data-pointer-against-null drivers/w1/masters/ds1wm.c
+--- a/drivers/w1/masters/ds1wm.c~make-ds1wm-driver-to-check-ds1wm_platform_data-pointer-against-null
++++ a/drivers/w1/masters/ds1wm.c
+@@ -351,6 +351,10 @@ static int ds1wm_probe(struct platform_d
+ 		goto err0;
+ 	}
+ 	plat = pdev->dev.platform_data;
++	if (!plat) {
++		ret = -ENXIO;
++		goto err0;
++	}
+ 	ds1wm_data->bus_shift = plat->bus_shift;
+ 	ds1wm_data->pdev = pdev;
+ 	ds1wm_data->pdata = plat;
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from eric.y.miao@gmail.com are
 
-lguest_userc-fix-memory-leak.patch
-video-sis-fix-negative-array-index.patch
-git-avr32.patch
-git-dvb.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-mtd.patch
-git-net.patch
-make-sunrpc-xprtsockcxs_setup_udptcp-static.patch
-git-netdev-all.patch
-drivers-net-chelsio-if-0-unused-functions.patch
-drivers-bluetooth-bpa10xc-fix-memleak.patch
-drivers-bluetooth-btsdioc-fix-double-free.patch
-git-nfs-make-nfs_wb_page_priority-static.patch
-fs-nfs-dirc-should-include-internalh.patch
-git-ocfs2.patch
-proper-prototype-for-kernel-schedcmigration_init.patch
-git-scsi-misc.patch
-scsi-advansysc-make-3-functions-static.patch
-scsi-qla2xxx-possible-cleanups.patch
-usb-mon-mon_binc-cleanups.patch
-xtensa-iss_net_setup-must-be-__init.patch
-xtensa-kernel-setupc-remove-dead-code.patch
-sunrpc-xprtrdma-transportc-fix-use-after-free.patch
-fix-mm-utilckrealloc.patch
-fuse_file_alloc-fix-null-dereferences.patch
-pidns-place-under-config_experimental.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-feature-removal-schedule-remove-sa_-flags-entry.patch
-kernel-taskstatsc-fix-bogus-nlmsg_free.patch
-mm-hugetlbc-make-a-function-static.patch
-mm-page-writebackc-make-a-function-static.patch
-make-__vmalloc_area_node-static.patch
-blackfin-remove-dump_thread.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-kernel-power-move-function-prototypes-to-header.patch
-kill-udffs_dateversion.patch
-make-ipc-utilcsysvipc_find_ipc-static.patch
-cleanup-after-apus-removal.patch
-remove-mm_ptovvtop.patch
-remove-__attribute_used__.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-proper-show_interrupts-prototype.patch
-scheduled-oss-driver-removal.patch
-linux-inith-simplify-__meminitexit-dependencies.patch
-proper-prototype-for-signals_init.patch
-kernel-ptracec-should-include-linux-syscallsh.patch
-make-srcu_readers_active-static.patch
-kernel-notifierc-should-include-linux-rebooth.patch
-proper-prototype-for-get_filesystem_list.patch
-fs-utimesc-should-include-linux-syscallsh.patch
-fs-signalfdc-should-include-linux-syscallsh.patch
-fs-eventfdc-should-include-linux-syscallsh.patch
-proper-prototype-for-vty_init.patch
-drivers-misc-lkdtmc-cleanups.patch
-power_supply_ledssysfsc-should-include-power_supplyh.patch
-fs-ecryptfs-possible-cleanups.patch
-make-video-geode-lxfb_corecgeode_modedb-static.patch
-video-hpfbc-section-fix.patch
-ext4-superc-fix-ifdefs.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-move-edactxt-two-levels-up.patch
-remove-documentation-smptxt.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-reiser4.patch
-remove-references-to-net-modulestxt.patch
-blk_dev_idecd-help-remove-outdated-note.patch
-always-export-pci_scan_single_device.patch
-x86-acpi_pciprobe_dmi_table-must-be-__devinitdata.patch
-remove-additional-pci_scan_child_bus-prototype.patch
-remove-saa7134-oss.patch
-x86_64-remove-acpi_pci_link_exit.patch
-x86-mce_64c-make-struct-mcelog-static.patch
-x86-e820_64c-make-2-functions-static.patch
-x86-nmi_64c-make-code-static.patch
-x86-pci-calgary_64c-make-a-variable-static.patch
-x86-pci-dma_64c-cleanups.patch
+make-ds1wm-driver-to-check-ds1wm_platform_data-pointer-against-null.patch
