@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + x86-acpi_pciprobe_dmi_table-must-be-__devinitdata.patch added to -mm tree
-Date: Fri, 09 Nov 2007 16:58:48 -0800
-Message-ID: <200711100058.lAA0wmmv008064@imap1.linux-foundation.org>
+Subject: + x86-mce_64c-make-struct-mcelog-static.patch added to -mm tree
+Date: Fri, 09 Nov 2007 16:58:56 -0800
+Message-ID: <200711100058.lAA0wuuA008079@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34572 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44761 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756403AbXKJA7a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 19:59:30 -0500
+	by vger.kernel.org with ESMTP id S1756884AbXKJA7l (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 19:59:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@kernel.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     x86: acpi_pciprobe_dmi_table[] must be __devinitdata
+     x86 mce_64.c: make struct mcelog static
 has been added to the -mm tree.  Its filename is
-     x86-acpi_pciprobe_dmi_table-must-be-__devinitdata.patch
+     x86-mce_64c-make-struct-mcelog-static.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,12 +25,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86: acpi_pciprobe_dmi_table[] must be __devinitdata
+Subject: x86 mce_64.c: make struct mcelog static
 From: Adrian Bunk <bunk@kernel.org>
 
-WARNING: vmlinux.o(.data+0x23640): Section mismatch: reference to .init.text.20:can_skip_ioresource_align (between 'acpi_pciprobe_dmi_table' and 'pcibios_irq_mask')
-WARNING: vmlinux.o(.data+0x2366c): Section mismatch: reference to .init.text.20:can_skip_ioresource_align (between 'acpi_pciprobe_dmi_table' and 'pcibios_irq_mask')
-WARNING: vmlinux.o(.data+0x23698): Section mismatch: reference to .init.text.20:can_skip_ioresource_align (between 'acpi_pciprobe_dmi_table' and 'pcibios_irq_mask')
+Make the needlessly global struct mcelog static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -38,21 +36,21 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/pci/acpi.c |    2 +-
+ arch/x86/kernel/cpu/mcheck/mce_64.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/pci/acpi.c~x86-acpi_pciprobe_dmi_table-must-be-__devinitdata arch/x86/pci/acpi.c
---- a/arch/x86/pci/acpi.c~x86-acpi_pciprobe_dmi_table-must-be-__devinitdata
-+++ a/arch/x86/pci/acpi.c
-@@ -13,7 +13,7 @@ static int __devinit can_skip_ioresource
- 	return 0;
- }
+diff -puN arch/x86/kernel/cpu/mcheck/mce_64.c~x86-mce_64c-make-struct-mcelog-static arch/x86/kernel/cpu/mcheck/mce_64.c
+--- a/arch/x86/kernel/cpu/mcheck/mce_64.c~x86-mce_64c-make-struct-mcelog-static
++++ a/arch/x86/kernel/cpu/mcheck/mce_64.c
+@@ -63,7 +63,7 @@ static DECLARE_WAIT_QUEUE_HEAD(mce_wait)
+  * separate MCEs from kernel messages to avoid bogus bug reports.
+  */
  
--static struct dmi_system_id acpi_pciprobe_dmi_table[] = {
-+static struct dmi_system_id acpi_pciprobe_dmi_table[] __devinitdata = {
- /*
-  * Systems where PCI IO resource ISA alignment can be skipped
-  * when the ISA enable bit in the bridge control is not set
+-struct mce_log mcelog = {
++static struct mce_log mcelog = {
+ 	MCE_LOG_SIGNATURE,
+ 	MCE_LOG_LEN,
+ };
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
