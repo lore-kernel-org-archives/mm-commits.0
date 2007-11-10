@@ -1,210 +1,345 @@
 From: akpm@linux-foundation.org
-Subject: + crisv32-add-cache-flush-operations.patch added to -mm tree
-Date: Fri, 09 Nov 2007 19:57:00 -0800
-Message-ID: <200711100357.lAA3v00X017605@imap1.linux-foundation.org>
+Subject: - mn10300-add-mtd-flash-support-for-the-asb2303-board-try.patch removed from -mm tree
+Date: Fri, 09 Nov 2007 20:10:21 -0800
+Message-ID: <200711100410.lAA4AL5G018520@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47342 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50480 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757641AbXKJD5F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 22:57:05 -0500
+	by vger.kernel.org with ESMTP id S1750813AbXKJEKu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 23:10:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jesper.nilsson@axis.com
+To: dhowells@redhat.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CRISv32: add cache flush operations
-has been added to the -mm tree.  Its filename is
-     crisv32-add-cache-flush-operations.patch
+     MN10300: Add MTD flash support for the ASB2303 board
+has been removed from the -mm tree.  Its filename was
+     mn10300-add-mtd-flash-support-for-the-asb2303-board-try.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: CRISv32: add cache flush operations
-From: Jesper Nilsson <jesper.nilsson@axis.com>
+Subject: MN10300: Add MTD flash support for the ASB2303 board
+From: David Howells <dhowells@redhat.com>
 
-These are needed due to a cache bug, and can be used to make sure that the
-DMA descriptors are flushed to memory and can be safely handled by DMA.
+Add MTD flash support for the ASB2303 board.
 
-flush_dma_descr - Flush one DMA descriptor.
-flush_dma_list - Flush a complete list of DMA descriptors.
-cris_flush_cache - Flush the complete cache.
-cris_flush_cache_range - Flush only the specified range
-
-Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
-
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v32/kernel/cache.c      |   33 ++++++++
- arch/cris/arch-v32/kernel/cacheflush.S |   94 +++++++++++++++++++++++
- 2 files changed, 127 insertions(+)
+ arch/mn10300/configs/asb2303_defconfig |    1 
+ drivers/mtd/chips/jedec_probe.c        |    2 
+ drivers/mtd/maps/Kconfig               |    8 +
+ drivers/mtd/maps/Makefile              |    1 
+ drivers/mtd/maps/asb2303-flash.c       |  180 +++++++++++++++++++++++
+ 5 files changed, 192 insertions(+)
 
-diff -puN /dev/null arch/cris/arch-v32/kernel/cache.c
+diff -puN arch/mn10300/configs/asb2303_defconfig~mn10300-add-mtd-flash-support-for-the-asb2303-board-try arch/mn10300/configs/asb2303_defconfig
+--- a/arch/mn10300/configs/asb2303_defconfig~mn10300-add-mtd-flash-support-for-the-asb2303-board-try
++++ a/arch/mn10300/configs/asb2303_defconfig
+@@ -282,6 +282,7 @@ CONFIG_MTD_CFI_UTIL=y
+ # CONFIG_MTD_COMPLEX_MAPPINGS is not set
+ # CONFIG_MTD_PHYSMAP is not set
+ # CONFIG_MTD_PLATRAM is not set
++CONFIG_MTD_ASB2303=y
+ 
+ #
+ # Self-contained MTD device drivers
+diff -puN drivers/mtd/chips/jedec_probe.c~mn10300-add-mtd-flash-support-for-the-asb2303-board-try drivers/mtd/chips/jedec_probe.c
+--- a/drivers/mtd/chips/jedec_probe.c~mn10300-add-mtd-flash-support-for-the-asb2303-board-try
++++ a/drivers/mtd/chips/jedec_probe.c
+@@ -1868,11 +1868,13 @@ static inline __u8 finfo_uaddr(const str
+ 
+ 	uaddr = finfo->uaddr[uaddr_idx];
+ 
++#ifndef CONFIG_MN10300_UNIT_ASB2303
+ 	if (uaddr != MTD_UADDR_NOT_SUPPORTED ) {
+ 		/* ASSERT("The unlock addresses for non-8-bit mode
+ 		   are bollocks. We don't really need an array."); */
+ 		uaddr = finfo->uaddr[0];
+ 	}
++#endif
+ 
+  uaddr_done:
+ 	return uaddr;
+diff -puN /dev/null drivers/mtd/maps/asb2303-flash.c
 --- /dev/null
-+++ a/arch/cris/arch-v32/kernel/cache.c
-@@ -0,0 +1,33 @@
++++ a/drivers/mtd/maps/asb2303-flash.c
+@@ -0,0 +1,180 @@
++/* Handle mapping of the flash on the ASB2303 board
++ *
++ * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
++ * Written by David Howells (dhowells@redhat.com)
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public Licence
++ * as published by the Free Software Foundation; either version
++ * 2 of the Licence, or (at your option) any later version.
++ */
 +#include <linux/module.h>
++#include <linux/types.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/dma-mapping.h>
++#include <linux/mtd/mtd.h>
++#include <linux/mtd/map.h>
++#include <linux/mtd/partitions.h>
 +#include <asm/io.h>
-+#include <asm/arch/cache.h>
-+#include <asm/arch/hwregs/dma.h>
 +
-+/* This file is used to workaround a cache bug, Guinness TR 106. */
++#define PROM_ADDR	0xA0000000
++#define FLASH_ADDR	0xA4000000
++#define CONFIG_ADDR	0xA6000000
 +
-+inline void flush_dma_descr(struct dma_descr_data *descr, int flush_buf)
++static struct map_info asb2303_maps[2] = {
++	{
++		.name		= "BootPROM",
++		.size		= 2 * 1024 * 1024,
++		.bankwidth	= 2,
++		.phys		= PROM_ADDR,
++	}, {
++		.name		= "SysFlash",
++		.size		= 32 * 1024 * 1024,
++		.bankwidth	= 4,
++		.phys		= FLASH_ADDR,
++	}
++};
++
++static struct mtd_partition asb2303_partitions[] = {
++	{
++		.name		= "Bootloader",
++		.size		= 0x00040000,
++		.offset		= 0,
++		.mask_flags	= MTD_WRITEABLE  /* force read-only */
++	}, {
++		.name		= "Kernel",
++		.size		= 0x00400000,
++		.offset		= 0x00040000,
++	}, {
++		.name		= "Filesystem",
++		.size		= MTDPART_SIZ_FULL,
++		.offset		= 0x00440000
++	}
++};
++
++static struct mtd_info *mymtds[3];
++static struct mtd_partition *parsed_parts[3];
++static int nr_parsed_parts[3];
++
++static const char *probes[] = { "RedBoot", "cmdlinepart", NULL };
++
++static int __init init_asb2303(void)
 +{
-+	/* Flush descriptor to make sure we get correct in_eop and after. */
-+	asm volatile ("ftagd [%0]" :: "r" (descr));
-+	/* Flush buffer pointed out by descriptor. */
-+	if (flush_buf)
-+		cris_flush_cache_range(phys_to_virt((unsigned)descr->buf),
-+				(unsigned)(descr->after - descr->buf));
++	int ret = 0, nr, i;
++
++	for (i = 0; i < ARRAY_SIZE(asb2303_maps); i++) {
++		printk(KERN_NOTICE
++		       "Probing ASB2303 %s device: %08lx at %08lx\n",
++		       asb2303_maps[i].name,
++		       asb2303_maps[i].size,
++		       (unsigned long) asb2303_maps[i].phys);
++
++		asb2303_maps[i].map_priv_1 = 0;
++		asb2303_maps[i].virt = ioremap(asb2303_maps[i].phys,
++					       asb2303_maps[i].size);
++		if (!asb2303_maps[i].virt) {
++			printk(KERN_WARNING
++			       "Failed to ioremap %s\n",
++			       asb2303_maps[i].name);
++
++			if (!ret)
++				ret = -ENOMEM;
++			continue;
++		}
++
++		simple_map_init(&asb2303_maps[i]);
++
++		printk(KERN_NOTICE
++		       "Probing %s at physical address 0x%08lx"
++		       " (%d-bit bankwidth)\n",
++		       asb2303_maps[i].name,
++		       (unsigned long) asb2303_maps[i].phys,
++		       asb2303_maps[i].bankwidth * 8);
++
++		mymtds[i] = do_map_probe("cfi_probe", &asb2303_maps[i]);
++		if (!mymtds[i])
++			mymtds[i] = do_map_probe("jedec_probe",
++						 &asb2303_maps[i]);
++
++		if (!mymtds[i]) {
++			iounmap((void *) asb2303_maps[i].virt);
++			if (asb2303_maps[i].cached)
++				iounmap(asb2303_maps[i].cached);
++			if (!ret)
++				ret = -EIO;
++			continue;
++		}
++
++		mymtds[i]->owner = THIS_MODULE;
++
++		nr = parse_mtd_partitions(mymtds[i], probes,
++					  &parsed_parts[i], 0);
++
++		if (nr > 0)
++			nr_parsed_parts[i] = nr;
++		else if (nr < 0)
++			ret = nr;
++	}
++
++	if (!mymtds[0] && !mymtds[1] && !mymtds[2])
++		return ret;
++
++	for (i = 0; i < ARRAY_SIZE(asb2303_maps); i++) {
++		if (!mymtds[i]) {
++			printk(KERN_WARNING
++			       "%s is absent. Skipping\n",
++			       asb2303_maps[i].name);
++		}
++		else if (nr_parsed_parts[i]) {
++			add_mtd_partitions(mymtds[i],
++					   parsed_parts[i],
++					   nr_parsed_parts[i]);
++		}
++		else if (!i) {
++			printk(KERN_INFO
++			       "Using static partitions on %s\n",
++			       asb2303_maps[i].name);
++			add_mtd_partitions(mymtds[i], asb2303_partitions,
++					   ARRAY_SIZE(asb2303_partitions));
++		}
++		else {
++			printk(KERN_INFO
++			       "Registering %s as whole device\n",
++			       asb2303_maps[i].name);
++			add_mtd_device(mymtds[i]);
++		}
++	}
++
++	return 0;
 +}
-+EXPORT_SYMBOL(flush_dma_descr);
 +
-+void flush_dma_list(struct dma_descr_data *descr)
++static void __exit cleanup_asb2303(void)
 +{
-+	while (1) {
-+		flush_dma_descr(descr, 1);
-+		if (descr->eol)
-+			break;
-+		descr = phys_to_virt((unsigned)descr->next);
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(mymtds); i++) {
++		if (!mymtds[i])
++			continue;
++
++		if (nr_parsed_parts[i] || !i)
++			del_mtd_partitions(mymtds[i]);
++		else
++			del_mtd_device(mymtds[i]);
++
++		map_destroy(mymtds[i]);
++
++		iounmap((void *) asb2303_maps[i].virt);
++		if (asb2303_maps[i].cached)
++			iounmap(asb2303_maps[i].cached);
++
++		kfree(parsed_parts[i]);
 +	}
 +}
-+EXPORT_SYMBOL(flush_dma_list);
 +
-+/* From cacheflush.S */
-+EXPORT_SYMBOL(cris_flush_cache);
-+/* From cacheflush.S */
-+EXPORT_SYMBOL(cris_flush_cache_range);
-diff -puN /dev/null arch/cris/arch-v32/kernel/cacheflush.S
---- /dev/null
-+++ a/arch/cris/arch-v32/kernel/cacheflush.S
-@@ -0,0 +1,94 @@
-+	.global cris_flush_cache_range
-+cris_flush_cache_range:
-+	move.d 1024, $r12
-+	cmp.d $r11, $r12
-+	bhi cris_flush_1KB
-+	nop
-+	add.d $r10, $r11
-+	ftagd [$r10]
-+cris_flush_last:
-+	addq 32, $r10
-+	cmp.d $r11, $r10
-+	blt cris_flush_last
-+	ftagd [$r10]
-+	ret
-+	nop
-+cris_flush_1KB:
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ba cris_flush_cache_range
-+	sub.d $r12, $r11
++module_init(init_asb2303);
++module_exit(cleanup_asb2303);
 +
-+	.global cris_flush_cache
-+cris_flush_cache:
-+	moveq 0, $r10
-+cris_flush_line:
-+	move.d 16*1024, $r11
-+	addq 16, $r10
-+	cmp.d $r10, $r11
-+	blt cris_flush_line
-+	fidxd [$r10]
-+	ret
-+	nop
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("David Howells <dhowells@redhat.com>");
++MODULE_DESCRIPTION("MTD map driver for MEI ASB2303");
+diff -puN drivers/mtd/maps/Kconfig~mn10300-add-mtd-flash-support-for-the-asb2303-board-try drivers/mtd/maps/Kconfig
+--- a/drivers/mtd/maps/Kconfig~mn10300-add-mtd-flash-support-for-the-asb2303-board-try
++++ a/drivers/mtd/maps/Kconfig
+@@ -597,5 +597,13 @@ config MTD_PLATRAM
+ 
+ 	  This selection automatically selects the map_ram driver.
+ 
++config MTD_ASB2303
++	tristate "CFI Flash device mapped on MEI ASB2303"
++	depends on MTD_CFI && MN10300_UNIT_ASB2303 && MTD_PARTITIONS
++	help
++	  This enables access to the flash chips on the ASB2303 board with
++	  the MN10300 processor.
++	  Say 'Y' if you have this board.
++
+ endmenu
+ 
+diff -puN drivers/mtd/maps/Makefile~mn10300-add-mtd-flash-support-for-the-asb2303-board-try drivers/mtd/maps/Makefile
+--- a/drivers/mtd/maps/Makefile~mn10300-add-mtd-flash-support-for-the-asb2303-board-try
++++ a/drivers/mtd/maps/Makefile
+@@ -69,3 +69,4 @@ obj-$(CONFIG_MTD_PLATRAM)	+= plat-ram.o
+ obj-$(CONFIG_MTD_OMAP_NOR)	+= omap_nor.o
+ obj-$(CONFIG_MTD_MTX1)		+= mtx-1_flash.o
+ obj-$(CONFIG_MTD_INTEL_VR_NOR)	+= intel_vr_nor.o
++obj-$(CONFIG_MTD_ASB2303)	+= asb2303-flash.o
 _
 
-Patches currently in -mm which might be from jesper.nilsson@axis.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-git-mtd.patch
-cris-build-fixes-fix-csum_tcpudp_magic-declaration.patch
-cris-build-fixes-add-missing-syscalls.patch
-cris-build-fixes-hardirqh-include-asm-irqh.patch
-cris-build-fixes-atomich-needs-compilerh.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-irq-fixes.patch
-cris-build-fixes-sys_crisc-needs-fsh.patch
-cris-build-fixes-add-baud-rate-defines.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-corrected-and-improved-nmi-and-irq-handling.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec.patch
-cris-build-fixes-setupc-needs-paramh.patch
-cris-build-fixes-fix-crisksymsc.patch
-cris-build-fixes-defconfig-updates.patch
-cris-dont-include-bitopsh-in-posix_typesh.patch
-crisv10-serial-driver-rewrite-take-three.patch
-cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two.patch
-cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
-crisv10-fix-timer-interrupt-parameters.patch
-crisv10-improve-and-bugfix-fasttimer.patch
-crisv32-add-cache-flush-operations.patch
+frv-remove-bogus-no_irq-=-1-define.patch
+frv-remove-the-section-annotation-on-free_initmem.patch
+frv-permit-the-memory-to-be-located-elsewhere-in-nommu-mode.patch
+frv-move-dma-macros-to-scatterlisth-for-consistency.patch
+frv-remove-dead-config-symbol-from-frv-code.patch
+suppress-aout-library-support-if-config_binfmt_aout.patch
+suppress-aout-library-support-if-config_binfmt_aout-checkpatch-fixes.patch
+usb-net2280-cant-have-a-function-called.patch
+usb-net2280-cant-have-a-function-called-checkpatch-fixes.patch
+mn10300-allocate-serial-port-uart-ids-for-on-chip-serial.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+mn10300-add-mtd-flash-support-for-the-asb2303-board-try.patch
+mn10300-add-mtd-flash-support-for-the-asb2303-board-try-checkpatch-fixes.patch
+64-bit-i_version-afs-fixes.patch
+add-an-err_cast-function-to-complement-err_ptr-and-co.patch
+convert-err_ptrptr_errp-instances-to-err_castp.patch
+iget-introduce-a-function-to-register-iget-failure.patch
+iget-use-iget_failed-in-afs.patch
+iget-use-iget_failed-in-gfs2.patch
+iget-stop-affs-from-using-iget-and-read_inode-try.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-autofs-from-using-iget-and-read_inode.patch
+iget-stop-befs-from-using-iget-and-read_inode-try.patch
+iget-stop-bfs-from-using-iget-and-read_inode-try.patch
+iget-stop-cifs-from-using-iget-and-read_inode-try.patch
+iget-stop-efs-from-using-iget-and-read_inode-try.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext4-from-using-iget-and-read_inode-try.patch
+iget-stop-fat-from-using-iget-and-read_inode-try.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-fix.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-fuse-from-using-iget-and-read_inode-try.patch
+iget-stop-hfsplus-from-using-iget-and-read_inode.patch
+iget-stop-isofs-from-using-read_inode.patch
+iget-stop-jffs2-from-using-iget-and-read_inode.patch
+iget-stop-jfs-from-using-iget-and-read_inode-try.patch
+iget-stop-the-minix-filesystem-from-using-iget-and.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-openpromfs-from-using-iget-and.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-hppfs-from-using-iget-and-read_inode.patch
+iget-remove-iget-and-the-read_inode-super-op-as.patch
+iget-stop-unionfs-from-using-iget-and-read_inode.patch
+unexport-asm-pageh.patch
+add-cmpxchg_local-to-frv.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+mutex-subsystem-synchro-test-module.patch
