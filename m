@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mn10300-add-mtd-flash-support-for-the-asb2303-board-try.patch added to -mm tree
-Date: Fri, 09 Nov 2007 19:53:25 -0800
-Message-ID: <200711100353.lAA3rPqg017418@imap1.linux-foundation.org>
+Subject: + mn10300-add-mtd-flash-support-for-the-asb2303-board-try-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 09 Nov 2007 19:54:23 -0800
+Message-ID: <200711100354.lAA3sNoF017479@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56233 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60663 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759867AbXKJDx4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 22:53:56 -0500
+	by vger.kernel.org with ESMTP id S1759779AbXKJDyz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 22:54:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, dwmw2@infradead.org
+Cc: akpm@linux-foundation.org, dhowells@redhat.com, dwmw2@infradead.org
 
 
 The patch titled
-     MN10300: Add MTD flash support for the ASB2303 board
+     mn10300-add-mtd-flash-support-for-the-asb2303-board-try-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mn10300-add-mtd-flash-support-for-the-asb2303-board-try.patch
+     mn10300-add-mtd-flash-support-for-the-asb2303-board-try-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,323 +25,235 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: MN10300: Add MTD flash support for the ASB2303 board
-From: David Howells <dhowells@redhat.com>
+Subject: mn10300-add-mtd-flash-support-for-the-asb2303-board-try-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add MTD flash support for the ASB2303 board.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- arch/mn10300/configs/asb2303_defconfig |    1 
- drivers/mtd/chips/jedec_probe.c        |    2 
- drivers/mtd/maps/Kconfig               |    8 +
- drivers/mtd/maps/Makefile              |    1 
- drivers/mtd/maps/asb2303-flash.c       |  180 +++++++++++++++++++++++
- 5 files changed, 192 insertions(+)
-
-diff -puN arch/mn10300/configs/asb2303_defconfig~mn10300-add-mtd-flash-support-for-the-asb2303-board-try arch/mn10300/configs/asb2303_defconfig
---- a/arch/mn10300/configs/asb2303_defconfig~mn10300-add-mtd-flash-support-for-the-asb2303-board-try
-+++ a/arch/mn10300/configs/asb2303_defconfig
-@@ -282,6 +282,7 @@ CONFIG_MTD_CFI_UTIL=y
- # CONFIG_MTD_COMPLEX_MAPPINGS is not set
- # CONFIG_MTD_PHYSMAP is not set
- # CONFIG_MTD_PLATRAM is not set
-+CONFIG_MTD_ASB2303=y
- 
- #
- # Self-contained MTD device drivers
-diff -puN drivers/mtd/chips/jedec_probe.c~mn10300-add-mtd-flash-support-for-the-asb2303-board-try drivers/mtd/chips/jedec_probe.c
---- a/drivers/mtd/chips/jedec_probe.c~mn10300-add-mtd-flash-support-for-the-asb2303-board-try
-+++ a/drivers/mtd/chips/jedec_probe.c
-@@ -1868,11 +1868,13 @@ static inline __u8 finfo_uaddr(const str
- 
- 	uaddr = finfo->uaddr[uaddr_idx];
- 
-+#ifndef CONFIG_MN10300_UNIT_ASB2303
- 	if (uaddr != MTD_UADDR_NOT_SUPPORTED ) {
- 		/* ASSERT("The unlock addresses for non-8-bit mode
- 		   are bollocks. We don't really need an array."); */
- 		uaddr = finfo->uaddr[0];
- 	}
-+#endif
- 
-  uaddr_done:
- 	return uaddr;
-diff -puN /dev/null drivers/mtd/maps/asb2303-flash.c
---- /dev/null
-+++ a/drivers/mtd/maps/asb2303-flash.c
-@@ -0,0 +1,180 @@
-+/* Handle mapping of the flash on the ASB2303 board
-+ *
-+ * Copyright (C) 2007 Red Hat, Inc. All Rights Reserved.
-+ * Written by David Howells (dhowells@redhat.com)
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public Licence
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the Licence, or (at your option) any later version.
-+ */
-+#include <linux/module.h>
-+#include <linux/types.h>
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/mtd/mtd.h>
-+#include <linux/mtd/map.h>
-+#include <linux/mtd/partitions.h>
-+#include <asm/io.h>
-+
-+#define PROM_ADDR	0xA0000000
-+#define FLASH_ADDR	0xA4000000
-+#define CONFIG_ADDR	0xA6000000
-+
-+static struct map_info asb2303_maps[2] = {
-+	{
-+		.name		= "BootPROM",
-+		.size		= 2 * 1024 * 1024,
-+		.bankwidth	= 2,
-+		.phys		= PROM_ADDR,
-+	}, {
-+		.name		= "SysFlash",
-+		.size		= 32 * 1024 * 1024,
-+		.bankwidth	= 4,
-+		.phys		= FLASH_ADDR,
-+	}
-+};
-+
-+static struct mtd_partition asb2303_partitions[] = {
-+	{
-+		.name		= "Bootloader",
-+		.size		= 0x00040000,
-+		.offset		= 0,
-+		.mask_flags	= MTD_WRITEABLE  /* force read-only */
-+	}, {
-+		.name		= "Kernel",
-+		.size		= 0x00400000,
-+		.offset		= 0x00040000,
-+	}, {
-+		.name		= "Filesystem",
-+		.size		= MTDPART_SIZ_FULL,
-+		.offset		= 0x00440000
-+	}
-+};
-+
-+static struct mtd_info *mymtds[3];
-+static struct mtd_partition *parsed_parts[3];
-+static int nr_parsed_parts[3];
-+
-+static const char *probes[] = { "RedBoot", "cmdlinepart", NULL };
-+
-+static int __init init_asb2303(void)
-+{
-+	int ret = 0, nr, i;
-+
-+	for (i = 0; i < ARRAY_SIZE(asb2303_maps); i++) {
-+		printk(KERN_NOTICE
-+		       "Probing ASB2303 %s device: %08lx at %08lx\n",
-+		       asb2303_maps[i].name,
-+		       asb2303_maps[i].size,
-+		       (unsigned long) asb2303_maps[i].phys);
-+
-+		asb2303_maps[i].map_priv_1 = 0;
-+		asb2303_maps[i].virt = ioremap(asb2303_maps[i].phys,
-+					       asb2303_maps[i].size);
-+		if (!asb2303_maps[i].virt) {
-+			printk(KERN_WARNING
-+			       "Failed to ioremap %s\n",
-+			       asb2303_maps[i].name);
-+
-+			if (!ret)
-+				ret = -ENOMEM;
-+			continue;
-+		}
-+
-+		simple_map_init(&asb2303_maps[i]);
-+
-+		printk(KERN_NOTICE
-+		       "Probing %s at physical address 0x%08lx"
-+		       " (%d-bit bankwidth)\n",
-+		       asb2303_maps[i].name,
-+		       (unsigned long) asb2303_maps[i].phys,
-+		       asb2303_maps[i].bankwidth * 8);
-+
-+		mymtds[i] = do_map_probe("cfi_probe", &asb2303_maps[i]);
-+		if (!mymtds[i])
-+			mymtds[i] = do_map_probe("jedec_probe",
-+						 &asb2303_maps[i]);
-+
-+		if (!mymtds[i]) {
-+			iounmap((void *) asb2303_maps[i].virt);
-+			if (asb2303_maps[i].cached)
-+				iounmap(asb2303_maps[i].cached);
-+			if (!ret)
-+				ret = -EIO;
-+			continue;
-+		}
-+
-+		mymtds[i]->owner = THIS_MODULE;
-+
-+		nr = parse_mtd_partitions(mymtds[i], probes,
-+					  &parsed_parts[i], 0);
-+
-+		if (nr > 0)
-+			nr_parsed_parts[i] = nr;
-+		else if (nr < 0)
-+			ret = nr;
-+	}
-+
-+	if (!mymtds[0] && !mymtds[1] && !mymtds[2])
-+		return ret;
-+
-+	for (i = 0; i < ARRAY_SIZE(asb2303_maps); i++) {
+WARNING: braces {} are not necessary for single statement blocks
+#172: FILE: drivers/mtd/maps/asb2303-flash.c:124:
 +		if (!mymtds[i]) {
 +			printk(KERN_WARNING
 +			       "%s is absent. Skipping\n",
 +			       asb2303_maps[i].name);
 +		}
+
+ERROR: else should follow close brace '}'
+#177: FILE: drivers/mtd/maps/asb2303-flash.c:129:
++		}
++		else if (nr_parsed_parts[i]) {
+
+WARNING: braces {} are not necessary for single statement blocks
+#177: FILE: drivers/mtd/maps/asb2303-flash.c:129:
 +		else if (nr_parsed_parts[i]) {
 +			add_mtd_partitions(mymtds[i],
 +					   parsed_parts[i],
 +					   nr_parsed_parts[i]);
 +		}
+
+ERROR: else should follow close brace '}'
+#182: FILE: drivers/mtd/maps/asb2303-flash.c:134:
++		}
 +		else if (!i) {
-+			printk(KERN_INFO
-+			       "Using static partitions on %s\n",
-+			       asb2303_maps[i].name);
-+			add_mtd_partitions(mymtds[i], asb2303_partitions,
-+					   ARRAY_SIZE(asb2303_partitions));
+
+ERROR: else should follow close brace '}'
+#189: FILE: drivers/mtd/maps/asb2303-flash.c:141:
 +		}
 +		else {
-+			printk(KERN_INFO
-+			       "Registering %s as whole device\n",
-+			       asb2303_maps[i].name);
-+			add_mtd_device(mymtds[i]);
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static void __exit cleanup_asb2303(void)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(mymtds); i++) {
-+		if (!mymtds[i])
-+			continue;
-+
-+		if (nr_parsed_parts[i] || !i)
-+			del_mtd_partitions(mymtds[i]);
-+		else
-+			del_mtd_device(mymtds[i]);
-+
-+		map_destroy(mymtds[i]);
-+
-+		iounmap((void *) asb2303_maps[i].virt);
-+		if (asb2303_maps[i].cached)
-+			iounmap(asb2303_maps[i].cached);
-+
-+		kfree(parsed_parts[i]);
-+	}
-+}
-+
-+module_init(init_asb2303);
-+module_exit(cleanup_asb2303);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("David Howells <dhowells@redhat.com>");
-+MODULE_DESCRIPTION("MTD map driver for MEI ASB2303");
-diff -puN drivers/mtd/maps/Kconfig~mn10300-add-mtd-flash-support-for-the-asb2303-board-try drivers/mtd/maps/Kconfig
---- a/drivers/mtd/maps/Kconfig~mn10300-add-mtd-flash-support-for-the-asb2303-board-try
-+++ a/drivers/mtd/maps/Kconfig
-@@ -597,5 +597,13 @@ config MTD_PLATRAM
- 
- 	  This selection automatically selects the map_ram driver.
- 
-+config MTD_ASB2303
-+	tristate "CFI Flash device mapped on MEI ASB2303"
-+	depends on MTD_CFI && MN10300_UNIT_ASB2303 && MTD_PARTITIONS
-+	help
-+	  This enables access to the flash chips on the ASB2303 board with
-+	  the MN10300 processor.
-+	  Say 'Y' if you have this board.
-+
- endmenu
- 
-diff -puN drivers/mtd/maps/Makefile~mn10300-add-mtd-flash-support-for-the-asb2303-board-try drivers/mtd/maps/Makefile
---- a/drivers/mtd/maps/Makefile~mn10300-add-mtd-flash-support-for-the-asb2303-board-try
-+++ a/drivers/mtd/maps/Makefile
-@@ -69,3 +69,4 @@ obj-$(CONFIG_MTD_PLATRAM)	+= plat-ram.o
- obj-$(CONFIG_MTD_OMAP_NOR)	+= omap_nor.o
- obj-$(CONFIG_MTD_MTX1)		+= mtx-1_flash.o
- obj-$(CONFIG_MTD_INTEL_VR_NOR)	+= intel_vr_nor.o
-+obj-$(CONFIG_MTD_ASB2303)	+= asb2303-flash.o
+
+total: 3 errors, 2 warnings, 217 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: David Howells <dhowells@redhat.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/mtd/maps/asb2303-flash.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff -puN drivers/mtd/maps/asb2303-flash.c~mn10300-add-mtd-flash-support-for-the-asb2303-board-try-checkpatch-fixes drivers/mtd/maps/asb2303-flash.c
+--- a/drivers/mtd/maps/asb2303-flash.c~mn10300-add-mtd-flash-support-for-the-asb2303-board-try-checkpatch-fixes
++++ a/drivers/mtd/maps/asb2303-flash.c
+@@ -125,20 +125,17 @@ static int __init init_asb2303(void)
+ 			printk(KERN_WARNING
+ 			       "%s is absent. Skipping\n",
+ 			       asb2303_maps[i].name);
+-		}
+-		else if (nr_parsed_parts[i]) {
++		} else if (nr_parsed_parts[i]) {
+ 			add_mtd_partitions(mymtds[i],
+ 					   parsed_parts[i],
+ 					   nr_parsed_parts[i]);
+-		}
+-		else if (!i) {
++		} else if (!i) {
+ 			printk(KERN_INFO
+ 			       "Using static partitions on %s\n",
+ 			       asb2303_maps[i].name);
+ 			add_mtd_partitions(mymtds[i], asb2303_partitions,
+ 					   ARRAY_SIZE(asb2303_partitions));
+-		}
+-		else {
++		} else {
+ 			printk(KERN_INFO
+ 			       "Registering %s as whole device\n",
+ 			       asb2303_maps[i].name);
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-frv-remove-bogus-no_irq-=-1-define.patch
-frv-remove-the-section-annotation-on-free_initmem.patch
-frv-permit-the-memory-to-be-located-elsewhere-in-nommu-mode.patch
-frv-move-dma-macros-to-scatterlisth-for-consistency.patch
-frv-remove-dead-config-symbol-from-frv-code.patch
-suppress-aout-library-support-if-config_binfmt_aout.patch
+proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
+acpi-make-acpi_procfs-default-to-y.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+git-arm-fixup.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
+git-dvb.patch
+git-hwmon.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+elantech-touchpad-driver-fix.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+ide-arm-hack.patch
+git-mtd.patch
+lmc_ioctl-dont-return-with-locks-held-fix.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+bluetooth-uninlining.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing-checkpatch-fixes.patch
+git-nfsd-fixup.patch
+quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
+scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+git-wireless.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-fix-up.patch
+git-x86-inlining-borkage.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+i386-and-x86_64-randomize-brk-fix.patch
+x86-arch_register_cpu-section-fix.patch
+mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
+pidns-place-under-config_experimental-checkpatch-fixes.patch
+fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
+file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
+x86-disable-preemption-in-delay_tsc.patch
+tty-fix-network-driver-interactions-with-tcget-set-checkpatch-fixes.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+cris-build-fixes-atomich-needs-compilerh-fix.patch
+cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
+cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
+cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
 suppress-aout-library-support-if-config_binfmt_aout-checkpatch-fixes.patch
-usb-net2280-cant-have-a-function-called.patch
 usb-net2280-cant-have-a-function-called-checkpatch-fixes.patch
-mn10300-allocate-serial-port-uart-ids-for-on-chip-serial.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
-mn10300-add-mtd-flash-support-for-the-asb2303-board-try.patch
+mn10300-add-mtd-flash-support-for-the-asb2303-board-try-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+sync_sb_inodes-propagate-errors.patch
 64-bit-i_version-afs-fixes.patch
-add-an-err_cast-function-to-complement-err_ptr-and-co.patch
-convert-err_ptrptr_errp-instances-to-err_castp.patch
-iget-introduce-a-function-to-register-iget-failure.patch
-iget-use-iget_failed-in-afs.patch
-iget-use-iget_failed-in-gfs2.patch
-iget-stop-affs-from-using-iget-and-read_inode-try.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
 iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-autofs-from-using-iget-and-read_inode.patch
-iget-stop-befs-from-using-iget-and-read_inode-try.patch
-iget-stop-bfs-from-using-iget-and-read_inode-try.patch
-iget-stop-cifs-from-using-iget-and-read_inode-try.patch
-iget-stop-efs-from-using-iget-and-read_inode-try.patch
 iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try.patch
 iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try.patch
 iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext4-from-using-iget-and-read_inode-try.patch
-iget-stop-fat-from-using-iget-and-read_inode-try.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-fix.patch
 iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-fuse-from-using-iget-and-read_inode-try.patch
-iget-stop-hfsplus-from-using-iget-and-read_inode.patch
-iget-stop-isofs-from-using-read_inode.patch
-iget-stop-jffs2-from-using-iget-and-read_inode.patch
-iget-stop-jfs-from-using-iget-and-read_inode-try.patch
-iget-stop-the-minix-filesystem-from-using-iget-and.patch
 iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode.patch
 iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try.patch
 iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode.patch
 iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and.patch
 iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try.patch
 iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-openpromfs-from-using-iget-and.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
 iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-hppfs-from-using-iget-and-read_inode.patch
-iget-remove-iget-and-the-read_inode-super-op-as.patch
-iget-stop-unionfs-from-using-iget-and-read_inode.patch
-unexport-asm-pageh.patch
-add-cmpxchg_local-to-frv.patch
-use-path_put-in-a-few-places-instead-of-mntdput.patch
-mutex-subsystem-synchro-test-module.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+w1-build-fix.patch
