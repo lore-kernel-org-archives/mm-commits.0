@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-clean-up-stack-allocation-and-free.patch added to -mm tree
-Date: Fri, 09 Nov 2007 16:32:44 -0800
-Message-ID: <200711100032.lAA0Wia1007075@imap1.linux-foundation.org>
+Subject: + x86_64-configure-stack-size.patch added to -mm tree
+Date: Fri, 09 Nov 2007 16:32:47 -0800
+Message-ID: <200711100032.lAA0Wlq2007078@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35257 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54907 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751064AbXKJAdP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 19:33:15 -0500
+	by vger.kernel.org with ESMTP id S1751133AbXKJAeJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Nov 2007 19:34:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: clameter@sgi.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, travis@sgi.
 
 
 The patch titled
-     x86_64: clean up stack allocation and free
+     x86_64: configure stack size
 has been added to the -mm tree.  Its filename is
-     x86_64-clean-up-stack-allocation-and-free.patch
+     x86_64-configure-stack-size.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -25,11 +25,12 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: clean up stack allocation and free
+Subject: x86_64: configure stack size
 From: clameter@sgi.com
 
-Clean up the allocation and freeing of stacks a bit by using a __GFP_ZERO flag
-instead of memset.
+Make the stack size configurable necessary.  SGI NUMA configurations may need
+more stack because cpumasks and nodemasks are at times kept on the stack. 
+This patch allows to run with 16k or 32k kernel stacks.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -39,38 +40,55 @@ Cc: Mike Travis <travis@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/thread_info_64.h |   16 +++++-----------
- 1 file changed, 5 insertions(+), 11 deletions(-)
+ arch/x86/Kconfig.x86_64          |    6 ++++++
+ include/asm-x86/page_64.h        |    3 +--
+ include/asm-x86/thread_info_64.h |    4 ++--
+ 3 files changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-x86/thread_info_64.h~x86_64-clean-up-stack-allocation-and-free include/asm-x86/thread_info_64.h
---- a/include/asm-x86/thread_info_64.h~x86_64-clean-up-stack-allocation-and-free
-+++ a/include/asm-x86/thread_info_64.h
-@@ -74,20 +74,14 @@ static inline struct thread_info *stack_
+diff -puN arch/x86/Kconfig.x86_64~x86_64-configure-stack-size arch/x86/Kconfig.x86_64
+--- a/arch/x86/Kconfig.x86_64~x86_64-configure-stack-size
++++ a/arch/x86/Kconfig.x86_64
+@@ -370,6 +370,12 @@ config NODES_SHIFT
+ 	default "6"
+ 	depends on NEED_MULTIPLE_NODES
  
- /* thread information allocation */
- #ifdef CONFIG_DEBUG_STACK_USAGE
--#define alloc_thread_info(tsk)					\
--    ({								\
--	struct thread_info *ret;				\
--								\
--	ret = ((struct thread_info *) __get_free_pages(GFP_KERNEL,THREAD_ORDER)); \
--	if (ret)						\
--		memset(ret, 0, THREAD_SIZE);			\
--	ret;							\
--    })
-+#define THREAD_FLAGS (GFP_KERNEL | __GFP_ZERO)
- #else
--#define alloc_thread_info(tsk) \
--	((struct thread_info *) __get_free_pages(GFP_KERNEL,THREAD_ORDER))
-+#define THREAD_FLAGS GFP_KERNEL
++config THREAD_ORDER
++	int "Kernel stack size (in page order)"
++	default "1"
++	help
++	  Page order for the thread stack.
++
+ # Dummy CONFIG option to select ACPI_NUMA from drivers/acpi/Kconfig.
+ 
+ config X86_64_ACPI_NUMA
+diff -puN include/asm-x86/page_64.h~x86_64-configure-stack-size include/asm-x86/page_64.h
+--- a/include/asm-x86/page_64.h~x86_64-configure-stack-size
++++ a/include/asm-x86/page_64.h
+@@ -9,8 +9,7 @@
+ #define PAGE_MASK	(~(PAGE_SIZE-1))
+ #define PHYSICAL_PAGE_MASK	(~(PAGE_SIZE-1) & __PHYSICAL_MASK)
+ 
+-#define THREAD_ORDER 1 
+-#define THREAD_SIZE  (PAGE_SIZE << THREAD_ORDER)
++#define THREAD_SIZE  (PAGE_SIZE << CONFIG_THREAD_ORDER)
+ #define CURRENT_MASK (~(THREAD_SIZE-1))
+ 
+ #define EXCEPTION_STACK_ORDER 0
+diff -puN include/asm-x86/thread_info_64.h~x86_64-configure-stack-size include/asm-x86/thread_info_64.h
+--- a/include/asm-x86/thread_info_64.h~x86_64-configure-stack-size
++++ a/include/asm-x86/thread_info_64.h
+@@ -80,9 +80,9 @@ static inline struct thread_info *stack_
  #endif
  
-+#define alloc_thread_info(tsk) \
-+	((struct thread_info *) __get_free_pages(THREAD_FLAGS, THREAD_ORDER))
-+
- #define free_thread_info(ti) free_pages((unsigned long) (ti), THREAD_ORDER)
+ #define alloc_thread_info(tsk) \
+-	((struct thread_info *) __get_free_pages(THREAD_FLAGS, THREAD_ORDER))
++	((struct thread_info *) __get_free_pages(THREAD_FLAGS, CONFIG_THREAD_ORDER))
+ 
+-#define free_thread_info(ti) free_pages((unsigned long) (ti), THREAD_ORDER)
++#define free_thread_info(ti) free_pages((unsigned long) (ti), CONFIG_THREAD_ORDER)
  
  #else /* !__ASSEMBLY__ */
+ 
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
