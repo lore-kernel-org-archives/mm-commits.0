@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-inet_hashtablesh-needs-vmalloch.patch added to -mm tree
-Date: Sat, 10 Nov 2007 15:25:23 -0800
-Message-ID: <200711102325.lAANPNkD010478@imap1.linux-foundation.org>
+Subject: + hugetlb-follow_hugetlb_page-for-write-access-fix.patch added to -mm tree
+Date: Sat, 10 Nov 2007 18:19:28 -0800
+Message-ID: <200711110219.lAB2JSw7015891@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59838 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49357 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755032AbXKJX0Q (ORCPT
+	by vger.kernel.org with ESMTP id S1751687AbXKKCT7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 Nov 2007 18:26:16 -0500
+	Sat, 10 Nov 2007 21:19:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dada1@cosmosbay.com, davem@davemloft.net, rolandd@cisco.com, tony.luck@intel.com
+Cc: ezk@cs.sunysb.edu, agl@us.ibm.com, hermes@gibson.dropbear.id.au, kenchen@google.com, pbadari@us.ibm.com, wli@holomorphy.com
 
 
 The patch titled
-     net: inet_hashtables.h needs vmalloc.h
+     mm/memory.c follow_hugetlb_page compiler error (MMOTM)
 has been added to the -mm tree.  Its filename is
-     net-inet_hashtablesh-needs-vmalloch.patch
+     hugetlb-follow_hugetlb_page-for-write-access-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: net: inet_hashtables.h needs vmalloc.h
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: mm/memory.c follow_hugetlb_page compiler error (MMOTM)
+From: Erez Zadok <ezk@cs.sunysb.edu>
 
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Roland Dreier <rolandd@cisco.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Using http://userweb.kernel.org/~akpm/mmotm/ timestamped "10-Nov-2007
+22:46". CONFIG_HUGETLB_PAGE not set.
+
+$ make
+  CC      mm/memory.o
+mm/memory.c:1040:29: error: macro "follow_hugetlb_page" passed 8 arguments, but takes just 7
+mm/memory.c: In function 'get_user_pages':
+mm/memory.c:1039: error: 'follow_hugetlb_page' undeclared (first use in this function)
+mm/memory.c:1039: error: (Each undeclared identifier is reported only once
+mm/memory.c:1039: error: for each function it appears in.)
+make[1]: *** [mm/memory.o] Error 1
+make: *** [mm] Error 2
+
+Small patch below fixes compile error.
+
+Erez.
+
+Signed-off-by: Erez Zadok <ezk@cs.sunysb.edu>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: Ken Chen <kenchen@google.com>
+Cc: David Gibson <hermes@gibson.dropbear.id.au>
+Cc: William Lee Irwin III <wli@holomorphy.com>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/net/inet_hashtables.h |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/hugetlb.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/net/inet_hashtables.h~net-inet_hashtablesh-needs-vmalloch include/net/inet_hashtables.h
---- a/include/net/inet_hashtables.h~net-inet_hashtablesh-needs-vmalloch
-+++ a/include/net/inet_hashtables.h
-@@ -23,6 +23,7 @@
- #include <linux/spinlock.h>
- #include <linux/types.h>
- #include <linux/wait.h>
-+#include <linux/vmalloc.h>
+diff -puN include/linux/hugetlb.h~hugetlb-follow_hugetlb_page-for-write-access-fix include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-follow_hugetlb_page-for-write-access-fix
++++ a/include/linux/hugetlb.h
+@@ -106,7 +106,7 @@ static inline unsigned long hugetlb_tota
+ 	return 0;
+ }
  
- #include <net/inet_connection_sock.h>
- #include <net/inet_sock.h>
+-#define follow_hugetlb_page(m,v,p,vs,a,b,i)	({ BUG(); 0; })
++#define follow_hugetlb_page(m,v,p,vs,a,b,i,w)	({ BUG(); 0; })
+ #define follow_huge_addr(mm, addr, write)	ERR_PTR(-EINVAL)
+ #define copy_hugetlb_page_range(src, dst, vma)	({ BUG(); 0; })
+ #define hugetlb_prefault(mapping, vma)		({ BUG(); 0; })
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from ezk@cs.sunysb.edu are
 
-net-inet_hashtablesh-needs-vmalloch.patch
-git-net.patch
+hugetlb-follow_hugetlb_page-for-write-access-fix.patch
+git-unionfs.patch
+unionfs-clear-partial-read.patch
+vfs-apply-coding-standards-to-fs-ioctlc.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+vfs-factor-out-three-helpers-for-fibmap-fionbio-fioasync-file-ioctls.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+iget-stop-unionfs-from-using-iget-and-read_inode.patch
