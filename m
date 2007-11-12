@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + page-allocator-clean-up-pcp-draining-functions.patch added to -mm tree
-Date: Mon, 12 Nov 2007 14:07:12 -0800
-Message-ID: <200711122207.lACM7C0K011225@imap1.linux-foundation.org>
+Subject: + fs-buffer-trylock-rename.patch added to -mm tree
+Date: Mon, 12 Nov 2007 14:10:43 -0800
+Message-ID: <200711122210.lACMAha4011323@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36578 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55205 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752426AbXKLWHb (ORCPT
+	by vger.kernel.org with ESMTP id S1755024AbXKLWKs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 17:07:31 -0500
+	Mon, 12 Nov 2007 17:10:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, mel@csn.ul.ie, rjw@sisk.pl
+Cc: npiggin@suse.de, a.p.zijlstra@chello.nl
 
 
 The patch titled
-     Page allocator: clean up pcp draining functions
+     fs: buffer trylock rename
 has been added to the -mm tree.  Its filename is
-     page-allocator-clean-up-pcp-draining-functions.patch
+     fs-buffer-trylock-rename.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,297 +26,190 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Page allocator: clean up pcp draining functions
-From: Christoph Lameter <clameter@sgi.com>
+Subject: fs: buffer trylock rename
+From: Nick Piggin <npiggin@suse.de>
 
-- Add comments explaing how drain_pages() works.
+Converting the buffer lock to new bitops also requires name change, so convert
+the raw test_and_set bitop to a trylock.
 
-- Eliminate useless functions
-
-- Rename drain_all_local_pages to drain_all_pages(). It does drain
-  all pages not only those of the local processor.
-
-- Eliminate useless interrupt off / on sequences. drain_pages()
-  disables interrupts on its own. The execution thread is
-  pinned to processor by the caller. So there is no need to
-  disable interrupts.
-
-- Put drain_all_pages() declaration in gfp.h and remove the
-  declarations from suspend.h and from mm/memory_hotplug.c
-
-- Make software suspend call drain_all_pages(). The draining
-  of processor local pages is may not the right approach if
-  software suspend wants to support SMP. If they call drain_all_pages
-  then we can make drain_pages() static.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Reviewed-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h     |    1 
- include/linux/suspend.h |    1 
- kernel/power/snapshot.c |    4 -
- mm/memory_hotplug.c     |    6 --
- mm/page_alloc.c         |   79 ++++++++++++++++++++------------------
- 5 files changed, 47 insertions(+), 44 deletions(-)
+ fs/buffer.c                 |    4 ++--
+ fs/jbd/commit.c             |    2 +-
+ fs/jbd2/commit.c            |    2 +-
+ fs/ntfs/aops.c              |    2 +-
+ fs/ntfs/compress.c          |    2 +-
+ fs/ntfs/mft.c               |    4 ++--
+ fs/reiserfs/inode.c         |    2 +-
+ fs/reiserfs/journal.c       |    4 ++--
+ include/linux/buffer_head.h |    8 ++++++--
+ 9 files changed, 17 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/gfp.h~page-allocator-clean-up-pcp-draining-functions include/linux/gfp.h
---- a/include/linux/gfp.h~page-allocator-clean-up-pcp-draining-functions
-+++ a/include/linux/gfp.h
-@@ -228,5 +228,6 @@ extern void FASTCALL(free_cold_page(stru
+diff -puN fs/buffer.c~fs-buffer-trylock-rename fs/buffer.c
+--- a/fs/buffer.c~fs-buffer-trylock-rename
++++ a/fs/buffer.c
+@@ -1688,7 +1688,7 @@ static int __block_write_full_page(struc
+ 		 */
+ 		if (wbc->sync_mode != WB_SYNC_NONE || !wbc->nonblocking) {
+ 			lock_buffer(bh);
+-		} else if (test_set_buffer_locked(bh)) {
++		} else if (!trylock_buffer(bh)) {
+ 			redirty_page_for_writepage(wbc, page);
+ 			continue;
+ 		}
+@@ -2927,7 +2927,7 @@ void ll_rw_block(int rw, int nr, struct 
  
- void page_alloc_init(void);
- void drain_zone_pages(struct zone *zone, struct per_cpu_pages *pcp);
-+void drain_all_pages(void);
+ 		if (rw == SWRITE)
+ 			lock_buffer(bh);
+-		else if (test_set_buffer_locked(bh))
++		else if (!trylock_buffer(bh))
+ 			continue;
  
- #endif /* __LINUX_GFP_H */
-diff -puN include/linux/suspend.h~page-allocator-clean-up-pcp-draining-functions include/linux/suspend.h
---- a/include/linux/suspend.h~page-allocator-clean-up-pcp-draining-functions
-+++ a/include/linux/suspend.h
-@@ -123,7 +123,6 @@ struct pbe {
- };
+ 		if (rw == WRITE || rw == SWRITE) {
+diff -puN fs/jbd/commit.c~fs-buffer-trylock-rename fs/jbd/commit.c
+--- a/fs/jbd/commit.c~fs-buffer-trylock-rename
++++ a/fs/jbd/commit.c
+@@ -208,7 +208,7 @@ write_out_data:
+ 		 * blocking lock_buffer().
+ 		 */
+ 		if (buffer_dirty(bh)) {
+-			if (test_set_buffer_locked(bh)) {
++			if (!trylock_buffer(bh)) {
+ 				BUFFER_TRACE(bh, "needs blocking lock");
+ 				spin_unlock(&journal->j_list_lock);
+ 				/* Write out all data to prevent deadlocks */
+diff -puN fs/jbd2/commit.c~fs-buffer-trylock-rename fs/jbd2/commit.c
+--- a/fs/jbd2/commit.c~fs-buffer-trylock-rename
++++ a/fs/jbd2/commit.c
+@@ -208,7 +208,7 @@ write_out_data:
+ 		 * blocking lock_buffer().
+ 		 */
+ 		if (buffer_dirty(bh)) {
+-			if (test_set_buffer_locked(bh)) {
++			if (!trylock_buffer(bh)) {
+ 				BUFFER_TRACE(bh, "needs blocking lock");
+ 				spin_unlock(&journal->j_list_lock);
+ 				/* Write out all data to prevent deadlocks */
+diff -puN fs/ntfs/aops.c~fs-buffer-trylock-rename fs/ntfs/aops.c
+--- a/fs/ntfs/aops.c~fs-buffer-trylock-rename
++++ a/fs/ntfs/aops.c
+@@ -1194,7 +1194,7 @@ lock_retry_remap:
+ 		tbh = bhs[i];
+ 		if (!tbh)
+ 			continue;
+-		if (unlikely(test_set_buffer_locked(tbh)))
++		if (!trylock_buffer(tbh))
+ 			BUG();
+ 		/* The buffer dirty state is now irrelevant, just clean it. */
+ 		clear_buffer_dirty(tbh);
+diff -puN fs/ntfs/compress.c~fs-buffer-trylock-rename fs/ntfs/compress.c
+--- a/fs/ntfs/compress.c~fs-buffer-trylock-rename
++++ a/fs/ntfs/compress.c
+@@ -665,7 +665,7 @@ lock_retry_remap:
+ 	for (i = 0; i < nr_bhs; i++) {
+ 		struct buffer_head *tbh = bhs[i];
  
- /* mm/page_alloc.c */
--extern void drain_local_pages(void);
- extern void mark_free_pages(struct zone *zone);
+-		if (unlikely(test_set_buffer_locked(tbh)))
++		if (!trylock_buffer(tbh))
+ 			continue;
+ 		if (unlikely(buffer_uptodate(tbh))) {
+ 			unlock_buffer(tbh);
+diff -puN fs/ntfs/mft.c~fs-buffer-trylock-rename fs/ntfs/mft.c
+--- a/fs/ntfs/mft.c~fs-buffer-trylock-rename
++++ a/fs/ntfs/mft.c
+@@ -586,7 +586,7 @@ int ntfs_sync_mft_mirror(ntfs_volume *vo
+ 		for (i_bhs = 0; i_bhs < nr_bhs; i_bhs++) {
+ 			struct buffer_head *tbh = bhs[i_bhs];
  
- /**
-diff -puN kernel/power/snapshot.c~page-allocator-clean-up-pcp-draining-functions kernel/power/snapshot.c
---- a/kernel/power/snapshot.c~page-allocator-clean-up-pcp-draining-functions
-+++ a/kernel/power/snapshot.c
-@@ -1204,7 +1204,7 @@ asmlinkage int swsusp_save(void)
+-			if (unlikely(test_set_buffer_locked(tbh)))
++			if (!trylock_buffer(tbh))
+ 				BUG();
+ 			BUG_ON(!buffer_uptodate(tbh));
+ 			clear_buffer_dirty(tbh);
+@@ -779,7 +779,7 @@ int write_mft_record_nolock(ntfs_inode *
+ 	for (i_bhs = 0; i_bhs < nr_bhs; i_bhs++) {
+ 		struct buffer_head *tbh = bhs[i_bhs];
  
- 	printk("swsusp: critical section: \n");
- 
--	drain_local_pages();
-+	drain_all_pages();
- 	nr_pages = count_data_pages();
- 	nr_highmem = count_highmem_pages();
- 	printk("swsusp: Need to copy %u pages\n", nr_pages + nr_highmem);
-@@ -1222,7 +1222,7 @@ asmlinkage int swsusp_save(void)
- 	/* During allocating of suspend pagedir, new cold pages may appear.
- 	 * Kill them.
- 	 */
--	drain_local_pages();
-+	drain_all_pages();
- 	copy_data_pages(&copy_bm, &orig_bm);
- 
- 	/*
-diff -puN mm/memory_hotplug.c~page-allocator-clean-up-pcp-draining-functions mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~page-allocator-clean-up-pcp-draining-functions
-+++ a/mm/memory_hotplug.c
-@@ -537,8 +537,6 @@ check_pages_isolated(unsigned long start
- 	return offlined;
- }
- 
--extern void drain_all_local_pages(void);
--
- int offline_pages(unsigned long start_pfn,
- 		  unsigned long end_pfn, unsigned long timeout)
+-		if (unlikely(test_set_buffer_locked(tbh)))
++		if (!trylock_buffer(tbh))
+ 			BUG();
+ 		BUG_ON(!buffer_uptodate(tbh));
+ 		clear_buffer_dirty(tbh);
+diff -puN fs/reiserfs/inode.c~fs-buffer-trylock-rename fs/reiserfs/inode.c
+--- a/fs/reiserfs/inode.c~fs-buffer-trylock-rename
++++ a/fs/reiserfs/inode.c
+@@ -2433,7 +2433,7 @@ static int reiserfs_write_full_page(stru
+ 		if (wbc->sync_mode != WB_SYNC_NONE || !wbc->nonblocking) {
+ 			lock_buffer(bh);
+ 		} else {
+-			if (test_set_buffer_locked(bh)) {
++			if (!trylock_buffer(bh)) {
+ 				redirty_page_for_writepage(wbc, page);
+ 				continue;
+ 			}
+diff -puN fs/reiserfs/journal.c~fs-buffer-trylock-rename fs/reiserfs/journal.c
+--- a/fs/reiserfs/journal.c~fs-buffer-trylock-rename
++++ a/fs/reiserfs/journal.c
+@@ -857,7 +857,7 @@ static int write_ordered_buffers(spinloc
+ 		jh = JH_ENTRY(list->next);
+ 		bh = jh->bh;
+ 		get_bh(bh);
+-		if (test_set_buffer_locked(bh)) {
++		if (!trylock_buffer(bh)) {
+ 			if (!buffer_dirty(bh)) {
+ 				list_move(&jh->list, &tmp);
+ 				goto loop_next;
+@@ -3877,7 +3877,7 @@ int reiserfs_prepare_for_journal(struct 
  {
-@@ -596,7 +594,7 @@ repeat:
- 		lru_add_drain_all();
- 		flush_scheduled_work();
- 		cond_resched();
--		drain_all_local_pages();
-+		drain_all_pages();
- 	}
+ 	PROC_INFO_INC(p_s_sb, journal.prepare);
  
- 	pfn = scan_lru_pages(start_pfn, end_pfn);
-@@ -619,7 +617,7 @@ repeat:
- 	flush_scheduled_work();
- 	yield();
- 	/* drain pcp pages , this is synchrouns. */
--	drain_all_local_pages();
-+	drain_all_pages();
- 	/* check again */
- 	offlined_pages = check_pages_isolated(start_pfn, end_pfn);
- 	if (offlined_pages < 0) {
-diff -puN mm/page_alloc.c~page-allocator-clean-up-pcp-draining-functions mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-clean-up-pcp-draining-functions
-+++ a/mm/page_alloc.c
-@@ -900,7 +900,14 @@ void drain_zone_pages(struct zone *zone,
- }
- #endif
- 
--static void __drain_pages(unsigned int cpu)
-+/*
-+ * Drain pages of the indicated processor.
-+ *
-+ * The processor must either be the current processor and the
-+ * thread pinned to the current processor or a processor that
-+ * is not online.
-+ */
-+static void drain_pages(unsigned int cpu)
- {
- 	unsigned long flags;
- 	struct zone *zone;
-@@ -925,6 +932,22 @@ static void __drain_pages(unsigned int c
- 	}
+-	if (test_set_buffer_locked(bh)) {
++	if (!trylock_buffer(bh)) {
+ 		if (!wait)
+ 			return 0;
+ 		lock_buffer(bh);
+diff -puN include/linux/buffer_head.h~fs-buffer-trylock-rename include/linux/buffer_head.h
+--- a/include/linux/buffer_head.h~fs-buffer-trylock-rename
++++ a/include/linux/buffer_head.h
+@@ -115,7 +115,6 @@ BUFFER_FNS(Uptodate, uptodate)
+ BUFFER_FNS(Dirty, dirty)
+ TAS_BUFFER_FNS(Dirty, dirty)
+ BUFFER_FNS(Lock, locked)
+-TAS_BUFFER_FNS(Lock, locked)
+ BUFFER_FNS(Req, req)
+ TAS_BUFFER_FNS(Req, req)
+ BUFFER_FNS(Mapped, mapped)
+@@ -318,10 +317,15 @@ static inline void wait_on_buffer(struct
+ 		__wait_on_buffer(bh);
  }
  
-+/*
-+ * Spill all of this CPU's per-cpu pages back into the buddy allocator.
-+ */
-+static void drain_local_pages(void *arg)
++static inline int trylock_buffer(struct buffer_head *bh)
 +{
-+	drain_pages(smp_processor_id());
++	return likely(!test_and_set_bit(BH_Lock, &bh->b_state));
 +}
 +
-+/*
-+ * Spill all the per-cpu pages from all CPUs back into the buddy allocator
-+ */
-+void drain_all_pages(void)
-+{
-+	on_each_cpu(drain_local_pages, NULL, 0, 1);
-+}
-+
- #ifdef CONFIG_HIBERNATION
- 
- void mark_free_pages(struct zone *zone)
-@@ -962,37 +985,6 @@ void mark_free_pages(struct zone *zone)
- #endif /* CONFIG_PM */
- 
- /*
-- * Spill all of this CPU's per-cpu pages back into the buddy allocator.
-- */
--void drain_local_pages(void)
--{
--	unsigned long flags;
--
--	local_irq_save(flags);	
--	__drain_pages(smp_processor_id());
--	local_irq_restore(flags);	
--}
--
--void smp_drain_local_pages(void *arg)
--{
--	drain_local_pages();
--}
--
--/*
-- * Spill all the per-cpu pages from all CPUs back into the buddy allocator
-- */
--void drain_all_local_pages(void)
--{
--	unsigned long flags;
--
--	local_irq_save(flags);
--	__drain_pages(smp_processor_id());
--	local_irq_restore(flags);
--
--	smp_call_function(smp_drain_local_pages, NULL, 0, 1);
--}
--
--/*
-  * Free a 0-order page
-  */
- static void fastcall free_hot_cold_page(struct page *page, int cold)
-@@ -1579,7 +1571,7 @@ nofail_alloc:
- 	cond_resched();
- 
- 	if (order != 0)
--		drain_all_local_pages();
-+		drain_all_pages();
- 
- 	if (likely(did_some_progress)) {
- 		page = get_page_from_freelist(gfp_mask, order,
-@@ -3969,10 +3961,23 @@ static int page_alloc_cpu_notify(struct 
- 	int cpu = (unsigned long)hcpu;
- 
- 	if (action == CPU_DEAD || action == CPU_DEAD_FROZEN) {
--		local_irq_disable();
--		__drain_pages(cpu);
-+		drain_pages(cpu);
-+
-+		/*
-+		 * Spill the event counters of the dead processor
-+		 * into the current processors event counters.
-+		 * This artificially elevates the count of the current
-+		 * processor.
-+		 */
- 		vm_events_fold_cpu(cpu);
--		local_irq_enable();
-+
-+		/*
-+		 * Zero the differential counters of the dead processor
-+		 * so that the vm statistics are consistent.
-+		 *
-+		 * This is only okay since the processor is dead and cannot
-+		 * race with what we are doing.
-+		 */
- 		refresh_cpu_vm_stats(cpu);
- 	}
- 	return NOTIFY_OK;
-@@ -4471,7 +4476,7 @@ int set_migratetype_isolate(struct page 
- out:
- 	spin_unlock_irqrestore(&zone->lock, flags);
- 	if (!ret)
--		drain_all_local_pages();
-+		drain_all_pages();
- 	return ret;
+ static inline void lock_buffer(struct buffer_head *bh)
+ {
+ 	might_sleep();
+-	if (test_set_buffer_locked(bh))
++	if (!trylock_buffer(bh))
+ 		__lock_buffer(bh);
  }
  
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-slab-fix-typo-in-allocation-failure-handling.patch
-migration-find-correct-vma-in-new_vma_page.patch
-ia64-slim-down-__clear_bit_unlock.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-mem-policy-fix-mempolicy-usage-in-pci-driver.patch
-git-unionfs.patch
-git-x86.patch
-x86_64-clean-up-stack-allocation-and-free.patch
-x86_64-configure-stack-size.patch
-fix-mm-utilckrealloc.patch
-vmstat-fix-section-mismatch-warning.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-move-vmalloc_to_page-to-mm-vmalloc.patch
-vmalloc-add-const-to-void-parameters.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
-vmalloc-clean-up-page-array-indexing.patch
-vunmap-return-page-array-passed-on-vmap.patch
-slub-move-count_partial.patch
-slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
-slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
+nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
+rd-fix-data-corruption-on-memory-pressure.patch
 slub-use-non-atomic-bit-unlock.patch
-slub-fix-coding-style-violations.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch
-slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path.patch
-slub-__slab_alloc-exit-path-consolidation.patch
-slub-provide-unique-end-marker-for-each-slab.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc.patch
-slub-optional-fast-path-using-cmpxchg_local.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-fix.patch
-slub-restructure-slab-alloc.patch
-slub-comment-kmem_cache_cpu-structure.patch
-vm-allow-get_page_unless_zero-on-compound-pages.patch
-bufferhead-revert-constructor-removal.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-swapin_readahead-excise-numa-bogosity.patch
-vmstat-small-revisions-to-refresh_cpu_vm_stats.patch
-page-allocator-clean-up-pcp-draining-functions.patch
-revoke-core-code.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-dentries-extract-common-code-to-remove-dentry-from-lru.patch
-dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
+radix-tree-avoid-atomic-allocations-for-preloaded-insertions.patch
+mm-page-trylock-rename.patch
+fs-buffer-trylock-rename.patch
+mm-unlockless-reclaim.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
 reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
