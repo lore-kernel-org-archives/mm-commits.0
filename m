@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + char-serial167-remove-bottomhalf.patch added to -mm tree
-Date: Mon, 12 Nov 2007 13:52:42 -0800
-Message-ID: <200711122152.lACLqgSG010717@imap1.linux-foundation.org>
+Subject: + char-specialix-remove-bottomhalves.patch added to -mm tree
+Date: Mon, 12 Nov 2007 13:52:39 -0800
+Message-ID: <200711122152.lACLqdsP010711@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34708 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46187 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753543AbXKLVx1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753209AbXKLVx3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 16:53:27 -0500
+	Mon, 12 Nov 2007 16:53:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jirislaby@gmail.com, alan@redhat.com
 
 
 The patch titled
-     Char: serial167, remove bottomhalf
+     Char: specialix, remove bottomhalves
 has been added to the -mm tree.  Its filename is
-     char-serial167-remove-bottomhalf.patch
+     char-specialix-remove-bottomhalves.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,204 +26,194 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: serial167, remove bottomhalf
+Subject: Char: specialix, remove bottomhalves
 From: Jiri Slaby <jirislaby@gmail.com>
 
-- Cy_EVENT_OPEN_WAKEUP is simple wake_up
-- Cy_EVENT_HANGUP is wake_up + tty_hangup, which schedules its own work
-- Cy_EVENT_WRITE_WAKEUP is tty_wakeup which may be called directly too
+- tqueue is used only for tty_wakeup, call it directly from the code
+- tqueue_hangup for tty_hangup, it schedules its own work, use it directly
+  too
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/serial167.c  |   76 +++---------------------------------
- include/linux/serial167.h |   14 ------
- 2 files changed, 8 insertions(+), 82 deletions(-)
+ drivers/char/specialix.c     |   72 +--------------------------------
+ drivers/char/specialix_io8.h |    3 -
+ 2 files changed, 4 insertions(+), 71 deletions(-)
 
-diff -puN drivers/char/serial167.c~char-serial167-remove-bottomhalf drivers/char/serial167.c
---- a/drivers/char/serial167.c~char-serial167-remove-bottomhalf
-+++ a/drivers/char/serial167.c
-@@ -357,18 +357,6 @@ static void cy_start(struct tty_struct *
- 	local_irq_restore(flags);
- }				/* cy_start */
+diff -puN drivers/char/specialix.c~char-specialix-remove-bottomhalves drivers/char/specialix.c
+--- a/drivers/char/specialix.c~char-specialix-remove-bottomhalves
++++ a/drivers/char/specialix.c
+@@ -178,9 +178,6 @@ static int sx_poll = HZ;
+ 	 ASYNC_SPD_HI       | ASYNC_SPEED_VHI    | ASYNC_SESSION_LOCKOUT | \
+ 	 ASYNC_PGRP_LOCKOUT | ASYNC_CALLOUT_NOHUP)
  
--/*
-- * This routine is used by the interrupt handler to schedule
-- * processing in the software interrupt portion of the driver
-- * (also known as the "bottom half").  This can be called any
-- * number of times for any channel without harm.
-- */
--static inline void cy_sched_event(struct cyclades_port *info, int event)
--{
--	info->event |= 1 << event;	/* remember what kind of event and who */
--	schedule_work(&info->tqueue);
--}				/* cy_sched_event */
+-#undef RS_EVENT_WRITE_WAKEUP
+-#define RS_EVENT_WRITE_WAKEUP	0
 -
- /* The real interrupt service routines are called
-    whenever the card wants its hand held--chars
-    received, out buffer empty, modem change, etc.
-@@ -483,10 +471,12 @@ static irqreturn_t cd2401_modem_interrup
- 		    && (info->flags & ASYNC_CHECK_CD)) {
- 			if (mdm_status & CyDCD) {
- /* CP('!'); */
--				cy_sched_event(info, Cy_EVENT_OPEN_WAKEUP);
-+				wake_up_interruptible(&info->open_wait);
- 			} else {
- /* CP('@'); */
--				cy_sched_event(info, Cy_EVENT_HANGUP);
-+				tty_hangup(info->tty);
-+				wake_up_interruptible(&info->open_wait);
-+				info->flags &= ~ASYNC_NORMAL_ACTIVE;
- 			}
- 		}
- 		if ((mdm_change & CyCTS)
-@@ -496,8 +486,7 @@ static irqreturn_t cd2401_modem_interrup
- 					/* !!! cy_start isn't used because... */
- 					info->tty->stopped = 0;
- 					base_addr[CyIER] |= CyTxMpty;
--					cy_sched_event(info,
--						       Cy_EVENT_WRITE_WAKEUP);
-+					tty_wakeup(info->tty);
- 				}
- 			} else {
- 				if (!(mdm_status & CyCTS)) {
-@@ -543,9 +532,6 @@ static irqreturn_t cd2401_tx_interrupt(i
- 	info->last_active = jiffies;
- 	if (info->tty == 0) {
- 		base_addr[CyIER] &= ~(CyTxMpty | CyTxRdy);
--		if (info->xmit_cnt < WAKEUP_CHARS) {
--			cy_sched_event(info, Cy_EVENT_WRITE_WAKEUP);
--		}
- 		base_addr[CyTEOIR] = CyNOTRANS;
- 		return IRQ_HANDLED;
+ static struct tty_driver *specialix_driver;
+ 
+ static struct specialix_board sx_board[SX_NBOARD] =  {
+@@ -602,17 +599,6 @@ static int sx_probe(struct specialix_boa
+  *  Interrupt processing routines.
+  * */
+ 
+-static inline void sx_mark_event(struct specialix_port * port, int event)
+-{
+-	func_enter();
+-
+-	set_bit(event, &port->event);
+-	schedule_work(&port->tqueue);
+-
+-	func_exit();
+-}
+-
+-
+ static inline struct specialix_port * sx_get_port(struct specialix_board * bp,
+ 					       unsigned char const * what)
+ {
+@@ -809,7 +795,7 @@ static inline void sx_transmit(struct sp
+ 		sx_out(bp, CD186x_IER, port->IER);
  	}
-@@ -627,9 +613,9 @@ static irqreturn_t cd2401_tx_interrupt(i
+ 	if (port->xmit_cnt <= port->wakeup_chars)
+-		sx_mark_event(port, RS_EVENT_WRITE_WAKEUP);
++ 		tty_wakeup(tty);
+ 
+ 	func_exit();
+ }
+@@ -839,7 +825,7 @@ static inline void sx_check_modem(struct
+ 			wake_up_interruptible(&port->open_wait);
+ 		} else {
+ 			dprintk (SX_DEBUG_SIGNALS, "Sending HUP.\n");
+-			schedule_work(&port->tqueue_hangup);
++			tty_hangup(tty);
  		}
  	}
  
--	if (info->xmit_cnt < WAKEUP_CHARS) {
--		cy_sched_event(info, Cy_EVENT_WRITE_WAKEUP);
--	}
-+	if (info->xmit_cnt < WAKEUP_CHARS)
-+		tty_wakeup(info->tty);
-+
- 	base_addr[CyTEOIR] = (char_count != saved_cnt) ? 0 : CyNOTRANS;
- 	return IRQ_HANDLED;
- }				/* cy_tx_interrupt */
-@@ -690,49 +676,6 @@ static irqreturn_t cd2401_rx_interrupt(i
- 	return IRQ_HANDLED;
- }				/* cy_rx_interrupt */
- 
--/*
-- * This routine is used to handle the "bottom half" processing for the
-- * serial driver, known also the "software interrupt" processing.
-- * This processing is done at the kernel interrupt level, after the
-- * cy#/_interrupt() has returned, BUT WITH INTERRUPTS TURNED ON.  This
-- * is where time-consuming activities which can not be done in the
-- * interrupt driver proper are done; the interrupt driver schedules
-- * them using cy_sched_event(), and they get done here.
-- *
-- * This is done through one level of indirection--the task queue.
-- * When a hardware interrupt service routine wants service by the
-- * driver's bottom half, it enqueues the appropriate tq_struct (one
-- * per port) to the keventd work queue and sets a request flag
-- * that the work queue be processed.
-- *
-- * Although this may seem unwieldy, it gives the system a way to
-- * pass an argument (in this case the pointer to the cyclades_port
-- * structure) to the bottom half of the driver.  Previous kernels
-- * had to poll every port to see if that port needed servicing.
-- */
--static void do_softint(struct work_struct *ugly_api)
--{
--	struct cyclades_port *info =
--	    container_of(ugly_api, struct cyclades_port, tqueue);
--	struct tty_struct *tty;
--
--	tty = info->tty;
--	if (!tty)
--		return;
--
--	if (test_and_clear_bit(Cy_EVENT_HANGUP, &info->event)) {
--		tty_hangup(info->tty);
--		wake_up_interruptible(&info->open_wait);
--		info->flags &= ~ASYNC_NORMAL_ACTIVE;
--	}
--	if (test_and_clear_bit(Cy_EVENT_OPEN_WAKEUP, &info->event)) {
--		wake_up_interruptible(&info->open_wait);
--	}
--	if (test_and_clear_bit(Cy_EVENT_WRITE_WAKEUP, &info->event)) {
--		tty_wakeup(tty);
--	}
--}				/* do_softint */
--
- /* This is called whenever a port becomes active;
-    interrupts are enabled and DTR & RTS are turned on.
-  */
-@@ -1743,7 +1686,6 @@ static void cy_close(struct tty_struct *
- 	if (tty->driver->flush_buffer)
- 		tty->driver->flush_buffer(tty);
+@@ -849,7 +835,7 @@ static inline void sx_check_modem(struct
+ 			tty->hw_stopped = 0;
+ 			port->IER |= IER_TXRDY;
+ 			if (port->xmit_cnt <= port->wakeup_chars)
+-				sx_mark_event(port, RS_EVENT_WRITE_WAKEUP);
++				tty_wakeup(tty);
+ 		} else {
+ 			tty->hw_stopped = 1;
+ 			port->IER &= ~IER_TXRDY;
+@@ -861,7 +847,7 @@ static inline void sx_check_modem(struct
+ 			tty->hw_stopped = 0;
+ 			port->IER |= IER_TXRDY;
+ 			if (port->xmit_cnt <= port->wakeup_chars)
+-				sx_mark_event(port, RS_EVENT_WRITE_WAKEUP);
++				tty_wakeup(tty);
+ 		} else {
+ 			tty->hw_stopped = 1;
+ 			port->IER &= ~IER_TXRDY;
+@@ -1618,7 +1604,6 @@ static void sx_close(struct tty_struct *
  	tty_ldisc_flush(tty);
--	info->event = 0;
- 	info->tty = NULL;
- 	if (info->blocked_open) {
- 		if (info->close_delay) {
-@@ -2234,7 +2176,6 @@ static int __init serial167_init(void)
- 				info->rco = baud_co[DefSpeed] >> 5;	/* Rx CO */
- 				info->close_delay = 0;
- 				info->x_char = 0;
--				info->event = 0;
- 				info->count = 0;
- #ifdef SERIAL_DEBUG_COUNT
- 				printk("cyc: %d: setting count to 0\n",
-@@ -2243,7 +2184,6 @@ static int __init serial167_init(void)
- 				info->blocked_open = 0;
- 				info->default_threshold = 0;
- 				info->default_timeout = 0;
--				INIT_WORK(&info->tqueue, do_softint);
- 				init_waitqueue_head(&info->open_wait);
- 				init_waitqueue_head(&info->close_wait);
- 				/* info->session */
-diff -puN include/linux/serial167.h~char-serial167-remove-bottomhalf include/linux/serial167.h
---- a/include/linux/serial167.h~char-serial167-remove-bottomhalf
-+++ a/include/linux/serial167.h
-@@ -37,7 +37,6 @@ struct cyclades_port {
- 	int			ignore_status_mask;
+ 	spin_lock_irqsave(&port->lock, flags);
+ 	tty->closing = 0;
+-	port->event = 0;
+ 	port->tty = NULL;
+ 	spin_unlock_irqrestore(&port->lock, flags);
+ 	if (port->blocked_open) {
+@@ -2235,32 +2220,6 @@ static void sx_start(struct tty_struct *
+ 	func_exit();
+ }
+ 
+-
+-/*
+- * This routine is called from the work-queue when the interrupt
+- * routine has signalled that a hangup has occurred.  The path of
+- * hangup processing is:
+- *
+- * 	serial interrupt routine -> (workqueue) ->
+- * 	do_sx_hangup() -> tty->hangup() -> sx_hangup()
+- *
+- */
+-static void do_sx_hangup(struct work_struct *work)
+-{
+-	struct specialix_port	*port =
+-		container_of(work, struct specialix_port, tqueue_hangup);
+-	struct tty_struct	*tty;
+-
+-	func_enter();
+-
+-	tty = port->tty;
+-	if (tty)
+-		tty_hangup(tty);	/* FIXME: module removal race here */
+-
+-	func_exit();
+-}
+-
+-
+ static void sx_hangup(struct tty_struct * tty)
+ {
+ 	struct specialix_port *port = (struct specialix_port *)tty->driver_data;
+@@ -2278,7 +2237,6 @@ static void sx_hangup(struct tty_struct 
+ 
+ 	sx_shutdown_port(bp, port);
+ 	spin_lock_irqsave(&port->lock, flags);
+-	port->event = 0;
+ 	bp->count -= port->count;
+ 	if (bp->count < 0) {
+ 		printk(KERN_ERR "sx%d: sx_hangup: bad board count: %d port: %d\n",
+@@ -2320,26 +2278,6 @@ static void sx_set_termios(struct tty_st
+ 	}
+ }
+ 
+-
+-static void do_softint(struct work_struct *work)
+-{
+-	struct specialix_port	*port =
+-		container_of(work, struct specialix_port, tqueue);
+-	struct tty_struct	*tty;
+-
+-	func_enter();
+-
+-	if(!(tty = port->tty)) {
+-		func_exit();
+-		return;
+-	}
+-
+-	if (test_and_clear_bit(RS_EVENT_WRITE_WAKEUP, &port->event))
+- 		tty_wakeup(tty);
+-
+-	func_exit();
+-}
+-
+ static const struct tty_operations sx_ops = {
+ 	.open  = sx_open,
+ 	.close = sx_close,
+@@ -2397,8 +2335,6 @@ static int sx_init_drivers(void)
+ 	memset(sx_port, 0, sizeof(sx_port));
+ 	for (i = 0; i < SX_NPORT * SX_NBOARD; i++) {
+ 		sx_port[i].magic = SPECIALIX_MAGIC;
+-		INIT_WORK(&sx_port[i].tqueue, do_softint);
+-		INIT_WORK(&sx_port[i].tqueue_hangup, do_sx_hangup);
+ 		sx_port[i].close_delay = 50 * HZ/100;
+ 		sx_port[i].closing_wait = 3000 * HZ/100;
+ 		init_waitqueue_head(&sx_port[i].open_wait);
+diff -puN drivers/char/specialix_io8.h~char-specialix-remove-bottomhalves drivers/char/specialix_io8.h
+--- a/drivers/char/specialix_io8.h~char-specialix-remove-bottomhalves
++++ a/drivers/char/specialix_io8.h
+@@ -112,7 +112,6 @@ struct specialix_port {
+ 	struct tty_struct 	* tty;
+ 	int			count;
+ 	int			blocked_open;
+-	ulong			event;
+ 	int			timeout;
  	int			close_delay;
- 	int			IER; 	/* Interrupt Enable Register */
--	unsigned long		event;
- 	unsigned long		last_active;
- 	int			count;	/* # of fd on device */
- 	int                     x_char; /* to be pushed out ASAP */
-@@ -49,7 +48,6 @@ struct cyclades_port {
+ 	unsigned char 		* xmit_buf;
+@@ -122,8 +121,6 @@ struct specialix_port {
  	int			xmit_cnt;
-         int                     default_threshold;
-         int                     default_timeout;
--	struct work_struct	tqueue;
  	wait_queue_head_t	open_wait;
  	wait_queue_head_t	close_wait;
-         struct cyclades_monitor mon;
-@@ -67,18 +65,6 @@ struct cyclades_port {
- #define CYGETDEFTIMEOUT         0x435908
- #define CYSETDEFTIMEOUT         0x435909
- 
--/*
-- * Events are used to schedule things to happen at timer-interrupt
-- * time, instead of at cy interrupt time.
-- */
--#define Cy_EVENT_READ_PROCESS	0
--#define Cy_EVENT_WRITE_WAKEUP	1
--#define Cy_EVENT_HANGUP		2
--#define Cy_EVENT_BREAK		3
--#define Cy_EVENT_OPEN_WAKEUP	4
--
--
--
- #define CyMaxChipsPerCard 1
- 
- /**** cd2401 registers ****/
+-	struct work_struct	tqueue;
+-	struct work_struct	tqueue_hangup;
+ 	short			wakeup_chars;
+ 	short			break_length;
+ 	unsigned short		closing_wait;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
