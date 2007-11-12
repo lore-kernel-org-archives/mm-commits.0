@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + char-rocket-remove-useless-macros.patch added to -mm tree
-Date: Mon, 12 Nov 2007 13:51:09 -0800
-Message-ID: <200711122151.lACLp936010598@imap1.linux-foundation.org>
+Subject: + char-esp-remove-hangup-and-wakeup-bottomhalves.patch added to -mm tree
+Date: Mon, 12 Nov 2007 13:52:36 -0800
+Message-ID: <200711122152.lACLqaV3010705@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34590 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50528 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752573AbXKLVv0 (ORCPT
+	by vger.kernel.org with ESMTP id S1753047AbXKLVxV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 16:51:26 -0500
+	Mon, 12 Nov 2007 16:53:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jirislaby@gmail.com, alan@redhat.com
 
 
 The patch titled
-     Char: rocket, remove useless macros
+     Char: esp, remove hangup and wakeup bottomhalves
 has been added to the -mm tree.  Its filename is
-     char-rocket-remove-useless-macros.patch
+     char-esp-remove-hangup-and-wakeup-bottomhalves.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,92 +26,166 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: rocket, remove useless macros
+Subject: Char: esp, remove hangup and wakeup bottomhalves
 From: Jiri Slaby <jirislaby@gmail.com>
+
+There is no need to schedule a bottomhalf for either of them. One is fast
+and the another schedules a bottomhalf itself.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rocket.c     |   11 ++---------
- drivers/char/rocket_int.h |   18 ------------------
- 2 files changed, 2 insertions(+), 27 deletions(-)
+ drivers/char/esp.c       |   58 +++----------------------------------
+ include/linux/hayesesp.h |    4 --
+ 2 files changed, 5 insertions(+), 57 deletions(-)
 
-diff -puN drivers/char/rocket.c~char-rocket-remove-useless-macros drivers/char/rocket.c
---- a/drivers/char/rocket.c~char-rocket-remove-useless-macros
-+++ a/drivers/char/rocket.c
-@@ -40,12 +40,6 @@
+diff -puN drivers/char/esp.c~char-esp-remove-hangup-and-wakeup-bottomhalves drivers/char/esp.c
+--- a/drivers/char/esp.c~char-esp-remove-hangup-and-wakeup-bottomhalves
++++ a/drivers/char/esp.c
+@@ -242,17 +242,6 @@ static void rs_start(struct tty_struct *
+  * -----------------------------------------------------------------------
   */
  
- /****** Defines ******/
--#ifdef PCI_NUM_RESOURCES
--#define PCI_BASE_ADDRESS(dev, r) ((dev)->resource[r].start)
--#else
--#define PCI_BASE_ADDRESS(dev, r) ((dev)->base_address[r])
--#endif
+-/*
+- * This routine is used by the interrupt handler to schedule
+- * processing in the software interrupt portion of the driver.
+- */
+-static inline void rs_sched_event(struct esp_struct *info,
+-				  int event)
+-{
+-	info->event |= 1 << event;
+-	schedule_work(&info->tqueue);
+-}
 -
- #define ROCKET_PARANOIA_CHECK
- #define ROCKET_DISABLE_SIMUSAGE
+ static DEFINE_SPINLOCK(pio_lock);
  
-@@ -981,7 +975,7 @@ static int rp_open(struct tty_struct *tt
- 	CHANNEL_t *cp;
- 	unsigned long page;
+ static inline struct esp_pio_buffer *get_pio_buffer(void)
+@@ -474,7 +463,8 @@ static inline void transmit_chars_pio(st
+ 	}
  
--	line = TTY_GET_LINE(tty);
-+	line = tty->index;
- 	if ((line < 0) || (line >= MAX_RP_PORTS) || ((info = rp_table[line]) == NULL))
- 		return -ENXIO;
+ 	if (info->xmit_cnt < WAKEUP_CHARS) {
+-		rs_sched_event(info, ESP_EVENT_WRITE_WAKEUP);
++		if (info->tty)
++			tty_wakeup(info->tty);
  
-@@ -1166,8 +1160,7 @@ static void rp_close(struct tty_struct *
- 	if (C_HUPCL(tty))
- 		sClrDTR(cp);
+ #ifdef SERIAL_DEBUG_INTR
+ 		printk("THRE...");
+@@ -512,7 +502,8 @@ static inline void transmit_chars_dma(st
+ 	info->xmit_tail = (info->xmit_tail + dma_bytes) & (ESP_XMIT_SIZE - 1);
  
--	if (TTY_DRIVER_FLUSH_BUFFER_EXISTS(tty))
--		TTY_DRIVER_FLUSH_BUFFER(tty);
-+	rp_flush_buffer(tty);
- 		
- 	tty_ldisc_flush(tty);
+ 	if (info->xmit_cnt < WAKEUP_CHARS) {
+-		rs_sched_event(info, ESP_EVENT_WRITE_WAKEUP);
++		if (info->tty)
++			tty_wakeup(info->tty);
  
-diff -puN drivers/char/rocket_int.h~char-rocket-remove-useless-macros drivers/char/rocket_int.h
---- a/drivers/char/rocket_int.h~char-rocket-remove-useless-macros
-+++ a/drivers/char/rocket_int.h
-@@ -105,12 +105,6 @@ static inline unsigned short sInW(unsign
- #define AIOPID_NULL -1		/* no AIOP or channel exists */
- #define AIOPID_0001 0x0001	/* AIOP release 1 */
+ #ifdef SERIAL_DEBUG_INTR
+ 		printk("THRE...");
+@@ -604,7 +595,7 @@ static inline void check_modem_status(st
+ #ifdef SERIAL_DEBUG_OPEN
+ 			printk("scheduling hangup...");
+ #endif
+-			schedule_work(&info->tqueue_hangup);
++			tty_hangup(info->tty);
+ 		}
+ 	}
+ }
+@@ -720,41 +711,6 @@ static irqreturn_t rs_interrupt_single(i
+  * -------------------------------------------------------------------
+  */
  
--#define NULLDEV -1		/* identifies non-existant device */
--#define NULLCTL -1		/* identifies non-existant controller */
--#define NULLCTLPTR (CONTROLLER_T *)0	/* identifies non-existant controller */
--#define NULLAIOP -1		/* identifies non-existant AIOP */
--#define NULLCHAN -1		/* identifies non-existant channel */
+-static void do_softint(struct work_struct *work)
+-{
+-	struct esp_struct	*info =
+-		container_of(work, struct esp_struct, tqueue);
+-	struct tty_struct	*tty;
+-	
+-	tty = info->tty;
+-	if (!tty)
+-		return;
 -
- /************************************************************************
-  Global Register Offsets - Direct Access - Fixed values
- ************************************************************************/
-@@ -1187,9 +1181,6 @@ struct r_port {
- #define ROCKET_CLOSING		0x40000000	/* Serial port is closing */
- #define ROCKET_NORMAL_ACTIVE	0x20000000	/* Normal port is active */
- 
--/* tty subtypes */
--#define SERIAL_TYPE_NORMAL 1
+-	if (test_and_clear_bit(ESP_EVENT_WRITE_WAKEUP, &info->event)) {
+-		tty_wakeup(tty);
+-	}
+-}
+-
+-/*
+- * This routine is called from the scheduler tqueue when the interrupt
+- * routine has signalled that a hangup has occurred.  The path of
+- * hangup processing is:
+- *
+- * 	serial interrupt routine -> (scheduler tqueue) ->
+- * 	do_serial_hangup() -> tty->hangup() -> esp_hangup()
+- * 
+- */
+-static void do_serial_hangup(struct work_struct *work)
+-{
+-	struct esp_struct	*info =
+-		container_of(work, struct esp_struct, tqueue_hangup);
+-	struct tty_struct	*tty;
+-	
+-	tty = info->tty;
+-	if (tty)
+-		tty_hangup(tty);
+-}
 -
  /*
-  * Assigned major numbers for the Comtrol Rocketport
-  */
-@@ -1240,12 +1231,3 @@ struct r_port {
- /* Compact PCI device */ 
- #define PCI_DEVICE_ID_CRP16INTF		0x0903	/* Rocketport Compact PCI 16 port w/external I/F */
+  * ---------------------------------------------------------------
+  * Low level utility subroutines for the serial driver:  routines to
+@@ -2038,7 +1994,6 @@ static void rs_close(struct tty_struct *
+ 		tty->driver->flush_buffer(tty);
+ 	tty_ldisc_flush(tty);
+ 	tty->closing = 0;
+-	info->event = 0;
+ 	info->tty = NULL;
  
--#define TTY_GET_LINE(t) t->index
--#define TTY_DRIVER_MINOR_START(t) t->driver->minor_start
--#define TTY_DRIVER_SUBTYPE(t) t->driver->subtype
--#define TTY_DRIVER_NAME(t) t->driver->name
--#define TTY_DRIVER_NAME_BASE(t) t->driver->name_base
--#define TTY_DRIVER_FLUSH_BUFFER_EXISTS(t) t->driver->flush_buffer
--#define TTY_DRIVER_FLUSH_BUFFER(t) t->driver->flush_buffer(t)
--
--
+ 	if (info->blocked_open) {
+@@ -2106,7 +2061,6 @@ static void esp_hangup(struct tty_struct
+ 	
+ 	rs_flush_buffer(tty);
+ 	shutdown(info);
+-	info->event = 0;
+ 	info->count = 0;
+ 	info->flags &= ~ASYNC_NORMAL_ACTIVE;
+ 	info->tty = NULL;
+@@ -2492,8 +2446,6 @@ static int __init espserial_init(void)
+ 		info->magic = ESP_MAGIC;
+ 		info->close_delay = 5*HZ/10;
+ 		info->closing_wait = 30*HZ;
+-		INIT_WORK(&info->tqueue, do_softint);
+-		INIT_WORK(&info->tqueue_hangup, do_serial_hangup);
+ 		info->config.rx_timeout = rx_timeout;
+ 		info->config.flow_on = flow_on;
+ 		info->config.flow_off = flow_off;
+diff -puN include/linux/hayesesp.h~char-esp-remove-hangup-and-wakeup-bottomhalves include/linux/hayesesp.h
+--- a/include/linux/hayesesp.h~char-esp-remove-hangup-and-wakeup-bottomhalves
++++ a/include/linux/hayesesp.h
+@@ -71,7 +71,6 @@ struct hayes_esp_config {
+ #define ESP_STAT_NEVER_DMA      0x08
+ #define ESP_STAT_USE_PIO        0x10
+ 
+-#define ESP_EVENT_WRITE_WAKEUP	0
+ #define ESP_MAGIC		0x53ee
+ #define ESP_XMIT_SIZE		4096
+ 
+@@ -92,7 +91,6 @@ struct esp_struct {
+ 	unsigned short		closing_wait2;
+ 	int			IER; 	/* Interrupt Enable Register */
+ 	int			MCR; 	/* Modem control register */
+-	unsigned long		event;
+ 	unsigned long		last_active;
+ 	int			line;
+ 	int			count;	    /* # of fd on device */
+@@ -101,8 +99,6 @@ struct esp_struct {
+ 	int			xmit_head;
+ 	int			xmit_tail;
+ 	int			xmit_cnt;
+-	struct work_struct	tqueue;
+-	struct work_struct	tqueue_hangup;
+ 	wait_queue_head_t	open_wait;
+ 	wait_queue_head_t	close_wait;
+ 	wait_queue_head_t	delta_msr_wait;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
@@ -139,5 +213,11 @@ char-char-serial-remove-serial_type_normal-redefines.patch
 char-mxser_new-ioaddresses-are-ulong.patch
 char-stallion-fix-compiler-warnings.patch
 char-riscom8-change-rc_init_drivers-prototype.patch
+char-esp-remove-hangup-and-wakeup-bottomhalves.patch
+char-istallion-remove-hangup-bottomhalf.patch
+char-specialix-remove-bottomhalves.patch
+char-stallion-remove-bottomhalf.patch
+char-serial167-remove-bottomhalf.patch
+char-riscom8-remove-wakeup-anf-hangup-bottomhalves.patch
 reiser4.patch
 shrink_slab-handle-bad-shrinkers.patch
