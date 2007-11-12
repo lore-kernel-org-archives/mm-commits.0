@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmstat-small-revisions-to-refresh_cpu_vm_stats.patch added to -mm tree
-Date: Mon, 12 Nov 2007 14:05:19 -0800
-Message-ID: <200711122205.lACM5JVv011126@imap1.linux-foundation.org>
+Subject: + page-allocator-clean-up-pcp-draining-functions.patch added to -mm tree
+Date: Mon, 12 Nov 2007 14:07:12 -0800
+Message-ID: <200711122207.lACM7C0K011225@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38294 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36578 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754662AbXKLWFX (ORCPT
+	by vger.kernel.org with ESMTP id S1752426AbXKLWHb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 17:05:23 -0500
+	Mon, 12 Nov 2007 17:07:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: clameter@sgi.com, mel@csn.ul.ie, rjw@sisk.pl
 
 
 The patch titled
-     vmstat: small revisions to refresh_cpu_vm_stats()
+     Page allocator: clean up pcp draining functions
 has been added to the -mm tree.  Its filename is
-     vmstat-small-revisions-to-refresh_cpu_vm_stats.patch
+     page-allocator-clean-up-pcp-draining-functions.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,80 +26,239 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: vmstat: small revisions to refresh_cpu_vm_stats()
+Subject: Page allocator: clean up pcp draining functions
 From: Christoph Lameter <clameter@sgi.com>
 
-1. Add comments explaining how the function can be called.
+- Add comments explaing how drain_pages() works.
 
-2. Avoid interrupt enable / disable through the use of xchg.
+- Eliminate useless functions
 
-3. Collect global diffs in a local array and only spill
-   them once into the global counters when the zone scan
-   is finished. This means that we only touch each global
-   counter once instead of each time we fold cpu counters
-   into zone counters.
+- Rename drain_all_local_pages to drain_all_pages(). It does drain
+  all pages not only those of the local processor.
+
+- Eliminate useless interrupt off / on sequences. drain_pages()
+  disables interrupts on its own. The execution thread is
+  pinned to processor by the caller. So there is no need to
+  disable interrupts.
+
+- Put drain_all_pages() declaration in gfp.h and remove the
+  declarations from suspend.h and from mm/memory_hotplug.c
+
+- Make software suspend call drain_all_pages(). The draining
+  of processor local pages is may not the right approach if
+  software suspend wants to support SMP. If they call drain_all_pages
+  then we can make drain_pages() static.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ include/linux/gfp.h     |    1 
+ include/linux/suspend.h |    1 
+ kernel/power/snapshot.c |    4 -
+ mm/memory_hotplug.c     |    6 --
+ mm/page_alloc.c         |   79 ++++++++++++++++++++------------------
+ 5 files changed, 47 insertions(+), 44 deletions(-)
 
-diff -puN mm/vmstat.c~vmstat-small-revisions-to-refresh_cpu_vm_stats mm/vmstat.c
---- a/mm/vmstat.c~vmstat-small-revisions-to-refresh_cpu_vm_stats
-+++ a/mm/vmstat.c
-@@ -284,6 +284,10 @@ EXPORT_SYMBOL(dec_zone_page_state);
- /*
-  * Update the zone counters for one cpu.
-  *
-+ * The cpu specified must be either the current cpu or a processor that
-+ * is not online. If it is the current cpu then the execution thread must
-+ * be pinned to the current cpu.
-+ *
-  * Note that refresh_cpu_vm_stats strives to only access
-  * node local memory. The per cpu pagesets on remote zones are placed
-  * in the memory local to the processor using that pageset. So the
-@@ -299,7 +303,7 @@ void refresh_cpu_vm_stats(int cpu)
- {
- 	struct zone *zone;
- 	int i;
--	unsigned long flags;
-+	int global_diff[NR_VM_ZONE_STAT_ITEMS] = { 0, };
+diff -puN include/linux/gfp.h~page-allocator-clean-up-pcp-draining-functions include/linux/gfp.h
+--- a/include/linux/gfp.h~page-allocator-clean-up-pcp-draining-functions
++++ a/include/linux/gfp.h
+@@ -228,5 +228,6 @@ extern void FASTCALL(free_cold_page(stru
  
- 	for_each_zone(zone) {
- 		struct per_cpu_pageset *p;
-@@ -311,15 +315,14 @@ void refresh_cpu_vm_stats(int cpu)
+ void page_alloc_init(void);
+ void drain_zone_pages(struct zone *zone, struct per_cpu_pages *pcp);
++void drain_all_pages(void);
  
- 		for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
- 			if (p->vm_stat_diff[i]) {
--				local_irq_save(flags);
--				zone_page_state_add(p->vm_stat_diff[i],
--					zone, i);
--				p->vm_stat_diff[i] = 0;
-+				int v = xchg(&p->vm_stat_diff[i], 0);
-+
-+				atomic_long_add(v, &zone->vm_stat[i]);
-+				global_diff[i] += v;
- #ifdef CONFIG_NUMA
- 				/* 3 seconds idle till flush */
- 				p->expire = 3;
- #endif
--				local_irq_restore(flags);
- 			}
- #ifdef CONFIG_NUMA
- 		/*
-@@ -351,6 +354,10 @@ void refresh_cpu_vm_stats(int cpu)
- 			drain_zone_pages(zone, p->pcp + 1);
- #endif
- 	}
-+
-+	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
-+		if (global_diff[i])
-+			atomic_long_add(global_diff[i], &vm_stat[i]);
+ #endif /* __LINUX_GFP_H */
+diff -puN include/linux/suspend.h~page-allocator-clean-up-pcp-draining-functions include/linux/suspend.h
+--- a/include/linux/suspend.h~page-allocator-clean-up-pcp-draining-functions
++++ a/include/linux/suspend.h
+@@ -123,7 +123,6 @@ struct pbe {
+ };
+ 
+ /* mm/page_alloc.c */
+-extern void drain_local_pages(void);
+ extern void mark_free_pages(struct zone *zone);
+ 
+ /**
+diff -puN kernel/power/snapshot.c~page-allocator-clean-up-pcp-draining-functions kernel/power/snapshot.c
+--- a/kernel/power/snapshot.c~page-allocator-clean-up-pcp-draining-functions
++++ a/kernel/power/snapshot.c
+@@ -1204,7 +1204,7 @@ asmlinkage int swsusp_save(void)
+ 
+ 	printk("swsusp: critical section: \n");
+ 
+-	drain_local_pages();
++	drain_all_pages();
+ 	nr_pages = count_data_pages();
+ 	nr_highmem = count_highmem_pages();
+ 	printk("swsusp: Need to copy %u pages\n", nr_pages + nr_highmem);
+@@ -1222,7 +1222,7 @@ asmlinkage int swsusp_save(void)
+ 	/* During allocating of suspend pagedir, new cold pages may appear.
+ 	 * Kill them.
+ 	 */
+-	drain_local_pages();
++	drain_all_pages();
+ 	copy_data_pages(&copy_bm, &orig_bm);
+ 
+ 	/*
+diff -puN mm/memory_hotplug.c~page-allocator-clean-up-pcp-draining-functions mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~page-allocator-clean-up-pcp-draining-functions
++++ a/mm/memory_hotplug.c
+@@ -537,8 +537,6 @@ check_pages_isolated(unsigned long start
+ 	return offlined;
  }
  
+-extern void drain_all_local_pages(void);
+-
+ int offline_pages(unsigned long start_pfn,
+ 		  unsigned long end_pfn, unsigned long timeout)
+ {
+@@ -596,7 +594,7 @@ repeat:
+ 		lru_add_drain_all();
+ 		flush_scheduled_work();
+ 		cond_resched();
+-		drain_all_local_pages();
++		drain_all_pages();
+ 	}
+ 
+ 	pfn = scan_lru_pages(start_pfn, end_pfn);
+@@ -619,7 +617,7 @@ repeat:
+ 	flush_scheduled_work();
+ 	yield();
+ 	/* drain pcp pages , this is synchrouns. */
+-	drain_all_local_pages();
++	drain_all_pages();
+ 	/* check again */
+ 	offlined_pages = check_pages_isolated(start_pfn, end_pfn);
+ 	if (offlined_pages < 0) {
+diff -puN mm/page_alloc.c~page-allocator-clean-up-pcp-draining-functions mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-clean-up-pcp-draining-functions
++++ a/mm/page_alloc.c
+@@ -900,7 +900,14 @@ void drain_zone_pages(struct zone *zone,
+ }
  #endif
+ 
+-static void __drain_pages(unsigned int cpu)
++/*
++ * Drain pages of the indicated processor.
++ *
++ * The processor must either be the current processor and the
++ * thread pinned to the current processor or a processor that
++ * is not online.
++ */
++static void drain_pages(unsigned int cpu)
+ {
+ 	unsigned long flags;
+ 	struct zone *zone;
+@@ -925,6 +932,22 @@ static void __drain_pages(unsigned int c
+ 	}
+ }
+ 
++/*
++ * Spill all of this CPU's per-cpu pages back into the buddy allocator.
++ */
++static void drain_local_pages(void *arg)
++{
++	drain_pages(smp_processor_id());
++}
++
++/*
++ * Spill all the per-cpu pages from all CPUs back into the buddy allocator
++ */
++void drain_all_pages(void)
++{
++	on_each_cpu(drain_local_pages, NULL, 0, 1);
++}
++
+ #ifdef CONFIG_HIBERNATION
+ 
+ void mark_free_pages(struct zone *zone)
+@@ -962,37 +985,6 @@ void mark_free_pages(struct zone *zone)
+ #endif /* CONFIG_PM */
+ 
+ /*
+- * Spill all of this CPU's per-cpu pages back into the buddy allocator.
+- */
+-void drain_local_pages(void)
+-{
+-	unsigned long flags;
+-
+-	local_irq_save(flags);	
+-	__drain_pages(smp_processor_id());
+-	local_irq_restore(flags);	
+-}
+-
+-void smp_drain_local_pages(void *arg)
+-{
+-	drain_local_pages();
+-}
+-
+-/*
+- * Spill all the per-cpu pages from all CPUs back into the buddy allocator
+- */
+-void drain_all_local_pages(void)
+-{
+-	unsigned long flags;
+-
+-	local_irq_save(flags);
+-	__drain_pages(smp_processor_id());
+-	local_irq_restore(flags);
+-
+-	smp_call_function(smp_drain_local_pages, NULL, 0, 1);
+-}
+-
+-/*
+  * Free a 0-order page
+  */
+ static void fastcall free_hot_cold_page(struct page *page, int cold)
+@@ -1579,7 +1571,7 @@ nofail_alloc:
+ 	cond_resched();
+ 
+ 	if (order != 0)
+-		drain_all_local_pages();
++		drain_all_pages();
+ 
+ 	if (likely(did_some_progress)) {
+ 		page = get_page_from_freelist(gfp_mask, order,
+@@ -3969,10 +3961,23 @@ static int page_alloc_cpu_notify(struct 
+ 	int cpu = (unsigned long)hcpu;
+ 
+ 	if (action == CPU_DEAD || action == CPU_DEAD_FROZEN) {
+-		local_irq_disable();
+-		__drain_pages(cpu);
++		drain_pages(cpu);
++
++		/*
++		 * Spill the event counters of the dead processor
++		 * into the current processors event counters.
++		 * This artificially elevates the count of the current
++		 * processor.
++		 */
+ 		vm_events_fold_cpu(cpu);
+-		local_irq_enable();
++
++		/*
++		 * Zero the differential counters of the dead processor
++		 * so that the vm statistics are consistent.
++		 *
++		 * This is only okay since the processor is dead and cannot
++		 * race with what we are doing.
++		 */
+ 		refresh_cpu_vm_stats(cpu);
+ 	}
+ 	return NOTIFY_OK;
+@@ -4471,7 +4476,7 @@ int set_migratetype_isolate(struct page 
+ out:
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ 	if (!ret)
+-		drain_all_local_pages();
++		drain_all_pages();
+ 	return ret;
+ }
+ 
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -149,6 +308,7 @@ bufferhead-revert-constructor-removal.patch
 bufferhead-revert-constructor-removal-checkpatch-fixes.patch
 swapin_readahead-excise-numa-bogosity.patch
 vmstat-small-revisions-to-refresh_cpu_vm_stats.patch
+page-allocator-clean-up-pcp-draining-functions.patch
 revoke-core-code.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
 memcontrol-move-oom-task-exclusion-to-tasklist.patch
