@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + slub-do-our-own-locking-via-slab_lock-and-slab_unlock-fix.patch added to -mm tree
-Date: Mon, 12 Nov 2007 14:03:29 -0800
-Message-ID: <200711122203.lACM3TGJ011088@imap1.linux-foundation.org>
+Subject: + vmstat-small-revisions-to-refresh_cpu_vm_stats.patch added to -mm tree
+Date: Mon, 12 Nov 2007 14:05:19 -0800
+Message-ID: <200711122205.lACM5JVv011126@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53626 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38294 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754350AbXKLWDh (ORCPT
+	by vger.kernel.org with ESMTP id S1754662AbXKLWFX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 17:03:37 -0500
+	Mon, 12 Nov 2007 17:05:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com
 
 
 The patch titled
-     Fix free_debug_processing for the !CONFIG_SLUB_DEBUG
+     vmstat: small revisions to refresh_cpu_vm_stats()
 has been added to the -mm tree.  Its filename is
-     slub-do-our-own-locking-via-slab_lock-and-slab_unlock-fix.patch
+     vmstat-small-revisions-to-refresh_cpu_vm_stats.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,80 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix free_debug_processing for the !CONFIG_SLUB_DEBUG
+Subject: vmstat: small revisions to refresh_cpu_vm_stats()
 From: Christoph Lameter <clameter@sgi.com>
 
-Forgot to add a parameter to the !CONFIG_SLUB_DEBUG version of
-free_debug_processing. This causes a failure if slub is compiled
-without debug support.
+1. Add comments explaining how the function can be called.
+
+2. Avoid interrupt enable / disable through the use of xchg.
+
+3. Collect global diffs in a local array and only spill
+   them once into the global counters when the zone scan
+   is finished. This means that we only touch each global
+   counter once instead of each time we fold cpu counters
+   into zone counters.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/vmstat.c |   19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
-diff -puN mm/slub.c~slub-do-our-own-locking-via-slab_lock-and-slab_unlock-fix mm/slub.c
---- a/mm/slub.c~slub-do-our-own-locking-via-slab_lock-and-slab_unlock-fix
-+++ a/mm/slub.c
-@@ -1012,7 +1012,8 @@ static inline int alloc_debug_processing
- 	struct page *page, void *object, void *addr) { return 0; }
+diff -puN mm/vmstat.c~vmstat-small-revisions-to-refresh_cpu_vm_stats mm/vmstat.c
+--- a/mm/vmstat.c~vmstat-small-revisions-to-refresh_cpu_vm_stats
++++ a/mm/vmstat.c
+@@ -284,6 +284,10 @@ EXPORT_SYMBOL(dec_zone_page_state);
+ /*
+  * Update the zone counters for one cpu.
+  *
++ * The cpu specified must be either the current cpu or a processor that
++ * is not online. If it is the current cpu then the execution thread must
++ * be pinned to the current cpu.
++ *
+  * Note that refresh_cpu_vm_stats strives to only access
+  * node local memory. The per cpu pagesets on remote zones are placed
+  * in the memory local to the processor using that pageset. So the
+@@ -299,7 +303,7 @@ void refresh_cpu_vm_stats(int cpu)
+ {
+ 	struct zone *zone;
+ 	int i;
+-	unsigned long flags;
++	int global_diff[NR_VM_ZONE_STAT_ITEMS] = { 0, };
  
- static inline int free_debug_processing(struct kmem_cache *s,
--	struct page *page, void *object, void *addr) { return 0; }
-+	struct page *page, void *object, void *addr, unsigned long state)
-+						{ return 0; }
+ 	for_each_zone(zone) {
+ 		struct per_cpu_pageset *p;
+@@ -311,15 +315,14 @@ void refresh_cpu_vm_stats(int cpu)
  
- static inline int slab_pad_check(struct kmem_cache *s, struct page *page)
- 			{ return 1; }
+ 		for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
+ 			if (p->vm_stat_diff[i]) {
+-				local_irq_save(flags);
+-				zone_page_state_add(p->vm_stat_diff[i],
+-					zone, i);
+-				p->vm_stat_diff[i] = 0;
++				int v = xchg(&p->vm_stat_diff[i], 0);
++
++				atomic_long_add(v, &zone->vm_stat[i]);
++				global_diff[i] += v;
+ #ifdef CONFIG_NUMA
+ 				/* 3 seconds idle till flush */
+ 				p->expire = 3;
+ #endif
+-				local_irq_restore(flags);
+ 			}
+ #ifdef CONFIG_NUMA
+ 		/*
+@@ -351,6 +354,10 @@ void refresh_cpu_vm_stats(int cpu)
+ 			drain_zone_pages(zone, p->pcp + 1);
+ #endif
+ 	}
++
++	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
++		if (global_diff[i])
++			atomic_long_add(global_diff[i], &vm_stat[i]);
+ }
+ 
+ #endif
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
@@ -101,6 +148,7 @@ vm-allow-get_page_unless_zero-on-compound-pages.patch
 bufferhead-revert-constructor-removal.patch
 bufferhead-revert-constructor-removal-checkpatch-fixes.patch
 swapin_readahead-excise-numa-bogosity.patch
+vmstat-small-revisions-to-refresh_cpu_vm_stats.patch
 revoke-core-code.patch
 slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
 memcontrol-move-oom-task-exclusion-to-tasklist.patch
