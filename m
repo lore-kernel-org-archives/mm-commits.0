@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + char-mxser_new-ioaddresses-are-ulong.patch added to -mm tree
-Date: Mon, 12 Nov 2007 13:51:13 -0800
-Message-ID: <200711122151.lACLpDuT010604@imap1.linux-foundation.org>
+Subject: + char-riscom8-change-rc_init_drivers-prototype.patch added to -mm tree
+Date: Mon, 12 Nov 2007 13:51:15 -0800
+Message-ID: <200711122151.lACLpFW0010610@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43544 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41030 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752072AbXKLVvW (ORCPT
+	by vger.kernel.org with ESMTP id S1752322AbXKLVvY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 16:51:22 -0500
+	Mon, 12 Nov 2007 16:51:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     Char: mxser_new, ioaddresses are ulong
+     Char: riscom8, change rc_init_drivers prototype
 has been added to the -mm tree.  Its filename is
-     char-mxser_new-ioaddresses-are-ulong.patch
+     char-riscom8-change-rc_init_drivers-prototype.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,30 +26,31 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Char: mxser_new, ioaddresses are ulong
+Subject: Char: riscom8, change rc_init_drivers prototype
 From: Jiri Slaby <jirislaby@gmail.com>
 
-To not pass ulong address as int parameter, switch it to ulong.
+Let compiler decide if the rc_init_drivers function will be inlined and
+mark it as __init, because it's called only from __init function.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser_new.c |    2 +-
+ drivers/char/riscom8.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/mxser_new.c~char-mxser_new-ioaddresses-are-ulong drivers/char/mxser_new.c
---- a/drivers/char/mxser_new.c~char-mxser_new-ioaddresses-are-ulong
-+++ a/drivers/char/mxser_new.c
-@@ -320,7 +320,7 @@ static struct mxser_mon_ext mon_data_ext
- static int mxser_set_baud_method[MXSER_PORTS + 1];
+diff -puN drivers/char/riscom8.c~char-riscom8-change-rc_init_drivers-prototype drivers/char/riscom8.c
+--- a/drivers/char/riscom8.c~char-riscom8-change-rc_init_drivers-prototype
++++ a/drivers/char/riscom8.c
+@@ -1618,7 +1618,7 @@ static const struct tty_operations risco
+ 	.tiocmset = rc_tiocmset,
+ };
  
- #ifdef CONFIG_PCI
--static int __devinit CheckIsMoxaMust(int io)
-+static int __devinit CheckIsMoxaMust(unsigned long io)
+-static inline int rc_init_drivers(void)
++static int __init rc_init_drivers(void)
  {
- 	u8 oldmcr, hwid;
+ 	int error;
  	int i;
 _
 
