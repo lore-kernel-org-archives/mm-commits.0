@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-sunrpc-remove-spin_lock_unlocked.patch added to -mm tree
-Date: Mon, 12 Nov 2007 13:47:31 -0800
-Message-ID: <200711122147.lACLlVQY010524@imap1.linux-foundation.org>
+Subject: + watchdog-bfin_wdt-remove-spin_lock_unlocked.patch added to -mm tree
+Date: Mon, 12 Nov 2007 13:47:26 -0800
+Message-ID: <200711122147.lACLlQCo010515@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52238 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43456 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752232AbXKLVre (ORCPT
+	by vger.kernel.org with ESMTP id S1752915AbXKLVri (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 16:47:34 -0500
+	Mon, 12 Nov 2007 16:47:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, davem@davemloft.net
+Cc: jirislaby@gmail.com, bryan.wu@analog.com, vapier.adi@gmail.com, wim@iguana.be
 
 
 The patch titled
-     Net: sunrpc, remove SPIN_LOCK_UNLOCKED
+     Watchdog: bfin_wdt, remove SPIN_LOCK_UNLOCKED
 has been added to the -mm tree.  Its filename is
-     net-sunrpc-remove-spin_lock_unlocked.patch
+     watchdog-bfin_wdt-remove-spin_lock_unlocked.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Net: sunrpc, remove SPIN_LOCK_UNLOCKED
+Subject: Watchdog: bfin_wdt, remove SPIN_LOCK_UNLOCKED
 From: Jiri Slaby <jirislaby@gmail.com>
-
-sunrpc, remove SPIN_LOCK_UNLOCKED
 
 SPIN_LOCK_UNLOCKED is deprecated, use DEFINE_SPINLOCK instead
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Wim Van Sebroeck <wim@iguana.be>
+Acked-by: Mike Frysinger <vapier.adi@gmail.com>
+Cc: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/xprt.c |    2 +-
+ drivers/watchdog/bfin_wdt.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/sunrpc/xprt.c~net-sunrpc-remove-spin_lock_unlocked net/sunrpc/xprt.c
---- a/net/sunrpc/xprt.c~net-sunrpc-remove-spin_lock_unlocked
-+++ a/net/sunrpc/xprt.c
-@@ -62,7 +62,7 @@ static inline void	do_xprt_reserve(struc
- static void	xprt_connect_status(struct rpc_task *task);
- static int      __xprt_get_cong(struct rpc_xprt *, struct rpc_task *);
+diff -puN drivers/watchdog/bfin_wdt.c~watchdog-bfin_wdt-remove-spin_lock_unlocked drivers/watchdog/bfin_wdt.c
+--- a/drivers/watchdog/bfin_wdt.c~watchdog-bfin_wdt-remove-spin_lock_unlocked
++++ a/drivers/watchdog/bfin_wdt.c
+@@ -71,7 +71,7 @@ static int nowayout = WATCHDOG_NOWAYOUT;
+ static struct watchdog_info bfin_wdt_info;
+ static unsigned long open_check;
+ static char expect_close;
+-static spinlock_t bfin_wdt_spinlock = SPIN_LOCK_UNLOCKED;
++static DEFINE_SPINLOCK(bfin_wdt_spinlock);
  
--static spinlock_t xprt_list_lock = SPIN_LOCK_UNLOCKED;
-+static DEFINE_SPINLOCK(xprt_list_lock);
- static LIST_HEAD(xprt_list);
- 
- /*
+ /**
+  *	bfin_wdt_keepalive - Keep the Userspace Watchdog Alive
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
