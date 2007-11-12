@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-bfin_wdt-remove-spin_lock_unlocked.patch added to -mm tree
-Date: Mon, 12 Nov 2007 13:47:26 -0800
-Message-ID: <200711122147.lACLlQCo010515@imap1.linux-foundation.org>
+Subject: + sbus-cpwatchdog-remove-spin_lock_unlocked.patch added to -mm tree
+Date: Mon, 12 Nov 2007 13:47:28 -0800
+Message-ID: <200711122147.lACLlSS3010518@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43456 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51152 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752915AbXKLVri (ORCPT
+	by vger.kernel.org with ESMTP id S1752319AbXKLVrh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 16:47:38 -0500
+	Mon, 12 Nov 2007 16:47:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, bryan.wu@analog.com, vapier.adi@gmail.com, wim@iguana.be
+Cc: jirislaby@gmail.com, davem@davemloft.net, wim@iguana.be
 
 
 The patch titled
-     Watchdog: bfin_wdt, remove SPIN_LOCK_UNLOCKED
+     Sbus: cpwatchdog, remove SPIN_LOCK_UNLOCKED
 has been added to the -mm tree.  Its filename is
-     watchdog-bfin_wdt-remove-spin_lock_unlocked.patch
+     sbus-cpwatchdog-remove-spin_lock_unlocked.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,33 +26,33 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Watchdog: bfin_wdt, remove SPIN_LOCK_UNLOCKED
+Subject: Sbus: cpwatchdog, remove SPIN_LOCK_UNLOCKED
 From: Jiri Slaby <jirislaby@gmail.com>
 
-SPIN_LOCK_UNLOCKED is deprecated, use DEFINE_SPINLOCK instead
+SPIN_LOCK_UNLOCKED is deprecated, use __SPIN_LOCK_UNLOCKED with an unique
+name instead
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Cc: Wim Van Sebroeck <wim@iguana.be>
-Acked-by: Mike Frysinger <vapier.adi@gmail.com>
-Cc: Bryan Wu <bryan.wu@analog.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/bfin_wdt.c |    2 +-
+ drivers/sbus/char/cpwatchdog.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/watchdog/bfin_wdt.c~watchdog-bfin_wdt-remove-spin_lock_unlocked drivers/watchdog/bfin_wdt.c
---- a/drivers/watchdog/bfin_wdt.c~watchdog-bfin_wdt-remove-spin_lock_unlocked
-+++ a/drivers/watchdog/bfin_wdt.c
-@@ -71,7 +71,7 @@ static int nowayout = WATCHDOG_NOWAYOUT;
- static struct watchdog_info bfin_wdt_info;
- static unsigned long open_check;
- static char expect_close;
--static spinlock_t bfin_wdt_spinlock = SPIN_LOCK_UNLOCKED;
-+static DEFINE_SPINLOCK(bfin_wdt_spinlock);
+diff -puN drivers/sbus/char/cpwatchdog.c~sbus-cpwatchdog-remove-spin_lock_unlocked drivers/sbus/char/cpwatchdog.c
+--- a/drivers/sbus/char/cpwatchdog.c~sbus-cpwatchdog-remove-spin_lock_unlocked
++++ a/drivers/sbus/char/cpwatchdog.c
+@@ -154,7 +154,7 @@ struct wd_device {
+ };
  
- /**
-  *	bfin_wdt_keepalive - Keep the Userspace Watchdog Alive
+ static struct wd_device wd_dev = { 
+-		0, SPIN_LOCK_UNLOCKED, 0, 0, 0, 0,
++		0, __SPIN_LOCK_UNLOCKED(wd_dev.lock), 0, 0, 0, 0,
+ };
+ 
+ static struct timer_list wd_timer;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
