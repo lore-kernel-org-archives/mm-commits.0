@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + improve-cgroup-printks.patch added to -mm tree
-Date: Mon, 12 Nov 2007 14:13:34 -0800
-Message-ID: <200711122213.lACMDYrs011494@imap1.linux-foundation.org>
+Subject: + drivers-video-s1d13xxxfbc-as-module-with-dbg.patch added to -mm tree
+Date: Mon, 12 Nov 2007 14:14:27 -0800
+Message-ID: <200711122214.lACMERtH011519@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42120 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58576 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755281AbXKLWNp (ORCPT
+	by vger.kernel.org with ESMTP id S1755116AbXKLWOp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 17:13:45 -0500
+	Mon, 12 Nov 2007 17:14:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: diegocg@gmail.com, menage@google.com
+Cc: utx@penguin.cz, adaplas@pol.net
 
 
 The patch titled
-     Improve cgroup printks
+     drivers/video/s1d13xxxfb.c: fix build as module with dbg
 has been added to the -mm tree.  Its filename is
-     improve-cgroup-printks.patch
+     drivers-video-s1d13xxxfbc-as-module-with-dbg.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,69 +26,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Improve cgroup printks
-From: Diego Calleja <diegocg@gmail.com>
+Subject: drivers/video/s1d13xxxfb.c: fix build as module with dbg
+From: Stanislav Brabec <utx@penguin.cz>
 
-When I boot with the 'quiet' parameter, I see on the screen:
+Attached patch fixes two compilation problems of s1d13xxxfb.c:
 
-[    0.000000] Initializing cgroup subsys cpuset
-[    0.000000] Initializing cgroup subsys cpu
-[   39.036026] Initializing cgroup subsys cpuacct
-[   39.036080] Initializing cgroup subsys debug
-[   39.036118] Initializing cgroup subsys ns
+- Fixes outdated dbg() message to fix compilation error with debugging enabled.
 
-This patch lowers the priority of those messages, adds a "cgroup: " prefix
-to another couple of printks and kills the useless reference to the source
-file.
+- Do not read kernel command line options when compiled as module.
 
-Signed-off-by: Diego Calleja <diegocg@gmail.com>
-Cc: Paul Menage <menage@google.com>
+Signed-off-by: Stanislav Brabec <utx@penguin.cz>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/video/s1d13xxxfb.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN kernel/cgroup.c~improve-cgroup-printks kernel/cgroup.c
---- a/kernel/cgroup.c~improve-cgroup-printks
-+++ a/kernel/cgroup.c
-@@ -1,6 +1,4 @@
- /*
-- *  kernel/cgroup.c
-- *
-  *  Generic process-grouping system.
-  *
-  *  Based originally on the cpuset system, extracted by Paul Menage
-@@ -2200,7 +2198,7 @@ static void cgroup_init_subsys(struct cg
- {
- 	struct cgroup_subsys_state *css;
- 	struct list_head *l;
--	printk(KERN_ERR "Initializing cgroup subsys %s\n", ss->name);
-+	printk("Initializing cgroup subsys %s\n", ss->name);
+diff -puN drivers/video/s1d13xxxfb.c~drivers-video-s1d13xxxfbc-as-module-with-dbg drivers/video/s1d13xxxfb.c
+--- a/drivers/video/s1d13xxxfb.c~drivers-video-s1d13xxxfbc-as-module-with-dbg
++++ a/drivers/video/s1d13xxxfb.c
+@@ -540,7 +540,7 @@ s1d13xxxfb_probe(struct platform_device 
+ 	int ret = 0;
+ 	u8 revision;
  
- 	/* Create the top cgroup state for this subsystem */
- 	ss->root = &rootnode;
-@@ -2273,7 +2271,7 @@ int __init cgroup_init_early(void)
- 		BUG_ON(!ss->create);
- 		BUG_ON(!ss->destroy);
- 		if (ss->subsys_id != i) {
--			printk(KERN_ERR "Subsys %s id == %d\n",
-+			printk(KERN_ERR "cgroup: Subsys %s id == %d\n",
- 			       ss->name, ss->subsys_id);
- 			BUG();
- 		}
-@@ -2605,7 +2603,7 @@ int cgroup_clone(struct task_struct *tsk
- 	dentry = lookup_one_len(nodename, parent->dentry, strlen(nodename));
- 	if (IS_ERR(dentry)) {
- 		printk(KERN_INFO
--		       "Couldn't allocate dentry for %s: %ld\n", nodename,
-+		       "cgroup: Couldn't allocate dentry for %s: %ld\n", nodename,
- 		       PTR_ERR(dentry));
- 		ret = PTR_ERR(dentry);
- 		goto out_release;
+-	dbg("probe called: device is %p\n", dev);
++	dbg("probe called: device is %p\n", pdev);
+ 
+ 	printk(KERN_INFO "Epson S1D13XXX FB Driver\n");
+ 
+@@ -753,8 +753,11 @@ static struct platform_driver s1d13xxxfb
+ static int __init
+ s1d13xxxfb_init(void)
+ {
++
++#ifndef MODULE
+ 	if (fb_get_options("s1d13xxxfb", NULL))
+ 		return -ENODEV;
++#endif
+ 
+ 	return platform_driver_register(&s1d13xxxfb_driver);
+ }
 _
 
-Patches currently in -mm which might be from diegocg@gmail.com are
+Patches currently in -mm which might be from utx@penguin.cz are
 
-improve-cgroup-printks.patch
-improve-cgroup-printks-fix.patch
+drivers-video-s1d13xxxfbc-as-module-with-dbg.patch
