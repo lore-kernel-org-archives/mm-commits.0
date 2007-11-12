@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + iget-stop-unionfs-from-using-iget-and-read_inode-fix.patch added to -mm tree
-Date: Sun, 11 Nov 2007 11:54:31 -0800
-Message-ID: <200711111954.lABJsWVO021653@imap1.linux-foundation.org>
+Subject: + uml-fix-recvmsg-return-value-checking.patch added to -mm tree
+Date: Mon, 12 Nov 2007 11:56:12 -0800
+Message-ID: <200711121956.lACJuERg006394@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52933 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43910 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756296AbXKKTyn (ORCPT
+	by vger.kernel.org with ESMTP id S1751277AbXKLT40 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 11 Nov 2007 14:54:43 -0500
+	Mon, 12 Nov 2007 14:56:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ezk@cs.sunysb.edu
+Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     Unionfs: stop using iget() and read_inode()
+     uml: fix recvmsg return value checking
 has been added to the -mm tree.  Its filename is
-     iget-stop-unionfs-from-using-iget-and-read_inode-fix.patch
+     uml-fix-recvmsg-return-value-checking.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,42 +26,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Unionfs: stop using iget() and read_inode()
-From: Erez Zadok <ezk@cs.sunysb.edu>
+Subject: uml: fix recvmsg return value checking
+From: Jeff Dike <jdike@addtoit.com>
 
-Unionfs: bugfix to initialize unionfs_inode_info node
+Stupid bug - we need to compare the return value of recvmsg to the value of
+iov_len, not its size.  This caused port_helper processes not to be killed on
+shutdown on x86_64 because the pids weren't being passed out properly.
 
-Signed-off-by: Erez Zadok <ezk@cs.sunysb.edu>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/unionfs/super.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/um/os-Linux/file.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/unionfs/super.c~iget-stop-unionfs-from-using-iget-and-read_inode-fix fs/unionfs/super.c
---- a/fs/unionfs/super.c~iget-stop-unionfs-from-using-iget-and-read_inode-fix
-+++ a/fs/unionfs/super.c
-@@ -38,6 +38,7 @@ struct inode *unionfs_iget(struct super_
+diff -puN arch/um/os-Linux/file.c~uml-fix-recvmsg-return-value-checking arch/um/os-Linux/file.c
+--- a/arch/um/os-Linux/file.c~uml-fix-recvmsg-return-value-checking
++++ a/arch/um/os-Linux/file.c
+@@ -496,8 +496,7 @@ int os_rcv_fd(int fd, int *helper_pid_ou
+ 	n = recvmsg(fd, &msg, 0);
+ 	if(n < 0)
+ 		return -errno;
+-
+-	else if(n != sizeof(iov.iov_len))
++	else if(n != iov.iov_len)
+ 		*helper_pid_out = -1;
  
-  	unionfs_read_lock(sb);
- 
-+	info = UNIONFS_I(inode);
- 	memset(info, 0, offsetof(struct unionfs_inode_info, vfs_inode));
- 	info->bstart = -1;
- 	info->bend = -1;
+ 	cmsg = CMSG_FIRSTHDR(&msg);
 _
 
-Patches currently in -mm which might be from ezk@cs.sunysb.edu are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-hugetlb-follow_hugetlb_page-for-write-access-fix.patch
-git-unionfs.patch
-unionfs-clear-partial-read.patch
-vfs-apply-coding-standards-to-fs-ioctlc.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-vfs-factor-out-three-helpers-for-fibmap-fionbio-fioasync-file-ioctls.patch
-add-64-bit-capability-support-to-the-kernel-fix-fix.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-iget-stop-unionfs-from-using-iget-and-read_inode.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix.patch
+uml-fix-symlink-loops.patch
+uml-fix-recvmsg-return-value-checking.patch
+uml-update-address-space-affected-by-pud_clear.patch
+git-kvm.patch
+uml-fix-spurious-irq-testing.patch
+uml-remove-last-include-of-libc-asm-pageh.patch
+uml-fix-build-for-config_tcp.patch
+uml-fix-build-for-config_printk.patch
+uml-implement-get_wchan.patch
+uml-implement-get_wchan-fix.patch
+uml-get-rid-of-asmlinkage.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-document-new-ubd-flag.patch
+uml-further-bugsc-tidying.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+uml-smp-needs-to-depend-on-broken-for-now.patch
+uml-console-driver-cleanups.patch
+uml-clonec-tidying.patch
+uml-borrow-consth-techniques.patch
+uml-delete-some-unused-headers.patch
+uml-allow-lflags-on-command-line.patch
+uml-tidy-kern_utilh.patch
+uml-tidy-pgtableh.patch
+uml-reconst-a-parameter.patch
+arch-um-remove-duplicate-includes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
