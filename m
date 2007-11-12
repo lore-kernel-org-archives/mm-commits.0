@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + libata-implement-ata_acpi_init_gtm.patch added to -mm tree
-Date: Mon, 12 Nov 2007 13:16:50 -0800
-Message-ID: <200711122116.lACLGoRN009399@imap1.linux-foundation.org>
+Subject: + libata-add-ata_cbl_pata_ign.patch added to -mm tree
+Date: Mon, 12 Nov 2007 13:16:53 -0800
+Message-ID: <200711122116.lACLGr7B009407@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47749 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36508 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752923AbXKLV0r (ORCPT
+	by vger.kernel.org with ESMTP id S1752645AbXKLV0x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 16:26:47 -0500
+	Mon, 12 Nov 2007 16:26:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: htejun@gmail.com
+Cc: htejun@gmail.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     libata: implement ata_acpi_init_gtm()
+     libata: add ATA_CBL_PATA_IGN
 has been added to the -mm tree.  Its filename is
-     libata-implement-ata_acpi_init_gtm.patch
+     libata-add-ata_cbl_pata_ign.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,81 +26,86 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata: implement ata_acpi_init_gtm()
+Subject: libata: add ATA_CBL_PATA_IGN
 From: Tejun Heo <htejun@gmail.com>
 
-Add dev->__acpi_init_gtm and store initial GTM values on host initialization. 
-If the field is valid, ata_acpi_init_gtm() returns pointer to the saved GTM
-structure; otherwise, NULL.  This is to remember BIOS/firmware programmed
-initial timing for later use before reset and mode configuration modify it. 
-The accessor is there to make building w/o ACPI easy dev->__acpi_init doesn't
-exist if ACPI is not enabled.
+ATA_CBL_PATA_UNK indicates that the cable type can't be determined from the
+host side and might be either 80c or 40c.  libata applies drive or other
+generic limit in this case.  However, there are controllers where both host
+and drive side detections are misimplemented and the driver has to rely solely
+on private method - peeking BIOS or ACPI configuration or using some other
+private mechanism.
+
+This patch adds ATA_CBL_PATA_IGN which tells libata to ignore the cable type
+completely and just let the LLD determine the transfer mode via host transfer
+mode masks and ->mode_filter().
 
 Signed-off-by: Tejun Heo <htejun@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-acpi.c |    3 +++
- include/linux/libata.h    |   14 +++++++++++++-
- 2 files changed, 16 insertions(+), 1 deletion(-)
+ drivers/ata/libata-core.c |   13 +++++++++++++
+ include/linux/ata.h       |    7 ++++---
+ include/linux/libata.h    |    1 +
+ 3 files changed, 18 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/libata-acpi.c~libata-implement-ata_acpi_init_gtm drivers/ata/libata-acpi.c
---- a/drivers/ata/libata-acpi.c~libata-implement-ata_acpi_init_gtm
-+++ a/drivers/ata/libata-acpi.c
-@@ -94,6 +94,9 @@ static void ata_acpi_associate_ide_port(
- 
- 		dev->acpi_handle = acpi_get_child(ap->acpi_handle, i);
- 	}
-+
-+	if (ata_acpi_gtm(ap, &ap->__acpi_init_gtm) == 0)
-+		ap->pflags |= ATA_PFLAG_INIT_GTM_VALID;
+diff -puN drivers/ata/libata-core.c~libata-add-ata_cbl_pata_ign drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-add-ata_cbl_pata_ign
++++ a/drivers/ata/libata-core.c
+@@ -2345,6 +2345,18 @@ int ata_cable_unknown(struct ata_port *a
  }
  
- static void ata_acpi_handle_hotplug(struct ata_port *ap, struct kobject *kobj,
-diff -puN include/linux/libata.h~libata-implement-ata_acpi_init_gtm include/linux/libata.h
---- a/include/linux/libata.h~libata-implement-ata_acpi_init_gtm
-+++ a/include/linux/libata.h
-@@ -212,6 +212,7 @@ enum {
- 	ATA_PFLAG_SUSPENDED	= (1 << 17), /* port is suspended (power) */
- 	ATA_PFLAG_PM_PENDING	= (1 << 18), /* PM operation pending */
- 	ATA_PFLAG_GTM_VALID	= (1 << 19), /* acpi_gtm data valid */
-+	ATA_PFLAG_INIT_GTM_VALID = (1 << 20), /* initial gtm data valid */
- 
- 	/* struct ata_queued_cmd flags */
- 	ATA_QCFLAG_ACTIVE	= (1 << 0), /* cmd not yet ack'd to scsi lyer */
-@@ -656,6 +657,7 @@ struct ata_port {
- #ifdef CONFIG_ATA_ACPI
- 	acpi_handle		acpi_handle;
- 	struct ata_acpi_gtm	acpi_gtm;
-+	struct ata_acpi_gtm	__acpi_init_gtm; /* use ata_acpi_init_gtm() */
- #endif
- 	u8			sector_buf[ATA_SECT_SIZE]; /* owned by EH */
- };
-@@ -953,13 +955,23 @@ enum {
- 
- /* libata-acpi.c */
- #ifdef CONFIG_ATA_ACPI
-+static inline const struct ata_acpi_gtm *ata_acpi_init_gtm(struct ata_port *ap)
+ /**
++ *	ata_cable_ignore	-	return ignored PATA cable.
++ *	@ap: port
++ *
++ *	Helper method for drivers which don't use cable type to limit
++ *	transfer mode.
++ */
++int ata_cable_ignore(struct ata_port *ap)
 +{
-+	if (ap->pflags & ATA_PFLAG_INIT_GTM_VALID)
-+		return &ap->__acpi_init_gtm;
-+	return NULL;
-+}
- extern int ata_acpi_cbl_80wire(struct ata_port *ap);
- int ata_acpi_stm(const struct ata_port *ap, struct ata_acpi_gtm *stm);
- int ata_acpi_gtm(const struct ata_port *ap, struct ata_acpi_gtm *stm);
- unsigned int ata_acpi_gtm_xfermask(struct ata_device *dev,
- 				   const struct ata_acpi_gtm *gtm);
--
- #else
-+static inline const struct ata_acpi_gtm *ata_acpi_init_gtm(struct ata_port *ap)
-+{
-+	return NULL;
++	return ATA_CBL_PATA_IGN;
 +}
 +
- static inline int ata_acpi_cbl_80wire(struct ata_port *ap) { return 0; }
++/**
+  *	ata_cable_sata	-	return SATA cable type
+  *	@ap: port
+  *
+@@ -7791,4 +7803,5 @@ EXPORT_SYMBOL_GPL(ata_dev_try_classify);
+ EXPORT_SYMBOL_GPL(ata_cable_40wire);
+ EXPORT_SYMBOL_GPL(ata_cable_80wire);
+ EXPORT_SYMBOL_GPL(ata_cable_unknown);
++EXPORT_SYMBOL_GPL(ata_cable_ignore);
+ EXPORT_SYMBOL_GPL(ata_cable_sata);
+diff -puN include/linux/ata.h~libata-add-ata_cbl_pata_ign include/linux/ata.h
+--- a/include/linux/ata.h~libata-add-ata_cbl_pata_ign
++++ a/include/linux/ata.h
+@@ -271,9 +271,10 @@ enum {
+ 	ATA_CBL_NONE		= 0,
+ 	ATA_CBL_PATA40		= 1,
+ 	ATA_CBL_PATA80		= 2,
+-	ATA_CBL_PATA40_SHORT	= 3,		/* 40 wire cable to high UDMA spec */
+-	ATA_CBL_PATA_UNK	= 4,
+-	ATA_CBL_SATA		= 5,
++	ATA_CBL_PATA40_SHORT	= 3,	/* 40 wire cable to high UDMA spec */
++	ATA_CBL_PATA_UNK	= 4,	/* don't know, maybe 80c? */
++	ATA_CBL_PATA_IGN	= 5,	/* don't know, ignore cable handling */
++	ATA_CBL_SATA		= 6,
  
- static inline int ata_acpi_stm(const struct ata_port *ap,
+ 	/* SATA Status and Control Registers */
+ 	SCR_STATUS		= 0,
+diff -puN include/linux/libata.h~libata-add-ata_cbl_pata_ign include/linux/libata.h
+--- a/include/linux/libata.h~libata-add-ata_cbl_pata_ign
++++ a/include/linux/libata.h
+@@ -921,6 +921,7 @@ extern u8 ata_irq_on(struct ata_port *ap
+ extern int ata_cable_40wire(struct ata_port *ap);
+ extern int ata_cable_80wire(struct ata_port *ap);
+ extern int ata_cable_sata(struct ata_port *ap);
++extern int ata_cable_ignore(struct ata_port *ap);
+ extern int ata_cable_unknown(struct ata_port *ap);
+ 
+ /*
 _
 
 Patches currently in -mm which might be from htejun@gmail.com are
