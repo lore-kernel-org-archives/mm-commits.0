@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + libata-fix-ata_acpi_gtm_xfermask.patch added to -mm tree
-Date: Mon, 12 Nov 2007 13:16:46 -0800
-Message-ID: <200711122116.lACLGkof009323@imap1.linux-foundation.org>
+Subject: + libata-export-xfermode--pata-timing-related-functions.patch added to -mm tree
+Date: Mon, 12 Nov 2007 13:16:37 -0800
+Message-ID: <200711122116.lACLGb3T009305@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37556 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42697 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753057AbXKLVR2 (ORCPT
+	by vger.kernel.org with ESMTP id S1758308AbXKLVRL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 16:17:28 -0500
+	Mon, 12 Nov 2007 16:17:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: htejun@gmail.com, alan@lxorguk.ukuu.org.uk
+Cc: htejun@gmail.com
 
 
 The patch titled
-     libata: fix ata_acpi_gtm_xfermask()
+     libata: export xfermode / PATA timing related functions
 has been added to the -mm tree.  Its filename is
-     libata-fix-ata_acpi_gtm_xfermask.patch
+     libata-export-xfermode--pata-timing-related-functions.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,104 +26,168 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: libata: fix ata_acpi_gtm_xfermask()
+Subject: libata: export xfermode / PATA timing related functions
 From: Tejun Heo <htejun@gmail.com>
 
-ata_acpi_gtm_xfermask() as separated out from pacpi_discover_modes()
-has various bugs.  Fix them.
+Export the following xfermode related functions.
 
-* The wrong comparison operator is used when finding for matching
-  cycle resulting totally bogus result.
+* ata_pack_xfermask()
+* ata_unpack_xfermask()
+* ata_xfer_mask2mode()
+* ata_xfer_mode2mask()
+* ata_xfer_mode2shift()
+* ata_mode_string()
+* ata_id_xfermask()
+* ata_timing_find_mode()
 
-* With the comparion operator fixed, boundary condtion handling is
-  clumsy.
-
-* Setting of any DMA mask bit set all bits in PIO mask.
-
-* MWDMA and UDMA blocks are swapped.
+These functions will be used later by LLD updates.  While at it,
+change unsigned short @speed to u8 @xfer_mode in
+ata_timing_find_mode() for consistency.
 
 Signed-off-by: Tejun Heo <htejun@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-acpi.c |   42 ++++++++++++++++++------------------
- 1 file changed, 21 insertions(+), 21 deletions(-)
+ drivers/ata/libata-core.c |   33 +++++++++++++++++++--------------
+ include/linux/libata.h    |   10 ++++++++++
+ 2 files changed, 29 insertions(+), 14 deletions(-)
 
-diff -puN drivers/ata/libata-acpi.c~libata-fix-ata_acpi_gtm_xfermask drivers/ata/libata-acpi.c
---- a/drivers/ata/libata-acpi.c~libata-fix-ata_acpi_gtm_xfermask
-+++ a/drivers/ata/libata-acpi.c
-@@ -453,49 +453,49 @@ EXPORT_SYMBOL_GPL(ata_acpi_udma_cycle);
- unsigned int ata_acpi_gtm_xfermask(struct ata_device *dev,
- 				   const struct ata_acpi_gtm *gtm)
+diff -puN drivers/ata/libata-core.c~libata-export-xfermode--pata-timing-related-functions drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-export-xfermode--pata-timing-related-functions
++++ a/drivers/ata/libata-core.c
+@@ -445,9 +445,8 @@ int ata_build_rw_tf(struct ata_taskfile 
+  *	RETURNS:
+  *	Packed xfer_mask.
+  */
+-static unsigned int ata_pack_xfermask(unsigned int pio_mask,
+-				      unsigned int mwdma_mask,
+-				      unsigned int udma_mask)
++unsigned int ata_pack_xfermask(unsigned int pio_mask,
++			       unsigned int mwdma_mask, unsigned int udma_mask)
  {
-+	unsigned int pio_mask = 0, mwdma_mask = 0, udma_mask = 0;
- 	int unit, i;
- 	u32 t;
--	unsigned long mask = (0x7f << ATA_SHIFT_UDMA) | (0x7 << ATA_SHIFT_MWDMA) | (0x1F << ATA_SHIFT_PIO);
+ 	return ((pio_mask << ATA_SHIFT_PIO) & ATA_MASK_PIO) |
+ 		((mwdma_mask << ATA_SHIFT_MWDMA) & ATA_MASK_MWDMA) |
+@@ -464,10 +463,8 @@ static unsigned int ata_pack_xfermask(un
+  *	Unpack @xfer_mask into @pio_mask, @mwdma_mask and @udma_mask.
+  *	Any NULL distination masks will be ignored.
+  */
+-static void ata_unpack_xfermask(unsigned int xfer_mask,
+-				unsigned int *pio_mask,
+-				unsigned int *mwdma_mask,
+-				unsigned int *udma_mask)
++void ata_unpack_xfermask(unsigned int xfer_mask, unsigned int *pio_mask,
++			 unsigned int *mwdma_mask, unsigned int *udma_mask)
+ {
+ 	if (pio_mask)
+ 		*pio_mask = (xfer_mask & ATA_MASK_PIO) >> ATA_SHIFT_PIO;
+@@ -500,7 +497,7 @@ static const struct ata_xfer_ent {
+  *	RETURNS:
+  *	Matching XFER_* value, 0 if no match found.
+  */
+-static u8 ata_xfer_mask2mode(unsigned int xfer_mask)
++u8 ata_xfer_mask2mode(unsigned int xfer_mask)
+ {
+ 	int highbit = fls(xfer_mask) - 1;
+ 	const struct ata_xfer_ent *ent;
+@@ -523,7 +520,7 @@ static u8 ata_xfer_mask2mode(unsigned in
+  *	RETURNS:
+  *	Matching xfer_mask, 0 if no match found.
+  */
+-static unsigned int ata_xfer_mode2mask(u8 xfer_mode)
++unsigned int ata_xfer_mode2mask(u8 xfer_mode)
+ {
+ 	const struct ata_xfer_ent *ent;
  
- 	/* we always use the 0 slot for crap hardware */
- 	unit = dev->devno;
- 	if (!(gtm->flags & 0x10))
- 		unit = 0;
+@@ -545,7 +542,7 @@ static unsigned int ata_xfer_mode2mask(u
+  *	RETURNS:
+  *	Matching xfer_shift, -1 if no match found.
+  */
+-static int ata_xfer_mode2shift(unsigned int xfer_mode)
++int ata_xfer_mode2shift(unsigned int xfer_mode)
+ {
+ 	const struct ata_xfer_ent *ent;
  
-+	/* Values larger than the longest cycle results in 0 mask
-+	 * while values equal to smaller than the shortest cycle
-+	 * results in mask which includes all supported modes.
-+	 * Disabled transfer method has the value of 0xffffffff which
-+	 * will always result in 0 mask.
-+	 */
-+
- 	/* start by scanning for PIO modes */
--	for (i = 0; i < 7; i++) {
--		t = gtm->drive[unit].pio;
--		if (t <= ata_acpi_pio_cycle[i]) {
--			mask |= (2 << (ATA_SHIFT_PIO + i)) - 1;
-+	t = gtm->drive[unit].pio;
-+	for (i = 0; i < ARRAY_SIZE(ata_acpi_pio_cycle); i++)
-+		if (t > ata_acpi_pio_cycle[i])
- 			break;
--		}
--	}
-+	pio_mask = (1 << i) - 1;
+@@ -569,7 +566,7 @@ static int ata_xfer_mode2shift(unsigned 
+  *	Constant C string representing highest speed listed in
+  *	@mode_mask, or the constant C string "<n/a>".
+  */
+-static const char *ata_mode_string(unsigned int xfer_mask)
++const char *ata_mode_string(unsigned int xfer_mask)
+ {
+ 	static const char * const xfer_mode_str[] = {
+ 		"PIO0",
+@@ -1458,7 +1455,7 @@ static inline void ata_dump_id(const u16
+  *	RETURNS:
+  *	Computed xfermask
+  */
+-static unsigned int ata_id_xfermask(const u16 *id)
++unsigned int ata_id_xfermask(const u16 *id)
+ {
+ 	unsigned int pio_mask, mwdma_mask, udma_mask;
  
- 	/* See if we have MWDMA or UDMA data. We don't bother with
- 	 * MWDMA if UDMA is available as this means the BIOS set UDMA
- 	 * and our error changedown if it works is UDMA to PIO anyway.
- 	 */
--	if (gtm->flags & (1 << (2 * unit))) {
-+	t = gtm->drive[unit].dma;
-+	if (!(gtm->flags & (1 << (2 * unit)))) {
- 		/* MWDMA */
--		for (i = 0; i < 5; i++) {
--			t = gtm->drive[unit].dma;
--			if (t <= ata_acpi_mwdma_cycle[i]) {
--				mask |= (2 << (ATA_SHIFT_MWDMA + i)) - 1;
-+		for (i = 0; i < ARRAY_SIZE(ata_acpi_mwdma_cycle); i++)
-+			if (t > ata_acpi_mwdma_cycle[i])
- 				break;
--			}
--		}
-+		mwdma_mask = (1 << i) - 1;
- 	} else {
- 		/* UDMA */
--		for (i = 0; i < 7; i++) {
--			t = gtm->drive[unit].dma;
--			if (t <= ata_acpi_udma_cycle[i]) {
--				mask |= (2 << (ATA_SHIFT_UDMA + i)) - 1;
-+		for (i = 0; i < ARRAY_SIZE(ata_acpi_udma_cycle); i++)
-+			if (t > ata_acpi_udma_cycle[i])
- 				break;
--			}
--		}
-+		udma_mask = (1 << i) - 1;
- 	}
- 
--	return mask;
-+	return ata_pack_xfermask(pio_mask, mwdma_mask, udma_mask);
+@@ -2922,11 +2919,11 @@ void ata_timing_merge(const struct ata_t
+ 	if (what & ATA_TIMING_UDMA   ) m->udma    = max(a->udma,    b->udma);
  }
- EXPORT_SYMBOL_GPL(ata_acpi_gtm_xfermask);
  
+-static const struct ata_timing *ata_timing_find_mode(unsigned short speed)
++const struct ata_timing *ata_timing_find_mode(u8 xfer_mode)
+ {
+ 	const struct ata_timing *t;
+ 
+-	for (t = ata_timing; t->mode != speed; t++)
++	for (t = ata_timing; t->mode != xfer_mode; t++)
+ 		if (t->mode == 0xFF)
+ 			return NULL;
+ 	return t;
+@@ -7662,6 +7659,13 @@ EXPORT_SYMBOL_GPL(ata_std_dev_select);
+ EXPORT_SYMBOL_GPL(sata_print_link_status);
+ EXPORT_SYMBOL_GPL(ata_tf_to_fis);
+ EXPORT_SYMBOL_GPL(ata_tf_from_fis);
++EXPORT_SYMBOL_GPL(ata_pack_xfermask);
++EXPORT_SYMBOL_GPL(ata_unpack_xfermask);
++EXPORT_SYMBOL_GPL(ata_xfer_mask2mode);
++EXPORT_SYMBOL_GPL(ata_xfer_mode2mask);
++EXPORT_SYMBOL_GPL(ata_xfer_mode2shift);
++EXPORT_SYMBOL_GPL(ata_mode_string);
++EXPORT_SYMBOL_GPL(ata_id_xfermask);
+ EXPORT_SYMBOL_GPL(ata_check_status);
+ EXPORT_SYMBOL_GPL(ata_altstatus);
+ EXPORT_SYMBOL_GPL(ata_exec_command);
+@@ -7729,6 +7733,7 @@ EXPORT_SYMBOL_GPL(ata_id_to_dma_mode);
+ EXPORT_SYMBOL_GPL(ata_scsi_simulate);
+ 
+ EXPORT_SYMBOL_GPL(ata_pio_need_iordy);
++EXPORT_SYMBOL_GPL(ata_timing_find_mode);
+ EXPORT_SYMBOL_GPL(ata_timing_compute);
+ EXPORT_SYMBOL_GPL(ata_timing_merge);
+ 
+diff -puN include/linux/libata.h~libata-export-xfermode--pata-timing-related-functions include/linux/libata.h
+--- a/include/linux/libata.h~libata-export-xfermode--pata-timing-related-functions
++++ a/include/linux/libata.h
+@@ -846,6 +846,15 @@ extern void ata_tf_read(struct ata_port 
+ extern void ata_tf_to_fis(const struct ata_taskfile *tf,
+ 			  u8 pmp, int is_cmd, u8 *fis);
+ extern void ata_tf_from_fis(const u8 *fis, struct ata_taskfile *tf);
++extern unsigned int ata_pack_xfermask(unsigned int pio_mask,
++			unsigned int mwdma_mask, unsigned int udma_mask);
++extern void ata_unpack_xfermask(unsigned int xfer_mask, unsigned int *pio_mask,
++			unsigned int *mwdma_mask, unsigned int *udma_mask);
++extern u8 ata_xfer_mask2mode(unsigned int xfer_mask);
++extern unsigned int ata_xfer_mode2mask(u8 xfer_mode);
++extern int ata_xfer_mode2shift(unsigned int xfer_mode);
++extern const char *ata_mode_string(unsigned int xfer_mask);
++extern unsigned int ata_id_xfermask(const u16 *id);
+ extern void ata_noop_dev_select(struct ata_port *ap, unsigned int device);
+ extern void ata_std_dev_select(struct ata_port *ap, unsigned int device);
+ extern u8 ata_check_status(struct ata_port *ap);
+@@ -915,6 +924,7 @@ extern int ata_cable_unknown(struct ata_
+  */
+ 
+ extern unsigned int ata_pio_need_iordy(const struct ata_device *);
++extern const struct ata_timing *ata_timing_find_mode(u8 xfer_mode);
+ extern int ata_timing_compute(struct ata_device *, unsigned short,
+ 			      struct ata_timing *, int, int);
+ extern void ata_timing_merge(const struct ata_timing *,
 _
 
 Patches currently in -mm which might be from htejun@gmail.com are
