@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + improve-cgroup-printks-fix.patch added to -mm tree
-Date: Mon, 12 Nov 2007 14:13:35 -0800
-Message-ID: <200711122213.lACMDZFd011498@imap1.linux-foundation.org>
+Subject: + improve-cgroup-printks.patch added to -mm tree
+Date: Mon, 12 Nov 2007 14:13:34 -0800
+Message-ID: <200711122213.lACMDYrs011494@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48397 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42120 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755281AbXKLWNs (ORCPT
+	by vger.kernel.org with ESMTP id S1755281AbXKLWNp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 17:13:48 -0500
+	Mon, 12 Nov 2007 17:13:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, diegocg@gmail.com, menage@google.com
+Cc: diegocg@gmail.com, menage@google.com
 
 
 The patch titled
-     improve-cgroup-printks-fix
+     Improve cgroup printks
 has been added to the -mm tree.  Its filename is
-     improve-cgroup-printks-fix.patch
+     improve-cgroup-printks.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,187 +26,69 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: improve-cgroup-printks-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Improve cgroup printks
+From: Diego Calleja <diegocg@gmail.com>
 
-Cc: Diego Calleja <diegocg@gmail.com>
+When I boot with the 'quiet' parameter, I see on the screen:
+
+[    0.000000] Initializing cgroup subsys cpuset
+[    0.000000] Initializing cgroup subsys cpu
+[   39.036026] Initializing cgroup subsys cpuacct
+[   39.036080] Initializing cgroup subsys debug
+[   39.036118] Initializing cgroup subsys ns
+
+This patch lowers the priority of those messages, adds a "cgroup: " prefix
+to another couple of printks and kills the useless reference to the source
+file.
+
+Signed-off-by: Diego Calleja <diegocg@gmail.com>
 Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/cgroup.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN kernel/cgroup.c~improve-cgroup-printks-fix kernel/cgroup.c
---- a/kernel/cgroup.c~improve-cgroup-printks-fix
+diff -puN kernel/cgroup.c~improve-cgroup-printks kernel/cgroup.c
+--- a/kernel/cgroup.c~improve-cgroup-printks
 +++ a/kernel/cgroup.c
-@@ -2198,7 +2198,8 @@ static void cgroup_init_subsys(struct cg
+@@ -1,6 +1,4 @@
+ /*
+- *  kernel/cgroup.c
+- *
+  *  Generic process-grouping system.
+  *
+  *  Based originally on the cpuset system, extracted by Paul Menage
+@@ -2200,7 +2198,7 @@ static void cgroup_init_subsys(struct cg
  {
  	struct cgroup_subsys_state *css;
  	struct list_head *l;
--	printk("Initializing cgroup subsys %s\n", ss->name);
-+
-+	printk(KERN_INFO "Initializing cgroup subsys %s\n", ss->name);
+-	printk(KERN_ERR "Initializing cgroup subsys %s\n", ss->name);
++	printk("Initializing cgroup subsys %s\n", ss->name);
  
  	/* Create the top cgroup state for this subsystem */
  	ss->root = &rootnode;
+@@ -2273,7 +2271,7 @@ int __init cgroup_init_early(void)
+ 		BUG_ON(!ss->create);
+ 		BUG_ON(!ss->destroy);
+ 		if (ss->subsys_id != i) {
+-			printk(KERN_ERR "Subsys %s id == %d\n",
++			printk(KERN_ERR "cgroup: Subsys %s id == %d\n",
+ 			       ss->name, ss->subsys_id);
+ 			BUG();
+ 		}
+@@ -2605,7 +2603,7 @@ int cgroup_clone(struct task_struct *tsk
+ 	dentry = lookup_one_len(nodename, parent->dentry, strlen(nodename));
+ 	if (IS_ERR(dentry)) {
+ 		printk(KERN_INFO
+-		       "Couldn't allocate dentry for %s: %ld\n", nodename,
++		       "cgroup: Couldn't allocate dentry for %s: %ld\n", nodename,
+ 		       PTR_ERR(dentry));
+ 		ret = PTR_ERR(dentry);
+ 		goto out_release;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from diegocg@gmail.com are
 
-uml-update-address-space-affected-by-pud_clear-checkpatch-fixes.patch
+improve-cgroup-printks.patch
 improve-cgroup-printks-fix.patch
-proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
-acpi-make-acpi_procfs-default-to-y.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-git-arm-fixup.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
-git-dvb.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-ide-arm-hack.patch
-git-mtd.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing-checkpatch-fixes.patch
-git-nfsd-fixup.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-fix-build-breakage-if-sysfs-fix.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-fix-up.patch
-git-x86-inlining-borkage.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-x86-arch_register_cpu-section-fix.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
-file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
-x86-disable-preemption-in-delay_tsc.patch
-tty-fix-network-driver-interactions-with-tcget-set-checkpatch-fixes.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
-cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-sync_sb_inodes-propagate-errors.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-ridiculous-ext3-costs-was-re-page-fault-costs.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-suppress-aout-library-support-if-config_binfmt_aout-checkpatch-fixes.patch
-usb-net2280-cant-have-a-function-called-checkpatch-fixes.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-w1-build-fix.patch
