@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-update-address-space-affected-by-pud_clear-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 12 Nov 2007 11:57:21 -0800
-Message-ID: <200711121957.lACJvLpn006424@imap1.linux-foundation.org>
+Subject: + libata-separate-out-ata_acpi_gtm_xfermask-from-pacpi_discover_modes.patch added to -mm tree
+Date: Mon, 12 Nov 2007 13:16:44 -0800
+Message-ID: <200711122116.lACLGihu009320@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44199 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54368 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758399AbXKLT5Z (ORCPT
+	by vger.kernel.org with ESMTP id S1752923AbXKLVR1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 14:57:25 -0500
+	Mon, 12 Nov 2007 16:17:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jdike@addtoit.com, jdike@linux.intel.com
+Cc: htejun@gmail.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     uml-update-address-space-affected-by-pud_clear-checkpatch-fixes
+     libata: separate out ata_acpi_gtm_xfermask() from pacpi_discover_modes()
 has been added to the -mm tree.  Its filename is
-     uml-update-address-space-affected-by-pud_clear-checkpatch-fixes.patch
+     libata-separate-out-ata_acpi_gtm_xfermask-from-pacpi_discover_modes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,200 +26,278 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml-update-address-space-affected-by-pud_clear-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: libata: separate out ata_acpi_gtm_xfermask() from pacpi_discover_modes()
+From: Tejun Heo <htejun@gmail.com>
 
-ERROR: use tabs not spaces
-#30: FILE: include/asm-um/pgtable-3level.h:74:
-+        set_pud(pud, __pud(_PAGE_NEWPAGE));$
+Finding out matching transfer mode from ACPI GTM values is useful for other
+purposes too.  Separate out the function and timing tables from
+pata_acpi::pacpi_discover_modes().
 
-total: 1 errors, 0 warnings, 8 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+Other than checking shared-configuration bit after doing ata_acpi_gtm() in
+pacpi_discover_modes() which should be safe, this patch doesn't introduce any
+behavior change.
 
-Please run checkpatch prior to sending patches
-
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Tejun Heo <htejun@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-um/pgtable-3level.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/ata/libata-acpi.c |   78 ++++++++++++++++++++++++++++++++++++
+ drivers/ata/pata_acpi.c   |   66 +++++-------------------------
+ include/linux/libata.h    |   25 +++++++++++
+ 3 files changed, 114 insertions(+), 55 deletions(-)
 
-diff -puN include/asm-um/pgtable-3level.h~uml-update-address-space-affected-by-pud_clear-checkpatch-fixes include/asm-um/pgtable-3level.h
---- a/include/asm-um/pgtable-3level.h~uml-update-address-space-affected-by-pud_clear-checkpatch-fixes
-+++ a/include/asm-um/pgtable-3level.h
-@@ -1,3 +1,4 @@
-+
- /*
-  * Copyright 2003 PathScale Inc
-  * Derived from include/asm-i386/pgtable.h
-@@ -71,7 +72,7 @@ static inline pmd_t *pmd_alloc_one(struc
+diff -puN drivers/ata/libata-acpi.c~libata-separate-out-ata_acpi_gtm_xfermask-from-pacpi_discover_modes drivers/ata/libata-acpi.c
+--- a/drivers/ata/libata-acpi.c~libata-separate-out-ata_acpi_gtm_xfermask-from-pacpi_discover_modes
++++ a/drivers/ata/libata-acpi.c
+@@ -421,6 +421,84 @@ int ata_acpi_cbl_80wire(struct ata_port 
  
- static inline void pud_clear (pud_t *pud)
- {
--        set_pud(pud, __pud(_PAGE_NEWPAGE));
-+	set_pud(pud, __pud(_PAGE_NEWPAGE));
+ EXPORT_SYMBOL_GPL(ata_acpi_cbl_80wire);
+ 
++/* Welcome to ACPI, bring a bucket */
++const unsigned int ata_acpi_pio_cycle[7] = {
++	600, 383, 240, 180, 120, 100, 80
++};
++EXPORT_SYMBOL_GPL(ata_acpi_pio_cycle);
++
++const unsigned int ata_acpi_mwdma_cycle[5] = {
++	480, 150, 120, 100, 80
++};
++EXPORT_SYMBOL_GPL(ata_acpi_mwdma_cycle);
++
++const unsigned int ata_acpi_udma_cycle[7] = {
++	120, 80, 60, 45, 30, 20, 15
++};
++EXPORT_SYMBOL_GPL(ata_acpi_udma_cycle);
++
++/**
++ * ata_acpi_gtm_xfermode - determine xfermode from GTM parameter
++ * @dev: target device
++ * @gtm: GTM parameter to use
++ *
++ * Determine xfermask for @dev from @gtm.
++ *
++ * LOCKING:
++ * None.
++ *
++ * RETURNS:
++ * Determined xfermask.
++ */
++unsigned int ata_acpi_gtm_xfermask(struct ata_device *dev,
++				   const struct ata_acpi_gtm *gtm)
++{
++	int unit, i;
++	u32 t;
++	unsigned long mask = (0x7f << ATA_SHIFT_UDMA) | (0x7 << ATA_SHIFT_MWDMA) | (0x1F << ATA_SHIFT_PIO);
++
++	/* we always use the 0 slot for crap hardware */
++	unit = dev->devno;
++	if (!(gtm->flags & 0x10))
++		unit = 0;
++
++	/* start by scanning for PIO modes */
++	for (i = 0; i < 7; i++) {
++		t = gtm->drive[unit].pio;
++		if (t <= ata_acpi_pio_cycle[i]) {
++			mask |= (2 << (ATA_SHIFT_PIO + i)) - 1;
++			break;
++		}
++	}
++
++	/* See if we have MWDMA or UDMA data. We don't bother with
++	 * MWDMA if UDMA is available as this means the BIOS set UDMA
++	 * and our error changedown if it works is UDMA to PIO anyway.
++	 */
++	if (gtm->flags & (1 << (2 * unit))) {
++		/* MWDMA */
++		for (i = 0; i < 5; i++) {
++			t = gtm->drive[unit].dma;
++			if (t <= ata_acpi_mwdma_cycle[i]) {
++				mask |= (2 << (ATA_SHIFT_MWDMA + i)) - 1;
++				break;
++			}
++		}
++	} else {
++		/* UDMA */
++		for (i = 0; i < 7; i++) {
++			t = gtm->drive[unit].dma;
++			if (t <= ata_acpi_udma_cycle[i]) {
++				mask |= (2 << (ATA_SHIFT_UDMA + i)) - 1;
++				break;
++			}
++		}
++	}
++
++	return mask;
++}
++EXPORT_SYMBOL_GPL(ata_acpi_gtm_xfermask);
++
+ /**
+  * taskfile_load_raw - send taskfile registers to host controller
+  * @dev: target ATA device
+diff -puN drivers/ata/pata_acpi.c~libata-separate-out-ata_acpi_gtm_xfermask-from-pacpi_discover_modes drivers/ata/pata_acpi.c
+--- a/drivers/ata/pata_acpi.c~libata-separate-out-ata_acpi_gtm_xfermask-from-pacpi_discover_modes
++++ a/drivers/ata/pata_acpi.c
+@@ -81,17 +81,6 @@ static void pacpi_error_handler(struct a
+ 				  NULL, ata_std_postreset);
  }
  
- #define pud_page(pud) phys_to_page(pud_val(pud) & PAGE_MASK)
+-/* Welcome to ACPI, bring a bucket */
+-static const unsigned int pio_cycle[7] = {
+-	600, 383, 240, 180, 120, 100, 80
+-};
+-static const unsigned int mwdma_cycle[5] = {
+-	480, 150, 120, 100, 80
+-};
+-static const unsigned int udma_cycle[7] = {
+-	120, 80, 60, 45, 30, 20, 15
+-};
+-
+ /**
+  *	pacpi_discover_modes	-	filter non ACPI modes
+  *	@adev: ATA device
+@@ -103,56 +92,20 @@ static const unsigned int udma_cycle[7] 
+ 
+ static unsigned long pacpi_discover_modes(struct ata_port *ap, struct ata_device *adev)
+ {
+-	int unit = adev->devno;
+ 	struct pata_acpi *acpi = ap->private_data;
+-	int i;
+-	u32 t;
+-	unsigned long mask = (0x7f << ATA_SHIFT_UDMA) | (0x7 << ATA_SHIFT_MWDMA) | (0x1F << ATA_SHIFT_PIO);
+-
+ 	struct ata_acpi_gtm probe;
++	unsigned int xfer_mask;
+ 
+ 	probe = acpi->gtm;
+ 
+-	/* We always use the 0 slot for crap hardware */
+-	if (!(probe.flags & 0x10))
+-		unit = 0;
+-
+ 	ata_acpi_gtm(ap, &probe);
+ 
+-	/* Start by scanning for PIO modes */
+-	for (i = 0; i < 7; i++) {
+-		t = probe.drive[unit].pio;
+-		if (t <= pio_cycle[i]) {
+-			mask |= (2 << (ATA_SHIFT_PIO + i)) - 1;
+-			break;
+-		}
+-	}
++	xfer_mask = ata_acpi_gtm_xfermask(adev, &probe);
+ 
+-	/* See if we have MWDMA or UDMA data. We don't bother with MWDMA
+-	   if UDMA is availabe as this means the BIOS set UDMA and our
+-	   error changedown if it works is UDMA to PIO anyway */
+-	if (probe.flags & (1 << (2 * unit))) {
+-		/* MWDMA */
+-		for (i = 0; i < 5; i++) {
+-			t = probe.drive[unit].dma;
+-			if (t <= mwdma_cycle[i]) {
+-				mask |= (2 << (ATA_SHIFT_MWDMA + i)) - 1;
+-				break;
+-			}
+-		}
+-	} else {
+-		/* UDMA */
+-		for (i = 0; i < 7; i++) {
+-			t = probe.drive[unit].dma;
+-			if (t <= udma_cycle[i]) {
+-				mask |= (2 << (ATA_SHIFT_UDMA + i)) - 1;
+-				break;
+-			}
+-		}
+-	}
+-	if (mask & (0xF8 << ATA_SHIFT_UDMA))
++	if (xfer_mask & (0xF8 << ATA_SHIFT_UDMA))
+ 		ap->cbl = ATA_CBL_PATA80;
+-	return mask;
++
++	return xfer_mask;
+ }
+ 
+ /**
+@@ -185,7 +138,8 @@ static void pacpi_set_piomode(struct ata
+ 		unit = 0;
+ 
+ 	/* Now stuff the nS values into the structure */
+-	acpi->gtm.drive[unit].pio = pio_cycle[adev->pio_mode - XFER_PIO_0];
++	acpi->gtm.drive[unit].pio =
++		ata_acpi_pio_cycle[adev->pio_mode - XFER_PIO_0];
+ 	ata_acpi_stm(ap, &acpi->gtm);
+ 	/* See what mode we actually got */
+ 	ata_acpi_gtm(ap, &acpi->gtm);
+@@ -207,10 +161,12 @@ static void pacpi_set_dmamode(struct ata
+ 
+ 	/* Now stuff the nS values into the structure */
+ 	if (adev->dma_mode >= XFER_UDMA_0) {
+-		acpi->gtm.drive[unit].dma = udma_cycle[adev->dma_mode - XFER_UDMA_0];
++		acpi->gtm.drive[unit].dma =
++			ata_acpi_udma_cycle[adev->dma_mode - XFER_UDMA_0];
+ 		acpi->gtm.flags |= (1 << (2 * unit));
+ 	} else {
+-		acpi->gtm.drive[unit].dma = mwdma_cycle[adev->dma_mode - XFER_MW_DMA_0];
++		acpi->gtm.drive[unit].dma =
++			ata_acpi_mwdma_cycle[adev->dma_mode - XFER_MW_DMA_0];
+ 		acpi->gtm.flags &= ~(1 << (2 * unit));
+ 	}
+ 	ata_acpi_stm(ap, &acpi->gtm);
+diff -puN include/linux/libata.h~libata-separate-out-ata_acpi_gtm_xfermask-from-pacpi_discover_modes include/linux/libata.h
+--- a/include/linux/libata.h~libata-separate-out-ata_acpi_gtm_xfermask-from-pacpi_discover_modes
++++ a/include/linux/libata.h
+@@ -952,11 +952,36 @@ enum {
+ 
+ /* libata-acpi.c */
+ #ifdef CONFIG_ATA_ACPI
++extern const unsigned int ata_acpi_pio_cycle[7];
++extern const unsigned int ata_acpi_mwdma_cycle[5];
++extern const unsigned int ata_acpi_udma_cycle[7];
++
+ extern int ata_acpi_cbl_80wire(struct ata_port *ap);
+ int ata_acpi_stm(const struct ata_port *ap, struct ata_acpi_gtm *stm);
+ int ata_acpi_gtm(const struct ata_port *ap, struct ata_acpi_gtm *stm);
++unsigned int ata_acpi_gtm_xfermask(struct ata_device *dev,
++				   const struct ata_acpi_gtm *gtm);
++
+ #else
+ static inline int ata_acpi_cbl_80wire(struct ata_port *ap) { return 0; }
++
++static inline int ata_acpi_stm(const struct ata_port *ap,
++			       struct ata_acpi_gtm *stm)
++{
++	return -ENOSYS;
++}
++
++static inline int ata_acpi_gtm(const struct ata_port *ap,
++			       struct ata_acpi_gtm *stm)
++{
++	return -ENOSYS;
++}
++
++static inline unsigned int ata_acpi_gtm_xfermask(struct ata_device *dev,
++					const struct ata_acpi_gtm *gtm)
++{
++	return 0;
++}
+ #endif
+ 
+ #ifdef CONFIG_PCI
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from htejun@gmail.com are
 
-uml-update-address-space-affected-by-pud_clear-checkpatch-fixes.patch
-proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
-acpi-make-acpi_procfs-default-to-y.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-git-arm-fixup.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
-git-dvb.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-git-kvm.patch
 git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-ide-arm-hack.patch
-git-mtd.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing-checkpatch-fixes.patch
-git-nfsd-fixup.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-fix-build-breakage-if-sysfs-fix.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-fix-up.patch
-git-x86-inlining-borkage.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-x86-arch_register_cpu-section-fix.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
-file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
-x86-disable-preemption-in-delay_tsc.patch
-tty-fix-network-driver-interactions-with-tcget-set-checkpatch-fixes.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
-cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-sync_sb_inodes-propagate-errors.patch
-64-bit-i_version-afs-fixes.patch
-ridiculous-ext3-costs-was-re-page-fault-costs.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-suppress-aout-library-support-if-config_binfmt_aout-checkpatch-fixes.patch
-usb-net2280-cant-have-a-function-called-checkpatch-fixes.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-w1-build-fix.patch
+ata_generic-unindent-loop-in-generic_set_mode.patch
+libata-export-xfermode--pata-timing-related-functions.patch
+libata-clean-up-xfermode--pata-timing-related-stuff.patch
+libata-kill-ata_id_to_dma_mode.patch
+libata-xfer_mask-is-unsigned-int-not-unsigned-long.patch
+libata-separate-out-ata_acpi_gtm_xfermask-from-pacpi_discover_modes.patch
+libata-fix-ata_acpi_gtm_xfermask.patch
+libata-implement-ata_timing_cycle2mode-and-use-it-in-libata-acpi-and-pata_acpi.patch
+libata-implement-ata_acpi_init_gtm.patch
+libata-reimplement-ata_acpi_cbl_80wire-using-ata_acpi_gtm_xfermask.patch
+libata-add-ata_cbl_pata_ign.patch
+pata_amd-update-mode-selection-for-nv-patas.patch
+scsi-early-detection-of-medium-not-present-updated.patch
