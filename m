@@ -1,59 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - make-ds1wm-driver-to-check-ds1wm_platform_data-pointer-against-null.patch removed from -mm tree
-Date: Mon, 12 Nov 2007 17:38:50 -0800
-Message-ID: <200711130138.lAD1co59020277@imap1.linux-foundation.org>
+Subject: + log2h-define-order_base_2-macro-for-convenience.patch added to -mm tree
+Date: Mon, 12 Nov 2007 17:41:52 -0800
+Message-ID: <200711130141.lAD1fqK6020338@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45613 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34434 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757404AbXKMBkP (ORCPT
+	by vger.kernel.org with ESMTP id S1757653AbXKMBm2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 20:40:15 -0500
+	Mon, 12 Nov 2007 20:42:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eric.y.miao@gmail.com, eric.miao@marvell.com, johnpol@2ka.mipt.ru, szabolcs.gyurko@tlt.hu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rpjday@crashcourse.ca
 
 
 The patch titled
-     w1: make ds1wm driver to check ds1wm_platform_data pointer against NULL
-has been removed from the -mm tree.  Its filename was
-     make-ds1wm-driver-to-check-ds1wm_platform_data-pointer-against-null.patch
+     log2.h: Define order_base_2() macro for convenience.
+has been added to the -mm tree.  Its filename is
+     log2h-define-order_base_2-macro-for-convenience.patch
 
-This patch was dropped because of complete confusion
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: w1: make ds1wm driver to check ds1wm_platform_data pointer against NULL
-From: "eric miao" <eric.y.miao@gmail.com>
+Subject: log2.h: Define order_base_2() macro for convenience.
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-Do a sanity check for the "struct ds1wm_platform_data" pointer passed in by
-the platform_device, and so to enforce each platform to provide a valid
-structure.
+Given a number of places in the tree that need to calculate this value
+explicitly, might as well just create a macro for it.
 
-Signed-off-by: eric miao <eric.miao@marvell.com>
-Cc: "Szabolcs Gyurko" <szabolcs.gyurko@tlt.hu>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+(akpm: must be implemented as a macro for callee typeof() usage)
+
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds1wm.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/log2.h |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff -puN drivers/w1/masters/ds1wm.c~make-ds1wm-driver-to-check-ds1wm_platform_data-pointer-against-null drivers/w1/masters/ds1wm.c
---- a/drivers/w1/masters/ds1wm.c~make-ds1wm-driver-to-check-ds1wm_platform_data-pointer-against-null
-+++ a/drivers/w1/masters/ds1wm.c
-@@ -351,6 +351,10 @@ static int ds1wm_probe(struct platform_d
- 		goto err0;
- 	}
- 	plat = pdev->dev.platform_data;
-+	if (!plat) {
-+		ret = -ENXIO;
-+		goto err0;
-+	}
- 	ds1wm_data->bus_shift = plat->bus_shift;
- 	ds1wm_data->pdev = pdev;
- 	ds1wm_data->pdata = plat;
+diff -puN include/linux/log2.h~log2h-define-order_base_2-macro-for-convenience include/linux/log2.h
+--- a/include/linux/log2.h~log2h-define-order_base_2-macro-for-convenience
++++ a/include/linux/log2.h
+@@ -190,4 +190,20 @@ unsigned long __rounddown_pow_of_two(uns
+ 	__rounddown_pow_of_two(n)		\
+  )
+ 
++/**
++ * order_base_2 - calculate the (rounded up) base 2 order of the argument
++ * @n: parameter
++ *
++ * The first few values calculated by this routine:
++ *  ob2(0) = 0
++ *  ob2(1) = 0
++ *  ob2(2) = 1
++ *  ob2(3) = 2
++ *  ob2(4) = 2
++ *  ob2(5) = 3
++ *  ... and so on.
++ */
++
++#define order_base_2(n) ilog2(roundup_pow_of_two(n))
++
+ #endif /* _LINUX_LOG2_H */
 _
 
-Patches currently in -mm which might be from eric.y.miao@gmail.com are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
-make-ds1wm-driver-to-check-ds1wm_platform_data-pointer-against-null.patch
+arm-remove-reference-to-non-existent-mtd_obsolete_chips.patch
+hwmon-replace-power-of-two-test-in-drivers-hwmon-adt7470c.patch
+git-mips.patch
+pcmcia-net-use-roundup_pow_of_two-macro-instead-of-grotesque-loop.patch
+blackfin-typo-config_rtc_bfin_module.patch
+git-sparc64.patch
+frv-move-dma-macros-to-scatterlisth-for-consistency.patch
+m68knommu-remove-vestiges-of-non-existent-disktel.patch
+uml-delete-some-unused-headers.patch
+rd-use-is_power_of_2-in-drivers-block-rdc.patch
+log2h-define-order_base_2-macro-for-convenience.patch
+rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
