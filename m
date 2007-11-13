@@ -1,86 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-export-copy_page-to-modules.patch added to -mm tree
-Date: Tue, 13 Nov 2007 01:22:55 -0800
-Message-ID: <200711130929.lAD9TqMK003827@imap1.linux-foundation.org>
+Subject: - nfs-stop-sillyname-renames-and-unmounts-from-racing-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 13 Nov 2007 01:45:38 -0800
+Message-ID: <200711130952.lAD9qZOS004545@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59571 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43267 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751376AbXKMJ35 (ORCPT
+	by vger.kernel.org with ESMTP id S1750956AbXKMJx5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 04:29:57 -0500
+	Tue, 13 Nov 2007 04:53:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, sam@ravnborg.org, tony.luck@intel.com
+To: akpm@linux-foundation.org, SteveD@redhat.com, bfields@fieldses.org, hch@lst.de, steved@redhat.com, trond.myklebust@fys.uio.no, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64: export copy_page() to modules
-has been added to the -mm tree.  Its filename is
-     ia64-export-copy_page-to-modules.patch
+     nfs-stop-sillyname-renames-and-unmounts-from-racing-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     nfs-stop-sillyname-renames-and-unmounts-from-racing-checkpatch-fixes.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into nfs-stop-sillyname-renames-and-unmounts-from-racing.patch
 
 ------------------------------------------------------
-Subject: ia64: export copy_page() to modules
+Subject: nfs-stop-sillyname-renames-and-unmounts-from-racing-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-With the unionfs patch applied I get
+ERROR: trailing whitespace
+#126: FILE: include/linux/nfs_fs_sb.h:120:
++static inline void $
 
-ERROR: "copy_page" [fs/unionfs/unionfs.ko] undefined!
+ERROR: trailing whitespace
+#131: FILE: include/linux/nfs_fs_sb.h:125:
++static inline void $
 
-the other architectures (some, at least) export copy_page() so I guess ia64
-should also do so.
+total: 2 errors, 0 warnings, 86 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-To do this we need to move the copy_page() functions out of lib.a and into
-built-in.a, and create a silly little C file to add the EXPORT_SYMBOL().
+Please run checkpatch prior to sending patches
 
-Maybe there are better ways...
-
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Steve Dickson <SteveD@redhat.com>
+Cc: Steve Dickson <steved@redhat.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/lib/Makefile           |    6 +++---
- arch/ia64/lib/copy_page-export.c |    4 ++++
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ include/linux/nfs_fs_sb.h |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN /dev/null arch/ia64/lib/copy_page-export.c
---- /dev/null
-+++ a/arch/ia64/lib/copy_page-export.c
-@@ -0,0 +1,4 @@
-+#include <asm/page.h>
-+#include <linux/module.h>
+diff -puN include/linux/nfs_fs_sb.h~nfs-stop-sillyname-renames-and-unmounts-from-racing-checkpatch-fixes include/linux/nfs_fs_sb.h
+--- a/include/linux/nfs_fs_sb.h~nfs-stop-sillyname-renames-and-unmounts-from-racing-checkpatch-fixes
++++ a/include/linux/nfs_fs_sb.h
+@@ -117,13 +117,12 @@ struct nfs_server {
+ 	wait_queue_head_t active_wq;  /* Wait for any activity to stop  */
+ };
+ 
+-static inline void
+-nfs_sb_active(struct nfs_server *server)
++static inline void nfs_sb_active(struct nfs_server *server)
+ {
+ 	atomic_inc(&server->active);
+ }
+-static inline void
+-nfs_sb_deactive(struct nfs_server *server)
 +
-+EXPORT_SYMBOL(copy_page);
-diff -puN arch/ia64/lib/Makefile~ia64-export-copy_page-to-modules arch/ia64/lib/Makefile
---- a/arch/ia64/lib/Makefile~ia64-export-copy_page-to-modules
-+++ a/arch/ia64/lib/Makefile
-@@ -2,7 +2,7 @@
- # Makefile for ia64-specific library routines..
- #
- 
--obj-y := io.o
-+obj-y := io.o copy_page-export.o
- 
- lib-y := __divsi3.o __udivsi3.o __modsi3.o __umodsi3.o			\
- 	__divdi3.o __udivdi3.o __moddi3.o __umoddi3.o			\
-@@ -11,8 +11,8 @@ lib-y := __divsi3.o __udivsi3.o __modsi3
- 	flush.o ip_fast_csum.o do_csum.o				\
- 	memset.o strlen.o xor.o
- 
--lib-$(CONFIG_ITANIUM)	+= copy_page.o copy_user.o memcpy.o
--lib-$(CONFIG_MCKINLEY)	+= copy_page_mck.o memcpy_mck.o
-+obj-$(CONFIG_ITANIUM)	+= copy_page.o copy_user.o memcpy.o
-+obj-$(CONFIG_MCKINLEY)	+= copy_page_mck.o memcpy_mck.o
- lib-$(CONFIG_PERFMON)	+= carta_random.o
- 
- AFLAGS___divdi3.o	=
++static inline void nfs_sb_deactive(struct nfs_server *server)
+ {
+ 	if (atomic_dec_and_test(&server->active))
+ 		wake_up(&server->active_wq);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -119,6 +110,7 @@ git-netdev-all.patch
 ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 bluetooth-uninlining.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing.patch
 nfs-stop-sillyname-renames-and-unmounts-from-racing-checkpatch-fixes.patch
 git-nfsd-fixup.patch
 quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
@@ -151,6 +143,8 @@ tty-fix-network-driver-interactions-with-tcget-set-checkpatch-fixes.patch
 x86-early_quirks-cleanup.patch
 aic94xx_sds-rename-flash_size.patch
 ia64-increase-datapatch-offset.patch
+ia64-dont-assume-that-unwcheckpy-is-executable.patch
+ia64-export-copy_page-to-modules.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
 i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
@@ -255,5 +249,3 @@ shrink_slab-handle-bad-shrinkers.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 w1-build-fix.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
