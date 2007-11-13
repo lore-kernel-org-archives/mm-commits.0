@@ -1,160 +1,196 @@
 From: akpm@linux-foundation.org
-Subject: - vmstat-small-revisions-to-refresh_cpu_vm_stats.patch removed from -mm tree
-Date: Tue, 13 Nov 2007 03:33:40 -0800
-Message-ID: <200711131140.lADBebFi008511@imap1.linux-foundation.org>
+Subject: + adapt-sclp_cpi_sysc-to-the-kobject-kset-changes.patch added to -mm tree
+Date: Tue, 13 Nov 2007 03:43:29 -0800
+Message-ID: <200711131143.lADBhTif008666@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51464 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42793 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757893AbXKMLkm (ORCPT
+	by vger.kernel.org with ESMTP id S1751134AbXKMLno (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 06:40:42 -0500
+	Tue, 13 Nov 2007 06:43:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: cornelia.huck@de.ibm.com
 
 
 The patch titled
-     vmstat: small revisions to refresh_cpu_vm_stats()
-has been removed from the -mm tree.  Its filename was
-     vmstat-small-revisions-to-refresh_cpu_vm_stats.patch
+     Adapt sclp_cpi_sys.c to the kobject/kset changes
+has been added to the -mm tree.  Its filename is
+     adapt-sclp_cpi_sysc-to-the-kobject-kset-changes.patch
 
-This patch was dropped because it had testing failures
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: vmstat: small revisions to refresh_cpu_vm_stats()
-From: Christoph Lameter <clameter@sgi.com>
+Subject: Adapt sclp_cpi_sys.c to the kobject/kset changes
+From: Cornelia Huck <cornelia.huck@de.ibm.com>
 
-1. Add comments explaining how the function can be called.
+Adapt sclp_cpi_sys.c to the kobject/kset changes.
 
-2. Avoid interrupt enable / disable through the use of xchg.
+(Regenerated from the last patch to handle the firmware_kset ->
+firmware_kobj change.)
 
-3. Collect global diffs in a local array and only spill
-   them once into the global counters when the zone scan
-   is finished. This means that we only touch each global
-   counter once instead of each time we fold cpu counters
-   into zone counters.
-
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Cornelia Huck <cornelia.huck@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ drivers/s390/char/sclp_cpi_sys.c |   58 ++++++++++++++++-------------
+ 1 file changed, 33 insertions(+), 25 deletions(-)
 
-diff -puN mm/vmstat.c~vmstat-small-revisions-to-refresh_cpu_vm_stats mm/vmstat.c
---- a/mm/vmstat.c~vmstat-small-revisions-to-refresh_cpu_vm_stats
-+++ a/mm/vmstat.c
-@@ -284,6 +284,10 @@ EXPORT_SYMBOL(dec_zone_page_state);
- /*
-  * Update the zone counters for one cpu.
-  *
-+ * The cpu specified must be either the current cpu or a processor that
-+ * is not online. If it is the current cpu then the execution thread must
-+ * be pinned to the current cpu.
-+ *
-  * Note that refresh_cpu_vm_stats strives to only access
-  * node local memory. The per cpu pagesets on remote zones are placed
-  * in the memory local to the processor using that pageset. So the
-@@ -299,7 +303,7 @@ void refresh_cpu_vm_stats(int cpu)
- {
- 	struct zone *zone;
- 	int i;
--	unsigned long flags;
-+	int global_diff[NR_VM_ZONE_STAT_ITEMS] = { 0, };
- 
- 	for_each_zone(zone) {
- 		struct per_cpu_pageset *p;
-@@ -311,15 +315,14 @@ void refresh_cpu_vm_stats(int cpu)
- 
- 		for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
- 			if (p->vm_stat_diff[i]) {
--				local_irq_save(flags);
--				zone_page_state_add(p->vm_stat_diff[i],
--					zone, i);
--				p->vm_stat_diff[i] = 0;
-+				int v = xchg(&p->vm_stat_diff[i], 0);
-+
-+				atomic_long_add(v, &zone->vm_stat[i]);
-+				global_diff[i] += v;
- #ifdef CONFIG_NUMA
- 				/* 3 seconds idle till flush */
- 				p->expire = 3;
- #endif
--				local_irq_restore(flags);
- 			}
- #ifdef CONFIG_NUMA
- 		/*
-@@ -351,6 +354,10 @@ void refresh_cpu_vm_stats(int cpu)
- 			drain_zone_pages(zone, p->pcp + 1);
- #endif
+diff -puN drivers/s390/char/sclp_cpi_sys.c~adapt-sclp_cpi_sysc-to-the-kobject-kset-changes drivers/s390/char/sclp_cpi_sys.c
+--- a/drivers/s390/char/sclp_cpi_sys.c~adapt-sclp_cpi_sysc-to-the-kobject-kset-changes
++++ a/drivers/s390/char/sclp_cpi_sys.c
+@@ -220,13 +220,15 @@ static void set_string(char *attr, const
  	}
-+
-+	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
-+		if (global_diff[i])
-+			atomic_long_add(global_diff[i], &vm_stat[i]);
  }
  
- #endif
+-static ssize_t system_name_show(struct kset *kset, char *page)
++static ssize_t system_name_show(struct kobject *kobj,
++				struct kobj_attribute *attr, char *page)
+ {
+ 	return snprintf(page, PAGE_SIZE, "%s\n", system_name);
+ }
+ 
+-static ssize_t system_name_store(struct kset *kset, const char *buf,
+-	size_t len)
++static ssize_t system_name_store(struct kobject *kobj,
++				 struct kobj_attribute *attr, const char *buf,
++				 size_t len)
+ {
+ 	int rc;
+ 
+@@ -239,16 +241,18 @@ static ssize_t system_name_store(struct 
+ 	return len;
+ }
+ 
+-static struct subsys_attribute system_name_attr =
++static struct kobj_attribute system_name_attr =
+ 	__ATTR(system_name, 0644, system_name_show, system_name_store);
+ 
+-static ssize_t sysplex_name_show(struct kset *kset, char *page)
++static ssize_t sysplex_name_show(struct kobject *kobj,
++				 struct kobj_attribute *attr, char *page)
+ {
+ 	return snprintf(page, PAGE_SIZE, "%s\n", sysplex_name);
+ }
+ 
+-static ssize_t sysplex_name_store(struct kset *kset, const char *buf,
+-	size_t len)
++static ssize_t sysplex_name_store(struct kobject *kobj,
++				  struct kobj_attribute *attr, const char *buf,
++				  size_t len)
+ {
+ 	int rc;
+ 
+@@ -261,17 +265,19 @@ static ssize_t sysplex_name_store(struct
+ 	return len;
+ }
+ 
+-static struct subsys_attribute sysplex_name_attr =
++static struct kobj_attribute sysplex_name_attr =
+ 	__ATTR(sysplex_name, 0644, sysplex_name_show,
+ 	sysplex_name_store);
+ 
+-static ssize_t system_type_show(struct kset *kset, char *page)
++static ssize_t system_type_show(struct kobject *kobj,
++				struct kobj_attribute *attr, char *page)
+ {
+ 	return snprintf(page, PAGE_SIZE, "%s\n", system_type);
+ }
+ 
+-static ssize_t system_type_store(struct kset *kset, const char *buf,
+-	size_t len)
++static ssize_t system_type_store(struct kobject *kobj,
++				 struct kobj_attribute *attr, const char *buf,
++				 size_t len)
+ {
+ 	int rc;
+ 
+@@ -284,18 +290,20 @@ static ssize_t system_type_store(struct 
+ 	return len;
+ }
+ 
+-static struct subsys_attribute system_type_attr =
++static struct kobj_attribute system_type_attr =
+ 	__ATTR(system_type, 0644, system_type_show, system_type_store);
+ 
+-static ssize_t system_level_show(struct kset *kset, char *page)
++static ssize_t system_level_show(struct kobject *kobj,
++				 struct kobj_attribute *attr, char *page)
+ {
+ 	unsigned long long level = system_level;
+ 
+ 	return snprintf(page, PAGE_SIZE, "%#018llx\n", level);
+ }
+ 
+-static ssize_t system_level_store(struct kset *kset, const char *buf,
+-	size_t len)
++static ssize_t system_level_store(struct kobject *kobj,
++				  struct kobj_attribute *attr, const char *buf,
++				  size_t len)
+ {
+ 	unsigned long long level;
+ 	char *endp;
+@@ -314,12 +322,12 @@ static ssize_t system_level_store(struct
+ 	return len;
+ }
+ 
+-static struct subsys_attribute system_level_attr =
++static struct kobj_attribute system_level_attr =
+ 	__ATTR(system_level, 0644, system_level_show,
+ 	system_level_store);
+ 
+-static ssize_t set_store(struct kset *kset, const char *buf,
+-	size_t len)
++static ssize_t set_store(struct kobject *kobj, struct kobj_attribute *attr,
++			 const char *buf, size_t len)
+ {
+ 	int rc;
+ 
+@@ -330,7 +338,7 @@ static ssize_t set_store(struct kset *ks
+ 	return len;
+ }
+ 
+-static struct subsys_attribute set_attr =
++static struct kobj_attribute set_attr =
+ 	__ATTR(set, 0200, NULL, set_store);
+ 
+ static struct attribute *cpi_attrs[] = {
+@@ -346,7 +354,7 @@ static struct attribute_group cpi_attr_g
+ 	.attrs = cpi_attrs,
+ };
+ 
+-static decl_subsys(cpi, NULL, NULL);
++static struct kset *cpi_kset;
+ 
+ int sclp_cpi_set_data(const char *system, const char *sysplex, const char *type,
+ 		      const u64 level)
+@@ -376,13 +384,13 @@ static int __init cpi_init(void)
+ {
+ 	int rc;
+ 
+-	rc = firmware_register(&cpi_subsys);
+-	if (rc)
+-		return rc;
++	cpi_kset = kset_create_and_register("cpi", NULL, firmware_kobj, NULL);
++	if (IS_ERR(cpi_kset))
++		return PTR_ERR(cpi_kset);
+ 
+-	rc = sysfs_create_group(&cpi_subsys.kobj, &cpi_attr_group);
++	rc = sysfs_create_group(&cpi_kset->kobj, &cpi_attr_group);
+ 	if (rc)
+-		firmware_unregister(&cpi_subsys);
++		kset_unregister(cpi_kset);
+ 
+ 	return rc;
+ }
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from cornelia.huck@de.ibm.com are
 
-slab-fix-typo-in-allocation-failure-handling.patch
-migration-find-correct-vma-in-new_vma_page.patch
-ia64-slim-down-__clear_bit_unlock.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-mem-policy-fix-mempolicy-usage-in-pci-driver.patch
-git-unionfs.patch
-git-x86.patch
-x86_64-clean-up-stack-allocation-and-free.patch
-x86_64-configure-stack-size.patch
-fix-mm-utilckrealloc.patch
-vmstat-fix-section-mismatch-warning.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-move-vmalloc_to_page-to-mm-vmalloc.patch
-vmalloc-add-const-to-void-parameters.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-is_vmalloc_addr-check-if-an-address-is-within-the-vmalloc-boundaries.patch
-vmalloc-clean-up-page-array-indexing.patch
-vunmap-return-page-array-passed-on-vmap.patch
-slub-move-count_partial.patch
-slub-rename-numa-defrag_ratio-to-remote_node_defrag_ratio.patch
-slub-consolidate-add_partial-and-add_partial_tail-to-one-function.patch
-slub-use-non-atomic-bit-unlock.patch
-slub-fix-coding-style-violations.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-noinline-some-functions-to-avoid-them-being-folded-into-alloc-free.patch
-slub-move-kmem_cache_node-determination-into-add_full-and-add_partial.patch
-slub-avoid-checking-for-a-valid-object-before-zeroing-on-the-fast-path.patch
-slub-__slab_alloc-exit-path-consolidation.patch
-slub-provide-unique-end-marker-for-each-slab.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-avoid-referencing-kmem_cache-structure-in-__slab_alloc.patch
-slub-optional-fast-path-using-cmpxchg_local.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-fix.patch
-slub-restructure-slab-alloc.patch
-slub-comment-kmem_cache_cpu-structure.patch
-vm-allow-get_page_unless_zero-on-compound-pages.patch
-bufferhead-revert-constructor-removal.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-swapin_readahead-excise-numa-bogosity.patch
-vmstat-small-revisions-to-refresh_cpu_vm_stats.patch
-vmstat-small-revisions-to-refresh_cpu_vm_stats-fix.patch
-page-allocator-clean-up-pcp-draining-functions.patch
-revoke-core-code.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-oom-add-sysctl-to-enable-task-memory-dump.patch
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-dentries-extract-common-code-to-remove-dentry-from-lru.patch
-dentries-extract-common-code-to-remove-dentry-from-lru-fix.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+git-s390.patch
+adapt-sclp_cpi_sysc-to-the-kobject-kset-changes.patch
