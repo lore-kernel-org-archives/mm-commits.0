@@ -1,87 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - git-x86-fix-up.patch removed from -mm tree
-Date: Mon, 12 Nov 2007 19:50:11 -0800
-Message-ID: <200711130350.lAD3oBdI024620@imap1.linux-foundation.org>
+Subject: + git-kvm-fixup.patch added to -mm tree
+Date: Mon, 12 Nov 2007 19:55:58 -0800
+Message-ID: <200711130355.lAD3twdH024792@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51151 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48804 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753217AbXKMDuh (ORCPT
+	by vger.kernel.org with ESMTP id S1753217AbXKMD4L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 22:50:37 -0500
+	Mon, 12 Nov 2007 22:56:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, avi@qumranet.com
 
 
 The patch titled
-     git-x86-fixup
-has been removed from the -mm tree.  Its filename was
-     git-x86-fix-up.patch
+     git-kvm-fixup
+has been added to the -mm tree.  Its filename is
+     git-kvm-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-x86-fixup
+Subject: git-kvm-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix git conflicts.  Hopefully.
+attempt to fix git conflicts
 
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/kprobes_32.c |    6 +-----
- arch/x86/kernel/kprobes_64.c |    6 +-----
- 2 files changed, 2 insertions(+), 10 deletions(-)
+ drivers/kvm/svm.c         |    8 --------
+ drivers/kvm/x86_emulate.c |    4 ----
+ 2 files changed, 12 deletions(-)
 
-diff -puN arch/x86/kernel/kprobes_32.c~git-x86-fix-up arch/x86/kernel/kprobes_32.c
---- a/arch/x86/kernel/kprobes_32.c~git-x86-fix-up
-+++ a/arch/x86/kernel/kprobes_32.c
-@@ -628,18 +628,14 @@ static int __kprobes post_kprobe_handler
+diff -puN drivers/kvm/svm.c~git-kvm-fixup drivers/kvm/svm.c
+--- a/drivers/kvm/svm.c~git-kvm-fixup
++++ a/drivers/kvm/svm.c
+@@ -568,11 +568,7 @@ static int svm_vcpu_reset(struct kvm_vcp
+ 		svm->vmcb->save.cs.base = svm->vcpu.sipi_vector << 12;
+ 		svm->vmcb->save.cs.selector = svm->vcpu.sipi_vector << 8;
  	}
- 
- 	resume_execution(cur, regs, kcb);
--<<<<<<< HEAD:arch/x86/kernel/kprobes_32.c
--	regs->eflags |= kcb->kprobe_saved_eflags;
--	trace_hardirqs_fixup_flags(regs->eflags);
+-<<<<<<< HEAD:drivers/kvm/svm.c
 -=======
- 	regs->eflags |= kcb->kprobe_saved_flags;
-+	trace_hardirqs_fixup_flags(regs->eflags);
- #ifdef CONFIG_TRACE_IRQFLAGS_SUPPORT
- 	if (raw_irqs_disabled_flags(regs->eflags))
- 		trace_hardirqs_off();
- 	else
- 		trace_hardirqs_on();
+-
+ 	return 0;
+->>>>>>> FETCH_HEAD:drivers/kvm/svm.c
+ }
+ 
+ static struct kvm_vcpu *svm_create_vcpu(struct kvm *kvm, unsigned int id)
+@@ -1564,9 +1560,6 @@ static void svm_vcpu_run(struct kvm_vcpu
+ 		  [r14]"i"(offsetof(struct vcpu_svm, vcpu.regs[VCPU_REGS_R14])),
+ 		  [r15]"i"(offsetof(struct vcpu_svm, vcpu.regs[VCPU_REGS_R15]))
  #endif
-->>>>>>> FETCH_HEAD:arch/x86/kernel/kprobes_32.c
- 
- 	/* Restore back the original saved kprobes variables and continue. */
- 	if (kcb->kprobe_status == KPROBE_REENTER) {
-diff -puN arch/x86/kernel/kprobes_64.c~git-x86-fix-up arch/x86/kernel/kprobes_64.c
---- a/arch/x86/kernel/kprobes_64.c~git-x86-fix-up
-+++ a/arch/x86/kernel/kprobes_64.c
-@@ -596,18 +596,14 @@ int __kprobes post_kprobe_handler(struct
- 	}
- 
- 	resume_execution(cur, regs, kcb);
--<<<<<<< HEAD:arch/x86/kernel/kprobes_64.c
--	regs->eflags |= kcb->kprobe_saved_rflags;
--	trace_hardirqs_fixup_flags(regs->eflags);
+-<<<<<<< HEAD:drivers/kvm/svm.c
+-		: "cc", "memory" );
 -=======
- 	regs->eflags |= kcb->kprobe_saved_flags;
-+	trace_hardirqs_fixup_flags(regs->eflags);
- #ifdef CONFIG_TRACE_IRQFLAGS_SUPPORT
- 	if (raw_irqs_disabled_flags(regs->eflags))
- 		trace_hardirqs_off();
- 	else
- 		trace_hardirqs_on();
+ 		: "cc", "memory"
+ #ifdef CONFIG_X86_64
+ 		, "rbx", "rcx", "rdx", "rsi", "rdi"
+@@ -1575,7 +1568,6 @@ static void svm_vcpu_run(struct kvm_vcpu
+ 		, "ebx", "ecx", "edx" , "esi", "edi"
  #endif
-->>>>>>> FETCH_HEAD:arch/x86/kernel/kprobes_64.c
+ 		);
+->>>>>>> FETCH_HEAD:drivers/kvm/svm.c
  
- 	/* Restore the original saved kprobes variables and continue. */
- 	if (kcb->kprobe_status == KPROBE_REENTER) {
+ 	if ((svm->vmcb->save.dr7 & 0xff))
+ 		load_db_regs(svm->host_db_regs);
+diff -puN drivers/kvm/x86_emulate.c~git-kvm-fixup drivers/kvm/x86_emulate.c
+--- a/drivers/kvm/x86_emulate.c~git-kvm-fixup
++++ a/drivers/kvm/x86_emulate.c
+@@ -1308,11 +1308,7 @@ x86_emulate_insn(struct x86_emulate_ctxt
+ 	case 0x63:		/* movsxd */
+ 		if (ctxt->mode != X86EMUL_MODE_PROT64)
+ 			goto cannot_emulate;
+-<<<<<<< HEAD:drivers/kvm/x86_emulate.c
+-		dst.val = (s32) src.val;
+-=======
+ 		c->dst.val = (s32) c->src.val;
+->>>>>>> FETCH_HEAD:drivers/kvm/x86_emulate.c
+ 		break;
+ 	case 0x80 ... 0x83:	/* Grp1 */
+ 		switch (c->modrm_reg) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -108,6 +113,7 @@ git-hwmon.patch
 ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
 elantech-touchpad-driver-fix.patch
 git-kvm.patch
+git-kvm-fixup.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
 pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
@@ -133,7 +139,6 @@ git-wireless.patch
 jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
 git-ipwireless_cs.patch
 git-x86.patch
-git-x86-fix-up.patch
 git-x86-inlining-borkage.patch
 oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
 i386-and-x86_64-randomize-brk-fix.patch
