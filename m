@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-cryptodev-hifn_795x-fixes.patch added to -mm tree
-Date: Mon, 12 Nov 2007 23:15:43 -0800
-Message-ID: <200711130722.lAD7MeUp031750@imap1.linux-foundation.org>
+Subject: + memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch added to -mm tree
+Date: Mon, 12 Nov 2007 23:24:39 -0800
+Message-ID: <200711130731.lAD7VaEf032003@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55433 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38332 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751698AbXKMHXQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751786AbXKMHc6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 02:23:16 -0500
+	Tue, 13 Nov 2007 02:32:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, herbert@gondor.apana.org.au
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org, yamamoto@valinux.co.jp
 
 
 The patch titled
-     git-cryptodev: hifn_795x fixes
+     memory-cgroup-enhancements-add-memorystat-file printk fix
 has been added to the -mm tree.  Its filename is
-     git-cryptodev-hifn_795x-fixes.patch
+     memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,57 +26,47 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-cryptodev: hifn_795x fixes
+Subject: memory-cgroup-enhancements-add-memorystat-file printk fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 alpha:
 
-drivers/crypto/hifn_795x.c: In function 'ablkcipher_walk_init':
-drivers/crypto/hifn_795x.c:1231: error: implicit declaration of function 'sg_init_table'
-drivers/crypto/hifn_795x.c:1243: error: implicit declaration of function 'sg_set_page'
-drivers/crypto/hifn_795x.c: In function 'ablkcipher_walk_exit':
-drivers/crypto/hifn_795x.c:1257: error: implicit declaration of function 'sg_page'
-drivers/crypto/hifn_795x.c:1257: warning: passing argument 1 of '__free_pages' makes pointer from integer without a cast
-drivers/crypto/hifn_795x.c: In function 'ablkcipher_add':
-drivers/crypto/hifn_795x.c:1278: warning: passing argument 1 of 'kmap_atomic' makes pointer from integer without a cast
-drivers/crypto/hifn_795x.c: In function 'ablkcipher_walk':
-drivers/crypto/hifn_795x.c:1336: warning: passing argument 1 of 'kmap_atomic' makes pointer from integer without a cast
-drivers/crypto/hifn_795x.c: In function 'hifn_setup_session':
-drivers/crypto/hifn_795x.c:1465: warning: assignment makes pointer from integer without a cast
-drivers/crypto/hifn_795x.c:1469: warning: assignment makes pointer from integer without a cast
-drivers/crypto/hifn_795x.c:1472: warning: assignment makes pointer from integer without a cast
-drivers/crypto/hifn_795x.c: In function 'ablkcipher_get':
-drivers/crypto/hifn_795x.c:1593: warning: passing argument 1 of 'kmap_atomic' makes pointer from integer without a cast
-{standard input}: Assembler messages:
-{standard input}:7: Warning: setting incorrect section attributes for .got
-drivers/crypto/hifn_795x.c: In function 'hifn_process_ready':
-drivers/crypto/hifn_795x.c:1653: warning: passing argument 1 of 'kmap_atomic' makes pointer from integer without a cast
-drivers/crypto/hifn_795x.c: In function 'hifn_probe':
-drivers/crypto/hifn_795x.c:2438: error: 'DMA_32BIT_MASK' undeclared (first use in this function)
-drivers/crypto/hifn_795x.c:2438: error: (Each undeclared identifier is reported only once
-drivers/crypto/hifn_795x.c:2438: error: for each function it appears in.)
-drivers/crypto/hifn_795x.c:2443: warning: format '%d' expects type 'int', but argument 4 has type 'long int'
-drivers/crypto/hifn_795x.c:2443: warning: format '%d' expects type 'int', but argument 4 has type 'long int'
+mm/memcontrol.c: In function 'mem_control_stat_show':
+mm/memcontrol.c:823: warning: format '%lld' expects type 'long long int', but argument 4 has type 's64'
 
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+s64 and u64 arguments always require a cast to be printed.
+
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Herbert Poetzl <herbert@13thfloor.at>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Kirill Korotaev <dev@sw.ru>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Paul Menage <menage@google.com>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
+Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/crypto/hifn_795x.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memcontrol.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/crypto/hifn_795x.c~git-cryptodev-hifn_795x-fixes drivers/crypto/hifn_795x.c
---- a/drivers/crypto/hifn_795x.c~git-cryptodev-hifn_795x-fixes
-+++ a/drivers/crypto/hifn_795x.c
-@@ -25,6 +25,8 @@
- #include <linux/slab.h>
- #include <linux/delay.h>
- #include <linux/mm.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/scatterlist.h>
- #include <linux/highmem.h>
- #include <linux/interrupt.h>
- #include <linux/crypto.h>
+diff -puN mm/memcontrol.c~memory-cgroup-enhancements-add-memorystat-file-printk-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memory-cgroup-enhancements-add-memorystat-file-printk-fix
++++ a/mm/memcontrol.c
+@@ -820,7 +820,8 @@ static int mem_control_stat_show(struct 
+ 
+ 		val = mem_cgroup_read_stat(stat, i);
+ 		val *= mem_cgroup_stat_desc[i].unit;
+-		seq_printf(m, "%s %lld\n", mem_cgroup_stat_desc[i].msg, val);
++		seq_printf(m, "%s %lld\n", mem_cgroup_stat_desc[i].msg,
++				(long long)val);
+ 	}
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -137,6 +127,7 @@ git-x86-inlining-borkage.patch
 oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
 i386-and-x86_64-randomize-brk-fix.patch
 x86-arch_register_cpu-section-fix.patch
+git-cryptodev-hifn_795x-fixes.patch
 mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
 pidns-place-under-config_experimental-checkpatch-fixes.patch
 fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
@@ -210,6 +201,7 @@ memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
 memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
 memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
 drivers-edac-add-marvell-mv64x60-driver-fix.patch
 introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
 iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
@@ -245,4 +237,4 @@ shrink_slab-handle-bad-shrinkers.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 w1-build-fix.patch
-git-cryptodev-hifn_795x-fixes.patch
+alpha-atomic_add_return-should-return-int.patch
