@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch added to -mm tree
-Date: Mon, 12 Nov 2007 23:24:39 -0800
-Message-ID: <200711130731.lAD7VaEf032003@imap1.linux-foundation.org>
+Subject: + alpha-atomic_add_return-should-return-int.patch added to -mm tree
+Date: Mon, 12 Nov 2007 23:27:46 -0800
+Message-ID: <200711130734.lAD7YhUW032429@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38332 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33625 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751786AbXKMHc6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751448AbXKMHfG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 02:32:58 -0500
+	Tue, 13 Nov 2007 02:35:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, balbir@linux.vnet.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@13thfloor.at, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, nickpiggin@yahoo.com.au, rientjes@google.com, svaidy@linux.vnet.ibm.com, xemul@openvz.org, yamamoto@valinux.co.jp
+Cc: akpm@linux-foundation.org, ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     memory-cgroup-enhancements-add-memorystat-file printk fix
+     alpha: atomic_add_return() should return int
 has been added to the -mm tree.  Its filename is
-     memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+     alpha-atomic_add_return-should-return-int.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,47 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memory-cgroup-enhancements-add-memorystat-file printk fix
+Subject: alpha: atomic_add_return() should return int
 From: Andrew Morton <akpm@linux-foundation.org>
 
-alpha:
+Prevents stuff like
 
-mm/memcontrol.c: In function 'mem_control_stat_show':
-mm/memcontrol.c:823: warning: format '%lld' expects type 'long long int', but argument 4 has type 's64'
+drivers/crypto/hifn_795x.c:2443: warning: format '%d' expects type 'int', but argument 4 has type 'long int'
+drivers/crypto/hifn_795x.c:2443: warning: format '%d' expects type 'int', but argument 4 has type 'long int'
 
-s64 and u64 arguments always require a cast to be printed.
+(at least).
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Herbert Poetzl <herbert@13thfloor.at>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Kirill Korotaev <dev@sw.ru>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Paul Menage <menage@google.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Vaidyanathan Srinivasan <svaidy@linux.vnet.ibm.com>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/asm-alpha/atomic.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memory-cgroup-enhancements-add-memorystat-file-printk-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memory-cgroup-enhancements-add-memorystat-file-printk-fix
-+++ a/mm/memcontrol.c
-@@ -820,7 +820,8 @@ static int mem_control_stat_show(struct 
- 
- 		val = mem_cgroup_read_stat(stat, i);
- 		val *= mem_cgroup_stat_desc[i].unit;
--		seq_printf(m, "%s %lld\n", mem_cgroup_stat_desc[i].msg, val);
-+		seq_printf(m, "%s %lld\n", mem_cgroup_stat_desc[i].msg,
-+				(long long)val);
- 	}
- 	return 0;
- }
+diff -puN include/asm-alpha/atomic.h~alpha-atomic_add_return-should-return-int include/asm-alpha/atomic.h
+--- a/include/asm-alpha/atomic.h~alpha-atomic_add_return-should-return-int
++++ a/include/asm-alpha/atomic.h
+@@ -100,7 +100,7 @@ static __inline__ void atomic64_sub(long
+ /*
+  * Same as above, but return the result value
+  */
+-static __inline__ long atomic_add_return(int i, atomic_t * v)
++static inline int atomic_add_return(int i, atomic_t *v)
+ {
+ 	long temp, result;
+ 	smp_mb();
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -149,6 +138,7 @@ revert-capabilities-clean-up-file-capability-reading.patch
 revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
 add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
 add-64-bit-capability-support-to-the-kernel-fix.patch
+alpha-atomic_add_return-should-return-int.patch
 pm-qos-infrastructure-and-interface.patch
 pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
 cris-build-fixes-atomich-needs-compilerh-fix.patch
@@ -237,4 +227,3 @@ shrink_slab-handle-bad-shrinkers.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 w1-build-fix.patch
-alpha-atomic_add_return-should-return-int.patch
