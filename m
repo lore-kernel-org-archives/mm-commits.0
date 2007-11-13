@@ -1,143 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - x86-pci-calgary_64c-make-a-variable-static.patch removed from -mm tree
-Date: Mon, 12 Nov 2007 20:07:54 -0800
-Message-ID: <200711130407.lAD47rLV025261@imap1.linux-foundation.org>
+Subject: - x86-32-bit-ptrace-emulation-mishandles-6th-arg.patch removed from -mm tree
+Date: Mon, 12 Nov 2007 20:08:02 -0800
+Message-ID: <200711130408.lAD482kf025276@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60231 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58465 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756463AbXKMERW (ORCPT
+	by vger.kernel.org with ESMTP id S1756498AbXKMER0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 23:17:22 -0500
+	Mon, 12 Nov 2007 23:17:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mingo@elte.hu, mulix@mulix.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: 76306.1226@compuserve.com, jdike@linux.intel.com, mingo@elte.hu, roland@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86 pci-calgary_64.c: make a variable static
+     x86: 32-bit ptrace emulation mishandles 6th arg
 has been removed from the -mm tree.  Its filename was
-     x86-pci-calgary_64c-make-a-variable-static.patch
+     x86-32-bit-ptrace-emulation-mishandles-6th-arg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86 pci-calgary_64.c: make a variable static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: x86: 32-bit ptrace emulation mishandles 6th arg
+From: Chuck Ebbert <76306.1226@compuserve.com>
 
-"debugging" is a horrible name for a global variable - thankfully it can
-become static.
+[ jdike - Pushing Chuck's patch - see
+http://lkml.org/lkml/2005/9/16/261 for some history and a test
+program.  UML is also broken without this patch - its processes get
+SIGBUS from the corrupt 6th argument to mmap being interpretted as a
+file offset ]
 
-Also put it out of __read_mostly so that gcc no longer has to emit it
-at all.
+When the 32-bit vDSO is used to make a system call, the %ebp register for
+the 6th syscall arg has to be loaded from the user stack (where it's pushed
+by the vDSO user code).  The native i386 kernel always does this before
+stopping for syscall tracing, so %ebp can be seen and modified via ptrace
+to access the 6th syscall argument.  The x86-64 kernel fails to do this,
+presenting the stack address to ptrace instead.  This makes the %rbp value
+seen by 64-bit ptrace of a 32-bit process, and the %ebp value seen by a
+32-bit caller of ptrace, both differ from the native i386 behavior.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+This patch fixes the problem by putting the word loaded from the user stack
+into %rbp before calling syscall_trace_enter, and reloading the 6th syscall
+argument from there afterwards (so ptrace can change it).  This makes the
+behavior match that of i386 kernels.
+
+Signed-off-by: Chuck Ebbert <76306.1226@compuserve.com>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Original-Patch-By: Roland McGrath <roland@redhat.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Muli Ben-Yehuda <mulix@mulix.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/pci-calgary_64.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/ia32/ia32entry.S |   19 ++++++-------------
+ 1 file changed, 6 insertions(+), 13 deletions(-)
 
-diff -puN arch/x86/kernel/pci-calgary_64.c~x86-pci-calgary_64c-make-a-variable-static arch/x86/kernel/pci-calgary_64.c
---- a/arch/x86/kernel/pci-calgary_64.c~x86-pci-calgary_64c-make-a-variable-static
-+++ a/arch/x86/kernel/pci-calgary_64.c
-@@ -182,7 +182,7 @@ static struct calgary_bus_info bus_info[
+diff -puN arch/x86/ia32/ia32entry.S~x86-32-bit-ptrace-emulation-mishandles-6th-arg arch/x86/ia32/ia32entry.S
+--- a/arch/x86/ia32/ia32entry.S~x86-32-bit-ptrace-emulation-mishandles-6th-arg
++++ a/arch/x86/ia32/ia32entry.S
+@@ -159,20 +159,16 @@ sysenter_do_call:	
  
- /* enable this to stress test the chip's TCE cache */
- #ifdef CONFIG_IOMMU_DEBUG
--int debugging __read_mostly = 1;
-+static int debugging = 1;
- 
- static inline unsigned long verify_bit_range(unsigned long* bitmap,
- 	int expected, unsigned long start, unsigned long end)
-@@ -201,7 +201,7 @@ static inline unsigned long verify_bit_r
- 	return ~0UL;
- }
- #else /* debugging is disabled */
--int debugging __read_mostly = 0;
-+static int debugging = 0;
- 
- static inline unsigned long verify_bit_range(unsigned long* bitmap,
- 	int expected, unsigned long start, unsigned long end)
+ sysenter_tracesys:
+ 	CFI_RESTORE_STATE
++	xchgl	%r9d,%ebp
+ 	SAVE_REST
+ 	CLEAR_RREGS
++	movq	%r9,R9(%rsp)
+ 	movq	$-ENOSYS,RAX(%rsp)	/* really needed? */
+ 	movq	%rsp,%rdi        /* &pt_regs -> arg1 */
+ 	call	syscall_trace_enter
+ 	LOAD_ARGS32 ARGOFFSET  /* reload args from stack in case ptrace changed it */
+ 	RESTORE_REST
+-	movl	%ebp, %ebp
+-	/* no need to do an access_ok check here because rbp has been
+-	   32bit zero extended */ 
+-1:	movl	(%rbp),%r9d
+-	.section __ex_table,"a"
+-	.quad 1b,ia32_badarg
+-	.previous
++	xchgl	%ebp,%r9d
+ 	jmp	sysenter_do_call
+ 	CFI_ENDPROC
+ ENDPROC(ia32_sysenter_target)
+@@ -262,20 +258,17 @@ cstar_do_call:	
+ 	
+ cstar_tracesys:	
+ 	CFI_RESTORE_STATE
++	xchgl %r9d,%ebp
+ 	SAVE_REST
+ 	CLEAR_RREGS
++	movq %r9,R9(%rsp)
+ 	movq $-ENOSYS,RAX(%rsp)	/* really needed? */
+ 	movq %rsp,%rdi        /* &pt_regs -> arg1 */
+ 	call syscall_trace_enter
+ 	LOAD_ARGS32 ARGOFFSET  /* reload args from stack in case ptrace changed it */
+ 	RESTORE_REST
++	xchgl %ebp,%r9d
+ 	movl RSP-ARGOFFSET(%rsp), %r8d
+-	/* no need to do an access_ok check here because r8 has been
+-	   32bit zero extended */ 
+-1:	movl	(%r8),%r9d
+-	.section __ex_table,"a"
+-	.quad 1b,ia32_badarg
+-	.previous
+ 	jmp cstar_do_call
+ END(ia32_cstar_target)
+ 				
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from 76306.1226@compuserve.com are
 
 origin.patch
-lguest_userc-fix-memory-leak.patch
-video-sis-fix-negative-array-index.patch
-mm-hugetlbc-make-a-function-static.patch
-git-avr32.patch
-git-dvb.patch
-remove-saa7134-oss.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-libata-all.patch
-blk_dev_idecd-help-remove-outdated-note.patch
-git-mtd.patch
-make-sunrpc-xprtsockcxs_setup_udptcp-static.patch
-remove-references-to-net-modulestxt.patch
-git-netdev-all.patch
-drivers-net-chelsio-if-0-unused-functions.patch
-drivers-bluetooth-bpa10xc-fix-memleak.patch
-drivers-bluetooth-btsdioc-fix-double-free.patch
-git-nfs-make-nfs_wb_page_priority-static.patch
-fs-nfs-dirc-should-include-internalh.patch
-always-export-pci_scan_single_device.patch
-remove-additional-pci_scan_child_bus-prototype.patch
-git-scsi-misc.patch
-scsi-advansysc-make-3-functions-static.patch
-scsi-qla2xxx-possible-cleanups.patch
-usb-mon-mon_binc-cleanups.patch
-git-x86.patch
-xtensa-iss_net_setup-must-be-__init.patch
-xtensa-kernel-setupc-remove-dead-code.patch
-sunrpc-xprtrdma-transportc-fix-use-after-free.patch
-fix-mm-utilckrealloc.patch
-fuse_file_alloc-fix-null-dereferences.patch
-pidns-place-under-config_experimental.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-feature-removal-schedule-remove-sa_-flags-entry.patch
-kernel-taskstatsc-fix-bogus-nlmsg_free.patch
-mm-page-writebackc-make-a-function-static.patch
-make-__vmalloc_area_node-static.patch
-blackfin-remove-dump_thread.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-kernel-power-move-function-prototypes-to-header.patch
-kill-udffs_dateversion.patch
-make-ipc-utilcsysvipc_find_ipc-static.patch
-cleanup-after-apus-removal.patch
-remove-mm_ptovvtop.patch
-remove-__attribute_used__.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-proper-show_interrupts-prototype.patch
-scheduled-oss-driver-removal.patch
-linux-inith-simplify-__meminitexit-dependencies.patch
-proper-prototype-for-signals_init.patch
-kernel-ptracec-should-include-linux-syscallsh.patch
-make-srcu_readers_active-static.patch
-kernel-notifierc-should-include-linux-rebooth.patch
-proper-prototype-for-get_filesystem_list.patch
-fs-utimesc-should-include-linux-syscallsh.patch
-fs-signalfdc-should-include-linux-syscallsh.patch
-fs-eventfdc-should-include-linux-syscallsh.patch
-proper-prototype-for-vty_init.patch
-drivers-misc-lkdtmc-cleanups.patch
-power_supply_ledssysfsc-should-include-power_supplyh.patch
-fs-ecryptfs-possible-cleanups.patch
-make-video-geode-lxfb_corecgeode_modedb-static.patch
-video-hpfbc-section-fix.patch
-ext4-superc-fix-ifdefs.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-move-edactxt-two-levels-up.patch
-remove-documentation-smptxt.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-reiser4.patch
