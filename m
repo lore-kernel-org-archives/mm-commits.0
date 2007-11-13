@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + aic94xx_sds-rename-flash_size.patch added to -mm tree
-Date: Mon, 12 Nov 2007 23:56:58 -0800
-Message-ID: <200711130803.lAD83t4v000992@imap1.linux-foundation.org>
+Subject: + mn10300-add-the-mn10300-am33-architecture-to-the-kernel-ia64-fix.patch added to -mm tree
+Date: Tue, 13 Nov 2007 00:21:50 -0800
+Message-ID: <200711130828.lAD8SlkB001804@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37261 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56390 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750903AbXKMIEv (ORCPT
+	by vger.kernel.org with ESMTP id S1750853AbXKMI34 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 03:04:51 -0500
+	Tue, 13 Nov 2007 03:29:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, gilbert_wu@adaptec.com, rmk@arm.linux.org.uk
+Cc: akpm@linux-foundation.org, dhowells@redhat.com, urade.masakazu@jp.panasonic.com, yasutake.koichi@jp.panasonic.com
 
 
 The patch titled
-     aic94xx_sds: rename FLASH_SIZE
+     mn10300-add-the-mn10300-am33-architecture-to-the-kernel-ia64-fix
 has been added to the -mm tree.  Its filename is
-     aic94xx_sds-rename-flash_size.patch
+     mn10300-add-the-mn10300-am33-architecture-to-the-kernel-ia64-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,56 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: aic94xx_sds: rename FLASH_SIZE
+Subject: mn10300-add-the-mn10300-am33-architecture-to-the-kernel-ia64-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arm:
+In file included from arch/ia64/mm/fault.c:11:
+include/linux/kprobes.h:174: error: syntax error before numeric constant
 
-drivers/scsi/aic94xx/aic94xx_sds.c:381:1: warning: "FLASH_SIZE" redefined
-In file included from include/asm/arch/irqs.h:22,
-                 from include/asm/irq.h:4,
-                 from include/asm/hardirq.h:6,
-                 from include/linux/hardirq.h:7,
-                 from include/asm-generic/local.h:5,
-                 from include/asm/local.h:1,
-                 from include/linux/module.h:19,
-                 from include/linux/device.h:21,
-                 from include/linux/pci.h:52,
-                 from drivers/scsi/aic94xx/aic94xx_sds.c:28:
-include/asm/arch/platform.h:444:1: warning: this is the location of the previous definition
+sorry, ia64 #defines that.  Try something else ;)
 
-Really it's arm which is being dumb here, but whatever.
-
-Cc: Gilbert Wu <gilbert_wu@adaptec.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
+Cc: Masakazu Urade <urade.masakazu@jp.panasonic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aic94xx/aic94xx_sds.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/kprobes.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/scsi/aic94xx/aic94xx_sds.c~aic94xx_sds-rename-flash_size drivers/scsi/aic94xx/aic94xx_sds.c
---- a/drivers/scsi/aic94xx/aic94xx_sds.c~aic94xx_sds-rename-flash_size
-+++ a/drivers/scsi/aic94xx/aic94xx_sds.c
-@@ -378,7 +378,7 @@ out:
+diff -puN include/linux/kprobes.h~mn10300-add-the-mn10300-am33-architecture-to-the-kernel-ia64-fix include/linux/kprobes.h
+--- a/include/linux/kprobes.h~mn10300-add-the-mn10300-am33-architecture-to-the-kernel-ia64-fix
++++ a/include/linux/kprobes.h
+@@ -171,7 +171,6 @@ struct kretprobe_blackpoint {
+ 	void *addr;
+ };
+ extern struct kretprobe_blackpoint kretprobe_blacklist[];
+-extern const int kretprobe_blacklist_size;
  
- #define FLASH_RESET			0xF0
- 
--#define FLASH_SIZE                      0x200000
-+#define ASD_FLASH_SIZE                  0x200000
- #define FLASH_DIR_COOKIE                "*** ADAPTEC FLASH DIRECTORY *** "
- #define FLASH_NEXT_ENTRY_OFFS		0x2000
- #define FLASH_MAX_DIR_ENTRIES		32
-@@ -610,7 +610,7 @@ static int asd_find_flash_dir(struct asd
- 			      struct asd_flash_dir *flash_dir)
- {
- 	u32 v;
--	for (v = 0; v < FLASH_SIZE; v += FLASH_NEXT_ENTRY_OFFS) {
-+	for (v = 0; v < ASD_FLASH_SIZE; v += FLASH_NEXT_ENTRY_OFFS) {
- 		asd_read_flash_seg(asd_ha, flash_dir, v,
- 				   sizeof(FLASH_DIR_COOKIE)-1);
- 		if (memcmp(flash_dir->cookie, FLASH_DIR_COOKIE,
+ static inline void kretprobe_assert(struct kretprobe_instance *ri,
+ 	unsigned long orig_ret_address, unsigned long trampoline_address)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -144,6 +122,7 @@ file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
 x86-disable-preemption-in-delay_tsc.patch
 tty-fix-network-driver-interactions-with-tcget-set-checkpatch-fixes.patch
 x86-early_quirks-cleanup.patch
+aic94xx_sds-rename-flash_size.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
 i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
@@ -234,6 +213,7 @@ use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
 suppress-aout-library-support-if-config_binfmt_aout-checkpatch-fixes.patch
 usb-net2280-cant-have-a-function-called-checkpatch-fixes.patch
 mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-ia64-fix.patch
 make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
 jens-broke-reiser4patch-added-to-mm-tree.patch
@@ -247,5 +227,3 @@ shrink_slab-handle-bad-shrinkers.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 w1-build-fix.patch
-a.patch
-aic94xx_sds-rename-flash_size.patch
