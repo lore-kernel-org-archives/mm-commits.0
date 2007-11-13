@@ -1,51 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - add-lock_page_killable-vs-mm-page-trylock-rename.patch removed from -mm tree
-Date: Mon, 12 Nov 2007 20:51:04 -0800
-Message-ID: <200711130458.lAD4w1xU026954@imap1.linux-foundation.org>
+Subject: + git-x86-broke-lguest.patch added to -mm tree
+Date: Mon, 12 Nov 2007 21:02:20 -0800
+Message-ID: <200711130509.lAD59HMo027350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45834 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49297 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756790AbXKME6D (ORCPT
+	by vger.kernel.org with ESMTP id S1751026AbXKMFKm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 23:58:03 -0500
+	Tue, 13 Nov 2007 00:10:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de
 
 
 The patch titled
-     add-lock_page_killable-vs-mm-page-trylock-rename
-has been removed from the -mm tree.  Its filename was
-     add-lock_page_killable-vs-mm-page-trylock-rename.patch
+     git-x86 broke lguest
+has been added to the -mm tree.  Its filename is
+     git-x86-broke-lguest.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: add-lock_page_killable-vs-mm-page-trylock-rename
+Subject: git-x86 broke lguest
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Should have left the original interface in there for a while.
+arch/x86/lguest/boot.c: In function 'lguest_init':
+arch/x86/lguest/boot.c:991: warning: assignment from incompatible pointer type
+arch/x86/lguest/boot.c:993: warning: assignment from incompatible pointer type
 
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Better testing please.
+
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/lguest/boot.c  |    2 +-
+ drivers/lguest/lguest.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/pagemap.h~add-lock_page_killable-vs-mm-page-trylock-rename include/linux/pagemap.h
---- a/include/linux/pagemap.h~add-lock_page_killable-vs-mm-page-trylock-rename
-+++ a/include/linux/pagemap.h
-@@ -194,7 +194,7 @@ static inline void lock_page(struct page
- static inline int lock_page_killable(struct page *page)
+diff -puN arch/x86/lguest/boot.c~git-x86-broke-lguest arch/x86/lguest/boot.c
+--- a/arch/x86/lguest/boot.c~git-x86-broke-lguest
++++ a/arch/x86/lguest/boot.c
+@@ -788,7 +788,7 @@ static void lguest_wbinvd(void)
+  * code qualifies for Advanced.  It will also never interrupt anything.  It
+  * does, however, allow us to get through the Linux boot code. */
+ #ifdef CONFIG_X86_LOCAL_APIC
+-static void lguest_apic_write(unsigned long reg, unsigned long v)
++static void lguest_apic_write(unsigned long reg, u32 v)
  {
- 	might_sleep();
--	if (TestSetPageLocked(page))
-+	if (!trylock_page(page))
- 		return __lock_page_killable(page);
- 	return 0;
  }
+ 
+diff -puN drivers/lguest/lguest.c~git-x86-broke-lguest drivers/lguest/lguest.c
+--- a/drivers/lguest/lguest.c~git-x86-broke-lguest
++++ a/drivers/lguest/lguest.c
+@@ -841,7 +841,7 @@ static void lguest_wbinvd(void)
+  * code qualifies for Advanced.  It will also never interrupt anything.  It
+  * does, however, allow us to get through the Linux boot code. */
+ #ifdef CONFIG_X86_LOCAL_APIC
+-static void lguest_apic_write(unsigned long reg, unsigned long v)
++static void lguest_apic_write(unsigned long reg, u32 v)
+ {
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,6 +121,7 @@ git-wireless.patch
 jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
 git-ipwireless_cs.patch
 git-x86.patch
+git-x86-broke-lguest.patch
 git-x86-inlining-borkage.patch
 oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
 i386-and-x86_64-randomize-brk-fix.patch
@@ -141,7 +165,6 @@ pie-executable-randomization-uninlining.patch
 pie-executable-randomization-checkpatch-fixes.patch
 riscom8-fix-smp-brokenness-fix.patch
 use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-add-lock_page_killable-vs-mm-page-trylock-rename.patch
 sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
 remove-warnings-for-longstanding-conditions-fix.patch
 parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
