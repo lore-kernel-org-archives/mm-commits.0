@@ -1,209 +1,212 @@
 From: akpm@linux-foundation.org
-Subject: - fs-buffer-trylock-rename.patch removed from -mm tree
-Date: Mon, 12 Nov 2007 20:50:38 -0800
-Message-ID: <200711130457.lAD4vaFH026948@imap1.linux-foundation.org>
+Subject: - add-lock_page_killable-vs-mm-page-trylock-rename.patch removed from -mm tree
+Date: Mon, 12 Nov 2007 20:51:04 -0800
+Message-ID: <200711130458.lAD4w1xU026954@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49971 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45834 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757128AbXKME5n (ORCPT
+	by vger.kernel.org with ESMTP id S1756790AbXKME6D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 23:57:43 -0500
+	Mon, 12 Nov 2007 23:58:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: buffer trylock rename
+     add-lock_page_killable-vs-mm-page-trylock-rename
 has been removed from the -mm tree.  Its filename was
-     fs-buffer-trylock-rename.patch
+     add-lock_page_killable-vs-mm-page-trylock-rename.patch
 
-This patch was dropped because of too much breakage
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: fs: buffer trylock rename
-From: Nick Piggin <npiggin@suse.de>
+Subject: add-lock_page_killable-vs-mm-page-trylock-rename
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Converting the buffer lock to new bitops also requires name change, so convert
-the raw test_and_set bitop to a trylock.
+Should have left the original interface in there for a while.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Reviewed-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c                 |    4 ++--
- fs/jbd/commit.c             |    2 +-
- fs/jbd2/commit.c            |    2 +-
- fs/ntfs/aops.c              |    2 +-
- fs/ntfs/compress.c          |    2 +-
- fs/ntfs/mft.c               |    4 ++--
- fs/reiserfs/inode.c         |    2 +-
- fs/reiserfs/journal.c       |    4 ++--
- include/linux/buffer_head.h |    8 ++++++--
- 9 files changed, 17 insertions(+), 13 deletions(-)
+ include/linux/pagemap.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/buffer.c~fs-buffer-trylock-rename fs/buffer.c
---- a/fs/buffer.c~fs-buffer-trylock-rename
-+++ a/fs/buffer.c
-@@ -1688,7 +1688,7 @@ static int __block_write_full_page(struc
- 		 */
- 		if (wbc->sync_mode != WB_SYNC_NONE || !wbc->nonblocking) {
- 			lock_buffer(bh);
--		} else if (test_set_buffer_locked(bh)) {
-+		} else if (!trylock_buffer(bh)) {
- 			redirty_page_for_writepage(wbc, page);
- 			continue;
- 		}
-@@ -2927,7 +2927,7 @@ void ll_rw_block(int rw, int nr, struct 
- 
- 		if (rw == SWRITE)
- 			lock_buffer(bh);
--		else if (test_set_buffer_locked(bh))
-+		else if (!trylock_buffer(bh))
- 			continue;
- 
- 		if (rw == WRITE || rw == SWRITE) {
-diff -puN fs/jbd/commit.c~fs-buffer-trylock-rename fs/jbd/commit.c
---- a/fs/jbd/commit.c~fs-buffer-trylock-rename
-+++ a/fs/jbd/commit.c
-@@ -208,7 +208,7 @@ write_out_data:
- 		 * blocking lock_buffer().
- 		 */
- 		if (buffer_dirty(bh)) {
--			if (test_set_buffer_locked(bh)) {
-+			if (!trylock_buffer(bh)) {
- 				BUFFER_TRACE(bh, "needs blocking lock");
- 				spin_unlock(&journal->j_list_lock);
- 				/* Write out all data to prevent deadlocks */
-diff -puN fs/jbd2/commit.c~fs-buffer-trylock-rename fs/jbd2/commit.c
---- a/fs/jbd2/commit.c~fs-buffer-trylock-rename
-+++ a/fs/jbd2/commit.c
-@@ -208,7 +208,7 @@ write_out_data:
- 		 * blocking lock_buffer().
- 		 */
- 		if (buffer_dirty(bh)) {
--			if (test_set_buffer_locked(bh)) {
-+			if (!trylock_buffer(bh)) {
- 				BUFFER_TRACE(bh, "needs blocking lock");
- 				spin_unlock(&journal->j_list_lock);
- 				/* Write out all data to prevent deadlocks */
-diff -puN fs/ntfs/aops.c~fs-buffer-trylock-rename fs/ntfs/aops.c
---- a/fs/ntfs/aops.c~fs-buffer-trylock-rename
-+++ a/fs/ntfs/aops.c
-@@ -1194,7 +1194,7 @@ lock_retry_remap:
- 		tbh = bhs[i];
- 		if (!tbh)
- 			continue;
--		if (unlikely(test_set_buffer_locked(tbh)))
-+		if (!trylock_buffer(tbh))
- 			BUG();
- 		/* The buffer dirty state is now irrelevant, just clean it. */
- 		clear_buffer_dirty(tbh);
-diff -puN fs/ntfs/compress.c~fs-buffer-trylock-rename fs/ntfs/compress.c
---- a/fs/ntfs/compress.c~fs-buffer-trylock-rename
-+++ a/fs/ntfs/compress.c
-@@ -665,7 +665,7 @@ lock_retry_remap:
- 	for (i = 0; i < nr_bhs; i++) {
- 		struct buffer_head *tbh = bhs[i];
- 
--		if (unlikely(test_set_buffer_locked(tbh)))
-+		if (!trylock_buffer(tbh))
- 			continue;
- 		if (unlikely(buffer_uptodate(tbh))) {
- 			unlock_buffer(tbh);
-diff -puN fs/ntfs/mft.c~fs-buffer-trylock-rename fs/ntfs/mft.c
---- a/fs/ntfs/mft.c~fs-buffer-trylock-rename
-+++ a/fs/ntfs/mft.c
-@@ -586,7 +586,7 @@ int ntfs_sync_mft_mirror(ntfs_volume *vo
- 		for (i_bhs = 0; i_bhs < nr_bhs; i_bhs++) {
- 			struct buffer_head *tbh = bhs[i_bhs];
- 
--			if (unlikely(test_set_buffer_locked(tbh)))
-+			if (!trylock_buffer(tbh))
- 				BUG();
- 			BUG_ON(!buffer_uptodate(tbh));
- 			clear_buffer_dirty(tbh);
-@@ -779,7 +779,7 @@ int write_mft_record_nolock(ntfs_inode *
- 	for (i_bhs = 0; i_bhs < nr_bhs; i_bhs++) {
- 		struct buffer_head *tbh = bhs[i_bhs];
- 
--		if (unlikely(test_set_buffer_locked(tbh)))
-+		if (!trylock_buffer(tbh))
- 			BUG();
- 		BUG_ON(!buffer_uptodate(tbh));
- 		clear_buffer_dirty(tbh);
-diff -puN fs/reiserfs/inode.c~fs-buffer-trylock-rename fs/reiserfs/inode.c
---- a/fs/reiserfs/inode.c~fs-buffer-trylock-rename
-+++ a/fs/reiserfs/inode.c
-@@ -2433,7 +2433,7 @@ static int reiserfs_write_full_page(stru
- 		if (wbc->sync_mode != WB_SYNC_NONE || !wbc->nonblocking) {
- 			lock_buffer(bh);
- 		} else {
--			if (test_set_buffer_locked(bh)) {
-+			if (!trylock_buffer(bh)) {
- 				redirty_page_for_writepage(wbc, page);
- 				continue;
- 			}
-diff -puN fs/reiserfs/journal.c~fs-buffer-trylock-rename fs/reiserfs/journal.c
---- a/fs/reiserfs/journal.c~fs-buffer-trylock-rename
-+++ a/fs/reiserfs/journal.c
-@@ -857,7 +857,7 @@ static int write_ordered_buffers(spinloc
- 		jh = JH_ENTRY(list->next);
- 		bh = jh->bh;
- 		get_bh(bh);
--		if (test_set_buffer_locked(bh)) {
-+		if (!trylock_buffer(bh)) {
- 			if (!buffer_dirty(bh)) {
- 				list_move(&jh->list, &tmp);
- 				goto loop_next;
-@@ -3877,7 +3877,7 @@ int reiserfs_prepare_for_journal(struct 
- {
- 	PROC_INFO_INC(p_s_sb, journal.prepare);
- 
--	if (test_set_buffer_locked(bh)) {
-+	if (!trylock_buffer(bh)) {
- 		if (!wait)
- 			return 0;
- 		lock_buffer(bh);
-diff -puN include/linux/buffer_head.h~fs-buffer-trylock-rename include/linux/buffer_head.h
---- a/include/linux/buffer_head.h~fs-buffer-trylock-rename
-+++ a/include/linux/buffer_head.h
-@@ -115,7 +115,6 @@ BUFFER_FNS(Uptodate, uptodate)
- BUFFER_FNS(Dirty, dirty)
- TAS_BUFFER_FNS(Dirty, dirty)
- BUFFER_FNS(Lock, locked)
--TAS_BUFFER_FNS(Lock, locked)
- BUFFER_FNS(Req, req)
- TAS_BUFFER_FNS(Req, req)
- BUFFER_FNS(Mapped, mapped)
-@@ -318,10 +317,15 @@ static inline void wait_on_buffer(struct
- 		__wait_on_buffer(bh);
- }
- 
-+static inline int trylock_buffer(struct buffer_head *bh)
-+{
-+	return likely(!test_and_set_bit(BH_Lock, &bh->b_state));
-+}
-+
- static inline void lock_buffer(struct buffer_head *bh)
+diff -puN include/linux/pagemap.h~add-lock_page_killable-vs-mm-page-trylock-rename include/linux/pagemap.h
+--- a/include/linux/pagemap.h~add-lock_page_killable-vs-mm-page-trylock-rename
++++ a/include/linux/pagemap.h
+@@ -194,7 +194,7 @@ static inline void lock_page(struct page
+ static inline int lock_page_killable(struct page *page)
  {
  	might_sleep();
--	if (test_set_buffer_locked(bh))
-+	if (!trylock_buffer(bh))
- 		__lock_buffer(bh);
+-	if (TestSetPageLocked(page))
++	if (!trylock_page(page))
+ 		return __lock_page_killable(page);
+ 	return 0;
  }
- 
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
-rd-fix-data-corruption-on-memory-pressure.patch
-slub-use-non-atomic-bit-unlock.patch
-radix-tree-avoid-atomic-allocations-for-preloaded-insertions.patch
-fs-buffer-trylock-rename.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
-fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
+origin.patch
+uml-update-address-space-affected-by-pud_clear-checkpatch-fixes.patch
+improve-cgroup-printks-fix.patch
+proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
+acpi-make-acpi_procfs-default-to-y.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
+git-dvb.patch
+git-hwmon.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+elantech-touchpad-driver-fix.patch
+git-kvm.patch
+git-kvm-fixup.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+ide-arm-hack.patch
+git-mmc.patch
+git-mtd.patch
+lmc_ioctl-dont-return-with-locks-held-fix.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+bluetooth-uninlining.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing-checkpatch-fixes.patch
+git-nfsd-fixup.patch
+quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
+git-s390.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
+scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+git-wireless.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-inlining-borkage.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+i386-and-x86_64-randomize-brk-fix.patch
+x86-arch_register_cpu-section-fix.patch
+mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
+pidns-place-under-config_experimental-checkpatch-fixes.patch
+fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
+file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
+x86-disable-preemption-in-delay_tsc.patch
+tty-fix-network-driver-interactions-with-tcget-set-checkpatch-fixes.patch
+x86-early_quirks-cleanup.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+cris-build-fixes-atomich-needs-compilerh-fix.patch
+cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
+cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
+cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+add-lock_page_killable-vs-mm-page-trylock-rename.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+sync_sb_inodes-propagate-errors.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+64-bit-i_version-afs-fixes.patch
+ridiculous-ext3-costs-was-re-page-fault-costs.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+suppress-aout-library-support-if-config_binfmt_aout-checkpatch-fixes.patch
+usb-net2280-cant-have-a-function-called-checkpatch-fixes.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+w1-build-fix.patch
