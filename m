@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + log2h-define-order_base_2-macro-for-convenience.patch added to -mm tree
-Date: Mon, 12 Nov 2007 17:41:52 -0800
-Message-ID: <200711130141.lAD1fqK6020338@imap1.linux-foundation.org>
+Subject: + sysctl-check-length-at-deprecated_sysctl_warning.patch added to -mm tree
+Date: Mon, 12 Nov 2007 17:44:23 -0800
+Message-ID: <200711130144.lAD1iNjk020467@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34434 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44955 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757653AbXKMBm2 (ORCPT
+	by vger.kernel.org with ESMTP id S1757031AbXKMBo2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 20:42:28 -0500
+	Mon, 12 Nov 2007 20:44:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@crashcourse.ca
+Cc: penguin-kernel@i-love.sakura.ne.jp, ebiederm@xmission.compenguin-kernel@i-love.sakura.ne.jp
 
 
 The patch titled
-     log2.h: Define order_base_2() macro for convenience.
+     Subject: [PATCH] sysctl: Check length at deprecated_sysctl_warning.
 has been added to the -mm tree.  Its filename is
-     log2h-define-order_base_2-macro-for-convenience.patch
+     sysctl-check-length-at-deprecated_sysctl_warning.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,58 +26,35 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: log2.h: Define order_base_2() macro for convenience.
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: Subject: [PATCH] sysctl: Check length at deprecated_sysctl_warning.
+From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 
-Given a number of places in the tree that need to calculate this value
-explicitly, might as well just create a macro for it.
+Original patch assumed args->nlen < CTL_MAXNAME, but it can be false.
 
-(akpm: must be implemented as a macro for callee typeof() usage)
-
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/log2.h |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ kernel/sysctl.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN include/linux/log2.h~log2h-define-order_base_2-macro-for-convenience include/linux/log2.h
---- a/include/linux/log2.h~log2h-define-order_base_2-macro-for-convenience
-+++ a/include/linux/log2.h
-@@ -190,4 +190,20 @@ unsigned long __rounddown_pow_of_two(uns
- 	__rounddown_pow_of_two(n)		\
-  )
+diff -puN kernel/sysctl.c~sysctl-check-length-at-deprecated_sysctl_warning kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-check-length-at-deprecated_sysctl_warning
++++ a/kernel/sysctl.c
+@@ -2609,6 +2609,10 @@ static int deprecated_sysctl_warning(str
+ 	int name[CTL_MAXNAME];
+ 	int i;
  
-+/**
-+ * order_base_2 - calculate the (rounded up) base 2 order of the argument
-+ * @n: parameter
-+ *
-+ * The first few values calculated by this routine:
-+ *  ob2(0) = 0
-+ *  ob2(1) = 0
-+ *  ob2(2) = 1
-+ *  ob2(3) = 2
-+ *  ob2(4) = 2
-+ *  ob2(5) = 3
-+ *  ... and so on.
-+ */
++	/* Check args->nlen. */
++	if (args->nlen < 0 || args->nlen > CTL_MAXNAME)
++		return -EFAULT;
 +
-+#define order_base_2(n) ilog2(roundup_pow_of_two(n))
-+
- #endif /* _LINUX_LOG2_H */
+ 	/* Read in the sysctl name for better debug message logging */
+ 	for (i = 0; i < args->nlen; i++)
+ 		if (get_user(name[i], args->name + i))
 _
 
-Patches currently in -mm which might be from rpjday@crashcourse.ca are
+Patches currently in -mm which might be from penguin-kernel@i-love.sakura.ne.jp are
 
-arm-remove-reference-to-non-existent-mtd_obsolete_chips.patch
-hwmon-replace-power-of-two-test-in-drivers-hwmon-adt7470c.patch
-git-mips.patch
-pcmcia-net-use-roundup_pow_of_two-macro-instead-of-grotesque-loop.patch
-blackfin-typo-config_rtc_bfin_module.patch
-git-sparc64.patch
-frv-move-dma-macros-to-scatterlisth-for-consistency.patch
-m68knommu-remove-vestiges-of-non-existent-disktel.patch
-uml-delete-some-unused-headers.patch
-rd-use-is_power_of_2-in-drivers-block-rdc.patch
-log2h-define-order_base_2-macro-for-convenience.patch
-rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
+sysctl-check-length-at-deprecated_sysctl_warning.patch
