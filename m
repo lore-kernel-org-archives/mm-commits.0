@@ -1,82 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: + nfsd-fix-wrong-mnt_writer-count-in-rename.patch added to -mm tree
-Date: Mon, 12 Nov 2007 17:34:37 -0800
-Message-ID: <200711130134.lAD1Ybbu020104@imap1.linux-foundation.org>
+Subject: - make-ds1wm-driver-to-check-ds1wm_platform_data-pointer-against-null.patch removed from -mm tree
+Date: Mon, 12 Nov 2007 17:38:50 -0800
+Message-ID: <200711130138.lAD1co59020277@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54705 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45613 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753825AbXKMBfg (ORCPT
+	by vger.kernel.org with ESMTP id S1757404AbXKMBkP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 20:35:36 -0500
+	Mon, 12 Nov 2007 20:40:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: ezk@cs.sunysb.edu, haveblue@us.ibm.com, hch@infradead.org
+To: eric.y.miao@gmail.com, eric.miao@marvell.com, johnpol@2ka.mipt.ru, szabolcs.gyurko@tlt.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NFSD: fix wrong mnt_writer count in rename
-has been added to the -mm tree.  Its filename is
-     nfsd-fix-wrong-mnt_writer-count-in-rename.patch
+     w1: make ds1wm driver to check ds1wm_platform_data pointer against NULL
+has been removed from the -mm tree.  Its filename was
+     make-ds1wm-driver-to-check-ds1wm_platform_data-pointer-against-null.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because of complete confusion
 
 ------------------------------------------------------
-Subject: NFSD: fix wrong mnt_writer count in rename
-From: Erez Zadok <ezk@cs.sunysb.edu>
+Subject: w1: make ds1wm driver to check ds1wm_platform_data pointer against NULL
+From: "eric miao" <eric.y.miao@gmail.com>
 
-NFSD forgets to call mnt_drop_write after a successful rename.  Here's a
-fix.  (Ah, the curse of a stackable file system developer: you have to
-debug everyone else's too.  :-)
+Do a sanity check for the "struct ds1wm_platform_data" pointer passed in by
+the platform_device, and so to enforce each platform to provide a valid
+structure.
 
-One thing I wasn't sure is whether I could move the mnt_drop_write line a
-little above, just after the call to vfs_rename.  If we can drop the ref
-earlier, it could improve scalability/performance just a bit, no?  (i.e.,
-what are the ramifications of holding on to this mnt writer ref longer than
-needed?)
-
-Signed-off-by: Erez Zadok <ezk@cs.sunysb.edu>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: eric miao <eric.miao@marvell.com>
+Cc: "Szabolcs Gyurko" <szabolcs.gyurko@tlt.hu>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/vfs.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/w1/masters/ds1wm.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN fs/nfsd/vfs.c~nfsd-fix-wrong-mnt_writer-count-in-rename fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~nfsd-fix-wrong-mnt_writer-count-in-rename
-+++ a/fs/nfsd/vfs.c
-@@ -1688,6 +1688,7 @@ nfsd_rename(struct svc_rqst *rqstp, stru
- 		if (!host_err)
- 			host_err = nfsd_sync_dir(fdentry);
+diff -puN drivers/w1/masters/ds1wm.c~make-ds1wm-driver-to-check-ds1wm_platform_data-pointer-against-null drivers/w1/masters/ds1wm.c
+--- a/drivers/w1/masters/ds1wm.c~make-ds1wm-driver-to-check-ds1wm_platform_data-pointer-against-null
++++ a/drivers/w1/masters/ds1wm.c
+@@ -351,6 +351,10 @@ static int ds1wm_probe(struct platform_d
+ 		goto err0;
  	}
-+	mnt_drop_write(ffhp->fh_export->ex_path.mnt);
- 
-  out_dput_new:
- 	dput(ndentry);
+ 	plat = pdev->dev.platform_data;
++	if (!plat) {
++		ret = -ENXIO;
++		goto err0;
++	}
+ 	ds1wm_data->bus_shift = plat->bus_shift;
+ 	ds1wm_data->pdev = pdev;
+ 	ds1wm_data->pdata = plat;
 _
 
-Patches currently in -mm which might be from ezk@cs.sunysb.edu are
+Patches currently in -mm which might be from eric.y.miao@gmail.com are
 
-hugetlb-follow_hugetlb_page-for-write-access-fix.patch
-git-unionfs.patch
-unionfs-clear-partial-read.patch
-vfs-apply-coding-standards-to-fs-ioctlc.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-vfs-factor-out-three-helpers-for-fibmap-fionbio-fioasync-file-ioctls.patch
-x86-early_quirks-fix-build.patch
-add-64-bit-capability-support-to-the-kernel-fix-fix.patch
-read_current_time-cleanups-build-fix.patch
-nfsd-fix-wrong-mnt_writer-count-in-rename.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-create-file_drop_write_access-helper.patch
-fix-up-new-filp-allocators.patch
-iget-stop-unionfs-from-using-iget-and-read_inode.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix.patch
+make-ds1wm-driver-to-check-ds1wm_platform_data-pointer-against-null.patch
