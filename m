@@ -1,238 +1,208 @@
 From: akpm@linux-foundation.org
-Subject: + mips-pcspkr-build-fix.patch added to -mm tree
-Date: Tue, 13 Nov 2007 02:16:40 -0800
-Message-ID: <200711131023.lADANbko005796@imap1.linux-foundation.org>
+Subject: - sclp_cpi_sysc-unbork.patch removed from -mm tree
+Date: Tue, 13 Nov 2007 02:32:41 -0800
+Message-ID: <200711131039.lADAdc8F006309@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39881 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54348 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751328AbXKMKX4 (ORCPT
+	by vger.kernel.org with ESMTP id S1753255AbXKMKkZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 05:23:56 -0500
+	Tue, 13 Nov 2007 05:40:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dtor@mail.ru, ralf@linux-mips.org
+To: kamalesh@linux.vnet.ibm.com, cornelia.huck@de.ibm.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mips: pcspkr build fix
-has been added to the -mm tree.  Its filename is
-     mips-pcspkr-build-fix.patch
+     sclp_cpi_sys.c: unbork
+has been removed from the -mm tree.  Its filename was
+     sclp_cpi_sysc-unbork.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it's still busted
 
 ------------------------------------------------------
-Subject: mips: pcspkr build fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sclp_cpi_sys.c: unbork
+From: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 
-drivers/input/misc/pcspkr.c: In function `pcspkr_event':
-drivers/input/misc/pcspkr.c:50: error: `PIT_TICK_RATE' undeclared (first use in this function)
-drivers/input/misc/pcspkr.c:50: error: (Each undeclared identifier is reported only once
-drivers/input/misc/pcspkr.c:50: error: for each function it appears in.)
+On Tue, Nov 06, 2007 at 05:42:08PM +0100, Cornelia Huck wrote:
+> On Tue, 6 Nov 2007 16:29:39 +0100,
+> Cornelia Huck <cornelia.huck@de.ibm.com> wrote:
+>
+> > That's a clash between git-s390 and the recent kset cleanup.
+> >
+> > sclp_cpi_sys.c needs to be converted from firmware_register() to the
+> > new dynamic kset allocation (kset_create_and_register()) and the
+> > subsys_attributes to kobj_attributes (I may look at it later if I find
+> > some time).
+>
+> Adapt sclp_cpi_sys.c to the dynamic kset changes.
 
-I've no idea when this broke.
+Hi Cornelia,
 
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Thanks, the patch fixes the build failure.
+
+Tested-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Signed-off-by: Cornelia Huck <cornelia.huck@de.ibm.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/misc/pcspkr.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/s390/char/sclp_cpi_sys.c |   58 ++++++++++++++++-------------
+ 1 file changed, 33 insertions(+), 25 deletions(-)
 
-diff -puN drivers/input/misc/pcspkr.c~mips-pcspkr-build-fix drivers/input/misc/pcspkr.c
---- a/drivers/input/misc/pcspkr.c~mips-pcspkr-build-fix
-+++ a/drivers/input/misc/pcspkr.c
-@@ -24,7 +24,7 @@ MODULE_DESCRIPTION("PC Speaker beeper dr
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("platform:pcspkr");
+diff -puN drivers/s390/char/sclp_cpi_sys.c~sclp_cpi_sysc-unbork drivers/s390/char/sclp_cpi_sys.c
+--- a/drivers/s390/char/sclp_cpi_sys.c~sclp_cpi_sysc-unbork
++++ a/drivers/s390/char/sclp_cpi_sys.c
+@@ -220,13 +220,15 @@ static void set_string(char *attr, const
+ 	}
+ }
  
--#if defined(CONFIG_MIPS) || defined(CONFIG_X86)
-+#if defined(CONFIG_X86)
- /* Use the global PIT lock ! */
- #include <asm/i8253.h>
- #else
+-static ssize_t system_name_show(struct kset *kset, char *page)
++static ssize_t system_name_show(struct kobject *kobj,
++				struct kobj_attribute *attr, char *page)
+ {
+ 	return snprintf(page, PAGE_SIZE, "%s\n", system_name);
+ }
+ 
+-static ssize_t system_name_store(struct kset *kset, const char *buf,
+-	size_t len)
++static ssize_t system_name_store(struct kobject *kobj,
++				 struct kobj_attribute *attr, const char *buf,
++				 size_t len)
+ {
+ 	int rc;
+ 
+@@ -239,16 +241,18 @@ static ssize_t system_name_store(struct 
+ 	return len;
+ }
+ 
+-static struct subsys_attribute system_name_attr =
++static struct kobj_attribute system_name_attr =
+ 	__ATTR(system_name, 0644, system_name_show, system_name_store);
+ 
+-static ssize_t sysplex_name_show(struct kset *kset, char *page)
++static ssize_t sysplex_name_show(struct kobject *kobj,
++				 struct kobj_attribute *attr, char *page)
+ {
+ 	return snprintf(page, PAGE_SIZE, "%s\n", sysplex_name);
+ }
+ 
+-static ssize_t sysplex_name_store(struct kset *kset, const char *buf,
+-	size_t len)
++static ssize_t sysplex_name_store(struct kobject *kobj,
++				  struct kobj_attribute *attr, const char *buf,
++				  size_t len)
+ {
+ 	int rc;
+ 
+@@ -261,17 +265,19 @@ static ssize_t sysplex_name_store(struct
+ 	return len;
+ }
+ 
+-static struct subsys_attribute sysplex_name_attr =
++static struct kobj_attribute sysplex_name_attr =
+ 	__ATTR(sysplex_name, 0644, sysplex_name_show,
+ 	sysplex_name_store);
+ 
+-static ssize_t system_type_show(struct kset *kset, char *page)
++static ssize_t system_type_show(struct kobject *kobj,
++				struct kobj_attribute *attr, char *page)
+ {
+ 	return snprintf(page, PAGE_SIZE, "%s\n", system_type);
+ }
+ 
+-static ssize_t system_type_store(struct kset *kset, const char *buf,
+-	size_t len)
++static ssize_t system_type_store(struct kobject *kobj,
++				 struct kobj_attribute *attr, const char *buf,
++				 size_t len)
+ {
+ 	int rc;
+ 
+@@ -284,18 +290,20 @@ static ssize_t system_type_store(struct 
+ 	return len;
+ }
+ 
+-static struct subsys_attribute system_type_attr =
++static struct kobj_attribute system_type_attr =
+ 	__ATTR(system_type, 0644, system_type_show, system_type_store);
+ 
+-static ssize_t system_level_show(struct kset *kset, char *page)
++static ssize_t system_level_show(struct kobject *kobj,
++				 struct kobj_attribute *attr, char *page)
+ {
+ 	unsigned long long level = system_level;
+ 
+ 	return snprintf(page, PAGE_SIZE, "%#018llx\n", level);
+ }
+ 
+-static ssize_t system_level_store(struct kset *kset, const char *buf,
+-	size_t len)
++static ssize_t system_level_store(struct kobject *kobj,
++				  struct kobj_attribute *attr, const char *buf,
++				  size_t len)
+ {
+ 	unsigned long long level;
+ 	char *endp;
+@@ -314,12 +322,12 @@ static ssize_t system_level_store(struct
+ 	return len;
+ }
+ 
+-static struct subsys_attribute system_level_attr =
++static struct kobj_attribute system_level_attr =
+ 	__ATTR(system_level, 0644, system_level_show,
+ 	system_level_store);
+ 
+-static ssize_t set_store(struct kset *kset, const char *buf,
+-	size_t len)
++static ssize_t set_store(struct kobject *kobj, struct kobj_attribute *attr,
++			 const char *buf, size_t len)
+ {
+ 	int rc;
+ 
+@@ -330,7 +338,7 @@ static ssize_t set_store(struct kset *ks
+ 	return len;
+ }
+ 
+-static struct subsys_attribute set_attr =
++static struct kobj_attribute set_attr =
+ 	__ATTR(set, 0200, NULL, set_store);
+ 
+ static struct attribute *cpi_attrs[] = {
+@@ -346,7 +354,7 @@ static struct attribute_group cpi_attr_g
+ 	.attrs = cpi_attrs,
+ };
+ 
+-static decl_subsys(cpi, NULL, NULL);
++static struct kset *cpi_kset;
+ 
+ int sclp_cpi_set_data(const char *system, const char *sysplex, const char *type,
+ 		      const u64 level)
+@@ -376,13 +384,13 @@ static int __init cpi_init(void)
+ {
+ 	int rc;
+ 
+-	rc = firmware_register(&cpi_subsys);
+-	if (rc)
+-		return rc;
++	cpi_kset = kset_create_and_register("cpi", NULL, NULL, firmware_kset);
++	if (IS_ERR(cpi_kset))
++		return PTR_ERR(cpi_kset);
+ 
+-	rc = sysfs_create_group(&cpi_subsys.kobj, &cpi_attr_group);
++	rc = sysfs_create_group(&cpi_kset->kobj, &cpi_attr_group);
+ 	if (rc)
+-		firmware_unregister(&cpi_subsys);
++		kset_unregister(cpi_kset);
+ 
+ 	return rc;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kamalesh@linux.vnet.ibm.com are
 
-origin.patch
-uml-update-address-space-affected-by-pud_clear-checkpatch-fixes.patch
-improve-cgroup-printks-fix.patch
-proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
-acpi-make-acpi_procfs-default-to-y.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-revert-task-control-groups-example-cpu-accounting-subsystem.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
-git-dvb.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-ide-arm-hack.patch
-git-mmc.patch
-git-mtd.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing-fix.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix.patch
-git-nfsd-fixup.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-git-s390.patch
-fix-build-breakage-if-sysfs-fix.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-bidi-support-scsi_data_buffer-broke-qla1280.patch
-bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-broke-lguest.patch
-git-x86-broke-xen-too.patch
-git-x86-inlining-borkage.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-x86-arch_register_cpu-section-fix.patch
-git-cryptodev-hifn_795x-fixes.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
-file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
-x86-disable-preemption-in-delay_tsc.patch
-tty-fix-network-driver-interactions-with-tcget-set-checkpatch-fixes.patch
-x86-early_quirks-cleanup.patch
-aic94xx_sds-rename-flash_size.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-mips-pcspkr-build-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
-cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-sync_sb_inodes-propagate-errors.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-ridiculous-ext3-costs-was-re-page-fault-costs.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-suppress-aout-library-support-if-config_binfmt_aout-checkpatch-fixes.patch
-usb-net2280-cant-have-a-function-called-checkpatch-fixes.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-ia64-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-w1-build-fix.patch
+chipsfb-uses-depends-on-pci.patch
+export-acpi_check_resource_conflict.patch
+sclp_cpi_sysc-unbork.patch
+add-dma-engine-driver-for-freescale-mpc85xx-processors-fix.patch
