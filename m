@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + nfs-stop-sillyname-renames-and-unmounts-from-racing-fix.patch added to -mm tree
-Date: Tue, 13 Nov 2007 01:47:54 -0800
-Message-ID: <200711130954.lAD9sprl004667@imap1.linux-foundation.org>
+Date: Tue, 13 Nov 2007 01:54:16 -0800
+Message-ID: <200711131001.lADA1DEv004865@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56030 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39577 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751221AbXKMJ4K (ORCPT
+	by vger.kernel.org with ESMTP id S1751496AbXKMKDQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 04:56:10 -0500
+	Tue, 13 Nov 2007 05:03:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -51,8 +51,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  fs/nfs/super.c            |    6 ++++++
- include/linux/nfs_fs_sb.h |    8 ++------
- 2 files changed, 8 insertions(+), 6 deletions(-)
+ include/linux/nfs_fs_sb.h |    6 +-----
+ 2 files changed, 7 insertions(+), 5 deletions(-)
 
 diff -puN fs/nfs/super.c~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix fs/nfs/super.c
 --- a/fs/nfs/super.c~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix
@@ -71,13 +71,7 @@ diff -puN fs/nfs/super.c~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix
 diff -puN include/linux/nfs_fs_sb.h~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix include/linux/nfs_fs_sb.h
 --- a/include/linux/nfs_fs_sb.h~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix
 +++ a/include/linux/nfs_fs_sb.h
-@@ -117,16 +117,12 @@ struct nfs_server {
- 	wait_queue_head_t active_wq;  /* Wait for any activity to stop  */
- };
- 
--static inline void nfs_sb_active(struct nfs_server *server)
-+void nfs_sb_active(struct nfs_server *server)
- {
+@@ -122,11 +122,7 @@ static inline void nfs_sb_active(struct 
  	atomic_inc(&server->active);
  }
  
