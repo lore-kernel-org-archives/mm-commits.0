@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + generic-gpio-gpio_chip-support-fix.patch added to -mm tree
-Date: Mon, 12 Nov 2007 16:01:52 -0800
-Message-ID: <200711130001.lAD01qCe015457@imap1.linux-foundation.org>
+Subject: + sigwait-eats-blocked-default-ignore-signals.patch added to -mm tree
+Date: Mon, 12 Nov 2007 16:02:55 -0800
+Message-ID: <200711130002.lAD02txg015475@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46810 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55979 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751802AbXKMACF (ORCPT
+	by vger.kernel.org with ESMTP id S1751029AbXKMADL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 19:02:05 -0500
+	Mon, 12 Nov 2007 19:03:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net
+Cc: roland@redhat.com
 
 
 The patch titled
-     minor gpiolib tweaks
+     sigwait eats blocked default-ignore signals
 has been added to the -mm tree.  Its filename is
-     generic-gpio-gpio_chip-support-fix.patch
+     sigwait-eats-blocked-default-ignore-signals.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,71 +26,49 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: minor gpiolib tweaks
-From: David Brownell <david-b@pacbell.net>
+Subject: sigwait eats blocked default-ignore signals
+From: Roland McGrath <roland@redhat.com>
 
-Minor fixups to the gpiolib code.
+cf http://bugzilla.kernel.org/show_bug.cgi?id=9347
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+While a signal is blocked, it must be posted even if its action is SIG_IGN
+or is SIG_DFL with the default action to ignore.  This works right most of
+the time, but is broken when a sigwait (rt_sigtimedwait) is in progress. 
+This changes the early-discard check to respect real_blocked.  ~blocked is
+the set to check for "should wake up now", but ~(blocked|real_blocked) is
+the set for "blocked" semantics as defined by POSIX.
+
+Signed-off-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/gpiolib.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/signal.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/gpiolib.c~generic-gpio-gpio_chip-support-fix lib/gpiolib.c
---- a/lib/gpiolib.c~generic-gpio-gpio_chip-support-fix
-+++ a/lib/gpiolib.c
-@@ -28,7 +28,7 @@
- #define	extra_checks	0
- #endif
+diff -puN kernel/signal.c~sigwait-eats-blocked-default-ignore-signals kernel/signal.c
+--- a/kernel/signal.c~sigwait-eats-blocked-default-ignore-signals
++++ a/kernel/signal.c
+@@ -55,7 +55,7 @@ static int sig_ignored(struct task_struc
+ 	 * signal handler may change by the time it is
+ 	 * unblocked.
+ 	 */
+-	if (sigismember(&t->blocked, sig))
++	if (sigismember(&t->blocked, sig) || sigismember(&t->real_blocked, sig))
+ 		return 0;
  
--/* gpio_lock protects the table of chips and to gpio_chip->requested.
-+/* gpio_lock protects the table of chips and gpio_chip->requested.
-  * While any gpio is requested, its gpio_chip is not removable.  It's
-  * a raw spinlock to ensure safe access from hardirq contexts, and to
-  * shrink bitbang overhead:  per-bit preemption would be very wrong.
-@@ -533,6 +533,6 @@ static int __init gpiolib_debugfs_init(v
- 				NULL, NULL, &gpiolib_operations);
- 	return 0;
- }
--postcore_initcall(gpiolib_debugfs_init);
-+subsys_initcall(gpiolib_debugfs_init);
- 
- #endif	/* DEBUG_FS */
+ 	/* Is it explicitly or implicitly ignored? */
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from roland@redhat.com are
 
-rtc_hctosys-expects-rtcs-in-utc-doc.patch
-rtcs-handle-nvram-better.patch
-rtc-ds1307-exports-nvram.patch
-rtc-tweak-driver-documentation-for-rtc-periodic.patch
-spi-fix-double-free-on-spi_unregister_master.patch
-spi-fix-error-paths-on-txx9spi_probe.patch
-atmel_serial-build-warnings-begone.patch
-rtc-dont-write-rtc-century-when-setting-a-wake-alarm.patch
-git-arm-master.patch
-usb-s3c2410_udc-minor-irq-handler-cleanups.patch
-rtc-release-correct-region-in-error-path.patch
-rtc-fallback-to-requesting-only-the-ports-we-actually-use.patch
-tle62x0-driver-stops-ignoring-read-errors.patch
-rtc-convert-mutex-to-bitfield.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-remove-pointless-casts-from-void-pointers.patch
-spi-at25-driver-is-for-eeprom-not-flash.patch
-spi-use-mutex-not-semaphore.patch
-blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait.patch
-blackfin-spi-driver-use-void-__iomem-for-regs_base.patch
-blackfin-spi-driver-move-hard-coded-pin_req-to-board-file.patch
-blackfin-spi-driver-reconfigure-speed_hz-and-bits_per_word-in-each-spi-transfer.patch
-cosmetic-fixes-to-rtc-subsystems-kconfig.patch
-rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
-rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
-rtc-cmos-exports-nvram-in-sysfs.patch
-generic-gpio-gpio_chip-support.patch
-generic-gpio-gpio_chip-support-fix.patch
-avr32-uses-gpio_chip.patch
-mcp23s08-spi-gpio-expander.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+sigwait-eats-blocked-default-ignore-signals.patch
+i386-and-x86_64-randomize-brk.patch
+i386-and-x86_64-randomize-brk-fix.patch
+i386-and-x86_64-randomize-brk-fix-2.patch
+x86_64-ia32-ptrace-thread_area-fix.patch
+x86-32-bit-ptrace-emulation-mishandles-6th-arg.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
