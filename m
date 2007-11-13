@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-dont-assume-that-unwcheckpy-is-executable.patch added to -mm tree
-Date: Tue, 13 Nov 2007 01:13:26 -0800
-Message-ID: <200711130920.lAD9KNF9003499@imap1.linux-foundation.org>
+Subject: + ia64-export-copy_page-to-modules.patch added to -mm tree
+Date: Tue, 13 Nov 2007 01:22:55 -0800
+Message-ID: <200711130929.lAD9TqMK003827@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33987 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59571 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751372AbXKMJUa (ORCPT
+	by vger.kernel.org with ESMTP id S1751376AbXKMJ35 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 04:20:30 -0500
+	Tue, 13 Nov 2007 04:29:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, sam@ravnborg.org, tony.luck@intel.com
 
 
 The patch titled
-     ia64: don't assume that unwcheck.py is executable
+     ia64: export copy_page() to modules
 has been added to the -mm tree.  Its filename is
-     ia64-dont-assume-that-unwcheckpy-is-executable.patch
+     ia64-export-copy_page-to-modules.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ia64: don't assume that unwcheck.py is executable
+Subject: ia64: export copy_page() to modules
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Don't assume that this file has execute permissions.  For example, patch(1)
-loses that information.
+With the unionfs patch applied I get
+
+ERROR: "copy_page" [fs/unionfs/unionfs.ko] undefined!
+
+the other architectures (some, at least) export copy_page() so I guess ia64
+should also do so.
+
+To do this we need to move the copy_page() functions out of lib.a and into
+built-in.a, and create a silly little C file to add the EXPORT_SYMBOL().
+
+Maybe there are better ways...
 
 Cc: Sam Ravnborg <sam@ravnborg.org>
 Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/ia64/lib/Makefile           |    6 +++---
+ arch/ia64/lib/copy_page-export.c |    4 ++++
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN arch/ia64/Makefile~ia64-dont-assume-that-unwcheckpy-is-executable arch/ia64/Makefile
---- a/arch/ia64/Makefile~ia64-dont-assume-that-unwcheckpy-is-executable
-+++ a/arch/ia64/Makefile
-@@ -77,7 +77,7 @@ vmlinux.gz: vmlinux
- 	$(Q)$(MAKE) $(build)=$(boot) $@
+diff -puN /dev/null arch/ia64/lib/copy_page-export.c
+--- /dev/null
++++ a/arch/ia64/lib/copy_page-export.c
+@@ -0,0 +1,4 @@
++#include <asm/page.h>
++#include <linux/module.h>
++
++EXPORT_SYMBOL(copy_page);
+diff -puN arch/ia64/lib/Makefile~ia64-export-copy_page-to-modules arch/ia64/lib/Makefile
+--- a/arch/ia64/lib/Makefile~ia64-export-copy_page-to-modules
++++ a/arch/ia64/lib/Makefile
+@@ -2,7 +2,7 @@
+ # Makefile for ia64-specific library routines..
+ #
  
- unwcheck: vmlinux
--	-$(Q)READELF=$(READELF) $(srctree)/arch/ia64/scripts/unwcheck.py $<
-+	-$(Q)READELF=$(READELF) $(CONFIG_SHELL) $(srctree)/arch/ia64/scripts/unwcheck.py $<
+-obj-y := io.o
++obj-y := io.o copy_page-export.o
  
- archclean:
- 	$(Q)$(MAKE) $(clean)=$(boot)
+ lib-y := __divsi3.o __udivsi3.o __modsi3.o __umodsi3.o			\
+ 	__divdi3.o __udivdi3.o __moddi3.o __umoddi3.o			\
+@@ -11,8 +11,8 @@ lib-y := __divsi3.o __udivsi3.o __modsi3
+ 	flush.o ip_fast_csum.o do_csum.o				\
+ 	memset.o strlen.o xor.o
+ 
+-lib-$(CONFIG_ITANIUM)	+= copy_page.o copy_user.o memcpy.o
+-lib-$(CONFIG_MCKINLEY)	+= copy_page_mck.o memcpy_mck.o
++obj-$(CONFIG_ITANIUM)	+= copy_page.o copy_user.o memcpy.o
++obj-$(CONFIG_MCKINLEY)	+= copy_page_mck.o memcpy_mck.o
+ lib-$(CONFIG_PERFMON)	+= carta_random.o
+ 
+ AFLAGS___divdi3.o	=
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -226,5 +255,5 @@ shrink_slab-handle-bad-shrinkers.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 w1-build-fix.patch
-a.patch
 ia64-dont-assume-that-unwcheckpy-is-executable.patch
+ia64-export-copy_page-to-modules.patch
