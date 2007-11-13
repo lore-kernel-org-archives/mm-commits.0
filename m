@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + nfs-stop-sillyname-renames-and-unmounts-from-racing-fix.patch added to -mm tree
-Date: Tue, 13 Nov 2007 01:54:16 -0800
-Message-ID: <200711131001.lADA1DEv004865@imap1.linux-foundation.org>
+Subject: + nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix.patch added to -mm tree
+Date: Tue, 13 Nov 2007 01:57:11 -0800
+Message-ID: <200711131004.lADA48EY005002@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39577 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59595 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751496AbXKMKDQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751376AbXKMKFF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 05:03:16 -0500
+	Tue, 13 Nov 2007 05:05:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, SteveD@redhat.com, bfields@fieldses.org, hch@lst.
 
 
 The patch titled
-     nfs-stop-sillyname-renames-and-unmounts-from-racing-fix
+     nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix
 has been added to the -mm tree.  Its filename is
-     nfs-stop-sillyname-renames-and-unmounts-from-racing-fix.patch
+     nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,20 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: nfs-stop-sillyname-renames-and-unmounts-from-racing-fix
+Subject: nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mips:
-
-In file included from include/linux/nfs_fs.h:50,
-                 from fs/lockd/clntlock.c:12:
-include/linux/nfs_fs_sb.h: In function `nfs_sb_deactive':
-include/linux/nfs_fs_sb.h:128: error: `TASK_UNINTERRUPTIBLE' undeclared (first use in this function)
-include/linux/nfs_fs_sb.h:128: error: (Each undeclared identifier is reported only once
-include/linux/nfs_fs_sb.h:128: error: for each function it appears in.)
-include/linux/nfs_fs_sb.h:128: error: `TASK_INTERRUPTIBLE' undeclared (first use in this function)
-
-just uninline it.
+senility.
 
 Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -50,40 +40,21 @@ Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/super.c            |    6 ++++++
- include/linux/nfs_fs_sb.h |    6 +-----
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ fs/nfs/super.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/nfs/super.c~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix fs/nfs/super.c
---- a/fs/nfs/super.c~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix
+diff -puN fs/nfs/super.c~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix fs/nfs/super.c
+--- a/fs/nfs/super.c~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix
 +++ a/fs/nfs/super.c
-@@ -1927,4 +1927,10 @@ error_splat_super:
- 	return error;
- }
- 
-+void nfs_sb_deactive(struct nfs_server *server)
-+{
-+	if (atomic_dec_and_test(&server->active))
-+		wake_up(&server->active_wq);
-+}
-+
- #endif /* CONFIG_NFS_V4 */
-diff -puN include/linux/nfs_fs_sb.h~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix include/linux/nfs_fs_sb.h
---- a/include/linux/nfs_fs_sb.h~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix
-+++ a/include/linux/nfs_fs_sb.h
-@@ -122,11 +122,7 @@ static inline void nfs_sb_active(struct 
- 	atomic_inc(&server->active);
- }
- 
--static inline void nfs_sb_deactive(struct nfs_server *server)
--{
--	if (atomic_dec_and_test(&server->active))
--		wake_up(&server->active_wq);
--}
-+void nfs_sb_deactive(struct nfs_server *server);
- 
- /* Server capabilities */
- #define NFS_CAP_READDIRPLUS	(1U << 0)
+@@ -28,6 +28,8 @@
+ #include <linux/mm.h>
+ #include <linux/string.h>
+ #include <linux/stat.h>
++#include <linux/wait.h>
++#include <linux/sched.h>
+ #include <linux/errno.h>
+ #include <linux/unistd.h>
+ #include <linux/sunrpc/clnt.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -124,6 +95,7 @@ update-smc91x-driver-with-arm-versatile-board-info.patch
 bluetooth-uninlining.patch
 nfs-stop-sillyname-renames-and-unmounts-from-racing.patch
 nfs-stop-sillyname-renames-and-unmounts-from-racing-fix.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix.patch
 git-nfsd-fixup.patch
 quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
 git-s390.patch
