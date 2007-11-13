@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-export-copy_page-to-modules-fix.patch added to -mm tree
-Date: Tue, 13 Nov 2007 12:12:46 -0800
-Message-ID: <200711132012.lADKCk9A001945@imap1.linux-foundation.org>
+Subject: + powerpc-fix-fs_enet-module-build.patch added to -mm tree
+Date: Tue, 13 Nov 2007 12:30:06 -0800
+Message-ID: <200711132030.lADKU6hF002639@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49346 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53331 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756042AbXKMUMy (ORCPT
+	by vger.kernel.org with ESMTP id S1754662AbXKMUbB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 15:12:54 -0500
+	Tue, 13 Nov 2007 15:31:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kyle@mcmartin.ca, sam@ravnborg.org, tony.luck@intel.com
+Cc: jochen@scram.de, benh@kernel.crashing.org, jeff@garzik.org, paulus@samba.org, scottwood@freescale.com
 
 
 The patch titled
-     ia64-export-copy_page-to-modules-fix
+     powerpc: fix fs_enet module build
 has been added to the -mm tree.  Its filename is
-     ia64-export-copy_page-to-modules-fix.patch
+     powerpc-fix-fs_enet-module-build.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,218 +26,93 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ia64-export-copy_page-to-modules-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: powerpc: fix fs_enet module build
+From: Jochen Friedrich <jochen@scram.de>
 
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
+If fs_enet is build as module, on PPC_CPM_NEW_BINDING platforms
+mii-fec/mii-bitbang should be build as module, as well.  On other
+platforms, mii-fec/mii-bitbang must be included into the main module. 
+Otherwise some symbols remain undefined.  Additionally, fs_enet uses
+libphy, so add a select PHYLIB.
+
+  Building modules, stage 2.
+  MODPOST 5 modules
+ERROR: "fs_scc_ops" [drivers/net/fs_enet/fs_enet.ko] undefined!
+make[1]: *** [__modpost] Error 1
+make: *** [modules] Error 2
+
+Signed-off-by: Jochen Friedrich <jochen@scram.de>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Scott Wood <scottwood@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/ia64_ksyms.c    |    3 +++
- arch/ia64/lib/copy_page-export.c |    4 ----
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/net/fs_enet/Kconfig  |   11 ++++++++++-
+ drivers/net/fs_enet/Makefile |   15 ++++++++++++---
+ 2 files changed, 22 insertions(+), 4 deletions(-)
 
-diff -puN arch/ia64/kernel/ia64_ksyms.c~ia64-export-copy_page-to-modules-fix arch/ia64/kernel/ia64_ksyms.c
---- a/arch/ia64/kernel/ia64_ksyms.c~ia64-export-copy_page-to-modules-fix
-+++ a/arch/ia64/kernel/ia64_ksyms.c
-@@ -63,6 +63,9 @@ EXPORT_SYMBOL(__udivdi3);
- EXPORT_SYMBOL(__moddi3);
- EXPORT_SYMBOL(__umoddi3);
+diff -puN drivers/net/fs_enet/Kconfig~powerpc-fix-fs_enet-module-build drivers/net/fs_enet/Kconfig
+--- a/drivers/net/fs_enet/Kconfig~powerpc-fix-fs_enet-module-build
++++ a/drivers/net/fs_enet/Kconfig
+@@ -2,6 +2,7 @@ config FS_ENET
+        tristate "Freescale Ethernet Driver"
+        depends on CPM1 || CPM2
+        select MII
++       select PHYLIB
  
-+#include <asm/page.h>
-+EXPORT_SYMBOL(copy_page);
+ config FS_ENET_HAS_SCC
+ 	bool "Chip has an SCC usable for ethernet"
+@@ -11,11 +12,19 @@ config FS_ENET_HAS_SCC
+ config FS_ENET_HAS_FCC
+ 	bool "Chip has an FCC usable for ethernet"
+ 	depends on FS_ENET && CPM2
+-	select MDIO_BITBANG
+ 	default y
+ 
+ config FS_ENET_HAS_FEC
+ 	bool "Chip has an FEC usable for ethernet"
+ 	depends on FS_ENET && CPM1
++	select FS_ENET_MDIO_FEC
+ 	default y
+ 
++config FS_ENET_MDIO_FEC
++	tristate "MDIO driver for FEC"
++	depends on FS_ENET && CPM1
 +
- #if defined(CONFIG_MD_RAID456) || defined(CONFIG_MD_RAID456_MODULE)
- extern void xor_ia64_2(void);
- extern void xor_ia64_3(void);
-diff -puN arch/ia64/lib/copy_page-export.c~ia64-export-copy_page-to-modules-fix /dev/null
---- a/arch/ia64/lib/copy_page-export.c
-+++ /dev/null
-@@ -1,4 +0,0 @@
--#include <asm/page.h>
--#include <linux/module.h>
--
--EXPORT_SYMBOL(copy_page);
++config FS_ENET_MDIO_FCC
++	tristate "MDIO driver for FCC"
++	depends on FS_ENET && CPM2
++	select MDIO_BITBANG
+diff -puN drivers/net/fs_enet/Makefile~powerpc-fix-fs_enet-module-build drivers/net/fs_enet/Makefile
+--- a/drivers/net/fs_enet/Makefile~powerpc-fix-fs_enet-module-build
++++ a/drivers/net/fs_enet/Makefile
+@@ -4,7 +4,16 @@
+ 
+ obj-$(CONFIG_FS_ENET) += fs_enet.o
+ 
+-obj-$(CONFIG_8xx) += mac-fec.o mac-scc.o mii-fec.o
+-obj-$(CONFIG_CPM2) += mac-fcc.o mii-bitbang.o
++fs_enet-$(CONFIG_FS_ENET_HAS_SCC) += mac-scc.o
++fs_enet-$(CONFIG_FS_ENET_HAS_FEC) += mac-fec.o
++fs_enet-$(CONFIG_FS_ENET_HAS_FCC) += mac-fcc.o
+ 
+-fs_enet-objs := fs_enet-main.o
++ifeq ($(CONFIG_PPC_CPM_NEW_BINDING),y)
++obj-$(CONFIG_FS_ENET_MDIO_FEC) += mii-fec.o
++obj-$(CONFIG_FS_ENET_MDIO_FCC) += mii-bitbang.o
++else
++fs_enet-$(CONFIG_FS_ENET_MDIO_FEC) += mii-fec.o
++fs_enet-$(CONFIG_FS_ENET_MDIO_FCC) += mii-bitbang.o
++endif
++
++fs_enet-objs := fs_enet-main.o $(fs_enet-m)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jochen@scram.de are
 
-origin.patch
-uml-update-address-space-affected-by-pud_clear-checkpatch-fixes.patch
-improve-cgroup-printks-fix.patch
-proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
-acpi-make-acpi_procfs-default-to-y.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-revert-task-control-groups-example-cpu-accounting-subsystem.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
-git-dvb.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-cscope-build-warning.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-ide-arm-hack.patch
-git-mmc.patch
-git-mtd.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing-fix.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix.patch
-git-nfsd-fixup.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-git-s390.patch
-fix-build-breakage-if-sysfs-fix.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-bidi-support-scsi_data_buffer-broke-qla1280.patch
-bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-broke-lguest.patch
-git-x86-broke-xen-too.patch
-git-x86-inlining-borkage.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-x86-arch_register_cpu-section-fix.patch
-git-cryptodev-hifn_795x-fixes.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
-file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
-x86-disable-preemption-in-delay_tsc.patch
-tty-fix-network-driver-interactions-with-tcget-set-checkpatch-fixes.patch
-x86-early_quirks-cleanup.patch
-aic94xx_sds-rename-flash_size.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-ia64-export-copy_page-to-modules-fix.patch
-mips-pcspkr-build-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
-cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-sync_sb_inodes-propagate-errors.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-ridiculous-ext3-costs-was-re-page-fault-costs.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-suppress-aout-library-support-if-config_binfmt_aout-checkpatch-fixes.patch
-usb-net2280-cant-have-a-function-called-checkpatch-fixes.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-ia64-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-w1-build-fix.patch
+powerpc-kill-non-existent-symbols-from-ksyms-and-commproch.patch
+powerpc-fix-fs_enet-module-build.patch
+powerpc-fs_enet-select-phylib-as-the-driver-needs-it.patch
+powerpc-fix-typo-ifdef-ifndef.patch
