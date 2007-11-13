@@ -1,44 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: - nfs-stop-sillyname-renames-and-unmounts-from-racing-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 13 Nov 2007 01:45:38 -0800
-Message-ID: <200711130952.lAD9qZOS004545@imap1.linux-foundation.org>
+Subject: + nfs-stop-sillyname-renames-and-unmounts-from-racing-fix.patch added to -mm tree
+Date: Tue, 13 Nov 2007 01:47:54 -0800
+Message-ID: <200711130954.lAD9sprl004667@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43267 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56030 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750956AbXKMJx5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751221AbXKMJ4K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 04:53:57 -0500
+	Tue, 13 Nov 2007 04:56:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, SteveD@redhat.com, bfields@fieldses.org, hch@lst.de, steved@redhat.com, trond.myklebust@fys.uio.no, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, SteveD@redhat.com, bfields@fieldses.org, hch@lst.de, steved@redhat.com, trond.myklebust@fys.uio.no, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     nfs-stop-sillyname-renames-and-unmounts-from-racing-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     nfs-stop-sillyname-renames-and-unmounts-from-racing-checkpatch-fixes.patch
+     nfs-stop-sillyname-renames-and-unmounts-from-racing-fix
+has been added to the -mm tree.  Its filename is
+     nfs-stop-sillyname-renames-and-unmounts-from-racing-fix.patch
 
-This patch was dropped because it was folded into nfs-stop-sillyname-renames-and-unmounts-from-racing.patch
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: nfs-stop-sillyname-renames-and-unmounts-from-racing-checkpatch-fixes
+Subject: nfs-stop-sillyname-renames-and-unmounts-from-racing-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: trailing whitespace
-#126: FILE: include/linux/nfs_fs_sb.h:120:
-+static inline void $
+mips:
 
-ERROR: trailing whitespace
-#131: FILE: include/linux/nfs_fs_sb.h:125:
-+static inline void $
+In file included from include/linux/nfs_fs.h:50,
+                 from fs/lockd/clntlock.c:12:
+include/linux/nfs_fs_sb.h: In function `nfs_sb_deactive':
+include/linux/nfs_fs_sb.h:128: error: `TASK_UNINTERRUPTIBLE' undeclared (first use in this function)
+include/linux/nfs_fs_sb.h:128: error: (Each undeclared identifier is reported only once
+include/linux/nfs_fs_sb.h:128: error: for each function it appears in.)
+include/linux/nfs_fs_sb.h:128: error: `TASK_INTERRUPTIBLE' undeclared (first use in this function)
 
-total: 2 errors, 0 warnings, 86 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+just uninline it.
 
 Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -49,29 +50,46 @@ Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nfs_fs_sb.h |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ fs/nfs/super.c            |    6 ++++++
+ include/linux/nfs_fs_sb.h |    8 ++------
+ 2 files changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/nfs_fs_sb.h~nfs-stop-sillyname-renames-and-unmounts-from-racing-checkpatch-fixes include/linux/nfs_fs_sb.h
---- a/include/linux/nfs_fs_sb.h~nfs-stop-sillyname-renames-and-unmounts-from-racing-checkpatch-fixes
+diff -puN fs/nfs/super.c~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix fs/nfs/super.c
+--- a/fs/nfs/super.c~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix
++++ a/fs/nfs/super.c
+@@ -1927,4 +1927,10 @@ error_splat_super:
+ 	return error;
+ }
+ 
++void nfs_sb_deactive(struct nfs_server *server)
++{
++	if (atomic_dec_and_test(&server->active))
++		wake_up(&server->active_wq);
++}
++
+ #endif /* CONFIG_NFS_V4 */
+diff -puN include/linux/nfs_fs_sb.h~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix include/linux/nfs_fs_sb.h
+--- a/include/linux/nfs_fs_sb.h~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix
 +++ a/include/linux/nfs_fs_sb.h
-@@ -117,13 +117,12 @@ struct nfs_server {
+@@ -117,16 +117,12 @@ struct nfs_server {
  	wait_queue_head_t active_wq;  /* Wait for any activity to stop  */
  };
  
--static inline void
--nfs_sb_active(struct nfs_server *server)
-+static inline void nfs_sb_active(struct nfs_server *server)
+-static inline void nfs_sb_active(struct nfs_server *server)
++void nfs_sb_active(struct nfs_server *server)
  {
  	atomic_inc(&server->active);
  }
--static inline void
--nfs_sb_deactive(struct nfs_server *server)
-+
-+static inline void nfs_sb_deactive(struct nfs_server *server)
- {
- 	if (atomic_dec_and_test(&server->active))
- 		wake_up(&server->active_wq);
+ 
+-static inline void nfs_sb_deactive(struct nfs_server *server)
+-{
+-	if (atomic_dec_and_test(&server->active))
+-		wake_up(&server->active_wq);
+-}
++void nfs_sb_deactive(struct nfs_server *server);
+ 
+ /* Server capabilities */
+ #define NFS_CAP_READDIRPLUS	(1U << 0)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,7 +129,7 @@ ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a
 update-smc91x-driver-with-arm-versatile-board-info.patch
 bluetooth-uninlining.patch
 nfs-stop-sillyname-renames-and-unmounts-from-racing.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing-checkpatch-fixes.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing-fix.patch
 git-nfsd-fixup.patch
 quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
 git-s390.patch
