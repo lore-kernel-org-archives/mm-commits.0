@@ -1,216 +1,452 @@
 From: akpm@linux-foundation.org
-Subject: + add-lock_page_killable-vs-mm-page-trylock-rename.patch added to -mm tree
-Date: Mon, 12 Nov 2007 20:34:34 -0800
-Message-ID: <200711130441.lAD4fVNc026367@imap1.linux-foundation.org>
+Subject: - mm-page-trylock-rename.patch removed from -mm tree
+Date: Mon, 12 Nov 2007 20:50:31 -0800
+Message-ID: <200711130457.lAD4vSFF026945@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52055 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43666 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754738AbXKMEld (ORCPT
+	by vger.kernel.org with ESMTP id S1756343AbXKME5i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 23:41:33 -0500
+	Mon, 12 Nov 2007 23:57:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, nickpiggin@yahoo.com.au
+To: npiggin@suse.de, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-lock_page_killable-vs-mm-page-trylock-rename
-has been added to the -mm tree.  Its filename is
-     add-lock_page_killable-vs-mm-page-trylock-rename.patch
+     mm: page trylock rename
+has been removed from the -mm tree.  Its filename was
+     mm-page-trylock-rename.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because of too much breakage
 
 ------------------------------------------------------
-Subject: add-lock_page_killable-vs-mm-page-trylock-rename
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: page trylock rename
+From: Nick Piggin <npiggin@suse.de>
 
-Should have left the original interface in there for a while.
+Converting page lock to new locking bitops requires a change of page flag
+operation naming, so we might as well convert it to something nicer
+(!TestSetPageLocked => trylock_page, SetPageLocked => set_page_locked).
 
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/sg.c           |    2 +-
+ fs/afs/write.c              |    2 +-
+ fs/cifs/file.c              |    2 +-
+ fs/jbd/commit.c             |    2 +-
+ fs/jbd2/commit.c            |    2 +-
+ fs/reiserfs/journal.c       |    2 +-
+ fs/splice.c                 |    2 +-
+ fs/xfs/linux-2.6/xfs_aops.c |    4 ++--
+ include/linux/page-flags.h  |    8 --------
+ include/linux/pagemap.h     |   19 +++++++++++++++++--
+ mm/filemap.c                |   12 ++++++------
+ mm/memory.c                 |    2 +-
+ mm/migrate.c                |    4 ++--
+ mm/rmap.c                   |    2 +-
+ mm/shmem.c                  |    4 ++--
+ mm/swap.c                   |    2 +-
+ mm/swap_state.c             |    6 +++---
+ mm/swapfile.c               |    2 +-
+ mm/truncate.c               |    4 ++--
+ mm/vmscan.c                 |    4 ++--
+ 20 files changed, 47 insertions(+), 40 deletions(-)
 
-diff -puN include/linux/pagemap.h~add-lock_page_killable-vs-mm-page-trylock-rename include/linux/pagemap.h
---- a/include/linux/pagemap.h~add-lock_page_killable-vs-mm-page-trylock-rename
+diff -puN drivers/scsi/sg.c~mm-page-trylock-rename drivers/scsi/sg.c
+--- a/drivers/scsi/sg.c~mm-page-trylock-rename
++++ a/drivers/scsi/sg.c
+@@ -1714,7 +1714,7 @@ st_map_user_pages(struct scatterlist *sg
+                  */
+ 		flush_dcache_page(pages[i]);
+ 		/* ?? Is locking needed? I don't think so */
+-		/* if (TestSetPageLocked(pages[i]))
++		/* if (!trylock_page(pages[i]))
+ 		   goto out_unlock; */
+         }
+ 
+diff -puN fs/afs/write.c~mm-page-trylock-rename fs/afs/write.c
+--- a/fs/afs/write.c~mm-page-trylock-rename
++++ a/fs/afs/write.c
+@@ -404,7 +404,7 @@ static int afs_write_back_from_locked_pa
+ 			page = pages[loop];
+ 			if (page->index > wb->last)
+ 				break;
+-			if (TestSetPageLocked(page))
++			if (!trylock_page(page))
+ 				break;
+ 			if (!PageDirty(page) ||
+ 			    page_private(page) != (unsigned long) wb) {
+diff -puN fs/cifs/file.c~mm-page-trylock-rename fs/cifs/file.c
+--- a/fs/cifs/file.c~mm-page-trylock-rename
++++ a/fs/cifs/file.c
+@@ -1282,7 +1282,7 @@ retry:
+ 
+ 			if (first < 0)
+ 				lock_page(page);
+-			else if (TestSetPageLocked(page))
++			else if (!trylock_page(page))
+ 				break;
+ 
+ 			if (unlikely(page->mapping != mapping)) {
+diff -puN fs/jbd/commit.c~mm-page-trylock-rename fs/jbd/commit.c
+--- a/fs/jbd/commit.c~mm-page-trylock-rename
++++ a/fs/jbd/commit.c
+@@ -63,7 +63,7 @@ static void release_buffer_page(struct b
+ 		goto nope;
+ 
+ 	/* OK, it's a truncated page */
+-	if (TestSetPageLocked(page))
++	if (!trylock_page(page))
+ 		goto nope;
+ 
+ 	page_cache_get(page);
+diff -puN fs/jbd2/commit.c~mm-page-trylock-rename fs/jbd2/commit.c
+--- a/fs/jbd2/commit.c~mm-page-trylock-rename
++++ a/fs/jbd2/commit.c
+@@ -63,7 +63,7 @@ static void release_buffer_page(struct b
+ 		goto nope;
+ 
+ 	/* OK, it's a truncated page */
+-	if (TestSetPageLocked(page))
++	if (!trylock_page(page))
+ 		goto nope;
+ 
+ 	page_cache_get(page);
+diff -puN fs/reiserfs/journal.c~mm-page-trylock-rename fs/reiserfs/journal.c
+--- a/fs/reiserfs/journal.c~mm-page-trylock-rename
++++ a/fs/reiserfs/journal.c
+@@ -629,7 +629,7 @@ static int journal_list_still_alive(stru
+ static void release_buffer_page(struct buffer_head *bh)
+ {
+ 	struct page *page = bh->b_page;
+-	if (!page->mapping && !TestSetPageLocked(page)) {
++	if (!page->mapping && trylock_page(page)) {
+ 		page_cache_get(page);
+ 		put_bh(bh);
+ 		if (!page->mapping)
+diff -puN fs/splice.c~mm-page-trylock-rename fs/splice.c
+--- a/fs/splice.c~mm-page-trylock-rename
++++ a/fs/splice.c
+@@ -364,7 +364,7 @@ __generic_file_splice_read(struct file *
+ 			 * for an in-flight io page
+ 			 */
+ 			if (flags & SPLICE_F_NONBLOCK) {
+-				if (TestSetPageLocked(page))
++				if (!trylock_page(page))
+ 					break;
+ 			} else
+ 				lock_page(page);
+diff -puN fs/xfs/linux-2.6/xfs_aops.c~mm-page-trylock-rename fs/xfs/linux-2.6/xfs_aops.c
+--- a/fs/xfs/linux-2.6/xfs_aops.c~mm-page-trylock-rename
++++ a/fs/xfs/linux-2.6/xfs_aops.c
+@@ -672,7 +672,7 @@ xfs_probe_cluster(
+ 			} else
+ 				pg_offset = PAGE_CACHE_SIZE;
+ 
+-			if (page->index == tindex && !TestSetPageLocked(page)) {
++			if (page->index == tindex && trylock_page(page)) {
+ 				pg_len = xfs_probe_page(page, pg_offset, mapped);
+ 				unlock_page(page);
+ 			}
+@@ -756,7 +756,7 @@ xfs_convert_page(
+ 
+ 	if (page->index != tindex)
+ 		goto fail;
+-	if (TestSetPageLocked(page))
++	if (!trylock_page(page))
+ 		goto fail;
+ 	if (PageWriteback(page))
+ 		goto fail_unlock_page;
+diff -puN include/linux/page-flags.h~mm-page-trylock-rename include/linux/page-flags.h
+--- a/include/linux/page-flags.h~mm-page-trylock-rename
++++ a/include/linux/page-flags.h
+@@ -113,14 +113,6 @@
+  */
+ #define PageLocked(page)		\
+ 		test_bit(PG_locked, &(page)->flags)
+-#define SetPageLocked(page)		\
+-		set_bit(PG_locked, &(page)->flags)
+-#define TestSetPageLocked(page)		\
+-		test_and_set_bit(PG_locked, &(page)->flags)
+-#define ClearPageLocked(page)		\
+-		clear_bit(PG_locked, &(page)->flags)
+-#define TestClearPageLocked(page)	\
+-		test_and_clear_bit(PG_locked, &(page)->flags)
+ 
+ #define PageError(page)		test_bit(PG_error, &(page)->flags)
+ #define SetPageError(page)	set_bit(PG_error, &(page)->flags)
+diff -puN include/linux/pagemap.h~mm-page-trylock-rename include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-page-trylock-rename
 +++ a/include/linux/pagemap.h
-@@ -194,7 +194,7 @@ static inline void lock_page(struct page
- static inline int lock_page_killable(struct page *page)
+@@ -160,13 +160,28 @@ extern void FASTCALL(__lock_page(struct 
+ extern void FASTCALL(__lock_page_nosync(struct page *page));
+ extern void FASTCALL(unlock_page(struct page *page));
+ 
++static inline void set_page_locked(struct page *page)
++{
++	set_bit(PG_locked, &page->flags);
++}
++
++static inline void clear_page_locked(struct page *page)
++{
++	clear_bit(PG_locked, &page->flags);
++}
++
++static inline int trylock_page(struct page *page)
++{
++	return !test_and_set_bit(PG_locked, &page->flags);
++}
++
+ /*
+  * lock_page may only be called if we have the page's inode pinned.
+  */
+ static inline void lock_page(struct page *page)
  {
  	might_sleep();
 -	if (TestSetPageLocked(page))
 +	if (!trylock_page(page))
- 		return __lock_page_killable(page);
- 	return 0;
+ 		__lock_page(page);
  }
+ 
+@@ -177,7 +192,7 @@ static inline void lock_page(struct page
+ static inline void lock_page_nosync(struct page *page)
+ {
+ 	might_sleep();
+-	if (TestSetPageLocked(page))
++	if (!trylock_page(page))
+ 		__lock_page_nosync(page);
+ }
+ 	
+diff -puN mm/filemap.c~mm-page-trylock-rename mm/filemap.c
+--- a/mm/filemap.c~mm-page-trylock-rename
++++ a/mm/filemap.c
+@@ -432,7 +432,7 @@ int filemap_write_and_wait_range(struct 
+  * @gfp_mask:	page allocation mode
+  *
+  * This function is used to add newly allocated pagecache pages;
+- * the page is new, so we can just run SetPageLocked() against it.
++ * the page is new, so we can just run set_page_locked() against it.
+  * The other page state flags were set by rmqueue().
+  *
+  * This function does not add the page to the LRU.  The caller must do that.
+@@ -447,7 +447,7 @@ int add_to_page_cache(struct page *page,
+ 		error = radix_tree_insert(&mapping->page_tree, offset, page);
+ 		if (!error) {
+ 			page_cache_get(page);
+-			SetPageLocked(page);
++			set_page_locked(page);
+ 			page->mapping = mapping;
+ 			page->index = offset;
+ 			mapping->nrpages++;
+@@ -529,14 +529,14 @@ EXPORT_SYMBOL(wait_on_page_bit);
+  * But that's OK - sleepers in wait_on_page_writeback() just go back to sleep.
+  *
+  * The first mb is necessary to safely close the critical section opened by the
+- * TestSetPageLocked(), the second mb is necessary to enforce ordering between
++ * trylock_page(), the second mb is necessary to enforce ordering between
+  * the clear_bit and the read of the waitqueue (to avoid SMP races with a
+  * parallel wait_on_page_locked()).
+  */
+ void fastcall unlock_page(struct page *page)
+ {
+ 	smp_mb__before_clear_bit();
+-	if (!TestClearPageLocked(page))
++	if (!test_and_clear_bit(PG_locked, &page->flags))
+ 		BUG();
+ 	smp_mb__after_clear_bit(); 
+ 	wake_up_page(page, PG_locked);
+@@ -628,7 +628,7 @@ repeat:
+ 	page = radix_tree_lookup(&mapping->page_tree, offset);
+ 	if (page) {
+ 		page_cache_get(page);
+-		if (TestSetPageLocked(page)) {
++		if (!trylock_page(page)) {
+ 			read_unlock_irq(&mapping->tree_lock);
+ 			__lock_page(page);
+ 
+@@ -800,7 +800,7 @@ grab_cache_page_nowait(struct address_sp
+ 	struct page *page = find_get_page(mapping, index);
+ 
+ 	if (page) {
+-		if (!TestSetPageLocked(page))
++		if (trylock_page(page))
+ 			return page;
+ 		page_cache_release(page);
+ 		return NULL;
+diff -puN mm/memory.c~mm-page-trylock-rename mm/memory.c
+--- a/mm/memory.c~mm-page-trylock-rename
++++ a/mm/memory.c
+@@ -1559,7 +1559,7 @@ static int do_wp_page(struct mm_struct *
+ 	 * not dirty accountable.
+ 	 */
+ 	if (PageAnon(old_page)) {
+-		if (!TestSetPageLocked(old_page)) {
++		if (trylock_page(old_page)) {
+ 			reuse = can_share_swap_page(old_page);
+ 			unlock_page(old_page);
+ 		}
+diff -puN mm/migrate.c~mm-page-trylock-rename mm/migrate.c
+--- a/mm/migrate.c~mm-page-trylock-rename
++++ a/mm/migrate.c
+@@ -564,7 +564,7 @@ static int move_to_new_page(struct page 
+ 	 * establishing additional references. We are the only one
+ 	 * holding a reference to the new page at this point.
+ 	 */
+-	if (TestSetPageLocked(newpage))
++	if (!trylock_page(newpage))
+ 		BUG();
+ 
+ 	/* Prepare mapping for the new page.*/
+@@ -617,7 +617,7 @@ static int unmap_and_move(new_page_t get
+ 		goto move_newpage;
+ 
+ 	rc = -EAGAIN;
+-	if (TestSetPageLocked(page)) {
++	if (!trylock_page(page)) {
+ 		if (!force)
+ 			goto move_newpage;
+ 		lock_page(page);
+diff -puN mm/rmap.c~mm-page-trylock-rename mm/rmap.c
+--- a/mm/rmap.c~mm-page-trylock-rename
++++ a/mm/rmap.c
+@@ -401,7 +401,7 @@ int page_referenced(struct page *page, i
+ 			referenced += page_referenced_anon(page);
+ 		else if (is_locked)
+ 			referenced += page_referenced_file(page);
+-		else if (TestSetPageLocked(page))
++		else if (!trylock_page(page))
+ 			referenced++;
+ 		else {
+ 			if (page->mapping)
+diff -puN mm/shmem.c~mm-page-trylock-rename mm/shmem.c
+--- a/mm/shmem.c~mm-page-trylock-rename
++++ a/mm/shmem.c
+@@ -1161,7 +1161,7 @@ repeat:
+ 		}
+ 
+ 		/* We have to do this with page locked to prevent races */
+-		if (TestSetPageLocked(swappage)) {
++		if (!trylock_page(swappage)) {
+ 			shmem_swp_unmap(entry);
+ 			spin_unlock(&info->lock);
+ 			wait_on_page_locked(swappage);
+@@ -1220,7 +1220,7 @@ repeat:
+ 		shmem_swp_unmap(entry);
+ 		filepage = find_get_page(mapping, idx);
+ 		if (filepage &&
+-		    (!PageUptodate(filepage) || TestSetPageLocked(filepage))) {
++		    (!PageUptodate(filepage) || !trylock_page(filepage))) {
+ 			spin_unlock(&info->lock);
+ 			wait_on_page_locked(filepage);
+ 			page_cache_release(filepage);
+diff -puN mm/swap.c~mm-page-trylock-rename mm/swap.c
+--- a/mm/swap.c~mm-page-trylock-rename
++++ a/mm/swap.c
+@@ -455,7 +455,7 @@ void pagevec_strip(struct pagevec *pvec)
+ 	for (i = 0; i < pagevec_count(pvec); i++) {
+ 		struct page *page = pvec->pages[i];
+ 
+-		if (PagePrivate(page) && !TestSetPageLocked(page)) {
++		if (PagePrivate(page) && trylock_page(page)) {
+ 			if (PagePrivate(page))
+ 				try_to_release_page(page, 0);
+ 			unlock_page(page);
+diff -puN mm/swap_state.c~mm-page-trylock-rename mm/swap_state.c
+--- a/mm/swap_state.c~mm-page-trylock-rename
++++ a/mm/swap_state.c
+@@ -106,13 +106,13 @@ static int add_to_swap_cache(struct page
+ 		INC_CACHE_INFO(noent_race);
+ 		return -ENOENT;
+ 	}
+-	SetPageLocked(page);
++	set_page_locked(page);
+ 	error = __add_to_swap_cache(page, entry, gfp_mask & GFP_KERNEL);
+ 	/*
+ 	 * Anon pages are already on the LRU, we don't run lru_cache_add here.
+ 	 */
+ 	if (error) {
+-		ClearPageLocked(page);
++		clear_page_locked(page);
+ 		swap_free(entry);
+ 		if (error == -EEXIST)
+ 			INC_CACHE_INFO(exist_race);
+@@ -257,7 +257,7 @@ int move_from_swap_cache(struct page *pa
+  */
+ static inline void free_swap_cache(struct page *page)
+ {
+-	if (PageSwapCache(page) && !TestSetPageLocked(page)) {
++	if (PageSwapCache(page) && trylock_page(page)) {
+ 		remove_exclusive_swap_page(page);
+ 		unlock_page(page);
+ 	}
+diff -puN mm/swapfile.c~mm-page-trylock-rename mm/swapfile.c
+--- a/mm/swapfile.c~mm-page-trylock-rename
++++ a/mm/swapfile.c
+@@ -401,7 +401,7 @@ void free_swap_and_cache(swp_entry_t ent
+ 	if (p) {
+ 		if (swap_entry_free(p, swp_offset(entry)) == 1) {
+ 			page = find_get_page(&swapper_space, entry.val);
+-			if (page && unlikely(TestSetPageLocked(page))) {
++			if (page && unlikely(!trylock_page(page))) {
+ 				page_cache_release(page);
+ 				page = NULL;
+ 			}
+diff -puN mm/truncate.c~mm-page-trylock-rename mm/truncate.c
+--- a/mm/truncate.c~mm-page-trylock-rename
++++ a/mm/truncate.c
+@@ -189,7 +189,7 @@ void truncate_inode_pages_range(struct a
+ 			if (page_index > next)
+ 				next = page_index;
+ 			next++;
+-			if (TestSetPageLocked(page))
++			if (!trylock_page(page))
+ 				continue;
+ 			if (PageWriteback(page)) {
+ 				unlock_page(page);
+@@ -282,7 +282,7 @@ unsigned long __invalidate_mapping_pages
+ 			pgoff_t index;
+ 			int lock_failed;
+ 
+-			lock_failed = TestSetPageLocked(page);
++			lock_failed = !trylock_page(page);
+ 
+ 			/*
+ 			 * We really shouldn't be looking at the ->index of an
+diff -puN mm/vmscan.c~mm-page-trylock-rename mm/vmscan.c
+--- a/mm/vmscan.c~mm-page-trylock-rename
++++ a/mm/vmscan.c
+@@ -461,7 +461,7 @@ static unsigned long shrink_page_list(st
+ 		page = lru_to_page(page_list);
+ 		list_del(&page->lru);
+ 
+-		if (TestSetPageLocked(page))
++		if (!trylock_page(page))
+ 			goto keep;
+ 
+ 		VM_BUG_ON(PageActive(page));
+@@ -547,7 +547,7 @@ static unsigned long shrink_page_list(st
+ 				 * A synchronous write - probably a ramdisk.  Go
+ 				 * ahead and try to reclaim the page.
+ 				 */
+-				if (TestSetPageLocked(page))
++				if (!trylock_page(page))
+ 					goto keep;
+ 				if (PageDirty(page) || PageWriteback(page))
+ 					goto keep_locked;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-origin.patch
-uml-update-address-space-affected-by-pud_clear-checkpatch-fixes.patch
-improve-cgroup-printks-fix.patch
-proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
-acpi-make-acpi_procfs-default-to-y.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
-git-dvb.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-git-kvm.patch
-git-kvm-fixup.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-ide-arm-hack.patch
-git-mmc.patch
-git-mtd.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing-checkpatch-fixes.patch
-git-nfsd-fixup.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-git-s390.patch
-fix-build-breakage-if-sysfs-fix.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-inlining-borkage.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-x86-arch_register_cpu-section-fix.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
-file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
-x86-disable-preemption-in-delay_tsc.patch
-tty-fix-network-driver-interactions-with-tcget-set-checkpatch-fixes.patch
-x86-early_quirks-cleanup.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
-cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-add-lock_page_killable-vs-mm-page-trylock-rename.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-sync_sb_inodes-propagate-errors.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-ridiculous-ext3-costs-was-re-page-fault-costs.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-suppress-aout-library-support-if-config_binfmt_aout-checkpatch-fixes.patch
-usb-net2280-cant-have-a-function-called-checkpatch-fixes.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+nfs-use-gfp_nofs-preloads-for-radix-tree-insertion.patch
+rd-fix-data-corruption-on-memory-pressure.patch
+slub-use-non-atomic-bit-unlock.patch
+radix-tree-avoid-atomic-allocations-for-preloaded-insertions.patch
+mm-page-trylock-rename.patch
+fs-buffer-trylock-rename.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke.patch
+fs-introduce-write_begin-write_end-and-perform_write-aops-revoke-fix.patch
 reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-w1-build-fix.patch
