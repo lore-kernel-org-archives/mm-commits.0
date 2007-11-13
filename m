@@ -1,69 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-fs_enet-select-phylib-as-the-driver-needs-it.patch removed from -mm tree
-Date: Tue, 13 Nov 2007 12:30:16 -0800
-Message-ID: <200711132030.lADKUGYl002642@imap1.linux-foundation.org>
+Subject: + linux-kernel-markers-document-format-string.patch added to -mm tree
+Date: Tue, 13 Nov 2007 12:35:00 -0800
+Message-ID: <200711132035.lADKZ0tW002820@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47724 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34121 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758943AbXKMUbD (ORCPT
+	by vger.kernel.org with ESMTP id S1752594AbXKMUf3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 15:31:03 -0500
+	Tue, 13 Nov 2007 15:35:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jochen@scram.de, benh@kernel.crashing.org, jeff@garzik.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     powerpc: fs_enet: select PHYLIB as the driver needs it.
-has been removed from the -mm tree.  Its filename was
-     powerpc-fs_enet-select-phylib-as-the-driver-needs-it.patch
+     Linux Kernel Markers: document format string
+has been added to the -mm tree.  Its filename is
+     linux-kernel-markers-document-format-string.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: powerpc: fs_enet: select PHYLIB as the driver needs it.
-From: Jochen Friedrich <jochen@scram.de>
+Subject: Linux Kernel Markers: document format string
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Add a select PHYLIB to config FS_ENET as the driver uses functions of
-libphy.
+Describes the format string standard further: Use of field names before the
+type specifiers..
 
-LD      .tmp_vmlinux1
-drivers/built-in.o: In function `fs_ioctl':
-drivers/net/fs_enet/fs_enet-main.c:952: undefined reference to `phy_mii_ioctl'
-[...]
-make: *** [.tmp_vmlinux1] Error 1
-
-Signed-off-by: Jochen Friedrich <jochen@scram.de>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/fs_enet/Kconfig |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ Documentation/markers.txt |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/fs_enet/Kconfig~powerpc-fs_enet-select-phylib-as-the-driver-needs-it drivers/net/fs_enet/Kconfig
---- a/drivers/net/fs_enet/Kconfig~powerpc-fs_enet-select-phylib-as-the-driver-needs-it
-+++ a/drivers/net/fs_enet/Kconfig
-@@ -1,7 +1,8 @@
- config FS_ENET
--       tristate "Freescale Ethernet Driver"
--       depends on CPM1 || CPM2
--       select MII
-+	tristate "Freescale Ethernet Driver"
-+	depends on CPM1 || CPM2
-+	select MII
-+	select PHYLIB
+diff -puN Documentation/markers.txt~linux-kernel-markers-document-format-string Documentation/markers.txt
+--- a/Documentation/markers.txt~linux-kernel-markers-document-format-string
++++ a/Documentation/markers.txt
+@@ -35,12 +35,14 @@ In order to use the macro trace_mark, yo
  
- config FS_ENET_HAS_SCC
- 	bool "Chip has an SCC usable for ethernet"
+ And,
+ 
+-trace_mark(subsystem_event, "%d %s", someint, somestring);
++trace_mark(subsystem_event, "myint %d mystring %s", someint, somestring);
+ Where :
+ - subsystem_event is an identifier unique to your event
+     - subsystem is the name of your subsystem.
+     - event is the name of the event to mark.
+-- "%d %s" is the formatted string for the serializer.
++- "myint %d mystring %s" is the formatted string for the serializer. "myint" and
++  "mystring" are repectively the field names associated with the first and
++  second parameter.
+ - someint is an integer.
+ - somestring is a char pointer.
+ 
 _
 
-Patches currently in -mm which might be from jochen@scram.de are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
-powerpc-kill-non-existent-symbols-from-ksyms-and-commproch.patch
-powerpc-fix-fs_enet-module-build.patch
-powerpc-fs_enet-select-phylib-as-the-driver-needs-it.patch
-powerpc-fix-typo-ifdef-ifndef.patch
+linux-kernel-markers-fix-marker-mutex-not-taken-upon-module-load.patch
+linux-kernel-markers-document-format-string.patch
+linux-kernel-markers-fix-samples-to-follow-format-string-standard.patch
+markers-fix-warnings.patch
+add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
+fall-back-on-interrupt-disable-in-cmpxchg8b-on-80386-and-80486.patch
+add-cmpxchg64-and-cmpxchg64_local-to-alpha.patch
+add-cmpxchg64-and-cmpxchg64_local-to-mips.patch
+add-cmpxchg64-and-cmpxchg64_local-to-powerpc.patch
+add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
+add-cmpxchg_local-to-arm.patch
+add-cmpxchg_local-to-avr32.patch
+add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
+add-cmpxchg_local-to-cris.patch
+add-cmpxchg_local-to-frv.patch
+add-cmpxchg_local-to-h8300.patch
+add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
+new-cmpxchg_local-optimized-for-up-case-for-m32r.patch
+fix-m32r-__xchg.patch
+m32r-build-fix-of-arch-m32r-kernel-smpbootc.patch
+local_t-m32r-use-architecture-specific-cmpxchg_local.patch
+add-cmpxchg_local-to-m86k.patch
+add-cmpxchg_local-to-m68knommu.patch
+add-cmpxchg_local-to-parisc.patch
+add-cmpxchg_local-to-ppc.patch
+add-cmpxchg_local-to-s390.patch
+add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32.patch
+add-cmpxchg_local-to-sh64.patch
+add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
+add-cmpxchg_local-to-sparc64.patch
+add-cmpxchg_local-to-v850.patch
+add-cmpxchg_local-to-xtensa.patch
