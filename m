@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maps4-rework-task_size-macros-mips-fix.patch added to -mm tree
-Date: Tue, 13 Nov 2007 02:05:38 -0800
-Message-ID: <200711131012.lADACZbX005305@imap1.linux-foundation.org>
+Subject: + mips-pcspkr-build-fix.patch added to -mm tree
+Date: Tue, 13 Nov 2007 02:16:40 -0800
+Message-ID: <200711131023.lADANbko005796@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56744 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39881 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755308AbXKMKNd (ORCPT
+	by vger.kernel.org with ESMTP id S1751328AbXKMKX4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 05:13:33 -0500
+	Tue, 13 Nov 2007 05:23:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, haveblue@us.ibm.com, mpm@selenic.com, ralf@linux-mips.org, rientjes@google.com
+Cc: akpm@linux-foundation.org, dtor@mail.ru, ralf@linux-mips.org
 
 
 The patch titled
-     maps4-rework-task_size-macros-mips-fix
+     mips: pcspkr build fix
 has been added to the -mm tree.  Its filename is
-     maps4-rework-task_size-macros-mips-fix.patch
+     mips-pcspkr-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,38 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: maps4-rework-task_size-macros-mips-fix
+Subject: mips: pcspkr build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/proc/task_mmu.c: In function `pagemap_read':
-fs/proc/task_mmu.c:679: error: `TASK_SIZE32' undeclared (first use in this function)
-fs/proc/task_mmu.c:679: error: (Each undeclared identifier is reported only once
-fs/proc/task_mmu.c:679: error: for each function it appears in.)
+drivers/input/misc/pcspkr.c: In function `pcspkr_event':
+drivers/input/misc/pcspkr.c:50: error: `PIT_TICK_RATE' undeclared (first use in this function)
+drivers/input/misc/pcspkr.c:50: error: (Each undeclared identifier is reported only once
+drivers/input/misc/pcspkr.c:50: error: for each function it appears in.)
 
-Like this?
+I've no idea when this broke.
 
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Matt Mackall <mpm@selenic.com>
 Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-mips/processor.h |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/input/misc/pcspkr.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-mips/processor.h~maps4-rework-task_size-macros-mips-fix include/asm-mips/processor.h
---- a/include/asm-mips/processor.h~maps4-rework-task_size-macros-mips-fix
-+++ a/include/asm-mips/processor.h
-@@ -45,8 +45,6 @@ extern unsigned int vced_count, vcei_cou
-  * space during mmap's.
-  */
- #define TASK_UNMAPPED_BASE	(PAGE_ALIGN(TASK_SIZE / 3))
--#define TASK_SIZE_OF(tsk)						\
--	(test_tsk_thread_flag(tsk, TIF_32BIT_ADDR) ? TASK_SIZE32 : TASK_SIZE)
- #endif
+diff -puN drivers/input/misc/pcspkr.c~mips-pcspkr-build-fix drivers/input/misc/pcspkr.c
+--- a/drivers/input/misc/pcspkr.c~mips-pcspkr-build-fix
++++ a/drivers/input/misc/pcspkr.c
+@@ -24,7 +24,7 @@ MODULE_DESCRIPTION("PC Speaker beeper dr
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("platform:pcspkr");
  
- #ifdef CONFIG_64BIT
+-#if defined(CONFIG_MIPS) || defined(CONFIG_X86)
++#if defined(CONFIG_X86)
+ /* Use the global PIT lock ! */
+ #include <asm/i8253.h>
+ #else
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -132,6 +130,7 @@ aic94xx_sds-rename-flash_size.patch
 ia64-increase-datapatch-offset.patch
 ia64-dont-assume-that-unwcheckpy-is-executable.patch
 ia64-export-copy_page-to-modules.patch
+mips-pcspkr-build-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
 i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
