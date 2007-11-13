@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-kvm-fixup.patch added to -mm tree
-Date: Mon, 12 Nov 2007 19:55:58 -0800
-Message-ID: <200711130355.lAD3twdH024792@imap1.linux-foundation.org>
+Subject: + x86-early_quirks-cleanup.patch added to -mm tree
+Date: Mon, 12 Nov 2007 20:01:21 -0800
+Message-ID: <200711130401.lAD41L9p024969@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48804 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53687 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753217AbXKMD4L (ORCPT
+	by vger.kernel.org with ESMTP id S1753436AbXKMECo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 22:56:11 -0500
+	Mon, 12 Nov 2007 23:02:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, avi@qumranet.com
+Cc: akpm@linux-foundation.org, ak@suse.de, ezk@cs.sunysb.edu, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     git-kvm-fixup
+     x86: early_quirks cleanup
 has been added to the -mm tree.  Its filename is
-     git-kvm-fixup.patch
+     x86-early_quirks-cleanup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,67 +26,85 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-kvm-fixup
+Subject: x86: early_quirks cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-attempt to fix git conflicts
+Do the appropriate ifdefs-in-headers to remove some ifdefs-in-C.
 
-Cc: Avi Kivity <avi@qumranet.com>
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/kvm/svm.c         |    8 --------
- drivers/kvm/x86_emulate.c |    4 ----
- 2 files changed, 12 deletions(-)
+ arch/x86/kernel/early-quirks.c |    1 +
+ arch/x86/kernel/setup_32.c     |    2 --
+ arch/x86/kernel/setup_64.c     |    2 --
+ include/asm-x86/pci.h          |    5 ++++-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/kvm/svm.c~git-kvm-fixup drivers/kvm/svm.c
---- a/drivers/kvm/svm.c~git-kvm-fixup
-+++ a/drivers/kvm/svm.c
-@@ -568,11 +568,7 @@ static int svm_vcpu_reset(struct kvm_vcp
- 		svm->vmcb->save.cs.base = svm->vcpu.sipi_vector << 12;
- 		svm->vmcb->save.cs.selector = svm->vcpu.sipi_vector << 8;
- 	}
--<<<<<<< HEAD:drivers/kvm/svm.c
--=======
--
- 	return 0;
-->>>>>>> FETCH_HEAD:drivers/kvm/svm.c
- }
- 
- static struct kvm_vcpu *svm_create_vcpu(struct kvm *kvm, unsigned int id)
-@@ -1564,9 +1560,6 @@ static void svm_vcpu_run(struct kvm_vcpu
- 		  [r14]"i"(offsetof(struct vcpu_svm, vcpu.regs[VCPU_REGS_R14])),
- 		  [r15]"i"(offsetof(struct vcpu_svm, vcpu.regs[VCPU_REGS_R15]))
+diff -puN arch/x86/kernel/early-quirks.c~x86-early_quirks-cleanup arch/x86/kernel/early-quirks.c
+--- a/arch/x86/kernel/early-quirks.c~x86-early_quirks-cleanup
++++ a/arch/x86/kernel/early-quirks.c
+@@ -12,6 +12,7 @@
+ #include <linux/pci.h>
+ #include <linux/acpi.h>
+ #include <linux/pci_ids.h>
++
+ #include <asm/pci-direct.h>
+ #include <asm/dma.h>
+ #include <asm/io_apic.h>
+diff -puN arch/x86/kernel/setup_32.c~x86-early_quirks-cleanup arch/x86/kernel/setup_32.c
+--- a/arch/x86/kernel/setup_32.c~x86-early_quirks-cleanup
++++ a/arch/x86/kernel/setup_32.c
+@@ -733,9 +733,7 @@ void __init setup_arch(char **cmdline_p)
+ 	acpi_boot_table_init();
  #endif
--<<<<<<< HEAD:drivers/kvm/svm.c
--		: "cc", "memory" );
--=======
- 		: "cc", "memory"
- #ifdef CONFIG_X86_64
- 		, "rbx", "rcx", "rdx", "rsi", "rdi"
-@@ -1575,7 +1568,6 @@ static void svm_vcpu_run(struct kvm_vcpu
- 		, "ebx", "ecx", "edx" , "esi", "edi"
- #endif
- 		);
-->>>>>>> FETCH_HEAD:drivers/kvm/svm.c
  
- 	if ((svm->vmcb->save.dr7 & 0xff))
- 		load_db_regs(svm->host_db_regs);
-diff -puN drivers/kvm/x86_emulate.c~git-kvm-fixup drivers/kvm/x86_emulate.c
---- a/drivers/kvm/x86_emulate.c~git-kvm-fixup
-+++ a/drivers/kvm/x86_emulate.c
-@@ -1308,11 +1308,7 @@ x86_emulate_insn(struct x86_emulate_ctxt
- 	case 0x63:		/* movsxd */
- 		if (ctxt->mode != X86EMUL_MODE_PROT64)
- 			goto cannot_emulate;
--<<<<<<< HEAD:drivers/kvm/x86_emulate.c
--		dst.val = (s32) src.val;
--=======
- 		c->dst.val = (s32) c->src.val;
-->>>>>>> FETCH_HEAD:drivers/kvm/x86_emulate.c
- 		break;
- 	case 0x80 ... 0x83:	/* Grp1 */
- 		switch (c->modrm_reg) {
+-#ifdef CONFIG_PCI
+ 	early_quirks();
+-#endif
+ 
+ #ifdef CONFIG_ACPI
+ 	acpi_boot_init();
+diff -puN arch/x86/kernel/setup_64.c~x86-early_quirks-cleanup arch/x86/kernel/setup_64.c
+--- a/arch/x86/kernel/setup_64.c~x86-early_quirks-cleanup
++++ a/arch/x86/kernel/setup_64.c
+@@ -408,9 +408,7 @@ void __init setup_arch(char **cmdline_p)
+ 	reserve_crashkernel();
+ 	paging_init();
+ 
+-#ifdef CONFIG_PCI
+ 	early_quirks();
+-#endif
+ 
+ 	/*
+ 	 * set this early, so we dont allocate cpu0
+diff -puN include/asm-x86/pci.h~x86-early_quirks-cleanup include/asm-x86/pci.h
+--- a/include/asm-x86/pci.h~x86-early_quirks-cleanup
++++ a/include/asm-x86/pci.h
+@@ -40,8 +40,12 @@ static inline int pci_proc_domain(struct
+ 
+ #ifdef CONFIG_PCI
+ extern unsigned int pcibios_assign_all_busses(void);
++extern void early_quirks(void);
+ #else
+ #define pcibios_assign_all_busses()	0
++static inline void early_quirks(void)
++{
++}
+ #endif
+ #define pcibios_scan_all_fns(a, b)	0
+ 
+@@ -66,7 +70,6 @@ extern int pci_mmap_page_range(struct pc
+ 
+ 
+ #ifdef CONFIG_PCI
+-extern void early_quirks(void);
+ static inline void pci_dma_burst_advice(struct pci_dev *pdev,
+ 					enum pci_dma_burst_strategy *strat,
+ 					unsigned long *strategy_parameter)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -149,7 +167,7 @@ fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
 file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
 x86-disable-preemption-in-delay_tsc.patch
 tty-fix-network-driver-interactions-with-tcget-set-checkpatch-fixes.patch
-x86-early_quirks-fix-build.patch
+x86-early_quirks-cleanup.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
 i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
