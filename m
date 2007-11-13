@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + linux-kernel-markers-document-format-string.patch added to -mm tree
-Date: Tue, 13 Nov 2007 12:35:00 -0800
-Message-ID: <200711132035.lADKZ0tW002820@imap1.linux-foundation.org>
+Subject: + linux-kernel-markers-fix-samples-to-follow-format-string-standard.patch added to -mm tree
+Date: Tue, 13 Nov 2007 12:35:01 -0800
+Message-ID: <200711132035.lADKZ1C8002823@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34121 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39904 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752594AbXKMUf3 (ORCPT
+	by vger.kernel.org with ESMTP id S1753954AbXKMUfe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 15:35:29 -0500
+	Tue, 13 Nov 2007 15:35:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mathieu.desnoyers@polymtl.ca
 
 
 The patch titled
-     Linux Kernel Markers: document format string
+     Linux Kernel Markers: fix samples to follow format string standard
 has been added to the -mm tree.  Its filename is
-     linux-kernel-markers-document-format-string.patch
+     linux-kernel-markers-fix-samples-to-follow-format-string-standard.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,39 +26,44 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Linux Kernel Markers: document format string
+Subject: Linux Kernel Markers: fix samples to follow format string standard
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Describes the format string standard further: Use of field names before the
-type specifiers..
+Add the field names to marker example format string.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/markers.txt |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ samples/markers/marker-example.c |    3 ++-
+ samples/markers/probe-example.c  |    2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/markers.txt~linux-kernel-markers-document-format-string Documentation/markers.txt
---- a/Documentation/markers.txt~linux-kernel-markers-document-format-string
-+++ a/Documentation/markers.txt
-@@ -35,12 +35,14 @@ In order to use the macro trace_mark, yo
+diff -puN samples/markers/marker-example.c~linux-kernel-markers-fix-samples-to-follow-format-string-standard samples/markers/marker-example.c
+--- a/samples/markers/marker-example.c~linux-kernel-markers-fix-samples-to-follow-format-string-standard
++++ a/samples/markers/marker-example.c
+@@ -19,7 +19,8 @@ static int my_open(struct inode *inode, 
+ {
+ 	int i;
  
- And,
- 
--trace_mark(subsystem_event, "%d %s", someint, somestring);
-+trace_mark(subsystem_event, "myint %d mystring %s", someint, somestring);
- Where :
- - subsystem_event is an identifier unique to your event
-     - subsystem is the name of your subsystem.
-     - event is the name of the event to mark.
--- "%d %s" is the formatted string for the serializer.
-+- "myint %d mystring %s" is the formatted string for the serializer. "myint" and
-+  "mystring" are repectively the field names associated with the first and
-+  second parameter.
- - someint is an integer.
- - somestring is a char pointer.
- 
+-	trace_mark(subsystem_event, "%d %s", 123, "example string");
++	trace_mark(subsystem_event, "integer %d string %s", 123,
++		"example string");
+ 	for (i = 0; i < 10; i++)
+ 		trace_mark(subsystem_eventb, MARK_NOARGS);
+ 	return -EPERM;
+diff -puN samples/markers/probe-example.c~linux-kernel-markers-fix-samples-to-follow-format-string-standard samples/markers/probe-example.c
+--- a/samples/markers/probe-example.c~linux-kernel-markers-fix-samples-to-follow-format-string-standard
++++ a/samples/markers/probe-example.c
+@@ -53,7 +53,7 @@ void probe_subsystem_eventb(const struct
+ static struct probe_data probe_array[] =
+ {
+ 	{	.name = "subsystem_event",
+-		.format = "%d %s",
++		.format = "integer %d string %s",
+ 		.probe_func = probe_subsystem_event },
+ 	{	.name = "subsystem_eventb",
+ 		.format = MARK_NOARGS,
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
