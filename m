@@ -1,53 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - x86-io_apic_64c-remove-unused-config-check.patch removed from -mm tree
-Date: Mon, 12 Nov 2007 20:07:59 -0800
-Message-ID: <200711130407.lAD47wSf025267@imap1.linux-foundation.org>
+Subject: - uartlite-speed-up-console-output.patch removed from -mm tree
+Date: Mon, 12 Nov 2007 20:08:09 -0800
+Message-ID: <200711130408.lAD48891025286@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35443 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41525 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755597AbXKMEQq (ORCPT
+	by vger.kernel.org with ESMTP id S1755701AbXKMEQz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 23:16:46 -0500
+	Mon, 12 Nov 2007 23:16:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: h-shimamoto@ct.jp.nec.com, mm-commits@vger.kernel.org
+To: grant.likely@secretlab.ca, benh@kernel.crashing.org, jwboyer@linux.vnet.ibm.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: io_apic_64.c: remove unused config check
+     Uartlite: speed up console output
 has been removed from the -mm tree.  Its filename was
-     x86-io_apic_64c-remove-unused-config-check.patch
+     uartlite-speed-up-console-output.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86: io_apic_64.c: remove unused config check
-From: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Subject: Uartlite: speed up console output
+From: Grant Likely <grant.likely@secretlab.ca>
 
-CONFIG_IRQBALANCE doesn't exist on x86_64.
+Change the wait_tx routine to call cpu_relax() instead of udelay() to
+reduce console output latency and test for the TXFULL bit instead of
+TXEMPTY.  That way the FIFO doesn't need to by 100% flushed before writing
+the next character.
 
-Signed-off-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+Cc: Josh Boyer <jwboyer@linux.vnet.ibm.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/io_apic_64.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/uartlite.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/kernel/io_apic_64.c~x86-io_apic_64c-remove-unused-config-check arch/x86/kernel/io_apic_64.c
---- a/arch/x86/kernel/io_apic_64.c~x86-io_apic_64c-remove-unused-config-check
-+++ a/arch/x86/kernel/io_apic_64.c
-@@ -1436,7 +1436,7 @@ static void ack_apic_level(unsigned int 
- 	int do_unmask_irq = 0;
+diff -puN drivers/serial/uartlite.c~uartlite-speed-up-console-output drivers/serial/uartlite.c
+--- a/drivers/serial/uartlite.c~uartlite-speed-up-console-output
++++ a/drivers/serial/uartlite.c
+@@ -329,12 +329,14 @@ static struct uart_ops ulite_ops = {
+ static void ulite_console_wait_tx(struct uart_port *port)
+ {
+ 	int i;
++	u8 val;
  
- 	irq_complete_move(irq);
--#if defined(CONFIG_GENERIC_PENDING_IRQ) || defined(CONFIG_IRQBALANCE)
-+#ifdef CONFIG_GENERIC_PENDING_IRQ
- 	/* If we are moving the irq we need to mask it */
- 	if (unlikely(irq_desc[irq].status & IRQ_MOVE_PENDING)) {
- 		do_unmask_irq = 1;
+-	/* wait up to 10ms for the character(s) to be sent */
+-	for (i = 0; i < 10000; i++) {
+-		if (readb(port->membase + ULITE_STATUS) & ULITE_STATUS_TXEMPTY)
++	/* Spin waiting for TX fifo to have space available */
++	for (i = 0; i < 100000; i++) {
++		val = readb(port->membase + ULITE_STATUS);
++		if ((val & ULITE_STATUS_TXFULL) == 0)
+ 			break;
+-		udelay(1);
++		cpu_relax();
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from h-shimamoto@ct.jp.nec.com are
+Patches currently in -mm which might be from grant.likely@secretlab.ca are
 
-git-x86.patch
+origin.patch
