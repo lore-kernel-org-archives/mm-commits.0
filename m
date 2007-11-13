@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-increase-datapatch-offset.patch added to -mm tree
-Date: Tue, 13 Nov 2007 00:48:05 -0800
-Message-ID: <200711130855.lAD8t2Ne002646@imap1.linux-foundation.org>
+Subject: + ia64-dont-assume-that-unwcheckpy-is-executable.patch added to -mm tree
+Date: Tue, 13 Nov 2007 01:13:26 -0800
+Message-ID: <200711130920.lAD9KNF9003499@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50030 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33987 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750837AbXKMIzd (ORCPT
+	by vger.kernel.org with ESMTP id S1751372AbXKMJUa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 03:55:33 -0500
+	Tue, 13 Nov 2007 04:20:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, tony.luck@intel.com
+Cc: akpm@linux-foundation.org, sam@ravnborg.org, tony.luck@intel.com
 
 
 The patch titled
-     ia64: increase .data.patch offset
+     ia64: don't assume that unwcheck.py is executable
 has been added to the -mm tree.  Its filename is
-     ia64-increase-datapatch-offset.patch
+     ia64-dont-assume-that-unwcheckpy-is-executable.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,32 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ia64: increase .data.patch offset
+Subject: ia64: don't assume that unwcheck.py is executable
 From: Andrew Morton <akpm@linux-foundation.org>
 
-I get this:
+Don't assume that this file has execute permissions.  For example, patch(1)
+loses that information.
 
-/opt/crosstool/gcc-3.4.5-glibc-2.3.6/ia64-unknown-linux-gnu/lib/gcc/ia64-unknown-linux-gnu/3.4.5/../../../../ia64-unknown-linux-gnu/bin/ld: section .data.patch [a000000000000500 -> a000000000000507] overlaps section .dynamic [a0000000000003c8 -> a000000000000507]
-
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/gate.lds.S |    2 +-
+ arch/ia64/Makefile |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ia64/kernel/gate.lds.S~ia64-increase-datapatch-offset arch/ia64/kernel/gate.lds.S
---- a/arch/ia64/kernel/gate.lds.S~ia64-increase-datapatch-offset
-+++ a/arch/ia64/kernel/gate.lds.S
-@@ -30,7 +30,7 @@ SECTIONS
- 	 * the dynamic symbol table et al.  If this amount is insufficient,
- 	 * ld -shared will barf.  Just increase it here.
- 	 */
--	. = GATE_ADDR + 0x500;
-+	. = GATE_ADDR + 0x600;
+diff -puN arch/ia64/Makefile~ia64-dont-assume-that-unwcheckpy-is-executable arch/ia64/Makefile
+--- a/arch/ia64/Makefile~ia64-dont-assume-that-unwcheckpy-is-executable
++++ a/arch/ia64/Makefile
+@@ -77,7 +77,7 @@ vmlinux.gz: vmlinux
+ 	$(Q)$(MAKE) $(build)=$(boot) $@
  
- 	.data.patch		: {
- 		__start_gate_mckinley_e9_patchlist = .;
+ unwcheck: vmlinux
+-	-$(Q)READELF=$(READELF) $(srctree)/arch/ia64/scripts/unwcheck.py $<
++	-$(Q)READELF=$(READELF) $(CONFIG_SHELL) $(srctree)/arch/ia64/scripts/unwcheck.py $<
+ 
+ archclean:
+ 	$(Q)$(MAKE) $(clean)=$(boot)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -226,3 +226,5 @@ shrink_slab-handle-bad-shrinkers.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 w1-build-fix.patch
+a.patch
+ia64-dont-assume-that-unwcheckpy-is-executable.patch
