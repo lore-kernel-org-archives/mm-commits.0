@@ -1,63 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-fix-cpu-hotplug-regression.patch removed from -mm tree
-Date: Mon, 12 Nov 2007 18:12:53 -0800
-Message-ID: <200711130212.lAD2CrlS021434@imap1.linux-foundation.org>
+Subject: + x86-dont-call-mce_create_device-on-cpu_up_prepare.patch added to -mm tree
+Date: Mon, 12 Nov 2007 18:13:27 -0800
+Message-ID: <200711130213.lAD2DRf0021467@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56214 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46193 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751814AbXKMCNW (ORCPT
+	by vger.kernel.org with ESMTP id S1758367AbXKMCN4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 21:13:22 -0500
+	Mon, 12 Nov 2007 21:13:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, ak@suse.de, andreas.herrmann3@amd.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: andreas.herrmann3@amd.com, akinobu.mita@gmail.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     x86_64: fix cpu-hotplug regression
-has been removed from the -mm tree.  Its filename was
-     x86_64-fix-cpu-hotplug-regression.patch
+     x86: don't call mce_create_device on CPU_UP_PREPARE
+has been added to the -mm tree.  Its filename is
+     x86-dont-call-mce_create_device-on-cpu_up_prepare.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: x86_64: fix cpu-hotplug regression
-From: "Akinobu Mita" <akinobu.mita@gmail.com>
+Subject: x86: don't call mce_create_device on CPU_UP_PREPARE
+From: "Andreas Herrmann" <andreas.herrmann3@amd.com>
 
-> [PATCH] x86: fix cpu hotplug regression (don't call mce_create_device on CPU_UP_PREPARE)
->
-> Fix regression introduced with d435d862baca3e25e5eec236762a43251b1e7ffc
-> ("cpu hotplug: mce: fix cpu hotplug error handling").
->
-> For CPUs not brought up during boot (using maxcpus and additional_cpus
-> parameters) we don't know whether mce is supported or not at "CPU_UP_PREPARE"-time.
-> Thus mce_cpu_callback should be called after the CPU is online.
+Fix regression introduced with d435d862baca3e25e5eec236762a43251b1e7ffc
+("cpu hotplug: mce: fix cpu hotplug error handling").
 
-Thank you for finding and fixing the problem.
-I added two fixes to your patch:
+A CPU which was not brought up during boot (using maxcpus and
+additional_cpus parameters) couldn't be onlined anymore.  For such a CPU it
+seemed that MCE was not supported during CPU_UP_PREPARE-time which caused
+mce_cpu_callback to return NOTIFY_BAD to notifier_call_chain.  To fix this
+we:
 
-- Avoid mce_remove_device() for the CPU that is not correctly initialized
-  by mce_create_device() failure.
+ - call mce_create_device for CPU_ONLINE event (instead of CPU_UP_PREPARE),
+ - avoid mce_remove_device() for the CPU that is not correctly initialized
+   by mce_create_device() failure,
+ - make mce_cpu_callback always return NOTIFY_OK for CPU_ONLINE event.
+   Because CPU_ONLINE callback return value is always ignored.
 
-- make CPU_ONLINE callback always return NOTIFY_OK.
-  Because CPU_ONLINE callback return value is always ignored.
-
-[akinobu.mita@gmail.com: make CPU_ONLINE callback always return NOTIFY_OK]
 [akinobu.mita@gmail.com: avoid mce_remove_device() for not initialized device]
+[akinobu.mita@gmail.com: make mce_cpu_callback always return NOTIFY_OK]
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  arch/x86/kernel/cpu/mcheck/mce_64.c |   18 +++++++++++-------
  1 file changed, 11 insertions(+), 7 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/mcheck/mce_64.c~x86_64-fix-cpu-hotplug-regression arch/x86/kernel/cpu/mcheck/mce_64.c
---- a/arch/x86/kernel/cpu/mcheck/mce_64.c~x86_64-fix-cpu-hotplug-regression
+diff -puN arch/x86/kernel/cpu/mcheck/mce_64.c~x86-dont-call-mce_create_device-on-cpu_up_prepare arch/x86/kernel/cpu/mcheck/mce_64.c
+--- a/arch/x86/kernel/cpu/mcheck/mce_64.c~x86-dont-call-mce_create_device-on-cpu_up_prepare
 +++ a/arch/x86/kernel/cpu/mcheck/mce_64.c
 @@ -802,6 +802,8 @@ static struct sysdev_attribute *mce_attr
  	NULL
@@ -119,8 +119,8 @@ diff -puN arch/x86/kernel/cpu/mcheck/mce_64.c~x86_64-fix-cpu-hotplug-regression 
  static struct notifier_block mce_cpu_notifier = {
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from andreas.herrmann3@amd.com are
 
-slab-fix-typo-in-allocation-failure-handling.patch
+git-cpufreq.patch
+x86-show-cpuinfo-only-for-online-cpus.patch
 x86-dont-call-mce_create_device-on-cpu_up_prepare.patch
-x86_64-fix-cpu-hotplug-regression.patch
