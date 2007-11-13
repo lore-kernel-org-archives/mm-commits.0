@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix.patch added to -mm tree
-Date: Tue, 13 Nov 2007 01:57:11 -0800
-Message-ID: <200711131004.lADA48EY005002@imap1.linux-foundation.org>
+Subject: + maps4-rework-task_size-macros-mips-fix.patch added to -mm tree
+Date: Tue, 13 Nov 2007 02:05:38 -0800
+Message-ID: <200711131012.lADACZbX005305@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59595 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56744 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751376AbXKMKFF (ORCPT
+	by vger.kernel.org with ESMTP id S1755308AbXKMKNd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 05:05:05 -0500
+	Tue, 13 Nov 2007 05:13:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, SteveD@redhat.com, bfields@fieldses.org, hch@lst.de, steved@redhat.com, trond.myklebust@fys.uio.no, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, haveblue@us.ibm.com, mpm@selenic.com, ralf@linux-mips.org, rientjes@google.com
 
 
 The patch titled
-     nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix
+     maps4-rework-task_size-macros-mips-fix
 has been added to the -mm tree.  Its filename is
-     nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix.patch
+     maps4-rework-task_size-macros-mips-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,35 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix
+Subject: maps4-rework-task_size-macros-mips-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-senility.
+fs/proc/task_mmu.c: In function `pagemap_read':
+fs/proc/task_mmu.c:679: error: `TASK_SIZE32' undeclared (first use in this function)
+fs/proc/task_mmu.c:679: error: (Each undeclared identifier is reported only once
+fs/proc/task_mmu.c:679: error: for each function it appears in.)
 
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Steve Dickson <SteveD@redhat.com>
-Cc: Steve Dickson <steved@redhat.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Like this?
+
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/super.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/asm-mips/processor.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/nfs/super.c~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix fs/nfs/super.c
---- a/fs/nfs/super.c~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix
-+++ a/fs/nfs/super.c
-@@ -28,6 +28,8 @@
- #include <linux/mm.h>
- #include <linux/string.h>
- #include <linux/stat.h>
-+#include <linux/wait.h>
-+#include <linux/sched.h>
- #include <linux/errno.h>
- #include <linux/unistd.h>
- #include <linux/sunrpc/clnt.h>
+diff -puN include/asm-mips/processor.h~maps4-rework-task_size-macros-mips-fix include/asm-mips/processor.h
+--- a/include/asm-mips/processor.h~maps4-rework-task_size-macros-mips-fix
++++ a/include/asm-mips/processor.h
+@@ -45,8 +45,6 @@ extern unsigned int vced_count, vcei_cou
+  * space during mmap's.
+  */
+ #define TASK_UNMAPPED_BASE	(PAGE_ALIGN(TASK_SIZE / 3))
+-#define TASK_SIZE_OF(tsk)						\
+-	(test_tsk_thread_flag(tsk, TIF_32BIT_ADDR) ? TASK_SIZE32 : TASK_SIZE)
+ #endif
+ 
+ #ifdef CONFIG_64BIT
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -136,6 +139,7 @@ slub-fix-coding-style-violations-checkpatch-fixes.patch
 slub-provide-unique-end-marker-for-each-slab-fix.patch
 slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
 bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-rework-task_size-macros-mips-fix.patch
 maps4-make-page-monitoring-proc-file-optional-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
