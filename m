@@ -1,149 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - futex-fix-address-computation-in-compat-code.patch removed from -mm tree
-Date: Mon, 12 Nov 2007 20:07:02 -0800
-Message-ID: <200711130407.lAD472Jm025204@imap1.linux-foundation.org>
+Subject: - acpi-add-documentation-for-deprecated-proc-acpi-battery-in-acpi_procfs.patch removed from -mm tree
+Date: Mon, 12 Nov 2007 20:07:05 -0800
+Message-ID: <200711130407.lAD474Uw025207@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37514 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55999 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755864AbXKMEHW (ORCPT
+	by vger.kernel.org with ESMTP id S1753543AbXKMEHX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 23:07:22 -0500
+	Mon, 12 Nov 2007 23:07:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davem@davemloft.net, arnd@arndb.de, stable@kernel.org, mm-commits@vger.kernel.org
+To: ngc891@gmail.com, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     futex: fix address computation in compat code
+     ACPI: add documentation for deprecated /proc/acpi/battery in ACPI_PROCFS
 has been removed from the -mm tree.  Its filename was
-     futex-fix-address-computation-in-compat-code.patch
+     acpi-add-documentation-for-deprecated-proc-acpi-battery-in-acpi_procfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: futex: fix address computation in compat code
-From: David Miller <davem@davemloft.net>
+Subject: ACPI: add documentation for deprecated /proc/acpi/battery in ACPI_PROCFS
+From: Jerome Pinot <ngc891@gmail.com>
 
-compat_exit_robust_list() computes a pointer to the futex entry in
-userspace as follows:
+Add documentation in Kconfig help about the move of /proc/acpi/battery to
+/sys/class/power_supply when selecting ACPI_PROCFS.  This will impact a lot
+of users and should be documented.
 
-	(void __user *)entry + futex_offset
-
-'entry' is a 'struct robust_list __user *', and
-'futex_offset' is a 'compat_long_t' (typically a 's32').
-
-Things explode if the 32-bit sign bit is set in futex_offset.
-
-Type promotion sign extends futex_offset to a 64-bit value before adding it
-to 'entry'.
-
-This triggered a problem on sparc64 running 32-bit applications which would
-lock up a cpu looping forever in the fault handling for the userspace load
-in handle_futex_death().
-
-Compat userspace runs with address masking (wherein the cpu zeros out the
-top 32-bits of every effective address given to a memory operation
-instruction) so the sparc64 fault handler accounts for this by zero'ing out
-the top 32-bits of the fault address too.
-
-Since the kernel properly uses the compat_uptr interfaces, kernel side
-accesses to compat userspace work too since they will only use addresses
-with the top 32-bit clear.
-
-Because of this compat futex layer bug we get into the following loop
-when executing the get_user() load near the top of handle_futex_death():
-
-1) load from address '0xfffffffff7f16bd8', FAULT
-2) fault handler clears upper 32-bits, processes fault
-   for address '0xf7f16bd8' which succeeds
-3) goto #1
-
-I want to thank Bernd Zeimetz, Josip Rodin, and Fabio Massimo Di Nitto
-for their tireless efforts helping me track down this bug.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Cc: <stable@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Jerome Pinot <ngc891@gmail.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex_compat.c |   27 ++++++++++++++++++++-------
- 1 file changed, 20 insertions(+), 7 deletions(-)
+ drivers/acpi/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/futex_compat.c~futex-fix-address-computation-in-compat-code kernel/futex_compat.c
---- a/kernel/futex_compat.c~futex-fix-address-computation-in-compat-code
-+++ a/kernel/futex_compat.c
-@@ -30,6 +30,15 @@ fetch_robust_entry(compat_uptr_t *uentry
- 	return 0;
- }
+diff -puN drivers/acpi/Kconfig~acpi-add-documentation-for-deprecated-proc-acpi-battery-in-acpi_procfs drivers/acpi/Kconfig
+--- a/drivers/acpi/Kconfig~acpi-add-documentation-for-deprecated-proc-acpi-battery-in-acpi_procfs
++++ a/drivers/acpi/Kconfig
+@@ -61,6 +61,7 @@ config ACPI_PROCFS
+ 	  /proc/acpi/info (/sys/modules/acpi/parameters/acpica_version)
+ 	  /proc/acpi/dsdt (/sys/firmware/acpi/tables/DSDT)
+ 	  /proc/acpi/fadt (/sys/firmware/acpi/tables/FACP)
++	  /proc/acpi/battery (/sys/class/power_supply)
+ 	  /proc/acpi/debug_layer (/sys/module/acpi/parameters/debug_layer)
+ 	  /proc/acpi/debug_level (/sys/module/acpi/parameters/debug_level)
  
-+static void __user *futex_uaddr(struct robust_list *entry,
-+				compat_long_t futex_offset)
-+{
-+	compat_uptr_t base = ptr_to_compat(entry);
-+	void __user *uaddr = compat_ptr(base + futex_offset);
-+
-+	return uaddr;
-+}
-+
- /*
-  * Walk curr->robust_list (very carefully, it's a userspace list!)
-  * and mark any locks found there dead, and notify any waiters.
-@@ -76,11 +85,13 @@ void compat_exit_robust_list(struct task
- 		 * A pending lock might already be on the list, so
- 		 * dont process it twice:
- 		 */
--		if (entry != pending)
--			if (handle_futex_death((void __user *)entry + futex_offset,
--						curr, pi))
--				return;
-+		if (entry != pending) {
-+			void __user *uaddr = futex_uaddr(entry,
-+							 futex_offset);
- 
-+			if (handle_futex_death(uaddr, curr, pi))
-+				return;
-+		}
- 		if (rc)
- 			return;
- 		uentry = next_uentry;
-@@ -94,9 +105,11 @@ void compat_exit_robust_list(struct task
- 
- 		cond_resched();
- 	}
--	if (pending)
--		handle_futex_death((void __user *)pending + futex_offset,
--				   curr, pip);
-+	if (pending) {
-+		void __user *uaddr = futex_uaddr(pending, futex_offset);
-+
-+		handle_futex_death(uaddr, curr, pip);
-+	}
- }
- 
- asmlinkage long
 _
 
-Patches currently in -mm which might be from davem@davemloft.net are
+Patches currently in -mm which might be from ngc891@gmail.com are
 
 origin.patch
-git-net.patch
-pfkey-sending-an-sadb_get-responds-with-an-sadb_get.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-remove-references-to-net-modulestxt.patch
-net-sunrpc-remove-spin_lock_unlocked.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-git-wireless.patch
-sunrpc-xprtrdma-transportc-fix-use-after-free.patch
-sysctl-fix-token-ring-procname.patch
-tty-fix-network-driver-interactions-with-tcget-set-checkpatch-fixes.patch
-tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls-x86-fix.patch
-radix-tree-avoid-atomic-allocations-for-preloaded-insertions.patch
-fix-versus-precedence-in-various-places.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-genericizing-iova.patch
-read_current_time-cleanups.patch
-iget-stop-openpromfs-from-using-iget-and.patch
-add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
-add-cmpxchg_local-to-sparc64.patch
