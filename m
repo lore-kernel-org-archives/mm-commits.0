@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mn10300-add-the-mn10300-am33-architecture-to-the-kernel-ia64-fix.patch added to -mm tree
-Date: Tue, 13 Nov 2007 00:21:50 -0800
-Message-ID: <200711130828.lAD8SlkB001804@imap1.linux-foundation.org>
+Subject: + ia64-increase-datapatch-offset.patch added to -mm tree
+Date: Tue, 13 Nov 2007 00:48:05 -0800
+Message-ID: <200711130855.lAD8t2Ne002646@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56390 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50030 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750853AbXKMI34 (ORCPT
+	by vger.kernel.org with ESMTP id S1750837AbXKMIzd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 03:29:56 -0500
+	Tue, 13 Nov 2007 03:55:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dhowells@redhat.com, urade.masakazu@jp.panasonic.com, yasutake.koichi@jp.panasonic.com
+Cc: akpm@linux-foundation.org, tony.luck@intel.com
 
 
 The patch titled
-     mn10300-add-the-mn10300-am33-architecture-to-the-kernel-ia64-fix
+     ia64: increase .data.patch offset
 has been added to the -mm tree.  Its filename is
-     mn10300-add-the-mn10300-am33-architecture-to-the-kernel-ia64-fix.patch
+     ia64-increase-datapatch-offset.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,34 +26,32 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mn10300-add-the-mn10300-am33-architecture-to-the-kernel-ia64-fix
+Subject: ia64: increase .data.patch offset
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from arch/ia64/mm/fault.c:11:
-include/linux/kprobes.h:174: error: syntax error before numeric constant
+I get this:
 
-sorry, ia64 #defines that.  Try something else ;)
+/opt/crosstool/gcc-3.4.5-glibc-2.3.6/ia64-unknown-linux-gnu/lib/gcc/ia64-unknown-linux-gnu/3.4.5/../../../../ia64-unknown-linux-gnu/bin/ld: section .data.patch [a000000000000500 -> a000000000000507] overlaps section .dynamic [a0000000000003c8 -> a000000000000507]
 
-Cc: David Howells <dhowells@redhat.com>
-Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
-Cc: Masakazu Urade <urade.masakazu@jp.panasonic.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kprobes.h |    1 -
- 1 file changed, 1 deletion(-)
+ arch/ia64/kernel/gate.lds.S |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/kprobes.h~mn10300-add-the-mn10300-am33-architecture-to-the-kernel-ia64-fix include/linux/kprobes.h
---- a/include/linux/kprobes.h~mn10300-add-the-mn10300-am33-architecture-to-the-kernel-ia64-fix
-+++ a/include/linux/kprobes.h
-@@ -171,7 +171,6 @@ struct kretprobe_blackpoint {
- 	void *addr;
- };
- extern struct kretprobe_blackpoint kretprobe_blacklist[];
--extern const int kretprobe_blacklist_size;
+diff -puN arch/ia64/kernel/gate.lds.S~ia64-increase-datapatch-offset arch/ia64/kernel/gate.lds.S
+--- a/arch/ia64/kernel/gate.lds.S~ia64-increase-datapatch-offset
++++ a/arch/ia64/kernel/gate.lds.S
+@@ -30,7 +30,7 @@ SECTIONS
+ 	 * the dynamic symbol table et al.  If this amount is insufficient,
+ 	 * ld -shared will barf.  Just increase it here.
+ 	 */
+-	. = GATE_ADDR + 0x500;
++	. = GATE_ADDR + 0x600;
  
- static inline void kretprobe_assert(struct kretprobe_instance *ri,
- 	unsigned long orig_ret_address, unsigned long trampoline_address)
+ 	.data.patch		: {
+ 		__start_gate_mckinley_e9_patchlist = .;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,6 +121,7 @@ x86-disable-preemption-in-delay_tsc.patch
 tty-fix-network-driver-interactions-with-tcget-set-checkpatch-fixes.patch
 x86-early_quirks-cleanup.patch
 aic94xx_sds-rename-flash_size.patch
+ia64-increase-datapatch-offset.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
 pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
 i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
