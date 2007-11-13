@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-atomic_add_return-should-return-int.patch added to -mm tree
-Date: Mon, 12 Nov 2007 23:27:46 -0800
-Message-ID: <200711130734.lAD7YhUW032429@imap1.linux-foundation.org>
+Subject: + aic94xx_sds-rename-flash_size.patch added to -mm tree
+Date: Mon, 12 Nov 2007 23:56:58 -0800
+Message-ID: <200711130803.lAD83t4v000992@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33625 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37261 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751448AbXKMHfG (ORCPT
+	by vger.kernel.org with ESMTP id S1750903AbXKMIEv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 02:35:06 -0500
+	Tue, 13 Nov 2007 03:04:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ink@jurassic.park.msu.ru, rth@twiddle.net
+Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, gilbert_wu@adaptec.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     alpha: atomic_add_return() should return int
+     aic94xx_sds: rename FLASH_SIZE
 has been added to the -mm tree.  Its filename is
-     alpha-atomic_add_return-should-return-int.patch
+     aic94xx_sds-rename-flash_size.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,56 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: alpha: atomic_add_return() should return int
+Subject: aic94xx_sds: rename FLASH_SIZE
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Prevents stuff like
+arm:
 
-drivers/crypto/hifn_795x.c:2443: warning: format '%d' expects type 'int', but argument 4 has type 'long int'
-drivers/crypto/hifn_795x.c:2443: warning: format '%d' expects type 'int', but argument 4 has type 'long int'
+drivers/scsi/aic94xx/aic94xx_sds.c:381:1: warning: "FLASH_SIZE" redefined
+In file included from include/asm/arch/irqs.h:22,
+                 from include/asm/irq.h:4,
+                 from include/asm/hardirq.h:6,
+                 from include/linux/hardirq.h:7,
+                 from include/asm-generic/local.h:5,
+                 from include/asm/local.h:1,
+                 from include/linux/module.h:19,
+                 from include/linux/device.h:21,
+                 from include/linux/pci.h:52,
+                 from drivers/scsi/aic94xx/aic94xx_sds.c:28:
+include/asm/arch/platform.h:444:1: warning: this is the location of the previous definition
 
-(at least).
+Really it's arm which is being dumb here, but whatever.
 
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Gilbert Wu <gilbert_wu@adaptec.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/atomic.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/aic94xx/aic94xx_sds.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-alpha/atomic.h~alpha-atomic_add_return-should-return-int include/asm-alpha/atomic.h
---- a/include/asm-alpha/atomic.h~alpha-atomic_add_return-should-return-int
-+++ a/include/asm-alpha/atomic.h
-@@ -100,7 +100,7 @@ static __inline__ void atomic64_sub(long
- /*
-  * Same as above, but return the result value
-  */
--static __inline__ long atomic_add_return(int i, atomic_t * v)
-+static inline int atomic_add_return(int i, atomic_t *v)
+diff -puN drivers/scsi/aic94xx/aic94xx_sds.c~aic94xx_sds-rename-flash_size drivers/scsi/aic94xx/aic94xx_sds.c
+--- a/drivers/scsi/aic94xx/aic94xx_sds.c~aic94xx_sds-rename-flash_size
++++ a/drivers/scsi/aic94xx/aic94xx_sds.c
+@@ -378,7 +378,7 @@ out:
+ 
+ #define FLASH_RESET			0xF0
+ 
+-#define FLASH_SIZE                      0x200000
++#define ASD_FLASH_SIZE                  0x200000
+ #define FLASH_DIR_COOKIE                "*** ADAPTEC FLASH DIRECTORY *** "
+ #define FLASH_NEXT_ENTRY_OFFS		0x2000
+ #define FLASH_MAX_DIR_ENTRIES		32
+@@ -610,7 +610,7 @@ static int asd_find_flash_dir(struct asd
+ 			      struct asd_flash_dir *flash_dir)
  {
- 	long temp, result;
- 	smp_mb();
+ 	u32 v;
+-	for (v = 0; v < FLASH_SIZE; v += FLASH_NEXT_ENTRY_OFFS) {
++	for (v = 0; v < ASD_FLASH_SIZE; v += FLASH_NEXT_ENTRY_OFFS) {
+ 		asd_read_flash_seg(asd_ha, flash_dir, v,
+ 				   sizeof(FLASH_DIR_COOKIE)-1);
+ 		if (memcmp(flash_dir->cookie, FLASH_DIR_COOKIE,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -227,3 +247,5 @@ shrink_slab-handle-bad-shrinkers.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 w1-build-fix.patch
+a.patch
+aic94xx_sds-rename-flash_size.patch
