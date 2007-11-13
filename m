@@ -1,92 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - libata-dont-fail-ata-device-revalidation-for-bad-_gtf-methods.patch removed from -mm tree
-Date: Mon, 12 Nov 2007 20:07:16 -0800
-Message-ID: <200711130407.lAD47FCA025222@imap1.linux-foundation.org>
+Subject: - watchdog-bfin_wdt-remove-spin_lock_unlocked.patch removed from -mm tree
+Date: Mon, 12 Nov 2007 20:07:34 -0800
+Message-ID: <200711130407.lAD47X5Z025234@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45331 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41563 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757855AbXKMEHh (ORCPT
+	by vger.kernel.org with ESMTP id S1760503AbXKMEHr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 23:07:37 -0500
+	Mon, 12 Nov 2007 23:07:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mjg59@srcf.ucam.org, roppedisano@infracomspa.it, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, bryan.wu@analog.com, vapier.adi@gmail.com, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: don't fail ata device revalidation for bad _GTF methods
+     Watchdog: bfin_wdt, remove SPIN_LOCK_UNLOCKED
 has been removed from the -mm tree.  Its filename was
-     libata-dont-fail-ata-device-revalidation-for-bad-_gtf-methods.patch
+     watchdog-bfin_wdt-remove-spin_lock_unlocked.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libata: don't fail ata device revalidation for bad _GTF methods
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: Watchdog: bfin_wdt, remove SPIN_LOCK_UNLOCKED
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Experience suggests that the _GTF method may be bad.  We currently fail
-device revalidation in that case, which seems excessive.
+SPIN_LOCK_UNLOCKED is deprecated, use DEFINE_SPINLOCK instead
 
-Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
-Tested-by: Roberto Oppedisano <roppedisano@infracomspa.it>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
+Acked-by: Mike Frysinger <vapier.adi@gmail.com>
+Cc: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-acpi.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ drivers/watchdog/bfin_wdt.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/libata-acpi.c~libata-dont-fail-ata-device-revalidation-for-bad-_gtf-methods drivers/ata/libata-acpi.c
---- a/drivers/ata/libata-acpi.c~libata-dont-fail-ata-device-revalidation-for-bad-_gtf-methods
-+++ a/drivers/ata/libata-acpi.c
-@@ -312,7 +312,7 @@ EXPORT_SYMBOL_GPL(ata_acpi_stm);
-  *
-  * RETURNS:
-  * Number of taskfiles on success, 0 if _GTF doesn't exist or doesn't
-- * contain valid data.  -errno on other errors.
-+ * contain valid data.
-  */
- static int ata_dev_get_GTF(struct ata_device *dev, struct ata_acpi_gtf **gtf,
- 			   void **ptr_to_free)
-@@ -339,7 +339,6 @@ static int ata_dev_get_GTF(struct ata_de
- 			ata_dev_printk(dev, KERN_WARNING,
- 				       "_GTF evaluation failed (AE 0x%x)\n",
- 				       status);
--			rc = -EIO;
- 		}
- 		goto out_free;
- 	}
-@@ -359,7 +358,6 @@ static int ata_dev_get_GTF(struct ata_de
- 		ata_dev_printk(dev, KERN_WARNING,
- 			       "_GTF unexpected object type 0x%x\n",
- 			       out_obj->type);
--		rc = -EINVAL;
- 		goto out_free;
- 	}
+diff -puN drivers/watchdog/bfin_wdt.c~watchdog-bfin_wdt-remove-spin_lock_unlocked drivers/watchdog/bfin_wdt.c
+--- a/drivers/watchdog/bfin_wdt.c~watchdog-bfin_wdt-remove-spin_lock_unlocked
++++ a/drivers/watchdog/bfin_wdt.c
+@@ -71,7 +71,7 @@ static int nowayout = WATCHDOG_NOWAYOUT;
+ static struct watchdog_info bfin_wdt_info;
+ static unsigned long open_check;
+ static char expect_close;
+-static spinlock_t bfin_wdt_spinlock = SPIN_LOCK_UNLOCKED;
++static DEFINE_SPINLOCK(bfin_wdt_spinlock);
  
-@@ -367,7 +365,6 @@ static int ata_dev_get_GTF(struct ata_de
- 		ata_dev_printk(dev, KERN_WARNING,
- 			       "unexpected _GTF length (%d)\n",
- 			       out_obj->buffer.length);
--		rc = -EINVAL;
- 		goto out_free;
- 	}
- 
-@@ -511,10 +508,7 @@ static int ata_acpi_exec_tfs(struct ata_
- 	int gtf_count, i, rc;
- 
- 	/* get taskfiles */
--	rc = ata_dev_get_GTF(dev, &gtf, &ptr_to_free);
--	if (rc < 0)
--		return rc;
--	gtf_count = rc;
-+	gtf_count = ata_dev_get_GTF(dev, &gtf, &ptr_to_free);
- 
- 	/* execute them */
- 	for (i = 0, rc = 0; i < gtf_count; i++) {
+ /**
+  *	bfin_wdt_keepalive - Keep the Userspace Watchdog Alive
 _
 
-Patches currently in -mm which might be from mjg59@srcf.ucam.org are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-origin.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+fs-sysfs-remove-spin_lock_unlocked.patch
+net-sunrpc-remove-spin_lock_unlocked.patch
+net-ibm_newemac-remove-spin_lock_unlocked.patch
+git-watchdog.patch
+git-wireless.patch
+crisv10-serial-driver-rewrite-take-three.patch
+dzh-remove-useless-unused-module-junk.patch
+dz-always-check-if-it-is-safe-to-console_putchar.patch
+dz-dont-panic-when-request_irq-fails.patch
+dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
+dz-update-kconfig-description.patch
+dz-rename-the-serial-console-structure.patch
+dz-fix-locking-issues.patch
+dz-handle-special-conditions-on-reception-correctly.patch
+maintainers-add-self-for-the-dz-serial-driver.patch
+char-rocket-switch-long-delay-to-sleep.patch
+char-rocket-printk-cleanup.patch
+char-rocket-remove-useless-macros.patch
+char-char-serial-remove-serial_type_normal-redefines.patch
+char-mxser_new-ioaddresses-are-ulong.patch
+char-stallion-fix-compiler-warnings.patch
+char-riscom8-change-rc_init_drivers-prototype.patch
+char-esp-remove-hangup-and-wakeup-bottomhalves.patch
+char-istallion-remove-hangup-bottomhalf.patch
+char-specialix-remove-bottomhalves.patch
+char-stallion-remove-bottomhalf.patch
+char-serial167-remove-bottomhalf.patch
+char-riscom8-remove-wakeup-anf-hangup-bottomhalves.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
