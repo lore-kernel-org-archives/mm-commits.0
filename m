@@ -1,260 +1,264 @@
 From: akpm@linux-foundation.org
-Subject: - markers-fix-warnings.patch removed from -mm tree
-Date: Tue, 13 Nov 2007 13:08:44 -0800
-Message-ID: <200711132108.lADL8iBp004151@imap1.linux-foundation.org>
+Subject: + git-drm-oops-fix.patch added to -mm tree
+Date: Tue, 13 Nov 2007 13:50:48 -0800
+Message-ID: <200711132150.lADLoqOI005926@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33996 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53957 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759478AbXKMVJa (ORCPT
+	by vger.kernel.org with ESMTP id S1761340AbXKMVv0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 16:09:30 -0500
+	Tue, 13 Nov 2007 16:51:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, airlied@linux.ie
 
 
 The patch titled
-     markers: fix warnings
-has been removed from the -mm tree.  Its filename was
-     markers-fix-warnings.patch
+     git-drm-oops-fix
+has been added to the -mm tree.  Its filename is
+     git-drm-oops-fix.patch
 
-This patch was dropped because new patches broke it
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: markers: fix warnings
-From: Dave Hansen <haveblue@us.ibm.com>
+Subject: git-drm-oops-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/marker.c: In function `marker_probe_unregister':
-kernel/marker.c:355: warning: `probe_module' might be used uninitialized in this function
-kernel/marker.c: In function `marker_probe_unregister_private_data':
-kernel/marker.c:389: warning: `probe_module' might be used uninitialized in this function
-kernel/marker.c:392: warning: `entry' might be used uninitialized in this function
+[  140.659360] BUG: unable to handle kernel NULL pointer dereference at virtual address 0000000c
+[  140.659379] printing eip: f8c511b6 *pde = 00000000 
+[  140.659395] Oops: 0000 [#1] PREEMPT 
+[  140.659411] last sysfs file: /sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed
+[  140.659419] Modules linked in: i915 drm ipw2200 sonypi ipv6 autofs4 hidp l2cap bluetooth sunrpc nf_conntrack_netbios_ns ipt_REJECT nf_conntrack_ipv4 xt_state nf_conntrack xt_tcpudp iptable_filter ip_tables x_tables acpi_cpufreq nvram ohci1394 ehci_hcd ieee1394 uhci_hcd joydev sg snd_hda_intel snd_seq_dummy snd_seq_oss snd_seq_midi_event snd_seq snd_seq_device sr_mod snd_pcm_oss cdrom snd_mixer_oss snd_pcm snd_timer i2c_i801 piix pcspkr generic snd ieee80211 soundcore ieee80211_crypt i2c_core snd_page_alloc button ext3 jbd ide_disk ide_core
+[  140.659677] 
+[  140.659685] Pid: 3525, comm: glxgears Not tainted (2.6.24-rc2-mm1 #2)
+[  140.659693] EIP: 0060:[<f8c511b6>] EFLAGS: 00010046 CPU: 0
+[  140.659725] EIP is at drm_fence_flush_old+0x3d/0xf4 [drm]
+[  140.659731] EAX: 00000000 EBX: f6240468 ECX: 00000282 EDX: 00000000
+[  140.659738] ESI: 00000002 EDI: 00000002 EBP: e8c33ec8 ESP: e8c33ea8
+[  140.659745]  DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
+[  140.659752] Process glxgears (pid: 3525, ti=E8C32000 task=F113E170 task.ti=E8C32000)
+[  140.659758] Stack: f6240000 f624044c 00000000 f13919a0 f62690b8 f737b200 08be829c 000176b8 
+[  140.659803]        e8c33f1c f8dbdc76 00000013 f1391cc0 f6240000 f737b200 f8c6d898 00000001 
+[  140.659850]        00000001 f737b200 f8e40000 0001ffff 00000013 f737b200 08be8250 00000000 
+[  140.659896] Call Trace:
+[  140.659906]  [<c0104cec>] show_trace_log_lvl+0x12/0x25
+[  140.659921]  [<c0104d8b>] show_stack_log_lvl+0x8c/0x9e
+[  140.659932]  [<c0104e27>] show_registers+0x8a/0x1c0
+[  140.659944]  [<c010504b>] die+0xee/0x1c4
+[  140.659954]  [<c0116a2c>] do_page_fault+0x405/0x4e1
+[  140.659966]  [<c031fa22>] error_code+0x6a/0x70
+[  140.659979]  [<f8dbdc76>] i915_cmdbuffer+0x3a4/0x3e8 [i915]
+[  140.659997]  [<f8c4a73c>] drm_ioctl+0x1ac/0x228 [drm]
+[  140.660028]  [<c0179bca>] vfs_ioctl+0x4e/0x67
+[  140.660041]  [<c0179e45>] do_vfs_ioctl+0x262/0x279
+[  140.660053]  [<c0179e9c>] sys_ioctl+0x40/0x5c
+[  140.660064]  [<c0103da2>] syscall_call+0x7/0xb
+[  140.660165]  =======================
+[  140.660170] INFO: lockdep is turned off.
 
-It's due to gcc not detecting that the need_update condition is actually
-constant, and will never call marker_update_probes() on an uninitialized
-probe_module.
-
-However, that need_update bit is all due to dropping the mutex before
-calling marker_update_probes().  As far as I can tell, every call to
-marker_update_probes() has this lock dropping behavior just before calling
-it.  So, let's just hold the locks over the marker_update_probes() and
-document that it needs to have a lock taken instead.
-
-This removes code overall.
-
-marker_probe_unregister_private_data() also has a bit of a goto mess
-that produces similar warnings.  I'll look at it next.
-
-Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Acked-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/marker.c |   34 +++++++++++-----------------------
- 1 file changed, 11 insertions(+), 23 deletions(-)
+ drivers/char/drm/drm_fence.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN kernel/marker.c~markers-fix-warnings kernel/marker.c
---- a/kernel/marker.c~markers-fix-warnings
-+++ a/kernel/marker.c
-@@ -288,12 +288,13 @@ void marker_update_probe_range(struct ma
-  * Issues a synchronize_sched() when no reference to the module passed
-  * as parameter is found in the probes so the probe module can be
-  * safely unloaded from now on.
-+ *
-+ * must hold markers_mutex
-  */
--static void marker_update_probes(struct module *probe_module)
-+static void __marker_update_probes(struct module *probe_module)
- {
- 	int refcount = 0;
+diff -puN drivers/char/drm/drm_fence.c~git-drm-oops-fix drivers/char/drm/drm_fence.c
+--- a/drivers/char/drm/drm_fence.c~git-drm-oops-fix
++++ a/drivers/char/drm/drm_fence.c
+@@ -305,6 +305,9 @@ void drm_fence_flush_old(struct drm_devi
+ 	struct drm_fence_object *fence;
+ 	uint32_t diff;
  
--	mutex_lock(&markers_mutex);
- 	/* Core kernel markers */
- 	marker_update_probe_range(__start___markers,
- 			__stop___markers, probe_module, &refcount);
-@@ -303,7 +304,6 @@ static void marker_update_probes(struct 
- 		synchronize_sched();
- 		deferred_sync = 0;
- 	}
--	mutex_unlock(&markers_mutex);
- }
- 
- /**
-@@ -320,7 +320,7 @@ int marker_probe_register(const char *na
- 			marker_probe_func *probe, void *private)
- {
- 	struct marker_entry *entry;
--	int ret = 0, need_update = 0;
-+	int ret = 0;
- 
- 	mutex_lock(&markers_mutex);
- 	entry = get_marker(name);
-@@ -335,11 +335,9 @@ int marker_probe_register(const char *na
- 	ret = add_marker(name, format, probe, private);
- 	if (ret)
- 		goto end;
--	need_update = 1;
-+	__marker_update_probes(NULL);
- end:
- 	mutex_unlock(&markers_mutex);
--	if (need_update)
--		marker_update_probes(NULL);
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(marker_probe_register);
-@@ -355,7 +353,6 @@ void *marker_probe_unregister(const char
- 	struct module *probe_module;
- 	struct marker_entry *entry;
- 	void *private;
--	int need_update = 0;
- 
- 	mutex_lock(&markers_mutex);
- 	entry = get_marker(name);
-@@ -368,11 +365,9 @@ void *marker_probe_unregister(const char
- 	probe_module = __module_text_address((unsigned long)entry->probe);
- 	private = remove_marker(name);
- 	deferred_sync = 1;
--	need_update = 1;
-+	__marker_update_probes(probe_module);
- end:
- 	mutex_unlock(&markers_mutex);
--	if (need_update)
--		marker_update_probes(probe_module);
- 	return private;
- }
- EXPORT_SYMBOL_GPL(marker_probe_unregister);
-@@ -392,7 +387,6 @@ void *marker_probe_unregister_private_da
- 	struct marker_entry *entry;
- 	int found = 0;
- 	unsigned int i;
--	int need_update = 0;
- 
- 	mutex_lock(&markers_mutex);
- 	for (i = 0; i < MARKER_TABLE_SIZE; i++) {
-@@ -414,11 +408,9 @@ iter_end:
- 	probe_module = __module_text_address((unsigned long)entry->probe);
- 	private = remove_marker(entry->name);
- 	deferred_sync = 1;
--	need_update = 1;
-+	__marker_update_probes(probe_module);
- end:
- 	mutex_unlock(&markers_mutex);
--	if (need_update)
--		marker_update_probes(probe_module);
- 	return private;
- }
- EXPORT_SYMBOL_GPL(marker_probe_unregister_private_data);
-@@ -434,7 +426,7 @@ EXPORT_SYMBOL_GPL(marker_probe_unregiste
- int marker_arm(const char *name)
- {
- 	struct marker_entry *entry;
--	int ret = 0, need_update = 0;
-+	int ret = 0;
- 
- 	mutex_lock(&markers_mutex);
- 	entry = get_marker(name);
-@@ -447,11 +439,9 @@ int marker_arm(const char *name)
- 	 */
- 	if (entry->refcount++)
- 		goto end;
--	need_update = 1;
- end:
-+	__marker_update_probes(NULL);
- 	mutex_unlock(&markers_mutex);
--	if (need_update)
--		marker_update_probes(NULL);
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(marker_arm);
-@@ -467,7 +457,7 @@ EXPORT_SYMBOL_GPL(marker_arm);
- int marker_disarm(const char *name)
- {
- 	struct marker_entry *entry;
--	int ret = 0, need_update = 0;
-+	int ret = 0;
- 
- 	mutex_lock(&markers_mutex);
- 	entry = get_marker(name);
-@@ -486,11 +476,9 @@ int marker_disarm(const char *name)
- 		ret = -EPERM;
- 		goto end;
- 	}
--	need_update = 1;
- end:
-+	__marker_update_probes(NULL);
- 	mutex_unlock(&markers_mutex);
--	if (need_update)
--		marker_update_probes(NULL);
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(marker_disarm);
++	if (!driver)
++		return;
++
+ 	write_lock_irqsave(&fm->lock, flags);
+ 	old_sequence = (sequence - driver->flush_diff) & driver->sequence_mask;
+ 	diff = (old_sequence - fc->last_exe_flush) & driver->sequence_mask;
 _
 
-Patches currently in -mm which might be from haveblue@us.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-hugetlb-split-alloc_huge_page-into-private-and-shared-components.patch
+origin.patch
+uml-update-address-space-affected-by-pud_clear-checkpatch-fixes.patch
+improve-cgroup-printks-fix.patch
+proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
+acpi-make-acpi_procfs-default-to-y.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
 hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-hugetlb-fix-quota-management-for-private-mappings.patch
-hugetlb-debit-quota-in-alloc_huge_page.patch
-hugetlb-allow-bulk-updating-in-hugetlb__quota.patch
-hugetlb-enforce-quotas-during-reservation-for-shared-mappings.patch
-linux-kernel-markers-fix-marker-mutex-not-taken-upon-module-load.patch
-markers-fix-warnings.patch
-maps4-add-proportional-set-size-accounting-in-smaps.patch
-maps4-rework-task_size-macros.patch
+revert-task-control-groups-example-cpu-accounting-subsystem.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
+git-drm-oops-fix.patch
+git-dvb.patch
+git-hwmon.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+elantech-touchpad-driver-fix.patch
+cscope-build-warning.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+ide-arm-hack.patch
+git-mmc.patch
+git-mtd.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+bluetooth-uninlining.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing-fix.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix.patch
+git-nfsd-fixup.patch
+quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
+git-s390.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
+scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+bidi-support-scsi_data_buffer-broke-qla1280.patch
+bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+git-wireless.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-broke-lguest.patch
+git-x86-broke-xen-too.patch
+git-x86-inlining-borkage.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+i386-and-x86_64-randomize-brk-fix.patch
+x86-arch_register_cpu-section-fix.patch
+git-cryptodev-hifn_795x-fixes.patch
+mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
+pidns-place-under-config_experimental-checkpatch-fixes.patch
+fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
+file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
+x86-disable-preemption-in-delay_tsc.patch
+x86-early_quirks-cleanup.patch
+aic94xx_sds-rename-flash_size.patch
+ia64-increase-datapatch-offset.patch
+ia64-dont-assume-that-unwcheckpy-is-executable.patch
+ia64-export-copy_page-to-modules.patch
+ia64-export-copy_page-to-modules-fix.patch
+mips-pcspkr-build-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
 maps4-rework-task_size-macros-mips-fix.patch
-maps4-move-is_swap_pte.patch
-maps4-introduce-a-generic-page-walker.patch
-maps4-use-pagewalker-in-clear_refs-and-smaps.patch
-maps4-simplify-interdependence-of-maps-and-smaps.patch
-maps4-move-clear_refs-code-to-task_mmuc.patch
-maps4-regroup-task_mmu-by-interface.patch
-maps4-add-proc-pid-pagemap-interface.patch
-maps4-add-proc-kpagecount-interface.patch
-maps4-add-proc-kpageflags-interface.patch
-maps4-make-page-monitoring-proc-file-optional.patch
 maps4-make-page-monitoring-proc-file-optional-fix.patch
-add-remove_memory-for-ppc64-2.patch
-enable-hotplug-memory-remove-for-ppc64.patch
-add-arch-specific-walk_memory_remove-for-ppc64.patch
-do-namei_flags-calculation-inside-open_namei.patch
-make-open_namei-return-a-filp.patch
-kill-do_filp_open.patch
-kill-filp_open.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+cris-build-fixes-atomich-needs-compilerh-fix.patch
+cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
+cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
+cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+sync_sb_inodes-propagate-errors.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+64-bit-i_version-afs-fixes.patch
+ridiculous-ext3-costs-was-re-page-fault-costs.patch
 kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname.patch
 rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-stub-functions.patch
-r-o-bind-mounts-do_rmdir-elevate-write-count.patch
-r-o-bind-mounts-elevate-mnt-writers-for-callers-of-vfs_mkdir.patch
-r-o-bind-mounts-elevate-mnt-writers-for-vfs_unlink-callers.patch
-r-o-bind-mounts-elevate-mount-count-for-extended-attributes.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl.patch
 r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_sys_utime-and-touch_atime.patch
 r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-file_update_time.patch
-r-o-bind-mounts-elevate-write-count-for-link-and-symlink-calls.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
 r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-elevate-write-count-opened-files.patch
-r-o-bind-mounts-elevate-write-count-over-calls-to-vfs_rename.patch
-nfsd-fix-wrong-mnt_writer-count-in-rename.patch
-r-o-bind-mounts-elevate-writer-count-for-chown-and-friends.patch
-r-o-bind-mounts-elevate-writer-count-for-do_sys_truncate.patch
-r-o-bind-mounts-make-access-use-mnt-check.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly.patch
 r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-sys_mknodat-elevate-write-count-for-vfs_mknod-create.patch
-r-o-bind-mounts-track-number-of-mount-writers.patch
-r-o-bind-mounts-track-number-of-mount-writers-make-lockdep-happy-with-r-o-bind-mounts.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
 r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-r-o-bind-mounts-honor-r-w-changes-at-do_remount-time.patch
-keep-track-of-mnt_writer-state-of-struct-file.patch
-create-file_drop_write_access-helper.patch
-fix-up-new-filp-allocators.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+suppress-aout-library-support-if-config_binfmt_aout-checkpatch-fixes.patch
+usb-net2280-cant-have-a-function-called-checkpatch-fixes.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-ia64-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
 reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
 page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+w1-build-fix.patch
