@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-efi-make-full-use-of-macro-efi_md_size.patch added to -mm tree
-Date: Mon, 12 Nov 2007 17:30:04 -0800
-Message-ID: <200711130130.lAD1U4kh019956@imap1.linux-foundation.org>
+Subject: + cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch added to -mm tree
+Date: Mon, 12 Nov 2007 17:31:19 -0800
+Message-ID: <200711130131.lAD1VJ96019971@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59202 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54272 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757299AbXKMBaL (ORCPT
+	by vger.kernel.org with ESMTP id S1756458AbXKMBbk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 20:30:11 -0500
+	Mon, 12 Nov 2007 20:31:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com
+Cc: randy.dunlap@oracle.com, mike.miller@hp.com
 
 
 The patch titled
-     ia64 efi: make full use of macro efi_md_size
+     cciss: use upper_32_bits() macro to eliminate warnings
 has been added to the -mm tree.  Its filename is
-     ia64-efi-make-full-use-of-macro-efi_md_size.patch
+     cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,74 +26,69 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: ia64 efi: make full use of macro efi_md_size
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: cciss: use upper_32_bits() macro to eliminate warnings
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Macro efi_md_size is defined in efi.c, and here we apply it throughout
-efi.c.
+Use upper_32_bits(x) macro to handle shifts that may be >= the width of
+the data type.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+drivers/block/cciss.c: In function 'do_cciss_request':
+drivers/block/cciss.c:2655: warning: right shift count >= width of type
+drivers/block/cciss.c:2656: warning: right shift count >= width of type
+drivers/block/cciss.c:2657: warning: right shift count >= width of type
+drivers/block/cciss.c:2658: warning: right shift count >= width of type
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: <mike.miller@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/efi.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/block/cciss.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN arch/ia64/kernel/efi.c~ia64-efi-make-full-use-of-macro-efi_md_size arch/ia64/kernel/efi.c
---- a/arch/ia64/kernel/efi.c~ia64-efi-make-full-use-of-macro-efi_md_size
-+++ a/arch/ia64/kernel/efi.c
-@@ -370,7 +370,7 @@ efi_get_pal_addr (void)
- 			continue;
- 		}
- 
--		if (md->num_pages << EFI_PAGE_SHIFT > IA64_GRANULE_SIZE)
-+		if (efi_md_size(md) > IA64_GRANULE_SIZE)
- 			panic("Woah!  PAL code size bigger than a granule!");
- 
- #if EFI_DEBUG
-@@ -378,7 +378,7 @@ efi_get_pal_addr (void)
- 
- 		printk(KERN_INFO "CPU %d: mapping PAL code [0x%lx-0x%lx) into [0x%lx-0x%lx)\n",
- 			smp_processor_id(), md->phys_addr,
--			md->phys_addr + (md->num_pages << EFI_PAGE_SHIFT),
-+			md->phys_addr + efi_md_size(md),
- 			vaddr & mask, (vaddr & mask) + IA64_GRANULE_SIZE);
- #endif
- 		return __va(md->phys_addr);
-@@ -523,7 +523,7 @@ efi_init (void)
- 			md = p;
- 			printk("mem%02u: type=%u, attr=0x%lx, range=[0x%016lx-0x%016lx) (%luMB)\n",
- 			       i, md->type, md->attribute, md->phys_addr,
--			       md->phys_addr + (md->num_pages << EFI_PAGE_SHIFT),
-+			       md->phys_addr + efi_md_size(md),
- 			       md->num_pages >> (20 - EFI_PAGE_SHIFT));
- 		}
- 	}
-@@ -656,7 +656,7 @@ efi_memory_descriptor (unsigned long phy
- 	for (p = efi_map_start; p < efi_map_end; p += efi_desc_size) {
- 		md = p;
- 
--		if (phys_addr - md->phys_addr < (md->num_pages << EFI_PAGE_SHIFT))
-+		if (phys_addr - md->phys_addr < efi_md_size(md))
- 			 return md;
- 	}
- 	return NULL;
-@@ -1158,7 +1158,7 @@ efi_initialize_iomem_resources(struct re
- 
- 		res->name = name;
- 		res->start = md->phys_addr;
--		res->end = md->phys_addr + (md->num_pages << EFI_PAGE_SHIFT) - 1;
-+		res->end = md->phys_addr + efi_md_size(md) - 1;
- 		res->flags = flags;
- 
- 		if (insert_resource(&iomem_resource, res) < 0)
+diff -puN drivers/block/cciss.c~cciss-use-upper_32_bits-macro-to-eliminate-warnings drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-use-upper_32_bits-macro-to-eliminate-warnings
++++ a/drivers/block/cciss.c
+@@ -2650,12 +2650,14 @@ static void do_cciss_request(struct requ
+ 			c->Request.CDB[8] = creq->nr_sectors & 0xff;
+ 			c->Request.CDB[9] = c->Request.CDB[11] = c->Request.CDB[12] = 0;
+ 		} else {
++			u32 upper32 = upper_32_bits(start_blk);
++
+ 			c->Request.CDBLen = 16;
+ 			c->Request.CDB[1]= 0;
+-			c->Request.CDB[2]= (start_blk >> 56) & 0xff;	//MSB
+-			c->Request.CDB[3]= (start_blk >> 48) & 0xff;
+-			c->Request.CDB[4]= (start_blk >> 40) & 0xff;
+-			c->Request.CDB[5]= (start_blk >> 32) & 0xff;
++			c->Request.CDB[2]= (upper32 >> 24) & 0xff;	//MSB
++			c->Request.CDB[3]= (upper32 >> 16) & 0xff;
++			c->Request.CDB[4]= (upper32 >>  8) & 0xff;
++			c->Request.CDB[5]= upper32 & 0xff;
+ 			c->Request.CDB[6]= (start_blk >> 24) & 0xff;
+ 			c->Request.CDB[7]= (start_blk >> 16) & 0xff;
+ 			c->Request.CDB[8]= (start_blk >>  8) & 0xff;
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-drivers-video-ps3fb-fix-memset-size-error.patch
-w1-fix-memset-size-error.patch
-arm-fix-memset-size-error.patch
-powerpc-fix-memset-size-error.patch
-git-ia64.patch
-ia64-efi-make-full-use-of-macro-efi_md_size.patch
+chipsfb-uses-depends-on-pci.patch
+git-dvb.patch
+git-kbuild.patch
+git-netdev-all.patch
+advansys-fix-section-mismatch-warning.patch
+aic94-fix-section-mismatches.patch
+sym2-fix-section-mismatch-warning.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+x86-bitops_32h-style-cleanups.patch
+voyager-use-struct-instead-of-param.patch
+sysctl-fix-token-ring-procname.patch
+gbefb-fix-section-mismatch-warnings.patch
+vmstat-fix-section-mismatch-warning.patch
+register_cpu-__devinit-or-__cpuinit.patch
+cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
+move-kprobes-examples-to-samples-resend.patch
+move-kprobes-examples-to-samples-resend-checkpatch-fixes.patch
+fs-menu-small-reorg.patch
+profile-likely-unlikely-macros.patch
