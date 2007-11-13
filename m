@@ -1,129 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - x86-mce_64c-make-struct-mcelog-static.patch removed from -mm tree
-Date: Mon, 12 Nov 2007 20:07:48 -0800
-Message-ID: <200711130407.lAD47lHR025252@imap1.linux-foundation.org>
+Subject: - x86_64-ia32-ptrace-thread_area-fix.patch removed from -mm tree
+Date: Mon, 12 Nov 2007 20:07:41 -0800
+Message-ID: <200711130407.lAD47fCr025243@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33629 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54915 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760342AbXKMEIy (ORCPT
+	by vger.kernel.org with ESMTP id S1760663AbXKMEIr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 23:08:54 -0500
+	Mon, 12 Nov 2007 23:08:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: roland@redhat.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86 mce_64.c: make struct mcelog static
+     x86_64: ia32 ptrace THREAD_AREA fix
 has been removed from the -mm tree.  Its filename was
-     x86-mce_64c-make-struct-mcelog-static.patch
+     x86_64-ia32-ptrace-thread_area-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86 mce_64.c: make struct mcelog static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: x86_64: ia32 ptrace THREAD_AREA fix
+From: Roland McGrath <roland@redhat.com>
 
-Make the needlessly global struct mcelog static.
+The addr argument to PTRACE_GET_THREAD_AREA and PTRACE_SET_THREAD_AREA is
+not a magic constant.  It's derived from the segment register values being
+used, which are computed originally from the index used with
+set_thread_area.  The value does not need to match what a native i386
+kernel would accept.  It needs to match the segment selectors that can
+actually be in use in this 32-bit process.  The 64-bit ptrace support for
+PTRACE_GET_THREAD_AREA (normally used only on 32-bit processes) is correct,
+but the 32-bit emulation of ptrace is broken.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/mcheck/mce_64.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/ia32/ptrace32.c |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/mcheck/mce_64.c~x86-mce_64c-make-struct-mcelog-static arch/x86/kernel/cpu/mcheck/mce_64.c
---- a/arch/x86/kernel/cpu/mcheck/mce_64.c~x86-mce_64c-make-struct-mcelog-static
-+++ a/arch/x86/kernel/cpu/mcheck/mce_64.c
-@@ -63,7 +63,7 @@ static DECLARE_WAIT_QUEUE_HEAD(mce_wait)
-  * separate MCEs from kernel messages to avoid bogus bug reports.
-  */
+diff -puN arch/x86/ia32/ptrace32.c~x86_64-ia32-ptrace-thread_area-fix arch/x86/ia32/ptrace32.c
+--- a/arch/x86/ia32/ptrace32.c~x86_64-ia32-ptrace-thread_area-fix
++++ a/arch/x86/ia32/ptrace32.c
+@@ -243,8 +243,6 @@ static long ptrace32_siginfo(unsigned re
+ 	return ret;
+ }
  
--struct mce_log mcelog = {
-+static struct mce_log mcelog = {
- 	MCE_LOG_SIGNATURE,
- 	MCE_LOG_LEN,
- };
+-#define COMPAT_GDT_ENTRY_TLS_MIN 6
+-
+ asmlinkage long sys32_ptrace(long request, u32 pid, u32 addr, u32 data)
+ {
+ 	struct task_struct *child;
+@@ -263,6 +261,8 @@ asmlinkage long sys32_ptrace(long reques
+ 	case PTRACE_SYSCALL:
+ 	case PTRACE_OLDSETOPTIONS:
+ 	case PTRACE_SETOPTIONS:
++	case PTRACE_SET_THREAD_AREA:
++	case PTRACE_GET_THREAD_AREA:
+ 		return sys_ptrace(request, pid, addr, data);
+ 
+ 	default:
+@@ -286,12 +286,6 @@ asmlinkage long sys32_ptrace(long reques
+ 	case PTRACE_SETSIGINFO:
+ 	case PTRACE_GETSIGINFO:
+ 		return ptrace32_siginfo(request, pid, addr, data);
+-
+-	case PTRACE_SET_THREAD_AREA:
+-	case PTRACE_GET_THREAD_AREA:
+-		return sys_ptrace(request, pid,
+-			addr + GDT_ENTRY_TLS_MIN - COMPAT_GDT_ENTRY_TLS_MIN,
+-			data);
+ 	}
+ 
+ 	child = ptrace_get_task_struct(pid);
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from roland@redhat.com are
 
 origin.patch
-lguest_userc-fix-memory-leak.patch
-video-sis-fix-negative-array-index.patch
-mm-hugetlbc-make-a-function-static.patch
-git-avr32.patch
-git-dvb.patch
-remove-saa7134-oss.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-libata-all.patch
-blk_dev_idecd-help-remove-outdated-note.patch
-git-mtd.patch
-make-sunrpc-xprtsockcxs_setup_udptcp-static.patch
-remove-references-to-net-modulestxt.patch
-git-netdev-all.patch
-drivers-net-chelsio-if-0-unused-functions.patch
-drivers-bluetooth-bpa10xc-fix-memleak.patch
-drivers-bluetooth-btsdioc-fix-double-free.patch
-git-nfs-make-nfs_wb_page_priority-static.patch
-fs-nfs-dirc-should-include-internalh.patch
-always-export-pci_scan_single_device.patch
-remove-additional-pci_scan_child_bus-prototype.patch
-git-scsi-misc.patch
-scsi-advansysc-make-3-functions-static.patch
-scsi-qla2xxx-possible-cleanups.patch
-usb-mon-mon_binc-cleanups.patch
-git-x86.patch
-xtensa-iss_net_setup-must-be-__init.patch
-xtensa-kernel-setupc-remove-dead-code.patch
-sunrpc-xprtrdma-transportc-fix-use-after-free.patch
-fix-mm-utilckrealloc.patch
-fuse_file_alloc-fix-null-dereferences.patch
-pidns-place-under-config_experimental.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-feature-removal-schedule-remove-sa_-flags-entry.patch
-kernel-taskstatsc-fix-bogus-nlmsg_free.patch
-mm-page-writebackc-make-a-function-static.patch
-make-__vmalloc_area_node-static.patch
-blackfin-remove-dump_thread.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-kernel-power-move-function-prototypes-to-header.patch
-kill-udffs_dateversion.patch
-make-ipc-utilcsysvipc_find_ipc-static.patch
-cleanup-after-apus-removal.patch
-remove-mm_ptovvtop.patch
-remove-__attribute_used__.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-proper-show_interrupts-prototype.patch
-scheduled-oss-driver-removal.patch
-linux-inith-simplify-__meminitexit-dependencies.patch
-proper-prototype-for-signals_init.patch
-kernel-ptracec-should-include-linux-syscallsh.patch
-make-srcu_readers_active-static.patch
-kernel-notifierc-should-include-linux-rebooth.patch
-proper-prototype-for-get_filesystem_list.patch
-fs-utimesc-should-include-linux-syscallsh.patch
-fs-signalfdc-should-include-linux-syscallsh.patch
-fs-eventfdc-should-include-linux-syscallsh.patch
-proper-prototype-for-vty_init.patch
-drivers-misc-lkdtmc-cleanups.patch
-power_supply_ledssysfsc-should-include-power_supplyh.patch
-fs-ecryptfs-possible-cleanups.patch
-make-video-geode-lxfb_corecgeode_modedb-static.patch
-video-hpfbc-section-fix.patch
-ext4-superc-fix-ifdefs.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-move-edactxt-two-levels-up.patch
-remove-documentation-smptxt.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-reiser4.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+i386-and-x86_64-randomize-brk.patch
+i386-and-x86_64-randomize-brk-fix.patch
+i386-and-x86_64-randomize-brk-fix-2.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
