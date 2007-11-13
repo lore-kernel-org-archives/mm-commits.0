@@ -1,74 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - x86-pci-dma_64c-cleanups.patch removed from -mm tree
-Date: Mon, 12 Nov 2007 20:07:56 -0800
-Message-ID: <200711130407.lAD47th7025264@imap1.linux-foundation.org>
+Subject: - x86-pci-calgary_64c-make-a-variable-static.patch removed from -mm tree
+Date: Mon, 12 Nov 2007 20:07:54 -0800
+Message-ID: <200711130407.lAD47rLV025261@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54419 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60231 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756291AbXKMERV (ORCPT
+	by vger.kernel.org with ESMTP id S1756463AbXKMERW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 23:17:21 -0500
+	Mon, 12 Nov 2007 23:17:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: bunk@kernel.org, mingo@elte.hu, mulix@mulix.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86 pci-dma_64.c: cleanups
+     x86 pci-calgary_64.c: make a variable static
 has been removed from the -mm tree.  Its filename was
-     x86-pci-dma_64c-cleanups.patch
+     x86-pci-calgary_64c-make-a-variable-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86 pci-dma_64.c: cleanups
+Subject: x86 pci-calgary_64.c: make a variable static
 From: Adrian Bunk <bunk@kernel.org>
 
-- make the needlessly global iommu_setup() static
-- remove the unused EXPORT_SYMBOL(iommu_merge)
+"debugging" is a horrible name for a global variable - thankfully it can
+become static.
+
+Also put it out of __read_mostly so that gcc no longer has to emit it
+at all.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Muli Ben-Yehuda <mulix@mulix.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/pci-dma_64.c |    3 +--
- include/asm-x86/pci_64.h     |    1 -
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ arch/x86/kernel/pci-calgary_64.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/pci-dma_64.c~x86-pci-dma_64c-cleanups arch/x86/kernel/pci-dma_64.c
---- a/arch/x86/kernel/pci-dma_64.c~x86-pci-dma_64c-cleanups
-+++ a/arch/x86/kernel/pci-dma_64.c
-@@ -13,7 +13,6 @@
- #include <asm/calgary.h>
+diff -puN arch/x86/kernel/pci-calgary_64.c~x86-pci-calgary_64c-make-a-variable-static arch/x86/kernel/pci-calgary_64.c
+--- a/arch/x86/kernel/pci-calgary_64.c~x86-pci-calgary_64c-make-a-variable-static
++++ a/arch/x86/kernel/pci-calgary_64.c
+@@ -182,7 +182,7 @@ static struct calgary_bus_info bus_info[
  
- int iommu_merge __read_mostly = 1;
--EXPORT_SYMBOL(iommu_merge);
+ /* enable this to stress test the chip's TCE cache */
+ #ifdef CONFIG_IOMMU_DEBUG
+-int debugging __read_mostly = 1;
++static int debugging = 1;
  
- dma_addr_t bad_dma_address __read_mostly;
- EXPORT_SYMBOL(bad_dma_address);
-@@ -230,7 +229,7 @@ EXPORT_SYMBOL(dma_set_mask);
-  * See <Documentation/x86_64/boot-options.txt> for the iommu kernel parameter
-  * documentation.
-  */
--__init int iommu_setup(char *p)
-+static __init int iommu_setup(char *p)
- {
- 	iommu_merge = 1;
+ static inline unsigned long verify_bit_range(unsigned long* bitmap,
+ 	int expected, unsigned long start, unsigned long end)
+@@ -201,7 +201,7 @@ static inline unsigned long verify_bit_r
+ 	return ~0UL;
+ }
+ #else /* debugging is disabled */
+-int debugging __read_mostly = 0;
++static int debugging = 0;
  
-diff -puN include/asm-x86/pci_64.h~x86-pci-dma_64c-cleanups include/asm-x86/pci_64.h
---- a/include/asm-x86/pci_64.h~x86-pci-dma_64c-cleanups
-+++ a/include/asm-x86/pci_64.h
-@@ -26,7 +26,6 @@ extern int (*pci_config_write)(int seg, 
- 
- 
- extern void pci_iommu_alloc(void);
--extern int iommu_setup(char *opt);
- 
- /* The PCI address space does equal the physical memory
-  * address space.  The networking and block device layers use
+ static inline unsigned long verify_bit_range(unsigned long* bitmap,
+ 	int expected, unsigned long start, unsigned long end)
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
