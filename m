@@ -1,68 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: - sigwait-eats-blocked-default-ignore-signals.patch removed from -mm tree
-Date: Mon, 12 Nov 2007 20:07:07 -0800
-Message-ID: <200711130407.lAD477ih025210@imap1.linux-foundation.org>
+Subject: - futex-fix-address-computation-in-compat-code.patch removed from -mm tree
+Date: Mon, 12 Nov 2007 20:07:02 -0800
+Message-ID: <200711130407.lAD472Jm025204@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57249 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37514 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753012AbXKMEHV (ORCPT
+	by vger.kernel.org with ESMTP id S1755864AbXKMEHW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 Nov 2007 23:07:21 -0500
+	Mon, 12 Nov 2007 23:07:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roland@redhat.com, mm-commits@vger.kernel.org
+To: davem@davemloft.net, arnd@arndb.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sigwait eats blocked default-ignore signals
+     futex: fix address computation in compat code
 has been removed from the -mm tree.  Its filename was
-     sigwait-eats-blocked-default-ignore-signals.patch
+     futex-fix-address-computation-in-compat-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sigwait eats blocked default-ignore signals
-From: Roland McGrath <roland@redhat.com>
+Subject: futex: fix address computation in compat code
+From: David Miller <davem@davemloft.net>
 
-cf http://bugzilla.kernel.org/show_bug.cgi?id=9347
+compat_exit_robust_list() computes a pointer to the futex entry in
+userspace as follows:
 
-While a signal is blocked, it must be posted even if its action is SIG_IGN
-or is SIG_DFL with the default action to ignore.  This works right most of
-the time, but is broken when a sigwait (rt_sigtimedwait) is in progress. 
-This changes the early-discard check to respect real_blocked.  ~blocked is
-the set to check for "should wake up now", but ~(blocked|real_blocked) is
-the set for "blocked" semantics as defined by POSIX.
+	(void __user *)entry + futex_offset
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
+'entry' is a 'struct robust_list __user *', and
+'futex_offset' is a 'compat_long_t' (typically a 's32').
+
+Things explode if the 32-bit sign bit is set in futex_offset.
+
+Type promotion sign extends futex_offset to a 64-bit value before adding it
+to 'entry'.
+
+This triggered a problem on sparc64 running 32-bit applications which would
+lock up a cpu looping forever in the fault handling for the userspace load
+in handle_futex_death().
+
+Compat userspace runs with address masking (wherein the cpu zeros out the
+top 32-bits of every effective address given to a memory operation
+instruction) so the sparc64 fault handler accounts for this by zero'ing out
+the top 32-bits of the fault address too.
+
+Since the kernel properly uses the compat_uptr interfaces, kernel side
+accesses to compat userspace work too since they will only use addresses
+with the top 32-bit clear.
+
+Because of this compat futex layer bug we get into the following loop
+when executing the get_user() load near the top of handle_futex_death():
+
+1) load from address '0xfffffffff7f16bd8', FAULT
+2) fault handler clears upper 32-bits, processes fault
+   for address '0xf7f16bd8' which succeeds
+3) goto #1
+
+I want to thank Bernd Zeimetz, Josip Rodin, and Fabio Massimo Di Nitto
+for their tireless efforts helping me track down this bug.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Cc: <stable@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/futex_compat.c |   27 ++++++++++++++++++++-------
+ 1 file changed, 20 insertions(+), 7 deletions(-)
 
-diff -puN kernel/signal.c~sigwait-eats-blocked-default-ignore-signals kernel/signal.c
---- a/kernel/signal.c~sigwait-eats-blocked-default-ignore-signals
-+++ a/kernel/signal.c
-@@ -55,7 +55,7 @@ static int sig_ignored(struct task_struc
- 	 * signal handler may change by the time it is
- 	 * unblocked.
- 	 */
--	if (sigismember(&t->blocked, sig))
-+	if (sigismember(&t->blocked, sig) || sigismember(&t->real_blocked, sig))
- 		return 0;
+diff -puN kernel/futex_compat.c~futex-fix-address-computation-in-compat-code kernel/futex_compat.c
+--- a/kernel/futex_compat.c~futex-fix-address-computation-in-compat-code
++++ a/kernel/futex_compat.c
+@@ -30,6 +30,15 @@ fetch_robust_entry(compat_uptr_t *uentry
+ 	return 0;
+ }
  
- 	/* Is it explicitly or implicitly ignored? */
++static void __user *futex_uaddr(struct robust_list *entry,
++				compat_long_t futex_offset)
++{
++	compat_uptr_t base = ptr_to_compat(entry);
++	void __user *uaddr = compat_ptr(base + futex_offset);
++
++	return uaddr;
++}
++
+ /*
+  * Walk curr->robust_list (very carefully, it's a userspace list!)
+  * and mark any locks found there dead, and notify any waiters.
+@@ -76,11 +85,13 @@ void compat_exit_robust_list(struct task
+ 		 * A pending lock might already be on the list, so
+ 		 * dont process it twice:
+ 		 */
+-		if (entry != pending)
+-			if (handle_futex_death((void __user *)entry + futex_offset,
+-						curr, pi))
+-				return;
++		if (entry != pending) {
++			void __user *uaddr = futex_uaddr(entry,
++							 futex_offset);
+ 
++			if (handle_futex_death(uaddr, curr, pi))
++				return;
++		}
+ 		if (rc)
+ 			return;
+ 		uentry = next_uentry;
+@@ -94,9 +105,11 @@ void compat_exit_robust_list(struct task
+ 
+ 		cond_resched();
+ 	}
+-	if (pending)
+-		handle_futex_death((void __user *)pending + futex_offset,
+-				   curr, pip);
++	if (pending) {
++		void __user *uaddr = futex_uaddr(pending, futex_offset);
++
++		handle_futex_death(uaddr, curr, pip);
++	}
+ }
+ 
+ asmlinkage long
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from davem@davemloft.net are
 
 origin.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-i386-and-x86_64-randomize-brk.patch
-i386-and-x86_64-randomize-brk-fix.patch
-i386-and-x86_64-randomize-brk-fix-2.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
+git-net.patch
+pfkey-sending-an-sadb_get-responds-with-an-sadb_get.patch
+lmc_ioctl-dont-return-with-locks-held-fix.patch
+remove-references-to-net-modulestxt.patch
+net-sunrpc-remove-spin_lock_unlocked.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+git-wireless.patch
+sunrpc-xprtrdma-transportc-fix-use-after-free.patch
+sysctl-fix-token-ring-procname.patch
+tty-fix-network-driver-interactions-with-tcget-set-checkpatch-fixes.patch
+tty-fix-tty-network-driver-interactions-with-tcget-tcset-calls-x86-fix.patch
+radix-tree-avoid-atomic-allocations-for-preloaded-insertions.patch
+fix-versus-precedence-in-various-places.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+genericizing-iova.patch
+read_current_time-cleanups.patch
+iget-stop-openpromfs-from-using-iget-and.patch
+add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
+add-cmpxchg_local-to-sparc64.patch
