@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-broke-lguest.patch added to -mm tree
-Date: Mon, 12 Nov 2007 21:02:20 -0800
-Message-ID: <200711130509.lAD59HMo027350@imap1.linux-foundation.org>
+Subject: + usb-device-dma-support-on-omap2.patch added to -mm tree
+Date: Mon, 12 Nov 2007 21:14:27 -0800
+Message-ID: <200711130514.lAD5ERmx027532@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49297 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49912 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751026AbXKMFKm (ORCPT
+	by vger.kernel.org with ESMTP id S1750710AbXKMFPG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 00:10:42 -0500
+	Tue, 13 Nov 2007 00:15:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de
+Cc: kyungmin.park@samsung.com, david-b@pacbell.net, greg@kroah.com, tony@atomide.com
 
 
 The patch titled
-     git-x86 broke lguest
+     USB device DMA support on OMAP2
 has been added to the -mm tree.  Its filename is
-     git-x86-broke-lguest.patch
+     usb-device-dma-support-on-omap2.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,210 +26,205 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-x86 broke lguest
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: USB device DMA support on OMAP2
+From: Kyungmin Park <kyungmin.park@samsung.com>
 
-arch/x86/lguest/boot.c: In function 'lguest_init':
-arch/x86/lguest/boot.c:991: warning: assignment from incompatible pointer type
-arch/x86/lguest/boot.c:993: warning: assignment from incompatible pointer type
+The current omap udc dosen't support the DMA mode and it has some problem
+at setup time on OMAP2 with previous patch file.  I found that the code
+assumes bulk out required the big data transfer.  But MODE SELECT(6) sent
+the only 24 bytes.  it makes a problem.  So I implement the small packets
+handling for it.
 
-Better testing please.
+It is tested with both linux and windows.
 
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/lguest/boot.c  |    2 +-
- drivers/lguest/lguest.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/gadget/omap_udc.c |   71 ++++++++++++++++++++++----------
+ 1 file changed, 49 insertions(+), 22 deletions(-)
 
-diff -puN arch/x86/lguest/boot.c~git-x86-broke-lguest arch/x86/lguest/boot.c
---- a/arch/x86/lguest/boot.c~git-x86-broke-lguest
-+++ a/arch/x86/lguest/boot.c
-@@ -788,7 +788,7 @@ static void lguest_wbinvd(void)
-  * code qualifies for Advanced.  It will also never interrupt anything.  It
-  * does, however, allow us to get through the Linux boot code. */
- #ifdef CONFIG_X86_LOCAL_APIC
--static void lguest_apic_write(unsigned long reg, unsigned long v)
-+static void lguest_apic_write(unsigned long reg, u32 v)
- {
- }
+diff -puN drivers/usb/gadget/omap_udc.c~usb-device-dma-support-on-omap2 drivers/usb/gadget/omap_udc.c
+--- a/drivers/usb/gadget/omap_udc.c~usb-device-dma-support-on-omap2
++++ a/drivers/usb/gadget/omap_udc.c
+@@ -4,6 +4,8 @@
+  * Copyright (C) 2004 Texas Instruments, Inc.
+  * Copyright (C) 2004-2005 David Brownell
+  *
++ * OMAP2 & DMA support by Kyungmin Park <kyungmin.park@samsung.com>
++ *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation; either version 2 of the License, or
+@@ -60,11 +62,6 @@
+ /* bulk DMA seems to be behaving for both IN and OUT */
+ #define	USE_DMA
  
-diff -puN drivers/lguest/lguest.c~git-x86-broke-lguest drivers/lguest/lguest.c
---- a/drivers/lguest/lguest.c~git-x86-broke-lguest
-+++ a/drivers/lguest/lguest.c
-@@ -841,7 +841,7 @@ static void lguest_wbinvd(void)
-  * code qualifies for Advanced.  It will also never interrupt anything.  It
-  * does, however, allow us to get through the Linux boot code. */
- #ifdef CONFIG_X86_LOCAL_APIC
--static void lguest_apic_write(unsigned long reg, unsigned long v)
-+static void lguest_apic_write(unsigned long reg, u32 v)
- {
- }
+-/* FIXME: OMAP2 currently has some problem in DMA mode */
+-#ifdef CONFIG_ARCH_OMAP2
+-#undef USE_DMA
+-#endif
+-
+ /* ISO too */
+ #define	USE_ISO
  
+@@ -73,6 +70,8 @@
+ 
+ #define	DMA_ADDR_INVALID	(~(dma_addr_t)0)
+ 
++#define OMAP2_DMA_CH(ch)	(((ch) - 1) << 1)
++#define OMAP24XX_DMA(name, ch)	(OMAP24XX_DMA_##name + OMAP2_DMA_CH(ch))
+ 
+ /*
+  * The OMAP UDC needs _very_ early endpoint setup:  before enabling the
+@@ -571,20 +570,25 @@ static void next_in_dma(struct omap_ep *
+ 	const int	sync_mode = cpu_is_omap15xx()
+ 				? OMAP_DMA_SYNC_FRAME
+ 				: OMAP_DMA_SYNC_ELEMENT;
++	int		dma_trigger = 0;
++
++	if (cpu_is_omap24xx())
++		dma_trigger = OMAP24XX_DMA(USB_W2FC_TX0, ep->dma_channel);
+ 
+ 	/* measure length in either bytes or packets */
+ 	if ((cpu_is_omap16xx() && length <= UDC_TXN_TSC)
++			|| (cpu_is_omap24xx() && length < ep->maxpacket)
+ 			|| (cpu_is_omap15xx() && length < ep->maxpacket)) {
+ 		txdma_ctrl = UDC_TXN_EOT | length;
+ 		omap_set_dma_transfer_params(ep->lch, OMAP_DMA_DATA_TYPE_S8,
+-				length, 1, sync_mode, 0, 0);
++				length, 1, sync_mode, dma_trigger, 0);
+ 	} else {
+ 		length = min(length / ep->maxpacket,
+ 				(unsigned) UDC_TXN_TSC + 1);
+ 		txdma_ctrl = length;
+ 		omap_set_dma_transfer_params(ep->lch, OMAP_DMA_DATA_TYPE_S16,
+ 				ep->ep.maxpacket >> 1, length, sync_mode,
+-				0, 0);
++				dma_trigger, 0);
+ 		length *= ep->maxpacket;
+ 	}
+ 	omap_set_dma_src_params(ep->lch, OMAP_DMA_PORT_EMIFF,
+@@ -622,20 +626,31 @@ static void finish_in_dma(struct omap_ep
+ 
+ static void next_out_dma(struct omap_ep *ep, struct omap_req *req)
+ {
+-	unsigned packets;
++	unsigned packets = req->req.length - req->req.actual;
++	int dma_trigger = 0;
++
++	if (cpu_is_omap24xx())
++		dma_trigger = OMAP24XX_DMA(USB_W2FC_RX0, ep->dma_channel);
+ 
+ 	/* NOTE:  we filtered out "short reads" before, so we know
+ 	 * the buffer has only whole numbers of packets.
++	 * except MODE SELECT(6) sent the 24 bytes data in OMAP24XX DMA mode
+ 	 */
+-
+-	/* set up this DMA transfer, enable the fifo, start */
+-	packets = (req->req.length - req->req.actual) / ep->ep.maxpacket;
+-	packets = min(packets, (unsigned)UDC_RXN_TC + 1);
+-	req->dma_bytes = packets * ep->ep.maxpacket;
+-	omap_set_dma_transfer_params(ep->lch, OMAP_DMA_DATA_TYPE_S16,
+-			ep->ep.maxpacket >> 1, packets,
+-			OMAP_DMA_SYNC_ELEMENT,
+-			0, 0);
++	if (cpu_is_omap24xx() && packets < ep->maxpacket) {
++		omap_set_dma_transfer_params(ep->lch, OMAP_DMA_DATA_TYPE_S8,
++				packets, 1, OMAP_DMA_SYNC_ELEMENT,
++				dma_trigger, 0);
++		req->dma_bytes = packets;
++	} else {
++		/* set up this DMA transfer, enable the fifo, start */
++		packets /= ep->ep.maxpacket;
++		packets = min(packets, (unsigned)UDC_RXN_TC + 1);
++		req->dma_bytes = packets * ep->ep.maxpacket;
++		omap_set_dma_transfer_params(ep->lch, OMAP_DMA_DATA_TYPE_S16,
++				ep->ep.maxpacket >> 1, packets,
++				OMAP_DMA_SYNC_ELEMENT,
++				dma_trigger, 0);
++	}
+ 	omap_set_dma_dest_params(ep->lch, OMAP_DMA_PORT_EMIFF,
+ 		OMAP_DMA_AMODE_POST_INC, req->req.dma + req->req.actual,
+ 		0, 0);
+@@ -743,6 +758,7 @@ static void dma_channel_claim(struct oma
+ {
+ 	u16	reg;
+ 	int	status, restart, is_in;
++	int	dma_channel;
+ 
+ 	is_in = ep->bEndpointAddress & USB_DIR_IN;
+ 	if (is_in)
+@@ -769,11 +785,15 @@ static void dma_channel_claim(struct oma
+ 	ep->dma_channel = channel;
+ 
+ 	if (is_in) {
+-		status = omap_request_dma(OMAP_DMA_USB_W2FC_TX0 - 1 + channel,
++		if (cpu_is_omap24xx())
++			dma_channel = OMAP24XX_DMA(USB_W2FC_TX0, channel);
++		else
++			dma_channel = OMAP_DMA_USB_W2FC_TX0 - 1 + channel;
++		status = omap_request_dma(dma_channel,
+ 			ep->ep.name, dma_error, ep, &ep->lch);
+ 		if (status == 0) {
+ 			UDC_TXDMA_CFG_REG = reg;
+-			/* EMIFF */
++			/* EMIFF or SDRC */
+ 			omap_set_dma_src_burst_mode(ep->lch,
+ 						OMAP_DMA_DATA_BURST_4);
+ 			omap_set_dma_src_data_pack(ep->lch, 1);
+@@ -785,7 +805,12 @@ static void dma_channel_claim(struct oma
+ 				0, 0);
+ 		}
+ 	} else {
+-		status = omap_request_dma(OMAP_DMA_USB_W2FC_RX0 - 1 + channel,
++		if (cpu_is_omap24xx())
++			dma_channel = OMAP24XX_DMA(USB_W2FC_RX0, channel);
++		else
++			dma_channel = OMAP_DMA_USB_W2FC_RX0 - 1 + channel;
++
++		status = omap_request_dma(dma_channel,
+ 			ep->ep.name, dma_error, ep, &ep->lch);
+ 		if (status == 0) {
+ 			UDC_RXDMA_CFG_REG = reg;
+@@ -795,7 +820,7 @@ static void dma_channel_claim(struct oma
+ 				OMAP_DMA_AMODE_CONSTANT,
+ 				(unsigned long) io_v2p((u32)&UDC_DATA_DMA_REG),
+ 				0, 0);
+-			/* EMIFF */
++			/* EMIFF or SDRC */
+ 			omap_set_dma_dest_burst_mode(ep->lch,
+ 						OMAP_DMA_DATA_BURST_4);
+ 			omap_set_dma_dest_data_pack(ep->lch, 1);
+@@ -808,7 +833,7 @@ static void dma_channel_claim(struct oma
+ 		omap_disable_dma_irq(ep->lch, OMAP_DMA_BLOCK_IRQ);
+ 
+ 		/* channel type P: hw synch (fifo) */
+-		if (!cpu_is_omap15xx())
++		if (cpu_class_is_omap1() && !cpu_is_omap15xx())
+ 			OMAP1_DMA_LCH_CTRL_REG(ep->lch) = 2;
+ 	}
+ 
+@@ -926,11 +951,13 @@ omap_ep_queue(struct usb_ep *_ep, struct
+ 
+ 	/* this isn't bogus, but OMAP DMA isn't the only hardware to
+ 	 * have a hard time with partial packet reads...  reject it.
++	 * Except OMAP2 can handle the small packets.
+ 	 */
+ 	if (use_dma
+ 			&& ep->has_dma
+ 			&& ep->bEndpointAddress != 0
+ 			&& (ep->bEndpointAddress & USB_DIR_IN) == 0
++			&& !cpu_class_is_omap2()
+ 			&& (req->req.length % ep->ep.maxpacket) != 0) {
+ 		DBG("%s, no partial packet OUT reads\n", __FUNCTION__);
+ 		return -EMSGSIZE;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kyungmin.park@samsung.com are
 
-origin.patch
-uml-update-address-space-affected-by-pud_clear-checkpatch-fixes.patch
-improve-cgroup-printks-fix.patch
-proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
-acpi-make-acpi_procfs-default-to-y.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
-git-dvb.patch
-git-hwmon.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-git-kvm.patch
-git-kvm-fixup.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-ide-arm-hack.patch
-git-mmc.patch
-git-mtd.patch
-lmc_ioctl-dont-return-with-locks-held-fix.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing-checkpatch-fixes.patch
-git-nfsd-fixup.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-git-s390.patch
-fix-build-breakage-if-sysfs-fix.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-broke-lguest.patch
-git-x86-inlining-borkage.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-x86-arch_register_cpu-section-fix.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
-fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
-file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
-x86-disable-preemption-in-delay_tsc.patch
-tty-fix-network-driver-interactions-with-tcget-set-checkpatch-fixes.patch
-x86-early_quirks-cleanup.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
-cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-sync_sb_inodes-propagate-errors.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-ridiculous-ext3-costs-was-re-page-fault-costs.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-suppress-aout-library-support-if-config_binfmt_aout-checkpatch-fixes.patch
-usb-net2280-cant-have-a-function-called-checkpatch-fixes.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-w1-build-fix.patch
+omap-register-the-l4-io-bus-to-boot-omap2.patch
+usb-device-dma-support-on-omap2.patch
