@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + read_current_time-cleanups-build-fix-fix.patch added to -mm tree
-Date: Mon, 12 Nov 2007 22:51:53 -0800
-Message-ID: <200711130651.lAD6prXi030681@imap1.linux-foundation.org>
+Subject: + bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch added to -mm tree
+Date: Mon, 12 Nov 2007 22:43:42 -0800
+Message-ID: <200711130650.lAD6od7h030664@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:35097 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45835 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751433AbXKMGwc (ORCPT
+	by vger.kernel.org with ESMTP id S1751527AbXKMGx2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 01:52:32 -0500
+	Tue, 13 Nov 2007 01:53:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ezk@cs.sunysb.edu
+Cc: akpm@linux-foundation.org, bharrosh@panasas.com, fujita.tomonori@lab.ntt.co.jp
 
 
 The patch titled
-     read_current_time-cleanups-build-fix-fix
+     bidi-support-scsi_data_buffer-broke-lots-of-stuff
 has been added to the -mm tree.  Its filename is
-     read_current_time-cleanups-build-fix-fix.patch
+     bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,38 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: read_current_time-cleanups-build-fix-fix
+Subject: bidi-support-scsi_data_buffer-broke-lots-of-stuff
 From: Andrew Morton <akpm@linux-foundation.org>
 
-It breaks headers_install.  Do it the sleazy way.
-
-Cc: Erez Zadok <ezk@cs.sunysb.edu>
+Cc: Boaz Harrosh <bharrosh@panasas.com>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/timex.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/scsi/Kconfig |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/timex.h~read_current_time-cleanups-build-fix-fix include/linux/timex.h
---- a/include/linux/timex.h~read_current_time-cleanups-build-fix-fix
-+++ a/include/linux/timex.h
-@@ -55,7 +55,6 @@
- 
- #include <linux/compiler.h>
- #include <linux/time.h>
--#include <linux/init.h>
- 
- #include <asm/param.h>
- 
-@@ -244,7 +243,7 @@ extern int do_adjtimex(struct timex *);
- /* Don't use! Compatibility define for existing users. */
- #define tickadj	(500/HZ ? : 1)
- 
--int __devinit read_current_timer(unsigned long *timer_val);
-+int read_current_timer(unsigned long *timer_val);
- 
- #endif /* KERNEL */
- 
+diff -puN drivers/scsi/Kconfig~bidi-support-scsi_data_buffer-broke-lots-of-stuff drivers/scsi/Kconfig
+--- a/drivers/scsi/Kconfig~bidi-support-scsi_data_buffer-broke-lots-of-stuff
++++ a/drivers/scsi/Kconfig
+@@ -915,6 +915,7 @@ config SCSI_INIA100
+ config SCSI_PPA
+ 	tristate "IOMEGA parallel port (ppa - older drives)"
+ 	depends on SCSI && PARPORT_PC
++	depends on BROKEN
+ 	---help---
+ 	  This driver supports older versions of IOMEGA's parallel port ZIP
+ 	  drive (a 100 MB removable media device).
+@@ -942,6 +943,7 @@ config SCSI_PPA
+ config SCSI_IMM
+ 	tristate "IOMEGA parallel port (imm - newer drives)"
+ 	depends on SCSI && PARPORT_PC
++	depends on BROKEN
+ 	---help---
+ 	  This driver supports newer versions of IOMEGA's parallel port ZIP
+ 	  drive (a 100 MB removable media device).
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -105,7 +103,6 @@ ips-trim-trailing-whitespace-checkpatch-fixes.patch
 scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
 scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
 bidi-support-scsi_data_buffer-broke-qla1280.patch
-bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
 git-unionfs.patch
 vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
 git-wireless.patch
@@ -164,7 +161,6 @@ remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
 allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
 remove-__attribute_used__-checkpatch-fixes.patch
 read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
 sync_sb_inodes-propagate-errors.patch
 mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
 64-bit-i_version-afs-fixes.patch
@@ -226,3 +222,4 @@ shrink_slab-handle-bad-shrinkers.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 w1-build-fix.patch
+bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
