@@ -1,54 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-broke-xen-too.patch added to -mm tree
-Date: Mon, 12 Nov 2007 21:08:56 -0800
-Message-ID: <200711130515.lAD5Frvj027546@imap1.linux-foundation.org>
+Subject: - git-kvm-fixup.patch removed from -mm tree
+Date: Mon, 12 Nov 2007 21:24:38 -0800
+Message-ID: <200711130524.lAD5Ocb4027883@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54996 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34516 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750820AbXKMFRg (ORCPT
+	by vger.kernel.org with ESMTP id S1752019AbXKMFYp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 00:17:36 -0500
+	Tue, 13 Nov 2007 00:24:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
+To: akpm@linux-foundation.org, avi@qumranet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-x86 broke xen too
-has been added to the -mm tree.  Its filename is
-     git-x86-broke-xen-too.patch
+     git-kvm-fixup
+has been removed from the -mm tree.  Its filename was
+     git-kvm-fixup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-x86 broke xen too
+Subject: git-kvm-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+attempt to fix git conflicts
+
+Cc: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/xen/enlighten.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/kvm/svm.c         |    8 --------
+ drivers/kvm/x86_emulate.c |    4 ----
+ 2 files changed, 12 deletions(-)
 
-diff -puN arch/x86/xen/enlighten.c~git-x86-broke-xen-too arch/x86/xen/enlighten.c
---- a/arch/x86/xen/enlighten.c~git-x86-broke-xen-too
-+++ a/arch/x86/xen/enlighten.c
-@@ -526,7 +526,7 @@ static unsigned long xen_apic_read(unsig
+diff -puN drivers/kvm/svm.c~git-kvm-fixup drivers/kvm/svm.c
+--- a/drivers/kvm/svm.c~git-kvm-fixup
++++ a/drivers/kvm/svm.c
+@@ -568,11 +568,7 @@ static int svm_vcpu_reset(struct kvm_vcp
+ 		svm->vmcb->save.cs.base = svm->vcpu.sipi_vector << 12;
+ 		svm->vmcb->save.cs.selector = svm->vcpu.sipi_vector << 8;
+ 	}
+-<<<<<<< HEAD:drivers/kvm/svm.c
+-=======
+-
  	return 0;
+->>>>>>> FETCH_HEAD:drivers/kvm/svm.c
  }
  
--static void xen_apic_write(unsigned long reg, unsigned long val)
-+static void xen_apic_write(unsigned long reg, u32 val)
- {
- 	/* Warn to see if there's any stray references */
- 	WARN_ON(1);
+ static struct kvm_vcpu *svm_create_vcpu(struct kvm *kvm, unsigned int id)
+@@ -1564,9 +1560,6 @@ static void svm_vcpu_run(struct kvm_vcpu
+ 		  [r14]"i"(offsetof(struct vcpu_svm, vcpu.regs[VCPU_REGS_R14])),
+ 		  [r15]"i"(offsetof(struct vcpu_svm, vcpu.regs[VCPU_REGS_R15]))
+ #endif
+-<<<<<<< HEAD:drivers/kvm/svm.c
+-		: "cc", "memory" );
+-=======
+ 		: "cc", "memory"
+ #ifdef CONFIG_X86_64
+ 		, "rbx", "rcx", "rdx", "rsi", "rdi"
+@@ -1575,7 +1568,6 @@ static void svm_vcpu_run(struct kvm_vcpu
+ 		, "ebx", "ecx", "edx" , "esi", "edi"
+ #endif
+ 		);
+->>>>>>> FETCH_HEAD:drivers/kvm/svm.c
+ 
+ 	if ((svm->vmcb->save.dr7 & 0xff))
+ 		load_db_regs(svm->host_db_regs);
+diff -puN drivers/kvm/x86_emulate.c~git-kvm-fixup drivers/kvm/x86_emulate.c
+--- a/drivers/kvm/x86_emulate.c~git-kvm-fixup
++++ a/drivers/kvm/x86_emulate.c
+@@ -1308,11 +1308,7 @@ x86_emulate_insn(struct x86_emulate_ctxt
+ 	case 0x63:		/* movsxd */
+ 		if (ctxt->mode != X86EMUL_MODE_PROT64)
+ 			goto cannot_emulate;
+-<<<<<<< HEAD:drivers/kvm/x86_emulate.c
+-		dst.val = (s32) src.val;
+-=======
+ 		c->dst.val = (s32) c->src.val;
+->>>>>>> FETCH_HEAD:drivers/kvm/x86_emulate.c
+ 		break;
+ 	case 0x80 ... 0x83:	/* Grp1 */
+ 		switch (c->modrm_reg) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -102,6 +136,7 @@ jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
 git-ipwireless_cs.patch
 git-x86.patch
 git-x86-broke-lguest.patch
+git-x86-broke-xen-too.patch
 git-x86-inlining-borkage.patch
 oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
 i386-and-x86_64-randomize-brk-fix.patch
@@ -213,4 +248,3 @@ shrink_slab-handle-bad-shrinkers.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 w1-build-fix.patch
-git-x86-broke-xen-too.patch
