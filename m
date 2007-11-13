@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix-fix.patch added to -mm tree
-Date: Tue, 13 Nov 2007 11:42:40 -0800
-Message-ID: <200711131942.lADJgeY5031219@imap1.linux-foundation.org>
+Subject: + drm-i915-fix-pointer-strip.patch added to -mm tree
+Date: Tue, 13 Nov 2007 11:47:19 -0800
+Message-ID: <200711131947.lADJlJ48032095@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59937 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43173 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762586AbXKMTnS (ORCPT
+	by vger.kernel.org with ESMTP id S1758972AbXKMTrs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 14:43:18 -0500
+	Tue, 13 Nov 2007 14:47:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, jirislaby@gmail.com, steved@redhat.com
+Cc: jirislaby@gmail.com, airlied@linux.ie, thomas@tungstengraphics.com
 
 
 The patch titled
-     nfs functions undefined
+     drm: i915, fix pointer strip
 has been added to the -mm tree.  Its filename is
-     nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix-fix.patch
+     drm-i915-fix-pointer-strip.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,101 +26,76 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: nfs functions undefined
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: drm: i915, fix pointer strip
+From: Jiri Slaby <jirislaby@gmail.com>
 
-nfs_put_super() and nfs_sb_deactive() should not be inside an
-ifdef CONFIG_NFS_V4 block.
+Beside the emitted warning, the added cast (u64 -> unsigned) strips out
+part of address on 64 bit. Cast to unsigned long instead.
 
-ERROR: "nfs_put_super" [fs/nfs/nfs.ko] undefined!
-ERROR: "nfs_sb_deactive" [fs/nfs/nfs.ko] undefined!
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Steve Dickson <steved@redhat.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Thomas Hellstrom <thomas@tungstengraphics.com>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/super.c |   34 +++++++++++++++++-----------------
- 1 file changed, 17 insertions(+), 17 deletions(-)
+ drivers/char/drm/i915_dma.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/nfs/super.c~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix-fix fs/nfs/super.c
---- a/fs/nfs/super.c~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix-fix
-+++ a/fs/nfs/super.c
-@@ -1499,6 +1499,23 @@ error_splat_super:
- 	return error;
- }
+diff -puN drivers/char/drm/i915_dma.c~drm-i915-fix-pointer-strip drivers/char/drm/i915_dma.c
+--- a/drivers/char/drm/i915_dma.c~drm-i915-fix-pointer-strip
++++ a/drivers/char/drm/i915_dma.c
+@@ -900,7 +900,7 @@ int i915_validate_buffer_list(struct drm
  
-+static void nfs_put_super(struct super_block *sb)
-+{
-+	struct nfs_server *server = NFS_SB(sb);
-+	/*
-+	 * Make sure there are no outstanding ops to this server.
-+	 * If so, wait for them to finish before allowing the
-+	 * unmount to continue.
-+	 */
-+	wait_event(server->active_wq, atomic_read(&server->active) == 0);
-+}
-+
-+void nfs_sb_deactive(struct nfs_server *server)
-+{
-+	if (atomic_dec_and_test(&server->active))
-+		wake_up(&server->active_wq);
-+}
-+
- #ifdef CONFIG_NFS_V4
+ 		buffers[buf_count] = NULL;
  
- /*
-@@ -1771,17 +1788,6 @@ static void nfs4_kill_super(struct super
- 	nfs_free_server(server);
- }
+-		if (copy_from_user(&arg, (void __user *)(unsigned)data, sizeof(arg))) {
++		if (copy_from_user(&arg, (void __user *)(unsigned long)data, sizeof(arg))) {
+ 			ret = -EFAULT;
+ 			goto out_err;
+ 		}
+@@ -951,7 +951,7 @@ int i915_validate_buffer_list(struct drm
+ 		arg.handled = 1;
+ 		arg.d.rep = rep;
  
--static void nfs_put_super(struct super_block *sb)
--{
--	struct nfs_server *server = NFS_SB(sb);
--	/*
--	 * Make sure there are no outstanding ops to this server.
--	 * If so, wait for them to finish before allowing the
--	 * unmount to continue.
--	 */
--	wait_event(server->active_wq, atomic_read(&server->active) == 0);
--}
--
- /*
-  * Clone an NFS4 server record on xdev traversal (FSID-change)
-  */
-@@ -1929,10 +1935,4 @@ error_splat_super:
- 	return error;
- }
+-		if (copy_to_user((void __user *)(unsigned)data, &arg, sizeof(arg)))
++		if (copy_to_user((void __user *)(unsigned long)data, &arg, sizeof(arg)))
+ 			return -EFAULT;
  
--void nfs_sb_deactive(struct nfs_server *server)
--{
--	if (atomic_dec_and_test(&server->active))
--		wake_up(&server->active_wq);
--}
--
- #endif /* CONFIG_NFS_V4 */
+ 		data = next;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-origin.patch
-chipsfb-uses-depends-on-pci.patch
-git-dvb.patch
-git-kbuild.patch
+fs-sysfs-remove-spin_lock_unlocked.patch
+cscope-build-warning.patch
+net-sunrpc-remove-spin_lock_unlocked.patch
+net-ibm_newemac-remove-spin_lock_unlocked.patch
 nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix-fix.patch
-advansys-fix-section-mismatch-warning.patch
-aic94-fix-section-mismatches.patch
-sym2-fix-section-mismatch-warning.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-x86-bitops_32h-style-cleanups.patch
-sysctl-fix-token-ring-procname.patch
-gbefb-fix-section-mismatch-warnings.patch
-vmstat-fix-section-mismatch-warning.patch
-register_cpu-__devinit-or-__cpuinit.patch
-cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
-move-kprobes-examples-to-samples-resend.patch
-move-kprobes-examples-to-samples-resend-checkpatch-fixes.patch
-fs-menu-small-reorg.patch
-profile-likely-unlikely-macros.patch
+git-watchdog.patch
+git-wireless.patch
+drm-i915-fix-pointer-strip.patch
+crisv10-serial-driver-rewrite-take-three.patch
+dzh-remove-useless-unused-module-junk.patch
+dz-always-check-if-it-is-safe-to-console_putchar.patch
+dz-dont-panic-when-request_irq-fails.patch
+dz-add-and-reorder-inclusions-remove-unneeded-ones.patch
+dz-update-kconfig-description.patch
+dz-rename-the-serial-console-structure.patch
+dz-fix-locking-issues.patch
+dz-handle-special-conditions-on-reception-correctly.patch
+maintainers-add-self-for-the-dz-serial-driver.patch
+char-rocket-switch-long-delay-to-sleep.patch
+char-rocket-printk-cleanup.patch
+char-rocket-remove-useless-macros.patch
+char-char-serial-remove-serial_type_normal-redefines.patch
+char-mxser_new-ioaddresses-are-ulong.patch
+char-stallion-fix-compiler-warnings.patch
+char-riscom8-change-rc_init_drivers-prototype.patch
+char-esp-remove-hangup-and-wakeup-bottomhalves.patch
+char-istallion-remove-hangup-bottomhalf.patch
+char-specialix-remove-bottomhalves.patch
+char-stallion-remove-bottomhalf.patch
+char-serial167-remove-bottomhalf.patch
+char-riscom8-remove-wakeup-anf-hangup-bottomhalves.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
