@@ -1,110 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: + cscope-build-warning.patch added to -mm tree
-Date: Tue, 13 Nov 2007 11:40:40 -0800
-Message-ID: <200711131940.lADJeemB030795@imap1.linux-foundation.org>
+Subject: + nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix-fix.patch added to -mm tree
+Date: Tue, 13 Nov 2007 11:42:40 -0800
+Message-ID: <200711131942.lADJgeY5031219@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38939 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59937 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755528AbXKMTku (ORCPT
+	by vger.kernel.org with ESMTP id S1762586AbXKMTnS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 14:40:50 -0500
+	Tue, 13 Nov 2007 14:43:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sam@ravnborg.org, jirislaby@gmail.com, xiyou.wangcong@gmail.com
+Cc: randy.dunlap@oracle.com, jirislaby@gmail.com, steved@redhat.com
 
 
 The patch titled
-     cscope build warning
+     nfs functions undefined
 has been added to the -mm tree.  Its filename is
-     cscope-build-warning.patch
+     nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: cscope build warning
-=46rom: Sam Ravnborg <sam@ravnborg.org>
+Subject: nfs functions undefined
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-On Tue, Nov 13, 2007 at 01:40:45PM +0100, Jiri Slaby wrote:
-> On 11/13/2007 01:15 PM, akpm@linux-foundation.org wrote:
-> > The mm snapshot broken-out-2007-11-13-04-14.tar.gz has been uploade=
-d to
->
-> $ uname -a
-> Linux bellona 2.6.23-rc8-mm2_64 #58 SMP Fri Sep 28 08:52:12 CEST 2007=
- x86_64
-> x86_64 x86_64 GNU/Linux
-> $ make O=3D../bu cscope
->   FILELST cscope.files
-> find: /home/l/latest/xxx/arch/x86_64: nen=C3=AD souborem ani adres=C3=
-=A1=C5=99em
->   MAKE    cscope.out
->
+nfs_put_super() and nfs_sb_deactive() should not be inside an
+ifdef CONFIG_NFS_V4 block.
 
-I have following fix queued in my inbox:
+ERROR: "nfs_put_super" [fs/nfs/nfs.ko] undefined!
+ERROR: "nfs_sb_deactive" [fs/nfs/nfs.ko] undefined!
 
-This patch fixed the following errors when doing "make cscope" and
-"make cscope ARCH=3Dum".
-
-  FILELST cscope.files
-find: arch/i386: No such file or directory
-  MAKE    cscope.out
-
-  FILELST cscope.files
-find: include/asm-i386: No such file or directory
-  MAKE    cscope.out
-
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Steve Dickson <steved@redhat.com>
 Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/nfs/super.c |   34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
 
-diff -puN Makefile~cscope-build-warning Makefile
---- a/Makefile~cscope-build-warning
-+++ a/Makefile
-@@ -1323,6 +1323,7 @@ ALLINCLUDE_ARCHS :=3D $(ARCH) $(SUBARCH)
- else
- ALLINCLUDE_ARCHS :=3D $(SRCARCH)
- endif
-+ALLINCLUDE_ARCHS :=3D $(shell echo $(ALLINCLUDE_ARCHS)|sed -e "s/i386/=
-x86/" -e "s/x86_64/x86/")
- else
- #Allow user to specify only ALLSOURCE_PATHS on the command line, keepi=
-ng existing behavour.
- ALLINCLUDE_ARCHS :=3D $(ALLSOURCE_ARCHS)
-@@ -1332,7 +1333,7 @@ endif
- ifeq ($(ARCH), $(SRCARCH))
- ALLSOURCE_ARCHS :=3D $(ARCH)
- else
--ALLSOURCE_ARCHS :=3D $(ARCH) $(SRCARCH)
-+ALLSOURCE_ARCHS :=3D $(shell echo $(ARCH) $(SRCARCH)|sed -e "s/i386/x8=
-6/" -e "s/x86_64/x86/")
- endif
-=20
- define find-sources
+diff -puN fs/nfs/super.c~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix-fix fs/nfs/super.c
+--- a/fs/nfs/super.c~nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix-fix
++++ a/fs/nfs/super.c
+@@ -1499,6 +1499,23 @@ error_splat_super:
+ 	return error;
+ }
+ 
++static void nfs_put_super(struct super_block *sb)
++{
++	struct nfs_server *server = NFS_SB(sb);
++	/*
++	 * Make sure there are no outstanding ops to this server.
++	 * If so, wait for them to finish before allowing the
++	 * unmount to continue.
++	 */
++	wait_event(server->active_wq, atomic_read(&server->active) == 0);
++}
++
++void nfs_sb_deactive(struct nfs_server *server)
++{
++	if (atomic_dec_and_test(&server->active))
++		wake_up(&server->active_wq);
++}
++
+ #ifdef CONFIG_NFS_V4
+ 
+ /*
+@@ -1771,17 +1788,6 @@ static void nfs4_kill_super(struct super
+ 	nfs_free_server(server);
+ }
+ 
+-static void nfs_put_super(struct super_block *sb)
+-{
+-	struct nfs_server *server = NFS_SB(sb);
+-	/*
+-	 * Make sure there are no outstanding ops to this server.
+-	 * If so, wait for them to finish before allowing the
+-	 * unmount to continue.
+-	 */
+-	wait_event(server->active_wq, atomic_read(&server->active) == 0);
+-}
+-
+ /*
+  * Clone an NFS4 server record on xdev traversal (FSID-change)
+  */
+@@ -1929,10 +1935,4 @@ error_splat_super:
+ 	return error;
+ }
+ 
+-void nfs_sb_deactive(struct nfs_server *server)
+-{
+-	if (atomic_dec_and_test(&server->active))
+-		wake_up(&server->active_wq);
+-}
+-
+ #endif /* CONFIG_NFS_V4 */
 _
 
-Patches currently in -mm which might be from sam@ravnborg.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-uml-fix-symlink-loops.patch
+origin.patch
+chipsfb-uses-depends-on-pci.patch
+git-dvb.patch
 git-kbuild.patch
-kconfig-use-getopt-in-confc-for-handling-command-line.patch
-cscope-build-warning.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-m68k-use-cc-cross-prefix.patch
-remove-support-for-un-needed-_extratext-section.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix-fix.patch
+advansys-fix-section-mismatch-warning.patch
+aic94-fix-section-mismatches.patch
+sym2-fix-section-mismatch-warning.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+x86-bitops_32h-style-cleanups.patch
+sysctl-fix-token-ring-procname.patch
+gbefb-fix-section-mismatch-warnings.patch
+vmstat-fix-section-mismatch-warning.patch
+register_cpu-__devinit-or-__cpuinit.patch
+cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
+move-kprobes-examples-to-samples-resend.patch
+move-kprobes-examples-to-samples-resend-checkpatch-fixes.patch
+fs-menu-small-reorg.patch
+profile-likely-unlikely-macros.patch
