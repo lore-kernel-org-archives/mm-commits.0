@@ -1,31 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch removed from -mm tree
-Date: Tue, 13 Nov 2007 20:56:57 -0800
-Message-ID: <200711140456.lAE4uwoN022045@imap1.linux-foundation.org>
+Subject: + clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch added to -mm tree
+Date: Tue, 13 Nov 2007 20:57:48 -0800
+Message-ID: <200711140457.lAE4vmEZ022062@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36142 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42603 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754852AbXKNE57 (ORCPT
+	by vger.kernel.org with ESMTP id S1755855AbXKNE6g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 23:57:59 -0500
+	Tue, 13 Nov 2007 23:58:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, drepper@redhat.com, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, drepper@redhat.com, mingo@elte.hu, roland@redhat.com
 
 
 The patch titled
      clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
 Subject: clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-reduce logspamming ability.
+It looks like CLONE_DETACHED is being used.
 
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Roland McGrath <roland@redhat.com>
@@ -33,26 +37,30 @@ Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ kernel/fork.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff -puN kernel/fork.c~clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix kernel/fork.c
 --- a/kernel/fork.c~clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix
 +++ a/kernel/fork.c
-@@ -1424,9 +1424,12 @@ long do_fork(unsigned long clone_flags,
+@@ -1423,7 +1423,7 @@ long do_fork(unsigned long clone_flags,
+ 	/*
  	 * We hope to recycle these flags after 2.6.26
  	 */
- 	if (unlikely(clone_flags & (CLONE_DETACHED|CLONE_STOPPED))) {
--		if (printk_ratelimit()) {
-+		static int __read_mostly count = 100;
-+
-+		if (count && printk_ratelimit()) {
- 			char comm[TASK_COMM_LEN];
+-	if (unlikely(clone_flags & (CLONE_DETACHED|CLONE_STOPPED))) {
++	if (unlikely(clone_flags & CLONE_STOPPED)) {
+ 		static int __read_mostly count = 100;
  
-+			count--;
+ 		if (count && printk_ratelimit()) {
+@@ -1433,7 +1433,7 @@ long do_fork(unsigned long clone_flags,
  			printk(KERN_INFO "fork(): process `%s' used deprecated "
  					"clone flags 0x%lx\n",
  				get_task_comm(comm, current),
+-				clone_flags & (CLONE_DETACHED|CLONE_STOPPED));
++				clone_flags & CLONE_STOPPED);
+ 		}
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,6 +72,7 @@ proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fi
 acpi-make-acpi_procfs-default-to-y.patch
 get_task_comm-return-the-result.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
 hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
 revert-task-control-groups-example-cpu-accounting-subsystem.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
