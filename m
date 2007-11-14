@@ -1,86 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: + git-drm-oops-fix.patch added to -mm tree
-Date: Tue, 13 Nov 2007 13:50:48 -0800
-Message-ID: <200711132150.lADLoqOI005926@imap1.linux-foundation.org>
+Subject: - clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch removed from -mm tree
+Date: Tue, 13 Nov 2007 20:56:57 -0800
+Message-ID: <200711140456.lAE4uwoN022045@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53957 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36142 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761340AbXKMVv0 (ORCPT
+	by vger.kernel.org with ESMTP id S1754852AbXKNE57 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 Nov 2007 16:51:26 -0500
+	Tue, 13 Nov 2007 23:57:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, airlied@linux.ie
+To: akpm@linux-foundation.org, drepper@redhat.com, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-drm-oops-fix
-has been added to the -mm tree.  Its filename is
-     git-drm-oops-fix.patch
+     clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix
+has been removed from the -mm tree.  Its filename was
+     clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: git-drm-oops-fix
+Subject: clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-[  140.659360] BUG: unable to handle kernel NULL pointer dereference at virtual address 0000000c
-[  140.659379] printing eip: f8c511b6 *pde = 00000000 
-[  140.659395] Oops: 0000 [#1] PREEMPT 
-[  140.659411] last sysfs file: /sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed
-[  140.659419] Modules linked in: i915 drm ipw2200 sonypi ipv6 autofs4 hidp l2cap bluetooth sunrpc nf_conntrack_netbios_ns ipt_REJECT nf_conntrack_ipv4 xt_state nf_conntrack xt_tcpudp iptable_filter ip_tables x_tables acpi_cpufreq nvram ohci1394 ehci_hcd ieee1394 uhci_hcd joydev sg snd_hda_intel snd_seq_dummy snd_seq_oss snd_seq_midi_event snd_seq snd_seq_device sr_mod snd_pcm_oss cdrom snd_mixer_oss snd_pcm snd_timer i2c_i801 piix pcspkr generic snd ieee80211 soundcore ieee80211_crypt i2c_core snd_page_alloc button ext3 jbd ide_disk ide_core
-[  140.659677] 
-[  140.659685] Pid: 3525, comm: glxgears Not tainted (2.6.24-rc2-mm1 #2)
-[  140.659693] EIP: 0060:[<f8c511b6>] EFLAGS: 00010046 CPU: 0
-[  140.659725] EIP is at drm_fence_flush_old+0x3d/0xf4 [drm]
-[  140.659731] EAX: 00000000 EBX: f6240468 ECX: 00000282 EDX: 00000000
-[  140.659738] ESI: 00000002 EDI: 00000002 EBP: e8c33ec8 ESP: e8c33ea8
-[  140.659745]  DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
-[  140.659752] Process glxgears (pid: 3525, ti=E8C32000 task=F113E170 task.ti=E8C32000)
-[  140.659758] Stack: f6240000 f624044c 00000000 f13919a0 f62690b8 f737b200 08be829c 000176b8 
-[  140.659803]        e8c33f1c f8dbdc76 00000013 f1391cc0 f6240000 f737b200 f8c6d898 00000001 
-[  140.659850]        00000001 f737b200 f8e40000 0001ffff 00000013 f737b200 08be8250 00000000 
-[  140.659896] Call Trace:
-[  140.659906]  [<c0104cec>] show_trace_log_lvl+0x12/0x25
-[  140.659921]  [<c0104d8b>] show_stack_log_lvl+0x8c/0x9e
-[  140.659932]  [<c0104e27>] show_registers+0x8a/0x1c0
-[  140.659944]  [<c010504b>] die+0xee/0x1c4
-[  140.659954]  [<c0116a2c>] do_page_fault+0x405/0x4e1
-[  140.659966]  [<c031fa22>] error_code+0x6a/0x70
-[  140.659979]  [<f8dbdc76>] i915_cmdbuffer+0x3a4/0x3e8 [i915]
-[  140.659997]  [<f8c4a73c>] drm_ioctl+0x1ac/0x228 [drm]
-[  140.660028]  [<c0179bca>] vfs_ioctl+0x4e/0x67
-[  140.660041]  [<c0179e45>] do_vfs_ioctl+0x262/0x279
-[  140.660053]  [<c0179e9c>] sys_ioctl+0x40/0x5c
-[  140.660064]  [<c0103da2>] syscall_call+0x7/0xb
-[  140.660165]  =======================
-[  140.660170] INFO: lockdep is turned off.
+reduce logspamming ability.
 
-Cc: Dave Airlie <airlied@linux.ie>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/drm_fence.c |    3 +++
- 1 file changed, 3 insertions(+)
+ kernel/fork.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/drm/drm_fence.c~git-drm-oops-fix drivers/char/drm/drm_fence.c
---- a/drivers/char/drm/drm_fence.c~git-drm-oops-fix
-+++ a/drivers/char/drm/drm_fence.c
-@@ -305,6 +305,9 @@ void drm_fence_flush_old(struct drm_devi
- 	struct drm_fence_object *fence;
- 	uint32_t diff;
- 
-+	if (!driver)
-+		return;
+diff -puN kernel/fork.c~clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix kernel/fork.c
+--- a/kernel/fork.c~clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix
++++ a/kernel/fork.c
+@@ -1424,9 +1424,12 @@ long do_fork(unsigned long clone_flags,
+ 	 * We hope to recycle these flags after 2.6.26
+ 	 */
+ 	if (unlikely(clone_flags & (CLONE_DETACHED|CLONE_STOPPED))) {
+-		if (printk_ratelimit()) {
++		static int __read_mostly count = 100;
 +
- 	write_lock_irqsave(&fm->lock, flags);
- 	old_sequence = (sequence - driver->flush_diff) & driver->sequence_mask;
- 	diff = (old_sequence - fc->last_exe_flush) & driver->sequence_mask;
++		if (count && printk_ratelimit()) {
+ 			char comm[TASK_COMM_LEN];
+ 
++			count--;
+ 			printk(KERN_INFO "fork(): process `%s' used deprecated "
+ 					"clone flags 0x%lx\n",
+ 				get_task_comm(comm, current),
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
