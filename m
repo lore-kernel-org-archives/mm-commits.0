@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nfsd-fix-wrong-mnt_writer-count-in-rename-fix.patch added to -mm tree
-Date: Tue, 13 Nov 2007 21:21:23 -0800
-Message-ID: <200711140521.lAE5LNKq022888@imap1.linux-foundation.org>
+Subject: + iget-stop-bfs-from-using-iget-and-read_inode-try-fix.patch added to -mm tree
+Date: Tue, 13 Nov 2007 21:24:39 -0800
+Message-ID: <200711140524.lAE5Odo5023016@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36352 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46027 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750722AbXKNFVa (ORCPT
+	by vger.kernel.org with ESMTP id S1751020AbXKNFaH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Nov 2007 00:21:30 -0500
+	Wed, 14 Nov 2007 00:30:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamalesh@linux.vnet.ibm.com, haveblue@us.ibm.com
+Cc: kamalesh@linux.vnet.ibm.com
 
 
 The patch titled
-     Build fails - in nsfd/vfs.c
+     Build Fail - fs/bfs/inode.c
 has been added to the -mm tree.  Its filename is
-     nfsd-fix-wrong-mnt_writer-count-in-rename-fix.patch
+     iget-stop-bfs-from-using-iget-and-read_inode-try-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,38 +26,34 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Build fails - in nsfd/vfs.c
+Subject: Build Fail - fs/bfs/inode.c
 From: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 
-The Kernel build fails, with error
-
-  CC      fs/nfsd/vfs.o
-fs/nfsd/vfs.c: In function `nfsd_rename':
-fs/nfsd/vfs.c:1695: error: request for member `mnt' in something not a structure or union
-make[2]: *** [fs/nfsd/vfs.o] Error 1
-make[1]: *** [fs/nfsd] Error 2
-make: *** [fs] Error 2
+fs/bfs/inode.c: In function `bfs_iget':
+fs/bfs/inode.c:37: error: `ino' redeclared as different kind of symbol
+fs/bfs/inode.c:35: error: previous definition of `ino' was here
+fs/bfs/inode.c:37: error: `inode' undeclared (first use in this function)
+fs/bfs/inode.c:37: error: (Each undeclared identifier is reported onlyonce
+fs/bfs/inode.c:37: error: for each function it appears in.)
 
 Signed-off-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/vfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/bfs/inode.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/nfsd/vfs.c~nfsd-fix-wrong-mnt_writer-count-in-rename-fix fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~nfsd-fix-wrong-mnt_writer-count-in-rename-fix
-+++ a/fs/nfsd/vfs.c
-@@ -1688,7 +1688,7 @@ nfsd_rename(struct svc_rqst *rqstp, stru
- 		if (!host_err)
- 			host_err = nfsd_sync_dir(fdentry);
- 	}
--	mnt_drop_write(ffhp->fh_export->ex_path.mnt);
-+	mnt_drop_write(ffhp->fh_export->ex_mnt);
+diff -puN fs/bfs/inode.c~iget-stop-bfs-from-using-iget-and-read_inode-try-fix fs/bfs/inode.c
+--- a/fs/bfs/inode.c~iget-stop-bfs-from-using-iget-and-read_inode-try-fix
++++ a/fs/bfs/inode.c
+@@ -34,7 +34,6 @@ void dump_imap(const char *prefix, struc
  
-  out_dput_new:
- 	dput(ndentry);
+ struct inode *bfs_iget(struct super_block *sb, unsigned long ino)
+ {
+-	unsigned long ino = inode->i_ino;
+ 	struct bfs_inode *di;
+ 	struct inode *inode;
+ 	struct buffer_head *bh;
 _
 
 Patches currently in -mm which might be from kamalesh@linux.vnet.ibm.com are
@@ -67,4 +63,5 @@ export-acpi_check_resource_conflict.patch
 fix-gregkh-driver-kobject-clean-up-rpadlpar-horrid-sysfs-abuse.patch
 config_highpte-vs-sub-page-page-tables-fix.patch
 nfsd-fix-wrong-mnt_writer-count-in-rename-fix.patch
+iget-stop-bfs-from-using-iget-and-read_inode-try-fix.patch
 add-dma-engine-driver-for-freescale-mpc85xx-processors-fix.patch
