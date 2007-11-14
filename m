@@ -1,78 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - sysctl-fix-token-ring-procname.patch removed from -mm tree
-Date: Wed, 14 Nov 2007 09:41:47 -0800
-Message-ID: <200711141741.lAEHfl2Y017263@imap1.linux-foundation.org>
+Subject: - ridiculous-ext3-costs-was-re-page-fault-costs.patch removed from -mm tree
+Date: Wed, 14 Nov 2007 09:40:54 -0800
+Message-ID: <200711141740.lAEHesfo017241@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36724 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40497 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756984AbXKNRpw (ORCPT
+	by vger.kernel.org with ESMTP id S1751523AbXKNRqW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Nov 2007 12:45:52 -0500
+	Wed, 14 Nov 2007 12:46:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, davem@davemloft.net, dex@dragonslave.de, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: torvalds@linux-foundation.org, adilger@clusterfs.com, akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, cmm@us.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysctl: fix token-ring procname
+     ext3: mostly fix blobk bitmap read performance regression
 has been removed from the -mm tree.  Its filename was
-     sysctl-fix-token-ring-procname.patch
+     ridiculous-ext3-costs-was-re-page-fault-costs.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: sysctl: fix token-ring procname
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: ext3: mostly fix blobk bitmap read performance regression
+From: Linus Torvalds <torvalds@linux-foundation.org>
 
-Correct the token-ring sysctl procname.
+The ext3 block bitmap functions got added validation recently, which caused
+a huge performance regression (ie 5x slower) due to very expensive modulus
+calculations being done in a loop.
 
-Eric said: "token-ring" is the historical name we have used in /proc/sys
-despite it being abbreviated tr in the kernel.  So this fix is definitely
-correct.
+This largely fixes it, by moving the calculations out of the loop.  The
+sanity checking is still expensive, but no longer totally excessively so.
 
-Reported by: Daniel Exner <dex@dragonslave.de>:
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Andreas Dilger <adilger@clusterfs.com>
+Cc: Mingming Cao <cmm@us.ibm.com>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl_check.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext3/balloc.c |   26 ++++++++++++++------------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
 
-diff -puN kernel/sysctl_check.c~sysctl-fix-token-ring-procname kernel/sysctl_check.c
---- a/kernel/sysctl_check.c~sysctl-fix-token-ring-procname
-+++ a/kernel/sysctl_check.c
-@@ -738,7 +738,7 @@ static struct trans_ctl_table trans_net_
- 	{ NET_ROSE,		"rose",		trans_net_rose_table },
- 	{ NET_IPV6,		"ipv6",		trans_net_ipv6_table },
- 	{ NET_X25,		"x25",		trans_net_x25_table },
--	{ NET_TR,		"tr",		trans_net_tr_table },
-+	{ NET_TR,		"token-ring",	trans_net_tr_table },
- 	{ NET_DECNET,		"decnet",	trans_net_decnet_table },
- 	/*  NET_ECONET not used */
- 	{ NET_SCTP,		"sctp",		trans_net_sctp_table },
+diff -puN fs/ext3/balloc.c~ridiculous-ext3-costs-was-re-page-fault-costs fs/ext3/balloc.c
+--- a/fs/ext3/balloc.c~ridiculous-ext3-costs-was-re-page-fault-costs
++++ a/fs/ext3/balloc.c
+@@ -80,12 +80,12 @@ struct ext3_group_desc * ext3_get_group_
+ 	return desc + offset;
+ }
+ 
+-static inline int
+-block_in_use(ext3_fsblk_t block, struct super_block *sb, unsigned char *map)
++static inline unsigned int
++block_bit_number(__le32 block, struct super_block *sb)
+ {
+-	return ext3_test_bit ((block -
+-		le32_to_cpu(EXT3_SB(sb)->s_es->s_first_data_block)) %
+-			 EXT3_BLOCKS_PER_GROUP(sb), map);
++	__le32 first = EXT3_SB(sb)->s_es->s_first_data_block;
++
++	return (le32_to_cpu(block) - le32_to_cpu(first)) % EXT3_BLOCKS_PER_GROUP(sb);
+ }
+ 
+ /**
+@@ -102,6 +102,7 @@ static struct buffer_head *
+ read_block_bitmap(struct super_block *sb, unsigned int block_group)
+ {
+ 	int i;
++	unsigned offset;
+ 	struct ext3_group_desc * desc;
+ 	struct buffer_head * bh = NULL;
+ 	ext3_fsblk_t bitmap_blk;
+@@ -120,20 +121,21 @@ read_block_bitmap(struct super_block *sb
+ 	}
+ 
+ 	/* check whether block bitmap block number is set */
+-	if (!block_in_use(bitmap_blk, sb, bh->b_data)) {
++	offset = block_bit_number(desc->bg_block_bitmap, sb);
++	if (!ext3_test_bit(offset, bh->b_data)) {
+ 		/* bad block bitmap */
+ 		goto error_out;
+ 	}
+ 	/* check whether the inode bitmap block number is set */
+-	bitmap_blk = le32_to_cpu(desc->bg_inode_bitmap);
+-	if (!block_in_use(bitmap_blk, sb, bh->b_data)) {
++	offset = block_bit_number(desc->bg_inode_bitmap, sb);
++	if (!ext3_test_bit(offset, bh->b_data)) {
+ 		/* bad block bitmap */
+ 		goto error_out;
+ 	}
+-	/* check whether the inode table block number is set */
+-	bitmap_blk = le32_to_cpu(desc->bg_inode_table);
+-	for (i = 0; i < EXT3_SB(sb)->s_itb_per_group; i++, bitmap_blk++) {
+-		if (!block_in_use(bitmap_blk, sb, bh->b_data)) {
++	/* check whether the inode table block numbers are set */
++	offset = block_bit_number(desc->bg_inode_table, sb);
++	for (i = 0; i < EXT3_SB(sb)->s_itb_per_group; i++, offset++) {
++		if (!ext3_test_bit(offset, bh->b_data)) {
+ 			/* bad block bitmap */
+ 			goto error_out;
+ 		}
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from torvalds@linux-foundation.org are
 
 origin.patch
-chipsfb-uses-depends-on-pci.patch
-git-dvb.patch
-git-kbuild.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix-fix.patch
-advansys-fix-section-mismatch-warning.patch
-aic94-fix-section-mismatches.patch
-sym2-fix-section-mismatch-warning.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-x86-bitops_32h-style-cleanups.patch
-gbefb-fix-section-mismatch-warnings.patch
-vmstat-fix-section-mismatch-warning.patch
-register_cpu-__devinit-or-__cpuinit.patch
-cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
-move-kprobes-examples-to-samples-resend.patch
-move-kprobes-examples-to-samples-resend-checkpatch-fixes.patch
-fs-menu-small-reorg.patch
-profile-likely-unlikely-macros.patch
+revert-task-control-groups-example-cpu-accounting-subsystem.patch
+git-x86.patch
+ridiculous-ext3-costs-was-re-page-fault-costs.patch
+workaround-for-a-pci-restoring-bug.patch
