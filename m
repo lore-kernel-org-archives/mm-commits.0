@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-dma-engine-driver-for-freescale-mpc85xx-processors-fix-fix.patch added to -mm tree
-Date: Wed, 14 Nov 2007 08:19:35 -0800
-Message-ID: <200711141619.lAEGJZZD014112@imap1.linux-foundation.org>
+Subject: + cris-tlbh-should-include-linux-pagemaph.patch added to -mm tree
+Date: Wed, 14 Nov 2007 08:40:37 -0800
+Message-ID: <200711141640.lAEGebKN014956@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58078 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49313 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753463AbXKNQYD (ORCPT
+	by vger.kernel.org with ESMTP id S1760841AbXKNQlM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Nov 2007 11:24:03 -0500
+	Wed, 14 Nov 2007 11:41:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wei.zhang@freescale.com, benh@kernel.crashing.org, dan.j.williams@intel.com, ebony.zhu@freescale.com, galak@gate.crashing.org, paulus@samba.org, shannon.nelson@intel.com
+Cc: jesper.nilsson@axis.com, mikael.starvik@axis.com
 
 
 The patch titled
-     Fix the issue of fsldma driver's VIRT_TO_BUS dependence in Kconfig
+     CRIS tlb.h should include linux/pagemap.h
 has been added to the -mm tree.  Its filename is
-     add-dma-engine-driver-for-freescale-mpc85xx-processors-fix-fix.patch
+     cris-tlbh-should-include-linux-pagemaph.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,55 +26,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Fix the issue of fsldma driver's VIRT_TO_BUS dependence in Kconfig
-From: Zhang Wei <wei.zhang@freescale.com>
+Subject: CRIS tlb.h should include linux/pagemap.h
+From: Jesper Nilsson <jesper.nilsson@axis.com>
 
-Remove virt_to_bus(), just using the saved phy address to match.
+Include linux/pagemap.h for release_pages and page_cache_release.
 
-Signed-off-by: Zhang Wei <wei.zhang@freescale.com>
-Cc: Ebony Zhu <ebony.zhu@freescale.com>
-Cc: "Williams, Dan J" <dan.j.williams@intel.com>
-Cc: Shannon Nelson <shannon.nelson@intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Kumar Gala <galak@gate.crashing.org>
+Fixes compilation error in arch/cris/mm/init.c when CONFIG_SWAP is unset.
+
+Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Mikael Starvik <mikael.starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/fsldma.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ include/asm-cris/tlb.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/dma/fsldma.c~add-dma-engine-driver-for-freescale-mpc85xx-processors-fix-fix drivers/dma/fsldma.c
---- a/drivers/dma/fsldma.c~add-dma-engine-driver-for-freescale-mpc85xx-processors-fix-fix
-+++ a/drivers/dma/fsldma.c
-@@ -495,15 +495,20 @@ static struct dma_async_tx_descriptor *f
-  */
- static void fsl_dma_update_completed_cookie(struct fsl_dma_chan *fsl_chan)
- {
--	struct fsl_desc_sw *cur_desc;
-+	struct fsl_desc_sw *cur_desc, *desc;
- 	dma_addr_t ld_phy;
+diff -puN include/asm-cris/tlb.h~cris-tlbh-should-include-linux-pagemaph include/asm-cris/tlb.h
+--- a/include/asm-cris/tlb.h~cris-tlbh-should-include-linux-pagemaph
++++ a/include/asm-cris/tlb.h
+@@ -1,6 +1,8 @@
+ #ifndef _CRIS_TLB_H
+ #define _CRIS_TLB_H
  
- 	ld_phy = get_cdar(fsl_chan) & FSL_DMA_NLDA_MASK;
++#include <linux/pagemap.h>
++
+ #include <asm/arch/tlb.h>
  
- 	if (ld_phy) {
--		cur_desc = (struct fsl_desc_sw *)bus_to_virt(ld_phy);
-+		cur_desc = NULL;
-+		list_for_each_entry(desc, &fsl_chan->ld_queue, node)
-+			if (desc->async_tx.phys == ld_phy) {
-+				cur_desc = desc;
-+				break;
-+			}
- 
--		if (cur_desc->async_tx.cookie) {
-+		if (cur_desc && cur_desc->async_tx.cookie) {
- 			if (dma_is_idle(fsl_chan))
- 				fsl_chan->completed_cookie =
- 					cur_desc->async_tx.cookie;
+ /*
 _
 
-Patches currently in -mm which might be from wei.zhang@freescale.com are
+Patches currently in -mm which might be from jesper.nilsson@axis.com are
 
-add-dma-engine-driver-for-freescale-mpc85xx-processors.patch
-add-dma-engine-driver-for-freescale-mpc85xx-processors-fix.patch
-add-dma-engine-driver-for-freescale-mpc85xx-processors-fix-fix.patch
+git-mtd.patch
+cris-build-fixes-fix-csum_tcpudp_magic-declaration.patch
+cris-build-fixes-add-missing-syscalls.patch
+cris-build-fixes-hardirqh-include-asm-irqh.patch
+cris-build-fixes-atomich-needs-compilerh.patch
+cris-build-fixes-atomich-needs-compilerh-fix.patch
+cris-build-fixes-irq-fixes.patch
+cris-build-fixes-sys_crisc-needs-fsh.patch
+cris-build-fixes-add-baud-rate-defines.patch
+cris-build-fixes-update-eth_v10c-ethernet-driver.patch
+cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
+cris-build-fixes-corrected-and-improved-nmi-and-irq-handling.patch
+cris-build-fixes-fixes-in-arch-cris-kernel-timec-checkpatch-fixes.patch
+cris-build-fixes-fixes-in-arch-cris-kernel-timec.patch
+cris-build-fixes-setupc-needs-paramh.patch
+cris-build-fixes-fix-crisksymsc.patch
+cris-build-fixes-defconfig-updates.patch
+cris-dont-include-bitopsh-in-posix_typesh.patch
+crisv10-serial-driver-rewrite-take-three.patch
+cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two.patch
+cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two-checkpatch-fixes.patch
+crisv10-fix-timer-interrupt-parameters.patch
+crisv10-improve-and-bugfix-fasttimer.patch
+crisv32-add-cache-flush-operations.patch
+cris-tlbh-should-include-linux-pagemaph.patch
