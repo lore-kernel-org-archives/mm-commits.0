@@ -1,94 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - mm-fix-blkdev-size-calculation-in-generic_write_checks.patch removed from -mm tree
-Date: Wed, 14 Nov 2007 02:28:25 -0800
-Message-ID: <200711141028.lAEASQMN001019@imap1.linux-foundation.org>
+Subject: - add-dma-engine-driver-for-freescale-mpc85xx-processors-fix-fix.patch removed from -mm tree
+Date: Wed, 14 Nov 2007 08:18:22 -0800
+Message-ID: <200711141618.lAEGIMiF014072@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39008 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33237 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750716AbXKNK3V (ORCPT
+	by vger.kernel.org with ESMTP id S1755934AbXKNQTL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Nov 2007 05:29:21 -0500
+	Wed, 14 Nov 2007 11:19:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dmonakhov@openvz.org, hch@lst.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: olof@lixom.net, benh@kernel.crashing.org, dan.j.williams@intel.com, ebony.zhu@freescale.com, galak@gate.crashing.org, paulus@samba.org, shannon.nelson@intel.com, wei.zhang@freescale.co
 
 
 The patch titled
-     mm: fix blkdev size calculation in generic_write_checks
+     Fix dependencies for FSL_DMA
 has been removed from the -mm tree.  Its filename was
-     mm-fix-blkdev-size-calculation-in-generic_write_checks.patch
+     add-dma-engine-driver-for-freescale-mpc85xx-processors-fix-fix.patch
 
-This patch was dropped because it had testing failures
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: mm: fix blkdev size calculation in generic_write_checks
-From: Dmitry Monakhov <dmonakhov@openvz.org>
+Subject: Fix dependencies for FSL_DMA
+From: Olof Johansson <olof@lixom.net>
 
-Currently block device size calculated regardless its bd_block_size.  This
-may result attempt to write outside block device if i_size not aligned to
-bdev->bd_block_size and result in EIO.
+powerpc allyesconfig build:
 
-#### TEST_CASE_BEGIN
-# fdisk -l /dev/sdc
-Disk /dev/sdc: 36.7 GB, 36703918080 bytes
-255 heads, 63 sectors/track, 4462 cylinders
-Units = cylinders of 16065 * 512 = 8225280 bytes
+drivers/dma/fsldma.c:504: error: implicit declaration of function 'bus_to_virt'
 
-   Device Boot      Start         End      Blocks   Id  System
-/dev/sdc1   *           1         254     2040223+  83  Ldinux
-/dev/sdc2             255         379     1004062+  83  Linux
-####
-#### /dev/sdc2 size not aligned to 4K
-
-#### at this time bd_block_size == 512 so generic_write_check
-#### performed correctly
-# dd if=/dev/zero of=/dev/sdc2 bs=1k count=7 seek=1004058
-dd: writing `/dev/sdc2': No space left on device
-5+0 records in
-4+0 records out
-
-#### this bdev contain ext4fs with blksize = 4K
-# mount /dev/sdc2 /mnt/
-#### after we mounted this bdev bd_block_size == fsblksize == 4K
-
-#### the same write operation failed with EIO
-# dd if=/dev/zero of=/dev/sdc2 bs=1k count=7 seek=1004058
-dd: writing `/dev/sdc2': Input/output error
-3+0 records in
-2+0 records out
-#### Attempt to write whole fsblock result write access outside
-#### blkdevice and cause -EIO (returned by blkdev_get_block)
-#### TEST_CASE_END
-
-Signed-off-by: Dmitry Monakhov <dmonakhov@openvz.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Olof Johansson <olof@lixom.net>
+Cc: Zhang Wei <wei.zhang@freescale.com>
+Cc: Ebony Zhu <ebony.zhu@freescale.com>
+Cc: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: Shannon Nelson <shannon.nelson@intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/dma/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/filemap.c~mm-fix-blkdev-size-calculation-in-generic_write_checks mm/filemap.c
---- a/mm/filemap.c~mm-fix-blkdev-size-calculation-in-generic_write_checks
-+++ a/mm/filemap.c
-@@ -1856,9 +1856,11 @@ inline int generic_write_checks(struct f
- 	} else {
- #ifdef CONFIG_BLOCK
- 		loff_t isize;
-+		unsigned int blksize;
- 		if (bdev_read_only(I_BDEV(inode)))
- 			return -EPERM;
--		isize = i_size_read(inode);
-+		blksize = block_size(I_BDEV(inode));
-+		isize = i_size_read(inode) & ~(blksize - 1);
- 		if (*pos >= isize) {
- 			if (*count || *pos > isize)
- 				return -ENOSPC;
+diff -puN drivers/dma/Kconfig~add-dma-engine-driver-for-freescale-mpc85xx-processors-fix-fix drivers/dma/Kconfig
+--- a/drivers/dma/Kconfig~add-dma-engine-driver-for-freescale-mpc85xx-processors-fix-fix
++++ a/drivers/dma/Kconfig
+@@ -36,7 +36,7 @@ config INTEL_IOP_ADMA
+ 
+ config FSL_DMA
+ 	bool "Freescale MPC85xx/MPC83xx DMA support"
+-	depends on PPC
++	depends on PPC && VIRT_TO_BUS
+ 	select DMA_ENGINE
+ 	---help---
+ 	  Enable support for the Freescale DMA engine. Now, it support
 _
 
-Patches currently in -mm which might be from dmonakhov@openvz.org are
+Patches currently in -mm which might be from olof@lixom.net are
 
-git-md-accel.patch
-mm-fix-blkdev-size-calculation-in-generic_write_checks.patch
+origin.patch
+pcmcia-convert-some-internal-only-ioaddr_t-to-unsigned-int.patch
+pcmcia-replace-kio_addr_t-with-unsigned-int-everywhere.patch
+bugh-remove-have_arch_bug--have_arch_warn.patch
+powerpc-switch-to-generic-warn_on-bug_on.patch
+add-dma-engine-driver-for-freescale-mpc85xx-processors-fix-fix.patch
