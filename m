@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-iseries-build-failure-mm-stabc.patch added to -mm tree
-Date: Wed, 14 Nov 2007 08:21:01 -0800
-Message-ID: <200711141621.lAEGL1mB014144@imap1.linux-foundation.org>
+Subject: + add-dma-engine-driver-for-freescale-mpc85xx-processors-fix-fix.patch added to -mm tree
+Date: Wed, 14 Nov 2007 08:19:35 -0800
+Message-ID: <200711141619.lAEGJZZD014112@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58201 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58078 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752399AbXKNQVk (ORCPT
+	by vger.kernel.org with ESMTP id S1753463AbXKNQYD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Nov 2007 11:21:40 -0500
+	Wed, 14 Nov 2007 11:24:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamalesh@linux.vnet.ibm.com, benh@kernel.crashing.org, paulus@samba.org
+Cc: wei.zhang@freescale.com, benh@kernel.crashing.org, dan.j.williams@intel.com, ebony.zhu@freescale.com, galak@gate.crashing.org, paulus@samba.org, shannon.nelson@intel.com
 
 
 The patch titled
-     powerpc (iseries)- build failure - mm/stab.c
+     Fix the issue of fsldma driver's VIRT_TO_BUS dependence in Kconfig
 has been added to the -mm tree.  Its filename is
-     powerpc-iseries-build-failure-mm-stabc.patch
+     add-dma-engine-driver-for-freescale-mpc85xx-processors-fix-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,51 +26,55 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: powerpc (iseries)- build failure - mm/stab.c
-From: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Subject: Fix the issue of fsldma driver's VIRT_TO_BUS dependence in Kconfig
+From: Zhang Wei <wei.zhang@freescale.com>
 
-The kernel builds fails with following error, with randconfig
+Remove virt_to_bus(), just using the saved phy address to match.
 
-  CC      arch/powerpc/mm/stab.o
-arch/powerpc/mm/stab.c: In function `stab_initialize':
-arch/powerpc/mm/stab.c:282: error: implicit declaration of function `HvCall1'
-arch/powerpc/mm/stab.c:282: error: `HvCallBaseSetASR' undeclared (first use in this function)
-arch/powerpc/mm/stab.c:282: error: (Each undeclared identifier is reported only once
-arch/powerpc/mm/stab.c:282: error: for each function it appears in.)
-make[1]: *** [arch/powerpc/mm/stab.o] Error 1
-make: *** [arch/powerpc/mm] Error 2
-
-Signed-off-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Signed-off-by: Zhang Wei <wei.zhang@freescale.com>
+Cc: Ebony Zhu <ebony.zhu@freescale.com>
+Cc: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: Shannon Nelson <shannon.nelson@intel.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
+Cc: Kumar Gala <galak@gate.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/stab.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/dma/fsldma.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN arch/powerpc/mm/stab.c~powerpc-iseries-build-failure-mm-stabc arch/powerpc/mm/stab.c
---- a/arch/powerpc/mm/stab.c~powerpc-iseries-build-failure-mm-stabc
-+++ a/arch/powerpc/mm/stab.c
-@@ -21,6 +21,10 @@
- #include <asm/abs_addr.h>
- #include <asm/firmware.h>
+diff -puN drivers/dma/fsldma.c~add-dma-engine-driver-for-freescale-mpc85xx-processors-fix-fix drivers/dma/fsldma.c
+--- a/drivers/dma/fsldma.c~add-dma-engine-driver-for-freescale-mpc85xx-processors-fix-fix
++++ a/drivers/dma/fsldma.c
+@@ -495,15 +495,20 @@ static struct dma_async_tx_descriptor *f
+  */
+ static void fsl_dma_update_completed_cookie(struct fsl_dma_chan *fsl_chan)
+ {
+-	struct fsl_desc_sw *cur_desc;
++	struct fsl_desc_sw *cur_desc, *desc;
+ 	dma_addr_t ld_phy;
  
-+#ifdef CONFIG_PPC_ISERIES
-+#include <asm/iseries/hv_call.h>
-+#endif /* CONFIG_PPC_ISERIES */
-+
- struct stab_entry {
- 	unsigned long esid_data;
- 	unsigned long vsid_data;
+ 	ld_phy = get_cdar(fsl_chan) & FSL_DMA_NLDA_MASK;
+ 
+ 	if (ld_phy) {
+-		cur_desc = (struct fsl_desc_sw *)bus_to_virt(ld_phy);
++		cur_desc = NULL;
++		list_for_each_entry(desc, &fsl_chan->ld_queue, node)
++			if (desc->async_tx.phys == ld_phy) {
++				cur_desc = desc;
++				break;
++			}
+ 
+-		if (cur_desc->async_tx.cookie) {
++		if (cur_desc && cur_desc->async_tx.cookie) {
+ 			if (dma_is_idle(fsl_chan))
+ 				fsl_chan->completed_cookie =
+ 					cur_desc->async_tx.cookie;
 _
 
-Patches currently in -mm which might be from kamalesh@linux.vnet.ibm.com are
+Patches currently in -mm which might be from wei.zhang@freescale.com are
 
-chipsfb-uses-depends-on-pci.patch
-export-acpi_check_resource_conflict.patch
-powerpc-iseries-build-failure-mm-stabc.patch
-fix-gregkh-driver-kobject-clean-up-rpadlpar-horrid-sysfs-abuse.patch
-config_highpte-vs-sub-page-page-tables-fix.patch
-iget-stop-bfs-from-using-iget-and-read_inode-try-fix.patch
+add-dma-engine-driver-for-freescale-mpc85xx-processors.patch
 add-dma-engine-driver-for-freescale-mpc85xx-processors-fix.patch
+add-dma-engine-driver-for-freescale-mpc85xx-processors-fix-fix.patch
