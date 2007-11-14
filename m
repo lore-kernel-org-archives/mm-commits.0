@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + crisv10-string-library-add-lineendings-to-asm.patch added to -mm tree
-Date: Wed, 14 Nov 2007 08:48:40 -0800
-Message-ID: <200711141648.lAEGmec5015355@imap1.linux-foundation.org>
+Subject: + crisv10-fasttimer-scrap-inline-and-name-timeval_cmp-better.patch added to -mm tree
+Date: Wed, 14 Nov 2007 09:28:25 -0800
+Message-ID: <200711141728.lAEHSPnc016789@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44012 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52197 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752561AbXKNQso (ORCPT
+	by vger.kernel.org with ESMTP id S1752058AbXKNR3A (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Nov 2007 11:48:44 -0500
+	Wed, 14 Nov 2007 12:29:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jesper.nilsson@axis.com, mikael.starvik@axis.com
 
 
 The patch titled
-     CRISv10 string library add lineendings to asm
+     CRISv10 fasttimer: Scrap INLINE and name timeval_cmp better
 has been added to the -mm tree.  Its filename is
-     crisv10-string-library-add-lineendings-to-asm.patch
+     crisv10-fasttimer-scrap-inline-and-name-timeval_cmp-better.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,88 +26,90 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: CRISv10 string library add lineendings to asm
+Subject: CRISv10 fasttimer: Scrap INLINE and name timeval_cmp better
 From: Jesper Nilsson <jesper.nilsson@axis.com>
 
-Add \n\ at end of lines inside asm statement to avoid warning.
+Scrap the local __INLINE__ macro, and rename timeval_cmp to fasttime_cmp.
 
-No change except adding \n\ to end of line and correcting
-whitespace has been done.
-Removes warning about multi-line string literals when compiling
-arch/cris/arch-v10/lib/string.c
+Inline macro was completely unnecessary since the macro was defined
+locally to be inline.
+timeval_cmp was inaccurately named since it does comparison on
+struct fasttimer_t and not on struct timeval.
 
 Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
 Cc: Mikael Starvik <mikael.starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/lib/string.c |   54 +++++++++++++++---------------
- 1 file changed, 27 insertions(+), 27 deletions(-)
+ arch/cris/arch-v10/kernel/fasttimer.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN arch/cris/arch-v10/lib/string.c~crisv10-string-library-add-lineendings-to-asm arch/cris/arch-v10/lib/string.c
---- a/arch/cris/arch-v10/lib/string.c~crisv10-string-library-add-lineendings-to-asm
-+++ a/arch/cris/arch-v10/lib/string.c
-@@ -95,33 +95,33 @@ void *memcpy(void *pdst,
-       If you want to check that the allocation was right; then
-       check the equalities in the first comment.  It should say
-       "r13=r13, r11=r11, r12=r12" */
--    __asm__ volatile ("
--        ;; Check that the following is true (same register names on
--        ;; both sides of equal sign, as in r8=r8):
--        ;; %0=r13, %1=r11, %2=r12
--        ;;
--	;; Save the registers we'll use in the movem process
--	;; on the stack.
--	subq 	11*4,$sp
--	movem	$r10,[$sp]
--
--        ;; Now we've got this:
--	;; r11 - src
--	;; r13 - dst
--	;; r12 - n
--	
--        ;; Update n for the first loop
--        subq    44,$r12
--0:
--	movem	[$r11+],$r10
--        subq   44,$r12
--        bge     0b
--	movem	$r10,[$r13+]
--
--        addq   44,$r12  ;; compensate for last loop underflowing n
--
--	;; Restore registers from stack
--        movem [$sp+],$r10" 
-+    __asm__ volatile ("\n\
-+	;; Check that the following is true (same register names on	\n\
-+	;; both sides of equal sign, as in r8=r8):			\n\
-+	;; %0=r13, %1=r11, %2=r12					\n\
-+	;;								\n\
-+	;; Save the registers we'll use in the movem process		\n\
-+	;; on the stack.						\n\
-+	subq	11*4,$sp						\n\
-+	movem	$r10,[$sp]						\n\
-+									\n\
-+	;; Now we've got this:						\n\
-+	;; r11 - src							\n\
-+	;; r13 - dst							\n\
-+	;; r12 - n							\n\
-+									\n\
-+	;; Update n for the first loop					\n\
-+	subq	44,$r12							\n\
-+0:									\n\
-+	movem	[$r11+],$r10						\n\
-+	subq	44,$r12							\n\
-+	bge	0b							\n\
-+	movem	$r10,[$r13+]						\n\
-+									\n\
-+	addq	44,$r12 ;; compensate for last loop underflowing n	\n\
-+									\n\
-+	;; Restore registers from stack					\n\
-+	movem	[$sp+],$r10"
+diff -puN arch/cris/arch-v10/kernel/fasttimer.c~crisv10-fasttimer-scrap-inline-and-name-timeval_cmp-better arch/cris/arch-v10/kernel/fasttimer.c
+--- a/arch/cris/arch-v10/kernel/fasttimer.c~crisv10-fasttimer-scrap-inline-and-name-timeval_cmp-better
++++ a/arch/cris/arch-v10/kernel/fasttimer.c
+@@ -46,8 +46,6 @@ static int sanity_failed;
+ #define D2(x)
+ #define DP(x)
  
-      /* Outputs */ : "=r" (dst), "=r" (src), "=r" (n) 
-      /* Inputs */ : "0" (dst), "1" (src), "2" (n));
+-#define __INLINE__ inline
+-
+ static unsigned int fast_timer_running;
+ static unsigned int fast_timers_added;
+ static unsigned int fast_timers_started;
+@@ -118,13 +116,13 @@ int timer_freq_settings[NUM_TIMER_STATS]
+ int timer_delay_settings[NUM_TIMER_STATS];
+ 
+ /* Not true gettimeofday, only checks the jiffies (uptime) + useconds */
+-void __INLINE__ do_gettimeofday_fast(struct fasttime_t *tv)
++inline void do_gettimeofday_fast(struct fasttime_t *tv)
+ {
+ 	tv->tv_jiff = jiffies;
+ 	tv->tv_usec = GET_JIFFIES_USEC();
+ }
+ 
+-int __INLINE__ timeval_cmp(struct fasttime_t *t0, struct fasttime_t *t1)
++inline int fasttime_cmp(struct fasttime_t *t0, struct fasttime_t *t1)
+ {
+ 	/* Compare jiffies. Takes care of wrapping */
+ 	if (time_before(t0->tv_jiff, t1->tv_jiff))
+@@ -140,7 +138,7 @@ int __INLINE__ timeval_cmp(struct fastti
+ 	return 0;
+ }
+ 
+-void __INLINE__ start_timer1(unsigned long delay_us)
++inline void start_timer1(unsigned long delay_us)
+ {
+   int freq_index = 0; /* This is the lowest resolution */
+   unsigned long upper_limit = MAX_DELAY_US;
+@@ -264,7 +262,7 @@ void start_one_shot_timer(struct fast_ti
+   fast_timers_added++;
+ 
+   /* Check if this should timeout before anything else */
+-  if (tmp == NULL || timeval_cmp(&t->tv_expires, &tmp->tv_expires) < 0)
++	if (tmp == NULL || fasttime_cmp(&t->tv_expires, &tmp->tv_expires) < 0)
+   {
+     /* Put first in list and modify the timer value */
+     t->prev = NULL;
+@@ -280,8 +278,8 @@ void start_one_shot_timer(struct fast_ti
+     start_timer1(delay_us);
+   } else {
+     /* Put in correct place in list */
+-    while (tmp->next &&
+-           timeval_cmp(&t->tv_expires, &tmp->next->tv_expires) > 0)
++		while (tmp->next && fasttime_cmp(&t->tv_expires,
++				&tmp->next->tv_expires) > 0)
+     {
+       tmp = tmp->next;
+     }
+@@ -382,7 +380,7 @@ timer1_handler(int irq, void *dev_id)
+ 		D1(printk(KERN_DEBUG "t: %is %06ius\n",
+ 			tv.tv_jiff, tv.tv_usec));
+ 
+-    if (timeval_cmp(&t->tv_expires, &tv) <= 0)
++		if (fasttime_cmp(&t->tv_expires, &tv) <= 0)
+     {
+       /* Yes it has expired */
+ #ifdef FAST_TIMER_LOG
 _
 
 Patches currently in -mm which might be from jesper.nilsson@axis.com are
@@ -141,3 +143,4 @@ crisv10-ethernet-declare-mac-fix.patch
 crisv10-usercopy-library-add-lineendings-to-asm.patch
 crisv10-string-library-add-lineendings-to-asm.patch
 crisv10-memset-library-add-lineendings-to-asm.patch
+crisv10-fasttimer-scrap-inline-and-name-timeval_cmp-better.patch
