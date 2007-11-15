@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-ds1302-rtc-support.patch added to -mm tree
-Date: Thu, 15 Nov 2007 14:32:41 -0800
-Message-ID: <200711152232.lAFMWfZE019333@imap1.linux-foundation.org>
+Subject: + rtc-ds1302-rtc-support-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 15 Nov 2007 14:41:13 -0800
+Message-ID: <200711152241.lAFMfDgv019674@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48117 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:40618 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757421AbXKOWdU (ORCPT
+	by vger.kernel.org with ESMTP id S1757467AbXKOWl1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 17:33:20 -0500
+	Thu, 15 Nov 2007 17:41:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lethal@linux-sh.org, a.zummo@towertech.it
+Cc: akpm@linux-foundation.org, a.zummo@towertech.it, lethal@linux-sh.org
 
 
 The patch titled
-     rtc: ds1302 rtc support
+     rtc-ds1302-rtc-support-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     rtc-ds1302-rtc-support.patch
+     rtc-ds1302-rtc-support-checkpatch-fixes.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,330 +26,231 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: rtc: ds1302 rtc support
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: rtc-ds1302-rtc-support-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This adds a basic ds1302 RTC driver, which is basically a cleanup and move
-of the in-tree SH SecureEdge5410 code (which is currently located in
-arch/sh/board/snapgear/rtc.c) to drivers/rtc.
+ERROR: do not use C99 // comments
+#114: FILE: drivers/rtc/rtc-ds1302.c:62:
++		set_dp(get_dp() | RTC_SCLK);	// clock high
 
-This aims to be a building block that the M32R and CRIS code can be worked
-on top of, so we can get rid of drivers/char/ds1302.c and
-arch/cris/arch-v10/drivers/ds1302.c respectively, though more work is
-needed for this.
+ERROR: do not use C99 // comments
+#115: FILE: drivers/rtc/rtc-ds1302.c:63:
++		set_dp(get_dp() & ~RTC_SCLK);	// clock low
 
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+ERROR: do not use C99 // comments
+#126: FILE: drivers/rtc/rtc-ds1302.c:74:
++		set_dp(get_dp() | RTC_SCLK);	// clock high
+
+ERROR: do not use C99 // comments
+#127: FILE: drivers/rtc/rtc-ds1302.c:75:
++		set_dp(get_dp() & ~RTC_SCLK);	// clock low
+
+total: 4 errors, 0 warnings, 281 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig      |    6 
- drivers/rtc/Makefile     |    1 
- drivers/rtc/rtc-ds1302.c |  262 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 269 insertions(+)
+ drivers/rtc/rtc-ds1302.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-ds1302-rtc-support drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-ds1302-rtc-support
-+++ a/drivers/rtc/Kconfig
-@@ -306,6 +306,12 @@ config RTC_DRV_DS1216
- 	help
- 	  If you say yes here you get support for the Dallas DS1216 RTC chips.
- 
-+config RTC_DRV_DS1302
-+	tristate "Dallas DS1302"
-+	depends on SH_SECUREEDGE5410
-+	help
-+	  If you say yes here you get support for the Dallas DS1302 RTC chips.
-+
- config RTC_DRV_DS1553
- 	tristate "Maxim/Dallas DS1553"
- 	help
-diff -puN drivers/rtc/Makefile~rtc-ds1302-rtc-support drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-ds1302-rtc-support
-+++ a/drivers/rtc/Makefile
-@@ -22,6 +22,7 @@ obj-$(CONFIG_RTC_DRV_AT91RM9200)+= rtc-a
- obj-$(CONFIG_RTC_DRV_BFIN)	+= rtc-bfin.o
- obj-$(CONFIG_RTC_DRV_CMOS)	+= rtc-cmos.o
- obj-$(CONFIG_RTC_DRV_DS1216)	+= rtc-ds1216.o
-+obj-$(CONFIG_RTC_DRV_DS1302)	+= rtc-ds1302.o
- obj-$(CONFIG_RTC_DRV_DS1307)	+= rtc-ds1307.o
- obj-$(CONFIG_RTC_DRV_DS1374)	+= rtc-ds1374.o
- obj-$(CONFIG_RTC_DRV_DS1553)	+= rtc-ds1553.o
-diff -puN /dev/null drivers/rtc/rtc-ds1302.c
---- /dev/null
+diff -puN drivers/rtc/rtc-ds1302.c~rtc-ds1302-rtc-support-checkpatch-fixes drivers/rtc/rtc-ds1302.c
+--- a/drivers/rtc/rtc-ds1302.c~rtc-ds1302-rtc-support-checkpatch-fixes
 +++ a/drivers/rtc/rtc-ds1302.c
-@@ -0,0 +1,262 @@
-+/*
-+ * Dallas DS1302 RTC Support
-+ *
-+ *  Copyright (C) 2002  David McCullough
-+ *  Copyright (C) 2003 - 2007  Paul Mundt
-+ *
-+ * This file is subject to the terms and conditions of the GNU General Public
-+ * License version 2.  See the file "COPYING" in the main directory of
-+ * this archive for more details.
-+ */
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/platform_device.h>
-+#include <linux/time.h>
-+#include <linux/rtc.h>
-+#include <linux/spinlock.h>
-+#include <linux/io.h>
-+#include <linux/bcd.h>
-+#include <asm/rtc.h>
-+
-+#define DRV_NAME	"rtc-ds1302"
-+#define DRV_VERSION	"0.1.0"
-+
-+#define	RTC_CMD_READ	0x81		/* Read command */
-+#define	RTC_CMD_WRITE	0x80		/* Write command */
-+
-+#define RTC_ADDR_RAM0	0x20		/* Address of RAM0 */
-+#define RTC_ADDR_TCR	0x08		/* Address of trickle charge register */
-+#define	RTC_ADDR_YEAR	0x06		/* Address of year register */
-+#define	RTC_ADDR_DAY	0x05		/* Address of day of week register */
-+#define	RTC_ADDR_MON	0x04		/* Address of month register */
-+#define	RTC_ADDR_DATE	0x03		/* Address of day of month register */
-+#define	RTC_ADDR_HOUR	0x02		/* Address of hour register */
-+#define	RTC_ADDR_MIN	0x01		/* Address of minute register */
-+#define	RTC_ADDR_SEC	0x00		/* Address of second register */
-+
-+#define	RTC_RESET	0x1000
-+#define	RTC_IODATA	0x0800
-+#define	RTC_SCLK	0x0400
-+
-+#ifdef CONFIG_SH_SECUREEDGE5410
-+#include <asm/snapgear.h>
-+#define set_dp(x)	SECUREEDGE_WRITE_IOPORT(x, 0x1c00)
-+#define get_dp()	SECUREEDGE_READ_IOPORT()
-+#else
-+#error "Add support for your platform"
-+#endif
-+
-+struct ds1302_rtc {
-+	struct rtc_device *rtc_dev;
-+	spinlock_t lock;
-+};
-+
-+static void ds1302_sendbits(unsigned int val)
-+{
-+	int i;
-+
-+	for (i = 8; (i); i--, val >>= 1) {
-+		set_dp((get_dp() & ~RTC_IODATA) | ((val & 0x1) ?
-+			RTC_IODATA : 0));
-+		set_dp(get_dp() | RTC_SCLK);	// clock high
-+		set_dp(get_dp() & ~RTC_SCLK);	// clock low
-+	}
-+}
-+
-+static unsigned int ds1302_recvbits(void)
-+{
-+	unsigned int val;
-+	int i;
-+
-+	for (i = 0, val = 0; (i < 8); i++) {
-+		val |= (((get_dp() & RTC_IODATA) ? 1 : 0) << i);
-+		set_dp(get_dp() | RTC_SCLK);	// clock high
-+		set_dp(get_dp() & ~RTC_SCLK);	// clock low
-+	}
-+
-+	return val;
-+}
-+
-+static unsigned int ds1302_readbyte(unsigned int addr)
-+{
-+	unsigned int val;
-+
-+	set_dp(get_dp() & ~(RTC_RESET | RTC_IODATA | RTC_SCLK));
-+
-+	set_dp(get_dp() | RTC_RESET);
-+	ds1302_sendbits(((addr & 0x3f) << 1) | RTC_CMD_READ);
-+	val = ds1302_recvbits();
-+	set_dp(get_dp() & ~RTC_RESET);
-+
-+	return val;
-+}
-+
-+static void ds1302_writebyte(unsigned int addr, unsigned int val)
-+{
-+	set_dp(get_dp() & ~(RTC_RESET | RTC_IODATA | RTC_SCLK));
-+	set_dp(get_dp() | RTC_RESET);
-+	ds1302_sendbits(((addr & 0x3f) << 1) | RTC_CMD_WRITE);
-+	ds1302_sendbits(val);
-+	set_dp(get_dp() & ~RTC_RESET);
-+}
-+
-+static int ds1302_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct ds1302_rtc *rtc = dev_get_drvdata(dev);
-+
-+	spin_lock_irq(&rtc->lock);
-+
-+	tm->tm_sec	= BCD2BIN(ds1302_readbyte(RTC_ADDR_SEC));
-+	tm->tm_min	= BCD2BIN(ds1302_readbyte(RTC_ADDR_MIN));
-+	tm->tm_hour	= BCD2BIN(ds1302_readbyte(RTC_ADDR_HOUR));
-+	tm->tm_wday	= BCD2BIN(ds1302_readbyte(RTC_ADDR_DAY));
-+	tm->tm_mday	= BCD2BIN(ds1302_readbyte(RTC_ADDR_DATE));
-+	tm->tm_mon	= BCD2BIN(ds1302_readbyte(RTC_ADDR_MON)) - 1;
-+	tm->tm_year	= BCD2BIN(ds1302_readbyte(RTC_ADDR_YEAR));
-+
-+	if (tm->tm_year < 70)
-+		tm->tm_year += 100;
-+
-+	spin_unlock_irq(&rtc->lock);
-+
-+	dev_dbg(dev, "%s: tm is secs=%d, mins=%d, hours=%d, "
-+		"mday=%d, mon=%d, year=%d, wday=%d\n",
-+		__FUNCTION__,
-+		tm->tm_sec, tm->tm_min, tm->tm_hour,
-+		tm->tm_mday, tm->tm_mon + 1, tm->tm_year, tm->tm_wday);
-+
-+	if (rtc_valid_tm(tm) < 0)
-+		dev_err(dev, "invalid date\n");
-+
-+	return 0;
-+}
-+
-+static int ds1302_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct ds1302_rtc *rtc = dev_get_drvdata(dev);
-+
-+	spin_lock_irq(&rtc->lock);
-+
-+	/* Stop RTC */
-+	ds1302_writebyte(RTC_ADDR_SEC, ds1302_readbyte(RTC_ADDR_SEC) | 0x80);
-+
-+	ds1302_writebyte(RTC_ADDR_SEC, BIN2BCD(tm->tm_sec));
-+	ds1302_writebyte(RTC_ADDR_MIN, BIN2BCD(tm->tm_min));
-+	ds1302_writebyte(RTC_ADDR_HOUR, BIN2BCD(tm->tm_hour));
-+	ds1302_writebyte(RTC_ADDR_DAY, BIN2BCD(tm->tm_wday));
-+	ds1302_writebyte(RTC_ADDR_DATE, BIN2BCD(tm->tm_mday));
-+	ds1302_writebyte(RTC_ADDR_MON, BIN2BCD(tm->tm_mon + 1));
-+	ds1302_writebyte(RTC_ADDR_YEAR, BIN2BCD(tm->tm_year % 100));
-+
-+	/* Start RTC */
-+	ds1302_writebyte(RTC_ADDR_SEC, ds1302_readbyte(RTC_ADDR_SEC) & ~0x80);
-+
-+	spin_unlock_irq(&rtc->lock);
-+
-+	return 0;
-+}
-+
-+static int ds1302_rtc_ioctl(struct device *dev, unsigned int cmd,
-+			    unsigned long arg)
-+{
-+	switch (cmd) {
-+#ifdef RTC_SET_CHARGE
-+	case RTC_SET_CHARGE:
-+	{
-+		struct ds1302_rtc *rtc = dev_get_drvdata(dev);
-+		int tcs_val;
-+
-+		if (copy_from_user(&tcs_val, (int __user *)arg, sizeof(int)))
-+			return -EFAULT;
-+
-+		spin_lock_irq(&rtc->lock);
-+		ds1302_writebyte(RTC_ADDR_TCR, (0xa0 | tcs_val * 0xf));
-+		spin_unlock_irq(&rtc->lock);
-+		return 0;
-+	}
-+#endif
-+	}
-+
-+	return -ENOIOCTLCMD;
-+}
-+
-+static struct rtc_class_ops ds1302_rtc_ops = {
-+	.read_time	= ds1302_rtc_read_time,
-+	.set_time	= ds1302_rtc_set_time,
-+	.ioctl		= ds1302_rtc_ioctl,
-+};
-+
-+static int __devinit ds1302_rtc_probe(struct platform_device *pdev)
-+{
-+	struct ds1302_rtc *rtc;
-+	int ret;
-+
-+	/* Reset */
-+	set_dp(get_dp() & ~(RTC_RESET | RTC_IODATA | RTC_SCLK));
-+
-+	/* Write a magic value to the DS1302 RAM, and see if it sticks. */
-+	ds1302_writebyte(RTC_ADDR_RAM0, 0x42);
-+	if (ds1302_readbyte(RTC_ADDR_RAM0) != 0x42)
-+		return -ENODEV;
-+
-+	rtc = kzalloc(sizeof(struct ds1302_rtc), GFP_KERNEL);
-+	if (unlikely(!rtc))
-+		return -ENOMEM;
-+
-+	spin_lock_init(&rtc->lock);
-+	rtc->rtc_dev = rtc_device_register("ds1302", &pdev->dev,
-+					   &ds1302_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc->rtc_dev)) {
-+		ret = PTR_ERR(rtc->rtc_dev);
-+		goto out;
-+	}
-+
-+	platform_set_drvdata(pdev, rtc);
-+
-+	return 0;
-+out:
-+	kfree(rtc);
-+	return ret;
-+}
-+
-+static int __devexit ds1302_rtc_remove(struct platform_device *pdev)
-+{
-+	struct ds1302_rtc *rtc = platform_get_drvdata(pdev);
-+
-+	if (likely(rtc->rtc_dev))
-+		rtc_device_unregister(rtc->rtc_dev);
-+
-+	platform_set_drvdata(pdev, NULL);
-+
-+	kfree(rtc);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver ds1302_platform_driver = {
-+	.driver		= {
-+		.name	= DRV_NAME,
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= ds1302_rtc_probe,
-+	.remove		= __devexit_p(ds1302_rtc_remove),
-+};
-+
-+static int __init ds1302_rtc_init(void)
-+{
-+	return platform_driver_register(&ds1302_platform_driver);
-+}
-+
-+static void __exit ds1302_rtc_exit(void)
-+{
-+	platform_driver_unregister(&ds1302_platform_driver);
-+}
-+
-+module_init(ds1302_rtc_init);
-+module_exit(ds1302_rtc_exit);
-+
-+MODULE_DESCRIPTION("Dallas DS1302 RTC driver");
-+MODULE_VERSION(DRV_VERSION);
-+MODULE_AUTHOR("Paul Mundt, David McCullough");
-+MODULE_LICENSE("GPL v2");
+@@ -59,8 +59,8 @@ static void ds1302_sendbits(unsigned int
+ 	for (i = 8; (i); i--, val >>= 1) {
+ 		set_dp((get_dp() & ~RTC_IODATA) | ((val & 0x1) ?
+ 			RTC_IODATA : 0));
+-		set_dp(get_dp() | RTC_SCLK);	// clock high
+-		set_dp(get_dp() & ~RTC_SCLK);	// clock low
++		set_dp(get_dp() | RTC_SCLK);	/* clock high */
++		set_dp(get_dp() & ~RTC_SCLK);	/* clock low */
+ 	}
+ }
+ 
+@@ -71,8 +71,8 @@ static unsigned int ds1302_recvbits(void
+ 
+ 	for (i = 0, val = 0; (i < 8); i++) {
+ 		val |= (((get_dp() & RTC_IODATA) ? 1 : 0) << i);
+-		set_dp(get_dp() | RTC_SCLK);	// clock high
+-		set_dp(get_dp() & ~RTC_SCLK);	// clock low
++		set_dp(get_dp() | RTC_SCLK);	/* clock high */
++		set_dp(get_dp() & ~RTC_SCLK);	/* clock low */
+ 	}
+ 
+ 	return val;
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-git-sh.patch
+file-capabilities-allow-sigcont-within-session-v2.patch
+fix-boot-problem-with-iseries-lacking-hugepage-support-fix.patch
+revert-keyspan-init-termios-properly.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
+git-drm-oops-fix.patch
+git-dvb.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+elantech-touchpad-driver-fix.patch
+cscope-build-warning.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+ide-arm-hack.patch
+git-mmc.patch
+git-mtd.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+bluetooth-uninlining.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing-fix.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix.patch
+git-nfsd-fixup.patch
+quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
+git-s390.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
+scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+bidi-support-scsi_data_buffer-broke-qla1280.patch
+bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+git-wireless.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-fixup.patch
+git-x86-broke-lguest.patch
+git-x86-broke-xen-too.patch
+git-x86-inlining-borkage.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+i386-and-x86_64-randomize-brk-fix.patch
+x86-arch_register_cpu-section-fix.patch
+x86_64-configure-stack-size-fix.patch
+git-cryptodev.patch
+x86-early_quirks-cleanup.patch
+ia64-increase-datapatch-offset.patch
+ia64-dont-assume-that-unwcheckpy-is-executable.patch
+ia64-export-copy_page-to-modules.patch
+ia64-export-copy_page-to-modules-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
 kernel-printkc-concerns-about-the-console-handover.patch
-rtc-ds1302-rtc-support.patch
-use-bootmem_exclusive-for-kdump.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32.patch
-add-cmpxchg_local-to-sh64.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+sync_sb_inodes-propagate-errors.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+64-bit-i_version-afs-fixes.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+suppress-aout-library-support-if-config_binfmt_aout-checkpatch-fixes.patch
+usb-net2280-cant-have-a-function-called-checkpatch-fixes.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-ia64-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+w1-build-fix.patch
