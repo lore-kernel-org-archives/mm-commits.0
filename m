@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-fixup.patch added to -mm tree
-Date: Thu, 15 Nov 2007 14:08:51 -0800
-Message-ID: <200711152208.lAFM8p2X018265@imap1.linux-foundation.org>
+Subject: + iommu-sg-merging-alpha-make-pci_iommu-respect-the-segment-size-limits.patch added to -mm tree
+Date: Thu, 15 Nov 2007 14:05:27 -0800
+Message-ID: <200711152205.lAFM5RQi018097@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44454 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55690 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761329AbXKOWIx (ORCPT
+	by vger.kernel.org with ESMTP id S1761236AbXKOWIw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 17:08:53 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lAFM8ppB001882
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2007 14:08:52 -0800
+	Thu, 15 Nov 2007 17:08:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: tomof@acm.org, James.Bottomley@steeleye.com, fujita.tomonori@lab.ntt.co.jp, ink@jurassic.park.msu.ru, jeff@garzik.org, jens.axboe@oracle.com, rth@twiddle.net
 
 
 The patch titled
-     git-x86-fixup
+     iommu sg merging: alpha: make pci_iommu respect the segment size limits
 has been added to the -mm tree.  Its filename is
-     git-x86-fixup.patch
+     iommu-sg-merging-alpha-make-pci_iommu-respect-the-segment-size-limits.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -30,211 +26,153 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-x86-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: iommu sg merging: alpha: make pci_iommu respect the segment size limits
+From: FUJITA Tomonori <tomof@acm.org>
 
+This patch makes pci_iommu respect segment size limits when merging sg
+lists.
+
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/pci-gart_64.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ arch/alpha/kernel/pci_iommu.c |   24 ++++++++++++++++++------
+ include/asm-alpha/pci.h       |    1 +
+ 2 files changed, 19 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/kernel/pci-gart_64.c~git-x86-fixup arch/x86/kernel/pci-gart_64.c
---- a/arch/x86/kernel/pci-gart_64.c~git-x86-fixup
-+++ a/arch/x86/kernel/pci-gart_64.c
-@@ -408,21 +408,19 @@ dma_map_cont(struct scatterlist *start, 
- 		
- /*
-  * DMA map all entries in a scatterlist.
-- * Merge chunks that have page aligned sizes into a continuous mapping. 
-+ * Merge chunks that have page aligned sizes into a continuous mapping.
-  */
--static int gart_map_sg(struct device *dev, struct scatterlist *sg, int nents,
--			int dir)
-+static int
-+gart_map_sg(struct device *dev, struct scatterlist *sg, int nents, int dir)
+diff -puN arch/alpha/kernel/pci_iommu.c~iommu-sg-merging-alpha-make-pci_iommu-respect-the-segment-size-limits arch/alpha/kernel/pci_iommu.c
+--- a/arch/alpha/kernel/pci_iommu.c~iommu-sg-merging-alpha-make-pci_iommu-respect-the-segment-size-limits
++++ a/arch/alpha/kernel/pci_iommu.c
+@@ -9,6 +9,7 @@
+ #include <linux/bootmem.h>
+ #include <linux/scatterlist.h>
+ #include <linux/log2.h>
++#include <linux/dma-mapping.h>
+ 
+ #include <asm/io.h>
+ #include <asm/hwrpb.h>
+@@ -470,22 +471,29 @@ EXPORT_SYMBOL(pci_free_consistent);
+ #define SG_ENT_PHYS_ADDRESS(SG) __pa(SG_ENT_VIRT_ADDRESS(SG))
+ 
+ static void
+-sg_classify(struct scatterlist *sg, struct scatterlist *end, int virt_ok)
++sg_classify(struct device *dev, struct scatterlist *sg, struct scatterlist *end,
++	    int virt_ok)
  {
--	int i;
--	int out;
--	int start;
-+	struct scatterlist *s, *ps, *start_sg, *sgmap;
-+	int need = 0, nextneed, i, out, start;
- 	unsigned long pages = 0;
--	int need = 0, nextneed;
- 	unsigned int seg_size;
- 	unsigned int max_seg_size;
- 	struct scatterlist *s, *ps, *start_sg, *sgmap;
+ 	unsigned long next_paddr;
+ 	struct scatterlist *leader;
+ 	long leader_flag, leader_length;
++	unsigned int max_seg_size;
  
--	if (nents == 0) 
-+	if (nents == 0)
- 		return 0;
+ 	leader = sg;
+ 	leader_flag = 0;
+ 	leader_length = leader->length;
+ 	next_paddr = SG_ENT_PHYS_ADDRESS(leader) + leader_length;
  
- 	if (!dev)
++	/* we will not marge sg without device. */
++	max_seg_size = dev ? dma_get_max_seg_size(dev) : 0;
+ 	for (++sg; sg < end; ++sg) {
+ 		unsigned long addr, len;
+ 		addr = SG_ENT_PHYS_ADDRESS(sg);
+ 		len = sg->length;
+ 
++		if (leader_length + len > max_seg_size)
++			goto new_segment;
++
+ 		if (next_paddr == addr) {
+ 			sg->dma_address = -1;
+ 			leader_length += len;
+@@ -494,6 +502,7 @@ sg_classify(struct scatterlist *sg, stru
+ 			leader_flag = 1;
+ 			leader_length += len;
+ 		} else {
++new_segment:
+ 			leader->dma_address = leader_flag;
+ 			leader->dma_length = leader_length;
+ 			leader = sg;
+@@ -512,7 +521,7 @@ sg_classify(struct scatterlist *sg, stru
+    in the blanks.  */
+ 
+ static int
+-sg_fill(struct scatterlist *leader, struct scatterlist *end,
++sg_fill(struct device *dev, struct scatterlist *leader, struct scatterlist *end,
+ 	struct scatterlist *out, struct pci_iommu_arena *arena,
+ 	dma_addr_t max_dma, int dac_allowed)
+ {
+@@ -562,8 +571,8 @@ sg_fill(struct scatterlist *leader, stru
+ 
+ 		/* Otherwise, break up the remaining virtually contiguous
+ 		   hunks into individual direct maps and retry.  */
+-		sg_classify(leader, end, 0);
+-		return sg_fill(leader, end, out, arena, max_dma, dac_allowed);
++		sg_classify(dev, leader, end, 0);
++		return sg_fill(dev, leader, end, out, arena, max_dma, dac_allowed);
+ 	}
+ 
+ 	out->dma_address = arena->dma_base + dma_ofs*PAGE_SIZE + paddr;
+@@ -619,12 +628,15 @@ pci_map_sg(struct pci_dev *pdev, struct 
+ 	struct pci_iommu_arena *arena;
+ 	dma_addr_t max_dma;
+ 	int dac_allowed;
++	struct device *dev;
+ 
+ 	if (direction == PCI_DMA_NONE)
+ 		BUG();
+ 
+ 	dac_allowed = pdev ? pci_dac_dma_supported(pdev, pdev->dma_mask) : 0;
+ 
++	dev = pdev ? &pdev->dev : NULL;
++
+ 	/* Fast path single entry scatterlists.  */
+ 	if (nents == 1) {
+ 		sg->dma_length = sg->length;
+@@ -638,7 +650,7 @@ pci_map_sg(struct pci_dev *pdev, struct 
+ 	end = sg + nents;
+ 
+ 	/* First, prepare information about the entries.  */
+-	sg_classify(sg, end, alpha_mv.mv_pci_tbi != 0);
++	sg_classify(dev, sg, end, alpha_mv.mv_pci_tbi != 0);
+ 
+ 	/* Second, figure out where we're going to map things.  */
+ 	if (alpha_mv.mv_pci_tbi) {
+@@ -658,7 +670,7 @@ pci_map_sg(struct pci_dev *pdev, struct 
+ 	for (out = sg; sg < end; ++sg) {
+ 		if ((int) sg->dma_address < 0)
+ 			continue;
+-		if (sg_fill(sg, end, out, arena, max_dma, dac_allowed) < 0)
++		if (sg_fill(dev, sg, end, out, arena, max_dma, dac_allowed) < 0)
+ 			goto error;
+ 		out++;
+ 	}
+diff -puN include/asm-alpha/pci.h~iommu-sg-merging-alpha-make-pci_iommu-respect-the-segment-size-limits include/asm-alpha/pci.h
+--- a/include/asm-alpha/pci.h~iommu-sg-merging-alpha-make-pci_iommu-respect-the-segment-size-limits
++++ a/include/asm-alpha/pci.h
+@@ -4,6 +4,7 @@
+ #ifdef __KERNEL__
+ 
+ #include <linux/spinlock.h>
++#include <linux/dma-mapping.h>
+ #include <asm/scatterlist.h>
+ #include <asm/machvec.h>
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tomof@acm.org are
 
-origin.patch
-file-capabilities-allow-sigcont-within-session-v2.patch
-fix-boot-problem-with-iseries-lacking-hugepage-support-fix.patch
-revert-keyspan-init-termios-properly.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
-git-drm-oops-fix.patch
-git-dvb.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-cscope-build-warning.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-ide-arm-hack.patch
-git-mmc.patch
-git-mtd.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing-fix.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix.patch
-git-nfsd-fixup.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-git-s390.patch
-fix-build-breakage-if-sysfs-fix.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-bidi-support-scsi_data_buffer-broke-qla1280.patch
-bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-fixup.patch
-git-x86-broke-lguest.patch
-git-x86-broke-xen-too.patch
-git-x86-inlining-borkage.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-x86-arch_register_cpu-section-fix.patch
-x86_64-configure-stack-size-fix.patch
-git-cryptodev.patch
-x86-early_quirks-cleanup.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-ia64-export-copy_page-to-modules-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-sync_sb_inodes-propagate-errors.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-suppress-aout-library-support-if-config_binfmt_aout-checkpatch-fixes.patch
-usb-net2280-cant-have-a-function-called-checkpatch-fixes.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-ia64-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-w1-build-fix.patch
+git-scsi-misc.patch
+iommu-sg-merging-add-device_dma_parameters-structure.patch
+iommu-sg-merging-pci-add-device_dma_parameters-support.patch
+iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-ppc-make-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-ia64-make-sba_iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-alpha-make-pci_iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits.patch
+iommu-sg-merging-call-blk_queue_segment_boundary-in-__scsi_alloc_queue.patch
+iommu-sg-merging-sata_inic162x-use-pci_set_dma_max_seg_size.patch
+iommu-sg-merging-aacraid-use-pci_set_dma_max_seg_size.patch
