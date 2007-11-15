@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pm-qos-remove-locks-around-blocking-notifier.patch added to -mm tree
-Date: Thu, 15 Nov 2007 15:21:48 -0800
-Message-ID: <200711152321.lAFNLmwf021149@imap1.linux-foundation.org>
+Subject: + qlogic-infinipath-convert-ipath_eep_sem-to-mutex.patch added to -mm tree
+Date: Thu, 15 Nov 2007 15:23:25 -0800
+Message-ID: <200711152323.lAFNNPHi021209@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58365 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:51890 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750956AbXKOXWm (ORCPT
+	by vger.kernel.org with ESMTP id S1751778AbXKOXXe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 18:22:42 -0500
+	Thu, 15 Nov 2007 18:23:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgross@linux.intel.com, abelay@novell.com, arjan@infradead.org, lenb@kernel.org, venkatesh.pallipadi@intel.com
+Cc: matthias.kaehlcke@gmail.com, Michael.Albaugh@qlogic.com, arthur.jones@qlogic.com, rdreier@cisco.com
 
 
 The patch titled
-     pm-qos-remove-locks-around-blocking-notifier
+     QLogic InfiniPath: convert ipath_eep_sem to mutex
 has been added to the -mm tree.  Its filename is
-     pm-qos-remove-locks-around-blocking-notifier.patch
+     qlogic-infinipath-convert-ipath_eep_sem-to-mutex.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,130 +26,143 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: pm-qos-remove-locks-around-blocking-notifier
-From: mark gross <mgross@linux.intel.com>
+Subject: QLogic InfiniPath: convert ipath_eep_sem to mutex
+From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
 
-Remove spin locking around all blocking notifier calls that can sleep.
-I had to re-structure some of the code to avoid locking issues.
+QLogic InfiniPath: convert the semaphore ipath_eep_sem to the mutex
+API
 
-Signed-off-by: mark gross <mgross@linux.intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Adam Belay <abelay@novell.com>
+Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Cc: Roland Dreier <rdreier@cisco.com>
+Acked-by: Michael Albaugh <Michael.Albaugh@qlogic.com>
+Tested-by: Arthur Jones <arthur.jones@qlogic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pm_qos_params.c |   27 ++++++++++++---------------
- 1 file changed, 12 insertions(+), 15 deletions(-)
+ drivers/infiniband/hw/ipath/ipath_eeprom.c    |   20 ++++++++--------
+ drivers/infiniband/hw/ipath/ipath_init_chip.c |    2 -
+ drivers/infiniband/hw/ipath/ipath_kernel.h    |    3 +-
+ 3 files changed, 13 insertions(+), 12 deletions(-)
 
-diff -puN kernel/pm_qos_params.c~pm-qos-remove-locks-around-blocking-notifier kernel/pm_qos_params.c
---- a/kernel/pm_qos_params.c~pm-qos-remove-locks-around-blocking-notifier
-+++ a/kernel/pm_qos_params.c
-@@ -135,13 +135,14 @@ static s32 min_compare(s32 v1, s32 v2)
- }
- 
- 
--
--/* assumes pm_qos_lock is held */
- static void update_target(int target)
+diff -puN drivers/infiniband/hw/ipath/ipath_eeprom.c~qlogic-infinipath-convert-ipath_eep_sem-to-mutex drivers/infiniband/hw/ipath/ipath_eeprom.c
+--- a/drivers/infiniband/hw/ipath/ipath_eeprom.c~qlogic-infinipath-convert-ipath_eep_sem-to-mutex
++++ a/drivers/infiniband/hw/ipath/ipath_eeprom.c
+@@ -510,10 +510,10 @@ int ipath_eeprom_read(struct ipath_devda
  {
- 	s32 extreme_value;
- 	struct requirement_list *node;
-+	unsigned long flags;
-+	int call_notifier = 0;
+ 	int ret;
  
-+	spin_lock_irqsave(&pm_qos_lock, flags);
- 	extreme_value = pm_qos_array[target]->default_value;
- 	list_for_each_entry(node,
- 			&pm_qos_array[target]->requirements.list, list) {
-@@ -149,13 +150,16 @@ static void update_target(int target)
- 				extreme_value, node->value);
+-	ret = down_interruptible(&dd->ipath_eep_sem);
++	ret = mutex_lock_interruptible(&dd->ipath_eep_lock);
+ 	if (!ret) {
+ 		ret = ipath_eeprom_internal_read(dd, eeprom_offset, buff, len);
+-		up(&dd->ipath_eep_sem);
++		mutex_unlock(&dd->ipath_eep_lock);
  	}
- 	if (pm_qos_array[target]->target_value != extreme_value) {
-+		call_notifier = 1;
- 		pm_qos_array[target]->target_value = extreme_value;
- 		pr_debug(KERN_ERR "new target for qos %d is %d\n", target,
- 			pm_qos_array[target]->target_value);
--		blocking_notifier_call_chain(pm_qos_array[target]->notifiers,
--			(unsigned long) pm_qos_array[target]->target_value,
--						NULL);
- 	}
-+	spin_unlock_irqrestore(&pm_qos_lock, flags);
-+
-+	if (call_notifier)
-+		blocking_notifier_call_chain(pm_qos_array[target]->notifiers,
-+			(unsigned long) extreme_value, NULL);
- }
  
- static int register_pm_qos_misc(struct pm_qos_object *qos)
-@@ -227,8 +231,8 @@ int pm_qos_add_requirement(int pm_qos_cl
- 		spin_lock_irqsave(&pm_qos_lock, flags);
- 		list_add(&dep->list,
- 			&pm_qos_array[pm_qos_class]->requirements.list);
--		update_target(pm_qos_class);
- 		spin_unlock_irqrestore(&pm_qos_lock, flags);
-+		update_target(pm_qos_class);
- 
- 		return 0;
- 	}
-@@ -269,11 +273,10 @@ int pm_qos_update_requirement(int pm_qos
- 			break;
- 		}
- 	}
-+	spin_unlock_irqrestore(&pm_qos_lock, flags);
- 	if (pending_update)
- 		update_target(pm_qos_class);
- 
--	spin_unlock_irqrestore(&pm_qos_lock, flags);
--
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(pm_qos_update_requirement);
-@@ -303,9 +306,9 @@ void pm_qos_remove_requirement(int pm_qo
- 			break;
- 		}
- 	}
-+	spin_unlock_irqrestore(&pm_qos_lock, flags);
- 	if (pending_update)
- 		update_target(pm_qos_class);
--	spin_unlock_irqrestore(&pm_qos_lock, flags);
- }
- EXPORT_SYMBOL_GPL(pm_qos_remove_requirement);
- 
-@@ -319,13 +322,10 @@ EXPORT_SYMBOL_GPL(pm_qos_remove_requirem
-  */
-  int pm_qos_add_notifier(int pm_qos_class, struct notifier_block *notifier)
+ 	return ret;
+@@ -524,10 +524,10 @@ int ipath_eeprom_write(struct ipath_devd
  {
--	unsigned long flags;
- 	int retval;
+ 	int ret;
  
--	spin_lock_irqsave(&pm_qos_lock, flags);
- 	retval = blocking_notifier_chain_register(
- 			pm_qos_array[pm_qos_class]->notifiers, notifier);
--	spin_unlock_irqrestore(&pm_qos_lock, flags);
+-	ret = down_interruptible(&dd->ipath_eep_sem);
++	ret = mutex_lock_interruptible(&dd->ipath_eep_lock);
+ 	if (!ret) {
+ 		ret = ipath_eeprom_internal_write(dd, eeprom_offset, buff, len);
+-		up(&dd->ipath_eep_sem);
++		mutex_unlock(&dd->ipath_eep_lock);
+ 	}
  
- 	return retval;
- }
-@@ -341,13 +341,10 @@ EXPORT_SYMBOL_GPL(pm_qos_add_notifier);
-  */
- int pm_qos_remove_notifier(int pm_qos_class, struct notifier_block *notifier)
- {
--	unsigned long flags;
- 	int retval;
+ 	return ret;
+@@ -616,9 +616,9 @@ void ipath_get_eeprom_info(struct ipath_
+ 		goto bail;
+ 	}
  
--	spin_lock_irqsave(&pm_qos_lock, flags);
- 	retval = blocking_notifier_chain_unregister(
- 			pm_qos_array[pm_qos_class]->notifiers, notifier);
--	spin_unlock_irqrestore(&pm_qos_lock, flags);
+-	down(&dd->ipath_eep_sem);
++	mutex_lock(&dd->ipath_eep_lock);
+ 	eep_stat = ipath_eeprom_internal_read(dd, 0, buf, len);
+-	up(&dd->ipath_eep_sem);
++	mutex_unlock(&dd->ipath_eep_lock);
  
- 	return retval;
- }
+ 	if (eep_stat) {
+ 		ipath_dev_err(dd, "Failed reading GUID from eeprom\n");
+@@ -764,14 +764,14 @@ int ipath_update_eeprom_log(struct ipath
+ 	/* Grab semaphore and read current EEPROM. If we get an
+ 	 * error, let go, but if not, keep it until we finish write.
+ 	 */
+-	ret = down_interruptible(&dd->ipath_eep_sem);
++	ret = mutex_lock_interruptible(&dd->ipath_eep_lock);
+ 	if (ret) {
+ 		ipath_dev_err(dd, "Unable to acquire EEPROM for logging\n");
+ 		goto free_bail;
+ 	}
+ 	ret = ipath_eeprom_internal_read(dd, 0, buf, len);
+ 	if (ret) {
+-		up(&dd->ipath_eep_sem);
++		mutex_unlock(&dd->ipath_eep_lock);
+ 		ipath_dev_err(dd, "Unable read EEPROM for logging\n");
+ 		goto free_bail;
+ 	}
+@@ -779,7 +779,7 @@ int ipath_update_eeprom_log(struct ipath
+ 
+ 	csum = flash_csum(ifp, 0);
+ 	if (csum != ifp->if_csum) {
+-		up(&dd->ipath_eep_sem);
++		mutex_unlock(&dd->ipath_eep_lock);
+ 		ipath_dev_err(dd, "EEPROM cks err (0x%02X, S/B 0x%02X)\n",
+ 				csum, ifp->if_csum);
+ 		ret = 1;
+@@ -849,7 +849,7 @@ int ipath_update_eeprom_log(struct ipath
+ 		csum = flash_csum(ifp, 1);
+ 		ret = ipath_eeprom_internal_write(dd, 0, buf, hi_water + 1);
+ 	}
+-	up(&dd->ipath_eep_sem);
++	mutex_unlock(&dd->ipath_eep_lock);
+ 	if (ret)
+ 		ipath_dev_err(dd, "Failed updating EEPROM\n");
+ 
+diff -puN drivers/infiniband/hw/ipath/ipath_init_chip.c~qlogic-infinipath-convert-ipath_eep_sem-to-mutex drivers/infiniband/hw/ipath/ipath_init_chip.c
+--- a/drivers/infiniband/hw/ipath/ipath_init_chip.c~qlogic-infinipath-convert-ipath_eep_sem-to-mutex
++++ a/drivers/infiniband/hw/ipath/ipath_init_chip.c
+@@ -348,7 +348,7 @@ static int init_chip_first(struct ipath_
+ 
+ 	spin_lock_init(&dd->ipath_gpio_lock);
+ 	spin_lock_init(&dd->ipath_eep_st_lock);
+-	sema_init(&dd->ipath_eep_sem, 1);
++	mutex_init(&dd->ipath_eep_lock);
+ 
+ done:
+ 	*pdp = pd;
+diff -puN drivers/infiniband/hw/ipath/ipath_kernel.h~qlogic-infinipath-convert-ipath_eep_sem-to-mutex drivers/infiniband/hw/ipath/ipath_kernel.h
+--- a/drivers/infiniband/hw/ipath/ipath_kernel.h~qlogic-infinipath-convert-ipath_eep_sem-to-mutex
++++ a/drivers/infiniband/hw/ipath/ipath_kernel.h
+@@ -41,6 +41,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/pci.h>
+ #include <linux/dma-mapping.h>
++#include <linux/mutex.h>
+ #include <asm/io.h>
+ #include <rdma/ib_verbs.h>
+ 
+@@ -616,7 +617,7 @@ struct ipath_devdata {
+ 	/* control access to actual counters, timer */
+ 	spinlock_t ipath_eep_st_lock;
+ 	/* control high-level access to EEPROM */
+-	struct semaphore ipath_eep_sem;
++	struct mutex ipath_eep_lock;
+ 	/* Below inc'd by ipath_snap_cntrs(), locked by ipath_eep_st_lock */
+ 	uint64_t ipath_traffic_wds;
+ 	/* active time is kept in seconds, but logged in hours */
 _
 
-Patches currently in -mm which might be from mgross@linux.intel.com are
+Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
 
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-pm-qos-remove-locks-around-blocking-notifier.patch
-latencyc-use-qos-infrastructure.patch
+origin.patch
+git-dvb.patch
+qlogic-infinipath-convert-ipath_eep_sem-to-mutex.patch
+git-netdev-all.patch
+megaraid-sas-convert-aen_mutex-to-the-mutex-api.patch
+parallel-port-convert-port_mutex-to-the-mutex-api.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+mbcs-convert-algolock-to-mutex.patch
+mbcs-convert-dmawritelock-to-mutex.patch
+mbcs-convert-dmareadlock-to-mutex.patch
