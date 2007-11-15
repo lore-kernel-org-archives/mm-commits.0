@@ -1,128 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: + revert-keyspan-init-termios-properly.patch added to -mm tree
-Date: Thu, 15 Nov 2007 12:11:28 -0800
-Message-ID: <200711152011.lAFKBSlj013030@imap1.linux-foundation.org>
+Subject: - git-acpi-fixup.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 12:50:09 -0800
+Message-ID: <200711152050.lAFKo9Ho014492@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33321 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45574 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932072AbXKOULn (ORCPT
+	by vger.kernel.org with ESMTP id S932118AbXKOUuM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 15:11:43 -0500
+	Thu, 15 Nov 2007 15:50:12 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lAFKoAx3030506
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2007 12:50:11 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, bbpetkov@yahoo.de, greg@kroah.com, lucy@keyspan.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert "keyspan: init termios properly"
-has been added to the -mm tree.  Its filename is
-     revert-keyspan-init-termios-properly.patch
+     git-acpi-fixup
+has been removed from the -mm tree.  Its filename was
+     git-acpi-fixup.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: revert "keyspan: init termios properly"
+Subject: git-acpi-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Revert 7eea436433b7b18045f272562e256976f593f7c0.
-
-Lucy said:
-
-  This patch will work with the 19HS but WILL BREAK all other Keyspan
-  adapters.  It will take me a few days to get to looking at a correct fix but
-  that keyspan_send_setup(port, 1) (and the '1' is the important part) must
-  happen once when the port is first opened.  The cflag can just be set to
-  whatever the normal default is for your serial environment.
-
-So revert this again pending the proper fix.
-
-Cc: Borislav Petkov <bbpetkov@yahoo.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Lucy McCoy <lucy@keyspan.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/keyspan.c |   32 +++++++++++++++++++++++++++++---
- 1 file changed, 29 insertions(+), 3 deletions(-)
+ drivers/acpi/battery.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/usb/serial/keyspan.c~revert-keyspan-init-termios-properly drivers/usb/serial/keyspan.c
---- a/drivers/usb/serial/keyspan.c~revert-keyspan-init-termios-properly
-+++ a/drivers/usb/serial/keyspan.c
-@@ -1215,12 +1215,14 @@ static int keyspan_chars_in_buffer (stru
+diff -puN drivers/acpi/battery.c~git-acpi-fixup drivers/acpi/battery.c
+--- a/drivers/acpi/battery.c~git-acpi-fixup
++++ a/drivers/acpi/battery.c
+@@ -142,11 +142,7 @@ static int acpi_battery_get_property(str
  
- static int keyspan_open (struct usb_serial_port *port, struct file *filp)
- {
--	struct keyspan_port_private	*p_priv;
--	struct keyspan_serial_private	*s_priv;
--	struct usb_serial		*serial = port->serial;
-+	struct keyspan_port_private 	*p_priv;
-+	struct keyspan_serial_private 	*s_priv;
-+	struct usb_serial 		*serial = port->serial;
- 	const struct keyspan_device_details	*d_details;
- 	int				i, err;
-+	int				baud_rate, device_port;
- 	struct urb			*urb;
-+	unsigned int			cflag;
- 
- 	s_priv = usb_get_serial_data(serial);
- 	p_priv = usb_get_serial_port_data(port);
-@@ -1263,6 +1265,30 @@ static int keyspan_open (struct usb_seri
- 		/* usb_settoggle(urb->dev, usb_pipeendpoint(urb->pipe), usb_pipeout(urb->pipe), 0); */
- 	}
- 
-+	/* get the terminal config for the setup message now so we don't
-+	 * need to send 2 of them */
-+
-+	cflag = port->tty->termios->c_cflag;
-+	device_port = port->number - port->serial->minor;
-+
-+	/* Baud rate calculation takes baud rate as an integer
-+	   so other rates can be generated if desired. */
-+	baud_rate = tty_get_baud_rate(port->tty);
-+	/* If no match or invalid, leave as default */
-+	if (baud_rate >= 0
-+	    && d_details->calculate_baud_rate(baud_rate, d_details->baudclk,
-+				NULL, NULL, NULL, device_port) == KEYSPAN_BAUD_RATE_OK) {
-+		p_priv->baud = baud_rate;
-+	}
-+
-+	/* set CTS/RTS handshake etc. */
-+	p_priv->cflag = cflag;
-+	p_priv->flow_control = (cflag & CRTSCTS)? flow_cts: flow_none;
-+
-+	keyspan_send_setup(port, 1);
-+	//mdelay(100);
-+	//keyspan_set_termios(port, NULL);
-+
- 	return (0);
- }
- 
+ 	if (acpi_battery_present(battery)) {
+ 		/* run battery update only if it is present */
+-<<<<<<< HEAD:drivers/acpi/battery.c
+-		acpi_battery_get_state(battery);
+-=======
+ 		acpi_battery_update(battery);
+->>>>>>> FETCH_HEAD:drivers/acpi/battery.c
+ 	} else if (psp != POWER_SUPPLY_PROP_PRESENT)
+ 		return -ENODEV;
+ 	switch (psp) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-uml-update-address-space-affected-by-pud_clear.patch
-proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks.patch
-acpi-make-acpi_procfs-default-to-y.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components.patch
-revert-task-control-groups-example-cpu-accounting-subsystem.patch
-mips-undo-locking-on-error-path-returns.patch
-pidns-place-under-config_experimental.patch
-fix-64kb-blocksize-in-ext3-directories.patch
 file-capabilities-allow-sigcont-within-session-v2.patch
-keyspan-init-termios-properly.patch
-x86-disable-preemption-in-delay_tsc.patch
-aic94xx_sds-rename-flash_size.patch
-cris-build-fixes-atomich-needs-compilerh-fix.patch
-cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
-cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two.patch
 fix-boot-problem-with-iseries-lacking-hugepage-support-fix.patch
 revert-keyspan-init-termios-properly.patch
 get_task_comm-return-the-result.patch
@@ -136,6 +69,7 @@ git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
 agk-dm-dm-ioctl-move-compat-code-fix.patch
+git-powerpc-galak.patch
 git-drm-oops-fix.patch
 git-dvb.patch
 ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
