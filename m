@@ -1,57 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - w1-fix-memset-size-error.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:08:08 -0800
-Message-ID: <200711152108.lAFL88sd015330@imap1.linux-foundation.org>
+Subject: - sysctl-check-length-at-deprecated_sysctl_warning.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:08:15 -0800
+Message-ID: <200711152108.lAFL8Fdp015344@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:60947 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52594 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757732AbXKOVIU (ORCPT
+	by vger.kernel.org with ESMTP id S1753393AbXKOVIU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 15 Nov 2007 16:08:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
+To: penguin-kernel@i-love.sakura.ne.jp, ebiederm@xmission.compenguin-kernel@i-love.sakura.ne.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     W1: fix memset size error
+     sysctl: check length at deprecated_sysctl_warning
 has been removed from the -mm tree.  Its filename was
-     w1-fix-memset-size-error.patch
+     sysctl-check-length-at-deprecated_sysctl_warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: W1: fix memset size error
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: sysctl: check length at deprecated_sysctl_warning
+From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 
-The size arguments passing to memset is wrong.
+Original patch assumed args->nlen < CTL_MAXNAME, but it can be false.
 
-Signed-off-by Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds2490.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sysctl.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/w1/masters/ds2490.c~w1-fix-memset-size-error drivers/w1/masters/ds2490.c
---- a/drivers/w1/masters/ds2490.c~w1-fix-memset-size-error
-+++ a/drivers/w1/masters/ds2490.c
-@@ -233,7 +233,7 @@ static int ds_recv_status_nodump(struct 
- {
- 	int count, err;
+diff -puN kernel/sysctl.c~sysctl-check-length-at-deprecated_sysctl_warning kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-check-length-at-deprecated_sysctl_warning
++++ a/kernel/sysctl.c
+@@ -2620,6 +2620,10 @@ static int deprecated_sysctl_warning(str
+ 	int name[CTL_MAXNAME];
+ 	int i;
  
--	memset(st, 0, sizeof(st));
-+	memset(st, 0, sizeof(*st));
- 
- 	count = 0;
- 	err = usb_bulk_msg(dev->udev, usb_rcvbulkpipe(dev->udev, dev->ep[EP_STATUS]), buf, size, &count, 100);
++	/* Check args->nlen. */
++	if (args->nlen < 0 || args->nlen > CTL_MAXNAME)
++		return -ENOTDIR;
++
+ 	/* Read in the sysctl name for better debug message logging */
+ 	for (i = 0; i < args->nlen; i++)
+ 		if (get_user(name[i], args->name + i))
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from penguin-kernel@i-love.sakura.ne.jp are
 
 origin.patch
-arm-fix-memset-size-error.patch
-git-hid.patch
-ia64-efi-make-full-use-of-macro-efi_md_size.patch
