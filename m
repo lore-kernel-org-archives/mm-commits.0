@@ -1,82 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: + use-struct-path-in-struct-svc_export-nfsd-fix-wrong-mnt_writer-count-in-rename.patch added to -mm tree
-Date: Thu, 15 Nov 2007 13:33:38 -0800
-Message-ID: <200711152133.lAFLXcka016780@imap1.linux-foundation.org>
+Subject: - iwlwifi-remove-unnecessary-code-in-iwl3945-and-iwl4965-drivers.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:40:48 -0800
+Message-ID: <200711152140.lAFLemd4017041@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45468 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56416 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753499AbXKOViz (ORCPT
+	by vger.kernel.org with ESMTP id S933355AbXKOVmT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:38:55 -0500
+	Thu, 15 Nov 2007 16:42:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: ezk@cs.sunysb.edu, haveblue@us.ibm.com, hch@infradead.org
+To: mboton@gmail.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     NFSD: fix wrong mnt_writer count in rename
-has been added to the -mm tree.  Its filename is
-     use-struct-path-in-struct-svc_export-nfsd-fix-wrong-mnt_writer-count-in-rename.patch
+     iwlwifi: remove unnecessary code in iwl3945 and iwl4965 drivers
+has been removed from the -mm tree.  Its filename was
+     iwlwifi-remove-unnecessary-code-in-iwl3945-and-iwl4965-drivers.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-Subject: NFSD: fix wrong mnt_writer count in rename
-From: Erez Zadok <ezk@cs.sunysb.edu>
+Subject: iwlwifi: remove unnecessary code in iwl3945 and iwl4965 drivers
+From: Miguel Boton <mboton@gmail.com>
 
-NFSD forgets to call mnt_drop_write after a successful rename.  Here's a
-fix.  (Ah, the curse of a stackable file system developer: you have to
-debug everyone else's too.  :-)
+Remove unnecesary code in iwl3945 and iwl4965 drivers.
 
-One thing I wasn't sure is whether I could move the mnt_drop_write line a
-little above, just after the call to vfs_rename.  If we can drop the ref
-earlier, it could improve scalability/performance just a bit, no?  (i.e.,
-what are the ramifications of holding on to this mnt writer ref longer than
-needed?)
+"final_mode" variable is already initialized with the value of the "mode"
+variable.
 
-Signed-off-by: Erez Zadok <ezk@cs.sunysb.edu>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Miguel Boton <mboton@gmail.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/vfs.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/wireless/iwlwifi/iwl3945-base.c |    3 ---
+ drivers/net/wireless/iwlwifi/iwl4965-base.c |    3 ---
+ 2 files changed, 6 deletions(-)
 
-diff -puN fs/nfsd/vfs.c~use-struct-path-in-struct-svc_export-nfsd-fix-wrong-mnt_writer-count-in-rename fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~use-struct-path-in-struct-svc_export-nfsd-fix-wrong-mnt_writer-count-in-rename
-+++ a/fs/nfsd/vfs.c
-@@ -1693,6 +1693,7 @@ nfsd_rename(struct svc_rqst *rqstp, stru
- 		if (!host_err)
- 			host_err = nfsd_sync_dir(fdentry);
+diff -puN drivers/net/wireless/iwlwifi/iwl3945-base.c~iwlwifi-remove-unnecessary-code-in-iwl3945-and-iwl4965-drivers drivers/net/wireless/iwlwifi/iwl3945-base.c
+--- a/drivers/net/wireless/iwlwifi/iwl3945-base.c~iwlwifi-remove-unnecessary-code-in-iwl3945-and-iwl4965-drivers
++++ a/drivers/net/wireless/iwlwifi/iwl3945-base.c
+@@ -2153,9 +2153,6 @@ static int iwl_send_power_mode(struct iw
+ 	case IWL_POWER_AC:
+ 		final_mode = IWL_POWER_MODE_CAM;
+ 		break;
+-	default:
+-		final_mode = mode;
+-		break;
  	}
-+	mnt_drop_write(ffhp->fh_export->ex_path.mnt);
  
-  out_dput_new:
- 	dput(ndentry);
+ 	iwl_update_power_cmd(priv, &cmd, final_mode);
+diff -puN drivers/net/wireless/iwlwifi/iwl4965-base.c~iwlwifi-remove-unnecessary-code-in-iwl3945-and-iwl4965-drivers drivers/net/wireless/iwlwifi/iwl4965-base.c
+--- a/drivers/net/wireless/iwlwifi/iwl4965-base.c~iwlwifi-remove-unnecessary-code-in-iwl3945-and-iwl4965-drivers
++++ a/drivers/net/wireless/iwlwifi/iwl4965-base.c
+@@ -2232,9 +2232,6 @@ static int iwl_send_power_mode(struct iw
+ 	case IWL_POWER_AC:
+ 		final_mode = IWL_POWER_MODE_CAM;
+ 		break;
+-	default:
+-		final_mode = mode;
+-		break;
+ 	}
+ 
+ 	cmd.keep_alive_beacons = 0;
 _
 
-Patches currently in -mm which might be from ezk@cs.sunysb.edu are
+Patches currently in -mm which might be from mboton@gmail.com are
 
-origin.patch
-git-unionfs.patch
-vfs-apply-coding-standards-to-fs-ioctlc.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-vfs-factor-out-three-helpers-for-fibmap-fionbio-fioasync-file-ioctls.patch
-x86-early_quirks-cleanup.patch
-add-64-bit-capability-support-to-the-kernel-fix-fix.patch
-read_current_time-cleanups-build-fix.patch
-read_current_time-cleanups-build-fix-fix.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-create-file_drop_write_access-helper.patch
-fix-up-new-filp-allocators.patch
-iget-stop-unionfs-from-using-iget-and-read_inode.patch
-iget-stop-unionfs-from-using-iget-and-read_inode-fix.patch
-use-struct-path-in-struct-svc_export-nfsd-fix-wrong-mnt_writer-count-in-rename.patch
+iwlwifi-remove-unnecessary-code-in-iwl3945-and-iwl4965-drivers.patch
