@@ -1,52 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - mm-hugetlbc-make-a-function-static.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:09:48 -0800
-Message-ID: <200711152109.lAFL9mN6015489@imap1.linux-foundation.org>
+Subject: - lguest_userc-fix-memory-leak.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:08:51 -0800
+Message-ID: <200711152108.lAFL8ptX015393@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48464 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33501 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932126AbXKOVRZ (ORCPT
+	by vger.kernel.org with ESMTP id S932517AbXKOVRa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:17:25 -0500
+	Thu, 15 Nov 2007 16:17:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, agl@us.ibm.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm/hugetlb.c: make a function static
+     lguest_user.c: fix memory leak
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlbc-make-a-function-static.patch
+     lguest_userc-fix-memory-leak.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: mm/hugetlb.c: make a function static
+Subject: lguest_user.c: fix memory leak
 From: Adrian Bunk <bunk@kernel.org>
 
-return_unused_surplus_pages() can become static.
+This patch fixes a memory leak spotted by the Coverity checker.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Adam Litke <agl@us.ibm.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
+ drivers/lguest/lguest_user.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlbc-make-a-function-static mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlbc-make-a-function-static
-+++ a/mm/hugetlb.c
-@@ -328,7 +328,7 @@ free:
-  * allocated to satisfy the reservation must be explicitly freed if they were
-  * never used.
-  */
--void return_unused_surplus_pages(unsigned long unused_resv_pages)
-+static void return_unused_surplus_pages(unsigned long unused_resv_pages)
- {
- 	static int nid = -1;
- 	struct page *page;
+diff -puN drivers/lguest/lguest_user.c~lguest_userc-fix-memory-leak drivers/lguest/lguest_user.c
+--- a/drivers/lguest/lguest_user.c~lguest_userc-fix-memory-leak
++++ a/drivers/lguest/lguest_user.c
+@@ -184,7 +184,7 @@ static int initialize(struct file *file,
+ free_regs:
+ 	free_page(lg->regs_page);
+ release_guest:
+-	memset(lg, 0, sizeof(*lg));
++	kfree(lg);
+ unlock:
+ 	mutex_unlock(&lguest_lock);
+ 	return err;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
