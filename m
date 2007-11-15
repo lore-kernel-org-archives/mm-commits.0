@@ -1,68 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - cris-dont-include-bitopsh-in-posix_typesh.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:12:00 -0800
-Message-ID: <200711152112.lAFLC0XS015817@imap1.linux-foundation.org>
+Subject: - crisv10-string-library-add-lineendings-to-asm.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:12:21 -0800
+Message-ID: <200711152112.lAFLCL8a015864@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52568 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53931 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761042AbXKOVRF (ORCPT
+	by vger.kernel.org with ESMTP id S1761764AbXKOVRK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:17:05 -0500
+	Thu, 15 Nov 2007 16:17:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
+To: jesper.nilsson@axis.com, mikael.starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CRIS don't include bitops.h in posix_types.h
+     CRISv10 string library add lineendings to asm
 has been removed from the -mm tree.  Its filename was
-     cris-dont-include-bitopsh-in-posix_typesh.patch
+     crisv10-string-library-add-lineendings-to-asm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: CRIS don't include bitops.h in posix_types.h
+Subject: CRISv10 string library add lineendings to asm
 From: Jesper Nilsson <jesper.nilsson@axis.com>
 
-In file included from include/asm/byteorder.h:23,
-                 from include/asm-generic/bitops/le.h:5,
-                 from include/asm-generic/bitops/ext2-non-atomic.h:4,
-                 from include/asm/bitops.h:163,
-                 from include/linux/bitops.h:17,
-                 from include/asm/posix_types.h:55,
-                 from include/linux/posix_types.h:47,
-                 from include/linux/types.h:11,
-                 from include/linux/capability.h:16,
-                 from include/linux/sched.h:49,
-                 from arch/cris/kernel/asm-offsets.c:1:
-include/linux/byteorder/little_endian.h:43: parse error before "__cpu_to_le64p"
-include/linux/byteorder/little_endian.h:44: warning: return type defaults to `int'
-include/linux/byteorder/little_endian.h: In function `__cpu_to_le64p':
-include/linux/byteorder/little_endian.h:45: `__le64' undeclared (first use in this function)
+Add \n\ at end of lines inside asm statement to avoid warning.
 
-Remove include of asm/bitops.h, not needed here, corrects compilation error
-(__le64 undeclared).
+No change except adding \n\ to end of line and correcting
+whitespace has been done.
+Removes warning about multi-line string literals when compiling
+arch/cris/arch-v10/lib/string.c
 
 Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
-Acked-by: Mikael Starvik <starvik@axis.com>
+Cc: Mikael Starvik <mikael.starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-cris/posix_types.h |    1 -
- 1 file changed, 1 deletion(-)
+ arch/cris/arch-v10/lib/string.c |   54 +++++++++++++++---------------
+ 1 file changed, 27 insertions(+), 27 deletions(-)
 
-diff -puN include/asm-cris/posix_types.h~cris-dont-include-bitopsh-in-posix_typesh include/asm-cris/posix_types.h
---- a/include/asm-cris/posix_types.h~cris-dont-include-bitopsh-in-posix_typesh
-+++ a/include/asm-cris/posix_types.h
-@@ -52,7 +52,6 @@ typedef struct {
- } __kernel_fsid_t;
+diff -puN arch/cris/arch-v10/lib/string.c~crisv10-string-library-add-lineendings-to-asm arch/cris/arch-v10/lib/string.c
+--- a/arch/cris/arch-v10/lib/string.c~crisv10-string-library-add-lineendings-to-asm
++++ a/arch/cris/arch-v10/lib/string.c
+@@ -95,33 +95,33 @@ void *memcpy(void *pdst,
+       If you want to check that the allocation was right; then
+       check the equalities in the first comment.  It should say
+       "r13=r13, r11=r11, r12=r12" */
+-    __asm__ volatile ("
+-        ;; Check that the following is true (same register names on
+-        ;; both sides of equal sign, as in r8=r8):
+-        ;; %0=r13, %1=r11, %2=r12
+-        ;;
+-	;; Save the registers we'll use in the movem process
+-	;; on the stack.
+-	subq 	11*4,$sp
+-	movem	$r10,[$sp]
+-
+-        ;; Now we've got this:
+-	;; r11 - src
+-	;; r13 - dst
+-	;; r12 - n
+-	
+-        ;; Update n for the first loop
+-        subq    44,$r12
+-0:
+-	movem	[$r11+],$r10
+-        subq   44,$r12
+-        bge     0b
+-	movem	$r10,[$r13+]
+-
+-        addq   44,$r12  ;; compensate for last loop underflowing n
+-
+-	;; Restore registers from stack
+-        movem [$sp+],$r10" 
++    __asm__ volatile ("\n\
++	;; Check that the following is true (same register names on	\n\
++	;; both sides of equal sign, as in r8=r8):			\n\
++	;; %0=r13, %1=r11, %2=r12					\n\
++	;;								\n\
++	;; Save the registers we'll use in the movem process		\n\
++	;; on the stack.						\n\
++	subq	11*4,$sp						\n\
++	movem	$r10,[$sp]						\n\
++									\n\
++	;; Now we've got this:						\n\
++	;; r11 - src							\n\
++	;; r13 - dst							\n\
++	;; r12 - n							\n\
++									\n\
++	;; Update n for the first loop					\n\
++	subq	44,$r12							\n\
++0:									\n\
++	movem	[$r11+],$r10						\n\
++	subq	44,$r12							\n\
++	bge	0b							\n\
++	movem	$r10,[$r13+]						\n\
++									\n\
++	addq	44,$r12 ;; compensate for last loop underflowing n	\n\
++									\n\
++	;; Restore registers from stack					\n\
++	movem	[$sp+],$r10"
  
- #ifdef __KERNEL__
--#include <linux/bitops.h>
- 
- #undef	__FD_SET
- #define __FD_SET(fd,fdsetp) set_bit(fd, (void *)(fdsetp))
+      /* Outputs */ : "=r" (dst), "=r" (src), "=r" (n) 
+      /* Inputs */ : "0" (dst), "1" (src), "2" (n));
 _
 
 Patches currently in -mm which might be from jesper.nilsson@axis.com are
