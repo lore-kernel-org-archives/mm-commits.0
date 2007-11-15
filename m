@@ -1,101 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: - cris-gpio-undo-locks-before-returning.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:10:31 -0800
-Message-ID: <200711152110.lAFLAVd7015658@imap1.linux-foundation.org>
+Subject: - cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:12:06 -0800
+Message-ID: <200711152112.lAFLC6SX015837@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41810 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54318 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760323AbXKOVRK (ORCPT
+	by vger.kernel.org with ESMTP id S932259AbXKOVRR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:17:10 -0500
+	Thu, 15 Nov 2007 16:17:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: 12o3l@tiscali.nl, starvik@axis.com, mm-commits@vger.kernel.org
+To: jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cris gpio: undo locks before returning
+     CRIS: remove MTD_AMSTD and MTD_OBSOLETE_CHIPS take two
 has been removed from the -mm tree.  Its filename was
-     cris-gpio-undo-locks-before-returning.patch
+     cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cris gpio: undo locks before returning
-From: Roel Kluin <12o3l@tiscali.nl>
+Subject: CRIS: remove MTD_AMSTD and MTD_OBSOLETE_CHIPS take two
+From: Jesper Nilsson <jesper.nilsson@axis.com>
 
-Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
+Remove MTD_AMDSTD and MTD_OBSOLETE_CHIPS from defconfig, Kconfig and code,
+instead we'll use MTD_CFI or MTD_JEDECPROBE.
+
+[akpm@linux-foundation.org: codingl-style cleanups]
+Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
 Cc: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/drivers/gpio.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ arch/cris/arch-v10/defconfig              |    2 --
+ arch/cris/arch-v10/drivers/Kconfig        |    2 --
+ arch/cris/arch-v10/drivers/axisflashmap.c |    8 ++++----
+ arch/cris/arch-v32/drivers/Kconfig        |    2 --
+ arch/cris/arch-v32/drivers/axisflashmap.c |    9 ++++-----
+ arch/cris/defconfig                       |    2 --
+ 6 files changed, 8 insertions(+), 17 deletions(-)
 
-diff -puN arch/cris/arch-v10/drivers/gpio.c~cris-gpio-undo-locks-before-returning arch/cris/arch-v10/drivers/gpio.c
---- a/arch/cris/arch-v10/drivers/gpio.c~cris-gpio-undo-locks-before-returning
-+++ a/arch/cris/arch-v10/drivers/gpio.c
-@@ -297,8 +297,10 @@ gpio_poll(struct file *file,
- 		data = *R_PORT_PB_DATA;
- 	else if (priv->minor == GPIO_MINOR_G)
- 		data = *R_PORT_G_DATA;
--	else
-+	else {
-+		spin_unlock(&gpio_lock);
- 		return 0;
-+	}
- 	
- 	if ((data & priv->highalarm) ||
- 	    (~data & priv->lowalarm)) {
-@@ -381,18 +383,21 @@ static ssize_t gpio_write(struct file * 
+diff -puN arch/cris/arch-v10/defconfig~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two arch/cris/arch-v10/defconfig
+--- a/arch/cris/arch-v10/defconfig~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two
++++ a/arch/cris/arch-v10/defconfig
+@@ -99,7 +99,6 @@ CONFIG_MTD=y
+ CONFIG_MTD_CFI=y
+ # CONFIG_MTD_CFI_INTELEXT is not set
+ CONFIG_MTD_CFI_AMDSTD=y
+-CONFIG_MTD_AMDSTD=y
+ CONFIG_MTD_CHAR=y
+ CONFIG_MTD_BLOCK=y
+ CONFIG_ETRAX_I2C=y
+@@ -145,7 +144,6 @@ CONFIG_MTD_CFI=y
+ # CONFIG_MTD_CFI_GEOMETRY is not set
+ # CONFIG_MTD_CFI_INTELEXT is not set
+ CONFIG_MTD_CFI_AMDSTD=y
+-CONFIG_MTD_AMDSTD=y
+ # CONFIG_MTD_SHARP is not set
+ # CONFIG_MTD_PHYSMAP is not set
+ # CONFIG_MTD_NORA is not set
+diff -puN arch/cris/arch-v10/drivers/Kconfig~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two arch/cris/arch-v10/drivers/Kconfig
+--- a/arch/cris/arch-v10/drivers/Kconfig~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two
++++ a/arch/cris/arch-v10/drivers/Kconfig
+@@ -606,8 +606,6 @@ config ETRAX_AXISFLASHMAP
+ 	select MTD
+ 	select MTD_CFI
+ 	select MTD_CFI_AMDSTD
+-	select MTD_OBSOLETE_CHIPS
+-	select MTD_AMDSTD
+ 	select MTD_CHAR
+ 	select MTD_BLOCK
+ 	select MTD_PARTITIONS
+diff -puN arch/cris/arch-v10/drivers/axisflashmap.c~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two arch/cris/arch-v10/drivers/axisflashmap.c
+--- a/arch/cris/arch-v10/drivers/axisflashmap.c~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two
++++ a/arch/cris/arch-v10/drivers/axisflashmap.c
+@@ -312,12 +312,12 @@ static struct mtd_info *probe_cs(struct 
+                "%s: Probing a 0x%08lx bytes large window at 0x%08lx.\n",
+ 	       map_cs->name, map_cs->size, map_cs->map_priv_1);
  
- 	ssize_t retval = count;
- 	if (priv->minor !=GPIO_MINOR_A && priv->minor != GPIO_MINOR_B) {
--		return -EFAULT;
-+		retval = -EFAULT;
-+		goto out;
+-#ifdef CONFIG_MTD_AMDSTD
+-	mtd_cs = do_map_probe("amd_flash", map_cs);
+-#endif
+ #ifdef CONFIG_MTD_CFI
++	mtd_cs = do_map_probe("cfi_probe", map_cs);
++#endif
++#ifdef CONFIG_MTD_JEDECPROBE
+ 	if (!mtd_cs) {
+-		mtd_cs = do_map_probe("cfi_probe", map_cs);
++		mtd_cs = do_map_probe("jedec_probe", map_cs);
  	}
-     
- 	if (!access_ok(VERIFY_READ, buf, count)) {
--		return -EFAULT;
-+		retval = -EFAULT;
-+		goto out;
- 	}
- 	clk_mask = priv->clk_mask;
- 	data_mask = priv->data_mask;
- 	/* It must have been configured using the IO_CFG_WRITE_MODE */
- 	/* Perhaps a better error code? */
- 	if (clk_mask == 0 || data_mask == 0) {
--		return -EPERM;
-+		retval = -EPERM;
-+		goto out;
- 	}
- 	write_msb = priv->write_msb;
- 	D(printk("gpio_write: %lu to data 0x%02X clk 0x%02X msb: %i\n",count, data_mask, clk_mask, write_msb));
-@@ -425,6 +430,7 @@ static ssize_t gpio_write(struct file * 
- 			}
- 		}
- 	}
-+out:
- 	spin_unlock(&gpio_lock);
- 	return retval;
- }
-@@ -506,6 +512,7 @@ gpio_release(struct inode *inode, struct
- 	while (p) {
- 		if (p->highalarm | p->lowalarm) {
- 			gpio_some_alarms = 1;
-+			spin_unlock(&gpio_lock);
- 			return 0;
- 		}
- 		p = p->next;
+ #endif
+ 
+diff -puN arch/cris/arch-v32/drivers/Kconfig~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two arch/cris/arch-v32/drivers/Kconfig
+--- a/arch/cris/arch-v32/drivers/Kconfig~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two
++++ a/arch/cris/arch-v32/drivers/Kconfig
+@@ -362,8 +362,6 @@ config ETRAX_AXISFLASHMAP
+ 	select MTD
+ 	select MTD_CFI
+ 	select MTD_CFI_AMDSTD
+-	select MTD_OBSOLETE_CHIPS
+-	select MTD_AMDSTD
+ 	select MTD_CHAR
+ 	select MTD_BLOCK
+ 	select MTD_PARTITIONS
+diff -puN arch/cris/arch-v32/drivers/axisflashmap.c~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two arch/cris/arch-v32/drivers/axisflashmap.c
+--- a/arch/cris/arch-v32/drivers/axisflashmap.c~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two
++++ a/arch/cris/arch-v32/drivers/axisflashmap.c
+@@ -190,13 +190,12 @@ static struct mtd_info *probe_cs(struct 
+ 	       "%s: Probing a 0x%08lx bytes large window at 0x%08lx.\n",
+ 	       map_cs->name, map_cs->size, map_cs->map_priv_1);
+ 
+-#ifdef CONFIG_MTD_AMDSTD
+-	mtd_cs = do_map_probe("amd_flash", map_cs);
+-#endif
+ #ifdef CONFIG_MTD_CFI
+-	if (!mtd_cs) {
+ 		mtd_cs = do_map_probe("cfi_probe", map_cs);
+-	}
++#endif
++#ifdef CONFIG_MTD_JEDECPROBE
++	if (!mtd_cs)
++		mtd_cs = do_map_probe("jedec_probe", map_cs);
+ #endif
+ 
+ 	return mtd_cs;
+diff -puN arch/cris/defconfig~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two arch/cris/defconfig
+--- a/arch/cris/defconfig~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two
++++ a/arch/cris/defconfig
+@@ -226,8 +226,6 @@ CONFIG_MTD_CFI_UTIL=y
+ CONFIG_MTD_RAM=y
+ # CONFIG_MTD_ROM is not set
+ # CONFIG_MTD_ABSENT is not set
+-CONFIG_MTD_OBSOLETE_CHIPS=y
+-CONFIG_MTD_AMDSTD=y
+ # CONFIG_MTD_SHARP is not set
+ # CONFIG_MTD_JEDEC is not set
+ 
 _
 
-Patches currently in -mm which might be from 12o3l@tiscali.nl are
+Patches currently in -mm which might be from jesper.nilsson@axis.com are
 
 origin.patch
-unlock-when-ssp-tries-to-close-an-invalid-port.patch
-git-dvb.patch
-git-mips.patch
-git-netdev-all.patch
-sound-oss-tridentc-fix-incorrect-test-in-trident_ac97_set.patch
+cris-build-fixes-atomich-needs-compilerh.patch
+git-mtd.patch
