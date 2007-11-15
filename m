@@ -1,89 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - uml-update-address-space-affected-by-pud_clear.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:08:40 -0800
-Message-ID: <200711152108.lAFL8eWr015378@imap1.linux-foundation.org>
+Subject: - cris-array_size-cleanup.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:11:58 -0800
+Message-ID: <200711152111.lAFLBwnu015814@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36055 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59269 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751986AbXKOVRO (ORCPT
+	by vger.kernel.org with ESMTP id S932213AbXKOVRR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:17:14 -0500
+	Thu, 15 Nov 2007 16:17:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: alex@flawedcode.org, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: update address space affected by pud_clear
+     cris: ARRAY_SIZE() cleanup
 has been removed from the -mm tree.  Its filename was
-     uml-update-address-space-affected-by-pud_clear.patch
+     cris-array_size-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: update address space affected by pud_clear
-From: Jeff Dike <jdike@addtoit.com>
+Subject: cris: ARRAY_SIZE() cleanup
+From: Alex Unleashed <alex@flawedcode.org>
 
-pud_clear wasn't setting the _PAGE_NEWPAGE bit, fooling tlb_flush into
-thinking that this area of the address space was up-to-date and not unmapping
-whatever was covered by the pud.
+I'm converting most array size calculations under arch/ to use
+ARRAY_SIZE().  This is the patch for CRIS.
 
-This manifested itself as ldconfig on x86_64 complaining about the first
-library it looked at not being a valid ELF file.  A config file is mapped at
-0x4000000, as the only thing mapped under its pud, and unmapped.  The
-unmapping caused a pud_clear, which, due to this bug, didn't actually unmap
-the config file data on the host.  The first library is then mapped at the
-same location, but is not actually mapped on the host because accesses to it
-cause no page faults.  As a result, ldconfig sees the old config file data.
-
-[akpm@linux-foundation.org: coding-style cleanups]
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Signed-off-by: Alejandro Martinez Ruiz <alex@flawedcode.org>
+Cc: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-um/pgtable-3level.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/cris/arch-v10/kernel/io_interface_mux.c |    2 +-
+ arch/cris/arch-v10/kernel/setup.c            |    4 ++--
+ arch/cris/arch-v32/drivers/sync_serial.c     |    2 +-
+ arch/cris/arch-v32/kernel/io.c               |    2 +-
+ arch/cris/arch-v32/kernel/setup.c            |    6 ++----
+ 5 files changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN include/asm-um/pgtable-3level.h~uml-update-address-space-affected-by-pud_clear include/asm-um/pgtable-3level.h
---- a/include/asm-um/pgtable-3level.h~uml-update-address-space-affected-by-pud_clear
-+++ a/include/asm-um/pgtable-3level.h
-@@ -1,3 +1,4 @@
-+
- /*
-  * Copyright 2003 PathScale Inc
-  * Derived from include/asm-i386/pgtable.h
-@@ -71,7 +72,7 @@ static inline pmd_t *pmd_alloc_one(struc
- 
- static inline void pud_clear (pud_t *pud)
+diff -puN arch/cris/arch-v10/kernel/io_interface_mux.c~cris-array_size-cleanup arch/cris/arch-v10/kernel/io_interface_mux.c
+--- a/arch/cris/arch-v10/kernel/io_interface_mux.c~cris-array_size-cleanup
++++ a/arch/cris/arch-v10/kernel/io_interface_mux.c
+@@ -304,7 +304,7 @@ static unsigned char clear_group_from_se
+ static struct if_group *get_group(const unsigned char groups)
  {
--        set_pud(pud, __pud(0));
-+	set_pud(pud, __pud(_PAGE_NEWPAGE));
- }
+ 	int i;
+-	for (i = 0; i < sizeof(if_groups)/sizeof(struct if_group); i++) {
++	for (i = 0; i < ARRAY_SIZE(if_groups); i++) {
+ 		if (groups & if_groups[i].group) {
+ 			return &if_groups[i];
+ 		}
+diff -puN arch/cris/arch-v10/kernel/setup.c~cris-array_size-cleanup arch/cris/arch-v10/kernel/setup.c
+--- a/arch/cris/arch-v10/kernel/setup.c~cris-array_size-cleanup
++++ a/arch/cris/arch-v10/kernel/setup.c
+@@ -57,8 +57,8 @@ int show_cpuinfo(struct seq_file *m, voi
  
- #define pud_page(pud) phys_to_page(pud_val(pud) & PAGE_MASK)
+ 	revision = rdvr();
+ 
+-	if (revision >= sizeof cpu_info/sizeof *cpu_info)
+-		info = &cpu_info[sizeof cpu_info/sizeof *cpu_info - 1];
++	if (revision >= ARRAY_SIZE(cpu_info))
++		info = &cpu_info[ARRAY_SIZE(cpu_info) - 1];
+ 	else
+ 		info = &cpu_info[revision];
+ 
+diff -puN arch/cris/arch-v32/drivers/sync_serial.c~cris-array_size-cleanup arch/cris/arch-v32/drivers/sync_serial.c
+--- a/arch/cris/arch-v32/drivers/sync_serial.c~cris-array_size-cleanup
++++ a/arch/cris/arch-v32/drivers/sync_serial.c
+@@ -185,7 +185,7 @@ static struct sync_port ports[]=
+ 	}
+ };
+ 
+-#define NUMBER_OF_PORTS (sizeof(ports)/sizeof(sync_port))
++#define NUMBER_OF_PORTS ARRAY_SIZE(ports)
+ 
+ static const struct file_operations sync_serial_fops = {
+ 	.owner   = THIS_MODULE,
+diff -puN arch/cris/arch-v32/kernel/io.c~cris-array_size-cleanup arch/cris/arch-v32/kernel/io.c
+--- a/arch/cris/arch-v32/kernel/io.c~cris-array_size-cleanup
++++ a/arch/cris/arch-v32/kernel/io.c
+@@ -49,7 +49,7 @@ struct crisv32_ioport crisv32_ioports[] 
+ 	}
+ };
+ 
+-#define NBR_OF_PORTS sizeof(crisv32_ioports)/sizeof(struct crisv32_ioport)
++#define NBR_OF_PORTS ARRAY_SIZE(crisv32_ioports)
+ 
+ struct crisv32_iopin crisv32_led1_green;
+ struct crisv32_iopin crisv32_led1_red;
+diff -puN arch/cris/arch-v32/kernel/setup.c~cris-array_size-cleanup arch/cris/arch-v32/kernel/setup.c
+--- a/arch/cris/arch-v32/kernel/setup.c~cris-array_size-cleanup
++++ a/arch/cris/arch-v32/kernel/setup.c
+@@ -54,12 +54,10 @@ show_cpuinfo(struct seq_file *m, void *v
+ {
+ 	int i;
+ 	int cpu = (int)v - 1;
+-	int entries;
+ 	unsigned long revision;
+ 	struct cpu_info *info;
+ 
+-	entries = sizeof cpinfo / sizeof(struct cpu_info);
+-	info = &cpinfo[entries - 1];
++	info = &cpinfo[ARRAY_SIZE(cpinfo) - 1];
+ 
+ #ifdef CONFIG_SMP
+ 	if (!cpu_online(cpu))
+@@ -68,7 +66,7 @@ show_cpuinfo(struct seq_file *m, void *v
+ 
+ 	revision = rdvr();
+ 
+-	for (i = 0; i < entries; i++) {
++	for (i = 0; i < ARRAY_SIZE(cpinfo); i++) {
+ 		if (cpinfo[i].rev == revision) {
+ 			info = &cpinfo[i];
+ 			break;
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from alex@flawedcode.org are
 
 origin.patch
-git-kvm.patch
-uml-implement-get_wchan.patch
-uml-implement-get_wchan-fix.patch
-uml-get-rid-of-asmlinkage.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-document-new-ubd-flag.patch
-uml-further-bugsc-tidying.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-uml-smp-needs-to-depend-on-broken-for-now.patch
-uml-console-driver-cleanups.patch
-uml-clonec-tidying.patch
-uml-borrow-consth-techniques.patch
-uml-delete-some-unused-headers.patch
-uml-allow-lflags-on-command-line.patch
-uml-tidy-kern_utilh.patch
-uml-tidy-pgtableh.patch
-uml-reconst-a-parameter.patch
-arch-um-remove-duplicate-includes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+git-arm.patch
+git-mips.patch
+git-netdev-all.patch
