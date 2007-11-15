@@ -1,61 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 14 Nov 2007 16:44:40 -0800
-Message-ID: <200711150044.lAF0iexl002034@imap1.linux-foundation.org>
+Subject: - fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 14 Nov 2007 16:45:38 -0800
+Message-ID: <200711150045.lAF0jcdP002055@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34623 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:38096 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755640AbXKOApX (ORCPT
+	by vger.kernel.org with ESMTP id S1756734AbXKOAqP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Nov 2007 19:45:23 -0500
+	Wed, 14 Nov 2007 19:46:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, 12o3l@tiscali.nl, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jack@suse.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mips-undo-locking-on-error-path-returns-checkpatch-fixes
+     fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
+     fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mips-undo-locking-on-error-path-returns.patch
+This patch was dropped because it was folded into fix-64kb-blocksize-in-ext3-directories.patch
 
 ------------------------------------------------------
-Subject: mips-undo-locking-on-error-path-returns-checkpatch-fixes
+Subject: fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: use tabs not spaces
-#40: FILE: arch/mips/vr41xx/common/icu.c:596:
-+                spin_unlock_irq(&desc->lock);$
+WARNING: line over 80 characters
+#70: FILE: fs/ext3/namei.c:182:
++static inline struct ext3_dir_entry_2 *ext3_next_entry(struct ext3_dir_entry_2 *p)
 
-total: 1 errors, 0 warnings, 21 lines checked
+ERROR: "(foo*)" should be "(foo *)"
+#72: FILE: fs/ext3/namei.c:184:
++	return (struct ext3_dir_entry_2 *)((char*)p +
+
+WARNING: line over 80 characters
+#262: FILE: fs/ext3/namei.c:1806:
++	de->rec_len = ext3_rec_len_to_disk(inode->i_sb->s_blocksize-EXT3_DIR_REC_LEN(1));
+
+total: 1 errors, 2 warnings, 289 lines checked
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Roel Kluin <12o3l@tiscali.nl>
+Cc: <linux-ext4@vger.kernel.org>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/vr41xx/common/icu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext3/namei.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN arch/mips/vr41xx/common/icu.c~mips-undo-locking-on-error-path-returns-checkpatch-fixes arch/mips/vr41xx/common/icu.c
---- a/arch/mips/vr41xx/common/icu.c~mips-undo-locking-on-error-path-returns-checkpatch-fixes
-+++ a/arch/mips/vr41xx/common/icu.c
-@@ -593,7 +593,7 @@ static inline int set_sysint2_assign(uns
- 		intassign3 |= (uint16_t)assign << 12;
- 		break;
- 	default:
--                spin_unlock_irq(&desc->lock);
-+		spin_unlock_irq(&desc->lock);
- 		return -EINVAL;
- 	}
+diff -puN fs/ext3/namei.c~fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes fs/ext3/namei.c
+--- a/fs/ext3/namei.c~fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes
++++ a/fs/ext3/namei.c
+@@ -179,9 +179,10 @@ static int ext3_dx_add_entry(handle_t *h
+ /*
+  * p is at least 6 bytes before the end of page
+  */
+-static inline struct ext3_dir_entry_2 *ext3_next_entry(struct ext3_dir_entry_2 *p)
++static inline struct ext3_dir_entry_2 *
++ext3_next_entry(struct ext3_dir_entry_2 *p)
+ {
+-	return (struct ext3_dir_entry_2 *)((char*)p +
++	return (struct ext3_dir_entry_2 *)((char *)p +
+ 		ext3_rec_len_from_disk(p->rec_len));
+ }
  
+@@ -1803,7 +1804,8 @@ retry:
+ 	ext3_set_de_type(dir->i_sb, de, S_IFDIR);
+ 	de = ext3_next_entry(de);
+ 	de->inode = cpu_to_le32(dir->i_ino);
+-	de->rec_len = ext3_rec_len_to_disk(inode->i_sb->s_blocksize-EXT3_DIR_REC_LEN(1));
++	de->rec_len = ext3_rec_len_to_disk(inode->i_sb->s_blocksize -
++					EXT3_DIR_REC_LEN(1));
+ 	de->name_len = 2;
+ 	strcpy (de->name, "..");
+ 	ext3_set_de_type(dir->i_sb, de, S_IFDIR);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,8 +89,8 @@ acpi-make-acpi_procfs-default-to-y.patch
 hugetlb-split-alloc_huge_page-into-private-and-shared-components.patch
 revert-task-control-groups-example-cpu-accounting-subsystem.patch
 mips-undo-locking-on-error-path-returns.patch
-mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
-pidns-place-under-config_experimental-checkpatch-fixes.patch
+pidns-place-under-config_experimental.patch
+fix-64kb-blocksize-in-ext3-directories.patch
 fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
 file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
 x86-disable-preemption-in-delay_tsc.patch
