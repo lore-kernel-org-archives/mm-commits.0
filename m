@@ -1,387 +1,229 @@
 From: akpm@linux-foundation.org
-Subject: - crisv10-usercopy-library-add-lineendings-to-asm.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:12:19 -0800
-Message-ID: <200711152112.lAFLCJ1D015857@imap1.linux-foundation.org>
+Subject: - cris-build-fixes-defconfig-updates.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:11:56 -0800
+Message-ID: <200711152111.lAFLBujR015810@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34299 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37815 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932375AbXKOVRV (ORCPT
+	by vger.kernel.org with ESMTP id S932343AbXKOVRT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:17:21 -0500
+	Thu, 15 Nov 2007 16:17:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.nilsson@axis.com, mikael.starvik@axis.com, mm-commits@vger.kernel.org
+To: jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CRISv10 usercopy library add lineendings to asm
+     cris build fixes: defconfig updates
 has been removed from the -mm tree.  Its filename was
-     crisv10-usercopy-library-add-lineendings-to-asm.patch
+     cris-build-fixes-defconfig-updates.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: CRISv10 usercopy library add lineendings to asm
+Subject: cris build fixes: defconfig updates
 From: Jesper Nilsson <jesper.nilsson@axis.com>
 
-Removes warning when compiling arch/cris/arch-v10/lib/usercopy.c
-
-No change except adding \n\ on the end of the lines has been done.
-Removes warning about multi-line string literals.
+Remove some unused config lines, and add some others that needs to be off
+for a succesful compile. This is the minimal set of changes for 2.6.23.
 
 Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Mikael Starvik <mikael.starvik@axis.com>
+Acked-by: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/lib/usercopy.c |  314 ++++++++++++++--------------
- 1 file changed, 157 insertions(+), 157 deletions(-)
+ arch/cris/defconfig |   76 ++++++++++++++++++------------------------
+ 1 file changed, 33 insertions(+), 43 deletions(-)
 
-diff -puN arch/cris/arch-v10/lib/usercopy.c~crisv10-usercopy-library-add-lineendings-to-asm arch/cris/arch-v10/lib/usercopy.c
---- a/arch/cris/arch-v10/lib/usercopy.c~crisv10-usercopy-library-add-lineendings-to-asm
-+++ a/arch/cris/arch-v10/lib/usercopy.c
-@@ -92,58 +92,58 @@ __copy_user (void __user *pdst, const vo
- 	.ifnc %0%1%2%3,$r13$r11$r12$r10					\n\
- 	.err								\n\
- 	.endif								\n\
--
--	;; Save the registers we'll use in the movem process
--	;; on the stack.
--	subq	11*4,$sp
--	movem	$r10,[$sp]
--
--	;; Now we've got this:
--	;; r11 - src
--	;; r13 - dst
--	;; r12 - n
--
--	;; Update n for the first loop
--	subq	44,$r12
--
--; Since the noted PC of a faulting instruction in a delay-slot of a taken
--; branch, is that of the branch target, we actually point at the from-movem
--; for this case.  There is no ambiguity here; if there was a fault in that
--; instruction (meaning a kernel oops), the faulted PC would be the address
--; after *that* movem.
--
--0:
--	movem	[$r11+],$r10
--	subq   44,$r12
--	bge	0b
--	movem	$r10,[$r13+]
--1:
--	addq   44,$r12  ;; compensate for last loop underflowing n
--
--	;; Restore registers from stack
--	movem [$sp+],$r10
--2:
--	.section .fixup,\"ax\"
--
--; To provide a correct count in r10 of bytes that failed to be copied,
--; we jump back into the loop if the loop-branch was taken.  There is no
--; performance penalty for sany use; the program will segfault soon enough.
--
--3:
--	move.d [$sp],$r10
--	addq 44,$r10
--	move.d $r10,[$sp]
--	jump 0b
--4:
--	movem [$sp+],$r10
--	addq 44,$r10
--	addq 44,$r12
--	jump 2b
--
--	.previous
--	.section __ex_table,\"a\"
--	.dword 0b,3b
--	.dword 1b,4b
-+									\n\
-+	;; Save the registers we'll use in the movem process		\n\
-+	;; on the stack.						\n\
-+	subq	11*4,$sp						\n\
-+	movem	$r10,[$sp]						\n\
-+									\n\
-+	;; Now we've got this:						\n\
-+	;; r11 - src							\n\
-+	;; r13 - dst							\n\
-+	;; r12 - n							\n\
-+									\n\
-+	;; Update n for the first loop					\n\
-+	subq	44,$r12							\n\
-+									\n\
-+; Since the noted PC of a faulting instruction in a delay-slot of a taken \n\
-+; branch, is that of the branch target, we actually point at the from-movem \n\
-+; for this case.  There is no ambiguity here; if there was a fault in that \n\
-+; instruction (meaning a kernel oops), the faulted PC would be the address \n\
-+; after *that* movem.							\n\
-+									\n\
-+0:									\n\
-+	movem	[$r11+],$r10						\n\
-+	subq   44,$r12							\n\
-+	bge	0b							\n\
-+	movem	$r10,[$r13+]						\n\
-+1:									\n\
-+	addq   44,$r12  ;; compensate for last loop underflowing n	\n\
-+									\n\
-+	;; Restore registers from stack					\n\
-+	movem [$sp+],$r10						\n\
-+2:									\n\
-+	.section .fixup,\"ax\"						\n\
-+									\n\
-+; To provide a correct count in r10 of bytes that failed to be copied,	\n\
-+; we jump back into the loop if the loop-branch was taken.  There is no	\n\
-+; performance penalty for sany use; the program will segfault soon enough.\n\
-+									\n\
-+3:									\n\
-+	move.d [$sp],$r10						\n\
-+	addq 44,$r10							\n\
-+	move.d $r10,[$sp]						\n\
-+	jump 0b								\n\
-+4:									\n\
-+	movem [$sp+],$r10						\n\
-+	addq 44,$r10							\n\
-+	addq 44,$r12							\n\
-+	jump 2b								\n\
-+									\n\
-+	.previous							\n\
-+	.section __ex_table,\"a\"					\n\
-+	.dword 0b,3b							\n\
-+	.dword 1b,4b							\n\
- 	.previous"
+diff -puN arch/cris/defconfig~cris-build-fixes-defconfig-updates arch/cris/defconfig
+--- a/arch/cris/defconfig~cris-build-fixes-defconfig-updates
++++ a/arch/cris/defconfig
+@@ -276,6 +276,7 @@ CONFIG_MTDRAM_ABS_POS=0x0
+ # CONFIG_BLK_DEV_FD is not set
+ # CONFIG_BLK_DEV_COW_COMMON is not set
+ # CONFIG_BLK_DEV_LOOP is not set
++# CONFIG_BLK_DEV_CRYPTOLOOP is not set
+ # CONFIG_BLK_DEV_NBD is not set
+ # CONFIG_BLK_DEV_UB is not set
+ CONFIG_BLK_DEV_RAM=y
+@@ -302,16 +303,14 @@ CONFIG_IOSCHED_CFQ=y
+ #
+ # ATA/ATAPI/MFM/RLL support
+ #
+-CONFIG_IDE=y
+-CONFIG_BLK_DEV_IDE=y
++# CONFIG_IDE is not set
++# CONFIG_PARIDE is not set
  
-      /* Outputs */ : "=r" (dst), "=r" (src), "=r" (n), "=r" (retn)
-@@ -253,59 +253,59 @@ __copy_user_zeroing (void __user *pdst, 
-        If you want to check that the allocation was right; then
-        check the equalities in the first comment.  It should say
-        "r13=r13, r11=r11, r12=r12" */
--    __asm__ volatile ("
-+    __asm__ volatile ("\n\
- 	.ifnc %0%1%2%3,$r13$r11$r12$r10					\n\
- 	.err								\n\
- 	.endif								\n\
--
--	;; Save the registers we'll use in the movem process
--	;; on the stack.
--	subq	11*4,$sp
--	movem	$r10,[$sp]
--
--	;; Now we've got this:
--	;; r11 - src
--	;; r13 - dst
--	;; r12 - n
--
--	;; Update n for the first loop
--	subq	44,$r12
--0:
--	movem	[$r11+],$r10
--1:
--	subq   44,$r12
--	bge	0b
--	movem	$r10,[$r13+]
--
--	addq   44,$r12  ;; compensate for last loop underflowing n
--
--	;; Restore registers from stack
--	movem [$sp+],$r10
--4:
--	.section .fixup,\"ax\"
--
--;; Do not jump back into the loop if we fail.  For some uses, we get a
--;; page fault somewhere on the line.  Without checking for page limits,
--;; we don't know where, but we need to copy accurately and keep an
--;; accurate count; not just clear the whole line.  To do that, we fall
--;; down in the code below, proceeding with smaller amounts.  It should
--;; be kept in mind that we have to cater to code like what at one time
--;; was in fs/super.c:
--;;  i = size - copy_from_user((void *)page, data, size);
--;; which would cause repeated faults while clearing the remainder of
--;; the SIZE bytes at PAGE after the first fault.
--;; A caveat here is that we must not fall through from a failing page
--;; to a valid page.
--
--3:
--	movem  [$sp+],$r10
--	addq	44,$r12 ;; Get back count before faulting point.
--	subq	44,$r11 ;; Get back pointer to faulting movem-line.
--	jump	4b	;; Fall through, pretending the fault didn't happen.
--
--	.previous
--	.section __ex_table,\"a\"
--	.dword 1b,3b
-+									\n\
-+	;; Save the registers we'll use in the movem process		\n\
-+	;; on the stack.						\n\
-+	subq	11*4,$sp						\n\
-+	movem	$r10,[$sp]						\n\
-+									\n\
-+	;; Now we've got this:						\n\
-+	;; r11 - src							\n\
-+	;; r13 - dst							\n\
-+	;; r12 - n							\n\
-+									\n\
-+	;; Update n for the first loop					\n\
-+	subq	44,$r12							\n\
-+0:									\n\
-+	movem	[$r11+],$r10						\n\
-+1:									\n\
-+	subq   44,$r12							\n\
-+	bge	0b							\n\
-+	movem	$r10,[$r13+]						\n\
-+									\n\
-+	addq   44,$r12  ;; compensate for last loop underflowing n	\n\
-+									\n\
-+	;; Restore registers from stack					\n\
-+	movem [$sp+],$r10						\n\
-+4:									\n\
-+	.section .fixup,\"ax\"						\n\
-+									\n\
-+;; Do not jump back into the loop if we fail.  For some uses, we get a	\n\
-+;; page fault somewhere on the line.  Without checking for page limits,	\n\
-+;; we don't know where, but we need to copy accurately and keep an	\n\
-+;; accurate count; not just clear the whole line.  To do that, we fall	\n\
-+;; down in the code below, proceeding with smaller amounts.  It should	\n\
-+;; be kept in mind that we have to cater to code like what at one time	\n\
-+;; was in fs/super.c:							\n\
-+;;  i = size - copy_from_user((void *)page, data, size);		\n\
-+;; which would cause repeated faults while clearing the remainder of	\n\
-+;; the SIZE bytes at PAGE after the first fault.			\n\
-+;; A caveat here is that we must not fall through from a failing page	\n\
-+;; to a valid page.							\n\
-+									\n\
-+3:									\n\
-+	movem  [$sp+],$r10						\n\
-+	addq	44,$r12 ;; Get back count before faulting point.	\n\
-+	subq	44,$r11 ;; Get back pointer to faulting movem-line.	\n\
-+	jump	4b	;; Fall through, pretending the fault didn't happen.\n\
-+									\n\
-+	.previous							\n\
-+	.section __ex_table,\"a\"					\n\
-+	.dword 1b,3b							\n\
- 	.previous"
+ #
+ # Please see Documentation/ide.txt for help/info on IDE drives
+ #
+ # CONFIG_BLK_DEV_IDE_SATA is not set
+-CONFIG_BLK_DEV_IDEDISK=y
+ # CONFIG_IDEDISK_MULTI_MODE is not set
+-CONFIG_BLK_DEV_IDECD=y
+ # CONFIG_BLK_DEV_IDETAPE is not set
+ # CONFIG_BLK_DEV_IDEFLOPPY is not set
+ # CONFIG_IDE_TASK_IOCTL is not set
+@@ -321,7 +320,6 @@ CONFIG_BLK_DEV_IDECD=y
+ #
+ # CONFIG_IDE_GENERIC is not set
+ # CONFIG_IDE_ARM is not set
+-CONFIG_BLK_DEV_IDEDMA=y
+ # CONFIG_IDEDMA_AUTO is not set
+ # CONFIG_BLK_DEV_HD is not set
  
-      /* Outputs */ : "=r" (dst), "=r" (src), "=r" (n), "=r" (retn)
-@@ -425,64 +425,64 @@ __do_clear_user (void __user *pto, unsig
-       If you want to check that the allocation was right; then
-       check the equalities in the first comment.  It should say
-       something like "r13=r13, r11=r11, r12=r12". */
--    __asm__ volatile ("
-+    __asm__ volatile ("\n\
- 	.ifnc %0%1%2,$r13$r12$r10					\n\
- 	.err								\n\
- 	.endif								\n\
--
--	;; Save the registers we'll clobber in the movem process
--	;; on the stack.  Don't mention them to gcc, it will only be
--	;; upset.
--	subq	11*4,$sp
--	movem	$r10,[$sp]
--
--	clear.d $r0
--	clear.d $r1
--	clear.d $r2
--	clear.d $r3
--	clear.d $r4
--	clear.d $r5
--	clear.d $r6
--	clear.d $r7
--	clear.d $r8
--	clear.d $r9
--	clear.d $r10
--	clear.d $r11
--
--	;; Now we've got this:
--	;; r13 - dst
--	;; r12 - n
--
--	;; Update n for the first loop
--	subq	12*4,$r12
--0:
--	subq   12*4,$r12
--	bge	0b
--	movem	$r11,[$r13+]
--1:
--	addq   12*4,$r12        ;; compensate for last loop underflowing n
--
--	;; Restore registers from stack
--	movem [$sp+],$r10
--2:
--	.section .fixup,\"ax\"
--3:
--	move.d [$sp],$r10
--	addq 12*4,$r10
--	move.d $r10,[$sp]
--	clear.d $r10
--	jump 0b
--
--4:
--	movem [$sp+],$r10
--	addq 12*4,$r10
--	addq 12*4,$r12
--	jump 2b
--
--	.previous
--	.section __ex_table,\"a\"
--	.dword 0b,3b
--	.dword 1b,4b
-+									\n\
-+	;; Save the registers we'll clobber in the movem process	\n\
-+	;; on the stack.  Don't mention them to gcc, it will only be	\n\
-+	;; upset.							\n\
-+	subq	11*4,$sp						\n\
-+	movem	$r10,[$sp]						\n\
-+									\n\
-+	clear.d $r0							\n\
-+	clear.d $r1							\n\
-+	clear.d $r2							\n\
-+	clear.d $r3							\n\
-+	clear.d $r4							\n\
-+	clear.d $r5							\n\
-+	clear.d $r6							\n\
-+	clear.d $r7							\n\
-+	clear.d $r8							\n\
-+	clear.d $r9							\n\
-+	clear.d $r10							\n\
-+	clear.d $r11							\n\
-+									\n\
-+	;; Now we've got this:						\n\
-+	;; r13 - dst							\n\
-+	;; r12 - n							\n\
-+									\n\
-+	;; Update n for the first loop					\n\
-+	subq	12*4,$r12						\n\
-+0:									\n\
-+	subq   12*4,$r12						\n\
-+	bge	0b							\n\
-+	movem	$r11,[$r13+]						\n\
-+1:									\n\
-+	addq   12*4,$r12        ;; compensate for last loop underflowing n\n\
-+									\n\
-+	;; Restore registers from stack					\n\
-+	movem [$sp+],$r10						\n\
-+2:									\n\
-+	.section .fixup,\"ax\"						\n\
-+3:									\n\
-+	move.d [$sp],$r10						\n\
-+	addq 12*4,$r10							\n\
-+	move.d $r10,[$sp]						\n\
-+	clear.d $r10							\n\
-+	jump 0b								\n\
-+									\n\
-+4:									\n\
-+	movem [$sp+],$r10						\n\
-+	addq 12*4,$r10							\n\
-+	addq 12*4,$r12							\n\
-+	jump 2b								\n\
-+									\n\
-+	.previous							\n\
-+	.section __ex_table,\"a\"					\n\
-+	.dword 0b,3b							\n\
-+	.dword 1b,4b							\n\
- 	.previous"
+@@ -329,6 +327,7 @@ CONFIG_BLK_DEV_IDEDMA=y
+ # SCSI device support
+ #
+ # CONFIG_SCSI is not set
++# CONFIG_ISCSI_TCP is not set
  
-      /* Outputs */ : "=r" (dst), "=r" (n), "=r" (retn)
+ #
+ # IEEE 1394 (FireWire) support
+@@ -414,26 +413,11 @@ CONFIG_NETFILTER=y
+ # CONFIG_NET_POLL_CONTROLLER is not set
+ # CONFIG_HAMRADIO is not set
+ # CONFIG_IRDA is not set
+-CONFIG_BT=y
+-CONFIG_BT_L2CAP=y
+-# CONFIG_BT_SCO is not set
+-CONFIG_BT_RFCOMM=y
+-# CONFIG_BT_RFCOMM_TTY is not set
+-CONFIG_BT_BNEP=y
+-# CONFIG_BT_BNEP_MC_FILTER is not set
+-# CONFIG_BT_BNEP_PROTO_FILTER is not set
+-# CONFIG_BT_HIDP is not set
+-
+-#
+-# Bluetooth device drivers
+-#
+-CONFIG_BT_HCIUSB=y
+-# CONFIG_BT_HCIUSB_SCO is not set
+-# CONFIG_BT_HCIUART is not set
+-# CONFIG_BT_HCIBCM203X is not set
+-# CONFIG_BT_HCIBPA10X is not set
+-# CONFIG_BT_HCIBFUSB is not set
+-# CONFIG_BT_HCIVHCI is not set
++# CONFIG_AF_RXRPC is not set
++# CONFIG_AF_RXRPC_DEBUG is not set
++# CONFIG_BT is not set
++# CONFIG_I2C is not set
++
+ CONFIG_NETDEVICES=y
+ # CONFIG_DUMMY is not set
+ # CONFIG_BONDING is not set
+@@ -485,31 +469,17 @@ CONFIG_NET_ETHERNET=y
+ #
+ # Input device support
+ #
+-CONFIG_INPUT=y
+-
+-#
+-# Userland interfaces
+-#
+-CONFIG_INPUT_MOUSEDEV=y
+-CONFIG_INPUT_MOUSEDEV_PSAUX=y
+-CONFIG_INPUT_MOUSEDEV_SCREEN_X=1024
+-CONFIG_INPUT_MOUSEDEV_SCREEN_Y=768
+-# CONFIG_INPUT_JOYDEV is not set
+-# CONFIG_INPUT_TSDEV is not set
+-# CONFIG_INPUT_EVDEV is not set
+-# CONFIG_INPUT_EVBUG is not set
++# CONFIG_INPUT is not set
+ 
+ #
+ # Input I/O drivers
+ #
+-# CONFIG_GAMEPORT is not set
+-CONFIG_SOUND_GAMEPORT=y
+ CONFIG_SERIO=y
+ # CONFIG_SERIO_I8042 is not set
+ # CONFIG_SERIO_SERPORT is not set
+-# CONFIG_SERIO_CT82C710 is not set
+-CONFIG_SERIO_LIBPS2=y
++# CONFIG_SERIO_LIBPS2 is not set
+ # CONFIG_SERIO_RAW is not set
++# CONFIG_GAMEPORT is not set
+ 
+ #
+ # Input Device Drivers
+@@ -525,6 +495,7 @@ CONFIG_MOUSE_PS2=y
+ # CONFIG_MOUSE_SERIAL is not set
+ # CONFIG_MOUSE_VSXXXAA is not set
+ # CONFIG_INPUT_JOYSTICK is not set
++# CONFIG_INPUT_TABLET is not set
+ # CONFIG_INPUT_TOUCHSCREEN is not set
+ # CONFIG_INPUT_MISC is not set
+ 
+@@ -542,6 +513,8 @@ CONFIG_MOUSE_PS2=y
+ #
+ # Non-8250 serial port support
+ #
++CONFIG_SERIAL_CORE=y
++CONFIG_SERIAL_CORE_CONSOLE=y
+ CONFIG_UNIX98_PTYS=y
+ CONFIG_LEGACY_PTYS=y
+ CONFIG_LEGACY_PTY_COUNT=256
+@@ -559,6 +532,8 @@ CONFIG_LEGACY_PTY_COUNT=256
+ # CONFIG_GEN_RTC is not set
+ # CONFIG_DTLK is not set
+ # CONFIG_R3964 is not set
++# CONFIG_RTC_LIB is not set
++# CONFIG_RTC_CLASS is not set
+ 
+ #
+ # Ftape, the floppy tape device driver
+@@ -660,7 +635,9 @@ CONFIG_NFS_V3=y
+ # CONFIG_NFSD is not set
+ CONFIG_LOCKD=y
+ CONFIG_LOCKD_V4=y
++CONFIG_NFS_COMMON=y
+ CONFIG_SUNRPC=y
++# CONFIG_SUNRPC_BIND34 is not set
+ # CONFIG_RPCSEC_GSS_KRB5 is not set
+ # CONFIG_RPCSEC_GSS_SPKM3 is not set
+ # CONFIG_SMB_FS is not set
+@@ -686,9 +663,21 @@ CONFIG_MSDOS_PARTITION=y
+ # CONFIG_SOUND is not set
+ 
+ #
++# Generic devices
++#
++# CONFIG_SND_MPU401_UART is not set
++# CONFIG_SND_DUMMY is not set
++# CONFIG_SND_VIRMIDI is not set
++# CONFIG_SND_MTPAV is not set
++# CONFIG_SND_SERIAL_U16550 is not set
++# CONFIG_SND_MPU401 is not set
++
++#
+ # PCCARD (PCMCIA/CardBus) support
+ #
+ # CONFIG_PCCARD is not set
++# CONFIG_PARPORT_PC_PCMCIA is not set
++# CONFIG_NET_PCMCIA is not set
+ 
+ #
+ # PC-card bridges
+@@ -734,6 +723,7 @@ CONFIG_USB_DEVICEFS=y
+ # USB Input Devices
+ #
+ # CONFIG_USB_HID is not set
++# HID_SUPPORT is not set
+ 
+ #
+ # USB HID Boot Protocol drivers
+@@ -829,7 +819,7 @@ CONFIG_USB_RTL8150=y
+ 
+ #
+ # Hardware crypto devices
+-#
++# CONFIG_CRYPTO_HW is not set
+ 
+ #
+ # Library routines
 _
 
 Patches currently in -mm which might be from jesper.nilsson@axis.com are
