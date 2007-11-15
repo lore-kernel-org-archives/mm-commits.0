@@ -1,115 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: - lguest_userc-fix-memory-leak.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:08:51 -0800
-Message-ID: <200711152108.lAFL8ptX015393@imap1.linux-foundation.org>
+Subject: - crisv10-memset-library-add-lineendings-to-asm.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:12:23 -0800
+Message-ID: <200711152112.lAFLCNAv015867@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33501 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57019 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932517AbXKOVRa (ORCPT
+	by vger.kernel.org with ESMTP id S932289AbXKOVRQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:17:30 -0500
+	Thu, 15 Nov 2007 16:17:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: jesper.nilsson@axis.com, mikael.starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lguest_user.c: fix memory leak
+     CRISv10 memset library add lineendings to asm
 has been removed from the -mm tree.  Its filename was
-     lguest_userc-fix-memory-leak.patch
+     crisv10-memset-library-add-lineendings-to-asm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: lguest_user.c: fix memory leak
-From: Adrian Bunk <bunk@kernel.org>
+Subject: CRISv10 memset library add lineendings to asm
+From: Jesper Nilsson <jesper.nilsson@axis.com>
 
-This patch fixes a memory leak spotted by the Coverity checker.
+Add \n\ at end of lines inside asm statement to avoid warning.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+No change except adding \n\ to end of line and correcting
+whitespace has been done.
+Removes warning about multi-line string literals when compiling
+arch/cris/arch-v10/lib/memset.c
+
+Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Mikael Starvik <mikael.starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/lguest_user.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/cris/arch-v10/lib/memset.c |   82 +++++++++++++++---------------
+ 1 file changed, 41 insertions(+), 41 deletions(-)
 
-diff -puN drivers/lguest/lguest_user.c~lguest_userc-fix-memory-leak drivers/lguest/lguest_user.c
---- a/drivers/lguest/lguest_user.c~lguest_userc-fix-memory-leak
-+++ a/drivers/lguest/lguest_user.c
-@@ -184,7 +184,7 @@ static int initialize(struct file *file,
- free_regs:
- 	free_page(lg->regs_page);
- release_guest:
--	memset(lg, 0, sizeof(*lg));
-+	kfree(lg);
- unlock:
- 	mutex_unlock(&lguest_lock);
- 	return err;
+diff -puN arch/cris/arch-v10/lib/memset.c~crisv10-memset-library-add-lineendings-to-asm arch/cris/arch-v10/lib/memset.c
+--- a/arch/cris/arch-v10/lib/memset.c~crisv10-memset-library-add-lineendings-to-asm
++++ a/arch/cris/arch-v10/lib/memset.c
+@@ -66,7 +66,7 @@ void *memset(void *pdst,
+ 
+   {
+     register char *dst __asm__ ("r13") = pdst;
+- 
++
+   /* This is NONPORTABLE, but since this whole routine is     */
+   /* grossly nonportable that doesn't matter.                 */
+ 
+@@ -110,52 +110,52 @@ void *memset(void *pdst,
+       If you want to check that the allocation was right; then
+       check the equalities in the first comment.  It should say
+       "r13=r13, r12=r12, r11=r11" */
+-    __asm__ volatile ("
+-        ;; Check that the following is true (same register names on
+-        ;; both sides of equal sign, as in r8=r8):
+-        ;; %0=r13, %1=r12, %4=r11
+-        ;;
+-	;; Save the registers we'll clobber in the movem process
+-	;; on the stack.  Don't mention them to gcc, it will only be
+-	;; upset.
+-	subq 	11*4,$sp
+-        movem   $r10,[$sp]
+-
+-        move.d  $r11,$r0
+-        move.d  $r11,$r1
+-        move.d  $r11,$r2
+-        move.d  $r11,$r3
+-        move.d  $r11,$r4
+-        move.d  $r11,$r5
+-        move.d  $r11,$r6
+-        move.d  $r11,$r7
+-        move.d  $r11,$r8
+-        move.d  $r11,$r9
+-        move.d  $r11,$r10
+-
+-        ;; Now we've got this:
+-	;; r13 - dst
+-	;; r12 - n
+-	
+-        ;; Update n for the first loop
+-        subq    12*4,$r12
+-0:
+-        subq   12*4,$r12
+-        bge     0b
+-	movem	$r11,[$r13+]
+-
+-        addq   12*4,$r12  ;; compensate for last loop underflowing n
+-
+-	;; Restore registers from stack
+-        movem [$sp+],$r10" 
++    __asm__ volatile ("\n\
++	;; Check that the following is true (same register names on	\n\
++	;; both sides of equal sign, as in r8=r8):			\n\
++	;; %0=r13, %1=r12, %4=r11					\n\
++	;;								\n\
++	;; Save the registers we'll clobber in the movem process	\n\
++	;; on the stack.  Don't mention them to gcc, it will only be	\n\
++	;; upset.							\n\
++	subq	11*4,$sp						\n\
++	movem	$r10,[$sp]						\n\
++									\n\
++	move.d	$r11,$r0						\n\
++	move.d	$r11,$r1						\n\
++	move.d	$r11,$r2						\n\
++	move.d	$r11,$r3						\n\
++	move.d	$r11,$r4						\n\
++	move.d	$r11,$r5						\n\
++	move.d	$r11,$r6						\n\
++	move.d	$r11,$r7						\n\
++	move.d	$r11,$r8						\n\
++	move.d	$r11,$r9						\n\
++	move.d	$r11,$r10						\n\
++									\n\
++	;; Now we've got this:						\n\
++	;; r13 - dst							\n\
++	;; r12 - n							\n\
++									\n\
++	;; Update n for the first loop					\n\
++	subq	12*4,$r12						\n\
++0:									\n\
++	subq	12*4,$r12						\n\
++	bge	0b							\n\
++	movem	$r11,[$r13+]						\n\
++									\n\
++	addq	12*4,$r12 ;; compensate for last loop underflowing n	\n\
++									\n\
++	;; Restore registers from stack					\n\
++	movem	[$sp+],$r10"
+ 
+      /* Outputs */ : "=r" (dst), "=r" (n)
+      /* Inputs */ : "0" (dst), "1" (n), "r" (lc));
+-    
++
+   }
+ 
+     /* Either we directly starts copying, using dword copying
+-       in a loop, or we copy as much as possible with 'movem' 
++       in a loop, or we copy as much as possible with 'movem'
+        and then the last block (<44 bytes) is copied here.
+        This will work since 'movem' will have updated src,dst,n. */
+ 
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from jesper.nilsson@axis.com are
 
 origin.patch
-git-avr32.patch
-git-dvb.patch
-remove-saa7134-oss.patch
-git-gfs2-nmw.patch
-git-libata-all.patch
+cris-build-fixes-atomich-needs-compilerh.patch
 git-mtd.patch
-make-sunrpc-xprtsockcxs_setup_udptcp-static.patch
-git-netdev-all.patch
-drivers-net-chelsio-if-0-unused-functions.patch
-drivers-bluetooth-bpa10xc-fix-memleak.patch
-drivers-bluetooth-btsdioc-fix-double-free.patch
-git-nfs-make-nfs_wb_page_priority-static.patch
-fs-nfs-dirc-should-include-internalh.patch
-always-export-pci_scan_single_device.patch
-remove-additional-pci_scan_child_bus-prototype.patch
-git-scsi-misc.patch
-scsi-advansysc-make-3-functions-static.patch
-scsi-qla2xxx-possible-cleanups.patch
-usb-mon-mon_binc-cleanups.patch
-git-x86.patch
-xtensa-iss_net_setup-must-be-__init.patch
-xtensa-kernel-setupc-remove-dead-code.patch
-mm-page-writebackc-make-a-function-static.patch
-make-__vmalloc_area_node-static.patch
-blackfin-remove-dump_thread.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-kernel-power-move-function-prototypes-to-header.patch
-kill-udffs_dateversion.patch
-make-ipc-utilcsysvipc_find_ipc-static.patch
-cleanup-after-apus-removal.patch
-remove-mm_ptovvtop.patch
-remove-__attribute_used__.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-proper-show_interrupts-prototype.patch
-scheduled-oss-driver-removal.patch
-linux-inith-simplify-__meminitexit-dependencies.patch
-proper-prototype-for-signals_init.patch
-kernel-ptracec-should-include-linux-syscallsh.patch
-make-srcu_readers_active-static.patch
-kernel-notifierc-should-include-linux-rebooth.patch
-proper-prototype-for-get_filesystem_list.patch
-fs-utimesc-should-include-linux-syscallsh.patch
-fs-signalfdc-should-include-linux-syscallsh.patch
-fs-eventfdc-should-include-linux-syscallsh.patch
-proper-prototype-for-vty_init.patch
-drivers-misc-lkdtmc-cleanups.patch
-power_supply_ledssysfsc-should-include-power_supplyh.patch
-fs-ecryptfs-possible-cleanups.patch
-make-video-geode-lxfb_corecgeode_modedb-static.patch
-video-hpfbc-section-fix.patch
-ext4-superc-fix-ifdefs.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-move-edactxt-two-levels-up.patch
-remove-documentation-smptxt.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-reiser4.patch
