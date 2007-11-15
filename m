@@ -1,119 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: - blk_dev_idecd-help-remove-outdated-note.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:12:42 -0800
-Message-ID: <200711152112.lAFLCgIs015876@imap1.linux-foundation.org>
+Subject: - reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:10:07 -0800
+Message-ID: <200711152110.lAFLA7tP015526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57918 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45136 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763270AbXKOVS4 (ORCPT
+	by vger.kernel.org with ESMTP id S1763418AbXKOVS6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:18:56 -0500
+	Thu, 15 Nov 2007 16:18:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, bzolnier@gmail.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: wfg@mail.ustc.edu.cn, chris.mason@oracle.com, jeffm@suse.com, maximlevitsky@gmail.com, peterz@infradead.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     BLK_DEV_IDECD help: remove outdated note
+     reiserfs: don't drop PG_dirty when releasing sub-page-sized dirty file
 has been removed from the -mm tree.  Its filename was
-     blk_dev_idecd-help-remove-outdated-note.patch
+     reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: BLK_DEV_IDECD help: remove outdated note
-From: Adrian Bunk <bunk@kernel.org>
+Subject: reiserfs: don't drop PG_dirty when releasing sub-page-sized dirty file
+From: Fengguang Wu <wfg@mail.ustc.edu.cn>
 
-LILO version 16 was released on 26-02-1995 (sic), so telling people to not use
-older versions no longer has any value.
+This is not a new problem in 2.6.23-git17.  2.6.22/2.6.23 is buggy in the
+same way.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Reiserfs could accumulate dirty sub-page-size files until umount time. 
+They cannot be synced to disk by pdflush routines or explicit `sync'
+commands.  Only `umount' can do the trick.
+
+The direct cause is: the dirty page's PG_dirty is wrongly _cleared_.
+Call trace:
+	 [<ffffffff8027e920>] cancel_dirty_page+0xd0/0xf0
+	 [<ffffffff8816d470>] :reiserfs:reiserfs_cut_from_item+0x660/0x710
+	 [<ffffffff8816d791>] :reiserfs:reiserfs_do_truncate+0x271/0x530
+	 [<ffffffff8815872d>] :reiserfs:reiserfs_truncate_file+0xfd/0x3b0
+	 [<ffffffff8815d3d0>] :reiserfs:reiserfs_file_release+0x1e0/0x340
+	 [<ffffffff802a187c>] __fput+0xcc/0x1b0
+	 [<ffffffff802a1ba6>] fput+0x16/0x20
+	 [<ffffffff8029e676>] filp_close+0x56/0x90
+	 [<ffffffff8029fe0d>] sys_close+0xad/0x110
+	 [<ffffffff8020c41e>] system_call+0x7e/0x83
+
+Fix the bug by removing the cancel_dirty_page() call. Tests show that
+it causes no bad behaviors on various write sizes.
+
+=== for the patient ===
+Here are more detailed demonstrations of the problem.
+
+1) the page has both PG_dirty(D)/PAGECACHE_TAG_DIRTY(d) after being written to;
+   and then only PAGECACHE_TAG_DIRTY(d) remains after the file is closed.
+
+------------------------------ screen 0 ------------------------------
+[T0] root /home/wfg# cat > /test/tiny
+[T1] hi
+[T2] root /home/wfg#
+
+------------------------------ screen 1 ------------------------------
+[T1] root /home/wfg# echo /test/tiny > /proc/filecache
+[T1] root /home/wfg# cat /proc/filecache
+     # file /test/tiny
+     # flags R:referenced A:active M:mmap U:uptodate D:dirty W:writeback O:owner B:buffer d:dirty w:writeback
+     # idx   len     state   refcnt
+     0       1       ___UD__Bd_      2
+[T2] root /home/wfg# cat /proc/filecache
+     # file /test/tiny
+     # flags R:referenced A:active M:mmap U:uptodate D:dirty W:writeback O:owner B:buffer d:dirty w:writeback
+     # idx   len     state   refcnt
+     0       1       ___U___Bd_      2
+
+2) note the non-zero 'cancelled_write_bytes' after /tmp/hi is copied.
+
+------------------------------ screen 0 ------------------------------
+[T0] root /home/wfg# echo hi > /tmp/hi
+[T1] root /home/wfg# cp /tmp/hi /dev/stdin /test
+[T2] hi
+[T3] root /home/wfg#
+
+------------------------------ screen 1 ------------------------------
+[T1] root /proc/4397# cd /proc/`pidof cp`
+[T1] root /proc/4713# cat io
+     rchar: 8396
+     wchar: 3
+     syscr: 20
+     syscw: 1
+     read_bytes: 0
+     write_bytes: 20480
+     cancelled_write_bytes: 4096
+[T2] root /proc/4713# cat io
+     rchar: 8399
+     wchar: 6
+     syscr: 21
+     syscw: 2
+     read_bytes: 0
+     write_bytes: 24576
+     cancelled_write_bytes: 4096
+
+//Question: the 'write_bytes' is a bit more than expected ;-)
+
+Tested-by: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Jeff Mahoney <jeffm@suse.com>
+Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Reviewed-by: Chris Mason <chris.mason@oracle.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/Kconfig |    4 ----
- 1 file changed, 4 deletions(-)
+ fs/reiserfs/stree.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/ide/Kconfig~blk_dev_idecd-help-remove-outdated-note drivers/ide/Kconfig
---- a/drivers/ide/Kconfig~blk_dev_idecd-help-remove-outdated-note
-+++ a/drivers/ide/Kconfig
-@@ -203,10 +203,6 @@ config BLK_DEV_IDECD
- 	  CD-ROM drive, you can say N to all other CD-ROM options, but be sure
- 	  to say Y or M to "ISO 9660 CD-ROM file system support".
- 
--	  Note that older versions of LILO (LInux LOader) cannot properly deal
--	  with IDE/ATAPI CD-ROMs, so install LILO 16 or higher, available from
--	  <http://lilo.go.dyndns.org/>.
--
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called ide-cd.
- 
+diff -puN fs/reiserfs/stree.c~reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file fs/reiserfs/stree.c
+--- a/fs/reiserfs/stree.c~reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file
++++ a/fs/reiserfs/stree.c
+@@ -1458,9 +1458,6 @@ static void unmap_buffers(struct page *p
+ 				}
+ 				bh = next;
+ 			} while (bh != head);
+-			if (PAGE_SIZE == bh->b_size) {
+-				cancel_dirty_page(page, PAGE_CACHE_SIZE);
+-			}
+ 		}
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
 
 origin.patch
-git-avr32.patch
-git-dvb.patch
-remove-saa7134-oss.patch
-git-gfs2-nmw.patch
-git-libata-all.patch
-git-mtd.patch
-make-sunrpc-xprtsockcxs_setup_udptcp-static.patch
-git-netdev-all.patch
-drivers-net-chelsio-if-0-unused-functions.patch
-drivers-bluetooth-bpa10xc-fix-memleak.patch
-drivers-bluetooth-btsdioc-fix-double-free.patch
-git-nfs-make-nfs_wb_page_priority-static.patch
-fs-nfs-dirc-should-include-internalh.patch
-always-export-pci_scan_single_device.patch
-remove-additional-pci_scan_child_bus-prototype.patch
-git-scsi-misc.patch
-scsi-advansysc-make-3-functions-static.patch
-scsi-qla2xxx-possible-cleanups.patch
-usb-mon-mon_binc-cleanups.patch
-git-x86.patch
-xtensa-iss_net_setup-must-be-__init.patch
-xtensa-kernel-setupc-remove-dead-code.patch
-mm-page-writebackc-make-a-function-static.patch
-make-__vmalloc_area_node-static.patch
-blackfin-remove-dump_thread.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-kernel-power-move-function-prototypes-to-header.patch
-kill-udffs_dateversion.patch
-make-ipc-utilcsysvipc_find_ipc-static.patch
-cleanup-after-apus-removal.patch
-remove-mm_ptovvtop.patch
-remove-__attribute_used__.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-proper-show_interrupts-prototype.patch
-scheduled-oss-driver-removal.patch
-linux-inith-simplify-__meminitexit-dependencies.patch
-proper-prototype-for-signals_init.patch
-kernel-ptracec-should-include-linux-syscallsh.patch
-make-srcu_readers_active-static.patch
-kernel-notifierc-should-include-linux-rebooth.patch
-proper-prototype-for-get_filesystem_list.patch
-fs-utimesc-should-include-linux-syscallsh.patch
-fs-signalfdc-should-include-linux-syscallsh.patch
-fs-eventfdc-should-include-linux-syscallsh.patch
-proper-prototype-for-vty_init.patch
-drivers-misc-lkdtmc-cleanups.patch
-power_supply_ledssysfsc-should-include-power_supplyh.patch
-fs-ecryptfs-possible-cleanups.patch
-make-video-geode-lxfb_corecgeode_modedb-static.patch
-video-hpfbc-section-fix.patch
-ext4-superc-fix-ifdefs.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-move-edactxt-two-levels-up.patch
-remove-documentation-smptxt.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-reiser4.patch
+maps4-add-proportional-set-size-accounting-in-smaps.patch
