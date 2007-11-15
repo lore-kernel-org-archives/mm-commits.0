@@ -1,60 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - fix-mm-utilckrealloc.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:10:22 -0800
-Message-ID: <200711152110.lAFLAMR6015554@imap1.linux-foundation.org>
+Subject: - feature-removal-schedule-remove-sa_-flags-entry.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:11:08 -0800
+Message-ID: <200711152111.lAFLB8hn015735@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39760 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53225 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761236AbXKOVRY (ORCPT
+	by vger.kernel.org with ESMTP id S932213AbXKOVRo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:17:24 -0500
+	Thu, 15 Nov 2007 16:17:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, clameter@sgi.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix mm/util.c:krealloc()
+     feature-removal-schedule: remove SA_* flags entry
 has been removed from the -mm tree.  Its filename was
-     fix-mm-utilckrealloc.patch
+     feature-removal-schedule-remove-sa_-flags-entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: fix mm/util.c:krealloc()
+Subject: feature-removal-schedule: remove SA_* flags entry
 From: Adrian Bunk <bunk@kernel.org>
 
-Commit ef8b4520bd9f8294ffce9abd6158085bde5dc902 added one NULL check for
-"p" in krealloc(), but that doesn't seem to be enough since there
-doesn't seem to be any guarantee that memcpy(ret, NULL, 0) works
-(spotted by the Coverity checker).
-
-For making it clearer what happens this patch also removes the pointless
-min().
+No reason to keep the feature-removal-schedule.txt entry after the code
+was removed.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Christoph Lameter <clameter@sgi.com>
+Acked-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/feature-removal-schedule.txt |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff -puN mm/util.c~fix-mm-utilckrealloc mm/util.c
---- a/mm/util.c~fix-mm-utilckrealloc
-+++ a/mm/util.c
-@@ -95,8 +95,8 @@ void *krealloc(const void *p, size_t new
- 		return (void *)p;
+diff -puN Documentation/feature-removal-schedule.txt~feature-removal-schedule-remove-sa_-flags-entry Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~feature-removal-schedule-remove-sa_-flags-entry
++++ a/Documentation/feature-removal-schedule.txt
+@@ -181,15 +181,6 @@ Who:	Nick Piggin <npiggin@suse.de>
  
- 	ret = kmalloc_track_caller(new_size, flags);
--	if (ret) {
--		memcpy(ret, p, min(new_size, ks));
-+	if (ret && p) {
-+		memcpy(ret, p, ks);
- 		kfree(p);
- 	}
- 	return ret;
+ ---------------------------
+ 
+-What:	Interrupt only SA_* flags
+-When:	September 2007
+-Why:	The interrupt related SA_* flags are replaced by IRQF_* to move them
+-	out of the signal namespace.
+-
+-Who:	Thomas Gleixner <tglx@linutronix.de>
+-
+----------------------------
+-
+ What:	PHYSDEVPATH, PHYSDEVBUS, PHYSDEVDRIVER in the uevent environment
+ When:	October 2008
+ Why:	The stacking of class devices makes these values misleading and
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
