@@ -1,113 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - ridiculous-ext3-costs-was-re-page-fault-costs.patch removed from -mm tree
-Date: Wed, 14 Nov 2007 09:40:54 -0800
-Message-ID: <200711141740.lAEHesfo017241@imap1.linux-foundation.org>
+Subject: - uml-update-address-space-affected-by-pud_clear-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 14 Nov 2007 16:40:26 -0800
+Message-ID: <200711150040.lAF0eQFi001839@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40497 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43269 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751523AbXKNRqW (ORCPT
+	by vger.kernel.org with ESMTP id S1756799AbXKOAlK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Nov 2007 12:46:22 -0500
+	Wed, 14 Nov 2007 19:41:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, adilger@clusterfs.com, akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, cmm@us.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: mostly fix blobk bitmap read performance regression
+     uml-update-address-space-affected-by-pud_clear-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     ridiculous-ext3-costs-was-re-page-fault-costs.patch
+     uml-update-address-space-affected-by-pud_clear-checkpatch-fixes.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into uml-update-address-space-affected-by-pud_clear.patch
 
 ------------------------------------------------------
-Subject: ext3: mostly fix blobk bitmap read performance regression
-From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: uml-update-address-space-affected-by-pud_clear-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The ext3 block bitmap functions got added validation recently, which caused
-a huge performance regression (ie 5x slower) due to very expensive modulus
-calculations being done in a loop.
+ERROR: use tabs not spaces
+#30: FILE: include/asm-um/pgtable-3level.h:74:
++        set_pud(pud, __pud(_PAGE_NEWPAGE));$
 
-This largely fixes it, by moving the calculations out of the loop.  The
-sanity checking is still expensive, but no longer totally excessively so.
+total: 1 errors, 0 warnings, 8 lines checked
+Your patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Andreas Dilger <adilger@clusterfs.com>
-Cc: Mingming Cao <cmm@us.ibm.com>
-Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: <linux-ext4@vger.kernel.org>
+Please run checkpatch prior to sending patches
+
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/balloc.c |   26 ++++++++++++++------------
- 1 file changed, 14 insertions(+), 12 deletions(-)
+ include/asm-um/pgtable-3level.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/ext3/balloc.c~ridiculous-ext3-costs-was-re-page-fault-costs fs/ext3/balloc.c
---- a/fs/ext3/balloc.c~ridiculous-ext3-costs-was-re-page-fault-costs
-+++ a/fs/ext3/balloc.c
-@@ -80,12 +80,12 @@ struct ext3_group_desc * ext3_get_group_
- 	return desc + offset;
- }
- 
--static inline int
--block_in_use(ext3_fsblk_t block, struct super_block *sb, unsigned char *map)
-+static inline unsigned int
-+block_bit_number(__le32 block, struct super_block *sb)
- {
--	return ext3_test_bit ((block -
--		le32_to_cpu(EXT3_SB(sb)->s_es->s_first_data_block)) %
--			 EXT3_BLOCKS_PER_GROUP(sb), map);
-+	__le32 first = EXT3_SB(sb)->s_es->s_first_data_block;
+diff -puN include/asm-um/pgtable-3level.h~uml-update-address-space-affected-by-pud_clear-checkpatch-fixes include/asm-um/pgtable-3level.h
+--- a/include/asm-um/pgtable-3level.h~uml-update-address-space-affected-by-pud_clear-checkpatch-fixes
++++ a/include/asm-um/pgtable-3level.h
+@@ -1,3 +1,4 @@
 +
-+	return (le32_to_cpu(block) - le32_to_cpu(first)) % EXT3_BLOCKS_PER_GROUP(sb);
+ /*
+  * Copyright 2003 PathScale Inc
+  * Derived from include/asm-i386/pgtable.h
+@@ -71,7 +72,7 @@ static inline pmd_t *pmd_alloc_one(struc
+ 
+ static inline void pud_clear (pud_t *pud)
+ {
+-        set_pud(pud, __pud(_PAGE_NEWPAGE));
++	set_pud(pud, __pud(_PAGE_NEWPAGE));
  }
  
- /**
-@@ -102,6 +102,7 @@ static struct buffer_head *
- read_block_bitmap(struct super_block *sb, unsigned int block_group)
- {
- 	int i;
-+	unsigned offset;
- 	struct ext3_group_desc * desc;
- 	struct buffer_head * bh = NULL;
- 	ext3_fsblk_t bitmap_blk;
-@@ -120,20 +121,21 @@ read_block_bitmap(struct super_block *sb
- 	}
- 
- 	/* check whether block bitmap block number is set */
--	if (!block_in_use(bitmap_blk, sb, bh->b_data)) {
-+	offset = block_bit_number(desc->bg_block_bitmap, sb);
-+	if (!ext3_test_bit(offset, bh->b_data)) {
- 		/* bad block bitmap */
- 		goto error_out;
- 	}
- 	/* check whether the inode bitmap block number is set */
--	bitmap_blk = le32_to_cpu(desc->bg_inode_bitmap);
--	if (!block_in_use(bitmap_blk, sb, bh->b_data)) {
-+	offset = block_bit_number(desc->bg_inode_bitmap, sb);
-+	if (!ext3_test_bit(offset, bh->b_data)) {
- 		/* bad block bitmap */
- 		goto error_out;
- 	}
--	/* check whether the inode table block number is set */
--	bitmap_blk = le32_to_cpu(desc->bg_inode_table);
--	for (i = 0; i < EXT3_SB(sb)->s_itb_per_group; i++, bitmap_blk++) {
--		if (!block_in_use(bitmap_blk, sb, bh->b_data)) {
-+	/* check whether the inode table block numbers are set */
-+	offset = block_bit_number(desc->bg_inode_table, sb);
-+	for (i = 0; i < EXT3_SB(sb)->s_itb_per_group; i++, offset++) {
-+		if (!ext3_test_bit(offset, bh->b_data)) {
- 			/* bad block bitmap */
- 			goto error_out;
- 		}
+ #define pud_page(pud) phys_to_page(pud_val(pud) & PAGE_MASK)
 _
 
-Patches currently in -mm which might be from torvalds@linux-foundation.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+uml-update-address-space-affected-by-pud_clear.patch
+uml-update-address-space-affected-by-pud_clear-checkpatch-fixes.patch
+improve-cgroup-printks-fix.patch
+proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
+acpi-make-acpi_procfs-default-to-y.patch
+hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
 revert-task-control-groups-example-cpu-accounting-subsystem.patch
-git-x86.patch
-ridiculous-ext3-costs-was-re-page-fault-costs.patch
-workaround-for-a-pci-restoring-bug.patch
+mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
+pidns-place-under-config_experimental-checkpatch-fixes.patch
+fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
+file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
+x86-disable-preemption-in-delay_tsc.patch
+aic94xx_sds-rename-flash_size.patch
+mips-pcspkr-build-fix.patch
