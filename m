@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + gigaset-clean-up-urb-status-usage.patch added to -mm tree
-Date: Thu, 15 Nov 2007 14:50:41 -0800
-Message-ID: <200711152250.lAFMof68019968@imap1.linux-foundation.org>
+Subject: + gigaset-code-cleanups.patch added to -mm tree
+Date: Thu, 15 Nov 2007 14:50:48 -0800
+Message-ID: <200711152250.lAFMomsL019971@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32886 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37913 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934106AbXKOWus (ORCPT
+	by vger.kernel.org with ESMTP id S934170AbXKOWu4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 17:50:48 -0500
+	Thu, 15 Nov 2007 17:50:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: tilman@imap.cc, gregkh@suse.de, hjlipp@web.de, kkeil@suse.de
 
 
 The patch titled
-     gigaset: clean up urb->status usage
+     gigaset: code cleanups
 has been added to the -mm tree.  Its filename is
-     gigaset-clean-up-urb-status-usage.patch
+     gigaset-code-cleanups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,11 +26,14 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: gigaset: clean up urb->status usage
+Subject: gigaset: code cleanups
 From: Tilman Schmidt <tilman@imap.cc>
 
-Make there only be one reference to urb->status per URB callback, and none
-outside, in preparation for removal of that field.
+Some cleanups to the bas-gigaset and usb-gigaset USB ISDN drivers:
+- simplified error handling
+- improved debug messages
+- readability improvements
+- removal of obsolete defines and comments
 
 Signed-off-by: Tilman Schmidt <tilman@imap.cc>
 Cc: Greg KH <gregkh@suse.de>
@@ -39,392 +42,376 @@ Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/gigaset/bas-gigaset.c |   84 +++++++++++++++------------
- drivers/isdn/gigaset/gigaset.h     |    3 
- drivers/isdn/gigaset/usb-gigaset.c |   12 ++-
- 3 files changed, 58 insertions(+), 41 deletions(-)
+ drivers/isdn/gigaset/bas-gigaset.c |   45 ++++++-------
+ drivers/isdn/gigaset/gigaset.h     |   18 +----
+ drivers/isdn/gigaset/usb-gigaset.c |   92 ++++++++++++---------------
+ 3 files changed, 73 insertions(+), 82 deletions(-)
 
-diff -puN drivers/isdn/gigaset/bas-gigaset.c~gigaset-clean-up-urb-status-usage drivers/isdn/gigaset/bas-gigaset.c
---- a/drivers/isdn/gigaset/bas-gigaset.c~gigaset-clean-up-urb-status-usage
+diff -puN drivers/isdn/gigaset/bas-gigaset.c~gigaset-code-cleanups drivers/isdn/gigaset/bas-gigaset.c
+--- a/drivers/isdn/gigaset/bas-gigaset.c~gigaset-code-cleanups
 +++ a/drivers/isdn/gigaset/bas-gigaset.c
-@@ -248,12 +248,12 @@ static inline void dump_urb(enum debugle
- 	if (urb) {
- 		gig_dbg(level,
- 			"  dev=0x%08lx, pipe=%s:EP%d/DV%d:%s, "
--			"status=%d, hcpriv=0x%08lx, transfer_flags=0x%x,",
-+			"hcpriv=0x%08lx, transfer_flags=0x%x,",
- 			(unsigned long) urb->dev,
- 			usb_pipetype_str(urb->pipe),
- 			usb_pipeendpoint(urb->pipe), usb_pipedevice(urb->pipe),
- 			usb_pipein(urb->pipe) ? "in" : "out",
--			urb->status, (unsigned long) urb->hcpriv,
-+			(unsigned long) urb->hcpriv,
- 			urb->transfer_flags);
- 		gig_dbg(level,
- 			"  transfer_buffer=0x%08lx[%d], actual_length=%d, "
-@@ -459,6 +459,7 @@ static void read_ctrl_callback(struct ur
- 	struct inbuf_t *inbuf = urb->context;
- 	struct cardstate *cs = inbuf->cs;
- 	struct bas_cardstate *ucs = cs->hw.bas;
-+	int status = urb->status;
- 	int have_data = 0;
- 	unsigned numbytes;
- 	int rc;
-@@ -472,7 +473,7 @@ static void read_ctrl_callback(struct ur
- 
- 	del_timer(&ucs->timer_cmd_in);
- 
--	switch (urb->status) {
-+	switch (status) {
- 	case 0:				/* normal completion */
- 		numbytes = urb->actual_length;
- 		if (unlikely(numbytes != ucs->rcvbuf_size)) {
-@@ -506,12 +507,12 @@ static void read_ctrl_callback(struct ur
- 	case -ESHUTDOWN:		/* device shut down */
- 		/* no action necessary */
- 		gig_dbg(DEBUG_USBREQ, "%s: %s",
--			__func__, get_usb_statmsg(urb->status));
-+			__func__, get_usb_statmsg(status));
- 		break;
- 
- 	default:			/* severe trouble */
- 		dev_warn(cs->dev, "control read: %s\n",
--			 get_usb_statmsg(urb->status));
-+			 get_usb_statmsg(status));
- 		if (ucs->retry_cmd_in++ < BAS_RETRY) {
- 			dev_notice(cs->dev, "control read: retry %d\n",
- 				   ucs->retry_cmd_in);
-@@ -601,12 +602,13 @@ static void read_int_callback(struct urb
- 	struct cardstate *cs = urb->context;
- 	struct bas_cardstate *ucs = cs->hw.bas;
- 	struct bc_state *bcs;
-+	int status = urb->status;
- 	unsigned long flags;
- 	int rc;
- 	unsigned l;
- 	int channel;
- 
--	switch (urb->status) {
-+	switch (status) {
- 	case 0:			/* success */
- 		break;
- 	case -ENOENT:			/* cancelled */
-@@ -614,7 +616,7 @@ static void read_int_callback(struct urb
- 	case -EINPROGRESS:		/* pending */
- 		/* ignore silently */
- 		gig_dbg(DEBUG_USBREQ, "%s: %s",
--			__func__, get_usb_statmsg(urb->status));
-+			__func__, get_usb_statmsg(status));
- 		return;
- 	case -ENODEV:			/* device removed */
- 	case -ESHUTDOWN:		/* device shut down */
-@@ -623,7 +625,7 @@ static void read_int_callback(struct urb
- 		return;
- 	default:		/* severe trouble */
- 		dev_warn(cs->dev, "interrupt read: %s\n",
--			 get_usb_statmsg(urb->status));
-+			 get_usb_statmsg(status));
- 		//FIXME corrective action? resubmission always ok?
- 		goto resubmit;
- 	}
-@@ -766,17 +768,18 @@ static void read_iso_callback(struct urb
- {
- 	struct bc_state *bcs;
- 	struct bas_bc_state *ubc;
-+	int status = urb->status;
- 	unsigned long flags;
- 	int i, rc;
- 
- 	/* status codes not worth bothering the tasklet with */
--	if (unlikely(urb->status == -ENOENT ||
--		     urb->status == -ECONNRESET ||
--		     urb->status == -EINPROGRESS ||
--		     urb->status == -ENODEV ||
--		     urb->status == -ESHUTDOWN)) {
-+	if (unlikely(status == -ENOENT ||
-+		     status == -ECONNRESET ||
-+		     status == -EINPROGRESS ||
-+		     status == -ENODEV ||
-+		     status == -ESHUTDOWN)) {
- 		gig_dbg(DEBUG_ISO, "%s: %s",
--			__func__, get_usb_statmsg(urb->status));
-+			__func__, get_usb_statmsg(status));
- 		return;
+@@ -938,15 +938,15 @@ static int starturbs(struct bc_state *bc
+ 		ubc->isoouturbs[k].limit = -1;
  	}
  
-@@ -787,10 +790,11 @@ static void read_iso_callback(struct urb
- 	if (likely(ubc->isoindone == NULL)) {
- 		/* pass URB to tasklet */
- 		ubc->isoindone = urb;
-+		ubc->isoinstatus = status;
- 		tasklet_schedule(&ubc->rcvd_tasklet);
- 	} else {
- 		/* tasklet still busy, drop data and resubmit URB */
--		ubc->loststatus = urb->status;
-+		ubc->loststatus = status;
- 		for (i = 0; i < BAS_NUMFRAMES; i++) {
- 			ubc->isoinlost += urb->iso_frame_desc[i].actual_length;
- 			if (unlikely(urb->iso_frame_desc[i].status != 0 &&
-@@ -831,22 +835,24 @@ static void write_iso_callback(struct ur
- {
- 	struct isow_urbctx_t *ucx;
- 	struct bas_bc_state *ubc;
-+	int status = urb->status;
- 	unsigned long flags;
- 
- 	/* status codes not worth bothering the tasklet with */
--	if (unlikely(urb->status == -ENOENT ||
--		     urb->status == -ECONNRESET ||
--		     urb->status == -EINPROGRESS ||
--		     urb->status == -ENODEV ||
--		     urb->status == -ESHUTDOWN)) {
-+	if (unlikely(status == -ENOENT ||
-+		     status == -ECONNRESET ||
-+		     status == -EINPROGRESS ||
-+		     status == -ENODEV ||
-+		     status == -ESHUTDOWN)) {
- 		gig_dbg(DEBUG_ISO, "%s: %s",
--			__func__, get_usb_statmsg(urb->status));
-+			__func__, get_usb_statmsg(status));
- 		return;
- 	}
- 
- 	/* pass URB context to tasklet */
- 	ucx = urb->context;
- 	ubc = ucx->bcs->hw.bas;
-+	ucx->status = status;
- 
- 	spin_lock_irqsave(&ubc->isooutlock, flags);
- 	ubc->isooutovfl = ubc->isooutdone;
-@@ -1070,6 +1076,7 @@ static void write_iso_tasklet(unsigned l
- 	struct cardstate *cs = bcs->cs;
- 	struct isow_urbctx_t *done, *next, *ovfl;
- 	struct urb *urb;
-+	int status;
- 	struct usb_iso_packet_descriptor *ifd;
- 	int offset;
- 	unsigned long flags;
-@@ -1126,7 +1133,8 @@ static void write_iso_tasklet(unsigned l
- 
- 		/* process completed URB */
- 		urb = done->urb;
--		switch (urb->status) {
-+		status = done->status;
-+		switch (status) {
- 		case -EXDEV:			/* partial completion */
- 			gig_dbg(DEBUG_ISO, "%s: URB partially completed",
- 				__func__);
-@@ -1179,7 +1187,7 @@ static void write_iso_tasklet(unsigned l
- 			break;
- 		default:			/* severe trouble */
- 			dev_warn(cs->dev, "isochronous write: %s\n",
--				 get_usb_statmsg(urb->status));
-+				 get_usb_statmsg(status));
- 		}
- 
- 		/* mark the write buffer area covered by this URB as free */
-@@ -1233,6 +1241,7 @@ static void read_iso_tasklet(unsigned lo
- 	struct bas_bc_state *ubc = bcs->hw.bas;
- 	struct cardstate *cs = bcs->cs;
- 	struct urb *urb;
-+	int status;
- 	char *rcvbuf;
- 	unsigned long flags;
- 	int totleft, numbytes, offset, frame, rc;
-@@ -1245,6 +1254,7 @@ static void read_iso_tasklet(unsigned lo
- 			spin_unlock_irqrestore(&ubc->isoinlock, flags);
- 			return;
- 		}
-+		status = ubc->isoinstatus;
- 		ubc->isoindone = NULL;
- 		if (unlikely(ubc->loststatus != -EINPROGRESS)) {
- 			dev_warn(cs->dev,
-@@ -1260,11 +1270,11 @@ static void read_iso_tasklet(unsigned lo
- 			gig_dbg(DEBUG_ISO,
- 				"%s: channel not running, "
- 				"dropped URB with status: %s",
--				__func__, get_usb_statmsg(urb->status));
-+				__func__, get_usb_statmsg(status));
- 			return;
- 		}
- 
--		switch (urb->status) {
-+		switch (status) {
- 		case 0:				/* normal completion */
- 			break;
- 		case -EXDEV:			/* inspect individual frames
-@@ -1276,7 +1286,7 @@ static void read_iso_tasklet(unsigned lo
- 		case -ECONNRESET:
- 		case -EINPROGRESS:
- 			gig_dbg(DEBUG_ISO, "%s: %s",
--				__func__, get_usb_statmsg(urb->status));
-+				__func__, get_usb_statmsg(status));
- 			continue;		/* -> skip */
- 		case -EPIPE:
- 			dev_err(cs->dev, "isochronous read stalled\n");
-@@ -1284,7 +1294,7 @@ static void read_iso_tasklet(unsigned lo
- 			continue;		/* -> skip */
- 		default:			/* severe trouble */
- 			dev_warn(cs->dev, "isochronous read: %s\n",
--				 get_usb_statmsg(urb->status));
-+				 get_usb_statmsg(status));
+-	/* submit two URBs, keep third one */
+-	for (k = 0; k < 2; ++k) {
++	/* keep one URB free, submit the others */
++	for (k = 0; k < BAS_OUTURBS-1; ++k) {
+ 		dump_urb(DEBUG_ISO, "Initial isoc write", urb);
+ 		rc = usb_submit_urb(ubc->isoouturbs[k].urb, GFP_ATOMIC);
+ 		if (rc != 0)
  			goto error;
- 		}
- 
-@@ -1418,11 +1428,12 @@ static void req_timeout(unsigned long da
- static void write_ctrl_callback(struct urb *urb)
- {
- 	struct bas_cardstate *ucs = urb->context;
-+	int status = urb->status;
- 	int rc;
- 	unsigned long flags;
- 
- 	/* check status */
--	switch (urb->status) {
-+	switch (status) {
- 	case 0:					/* normal completion */
- 		spin_lock_irqsave(&ucs->lock, flags);
- 		switch (ucs->pending) {
-@@ -1441,7 +1452,7 @@ static void write_ctrl_callback(struct u
- 	case -ESHUTDOWN:		/* device shut down */
- 		/* ignore silently */
- 		gig_dbg(DEBUG_USBREQ, "%s: %s",
--			__func__, get_usb_statmsg(urb->status));
-+			__func__, get_usb_statmsg(status));
- 		break;
- 
- 	default:				/* any failure */
-@@ -1449,12 +1460,12 @@ static void write_ctrl_callback(struct u
- 			dev_err(&ucs->interface->dev,
- 				"control request 0x%02x failed: %s\n",
- 				ucs->dr_ctrl.bRequest,
--				get_usb_statmsg(urb->status));
-+				get_usb_statmsg(status));
- 			break;		/* give up */
- 		}
- 		dev_notice(&ucs->interface->dev,
- 			   "control request 0x%02x: %s, retry %d\n",
--			   ucs->dr_ctrl.bRequest, get_usb_statmsg(urb->status),
-+			   ucs->dr_ctrl.bRequest, get_usb_statmsg(status),
- 			   ucs->retry_ctrl);
- 		/* urb->dev is clobbered by USB subsystem */
- 		urb->dev = ucs->udev;
-@@ -1665,12 +1676,13 @@ static void write_command_callback(struc
- {
- 	struct cardstate *cs = urb->context;
- 	struct bas_cardstate *ucs = cs->hw.bas;
-+	int status = urb->status;
- 	unsigned long flags;
- 
- 	update_basstate(ucs, 0, BS_ATWRPEND);
- 
- 	/* check status */
--	switch (urb->status) {
-+	switch (status) {
- 	case 0:					/* normal completion */
- 		break;
- 	case -ENOENT:			/* cancelled */
-@@ -1680,14 +1692,14 @@ static void write_command_callback(struc
- 	case -ESHUTDOWN:		/* device shut down */
- 		/* ignore silently */
- 		gig_dbg(DEBUG_USBREQ, "%s: %s",
--			__func__, get_usb_statmsg(urb->status));
-+			__func__, get_usb_statmsg(status));
- 		return;
- 	default:				/* any failure */
- 		if (++ucs->retry_cmd_out > BAS_RETRY) {
- 			dev_warn(cs->dev,
- 				 "command write: %s, "
- 				 "giving up after %d retries\n",
--				 get_usb_statmsg(urb->status),
-+				 get_usb_statmsg(status),
- 				 ucs->retry_cmd_out);
- 			break;
- 		}
-@@ -1695,11 +1707,11 @@ static void write_command_callback(struc
- 			dev_warn(cs->dev,
- 				 "command write: %s, "
- 				 "cannot retry - cmdbuf gone\n",
--				 get_usb_statmsg(urb->status));
-+				 get_usb_statmsg(status));
- 			break;
- 		}
- 		dev_notice(cs->dev, "command write: %s, retry %d\n",
--			   get_usb_statmsg(urb->status), ucs->retry_cmd_out);
-+			   get_usb_statmsg(status), ucs->retry_cmd_out);
- 		if (atwrite_submit(cs, cs->cmdbuf->buf, cs->cmdbuf->len) >= 0)
- 			/* resubmitted - bypass regular exit block */
- 			return;
-diff -puN drivers/isdn/gigaset/gigaset.h~gigaset-clean-up-urb-status-usage drivers/isdn/gigaset/gigaset.h
---- a/drivers/isdn/gigaset/gigaset.h~gigaset-clean-up-urb-status-usage
-+++ a/drivers/isdn/gigaset/gigaset.h
-@@ -356,11 +356,13 @@ struct isowbuf_t {
-  * - urb: pointer to the URB itself
-  * - bcs: pointer to the B Channel control structure
-  * - limit: end of write buffer area covered by this URB
-+ * - status: URB completion status
+ 	}
+ 	dump_urb(DEBUG_ISO, "Initial isoc write (free)", urb);
+-	ubc->isooutfree = &ubc->isoouturbs[2];
++	ubc->isooutfree = &ubc->isoouturbs[BAS_OUTURBS-1];
+ 	ubc->isooutdone = ubc->isooutovfl = NULL;
+ 	return 0;
+  error:
+@@ -1559,37 +1559,38 @@ static int req_submit(struct bc_state *b
   */
- struct isow_urbctx_t {
- 	struct urb *urb;
- 	struct bc_state *bcs;
- 	int limit;
-+	int status;
- };
- 
- /* AT state structure
-@@ -580,6 +582,7 @@ struct bas_bc_state {
- 	struct urb *isoinurbs[BAS_INURBS];
- 	unsigned char isoinbuf[BAS_INBUFSIZE * BAS_INURBS];
- 	struct urb *isoindone;		/* completed isoc read URB */
-+	int isoinstatus;		/* status of completed URB */
- 	int loststatus;			/* status of dropped URB */
- 	unsigned isoinlost;		/* number of bytes lost */
- 	/* state of bit unstuffing algorithm
-diff -puN drivers/isdn/gigaset/usb-gigaset.c~gigaset-clean-up-urb-status-usage drivers/isdn/gigaset/usb-gigaset.c
---- a/drivers/isdn/gigaset/usb-gigaset.c~gigaset-clean-up-urb-status-usage
-+++ a/drivers/isdn/gigaset/usb-gigaset.c
-@@ -361,13 +361,14 @@ static void gigaset_read_int_callback(st
+ static int gigaset_init_bchannel(struct bc_state *bcs)
  {
++	struct cardstate *cs = bcs->cs;
+ 	int req, ret;
+ 	unsigned long flags;
+ 
+-	spin_lock_irqsave(&bcs->cs->lock, flags);
+-	if (unlikely(!bcs->cs->connected)) {
++	spin_lock_irqsave(&cs->lock, flags);
++	if (unlikely(!cs->connected)) {
+ 		gig_dbg(DEBUG_USBREQ, "%s: not connected", __func__);
+-		spin_unlock_irqrestore(&bcs->cs->lock, flags);
++		spin_unlock_irqrestore(&cs->lock, flags);
+ 		return -ENODEV;
+ 	}
+ 
+ 	if ((ret = starturbs(bcs)) < 0) {
+-		dev_err(bcs->cs->dev,
++		dev_err(cs->dev,
+ 			"could not start isochronous I/O for channel B%d: %s\n",
+ 			bcs->channel + 1,
+ 			ret == -EFAULT ? "null URB" : get_usb_rcmsg(ret));
+ 		if (ret != -ENODEV)
+ 			error_hangup(bcs);
+-		spin_unlock_irqrestore(&bcs->cs->lock, flags);
++		spin_unlock_irqrestore(&cs->lock, flags);
+ 		return ret;
+ 	}
+ 
+ 	req = bcs->channel ? HD_OPEN_B2CHANNEL : HD_OPEN_B1CHANNEL;
+ 	if ((ret = req_submit(bcs, req, 0, BAS_TIMEOUT)) < 0) {
+-		dev_err(bcs->cs->dev, "could not open channel B%d\n",
++		dev_err(cs->dev, "could not open channel B%d\n",
+ 			bcs->channel + 1);
+ 		stopurbs(bcs->hw.bas);
+ 		if (ret != -ENODEV)
+ 			error_hangup(bcs);
+ 	}
+ 
+-	spin_unlock_irqrestore(&bcs->cs->lock, flags);
++	spin_unlock_irqrestore(&cs->lock, flags);
+ 	return ret;
+ }
+ 
+@@ -1605,20 +1606,21 @@ static int gigaset_init_bchannel(struct 
+  */
+ static int gigaset_close_bchannel(struct bc_state *bcs)
+ {
++	struct cardstate *cs = bcs->cs;
+ 	int req, ret;
+ 	unsigned long flags;
+ 
+-	spin_lock_irqsave(&bcs->cs->lock, flags);
+-	if (unlikely(!bcs->cs->connected)) {
+-		spin_unlock_irqrestore(&bcs->cs->lock, flags);
++	spin_lock_irqsave(&cs->lock, flags);
++	if (unlikely(!cs->connected)) {
++		spin_unlock_irqrestore(&cs->lock, flags);
+ 		gig_dbg(DEBUG_USBREQ, "%s: not connected", __func__);
+ 		return -ENODEV;
+ 	}
+ 
+-	if (!(atomic_read(&bcs->cs->hw.bas->basstate) &
++	if (!(atomic_read(&cs->hw.bas->basstate) &
+ 	      (bcs->channel ? BS_B2OPEN : BS_B1OPEN))) {
+ 		/* channel not running: just signal common.c */
+-		spin_unlock_irqrestore(&bcs->cs->lock, flags);
++		spin_unlock_irqrestore(&cs->lock, flags);
+ 		gigaset_bchannel_down(bcs);
+ 		return 0;
+ 	}
+@@ -1626,10 +1628,10 @@ static int gigaset_close_bchannel(struct
+ 	/* channel running: tell device to close it */
+ 	req = bcs->channel ? HD_CLOSE_B2CHANNEL : HD_CLOSE_B1CHANNEL;
+ 	if ((ret = req_submit(bcs, req, 0, BAS_TIMEOUT)) < 0)
+-		dev_err(bcs->cs->dev, "closing channel B%d failed\n",
++		dev_err(cs->dev, "closing channel B%d failed\n",
+ 			bcs->channel + 1);
+ 
+-	spin_unlock_irqrestore(&bcs->cs->lock, flags);
++	spin_unlock_irqrestore(&cs->lock, flags);
+ 	return ret;
+ }
+ 
+@@ -2114,7 +2116,7 @@ static void freeurbs(struct cardstate *c
+ 	int i, j;
+ 
+ 	gig_dbg(DEBUG_INIT, "%s: killing URBs", __func__);
+-	for (j = 0; j < 2; ++j) {
++	for (j = 0; j < BAS_CHANNELS; ++j) {
+ 		ubc = cs->bcs[j].hw.bas;
+ 		for (i = 0; i < BAS_OUTURBS; ++i) {
+ 			usb_kill_urb(ubc->isoouturbs[i].urb);
+@@ -2215,7 +2217,7 @@ static int gigaset_probe(struct usb_inte
+ 	    !(ucs->urb_ctrl = usb_alloc_urb(0, GFP_KERNEL)))
+ 		goto allocerr;
+ 
+-	for (j = 0; j < 2; ++j) {
++	for (j = 0; j < BAS_CHANNELS; ++j) {
+ 		ubc = cs->bcs[j].hw.bas;
+ 		for (i = 0; i < BAS_OUTURBS; ++i)
+ 			if (!(ubc->isoouturbs[i].urb =
+@@ -2287,8 +2289,7 @@ static void gigaset_disconnect(struct us
+ 	atomic_set(&ucs->basstate, 0);
+ 
+ 	/* tell LL all channels are down */
+-	//FIXME shouldn't gigaset_stop() do this?
+-	for (j = 0; j < 2; ++j)
++	for (j = 0; j < BAS_CHANNELS; ++j)
+ 		gigaset_bchannel_down(cs->bcs + j);
+ 
+ 	/* stop driver (common part) */
+@@ -2343,7 +2344,7 @@ static int __init bas_gigaset_init(void)
+ 		goto error;
+ 
+ 	/* allocate memory for our device state and intialize it */
+-	cardstate = gigaset_initcs(driver, 2, 0, 0, cidmode,
++	cardstate = gigaset_initcs(driver, BAS_CHANNELS, 0, 0, cidmode,
+ 				   GIGASET_MODULENAME);
+ 	if (!cardstate)
+ 		goto error;
+diff -puN drivers/isdn/gigaset/gigaset.h~gigaset-code-cleanups drivers/isdn/gigaset/gigaset.h
+--- a/drivers/isdn/gigaset/gigaset.h~gigaset-code-cleanups
++++ a/drivers/isdn/gigaset/gigaset.h
+@@ -70,22 +70,13 @@
+ 
+ extern int gigaset_debuglevel;	/* "needs" cast to (enum debuglevel) */
+ 
+-/* any combination of these can be given with the 'debug=' parameter to insmod,
+- * e.g. 'insmod usb_gigaset.o debug=0x2c' will set DEBUG_OPEN, DEBUG_CMD and
+- * DEBUG_INTR.
+- */
++/* debug flags, combine by adding/bitwise OR */
+ enum debuglevel {
+-	DEBUG_REG	  = 0x0002, /* serial port I/O register operations */
+-	DEBUG_OPEN	  = 0x0004, /* open/close serial port */
+-	DEBUG_INTR	  = 0x0008, /* interrupt processing */
+-	DEBUG_INTR_DUMP	  = 0x0010, /* Activating hexdump debug output on
+-				       interrupt requests, not available as
+-				       run-time option */
++	DEBUG_INTR	  = 0x00008, /* interrupt processing */
+ 	DEBUG_CMD	  = 0x00020, /* sent/received LL commands */
+ 	DEBUG_STREAM	  = 0x00040, /* application data stream I/O events */
+ 	DEBUG_STREAM_DUMP = 0x00080, /* application data stream content */
+ 	DEBUG_LLDATA	  = 0x00100, /* sent/received LL data */
+-	DEBUG_INTR_0	  = 0x00200, /* serial port interrupt processing */
+ 	DEBUG_DRIVER	  = 0x00400, /* driver structure */
+ 	DEBUG_HDLC	  = 0x00800, /* M10x HDLC processing */
+ 	DEBUG_WRITE	  = 0x01000, /* M105 data write */
+@@ -93,7 +84,7 @@ enum debuglevel {
+ 	DEBUG_MCMD	  = 0x04000, /* COMMANDS THAT ARE SENT VERY OFTEN */
+ 	DEBUG_INIT	  = 0x08000, /* (de)allocation+initialization of data
+ 					structures */
+-	DEBUG_LOCK	  = 0x10000, /* semaphore operations */
++	DEBUG_SUSPEND	  = 0x10000, /* suspend/resume processing */
+ 	DEBUG_OUTPUT	  = 0x20000, /* output to device */
+ 	DEBUG_ISO	  = 0x40000, /* isochronous transfers */
+ 	DEBUG_IF	  = 0x80000, /* character device operations */
+@@ -197,6 +188,9 @@ void gigaset_dbg_buffer(enum debuglevel 
+ #define	HD_OPEN_ATCHANNEL		(0x28)		// 3070
+ #define	HD_CLOSE_ATCHANNEL		(0x29)		// 3070
+ 
++/* number of B channels supported by base driver */
++#define BAS_CHANNELS	2
++
+ /* USB frames for isochronous transfer */
+ #define BAS_FRAMETIME	1	/* number of milliseconds between frames */
+ #define BAS_NUMFRAMES	8	/* number of frames per URB */
+diff -puN drivers/isdn/gigaset/usb-gigaset.c~gigaset-code-cleanups drivers/isdn/gigaset/usb-gigaset.c
+--- a/drivers/isdn/gigaset/usb-gigaset.c~gigaset-code-cleanups
++++ a/drivers/isdn/gigaset/usb-gigaset.c
+@@ -104,6 +104,7 @@ MODULE_DEVICE_TABLE(usb, gigaset_table);
+  * flags per packet.
+  */
+ 
++/* functions called if a device of this driver is connected/disconnected */
+ static int gigaset_probe(struct usb_interface *interface,
+ 			 const struct usb_device_id *id);
+ static void gigaset_disconnect(struct usb_interface *interface);
+@@ -362,18 +363,12 @@ static void gigaset_read_int_callback(st
  	struct inbuf_t *inbuf = urb->context;
  	struct cardstate *cs = inbuf->cs;
-+	int status = urb->status;
- 	int resubmit = 0;
+ 	int status = urb->status;
+-	int resubmit = 0;
  	int r;
  	unsigned numbytes;
  	unsigned char *src;
  	unsigned long flags;
  
--	if (!urb->status) {
-+	if (!status) {
- 		if (!cs->connected) {
- 			err("%s: disconnected", __func__); /* should never happen */
- 			return;
-@@ -393,8 +394,8 @@ static void gigaset_read_int_callback(st
+ 	if (!status) {
+-		if (!cs->connected) {
+-			err("%s: disconnected", __func__); /* should never happen */
+-			return;
+-		}
+-
+ 		numbytes = urb->actual_length;
+ 
+ 		if (numbytes) {
+@@ -390,28 +385,26 @@ static void gigaset_read_int_callback(st
+ 			}
+ 		} else
+ 			gig_dbg(DEBUG_INTR, "Received zero block length");
+-		resubmit = 1;
  	} else {
  		/* The urb might have been killed. */
- 		gig_dbg(DEBUG_ANY, "%s - nonzero read bulk status received: %d",
--			__func__, urb->status);
--		if (urb->status != -ENOENT) { /* not killed */
-+			__func__, status);
-+		if (status != -ENOENT) { /* not killed */
- 			if (!cs->connected) {
- 				err("%s: disconnected", __func__); /* should never happen */
- 				return;
-@@ -418,11 +419,12 @@ static void gigaset_read_int_callback(st
- static void gigaset_write_bulk_callback(struct urb *urb)
- {
- 	struct cardstate *cs = urb->context;
-+	int status = urb->status;
+-		gig_dbg(DEBUG_ANY, "%s - nonzero read bulk status received: %d",
++		gig_dbg(DEBUG_ANY, "%s - nonzero status received: %d",
+ 			__func__, status);
+-		if (status != -ENOENT) { /* not killed */
+-			if (!cs->connected) {
+-				err("%s: disconnected", __func__); /* should never happen */
+-				return;
+-			}
+-			resubmit = 1;
+-		}
++		if (status == -ENOENT || status == -ESHUTDOWN)
++			/* killed or endpoint shutdown: don't resubmit */
++			return;
+ 	}
+ 
+-	if (resubmit) {
+-		spin_lock_irqsave(&cs->lock, flags);
+-		r = cs->connected ? usb_submit_urb(urb, GFP_ATOMIC) : -ENODEV;
++	/* resubmit URB */
++	spin_lock_irqsave(&cs->lock, flags);
++	if (!cs->connected) {
+ 		spin_unlock_irqrestore(&cs->lock, flags);
+-		if (r)
+-			dev_err(cs->dev, "error %d when resubmitting urb.\n",
+-				-r);
++		err("%s: disconnected", __func__);
++		return;
+ 	}
++	r = usb_submit_urb(urb, GFP_ATOMIC);
++	spin_unlock_irqrestore(&cs->lock, flags);
++	if (r)
++		dev_err(cs->dev, "error %d resubmitting URB\n", -r);
+ }
+ 
+ 
+@@ -422,11 +415,19 @@ static void gigaset_write_bulk_callback(
+ 	int status = urb->status;
  	unsigned long flags;
  
--	if (urb->status)
-+	if (status)
+-	if (status)
++	switch (status) {
++	case 0:			/* normal completion */
++		break;
++	case -ENOENT:		/* killed */
++		gig_dbg(DEBUG_ANY, "%s: killed", __func__);
++		atomic_set(&cs->hw.usb->busy, 0);
++		return;
++	default:
  		dev_err(cs->dev, "bulk transfer failed (status %d)\n",
--			-urb->status);
-+			-status);
+ 			-status);
  		/* That's all we can do. Communication problems
  		   are handled by timeouts or network protocols. */
++	}
  
+ 	spin_lock_irqsave(&cs->lock, flags);
+ 	if (!cs->connected) {
+@@ -682,43 +683,35 @@ static int gigaset_probe(struct usb_inte
+ {
+ 	int retval;
+ 	struct usb_device *udev = interface_to_usbdev(interface);
+-	unsigned int ifnum;
+-	struct usb_host_interface *hostif;
++	struct usb_host_interface *hostif = interface->cur_altsetting;
+ 	struct cardstate *cs = NULL;
+ 	struct usb_cardstate *ucs = NULL;
+ 	struct usb_endpoint_descriptor *endpoint;
+ 	int buffer_size;
+-	int alt;
+-
+-	gig_dbg(DEBUG_ANY,
+-		"%s: Check if device matches .. (Vendor: 0x%x, Product: 0x%x)",
+-		__func__, le16_to_cpu(udev->descriptor.idVendor),
+-		le16_to_cpu(udev->descriptor.idProduct));
+ 
+-	retval = -ENODEV; //FIXME
++	gig_dbg(DEBUG_ANY, "%s: Check if device matches ...", __func__);
+ 
+ 	/* See if the device offered us matches what we can accept */
+ 	if ((le16_to_cpu(udev->descriptor.idVendor)  != USB_M105_VENDOR_ID) ||
+-	    (le16_to_cpu(udev->descriptor.idProduct) != USB_M105_PRODUCT_ID))
++	    (le16_to_cpu(udev->descriptor.idProduct) != USB_M105_PRODUCT_ID)) {
++		gig_dbg(DEBUG_ANY, "device ID (0x%x, 0x%x) not for me - skip",
++			le16_to_cpu(udev->descriptor.idVendor),
++			le16_to_cpu(udev->descriptor.idProduct));
+ 		return -ENODEV;
+-
+-	/* this starts to become ascii art... */
+-	hostif = interface->cur_altsetting;
+-	alt = hostif->desc.bAlternateSetting;
+-	ifnum = hostif->desc.bInterfaceNumber; // FIXME ?
+-
+-	if (alt != 0 || ifnum != 0) {
+-		dev_warn(&udev->dev, "ifnum %d, alt %d\n", ifnum, alt);
++	}
++	if (hostif->desc.bInterfaceNumber != 0) {
++		gig_dbg(DEBUG_ANY, "interface %d not for me - skip",
++			hostif->desc.bInterfaceNumber);
++		return -ENODEV;
++	}
++	if (hostif->desc.bAlternateSetting != 0) {
++		dev_notice(&udev->dev, "unsupported altsetting %d - skip",
++			   hostif->desc.bAlternateSetting);
+ 		return -ENODEV;
+ 	}
+-
+-	/* Reject application specific intefaces
+-	 *
+-	 */
+ 	if (hostif->desc.bInterfaceClass != 255) {
+-		dev_info(&udev->dev,
+-		"%s: Device matched but iface_desc[%d]->bInterfaceClass==%d!\n",
+-			 __func__, ifnum, hostif->desc.bInterfaceClass);
++		dev_notice(&udev->dev, "unsupported interface class %d - skip",
++			   hostif->desc.bInterfaceClass);
+ 		return -ENODEV;
+ 	}
+ 
+@@ -826,6 +819,9 @@ static void gigaset_disconnect(struct us
+ 
+ 	cs = usb_get_intfdata(interface);
+ 	ucs = cs->hw.usb;
++
++	dev_info(cs->dev, "disconnecting Gigaset USB adapter\n");
++
+ 	usb_kill_urb(ucs->read_urb);
+ 
+ 	gigaset_stop(cs);
+@@ -833,7 +829,7 @@ static void gigaset_disconnect(struct us
+ 	usb_set_intfdata(interface, NULL);
+ 	tasklet_kill(&cs->write_tasklet);
+ 
+-	usb_kill_urb(ucs->bulk_out_urb);	/* FIXME: only if active? */
++	usb_kill_urb(ucs->bulk_out_urb);
+ 
+ 	kfree(ucs->bulk_out_buffer);
+ 	usb_free_urb(ucs->bulk_out_urb);
 _
 
 Patches currently in -mm which might be from tilman@imap.cc are
