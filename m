@@ -1,117 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - keyspan-init-termios-properly.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:11:16 -0800
-Message-ID: <200711152111.lAFLBGFs015748@imap1.linux-foundation.org>
+Subject: - gbefb-fix-section-mismatch-warnings.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:10:42 -0800
+Message-ID: <200711152110.lAFLAg04015680@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58274 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43210 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932357AbXKOVRX (ORCPT
+	by vger.kernel.org with ESMTP id S932528AbXKOVRd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:17:23 -0500
+	Thu, 15 Nov 2007 16:17:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bbpetkov@yahoo.de, akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, greg@kroah.com, lucy@keyspan.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     keyspan: init termios properly
+     gbefb: fix section mismatch warnings
 has been removed from the -mm tree.  Its filename was
-     keyspan-init-termios-properly.patch
+     gbefb-fix-section-mismatch-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: keyspan: init termios properly
-From: Borislav Petkov <bbpetkov@yahoo.de>
+Subject: gbefb: fix section mismatch warnings
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Remove redundant code leading to NULL ptr deref and let terminal config
-settings take place in the proper initialization path in
-usb_console_setup().
+Make 'default_mode' and 'default_var' be __initdata.
+Fixes these section warnings:
 
-Signed-off-by: Borislav Petkov <bbpetkov@yahoo.de>
-Cc: <lucy@keyspan.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+WARNING: vmlinux.o(.data+0x128e0): Section mismatch: reference to .init.data:default_mode_CRT (between 'default_mode' and 'default_var')
+WARNING: vmlinux.o(.data+0x128e4): Section mismatch: reference to .init.data:default_var_CRT (between 'default_var' and 'dev_attr_size')
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/keyspan.c |   38 +++++----------------------------
- 1 file changed, 6 insertions(+), 32 deletions(-)
+ drivers/video/gbefb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/serial/keyspan.c~keyspan-init-termios-properly drivers/usb/serial/keyspan.c
---- a/drivers/usb/serial/keyspan.c~keyspan-init-termios-properly
-+++ a/drivers/usb/serial/keyspan.c
-@@ -1215,20 +1215,18 @@ static int keyspan_chars_in_buffer (stru
+diff -puN drivers/video/gbefb.c~gbefb-fix-section-mismatch-warnings drivers/video/gbefb.c
+--- a/drivers/video/gbefb.c~gbefb-fix-section-mismatch-warnings
++++ a/drivers/video/gbefb.c
+@@ -183,8 +183,8 @@ static struct fb_videomode default_mode_
+ 	.vmode		= FB_VMODE_NONINTERLACED,
+ };
  
- static int keyspan_open (struct usb_serial_port *port, struct file *filp)
- {
--	struct keyspan_port_private 	*p_priv;
--	struct keyspan_serial_private 	*s_priv;
--	struct usb_serial 		*serial = port->serial;
-+	struct keyspan_port_private	*p_priv;
-+	struct keyspan_serial_private	*s_priv;
-+	struct usb_serial		*serial = port->serial;
- 	const struct keyspan_device_details	*d_details;
- 	int				i, err;
--	int				baud_rate, device_port;
- 	struct urb			*urb;
--	unsigned int			cflag;
+-struct fb_videomode *default_mode = &default_mode_CRT;
+-struct fb_var_screeninfo *default_var = &default_var_CRT;
++struct fb_videomode *default_mode __initdata = &default_mode_CRT;
++struct fb_var_screeninfo *default_var __initdata = &default_var_CRT;
  
- 	s_priv = usb_get_serial_data(serial);
- 	p_priv = usb_get_serial_port_data(port);
- 	d_details = p_priv->device_details;
--	
--	dbg("%s - port%d.", __FUNCTION__, port->number); 
-+
-+	dbg("%s - port%d.", __FUNCTION__, port->number);
- 
- 	/* Set some sane defaults */
- 	p_priv->rts_state = 1;
-@@ -1249,7 +1247,7 @@ static int keyspan_open (struct usb_seri
- 		urb->dev = serial->dev;
- 
- 		/* make sure endpoint data toggle is synchronized with the device */
--		
-+
- 		usb_clear_halt(urb->dev, urb->pipe);
- 
- 		if ((err = usb_submit_urb(urb, GFP_KERNEL)) != 0) {
-@@ -1265,30 +1263,6 @@ static int keyspan_open (struct usb_seri
- 		/* usb_settoggle(urb->dev, usb_pipeendpoint(urb->pipe), usb_pipeout(urb->pipe), 0); */
- 	}
- 
--	/* get the terminal config for the setup message now so we don't 
--	 * need to send 2 of them */
--
--	cflag = port->tty->termios->c_cflag;
--	device_port = port->number - port->serial->minor;
--
--	/* Baud rate calculation takes baud rate as an integer
--	   so other rates can be generated if desired. */
--	baud_rate = tty_get_baud_rate(port->tty);
--	/* If no match or invalid, leave as default */		
--	if (baud_rate >= 0
--	    && d_details->calculate_baud_rate(baud_rate, d_details->baudclk,
--				NULL, NULL, NULL, device_port) == KEYSPAN_BAUD_RATE_OK) {
--		p_priv->baud = baud_rate;
--	}
--
--	/* set CTS/RTS handshake etc. */
--	p_priv->cflag = cflag;
--	p_priv->flow_control = (cflag & CRTSCTS)? flow_cts: flow_none;
--
--	keyspan_send_setup(port, 1);
--	//mdelay(100);
--	//keyspan_set_termios(port, NULL);
--
- 	return (0);
- }
+ static int flat_panel_enabled = 0;
  
 _
 
-Patches currently in -mm which might be from bbpetkov@yahoo.de are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-revert-keyspan-init-termios-properly.patch
-usbserial-fix-inconsistent-lock-state.patch
+git-dvb.patch
+git-kbuild.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix-fix.patch
+advansys-fix-section-mismatch-warning.patch
+aic94-fix-section-mismatches.patch
+sym2-fix-section-mismatch-warning.patch
+git-unionfs.patch
+git-ipwireless_cs.patch
+x86-bitops_32h-style-cleanups.patch
+register_cpu-__devinit-or-__cpuinit.patch
+cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
+move-kprobes-examples-to-samples-resend.patch
+move-kprobes-examples-to-samples-resend-checkpatch-fixes.patch
+fs-menu-small-reorg.patch
+profile-likely-unlikely-macros.patch
