@@ -1,61 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 14 Nov 2007 16:46:05 -0800
-Message-ID: <200711150046.lAF0k544002061@imap1.linux-foundation.org>
+Subject: - proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 14 Nov 2007 16:42:04 -0800
+Message-ID: <200711150042.lAF0g4Ig001956@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37247 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33654 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753356AbXKOAv7 (ORCPT
+	by vger.kernel.org with ESMTP id S1756921AbXKOAxk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Nov 2007 19:51:59 -0500
+	Wed, 14 Nov 2007 19:53:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adobriyan@sw.ru, ebiederm@xmission.com, sukadev@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes
+     proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
+     proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into file-capabilities-allow-sigcont-within-session-v2.patch
+This patch was dropped because it was folded into proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks.patch
 
 ------------------------------------------------------
-Subject: file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes
+Subject: proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: need spaces around that '==' (ctx:VxV)
-#41: FILE: security/commoncap.c:535:
-+	if (sig == SIGCONT && (task_session_nr(current)==task_session_nr(p)))
- 	                                               ^
+WARNING: line over 80 characters
+#51: FILE: fs/proc/generic.c:573:
++			struct file * filp = list_entry(p, struct file, f_u.fu_list);
 
-total: 1 errors, 0 warnings, 15 lines checked
+ERROR: "foo * bar" should be "foo *bar"
+#51: FILE: fs/proc/generic.c:573:
++			struct file * filp = list_entry(p, struct file, f_u.fu_list);
+
+ERROR: "foo * bar" should be "foo *bar"
+#52: FILE: fs/proc/generic.c:574:
++			struct dentry * dentry = filp->f_path.dentry;
+
+ERROR: "foo * bar" should be "foo *bar"
+#53: FILE: fs/proc/generic.c:575:
++			struct inode * inode;
+
+total: 3 errors, 1 warnings, 62 lines checked
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/commoncap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/generic.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN security/commoncap.c~file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes security/commoncap.c
---- a/security/commoncap.c~file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes
-+++ a/security/commoncap.c
-@@ -532,7 +532,7 @@ int cap_task_kill(struct task_struct *p,
- 		return 0;
+diff -puN fs/proc/generic.c~proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes fs/proc/generic.c
+--- a/fs/proc/generic.c~proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes
++++ a/fs/proc/generic.c
+@@ -570,9 +570,10 @@ static void proc_kill_inodes(struct proc
+ 	list_for_each_entry(sb, &proc_fs_type.fs_supers, s_instances) {
+ 		file_list_lock();
+ 		list_for_each(p, &sb->s_files) {
+-			struct file * filp = list_entry(p, struct file, f_u.fu_list);
+-			struct dentry * dentry = filp->f_path.dentry;
+-			struct inode * inode;
++			struct file *filp = list_entry(p, struct file,
++							f_u.fu_list);
++			struct dentry *dentry = filp->f_path.dentry;
++			struct inode *inode;
+ 			const struct file_operations *fops;
  
- 	/* sigcont is permitted within same session */
--	if (sig == SIGCONT && (task_session_nr(current)==task_session_nr(p)))
-+	if (sig == SIGCONT && (task_session_nr(current) == task_session_nr(p)))
- 		return 0;
- 
- 	if (secid)
+ 			if (dentry->d_op != &proc_dentry_operations)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,13 +82,13 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 uml-update-address-space-affected-by-pud_clear.patch
 proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks.patch
+proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
 acpi-make-acpi_procfs-default-to-y.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components.patch
+hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
 revert-task-control-groups-example-cpu-accounting-subsystem.patch
-mips-undo-locking-on-error-path-returns.patch
-pidns-place-under-config_experimental.patch
-fix-64kb-blocksize-in-ext3-directories.patch
-file-capabilities-allow-sigcont-within-session-v2.patch
+mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
+pidns-place-under-config_experimental-checkpatch-fixes.patch
+fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
 file-capabilities-allow-sigcont-within-session-v2-checkpatch-fixes.patch
 x86-disable-preemption-in-delay_tsc.patch
 aic94xx_sds-rename-flash_size.patch
