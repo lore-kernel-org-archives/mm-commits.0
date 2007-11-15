@@ -1,73 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - uml-update-address-space-affected-by-pud_clear-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 14 Nov 2007 16:40:26 -0800
-Message-ID: <200711150040.lAF0eQFi001839@imap1.linux-foundation.org>
+Subject: - improve-cgroup-printks-fix.patch removed from -mm tree
+Date: Wed, 14 Nov 2007 16:41:01 -0800
+Message-ID: <200711150041.lAF0f1jJ001858@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43269 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58169 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756799AbXKOAlK (ORCPT
+	by vger.kernel.org with ESMTP id S1755188AbXKOAlr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Nov 2007 19:41:10 -0500
+	Wed, 14 Nov 2007 19:41:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, diegocg@gmail.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml-update-address-space-affected-by-pud_clear-checkpatch-fixes
+     improve-cgroup-printks-fix
 has been removed from the -mm tree.  Its filename was
-     uml-update-address-space-affected-by-pud_clear-checkpatch-fixes.patch
+     improve-cgroup-printks-fix.patch
 
-This patch was dropped because it was folded into uml-update-address-space-affected-by-pud_clear.patch
+This patch was dropped because it was folded into improve-cgroup-printks.patch
 
 ------------------------------------------------------
-Subject: uml-update-address-space-affected-by-pud_clear-checkpatch-fixes
+Subject: improve-cgroup-printks-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: use tabs not spaces
-#30: FILE: include/asm-um/pgtable-3level.h:74:
-+        set_pud(pud, __pud(_PAGE_NEWPAGE));$
-
-total: 1 errors, 0 warnings, 8 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Jeff Dike <jdike@linux.intel.com>
+Cc: Diego Calleja <diegocg@gmail.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-um/pgtable-3level.h |    3 ++-
+ kernel/cgroup.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-um/pgtable-3level.h~uml-update-address-space-affected-by-pud_clear-checkpatch-fixes include/asm-um/pgtable-3level.h
---- a/include/asm-um/pgtable-3level.h~uml-update-address-space-affected-by-pud_clear-checkpatch-fixes
-+++ a/include/asm-um/pgtable-3level.h
-@@ -1,3 +1,4 @@
-+
- /*
-  * Copyright 2003 PathScale Inc
-  * Derived from include/asm-i386/pgtable.h
-@@ -71,7 +72,7 @@ static inline pmd_t *pmd_alloc_one(struc
- 
- static inline void pud_clear (pud_t *pud)
+diff -puN kernel/cgroup.c~improve-cgroup-printks-fix kernel/cgroup.c
+--- a/kernel/cgroup.c~improve-cgroup-printks-fix
++++ a/kernel/cgroup.c
+@@ -2198,7 +2198,8 @@ static void cgroup_init_subsys(struct cg
  {
--        set_pud(pud, __pud(_PAGE_NEWPAGE));
-+	set_pud(pud, __pud(_PAGE_NEWPAGE));
- }
+ 	struct cgroup_subsys_state *css;
+ 	struct list_head *l;
+-	printk("Initializing cgroup subsys %s\n", ss->name);
++
++	printk(KERN_INFO "Initializing cgroup subsys %s\n", ss->name);
  
- #define pud_page(pud) phys_to_page(pud_val(pud) & PAGE_MASK)
+ 	/* Create the top cgroup state for this subsystem */
+ 	ss->root = &rootnode;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 uml-update-address-space-affected-by-pud_clear.patch
-uml-update-address-space-affected-by-pud_clear-checkpatch-fixes.patch
+improve-cgroup-printks.patch
 improve-cgroup-printks-fix.patch
 proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks-checkpatch-fixes.patch
 acpi-make-acpi_procfs-default-to-y.patch
