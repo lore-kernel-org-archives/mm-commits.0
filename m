@@ -1,99 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - uml-fix-build-for-config_printk.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:11:04 -0800
-Message-ID: <200711152111.lAFLB4Sp015729@imap1.linux-foundation.org>
+Subject: - crisv10-fix-timer-interrupt-parameters.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:12:08 -0800
+Message-ID: <200711152112.lAFLC82J015840@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59388 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52121 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761748AbXKOVRJ (ORCPT
+	by vger.kernel.org with ESMTP id S1760560AbXKOVRG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:17:09 -0500
+	Thu, 15 Nov 2007 16:17:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, mm-commits@vger.kernel.org
+To: jesper.nilsson@axis.com, mikael.starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: fix build for !CONFIG_PRINTK
+     CRISv10: fix timer interrupt parameters
 has been removed from the -mm tree.  Its filename was
-     uml-fix-build-for-config_printk.patch
+     crisv10-fix-timer-interrupt-parameters.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: uml: fix build for !CONFIG_PRINTK
-From: Jeff Dike <jdike@addtoit.com>
+Subject: CRISv10: fix timer interrupt parameters
+From: Jesper Nilsson <jesper.nilsson@axis.com>
 
-Handle the case of CONFIG_PRINTK being disabled.  This requires a do-nothing
-stub to be present in arch/um/include/user.h so that we don't get references
-to printk from libc code.
+Fix timer interrupt parameters for CRIS v10.
 
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+- irq_handler_t only takes two arguments, use get_irq_regs to get
+  regs for profiling.
+- Call update_process_times.
+- Remove CVS tag.
+
+Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Mikael Starvik <mikael.starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/user.h |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ arch/cris/arch-v10/kernel/time.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN arch/um/include/user.h~uml-fix-build-for-config_printk arch/um/include/user.h
---- a/arch/um/include/user.h~uml-fix-build-for-config_printk
-+++ a/arch/um/include/user.h
-@@ -1,11 +1,13 @@
- /* 
-- * Copyright (C) 2000 Jeff Dike (jdike@karaya.com)
-+ * Copyright (C) 2000 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
+diff -puN arch/cris/arch-v10/kernel/time.c~crisv10-fix-timer-interrupt-parameters arch/cris/arch-v10/kernel/time.c
+--- a/arch/cris/arch-v10/kernel/time.c~crisv10-fix-timer-interrupt-parameters
++++ a/arch/cris/arch-v10/kernel/time.c
+@@ -1,5 +1,4 @@
+-/* $Id: time.c,v 1.5 2004/09/29 06:12:46 starvik Exp $
+- *
++/*
+  *  linux/arch/cris/arch-v10/kernel/time.c
+  *
+  *  Copyright (C) 1991, 1992, 1995  Linus Torvalds
+@@ -20,6 +19,7 @@
+ #include <asm/io.h>
+ #include <asm/delay.h>
+ #include <asm/rtc.h>
++#include <asm/irq_regs.h>
  
- #ifndef __USER_H__
- #define __USER_H__
+ /* define this if you need to use print_timestamp */
+ /* it will make jiffies at 96 hz instead of 100 hz though */
+@@ -201,8 +201,9 @@ static long last_rtc_update = 0;
+ extern void cris_do_profile(struct pt_regs *regs);
  
-+#include "uml-config.h"
-+
- /*
-  * The usual definition - copied here because the kernel provides its own,
-  * fancier, type-safe, definition.  Using that one would require
-@@ -23,8 +25,17 @@
+ static inline irqreturn_t
+-timer_interrupt(int irq, void *dev_id, struct pt_regs *regs)
++timer_interrupt(int irq, void *dev_id)
+ {
++	struct pt_regs *regs = get_irq_regs();
+ 	/* acknowledge the timer irq */
  
- extern void panic(const char *fmt, ...)
- 	__attribute__ ((format (printf, 1, 2)));
+ #ifdef USE_CASCADE_TIMERS
+@@ -221,9 +222,11 @@ timer_interrupt(int irq, void *dev_id, s
+ #endif
+ 
+ 	/* reset watchdog otherwise it resets us! */
+-
+ 	reset_watchdog();
+ 	
++	/* Update statistics. */
++	update_process_times(user_mode(regs));
 +
-+#ifdef UML_CONFIG_PRINTK
- extern int printk(const char *fmt, ...)
- 	__attribute__ ((format (printf, 1, 2)));
-+#else
-+static inline int printk(const char *fmt, ...)
-+{
-+	return 0;
-+}
-+#endif
-+
- extern void schedule(void);
- extern int in_aton(char *str);
- extern int open_gdb_chan(void);
+ 	/* call the real timer interrupt handler */
+ 
+ 	do_timer(1);
 _
 
-Patches currently in -mm which might be from jdike@addtoit.com are
+Patches currently in -mm which might be from jesper.nilsson@axis.com are
 
 origin.patch
-git-kvm.patch
-uml-implement-get_wchan.patch
-uml-implement-get_wchan-fix.patch
-uml-get-rid-of-asmlinkage.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-document-new-ubd-flag.patch
-uml-further-bugsc-tidying.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-uml-smp-needs-to-depend-on-broken-for-now.patch
-uml-console-driver-cleanups.patch
-uml-clonec-tidying.patch
-uml-borrow-consth-techniques.patch
-uml-delete-some-unused-headers.patch
-uml-allow-lflags-on-command-line.patch
-uml-tidy-kern_utilh.patch
-uml-tidy-pgtableh.patch
-uml-reconst-a-parameter.patch
-arch-um-remove-duplicate-includes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+cris-build-fixes-atomich-needs-compilerh.patch
+git-mtd.patch
