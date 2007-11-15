@@ -1,134 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:10:07 -0800
-Message-ID: <200711152110.lAFLA7tP015526@imap1.linux-foundation.org>
+Subject: - atmel_serial-build-warnings-begone.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:09:27 -0800
+Message-ID: <200711152109.lAFL9RRO015445@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45136 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:46529 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763418AbXKOVS6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752409AbXKOVUQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:18:58 -0500
+	Thu, 15 Nov 2007 16:20:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wfg@mail.ustc.edu.cn, chris.mason@oracle.com, jeffm@suse.com, maximlevitsky@gmail.com, peterz@infradead.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, andrew@sanpeople.com, dbrownell@users.sourceforge.net, hskinnemoen@atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs: don't drop PG_dirty when releasing sub-page-sized dirty file
+     atmel_serial build warnings begone
 has been removed from the -mm tree.  Its filename was
-     reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file.patch
+     atmel_serial-build-warnings-begone.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: reiserfs: don't drop PG_dirty when releasing sub-page-sized dirty file
-From: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Subject: atmel_serial build warnings begone
+From: David Brownell <david-b@pacbell.net>
 
-This is not a new problem in 2.6.23-git17.  2.6.22/2.6.23 is buggy in the
-same way.
+Remove annoying build warnings about unused variables in atmel_serial,
+which afflict both AT91 and AVR32 builds.
 
-Reiserfs could accumulate dirty sub-page-size files until umount time. 
-They cannot be synced to disk by pdflush routines or explicit `sync'
-commands.  Only `umount' can do the trick.
-
-The direct cause is: the dirty page's PG_dirty is wrongly _cleared_.
-Call trace:
-	 [<ffffffff8027e920>] cancel_dirty_page+0xd0/0xf0
-	 [<ffffffff8816d470>] :reiserfs:reiserfs_cut_from_item+0x660/0x710
-	 [<ffffffff8816d791>] :reiserfs:reiserfs_do_truncate+0x271/0x530
-	 [<ffffffff8815872d>] :reiserfs:reiserfs_truncate_file+0xfd/0x3b0
-	 [<ffffffff8815d3d0>] :reiserfs:reiserfs_file_release+0x1e0/0x340
-	 [<ffffffff802a187c>] __fput+0xcc/0x1b0
-	 [<ffffffff802a1ba6>] fput+0x16/0x20
-	 [<ffffffff8029e676>] filp_close+0x56/0x90
-	 [<ffffffff8029fe0d>] sys_close+0xad/0x110
-	 [<ffffffff8020c41e>] system_call+0x7e/0x83
-
-Fix the bug by removing the cancel_dirty_page() call. Tests show that
-it causes no bad behaviors on various write sizes.
-
-=== for the patient ===
-Here are more detailed demonstrations of the problem.
-
-1) the page has both PG_dirty(D)/PAGECACHE_TAG_DIRTY(d) after being written to;
-   and then only PAGECACHE_TAG_DIRTY(d) remains after the file is closed.
-
------------------------------- screen 0 ------------------------------
-[T0] root /home/wfg# cat > /test/tiny
-[T1] hi
-[T2] root /home/wfg#
-
------------------------------- screen 1 ------------------------------
-[T1] root /home/wfg# echo /test/tiny > /proc/filecache
-[T1] root /home/wfg# cat /proc/filecache
-     # file /test/tiny
-     # flags R:referenced A:active M:mmap U:uptodate D:dirty W:writeback O:owner B:buffer d:dirty w:writeback
-     # idx   len     state   refcnt
-     0       1       ___UD__Bd_      2
-[T2] root /home/wfg# cat /proc/filecache
-     # file /test/tiny
-     # flags R:referenced A:active M:mmap U:uptodate D:dirty W:writeback O:owner B:buffer d:dirty w:writeback
-     # idx   len     state   refcnt
-     0       1       ___U___Bd_      2
-
-2) note the non-zero 'cancelled_write_bytes' after /tmp/hi is copied.
-
------------------------------- screen 0 ------------------------------
-[T0] root /home/wfg# echo hi > /tmp/hi
-[T1] root /home/wfg# cp /tmp/hi /dev/stdin /test
-[T2] hi
-[T3] root /home/wfg#
-
------------------------------- screen 1 ------------------------------
-[T1] root /proc/4397# cd /proc/`pidof cp`
-[T1] root /proc/4713# cat io
-     rchar: 8396
-     wchar: 3
-     syscr: 20
-     syscw: 1
-     read_bytes: 0
-     write_bytes: 20480
-     cancelled_write_bytes: 4096
-[T2] root /proc/4713# cat io
-     rchar: 8399
-     wchar: 6
-     syscr: 21
-     syscw: 2
-     read_bytes: 0
-     write_bytes: 24576
-     cancelled_write_bytes: 4096
-
-//Question: the 'write_bytes' is a bit more than expected ;-)
-
-Tested-by: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Signed-off-by: Fengguang Wu <wfg@mail.ustc.edu.cn>
-Reviewed-by: Chris Mason <chris.mason@oracle.com>
-Cc: <stable@kernel.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Andrew Victor <andrew@sanpeople.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/stree.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/serial/atmel_serial.c |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff -puN fs/reiserfs/stree.c~reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file fs/reiserfs/stree.c
---- a/fs/reiserfs/stree.c~reiserfs-dont-drop-pg_dirty-when-releasing-sub-page-sized-dirty-file
-+++ a/fs/reiserfs/stree.c
-@@ -1458,9 +1458,6 @@ static void unmap_buffers(struct page *p
- 				}
- 				bh = next;
- 			} while (bh != head);
--			if (PAGE_SIZE == bh->b_size) {
--				cancel_dirty_page(page, PAGE_CACHE_SIZE);
--			}
- 		}
- 	}
+diff -puN drivers/serial/atmel_serial.c~atmel_serial-build-warnings-begone drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~atmel_serial-build-warnings-begone
++++ a/drivers/serial/atmel_serial.c
+@@ -204,8 +204,6 @@ static u_int atmel_get_mctrl(struct uart
+  */
+ static void atmel_stop_tx(struct uart_port *port)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
+-
+ 	UART_PUT_IDR(port, ATMEL_US_TXRDY);
  }
+ 
+@@ -214,8 +212,6 @@ static void atmel_stop_tx(struct uart_po
+  */
+ static void atmel_start_tx(struct uart_port *port)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
+-
+ 	UART_PUT_IER(port, ATMEL_US_TXRDY);
+ }
+ 
+@@ -224,8 +220,6 @@ static void atmel_start_tx(struct uart_p
+  */
+ static void atmel_stop_rx(struct uart_port *port)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
+-
+ 	UART_PUT_IDR(port, ATMEL_US_RXRDY);
+ }
+ 
+@@ -409,7 +403,6 @@ static irqreturn_t atmel_interrupt(int i
+  */
+ static int atmel_startup(struct uart_port *port)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
+ 	int retval;
+ 
+ 	/*
+@@ -456,8 +449,6 @@ static int atmel_startup(struct uart_por
+  */
+ static void atmel_shutdown(struct uart_port *port)
+ {
+-	struct atmel_uart_port *atmel_port = (struct atmel_uart_port *) port;
+-
+ 	/*
+ 	 * Disable all interrupts, port and break condition.
+ 	 */
 _
 
-Patches currently in -mm which might be from wfg@mail.ustc.edu.cn are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-maps4-add-proportional-set-size-accounting-in-smaps.patch
+rtc-dont-write-rtc-century-when-setting-a-wake-alarm.patch
+git-mmc.patch
+usb-s3c2410_udc-minor-irq-handler-cleanups.patch
+usb-device-dma-support-on-omap2.patch
+rtc-convert-mutex-to-bitfield.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+remove-pointless-casts-from-void-pointers.patch
+spi-at25-driver-is-for-eeprom-not-flash.patch
+spi-use-mutex-not-semaphore.patch
+blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait.patch
+blackfin-spi-driver-use-void-__iomem-for-regs_base.patch
+blackfin-spi-driver-move-hard-coded-pin_req-to-board-file.patch
+blackfin-spi-driver-reconfigure-speed_hz-and-bits_per_word-in-each-spi-transfer.patch
+cosmetic-fixes-to-rtc-subsystems-kconfig.patch
+rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
+rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
+rtc-cmos-exports-nvram-in-sysfs.patch
+generic-gpio-gpio_chip-support.patch
+generic-gpio-gpio_chip-support-fix.patch
+avr32-uses-gpio_chip.patch
+mcp23s08-spi-gpio-expander.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch
