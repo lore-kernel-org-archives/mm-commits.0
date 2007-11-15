@@ -1,147 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:12:06 -0800
-Message-ID: <200711152112.lAFLC6SX015837@imap1.linux-foundation.org>
+Subject: - improve-cgroup-printks.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:08:42 -0800
+Message-ID: <200711152108.lAFL8gRL015381@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:54318 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:42442 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932259AbXKOVRR (ORCPT
+	by vger.kernel.org with ESMTP id S1761954AbXKOVRL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:17:17 -0500
+	Thu, 15 Nov 2007 16:17:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
+To: diegocg@gmail.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CRIS: remove MTD_AMSTD and MTD_OBSOLETE_CHIPS take two
+     Improve cgroup printks
 has been removed from the -mm tree.  Its filename was
-     cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two.patch
+     improve-cgroup-printks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: CRIS: remove MTD_AMSTD and MTD_OBSOLETE_CHIPS take two
-From: Jesper Nilsson <jesper.nilsson@axis.com>
+Subject: Improve cgroup printks
+From: Diego Calleja <diegocg@gmail.com>
 
-Remove MTD_AMDSTD and MTD_OBSOLETE_CHIPS from defconfig, Kconfig and code,
-instead we'll use MTD_CFI or MTD_JEDECPROBE.
+When I boot with the 'quiet' parameter, I see on the screen:
 
-[akpm@linux-foundation.org: codingl-style cleanups]
-Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Mikael Starvik <starvik@axis.com>
+[    0.000000] Initializing cgroup subsys cpuset
+[    0.000000] Initializing cgroup subsys cpu
+[   39.036026] Initializing cgroup subsys cpuacct
+[   39.036080] Initializing cgroup subsys debug
+[   39.036118] Initializing cgroup subsys ns
+
+This patch lowers the priority of those messages, adds a "cgroup: " prefix
+to another couple of printks and kills the useless reference to the source
+file.
+
+Signed-off-by: Diego Calleja <diegocg@gmail.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/defconfig              |    2 --
- arch/cris/arch-v10/drivers/Kconfig        |    2 --
- arch/cris/arch-v10/drivers/axisflashmap.c |    8 ++++----
- arch/cris/arch-v32/drivers/Kconfig        |    2 --
- arch/cris/arch-v32/drivers/axisflashmap.c |    9 ++++-----
- arch/cris/defconfig                       |    2 --
- 6 files changed, 8 insertions(+), 17 deletions(-)
+ kernel/cgroup.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN arch/cris/arch-v10/defconfig~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two arch/cris/arch-v10/defconfig
---- a/arch/cris/arch-v10/defconfig~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two
-+++ a/arch/cris/arch-v10/defconfig
-@@ -99,7 +99,6 @@ CONFIG_MTD=y
- CONFIG_MTD_CFI=y
- # CONFIG_MTD_CFI_INTELEXT is not set
- CONFIG_MTD_CFI_AMDSTD=y
--CONFIG_MTD_AMDSTD=y
- CONFIG_MTD_CHAR=y
- CONFIG_MTD_BLOCK=y
- CONFIG_ETRAX_I2C=y
-@@ -145,7 +144,6 @@ CONFIG_MTD_CFI=y
- # CONFIG_MTD_CFI_GEOMETRY is not set
- # CONFIG_MTD_CFI_INTELEXT is not set
- CONFIG_MTD_CFI_AMDSTD=y
--CONFIG_MTD_AMDSTD=y
- # CONFIG_MTD_SHARP is not set
- # CONFIG_MTD_PHYSMAP is not set
- # CONFIG_MTD_NORA is not set
-diff -puN arch/cris/arch-v10/drivers/Kconfig~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two arch/cris/arch-v10/drivers/Kconfig
---- a/arch/cris/arch-v10/drivers/Kconfig~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two
-+++ a/arch/cris/arch-v10/drivers/Kconfig
-@@ -606,8 +606,6 @@ config ETRAX_AXISFLASHMAP
- 	select MTD
- 	select MTD_CFI
- 	select MTD_CFI_AMDSTD
--	select MTD_OBSOLETE_CHIPS
--	select MTD_AMDSTD
- 	select MTD_CHAR
- 	select MTD_BLOCK
- 	select MTD_PARTITIONS
-diff -puN arch/cris/arch-v10/drivers/axisflashmap.c~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two arch/cris/arch-v10/drivers/axisflashmap.c
---- a/arch/cris/arch-v10/drivers/axisflashmap.c~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two
-+++ a/arch/cris/arch-v10/drivers/axisflashmap.c
-@@ -312,12 +312,12 @@ static struct mtd_info *probe_cs(struct 
-                "%s: Probing a 0x%08lx bytes large window at 0x%08lx.\n",
- 	       map_cs->name, map_cs->size, map_cs->map_priv_1);
+diff -puN kernel/cgroup.c~improve-cgroup-printks kernel/cgroup.c
+--- a/kernel/cgroup.c~improve-cgroup-printks
++++ a/kernel/cgroup.c
+@@ -1,6 +1,4 @@
+ /*
+- *  kernel/cgroup.c
+- *
+  *  Generic process-grouping system.
+  *
+  *  Based originally on the cpuset system, extracted by Paul Menage
+@@ -2200,7 +2198,8 @@ static void cgroup_init_subsys(struct cg
+ {
+ 	struct cgroup_subsys_state *css;
+ 	struct list_head *l;
+-	printk(KERN_ERR "Initializing cgroup subsys %s\n", ss->name);
++
++	printk(KERN_INFO "Initializing cgroup subsys %s\n", ss->name);
  
--#ifdef CONFIG_MTD_AMDSTD
--	mtd_cs = do_map_probe("amd_flash", map_cs);
--#endif
- #ifdef CONFIG_MTD_CFI
-+	mtd_cs = do_map_probe("cfi_probe", map_cs);
-+#endif
-+#ifdef CONFIG_MTD_JEDECPROBE
- 	if (!mtd_cs) {
--		mtd_cs = do_map_probe("cfi_probe", map_cs);
-+		mtd_cs = do_map_probe("jedec_probe", map_cs);
- 	}
- #endif
- 
-diff -puN arch/cris/arch-v32/drivers/Kconfig~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two arch/cris/arch-v32/drivers/Kconfig
---- a/arch/cris/arch-v32/drivers/Kconfig~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two
-+++ a/arch/cris/arch-v32/drivers/Kconfig
-@@ -362,8 +362,6 @@ config ETRAX_AXISFLASHMAP
- 	select MTD
- 	select MTD_CFI
- 	select MTD_CFI_AMDSTD
--	select MTD_OBSOLETE_CHIPS
--	select MTD_AMDSTD
- 	select MTD_CHAR
- 	select MTD_BLOCK
- 	select MTD_PARTITIONS
-diff -puN arch/cris/arch-v32/drivers/axisflashmap.c~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two arch/cris/arch-v32/drivers/axisflashmap.c
---- a/arch/cris/arch-v32/drivers/axisflashmap.c~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two
-+++ a/arch/cris/arch-v32/drivers/axisflashmap.c
-@@ -190,13 +190,12 @@ static struct mtd_info *probe_cs(struct 
- 	       "%s: Probing a 0x%08lx bytes large window at 0x%08lx.\n",
- 	       map_cs->name, map_cs->size, map_cs->map_priv_1);
- 
--#ifdef CONFIG_MTD_AMDSTD
--	mtd_cs = do_map_probe("amd_flash", map_cs);
--#endif
- #ifdef CONFIG_MTD_CFI
--	if (!mtd_cs) {
- 		mtd_cs = do_map_probe("cfi_probe", map_cs);
--	}
-+#endif
-+#ifdef CONFIG_MTD_JEDECPROBE
-+	if (!mtd_cs)
-+		mtd_cs = do_map_probe("jedec_probe", map_cs);
- #endif
- 
- 	return mtd_cs;
-diff -puN arch/cris/defconfig~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two arch/cris/defconfig
---- a/arch/cris/defconfig~cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two
-+++ a/arch/cris/defconfig
-@@ -226,8 +226,6 @@ CONFIG_MTD_CFI_UTIL=y
- CONFIG_MTD_RAM=y
- # CONFIG_MTD_ROM is not set
- # CONFIG_MTD_ABSENT is not set
--CONFIG_MTD_OBSOLETE_CHIPS=y
--CONFIG_MTD_AMDSTD=y
- # CONFIG_MTD_SHARP is not set
- # CONFIG_MTD_JEDEC is not set
- 
+ 	/* Create the top cgroup state for this subsystem */
+ 	ss->root = &rootnode;
+@@ -2273,7 +2272,7 @@ int __init cgroup_init_early(void)
+ 		BUG_ON(!ss->create);
+ 		BUG_ON(!ss->destroy);
+ 		if (ss->subsys_id != i) {
+-			printk(KERN_ERR "Subsys %s id == %d\n",
++			printk(KERN_ERR "cgroup: Subsys %s id == %d\n",
+ 			       ss->name, ss->subsys_id);
+ 			BUG();
+ 		}
+@@ -2605,7 +2604,7 @@ int cgroup_clone(struct task_struct *tsk
+ 	dentry = lookup_one_len(nodename, parent->dentry, strlen(nodename));
+ 	if (IS_ERR(dentry)) {
+ 		printk(KERN_INFO
+-		       "Couldn't allocate dentry for %s: %ld\n", nodename,
++		       "cgroup: Couldn't allocate dentry for %s: %ld\n", nodename,
+ 		       PTR_ERR(dentry));
+ 		ret = PTR_ERR(dentry);
+ 		goto out_release;
 _
 
-Patches currently in -mm which might be from jesper.nilsson@axis.com are
+Patches currently in -mm which might be from diegocg@gmail.com are
 
 origin.patch
-cris-build-fixes-atomich-needs-compilerh.patch
-git-mtd.patch
