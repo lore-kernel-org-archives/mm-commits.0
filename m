@@ -1,112 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - dmaengine-fix-broken-device-refcounting.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:09:25 -0800
-Message-ID: <200711152109.lAFL9PJJ015442@imap1.linux-foundation.org>
+Subject: - spi-fix-error-paths-on-txx9spi_probe.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:09:18 -0800
+Message-ID: <200711152109.lAFL9IV7015432@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46805 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35745 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932444AbXKOVSE (ORCPT
+	by vger.kernel.org with ESMTP id S932126AbXKOVRu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:18:04 -0500
+	Thu, 15 Nov 2007 16:17:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hskinnemoen@atmel.com, dan.j.williams@intel.com, shannon.nelson@intel.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: anemo@mba.ocn.ne.jp, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dmaengine: fix broken device refcounting
+     spi: fix error paths on txx9spi_probe
 has been removed from the -mm tree.  Its filename was
-     dmaengine-fix-broken-device-refcounting.patch
+     spi-fix-error-paths-on-txx9spi_probe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: dmaengine: fix broken device refcounting
-From: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Subject: spi: fix error paths on txx9spi_probe
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-When a DMA device is unregistered, its reference count is decremented twice
-for each channel: Once dma_class_dev_release() and once in
-dma_chan_cleanup().  This may result in the DMA device driver's remove()
-function completing before all channels have been cleaned up, causing lots
-of use-after-free fun.
+Some error paths in txx9spi_probe wrongly return 0.  This patch fixes them by
+using the devres interfaces.
 
-Fix it by incrementing the device's reference count twice for each
-channel during registration.
-
-[dan.j.williams@intel.com: kill unnecessary client refcounting]
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Shannon Nelson <shannon.nelson@intel.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Acked-by: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/dmaengine.c |   17 ++++++-----------
- 1 file changed, 6 insertions(+), 11 deletions(-)
+ drivers/spi/spi_txx9.c |   40 +++++++++++++++++++--------------------
+ 1 file changed, 20 insertions(+), 20 deletions(-)
 
-diff -puN drivers/dma/dmaengine.c~dmaengine-fix-broken-device-refcounting drivers/dma/dmaengine.c
---- a/drivers/dma/dmaengine.c~dmaengine-fix-broken-device-refcounting
-+++ a/drivers/dma/dmaengine.c
-@@ -182,10 +182,9 @@ static void dma_client_chan_alloc(struct
- 				/* we are done once this client rejects
- 				 * an available resource
- 				 */
--				if (ack == DMA_ACK) {
-+				if (ack == DMA_ACK)
- 					dma_chan_get(chan);
--					kref_get(&device->refcount);
--				} else if (ack == DMA_NAK)
-+				else if (ack == DMA_NAK)
- 					return;
- 			}
- 		}
-@@ -272,11 +271,8 @@ static void dma_clients_notify_removed(s
- 		/* client was holding resources for this channel so
- 		 * free it
- 		 */
--		if (ack == DMA_ACK) {
-+		if (ack == DMA_ACK)
- 			dma_chan_put(chan);
--			kref_put(&chan->device->refcount,
--				dma_async_device_cleanup);
--		}
- 	}
+diff -puN drivers/spi/spi_txx9.c~spi-fix-error-paths-on-txx9spi_probe drivers/spi/spi_txx9.c
+--- a/drivers/spi/spi_txx9.c~spi-fix-error-paths-on-txx9spi_probe
++++ a/drivers/spi/spi_txx9.c
+@@ -24,6 +24,7 @@
+ #include <linux/spi/spi.h>
+ #include <linux/err.h>
+ #include <linux/clk.h>
++#include <linux/io.h>
+ #include <asm/gpio.h>
  
- 	mutex_unlock(&dma_list_mutex);
-@@ -316,11 +312,8 @@ void dma_async_client_unregister(struct 
- 			ack = client->event_callback(client, chan,
- 				DMA_RESOURCE_REMOVED);
  
--			if (ack == DMA_ACK) {
-+			if (ack == DMA_ACK)
- 				dma_chan_put(chan);
--				kref_put(&chan->device->refcount,
--					dma_async_device_cleanup);
--			}
- 		}
+@@ -74,7 +75,6 @@ struct txx9spi {
+ 	struct list_head queue;
+ 	wait_queue_head_t waitq;
+ 	void __iomem *membase;
+-	int irq;
+ 	int baseclk;
+ 	struct clk *clk;
+ 	u32 max_speed_hz, min_speed_hz;
+@@ -350,12 +350,12 @@ static int __init txx9spi_probe(struct p
+ 	struct resource *res;
+ 	int ret = -ENODEV;
+ 	u32 mcr;
++	int irq;
  
- 	list_del(&client->global_node);
-@@ -397,6 +390,8 @@ int dma_async_device_register(struct dma
- 			goto err_out;
- 		}
+ 	master = spi_alloc_master(&dev->dev, sizeof(*c));
+ 	if (!master)
+ 		return ret;
+ 	c = spi_master_get_devdata(master);
+-	c->irq = -1;
+ 	platform_set_drvdata(dev, master);
  
-+		/* One for the channel, one of the class device */
-+		kref_get(&device->refcount);
- 		kref_get(&device->refcount);
- 		kref_init(&chan->refcount);
- 		chan->slow_ref = 0;
+ 	INIT_WORK(&c->work, txx9spi_work);
+@@ -381,32 +381,36 @@ static int __init txx9spi_probe(struct p
+ 
+ 	res = platform_get_resource(dev, IORESOURCE_MEM, 0);
+ 	if (!res)
+-		goto exit;
+-	c->membase = ioremap(res->start, res->end - res->start + 1);
++		goto exit_busy;
++	if (!devm_request_mem_region(&dev->dev,
++				     res->start, res->end - res->start + 1,
++				     "spi_txx9"))
++		goto exit_busy;
++	c->membase = devm_ioremap(&dev->dev,
++				  res->start, res->end - res->start + 1);
+ 	if (!c->membase)
+-		goto exit;
++		goto exit_busy;
+ 
+ 	/* enter config mode */
+ 	mcr = txx9spi_rd(c, TXx9_SPMCR);
+ 	mcr &= ~(TXx9_SPMCR_OPMODE | TXx9_SPMCR_SPSTP | TXx9_SPMCR_BCLR);
+ 	txx9spi_wr(c, mcr | TXx9_SPMCR_CONFIG | TXx9_SPMCR_BCLR, TXx9_SPMCR);
+ 
+-	c->irq = platform_get_irq(dev, 0);
+-	if (c->irq < 0)
+-		goto exit;
+-	ret = request_irq(c->irq, txx9spi_interrupt, 0, dev->name, c);
+-	if (ret) {
+-		c->irq = -1;
++	irq = platform_get_irq(dev, 0);
++	if (irq < 0)
++		goto exit_busy;
++	ret = devm_request_irq(&dev->dev, irq, txx9spi_interrupt, 0,
++			       "spi_txx9", c);
++	if (ret)
+ 		goto exit;
+-	}
+ 
+ 	c->workqueue = create_singlethread_workqueue(master->dev.parent->bus_id);
+ 	if (!c->workqueue)
+-		goto exit;
++		goto exit_busy;
+ 	c->last_chipselect = -1;
+ 
+ 	dev_info(&dev->dev, "at %#llx, irq %d, %dMHz\n",
+-		 (unsigned long long)res->start, c->irq,
++		 (unsigned long long)res->start, irq,
+ 		 (c->baseclk + 500000) / 1000000);
+ 
+ 	master->bus_num = dev->id;
+@@ -418,13 +422,11 @@ static int __init txx9spi_probe(struct p
+ 	if (ret)
+ 		goto exit;
+ 	return 0;
++exit_busy:
++	ret = -EBUSY;
+ exit:
+ 	if (c->workqueue)
+ 		destroy_workqueue(c->workqueue);
+-	if (c->irq >= 0)
+-		free_irq(c->irq, c);
+-	if (c->membase)
+-		iounmap(c->membase);
+ 	if (c->clk) {
+ 		clk_disable(c->clk);
+ 		clk_put(c->clk);
+@@ -442,8 +444,6 @@ static int __exit txx9spi_remove(struct 
+ 	spi_unregister_master(master);
+ 	platform_set_drvdata(dev, NULL);
+ 	destroy_workqueue(c->workqueue);
+-	free_irq(c->irq, c);
+-	iounmap(c->membase);
+ 	clk_disable(c->clk);
+ 	clk_put(c->clk);
+ 	spi_master_put(master);
 _
 
-Patches currently in -mm which might be from hskinnemoen@atmel.com are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
 origin.patch
-git-avr32.patch
-git-mtd.patch
-read_current_time-cleanups.patch
-generic-gpio-gpio_chip-support.patch
-avr32-uses-gpio_chip.patch
-mcp23s08-spi-gpio-expander.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-sanitize-the-type-of-struct-useru_ar0.patch
-add-cmpxchg_local-to-avr32.patch
+clocksource-make-clocksource_mask-bullet-proof.patch
+git-mips.patch
