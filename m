@@ -1,120 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - sunrpc-xprtrdma-transportc-fix-use-after-free.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:10:19 -0800
-Message-ID: <200711152110.lAFLAJ5g015549@imap1.linux-foundation.org>
+Subject: - x86-dont-call-mce_create_device-on-cpu_up_prepare.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:11:24 -0800
+Message-ID: <200711152111.lAFLBOjJ015759@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59100 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49075 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762476AbXKOVSc (ORCPT
+	by vger.kernel.org with ESMTP id S932795AbXKOVSW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:18:32 -0500
+	Thu, 15 Nov 2007 16:18:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, bfields@fieldses.org, davem@davemloft.net, neilb@suse.de, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: andreas.herrmann3@amd.com, akinobu.mita@gmail.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sunrpc/xprtrdma/transport.c: fix use-after-free
+     x86: don't call mce_create_device on CPU_UP_PREPARE
 has been removed from the -mm tree.  Its filename was
-     sunrpc-xprtrdma-transportc-fix-use-after-free.patch
+     x86-dont-call-mce_create_device-on-cpu_up_prepare.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: sunrpc/xprtrdma/transport.c: fix use-after-free
-From: Adrian Bunk <bunk@kernel.org>
+Subject: x86: don't call mce_create_device on CPU_UP_PREPARE
+From: "Andreas Herrmann" <andreas.herrmann3@amd.com>
 
-Fix an obvious use-after-free spotted by the Coverity checker.
+Fix regression introduced with d435d862baca3e25e5eec236762a43251b1e7ffc
+("cpu hotplug: mce: fix cpu hotplug error handling").
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Neil Brown <neilb@suse.de>
-Cc: "David S. Miller" <davem@davemloft.net>
+A CPU which was not brought up during boot (using maxcpus and
+additional_cpus parameters) couldn't be onlined anymore.  For such a CPU it
+seemed that MCE was not supported during CPU_UP_PREPARE-time which caused
+mce_cpu_callback to return NOTIFY_BAD to notifier_call_chain.  To fix this
+we:
+
+ - call mce_create_device for CPU_ONLINE event (instead of CPU_UP_PREPARE),
+ - avoid mce_remove_device() for the CPU that is not correctly initialized
+   by mce_create_device() failure,
+ - make mce_cpu_callback always return NOTIFY_OK for CPU_ONLINE event.
+   Because CPU_ONLINE callback return value is always ignored.
+
+[akinobu.mita@gmail.com: avoid mce_remove_device() for not initialized device]
+[akinobu.mita@gmail.com: make mce_cpu_callback always return NOTIFY_OK]
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/xprtrdma/transport.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/cpu/mcheck/mce_64.c |   18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
-diff -puN net/sunrpc/xprtrdma/transport.c~sunrpc-xprtrdma-transportc-fix-use-after-free net/sunrpc/xprtrdma/transport.c
---- a/net/sunrpc/xprtrdma/transport.c~sunrpc-xprtrdma-transportc-fix-use-after-free
-+++ a/net/sunrpc/xprtrdma/transport.c
-@@ -320,9 +320,9 @@ xprt_setup_rdma(struct xprt_create *args
- 	xprt->slot = kcalloc(xprt->max_reqs,
- 				sizeof(struct rpc_rqst), GFP_KERNEL);
- 	if (xprt->slot == NULL) {
--		kfree(xprt);
- 		dprintk("RPC:       %s: couldn't allocate %d slots\n",
- 			__func__, xprt->max_reqs);
-+		kfree(xprt);
- 		return ERR_PTR(-ENOMEM);
- 	}
+diff -puN arch/x86/kernel/cpu/mcheck/mce_64.c~x86-dont-call-mce_create_device-on-cpu_up_prepare arch/x86/kernel/cpu/mcheck/mce_64.c
+--- a/arch/x86/kernel/cpu/mcheck/mce_64.c~x86-dont-call-mce_create_device-on-cpu_up_prepare
++++ a/arch/x86/kernel/cpu/mcheck/mce_64.c
+@@ -802,6 +802,8 @@ static struct sysdev_attribute *mce_attr
+ 	NULL
+ };
  
++static cpumask_t mce_device_initialized = CPU_MASK_NONE;
++
+ /* Per cpu sysdev init.  All of the cpus still share the same ctl bank */
+ static __cpuinit int mce_create_device(unsigned int cpu)
+ {
+@@ -825,6 +827,7 @@ static __cpuinit int mce_create_device(u
+ 		if (err)
+ 			goto error;
+ 	}
++	cpu_set(cpu, mce_device_initialized);
+ 
+ 	return 0;
+ error:
+@@ -841,10 +844,14 @@ static void mce_remove_device(unsigned i
+ {
+ 	int i;
+ 
++	if (!cpu_isset(cpu, mce_device_initialized))
++		return;
++
+ 	for (i = 0; mce_attributes[i]; i++)
+ 		sysdev_remove_file(&per_cpu(device_mce,cpu),
+ 			mce_attributes[i]);
+ 	sysdev_unregister(&per_cpu(device_mce,cpu));
++	cpu_clear(cpu, mce_device_initialized);
+ }
+ 
+ /* Get notified when a cpu comes on/off. Be hotplug friendly. */
+@@ -852,21 +859,18 @@ static int
+ mce_cpu_callback(struct notifier_block *nfb, unsigned long action, void *hcpu)
+ {
+ 	unsigned int cpu = (unsigned long)hcpu;
+-	int err = 0;
+ 
+ 	switch (action) {
+-	case CPU_UP_PREPARE:
+-	case CPU_UP_PREPARE_FROZEN:
+-		err = mce_create_device(cpu);
++	case CPU_ONLINE:
++	case CPU_ONLINE_FROZEN:
++		mce_create_device(cpu);
+ 		break;
+-	case CPU_UP_CANCELED:
+-	case CPU_UP_CANCELED_FROZEN:
+ 	case CPU_DEAD:
+ 	case CPU_DEAD_FROZEN:
+ 		mce_remove_device(cpu);
+ 		break;
+ 	}
+-	return err ? NOTIFY_BAD : NOTIFY_OK;
++	return NOTIFY_OK;
+ }
+ 
+ static struct notifier_block mce_cpu_notifier = {
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from andreas.herrmann3@amd.com are
 
 origin.patch
-git-avr32.patch
-git-dvb.patch
-remove-saa7134-oss.patch
-git-gfs2-nmw.patch
-git-libata-all.patch
-git-mtd.patch
-make-sunrpc-xprtsockcxs_setup_udptcp-static.patch
-git-netdev-all.patch
-drivers-net-chelsio-if-0-unused-functions.patch
-drivers-bluetooth-bpa10xc-fix-memleak.patch
-drivers-bluetooth-btsdioc-fix-double-free.patch
-git-nfs-make-nfs_wb_page_priority-static.patch
-fs-nfs-dirc-should-include-internalh.patch
-always-export-pci_scan_single_device.patch
-remove-additional-pci_scan_child_bus-prototype.patch
-git-scsi-misc.patch
-scsi-advansysc-make-3-functions-static.patch
-scsi-qla2xxx-possible-cleanups.patch
-usb-mon-mon_binc-cleanups.patch
+git-cpufreq.patch
 git-x86.patch
-xtensa-iss_net_setup-must-be-__init.patch
-xtensa-kernel-setupc-remove-dead-code.patch
-mm-page-writebackc-make-a-function-static.patch
-make-__vmalloc_area_node-static.patch
-blackfin-remove-dump_thread.patch
-kernel-power-diskc-make-code-static.patch
-make-kernel_shutdown_prepare-static.patch
-kernel-power-move-function-prototypes-to-header.patch
-kill-udffs_dateversion.patch
-make-ipc-utilcsysvipc_find_ipc-static.patch
-cleanup-after-apus-removal.patch
-remove-mm_ptovvtop.patch
-remove-__attribute_used__.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-proper-show_interrupts-prototype.patch
-scheduled-oss-driver-removal.patch
-linux-inith-simplify-__meminitexit-dependencies.patch
-proper-prototype-for-signals_init.patch
-kernel-ptracec-should-include-linux-syscallsh.patch
-make-srcu_readers_active-static.patch
-kernel-notifierc-should-include-linux-rebooth.patch
-proper-prototype-for-get_filesystem_list.patch
-fs-utimesc-should-include-linux-syscallsh.patch
-fs-signalfdc-should-include-linux-syscallsh.patch
-fs-eventfdc-should-include-linux-syscallsh.patch
-proper-prototype-for-vty_init.patch
-drivers-misc-lkdtmc-cleanups.patch
-power_supply_ledssysfsc-should-include-power_supplyh.patch
-fs-ecryptfs-possible-cleanups.patch
-make-video-geode-lxfb_corecgeode_modedb-static.patch
-video-hpfbc-section-fix.patch
-ext4-superc-fix-ifdefs.patch
-make-jbd-journalc__journal_abort_hard-static.patch
-move-edactxt-two-levels-up.patch
-remove-documentation-smptxt.patch
-kernel-cgroupc-remove-dead-code.patch
-kernel-cgroupc-make-2-functions-static.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-fix-m32r-__xchg.patch
-reiser4.patch
+x86-show-cpuinfo-only-for-online-cpus.patch
