@@ -1,137 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - raid5-fix-unending-write-sequence.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:09:33 -0800
-Message-ID: <200711152109.lAFL9Xor015460@imap1.linux-foundation.org>
+Subject: - add-ioresouce_busy-flag-for-system-ram.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:09:12 -0800
+Message-ID: <200711152109.lAFL9Cq7015423@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58999 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34980 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932275AbXKOVSP (ORCPT
+	by vger.kernel.org with ESMTP id S932723AbXKOVST (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:18:15 -0500
+	Thu, 15 Nov 2007 16:18:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, joel.bertrand@systella.fr, neilb@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
+To: y-goto@jp.fujitsu.com, mingo@elte.hu, pbadari@us.ibm.com, tglx@linutronix.de, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     raid5: fix unending write sequence
+     Add IORESOUCE_BUSY flag for System RAM
 has been removed from the -mm tree.  Its filename was
-     raid5-fix-unending-write-sequence.patch
+     add-ioresouce_busy-flag-for-system-ram.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: raid5: fix unending write sequence
-From: Dan Williams <dan.j.williams@intel.com>
+Subject: Add IORESOUCE_BUSY flag for System RAM
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-<debug output from Joel's system>
-handling stripe 7629696, state=0x14 cnt=1, pd_idx=2 ops=0:0:0
-check 5: state 0x6 toread 0000000000000000 read 0000000000000000 write fffff800ffcffcc0 written 0000000000000000
-check 4: state 0x6 toread 0000000000000000 read 0000000000000000 write fffff800fdd4e360 written 0000000000000000
-check 3: state 0x1 toread 0000000000000000 read 0000000000000000 write 0000000000000000 written 0000000000000000
-check 2: state 0x1 toread 0000000000000000 read 0000000000000000 write 0000000000000000 written 0000000000000000
-check 1: state 0x6 toread 0000000000000000 read 0000000000000000 write fffff800ff517e40 written 0000000000000000
-check 0: state 0x6 toread 0000000000000000 read 0000000000000000 write fffff800fd4cae60 written 0000000000000000
-locked=4 uptodate=2 to_read=0 to_write=4 failed=0 failed_num=0
-for sector 7629696, rmw=0 rcw=0
-</debug>
+i386 and x86-64 registers System RAM as IORESOURCE_MEM | IORESOURCE_BUSY.
 
-These blocks were prepared to be written out, but were never handled in
-ops_run_biodrain(), so they remain locked forever.  The operations flags
-are all clear which means handle_stripe() thinks nothing else needs to be
-done.
+But ia64 registers it as IORESOURCE_MEM only.
+In addition, memory hotplug code registers new memory as IORESOURCE_MEM too.
 
-This state suggests that the STRIPE_OP_PREXOR bit was sampled 'set' when it
-should not have been.  This patch cleans up cases where the code looks at
-sh->ops.pending when it should be looking at the consistent stack-based
-snapshot of the operations flags.
+This difference causes a failure of memory unplug of x86-64.  This patch
+fixes it.
 
-Report from Joel:
-	Resync done. Patch fix this bug.
+This patch adds IORESOURCE_BUSY to avoid potential overlap mapping by PCI
+device.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Tested-by: Joel Bertrand <joel.bertrand@systella.fr>
-Cc: <stable@kernel.org>
-Cc: Neil Brown <neilb@suse.de>
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Luck, Tony" <tony.luck@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid5.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ arch/ia64/kernel/efi.c |    6 ++----
+ kernel/resource.c      |    2 +-
+ mm/memory_hotplug.c    |    2 +-
+ 3 files changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN drivers/md/raid5.c~raid5-fix-unending-write-sequence drivers/md/raid5.c
---- a/drivers/md/raid5.c~raid5-fix-unending-write-sequence
-+++ a/drivers/md/raid5.c
-@@ -688,7 +688,8 @@ ops_run_prexor(struct stripe_head *sh, s
- }
+diff -puN arch/ia64/kernel/efi.c~add-ioresouce_busy-flag-for-system-ram arch/ia64/kernel/efi.c
+--- a/arch/ia64/kernel/efi.c~add-ioresouce_busy-flag-for-system-ram
++++ a/arch/ia64/kernel/efi.c
+@@ -1113,7 +1113,7 @@ efi_initialize_iomem_resources(struct re
+ 		if (md->num_pages == 0) /* should not happen */
+ 			continue;
  
- static struct dma_async_tx_descriptor *
--ops_run_biodrain(struct stripe_head *sh, struct dma_async_tx_descriptor *tx)
-+ops_run_biodrain(struct stripe_head *sh, struct dma_async_tx_descriptor *tx,
-+		 unsigned long pending)
- {
- 	int disks = sh->disks;
- 	int pd_idx = sh->pd_idx, i;
-@@ -696,7 +697,7 @@ ops_run_biodrain(struct stripe_head *sh,
- 	/* check if prexor is active which means only process blocks
- 	 * that are part of a read-modify-write (Wantprexor)
- 	 */
--	int prexor = test_bit(STRIPE_OP_PREXOR, &sh->ops.pending);
-+	int prexor = test_bit(STRIPE_OP_PREXOR, &pending);
+-		flags = IORESOURCE_MEM;
++		flags = IORESOURCE_MEM | IORESOURCE_BUSY;
+ 		switch (md->type) {
  
- 	pr_debug("%s: stripe %llu\n", __FUNCTION__,
- 		(unsigned long long)sh->sector);
-@@ -773,7 +774,8 @@ static void ops_complete_write(void *str
- }
+ 			case EFI_MEMORY_MAPPED_IO:
+@@ -1135,12 +1135,11 @@ efi_initialize_iomem_resources(struct re
  
- static void
--ops_run_postxor(struct stripe_head *sh, struct dma_async_tx_descriptor *tx)
-+ops_run_postxor(struct stripe_head *sh, struct dma_async_tx_descriptor *tx,
-+		unsigned long pending)
- {
- 	/* kernel stack size limits the total number of disks */
- 	int disks = sh->disks;
-@@ -781,7 +783,7 @@ ops_run_postxor(struct stripe_head *sh, 
+ 			case EFI_ACPI_MEMORY_NVS:
+ 				name = "ACPI Non-volatile Storage";
+-				flags |= IORESOURCE_BUSY;
+ 				break;
  
- 	int count = 0, pd_idx = sh->pd_idx, i;
- 	struct page *xor_dest;
--	int prexor = test_bit(STRIPE_OP_PREXOR, &sh->ops.pending);
-+	int prexor = test_bit(STRIPE_OP_PREXOR, &pending);
- 	unsigned long flags;
- 	dma_async_tx_callback callback;
+ 			case EFI_UNUSABLE_MEMORY:
+ 				name = "reserved";
+-				flags |= IORESOURCE_BUSY | IORESOURCE_DISABLED;
++				flags |= IORESOURCE_DISABLED;
+ 				break;
  
-@@ -808,7 +810,7 @@ ops_run_postxor(struct stripe_head *sh, 
- 	}
+ 			case EFI_RESERVED_TYPE:
+@@ -1149,7 +1148,6 @@ efi_initialize_iomem_resources(struct re
+ 			case EFI_ACPI_RECLAIM_MEMORY:
+ 			default:
+ 				name = "reserved";
+-				flags |= IORESOURCE_BUSY;
+ 				break;
+ 		}
  
- 	/* check whether this postxor is part of a write */
--	callback = test_bit(STRIPE_OP_BIODRAIN, &sh->ops.pending) ?
-+	callback = test_bit(STRIPE_OP_BIODRAIN, &pending) ?
- 		ops_complete_write : ops_complete_postxor;
- 
- 	/* 1/ if we prexor'd then the dest is reused as a source
-@@ -896,12 +898,12 @@ static void raid5_run_ops(struct stripe_
- 		tx = ops_run_prexor(sh, tx);
- 
- 	if (test_bit(STRIPE_OP_BIODRAIN, &pending)) {
--		tx = ops_run_biodrain(sh, tx);
-+		tx = ops_run_biodrain(sh, tx, pending);
- 		overlap_clear++;
- 	}
- 
- 	if (test_bit(STRIPE_OP_POSTXOR, &pending))
--		ops_run_postxor(sh, tx);
-+		ops_run_postxor(sh, tx, pending);
- 
- 	if (test_bit(STRIPE_OP_CHECK, &pending))
- 		ops_run_check(sh);
+diff -puN kernel/resource.c~add-ioresouce_busy-flag-for-system-ram kernel/resource.c
+--- a/kernel/resource.c~add-ioresouce_busy-flag-for-system-ram
++++ a/kernel/resource.c
+@@ -277,7 +277,7 @@ walk_memory_resource(unsigned long start
+ 	int ret = -1;
+ 	res.start = (u64) start_pfn << PAGE_SHIFT;
+ 	res.end = ((u64)(start_pfn + nr_pages) << PAGE_SHIFT) - 1;
+-	res.flags = IORESOURCE_MEM;
++	res.flags = IORESOURCE_MEM | IORESOURCE_BUSY;
+ 	orig_end = res.end;
+ 	while ((res.start < res.end) && (find_next_system_ram(&res) >= 0)) {
+ 		pfn = (unsigned long)(res.start >> PAGE_SHIFT);
+diff -puN mm/memory_hotplug.c~add-ioresouce_busy-flag-for-system-ram mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~add-ioresouce_busy-flag-for-system-ram
++++ a/mm/memory_hotplug.c
+@@ -39,7 +39,7 @@ static struct resource *register_memory_
+ 	res->name = "System RAM";
+ 	res->start = start;
+ 	res->end = start + size - 1;
+-	res->flags = IORESOURCE_MEM;
++	res->flags = IORESOURCE_MEM | IORESOURCE_BUSY;
+ 	if (request_resource(&iomem_resource, res) < 0) {
+ 		printk("System RAM resource %llx - %llx cannot be added\n",
+ 		(unsigned long long)res->start, (unsigned long long)res->end);
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
 
 origin.patch
-git-md-accel.patch
-dca-convert-struct-class_device-to-struct-device.patch
-add-dma-engine-driver-for-freescale-mpc85xx-processors.patch
-add-dma-engine-driver-for-freescale-mpc85xx-processors-fix.patch
-add-dma-engine-driver-for-freescale-mpc85xx-processors-fix-fix.patch
