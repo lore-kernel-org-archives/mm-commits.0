@@ -1,72 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - vmstat-fix-section-mismatch-warning.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:10:44 -0800
-Message-ID: <200711152110.lAFLAiTx015685@imap1.linux-foundation.org>
+Subject: - serial-only-use-pnp-irq-if-its-valid.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:10:16 -0800
+Message-ID: <200711152110.lAFLAG5C015542@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40682 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:54859 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932259AbXKOVSS (ORCPT
+	by vger.kernel.org with ESMTP id S932772AbXKOVSN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:18:18 -0500
+	Thu, 15 Nov 2007 16:18:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, clameter@sgi.com, mm-commits@vger.kernel.org
+To: bjorn.helgaas@hp.com, alan@lxorguk.ukuu.org.uk, luming.yu@gmail.com, luming.yu@intel.com, matthew@wil.cx, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmstat: fix section mismatch warning
+     serial: only use PNP IRQ if it's valid
 has been removed from the -mm tree.  Its filename was
-     vmstat-fix-section-mismatch-warning.patch
+     serial-only-use-pnp-irq-if-its-valid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: vmstat: fix section mismatch warning
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: serial: only use PNP IRQ if it's valid
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Mark start_cpu_timer() as __cpuinit instead of __devinit.
-Fixes this section warning:
+"Luming Yu" <luming.yu@gmail.com> says:
 
-WARNING: vmlinux.o(.text+0x60e53): Section mismatch: reference to .init.text:start_cpu_timer (between 'vmstat_cpuup_callback' and 'vmstat_show')
+  There is a "ttyS1 irq is -1" problem observed on tiger4 which cause the
+  serial port broken.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Christoph Lameter <clameter@sgi.com>
+  It is because that there is __no__ ACPI IRQ resource assigned for the
+  serial port.  So the value of the IRQ for the port is never changed since it
+  got initialized to -1.
+
+If PNP supplies a valid IRQ, use it.  Otherwise, leave port.irq == 0, which
+means "no IRQ" to the serial core.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Yu Luming <luming.yu@intel.com>
+Acked-by: Matthew Wilcox <matthew@wil.cx>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/8250_pnp.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmstat.c~vmstat-fix-section-mismatch-warning mm/vmstat.c
---- a/mm/vmstat.c~vmstat-fix-section-mismatch-warning
-+++ a/mm/vmstat.c
-@@ -803,7 +803,7 @@ static void vmstat_update(struct work_st
- 		sysctl_stat_interval);
- }
+diff -puN drivers/serial/8250_pnp.c~serial-only-use-pnp-irq-if-its-valid drivers/serial/8250_pnp.c
+--- a/drivers/serial/8250_pnp.c~serial-only-use-pnp-irq-if-its-valid
++++ a/drivers/serial/8250_pnp.c
+@@ -439,7 +439,8 @@ serial_pnp_probe(struct pnp_dev *dev, co
+ 	}
  
--static void __devinit start_cpu_timer(int cpu)
-+static void __cpuinit start_cpu_timer(int cpu)
- {
- 	struct delayed_work *vmstat_work = &per_cpu(vmstat_work, cpu);
- 
+ 	memset(&port, 0, sizeof(struct uart_port));
+-	port.irq = pnp_irq(dev, 0);
++	if (pnp_irq_valid(dev, 0))
++		port.irq = pnp_irq(dev, 0);
+ 	if (pnp_port_valid(dev, 0)) {
+ 		port.iobase = pnp_port_start(dev, 0);
+ 		port.iotype = UPIO_PORT;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
 origin.patch
-git-dvb.patch
-git-kbuild.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix-fix.patch
-advansys-fix-section-mismatch-warning.patch
-aic94-fix-section-mismatches.patch
-sym2-fix-section-mismatch-warning.patch
-git-unionfs.patch
-git-ipwireless_cs.patch
-x86-bitops_32h-style-cleanups.patch
-register_cpu-__devinit-or-__cpuinit.patch
-cciss-use-upper_32_bits-macro-to-eliminate-warnings.patch
-move-kprobes-examples-to-samples-resend.patch
-move-kprobes-examples-to-samples-resend-checkpatch-fixes.patch
-fs-menu-small-reorg.patch
-profile-likely-unlikely-macros.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+export-acpi_check_resource_conflict.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+serial-keep-the-dtr-setting-for-serial-console.patch
+rtc-cmos-exports-nvram-in-sysfs.patch
+pnp-simplify-pnp_activate_dev-and-pnp_disable_dev-return-values.patch
+pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch
+dont-touch-fs_struct-in-drivers.patch
