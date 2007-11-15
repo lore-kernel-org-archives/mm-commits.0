@@ -1,70 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - cm40x0_csc-fix-debug-macros.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:08:18 -0800
-Message-ID: <200711152108.lAFL8IDb015347@imap1.linux-foundation.org>
+Subject: - fix-oops-in-toshiba_acpi-error-return-path.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:07:55 -0800
+Message-ID: <200711152107.lAFL7trK015302@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43790 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57506 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933174AbXKOVIj (ORCPT
+	by vger.kernel.org with ESMTP id S1754617AbXKOVIl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:08:39 -0500
+	Thu, 15 Nov 2007 16:08:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pterjan@mandriva.com, laforge@gnumonks.org, mm-commits@vger.kernel.org
+To: arvidjaar@mail.ru, rpurdie@rpsys.net, toshiba_acpi@memebeam.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cm40x0_cs.c: fix debug macros
+     Fix Oops in toshiba_acpi error return path
 has been removed from the -mm tree.  Its filename was
-     cm40x0_csc-fix-debug-macros.patch
+     fix-oops-in-toshiba_acpi-error-return-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cm40x0_cs.c: fix debug macros
-From: Pascal Terjan <pterjan@mandriva.com>
+Subject: Fix Oops in toshiba_acpi error return path
+From: Andrey Borzenkov <arvidjaar@mail.ru>
 
-When PCMCIA_DEBUG is set, cm40x0_cs.c and cm4000_cs.c don't build because the
-definition of reader_to_dev uses a non-existent handle field of the struct
-pcmcia_device in the call to handle_to_dev.  As handle_to_dev works on struct
-pcmcia_device, the fix is quite trivial.
+When backlight_device_register() fails, return after undo initialization, do
+not try to use pointer that just was reset to NULL
 
-Signed-off-by: Pascal Terjan <pterjan@mandriva.com>
-Cc: Harald Welte <laforge@gnumonks.org>
+This fixes this oops:
+
+[ 1595.177672]  [<c010480a>] show_trace_log_lvl+0x1a/0x30
+[ 1595.177706]  [<c01052a2>] show_trace+0x12/0x20
+[ 1595.177718]  [<c0105305>] dump_stack+0x15/0x20
+[ 1595.177728]  [<c01c9375>] kobject_shadow_add+0x125/0x1c0
+[ 1595.177754]  [<c01c941a>] kobject_add+0xa/0x10
+[ 1595.177764]  [<c0239a37>] device_add+0x97/0x5d0
+[ 1595.177776]  [<c0239f82>] device_register+0x12/0x20
+[ 1595.177786]  [<dfd912df>] backlight_device_register+0x9f/0x110 [backlight]
+[ 1595.177814]  [<df861117>] toshiba_acpi_init+0x117/0x15e [toshiba_acpi]
+[ 1595.177834]  [<c013e28d>] sys_init_module+0xfd/0x14e0
+[ 1595.177871]  [<c0104112>] sysenter_past_esp+0x5f/0x99
+[ 1595.177883]  =======================
+[ 1595.177890] Could not register toshiba backlight device
+[ 1595.177985] BUG: unable to handle kernel NULL pointer dereference at 
+virtual address 00000004
+...
+[ 1595.394097] EIP:    0060:[<df861143>]    Not tainted VLI
+[ 1595.394101] EFLAGS: 00010282   (2.6.23-rc9-1avb #24)
+[ 1595.480081] EIP is at toshiba_acpi_init+0x143/0x15e [toshiba_acpi]
+
+Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
+Cc: John Belmonte <toshiba_acpi@memebeam.org>
+Acked-by: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/pcmcia/cm4000_cs.c |    2 +-
- drivers/char/pcmcia/cm4040_cs.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/toshiba_acpi.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/char/pcmcia/cm4000_cs.c~cm40x0_csc-fix-debug-macros drivers/char/pcmcia/cm4000_cs.c
---- a/drivers/char/pcmcia/cm4000_cs.c~cm40x0_csc-fix-debug-macros
-+++ a/drivers/char/pcmcia/cm4000_cs.c
-@@ -47,7 +47,7 @@
- /* #define ATR_CSUM */
+diff -puN drivers/acpi/toshiba_acpi.c~fix-oops-in-toshiba_acpi-error-return-path drivers/acpi/toshiba_acpi.c
+--- a/drivers/acpi/toshiba_acpi.c~fix-oops-in-toshiba_acpi-error-return-path
++++ a/drivers/acpi/toshiba_acpi.c
+@@ -591,9 +591,12 @@ static int __init toshiba_acpi_init(void
+ 						NULL,
+ 						&toshiba_backlight_data);
+         if (IS_ERR(toshiba_backlight_device)) {
++		int ret = PTR_ERR(toshiba_backlight_device);
++
+ 		printk(KERN_ERR "Could not register toshiba backlight device\n");
+ 		toshiba_backlight_device = NULL;
+ 		toshiba_acpi_exit();
++		return ret;
+ 	}
+         toshiba_backlight_device->props.max_brightness = HCI_LCD_BRIGHTNESS_LEVELS - 1;
  
- #ifdef PCMCIA_DEBUG
--#define reader_to_dev(x)	(&handle_to_dev(x->p_dev->handle))
-+#define reader_to_dev(x)	(&handle_to_dev(x->p_dev))
- static int pc_debug = PCMCIA_DEBUG;
- module_param(pc_debug, int, 0600);
- #define DEBUGP(n, rdr, x, args...) do { 				\
-diff -puN drivers/char/pcmcia/cm4040_cs.c~cm40x0_csc-fix-debug-macros drivers/char/pcmcia/cm4040_cs.c
---- a/drivers/char/pcmcia/cm4040_cs.c~cm40x0_csc-fix-debug-macros
-+++ a/drivers/char/pcmcia/cm4040_cs.c
-@@ -41,7 +41,7 @@
- 
- 
- #ifdef PCMCIA_DEBUG
--#define reader_to_dev(x)	(&handle_to_dev(x->p_dev->handle))
-+#define reader_to_dev(x)	(&handle_to_dev(x->p_dev))
- static int pc_debug = PCMCIA_DEBUG;
- module_param(pc_debug, int, 0600);
- #define DEBUGP(n, rdr, x, args...) do { 				\
 _
 
-Patches currently in -mm which might be from pterjan@mandriva.com are
+Patches currently in -mm which might be from arvidjaar@mail.ru are
 
 origin.patch
