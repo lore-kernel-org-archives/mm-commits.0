@@ -1,182 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - crisv32-add-cache-flush-operations.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:12:13 -0800
-Message-ID: <200711152112.lAFLCDCM015846@imap1.linux-foundation.org>
+Subject: - cris-build-fixes-add-baud-rate-defines.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:11:41 -0800
+Message-ID: <200711152111.lAFLBfLu015787@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56654 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:56364 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759439AbXKOVQy (ORCPT
+	by vger.kernel.org with ESMTP id S1759600AbXKOVRB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:16:54 -0500
+	Thu, 15 Nov 2007 16:17:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.nilsson@axis.com, mm-commits@vger.kernel.org
+To: jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CRISv32: add cache flush operations
+     cris build fixes: add baud rate defines
 has been removed from the -mm tree.  Its filename was
-     crisv32-add-cache-flush-operations.patch
+     cris-build-fixes-add-baud-rate-defines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: CRISv32: add cache flush operations
+Subject: cris build fixes: add baud rate defines
 From: Jesper Nilsson <jesper.nilsson@axis.com>
 
-These are needed due to a cache bug, and can be used to make sure that the
-DMA descriptors are flushed to memory and can be safely handled by DMA.
-
-flush_dma_descr - Flush one DMA descriptor.
-flush_dma_list - Flush a complete list of DMA descriptors.
-cris_flush_cache - Flush the complete cache.
-cris_flush_cache_range - Flush only the specified range
+Add missing defines for (unsupported) baud rates.
 
 Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
-
+Acked-by: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v32/kernel/cache.c      |   33 ++++++++
- arch/cris/arch-v32/kernel/cacheflush.S |   94 +++++++++++++++++++++++
- 2 files changed, 127 insertions(+)
+ include/asm-cris/termbits.h |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN /dev/null arch/cris/arch-v32/kernel/cache.c
---- /dev/null
-+++ a/arch/cris/arch-v32/kernel/cache.c
-@@ -0,0 +1,33 @@
-+#include <linux/module.h>
-+#include <asm/io.h>
-+#include <asm/arch/cache.h>
-+#include <asm/arch/hwregs/dma.h>
+diff -puN include/asm-cris/termbits.h~cris-build-fixes-add-baud-rate-defines include/asm-cris/termbits.h
+--- a/include/asm-cris/termbits.h~cris-build-fixes-add-baud-rate-defines
++++ a/include/asm-cris/termbits.h
+@@ -171,6 +171,19 @@ struct ktermios {
+ #define  B115200 0010002
+ #define  B230400 0010003
+ #define  B460800 0010004
 +
-+/* This file is used to workaround a cache bug, Guinness TR 106. */
++/* Unsupported rates, but needed to avoid compile error. */
++#define   B500000 0010005
++#define   B576000 0010006
++#define  B1000000 0010010
++#define  B1152000 0010011
++#define  B1500000 0010012
++#define  B2000000 0010013
++#define  B2500000 0010014
++#define  B3000000 0010015
++#define  B3500000 0010016
++#define  B4000000 0010017
 +
-+inline void flush_dma_descr(struct dma_descr_data *descr, int flush_buf)
-+{
-+	/* Flush descriptor to make sure we get correct in_eop and after. */
-+	asm volatile ("ftagd [%0]" :: "r" (descr));
-+	/* Flush buffer pointed out by descriptor. */
-+	if (flush_buf)
-+		cris_flush_cache_range(phys_to_virt((unsigned)descr->buf),
-+				(unsigned)(descr->after - descr->buf));
-+}
-+EXPORT_SYMBOL(flush_dma_descr);
-+
-+void flush_dma_list(struct dma_descr_data *descr)
-+{
-+	while (1) {
-+		flush_dma_descr(descr, 1);
-+		if (descr->eol)
-+			break;
-+		descr = phys_to_virt((unsigned)descr->next);
-+	}
-+}
-+EXPORT_SYMBOL(flush_dma_list);
-+
-+/* From cacheflush.S */
-+EXPORT_SYMBOL(cris_flush_cache);
-+/* From cacheflush.S */
-+EXPORT_SYMBOL(cris_flush_cache_range);
-diff -puN /dev/null arch/cris/arch-v32/kernel/cacheflush.S
---- /dev/null
-+++ a/arch/cris/arch-v32/kernel/cacheflush.S
-@@ -0,0 +1,94 @@
-+	.global cris_flush_cache_range
-+cris_flush_cache_range:
-+	move.d 1024, $r12
-+	cmp.d $r11, $r12
-+	bhi cris_flush_1KB
-+	nop
-+	add.d $r10, $r11
-+	ftagd [$r10]
-+cris_flush_last:
-+	addq 32, $r10
-+	cmp.d $r11, $r10
-+	blt cris_flush_last
-+	ftagd [$r10]
-+	ret
-+	nop
-+cris_flush_1KB:
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ftagd [$r10]
-+	addq 32, $r10
-+	ba cris_flush_cache_range
-+	sub.d $r12, $r11
-+
-+	.global cris_flush_cache
-+cris_flush_cache:
-+	moveq 0, $r10
-+cris_flush_line:
-+	move.d 16*1024, $r11
-+	addq 16, $r10
-+	cmp.d $r10, $r11
-+	blt cris_flush_line
-+	fidxd [$r10]
-+	ret
-+	nop
+ /* etrax supports these additional three baud rates */
+ #define  B921600   0010005
+ #define  B1843200  0010006
 _
 
 Patches currently in -mm which might be from jesper.nilsson@axis.com are
