@@ -1,148 +1,217 @@
 From: akpm@linux-foundation.org
-Subject: - rtcs-handle-nvram-better.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:08:00 -0800
-Message-ID: <200711152108.lAFL8002015309@imap1.linux-foundation.org>
+Subject: - cris-build-fixes-atomich-needs-compilerh-fix.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:11:35 -0800
+Message-ID: <200711152111.lAFLBZeR015778@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:42029 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41105 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757965AbXKOVQH (ORCPT
+	by vger.kernel.org with ESMTP id S1758873AbXKOVQu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:16:07 -0500
+	Thu, 15 Nov 2007 16:16:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, a.zummo@towertech.it, anemo@mba.ocn.ne.jp, dbrownell@users.sourceforge.net, rongkai.zhan@windriver.com, thomas.hommel@gefanuc.com, tr@newtec.dk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     RTCs: handle NVRAM better
+     cris-build-fixes-atomich-needs-compilerh-fix
 has been removed from the -mm tree.  Its filename was
-     rtcs-handle-nvram-better.patch
+     cris-build-fixes-atomich-needs-compilerh-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: RTCs: handle NVRAM better
-From: David Brownell <david-b@pacbell.net>
+Subject: cris-build-fixes-atomich-needs-compilerh-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Several of the RTC drivers are exporting binary "nvram" files in sysfs.  Such
-NVRAM (or on many systems, EEPROM) data is often initialized during system
-manufacture to hold data about identity (serial numbers, Ethernet addresses,
-etc), configuration, calibration, and so forth.
-
-This patch improves integrity and security of those files:
-
-  - Correctly initializes the size in one of the two cases where
-    that was not yet being done.
-
-  - Improves system security/integrity by making this state not
-    be world-writable by default.
-
-Letting arbitrary userspace code mangle such state by default is at least Not
-A Good Thing; and it could sometimes be worse, depending on the particular
-data that might be corrupted.  (I disregard the paranoiac "don't let anyone
-read it either" approach.  Anyone storing passwords in such memory doesn't
-really care about security.)
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Torsten Ertbjerg Rasmussen <tr@newtec.dk>
-Cc: Mark Zhan <rongkai.zhan@windriver.com>
-Cc: Thomas Hommel <thomas.hommel@gefanuc.com>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1553.c   |    2 +-
- drivers/rtc/rtc-ds1742.c   |    5 ++++-
- drivers/rtc/rtc-m48t59.c   |    3 ++-
- drivers/rtc/rtc-stk17ta8.c |    2 +-
- 4 files changed, 8 insertions(+), 4 deletions(-)
+ include/asm-cris/atomic.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-ds1553.c~rtcs-handle-nvram-better drivers/rtc/rtc-ds1553.c
---- a/drivers/rtc/rtc-ds1553.c~rtcs-handle-nvram-better
-+++ a/drivers/rtc/rtc-ds1553.c
-@@ -291,7 +291,7 @@ static ssize_t ds1553_nvram_write(struct
- static struct bin_attribute ds1553_nvram_attr = {
- 	.attr = {
- 		.name = "nvram",
--		.mode = S_IRUGO | S_IWUGO,
-+		.mode = S_IRUGO | S_IWUSR,
- 	},
- 	.size = RTC_OFFSET,
- 	.read = ds1553_nvram_read,
-diff -puN drivers/rtc/rtc-ds1742.c~rtcs-handle-nvram-better drivers/rtc/rtc-ds1742.c
---- a/drivers/rtc/rtc-ds1742.c~rtcs-handle-nvram-better
-+++ a/drivers/rtc/rtc-ds1742.c
-@@ -160,10 +160,13 @@ static ssize_t ds1742_nvram_write(struct
- static struct bin_attribute ds1742_nvram_attr = {
- 	.attr = {
- 		.name = "nvram",
--		.mode = S_IRUGO | S_IWUGO,
-+		.mode = S_IRUGO | S_IWUSR,
- 	},
- 	.read = ds1742_nvram_read,
- 	.write = ds1742_nvram_write,
-+	/* REVISIT: size in sysfs won't match actual size... if it's
-+	 * not a constant, each RTC should have its own attribute.
-+	 */
- };
+diff -puN include/asm-cris/atomic.h~cris-build-fixes-atomich-needs-compilerh-fix include/asm-cris/atomic.h
+--- a/include/asm-cris/atomic.h~cris-build-fixes-atomich-needs-compilerh-fix
++++ a/include/asm-cris/atomic.h
+@@ -3,9 +3,10 @@
+ #ifndef __ASM_CRIS_ATOMIC__
+ #define __ASM_CRIS_ATOMIC__
  
- static int __devinit ds1742_rtc_probe(struct platform_device *pdev)
-diff -puN drivers/rtc/rtc-m48t59.c~rtcs-handle-nvram-better drivers/rtc/rtc-m48t59.c
---- a/drivers/rtc/rtc-m48t59.c~rtcs-handle-nvram-better
-+++ a/drivers/rtc/rtc-m48t59.c
-@@ -353,11 +353,12 @@ static ssize_t m48t59_nvram_write(struct
- static struct bin_attribute m48t59_nvram_attr = {
- 	.attr = {
- 		.name = "nvram",
--		.mode = S_IRUGO | S_IWUGO,
-+		.mode = S_IRUGO | S_IWUSR,
- 		.owner = THIS_MODULE,
- 	},
- 	.read = m48t59_nvram_read,
- 	.write = m48t59_nvram_write,
-+	.size = M48T59_NVRAM_SIZE,
- };
++#include <linux/compiler.h>
++
+ #include <asm/system.h>
+ #include <asm/arch/atomic.h>
+-#include <linux/compiler.h>
  
- static int __devinit m48t59_rtc_probe(struct platform_device *pdev)
-diff -puN drivers/rtc/rtc-stk17ta8.c~rtcs-handle-nvram-better drivers/rtc/rtc-stk17ta8.c
---- a/drivers/rtc/rtc-stk17ta8.c~rtcs-handle-nvram-better
-+++ a/drivers/rtc/rtc-stk17ta8.c
-@@ -291,7 +291,7 @@ static ssize_t stk17ta8_nvram_write(stru
- static struct bin_attribute stk17ta8_nvram_attr = {
- 	.attr = {
- 		.name = "nvram",
--		.mode = S_IRUGO | S_IWUGO,
-+		.mode = S_IRUGO | S_IWUSR,
- 		.owner = THIS_MODULE,
- 	},
- 	.size = RTC_OFFSET,
+ /*
+  * Atomic operations that C can't guarantee us.  Useful for
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-rtc-dont-write-rtc-century-when-setting-a-wake-alarm.patch
+file-capabilities-allow-sigcont-within-session-v2.patch
+fix-boot-problem-with-iseries-lacking-hugepage-support-fix.patch
+revert-keyspan-init-termios-properly.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
+git-drm-oops-fix.patch
+git-dvb.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+elantech-touchpad-driver-fix.patch
+cscope-build-warning.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+ide-arm-hack.patch
 git-mmc.patch
-usb-s3c2410_udc-minor-irq-handler-cleanups.patch
-usb-device-dma-support-on-omap2.patch
-rtc-convert-mutex-to-bitfield.patch
-drivers-pmc-msp71xx-gpio-char-driver.patch
-remove-pointless-casts-from-void-pointers.patch
-spi-at25-driver-is-for-eeprom-not-flash.patch
-spi-use-mutex-not-semaphore.patch
-blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait.patch
-blackfin-spi-driver-use-void-__iomem-for-regs_base.patch
-blackfin-spi-driver-move-hard-coded-pin_req-to-board-file.patch
-blackfin-spi-driver-reconfigure-speed_hz-and-bits_per_word-in-each-spi-transfer.patch
-cosmetic-fixes-to-rtc-subsystems-kconfig.patch
-rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
-rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
-rtc-cmos-exports-nvram-in-sysfs.patch
-generic-gpio-gpio_chip-support.patch
-generic-gpio-gpio_chip-support-fix.patch
-avr32-uses-gpio_chip.patch
-mcp23s08-spi-gpio-expander.patch
+git-mtd.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+bluetooth-uninlining.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing-fix.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix.patch
+git-nfsd-fixup.patch
+quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
+git-s390.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
+scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+bidi-support-scsi_data_buffer-broke-qla1280.patch
+bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+git-wireless.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-broke-lguest.patch
+git-x86-broke-xen-too.patch
+git-x86-inlining-borkage.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+i386-and-x86_64-randomize-brk-fix.patch
+x86-arch_register_cpu-section-fix.patch
+x86_64-configure-stack-size-fix.patch
+git-cryptodev.patch
+x86-early_quirks-cleanup.patch
+ia64-increase-datapatch-offset.patch
+ia64-dont-assume-that-unwcheckpy-is-executable.patch
+ia64-export-copy_page-to-modules.patch
+ia64-export-copy_page-to-modules-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
+add-64-bit-capability-support-to-the-kernel-fix.patch
+alpha-atomic_add_return-should-return-int.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+sync_sb_inodes-propagate-errors.patch
 mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch
+64-bit-i_version-afs-fixes.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+suppress-aout-library-support-if-config_binfmt_aout-checkpatch-fixes.patch
+usb-net2280-cant-have-a-function-called-checkpatch-fixes.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-ia64-fix.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+w1-build-fix.patch
