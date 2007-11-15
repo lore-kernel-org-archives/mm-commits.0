@@ -1,222 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-configure-stack-size-fix.patch added to -mm tree
-Date: Thu, 15 Nov 2007 12:59:58 -0800
-Message-ID: <200711152059.lAFKxwE3014934@imap1.linux-foundation.org>
+Subject: - rtc_hctosys-expects-rtcs-in-utc-doc.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:07:58 -0800
+Message-ID: <200711152107.lAFL7wU7015305@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48313 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34628 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933135AbXKOVAd (ORCPT
+	by vger.kernel.org with ESMTP id S1764090AbXKOVIV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:00:33 -0500
+	Thu, 15 Nov 2007 16:08:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, clameter@sgi.com, mingo@elte.hu, tglx@linutronix.de, travis@sgi.com
+To: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64-configure-stack-size-fix
-has been added to the -mm tree.  Its filename is
-     x86_64-configure-stack-size-fix.patch
+     rtc_hctosys expects RTCs in UTC (doc)
+has been removed from the -mm tree.  Its filename was
+     rtc_hctosys-expects-rtcs-in-utc-doc.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: x86_64-configure-stack-size-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc_hctosys expects RTCs in UTC (doc)
+From: David Brownell <david-b@pacbell.net>
 
-chase the Kconfig files around the tree
+The RTC "hctosys" mechanism expects that RTC clock will use UTC, not local
+time (e.g.  PST).  Say so in Kconfig and in the kernel message.
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Mike Travis <travis@sgi.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+(Strictly speaking, the RTC clock should be tracking the POSIX epoch.  That's
+not worth going into here.  Goofing timezones means clocks are wrong by many
+hours; the POSIX-v-UTC differences just cost seconds.)
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/rtc/Kconfig   |    4 +++-
+ drivers/rtc/hctosys.c |    4 ++--
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/Kconfig~x86_64-configure-stack-size-fix arch/x86/Kconfig
---- a/arch/x86/Kconfig~x86_64-configure-stack-size-fix
-+++ a/arch/x86/Kconfig
-@@ -365,6 +365,7 @@ endif
- 
- config THREAD_ORDER
- 	int "Kernel stack size (in page order)"
-+	depends on X86_64
- 	default "1"
+diff -puN drivers/rtc/Kconfig~rtc_hctosys-expects-rtcs-in-utc-doc drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc_hctosys-expects-rtcs-in-utc-doc
++++ a/drivers/rtc/Kconfig
+@@ -36,7 +36,9 @@ config RTC_HCTOSYS_DEVICE
  	help
- 	  Page order for the thread stack.
+ 	  The RTC device that will be used to (re)initialize the system
+ 	  clock, usually rtc0.  Initialization is done when the system
+-	  starts up, and when it resumes from a low power state.
++	  starts up, and when it resumes from a low power state.  This
++	  device should record time in UTC, since the kernel won't do
++	  timezone correction.
+ 
+ 	  The driver for this RTC device must be loaded before late_initcall
+ 	  functions run, so it must usually be statically linked.
+diff -puN drivers/rtc/hctosys.c~rtc_hctosys-expects-rtcs-in-utc-doc drivers/rtc/hctosys.c
+--- a/drivers/rtc/hctosys.c~rtc_hctosys-expects-rtcs-in-utc-doc
++++ a/drivers/rtc/hctosys.c
+@@ -47,8 +47,8 @@ static int __init rtc_hctosys(void)
+ 			do_settimeofday(&tv);
+ 
+ 			dev_info(rtc->dev.parent,
+-				"setting the system clock to "
+-				"%d-%02d-%02d %02d:%02d:%02d (%u)\n",
++				"setting system clock to "
++				"%d-%02d-%02d %02d:%02d:%02d UTC (%u)\n",
+ 				tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+ 				tm.tm_hour, tm.tm_min, tm.tm_sec,
+ 				(unsigned int) tv.tv_sec);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-file-capabilities-allow-sigcont-within-session-v2.patch
-fix-boot-problem-with-iseries-lacking-hugepage-support-fix.patch
-revert-keyspan-init-termios-properly.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
-git-drm-oops-fix.patch
-git-dvb.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-cscope-build-warning.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-ide-arm-hack.patch
+rtc-dont-write-rtc-century-when-setting-a-wake-alarm.patch
 git-mmc.patch
-git-mtd.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing-fix.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix.patch
-git-nfsd-fixup.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-git-s390.patch
-fix-build-breakage-if-sysfs-fix.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-bidi-support-scsi_data_buffer-broke-qla1280.patch
-bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-broke-lguest.patch
-git-x86-broke-xen-too.patch
-git-x86-inlining-borkage.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-x86-arch_register_cpu-section-fix.patch
-x86_64-configure-stack-size-fix.patch
-git-cryptodev.patch
-x86-early_quirks-cleanup.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-ia64-export-copy_page-to-modules-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-sync_sb_inodes-propagate-errors.patch
+usb-s3c2410_udc-minor-irq-handler-cleanups.patch
+usb-device-dma-support-on-omap2.patch
+rtc-convert-mutex-to-bitfield.patch
+drivers-pmc-msp71xx-gpio-char-driver.patch
+remove-pointless-casts-from-void-pointers.patch
+spi-at25-driver-is-for-eeprom-not-flash.patch
+spi-use-mutex-not-semaphore.patch
+blackfin-spi-driver-use-cpu_relax-to-replace-continue-in-while-busywait.patch
+blackfin-spi-driver-use-void-__iomem-for-regs_base.patch
+blackfin-spi-driver-move-hard-coded-pin_req-to-board-file.patch
+blackfin-spi-driver-reconfigure-speed_hz-and-bits_per_word-in-each-spi-transfer.patch
+cosmetic-fixes-to-rtc-subsystems-kconfig.patch
+rtc-pcf8583-dont-abuse-i2c_m_nostart.patch
+rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
+rtc-cmos-exports-nvram-in-sysfs.patch
+generic-gpio-gpio_chip-support.patch
+generic-gpio-gpio_chip-support-fix.patch
+avr32-uses-gpio_chip.patch
+mcp23s08-spi-gpio-expander.patch
 mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-suppress-aout-library-support-if-config_binfmt_aout-checkpatch-fixes.patch
-usb-net2280-cant-have-a-function-called-checkpatch-fixes.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-ia64-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-w1-build-fix.patch
+pnp-request-ioport-and-iomem-resources-used-by-active-devices.patch
