@@ -1,55 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - git-acpi-fixup.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 12:50:09 -0800
-Message-ID: <200711152050.lAFKo9Ho014492@imap1.linux-foundation.org>
+Subject: + x86_64-configure-stack-size-fix.patch added to -mm tree
+Date: Thu, 15 Nov 2007 12:59:58 -0800
+Message-ID: <200711152059.lAFKxwE3014934@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45574 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48313 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932118AbXKOUuM (ORCPT
+	by vger.kernel.org with ESMTP id S933135AbXKOVAd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 15:50:12 -0500
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lAFKoAx3030506
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2007 12:50:11 -0800
+	Thu, 15 Nov 2007 16:00:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, ak@suse.de, clameter@sgi.com, mingo@elte.hu, tglx@linutronix.de, travis@sgi.com
 
 
 The patch titled
-     git-acpi-fixup
-has been removed from the -mm tree.  Its filename was
-     git-acpi-fixup.patch
+     x86_64-configure-stack-size-fix
+has been added to the -mm tree.  Its filename is
+     x86_64-configure-stack-size-fix.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-acpi-fixup
+Subject: x86_64-configure-stack-size-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+chase the Kconfig files around the tree
+
+Cc: Andi Kleen <ak@suse.de>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Mike Travis <travis@sgi.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/battery.c |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/x86/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/acpi/battery.c~git-acpi-fixup drivers/acpi/battery.c
---- a/drivers/acpi/battery.c~git-acpi-fixup
-+++ a/drivers/acpi/battery.c
-@@ -142,11 +142,7 @@ static int acpi_battery_get_property(str
+diff -puN arch/x86/Kconfig~x86_64-configure-stack-size-fix arch/x86/Kconfig
+--- a/arch/x86/Kconfig~x86_64-configure-stack-size-fix
++++ a/arch/x86/Kconfig
+@@ -365,6 +365,7 @@ endif
  
- 	if (acpi_battery_present(battery)) {
- 		/* run battery update only if it is present */
--<<<<<<< HEAD:drivers/acpi/battery.c
--		acpi_battery_get_state(battery);
--=======
- 		acpi_battery_update(battery);
-->>>>>>> FETCH_HEAD:drivers/acpi/battery.c
- 	} else if (psp != POWER_SUPPLY_PROP_PRESENT)
- 		return -ENODEV;
- 	switch (psp) {
+ config THREAD_ORDER
+ 	int "Kernel stack size (in page order)"
++	depends on X86_64
+ 	default "1"
+ 	help
+ 	  Page order for the thread stack.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -61,7 +64,6 @@ revert-keyspan-init-termios-properly.patch
 get_task_comm-return-the-result.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-git-acpi-fixup.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
 acpi-add-reboot-mechanism.patch
 small-acpica-extension-to-be-able-to-store-the-name-of.patch
@@ -69,7 +71,8 @@ git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
 agk-dm-dm-ioctl-move-compat-code-fix.patch
-git-powerpc-galak.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
 git-drm-oops-fix.patch
 git-dvb.patch
 ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
@@ -110,6 +113,7 @@ git-x86-inlining-borkage.patch
 oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
 i386-and-x86_64-randomize-brk-fix.patch
 x86-arch_register_cpu-section-fix.patch
+x86_64-configure-stack-size-fix.patch
 git-cryptodev.patch
 x86-early_quirks-cleanup.patch
 ia64-increase-datapatch-offset.patch
