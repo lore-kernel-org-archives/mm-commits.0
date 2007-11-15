@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits.patch added to -mm tree
-Date: Thu, 15 Nov 2007 14:05:31 -0800
-Message-ID: <200711152205.lAFM5V5i018101@imap1.linux-foundation.org>
+Subject: + iommu-sg-merging-sata_inic162x-use-pci_set_dma_max_seg_size.patch added to -mm tree
+Date: Thu, 15 Nov 2007 14:05:37 -0800
+Message-ID: <200711152205.lAFM5bAe018113@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59472 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36816 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764677AbXKOWT3 (ORCPT
+	by vger.kernel.org with ESMTP id S932259AbXKOWUE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 17:19:29 -0500
+	Thu, 15 Nov 2007 17:20:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tomof@acm.org, James.Bottomley@steeleye.com, davem@davemloft.net, fujita.tomonori@lab.ntt.co.jp, jeff@garzik.org, jens.axboe@oracle.com
+Cc: tomof@acm.org, James.Bottomley@steeleye.com, fujita.tomonori@lab.ntt.co.jp, jeff@garzik.org, jens.axboe@oracle.com
 
 
 The patch titled
-     iommu sg merging: sparc64: make iommu respect the segment size limits
+     iommu sg merging: sata_inic162x: use pci_set_dma_max_seg_size
 has been added to the -mm tree.  Its filename is
-     iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits.patch
+     iommu-sg-merging-sata_inic162x-use-pci_set_dma_max_seg_size.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,105 +26,71 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: iommu sg merging: sparc64: make iommu respect the segment size limits
+Subject: iommu sg merging: sata_inic162x: use pci_set_dma_max_seg_size
 From: FUJITA Tomonori <tomof@acm.org>
 
-This patch makes iommu respect segment size limits when merging sg
-lists.
+This sets the segment size limit properly via pci_set_dma_max_seg_size
+and remove blk_queue_max_segment_size because scsi-ml calls it.
 
 Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Cc: Jeff Garzik <jeff@garzik.org>
 Cc: James Bottomley <James.Bottomley@steeleye.com>
 Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc64/kernel/iommu.c        |    2 +-
- arch/sparc64/kernel/iommu_common.c |    8 ++++++--
- arch/sparc64/kernel/iommu_common.h |    3 ++-
- arch/sparc64/kernel/pci_sun4v.c    |    2 +-
- 4 files changed, 10 insertions(+), 5 deletions(-)
+ drivers/ata/sata_inic162x.c |   25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
-diff -puN arch/sparc64/kernel/iommu.c~iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits arch/sparc64/kernel/iommu.c
---- a/arch/sparc64/kernel/iommu.c~iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits
-+++ a/arch/sparc64/kernel/iommu.c
-@@ -580,7 +580,7 @@ static int dma_4u_map_sg(struct device *
+diff -puN drivers/ata/sata_inic162x.c~iommu-sg-merging-sata_inic162x-use-pci_set_dma_max_seg_size drivers/ata/sata_inic162x.c
+--- a/drivers/ata/sata_inic162x.c~iommu-sg-merging-sata_inic162x-use-pci_set_dma_max_seg_size
++++ a/drivers/ata/sata_inic162x.c
+@@ -108,17 +108,6 @@ struct inic_port_priv {
+ 	u8	cached_pirq_mask;
+ };
  
- 	/* Step 1: Prepare scatter list. */
+-static int inic_slave_config(struct scsi_device *sdev)
+-{
+-	/* This controller is braindamaged.  dma_boundary is 0xffff
+-	 * like others but it will lock up the whole machine HARD if
+-	 * 65536 byte PRD entry is fed.  Reduce maximum segment size.
+-	 */
+-	blk_queue_max_segment_size(sdev->request_queue, 65536 - 512);
+-
+-	return ata_scsi_slave_config(sdev);
+-}
+-
+ static struct scsi_host_template inic_sht = {
+ 	.module			= THIS_MODULE,
+ 	.name			= DRV_NAME,
+@@ -132,7 +121,7 @@ static struct scsi_host_template inic_sh
+ 	.use_clustering		= ATA_SHT_USE_CLUSTERING,
+ 	.proc_name		= DRV_NAME,
+ 	.dma_boundary		= ATA_DMA_BOUNDARY,
+-	.slave_configure	= inic_slave_config,
++	.slave_configure	= ata_scsi_slave_config,
+ 	.slave_destroy		= ata_scsi_slave_destroy,
+ 	.bios_param		= ata_std_bios_param,
+ };
+@@ -730,6 +719,18 @@ static int inic_init_one(struct pci_dev 
+ 		return rc;
+ 	}
  
--	npages = prepare_sg(sglist, nelems);
-+	npages = prepare_sg(dev, sglist, nelems);
- 
- 	/* Step 2: Allocate a cluster and context, if necessary. */
- 
-diff -puN arch/sparc64/kernel/iommu_common.c~iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits arch/sparc64/kernel/iommu_common.c
---- a/arch/sparc64/kernel/iommu_common.c~iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits
-+++ a/arch/sparc64/kernel/iommu_common.c
-@@ -4,6 +4,7 @@
-  * Copyright (C) 1999 David S. Miller (davem@redhat.com)
-  */
- 
-+#include <linux/dma-mapping.h>
- #include "iommu_common.h"
- 
- /* You are _strongly_ advised to enable the following debugging code
-@@ -201,21 +202,24 @@ void verify_sglist(struct scatterlist *s
- }
- #endif
- 
--unsigned long prepare_sg(struct scatterlist *sg, int nents)
-+unsigned long prepare_sg(struct device *dev, struct scatterlist *sg, int nents)
- {
- 	struct scatterlist *dma_sg = sg;
- 	unsigned long prev;
- 	u32 dent_addr, dent_len;
-+	unsigned int max_seg_size;
- 
- 	prev  = (unsigned long) sg_virt(sg);
- 	prev += (unsigned long) (dent_len = sg->length);
- 	dent_addr = (u32) ((unsigned long)(sg_virt(sg)) & (IO_PAGE_SIZE - 1UL));
-+	max_seg_size = dma_get_max_seg_size(dev);
- 	while (--nents) {
- 		unsigned long addr;
- 
- 		sg = sg_next(sg);
- 		addr = (unsigned long) sg_virt(sg);
--		if (! VCONTIG(prev, addr)) {
-+		if (! VCONTIG(prev, addr) ||
-+			dent_len + sg->length > max_seg_size) {
- 			dma_sg->dma_address = dent_addr;
- 			dma_sg->dma_length = dent_len;
- 			dma_sg = sg_next(dma_sg);
-diff -puN arch/sparc64/kernel/iommu_common.h~iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits arch/sparc64/kernel/iommu_common.h
---- a/arch/sparc64/kernel/iommu_common.h~iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits
-+++ a/arch/sparc64/kernel/iommu_common.h
-@@ -9,6 +9,7 @@
- #include <linux/sched.h>
- #include <linux/mm.h>
- #include <linux/scatterlist.h>
-+#include <linux/device.h>
- 
- #include <asm/iommu.h>
- #include <asm/scatterlist.h>
-@@ -46,4 +47,4 @@ extern void verify_sglist(struct scatter
- #define VCONTIG(__X, __Y)	(((__X) == (__Y)) || \
- 				 (((__X) | (__Y)) << (64UL - PAGE_SHIFT)) == 0UL)
- 
--extern unsigned long prepare_sg(struct scatterlist *sg, int nents);
-+extern unsigned long prepare_sg(struct device *dev, struct scatterlist *sg, int nents);
-diff -puN arch/sparc64/kernel/pci_sun4v.c~iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits arch/sparc64/kernel/pci_sun4v.c
---- a/arch/sparc64/kernel/pci_sun4v.c~iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits
-+++ a/arch/sparc64/kernel/pci_sun4v.c
-@@ -490,7 +490,7 @@ static int dma_4v_map_sg(struct device *
- 		goto bad;
- 
- 	/* Step 1: Prepare scatter list. */
--	npages = prepare_sg(sglist, nelems);
-+	npages = prepare_sg(dev, sglist, nelems);
- 
- 	/* Step 2: Allocate a cluster and context, if necessary. */
- 	spin_lock_irqsave(&iommu->lock, flags);
++	/*
++	 * This controller is braindamaged.  dma_boundary is 0xffff
++	 * like others but it will lock up the whole machine HARD if
++	 * 65536 byte PRD entry is fed. Reduce maximum segment size.
++	 */
++	rc = pci_set_dma_max_seg_size(pdev, 65536 - 512);
++	if (rc) {
++		dev_printk(KERN_ERR, &pdev->dev,
++			   "failed to set the maximum segment size.\n");
++		return rc;
++	}
++
+ 	rc = init_controller(iomap[MMIO_BAR], hpriv->cached_hctl);
+ 	if (rc) {
+ 		dev_printk(KERN_ERR, &pdev->dev,
 _
 
 Patches currently in -mm which might be from tomof@acm.org are
