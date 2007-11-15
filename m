@@ -1,87 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - crisv10-fix-timer-interrupt-parameters.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:12:08 -0800
-Message-ID: <200711152112.lAFLC82J015840@imap1.linux-foundation.org>
+Subject: - cris-build-fixes-irq-fixes.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:11:37 -0800
+Message-ID: <200711152111.lAFLBbq1015781@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52121 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53517 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760560AbXKOVRG (ORCPT
+	by vger.kernel.org with ESMTP id S1759565AbXKOVRE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:17:06 -0500
+	Thu, 15 Nov 2007 16:17:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.nilsson@axis.com, mikael.starvik@axis.com, mm-commits@vger.kernel.org
+To: jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CRISv10: fix timer interrupt parameters
+     cris build fixes: irq fixes
 has been removed from the -mm tree.  Its filename was
-     crisv10-fix-timer-interrupt-parameters.patch
+     cris-build-fixes-irq-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: CRISv10: fix timer interrupt parameters
+Subject: cris build fixes: irq fixes
 From: Jesper Nilsson <jesper.nilsson@axis.com>
 
-Fix timer interrupt parameters for CRIS v10.
-
-- irq_handler_t only takes two arguments, use get_irq_regs to get
-  regs for profiling.
-- Call update_process_times.
-- Remove CVS tag.
+- New file include/asm-cris/irq_regs.h.
+- Change handling of registers for do_IRQ.
+- Add GENERIC_HARDIRQS to Kconfig.
 
 Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Mikael Starvik <mikael.starvik@axis.com>
+Acked-by: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/kernel/time.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ arch/cris/Kconfig      |    4 ++++
+ arch/cris/kernel/irq.c |    6 ++++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN arch/cris/arch-v10/kernel/time.c~crisv10-fix-timer-interrupt-parameters arch/cris/arch-v10/kernel/time.c
---- a/arch/cris/arch-v10/kernel/time.c~crisv10-fix-timer-interrupt-parameters
-+++ a/arch/cris/arch-v10/kernel/time.c
-@@ -1,5 +1,4 @@
--/* $Id: time.c,v 1.5 2004/09/29 06:12:46 starvik Exp $
-- *
-+/*
-  *  linux/arch/cris/arch-v10/kernel/time.c
-  *
-  *  Copyright (C) 1991, 1992, 1995  Linus Torvalds
-@@ -20,6 +19,7 @@
- #include <asm/io.h>
- #include <asm/delay.h>
- #include <asm/rtc.h>
-+#include <asm/irq_regs.h>
+diff -puN arch/cris/Kconfig~cris-build-fixes-irq-fixes arch/cris/Kconfig
+--- a/arch/cris/Kconfig~cris-build-fixes-irq-fixes
++++ a/arch/cris/Kconfig
+@@ -57,6 +57,10 @@ menu "General setup"
  
- /* define this if you need to use print_timestamp */
- /* it will make jiffies at 96 hz instead of 100 hz though */
-@@ -201,8 +201,9 @@ static long last_rtc_update = 0;
- extern void cris_do_profile(struct pt_regs *regs);
+ source "fs/Kconfig.binfmt"
  
- static inline irqreturn_t
--timer_interrupt(int irq, void *dev_id, struct pt_regs *regs)
-+timer_interrupt(int irq, void *dev_id)
- {
-+	struct pt_regs *regs = get_irq_regs();
- 	/* acknowledge the timer irq */
- 
- #ifdef USE_CASCADE_TIMERS
-@@ -221,9 +222,11 @@ timer_interrupt(int irq, void *dev_id, s
- #endif
- 
- 	/* reset watchdog otherwise it resets us! */
--
- 	reset_watchdog();
- 	
-+	/* Update statistics. */
-+	update_process_times(user_mode(regs));
++config GENERIC_HARDIRQS
++	bool
++	default y
 +
- 	/* call the real timer interrupt handler */
+ config ETRAX_CMDLINE
+ 	string "Kernel command line"
+ 	default "root=/dev/mtdblock3"
+diff -puN arch/cris/kernel/irq.c~cris-build-fixes-irq-fixes arch/cris/kernel/irq.c
+--- a/arch/cris/kernel/irq.c~cris-build-fixes-irq-fixes
++++ a/arch/cris/kernel/irq.c
+@@ -2,7 +2,7 @@
+  *
+  *	linux/arch/cris/kernel/irq.c
+  *
+- *      Copyright (c) 2000,2001 Axis Communications AB
++ *      Copyright (c) 2000,2007 Axis Communications AB
+  *
+  *      Authors: Bjorn Wesen (bjornw@axis.com)
+  *
+@@ -92,14 +92,16 @@ skip:
+ asmlinkage void do_IRQ(int irq, struct pt_regs * regs)
+ {
+ 	unsigned long sp;
++	struct pt_regs *old_regs = set_irq_regs(regs);
+ 	irq_enter();
+ 	sp = rdsp();
+ 	if (unlikely((sp & (PAGE_SIZE - 1)) < (PAGE_SIZE/8))) {
+ 		printk("do_IRQ: stack overflow: %lX\n", sp);
+ 		show_stack(NULL, (unsigned long *)sp);
+ 	}
+-	__do_IRQ(irq, regs);
++	__do_IRQ(irq);
+         irq_exit();
++	set_irq_regs(old_regs);
+ }
  
- 	do_timer(1);
+ void weird_irq(void)
 _
 
 Patches currently in -mm which might be from jesper.nilsson@axis.com are
