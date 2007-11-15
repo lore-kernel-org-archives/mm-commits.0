@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + config_highpte-vs-sub-page-page-tables-fix-2.patch added to -mm tree
-Date: Thu, 15 Nov 2007 15:17:16 -0800
-Message-ID: <200711152317.lAFNHGof020988@imap1.linux-foundation.org>
+Subject: + pm-qos-remove-locks-around-blocking-notifier.patch added to -mm tree
+Date: Thu, 15 Nov 2007 15:21:48 -0800
+Message-ID: <200711152321.lAFNLmwf021149@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41798 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58365 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756455AbXKOXR6 (ORCPT
+	by vger.kernel.org with ESMTP id S1750956AbXKOXWm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 18:17:58 -0500
+	Thu, 15 Nov 2007 18:22:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl, benh@kernel.crashing.org, schwidefsky@de.ibm.com
+Cc: mgross@linux.intel.com, abelay@novell.com, arjan@infradead.org, lenb@kernel.org, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     parisc: balance parenthesis in pte_free_kernel()
+     pm-qos-remove-locks-around-blocking-notifier
 has been added to the -mm tree.  Its filename is
-     config_highpte-vs-sub-page-page-tables-fix-2.patch
+     pm-qos-remove-locks-around-blocking-notifier.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,130 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: parisc: balance parenthesis in pte_free_kernel()
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: pm-qos-remove-locks-around-blocking-notifier
+From: mark gross <mgross@linux.intel.com>
 
-Another parenthesis fix.
+Remove spin locking around all blocking notifier calls that can sleep.
+I had to re-structure some of the code to avoid locking issues.
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: mark gross <mgross@linux.intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Adam Belay <abelay@novell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-parisc/pgalloc.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/pm_qos_params.c |   27 ++++++++++++---------------
+ 1 file changed, 12 insertions(+), 15 deletions(-)
 
-diff -puN include/asm-parisc/pgalloc.h~config_highpte-vs-sub-page-page-tables-fix-2 include/asm-parisc/pgalloc.h
---- a/include/asm-parisc/pgalloc.h~config_highpte-vs-sub-page-page-tables-fix-2
-+++ a/include/asm-parisc/pgalloc.h
-@@ -141,7 +141,7 @@ static inline void pte_free_kernel(struc
- static inline void pte_free_kernel(struct mm_struct *mm, struct page *pte)
- {
- 	pgtable_page_dtor(pte);
--	pte_free_kernel(page_address((pte));
-+	pte_free_kernel(page_address(pte));
+diff -puN kernel/pm_qos_params.c~pm-qos-remove-locks-around-blocking-notifier kernel/pm_qos_params.c
+--- a/kernel/pm_qos_params.c~pm-qos-remove-locks-around-blocking-notifier
++++ a/kernel/pm_qos_params.c
+@@ -135,13 +135,14 @@ static s32 min_compare(s32 v1, s32 v2)
  }
  
- #define check_pgt_cache()	do { } while (0)
+ 
+-
+-/* assumes pm_qos_lock is held */
+ static void update_target(int target)
+ {
+ 	s32 extreme_value;
+ 	struct requirement_list *node;
++	unsigned long flags;
++	int call_notifier = 0;
+ 
++	spin_lock_irqsave(&pm_qos_lock, flags);
+ 	extreme_value = pm_qos_array[target]->default_value;
+ 	list_for_each_entry(node,
+ 			&pm_qos_array[target]->requirements.list, list) {
+@@ -149,13 +150,16 @@ static void update_target(int target)
+ 				extreme_value, node->value);
+ 	}
+ 	if (pm_qos_array[target]->target_value != extreme_value) {
++		call_notifier = 1;
+ 		pm_qos_array[target]->target_value = extreme_value;
+ 		pr_debug(KERN_ERR "new target for qos %d is %d\n", target,
+ 			pm_qos_array[target]->target_value);
+-		blocking_notifier_call_chain(pm_qos_array[target]->notifiers,
+-			(unsigned long) pm_qos_array[target]->target_value,
+-						NULL);
+ 	}
++	spin_unlock_irqrestore(&pm_qos_lock, flags);
++
++	if (call_notifier)
++		blocking_notifier_call_chain(pm_qos_array[target]->notifiers,
++			(unsigned long) extreme_value, NULL);
+ }
+ 
+ static int register_pm_qos_misc(struct pm_qos_object *qos)
+@@ -227,8 +231,8 @@ int pm_qos_add_requirement(int pm_qos_cl
+ 		spin_lock_irqsave(&pm_qos_lock, flags);
+ 		list_add(&dep->list,
+ 			&pm_qos_array[pm_qos_class]->requirements.list);
+-		update_target(pm_qos_class);
+ 		spin_unlock_irqrestore(&pm_qos_lock, flags);
++		update_target(pm_qos_class);
+ 
+ 		return 0;
+ 	}
+@@ -269,11 +273,10 @@ int pm_qos_update_requirement(int pm_qos
+ 			break;
+ 		}
+ 	}
++	spin_unlock_irqrestore(&pm_qos_lock, flags);
+ 	if (pending_update)
+ 		update_target(pm_qos_class);
+ 
+-	spin_unlock_irqrestore(&pm_qos_lock, flags);
+-
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(pm_qos_update_requirement);
+@@ -303,9 +306,9 @@ void pm_qos_remove_requirement(int pm_qo
+ 			break;
+ 		}
+ 	}
++	spin_unlock_irqrestore(&pm_qos_lock, flags);
+ 	if (pending_update)
+ 		update_target(pm_qos_class);
+-	spin_unlock_irqrestore(&pm_qos_lock, flags);
+ }
+ EXPORT_SYMBOL_GPL(pm_qos_remove_requirement);
+ 
+@@ -319,13 +322,10 @@ EXPORT_SYMBOL_GPL(pm_qos_remove_requirem
+  */
+  int pm_qos_add_notifier(int pm_qos_class, struct notifier_block *notifier)
+ {
+-	unsigned long flags;
+ 	int retval;
+ 
+-	spin_lock_irqsave(&pm_qos_lock, flags);
+ 	retval = blocking_notifier_chain_register(
+ 			pm_qos_array[pm_qos_class]->notifiers, notifier);
+-	spin_unlock_irqrestore(&pm_qos_lock, flags);
+ 
+ 	return retval;
+ }
+@@ -341,13 +341,10 @@ EXPORT_SYMBOL_GPL(pm_qos_add_notifier);
+  */
+ int pm_qos_remove_notifier(int pm_qos_class, struct notifier_block *notifier)
+ {
+-	unsigned long flags;
+ 	int retval;
+ 
+-	spin_lock_irqsave(&pm_qos_lock, flags);
+ 	retval = blocking_notifier_chain_unregister(
+ 			pm_qos_array[pm_qos_class]->notifiers, notifier);
+-	spin_unlock_irqrestore(&pm_qos_lock, flags);
+ 
+ 	return retval;
+ }
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from mgross@linux.intel.com are
 
-git-mmc.patch
-config_highpte-vs-sub-page-page-tables-fix-2.patch
-reiser4.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+pm-qos-remove-locks-around-blocking-notifier.patch
+latencyc-use-qos-infrastructure.patch
