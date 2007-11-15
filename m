@@ -1,90 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: - rd-fix-data-corruption-on-memory-pressure.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:10:28 -0800
-Message-ID: <200711152110.lAFLASEA015565@imap1.linux-foundation.org>
+Subject: - hugetlb-fix-quota-management-for-private-mappings.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:09:39 -0800
+Message-ID: <200711152109.lAFL9dd5015471@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48246 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44955 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932637AbXKOVRi (ORCPT
+	by vger.kernel.org with ESMTP id S932785AbXKOVST (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:17:38 -0500
+	Thu, 15 Nov 2007 16:18:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: borntraeger@de.ibm.com, ebiederm@xmission.com, npiggin@suse.de, mm-commits@vger.kernel.org
+To: agl@us.ibm.com, apw@shadowen.org, haveblue@us.ibm.com, hermes@gibson.dropbear.id.au, kenchen@google.com, wli@holomorphy.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rd: fix data corruption on memory pressure
+     hugetlb: fix quota management for private mappings
 has been removed from the -mm tree.  Its filename was
-     rd-fix-data-corruption-on-memory-pressure.patch
+     hugetlb-fix-quota-management-for-private-mappings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: rd: fix data corruption on memory pressure
-From: Christian Borntraeger <borntraeger@de.ibm.com>
+Subject: hugetlb: fix quota management for private mappings
+From: Adam Litke <agl@us.ibm.com>
 
-We have seen ramdisk based install systems, where some pages of mapped
-libraries and programs were suddendly zeroed under memory pressure.  This
-should not happen, as the ramdisk avoids freeing its pages by keeping them
-dirty all the time.
+The hugetlbfs quota management system was never taught to handle MAP_PRIVATE
+mappings when that support was added.  Currently, quota is debited at page
+instantiation and credited at file truncation.  This approach works correctly
+for shared pages but is incomplete for private pages.  In addition to
+hugetlb_no_page(), private pages can be instantiated by hugetlb_cow(); but
+this function does not respect quotas.
 
-It turns out that there is a case, where the VM makes a ramdisk page clean,
-without telling the ramdisk driver.  On memory pressure shrink_zone runs
-and it starts to run shrink_active_list.  There is a check for
-buffer_heads_over_limit, and if true, pagevec_strip is called. 
-pagevec_strip calls try_to_release_page.  If the mapping has no releasepage
-callback, try_to_free_buffers is called.  try_to_free_buffers has now a
-special logic for some file systems to make a dirty page clean, if all
-buffers are clean.  Thats what happened in our test case.
+Private huge pages are treated very much like normal, anonymous pages.  They
+are not "backed" by the hugetlbfs file and are not stored in the mapping's
+radix tree.  This means that private pages are invisible to
+truncate_hugepages() so that function will not credit the quota.
 
-The simplest solution is to provide a noop-releasepage callback for the
-ramdisk driver.  This avoids try_to_free_buffers for ramdisk pages.
+This patch (based on a prototype provided by Ken Chen) moves quota crediting
+for all pages into free_huge_page().  page->private is used to store a pointer
+to the mapping to which this page belongs.  This is used to credit quota on
+the appropriate hugetlbfs instance.
 
-Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
-Acked-by: Nick Piggin <npiggin@suse.de>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Adam Litke <agl@us.ibm.com>
+Cc: Ken Chen <kenchen@google.com>
+Cc: Ken Chen <kenchen@google.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: David Gibson <hermes@gibson.dropbear.id.au>
+Cc: William Lee Irwin III <wli@holomorphy.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/rd.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ fs/hugetlbfs/inode.c |    1 -
+ mm/hugetlb.c         |   13 ++++++++++---
+ 2 files changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN drivers/block/rd.c~rd-fix-data-corruption-on-memory-pressure drivers/block/rd.c
---- a/drivers/block/rd.c~rd-fix-data-corruption-on-memory-pressure
-+++ a/drivers/block/rd.c
-@@ -189,6 +189,18 @@ static int ramdisk_set_page_dirty(struct
- 	return 0;
+diff -puN fs/hugetlbfs/inode.c~hugetlb-fix-quota-management-for-private-mappings fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~hugetlb-fix-quota-management-for-private-mappings
++++ a/fs/hugetlbfs/inode.c
+@@ -364,7 +364,6 @@ static void truncate_hugepages(struct in
+ 			++next;
+ 			truncate_huge_page(page);
+ 			unlock_page(page);
+-			hugetlb_put_quota(mapping);
+ 			freed++;
+ 		}
+ 		huge_pagevec_release(&pvec);
+diff -puN mm/hugetlb.c~hugetlb-fix-quota-management-for-private-mappings mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-fix-quota-management-for-private-mappings
++++ a/mm/hugetlb.c
+@@ -116,7 +116,9 @@ static void update_and_free_page(struct 
+ static void free_huge_page(struct page *page)
+ {
+ 	int nid = page_to_nid(page);
++	struct address_space *mapping;
+ 
++	mapping = (struct address_space *) page_private(page);
+ 	BUG_ON(page_count(page));
+ 	INIT_LIST_HEAD(&page->lru);
+ 
+@@ -129,6 +131,9 @@ static void free_huge_page(struct page *
+ 		enqueue_huge_page(page);
+ 	}
+ 	spin_unlock(&hugetlb_lock);
++	if (mapping)
++		hugetlb_put_quota(mapping);
++	set_page_private(page, 0);
  }
  
-+/*
-+ * releasepage is called by pagevec_strip/try_to_release_page if
-+ * buffers_heads_over_limit is true. Without a releasepage function
-+ * try_to_free_buffers is called instead. That can unset the dirty
-+ * bit of our ram disk pages, which will be eventually freed, even
-+ * if the page is still in use.
-+ */
-+static int ramdisk_releasepage(struct page *page, gfp_t dummy)
-+{
-+	return 0;
-+}
-+
- static const struct address_space_operations ramdisk_aops = {
- 	.readpage	= ramdisk_readpage,
- 	.prepare_write	= ramdisk_prepare_write,
-@@ -196,6 +208,7 @@ static const struct address_space_operat
- 	.writepage	= ramdisk_writepage,
- 	.set_page_dirty	= ramdisk_set_page_dirty,
- 	.writepages	= ramdisk_writepages,
-+	.releasepage	= ramdisk_releasepage,
- };
+ /*
+@@ -388,8 +393,10 @@ static struct page *alloc_huge_page(stru
+ 		page = alloc_huge_page_shared(vma, addr);
+ 	else
+ 		page = alloc_huge_page_private(vma, addr);
+-	if (page)
++	if (page) {
+ 		set_page_refcounted(page);
++		set_page_private(page, (unsigned long) vma->vm_file->f_mapping);
++	}
+ 	return page;
+ }
  
- static int rd_blkdev_pagecache_IO(int rw, struct bio_vec *vec, sector_t sector,
+@@ -730,6 +737,8 @@ static int hugetlb_cow(struct mm_struct 
+ 		set_huge_ptep_writable(vma, address, ptep);
+ 		return 0;
+ 	}
++	if (hugetlb_get_quota(vma->vm_file->f_mapping))
++		return VM_FAULT_SIGBUS;
+ 
+ 	page_cache_get(old_page);
+ 	new_page = alloc_huge_page(vma, address);
+@@ -796,7 +805,6 @@ retry:
+ 			err = add_to_page_cache(page, mapping, idx, GFP_KERNEL);
+ 			if (err) {
+ 				put_page(page);
+-				hugetlb_put_quota(mapping);
+ 				if (err == -EEXIST)
+ 					goto retry;
+ 				goto out;
+@@ -830,7 +838,6 @@ out:
+ 
+ backout:
+ 	spin_unlock(&mm->page_table_lock);
+-	hugetlb_put_quota(mapping);
+ 	unlock_page(page);
+ 	put_page(page);
+ 	goto out;
 _
 
-Patches currently in -mm which might be from borntraeger@de.ibm.com are
+Patches currently in -mm which might be from agl@us.ibm.com are
 
 origin.patch
-git-kvm.patch
-git-s390.patch
+hugetlb-allow-sticky-directory-mount-option.patch
