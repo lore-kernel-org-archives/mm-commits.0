@@ -1,165 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: - make-proc-acpi-ac_adapter-dependent-on-acpi_procfs.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:11:12 -0800
-Message-ID: <200711152111.lAFLBCD7015741@imap1.linux-foundation.org>
+Subject: - migration-find-correct-vma-in-new_vma_page.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:09:01 -0800
+Message-ID: <200711152109.lAFL91AM015411@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45484 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:36716 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932524AbXKOVR4 (ORCPT
+	by vger.kernel.org with ESMTP id S932275AbXKOVRh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:17:56 -0500
+	Thu, 15 Nov 2007 16:17:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arvidjaar@mail.ru, astarikovskiy@suse.de, lenb@kernel.org, mm-commits@vger.kernel.org
+To: Lee.Schermerhorn@hp.com, clameter@sgi.com, lee.schermerhorn@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make /proc/acpi/ac_adapter dependent on ACPI_PROCFS
+     Migration: find correct vma in new_vma_page()
 has been removed from the -mm tree.  Its filename was
-     make-proc-acpi-ac_adapter-dependent-on-acpi_procfs.patch
+     migration-find-correct-vma-in-new_vma_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: make /proc/acpi/ac_adapter dependent on ACPI_PROCFS
-From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: Migration: find correct vma in new_vma_page()
+From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 
-Do not provide /proc/acpi/ac_adapter if ACPI_PROCFS is not defined.  This
-eliminates duplicated power adapters in HAL and makes it consistent with
-battery module
+We hit the BUG_ON() in mm/rmap.c:vma_address() when trying to migrate via
+mbind(MPOL_MF_MOVE) a non-anon region that spans multiple vmas.  For
+anon-regions, we just fail to migrate any pages beyond the 1st vma in the
+range.
 
-Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
-Acked-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Len Brown <lenb@kernel.org>
+This occurs because do_mbind() collects a list of pages to migrate by
+calling check_range().  check_range() walks the task's mm, spanning vmas as
+necessary, to collect the migratable pages into a list.  Then, do_mbind()
+calls migrate_pages() passing the list of pages, a function to allocate new
+pages based on vma policy [new_vma_page()], and a pointer to the first vma
+of the range.
+
+For each page in the list, new_vma_page() calls page_address_in_vma()
+passing the page and the vma [first in range] to obtain the address to get
+for alloc_page_vma().  The page address is needed to get interleaving
+policy correct.  If the pages in the list come from multiple vmas,
+eventually, new_page_address() will pass that page to page_address_in_vma()
+with the incorrect vma.  For !PageAnon pages, this will result in a bug
+check in rmap.c:vma_address().  For anon pages, vma_address() will just
+return EFAULT and fail the migration.
+
+This patch modifies new_vma_page() to check the return value from
+page_address_in_vma().  If the return value is EFAULT, new_vma_page()
+searchs forward via vm_next for the vma that maps the page--i.e., that does
+not return EFAULT.  This assumes that the pages in the list handed to
+migrate_pages() is in address order.  This is currently case.  The patch
+documents this assumption in a new comment block for new_vma_page().
+
+If new_vma_page() cannot locate the vma mapping the page in a forward
+search in the mm, it will pass a NULL vma to alloc_page_vma().  This will
+result in the allocation using the task policy, if any, else system default
+policy.  This situation is unlikely, but the patch documents this behavior
+with a comment.
+
+Note, this patch results in restarting from the first vma in a multi-vma
+range each time new_vma_page() is called.  If this is not acceptable, we
+can make the vma argument a pointer, both in new_vma_page() and it's caller
+unmap_and_move() so that the value held by the loop in migrate_pages()
+always passes down the last vma in which a page was found.  This will
+require changes to all new_page_t functions passed to migrate_pages().  Is
+this necessary?
+
+For this patch to work, we can't bug check in vma_address() for pages
+outside the argument vma.  This patch removes the BUG_ON().  All other
+callers [besides new_vma_page()] already check the return status.
+
+Tested on x86_64, 4 node NUMA platform.
+
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/ac.c |   23 ++++++++++++++++++++++-
- 1 file changed, 22 insertions(+), 1 deletion(-)
+ mm/mempolicy.c |   21 +++++++++++++++++++--
+ mm/rmap.c      |    7 ++++---
+ 2 files changed, 23 insertions(+), 5 deletions(-)
 
-diff -puN drivers/acpi/ac.c~make-proc-acpi-ac_adapter-dependent-on-acpi_procfs drivers/acpi/ac.c
---- a/drivers/acpi/ac.c~make-proc-acpi-ac_adapter-dependent-on-acpi_procfs
-+++ a/drivers/acpi/ac.c
-@@ -27,8 +27,10 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/types.h>
-+#ifdef CONFIG_ACPI_PROCFS
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
-+#endif
- #include <linux/power_supply.h>
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
-@@ -49,12 +51,14 @@ MODULE_AUTHOR("Paul Diefenbaugh");
- MODULE_DESCRIPTION("ACPI AC Adapter Driver");
- MODULE_LICENSE("GPL");
+diff -puN mm/mempolicy.c~migration-find-correct-vma-in-new_vma_page mm/mempolicy.c
+--- a/mm/mempolicy.c~migration-find-correct-vma-in-new_vma_page
++++ a/mm/mempolicy.c
+@@ -722,12 +722,29 @@ out:
  
-+#ifdef CONFIG_ACPI_PROCFS
- extern struct proc_dir_entry *acpi_lock_ac_dir(void);
- extern void *acpi_unlock_ac_dir(struct proc_dir_entry *acpi_ac_dir);
-+static int acpi_ac_open_fs(struct inode *inode, struct file *file);
-+#endif
+ }
  
- static int acpi_ac_add(struct acpi_device *device);
- static int acpi_ac_remove(struct acpi_device *device, int type);
--static int acpi_ac_open_fs(struct inode *inode, struct file *file);
++/*
++ * Allocate a new page for page migration based on vma policy.
++ * Start assuming that page is mapped by vma pointed to by @private.
++ * Search forward from there, if not.  N.B., this assumes that the
++ * list of pages handed to migrate_pages()--which is how we get here--
++ * is in virtual address order.
++ */
+ static struct page *new_vma_page(struct page *page, unsigned long private, int **x)
+ {
+ 	struct vm_area_struct *vma = (struct vm_area_struct *)private;
++	unsigned long uninitialized_var(address);
  
- const static struct acpi_device_id ac_device_ids[] = {
- 	{"ACPI0003", 0},
-@@ -80,12 +84,15 @@ struct acpi_ac {
- 
- #define to_acpi_ac(x) container_of(x, struct acpi_ac, charger);
- 
-+#ifdef CONFIG_ACPI_PROCFS
- static const struct file_operations acpi_ac_fops = {
- 	.open = acpi_ac_open_fs,
- 	.read = seq_read,
- 	.llseek = seq_lseek,
- 	.release = single_release,
- };
-+#endif
+-	return alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma,
+-					page_address_in_vma(page, vma));
++	while (vma) {
++		address = page_address_in_vma(page, vma);
++		if (address != -EFAULT)
++			break;
++		vma = vma->vm_next;
++	}
 +
- static int get_ac_property(struct power_supply *psy,
- 			   enum power_supply_property psp,
- 			   union power_supply_propval *val)
-@@ -127,6 +134,7 @@ static int acpi_ac_get_state(struct acpi
- 	return 0;
++	/*
++	 * if !vma, alloc_page_vma() will use task or system default policy
++	 */
++	return alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
+ }
+ #else
+ 
+diff -puN mm/rmap.c~migration-find-correct-vma-in-new_vma_page mm/rmap.c
+--- a/mm/rmap.c~migration-find-correct-vma-in-new_vma_page
++++ a/mm/rmap.c
+@@ -183,7 +183,9 @@ static void page_unlock_anon_vma(struct 
  }
  
-+#ifdef CONFIG_ACPI_PROCFS
- /* --------------------------------------------------------------------------
-                               FS Interface (/proc)
-    -------------------------------------------------------------------------- */
-@@ -206,6 +214,7 @@ static int acpi_ac_remove_fs(struct acpi
+ /*
+- * At what user virtual address is page expected in vma?
++ * At what user virtual address is page expected in @vma?
++ * Returns virtual address or -EFAULT if page's index/offset is not
++ * within the range mapped the @vma.
+  */
+ static inline unsigned long
+ vma_address(struct page *page, struct vm_area_struct *vma)
+@@ -193,8 +195,7 @@ vma_address(struct page *page, struct vm
  
- 	return 0;
- }
-+#endif
- 
- /* --------------------------------------------------------------------------
-                                    Driver Model
-@@ -264,7 +273,9 @@ static int acpi_ac_add(struct acpi_devic
- 	if (result)
- 		goto end;
- 
-+#ifdef CONFIG_ACPI_PROCFS
- 	result = acpi_ac_add_fs(device);
-+#endif
- 	if (result)
- 		goto end;
- 	ac->charger.name = acpi_device_bid(device);
-@@ -287,7 +298,9 @@ static int acpi_ac_add(struct acpi_devic
- 
-       end:
- 	if (result) {
-+#ifdef CONFIG_ACPI_PROCFS
- 		acpi_ac_remove_fs(device);
-+#endif
- 		kfree(ac);
+ 	address = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
+ 	if (unlikely(address < vma->vm_start || address >= vma->vm_end)) {
+-		/* page should be within any vma from prio_tree_next */
+-		BUG_ON(!PageAnon(page));
++		/* page should be within @vma mapping range */
+ 		return -EFAULT;
  	}
- 
-@@ -309,7 +322,9 @@ static int acpi_ac_remove(struct acpi_de
- 					    ACPI_ALL_NOTIFY, acpi_ac_notify);
- 	if (ac->charger.dev)
- 		power_supply_unregister(&ac->charger);
-+#ifdef CONFIG_ACPI_PROCFS
- 	acpi_ac_remove_fs(device);
-+#endif
- 
- 	kfree(ac);
- 
-@@ -323,13 +338,17 @@ static int __init acpi_ac_init(void)
- 	if (acpi_disabled)
- 		return -ENODEV;
- 
-+#ifdef CONFIG_ACPI_PROCFS
- 	acpi_ac_dir = acpi_lock_ac_dir();
- 	if (!acpi_ac_dir)
- 		return -ENODEV;
-+#endif
- 
- 	result = acpi_bus_register_driver(&acpi_ac_driver);
- 	if (result < 0) {
-+#ifdef CONFIG_ACPI_PROCFS
- 		acpi_unlock_ac_dir(acpi_ac_dir);
-+#endif
- 		return -ENODEV;
- 	}
- 
-@@ -341,7 +360,9 @@ static void __exit acpi_ac_exit(void)
- 
- 	acpi_bus_unregister_driver(&acpi_ac_driver);
- 
-+#ifdef CONFIG_ACPI_PROCFS
- 	acpi_unlock_ac_dir(acpi_ac_dir);
-+#endif
- 
- 	return;
- }
+ 	return address;
 _
 
-Patches currently in -mm which might be from arvidjaar@mail.ru are
+Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
 
 origin.patch
+mem-policy-fix-mempolicy-usage-in-pci-driver.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
