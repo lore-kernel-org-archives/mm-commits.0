@@ -1,91 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - cris-build-fixes-irq-fixes.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:11:37 -0800
-Message-ID: <200711152111.lAFLBbq1015781@imap1.linux-foundation.org>
+Subject: - i5000_edac-no-need-to-__stringify-kbuild_basename.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:10:14 -0800
+Message-ID: <200711152110.lAFLAE41015539@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53517 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52368 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759565AbXKOVRE (ORCPT
+	by vger.kernel.org with ESMTP id S1761341AbXKOVRJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:17:04 -0500
+	Thu, 15 Nov 2007 16:17:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
+To: djwong@us.ibm.com, norsk5@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cris build fixes: irq fixes
+     i5000_edac: no need to __stringify() KBUILD_BASENAME
 has been removed from the -mm tree.  Its filename was
-     cris-build-fixes-irq-fixes.patch
+     i5000_edac-no-need-to-__stringify-kbuild_basename.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cris build fixes: irq fixes
-From: Jesper Nilsson <jesper.nilsson@axis.com>
+Subject: i5000_edac: no need to __stringify() KBUILD_BASENAME
+From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-- New file include/asm-cris/irq_regs.h.
-- Change handling of registers for do_IRQ.
-- Add GENERIC_HARDIRQS to Kconfig.
+The i5000_edac driver's PCI registration structure has the name
+""i5000_edac"" (with extra set of double-quotes) which is probably not
+intentional.  Get rid of __stringify.
 
-Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
-Acked-by: Mikael Starvik <starvik@axis.com>
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Cc: Doug Thompson <norsk5@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/Kconfig      |    4 ++++
- arch/cris/kernel/irq.c |    6 ++++--
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ drivers/edac/i5000_edac.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/cris/Kconfig~cris-build-fixes-irq-fixes arch/cris/Kconfig
---- a/arch/cris/Kconfig~cris-build-fixes-irq-fixes
-+++ a/arch/cris/Kconfig
-@@ -57,6 +57,10 @@ menu "General setup"
- 
- source "fs/Kconfig.binfmt"
- 
-+config GENERIC_HARDIRQS
-+	bool
-+	default y
-+
- config ETRAX_CMDLINE
- 	string "Kernel command line"
- 	default "root=/dev/mtdblock3"
-diff -puN arch/cris/kernel/irq.c~cris-build-fixes-irq-fixes arch/cris/kernel/irq.c
---- a/arch/cris/kernel/irq.c~cris-build-fixes-irq-fixes
-+++ a/arch/cris/kernel/irq.c
-@@ -2,7 +2,7 @@
+diff -puN drivers/edac/i5000_edac.c~i5000_edac-no-need-to-__stringify-kbuild_basename drivers/edac/i5000_edac.c
+--- a/drivers/edac/i5000_edac.c~i5000_edac-no-need-to-__stringify-kbuild_basename
++++ a/drivers/edac/i5000_edac.c
+@@ -1462,7 +1462,7 @@ MODULE_DEVICE_TABLE(pci, i5000_pci_tbl);
   *
-  *	linux/arch/cris/kernel/irq.c
-  *
-- *      Copyright (c) 2000,2001 Axis Communications AB
-+ *      Copyright (c) 2000,2007 Axis Communications AB
-  *
-  *      Authors: Bjorn Wesen (bjornw@axis.com)
-  *
-@@ -92,14 +92,16 @@ skip:
- asmlinkage void do_IRQ(int irq, struct pt_regs * regs)
- {
- 	unsigned long sp;
-+	struct pt_regs *old_regs = set_irq_regs(regs);
- 	irq_enter();
- 	sp = rdsp();
- 	if (unlikely((sp & (PAGE_SIZE - 1)) < (PAGE_SIZE/8))) {
- 		printk("do_IRQ: stack overflow: %lX\n", sp);
- 		show_stack(NULL, (unsigned long *)sp);
- 	}
--	__do_IRQ(irq, regs);
-+	__do_IRQ(irq);
-         irq_exit();
-+	set_irq_regs(old_regs);
- }
- 
- void weird_irq(void)
+  */
+ static struct pci_driver i5000_driver = {
+-	.name = __stringify(KBUILD_BASENAME),
++	.name = KBUILD_BASENAME,
+ 	.probe = i5000_init_one,
+ 	.remove = __devexit_p(i5000_remove_one),
+ 	.id_table = i5000_pci_tbl,
 _
 
-Patches currently in -mm which might be from jesper.nilsson@axis.com are
+Patches currently in -mm which might be from djwong@us.ibm.com are
 
 origin.patch
-cris-build-fixes-atomich-needs-compilerh.patch
-git-mtd.patch
+mptbase-reset-ioc-initiator-during-pci-resume.patch
+libsas-convert-sas_proto-users-to-sas_protocol.patch
+libsas-fix-various-sparse-complaints.patch
