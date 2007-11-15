@@ -1,77 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - cris-build-fixes-fixes-in-arch-cris-kernel-timec.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:11:50 -0800
-Message-ID: <200711152111.lAFLBoci015799@imap1.linux-foundation.org>
+Subject: - linux-kernel-markers-fix-samples-to-follow-format-string-standard.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:10:02 -0800
+Message-ID: <200711152110.lAFLA2ow015518@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45430 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:57309 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759543AbXKOVRB (ORCPT
+	by vger.kernel.org with ESMTP id S1759507AbXKOVQw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:17:01 -0500
+	Thu, 15 Nov 2007 16:16:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cris build fixes: fixes in arch/cris/kernel/time.c
+     Linux Kernel Markers: fix samples to follow format string standard
 has been removed from the -mm tree.  Its filename was
-     cris-build-fixes-fixes-in-arch-cris-kernel-timec.patch
+     linux-kernel-markers-fix-samples-to-follow-format-string-standard.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: cris build fixes: fixes in arch/cris/kernel/time.c
-From: Jesper Nilsson <jesper.nilsson@axis.com>
+Subject: Linux Kernel Markers: fix samples to follow format string standard
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-- Remove debug print.
-- Change #if to #ifdef to avoid compile time warning if CONFIG_PROFILING
-  isn't set.
-- Number of parameters to profile_tick has changed, drop the regs parameter.
+Add the field names to marker example format string.
 
-Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
-Acked-by: Mikael Starvik <starvik@axis.com>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/kernel/time.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ samples/markers/marker-example.c |    3 ++-
+ samples/markers/probe-example.c  |    2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/cris/kernel/time.c~cris-build-fixes-fixes-in-arch-cris-kernel-timec arch/cris/kernel/time.c
---- a/arch/cris/kernel/time.c~cris-build-fixes-fixes-in-arch-cris-kernel-timec
-+++ a/arch/cris/kernel/time.c
-@@ -171,10 +171,6 @@ get_cmos_time(void)
- 	mon = CMOS_READ(RTC_MONTH);
- 	year = CMOS_READ(RTC_YEAR);
- 
--	printk(KERN_DEBUG
--	       "rtc: sec 0x%x min 0x%x hour 0x%x day 0x%x mon 0x%x year 0x%x\n",
--	       sec, min, hour, day, mon, year);
--
- 	BCD_TO_BIN(sec);
- 	BCD_TO_BIN(min);
- 	BCD_TO_BIN(hour);
-@@ -207,12 +203,12 @@ void
- cris_do_profile(struct pt_regs* regs)
+diff -puN samples/markers/marker-example.c~linux-kernel-markers-fix-samples-to-follow-format-string-standard samples/markers/marker-example.c
+--- a/samples/markers/marker-example.c~linux-kernel-markers-fix-samples-to-follow-format-string-standard
++++ a/samples/markers/marker-example.c
+@@ -19,7 +19,8 @@ static int my_open(struct inode *inode, 
  {
+ 	int i;
  
--#if CONFIG_SYSTEM_PROFILER
-+#ifdef CONFIG_SYSTEM_PROFILER
-         cris_profile_sample(regs);
- #endif
- 
--#if CONFIG_PROFILING
--        profile_tick(CPU_PROFILING, regs);
-+#ifdef CONFIG_PROFILING
-+        profile_tick(CPU_PROFILING);
- #endif
- }
- 
+-	trace_mark(subsystem_event, "%d %s", 123, "example string");
++	trace_mark(subsystem_event, "integer %d string %s", 123,
++		"example string");
+ 	for (i = 0; i < 10; i++)
+ 		trace_mark(subsystem_eventb, MARK_NOARGS);
+ 	return -EPERM;
+diff -puN samples/markers/probe-example.c~linux-kernel-markers-fix-samples-to-follow-format-string-standard samples/markers/probe-example.c
+--- a/samples/markers/probe-example.c~linux-kernel-markers-fix-samples-to-follow-format-string-standard
++++ a/samples/markers/probe-example.c
+@@ -53,7 +53,7 @@ void probe_subsystem_eventb(const struct
+ static struct probe_data probe_array[] =
+ {
+ 	{	.name = "subsystem_event",
+-		.format = "%d %s",
++		.format = "integer %d string %s",
+ 		.probe_func = probe_subsystem_event },
+ 	{	.name = "subsystem_eventb",
+ 		.format = MARK_NOARGS,
 _
 
-Patches currently in -mm which might be from jesper.nilsson@axis.com are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
-cris-build-fixes-atomich-needs-compilerh.patch
-git-mtd.patch
+add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
+fall-back-on-interrupt-disable-in-cmpxchg8b-on-80386-and-80486.patch
+add-cmpxchg64-and-cmpxchg64_local-to-alpha.patch
+add-cmpxchg64-and-cmpxchg64_local-to-mips.patch
+add-cmpxchg64-and-cmpxchg64_local-to-powerpc.patch
+add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
+add-cmpxchg_local-to-arm.patch
+add-cmpxchg_local-to-avr32.patch
+add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
+add-cmpxchg_local-to-cris.patch
+add-cmpxchg_local-to-frv.patch
+add-cmpxchg_local-to-h8300.patch
+add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
+new-cmpxchg_local-optimized-for-up-case-for-m32r.patch
+fix-m32r-__xchg.patch
+m32r-build-fix-of-arch-m32r-kernel-smpbootc.patch
+local_t-m32r-use-architecture-specific-cmpxchg_local.patch
+add-cmpxchg_local-to-m86k.patch
+add-cmpxchg_local-to-m68knommu.patch
+add-cmpxchg_local-to-parisc.patch
+add-cmpxchg_local-to-ppc.patch
+add-cmpxchg_local-to-s390.patch
+add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32.patch
+add-cmpxchg_local-to-sh64.patch
+add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
+add-cmpxchg_local-to-sparc64.patch
+add-cmpxchg_local-to-v850.patch
+add-cmpxchg_local-to-xtensa.patch
