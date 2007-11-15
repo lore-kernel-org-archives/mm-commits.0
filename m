@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + iommu-sg-merging-sata_inic162x-use-pci_set_dma_max_seg_size.patch added to -mm tree
-Date: Thu, 15 Nov 2007 14:05:37 -0800
-Message-ID: <200711152205.lAFM5bAe018113@imap1.linux-foundation.org>
+Subject: + add-arch_supports_oprofile.patch added to -mm tree
+Date: Thu, 15 Nov 2007 14:27:07 -0800
+Message-ID: <200711152227.lAFMR81P019104@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:36816 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58947 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932259AbXKOWUE (ORCPT
+	by vger.kernel.org with ESMTP id S1757149AbXKOW2Q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 17:20:04 -0500
+	Thu, 15 Nov 2007 17:28:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tomof@acm.org, James.Bottomley@steeleye.com, fujita.tomonori@lab.ntt.co.jp, jeff@garzik.org, jens.axboe@oracle.com
+Cc: mathieu.desnoyers@polymtl.ca, linux-arch@vger.kernel.org, sam@ravnborg.org, torvalds@linux-foundation.org
 
 
 The patch titled
-     iommu sg merging: sata_inic162x: use pci_set_dma_max_seg_size
+     Add ARCH_SUPPORTS_OPROFILE
 has been added to the -mm tree.  Its filename is
-     iommu-sg-merging-sata_inic162x-use-pci_set_dma_max_seg_size.patch
+     add-arch_supports_oprofile.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,84 +26,312 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: iommu sg merging: sata_inic162x: use pci_set_dma_max_seg_size
-From: FUJITA Tomonori <tomof@acm.org>
+Subject: Add ARCH_SUPPORTS_OPROFILE
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-This sets the segment size limit properly via pci_set_dma_max_seg_size
-and remove blk_queue_max_segment_size because scsi-ml calls it.
+Linus:
+On the per-architecture side, I do think it would be better to *not* have
+internal architecture knowledge in a generic file, and as such a line like
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+        depends on X86_32 || IA64 || PPC || S390 || SPARC64 || X86_64 || AVR32
+
+really shouldn't exist in a file like kernel/Kconfig.instrumentation.
+
+It would be much better to do
+
+        depends on ARCH_SUPPORTS_KPROBES
+
+in that generic file, and then architectures that do support it would just
+have a
+
+        bool ARCH_SUPPORTS_KPROBES
+                default y
+
+in *their* architecture files. That would seem to be much more logical,
+and is readable both for arch maintainers *and* for people who have no
+clue - and don't care - about which architecture is supposed to support
+which interface...
+
+Changelog:
+
+Actually, I know I gave this as the magic incantation, but now that I see
+it, I realize that I should have told you to just use
+
+        config ARCH_SUPPORTS_KPROBES
+                def_bool y
+
+instead, which is a bit denser.
+
+We seem to use both kinds of syntax for these things, but this is really
+what "def_bool" is there for...
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_inic162x.c |   25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+ arch/alpha/Kconfig             |    3 +++
+ arch/arm/Kconfig               |    3 +++
+ arch/blackfin/Kconfig          |    3 +++
+ arch/ia64/Kconfig              |    3 +++
+ arch/m32r/Kconfig              |    3 +++
+ arch/mips/Kconfig              |    3 +++
+ arch/parisc/Kconfig            |    3 +++
+ arch/powerpc/Kconfig           |    3 +++
+ arch/ppc/Kconfig               |    3 +++
+ arch/s390/Kconfig              |    3 +++
+ arch/sh/Kconfig                |    3 +++
+ arch/sh64/Kconfig              |    3 +++
+ arch/sparc/Kconfig             |    3 +++
+ arch/sparc64/Kconfig           |    3 +++
+ arch/x86/Kconfig               |    4 ++++
+ kernel/Kconfig.instrumentation |    2 +-
+ 16 files changed, 47 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/sata_inic162x.c~iommu-sg-merging-sata_inic162x-use-pci_set_dma_max_seg_size drivers/ata/sata_inic162x.c
---- a/drivers/ata/sata_inic162x.c~iommu-sg-merging-sata_inic162x-use-pci_set_dma_max_seg_size
-+++ a/drivers/ata/sata_inic162x.c
-@@ -108,17 +108,6 @@ struct inic_port_priv {
- 	u8	cached_pirq_mask;
- };
+diff -puN arch/alpha/Kconfig~add-arch_supports_oprofile arch/alpha/Kconfig
+--- a/arch/alpha/Kconfig~add-arch_supports_oprofile
++++ a/arch/alpha/Kconfig
+@@ -66,6 +66,9 @@ config AUTO_IRQ_AFFINITY
+ 	depends on SMP
+ 	default y
  
--static int inic_slave_config(struct scsi_device *sdev)
--{
--	/* This controller is braindamaged.  dma_boundary is 0xffff
--	 * like others but it will lock up the whole machine HARD if
--	 * 65536 byte PRD entry is fed.  Reduce maximum segment size.
--	 */
--	blk_queue_max_segment_size(sdev->request_queue, 65536 - 512);
--
--	return ata_scsi_slave_config(sdev);
--}
--
- static struct scsi_host_template inic_sht = {
- 	.module			= THIS_MODULE,
- 	.name			= DRV_NAME,
-@@ -132,7 +121,7 @@ static struct scsi_host_template inic_sh
- 	.use_clustering		= ATA_SHT_USE_CLUSTERING,
- 	.proc_name		= DRV_NAME,
- 	.dma_boundary		= ATA_DMA_BOUNDARY,
--	.slave_configure	= inic_slave_config,
-+	.slave_configure	= ata_scsi_slave_config,
- 	.slave_destroy		= ata_scsi_slave_destroy,
- 	.bios_param		= ata_std_bios_param,
- };
-@@ -730,6 +719,18 @@ static int inic_init_one(struct pci_dev 
- 		return rc;
- 	}
- 
-+	/*
-+	 * This controller is braindamaged.  dma_boundary is 0xffff
-+	 * like others but it will lock up the whole machine HARD if
-+	 * 65536 byte PRD entry is fed. Reduce maximum segment size.
-+	 */
-+	rc = pci_set_dma_max_seg_size(pdev, 65536 - 512);
-+	if (rc) {
-+		dev_printk(KERN_ERR, &pdev->dev,
-+			   "failed to set the maximum segment size.\n");
-+		return rc;
-+	}
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
 +
- 	rc = init_controller(iomap[MMIO_BAR], hpriv->cached_hctl);
- 	if (rc) {
- 		dev_printk(KERN_ERR, &pdev->dev,
+ source "init/Kconfig"
+ 
+ 
+diff -puN arch/arm/Kconfig~add-arch_supports_oprofile arch/arm/Kconfig
+--- a/arch/arm/Kconfig~add-arch_supports_oprofile
++++ a/arch/arm/Kconfig
+@@ -114,6 +114,9 @@ config GENERIC_CALIBRATE_DELAY
+ 	bool
+ 	default y
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ config ARCH_MAY_HAVE_PC_FDC
+ 	bool
+ 
+diff -puN arch/blackfin/Kconfig~add-arch_supports_oprofile arch/blackfin/Kconfig
+--- a/arch/blackfin/Kconfig~add-arch_supports_oprofile
++++ a/arch/blackfin/Kconfig
+@@ -69,6 +69,9 @@ config GENERIC_CALIBRATE_DELAY
+ 	bool
+ 	default y
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ config IRQCHIP_DEMUX_GPIO
+ 	bool
+ 	depends on (BF52x || BF53x || BF561 || BF54x)
+diff -puN arch/ia64/Kconfig~add-arch_supports_oprofile arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~add-arch_supports_oprofile
++++ a/arch/ia64/Kconfig
+@@ -99,6 +99,9 @@ config AUDIT_ARCH
+ 	bool
+ 	default y
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ choice
+ 	prompt "System type"
+ 	default IA64_GENERIC
+diff -puN arch/m32r/Kconfig~add-arch_supports_oprofile arch/m32r/Kconfig
+--- a/arch/m32r/Kconfig~add-arch_supports_oprofile
++++ a/arch/m32r/Kconfig
+@@ -34,6 +34,9 @@ config NO_IOPORT
+ config NO_DMA
+ 	def_bool y
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ source "init/Kconfig"
+ 
+ 
+diff -puN arch/mips/Kconfig~add-arch_supports_oprofile arch/mips/Kconfig
+--- a/arch/mips/Kconfig~add-arch_supports_oprofile
++++ a/arch/mips/Kconfig
+@@ -722,6 +722,9 @@ config GENERIC_HARDIRQS_NO__DO_IRQ
+ 	bool
+ 	default n
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ #
+ # Select some configuration options automatically based on user selections.
+ #
+diff -puN arch/parisc/Kconfig~add-arch_supports_oprofile arch/parisc/Kconfig
+--- a/arch/parisc/Kconfig~add-arch_supports_oprofile
++++ a/arch/parisc/Kconfig
+@@ -69,6 +69,9 @@ config IRQ_PER_CPU
+ 	bool
+ 	default y
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ # unless you want to implement ACPI on PA-RISC ... ;-)
+ config PM
+ 	bool
+diff -puN arch/powerpc/Kconfig~add-arch_supports_oprofile arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~add-arch_supports_oprofile
++++ a/arch/powerpc/Kconfig
+@@ -163,6 +163,9 @@ config PPC_OF_PLATFORM_PCI
+ 	depends on PPC64 # not supported on 32 bits yet
+ 	default n
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ source "init/Kconfig"
+ 
+ source "arch/powerpc/platforms/Kconfig"
+diff -puN arch/ppc/Kconfig~add-arch_supports_oprofile arch/ppc/Kconfig
+--- a/arch/ppc/Kconfig~add-arch_supports_oprofile
++++ a/arch/ppc/Kconfig
+@@ -69,6 +69,9 @@ config GENERIC_BUG
+ 	default y
+ 	depends on BUG
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ source "init/Kconfig"
+ 
+ menu "Processor"
+diff -puN arch/s390/Kconfig~add-arch_supports_oprofile arch/s390/Kconfig
+--- a/arch/s390/Kconfig~add-arch_supports_oprofile
++++ a/arch/s390/Kconfig
+@@ -52,6 +52,9 @@ mainmenu "Linux Kernel Configuration"
+ config S390
+ 	def_bool y
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ source "init/Kconfig"
+ 
+ menu "Base setup"
+diff -puN arch/sh/Kconfig~add-arch_supports_oprofile arch/sh/Kconfig
+--- a/arch/sh/Kconfig~add-arch_supports_oprofile
++++ a/arch/sh/Kconfig
+@@ -93,6 +93,9 @@ config ARCH_HAS_ILOG2_U64
+ config ARCH_NO_VIRT_TO_BUS
+ 	def_bool y
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ source "init/Kconfig"
+ 
+ menu "System type"
+diff -puN arch/sh64/Kconfig~add-arch_supports_oprofile arch/sh64/Kconfig
+--- a/arch/sh64/Kconfig~add-arch_supports_oprofile
++++ a/arch/sh64/Kconfig
+@@ -58,6 +58,9 @@ config ARCH_HAS_ILOG2_U64
+ config ARCH_NO_VIRT_TO_BUS
+ 	def_bool y
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ source init/Kconfig
+ 
+ menu "System type"
+diff -puN arch/sparc/Kconfig~add-arch_supports_oprofile arch/sparc/Kconfig
+--- a/arch/sparc/Kconfig~add-arch_supports_oprofile
++++ a/arch/sparc/Kconfig
+@@ -27,6 +27,9 @@ config ARCH_NO_VIRT_TO_BUS
+ config OF
+ 	def_bool y
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ source "init/Kconfig"
+ 
+ menu "General machine setup"
+diff -puN arch/sparc64/Kconfig~add-arch_supports_oprofile arch/sparc64/Kconfig
+--- a/arch/sparc64/Kconfig~add-arch_supports_oprofile
++++ a/arch/sparc64/Kconfig
+@@ -76,6 +76,9 @@ config GENERIC_HARDIRQS_NO__DO_IRQ
+ 	bool
+ 	def_bool y
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ choice
+ 	prompt "Kernel page size"
+ 	default SPARC64_PAGE_SIZE_8KB
+diff -puN arch/x86/Kconfig~add-arch_supports_oprofile arch/x86/Kconfig
+--- a/arch/x86/Kconfig~add-arch_supports_oprofile
++++ a/arch/x86/Kconfig
+@@ -171,6 +171,10 @@ config X86_TRAMPOLINE
+ 
+ config KTIME_SCALAR
+ 	def_bool X86_32
++
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ source "init/Kconfig"
+ 
+ menu "Processor type and features"
+diff -puN kernel/Kconfig.instrumentation~add-arch_supports_oprofile kernel/Kconfig.instrumentation
+--- a/kernel/Kconfig.instrumentation~add-arch_supports_oprofile
++++ a/kernel/Kconfig.instrumentation
+@@ -21,7 +21,7 @@ config PROFILING
+ config OPROFILE
+ 	tristate "OProfile system profiling (EXPERIMENTAL)"
+ 	depends on PROFILING
+-	depends on ALPHA || ARM || BLACKFIN || X86_32 || IA64 || M32R || MIPS || PARISC || PPC || S390 || SUPERH || SPARC || X86_64
++	depends on ARCH_SUPPORTS_OPROFILE
+ 	help
+ 	  OProfile is a profiling system capable of profiling the
+ 	  whole system, include the kernel, kernel modules, libraries,
 _
 
-Patches currently in -mm which might be from tomof@acm.org are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
-git-scsi-misc.patch
-iommu-sg-merging-add-device_dma_parameters-structure.patch
-iommu-sg-merging-pci-add-device_dma_parameters-support.patch
-iommu-sg-merging-x86-make-pci-gart-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-ppc-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-ia64-make-sba_iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-alpha-make-pci_iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-sparc64-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-parisc-make-iommu-respect-the-segment-size-limits.patch
-iommu-sg-merging-call-blk_queue_segment_boundary-in-__scsi_alloc_queue.patch
-iommu-sg-merging-sata_inic162x-use-pci_set_dma_max_seg_size.patch
-iommu-sg-merging-aacraid-use-pci_set_dma_max_seg_size.patch
+origin.patch
+add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
+fall-back-on-interrupt-disable-in-cmpxchg8b-on-80386-and-80486.patch
+add-cmpxchg64-and-cmpxchg64_local-to-alpha.patch
+add-cmpxchg64-and-cmpxchg64_local-to-mips.patch
+add-cmpxchg64-and-cmpxchg64_local-to-powerpc.patch
+add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
+add-cmpxchg_local-to-arm.patch
+add-cmpxchg_local-to-avr32.patch
+add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
+add-cmpxchg_local-to-cris.patch
+add-cmpxchg_local-to-frv.patch
+add-cmpxchg_local-to-h8300.patch
+add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
+new-cmpxchg_local-optimized-for-up-case-for-m32r.patch
+fix-m32r-__xchg.patch
+m32r-build-fix-of-arch-m32r-kernel-smpbootc.patch
+local_t-m32r-use-architecture-specific-cmpxchg_local.patch
+add-cmpxchg_local-to-m86k.patch
+add-cmpxchg_local-to-m68knommu.patch
+add-cmpxchg_local-to-parisc.patch
+add-cmpxchg_local-to-ppc.patch
+add-cmpxchg_local-to-s390.patch
+add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32.patch
+add-cmpxchg_local-to-sh64.patch
+add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
+add-cmpxchg_local-to-sparc64.patch
+add-cmpxchg_local-to-v850.patch
+add-cmpxchg_local-to-xtensa.patch
+create-arch-kconfig.patch
+add-arch_supports_oprofile.patch
+add-arch_supports_kprobes.patch
+move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig.patch
