@@ -1,77 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 14 Nov 2007 16:43:50 -0800
-Message-ID: <200711150043.lAF0hojP002013@imap1.linux-foundation.org>
+Subject: - mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 14 Nov 2007 16:44:40 -0800
+Message-ID: <200711150044.lAF0iexl002034@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:40488 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34623 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754905AbXKOAoz (ORCPT
+	by vger.kernel.org with ESMTP id S1755640AbXKOApX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Nov 2007 19:44:55 -0500
+	Wed, 14 Nov 2007 19:45:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, agl@us.ibm.com, apw@shadowen.org, haveblue@us.ibm.com, hermes@gibson.dropbear.id.au, kenchen@google.com, wli@holomorphy.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, 12o3l@tiscali.nl, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes
+     mips-undo-locking-on-error-path-returns-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
+     mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into hugetlb-split-alloc_huge_page-into-private-and-shared-components.patch
+This patch was dropped because it was folded into mips-undo-locking-on-error-path-returns.patch
 
 ------------------------------------------------------
-Subject: hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes
+Subject: mips-undo-locking-on-error-path-returns-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
 ERROR: use tabs not spaces
-#32: FILE: mm/hugetlb.c:358:
-+^I^I^I ^I^I^Iunsigned long addr)$
+#40: FILE: arch/mips/vr41xx/common/icu.c:596:
++                spin_unlock_irq(&desc->lock);$
 
-ERROR: use tabs not spaces
-#54: FILE: mm/hugetlb.c:369:
-+^I^I^I ^I^I^Iunsigned long addr)$
-
-total: 2 errors, 0 warnings, 62 lines checked
+total: 1 errors, 0 warnings, 21 lines checked
 Your patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: David Gibson <hermes@gibson.dropbear.id.au>
-Cc: Ken Chen <kenchen@google.com>
-Cc: William Lee Irwin III <wli@holomorphy.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Roel Kluin <12o3l@tiscali.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/mips/vr41xx/common/icu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes
-+++ a/mm/hugetlb.c
-@@ -355,7 +355,7 @@ void return_unused_surplus_pages(unsigne
- 
- 
- static struct page *alloc_huge_page_shared(struct vm_area_struct *vma,
--			 			unsigned long addr)
-+						unsigned long addr)
- {
- 	struct page *page;
- 
-@@ -366,7 +366,7 @@ static struct page *alloc_huge_page_shar
- }
- 
- static struct page *alloc_huge_page_private(struct vm_area_struct *vma,
--			 			unsigned long addr)
-+						unsigned long addr)
- {
- 	struct page *page = NULL;
+diff -puN arch/mips/vr41xx/common/icu.c~mips-undo-locking-on-error-path-returns-checkpatch-fixes arch/mips/vr41xx/common/icu.c
+--- a/arch/mips/vr41xx/common/icu.c~mips-undo-locking-on-error-path-returns-checkpatch-fixes
++++ a/arch/mips/vr41xx/common/icu.c
+@@ -593,7 +593,7 @@ static inline int set_sysint2_assign(uns
+ 		intassign3 |= (uint16_t)assign << 12;
+ 		break;
+ 	default:
+-                spin_unlock_irq(&desc->lock);
++		spin_unlock_irq(&desc->lock);
+ 		return -EINVAL;
+ 	}
  
 _
 
@@ -82,8 +65,8 @@ uml-update-address-space-affected-by-pud_clear.patch
 proc-fix-proc_kill_inodes-to-kill-dentries-on-all-proc-superblocks.patch
 acpi-make-acpi_procfs-default-to-y.patch
 hugetlb-split-alloc_huge_page-into-private-and-shared-components.patch
-hugetlb-split-alloc_huge_page-into-private-and-shared-components-checkpatch-fixes.patch
 revert-task-control-groups-example-cpu-accounting-subsystem.patch
+mips-undo-locking-on-error-path-returns.patch
 mips-undo-locking-on-error-path-returns-checkpatch-fixes.patch
 pidns-place-under-config_experimental-checkpatch-fixes.patch
 fix-64kb-blocksize-in-ext3-directories-checkpatch-fixes.patch
