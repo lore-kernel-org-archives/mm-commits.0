@@ -1,74 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - spi-fix-double-free-on-spi_unregister_master.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:09:16 -0800
-Message-ID: <200711152109.lAFL9G2A015429@imap1.linux-foundation.org>
+Subject: - hugetlb-debit-quota-in-alloc_huge_page.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:09:42 -0800
+Message-ID: <200711152109.lAFL9gGM015474@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:38328 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34373 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932126AbXKOVSU (ORCPT
+	by vger.kernel.org with ESMTP id S932848AbXKOVS3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:18:20 -0500
+	Thu, 15 Nov 2007 16:18:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anemo@mba.ocn.ne.jp, david-b@pacbell.net, stable@kernel.org, mm-commits@vger.kernel.org
+To: agl@us.ibm.com, apw@shadowen.org, haveblue@us.ibm.com, hermes@gibson.dropbear.id.au, kenchen@google.com, wli@holomorphy.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: fix double-free on spi_unregister_master
+     hugetlb: debit quota in alloc_huge_page
 has been removed from the -mm tree.  Its filename was
-     spi-fix-double-free-on-spi_unregister_master.patch
+     hugetlb-debit-quota-in-alloc_huge_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: spi: fix double-free on spi_unregister_master
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: hugetlb: debit quota in alloc_huge_page
+From: Adam Litke <agl@us.ibm.com>
 
-After 49dce689ad4ef0fd1f970ef762168e4bd46f69a3, device_for_each_child
-iteration hits the master device itself.  Do not call spi_unregister_device()
-for the master device.
+Now that quota is credited by free_huge_page(), calls to hugetlb_get_quota()
+seem out of place.  The alloc/free API is unbalanced because we handle the
+hugetlb_put_quota() but expect the caller to open-code hugetlb_get_quota(). 
+Move the get inside alloc_huge_page to clean up this disparity.
 
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Acked-by: David Brownell <david-b@pacbell.net>
-Cc: <stable@kernel.org>
+This patch has been kept apart from the previous patch because of the somewhat
+dodgy ERR_PTR() use herein.  Moving the quota logic means that
+alloc_huge_page() has two failure modes.  Quota failure must result in a
+SIGBUS while a standard allocation failure is OOM.  Unfortunately, ERR_PTR()
+doesn't like the small positive errnos we have in VM_FAULT_* so they must be
+negated before they are used.
+
+Does anyone take issue with the way I am using PTR_ERR.  If so, what are your
+thoughts on how to clean this up (without needing an if,else if,else block at
+each alloc_huge_page() callsite)?
+
+Signed-off-by: Adam Litke <agl@us.ibm.com>
+Cc: Ken Chen <kenchen@google.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: David Gibson <hermes@gibson.dropbear.id.au>
+Cc: William Lee Irwin III <wli@holomorphy.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN drivers/spi/spi.c~spi-fix-double-free-on-spi_unregister_master drivers/spi/spi.c
---- a/drivers/spi/spi.c~spi-fix-double-free-on-spi_unregister_master
-+++ a/drivers/spi/spi.c
-@@ -457,10 +457,11 @@ done:
- EXPORT_SYMBOL_GPL(spi_register_master);
- 
- 
--static int __unregister(struct device *dev, void *unused)
-+static int __unregister(struct device *dev, void *master_dev)
+diff -puN mm/hugetlb.c~hugetlb-debit-quota-in-alloc_huge_page mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-debit-quota-in-alloc_huge_page
++++ a/mm/hugetlb.c
+@@ -388,6 +388,10 @@ static struct page *alloc_huge_page(stru
+ 				    unsigned long addr)
  {
- 	/* note: before about 2.6.14-rc1 this would corrupt memory: */
--	spi_unregister_device(to_spi_device(dev));
-+	if (dev != master_dev)
-+		spi_unregister_device(to_spi_device(dev));
- 	return 0;
+ 	struct page *page;
++	struct address_space *mapping = vma->vm_file->f_mapping;
++
++	if (hugetlb_get_quota(mapping))
++		return ERR_PTR(-VM_FAULT_SIGBUS);
+ 
+ 	if (vma->vm_flags & VM_MAYSHARE)
+ 		page = alloc_huge_page_shared(vma, addr);
+@@ -395,9 +399,10 @@ static struct page *alloc_huge_page(stru
+ 		page = alloc_huge_page_private(vma, addr);
+ 	if (page) {
+ 		set_page_refcounted(page);
+-		set_page_private(page, (unsigned long) vma->vm_file->f_mapping);
+-	}
+-	return page;
++		set_page_private(page, (unsigned long) mapping);
++		return page;
++	} else
++		return ERR_PTR(-VM_FAULT_OOM);
  }
  
-@@ -478,7 +479,8 @@ void spi_unregister_master(struct spi_ma
- {
- 	int dummy;
+ static int __init hugetlb_init(void)
+@@ -737,15 +742,13 @@ static int hugetlb_cow(struct mm_struct 
+ 		set_huge_ptep_writable(vma, address, ptep);
+ 		return 0;
+ 	}
+-	if (hugetlb_get_quota(vma->vm_file->f_mapping))
+-		return VM_FAULT_SIGBUS;
  
--	dummy = device_for_each_child(master->dev.parent, NULL, __unregister);
-+	dummy = device_for_each_child(master->dev.parent, &master->dev,
-+					__unregister);
- 	device_unregister(&master->dev);
- }
- EXPORT_SYMBOL_GPL(spi_unregister_master);
+ 	page_cache_get(old_page);
+ 	new_page = alloc_huge_page(vma, address);
+ 
+-	if (!new_page) {
++	if (IS_ERR(new_page)) {
+ 		page_cache_release(old_page);
+-		return VM_FAULT_OOM;
++		return -PTR_ERR(new_page);
+ 	}
+ 
+ 	spin_unlock(&mm->page_table_lock);
+@@ -789,12 +792,9 @@ retry:
+ 		size = i_size_read(mapping->host) >> HPAGE_SHIFT;
+ 		if (idx >= size)
+ 			goto out;
+-		if (hugetlb_get_quota(mapping))
+-			goto out;
+ 		page = alloc_huge_page(vma, address);
+-		if (!page) {
+-			hugetlb_put_quota(mapping);
+-			ret = VM_FAULT_OOM;
++		if (IS_ERR(page)) {
++			ret = -PTR_ERR(page);
+ 			goto out;
+ 		}
+ 		clear_huge_page(page, address);
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from agl@us.ibm.com are
 
 origin.patch
-clocksource-make-clocksource_mask-bullet-proof.patch
-git-mips.patch
+hugetlb-allow-sticky-directory-mount-option.patch
