@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + frv-arrange-things-such-that-bra-can-reach-from-the-trap.patch added to -mm tree
-Date: Thu, 15 Nov 2007 14:44:16 -0800
-Message-ID: <200711152244.lAFMiGWW019763@imap1.linux-foundation.org>
+Subject: + frv-fix-the-extern-declaration-of-kallsyms_num_syms.patch added to -mm tree
+Date: Thu, 15 Nov 2007 14:44:14 -0800
+Message-ID: <200711152244.lAFMiEU6019760@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44099 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45575 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932470AbXKOWob (ORCPT
+	by vger.kernel.org with ESMTP id S932675AbXKOWoc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 17:44:31 -0500
+	Thu, 15 Nov 2007 17:44:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dhowells@redhat.com
 
 
 The patch titled
-     FRV: arrange things such that BRA can reach from the trap table
+     FRV: fix the extern declaration of kallsyms_num_syms
 has been added to the -mm tree.  Its filename is
-     frv-arrange-things-such-that-bra-can-reach-from-the-trap.patch
+     frv-fix-the-extern-declaration-of-kallsyms_num_syms.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,119 +26,39 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: FRV: arrange things such that BRA can reach from the trap table
+Subject: FRV: fix the extern declaration of kallsyms_num_syms
 From: David Howells <dhowells@redhat.com>
 
-Arrange the sections in the FRV arch so that a BRA instruction with a
-16-bit displacement can always reach from the trap table to entry.S,
-tlb-miss.S and break.S.
-
-The problem otherwise is that the linker can insert sufficient code between
-the slots in the trap table and the targets of the branch instructions in
-those slots that the displacement field in the instruction isn't
-sufficiently large.  This is because the branch targets were in the .text
-section along with most of the other code in the kernel.
+Fix the extern declaration of kallsyms_num_syms to indicate that the symbol
+does not reside in the small-data storage space, and so may not be accessed
+relative to the small data base register.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/break.S       |    2 +-
- arch/frv/kernel/entry.S       |    2 +-
- arch/frv/kernel/vmlinux.lds.S |   27 +++++++++++++++------------
- arch/frv/mm/tlb-miss.S        |    2 +-
- 4 files changed, 18 insertions(+), 15 deletions(-)
+ kernel/kallsyms.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN arch/frv/kernel/break.S~frv-arrange-things-such-that-bra-can-reach-from-the-trap arch/frv/kernel/break.S
---- a/arch/frv/kernel/break.S~frv-arrange-things-such-that-bra-can-reach-from-the-trap
-+++ a/arch/frv/kernel/break.S
-@@ -63,7 +63,7 @@ __break_trace_through_exceptions:
- # entry point for Break Exceptions/Interrupts
- #
- ###############################################################################
--	.text
-+	.section	.text.break
- 	.balign		4
- 	.globl		__entry_break
- __entry_break:
-diff -puN arch/frv/kernel/entry.S~frv-arrange-things-such-that-bra-can-reach-from-the-trap arch/frv/kernel/entry.S
---- a/arch/frv/kernel/entry.S~frv-arrange-things-such-that-bra-can-reach-from-the-trap
-+++ a/arch/frv/kernel/entry.S
-@@ -38,7 +38,7 @@
+diff -puN kernel/kallsyms.c~frv-fix-the-extern-declaration-of-kallsyms_num_syms kernel/kallsyms.c
+--- a/kernel/kallsyms.c~frv-fix-the-extern-declaration-of-kallsyms_num_syms
++++ a/kernel/kallsyms.c
+@@ -32,9 +32,14 @@
  
- #define nr_syscalls ((syscall_table_size)/4)
+ /* These will be re-linked against their real values during the second link stage */
+ extern const unsigned long kallsyms_addresses[] __attribute__((weak));
+-extern const unsigned long kallsyms_num_syms __attribute__((weak));
+ extern const u8 kallsyms_names[] __attribute__((weak));
  
--	.text
-+	.section	.text.entry
- 	.balign		4
- 
- .macro LEDS val
-diff -puN arch/frv/kernel/vmlinux.lds.S~frv-arrange-things-such-that-bra-can-reach-from-the-trap arch/frv/kernel/vmlinux.lds.S
---- a/arch/frv/kernel/vmlinux.lds.S~frv-arrange-things-such-that-bra-can-reach-from-the-trap
-+++ a/arch/frv/kernel/vmlinux.lds.S
-@@ -76,6 +76,12 @@ SECTIONS
- 	  *(.data.init_task)
-   }
- 
-+  . = ALIGN(4096);
-+  .data.page_aligned : { *(.data.idt) }
++/* tell the compiler that the count isn't in the small data section if the arch
++ * has one (eg: FRV)
++ */
++extern const unsigned long kallsyms_num_syms
++__attribute__((weak, section(".rodata")));
 +
-+  . = ALIGN(L1_CACHE_BYTES);
-+  .data.cacheline_aligned : { *(.data.cacheline_aligned) }
-+
-   .trap : {
- 	/* trap table management - read entry-table.S before modifying */
- 	. = ALIGN(8192);
-@@ -86,28 +92,25 @@ SECTIONS
- 	*(.trap.break)
-   }
+ extern const u8 kallsyms_token_table[] __attribute__((weak));
+ extern const u16 kallsyms_token_index[] __attribute__((weak));
  
--  . = ALIGN(4096);
--  .data.page_aligned : { *(.data.idt) }
--
--  . = ALIGN(L1_CACHE_BYTES);
--  .data.cacheline_aligned : { *(.data.cacheline_aligned) }
--
-   /* Text and read-only data */
-   . = ALIGN(4);
-   _text = .;
-   _stext = .;
-   .text : {
--	*(
--		.text.start .text.*
-+	*(.text.start)
-+	*(.text.entry)
-+	*(.text.break)
-+	*(.text.tlbmiss)
-+	TEXT_TEXT
-+	SCHED_TEXT
-+	LOCK_TEXT
- #ifdef CONFIG_DEBUG_INFO
-+	*(
- 	.init.text
- 	.exit.text
- 	.exitcall.exit
--#endif
- 	)
--	TEXT_TEXT
--	SCHED_TEXT
--	LOCK_TEXT
-+#endif
- 	*(.fixup)
- 	*(.gnu.warning)
- 	*(.exitcall.exit)
-diff -puN arch/frv/mm/tlb-miss.S~frv-arrange-things-such-that-bra-can-reach-from-the-trap arch/frv/mm/tlb-miss.S
---- a/arch/frv/mm/tlb-miss.S~frv-arrange-things-such-that-bra-can-reach-from-the-trap
-+++ a/arch/frv/mm/tlb-miss.S
-@@ -16,7 +16,7 @@
- #include <asm/highmem.h>
- #include <asm/spr-regs.h>
- 
--	.section	.text
-+	.section	.text.tlbmiss
- 	.balign		4
- 
- 	.globl		__entry_insn_mmu_miss
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
