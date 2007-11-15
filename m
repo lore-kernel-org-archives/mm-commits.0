@@ -1,57 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - mips-pcspkr-build-fix.patch removed from -mm tree
-Date: Wed, 14 Nov 2007 18:52:56 -0800
-Message-ID: <200711150252.lAF2qusd006962@imap1.linux-foundation.org>
+Subject: + fix-boot-problem-with-iseries-lacking-hugepage-support-fix.patch added to -mm tree
+Date: Thu, 15 Nov 2007 02:32:29 -0800
+Message-ID: <200711151032.lAFAWTMR023749@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48187 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55977 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756797AbXKOCxM (ORCPT
+	by vger.kernel.org with ESMTP id S1758007AbXKOKdJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 Nov 2007 21:53:12 -0500
+	Thu, 15 Nov 2007 05:33:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dtor@mail.ru, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, mel@csn.ul.ie, paulus@samba.org
 
 
 The patch titled
-     mips: pcspkr build fix
-has been removed from the -mm tree.  Its filename was
-     mips-pcspkr-build-fix.patch
+     fix-boot-problem-with-iseries-lacking-hugepage-support-fix
+has been added to the -mm tree.  Its filename is
+     fix-boot-problem-with-iseries-lacking-hugepage-support-fix.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: mips: pcspkr build fix
+Subject: fix-boot-problem-with-iseries-lacking-hugepage-support-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/input/misc/pcspkr.c: In function `pcspkr_event':
-drivers/input/misc/pcspkr.c:50: error: `PIT_TICK_RATE' undeclared (first use in this function)
-drivers/input/misc/pcspkr.c:50: error: (Each undeclared identifier is reported only once
-drivers/input/misc/pcspkr.c:50: error: for each function it appears in.)
-
-I've no idea when this broke.
-
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: mel@skynet.ie (Mel Gorman)
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/misc/pcspkr.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/input/misc/pcspkr.c~mips-pcspkr-build-fix drivers/input/misc/pcspkr.c
---- a/drivers/input/misc/pcspkr.c~mips-pcspkr-build-fix
-+++ a/drivers/input/misc/pcspkr.c
-@@ -24,7 +24,7 @@ MODULE_DESCRIPTION("PC Speaker beeper dr
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("platform:pcspkr");
+diff -puN mm/page_alloc.c~fix-boot-problem-with-iseries-lacking-hugepage-support-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~fix-boot-problem-with-iseries-lacking-hugepage-support-fix
++++ a/mm/page_alloc.c
+@@ -3268,7 +3268,7 @@ static void inline setup_usemap(struct p
+ #ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
  
--#if defined(CONFIG_MIPS) || defined(CONFIG_X86)
-+#if defined(CONFIG_X86)
- /* Use the global PIT lock ! */
- #include <asm/i8253.h>
- #else
+ /* Return a sensible default order for the pageblock size. */
+-static inline int __init pageblock_default_order(void)
++static inline int pageblock_default_order(void)
+ {
+ 	if (HPAGE_SHIFT > PAGE_SHIFT)
+ 		return HUGETLB_PAGE_ORDER;
+@@ -3291,7 +3291,11 @@ static inline void __init set_pageblock_
+ }
+ #else /* CONFIG_HUGETLB_PAGE_SIZE_VARIABLE */
+ 
+-#define pageblock_default_order(x) (0)
++static inline int pageblock_default_order(void)
++{
++	return 0;
++}
++
+ #define set_pageblock_order(x)	do {} while (0)
+ 
+ #endif /* CONFIG_HUGETLB_PAGE_SIZE_VARIABLE */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -68,10 +80,10 @@ fix-64kb-blocksize-in-ext3-directories.patch
 file-capabilities-allow-sigcont-within-session-v2.patch
 x86-disable-preemption-in-delay_tsc.patch
 aic94xx_sds-rename-flash_size.patch
-mips-pcspkr-build-fix.patch
 cris-build-fixes-atomich-needs-compilerh-fix.patch
 cris-build-fixes-update-eth_v10c-ethernet-driver-fix.patch
 cris-remove-mtd_amstd-and-mtd_obsolete_chips-take-two.patch
+fix-boot-problem-with-iseries-lacking-hugepage-support-fix.patch
 get_task_comm-return-the-result.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
 clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
@@ -83,8 +95,6 @@ git-alsa.patch
 working-3d-dri-intel-agpko-resume-for-i815-chip.patch
 git-arm.patch
 agk-dm-dm-ioctl-move-compat-code-fix.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
 git-drm-oops-fix.patch
 git-dvb.patch
 ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
