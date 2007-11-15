@@ -1,65 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - usb-net2280-cant-have-a-function-called.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 15:31:29 -0800
-Message-ID: <200711152331.lAFNVTdo021526@imap1.linux-foundation.org>
+Subject: - mn10300-allocate-serial-port-uart-ids-for-on-chip-serial.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 15:31:31 -0800
+Message-ID: <200711152331.lAFNVVe2021529@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48609 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:43264 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762326AbXKOXbn (ORCPT
+	by vger.kernel.org with ESMTP id S1763875AbXKOXbp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 18:31:43 -0500
+	Thu, 15 Nov 2007 18:31:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     USB: net2280 can't have a function called show_registers()
+     MN10300: Allocate serial port UART IDs for on-chip serial ports
 has been removed from the -mm tree.  Its filename was
-     usb-net2280-cant-have-a-function-called.patch
+     mn10300-allocate-serial-port-uart-ids-for-on-chip-serial.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: USB: net2280 can't have a function called show_registers()
+Subject: MN10300: Allocate serial port UART IDs for on-chip serial ports
 From: David Howells <dhowells@redhat.com>
 
-net2280 can't have a function called show_registers() because this can produce
-a namespace clash with an arch function of the same name.
-
-All this driver's functions and variables should really be prefixed with
-"net2280_" to avoid such a problem in future.
+Allocate serial port UART type IDs for the MN10300 on-chip serial ports.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Greg KH <greg@kroah.com>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/net2280.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/serial_core.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/usb/gadget/net2280.c~usb-net2280-cant-have-a-function-called drivers/usb/gadget/net2280.c
---- a/drivers/usb/gadget/net2280.c~usb-net2280-cant-have-a-function-called
-+++ a/drivers/usb/gadget/net2280.c
-@@ -1419,7 +1419,7 @@ show_function (struct device *_dev, stru
- static DEVICE_ATTR (function, S_IRUGO, show_function, NULL);
+diff -puN include/linux/serial_core.h~mn10300-allocate-serial-port-uart-ids-for-on-chip-serial include/linux/serial_core.h
+--- a/include/linux/serial_core.h~mn10300-allocate-serial-port-uart-ids-for-on-chip-serial
++++ a/include/linux/serial_core.h
+@@ -152,6 +152,10 @@
+ /* Blackfin SPORT */
+ #define PORT_BFIN_SPORT		78
  
- static ssize_t
--show_registers (struct device *_dev, struct device_attribute *attr, char *buf)
-+net2280_show_registers (struct device *_dev, struct device_attribute *attr, char *buf)
- {
- 	struct net2280		*dev;
- 	char			*next;
-@@ -1571,7 +1571,7 @@ show_registers (struct device *_dev, str
++/* MN10300 on-chip UART numbers */
++#define PORT_MN10300		79
++#define PORT_MN10300_CTS	80
++
+ #ifdef __KERNEL__
  
- 	return PAGE_SIZE - size;
- }
--static DEVICE_ATTR (registers, S_IRUGO, show_registers, NULL);
-+static DEVICE_ATTR (registers, S_IRUGO, net2280_show_registers, NULL);
- 
- static ssize_t
- show_queues (struct device *_dev, struct device_attribute *attr, char *buf)
+ #include <linux/compiler.h>
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
@@ -121,7 +110,6 @@ unexport-asm-pageh.patch
 add-cmpxchg_local-to-frv.patch
 use-path_put-in-a-few-places-instead-of-mntdput.patch
 suppress-aout-library-support-if-config_binfmt_aout-checkpatch-fixes.patch
-usb-net2280-cant-have-a-function-called.patch
 usb-net2280-cant-have-a-function-called-checkpatch-fixes.patch
 mn10300-allocate-serial-port-uart-ids-for-on-chip-serial.patch
 mn10300-add-the-mn10300-am33-architecture-to-the-kernel.patch
