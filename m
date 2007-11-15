@@ -1,124 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlb-allow-bulk-updating-in-hugetlb__quota.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:09:44 -0800
-Message-ID: <200711152109.lAFL9iFl015478@imap1.linux-foundation.org>
+Subject: + use-struct-path-in-struct-svc_export-nfsd-fix-wrong-mnt_writer-count-in-rename.patch added to -mm tree
+Date: Thu, 15 Nov 2007 13:33:38 -0800
+Message-ID: <200711152133.lAFLXcka016780@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:32972 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45468 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763505AbXKOVXh (ORCPT
+	by vger.kernel.org with ESMTP id S1753499AbXKOViz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:23:37 -0500
+	Thu, 15 Nov 2007 16:38:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: agl@us.ibm.com, apw@shadowen.org, haveblue@us.ibm.com, hermes@gibson.dropbear.id.au, kenchen@google.com, wli@holomorphy.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ezk@cs.sunysb.edu, haveblue@us.ibm.com, hch@infradead.org
 
 
 The patch titled
-     hugetlb: allow bulk updating in hugetlb_*_quota()
-has been removed from the -mm tree.  Its filename was
-     hugetlb-allow-bulk-updating-in-hugetlb__quota.patch
+     NFSD: fix wrong mnt_writer count in rename
+has been added to the -mm tree.  Its filename is
+     use-struct-path-in-struct-svc_export-nfsd-fix-wrong-mnt_writer-count-in-rename.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: hugetlb: allow bulk updating in hugetlb_*_quota()
-From: Adam Litke <agl@us.ibm.com>
+Subject: NFSD: fix wrong mnt_writer count in rename
+From: Erez Zadok <ezk@cs.sunysb.edu>
 
-Add a second parameter 'delta' to hugetlb_get_quota and hugetlb_put_quota to
-allow bulk updating of the sbinfo->free_blocks counter.  This will be used by
-the next patch in the series.
+NFSD forgets to call mnt_drop_write after a successful rename.  Here's a
+fix.  (Ah, the curse of a stackable file system developer: you have to
+debug everyone else's too.  :-)
 
-Signed-off-by: Adam Litke <agl@us.ibm.com>
-Cc: Ken Chen <kenchen@google.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
+One thing I wasn't sure is whether I could move the mnt_drop_write line a
+little above, just after the call to vfs_rename.  If we can drop the ref
+earlier, it could improve scalability/performance just a bit, no?  (i.e.,
+what are the ramifications of holding on to this mnt writer ref longer than
+needed?)
+
+Signed-off-by: Erez Zadok <ezk@cs.sunysb.edu>
 Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: David Gibson <hermes@gibson.dropbear.id.au>
-Cc: William Lee Irwin III <wli@holomorphy.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c    |   10 +++++-----
- include/linux/hugetlb.h |    4 ++--
- mm/hugetlb.c            |    4 ++--
- 3 files changed, 9 insertions(+), 9 deletions(-)
+ fs/nfsd/vfs.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlb-allow-bulk-updating-in-hugetlb__quota fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlb-allow-bulk-updating-in-hugetlb__quota
-+++ a/fs/hugetlbfs/inode.c
-@@ -858,15 +858,15 @@ out_free:
- 	return -ENOMEM;
- }
- 
--int hugetlb_get_quota(struct address_space *mapping)
-+int hugetlb_get_quota(struct address_space *mapping, long delta)
- {
- 	int ret = 0;
- 	struct hugetlbfs_sb_info *sbinfo = HUGETLBFS_SB(mapping->host->i_sb);
- 
- 	if (sbinfo->free_blocks > -1) {
- 		spin_lock(&sbinfo->stat_lock);
--		if (sbinfo->free_blocks > 0)
--			sbinfo->free_blocks--;
-+		if (sbinfo->free_blocks - delta >= 0)
-+			sbinfo->free_blocks -= delta;
- 		else
- 			ret = -ENOMEM;
- 		spin_unlock(&sbinfo->stat_lock);
-@@ -875,13 +875,13 @@ int hugetlb_get_quota(struct address_spa
- 	return ret;
- }
- 
--void hugetlb_put_quota(struct address_space *mapping)
-+void hugetlb_put_quota(struct address_space *mapping, long delta)
- {
- 	struct hugetlbfs_sb_info *sbinfo = HUGETLBFS_SB(mapping->host->i_sb);
- 
- 	if (sbinfo->free_blocks > -1) {
- 		spin_lock(&sbinfo->stat_lock);
--		sbinfo->free_blocks++;
-+		sbinfo->free_blocks += delta;
- 		spin_unlock(&sbinfo->stat_lock);
+diff -puN fs/nfsd/vfs.c~use-struct-path-in-struct-svc_export-nfsd-fix-wrong-mnt_writer-count-in-rename fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~use-struct-path-in-struct-svc_export-nfsd-fix-wrong-mnt_writer-count-in-rename
++++ a/fs/nfsd/vfs.c
+@@ -1693,6 +1693,7 @@ nfsd_rename(struct svc_rqst *rqstp, stru
+ 		if (!host_err)
+ 			host_err = nfsd_sync_dir(fdentry);
  	}
- }
-diff -puN include/linux/hugetlb.h~hugetlb-allow-bulk-updating-in-hugetlb__quota include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-allow-bulk-updating-in-hugetlb__quota
-+++ a/include/linux/hugetlb.h
-@@ -165,8 +165,8 @@ static inline struct hugetlbfs_sb_info *
- extern const struct file_operations hugetlbfs_file_operations;
- extern struct vm_operations_struct hugetlb_vm_ops;
- struct file *hugetlb_file_setup(const char *name, size_t);
--int hugetlb_get_quota(struct address_space *mapping);
--void hugetlb_put_quota(struct address_space *mapping);
-+int hugetlb_get_quota(struct address_space *mapping, long delta);
-+void hugetlb_put_quota(struct address_space *mapping, long delta);
++	mnt_drop_write(ffhp->fh_export->ex_path.mnt);
  
- static inline int is_file_hugepages(struct file *file)
- {
-diff -puN mm/hugetlb.c~hugetlb-allow-bulk-updating-in-hugetlb__quota mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-allow-bulk-updating-in-hugetlb__quota
-+++ a/mm/hugetlb.c
-@@ -132,7 +132,7 @@ static void free_huge_page(struct page *
- 	}
- 	spin_unlock(&hugetlb_lock);
- 	if (mapping)
--		hugetlb_put_quota(mapping);
-+		hugetlb_put_quota(mapping, 1);
- 	set_page_private(page, 0);
- }
- 
-@@ -390,7 +390,7 @@ static struct page *alloc_huge_page(stru
- 	struct page *page;
- 	struct address_space *mapping = vma->vm_file->f_mapping;
- 
--	if (hugetlb_get_quota(mapping))
-+	if (hugetlb_get_quota(mapping, 1))
- 		return ERR_PTR(-VM_FAULT_SIGBUS);
- 
- 	if (vma->vm_flags & VM_MAYSHARE)
+  out_dput_new:
+ 	dput(ndentry);
 _
 
-Patches currently in -mm which might be from agl@us.ibm.com are
+Patches currently in -mm which might be from ezk@cs.sunysb.edu are
 
 origin.patch
-hugetlb-allow-sticky-directory-mount-option.patch
+git-unionfs.patch
+vfs-apply-coding-standards-to-fs-ioctlc.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+vfs-factor-out-three-helpers-for-fibmap-fionbio-fioasync-file-ioctls.patch
+x86-early_quirks-cleanup.patch
+add-64-bit-capability-support-to-the-kernel-fix-fix.patch
+read_current_time-cleanups-build-fix.patch
+read_current_time-cleanups-build-fix-fix.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+create-file_drop_write_access-helper.patch
+fix-up-new-filp-allocators.patch
+iget-stop-unionfs-from-using-iget-and-read_inode.patch
+iget-stop-unionfs-from-using-iget-and-read_inode-fix.patch
+use-struct-path-in-struct-svc_export-nfsd-fix-wrong-mnt_writer-count-in-rename.patch
