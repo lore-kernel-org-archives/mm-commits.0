@@ -1,129 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - forbid-user-to-change-file-flags-on-quota-files.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:08:46 -0800
-Message-ID: <200711152108.lAFL8kNv015387__9138.75145274705$1195161583$gmane$org@imap1.linux-foundation.org>
+Subject: - hibernate-fix-lockdep-report-2.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:10:51 -0800
+Message-ID: <200711152110.lAFLApaf015695@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59602 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:58549 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932750AbXKOVST (ORCPT
+	by vger.kernel.org with ESMTP id S1762265AbXKOVSj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:18:19 -0500
+	Thu, 15 Nov 2007 16:18:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, linux-ext4@vger.kernel.org, lioupayphone@gmail.com, reiserfs-dev@namesys.com, shaggy@austin.ibm.com, mm-commits@vger.kernel.org
+To: johannes@sipsolutions.net, a.p.zijlstra@chello.nl, pavel@ucw.cz, rjw@sisk.pl, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Forbid user to change file flags on quota files
+     hibernate: fix lockdep report
 has been removed from the -mm tree.  Its filename was
-     forbid-user-to-change-file-flags-on-quota-files.patch
+     hibernate-fix-lockdep-report-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Forbid user to change file flags on quota files
-From: Jan Kara <jack@suse.cz>
+Subject: hibernate: fix lockdep report
+From: Johannes Berg <johannes@sipsolutions.net>
 
-Forbid user from changing file flags on quota files.  User has no bussiness
-in playing with these flags when quota is on.  Furthermore there is a
-remote possibility of deadlock due to a lock inversion between quota file's
-i_mutex and transaction's start (i_mutex for quota file is locked only when
-trasaction is started in quota operations) in ext3 and ext4.
+Lockdep reports a circular locking dependency in the hibernate code
+because
+ - during system boot hibernate code (from an initcall) locks pm_mutex
+   and then a sysfs buffer mutex via name_to_dev_t
+ - during regular operation hibernate code locks pm_mutex under a
+   sysfs buffer mutex because it's called from sysfs methods.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: LIOU Payphone <lioupayphone@gmail.com>
-Cc: <linux-ext4@vger.kernel.org>
-Acked-by: Dave Kleikamp <shaggy@austin.ibm.com>
-Cc: <reiserfs-dev@namesys.com>
+The deadlock can never happen because during initcall invocation nothing
+can write to sysfs yet. This removes the lockdep report by marking the
+initcall locking as being in a different class.
+
+Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/ioctl.c     |    5 +++++
- fs/ext3/ioctl.c     |    5 +++++
- fs/ext4/ioctl.c     |    5 +++++
- fs/jfs/ioctl.c      |    3 +++
- fs/reiserfs/ioctl.c |    3 +++
- 5 files changed, 21 insertions(+)
+ kernel/power/disk.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN fs/ext2/ioctl.c~forbid-user-to-change-file-flags-on-quota-files fs/ext2/ioctl.c
---- a/fs/ext2/ioctl.c~forbid-user-to-change-file-flags-on-quota-files
-+++ a/fs/ext2/ioctl.c
-@@ -47,6 +47,11 @@ int ext2_ioctl (struct inode * inode, st
- 			flags &= ~EXT2_DIRSYNC_FL;
+diff -puN kernel/power/disk.c~hibernate-fix-lockdep-report-2 kernel/power/disk.c
+--- a/kernel/power/disk.c~hibernate-fix-lockdep-report-2
++++ a/kernel/power/disk.c
+@@ -456,7 +456,17 @@ static int software_resume(void)
+ 	int error;
+ 	unsigned int flags;
  
- 		mutex_lock(&inode->i_mutex);
-+		/* Is it quota file? Do not allow user to mess with it */
-+		if (IS_NOQUOTA(inode)) {
-+			mutex_unlock(&inode->i_mutex);
-+			return -EPERM;
-+		}
- 		oldflags = ei->i_flags;
- 
- 		/*
-diff -puN fs/ext3/ioctl.c~forbid-user-to-change-file-flags-on-quota-files fs/ext3/ioctl.c
---- a/fs/ext3/ioctl.c~forbid-user-to-change-file-flags-on-quota-files
-+++ a/fs/ext3/ioctl.c
-@@ -51,6 +51,11 @@ int ext3_ioctl (struct inode * inode, st
- 			flags &= ~EXT3_DIRSYNC_FL;
- 
- 		mutex_lock(&inode->i_mutex);
-+		/* Is it quota file? Do not allow user to mess with it */
-+		if (IS_NOQUOTA(inode)) {
-+			mutex_unlock(&inode->i_mutex);
-+			return -EPERM;
-+		}
- 		oldflags = ei->i_flags;
- 
- 		/* The JOURNAL_DATA flag is modifiable only by root */
-diff -puN fs/ext4/ioctl.c~forbid-user-to-change-file-flags-on-quota-files fs/ext4/ioctl.c
---- a/fs/ext4/ioctl.c~forbid-user-to-change-file-flags-on-quota-files
-+++ a/fs/ext4/ioctl.c
-@@ -51,6 +51,11 @@ int ext4_ioctl (struct inode * inode, st
- 			flags &= ~EXT4_DIRSYNC_FL;
- 
- 		mutex_lock(&inode->i_mutex);
-+		/* Is it quota file? Do not allow user to mess with it */
-+		if (IS_NOQUOTA(inode)) {
-+			mutex_unlock(&inode->i_mutex);
-+			return -EPERM;
-+		}
- 		oldflags = ei->i_flags;
- 
- 		/* The JOURNAL_DATA flag is modifiable only by root */
-diff -puN fs/jfs/ioctl.c~forbid-user-to-change-file-flags-on-quota-files fs/jfs/ioctl.c
---- a/fs/jfs/ioctl.c~forbid-user-to-change-file-flags-on-quota-files
-+++ a/fs/jfs/ioctl.c
-@@ -79,6 +79,9 @@ int jfs_ioctl(struct inode * inode, stru
- 		if (!S_ISDIR(inode->i_mode))
- 			flags &= ~JFS_DIRSYNC_FL;
- 
-+		/* Is it quota file? Do not allow user to mess with it */
-+		if (IS_NOQUOTA(inode))
-+			return -EPERM;
- 		jfs_get_inode_flags(jfs_inode);
- 		oldflags = jfs_inode->mode2;
- 
-diff -puN fs/reiserfs/ioctl.c~forbid-user-to-change-file-flags-on-quota-files fs/reiserfs/ioctl.c
---- a/fs/reiserfs/ioctl.c~forbid-user-to-change-file-flags-on-quota-files
-+++ a/fs/reiserfs/ioctl.c
-@@ -57,6 +57,9 @@ int reiserfs_ioctl(struct inode *inode, 
- 			if (get_user(flags, (int __user *)arg))
- 				return -EFAULT;
- 
-+			/* Is it quota file? Do not allow user to mess with it. */
-+			if (IS_NOQUOTA(inode))
-+				return -EPERM;
- 			if (((flags ^ REISERFS_I(inode)->
- 			      i_attrs) & (REISERFS_IMMUTABLE_FL |
- 					  REISERFS_APPEND_FL))
+-	mutex_lock(&pm_mutex);
++	/*
++	 * name_to_dev_t() below takes a sysfs buffer mutex when sysfs
++	 * is configured into the kernel. Since the regular hibernate
++	 * trigger path is via sysfs which takes a buffer mutex before
++	 * calling hibernate functions (which take pm_mutex) this can
++	 * cause lockdep to complain about a possible ABBA deadlock
++	 * which cannot happen since we're in the boot code here and
++	 * sysfs can't be invoked yet. Therefore, we use a subclass
++	 * here to avoid lockdep complaining.
++	 */
++	mutex_lock_nested(&pm_mutex, SINGLE_DEPTH_NESTING);
+ 	if (!swsusp_resume_device) {
+ 		if (!strlen(resume_file)) {
+ 			mutex_unlock(&pm_mutex);
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from johannes@sipsolutions.net are
 
 origin.patch
-git-ocfs2.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext4-from-using-iget-and-read_inode-try.patch
+git-kbuild.patch
+git-wireless.patch
