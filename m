@@ -1,78 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: - hibernate-fix-lockdep-report-2.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:10:51 -0800
-Message-ID: <200711152110.lAFLApaf015695@imap1.linux-foundation.org>
+Subject: - hugetlb-enforce-quotas-during-reservation-for-shared-mappings.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:09:46 -0800
+Message-ID: <200711152109.lAFL9knG015481@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58549 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34768 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762265AbXKOVSj (ORCPT
+	by vger.kernel.org with ESMTP id S932814AbXKOVSZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:18:39 -0500
+	Thu, 15 Nov 2007 16:18:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johannes@sipsolutions.net, a.p.zijlstra@chello.nl, pavel@ucw.cz, rjw@sisk.pl, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: agl@us.ibm.com, apw@shadowen.org, haveblue@us.ibm.com, hermes@gibson.dropbear.id.au, kenchen@google.com, wli@holomorphy.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hibernate: fix lockdep report
+     hugetlb: enforce quotas during reservation for shared mappings
 has been removed from the -mm tree.  Its filename was
-     hibernate-fix-lockdep-report-2.patch
+     hugetlb-enforce-quotas-during-reservation-for-shared-mappings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: hibernate: fix lockdep report
-From: Johannes Berg <johannes@sipsolutions.net>
+Subject: hugetlb: enforce quotas during reservation for shared mappings
+From: Adam Litke <agl@us.ibm.com>
 
-Lockdep reports a circular locking dependency in the hibernate code
-because
- - during system boot hibernate code (from an initcall) locks pm_mutex
-   and then a sysfs buffer mutex via name_to_dev_t
- - during regular operation hibernate code locks pm_mutex under a
-   sysfs buffer mutex because it's called from sysfs methods.
+When a MAP_SHARED mmap of a hugetlbfs file succeeds, huge pages are reserved
+to guarantee no problems will occur later when instantiating pages.  If quotas
+are in force, page instantiation could fail due to a race with another process
+or an oversized (but approved) shared mapping.
 
-The deadlock can never happen because during initcall invocation nothing
-can write to sysfs yet. This removes the lockdep report by marking the
-initcall locking as being in a different class.
+To prevent these scenarios, debit the quota for the full reservation amount up
+front and credit the unused quota when the reservation is released.
 
-Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Adam Litke <agl@us.ibm.com>
+Cc: Ken Chen <kenchen@google.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: David Gibson <hermes@gibson.dropbear.id.au>
+Cc: William Lee Irwin III <wli@holomorphy.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/disk.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
-diff -puN kernel/power/disk.c~hibernate-fix-lockdep-report-2 kernel/power/disk.c
---- a/kernel/power/disk.c~hibernate-fix-lockdep-report-2
-+++ a/kernel/power/disk.c
-@@ -456,7 +456,17 @@ static int software_resume(void)
- 	int error;
- 	unsigned int flags;
+diff -puN mm/hugetlb.c~hugetlb-enforce-quotas-during-reservation-for-shared-mappings mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-enforce-quotas-during-reservation-for-shared-mappings
++++ a/mm/hugetlb.c
+@@ -367,7 +367,7 @@ static struct page *alloc_huge_page_shar
+ 	spin_lock(&hugetlb_lock);
+ 	page = dequeue_huge_page(vma, addr);
+ 	spin_unlock(&hugetlb_lock);
+-	return page;
++	return page ? page : ERR_PTR(-VM_FAULT_OOM);
+ }
  
--	mutex_lock(&pm_mutex);
-+	/*
-+	 * name_to_dev_t() below takes a sysfs buffer mutex when sysfs
-+	 * is configured into the kernel. Since the regular hibernate
-+	 * trigger path is via sysfs which takes a buffer mutex before
-+	 * calling hibernate functions (which take pm_mutex) this can
-+	 * cause lockdep to complain about a possible ABBA deadlock
-+	 * which cannot happen since we're in the boot code here and
-+	 * sysfs can't be invoked yet. Therefore, we use a subclass
-+	 * here to avoid lockdep complaining.
-+	 */
-+	mutex_lock_nested(&pm_mutex, SINGLE_DEPTH_NESTING);
- 	if (!swsusp_resume_device) {
- 		if (!strlen(resume_file)) {
- 			mutex_unlock(&pm_mutex);
+ static struct page *alloc_huge_page_private(struct vm_area_struct *vma,
+@@ -375,13 +375,16 @@ static struct page *alloc_huge_page_priv
+ {
+ 	struct page *page = NULL;
+ 
++	if (hugetlb_get_quota(vma->vm_file->f_mapping, 1))
++		return ERR_PTR(-VM_FAULT_SIGBUS);
++
+ 	spin_lock(&hugetlb_lock);
+ 	if (free_huge_pages > resv_huge_pages)
+ 		page = dequeue_huge_page(vma, addr);
+ 	spin_unlock(&hugetlb_lock);
+ 	if (!page)
+ 		page = alloc_buddy_huge_page(vma, addr);
+-	return page;
++	return page ? page : ERR_PTR(-VM_FAULT_OOM);
+ }
+ 
+ static struct page *alloc_huge_page(struct vm_area_struct *vma,
+@@ -390,19 +393,16 @@ static struct page *alloc_huge_page(stru
+ 	struct page *page;
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+ 
+-	if (hugetlb_get_quota(mapping, 1))
+-		return ERR_PTR(-VM_FAULT_SIGBUS);
+-
+ 	if (vma->vm_flags & VM_MAYSHARE)
+ 		page = alloc_huge_page_shared(vma, addr);
+ 	else
+ 		page = alloc_huge_page_private(vma, addr);
+-	if (page) {
++
++	if (!IS_ERR(page)) {
+ 		set_page_refcounted(page);
+ 		set_page_private(page, (unsigned long) mapping);
+-		return page;
+-	} else
+-		return ERR_PTR(-VM_FAULT_OOM);
++	}
++	return page;
+ }
+ 
+ static int __init hugetlb_init(void)
+@@ -1148,6 +1148,8 @@ int hugetlb_reserve_pages(struct inode *
+ 	if (chg < 0)
+ 		return chg;
+ 
++	if (hugetlb_get_quota(inode->i_mapping, chg))
++		return -ENOSPC;
+ 	ret = hugetlb_acct_memory(chg);
+ 	if (ret < 0)
+ 		return ret;
+@@ -1158,5 +1160,6 @@ int hugetlb_reserve_pages(struct inode *
+ void hugetlb_unreserve_pages(struct inode *inode, long offset, long freed)
+ {
+ 	long chg = region_truncate(&inode->i_mapping->private_list, offset);
+-	hugetlb_acct_memory(freed - chg);
++	hugetlb_put_quota(inode->i_mapping, (chg - freed));
++	hugetlb_acct_memory(-(chg - freed));
+ }
 _
 
-Patches currently in -mm which might be from johannes@sipsolutions.net are
+Patches currently in -mm which might be from agl@us.ibm.com are
 
 origin.patch
-git-kbuild.patch
-git-wireless.patch
+hugetlb-allow-sticky-directory-mount-option.patch
