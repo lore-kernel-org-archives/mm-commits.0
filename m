@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig.patch added to -mm tree
-Date: Thu, 15 Nov 2007 14:27:12 -0800
-Message-ID: <200711152227.lAFMRCQD019112@imap1.linux-foundation.org>
+Subject: + create-arch-kconfig.patch added to -mm tree
+Date: Thu, 15 Nov 2007 14:27:05 -0800
+Message-ID: <200711152227.lAFMR5Ck019098@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:37839 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:39031 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764507AbXKOW2T (ORCPT
+	by vger.kernel.org with ESMTP id S932312AbXKOW2U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 17:28:19 -0500
+	Thu, 15 Nov 2007 17:28:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mathieu.desnoyers@polymtl.ca, linux-arch@vger.kernel.org, sam@ravnborg.org, 
 
 
 The patch titled
-     Move Kconfig.instrumentation to arch/Kconfig and init/Kconfig
+     Create arch/Kconfig
 has been added to the -mm tree.  Its filename is
-     move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig.patch
+     create-arch-kconfig.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,23 +26,59 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Move Kconfig.instrumentation to arch/Kconfig and init/Kconfig
+Subject: Create arch/Kconfig
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Move the instrumentation Kconfig to
+Puts the content of arch/Kconfig in the "General setup" menu.
 
-arch/Kconfig for architecture dependent options
-  - oprofile
-  - kprobes
+Linus:
 
-and
+> Should it come with a re-duplication of it's content into each
+> architecture, which was the case previously ? The oprofile and kprobes
+> menu entries were litteraly cut and pasted from one architecture to
+> another. Should we put its content in init/Kconfig then ?
 
-init/Kconfig for architecture independent options
-  - profiling
-  - markers
+I don't think it's a good idea to go back to making it per-architecture,
+although that extensive "depends on <list-of-archiectures-here>" might
+indicate that there certainly is room for cleanup there.
 
-Remove the "Instrumentation Support" menu. Everything moves to "General setup".
-Delete the kernel/Kconfig.instrumentation file.
+And I don't think it's wrong keeping it in kernel/Kconfig.xyz per se, I
+just think it's wrong to (a) lump the code together when it really doesn't
+necessarily need to and (b) show it to users as some kind of choice that
+is tied together (whether it then has common code or not).
+
+On the per-architecture side, I do think it would be better to *not* have
+internal architecture knowledge in a generic file, and as such a line like
+
+        depends on X86_32 || IA64 || PPC || S390 || SPARC64 || X86_64 || AVR32
+
+really shouldn't exist in a file like kernel/Kconfig.instrumentation.
+
+It would be much better to do
+
+        depends on ARCH_SUPPORTS_KPROBES
+
+in that generic file, and then architectures that do support it would just
+have a
+
+        bool ARCH_SUPPORTS_KPROBES
+                default y
+
+in *their* architecture files. That would seem to be much more logical,
+and is readable both for arch maintainers *and* for people who have no
+clue - and don't care - about which architecture is supposed to support
+which interface...
+
+
+Sam Ravnborg:
+
+Stuff it into a new file: arch/Kconfig
+We can then extend this file to include all the 'trailing'
+Kconfig things that are anyway equal for all ARCHs.
+
+But it should be kept clean - so if we introduce such a file
+then we should use ARCH_HAS_whatever in the arch specific Kconfig
+files to enable stuff that is not shared.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
@@ -51,412 +87,29 @@ Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig                   |   22 +++++++++++++
- arch/alpha/Kconfig             |    2 -
- arch/arm/Kconfig               |    2 -
- arch/blackfin/Kconfig          |    2 -
- arch/cris/Kconfig              |    2 -
- arch/frv/Kconfig               |    2 -
- arch/h8300/Kconfig             |    2 -
- arch/ia64/Kconfig              |    2 -
- arch/m32r/Kconfig              |    2 -
- arch/m68k/Kconfig              |    2 -
- arch/m68knommu/Kconfig         |    2 -
- arch/mips/Kconfig              |    2 -
- arch/parisc/Kconfig            |    2 -
- arch/powerpc/Kconfig           |    2 -
- arch/ppc/Kconfig               |    2 -
- arch/s390/Kconfig              |    2 -
- arch/sh/Kconfig                |    2 -
- arch/sh64/Kconfig              |    2 -
- arch/sparc/Kconfig             |    2 -
- arch/sparc64/Kconfig           |    2 -
- arch/um/Kconfig                |    2 -
- arch/v850/Kconfig              |    2 -
- arch/x86/Kconfig               |    2 -
- arch/xtensa/Kconfig            |    2 -
- init/Kconfig                   |   12 +++++++
- kernel/Kconfig.instrumentation |   49 -------------------------------
- 26 files changed, 34 insertions(+), 95 deletions(-)
+ arch/Kconfig |    3 +++
+ init/Kconfig |    2 ++
+ 2 files changed, 5 insertions(+)
 
-diff -puN arch/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/Kconfig
---- a/arch/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
+diff -puN /dev/null arch/Kconfig
+--- /dev/null
 +++ a/arch/Kconfig
-@@ -1,3 +1,25 @@
- #
- # General architecture dependent options
- #
-+
-+config OPROFILE
-+	tristate "OProfile system profiling (EXPERIMENTAL)"
-+	depends on PROFILING
-+	depends on ARCH_SUPPORTS_OPROFILE
-+	help
-+	  OProfile is a profiling system capable of profiling the
-+	  whole system, include the kernel, kernel modules, libraries,
-+	  and applications.
-+
-+	  If unsure, say N.
-+
-+config KPROBES
-+	bool "Kprobes"
-+	depends on KALLSYMS && MODULES
-+	depends on ARCH_SUPPORTS_KPROBES
-+	help
-+	  Kprobes allows you to trap at almost any kernel address and
-+	  execute a callback function.  register_kprobe() establishes
-+	  a probepoint and specifies the callback.  Kprobes is useful
-+	  for kernel debugging, non-intrusive instrumentation and testing.
-+	  If in doubt, say "N".
-diff -puN arch/alpha/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/alpha/Kconfig
---- a/arch/alpha/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
-+++ a/arch/alpha/Kconfig
-@@ -657,8 +657,6 @@ source "drivers/Kconfig"
- 
- source "fs/Kconfig"
- 
--source "kernel/Kconfig.instrumentation"
--
- source "arch/alpha/Kconfig.debug"
- 
- # DUMMY_CONSOLE may be defined in drivers/video/console/Kconfig
-diff -puN arch/arm/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/arm/Kconfig
---- a/arch/arm/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
-+++ a/arch/arm/Kconfig
-@@ -1075,8 +1075,6 @@ endmenu
- 
- source "fs/Kconfig"
- 
--source "kernel/Kconfig.instrumentation"
--
- source "arch/arm/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/blackfin/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/blackfin/Kconfig
---- a/arch/blackfin/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
-+++ a/arch/blackfin/Kconfig
-@@ -1076,8 +1076,6 @@ source "drivers/Kconfig"
- 
- source "fs/Kconfig"
- 
--source "kernel/Kconfig.instrumentation"
--
- menu "Kernel hacking"
- 
- source "lib/Kconfig.debug"
-diff -puN arch/cris/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/cris/Kconfig
---- a/arch/cris/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
-+++ a/arch/cris/Kconfig
-@@ -213,8 +213,6 @@ source "drivers/pci/Kconfig"
- 
- source "drivers/usb/Kconfig"
- 
--source "kernel/Kconfig.instrumentation"
--
- source "arch/cris/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/frv/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/frv/Kconfig
---- a/arch/frv/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
-+++ a/arch/frv/Kconfig
-@@ -384,8 +384,6 @@ source "drivers/Kconfig"
- 
- source "fs/Kconfig"
- 
--source "kernel/Kconfig.instrumentation"
--
- source "arch/frv/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/h8300/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/h8300/Kconfig
---- a/arch/h8300/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
-+++ a/arch/h8300/Kconfig
-@@ -223,8 +223,6 @@ endmenu
- 
- source "fs/Kconfig"
- 
--source "kernel/Kconfig.instrumentation"
--
- source "arch/h8300/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/ia64/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
-+++ a/arch/ia64/Kconfig
-@@ -598,8 +598,6 @@ config IRQ_PER_CPU
- 
- source "arch/ia64/hp/sim/Kconfig"
- 
--source "kernel/Kconfig.instrumentation"
--
- source "arch/ia64/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/m32r/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
-+++ a/arch/m32r/Kconfig
-@@ -429,8 +429,6 @@ source "drivers/Kconfig"
- 
- source "fs/Kconfig"
- 
--source "kernel/Kconfig.instrumentation"
--
- source "arch/m32r/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/m68k/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/m68k/Kconfig
---- a/arch/m68k/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
-+++ a/arch/m68k/Kconfig
-@@ -683,8 +683,6 @@ endmenu
- 
- source "fs/Kconfig"
- 
--source "kernel/Kconfig.instrumentation"
--
- source "arch/m68k/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/m68knommu/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/m68knommu/Kconfig
---- a/arch/m68knommu/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
-+++ a/arch/m68knommu/Kconfig
-@@ -707,8 +707,6 @@ source "drivers/Kconfig"
- 
- source "fs/Kconfig"
- 
--source "kernel/Kconfig.instrumentation"
--
- source "arch/m68knommu/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/mips/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/mips/Kconfig
---- a/arch/mips/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
-+++ a/arch/mips/Kconfig
-@@ -2042,8 +2042,6 @@ source "drivers/Kconfig"
- 
- source "fs/Kconfig"
- 
--source "kernel/Kconfig.instrumentation"
--
- source "arch/mips/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/parisc/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/parisc/Kconfig
---- a/arch/parisc/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
-+++ a/arch/parisc/Kconfig
-@@ -270,8 +270,6 @@ source "drivers/Kconfig"
- 
- source "fs/Kconfig"
- 
--source "kernel/Kconfig.instrumentation"
--
- source "arch/parisc/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/powerpc/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
-+++ a/arch/powerpc/Kconfig
-@@ -686,8 +686,6 @@ source "arch/powerpc/sysdev/qe_lib/Kconf
- 
- source "lib/Kconfig"
- 
--source "kernel/Kconfig.instrumentation"
--
- source "arch/powerpc/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/ppc/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/ppc/Kconfig
---- a/arch/ppc/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
-+++ a/arch/ppc/Kconfig
-@@ -1323,8 +1323,6 @@ endmenu
- 
- source "lib/Kconfig"
- 
--source "kernel/Kconfig.instrumentation"
--
- source "arch/ppc/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/s390/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/s390/Kconfig
---- a/arch/s390/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
-+++ a/arch/s390/Kconfig
-@@ -535,8 +535,6 @@ source "drivers/Kconfig"
- 
- source "fs/Kconfig"
- 
--source "kernel/Kconfig.instrumentation"
--
- source "arch/s390/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/sh/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/sh/Kconfig
---- a/arch/sh/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
-+++ a/arch/sh/Kconfig
-@@ -759,8 +759,6 @@ source "drivers/Kconfig"
- 
- source "fs/Kconfig"
- 
--source "kernel/Kconfig.instrumentation"
--
- source "arch/sh/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/sh64/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/sh64/Kconfig
---- a/arch/sh64/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
-+++ a/arch/sh64/Kconfig
-@@ -287,8 +287,6 @@ source "drivers/Kconfig"
- 
- source "fs/Kconfig"
- 
--source "kernel/Kconfig.instrumentation"
--
- source "arch/sh64/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/sparc/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/sparc/Kconfig
---- a/arch/sparc/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
-+++ a/arch/sparc/Kconfig
-@@ -323,8 +323,6 @@ endmenu
- 
- source "fs/Kconfig"
- 
--source "kernel/Kconfig.instrumentation"
--
- source "arch/sparc/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/sparc64/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/sparc64/Kconfig
---- a/arch/sparc64/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
-+++ a/arch/sparc64/Kconfig
-@@ -468,8 +468,6 @@ source "drivers/sbus/char/Kconfig"
- 
- source "fs/Kconfig"
- 
--source "kernel/Kconfig.instrumentation"
--
- source "arch/sparc64/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/um/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/um/Kconfig
---- a/arch/um/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
-+++ a/arch/um/Kconfig
-@@ -288,6 +288,4 @@ config INPUT
- 	bool
- 	default n
- 
--source "kernel/Kconfig.instrumentation"
--
- source "arch/um/Kconfig.debug"
-diff -puN arch/v850/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/v850/Kconfig
---- a/arch/v850/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
-+++ a/arch/v850/Kconfig
-@@ -331,8 +331,6 @@ source "sound/Kconfig"
- 
- source "drivers/usb/Kconfig"
- 
--source "kernel/Kconfig.instrumentation"
--
- source "arch/v850/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/x86/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/x86/Kconfig
---- a/arch/x86/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
-+++ a/arch/x86/Kconfig
-@@ -1641,8 +1641,6 @@ source "drivers/firmware/Kconfig"
- 
- source "fs/Kconfig"
- 
--source "kernel/Kconfig.instrumentation"
--
- source "arch/x86/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN arch/xtensa/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig arch/xtensa/Kconfig
---- a/arch/xtensa/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
-+++ a/arch/xtensa/Kconfig
-@@ -251,8 +251,6 @@ config EMBEDDED_RAMDISK_IMAGE
- 	  provide one yourself.
- endmenu
- 
--source "kernel/Kconfig.instrumentation"
--
- source "arch/xtensa/Kconfig.debug"
- 
- source "security/Kconfig"
-diff -puN init/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig init/Kconfig
---- a/init/Kconfig~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig
+@@ -0,0 +1,3 @@
++#
++# General architecture dependent options
++#
+diff -puN init/Kconfig~create-arch-kconfig init/Kconfig
+--- a/init/Kconfig~create-arch-kconfig
 +++ a/init/Kconfig
-@@ -673,6 +673,18 @@ config PROC_PAGE_MONITOR
+@@ -673,6 +673,8 @@ config PROC_PAGE_MONITOR
  	  /proc/kpagecount, and /proc/kpageflags. Disabling these
            interfaces will reduce the size of the kernel by approximately 4kb.
  
-+config PROFILING
-+	bool "Profiling support (EXPERIMENTAL)"
-+	help
-+	  Say Y here to enable the extended profiling support mechanisms used
-+	  by profilers such as OProfile.
++source "arch/Kconfig"
 +
-+config MARKERS
-+	bool "Activate markers"
-+	help
-+	  Place an empty function call at each marker site. Can be
-+	  dynamically changed for a probe function.
-+
- source "arch/Kconfig"
- 
  endmenu		# General setup
-diff -puN kernel/Kconfig.instrumentation~move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig /dev/null
---- a/kernel/Kconfig.instrumentation
-+++ /dev/null
-@@ -1,49 +0,0 @@
--menuconfig INSTRUMENTATION
--	bool "Instrumentation Support"
--	default y
--	---help---
--	  Say Y here to get to see options related to performance measurement,
--	  system-wide debugging, and testing. This option alone does not add any
--	  kernel code.
--
--	  If you say N, all options in this submenu will be skipped and
--	  disabled. If you're trying to debug the kernel itself, go see the
--	  Kernel Hacking menu.
--
--if INSTRUMENTATION
--
--config PROFILING
--	bool "Profiling support (EXPERIMENTAL)"
--	help
--	  Say Y here to enable the extended profiling support mechanisms used
--	  by profilers such as OProfile.
--
--config OPROFILE
--	tristate "OProfile system profiling (EXPERIMENTAL)"
--	depends on PROFILING
--	depends on ARCH_SUPPORTS_OPROFILE
--	help
--	  OProfile is a profiling system capable of profiling the
--	  whole system, include the kernel, kernel modules, libraries,
--	  and applications.
--
--	  If unsure, say N.
--
--config KPROBES
--	bool "Kprobes"
--	depends on KALLSYMS && MODULES
--	depends on ARCH_SUPPORTS_KPROBES
--	help
--	  Kprobes allows you to trap at almost any kernel address and
--	  execute a callback function.  register_kprobe() establishes
--	  a probepoint and specifies the callback.  Kprobes is useful
--	  for kernel debugging, non-intrusive instrumentation and testing.
--	  If in doubt, say "N".
--
--config MARKERS
--	bool "Activate markers"
--	help
--	  Place an empty function call at each marker site. Can be
--	  dynamically changed for a probe function.
--
--endif # INSTRUMENTATION
+ 
+ config RT_MUTEXES
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
