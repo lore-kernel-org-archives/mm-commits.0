@@ -1,113 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - crisv10-string-library-add-lineendings-to-asm.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:12:21 -0800
-Message-ID: <200711152112.lAFLCL8a015864@imap1.linux-foundation.org>
+Subject: - cris-gpio-undo-locks-before-returning.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:10:31 -0800
+Message-ID: <200711152110.lAFLAVd7015658@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:53931 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41810 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761764AbXKOVRK (ORCPT
+	by vger.kernel.org with ESMTP id S1760323AbXKOVRK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 15 Nov 2007 16:17:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.nilsson@axis.com, mikael.starvik@axis.com, mm-commits@vger.kernel.org
+To: 12o3l@tiscali.nl, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CRISv10 string library add lineendings to asm
+     cris gpio: undo locks before returning
 has been removed from the -mm tree.  Its filename was
-     crisv10-string-library-add-lineendings-to-asm.patch
+     cris-gpio-undo-locks-before-returning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: CRISv10 string library add lineendings to asm
-From: Jesper Nilsson <jesper.nilsson@axis.com>
+Subject: cris gpio: undo locks before returning
+From: Roel Kluin <12o3l@tiscali.nl>
 
-Add \n\ at end of lines inside asm statement to avoid warning.
-
-No change except adding \n\ to end of line and correcting
-whitespace has been done.
-Removes warning about multi-line string literals when compiling
-arch/cris/arch-v10/lib/string.c
-
-Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Mikael Starvik <mikael.starvik@axis.com>
+Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
+Cc: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/lib/string.c |   54 +++++++++++++++---------------
- 1 file changed, 27 insertions(+), 27 deletions(-)
+ arch/cris/arch-v10/drivers/gpio.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN arch/cris/arch-v10/lib/string.c~crisv10-string-library-add-lineendings-to-asm arch/cris/arch-v10/lib/string.c
---- a/arch/cris/arch-v10/lib/string.c~crisv10-string-library-add-lineendings-to-asm
-+++ a/arch/cris/arch-v10/lib/string.c
-@@ -95,33 +95,33 @@ void *memcpy(void *pdst,
-       If you want to check that the allocation was right; then
-       check the equalities in the first comment.  It should say
-       "r13=r13, r11=r11, r12=r12" */
--    __asm__ volatile ("
--        ;; Check that the following is true (same register names on
--        ;; both sides of equal sign, as in r8=r8):
--        ;; %0=r13, %1=r11, %2=r12
--        ;;
--	;; Save the registers we'll use in the movem process
--	;; on the stack.
--	subq 	11*4,$sp
--	movem	$r10,[$sp]
--
--        ;; Now we've got this:
--	;; r11 - src
--	;; r13 - dst
--	;; r12 - n
--	
--        ;; Update n for the first loop
--        subq    44,$r12
--0:
--	movem	[$r11+],$r10
--        subq   44,$r12
--        bge     0b
--	movem	$r10,[$r13+]
--
--        addq   44,$r12  ;; compensate for last loop underflowing n
--
--	;; Restore registers from stack
--        movem [$sp+],$r10" 
-+    __asm__ volatile ("\n\
-+	;; Check that the following is true (same register names on	\n\
-+	;; both sides of equal sign, as in r8=r8):			\n\
-+	;; %0=r13, %1=r11, %2=r12					\n\
-+	;;								\n\
-+	;; Save the registers we'll use in the movem process		\n\
-+	;; on the stack.						\n\
-+	subq	11*4,$sp						\n\
-+	movem	$r10,[$sp]						\n\
-+									\n\
-+	;; Now we've got this:						\n\
-+	;; r11 - src							\n\
-+	;; r13 - dst							\n\
-+	;; r12 - n							\n\
-+									\n\
-+	;; Update n for the first loop					\n\
-+	subq	44,$r12							\n\
-+0:									\n\
-+	movem	[$r11+],$r10						\n\
-+	subq	44,$r12							\n\
-+	bge	0b							\n\
-+	movem	$r10,[$r13+]						\n\
-+									\n\
-+	addq	44,$r12 ;; compensate for last loop underflowing n	\n\
-+									\n\
-+	;; Restore registers from stack					\n\
-+	movem	[$sp+],$r10"
+diff -puN arch/cris/arch-v10/drivers/gpio.c~cris-gpio-undo-locks-before-returning arch/cris/arch-v10/drivers/gpio.c
+--- a/arch/cris/arch-v10/drivers/gpio.c~cris-gpio-undo-locks-before-returning
++++ a/arch/cris/arch-v10/drivers/gpio.c
+@@ -297,8 +297,10 @@ gpio_poll(struct file *file,
+ 		data = *R_PORT_PB_DATA;
+ 	else if (priv->minor == GPIO_MINOR_G)
+ 		data = *R_PORT_G_DATA;
+-	else
++	else {
++		spin_unlock(&gpio_lock);
+ 		return 0;
++	}
+ 	
+ 	if ((data & priv->highalarm) ||
+ 	    (~data & priv->lowalarm)) {
+@@ -381,18 +383,21 @@ static ssize_t gpio_write(struct file * 
  
-      /* Outputs */ : "=r" (dst), "=r" (src), "=r" (n) 
-      /* Inputs */ : "0" (dst), "1" (src), "2" (n));
+ 	ssize_t retval = count;
+ 	if (priv->minor !=GPIO_MINOR_A && priv->minor != GPIO_MINOR_B) {
+-		return -EFAULT;
++		retval = -EFAULT;
++		goto out;
+ 	}
+     
+ 	if (!access_ok(VERIFY_READ, buf, count)) {
+-		return -EFAULT;
++		retval = -EFAULT;
++		goto out;
+ 	}
+ 	clk_mask = priv->clk_mask;
+ 	data_mask = priv->data_mask;
+ 	/* It must have been configured using the IO_CFG_WRITE_MODE */
+ 	/* Perhaps a better error code? */
+ 	if (clk_mask == 0 || data_mask == 0) {
+-		return -EPERM;
++		retval = -EPERM;
++		goto out;
+ 	}
+ 	write_msb = priv->write_msb;
+ 	D(printk("gpio_write: %lu to data 0x%02X clk 0x%02X msb: %i\n",count, data_mask, clk_mask, write_msb));
+@@ -425,6 +430,7 @@ static ssize_t gpio_write(struct file * 
+ 			}
+ 		}
+ 	}
++out:
+ 	spin_unlock(&gpio_lock);
+ 	return retval;
+ }
+@@ -506,6 +512,7 @@ gpio_release(struct inode *inode, struct
+ 	while (p) {
+ 		if (p->highalarm | p->lowalarm) {
+ 			gpio_some_alarms = 1;
++			spin_unlock(&gpio_lock);
+ 			return 0;
+ 		}
+ 		p = p->next;
 _
 
-Patches currently in -mm which might be from jesper.nilsson@axis.com are
+Patches currently in -mm which might be from 12o3l@tiscali.nl are
 
 origin.patch
-cris-build-fixes-atomich-needs-compilerh.patch
-git-mtd.patch
+unlock-when-ssp-tries-to-close-an-invalid-port.patch
+git-dvb.patch
+git-mips.patch
+git-netdev-all.patch
+sound-oss-tridentc-fix-incorrect-test-in-trident_ac97_set.patch
