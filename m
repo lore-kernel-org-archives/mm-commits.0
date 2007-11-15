@@ -1,90 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - linux-kernel-markers-document-format-string.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 13:10:00 -0800
-Message-ID: <200711152110.lAFLA0K4015507@imap1.linux-foundation.org>
+Subject: - cris-build-fixes-fixes-in-arch-cris-kernel-timec.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 13:11:50 -0800
+Message-ID: <200711152111.lAFLBoci015799@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:57908 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45430 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759617AbXKOVQ6 (ORCPT
+	by vger.kernel.org with ESMTP id S1759543AbXKOVRB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 16:16:58 -0500
+	Thu, 15 Nov 2007 16:17:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, mm-commits@vger.kernel.org
+To: jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Linux Kernel Markers: document format string
+     cris build fixes: fixes in arch/cris/kernel/time.c
 has been removed from the -mm tree.  Its filename was
-     linux-kernel-markers-document-format-string.patch
+     cris-build-fixes-fixes-in-arch-cris-kernel-timec.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: Linux Kernel Markers: document format string
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: cris build fixes: fixes in arch/cris/kernel/time.c
+From: Jesper Nilsson <jesper.nilsson@axis.com>
 
-Describes the format string standard further: Use of field names before the
-type specifiers..
+- Remove debug print.
+- Change #if to #ifdef to avoid compile time warning if CONFIG_PROFILING
+  isn't set.
+- Number of parameters to profile_tick has changed, drop the regs parameter.
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Signed-off-by: Jesper Nilsson <jesper.nilsson@axis.com>
+Acked-by: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/markers.txt |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/cris/kernel/time.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN Documentation/markers.txt~linux-kernel-markers-document-format-string Documentation/markers.txt
---- a/Documentation/markers.txt~linux-kernel-markers-document-format-string
-+++ a/Documentation/markers.txt
-@@ -35,12 +35,14 @@ In order to use the macro trace_mark, yo
+diff -puN arch/cris/kernel/time.c~cris-build-fixes-fixes-in-arch-cris-kernel-timec arch/cris/kernel/time.c
+--- a/arch/cris/kernel/time.c~cris-build-fixes-fixes-in-arch-cris-kernel-timec
++++ a/arch/cris/kernel/time.c
+@@ -171,10 +171,6 @@ get_cmos_time(void)
+ 	mon = CMOS_READ(RTC_MONTH);
+ 	year = CMOS_READ(RTC_YEAR);
  
- And,
+-	printk(KERN_DEBUG
+-	       "rtc: sec 0x%x min 0x%x hour 0x%x day 0x%x mon 0x%x year 0x%x\n",
+-	       sec, min, hour, day, mon, year);
+-
+ 	BCD_TO_BIN(sec);
+ 	BCD_TO_BIN(min);
+ 	BCD_TO_BIN(hour);
+@@ -207,12 +203,12 @@ void
+ cris_do_profile(struct pt_regs* regs)
+ {
  
--trace_mark(subsystem_event, "%d %s", someint, somestring);
-+trace_mark(subsystem_event, "myint %d mystring %s", someint, somestring);
- Where :
- - subsystem_event is an identifier unique to your event
-     - subsystem is the name of your subsystem.
-     - event is the name of the event to mark.
--- "%d %s" is the formatted string for the serializer.
-+- "myint %d mystring %s" is the formatted string for the serializer. "myint" and
-+  "mystring" are repectively the field names associated with the first and
-+  second parameter.
- - someint is an integer.
- - somestring is a char pointer.
+-#if CONFIG_SYSTEM_PROFILER
++#ifdef CONFIG_SYSTEM_PROFILER
+         cris_profile_sample(regs);
+ #endif
+ 
+-#if CONFIG_PROFILING
+-        profile_tick(CPU_PROFILING, regs);
++#ifdef CONFIG_PROFILING
++        profile_tick(CPU_PROFILING);
+ #endif
+ }
  
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from jesper.nilsson@axis.com are
 
 origin.patch
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-fall-back-on-interrupt-disable-in-cmpxchg8b-on-80386-and-80486.patch
-add-cmpxchg64-and-cmpxchg64_local-to-alpha.patch
-add-cmpxchg64-and-cmpxchg64_local-to-mips.patch
-add-cmpxchg64-and-cmpxchg64_local-to-powerpc.patch
-add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
-add-cmpxchg_local-to-arm.patch
-add-cmpxchg_local-to-avr32.patch
-add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
-add-cmpxchg_local-to-cris.patch
-add-cmpxchg_local-to-frv.patch
-add-cmpxchg_local-to-h8300.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-new-cmpxchg_local-optimized-for-up-case-for-m32r.patch
-fix-m32r-__xchg.patch
-m32r-build-fix-of-arch-m32r-kernel-smpbootc.patch
-local_t-m32r-use-architecture-specific-cmpxchg_local.patch
-add-cmpxchg_local-to-m86k.patch
-add-cmpxchg_local-to-m68knommu.patch
-add-cmpxchg_local-to-parisc.patch
-add-cmpxchg_local-to-ppc.patch
-add-cmpxchg_local-to-s390.patch
-add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32.patch
-add-cmpxchg_local-to-sh64.patch
-add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
-add-cmpxchg_local-to-sparc64.patch
-add-cmpxchg_local-to-v850.patch
-add-cmpxchg_local-to-xtensa.patch
+cris-build-fixes-atomich-needs-compilerh.patch
+git-mtd.patch
