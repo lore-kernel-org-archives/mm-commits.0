@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arm-remove-config-variable-debug_s3c_port.patch added to -mm tree
-Date: Thu, 15 Nov 2007 19:10:24 -0800
-Message-ID: <200711160310.lAG3AOuh029447@imap1.linux-foundation.org>
+Subject: + alpha-parisc-removing-config-variable-debug_rwlock.patch added to -mm tree
+Date: Thu, 15 Nov 2007 19:11:37 -0800
+Message-ID: <200711160311.lAG3Bb4A029541@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50846 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:33936 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757546AbXKPDK1 (ORCPT
+	by vger.kernel.org with ESMTP id S1751746AbXKPDMB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 22:10:27 -0500
+	Thu, 15 Nov 2007 22:12:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: olsajiri@gmail.com
+Cc: olsajiri@gmail.com, grundler@parisc-linux.org, ink@jurassic.park.msu.ru, kyle@mcmartin.ca, rth@twiddle.net
 
 
 The patch titled
-     arm: remove config variable DEBUG_S3C_PORT
+     alpha/parisc: remove config variable DEBUG_RWLOCK
 has been added to the -mm tree.  Its filename is
-     arm-remove-config-variable-debug_s3c_port.patch
+     alpha-parisc-removing-config-variable-debug_rwlock.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,48 +26,85 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: arm: remove config variable DEBUG_S3C_PORT
+Subject: alpha/parisc: remove config variable DEBUG_RWLOCK
 From: Jiri Olsa <olsajiri@gmail.com>
 
-Remove config variable DEBUG_S3C_PORT, since it is not used.
+Remove config variable DEBUG_RWLOCK, since it is not used.
 
 Signed-off-by: Jiri Olsa <olsajiri@gmail.com>
+Acked-by: Grant Grundler <grundler@parisc-linux.org>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig.debug             |    8 --------
- arch/arm/configs/s3c2410_defconfig |    1 -
- 2 files changed, 9 deletions(-)
+ arch/alpha/Kconfig.debug           |    9 ---------
+ arch/alpha/defconfig               |    1 -
+ arch/parisc/Kconfig.debug          |    9 ---------
+ arch/parisc/configs/a500_defconfig |    1 -
+ 4 files changed, 20 deletions(-)
 
-diff -puN arch/arm/configs/s3c2410_defconfig~arm-remove-config-variable-debug_s3c_port arch/arm/configs/s3c2410_defconfig
---- a/arch/arm/configs/s3c2410_defconfig~arm-remove-config-variable-debug_s3c_port
-+++ a/arch/arm/configs/s3c2410_defconfig
-@@ -1392,7 +1392,6 @@ CONFIG_DEBUG_USER=y
- # CONFIG_DEBUG_ERRORS is not set
- CONFIG_DEBUG_LL=y
- # CONFIG_DEBUG_ICEDCC is not set
--CONFIG_DEBUG_S3C_PORT=y
- CONFIG_DEBUG_S3C_UART=0
+diff -puN arch/alpha/defconfig~alpha-parisc-removing-config-variable-debug_rwlock arch/alpha/defconfig
+--- a/arch/alpha/defconfig~alpha-parisc-removing-config-variable-debug_rwlock
++++ a/arch/alpha/defconfig
+@@ -882,7 +882,6 @@ CONFIG_MAGIC_SYSRQ=y
+ # CONFIG_DEBUG_SPINLOCK is not set
+ CONFIG_DEBUG_INFO=y
+ CONFIG_EARLY_PRINTK=y
+-# CONFIG_DEBUG_RWLOCK is not set
+ # CONFIG_DEBUG_SEMAPHORE is not set
+ CONFIG_ALPHA_LEGACY_START_ADDRESS=y
+ CONFIG_MATHEMU=y
+diff -puN arch/alpha/Kconfig.debug~alpha-parisc-removing-config-variable-debug_rwlock arch/alpha/Kconfig.debug
+--- a/arch/alpha/Kconfig.debug~alpha-parisc-removing-config-variable-debug_rwlock
++++ a/arch/alpha/Kconfig.debug
+@@ -7,15 +7,6 @@ config EARLY_PRINTK
+ 	depends on ALPHA_GENERIC || ALPHA_SRM
+ 	default y
+ 
+-config DEBUG_RWLOCK
+-	bool "Read-write spinlock debugging"
+-	depends on DEBUG_KERNEL
+-	help
+-	  If you say Y here then read-write lock processing will count how many
+-	  times it has tried to get the lock and issue an error message after
+-	  too many attempts.  If you suspect a rwlock problem or a kernel
+-	  hacker asks for this option then say Y.  Otherwise say N.
+-
+ config ALPHA_LEGACY_START_ADDRESS
+ 	bool "Legacy kernel start address"
+ 	depends on ALPHA_GENERIC
+diff -puN arch/parisc/configs/a500_defconfig~alpha-parisc-removing-config-variable-debug_rwlock arch/parisc/configs/a500_defconfig
+--- a/arch/parisc/configs/a500_defconfig~alpha-parisc-removing-config-variable-debug_rwlock
++++ a/arch/parisc/configs/a500_defconfig
+@@ -1050,7 +1050,6 @@ CONFIG_SCHED_DEBUG=y
+ CONFIG_FORCED_INLINING=y
+ # CONFIG_RCU_TORTURE_TEST is not set
+ # CONFIG_FAULT_INJECTION is not set
+-# CONFIG_DEBUG_RWLOCK is not set
+ # CONFIG_DEBUG_RODATA is not set
  
  #
-diff -puN arch/arm/Kconfig.debug~arm-remove-config-variable-debug_s3c_port arch/arm/Kconfig.debug
---- a/arch/arm/Kconfig.debug~arm-remove-config-variable-debug_s3c_port
-+++ a/arch/arm/Kconfig.debug
-@@ -82,14 +82,6 @@ config DEBUG_CLPS711X_UART2
- 	  output to the second serial port on these devices.  Saying N will
- 	  cause the debug messages to appear on the first serial port.
+diff -puN arch/parisc/Kconfig.debug~alpha-parisc-removing-config-variable-debug_rwlock arch/parisc/Kconfig.debug
+--- a/arch/parisc/Kconfig.debug~alpha-parisc-removing-config-variable-debug_rwlock
++++ a/arch/parisc/Kconfig.debug
+@@ -2,15 +2,6 @@ menu "Kernel hacking"
  
--config DEBUG_S3C_PORT
--	depends on DEBUG_LL && PLAT_S3C
--	bool "Kernel low-level debugging messages via S3C UART"
--	help
--	  Say Y here if you want debug print routines to go to one of the
--	  S3C internal UARTs. The chosen UART must have been configured
--	  before it is used.
+ source "lib/Kconfig.debug"
+ 
+-config DEBUG_RWLOCK
+-        bool "Read-write spinlock debugging"
+-        depends on DEBUG_KERNEL && SMP
+-        help
+-          If you say Y here then read-write lock processing will count how many
+-          times it has tried to get the lock and issue an error message after
+-          too many attempts.  If you suspect a rwlock problem or a kernel
+-          hacker asks for this option then say Y.  Otherwise say N.
 -
- config DEBUG_S3C_UART
- 	depends on PLAT_S3C
- 	int "S3C UART to use for low-level debug"
+ config DEBUG_RODATA
+        bool "Write protect kernel read-only data structures"
+        depends on DEBUG_KERNEL
 _
 
 Patches currently in -mm which might be from olsajiri@gmail.com are
@@ -83,3 +120,4 @@ frv-remove-dead-config-symbol-from-frv-code.patch
 m68knomu-remove-dead-config-symbols-from-m68knomu-code.patch
 m68knommu-removing-config-variable-dumptoflash.patch
 fs-remove-dead-config-config_has_compat_epoll_event-symbol.patch
+alpha-parisc-removing-config-variable-debug_rwlock.patch
