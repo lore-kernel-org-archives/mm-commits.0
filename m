@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space.patch added to -mm tree
-Date: Thu, 15 Nov 2007 16:05:36 -0800
-Message-ID: <200711160005.lAG05aAG022824@imap1.linux-foundation.org>
+Subject: + uml-improve-detection-of-host-cmov-checkpatch-fixes-fix.patch added to -mm tree
+Date: Thu, 15 Nov 2007 16:07:55 -0800
+Message-ID: <200711160007.lAG07tvn022955@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:46783 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:60064 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752232AbXKPAFu (ORCPT
+	by vger.kernel.org with ESMTP id S1765268AbXKPAH7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 19:05:50 -0500
+	Thu, 15 Nov 2007 19:07:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: robert@sixbynine.org, npiggin@suse.de
+Cc: jdike@linux.intel.com, magotari@gmail.com
 
 
 The patch titled
-     mm: don't allow ioremapping of ranges larger than vmalloc space
+     uml-improve-detection-of-host-cmov-checkpatch-fixes-fix
 has been added to the -mm tree.  Its filename is
-     mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space.patch
+     uml-improve-detection-of-host-cmov-checkpatch-fixes-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,46 +26,72 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: mm: don't allow ioremapping of ranges larger than vmalloc space
-From: "Robert Bragg" <robert@sixbynine.org>
+Subject: uml-improve-detection-of-host-cmov-checkpatch-fixes-fix
+From: Jeff Dike <jdike@linux.intel.com>
 
-When running with a 16M IOREMAP_MAX_ORDER (on armv7) we found that the
-vmlist search routine in __get_vm_area_node can mistakenly allow a driver
-to ioremap a range larger than vmalloc space.
-
-If at the time of the ioremap all existing vmlist areas sit below the
-determined alignment then the search routine continues past all entries and
-exits the for loop - straight into the found: label - without ever testing
-for integer wrapping or that the requested size fits.
-
-We were seeing a driver successfully ioremap 128M of flash even though
-there was only 120M of vmalloc space.  From that point the system was left
-with the remainder of the first 16M of space to vmalloc/ioremap within.
-
-Signed-off-by: Robert Bragg <robert@sixbynine.org>
-Acked-by: Nick Piggin <npiggin@suse.de>
+Cc: Jeff Dike <jdike@linux.intel.com>
+Cc: Karol Swietlicki <magotari@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/um/include/common-offsets.h |    1 +
+ arch/um/sys-i386/bugs.c          |    4 ++--
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space mm/vmalloc.c
---- a/mm/vmalloc.c~mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space
-+++ a/mm/vmalloc.c
-@@ -254,6 +254,10 @@ static struct vm_struct *__get_vm_area_n
- 		if (addr > end - size)
- 			goto out;
- 	}
-+	if ((size + addr) < addr)
-+		goto out;
-+	if (addr > end - size)
-+		goto out;
+diff -puN arch/um/include/common-offsets.h~uml-improve-detection-of-host-cmov-checkpatch-fixes-fix arch/um/include/common-offsets.h
+--- a/arch/um/include/common-offsets.h~uml-improve-detection-of-host-cmov-checkpatch-fixes-fix
++++ a/arch/um/include/common-offsets.h
+@@ -18,6 +18,7 @@ DEFINE_STR(UM_KERN_WARNING, KERN_WARNING
+ DEFINE_STR(UM_KERN_NOTICE, KERN_NOTICE);
+ DEFINE_STR(UM_KERN_INFO, KERN_INFO);
+ DEFINE_STR(UM_KERN_DEBUG, KERN_DEBUG);
++DEFINE_STR(UM_KERN_CONT, KERN_CONT);
  
- found:
- 	area->next = *p;
+ DEFINE(UM_ELF_CLASS, ELF_CLASS);
+ DEFINE(UM_ELFCLASS32, ELFCLASS32);
+diff -puN arch/um/sys-i386/bugs.c~uml-improve-detection-of-host-cmov-checkpatch-fixes-fix arch/um/sys-i386/bugs.c
+--- a/arch/um/sys-i386/bugs.c~uml-improve-detection-of-host-cmov-checkpatch-fixes-fix
++++ a/arch/um/sys-i386/bugs.c
+@@ -39,9 +39,9 @@ static void test_for_host_cmov(void)
+ 	if (setjmp(cmov_test_return) == 0) {
+ 		unsigned long foo = 0;
+ 		__asm__ __volatile__("cmovz %0, %1" : "=r" (foo) : "0" (foo));
+-		printk(KERN_CONT "Yes\n");
++		printk(UM_KERN_CONT "Yes\n");
+ 	} else
+-		printk(KERN_CONT "No\n");
++		printk(UM_KERN_CONT "No\n");
+ 
+ 	sigaction(SIGILL, &old, &new);
+ }
 _
 
-Patches currently in -mm which might be from robert@sixbynine.org are
+Patches currently in -mm which might be from jdike@linux.intel.com are
 
-mm-dont-allow-ioremapping-of-ranges-larger-than-vmalloc-space.patch
+origin.patch
+git-kvm.patch
+uml-remove-xmm-checking-on-x86.patch
+uml-code-tidying-under-arch-um-os-linux.patch
+uml-implement-get_wchan.patch
+uml-implement-get_wchan-fix.patch
+uml-get-rid-of-asmlinkage.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-document-new-ubd-flag.patch
+uml-fix-urls-in-kconfig-and-help-strings.patch
+uml-improve-detection-of-host-cmov.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes-fix.patch
+uml-remove-now-unused-code.patch
+uml-further-bugsc-tidying.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+uml-const-and-other-tidying.patch
+uml-smp-needs-to-depend-on-broken-for-now.patch
+uml-gprof-needs-to-depend-on-frame_pointer.patch
+uml-console-driver-cleanups.patch
+uml-clonec-tidying.patch
+uml-borrow-consth-techniques.patch
+uml-delete-some-unused-headers.patch
+uml-allow-lflags-on-command-line.patch
+uml-tidy-kern_utilh.patch
+uml-tidy-pgtableh.patch
+uml-reconst-a-parameter.patch
