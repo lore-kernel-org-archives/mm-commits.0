@@ -1,48 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - create-arch-kconfig.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 18:08:55 -0800
-Message-ID: <200711160208.lAG28uVh027178@imap1.linux-foundation.org>
+Subject: - add-arch_supports_oprofile.patch removed from -mm tree
+Date: Thu, 15 Nov 2007 18:08:58 -0800
+Message-ID: <200711160208.lAG28wsb027181@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:59113 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:37690 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758658AbXKPCJA (ORCPT
+	by vger.kernel.org with ESMTP id S932766AbXKPCJD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 21:09:00 -0500
+	Thu, 15 Nov 2007 21:09:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mathieu.desnoyers@polymtl.ca, linux-arch@vger.kernel.org, sam@ravnborg.org, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Create arch/Kconfig
+     Add ARCH_SUPPORTS_OPROFILE
 has been removed from the -mm tree.  Its filename was
-     create-arch-kconfig.patch
+     add-arch_supports_oprofile.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-Subject: Create arch/Kconfig
+Subject: Add ARCH_SUPPORTS_OPROFILE
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Puts the content of arch/Kconfig in the "General setup" menu.
-
 Linus:
-
-> Should it come with a re-duplication of it's content into each
-> architecture, which was the case previously ? The oprofile and kprobes
-> menu entries were litteraly cut and pasted from one architecture to
-> another. Should we put its content in init/Kconfig then ?
-
-I don't think it's a good idea to go back to making it per-architecture,
-although that extensive "depends on <list-of-archiectures-here>" might
-indicate that there certainly is room for cleanup there.
-
-And I don't think it's wrong keeping it in kernel/Kconfig.xyz per se, I
-just think it's wrong to (a) lump the code together when it really doesn't
-necessarily need to and (b) show it to users as some kind of choice that
-is tied together (whether it then has common code or not).
-
 On the per-architecture side, I do think it would be better to *not* have
 internal architecture knowledge in a generic file, and as such a line like
 
@@ -65,16 +48,18 @@ and is readable both for arch maintainers *and* for people who have no
 clue - and don't care - about which architecture is supposed to support
 which interface...
 
+Changelog:
 
-Sam Ravnborg:
+Actually, I know I gave this as the magic incantation, but now that I see
+it, I realize that I should have told you to just use
 
-Stuff it into a new file: arch/Kconfig
-We can then extend this file to include all the 'trailing'
-Kconfig things that are anyway equal for all ARCHs.
+        config ARCH_SUPPORTS_KPROBES
+                def_bool y
 
-But it should be kept clean - so if we introduce such a file
-then we should use ARCH_HAS_whatever in the arch specific Kconfig
-files to enable stuff that is not shared.
+instead, which is a bit denser.
+
+We seem to use both kinds of syntax for these things, but this is really
+what "def_bool" is there for...
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
@@ -83,29 +68,232 @@ Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig |    3 +++
- init/Kconfig |    2 ++
- 2 files changed, 5 insertions(+)
+ arch/alpha/Kconfig             |    3 +++
+ arch/arm/Kconfig               |    3 +++
+ arch/blackfin/Kconfig          |    3 +++
+ arch/ia64/Kconfig              |    3 +++
+ arch/m32r/Kconfig              |    3 +++
+ arch/mips/Kconfig              |    3 +++
+ arch/parisc/Kconfig            |    3 +++
+ arch/powerpc/Kconfig           |    3 +++
+ arch/ppc/Kconfig               |    3 +++
+ arch/s390/Kconfig              |    3 +++
+ arch/sh/Kconfig                |    3 +++
+ arch/sh64/Kconfig              |    3 +++
+ arch/sparc/Kconfig             |    3 +++
+ arch/sparc64/Kconfig           |    3 +++
+ arch/x86/Kconfig               |    4 ++++
+ kernel/Kconfig.instrumentation |    2 +-
+ 16 files changed, 47 insertions(+), 1 deletion(-)
 
-diff -puN /dev/null arch/Kconfig
---- /dev/null
-+++ a/arch/Kconfig
-@@ -0,0 +1,3 @@
-+#
-+# General architecture dependent options
-+#
-diff -puN init/Kconfig~create-arch-kconfig init/Kconfig
---- a/init/Kconfig~create-arch-kconfig
-+++ a/init/Kconfig
-@@ -673,6 +673,8 @@ config PROC_PAGE_MONITOR
- 	  /proc/kpagecount, and /proc/kpageflags. Disabling these
-           interfaces will reduce the size of the kernel by approximately 4kb.
+diff -puN arch/alpha/Kconfig~add-arch_supports_oprofile arch/alpha/Kconfig
+--- a/arch/alpha/Kconfig~add-arch_supports_oprofile
++++ a/arch/alpha/Kconfig
+@@ -69,6 +69,9 @@ config AUTO_IRQ_AFFINITY
+ config ARCH_SUPPORTS_AOUT
+ 	def_bool y
  
-+source "arch/Kconfig"
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
 +
- endmenu		# General setup
+ source "init/Kconfig"
  
- config RT_MUTEXES
+ 
+diff -puN arch/arm/Kconfig~add-arch_supports_oprofile arch/arm/Kconfig
+--- a/arch/arm/Kconfig~add-arch_supports_oprofile
++++ a/arch/arm/Kconfig
+@@ -117,6 +117,9 @@ config GENERIC_CALIBRATE_DELAY
+ config ARCH_SUPPORTS_AOUT
+ 	def_bool y
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ config ARCH_MAY_HAVE_PC_FDC
+ 	bool
+ 
+diff -puN arch/blackfin/Kconfig~add-arch_supports_oprofile arch/blackfin/Kconfig
+--- a/arch/blackfin/Kconfig~add-arch_supports_oprofile
++++ a/arch/blackfin/Kconfig
+@@ -72,6 +72,9 @@ config GENERIC_CALIBRATE_DELAY
+ config ARCH_SUPPORTS_AOUT
+ 	def_bool n
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ config IRQCHIP_DEMUX_GPIO
+ 	bool
+ 	depends on (BF52x || BF53x || BF561 || BF54x)
+diff -puN arch/ia64/Kconfig~add-arch_supports_oprofile arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~add-arch_supports_oprofile
++++ a/arch/ia64/Kconfig
+@@ -102,6 +102,9 @@ config AUDIT_ARCH
+ config ARCH_SUPPORTS_AOUT
+ 	def_bool n
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ choice
+ 	prompt "System type"
+ 	default IA64_GENERIC
+diff -puN arch/m32r/Kconfig~add-arch_supports_oprofile arch/m32r/Kconfig
+--- a/arch/m32r/Kconfig~add-arch_supports_oprofile
++++ a/arch/m32r/Kconfig
+@@ -37,6 +37,9 @@ config NO_DMA
+ config ARCH_SUPPORTS_AOUT
+ 	def_bool y
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ source "init/Kconfig"
+ 
+ 
+diff -puN arch/mips/Kconfig~add-arch_supports_oprofile arch/mips/Kconfig
+--- a/arch/mips/Kconfig~add-arch_supports_oprofile
++++ a/arch/mips/Kconfig
+@@ -725,6 +725,9 @@ config GENERIC_HARDIRQS_NO__DO_IRQ
+ config ARCH_SUPPORTS_AOUT
+ 	def_bool y
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ #
+ # Select some configuration options automatically based on user selections.
+ #
+diff -puN arch/parisc/Kconfig~add-arch_supports_oprofile arch/parisc/Kconfig
+--- a/arch/parisc/Kconfig~add-arch_supports_oprofile
++++ a/arch/parisc/Kconfig
+@@ -72,6 +72,9 @@ config IRQ_PER_CPU
+ config ARCH_SUPPORTS_AOUT
+ 	def_bool y
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ # unless you want to implement ACPI on PA-RISC ... ;-)
+ config PM
+ 	bool
+diff -puN arch/powerpc/Kconfig~add-arch_supports_oprofile arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~add-arch_supports_oprofile
++++ a/arch/powerpc/Kconfig
+@@ -166,6 +166,9 @@ config PPC_OF_PLATFORM_PCI
+ 	depends on PPC64 # not supported on 32 bits yet
+ 	default n
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ source "init/Kconfig"
+ 
+ source "arch/powerpc/platforms/Kconfig"
+diff -puN arch/ppc/Kconfig~add-arch_supports_oprofile arch/ppc/Kconfig
+--- a/arch/ppc/Kconfig~add-arch_supports_oprofile
++++ a/arch/ppc/Kconfig
+@@ -72,6 +72,9 @@ config GENERIC_BUG
+ 	default y
+ 	depends on BUG
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ source "init/Kconfig"
+ 
+ menu "Processor"
+diff -puN arch/s390/Kconfig~add-arch_supports_oprofile arch/s390/Kconfig
+--- a/arch/s390/Kconfig~add-arch_supports_oprofile
++++ a/arch/s390/Kconfig
+@@ -55,6 +55,9 @@ mainmenu "Linux Kernel Configuration"
+ config S390
+ 	def_bool y
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ source "init/Kconfig"
+ 
+ menu "Base setup"
+diff -puN arch/sh/Kconfig~add-arch_supports_oprofile arch/sh/Kconfig
+--- a/arch/sh/Kconfig~add-arch_supports_oprofile
++++ a/arch/sh/Kconfig
+@@ -96,6 +96,9 @@ config ARCH_NO_VIRT_TO_BUS
+ config ARCH_SUPPORTS_AOUT
+ 	def_bool y
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ source "init/Kconfig"
+ 
+ menu "System type"
+diff -puN arch/sh64/Kconfig~add-arch_supports_oprofile arch/sh64/Kconfig
+--- a/arch/sh64/Kconfig~add-arch_supports_oprofile
++++ a/arch/sh64/Kconfig
+@@ -61,6 +61,9 @@ config ARCH_NO_VIRT_TO_BUS
+ config ARCH_SUPPORTS_AOUT
+ 	def_bool y
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ source init/Kconfig
+ 
+ menu "System type"
+diff -puN arch/sparc/Kconfig~add-arch_supports_oprofile arch/sparc/Kconfig
+--- a/arch/sparc/Kconfig~add-arch_supports_oprofile
++++ a/arch/sparc/Kconfig
+@@ -30,6 +30,9 @@ config OF
+ config ARCH_SUPPORTS_AOUT
+ 	def_bool y
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ source "init/Kconfig"
+ 
+ menu "General machine setup"
+diff -puN arch/sparc64/Kconfig~add-arch_supports_oprofile arch/sparc64/Kconfig
+--- a/arch/sparc64/Kconfig~add-arch_supports_oprofile
++++ a/arch/sparc64/Kconfig
+@@ -79,6 +79,9 @@ config GENERIC_HARDIRQS_NO__DO_IRQ
+ config ARCH_SUPPORTS_AOUT
+ 	def_bool y
+ 
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ choice
+ 	prompt "Kernel page size"
+ 	default SPARC64_PAGE_SIZE_8KB
+diff -puN arch/x86/Kconfig~add-arch_supports_oprofile arch/x86/Kconfig
+--- a/arch/x86/Kconfig~add-arch_supports_oprofile
++++ a/arch/x86/Kconfig
+@@ -171,6 +171,10 @@ config X86_TRAMPOLINE
+ 
+ config KTIME_SCALAR
+ 	def_bool X86_32
++
++config ARCH_SUPPORTS_OPROFILE
++	def_bool y
++
+ source "init/Kconfig"
+ 
+ menu "Processor type and features"
+diff -puN kernel/Kconfig.instrumentation~add-arch_supports_oprofile kernel/Kconfig.instrumentation
+--- a/kernel/Kconfig.instrumentation~add-arch_supports_oprofile
++++ a/kernel/Kconfig.instrumentation
+@@ -21,7 +21,7 @@ config PROFILING
+ config OPROFILE
+ 	tristate "OProfile system profiling (EXPERIMENTAL)"
+ 	depends on PROFILING
+-	depends on ALPHA || ARM || BLACKFIN || X86_32 || IA64 || M32R || MIPS || PARISC || PPC || S390 || SUPERH || SPARC || X86_64
++	depends on ARCH_SUPPORTS_OPROFILE
+ 	help
+ 	  OProfile is a profiling system capable of profiling the
+ 	  whole system, include the kernel, kernel modules, libraries,
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
@@ -139,7 +327,6 @@ add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
 add-cmpxchg_local-to-sparc64.patch
 add-cmpxchg_local-to-v850.patch
 add-cmpxchg_local-to-xtensa.patch
-create-arch-kconfig.patch
 add-arch_supports_oprofile.patch
 add-arch_supports_kprobes.patch
 move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig.patch
