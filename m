@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fuse-fix-uninitialized-field-in-fuse_inode.patch added to -mm tree
-Date: Thu, 15 Nov 2007 19:27:17 -0800
-Message-ID: <200711160327.lAG3RHOR030787@imap1.linux-foundation.org>
+Subject: + fuse-fix-attribute-caching-after-rename.patch added to -mm tree
+Date: Thu, 15 Nov 2007 19:27:28 -0800
+Message-ID: <200711160327.lAG3RSNw030790@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41584 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48683 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756362AbXKPD1i (ORCPT
+	by vger.kernel.org with ESMTP id S1756800AbXKPD2M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 22:27:38 -0500
+	Thu, 15 Nov 2007 22:28:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: muirj@nortel.com, mszeredi@suse.cz
+Cc: miklos@szeredi.hu, mszeredi@suse.cz
 
 
 The patch titled
-     fuse: fix uninitialized field in fuse_inode
+     fuse: fix attribute caching after rename
 has been added to the -mm tree.  Its filename is
-     fuse-fix-uninitialized-field-in-fuse_inode.patch
+     fuse-fix-attribute-caching-after-rename.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,36 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fuse: fix uninitialized field in fuse_inode
-From: John Muir <muirj@nortel.com>
+Subject: fuse: fix attribute caching after rename
+From: Miklos Szeredi <miklos@szeredi.hu>
 
-I found problems accessing (executing) previously existing files, until
-I did chmod on them (or setattr).
-
-If the fi->attr_version is not initialized, then it could be
-larger than fc->attr_version until a setattr is executed, and as a
-result the inode attributes would never be set.
+Invalidate attributes on rename, since some filesystems may update
+st_ctime.  Reported by Szabolcs Szakacsits
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/inode.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/fuse/dir.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/fuse/inode.c~fuse-fix-uninitialized-field-in-fuse_inode fs/fuse/inode.c
---- a/fs/fuse/inode.c~fuse-fix-uninitialized-field-in-fuse_inode
-+++ a/fs/fuse/inode.c
-@@ -56,6 +56,7 @@ static struct inode *fuse_alloc_inode(st
- 	fi->i_time = 0;
- 	fi->nodeid = 0;
- 	fi->nlookup = 0;
-+	fi->attr_version = 0;
- 	INIT_LIST_HEAD(&fi->write_files);
- 	fi->forget_req = fuse_request_alloc();
- 	if (!fi->forget_req) {
+diff -puN fs/fuse/dir.c~fuse-fix-attribute-caching-after-rename fs/fuse/dir.c
+--- a/fs/fuse/dir.c~fuse-fix-attribute-caching-after-rename
++++ a/fs/fuse/dir.c
+@@ -657,6 +657,9 @@ static int fuse_rename(struct inode *old
+ 	err = req->out.h.error;
+ 	fuse_put_request(fc, req);
+ 	if (!err) {
++		/* ctime changes */
++		fuse_invalidate_attr(oldent->d_inode);
++
+ 		fuse_invalidate_attr(olddir);
+ 		if (olddir != newdir)
+ 			fuse_invalidate_attr(newdir);
 _
 
-Patches currently in -mm which might be from muirj@nortel.com are
+Patches currently in -mm which might be from miklos@szeredi.hu are
 
-fuse-fix-uninitialized-field-in-fuse_inode.patch
+origin.patch
+fuse-fix-attribute-caching-after-rename.patch
+iget-stop-fuse-from-using-iget-and-read_inode-try.patch
