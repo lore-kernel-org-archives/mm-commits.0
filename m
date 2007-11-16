@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-x86_64-fix-fix-section.patch added to -mm tree
-Date: Thu, 15 Nov 2007 16:54:49 -0800
-Message-ID: <200711160054.lAG0sncE024688@imap1.linux-foundation.org>
+Subject: + memory-hotplug-x86_64-fix-section-mismatch-in-init_memory_mapping.patch added to -mm tree
+Date: Thu, 15 Nov 2007 17:10:08 -0800
+Message-ID: <200711160110.lAG1A8pr025222@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:52916 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53668 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764619AbXKPAzY (ORCPT
+	by vger.kernel.org with ESMTP id S1751647AbXKPBK1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 19:55:24 -0500
+	Thu, 15 Nov 2007 20:10:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, apw@shadowen.org, kamalesh@linux.vnet.ibm.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     memory hotplug fix: fix section mismatch in vmammap_allock_block()
+     memory hotplug x86_64: fix section mismatch in init_memory_mapping()
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-x86_64-fix-fix-section.patch
+     memory-hotplug-x86_64-fix-section-mismatch-in-init_memory_mapping.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,58 +26,43 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: memory hotplug fix: fix section mismatch in vmammap_allock_block()
+Subject: memory hotplug x86_64: fix section mismatch in init_memory_mapping()
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Fixes section mismatch below.
-
-WARNING: vmlinux.o(.text+0x946b5): Section mismatch: reference to .init.text:'
-__alloc_bootmem_node (between 'vmemmap_alloc_block' and 'vmemmap_pgd_populate')
+Changes __meminit to __init_refok.
+==
+WARNING: vmlinux.o(.text+0x1d07c): Section mismatch: reference to
+.init.text:find_e820_area (between 'init_memory_mapping' and 'arch_add_memory')
+==
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse-vmemmap.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ arch/x86/mm/init_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/sparse-vmemmap.c~memory-hotplug-x86_64-fix-fix-section mm/sparse-vmemmap.c
---- a/mm/sparse-vmemmap.c~memory-hotplug-x86_64-fix-fix-section
-+++ a/mm/sparse-vmemmap.c
-@@ -34,6 +34,16 @@
-  * or to back the page tables that are used to create the mapping.
-  * Uses the main allocators if they are available, else bootmem.
-  */
-+
-+static void * __init_refok __earlyonly_bootmem_alloc(int node,
-+				unsigned long size,
-+				unsigned long align,
-+				unsigned long goal)
-+{
-+	return __alloc_bootmem_node(NODE_DATA(node), size, align, goal);
-+}
-+
-+
- void * __meminit vmemmap_alloc_block(unsigned long size, int node)
- {
- 	/* If the main allocator is up use that, fallback to bootmem. */
-@@ -44,7 +54,7 @@ void * __meminit vmemmap_alloc_block(uns
- 			return page_address(page);
- 		return NULL;
- 	} else
--		return __alloc_bootmem_node(NODE_DATA(node), size, size,
-+		return __earlyonly_bootmem_alloc(node, size, size,
- 				__pa(MAX_DMA_ADDRESS));
- }
+diff -puN arch/x86/mm/init_64.c~memory-hotplug-x86_64-fix-section-mismatch-in-init_memory_mapping arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~memory-hotplug-x86_64-fix-section-mismatch-in-init_memory_mapping
++++ a/arch/x86/mm/init_64.c
+@@ -345,7 +345,7 @@ static void __init find_early_table_spac
+ /* Setup the direct mapping of the physical memory at PAGE_OFFSET.
+    This runs before bootmem is initialized and gets pages directly from the 
+    physical memory. To access them they are temporarily mapped. */
+-void __meminit init_memory_mapping(unsigned long start, unsigned long end)
++void __init_refok init_memory_mapping(unsigned long start, unsigned long end)
+ { 
+ 	unsigned long next; 
  
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-memory-hotplug-x86_64-fix-fix-section.patch
+memory-hotplug-fix-fix-section-mismatch-in-vmammap_allock_block.patch
+memory-hotplug-x86_64-fix-section-mismatch-in-init_memory_mapping.patch
 git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko.patch
 git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes.patch
 swapoff-scan-ptes-preemptibly.patch
