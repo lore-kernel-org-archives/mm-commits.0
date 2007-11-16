@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-parisc-removing-config-variable-debug_rwlock.patch added to -mm tree
-Date: Thu, 15 Nov 2007 19:11:37 -0800
-Message-ID: <200711160311.lAG3Bb4A029541@imap1.linux-foundation.org>
+Subject: + ps3fb-video-memory-size-cleanups.patch added to -mm tree
+Date: Thu, 15 Nov 2007 19:14:20 -0800
+Message-ID: <200711160314.lAG3EKN5029620@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:33936 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53830 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751746AbXKPDMB (ORCPT
+	by vger.kernel.org with ESMTP id S1752078AbXKPDO0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 22:12:01 -0500
+	Thu, 15 Nov 2007 22:14:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: olsajiri@gmail.com, grundler@parisc-linux.org, ink@jurassic.park.msu.ru, kyle@mcmartin.ca, rth@twiddle.net
+Cc: Geert.Uytterhoeven@sonycom.com
 
 
 The patch titled
-     alpha/parisc: remove config variable DEBUG_RWLOCK
+     ps3fb: video memory size cleanups
 has been added to the -mm tree.  Its filename is
-     alpha-parisc-removing-config-variable-debug_rwlock.patch
+     ps3fb-video-memory-size-cleanups.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,98 +26,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: alpha/parisc: remove config variable DEBUG_RWLOCK
-From: Jiri Olsa <olsajiri@gmail.com>
+Subject: ps3fb: video memory size cleanups
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-Remove config variable DEBUG_RWLOCK, since it is not used.
+  - Limit video memory size to avoid crossing a 256 MiB boundary in IOIF space.
+  - Pass the actual amount of video memory used to lv1_gpu_memory_allocate().
 
-Signed-off-by: Jiri Olsa <olsajiri@gmail.com>
-Acked-by: Grant Grundler <grundler@parisc-linux.org>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/Kconfig.debug           |    9 ---------
- arch/alpha/defconfig               |    1 -
- arch/parisc/Kconfig.debug          |    9 ---------
- arch/parisc/configs/a500_defconfig |    1 -
- 4 files changed, 20 deletions(-)
+ drivers/video/ps3fb.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN arch/alpha/defconfig~alpha-parisc-removing-config-variable-debug_rwlock arch/alpha/defconfig
---- a/arch/alpha/defconfig~alpha-parisc-removing-config-variable-debug_rwlock
-+++ a/arch/alpha/defconfig
-@@ -882,7 +882,6 @@ CONFIG_MAGIC_SYSRQ=y
- # CONFIG_DEBUG_SPINLOCK is not set
- CONFIG_DEBUG_INFO=y
- CONFIG_EARLY_PRINTK=y
--# CONFIG_DEBUG_RWLOCK is not set
- # CONFIG_DEBUG_SEMAPHORE is not set
- CONFIG_ALPHA_LEGACY_START_ADDRESS=y
- CONFIG_MATHEMU=y
-diff -puN arch/alpha/Kconfig.debug~alpha-parisc-removing-config-variable-debug_rwlock arch/alpha/Kconfig.debug
---- a/arch/alpha/Kconfig.debug~alpha-parisc-removing-config-variable-debug_rwlock
-+++ a/arch/alpha/Kconfig.debug
-@@ -7,15 +7,6 @@ config EARLY_PRINTK
- 	depends on ALPHA_GENERIC || ALPHA_SRM
- 	default y
+diff -puN drivers/video/ps3fb.c~ps3fb-video-memory-size-cleanups drivers/video/ps3fb.c
+--- a/drivers/video/ps3fb.c~ps3fb-video-memory-size-cleanups
++++ a/drivers/video/ps3fb.c
+@@ -51,7 +51,6 @@
+ #define L1GPU_DISPLAY_SYNC_HSYNC		1
+ #define L1GPU_DISPLAY_SYNC_VSYNC		2
  
--config DEBUG_RWLOCK
--	bool "Read-write spinlock debugging"
--	depends on DEBUG_KERNEL
--	help
--	  If you say Y here then read-write lock processing will count how many
--	  times it has tried to get the lock and issue an error message after
--	  too many attempts.  If you suspect a rwlock problem or a kernel
--	  hacker asks for this option then say Y.  Otherwise say N.
--
- config ALPHA_LEGACY_START_ADDRESS
- 	bool "Legacy kernel start address"
- 	depends on ALPHA_GENERIC
-diff -puN arch/parisc/configs/a500_defconfig~alpha-parisc-removing-config-variable-debug_rwlock arch/parisc/configs/a500_defconfig
---- a/arch/parisc/configs/a500_defconfig~alpha-parisc-removing-config-variable-debug_rwlock
-+++ a/arch/parisc/configs/a500_defconfig
-@@ -1050,7 +1050,6 @@ CONFIG_SCHED_DEBUG=y
- CONFIG_FORCED_INLINING=y
- # CONFIG_RCU_TORTURE_TEST is not set
- # CONFIG_FAULT_INJECTION is not set
--# CONFIG_DEBUG_RWLOCK is not set
- # CONFIG_DEBUG_RODATA is not set
+-#define DDR_SIZE				(0)	/* used no ddr */
+ #define GPU_CMD_BUF_SIZE			(64 * 1024)
+ #define GPU_IOIF				(0x0d000000UL)
+ #define GPU_ALIGN_UP(x)				_ALIGN_UP((x), 64)
+@@ -1060,6 +1059,7 @@ static int __devinit ps3fb_probe(struct 
+ 	u64 xdr_lpar;
+ 	int status, res_index;
+ 	struct task_struct *task;
++	unsigned long max_ps3fb_size;
  
- #
-diff -puN arch/parisc/Kconfig.debug~alpha-parisc-removing-config-variable-debug_rwlock arch/parisc/Kconfig.debug
---- a/arch/parisc/Kconfig.debug~alpha-parisc-removing-config-variable-debug_rwlock
-+++ a/arch/parisc/Kconfig.debug
-@@ -2,15 +2,6 @@ menu "Kernel hacking"
+ 	status = ps3_open_hv_device(dev);
+ 	if (status) {
+@@ -1085,8 +1085,15 @@ static int __devinit ps3fb_probe(struct 
  
- source "lib/Kconfig.debug"
+ 	ps3fb_set_sync(&dev->core);
  
--config DEBUG_RWLOCK
--        bool "Read-write spinlock debugging"
--        depends on DEBUG_KERNEL && SMP
--        help
--          If you say Y here then read-write lock processing will count how many
--          times it has tried to get the lock and issue an error message after
--          too many attempts.  If you suspect a rwlock problem or a kernel
--          hacker asks for this option then say Y.  Otherwise say N.
--
- config DEBUG_RODATA
-        bool "Write protect kernel read-only data structures"
-        depends on DEBUG_KERNEL
++	max_ps3fb_size = _ALIGN_UP(GPU_IOIF, 256*1024*1024) - GPU_IOIF;
++	if (ps3fb_videomemory.size > max_ps3fb_size) {
++		dev_info(&dev->core, "Limiting ps3fb mem size to %lu bytes\n",
++			 max_ps3fb_size);
++		ps3fb_videomemory.size = max_ps3fb_size;
++	}
++
+ 	/* get gpu context handle */
+-	status = lv1_gpu_memory_allocate(DDR_SIZE, 0, 0, 0, 0,
++	status = lv1_gpu_memory_allocate(ps3fb_videomemory.size, 0, 0, 0, 0,
+ 					 &ps3fb.memory_handle, &ddr_lpar);
+ 	if (status) {
+ 		dev_err(&dev->core, "%s: lv1_gpu_memory_allocate failed: %d\n",
 _
 
-Patches currently in -mm which might be from olsajiri@gmail.com are
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
 
 origin.patch
-git-alsa.patch
-arm-remove-dead-config-symbols-from-arm-code.patch
-arm-remove-config-variable-debug_s3c_port.patch
-m32r-remove-dead-config-symbols-from-m32r-code.patch
-mips-remove-dead-config-symbols-from-mips-code.patch
-drivers-serial-s3c2410c-remove-dead-config-symbols.patch
-frv-remove-dead-config-symbol-from-frv-code.patch
-m68knomu-remove-dead-config-symbols-from-m68knomu-code.patch
-m68knommu-removing-config-variable-dumptoflash.patch
-fs-remove-dead-config-config_has_compat_epoll_event-symbol.patch
-alpha-parisc-removing-config-variable-debug_rwlock.patch
+ps3-prefix-all-ps3-specific-kernel-modules-with.patch
+ps3fb-video-memory-size-cleanups.patch
+time-fold-__get_realtime_clock_ts-into-getnstimeofday.patch
+git-kbuild.patch
