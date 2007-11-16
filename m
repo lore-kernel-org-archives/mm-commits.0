@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + add-arch_supports_oprofile.patch added to -mm tree
-Date: Fri, 16 Nov 2007 15:03:46 -0800
-Message-ID: <200711162303.lAGN3kws008015@imap1.linux-foundation.org>
+Subject: + git-acpi-fixup.patch added to -mm tree
+Date: Fri, 16 Nov 2007 15:52:34 -0800
+Message-ID: <200711162352.lAGNqYbU010074@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41888 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34980 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758422AbXKPXF0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752595AbXKPXwl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Nov 2007 18:05:26 -0500
+	Fri, 16 Nov 2007 18:52:41 -0500
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lAGNqYNk011312
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2007 15:52:35 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, ananth@in.ibm.com, linux-arch@vger.kernel.org, sam@ravnborg.org, torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Add ARCH_SUPPORTS_OPROFILE
+     git-acpi-fixup
 has been added to the -mm tree.  Its filename is
-     add-arch_supports_oprofile.patch
+     git-acpi-fixup.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,295 +30,219 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Add ARCH_SUPPORTS_OPROFILE
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: git-acpi-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Linus:
-On the per-architecture side, I do think it would be better to *not* have
-internal architecture knowledge in a generic file, and as such a line like
-
-        depends on X86_32 || IA64 || PPC || S390 || SPARC64 || X86_64 || AVR32
-
-really shouldn't exist in a file like kernel/Kconfig.instrumentation.
-
-It would be much better to do
-
-        depends on ARCH_SUPPORTS_KPROBES
-
-in that generic file, and then architectures that do support it would just
-have a
-
-        bool ARCH_SUPPORTS_KPROBES
-                default y
-
-in *their* architecture files. That would seem to be much more logical,
-and is readable both for arch maintainers *and* for people who have no
-clue - and don't care - about which architecture is supposed to support
-which interface...
-
-Changelog:
-
-Actually, I know I gave this as the magic incantation, but now that I see
-it, I realize that I should have told you to just use
-
-        config ARCH_SUPPORTS_KPROBES
-                def_bool y
-
-instead, which is a bit denser.
-
-We seem to use both kinds of syntax for these things, but this is really
-what "def_bool" is there for...
-
-- Use ARCH_HAS_* instead of ARCH_SUPPORTS).
-- Use a select ARCH_HAS_*
-
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/Kconfig             |    1 +
- arch/arm/Kconfig               |    1 +
- arch/blackfin/Kconfig          |    1 +
- arch/ia64/Kconfig              |    1 +
- arch/m32r/Kconfig              |    1 +
- arch/mips/Kconfig              |    1 +
- arch/parisc/Kconfig            |    1 +
- arch/powerpc/Kconfig           |    1 +
- arch/ppc/Kconfig               |    1 +
- arch/s390/Kconfig              |    1 +
- arch/sh/Kconfig                |    1 +
- arch/sh64/Kconfig              |    1 +
- arch/sparc/Kconfig             |    1 +
- arch/sparc64/Kconfig           |    1 +
- arch/x86/Kconfig               |    1 +
- kernel/Kconfig.instrumentation |    5 ++++-
- 16 files changed, 19 insertions(+), 1 deletion(-)
+ drivers/pnp/pnpacpi/rsparser.c |   24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
 
-diff -puN arch/alpha/Kconfig~add-arch_supports_oprofile arch/alpha/Kconfig
---- a/arch/alpha/Kconfig~add-arch_supports_oprofile
-+++ a/arch/alpha/Kconfig
-@@ -5,6 +5,7 @@
- config ALPHA
- 	bool
- 	default y
-+	select ARCH_HAS_OPROFILE
- 	help
- 	  The Alpha is a 64-bit general-purpose processor designed and
- 	  marketed by the Digital Equipment Corporation of blessed memory,
-diff -puN arch/arm/Kconfig~add-arch_supports_oprofile arch/arm/Kconfig
---- a/arch/arm/Kconfig~add-arch_supports_oprofile
-+++ a/arch/arm/Kconfig
-@@ -10,6 +10,7 @@ config ARM
- 	default y
- 	select RTC_LIB
- 	select SYS_SUPPORTS_APM_EMULATION
-+	select ARCH_HAS_OPROFILE
- 	help
- 	  The ARM series is a line of low-power-consumption RISC chip designs
- 	  licensed by ARM Ltd and targeted at embedded applications and
-diff -puN arch/blackfin/Kconfig~add-arch_supports_oprofile arch/blackfin/Kconfig
---- a/arch/blackfin/Kconfig~add-arch_supports_oprofile
-+++ a/arch/blackfin/Kconfig
-@@ -24,6 +24,7 @@ config RWSEM_XCHGADD_ALGORITHM
- config BLACKFIN
- 	bool
- 	default y
-+	select ARCH_HAS_OPROFILE
- 
- config ZONE_DMA
- 	bool
-diff -puN arch/ia64/Kconfig~add-arch_supports_oprofile arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~add-arch_supports_oprofile
-+++ a/arch/ia64/Kconfig
-@@ -15,6 +15,7 @@ config IA64
- 	select ACPI if (!IA64_HP_SIM)
- 	select PM if (!IA64_HP_SIM)
- 	select ARCH_SUPPORTS_MSI
-+	select ARCH_HAS_OPROFILE
- 	default y
- 	help
- 	  The Itanium Processor Family is Intel's 64-bit successor to
-diff -puN arch/m32r/Kconfig~add-arch_supports_oprofile arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~add-arch_supports_oprofile
-+++ a/arch/m32r/Kconfig
-@@ -8,6 +8,7 @@ mainmenu "Linux/M32R Kernel Configuratio
- config M32R
- 	bool
- 	default y
-+	select ARCH_HAS_OPROFILE
- 
- config SBUS
- 	bool
-diff -puN arch/mips/Kconfig~add-arch_supports_oprofile arch/mips/Kconfig
---- a/arch/mips/Kconfig~add-arch_supports_oprofile
-+++ a/arch/mips/Kconfig
-@@ -1,6 +1,7 @@
- config MIPS
- 	bool
- 	default y
-+	select ARCH_HAS_OPROFILE
- 	# Horrible source of confusion.  Die, die, die ...
- 	select EMBEDDED
- 	select RTC_LIB
-diff -puN arch/parisc/Kconfig~add-arch_supports_oprofile arch/parisc/Kconfig
---- a/arch/parisc/Kconfig~add-arch_supports_oprofile
-+++ a/arch/parisc/Kconfig
-@@ -7,6 +7,7 @@ mainmenu "Linux/PA-RISC Kernel Configura
- 
- config PARISC
- 	def_bool y
-+	select ARCH_HAS_OPROFILE
- 	help
- 	  The PA-RISC microprocessor is designed by Hewlett-Packard and used
- 	  in many of their workstations & servers (HP9000 700 and 800 series,
-diff -puN arch/powerpc/Kconfig~add-arch_supports_oprofile arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~add-arch_supports_oprofile
-+++ a/arch/powerpc/Kconfig
-@@ -79,6 +79,7 @@ config ARCH_NO_VIRT_TO_BUS
- config PPC
- 	bool
- 	default y
-+	select ARCH_HAS_OPROFILE
- 
- config EARLY_PRINTK
- 	bool
-diff -puN arch/ppc/Kconfig~add-arch_supports_oprofile arch/ppc/Kconfig
---- a/arch/ppc/Kconfig~add-arch_supports_oprofile
-+++ a/arch/ppc/Kconfig
-@@ -45,6 +45,7 @@ config ARCH_SUPPORTS_AOUT
- config PPC
- 	bool
- 	default y
-+	select ARCH_HAS_OPROFILE
- 
- config PPC32
- 	bool
-diff -puN arch/s390/Kconfig~add-arch_supports_oprofile arch/s390/Kconfig
---- a/arch/s390/Kconfig~add-arch_supports_oprofile
-+++ a/arch/s390/Kconfig
-@@ -54,6 +54,7 @@ mainmenu "Linux Kernel Configuration"
- 
- config S390
- 	def_bool y
-+	select ARCH_HAS_OPROFILE
- 
- source "init/Kconfig"
- 
-diff -puN arch/sh/Kconfig~add-arch_supports_oprofile arch/sh/Kconfig
---- a/arch/sh/Kconfig~add-arch_supports_oprofile
-+++ a/arch/sh/Kconfig
-@@ -9,6 +9,7 @@ config SUPERH
- 	bool
- 	default y
- 	select EMBEDDED
-+	select ARCH_HAS_OPROFILE
- 	help
- 	  The SuperH is a RISC processor targeted for use in embedded systems
- 	  and consumer electronics; it was also used in the Sega Dreamcast
-diff -puN arch/sh64/Kconfig~add-arch_supports_oprofile arch/sh64/Kconfig
---- a/arch/sh64/Kconfig~add-arch_supports_oprofile
-+++ a/arch/sh64/Kconfig
-@@ -8,6 +8,7 @@ mainmenu "Linux/SH64 Kernel Configuratio
- config SUPERH
- 	bool
- 	default y
-+	select ARCH_HAS_OPROFILE
- 
- config SUPERH64
- 	bool
-diff -puN arch/sparc/Kconfig~add-arch_supports_oprofile arch/sparc/Kconfig
---- a/arch/sparc/Kconfig~add-arch_supports_oprofile
-+++ a/arch/sparc/Kconfig
-@@ -66,6 +66,7 @@ config NR_CPUS
- config SPARC
- 	bool
- 	default y
-+	select ARCH_HAS_OPROFILE
- 
- # Identify this as a Sparc32 build
- config SPARC32
-diff -puN arch/sparc64/Kconfig~add-arch_supports_oprofile arch/sparc64/Kconfig
---- a/arch/sparc64/Kconfig~add-arch_supports_oprofile
-+++ a/arch/sparc64/Kconfig
-@@ -8,6 +8,7 @@ mainmenu "Linux/UltraSPARC Kernel Config
- config SPARC
- 	bool
- 	default y
-+	select ARCH_HAS_OPROFILE
- 
- config SPARC64
- 	bool
-diff -puN arch/x86/Kconfig~add-arch_supports_oprofile arch/x86/Kconfig
---- a/arch/x86/Kconfig~add-arch_supports_oprofile
-+++ a/arch/x86/Kconfig
-@@ -19,6 +19,7 @@ config X86_64
- config X86
- 	bool
- 	default y
-+	select ARCH_HAS_OPROFILE
- 
- config GENERIC_TIME
- 	bool
-diff -puN kernel/Kconfig.instrumentation~add-arch_supports_oprofile kernel/Kconfig.instrumentation
---- a/kernel/Kconfig.instrumentation~add-arch_supports_oprofile
-+++ a/kernel/Kconfig.instrumentation
-@@ -21,7 +21,7 @@ config PROFILING
- config OPROFILE
- 	tristate "OProfile system profiling (EXPERIMENTAL)"
- 	depends on PROFILING
--	depends on ALPHA || ARM || BLACKFIN || X86_32 || IA64 || M32R || MIPS || PARISC || PPC || S390 || SUPERH || SPARC || X86_64
-+	depends on ARCH_HAS_OPROFILE
- 	help
- 	  OProfile is a profiling system capable of profiling the
- 	  whole system, include the kernel, kernel modules, libraries,
-@@ -29,6 +29,9 @@ config OPROFILE
- 
- 	  If unsure, say N.
- 
-+config ARCH_HAS_OPROFILE
-+	def_bool n
+diff -puN drivers/pnp/pnpacpi/rsparser.c~git-acpi-fixup drivers/pnp/pnpacpi/rsparser.c
+--- a/drivers/pnp/pnpacpi/rsparser.c~git-acpi-fixup
++++ a/drivers/pnp/pnpacpi/rsparser.c
+@@ -88,15 +88,23 @@ static void pnpacpi_parse_allocated_irqr
+ 				"resources: %d \n", PNP_MAX_IRQ);
+ 		return;
+ 	}
+-#ifdef CONFIG_X86
+-	if (gsi < 16 && (triggering != ACPI_EDGE_SENSITIVE ||
+-				polarity != ACPI_ACTIVE_HIGH)) {
+-		pnp_warn("BIOS BUG: legacy PNP IRQ %d should be edge trigger, "
+-				"active high", gsi);
+-		triggering = ACPI_EDGE_SENSITIVE;
+-		polarity = ACPI_ACTIVE_HIGH;
 +
- config KPROBES
- 	bool "Kprobes"
- 	depends on KALLSYMS && MODULES
++	/*
++	 * in IO-APIC mode, use overrided attribute. Two reasons:
++	 * 1. BIOS bug in DSDT
++	 * 2. BIOS uses IO-APIC mode Interrupt Source Override
++	 */
++	if (!acpi_get_override_irq(gsi, &t, &p)) {
++		t = t ? ACPI_LEVEL_SENSITIVE:ACPI_EDGE_SENSITIVE;
++		p = p ? ACPI_ACTIVE_LOW:ACPI_ACTIVE_HIGH;
++
++		if (triggering != t || polarity != p) {
++			pnp_warn("IRQ %d override to %s, %s",
++				gsi, t ? "edge":"level", p ? "low":"high");
++			triggering = t;
++			polarity = p;
++		}
+ 	}
+-#endif
+ 
+ 	res->irq_resource[i].flags = IORESOURCE_IRQ;	// Also clears _UNSET flag
+ 	res->irq_resource[i].flags |= irq_flags(triggering, polarity);
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-add-cmpxchg_local-to-asm-generic-for-per-cpu-atomic-operations.patch
-fall-back-on-interrupt-disable-in-cmpxchg8b-on-80386-and-80486.patch
-add-cmpxchg64-and-cmpxchg64_local-to-alpha.patch
-add-cmpxchg64-and-cmpxchg64_local-to-mips.patch
-add-cmpxchg64-and-cmpxchg64_local-to-powerpc.patch
-add-cmpxchg64-and-cmpxchg64_local-to-x86_64.patch
-add-cmpxchg_local-to-arm.patch
-add-cmpxchg_local-to-avr32.patch
-add-cmpxchg_local-to-blackfin-replace-__cmpxchg-by-generic-cmpxchg.patch
-add-cmpxchg_local-to-cris.patch
-add-cmpxchg_local-to-frv.patch
-add-cmpxchg_local-to-h8300.patch
-add-cmpxchg_local-cmpxchg64-and-cmpxchg64_local-to-ia64.patch
-new-cmpxchg_local-optimized-for-up-case-for-m32r.patch
-fix-m32r-__xchg.patch
-m32r-build-fix-of-arch-m32r-kernel-smpbootc.patch
-local_t-m32r-use-architecture-specific-cmpxchg_local.patch
-add-cmpxchg_local-to-m86k.patch
-add-cmpxchg_local-to-m68knommu.patch
-add-cmpxchg_local-to-parisc.patch
-add-cmpxchg_local-to-ppc.patch
-add-cmpxchg_local-to-s390.patch
-add-cmpxchg_local-to-sh-use-generic-cmpxchg-instead-of-cmpxchg_u32.patch
-add-cmpxchg_local-to-sh64.patch
-add-cmpxchg_local-to-sparc-move-__cmpxchg-to-systemh.patch
-add-cmpxchg_local-to-sparc64.patch
-add-cmpxchg_local-to-v850.patch
-add-cmpxchg_local-to-xtensa.patch
-create-arch-kconfig.patch
-add-arch_supports_oprofile.patch
-add-arch_supports_kprobes.patch
-move-kconfiginstrumentation-to-arch-kconfig-and-init-kconfig.patch
+file-capabilities-allow-sigcont-within-session-v2.patch
+pnp-increase-the-maximum-number-of-resources-fix.patch
+revert-keyspan-init-termios-properly.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
+git-drm-oops-fix.patch
+git-dvb.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+elantech-touchpad-driver-fix.patch
+cscope-build-warning.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+ide-arm-hack.patch
+git-mmc.patch
+git-mtd.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+bluetooth-uninlining.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing-fix.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix.patch
+git-nfsd-fixup.patch
+quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
+drivers-pci-quirksc-coding-style-cleanup.patch
+git-s390.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
+scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
+scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
+bidi-support-scsi_data_buffer-broke-qla1280.patch
+bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+git-wireless.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-fixup.patch
+git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes.patch
+git-x86-broke-lguest.patch
+git-x86-broke-xen-too.patch
+git-x86-inlining-borkage.patch
+oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+i386-and-x86_64-randomize-brk-fix.patch
+x86-arch_register_cpu-section-fix.patch
+x86_64-configure-stack-size-fix.patch
+git-cryptodev.patch
+x86-early_quirks-cleanup.patch
+ia64-increase-datapatch-offset.patch
+ia64-dont-assume-that-unwcheckpy-is-executable.patch
+ia64-export-copy_page-to-modules.patch
+ia64-export-copy_page-to-modules-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+alpha-atomic_add_return-should-return-int.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+sync_sb_inodes-propagate-errors.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+64-bit-i_version-afs-fixes.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+aout-mark-arches-that-support-aout-format-fix.patch
+aout-mark-arches-that-support-aout-format-fix-2.patch
+aout-mark-arches-that-support-aout-format-fix-3.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+w1-build-fix.patch
