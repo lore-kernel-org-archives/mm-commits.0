@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-convert-functions-to-void.patch added to -mm tree
-Date: Thu, 15 Nov 2007 16:15:36 -0800
-Message-ID: <200711160015.lAG0FagN023226@imap1.linux-foundation.org>
+Subject: + uml-host-tls-diagnostics.patch added to -mm tree
+Date: Thu, 15 Nov 2007 16:15:40 -0800
+Message-ID: <200711160015.lAG0FeUX023229@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:41502 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34281 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934201AbXKPAPm (ORCPT
+	by vger.kernel.org with ESMTP id S934349AbXKPAPt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 19:15:42 -0500
+	Thu, 15 Nov 2007 19:15:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: magotari@gmail.com, jdike@linux.intel.com
+Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: convert functions to void
+     uml: host TLS diagnostics
 has been added to the -mm tree.  Its filename is
-     uml-convert-functions-to-void.patch
+     uml-host-tls-diagnostics.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,97 +26,107 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: convert functions to void
-From: Karol Swietlicki <magotari@gmail.com>
+Subject: uml: host TLS diagnostics
+From: Jeff Dike <jdike@addtoit.com>
 
-This patch changes a few functions into returning void.  The return values
-were not used anyway, so I think it should not be a problem.  Also removed a
-little leftover bit from TT mode.
+Add some diagnostics when TLS operations on the host fail.  Also spit out more
+information about the TLS environment on the host at boot time.
 
-Signed-off-by: Karol Swietlicki <magotari@gmail.com>
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/os.h        |    6 +-----
- arch/um/kernel/um_arch.c    |    5 ++---
- arch/um/os-Linux/start_up.c |    4 +---
- 3 files changed, 4 insertions(+), 11 deletions(-)
+ arch/um/sys-i386/tls.c |   30 +++++++++++++++++++++---------
+ 1 file changed, 21 insertions(+), 9 deletions(-)
 
-diff -puN arch/um/include/os.h~uml-convert-functions-to-void arch/um/include/os.h
---- a/arch/um/include/os.h~uml-convert-functions-to-void
-+++ a/arch/um/include/os.h
-@@ -167,14 +167,10 @@ extern int os_fchange_dir(int fd);
+diff -puN arch/um/sys-i386/tls.c~uml-host-tls-diagnostics arch/um/sys-i386/tls.c
+--- a/arch/um/sys-i386/tls.c~uml-host-tls-diagnostics
++++ a/arch/um/sys-i386/tls.c
+@@ -26,6 +26,11 @@ int do_set_thread_area(struct user_desc 
+ 	cpu = get_cpu();
+ 	ret = os_set_thread_area(info, userspace_pid[cpu]);
+ 	put_cpu();
++
++	if (ret)
++		printk(KERN_ERR "PTRACE_SET_THREAD_AREA failed, err = %d, "
++		       "index = %d\n", ret, info->entry_number);
++
+ 	return ret;
+ }
  
- /* start_up.c */
- extern void os_early_checks(void);
--extern int can_do_skas(void);
-+extern void can_do_skas(void);
- extern void os_check_bugs(void);
- extern void check_host_supports_tls(int *supports_tls, int *tls_min);
+@@ -37,6 +42,11 @@ int do_get_thread_area(struct user_desc 
+ 	cpu = get_cpu();
+ 	ret = os_get_thread_area(info, userspace_pid[cpu]);
+ 	put_cpu();
++
++	if (ret)
++		printk(KERN_ERR "PTRACE_GET_THREAD_AREA failed, err = %d, "
++		       "index = %d\n", ret, info->entry_number);
++
+ 	return ret;
+ }
  
--/* Make sure they are clear when running in TT mode. Required by
-- * SEGV_MAYBE_FIXABLE */
--#define clear_can_do_skas() do { ptrace_faultinfo = proc_mm = 0; } while (0)
+@@ -356,10 +366,9 @@ out:
+ 	return ret;
+ }
+ 
 -
- /* mem.c */
- extern int create_mem_file(unsigned long long len);
- 
-diff -puN arch/um/kernel/um_arch.c~uml-convert-functions-to-void arch/um/kernel/um_arch.c
---- a/arch/um/kernel/um_arch.c~uml-convert-functions-to-void
-+++ a/arch/um/kernel/um_arch.c
-@@ -198,7 +198,7 @@ __uml_setup("--help", Usage,
- "    Prints this message.\n\n"
- );
- 
--static int __init uml_checksetup(char *line, int *add)
-+static void __init uml_checksetup(char *line, int *add)
+ /*
+- * XXX: This part is probably common to i386 and x86-64. Don't create a common
+- * file for now, do that when implementing x86-64 support.
++ * This code is really i386-only, but it detects and logs x86_64 GDT indexes
++ * if a 32-bit UML is running on a 64-bit host.
+  */
+ static int __init __setup_host_supports_tls(void)
  {
- 	struct uml_param *p;
- 
-@@ -208,10 +208,9 @@ static int __init uml_checksetup(char *l
- 
- 		n = strlen(p->str);
- 		if (!strncmp(line, p->str, n) && p->setup_func(line + n, add))
--			return 1;
-+			return;
- 		p++;
- 	}
--	return 0;
- }
- 
- static void __init uml_postsetup(void)
-diff -puN arch/um/os-Linux/start_up.c~uml-convert-functions-to-void arch/um/os-Linux/start_up.c
---- a/arch/um/os-Linux/start_up.c~uml-convert-functions-to-void
-+++ a/arch/um/os-Linux/start_up.c
-@@ -466,7 +466,7 @@ static inline void check_skas3_proc_mm(v
- 	else non_fatal("found\n");
- }
- 
--int can_do_skas(void)
-+void can_do_skas(void)
- {
- 	non_fatal("Checking for the skas3 patch in the host:\n");
- 
-@@ -476,8 +476,6 @@ int can_do_skas(void)
- 
- 	if (!proc_mm || !ptrace_faultinfo || !ptrace_ldt)
- 		skas_needs_stub = 1;
--
--	return 1;
- }
- 
- int __init parse_iomem(char *str, int *add)
+@@ -368,13 +377,16 @@ static int __init __setup_host_supports_
+ 		printk(KERN_INFO "Host TLS support detected\n");
+ 		printk(KERN_INFO "Detected host type: ");
+ 		switch (host_gdt_entry_tls_min) {
+-			case GDT_ENTRY_TLS_MIN_I386:
+-				printk("i386\n");
+-				break;
+-			case GDT_ENTRY_TLS_MIN_X86_64:
+-				printk("x86_64\n");
+-				break;
++		case GDT_ENTRY_TLS_MIN_I386:
++			printk(KERN_CONT "i386");
++			break;
++		case GDT_ENTRY_TLS_MIN_X86_64:
++			printk(KERN_CONT "x86_64");
++			break;
+ 		}
++		printk(KERN_CONT " (GDT indexes %d to %d)\n",
++		       host_gdt_entry_tls_min,
++		       host_gdt_entry_tls_min + GDT_ENTRY_TLS_ENTRIES);
+ 	} else
+ 		printk(KERN_ERR "  Host TLS support NOT detected! "
+ 				"TLS support inside UML will not work\n");
 _
 
-Patches currently in -mm which might be from magotari@gmail.com are
+Patches currently in -mm which might be from jdike@addtoit.com are
 
-uml-remove-xmm-checking-on-x86.patch
-uml-fix-urls-in-kconfig-and-help-strings.patch
-uml-improve-detection-of-host-cmov.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes-fix.patch
-uml-remove-now-unused-code.patch
-uml-gprof-needs-to-depend-on-frame_pointer.patch
-uml-remove-unused-variables-in-the-context-switcher.patch
-uml-convert-functions-to-void.patch
+origin.patch
+git-kvm.patch
+uml-arch-um-include-inith-needs-a-definition-of-__used.patch
+uml-implement-get_wchan.patch
+uml-implement-get_wchan-fix.patch
+uml-get-rid-of-asmlinkage.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-document-new-ubd-flag.patch
+uml-further-bugsc-tidying.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+uml-smp-needs-to-depend-on-broken-for-now.patch
+uml-console-driver-cleanups.patch
+uml-clonec-tidying.patch
+uml-borrow-consth-techniques.patch
+uml-delete-some-unused-headers.patch
+uml-allow-lflags-on-command-line.patch
+uml-tidy-kern_utilh.patch
+uml-tidy-pgtableh.patch
+uml-tidy-pgtableh-fix.patch
+uml-reconst-a-parameter.patch
+arch-um-remove-duplicate-includes.patch
+uml-host-tls-diagnostics.patch
+iget-stop-hostfs-from-using-iget-and-read_inode.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
