@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + create-arch-kconfig.patch added to -mm tree
-Date: Fri, 16 Nov 2007 15:03:43 -0800
-Message-ID: <200711162303.lAGN3hXB008012@imap1.linux-foundation.org>
+Subject: + add-arch_supports_oprofile.patch added to -mm tree
+Date: Fri, 16 Nov 2007 15:03:46 -0800
+Message-ID: <200711162303.lAGN3kws008015@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45908 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41888 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759613AbXKPXFd (ORCPT
+	by vger.kernel.org with ESMTP id S1758422AbXKPXF0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Nov 2007 18:05:33 -0500
+	Fri, 16 Nov 2007 18:05:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mathieu.desnoyers@polymtl.ca, ananth@in.ibm.com, linux-arch@vger.kernel.org,
 
 
 The patch titled
-     Create arch/Kconfig
+     Add ARCH_SUPPORTS_OPROFILE
 has been added to the -mm tree.  Its filename is
-     create-arch-kconfig.patch
+     add-arch_supports_oprofile.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,27 +26,10 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Create arch/Kconfig
+Subject: Add ARCH_SUPPORTS_OPROFILE
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-Puts the content of arch/Kconfig in the "General setup" menu.
-
 Linus:
-
-> Should it come with a re-duplication of it's content into each
-> architecture, which was the case previously ? The oprofile and kprobes
-> menu entries were litteraly cut and pasted from one architecture to
-> another. Should we put its content in init/Kconfig then ?
-
-I don't think it's a good idea to go back to making it per-architecture,
-although that extensive "depends on <list-of-archiectures-here>" might
-indicate that there certainly is room for cleanup there.
-
-And I don't think it's wrong keeping it in kernel/Kconfig.xyz per se, I
-just think it's wrong to (a) lump the code together when it really doesn't
-necessarily need to and (b) show it to users as some kind of choice that
-is tied together (whether it then has common code or not).
-
 On the per-architecture side, I do think it would be better to *not* have
 internal architecture knowledge in a generic file, and as such a line like
 
@@ -69,47 +52,21 @@ and is readable both for arch maintainers *and* for people who have no
 clue - and don't care - about which architecture is supposed to support
 which interface...
 
+Changelog:
 
-Sam Ravnborg:
+Actually, I know I gave this as the magic incantation, but now that I see
+it, I realize that I should have told you to just use
 
-Stuff it into a new file: arch/Kconfig
-We can then extend this file to include all the 'trailing'
-Kconfig things that are anyway equal for all ARCHs.
+        config ARCH_SUPPORTS_KPROBES
+                def_bool y
 
-But it should be kept clean - so if we introduce such a file
-then we should use ARCH_HAS_whatever in the arch specific Kconfig
-files to enable stuff that is not shared.
+instead, which is a bit denser.
 
-[...]
+We seem to use both kinds of syntax for these things, but this is really
+what "def_bool" is there for...
 
-The above suggestion is actually not exactly the best way to do it...
-First the naming..
-A quick grep shows following usage today (in Kconfig files)
-ARCH_HAS        51
-ARCH_SUPPORTS   4
-HAVE_ARCH       7
-
-ARCH_HAS is the clear winner.
-
-In the common Kconfig file do:
-
-config FOO
-        depends on ARCH_HAS_FOO
-        bool "bla bla"
-
-config ARCH_HAS_FOO
-        def_bool n
-
-In the arch specific Kconfig file in a suitable place do:
-
-config SUITABLE_OPTION
-        select ARCH_HAS_FOO
-
-The naming of ARCH_HAS_ is fixed and shall be:
-ARCH_HAS_<config option it will enable>
-
-Only a single line added pr. architecture.
-And we will end up with a (maybe even commented) list of trivial selects.
+- Use ARCH_HAS_* instead of ARCH_SUPPORTS).
+- Use a select ARCH_HAS_*
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
@@ -119,29 +76,211 @@ Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig |    3 +++
- init/Kconfig |    2 ++
- 2 files changed, 5 insertions(+)
+ arch/alpha/Kconfig             |    1 +
+ arch/arm/Kconfig               |    1 +
+ arch/blackfin/Kconfig          |    1 +
+ arch/ia64/Kconfig              |    1 +
+ arch/m32r/Kconfig              |    1 +
+ arch/mips/Kconfig              |    1 +
+ arch/parisc/Kconfig            |    1 +
+ arch/powerpc/Kconfig           |    1 +
+ arch/ppc/Kconfig               |    1 +
+ arch/s390/Kconfig              |    1 +
+ arch/sh/Kconfig                |    1 +
+ arch/sh64/Kconfig              |    1 +
+ arch/sparc/Kconfig             |    1 +
+ arch/sparc64/Kconfig           |    1 +
+ arch/x86/Kconfig               |    1 +
+ kernel/Kconfig.instrumentation |    5 ++++-
+ 16 files changed, 19 insertions(+), 1 deletion(-)
 
-diff -puN /dev/null arch/Kconfig
---- /dev/null
-+++ a/arch/Kconfig
-@@ -0,0 +1,3 @@
-+#
-+# General architecture dependent options
-+#
-diff -puN init/Kconfig~create-arch-kconfig init/Kconfig
---- a/init/Kconfig~create-arch-kconfig
-+++ a/init/Kconfig
-@@ -695,6 +695,8 @@ config PROC_PAGE_MONITOR
- 	  /proc/kpagecount, and /proc/kpageflags. Disabling these
-           interfaces will reduce the size of the kernel by approximately 4kb.
+diff -puN arch/alpha/Kconfig~add-arch_supports_oprofile arch/alpha/Kconfig
+--- a/arch/alpha/Kconfig~add-arch_supports_oprofile
++++ a/arch/alpha/Kconfig
+@@ -5,6 +5,7 @@
+ config ALPHA
+ 	bool
+ 	default y
++	select ARCH_HAS_OPROFILE
+ 	help
+ 	  The Alpha is a 64-bit general-purpose processor designed and
+ 	  marketed by the Digital Equipment Corporation of blessed memory,
+diff -puN arch/arm/Kconfig~add-arch_supports_oprofile arch/arm/Kconfig
+--- a/arch/arm/Kconfig~add-arch_supports_oprofile
++++ a/arch/arm/Kconfig
+@@ -10,6 +10,7 @@ config ARM
+ 	default y
+ 	select RTC_LIB
+ 	select SYS_SUPPORTS_APM_EMULATION
++	select ARCH_HAS_OPROFILE
+ 	help
+ 	  The ARM series is a line of low-power-consumption RISC chip designs
+ 	  licensed by ARM Ltd and targeted at embedded applications and
+diff -puN arch/blackfin/Kconfig~add-arch_supports_oprofile arch/blackfin/Kconfig
+--- a/arch/blackfin/Kconfig~add-arch_supports_oprofile
++++ a/arch/blackfin/Kconfig
+@@ -24,6 +24,7 @@ config RWSEM_XCHGADD_ALGORITHM
+ config BLACKFIN
+ 	bool
+ 	default y
++	select ARCH_HAS_OPROFILE
  
-+source "arch/Kconfig"
+ config ZONE_DMA
+ 	bool
+diff -puN arch/ia64/Kconfig~add-arch_supports_oprofile arch/ia64/Kconfig
+--- a/arch/ia64/Kconfig~add-arch_supports_oprofile
++++ a/arch/ia64/Kconfig
+@@ -15,6 +15,7 @@ config IA64
+ 	select ACPI if (!IA64_HP_SIM)
+ 	select PM if (!IA64_HP_SIM)
+ 	select ARCH_SUPPORTS_MSI
++	select ARCH_HAS_OPROFILE
+ 	default y
+ 	help
+ 	  The Itanium Processor Family is Intel's 64-bit successor to
+diff -puN arch/m32r/Kconfig~add-arch_supports_oprofile arch/m32r/Kconfig
+--- a/arch/m32r/Kconfig~add-arch_supports_oprofile
++++ a/arch/m32r/Kconfig
+@@ -8,6 +8,7 @@ mainmenu "Linux/M32R Kernel Configuratio
+ config M32R
+ 	bool
+ 	default y
++	select ARCH_HAS_OPROFILE
+ 
+ config SBUS
+ 	bool
+diff -puN arch/mips/Kconfig~add-arch_supports_oprofile arch/mips/Kconfig
+--- a/arch/mips/Kconfig~add-arch_supports_oprofile
++++ a/arch/mips/Kconfig
+@@ -1,6 +1,7 @@
+ config MIPS
+ 	bool
+ 	default y
++	select ARCH_HAS_OPROFILE
+ 	# Horrible source of confusion.  Die, die, die ...
+ 	select EMBEDDED
+ 	select RTC_LIB
+diff -puN arch/parisc/Kconfig~add-arch_supports_oprofile arch/parisc/Kconfig
+--- a/arch/parisc/Kconfig~add-arch_supports_oprofile
++++ a/arch/parisc/Kconfig
+@@ -7,6 +7,7 @@ mainmenu "Linux/PA-RISC Kernel Configura
+ 
+ config PARISC
+ 	def_bool y
++	select ARCH_HAS_OPROFILE
+ 	help
+ 	  The PA-RISC microprocessor is designed by Hewlett-Packard and used
+ 	  in many of their workstations & servers (HP9000 700 and 800 series,
+diff -puN arch/powerpc/Kconfig~add-arch_supports_oprofile arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~add-arch_supports_oprofile
++++ a/arch/powerpc/Kconfig
+@@ -79,6 +79,7 @@ config ARCH_NO_VIRT_TO_BUS
+ config PPC
+ 	bool
+ 	default y
++	select ARCH_HAS_OPROFILE
+ 
+ config EARLY_PRINTK
+ 	bool
+diff -puN arch/ppc/Kconfig~add-arch_supports_oprofile arch/ppc/Kconfig
+--- a/arch/ppc/Kconfig~add-arch_supports_oprofile
++++ a/arch/ppc/Kconfig
+@@ -45,6 +45,7 @@ config ARCH_SUPPORTS_AOUT
+ config PPC
+ 	bool
+ 	default y
++	select ARCH_HAS_OPROFILE
+ 
+ config PPC32
+ 	bool
+diff -puN arch/s390/Kconfig~add-arch_supports_oprofile arch/s390/Kconfig
+--- a/arch/s390/Kconfig~add-arch_supports_oprofile
++++ a/arch/s390/Kconfig
+@@ -54,6 +54,7 @@ mainmenu "Linux Kernel Configuration"
+ 
+ config S390
+ 	def_bool y
++	select ARCH_HAS_OPROFILE
+ 
+ source "init/Kconfig"
+ 
+diff -puN arch/sh/Kconfig~add-arch_supports_oprofile arch/sh/Kconfig
+--- a/arch/sh/Kconfig~add-arch_supports_oprofile
++++ a/arch/sh/Kconfig
+@@ -9,6 +9,7 @@ config SUPERH
+ 	bool
+ 	default y
+ 	select EMBEDDED
++	select ARCH_HAS_OPROFILE
+ 	help
+ 	  The SuperH is a RISC processor targeted for use in embedded systems
+ 	  and consumer electronics; it was also used in the Sega Dreamcast
+diff -puN arch/sh64/Kconfig~add-arch_supports_oprofile arch/sh64/Kconfig
+--- a/arch/sh64/Kconfig~add-arch_supports_oprofile
++++ a/arch/sh64/Kconfig
+@@ -8,6 +8,7 @@ mainmenu "Linux/SH64 Kernel Configuratio
+ config SUPERH
+ 	bool
+ 	default y
++	select ARCH_HAS_OPROFILE
+ 
+ config SUPERH64
+ 	bool
+diff -puN arch/sparc/Kconfig~add-arch_supports_oprofile arch/sparc/Kconfig
+--- a/arch/sparc/Kconfig~add-arch_supports_oprofile
++++ a/arch/sparc/Kconfig
+@@ -66,6 +66,7 @@ config NR_CPUS
+ config SPARC
+ 	bool
+ 	default y
++	select ARCH_HAS_OPROFILE
+ 
+ # Identify this as a Sparc32 build
+ config SPARC32
+diff -puN arch/sparc64/Kconfig~add-arch_supports_oprofile arch/sparc64/Kconfig
+--- a/arch/sparc64/Kconfig~add-arch_supports_oprofile
++++ a/arch/sparc64/Kconfig
+@@ -8,6 +8,7 @@ mainmenu "Linux/UltraSPARC Kernel Config
+ config SPARC
+ 	bool
+ 	default y
++	select ARCH_HAS_OPROFILE
+ 
+ config SPARC64
+ 	bool
+diff -puN arch/x86/Kconfig~add-arch_supports_oprofile arch/x86/Kconfig
+--- a/arch/x86/Kconfig~add-arch_supports_oprofile
++++ a/arch/x86/Kconfig
+@@ -19,6 +19,7 @@ config X86_64
+ config X86
+ 	bool
+ 	default y
++	select ARCH_HAS_OPROFILE
+ 
+ config GENERIC_TIME
+ 	bool
+diff -puN kernel/Kconfig.instrumentation~add-arch_supports_oprofile kernel/Kconfig.instrumentation
+--- a/kernel/Kconfig.instrumentation~add-arch_supports_oprofile
++++ a/kernel/Kconfig.instrumentation
+@@ -21,7 +21,7 @@ config PROFILING
+ config OPROFILE
+ 	tristate "OProfile system profiling (EXPERIMENTAL)"
+ 	depends on PROFILING
+-	depends on ALPHA || ARM || BLACKFIN || X86_32 || IA64 || M32R || MIPS || PARISC || PPC || S390 || SUPERH || SPARC || X86_64
++	depends on ARCH_HAS_OPROFILE
+ 	help
+ 	  OProfile is a profiling system capable of profiling the
+ 	  whole system, include the kernel, kernel modules, libraries,
+@@ -29,6 +29,9 @@ config OPROFILE
+ 
+ 	  If unsure, say N.
+ 
++config ARCH_HAS_OPROFILE
++	def_bool n
 +
- endmenu		# General setup
- 
- config RT_MUTEXES
+ config KPROBES
+ 	bool "Kprobes"
+ 	depends on KALLSYMS && MODULES
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
