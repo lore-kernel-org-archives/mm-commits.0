@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-increase-the-maximum-number-of-resources.patch added to -mm tree
-Date: Fri, 16 Nov 2007 15:52:33 -0800
-Message-ID: <200711162352.lAGNqXiT010068@imap1.linux-foundation.org>
+Subject: + ps3-checkpatch-drivers-ps3-ps3-vuartc.patch added to -mm tree
+Date: Fri, 16 Nov 2007 15:52:37 -0800
+Message-ID: <200711162352.lAGNqbbB010086@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:45059 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44315 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761769AbXKPXwy (ORCPT
+	by vger.kernel.org with ESMTP id S1761056AbXKPXwr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Nov 2007 18:52:54 -0500
+	Fri, 16 Nov 2007 18:52:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yakui.zhao@intel.com, bjorn.helgaas@hp.com, shaohua.li@intel.com, stable@kernel.org, trenn@suse.de
+Cc: Geert.Uytterhoeven@sonycom.com
 
 
 The patch titled
-     PNP: increase the maximum number of resources
+     ps3: checkpatch drivers/ps3/ps3-vuart.c
 has been added to the -mm tree.  Its filename is
-     pnp-increase-the-maximum-number-of-resources.patch
+     ps3-checkpatch-drivers-ps3-ps3-vuartc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,96 +26,89 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: PNP: increase the maximum number of resources
-From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: ps3: checkpatch drivers/ps3/ps3-vuart.c
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 
-On some systems the number of resources(IO,MEM) returnedy by PNP device is
-greater than the PNP constant, for example motherboard devices.  It brings
-that some resources can't be reserved and resource confilicts.  This will
-cause PCI resources are assigned wrongly in some systems, and cause hang. 
-This is a regression since we deleted ACPI motherboard driver and use PNP
-system driver.
-
-Signed-off-by: Li Shaohua <shaohua.li@intel.com>
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: <stable@kernel.org>
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/pnpacpi/rsparser.c |   18 ++++++++++++++++--
- include/linux/pnp.h            |    4 ++--
- 2 files changed, 18 insertions(+), 4 deletions(-)
+ drivers/ps3/ps3-vuart.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN drivers/pnp/pnpacpi/rsparser.c~pnp-increase-the-maximum-number-of-resources drivers/pnp/pnpacpi/rsparser.c
---- a/drivers/pnp/pnpacpi/rsparser.c~pnp-increase-the-maximum-number-of-resources
-+++ a/drivers/pnp/pnpacpi/rsparser.c
-@@ -82,9 +82,11 @@ static void pnpacpi_parse_allocated_irqr
- 	while (!(res->irq_resource[i].flags & IORESOURCE_UNSET) &&
- 	       i < PNP_MAX_IRQ)
- 		i++;
--	if (i >= PNP_MAX_IRQ)
-+	if (i >= PNP_MAX_IRQ) {
-+		printk(KERN_ERR "Exceed the max number of IRQ resource: "
-+				"%d \n",PNP_MAX_IRQ);
- 		return;
--
-+	}
- #ifdef CONFIG_X86
- 	if (gsi < 16 && (triggering != ACPI_EDGE_SENSITIVE ||
- 				polarity != ACPI_ACTIVE_HIGH)) {
-@@ -173,6 +175,10 @@ static void pnpacpi_parse_allocated_dmar
- 		}
- 		res->dma_resource[i].start = dma;
- 		res->dma_resource[i].end = dma;
-+	} else {
-+		printk(KERN_ERR "Exceed the max number of DMA resource: "
-+				"%d \n",PNP_MAX_DMA);
-+		return;
- 	}
+diff -puN drivers/ps3/ps3-vuart.c~ps3-checkpatch-drivers-ps3-ps3-vuartc drivers/ps3/ps3-vuart.c
+--- a/drivers/ps3/ps3-vuart.c~ps3-checkpatch-drivers-ps3-ps3-vuartc
++++ a/drivers/ps3/ps3-vuart.c
+@@ -108,18 +108,18 @@ static struct ps3_vuart_port_priv *to_po
+ struct ports_bmp {
+ 	u64 status;
+ 	u64 unused[3];
+-} __attribute__ ((aligned (32)));
++} __attribute__((aligned(32)));
+ 
+ #define dump_ports_bmp(_b) _dump_ports_bmp(_b, __func__, __LINE__)
+ static void __maybe_unused _dump_ports_bmp(
+-	const struct ports_bmp* bmp, const char* func, int line)
++	const struct ports_bmp *bmp, const char *func, int line)
+ {
+ 	pr_debug("%s:%d: ports_bmp: %016lxh\n", func, line, bmp->status);
  }
  
-@@ -194,6 +200,10 @@ static void pnpacpi_parse_allocated_iore
- 		}
- 		res->port_resource[i].start = io;
- 		res->port_resource[i].end = io + len - 1;
-+	} else {
-+		printk(KERN_ERR "Exceed the max number of IO Resource: "
-+				"%d \n",PNP_MAX_PORT);
-+		return;
- 	}
- }
+ #define dump_port_params(_b) _dump_port_params(_b, __func__, __LINE__)
+ static void __maybe_unused _dump_port_params(unsigned int port_number,
+-	const char* func, int line)
++	const char *func, int line)
+ {
+ #if defined(DEBUG)
+ 	static const char *strings[] = {
+@@ -363,7 +363,7 @@ int ps3_vuart_disable_interrupt_disconne
+  */
  
-@@ -217,6 +227,10 @@ static void pnpacpi_parse_allocated_memr
+ static int ps3_vuart_raw_write(struct ps3_system_bus_device *dev,
+-	const void* buf, unsigned int bytes, unsigned long *bytes_written)
++	const void *buf, unsigned int bytes, unsigned long *bytes_written)
+ {
+ 	int result;
+ 	struct ps3_vuart_port_priv *priv = to_port_priv(dev);
+@@ -431,7 +431,7 @@ void ps3_vuart_clear_rx_bytes(struct ps3
+ 	int result;
+ 	struct ps3_vuart_port_priv *priv = to_port_priv(dev);
+ 	u64 bytes_waiting;
+-	void* tmp;
++	void *tmp;
  
- 		res->mem_resource[i].start = mem;
- 		res->mem_resource[i].end = mem + len - 1;
-+	} else {
-+		printk(KERN_ERR "Exceed the max number of Mem Resource: "
-+				"%d \n",PNP_MAX_MEM);
-+		return;
- 	}
- }
+ 	result = ps3_vuart_get_rx_bytes_waiting(dev, &bytes_waiting);
  
-diff -puN include/linux/pnp.h~pnp-increase-the-maximum-number-of-resources include/linux/pnp.h
---- a/include/linux/pnp.h~pnp-increase-the-maximum-number-of-resources
-+++ a/include/linux/pnp.h
-@@ -13,8 +13,8 @@
- #include <linux/errno.h>
- #include <linux/mod_devicetable.h>
+@@ -526,9 +526,8 @@ int ps3_vuart_write(struct ps3_system_bu
  
--#define PNP_MAX_PORT		8
--#define PNP_MAX_MEM		4
-+#define PNP_MAX_PORT		24
-+#define PNP_MAX_MEM		12
- #define PNP_MAX_IRQ		2
- #define PNP_MAX_DMA		2
- #define PNP_NAME_LEN		50
+ 	lb = kmalloc(sizeof(struct list_buffer) + bytes, GFP_KERNEL);
+ 
+-	if (!lb) {
++	if (!lb)
+ 		return -ENOMEM;
+-	}
+ 
+ 	memcpy(lb->data, buf, bytes);
+ 	lb->head = lb->data;
+@@ -926,9 +925,8 @@ static int ps3_vuart_bus_interrupt_get(v
+ 
+ 	BUG_ON(vuart_bus_priv.use_count > 2);
+ 
+-	if (vuart_bus_priv.use_count != 1) {
++	if (vuart_bus_priv.use_count != 1)
+ 		return 0;
+-	}
+ 
+ 	BUG_ON(vuart_bus_priv.bmp);
+ 
 _
 
-Patches currently in -mm which might be from yakui.zhao@intel.com are
+Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
 
-pnp-increase-the-maximum-number-of-resources.patch
-pnp-increase-the-maximum-number-of-resources-fix.patch
-pci-add-pci-quirk-function-for-some-chipsets.patch
+origin.patch
+ps3-prefix-all-ps3-specific-kernel-modules-with.patch
+ps3fb-video-memory-size-cleanups.patch
+time-fold-__get_realtime_clock_ts-into-getnstimeofday.patch
+git-kbuild.patch
+ps3-checkpatch-drivers-ps3-ps3-sys-managerc.patch
+ps3-checkpatch-drivers-ps3-ps3-vuartc.patch
