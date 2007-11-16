@@ -1,57 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - fix-boot-problem-with-iseries-lacking-hugepage-support.patch removed from -mm tree
-Date: Thu, 15 Nov 2007 19:25:15 -0800
-Message-ID: <200711160325.lAG3PFQu030671@imap1.linux-foundation.org>
+Subject: + fix-boot-problem-with-iseries-lacking-hugepage-support.patch added to -mm tree
+Date: Thu, 15 Nov 2007 19:26:11 -0800
+Message-ID: <200711160326.lAG3QBa2030760@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51721 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52879 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757547AbXKPDZ3 (ORCPT
+	by vger.kernel.org with ESMTP id S1764755AbXKPD0U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 22:25:29 -0500
+	Thu, 15 Nov 2007 22:26:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, benh@kernel.crashing.org, paulus@samba.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mel@csn.ul.ie, benh@kernel.crashing.org, paulus@samba.org, sfr@canb.auug.org.au
 
 
 The patch titled
      Fix boot problem with iSeries lacking hugepage support
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      fix-boot-problem-with-iseries-lacking-hugepage-support.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
 Subject: Fix boot problem with iSeries lacking hugepage support
 From: mel@skynet.ie (Mel Gorman)
 
-Ordinarily the size of a pageblock is determined at compile-time based on
-the hugepage size.  On PPC64, the hugepage size is determined at runtime
-based on what is supported by the machine.  With legacy machines such as
-iSeries that do not support hugepages, HPAGE_SHIFT becomes 0.  This results
-in pageblock_order being set to -PAGE_SHIFT and a crash results shortly
-afterwards.
+Ordinarily the size of a pageblock is determined at compile-time based on the
+hugepage size. On PPC64, the hugepage size is determined at runtime based on
+what is supported by the machine. With legacy machines such as iSeries that
+do not support hugepages, HPAGE_SHIFT is 0. This results in pageblock_order
+being set to -PAGE_SHIFT and a crash results shortly afterwards.
 
-This patch sets HUGETLB_PAGE_SIZE_VARIABLE for PPC64 and adds a function to
-select a sensible value for pageblock order by default.  It checks that
-HPAGE_SHIFT is a sensible value before using the hugepage size; if it is
-not MAX_ORDER-1 is used.
+This patch adds a function to select a sensible value for pageblock order by
+default when HUGETLB_PAGE_SIZE_VARIABLE is set. It checks that HPAGE_SHIFT
+is a sensible value before using the hugepage size; if it is not MAX_ORDER-1
+is used.
 
-Credit goes to Stephen Rothwell for identifying the bug and testing
-candidate patches.  Additional credit goes to Andy Whitcroft for spotting a
-problem with respects to IA-64 before releasing.  Additional credit to
-David Gibson for testing with the libhugetlbfs test suite.
+This is a fix for 2.6.24.
+
+Credit goes to Stephen Rothwell for identifying the bug and testing candidate
+patches.  Additional credit goes to Andy Whitcroft for spotting a problem
+with respects to IA-64 before releasing. Additional credit to David Gibson
+for testing with the libhugetlbfs test suite.
 
 Signed-off-by: Mel Gorman <mel@csn.ul.ie>
 Tested-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Paul Mackerras <paulus@samba.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  arch/powerpc/Kconfig |    5 +++++
- mm/page_alloc.c      |   14 ++++++++++++--
- 2 files changed, 17 insertions(+), 2 deletions(-)
+ mm/page_alloc.c      |   23 +++++++++++++++++++++--
+ 2 files changed, 26 insertions(+), 2 deletions(-)
 
 diff -puN arch/powerpc/Kconfig~fix-boot-problem-with-iseries-lacking-hugepage-support arch/powerpc/Kconfig
 --- a/arch/powerpc/Kconfig~fix-boot-problem-with-iseries-lacking-hugepage-support
@@ -77,7 +82,7 @@ diff -puN mm/page_alloc.c~fix-boot-problem-with-iseries-lacking-hugepage-support
  #ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
 +
 +/* Return a sensible default order for the pageblock size. */
-+static inline int __init pageblock_default_order(void)
++static inline int pageblock_default_order(void)
 +{
 +	if (HPAGE_SHIFT > PAGE_SHIFT)
 +		return HUGETLB_PAGE_ORDER;
@@ -88,16 +93,25 @@ diff -puN mm/page_alloc.c~fix-boot-problem-with-iseries-lacking-hugepage-support
  /* Initialise the number of pages represented by NR_PAGEBLOCK_BITS */
  static inline void __init set_pageblock_order(unsigned int order)
  {
-@@ -3281,7 +3291,7 @@ static inline void __init set_pageblock_
+@@ -3281,7 +3291,16 @@ static inline void __init set_pageblock_
  }
  #else /* CONFIG_HUGETLB_PAGE_SIZE_VARIABLE */
  
 -/* Defined this way to avoid accidently referencing HUGETLB_PAGE_ORDER */
-+#define pageblock_default_order(x) (0)
++/*
++ * When CONFIG_HUGETLB_PAGE_SIZE_VARIABLE is not set, set_pageblock_order()
++ * and pageblock_default_order() are unused as pageblock_order is set
++ * at compile-time. See include/linux/pageblock-flags.h for the values of
++ * pageblock_order based on the kernel config
++ */
++static inline int pageblock_default_order(unsigned int order)
++{
++	return MAX_ORDER-1;
++}
  #define set_pageblock_order(x)	do {} while (0)
  
  #endif /* CONFIG_HUGETLB_PAGE_SIZE_VARIABLE */
-@@ -3366,7 +3376,7 @@ static void __meminit free_area_init_cor
+@@ -3366,7 +3385,7 @@ static void __meminit free_area_init_cor
  		if (!size)
  			continue;
  
@@ -112,7 +126,6 @@ Patches currently in -mm which might be from mel@csn.ul.ie are
 
 origin.patch
 fix-boot-problem-with-iseries-lacking-hugepage-support.patch
-fix-boot-problem-with-iseries-lacking-hugepage-support-fix.patch
 fix-build-failure-when-config_infiniband_ipoib_cm-is-not-defined.patch
 mem-policy-fix-mempolicy-usage-in-pci-driver.patch
 memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
