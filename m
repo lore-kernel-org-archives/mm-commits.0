@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cleanup-the-code-managed-with-the-user_ns-option.patch added to -mm tree
-Date: Thu, 15 Nov 2007 16:01:56 -0800
-Message-ID: <200711160001.lAG01uci022719@imap1.linux-foundation.org>
+Subject: + move-the-uts-namespace-under-uts_ns-option.patch added to -mm tree
+Date: Thu, 15 Nov 2007 16:01:50 -0800
+Message-ID: <200711160001.lAG01oJE022711@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51234 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32971 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763730AbXKPACr (ORCPT
+	by vger.kernel.org with ESMTP id S1763932AbXKPACt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 19:02:47 -0500
+	Thu, 15 Nov 2007 19:02:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: xemul@openvz.org, clg@fr.ibm.com, dev@sw.ru, ebiederm@xmission.com, herbert@
 
 
 The patch titled
-     namespaces: cleanup the code managed with the USER_NS option
+     namespaces: move the UTS namespace under UTS_NS option
 has been added to the -mm tree.  Its filename is
-     cleanup-the-code-managed-with-the-user_ns-option.patch
+     move-the-uts-namespace-under-uts_ns-option.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,15 +26,14 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: namespaces: cleanup the code managed with the USER_NS option
+Subject: namespaces: move the UTS namespace under UTS_NS option
 From: Pavel Emelyanov <xemul@openvz.org>
 
-Make the user_namespace.o compilation depend on this option and move the
-init_user_ns into user.c file to make the kernel compile and work without the
-namespaces support.  This make the user namespace code be organized similar to
-other namespaces'.
+Currently all the namespace management code is in the kernel/utsname.c file,
+so just compile it out and make stubs in the appropriate header.
 
-Also mask the USER_NS option as "depend on NAMESPACES".
+The init namespace itself is in init/version.c and is in the kernel all the
+time.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Acked-by: Serge Hallyn <serue@us.ibm.com>
@@ -46,128 +45,93 @@ Cc: Sukadev Bhattiprolu <sukadev@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig            |   17 ++++++++---------
+ include/linux/utsname.h |   21 +++++++++++++++++++++
+ init/Kconfig            |    7 +++++++
  kernel/Makefile         |    3 ++-
- kernel/user.c           |   11 +++++++++++
- kernel/user_namespace.c |   13 -------------
- 4 files changed, 21 insertions(+), 23 deletions(-)
+ 3 files changed, 30 insertions(+), 1 deletion(-)
 
-diff -puN init/Kconfig~cleanup-the-code-managed-with-the-user_ns-option init/Kconfig
---- a/init/Kconfig~cleanup-the-code-managed-with-the-user_ns-option
+diff -puN include/linux/utsname.h~move-the-uts-namespace-under-uts_ns-option include/linux/utsname.h
+--- a/include/linux/utsname.h~move-the-uts-namespace-under-uts_ns-option
++++ a/include/linux/utsname.h
+@@ -35,6 +35,7 @@ struct new_utsname {
+ #include <linux/sched.h>
+ #include <linux/kref.h>
+ #include <linux/nsproxy.h>
++#include <linux/err.h>
+ #include <asm/atomic.h>
+ 
+ struct uts_namespace {
+@@ -43,6 +44,7 @@ struct uts_namespace {
+ };
+ extern struct uts_namespace init_uts_ns;
+ 
++#ifdef CONFIG_UTS_NS
+ static inline void get_uts_ns(struct uts_namespace *ns)
+ {
+ 	kref_get(&ns->kref);
+@@ -56,6 +58,25 @@ static inline void put_uts_ns(struct uts
+ {
+ 	kref_put(&ns->kref, free_uts_ns);
+ }
++#else
++static inline void get_uts_ns(struct uts_namespace *ns)
++{
++}
++
++static inline void put_uts_ns(struct uts_namespace *ns)
++{
++}
++
++static inline struct uts_namespace *copy_utsname(unsigned long flags,
++					struct uts_namespace *ns)
++{
++	if (flags & CLONE_NEWUTS)
++		return ERR_PTR(-EINVAL);
++
++	return ns;
++}
++#endif
++
+ static inline struct new_utsname *utsname(void)
+ {
+ 	return &current->nsproxy->uts_ns->name;
+diff -puN init/Kconfig~move-the-uts-namespace-under-uts_ns-option init/Kconfig
+--- a/init/Kconfig~move-the-uts-namespace-under-uts_ns-option
 +++ a/init/Kconfig
-@@ -206,15 +206,6 @@ config TASK_IO_ACCOUNTING
+@@ -413,6 +413,13 @@ config NAMESPACES
+ 	  or same user id or pid may refer to different tasks when used in
+ 	  different namespaces.
  
- 	  Say N if unsure.
- 
--config USER_NS
--	bool "User Namespaces (EXPERIMENTAL)"
--	default n
--	depends on EXPERIMENTAL
--	help
--	  Support user namespaces.  This allows containers, i.e.
--	  vservers, to use user namespaces to provide different
--	  user info for different servers.  If unsure, say N.
--
- config PID_NS
- 	bool "PID Namespaces (EXPERIMENTAL)"
- 	default n
-@@ -427,6 +418,14 @@ config IPC_NS
- 	  In this namespace tasks work with IPC ids which correspond to
- 	  different IPC objects in different namespaces
- 
-+config USER_NS
-+	bool "User namespace (EXPERIMENTAL)"
-+	depends on NAMESPACES && EXPERIMENTAL
++config UTS_NS
++	bool "UTS namespace"
++	depends on NAMESPACES
 +	help
-+	  This allows containers, i.e. vservers, to use user namespaces
-+	  to provide different user info for different servers.
-+	  If unsure, say N.
++	  In this namespace tasks see different info provided with the
++	  uname() system call
 +
  config BLK_DEV_INITRD
  	bool "Initial RAM filesystem and RAM disk (initramfs/initrd) support"
  	depends on BROKEN || !FRV
-diff -puN kernel/Makefile~cleanup-the-code-managed-with-the-user_ns-option kernel/Makefile
---- a/kernel/Makefile~cleanup-the-code-managed-with-the-user_ns-option
+diff -puN kernel/Makefile~move-the-uts-namespace-under-uts_ns-option kernel/Makefile
+--- a/kernel/Makefile~move-the-uts-namespace-under-uts_ns-option
 +++ a/kernel/Makefile
-@@ -4,7 +4,7 @@
- 
- obj-y     = sched.o fork.o exec_domain.o panic.o printk.o profile.o \
- 	    exit.o itimer.o time.o softirq.o resource.o \
--	    sysctl.o capability.o ptrace.o timer.o user.o user_namespace.o \
-+	    sysctl.o capability.o ptrace.o timer.o user.o \
- 	    signal.o sys.o kmod.o workqueue.o pid.o \
+@@ -9,7 +9,7 @@ obj-y     = sched.o fork.o exec_domain.o
  	    rcupdate.o extable.o params.o posix-timers.o \
  	    kthread.o wait.o kfifo.o sys_ni.o posix-cpu-timers.o mutex.o \
-@@ -49,6 +49,7 @@ obj-$(CONFIG_AUDITSYSCALL) += auditsc.o
+ 	    hrtimer.o rwsem.o nsproxy.o srcu.o \
+-	    utsname.o notifier.o pm_qos_params.o
++	    notifier.o pm_qos_params.o
+ 
+ obj-$(CONFIG_SYSCTL) += sysctl_check.o
+ obj-$(CONFIG_STACKTRACE) += stacktrace.o
+@@ -48,6 +48,7 @@ obj-$(CONFIG_AUDIT) += audit.o auditfilt
+ obj-$(CONFIG_AUDITSYSCALL) += auditsc.o
  obj-$(CONFIG_AUDIT_TREE) += audit_tree.o
  obj-$(CONFIG_KPROBES) += kprobes.o
- obj-$(CONFIG_UTS_NS) += utsname.o
-+obj-$(CONFIG_USER_NS) += user_namespace.o
++obj-$(CONFIG_UTS_NS) += utsname.o
  obj-$(CONFIG_SYSFS) += ksysfs.o
  obj-$(CONFIG_DETECT_SOFTLOCKUP) += softlockup.o
  obj-$(CONFIG_GENERIC_HARDIRQS) += irq/
-diff -puN kernel/user.c~cleanup-the-code-managed-with-the-user_ns-option kernel/user.c
---- a/kernel/user.c~cleanup-the-code-managed-with-the-user_ns-option
-+++ a/kernel/user.c
-@@ -17,6 +17,15 @@
- #include <linux/module.h>
- #include <linux/user_namespace.h>
- 
-+struct user_namespace init_user_ns = {
-+	.kref = {
-+		.refcount	= ATOMIC_INIT(2),
-+	},
-+	.root_user = &root_user,
-+};
-+
-+EXPORT_SYMBOL_GPL(init_user_ns);
-+
- /*
-  * UID task count cache, to get fast user lookup in "alloc_uid"
-  * when changing user ID's (ie setuid() and friends).
-@@ -430,6 +439,7 @@ void switch_uid(struct user_struct *new_
- 	suid_keys(current);
- }
- 
-+#ifdef CONFIG_USER_NS
- void release_uids(struct user_namespace *ns)
- {
- 	int i;
-@@ -454,6 +464,7 @@ void release_uids(struct user_namespace 
- 
- 	free_uid(ns->root_user);
- }
-+#endif
- 
- static int __init uid_cache_init(void)
- {
-diff -puN kernel/user_namespace.c~cleanup-the-code-managed-with-the-user_ns-option kernel/user_namespace.c
---- a/kernel/user_namespace.c~cleanup-the-code-managed-with-the-user_ns-option
-+++ a/kernel/user_namespace.c
-@@ -10,17 +10,6 @@
- #include <linux/nsproxy.h>
- #include <linux/user_namespace.h>
- 
--struct user_namespace init_user_ns = {
--	.kref = {
--		.refcount	= ATOMIC_INIT(2),
--	},
--	.root_user = &root_user,
--};
--
--EXPORT_SYMBOL_GPL(init_user_ns);
--
--#ifdef CONFIG_USER_NS
--
- /*
-  * Clone a new ns copying an original user ns, setting refcount to 1
-  * @old_ns: namespace to clone
-@@ -84,5 +73,3 @@ void free_user_ns(struct kref *kref)
- 	release_uids(ns);
- 	kfree(ns);
- }
--
--#endif /* CONFIG_USER_NS */
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
