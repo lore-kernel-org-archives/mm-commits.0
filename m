@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + uml-remove-unused-variables-in-the-context-switcher.patch added to -mm tree
-Date: Thu, 15 Nov 2007 16:13:47 -0800
-Message-ID: <200711160013.lAG0DlbL023188@imap1.linux-foundation.org>
+Subject: + uml-convert-functions-to-void.patch added to -mm tree
+Date: Thu, 15 Nov 2007 16:15:36 -0800
+Message-ID: <200711160015.lAG0FagN023226@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39665 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:41502 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753603AbXKPANv (ORCPT
+	by vger.kernel.org with ESMTP id S934201AbXKPAPm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 19:13:51 -0500
+	Thu, 15 Nov 2007 19:15:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: magotari@gmail.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: remove unused variables in the context switcher
+     uml: convert functions to void
 has been added to the -mm tree.  Its filename is
-     uml-remove-unused-variables-in-the-context-switcher.patch
+     uml-convert-functions-to-void.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,129 +26,87 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: uml: remove unused variables in the context switcher
+Subject: uml: convert functions to void
 From: Karol Swietlicki <magotari@gmail.com>
 
-This patch removes a variable which was not used in two functions.  Yet
-another code cleanup, nothing really significant.
-
-Please note that I could not test this on x86_64. I don't have the
-hardware for it.
-
-[ jdike - Bits of tidying around the affected code.  Also, it's fine on
-x86_64 ]
+This patch changes a few functions into returning void.  The return values
+were not used anyway, so I think it should not be a problem.  Also removed a
+little leftover bit from TT mode.
 
 Signed-off-by: Karol Swietlicki <magotari@gmail.com>
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/process.c      |   19 ++++++++-----------
- arch/um/sys-i386/ptrace.c     |    6 +++---
- arch/um/sys-i386/tls.c        |    2 +-
- arch/um/sys-x86_64/syscalls.c |    2 +-
- 4 files changed, 13 insertions(+), 16 deletions(-)
+ arch/um/include/os.h        |    6 +-----
+ arch/um/kernel/um_arch.c    |    5 ++---
+ arch/um/os-Linux/start_up.c |    4 +---
+ 3 files changed, 4 insertions(+), 11 deletions(-)
 
-diff -puN arch/um/kernel/process.c~uml-remove-unused-variables-in-the-context-switcher arch/um/kernel/process.c
---- a/arch/um/kernel/process.c~uml-remove-unused-variables-in-the-context-switcher
-+++ a/arch/um/kernel/process.c
-@@ -81,12 +81,12 @@ static inline void set_current(struct ta
- 		{ external_pid(task), task });
+diff -puN arch/um/include/os.h~uml-convert-functions-to-void arch/um/include/os.h
+--- a/arch/um/include/os.h~uml-convert-functions-to-void
++++ a/arch/um/include/os.h
+@@ -167,14 +167,10 @@ extern int os_fchange_dir(int fd);
+ 
+ /* start_up.c */
+ extern void os_early_checks(void);
+-extern int can_do_skas(void);
++extern void can_do_skas(void);
+ extern void os_check_bugs(void);
+ extern void check_host_supports_tls(int *supports_tls, int *tls_min);
+ 
+-/* Make sure they are clear when running in TT mode. Required by
+- * SEGV_MAYBE_FIXABLE */
+-#define clear_can_do_skas() do { ptrace_faultinfo = proc_mm = 0; } while (0)
+-
+ /* mem.c */
+ extern int create_mem_file(unsigned long long len);
+ 
+diff -puN arch/um/kernel/um_arch.c~uml-convert-functions-to-void arch/um/kernel/um_arch.c
+--- a/arch/um/kernel/um_arch.c~uml-convert-functions-to-void
++++ a/arch/um/kernel/um_arch.c
+@@ -198,7 +198,7 @@ __uml_setup("--help", Usage,
+ "    Prints this message.\n\n"
+ );
+ 
+-static int __init uml_checksetup(char *line, int *add)
++static void __init uml_checksetup(char *line, int *add)
+ {
+ 	struct uml_param *p;
+ 
+@@ -208,10 +208,9 @@ static int __init uml_checksetup(char *l
+ 
+ 		n = strlen(p->str);
+ 		if (!strncmp(line, p->str, n) && p->setup_func(line + n, add))
+-			return 1;
++			return;
+ 		p++;
+ 	}
+-	return 0;
  }
  
--extern void arch_switch_to(struct task_struct *from, struct task_struct *to);
-+extern void arch_switch_to(struct task_struct *to);
- 
- void *_switch_to(void *prev, void *next, void *last)
- {
- 	struct task_struct *from = prev;
--	struct task_struct *to= next;
-+	struct task_struct *to = next;
- 
- 	to->thread.prev_sched = from;
- 	set_current(to);
-@@ -94,16 +94,15 @@ void *_switch_to(void *prev, void *next,
- 	do {
- 		current->thread.saved_task = NULL;
- 
--		switch_threads(&from->thread.switch_buf,
--			       &to->thread.switch_buf);
-+		switch_threads(&from->thread.switch_buf, &to->thread.switch_buf);
- 
--		arch_switch_to(current->thread.prev_sched, current);
-+		arch_switch_to(current);
- 
- 		if (current->thread.saved_task)
- 			show_regs(&(current->thread.regs));
--		next= current->thread.saved_task;
--		prev= current;
--	} while(current->thread.saved_task);
-+		next = current->thread.saved_task;
-+		prev = current;
-+	} while (current->thread.saved_task);
- 
- 	return current->thread.prev_sched;
- 
-@@ -161,8 +160,6 @@ void new_thread_handler(void)
- void fork_handler(void)
- {
- 	force_flush_all();
--	if (current->thread.prev_sched == NULL)
--		panic("blech");
- 
- 	schedule_tail(current->thread.prev_sched);
- 
-@@ -171,7 +168,7 @@ void fork_handler(void)
- 	 * arch_switch_to isn't needed. We could want to apply this to
- 	 * improve performance. -bb
- 	 */
--	arch_switch_to(current->thread.prev_sched, current);
-+	arch_switch_to(current);
- 
- 	current->thread.prev_sched = NULL;
- 
-diff -puN arch/um/sys-i386/ptrace.c~uml-remove-unused-variables-in-the-context-switcher arch/um/sys-i386/ptrace.c
---- a/arch/um/sys-i386/ptrace.c~uml-remove-unused-variables-in-the-context-switcher
-+++ a/arch/um/sys-i386/ptrace.c
-@@ -8,11 +8,11 @@
- #include "asm/uaccess.h"
- #include "skas.h"
- 
--extern int arch_switch_tls(struct task_struct *from, struct task_struct *to);
-+extern int arch_switch_tls(struct task_struct *to);
- 
--void arch_switch_to(struct task_struct *from, struct task_struct *to)
-+void arch_switch_to(struct task_struct *to)
- {
--	int err = arch_switch_tls(from, to);
-+	int err = arch_switch_tls(to);
- 	if (!err)
- 		return;
- 
-diff -puN arch/um/sys-i386/tls.c~uml-remove-unused-variables-in-the-context-switcher arch/um/sys-i386/tls.c
---- a/arch/um/sys-i386/tls.c~uml-remove-unused-variables-in-the-context-switcher
-+++ a/arch/um/sys-i386/tls.c
-@@ -172,7 +172,7 @@ void clear_flushed_tls(struct task_struc
-  * SKAS patch.
-  */
- 
--int arch_switch_tls(struct task_struct *from, struct task_struct *to)
-+int arch_switch_tls(struct task_struct *to)
- {
- 	if (!host_supports_tls)
- 		return 0;
-diff -puN arch/um/sys-x86_64/syscalls.c~uml-remove-unused-variables-in-the-context-switcher arch/um/sys-x86_64/syscalls.c
---- a/arch/um/sys-x86_64/syscalls.c~uml-remove-unused-variables-in-the-context-switcher
-+++ a/arch/um/sys-x86_64/syscalls.c
-@@ -105,7 +105,7 @@ long sys_clone(unsigned long clone_flags
- 	return ret;
+ static void __init uml_postsetup(void)
+diff -puN arch/um/os-Linux/start_up.c~uml-convert-functions-to-void arch/um/os-Linux/start_up.c
+--- a/arch/um/os-Linux/start_up.c~uml-convert-functions-to-void
++++ a/arch/um/os-Linux/start_up.c
+@@ -466,7 +466,7 @@ static inline void check_skas3_proc_mm(v
+ 	else non_fatal("found\n");
  }
  
--void arch_switch_to(struct task_struct *from, struct task_struct *to)
-+void arch_switch_to(struct task_struct *to)
+-int can_do_skas(void)
++void can_do_skas(void)
  {
- 	if ((to->thread.arch.fs == 0) || (to->mm == NULL))
- 		return;
+ 	non_fatal("Checking for the skas3 patch in the host:\n");
+ 
+@@ -476,8 +476,6 @@ int can_do_skas(void)
+ 
+ 	if (!proc_mm || !ptrace_faultinfo || !ptrace_ldt)
+ 		skas_needs_stub = 1;
+-
+-	return 1;
+ }
+ 
+ int __init parse_iomem(char *str, int *add)
 _
 
 Patches currently in -mm which might be from magotari@gmail.com are
