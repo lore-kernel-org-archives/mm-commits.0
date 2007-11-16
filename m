@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-fix-fix-section-mismatch-in-vmammap_allock_block.patch added to -mm tree
-Date: Thu, 15 Nov 2007 16:55:07 -0800
-Message-ID: <200711160055.lAG0t7MK024703@imap1.linux-foundation.org>
+Subject: + memory-hotplug-x86_64-fix-fix-section.patch added to -mm tree
+Date: Thu, 15 Nov 2007 16:54:49 -0800
+Message-ID: <200711160054.lAG0sncE024688@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:34785 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:52916 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758030AbXKPAzT (ORCPT
+	by vger.kernel.org with ESMTP id S1764619AbXKPAzY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 19:55:19 -0500
+	Thu, 15 Nov 2007 19:55:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,7 +18,7 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, apw@shadowen.org, kamalesh@linux.vnet.ibm.co
 The patch titled
      memory hotplug fix: fix section mismatch in vmammap_allock_block()
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-fix-fix-section-mismatch-in-vmammap_allock_block.patch
+     memory-hotplug-x86_64-fix-fix-section.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -43,8 +43,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/sparse-vmemmap.c |   12 +++++++++++-
  1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN mm/sparse-vmemmap.c~memory-hotplug-fix-fix-section-mismatch-in-vmammap_allock_block mm/sparse-vmemmap.c
---- a/mm/sparse-vmemmap.c~memory-hotplug-fix-fix-section-mismatch-in-vmammap_allock_block
+diff -puN mm/sparse-vmemmap.c~memory-hotplug-x86_64-fix-fix-section mm/sparse-vmemmap.c
+--- a/mm/sparse-vmemmap.c~memory-hotplug-x86_64-fix-fix-section
 +++ a/mm/sparse-vmemmap.c
 @@ -34,6 +34,16 @@
   * or to back the page tables that are used to create the mapping.
@@ -77,7 +77,7 @@ _
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-memory-hotplug-fix-fix-section-mismatch-in-vmammap_allock_block.patch
+memory-hotplug-x86_64-fix-fix-section.patch
 git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko.patch
 git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes.patch
 swapoff-scan-ptes-preemptibly.patch
