@@ -1,64 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - usb-power-managementtxt-disconnect-clarification.patch removed from -mm tree
-Date: Fri, 16 Nov 2007 13:58:04 -0800
-Message-ID: <200711162158.lAGLw4rx005675@imap1.linux-foundation.org>
+Subject: + xen-mask-_page_pcd-from-ptes.patch added to -mm tree
+Date: Fri, 16 Nov 2007 13:58:40 -0800
+Message-ID: <200711162158.lAGLweFV005689@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:58428 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59480 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757446AbXKPV6M (ORCPT
+	by vger.kernel.org with ESMTP id S1757077AbXKPV6n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 16 Nov 2007 16:58:12 -0500
+	Fri, 16 Nov 2007 16:58:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tilman@imap.cc, greg@kroah.com, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jeremy@goop.org, jeremy@xensource.com
 
 
 The patch titled
-     usb: power-management.txt - disconnect clarification
-has been removed from the -mm tree.  Its filename was
-     usb-power-managementtxt-disconnect-clarification.patch
+     xen: mask _PAGE_PCD from ptes
+has been added to the -mm tree.  Its filename is
+     xen-mask-_page_pcd-from-ptes.patch
 
-This patch was dropped because an updated version will be merged
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: usb: power-management.txt - disconnect clarification
-From: Tilman Schmidt <tilman@imap.cc>
+Subject: xen: mask _PAGE_PCD from ptes
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Add a paragraph to Documentation/usb/power-management.txt about the
-interaction between suspend and disconnect.
+_PAGE_PCD maps a page with caching disabled, which is typically used for
+mapping harware registers.  Xen never allows it to be set on a mapping, and
+unprivileged guests never need it since they can't see the real underlying
+hardware.  However, some uncached mappings are made early when probing the
+(non-existent) APIC, and its OK to mask off the PCD flag in these cases.
 
-Signed-off-by: Tilman Schmidt <tilman@imap.cc>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>
+This became necessary because Xen started checking for this bit, rather
+than silently masking it off.
+
+Signed-off-by: Jeremy Fitzhardinge <jeremy@xensource.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/usb/power-management.txt |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/x86/xen/mmu.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN Documentation/usb/power-management.txt~usb-power-managementtxt-disconnect-clarification Documentation/usb/power-management.txt
---- a/Documentation/usb/power-management.txt~usb-power-managementtxt-disconnect-clarification
-+++ a/Documentation/usb/power-management.txt
-@@ -278,6 +278,12 @@ optional.  The methods' jobs are quite s
- 	(although the interfaces will be in the same altsettings as
- 	before the suspend).
+diff -puN arch/x86/xen/mmu.c~xen-mask-_page_pcd-from-ptes arch/x86/xen/mmu.c
+--- a/arch/x86/xen/mmu.c~xen-mask-_page_pcd-from-ptes
++++ a/arch/x86/xen/mmu.c
+@@ -244,6 +244,8 @@ pte_t xen_make_pte(unsigned long long pt
+ 	if (pte & 1)
+ 		pte = phys_to_machine(XPADDR(pte)).maddr;
  
-+If the device is disconnected or powered down while it is suspended,
-+the disconnect method will be called instead of the resume or
-+reset_resume method.  This will also happen if the system is resumed
-+from hibernation, as the device could have been disconnected without
-+the system being able to detect it.
++	pte &= ~_PAGE_PCD;
 +
- The reset_resume method is used by the USB Persist facility (see
- Documentation/usb/persist.txt) and it can also be used under certain
- circumstances when CONFIG_USB_PERSIST is not enabled.  Currently, if a
+ 	return (pte_t){ pte, pte >> 32 };
+ }
+ 
+@@ -291,6 +293,8 @@ pte_t xen_make_pte(unsigned long pte)
+ 	if (pte & _PAGE_PRESENT)
+ 		pte = phys_to_machine(XPADDR(pte)).maddr;
+ 
++	pte &= ~_PAGE_PCD;
++
+ 	return (pte_t){ pte };
+ }
+ 
 _
 
-Patches currently in -mm which might be from tilman@imap.cc are
+Patches currently in -mm which might be from jeremy@goop.org are
 
-usb-power-managementtxt-disconnect-clarification.patch
-gigaset-clean-up-urb-status-usage.patch
-gigaset-code-cleanups.patch
-bas_gigaset-suspend-support-v2.patch
-usb_gigaset-suspend-support-v3.patch
+origin.patch
+xen-mask-_page_pcd-from-ptes.patch
+maps4-simplify-interdependence-of-maps-and-smaps.patch
+maps4-move-clear_refs-code-to-task_mmuc.patch
+maps4-regroup-task_mmu-by-interface.patch
+maps4-add-proc-kpagecount-interface.patch
