@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fuse-fix-attribute-caching-after-rename.patch added to -mm tree
-Date: Thu, 15 Nov 2007 19:27:28 -0800
-Message-ID: <200711160327.lAG3RSNw030790@imap1.linux-foundation.org>
+Subject: + uml-build-fix.patch added to -mm tree
+Date: Fri, 16 Nov 2007 13:34:55 -0800
+Message-ID: <200711162134.lAGLYtBG004640@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:48683 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50576 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756800AbXKPD2M (ORCPT
+	by vger.kernel.org with ESMTP id S1757123AbXKPVgp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 Nov 2007 22:28:12 -0500
+	Fri, 16 Nov 2007 16:36:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: miklos@szeredi.hu, mszeredi@suse.cz
+Cc: xiyou.wangcong@gmail.com, jdike@karaya.com, sam@ravnborg.org
 
 
 The patch titled
-     fuse: fix attribute caching after rename
+     UML: build fix
 has been added to the -mm tree.  Its filename is
-     fuse-fix-attribute-caching-after-rename.patch
+     uml-build-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,36 +26,38 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: fuse: fix attribute caching after rename
-From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: UML: build fix
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-Invalidate attributes on rename, since some filesystems may update
-st_ctime.  Reported by Szabolcs Szakacsits
+include/asm-um/arch points to the non-existed include/asm-i386 directory.
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Jeff Dike <jdike@karaya.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/dir.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/um/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/fuse/dir.c~fuse-fix-attribute-caching-after-rename fs/fuse/dir.c
---- a/fs/fuse/dir.c~fuse-fix-attribute-caching-after-rename
-+++ a/fs/fuse/dir.c
-@@ -657,6 +657,9 @@ static int fuse_rename(struct inode *old
- 	err = req->out.h.error;
- 	fuse_put_request(fc, req);
- 	if (!err) {
-+		/* ctime changes */
-+		fuse_invalidate_attr(oldent->d_inode);
-+
- 		fuse_invalidate_attr(olddir);
- 		if (olddir != newdir)
- 			fuse_invalidate_attr(newdir);
+diff -puN arch/um/Makefile~uml-build-fix arch/um/Makefile
+--- a/arch/um/Makefile~uml-build-fix
++++ a/arch/um/Makefile
+@@ -168,7 +168,7 @@ ifneq ($(KBUILD_SRC),)
+ 	$(Q)mkdir -p $(objtree)/include/asm-um
+ 	$(Q)ln -fsn $(srctree)/include/asm-$(HEADER_ARCH) include/asm-um/arch
+ else
+-	$(Q)cd $(TOPDIR)/include/asm-um && ln -fsn ../asm-$(SUBARCH) arch
++	$(Q)cd $(TOPDIR)/include/asm-um && ln -fsn ../asm-$(HEADER_ARCH) arch
+ endif
+ 
+ $(objtree)/$(ARCH_DIR)/include:
 _
 
-Patches currently in -mm which might be from miklos@szeredi.hu are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
-origin.patch
-fuse-fix-attribute-caching-after-rename.patch
-iget-stop-fuse-from-using-iget-and-read_inode-try.patch
+uml-build-fix.patch
+cscope-build-warning.patch
+uml-code-tidying-under-arch-um-os-linux.patch
+uml-const-and-other-tidying.patch
+time-fix-sysfs_show_availablecurrent_clocksources-buffer-overflow-problem.patch
