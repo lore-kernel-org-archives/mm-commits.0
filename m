@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-detect-duplicate-names-on-registration-fix.patch added to -mm tree
-Date: Mon, 19 Nov 2007 15:52:37 -0800
-Message-ID: <200711192352.lAJNqbQc003118@imap1.linux-foundation.org>
+Subject: + proc-simplify-remove_proc_entry-wrt-locking.patch added to -mm tree
+Date: Mon, 19 Nov 2007 15:53:52 -0800
+Message-ID: <200711192353.lAJNrq9d003210@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56080 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45523 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751735AbXKSXxQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751052AbXKSXya (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 18:53:16 -0500
+	Mon, 19 Nov 2007 18:54:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adobriyan@sw.ru, rui.zhang@intel.com
+Cc: adobriyan@sw.ru
 
 
 The patch titled
-     proc-detect-duplicate-names-on-registration-fix
+     proc: simplify remove_proc_entry() wrt locking
 has been added to the -mm tree.  Its filename is
-     proc-detect-duplicate-names-on-registration-fix.patch
+     proc-simplify-remove_proc_entry-wrt-locking.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,192 +26,135 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: proc-detect-duplicate-names-on-registration-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: proc: simplify remove_proc_entry() wrt locking
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-Cc: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Zhang Rui <rui.zhang@intel.com>
+We can take proc_subdir_lock for duration of list searching and removing from
+lists only.  It can't hurt -- we can gather any amount of looked up PDEs right
+after proc_subdir_lock droppage in proc_lookup() anyway.  Current code should
+already deal with this correctly.
+
+Also this should make code more undestandable:
+* original looks like a loop, however, it's a loop with unconditional
+  trailing "break;" -- not loop at all.
+* more explicit statement that proc_subdir_lock protects only ->subdir lists.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/proc/generic.c |   73 +++++++++++++++++++++-----------------------
+ 1 file changed, 35 insertions(+), 38 deletions(-)
 
-diff -puN fs/proc/generic.c~proc-detect-duplicate-names-on-registration-fix fs/proc/generic.c
---- a/fs/proc/generic.c~proc-detect-duplicate-names-on-registration-fix
+diff -puN fs/proc/generic.c~proc-simplify-remove_proc_entry-wrt-locking fs/proc/generic.c
+--- a/fs/proc/generic.c~proc-simplify-remove_proc_entry-wrt-locking
 +++ a/fs/proc/generic.c
-@@ -540,8 +540,8 @@ static int proc_register(struct proc_dir
+@@ -686,12 +686,12 @@ void free_proc_entry(struct proc_dir_ent
+ void remove_proc_entry(const char *name, struct proc_dir_entry *parent)
+ {
+ 	struct proc_dir_entry **p;
+-	struct proc_dir_entry *de;
++	struct proc_dir_entry *de = NULL;
+ 	const char *fn = name;
+ 	int len;
  
- 	for (tmp = dir->subdir; tmp; tmp = tmp->next)
- 		if (strcmp(tmp->name, dp->name) == 0) {
--			printk(KERN_WARNING "PDE '%s' already registered\n",
--				dp->name);
-+			printk(KERN_WARNING "proc_dir_entry '%s' already "
-+					"registered\n", dp->name);
- 			dump_stack();
- 			break;
- 		}
+ 	if (!parent && xlate_proc_name(name, &parent, &fn) != 0)
+-		goto out;
++		return;
+ 	len = strlen(fn);
+ 
+ 	spin_lock(&proc_subdir_lock);
+@@ -701,45 +701,42 @@ void remove_proc_entry(const char *name,
+ 		de = *p;
+ 		*p = de->next;
+ 		de->next = NULL;
++	}
++	spin_unlock(&proc_subdir_lock);
++	if (!de)
++		return;
++
++	spin_lock(&de->pde_unload_lock);
++	/*
++	 * Stop accepting new callers into module. If you're
++	 * dynamically allocating ->proc_fops, save a pointer somewhere.
++	 */
++	de->proc_fops = NULL;
++	/* Wait until all existing callers into module are done. */
++	if (de->pde_users > 0) {
++		DECLARE_COMPLETION_ONSTACK(c);
++
++		if (!de->pde_unload_completion)
++			de->pde_unload_completion = &c;
+ 
+-		spin_lock(&de->pde_unload_lock);
+-		/*
+-		 * Stop accepting new callers into module. If you're
+-		 * dynamically allocating ->proc_fops, save a pointer somewhere.
+-		 */
+-		de->proc_fops = NULL;
+-		/* Wait until all existing callers into module are done. */
+-		if (de->pde_users > 0) {
+-			DECLARE_COMPLETION_ONSTACK(c);
+-
+-			if (!de->pde_unload_completion)
+-				de->pde_unload_completion = &c;
+-
+-			spin_unlock(&de->pde_unload_lock);
+-			spin_unlock(&proc_subdir_lock);
+-
+-			wait_for_completion(de->pde_unload_completion);
+-
+-			spin_lock(&proc_subdir_lock);
+-			goto continue_removing;
+-		}
+ 		spin_unlock(&de->pde_unload_lock);
+ 
++		wait_for_completion(de->pde_unload_completion);
++
++		goto continue_removing;
++	}
++	spin_unlock(&de->pde_unload_lock);
++
+ continue_removing:
+-		if (S_ISDIR(de->mode))
+-			parent->nlink--;
+-		de->nlink = 0;
+-		WARN_ON(de->subdir);
+-		if (!atomic_read(&de->count))
+-			free_proc_entry(de);
+-		else {
+-			de->deleted = 1;
+-			printk("remove_proc_entry: %s/%s busy, count=%d\n",
+-				parent->name, de->name, atomic_read(&de->count));
+-		}
+-		break;
++	if (S_ISDIR(de->mode))
++		parent->nlink--;
++	de->nlink = 0;
++	WARN_ON(de->subdir);
++	if (!atomic_read(&de->count))
++		free_proc_entry(de);
++	else {
++		de->deleted = 1;
++		printk("remove_proc_entry: %s/%s busy, count=%d\n",
++			parent->name, de->name, atomic_read(&de->count));
+ 	}
+-	spin_unlock(&proc_subdir_lock);
+-out:
+-	return;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
-origin.patch
-file-capabilities-allow-sigcont-within-session-v2.patch
-pnp-increase-the-maximum-number-of-resources-fix.patch
-revert-keyspan-init-termios-properly.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
-git-drm-oops-fix.patch
-git-dvb.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-ide-arm-hack.patch
-git-mips-fixup.patch
-git-mmc.patch
-git-mtd.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing-fix.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-drivers-pci-quirksc-coding-style-cleanup.patch
-git-s390.patch
-fix-build-breakage-if-sysfs-fix.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-bidi-support-scsi_data_buffer-broke-qla1280.patch
-bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-fixup.patch
-git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes.patch
-git-x86-inlining-borkage.patch
-git-cryptodev.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-ia64-export-copy_page-to-modules-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-sync_sb_inodes-propagate-errors.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-aout-mark-arches-that-support-aout-format-fix.patch
-aout-mark-arches-that-support-aout-format-fix-2.patch
-aout-mark-arches-that-support-aout-format-fix-3.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+proc-fix-null-i_fop-oops.patch
+proc-remove-module_license.patch
+proc-less-lock-operations-during-lookup.patch
+proc-simplify-function-prototypes.patch
+proc-remove-useless-check-on-symlink-removal.patch
+proc-remove-useless-checks-in-proc_register.patch
+proc-detect-duplicate-names-on-registration.patch
 proc-detect-duplicate-names-on-registration-fix.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-w1-build-fix.patch
+proc-simplify-remove_proc_entry-wrt-locking.patch
+proc-fix-pde-refcounting.patch
+single_open-seq_release-leak-diagnostics.patch
