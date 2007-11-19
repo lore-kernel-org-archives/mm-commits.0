@@ -1,99 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - megaraid-sas-convert-aen_mutex-to-the-mutex-api.patch removed from -mm tree
-Date: Mon, 19 Nov 2007 15:15:53 -0800
-Message-ID: <200711192315.lAJNFrIU001721@imap1.linux-foundation.org>
+Subject: - hwmon-replace-power-of-two-test-in-drivers-hwmon-adt7470c.patch removed from -mm tree
+Date: Mon, 19 Nov 2007 15:15:47 -0800
+Message-ID: <200711192315.lAJNFlZw001713@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:51944 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55536 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752313AbXKSXQC (ORCPT
+	by vger.kernel.org with ESMTP id S1752352AbXKSXQH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 18:16:02 -0500
+	Mon, 19 Nov 2007 18:16:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias.kaehlcke@gmail.com, James.Bottomley@SteelEye.com, megaraidlinux@lsi.com, sumant.patro@lsi.com, mm-commits@vger.kernel.org
+To: rpjday@crashcourse.ca, khali@linux-fr.org, mhoffman@lightlink.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MegaRAID SAS: convert aen_mutex to the mutex API
+     hwmon: replace power-of-two test in drivers/hwmon/adt7470.c
 has been removed from the -mm tree.  Its filename was
-     megaraid-sas-convert-aen_mutex-to-the-mutex-api.patch
+     hwmon-replace-power-of-two-test-in-drivers-hwmon-adt7470c.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: MegaRAID SAS: convert aen_mutex to the mutex API
-From: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
+Subject: hwmon: replace power-of-two test in drivers/hwmon/adt7470.c
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-MegaRAID SAS: Convert aen_mutex to the mutex API
+Since <linux/log2.h> already supplies a power-of-two test, there's no point
+in having this source file redefine it again.
 
-Signed-off-by: Matthias Kaehlcke <matthias.kaehlcke@gmail.com>
-Cc: <megaraidlinux@lsi.com>
-Cc: Sumant Patro <sumant.patro@lsi.com>
-Cc: James Bottomley <James.Bottomley@SteelEye.com>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Acked-by: Jean Delvare <khali@linux-fr.org>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/megaraid/megaraid_sas.c |    7 ++++---
- drivers/scsi/megaraid/megaraid_sas.h |    2 +-
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/hwmon/adt7470.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/scsi/megaraid/megaraid_sas.c~megaraid-sas-convert-aen_mutex-to-the-mutex-api drivers/scsi/megaraid/megaraid_sas.c
---- a/drivers/scsi/megaraid/megaraid_sas.c~megaraid-sas-convert-aen_mutex-to-the-mutex-api
-+++ a/drivers/scsi/megaraid/megaraid_sas.c
-@@ -31,6 +31,7 @@
- #include <linux/moduleparam.h>
- #include <linux/module.h>
- #include <linux/spinlock.h>
-+#include <linux/mutex.h>
- #include <linux/interrupt.h>
- #include <linux/delay.h>
- #include <linux/uio.h>
-@@ -2358,7 +2359,7 @@ megasas_probe_one(struct pci_dev *pdev, 
+diff -puN drivers/hwmon/adt7470.c~hwmon-replace-power-of-two-test-in-drivers-hwmon-adt7470c drivers/hwmon/adt7470.c
+--- a/drivers/hwmon/adt7470.c~hwmon-replace-power-of-two-test-in-drivers-hwmon-adt7470c
++++ a/drivers/hwmon/adt7470.c
+@@ -114,8 +114,6 @@ I2C_CLIENT_INSMOD_1(adt7470);
+ /* sleep 1s while gathering temperature data */
+ #define TEMP_COLLECTION_TIME	1000
  
- 	spin_lock_init(&instance->cmd_pool_lock);
- 
--	sema_init(&instance->aen_mutex, 1);
-+	mutex_init(&instance->aen_mutex);
- 	sema_init(&instance->ioctl_sem, MEGASAS_INT_CMDS);
- 
- 	/*
-@@ -2874,10 +2875,10 @@ static int megasas_mgmt_ioctl_aen(struct
- 	if (!instance)
- 		return -ENODEV;
- 
--	down(&instance->aen_mutex);
-+	mutex_lock(&instance->aen_mutex);
- 	error = megasas_register_aen(instance, aen.seq_num,
- 				     aen.class_locale_word);
--	up(&instance->aen_mutex);
-+	mutex_unlock(&instance->aen_mutex);
- 	return error;
+-#define power_of_2(x)	(((x) & ((x) - 1)) == 0)
+-
+ /* datasheet says to divide this number by the fan reading to get fan rpm */
+ #define FAN_PERIOD_TO_RPM(x)	((90000 * 60) / (x))
+ #define FAN_RPM_TO_PERIOD	FAN_PERIOD_TO_RPM
+@@ -677,7 +675,7 @@ static int cvt_auto_temp(int input)
+ {
+ 	if (input == ADT7470_PWM_ALL_TEMPS)
+ 		return 0;
+-	if (input < 1 || !power_of_2(input))
++	if (input < 1 || !is_power_of_2(input))
+ 		return -EINVAL;
+ 	return ilog2(input) + 1;
  }
- 
-diff -puN drivers/scsi/megaraid/megaraid_sas.h~megaraid-sas-convert-aen_mutex-to-the-mutex-api drivers/scsi/megaraid/megaraid_sas.h
---- a/drivers/scsi/megaraid/megaraid_sas.h~megaraid-sas-convert-aen_mutex-to-the-mutex-api
-+++ a/drivers/scsi/megaraid/megaraid_sas.h
-@@ -1089,7 +1089,7 @@ struct megasas_instance {
- 	struct megasas_evt_detail *evt_detail;
- 	dma_addr_t evt_detail_h;
- 	struct megasas_cmd *aen_cmd;
--	struct semaphore aen_mutex;
-+	struct mutex aen_mutex;
- 	struct semaphore ioctl_sem;
- 
- 	struct Scsi_Host *host;
 _
 
-Patches currently in -mm which might be from matthias.kaehlcke@gmail.com are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
-git-dvb.patch
-qlogic-infinipath-convert-ipath_eep_sem-to-mutex.patch
-git-netdev-all.patch
-git-scsi-misc.patch
-ti-3410-5052-usb-serial-convert-td_open_close_lock-to-mutex.patch
-parallel-port-convert-port_mutex-to-the-mutex-api.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-mbcs-convert-algolock-to-mutex.patch
-mbcs-convert-dmawritelock-to-mutex.patch
-mbcs-convert-dmareadlock-to-mutex.patch
+arm-remove-reference-to-non-existent-mtd_obsolete_chips.patch
+git-hwmon.patch
+git-mips.patch
+pcmcia-net-use-roundup_pow_of_two-macro-instead-of-grotesque-loop.patch
+blackfin-typo-config_rtc_bfin_module.patch
+frv-move-dma-macros-to-scatterlisth-for-consistency.patch
+m68knommu-remove-vestiges-of-non-existent-disktel.patch
+uml-delete-some-unused-headers.patch
+rd-use-is_power_of_2-in-drivers-block-rdc.patch
+log2h-define-order_base_2-macro-for-convenience.patch
+rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
