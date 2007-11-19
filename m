@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dell-cerc-support-for-megaraid_mbox.patch added to -mm tree
-Date: Mon, 19 Nov 2007 15:36:17 -0800
-Message-ID: <200711192336.lAJNaJNn002586@imap1.linux-foundation.org>
+Subject: + embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-nfs4-fix.patch added to -mm tree
+Date: Mon, 19 Nov 2007 15:44:30 -0800
+Message-ID: <200711192344.lAJNiUn7002884@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50056 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:45092 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751609AbXKSXga (ORCPT
+	by vger.kernel.org with ESMTP id S1751687AbXKSXpP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 18:36:30 -0500
+	Mon, 19 Nov 2007 18:45:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hare@suse.de, James.Bottomley@SteelEye.com, Sumant.Patro@lsi.com
+Cc: jblunck@suse.de, bfields@fieldses.org, just.for.lkml@googlemail.com, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     Dell CERC support for megaraid_mbox
+     embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-nfs4-fix
 has been added to the -mm tree.  Its filename is
-     dell-cerc-support-for-megaraid_mbox.patch
+     embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-nfs4-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,72 +26,106 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: Dell CERC support for megaraid_mbox
+Subject: embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-nfs4-fix
+From: Jan Blunck <jblunck@suse.de>
 
+I accidently break NFSv4. Here is the original report by Torsten Kaiser:
 
-Newer Dell CERC firmware (>= 6.62) implement a random deletion handling
-compatible with the legacy megaraid driver.  The legacy handling shifted
-the target ID by 0x80 only for I/O commands (READ/WRITE/etc), whereas
-megaraid_mbox shifts the target ID always if random deletion is supported. 
-The resulted in megaraid_mbox sending an INQUIRY to the wrong channel, and
-not finding any devices, obviously.
+ > > Breaks nfsv4 in a rather funny way:
+ > >
+ > > treogen ~ # cd /usr/portage/x
+ > > treogen x # touch bla
+ > > touch: cannot touch `bla': File exists
+ > > treogen x # mkdir bla
+ > > treogen x # touch bla/bla
+ > > touch: cannot touch `bla/bla': File exists
+ > > treogen x # ls -lad *
+ > > drwxr-xr-x 2 root root 6 Nov 14 20:03 bla
+ > > treogen x # ls -la *
+ > > total 0
+ > > drwxr-xr-x 2 root root  6 Nov 14 20:03 .
+ > > drwxr-xr-x 3 root root 16 Nov 14 20:03 ..
+ > > treogen x #
 
-So we disable the random deletion support if the offending firmware is
-found.
-
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=6695
-
-Signed-off-by: Hannes Reinecke <hare@suse.de>
-Cc: "Patro, Sumant" <Sumant.Patro@lsi.com>
-Cc: James Bottomley <James.Bottomley@SteelEye.com>
+Signed-off-by: Jan Blunck <jblunck@suse.de>
+Cc: "Torsten Kaiser" <just.for.lkml@googlemail.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: "Trond Myklebust" <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/megaraid/megaraid_mbox.c |   17 +++++++++++++++++
- drivers/scsi/megaraid/megaraid_mbox.h |    1 +
- 2 files changed, 18 insertions(+)
+ fs/nfs/nfs4proc.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN drivers/scsi/megaraid/megaraid_mbox.c~dell-cerc-support-for-megaraid_mbox drivers/scsi/megaraid/megaraid_mbox.c
---- a/drivers/scsi/megaraid/megaraid_mbox.c~dell-cerc-support-for-megaraid_mbox
-+++ a/drivers/scsi/megaraid/megaraid_mbox.c
-@@ -3169,6 +3169,23 @@ megaraid_mbox_support_random_del(adapter
- 	uint8_t		raw_mbox[sizeof(mbox_t)];
- 	int		rval;
+diff -puN fs/nfs/nfs4proc.c~embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-nfs4-fix fs/nfs/nfs4proc.c
+--- a/fs/nfs/nfs4proc.c~embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-nfs4-fix
++++ a/fs/nfs/nfs4proc.c
+@@ -1375,8 +1375,11 @@ out_close:
+ struct dentry *
+ nfs4_atomic_open(struct inode *dir, struct dentry *dentry, struct nameidata *nd)
+ {
++	struct path path = {
++		.mnt = nd->path.mnt,
++		.dentry = dentry,
++	};
+ 	struct dentry *parent;
+-	struct path path = nd->path;
+ 	struct iattr attr;
+ 	struct rpc_cred *cred;
+ 	struct nfs4_state *state;
+@@ -1420,7 +1423,10 @@ nfs4_atomic_open(struct inode *dir, stru
+ int
+ nfs4_open_revalidate(struct inode *dir, struct dentry *dentry, int openflags, struct nameidata *nd)
+ {
+-	struct path path = nd->path;
++	struct path path = {
++		.mnt = nd->path.mnt,
++		.dentry = dentry,
++	};
+ 	struct rpc_cred *cred;
+ 	struct nfs4_state *state;
  
-+	/*
-+	 * Newer firmware on Dell CERC expect a different
-+	 * random deletion handling, so disable it.
-+	 */
-+	if (adapter->pdev->vendor == PCI_VENDOR_ID_AMI &&
-+	    adapter->pdev->device == PCI_DEVICE_ID_AMI_MEGARAID3 &&
-+	    adapter->pdev->subsystem_vendor == PCI_VENDOR_ID_DELL &&
-+	    adapter->pdev->subsystem_device == PCI_SUBSYS_ID_CERC_ATA100_4CH &&
-+	    (adapter->fw_version[0] > '6' ||
-+	     (adapter->fw_version[0] == '6' &&
-+	      adapter->fw_version[2] > '6') ||
-+	     (adapter->fw_version[0] == '6'
-+	      && adapter->fw_version[2] == '6'
-+	      && adapter->fw_version[3] > '1'))) {
-+		con_log(CL_DLEVEL1, ("megaraid: disable random deletion\n"));
-+		return 0;
-+	}
- 
- 	mbox = (mbox_t *)raw_mbox;
- 
-diff -puN drivers/scsi/megaraid/megaraid_mbox.h~dell-cerc-support-for-megaraid_mbox drivers/scsi/megaraid/megaraid_mbox.h
---- a/drivers/scsi/megaraid/megaraid_mbox.h~dell-cerc-support-for-megaraid_mbox
-+++ a/drivers/scsi/megaraid/megaraid_mbox.h
-@@ -88,6 +88,7 @@
- #define PCI_SUBSYS_ID_PERC3_QC				0x0471
- #define PCI_SUBSYS_ID_PERC3_DC				0x0493
- #define PCI_SUBSYS_ID_PERC3_SC				0x0475
-+#define PCI_SUBSYS_ID_CERC_ATA100_4CH			0x0511
- 
- 
- #define MBOX_MAX_SCSI_CMDS	128	// number of cmds reserved for kernel
+@@ -1869,7 +1875,10 @@ static int
+ nfs4_proc_create(struct inode *dir, struct dentry *dentry, struct iattr *sattr,
+                  int flags, struct nameidata *nd)
+ {
+-	struct path path = nd->path;
++	struct path path = {
++		.mnt = nd->path.mnt,
++		.dentry = dentry,
++	};
+ 	struct nfs4_state *state;
+ 	struct rpc_cred *cred;
+ 	int status = 0;
 _
 
-Patches currently in -mm which might be from hare@suse.de are
+Patches currently in -mm which might be from jblunck@suse.de are
 
-git-scsi-misc.patch
-dell-cerc-support-for-megaraid_mbox.patch
+dont-touch-fs_struct-in-drivers.patch
+dont-touch-fs_struct-in-usermodehelper.patch
+remove-path_release_on_umount.patch
+move-struct-path-into-its-own-header.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-nfs4-fix.patch
+introduce-path_put.patch
+use-path_put-in-a-few-places-instead-of-mntdput.patch
+introduce-path_get.patch
+use-struct-path-in-fs_struct.patch
+make-set_fs_rootpwd-take-a-struct-path.patch
+introduce-path_get-unionfs.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-unionfs.patch
+introduce-path_put-unionfs.patch
+one-less-parameter-to-__d_path.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-kerneldoc-cleanup.patch
+d_path-use-struct-path-in-struct-avc_audit_data.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-proc_get_link-use-a-struct-path-argument.patch
+d_path-make-get_dcookie-use-a-struct-path-argument.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_expkey.patch
+d_path-make-seq_path-use-a-struct-path-argument.patch
+d_path-make-d_path-use-a-struct-path.patch
