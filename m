@@ -1,81 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - git-nfsd-fixup.patch removed from -mm tree
-Date: Mon, 19 Nov 2007 14:19:04 -0800
-Message-ID: <200711192219.lAJMJ5G8032010@imap1.linux-foundation.org>
+Subject: + git-mips-fixup.patch added to -mm tree
+Date: Mon, 19 Nov 2007 15:09:58 -0800
+Message-ID: <200711192309.lAJN9w4a001498@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56059 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:50770 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751563AbXKSWTH (ORCPT
+	by vger.kernel.org with ESMTP id S1751734AbXKSXK2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 17:19:07 -0500
+	Mon, 19 Nov 2007 18:10:28 -0500
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [207.189.120.55])
-	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lAJMJ5hm016576
+	by smtp2.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id lAJN9wKK019810
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 19 Nov 2007 14:19:06 -0800
+	for <mm-commits@vger.kernel.org>; Mon, 19 Nov 2007 15:09:59 -0800
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-nfsd-fixup
-has been removed from the -mm tree.  Its filename was
-     git-nfsd-fixup.patch
+     git-mips-fixup
+has been added to the -mm tree.  Its filename is
+     git-mips-fixup.patch
 
-This patch was dropped because it is obsolete
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 ------------------------------------------------------
-Subject: git-nfsd-fixup
+Subject: git-mips-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sunrpc/debug.h |    1 +
- net/sunrpc/svcsock.c         |    8 +++++---
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ arch/mips/kernel/proc.c     |    5 -----
+ include/asm-mips/cpu-info.h |    5 -----
+ 2 files changed, 10 deletions(-)
 
-diff -puN include/linux/sunrpc/debug.h~git-nfsd-fixup include/linux/sunrpc/debug.h
---- a/include/linux/sunrpc/debug.h~git-nfsd-fixup
-+++ a/include/linux/sunrpc/debug.h
-@@ -93,6 +93,7 @@ enum {
- 	CTL_RDMA_MAXINLINEWRITE,
- 	CTL_RDMA_WRITEPADDING,
- 	CTL_RDMA_MEMREG,
-+	CTL_TRANSPORTS,
- };
+diff -puN arch/mips/kernel/proc.c~git-mips-fixup arch/mips/kernel/proc.c
+--- a/arch/mips/kernel/proc.c~git-mips-fixup
++++ a/arch/mips/kernel/proc.c
+@@ -60,12 +60,7 @@ static int show_cpuinfo(struct seq_file 
+ 		      cpu_has_dsp ? " dsp" : "",
+ 		      cpu_has_mipsmt ? " mt" : ""
+ 		);
+-<<<<<<< HEAD:arch/mips/kernel/proc.c
+-	seq_printf(m, "shadow register sets\t: %d\n",
+-		       cpu_data[n].srsets);
+-=======
+ 	seq_printf(m, "core\t\t\t: %d\n", cpu_data[n].core);
+->>>>>>> FETCH_HEAD:arch/mips/kernel/proc.c
  
- #endif /* _LINUX_SUNRPC_DEBUG_H_ */
-diff -puN net/sunrpc/svcsock.c~git-nfsd-fixup net/sunrpc/svcsock.c
---- a/net/sunrpc/svcsock.c~git-nfsd-fixup
-+++ a/net/sunrpc/svcsock.c
-@@ -104,16 +104,18 @@ static struct lock_class_key svc_slock_k
- static inline void svc_reclassify_socket(struct socket *sock)
- {
- 	struct sock *sk = sock->sk;
--	BUG_ON(sock_owned_by_user(sk));
-+
- 	switch (sk->sk_family) {
- 	case AF_INET:
- 		sock_lock_init_class_and_name(sk, "slock-AF_INET-NFSD",
--		    &svc_slock_key[0], "sk_lock-AF_INET-NFSD", &svc_key[0]);
-+		    &svc_slock_key[0], "sk_xprt.xpt_lock-AF_INET-NFSD",
-+		    &svc_key[0]);
- 		break;
- 
- 	case AF_INET6:
- 		sock_lock_init_class_and_name(sk, "slock-AF_INET6-NFSD",
--		    &svc_slock_key[1], "sk_lock-AF_INET6-NFSD", &svc_key[1]);
-+		    &svc_slock_key[1], "sk_xprt.xpt_lock-AF_INET6-NFSD",
-+		    &svc_key[1]);
- 		break;
- 
- 	default:
+ 	sprintf(fmt, "VCE%%c exceptions\t\t: %s\n",
+ 	        cpu_has_vce ? "%u" : "not available");
+diff -puN include/asm-mips/cpu-info.h~git-mips-fixup include/asm-mips/cpu-info.h
+--- a/include/asm-mips/cpu-info.h~git-mips-fixup
++++ a/include/asm-mips/cpu-info.h
+@@ -54,14 +54,9 @@ struct cpuinfo_mips {
+ 	struct cache_desc	dcache;	/* Primary D or combined I/D cache */
+ 	struct cache_desc	scache;	/* Secondary cache */
+ 	struct cache_desc	tcache;	/* Tertiary/split secondary cache */
+-<<<<<<< HEAD:include/asm-mips/cpu-info.h
+ 	int			srsets;	/* Shadow register sets */
+-#if defined(CONFIG_MIPS_MT_SMTC)
+-=======
+-
+ 	int			core;	/* physical core number */
+ #if defined(CONFIG_MIPS_MT_SMP) || defined(CONFIG_MIPS_MT_SMTC)
+->>>>>>> FETCH_HEAD:include/asm-mips/cpu-info.h
+ 	/*
+ 	 * In the MIPS MT "SMTC" model, each TC is considered
+ 	 * to be a "CPU" for the purposes of scheduling, but
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 file-capabilities-allow-sigcont-within-session-v2.patch
 pnp-increase-the-maximum-number-of-resources-fix.patch
 revert-keyspan-init-termios-properly.patch
@@ -96,12 +99,12 @@ git-drm-oops-fix.patch
 git-dvb.patch
 ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
 elantech-touchpad-driver-fix.patch
-cscope-build-warning.patch
 git-kvm.patch
 git-libata-all.patch
 drivers-ata-libata-ehc-fix-printk-warning.patch
 pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
 ide-arm-hack.patch
+git-mips-fixup.patch
 git-mmc.patch
 git-mtd.patch
 git-netdev-all.patch
@@ -111,7 +114,6 @@ bluetooth-uninlining.patch
 nfs-stop-sillyname-renames-and-unmounts-from-racing.patch
 nfs-stop-sillyname-renames-and-unmounts-from-racing-fix.patch
 nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix.patch
-git-nfsd-fixup.patch
 quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
 drivers-pci-quirksc-coding-style-cleanup.patch
 git-s390.patch
@@ -129,15 +131,8 @@ git-ipwireless_cs.patch
 git-x86.patch
 git-x86-fixup.patch
 git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes.patch
-git-x86-broke-lguest.patch
-git-x86-broke-xen-too.patch
 git-x86-inlining-borkage.patch
-oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
-i386-and-x86_64-randomize-brk-fix.patch
-x86-arch_register_cpu-section-fix.patch
-x86_64-configure-stack-size-fix.patch
 git-cryptodev.patch
-x86-early_quirks-cleanup.patch
 ia64-increase-datapatch-offset.patch
 ia64-dont-assume-that-unwcheckpy-is-executable.patch
 ia64-export-copy_page-to-modules.patch
