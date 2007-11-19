@@ -1,151 +1,219 @@
 From: akpm@linux-foundation.org
-Subject: - usb-storage-mystery-fix.patch removed from -mm tree
-Date: Mon, 19 Nov 2007 15:15:59 -0800
-Message-ID: <200711192316.lAJNFxZx001730@imap1.linux-foundation.org>
+Subject: - git-x86-broke-lguest.patch removed from -mm tree
+Date: Mon, 19 Nov 2007 15:16:04 -0800
+Message-ID: <200711192316.lAJNG4Ap001742@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:44175 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:49521 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752631AbXKSXQ2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752519AbXKSXQ0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 18:16:28 -0500
+	Mon, 19 Nov 2007 18:16:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bharrosh@panasas.com, greg@kroah.com, mdharm-kernel@one-eyed-alien.net, nix.or.die@googlemail.com, oliver@neukum.org, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb-storage: mystery fix
+     git-x86 broke lguest
 has been removed from the -mm tree.  Its filename was
-     usb-storage-mystery-fix.patch
+     git-x86-broke-lguest.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: usb-storage: mystery fix
-From: Boaz Harrosh <bharrosh@panasas.com>
+Subject: git-x86 broke lguest
+From: Andrew Morton <akpm@linux-foundation.org>
 
-needs a sane changelog.
+arch/x86/lguest/boot.c: In function 'lguest_init':
+arch/x86/lguest/boot.c:991: warning: assignment from incompatible pointer type
+arch/x86/lguest/boot.c:993: warning: assignment from incompatible pointer type
 
-On Thu, Nov 15 2007 at 19:15 +0200, Matthew Dharm <mdharm-kernel@one-eyed-alien.net> wrote:
-> On Wed, Nov 14, 2007 at 10:23:09AM +0100, Gabriel C wrote:
->> Matthew Dharm wrote:
->>> On Wed, Nov 14, 2007 at 06:33:39AM +0100, Gabriel C wrote:
->>>> Matthew Dharm wrote:
->>>>> On Tue, Nov 13, 2007 at 07:49:24PM -0800, Greg KH wrote:
->>>>>> Matt, are these the errors you were worried about with the patch we were
->>>>>> just talking about tha tis in my tree?
->>>>> I can't tell from these logs.
->>>> There is the dmesg with CONFIG_USB_STORAGE_DEBUG :
->>>>
->>>> http://194.231.229.228/dmesg-2.6.24-rc2-mm1
->>> Good news: This isn't the bug Greg was worried about.
->>>
->>> Bad news: Something is seriously strange here.  Note the following from the
->>> logs:
->>>
->>> Nov 14 06:07:43 lara [   41.890614] usb-storage: Bulk Status S 0x53425355 T 0xd R 0 Stat 0x0
->>> Nov 14 06:07:43 lara [   41.890616] usb-storage: -- unexpectedly short transfer
->>>
->>> Note the 'R' value of zero -- this is the residue value.  It indicates a
->>> complete transfer, and that matches the log lines immediately previous
->>> which indicate a 4K transfer which completed properly.
->>>
->>> If residue is zero, then srb->resid should be zero.  Take a look in
->>> linux/usb/storage/transport.c in usb_stor_Bulk_transport()
->>>
->>> If srb->resid is zero, then you should NEVER get the "unexpectedly short
->>> transfer" message.  Look at usb_stor_invoke_transport() in the same file.
->> That code got replaced recently but I have no idea about it.
->>
->> ( http://git.kernel.org/?p=linux/kernel/git/jejb/scsi-misc-2.6.git;a=shortlog  see the patches from Boaz Harrosh)
->>
->> srb->resid got replaced by scsi_get_resid() it I see that right.
->>
->> I'm CC'ing the author , he will know I think.
->
-> The replacement looks, to my eye, to be logically correct.  The patch was
-> pretty clean.
->
-> Then again, I haven't looked at what is "under the hood" of the accessor
-> functions.  Perhaps there is a side-effect somewhere in there?
->
-> Perhaps a quick debugging test -- print the value of scsi_get_resid(srb)
-> just after it's initialized to zero at the top of
-> usb_stor_invoke_transport(), and then just after the call to
-> us->transport().
->
+Better testing please.
 
-I have found the bug. My bad sorry about that. Patch below
-It is because I switched from use of usb_stor_bulk_transfer_sg()
-to usb_stor_bulk_transfer_sglist, but forgot the residual handling.
-
-(Please send scsi bugs to scsi list. My lkml mental filters are
-much higher, Sorry for not seeing this yesterday)
-
-----
-Date: Thu, 15 Nov 2007 20:07:56 +0200
-Subject: [PATCH] Fix bug in last usb accessor patch
-
->>> Bad news: Something is seriously strange here.  Note the following from the
->>> logs:
->>>
->>> Nov 14 06:07:43 lara [   41.890614] usb-storage: Bulk Status S 0x53425355 T 0xd R 0 Stat 0x0
->>> Nov 14 06:07:43 lara [   41.890616] usb-storage: -- unexpectedly short transfer
->>>
->>> Note the 'R' value of zero -- this is the residue value.  It indicates a
->>> complete transfer, and that matches the log lines immediately previous
->>> which indicate a 4K transfer which completed properly.
->>>
->>> If residue is zero, then srb->resid should be zero.  Take a look in
->>> linux/usb/storage/transport.c in usb_stor_Bulk_transport()
->>>
->>> If srb->resid is zero, then you should NEVER get the "unexpectedly short
->>> transfer" message.  Look at usb_stor_invoke_transport() in the same file.
->> That code got replaced recently but I have no idea about it.
-
-  wrong resid handling fixed
-
-Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
-Tested-by: Gabriel C <nix.or.die@googlemail.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Oliver Neukum <oliver@neukum.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/storage/transport.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ arch/x86/lguest/boot.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/storage/transport.c~usb-storage-mystery-fix drivers/usb/storage/transport.c
---- a/drivers/usb/storage/transport.c~usb-storage-mystery-fix
-+++ a/drivers/usb/storage/transport.c
-@@ -465,11 +465,12 @@ static int usb_stor_bulk_transfer_sglist
- int usb_stor_bulk_srb(struct us_data* us, unsigned int pipe,
- 		      struct scsi_cmnd* srb)
+diff -puN arch/x86/lguest/boot.c~git-x86-broke-lguest arch/x86/lguest/boot.c
+--- a/arch/x86/lguest/boot.c~git-x86-broke-lguest
++++ a/arch/x86/lguest/boot.c
+@@ -788,7 +788,7 @@ static void lguest_wbinvd(void)
+  * code qualifies for Advanced.  It will also never interrupt anything.  It
+  * does, however, allow us to get through the Linux boot code. */
+ #ifdef CONFIG_X86_LOCAL_APIC
+-static void lguest_apic_write(unsigned long reg, unsigned long v)
++static void lguest_apic_write(unsigned long reg, u32 v)
  {
--	int resid = scsi_get_resid(srb);
-+	unsigned int partial;
- 	int result = usb_stor_bulk_transfer_sglist(us, pipe, scsi_sglist(srb),
- 				      scsi_sg_count(srb), scsi_bufflen(srb),
--				      &resid);
--	scsi_set_resid(srb, resid);
-+				      &partial);
-+
-+	scsi_set_resid(srb, scsi_bufflen(srb) - partial);
- 	return result;
  }
  
+diff -puN /dev/null /dev/null
 _
 
-Patches currently in -mm which might be from bharrosh@panasas.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-git-scsi-misc.patch
-scsi-gdth-kill-unneeded-irq-argument.patch
+origin.patch
+file-capabilities-allow-sigcont-within-session-v2.patch
+pnp-increase-the-maximum-number-of-resources-fix.patch
+revert-keyspan-init-termios-properly.patch
+get_task_comm-return-the-result.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
+clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
+acpi-add-reboot-mechanism.patch
+small-acpica-extension-to-be-able-to-store-the-name-of.patch
+git-alsa.patch
+working-3d-dri-intel-agpko-resume-for-i815-chip.patch
+git-arm.patch
+agk-dm-dm-ioctl-move-compat-code-fix.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
+unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
+git-drm-oops-fix.patch
+git-dvb.patch
+ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
+elantech-touchpad-driver-fix.patch
+git-kvm.patch
+git-libata-all.patch
+drivers-ata-libata-ehc-fix-printk-warning.patch
+pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
+ide-arm-hack.patch
+git-mips-fixup.patch
+git-mmc.patch
+git-mtd.patch
+git-netdev-all.patch
+ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+bluetooth-uninlining.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing-fix.patch
+nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix.patch
+quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
+drivers-pci-quirksc-coding-style-cleanup.patch
+git-s390.patch
+fix-build-breakage-if-sysfs-fix.patch
+ips-trim-trailing-whitespace-checkpatch-fixes.patch
 scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-bidi-support-sr-sd-remove-dead-code.patch
-bidi-support-tgt-use-scsi_init_io-instead-of-scsi_alloc_sgtable.patch
-bidi-support-scsi_data_buffer.patch
+scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
 bidi-support-scsi_data_buffer-broke-qla1280.patch
 bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
-scsi-bidi-support.patch
+git-unionfs.patch
+vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
+git-wireless.patch
+jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
+git-ipwireless_cs.patch
+git-x86.patch
+git-x86-fixup.patch
+git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes.patch
+git-x86-inlining-borkage.patch
+git-cryptodev.patch
+ia64-increase-datapatch-offset.patch
+ia64-dont-assume-that-unwcheckpy-is-executable.patch
+ia64-export-copy_page-to-modules.patch
+ia64-export-copy_page-to-modules-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
+pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
+i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
+slub-fix-coding-style-violations-checkpatch-fixes.patch
+slub-provide-unique-end-marker-for-each-slab-fix.patch
+slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
+bufferhead-revert-constructor-removal-checkpatch-fixes.patch
+maps4-rework-task_size-macros-mips-fix.patch
+maps4-make-page-monitoring-proc-file-optional-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+revert-capabilities-clean-up-file-capability-reading.patch
+revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
+alpha-atomic_add_return-should-return-int.patch
+pm-qos-infrastructure-and-interface.patch
+pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
+uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
+uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
+uml-further-bugsc-tidying-checkpatch-fixes.patch
+deprecate-smbfs-in-favour-of-cifs.patch
+procfs-detect-duplicate-names.patch
+kernel-printkc-concerns-about-the-console-handover.patch
+fix-versus-precedence-in-various-places-checkpatch-fixes.patch
+pie-executable-randomization.patch
+pie-executable-randomization-uninlining.patch
+pie-executable-randomization-checkpatch-fixes.patch
+riscom8-fix-smp-brokenness-fix.patch
+use-macros-instead-of-task_-flags-checkpatch-fixes.patch
+sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
+remove-warnings-for-longstanding-conditions-fix.patch
+parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
+allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
+remove-__attribute_used__-checkpatch-fixes.patch
+read_current_time-cleanups.patch
+read_current_time-cleanups-build-fix-fix.patch
+sync_sb_inodes-propagate-errors.patch
+rtc-ds1302-rtc-support-checkpatch-fixes.patch
+mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
+64-bit-i_version-afs-fixes.patch
+kill-filp_open-checkpatch-fixes.patch
+rename-open_namei-to-open_pathname-fix.patch
+r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
+r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
+r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
+r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
+slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
+revoke-wire-up-i386-system-calls.patch
+revoke-vs-git-block.patch
+cgroup-simplify-space-stripping-fix.patch
+memory-controller-memory-accounting-v7.patch
+memory-controller-add-per-container-lru-and-reclaim-v7.patch
+memory-controller-oom-handling-v7.patch
+memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
+memcontrol-move-oom-task-exclusion-to-tasklist.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
+memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
+memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
+memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
+drivers-edac-add-marvell-mv64x60-driver-fix.patch
+introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
+iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
+iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
+iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
+embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
+one-less-parameter-to-__d_path-checkpatch-fixes.patch
+d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
+d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
+use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
+aout-mark-arches-that-support-aout-format-fix.patch
+aout-mark-arches-that-support-aout-format-fix-2.patch
+aout-mark-arches-that-support-aout-format-fix-3.patch
+mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
+cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
+cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
+make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+kmap_atomic-debugging.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+w1-build-fix.patch
