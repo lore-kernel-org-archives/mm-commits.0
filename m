@@ -1,97 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - libsas-fix-various-sparse-complaints.patch removed from -mm tree
-Date: Mon, 19 Nov 2007 15:15:57 -0800
-Message-ID: <200711192315.lAJNFvVS001727@imap1.linux-foundation.org>
+Subject: - x86_64-add-acpi-reboot-option.patch removed from -mm tree
+Date: Mon, 19 Nov 2007 15:16:54 -0800
+Message-ID: <200711192316.lAJNGsWD001809@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55860 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55319 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751150AbXKSXVu (ORCPT
+	by vger.kernel.org with ESMTP id S1751056AbXKSX1P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 18:21:50 -0500
+	Mon, 19 Nov 2007 18:27:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: djwong@us.ibm.com, James.Bottomley@steeleye.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: adurbin@google.com, ak@suse.de, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libsas: fix various sparse complaints
+     x86_64: add ACPI reboot option
 has been removed from the -mm tree.  Its filename was
-     libsas-fix-various-sparse-complaints.patch
+     x86_64-add-acpi-reboot-option.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: libsas: fix various sparse complaints
-From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: x86_64: add ACPI reboot option
+From: Aaron Durbin <adurbin@google.com>
 
-Annotate sas_queuecommand with locking details, and clean up a few
-more sparse warnings about static/non-static declarations.
+Add the ability to reboot an x86_64 based machine using the RESET_REG in the
+FADT ACPI table.
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
-Acked-by: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Aaron Durbin <adurbin@google.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/libsas/sas_scsi_host.c |    6 +++++-
- include/scsi/libsas.h               |    4 +---
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ Documentation/x86_64/boot-options.txt |    5 ++++-
+ arch/x86_64/kernel/reboot.c           |   11 ++++++++++-
+ 2 files changed, 14 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/libsas/sas_scsi_host.c~libsas-fix-various-sparse-complaints drivers/scsi/libsas/sas_scsi_host.c
---- a/drivers/scsi/libsas/sas_scsi_host.c~libsas-fix-various-sparse-complaints
-+++ a/drivers/scsi/libsas/sas_scsi_host.c
-@@ -200,6 +200,10 @@ int sas_queue_up(struct sas_task *task)
-  */
- int sas_queuecommand(struct scsi_cmnd *cmd,
- 		     void (*scsi_done)(struct scsi_cmnd *))
-+	__releases(host->host_lock)
-+	__acquires(dev->sata_dev.ap->lock)
-+	__releases(dev->sata_dev.ap->lock)
-+	__acquires(host->host_lock)
- {
- 	int res = 0;
- 	struct domain_device *dev = cmd_to_domain_dev(cmd);
-@@ -410,7 +414,7 @@ static int sas_recover_I_T(struct domain
+diff -puN Documentation/x86_64/boot-options.txt~x86_64-add-acpi-reboot-option Documentation/x86_64/boot-options.txt
+--- a/Documentation/x86_64/boot-options.txt~x86_64-add-acpi-reboot-option
++++ a/Documentation/x86_64/boot-options.txt
+@@ -110,12 +110,15 @@ Idle loop
+ 
+ Rebooting
+ 
+-   reboot=b[ios] | t[riple] | k[bd] [, [w]arm | [c]old]
++   reboot=b[ios] | t[riple] | k[bd] | a[cpi] [, [w]arm | [c]old]
+    bios	  Use the CPU reboot vector for warm reset
+    warm   Don't set the cold reboot flag
+    cold   Set the cold reboot flag
+    triple Force a triple fault (init)
+    kbd    Use the keyboard controller. cold reset (default)
++   acpi   Use the ACPI RESET_REG in the FADT. If ACPI is not configured or the
++          ACPI reset does not work, the reboot path attempts the reset using
++          the keyboard controller.
+ 
+    Using warm reset will be much faster especially on big memory
+    systems because the BIOS will not go through the memory check.
+diff -puN arch/x86_64/kernel/reboot.c~x86_64-add-acpi-reboot-option arch/x86_64/kernel/reboot.c
+--- a/arch/x86/kernel/reboot_64.c~x86_64-add-acpi-reboot-option
++++ a/arch/x86/kernel/reboot_64.c
+@@ -9,6 +9,7 @@
+ #include <linux/pm.h>
+ #include <linux/kdebug.h>
+ #include <linux/sched.h>
++#include <acpi/reboot.h>
+ #include <asm/io.h>
+ #include <asm/delay.h>
+ #include <asm/desc.h>
+@@ -28,7 +29,8 @@ EXPORT_SYMBOL(pm_power_off);
+ static long no_idt[3];
+ static enum { 
+ 	BOOT_TRIPLE = 't',
+-	BOOT_KBD = 'k'
++	BOOT_KBD = 'k',
++	BOOT_ACPI = 'a'
+ } reboot_type = BOOT_KBD;
+ static int reboot_mode = 0;
+ int reboot_force;
+@@ -38,6 +40,7 @@ int reboot_force;
+    cold   Set the cold reboot flag
+    triple Force a triple fault (init)
+    kbd    Use the keyboard controller. cold reset (default)
++   acpi   Use the RESET_REG in the FADT
+    force  Avoid anything that could hang.
+  */ 
+ static int __init reboot_setup(char *str)
+@@ -53,6 +56,7 @@ static int __init reboot_setup(char *str
+ 			break;
+ 
+ 		case 't':
++		case 'a':
+ 		case 'b':
+ 		case 'k':
+ 			reboot_type = *str;
+@@ -142,6 +146,11 @@ void machine_emergency_restart(void)
+ 
+ 			reboot_type = BOOT_KBD;
+ 			break;
++
++		case BOOT_ACPI:
++			acpi_reboot();
++			reboot_type = BOOT_KBD;
++			break;
+ 		}      
+ 	}      
  }
- 
- /* Find the sas_phy that's attached to this device */
--struct sas_phy *find_local_sas_phy(struct domain_device *dev)
-+static struct sas_phy *find_local_sas_phy(struct domain_device *dev)
- {
- 	struct domain_device *pdev = dev->parent;
- 	struct ex_phy *exphy = NULL;
-diff -puN include/scsi/libsas.h~libsas-fix-various-sparse-complaints include/scsi/libsas.h
---- a/include/scsi/libsas.h~libsas-fix-various-sparse-complaints
-+++ a/include/scsi/libsas.h
-@@ -563,7 +563,7 @@ struct sas_task {
- 	struct work_struct abort_work;
- };
- 
--
-+extern struct kmem_cache *sas_task_cache;
- 
- #define SAS_TASK_STATE_PENDING      1
- #define SAS_TASK_STATE_DONE         2
-@@ -573,7 +573,6 @@ struct sas_task {
- 
- static inline struct sas_task *sas_alloc_task(gfp_t flags)
- {
--	extern struct kmem_cache *sas_task_cache;
- 	struct sas_task *task = kmem_cache_zalloc(sas_task_cache, flags);
- 
- 	if (task) {
-@@ -590,7 +589,6 @@ static inline struct sas_task *sas_alloc
- static inline void sas_free_task(struct sas_task *task)
- {
- 	if (task) {
--		extern struct kmem_cache *sas_task_cache;
- 		BUG_ON(!list_empty(&task->list));
- 		kmem_cache_free(sas_task_cache, task);
- 	}
 _
 
-Patches currently in -mm which might be from djwong@us.ibm.com are
+Patches currently in -mm which might be from adurbin@google.com are
 
-git-scsi-misc.patch
-mptbase-reset-ioc-initiator-during-pci-resume.patch
+acpi-add-reboot-mechanism.patch
+git-x86.patch
