@@ -1,58 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - git-x86-broke-lguest.patch removed from -mm tree
-Date: Mon, 19 Nov 2007 15:16:04 -0800
-Message-ID: <200711192316.lAJNG4Ap001742@imap1.linux-foundation.org>
+Subject: - git-x86-broke-xen-too.patch removed from -mm tree
+Date: Mon, 19 Nov 2007 15:16:06 -0800
+Message-ID: <200711192316.lAJNG6D3001748@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:49521 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:59088 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752519AbXKSXQ0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752762AbXKSXQd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 18:16:26 -0500
+	Mon, 19 Nov 2007 18:16:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-x86 broke lguest
+     git-x86 broke xen too
 has been removed from the -mm tree.  Its filename was
-     git-x86-broke-lguest.patch
+     git-x86-broke-xen-too.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: git-x86 broke lguest
+Subject: git-x86 broke xen too
 From: Andrew Morton <akpm@linux-foundation.org>
-
-arch/x86/lguest/boot.c: In function 'lguest_init':
-arch/x86/lguest/boot.c:991: warning: assignment from incompatible pointer type
-arch/x86/lguest/boot.c:993: warning: assignment from incompatible pointer type
-
-Better testing please.
 
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/lguest/boot.c |    2 +-
+ arch/x86/xen/enlighten.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/lguest/boot.c~git-x86-broke-lguest arch/x86/lguest/boot.c
---- a/arch/x86/lguest/boot.c~git-x86-broke-lguest
-+++ a/arch/x86/lguest/boot.c
-@@ -788,7 +788,7 @@ static void lguest_wbinvd(void)
-  * code qualifies for Advanced.  It will also never interrupt anything.  It
-  * does, however, allow us to get through the Linux boot code. */
- #ifdef CONFIG_X86_LOCAL_APIC
--static void lguest_apic_write(unsigned long reg, unsigned long v)
-+static void lguest_apic_write(unsigned long reg, u32 v)
- {
+diff -puN arch/x86/xen/enlighten.c~git-x86-broke-xen-too arch/x86/xen/enlighten.c
+--- a/arch/x86/xen/enlighten.c~git-x86-broke-xen-too
++++ a/arch/x86/xen/enlighten.c
+@@ -526,7 +526,7 @@ static unsigned long xen_apic_read(unsig
+ 	return 0;
  }
  
-diff -puN /dev/null /dev/null
+-static void xen_apic_write(unsigned long reg, unsigned long val)
++static void xen_apic_write(unsigned long reg, u32 val)
+ {
+ 	/* Warn to see if there's any stray references */
+ 	WARN_ON(1);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
