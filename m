@@ -1,75 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - hwmon-replace-power-of-two-test-in-drivers-hwmon-adt7470c.patch removed from -mm tree
-Date: Mon, 19 Nov 2007 15:15:47 -0800
-Message-ID: <200711192315.lAJNFlZw001713@imap1.linux-foundation.org>
+Subject: - cscope-build-warning.patch removed from -mm tree
+Date: Mon, 19 Nov 2007 15:16:02 -0800
+Message-ID: <200711192316.lAJNG2xo001739@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55536 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:48603 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752352AbXKSXQH (ORCPT
+	by vger.kernel.org with ESMTP id S1752518AbXKSXQK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 18:16:07 -0500
+	Mon, 19 Nov 2007 18:16:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@crashcourse.ca, khali@linux-fr.org, mhoffman@lightlink.com, mm-commits@vger.kernel.org
+To: sam@ravnborg.org, jirislaby@gmail.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hwmon: replace power-of-two test in drivers/hwmon/adt7470.c
+     cscope build warning
 has been removed from the -mm tree.  Its filename was
-     hwmon-replace-power-of-two-test-in-drivers-hwmon-adt7470c.patch
+     cscope-build-warning.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-Subject: hwmon: replace power-of-two test in drivers/hwmon/adt7470.c
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: cscope build warning
+=46rom: Sam Ravnborg <sam@ravnborg.org>
 
-Since <linux/log2.h> already supplies a power-of-two test, there's no point
-in having this source file redefine it again.
+On Tue, Nov 13, 2007 at 01:40:45PM +0100, Jiri Slaby wrote:
+> On 11/13/2007 01:15 PM, akpm@linux-foundation.org wrote:
+> > The mm snapshot broken-out-2007-11-13-04-14.tar.gz has been uploade=
+d to
+>
+> $ uname -a
+> Linux bellona 2.6.23-rc8-mm2_64 #58 SMP Fri Sep 28 08:52:12 CEST 2007=
+ x86_64
+> x86_64 x86_64 GNU/Linux
+> $ make O=3D../bu cscope
+>   FILELST cscope.files
+> find: /home/l/latest/xxx/arch/x86_64: nen=C3=AD souborem ani adres=C3=
+=A1=C5=99em
+>   MAKE    cscope.out
+>
 
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Acked-by: Jean Delvare <khali@linux-fr.org>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+I have following fix queued in my inbox:
+
+This patch fixed the following errors when doing "make cscope" and
+"make cscope ARCH=3Dum".
+
+  FILELST cscope.files
+find: arch/i386: No such file or directory
+  MAKE    cscope.out
+
+  FILELST cscope.files
+find: include/asm-i386: No such file or directory
+  MAKE    cscope.out
+
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/adt7470.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ Makefile |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/hwmon/adt7470.c~hwmon-replace-power-of-two-test-in-drivers-hwmon-adt7470c drivers/hwmon/adt7470.c
---- a/drivers/hwmon/adt7470.c~hwmon-replace-power-of-two-test-in-drivers-hwmon-adt7470c
-+++ a/drivers/hwmon/adt7470.c
-@@ -114,8 +114,6 @@ I2C_CLIENT_INSMOD_1(adt7470);
- /* sleep 1s while gathering temperature data */
- #define TEMP_COLLECTION_TIME	1000
- 
--#define power_of_2(x)	(((x) & ((x) - 1)) == 0)
--
- /* datasheet says to divide this number by the fan reading to get fan rpm */
- #define FAN_PERIOD_TO_RPM(x)	((90000 * 60) / (x))
- #define FAN_RPM_TO_PERIOD	FAN_PERIOD_TO_RPM
-@@ -677,7 +675,7 @@ static int cvt_auto_temp(int input)
- {
- 	if (input == ADT7470_PWM_ALL_TEMPS)
- 		return 0;
--	if (input < 1 || !power_of_2(input))
-+	if (input < 1 || !is_power_of_2(input))
- 		return -EINVAL;
- 	return ilog2(input) + 1;
- }
+diff -puN Makefile~cscope-build-warning Makefile
+--- a/Makefile~cscope-build-warning
++++ a/Makefile
+@@ -1323,6 +1323,7 @@ ALLINCLUDE_ARCHS :=3D $(ARCH) $(SUBARCH)
+ else
+ ALLINCLUDE_ARCHS :=3D $(SRCARCH)
+ endif
++ALLINCLUDE_ARCHS :=3D $(shell echo $(ALLINCLUDE_ARCHS)|sed -e "s/i386/=
+x86/" -e "s/x86_64/x86/")
+ else
+ #Allow user to specify only ALLSOURCE_PATHS on the command line, keepi=
+ng existing behavour.
+ ALLINCLUDE_ARCHS :=3D $(ALLSOURCE_ARCHS)
+@@ -1332,7 +1333,7 @@ endif
+ ifeq ($(ARCH), $(SRCARCH))
+ ALLSOURCE_ARCHS :=3D $(ARCH)
+ else
+-ALLSOURCE_ARCHS :=3D $(ARCH) $(SRCARCH)
++ALLSOURCE_ARCHS :=3D $(shell echo $(ARCH) $(SRCARCH)|sed -e "s/i386/x8=
+6/" -e "s/x86_64/x86/")
+ endif
+=20
+ define find-sources
 _
 
-Patches currently in -mm which might be from rpjday@crashcourse.ca are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
-arm-remove-reference-to-non-existent-mtd_obsolete_chips.patch
-git-hwmon.patch
-git-mips.patch
-pcmcia-net-use-roundup_pow_of_two-macro-instead-of-grotesque-loop.patch
-blackfin-typo-config_rtc_bfin_module.patch
-frv-move-dma-macros-to-scatterlisth-for-consistency.patch
-m68knommu-remove-vestiges-of-non-existent-disktel.patch
-uml-delete-some-unused-headers.patch
-rd-use-is_power_of_2-in-drivers-block-rdc.patch
-log2h-define-order_base_2-macro-for-convenience.patch
-rtc-s3c-use-is_power_of_2-macro-for-simplicity.patch
+origin.patch
+uml-build-fix.patch
+git-kbuild.patch
+kconfig-use-getopt-in-confc-for-handling-command-line.patch
+ia64-dont-assume-that-unwcheckpy-is-executable.patch
+ia64-export-copy_page-to-modules.patch
+ia64-export-copy_page-to-modules-fix.patch
+m68k-use-cc-cross-prefix.patch
+remove-support-for-un-needed-_extratext-section.patch
+remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
