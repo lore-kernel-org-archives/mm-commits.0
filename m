@@ -1,241 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 19 Nov 2007 15:16:14 -0800
-Message-ID: <200711192316.lAJNGE9a001757@imap1.linux-foundation.org>
+Subject: - i386-fix-reboot-with-no-keyboard-attached.patch removed from -mm tree
+Date: Mon, 19 Nov 2007 15:16:08 -0800
+Message-ID: <200711192316.lAJNG8EY001751@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:55481 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:32996 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752334AbXKSXQs (ORCPT
+	by vger.kernel.org with ESMTP id S1752477AbXKSXRD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 18:16:48 -0500
+	Mon, 19 Nov 2007 18:17:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, barry.kasindorf@amd.com, mingo@elte.hu, robert.richter@amd.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: trux@truxton.com, aris@ruivo.org, dtor@mail.ru, hiroto.shibuya@gmail.com, hpa@zytor.com, lee-in-berlin@web.de, mingo@elte.hu, protasnb@gmail.com, stable@kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes
+     i386: fix reboot with no keyboard attached
 has been removed from the -mm tree.  Its filename was
-     oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes.patch
+     i386-fix-reboot-with-no-keyboard-attached.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-Subject: oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: i386: fix reboot with no keyboard attached
+From: Truxton Fulton <trux@truxton.com>
 
-ERROR: no space after that open parenthesis '('
-#37: FILE: arch/x86/oprofile/op_model_athlon.c:35:
-+#define CTRL_CLEAR_HI(x) ( x &= 0xfffffcf0 )
+Attempt to fix http://bugzilla.kernel.org/show_bug.cgi?id=8378
 
-ERROR: no space before that close parenthesis ')'
-#37: FILE: arch/x86/oprofile/op_model_athlon.c:35:
-+#define CTRL_CLEAR_HI(x) ( x &= 0xfffffcf0 )
+Hiroto Shibuya wrote to tell me that he has a VIA EPIA-EK10000 which
+suffers from the reboot problem when no keyboard is attached.  My first
+patch works for him:
 
-ERROR: need space after that ',' (ctx:VxV)
-#44: FILE: arch/x86/oprofile/op_model_athlon.c:41:
-+#define CTRL_SET_EVENT_HIGH(val,e) (val |= ((e >> 8) & 0xf))
-                                ^
+  http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=59f4e7d572980a521b7bdba74ab71b21f5995538
 
-total: 3 errors, 0 warnings, 53 lines checked
-Your patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+But the latest patch does not work for him :
 
-Please run checkpatch prior to sending patches
+  http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=8b93789808756bcc1e5c90c99f1b1ef52f839a51
 
-Cc: "Barry Kasindorf" <barry.kasindorf@amd.com>
-Cc: Barry Kasindorf <barry.kasindorf@amd.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Robert Richter <robert.richter@amd.com>
+We found that it was necessary to also set the "disable keyboard" flag in
+the command byte, as the first patch was doing.  The second patch tries to
+minimally modify the command byte, but it is not enough.
+
+Please consider this simple one-line patch to help people with low end VIA
+motherboards reboot when no keyboard is attached.  Hiroto Shibuya has
+verified that this works for him (as I no longer have an afflicted
+machine).
+
+
+Additional discussion:
+
+Note that original patch from Truxton DOES
+disable keyboard and this has been in main tree since 2.6.14, thus it must have
+quite a bit of air time already.
+
+http://git.kernel.org/?p=linux/kernel/git/stable/linux-2.6.14.y.git;a=commit;h=59f4e7d572980a521b7bdba74ab71b21f5995538
+
+Note that he only mention "System flag" in the description and comment, but
+in the code, "disable keyboard" flag is set.
+
+  outb(0x14, 0x60);       /* set "System flag" */
+
+In 2.6.23, he made a change to read the current byte and then mask the flags,
+but along this change,  he only set the "System flag" and dropped the setting
+of "disable keyboard" flag.
+
+http://git.kernel.org/?p=linux/kernel/git/stable/linux-2.6.23.y.git;a=commit;h=8b93789808756bcc1e5c90c99f1b1ef52f839a51
+
+   outb(cmd | 0x04, 0x60); /* set "System flag" */
+
+So my request is to restore the setting of disable keyboard flag which has been
+there since 2.6.14 but disappeared in 2.6.23.
+
+Cc: Lee Garrett <lee-in-berlin@web.de>
+Cc: "Hiroto Shibuya" <hiroto.shibuya@gmail.com>
+Cc: Natalie Protasevich <protasnb@gmail.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Aristeu Rozanski <aris@ruivo.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/oprofile/op_model_athlon.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/asm-x86/mach-default/mach_reboot.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/oprofile/op_model_athlon.c~oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes arch/x86/oprofile/op_model_athlon.c
---- a/arch/x86/oprofile/op_model_athlon.c~oprofile-op_model_athalonc-support-for-amd-family10h-barcelona-performance-counters-checkpatch-fixes
-+++ a/arch/x86/oprofile/op_model_athlon.c
-@@ -32,13 +32,13 @@
- #define CTRL_SET_ACTIVE(n) (n |= (1<<22))
- #define CTRL_SET_INACTIVE(n) (n &= ~(1<<22))
- #define CTRL_CLEAR_LO(x) (x &= (1<<21))
--#define CTRL_CLEAR_HI(x) ( x &= 0xfffffcf0 )
-+#define CTRL_CLEAR_HI(x) (x &= 0xfffffcf0)
- #define CTRL_SET_ENABLE(val) (val |= 1<<20)
- #define CTRL_SET_USR(val,u) (val |= ((u & 1) << 16))
- #define CTRL_SET_KERN(val,k) (val |= ((k & 1) << 17))
- #define CTRL_SET_UM(val, m) (val |= (m << 8))
- #define CTRL_SET_EVENT_LOW(val, e) (val |= (e & 0xff))
--#define CTRL_SET_EVENT_HIGH(val,e) (val |= ((e >> 8) & 0xf))
-+#define CTRL_SET_EVENT_HIGH(val, e) (val |= ((e >> 8) & 0xf))
- #define CTRL_SET_HOST_ONLY(val, h) (val |= ((h & 1) << 9))
- #define CTRL_SET_GUEST_ONLY(val, h) (val |= ((h & 1) << 8))
- 
+diff -puN include/asm-x86/mach-default/mach_reboot.h~i386-fix-reboot-with-no-keyboard-attached include/asm-x86/mach-default/mach_reboot.h
+--- a/include/asm-x86/mach-default/mach_reboot.h~i386-fix-reboot-with-no-keyboard-attached
++++ a/include/asm-x86/mach-default/mach_reboot.h
+@@ -49,7 +49,7 @@ static inline void mach_reboot(void)
+ 		udelay(50);
+ 		kb_wait();
+ 		udelay(50);
+-		outb(cmd | 0x04, 0x60);	/* set "System flag" */
++		outb(cmd | 0x14, 0x60); /* set "System flag" and "Keyboard Disabled" */
+ 		udelay(50);
+ 		kb_wait();
+ 		udelay(50);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from trux@truxton.com are
 
 origin.patch
-file-capabilities-allow-sigcont-within-session-v2.patch
-pnp-increase-the-maximum-number-of-resources-fix.patch
-revert-keyspan-init-termios-properly.patch
-get_task_comm-return-the-result.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped.patch
-clone-prepare-to-recycle-clone_detached-and-clone_stopped-fix.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200-fix.patch
-acpi-add-reboot-mechanism.patch
-small-acpica-extension-to-be-able-to-store-the-name-of.patch
-git-alsa.patch
-working-3d-dri-intel-agpko-resume-for-i815-chip.patch
-git-arm.patch
-agk-dm-dm-ioctl-move-compat-code-fix.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc.patch
-unbork-gregkh-driver-kset-convert-sys-devices-to-use-kset_create-vioc-fix.patch
-git-drm-oops-fix.patch
-git-dvb.patch
-ia64-slim-down-__clear_bit_unlock-checkpatch-fixes.patch
-elantech-touchpad-driver-fix.patch
-git-kvm.patch
-git-libata-all.patch
-drivers-ata-libata-ehc-fix-printk-warning.patch
-pata_hpt37x-fix-outstanding-bug-reports-on-the-hpt374-and-37x-cable-detect-checkpatch-fixes.patch
-ide-arm-hack.patch
-git-mips-fixup.patch
-git-mmc.patch
-git-mtd.patch
-git-netdev-all.patch
-ucc_geth-fix-build-break-introduced-by-commit-09f75cd7bf13720738e6a196cc0107ce9a5bd5a0-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-bluetooth-uninlining.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing-fix.patch
-nfs-stop-sillyname-renames-and-unmounts-from-racing-fix-fix.patch
-quirk_vialatency-omit-reading-pci-revision-id-checkpatch-fixes.patch
-drivers-pci-quirksc-coding-style-cleanup.patch
-git-s390.patch
-fix-build-breakage-if-sysfs-fix.patch
-ips-trim-trailing-whitespace-checkpatch-fixes.patch
-scsi-gdth-kill-unneeded-irq-argument-checkpatch-fixes.patch
-scsi-fix-bugs-and-canonicalize-ncr5380_intr-drivers-checkpatch-fixes.patch
-bidi-support-scsi_data_buffer-broke-qla1280.patch
-bidi-support-scsi_data_buffer-broke-lots-of-stuff.patch
-git-unionfs.patch
-vfs-swap-do_ioctl-and-vfs_ioctl-names-fix.patch
-git-wireless.patch
-jiffies_round-jiffies_round_relative-conversion-rt2x00-checkpatch-fixes.patch
-git-ipwireless_cs.patch
-git-x86.patch
-git-x86-fixup.patch
-git-x86-memory_add_physaddr_to_nid-export-for-acpi-memhotplugko-checkpatch-fixes.patch
-git-x86-inlining-borkage.patch
-git-cryptodev.patch
-ia64-increase-datapatch-offset.patch
-ia64-dont-assume-that-unwcheckpy-is-executable.patch
-ia64-export-copy_page-to-modules.patch
-ia64-export-copy_page-to-modules-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix.patch
-pagecache-zeroing-zero_user_segment-zero_user_segments-and-zero_user-fix-2.patch
-i386-resolve-dependency-of-asm-i386-pgtableh-on-highmemh-checkpatch-fixes.patch
-slub-fix-coding-style-violations-checkpatch-fixes.patch
-slub-provide-unique-end-marker-for-each-slab-fix.patch
-slub-do-our-own-locking-via-slab_lock-and-slab_unlock-checkpatch-fixes.patch
-bufferhead-revert-constructor-removal-checkpatch-fixes.patch
-maps4-rework-task_size-macros-mips-fix.patch
-maps4-make-page-monitoring-proc-file-optional-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-alpha-atomic_add_return-should-return-int.patch
-pm-qos-infrastructure-and-interface.patch
-pm-qos-infrastructure-and-interface-static-initialization-with-blocking-notifiers.patch
-uml-get-rid-of-asmlinkage-checkpatch-fixes.patch
-uml-improve-detection-of-host-cmov-checkpatch-fixes.patch
-uml-further-bugsc-tidying-checkpatch-fixes.patch
-deprecate-smbfs-in-favour-of-cifs.patch
-procfs-detect-duplicate-names.patch
-kernel-printkc-concerns-about-the-console-handover.patch
-fix-versus-precedence-in-various-places-checkpatch-fixes.patch
-pie-executable-randomization.patch
-pie-executable-randomization-uninlining.patch
-pie-executable-randomization-checkpatch-fixes.patch
-riscom8-fix-smp-brokenness-fix.patch
-use-macros-instead-of-task_-flags-checkpatch-fixes.patch
-sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
-remove-warnings-for-longstanding-conditions-fix.patch
-parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
-remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
-allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
-remove-__attribute_used__-checkpatch-fixes.patch
-read_current_time-cleanups.patch
-read_current_time-cleanups-build-fix-fix.patch
-sync_sb_inodes-propagate-errors.patch
-rtc-ds1302-rtc-support-checkpatch-fixes.patch
-mcp23s08-spi-gpio-expander-checkpatch-fixes.patch
-64-bit-i_version-afs-fixes.patch
-kill-filp_open-checkpatch-fixes.patch
-rename-open_namei-to-open_pathname-fix.patch
-r-o-bind-mounts-elevate-write-count-during-entire-ncp_ioctl-fix.patch
-r-o-bind-mounts-elevate-write-count-for-do_utimes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-some-ioctls-vs-forbid-user-to-change-file-flags-on-quota-files.patch
-r-o-bind-mounts-nfs-check-mnt-instead-of-superblock-directly-checkpatch-fixes.patch
-r-o-bind-mounts-track-number-of-mount-writer-fix-buggy-loop-checkpatch-fixes.patch
-slab-api-remove-useless-ctor-parameter-and-reorder-parameters-vs-revoke.patch
-revoke-wire-up-i386-system-calls.patch
-revoke-vs-git-block.patch
-cgroup-simplify-space-stripping-fix.patch
-memory-controller-memory-accounting-v7.patch
-memory-controller-add-per-container-lru-and-reclaim-v7.patch
-memory-controller-oom-handling-v7.patch
-memory-controller-add-switch-to-control-what-type-of-pages-to-limit-v7.patch
-memcontrol-move-oom-task-exclusion-to-tasklist.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-1.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-uninlining.patch
-memory-cgroup-enhancements-add-status-accounting-function-for-memory-cgroup-fix-2.patch
-memory-cgroup-enhancements-add-memorystat-file-checkpatch-fixes.patch
-memory-cgroup-enhancements-add-memorystat-file-printk-fix.patch
-drivers-edac-add-marvell-mv64x60-driver-fix.patch
-introduce-flags-for-reserve_bootmem-checkpatch-fixes.patch
-iget-stop-affs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-efs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext2-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-ext3-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-freevxfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-minix-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-procfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-qnx4-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-romfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-iget-stop-the-sysv-filesystem-from-using-iget-and-checkpatch-fixes.patch
-iget-stop-ufs-from-using-iget-and-read_inode-try-checkpatch-fixes.patch
-iget-stop-hostfs-from-using-iget-and-read_inode-checkpatch-fixes.patch
-embed-a-struct-path-into-struct-nameidata-instead-of-nd-dentrymnt-checkpatch-fixes.patch
-one-less-parameter-to-__d_path-checkpatch-fixes.patch
-d_path-use-struct-path-in-struct-avc_audit_data-checkpatch-fixes.patch
-d_path-make-get_dcookie-use-a-struct-path-argument-checkpatch-fixes.patch
-use-struct-path-in-struct-svc_export-checkpatch-fixes.patch
-aout-mark-arches-that-support-aout-format-fix.patch
-aout-mark-arches-that-support-aout-format-fix-2.patch
-aout-mark-arches-that-support-aout-format-fix-3.patch
-mn10300-add-the-mn10300-am33-architecture-to-the-kernel-fix.patch
-cleanup-the-code-managed-with-the-user_ns-option-checkpatch-fixes.patch
-cleanup-the-code-managed-with-pid_ns-option-checkpatch-fixes.patch
-make-copy_from_user_inatomic-not-zero-the-tail-on-i386-vs-reiser4.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-kmap_atomic-debugging.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-w1-build-fix.patch
