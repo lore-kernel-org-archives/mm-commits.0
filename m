@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + 64bit-capability-support-legacy-support-fix.patch added to -mm tree
-Date: Mon, 19 Nov 2007 18:10:26 -0800
-Message-ID: <200711200210.lAK2AQ1D008695@imap1.linux-foundation.org>
+Subject: + amiga-zorro-bus-add-missing-zorro_device_remove.patch added to -mm tree
+Date: Mon, 19 Nov 2007 18:11:54 -0800
+Message-ID: <200711200211.lAK2BsbG008779@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:50219 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:53147 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762182AbXKTCLD (ORCPT
+	by vger.kernel.org with ESMTP id S1762325AbXKTCME (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 21:11:03 -0500
+	Mon, 19 Nov 2007 21:12:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: morgan@kernel.org, casey@schaufler-ca.com, chrisw@sous-sol.org, jmorris@namei.org, kjwinchester@gmail.com, sds@tycho.nsa.gov, serue@us.ibm.com
+Cc: geert@linux-m68k.org
 
 
 The patch titled
-     64bit capability support (legacy support fix)
+     Amiga zorro bus: Add missing zorro_device_remove()
 has been added to the -mm tree.  Its filename is
-     64bit-capability-support-legacy-support-fix.patch
+     amiga-zorro-bus-add-missing-zorro_device_remove.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,73 +26,61 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: 64bit capability support (legacy support fix)
-From: Andrew Morgan <morgan@kernel.org>
+Subject: Amiga zorro bus: Add missing zorro_device_remove()
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Legacy support requires that we don't return an error for previously
-legitimate calls. Removing this check, we make a fail-safe best effort
-to support legacy applications.
+Amiga zorro bus: Add missing zorro_device_remove(). Without this ifconfig and
+/proc/net/dev oops after unloading a Zorro network device driver module.
 
-Signed-off-by: Andrew G. Morgan <morgan@kernel.org>
-Cc: Kevin Winchester <kjwinchester@gmail.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: James Morris <jmorris@namei.org>
-Cc: Casey Schaufler <casey@schaufler-ca.com>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/capability.c |   27 ++++++++++++++++++++-------
- 1 file changed, 20 insertions(+), 7 deletions(-)
+ drivers/zorro/zorro-driver.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN kernel/capability.c~64bit-capability-support-legacy-support-fix kernel/capability.c
---- a/kernel/capability.c~64bit-capability-support-legacy-support-fix
-+++ a/kernel/capability.c
-@@ -109,13 +109,26 @@ out:
- 			kdata[i].permitted = pP.cap[i];
- 			kdata[i].inheritable = pI.cap[i];
- 		}
--		while (i < _LINUX_CAPABILITY_U32S) {
--			if (pE.cap[i] || pP.cap[i] || pP.cap[i]) {
--				/* Cannot represent w/ legacy structure */
--				return -ERANGE;
--			}
--			i++;
--		}
-+
-+		/*
-+		 * Note, in the case, tocopy < _LINUX_CAPABILITY_U32S,
-+		 * we silently drop the upper capabilities here. This
-+		 * has the effect of making older libcap
-+		 * implementations implicitly drop upper capability
-+		 * bits when they perform a: capget/modify/capset
-+		 * sequence.
-+		 *
-+		 * This behavior is considered fail-safe
-+		 * behavior. Upgrading the application to a newer
-+		 * version of libcap will enable access to the newer
-+		 * capabilities.
-+		 *
-+		 * An alternative would be to return an error here
-+		 * (-ERANGE), but that causes legacy applications to
-+		 * unexpectidly fail; the capget/modify/capset aborts
-+		 * before modification is attempted and the application
-+		 * fails.
-+		 */
+diff -puN drivers/zorro/zorro-driver.c~amiga-zorro-bus-add-missing-zorro_device_remove drivers/zorro/zorro-driver.c
+--- a/drivers/zorro/zorro-driver.c~amiga-zorro-bus-add-missing-zorro_device_remove
++++ a/drivers/zorro/zorro-driver.c
+@@ -60,6 +60,20 @@ static int zorro_device_probe(struct dev
+ }
  
- 		if (copy_to_user(dataptr, kdata, tocopy
- 				 * sizeof(struct __user_cap_data_struct))) {
+ 
++static int zorro_device_remove(struct device *dev)
++{
++	struct zorro_dev *z = to_zorro_dev(dev);
++	struct zorro_driver *drv = to_zorro_driver(dev->driver);
++
++	if (drv) {
++		if (drv->remove)
++			drv->remove(z);
++		z->driver = NULL;
++	}
++	return 0;
++}
++
++
+     /**
+      *  zorro_register_driver - register a new Zorro driver
+      *  @drv: the driver structure to register
+@@ -128,6 +142,7 @@ struct bus_type zorro_bus_type = {
+ 	.name	= "zorro",
+ 	.match	= zorro_bus_match,
+ 	.probe	= zorro_device_probe,
++	.remove	= zorro_device_remove,
+ };
+ 
+ 
 _
 
-Patches currently in -mm which might be from morgan@kernel.org are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-file-capabilities-allow-sigcont-within-session-v2.patch
-revert-capabilities-clean-up-file-capability-reading.patch
-revert-capabilities-clean-up-file-capability-reading-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel.patch
-add-64-bit-capability-support-to-the-kernel-checkpatch-fixes.patch
-add-64-bit-capability-support-to-the-kernel-fix.patch
-add-64-bit-capability-support-to-the-kernel-fix-fix.patch
-64bit-capability-support-legacy-support-fix.patch
-remove-unnecessary-include-from-include-linux-capabilityh.patch
+m68k-export-atari_keyb_init.patch
+amiga-zorro-bus-add-missing-zorro_device_remove.patch
+mac68k-mailing-list-addresss.patch
+git-scsi-misc.patch
+m68k-use-cc-cross-prefix.patch
+uml-borrow-consth-techniques.patch
+remove-pointless-casts-from-void-pointers.patch
+cleanup-after-apus-removal.patch
+add-cmpxchg_local-to-m86k.patch
