@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + use-__set_task_state-for-traced-stopped-tasks.patch added to -mm tree
-Date: Mon, 19 Nov 2007 21:31:04 -0800
-Message-ID: <200711200531.lAK5V42k015800@imap1.linux-foundation.org>
+Subject: + forcedeth-boot-delay-fix.patch added to -mm tree
+Date: Mon, 19 Nov 2007 21:33:24 -0800
+Message-ID: <200711200533.lAK5XO5V015927@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:43608 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:55872 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755806AbXKTFbj (ORCPT
+	by vger.kernel.org with ESMTP id S1754769AbXKTFeC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 00:31:39 -0500
+	Tue, 20 Nov 2007 00:34:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, roland@redhat.com
+Cc: aabdulla@nvidia.com, astinus@gentoo.org
 
 
 The patch titled
-     use __set_task_state() for TRACED/STOPPED tasks
+     forcedeth boot delay fix
 has been added to the -mm tree.  Its filename is
-     use-__set_task_state-for-traced-stopped-tasks.patch
+     forcedeth-boot-delay-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,104 +26,63 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: use __set_task_state() for TRACED/STOPPED tasks
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: forcedeth boot delay fix
+From: Ayaz Abdulla <aabdulla@nvidia.com>
 
-1. It is much easier to grep for ->state change if __set_task_state() is used
-   instead of the direct assignment.
+Fix a long boot delay in the forcedeth driver.  During initialization, the
+timeout for the handshake between mgmt unit and driver can be very long. 
+The patch reduces the timeout by eliminating a extra loop around the
+timeout logic.
 
-2. ptrace_stop() and handle_group_stop() use set_task_state() which adds the
-   unneeded mb() (btw even if we use mb() it is still possible that do_wait()
-   sees the new ->state but not ->exit_code, but this is ok).
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=9308
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Roland McGrath <roland@redhat.com>
+Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
+Cc: Alex Howells <astinus@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c   |    2 +-
- kernel/ptrace.c |   12 +++++-------
- kernel/signal.c |    4 ++--
- 3 files changed, 8 insertions(+), 10 deletions(-)
+ drivers/net/forcedeth.c |   23 ++++++++++-------------
+ 1 file changed, 10 insertions(+), 13 deletions(-)
 
-diff -puN kernel/fork.c~use-__set_task_state-for-traced-stopped-tasks kernel/fork.c
---- a/kernel/fork.c~use-__set_task_state-for-traced-stopped-tasks
-+++ a/kernel/fork.c
-@@ -1479,7 +1479,7 @@ long do_fork(unsigned long clone_flags,
- 		if (!(clone_flags & CLONE_STOPPED))
- 			wake_up_new_task(p, clone_flags);
- 		else
--			p->state = TASK_STOPPED;
-+			__set_task_state(p, TASK_STOPPED);
- 
- 		if (unlikely (trace)) {
- 			current->ptrace_message = nr;
-diff -puN kernel/ptrace.c~use-__set_task_state-for-traced-stopped-tasks kernel/ptrace.c
---- a/kernel/ptrace.c~use-__set_task_state-for-traced-stopped-tasks
-+++ a/kernel/ptrace.c
-@@ -53,7 +53,7 @@ void ptrace_untrace(struct task_struct *
- 	spin_lock(&child->sighand->siglock);
- 	if (is_task_traced(child)) {
- 		if (child->signal->flags & SIGNAL_STOP_STOPPED) {
--			child->state = TASK_STOPPED;
-+			__set_task_state(child, TASK_STOPPED);
- 		} else {
- 			signal_wake_up(child, 1);
+diff -puN drivers/net/forcedeth.c~forcedeth-boot-delay-fix drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~forcedeth-boot-delay-fix
++++ a/drivers/net/forcedeth.c
+@@ -5294,20 +5294,17 @@ static int __devinit nv_probe(struct pci
+ 		if (readl(base + NvRegTransmitterControl) & NVREG_XMITCTL_SYNC_PHY_INIT) {
+ 			np->mac_in_use = readl(base + NvRegTransmitterControl) & NVREG_XMITCTL_MGMT_ST;
+ 			dprintk(KERN_INFO "%s: mgmt unit is running. mac in use %x.\n", pci_name(pci_dev), np->mac_in_use);
+-			for (i = 0; i < 5000; i++) {
+-				msleep(1);
+-				if (nv_mgmt_acquire_sema(dev)) {
+-					/* management unit setup the phy already? */
+-					if ((readl(base + NvRegTransmitterControl) & NVREG_XMITCTL_SYNC_MASK) ==
+-					    NVREG_XMITCTL_SYNC_PHY_INIT) {
+-						/* phy is inited by mgmt unit */
+-						phyinitialized = 1;
+-						dprintk(KERN_INFO "%s: Phy already initialized by mgmt unit.\n", pci_name(pci_dev));
+-					} else {
+-						/* we need to init the phy */
+-					}
+-					break;
++			if (nv_mgmt_acquire_sema(dev)) {
++				/* management unit setup the phy already? */
++				if ((readl(base + NvRegTransmitterControl) & NVREG_XMITCTL_SYNC_MASK) ==
++				    NVREG_XMITCTL_SYNC_PHY_INIT) {
++					/* phy is inited by mgmt unit */
++					phyinitialized = 1;
++					dprintk(KERN_INFO "%s: Phy already initialized by mgmt unit.\n", pci_name(pci_dev));
++				} else {
++					/* we need to init the phy */
+ 				}
++				break;
+ 			}
  		}
-@@ -103,18 +103,16 @@ int ptrace_check_attach(struct task_stru
- 	    && child->signal != NULL) {
- 		ret = 0;
- 		spin_lock_irq(&child->sighand->siglock);
--		if (is_task_stopped(child)) {
--			child->state = TASK_TRACED;
--		} else if (!is_task_traced(child) && !kill) {
-+		if (is_task_stopped(child))
-+			__set_task_state(child, TASK_TRACED);
-+		else if (!is_task_traced(child) && !kill)
- 			ret = -ESRCH;
--		}
- 		spin_unlock_irq(&child->sighand->siglock);
  	}
- 	read_unlock(&tasklist_lock);
- 
--	if (!ret && !kill) {
-+	if (!ret && !kill)
- 		wait_task_inactive(child);
--	}
- 
- 	/* All systems go.. */
- 	return ret;
-diff -puN kernel/signal.c~use-__set_task_state-for-traced-stopped-tasks kernel/signal.c
---- a/kernel/signal.c~use-__set_task_state-for-traced-stopped-tasks
-+++ a/kernel/signal.c
-@@ -1617,7 +1617,7 @@ static void ptrace_stop(int exit_code, i
- 	current->exit_code = exit_code;
- 
- 	/* Let the debugger run.  */
--	set_current_state(TASK_TRACED);
-+	__set_current_state(TASK_TRACED);
- 	spin_unlock_irq(&current->sighand->siglock);
- 	try_to_freeze();
- 	read_lock(&tasklist_lock);
-@@ -1781,7 +1781,7 @@ static int handle_group_stop(void)
- 	if (stop_count == 0)
- 		current->signal->flags = SIGNAL_STOP_STOPPED;
- 	current->exit_code = current->signal->group_exit_code;
--	set_current_state(TASK_STOPPED);
-+	__set_current_state(TASK_STOPPED);
- 	spin_unlock_irq(&current->sighand->siglock);
- 	finish_stop(stop_count);
- 	return 1;
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from aabdulla@nvidia.com are
 
-wait_task_stopped-dont-use-task_pid_nr_ns-lockless.patch
-proc-remove-races-from-proc_id_readdir.patch
-use-__set_task_state-for-traced-stopped-tasks.patch
-add-task_wakekill.patch
-proc-implement-proc_single_file_operations.patch
-proc-rewrite-do_task_stat-to-correctly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_status-to-properly-handle-pid-namespaces.patch
-proc-seqfile-convert-proc_pid_statm.patch
-proc-proper-pidns-handling-for-proc-self.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+forcedeth-new-mcp79-device-ids.patch
+forcedeth-boot-delay-fix.patch
