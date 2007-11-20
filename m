@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch added to -mm tree
-Date: Mon, 19 Nov 2007 18:15:05 -0800
-Message-ID: <200711200215.lAK2F5OK008958@imap1.linux-foundation.org>
+Subject: + m68k-kill-arch-m68k-atari-atari_ksymsc.patch added to -mm tree
+Date: Mon, 19 Nov 2007 18:15:07 -0800
+Message-ID: <200711200215.lAK2F7nb008961@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:47633 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:44555 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762761AbXKTCPb (ORCPT
+	by vger.kernel.org with ESMTP id S1762613AbXKTCPf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 19 Nov 2007 21:15:31 -0500
+	Mon, 19 Nov 2007 21:15:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bunk@kernel.org, geert@linux-m68k.org, zippel@linux-m68k.org
 
 
 The patch titled
-     m68k: kill arch/m68k/amiga/amiga_ksyms.c
+     m68k: kill arch/m68k/atari/atari_ksyms.c
 has been added to the -mm tree.  Its filename is
-     m68k-kill-arch-m68k-amiga-amiga_ksymsc.patch
+     m68k-kill-arch-m68k-atari-atari_ksymsc.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,7 +26,7 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: m68k: kill arch/m68k/amiga/amiga_ksyms.c
+Subject: m68k: kill arch/m68k/atari/atari_ksyms.c
 From: Adrian Bunk <bunk@kernel.org>
 
 EXPORT_SYMBOL's belong to the actual code.
@@ -37,218 +37,241 @@ Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/amiga/Makefile      |    2 -
- arch/m68k/amiga/amiga_ksyms.c |   33 --------------------------------
- arch/m68k/amiga/amisound.c    |    3 ++
- arch/m68k/amiga/chipram.c     |    7 ++++++
- arch/m68k/amiga/config.c      |   12 +++++++++++
- arch/m68k/amiga/pcmcia.c      |    9 ++++++++
- 6 files changed, 32 insertions(+), 34 deletions(-)
+ arch/m68k/atari/Makefile      |    2 -
+ arch/m68k/atari/ataints.c     |    3 ++
+ arch/m68k/atari/atari_ksyms.c |   35 --------------------------------
+ arch/m68k/atari/atasound.c    |    2 +
+ arch/m68k/atari/config.c      |   11 ++++++++++
+ arch/m68k/atari/debug.c       |    6 +++++
+ arch/m68k/atari/stdma.c       |    5 ++++
+ arch/m68k/atari/stram.c       |    3 ++
+ 8 files changed, 31 insertions(+), 36 deletions(-)
 
-diff -puN arch/m68k/amiga/Makefile~m68k-kill-arch-m68k-amiga-amiga_ksymsc arch/m68k/amiga/Makefile
---- a/arch/m68k/amiga/Makefile~m68k-kill-arch-m68k-amiga-amiga_ksymsc
-+++ a/arch/m68k/amiga/Makefile
-@@ -2,6 +2,6 @@
- # Makefile for Linux arch/m68k/amiga source directory
+diff -puN arch/m68k/atari/Makefile~m68k-kill-arch-m68k-atari-atari_ksymsc arch/m68k/atari/Makefile
+--- a/arch/m68k/atari/Makefile~m68k-kill-arch-m68k-atari-atari_ksymsc
++++ a/arch/m68k/atari/Makefile
+@@ -3,7 +3,7 @@
  #
  
--obj-y		:= config.o amiints.o cia.o chipram.o amisound.o amiga_ksyms.o
-+obj-y		:= config.o amiints.o cia.o chipram.o amisound.o
+ obj-y		:= config.o time.o debug.o ataints.o stdma.o \
+-			atasound.o stram.o atari_ksyms.o
++			atasound.o stram.o
  
- obj-$(CONFIG_AMIGA_PCMCIA)	+= pcmcia.o
-diff -puN arch/m68k/amiga/amiga_ksyms.c~m68k-kill-arch-m68k-amiga-amiga_ksymsc /dev/null
---- a/arch/m68k/amiga/amiga_ksyms.c
-+++ /dev/null
-@@ -1,33 +0,0 @@
--#include <linux/module.h>
--#include <linux/types.h>
--#include <asm/ptrace.h>
--#include <asm/amigahw.h>
--#include <asm/amigaints.h>
--#include <asm/amipcmcia.h>
--
--extern volatile u_short amiga_audio_min_period;
--extern u_short amiga_audio_period;
--
--/*
-- * Add things here when you find the need for it.
-- */
--EXPORT_SYMBOL(amiga_model);
--EXPORT_SYMBOL(amiga_chipset);
--EXPORT_SYMBOL(amiga_hw_present);
--EXPORT_SYMBOL(amiga_eclock);
--EXPORT_SYMBOL(amiga_colorclock);
--EXPORT_SYMBOL(amiga_chip_alloc);
--EXPORT_SYMBOL(amiga_chip_free);
--EXPORT_SYMBOL(amiga_chip_avail);
--EXPORT_SYMBOL(amiga_chip_size);
--EXPORT_SYMBOL(amiga_audio_period);
--EXPORT_SYMBOL(amiga_audio_min_period);
--
--#ifdef CONFIG_AMIGA_PCMCIA
--  EXPORT_SYMBOL(pcmcia_reset);
--  EXPORT_SYMBOL(pcmcia_copy_tuple);
--  EXPORT_SYMBOL(pcmcia_program_voltage);
--  EXPORT_SYMBOL(pcmcia_access_speed);
--  EXPORT_SYMBOL(pcmcia_write_enable);
--  EXPORT_SYMBOL(pcmcia_write_disable);
--#endif
-diff -puN arch/m68k/amiga/amisound.c~m68k-kill-arch-m68k-amiga-amiga_ksymsc arch/m68k/amiga/amisound.c
---- a/arch/m68k/amiga/amisound.c~m68k-kill-arch-m68k-amiga-amiga_ksymsc
-+++ a/arch/m68k/amiga/amisound.c
-@@ -12,6 +12,7 @@
- #include <linux/timer.h>
+ ifeq ($(CONFIG_PCI),y)
+ obj-$(CONFIG_HADES)	+= hades-pci.o
+diff -puN arch/m68k/atari/ataints.c~m68k-kill-arch-m68k-atari-atari_ksymsc arch/m68k/atari/ataints.c
+--- a/arch/m68k/atari/ataints.c~m68k-kill-arch-m68k-atari-atari_ksymsc
++++ a/arch/m68k/atari/ataints.c
+@@ -40,6 +40,7 @@
+ #include <linux/kernel_stat.h>
  #include <linux/init.h>
- #include <linux/string.h>
+ #include <linux/seq_file.h>
 +#include <linux/module.h>
  
  #include <asm/system.h>
- #include <asm/amigahw.h>
-@@ -31,6 +32,7 @@ static const signed char sine_data[] = {
-      */
+ #include <asm/traps.h>
+@@ -446,6 +447,7 @@ unsigned long atari_register_vme_int(voi
+ 	free_vme_vec_bitmap |= 1 << i;
+ 	return VME_SOURCE_BASE + i;
+ }
++EXPORT_SYMBOL(atari_register_vme_int);
  
- volatile unsigned short amiga_audio_min_period = 124; /* Default for pre-OCS */
-+EXPORT_SYMBOL(amiga_audio_min_period);
  
- #define MAX_PERIOD	(65535)
+ void atari_unregister_vme_int(unsigned long irq)
+@@ -455,5 +457,6 @@ void atari_unregister_vme_int(unsigned l
+ 		free_vme_vec_bitmap &= ~(1 << irq);
+ 	}
+ }
++EXPORT_SYMBOL(atari_unregister_vme_int);
  
-@@ -40,6 +42,7 @@ volatile unsigned short amiga_audio_min_
-      */
  
- unsigned short amiga_audio_period = MAX_PERIOD;
-+EXPORT_SYMBOL(amiga_audio_period);
- 
- static unsigned long clock_constant;
- 
-diff -puN arch/m68k/amiga/chipram.c~m68k-kill-arch-m68k-amiga-amiga_ksymsc arch/m68k/amiga/chipram.c
---- a/arch/m68k/amiga/chipram.c~m68k-kill-arch-m68k-amiga-amiga_ksymsc
-+++ a/arch/m68k/amiga/chipram.c
-@@ -13,10 +13,13 @@
- #include <linux/ioport.h>
- #include <linux/slab.h>
- #include <linux/string.h>
+diff -puN arch/m68k/atari/atari_ksyms.c~m68k-kill-arch-m68k-atari-atari_ksymsc /dev/null
+--- a/arch/m68k/atari/atari_ksyms.c
++++ /dev/null
+@@ -1,35 +0,0 @@
+-#include <linux/module.h>
+-
+-#include <asm/ptrace.h>
+-#include <asm/traps.h>
+-#include <asm/atarihw.h>
+-#include <asm/atariints.h>
+-#include <asm/atarikb.h>
+-#include <asm/atari_joystick.h>
+-#include <asm/atari_stdma.h>
+-#include <asm/atari_stram.h>
+-
+-extern void atari_microwire_cmd( int cmd );
+-extern int atari_MFP_init_done;
+-extern int atari_SCC_init_done;
+-extern int atari_SCC_reset_done;
+-
+-EXPORT_SYMBOL(atari_mch_cookie);
+-EXPORT_SYMBOL(atari_mch_type);
+-EXPORT_SYMBOL(atari_hw_present);
+-EXPORT_SYMBOL(atari_switches);
+-EXPORT_SYMBOL(atari_dont_touch_floppy_select);
+-EXPORT_SYMBOL(atari_register_vme_int);
+-EXPORT_SYMBOL(atari_unregister_vme_int);
+-EXPORT_SYMBOL(stdma_lock);
+-EXPORT_SYMBOL(stdma_release);
+-EXPORT_SYMBOL(stdma_others_waiting);
+-EXPORT_SYMBOL(stdma_islocked);
+-EXPORT_SYMBOL(atari_stram_alloc);
+-EXPORT_SYMBOL(atari_stram_free);
+-
+-EXPORT_SYMBOL(atari_MFP_init_done);
+-EXPORT_SYMBOL(atari_SCC_init_done);
+-EXPORT_SYMBOL(atari_SCC_reset_done);
+-
+-EXPORT_SYMBOL(atari_microwire_cmd);
+diff -puN arch/m68k/atari/atasound.c~m68k-kill-arch-m68k-atari-atari_ksymsc arch/m68k/atari/atasound.c
+--- a/arch/m68k/atari/atasound.c~m68k-kill-arch-m68k-atari-atari_ksymsc
++++ a/arch/m68k/atari/atasound.c
+@@ -22,6 +22,7 @@
+ #include <linux/fcntl.h>
+ #include <linux/errno.h>
+ #include <linux/mm.h>
 +#include <linux/module.h>
-+
- #include <asm/page.h>
- #include <asm/amigahw.h>
  
- unsigned long amiga_chip_size;
-+EXPORT_SYMBOL(amiga_chip_size);
- 
- static struct resource chipram_res = {
-     .name = "Chip RAM", .start = CHIP_PHYSADDR
-@@ -67,6 +70,7 @@ void *amiga_chip_alloc(unsigned long siz
- #endif
-     return (void *)ZTWO_VADDR(res->start);
+ #include <asm/atarihw.h>
+ #include <asm/system.h>
+@@ -43,6 +44,7 @@ void atari_microwire_cmd (int cmd)
+ 	while( tt_microwire.mask != 0x7ff)
+ 		;
  }
-+EXPORT_SYMBOL(amiga_chip_alloc);
++EXPORT_SYMBOL(atari_microwire_cmd);
  
  
-     /*
-@@ -120,6 +124,7 @@ void amiga_chip_free(void *ptr)
-     }
-     printk("amiga_chip_free: trying to free nonexistent region at %p\n", ptr);
- }
-+EXPORT_SYMBOL(amiga_chip_free);
- 
- 
- unsigned long amiga_chip_avail(void)
-@@ -129,3 +134,5 @@ unsigned long amiga_chip_avail(void)
- #endif
- 	return chipavail;
- }
-+EXPORT_SYMBOL(amiga_chip_avail);
-+
-diff -puN arch/m68k/amiga/config.c~m68k-kill-arch-m68k-amiga-amiga_ksymsc arch/m68k/amiga/config.c
---- a/arch/m68k/amiga/config.c~m68k-kill-arch-m68k-amiga-amiga_ksymsc
-+++ a/arch/m68k/amiga/config.c
-@@ -23,6 +23,7 @@
+ /* PSG base frequency */
+diff -puN arch/m68k/atari/config.c~m68k-kill-arch-m68k-atari-atari_ksymsc arch/m68k/atari/config.c
+--- a/arch/m68k/atari/config.c~m68k-kill-arch-m68k-atari-atari_ksymsc
++++ a/arch/m68k/atari/config.c
+@@ -31,6 +31,7 @@
  #include <linux/delay.h>
- #include <linux/interrupt.h>
- #include <linux/zorro.h>
+ #include <linux/ioport.h>
+ #include <linux/vt_kern.h>
 +#include <linux/module.h>
  
  #include <asm/bootinfo.h>
  #include <asm/setup.h>
-@@ -36,13 +37,24 @@
+@@ -43,10 +44,20 @@
  #include <asm/io.h>
  
- unsigned long amiga_model;
-+EXPORT_SYMBOL(amiga_model);
+ u_long atari_mch_cookie;
++EXPORT_SYMBOL(atari_mch_cookie);
 +
- unsigned long amiga_eclock;
-+EXPORT_SYMBOL(amiga_eclock);
+ u_long atari_mch_type;
++EXPORT_SYMBOL(atari_mch_type);
 +
- unsigned long amiga_masterclock;
+ struct atari_hw_present atari_hw_present;
++EXPORT_SYMBOL(atari_hw_present);
 +
- unsigned long amiga_colorclock;
-+EXPORT_SYMBOL(amiga_colorclock);
+ u_long atari_switches;
++EXPORT_SYMBOL(atari_switches);
 +
- unsigned long amiga_chipset;
-+EXPORT_SYMBOL(amiga_chipset);
+ int atari_dont_touch_floppy_select;
++EXPORT_SYMBOL(atari_dont_touch_floppy_select);
 +
- unsigned char amiga_vblank;
- unsigned char amiga_psfreq;
-+
- struct amiga_hw_present amiga_hw_present;
-+EXPORT_SYMBOL(amiga_hw_present);
+ int atari_rtc_year_offset;
  
- static char s_a500[] __initdata = "A500";
- static char s_a500p[] __initdata = "A500+";
-diff -puN arch/m68k/amiga/pcmcia.c~m68k-kill-arch-m68k-amiga-amiga_ksymsc arch/m68k/amiga/pcmcia.c
---- a/arch/m68k/amiga/pcmcia.c~m68k-kill-arch-m68k-amiga-amiga_ksymsc
-+++ a/arch/m68k/amiga/pcmcia.c
-@@ -15,6 +15,8 @@
- #include <linux/types.h>
- #include <linux/jiffies.h>
- #include <linux/timer.h>
+ /* local function prototypes */
+diff -puN arch/m68k/atari/debug.c~m68k-kill-arch-m68k-atari-atari_ksymsc arch/m68k/atari/debug.c
+--- a/arch/m68k/atari/debug.c~m68k-kill-arch-m68k-atari-atari_ksymsc
++++ a/arch/m68k/atari/debug.c
+@@ -15,17 +15,23 @@
+ #include <linux/console.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
 +#include <linux/module.h>
+ 
+ #include <asm/atarihw.h>
+ #include <asm/atariints.h>
+ 
+ /* Flag that Modem1 port is already initialized and used */
+ int atari_MFP_init_done;
++EXPORT_SYMBOL(atari_MFP_init_done);
 +
- #include <asm/amigayle.h>
- #include <asm/amipcmcia.h>
- 
-@@ -30,6 +32,7 @@ void pcmcia_reset(void)
- 	while (time_before(jiffies, reset_start_time + 1*HZ/100));
- 	b = gayle_reset;
- }
-+EXPORT_SYMBOL(pcmcia_reset);
- 
- 
- /* copy a tuple, including tuple header. return nb bytes copied */
-@@ -61,6 +64,7 @@ int pcmcia_copy_tuple(unsigned char tupl
- 
- 	return 0;
- }
-+EXPORT_SYMBOL(pcmcia_copy_tuple);
- 
- void pcmcia_program_voltage(int voltage)
- {
-@@ -84,6 +88,7 @@ void pcmcia_program_voltage(int voltage)
- 	gayle.config = cfg_byte;
- 
- }
-+EXPORT_SYMBOL(pcmcia_program_voltage);
- 
- void pcmcia_access_speed(int speed)
- {
-@@ -101,13 +106,17 @@ void pcmcia_access_speed(int speed)
- 	cfg_byte = (cfg_byte & 0xf3) | s;
- 	gayle.config = cfg_byte;
- }
-+EXPORT_SYMBOL(pcmcia_access_speed);
- 
- void pcmcia_write_enable(void)
- {
- 	gayle.cardstatus = GAYLE_CS_WR|GAYLE_CS_DA;
- }
-+EXPORT_SYMBOL(pcmcia_write_enable);
- 
- void pcmcia_write_disable(void)
- {
- 	gayle.cardstatus = 0;
- }
-+EXPORT_SYMBOL(pcmcia_write_disable);
+ /* Flag that Modem1 port is already initialized and used */
+ int atari_SCC_init_done;
++EXPORT_SYMBOL(atari_SCC_init_done);
 +
+ /* Can be set somewhere, if a SCC master reset has already be done and should
+  * not be repeated; used by kgdb */
+ int atari_SCC_reset_done;
++EXPORT_SYMBOL(atari_SCC_reset_done);
+ 
+ static struct console atari_console_driver = {
+ 	.name	= "debug",
+diff -puN arch/m68k/atari/stdma.c~m68k-kill-arch-m68k-atari-atari_ksymsc arch/m68k/atari/stdma.c
+--- a/arch/m68k/atari/stdma.c~m68k-kill-arch-m68k-atari-atari_ksymsc
++++ a/arch/m68k/atari/stdma.c
+@@ -35,6 +35,7 @@
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+ #include <linux/wait.h>
++#include <linux/module.h>
+ 
+ #include <asm/atari_stdma.h>
+ #include <asm/atariints.h>
+@@ -91,6 +92,7 @@ void stdma_lock(irq_handler_t handler, v
+ 	stdma_isr_data = data;
+ 	local_irq_restore(flags);
+ }
++EXPORT_SYMBOL(stdma_lock);
+ 
+ 
+ /*
+@@ -117,6 +119,7 @@ void stdma_release(void)
+ 
+ 	local_irq_restore(flags);
+ }
++EXPORT_SYMBOL(stdma_release);
+ 
+ 
+ /*
+@@ -134,6 +137,7 @@ int stdma_others_waiting(void)
+ {
+ 	return waitqueue_active(&stdma_wait);
+ }
++EXPORT_SYMBOL(stdma_others_waiting);
+ 
+ 
+ /*
+@@ -155,6 +159,7 @@ int stdma_islocked(void)
+ {
+ 	return stdma_locked;
+ }
++EXPORT_SYMBOL(stdma_islocked);
+ 
+ 
+ /*
+diff -puN arch/m68k/atari/stram.c~m68k-kill-arch-m68k-atari-atari_ksymsc arch/m68k/atari/stram.c
+--- a/arch/m68k/atari/stram.c~m68k-kill-arch-m68k-atari-atari_ksymsc
++++ a/arch/m68k/atari/stram.c
+@@ -20,6 +20,7 @@
+ #include <linux/bootmem.h>
+ #include <linux/mount.h>
+ #include <linux/blkdev.h>
++#include <linux/module.h>
+ 
+ #include <asm/setup.h>
+ #include <asm/machdep.h>
+@@ -208,6 +209,7 @@ void *atari_stram_alloc(long size, const
+ 	}
+ 	return( addr );
+ }
++EXPORT_SYMBOL(atari_stram_alloc);
+ 
+ void atari_stram_free( void *addr )
+ 
+@@ -237,6 +239,7 @@ void atari_stram_free( void *addr )
+ 	printk( KERN_ERR "atari_stram_free: cannot free block at %p "
+ 			"(called from %p)\n", addr, __builtin_return_address(0) );
+ }
++EXPORT_SYMBOL(atari_stram_free);
+ 
+ 
+ /* ------------------------------------------------------------------------ */
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
