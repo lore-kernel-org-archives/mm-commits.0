@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + printkc-use-unsigned-ints-instead-of-longs-for-logbuf-index.patch added to -mm tree
-Date: Mon, 19 Nov 2007 22:31:10 -0800
-Message-ID: <200711200631.lAK6VA4u017903@imap1.linux-foundation.org>
+Subject: + tpm-device-driver-layer-tpmch-repost.patch added to -mm tree
+Date: Mon, 19 Nov 2007 22:37:52 -0800
+Message-ID: <200711200637.lAK6bqgT018173@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:39741 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:35249 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752811AbXKTGbN (ORCPT
+	by vger.kernel.org with ESMTP id S1754771AbXKTGiF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 01:31:13 -0500
+	Tue, 20 Nov 2007 01:38:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vda.linux@googlemail.com
+Cc: richard.musil@st.com, tpm@selhorst.net
 
 
 The patch titled
-     printk.c: use unsigned ints instead of longs for logbuf index
+     tpm.c: fix crash during device removal
 has been added to the -mm tree.  Its filename is
-     printkc-use-unsigned-ints-instead-of-longs-for-logbuf-index.patch
+     tpm-device-driver-layer-tpmch-repost.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,150 +26,141 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: printk.c: use unsigned ints instead of longs for logbuf index
-From: Denys Vlasenko <vda.linux@googlemail.com>
+Subject: tpm.c: fix crash during device removal
+From: Richard MUSIL <richard.musil@st.com>
 
-Stop using unsigned _longs_ for printk buffer indexes.  Log buffer is way
-smaller than 2 gigabytes and unsigned ints will work too .  Indeed, they do
-work nicely on all 32-bit platforms where longs and ints are the same.
+The clean up procedure now uses platform device "release" callback to
+handle memory clean up.  For this purpose "release" function callback was
+added to struct tpm_vendor_specific, so hw device driver provider can get
+called when it is safe to remove all allocated resources.
 
-With this patch, we have following size savings on amd64:
+This is supposed to fix a bug in device removal, where device while in
+receive function (waiting on timeout) was prone to segfault, if the
+tpm_chip struct was unallocated before the timeout expired (in
+tpm_remove_hardware).
 
-   text    data     bss     dec     hex filename
-   5997     313   17736   24046    5dee 2.6.23.1.t64/kernel/printk.o
-   5858     313   17700   23871    5d3f 2.6.23.1.printk.t64/kernel/printk.o
-
-Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
+Acked-by: Marcel Selhorst <tpm@selhorst.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |   36 ++++++++++++++++++------------------
- 1 file changed, 18 insertions(+), 18 deletions(-)
+ drivers/char/tpm/tpm.c |   46 ++++++++++++++++++++++++---------------
+ drivers/char/tpm/tpm.h |    2 +
+ 2 files changed, 31 insertions(+), 17 deletions(-)
 
-diff -puN kernel/printk.c~printkc-use-ints-instead-of-longs-for-logbuf-index kernel/printk.c
---- a/kernel/printk.c~printkc-use-ints-instead-of-longs-for-logbuf-index
-+++ a/kernel/printk.c
-@@ -86,16 +86,16 @@ static int console_locked, console_suspe
-  */
- static DEFINE_SPINLOCK(logbuf_lock);
+diff -puN drivers/char/tpm/tpm.c~tpm-device-driver-layer-tpmch-repost drivers/char/tpm/tpm.c
+--- a/drivers/char/tpm/tpm.c~tpm-device-driver-layer-tpmch-repost
++++ a/drivers/char/tpm/tpm.c
+@@ -1031,18 +1031,13 @@ void tpm_remove_hardware(struct device *
  
--#define LOG_BUF_MASK	(log_buf_len-1)
-+#define LOG_BUF_MASK (log_buf_len-1)
- #define LOG_BUF(idx) (log_buf[(idx) & LOG_BUF_MASK])
+ 	spin_unlock(&driver_lock);
  
- /*
-  * The indices into log_buf are not constrained to log_buf_len - they
-  * must be masked before subscripting
-  */
--static unsigned long log_start;	/* Index into log_buf: next char to be read by syslog() */
--static unsigned long con_start;	/* Index into log_buf: next char to be sent to consoles */
--static unsigned long log_end;	/* Index into log_buf: most-recently-written-char + 1 */
-+static unsigned log_start;	/* Index into log_buf: next char to be read by syslog() */
-+static unsigned con_start;	/* Index into log_buf: next char to be sent to consoles */
-+static unsigned log_end;	/* Index into log_buf: most-recently-written-char + 1 */
+-	dev_set_drvdata(dev, NULL);
+ 	misc_deregister(&chip->vendor.miscdev);
+-	kfree(chip->vendor.miscdev.name);
  
- /*
-  *	Array of consoles built from command line options (console=)
-@@ -121,17 +121,17 @@ static int console_may_schedule;
- static char __log_buf[__LOG_BUF_LEN];
- static char *log_buf = __log_buf;
- static int log_buf_len = __LOG_BUF_LEN;
--static unsigned long logged_chars; /* Number of chars produced since last read+clear operation */
-+static unsigned logged_chars; /* Number of chars produced since last read+clear operation */
+ 	sysfs_remove_group(&dev->kobj, chip->vendor.attr_group);
+ 	tpm_bios_log_teardown(chip->bios_dir);
  
- static int __init log_buf_len_setup(char *str)
- {
--	unsigned long size = memparse(str, &str);
-+	unsigned size = memparse(str, &str);
- 	unsigned long flags;
- 
- 	if (size)
- 		size = roundup_pow_of_two(size);
- 	if (size > log_buf_len) {
--		unsigned long start, dest_idx, offset;
-+		unsigned start, dest_idx, offset;
- 		char *new_log_buf;
- 
- 		new_log_buf = alloc_bootmem(size);
-@@ -288,7 +288,7 @@ int log_buf_read(int idx)
-  */
- int do_syslog(int type, char __user *buf, int len)
- {
--	unsigned long i, j, limit, count;
-+	unsigned i, j, limit, count;
- 	int do_clear = 0;
- 	char c;
- 	int error = 0;
-@@ -429,7 +429,7 @@ asmlinkage long sys_syslog(int type, cha
- /*
-  * Call the console drivers on a range of log_buf
-  */
--static void __call_console_drivers(unsigned long start, unsigned long end)
-+static void __call_console_drivers(unsigned start, unsigned end)
- {
- 	struct console *con;
- 
-@@ -456,8 +456,8 @@ __setup("ignore_loglevel", ignore_loglev
- /*
-  * Write out chars from start to end - 1 inclusive
-  */
--static void _call_console_drivers(unsigned long start,
--				unsigned long end, int msg_log_level)
-+static void _call_console_drivers(unsigned start,
-+				unsigned end, int msg_log_level)
- {
- 	if ((msg_log_level < console_loglevel || ignore_loglevel) &&
- 			console_drivers && start != end) {
-@@ -477,12 +477,12 @@ static void _call_console_drivers(unsign
-  * log_buf[start] to log_buf[end - 1].
-  * The console_sem must be held.
-  */
--static void call_console_drivers(unsigned long start, unsigned long end)
-+static void call_console_drivers(unsigned start, unsigned end)
- {
--	unsigned long cur_index, start_print;
-+	unsigned cur_index, start_print;
- 	static int msg_level = -1;
- 
--	BUG_ON(((long)(start - end)) > 0);
-+	BUG_ON(((int)(start - end)) > 0);
- 
- 	cur_index = start;
- 	start_print = start;
-@@ -760,7 +760,7 @@ asmlinkage long sys_syslog(int type, cha
- 	return -ENOSYS;
+-	clear_bit(chip->dev_num, dev_mask);
+-
+-	kfree(chip);
+-
+-	put_device(dev);
++	/* write it this way to be explicit (chip->dev == dev) */
++	put_device(chip->dev);
  }
+ EXPORT_SYMBOL_GPL(tpm_remove_hardware);
  
--static void call_console_drivers(unsigned long start, unsigned long end)
-+static void call_console_drivers(unsigned start, unsigned end)
- {
- }
+@@ -1083,6 +1078,28 @@ int tpm_pm_resume(struct device *dev)
+ EXPORT_SYMBOL_GPL(tpm_pm_resume);
  
-@@ -953,8 +953,8 @@ void wake_up_klogd(void)
- void release_console_sem(void)
- {
- 	unsigned long flags;
--	unsigned long _con_start, _log_end;
--	unsigned long wake_klogd = 0;
-+	unsigned _con_start, _log_end;
-+	unsigned wake_klogd = 0;
+ /*
++ * Once all references to platform device are down to 0,
++ * release all allocated structures.
++ * In case vendor provided release function,
++ * call it too.
++ */
++static void tpm_dev_release(struct device *dev)
++{
++	struct tpm_chip *chip = dev_get_drvdata(dev);
++	/* call vendor release, if defined */
++	if (chip->vendor.release)
++		chip->vendor.release(dev);
++
++	/* it *should* be: chip->release != NULL */
++	if (likely(chip->release))
++		chip->release(dev);
++
++	clear_bit(chip->dev_num, dev_mask);
++	kfree(chip->vendor.miscdev.name);
++	kfree(chip);
++}
++
++/*
+  * Called from tpm_<specific>.c probe function only for devices 
+  * the driver has determined it should claim.  Prior to calling
+  * this function the specific probe function has called pci_enable_device
+@@ -1136,23 +1153,21 @@ struct tpm_chip *tpm_register_hardware(s
  
- 	if (console_suspended) {
- 		up(&secondary_console_sem);
-@@ -1245,7 +1245,7 @@ void tty_write_message(struct tty_struct
- int __printk_ratelimit(int ratelimit_jiffies, int ratelimit_burst)
- {
- 	static DEFINE_SPINLOCK(ratelimit_lock);
--	static unsigned long toks = 10 * 5 * HZ;
-+	static unsigned toks = 10 * 5 * HZ;
- 	static unsigned long last_msg;
- 	static int missed;
- 	unsigned long flags;
+ 	chip->vendor.miscdev.parent = dev;
+ 	chip->dev = get_device(dev);
++	chip->release = dev->release;
++	dev->release = tpm_dev_release;
++	dev_set_drvdata(dev, chip);
+ 
+ 	if (misc_register(&chip->vendor.miscdev)) {
+ 		dev_err(chip->dev,
+ 			"unable to misc_register %s, minor %d\n",
+ 			chip->vendor.miscdev.name,
+ 			chip->vendor.miscdev.minor);
+-		put_device(dev);
+-		clear_bit(chip->dev_num, dev_mask);
+-		kfree(chip);
+-		kfree(devname);
++		put_device(chip->dev);
+ 		return NULL;
+ 	}
+ 
+ 	spin_lock(&driver_lock);
+ 
+-	dev_set_drvdata(dev, chip);
+-
+ 	list_add(&chip->list, &tpm_chip_list);
+ 
+ 	spin_unlock(&driver_lock);
+@@ -1160,10 +1175,7 @@ struct tpm_chip *tpm_register_hardware(s
+ 	if (sysfs_create_group(&dev->kobj, chip->vendor.attr_group)) {
+ 		list_del(&chip->list);
+ 		misc_deregister(&chip->vendor.miscdev);
+-		put_device(dev);
+-		clear_bit(chip->dev_num, dev_mask);
+-		kfree(chip);
+-		kfree(devname);
++		put_device(chip->dev);
+ 		return NULL;
+ 	}
+ 
+diff -puN drivers/char/tpm/tpm.h~tpm-device-driver-layer-tpmch-repost drivers/char/tpm/tpm.h
+--- a/drivers/char/tpm/tpm.h~tpm-device-driver-layer-tpmch-repost
++++ a/drivers/char/tpm/tpm.h
+@@ -74,6 +74,7 @@ struct tpm_vendor_specific {
+ 	int (*send) (struct tpm_chip *, u8 *, size_t);
+ 	void (*cancel) (struct tpm_chip *);
+ 	u8 (*status) (struct tpm_chip *);
++	void (*release) (struct device *);
+ 	struct miscdevice miscdev;
+ 	struct attribute_group *attr_group;
+ 	struct list_head list;
+@@ -106,6 +107,7 @@ struct tpm_chip {
+ 	struct dentry **bios_dir;
+ 
+ 	struct list_head list;
++	void (*release) (struct device *);
+ };
+ 
+ #define to_tpm_chip(n) container_of(n, struct tpm_chip, vendor)
 _
 
-Patches currently in -mm which might be from vda.linux@googlemail.com are
+Patches currently in -mm which might be from richard.musil@st.com are
 
-git-cryptodev.patch
-maps4-add-proportional-set-size-accounting-in-smaps.patch
-printk-trivial-optimizations.patch
-printkc-use-unsigned-ints-instead-of-longs-for-logbuf-index.patch
+tpm-device-driver-layer-tpmch-repost.patch
