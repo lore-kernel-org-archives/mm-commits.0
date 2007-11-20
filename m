@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-identify_cpu-fix.patch added to -mm tree
-Date: Tue, 20 Nov 2007 14:32:40 -0800
-Message-ID: <200711202239.lAKMdlGK027175@imap1.linux-foundation.org>
+Subject: + genericizing-iova-fix.patch added to -mm tree
+Date: Tue, 20 Nov 2007 14:53:17 -0800
+Message-ID: <200711202300.lAKN0Pkw028040@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp2.linux-foundation.org ([207.189.120.14]:56376 "EHLO
+Received: from smtp2.linux-foundation.org ([207.189.120.14]:34843 "EHLO
 	smtp2.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760994AbXKTWkw (ORCPT
+	by vger.kernel.org with ESMTP id S1751960AbXKTXAb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 20 Nov 2007 17:40:52 -0500
+	Tue, 20 Nov 2007 18:00:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, anil.s.keshavamurthy@intel.com, davem@davemloft.net
 
 
 The patch titled
-     git-x86-identify_cpu-fix
+     genericizing-iova-fix
 has been added to the -mm tree.  Its filename is
-     git-x86-identify_cpu-fix.patch
+     genericizing-iova-fix.patch
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
@@ -26,111 +26,45 @@ See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 ------------------------------------------------------
-Subject: git-x86-identify_cpu-fix
+Subject: genericizing-iova-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-nfi.  Might be due to bad reject fixings.
+drivers/pci/dmar.c: In function 'parse_dmar_table':
+drivers/pci/dmar.c:267: error: 'PAGE_SHIFT_4K' undeclared (first use in this function)
+drivers/pci/dmar.c:267: error: (Each undeclared identifier is reported only once
+drivers/pci/dmar.c:267: error: for each function it appears in.)
 
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup_64.c |   68 +----------------------------------
- 1 file changed, 2 insertions(+), 66 deletions(-)
+ drivers/pci/dmar.c        |    1 +
+ drivers/pci/intel-iommu.h |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN arch/x86/kernel/setup_64.c~git-x86-identify_cpu-fix arch/x86/kernel/setup_64.c
---- a/arch/x86/kernel/setup_64.c~git-x86-identify_cpu-fix
-+++ a/arch/x86/kernel/setup_64.c
-@@ -894,7 +894,7 @@ struct cpu_model_info {
-    below. */
- static void __cpuinit early_identify_cpu(struct cpuinfo_x86 *c)
- {
--	u32 tfms, xlvl;
-+	u32 tfms;
+diff -puN drivers/pci/dmar.c~genericizing-iova-fix drivers/pci/dmar.c
+--- a/drivers/pci/dmar.c~genericizing-iova-fix
++++ a/drivers/pci/dmar.c
+@@ -26,6 +26,7 @@
+ #include <linux/pci.h>
+ #include <linux/dmar.h>
+ #include "iova.h"
++#include "intel-iommu.h"
  
- 	c->loops_per_jiffy = loops_per_jiffy;
- 	c->x86_cache_size = -1;
-@@ -950,7 +950,7 @@ static void __cpuinit early_identify_cpu
- void __cpuinit identify_cpu(struct cpuinfo_x86 *c)
- {
- 	/* AMD-defined flags: level 0x80000001 */
--	xlvl = cpuid_eax(0x80000000);
-+	u32 xlvl = cpuid_eax(0x80000000);
- 	c->extended_cpuid_level = xlvl;
- 	if ((xlvl & 0xffff0000) == 0x80000000) {
- 		if (xlvl >= 0x80000001) {
-@@ -977,70 +977,6 @@ void __cpuinit identify_cpu(struct cpuin
+ #undef PREFIX
+ #define PREFIX "DMAR:"
+diff -puN drivers/pci/intel-iommu.h~genericizing-iova-fix drivers/pci/intel-iommu.h
+--- a/drivers/pci/intel-iommu.h~genericizing-iova-fix
++++ a/drivers/pci/intel-iommu.h
+@@ -23,6 +23,7 @@
  
- }
+ #include <linux/types.h>
+ #include <linux/msi.h>
++#include <linux/sysdev.h>
+ #include "iova.h"
+ #include <linux/io.h>
  
--/*
-- * This does the hard work of actually picking apart the CPU stuff...
-- */
--void __cpuinit identify_cpu(struct cpuinfo_x86 *c)
--{
--	int i;
--
--	early_identify_cpu(c);
--
--	init_scattered_cpuid_features(c);
--
--	c->apicid = phys_pkg_id(0);
--
--	/*
--	 * Vendor-specific initialization.  In this section we
--	 * canonicalize the feature flags, meaning if there are
--	 * features a certain CPU supports which CPUID doesn't
--	 * tell us, CPUID claiming incorrect flags, or other bugs,
--	 * we handle them here.
--	 *
--	 * At the end of this section, c->x86_capability better
--	 * indicate the features this CPU genuinely supports!
--	 */
--	switch (c->x86_vendor) {
--	case X86_VENDOR_AMD:
--		init_amd(c);
--		break;
--
--	case X86_VENDOR_INTEL:
--		init_intel(c);
--		break;
--
--	case X86_VENDOR_UNKNOWN:
--	default:
--		display_cacheinfo(c);
--		break;
--	}
--
--	select_idle_routine(c);
--	detect_ht(c); 
--
--	/*
--	 * On SMP, boot_cpu_data holds the common feature set between
--	 * all CPUs; so make sure that we indicate which features are
--	 * common between the CPUs.  The first time this routine gets
--	 * executed, c == &boot_cpu_data.
--	 */
--	if (c != &boot_cpu_data) {
--		/* AND the already accumulated flags with these */
--		for (i = 0 ; i < NCAPINTS ; i++)
--			boot_cpu_data.x86_capability[i] &= c->x86_capability[i];
--	}
--
--#ifdef CONFIG_X86_MCE
--	mcheck_init(c);
--#endif
--	if (c != &boot_cpu_data)
--		mtrr_ap_init();
--#ifdef CONFIG_NUMA
--	numa_add_cpu(smp_processor_id());
--#endif
--}
-- 
--
- void __cpuinit print_cpu_info(struct cpuinfo_x86 *c)
- {
- 	if (c->x86_model_id[0])
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -229,6 +163,7 @@ riscom8-fix-smp-brokenness-fix.patch
 use-macros-instead-of-task_-flags-checkpatch-fixes.patch
 sound-oss-pss-set_io_base-always-returns-success-mark-it-void-checkpatch-fixes.patch
 remove-warnings-for-longstanding-conditions-fix.patch
+genericizing-iova-fix.patch
 parallel-port-convert-port_mutex-to-the-mutex-api-checkpatch-fixes.patch
 remove-support-for-un-needed-_extratext-section-checkpatch-fixes.patch
 allow-auto-destruction-of-loop-devices-checkpatch-fixes.patch
